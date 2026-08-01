@@ -115,7 +115,7 @@ export function createPlanGuardMiddleware(
             details: {
               minPlan: 'protocol',
               currentPlan: plan,
-              upgradeUrl: '/pricing',
+              upgradeUrl: '/api#pricing',
             },
           }
         ),
@@ -170,7 +170,7 @@ export function createPlanGuardMiddleware(
               usedToday,
               dailyQuota: quota,
               minPlan,
-              upgradeUrl: '/pricing',
+              upgradeUrl: '/api#pricing',
             },
           }
         ),

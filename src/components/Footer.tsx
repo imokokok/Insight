@@ -20,7 +20,7 @@ export default function Footer() {
     { label: 'Oracle Directory', href: '/reputation' },
     { label: 'Daily Reports', href: '/reports' },
     { label: 'API', href: '/api' },
-    { label: 'Pricing', href: '/pricing' },
+    { label: 'Pricing', href: '/api#pricing' },
     { label: 'AI Agents', href: '/ai' },
   ];
 

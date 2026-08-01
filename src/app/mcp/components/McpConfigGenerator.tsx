@@ -90,7 +90,7 @@ export function McpConfigGenerator({ defaultApiKey }: McpConfigGeneratorProps) {
         <p className="mt-1 text-xs text-slate-500">
           The Free plan includes 1,000 calls/mo; some advanced tools (e.g. check_position_safety)
           require Pro or higher.{' '}
-          <Link href="/pricing" className="text-blue-600 hover:underline">
+          <Link href="/api#pricing" className="text-blue-600 hover:underline">
             See pricing →
           </Link>
         </p>

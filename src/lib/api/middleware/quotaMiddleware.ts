@@ -107,7 +107,7 @@ export function createQuotaMiddleware(
               used: effectiveUsed,
               limit,
               resetAt,
-              upgradeUrl: '/pricing',
+              upgradeUrl: '/api#pricing',
             },
           }
         ),

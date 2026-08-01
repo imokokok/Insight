@@ -187,7 +187,7 @@ export function AiPageContent() {
 
             <p className="text-sm text-slate-500 mb-6">
               MCP calls share your API quota · Free 1,000 calls/mo · Pro from 49 USDC/mo ·{' '}
-              <Link href="/pricing" className="text-blue-600 hover:underline">
+              <Link href="/api#pricing" className="text-blue-600 hover:underline">
                 See pricing
               </Link>
             </p>

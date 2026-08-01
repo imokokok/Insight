@@ -11,7 +11,6 @@ import {
   Anchor,
   Key,
   Bot,
-  CreditCard,
 } from 'lucide-react';
 
 import { oracleColors } from '@/lib/constants';
@@ -41,13 +40,6 @@ export const navigationConfig: NavStructure = [
         icon: ShieldCheck,
         description:
           'Calculate your personal position critical deviation and liquidation risk across protocols',
-      },
-      {
-        href: '/ai#safety-check',
-        label: 'Pre-Trade Safety Check',
-        icon: Bot,
-        description:
-          'AI-agent pre-trade oracle safety checkpoint — cross-oracle consensus, manipulation risk score and PASS/CAUTION/DANGER/BLOCK verdict',
       },
       {
         href: '/stablecoin-depeg',
@@ -102,11 +94,6 @@ export const navigationConfig: NavStructure = [
     href: '/api',
     label: 'API',
     icon: Key,
-  },
-  {
-    href: '/pricing',
-    label: 'Pricing',
-    icon: CreditCard,
   },
   {
     href: '/ai',

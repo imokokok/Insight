@@ -11,7 +11,7 @@ interface PricingCtaSectionProps {
   subtitle?: string;
   /** CTA button text. */
   buttonText?: string;
-  /** CTA button href. Defaults to /pricing. */
+  /** CTA button href. Defaults to /api#pricing. */
   href?: string;
   /** Extra classes for the outer <section>. */
   className?: string;
@@ -22,7 +22,7 @@ const DEFAULTS = {
   subtitle:
     'Free 1,000 calls/mo. Pro 49 USDC/mo. Protocol 499 USDC/mo. Annual plans include 2 months free. Crypto payments via NOWPayments.',
   buttonText: 'View Pricing',
-  href: '/pricing',
+  href: '/api#pricing',
   className: '',
 } as const;
 

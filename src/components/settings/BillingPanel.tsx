@@ -362,7 +362,7 @@ export function BillingPanel() {
 
             {!hasActiveSubscription && (
               <Button
-                onClick={() => router.push('/pricing')}
+                onClick={() => router.push('/api#pricing')}
                 variant="secondary"
                 leftIcon={<Zap className="w-4 h-4" />}
                 className="rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50"

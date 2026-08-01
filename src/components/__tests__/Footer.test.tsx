@@ -89,7 +89,7 @@ describe('Footer', () => {
       ['Oracle Directory', '/reputation'],
       ['Daily Reports', '/reports'],
       ['API', '/api'],
-      ['Pricing', '/pricing'],
+      ['Pricing', '/api#pricing'],
       ['AI Agents', '/ai'],
     ])('should render %s link', (label, href) => {
       renderFooter();

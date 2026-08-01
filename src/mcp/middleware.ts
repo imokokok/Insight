@@ -235,6 +235,6 @@ export function checkMcpPlanGuard(auth: McpAuthContext, toolName: string): McpPl
   const planName = PLANS[requiredTier].name;
   return {
     allowed: false,
-    reason: `Tool "${toolName}" requires the ${planName} plan or higher. Upgrade at /pricing.`,
+    reason: `Tool "${toolName}" requires the ${planName} plan or higher. Upgrade at /api#pricing.`,
   };
 }

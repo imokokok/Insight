@@ -399,7 +399,7 @@ export function ApiKeyManager({
           <p>
             Free tier: {topPlanConfig.monthlyQuota.toLocaleString()} calls/month,{' '}
             {topPlanConfig.rateLimit}/min. Need higher limits?{' '}
-            <Link href="/pricing" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link href="/api#pricing" className="text-blue-600 hover:text-blue-700 font-medium">
               Upgrade to Pro
             </Link>{' '}
             (49 USDC/mo) or{' '}

@@ -44,7 +44,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
 
     // If not logged in, send to register first — they can subscribe after auth.
     if (!accessToken) {
-      const redirect = encodeURIComponent(`/pricing`);
+      const redirect = encodeURIComponent(`/api#pricing`);
       router.push(`/register?redirect=${redirect}`);
       return;
     }

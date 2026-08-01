@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 import { ApiKeyManager } from '@/components/api-keys';
-import { PricingCtaSection } from '@/components/pricing';
+import { DataAccessTierMatrix, PricingSection } from '@/components/pricing';
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { Button } from '@/components/ui/Button';
 import { getAppUrl } from '@/lib/utils/appUrl';
@@ -448,15 +448,35 @@ function DocsCtaSection() {
   );
 }
 
+function PricingSectionBlock() {
+  return (
+    <>
+      <section id="pricing" className="py-16 sm:py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+              Simple, quota-based pricing
+            </h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              Free 1,000 calls/mo. Pro 49 USDC/mo. Protocol 499 USDC/mo. Annual plans include 2
+              months free. Crypto payments via NOWPayments.
+            </p>
+          </div>
+          <PricingSection showTrialBanner={false} />
+        </div>
+      </section>
+      <DataAccessTierMatrix />
+    </>
+  );
+}
+
 export function ApiPageContent() {
   return (
     <div className="min-h-screen bg-slate-50">
       <HeroSection />
       <FeaturesSection />
       <QuickStartSection />
-      {/* Pricing is now the single source of truth on /pricing; the API page only
-          teases it and links there to avoid duplicating content across tabs. */}
-      <PricingCtaSection />
+      <PricingSectionBlock />
       <KeyManagerSection />
       <FaqSection />
       <DocsCtaSection />
