@@ -12,8 +12,8 @@ name: Snapshot Collect
 #
 # Public repo → unlimited Actions minutes. 6 months of 15-min data is retained
 # by the price-snapshots-cleanup pg_cron job (migration 0023). This run also
-# keeps Supabase active (free tier pauses after 1 week of inactivity), making
-# the weekly keep-alive ping in feed-discovery.yml redundant.
+# keeps Supabase active (free tier pauses after 1 week of inactivity), which is
+# why the former weekly keep-alive ping in feed-discovery.yml was removed.
 
 on:
   schedule:

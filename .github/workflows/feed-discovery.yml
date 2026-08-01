@@ -88,20 +88,3 @@ jobs:
           fi
           echo "Syncing ${PROVIDER} in ${MODE} mode..."
           npx tsx scripts/sync-feeds.ts --mode="${MODE}" --provider="${PROVIDER}"
-
-  keep-supabase-alive:
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - name: Ping Supabase to prevent pausing
-        env:
-          SITE_URL: ${{ vars.SITE_URL || 'https://www.oracleinsight.xyz' }}
-        run: |
-          # Free tier Supabase pauses after 1 week of inactivity.
-          # This best-effort ping keeps it active.
-          BASE_URL="${SITE_URL%/}"
-          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 30 \
-            "${BASE_URL}/api/symbols" || true)
-          HTTP_CODE=$(printf '%s' "$RESPONSE" | tail -n1 | tr -d '[:space:]')
-          case "$HTTP_CODE" in ''|*[!0-9]*) HTTP_CODE="000" ;; esac
-          echo "Supabase keep-alive ping: HTTP ${HTTP_CODE}"
