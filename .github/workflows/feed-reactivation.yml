@@ -5,55 +5,37 @@ name: Feed Reactivation
 # upstream outages are often transient — without this pass a recovered feed
 # stays is_active=false until the next weekly discovery, silently dropping
 # coverage from the daily report. Runs every 12h so recovery latency is hours
-# not days, while keeping GitHub Actions footprint tiny (~30s curl/job × 2/day).
-# The job does NO checkout — it only curls the deployed endpoint — so each run
-# costs a single ubuntu boot + one HTTP call. Safe to run frequently: each
-# serverless pass is bounded (≤40 probes) and only feeds returning a valid
-# price are reactivated.
+# not days.
+#
+# Runs the `scripts/sync-feeds.ts` runner directly on GH Actions (no Vercel
+# curl) so the job is bound only by the probe budget (≤40 feeds × 6s), not by
+# Vercel's 60s serverless timeout. Delegates to the same `runFeedSync()` used
+# by the HTTP route, so behaviour is identical — only the executor changes.
 
 on:
   schedule:
-    # Every 12 hours at minute 15 (offset from the hourly daily-report cron
-    # at minute 0 so reactivation completes before the next snapshot).
+    # Every 12 hours at minute 15 (offset from the snapshot collector so
+    # reactivation completes before the next 15-min snapshot).
     - cron: '15 */12 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
 
-env:
-  SITE_URL: ${{ vars.SITE_URL || 'https://www.oracleinsight.xyz' }}
-  CRON_SECRET: ${{ secrets.CRON_SECRET }}
-
 jobs:
   reactivate-feeds:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Trigger feed reactivation
-        run: |
-          set -u
-          if [ -z "${CRON_SECRET}" ]; then
-            echo "::error::CRON_SECRET secret is not configured. Add it under Settings → Secrets and variables → Actions (must match the cron_secret stored in cron_config)."
-            exit 1
-          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
 
-          BASE_URL="${SITE_URL%/}"
-          echo "Triggering feed reactivation..."
-
-          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 90 \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${BASE_URL}/api/cron/sync-feeds?mode=reactivate" || true)
-
-          HTTP_CODE=$(printf '%s' "$RESPONSE" | tail -n1 | tr -d '[:space:]')
-          case "$HTTP_CODE" in ''|*[!0-9]*) HTTP_CODE="000" ;; esac
-          BODY=$(printf '%s' "$RESPONSE" | sed '$d')
-
-          echo "HTTP Status: ${HTTP_CODE}"
-          echo "Response: ${BODY}"
-
-          # Non-fatal: reactivation is a best-effort recovery pass. A failure
-          # here shouldn't page anyone — the next run will retry.
-          if [ "$HTTP_CODE" -ne 200 ]; then
-            echo "::warning::Feed reactivation failed: HTTP ${HTTP_CODE}"
-          fi
+      - name: Run feed reactivation
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/sync-feeds.ts --mode=reactivate

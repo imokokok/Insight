@@ -37,6 +37,12 @@ const VERIFY_TIMEOUT_MS = 10_000;
 // from months ago — are rejected during verification.
 const API3_PROBE_MAX_DATA_AGE_MS = 48 * 60 * 60 * 1000;
 
+/** Structured result returned by `runFeedSync` for both the HTTP route and the GH Actions script. */
+export interface FeedSyncResult {
+  status: number;
+  body: Record<string, unknown>;
+}
+
 /**
  * Probe-fetch a single feed to verify it can actually return a price.
  * Returns true if the feed successfully returns a valid price.
@@ -142,13 +148,12 @@ async function upsertDiscoveredFeeds(feeds: OracleFeedInsert[]): Promise<number>
 // without this pass a feed that recovers stays is_active=false forever,
 // silently dropping coverage from the daily report (e.g. DIA/redstone feeds
 // that failed during a brief API outage and never came back online).
-// Per-probe timeout and batch size are sized so the whole pass fits within
-// the sync-feeds route's 60s maxDuration: 40 feeds ÷ 8 concurrency × 6s
-// worst-case ≈ 30s, leaving ample buffer for the DB reads/writes. Feeds are
-// ordered by most-recent failure first, so 40/run is enough to catch every
-// freshly-deactivated feed in a single pass (deactivation is rare now that
-// health tracking records successes correctly). Older/permanently-dead feeds
-// are re-checked by the weekly discovery pass instead.
+// Per-probe timeout and batch size were originally sized for the sync-feeds
+// route's 60s maxDuration; now that this runs on GH Actions the 60s ceiling no
+// longer applies, but the bounds are kept conservative (40/run, 6s/probe) —
+// reactivation is rare and 40/run still catches every freshly-deactivated feed
+// in a single pass. Feeds are ordered by most-recent failure first; older /
+// permanently-dead feeds are re-checked by the weekly discovery pass.
 const REACTIVATE_TIMEOUT_MS = 6_000;
 const REACTIVATE_LIMIT = 40;
 
@@ -243,34 +248,36 @@ async function reactivateRecoveredFeeds(
   };
 }
 
-export async function GET(request: Request) {
-  const authResponse = verifyCronSecret(request);
-  if (authResponse) return authResponse;
-
+/**
+ * Core feed-sync pipeline, extracted from the GET handler so the same logic
+ * runs from the Vercel route AND the GitHub Actions `scripts/sync-feeds.ts`
+ * job. The GH Actions job escapes Vercel's 60s timeout — critical for
+ * `discover` mode, which probes many feeds per provider and previously got
+ * truncated mid-run on Vercel.
+ *
+ * @returns `{ status, body }` — the HTTP route wraps this in NextResponse;
+ *          the script reads `status` to decide its exit code.
+ */
+export async function runFeedSync(mode: string, provider: string): Promise<FeedSyncResult> {
   try {
-    const url = new URL(request.url);
-    const mode = url.searchParams.get('mode') || 'discover';
-    const provider = url.searchParams.get('provider') || '';
-
     if (provider && !SUPPORTED_PROVIDERS.includes(provider)) {
-      return NextResponse.json(
-        { error: `Unsupported provider. Supported: ${SUPPORTED_PROVIDERS.join(', ')}` },
-        { status: 400 }
-      );
+      return {
+        status: 400,
+        body: { error: `Unsupported provider. Supported: ${SUPPORTED_PROVIDERS.join(', ')}` },
+      };
     }
 
     switch (mode) {
       case 'seed': {
         // Initial seed from hardcoded data — one provider at a time
-        // Call with ?provider=chainlink, ?provider=redstone, etc.
         if (!provider) {
-          return NextResponse.json(
-            {
+          return {
+            status: 400,
+            body: {
               error:
-                'Seed mode requires ?provider= parameter (call once per provider to stay within 10s timeout)',
+                'Seed mode requires --provider (call once per provider to stay within 10s timeout)',
             },
-            { status: 400 }
-          );
+          };
         }
         const results = await feedSyncService.fullSync(provider);
         // Feed rows changed — drop the cross-provider aggregate cache so
@@ -284,20 +291,19 @@ export async function GET(request: Request) {
           deactivated: r.deactivated,
           errors: r.errors,
         }));
-        return NextResponse.json({ success: true, mode: 'seed', provider, results: summary });
+        return { status: 200, body: { success: true, mode: 'seed', provider, results: summary } };
       }
 
       case 'discover': {
         // Discover feeds from official APIs — one provider at a time
-        // Call with ?provider=chainlink, ?provider=redstone, etc.
         if (!provider) {
-          return NextResponse.json(
-            {
+          return {
+            status: 400,
+            body: {
               error:
-                'Discover mode requires ?provider= parameter (call once per provider to stay within 10s timeout)',
+                'Discover mode requires --provider (call once per provider to stay within 10s timeout)',
             },
-            { status: 400 }
-          );
+          };
         }
         const discovery = await feedDiscoveryService.discoverAll(provider);
         const discoveredFeeds = discovery[0]?.feeds || [];
@@ -372,7 +378,10 @@ export async function GET(request: Request) {
             errors: discovery[0]?.errors.length || 0,
           },
         ];
-        return NextResponse.json({ success: true, mode: 'discover', provider, results: summary });
+        return {
+          status: 200,
+          body: { success: true, mode: 'discover', provider, results: summary },
+        };
       }
 
       case 'registry': {
@@ -385,7 +394,7 @@ export async function GET(request: Request) {
           upserted: r.upserted,
           errors: r.errors,
         }));
-        return NextResponse.json({ success: true, mode: 'registry', results: summary });
+        return { status: 200, body: { success: true, mode: 'registry', results: summary } };
       }
 
       case 'verify': {
@@ -396,33 +405,50 @@ export async function GET(request: Request) {
           discovered: r.discovered,
           errors: r.errors,
         }));
-        return NextResponse.json({ success: true, mode: 'verify', results: summary });
+        return { status: 200, body: { success: true, mode: 'verify', results: summary } };
       }
 
       case 'reactivate': {
         // Re-probe deactivated feeds and revive those that have recovered.
-        // Optional ?provider= scopes the pass to one provider; omit it to run
+        // Optional --provider scopes the pass to one provider; omit it to run
         // across all providers (bounded by REACTIVATE_LIMIT, most-recent
         // failures first). Safe to run frequently — each probe is bounded and
         // only feeds returning a valid price are reactivated.
         const result = await reactivateRecoveredFeeds(provider || undefined);
         invalidateAllFeedsCache();
-        return NextResponse.json({
-          success: true,
-          mode: 'reactivate',
-          provider: provider || 'all',
-          results: [result],
-        });
+        return {
+          status: 200,
+          body: {
+            success: true,
+            mode: 'reactivate',
+            provider: provider || 'all',
+            results: [result],
+          },
+        };
       }
 
       default:
-        return NextResponse.json(
-          { error: `Unknown mode: ${mode}. Use: seed, discover, registry, verify, reactivate` },
-          { status: 400 }
-        );
+        return {
+          status: 400,
+          body: {
+            error: `Unknown mode: ${mode}. Use: seed, discover, registry, verify, reactivate`,
+          },
+        };
     }
   } catch (error) {
     logger.error('Feed sync failed', error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json({ success: false, error: 'Sync failed' }, { status: 500 });
+    return { status: 500, body: { success: false, error: 'Sync failed' } };
   }
+}
+
+export async function GET(request: Request) {
+  const authResponse = verifyCronSecret(request);
+  if (authResponse) return authResponse;
+
+  const url = new URL(request.url);
+  const mode = url.searchParams.get('mode') || 'discover';
+  const provider = url.searchParams.get('provider') || '';
+
+  const { status, body } = await runFeedSync(mode, provider);
+  return NextResponse.json(body, { status });
 }
