@@ -1,9 +1,20 @@
 name: Daily Report Hourly Snapshot
 
+# Manual-trigger fallback for the hourly price-snapshot collection.
+#
+# Scheduled collection has moved to `snapshot-collect.yml` (every 15 min),
+# which runs `scripts/collect-snapshot.ts` directly on GH Actions and
+# dual-writes both `hourly_price_snapshots` (upsert) and `price_snapshots`
+# (append). The 15-min collector's :00 run supersedes this hourly cron, so
+# the schedule is removed to avoid a redundant double-write at the top of
+# each hour.
+#
+# This workflow is retained as a `workflow_dispatch` fallback — it curls the
+# Vercel `/api/cron/daily-report` route (which calls the same `collectSnapshot()`
+# pipeline) so an operator can manually trigger a snapshot if the 15-min
+# collector is ever misconfigured or needs a one-off catch-up run.
+
 on:
-  schedule:
-    # Every hour at minute 0
-    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
