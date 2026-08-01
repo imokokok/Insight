@@ -104,7 +104,7 @@ export function HomeApiTeaser() {
             </h2>
 
             <p className="text-base text-slate-600 leading-relaxed mb-8">
-              One API for verified prices, hourly reliability snapshots, depeg alerts and
+              One API for verified prices, 15-minute reliability snapshots, depeg alerts and
               liquidation risk signals. Designed for DeFi protocols, indexers, and trading bots.
             </p>
 

@@ -55,7 +55,7 @@ export default function Footer() {
               <span className="text-white font-bold text-xl">Insight</span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed mb-6 max-w-xs">
-              Oracle transparency and risk infrastructure for DeFi. Hourly price verification,
+              Oracle transparency and risk infrastructure for DeFi. 15-minute price verification,
               cross-oracle comparison, position safety checks, and programmatic data access across
               10+ providers and 40+ blockchain networks.
             </p>

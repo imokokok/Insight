@@ -38,9 +38,9 @@ const FEATURES = [
   },
   {
     icon: Database,
-    title: 'Hourly Snapshots',
+    title: '15-Minute Snapshots',
     description:
-      'Reliability snapshots polled every hour — consensus price, per-provider deviation and latency, up to one year back.',
+      'Reliability snapshots polled every 15 minutes — consensus price, per-provider deviation and latency, up to one year back.',
   },
   {
     icon: Layers,
@@ -69,7 +69,7 @@ const FEATURES = [
     icon: Activity,
     title: 'Oracle Reliability',
     description:
-      'Hourly reputation scores, feed health, deviation events and shared-source dependency analysis.',
+      'Hourly reputation scores, 15-minute feed health, deviation events and shared-source dependency analysis.',
   },
   {
     icon: BarChart3,
@@ -161,7 +161,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How often is the data updated?',
-    a: 'Insight is an hourly reliability-assessment platform, not a real-time feed. Reliability metrics — reputation scores, per-provider deviation, latency and feed health — are recalculated every hour. Prices are fetched on demand (5-minute cache). Daily reports aggregate the day\u2019s deviation events and liquidation stress tests. Polling faster than hourly yields no fresher reliability data, so clients should cache accordingly.',
+    a: 'Insight collects price snapshots every 15 minutes and recalculates reputation scores hourly. Prices are also fetched on demand (5-minute cache). Daily reports aggregate the day\u2019s deviation events and liquidation stress tests. Polling faster than 15 minutes yields no fresher snapshot data, so clients should cache accordingly.',
   },
   {
     q: 'What happens if I exceed my quota?',
@@ -177,7 +177,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What are the rate limits?',
-    a: 'Free: 5 req/min, Pro: 30 req/min, Protocol: 60 req/min, Enterprise: custom. These are sized to the hourly data cadence — polling faster than hourly yields no fresher reliability data. Rate limit headers (X-RateLimit-*) are included in every response so you can implement client-side backoff.',
+    a: 'Free: 5 req/min, Pro: 30 req/min, Protocol: 60 req/min, Enterprise: custom. These are sized to the 15-minute data cadence — polling faster than 15 minutes yields no fresher snapshot data. Rate limit headers (X-RateLimit-*) are included in every response so you can implement client-side backoff.',
   },
   {
     q: 'Do you offer a free trial?',
@@ -232,7 +232,7 @@ function HeroSection() {
           </h1>
 
           <p className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8 max-w-2xl mx-auto">
-            Hourly oracle reliability assessment — reputation, deviation, depeg risk, liquidation
+            15-minute oracle reliability assessment — reputation, deviation, depeg risk, liquidation
             stress tests and anomaly detection across 10+ oracle providers and 40+ blockchain
             networks.
           </p>

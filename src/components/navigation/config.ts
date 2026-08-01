@@ -46,7 +46,7 @@ export const navigationConfig: NavStructure = [
         label: 'Stablecoin Depeg',
         icon: AlertTriangle,
         description:
-          'Hourly stablecoin depeg tracking with multi-oracle price deviation and protocol impact',
+          '15-minute stablecoin depeg tracking with multi-oracle price deviation and protocol impact',
       },
       {
         href: '/wrapped-assets',

@@ -5,14 +5,14 @@
  * this file — the API key creation, the quota middleware, the plan guard, the
  * pricing page, and the billing panel. Changing a limit here propagates everywhere.
  *
- * Positioning: Insight is NOT a real-time oracle tracker. It is an hourly
- * reliability-assessment platform — data is polled on an hourly cadence
- * (price snapshots, reputation recalculation, feed health) and aggregated
- * into daily reports. The quotas below are sized to that cadence: polling
- * faster than hourly yields no fresher data, so clients should cache on
- * their side. The previous quotas (10K / 100K / 1M per month) were sized
- * like a real-time market-data API and were neither sustainable for a solo
- * project on Supabase nor aligned with the actual data freshness.
+ * Positioning: Insight is NOT a real-time oracle tracker. It is a
+ * reliability-assessment platform — price snapshots are polled every 15
+ * minutes, reputation scores are recalculated hourly, and all data is
+ * aggregated into daily reports. The quotas below are sized to that cadence:
+ * polling faster than 15 minutes yields no fresher snapshot data, so clients
+ * should cache on their side. The previous quotas (10K / 100K / 1M per month)
+ * were sized like a real-time market-data API and were neither sustainable
+ * for a solo project on Supabase nor aligned with the actual data freshness.
  *
  * Pricing rationale (validated against 2026-07 market):
  *   - Pro 49 USDC/mo     : matches Moralis Starter, QuickNode Build (developer sweet spot)
@@ -28,7 +28,7 @@
 export const PLANS = {
   free: {
     name: 'Free',
-    rateLimit: 5, // requests per minute — hourly data, no need for fast polling
+    rateLimit: 5, // requests per minute — 15-min data, no need for fast polling
     monthlyQuota: 1_000, // requests per calendar month
     dailyTrialQuota: 5, // calls/day to Tier 2 deep-analysis endpoints for free users
     priceMonthly: 0,
@@ -53,7 +53,7 @@ export const PLANS = {
       '10,000 API calls / month',
       '30 requests / minute',
       'Full deep-analysis suite (deviation, correlation, latency, risk)',
-      'Historical hourly snapshots (1-year archive)',
+      'Historical 15-minute snapshots (1-year archive)',
       'Protocol risk parameters & position stress tests',
       'Anomaly detection (30-day window)',
       'Reliability rankings (30-day trend)',

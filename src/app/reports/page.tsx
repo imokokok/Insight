@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     'Daily summaries of oracle price performance, cross-provider deviations, and risk highlights across the Insight network.',
 };
 
-// Reports are historical and only update hourly; cache the rendered list.
+// Reports are historical and update as new snapshots arrive (every 15 min); cache the rendered list.
 export const revalidate = 300; // 5 minutes
 
 export default async function ReportsPage() {

@@ -7,14 +7,15 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('DailyReportSnapshot');
 
 /**
- * Hourly price-snapshot cron.
+ * Price-snapshot cron (manual fallback).
  *
  * The collection logic lives in `src/lib/reports/snapshotCollector.ts` so the
  * same pipeline runs from this Vercel route AND the GitHub Actions
  * `scripts/collect-snapshot.ts` job (which escapes Vercel's 60s timeout and
  * additionally writes the fine-grained `price_snapshots` table at 15-min
  * cadence). This route is retained as an HTTP fallback (manual trigger via
- * `workflow_dispatch`); scheduled collection has moved to GH Actions.
+ * `workflow_dispatch`); scheduled 15-min collection has moved to GH Actions
+ * (`snapshot-collect.yml`).
  */
 export async function GET(request: Request) {
   const authResponse = verifyCronSecret(request);

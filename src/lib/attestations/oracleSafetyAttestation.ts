@@ -27,7 +27,7 @@ const logger = createLogger('OracleSafetyAttestation');
 
 /** Schema version — bump when the EIP-712 type layout changes. */
 export const ATTESTATION_SCHEMA_VERSION = 1;
-/** How long an attestation is considered meaningful (oracle state is hourly). */
+/** How long an attestation is considered meaningful (oracle state updates every 15 min). */
 export const ATTESTATION_VALID_FOR_SECONDS = 600; // 10 min
 export const ATTESTER_LABEL = 'Insight Oracle Safety';
 

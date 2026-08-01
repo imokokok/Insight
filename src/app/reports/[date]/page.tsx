@@ -35,9 +35,9 @@ export async function generateMetadata({ params }: ReportDetailPageProps): Promi
   };
 }
 
-// Historical reports are immutable; today's report updates at most hourly.
-// Revalidate every hour — past dates will be served from the ISR cache.
-export const revalidate = 3600;
+// Historical reports are immutable; today's report updates as new snapshots arrive (every 15 min).
+// Revalidate every 15 minutes — past dates will be served from the ISR cache.
+export const revalidate = 900;
 
 export default async function ReportDetailPage({ params }: ReportDetailPageProps) {
   const { date } = await params;

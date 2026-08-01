@@ -1,10 +1,10 @@
 # Insight - Oracle Transparency & Risk Infrastructure
 
-Insight is an oracle transparency and risk infrastructure platform that serves both professional researchers and everyday DeFi users. It provides hourly price tracking, cross-oracle comparison, risk analysis, and position safety checks across 10 oracle providers and 40+ blockchain networks.
+Insight is an oracle transparency and risk infrastructure platform that serves both professional researchers and everyday DeFi users. It provides 15-minute price tracking, cross-oracle comparison, risk analysis, and position safety checks across 10 oracle providers and 40+ blockchain networks.
 
 **See through every oracle. Trust with clarity.**
 
-> Insight is **not** a real-time oracle tracker. Data is polled on an hourly cadence (price snapshots, reputation recalculation, feed health) and aggregated into daily reports. Polling faster than hourly yields no fresher data, so the API quotas are sized to that cadence.
+> Insight is **not** a real-time oracle tracker. Price snapshots are collected every 15 minutes; reputation scores and feed health are recalculated hourly. All data is aggregated into daily reports. The API quotas are sized to this cadence.
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 ### For DeFi Users
 
 - **Safety Check (Position Critical Deviation)** - Enter your DeFi lending position to calculate the exact oracle price deviation that would trigger liquidation. Supports multi-asset positions across Aave V3, Compound V3, Morpho Blue, Venus, and BENQI. Provides health factor gauge, safety buffer analysis, and oracle reliability warnings.
-- **Stablecoin Depeg Tracker** - Hourly tracking of USDC, USDT, DAI, and other stablecoins across oracle providers and chains. Detects depegs, tracks duration, maps affected lending protocols, and explains how collateral and borrow positions are impacted.
+- **Stablecoin Depeg Tracker** - 15-minute tracking of USDC, USDT, DAI, and other stablecoins across oracle providers and chains. Detects depegs, tracks duration, maps affected lending protocols, and explains how collateral and borrow positions are impacted.
 - **Wrapped Asset Peg Tracker** - Tracks WBTC, wstETH, cbETH, and other wrapped or liquid-staking tokens for deviations against their underlying assets. Includes on-chain LST exchange rates, cross-source deviation analysis, and protocol impact mapping.
 - **Price Query** - Query current prices from any oracle provider with a simple interface. View on-chain data, confidence intervals, and price freshness at a glance.
 
@@ -157,7 +157,7 @@ Endpoints are grouped into 4 access tiers. Free users get a limited daily trial 
 | ---- | --------------------- | ------------------------------------------------------------------------------------------------- | ------------------------ |
 | 0    | Public Metadata       | Health check, symbols, providers, active feeds                                                    | None                     |
 | 1    | Reliability Snapshots | Current prices, reputation rankings, daily reports                                                | Any (incl. Free)         |
-| 2    | Deep Analysis         | Deviation, correlation, latency, anomaly signals, hourly snapshots, price history, feed freshness | Pro+ (Free: 5/day trial) |
+| 2    | Deep Analysis         | Deviation, correlation, latency, anomaly signals, 15-min snapshots, price history, feed freshness | Pro+ (Free: 5/day trial) |
 | 3    | Protocol Intelligence | Oracle exposure, cross-chain spreads, incident timeline, coverage analysis                        | Protocol+                |
 
 Reputation trend history is also tiered: Free 7 days, Pro 30 days, Protocol/Enterprise 90 days.
@@ -171,7 +171,7 @@ Reputation trend history is also tiered: Free 7 days, Pro 30 days, Protocol/Ente
 | Protocol   | 60 req/min | 100,000       | $499/mo       |
 | Enterprise | Unlimited  | Unlimited     | Contact sales |
 
-See `src/lib/billing/plans.ts` for the single source of truth. Quotas align with the hourly data cadence noted above.
+See `src/lib/billing/plans.ts` for the single source of truth. Quotas align with the 15-minute data cadence noted above.
 
 ## API Endpoints
 

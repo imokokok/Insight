@@ -81,8 +81,8 @@ const highlights = [
   },
   {
     icon: Clock,
-    label: 'Hourly',
-    description: 'Hourly aggregation with on-demand price verification',
+    label: '15-Min',
+    description: '15-minute snapshots with on-demand price verification',
   },
   {
     icon: ShieldCheck,

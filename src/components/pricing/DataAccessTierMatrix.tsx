@@ -65,7 +65,7 @@ const accessGroups: AccessGroup[] = [
   },
   {
     tierLabel: 'Tier 1 · Reliability Snapshots',
-    tierDescription: 'Free plan — hourly reliability assessment essentials',
+    tierDescription: 'Free plan — 15-minute reliability assessment essentials',
     tierBadge: 'bg-blue-100 text-blue-700',
     tierIcon: <Zap className="w-4 h-4" />,
     rows: [
@@ -110,7 +110,7 @@ const accessGroups: AccessGroup[] = [
         protocol: true,
       },
       {
-        label: 'Historical hourly snapshots (1-year archive)',
+        label: 'Historical snapshots (1-year archive, 15-min grain)',
         free: false,
         pro: true,
         protocol: true,
@@ -213,9 +213,9 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
             Data access by tier
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Four tiers of data, sized to an hourly reliability cadence. Free covers the essentials;
-            Pro unlocks the deep-analysis suite; Protocol adds premium intelligence for risk
-            committees.
+            Four tiers of data, sized to a 15-minute reliability cadence. Free covers the
+            essentials; Pro unlocks the deep-analysis suite; Protocol adds premium intelligence for
+            risk committees.
           </p>
         </div>
 

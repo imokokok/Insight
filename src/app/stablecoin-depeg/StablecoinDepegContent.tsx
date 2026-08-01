@@ -20,7 +20,7 @@ export default function StablecoinDepegContent({
     <RiskTrackerLayout
       page="stablecoin"
       title="Stablecoin Depeg Tracker"
-      description="Hourly tracking of USDC, USDT, DAI and other major stablecoins across oracle providers and chains, mapped to DeFi protocols that accept them as collateral or borrow assets."
+      description="15-minute tracking of USDC, USDT, DAI and other major stablecoins across oracle providers and chains, mapped to DeFi protocols that accept them as collateral or borrow assets."
       apiEndpoint="/api/stablecoin-depeg"
       thresholds={STABLECOIN_RISK_THRESHOLDS}
       heroIcon={<ShieldAlert className="w-7 h-7" />}

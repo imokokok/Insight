@@ -50,7 +50,7 @@ export interface SafetyBufferAnalysis {
   theoreticalBufferPercent: number;
   // Average oracle deviation from consensus across providers used by this position
   oracleAvgDeviationPercent: number;
-  // Live depeg/peg risk from hourly stablecoin and wrapped asset tracking
+  // Live depeg/peg risk from 15-minute stablecoin and wrapped asset tracking
   liveDepegRiskPercent: number;
   // Per-asset breakdown of live deviations (symbol → absolute deviation %)
   liveDepegBreakdown: Record<string, number>;

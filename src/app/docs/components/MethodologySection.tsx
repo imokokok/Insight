@@ -154,9 +154,9 @@ export default function MethodologySection() {
             </h2>
           </div>
           <p className="text-slate-600 leading-relaxed max-w-3xl">
-            Insight combines hourly oracle data with rigorous validation, multi-algorithm consensus,
-            and a 7-day rolling reputation framework to produce reliable cross-provider price
-            intelligence.
+            Insight combines 15-minute oracle data with rigorous validation, multi-algorithm
+            consensus, and a 7-day rolling reputation framework to produce reliable cross-provider
+            price intelligence.
           </p>
         </motion.div>
 

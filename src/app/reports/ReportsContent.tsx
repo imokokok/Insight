@@ -100,7 +100,7 @@ function Header({
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-8">
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-[11px] font-semibold uppercase tracking-wider mb-3">
-            Hourly Reliability Summaries
+            Reliability Summaries
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-2">
             Daily Oracle Reports
@@ -284,7 +284,7 @@ function ReportsContentInner({ initialReports }: { initialReports: ReportSummary
             <EmptyStateEnhanced
               type="new"
               title="No reports yet"
-              description="Daily reports will appear here once the scheduled hourly snapshot collection begins."
+              description="Daily reports will appear here once the scheduled snapshot collection begins."
               size="md"
               variant="card"
             />

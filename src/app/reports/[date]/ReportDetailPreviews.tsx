@@ -168,7 +168,7 @@ export function DeviationEventsPreview({ report }: { report: DailyReportData }) 
         <div>
           <p className="text-sm font-medium">No significant deviations recorded</p>
           <p className="text-xs text-emerald-600/80 mt-0.5">
-            Oracle prices stayed close to consensus across all hourly snapshots.
+            Oracle prices stayed close to consensus across all 15-minute snapshots.
           </p>
         </div>
       </div>

@@ -61,6 +61,11 @@ const layers = [
 const tables = [
   { name: 'price_records', purpose: 'Raw and normalized prices with TTL' },
   { name: 'oracle_feeds', purpose: 'Active feed metadata per provider + chain' },
+  { name: 'hourly_price_snapshots', purpose: 'Hourly-grain snapshots (upsert, 6-month retention)' },
+  {
+    name: 'price_snapshots',
+    purpose: '15-min-grain snapshots for ML / anomaly detection (6-month retention)',
+  },
   { name: 'reputation_history', purpose: 'Per-fetch samples for scoring' },
   { name: 'oracle_reputation', purpose: 'Aggregated 7-day provider scores' },
   { name: 'price_alerts', purpose: 'User alert configurations' },
@@ -70,23 +75,50 @@ const tables = [
 ];
 
 const cronJobs = [
-  { name: 'sync-feeds', schedule: 'Hourly', purpose: 'Refresh active oracle feed metadata' },
+  {
+    name: 'snapshot-collect',
+    schedule: '15 min',
+    purpose: 'Collect price snapshots from all oracle feeds (dual-writes hourly + 15-min tables)',
+  },
   {
     name: 'reputation',
     schedule: 'Hourly',
-    purpose: 'Sample prices across top symbols and recompute 7-day rolling scores',
+    purpose: 'Recompute 7-day rolling reputation scores (Supabase pg_cron)',
   },
-  { name: 'protocol-metrics', schedule: 'Hourly', purpose: 'Update protocol health metrics' },
-  { name: 'daily-report', schedule: 'Daily', purpose: 'Generate the daily market report' },
+  {
+    name: 'safety-outcome',
+    schedule: '2 hours',
+    purpose: 'Backfill outcome labels for pre-trade safety checks',
+  },
+  {
+    name: 'protocol-metrics (tvl)',
+    schedule: '4 hours',
+    purpose: 'Sync protocol TVL from DefiLlama',
+  },
+  {
+    name: 'protocol-metrics (risk-params)',
+    schedule: '6 hours',
+    purpose: 'Sync per-asset risk parameters from lending protocols',
+  },
+  {
+    name: 'feed-reactivation',
+    schedule: '12 hours',
+    purpose: 'Re-probe deactivated feeds and revive recovered ones',
+  },
   {
     name: 'daily-report/publish',
     schedule: 'Daily',
-    purpose: 'Publish the generated daily report',
+    purpose: 'Generate and persist the daily report',
   },
   {
     name: 'billing',
-    schedule: 'Mixed',
-    purpose: 'Subscription lifecycle: key deactivation, rate-limit cleanup, usage cleanup',
+    schedule: 'Daily',
+    purpose: 'Subscription lifecycle: trial/sub expiry, quota reset, zombie cleanup',
+  },
+  {
+    name: 'feed-discovery',
+    schedule: 'Weekly',
+    purpose: 'Discover new oracle feeds from each provider\u2019s official API',
   },
 ];
 
@@ -183,7 +215,7 @@ export default function ArchitectureSection() {
             </h2>
           </div>
           <p className="text-slate-600 leading-relaxed max-w-3xl">
-            Insight is a full-stack oracle analytics platform built for reliability, hourly
+            Insight is a full-stack oracle analytics platform built for reliability, 15-minute
             assessment, and multi-provider comparison across blockchains.
           </p>
         </motion.div>

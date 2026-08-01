@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Insight API — Oracle Reliability for DeFi',
   description:
-    'Hourly oracle reliability assessment: cross-provider reputation, deviation, depeg risk, liquidation stress tests and anomaly detection via REST API. Free 1,000 calls/mo.',
+    '15-minute oracle reliability assessment: cross-provider reputation, deviation, depeg risk, liquidation stress tests and anomaly detection via REST API. Free 1,000 calls/mo.',
   keywords: [
     'oracle API',
     'DeFi API',
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Insight API — Oracle Reliability for DeFi',
     description:
-      'Hourly reliability assessment across 11+ oracle providers and 40+ chains — reputation, deviation, depeg and liquidation risk.',
+      '15-minute reliability assessment across 11+ oracle providers and 40+ chains — reputation, deviation, depeg and liquidation risk.',
     type: 'website',
   },
 };

@@ -414,7 +414,7 @@ export function generateRiskImpacts(
         protocols.length > 0
           ? protocols.map((p) => `${p.name} (${p.chain})`)
           : [`Users relying on ${failure.provider} for ${failure.symbol}/USD pricing`],
-      description: `${failure.provider} failed ${failure.failureCount} hourly snapshot(s) for ${failure.symbol}${failure.topError ? ` (${failure.topError})` : ''}. Any protocol using this feed as its primary oracle may stall liquidations, misprice collateral, or temporarily freeze borrowing.`,
+      description: `${failure.provider} failed ${failure.failureCount} snapshot(s) for ${failure.symbol}${failure.topError ? ` (${failure.topError})` : ''}. Any protocol using this feed as its primary oracle may stall liquidations, misprice collateral, or temporarily freeze borrowing.`,
       relatedAssets: [failure.symbol],
       relatedProviders: [failure.provider],
     });
@@ -782,7 +782,7 @@ export function generateSummary(
   });
 
   const parts: string[] = [
-    `On ${dateLabel}, Insight tracked ${metrics.activeAssets} assets across ${metrics.activeProviders} oracle providers, capturing ${metrics.totalSnapshots} hourly price snapshots over ${metrics.activeHours} active hourly window${metrics.activeHours > 1 ? 's' : ''}.`,
+    `On ${dateLabel}, Insight tracked ${metrics.activeAssets} assets across ${metrics.activeProviders} oracle providers, capturing ${metrics.totalSnapshots} price snapshots over ${metrics.activeHours} active hourly window${metrics.activeHours > 1 ? 's' : ''}.`,
   ];
 
   if (riskImpacts.length > 0) {

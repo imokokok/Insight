@@ -20,7 +20,7 @@ const planHighlights: Record<string, string[]> = {
   pro: [
     '10,000 API calls / month',
     'Deviation, correlation & divergence',
-    'Historical hourly snapshots',
+    'Historical 15-minute snapshots',
     'CSV / Excel export',
   ],
   protocol: [

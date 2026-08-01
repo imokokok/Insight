@@ -42,7 +42,7 @@ const features: Feature[] = [
     icon: <AlertTriangle className="w-6 h-6" />,
     title: 'Stablecoin Depeg Tracker',
     description:
-      'Hourly stablecoin depeg tracking across oracle providers and chains with protocol impact analysis.',
+      '15-minute stablecoin depeg tracking across oracle providers and chains with protocol impact analysis.',
     href: '/stablecoin-depeg',
     highlights: [
       'Multi-oracle consensus price and deviation tracking',

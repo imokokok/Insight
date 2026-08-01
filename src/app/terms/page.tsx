@@ -33,7 +33,7 @@ export default function TermsPage() {
                 Insight is an oracle data analytics platform that provides:
               </p>
               <ul className="list-disc list-inside text-slate-700 space-y-2 ml-4">
-                <li>Hourly price tracking from multiple oracle providers</li>
+                <li>15-minute price tracking from multiple oracle providers</li>
                 <li>Cross-oracle price comparison and analysis</li>
                 <li>Cross-chain performance analysis</li>
                 <li>Data export functionality (CSV, JSON, Excel, PDF, PNG)</li>

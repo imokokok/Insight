@@ -280,7 +280,7 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
           {/* Footer note */}
           <footer className="mt-10 pt-6 border-t border-gray-200">
             <p className="text-xs text-gray-500 leading-relaxed">
-              Generated automatically by Insight from hourly cross-oracle snapshots collected
+              Generated automatically by Insight from 15-minute cross-oracle snapshots collected
               throughout the day. Data is collected from public oracle feeds and may not represent
               full intraday price history. For current data, visit the{' '}
               <Link

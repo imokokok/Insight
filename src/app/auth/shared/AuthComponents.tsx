@@ -41,7 +41,7 @@ export function AuthPageLayout({
             </blockquote>
             <p className="text-slate-400 leading-relaxed max-w-sm">
               Monitor cross-oracle consensus, detect price divergence, and stress-test positions
-              with hourly reliability data.
+              with 15-minute reliability data.
             </p>
           </div>
 
