@@ -1,6 +1,10 @@
-import { buildSnapshotInputs, buildFeedHealthUpdates, type BatchResultItem } from '../route';
+import {
+  buildSnapshotInputs,
+  buildFeedHealthUpdates,
+  type BatchResultItem,
+} from '@/lib/reports/snapshotCollector';
 
-// --- Mocks: the route file pulls in the full oracle/DB stack at import
+// --- Mocks: snapshotCollector pulls in the full oracle/DB stack at import
 // time. `buildSnapshotInputs` itself is pure, but we must stub these so the
 // module loads without side effects and the test stays fast/isolated. ------
 
