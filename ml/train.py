@@ -1,24 +1,31 @@
 #!/usr/bin/env python3
 """
-Insight oracle-risk ML trainer (Phase 2, v1).
+Insight oracle-risk ML trainer (Phase 2, v2 — dual-horizon + enriched features).
 
-Mines hourly_price_snapshots into labeled training examples, trains an XGBoost
-binary classifier, and exports a self-verifying JSON model that the Next.js app
+Mines hourly_price_snapshots into labeled training examples, trains XGBoost
+binary classifiers, and exports a self-verifying JSON model that the Next.js app
 scores in pure TypeScript (no Python runtime in prod).
 
+DUAL HORIZON: trains TWO models — a near-term 1h model (more actionable for live
+trades) and a 6h model (the existing strategic horizon). The TS scorer exposes
+both; the pre-trade check takes the worse (max) so either horizon flagging risk
+raises the manipulationRiskScore. If the 1h split has too few positives, only
+the 6h model is exported (the 1h horizon is set to null — graceful degradation).
+
 Prediction task: given the cross-oracle state for an asset at hour T, will an
-abnormal event follow in the next 6h? (abnormal = consensus price moves >=5%
-OR cross-oracle deviation spikes >=8% — the SAME label definition as the
+abnormal event follow in the next H hours? (abnormal = consensus price moves
+>=5% OR cross-oracle deviation spikes >=8% — the SAME label definition as the
 safetyOutcomeService backfill, so mined and flywheel labels are consistent.)
 
-Feature definitions are EXACTLY mirrored by src/lib/ml/inference.ts:
-  max_deviation_pct         max |deviation_pct| over providers   (pre-trade: maxDeviationPct)
-  cross_provider_spread_pct (max-min)/midrange*100               (pre-trade: spreadPct)
-  participant_count         number of successful providers       (pre-trade: participantCount)
-  stale                     1 if any provider data_age_seconds>=60 else 0  (pre-trade: staleDataRisk)
-  mean_deviation_pct        mean |deviation_pct| over providers  (pre-trade: meanDeviationPct)
-  stale_ratio               fraction of providers with data_age_seconds>=60 (pre-trade: staleRatio)
-  deviation_velocity_1h     max_deviation_pct(T) - max_deviation_pct(T-1)   (pre-trade: deviationVelocity1h)
+ENRICHED FEATURES (11, was 7): the original 7 plus
+  rolling_volatility_6h       rolling std of 1h consensus returns, 6h window
+  deviation_velocity_3h       max_dev(T) - max_dev(T-3h)  (longer-term trend)
+  participant_count_delta_1h providers online now vs 1h ago (drops = risk)
+  max_deviation_zscore_24h   how anomalous is current dev vs 24h baseline
+
+Feature definitions are EXACTLY mirrored by src/lib/ml/inference.ts (see
+FEATURE_NAMES below and featuresFromPreTrade there). The TS scorer maps by NAME,
+so a v1 model (7 features) and a v2 model (11) both score correctly.
 
 Runs offline (GitHub Actions runner every 3 days, or locally). Not in the app
 hot path. Gracefully writes a null model when there is too little data.
@@ -27,6 +34,8 @@ Env:
   SUPABASE_URL            e.g. https://<ref>.supabase.co
   SUPABASE_SERVICE_ROLE_KEY   service-role key (read access to hourly_price_snapshots)
 """
+
+from __future__ import annotations
 
 import json
 import os
@@ -40,18 +49,18 @@ import xgboost as xgb
 from sklearn.metrics import roc_auc_score, precision_score, recall_score
 
 # --- Config (mirrors safetyOutcomeService.OUTCOME_THRESHOLDS) ----------------
-EVAL_WINDOW_HOURS = 6
+HORIZONS = [1, 6]  # hours ahead to predict (1h near-term + 6h strategic)
 PRICE_MOVE_PCT = 5.0
 DEVIATION_PCT = 8.0
 STALE_SECONDS = 60  # mirrors THRESHOLDS.dataStaleSeconds.caution
 
 MIN_TOTAL = 500
-MIN_POSITIVES = 15
+MIN_POSITIVES = 15  # per horizon; below this the horizon is skipped
 
 # Only train on the last LOOKBACK_WEEKS of snapshots. Enough for the 6h
-# eval-window labeling plus a healthy train/test split, while BOUNDING the read
-# from Supabase so the per-run load stays flat as the table grows (instead of
-# reading the entire history every 3 days).
+# eval-window labeling + the 24h rolling z-score feature plus a healthy train/
+# test split, while BOUNDING the read from Supabase so the per-run load stays
+# flat as the table grows.
 LOOKBACK_WEEKS = 8
 
 FEATURE_NAMES = [
@@ -62,6 +71,11 @@ FEATURE_NAMES = [
     "mean_deviation_pct",
     "stale_ratio",
     "deviation_velocity_1h",
+    # --- v2 enriched features ---
+    "rolling_volatility_6h",       # rolling std of 1h consensus returns (6h)
+    "deviation_velocity_3h",       # max_dev(T) - max_dev(T-3h)
+    "participant_count_delta_1h",  # participant_count(T) - participant_count(T-1)
+    "max_deviation_zscore_24h",    # (dev - mean24) / std24
 ]
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "oracle_risk_model.json")
@@ -70,11 +84,8 @@ VERIFICATION_TOLERANCE = 0.01
 PAGE_SIZE = 1000
 
 # XGBoost params: small + CPU-friendly. base_score=0.5 => logit bias = 0.
-# early_stopping_rounds stops training when AUC on the held-out eval_set stops
-# improving, preventing overfitting on the small positive class. scale_pos_weight
-# is set dynamically in main() from the train-split class balance to counter the
-# heavy class imbalance (positives are ~1% of rows) — without it the model
-# defaults to near-zero recall.
+# See ml/requirements.txt: pinned to xgboost 2.x because 3.0 changes GLM
+# base_score init and breaks the pure-TS inference contract (logit bias = 0).
 XGB_PARAMS = dict(
     n_estimators=120,
     max_depth=4,
@@ -148,12 +159,12 @@ def fetch_rows(base_url: str, service_key: str) -> pd.DataFrame:
     return df
 
 
-def build_dataset(df: pd.DataFrame) -> pd.DataFrame:
-    """Turn raw rows into one labeled example per (symbol, hour) with future data.
+def build_hourly_frame(df: pd.DataFrame) -> pd.DataFrame:
+    """Turn raw rows into one row per (symbol, hour) with all 11 features.
 
     Quality gate: a (symbol, hour) needs >= 2 successful providers to produce a
-    meaningful cross-provider spread/deviation — single-provider rows are dropped
-    before labeling so they neither train nor label on degenerate inputs.
+    meaningful cross-provider spread/deviation — single-provider rows are
+    dropped before labeling so they neither train nor label on degenerate inputs.
     """
     g = df.groupby(["symbol", "snapshot_hour"], sort=True)
     hourly = pd.DataFrame(
@@ -178,47 +189,68 @@ def build_dataset(df: pd.DataFrame) -> pd.DataFrame:
     # Quality gate: drop degenerate single-provider hours.
     hourly = hourly[hourly["participant_count"] >= 2].reset_index(drop=True)
     hourly = hourly.sort_values(["symbol", "snapshot_hour"]).reset_index(drop=True)
-    # Temporal feature: 1h change in max deviation, per symbol. The first row of
-    # each symbol has no predecessor -> velocity 0. Gaps (missing hours) yield a
-    # multi-hour delta, which is acceptable and matches inference semantics
-    # (live now vs most-recent snapshot hour).
-    hourly["deviation_velocity_1h"] = (
-        hourly.groupby("symbol")["max_deviation_pct"].diff().fillna(0.0)
-    )
 
-    features, labels, hours = [], [], []
+    # --- Temporal features, computed WITHIN each symbol (no cross-symbol leak).
+    # First row of each symbol has no predecessor -> velocity 0. Gaps (missing
+    # hours) yield a multi-hour delta, acceptable and matching inference semantics.
+    # .transform() returns a Series aligned to the frame index, so per-group
+    # rolling results assign cleanly without MultiIndex reindex errors.
+    grp = hourly.groupby("symbol", sort=False)
+    hourly["deviation_velocity_1h"] = grp["max_deviation_pct"].diff().fillna(0.0)
+    hourly["deviation_velocity_3h"] = grp["max_deviation_pct"].diff(3).fillna(0.0)
+    hourly["participant_count_delta_1h"] = grp["participant_count"].diff().fillna(0)
+    # Rolling 6h volatility of 1h consensus returns (std of pct-change, %).
+    # min_periods=2 so early rows still get a value rather than NaN.
+    hourly["rolling_volatility_6h"] = (
+        grp["consensus"]
+        .transform(lambda s: s.pct_change().rolling(6, min_periods=2).std())
+        .fillna(0.0)
+        .clip(lower=0)
+        * 100.0
+    )
+    # 24h z-score of max deviation: how anomalous is NOW vs the recent baseline.
+    # std==0 (flat history) -> replace with NaN -> z=0 (not anomalous), no div-by-0.
+    hourly["max_deviation_zscore_24h"] = grp["max_deviation_pct"].transform(
+        lambda s: (s - s.rolling(24, min_periods=3).mean())
+        / s.rolling(24, min_periods=3).std().replace(0.0, np.nan)
+    ).fillna(0.0)
+    return hourly
+
+
+def label_for_horizon(hourly: pd.DataFrame, hours: int) -> pd.Series:
+    """Compute the abnormal-event label for a given prediction horizon.
+
+    Mirrors safetyOutcomeService: consensus moves >= PRICE_MOVE_PCT OR cross-
+    oracle max deviation spikes >= DEVIATION_PCT within the next `hours` hours.
+    """
+    labels = pd.Series(0, index=hourly.index, dtype=int)
     for _, grp in hourly.groupby("symbol", sort=False):
-        grp = grp.reset_index(drop=True)
+        idx = grp.index
+        consensus = grp["consensus"].astype(float).values
+        max_dev = grp["max_deviation_pct"].abs().values
         n = len(grp)
         for i in range(n):
-            future = grp.iloc[i + 1 : i + 1 + EVAL_WINDOW_HOURS]
-            if future.empty:
+            j_end = min(i + 1 + hours, n)
+            if j_end <= i + 1:
                 continue
-            baseline = float(grp.iloc[i]["consensus"])
+            baseline = consensus[i]
             if baseline <= 0:
                 continue
-            future_consensus = future["consensus"].astype(float)
-            max_move = (future_consensus - baseline).abs().max() / baseline * 100.0
-            max_dev_future = float(future["max_deviation_pct"].abs().max())
-            label = 1 if (max_move >= PRICE_MOVE_PCT or max_dev_future >= DEVIATION_PCT) else 0
-            row = grp.iloc[i]
-            features.append(
-                [
-                    float(row["max_deviation_pct"]),
-                    float(row["cross_provider_spread_pct"]),
-                    int(row["participant_count"]),
-                    int(row["stale"]),
-                    float(row["mean_deviation_pct"]),
-                    float(row["stale_ratio"]),
-                    float(row["deviation_velocity_1h"]),
-                ]
-            )
-            labels.append(label)
-            hours.append(row["snapshot_hour"])
+            future_cons = consensus[i + 1 : j_end]
+            max_move = np.abs(future_cons - baseline).max() / baseline * 100.0
+            max_dev_future = float(np.max(max_dev[i + 1 : j_end])) if j_end > i + 1 else 0.0
+            if max_move >= PRICE_MOVE_PCT or max_dev_future >= DEVIATION_PCT:
+                labels.loc[idx[i]] = 1
+    return labels
 
-    out = pd.DataFrame(features, columns=FEATURE_NAMES)
-    out["label"] = labels
-    out["snapshot_hour"] = hours
+
+def build_dataset(df: pd.DataFrame) -> pd.DataFrame:
+    """Build the feature matrix + per-horizon labels, one row per (symbol, hour)."""
+    hourly = build_hourly_frame(df)
+    # Attach horizon labels.
+    for h in HORIZONS:
+        hourly[f"label_{h}h"] = label_for_horizon(hourly, h)
+    out = hourly[FEATURE_NAMES + [f"label_{h}h" for h in HORIZONS] + ["snapshot_hour"]].copy()
     return out
 
 
@@ -263,12 +295,12 @@ def write_null_model(reason: str) -> int:
     with open(MODEL_PATH, "w") as f:
         json.dump(
             {
-                "version": 1,
+                "version": 2,
                 "active": False,
                 "trainedAt": datetime.now(timezone.utc).isoformat(),
                 "inactiveReason": reason,
                 "featureNames": FEATURE_NAMES,
-                "trees": [],
+                "horizons": {},
                 "metrics": {},
             },
             f,
@@ -278,44 +310,32 @@ def write_null_model(reason: str) -> int:
     return 0
 
 
-def main() -> int:
-    base_url = os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
-    service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-    if not base_url or not service_key:
-        log("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set.")
-        return 1
+def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
+    """Train one XGBoost model for a single prediction horizon.
 
-    df = fetch_rows(base_url, service_key)
-    log(f"Fetched {len(df)} rows, {df['symbol'].nunique() if not df.empty else 0} symbols.")
-
-    if len(df) < MIN_TOTAL:
-        return write_null_model(f"insufficient raw data ({len(df)} < {MIN_TOTAL})")
-
-    log("Building labeled dataset (mining 6h-ahead outcomes)...")
-    data = build_dataset(df)
-    n_total = len(data)
-    n_pos = int(data["label"].sum())
-    log(f"Dataset: {n_total} examples, {n_pos} positives ({100*n_pos/max(n_total,1):.2f}%).")
-
-    if n_total < MIN_TOTAL or n_pos < MIN_POSITIVES:
-        return write_null_model(f"insufficient labeled data (total={n_total}, positives={n_pos})")
+    Returns the horizon's JSON payload (trees, metrics, verification samples),
+    or None when there are too few positives to train reliably.
+    """
+    label_col = f"label_{hours}h"
+    n_pos = int(data[label_col].sum())
+    if n_pos < MIN_POSITIVES:
+        log(f"[{hours}h] skipped — only {n_pos} positives (< {MIN_POSITIVES}).")
+        return None
 
     # Time-based split: earliest 80% train, latest 20% test (no future leakage).
-    data = data.sort_values("snapshot_hour").reset_index(drop=True)
-    split = int(len(data) * 0.8)
-    train, test = data.iloc[:split], data.iloc[split:]
-    X_tr, y_tr = train[FEATURE_NAMES].values, train["label"].values
-    X_te, y_te = test[FEATURE_NAMES].values, test["label"].values
-    log(f"Train: {len(train)} ({int(y_tr.sum())} pos) | Test: {len(test)} ({int(y_te.sum())} pos)")
+    sub = data[data[label_col].notna()].sort_values("snapshot_hour").reset_index(drop=True)
+    split = int(len(sub) * 0.8)
+    train, test = sub.iloc[:split], sub.iloc[split:]
+    X_tr, y_tr = train[FEATURE_NAMES].values, train[label_col].values
+    X_te, y_te = test[FEATURE_NAMES].values, test[label_col].values
+    log(f"[{hours}h] Train: {len(train)} ({int(y_tr.sum())} pos) | Test: {len(test)} ({int(y_te.sum())} pos)")
 
-    # Counter the ~1% positive rate with scale_pos_weight = neg/pos so the model
-    # doesn't collapse to predict-negative (which gave recall@0.5 = 0.09 without it).
     pos_tr = int(y_tr.sum())
     neg_tr = len(y_tr) - pos_tr
     xgb_params = dict(XGB_PARAMS)
     if pos_tr > 0:
         xgb_params["scale_pos_weight"] = neg_tr / pos_tr
-    log(f"scale_pos_weight = {xgb_params.get('scale_pos_weight')} (neg={neg_tr}, pos={pos_tr})")
+    log(f"[{hours}h] scale_pos_weight = {xgb_params.get('scale_pos_weight'):.3f} (neg={neg_tr}, pos={pos_tr})")
 
     model = xgb.XGBClassifier(**xgb_params)
     model.fit(X_tr, y_tr, eval_set=[(X_te, y_te)], verbose=False)
@@ -336,25 +356,21 @@ def main() -> int:
     pred50 = (proba_te >= 0.5).astype(int)
     metrics["precision_at_0.5"] = float(precision_score(y_te, pred50, zero_division=0))
     metrics["recall_at_0.5"] = float(recall_score(y_te, pred50, zero_division=0))
-    log(f"Metrics: {metrics}")
+    log(f"[{hours}h] Metrics: {metrics}")
 
     # Verification samples: the TS inference must reproduce these probabilities.
     sample_idx = np.linspace(0, len(test) - 1, num=min(VERIFICATION_SAMPLE_COUNT, len(test))).astype(int)
     verification = [[X_te[i].tolist(), float(proba_te[i])] for i in sample_idx]
 
     # With early stopping, predict_proba uses only the first (best_iteration+1)
-    # trees; the booster still holds all grown trees. Export ONLY the used ones so
-    # the pure-TS scorer (which sums every exported tree) reproduces predict_proba.
+    # trees; export ONLY the used ones so the pure-TS scorer reproduces predict_proba.
     all_dumps = booster.get_dump(dump_format="json")
     used_dumps = all_dumps[: metrics["best_iteration"] + 1]
     trees = [flatten_tree(json.loads(d)) for d in used_dumps]
-    log(f"Exported {len(trees)} trees (best_iteration={metrics['best_iteration']}).")
+    log(f"[{hours}h] Exported {len(trees)} trees (best_iteration={metrics['best_iteration']}).")
 
-    model_json = {
-        "version": 1,
-        "active": True,
-        "trainedAt": datetime.now(timezone.utc).isoformat(),
-        "labelDefinition": f"consensus price moves >= {PRICE_MOVE_PCT}% OR cross-oracle deviation >= {DEVIATION_PCT}% within {EVAL_WINDOW_HOURS}h",
+    return {
+        "evalWindowHours": hours,
         "featureNames": FEATURE_NAMES,
         "baseScore": 0.5,  # logit(0.5) = 0, so proba = sigmoid(sum of leaves)
         "trees": trees,
@@ -363,10 +379,57 @@ def main() -> int:
         "verificationTolerance": VERIFICATION_TOLERANCE,
     }
 
+
+def main() -> int:
+    base_url = os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+    service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    if not base_url or not service_key:
+        log("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set.")
+        return 1
+
+    df = fetch_rows(base_url, service_key)
+    log(f"Fetched {len(df)} rows, {df['symbol'].nunique() if not df.empty else 0} symbols.")
+
+    if len(df) < MIN_TOTAL:
+        return write_null_model(f"insufficient raw data ({len(df)} < {MIN_TOTAL})")
+
+    log("Building labeled dataset (mining 1h + 6h-ahead outcomes)...")
+    data = build_dataset(df)
+    n_total = len(data)
+    log(f"Dataset: {n_total} examples.")
+    for h in HORIZONS:
+        n_pos = int(data[f"label_{h}h"].sum())
+        log(f"  {h}h positives: {n_pos} ({100*n_pos/max(n_total,1):.2f}%)")
+
+    if n_total < MIN_TOTAL:
+        return write_null_model(f"insufficient labeled data (total={n_total})")
+
+    horizons = {}
+    for h in HORIZONS:
+        horizons[f"{h}h"] = train_horizon(data, h)
+
+    # Must have at least the 6h model, else the whole model is inactive.
+    if not horizons.get("6h"):
+        return write_null_model("6h horizon failed to train (insufficient positives)")
+
+    # Aggregate metrics for quick status display.
+    metrics_summary = {name: h["metrics"] for name, h in horizons.items() if h}
+
+    model_json = {
+        "version": 2,
+        "active": True,
+        "trainedAt": datetime.now(timezone.utc).isoformat(),
+        "labelDefinition": f"consensus price moves >= {PRICE_MOVE_PCT}% OR cross-oracle deviation >= {DEVIATION_PCT}% within H hours",
+        "featureNames": FEATURE_NAMES,
+        "horizons": horizons,
+        "metrics": metrics_summary,
+    }
+
     os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     with open(MODEL_PATH, "w") as f:
         json.dump(model_json, f, indent=2)
-    log(f"Wrote model to {MODEL_PATH} ({len(model_json['trees'])} trees).")
+    active_horizons = [k for k, v in horizons.items() if v]
+    log(f"Wrote model to {MODEL_PATH} (horizons: {active_horizons}).")
     return 0
 
 

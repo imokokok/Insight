@@ -57,6 +57,13 @@ describe('pre_trade_safety_check MCP tool', () => {
       depegWarnings: [],
       warnings: ['No oracle risk signals detected.'],
       contributingFactors: [],
+      mlScore: null,
+      mlModelVersion: null,
+      mlScore1h: null,
+      mlScore6h: null,
+      anomalyScore: 0.05,
+      attestation: null,
+      protocolSafety: null,
       evaluatedAt: '2026-08-01T00:00:00.000Z',
       latencyMs: 42,
     });
@@ -68,6 +75,10 @@ describe('pre_trade_safety_check MCP tool', () => {
     expect(output).toContain('chainlink: $1,860.00');
     expect(output).toContain('**Risk factors:**');
     expect(output).toContain('None — all risk signals within normal range.');
+    // The anomaly + ML signals section is always rendered.
+    expect(output).toContain('**Risk signals:**');
+    expect(output).toContain('| Anomaly Score (novel) |');
+    expect(output).toContain('Anomaly (model-free): 0.05');
   });
 
   it('renders BLOCK guidance and surfaces contributing factors + depeg', async () => {
@@ -92,6 +103,13 @@ describe('pre_trade_safety_check MCP tool', () => {
           message: 'Stale oracle data (max age 650s) exceeds block threshold.',
         },
       ],
+      mlScore: null,
+      mlModelVersion: null,
+      mlScore1h: null,
+      mlScore6h: null,
+      anomalyScore: 0,
+      attestation: null,
+      protocolSafety: null,
       evaluatedAt: '2026-08-01T00:00:00.000Z',
       latencyMs: 88,
     });
@@ -120,6 +138,13 @@ describe('pre_trade_safety_check MCP tool', () => {
         depegWarnings: [],
         warnings: ['elevated'],
         contributingFactors: [],
+        mlScore: null,
+        mlModelVersion: null,
+        mlScore1h: null,
+        mlScore6h: null,
+        anomalyScore: 0,
+        attestation: null,
+        protocolSafety: null,
         evaluatedAt: '2026-08-01T00:00:00.000Z',
         latencyMs: 10,
       });
@@ -149,6 +174,13 @@ describe('pre_trade_safety_check MCP tool', () => {
       depegWarnings: [],
       warnings: ['No oracle risk signals detected.'],
       contributingFactors: [],
+      mlScore: null,
+      mlModelVersion: null,
+      mlScore1h: null,
+      mlScore6h: null,
+      anomalyScore: 0,
+      attestation: null,
+      protocolSafety: null,
       evaluatedAt: '2026-08-01T00:00:00.000Z',
       latencyMs: 1,
     });
@@ -165,5 +197,43 @@ describe('pre_trade_safety_check MCP tool', () => {
       tradeAmountUsd: 50000,
       targetProviders: ['chainlink', 'pyth'],
     });
+  });
+
+  it('flags a novel-manipulation signal when anomaly is elevated but ML is calm', async () => {
+    // Anomaly layer (model-free) flags an outlier the supervised ML does not —
+    // the exact "unknown-unknown" case this layer exists to catch.
+    mockedCheck.mockResolvedValue({
+      verdict: 'CAUTION',
+      consensusPrice: 1860,
+      maxDeviationPct: 1.5,
+      manipulationRiskScore: 0.2,
+      staleDataRisk: false,
+      crossProviderAgreement: 0.9,
+      recommendedMaxPositionUsd: 500000,
+      participantCount: 3,
+      providerPrices: {},
+      depegWarnings: [],
+      warnings: ['elevated anomaly'],
+      contributingFactors: [],
+      mlScore: 0.2,
+      mlModelVersion: '2026-08-01T00:00:00.000Z',
+      mlScore1h: 0.18,
+      mlScore6h: 0.2,
+      anomalyScore: 0.82,
+      attestation: null,
+      protocolSafety: null,
+      evaluatedAt: '2026-08-01T00:00:00.000Z',
+      latencyMs: 12,
+    });
+
+    const output = await preTradeSafetyCheckTool.handler(baseArgs);
+
+    // Both horizon scores are surfaced.
+    expect(output).toContain('ML 1h (near-term): 0.18');
+    expect(output).toContain('ML 6h (strategic): 0.20');
+    // Anomaly is flagged elevated...
+    expect(output).toContain('Anomaly (model-free): 0.82 ⚠️ ELEVATED');
+    // ...and the novel-manipulation warning fires because ML is calm (< 0.5).
+    expect(output).toContain('Novel-manipulation signal');
   });
 });

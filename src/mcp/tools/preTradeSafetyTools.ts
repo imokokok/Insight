@@ -82,6 +82,7 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
       `| Max Deviation | ${formatPercent(result.maxDeviationPct)} |`,
       `| Cross-Provider Agreement | ${(result.crossProviderAgreement * 100).toFixed(1)}% |`,
       `| Manipulation Risk Score | ${result.manipulationRiskScore.toFixed(2)} (0=low, 1=high) |`,
+      `| Anomaly Score (novel) | ${result.anomalyScore.toFixed(2)} (0=normal, 1=outlier vs 24h) |`,
       `| Data Stale Risk | ${result.staleDataRisk ? 'Yes' : 'No'} |`,
       `| Participant Providers | ${result.participantCount} |`,
       `| Recommended Max Position | $${result.recommendedMaxPositionUsd.toLocaleString()} |`,
@@ -90,6 +91,27 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
       '**Provider breakdown:**',
       ...formatProviderBreakdown(result),
     ];
+
+    // ML + unsupervised anomaly signals. The anomaly layer is model-free — it
+    // catches novel manipulation patterns the supervised ML has never seen, so an
+    // elevated anomaly score alongside a calm ML score is itself a red flag.
+    lines.push('', '**Risk signals:**');
+    if (result.mlScore1h !== null) {
+      lines.push(`- ML 1h (near-term): ${result.mlScore1h.toFixed(2)}`);
+    }
+    if (result.mlScore6h !== null) {
+      lines.push(`- ML 6h (strategic): ${result.mlScore6h.toFixed(2)}`);
+    }
+    lines.push(
+      `- Anomaly (model-free): ${result.anomalyScore.toFixed(2)}${
+        result.anomalyScore >= 0.5 ? ' ⚠️ ELEVATED' : ''
+      }`
+    );
+    if (result.anomalyScore >= 0.5 && (result.mlScore ?? 0) < 0.5) {
+      lines.push(
+        '- ⚠️ Novel-manipulation signal: anomaly layer flags an outlier the supervised ML does not. Treat oracle data as suspect.'
+      );
+    }
 
     if (result.protocolSafety) {
       const ps = result.protocolSafety;

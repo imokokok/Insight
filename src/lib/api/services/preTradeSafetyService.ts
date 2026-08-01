@@ -17,12 +17,17 @@
  *   - reputation                               (already embedded in consensus response)
  */
 
+import { computeAnomalyScore, type AnomalyScoreResult } from '@/lib/anomaly/oracleAnomalyDetection';
 import {
   signAttestation,
   type OracleSafetyAttestation,
 } from '@/lib/attestations/oracleSafetyAttestation';
 import { UnsupportedSymbolError } from '@/lib/errors';
-import { getModelStatus, scorePreTrade } from '@/lib/ml/inference';
+import {
+  getModelStatus,
+  scorePreTradeMultiHorizon,
+  type MultiHorizonScore,
+} from '@/lib/ml/inference';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
@@ -133,6 +138,17 @@ export interface PreTradeSafetyResult {
   mlScore: number | null;
   /** trainedAt of the model that produced mlScore; null when no model active. */
   mlModelVersion: string | null;
+  /** ML score for the near-term 1h horizon (null when the 1h model is inactive). */
+  mlScore1h: number | null;
+  /** ML score for the strategic 6h horizon (null when no model active). */
+  mlScore6h: number | null;
+  /**
+   * Unsupervised anomaly score ∈ [0,1] — model-free statistical outlier
+   * detection (z-score + EWMA residual vs the 24h baseline). Catches novel
+   * manipulation the supervised ML model has never seen. Informational + feeds
+   * the displayed risk level; does not itself drive the verdict.
+   */
+  anomalyScore: number;
   /**
    * EIP-712 offchain attestation proving "Insight verified oracle state for this
    * trade at time T". Portable, tamper-evident proof agents can relay in tx
@@ -263,64 +279,154 @@ async function logAudit(
   }
 }
 
+/** Per-hour cross-oracle state, mined from hourly_price_snapshots. */
+interface HourlyPoint {
+  hour: string;
+  maxDeviationPct: number;
+  consensusPrice: number;
+  participantCount: number;
+}
+
+/** Result of the shared historical fetch — drives BOTH ML features + anomaly. */
+interface HistoricalOracleState {
+  /** Completed hourly points, OLDEST first. Empty on fetch failure. */
+  history: HourlyPoint[];
+  /** v2 ML temporal features (0 when history is insufficient). */
+  deviationVelocity1h: number;
+  deviationVelocity3h: number;
+  participantCountDelta1h: number;
+  rollingVolatility6h: number;
+  maxDeviationZscore24h: number;
+}
+
+const EMPTY_HISTORY: HistoricalOracleState = {
+  history: [],
+  deviationVelocity1h: 0,
+  deviationVelocity3h: 0,
+  participantCountDelta1h: 0,
+  rollingVolatility6h: 0,
+  maxDeviationZscore24h: 0,
+};
+
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
 /**
- * Fetch the most-recent completed hourly max cross-oracle deviation for `asset`
- * and return the 1h velocity = currentMaxDeviationPct - prevMaxDev. This is the
- * temporal ML feature (deviation_velocity_1h) — the single most manipulation-
- * indicative signal, since attacks manifest as sharp deviation changes the
- * static features can't see.
+ * Fetch the last ~30h of hourly snapshots for `asset` and compute the 5 temporal
+ * ML features (deviation_velocity_1h/3h, participant_count_delta_1h,
+ * rolling_volatility_6h, max_deviation_zscore_24h) PLUS return the hourly series
+ * for the unsupervised anomaly layer. ONE query serves both Step 1 (ML features)
+ * and Step 2 (anomaly score), so the pre-trade check adds only a single bounded
+ * read regardless of how many features the model grows to.
  *
- * Bounded: reads only the last 3h of snapshots for this symbol (≤60 rows).
- * Fault-tolerant: any error returns 0 so the ML score degrades to "no velocity
- * signal" rather than failing the safety check. A snapshot <45 min old is treated
- * as the still-forming current hour and skipped, so prevMaxDev comes from a
- * genuinely completed prior hour — matching training's max_dev(T) - max_dev(T-1).
+ * Mirrors build_hourly_frame() in ml/train.py so training and live inference see
+ * the SAME feature semantics. Fault-tolerant: any error returns EMPTY_HISTORY so
+ * the ML score degrades to "no temporal signal" rather than failing the check.
+ *
+ * A snapshot <45 min old is the still-forming current hour and is excluded from
+ * the COMPLETED history used for velocities, matching training's max_dev(T) -
+ * max_dev(T-1). The live check is the "now" point on top of this history.
  */
-async function fetchDeviationVelocity(
+async function fetchHistoricalOracleState(
   asset: string,
-  currentMaxDeviationPct: number
-): Promise<number> {
+  live: { maxDeviationPct: number; consensusPrice: number; participantCount: number }
+): Promise<HistoricalOracleState> {
   try {
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
     const client = createServiceRoleClient();
-    const cutoff = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
+    const cutoff = new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString();
     const { data, error } = await client
       .from('hourly_price_snapshots')
-      .select('snapshot_hour,deviation_pct')
+      .select('snapshot_hour,deviation_pct,price')
       .eq('symbol', asset)
       .eq('is_success', true)
       .gte('snapshot_hour', cutoff)
-      .order('snapshot_hour', { ascending: false })
-      .limit(60);
-    if (error || !data || data.length === 0) return 0;
+      .order('snapshot_hour', { ascending: true })
+      .limit(2000);
+    if (error || !data || data.length === 0) return EMPTY_HISTORY;
 
-    const byHour = new Map<string, number>();
+    // Group by hour -> max |deviation|, median price (consensus), participant count.
+    const byHour = new Map<string, { devs: number[]; prices: number[]; count: number }>();
     for (const row of data) {
       const dev = Math.abs(Number(row.deviation_pct));
-      if (!Number.isFinite(dev)) continue;
-      const cur = byHour.get(row.snapshot_hour);
-      if (cur === undefined || dev > cur) byHour.set(row.snapshot_hour, dev);
+      const price = Number(row.price);
+      if (!Number.isFinite(dev) || !Number.isFinite(price) || price <= 0) continue;
+      const h = byHour.get(row.snapshot_hour) ?? { devs: [], prices: [], count: 0 };
+      h.devs.push(dev);
+      h.prices.push(price);
+      h.count += 1;
+      byHour.set(row.snapshot_hour, h);
     }
-    if (byHour.size === 0) return 0;
+    if (byHour.size === 0) return EMPTY_HISTORY;
 
     const now = Date.now();
-    const hours = Array.from(byHour.keys()).sort(); // ascending by ISO hour
-    for (let i = hours.length - 1; i >= 0; i--) {
-      const t = Date.parse(hours[i]);
-      if (Number.isNaN(t)) continue;
-      if (now - t >= 45 * 60 * 1000) {
-        const prevMaxDev = byHour.get(hours[i]) ?? 0;
-        return Number((currentMaxDeviationPct - prevMaxDev).toFixed(4));
-      }
+    const allHours = Array.from(byHour.keys()).sort(); // ascending ISO hour
+    // Completed hours only (>= 45 min old): exclude the still-forming current hour.
+    const completed: HourlyPoint[] = [];
+    for (const hour of allHours) {
+      const t = Date.parse(hour);
+      if (Number.isNaN(t) || now - t < 45 * 60 * 1000) continue;
+      const h = byHour.get(hour)!;
+      completed.push({
+        hour,
+        maxDeviationPct: Math.max(...h.devs),
+        consensusPrice: median(h.prices),
+        participantCount: h.count,
+      });
     }
-    return 0;
+    if (completed.length === 0) return { ...EMPTY_HISTORY, history: [] };
+
+    const n = completed.length;
+    const last = completed[n - 1];
+    const lastMinus2 = n >= 3 ? completed[n - 3] : null;
+
+    // Rolling 6h volatility of 1h consensus returns (std of pct-change, %).
+    const series = completed.slice(-6);
+    const returns: number[] = [];
+    for (let i = 1; i < series.length; i++) {
+      const prev = series[i - 1].consensusPrice;
+      if (prev > 0) returns.push((series[i].consensusPrice - prev) / prev);
+    }
+    const rollingVolatility6h = returns.length >= 2 ? std(returns) * 100 : 0;
+
+    // 24h z-score of max deviation: (live - mean24) / std24 over completed history.
+    const devs = completed.map((p) => p.maxDeviationPct);
+    const mean = devs.reduce((s, v) => s + v, 0) / devs.length;
+    const devStd = std(devs);
+    const maxDeviationZscore24h = devStd > 1e-9 ? (live.maxDeviationPct - mean) / devStd : 0;
+
+    return {
+      history: completed,
+      deviationVelocity1h: round4(live.maxDeviationPct - last.maxDeviationPct),
+      deviationVelocity3h: lastMinus2
+        ? round4(live.maxDeviationPct - lastMinus2.maxDeviationPct)
+        : 0,
+      participantCountDelta1h: live.participantCount - last.participantCount,
+      rollingVolatility6h: round4(rollingVolatility6h),
+      maxDeviationZscore24h: round4(maxDeviationZscore24h),
+    };
   } catch (error) {
-    logger.warn('ML velocity fetch failed; using 0', {
+    logger.warn('Historical oracle state fetch failed; using zeros', {
       asset,
       error: error instanceof Error ? error.message : String(error),
     });
-    return 0;
+    return EMPTY_HISTORY;
   }
+}
+
+function std(values: number[]): number {
+  if (values.length < 2) return 0;
+  const mean = values.reduce((s, v) => s + v, 0) / values.length;
+  const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
+  return Math.sqrt(variance);
+}
+
+function round4(x: number): number {
+  return Number.isFinite(x) ? Number(x.toFixed(4)) : 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -567,6 +673,9 @@ export async function preTradeSafetyCheck(
       protocolSafety: null,
       mlScore: null,
       mlModelVersion: null,
+      mlScore1h: null,
+      mlScore6h: null,
+      anomalyScore: 0,
       attestation: null,
       evaluatedAt: new Date().toISOString(),
       latencyMs: Date.now() - startedAt,
@@ -719,6 +828,9 @@ export async function preTradeSafetyCheck(
   // score feeds the displayed risk level and recommended position sizing.
   let mlScore: number | null = null;
   let mlModelVersion: string | null = null;
+  let mlScore1h: number | null = null;
+  let mlScore6h: number | null = null;
+  let anomalyScore = 0;
   try {
     const successfulProviders = Object.values(providerPrices).filter((d) => d.status === 'success');
     const absDevs = successfulProviders
@@ -731,18 +843,46 @@ export async function preTradeSafetyCheck(
       successfulProviders.length > 0
         ? successfulProviders.filter((d) => d.isStale).length / successfulProviders.length
         : 0;
-    const deviationVelocity1h = await fetchDeviationVelocity(input.asset, maxDeviationPct);
 
-    mlScore = scorePreTrade({
+    // ONE bounded historical fetch serves both the 5 temporal ML features and the
+    // unsupervised anomaly layer — no extra DB round-trip per feature.
+    const hist = await fetchHistoricalOracleState(input.asset, {
+      maxDeviationPct,
+      consensusPrice: consensus.consensusPrice,
+      participantCount: consensus.participantCount,
+    });
+
+    // Unsupervised anomaly score (Step 2): model-free outlier detection on the
+    // 24h baseline. Catches novel manipulation the supervised ML can't.
+    const anomaly: AnomalyScoreResult = computeAnomalyScore(
+      hist.history.map((p) => ({
+        maxDeviationPct: p.maxDeviationPct,
+        consensusPrice: p.consensusPrice,
+        participantCount: p.participantCount,
+      })),
+      maxDeviationPct
+    );
+    anomalyScore = anomaly.anomalyScore;
+
+    // Supervised ML score (Step 1): dual-horizon (1h + 6h), combined = max so
+    // EITHER horizon flagging risk raises manipulationRiskScore.
+    const multi: MultiHorizonScore | null = scorePreTradeMultiHorizon({
       maxDeviationPct,
       spreadPct,
       participantCount: consensus.participantCount,
       staleDataRisk: staleRisk,
       meanDeviationPct: Number(meanDeviationPct.toFixed(4)),
       staleRatio: Number(staleRatio.toFixed(4)),
-      deviationVelocity1h,
+      deviationVelocity1h: hist.deviationVelocity1h,
+      rollingVolatility6h: hist.rollingVolatility6h,
+      deviationVelocity3h: hist.deviationVelocity3h,
+      participantCountDelta1h: hist.participantCountDelta1h,
+      maxDeviationZscore24h: hist.maxDeviationZscore24h,
     });
-    if (mlScore !== null) {
+    if (multi !== null) {
+      mlScore = multi.combined;
+      mlScore1h = multi.score1h;
+      mlScore6h = multi.score6h;
       mlModelVersion = getModelStatus().trainedAt;
     }
   } catch (error) {
@@ -820,6 +960,9 @@ export async function preTradeSafetyCheck(
     protocolSafety,
     mlScore,
     mlModelVersion,
+    mlScore1h,
+    mlScore6h,
+    anomalyScore,
     // Non-blocking: sign the verdict as an EIP-712 offchain attestation. null
     // when no attester key is configured — never affects the verdict itself.
     attestation: null,

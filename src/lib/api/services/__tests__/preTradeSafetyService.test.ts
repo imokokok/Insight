@@ -1,6 +1,6 @@
 import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { UnsupportedSymbolError } from '@/lib/errors';
-import { scorePreTrade } from '@/lib/ml/inference';
+import { getModelStatus, scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { createServiceRoleClient } from '@/lib/supabase/server';
@@ -38,9 +38,9 @@ jest.mock('@/lib/supabase/server', () => ({
 // Mock the ML scorer so service tests assert against the rule-based fallback
 // (stable, model-independent) rather than the current baked-in model's scores.
 // The ML math itself is covered by src/lib/ml/__tests__/inference.test.ts. By
-// default scorePreTrade returns null (no model) -> rule fallback.
+// default scorePreTradeMultiHorizon returns null (no model) -> rule fallback.
 jest.mock('@/lib/ml/inference', () => ({
-  scorePreTrade: jest.fn(),
+  scorePreTradeMultiHorizon: jest.fn(),
   getModelStatus: jest.fn(() => ({ active: false, trainedAt: null, metrics: {} })),
 }));
 
@@ -54,7 +54,10 @@ const mockedCreateServiceRoleClient = createServiceRoleClient as jest.MockedFunc
 const mockedGetProtocolByIdWithDynamicData = getProtocolByIdWithDynamicData as jest.MockedFunction<
   typeof getProtocolByIdWithDynamicData
 >;
-const mockedScorePreTrade = scorePreTrade as jest.MockedFunction<typeof scorePreTrade>;
+const mockedScorePreTradeMultiHorizon = scorePreTradeMultiHorizon as jest.MockedFunction<
+  typeof scorePreTradeMultiHorizon
+>;
+const mockedGetModelStatus = getModelStatus as jest.MockedFunction<typeof getModelStatus>;
 
 // ---------------------------------------------------------------------------
 // Builders
@@ -158,7 +161,10 @@ beforeEach(() => {
   // By default no stablecoin depeg.
   mockedSnapshots.mockResolvedValue([]);
   // By default no ML model -> rule-based fallback for manipulationRiskScore.
-  mockedScorePreTrade.mockReturnValue(null);
+  mockedScorePreTradeMultiHorizon.mockReturnValue(null);
+  // resetMocks wipes the factory default; re-establish so getModelStatus()
+  // returns a valid object (mlModelVersion = null) instead of undefined.
+  mockedGetModelStatus.mockReturnValue({ active: false, trainedAt: null, metrics: {} });
 });
 
 // ---------------------------------------------------------------------------
@@ -561,37 +567,51 @@ describe('preTradeSafetyCheck — protocol safety context', () => {
 });
 
 describe('preTradeSafetyCheck — ML score plumbing', () => {
-  it('uses the ML score as manipulationRiskScore and stamps mlModelVersion when a model is active', async () => {
+  it('uses the ML combined score as manipulationRiskScore and exposes both horizons', async () => {
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
-    mockedScorePreTrade.mockReturnValue(0.42);
+    mockedScorePreTradeMultiHorizon.mockReturnValue({
+      combined: 0.42,
+      score1h: 0.31,
+      score6h: 0.42,
+    });
 
     const result = await preTradeSafetyCheck(makeInput());
 
     expect(result.mlScore).toBe(0.42);
+    expect(result.mlScore1h).toBe(0.31);
+    expect(result.mlScore6h).toBe(0.42);
     expect(result.manipulationRiskScore).toBe(0.42);
     // getModelStatus is mocked to return trainedAt: null.
     expect(result.mlModelVersion).toBeNull();
-    // The scorer received the enriched feature set (7 features incl. the new ones).
-    expect(mockedScorePreTrade).toHaveBeenCalledTimes(1);
-    const features = mockedScorePreTrade.mock.calls[0][0];
+    // The scorer received the 11-feature set (incl. the v2 temporal features).
+    expect(mockedScorePreTradeMultiHorizon).toHaveBeenCalledTimes(1);
+    const features = mockedScorePreTradeMultiHorizon.mock.calls[0][0];
     expect(features).toEqual(
       expect.objectContaining({
         meanDeviationPct: expect.any(Number),
         staleRatio: expect.any(Number),
         deviationVelocity1h: expect.any(Number),
+        rollingVolatility6h: expect.any(Number),
+        deviationVelocity3h: expect.any(Number),
+        participantCountDelta1h: expect.any(Number),
+        maxDeviationZscore24h: expect.any(Number),
       })
     );
   });
 
-  it('falls back to the rule-based score when no ML model is active (scorePreTrade null)', async () => {
+  it('falls back to the rule-based score when no ML model is active (multi-horizon null)', async () => {
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
-    mockedScorePreTrade.mockReturnValue(null);
+    mockedScorePreTradeMultiHorizon.mockReturnValue(null);
 
     const result = await preTradeSafetyCheck(makeInput());
 
     expect(result.mlScore).toBeNull();
+    expect(result.mlScore1h).toBeNull();
+    expect(result.mlScore6h).toBeNull();
     // Rule-based fallback still produces a valid score in [0, 0.1] for a clean case.
     expect(result.manipulationRiskScore).toBeLessThan(0.1);
     expect(result.manipulationRiskScore).toBeGreaterThanOrEqual(0);
+    // No 24h history available (supabase mocked) -> anomaly layer degrades to 0.
+    expect(result.anomalyScore).toBe(0);
   });
 });
