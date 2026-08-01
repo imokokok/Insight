@@ -21,12 +21,38 @@ on:
     - cron: '*/15 * * * *'
   workflow_dispatch:
 
+# Prevent overlapping 15-min runs. If a run exceeds 15 min (extremely
+# unlikely — typical runtime is ~50s), cancel the stale run and start
+# fresh. The upsert on hourly_price_snapshots is idempotent and each
+# price_snapshots row is independent, so cancellation is data-safe.
+concurrency:
+  group: snapshot-collect
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  # Alchemy RPC keys (optional — public RPC fallbacks exist, but Alchemy
+  # is more reliable for on-chain oracle reads). Same keys as .env.local.
+  ALCHEMY_ETHEREUM_RPC: ${{ secrets.ALCHEMY_ETHEREUM_RPC }}
+  ALCHEMY_ARBITRUM_RPC: ${{ secrets.ALCHEMY_ARBITRUM_RPC }}
+  ALCHEMY_OPTIMISM_RPC: ${{ secrets.ALCHEMY_OPTIMISM_RPC }}
+  ALCHEMY_POLYGON_RPC: ${{ secrets.ALCHEMY_POLYGON_RPC }}
+  ALCHEMY_BASE_RPC: ${{ secrets.ALCHEMY_BASE_RPC }}
+  ALCHEMY_BNB_RPC: ${{ secrets.ALCHEMY_BNB_RPC }}
+  ALCHEMY_AVALANCHE_RPC: ${{ secrets.ALCHEMY_AVALANCHE_RPC }}
+  ALCHEMY_ZKSYNC_RPC: ${{ secrets.ALCHEMY_ZKSYNC_RPC }}
+  ALCHEMY_SCROLL_RPC: ${{ secrets.ALCHEMY_SCROLL_RPC }}
+  ALCHEMY_MANTLE_RPC: ${{ secrets.ALCHEMY_MANTLE_RPC }}
+  ALCHEMY_LINEA_RPC: ${{ secrets.ALCHEMY_LINEA_RPC }}
+  ALCHEMY_SOLANA_RPC: ${{ secrets.ALCHEMY_SOLANA_RPC }}
+  TRON_RPC_URL: ${{ secrets.TRON_RPC_URL }}
+  TRON_SOLIDITY_RPC: ${{ secrets.TRON_SOLIDITY_RPC }}
+  TRON_FULLNODE_RPC: ${{ secrets.TRON_FULLNODE_RPC }}
+  TRONGRID_API_KEY: ${{ secrets.TRONGRID_API_KEY }}
 
 jobs:
   collect:
