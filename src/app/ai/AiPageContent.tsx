@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
 import {
+  ArrowRight,
   Bot,
   Brain,
   Code2,
@@ -284,6 +285,16 @@ export function AiPageContent() {
             </code>{' '}
             REST endpoint.
           </p>
+
+          <div className="text-center mt-6">
+            <Link
+              href="/pre-trade-safety"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+            >
+              Open the full Pre-Trade Safety report
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </section>
 

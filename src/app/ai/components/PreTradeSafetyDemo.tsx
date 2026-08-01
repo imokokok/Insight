@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
+import type { OracleSafetyAttestation } from '@/lib/attestations/oracleSafetyAttestation';
 import { useSession } from '@/stores/authStore';
 
 type Verdict = 'PASS' | 'CAUTION' | 'DANGER' | 'BLOCK';
@@ -62,6 +63,14 @@ interface SafetyResult {
   mlScore: number | null;
   /** trainedAt of the model that produced mlScore; null when no model active. */
   mlModelVersion: string | null;
+  /** Near-term 1h ML score (null when the 1h model is inactive). */
+  mlScore1h: number | null;
+  /** Strategic 6h ML score (null when no model is active). */
+  mlScore6h: number | null;
+  /** Model-free anomaly score [0,1] vs the 24h cross-oracle baseline. */
+  anomalyScore: number;
+  /** EIP-712 offchain attestation proving this check ran, or null. */
+  attestation: OracleSafetyAttestation | null;
 }
 
 const CHAIN_OPTIONS = [
@@ -136,7 +145,13 @@ function formatPct(n: number, withSign = true): string {
   return `${n >= 0 && withSign ? '+' : ''}${n.toFixed(2)}%`;
 }
 
-export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
+export function PreTradeSafetyDemo({
+  apiKey,
+  onResult,
+}: {
+  apiKey?: string;
+  onResult?: (result: SafetyResult) => void;
+}) {
   const session = useSession();
   const [asset, setAsset] = useState('ETH');
   const [chainId, setChainId] = useState(1);
@@ -179,7 +194,9 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
         return;
       }
 
-      setResult(json.data as SafetyResult);
+      const data = json.data as SafetyResult;
+      setResult(data);
+      onResult?.(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
     } finally {
@@ -341,6 +358,18 @@ function VerdictCard({ result }: { result: SafetyResult }) {
             warn={result.manipulationRiskScore >= 0.4}
           />
           <Metric
+            label="Anomaly (24h)"
+            value={result.anomalyScore.toFixed(2)}
+            warn={result.anomalyScore >= 0.5}
+          />
+          {(result.mlScore1h !== null || result.mlScore6h !== null) && (
+            <Metric
+              label="ML 1h / 6h"
+              value={`${result.mlScore1h?.toFixed(2) ?? '—'} / ${result.mlScore6h?.toFixed(2) ?? '—'}`}
+              warn={(result.mlScore1h ?? 0) >= 0.5 || (result.mlScore6h ?? 0) >= 0.5}
+            />
+          )}
+          <Metric
             label="Stale Data Risk"
             value={result.staleDataRisk ? 'Yes' : 'No'}
             warn={result.staleDataRisk}
@@ -359,6 +388,19 @@ function VerdictCard({ result }: { result: SafetyResult }) {
             <span>Risk score: rule-based engine</span>
           )}
         </div>
+
+        {result.attestation && (
+          <div className="mt-2.5 px-3 py-2 bg-emerald-50/60 border border-emerald-200/70 rounded-lg flex items-center justify-between text-[11px]">
+            <div className="flex items-center gap-1.5 text-emerald-700">
+              <ShieldCheck className="w-3 h-3" />
+              <span className="font-medium">Attestation issued</span>
+              <span className="font-mono text-emerald-600/70">
+                {result.attestation.uid.slice(0, 10)}…{result.attestation.uid.slice(-6)}
+              </span>
+            </div>
+            <span className="text-emerald-600/70">EIP-712 · verifiable</span>
+          </div>
+        )}
       </div>
 
       {Object.keys(result.providerPrices).length > 0 && (
