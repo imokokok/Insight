@@ -71,7 +71,7 @@ const features: Feature[] = [
       'Query current prices from any oracle provider with on-chain data, confidence intervals, and auto-refresh.',
     href: '/price-query',
     highlights: [
-      '11 oracle providers with cascade filtering',
+      '10 oracle providers with cascade filtering',
       'On-chain data and confidence intervals',
       'Auto-refresh and keyboard shortcuts',
     ],

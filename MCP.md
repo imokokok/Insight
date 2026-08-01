@@ -82,7 +82,7 @@ The 32 tools are organized around real workflows. Below are example prompts you 
 
 ## Why Insight MCP?
 
-- **Comprehensive data** — 10 oracle providers, 40+ chains, hourly snapshots, consensus algorithms, cross-chain spreads, and 7-day rolling reputation scores.
+- **Comprehensive data** — 10 oracle providers, 40+ chains, 15-minute snapshots, consensus algorithms, cross-chain spreads, and 7-day rolling reputation scores.
 - **Agent-native** — No JSON wrangling or SQL. Ask in plain English and let the agent choose the right tools.
 - **Production-ready** — Reuses the same authentication, rate limiting, monthly quotas, and plan gating as the REST API.
 
@@ -161,7 +161,7 @@ Visit **`/ai`** in the Insight app to:
 
 - **Oracle providers**: Chainlink, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare, Switchboard.
 - **Chains**: 40+ networks including Ethereum, Arbitrum, Optimism, Base, Polygon, BNB Chain, Avalanche, Solana, Aptos, Sui, TRON, Stellar, Flare, zkSync, Scroll, Mantle, Linea.
-- **Update cadence**: Price snapshots, reputation recalculation, and feed health are polled hourly. Polling faster than hourly yields no fresher data.
+- **Update cadence**: Price snapshots and feed health are collected every 15 minutes; reputation scores are recalculated hourly. Polling faster than 15 minutes yields no fresher snapshot data.
 
 See [`README.md`](./README.md) for the full provider/chain matrix.
 

@@ -28,7 +28,7 @@ const logger = createLogger('ReputationService');
 const REPUTATION_FETCH_CONCURRENCY = 6;
 
 // Short-lived in-memory cache for the directory list. The table is small
-// (11 providers) and recalculated at most hourly, so a 15s TTL absorbs burst
+// (10 providers) and recalculated at most hourly, so a 15s TTL absorbs burst
 // traffic and the periodic client refetch without serving noticeably stale
 // data. Writes (calculateAndStore / seedInitialReputations) invalidate it.
 const REPUTATIONS_CACHE_TTL_MS = 15 * 1000;

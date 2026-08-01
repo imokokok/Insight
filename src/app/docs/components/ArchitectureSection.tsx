@@ -40,7 +40,7 @@ const layers = [
     title: 'Oracle Client Layer',
     subtitle: 'Factory + BaseOracleClient',
     description:
-      'A unified abstraction wraps 11 oracle providers. Each client handles chain-specific calls, retries, TTL caching, and normalization into a common PriceData format.',
+      'A unified abstraction wraps 10 oracle providers. Each client handles chain-specific calls, retries, TTL caching, and normalization into a common PriceData format.',
   },
   {
     icon: Shield,
@@ -52,9 +52,9 @@ const layers = [
   {
     icon: Timer,
     title: 'Automation',
-    subtitle: 'pg_cron + Next.js API routes',
+    subtitle: 'GitHub Actions + pg_cron',
     description:
-      'Scheduled jobs sync feeds, sample provider prices for reputation, generate daily reports, and clean up old records. Cron secrets protect invocation endpoints.',
+      'Scheduled jobs run as GitHub Actions workflows (snapshot collection every 15 min, feed sync, daily reports, billing) with HTTP routes retained as manual fallbacks. Reputation recalculation and retention cleanup run inside Supabase via pg_cron.',
   },
 ];
 
@@ -119,6 +119,11 @@ const cronJobs = [
     name: 'feed-discovery',
     schedule: 'Weekly',
     purpose: 'Discover new oracle feeds from each provider\u2019s official API',
+  },
+  {
+    name: 'ml-train',
+    schedule: '3 days',
+    purpose: 'Retrain the oracle-risk ML model and trigger a Vercel redeploy',
   },
 ];
 

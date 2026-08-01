@@ -4,7 +4,7 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 
 **See through every oracle. Trust with clarity.**
 
-> Insight is **not** a real-time oracle tracker. Price snapshots are collected every 15 minutes; reputation scores and feed health are recalculated hourly. All data is aggregated into daily reports. The API quotas are sized to this cadence.
+> Insight is **not** a real-time oracle tracker. Price snapshots and feed health are collected every 15 minutes; reputation scores are recalculated hourly. All data is aggregated into daily reports. The API quotas are sized to this cadence.
 
 ## Table of Contents
 
@@ -186,7 +186,7 @@ API-key authenticated (`X-API-Key`), versioned. Categories include:
 - **Safety** - `/api/v1/safety/position`, `/api/v1/safety/liquidation`, `/api/v1/safety/pre-trade`, `/api/v1/safety/attestation/verify` (public, no API key)
 - **Risk assets** - `/api/v1/stablecoins/depeg`, `/api/v1/wrapped-assets/peg`
 - **Protocols** - `/api/v1/protocols`, `/api/v1/protocols/risk-params`, `/api/v1/protocols/[id]/risk-params`, `/api/v1/protocols/[id]/oracle-exposure`, `/api/v1/cross-chain/spreads`, `/api/v1/incidents`, `/api/v1/coverage`
-- **Reports & metadata** - `/api/v1/reports/daily/[date]`, `/api/v1/hourly-snapshots`, `/api/v1/symbols`, `/api/v1/oracles/health`, `/api/v1/metrics`, `/api/v1/health`, `/api/v1/price-records/export`
+- **Reports & metadata** - `/api/v1/reports/daily/[date]`, `/api/v1/hourly-snapshots`, `/api/v1/price-snapshots`, `/api/v1/symbols`, `/api/v1/oracles/health`, `/api/v1/metrics`, `/api/v1/health`, `/api/v1/price-records/export`
 
 The full interactive reference (OpenAPI 3.1, live "Try It Out", code snippets) is at **`/docs/api`**.
 
@@ -204,15 +204,25 @@ Used by the web UI; authenticated via Supabase session or an HttpOnly internal t
 - `GET/POST /api/user/api-keys`, `GET/DELETE /api/user/api-keys/[id]`, `GET /api/user/api-keys/[id]/usage`
 - `POST /api/billing/checkout`, `POST /api/billing/portal`, `GET/POST /api/billing/subscription`, `POST /api/billing/trial`, `POST /api/billing/webhook`
 
-### Cron Jobs
+### Scheduled Jobs
 
-Protected by a cron secret; run on a schedule via pg_cron / Next.js API routes.
+Scheduled jobs run primarily as **GitHub Actions workflows** (`.github/workflows/`), executing standalone TypeScript runners in `scripts/` directly on the runner. This escapes Vercel's 60s serverless timeout — several pipelines (snapshot collection, feed discovery, protocol risk-params) routinely exceed that ceiling. The corresponding `/api/cron/*` HTTP routes are retained as `workflow_dispatch` / manual-trigger fallbacks and share the same runner functions, so behaviour is identical regardless of executor.
 
-- `/api/cron/sync-feeds` - refresh active oracle feed metadata
-- `/api/cron/reputation` - sample prices and recalculate rolling scores
-- `/api/cron/protocol-metrics` - update protocol health metrics
-- `/api/cron/daily-report` and `/api/cron/daily-report/publish` - generate and publish the daily report
-- `/api/cron/billing` - subscription lifecycle (deactivation, rate-limit cleanup, usage cleanup)
+| Workflow                | Schedule           | Script / Mechanism                                     | Purpose                                                                                                          |
+| ----------------------- | ------------------ | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `snapshot-collect`      | Every 15 min       | `scripts/collect-snapshot.ts`                          | Collect prices from all feeds; dual-writes `hourly_price_snapshots` (upsert) + `price_snapshots` (15-min append) |
+| `safety-outcome`        | Every 2 hours      | `scripts/safety-outcome.ts`                            | Backfill outcome labels for pre-trade safety checks                                                              |
+| `protocol-tvl`          | Every 4 hours      | `scripts/protocol-metrics.ts --mode=tvl`               | Sync protocol TVL from DefiLlama                                                                                 |
+| `protocol-risk-params`  | Every 6 hours      | `scripts/protocol-metrics.ts --mode=risk-params`       | Sync per-asset risk parameters from lending protocols                                                            |
+| `feed-reactivation`     | Every 12 hours     | `scripts/sync-feeds.ts --mode=reactivate`              | Re-probe deactivated feeds and revive recovered ones                                                             |
+| `daily-report-publish`  | Daily (00:00 UTC)  | `scripts/daily-report-publish.ts`                      | Generate and persist the previous day's daily report                                                             |
+| `billing`               | Daily (00:30 UTC)  | `scripts/billing.ts`                                   | Subscription lifecycle: trial/sub expiry, quota reset, zombie cleanup                                            |
+| `feed-discovery`        | Weekly (Mon 04:00) | `scripts/sync-feeds.ts --mode=discover`                | Discover new oracle feeds from each provider's official API                                                      |
+| `ml-train`              | Every 3 days       | `ml/train.py`                                          | Retrain the oracle-risk ML model and trigger a Vercel redeploy                                                   |
+| _pg_cron (in Supabase)_ | Hourly             | `recalculate_all_reputations()`                        | Recompute 7-day rolling reputation scores (runs inside the database)                                             |
+| _pg_cron (in Supabase)_ | Daily              | `price-snapshots-cleanup` / `hourly-snapshots-cleanup` | Delete snapshot rows older than 6 months (retention)                                                             |
+
+The 15-min `snapshot-collect` workflow's `:00` run supersedes the legacy hourly `daily-report-cron`, whose schedule is disabled (the workflow is kept as a manual `workflow_dispatch` catch-up). Snapshot collection also keeps Supabase active, making the previous weekly keep-alive ping redundant.
 
 ## Navigation
 

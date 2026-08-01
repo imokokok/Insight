@@ -46,7 +46,7 @@ const docs: DocCard[] = [
     icon: <Layers className="w-6 h-6" />,
     title: 'Architecture',
     description:
-      'Next.js App Router with Supabase, React Query, Zustand, and 11 oracle client implementations.',
+      'Next.js App Router with Supabase, React Query, Zustand, and 10 oracle client implementations.',
     href: '#architecture',
     tags: ['Next.js', 'Supabase', 'TypeScript'],
     accent: 'violet',

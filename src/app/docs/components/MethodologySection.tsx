@@ -176,7 +176,7 @@ export default function MethodologySection() {
               <h3 className="text-xl font-bold text-slate-900">Data Collection</h3>
             </div>
             <p className="text-slate-600 leading-relaxed mb-5">
-              Prices are fetched from 11 oracle providers across 40+ blockchains. Each request reads
+              Prices are fetched from 10 oracle providers across 40+ blockchains. Each request reads
               either an on-chain contract or a verified API endpoint, then normalizes the result
               into a common{' '}
               <code className="text-sm bg-slate-100 px-1.5 py-0.5 rounded">PriceData</code>{' '}
