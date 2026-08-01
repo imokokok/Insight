@@ -1,0 +1,40 @@
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+
+import { realtimeManager, type ConnectionStatus } from '@/lib/supabase/realtime';
+
+interface RealtimeState {
+  connectionStatus: ConnectionStatus;
+}
+
+interface RealtimeActions {
+  reconnect: () => void;
+  reset: () => void;
+}
+
+type RealtimeStore = RealtimeState & RealtimeActions;
+
+const initialState: RealtimeState = {
+  connectionStatus: 'disconnected',
+};
+
+export const useRealtimeStore = create<RealtimeStore>()(
+  devtools(
+    (set) => ({
+      ...initialState,
+
+      reconnect: () => {
+        set({ connectionStatus: 'connecting' });
+        realtimeManager.reconnect();
+      },
+
+      reset: () =>
+        set({
+          connectionStatus: 'disconnected',
+        }),
+    }),
+    { name: 'RealtimeStore' }
+  )
+);
+
+export const useConnectionStatus = () => useRealtimeStore((state) => state.connectionStatus);

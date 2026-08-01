@@ -1,0 +1,128 @@
+import { createLogger } from '@/lib/utils/logger';
+import { type Blockchain, type PriceData, type DIATokenOnChainData } from '@/types/oracle';
+
+import { OracleCache, createSingleton } from '../base';
+import { DIA_API_BASE_URL } from '../diaUtils';
+
+import { DIANetworkService } from './diaNetworkService';
+import { DIAPriceService } from './diaPriceService';
+
+import type { DIASupply, DIAExchange } from '../diaTypes';
+
+const logger = createLogger('DIADataService');
+
+export type { DIATokenOnChainData };
+type DIATokenOnChainDataInternal = DIATokenOnChainData;
+
+class DIADataService {
+  private cache = new OracleCache();
+  private priceService: DIAPriceService;
+  private networkService: DIANetworkService;
+
+  constructor() {
+    this.priceService = new DIAPriceService(this.cache);
+    this.networkService = new DIANetworkService(this.cache);
+    logger.info('DIADataService initialized', { baseUrl: DIA_API_BASE_URL });
+  }
+
+  async getAssetPrice(
+    symbol: string,
+    chain?: Blockchain,
+    signal?: AbortSignal
+  ): Promise<PriceData | null> {
+    return this.priceService.getAssetPrice(symbol, chain, signal);
+  }
+
+  async getHistoricalPrices(
+    symbol: string,
+    chain?: Blockchain,
+    periodHours: number = 24
+  ): Promise<PriceData[]> {
+    return this.priceService.getHistoricalPrices(symbol, chain, periodHours);
+  }
+
+  async getSupply(symbol: string): Promise<DIASupply | null> {
+    return this.networkService.getSupply(symbol);
+  }
+
+  async getExchanges(): Promise<DIAExchange[]> {
+    return this.networkService.getExchanges();
+  }
+
+  async getTokenOnChainData(
+    symbol: string,
+    chain?: Blockchain
+  ): Promise<DIATokenOnChainDataInternal | null> {
+    const cacheKey = `onchain-data:${symbol.toUpperCase()}`;
+    const cached = this.cache.get<DIATokenOnChainDataInternal>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const [priceData, supplyData, exchanges] = await Promise.all([
+        this.priceService.getAssetPrice(symbol, chain),
+        this.networkService.getSupply(symbol),
+        this.networkService.getExchanges(),
+      ]);
+
+      if (!priceData) {
+        logger.warn('No price data available for token', { symbol });
+        return null;
+      }
+
+      const activeExchanges = exchanges.filter((e) => e.ScraperActive);
+      const totalVolume24h = exchanges.reduce((sum, e) => sum + (e.Volume24h || 0), 0);
+      const totalPairs = exchanges.reduce((sum, e) => sum + (e.Pairs || 0), 0);
+
+      const marketCap =
+        supplyData?.CirculatingSupply && priceData.price
+          ? supplyData.CirculatingSupply * priceData.price
+          : null;
+
+      const onChainData: DIATokenOnChainDataInternal = {
+        symbol: symbol.toUpperCase(),
+        price: priceData.price,
+        change24hPercent: priceData.change24hPercent || 0,
+        circulatingSupply: supplyData?.CirculatingSupply || null,
+        totalSupply: supplyData?.TotalSupply || null,
+        maxSupply: supplyData?.MaxSupply || null,
+        marketCap,
+        exchangeCount: exchanges.length,
+        activeExchangeCount: activeExchanges.length,
+        totalTradingPairs: totalPairs,
+        totalVolume24h,
+        lastUpdated: priceData.timestamp,
+        dataSource: priceData.source || 'DIA',
+      };
+
+      this.cache.set(cacheKey, onChainData, 60000);
+      logger.info('Successfully fetched token on-chain data', {
+        symbol,
+        price: onChainData.price,
+        marketCap: onChainData.marketCap,
+        exchangeCount: onChainData.exchangeCount,
+      });
+
+      return onChainData;
+    } catch (error) {
+      logger.error(
+        'Failed to get token on-chain data',
+        error instanceof Error ? error : new Error(String(error)),
+        { symbol }
+      );
+      return null;
+    }
+  }
+
+  clearCache(): void {
+    this.cache.clear();
+    logger.info('Cache cleared');
+  }
+
+  getCacheStats(): { size: number; keys: string[] } {
+    return this.cache.getStats();
+  }
+}
+
+export const getDIADataService = createSingleton(() => new DIADataService());

@@ -1,0 +1,114 @@
+import {
+  withRetry as enhancedWithRetry,
+  type EnhancedRetryConfig,
+} from '@/lib/api/retry/enhancedRetry';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('OracleRetry');
+
+export interface OracleRetryConfig {
+  maxAttempts?: number;
+  baseDelay?: number;
+  maxDelay?: number;
+  backoffMultiplier?: number;
+  timeout?: number;
+}
+
+export const ORACLE_RETRY_PRESETS = {
+  fast: {
+    maxAttempts: 2,
+    baseDelay: 200,
+    maxDelay: 1000,
+    backoffMultiplier: 2,
+    timeout: 5000,
+  },
+  standard: {
+    maxAttempts: 3,
+    baseDelay: 1000,
+    maxDelay: 10000,
+    backoffMultiplier: 2,
+    timeout: 15000,
+  },
+  aggressive: {
+    maxAttempts: 5,
+    baseDelay: 500,
+    maxDelay: 30000,
+    backoffMultiplier: 2,
+    timeout: 30000,
+  },
+} as const;
+
+export async function withOracleRetry<T>(
+  operation: () => Promise<T>,
+  operationName: string,
+  config: OracleRetryConfig = ORACLE_RETRY_PRESETS.standard,
+  signal?: AbortSignal
+): Promise<T> {
+  const enhancedConfig: Partial<EnhancedRetryConfig> = {
+    maxAttempts: config.maxAttempts ?? 3,
+    baseDelay: config.baseDelay ?? 1000,
+    maxDelay: config.maxDelay ?? 10000,
+    backoffMultiplier: config.backoffMultiplier ?? 2,
+    timeout: config.timeout ?? 15000,
+    strategy: 'exponential',
+    enableCircuitBreaker: false,
+  };
+
+  if (signal?.aborted) {
+    const reason = signal.reason instanceof Error ? signal.reason.message : 'unknown reason';
+    throw new Error(`Operation ${operationName} was aborted before starting: ${reason}`);
+  }
+
+  let onAbort: (() => void) | null = null;
+  const abortPromise = signal
+    ? new Promise<never>((_, reject) => {
+        onAbort = () => {
+          const reason = signal.reason instanceof Error ? signal.reason.message : 'unknown reason';
+          reject(new Error(`Operation ${operationName} was aborted: ${reason}`));
+        };
+        signal.addEventListener('abort', onAbort, { once: true });
+      })
+    : null;
+
+  const operationPromise = enhancedWithRetry(operation, operationName, enhancedConfig);
+
+  try {
+    const result = abortPromise
+      ? await Promise.race([operationPromise, abortPromise])
+      : await operationPromise;
+
+    if (!result.success) {
+      logger.error(`Oracle operation failed after ${result.attempts} attempts`, result.error, {
+        operationName,
+        totalDuration: result.totalDuration,
+      });
+      if (result.error instanceof Error) {
+        throw result.error;
+      }
+      throw new Error(`${operationName} failed after ${result.attempts} attempts`);
+    }
+
+    logger.debug(`Oracle operation succeeded`, {
+      operationName,
+      attempts: result.attempts,
+      totalDuration: result.totalDuration,
+    });
+
+    return result.data!;
+  } finally {
+    if (signal && onAbort) {
+      signal.removeEventListener('abort', onAbort);
+    }
+  }
+}
+
+export function calculateRetryDelay(
+  attempt: number,
+  baseDelay: number = 1000,
+  backoffMultiplier: number = 2,
+  maxDelay: number = 30000
+): number {
+  const delay = baseDelay * Math.pow(backoffMultiplier, attempt);
+  const jitter = delay * 0.1 * (Math.random() * 2 - 1);
+  return Math.min(Math.max(0, Math.round(delay + jitter)), maxDelay);
+}

@@ -1,0 +1,231 @@
+'use client';
+
+import { memo, useState, useMemo } from 'react';
+
+import dynamic from 'next/dynamic';
+
+import { TrendingUp, Filter, Activity, AlertTriangle } from 'lucide-react';
+
+import { type ConsensusResult, type ConsensusMethod } from '@/lib/analytics/consensusPrice';
+import type { PriceData } from '@/types/oracle';
+
+import {
+  MarketConsensusCard,
+  PriceDispersionCard,
+  ChartTabSwitcher,
+  type ChartTabType,
+} from '../price-comparison';
+import { SimplePriceTable } from '../SimplePriceTable';
+
+import type { PriceAnomaly } from '../../hooks/usePriceAnomalyDetection';
+
+const PriceDistributionHistogram = dynamic(
+  () =>
+    import('../price-comparison/PriceDistributionHistogram').then(
+      (m) => m.PriceDistributionHistogram
+    ),
+  { ssr: false }
+);
+const DeviationScatterChart = dynamic(
+  () => import('../price-comparison/DeviationScatterChart').then((m) => m.DeviationScatterChart),
+  { ssr: false }
+);
+
+interface SimplePriceComparisonTabProps {
+  priceData: PriceData[];
+  selectedSymbol: string;
+  medianPrice: number;
+  minPrice: number;
+  maxPrice: number;
+  standardDeviation: number;
+  avgPrice: number;
+  validPrices: number[];
+  anomalies: PriceAnomaly[];
+  consensusResult?: ConsensusResult | null;
+  currentConsensusMethod?: ConsensusMethod;
+  onConsensusMethodChange?: (method: ConsensusMethod) => void;
+}
+
+function SimplePriceComparisonTabComponent({
+  priceData,
+  selectedSymbol,
+  medianPrice,
+  minPrice,
+  maxPrice,
+  standardDeviation,
+  avgPrice,
+  validPrices,
+  anomalies,
+  consensusResult,
+  currentConsensusMethod,
+  onConsensusMethodChange,
+}: SimplePriceComparisonTabProps) {
+  const [baseAsset, quoteAsset] = selectedSymbol.split('/');
+  const [activeChartTab, setActiveChartTab] = useState<ChartTabType>('distribution');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'normal' | 'warning' | 'critical'>(
+    'all'
+  );
+  const [anomalyMode, setAnomalyMode] = useState<'deviation' | 'zscore'>('deviation');
+
+  const stats = useMemo(() => {
+    const oracleCount = priceData.length;
+    const anomalyCount = anomalies.length;
+    return { oracleCount, anomalyCount };
+  }, [priceData, anomalies]);
+
+  const renderChartContent = () => {
+    switch (activeChartTab) {
+      case 'distribution':
+        return (
+          <PriceDistributionHistogram
+            priceData={priceData}
+            medianPrice={medianPrice}
+            anomalies={anomalies}
+          />
+        );
+      case 'scatter':
+        return (
+          <DeviationScatterChart
+            priceData={priceData}
+            medianPrice={medianPrice}
+            anomalies={anomalies}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 rounded text-[10px] font-medium text-emerald-700 uppercase tracking-wider">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-full w-full bg-emerald-500"></span>
+              </span>
+              Live
+            </span>
+            {stats.anomalyCount > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 rounded text-[10px] font-medium text-red-700">
+                {stats.anomalyCount} anomalies detected
+              </span>
+            )}
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-bold text-gray-900">{baseAsset}</span>
+            <span className="text-base text-gray-400 font-medium">/{quoteAsset}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-xs text-gray-500">Oracle Count</p>
+            <p className="text-lg font-semibold text-gray-900">{stats.oracleCount}</p>
+          </div>
+        </div>
+      </div>
+
+      {stats.anomalyCount > 0 && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+          <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>
+            Anomalies detected — check <strong>Risk Analysis</strong> and{' '}
+            <strong>Feed Health</strong> tabs for root cause analysis
+          </span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <MarketConsensusCard
+          medianPrice={medianPrice}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          symbol={selectedSymbol}
+          consensusResult={consensusResult}
+          currentMethod={currentConsensusMethod}
+          onMethodChange={onConsensusMethodChange}
+        />
+        <PriceDispersionCard
+          standardDeviation={standardDeviation}
+          avgPrice={avgPrice}
+          oracleCount={stats.oracleCount}
+        />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-gray-400" />
+            Price Comparison
+          </h4>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5 text-gray-400" />
+              <div className="flex items-center gap-1 p-0.5 bg-gray-100 rounded-md">
+                <button
+                  onClick={() => setAnomalyMode('deviation')}
+                  className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
+                    anomalyMode === 'deviation'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Deviation
+                </button>
+                <button
+                  onClick={() => setAnomalyMode('zscore')}
+                  className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
+                    anomalyMode === 'zscore'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Z-Score
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+                className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All</option>
+                <option value="normal">Normal</option>
+                <option value="warning">Warning</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <SimplePriceTable
+          priceData={priceData}
+          medianPrice={medianPrice}
+          validPrices={validPrices}
+          anomalies={anomalies}
+          statusFilter={statusFilter}
+          anomalyDetectionMode={anomalyMode}
+          avgPrice={avgPrice}
+          standardDeviation={standardDeviation}
+        />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-700">Visualization</h4>
+          <ChartTabSwitcher activeTab={activeChartTab} onTabChange={setActiveChartTab} />
+        </div>
+        {renderChartContent()}
+      </div>
+    </div>
+  );
+}
+
+export const SimplePriceComparisonTab = memo(SimplePriceComparisonTabComponent);
+SimplePriceComparisonTab.displayName = 'SimplePriceComparisonTab';

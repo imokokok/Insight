@@ -1,0 +1,48 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# Insight 项目编辑器配置
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# TypeScript/JavaScript
+[*.{ts,tsx,js,jsx,mjs}]
+indent_size = 2
+
+# JSON
+[*.json]
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+indent_size = 2
+
+# YAML
+[*.{yml,yaml}]
+indent_size = 2
+
+# CSS/SCSS
+[*.{css,scss,sass}]
+indent_size = 2
+
+# HTML
+[*.html]
+indent_size = 2
+
+# 忽略特定文件
+[{package.json,package-lock.json}]
+indent_size = 2
+
+[.eslintrc*]
+indent_size = 2
+
+[*.config.{js,ts,mjs}]
+indent_size = 2

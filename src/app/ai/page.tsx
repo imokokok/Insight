@@ -1,0 +1,31 @@
+import { AiPageContent } from './AiPageContent';
+
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Insight AI — Oracle Safety for AI Agents',
+  description:
+    'Give your AI agents an oracle immune system. Pre-trade safety checks, 30+ MCP tools, and cross-oracle manipulation detection for Claude, Cursor, Windsurf, Eliza and any MCP-compatible client.',
+  keywords: [
+    'AI agent oracle',
+    'AI crypto',
+    'MCP server',
+    'Model Context Protocol',
+    'oracle manipulation detection',
+    'pre-trade safety check',
+    'DeFi AI agent',
+    'Cursor MCP',
+    'Claude Desktop MCP',
+    'Eliza oracle',
+  ],
+  openGraph: {
+    title: 'Insight AI — Oracle Safety for AI Agents',
+    description:
+      'Pre-trade oracle safety checks + 30+ MCP tools. Let AI agents verify on-chain price integrity before executing trades.',
+    type: 'website',
+  },
+};
+
+export default function AiPage() {
+  return <AiPageContent />;
+}

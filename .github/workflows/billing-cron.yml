@@ -1,0 +1,59 @@
+name: Billing Cron
+
+on:
+  schedule:
+    # Daily at 00:30 UTC (08:30 CST)
+    - cron: '30 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SITE_URL: ${{ vars.SITE_URL || 'https://www.oracleinsight.xyz' }}
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+jobs:
+  billing-cron:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger billing cron
+        run: |
+          set -u
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "::error::CRON_SECRET secret is not configured. Add it under Settings → Secrets and variables → Actions (must match the cron_secret stored in cron_config)."
+            exit 1
+          fi
+
+          BASE_URL="${SITE_URL%/}"
+
+          # Retry on transient 5xx / network failures. The billing endpoint can
+          # occasionally hit Vercel's 60s serverless timeout due to cold-start
+          # DB connection latency; a single retry usually resolves it.
+          for attempt in 1 2 3; do
+            echo "Triggering billing cron (attempt ${attempt})..."
+
+            RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 90 \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              "${BASE_URL}/api/cron/billing" || true)
+
+            HTTP_CODE=$(printf '%s' "$RESPONSE" | tail -n1 | tr -d '[:space:]')
+            case "$HTTP_CODE" in ''|*[!0-9]*) HTTP_CODE="000" ;; esac
+            BODY=$(printf '%s' "$RESPONSE" | sed '$d')
+
+            echo "HTTP Status: ${HTTP_CODE}"
+            echo "Response: ${BODY}"
+
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "Billing cron failed on attempt ${attempt} (HTTP ${HTTP_CODE}), retrying in 30s..."
+              sleep 30
+            fi
+          done
+
+          echo "::error::Billing cron failed after 3 attempts: HTTP ${HTTP_CODE}"
+          exit 1

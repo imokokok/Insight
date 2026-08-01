@@ -1,0 +1,807 @@
+export interface ChainlinkPriceFeed {
+  address: `0x${string}`;
+  name: string;
+  symbol: string;
+  decimals: number;
+  category: 'crypto' | 'forex' | 'stablecoin' | 'commodity' | 'equity' | 'etf';
+}
+
+export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPriceFeed>> = {
+  ETH: {
+    1: {
+      address: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419',
+      name: 'ETH / USD',
+      symbol: 'ETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612',
+      name: 'ETH / USD',
+      symbol: 'ETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+    137: {
+      address: '0xF9680D99D6C9589e2a93a78A04A279e509205945',
+      name: 'ETH / USD',
+      symbol: 'ETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+    8453: {
+      address: '0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70',
+      name: 'ETH / USD',
+      symbol: 'ETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+    43114: {
+      address: '0x976b3d034e162d8bd72d6b9c989d545b839003b0',
+      name: 'ETH / USD',
+      symbol: 'ETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+    56: {
+      address: '0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e',
+      name: 'ETH / USD',
+      symbol: 'ETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+    10: {
+      address: '0x13e3Ee699D1909E989722E753853AE30b17e08c5',
+      name: 'ETH / USD',
+      symbol: 'ETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  BTC: {
+    1: {
+      address: '0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c',
+      name: 'BTC / USD',
+      symbol: 'BTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0x6ce185860a4963106506C203335A2910413708e9',
+      name: 'BTC / USD',
+      symbol: 'BTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+    137: {
+      address: '0xc907e116054ad103354f2d350fd2514433d57f6f',
+      name: 'BTC / USD',
+      symbol: 'BTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+    8453: {
+      address: '0x64c911996D3c6aC71f9b455B1E8E7266BcbD848f',
+      name: 'BTC / USD',
+      symbol: 'BTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+    43114: {
+      address: '0x2779D32d5196c3C70aFc7189d76Ca6f99B2B8e7D',
+      name: 'BTC / USD',
+      symbol: 'BTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+    56: {
+      address: '0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf',
+      name: 'BTC / USD',
+      symbol: 'BTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+    10: {
+      address: '0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593',
+      name: 'BTC / USD',
+      symbol: 'BTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  LINK: {
+    1: {
+      address: '0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c',
+      name: 'LINK / USD',
+      symbol: 'LINK',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0x86E53CF1B870786351Da77A57575e79CB55812CB',
+      name: 'LINK / USD',
+      symbol: 'LINK',
+      decimals: 8,
+      category: 'crypto',
+    },
+    137: {
+      address: '0xd9FFdb71EbE7496cC440152d43986Aae0AB76665',
+      name: 'LINK / USD',
+      symbol: 'LINK',
+      decimals: 8,
+      category: 'crypto',
+    },
+    8453: {
+      address: '0x6b6C7139B4817185eAB5E1da0C09eEf74c7576f1',
+      name: 'LINK / USD',
+      symbol: 'LINK',
+      decimals: 8,
+      category: 'crypto',
+    },
+    43114: {
+      address: '0x1b8a25F73c9420dD507406C3A3816A276b62f56a',
+      name: 'LINK / USD',
+      symbol: 'LINK',
+      decimals: 8,
+      category: 'crypto',
+    },
+    56: {
+      address: '0xca236E327F629f9Fc2c30A4E95775EbF0B89fac8',
+      name: 'LINK / USD',
+      symbol: 'LINK',
+      decimals: 8,
+      category: 'crypto',
+    },
+    10: {
+      address: '0xCc232dcFAAE6354cE191Bd574108c1aD03f86450',
+      name: 'LINK / USD',
+      symbol: 'LINK',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  USDC: {
+    1: {
+      address: '0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6',
+      name: 'USDC / USD',
+      symbol: 'USDC',
+      decimals: 8,
+      category: 'stablecoin',
+    },
+    42161: {
+      address: '0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3',
+      name: 'USDC / USD',
+      symbol: 'USDC',
+      decimals: 8,
+      category: 'stablecoin',
+    },
+  },
+  USDT: {
+    1: {
+      address: '0x3E7d1eAB13ad0104d2750B8863b489D65364e32D',
+      name: 'USDT / USD',
+      symbol: 'USDT',
+      decimals: 8,
+      category: 'stablecoin',
+    },
+    42161: {
+      address: '0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7',
+      name: 'USDT / USD',
+      symbol: 'USDT',
+      decimals: 8,
+      category: 'stablecoin',
+    },
+  },
+  DAI: {
+    1: {
+      address: '0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9',
+      name: 'DAI / USD',
+      symbol: 'DAI',
+      decimals: 8,
+      category: 'stablecoin',
+    },
+    42161: {
+      address: '0xc5C8E77B397E531B8EC06BFb0048328B30E9eCfB',
+      name: 'DAI / USD',
+      symbol: 'DAI',
+      decimals: 8,
+      category: 'stablecoin',
+    },
+  },
+  MATIC: {
+    137: {
+      address: '0xAB594600376Ec9fD91F8e885dADF0CE036862dE0',
+      name: 'MATIC / USD',
+      symbol: 'MATIC',
+      decimals: 8,
+      category: 'crypto',
+    },
+    1: {
+      address: '0x7bAC85A8a13A4BcD8abb3eB7d6b4d632c5a57676',
+      name: 'MATIC / USD',
+      symbol: 'MATIC',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  AVAX: {
+    43114: {
+      address: '0x0A77230d17318075983913bC2145DB16C7366156',
+      name: 'AVAX / USD',
+      symbol: 'AVAX',
+      decimals: 8,
+      category: 'crypto',
+    },
+    1: {
+      address: '0xFF3EEb22B5E3dE6e705b44749C2559d704923FD7',
+      name: 'AVAX / USD',
+      symbol: 'AVAX',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0x8bf61728eeDCE2F32c456454d87B5d6eD6150208',
+      name: 'AVAX / USD',
+      symbol: 'AVAX',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  BNB: {
+    56: {
+      address: '0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE',
+      name: 'BNB / USD',
+      symbol: 'BNB',
+      decimals: 8,
+      category: 'crypto',
+    },
+    1: {
+      address: '0x14e613AC84a31f709eadbdF89C6CC390fDc9540A',
+      name: 'BNB / USD',
+      symbol: 'BNB',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0x6970460aabF80C5BE983C6b74e5D06dEDCA95D4A',
+      name: 'BNB / USD',
+      symbol: 'BNB',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SOL: {
+    42161: {
+      address: '0x24ceA4b8ce57cdA5058b924B9B9987992450590c',
+      name: 'SOL / USD',
+      symbol: 'SOL',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  DOGE: {
+    42161: {
+      address: '0x9A7FB1b3950837a8D9b40517626E11D4127C098C',
+      name: 'DOGE / USD',
+      symbol: 'DOGE',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  AAVE: {
+    1: {
+      address: '0x547a514d5e3769680Ce22B2361c10Ea13619e8a9',
+      name: 'AAVE / USD',
+      symbol: 'AAVE',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0xaD1d5344AaDE45F43E596773Bcc4c423EAbdD034',
+      name: 'AAVE / USD',
+      symbol: 'AAVE',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  MKR: {
+    42161: {
+      address: '0xdE9f0894670c4EFcacF370426F10C3AD2Cdf147e',
+      name: 'MKR / USD',
+      symbol: 'MKR',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  COMP: {
+    42161: {
+      address: '0xe7C53FFd03Eb6ceF7d208bC4C13446c76d1E5884',
+      name: 'COMP / USD',
+      symbol: 'COMP',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  APE: {
+    1: {
+      address: '0xD10aBbC76679a20055E167BB80A24ac851b37056',
+      name: 'APE / USD',
+      symbol: 'APE',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0x221912ce795669f628c51c69b7d0873eDA9C03bB',
+      name: 'APE / USD',
+      symbol: 'APE',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  LDO: {
+    1: {
+      address: '0x4e844125952D32AcdF339BE976c98E22F6F318dB',
+      name: 'LDO / USD',
+      symbol: 'LDO',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0xA43A34030088E6510FecCFb77E88ee5e7ed0fE64',
+      name: 'LDO / USD',
+      symbol: 'LDO',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  YFI: {
+    42161: {
+      address: '0x745Ab5b69E01E2BE1104Ca84937Bb71f96f5fB21',
+      name: 'YFI / USD',
+      symbol: 'YFI',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  '1INCH': {
+    1: {
+      address: '0xc929ad75B72593967DE83E7F7Cda0493458261D9',
+      name: '1INCH / USD',
+      symbol: '1INCH',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0x4bC735Ef24bf286983024CAd5D03f0738865Aaef',
+      name: '1INCH / USD',
+      symbol: '1INCH',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  FRAX: {
+    42161: {
+      address: '0x0809E3d38d1B4214958faf06D8b1B1a2b73f2ab8',
+      name: 'FRAX / USD',
+      symbol: 'FRAX',
+      decimals: 8,
+      category: 'stablecoin',
+    },
+  },
+  WBTC: {
+    // Ethereum Mainnet does not have a public Chainlink WBTC/USD feed with the
+    // standard AggregatorV3Interface. The only official Chainlink WBTC feed is
+    // WBTC/BTC (0xfdFD...), which returns a ratio near 1.0 and breaks USD
+    // price display. We fall back to BTC/USD because WBTC is pegged to BTC.
+    1: {
+      address: '0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c',
+      name: 'WBTC / USD',
+      symbol: 'WBTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0xd0C7101eACbB49F3deCcCc166d238410D6D46d57',
+      name: 'WBTC / USD',
+      symbol: 'WBTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  CBBTC: {
+    1: {
+      address: '0x2665701293fCbEB223D11A08D826563EDcCE423A',
+      name: 'CBBTC / USD',
+      symbol: 'CBBTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+    8453: {
+      address: '0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D',
+      name: 'CBBTC / USD',
+      symbol: 'CBBTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  TBTC: {
+    1: {
+      address: '0x8350b7De6a6a2C1368E7D4Bd968190e13E354297',
+      name: 'TBTC / USD',
+      symbol: 'TBTC',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  STETH: {
+    1: {
+      address: '0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8',
+      name: 'STETH / USD',
+      symbol: 'STETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+    42161: {
+      address: '0x07C5b924399cc23c24a95c8743DE4006a32b7f2a',
+      name: 'STETH / USD',
+      symbol: 'STETH',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  // Arbitrum-only feeds (not available on Ethereum Mainnet)
+  SHIB: {
+    42161: {
+      address: '0x0E278D14B4bf6429dDB0a1B353e2Ae8A4e128C93',
+      name: 'SHIB / USD',
+      symbol: 'SHIB',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  UNI: {
+    42161: {
+      address: '0x9C917083fDb403ab5ADbEC26Ee294f6EcAda2720',
+      name: 'UNI / USD',
+      symbol: 'UNI',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  NEAR: {
+    42161: {
+      address: '0xBF5C3fB2633e924598A46B9D07a174a9DBcF57C0',
+      name: 'NEAR / USD',
+      symbol: 'NEAR',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  APT: {
+    42161: {
+      address: '0xdc49F292ad1bb3DAb6C11363d74ED06F38b9bd9C',
+      name: 'APT / USD',
+      symbol: 'APT',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  ARB: {
+    42161: {
+      address: '0xb2A824043730FE05F3DA2efaFa1CBbe83fa548D6',
+      name: 'ARB / USD',
+      symbol: 'ARB',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  OP: {
+    42161: {
+      address: '0x205aaD468a11fd5D34fA7211bC6Bad5b3deB9b98',
+      name: 'OP / USD',
+      symbol: 'OP',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SNX: {
+    42161: {
+      address: '0x054296f0D036b95531B4E14aFB578B80CFb41252',
+      name: 'SNX / USD',
+      symbol: 'SNX',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  CRV: {
+    42161: {
+      address: '0xaebDA2c976cfd1eE1977Eac079B4382acb849325',
+      name: 'CRV / USD',
+      symbol: 'CRV',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SUSHI: {
+    42161: {
+      address: '0xb2A8BA74cbca38508BA1632761b56C897060147C',
+      name: 'SUSHI / USD',
+      symbol: 'SUSHI',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  GMX: {
+    42161: {
+      address: '0xDB98056FecFff59D032aB628337A4887110df3dB',
+      name: 'GMX / USD',
+      symbol: 'GMX',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  GRT: {
+    42161: {
+      address: '0x0F38D86FceF4955B705F35c9e41d1A16e0637c73',
+      name: 'GRT / USD',
+      symbol: 'GRT',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  AXS: {
+    42161: {
+      address: '0x5B58aA6E0651Ae311864876A55411F481aD86080',
+      name: 'AXS / USD',
+      symbol: 'AXS',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  INJ: {
+    42161: {
+      address: '0x6aCcBB82aF71B8a576B4C05D4aF92A83A035B991',
+      name: 'INJ / USD',
+      symbol: 'INJ',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SUI: {
+    42161: {
+      address: '0x4a85B128EBDaFC24d5CB611e161376ffDECeB289',
+      name: 'SUI / USD',
+      symbol: 'SUI',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  SEI: {
+    42161: {
+      address: '0xCc9742d77622eE9abBF1Df03530594f9097bDcB3',
+      name: 'SEI / USD',
+      symbol: 'SEI',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  TIA: {
+    42161: {
+      address: '0x4096b9bfB4c34497B7a3939D4f629cf65EBf5634',
+      name: 'TIA / USD',
+      symbol: 'TIA',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  TON: {
+    42161: {
+      address: '0x0301e5D0A8f7490444ebd1921E3d0f0fe7722786',
+      name: 'TON / USD',
+      symbol: 'TON',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  PEPE: {
+    42161: {
+      address: '0x02DEd5a7EDDA750E3Eb240b54437a54d57b74dBE',
+      name: 'PEPE / USD',
+      symbol: 'PEPE',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  WIF: {
+    42161: {
+      address: '0xF7Ee427318d2Bd0EEd3c63382D0d52Ad8A68f90D',
+      name: 'WIF / USD',
+      symbol: 'WIF',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  LUSD: {
+    42161: {
+      address: '0x0411D28c94d85A36bC72Cb0f875dfA8371D8fFfF',
+      name: 'LUSD / USD',
+      symbol: 'LUSD',
+      decimals: 8,
+      category: 'stablecoin',
+    },
+  },
+  MNT: {
+    42161: {
+      address: '0x37DDEE84dE03d039e1Bf809b7a01EDd2c4665771',
+      name: 'MNT / USD',
+      symbol: 'MNT',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  RPL: {
+    42161: {
+      address: '0xF0b7159BbFc341Cc41E7Cb182216F62c6d40533D',
+      name: 'RPL / USD',
+      symbol: 'RPL',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  CVX: {
+    42161: {
+      address: '0x851175a919f36c8e30197c09a9A49dA932c2CC00',
+      name: 'CVX / USD',
+      symbol: 'CVX',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  CAKE: {
+    42161: {
+      address: '0x256654437f1ADA8057684b18d742eFD14034C400',
+      name: 'CAKE / USD',
+      symbol: 'CAKE',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  BONK: {
+    42161: {
+      address: '0x3d9145b5804E13Bc14d19c3DDbd3DA8fD02b5034',
+      name: 'BONK / USD',
+      symbol: 'BONK',
+      decimals: 8,
+      category: 'crypto',
+    },
+  },
+  // === Forex Price Feeds (verified on Ethereum Mainnet) ===
+  EUR: {
+    1: {
+      address: '0xb49f677943BC038e9857d61E7d053CaA2C1734C1',
+      name: 'EUR / USD',
+      symbol: 'EUR',
+      decimals: 8,
+      category: 'forex',
+    },
+  },
+  GBP: {
+    1: {
+      address: '0x5c0Ab2d9b5a7ed9f470386e82BB36A3613cDd4b5',
+      name: 'GBP / USD',
+      symbol: 'GBP',
+      decimals: 8,
+      category: 'forex',
+    },
+  },
+  JPY: {
+    1: {
+      address: '0xBcE206caE7f0ec07b545EddE332A47C2F75bbeb3',
+      name: 'JPY / USD',
+      symbol: 'JPY',
+      decimals: 8,
+      category: 'forex',
+    },
+  },
+  CHF: {
+    1: {
+      address: '0x449d117117838fFA61263B61dA6301AA2a88B13A',
+      name: 'CHF / USD',
+      symbol: 'CHF',
+      decimals: 8,
+      category: 'forex',
+    },
+  },
+  AUD: {
+    1: {
+      address: '0x77F9710E7d0A19669A13c055F62cd80d313dF022',
+      name: 'AUD / USD',
+      symbol: 'AUD',
+      decimals: 8,
+      category: 'forex',
+    },
+  },
+  CAD: {
+    1: {
+      address: '0xa34317DB73e77d453b1B8d04550c44D10e981C8e',
+      name: 'CAD / USD',
+      symbol: 'CAD',
+      decimals: 8,
+      category: 'forex',
+    },
+  },
+  // === Commodity Price Feeds (verified on Ethereum Mainnet) ===
+  XAU: {
+    1: {
+      address: '0x214eD9Da11D2fbe465a6fc601a91E62EbEc1a0D6',
+      name: 'XAU / USD',
+      symbol: 'XAU',
+      decimals: 8,
+      category: 'commodity',
+    },
+  },
+  XAG: {
+    1: {
+      address: '0x379589227b15F1a12195D3f2d90bBc9F31f95235',
+      name: 'XAG / USD',
+      symbol: 'XAG',
+      decimals: 8,
+      category: 'commodity',
+    },
+  },
+  // === US Equity Price Feeds (verified on BNB Chain) ===
+  AAPL: {
+    56: {
+      address: '0xb7Ed5bE7977d61E83534230f3256C021e0fae0B6',
+      name: 'AAPL / USD',
+      symbol: 'AAPL',
+      decimals: 8,
+      category: 'equity',
+    },
+  },
+  AMZN: {
+    56: {
+      address: '0x51d08ca89d3E8c12535bA8AED33cdf2557AB5b2a',
+      name: 'AMZN / USD',
+      symbol: 'AMZN',
+      decimals: 8,
+      category: 'equity',
+    },
+  },
+  TSLA: {
+    56: {
+      address: '0xEEA2ae9c074E87596A85ABE698B2Afebc9B57893',
+      name: 'TSLA / USD',
+      symbol: 'TSLA',
+      decimals: 8,
+      category: 'equity',
+    },
+  },
+  GOOGL: {
+    56: {
+      address: '0xeDA73F8acb669274B15A977Cb0cdA57a84F18c2a',
+      name: 'GOOGL / USD',
+      symbol: 'GOOGL',
+      decimals: 8,
+      category: 'equity',
+    },
+  },
+  NVDA: {
+    56: {
+      address: '0xea5c2Cbb5cD57daC24E26180b19a929F3E9699B8',
+      name: 'NVDA / USD',
+      symbol: 'NVDA',
+      decimals: 8,
+      category: 'equity',
+    },
+  },
+  COIN: {
+    56: {
+      address: '0x2d1AB79D059e21aE519d88F978cAF39d74E31AEB',
+      name: 'COIN / USD',
+      symbol: 'COIN',
+      decimals: 8,
+      category: 'equity',
+    },
+  },
+};

@@ -1,0 +1,112 @@
+{
+  "name": "insight",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "validate": "npm run lint && npm run typecheck && npm run test && npm run knip",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "knip": "knip",
+    "clean:dev": "rm -rf .next && next dev",
+    "clean:start": "rm -rf .next && next build && next start",
+    "mcp:stdio": "tsx src/mcp/index.ts",
+    "mcp:http": "tsx src/mcp/http-server.ts",
+    "test:mcp:e2e": "node --env-file=.env.local ./node_modules/.bin/jest src/mcp/__tests__/e2e.test.ts --testTimeout=120000 --runInBand",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@api3/contracts": "^27.0.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@pythnetwork/hermes-client": "^2.0.0",
+    "@scalar/api-reference-react": "^0.8.70",
+    "@sentry/nextjs": "^10.43.0",
+    "@stellar/stellar-sdk": "^15.0.1",
+    "@supabase/ssr": "^0.9.0",
+    "@supabase/supabase-js": "^2.98.0",
+    "@tanstack/react-query": "^5.99.0",
+    "@tanstack/react-query-devtools": "^5.99.0",
+    "@tanstack/react-virtual": "^3.13.21",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
+    "clsx": "^2.1.1",
+    "dompurify": "^3.4.0",
+    "framer-motion": "^12.36.0",
+    "fuse.js": "^7.1.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.0",
+    "jspdf-autotable": "^5.0.7",
+    "lucide-react": "^0.577.0",
+    "next": "16.2.4",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "recharts": "^3.8.0",
+    "supra-oracle-sdk": "^1.0.4",
+    "tailwind-merge": "^3.5.0",
+    "viem": "^2.47.6",
+    "web-vitals": "^5.1.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@aave-dao/aave-address-book": "^4.57.0",
+    "@next/bundle-analyzer": "^16.2.4",
+    "@playwright/test": "^1.58.2",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.5",
+    "husky": "^9.1.7",
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
+    "knip": "^6.4.1",
+    "lint-staged": "^16.4.0",
+    "playwright": "^1.58.2",
+    "prettier": "^3.8.1",
+    "tsx": "^4.23.1",
+    "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,jsonc}": [
+      "prettier --write"
+    ],
+    "*.md": [
+      "prettier --write"
+    ],
+    "*.{css,scss,sass}": [
+      "prettier --write"
+    ],
+    "*.{yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "overrides": {
+    "d3-color": "^3.1.0",
+    "flatted": "^3.4.0",
+    "postcss": "^8.5.10",
+    "axios": "^1.16.0"
+  }
+}

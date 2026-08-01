@@ -1,0 +1,11 @@
+# Pinned for ML training reproducibility.
+# xgboost 3.0+ changed how base_score is initialized for GLM-derived objectives
+# (binary:logistic), which breaks the pure-TypeScript inference contract in
+# src/lib/ml/inference.ts (assumes base_score=0.5 => logit bias = 0 =>
+# proba = sigmoid(sum of leaves)). Keep on 2.x until the TS scorer is migrated.
+pandas==2.3.3
+numpy==2.0.2
+xgboost==2.1.4
+scikit-learn==1.6.1
+scipy==1.13.1
+requests>=2.31

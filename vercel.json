@@ -1,0 +1,28 @@
+{
+  "functions": {
+    "src/app/api/oracles/[provider]/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/reputation/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/reputation/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/sync-feeds/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/daily-report/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/daily-report/publish/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/cron/billing/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/billing/webhook/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}

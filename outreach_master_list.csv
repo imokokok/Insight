@@ -1,0 +1,235 @@
+批次,公司名称,类别,网站,联系邮箱,状态,备注
+1,Aave,去中心化借贷协议,https://aave.com/,contact@aave.com,已发送,batch1 还尝试 integrators@aave.com
+1,CertiK,区块链安全审计,https://www.certik.com/,marketing@certik.com,已发送,可丰富研究报告
+1,Compound,去中心化借贷协议,https://compound.finance/,security@compound.finance,已发送,GitHub 公开安全团队邮箱
+1,Ethena Labs,合成美元与收益型稳定币协议,https://www.ethena.fi/,finance@ethenalabs.xyz,已发送,稳定币资金费率与抵押品价格
+1,Morpho,去中心化借贷协议,https://morpho.org/,security@morpho.org,已发送,机构化 Vault，风险敏感
+1,OpenZeppelin,区块链安全与审计,https://www.openzeppelin.com/,contact@openzeppelin.com,已发送,batch1 还尝试 security@openzeppelin.com
+1,Optimism Foundation,L2 生态系统与基金会,https://optimism.io/,retrofunding@optimism.io,已发送,RetroPGF 公共物品资助
+1,Trail of Bits,安全审计公司,https://www.trailofbits.com/,info@trailofbits.com,已发送,研究型安全公司
+1,Wintermute,做市商 / 流动性提供商,https://www.wintermute.com/,trade@wintermute.com,已发送,DeFi 流动性仓位
+2,1inch,DEX 聚合器 / DeFi 交易基础设施,https://1inch.io/ / https://1inch.com/,info@1inch.com,已发送,批量发送完成
+2,API3,第一方预言机 / dAPI 基础设施,https://api3.org/,contact@api3.org,已发送,批量发送完成
+2,Centrifuge,RWA 代币化平台（发票、房地产、私募信贷）,https://centrifuge.io/,connect@centrifuge.io,已发送,批量发送完成
+2,Chaos Labs,风险分析 / 预言机安全,https://chaoslabs.xyz/,support@chaoslabs.xyz,已发送,批量发送完成
+2,Gauntlet,DeFi 风险管理 / 参数优化,https://gauntlet.network/,info@gauntlet.network,已发送,批量发送完成
+2,Maple Finance,机构级链上借贷 / 资产管理,https://maple.finance/,partnerships@maple.finance,已发送,批量发送完成
+2,Ondo Finance,RWA 代币化平台（代币化股票、美债、ETF）,https://ondo.finance/,support@ondo.finance,已发送,批量发送完成
+2,ParaSwap,DEX 聚合器 / 流动性中间件,https://paraswap.io/,hello@paraswap.io,已发送,批量发送完成
+2,Request Network,链上支付 / 发票协议,https://request.network/,hello@request.network,已发送,批量发送完成
+2,Wormhole Foundation,跨链消息 / 互操作性基础设施,https://wormhole.com/ / https://wormhole.foundation/,hello@wormhole.foundation,已发送,批量发送完成
+3,Circle,稳定币发行方与代币化货币市场基金,https://www.circle.com/,press@circle.com,已发送,批量发送完成
+3,Curve Finance,稳定币与相关性资产 DEX,https://curve.fi/,info@curve.finance,已发送,批量发送完成
+3,EigenLayer Foundation,再质押协议与 AVS 生态,https://www.eigenfoundation.org/,notices@eigenfoundation.org,已发送,批量发送完成
+3,GMX,去中心化永续合约交易所,https://gmx.io/,comms@gmx.io,已发送,批量发送完成
+3,Lido Finance,流动性质押协议龙头,https://lido.fi/,info@lido.fi,已发送,批量发送完成
+3,Messari,加密数据研究与市场情报平台,https://messari.io/,hi@messari.io,已发送,批量发送完成
+3,OpenZeppelin,区块链安全与审计公司,https://www.openzeppelin.com/,legal@openzeppelin.com,已发送,批量发送完成
+3,Pyth Network,预言机网络（同行 / 数据源）,https://www.pyth.network/,data@dourolabs.xyz,已发送,批量发送完成
+3,RedStone,模块化预言机提供商（同行 / 数据源）,https://redstone.finance/,core@redstone.finance,已发送,批量发送完成
+3,Rocket Pool,去中心化流动性质押协议,https://rocketpool.net/,contact@rocketpool.net,已发送,批量发送完成
+4,Anchorage Digital,机构级数字资产银行与托管,https://www.anchorage.com/,partnerships@anchorage.com,已发送,批量发送完成
+4,Arbitrum Foundation / Offchain Labs,L2 生态系统与基金会,https://arbitrum.foundation/ / https://offchainlabs.com/,partnerships@offchainlabs.com,已发送,批量发送完成
+4,Balancer Labs,AMM / 流动性协议,https://balancer.fi/,contact@balancerlabs.dev,已发送,批量发送完成
+4,Base / Coinbase,L2 生态与机构基础设施,https://www.base.org/ / https://www.coinbase.com/,protocol-sales@coinbase.com,已发送,批量发送完成
+4,BitGo,机构级数字资产托管,https://www.bitgo.com/,contact@bitgo.com,已发送,批量发送完成
+4,Certora,形式化验证与智能合约安全,https://www.certora.com/,nooly@certora.com,已发送,批量发送完成
+4,Copper,机构级数字资产托管与交易基础设施,https://copper.co/,partnerships@copper.co,已发送,批量发送完成
+4,Dune Analytics,链上数据查询与可视化平台,https://dune.com/,enterprise@dune.com,已发送,批量发送完成
+4,Euler Finance,去中心化借贷协议,https://www.euler.finance/,contact@euler.foundation,已发送,批量发送完成
+4,LayerZero Foundation,跨链互操作性协议,https://layerzero.network/,partnerships@layerzero.network,已发送,批量发送完成
+4,Nansen,链上分析与机构情报平台,https://nansen.ai/,hello@nansen.ai,已发送,批量发送完成
+4,Optimism Foundation,L2 生态系统与基金会,https://optimism.io/ / https://optimism.foundation/,partnerships@optimism.io,已发送,批量发送完成
+4,OtterSec,区块链安全审计（Solana / Rust / Move）,https://osec.io/,contact@osec.io,已发送,批量发送完成
+4,Polygon Labs,L2 / 侧链生态系统,https://polygon.technology/,business@polygon.technology,已发送,批量发送完成
+4,Solana Foundation,L1 生态系统与基金会,https://solana.org/ / https://solana.foundation/,grants@solana.org,已发送,批量发送完成
+4,Zellic,区块链安全审计,https://www.zellic.io/,hello@zellic.io,已发送,批量发送完成
+5,Babylon Labs,比特币质押与共享安全协议,https://babylonlabs.io/,security@babylonlabs.io,已发送,批量发送完成
+5,Chainalysis,区块链数据分析与合规,https://www.chainalysis.com/,info@chainalysis.com,已发送,批量发送完成 备选 media@chainalysis.com
+5,Frax Finance,稳定币与流动性协议,https://frax.finance/,webmaster@frax.finance,已发送,批量发送完成
+5,Liquity,去中心化借贷协议（ETH 抵押零息贷款）,https://www.liquity.org/,security@liquity.org,已发送,批量发送完成
+5,Nexus Mutual,去中心化保险互助组织,https://nexusmutual.io/,info@nexusmutual.io,已发送,批量发送完成
+5,Sky / MakerDAO,去中心化稳定币协议,https://sky.money/ / https://makerdao.com/,bd@makerdao.com,已发送,批量发送完成
+5,TRM Labs,区块链情报与金融犯罪合规,https://trmlabs.com/,contact@trmlabs.com,已发送,批量发送完成
+6,Polymarket,去中心化预测市场,https://polymarket.com/,press@polymarket.com,已发送,批量发送完成 备选 support@polymarket.com
+6,Puffer Finance,去中心化流动再质押协议,https://www.puffer.fi/,hello@puffer.fi,已发送,批量发送完成
+6,Safe,智能合约钱包 / 账户抽象基础设施,https://safe.global/,support@safe.global,已发送,批量发送完成
+6,ether.fi,流动再质押协议 / LRT,https://www.ether.fi/,support@ether.fi,已跟进,Ben 回复：BD 已收到通知，若有兴趣会联系
+7,Ankr,去中心化节点基础设施,https://www.ankr.com/,support@ankr.com,已发送,批量发送完成
+7,Drift Protocol,去中心化永续合约交易所（Solana）,https://drift.trade/,support@driftapp.io,已发送,批量发送完成
+7,Fireblocks,机构级数字资产托管与 MPC 钱包基础设施,https://www.fireblocks.com/,info@fireblocks.com,已发送,批量发送完成
+7,Flashbots,MEV 研究与区块构建基础设施,https://www.flashbots.net/,info@flashbots.net,已发送,批量发送完成
+7,Immunefi,Web3 漏洞赏金与安全平台,https://immunefi.com/,support@immunefi.com,已发送,批量发送完成
+7,QuickNode,区块链节点与 API 基础设施,https://www.quicknode.com/,support@quicknode.com,已发送,批量发送完成
+7,Rabby Wallet,智能合约钱包 / EVM 钱包,https://rabby.io/,support@rabby.io,已发送,批量发送完成
+7,Uniswap Labs,AMM / DEX 协议基础设施,https://uniswap.org/,support@uniswap.org,已发送,批量发送完成
+8,Arweave Foundation,去中心化永久存储网络,https://arweave.org/,team@arweave.org,已发送,批量发送完成
+8,Chainlink Labs,预言机网络（同行 / 数据源）,https://chainlinklabs.com/,research@chainlinklabs.com,已发送,批量发送完成
+8,Filecoin Foundation,去中心化存储网络与基金会,https://fil.org/,hello@fil.org,已发送,批量发送完成
+8,Gitcoin,去中心化公共物品资助与身份验证,https://www.gitcoin.co/,support@gitcoin.co,已发送,批量发送完成
+8,Hop Protocol,跨链桥与 L2 流动性基础设施,https://hop.exchange/,support@hop.exchange,已发送,批量发送完成
+8,Kraken,加密货币交易所与机构服务,https://www.kraken.com/,institutions@kraken.com,已发送,批量发送完成
+8,Ledger,硬件钱包与数字资产安全,https://www.ledger.com/,support@ledger.com,已发送,批量发送完成
+8,Phantom wallet,智能合约钱包 / Solana 钱包,https://phantom.app/,support@phantom.app,已发送,批量发送完成
+8,The Graph Protocol,链上数据索引与查询协议,https://thegraph.com/,admin@thegraphnetwork.org,已发送,批量发送完成
+9,Alchemy,区块链节点与 API 基础设施,https://www.alchemy.com/,support@alchemy.com,已回复,工单确认 Ticket #20415，团队会尽快审核
+9,Aptos Foundation,L1 生态系统与基金会,https://aptosfoundation.org/,info@aptosfoundation.org,已发送,批量发送完成
+9,Avalanche Foundation / Ava Labs,L1 生态系统与基金会,https://avax.network/ / https://www.avalabs.org/,support@avax.network,已回复,自动回复：团队会审核并转发给适当团队
+9,Injective,去中心化永续合约交易所,https://injective.com/ / https://injective.foundation/,contact@injective.foundation,已发送,批量发送完成
+9,Interchain Foundation,跨链互操作性与 Cosmos 生态基金会,https://interchain.io/,hello@interchain.io,已发送,批量发送完成
+9,Mantle Network,L2 / 侧链生态系统,https://mantle.xyz/,protocol@mantle.xyz,已发送,批量发送完成
+9,NEAR Foundation,L1 生态系统与基金会,https://near.foundation/,hello@near.foundation,已回复,自动回复：请求已收到，团队会尽快回复
+9,Sei Foundation,L1 生态系统与基金会,https://www.seifdn.org/ / https://sei.io/,foundation@seifdn.org,已发送,批量发送完成
+9,Starknet Foundation,L2 生态系统与基金会,https://starknet.io/ / https://starknet.org/,provisionsupport@starknet.org,已发送,批量发送完成
+9,Sui Foundation,L1 生态系统与基金会,https://sui.io/,media@sui.io,已发送,批量发送完成
+9,Web3 Foundation,去中心化 Web3 公共物品基金会,https://web3.foundation/,hello@web3.foundation,无兴趣,Polkadot Support 回复官方支持已关闭，无法协助，建议转社区渠道
+9,zkSync (Matter Labs),L2 / 侧链生态系统,https://zksync.io/ / https://matter-labs.io/,support@zksync.io,已发送,批量发送完成
+10,Gelato Network,Web3 自动化 / Rollup 基础设施,https://www.gelato.network/,support@gelato.digital,已发送,批量发送完成
+10,Jito Labs,Solana MEV / 流动性质押 / JTX,https://www.jito.wtf/,support@jito.wtf,已发送,批量发送完成
+10,Kamino Finance,Solana 借贷 / 流动性 / LST,https://kamino.finance/,support@kamino.finance,已发送,批量发送完成
+10,Marinade Finance,Solana 流动性质押,https://marinade.finance/,institutional@marinade.finance,已发送,批量发送完成
+10,Pimlico,账户抽象 / ERC-4337 基础设施,https://pimlico.io/,support@pimlico.io,已发送,批量发送完成
+10,Raydium,Solana AMM / DEX,https://raydium.io/,security@reactorlabs.io,已发送,批量发送完成
+10,Rhinestone,模块化智能账户 / 意图跨链,https://rhinestone.dev/,gm@rhinestone.dev,已发送,批量发送完成
+10,Tokeny,RWA 代币化 / 合规发行,https://tokeny.com/,support@tokeny.com,已发送,批量发送完成
+11,Axelar,跨链互操作性协议,https://www.axelar.network/,terms@axelar.org,已发送,批量发送完成
+11,CoinGecko,加密数据研究与市场情报平台,https://www.coingecko.com/,hello@coingecko.com,已发送,批量发送完成
+11,Conduit,Rollup 基础设施,https://www.conduit.xyz/,support@conduit.xyz,已发送,批量发送完成
+11,DIA Data,预言机网络（同行 / 数据源）,https://www.diadata.org/,contact@diadata.org,已发送,批量发送完成
+11,DeFiLlama,DeFi 数据聚合与分析平台,https://defillama.com/,support@defillama.com,已发送,批量发送完成
+11,Gains Network,去中心化永续合约 / 合成资产交易所,https://gains.trade/,contact@gains.trade,已发送,批量发送完成 通过 improvmx 转发
+11,Supra,预言机网络（同行 / 数据源）,https://supra.com/,security@supra.com,已发送,批量发送完成
+11,THORChain,跨链 DEX / 流动性协议,https://thorchain.org/,contact@thorchain.org,已发送,批量发送完成
+11,dYdX,去中心化永续合约交易所,https://dydx.exchange/,contact@dydx.exchange,已发送,批量发送完成
+12,Clearpool Finance,机构级链上借贷 / 资产管理,https://clearpool.finance/,info@clearpool.finance,已发送,批量发送完成
+12,CoW Protocol,DEX 聚合器 / DeFi 交易基础设施,https://cow.fi/,bd@cow.fi,已发送,批量发送完成
+12,Cyfrin,区块链安全审计,https://cyfrin.io/,audit@cyfrin.io,已发送,批量发送完成
+12,Silo Finance,去中心化借贷协议,https://silo.finance/,security@silo.finance,已发送,批量发送完成
+12,Spark Protocol,去中心化借贷协议,https://spark.fi/,legal@sparkfoundation.io,已发送,批量发送完成
+12,Tellor,预言机网络（同行 / 数据源）,https://tellor.io/,info@tellor.io,已发送,批量发送完成
+13,BENQI,Avalanche DeFi 枢纽（流动质押 + 借贷）,https://benqi.fi/,info@benqi.fi,已发送,批量发送完成
+13,Convex Finance,Curve 收益聚合 / 流动性锁定协议,https://www.convexfinance.com/,contact@convexfinance.com,已发送,批量发送完成
+13,Hyperliquid,去中心化永续合约交易所 / L1,https://hyperliquid.xyz/,support@hyperliquid.xyz,已发送,批量发送完成
+13,Kelp DAO,流动再质押协议 / LRT,https://kelpdao.xyz/,legal@kelpdao.xyz,已发送,批量发送完成
+13,Obol Network,分布式验证器技术（DVT）/ 以太坊质押基础设施,https://obol.org/ / https://obol.tech/,security@obol.tech,已发送,批量发送完成
+13,SSV Network,分布式验证器基础设施（DVT）,https://ssv.network/,hello@ssv.network,已发送,批量发送完成
+13,StakeWise,流动性质押协议,https://stakewise.io/,info@stakewise.io,已发送,批量发送完成
+14,Osmosis,Cosmos 生态 DEX / 流动性协议 / L1,https://osmosis.zone/,security@osmosis.team,已发送,官方安全邮箱
+14,Kujira,Cosmos DeFi 生态 / 稳定币 / 借贷,https://kujira.app/,hello@kujira.app,已发送,开发者文档公开邮箱
+14,Radiant Capital,跨链借贷协议,https://radiant.capital/,admin@radiant.capital,已发送,服务条款公开邮箱
+14,Venus Protocol,BNB Chain 借贷协议,https://venus.io/,bd@venus.io,已发送,治理提案公开 BD 邮箱
+14,Band Protocol,预言机网络（同行 / 数据源）,https://bandprotocol.com/,bd@bandprotocol.com,已发送,官方商务邮箱
+14,Hashflow,RFQ DEX / 流动性层,https://www.hashflow.com/,support@hashflow.in,已发送,官方联系页面邮箱
+14,Jupiter,Solana DEX 聚合器,https://jup.io/,hello@jup.io,已发送,官方联系页面邮箱
+14,Scroll Network,多链钱包 / 自托管基础设施,https://scroll.network/,contact@scroll.network,已发送,官方联系页面邮箱
+15,Synthetix,衍生品流动性协议 / 合成资产与永续合约,https://synthetix.io/,privacy@snxdao.io,已发送,官方隐私政策公开邮箱
+15,Pendle Finance,收益代币化协议（PT/YT）,https://pendle.finance/,legal@pendle.finance,已发送,官方隐私政策 DPO 邮箱
+15,Notional Finance,固定利率借贷协议,https://notional.finance/,support@notional.finance,已发送,官方服务条款公开邮箱
+15,Gearbox Protocol,链上信用 / 通用杠杆协议,https://gearbox.finance/,legal@gearbox.foundation,已发送,官方条款公开邮箱 备选 security@gearbox.fi
+15,Renzo,流动性再质押代币协议（ezETH）,https://renzoprotocol.com/,contact@renzoprotocol.com,已发送,官方服务条款公开邮箱
+15,Perpetual Protocol,去中心化永续合约协议,https://perp.com/,hi@perp.fi,已发送,GitHub 组织公开邮箱
+15,Reserve Protocol,超额抵押稳定币 / RToken 协议,https://reserve.org/,ecosystem@reserve.org,已发送,官方机构/DAO 合作邮箱 备选 contact@reserve.org
+15,Stader Labs,流动性质押中间件（ETHx 等 LST）,https://staderlabs.com/,rajath@staderlabs.com,已发送,首席商务官邮箱（源自官方 MiCA 白皮书）
+16,Quantstamp,区块链安全审计,https://quantstamp.com/,security@quantstamp.com,已发送,官方责任披露公开邮箱 备选 legal@quantstamp.com
+16,Halborn,区块链安全审计,https://halborn.com/,halborn@protonmail.com,已发送,官方 Contact 页公开安全邮箱 备选 legalnotices@halborn.com
+16,Sherlock,智能合约审计 + 漏洞赏金平台,https://www.sherlock.xyz/,alec.novella@sherlock.xyz,已发送,商务拓展邮箱（官方推荐计划博客） 备选 dev@sherlock.xyz
+16,Code4rena,审计竞赛平台,https://code4rena.com/,legal@code4rena.com,已发送,官方服务条款公开邮箱
+16,GSR,加密做市商 / 流动性提供商,https://gsr.io/,gsr@gsr.io,已发送,官方研究报告公开邮箱
+16,deBridge,跨链互操作协议,https://debridge.finance/,hello@debridge.finance,已发送,官方服务条款公开邮箱
+16,Mountain Protocol,RWA / 国债支撑收益型稳定币（USDM）,https://mountainprotocol.com/,contact@mountainprotocol.com,已发送,官方文档公开邮箱 备选 security@mountainprotocol.com
+16,Tether,稳定币发行方（USDT）,https://tether.to/,inforequests@tether.to,已发送,官方漏洞赏金页公开邮箱
+17,Sigma Prime,区块链安全审计与研究,https://sigmaprime.io/,security@sigmaprime.io,已发送,GitHub SECURITY.md 公开邮箱（曾审计 Chainlink）
+17,ConsenSys Diligence,智能合约安全审计,https://consensys.io/diligence/,privacy@consensys.net,已发送,官方隐私政策 DPO 邮箱
+17,PeckShield,区块链安全审计 + 链上监控,https://peckshield.com/,contact@peckshield.com,已发送,官方首页 Contact 公开邮箱
+17,SlowMist,区块链安全审计 + 威胁情报,https://slowmist.com/,support@slowmist.com,已发送,官方 SSO 隐私政策公开邮箱
+17,Superstate,代币化基金（USTB 等）,https://superstate.com/,comms@superstate.co,已发送,官方 About 页公开邮箱
+17,Backed Finance,代币化 ETF / 股票（bTokens、xStocks）,https://backed.fi/,contact@backed.fi,已发送,官方隐私政策公开邮箱
+17,Linea,L2 / zkEVM 生态系统,https://linea.build/,privacy@linea.build,已发送,官方隐私政策 DPO 邮箱
+17,Celestia,模块化数据可用性层,https://celestia.org/,security@celestia.org,已发送,GitHub SECURITY.md 公开邮箱
+18,Sygnum,数字资产银行 / 代币化与托管,https://sygnum.com/,info@sygnum.com,已发送,官方 Imprint 公开邮箱 备选 support@sygnum.com
+18,Komainu,机构级数字资产托管与抵押品管理,https://komainu.io/,sales@komainu.com,已发送,官方联系页与洞察文章公开邮箱
+18,Hex Trust,持牌数字资产托管,https://www.hextrust.com/,clients@hextrust.com,已发送,官方月报与法律页公开邮箱
+18,Token Terminal,链上数据分析平台,https://tokenterminal.com/,people@tokenterminal.xyz,已发送,官方文档站公开邮箱
+18,Arkham Intelligence,链上情报与实体归因平台,https://www.arkhamintelligence.com/,support@arkm.com,已发送,官方服务条款公开邮箱 备选 privacy@arkm.com
+18,Covalent (GoldRush),多链数据索引与 API 基础设施,https://www.covalenthq.com/,support@covalenthq.com,已发送,官方 GoldRush 文档公开邮箱
+18,Movement Labs,MoveVM ZK L2 生态系统,https://movementlabs.xyz/,media@movementlabs.xyz,已发送,官方新闻稿媒体联系邮箱
+18,Flow Traders,机构级流动性提供商 / 做市商,https://www.flowtraders.com/,investor.relations@flowtraders.com,已发送,官方年报公开邮箱
+19,Flare Network,自带原生 FTSO 预言机的 L1,https://flare.network/,info@flare.network,已发送,官方 GitHub governance 仓库与隐私页公开邮箱
+19,Polynomial,去中心化永续合约交易所（Pyth Lazer 预言机）,https://polynomial.fi/,business@polynomial.fi,已发送,官方 docs 联系页公开邮箱 备选 security@polynomial.fi
+19,Exactly Protocol,固定 / 浮动利率借贷协议,https://exact.ly/,info@exact.ly,已发送,官方 GitHub 组织公开邮箱
+19,Abracadabra Money,生息资产抵押借贷 + MIM 稳定币,https://abracadabra.money/,security@abracadabra.money,已发送,官方开发者文档安全页公开邮箱
+19,Lodestar Finance,Arbitrum 原生借贷协议（曾遭预言机攻击）,https://www.lodestarfinance.io/,dev@lodestarfinance.io,已发送,官网 Get In Touch 公开邮箱
+19,Tapioca DAO,全链借贷 + USD0 稳定币（LayerZero）,https://tapioca.xyz/,admin@tapioca.loan,已发送,官方隐私政策公开邮箱
+19,Instadapp,DeFi 中间件 / 智能账户层,https://instadapp.io/,info@instadapp.io,已发送,官方文档公开邮箱
+19,Celer Network,跨链桥与消息协议（cBridge）,https://celer.network/,info@celer.network,已发送,官网条款页脚公开邮箱
+20,Matrixport,加密金融服务 / 托管 / RWA（STBT、XAUm）,https://www.matrixport.com/,support@matrixport.com,已发送,官方博客公开邮箱 备选 msrc@/pr@matrixport.com
+20,Securitize,RWA 代币化证券平台（ATS）,https://securitize.io/,investorsupport@securitize.io,已发送,官方支持中心公开邮箱
+20,Glassnode,链上数据分析与指标平台,https://glassnode.com/,sales@glassnode.com,已发送,官方文档 FAQ 公开邮箱 备选 support@glassnode.com
+20,Infura,节点与 RPC 基础设施（ConsenSys）,https://infura.io/,hello@infura.io,已发送,官方 GitHub 组织公开邮箱
+20,Moralis,Web3 开发基础设施（API / Streams）,https://moralis.io/,hello@moralis.io,已发送,官方帮助中心公开邮箱 备选 success@moralis.io
+20,bloXroute,MEV / 区块分发网络基础设施,https://bloxroute.com/,hello@bloxroute.com,已发送,官方文档 Contact 公开邮箱 备选 support@bloxroute.com
+20,Taiko,Ethereum based rollup L2,https://taiko.xyz/,info@taiko.xyz,已发送,官方 GitHub 组织公开邮箱 备选 security@taiko.xyz
+20,Rainbow Wallet,非托管以太坊钱包,https://rainbow.me/,support@rainbow.me,已发送,官方支持页公开邮箱
+21,InsurAce,DeFi 保险协议（覆盖预言机攻击）,https://insurace.io/,contact@insurace.io,已发送,官方博客 community 区块公开邮箱
+21,Angle Protocol,去中心化稳定币协议,https://angle.money/,contact@angle.money,已发送,官方页面公开邮箱
+21,Paxos,受托稳定币发行方（USDP / PYUSD / PAXG）,https://paxos.com/,privacy@paxos.com,已发送,官方隐私政策公开邮箱 备选 subpoenas@paxos.com
+21,Flow,L1 区块链（消费级 / NFT 生态）,https://flow.com/,security@onflow.org,已发送,官方安全页公开邮箱 备选 support@flow.com
+21,Hedera,L1 企业级分布式账本（Hashgraph）,https://hedera.com/,security@hashgraph.com,已发送,官方安全页公开邮箱
+21,Envio,区块链索引与数据基础设施,https://envio.dev/,hello@envio.dev,已发送,官方文档公开邮箱
+21,Goldsky,链上数据索引与管道基础设施,https://goldsky.com/,sales@goldsky.com,已发送,官方文档公开邮箱 备选 support@goldsky.com
+21,Stargate Finance,LayerZero 原生全链桥,https://stargate.finance/,notices@stargate.finance,已发送,官方隐私/条款公开邮箱
+22,SushiSwap,多链 DEX / 借贷与衍生品协议,https://www.sushi.com/,security@sushi.com,已发送,RouteProcessor2 事件后公开的安全邮箱
+22,Yearn Finance,DeFi 收益聚合器 / Vault 策略协议,https://yearn.finance/,security@yearn.finance,已发送,GitHub yearn-security 仓库推断安全邮箱
+22,SynFutures,去中心化永续合约交易所 / Oyster AMM,https://www.synfutures.com/,hello@synfutures.com,已发送,官方域名推断邮箱
+22,Chronicle Protocol,可验证预言机网络（MakerDAO 衍生）,https://chroniclelabs.org/,hello@chroniclelabs.org,已发送,官方域名推断邮箱
+22,Switchboard,Solana 生态去中心化预言机,https://switchboard.xyz/,hello@switchboard.xyz,已发送,官方域名推断邮箱
+23,opyn,DeFi 期权 / Squeeth,https://opyn.co/,security@opyn.co,已发送,GitHub 安全邮箱（团队部分转入 Coinbase，可能运营缩减）
+23,Term Finance,固定利率借贷协议,https://termfinance.io/,billy@termfinance.io,已发送,联合创始人（BD & Marketing）工作邮箱
+23,Aura Finance,Balancer 流动性管理协议,https://aura.finance/,security@aura.finance,已发送,官方安全文档公开邮箱
+23,Enzyme Finance,链上资产管理协议,https://enzyme.finance/,council@enzyme.finance,已发送,GitHub 组织公开 DAO Council 邮箱 备选 support@enzyme.finance
+23,dHEDGE,去中心化资产管理协议,https://dhedge.org/,team@dhedge.org,已发送,GitHub 组织公开团队邮箱（现已更名 Chamber）
+23,Sommelier Finance,DeFi 策略 Vault,https://sommelier.finance/,info@peggy.cool,已发送,开发公司 PeggyJV 官网公开邮箱
+23,Contango,DeFi 永续合约协议,https://contango.xyz/,security@contango.xyz,已发送,GitHub Bug Bounty 公开安全邮箱
+23,Maverick Protocol,动态 AMM DEX,https://mav.xyz/,info@mav.xyz,已发送,官网 Co-Marketing / Press 公开邮箱
+23,Zircuit,L2 网络 / 内置质押,https://zircuit.com/,jen@zircuit.com,已发送,公关负责人公开邮箱（官方新闻稿来源）
+23,Berachain,DeFi 原生 L1 区块链,https://berachain.com/,founders@berachain.com,已发送,GitHub 组织公开创始人邮箱
+24,Premia,期权 AMM DEX,https://premia.finance/,contact@premia.blue,待发送,官网 Contact 页公开合作邮箱 备选 hello@premia.blue
+24,Forta,去中心化安全监控网络,https://forta.org/,info@forta.org,待发送,官方新闻稿公开通用联系邮箱 备选 tech@forta.org
+24,GoPlus Security,Web3 安全基础设施,https://gopluslabs.io/,service@gopluslabs.io,待发送,官方文档公开服务邮箱
+24,Hacken,区块链安全审计,https://hacken.io/,support@hacken.io,待发送,官网 RWA 页公开支持邮箱
+24,Index Coop,加密指数代币协议,https://indexcoop.com/,security@indexcoop.com,待发送,npm 包 README 公开安全邮箱
+24,88mph,固定收益 DeFi 协议,https://88mph.app/,hello@88mph.app,待发送,GitHub 组织公开联系邮箱
+24,Set Protocol,代币化策略基础设施,https://setprotocol.com/,hello@setprotocol.com,待发送,GitHub 组织公开联系邮箱
+24,Argent,智能钱包 / 账户抽象,https://argent.xyz/,support@argent.xyz,待发送,官网 Contact 页公开支持邮箱 备选 security@argent.xyz
+24,Manta Network,隐私 L2 / DeFi 生态,https://manta.network/,contact@manta.network,待发送,GitHub 组织公开联系邮箱
+24,DeFi Saver,DeFi 管理与自动化,https://defisaver.com/,contact@defisaver.com,待发送,官网服务条款公开联系邮箱
+25,Bancor,DEX / 无常损失保护协议,https://bancor.network/,contact@bancor.network,待发送,GitHub 组织公开联系邮箱
+25,Kyber Network,DEX 聚合器 / 流动性协议,https://kyber.network/,hello@kyber.network,待发送,GitHub 组织公开联系邮箱
+25,Ambire Wallet,智能钱包 / DeFi 钱包,https://ambire.com/,contactus@ambire.com,待发送,GitHub 组织公开联系邮箱
+25,Pocket Network,去中心化 RPC 基础设施,https://pokt.network/,partnerships@pokt.network,待发送,官网首页公开合作邮箱 备选 directors@pokt.foundation
+25,Across Protocol,跨链桥 / 乐观验证,https://across.to/,legal@across.to,待发送,官方隐私政策公开联系邮箱
+25,Symbiosis Finance,跨链流动性协议,https://symbiosis.finance/,hi@symbiosis.finance,待发送,第三方评测引用公开邮箱
+25,Trust Wallet,加密钱包（Binance 生态）,https://trustwallet.com/,support@trustwallet.com,待发送,官方隐私政策与 GitHub 公开邮箱
+25,Biconomy,Web3 交易基础设施 / 账户抽象,https://biconomy.io/,connect@biconomy.io,待发送,官方新闻稿公开联系邮箱
+25,Zerion,DeFi 钱包 / 跨链资产管理,https://zerion.io/,inbox@zerion.io,待发送,GitHub 组织公开联系邮箱
+25,Arcadia Finance,DeFi Vault / 机构解决方案,https://arcadia.finance/,institutional@arcadia.finance,待发送,官网机构合作公开邮箱
+26,Kwenta,去中心化永续合约交易所（Synthetix 生态）,https://kwenta.io/,info@kwenta.io,待发送,官方新闻稿公开联系邮箱
+26,Cobo,数字资产托管与基础设施,https://cobo.com/,support@cobo.com,待发送,官方 App 公开支持邮箱
+26,LlamaRisk,DeFi 风险分析与顾问,https://llamarisk.com/,contact@llamarisk.com,待发送,GitHub 组织公开联系邮箱
+26,Orderly Network,全链流动性 / 交易基础设施,https://orderly.network/,pr@orderly.network,待发送,官方新闻稿公开 PR 邮箱
+26,Fantom Foundation,L1 区块链基金会,https://fantom.foundation/,contact@fantom.foundation,待发送,GitHub 组织公开联系邮箱
+26,OpenEden,RWA / 代币化美债（TBILL）,https://openeden.com/,support@openeden.com,待发送,官方隐私政策公开邮箱
+26,Acala,Polkadot DeFi 枢纽,https://acala.network/,hello@acala.network,待发送,官方 Wiki 公开通用邮箱
+26,Moonbeam,Polkadot L1 / 跨链智能合约平台,https://moonbeam.network/,nate@purestake.com,待发送,官方加速器活动公开 BD 邮箱
+26,Cronos / Crypto.org Chain,L1 区块链（Crypto.com 生态）,https://cronos.org/,chain@crypto.org,待发送,GitHub 组织公开联系邮箱 备选 chain-security@crypto.com
+26,Avail,模块化数据可用性层,https://availproject.org/,info@availproject.org,待发送,GitHub 组织公开联系邮箱
+27,Usual Money,RWA 支撑稳定币（USD0 / EUR0）,https://usual.money/,support@usual.company,待发送,官方 Legal Notice 公开邮箱（usual.company 域）SMTP 250 OK 已验证
+27,Witnet,去中心化预言机网络（同行 / 数据源）,https://witnet.io/,info@witnet.io,待发送,GitHub 组织公开联系邮箱 Google Workspace MX 已验证
+27,Derive（原 Lyra Finance）,去中心化期权与永续合约交易所,https://derive.xyz/,legal@derive.xyz,待发送,官方 Terms of Use 公开法务邮箱 Google Workspace MX 已验证
+27,Goldfinch,去中心化信贷 / RWA 借贷协议,https://goldfinch.finance/,security@goldfinch.finance,待发送,GitHub SECURITY.md 公开安全邮箱 Google Workspace MX 已验证
+27,Lossless,DeFi 攻击防护 / 代币安全基础设施,https://lossless.io/,hello@lossless.io,待发送,SMTP 250 OK 已验证（非 catch-all 强验证）
+27,Valory（Autonolas / Olas）,自主 agent / AI agent 基础设施,https://www.autonolas.network/ / https://valory.xyz/,info@valory.xyz,待发送,GitHub SECURITY.md 公开邮箱（Valory 为 Olas 核心开发公司）Google Workspace MX 已验证
+27,Lunos（原 Uno Re）,去中心化再保险 / DeFi 赔付（脱锚与漏洞）,https://lunos.xyz/,contact@unore.io,待发送,官方 Terms of Service 公开联系邮箱 Microsoft 365 MX 已验证
+27,Cube3.ai,Web3 智能合约安全 / 实时威胁防护,https://cube3.ai/,hello@cube3.ai,待发送,官方 Contact 页公开邮箱 SMTP 250 OK 已验证（非 catch-all 强验证）
+27,Fetch.ai,自主 AI agent 网络 / 去中心化机器学习,https://fetch.ai/,legal@fetch.ai,待发送,官方 Terms of Service 公开法务邮箱 SMTP 250 OK 已验证（非 catch-all 强验证）
+27,WeFi Protocol,杠杆收益 / 借贷协议,https://wefi.co/,press@wefi.co,待发送,Hackernoon 报道公开 press 邮箱 SMTP 250 OK 已验证（非 catch-all 强验证）

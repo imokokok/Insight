@@ -1,0 +1,90 @@
+name: Weekly Feed Discovery
+
+on:
+  schedule:
+    # Every Monday at 4:00 AM UTC
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Sync mode (seed or discover)'
+        required: false
+        default: 'discover'
+      provider:
+        description: 'Single provider to sync (empty = all)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+env:
+  SITE_URL: ${{ vars.SITE_URL || 'https://www.oracleinsight.xyz' }}
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+jobs:
+  discover-feeds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        provider:
+          - chainlink
+          - pyth
+          - supra
+          - dia
+          - redstone
+          - api3
+          - winklink
+          - twap
+          - twap-token
+          - reflector
+          - flare
+          - switchboard
+    steps:
+      - name: Discover ${{ matrix.provider }} feeds
+        run: |
+          set -u
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "::error::CRON_SECRET secret is not configured. Add it under Settings → Secrets and variables → Actions (must match the cron_secret stored in cron_config)."
+            exit 1
+          fi
+
+          MODE="${{ github.event.inputs.mode || 'discover' }}"
+          PROVIDER="${{ matrix.provider }}"
+          # Trim trailing slash from SITE_URL to avoid double slashes
+          BASE_URL="${SITE_URL%/}"
+          echo "Syncing ${PROVIDER} in ${MODE} mode..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 600 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${BASE_URL}/api/cron/sync-feeds?mode=${MODE}&provider=${PROVIDER}" || true)
+
+          HTTP_CODE=$(printf '%s' "$RESPONSE" | tail -n1 | tr -d '[:space:]')
+          case "$HTTP_CODE" in ''|*[!0-9]*) HTTP_CODE="000" ;; esac
+          BODY=$(printf '%s' "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: ${HTTP_CODE}"
+          echo "Response: ${BODY}"
+
+          # Non-fatal: a single provider failing should not abort the whole
+          # weekly sync. Surfaces as a warning annotation instead.
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::warning::Failed to sync ${PROVIDER}: HTTP ${HTTP_CODE}"
+          fi
+
+  keep-supabase-alive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping Supabase to prevent pausing
+        run: |
+          # Free tier Supabase pauses after 1 week of inactivity.
+          # This best-effort ping keeps it active.
+          BASE_URL="${SITE_URL%/}"
+          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 30 \
+            "${BASE_URL}/api/symbols" || true)
+          HTTP_CODE=$(printf '%s' "$RESPONSE" | tail -n1 | tr -d '[:space:]')
+          case "$HTTP_CODE" in ''|*[!0-9]*) HTTP_CODE="000" ;; esac
+          echo "Supabase keep-alive ping: HTTP ${HTTP_CODE}"

@@ -1,0 +1,4394 @@
+openapi: 3.1.0
+
+info:
+  title: Insight Oracle Risk & Transparency API
+  version: v1
+  description: |
+    Hourly oracle price data, cross-oracle consensus, deviation signals, feed health tracking,
+    risk metrics, protocol liquidation analysis, stablecoin depeg detection, and daily risk reports.
+
+    ---
+
+    ## Quick Start
+
+    1. **Get an API Key** — Create one in [Settings](/settings). It's shown only once, so store it securely.
+    2. **Build the Query** — Choose a provider, symbol, and chain. URL-encode symbols like `BTC%2FUSD`.
+    3. **Handle the Response** — Check the `success` flag, read `price` and `verification` metadata, handle errors.
+
+    ```bash
+    curl -H "X-API-Key: ins_your_key_here" \
+      "https://oracleinsight.xyz/api/v1/prices?provider=chainlink&symbol=BTC%2FUSD&chain=ethereum"
+    ```
+
+    ---
+
+    ## Authentication
+
+    Most endpoints require authentication via one of two methods:
+
+    | Method | Header | Use Case |
+    |--------|--------|----------|
+    | **API Key** | `X-API-Key: ins_...` | External integrations, scripts, bots |
+    | **Bearer Token** | `Authorization: Bearer <jwt>` | Web UI session (Supabase Auth) |
+
+    - Both methods are accepted on most endpoints. The `alerts` endpoints only accept Bearer tokens.
+    - Public endpoints (`/health`, `/symbols`) require no authentication.
+
+    ⚠️ **Keep your key safe** — API keys are shown only once when created. Rotate them immediately if leaked.
+
+    ---
+
+    ## Plans & Pricing
+
+    | Plan | Price | Rate Limit | Monthly Quota | High-Value Endpoints |
+    |------|-------|-----------|---------------|---------------------|
+    | **Free** | $0 | 5 req/min | 1,000 | 5 trial calls/day |
+    | **Pro** | $49/mo | 30 req/min | 10,000 | Unlimited |
+    | **Protocol** | $499/mo | 60 req/min | 100,000 | Unlimited |
+    | **Enterprise** | Contact us | Unlimited | Unlimited | Unlimited |
+
+    Endpoints marked with 🔒 are high-value endpoints. Free users get 5 trial calls/day.
+    All paid plans include a 7-day free trial of Pro.
+
+    ---
+
+    ## Rate Limits
+
+    Rate limits are enforced **per API key** (not per IP) in 60-second sliding windows.
+
+    **Response Headers:**
+
+    | Header | Description |
+    |--------|-------------|
+    | `X-RateLimit-Limit` | Maximum requests allowed in the window |
+    | `X-RateLimit-Remaining` | Requests remaining in current window |
+    | `X-RateLimit-Reset` | Unix timestamp when the window resets |
+    | `Retry-After` | Seconds until you can retry (only on 429) |
+
+    **Quota Headers:**
+
+    | Header | Description |
+    |--------|-------------|
+    | `X-Quota-Limit` | Monthly request quota |
+    | `X-Quota-Remaining` | Remaining monthly quota |
+    | `X-Quota-Reset` | Unix timestamp when quota resets |
+
+    ---
+
+    ## Response Format
+
+    All responses follow a consistent envelope:
+
+    ```json
+    {
+      "success": true,
+      "data": { ... },
+      "meta": {
+        "timestamp": 1700000000000,
+        "requestId": "req_abc123"
+      }
+    }
+    ```
+
+    Error responses:
+
+    ```json
+    {
+      "success": false,
+      "error": {
+        "code": "SYMBOL_NOT_SUPPORTED",
+        "message": "No active oracle feed for the requested symbol.",
+        "retryable": false
+      },
+      "meta": { "timestamp": 1700000000000 }
+    }
+    ```
+
+    ---
+
+    ## Error Codes
+
+    | Code | Status | Description |
+    |------|--------|-------------|
+    | `UNAUTHORIZED` | 401 | Missing or invalid X-API-Key header |
+    | `FORBIDDEN` | 403 | Insufficient permissions |
+    | `BAD_REQUEST` | 400 | Malformed request or missing required parameters |
+    | `VALIDATION_ERROR` | 400 | Query or body parameters failed validation |
+    | `NOT_FOUND` | 404 | Requested resource not found |
+    | `SYMBOL_NOT_SUPPORTED` | 404 | No active oracle feed for the requested symbol |
+    | `PROTOCOL_NOT_FOUND` | 404 | Requested protocol does not exist |
+    | `PLAN_UPGRADE_REQUIRED` | 402 | Free-tier daily quota for highest-value endpoints exceeded |
+    | `INSUFFICIENT_DATA` | 422 | Not enough data points to compute the requested metric |
+    | `RATE_LIMIT_EXCEEDED` | 429 | Too many requests. Retry after the timestamp in the header |
+    | `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+    ---
+
+    ## Code Examples
+
+    **JavaScript — fetch latest price:**
+
+    ```javascript
+    const API_KEY = 'ins_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+    const symbol = encodeURIComponent('BTC/USD');
+
+    const response = await fetch(
+      `https://oracleinsight.xyz/api/v1/prices?provider=chainlink&symbol=${symbol}&chain=ethereum`,
+      { headers: { 'X-API-Key': API_KEY } }
+    );
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error?.message);
+    console.log(result.data.price);
+    ```
+
+    **Batch query:**
+
+    ```javascript
+    const response = await fetch('https://oracleinsight.xyz/api/v1/prices/batch', {
+      method: 'POST',
+      headers: {
+        'X-API-Key': API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        queries: [
+          { provider: 'chainlink', symbol: 'BTC/USD', chain: 'ethereum' },
+          { provider: 'pyth', symbol: 'ETH/USD', chain: 'arbitrum' },
+        ],
+      }),
+    });
+
+    const result = await response.json();
+    result.data.forEach((item) => {
+      if (item.error) console.error(`${item.symbol}: ${item.error}`);
+      else console.log(`${item.symbol}: ${item.price.price}`);
+    });
+    ```
+
+    ---
+
+    ## Best Practices
+
+    - **Cache responses** client-side to avoid hitting rate limits for unchanged data.
+    - **Read `X-RateLimit-Remaining`** headers to throttle requests proactively.
+    - **Always URL-encode** symbols containing `/`, e.g. `BTC%2FUSD`.
+    - **Check `verification.type`** to distinguish on-chain (`🛡️`) from API (`🌐`) data.
+    - **Use batch endpoints** to reduce request count when querying multiple prices.
+  contact:
+    name: Insight API Support
+    url: https://oracleinsight.xyz/docs/api
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://oracleinsight.xyz/api/v1
+    description: Production
+  - url: http://localhost:3000/api/v1
+    description: Local development
+
+tags:
+  - name: Public
+    description: No authentication required
+  - name: Prices
+    description: Historical and latest oracle price data
+  - name: Consensus
+    description: Cross-oracle consensus pricing 🔒
+  - name: Feeds
+    description: Oracle feed registry, health, and freshness
+  - name: Reputation
+    description: Oracle provider reputation scores and rankings
+  - name: Risk
+    description: Composite risk metrics 🔒
+  - name: Protocols
+    description: Lending protocol risk parameters and oracle exposure 🔒
+  - name: Safety
+    description: Liquidation stress tests and position safety 🔒
+  - name: Analytics
+    description: Deviation, correlation, signals, latency, anomalies 🔒
+  - name: Risk Signals
+    description: Stablecoin depeg, wrapped asset peg, incidents
+  - name: Data
+    description: Snapshots, exports, and daily reports
+  - name: Alerts
+    description: User price alerts (session auth only)
+
+security: []
+
+paths:
+  # ── Public ──────────────────────────────────────────────
+  /health:
+    get:
+      operationId: getHealth
+      tags: [Public]
+      summary: Health check
+      description: Public endpoint to verify that the API is available.
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /symbols:
+    get:
+      operationId: getSymbols
+      tags: [Public]
+      summary: Supported symbols
+      description: List all asset symbols supported by the platform. Public, no authentication required.
+      security: []
+      responses:
+        '200':
+          description: Symbol list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SymbolsResponse'
+
+  /metrics:
+    get:
+      operationId: getMetrics
+      tags: [Public]
+      summary: Platform overview metrics
+      description: High-level platform metrics — provider count, active feeds, symbols, chains, and top providers.
+      security:
+        - apiKey: []
+        - bearer: []
+      responses:
+        '200':
+          description: Platform metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+  # ── Prices ──────────────────────────────────────────────
+  /prices:
+    get:
+      operationId: getPrice
+      tags: [Prices]
+      summary: Latest price
+      description: Fetch the latest price for a symbol from a supported oracle provider.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - $ref: '#/components/parameters/provider'
+        - $ref: '#/components/parameters/symbol'
+        - $ref: '#/components/parameters/chain'
+        - $ref: '#/components/parameters/forceRefresh'
+      responses:
+        '200':
+          description: Price data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /prices/batch:
+    post:
+      operationId: batchPrices
+      tags: [Prices]
+      summary: Batch price query
+      description: Query prices for up to 20 asset/provider combinations in a single request.
+      security:
+        - apiKey: []
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchPriceRequest'
+      responses:
+        '200':
+          description: Batch price results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchPriceResponse'
+
+  /prices/consensus:
+    get:
+      operationId: getConsensusPrice
+      tags: [Consensus]
+      summary: Consensus price 🔒
+      description: |
+        Aggregate real-time prices from every active oracle provider for a symbol,
+        compute a tamper-resistant consensus price, and identify outliers.
+        Returns per-provider deviation from consensus, confidence level, agreement score,
+        and a recommended provider.
+
+        **Requires Pro plan or higher.** Free users get 5 trial calls/day.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - $ref: '#/components/parameters/symbol'
+        - $ref: '#/components/parameters/chain'
+        - name: method
+          in: query
+          description: Consensus aggregation method
+          schema:
+            type: string
+            enum: [median, trimmed_mean, weighted_median, iqr_filtered]
+            default: weighted_median
+      responses:
+        '200':
+          description: Consensus price data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsensusPriceResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /prices/history:
+    get:
+      operationId: getPriceHistory
+      tags: [Prices]
+      summary: Historical prices
+      description: Fetch historical price data for a symbol over a given period.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - $ref: '#/components/parameters/provider'
+        - $ref: '#/components/parameters/symbol'
+        - $ref: '#/components/parameters/chain'
+        - name: period
+          in: query
+          required: true
+          description: Number of hours to look back (1–8760, i.e. up to 1 year)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 8760
+        - $ref: '#/components/parameters/forceRefresh'
+      responses:
+        '200':
+          description: Historical price data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryPriceResponse'
+
+  # ── Feeds ───────────────────────────────────────────────
+  /feeds:
+    get:
+      operationId: listFeeds
+      tags: [Feeds]
+      summary: List oracle feeds
+      description: Query the oracle feed registry with filters. Returns feed metadata, contract addresses, and health indicators.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: provider
+          in: query
+          description: Filter by oracle provider
+          schema:
+            $ref: '#/components/schemas/OracleProvider'
+        - name: symbol
+          in: query
+          description: Filter by asset symbol
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Filter by asset category
+          schema:
+            type: string
+            enum: [crypto, stablecoin, forex, commodity, wrapped, lst]
+        - name: chain_id
+          in: query
+          description: Filter by chain ID (e.g. 1 for Ethereum)
+          schema:
+            type: integer
+        - name: is_active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+            default: true
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: Feed list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedsListResponse'
+
+  /feeds/freshness:
+    get:
+      operationId: getFeedsFreshness
+      tags: [Feeds]
+      summary: Feed freshness
+      description: Check data freshness status (fresh/stale/outdated/never) for oracle feeds.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: provider
+          in: query
+          schema:
+            $ref: '#/components/schemas/OracleProvider'
+        - name: symbol
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [crypto, stablecoin, forex, commodity, wrapped, lst]
+      responses:
+        '200':
+          description: Feed freshness data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedsFreshnessResponse'
+
+  /feeds/heartbeat-stats:
+    get:
+      operationId: getFeedsHeartbeatStats
+      tags: [Feeds]
+      summary: Feed heartbeat statistics
+      description: Heartbeat statistics (success rate, coverage, daily snapshot count) for oracle feeds over a date range.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: provider
+          in: query
+          schema:
+            $ref: '#/components/schemas/OracleProvider'
+        - name: symbol
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/dateTo'
+      responses:
+        '200':
+          description: Heartbeat stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeartbeatStatsResponse'
+
+  /feeds/{feedId}/health:
+    get:
+      operationId: getFeedHealth
+      tags: [Feeds]
+      summary: Feed health status
+      description: Health status for a single oracle feed (healthy/degraded/critical).
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: feedId
+          in: path
+          required: true
+          description: Feed UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Feed health
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedHealthResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Reputation ──────────────────────────────────────────
+  /reputation:
+    get:
+      operationId: getReputation
+      tags: [Reputation]
+      summary: All provider reputations
+      description: Real-time reputation scores for every oracle provider, including accuracy, reliability, freshness, uptime, deviation, and latency.
+      security:
+        - apiKey: []
+        - bearer: []
+      responses:
+        '200':
+          description: Reputation data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReputationListResponse'
+
+  /reputation/rankings:
+    get:
+      operationId: getReputationRankings
+      tags: [Reputation]
+      summary: Provider rankings
+      description: Ranked leaderboard of oracle providers with score trends over a configurable period.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: days
+          in: query
+          description: Lookback period in days
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 90
+            default: 7
+      responses:
+        '200':
+          description: Rankings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RankingsResponse'
+
+  /reputation/{provider}:
+    get:
+      operationId: getProviderReputation
+      tags: [Reputation]
+      summary: Single provider reputation
+      description: Detailed reputation data for a specific oracle provider, with optional trend data.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/OracleProvider'
+        - name: trend
+          in: query
+          description: Include daily trend data
+          schema:
+            type: boolean
+        - name: days
+          in: query
+          description: Trend lookback period in days
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+      responses:
+        '200':
+          description: Provider reputation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderReputationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Analytics 🔒 ───────────────────────────────────────
+  /correlation:
+    get:
+      operationId: getCorrelation
+      tags: [Analytics]
+      summary: Provider correlation matrix 🔒
+      description: |
+        Pearson correlation matrix between oracle providers for a given symbol.
+        Identifies highly correlated provider pairs that amplify systemic risk.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - $ref: '#/components/parameters/symbol'
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/dateTo'
+      responses:
+        '200':
+          description: Correlation data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CorrelationResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+
+  /signals:
+    get:
+      operationId: getSignals
+      tags: [Analytics]
+      summary: Signal vectors 🔒
+      description: |
+        5-dimensional signal vectors (freshness, sourceReliability, metadataCompleteness,
+        consistency, auditStatus) for each price observation, with failure mode classification.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: provider
+          in: query
+          schema:
+            $ref: '#/components/schemas/OracleProvider'
+        - name: symbol
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/dateTo'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 200
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Signal vector data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignalsResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+
+  /deviation:
+    get:
+      operationId: getDeviation
+      tags: [Analytics]
+      summary: Deviation analysis 🔒
+      description: |
+        Aggregated deviation analysis across oracle providers for a symbol,
+        with timeline data at configurable intervals (1h/6h/24h).
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - $ref: '#/components/parameters/symbol'
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/dateTo'
+        - name: interval
+          in: query
+          description: Aggregation interval
+          schema:
+            type: string
+            enum: [1h, 6h, 24h]
+            default: 24h
+      responses:
+        '200':
+          description: Deviation data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviationResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+
+  /latency:
+    get:
+      operationId: getLatency
+      tags: [Analytics]
+      summary: Latency statistics
+      description: Latency percentile statistics (p50/p90/p95/p99) for oracle providers over a date range.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: provider
+          in: query
+          schema:
+            $ref: '#/components/schemas/OracleProvider'
+        - name: symbol
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/dateTo'
+      responses:
+        '200':
+          description: Latency data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LatencyResponse'
+
+  /anomalies:
+    get:
+      operationId: getAnomalies
+      tags: [Analytics]
+      summary: Anomaly summary 🔒
+      description: |
+        Aggregate oracle anomalies over the last N days across all daily reports.
+        Returns severity/provider/asset breakdowns, top events, and risk impacts.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: days
+          in: query
+          description: Lookback period in days
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 30
+            default: 7
+      responses:
+        '200':
+          description: Anomaly data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnomaliesResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+
+  /incidents:
+    get:
+      operationId: getIncidents
+      tags: [Risk Signals]
+      summary: Incident list
+      description: |
+        Feed failure incidents and deviation events with severity classification.
+
+        **Requires Protocol plan or higher (Tier 3 protocol-level intelligence).**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: provider
+          in: query
+          schema:
+            $ref: '#/components/schemas/OracleProvider'
+        - name: minSeverity
+          in: query
+          description: Minimum severity filter
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/dateTo'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Incident list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentsResponse'
+        '402':
+          $ref: '#/components/responses/ProtocolPlanRequired'
+
+  # ── Risk 🔒 ─────────────────────────────────────────────
+  /risk/summary:
+    get:
+      operationId: getRiskSummary
+      tags: [Risk]
+      summary: Composite risk metrics 🔒
+      description: |
+        7-dimensional risk assessment: HHI concentration, diversification, volatility,
+        correlation risk, freshness risk, manipulation resistance, and shared-dependency risk.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - $ref: '#/components/parameters/symbol'
+        - name: providers
+          in: query
+          required: true
+          description: Comma-separated list of 2–10 oracle providers
+          schema:
+            type: string
+            example: chainlink,pyth,api3
+        - name: period
+          in: query
+          description: Hours of historical data to analyze
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 8760
+            default: 168
+      responses:
+        '200':
+          description: Risk summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskSummaryResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/InsufficientData'
+
+  /cross-chain/spreads:
+    get:
+      operationId: getCrossChainSpreads
+      tags: [Risk]
+      summary: Cross-chain price spreads 🔒
+      description: |
+        Cross-chain price spread matrix for a given oracle provider and symbol.
+        Identifies pricing discrepancies across blockchains.
+
+        **Requires Protocol plan or higher (Tier 3 protocol-level intelligence).**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - $ref: '#/components/parameters/provider'
+        - $ref: '#/components/parameters/symbol'
+        - name: baseChain
+          in: query
+          description: Blockchain to use as price reference
+          schema:
+            $ref: '#/components/schemas/Blockchain'
+      responses:
+        '200':
+          description: Cross-chain spreads
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrossChainSpreadResponse'
+        '402':
+          $ref: '#/components/responses/ProtocolPlanRequired'
+        '422':
+          $ref: '#/components/responses/InsufficientData'
+
+  # ── Protocols 🔒 ────────────────────────────────────────
+  /protocols:
+    get:
+      operationId: listProtocols
+      tags: [Protocols]
+      summary: List lending protocols
+      description: List all integrated lending protocols with dynamic risk data.
+      security:
+        - apiKey: []
+        - bearer: []
+      responses:
+        '200':
+          description: Protocol list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProtocolsListResponse'
+
+  /protocols/risk-params:
+    get:
+      operationId: getAllProtocolRiskParams
+      tags: [Protocols]
+      summary: Bulk protocol risk parameters 🔒
+      description: |
+        Risk parameters (liquidation thresholds, LTVs, collateral factors) for all integrated lending protocols.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      responses:
+        '200':
+          description: All protocol risk parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkRiskParamsResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+
+  /protocols/{id}/risk-params:
+    get:
+      operationId: getProtocolRiskParams
+      tags: [Protocols]
+      summary: Protocol risk parameters 🔒
+      description: |
+        Risk parameters for a single lending protocol (e.g. aave-v3-ethereum).
+        Data sourced from on-chain parameters cached in the database.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Protocol ID (e.g. aave-v3-ethereum, compound-v3-ethereum)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Protocol risk parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProtocolRiskParamsResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /protocols/{id}/oracle-exposure:
+    get:
+      operationId: getProtocolOracleExposure
+      tags: [Protocols]
+      summary: Protocol oracle exposure
+      description: |
+        Oracle provider concentration and single-point-of-failure analysis for a lending protocol.
+
+        **Requires Protocol plan or higher (Tier 3 protocol-level intelligence).**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Protocol ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Oracle exposure analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OracleExposureResponse'
+        '402':
+          $ref: '#/components/responses/ProtocolPlanRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Safety 🔒 ───────────────────────────────────────────
+  /safety/liquidation:
+    get:
+      operationId: getLiquidationStressTest
+      tags: [Safety]
+      summary: Liquidation stress test 🔒
+      description: |
+        Daily stress-test results for benchmark positions across integrated lending protocols.
+        Includes 1%, 3%, 5% deviation scenarios and joint-deviation analysis.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - $ref: '#/components/parameters/date'
+      responses:
+        '200':
+          description: Liquidation stress test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiquidationResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /safety/position:
+    post:
+      operationId: calculatePositionSafety
+      tags: [Safety]
+      summary: Position safety calculation 🔒
+      description: |
+        Analyze liquidation risk for a custom lending position. Returns critical deviation
+        percentages, safety buffer, 1%/3%/5% scenarios, and oracle warnings.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PositionSafetyRequest'
+      responses:
+        '200':
+          description: Position safety analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionSafetyResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+
+  /safety/pre-trade:
+    get:
+      operationId: preTradeSafetyCheck
+      tags: [Safety]
+      summary: Pre-trade oracle safety check 🔒
+      description: |
+        Pre-trade oracle safety checkpoint for AI agents. Call this BEFORE executing any on-chain
+        swap/borrow/lend/liquidation/repay to verify oracle data integrity. Aggregates cross-oracle
+        consensus prices, per-provider deviation, data freshness, stablecoin peg status, and
+        reputation into a single verdict: `PASS` / `CAUTION` / `DANGER` / `BLOCK`. Agents MUST NOT
+        execute trades when the verdict is `DANGER` or `BLOCK`. Also returns a recommended maximum
+        position size. Every call is audit-logged to build a data flywheel for a future ML model.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: asset
+          in: query
+          required: true
+          description: Asset symbol, e.g. ETH, BTC, USDC.
+          schema:
+            type: string
+            example: ETH
+        - name: chainId
+          in: query
+          required: true
+          description: Chain ID (e.g. 1=Ethereum, 0=chain-agnostic).
+          schema:
+            type: integer
+            example: 1
+        - name: action
+          in: query
+          required: true
+          description: Type of DeFi operation.
+          schema:
+            type: string
+            enum: [swap, borrow, lend, liquidate, repay]
+            example: swap
+        - name: tradeAmountUsd
+          in: query
+          required: true
+          description: Trade size in USD.
+          schema:
+            type: number
+            format: float
+            exclusiveMinimum: 0
+            example: 100000
+        - name: targetProviders
+          in: query
+          required: false
+          description: Comma-separated list of oracle providers to restrict the check to.
+          schema:
+            type: string
+            example: chainlink,pyth,api3
+      responses:
+        '200':
+          description: Pre-trade safety verdict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreTradeSafetyResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+
+  # ── Risk Signals ─────────────────────────────────────────
+  /oracles/health:
+    get:
+      operationId: getOracleHealth
+      tags: [Risk Signals]
+      summary: Oracle health report
+      description: Comprehensive daily oracle health report with provider risk levels, feed diagnostics, shared-source dependency analysis, and risk impacts.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - $ref: '#/components/parameters/date'
+      responses:
+        '200':
+          description: Oracle health report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OracleHealthResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /stablecoins/depeg:
+    get:
+      operationId: getStablecoinDepeg
+      tags: [Risk Signals]
+      summary: Stablecoin depeg tracking
+      description: Detect depeg events for stablecoins by comparing oracle prices with DEX market prices.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: symbol
+          in: query
+          description: Stablecoin symbol (USDC, USDT, DAI, FRAX, LUSD, USDD). Omit for all.
+          schema:
+            type: string
+            enum: [USDC, USDT, DAI, FRAX, LUSD, USDD]
+      responses:
+        '200':
+          description: Depeg data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepegResponse'
+
+  /wrapped-assets/peg:
+    get:
+      operationId: getWrappedAssetPeg
+      tags: [Risk Signals]
+      summary: Wrapped asset peg tracking 🔒
+      description: |
+        Check peg risk for wrapped assets (WBTC, cbBTC, tBTC, wstETH, cbETH, etc.).
+        Compares market price against the underlying reference price.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: symbol
+          in: query
+          description: Wrapped asset symbol. Omit for all.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Peg data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WrappedPegResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+
+  # ── Data ────────────────────────────────────────────────
+  /coverage:
+    get:
+      operationId: getCoverage
+      tags: [Data]
+      summary: Oracle coverage analysis
+      description: |
+        Coverage analysis by chain, provider, and symbol. Identifies single-provider risk assets.
+
+        **Requires Protocol plan or higher (Tier 3 protocol-level intelligence).**
+      security:
+        - apiKey: []
+        - bearer: []
+      responses:
+        '200':
+          description: Coverage data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverageResponse'
+        '402':
+          $ref: '#/components/responses/ProtocolPlanRequired'
+
+  /hourly-snapshots:
+    get:
+      operationId: getHourlySnapshots
+      tags: [Data]
+      summary: Hourly price snapshots
+      description: Query hourly price snapshots from the database for analysis and backtesting.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: symbol
+          in: query
+          schema:
+            type: string
+        - name: provider
+          in: query
+          schema:
+            $ref: '#/components/schemas/OracleProvider'
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/dateTo'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10000
+            default: 2000
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Hourly snapshots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HourlySnapshotsResponse'
+
+  /price-records/export:
+    get:
+      operationId: exportPriceRecords
+      tags: [Data]
+      summary: Export price records 🔒
+      description: |
+        Export raw price records for external analysis. Supports filtering by symbol, provider, and date range.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: symbol
+          in: query
+          schema:
+            type: string
+        - name: provider
+          in: query
+          schema:
+            $ref: '#/components/schemas/OracleProvider'
+        - $ref: '#/components/parameters/dateFrom'
+        - $ref: '#/components/parameters/dateTo'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50000
+            default: 1000
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Price records
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceExportResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+
+  /reports/daily/{date}:
+    get:
+      operationId: getDailyReport
+      tags: [Data]
+      summary: Daily risk report
+      description: Full daily oracle risk report including metrics, provider rankings, deviation events, coverage matrix, and recommendations.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: date
+          in: path
+          required: true
+          description: Report date (YYYY-MM-DD)
+          schema:
+            type: string
+            pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+      responses:
+        '200':
+          description: Daily report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyReportResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ── Alerts ──────────────────────────────────────────────
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [Alerts]
+      summary: List price alerts
+      description: List the authenticated user's price alerts. Requires session auth (Bearer token), not API key.
+      security:
+        - bearer: []
+      parameters:
+        - name: is_active
+          in: query
+          schema:
+            type: boolean
+        - name: symbol
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Alert list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertsListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      operationId: createAlert
+      tags: [Alerts]
+      summary: Create price alert
+      description: Create a new price alert. Requires session auth (Bearer token), not API key.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlertRequest'
+      responses:
+        '201':
+          description: Alert created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+# ══════════════════════════════════════════════════════════
+components:
+  # ── Security Schemes ────────────────────────────────────
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: 'API key with `ins_` prefix (e.g. ins_a3f1...)'
+    bearer:
+      type: http
+      scheme: bearer
+      description: 'Supabase Auth JWT session token'
+
+  # ── Reusable Parameters ─────────────────────────────────
+  parameters:
+    provider:
+      name: provider
+      in: query
+      required: true
+      description: Oracle provider name
+      schema:
+        $ref: '#/components/schemas/OracleProvider'
+    symbol:
+      name: symbol
+      in: query
+      required: true
+      description: 'Asset symbol (e.g. BTC/USD, ETH/USD)'
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 20
+    chain:
+      name: chain
+      in: query
+      description: Blockchain slug
+      schema:
+        $ref: '#/components/schemas/Blockchain'
+    forceRefresh:
+      name: forceRefresh
+      in: query
+      description: Bypass cache and fetch fresh data
+      schema:
+        type: boolean
+    date:
+      name: date
+      in: query
+      description: 'Date in YYYY-MM-DD format. Defaults to today UTC.'
+      schema:
+        type: string
+        pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+    dateFrom:
+      name: from
+      in: query
+      description: 'Start date in YYYY-MM-DD format. Defaults to 7 days ago.'
+      schema:
+        type: string
+        pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+    dateTo:
+      name: to
+      in: query
+      description: 'End date in YYYY-MM-DD format. Defaults to today.'
+      schema:
+        type: string
+        pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+    limit:
+      name: limit
+      in: query
+      description: Maximum number of results
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+    offset:
+      name: offset
+      in: query
+      description: Number of results to skip
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+
+  # ── Reusable Responses ──────────────────────────────────
+  responses:
+    Unauthorized:
+      description: Missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            success: false
+            error:
+              code: UNAUTHORIZED
+              message: 'Missing or invalid X-API-Key header.'
+              retryable: false
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            success: false
+            error:
+              code: SYMBOL_NOT_SUPPORTED
+              message: 'No active oracle feed for the requested symbol.'
+              retryable: false
+
+    PlanUpgradeRequired:
+      description: Free-tier daily quota for highest-value endpoints exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            success: false
+            error:
+              code: PLAN_UPGRADE_REQUIRED
+              message: 'Free-tier daily quota for highest-value endpoints exceeded. Upgrade to continue.'
+              retryable: false
+
+    ProtocolPlanRequired:
+      description: Protocol-level intelligence endpoints require the Protocol plan or higher (Tier 3)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            success: false
+            error:
+              code: PROTOCOL_PLAN_REQUIRED
+              message: 'This endpoint is part of protocol-level intelligence, available on the Protocol plan and above.'
+              retryable: false
+
+    InsufficientData:
+      description: Not enough data points to compute the requested metric
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            success: false
+            error:
+              code: INSUFFICIENT_DATA
+              message: 'Not enough data points to compute the requested metric.'
+              retryable: false
+
+    RateLimitExceeded:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            success: false
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: 'Too many requests. Retry after the timestamp in the response header.'
+              retryable: true
+
+  # ── Schemas ─────────────────────────────────────────────
+  schemas:
+    # ── Enums ────────────────────────────────────────
+    OracleProvider:
+      type: string
+      enum:
+        - chainlink
+        - pyth
+        - api3
+        - redstone
+        - dia
+        - winklink
+        - supra
+        - twap
+        - reflector
+        - flare
+
+    Blockchain:
+      type: string
+      enum:
+        - ethereum
+        - arbitrum
+        - optimism
+        - polygon
+        - solana
+        - avalanche
+        - fantom
+        - cronos
+        - juno
+        - cosmos
+        - osmosis
+        - bnb-chain
+        - base
+        - scroll
+        - zksync
+        - aptos
+        - sui
+        - gnosis
+        - mantle
+        - linea
+        - celestia
+        - injective
+        - sei
+        - tron
+        - ton
+        - near
+        - aurora
+        - celo
+        - starknet
+        - blast
+        - cardano
+        - polkadot
+        - kava
+        - moonbeam
+        - moonriver
+        - metis
+        - starkex
+        - stellar
+        - flare
+        - supra-chain
+
+    RiskLevel:
+      type: string
+      enum: [low, medium, high, critical]
+
+    FeedHealthLevel:
+      type: string
+      enum: [healthy, fair, degraded, critical]
+
+    ConsensusMethod:
+      type: string
+      enum: [median, trimmed_mean, weighted_median, iqr_filtered]
+
+    FailureMode:
+      type: string
+      enum:
+        - none
+        - source_unavailable
+        - stale_timestamp
+        - delayed_update
+        - fallback_metadata
+        - partial_data
+        - invalid_response
+        - network_error
+        - timeout
+        - rate_limited
+
+    # ── Common ───────────────────────────────────────
+    ApiMeta:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          description: Unix timestamp in milliseconds
+        requestId:
+          type: string
+          description: Unique request identifier
+      required: [timestamp]
+
+    ApiError:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+        message:
+          type: string
+          description: Human-readable error message
+        retryable:
+          type: boolean
+        details:
+          type: object
+          additionalProperties: true
+      required: [code, message, retryable]
+
+    ApiErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        error:
+          $ref: '#/components/schemas/ApiError'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+      required: [success, error]
+
+    OnChainVerification:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [on-chain, api]
+        contractAddress:
+          type: string
+        chainId:
+          type: integer
+        explorerUrl:
+          type: string
+          description: Link to blockchain explorer contract overview page
+        method:
+          type: string
+          description: The on-chain method used to read the price (e.g. latestRoundData)
+        blockNumber:
+          type: integer
+
+    ConfidenceInterval:
+      type: object
+      properties:
+        bid:
+          type: number
+        ask:
+          type: number
+        widthPercentage:
+          type: number
+
+    # ── Price Data ────────────────────────────────────
+    PriceData:
+      type: object
+      properties:
+        symbol:
+          type: string
+        price:
+          type: number
+        timestamp:
+          type: integer
+        provider:
+          $ref: '#/components/schemas/OracleProvider'
+        chain:
+          $ref: '#/components/schemas/Blockchain'
+        source:
+          type: string
+          description: Display name of the oracle source
+        decimals:
+          type: integer
+        confidence:
+          type: number
+        confidenceInterval:
+          $ref: '#/components/schemas/ConfidenceInterval'
+        dataAge:
+          type: number
+          description: Seconds since the price was last updated
+        verification:
+          $ref: '#/components/schemas/OnChainVerification'
+        failureMode:
+          $ref: '#/components/schemas/FailureMode'
+      required: [symbol, price, timestamp, provider]
+
+    # ── Health ────────────────────────────────────────
+    HealthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+              example: ok
+            version:
+              type: string
+              example: v1
+            timestamp:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+      required: [success, data]
+
+    # ── Symbols ───────────────────────────────────────
+    SymbolsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: string
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Metrics ───────────────────────────────────────
+    MetricsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            providers:
+              type: integer
+            activeFeeds:
+              type: integer
+            symbols:
+              type: integer
+            chains:
+              type: integer
+            categories:
+              type: integer
+            topProviders:
+              type: array
+              items:
+                type: object
+                properties:
+                  provider:
+                    type: string
+                  score:
+                    type: number
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Price ─────────────────────────────────────────
+    PriceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/PriceData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    BatchPriceRequest:
+      type: object
+      properties:
+        queries:
+          type: array
+          items:
+            type: object
+            properties:
+              provider:
+                $ref: '#/components/schemas/OracleProvider'
+              symbol:
+                type: string
+              chain:
+                $ref: '#/components/schemas/Blockchain'
+            required: [provider, symbol]
+          minItems: 1
+          maxItems: 20
+        forceRefresh:
+          type: boolean
+          default: false
+      required: [queries]
+
+    BatchPriceResult:
+      type: object
+      properties:
+        provider:
+          type: string
+        symbol:
+          type: string
+        chain:
+          $ref: '#/components/schemas/Blockchain'
+        price:
+          $ref: '#/components/schemas/PriceData'
+        error:
+          type: string
+          nullable: true
+
+    BatchPriceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchPriceResult'
+        meta:
+          type: object
+          properties:
+            timestamp:
+              type: integer
+            partialErrors:
+              type: integer
+            queryCount:
+              type: integer
+
+    # ── Consensus ─────────────────────────────────────
+    ConsensusProviderPrice:
+      type: object
+      properties:
+        provider:
+          $ref: '#/components/schemas/OracleProvider'
+        symbol:
+          type: string
+        chain:
+          $ref: '#/components/schemas/Blockchain'
+        price:
+          type: number
+        deviationPct:
+          type: number
+          nullable: true
+        isOutlier:
+          type: boolean
+        confidence:
+          type: number
+          nullable: true
+        timestamp:
+          type: integer
+        dataAgeSeconds:
+          type: number
+          nullable: true
+        source:
+          type: string
+        verification:
+          $ref: '#/components/schemas/OnChainVerification'
+        reputationScore:
+          type: number
+          nullable: true
+        status:
+          type: string
+          enum: [success, unsupported, error]
+        errorMessage:
+          type: string
+
+    ConsensusPriceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            symbol:
+              type: string
+            chain:
+              $ref: '#/components/schemas/Blockchain'
+            consensusPrice:
+              type: number
+            method:
+              $ref: '#/components/schemas/ConsensusMethod'
+            recommendedMethod:
+              $ref: '#/components/schemas/ConsensusMethod'
+            confidence:
+              type: number
+              description: 0–1 confidence score
+            confidenceLevel:
+              type: string
+              enum: [high, medium, low, very_low]
+            agreement:
+              type: number
+              description: 0–1 agreement score among providers
+            participantCount:
+              type: integer
+            excludedCount:
+              type: integer
+            excludedProviders:
+              type: array
+              items:
+                type: string
+            priceRange:
+              type: object
+              properties:
+                min:
+                  type: number
+                max:
+                  type: number
+            methodResults:
+              type: object
+              description: Consensus price computed by each method
+              additionalProperties:
+                type: number
+            providers:
+              type: array
+              items:
+                $ref: '#/components/schemas/ConsensusProviderPrice'
+            recommendedProvider:
+              $ref: '#/components/schemas/OracleProvider'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── History ───────────────────────────────────────
+    HistoryPriceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            symbol:
+              type: string
+            chain:
+              $ref: '#/components/schemas/Blockchain'
+            provider:
+              $ref: '#/components/schemas/OracleProvider'
+            period:
+              type: integer
+            prices:
+              type: array
+              items:
+                type: object
+                properties:
+                  timestamp:
+                    type: integer
+                  price:
+                    type: number
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Feeds ─────────────────────────────────────────
+    FeedEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          $ref: '#/components/schemas/OracleProvider'
+        symbol:
+          type: string
+        chain_id:
+          type: integer
+        address:
+          type: string
+          nullable: true
+        name:
+          type: string
+        decimals:
+          type: integer
+        category:
+          type: string
+        is_active:
+          type: boolean
+        consecutive_failures:
+          type: integer
+        last_success_at:
+          type: string
+          nullable: true
+        last_failure_at:
+          type: string
+          nullable: true
+
+    FeedsListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            feeds:
+              type: array
+              items:
+                $ref: '#/components/schemas/FeedEntry'
+        meta:
+          type: object
+          properties:
+            timestamp:
+              type: integer
+            total:
+              type: integer
+
+    FreshnessEntry:
+      type: object
+      properties:
+        feedId:
+          type: string
+        provider:
+          type: string
+        symbol:
+          type: string
+        chainId:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        consecutiveFailures:
+          type: integer
+        lastSuccessAt:
+          type: string
+          nullable: true
+        lastFailureAt:
+          type: string
+          nullable: true
+        secondsSinceLastSuccess:
+          type: number
+          nullable: true
+        secondsSinceLastFailure:
+          type: number
+          nullable: true
+        status:
+          type: string
+          enum: [fresh, stale, outdated, never]
+
+    FeedsFreshnessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            timestamp:
+              type: integer
+            summary:
+              type: object
+              properties:
+                totalFeeds:
+                  type: integer
+                byStatus:
+                  type: object
+                  properties:
+                    fresh:
+                      type: integer
+                    stale:
+                      type: integer
+                    outdated:
+                      type: integer
+                    never:
+                      type: integer
+            feeds:
+              type: array
+              items:
+                $ref: '#/components/schemas/FreshnessEntry'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    HeartbeatStatsEntry:
+      type: object
+      properties:
+        provider:
+          type: string
+        symbol:
+          type: string
+        totalSnapshots:
+          type: integer
+        successfulSnapshots:
+          type: integer
+        successRate:
+          type: number
+        hoursWithData:
+          type: integer
+        totalHours:
+          type: integer
+        coveragePct:
+          type: number
+        avgSnapshotsPerDay:
+          type: number
+
+    HeartbeatStatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            from:
+              type: string
+            to:
+              type: string
+            totalHours:
+              type: integer
+            entries:
+              type: array
+              items:
+                $ref: '#/components/schemas/HeartbeatStatsEntry'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    FeedHealthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            feed:
+              $ref: '#/components/schemas/FeedEntry'
+            health:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, degraded, critical]
+                consecutiveFailures:
+                  type: integer
+                lastSuccessAt:
+                  type: string
+                  nullable: true
+                lastFailureAt:
+                  type: string
+                  nullable: true
+                timeSinceLastSuccess:
+                  type: number
+                  nullable: true
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Reputation ────────────────────────────────────
+    OracleReputation:
+      type: object
+      properties:
+        provider:
+          $ref: '#/components/schemas/OracleProvider'
+        overall_score:
+          type: number
+        accuracy_score:
+          type: number
+        reliability_score:
+          type: number
+        freshness_score:
+          type: number
+        uptime_percentage:
+          type: number
+        avg_deviation_pct:
+          type: number
+        avg_latency_ms:
+          type: number
+        total_queries:
+          type: integer
+        failed_queries:
+          type: integer
+        supported_symbols_count:
+          type: integer
+        supported_chains_count:
+          type: integer
+        last_calculated_at:
+          type: string
+          nullable: true
+
+    ReputationTrendPoint:
+      type: object
+      properties:
+        snapshot_time:
+          type: string
+        success_rate:
+          type: number
+        avg_deviation_pct:
+          type: number
+        avg_latency_ms:
+          type: number
+        query_count:
+          type: integer
+
+    ReputationListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            reputations:
+              type: array
+              items:
+                $ref: '#/components/schemas/OracleReputation'
+        meta:
+          type: object
+          properties:
+            timestamp:
+              type: integer
+            calculating:
+              type: boolean
+
+    RankingEntry:
+      type: object
+      properties:
+        rank:
+          type: integer
+        provider:
+          $ref: '#/components/schemas/OracleProvider'
+        overallScore:
+          type: number
+        accuracyScore:
+          type: number
+        uptimePercentage:
+          type: number
+        reliabilityScore:
+          type: number
+        freshnessScore:
+          type: number
+        avgLatencyMs:
+          type: number
+        avgDeviationPct:
+          type: number
+        previousRank:
+          type: integer
+          nullable: true
+        rankChange:
+          type: integer
+          nullable: true
+        trend:
+          type: string
+          enum: [up, down, unchanged, no_data]
+
+    RankingsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            period:
+              type: integer
+            generatedAt:
+              type: string
+            totalProviders:
+              type: integer
+            scoreDistribution:
+              type: object
+              properties:
+                average:
+                  type: number
+                max:
+                  type: number
+                min:
+                  type: number
+            rankings:
+              type: array
+              items:
+                $ref: '#/components/schemas/RankingEntry'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    ProviderReputationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            reputation:
+              $ref: '#/components/schemas/OracleReputation'
+            trend:
+              type: array
+              items:
+                $ref: '#/components/schemas/ReputationTrendPoint'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Correlation ───────────────────────────────────
+    CorrelationPair:
+      type: object
+      properties:
+        provider1:
+          type: string
+        provider2:
+          type: string
+        correlation:
+          type: number
+        interpretation:
+          type: string
+
+    CorrelationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            symbol:
+              type: string
+            from:
+              type: string
+            to:
+              type: string
+            dataPoints:
+              type: integer
+            providers:
+              type: array
+              items:
+                type: string
+            matrix:
+              type: object
+              additionalProperties:
+                type: object
+                additionalProperties:
+                  type: number
+            pairs:
+              type: array
+              items:
+                $ref: '#/components/schemas/CorrelationPair'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Signals ───────────────────────────────────────
+    SignalEntry:
+      type: object
+      properties:
+        provider:
+          type: string
+        symbol:
+          type: string
+        timestamp:
+          type: integer
+        price:
+          type: number
+        confidence:
+          type: number
+        failureMode:
+          $ref: '#/components/schemas/FailureMode'
+        signalVector:
+          type: object
+          description: 5-dimensional signal vector
+          properties:
+            freshness:
+              type: number
+            sourceReliability:
+              type: number
+            metadataCompleteness:
+              type: number
+            consistency:
+              type: number
+            auditStatus:
+              type: number
+        metadata:
+          type: object
+          additionalProperties: true
+
+    SignalsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            from:
+              type: string
+            to:
+              type: string
+            count:
+              type: integer
+            dimensionAverages:
+              type: object
+              additionalProperties:
+                type: number
+            signals:
+              type: array
+              items:
+                $ref: '#/components/schemas/SignalEntry'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Deviation ─────────────────────────────────────
+    DeviationTimelinePoint:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+        consensusPrice:
+          type: number
+        providers:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              price:
+                type: number
+              deviationPct:
+                type: number
+
+    DeviationProviderSummary:
+      type: object
+      properties:
+        provider:
+          type: string
+        snapshots:
+          type: integer
+        avgDeviationPct:
+          type: number
+        maxDeviationPct:
+          type: number
+        avgLatencyMs:
+          type: number
+        successRate:
+          type: number
+
+    DeviationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            symbol:
+              type: string
+            dateRange:
+              type: object
+              properties:
+                from:
+                  type: string
+                to:
+                  type: string
+            providers:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeviationProviderSummary'
+            timeline:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeviationTimelinePoint'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Latency ───────────────────────────────────────
+    LatencyEntry:
+      type: object
+      properties:
+        provider:
+          type: string
+        symbol:
+          type: string
+        sampleSize:
+          type: integer
+        successRate:
+          type: number
+        min:
+          type: number
+        max:
+          type: number
+        mean:
+          type: number
+        p50:
+          type: number
+        p90:
+          type: number
+        p95:
+          type: number
+        p99:
+          type: number
+
+    LatencyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            from:
+              type: string
+            to:
+              type: string
+            latencyDataAvailable:
+              type: boolean
+            overall:
+              type: object
+              nullable: true
+              properties:
+                p50:
+                  type: number
+                p90:
+                  type: number
+                p95:
+                  type: number
+                p99:
+                  type: number
+            entries:
+              type: array
+              items:
+                $ref: '#/components/schemas/LatencyEntry'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Anomalies ─────────────────────────────────────
+    AnomalyEvent:
+      type: object
+      properties:
+        provider:
+          type: string
+        symbol:
+          type: string
+        deviationPct:
+          type: number
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        timestamp:
+          type: integer
+        reportDate:
+          type: string
+        message:
+          type: string
+
+    RiskImpact:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [liquidation, stablecoin_depeg, wrapped_asset, oracle_reliability, systemic]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        title:
+          type: string
+        affectedEntities:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        relatedAssets:
+          type: array
+          items:
+            type: string
+        relatedProviders:
+          type: array
+          items:
+            type: string
+
+    AnomaliesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            periodDays:
+              type: integer
+            dateRange:
+              type: object
+              properties:
+                start:
+                  type: string
+                end:
+                  type: string
+            totalEvents:
+              type: integer
+            bySeverity:
+              type: object
+              properties:
+                low:
+                  type: integer
+                medium:
+                  type: integer
+                high:
+                  type: integer
+                critical:
+                  type: integer
+            byProvider:
+              type: object
+              additionalProperties:
+                type: integer
+            byAsset:
+              type: object
+              additionalProperties:
+                type: integer
+            topEvents:
+              type: array
+              items:
+                $ref: '#/components/schemas/AnomalyEvent'
+            topRiskImpacts:
+              type: array
+              items:
+                $ref: '#/components/schemas/RiskImpact'
+            reports:
+              type: array
+              items:
+                type: object
+                properties:
+                  reportDate:
+                    type: string
+                  totalAnomalies:
+                    type: integer
+                  criticalEvents:
+                    type: integer
+                  highEvents:
+                    type: integer
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Incidents ─────────────────────────────────────
+    FeedFailureIncident:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [feed_failure]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [ongoing, recovered]
+        provider:
+          type: string
+        symbol:
+          type: string
+        chainId:
+          type: integer
+        feedName:
+          type: string
+        feedId:
+          type: string
+        consecutiveFailures:
+          type: integer
+        isActive:
+          type: boolean
+        lastSuccessAt:
+          type: string
+          nullable: true
+        lastFailureAt:
+          type: string
+          nullable: true
+        description:
+          type: string
+
+    DeviationEventIncident:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [deviation_event]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [recorded]
+        provider:
+          type: string
+        symbol:
+          type: string
+        snapshotTime:
+          type: integer
+        isSuccess:
+          type: boolean
+        failureMode:
+          type: string
+        deviationPct:
+          type: number
+        errorMessage:
+          type: string
+          nullable: true
+        description:
+          type: string
+
+    IncidentsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            from:
+              type: string
+            to:
+              type: string
+            total:
+              type: integer
+            bySeverity:
+              type: object
+              properties:
+                low:
+                  type: integer
+                medium:
+                  type: integer
+                high:
+                  type: integer
+                critical:
+                  type: integer
+            byType:
+              type: object
+              additionalProperties:
+                type: integer
+            incidents:
+              type: array
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/FeedFailureIncident'
+                  - $ref: '#/components/schemas/DeviationEventIncident'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Risk Summary ──────────────────────────────────
+    HHIResult:
+      type: object
+      properties:
+        value:
+          type: number
+        level:
+          $ref: '#/components/schemas/RiskLevel'
+        description:
+          type: string
+        concentrationRatio:
+          type: number
+
+    DiversificationResult:
+      type: object
+      properties:
+        score:
+          type: number
+        level:
+          $ref: '#/components/schemas/RiskLevel'
+        description:
+          type: string
+        factors:
+          type: object
+          properties:
+            chainDiversity:
+              type: number
+            protocolDiversity:
+              type: number
+            assetDiversity:
+              type: number
+
+    VolatilityResult:
+      type: object
+      properties:
+        index:
+          type: number
+        level:
+          $ref: '#/components/schemas/RiskLevel'
+        description:
+          type: string
+        annualizedVolatility:
+          type: number
+        dailyVolatility:
+          type: number
+
+    CorrelationRiskResult:
+      type: object
+      properties:
+        score:
+          type: number
+        level:
+          $ref: '#/components/schemas/RiskLevel'
+        description:
+          type: string
+        avgCorrelation:
+          type: number
+        highCorrelationPairs:
+          type: array
+          items:
+            type: string
+        correlationMatrix:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+        oracleNames:
+          type: array
+          items:
+            type: string
+
+    FreshnessRiskResult:
+      type: object
+      properties:
+        score:
+          type: number
+        level:
+          $ref: '#/components/schemas/RiskLevel'
+        description:
+          type: string
+        staleOracleCount:
+          type: integer
+        maxStalenessSeconds:
+          type: number
+        staleOracles:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              stalenessSeconds:
+                type: number
+
+    ManipulationResistanceResult:
+      type: object
+      properties:
+        score:
+          type: number
+        level:
+          $ref: '#/components/schemas/RiskLevel'
+        description:
+          type: string
+        factors:
+          type: object
+          properties:
+            dataSourceDiversity:
+              type: number
+            aggregationRobustness:
+              type: number
+            updateFrequency:
+              type: number
+            onChainVerification:
+              type: number
+
+    SharedDependencyResult:
+      type: object
+      properties:
+        score:
+          type: number
+        level:
+          $ref: '#/components/schemas/RiskLevel'
+        description:
+          type: string
+        sharedSourceGroups:
+          type: array
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+              oracles:
+                type: array
+                items:
+                  type: string
+        systemicRiskFactor:
+          type: number
+
+    RiskMetrics:
+      type: object
+      properties:
+        overallRisk:
+          type: object
+          properties:
+            score:
+              type: number
+            level:
+              $ref: '#/components/schemas/RiskLevel'
+            timestamp:
+              type: integer
+        hhi:
+          $ref: '#/components/schemas/HHIResult'
+        diversification:
+          $ref: '#/components/schemas/DiversificationResult'
+        volatility:
+          $ref: '#/components/schemas/VolatilityResult'
+        correlationRisk:
+          $ref: '#/components/schemas/CorrelationRiskResult'
+        freshnessRisk:
+          $ref: '#/components/schemas/FreshnessRiskResult'
+        manipulationResistance:
+          $ref: '#/components/schemas/ManipulationResistanceResult'
+        sharedDependency:
+          $ref: '#/components/schemas/SharedDependencyResult'
+
+    ProviderPriceResult:
+      type: object
+      properties:
+        provider:
+          $ref: '#/components/schemas/OracleProvider'
+        price:
+          type: number
+        timestamp:
+          type: integer
+        chain:
+          $ref: '#/components/schemas/Blockchain'
+        error:
+          type: string
+
+    RiskSummaryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            symbol:
+              type: string
+            providers:
+              type: array
+              items:
+                $ref: '#/components/schemas/OracleProvider'
+            periodHours:
+              type: integer
+            riskMetrics:
+              $ref: '#/components/schemas/RiskMetrics'
+            providerErrors:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProviderPriceResult'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Cross-Chain Spreads ───────────────────────────
+    ChainPrice:
+      type: object
+      properties:
+        chain:
+          $ref: '#/components/schemas/Blockchain'
+        chainName:
+          type: string
+        price:
+          type: number
+        timestamp:
+          type: integer
+        dataAgeSeconds:
+          type: number
+          nullable: true
+
+    SpreadPair:
+      type: object
+      properties:
+        xChain:
+          $ref: '#/components/schemas/Blockchain'
+        yChain:
+          $ref: '#/components/schemas/Blockchain'
+        x:
+          type: string
+        y:
+          type: string
+        value:
+          type: number
+        percent:
+          type: number
+
+    PriceDifference:
+      type: object
+      properties:
+        chain:
+          $ref: '#/components/schemas/Blockchain'
+        chainName:
+          type: string
+        price:
+          type: number
+        diff:
+          type: number
+        diffPercent:
+          type: number
+
+    CrossChainSpreadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            summary:
+              type: object
+              properties:
+                provider:
+                  $ref: '#/components/schemas/OracleProvider'
+                symbol:
+                  type: string
+                baseChain:
+                  $ref: '#/components/schemas/Blockchain'
+                chainCount:
+                  type: integer
+                maxSpreadPercent:
+                  type: number
+            prices:
+              type: array
+              items:
+                $ref: '#/components/schemas/ChainPrice'
+            spreads:
+              type: array
+              items:
+                $ref: '#/components/schemas/SpreadPair'
+            priceDifferences:
+              type: array
+              items:
+                $ref: '#/components/schemas/PriceDifference'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Protocols ─────────────────────────────────────
+    ProtocolRiskParamsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            protocolId:
+              type: string
+            protocolName:
+              type: string
+            chain:
+              type: string
+            protocolType:
+              type: string
+              enum: [lending, dex]
+            assetCount:
+              type: integer
+            fetchedAt:
+              type: string
+              nullable: true
+            assets:
+              type: array
+              items:
+                type: object
+                properties:
+                  symbol:
+                    type: string
+                  liquidationThreshold:
+                    type: number
+                  maxLtv:
+                    type: number
+                  collateralFactor:
+                    type: number
+                  exchangeRate:
+                    type: number
+                  source:
+                    type: string
+                    enum: [on-chain, registry]
+                  fetchedAt:
+                    type: string
+                    nullable: true
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    BulkRiskParamsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              protocolId:
+                type: string
+              protocolName:
+                type: string
+              chain:
+                type: string
+              protocolType:
+                type: string
+              assetCount:
+                type: integer
+              fetchedAt:
+                type: string
+                nullable: true
+              assets:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    symbol:
+                      type: string
+                    liquidationThreshold:
+                      type: number
+                    maxLtv:
+                      type: number
+                    collateralFactor:
+                      type: number
+                    exchangeRate:
+                      type: number
+                    source:
+                      type: string
+                    fetchedAt:
+                      type: string
+                      nullable: true
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    ProtocolsListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              chain:
+                type: string
+              type:
+                type: string
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    OracleExposureEntry:
+      type: object
+      properties:
+        provider:
+          type: string
+        assetCount:
+          type: integer
+        assets:
+          type: array
+          items:
+            type: string
+        assetShare:
+          type: number
+        feedCount:
+          type: integer
+        overallScore:
+          type: number
+        freshnessScore:
+          type: number
+        reliabilityScore:
+          type: number
+        uptimePercentage:
+          type: number
+        avgDeviationPct:
+          type: number
+
+    OracleExposureResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            protocolId:
+              type: string
+            protocolName:
+              type: string
+            chain:
+              type: string
+            protocolType:
+              type: string
+            totalAssets:
+              type: integer
+            oracleProviders:
+              type: array
+              items:
+                type: string
+            isSingleOracleProvider:
+              type: boolean
+            concentrationRisk:
+              type: object
+              properties:
+                level:
+                  type: string
+                  enum: [low, medium, high, critical]
+                dominantProvider:
+                  type: string
+                dominantProviderAssetShare:
+                  type: number
+                description:
+                  type: string
+            exposures:
+              type: array
+              items:
+                $ref: '#/components/schemas/OracleExposureEntry'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Safety ────────────────────────────────────────
+    LiquidationScenario:
+      type: object
+      properties:
+        label:
+          type: string
+        deviationPercent:
+          type: number
+        isJoint:
+          type: boolean
+        healthFactor:
+          type: number
+        collateralRatio:
+          type: number
+        status:
+          type: string
+          enum: [safe, warning, danger, liquidated]
+        distanceToLiquidationPercent:
+          type: number
+
+    LiquidationRisk:
+      type: object
+      properties:
+        protocolId:
+          type: string
+        protocolName:
+          type: string
+        chain:
+          type: string
+        collaterals:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+              amount:
+                type: number
+              price:
+                type: number
+              value:
+                type: number
+        borrows:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+              amount:
+                type: number
+              price:
+                type: number
+              value:
+                type: number
+        totalCollateralValue:
+          type: number
+        totalBorrowValue:
+          type: number
+        currentHealthFactor:
+          type: number
+        currentCollateralRatio:
+          type: number
+        liquidationThreshold:
+          type: number
+        jointCriticalDeviationPercent:
+          type: number
+        worstSingleAssetDeviation:
+          type: object
+          properties:
+            symbol:
+              type: string
+            criticalDeviationPercent:
+              type: number
+            direction:
+              type: string
+        scenarios:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidationScenario'
+
+    LiquidationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            reportDate:
+              type: string
+            disclaimer:
+              type: string
+            risks:
+              type: array
+              items:
+                $ref: '#/components/schemas/LiquidationRisk'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    PositionSafetyRequest:
+      type: object
+      properties:
+        protocolId:
+          type: string
+          minLength: 1
+        collaterals:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+              amount:
+                type: number
+            required: [symbol, amount]
+          minItems: 1
+        borrows:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+              amount:
+                type: number
+            required: [symbol, amount]
+          minItems: 1
+        collateralSymbol:
+          type: string
+          description: Single-asset mode — use instead of collaterals/borrows arrays
+        collateralAmount:
+          type: number
+        borrowSymbol:
+          type: string
+        borrowAmount:
+          type: number
+
+    OracleWarning:
+      type: object
+      properties:
+        provider:
+          type: string
+        overallScore:
+          type: number
+        freshnessScore:
+          type: number
+        reliabilityScore:
+          type: number
+        avgDeviationPct:
+          type: number
+        level:
+          type: string
+          enum: [healthy, fair, degraded, critical]
+        message:
+          type: string
+        impact:
+          type: string
+        affectedSymbols:
+          type: array
+          items:
+            type: string
+
+    AssetDeviation:
+      type: object
+      properties:
+        symbol:
+          type: string
+        currentPrice:
+          type: number
+        criticalDeviationPercent:
+          type: number
+        criticalPrice:
+          type: number
+        direction:
+          type: string
+        description:
+          type: string
+
+    SafetyBuffer:
+      type: object
+      properties:
+        overallLevel:
+          type: string
+        bufferPercent:
+          type: number
+        theoreticalBufferPercent:
+          type: number
+        oracleAvgDeviationPercent:
+          type: number
+        liveDepegRiskPercent:
+          type: number
+        liveDepegBreakdown:
+          type: object
+          additionalProperties:
+            type: number
+        description:
+          type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+
+    PositionSafetyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            protocolId:
+              type: string
+            protocolName:
+              type: string
+            chain:
+              type: string
+            collaterals:
+              type: array
+              items:
+                type: object
+                properties:
+                  symbol:
+                    type: string
+                  amount:
+                    type: number
+                  price:
+                    type: number
+                  value:
+                    type: number
+                  collateralFactor:
+                    type: number
+                  liquidationThreshold:
+                    type: number
+                  exchangeRate:
+                    type: number
+            borrows:
+              type: array
+              items:
+                type: object
+                properties:
+                  symbol:
+                    type: string
+                  amount:
+                    type: number
+                  price:
+                    type: number
+                  value:
+                    type: number
+            totalCollateralValue:
+              type: number
+            totalAdjustedCollateralValue:
+              type: number
+            totalBorrowValue:
+              type: number
+            currentCollateralRatio:
+              type: number
+            currentHealthFactor:
+              type: number
+            assetDeviations:
+              type: array
+              items:
+                $ref: '#/components/schemas/AssetDeviation'
+            jointDeviation:
+              $ref: '#/components/schemas/AssetDeviation'
+            worstDeviation:
+              $ref: '#/components/schemas/AssetDeviation'
+            deviationRatios:
+              type: object
+              additionalProperties:
+                type: number
+            safetyBuffer:
+              $ref: '#/components/schemas/SafetyBuffer'
+            oracleWarnings:
+              type: array
+              items:
+                $ref: '#/components/schemas/OracleWarning'
+            deviationScenarios:
+              type: array
+              items:
+                $ref: '#/components/schemas/LiquidationScenario'
+            lastUpdated:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    PreTradeSafetyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            verdict:
+              type: string
+              enum: [PASS, CAUTION, DANGER, BLOCK]
+              description: |
+                Overall safety verdict. Agents MUST NOT execute trades when `DANGER` or `BLOCK`.
+            consensusPrice:
+              type: number
+              description: Cross-oracle consensus price for the asset.
+            maxDeviationPct:
+              type: number
+              description: Largest per-provider deviation from consensus (percentage).
+            manipulationRiskScore:
+              type: number
+              minimum: 0
+              maximum: 1
+              description: Weighted manipulation risk score (0=low, 1=high).
+            staleDataRisk:
+              type: boolean
+              description: True if any oracle data exceeds the staleness caution threshold.
+            crossProviderAgreement:
+              type: number
+              minimum: 0
+              maximum: 1
+              description: Agreement score across providers (1=perfect agreement).
+            recommendedMaxPositionUsd:
+              type: number
+              description: Suggested maximum position size in USD given current risk.
+            participantCount:
+              type: integer
+              description: Number of oracle providers that contributed a price.
+            providerPrices:
+              type: object
+              additionalProperties:
+                type: object
+                properties:
+                  price:
+                    type: number
+                  deviationPct:
+                    type: number
+                    nullable: true
+                  isOutlier:
+                    type: boolean
+                  dataAgeSeconds:
+                    type: integer
+                    nullable: true
+                  isStale:
+                    type: boolean
+                  confidence:
+                    type: number
+                    nullable: true
+                  reputationScore:
+                    type: number
+                    nullable: true
+                  status:
+                    type: string
+                    enum: [success, unsupported, error]
+            depegWarnings:
+              type: array
+              items:
+                type: object
+                properties:
+                  stablecoin:
+                    type: string
+                  deviationPct:
+                    type: number
+                  riskLevel:
+                    type: string
+            warnings:
+              type: array
+              items:
+                type: string
+            contributingFactors:
+              type: array
+              items:
+                type: object
+                properties:
+                  rule:
+                    type: string
+                  value:
+                    type: number
+                  threshold:
+                    type: number
+                  triggeredVerdict:
+                    type: string
+                    enum: [CAUTION, DANGER, BLOCK]
+                  message:
+                    type: string
+            evaluatedAt:
+              type: string
+              format: date-time
+            latencyMs:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Oracle Health ─────────────────────────────────
+    OracleHealthIssue:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            [
+              heartbeat_missing,
+              update_delay,
+              provider_deviation,
+              failure_rate,
+              single_source_dependency,
+              shared_source_dependency,
+            ]
+        severity:
+          type: string
+          enum: [low, medium, high]
+        message:
+          type: string
+
+    OracleHealthProviderStatus:
+      type: object
+      properties:
+        provider:
+          $ref: '#/components/schemas/OracleProvider'
+        displayName:
+          type: string
+        riskLevel:
+          type: string
+          enum: [low, medium, high]
+        reason:
+          type: string
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/OracleHealthIssue'
+        stats:
+          type: object
+          properties:
+            totalSnapshots:
+              type: integer
+            successRate:
+              type: number
+            avgLatencyMs:
+              type: number
+            avgDeviationPct:
+              type: number
+            maxDeviationPct:
+              type: number
+            avgDataAgeSeconds:
+              type: number
+            maxDataAgeSeconds:
+              type: number
+            observedAssets:
+              type: array
+              items:
+                type: string
+        feedHealth:
+          type: object
+          properties:
+            score:
+              type: number
+            level:
+              $ref: '#/components/schemas/FeedHealthLevel'
+            rhythmStability:
+              type: number
+            confidenceStability:
+              type: number
+            heartbeatReliability:
+              type: number
+            freshness:
+              type: number
+            expectedIntervalSeconds:
+              type: number
+            actualAvgIntervalSeconds:
+              type: number
+            intervalCv:
+              type: number
+            isHeartbeatLost:
+              type: boolean
+            missedBeats:
+              type: number
+            maxGapSeconds:
+              type: number
+        dependency:
+          type: object
+          properties:
+            riskLevel:
+              type: string
+              enum: [low, medium, high]
+            reason:
+              type: string
+            primaryDataSources:
+              type: array
+              items:
+                type: string
+            dataSourceCount:
+              type: integer
+            sharedWithProviders:
+              type: array
+              items:
+                type: string
+            overlapRatio:
+              type: number
+            aggregationMethod:
+              type: string
+            hasOnChainVerification:
+              type: boolean
+
+    OracleHealthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            reportDate:
+              type: string
+            summary:
+              type: object
+              properties:
+                total:
+                  type: integer
+                bySeverity:
+                  type: object
+                  properties:
+                    low:
+                      type: integer
+                    medium:
+                      type: integer
+                    high:
+                      type: integer
+                    critical:
+                      type: integer
+                byProvider:
+                  type: object
+                  additionalProperties:
+                    type: integer
+                byAsset:
+                  type: object
+                  additionalProperties:
+                    type: integer
+            overview:
+              type: object
+              properties:
+                riskLevel:
+                  type: string
+                reason:
+                  type: string
+                monitoredProviders:
+                  type: integer
+                lowRiskProviders:
+                  type: integer
+                mediumRiskProviders:
+                  type: integer
+                highRiskProviders:
+                  type: integer
+                overallHealthAvg:
+                  type: number
+                overallHealthLevel:
+                  $ref: '#/components/schemas/FeedHealthLevel'
+                anomalyCount:
+                  type: integer
+            providers:
+              type: array
+              items:
+                $ref: '#/components/schemas/OracleHealthProviderStatus'
+            sharedDependency:
+              type: object
+              properties:
+                score:
+                  type: number
+                level:
+                  $ref: '#/components/schemas/RiskLevel'
+                systemicRiskFactor:
+                  type: number
+                sharedSourceGroups:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      source:
+                        type: string
+                      oracles:
+                        type: array
+                        items:
+                          type: string
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Depeg / Peg ──────────────────────────────────
+    DepegSource:
+      type: object
+      properties:
+        sourceId:
+          type: string
+        provider:
+          type: string
+        chain:
+          type: string
+        symbol:
+          type: string
+        price:
+          type: number
+        timestamp:
+          type: integer
+        deviationPercent:
+          type: number
+        category:
+          type: string
+          enum: [oracle, market]
+        dexName:
+          type: string
+        poolAddress:
+          type: string
+
+    DepegData:
+      type: object
+      properties:
+        symbol:
+          type: string
+        displayName:
+          type: string
+        targetPeg:
+          type: number
+        referencePrice:
+          type: number
+        referenceMethod:
+          type: string
+        maxDeviationPercent:
+          type: number
+        spreadPercent:
+          type: number
+        marketReferencePrice:
+          type: number
+        marketSpreadPercent:
+          type: number
+        oracleMarketDivergencePercent:
+          type: number
+        oracleMarketDirection:
+          type: string
+        riskLevel:
+          type: string
+          enum: [normal, low, medium, high, critical]
+        riskReason:
+          type: string
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/DepegSource'
+        affectedProtocols:
+          type: array
+          items:
+            type: string
+        lastUpdated:
+          type: integer
+
+    DepegResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/DepegData'
+            - type: array
+              items:
+                $ref: '#/components/schemas/DepegData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    WrappedPegSource:
+      type: object
+      properties:
+        sourceId:
+          type: string
+        provider:
+          type: string
+        chain:
+          type: string
+        symbol:
+          type: string
+        price:
+          type: number
+        timestamp:
+          type: integer
+        deviationPercent:
+          type: number
+        category:
+          type: string
+        verification:
+          $ref: '#/components/schemas/OnChainVerification'
+
+    WrappedPegData:
+      type: object
+      properties:
+        symbol:
+          type: string
+        displayName:
+          type: string
+        type:
+          type: string
+        underlyingSymbol:
+          type: string
+        wrappedMarketPrice:
+          type: number
+        underlyingReferencePrice:
+          type: number
+        exchangeRate:
+          type: number
+        fairUnderlyingPrice:
+          type: number
+        deviationPercent:
+          type: number
+        riskLevel:
+          type: string
+          enum: [normal, low, medium, high, critical]
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/WrappedPegSource'
+        affectedProtocols:
+          type: array
+          items:
+            type: string
+        lastUpdated:
+          type: integer
+
+    WrappedPegResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/WrappedPegData'
+            - type: array
+              items:
+                $ref: '#/components/schemas/WrappedPegData'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Coverage ──────────────────────────────────────
+    CoverageByChain:
+      type: object
+      properties:
+        chainId:
+          type: integer
+        feedCount:
+          type: integer
+        providers:
+          type: array
+          items:
+            type: string
+        symbols:
+          type: array
+          items:
+            type: string
+        categories:
+          type: array
+          items:
+            type: string
+        providerCount:
+          type: integer
+        symbolCount:
+          type: integer
+
+    CoverageByProvider:
+      type: object
+      properties:
+        provider:
+          type: string
+        feedCount:
+          type: integer
+        chains:
+          type: array
+          items:
+            type: string
+        symbols:
+          type: array
+          items:
+            type: string
+        categories:
+          type: array
+          items:
+            type: string
+        chainCount:
+          type: integer
+        symbolCount:
+          type: integer
+
+    CoverageBySymbol:
+      type: object
+      properties:
+        symbol:
+          type: string
+        feedCount:
+          type: integer
+        providers:
+          type: array
+          items:
+            type: string
+        chains:
+          type: array
+          items:
+            type: string
+        categories:
+          type: array
+          items:
+            type: string
+        providerCount:
+          type: integer
+        chainCount:
+          type: integer
+
+    CoverageResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            summary:
+              type: object
+              properties:
+                totalFeeds:
+                  type: integer
+                totalProviders:
+                  type: integer
+                totalSymbols:
+                  type: integer
+                totalChains:
+                  type: integer
+                singleProviderRiskCount:
+                  type: integer
+            byChain:
+              type: array
+              items:
+                $ref: '#/components/schemas/CoverageByChain'
+            byProvider:
+              type: array
+              items:
+                $ref: '#/components/schemas/CoverageByProvider'
+            bySymbol:
+              type: array
+              items:
+                $ref: '#/components/schemas/CoverageBySymbol'
+            singleProviderRisk:
+              type: array
+              items:
+                type: object
+                properties:
+                  symbol:
+                    type: string
+                  provider:
+                    type: string
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Hourly Snapshots ──────────────────────────────
+    HourlySnapshot:
+      type: object
+      properties:
+        snapshot_hour:
+          type: string
+        provider:
+          type: string
+        symbol:
+          type: string
+        price:
+          type: number
+        consensus_price:
+          type: number
+        deviation_pct:
+          type: number
+        latency_ms:
+          type: number
+        data_age_seconds:
+          type: number
+        confidence:
+          type: number
+        is_success:
+          type: boolean
+
+    HourlySnapshotsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            from:
+              type: string
+            to:
+              type: string
+            count:
+              type: integer
+            snapshots:
+              type: array
+              items:
+                $ref: '#/components/schemas/HourlySnapshot'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Price Export ──────────────────────────────────
+    PriceExportRecord:
+      type: object
+      properties:
+        provider:
+          type: string
+        symbol:
+          type: string
+        chain:
+          type: string
+        price:
+          type: number
+        timestamp:
+          type: integer
+        confidence:
+          type: number
+        source:
+          type: string
+        verification:
+          $ref: '#/components/schemas/OnChainVerification'
+
+    PriceExportResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            exportedAt:
+              type: string
+            filters:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                provider:
+                  type: string
+                from:
+                  type: string
+                to:
+                  type: string
+            count:
+              type: integer
+            records:
+              type: array
+              items:
+                $ref: '#/components/schemas/PriceExportRecord'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Daily Report ──────────────────────────────────
+    ProviderRanking:
+      type: object
+      properties:
+        provider:
+          $ref: '#/components/schemas/OracleProvider'
+        totalQueries:
+          type: integer
+        successQueries:
+          type: integer
+        successRate:
+          type: number
+        avgLatencyMs:
+          type: number
+        avgDeviationPct:
+          type: number
+        maxDeviationPct:
+          type: number
+        anomalyCount:
+          type: integer
+        score:
+          type: number
+
+    DailyReportResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            reportDate:
+              type: string
+            reportTitle:
+              type: string
+            summary:
+              type: string
+            recommendations:
+              type: array
+              items:
+                type: string
+            metrics:
+              type: object
+              properties:
+                totalSnapshots:
+                  type: integer
+                successfulSnapshots:
+                  type: integer
+                failedSnapshots:
+                  type: integer
+                overallSuccessRate:
+                  type: number
+                avgDeviationPct:
+                  type: number
+                totalAnomalies:
+                  type: integer
+                criticalEvents:
+                  type: integer
+                highEvents:
+                  type: integer
+                activeProviders:
+                  type: integer
+                activeAssets:
+                  type: integer
+            topAssets:
+              type: array
+              items:
+                type: object
+                properties:
+                  symbol:
+                    type: string
+                  avgDeviationPct:
+                    type: number
+                  maxDeviationPct:
+                    type: number
+                  anomalyCount:
+                    type: integer
+            providerRankings:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProviderRanking'
+            deviationEvents:
+              type: array
+              items:
+                $ref: '#/components/schemas/AnomalyEvent'
+            anomalySummary:
+              type: object
+              properties:
+                total:
+                  type: integer
+                bySeverity:
+                  type: object
+                  properties:
+                    low:
+                      type: integer
+                    medium:
+                      type: integer
+                    high:
+                      type: integer
+                    critical:
+                      type: integer
+            previousDayComparison:
+              type: object
+              properties:
+                reportAvailable:
+                  type: boolean
+                successRateChangePct:
+                  type: number
+                avgDeviationChangePct:
+                  type: number
+                anomalyChangePct:
+                  type: number
+            riskImpacts:
+              type: array
+              items:
+                $ref: '#/components/schemas/RiskImpact'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    # ── Alerts ────────────────────────────────────────
+    CreateAlertRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        symbol:
+          type: string
+          minLength: 1
+          maxLength: 20
+        provider:
+          $ref: '#/components/schemas/OracleProvider'
+        chain:
+          $ref: '#/components/schemas/Blockchain'
+        conditionType:
+          type: string
+          enum: [above, below, change_percent]
+        targetValue:
+          type: number
+      required: [symbol, conditionType, targetValue]
+
+    PriceAlertRow:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+        name:
+          type: string
+        symbol:
+          type: string
+        provider:
+          type: string
+          nullable: true
+        chain:
+          type: string
+          nullable: true
+        condition_type:
+          type: string
+          enum: [above, below, change_percent]
+        target_value:
+          type: number
+        is_active:
+          type: boolean
+        is_triggered:
+          type: boolean
+        last_triggered_at:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+
+    AlertResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/PriceAlertRow'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    AlertsListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            alerts:
+              type: array
+              items:
+                $ref: '#/components/schemas/PriceAlertRow'
+            count:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiMeta'

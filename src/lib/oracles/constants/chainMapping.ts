@@ -1,0 +1,64 @@
+import { Blockchain } from '@/types/oracle';
+
+export const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
+  [Blockchain.ETHEREUM]: 1,
+  [Blockchain.ARBITRUM]: 42161,
+  [Blockchain.OPTIMISM]: 10,
+  [Blockchain.POLYGON]: 137,
+  [Blockchain.AVALANCHE]: 43114,
+  [Blockchain.BNB_CHAIN]: 56,
+  [Blockchain.BASE]: 8453,
+  [Blockchain.SOLANA]: 0,
+  [Blockchain.FANTOM]: 250,
+  [Blockchain.CRONOS]: 25,
+  [Blockchain.JUNO]: 0,
+  [Blockchain.COSMOS]: 0,
+  [Blockchain.OSMOSIS]: 0,
+  [Blockchain.SCROLL]: 534352,
+  [Blockchain.ZKSYNC]: 324,
+  [Blockchain.APTOS]: 0,
+  [Blockchain.SUI]: 0,
+  [Blockchain.GNOSIS]: 100,
+  [Blockchain.MANTLE]: 5000,
+  [Blockchain.LINEA]: 59144,
+  [Blockchain.CELESTIA]: 0,
+  [Blockchain.INJECTIVE]: 0,
+  [Blockchain.SEI]: 0,
+  [Blockchain.TRON]: 0,
+  [Blockchain.TON]: 0,
+  [Blockchain.NEAR]: 0,
+  [Blockchain.AURORA]: 1313161554,
+  [Blockchain.CELO]: 42220,
+  [Blockchain.STARKNET]: 0,
+  [Blockchain.BLAST]: 81457,
+  [Blockchain.CARDANO]: 0,
+  [Blockchain.POLKADOT]: 0,
+  [Blockchain.KAVA]: 2222,
+  [Blockchain.MOONBEAM]: 1284,
+  [Blockchain.MOONRIVER]: 1285,
+  [Blockchain.METIS]: 1088,
+  [Blockchain.STARKEX]: 0,
+  [Blockchain.STELLAR]: 0,
+  [Blockchain.FLARE]: 14,
+  [Blockchain.SUPRA_CHAIN]: 8,
+};
+
+// Reverse mapping: chain_id → Blockchain.
+// chainId=0 (chain-agnostic: Solana/Juno/Cosmos/etc.) is intentionally
+// excluded so lookups for 0 return undefined, signaling the caller to fall
+// back to the client's default chain. All positive chainIds are unique.
+export const CHAIN_ID_TO_BLOCKCHAIN: Readonly<Record<number, Blockchain>> = Object.fromEntries(
+  Object.entries(BLOCKCHAIN_TO_CHAIN_ID)
+    .filter(([, id]) => id > 0)
+    .map(([bc, id]) => [id, bc as Blockchain])
+) as Readonly<Record<number, Blockchain>>;
+
+/**
+ * Resolve a Blockchain from a numeric chain_id.
+ * Returns undefined for chain-agnostic (0) / unknown / falsy chainIds so the
+ * caller can fall back to the client's default chain.
+ */
+export function getBlockchainByChainId(chainId: number | undefined | null): Blockchain | undefined {
+  if (!chainId || chainId <= 0) return undefined;
+  return CHAIN_ID_TO_BLOCKCHAIN[chainId];
+}
