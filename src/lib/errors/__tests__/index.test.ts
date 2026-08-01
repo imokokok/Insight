@@ -81,7 +81,7 @@ describe('Error module exports', () => {
       expect(retryableError.retryable).toBe(true);
       expect(retryableError.severity).toBe('high');
 
-      const nonRetryableError = new OracleProviderError('Test', 'pyth', 'INVALID_PRICE');
+      const nonRetryableError = new OracleProviderError('Test', 'redstone', 'PRICE_DEVIATION');
       expect(nonRetryableError.retryable).toBe(false);
       expect(nonRetryableError.severity).toBe('critical');
     });

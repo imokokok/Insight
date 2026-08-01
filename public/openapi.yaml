@@ -154,7 +154,7 @@ info:
       body: JSON.stringify({
         queries: [
           { provider: 'chainlink', symbol: 'BTC/USD', chain: 'ethereum' },
-          { provider: 'pyth', symbol: 'ETH/USD', chain: 'arbitrum' },
+          { provider: 'redstone', symbol: 'ETH/USD', chain: 'arbitrum' },
         ],
       }),
     });
@@ -835,7 +835,7 @@ paths:
           description: Comma-separated list of 2–10 oracle providers
           schema:
             type: string
-            example: chainlink,pyth,api3
+            example: chainlink,redstone,api3
         - name: period
           in: query
           description: Hours of historical data to analyze
@@ -1106,7 +1106,7 @@ paths:
           description: Comma-separated list of oracle providers to restrict the check to.
           schema:
             type: string
-            example: chainlink,pyth,api3
+            example: chainlink,redstone,api3
       responses:
         '200':
           description: Pre-trade safety verdict
@@ -1563,7 +1563,6 @@ components:
       type: string
       enum:
         - chainlink
-        - pyth
         - api3
         - redstone
         - dia

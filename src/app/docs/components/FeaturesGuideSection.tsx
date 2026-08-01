@@ -166,8 +166,8 @@ const quickCards = [
   },
   {
     icon: Shield,
-    title: '11 Oracle Providers',
-    description: 'Chainlink, Pyth, API3, RedStone, DIA, and more',
+    title: '10 Oracle Providers',
+    description: 'Chainlink, API3, RedStone, DIA, and more',
     tone: 'emerald',
   },
   {

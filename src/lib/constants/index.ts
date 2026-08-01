@@ -6,7 +6,6 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 
 export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
-  [OracleProvider.PYTH]: 'Pyth',
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
@@ -106,7 +105,6 @@ export const chainColors: Record<Blockchain, string> = {
 
 export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: configChartColors.oracle.chainlink,
-  [OracleProvider.PYTH]: configChartColors.oracle.pyth,
   [OracleProvider.API3]: configChartColors.oracle.api3,
   [OracleProvider.REDSTONE]: configChartColors.oracle.redstone,
   [OracleProvider.DIA]: configChartColors.oracle.dia,
@@ -119,7 +117,6 @@ export const oracleColors: Record<OracleProvider, string> = {
 };
 
 export const ORACLE_EXPECTED_INTERVALS: Record<string, number> = {
-  pyth: 1,
   redstone: 1,
   switchboard: 1,
   supra: 60,
@@ -241,8 +238,6 @@ export const symbols = [
   '1INCH', // 71. 1inch
   'BAL', // 72. Balancer
   'FXS', // 73. Frax Share
-  // Oracle Tokens
-  'PYTH', // 74. Pyth Network
   // Meme Tokens
   'PEPE', // 75. Pepe
   'WIF', // 76. dogwifhat

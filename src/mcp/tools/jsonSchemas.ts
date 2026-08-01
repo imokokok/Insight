@@ -15,7 +15,7 @@ const wrappedAssetEnum = z.enum(WRAPPED_ASSETS.map((a) => a.symbol) as [string, 
  * so that zod v4's toJSONSchema() can represent them.
  */
 export const OraclePriceJsonSchema = z.object({
-  provider: providerEnum.describe('Oracle provider name, e.g. chainlink, pyth, api3'),
+  provider: providerEnum.describe('Oracle provider name, e.g. chainlink, redstone, api3'),
   symbol: z.string().describe('Asset symbol, e.g. BTC, ETH, BTC/USD'),
   chain: chainEnum.optional().describe('Optional blockchain, e.g. ethereum, arbitrum, base'),
   forceRefresh: z.boolean().optional().describe('Force refresh from upstream instead of cache'),
@@ -35,7 +35,7 @@ export const RiskSummaryJsonSchema = z.object({
   providers: z
     .array(providerEnum)
     .min(2)
-    .describe('Oracle providers to analyze, e.g. ["chainlink", "pyth", "api3"]'),
+    .describe('Oracle providers to analyze, e.g. ["chainlink", "redstone", "api3"]'),
   period: z
     .number()
     .int()

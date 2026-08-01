@@ -112,7 +112,7 @@ describe('MCP Server end-to-end', () => {
       name: 'get_risk_summary',
       arguments: {
         symbol: 'BTC',
-        providers: ['chainlink', 'pyth', 'api3'],
+        providers: ['chainlink', 'redstone', 'api3'],
         period: 24,
       },
     });
@@ -186,7 +186,7 @@ describe('MCP Server end-to-end', () => {
     const calls: Record<string, Record<string, unknown>> = {
       get_oracle_price: { provider: 'chainlink', symbol: 'BTC' },
       get_consensus_price: { symbol: 'BTC' },
-      get_risk_summary: { symbol: 'BTC', providers: ['chainlink', 'pyth', 'api3'], period: 24 },
+      get_risk_summary: { symbol: 'BTC', providers: ['chainlink', 'redstone', 'api3'], period: 24 },
       get_oracle_health: {},
       check_liquidation_risk: {},
       compare_oracle_deviation: { symbol: 'BTC' },

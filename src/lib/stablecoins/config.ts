@@ -1,6 +1,6 @@
 import { Blockchain, OracleProvider } from '@/types/oracle';
 
-export type StablecoinSymbol = 'USDC' | 'USDT' | 'DAI' | 'FRAX' | 'LUSD' | 'USDD';
+export type StablecoinSymbol = 'USDC' | 'USDT' | 'DAI' | 'FRAX' | 'LUSD';
 
 export type DexName = 'uniswap-v3' | 'curve';
 
@@ -44,12 +44,6 @@ export const STABLECOINS: StablecoinConfig[] = [
         provider: OracleProvider.CHAINLINK,
         chain: Blockchain.ETHEREUM,
         displayName: 'Chainlink @ Ethereum',
-      },
-      {
-        symbol: 'USDC',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.ETHEREUM,
-        displayName: 'Pyth @ Ethereum',
       },
       {
         symbol: 'USDC',
@@ -130,12 +124,6 @@ export const STABLECOINS: StablecoinConfig[] = [
       },
       {
         symbol: 'USDT',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.ETHEREUM,
-        displayName: 'Pyth @ Ethereum',
-      },
-      {
-        symbol: 'USDT',
         provider: OracleProvider.TWAP,
         chain: Blockchain.ETHEREUM,
         displayName: 'Uniswap V3 TWAP @ Ethereum',
@@ -201,12 +189,6 @@ export const STABLECOINS: StablecoinConfig[] = [
       },
       {
         symbol: 'DAI',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.ETHEREUM,
-        displayName: 'Pyth @ Ethereum',
-      },
-      {
-        symbol: 'DAI',
         provider: OracleProvider.TWAP,
         chain: Blockchain.ETHEREUM,
         displayName: 'Uniswap V3 TWAP @ Ethereum',
@@ -264,12 +246,6 @@ export const STABLECOINS: StablecoinConfig[] = [
         chain: Blockchain.ETHEREUM,
         displayName: 'Chainlink @ Ethereum',
       },
-      {
-        symbol: 'FRAX',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.ETHEREUM,
-        displayName: 'Pyth @ Ethereum',
-      },
     ],
     dexPools: [
       {
@@ -301,37 +277,11 @@ export const STABLECOINS: StablecoinConfig[] = [
         chain: Blockchain.ARBITRUM,
         displayName: 'Chainlink @ Arbitrum',
       },
-      {
-        symbol: 'LUSD',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.ETHEREUM,
-        displayName: 'Pyth @ Ethereum',
-      },
     ],
     // LUSD's Curve "metapool" pairs LUSD with 3CRV (the 3pool LP token), not
     // USDC directly. getStablecoinPrice(symbol, 'USDC') can therefore never
     // match this pool (3POOL ≠ USDC), so the dexPool entry was non-functional.
-    // LUSD is tracked via oracles only (Chainlink @ Arbitrum + Pyth).
-    dexPools: [],
-  },
-  {
-    symbol: 'USDD',
-    displayName: 'USDD',
-    targetPeg: 1,
-    sources: [
-      {
-        // Chainlink has no USDD/USD feed on any chain. USDD is tracked via
-        // Pyth (chain-agnostic, USDD/USD price ID in pythConstants) plus the
-        // Curve USDD/3pool DEX price below.
-        symbol: 'USDD',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.ETHEREUM,
-        displayName: 'Pyth @ Ethereum',
-      },
-    ],
-    // The USDD/3pool Curve address (0x42d1...) is dead — get_virtual_price
-    // returns empty, so every get_dy call reverts. Removed; USDD is tracked
-    // via Pyth only until a verified Curve USDD pool is available.
+    // LUSD is tracked via oracle only (Chainlink @ Arbitrum).
     dexPools: [],
   },
 ];

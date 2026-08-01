@@ -17,10 +17,10 @@ describe('stabilityScore', () => {
     };
 
     it('should handle multiple providers', () => {
-      const providers = ['chainlink', 'pyth'];
+      const providers = ['chainlink', 'redstone'];
       const priceHistoryMap = new Map([
         ['chainlink', createValidHistory('chainlink', 10)],
-        ['pyth', createValidHistory('pyth', 10, 50100)],
+        ['redstone', createValidHistory('redstone', 10, 50100)],
       ]);
 
       const result = calculateStability(providers, priceHistoryMap, Date.now());

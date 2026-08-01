@@ -68,7 +68,7 @@ const faqs = [
   {
     question: 'What oracle providers are supported?',
     answer:
-      'We support 11 oracle providers: chainlink, pyth, api3, redstone, dia, winklink, supra, twap, reflector, flare, and switchboard. Each provider supports different blockchains and trading pairs.',
+      'We support 10 oracle providers: chainlink, api3, redstone, dia, winklink, supra, twap, reflector, flare, and switchboard. Each provider supports different blockchains and trading pairs.',
   },
   {
     question: 'What consensus algorithms are available?',

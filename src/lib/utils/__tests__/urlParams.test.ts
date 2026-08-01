@@ -12,27 +12,27 @@ describe('urlParams', () => {
       });
 
       it('should parse multiple oracles', () => {
-        const result = parseQueryParams('?oracles=chainlink,pyth,api3');
+        const result = parseQueryParams('?oracles=chainlink,redstone,api3');
 
-        expect(result.oracles).toEqual(['chainlink', 'pyth', 'api3']);
+        expect(result.oracles).toEqual(['chainlink', 'redstone', 'api3']);
       });
 
       it('should ignore invalid oracle values', () => {
-        const result = parseQueryParams('?oracles=chainlink,invalid,pyth');
+        const result = parseQueryParams('?oracles=chainlink,invalid,redstone');
 
-        expect(result.oracles).toEqual(['chainlink', 'pyth']);
+        expect(result.oracles).toEqual(['chainlink', 'redstone']);
       });
 
       it('should handle oracle values with spaces', () => {
-        const result = parseQueryParams('?oracles=chainlink, pyth , api3');
+        const result = parseQueryParams('?oracles=chainlink, redstone , api3');
 
-        expect(result.oracles).toEqual(['chainlink', 'pyth', 'api3']);
+        expect(result.oracles).toEqual(['chainlink', 'redstone', 'api3']);
       });
 
       it('should handle case-insensitive oracle values', () => {
-        const result = parseQueryParams('?oracles=CHAINLINK,Pyth');
+        const result = parseQueryParams('?oracles=CHAINLINK,Redstone');
 
-        expect(result.oracles).toEqual(['chainlink', 'pyth']);
+        expect(result.oracles).toEqual(['chainlink', 'redstone']);
       });
 
       it('should return undefined when all oracle values are invalid', () => {
@@ -132,11 +132,11 @@ describe('urlParams', () => {
     describe('multiple parameters', () => {
       it('should parse all parameters together', () => {
         const result = parseQueryParams(
-          '?oracles=chainlink,pyth&chains=ethereum,solana&symbol=btc&timeRange=24'
+          '?oracles=chainlink,redstone&chains=ethereum,solana&symbol=btc&timeRange=24'
         );
 
         expect(result).toEqual({
-          oracles: ['chainlink', 'pyth'],
+          oracles: ['chainlink', 'redstone'],
           chains: ['ethereum', 'solana'],
           symbol: 'BTC',
           timeRange: 24,

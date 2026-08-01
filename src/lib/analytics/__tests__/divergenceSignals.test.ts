@@ -2,7 +2,7 @@ import { calculateDivergenceSignals } from '../divergenceSignals';
 
 const mockPriceData = [
   { provider: 'chainlink', price: 50000, timestamp: Date.now() - 1000, confidence: 0.95 },
-  { provider: 'pyth', price: 50100, timestamp: Date.now() - 500, confidence: 0.98 },
+  { provider: 'switchboard', price: 50100, timestamp: Date.now() - 500, confidence: 0.98 },
   { provider: 'redstone', price: 49900, timestamp: Date.now() - 800, confidence: 0.92 },
 ];
 
@@ -16,7 +16,7 @@ const mockPriceHistoryMap = new Map([
     ],
   ],
   [
-    'pyth',
+    'switchboard',
     [
       { price: 50000, timestamp: Date.now() - 4000, success: true },
       { price: 50050, timestamp: Date.now() - 2000, success: true },

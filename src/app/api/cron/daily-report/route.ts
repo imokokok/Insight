@@ -58,7 +58,7 @@ export interface BatchResultItem {
   // Numeric chain_id of the feed this result was sampled from, used to
   // update feed health against the correct DB row.
   feedChainId?: number;
-  // The feed's actual `symbol` as stored in oracle_feeds (e.g. pyth stores
+  // The feed's actual `symbol` as stored in oracle_feeds (e.g. redstone stores
   // "BTC/USD" while chainlink stores "BTC"). Health updates must match the
   // DB row by this exact symbol — passing the base symbol (REPORT_ASSETS)
   // would silently no-op for providers that suffix the quote currency,
@@ -297,7 +297,7 @@ export function buildSnapshotInputs(
  * feed it was sampled from (populated in `fetchBatchPrices`), so health is
  * updated against the correct DB row.
  *
- * CRITICAL: `feedSymbol` (the feed's actual stored symbol, e.g. pyth's
+ * CRITICAL: `feedSymbol` (the feed's actual stored symbol, e.g. redstone's
  * "BTC/USD") must be used — not the base `symbol` from REPORT_ASSETS — because
  * `batch_update_feed_health` matches the oracle_feeds row by exact symbol.
  * Passing the base symbol ("BTC") for a provider that stores "BTC/USD" would

@@ -8,7 +8,6 @@ import { API3Client } from './clients/api3';
 import { ChainlinkClient } from './clients/chainlink';
 import { DIAClient } from './clients/dia';
 import { FlareClient } from './clients/flare';
-import { PythClient } from './clients/PythClient';
 import { RedStoneClient } from './clients/redstone';
 import { ReflectorClient } from './clients/reflector';
 import { SupraClient } from './clients/supra';
@@ -188,8 +187,6 @@ export class OracleClientFactory {
     switch (provider) {
       case OracleProvider.CHAINLINK:
         return new ChainlinkClient({ ...this.config, useRealData: useRealChainlinkData });
-      case OracleProvider.PYTH:
-        return new PythClient(this.config);
       case OracleProvider.API3:
         return new API3Client({ ...this.config, useRealData: useRealAPI3Data });
       case OracleProvider.REDSTONE:

@@ -1,6 +1,6 @@
 # Insight - Oracle Transparency & Risk Infrastructure
 
-Insight is an oracle transparency and risk infrastructure platform that serves both professional researchers and everyday DeFi users. It provides hourly price tracking, cross-oracle comparison, risk analysis, and position safety checks across 11 oracle providers and 40+ blockchain networks.
+Insight is an oracle transparency and risk infrastructure platform that serves both professional researchers and everyday DeFi users. It provides hourly price tracking, cross-oracle comparison, risk analysis, and position safety checks across 10 oracle providers and 40+ blockchain networks.
 
 **See through every oracle. Trust with clarity.**
 
@@ -52,7 +52,6 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 | Provider    | Type           | Supported Chains                                                                                                                         |
 | ----------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | Chainlink   | On-chain       | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, BNB Chain, Base                                                                        |
-| Pyth        | API / On-chain | Ethereum, Arbitrum, Optimism, Polygon, Solana, Avalanche, BNB Chain, Aptos, Sui, Base                                                    |
 | API3        | On-chain dAPIs | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism                                                                        |
 | RedStone    | API / On-chain | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync                                 |
 | DIA         | API / On-chain | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base                                                                                  |
@@ -89,7 +88,7 @@ Safety Check calculates: critical deviation percentage, liquidation trigger pric
 - **State Management**: React Query 5.99.0, Zustand 5.0.11
 - **Charts**: Recharts 3.8.0
 - **Database & Auth**: Supabase 2.98.0 (PostgreSQL + RLS + pg_cron)
-- **Blockchain**: viem 2.47.6, @pythnetwork/hermes-client 2.0.0, @api3/contracts 27.0.0, supra-oracle-sdk 1.0.4, @stellar/stellar-sdk 15.0.1
+- **Blockchain**: viem 2.47.6, @api3/contracts 27.0.0, supra-oracle-sdk 1.0.4, @stellar/stellar-sdk 15.0.1
 - **Billing**: Creem 1.5.4 (Merchant of Record) - API-key subscriptions and plan gating
 - **Error Tracking**: Sentry 10.43.0
 - **Observability**: Vercel Analytics, Vercel Speed Insights, web-vitals 5.1.0

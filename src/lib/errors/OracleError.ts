@@ -177,13 +177,6 @@ const PROVIDER_ERROR_CONFIGS: Record<string, Record<string, ErrorConfig>> = {
     INVALID_ANSWER: { retryable: false, severity: 'critical', statusCode: 502 },
     HEARTBEAT_VIOLATION: { retryable: true, severity: 'low', statusCode: 502 },
   },
-  pyth: {
-    PRICE_FEED_NOT_FOUND: { retryable: false, severity: 'low', statusCode: 502 },
-    STALE_PRICE: { retryable: true, severity: 'high', statusCode: 502 },
-    INVALID_PRICE: { retryable: false, severity: 'critical', statusCode: 502 },
-    CONFIDENCE_INTERVAL_TOO_LARGE: { retryable: false, severity: 'critical', statusCode: 502 },
-    HERMES_CONNECTION_ERROR: { retryable: true, severity: 'medium', statusCode: 502 },
-  },
   api3: {
     DAPI_NOT_FOUND: { retryable: false, severity: 'low', statusCode: 502 },
     AIRNODE_ERROR: { retryable: true, severity: 'medium', statusCode: 502 },

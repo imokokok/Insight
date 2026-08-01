@@ -6,7 +6,7 @@ import { ArrowRight, ChevronDown, Sparkles } from 'lucide-react';
 
 import { HeroSearchForm } from './HeroSearchForm';
 
-const trendingSymbols = ['BTC', 'ETH', 'SOL', 'LINK', 'PYTH'];
+const trendingSymbols = ['BTC', 'ETH', 'SOL', 'LINK', 'UNI'];
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -81,9 +81,9 @@ export function HeroSection() {
             className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8 max-w-2xl"
           >
             Insight is independent oracle transparency and risk infrastructure for DeFi. Verify,
-            compare, and stress-test prices across Chainlink, Pyth, RedStone, API3 and more — so
-            faulty feeds never take your protocol by surprise. Give your AI agents a pre-trade
-            oracle safety checkpoint before they execute a single on-chain trade.
+            compare, and stress-test prices across Chainlink, RedStone, API3 and more — so faulty
+            feeds never take your protocol by surprise. Give your AI agents a pre-trade oracle
+            safety checkpoint before they execute a single on-chain trade.
           </motion.p>
 
           <motion.div variants={itemVariants}>

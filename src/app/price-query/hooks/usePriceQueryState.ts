@@ -114,7 +114,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     if (!hasUrlParams) {
       const oracleMapping: Record<string, OracleProvider> = {
         chainlink: OracleProvider.CHAINLINK,
-        pyth: OracleProvider.PYTH,
         api3: OracleProvider.API3,
         redstone: OracleProvider.REDSTONE,
         dia: OracleProvider.DIA,

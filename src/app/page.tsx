@@ -9,11 +9,10 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
   description:
-    'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, Pyth, RedStone, API3 and more. Give AI agents a pre-trade oracle safety checkpoint via MCP.',
+    'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, RedStone, API3 and more. Give AI agents a pre-trade oracle safety checkpoint via MCP.',
   keywords: [
     'oracle',
     'chainlink',
-    'pyth',
     'price data',
     'blockchain',
     'DeFi',
@@ -24,18 +23,19 @@ export const metadata: Metadata = {
     'AI agents',
     'MCP',
     'pre-trade safety',
+    'uni',
   ],
   openGraph: {
     title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
     description:
-      'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, Pyth, RedStone, API3 and more.',
+      'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, RedStone, API3 and more.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
     description:
-      'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, Pyth, RedStone, API3 and more.',
+      'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, RedStone, API3 and more.',
   },
 };
 

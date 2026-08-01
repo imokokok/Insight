@@ -84,7 +84,7 @@ async function resolveActiveChainsForSymbol(
       for (const feed of feedsMap.values()) {
         if (extractBaseSymbol(feed.symbol).toUpperCase() !== baseSymbol) continue;
         if (feed.chain_id === 0) {
-          // Chain-agnostic feed (Pyth/Supra/DIA/RedStone): include all supported chains.
+          // Chain-agnostic feed (Supra/DIA/RedStone): include all supported chains.
           return supportedChains;
         }
         activeChainIds.add(feed.chain_id);

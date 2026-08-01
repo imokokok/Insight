@@ -122,8 +122,8 @@ export default function PrivacyPage() {
                 <p>The Platform integrates with the following third-party services:</p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>
-                    <strong>Oracle Providers:</strong> Chainlink, Pyth, API3, RedStone, DIA,
-                    WINkLink, Supra, TWAP, Reflector, Flare, Switchboard - to fetch price data
+                    <strong>Oracle Providers:</strong> Chainlink, API3, RedStone, DIA, WINkLink,
+                    Supra, TWAP, Reflector, Flare, Switchboard - to fetch price data
                   </li>
                   <li>
                     <strong>Supabase:</strong> For database storage, authentication, and real-time

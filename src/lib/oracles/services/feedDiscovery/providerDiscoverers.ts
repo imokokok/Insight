@@ -7,12 +7,7 @@ import { getAllSupportedSymbols } from '../../constants/supportedSymbols';
 import { SWITCHBOARD_SURGE_FEEDS_URL } from '../../constants/switchboardConstants';
 import { feedRegistryService } from '../feedRegistryService';
 
-import {
-  decodeFlareFeedId,
-  getChainlinkDiscoverySymbols,
-  inferCategory,
-  inferCategoryFromAssetType,
-} from './discoveryHelpers';
+import { decodeFlareFeedId, getChainlinkDiscoverySymbols, inferCategory } from './discoveryHelpers';
 
 import type { DiscoveryResult } from './discoveryTypes';
 
@@ -43,95 +38,6 @@ export async function discoverChainlinkFeeds(): Promise<DiscoveryResult> {
     const msg = error instanceof Error ? error.message : String(error);
     result.errors.push(msg);
     logger.error('Chainlink discovery failed', error instanceof Error ? error : new Error(msg));
-  }
-
-  return result;
-}
-
-// ─── Pyth ─────────────────────────────────────────────────────────
-
-export async function discoverPythFeeds(): Promise<DiscoveryResult> {
-  const result: DiscoveryResult = { provider: 'pyth', discovered: 0, feeds: [], errors: [] };
-
-  try {
-    const response = await fetch('https://benchmarks.pyth.network/v1/price_feeds', {
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(30000),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Pyth API returned ${response.status}`);
-    }
-
-    const json = await response.json();
-
-    // Handle both old format { data: [...] } and new flat array format
-    let priceFeeds: Array<Record<string, unknown>>;
-    if (Array.isArray(json)) {
-      priceFeeds = json;
-    } else if (json && Array.isArray((json as Record<string, unknown>).data)) {
-      priceFeeds = (json as Record<string, unknown>).data as Array<Record<string, unknown>>;
-    } else {
-      priceFeeds = [];
-    }
-
-    for (const feed of priceFeeds) {
-      const id = (feed.id as string) || '';
-      const attrs = (feed.attributes as Record<string, unknown>) || {};
-
-      // Support both new format (attributes) and legacy format (top-level fields)
-      const rawSymbol = (attrs.symbol as string) || (feed.symbol as string) || '';
-      const description = (attrs.description as string) || (feed.description as string) || '';
-      const assetType = (attrs.asset_type as string) || (feed.asset_type as string) || '';
-      const displaySymbol = (attrs.display_symbol as string) || '';
-      const base = (attrs.base as string) || '';
-
-      // Only include USD-denominated feeds
-      if (
-        !rawSymbol.includes('/USD') &&
-        !displaySymbol.includes('/USD') &&
-        !description.includes('USD')
-      )
-        continue;
-
-      // Normalize symbol to "XXX/USD" format (strip category prefix like "Crypto.")
-      let symbol: string;
-      if (displaySymbol && displaySymbol.includes('/USD')) {
-        symbol = displaySymbol;
-      } else if (rawSymbol) {
-        // Strip category prefix (e.g. "Crypto.BTC/USD" → "BTC/USD")
-        symbol = rawSymbol.replace(/^[A-Za-z]+\./, '');
-      } else if (base) {
-        symbol = `${base}/USD`;
-      } else {
-        symbol = description.replace(/\s*\/\s*USD.*$/, '').replace(/\s+/g, '');
-        if (symbol && !symbol.includes('/USD')) symbol = `${symbol}/USD`;
-      }
-
-      if (!symbol) continue;
-
-      const category = inferCategoryFromAssetType(assetType, symbol.replace('/USD', ''));
-
-      result.feeds.push({
-        provider: 'pyth',
-        symbol,
-        chain_id: 0,
-        address: id,
-        name: displaySymbol || rawSymbol || symbol,
-        decimals: 8,
-        category,
-        is_active: true,
-        source: 'pyth-api',
-        metadata: { feedId: id },
-      });
-    }
-
-    result.discovered = result.feeds.length;
-    logger.info(`Pyth: discovered ${result.discovered} feeds`);
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    result.errors.push(msg);
-    logger.error('Pyth discovery failed', error instanceof Error ? error : new Error(msg));
   }
 
   return result;

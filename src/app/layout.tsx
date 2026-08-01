@@ -29,7 +29,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
   description:
-    'Independent oracle transparency and risk infrastructure for DeFi. Cross-oracle price verification, deviation analytics, and liquidation risk signals across Chainlink, Pyth, RedStone, API3 and more.',
+    'Independent oracle transparency and risk infrastructure for DeFi. Cross-oracle price verification, deviation analytics, and liquidation risk signals across Chainlink, RedStone, API3 and more.',
   icons: {
     icon: '/logos/owl-logo-icon.svg',
   },

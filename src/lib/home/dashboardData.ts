@@ -17,7 +17,6 @@ export const DASHBOARD_ASSETS = ['BTC', 'ETH', 'USDT', 'SOL'] as const;
 
 const FALLBACK_MAIN_ORACLES: OracleProvider[] = [
   OracleProvider.CHAINLINK,
-  OracleProvider.PYTH,
   OracleProvider.REDSTONE,
   OracleProvider.API3,
   OracleProvider.DIA,

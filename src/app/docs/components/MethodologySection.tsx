@@ -93,7 +93,7 @@ const validationRules = [
 const collectionItems = [
   { label: 'Feed resolution', value: 'Database-first with 5-minute cache' },
   { label: 'On-chain data', value: 'Direct RPC calls to oracle contracts' },
-  { label: 'API data', value: 'Signed Pyth / RedStone / DIA / Supra endpoints' },
+  { label: 'API data', value: 'Signed RedStone / DIA / Supra endpoints' },
   { label: 'Fallback', value: 'Hard-coded symbol lists when DB is unreachable' },
 ];
 

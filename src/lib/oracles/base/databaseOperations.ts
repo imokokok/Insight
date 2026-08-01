@@ -20,11 +20,7 @@ const logger = createLogger('databaseOperations');
 
 // Providers whose enriched on-chain/API metadata should not be persisted
 // to the price database because the stored row cannot represent all fields.
-const PROVIDERS_SKIPPING_DB_SAVE = new Set([
-  OracleProvider.CHAINLINK,
-  OracleProvider.PYTH,
-  OracleProvider.API3,
-]);
+const PROVIDERS_SKIPPING_DB_SAVE = new Set([OracleProvider.CHAINLINK, OracleProvider.API3]);
 
 // Track consecutive fire-and-forget save failures so that a persistent
 // database connectivity problem is surfaced instead of being silently logged
@@ -120,7 +116,7 @@ function recordFeedHealthFailure(
     const chainId = getTargetChainId(chain, client.getDefaultChain());
     // Resolve actual feed chain_id (chain-agnostic providers store 0) and
     // the feed's actual DB symbol. The DB symbol must be used for the health
-    // update because providers like pyth store the quote-suffixed pair
+    // update because some providers store the quote-suffixed pair
     // ("BTC/USD") while callers pass the base symbol ("BTC"); matching on the
     // base symbol would silently no-op, leaving consecutive_failures stuck at
     // 0 so the feed can never auto-deactivate.

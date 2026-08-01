@@ -9,7 +9,7 @@ jest.mock('@/lib/config/colors', () => ({
     recharts: { primary: '#3B82F6' },
     oracle: {
       chainlink: '#2563EB',
-      pyth: '#7C3AED',
+      redstone: '#7C3AED',
     },
   },
 }));
@@ -25,11 +25,11 @@ jest.mock('@/lib/constants', () => ({
   },
   oracleColors: {
     chainlink: '#2563EB',
-    pyth: '#7C3AED',
+    redstone: '#7C3AED',
   },
   providerNames: {
     chainlink: 'Chainlink',
-    pyth: 'Pyth',
+    redstone: 'RedStone',
   },
 }));
 
@@ -51,7 +51,7 @@ jest.mock('@/lib/utils/format', () => ({
 jest.mock('../../constants', () => ({
   oracleNames: {
     chainlink: 'Chainlink',
-    pyth: 'Pyth',
+    redstone: 'RedStone',
   },
   calculateZScore: (price: number, avg: number, std: number) =>
     std > 0 ? (price - avg) / std : null,
@@ -82,7 +82,7 @@ const mockPriceData: PriceData[] = [
     confidence: 0.99,
   },
   {
-    provider: 'pyth' as OracleProvider,
+    provider: 'redstone' as OracleProvider,
     symbol: 'BTC',
     price: 50100,
     timestamp: Date.now() - 1000,
@@ -107,7 +107,7 @@ describe('SimplePriceTable', () => {
     render(<SimplePriceTable {...mockProps} />);
 
     expect(screen.getByText('Chainlink')).toBeInTheDocument();
-    expect(screen.getByText('Pyth')).toBeInTheDocument();
+    expect(screen.getByText('RedStone')).toBeInTheDocument();
   });
 
   it('should show oracle count in footer', () => {
@@ -142,7 +142,7 @@ describe('SimplePriceTable', () => {
     const { rerender } = render(<SimplePriceTable {...mockProps} statusFilter="all" />);
 
     expect(screen.getByText('Chainlink')).toBeInTheDocument();
-    expect(screen.getByText('Pyth')).toBeInTheDocument();
+    expect(screen.getByText('RedStone')).toBeInTheDocument();
 
     rerender(<SimplePriceTable {...mockProps} statusFilter="normal" />);
   });

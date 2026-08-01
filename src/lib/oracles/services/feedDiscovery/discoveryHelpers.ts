@@ -132,7 +132,6 @@ export function getChainlinkDiscoverySymbols(): string[] {
     'INJ',
     'TON',
     'STRK',
-    'PYTH',
     'JUP',
     'JTO',
     'WLD',
@@ -409,18 +408,6 @@ export function inferCategory(symbol: string): string {
   if (equity.includes(symbol)) return 'equity';
   if (stablecoin.includes(symbol)) return 'stablecoin';
   return 'crypto';
-}
-
-export function inferCategoryFromAssetType(assetType: string | undefined, symbol: string): string {
-  if (assetType) {
-    const lower = assetType.toLowerCase();
-    if (lower.includes('crypto')) return 'crypto';
-    if (lower.includes('forex') || lower.includes('fiat')) return 'forex';
-    if (lower.includes('commodity') || lower.includes('metal')) return 'commodity';
-    if (lower.includes('equity') || lower.includes('stock')) return 'equity';
-    if (lower.includes('etf')) return 'etf';
-  }
-  return inferCategory(symbol);
 }
 
 export function decodeFlareFeedId(feedId: string): { symbol: string; category: string } | null {

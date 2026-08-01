@@ -175,11 +175,11 @@ describe('OracleClientFactory', () => {
       it('should return mock client instance when available', () => {
         const mockClient = new MockOracleClient(['BTC', 'ETH', 'SOL']);
         const mockFactory = new MockOracleClientFactory({
-          pyth: mockClient,
+          redstone: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const result = factory.getClient('pyth');
+        const result = factory.getClient('redstone');
 
         expect(result.getSupportedSymbols()).toEqual(['BTC', 'ETH', 'SOL']);
       });
@@ -214,19 +214,19 @@ describe('OracleClientFactory', () => {
 
       it('should use mock factory for all providers after setting', () => {
         const mockChainlinkClient = new MockOracleClient(['CL1', 'CL2']);
-        const mockPythClient = new MockOracleClient(['PYTH1', 'PYTH2']);
+        const mockRedstoneClient = new MockOracleClient(['REDSTONE1', 'REDSTONE2']);
         const mockFactory = new MockOracleClientFactory({
           chainlink: mockChainlinkClient,
-          pyth: mockPythClient,
+          redstone: mockRedstoneClient,
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
 
         const chainlinkResult = factory.getClient('chainlink');
-        const pythResult = factory.getClient('pyth');
+        const redstoneResult = factory.getClient('redstone');
 
         expect(chainlinkResult.getSupportedSymbols()).toEqual(['CL1', 'CL2']);
-        expect(pythResult.getSupportedSymbols()).toEqual(['PYTH1', 'PYTH2']);
+        expect(redstoneResult.getSupportedSymbols()).toEqual(['REDSTONE1', 'REDSTONE2']);
       });
     });
 
@@ -392,7 +392,7 @@ describe('OracleClientFactory', () => {
         const startTime = Date.now();
         const promises = Array(50)
           .fill(null)
-          .map(() => Promise.resolve(factory.getClient('pyth')));
+          .map(() => Promise.resolve(factory.getClient('redstone')));
 
         await Promise.all(promises);
         const endTime = Date.now();
@@ -403,14 +403,7 @@ describe('OracleClientFactory', () => {
 
     describe('Concurrent requests for different clients', () => {
       it('should handle concurrent requests for different providers', async () => {
-        const providers: OracleProvider[] = [
-          'chainlink',
-          'pyth',
-          'api3',
-          'redstone',
-          'dia',
-          'winklink',
-        ];
+        const providers: OracleProvider[] = ['chainlink', 'api3', 'redstone', 'dia', 'winklink'];
         const promises = providers.map((provider) => Promise.resolve(factory.getClient(provider)));
 
         const results = await Promise.all(promises);
@@ -421,15 +414,15 @@ describe('OracleClientFactory', () => {
       });
 
       it('should create different instances for different providers concurrently', async () => {
-        const [chainlinkClient, pythClient, api3Client] = await Promise.all([
+        const [chainlinkClient, redstoneClient, api3Client] = await Promise.all([
           Promise.resolve(factory.getClient('chainlink')),
-          Promise.resolve(factory.getClient('pyth')),
+          Promise.resolve(factory.getClient('redstone')),
           Promise.resolve(factory.getClient('api3')),
         ]);
 
-        expect(chainlinkClient).not.toBe(pythClient);
+        expect(chainlinkClient).not.toBe(redstoneClient);
         expect(chainlinkClient).not.toBe(api3Client);
-        expect(pythClient).not.toBe(api3Client);
+        expect(redstoneClient).not.toBe(api3Client);
       });
     });
 
@@ -512,10 +505,10 @@ describe('OracleClientFactory', () => {
       });
 
       it('should return same instance after multiple operations', () => {
-        const client1 = factory.getClient('pyth');
-        factory.hasClient('pyth');
-        factory.getSupportedSymbols('pyth');
-        const client2 = factory.getClient('pyth');
+        const client1 = factory.getClient('redstone');
+        factory.hasClient('redstone');
+        factory.getSupportedSymbols('redstone');
+        const client2 = factory.getClient('redstone');
 
         expect(client1).toBe(client2);
       });
@@ -524,23 +517,16 @@ describe('OracleClientFactory', () => {
     describe('Different instances for different providers', () => {
       it('should return different instances for different providers', () => {
         const chainlinkClient = factory.getClient('chainlink');
-        const pythClient = factory.getClient('pyth');
+        const redstoneClient = factory.getClient('redstone');
         const api3Client = factory.getClient('api3');
 
-        expect(chainlinkClient).not.toBe(pythClient);
+        expect(chainlinkClient).not.toBe(redstoneClient);
         expect(chainlinkClient).not.toBe(api3Client);
-        expect(pythClient).not.toBe(api3Client);
+        expect(redstoneClient).not.toBe(api3Client);
       });
 
       it('should maintain separate instances for all providers', () => {
-        const providers: OracleProvider[] = [
-          'chainlink',
-          'pyth',
-          'api3',
-          'redstone',
-          'dia',
-          'winklink',
-        ];
+        const providers: OracleProvider[] = ['chainlink', 'api3', 'redstone', 'dia', 'winklink'];
         const clients = providers.map((p) => factory.getClient(p));
 
         for (let i = 0; i < clients.length; i++) {
@@ -562,17 +548,17 @@ describe('OracleClientFactory', () => {
 
       it('should clear all provider instances', () => {
         factory.getClient('chainlink');
-        factory.getClient('pyth');
+        factory.getClient('redstone');
         factory.getClient('api3');
 
         expect(factory.hasClient('chainlink')).toBe(true);
-        expect(factory.hasClient('pyth')).toBe(true);
+        expect(factory.hasClient('redstone')).toBe(true);
         expect(factory.hasClient('api3')).toBe(true);
 
         factory.clearInstances();
 
         expect(factory.hasClient('chainlink')).toBe(false);
-        expect(factory.hasClient('pyth')).toBe(false);
+        expect(factory.hasClient('redstone')).toBe(false);
         expect(factory.hasClient('api3')).toBe(false);
       });
 
@@ -627,7 +613,7 @@ describe('OracleClientFactory', () => {
         factory.configure({ useDatabase: true });
         factory.configure({ useDatabase: false, validateData: false });
 
-        expect(() => factory.getClient('pyth')).not.toThrow();
+        expect(() => factory.getClient('redstone')).not.toThrow();
       });
     });
 
@@ -644,14 +630,7 @@ describe('OracleClientFactory', () => {
         factory.clearInstances();
         factory.configure({ useDatabase: false, validateData: false });
 
-        const providers: OracleProvider[] = [
-          'chainlink',
-          'pyth',
-          'api3',
-          'redstone',
-          'dia',
-          'winklink',
-        ];
+        const providers: OracleProvider[] = ['chainlink', 'api3', 'redstone', 'dia', 'winklink'];
         providers.forEach((provider) => {
           const client = factory.getClient(provider);
           expect(client).toBeDefined();
@@ -688,7 +667,7 @@ describe('OracleClientFactory', () => {
 
       it('should maintain defaults when partial config is provided', () => {
         factory.configure({ validateData: true });
-        const client = factory.getClient('pyth');
+        const client = factory.getClient('redstone');
         expect(client).toBeDefined();
       });
     });
@@ -731,15 +710,15 @@ describe('OracleClientFactory', () => {
       it('should fall back to default after clear', () => {
         const mockClient = new MockOracleClient(['MOCK']);
         const mockFactory = new MockOracleClientFactory({
-          pyth: mockClient,
+          redstone: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const mockResult = factory.getClient('pyth');
+        const mockResult = factory.getClient('redstone');
         expect(mockResult.getSupportedSymbols()).toEqual(['MOCK']);
 
         factory.clearMockFactory();
-        const defaultResult = factory.getClient('pyth');
+        const defaultResult = factory.getClient('redstone');
         expect(defaultResult.getSupportedSymbols()).not.toEqual(['MOCK']);
       });
 
@@ -867,14 +846,7 @@ describe('OracleClientFactory', () => {
       });
 
       it('should return symbols for all providers', () => {
-        const providers: OracleProvider[] = [
-          'chainlink',
-          'pyth',
-          'api3',
-          'redstone',
-          'dia',
-          'winklink',
-        ];
+        const providers: OracleProvider[] = ['chainlink', 'api3', 'redstone', 'dia', 'winklink'];
 
         providers.forEach((provider) => {
           const symbols = factory.getSupportedSymbols(provider);
@@ -899,11 +871,11 @@ describe('OracleClientFactory', () => {
       it('should return false for unsupported symbol', () => {
         const mockClient = new MockOracleClient(['BTC', 'ETH']);
         const mockFactory = new MockOracleClientFactory({
-          pyth: mockClient,
+          redstone: mockClient,
         } as Record<OracleProvider, IOracleClient>);
 
         factory.setMockFactory(mockFactory);
-        const result = factory.isSymbolSupported('pyth', 'DOGE');
+        const result = factory.isSymbolSupported('redstone', 'DOGE');
 
         expect(result).toBe(false);
       });
@@ -938,7 +910,7 @@ describe('OracleClientFactory', () => {
       });
 
       it('should return empty array for empty symbol', () => {
-        const chains = factory.getSupportedChainsForSymbol('pyth', '');
+        const chains = factory.getSupportedChainsForSymbol('redstone', '');
         expect(chains).toEqual([]);
       });
 
@@ -1019,7 +991,6 @@ describe('OracleClientFactory', () => {
         const result = factory.getAllSupportedSymbols();
 
         expect(result).toHaveProperty('chainlink');
-        expect(result).toHaveProperty('pyth');
         expect(result).toHaveProperty('api3');
         expect(result).toHaveProperty('redstone');
         expect(result).toHaveProperty('dia');
@@ -1041,7 +1012,6 @@ describe('OracleClientFactory', () => {
       const clients = factory.getAllClients();
 
       expect(clients).toHaveProperty('chainlink');
-      expect(clients).toHaveProperty('pyth');
       expect(clients).toHaveProperty('api3');
       expect(clients).toHaveProperty('redstone');
       expect(clients).toHaveProperty('dia');
@@ -1060,7 +1030,6 @@ describe('OracleClientFactory', () => {
       const mockClient = new MockOracleClient(['ALL']);
       const mockFactory = new MockOracleClientFactory({
         chainlink: mockClient,
-        pyth: mockClient,
         api3: mockClient,
         redstone: mockClient,
         dia: mockClient,
@@ -1081,7 +1050,7 @@ describe('OracleClientFactory', () => {
     });
 
     it('should return false for non-existent client', () => {
-      expect(factory.hasClient('pyth')).toBe(false);
+      expect(factory.hasClient('redstone')).toBe(false);
     });
 
     it('should use mock factory when set', () => {
@@ -1177,7 +1146,7 @@ describe('OracleClientFactory', () => {
     it('should merge constructor config with defaults', () => {
       const customFactory = new OracleClientFactory({ useDatabase: false });
       customFactory.configure({ validateData: true });
-      const client = customFactory.getClient('pyth');
+      const client = customFactory.getClient('redstone');
       expect(client).toBeDefined();
     });
 

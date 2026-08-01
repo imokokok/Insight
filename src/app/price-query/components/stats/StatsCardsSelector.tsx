@@ -15,7 +15,6 @@ import { API3Stats } from './API3Stats';
 import { ChainlinkStats } from './ChainlinkStats';
 import { DIAStats } from './DIAStats';
 import { FlareStats } from './FlareStats';
-import { PythStats } from './PythStats';
 import { RedStoneStats } from './RedStoneStats';
 import { ReflectorStats } from './ReflectorStats';
 import { SupraStats } from './SupraStats';
@@ -62,19 +61,6 @@ export function StatsCardsSelector({
             version={priceData.version}
             startedAt={priceData.startedAt}
             source={priceData.source}
-          />
-        );
-
-      case OracleProviderEnum.PYTH:
-        if (!priceData) return null;
-        return (
-          <PythStats
-            priceId={priceData.priceId}
-            exponent={priceData.exponent}
-            conf={priceData.conf}
-            publishTime={priceData.publishTime}
-            confidenceInterval={priceData.confidenceInterval}
-            confidence={priceData.confidence}
           />
         );
 

@@ -5,7 +5,6 @@ import { Database, Globe } from 'lucide-react';
 
 const providers = [
   { name: 'Chainlink', type: 'On-chain', chains: 'EVM L1s & L2s' },
-  { name: 'Pyth', type: 'API / On-chain', chains: 'EVM, Solana, Sui, Aptos' },
   { name: 'API3', type: 'On-chain dAPIs', chains: 'Ethereum, Arbitrum, Base, Polygon, others' },
   { name: 'RedStone', type: 'API / On-chain', chains: 'EVM L1s & L2s' },
   { name: 'DIA', type: 'API / On-chain', chains: 'EVM L1s & L2s' },
@@ -18,7 +17,7 @@ const providers = [
 ];
 
 const highlights = [
-  { label: 'Oracle Providers', value: '11+' },
+  { label: 'Oracle Providers', value: '10+' },
   { label: 'Supported Chains', value: '40+' },
   { label: 'Data Type', value: 'On-chain & API' },
 ];

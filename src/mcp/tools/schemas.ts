@@ -10,7 +10,7 @@ const STABLECOIN_SYMBOLS = STABLECOINS.map((c) => c.symbol) as [
 ];
 
 export const OraclePriceInputSchema = z.object({
-  provider: SafeProviderSchema.describe('Oracle provider name, e.g. chainlink, pyth, api3'),
+  provider: SafeProviderSchema.describe('Oracle provider name, e.g. chainlink, redstone, api3'),
   symbol: SafeSymbolSchema.describe('Asset symbol, e.g. BTC, ETH, BTC/USD'),
   chain: SafeChainSchema.optional().describe('Optional blockchain, e.g. ethereum, arbitrum, base'),
   forceRefresh: z.boolean().optional().describe('Force refresh from upstream instead of cache'),
@@ -30,7 +30,7 @@ export const RiskSummaryInputSchema = z.object({
   providers: z
     .array(SafeProviderSchema)
     .min(2, 'At least 2 providers are required')
-    .describe('Oracle providers to analyze, e.g. ["chainlink", "pyth", "api3"]'),
+    .describe('Oracle providers to analyze, e.g. ["chainlink", "redstone", "api3"]'),
   period: z
     .number()
     .int()

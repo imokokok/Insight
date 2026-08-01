@@ -65,7 +65,7 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
           chainSet = new Set<number>();
           chainCountByProvider.set(feed.provider, chainSet);
         }
-        // chain_id === 0 means chain-agnostic (Pyth/Supra/DIA/RedStone);
+        // chain_id === 0 means chain-agnostic (Supra/DIA/RedStone);
         // count it as a single "chain" so the metric is meaningful.
         chainSet.add(feed.chain_id);
       }
@@ -141,7 +141,7 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
 
 export function matchesChainId(feed: OracleFeed, chainId?: number): boolean {
   if (chainId === undefined) return true;
-  // chain_id 0 means the feed is chain-agnostic (e.g. Pyth, Supra, API-offchain).
+  // chain_id 0 means the feed is chain-agnostic (e.g. Supra, API-offchain).
   return feed.chain_id === 0 || feed.chain_id === chainId;
 }
 

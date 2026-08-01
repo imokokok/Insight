@@ -56,9 +56,9 @@ const docs: DocCard[] = [
     icon: <Database className="w-6 h-6" />,
     title: 'Data Sources',
     description:
-      '11 oracle providers including Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare, and Switchboard.',
+      '10 oracle providers including Chainlink, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare, and Switchboard.',
     href: '#data-sources',
-    tags: ['11 Oracles', '40+ Chains', 'On-chain Data'],
+    tags: ['10 Oracles', '40+ Chains', 'On-chain Data'],
     accent: 'amber',
     anchor: true,
   },

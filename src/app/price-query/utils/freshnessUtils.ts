@@ -47,7 +47,6 @@ const HEALTH_WEIGHTS = {
 };
 
 export const ORACLE_UPDATE_FREQUENCIES: Record<OracleProvider, number> = {
-  pyth: 1,
   redstone: 1,
   switchboard: 1,
   supra: 60,
@@ -60,10 +59,7 @@ export const ORACLE_UPDATE_FREQUENCIES: Record<OracleProvider, number> = {
   dia: 3600,
 };
 
-export const REALTIME_ORACLES: OracleProvider[] = [
-  OracleProviderEnum.PYTH,
-  OracleProviderEnum.REDSTONE,
-];
+export const REALTIME_ORACLES: OracleProvider[] = [OracleProviderEnum.REDSTONE];
 
 export function getDynamicThresholds(
   expectedUpdateFreq: number,

@@ -44,7 +44,7 @@ export interface PriceData extends PriceDataBase {
   answeredInRound?: string;
   version?: string;
   startedAt?: number;
-  // Pyth metadata
+  // Price feed metadata
   priceId?: string;
   exponent?: number;
   conf?: number;

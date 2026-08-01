@@ -7,7 +7,6 @@ import { type OracleProvider } from '@/types/oracle';
 
 const ORACLE_LOGO_MAP: Record<string, string> = {
   chainlink: '/logos/oracles/chainlink.svg',
-  pyth: '/logos/oracles/pyth.svg',
   api3: '/logos/oracles/api3.svg',
   redstone: '/logos/oracles/redstone.svg',
   dia: '/logos/oracles/dia.svg',

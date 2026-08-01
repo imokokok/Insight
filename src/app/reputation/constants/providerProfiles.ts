@@ -55,23 +55,6 @@ export const PROVIDER_PROFILES: Record<OracleProvider, ProviderProfile> = {
       { icon: Database, label: 'Data Sources', value: '350+' },
     ],
   },
-  pyth: {
-    tagline: 'High-Frequency Data Oracle',
-    description:
-      'Pull-based oracle delivering sub-second price updates with 400+ price feeds spanning crypto, forex, commodities, and equities via the Hermes API.',
-    highlights: [
-      'Sub-second update frequency',
-      '400+ price feeds across asset classes',
-      'Pull-based on-demand model',
-      'First-party data from exchanges',
-    ],
-    features: [
-      { icon: Globe, label: 'Chains', value: '12+' },
-      { icon: Layers, label: 'Protocols', value: '350+' },
-      { icon: Shield, label: 'TVS', value: '$15B+' },
-      { icon: Zap, label: 'Update', value: '<1s' },
-    ],
-  },
   api3: {
     tagline: 'First-Party Oracle',
     description:

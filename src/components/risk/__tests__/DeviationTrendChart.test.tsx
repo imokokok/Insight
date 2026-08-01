@@ -7,14 +7,14 @@ const mockResponse = {
   data: {
     symbol: 'USDC',
     dateRange: { from: '2026-07-20', to: '2026-07-27' },
-    providers: [{ provider: 'chainlink' }, { provider: 'pyth' }],
+    providers: [{ provider: 'chainlink' }, { provider: 'redstone' }],
     timeline: [
       {
         timestamp: '2026-07-20T00:00:00.000Z',
         consensusPrice: 1.0,
         providers: {
           chainlink: { price: 1.0001, deviationPct: 0.01 },
-          pyth: { price: 0.9999, deviationPct: -0.01 },
+          redstone: { price: 0.9999, deviationPct: -0.01 },
         },
       },
       {
@@ -22,7 +22,7 @@ const mockResponse = {
         consensusPrice: 1.0,
         providers: {
           chainlink: { price: 1.0002, deviationPct: 0.02 },
-          pyth: { price: 0.9998, deviationPct: -0.02 },
+          redstone: { price: 0.9998, deviationPct: -0.02 },
         },
       },
     ],

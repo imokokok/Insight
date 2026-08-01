@@ -4,7 +4,6 @@ import { createLogger } from '@/lib/utils/logger';
 
 import { DIA_ASSET_MAPPING, type DIAAssetConfig } from '../constants/diaConstants';
 import { FLARE_SYMBOL_TO_FEED_ID } from '../constants/flareConstants';
-import { PYTH_PRICE_FEED_IDS } from '../constants/pythConstants';
 import { REFLECTOR_ASSET_CONTRACT_MAP } from '../constants/reflectorConstants';
 import { getAssetClass, redstoneSymbols } from '../constants/supportedSymbols';
 import { SUPRA_PAIR_INDEX_MAP } from '../constants/supraConstants';
@@ -160,40 +159,6 @@ class FeedSyncService {
     return result;
   }
 
-  // ─── Pyth ─────────────────────────────────────────────────────────
-
-  async seedPythFeedsFromHardcoded(): Promise<SyncResult> {
-    const result: SyncResult = {
-      provider: 'pyth',
-      discovered: 0,
-      upserted: 0,
-      deactivated: 0,
-      errors: 0,
-    };
-    const feeds: OracleFeedInsert[] = [];
-
-    for (const [symbolPair, feedId] of Object.entries(PYTH_PRICE_FEED_IDS)) {
-      const baseSymbol = symbolPair.replace('/USD', '');
-      const category = this.inferCategory(baseSymbol);
-      feeds.push({
-        provider: 'pyth',
-        symbol: symbolPair,
-        chain_id: 0,
-        address: feedId,
-        name: symbolPair,
-        decimals: 8,
-        category,
-        is_active: true,
-        source: 'hardcoded',
-        metadata: { feedId },
-      });
-      result.discovered++;
-    }
-
-    result.upserted = await upsertFeeds(feeds);
-    return result;
-  }
-
   // ─── Supra ────────────────────────────────────────────────────────
 
   async seedSupraFeedsFromHardcoded(): Promise<SyncResult> {
@@ -323,7 +288,6 @@ class FeedSyncService {
       OP: 'OP/USD',
       UNI: 'UNI/USD',
       AAVE: 'AAVE/USD',
-      PYTH: 'PYTH/USD',
       DOGE: 'DOGE/USD',
       XRP: 'XRP/USD',
       ADA: 'ADA/USD',
@@ -572,7 +536,7 @@ class FeedSyncService {
 
     // Switchboard Surge feeds are chain-agnostic (served via Crossbar from the
     // Solana oracle network), so every feed is stored with chain_id=0 — the
-    // same convention used by Pyth/Supra/DIA/RedStone.
+    // same convention used by Supra/DIA/RedStone.
     for (const [symbol, feedHash] of Object.entries(SWITCHBOARD_FEED_IDS)) {
       feeds.push({
         provider: 'switchboard',
@@ -600,7 +564,6 @@ class FeedSyncService {
 
     const seeders: Record<string, () => Promise<SyncResult>> = {
       chainlink: () => this.seedChainlinkFeedsFromHardcoded(),
-      pyth: () => this.seedPythFeedsFromHardcoded(),
       supra: () => this.seedSupraFeedsFromHardcoded(),
       dia: () => this.seedDIAFeedsFromHardcoded(),
       redstone: () => this.seedRedStoneFeedsFromHardcoded(),

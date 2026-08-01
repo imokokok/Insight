@@ -557,7 +557,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
         </div>
         <p className="text-xs text-slate-500 leading-relaxed">
           Each oracle has a unique expected update frequency. Freshness is calculated as a ratio of
-          actual age to expected update interval. Real-time oracles (Pyth, RedStone) use stricter
+          actual age to expected update interval. Real-time oracles (RedStone) use stricter
           thresholds. Health score combines freshness (40%), reliability (30%), price consistency
           (20%), and confidence (10%).
         </p>

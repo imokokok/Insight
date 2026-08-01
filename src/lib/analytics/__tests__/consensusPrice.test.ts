@@ -19,7 +19,7 @@ function makeDualInputs(
   priceA: number,
   priceB: number,
   providerA = 'chainlink',
-  providerB = 'pyth',
+  providerB = 'redstone',
   confA = 0.9,
   confB = 0.9
 ): ConsensusPriceInput[] {
@@ -36,7 +36,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
 
   describe('detectOutliers - two sources within threshold', () => {
     it('should keep both sources when deviation is within stablecoin threshold', () => {
-      const inputs = makeDualInputs(1.0001, 0.9999, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(1.0001, 0.9999, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median', 'USDC');
 
       expect(result.participantCount).toBe(2);
@@ -45,7 +45,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     });
 
     it('should keep both sources when deviation is within major crypto threshold', () => {
-      const inputs = makeDualInputs(50000, 50500, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(50000, 50500, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
       expect(result.participantCount).toBe(2);
@@ -53,7 +53,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     });
 
     it('should keep both sources when deviation is within alt threshold', () => {
-      const inputs = makeDualInputs(100, 103, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(100, 103, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median', 'LINK');
 
       expect(result.participantCount).toBe(2);
@@ -61,7 +61,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     });
 
     it('should keep both sources when deviation is within micro cap threshold', () => {
-      const inputs = makeDualInputs(0.00001, 0.000012, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(0.00001, 0.000012, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median', 'SHIB');
 
       expect(result.participantCount).toBe(2);
@@ -71,7 +71,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
 
   describe('detectOutliers - two sources exceeding threshold', () => {
     it('should detect anomaly when stablecoin deviation exceeds 0.5%', () => {
-      const inputs = makeDualInputs(1.0, 1.01, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(1.0, 1.01, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median', 'USDC');
 
       expect(result.excludedCount).toBeGreaterThanOrEqual(0);
@@ -79,14 +79,14 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     });
 
     it('should detect anomaly when BTC deviation exceeds 5%', () => {
-      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
       expect(result.confidenceLevel).toBe('low');
     });
 
     it('should detect anomaly when alt deviation exceeds 15%', () => {
-      const inputs = makeDualInputs(100, 120, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(100, 120, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median', 'LINK');
 
       expect(['low', 'very_low']).toContain(result.confidenceLevel);
@@ -95,10 +95,10 @@ describe('consensusPrice - dual-source anomaly detection', () => {
 
   describe('confidence-based resolution for dual sources', () => {
     it('should exclude lower-confidence source when deviation exceeds threshold', () => {
-      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'pyth', 0.95, 0.3);
+      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'redstone', 0.95, 0.3);
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
-      expect(result.excludedProviders).toContain('pyth');
+      expect(result.excludedProviders).toContain('redstone');
       expect(result.participantCount).toBe(1);
     });
 
@@ -111,7 +111,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
           confidenceInterval: { bid: 49990, ask: 50010, widthPercentage: 0.04 },
         }),
         makeInput({
-          provider: 'pyth',
+          provider: 'redstone',
           price: 55000,
           confidence: 0.5,
           confidenceInterval: { bid: 54000, ask: 56000, widthPercentage: 3.6 },
@@ -119,11 +119,11 @@ describe('consensusPrice - dual-source anomaly detection', () => {
       ];
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
-      expect(result.excludedProviders).toContain('pyth');
+      expect(result.excludedProviders).toContain('redstone');
     });
 
     it('should keep both when confidence scores are similar', () => {
-      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'pyth', 0.9, 0.88);
+      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'redstone', 0.9, 0.88);
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
       expect(result.participantCount).toBe(2);
@@ -146,10 +146,10 @@ describe('consensusPrice - dual-source anomaly detection', () => {
         });
       }
 
-      const inputs = makeDualInputs(50050, 60000, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(50050, 60000, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
-      expect(result.excludedProviders).toContain('pyth');
+      expect(result.excludedProviders).toContain('redstone');
       expect(result.price).toBeCloseTo(50050, -1);
     });
 
@@ -167,17 +167,17 @@ describe('consensusPrice - dual-source anomaly detection', () => {
         });
       }
 
-      const inputs = makeDualInputs(55000, 45000, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(55000, 45000, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
       expect(result.participantCount).toBe(2);
     });
 
     it('should fall back to confidence when history is insufficient', () => {
-      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'pyth', 0.95, 0.3);
+      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'redstone', 0.95, 0.3);
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
-      expect(result.excludedProviders).toContain('pyth');
+      expect(result.excludedProviders).toContain('redstone');
     });
   });
 
@@ -234,7 +234,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
 
   describe('confidence level downgrade for dual sources', () => {
     it('should cap confidence at low or very_low when dual sources have outliers excluded', () => {
-      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'pyth', 0.95, 0.3);
+      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'redstone', 0.95, 0.3);
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
       if (result.excludedCount > 0) {
@@ -244,7 +244,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     });
 
     it('should cap confidence at medium when dual sources agree', () => {
-      const inputs = makeDualInputs(50000, 50100, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(50000, 50100, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
       expect(result.confidence).toBeLessThanOrEqual(0.59);
@@ -254,7 +254,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     it('should not cap confidence for 3+ sources', () => {
       const inputs = [
         makeInput({ provider: 'chainlink', price: 50000, confidence: 0.95 }),
-        makeInput({ provider: 'pyth', price: 50100, confidence: 0.95 }),
+        makeInput({ provider: 'switchboard', price: 50100, confidence: 0.95 }),
         makeInput({ provider: 'redstone', price: 49900, confidence: 0.95 }),
         makeInput({ provider: 'api3', price: 50050, confidence: 0.95 }),
         makeInput({ provider: 'dia', price: 50020, confidence: 0.95 }),
@@ -267,14 +267,14 @@ describe('consensusPrice - dual-source anomaly detection', () => {
 
   describe('iqrFilteredMethod with dual sources', () => {
     it('should return average when dual sources agree within threshold', () => {
-      const inputs = makeDualInputs(50000, 50100, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(50000, 50100, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'iqr_filtered', 'BTC');
 
       expect(result.price).toBeCloseTo(50050, -1);
     });
 
     it('should prefer higher-confidence source when dual sources diverge', () => {
-      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'pyth', 0.95, 0.3);
+      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'redstone', 0.95, 0.3);
       const result = calculateConsensusPrice(inputs, 'iqr_filtered', 'BTC');
 
       expect(result.price).toBe(50000);
@@ -283,14 +283,14 @@ describe('consensusPrice - dual-source anomaly detection', () => {
 
   describe('stablecoin-specific strict thresholds', () => {
     it('should flag 0.6% deviation for stablecoins', () => {
-      const inputs = makeDualInputs(1.0, 1.006, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(1.0, 1.006, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'iqr_filtered', 'USDT');
 
       expect(result.confidenceLevel).toBe('low');
     });
 
     it('should accept 0.3% deviation for stablecoins', () => {
-      const inputs = makeDualInputs(1.0, 1.003, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(1.0, 1.003, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'iqr_filtered', 'USDT');
 
       expect(result.participantCount).toBe(2);
@@ -302,7 +302,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     it('should use Z-score detection for 3+ sources', () => {
       const inputs = [
         makeInput({ provider: 'chainlink', price: 50000, confidence: 0.95 }),
-        makeInput({ provider: 'pyth', price: 50100, confidence: 0.95 }),
+        makeInput({ provider: 'switchboard', price: 50100, confidence: 0.95 }),
         makeInput({ provider: 'redstone', price: 49900, confidence: 0.95 }),
         makeInput({ provider: 'api3', price: 50050, confidence: 0.95 }),
         makeInput({ provider: 'dia', price: 50020, confidence: 0.95 }),
@@ -321,7 +321,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     it('should not cap confidence for 3+ sources', () => {
       const inputs = [
         makeInput({ provider: 'chainlink', price: 50000, confidence: 0.95 }),
-        makeInput({ provider: 'pyth', price: 50100, confidence: 0.95 }),
+        makeInput({ provider: 'switchboard', price: 50100, confidence: 0.95 }),
         makeInput({ provider: 'redstone', price: 49900, confidence: 0.95 }),
       ];
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
@@ -341,7 +341,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     it('should handle inputs with zero prices', () => {
       const inputs = [
         makeInput({ provider: 'chainlink', price: 0 }),
-        makeInput({ provider: 'pyth', price: 50000 }),
+        makeInput({ provider: 'redstone', price: 50000 }),
       ];
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
@@ -351,7 +351,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     it('should handle inputs with Infinity prices', () => {
       const inputs = [
         makeInput({ provider: 'chainlink', price: Infinity }),
-        makeInput({ provider: 'pyth', price: 50000 }),
+        makeInput({ provider: 'redstone', price: 50000 }),
       ];
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
@@ -359,7 +359,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     });
 
     it('should work without symbol context', () => {
-      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'pyth', 0.9, 0.9);
+      const inputs = makeDualInputs(50000, 55000, 'chainlink', 'redstone', 0.9, 0.9);
       const result = calculateConsensusPrice(inputs, 'median');
 
       expect(result).toBeDefined();

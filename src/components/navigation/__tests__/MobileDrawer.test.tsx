@@ -6,7 +6,7 @@ import { type NavStructure, type NavGroup } from '../types';
 jest.mock('../config', () => ({
   oracleColors: {
     chainlink: '#375BD2',
-    pyth: '#EC1C79',
+    redstone: '#FB5607',
   },
 }));
 
@@ -27,9 +27,9 @@ const mockNavStructure: NavStructure = [
         icon: () => <svg data-testid="chainlink-icon" />,
       },
       {
-        label: 'Pyth',
-        href: '/pyth',
-        icon: () => <svg data-testid="pyth-icon" />,
+        label: 'RedStone',
+        href: '/redstone',
+        icon: () => <svg data-testid="redstone-icon" />,
       },
     ],
   } as NavGroup,
@@ -146,7 +146,7 @@ describe('MobileDrawer', () => {
     fireEvent.click(groupButton);
 
     expect(screen.getByText('Chainlink')).toBeInTheDocument();
-    expect(screen.getByText('Pyth')).toBeInTheDocument();
+    expect(screen.getByText('RedStone')).toBeInTheDocument();
   });
 
   it('should collapse group when clicked again', () => {

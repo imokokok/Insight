@@ -58,7 +58,6 @@ const ORACLE_RETRY_CONFIG: Partial<EnhancedRetryConfig> = {
 
 const ORACLE_TIMEOUT_CONFIG: Record<string, number> = {
   chainlink: 10_000,
-  pyth: 30_000,
   api3: 20_000,
   dia: 25_000,
   winklink: 20_000,
@@ -201,7 +200,7 @@ function createAbortControllerWithTimeout(
       if (!pending.controller.signal.aborted) {
         // Abort the underlying fetch if it is still in-flight. This happens
         // when withRetry's withTimeout (15s) fires before the per-provider
-        // timeout (e.g. pyth 30s): the retry exhausts, .finally runs this
+        // timeout (e.g. 30s): the retry exhausts, .finally runs this
         // cleanup, and without an explicit abort the fetch would hang until
         // the server closes the connection. If the fetch already completed,
         // abort() is a no-op.

@@ -62,7 +62,6 @@ export const PROVIDER_TYPE_CONFIG: Record<
   [OracleProvider.WINKLINK]: { type: 'onchain', latencyBaseline: 1200 },
   [OracleProvider.REFLECTOR]: { type: 'onchain', latencyBaseline: 1200 },
   [OracleProvider.DIA]: { type: 'api', latencyBaseline: 500 },
-  [OracleProvider.PYTH]: { type: 'api', latencyBaseline: 400 },
   [OracleProvider.REDSTONE]: { type: 'api', latencyBaseline: 350 },
   [OracleProvider.SUPRA]: { type: 'api', latencyBaseline: 500 },
   [OracleProvider.SWITCHBOARD]: { type: 'api', latencyBaseline: 450 },

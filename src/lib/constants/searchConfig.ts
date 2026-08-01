@@ -303,15 +303,6 @@ const searchableItems: SearchableItem[] = [
     path: '/reputation/chainlink',
   },
   {
-    id: 'oracle-pyth',
-    type: 'oracle',
-    name: 'Pyth Network',
-    symbol: 'PYTH',
-    aliases: ['pyth', 'pyth network'],
-    category: 'oracle',
-    path: '/reputation/pyth',
-  },
-  {
     id: 'oracle-api3',
     type: 'oracle',
     name: 'API3',

@@ -36,7 +36,7 @@ export function HeroSearchForm() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search BTC, ETH, LINK, PYTH, or an oracle provider..."
+            placeholder="Search BTC, ETH, LINK, UNI, or an oracle provider..."
             className="flex-1 px-4 py-4 text-base text-white placeholder-slate-500 bg-transparent border-0 outline-none min-w-0"
           />
           <button

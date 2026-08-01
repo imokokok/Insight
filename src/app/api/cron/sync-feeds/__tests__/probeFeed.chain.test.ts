@@ -128,11 +128,11 @@ describe('probeFeed — chain resolution (bug fix)', () => {
   });
 
   it('probes chain-agnostic feed (chain_id=0) with undefined via fetchPriceWithDatabase (unchanged)', async () => {
-    mockDiscovery(OracleProvider.PYTH, [makeFeed('pyth', 'Crypto.ETH/USD', 0)]);
+    mockDiscovery(OracleProvider.REDSTONE, [makeFeed('redstone', 'ETH', 0)]);
 
-    await GET(new Request('http://localhost/api/cron/sync-feeds?mode=discover&provider=pyth'));
+    await GET(new Request('http://localhost/api/cron/sync-feeds?mode=discover&provider=redstone'));
 
-    expect(mockedFetchPrice).toHaveBeenCalledWith('pyth', 'Crypto.ETH/USD', undefined, false, true);
+    expect(mockedFetchPrice).toHaveBeenCalledWith('redstone', 'ETH', undefined, false, true);
   });
 
   it('verifies all multi-chain API3 feeds that previously would have been dropped', async () => {

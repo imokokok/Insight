@@ -187,7 +187,7 @@ describe('pre_trade_safety_check MCP tool', () => {
 
     await preTradeSafetyCheckTool.handler({
       ...baseArgs,
-      targetProviders: ['chainlink', 'pyth'],
+      targetProviders: ['chainlink', 'redstone'],
     });
 
     expect(mockedCheck).toHaveBeenCalledWith({
@@ -195,7 +195,7 @@ describe('pre_trade_safety_check MCP tool', () => {
       chainId: 1,
       action: 'swap',
       tradeAmountUsd: 50000,
-      targetProviders: ['chainlink', 'pyth'],
+      targetProviders: ['chainlink', 'redstone'],
     });
   });
 

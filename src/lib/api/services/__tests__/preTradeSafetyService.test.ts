@@ -175,7 +175,7 @@ describe('preTradeSafetyCheck — verdict engine', () => {
   it('returns PASS when all oracles agree, data is fresh, and no depeg', async () => {
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 0.05 }),
-      makeProvider({ provider: 'pyth' as OracleProvider, price: 1860.5, deviationPct: 0.03 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860.5, deviationPct: 0.03 }),
       makeProvider({ provider: 'api3' as OracleProvider, price: 1859.8, deviationPct: 0.02 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
@@ -215,7 +215,7 @@ describe('preTradeSafetyCheck — verdict engine', () => {
   it('returns CAUTION when max provider deviation is between 1.0% and 3.0%', async () => {
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 1.5 }),
-      makeProvider({ provider: 'pyth' as OracleProvider, price: 1860, deviationPct: 0.1 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860, deviationPct: 0.1 }),
       makeProvider({ provider: 'api3' as OracleProvider, price: 1860, deviationPct: 0.1 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
@@ -231,7 +231,7 @@ describe('preTradeSafetyCheck — verdict engine', () => {
   it('returns DANGER when max provider deviation is between 3.0% and 8.0%', async () => {
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, deviationPct: 4.2 }),
-      makeProvider({ provider: 'pyth' as OracleProvider, deviationPct: 0.1 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, deviationPct: 0.1 }),
       makeProvider({ provider: 'api3' as OracleProvider, deviationPct: 0.1 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
@@ -244,7 +244,7 @@ describe('preTradeSafetyCheck — verdict engine', () => {
   it('returns BLOCK when max provider deviation >= 8.0%', async () => {
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, deviationPct: 9.5 }),
-      makeProvider({ provider: 'pyth' as OracleProvider, deviationPct: 0.1 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, deviationPct: 0.1 }),
       makeProvider({ provider: 'api3' as OracleProvider, deviationPct: 0.1 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
@@ -259,7 +259,7 @@ describe('preTradeSafetyCheck — staleness rule', () => {
   it('returns CAUTION when max data age is between 60s and 180s', async () => {
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, dataAgeSeconds: 90 }),
-      makeProvider({ provider: 'pyth' as OracleProvider, dataAgeSeconds: 10 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, dataAgeSeconds: 10 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
 
@@ -273,7 +273,7 @@ describe('preTradeSafetyCheck — staleness rule', () => {
   it('returns BLOCK when max data age >= 600s', async () => {
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, dataAgeSeconds: 650 }),
-      makeProvider({ provider: 'pyth' as OracleProvider, dataAgeSeconds: 5 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, dataAgeSeconds: 5 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
 
@@ -288,7 +288,7 @@ describe('preTradeSafetyCheck — agreement & depeg rules', () => {
   it('returns BLOCK when cross-provider agreement <= 0.7', async () => {
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider }),
-      makeProvider({ provider: 'pyth' as OracleProvider }),
+      makeProvider({ provider: 'redstone' as OracleProvider }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers, { agreement: 0.65 }));
 
@@ -366,7 +366,11 @@ describe('preTradeSafetyCheck — worst verdict aggregation', () => {
         deviationPct: 1.5,
         dataAgeSeconds: 650,
       }),
-      makeProvider({ provider: 'pyth' as OracleProvider, deviationPct: 0.1, dataAgeSeconds: 5 }),
+      makeProvider({
+        provider: 'redstone' as OracleProvider,
+        deviationPct: 0.1,
+        dataAgeSeconds: 5,
+      }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
 
@@ -381,10 +385,10 @@ describe('preTradeSafetyCheck — worst verdict aggregation', () => {
 
 describe('preTradeSafetyCheck — targetProviders filter', () => {
   it('only considers targetProviders when computing deviation & spread', async () => {
-    // pyth deviates 5% but is excluded via targetProviders -> should NOT trigger.
+    // redstone deviates 5% but is excluded via targetProviders -> should NOT trigger.
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 0.1 }),
-      makeProvider({ provider: 'pyth' as OracleProvider, price: 1860, deviationPct: 5.0 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860, deviationPct: 5.0 }),
       makeProvider({ provider: 'api3' as OracleProvider, price: 1860, deviationPct: 0.1 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
@@ -511,7 +515,7 @@ describe('preTradeSafetyCheck — protocol safety context', () => {
     mockedGetProtocolByIdWithDynamicData.mockResolvedValue(makeMockProtocol());
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 2.9 }),
-      makeProvider({ provider: 'pyth' as OracleProvider, price: 1860, deviationPct: 0.1 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860, deviationPct: 0.1 }),
       makeProvider({ provider: 'api3' as OracleProvider, price: 1860, deviationPct: 0.1 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
@@ -534,7 +538,7 @@ describe('preTradeSafetyCheck — protocol safety context', () => {
     mockedGetProtocolByIdWithDynamicData.mockResolvedValue(makeMockProtocol());
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 2.9 }),
-      makeProvider({ provider: 'pyth' as OracleProvider, price: 1860, deviationPct: 0.1 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860, deviationPct: 0.1 }),
       makeProvider({ provider: 'api3' as OracleProvider, price: 1860, deviationPct: 0.1 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));

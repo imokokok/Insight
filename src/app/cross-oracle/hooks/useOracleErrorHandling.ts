@@ -39,13 +39,6 @@ const PROVIDER_ERROR_CLASSIFICATIONS: Record<
     PRICE_DEVIATION: { errorType: 'data_format', retryable: false },
     INVALID_ANSWER: { errorType: 'data_format', retryable: false },
   },
-  pyth: {
-    HERMES_CONNECTION_ERROR: { errorType: 'network', retryable: true },
-    STALE_PRICE: { errorType: 'server_error', retryable: true },
-    PRICE_FEED_NOT_FOUND: { errorType: 'data_format', retryable: false },
-    INVALID_PRICE: { errorType: 'data_format', retryable: false },
-    CONFIDENCE_INTERVAL_TOO_LARGE: { errorType: 'data_format', retryable: false },
-  },
   api3: {
     AIRNODE_ERROR: { errorType: 'server_error' },
     BEACON_OFFLINE: { errorType: 'server_error' },

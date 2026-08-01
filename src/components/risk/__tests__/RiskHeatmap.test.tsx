@@ -11,7 +11,7 @@ const rows = [
 
 const cols = [
   { id: 'chainlink:ethereum', label: 'chainlink @ ethereum' },
-  { id: 'pyth:solana', label: 'pyth @ solana' },
+  { id: 'redstone:solana', label: 'redstone @ solana' },
 ];
 
 const cells = [
@@ -25,9 +25,9 @@ const cells = [
   },
   {
     rowId: 'USDC',
-    colId: 'pyth:solana',
+    colId: 'redstone:solana',
     value: 1.2,
-    label: 'pyth @ solana: $1.0120',
+    label: 'redstone @ solana: $1.0120',
     riskLevel: 'critical' as const,
     verificationType: 'api' as const,
   },

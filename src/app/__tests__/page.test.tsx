@@ -21,7 +21,6 @@ const mockInitialData: ServerDashboardData = {
   hasError: false,
   mainOracles: [
     OracleProvider.CHAINLINK,
-    OracleProvider.PYTH,
     OracleProvider.REDSTONE,
     OracleProvider.API3,
     OracleProvider.DIA,
@@ -62,7 +61,7 @@ describe('HomePage', () => {
       renderDashboard();
 
       expect(
-        screen.getByPlaceholderText('Search BTC, ETH, LINK, PYTH, or an oracle provider...')
+        screen.getByPlaceholderText('Search BTC, ETH, LINK, UNI, or an oracle provider...')
       ).toBeInTheDocument();
     });
 
@@ -94,7 +93,7 @@ describe('HomePage', () => {
       expect(metadata.title).toBe('Insight — Oracle Transparency & Risk Infrastructure for DeFi');
       expect(metadata.description).toContain('Verify, compare, and stress-test');
       expect(metadata.keywords).toEqual(
-        expect.arrayContaining(['oracle', 'chainlink', 'pyth', 'price data'])
+        expect.arrayContaining(['oracle', 'chainlink', 'uni', 'price data'])
       );
       expect(metadata.openGraph?.title).toBe(
         'Insight — Oracle Transparency & Risk Infrastructure for DeFi'

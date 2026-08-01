@@ -5,7 +5,6 @@ import {
   discoverChainlinkFeeds,
   discoverDIAFeeds,
   discoverFlareFeeds,
-  discoverPythFeeds,
   discoverRedStoneFeeds,
   discoverSupraFeeds,
   discoverSwitchboardFeeds,
@@ -19,10 +18,6 @@ const logger = createLogger('FeedDiscoveryService');
 class FeedDiscoveryService {
   async discoverChainlinkFeeds(): Promise<DiscoveryResult> {
     return discoverChainlinkFeeds();
-  }
-
-  async discoverPythFeeds(): Promise<DiscoveryResult> {
-    return discoverPythFeeds();
   }
 
   async discoverSupraFeeds(): Promise<DiscoveryResult> {
@@ -58,7 +53,6 @@ class FeedDiscoveryService {
 
     const discoverers: Record<string, () => Promise<DiscoveryResult>> = {
       chainlink: () => discoverChainlinkFeeds(),
-      pyth: () => discoverPythFeeds(),
       supra: () => discoverSupraFeeds(),
       dia: () => discoverDIAFeeds(),
       redstone: () => discoverRedStoneFeeds(),

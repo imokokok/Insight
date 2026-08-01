@@ -115,7 +115,6 @@ const securityItems = [
 
 const providers = [
   'Chainlink',
-  'Pyth',
   'API3',
   'RedStone',
   'DIA',

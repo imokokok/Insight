@@ -1,5 +1,4 @@
 export { ChainlinkClient } from './clients/chainlink';
-export { PythClient } from './clients/PythClient';
 export { API3Client } from './clients/api3';
 export { RedStoneClient } from './clients/redstone';
 export { DIAClient } from './clients/dia';

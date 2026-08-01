@@ -10,7 +10,6 @@ export const metadata: Metadata = {
     'oracle API',
     'DeFi API',
     'Chainlink API',
-    'Pyth API',
     'oracle reliability API',
     'stablecoin depeg API',
   ],

@@ -14,13 +14,13 @@ The 32 tools are organized around real workflows. Below are example prompts you 
 
 ### Latest prices & consensus
 
-| Tool                      | Example prompt                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------ |
-| `get_oracle_price`        | "What's the latest Chainlink price for ETH on Ethereum?"                       |
-| `get_consensus_price`     | "Give me the manipulation-resistant consensus price for BTC."                  |
-| `get_oracle_prices_batch` | "Fetch current prices for ETH, BTC, and SOL from Chainlink and Pyth."          |
-| `get_price_history`       | "Show me Chainlink's ETH price history for the last 24 hours."                 |
-| `get_cross_chain_spreads` | "Are there any cross-chain ETH price spreads for Pyth that suggest arbitrage?" |
+| Tool                      | Example prompt                                                                     |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| `get_oracle_price`        | "What's the latest Chainlink price for ETH on Ethereum?"                           |
+| `get_consensus_price`     | "Give me the manipulation-resistant consensus price for BTC."                      |
+| `get_oracle_prices_batch` | "Fetch current prices for ETH, BTC, and SOL from Chainlink and RedStone."          |
+| `get_price_history`       | "Show me Chainlink's ETH price history for the last 24 hours."                     |
+| `get_cross_chain_spreads` | "Are there any cross-chain ETH price spreads for RedStone that suggest arbitrage?" |
 
 ### Oracle health & reliability
 
@@ -82,7 +82,7 @@ The 32 tools are organized around real workflows. Below are example prompts you 
 
 ## Why Insight MCP?
 
-- **Comprehensive data** — 11 oracle providers, 40+ chains, hourly snapshots, consensus algorithms, cross-chain spreads, and 7-day rolling reputation scores.
+- **Comprehensive data** — 10 oracle providers, 40+ chains, hourly snapshots, consensus algorithms, cross-chain spreads, and 7-day rolling reputation scores.
 - **Agent-native** — No JSON wrangling or SQL. Ask in plain English and let the agent choose the right tools.
 - **Production-ready** — Reuses the same authentication, rate limiting, monthly quotas, and plan gating as the REST API.
 
@@ -159,7 +159,7 @@ Visit **`/ai`** in the Insight app to:
 
 ## Data coverage
 
-- **Oracle providers**: Chainlink, Pyth, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare, Switchboard.
+- **Oracle providers**: Chainlink, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare, Switchboard.
 - **Chains**: 40+ networks including Ethereum, Arbitrum, Optimism, Base, Polygon, BNB Chain, Avalanche, Solana, Aptos, Sui, TRON, Stellar, Flare, zkSync, Scroll, Mantle, Linea.
 - **Update cadence**: Price snapshots, reputation recalculation, and feed health are polled hourly. Polling faster than hourly yields no fresher data.
 

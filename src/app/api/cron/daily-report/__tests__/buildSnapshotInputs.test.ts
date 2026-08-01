@@ -33,7 +33,7 @@ jest.mock('@/lib/oracles/utils/oracleDataUtils', () => ({ extractBaseSymbol: jes
 jest.mock('@/lib/reports/reportService', () => ({
   reportService: { upsertHourlySnapshots: jest.fn() },
   REPORT_ASSETS: ['BTC', 'ETH'] as const,
-  REPORT_PROVIDERS: ['chainlink', 'pyth'] as const,
+  REPORT_PROVIDERS: ['chainlink', 'redstone'] as const,
 }));
 
 jest.mock('@/lib/supabase/server', () => ({
@@ -206,7 +206,7 @@ describe('buildSnapshotInputs', () => {
 
 describe('buildFeedHealthUpdates', () => {
   // batch_update_feed_health matches oracle_feeds rows by (provider, symbol,
-  // chain_id) with an EXACT symbol. Providers like pyth store the quote-
+  // chain_id) with an EXACT symbol. Providers like redstone store the quote-
   // suffixed pair ("BTC/USD") while REPORT_ASSETS passes the base symbol
   // ("BTC"). The health update must use the feed's actual DB symbol
   // (feedSymbol) or consecutive_failures never increments and broken feeds
@@ -214,7 +214,7 @@ describe('buildFeedHealthUpdates', () => {
   it('uses the feedSymbol (DB symbol) instead of the base symbol', () => {
     const results: BatchResultItem[] = [
       {
-        provider: 'pyth',
+        provider: 'redstone',
         symbol: 'BTC',
         feedChainId: 0,
         feedSymbol: 'BTC/USD',
@@ -226,7 +226,7 @@ describe('buildFeedHealthUpdates', () => {
     const updates = buildFeedHealthUpdates(results);
     expect(updates).toHaveLength(1);
     expect(updates[0]).toEqual({
-      provider: 'pyth',
+      provider: 'redstone',
       symbol: 'BTC/USD',
       chainId: 0,
       isSuccess: false,
@@ -270,7 +270,7 @@ describe('buildFeedHealthUpdates', () => {
   it('marks a null price as a failure even when error is null', () => {
     const results: BatchResultItem[] = [
       {
-        provider: 'pyth',
+        provider: 'redstone',
         symbol: 'ETH',
         feedSymbol: 'ETH/USD',
         feedChainId: 0,

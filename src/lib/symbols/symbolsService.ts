@@ -33,7 +33,7 @@ let loadPromise: Promise<SymbolsData> | null = null;
  * e.g. "BTC/USD" → "BTC", "USD/JPY" → "USD/JPY" (forex kept as-is)
  */
 function normalizeSymbol(symbol: string): string {
-  // Strip /USD suffix (Pyth and some others store "BTC/USD")
+  // Strip /USD suffix (some providers store "BTC/USD")
   return symbol.replace(/\/USD$/, '');
 }
 

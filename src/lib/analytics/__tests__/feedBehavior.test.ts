@@ -14,7 +14,7 @@ describe('feedBehavior', () => {
           confidenceInterval: { bid: 49900, ask: 50100, widthPercentage: 0.4 },
         },
         {
-          provider: 'pyth',
+          provider: 'redstone',
           price: 50100,
           timestamp: now - 500,
           success: true,
@@ -35,7 +35,7 @@ describe('feedBehavior', () => {
           })),
         ],
         [
-          'pyth',
+          'redstone',
           Array.from({ length: 10 }, (_, i) => ({
             price: 50100 + i * 10,
             timestamp: now - (10 - i) * 1000,
@@ -76,13 +76,13 @@ describe('feedBehavior', () => {
     it('should apply weakest-link penalty to overall health', () => {
       const now = Date.now();
       const priceData = [
-        { provider: 'pyth', price: 50000, timestamp: now - 500, success: true },
+        { provider: 'redstone', price: 50000, timestamp: now - 500, success: true },
         { provider: 'chainlink', price: 50100, timestamp: now - 50000, success: true },
       ];
 
       const priceHistoryMap = new Map([
         [
-          'pyth',
+          'redstone',
           Array.from({ length: 10 }, (_, i) => ({
             price: 50000 + i * 10,
             timestamp: now - (10 - i) * 1000,

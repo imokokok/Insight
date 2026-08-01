@@ -1193,13 +1193,13 @@ describe('databaseOperations', () => {
         expect(result.provider).toBe('chainlink');
       });
 
-      it('should handle pyth provider', async () => {
-        const mockPriceData = createMockPriceData({ provider: 'pyth' });
+      it('should handle redstone provider', async () => {
+        const mockPriceData = createMockPriceData({ provider: 'redstone' });
         mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
 
-        const result = await fetchPriceWithDatabase('pyth', mockSymbol, mockChain, true);
+        const result = await fetchPriceWithDatabase('redstone', mockSymbol, mockChain, true);
 
-        expect(result.provider).toBe('pyth');
+        expect(result.provider).toBe('redstone');
       });
 
       it('should handle api3 provider', async () => {

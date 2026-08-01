@@ -72,7 +72,7 @@ const highlights = [
   {
     icon: Zap,
     label: '10+ Providers',
-    description: 'Chainlink, Pyth, RedStone, API3, DIA & more',
+    description: 'Chainlink, RedStone, API3, DIA & more',
   },
   {
     icon: Globe,

@@ -6,7 +6,7 @@ import { type NavGroup } from '../types';
 jest.mock('../config', () => ({
   oracleColors: {
     chainlink: '#375BD2',
-    pyth: '#EC1C79',
+    redstone: '#FB5607',
   },
 }));
 
@@ -21,9 +21,9 @@ const mockGroup: NavGroup = {
       description: 'Chainlink oracle network',
     },
     {
-      label: 'Pyth',
-      href: '/pyth',
-      icon: () => <svg data-testid="pyth-icon" />,
+      label: 'RedStone',
+      href: '/redstone',
+      icon: () => <svg data-testid="redstone-icon" />,
     },
   ],
 };
@@ -83,7 +83,7 @@ describe('DropdownMenu', () => {
     fireEvent.click(button);
 
     expect(screen.getByText('Chainlink')).toBeInTheDocument();
-    expect(screen.getByText('Pyth')).toBeInTheDocument();
+    expect(screen.getByText('RedStone')).toBeInTheDocument();
   });
 
   it('should close dropdown when item is clicked', () => {

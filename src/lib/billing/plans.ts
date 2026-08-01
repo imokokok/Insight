@@ -16,7 +16,7 @@
  *
  * Pricing rationale (validated against 2026-07 market):
  *   - Pro 49 USDC/mo     : matches Moralis Starter, QuickNode Build (developer sweet spot)
- *   - Protocol 499 USDC/mo: matches Pyth Starter, DefiLlama Pro, QuickNode Scale (team sweet spot)
+ *   - Protocol 499 USDC/mo: matches DefiLlama Pro, QuickNode Scale (team sweet spot)
  *   - Yearly = 10x monthly (2 months free) : standard industry discount
  *
  * Payments are processed via NOWPayments (crypto only). Prices are denominated
@@ -37,7 +37,7 @@ export const PLANS = {
       '1,000 API calls / month',
       '5 requests / minute',
       'Oracle reliability rankings (7-day trend)',
-      'Current prices across 11+ oracles',
+      'Current prices across 10+ oracles',
       '5 trial calls/day to deep-analysis endpoints',
       'Daily reliability reports',
     ],

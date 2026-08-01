@@ -39,7 +39,7 @@ function getProviderForChain(chain: Blockchain): OracleProvider {
     [Blockchain.ARBITRUM]: OracleProvider.CHAINLINK,
     [Blockchain.OPTIMISM]: OracleProvider.CHAINLINK,
     [Blockchain.POLYGON]: OracleProvider.CHAINLINK,
-    [Blockchain.SOLANA]: OracleProvider.PYTH,
+    [Blockchain.SOLANA]: OracleProvider.SWITCHBOARD,
     [Blockchain.AVALANCHE]: OracleProvider.CHAINLINK,
     [Blockchain.BASE]: OracleProvider.CHAINLINK,
     [Blockchain.BNB_CHAIN]: OracleProvider.CHAINLINK,

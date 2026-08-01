@@ -61,7 +61,7 @@ describe('riskMetrics', () => {
         change30d: 10.0,
       },
       {
-        name: 'Pyth',
+        name: 'RedStone',
         share: 25,
         color: '#FF8C00',
         tvs: '$10B',
@@ -496,7 +496,7 @@ describe('riskMetrics', () => {
           change30d: 10.0,
         },
         {
-          name: 'Pyth',
+          name: 'RedStone',
           share: 25,
           color: '#FF8C00',
           tvs: '$10B',

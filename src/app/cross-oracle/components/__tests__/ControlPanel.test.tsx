@@ -61,10 +61,10 @@ jest.mock('@/lib/config/oracles', () => ({
       avgResponseTime: 100,
     },
   }),
-  getPriceOracleProvidersSortedByMarketCap: () => ['chainlink', 'pyth'],
+  getPriceOracleProvidersSortedByMarketCap: () => ['chainlink', 'redstone'],
   oracleNames: {
     chainlink: 'Chainlink',
-    pyth: 'Pyth',
+    redstone: 'RedStone',
   },
 }));
 
@@ -90,9 +90,9 @@ describe('ControlPanel', () => {
   const mockProps = {
     selectedSymbol: 'BTC',
     onSymbolChange: jest.fn(),
-    selectedOracles: ['chainlink', 'pyth'] as OracleProvider[],
+    selectedOracles: ['chainlink', 'redstone'] as OracleProvider[],
     onOracleToggle: jest.fn(),
-    oracleChartColors: { chainlink: '#375BD2', pyth: '#EC1C79' },
+    oracleChartColors: { chainlink: '#375BD2', redstone: '#FB5607' },
     timeRange: '24h' as const,
     onTimeRangeChange: jest.fn(),
     onQuery: jest.fn(),
@@ -175,7 +175,7 @@ describe('ControlPanel', () => {
     render(<ControlPanel {...mockProps} />);
 
     expect(screen.getByText('Chainlink')).toBeInTheDocument();
-    expect(screen.getByText('Pyth')).toBeInTheDocument();
+    expect(screen.getByText('RedStone')).toBeInTheDocument();
   });
 
   it('should call onOracleToggle when oracle button is clicked', () => {

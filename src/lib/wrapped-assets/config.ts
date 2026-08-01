@@ -39,12 +39,6 @@ export const WRAPPED_ASSETS: WrappedAssetConfig[] = [
       },
       {
         symbol: 'WBTC',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.ETHEREUM,
-        displayName: 'Pyth @ Ethereum',
-      },
-      {
-        symbol: 'WBTC',
         provider: OracleProvider.TWAP,
         chain: Blockchain.ETHEREUM,
         displayName: 'Uniswap V3 TWAP @ Ethereum',
@@ -85,12 +79,6 @@ export const WRAPPED_ASSETS: WrappedAssetConfig[] = [
         provider: OracleProvider.CHAINLINK,
         chain: Blockchain.ETHEREUM,
         displayName: 'Chainlink @ Ethereum',
-      },
-      {
-        symbol: 'WSTETH',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.ETHEREUM,
-        displayName: 'Pyth @ Ethereum',
       },
       {
         symbol: 'WSTETH',
@@ -137,12 +125,6 @@ export const WRAPPED_ASSETS: WrappedAssetConfig[] = [
       },
       {
         symbol: 'CBETH',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.ETHEREUM,
-        displayName: 'Pyth @ Ethereum',
-      },
-      {
-        symbol: 'CBETH',
         provider: OracleProvider.CHAINLINK,
         chain: Blockchain.BASE,
         displayName: 'Chainlink @ Base',
@@ -160,12 +142,6 @@ export const WRAPPED_ASSETS: WrappedAssetConfig[] = [
         provider: OracleProvider.CHAINLINK,
         chain: Blockchain.BNB_CHAIN,
         displayName: 'Chainlink @ BNB Chain',
-      },
-      {
-        symbol: 'BTCB',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.BNB_CHAIN,
-        displayName: 'Pyth @ BNB Chain',
       },
     ],
   },
@@ -188,12 +164,6 @@ export const WRAPPED_ASSETS: WrappedAssetConfig[] = [
         provider: OracleProvider.CHAINLINK,
         chain: Blockchain.ARBITRUM,
         displayName: 'Chainlink @ Arbitrum',
-      },
-      {
-        symbol: 'STETH',
-        provider: OracleProvider.PYTH,
-        chain: Blockchain.ETHEREUM,
-        displayName: 'Pyth @ Ethereum',
       },
     ],
   },

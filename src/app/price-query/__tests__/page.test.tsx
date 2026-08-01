@@ -147,7 +147,6 @@ jest.mock('@/components/ui', () => ({
 jest.mock('@/lib/oracles', () => ({
   OracleProvider: {
     CHAINLINK: 'chainlink',
-    PYTH: 'pyth',
     DIA: 'dia',
     REDSTONE: 'redstone',
     WINKLINK: 'winklink',

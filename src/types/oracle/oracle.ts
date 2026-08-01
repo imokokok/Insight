@@ -20,7 +20,6 @@ export type OracleErrorCode =
   | 'API3_PRICE_ERROR'
   | 'CHAINLINK_ERROR'
   | 'DIA_ERROR'
-  | 'PYTH_ERROR'
   | 'FETCH_ERROR'
   | 'REDSTONE_ERROR'
   | 'WINKLINK_ERROR'

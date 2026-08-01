@@ -187,7 +187,7 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
     }
 
     // Other providers: clients expect the BASE symbol (e.g. "BTC"), while DB
-    // rows may store the quoted pair (e.g. pyth "BTC/USD"). Extract the base
+    // rows may store the quoted pair (e.g. redstone "BTC/USD"). Extract the base
     // so the client resolves the feed correctly.
     const baseSymbol = extractBaseSymbol(feed.symbol);
     const client = getDefaultFactory().getClient(provider);
@@ -262,7 +262,7 @@ export async function GET(request: Request) {
     switch (mode) {
       case 'seed': {
         // Initial seed from hardcoded data — one provider at a time
-        // Call with ?provider=chainlink, ?provider=pyth, etc.
+        // Call with ?provider=chainlink, ?provider=redstone, etc.
         if (!provider) {
           return NextResponse.json(
             {
@@ -289,7 +289,7 @@ export async function GET(request: Request) {
 
       case 'discover': {
         // Discover feeds from official APIs — one provider at a time
-        // Call with ?provider=chainlink, ?provider=pyth, etc.
+        // Call with ?provider=chainlink, ?provider=redstone, etc.
         if (!provider) {
           return NextResponse.json(
             {
