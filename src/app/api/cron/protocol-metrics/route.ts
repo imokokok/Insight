@@ -29,6 +29,12 @@ interface SyncSummary {
   };
 }
 
+/** Structured result returned by `runProtocolMetrics` for both the HTTP route and the GH Actions script. */
+export interface ProtocolMetricsResult {
+  status: number;
+  body: Record<string, unknown>;
+}
+
 async function upsertProtocolMetrics(results: ProtocolTvlResult[]): Promise<number> {
   const rows = results
     .filter((r) => r.tvlUsd != null)
@@ -100,14 +106,19 @@ async function upsertProtocolRiskParams(results: ProtocolRiskParamsResult[]): Pr
   return rows.length;
 }
 
-export async function GET(request: Request) {
-  const authResponse = verifyCronSecret(request);
-  if (authResponse) return authResponse;
-
+/**
+ * Core protocol-metrics pipeline, extracted from the GET handler so the same
+ * logic runs from both the Vercel route AND the GitHub Actions
+ * `scripts/protocol-metrics.ts` job. The GH Actions job escapes Vercel's 60s
+ * serverless timeout — risk-params mode scrapes per-asset parameters from
+ * every lending protocol and can exceed the ceiling.
+ *
+ * @param mode `tvl` | `risk-params` | `all`
+ * @returns `{ status, body }` — the HTTP route wraps this in NextResponse;
+ *          the script reads `status` to decide its exit code.
+ */
+export async function runProtocolMetrics(mode: string): Promise<ProtocolMetricsResult> {
   try {
-    const url = new URL(request.url);
-    const mode = url.searchParams.get('mode') || 'all';
-
     const summary: SyncSummary = {
       tvl: { total: 0, updated: 0, fallback: 0, errors: 0, details: [] },
       riskParams: { total: 0, updated: 0, fallback: 0, errors: 0, details: [] },
@@ -161,17 +172,36 @@ export async function GET(request: Request) {
       riskParamsUpdated: summary.riskParams.updated,
     });
 
-    return NextResponse.json({
-      success: true,
-      mode,
-      summary,
-    });
+    return { status: 200, body: { success: true, mode, summary } };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error(
       'Protocol metrics sync failed',
       error instanceof Error ? error : new Error(message)
     );
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return { status: 500, body: { success: false, error: message } };
   }
+}
+
+/**
+ * GET /api/cron/protocol-metrics
+ *
+ * Syncs protocol TVL and/or risk params. `mode` query param controls scope:
+ *   - `tvl`         → TVL only (every 4h via protocol-tvl-cron.yml)
+ *   - `risk-params` → risk params only (every 6h via protocol-risk-params-cron.yml)
+ *   - `all`         → both (default)
+ *
+ * Auth: CRON_SECRET Bearer token (see verifyCronSecret).
+ * This route does NOT use createApiHandler — it's a simple cron trigger,
+ * not a user-facing API.
+ */
+export async function GET(request: Request) {
+  const authResponse = verifyCronSecret(request);
+  if (authResponse) return authResponse;
+
+  const url = new URL(request.url);
+  const mode = url.searchParams.get('mode') || 'all';
+
+  const { status, body } = await runProtocolMetrics(mode);
+  return NextResponse.json(body, { status });
 }

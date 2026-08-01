@@ -1,5 +1,15 @@
 name: Protocol Risk Params Sync
 
+# Syncs per-asset risk parameters (liquidation threshold, max LTV, collateral
+# factor, exchange rate) from each lending protocol into the
+# protocol_asset_risk_params table.
+#
+# Runs the `scripts/protocol-metrics.ts` runner directly on GH Actions (no
+# Vercel curl) so the job escapes Vercel's 60s serverless timeout — risk-params
+# mode scrapes per-asset parameters from every lending protocol and can exceed
+# the ceiling. Delegates to the same `runProtocolMetrics()` used by the HTTP
+# route, so behaviour is identical — only the executor changes.
+
 on:
   schedule:
     # Every 6 hours at minute 30 (offset from TVL sync)
@@ -9,38 +19,20 @@ on:
 permissions:
   contents: read
 
-env:
-  SITE_URL: ${{ vars.SITE_URL || 'https://www.oracleinsight.xyz' }}
-  CRON_SECRET: ${{ secrets.CRON_SECRET }}
-
 jobs:
   sync-risk-params:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Trigger protocol risk params sync
-        run: |
-          set -u
-          if [ -z "${CRON_SECRET}" ]; then
-            echo "::error::CRON_SECRET secret is not configured. Add it under Settings → Secrets and variables → Actions (must match the cron_secret stored in cron_config)."
-            exit 1
-          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
 
-          BASE_URL="${SITE_URL%/}"
-          echo "Triggering protocol risk params sync..."
-
-          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 180 \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${BASE_URL}/api/cron/protocol-metrics?mode=risk-params" || true)
-
-          HTTP_CODE=$(printf '%s' "$RESPONSE" | tail -n1 | tr -d '[:space:]')
-          case "$HTTP_CODE" in ''|*[!0-9]*) HTTP_CODE="000" ;; esac
-          BODY=$(printf '%s' "$RESPONSE" | sed '$d')
-
-          echo "HTTP Status: ${HTTP_CODE}"
-          echo "Response: ${BODY}"
-
-          if [ "$HTTP_CODE" -ne 200 ]; then
-            echo "::error::Protocol risk params sync failed: HTTP ${HTTP_CODE}"
-            exit 1
-          fi
+      - name: Run protocol risk params sync
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/protocol-metrics.ts --mode=risk-params

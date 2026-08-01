@@ -1,5 +1,17 @@
 name: Safety Outcome Backfill
 
+# Backfills outcome labels for pre-trade safety checks whose evaluation window
+# has elapsed. Each run labels a bounded batch of the oldest unlabeled checks
+# against hourly_price_snapshots, turning flywheel rows into labeled training
+# examples.
+#
+# Runs the `scripts/safety-outcome.ts` runner directly on GH Actions (no
+# Vercel curl) so the job escapes Vercel's 60s serverless timeout — the
+# backfill joins against hourly_price_snapshots and can exceed the ceiling
+# during cold-start DB connection latency. Delegates to the same
+# `runSafetyOutcomeBackfill()` used by the HTTP route, so behaviour is
+# identical — only the executor changes.
+
 on:
   schedule:
     # Every 2 hours at minute 15 (offset from other crons; eval window is 6h)
@@ -9,38 +21,20 @@ on:
 permissions:
   contents: read
 
-env:
-  SITE_URL: ${{ vars.SITE_URL || 'https://www.oracleinsight.xyz' }}
-  CRON_SECRET: ${{ secrets.CRON_SECRET }}
-
 jobs:
   safety-outcome:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Trigger safety outcome backfill
-        run: |
-          set -u
-          if [ -z "${CRON_SECRET}" ]; then
-            echo "::error::CRON_SECRET secret is not configured. Add it under Settings → Secrets and variables → Actions (must match the cron_secret stored in cron_config)."
-            exit 1
-          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
 
-          BASE_URL="${SITE_URL%/}"
-          echo "Triggering safety outcome backfill..."
-
-          RESPONSE=$(curl -s -w "\n%{http_code}" --max-time 180 \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${BASE_URL}/api/cron/safety-outcome" || true)
-
-          HTTP_CODE=$(printf '%s' "$RESPONSE" | tail -n1 | tr -d '[:space:]')
-          case "$HTTP_CODE" in ''|*[!0-9]*) HTTP_CODE="000" ;; esac
-          BODY=$(printf '%s' "$RESPONSE" | sed '$d')
-
-          echo "HTTP Status: ${HTTP_CODE}"
-          echo "Response: ${BODY}"
-
-          if [ "$HTTP_CODE" -ne 200 ]; then
-            echo "::error::Safety outcome backfill failed: HTTP ${HTTP_CODE}"
-            exit 1
-          fi
+      - name: Run safety outcome backfill
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/safety-outcome.ts
