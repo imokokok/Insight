@@ -28,6 +28,50 @@ const PROVIDERS_SKIPPING_DB_SAVE = new Set([OracleProvider.CHAINLINK, OracleProv
 const SAVE_FAILURE_THRESHOLD = 10;
 let consecutiveSaveFailures = 0;
 
+/**
+ * DB cache freshness TTL per provider, in milliseconds. When a cached DB
+ * record is older than this, we attempt a live fetch and only fall back to the
+ * stale record if the live fetch fails.
+ *
+ * Chainlink & API3 skip DB save entirely (PROVIDERS_SKIPPING_DB_SAVE), so they
+ * always go live and are not listed here. The providers explicitly listed are
+ * the ones previously serving stale data in the pre-trade safety check
+ * (DIA/Supra/TWAP/Switchboard) because their cached rows were returned
+ * unconditionally with no freshness gate.
+ *
+ * 30s matches the in-memory price cache TTL (ORACLE_CACHE_TTL.PRICE) so the
+ * pre-trade safety check reads near-realtime data while the DB cache still
+ * absorbs bursts of identical reads. Any DB-cached provider not listed uses the
+ * default, which applies the same freshness gate across the board.
+ */
+const DB_CACHE_TTL_MS: Partial<Record<OracleProvider, number>> = {
+  [OracleProvider.DIA]: 30_000,
+  [OracleProvider.SUPRA]: 30_000,
+  [OracleProvider.TWAP]: 30_000,
+  [OracleProvider.SWITCHBOARD]: 30_000,
+};
+const DEFAULT_DB_CACHE_TTL_MS = 30_000;
+
+function getDbCacheTtlMs(provider: OracleProvider): number {
+  return DB_CACHE_TTL_MS[provider] ?? DEFAULT_DB_CACHE_TTL_MS;
+}
+
+/**
+ * Age of a cached price record, in ms, using the same reference time the
+ * consensus service uses to compute dataAgeSeconds (ingestionTimestamp when
+ * available, else the oracle's own timestamp). Returns Infinity when no
+ * reference time is available so such records are always treated as stale.
+ */
+function getPriceDataAgeMs(priceData: PriceData): number {
+  const refTime = priceData.ingestionTimestamp ?? priceData.timestamp;
+  if (!refTime || refTime <= 0) return Number.POSITIVE_INFINITY;
+  return Math.max(0, Date.now() - refTime);
+}
+
+function isDbPriceStale(priceData: PriceData, provider: OracleProvider): boolean {
+  return getPriceDataAgeMs(priceData) > getDbCacheTtlMs(provider);
+}
+
 function getOracleClient(provider: OracleProvider) {
   return getDefaultFactory().getClient(provider);
 }
@@ -173,10 +217,23 @@ export async function fetchPriceWithDatabase(
       throw UnsupportedSymbolError.create(baseSymbol, supportedSymbols, provider);
     }
 
+    // DB cache lookup. A fresh cached row is returned as-is; a stale row is
+    // retained as a fallback while we attempt a live refresh, so the pre-trade
+    // safety check sees near-realtime data instead of a row last written by the
+    // hourly cron. Without this freshness gate, every DB-cached provider
+    // (DIA/Supra/TWAP/Switchboard/...) served whatever the cron last wrote,
+    // producing 265s+ staleness while Chainlink/API3 (which skip DB save) stayed
+    // fresh. Chainlink/API3 have no DB row here, so they fall straight through
+    // to the live fetch below unchanged.
+    let staleDbPrice: PriceData | null = null;
     if (!forceRefresh && useDatabase && shouldUseDatabase()) {
       const dbPrice = await getPriceFromDatabase(provider, baseSymbol, chain);
       if (dbPrice) {
-        return dbPrice;
+        if (!isDbPriceStale(dbPrice, provider)) {
+          return dbPrice;
+        }
+        staleDbPrice = dbPrice;
+        // fall through to live refresh; staleDbPrice is the fallback on failure.
       }
     }
 
@@ -188,33 +245,51 @@ export async function fetchPriceWithDatabase(
       (client as { clearCache: () => void }).clearCache();
     }
 
-    const livePrice = await client.getPrice(baseSymbol, chain);
-    if (!PROVIDERS_SKIPPING_DB_SAVE.has(provider)) {
-      savePriceToDatabase(livePrice)
-        .then(() => {
-          consecutiveSaveFailures = 0;
-        })
-        .catch((err) => {
-          consecutiveSaveFailures += 1;
-          logger.error(
-            'Failed to save price to database',
-            err instanceof Error ? err : new Error(String(err)),
-            { provider, symbol: baseSymbol }
-          );
-          if (consecutiveSaveFailures >= SAVE_FAILURE_THRESHOLD) {
-            logger.warn(
-              'Price database save has failed consecutively; check database connectivity',
-              {
-                provider,
-                symbol: baseSymbol,
-                consecutiveFailures: consecutiveSaveFailures,
-                threshold: SAVE_FAILURE_THRESHOLD,
-              }
+    try {
+      const livePrice = await client.getPrice(baseSymbol, chain);
+      if (!PROVIDERS_SKIPPING_DB_SAVE.has(provider)) {
+        savePriceToDatabase(livePrice)
+          .then(() => {
+            consecutiveSaveFailures = 0;
+          })
+          .catch((err) => {
+            consecutiveSaveFailures += 1;
+            logger.error(
+              'Failed to save price to database',
+              err instanceof Error ? err : new Error(String(err)),
+              { provider, symbol: baseSymbol }
             );
-          }
+            if (consecutiveSaveFailures >= SAVE_FAILURE_THRESHOLD) {
+              logger.warn(
+                'Price database save has failed consecutively; check database connectivity',
+                {
+                  provider,
+                  symbol: baseSymbol,
+                  consecutiveFailures: consecutiveSaveFailures,
+                  threshold: SAVE_FAILURE_THRESHOLD,
+                }
+              );
+            }
+          });
+      }
+      return livePrice;
+    } catch (liveError) {
+      // Live refresh failed. If we have a stale DB fallback, serve it rather
+      // than failing the request — the staleness is still surfaced to consumers
+      // via dataAgeSeconds in the consensus response. Record the feed health
+      // failure so feeds that only fail under live traffic are still tracked
+      // (matches the outer-catcher's behavior for the no-fallback path).
+      if (staleDbPrice) {
+        recordFeedHealthFailure(provider, baseSymbol, chain);
+        logger.warn('Live price refresh failed; serving stale DB cache', {
+          provider,
+          symbol: baseSymbol,
+          error: liveError instanceof Error ? liveError.message : String(liveError),
         });
+        return staleDbPrice;
+      }
+      throw liveError;
     }
-    return livePrice;
   } catch (error) {
     // Record feed health failure for real fetch errors (network, upstream,
     // timeout). UnsupportedSymbolError means the feed itself is fine, just
