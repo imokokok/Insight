@@ -4,6 +4,7 @@ import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle'
 import { OracleCache, ORACLE_CACHE_TTL } from '../base';
 import { getDIAAssetConfigAsync } from '../constants/diaConstants';
 import { DIA_API_BASE_URL, fetchWithTimeout } from '../diaUtils';
+import { ORACLE_RETRY_PRESETS, withOracleRetry } from '../utils/retry';
 
 import type { DIAAssetQuotation } from '../diaTypes';
 
@@ -45,10 +46,22 @@ export class DIAPriceService {
 
       const url = `${DIA_API_BASE_URL}/assetQuotation/${assetConfig.blockchain}/${assetConfig.address}`;
 
-      const quotation = await fetchWithTimeout<DIAAssetQuotation | null>(url, {
-        timeout: REQUEST_TIMEOUT,
-        signal,
-      });
+      // DIA's public API (api.diadata.org) is flaky and occasionally returns
+      // 5xx / times out for a few seconds. Without a retry, a single transient
+      // blip fails every DIA feed in that 15-min snapshot run (each feed fails
+      // once in the daily report). Wrap the fetch in the same retry preset used
+      // by winklink/reflector so transient timeouts and 429/5xx are retried.
+      // 404 still resolves to null (not retried — symbol genuinely unsupported).
+      const quotation = await withOracleRetry<DIAAssetQuotation | null>(
+        () =>
+          fetchWithTimeout<DIAAssetQuotation | null>(url, {
+            timeout: REQUEST_TIMEOUT,
+            signal,
+          }),
+        `dia:assetQuotation:${upperSymbol}`,
+        ORACLE_RETRY_PRESETS.standard,
+        signal
+      );
 
       if (!quotation || !quotation.Price) {
         logger.warn('DIA API returned no data for symbol', { symbol });

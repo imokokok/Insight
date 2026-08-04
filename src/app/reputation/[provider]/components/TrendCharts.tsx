@@ -48,7 +48,7 @@ export function TrendCharts({
           <p className="text-sm font-bold">
             Trend charts appear after accumulating multiple data points
           </p>
-          <p className="text-xs text-gray-300 mt-1">Data is collected every hour</p>
+          <p className="text-xs text-gray-300 mt-1">Data is collected every 15 minutes</p>
         </div>
       </div>
     );
