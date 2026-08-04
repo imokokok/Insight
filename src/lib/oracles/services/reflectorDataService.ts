@@ -70,6 +70,15 @@ class ReflectorDataService {
     try {
       this.server = new rpc.Server(STELLAR_RPC_URL, {
         allowHttp: STELLAR_RPC_URL.startsWith('http://'),
+        // Bound every RPC request (incl. simulateTransaction) so a degraded
+        // Stellar endpoint can't hold a socket open indefinitely. Without this
+        // the SDK's fetch hangs on a slow/non-responsive RPC forever; the
+        // Promise.race timeout in simulateContractCall rejects the result but
+        // leaves the underlying socket pending, which keeps the Node process
+        // alive after runFeedSync returns and trips the GH Actions 15m job
+        // limit. The SDK's `timeout` actually aborts the fetch (closes the
+        // socket), matching the per-call ceiling already enforced below.
+        timeout: REFLECTOR_TIMEOUT_MS,
       });
       logger.info('Reflector Soroban RPC server initialized', { url: STELLAR_RPC_URL });
     } catch (error) {

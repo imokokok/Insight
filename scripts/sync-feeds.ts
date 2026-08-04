@@ -53,7 +53,37 @@ async function main(): Promise<void> {
   console.log(JSON.stringify(body, null, 2));
 }
 
-main().catch((error) => {
-  console.error('[sync-feeds] unhandled error:', error);
+// Hard wall-clock deadline: defend against any single provider's run hanging
+// past GitHub Actions' 15m job limit. The most recent failure was the reflector
+// provider — a degraded Stellar RPC left fetch sockets pending after the probe
+// Promise.race resolved, keeping the Node process alive after runFeedSync had
+// already returned. (The RPC-side timeout now aborts those fetches, but this
+// deadline is kept as a backstop for any future unbounded call.) Defaults to
+// 12m so a hung provider fails fast with a clear message instead of hitting the
+// 15m ceiling; override via SYNC_FEEDS_DEADLINE_MS.
+const HARD_DEADLINE_MS = Number(process.env.SYNC_FEEDS_DEADLINE_MS) || 12 * 60 * 1000;
+const deadlineTimer = setTimeout(() => {
+  console.error(`[sync-feeds] hard deadline (${HARD_DEADLINE_MS}ms) exceeded — forcing exit`);
   process.exit(1);
-});
+}, HARD_DEADLINE_MS);
+// Don't let the deadline timer itself keep the event loop alive on the happy
+// path; it only fires if the run is still in progress when it elapses.
+deadlineTimer.unref?.();
+
+main()
+  .then(() => {
+    clearTimeout(deadlineTimer);
+    // Force-exit on success: probe verification uses Promise.race timeouts that
+    // resolve the result but can leave the underlying fetch (e.g. a slow upstream
+    // RPC socket) pending. Those orphaned handles would keep Node alive long
+    // after runFeedSync has returned, so exit explicitly once the work is done.
+    // A short grace window lets any fire-and-forget DB writes (price/health
+    // records) flush before we tear the process down.
+    const graceTimer = setTimeout(() => process.exit(0), 2000);
+    graceTimer.unref?.();
+  })
+  .catch((error) => {
+    clearTimeout(deadlineTimer);
+    console.error('[sync-feeds] unhandled error:', error);
+    process.exit(1);
+  });
