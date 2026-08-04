@@ -49,7 +49,12 @@ function buildPriceSnapshotRows(
 async function insertPriceSnapshots(rows: Array<Record<string, unknown>>): Promise<number> {
   if (rows.length === 0) return 0;
   const supabase = createServiceRoleClient();
-  const { error } = await supabase.from('price_snapshots').insert(rows);
+  // Upsert with ignoreDuplicates so a retried run (same snapshot_ts) silently
+  // no-ops instead of erroring on the UNIQUE constraint added in migration 0024.
+  const { error } = await supabase.from('price_snapshots').upsert(rows, {
+    onConflict: 'snapshot_ts,provider,symbol,chain_id',
+    ignoreDuplicates: true,
+  });
   if (error) {
     throw new Error(
       `Failed to insert ${rows.length} price_snapshots rows: ${
@@ -116,7 +121,28 @@ async function main(): Promise<void> {
   );
 }
 
-main().catch((error) => {
-  console.error('[collect-snapshot] unhandled error:', error);
+// Hard deadline: if the pipeline hangs beyond this (e.g. an oracle client
+// keeps an open socket that prevents the event loop from draining), force
+// exit so the GitHub Actions job fails fast instead of timing out at the
+// 15-min workflow limit. Mirrors the pattern in scripts/sync-feeds.ts.
+const HARD_DEADLINE_MS = Number(process.env.SNAPSHOT_DEADLINE_MS) || 12 * 60 * 1000;
+const deadlineTimer = setTimeout(() => {
+  console.error(`[collect-snapshot] hard deadline (${HARD_DEADLINE_MS}ms) exceeded — forcing exit`);
   process.exit(1);
-});
+}, HARD_DEADLINE_MS);
+deadlineTimer.unref?.();
+
+main()
+  .then(() => {
+    clearTimeout(deadlineTimer);
+    // Give pending I/O (logs, fire-and-forget DB writes) a brief grace period
+    // before exiting, so they aren't truncated. unref() ensures this timer
+    // alone never keeps the process alive.
+    const graceTimer = setTimeout(() => process.exit(0), 2000);
+    graceTimer.unref?.();
+  })
+  .catch((error) => {
+    clearTimeout(deadlineTimer);
+    console.error('[collect-snapshot] unhandled error:', error);
+    process.exit(1);
+  });

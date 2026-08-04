@@ -209,7 +209,7 @@ export function ScoreBreakdown({
         <strong className="text-gray-900">
           {reputation.total_queries.toLocaleString()} historical queries
         </strong>
-        . Updated automatically every hour.
+        . Updated automatically every 15 minutes.
       </p>
 
       <div className="flex flex-col md:flex-row gap-6 items-center">

@@ -219,7 +219,13 @@ export async function fetchPriceWithDatabase(
     // Record feed health failure for real fetch errors (network, upstream,
     // timeout). UnsupportedSymbolError means the feed itself is fine, just
     // not supported for this symbol — don't count it as a health failure.
-    if (!(error instanceof UnsupportedSymbolError)) {
+    //
+    // Only record on the realtime query path (!forceRefresh). The snapshot
+    // collector calls with forceRefresh=true and subsequently invokes
+    // batchUpdateFeedHealth() for the same batch — recording here too would
+    // double-increment consecutive_failures, causing feeds to hit the
+    // deactivation threshold (3) in only 2 cycles instead of 3.
+    if (!(error instanceof UnsupportedSymbolError) && !forceRefresh) {
       recordFeedHealthFailure(provider, baseSymbol, chain);
     }
     if (error instanceof PriceFetchError || error instanceof OracleClientError) {

@@ -294,6 +294,12 @@ class SupraDataService {
     this.cache.clear();
     logger.info('Cache cleared');
   }
+
+  destroy(): void {
+    this.cache.destroy();
+    this.oracleClient = null;
+    logger.info('SupraDataService destroyed');
+  }
 }
 
 export const getSupraDataService = createSingleton(() => new SupraDataService());

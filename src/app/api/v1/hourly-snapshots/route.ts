@@ -75,7 +75,7 @@ export const GET = createApiHandler(
         },
         { requestId: context.requestId }
       ),
-      { preset: 'static' }
+      { preset: 'semiStatic' }
     );
   },
   {

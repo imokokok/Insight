@@ -46,11 +46,20 @@ interface PriceFreshnessMonitorProps {
 }
 
 export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshnessMonitorProps) {
-  const [now, setNow] = useState(() => Date.now());
+  // Initialize to 0 to avoid SSR/client hydration mismatch: Date.now() differs
+  // between server render and client hydration, which would produce different
+  // freshnessSeconds and mismatch the entire table. The real time is set in
+  // useEffect after mount. When now=0, freshnessSeconds is clamped to 0 by
+  // Math.max(0, ...) so the first render shows a safe neutral value.
+  const [now, setNow] = useState(0);
   const [updateTimestamps, setUpdateTimestamps] = useState<Map<string, number[]>>(new Map());
   const [healthScoreHistory, setHealthScoreHistory] = useState<number[]>([]);
 
   useEffect(() => {
+    // Set the real timestamp immediately after hydration so the first painted
+    // frame is quickly followed by accurate freshness values.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNow(Date.now());
     const timer = setInterval(() => {
       setNow(Date.now());
     }, 1000);
