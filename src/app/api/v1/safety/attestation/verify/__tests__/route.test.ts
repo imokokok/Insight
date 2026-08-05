@@ -194,4 +194,81 @@ describe('verify route — verifyAttestationBySchema routing', () => {
     expect(result.reason).toBe('expired');
     expect(result.schemaVersion).toBe(2);
   });
+
+  it('routes a recheck attestation to the recheck verifier (not plain v2) and returns valid', async () => {
+    // A recheck carries schemaVersion=2 BUT a distinct primaryType
+    // 'OracleSafetyRecheck'. The verify route must route it to the 28-field
+    // recheck verifier — NOT the 26-field v2 verifier (which would ignore
+    // originalUid + originalRequestHash and always mismatch the UID).
+    const { signAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
+    const { signRecheck } = await import('@/lib/attestations/oracleSafetyRecheck');
+    const { verifyAttestationBySchema } = await import('../route');
+
+    // 1. Sign the original v2 attestation (the one being re-verified).
+    const original = await signAttestationV2(V2_INPUT);
+    expect(original).not.toBeNull();
+
+    // 2. Sign a recheck referencing it (same trade params → requestHash matches).
+    const recheck = await signRecheck({
+      v2Data: original!.data,
+      originalUid: original!.uid,
+      originalRequestHash: original!.data.requestHash,
+    });
+    expect(recheck).not.toBeNull();
+    expect(recheck!.type).toBe('OracleSafetyRecheck');
+
+    // 3. The verify route routes the recheck to the recheck verifier → valid.
+    const result = await verifyAttestationBySchema(recheck!);
+    expect(result.valid).toBe(true);
+    expect(result.schemaVersion).toBe(2);
+    expect(result.uid).toBe(recheck!.uid);
+  });
+
+  it('a recheck stripped of its recheck discriminator fails under v2 routing', async () => {
+    // Proves the recheck branch is load-bearing: if a recheck were misrouted to
+    // the plain-v2 verifier (26-field type), the 2 reference fields would be
+    // ignored and the recomputed UID would NOT match → uid_mismatch. We simulate
+    // the misroute by stripping the recheck's type + primaryType discriminators
+    // so the router falls through to the schemaVersion===2 (v2) branch.
+    const { signAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
+    const { signRecheck } = await import('@/lib/attestations/oracleSafetyRecheck');
+    const { verifyAttestationBySchema } = await import('../route');
+
+    const original = await signAttestationV2(V2_INPUT);
+    const recheck = await signRecheck({
+      v2Data: original!.data,
+      originalUid: original!.uid,
+      originalRequestHash: original!.data.requestHash,
+    });
+
+    // Strip the recheck discriminators so the router treats it as a plain v2
+    // attestation (schemaVersion=2, no recheck type/primaryType).
+    const misrouted = {
+      ...recheck!,
+      type: undefined,
+      eip712: { ...recheck!.eip712, primaryType: 'OracleSafetyCheck' },
+    };
+
+    const result = await verifyAttestationBySchema(misrouted);
+    expect(result.valid).toBe(false);
+    expect(result.reason).toMatch(/uid_mismatch/);
+  });
+
+  it('verifies a recheck after a JSON wire round trip', async () => {
+    const { signAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
+    const { signRecheck } = await import('@/lib/attestations/oracleSafetyRecheck');
+    const { verifyAttestationBySchema } = await import('../route');
+
+    const original = await signAttestationV2(V2_INPUT);
+    const recheck = await signRecheck({
+      v2Data: original!.data,
+      originalUid: original!.uid,
+      originalRequestHash: original!.data.requestHash,
+    });
+    const wire = JSON.parse(JSON.stringify(recheck));
+
+    const result = await verifyAttestationBySchema(wire);
+    expect(result.valid).toBe(true);
+    expect(result.uid).toBe(recheck!.uid);
+  });
 });

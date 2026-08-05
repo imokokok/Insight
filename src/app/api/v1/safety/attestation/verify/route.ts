@@ -57,6 +57,14 @@ import {
   V2_SCHEMA_VERSION,
   type OracleSafetyAttestationV2,
 } from '@/lib/attestations/oracleSafetyAttestationV2';
+import {
+  verifyRecheck,
+  RECHECK_DOMAIN,
+  RECHECK_TYPES,
+  RECHECK_PRIMARY_TYPE,
+  RECHECK_TYPE,
+  type OracleSafetyRecheck,
+} from '@/lib/attestations/oracleSafetyRecheck';
 
 /** Ethereum address (0x + 40 hex). Validated lightly here; the EIP-712 crypto
  *  layer is the real authority on whether the signature is genuine. */
@@ -121,18 +129,50 @@ export interface UnifiedVerificationResult {
 }
 
 /**
- * Route an attestation to its schema-versioned verifier. v1 → v1 domain/types,
- * v2 → v2 domain/types. Extracted as a pure, exported helper so the routing
- * decision (and the v1/v2 result normalization) is unit-testable without the
- * API middleware stack.
+ * Route an attestation to its schema-versioned verifier:
+ *   - v1 (schemaVersion=1)                 → v1 domain/types (11 fields)
+ *   - v2 OracleSafetyCheck (schemaVersion=2, primaryType 'OracleSafetyCheck')
+ *                                          → v2 domain/types (26 fields)
+ *   - v2 OracleSafetyRecheck (schemaVersion=2, primaryType 'OracleSafetyRecheck')
+ *                                          → recheck domain/types (28 fields)
  *
- * Unknown schema versions return an invalid result rather than throwing, so
- * the public endpoint can respond with a structured `valid: false` payload.
+ * The recheck carries schemaVersion=2 (v2 family) but a distinct primaryType,
+ * so it MUST be routed before the plain-v2 branch — otherwise it would be
+ * verified against the 26-field type (ignoring originalUid + originalRequestHash)
+ * and always fail UID recovery. Extracted as a pure, exported helper so the
+ * routing decision is unit-testable without the API middleware stack.
+ *
+ * Unknown schema versions / primaryTypes return an invalid result rather than
+ * throwing, so the public endpoint can respond with a structured `valid: false`.
  */
 export async function verifyAttestationBySchema(
   attestation: VerifyBody['attestation']
 ): Promise<UnifiedVerificationResult> {
   const schemaVersion = attestation.schemaVersion;
+  // `type` is the envelope discriminator (recheck sets it to 'OracleSafetyRecheck');
+  // `primaryType` is the EIP-712 primary type. Either suffices to detect a recheck
+  // — check both so a recheck routes correctly even if one is missing.
+  const primaryType = attestation.eip712?.primaryType;
+  const isRecheck =
+    (attestation as { type?: string }).type === RECHECK_TYPE ||
+    primaryType === RECHECK_PRIMARY_TYPE;
+
+  // Recheck branch: 28-field type, distinct from plain v2. Must come BEFORE the
+  // generic schemaVersion===2 branch.
+  if (schemaVersion === V2_SCHEMA_VERSION && isRecheck) {
+    const rc = await verifyRecheck(attestation as unknown as OracleSafetyRecheck);
+    return {
+      valid: rc.valid,
+      attester: rc.attester,
+      uid: rc.uid,
+      checkedAt: rc.checkedAt,
+      validUntil: rc.validUntil,
+      ageSeconds: null,
+      expired: rc.expired,
+      schemaVersion: V2_SCHEMA_VERSION,
+      reason: rc.reason,
+    };
+  }
 
   if (schemaVersion === V2_SCHEMA_VERSION) {
     const v2 = await verifyAttestationV2(attestation as unknown as OracleSafetyAttestationV2);
@@ -209,6 +249,9 @@ interface AttestationStatus {
     1: SchemaDescriptor;
     2: SchemaDescriptor & {
       canonicalRequest: Eip712Descriptor;
+      /** Recheck type (v2 family, 28 fields = v2's 26 + originalUid +
+       *  originalRequestHash). Distinct primaryType 'OracleSafetyRecheck'. */
+      recheck: SchemaDescriptor;
     };
   };
 }
@@ -299,6 +342,14 @@ export const GET = createApiHandler<
                 domain: CANONICAL_REQUEST_DOMAIN,
                 types: CANONICAL_REQUEST_TYPES,
                 primaryType: CANONICAL_REQUEST_PRIMARY_TYPE,
+              },
+              recheck: {
+                schemaVersion: V2_SCHEMA_VERSION,
+                eip712: {
+                  domain: RECHECK_DOMAIN,
+                  types: RECHECK_TYPES,
+                  primaryType: RECHECK_PRIMARY_TYPE,
+                },
               },
             },
           },

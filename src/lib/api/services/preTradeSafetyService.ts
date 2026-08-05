@@ -257,7 +257,7 @@ function normalize(value: number, max: number): number {
 // Audit logging (fire-and-forget, non-blocking)
 // ---------------------------------------------------------------------------
 
-interface AuditMeta {
+export interface AuditMeta {
   apiKeyId?: string;
 }
 
