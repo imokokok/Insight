@@ -41,7 +41,13 @@ export class ReflectorClient extends BaseOracleClient {
       const priceData = await withOracleRetry(
         async () => this.reflectorDataService.fetchLatestPrice(upperSymbol, options?.signal),
         `reflector:getPrice:${upperSymbol}`,
-        ORACLE_RETRY_PRESETS.standard
+        // Reflector's fetchLatestPrice makes 2 sequential Stellar RPC calls
+        // (decimals + lastprice) on cold cache, each with a 15s ceiling.
+        // The standard preset's 15s timeout can't accommodate both — a single
+        // slow RPC exhausts the budget and triggers a retry that may also
+        // fail. Use 30s so both calls fit within one attempt.
+        { ...ORACLE_RETRY_PRESETS.standard, timeout: 30000 },
+        options?.signal
       );
 
       if (!priceData) {

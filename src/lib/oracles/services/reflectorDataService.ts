@@ -24,7 +24,6 @@ import {
   REFLECTOR_CRYPTO_ASSETS,
   REFLECTOR_FOREX_ASSETS,
   REFLECTOR_CRYPTO_CONTRACT,
-  REFLECTOR_FOREX_CONTRACT,
   getReflectorContractIdAsync,
 } from '../constants/reflectorConstants';
 import { bigIntToPrice } from '../utils/oracleDataUtils';
@@ -121,40 +120,6 @@ class ReflectorDataService {
     return scVal;
   }
 
-  private async fetchAssetScValsForContract(
-    contractId: string,
-    signal?: AbortSignal
-  ): Promise<void> {
-    try {
-      const result = await this.simulateContractCall(
-        contractId,
-        REFLECTOR_CONTRACT_METHODS.ASSETS,
-        [],
-        signal
-      );
-
-      const vecItems = result.vec();
-      if (!vecItems) return;
-
-      for (const assetScVal of vecItems) {
-        const nativeAsset = scValToNative(assetScVal);
-        if (Array.isArray(nativeAsset) && nativeAsset.length === 2) {
-          const variantName = nativeAsset[0];
-          const symbolName = nativeAsset[1];
-          if (variantName === 'Other' && typeof symbolName === 'string') {
-            this.assetScValCache.set(symbolName.toUpperCase(), assetScVal);
-          }
-        }
-      }
-    } catch (error) {
-      logger.warn(
-        `Failed to fetch asset ScVals from contract ${contractId}`,
-        error instanceof Error ? error : new Error(String(error))
-      );
-      throw error;
-    }
-  }
-
   private buildManualScVals(assets: readonly string[]): void {
     for (const symbol of assets) {
       if (this.assetScValCache.has(symbol)) continue;
@@ -164,28 +129,21 @@ class ReflectorDataService {
     }
   }
 
-  private async fetchAssetScVals(signal?: AbortSignal): Promise<void> {
+  private async fetchAssetScVals(_signal?: AbortSignal): Promise<void> {
     if (this.assetScValCache.size > 0) return;
 
-    const results = await Promise.allSettled([
-      REFLECTOR_CRYPTO_CONTRACT
-        ? this.fetchAssetScValsForContract(REFLECTOR_CRYPTO_CONTRACT, signal)
-        : Promise.resolve(),
-      REFLECTOR_FOREX_CONTRACT
-        ? this.fetchAssetScValsForContract(REFLECTOR_FOREX_CONTRACT, signal)
-        : Promise.resolve(),
-    ]);
+    // Use manual ScVal building as the PRIMARY path — skip the RPC calls
+    // entirely. The contract's assets() method returns ScVals with variant
+    // 'Other' (scvU32(1)) + symbol name, which is exactly what
+    // buildManualScVals produces. Eliminating these 2 network round-trips
+    // from the critical path is the key fix for transient timeout failures:
+    // fetchLatestPrice previously made 5+ sequential RPC calls, and a single
+    // slow Stellar RPC response could exhaust the withOracleRetry 15s budget,
+    // causing every Reflector feed in the batch to fail.
+    this.buildManualScVals(REFLECTOR_CRYPTO_ASSETS);
+    this.buildManualScVals(REFLECTOR_FOREX_ASSETS);
 
-    if (results[0].status === 'rejected') {
-      logger.warn('Falling back to manual ScVal building for crypto assets');
-      this.buildManualScVals(REFLECTOR_CRYPTO_ASSETS);
-    }
-    if (results[1].status === 'rejected') {
-      logger.warn('Falling back to manual ScVal building for forex assets');
-      this.buildManualScVals(REFLECTOR_FOREX_ASSETS);
-    }
-
-    logger.info(`Cached ${this.assetScValCache.size} asset ScVals from Reflector contracts`);
+    logger.info(`Built ${this.assetScValCache.size} asset ScVals manually (skipped RPC)`);
   }
 
   private async simulateContractCall(
@@ -339,10 +297,13 @@ class ReflectorDataService {
         confidence = Math.min(confidence, 0.45);
       }
 
-      const [resolution, version] = await Promise.all([
-        this.fetchResolution(contractId, signal).catch(() => null),
-        this.fetchVersion(contractId, signal).catch(() => null),
-      ]);
+      // Fire-and-forget: resolution and version are optional metadata that
+      // shouldn't block price delivery. They're cached for the process
+      // lifetime but not awaited — a slow RPC here can't hold up the price
+      // result. Previously these were awaited via Promise.all, adding up to
+      // 15s to the critical path when the Stellar RPC was slow.
+      this.fetchResolution(contractId, signal).catch(() => {});
+      this.fetchVersion(contractId, signal).catch(() => {});
 
       const priceData: PriceData = {
         provider: OracleProvider.REFLECTOR,
@@ -353,8 +314,8 @@ class ReflectorDataService {
         confidence,
         source: 'reflector',
         dataSource: decimalsResult.isFallback ? 'fallback' : 'real',
-        resolution: resolution ?? undefined,
-        contractVersion: version ?? undefined,
+        resolution: this.resolutionCache.get(contractId) ?? undefined,
+        contractVersion: this.versionCache.get(contractId) ?? undefined,
         ingestionTimestamp: Date.now(),
         metadataFallback: decimalsResult.isFallback || undefined,
         failureMode: decimalsResult.isFallback ? FailureMode.FALLBACK_METADATA : FailureMode.NONE,
