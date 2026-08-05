@@ -144,7 +144,7 @@ describe('oracleSafetyAttestationV2', () => {
     // PASS with 4 providers (≥3) → SUFFICIENT coverage.
     const sufficient = await buildMessage(baseInput({ participantCount: 4 }));
     expect(sufficient.coverageStatus).toBe('SUFFICIENT');
-    expect(sufficient.requiredParticipantCount).toBe(BigInt(V2_REQUIRED_PARTICIPANT_COUNT));
+    expect(sufficient.requiredParticipantCount).toBe(V2_REQUIRED_PARTICIPANT_COUNT);
 
     // Below the quorum floor → INSUFFICIENT coverage (the verdict escalation to
     // BLOCK happens in the rule engine; here we only assert the status field).
@@ -155,9 +155,9 @@ describe('oracleSafetyAttestationV2', () => {
   it('pins independenceStatus=UNASSESSED + sourceGroupCount=0 (v2.0)', async () => {
     const msg = await buildMessage(baseInput());
     expect(msg.independenceStatus).toBe('UNASSESSED');
-    expect(msg.sourceGroupCount).toBe(0n);
+    expect(msg.sourceGroupCount).toBe(0);
     expect(msg.evaluationScope).toBe('SOURCE_ASSET_ONLY');
-    expect(msg.schemaVersion).toBe(2n);
+    expect(msg.schemaVersion).toBe(2);
   });
 
   it('binds requestHash / reasonCodesHash / providerObservationsHash to the inputs', async () => {
@@ -198,8 +198,8 @@ describe('oracleSafetyAttestationV2', () => {
 
   it('sets validUntil = checkedAt + validForSeconds', async () => {
     const msg = await buildMessage(baseInput());
-    expect(msg.checkedAt).toBe(1700000000n);
-    expect(msg.validUntil).toBe(1700000000n + BigInt(V2_VALID_FOR_SECONDS));
+    expect(msg.checkedAt).toBe(1700000000);
+    expect(msg.validUntil).toBe(1700000000 + V2_VALID_FOR_SECONDS);
   });
 
   it('is deterministic: identical inputs produce identical UIDs', async () => {
@@ -217,5 +217,25 @@ describe('oracleSafetyAttestationV2', () => {
     const mod = await import('../oracleSafetyAttestationV2');
     const att = await mod.signAttestationV2(baseInput());
     expect(att!.uid).toBe('0x6822cdca18d73ed65d0913506bd14db3b183692140924110d06acca703797c4b');
+  });
+
+  it('survives a JSON round trip and still verifies (wire compatibility)', async () => {
+    // The attestation travels through API responses and the verify endpoint's
+    // JSON body. bigint fields can't be JSON-serialized, so the public data
+    // stores numbers and the crypto layer widens back to bigint. This test
+    // proves the round trip is lossless: serialize → parse → verify === valid.
+    const mod = await import('../oracleSafetyAttestationV2');
+    const att = await mod.signAttestationV2(baseInput());
+    // JSON.stringify throws on bigint — if any field were still bigint this
+    // would throw and fail the test.
+    const wire = JSON.parse(JSON.stringify(att)) as typeof att;
+    expect(wire).not.toBeNull();
+    // Numbers survived as numbers (not coerced to strings).
+    expect(typeof wire!.data.subjectChainId).toBe('number');
+    expect(typeof wire!.data.checkedAt).toBe('number');
+
+    const result = await mod.verifyAttestationV2(wire!);
+    expect(result.valid).toBe(true);
+    expect(result.uid).toBe(att!.uid);
   });
 });

@@ -27,6 +27,18 @@ const PreTradeQuerySchema = z.object({
     .string()
     .optional()
     .describe('Optional lending protocol id to evaluate against (e.g. aave-v3-ethereum)'),
+  schemaVersion: z
+    .union([z.literal(1), z.literal(2)])
+    .optional()
+    .describe(
+      'Attestation schema version: 1 (default, 11-field) or 2 (26-field, CAIP-19 + quorum gate)'
+    ),
+  destinationAsset: z
+    .string()
+    .optional()
+    .describe(
+      'Optional destination asset symbol (v2 binds it as destinationAssetId; not evaluated in v2.0)'
+    ),
 });
 
 export const OPTIONS = createOptionsHandler();
@@ -51,6 +63,8 @@ export const GET = createApiHandler(
               .filter(Boolean)
           : undefined,
         protocolId: query.protocolId,
+        schemaVersion: query.schemaVersion,
+        destinationAsset: query.destinationAsset,
       },
       { apiKeyId: context.auth?.apiKey?.keyId }
     );

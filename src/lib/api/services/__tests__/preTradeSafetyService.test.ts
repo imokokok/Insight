@@ -1,4 +1,5 @@
 import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
+import { signAttestationV2 } from '@/lib/attestations/oracleSafetyAttestationV2';
 import { UnsupportedSymbolError } from '@/lib/errors';
 import { getModelStatus, scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
@@ -44,6 +45,14 @@ jest.mock('@/lib/ml/inference', () => ({
   getModelStatus: jest.fn(() => ({ active: false, trainedAt: null, metrics: {} })),
 }));
 
+// Mock the v2 signer so v2 service tests assert the ROUTING/PLUMBING (CAIP-19
+// ids, provider observations, quorum gate) without a live attester key. The v2
+// module's V2_REQUIRED_PARTICIPANT_COUNT must stay real (drives the quorum gate).
+jest.mock('@/lib/attestations/oracleSafetyAttestationV2', () => ({
+  V2_REQUIRED_PARTICIPANT_COUNT: 3,
+  signAttestationV2: jest.fn(),
+}));
+
 const mockedGetConsensusPrice = getConsensusPrice as jest.MockedFunction<typeof getConsensusPrice>;
 const mockedSnapshots = calculateAllStablecoinSnapshots as jest.MockedFunction<
   typeof calculateAllStablecoinSnapshots
@@ -58,6 +67,7 @@ const mockedScorePreTradeMultiHorizon = scorePreTradeMultiHorizon as jest.Mocked
   typeof scorePreTradeMultiHorizon
 >;
 const mockedGetModelStatus = getModelStatus as jest.MockedFunction<typeof getModelStatus>;
+const mockedSignAttestationV2 = signAttestationV2 as jest.MockedFunction<typeof signAttestationV2>;
 
 // ---------------------------------------------------------------------------
 // Builders
@@ -165,6 +175,13 @@ beforeEach(() => {
   // resetMocks wipes the factory default; re-establish so getModelStatus()
   // returns a valid object (mlModelVersion = null) instead of undefined.
   mockedGetModelStatus.mockReturnValue({ active: false, trainedAt: null, metrics: {} });
+  // Default: v2 signer returns a stub so result.attestation is non-null when
+  // schemaVersion=2 is exercised. Individual tests override as needed.
+  mockedSignAttestationV2.mockResolvedValue({
+    uid: '0xV2STUB',
+    schemaVersion: 2,
+    attester: '0xV2ATTESTER',
+  } as never);
 });
 
 // ---------------------------------------------------------------------------
@@ -617,5 +634,111 @@ describe('preTradeSafetyCheck — ML score plumbing', () => {
     expect(result.manipulationRiskScore).toBeGreaterThanOrEqual(0);
     // No 24h history available (supabase mocked) -> anomaly layer degrades to 0.
     expect(result.anomalyScore).toBe(0);
+  });
+});
+
+describe('preTradeSafetyCheck — v2 schema', () => {
+  it('quorum gate: <3 providers escalates to BLOCK + INSUFFICIENT_COVERAGE (v2 only)', async () => {
+    // 1 provider — would PASS under v1, but v2's quorum gate forces BLOCK.
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
+
+    const result = await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+
+    expect(result.verdict).toBe('BLOCK');
+    const factor = result.contributingFactors.find((f) => f.rule === 'oracle_coverage');
+    expect(factor).toBeDefined();
+    expect(factor?.triggeredVerdict).toBe('BLOCK');
+    expect(factor?.value).toBe(1);
+    expect(factor?.threshold).toBe(3);
+  });
+
+  it('quorum gate: ≥3 providers stays PASS (no INSUFFICIENT_COVERAGE factor)', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider }),
+      makeProvider({ provider: 'redstone' as OracleProvider }),
+      makeProvider({ provider: 'api3' as OracleProvider }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+
+    expect(result.verdict).toBe('PASS');
+    expect(result.contributingFactors.find((f) => f.rule === 'oracle_coverage')).toBeUndefined();
+  });
+
+  it('v1 (default) does NOT apply the quorum gate — 1 provider still PASS', async () => {
+    // Proves the gate is v2-only: same 1-provider input, no schemaVersion → PASS.
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
+
+    const result = await preTradeSafetyCheck(makeInput());
+
+    expect(result.verdict).toBe('PASS');
+    expect(mockedSignAttestationV2).not.toHaveBeenCalled();
+  });
+
+  it('v2 routes to signAttestationV2 with CAIP-19 source/destination ids + observations', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860.5 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 1859.8 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(
+      makeInput({ schemaVersion: 2, destinationAsset: 'USDC' })
+    );
+
+    expect(mockedSignAttestationV2).toHaveBeenCalledTimes(1);
+    const arg = mockedSignAttestationV2.mock.calls[0][0];
+    // CAIP-19 pair binding (real resolution, not mocked).
+    expect(arg.sourceAssetId).toBe('eip155:1/slip44:60'); // ETH native
+    expect(arg.destinationAssetId).toBe(
+      'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+    ); // USDC
+    expect(arg.subjectChainId).toBe(1);
+    expect(arg.participantCount).toBe(3);
+    // Provider observations are built from consensus.providers.
+    expect(arg.providerObservations).toHaveLength(3);
+    expect(arg.providerObservations[0].provider).toBe('chainlink');
+    // Stubbed v2 attestation flows into the result.
+    expect(result.attestation?.schemaVersion).toBe(2);
+  });
+
+  it('v2 destinationAsset defaults to the source asset when omitted (degenerate pair)', async () => {
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus([
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+        makeProvider({ provider: 'redstone' as OracleProvider }),
+        makeProvider({ provider: 'api3' as OracleProvider }),
+      ])
+    );
+
+    await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+
+    const arg = mockedSignAttestationV2.mock.calls[0][0];
+    expect(arg.sourceAssetId).toBe(arg.destinationAssetId);
+    expect(arg.sourceAssetId).toBe('eip155:1/slip44:60');
+  });
+
+  it('v2 skips the attestation (null) when the source asset is unresolvable to CAIP-19', async () => {
+    // Exotic symbol with oracle coverage but no token-registry entry → CAIP-19
+    // null. The verdict is unaffected; only the attestation is skipped.
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus(
+        [
+          makeProvider({ provider: 'chainlink' as OracleProvider }),
+          makeProvider({ provider: 'redstone' as OracleProvider }),
+          makeProvider({ provider: 'api3' as OracleProvider }),
+        ],
+        { symbol: 'EXOTIC' }
+      )
+    );
+
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'EXOTIC', schemaVersion: 2 }));
+
+    expect(mockedSignAttestationV2).not.toHaveBeenCalled();
+    expect(result.attestation).toBeNull();
+    // Verdict still computed normally (quorum passes with 3 providers).
+    expect(result.verdict).toBe('PASS');
   });
 });

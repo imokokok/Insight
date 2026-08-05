@@ -168,7 +168,7 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
       lines.push(`- Attester: ${a.attester} (${a.attesterLabel})`);
       lines.push(`- UID: ${a.uid}`);
       lines.push(
-        `- Verdict: ${a.data.verdict} @ ${new Date(a.data.checkedAt * 1000).toISOString()}`
+        `- Verdict: ${a.data.verdict} @ ${new Date(Number(a.data.checkedAt) * 1000).toISOString()}`
       );
       lines.push(`- Valid for: ${a.validForSeconds}s`);
       lines.push(`- Verify at: POST ${a.verifyUrl} with body { "attestation": <object> }`);

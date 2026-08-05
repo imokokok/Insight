@@ -63,9 +63,16 @@ const PCT_SCALE = 100; // percent (e.g. 1.5%) → bps (150) → uint256
 const AGREEMENT_SCALE = 1e4; // 0..1 agreement → uint256
 const MANIP_SCALE = 1e4; // 0..1 manipulation risk → uint256
 
-function toUint(n: number, scale: number): bigint {
-  if (!Number.isFinite(n)) return 0n;
-  return BigInt(Math.max(0, Math.round(n * scale)));
+/** Returns a JSON-serializable uint256-encoded number. viem's EIP-712 crypto
+ *  ops require bigint, so the public {@link AttestationDataV2} stores numbers
+ *  and {@link toBigIntMessageV2} widens them back only for hashTypedData /
+ *  verifyTypedData — mirroring v1's design (JSON can't serialize bigint, and a
+ *  verify endpoint receives numbers, not bigints, off the wire). All values
+ *  stay well under Number.MAX_SAFE_INTEGER (prices ×1e8, USD ×1e6, unix seconds,
+ *  counts), so the number↔bigint round trip is exact. */
+function toUint(n: number, scale: number): number {
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.round(n * scale));
 }
 
 // ---------------------------------------------------------------------------
@@ -133,7 +140,53 @@ function deriveCoverageStatus(participantCount: number): CoverageStatus {
 // Signed message shape
 // ---------------------------------------------------------------------------
 
+/**
+ * The 26 signed fields as JSON-serializable numbers / hex strings. uint256
+ * fields are stored as `number` (NOT bigint) so the attestation can travel
+ * through the API response and the verify endpoint's JSON body without
+ * serialization breakage. {@link toBigIntMessageV2} widens these back to
+ * bigint for viem's EIP-712 hashTypedData / verifyTypedData calls.
+ *
+ * Hash fields (`reasonCodesHash` / `requestHash` / `evaluatedAssetIdsHash` /
+ * `providerObservationsHash`) are `0x${string}` — hex survives JSON round trips
+ * unchanged and viem accepts hex for `bytes32`.
+ */
 export interface AttestationDataV2 {
+  verdict: string;
+  sourceAssetId: string;
+  destinationAssetId: string;
+  subjectChainId: number;
+  action: string;
+  tradeAmountUsd: number;
+  consensusPrice: number;
+  maxDeviationBps: number;
+  manipulationRiskBps: number;
+  participantCount: number;
+  requiredParticipantCount: number;
+  coverageStatus: CoverageStatus;
+  independenceStatus: IndependenceStatus;
+  sourceGroupCount: number;
+  crossProviderAgreementBps: number;
+  maxStablecoinDepegBps: number;
+  maxDataAgeSeconds: number;
+  recommendedMaxPositionUsd: number;
+  reasonCodesHash: `0x${string}`;
+  requestHash: `0x${string}`;
+  evaluationScope: EvaluationScope;
+  evaluatedAssetIdsHash: `0x${string}`;
+  providerObservationsHash: `0x${string}`;
+  validUntil: number;
+  checkedAt: number;
+  schemaVersion: number;
+}
+
+/**
+ * BigInt twin of {@link AttestationDataV2}. viem's EIP-712 crypto ops require
+ * bigint for `uint256` fields; this is the shape fed to hashTypedData /
+ * verifyTypedData. It is NEVER serialized to JSON (the public attestation
+ * carries the number-valued {@link AttestationDataV2} instead).
+ */
+interface V2BigIntMessage {
   verdict: string;
   sourceAssetId: string;
   destinationAssetId: string;
@@ -145,8 +198,8 @@ export interface AttestationDataV2 {
   manipulationRiskBps: bigint;
   participantCount: bigint;
   requiredParticipantCount: bigint;
-  coverageStatus: CoverageStatus;
-  independenceStatus: IndependenceStatus;
+  coverageStatus: string;
+  independenceStatus: string;
   sourceGroupCount: bigint;
   crossProviderAgreementBps: bigint;
   maxStablecoinDepegBps: bigint;
@@ -154,12 +207,45 @@ export interface AttestationDataV2 {
   recommendedMaxPositionUsd: bigint;
   reasonCodesHash: `0x${string}`;
   requestHash: `0x${string}`;
-  evaluationScope: EvaluationScope;
+  evaluationScope: string;
   evaluatedAssetIdsHash: `0x${string}`;
   providerObservationsHash: `0x${string}`;
   validUntil: bigint;
   checkedAt: bigint;
   schemaVersion: bigint;
+}
+
+/** Widen the JSON-serializable {@link AttestationDataV2} to its bigint twin
+ *  for viem EIP-712 crypto ops. Pure / synchronous / deterministic. */
+function toBigIntMessageV2(data: AttestationDataV2): V2BigIntMessage {
+  return {
+    verdict: data.verdict,
+    sourceAssetId: data.sourceAssetId,
+    destinationAssetId: data.destinationAssetId,
+    subjectChainId: BigInt(data.subjectChainId),
+    action: data.action,
+    tradeAmountUsd: BigInt(data.tradeAmountUsd),
+    consensusPrice: BigInt(data.consensusPrice),
+    maxDeviationBps: BigInt(data.maxDeviationBps),
+    manipulationRiskBps: BigInt(data.manipulationRiskBps),
+    participantCount: BigInt(data.participantCount),
+    requiredParticipantCount: BigInt(data.requiredParticipantCount),
+    coverageStatus: data.coverageStatus,
+    independenceStatus: data.independenceStatus,
+    sourceGroupCount: BigInt(data.sourceGroupCount),
+    crossProviderAgreementBps: BigInt(data.crossProviderAgreementBps),
+    maxStablecoinDepegBps: BigInt(data.maxStablecoinDepegBps),
+    maxDataAgeSeconds: BigInt(data.maxDataAgeSeconds),
+    recommendedMaxPositionUsd: BigInt(data.recommendedMaxPositionUsd),
+    reasonCodesHash: data.reasonCodesHash,
+    requestHash: data.requestHash,
+    evaluationScope: data.evaluationScope,
+    evaluatedAssetIdsHash: data.evaluatedAssetIdsHash,
+    providerObservationsHash: data.providerObservationsHash,
+    validUntil: BigInt(data.validUntil),
+    checkedAt: BigInt(data.checkedAt),
+    schemaVersion: BigInt(data.schemaVersion),
+  };
 }
 
 /** Raw (un-scaled) inputs the pre-trade service provides. Hash + status fields
@@ -213,8 +299,8 @@ async function computeEvaluatedAssetIdsHash(evaluatedAssetIds: string[]): Promis
 
 export async function buildMessage(input: AttestationInputV2): Promise<AttestationDataV2> {
   const checkedAtMs = input.checkedAtMs ?? Date.now();
-  const checkedAt = BigInt(Math.floor(checkedAtMs / 1000));
-  const validUntil = checkedAt + BigInt(V2_VALID_FOR_SECONDS);
+  const checkedAt = Math.floor(checkedAtMs / 1000);
+  const validUntil = checkedAt + V2_VALID_FOR_SECONDS;
 
   // Derived hash commitments — pure functions of the inputs.
   const requestHash = computeRequestHash({
@@ -237,20 +323,20 @@ export async function buildMessage(input: AttestationInputV2): Promise<Attestati
     verdict: input.verdict,
     sourceAssetId: input.sourceAssetId,
     destinationAssetId: input.destinationAssetId,
-    subjectChainId: BigInt(input.subjectChainId),
+    subjectChainId: input.subjectChainId,
     action: input.action,
     tradeAmountUsd: toUint(input.tradeAmountUsd, USD_SCALE),
     consensusPrice: toUint(input.consensusPrice, PRICE_SCALE),
     maxDeviationBps: toUint(input.maxDeviationPct, PCT_SCALE),
     manipulationRiskBps: toUint(input.manipulationRiskScore, MANIP_SCALE),
-    participantCount: BigInt(Math.max(0, Math.floor(input.participantCount))),
-    requiredParticipantCount: BigInt(V2_REQUIRED_PARTICIPANT_COUNT),
+    participantCount: Math.max(0, Math.floor(input.participantCount)),
+    requiredParticipantCount: V2_REQUIRED_PARTICIPANT_COUNT,
     coverageStatus: deriveCoverageStatus(input.participantCount),
     independenceStatus: 'UNASSESSED',
-    sourceGroupCount: 0n,
+    sourceGroupCount: 0,
     crossProviderAgreementBps: toUint(input.crossProviderAgreement, AGREEMENT_SCALE),
     maxStablecoinDepegBps: toUint(input.maxStablecoinDepegPct, PCT_SCALE),
-    maxDataAgeSeconds: BigInt(Math.max(0, Math.floor(input.maxDataAgeSeconds))),
+    maxDataAgeSeconds: Math.max(0, Math.floor(input.maxDataAgeSeconds)),
     recommendedMaxPositionUsd: toUint(input.recommendedMaxPositionUsd, USD_SCALE),
     reasonCodesHash,
     requestHash,
@@ -259,17 +345,20 @@ export async function buildMessage(input: AttestationInputV2): Promise<Attestati
     providerObservationsHash,
     validUntil,
     checkedAt,
-    schemaVersion: BigInt(V2_SCHEMA_VERSION),
+    schemaVersion: V2_SCHEMA_VERSION,
   };
 }
 
-/** EIP-712 typed-data args (domain + types + message) — shared by sign/verify. */
+/** EIP-712 typed-data args (domain + types + message) — shared by sign/verify.
+ *  The message is widened to its bigint twin here so viem's crypto ops receive
+ *  the uint256 values they require, while the public attestation carries the
+ *  JSON-serializable number-valued data. */
 export function v2TypedDataArgs(message: AttestationDataV2) {
   return {
     domain: V2_DOMAIN,
     types: V2_TYPES,
     primaryType: V2_PRIMARY_TYPE,
-    message,
+    message: toBigIntMessageV2(message),
   } as const;
 }
 

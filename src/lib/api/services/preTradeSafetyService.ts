@@ -18,10 +18,17 @@
  */
 
 import { computeAnomalyScore, type AnomalyScoreResult } from '@/lib/anomaly/oracleAnomalyDetection';
+import { resolveCaip19 } from '@/lib/attestations/caip19';
 import {
   signAttestation,
   type OracleSafetyAttestation,
 } from '@/lib/attestations/oracleSafetyAttestation';
+import {
+  signAttestationV2,
+  type OracleSafetyAttestationV2,
+  V2_REQUIRED_PARTICIPANT_COUNT,
+} from '@/lib/attestations/oracleSafetyAttestationV2';
+import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import { UnsupportedSymbolError } from '@/lib/errors';
 import {
   getModelStatus,
@@ -58,6 +65,22 @@ export interface PreTradeSafetyInput {
    * cross-oracle deviation consumes a large share of that buffer.
    */
   protocolId?: string;
+  /**
+   * Attestation schema version to issue. v1 (default) preserves the existing
+   * 11-field EIP-712 attestation + the loose (no-quorum-gate) verdict policy.
+   * v2 issues the 26-field attestation (CAIP-19 pair binding, requestHash,
+   * providerObservationsHash, reasonCodesHash, quorum gate) per the locked v2
+   * spec. The verdict itself differs only in that v2 escalates <3 independent
+   * providers to BLOCK (INSUFFICIENT_COVERAGE).
+   */
+  schemaVersion?: 1 | 2;
+  /**
+   * Optional destination asset symbol (the other leg of a swap). v2 binds it as
+   * destinationAssetId (CAIP-19) but does NOT evaluate it (evaluationScope =
+   * SOURCE_ASSET_ONLY in v2.0). When omitted, destinationAssetId falls back to
+   * the source asset id (degenerate self-pair) so the binding is still valid.
+   */
+  destinationAsset?: string;
 }
 
 /**
@@ -156,7 +179,7 @@ export interface PreTradeSafetyResult {
    * system check. null when no attester key is configured (feature disabled) or
    * signing fails — never affects the verdict itself.
    */
-  attestation: OracleSafetyAttestation | null;
+  attestation: OracleSafetyAttestation | OracleSafetyAttestationV2 | null;
   evaluatedAt: string;
   latencyMs: number;
 }
@@ -608,6 +631,105 @@ async function computeProtocolSafety(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Attestation issuance (v1 / v2 routing)
+// ---------------------------------------------------------------------------
+
+const OBS_PRICE_SCALE = 1e8; // provider observation prices → uint256 (matches v2)
+
+/**
+ * Build the canonical provider-observation entries for the v2
+ * providerObservationsHash from the consensus response. Each entry binds the
+ * evidence source (provider), the observed value, freshness, and inclusion
+ * status. `feedId` is left empty in v2.0 — feed-level granularity would require
+ * an oracle_feeds lookup (a hot-path DB read this service deliberately avoids);
+ * the provider namespace is the primary evidence key and is sufficient for the
+ * v2.0 binding. Outlier providers remain `included` (they contributed to the
+ * consensus); only unsupported/error providers are marked excluded.
+ */
+function buildProviderObservations(consensus: ConsensusPriceResponse): ProviderObservationEntry[] {
+  return consensus.providers.map((p) => {
+    const included = p.status === 'success';
+    let exclusionReason = '';
+    if (!included) {
+      exclusionReason = p.status === 'unsupported' ? 'UNSUPPORTED' : 'ERROR';
+    }
+    return {
+      provider: p.provider,
+      feedId: '',
+      value: BigInt(Math.max(0, Math.round(p.price * OBS_PRICE_SCALE))),
+      timestamp: BigInt(Math.floor((p.timestamp ?? Date.now()) / 1000)),
+      dataAgeSeconds: BigInt(Math.max(0, Math.floor(p.dataAgeSeconds ?? 0))),
+      included,
+      exclusionReason,
+    };
+  });
+}
+
+/**
+ * Issue the attestation for the check, routing by schemaVersion. v1 preserves
+ * the existing 11-field attestation + caller contract exactly. v2 issues the
+ * 26-field attestation (CAIP-19 pair binding + the three hash commitments).
+ *
+ * v2 CAIP-19 resolution is best-effort: if the source asset can't be resolved
+ * to a canonical CAIP-19 id (e.g. an exotic symbol absent from the token
+ * registry), the attestation is skipped (null) with a warning — the verdict is
+ * unaffected (the attestation is a non-blocking positioning layer).
+ */
+async function issueAttestation(
+  input: PreTradeSafetyInput,
+  result: PreTradeSafetyResult,
+  consensus: ConsensusPriceResponse,
+  aggregates: { maxAge: number; worstDepegPct: number }
+): Promise<OracleSafetyAttestation | OracleSafetyAttestationV2 | null> {
+  // v1 path (default) — unchanged behavior.
+  if (input.schemaVersion !== 2) {
+    return signAttestation({
+      verdict: result.verdict,
+      asset: input.asset,
+      chainId: input.chainId,
+      action: input.action,
+      tradeAmountUsd: input.tradeAmountUsd,
+      consensusPrice: result.consensusPrice,
+      maxDeviationPct: result.maxDeviationPct,
+      manipulationRiskScore: result.manipulationRiskScore,
+      participantCount: result.participantCount,
+    });
+  }
+
+  // v2 path — resolve CAIP-19 pair, then sign the 26-field attestation.
+  const sourceAsset = resolveCaip19(input.asset, input.chainId);
+  if (!sourceAsset) {
+    logger.warn('v2 attestation skipped: source asset unresolvable to CAIP-19', {
+      asset: input.asset,
+      chainId: input.chainId,
+    });
+    return null;
+  }
+  const destSymbol = input.destinationAsset ?? input.asset;
+  const destinationAsset = resolveCaip19(destSymbol, input.chainId);
+  const destinationAssetId = destinationAsset?.id ?? sourceAsset.id;
+
+  return signAttestationV2({
+    verdict: result.verdict,
+    sourceAssetId: sourceAsset.id,
+    destinationAssetId,
+    subjectChainId: input.chainId,
+    action: input.action,
+    tradeAmountUsd: input.tradeAmountUsd,
+    consensusPrice: result.consensusPrice,
+    maxDeviationPct: result.maxDeviationPct,
+    manipulationRiskScore: result.manipulationRiskScore,
+    participantCount: result.participantCount,
+    crossProviderAgreement: result.crossProviderAgreement,
+    maxStablecoinDepegPct: aggregates.worstDepegPct,
+    maxDataAgeSeconds: aggregates.maxAge,
+    recommendedMaxPositionUsd: result.recommendedMaxPositionUsd,
+    contributingFactors: result.contributingFactors,
+    providerObservations: buildProviderObservations(consensus),
+  });
+}
+
 /**
  * Run a pre-trade oracle safety check.
  *
@@ -942,6 +1064,29 @@ export async function preTradeSafetyCheck(
     warnings.push(`Outlier providers detected: ${outliers.join(', ')}.`);
   }
 
+  // Worst active stablecoin depeg (0 when none) — feeds the v2 signed
+  // maxStablecoinDepegBps field.
+  const worstDepegPct =
+    depegWarnings.length > 0 ? Math.max(...depegWarnings.map((w) => w.deviationPct)) : 0;
+
+  // 10. v2 quorum gate (v2 only). v1 keeps its looser policy so existing
+  // callers/tests are unaffected. v2 escalates <3 independent providers to
+  // BLOCK + INSUFFICIENT_COVERAGE — Raul's locked "no single-provider verdicts"
+  // stance. This is a verdict-level rule (independent of the attestation).
+  if (input.schemaVersion === 2 && consensus.participantCount < V2_REQUIRED_PARTICIPANT_COUNT) {
+    verdict = pickWorst(verdict, 'BLOCK');
+    contributingFactors.push({
+      rule: 'oracle_coverage',
+      value: consensus.participantCount,
+      threshold: V2_REQUIRED_PARTICIPANT_COUNT,
+      triggeredVerdict: 'BLOCK',
+      message: `Only ${consensus.participantCount} independent oracle provider(s) for ${input.asset} on chain ${input.chainId}; v2 requires ≥${V2_REQUIRED_PARTICIPANT_COUNT} (INSUFFICIENT_COVERAGE).`,
+    });
+    warnings.push(
+      `v2 quorum gate: ${consensus.participantCount} provider(s) < required ${V2_REQUIRED_PARTICIPANT_COUNT}.`
+    );
+  }
+
   void startedAtMs; // marker for future per-phase timing
 
   const result: PreTradeSafetyResult = {
@@ -971,16 +1116,9 @@ export async function preTradeSafetyCheck(
   };
 
   try {
-    result.attestation = await signAttestation({
-      verdict: result.verdict,
-      asset: input.asset,
-      chainId: input.chainId,
-      action: input.action,
-      tradeAmountUsd: input.tradeAmountUsd,
-      consensusPrice: result.consensusPrice,
-      maxDeviationPct: result.maxDeviationPct,
-      manipulationRiskScore: result.manipulationRiskScore,
-      participantCount: result.participantCount,
+    result.attestation = await issueAttestation(input, result, consensus, {
+      maxAge,
+      worstDepegPct,
     });
   } catch (error) {
     logger.warn('Failed to issue attestation', {
