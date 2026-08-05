@@ -25,6 +25,16 @@ const REDSTONE_CACHE_TTL = {
   PRICE: 10000,
 };
 
+// Per-request hard timeout. The fetch call in fetchRealPrice has no native
+// timeout (the external `signal` is undefined when called from the snapshot
+// collector). Without this, a hung RedStone API connection is never cancelled
+// — withOracleRetry's withTimeout rejects the promise after 15s but the
+// underlying socket stays open, and the raw AbortError's "abort" message
+// causes shouldRetry to give up instead of retrying. This per-request
+// AbortController ensures the fetch is properly cancelled and the error is
+// classified as TIMEOUT_ERROR (which is retryable).
+const REDSTONE_REQUEST_TIMEOUT_MS = 10000;
+
 interface RedStonePriceResponse {
   symbol: string;
   value: number;
@@ -112,6 +122,30 @@ export class RedStoneClient extends BaseOracleClient {
       const result = await withOracleRetry(
         async () => {
           attemptCount++;
+
+          // Per-request AbortController with hard timeout. Ensures the fetch
+          // is actually cancelled on timeout (not just the promise rejected)
+          // and that the error is classified as TIMEOUT_ERROR so shouldRetry
+          // retries it. A raw AbortError's message contains "abort" which
+          // shouldRetry explicitly does NOT retry, so we intercept it here.
+          const controller = new AbortController();
+          let timedOut = false;
+          const timeoutId = setTimeout(() => {
+            timedOut = true;
+            controller.abort();
+          }, REDSTONE_REQUEST_TIMEOUT_MS);
+
+          // Propagate external abort (e.g. caller cancellation) to the
+          // internal controller so the fetch is cancelled immediately.
+          if (signal) {
+            if (signal.aborted) {
+              clearTimeout(timeoutId);
+              controller.abort();
+            } else {
+              signal.addEventListener('abort', () => controller.abort(), { once: true });
+            }
+          }
+
           try {
             const response = await fetch(
               `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&provider=redstone-rapid`,
@@ -120,7 +154,7 @@ export class RedStoneClient extends BaseOracleClient {
                 headers: {
                   Accept: 'application/json',
                 },
-                signal,
+                signal: controller.signal,
               }
             );
 
@@ -159,6 +193,18 @@ export class RedStoneClient extends BaseOracleClient {
             if (error instanceof OracleProviderError) {
               throw error;
             }
+            // If our per-request timeout fired, classify as TIMEOUT_ERROR
+            // (retryable) instead of letting the raw AbortError propagate —
+            // its "abort" message would cause shouldRetry to give up.
+            if (timedOut) {
+              throw new OracleProviderError(
+                `Request timeout after ${REDSTONE_REQUEST_TIMEOUT_MS}ms: ${symbol}`,
+                'redstone',
+                'TIMEOUT_ERROR',
+                { symbol, attemptCount },
+                error instanceof Error ? error : undefined
+              );
+            }
             const errorCode = this.classifyError(error);
             throw new OracleProviderError(
               `Failed to fetch price: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -167,6 +213,8 @@ export class RedStoneClient extends BaseOracleClient {
               { symbol, attemptCount },
               error instanceof Error ? error : undefined
             );
+          } finally {
+            clearTimeout(timeoutId);
           }
         },
         'fetchRealPrice',
