@@ -23,6 +23,10 @@
 
 import { createLogger } from '@/lib/utils/logger';
 
+import { getAttesterAccount } from './attesterAccount';
+// Re-export so v1's public surface (getAttesterAddress) is unchanged.
+export { getAttesterAddress } from './attesterAccount';
+
 const logger = createLogger('OracleSafetyAttestation');
 
 /** Schema version — bump when the EIP-712 type layout changes. */
@@ -178,43 +182,6 @@ function getVerifyUrl(): string {
   return `${base}/api/v1/safety/attestation/verify`;
 }
 
-// viem is imported lazily so this module never crashes at import time if the
-// optional attester key is unset — and so the (heavy) crypto code is only
-// pulled into the server bundle when actually used.
-let cachedAccount: { address: string; signTypedData: (args: unknown) => Promise<string> } | null =
-  null;
-let accountInitAttempted = false;
-
-async function getAttesterAccount(): Promise<{
-  address: string;
-  signTypedData: (args: unknown) => Promise<string>;
-} | null> {
-  if (accountInitAttempted) return cachedAccount;
-  accountInitAttempted = true;
-
-  const privateKey = process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
-  if (!privateKey) {
-    // Feature disabled — expected in dev / until the operator provisions a key.
-    return null;
-  }
-
-  try {
-    const { privateKeyToAccount } = await import('viem/accounts');
-    const account = privateKeyToAccount(privateKey as `0x${string}`);
-    cachedAccount = {
-      address: account.address,
-      signTypedData: account.signTypedData as (args: unknown) => Promise<string>,
-    };
-    logger.info('Attester account loaded', { address: account.address });
-    return cachedAccount;
-  } catch (error) {
-    logger.warn('Failed to load attester account; attestations disabled', {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return null;
-  }
-}
-
 /**
  * Sign an EIP-712 attestation over the pre-trade verdict. Returns null when no
  * attester key is configured or signing fails — the caller MUST treat null as
@@ -346,8 +313,5 @@ export async function verifyAttestation(
 }
 
 /** The platform's attester address, when a key is configured. Used to publish
- *  the trusted signer so third parties can reject attestations from anyone else. */
-export async function getAttesterAddress(): Promise<string | null> {
-  const account = await getAttesterAccount();
-  return account?.address ?? null;
-}
+ *  the trusted signer so third parties can reject attestations from anyone else.
+ *  (Re-exported from ./attesterAccount above — see that module.) */
