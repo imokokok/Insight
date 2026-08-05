@@ -46,7 +46,13 @@ export class API3Client extends BaseOracleClient {
           return api3NetworkService.getPrice(symbol, targetChain, options?.signal);
         },
         'api3:getPrice',
-        ORACLE_RETRY_PRESETS.standard
+        // API3 makes 2 sequential eth_call requests (decimals + read), each
+        // via RpcClientWithFallback iterating up to 3 endpoints (10s per
+        // endpoint = 30s worst case per call). The standard 15s timeout
+        // can't accommodate even one full endpoint iteration when endpoints
+        // are slow. 30s gives one full iteration per call.
+        { ...ORACLE_RETRY_PRESETS.standard, timeout: 30000 },
+        options?.signal
       );
 
       if (!api3Data) {

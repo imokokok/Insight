@@ -211,7 +211,12 @@ class FtsoDataService {
           return await this.ethCall(network, ftsoV2Address, data, signal);
         },
         'ftso:fetchPrice',
-        ORACLE_RETRY_PRESETS.standard
+        // Flare uses RpcClientWithFallback which iterates multiple endpoints
+        // (10s per endpoint). The standard 15s timeout can't accommodate a
+        // full endpoint iteration when endpoints are slow. 30s gives one
+        // full iteration.
+        { ...ORACLE_RETRY_PRESETS.standard, timeout: 30000 },
+        signal
       );
 
       const feedData = this.decodeFeedResult(result);

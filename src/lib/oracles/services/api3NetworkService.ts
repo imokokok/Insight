@@ -215,21 +215,29 @@ async function readDAPIPrice(
   signal?: AbortSignal
 ): Promise<PriceReading | null> {
   try {
-    const decimalsResult = await readDecimalsFromContract(proxyAddress, chainId, signal);
     const data = encodeFunctionData('read', DAPI_PROXY_ABI);
 
-    const result = await rpcCall(
-      chainId,
-      'eth_call',
-      [
-        {
-          to: proxyAddress,
-          data,
-        },
-        'latest',
-      ],
-      signal
-    );
+    // Run decimals and price reads in parallel — previously these were
+    // sequential, so on cold cache the total was 2 × (3 endpoints × 10s)
+    // = 60s worst case, far exceeding the 30s withOracleRetry timeout.
+    // Parallel execution bounds the total to a single endpoint iteration
+    // (~30s worst case). The decimals result is only needed for decoding
+    // the price AFTER both calls complete, so there's no data dependency.
+    const [decimalsResult, result] = await Promise.all([
+      readDecimalsFromContract(proxyAddress, chainId, signal),
+      rpcCall(
+        chainId,
+        'eth_call',
+        [
+          {
+            to: proxyAddress,
+            data,
+          },
+          'latest',
+        ],
+        signal
+      ),
+    ]);
 
     if (typeof result !== 'string') {
       throw new Error('Invalid RPC response');

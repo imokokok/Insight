@@ -297,7 +297,8 @@ class WINkLinkRealDataService {
           maxDelay: 10000,
           backoffMultiplier: 2,
           timeout: 15000,
-        }
+        },
+        signal
       );
     } catch {
       return null;
@@ -355,7 +356,7 @@ class WINkLinkRealDataService {
             body: JSON.stringify(body),
             signal,
           },
-          15000
+          7000
         );
 
         if (!response.ok) {

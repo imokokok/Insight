@@ -205,7 +205,14 @@ export class ChainlinkClient extends BaseOracleClient {
             return chainlinkOnChainService.getPrice(symbol, chainId, options?.signal);
           },
           'chainlink:getPrice',
-          ORACLE_RETRY_PRESETS.standard
+          // Chainlink makes 4 parallel eth_call requests via
+          // RpcClientWithFallback, which iterates up to 3 endpoints per call
+          // (10s per endpoint = 30s worst case). The standard 15s timeout
+          // can't accommodate a full endpoint iteration when multiple
+          // endpoints are slow, causing all 3 retry attempts to fail without
+          // ever completing the iteration. 30s gives one full iteration.
+          { ...ORACLE_RETRY_PRESETS.standard, timeout: 30000 },
+          options?.signal
         );
 
         if (!realData) {
