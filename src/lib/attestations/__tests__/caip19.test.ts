@@ -142,6 +142,7 @@ describe('resolveCaip19 — Solana (chainId 0)', () => {
   it.each([
     ['WIF', 'solana:0/spl:EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'],
     ['BONK', 'solana:0/spl:DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'],
+    ['POPCAT', 'solana:0/spl:7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr'],
     ['USDC', 'solana:0/spl:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'],
     ['JUP', 'solana:0/spl:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN'],
   ])('resolveCaip19(%s, 0) → %s', (symbol, expected) => {
@@ -258,6 +259,7 @@ describe('determinism (test-vector reproducibility contract)', () => {
     ['BNB', 56, 'eip155:56/slip44:714'],
     ['SOL', 0, 'solana:0/slip44:501'], // Solana native
     ['WIF', 0, 'solana:0/spl:EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'], // Solana SPL
+    ['POPCAT', 0, 'solana:0/spl:7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr'], // Solana SPL
   ];
 
   it('produces stable ids across repeated calls', () => {

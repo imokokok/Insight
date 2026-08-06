@@ -108,6 +108,7 @@ const SOLANA_NATIVE_COIN_TYPE = 501;
 const SOLANA_SPL_TOKEN_ADDRESSES: Record<string, Record<number, string>> = {
   WIF: { [SOLANA_CHAIN_ID]: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm' },
   BONK: { [SOLANA_CHAIN_ID]: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' },
+  POPCAT: { [SOLANA_CHAIN_ID]: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr' },
   // Solana-native stablecoins (canonical Circle-issued / Tether-issued mints)
   USDC: { [SOLANA_CHAIN_ID]: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' },
   USDT: { [SOLANA_CHAIN_ID]: 'Es9vMFwzaM7B4vWvG9kHjKjGP3Vv1MvyJ5zXGjVpRob' },
