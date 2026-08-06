@@ -17,6 +17,7 @@
  *   - reputation                               (already embedded in consensus response)
  */
 
+import type { ConsensusMethod } from '@/lib/analytics/consensusPrice';
 import { computeAnomalyScore, type AnomalyScoreResult } from '@/lib/anomaly/oracleAnomalyDetection';
 import { resolveCaip19 } from '@/lib/attestations/caip19';
 import {
@@ -802,6 +803,40 @@ export async function preTradeSafetyCheck(
       evaluatedAt: new Date().toISOString(),
       latencyMs: Date.now() - startedAt,
     };
+
+    // Even for zero-coverage BLOCKs, sign the attestation. The signed
+    // attestation proves Insight issued the BLOCK, making it provable
+    // downstream. An empty consensus (no providers) is used since no
+    // oracle data was available — the CAIP-19 resolution and remaining
+    // fields still produce a valid, verifiable attestation.
+    try {
+      const emptyConsensus = {
+        symbol: input.asset,
+        chain: chain,
+        consensusPrice: 0,
+        method: 'reference' as ConsensusMethod,
+        recommendedMethod: 'reference' as ConsensusMethod,
+        confidence: 0,
+        confidenceLevel: 'very_low' as const,
+        agreement: 0,
+        participantCount: 0,
+        excludedCount: 0,
+        excludedProviders: [],
+        priceRange: { min: 0, max: 0 },
+        methodResults: {} as Record<ConsensusMethod, number>,
+        providers: [],
+        recommendedProvider: null,
+      } as unknown as ConsensusPriceResponse;
+      result.attestation = await issueAttestation(input, result, emptyConsensus, {
+        maxAge: 0,
+        worstDepegPct: 0,
+      });
+    } catch (error) {
+      logger.warn('Failed to issue attestation for zero-coverage BLOCK', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
     void logAudit(input, result, meta);
     return result;
   }
