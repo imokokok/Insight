@@ -18,6 +18,15 @@ on:
     - cron: '15 */2 * * *'
   workflow_dispatch:
 
+# Prevent overlapping runs. If a run is still queued or in progress when the
+# next 2-hourly schedule fires, the new run queues and waits rather than
+# starting in parallel. cancel-in-progress: false (not true) avoids the
+# cascading-cancellation issue that affected snapshot-collect.yml when the
+# runner fleet was temporarily unavailable.
+concurrency:
+  group: safety-outcome-backfill
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
