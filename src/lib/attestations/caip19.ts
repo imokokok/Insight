@@ -14,19 +14,27 @@
  *                                          asset-id slot.
  *
  * CAIP-19 form used here (no `caip19:` scheme prefix, matching the v2 spec):
- *   - ERC-20 on EVM:  `eip155:{chainId}/erc20:{checksummedAddress}`
- *   - Native gas token: `eip155:{chainId}/slip44:{coinType}`
+ *   - ERC-20 on EVM:        `eip155:{chainId}/erc20:{checksummedAddress}`
+ *   - Native gas token:      `eip155:{chainId}/slip44:{coinType}`
+ *   - Solana SPL token:      `solana:0/spl:{mintAddress}`
+ *   - Solana native (SOL):   `solana:0/slip44:501`
+ *
+ * The chain-agnostic chainId `0` is used for Solana in this project's chain
+ * model. Only tokens explicitly registered in {@link SOLANA_SPL_TOKEN_ADDRESSES}
+ * (or the native SOL via SLIP-44 501) will resolve on chainId 0 — all other
+ * symbols return null, keeping the resolver deterministic and pure.
  *
  * IMPORTANT — source of token addresses:
  *   `oracle_feeds.address` is the oracle FEED identifier (Chainlink feed
  *   contract / Pyth feed ID / API3 dAPI name / DIA asset address / …), NOT a
- *   reliable ERC-20 token contract address. Using it as the CAIP-19 asset
- *   reference would conflate asset identity with evidence source — exactly the
- *   conflation Raul's spec forbids. Instead, real token contract addresses come
- *   from the canonical `TWAP_TOKEN_ADDRESSES` / `ETHEREUM_TOKEN_ADDRESSES`
- *   registries (the same hardcoded addresses TWAP uses for on-chain pool
- *   discovery). These addresses are canonical and immutable per (symbol, chain),
- *   which is what CAIP-19 requires.
+ *   reliable token contract address. Using it as the CAIP-19 asset reference
+ *   would conflate asset identity with evidence source — exactly the conflation
+ *   Raul's spec forbids. Instead, real token contract addresses come from
+ *   canonical hardcoded registries:
+ *     - EVM:   `TWAP_TOKEN_ADDRESSES` / `ETHEREUM_TOKEN_ADDRESSES`
+ *     - Solana: `SOLANA_SPL_TOKEN_ADDRESSES`
+ *   These addresses are canonical and immutable per (symbol, chain), which is
+ *   what CAIP-19 requires.
  *
  * Determinism: the resolver is pure & synchronous — no DB reads — so a given
  * (symbol, chainId) always produces the same CAIP-19 string. This is mandatory
@@ -77,6 +85,48 @@ const NATIVE_ASSETS: Record<string, Record<number, number>> = {
 };
 
 // ---------------------------------------------------------------------------
+// Solana chain — chainId 0 is used for Solana in this project's chain model.
+// ---------------------------------------------------------------------------
+
+/** Project-internal chainId used for Solana (chain-agnostic). */
+const SOLANA_CHAIN_ID = 0;
+
+/** SLIP-44 coin type for Solana native token (SOL). */
+const SOLANA_NATIVE_COIN_TYPE = 501;
+
+/**
+ * Hardcoded SPL token mint addresses for Solana-native tokens.
+ *
+ * Source: Solana mainnet explorer / Jupiter token list. Only add tokens that
+ * are actively supported by oracle feeds on Solana. The resolver is pure &
+ * deterministic — no DB reads — so every entry here must be reviewed and
+ * updated manually when a new Solana token is added to the oracle feed set.
+ *
+ * Format: { symbol: { [SOLANA_CHAIN_ID]: mintAddress } }
+ * Using the same nested structure as TWAP_TOKEN_ADDRESSES for consistency.
+ */
+const SOLANA_SPL_TOKEN_ADDRESSES: Record<string, Record<number, string>> = {
+  WIF: { [SOLANA_CHAIN_ID]: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm' },
+  BONK: { [SOLANA_CHAIN_ID]: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' },
+  // Solana-native stablecoins (canonical Circle-issued / Tether-issued mints)
+  USDC: { [SOLANA_CHAIN_ID]: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' },
+  USDT: { [SOLANA_CHAIN_ID]: 'Es9vMFwzaM7B4vWvG9kHjKjGP3Vv1MvyJ5zXGjVpRob' },
+  // Solana-native DeFi tokens
+  JUP: { [SOLANA_CHAIN_ID]: 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN' },
+  PYTH: { [SOLANA_CHAIN_ID]: 'HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3' },
+  RAY: { [SOLANA_CHAIN_ID]: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R' },
+};
+
+/**
+ * Native SOL (gas token) on Solana, resolved via SLIP-44.
+ * SOL is native only on chainId 0 (Solana). On EVM chains (e.g. Ethereum),
+ * SOL resolves to the wrapped Solana token if registered in TWAP_TOKEN_ADDRESSES.
+ */
+const SOLANA_NATIVE_ASSETS: Record<string, Record<number, number>> = {
+  SOL: { [SOLANA_CHAIN_ID]: SOLANA_NATIVE_COIN_TYPE },
+};
+
+// ---------------------------------------------------------------------------
 // Symbol aliases — price-reference symbol → canonical on-chain token symbol
 // ---------------------------------------------------------------------------
 
@@ -98,16 +148,18 @@ const SYMBOL_ALIASES: Record<string, string> = {
 // Types
 // ---------------------------------------------------------------------------
 
-export type Caip19Namespace = 'erc20' | 'slip44';
+export type Caip19Namespace = 'erc20' | 'slip44' | 'spl';
 
 export interface Caip19Asset {
   /** Canonical CAIP-19 string, e.g. `eip155:1/erc20:0xA0b8…eB48`. */
   id: string;
   /** How the reference was derived. */
   namespace: Caip19Namespace;
-  /** EVM chain id the asset lives on. */
+  /** Chain namespace ('eip155' or 'solana'). */
+  chainNamespace: string;
+  /** Chain id the asset lives on. */
   chainId: number;
-  /** ERC-20 contract address (checksummed) when namespace === 'erc20'. */
+  /** ERC-20 contract address (checksummed) or SPL mint address when namespace === 'erc20' | 'spl'. */
   tokenAddress: string | null;
   /** SLIP-44 coin type when namespace === 'slip44'. */
   coinType: number | null;
@@ -138,6 +190,16 @@ export function buildNativeId(chainId: number, coinType: number): string {
   return `eip155:${chainId}/slip44:${coinType}`;
 }
 
+/** Build a CAIP-19 Solana SPL token id. */
+export function buildSolanaSplId(mintAddress: string): string {
+  return `solana:${SOLANA_CHAIN_ID}/spl:${mintAddress}`;
+}
+
+/** Build a CAIP-19 Solana native id via SLIP-44 coin type. */
+export function buildSolanaNativeId(coinType: number): string {
+  return `solana:${SOLANA_CHAIN_ID}/slip44:${coinType}`;
+}
+
 // ---------------------------------------------------------------------------
 // Resolution
 // ---------------------------------------------------------------------------
@@ -151,22 +213,27 @@ export function buildNativeId(chainId: number, coinType: number): string {
  *      `eip155:{chainId}/slip44:{coinType}`.
  *   3. Else look up the ERC-20 token address in the canonical registry →
  *      `eip155:{chainId}/erc20:{checksummedAddress}`.
- *   4. Unknown symbol/chain → null (caller decides fallback / fail-closed).
+ *   4. If chainId === 0 (Solana in this project's chain model), check:
+ *      a. Native SOL → `solana:0/slip44:501`
+ *      b. SPL token in Solana registry → `solana:0/spl:{mintAddress}`
+ *   5. Unknown symbol/chain → null (caller decides fallback / fail-closed).
  *
  * Pure & synchronous on purpose — see file header.
  */
 export function resolveCaip19(symbol: string, chainId: number): Caip19Asset | null {
-  if (!symbol || typeof chainId !== 'number' || chainId <= 0) return null;
+  if (!symbol || typeof chainId !== 'number' || (chainId <= 0 && chainId !== SOLANA_CHAIN_ID))
+    return null;
 
   const inputSymbol = symbol.toUpperCase();
   const resolvedSymbol = SYMBOL_ALIASES[inputSymbol] ?? inputSymbol;
 
-  // 1. Native gas token?
+  // 1. Native gas token on EVM?
   const nativeCoinType = NATIVE_ASSETS[resolvedSymbol]?.[chainId];
   if (nativeCoinType !== undefined) {
     return {
       id: buildNativeId(chainId, nativeCoinType),
       namespace: 'slip44',
+      chainNamespace: 'eip155',
       chainId,
       tokenAddress: null,
       coinType: nativeCoinType,
@@ -181,6 +248,7 @@ export function resolveCaip19(symbol: string, chainId: number): Caip19Asset | nu
     return {
       id: buildErc20Id(chainId, tokenAddress),
       namespace: 'erc20',
+      chainNamespace: 'eip155',
       chainId,
       tokenAddress: getAddress(tokenAddress),
       coinType: null,
@@ -189,7 +257,40 @@ export function resolveCaip19(symbol: string, chainId: number): Caip19Asset | nu
     };
   }
 
-  // 3. Unknown — caller handles (v2 attestation will fail-closed / mark gap).
+  // 3. Solana (chainId 0)?
+  if (chainId === SOLANA_CHAIN_ID) {
+    // 3a. Native SOL?
+    const solanaNativeCoinType = SOLANA_NATIVE_ASSETS[resolvedSymbol]?.[SOLANA_CHAIN_ID];
+    if (solanaNativeCoinType !== undefined) {
+      return {
+        id: buildSolanaNativeId(solanaNativeCoinType),
+        namespace: 'slip44',
+        chainNamespace: 'solana',
+        chainId: SOLANA_CHAIN_ID,
+        tokenAddress: null,
+        coinType: solanaNativeCoinType,
+        resolvedSymbol,
+        inputSymbol,
+      };
+    }
+
+    // 3b. SPL token in the Solana token registry?
+    const splMintAddress = SOLANA_SPL_TOKEN_ADDRESSES[resolvedSymbol]?.[SOLANA_CHAIN_ID];
+    if (splMintAddress) {
+      return {
+        id: buildSolanaSplId(splMintAddress),
+        namespace: 'spl',
+        chainNamespace: 'solana',
+        chainId: SOLANA_CHAIN_ID,
+        tokenAddress: splMintAddress,
+        coinType: null,
+        resolvedSymbol,
+        inputSymbol,
+      };
+    }
+  }
+
+  // 4. Unknown — caller handles (v2 attestation will fail-closed / mark gap).
   return null;
 }
 
@@ -229,17 +330,37 @@ export interface ParsedCaip19 {
 
 /**
  * Parse a CAIP-19 string back into its parts. Returns null on malformed input.
- * Only supports the two forms this module emits (`eip155` / `erc20|slip44`).
+ * Supports the forms this module emits:
+ *   - `eip155:{chainId}/erc20:{checksummedAddress}`
+ *   - `eip155:{chainId}/slip44:{coinType}`
+ *   - `solana:0/spl:{mintAddress}`
+ *   - `solana:0/slip44:{coinType}`
  */
 export function parseCaip19(id: string): ParsedCaip19 | null {
-  const match = id.match(/^eip155:(\d+)\/(erc20|slip44):(.+)$/);
-  if (!match) return null;
-  const [, chainRef, namespace, reference] = match;
-  const assetNamespace = namespace as Caip19Namespace;
-  return {
-    chainNamespace: 'eip155',
-    chainReference: Number(chainRef),
-    assetNamespace,
-    assetReference: assetNamespace === 'erc20' ? getAddress(reference) : reference,
-  };
+  // eip155:<chainId>/<erc20|slip44>:<reference>
+  const eipMatch = id.match(/^eip155:(\d+)\/(erc20|slip44):(.+)$/);
+  if (eipMatch) {
+    const [, chainRef, namespace, reference] = eipMatch;
+    const assetNamespace = namespace as Caip19Namespace;
+    return {
+      chainNamespace: 'eip155',
+      chainReference: Number(chainRef),
+      assetNamespace,
+      assetReference: assetNamespace === 'erc20' ? getAddress(reference) : reference,
+    };
+  }
+
+  // solana:<chainRef>/<spl|slip44>:<reference>
+  const solMatch = id.match(/^solana:(\d+)\/(spl|slip44):(.+)$/);
+  if (solMatch) {
+    const [, chainRef, namespace, reference] = solMatch;
+    return {
+      chainNamespace: 'solana',
+      chainReference: Number(chainRef),
+      assetNamespace: namespace as Caip19Namespace,
+      assetReference: reference,
+    };
+  }
+
+  return null;
 }

@@ -121,10 +121,49 @@ describe('resolveCaip19 — unknown / unsupported inputs', () => {
     ['FOO', 1], // unknown symbol
     ['USDC', 999999], // unknown chain
     ['', 1], // empty symbol
-    ['USDC', 0], // chain-agnostic / 0 (not a real execution chain)
     ['USDC', -1], // negative
   ])('returns null for (%s, %i)', (symbol, chainId) => {
     expect(resolveCaip19(symbol, chainId)).toBeNull();
+  });
+});
+
+describe('resolveCaip19 — Solana (chainId 0)', () => {
+  it('resolves native SOL as solana:0/slip44:501', () => {
+    const asset = resolveCaip19('SOL', 0);
+    expect(asset).not.toBeNull();
+    expect(asset!.id).toBe('solana:0/slip44:501');
+    expect(asset!.namespace).toBe('slip44');
+    expect(asset!.chainNamespace).toBe('solana');
+    expect(asset!.chainId).toBe(0);
+    expect(asset!.tokenAddress).toBeNull();
+    expect(asset!.coinType).toBe(501);
+  });
+
+  it.each([
+    ['WIF', 'solana:0/spl:EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'],
+    ['BONK', 'solana:0/spl:DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'],
+    ['USDC', 'solana:0/spl:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'],
+    ['JUP', 'solana:0/spl:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN'],
+  ])('resolveCaip19(%s, 0) → %s', (symbol, expected) => {
+    const asset = resolveCaip19(symbol, 0);
+    expect(asset).not.toBeNull();
+    expect(asset!.id).toBe(expected);
+    expect(asset!.namespace).toBe('spl');
+    expect(asset!.chainNamespace).toBe('solana');
+    expect(asset!.chainId).toBe(0);
+    expect(asset!.tokenAddress).not.toBeNull();
+    expect(asset!.coinType).toBeNull();
+  });
+
+  it('does NOT resolve unknown symbols on Solana', () => {
+    expect(resolveCaip19('FOO', 0)).toBeNull();
+  });
+
+  it('does NOT resolve SOL on EVM chains as Solana native', () => {
+    // SOL on Ethereum is a wrapped ERC-20 (or unknown), not solana:0/slip44:501
+    const asset = resolveCaip19('SOL', 1);
+    expect(asset?.namespace).not.toBe('slip44');
+    expect(asset?.chainNamespace).not.toBe('solana');
   });
 });
 
@@ -178,6 +217,26 @@ describe('parseCaip19 (inverse)', () => {
     });
   });
 
+  it('parses a Solana SPL id back into parts', () => {
+    const parsed = parseCaip19('solana:0/spl:EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm');
+    expect(parsed).toEqual({
+      chainNamespace: 'solana',
+      chainReference: 0,
+      assetNamespace: 'spl',
+      assetReference: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm',
+    });
+  });
+
+  it('parses a Solana native SOL id back into parts', () => {
+    const parsed = parseCaip19('solana:0/slip44:501');
+    expect(parsed).toEqual({
+      chainNamespace: 'solana',
+      chainReference: 0,
+      assetNamespace: 'slip44',
+      assetReference: '501',
+    });
+  });
+
   it.each([
     '',
     'not-a-caip19',
@@ -197,6 +256,8 @@ describe('determinism (test-vector reproducibility contract)', () => {
     ['USDC', 42161, 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
     ['BTC', 1, 'eip155:1/erc20:0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'],
     ['BNB', 56, 'eip155:56/slip44:714'],
+    ['SOL', 0, 'solana:0/slip44:501'], // Solana native
+    ['WIF', 0, 'solana:0/spl:EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'], // Solana SPL
   ];
 
   it('produces stable ids across repeated calls', () => {
