@@ -51,7 +51,6 @@ export function HeroSection() {
       <div className="absolute inset-0 hero-overlay-readability" />
       <div className="absolute inset-0 hero-grid-overlay opacity-40" />
       <div className="absolute inset-0 hero-vignette" />
-      <div className="absolute bottom-0 left-0 right-0 h-48 sm:h-56 hero-overlay-bottom" />
 
       <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-28 sm:pt-28 sm:pb-36 lg:pt-32 lg:pb-44">
         <motion.div
