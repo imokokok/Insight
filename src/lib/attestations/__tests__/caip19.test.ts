@@ -254,6 +254,8 @@ describe('determinism (test-vector reproducibility contract)', () => {
   const VECTORS: Array<[string, number, string]> = [
     ['ETH', 1, 'eip155:1/slip44:60'],
     ['USDC', 1, 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'],
+    ['PEPE', 1, 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933'],
+    ['SHIB', 1, 'eip155:1/erc20:0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE'],
     ['USDC', 42161, 'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
     ['BTC', 1, 'eip155:1/erc20:0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'],
     ['BNB', 56, 'eip155:56/slip44:714'],
