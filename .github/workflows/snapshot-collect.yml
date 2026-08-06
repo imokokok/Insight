@@ -22,12 +22,20 @@ on:
   workflow_dispatch:
 
 # Prevent overlapping 15-min runs. If a run exceeds 15 min (extremely
-# unlikely — typical runtime is ~50s), cancel the stale run and start
-# fresh. The upsert on hourly_price_snapshots is idempotent and each
-# price_snapshots row is independent, so cancellation is data-safe.
+# unlikely — typical runtime is ~50s), queue the new run instead of
+# cancelling the stale one. Previously used cancel-in-progress: true,
+# which caused a cascading failure: when GitHub's runner fleet was
+# temporarily unavailable, every new run (every 15 min) cancelled the
+# still-queued previous run, so no run ever acquired a runner. With
+# cancel-in-progress: false, queued runs accumulate and execute in order
+# once a runner becomes available, giving the infrastructure time to
+# recover.
+#
+# The upsert on hourly_price_snapshots is idempotent and each
+# price_snapshots row is independent, so overlapping runs are data-safe.
 concurrency:
   group: snapshot-collect
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
