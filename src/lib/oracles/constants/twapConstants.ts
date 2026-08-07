@@ -158,6 +158,9 @@ export const TWAP_TOKEN_ADDRESSES: Record<string, Record<number, `0x${string}`>>
   STETH: {
     1: ETHEREUM_TOKEN_ADDRESSES.STETH,
   },
+  XRP: {
+    1: '0x39fbbabf11738317a448031930706cd3e612e1b9',
+  },
   PEPE: {
     1: '0x6982508145454Ce325dDbE47a25d4ec3d2311933',
   },
