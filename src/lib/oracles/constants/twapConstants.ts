@@ -273,6 +273,39 @@ export const TWAP_TOKEN_ADDRESSES: Record<string, Record<number, `0x${string}`>>
   HYPE: {
     1: '0x135903b97cae2a39a45e4a3f40ed0e9ef121e841',
   },
+  // ADA (Cardano) — wrapped ERC-20 on Ethereum
+  // https://etherscan.io/token/0x09a405588B14aD9D8a37f96061aaB13Df7A37115
+  ADA: {
+    1: '0x09a405588B14aD9D8a37f96061aaB13Df7A37115',
+  },
+  // ATOM (Cosmos) — bridged ERC-20 on Ethereum (Gravity Bridge)
+  // https://etherscan.io/token/0x8d983cb9388eac77af0474fa441c4815500cb7bb
+  ATOM: {
+    1: '0x8d983cb9388eac77af0474fa441c4815500cb7bb',
+  },
+  // DOT (Polkadot) — multichain ERC-20 by Hyperbridge
+  // https://etherscan.io/token/0x8d010bf9C26881788b4e6bf5Fd1bdC358c8F90b8
+  DOT: {
+    1: '0x8d010bf9C26881788b4e6bf5Fd1bdC358c8F90b8',
+  },
+  // FET (Fetch.ai) — https://etherscan.io/token/0xaea46A60368A7bD060eec7DF8CBa43b7EF41Ad85
+  FET: {
+    1: '0xaea46A60368A7bD060eec7DF8CBa43b7EF41Ad85',
+  },
+  // FIL (Filecoin) — canonical wFIL (Wrapped FIL)
+  // https://docs.filecoin.io/smart-contracts/advanced/wrapped-fil/
+  // https://etherscan.io/token/0x60E1773636CF5E4A227d9AC24F20fEca034ee25A
+  FIL: {
+    1: '0x60E1773636CF5E4A227d9AC24F20fEca034ee25A',
+  },
+  // FTM (Fantom) — https://etherscan.io/token/0x4E15361FD6b4BB609Fa63C81A2be19d873717870
+  FTM: {
+    1: '0x4E15361FD6b4BB609Fa63C81A2be19d873717870',
+  },
+  // IMX (Immutable X) — https://etherscan.io/token/0xf57e7e7c23978c3caec3c3548e3d615c346e79ff
+  IMX: {
+    1: '0xf57e7e7c23978c3caec3c3548e3d615c346e79ff',
+  },
 };
 
 export interface TwapPoolConfig {
