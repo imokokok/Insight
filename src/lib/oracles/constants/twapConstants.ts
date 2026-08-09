@@ -254,6 +254,25 @@ export const TWAP_TOKEN_ADDRESSES: Record<string, Record<number, `0x${string}`>>
   SHIB: {
     1: '0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE',
   },
+  // STG (Stargate Finance) — https://etherscan.io/token/0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6
+  STG: {
+    1: '0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6',
+  },
+  // ICP (Internet Computer) — official ERC-20 by DFINITY
+  // https://github.com/dfinity/erc20-icp
+  ICP: {
+    1: '0x054b8f99d15cc5b35a42a926635977d62692f25b',
+  },
+  // wTAO (Wrapped TAO / Bittensor) — https://etherscan.io/token/0x77e06c9eccf2e797fd462a92b6d7642ef85b0a44
+  TAO: {
+    1: '0x77e06c9eccf2e797fd462a92b6d7642ef85b0a44',
+  },
+  // HYPE (Hyperliquid) — https://etherscan.io/token/0x135903b97cae2a39a45e4a3f40ed0e9ef121e841
+  // ⚠️ HYPE is native to Hyperliquid L1. The ERC-20 address on Ethereum may
+  // differ from the canonical on-chain asset. Verify if unsigned BLOCKs persist.
+  HYPE: {
+    1: '0x135903b97cae2a39a45e4a3f40ed0e9ef121e841',
+  },
 };
 
 export interface TwapPoolConfig {
