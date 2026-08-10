@@ -1,7 +1,7 @@
 {
   "version": 2,
   "active": true,
-  "trainedAt": "2026-08-07T08:18:10.879876+00:00",
+  "trainedAt": "2026-08-10T08:43:00.427275+00:00",
   "labelDefinition": "consensus price moves >= 5.0% OR cross-oracle deviation >= 8.0% within H hours",
   "featureNames": [
     "max_deviation_pct",
@@ -38,36 +38,36 @@
           {
             "nodeid": 0,
             "split": 4,
-            "threshold": 0.694566667,
+            "threshold": 0.782633305,
             "yes": 1,
             "no": 2
           },
           {
             "nodeid": 1,
             "split": 8,
-            "threshold": -1.92809999,
+            "threshold": -2.47740006,
             "yes": 3,
             "no": 4
           },
           {
             "nodeid": 3,
-            "split": 7,
-            "threshold": 0.550844491,
+            "split": 1,
+            "threshold": 0.20932588,
             "yes": 7,
             "no": 8
           },
           {
             "nodeid": 7,
-            "leaf": 0.289185107
+            "leaf": 0.222093508
           },
           {
             "nodeid": 8,
-            "leaf": 0.181742251
+            "leaf": 0.03058419
           },
           {
             "nodeid": 4,
             "split": 7,
-            "threshold": 1.84154332,
+            "threshold": 1.84165895,
             "yes": 9,
             "no": 10
           },
@@ -80,3297 +80,385 @@
           },
           {
             "nodeid": 13,
-            "leaf": 0.0245492216
+            "leaf": -0.212214306
           },
           {
             "nodeid": 14,
-            "leaf": -0.369359881
+            "leaf": -0.380499929
           },
           {
             "nodeid": 10,
-            "split": 7,
-            "threshold": 2.44618964,
+            "split": 8,
+            "threshold": 0.271400005,
             "yes": 15,
             "no": 16
           },
           {
             "nodeid": 15,
-            "leaf": 0.0472358987
+            "leaf": -0.315478235
           },
           {
             "nodeid": 16,
-            "leaf": -0.375384629
+            "leaf": 0.0472629741
           },
           {
             "nodeid": 2,
             "split": 1,
-            "threshold": 6.66934061,
+            "threshold": 12.8554602,
             "yes": 5,
             "no": 6
           },
           {
             "nodeid": 5,
-            "split": 2,
-            "threshold": 3.0,
+            "split": 7,
+            "threshold": 0.5495103,
             "yes": 11,
             "no": 12
           },
           {
             "nodeid": 11,
-            "leaf": 0.338955343
+            "leaf": 0.325165361
           },
           {
             "nodeid": 12,
-            "split": 7,
-            "threshold": 1.49966753,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.311111122
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.359303564
+            "leaf": -0.320000023
           },
           {
             "nodeid": 6,
-            "leaf": 0.396862209
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 1.84154332,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -0.820029736,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 4,
-            "threshold": 0.0328333341,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.335601747
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.0580013506
-          },
-          {
-            "nodeid": 8,
-            "split": 10,
-            "threshold": 3.94826937,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.307408959
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.234722808
-          },
-          {
-            "nodeid": 4,
-            "split": 10,
-            "threshold": 0.660311997,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 7,
-            "threshold": 1.96149206,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.0626703575
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.361332744
-          },
-          {
-            "nodeid": 10,
-            "split": 2,
-            "threshold": 6.0,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.214510113
-          },
-          {
-            "nodeid": 20,
-            "leaf": -0.298154205
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 1.94435894,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 7,
-            "threshold": 0.550844491,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": 0.274215728
-          },
-          {
-            "nodeid": 22,
-            "leaf": -0.339453071
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.29545486
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.332728952
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 8,
-            "threshold": -1.92809999,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -1.43681645,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": 0.29775697
-          },
-          {
-            "nodeid": 8,
-            "leaf": 0.15309979
-          },
-          {
-            "nodeid": 4,
-            "split": 6,
-            "threshold": -0.298000008,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 8,
-            "threshold": 0.00240000011,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.310311258
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.177655607
-          },
-          {
-            "nodeid": 10,
-            "split": 7,
-            "threshold": 1.31602716,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.289505988
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.0943557173
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 6.66934061,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 3.24739552,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 4,
-            "threshold": 2.20180821,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.298244148
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.256125242
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.286984533
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.292975783
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 6,
-            "threshold": -0.460500002,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -0.820029736,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 8,
-            "threshold": 0.00240000011,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.00250405003
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.392555833
-          },
-          {
-            "nodeid": 8,
-            "leaf": -0.290477216
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 1.84154332,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 9,
-            "threshold": 1.0,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.23370631
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.144972324
-          },
-          {
-            "nodeid": 10,
-            "split": 10,
-            "threshold": 0.660311997,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.15481323
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.163291574
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 7,
-            "threshold": 0.943413913,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.0825776011
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.26216495
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.269805968
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 8,
-            "threshold": -1.92809999,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 7,
-            "threshold": 0.589647293,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 6,
-            "threshold": -0.0146000003,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.210211396
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.333997279
-          },
-          {
-            "nodeid": 8,
-            "leaf": 0.150050834
-          },
-          {
-            "nodeid": 4,
-            "split": 8,
-            "threshold": 0.0417999998,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 1,
-            "threshold": 0.101051033,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.200439408
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.2684035
-          },
-          {
-            "nodeid": 10,
-            "split": 6,
-            "threshold": -0.236100003,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.130325064
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.147963792
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 6,
-            "threshold": 1.03550005,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 8,
-            "threshold": -1.12740004,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.260039449
-          },
-          {
-            "nodeid": 20,
-            "leaf": -0.0207953751
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.245781228
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.252734601
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 1,
-            "threshold": 2.646667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 8,
-            "threshold": -1.92809999,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 1,
-            "threshold": 0.531966388,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": 0.248925731
-          },
-          {
-            "nodeid": 8,
-            "leaf": 0.140474409
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 1.31602716,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 6,
-            "threshold": -0.236100003,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.0297471974
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.217302367
-          },
-          {
-            "nodeid": 10,
-            "split": 7,
-            "threshold": 1.33307958,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.531357229
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.104449466
-          },
-          {
-            "nodeid": 2,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 2,
-            "threshold": 7.0,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.231099531
-          },
-          {
-            "nodeid": 12,
-            "leaf": -0.241553903
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.238402843
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 10,
-            "threshold": 3.94826937,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -0.708001196,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 0,
-            "threshold": 0.508899987,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.13800323
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.235641986
-          },
-          {
-            "nodeid": 8,
-            "split": 6,
-            "threshold": 0.0562999994,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.245718002
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.118808322
-          },
-          {
-            "nodeid": 4,
-            "leaf": 0.436646938
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 1.94435894,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 7,
-            "threshold": 0.550844491,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.211432964
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.380561441
-          },
-          {
-            "nodeid": 10,
-            "leaf": 0.236068651
-          },
-          {
-            "nodeid": 6,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.140867159
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.230778053
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 1.19093049,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 6,
-            "threshold": -0.298000008,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 7,
-            "threshold": 0.589647293,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.153152555
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.264353991
-          },
-          {
-            "nodeid": 8,
-            "split": 6,
-            "threshold": 0.449699998,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.219149381
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.0322220586
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 1.33307958,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 7,
-            "threshold": 1.31602716,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.061971765
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.44901377
-          },
-          {
-            "nodeid": 10,
-            "split": 7,
-            "threshold": 1.84154332,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.243399903
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.087372832
-          },
-          {
-            "nodeid": 2,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 6,
-            "threshold": 1.03550005,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.066659674
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.186693609
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.221144542
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 10,
-            "threshold": -0.708001196,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 4,
-            "threshold": 0.0328333341,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": -0.226529643
-          },
-          {
-            "nodeid": 8,
-            "split": 10,
-            "threshold": -0.715404451,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.0125982864
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.538802505
-          },
-          {
-            "nodeid": 4,
-            "split": 10,
-            "threshold": 3.94826937,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 9,
-            "threshold": 1.0,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.177746177
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.185424641
-          },
-          {
-            "nodeid": 10,
-            "leaf": 0.30244258
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 1.94435894,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 7,
-            "threshold": 0.550844491,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.173298597
-          },
-          {
-            "nodeid": 20,
-            "leaf": -0.36844483
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.209973052
-          },
-          {
-            "nodeid": 6,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.107885778
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.216795921
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 8,
-            "threshold": 0.0417999998,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -0.79821068,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 4,
-            "threshold": 0.0328333341,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.221401244
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.0458717644
-          },
-          {
-            "nodeid": 8,
-            "leaf": -0.225475147
-          },
-          {
-            "nodeid": 4,
-            "split": 4,
-            "threshold": 0.0765200034,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 4,
-            "threshold": 0.0751888901,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.107300259
-          },
-          {
-            "nodeid": 16,
-            "leaf": 1.00855279
-          },
-          {
-            "nodeid": 10,
-            "split": 6,
-            "threshold": -0.236100003,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.14998652
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.108568586
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 1.94435894,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 8,
-            "threshold": -1.12740004,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.182749853
-          },
-          {
-            "nodeid": 20,
-            "leaf": -0.124808803
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.187511802
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.21304594
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.317750007,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 10,
-            "threshold": 3.94826937,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 8,
-            "threshold": -1.92809999,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -1.47391975,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.225894794
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.112964109
-          },
-          {
-            "nodeid": 8,
-            "split": 0,
-            "threshold": 0.144500002,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.0909602866
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.211604103
-          },
-          {
-            "nodeid": 4,
-            "leaf": 0.363188326
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 8,
-            "threshold": 1.31110001,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.265793294
-          },
-          {
-            "nodeid": 10,
-            "split": 10,
-            "threshold": 1.38679624,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.0931615829
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.187653631
-          },
-          {
-            "nodeid": 6,
-            "split": 0,
-            "threshold": 0.697600007,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.407318562
-          },
-          {
-            "nodeid": 12,
-            "split": 4,
-            "threshold": 0.3838,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.237182215
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.198445126
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 1.19093049,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -0.820029736,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 7,
-            "threshold": 0.565744698,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.0300362911
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.241137624
-          },
-          {
-            "nodeid": 8,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.0116311787
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.222044468
-          },
-          {
-            "nodeid": 4,
-            "split": 10,
-            "threshold": -0.79821068,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 10,
-            "threshold": -0.919463694,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.0257193334
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.380195856
-          },
-          {
-            "nodeid": 10,
-            "split": 10,
-            "threshold": 0.0474744737,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.228668243
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.060487669
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 1.08711863,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.00169143546
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.177051947
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.206520036
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.383025974,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 0,
-            "threshold": 2.03410006,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": -0.22044313
-          },
-          {
-            "nodeid": 8,
-            "leaf": 0.16278179
-          },
-          {
-            "nodeid": 4,
-            "split": 8,
-            "threshold": 0.00200000009,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 8,
-            "threshold": -1.92809999,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.194434971
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.179007158
-          },
-          {
-            "nodeid": 10,
-            "split": 10,
-            "threshold": -0.708001196,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.294071525
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.00662413239
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 1.41389704,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.0669627935
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.176550761
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.200863481
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.254421294,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "leaf": -0.213154748
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 0.261971414,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": 0.97608757
-          },
-          {
-            "nodeid": 8,
-            "split": 4,
-            "threshold": 0.0712333322,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.117731892
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.0114419935
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 1.84081471,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.301846802
-          },
-          {
-            "nodeid": 10,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.192220092
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.0576739609
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.199001253
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 1.84154332,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -0.708001196,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -0.715404451,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.019515587
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.380328268
-          },
-          {
-            "nodeid": 8,
-            "split": 10,
-            "threshold": 3.94826937,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.180543467
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.210657865
-          },
-          {
-            "nodeid": 4,
-            "split": 6,
-            "threshold": -0.0822999999,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.237418532
-          },
-          {
-            "nodeid": 10,
-            "split": 7,
-            "threshold": 2.44618964,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.258810014
-          },
-          {
-            "nodeid": 20,
-            "leaf": -0.216802403
-          },
-          {
-            "nodeid": 2,
-            "split": 4,
-            "threshold": 1.38102496,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 3.24739552,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.0802361369
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.194278747
-          },
-          {
-            "nodeid": 6,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "split": 7,
-            "threshold": 0.550844491,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": 0.207784772
-          },
-          {
-            "nodeid": 22,
-            "leaf": 0.0626166686
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.196170673
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 1,
-            "threshold": 2.646667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.254421294,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "leaf": -0.209788665
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 0.261971414,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": 0.497969687
-          },
-          {
-            "nodeid": 8,
-            "split": 8,
-            "threshold": 0.00200000009,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.11080718
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.0601838939
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 7,
-            "threshold": 0.550844491,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.176113173
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.0640028715
-          },
-          {
-            "nodeid": 10,
-            "leaf": -0.054388117
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.195467085
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 4,
-            "threshold": 0.0328333341,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "leaf": -0.205553412
-          },
-          {
-            "nodeid": 4,
-            "split": 0,
-            "threshold": 0.174400002,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 0,
-            "threshold": 0.173299998,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.0145049198
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.396951884
-          },
-          {
-            "nodeid": 8,
-            "split": 9,
-            "threshold": 1.0,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.0928253904
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.323655456
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 6,
-            "threshold": 0.701300025,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 6,
-            "threshold": -0.557900012,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.153275535
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.0769679472
-          },
-          {
-            "nodeid": 10,
-            "split": 10,
-            "threshold": 2.25508142,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.0979167446
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.176540181
-          },
-          {
-            "nodeid": 6,
-            "split": 4,
-            "threshold": 8.58428001,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.201014191
-          },
-          {
-            "nodeid": 12,
-            "split": 10,
-            "threshold": 0.705778658,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": 0.0387100168
-          },
-          {
-            "nodeid": 22,
-            "leaf": 0.167182907
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 6,
-            "threshold": -0.460500002,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 7,
-            "threshold": 0.589647293,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 6,
-            "threshold": -0.605000019,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.0181143451
-          },
-          {
-            "nodeid": 10,
-            "leaf": 0.236760899
-          },
-          {
-            "nodeid": 6,
-            "split": 9,
-            "threshold": 0.0,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.210981533
-          },
-          {
-            "nodeid": 12,
-            "leaf": -0.234948084
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 1.84154332,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 1,
-            "threshold": 0.521257281,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.154265136
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.0112329638
-          },
-          {
-            "nodeid": 8,
-            "split": 1,
-            "threshold": 0.386504114,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.213656887
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.215185717
-          },
-          {
-            "nodeid": 2,
-            "leaf": 0.191356957
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 0,
-            "threshold": 0.697600007,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 8,
-            "threshold": 0.115199998,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -0.79821068,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.0536511019
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.161794439
-          },
-          {
-            "nodeid": 8,
-            "split": 0,
-            "threshold": 0.144500002,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.864583313
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.0710731149
-          },
-          {
-            "nodeid": 4,
-            "leaf": -0.235602856
-          },
-          {
-            "nodeid": 2,
-            "split": 0,
-            "threshold": 19.2423,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 3.24739552,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 4,
-            "threshold": 2.57240009,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.144004509
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.0960332379
-          },
-          {
-            "nodeid": 10,
-            "leaf": 0.181566939
-          },
-          {
-            "nodeid": 6,
-            "split": 2,
-            "threshold": 7.0,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 8,
-            "threshold": 0.00039999999,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.0564291142
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.171530947
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.198025793
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 1.38102496,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 4,
-            "threshold": 0.0328333341,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "leaf": -0.20183371
-          },
-          {
-            "nodeid": 4,
-            "split": 4,
-            "threshold": 0.0420333333,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 6,
-            "threshold": -0.0160000008,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.253162086
-          },
-          {
-            "nodeid": 12,
-            "leaf": -0.191078559
-          },
-          {
-            "nodeid": 8,
-            "split": 9,
-            "threshold": 1.0,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.0551114492
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.274256259
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 7.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 1.00271368,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 6,
-            "threshold": 0.00620000018,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.113123454
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.0230432283
-          },
-          {
-            "nodeid": 10,
-            "split": 4,
-            "threshold": 5.40405989,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.0842330158
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.170446023
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.19583191
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 8,
-            "threshold": 0.0417999998,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 8,
-            "threshold": -0.274899989,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 8,
-            "threshold": -0.289000005,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 8,
-            "threshold": -1.12740004,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.132024929
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.154487357
-          },
-          {
-            "nodeid": 8,
-            "leaf": 0.322404146
-          },
-          {
-            "nodeid": 4,
-            "split": 6,
-            "threshold": -0.460500002,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 6,
-            "threshold": -0.49180001,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.193355501
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.251403302
-          },
-          {
-            "nodeid": 10,
-            "split": 4,
-            "threshold": 1.38102496,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.211398914
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.124071777
-          },
-          {
-            "nodeid": 2,
-            "split": 7,
-            "threshold": 0.491862535,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 2,
-            "threshold": 10.0,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 7,
-            "threshold": 0.150664687,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": -0.0210167225
-          },
-          {
-            "nodeid": 22,
-            "leaf": -0.220934272
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.170772508
-          },
-          {
-            "nodeid": 6,
-            "split": 7,
-            "threshold": 0.504190087,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 23,
-            "no": 24
-          },
-          {
-            "nodeid": 23,
-            "leaf": 0.501296461
-          },
-          {
-            "nodeid": 24,
-            "leaf": 0.210272074
-          },
-          {
-            "nodeid": 14,
-            "split": 8,
-            "threshold": 0.0606999993,
-            "yes": 25,
-            "no": 26
-          },
-          {
-            "nodeid": 25,
-            "leaf": 0.200838432
-          },
-          {
-            "nodeid": 26,
-            "leaf": 0.056834776
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.0384249985,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "leaf": -0.203960687
-          },
-          {
-            "nodeid": 2,
-            "split": 4,
-            "threshold": 0.0397999994,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 7,
-            "threshold": 0.261971414,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "leaf": 0.45842132
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.186850056
-          },
-          {
-            "nodeid": 4,
-            "split": 0,
-            "threshold": 0.116099998,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": -0.216344982
-          },
-          {
-            "nodeid": 8,
-            "split": 7,
-            "threshold": 0.444099069,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.0822942108
-          },
-          {
-            "nodeid": 10,
-            "leaf": 0.0691761002
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.0384249985,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "leaf": -0.201639727
-          },
-          {
-            "nodeid": 2,
-            "split": 4,
-            "threshold": 0.0397999994,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 7,
-            "threshold": 0.261971414,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "leaf": 0.355158657
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.168115973
-          },
-          {
-            "nodeid": 4,
-            "split": 8,
-            "threshold": 0.115199998,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.184557378
-          },
-          {
-            "nodeid": 10,
-            "leaf": -0.00275336416
-          },
-          {
-            "nodeid": 8,
-            "split": 8,
-            "threshold": 0.131400004,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.298250347
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.0569543205
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 10,
-            "threshold": 0.0872214586,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 8,
-            "threshold": 0.0577000007,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -0.79821068,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.0331306867
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.171697184
-          },
-          {
-            "nodeid": 8,
-            "split": 8,
-            "threshold": 0.192900002,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.222490951
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.204451397
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 1.84154332,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 4,
-            "threshold": 5.40405989,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.217816576
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.117331505
-          },
-          {
-            "nodeid": 10,
-            "split": 4,
-            "threshold": 0.189433336,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.276312262
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.209228233
-          },
-          {
-            "nodeid": 2,
-            "split": 4,
-            "threshold": 8.58428001,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "leaf": 0.194298729
-          },
-          {
-            "nodeid": 6,
-            "split": 7,
-            "threshold": 0.665639699,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.0636796951
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.162225768
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 0,
-            "threshold": 0.174400002,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 4,
-            "threshold": 0.0328333341,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": -0.190752253
-          },
-          {
-            "nodeid": 8,
-            "split": 1,
-            "threshold": 0.101051033,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.229410291
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.0288742371
-          },
-          {
-            "nodeid": 4,
-            "split": 0,
-            "threshold": 0.352699995,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.227621242
-          },
-          {
-            "nodeid": 10,
-            "split": 4,
-            "threshold": 0.195979998,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.0728804395
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.119892977
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 6.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 4,
-            "threshold": 10.3532,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.0539787821
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.142596647
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.192550391
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 0.508899987,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 4,
-            "threshold": 0.101000004,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 7,
-            "threshold": 1.19093049,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 8,
-            "threshold": 0.115199998,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.119102314
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.233460501
-          },
-          {
-            "nodeid": 8,
-            "split": 4,
-            "threshold": 0.0751888901,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.169199169
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.217694089
-          },
-          {
-            "nodeid": 4,
-            "leaf": -0.234154269
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 0.838713527,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.207109436
-          },
-          {
-            "nodeid": 10,
-            "split": 7,
-            "threshold": 0.545646369,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.160792157
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.216542989
-          },
-          {
-            "nodeid": 6,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 6,
-            "threshold": -1.60049999,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.141222879
-          },
-          {
-            "nodeid": 20,
-            "leaf": -0.232242152
-          },
-          {
-            "nodeid": 12,
-            "split": 2,
-            "threshold": 10.0,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": 0.0728628114
-          },
-          {
-            "nodeid": 22,
-            "leaf": 0.190534562
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 8,
-            "threshold": 0.00200000009,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 8,
-            "threshold": -0.152999997,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 4,
-            "threshold": 0.0500500016,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 6,
-            "threshold": -0.0189999994,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.18559663
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.282635093
-          },
-          {
-            "nodeid": 8,
-            "split": 4,
-            "threshold": 0.208839998,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.216982201
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.0692209825
-          },
-          {
-            "nodeid": 4,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.206329867
-          },
-          {
-            "nodeid": 10,
-            "leaf": 0.0981194898
-          },
-          {
-            "nodeid": 2,
-            "split": 8,
-            "threshold": 0.00329999998,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "leaf": 0.276519388
-          },
-          {
-            "nodeid": 6,
-            "split": 8,
-            "threshold": 0.0417999998,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.193973765
-          },
-          {
-            "nodeid": 12,
-            "split": 10,
-            "threshold": 0.0585218221,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.128473952
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.02075026
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 1,
-            "threshold": 2.646667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 10,
-            "threshold": -0.708001196,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": -0.207820296
-          },
-          {
-            "nodeid": 8,
-            "split": 7,
-            "threshold": 0.254421294,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.186253741
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.111477576
-          },
-          {
-            "nodeid": 4,
-            "split": 6,
-            "threshold": 0.449699998,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 9,
-            "threshold": 1.0,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.147076219
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.182989269
-          },
-          {
-            "nodeid": 10,
-            "split": 6,
-            "threshold": 0.469900012,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.275178015
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.235987857
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 10.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 7,
-            "threshold": 0.968471229,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 7,
-            "threshold": 0.550844491,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.103288211
-          },
-          {
-            "nodeid": 20,
-            "leaf": -0.179902151
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.167293385
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.186876655
+            "leaf": 0.398418874
           }
         ]
       ],
       "metrics": {
-        "n_train": 6101,
-        "n_test": 1526,
-        "n_positive_train": 168,
-        "n_positive_test": 400,
-        "best_iteration": 27,
-        "auc": 0.9981438721136766,
-        "precision_at_0.5": 0.975609756097561,
+        "n_train": 7088,
+        "n_test": 1772,
+        "n_positive_train": 430,
+        "n_positive_test": 463,
+        "best_iteration": 0,
+        "auc": 0.9980901451489687,
+        "precision_at_0.5": 0.9809322033898306,
         "recall_at_0.5": 1.0
       },
       "verificationSamples": [
         [
           [
-            0.2825,
-            0.5358486716532591,
-            7.0,
-            0.0,
-            0.15030000000000002,
-            0.0,
-            -0.34230000000000005,
-            0.8815763332055203,
-            -1.0635000000000001,
-            0.0,
-            -0.8697659065118668
-          ],
-          0.04344765841960907
-        ],
-        [
-          [
-            0.0495,
-            0.06169214211151163,
-            14.0,
-            0.0,
-            0.010557142857142857,
-            0.0,
-            -0.006899999999999996,
-            0.002803351356494505,
-            -0.045799999999999993,
-            1.0,
-            -1.4659282299115655
-          ],
-          0.010046296752989292
-        ],
-        [
-          [
-            0.1902,
-            0.28705797303484437,
-            5.0,
-            0.0,
-            0.07110000000000001,
-            0.0,
-            0.1136,
-            0.3232154074692941,
-            -0.09590000000000001,
-            1.0,
-            0.4817697939542565
-          ],
-          0.03387336805462837
-        ],
-        [
-          [
-            0.2362,
-            0.40362322241516857,
-            5.0,
-            0.0,
-            0.1341,
-            0.0,
-            -0.05410000000000001,
-            0.9315780589241023,
-            -0.0708,
-            0.0,
-            0.44591723339083117
-          ],
-          0.006130620837211609
-        ],
-        [
-          [
-            0.0866,
-            0.11879925822901997,
-            5.0,
-            0.0,
-            0.03826,
-            0.0,
-            0.025799999999999997,
-            0.6324436035175682,
-            0.014399999999999996,
-            0.0,
-            -0.3107886852239576
-          ],
-          0.007969727739691734
-        ],
-        [
-          [
-            0.0499,
-            0.0929971227458319,
-            6.0,
-            0.0,
-            0.026366666666666667,
-            0.0,
-            -0.068,
-            1.3914564596638346,
-            -0.048100000000000004,
-            0.0,
-            -0.9067822996884747
-          ],
-          0.02893483266234398
-        ],
-        [
-          [
-            3.1728,
-            3.247287556732696,
-            12.0,
-            0.0,
-            0.3901333333333332,
-            0.0,
-            -0.06320000000000014,
-            0.34295885854669594,
-            0.2017000000000002,
-            0.0,
-            -0.38370845570123724
-          ],
-          0.05138951912522316
-        ],
-        [
-          [
-            22.3341,
-            36.731676806732246,
-            27.0,
-            0.0,
-            2.2049444444444446,
-            0.0,
-            -0.41880000000000095,
-            0.38674402135883074,
-            -1.022400000000001,
-            0.0,
-            -0.9253682340922645
-          ],
-          0.9947376847267151
-        ],
-        [
-          [
-            40.0266,
-            39.663758683604364,
-            11.0,
-            0.0,
-            4.867063636363636,
-            0.0,
-            -0.1261999999999972,
-            0.2451534112182757,
-            -0.41669999999999874,
-            0.0,
-            -1.3316279876977042
-          ],
-          0.9947376847267151
-        ],
-        [
-          [
-            2.4768,
-            3.2209436363742974,
-            12.0,
-            0.0,
-            0.3642083333333334,
-            0.0,
-            -0.47230000000000016,
-            0.3536530981087637,
-            -0.31130000000000013,
-            0.0,
-            -0.6407449749374625
-          ],
-          0.030552376061677933
-        ],
-        [
-          [
-            0.2289,
-            0.2850292149703108,
+            0.2572,
+            0.2776051719345083,
             8.0,
             0.0,
-            0.0500375,
+            0.062174999999999994,
             0.0,
-            -0.03789999999999999,
-            1.486217025367249,
-            -2.4727,
+            -0.31590000000000007,
+            0.6228859724794847,
+            0.11389999999999997,
             0.0,
-            -0.22788332076162104
+            -0.2102949064536558
           ],
-          0.13489802181720734
+          0.4060063362121582
         ],
         [
           [
-            0.1068,
-            0.149932877701031,
-            5.0,
-            0.0,
-            0.048,
-            0.0,
-            0.004800000000000013,
-            0.4639827440032901,
-            -0.17569999999999997,
-            0.0,
-            -0.6805249511764838
-          ],
-          0.012512951157987118
-        ],
-        [
-          [
-            1.3726,
-            1.7533470950762398,
-            12.0,
-            0.0,
-            0.19616666666666668,
-            0.0,
-            -0.49029999999999996,
-            0.27191883864524197,
-            -0.7642,
-            0.0,
-            -1.5926667523403069
-          ],
-          0.12755219638347626
-        ],
-        [
-          [
-            38.8212,
+            38.8893,
             39.663758683604364,
             11.0,
             0.0,
-            4.900472727272727,
+            4.8620090909090905,
             0.0,
+            0.06810000000000116,
+            0.15003738039306785,
+            0.06810000000000116,
             0.0,
-            0.15317198546845812,
-            0.0,
-            0.0,
-            -0.9580404468776805
+            -0.7822460280626408
           ],
-          0.9961251616477966
+          0.598307728767395
         ],
         [
           [
-            0.0854,
-            0.09807749121576693,
-            15.0,
+            0.2831,
+            0.3730739354187213,
+            7.0,
             0.0,
-            0.0188,
+            0.0833142857142857,
             0.0,
-            0.0015000000000000013,
-            0.003108279650767088,
-            0.006000000000000005,
+            0.14190000000000003,
+            1.0392660004905276,
+            -0.14909999999999995,
             0.0,
-            -0.5355071054178023
+            -0.2254419112120729
           ],
-          0.003061470575630665
-        ],
-        [
-          [
-            0.8174,
-            0.8855600835338897,
-            9.0,
-            0.0,
-            0.12604444444444446,
-            0.0,
-            -0.03259999999999996,
-            0.5629636162189082,
-            0.2398,
-            0.0,
-            0.0008953988867365683
-          ],
-          0.03047669306397438
+          0.4060063362121582
         ],
         [
           [
             0.087,
-            0.1069301358512935,
+            0.10586802657131286,
             12.0,
             0.0,
-            0.027208333333333334,
+            0.029258333333333334,
             0.0,
             0.0,
-            0.002286911318915234,
+            0.005136400464228579,
             0.0010999999999999899,
             0.0,
-            -0.2753716244882543
+            -0.3203215347369892
           ],
-          0.0028258557431399822
+          0.4060063362121582
         ],
         [
           [
-            0.1064,
-            0.11749208101503653,
-            14.0,
-            0.0,
-            0.014049999999999998,
-            0.0,
-            0.00739999999999999,
-            0.0007253349410493753,
-            0.012399999999999994,
-            0.0,
-            2.1496738697541495
-          ],
-          0.002732295775786042
-        ],
-        [
-          [
-            0.3078,
-            0.37991313228592677,
+            0.3574,
+            0.4310953660668326,
             5.0,
             0.0,
-            0.10036,
+            0.10935999999999998,
             0.0,
-            0.0403,
-            0.4363330936206622,
-            0.1476,
+            -0.06919999999999998,
+            0.33185125856288883,
+            0.19619999999999999,
             0.0,
-            0.23546127086950647
+            0.6563716716392796
           ],
-          0.024570617824792862
+          0.4060063362121582
         ],
         [
           [
-            112.0095,
-            71.80529270945725,
+            0.2275,
+            0.2272188714754831,
+            2.0,
+            0.0,
+            0.11375,
+            0.0,
+            0.11320000000000001,
+            1.0494541543657938,
+            -0.1495,
+            0.0,
+            -0.15614931977764673
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            1.9831,
+            2.6456730601144316,
+            12.0,
+            0.0,
+            0.3285416666666667,
+            0.0,
+            -0.3292999999999997,
+            0.5422928404765374,
+            -0.31399999999999983,
+            0.0,
+            1.1262187503990368
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            84.5911,
+            146.70557909372266,
+            12.0,
+            0.0,
+            7.126149999999999,
+            0.0,
+            -0.030200000000007776,
+            0.17331270620372993,
+            0.13580000000000325,
+            0.0,
+            -0.27555949201793994
+          ],
+          0.598307728767395
+        ],
+        [
+          [
+            0.0634,
+            0.09431657956967465,
+            7.0,
+            0.0,
+            0.025799999999999997,
+            0.0,
+            -0.1024,
+            0.38204379748658795,
+            0.0068000000000000005,
+            0.0,
+            -1.0415911323275295
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            113.1112,
+            72.25279488249396,
             4.0,
             0.0,
-            28.021475,
+            28.29565,
             0.0,
-            -0.4065999999999974,
-            0.6959995816631901,
-            0.056300000000007344,
+            -0.4420999999999964,
+            0.25821528643875896,
+            0.18299999999999272,
             0.0,
-            1.5571588223237316
+            0.7858681181249516
           ],
-          0.9936191439628601
+          0.598307728767395
+        ],
+        [
+          [
+            0.451,
+            0.6843572254073336,
+            5.0,
+            0.0,
+            0.14872000000000002,
+            0.0,
+            0.3456,
+            0.6209057026131232,
+            0.3856,
+            0.0,
+            3.082736514483448
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            0.059,
+            0.0940962831968107,
+            14.0,
+            0.0,
+            0.011007142857142856,
+            0.0,
+            0.0,
+            0.0,
+            0.008,
+            0.0,
+            -0.021874368446171112
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            0.5637,
+            1.0743749173345782,
+            12.0,
+            0.0,
+            0.16658333333333333,
+            0.0,
+            -0.04390000000000005,
+            1.0117134458897399,
+            -0.372,
+            0.0,
+            -2.2878894643275407
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            0.0972,
+            0.13536008017945306,
+            5.0,
+            0.0,
+            0.04594,
+            0.0,
+            -0.005700000000000011,
+            0.09592568574121932,
+            0.012899999999999995,
+            0.0,
+            -1.0108984718199643
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            0.1727,
+            0.24148522174289574,
+            7.0,
+            0.0,
+            0.04152857142857142,
+            0.0,
+            -0.00360000000000002,
+            0.002645690321176878,
+            -0.0011000000000000176,
+            0.0,
+            -1.135483997176768
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            0.0923,
+            0.1508053957356956,
+            5.0,
+            0.0,
+            0.04534,
+            0.0,
+            0.03239999999999999,
+            0.17019959618389705,
+            0.013499999999999998,
+            0.0,
+            1.2402253400496062
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            0.0781,
+            0.11445660802303917,
+            5.0,
+            0.0,
+            0.03986,
+            0.0,
+            -0.015899999999999997,
+            0.15059450895609067,
+            0.0296,
+            0.0,
+            0.4356668284813042
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            0.0671,
+            0.09998700168976932,
+            14.0,
+            0.0,
+            0.015964285714285716,
+            0.0,
+            0.0,
+            0.0006748890511371237,
+            -0.0049999999999999906,
+            0.0,
+            -0.9851949440905657
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            0.0688,
+            0.08599998412260555,
+            5.0,
+            0.0,
+            0.026439999999999998,
+            0.0,
+            -0.008300000000000002,
+            0.5916037711514016,
+            -0.005500000000000005,
+            0.0,
+            -0.04908896299250408
+          ],
+          0.4060063362121582
+        ],
+        [
+          [
+            109.9853,
+            70.96801194858693,
+            4.0,
+            0.0,
+            27.517599999999998,
+            0.0,
+            -0.43070000000000164,
+            0.3429986404394867,
+            -1.534400000000005,
+            0.0,
+            -0.09778789741828725
+          ],
+          0.598307728767395
         ]
       ],
       "verificationTolerance": 0.01
@@ -3395,133 +483,39 @@
         [
           {
             "nodeid": 0,
-            "split": 1,
-            "threshold": 6.66934061,
+            "split": 4,
+            "threshold": 0.782633305,
             "yes": 1,
             "no": 2
           },
           {
             "nodeid": 1,
             "split": 7,
-            "threshold": 0.46200484,
+            "threshold": 1.04269493,
             "yes": 3,
             "no": 4
           },
           {
             "nodeid": 3,
+            "split": 7,
+            "threshold": 0.457469732,
+            "yes": 7,
+            "no": 8
+          },
+          {
+            "nodeid": 7,
             "split": 8,
-            "threshold": -1.12740004,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 1,
-            "threshold": 1.10369647,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": 0.102742754
-          },
-          {
-            "nodeid": 10,
-            "leaf": 0.347442597
-          },
-          {
-            "nodeid": 6,
-            "split": 7,
-            "threshold": 0.370107085,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.374001443
-          },
-          {
-            "nodeid": 12,
-            "leaf": -0.239251778
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 1.00532377,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 2,
-            "threshold": 3.0,
+            "threshold": -2.47740006,
             "yes": 13,
             "no": 14
           },
           {
             "nodeid": 13,
-            "leaf": 0.0504870899
+            "leaf": 0.303378671
           },
           {
             "nodeid": 14,
-            "leaf": -0.101396762
-          },
-          {
-            "nodeid": 8,
-            "split": 4,
-            "threshold": 0.0298749991,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.105652869
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.144214645
-          },
-          {
-            "nodeid": 2,
-            "leaf": 0.39608857
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.919843256,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 7,
-            "threshold": 0.383025974,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -1.01624131,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.122947931
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.315605193
+            "leaf": -0.37218374
           },
           {
             "nodeid": 8,
@@ -3532,2860 +526,1186 @@
           },
           {
             "nodeid": 15,
-            "leaf": 0.289054066
+            "leaf": 0.167788073
           },
           {
             "nodeid": 16,
-            "leaf": -0.0983338207
+            "leaf": -0.173534423
           },
           {
             "nodeid": 4,
             "split": 4,
-            "threshold": 0.0298749991,
+            "threshold": 0.0299333334,
             "yes": 9,
             "no": 10
           },
           {
             "nodeid": 9,
-            "split": 7,
-            "threshold": 1.29354155,
+            "split": 1,
+            "threshold": 0.0596871749,
             "yes": 17,
             "no": 18
           },
           {
             "nodeid": 17,
-            "leaf": -0.00929721072
+            "leaf": -0.0858034119
           },
           {
             "nodeid": 18,
-            "leaf": -0.354121208
+            "leaf": -0.366666675
           },
           {
             "nodeid": 10,
-            "split": 10,
-            "threshold": -0.545213461,
+            "split": 1,
+            "threshold": 1.38547468,
             "yes": 19,
             "no": 20
           },
           {
             "nodeid": 19,
-            "leaf": 0.221617386
+            "leaf": 0.0884633884
           },
           {
             "nodeid": 20,
-            "leaf": 0.0677287504
+            "leaf": -0.365217417
           },
           {
             "nodeid": 2,
             "split": 1,
-            "threshold": 22.2661381,
+            "threshold": 4.69301844,
             "yes": 5,
             "no": 6
           },
           {
             "nodeid": 5,
+            "leaf": 0.0407124758
+          },
+          {
+            "nodeid": 6,
+            "split": 1,
+            "threshold": 12.8554602,
+            "yes": 11,
+            "no": 12
+          },
+          {
+            "nodeid": 11,
+            "split": 7,
+            "threshold": 0.88387841,
+            "yes": 21,
+            "no": 22
+          },
+          {
+            "nodeid": 21,
+            "leaf": 0.152401373
+          },
+          {
+            "nodeid": 22,
+            "leaf": 0.34168905
+          },
+          {
+            "nodeid": 12,
+            "leaf": 0.39839524
+          }
+        ],
+        [
+          {
+            "nodeid": 0,
+            "split": 4,
+            "threshold": 0.782633305,
+            "yes": 1,
+            "no": 2
+          },
+          {
+            "nodeid": 1,
+            "split": 7,
+            "threshold": 0.59597975,
+            "yes": 3,
+            "no": 4
+          },
+          {
+            "nodeid": 3,
+            "split": 7,
+            "threshold": 0.429283798,
+            "yes": 7,
+            "no": 8
+          },
+          {
+            "nodeid": 7,
+            "split": 10,
+            "threshold": -1.02204823,
+            "yes": 13,
+            "no": 14
+          },
+          {
+            "nodeid": 13,
+            "leaf": -0.199895963
+          },
+          {
+            "nodeid": 14,
+            "leaf": -0.325266063
+          },
+          {
+            "nodeid": 8,
+            "split": 0,
+            "threshold": 0.0851000026,
+            "yes": 15,
+            "no": 16
+          },
+          {
+            "nodeid": 15,
+            "leaf": -0.356517851
+          },
+          {
+            "nodeid": 16,
+            "leaf": -0.167047247
+          },
+          {
+            "nodeid": 4,
+            "split": 7,
+            "threshold": 1.21808636,
+            "yes": 9,
+            "no": 10
+          },
+          {
+            "nodeid": 9,
+            "split": 0,
+            "threshold": 0.779500008,
+            "yes": 17,
+            "no": 18
+          },
+          {
+            "nodeid": 17,
+            "leaf": -0.0704239532
+          },
+          {
+            "nodeid": 18,
+            "leaf": -0.319635659
+          },
+          {
+            "nodeid": 10,
+            "split": 0,
+            "threshold": 0.508599997,
+            "yes": 19,
+            "no": 20
+          },
+          {
+            "nodeid": 19,
+            "leaf": 0.0925124809
+          },
+          {
+            "nodeid": 20,
+            "leaf": -0.108959608
+          },
+          {
+            "nodeid": 2,
+            "split": 0,
+            "threshold": 4.81190014,
+            "yes": 5,
+            "no": 6
+          },
+          {
+            "nodeid": 5,
+            "split": 0,
+            "threshold": 2.23539996,
+            "yes": 11,
+            "no": 12
+          },
+          {
+            "nodeid": 11,
+            "leaf": 0.144552037
+          },
+          {
+            "nodeid": 12,
+            "leaf": 0.0574473739
+          },
+          {
+            "nodeid": 6,
+            "leaf": 0.331698835
+          }
+        ],
+        [
+          {
+            "nodeid": 0,
+            "split": 4,
+            "threshold": 0.782633305,
+            "yes": 1,
+            "no": 2
+          },
+          {
+            "nodeid": 1,
+            "split": 7,
+            "threshold": 0.535776734,
+            "yes": 3,
+            "no": 4
+          },
+          {
+            "nodeid": 3,
+            "split": 8,
+            "threshold": -2.47740006,
+            "yes": 7,
+            "no": 8
+          },
+          {
+            "nodeid": 7,
+            "leaf": 0.331335932
+          },
+          {
+            "nodeid": 8,
+            "split": 7,
+            "threshold": 0.368312269,
+            "yes": 13,
+            "no": 14
+          },
+          {
+            "nodeid": 13,
+            "leaf": -0.27208674
+          },
+          {
+            "nodeid": 14,
+            "leaf": -0.174617335
+          },
+          {
+            "nodeid": 4,
+            "split": 7,
+            "threshold": 1.04269493,
+            "yes": 9,
+            "no": 10
+          },
+          {
+            "nodeid": 9,
+            "split": 10,
+            "threshold": -0.780745029,
+            "yes": 15,
+            "no": 16
+          },
+          {
+            "nodeid": 15,
+            "leaf": -0.00490860222
+          },
+          {
+            "nodeid": 16,
+            "leaf": -0.127421319
+          },
+          {
+            "nodeid": 10,
+            "split": 4,
+            "threshold": 0.206633329,
+            "yes": 17,
+            "no": 18
+          },
+          {
+            "nodeid": 17,
+            "leaf": 0.0571256056
+          },
+          {
+            "nodeid": 18,
+            "leaf": -0.199972361
+          },
+          {
+            "nodeid": 2,
+            "split": 1,
+            "threshold": 4.69301844,
+            "yes": 5,
+            "no": 6
+          },
+          {
+            "nodeid": 5,
+            "leaf": 0.00141167012
+          },
+          {
+            "nodeid": 6,
+            "split": 1,
+            "threshold": 12.8554602,
+            "yes": 11,
+            "no": 12
+          },
+          {
+            "nodeid": 11,
+            "split": 10,
+            "threshold": 0.710223854,
+            "yes": 19,
+            "no": 20
+          },
+          {
+            "nodeid": 19,
+            "leaf": 0.258499235
+          },
+          {
+            "nodeid": 20,
+            "leaf": -0.0116804913
+          },
+          {
+            "nodeid": 12,
+            "leaf": 0.294761091
+          }
+        ],
+        [
+          {
+            "nodeid": 0,
+            "split": 0,
+            "threshold": 4.81190014,
+            "yes": 1,
+            "no": 2
+          },
+          {
+            "nodeid": 1,
+            "split": 7,
+            "threshold": 0.917756438,
+            "yes": 3,
+            "no": 4
+          },
+          {
+            "nodeid": 3,
+            "split": 7,
+            "threshold": 0.380601734,
+            "yes": 7,
+            "no": 8
+          },
+          {
+            "nodeid": 7,
+            "split": 10,
+            "threshold": -1.02204823,
+            "yes": 13,
+            "no": 14
+          },
+          {
+            "nodeid": 13,
+            "leaf": -0.145247236
+          },
+          {
+            "nodeid": 14,
+            "leaf": -0.264801115
+          },
+          {
+            "nodeid": 8,
             "split": 2,
             "threshold": 3.0,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.244115993
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.0133476723
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.332150578
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.383025974,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 8,
-            "threshold": -1.92809999,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": 0.2714625
-          },
-          {
-            "nodeid": 8,
-            "split": 8,
-            "threshold": 0.0216000006,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.286974877
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.184904546
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 1.22085261,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 6,
-            "threshold": -0.517099977,
             "yes": 15,
             "no": 16
           },
           {
             "nodeid": 15,
-            "leaf": 0.148792788
+            "leaf": 0.00034425137
           },
           {
             "nodeid": 16,
-            "leaf": -0.0701519176
+            "leaf": -0.131560549
           },
           {
-            "nodeid": 10,
-            "split": 8,
-            "threshold": 0.628700018,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.124811843
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.382711351
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 6.66934061,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
+            "nodeid": 4,
             "split": 10,
-            "threshold": 3.24739552,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 4,
-            "threshold": 2.20180821,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.287348837
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.193475127
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.312115937
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.290817589
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.618056655,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 8,
-            "threshold": -1.92809999,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": 0.338708043
-          },
-          {
-            "nodeid": 8,
-            "split": 8,
-            "threshold": 0.00270000007,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.246466309
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.11073184
-          },
-          {
-            "nodeid": 4,
-            "split": 0,
-            "threshold": 0.938199997,
+            "threshold": -0.550948858,
             "yes": 9,
             "no": 10
           },
           {
             "nodeid": 9,
-            "split": 0,
-            "threshold": 0.101199999,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.039190378
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.0769736096
-          },
-          {
-            "nodeid": 10,
-            "split": 7,
-            "threshold": 1.52310956,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.366437018
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.0153943496
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 7,
-            "threshold": 0.888054132,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.00645438302
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.251135647
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.269333184
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.475223184,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 7,
-            "threshold": 0.0409888215,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": -0.263190269
-          },
-          {
-            "nodeid": 8,
-            "split": 4,
-            "threshold": 0.101000004,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.0808358267
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.268427014
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 1.08327687,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 4,
-            "threshold": 0.0311333332,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.244690657
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.0205903854
-          },
-          {
-            "nodeid": 10,
-            "split": 7,
-            "threshold": 2.72893929,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.0760442242
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.431170672
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 2.646667,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "leaf": 0.0623968355
-          },
-          {
-            "nodeid": 6,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 7,
-            "threshold": 0.834127903,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.113552451
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.240019351
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.25261268
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.618056655,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 8,
-            "threshold": -1.92809999,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "leaf": 0.312839836
-          },
-          {
-            "nodeid": 6,
-            "split": 2,
-            "threshold": 6.0,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.0991173014
-          },
-          {
-            "nodeid": 10,
-            "leaf": -0.235995442
-          },
-          {
-            "nodeid": 4,
-            "split": 7,
-            "threshold": 1.22085261,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 7,
-            "threshold": 0.665639699,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.159215137
-          },
-          {
-            "nodeid": 12,
-            "leaf": -0.0421593599
-          },
-          {
-            "nodeid": 8,
             "split": 0,
             "threshold": 0.0463999994,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.33507219
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.0952006578
-          },
-          {
-            "nodeid": 2,
-            "leaf": 0.237049803
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.370107085,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -1.01624131,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -1.06531775,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.24478364
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.409782022
-          },
-          {
-            "nodeid": 8,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.106189944
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.230523303
-          },
-          {
-            "nodeid": 4,
-            "split": 10,
-            "threshold": -0.596619904,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 7,
-            "threshold": 0.605877638,
             "yes": 17,
             "no": 18
           },
           {
             "nodeid": 17,
-            "leaf": -0.0477239117
+            "leaf": -0.0887296498
           },
           {
             "nodeid": 18,
-            "leaf": 0.101806834
+            "leaf": 0.133762702
           },
           {
             "nodeid": 10,
             "split": 0,
-            "threshold": 0.664099991,
+            "threshold": 0.135900006,
             "yes": 19,
             "no": 20
           },
           {
             "nodeid": 19,
-            "leaf": -0.00897547044
+            "leaf": -0.186242685
           },
           {
             "nodeid": 20,
-            "leaf": -0.180594638
+            "leaf": 0.0378874131
           },
           {
             "nodeid": 2,
-            "split": 2,
-            "threshold": 4.0,
+            "split": 0,
+            "threshold": 12.0790997,
             "yes": 5,
             "no": 6
           },
           {
             "nodeid": 5,
             "split": 10,
-            "threshold": 1.94435894,
+            "threshold": 0.710223854,
             "yes": 11,
             "no": 12
           },
           {
             "nodeid": 11,
+            "leaf": 0.223014385
+          },
+          {
+            "nodeid": 12,
+            "leaf": -0.105735503
+          },
+          {
+            "nodeid": 6,
+            "leaf": 0.26988098
+          }
+        ],
+        [
+          {
+            "nodeid": 0,
+            "split": 4,
+            "threshold": 0.782633305,
+            "yes": 1,
+            "no": 2
+          },
+          {
+            "nodeid": 1,
+            "split": 7,
+            "threshold": 0.535776734,
+            "yes": 3,
+            "no": 4
+          },
+          {
+            "nodeid": 3,
+            "split": 8,
+            "threshold": -2.47740006,
+            "yes": 7,
+            "no": 8
+          },
+          {
+            "nodeid": 7,
+            "leaf": 0.256283969
+          },
+          {
+            "nodeid": 8,
+            "split": 8,
+            "threshold": 0.00289999996,
+            "yes": 13,
+            "no": 14
+          },
+          {
+            "nodeid": 13,
+            "leaf": -0.239480644
+          },
+          {
+            "nodeid": 14,
+            "leaf": -0.153318837
+          },
+          {
+            "nodeid": 4,
+            "split": 4,
+            "threshold": 0.0299333334,
+            "yes": 9,
+            "no": 10
+          },
+          {
+            "nodeid": 9,
+            "split": 4,
+            "threshold": 0.0228333324,
+            "yes": 15,
+            "no": 16
+          },
+          {
+            "nodeid": 15,
+            "leaf": -0.109067999
+          },
+          {
+            "nodeid": 16,
+            "leaf": -0.295306057
+          },
+          {
+            "nodeid": 10,
+            "split": 1,
+            "threshold": 1.0827347,
+            "yes": 17,
+            "no": 18
+          },
+          {
+            "nodeid": 17,
+            "leaf": 0.000633383286
+          },
+          {
+            "nodeid": 18,
+            "leaf": -0.206465557
+          },
+          {
+            "nodeid": 2,
+            "split": 1,
+            "threshold": 12.8554602,
+            "yes": 5,
+            "no": 6
+          },
+          {
+            "nodeid": 5,
+            "split": 7,
+            "threshold": 0.90803951,
+            "yes": 11,
+            "no": 12
+          },
+          {
+            "nodeid": 11,
+            "split": 7,
+            "threshold": 0.5495103,
+            "yes": 19,
+            "no": 20
+          },
+          {
+            "nodeid": 19,
+            "leaf": 0.186850473
+          },
+          {
+            "nodeid": 20,
+            "leaf": -0.124365747
+          },
+          {
+            "nodeid": 12,
+            "leaf": 0.215932056
+          },
+          {
+            "nodeid": 6,
+            "leaf": 0.252731204
+          }
+        ],
+        [
+          {
+            "nodeid": 0,
+            "split": 0,
+            "threshold": 12.0790997,
+            "yes": 1,
+            "no": 2
+          },
+          {
+            "nodeid": 1,
+            "split": 7,
+            "threshold": 0.368312269,
+            "yes": 3,
+            "no": 4
+          },
+          {
+            "nodeid": 3,
+            "split": 2,
+            "threshold": 6.0,
+            "yes": 5,
+            "no": 6
+          },
+          {
+            "nodeid": 5,
+            "split": 6,
+            "threshold": -0.0136000002,
+            "yes": 9,
+            "no": 10
+          },
+          {
+            "nodeid": 9,
+            "leaf": -0.0597107895
+          },
+          {
+            "nodeid": 10,
+            "leaf": -0.211289153
+          },
+          {
+            "nodeid": 6,
+            "leaf": -0.248557165
+          },
+          {
+            "nodeid": 4,
+            "split": 7,
+            "threshold": 0.917756438,
+            "yes": 7,
+            "no": 8
+          },
+          {
+            "nodeid": 7,
+            "split": 8,
+            "threshold": -2.47740006,
+            "yes": 11,
+            "no": 12
+          },
+          {
+            "nodeid": 11,
+            "leaf": 0.328087389
+          },
+          {
+            "nodeid": 12,
+            "leaf": -0.0717479661
+          },
+          {
+            "nodeid": 8,
+            "split": 1,
+            "threshold": 0.113393992,
+            "yes": 13,
+            "no": 14
+          },
+          {
+            "nodeid": 13,
+            "leaf": -0.0511263572
+          },
+          {
+            "nodeid": 14,
+            "leaf": 0.0551718064
+          },
+          {
+            "nodeid": 2,
+            "leaf": 0.240135625
+          }
+        ],
+        [
+          {
+            "nodeid": 0,
+            "split": 0,
+            "threshold": 12.0790997,
+            "yes": 1,
+            "no": 2
+          },
+          {
+            "nodeid": 1,
+            "split": 7,
+            "threshold": 0.466073036,
+            "yes": 3,
+            "no": 4
+          },
+          {
+            "nodeid": 3,
+            "split": 2,
+            "threshold": 6.0,
+            "yes": 5,
+            "no": 6
+          },
+          {
+            "nodeid": 5,
             "split": 10,
-            "threshold": 0.705778658,
+            "threshold": -0.258180082,
+            "yes": 9,
+            "no": 10
+          },
+          {
+            "nodeid": 9,
+            "leaf": -0.050205119
+          },
+          {
+            "nodeid": 10,
+            "leaf": -0.215254024
+          },
+          {
+            "nodeid": 6,
+            "split": 9,
+            "threshold": 1.0,
+            "yes": 11,
+            "no": 12
+          },
+          {
+            "nodeid": 11,
+            "leaf": -0.24127844
+          },
+          {
+            "nodeid": 12,
+            "leaf": 0.0752502084
+          },
+          {
+            "nodeid": 4,
+            "split": 7,
+            "threshold": 1.84165895,
+            "yes": 7,
+            "no": 8
+          },
+          {
+            "nodeid": 7,
+            "split": 4,
+            "threshold": 0.0308500007,
+            "yes": 13,
+            "no": 14
+          },
+          {
+            "nodeid": 13,
+            "leaf": -0.15825893
+          },
+          {
+            "nodeid": 14,
+            "leaf": -0.0199485905
+          },
+          {
+            "nodeid": 8,
+            "split": 7,
+            "threshold": 3.186064,
+            "yes": 15,
+            "no": 16
+          },
+          {
+            "nodeid": 15,
+            "leaf": 0.161378667
+          },
+          {
+            "nodeid": 16,
+            "leaf": -0.370805591
+          },
+          {
+            "nodeid": 2,
+            "leaf": 0.230619669
+          }
+        ],
+        [
+          {
+            "nodeid": 0,
+            "split": 4,
+            "threshold": 0.782633305,
+            "yes": 1,
+            "no": 2
+          },
+          {
+            "nodeid": 1,
+            "split": 7,
+            "threshold": 0.368312269,
+            "yes": 3,
+            "no": 4
+          },
+          {
+            "nodeid": 3,
+            "split": 2,
+            "threshold": 6.0,
+            "yes": 7,
+            "no": 8
+          },
+          {
+            "nodeid": 7,
+            "split": 6,
+            "threshold": -0.0136000002,
+            "yes": 15,
+            "no": 16
+          },
+          {
+            "nodeid": 15,
+            "leaf": -0.0312195159
+          },
+          {
+            "nodeid": 16,
+            "leaf": -0.186420783
+          },
+          {
+            "nodeid": 8,
+            "leaf": -0.229104981
+          },
+          {
+            "nodeid": 4,
+            "split": 0,
+            "threshold": 0.697300017,
+            "yes": 9,
+            "no": 10
+          },
+          {
+            "nodeid": 9,
+            "split": 4,
+            "threshold": 0.0273000002,
+            "yes": 17,
+            "no": 18
+          },
+          {
+            "nodeid": 17,
+            "leaf": -0.147995919
+          },
+          {
+            "nodeid": 18,
+            "leaf": 0.000871682365
+          },
+          {
+            "nodeid": 10,
+            "split": 6,
+            "threshold": -1.71420002,
+            "yes": 19,
+            "no": 20
+          },
+          {
+            "nodeid": 19,
+            "leaf": 0.243207678
+          },
+          {
+            "nodeid": 20,
+            "leaf": -0.185653433
+          },
+          {
+            "nodeid": 2,
+            "split": 0,
+            "threshold": 4.81190014,
+            "yes": 5,
+            "no": 6
+          },
+          {
+            "nodeid": 5,
+            "split": 7,
+            "threshold": 0.582978904,
+            "yes": 11,
+            "no": 12
+          },
+          {
+            "nodeid": 11,
+            "leaf": 0.109273903
+          },
+          {
+            "nodeid": 12,
+            "leaf": 0.0256913938
+          },
+          {
+            "nodeid": 6,
+            "split": 0,
+            "threshold": 12.0790997,
+            "yes": 13,
+            "no": 14
+          },
+          {
+            "nodeid": 13,
+            "split": 7,
+            "threshold": 0.72467947,
             "yes": 21,
             "no": 22
           },
           {
             "nodeid": 21,
-            "leaf": 0.180126235
+            "leaf": 0.250129223
           },
           {
             "nodeid": 22,
-            "leaf": -0.137013048
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.211361766
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.228240058
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.370107085,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 0,
-            "threshold": 2.03410006,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 6,
-            "threshold": 0.150999993,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.220798522
+            "leaf": 0.0541509092
           },
           {
             "nodeid": 14,
-            "leaf": -0.118034936
-          },
-          {
-            "nodeid": 8,
-            "leaf": 0.180403456
-          },
-          {
-            "nodeid": 4,
-            "split": 0,
-            "threshold": 0.0851999968,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 7,
-            "threshold": 1.24243724,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.157262892
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.0769189149
-          },
-          {
-            "nodeid": 10,
-            "split": 0,
-            "threshold": 0.281399995,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.0520315468
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.0443996191
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 4,
-            "threshold": 5.40405989,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.0916633829
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.206705019
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.221735269
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.383025974,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -1.01624131,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -1.0792439,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.225785613
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.392205715
-          },
-          {
-            "nodeid": 8,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.0334924199
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.211769298
-          },
-          {
-            "nodeid": 4,
-            "split": 10,
-            "threshold": -0.596619904,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 7,
-            "threshold": 0.388171643,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.451835454
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.0632640049
-          },
-          {
-            "nodeid": 10,
-            "split": 6,
-            "threshold": -0.324299991,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.315331429
-          },
-          {
-            "nodeid": 20,
-            "leaf": -0.00534745632
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 7,
-            "threshold": 0.834127903,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.0171340909
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.18468684
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.215605497
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.694566667,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 4,
-            "threshold": 0.0302000009,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -0.865055203,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.135435686
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.106834471
-          },
-          {
-            "nodeid": 8,
-            "split": 6,
-            "threshold": -0.0291000009,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.297801942
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.151534781
-          },
-          {
-            "nodeid": 4,
-            "split": 10,
-            "threshold": -0.596619904,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 8,
-            "threshold": 0.0155999996,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.0449471176
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.216360599
-          },
-          {
-            "nodeid": 10,
-            "split": 8,
-            "threshold": 0.704400003,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.00941423234
-          },
-          {
-            "nodeid": 20,
-            "leaf": -0.28079769
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 2.06249356,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 8,
-            "threshold": -0.441000015,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": 0.176169679
-          },
-          {
-            "nodeid": 22,
-            "leaf": -0.0834836215
-          },
-          {
-            "nodeid": 12,
-            "split": 10,
-            "threshold": 3.00174928,
-            "yes": 23,
-            "no": 24
-          },
-          {
-            "nodeid": 23,
-            "leaf": 0.107248127
-          },
-          {
-            "nodeid": 24,
-            "leaf": 0.230739862
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.209727526
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 4,
-            "threshold": 0.0724000037,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -0.587417662,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 8,
-            "threshold": -0.30430001,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.221726537
-          },
-          {
-            "nodeid": 10,
-            "leaf": 0.0222307947
-          },
-          {
-            "nodeid": 6,
-            "split": 6,
-            "threshold": 0.111699998,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.131134897
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.148216382
-          },
-          {
-            "nodeid": 4,
-            "split": 0,
-            "threshold": 0.281399995,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 0,
-            "threshold": 0.159700006,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.225166917
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.0640913099
-          },
-          {
-            "nodeid": 8,
-            "split": 8,
-            "threshold": 0.115199998,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.131498486
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.0126973381
-          },
-          {
-            "nodeid": 2,
-            "leaf": 0.203127578
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.0409888215,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "leaf": -0.216948673
-          },
-          {
-            "nodeid": 4,
-            "split": 0,
-            "threshold": 0.602100015,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 1,
-            "threshold": 0.920766771,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.00348587125
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.318109572
-          },
-          {
-            "nodeid": 8,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": 0.194298431
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.132830948
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 7,
-            "threshold": 0.863600612,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": 0.0239218827
-          },
-          {
-            "nodeid": 10,
-            "leaf": 0.159928977
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.201260284
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.99797225,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 0,
-            "threshold": 0.0830999985,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -0.604139149,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.0557549708
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.26308012
-          },
-          {
-            "nodeid": 8,
-            "split": 10,
-            "threshold": 0.255241662,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.0272224378
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.104519166
-          },
-          {
-            "nodeid": 4,
-            "split": 0,
-            "threshold": 0.0298999995,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.2906259
-          },
-          {
-            "nodeid": 10,
-            "split": 10,
-            "threshold": -0.76630789,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.131704375
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.0289010163
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 10,
-            "threshold": 0.705778658,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.185950041
-          },
-          {
-            "nodeid": 12,
-            "split": 10,
-            "threshold": 1.41389704,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.153848842
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.141368046
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.200202614
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 7,
-            "threshold": 0.20025754,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 0,
-            "threshold": 2.03410006,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "leaf": -0.217572957
-          },
-          {
-            "nodeid": 4,
-            "leaf": 0.159406945
-          },
-          {
-            "nodeid": 2,
-            "split": 4,
-            "threshold": 0.294200003,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 0,
-            "threshold": 0.664099991,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": 3.00174928,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.0179864578
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.249151692
-          },
-          {
-            "nodeid": 8,
-            "split": 7,
-            "threshold": 1.54819107,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.280189484
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.133039191
-          },
-          {
-            "nodeid": 6,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 10,
-            "threshold": 2.12363052,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.211852595
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.166761965
-          },
-          {
-            "nodeid": 10,
-            "split": 1,
-            "threshold": 0.978395641,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.33676514
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.161779135
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 7,
-            "threshold": 1.23068881,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 4,
-            "threshold": 0.294200003,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 4,
-            "threshold": 0.12546666,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 4,
-            "threshold": 0.0324000008,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.122104764
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.000151612607
-          },
-          {
-            "nodeid": 8,
-            "split": 10,
-            "threshold": -0.350155771,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.0190567914
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.198469236
-          },
-          {
-            "nodeid": 4,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.147021845
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.248275086
-          },
-          {
-            "nodeid": 10,
-            "split": 6,
-            "threshold": 0.557500005,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.222979695
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.0436380617
-          },
-          {
-            "nodeid": 2,
-            "split": 4,
-            "threshold": 0.0197250005,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "leaf": -0.280168355
-          },
-          {
-            "nodeid": 6,
-            "split": 2,
-            "threshold": 8.0,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 7,
-            "threshold": 3.21363854,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": 0.087103419
-          },
-          {
-            "nodeid": 22,
-            "leaf": -0.324285537
-          },
-          {
-            "nodeid": 12,
-            "split": 10,
-            "threshold": 0.289686441,
-            "yes": 23,
-            "no": 24
-          },
-          {
-            "nodeid": 23,
-            "leaf": -0.460886389
-          },
-          {
-            "nodeid": 24,
-            "leaf": 0.126501903
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 1,
-            "threshold": 6.66934061,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.430359483,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 10,
-            "threshold": -1.05472589,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -1.0792439,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.170141369
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.361191452
-          },
-          {
-            "nodeid": 8,
-            "split": 6,
-            "threshold": -0.460500002,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.159861207
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.177363738
-          },
-          {
-            "nodeid": 4,
-            "split": 8,
-            "threshold": 0.126900002,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 10,
-            "threshold": 0.135633692,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.00579857314
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.125823647
-          },
-          {
-            "nodeid": 10,
-            "split": 10,
-            "threshold": -0.109300338,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.226751551
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.0354838148
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 8,
-            "threshold": -0.240400001,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.174067542
-          },
-          {
-            "nodeid": 12,
-            "split": 10,
-            "threshold": 1.41389704,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": -0.0767119825
-          },
-          {
-            "nodeid": 22,
-            "leaf": 0.127536267
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.191332832
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 0,
-            "threshold": 6.45410013,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 4,
-            "threshold": 0.0298749991,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 1,
-            "threshold": 0.0626193509,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 6,
-            "threshold": -0.102799997,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.268174142
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.0642883405
-          },
-          {
-            "nodeid": 8,
-            "split": 6,
-            "threshold": 0.0232999995,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.257486552
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.0326275602
-          },
-          {
-            "nodeid": 4,
-            "split": 10,
-            "threshold": -0.679868698,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 10,
-            "threshold": -0.732296407,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.0429271422
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.182275698
-          },
-          {
-            "nodeid": 10,
-            "split": 10,
-            "threshold": 3.24739552,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.0210627168
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.185207754
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "leaf": 0.110115312
-          },
-          {
-            "nodeid": 6,
-            "leaf": 0.182860523
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 4,
-            "threshold": 0.0318999998,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 1.10186005,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 1,
-            "threshold": 0.00603665039,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": 0.0987124443
-          },
-          {
-            "nodeid": 8,
-            "split": 8,
-            "threshold": -0.00529999984,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.235385656
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.110548809
-          },
-          {
-            "nodeid": 4,
-            "split": 8,
-            "threshold": -0.00139999995,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 7,
-            "threshold": 1.13432884,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.258049041
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.0129276933
-          },
-          {
-            "nodeid": 10,
-            "leaf": -0.32396552
-          },
-          {
-            "nodeid": 2,
-            "split": 1,
-            "threshold": 0.0876338631,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 7,
-            "threshold": 0.753967226,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 7,
-            "threshold": 0.496909738,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.19046022
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.348098934
-          },
-          {
-            "nodeid": 12,
-            "split": 6,
-            "threshold": 0.0136000002,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": 0.0858646408
-          },
-          {
-            "nodeid": 22,
-            "leaf": -0.352334231
-          },
-          {
-            "nodeid": 6,
-            "split": 1,
-            "threshold": 0.19207944,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "split": 4,
-            "threshold": 0.0867285728,
-            "yes": 23,
-            "no": 24
-          },
-          {
-            "nodeid": 23,
-            "leaf": -0.0800779685
-          },
-          {
-            "nodeid": 24,
-            "leaf": 0.249401331
-          },
-          {
-            "nodeid": 14,
-            "split": 1,
-            "threshold": 0.262248576,
-            "yes": 25,
-            "no": 26
-          },
-          {
-            "nodeid": 25,
-            "leaf": 0.0818498954
-          },
-          {
-            "nodeid": 26,
-            "leaf": -0.00315951905
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 7,
-            "threshold": 0.162537292,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 4,
-            "threshold": 0.244166672,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "leaf": -0.208623156
-          },
-          {
-            "nodeid": 4,
-            "leaf": 0.0672912896
-          },
-          {
-            "nodeid": 2,
-            "split": 7,
-            "threshold": 1.04698277,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 2,
-            "threshold": 3.0,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 10,
-            "threshold": -0.444365948,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": -0.0577767789
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.111618079
-          },
-          {
-            "nodeid": 8,
-            "split": 2,
-            "threshold": 4.0,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.193554074
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.00987891387
-          },
-          {
-            "nodeid": 6,
-            "split": 7,
-            "threshold": 2.72893929,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 8,
-            "threshold": 0.628700018,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.049703937
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.17109707
-          },
-          {
-            "nodeid": 10,
-            "split": 4,
-            "threshold": 0.195979998,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": -0.340185225
-          },
-          {
-            "nodeid": 18,
-            "leaf": 0.0177104492
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 8,
-            "threshold": -1.5323,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 10,
-            "threshold": -0.958848119,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 6,
-            "threshold": -1.3089,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "leaf": 0.145947084
-          },
-          {
-            "nodeid": 8,
-            "leaf": 0.262146026
-          },
-          {
-            "nodeid": 4,
-            "leaf": -0.148180678
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 7.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 8,
-            "threshold": -0.319900006,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 4,
-            "threshold": 0.0631999969,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.272170067
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.043299254
-          },
-          {
-            "nodeid": 10,
-            "split": 8,
-            "threshold": -0.213499993,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": 0.141064987
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.01822358
-          },
-          {
-            "nodeid": 6,
-            "split": 4,
-            "threshold": 1.38102496,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 6,
-            "threshold": -0.517099977,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.095975101
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.147609293
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.192422047
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 7,
-            "threshold": 1.84154332,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 6,
-            "threshold": 0.0923999995,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 6,
-            "threshold": 0.0705000013,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 7,
-            "threshold": 1.6132375,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.00301233749
-          },
-          {
-            "nodeid": 14,
-            "leaf": -0.200012833
-          },
-          {
-            "nodeid": 8,
-            "split": 8,
-            "threshold": 0.167300001,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.361133307
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.01301408
-          },
-          {
-            "nodeid": 4,
-            "split": 4,
-            "threshold": 0.11445,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 7,
-            "threshold": 1.09516931,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.171651617
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.0364709161
-          },
-          {
-            "nodeid": 10,
-            "split": 8,
-            "threshold": 0.224800006,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": -0.108743988
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.0567459464
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 7.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 7,
-            "threshold": 3.21363854,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 4,
-            "threshold": 0.0671999976,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": 0.0452896431
-          },
-          {
-            "nodeid": 22,
-            "leaf": 0.17327176
-          },
-          {
-            "nodeid": 12,
-            "leaf": -0.244005367
-          },
-          {
-            "nodeid": 6,
-            "leaf": -0.389783621
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 7,
-            "threshold": 1.96149206,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 1,
-            "threshold": 0.0411048718,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 7,
-            "threshold": 1.13432884,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 7,
-            "threshold": 0.439235657,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.182473212
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.22352235
-          },
-          {
-            "nodeid": 8,
-            "leaf": -0.234374359
-          },
-          {
-            "nodeid": 4,
-            "split": 0,
-            "threshold": 0.0595999993,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "split": 7,
-            "threshold": 1.10186005,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.256629556
-          },
-          {
-            "nodeid": 16,
-            "leaf": -0.00632283604
-          },
-          {
-            "nodeid": 10,
-            "split": 1,
-            "threshold": 0.0646287724,
-            "yes": 17,
-            "no": 18
-          },
-          {
-            "nodeid": 17,
-            "leaf": 0.340059936
-          },
-          {
-            "nodeid": 18,
-            "leaf": -0.00395733584
-          },
-          {
-            "nodeid": 2,
-            "split": 2,
-            "threshold": 7.0,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 7,
-            "threshold": 2.72893929,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "split": 1,
-            "threshold": 0.0907047838,
-            "yes": 19,
-            "no": 20
-          },
-          {
-            "nodeid": 19,
-            "leaf": 0.239009783
-          },
-          {
-            "nodeid": 20,
-            "leaf": 0.11449834
-          },
-          {
-            "nodeid": 12,
-            "split": 4,
-            "threshold": 0.11816667,
-            "yes": 21,
-            "no": 22
-          },
-          {
-            "nodeid": 21,
-            "leaf": -0.297730893
-          },
-          {
-            "nodeid": 22,
-            "leaf": 0.206194684
-          },
-          {
-            "nodeid": 6,
-            "leaf": -0.270355165
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 7,
-            "threshold": 0.0409888215,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 7,
-            "threshold": 0.00170308643,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "leaf": -0.0917588472
-          },
-          {
-            "nodeid": 4,
-            "leaf": -0.198087975
-          },
-          {
-            "nodeid": 2,
-            "split": 7,
-            "threshold": 2.72893929,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 4,
-            "threshold": 0.015916666,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 7,
-            "threshold": 0.951363623,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.265022337
-          },
-          {
-            "nodeid": 10,
-            "leaf": -0.017475808
-          },
-          {
-            "nodeid": 8,
-            "split": 1,
-            "threshold": 0.0411048718,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.25145182
-          },
-          {
-            "nodeid": 12,
-            "leaf": 0.0170725137
-          },
-          {
-            "nodeid": 6,
-            "leaf": -0.294962198
-          }
-        ],
-        [
-          {
-            "nodeid": 0,
-            "split": 1,
-            "threshold": 22.2661381,
-            "yes": 1,
-            "no": 2
-          },
-          {
-            "nodeid": 1,
-            "split": 10,
-            "threshold": -0.98322922,
-            "yes": 3,
-            "no": 4
-          },
-          {
-            "nodeid": 3,
-            "split": 4,
-            "threshold": 0.12337143,
-            "yes": 5,
-            "no": 6
-          },
-          {
-            "nodeid": 5,
-            "split": 8,
-            "threshold": -0.168899998,
-            "yes": 9,
-            "no": 10
-          },
-          {
-            "nodeid": 9,
-            "leaf": -0.12044128
-          },
-          {
-            "nodeid": 10,
-            "leaf": 0.0918735787
-          },
-          {
-            "nodeid": 6,
-            "split": 8,
-            "threshold": -1.03680003,
-            "yes": 11,
-            "no": 12
-          },
-          {
-            "nodeid": 11,
-            "leaf": 0.253605098
-          },
-          {
-            "nodeid": 12,
-            "leaf": -0.0441409461
-          },
-          {
-            "nodeid": 4,
-            "split": 0,
-            "threshold": 0.697600007,
-            "yes": 7,
-            "no": 8
-          },
-          {
-            "nodeid": 7,
-            "split": 8,
-            "threshold": 0.115199998,
-            "yes": 13,
-            "no": 14
-          },
-          {
-            "nodeid": 13,
-            "leaf": -0.0282566007
-          },
-          {
-            "nodeid": 14,
-            "leaf": 0.0594729297
-          },
-          {
-            "nodeid": 8,
-            "split": 7,
-            "threshold": 1.57937372,
-            "yes": 15,
-            "no": 16
-          },
-          {
-            "nodeid": 15,
-            "leaf": -0.163852021
-          },
-          {
-            "nodeid": 16,
-            "leaf": 0.0610144399
-          },
-          {
-            "nodeid": 2,
-            "leaf": 0.181786716
+            "leaf": 0.223847613
           }
         ]
       ],
       "metrics": {
-        "n_train": 6101,
-        "n_test": 1526,
-        "n_positive_train": 429,
-        "n_positive_test": 423,
-        "best_iteration": 23,
-        "auc": 0.9871573122089122,
-        "precision_at_0.5": 0.7861271676300579,
-        "recall_at_0.5": 0.9645390070921985
+        "n_train": 7088,
+        "n_test": 1772,
+        "n_positive_train": 706,
+        "n_positive_test": 476,
+        "best_iteration": 7,
+        "auc": 0.9899051055607428,
+        "precision_at_0.5": 0.9224652087475149,
+        "recall_at_0.5": 0.9747899159663865
       },
       "verificationSamples": [
         [
           [
-            0.2825,
-            0.5358486716532591,
-            7.0,
-            0.0,
-            0.15030000000000002,
-            0.0,
-            -0.34230000000000005,
-            0.8815763332055203,
-            -1.0635000000000001,
-            0.0,
-            -0.8697659065118668
-          ],
-          0.4249630868434906
-        ],
-        [
-          [
-            0.0495,
-            0.06169214211151163,
-            14.0,
-            0.0,
-            0.010557142857142857,
-            0.0,
-            -0.006899999999999996,
-            0.002803351356494505,
-            -0.045799999999999993,
-            1.0,
-            -1.4659282299115655
-          ],
-          0.01753343641757965
-        ],
-        [
-          [
-            0.1902,
-            0.28705797303484437,
-            5.0,
-            0.0,
-            0.07110000000000001,
-            0.0,
-            0.1136,
-            0.3232154074692941,
-            -0.09590000000000001,
-            1.0,
-            0.4817697939542565
-          ],
-          0.11366011947393417
-        ],
-        [
-          [
-            0.2362,
-            0.40362322241516857,
-            5.0,
-            0.0,
-            0.1341,
-            0.0,
-            -0.05410000000000001,
-            0.9315780589241023,
-            -0.0708,
-            0.0,
-            0.44591723339083117
-          ],
-          0.39041855931282043
-        ],
-        [
-          [
-            0.0866,
-            0.11879925822901997,
-            5.0,
-            0.0,
-            0.03826,
-            0.0,
-            0.025799999999999997,
-            0.6324436035175682,
-            0.014399999999999996,
-            0.0,
-            -0.3107886852239576
-          ],
-          0.4138281047344208
-        ],
-        [
-          [
-            0.0499,
-            0.0929971227458319,
-            6.0,
-            0.0,
-            0.026366666666666667,
-            0.0,
-            -0.068,
-            1.3914564596638346,
-            -0.048100000000000004,
-            0.0,
-            -0.9067822996884747
-          ],
-          0.44864922761917114
-        ],
-        [
-          [
-            3.1728,
-            3.247287556732696,
-            12.0,
-            0.0,
-            0.3901333333333332,
-            0.0,
-            -0.06320000000000014,
-            0.34295885854669594,
-            0.2017000000000002,
-            0.0,
-            -0.38370845570123724
-          ],
-          0.1211116835474968
-        ],
-        [
-          [
-            22.3341,
-            36.731676806732246,
-            27.0,
-            0.0,
-            2.2049444444444446,
-            0.0,
-            -0.41880000000000095,
-            0.38674402135883074,
-            -1.022400000000001,
-            0.0,
-            -0.9253682340922645
-          ],
-          0.9877290725708008
-        ],
-        [
-          [
-            40.0266,
-            39.663758683604364,
-            11.0,
-            0.0,
-            4.867063636363636,
-            0.0,
-            -0.1261999999999972,
-            0.2451534112182757,
-            -0.41669999999999874,
-            0.0,
-            -1.3316279876977042
-          ],
-          0.9877290725708008
-        ],
-        [
-          [
-            2.4768,
-            3.2209436363742974,
-            12.0,
-            0.0,
-            0.3642083333333334,
-            0.0,
-            -0.47230000000000016,
-            0.3536530981087637,
-            -0.31130000000000013,
-            0.0,
-            -0.6407449749374625
-          ],
-          0.12213575094938278
-        ],
-        [
-          [
-            0.2289,
-            0.2850292149703108,
+            0.2572,
+            0.2776051719345083,
             8.0,
             0.0,
-            0.0500375,
+            0.062174999999999994,
             0.0,
-            -0.03789999999999999,
-            1.486217025367249,
-            -2.4727,
+            -0.31590000000000007,
+            0.6228859724794847,
+            0.11389999999999997,
             0.0,
-            -0.22788332076162104
+            -0.2102949064536558
           ],
-          0.4795108139514923
+          0.3559165894985199
         ],
         [
           [
-            0.1068,
-            0.149932877701031,
-            5.0,
-            0.0,
-            0.048,
-            0.0,
-            0.004800000000000013,
-            0.4639827440032901,
-            -0.17569999999999997,
-            0.0,
-            -0.6805249511764838
-          ],
-          0.3933892846107483
-        ],
-        [
-          [
-            1.3726,
-            1.7533470950762398,
-            12.0,
-            0.0,
-            0.19616666666666668,
-            0.0,
-            -0.49029999999999996,
-            0.27191883864524197,
-            -0.7642,
-            0.0,
-            -1.5926667523403069
-          ],
-          0.04736385866999626
-        ],
-        [
-          [
-            38.8212,
+            38.8893,
             39.663758683604364,
             11.0,
             0.0,
-            4.900472727272727,
+            4.8620090909090905,
             0.0,
+            0.06810000000000116,
+            0.15003738039306785,
+            0.06810000000000116,
             0.0,
-            0.15317198546845812,
-            0.0,
-            0.0,
-            -0.9580404468776805
+            -0.7822460280626408
           ],
-          0.9886033535003662
+          0.9039642810821533
         ],
         [
           [
-            0.0854,
-            0.09807749121576693,
-            15.0,
+            0.2831,
+            0.3730739354187213,
+            7.0,
             0.0,
-            0.0188,
+            0.0833142857142857,
             0.0,
-            0.0015000000000000013,
-            0.003108279650767088,
-            0.006000000000000005,
+            0.14190000000000003,
+            1.0392660004905276,
+            -0.14909999999999995,
             0.0,
-            -0.5355071054178023
+            -0.2254419112120729
           ],
-          0.01482346374541521
-        ],
-        [
-          [
-            0.8174,
-            0.8855600835338897,
-            9.0,
-            0.0,
-            0.12604444444444446,
-            0.0,
-            -0.03259999999999996,
-            0.5629636162189082,
-            0.2398,
-            0.0,
-            0.0008953988867365683
-          ],
-          0.14823627471923828
+          0.4263487756252289
         ],
         [
           [
             0.087,
-            0.1069301358512935,
+            0.10586802657131286,
             12.0,
             0.0,
-            0.027208333333333334,
+            0.029258333333333334,
             0.0,
             0.0,
-            0.002286911318915234,
+            0.005136400464228579,
             0.0010999999999999899,
             0.0,
-            -0.2753716244882543
+            -0.3203215347369892
           ],
-          0.012966382317245007
+          0.10040263831615448
         ],
         [
           [
-            0.1064,
-            0.11749208101503653,
-            14.0,
-            0.0,
-            0.014049999999999998,
-            0.0,
-            0.00739999999999999,
-            0.0007253349410493753,
-            0.012399999999999994,
-            0.0,
-            2.1496738697541495
-          ],
-          0.014456892386078835
-        ],
-        [
-          [
-            0.3078,
-            0.37991313228592677,
+            0.3574,
+            0.4310953660668326,
             5.0,
             0.0,
-            0.10036,
+            0.10935999999999998,
             0.0,
-            0.0403,
-            0.4363330936206622,
-            0.1476,
+            -0.06919999999999998,
+            0.33185125856288883,
+            0.19619999999999999,
             0.0,
-            0.23546127086950647
+            0.6563716716392796
           ],
-          0.34914371371269226
+          0.15527139604091644
         ],
         [
           [
-            112.0095,
-            71.80529270945725,
+            0.2275,
+            0.2272188714754831,
+            2.0,
+            0.0,
+            0.11375,
+            0.0,
+            0.11320000000000001,
+            1.0494541543657938,
+            -0.1495,
+            0.0,
+            -0.15614931977764673
+          ],
+          0.5373753309249878
+        ],
+        [
+          [
+            1.9831,
+            2.6456730601144316,
+            12.0,
+            0.0,
+            0.3285416666666667,
+            0.0,
+            -0.3292999999999997,
+            0.5422928404765374,
+            -0.31399999999999983,
+            0.0,
+            1.1262187503990368
+          ],
+          0.25286710262298584
+        ],
+        [
+          [
+            84.5911,
+            146.70557909372266,
+            12.0,
+            0.0,
+            7.126149999999999,
+            0.0,
+            -0.030200000000007776,
+            0.17331270620372993,
+            0.13580000000000325,
+            0.0,
+            -0.27555949201793994
+          ],
+          0.9039642810821533
+        ],
+        [
+          [
+            0.0634,
+            0.09431657956967465,
+            7.0,
+            0.0,
+            0.025799999999999997,
+            0.0,
+            -0.1024,
+            0.38204379748658795,
+            0.0068000000000000005,
+            0.0,
+            -1.0415911323275295
+          ],
+          0.1835319548845291
+        ],
+        [
+          [
+            113.1112,
+            72.25279488249396,
             4.0,
             0.0,
-            28.021475,
+            28.29565,
             0.0,
-            -0.4065999999999974,
-            0.6959995816631901,
-            0.056300000000007344,
+            -0.4420999999999964,
+            0.25821528643875896,
+            0.18299999999999272,
             0.0,
-            1.5571588223237316
+            0.7858681181249516
           ],
-          0.9854280352592468
+          0.9039642810821533
+        ],
+        [
+          [
+            0.451,
+            0.6843572254073336,
+            5.0,
+            0.0,
+            0.14872000000000002,
+            0.0,
+            0.3456,
+            0.6209057026131232,
+            0.3856,
+            0.0,
+            3.082736514483448
+          ],
+          0.3559165894985199
+        ],
+        [
+          [
+            0.059,
+            0.0940962831968107,
+            14.0,
+            0.0,
+            0.011007142857142856,
+            0.0,
+            0.0,
+            0.0,
+            0.008,
+            0.0,
+            -0.021874368446171112
+          ],
+          0.10845726728439331
+        ],
+        [
+          [
+            0.5637,
+            1.0743749173345782,
+            12.0,
+            0.0,
+            0.16658333333333333,
+            0.0,
+            -0.04390000000000005,
+            1.0117134458897399,
+            -0.372,
+            0.0,
+            -2.2878894643275407
+          ],
+          0.48041605949401855
+        ],
+        [
+          [
+            0.0972,
+            0.13536008017945306,
+            5.0,
+            0.0,
+            0.04594,
+            0.0,
+            -0.005700000000000011,
+            0.09592568574121932,
+            0.012899999999999995,
+            0.0,
+            -1.0108984718199643
+          ],
+          0.13757586479187012
+        ],
+        [
+          [
+            0.1727,
+            0.24148522174289574,
+            7.0,
+            0.0,
+            0.04152857142857142,
+            0.0,
+            -0.00360000000000002,
+            0.002645690321176878,
+            -0.0011000000000000176,
+            0.0,
+            -1.135483997176768
+          ],
+          0.12478962540626526
+        ],
+        [
+          [
+            0.0923,
+            0.1508053957356956,
+            5.0,
+            0.0,
+            0.04534,
+            0.0,
+            0.03239999999999999,
+            0.17019959618389705,
+            0.013499999999999998,
+            0.0,
+            1.2402253400496062
+          ],
+          0.11913777887821198
+        ],
+        [
+          [
+            0.0781,
+            0.11445660802303917,
+            5.0,
+            0.0,
+            0.03986,
+            0.0,
+            -0.015899999999999997,
+            0.15059450895609067,
+            0.0296,
+            0.0,
+            0.4356668284813042
+          ],
+          0.15527139604091644
+        ],
+        [
+          [
+            0.0671,
+            0.09998700168976932,
+            14.0,
+            0.0,
+            0.015964285714285716,
+            0.0,
+            0.0,
+            0.0006748890511371237,
+            -0.0049999999999999906,
+            0.0,
+            -0.9851949440905657
+          ],
+          0.10040263831615448
+        ],
+        [
+          [
+            0.0688,
+            0.08599998412260555,
+            5.0,
+            0.0,
+            0.026439999999999998,
+            0.0,
+            -0.008300000000000002,
+            0.5916037711514016,
+            -0.005500000000000005,
+            0.0,
+            -0.04908896299250408
+          ],
+          0.18810921907424927
+        ],
+        [
+          [
+            109.9853,
+            70.96801194858693,
+            4.0,
+            0.0,
+            27.517599999999998,
+            0.0,
+            -0.43070000000000164,
+            0.3429986404394867,
+            -1.534400000000005,
+            0.0,
+            -0.09778789741828725
+          ],
+          0.9039642810821533
         ]
       ],
       "verificationTolerance": 0.01
@@ -6393,24 +1713,24 @@
   },
   "metrics": {
     "1h": {
-      "n_train": 6101,
-      "n_test": 1526,
-      "n_positive_train": 168,
-      "n_positive_test": 400,
-      "best_iteration": 27,
-      "auc": 0.9981438721136766,
-      "precision_at_0.5": 0.975609756097561,
+      "n_train": 7088,
+      "n_test": 1772,
+      "n_positive_train": 430,
+      "n_positive_test": 463,
+      "best_iteration": 0,
+      "auc": 0.9980901451489687,
+      "precision_at_0.5": 0.9809322033898306,
       "recall_at_0.5": 1.0
     },
     "6h": {
-      "n_train": 6101,
-      "n_test": 1526,
-      "n_positive_train": 429,
-      "n_positive_test": 423,
-      "best_iteration": 23,
-      "auc": 0.9871573122089122,
-      "precision_at_0.5": 0.7861271676300579,
-      "recall_at_0.5": 0.9645390070921985
+      "n_train": 7088,
+      "n_test": 1772,
+      "n_positive_train": 706,
+      "n_positive_test": 476,
+      "best_iteration": 7,
+      "auc": 0.9899051055607428,
+      "precision_at_0.5": 0.9224652087475149,
+      "recall_at_0.5": 0.9747899159663865
     }
   }
 }
