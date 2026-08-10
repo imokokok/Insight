@@ -287,4 +287,45 @@ describe('v2 flow integration: pre-trade v2 → recheck → verify', () => {
     expect(recheckResult.recheck!.data.verdict).toBe('BLOCK');
     expect(recheckResult.recheck!.data.coverageStatus).toBe('INSUFFICIENT');
   });
+
+  it('v2 signs an unresolved-asset BLOCK with the explicit marker (rule #10)', async () => {
+    // An asset with oracle coverage (so the check runs) but no CAIP-19 registry
+    // entry → resolveCaip19 returns null. Per Raul's rule #10 (every verdict
+    // path must be signed) the BLOCK is STILL signed — with an explicit
+    // `unresolved:<symbol>@<chain>` marker — never dropped. The signed BLOCK
+    // verifies as a genuine Insight attestation.
+    const { preTradeSafetyCheck } = await import('../preTradeSafetyService');
+    const { verifyAttestationBySchema } =
+      await import('@/app/api/v1/safety/attestation/verify/route');
+
+    // Single provider → v2 quorum gate forces BLOCK (INSUFFICIENT_COVERAGE).
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus(
+        [makeProvider({ provider: 'chainlink' as OracleProvider, deviationPct: 0.05 })],
+        {
+          symbol: 'EXOTIC',
+        }
+      )
+    );
+
+    const original = await preTradeSafetyCheck({
+      asset: 'EXOTIC',
+      chainId: 1,
+      action: 'swap',
+      tradeAmountUsd: 50000,
+      schemaVersion: 2,
+    });
+
+    expect(original.verdict).toBe('BLOCK');
+    expect(original.attestation).not.toBeNull();
+    const v2Att = original.attestation!;
+    expect(v2Att.data.sourceAssetId).toBe('unresolved:EXOTIC@1');
+    expect(v2Att.data.coverageStatus).toBe('INSUFFICIENT');
+
+    // The signed BLOCK verifies as a genuine Insight attestation (uid + signature
+    // valid, within window) — it is NOT fail-open for downstream canaries.
+    const verification = await verifyAttestationBySchema(v2Att);
+    expect(verification.valid).toBe(true);
+    expect(verification.uid).toBe(v2Att.uid);
+  });
 });

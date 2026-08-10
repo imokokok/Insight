@@ -196,6 +196,28 @@ describe('OracleSafetyRecheck', () => {
     expect(result.reason).toBe('signature_invalid');
   });
 
+  it('rejects a recheck whose own requestHash != originalRequestHash (binding invariant)', async () => {
+    // A genuinely-signed recheck (valid uid + signature) that violates the
+    // same-trade binding contract must still fail verification — verifiers rely
+    // on the binding to confirm "this recheck re-verifies the ORIGINAL trade",
+    // and signature recovery alone does NOT prove that.
+    const { signRecheck, verifyRecheck } = await import('../oracleSafetyRecheck');
+    const v2Data = await buildMessage(baseInput());
+    const wrongOriginalHash = ('0x' + 'f'.repeat(64)) as `0x${string}`;
+    expect(v2Data.requestHash).not.toBe(wrongOriginalHash);
+
+    const att = await signRecheck({
+      v2Data,
+      originalUid: ORIGINAL_UID,
+      originalRequestHash: wrongOriginalHash,
+    });
+    expect(att).not.toBeNull();
+
+    const result = await verifyRecheck(att!);
+    expect(result.valid).toBe(false);
+    expect(result.reason).toMatch(/recheck_binding_mismatch/);
+  });
+
   it('uses a 28-field type distinct from v2 (a recheck is NOT a plain v2 attestation)', async () => {
     // The recheck's RECHECK_TYPES has 28 fields (v2's 26 + originalUid +
     // originalRequestHash). A v2 verifier using the 26-field type would compute

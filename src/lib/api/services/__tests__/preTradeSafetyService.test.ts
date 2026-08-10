@@ -720,9 +720,14 @@ describe('preTradeSafetyCheck — v2 schema', () => {
     expect(arg.sourceAssetId).toBe('eip155:1/slip44:60');
   });
 
-  it('v2 skips the attestation (null) when the source asset is unresolvable to CAIP-19', async () => {
+  it('v2 signs the attestation with an explicit unresolved marker when the source asset is unresolvable to CAIP-19 (rule #10)', async () => {
     // Exotic symbol with oracle coverage but no token-registry entry → CAIP-19
-    // null. The verdict is unaffected; only the attestation is skipped.
+    // null. Per Raul's rule #10 (every BLOCK / verdict path must be signed), we
+    // do NOT skip the signature — we sign with an explicit
+    // `unresolved:<symbol>@<chain>` marker so the binding gap is visible inside
+    // the signed artifact instead of silently dropping the signature (which
+    // would leave it fail-open downstream). This removes the unsigned-BLOCK
+    // residual at the structural level.
     mockedGetConsensusPrice.mockResolvedValue(
       makeConsensus(
         [
@@ -736,8 +741,13 @@ describe('preTradeSafetyCheck — v2 schema', () => {
 
     const result = await preTradeSafetyCheck(makeInput({ asset: 'EXOTIC', schemaVersion: 2 }));
 
-    expect(mockedSignAttestationV2).not.toHaveBeenCalled();
-    expect(result.attestation).toBeNull();
+    // The v2 attestation IS issued (never skipped), carrying the unresolved marker.
+    expect(mockedSignAttestationV2).toHaveBeenCalledTimes(1);
+    const arg = mockedSignAttestationV2.mock.calls[0][0];
+    expect(arg.sourceAssetId).toBe('unresolved:EXOTIC@1');
+    // destinationAsset omitted → falls back to the source symbol → same marker.
+    expect(arg.destinationAssetId).toBe('unresolved:EXOTIC@1');
+    expect(result.attestation?.schemaVersion).toBe(2);
     // Verdict still computed normally (quorum passes with 3 providers).
     expect(result.verdict).toBe('PASS');
   });

@@ -672,10 +672,15 @@ function buildProviderObservations(consensus: ConsensusPriceResponse): ProviderO
  * the existing 11-field attestation + caller contract exactly. v2 issues the
  * 26-field attestation (CAIP-19 pair binding + the three hash commitments).
  *
- * v2 CAIP-19 resolution is best-effort: if the source asset can't be resolved
- * to a canonical CAIP-19 id (e.g. an exotic symbol absent from the token
- * registry), the attestation is skipped (null) with a warning — the verdict is
- * unaffected (the attestation is a non-blocking positioning layer).
+ * v2 CAIP-19 resolution is best-effort: if an asset can't be resolved to a
+ * canonical CAIP-19 id (e.g. an exotic symbol absent from the token registry),
+ * it is signed with an explicit `unresolved:<symbol>@<chain>` marker rather
+ * than skipped. Raul's rule #10 requires EVERY BLOCK to be signed — an unsigned
+ * BLOCK is untrusted and must not enter composed receipts, so we surface the
+ * binding gap INSIDE the signed artifact instead of dropping the signature
+ * (which would make it fail-open downstream). This removes the recurring
+ * unsigned-BLOCK residual (STG/ICP/TAO/HYPE et al.) at the structural level
+ * instead of via registry whack-a-mole.
  */
 async function issueAttestation(
   input: PreTradeSafetyInput,
@@ -699,21 +704,33 @@ async function issueAttestation(
   }
 
   // v2 path — resolve CAIP-19 pair, then sign the 26-field attestation.
+  // Raul's rule #10: every BLOCK must be signed (unsigned = untrusted, must
+  // not enter composed receipts). We therefore NEVER skip signing when an asset
+  // can't be resolved to a canonical CAIP-19 id — instead we sign with an
+  // EXPLICIT `unresolved:<symbol>@<chain>` marker so the gap is visible in the
+  // signed artifact rather than silently dropping the signature. This removes
+  // the recurring unsigned-BLOCK residual (STG/ICP/TAO/HYPE et al.) structurally
+  // instead of via registry whack-a-mole.
   const sourceAsset = resolveCaip19(input.asset, input.chainId);
+  const sourceAssetId = sourceAsset?.id ?? `unresolved:${input.asset}@${input.chainId}`;
   if (!sourceAsset) {
-    logger.warn('v2 attestation skipped: source asset unresolvable to CAIP-19', {
-      asset: input.asset,
-      chainId: input.chainId,
-    });
-    return null;
+    logger.warn(
+      'v2 source asset unresolvable to canonical CAIP-19; signing with explicit unresolved marker',
+      {
+        asset: input.asset,
+        chainId: input.chainId,
+        sourceAssetId,
+      }
+    );
   }
+
   const destSymbol = input.destinationAsset ?? input.asset;
   const destinationAsset = resolveCaip19(destSymbol, input.chainId);
-  const destinationAssetId = destinationAsset?.id ?? sourceAsset.id;
+  const destinationAssetId = destinationAsset?.id ?? `unresolved:${destSymbol}@${input.chainId}`;
 
   return signAttestationV2({
     verdict: result.verdict,
-    sourceAssetId: sourceAsset.id,
+    sourceAssetId: sourceAssetId,
     destinationAssetId,
     subjectChainId: input.chainId,
     action: input.action,

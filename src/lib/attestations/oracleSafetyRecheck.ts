@@ -283,6 +283,25 @@ export async function verifyRecheck(
       };
     }
 
+    // Same-trade binding invariant (Raul's recheck contract, position #8): a
+    // recheck's own requestHash (one of the 26 v2 fields) MUST equal the
+    // originalRequestHash it claims to bind. The signature check above proves
+    // the attestation is genuinely signed, but NOT that it honors its
+    // same-trade continuity — a recheck signed off-platform with a mismatched
+    // reference would still pass signature recovery. Verifiers rely on this
+    // check to confirm "this recheck re-verifies THAT original trade".
+    if (message.requestHash !== message.originalRequestHash) {
+      return {
+        valid: false,
+        attester: attestation.attester,
+        uid: attestation.uid,
+        checkedAt: Number(message.checkedAt) || null,
+        validUntil: Number(message.validUntil) || null,
+        expired: false,
+        reason: 'recheck_binding_mismatch: requestHash must equal originalRequestHash',
+      };
+    }
+
     const now = Math.floor(Date.now() / 1000);
     const validUntil = Number(message.validUntil);
     const expired = now > validUntil;

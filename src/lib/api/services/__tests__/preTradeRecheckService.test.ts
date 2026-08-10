@@ -8,6 +8,7 @@
  * attestation is a genuine signed object, not a stub.
  */
 
+import { computeRequestHash } from '@/lib/attestations/canonicalRequestHash';
 import { buildMessage } from '@/lib/attestations/oracleSafetyAttestationV2';
 import type {
   AttestationDataV2,
@@ -44,7 +45,17 @@ const mockedPreTradeSafetyCheck = preTradeSafetyCheck as jest.MockedFunction<
 >;
 
 const ORIGINAL_UID = '0x6822cdca18d73ed65d0913506bd14db3b183692140924110d06acca703797c4b';
-const ORIGINAL_REQUEST_HASH = ('0x' + 'a'.repeat(64)) as `0x${string}`;
+// The real canonical requestHash for the standard trade params used by makeV2Data
+// (ETH → USDC, swap, $50k on chain 1). Using the computed hash — not a placeholder
+// — keeps the recheck's same-trade binding invariant valid on the happy path:
+// the re-run's requestHash equals the originalRequestHash the caller presents.
+const ORIGINAL_REQUEST_HASH = computeRequestHash({
+  subjectChainId: 1,
+  sourceAssetId: 'eip155:1/slip44:60',
+  destinationAssetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  action: 'swap',
+  tradeAmountUsd: 50000,
+});
 
 /** Build a real AttestationDataV2 (numbers, JSON-safe) for the mocked re-run. */
 async function makeV2Data(): Promise<AttestationDataV2> {
@@ -303,5 +314,32 @@ describe('preTradeRecheck', () => {
   it('uses the default drift threshold constant', () => {
     // Sanity: the default threshold is 2%. Tests above rely on this.
     expect(DEFAULT_MAX_DRIFT_PCT).toBe(2);
+  });
+
+  it('rejects the recheck (original_request_hash_mismatch) when originalRequestHash violates the same-trade binding invariant', async () => {
+    const v2Data = await makeV2Data();
+    // Claim a DIFFERENT originalRequestHash than the re-run's own requestHash.
+    // The recheck must NOT issue a signed continuity proof that falsely binds
+    // to a trade it did not actually re-run.
+    const mismatchedHash = ('0x' + 'f'.repeat(64)) as `0x${string}`;
+    expect(v2Data.requestHash).not.toBe(mismatchedHash);
+    mockedPreTradeSafetyCheck.mockResolvedValue(
+      makeResult({ attestation: { schemaVersion: 2, data: v2Data } as never })
+    );
+
+    const result = await preTradeRecheck({
+      asset: 'ETH',
+      chainId: 1,
+      action: 'swap',
+      tradeAmountUsd: 50000,
+      originalUid: ORIGINAL_UID,
+      originalRequestHash: mismatchedHash,
+    });
+
+    expect(result.recheck).toBeNull();
+    expect(result.stillValid).toBe(false);
+    expect(result.stillValidReason).toBe('original_request_hash_mismatch');
+    // The safety SIGNAL is still surfaced (no attestation subsystem failure).
+    expect(result.verdict).toBe('PASS');
   });
 });

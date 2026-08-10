@@ -30,6 +30,7 @@ import type {
   OracleSafetyAttestationV2,
 } from '@/lib/attestations/oracleSafetyAttestationV2';
 import { signRecheck, type OracleSafetyRecheck } from '@/lib/attestations/oracleSafetyRecheck';
+import { createLogger } from '@/lib/utils/logger';
 
 import {
   preTradeSafetyCheck,
@@ -40,6 +41,8 @@ import {
 
 /** Default drift threshold (percent) above which stillValid flips to false. */
 export const DEFAULT_MAX_DRIFT_PCT = 2;
+
+const logger = createLogger('pre-trade-recheck');
 
 export interface PreTradeRecheckInput {
   /** Trade params — MUST match the original check (so requestHash matches). */
@@ -66,7 +69,8 @@ export type RecheckStillValidReason =
   | 'verdict_deteriorated'
   | 'drift_exceeded'
   | 'no_attester_key'
-  | 'recheck_sign_failed';
+  | 'recheck_sign_failed'
+  | 'original_request_hash_mismatch';
 
 export interface PreTradeRecheckResult extends PreTradeSafetyResult {
   /** The recheck attestation (28-field OracleSafetyRecheck), or null when no
@@ -118,7 +122,32 @@ export async function preTradeRecheck(
   //    sign under the OracleSafetyRecheck type.
   let recheck: OracleSafetyRecheck | null = null;
   const v2Att = result.attestation as OracleSafetyAttestationV2 | null;
+
   if (v2Att && v2Att.schemaVersion === 2) {
+    // Enforce the same-trade binding invariant (Raul's spec): a recheck must
+    // re-run the SAME trade params as the original, so its own requestHash must
+    // equal the originalRequestHash the caller claims to be rechecking. If they
+    // differ, the caller passed inconsistent references and we must NOT issue a
+    // signed continuity proof that falsely binds to the claimed original — we
+    // surface the mismatch instead of signing a misleading attestation.
+    if (v2Att.data.requestHash !== input.originalRequestHash) {
+      logger.warn('recheck binding invariant violated: re-run requestHash != originalRequestHash', {
+        asset: input.asset,
+        chainId: input.chainId,
+        rerunRequestHash: v2Att.data.requestHash,
+        claimedOriginalRequestHash: input.originalRequestHash,
+      });
+      return {
+        ...result,
+        recheck: null,
+        originalUid: input.originalUid,
+        originalRequestHash: input.originalRequestHash,
+        driftSinceOriginalPct: null,
+        stillValid: false,
+        stillValidReason: 'original_request_hash_mismatch',
+      };
+    }
+
     recheck = await signRecheck({
       v2Data: v2Att.data as AttestationDataV2,
       originalUid: input.originalUid,
