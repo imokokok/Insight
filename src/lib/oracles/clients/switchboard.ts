@@ -80,24 +80,29 @@ export class SwitchboardClient extends BaseOracleClient {
         );
       }
 
-      return {
-        provider: OracleProvider.SWITCHBOARD,
-        symbol: upperSymbol,
-        price: latest.price,
-        timestamp: latest.timestamp,
-        decimals: latest.decimals,
-        confidence: 0.95,
-        chain: chain || Blockchain.ETHEREUM,
-        source: 'switchboard-crossbar',
-        feedId: latest.feedId,
-        numOracles: latest.numOracles,
-        ingestionTimestamp: Date.now(),
-        verification: buildApiVerification(
-          `${SWITCHBOARD_CROSSBAR_URL}/v2/update/${feedId}`,
-          'fetchV2Update',
-          'Switchboard Crossbar'
-        ),
-      };
+      // Central schema validation: Switchboard's Crossbar response is untrusted;
+      // reject NaN/negative prices or bad timestamps before caching.
+      return this.validatePriceData(
+        {
+          provider: OracleProvider.SWITCHBOARD,
+          symbol: upperSymbol,
+          price: latest.price,
+          timestamp: latest.timestamp,
+          decimals: latest.decimals,
+          confidence: 0.95,
+          chain: chain || Blockchain.ETHEREUM,
+          source: 'switchboard-crossbar',
+          feedId: latest.feedId,
+          numOracles: latest.numOracles,
+          ingestionTimestamp: Date.now(),
+          verification: buildApiVerification(
+            `${SWITCHBOARD_CROSSBAR_URL}/v2/update/${feedId}`,
+            'fetchV2Update',
+            'Switchboard Crossbar'
+          ),
+        },
+        'getPrice'
+      );
     } catch (error) {
       if (error && typeof error === 'object' && 'code' in error) {
         throw error;

@@ -57,11 +57,16 @@ export class ReflectorClient extends BaseOracleClient {
       const isCrypto = (REFLECTOR_CRYPTO_ASSETS as readonly string[]).includes(upperSymbol);
       const contractId = isCrypto ? REFLECTOR_CRYPTO_CONTRACT : REFLECTOR_FOREX_CONTRACT;
 
-      return {
-        ...priceData,
-        chain: chain || Blockchain.STELLAR,
-        verification: buildStellarVerification(contractId, 'lastprice'),
-      };
+      // Central schema validation: Reflector's Stellar contract data is
+      // untrusted; reject bad prices/timestamps before caching.
+      return this.validatePriceData(
+        {
+          ...priceData,
+          chain: chain || Blockchain.STELLAR,
+          verification: buildStellarVerification(contractId, 'lastprice'),
+        },
+        'getPrice'
+      );
     } catch (error) {
       if (error instanceof Error && 'code' in error) {
         throw error;

@@ -43,15 +43,20 @@ export class DIAClient extends BaseOracleClient {
         );
       }
 
-      return {
-        ...result,
-        chain: chain || Blockchain.ETHEREUM,
-        verification: buildApiVerification(
-          `${DIA_API_BASE_URL}/assetQuotation/`,
-          'assetQuotation',
-          'DIA API'
-        ),
-      };
+      // Central schema validation: DIA's external quotation is untrusted, so
+      // reject NaN/negative prices or bad timestamps before caching.
+      return this.validatePriceData(
+        {
+          ...result,
+          chain: chain || Blockchain.ETHEREUM,
+          verification: buildApiVerification(
+            `${DIA_API_BASE_URL}/assetQuotation/`,
+            'assetQuotation',
+            'DIA API'
+          ),
+        },
+        'getPrice'
+      );
     } catch (error) {
       this.handleGetPriceError(error, 'DIA oracle', 'DIA_ERROR');
     }

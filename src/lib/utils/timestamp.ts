@@ -41,6 +41,17 @@ export function toMilliseconds(timestamp: number | string | Date): number {
   }
 
   if (typeof timestamp === 'number') {
+    // NaN/Infinity are not valid timestamps. Rejecting here fails loud instead
+    // of silently propagating a value that later breaks time math — e.g.
+    // `new Date(NaN).toISOString()` throws an opaque RangeError, and a finite
+    // check here matches the contract already enforced for strings above and
+    // by `validateNumberArray` in statistics.ts.
+    if (!Number.isFinite(timestamp)) {
+      throw new ValidationError(`Invalid timestamp number: ${timestamp}`, {
+        field: 'timestamp',
+        value: timestamp,
+      });
+    }
     if (timestamp < SECONDS_MS_THRESHOLD) {
       return timestamp * 1000;
     }
@@ -155,7 +166,22 @@ export function formatTimeAgoShort(diff: TimeAgoResult): string {
 export function formatTimeAgoWithColor(
   diff: TimeAgoResult
 ): { text: string; color: string } | null {
-  const { value, unit } = diff;
+  const { value, unit, isFuture } = diff;
+
+  // Past behavior is unchanged below; only the future case was missing
+  // (its siblings formatTimeAgo / formatTimeAgoShort already handle it).
+  if (isFuture) {
+    switch (unit) {
+      case 'seconds':
+        return { text: `In ${value}s`, color: 'text-amber-500' };
+      case 'minutes':
+        return { text: `In ${value}m`, color: 'text-amber-500' };
+      case 'hours':
+        return { text: `In ${value}h`, color: 'text-gray-500' };
+      default:
+        return { text: `In ${value}d`, color: 'text-gray-400' };
+    }
+  }
 
   if (unit === 'seconds') return { text: 'just now', color: 'text-emerald-600' };
   if (unit === 'minutes') return { text: `${value}m ago`, color: 'text-emerald-600' };

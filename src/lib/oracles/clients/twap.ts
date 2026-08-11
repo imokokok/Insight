@@ -53,29 +53,34 @@ export class TWAPClient extends BaseOracleClient {
         throw this.createNoDataError(upperSymbol, chain, 'TWAP price is not a finite number');
       }
 
-      return {
-        provider: OracleProvider.TWAP,
-        symbol: upperSymbol,
-        price: twapData.twapPrice,
-        timestamp: twapData.timestamp,
-        chain: chain || Blockchain.ETHEREUM,
-        decimals: 8,
-        confidence: twapData.confidence,
-        source: 'twap-oracle',
-        dataSource: 'real',
-        ingestionTimestamp: Date.now(),
-        poolAddress: twapData.poolAddress,
-        feeTier: twapData.feeTier,
-        sqrtPriceX96: twapData.sqrtPriceX96.toString(),
-        tick: twapData.tick,
-        twapInterval: twapData.twapInterval,
-        twapPrice: twapData.twapPrice,
-        spotPrice: twapData.spotPrice,
-        liquidity: twapData.liquidity.toString(),
-        verification: twapData.poolAddress
-          ? buildEvmVerification(twapData.poolAddress, chainId, 'observe')
-          : undefined,
-      };
+      // Central schema validation: the on-chain TWAP feed is untrusted; reject
+      // NaN/negative prices or bad timestamps before caching.
+      return this.validatePriceData(
+        {
+          provider: OracleProvider.TWAP,
+          symbol: upperSymbol,
+          price: twapData.twapPrice,
+          timestamp: twapData.timestamp,
+          chain: chain || Blockchain.ETHEREUM,
+          decimals: 8,
+          confidence: twapData.confidence,
+          source: 'twap-oracle',
+          dataSource: 'real',
+          ingestionTimestamp: Date.now(),
+          poolAddress: twapData.poolAddress,
+          feeTier: twapData.feeTier,
+          sqrtPriceX96: twapData.sqrtPriceX96.toString(),
+          tick: twapData.tick,
+          twapInterval: twapData.twapInterval,
+          twapPrice: twapData.twapPrice,
+          spotPrice: twapData.spotPrice,
+          liquidity: twapData.liquidity.toString(),
+          verification: twapData.poolAddress
+            ? buildEvmVerification(twapData.poolAddress, chainId, 'observe')
+            : undefined,
+        },
+        'getPrice'
+      );
     } catch (error) {
       if (error instanceof OracleServiceError) throw error;
       throw this.createProviderError(

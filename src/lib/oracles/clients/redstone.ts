@@ -256,6 +256,18 @@ export class RedStoneClient extends BaseOracleClient {
 
   private parsePriceResponse(response: RedStonePriceResponse, symbol: string): PriceData {
     const price = response.value;
+    // External API data is untrusted. A missing/non-finite `value` must be
+    // rejected here rather than cached as NaN, which would otherwise poison
+    // downstream deviation/accuracy math. The timestamp is already validated
+    // by toMilliseconds; the price needs the same guard at this data boundary.
+    if (typeof price !== 'number' || !Number.isFinite(price)) {
+      throw new OracleProviderError(
+        `Invalid or missing price value for ${symbol}`,
+        'redstone',
+        'PARSE_ERROR',
+        { symbol, value: price }
+      );
+    }
     const timestamp = toMilliseconds(response.timestamp);
     const confidenceInterval = this.generateConfidenceInterval(price, symbol);
 
@@ -286,15 +298,22 @@ export class RedStoneClient extends BaseOracleClient {
       const realPrice = await this.fetchRealPrice(symbol, options?.signal);
 
       if (realPrice) {
-        return {
-          ...realPrice,
-          chain,
-          verification: buildApiVerification(
-            `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}`,
-            'getPrice',
-            'RedStone API'
-          ),
-        };
+        // Central schema validation: the live-fetch path must reject untrusted
+        // NaN/negative prices or non-positive/non-integer timestamps instead of
+        // caching them. This is the canonical chokepoint every RedStone price
+        // traverses before reaching the cache/downstream math.
+        return this.validatePriceData(
+          {
+            ...realPrice,
+            chain,
+            verification: buildApiVerification(
+              `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}`,
+              'getPrice',
+              'RedStone API'
+            ),
+          },
+          'getPrice'
+        );
       }
 
       throw this.createError(

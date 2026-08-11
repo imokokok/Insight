@@ -145,6 +145,17 @@ export class FlareClient extends BaseOracleClient {
 
   private parseFtsoResponse(ftsoData: FtsoPriceData): PriceData {
     const price = ftsoData.price;
+    // External on-chain data is untrusted. Reject a missing/non-finite `price`
+    // instead of caching NaN (which would corrupt downstream deviation/accuracy
+    // calculations). Mirrors the timestamp validation done via toMilliseconds.
+    if (typeof price !== 'number' || !Number.isFinite(price)) {
+      throw new OracleProviderError(
+        `Invalid or missing price value for ${ftsoData.symbol}`,
+        'flare',
+        'PARSE_ERROR',
+        { symbol: ftsoData.symbol, value: price }
+      );
+    }
     const timestamp = toMilliseconds(ftsoData.timestamp);
     const confidenceInterval = this.generateConfidenceInterval(price, ftsoData.symbol);
 
@@ -185,10 +196,15 @@ export class FlareClient extends BaseOracleClient {
       const realPrice = await this.fetchRealPrice(symbol, options?.signal);
 
       if (realPrice) {
-        return {
-          ...realPrice,
-          chain,
-        };
+        // Central schema validation: reject untrusted bad prices/timestamps
+        // from the FTSO feed before they are cached or returned downstream.
+        return this.validatePriceData(
+          {
+            ...realPrice,
+            chain,
+          },
+          'getPrice'
+        );
       }
 
       throw this.createError(

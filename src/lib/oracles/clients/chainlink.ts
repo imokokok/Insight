@@ -221,7 +221,9 @@ export class ChainlinkClient extends BaseOracleClient {
             'REAL_DATA_NOT_AVAILABLE'
           );
         }
-        return this.convertToPriceData(realData, chain);
+        // Central schema validation: Chainlink's on-chain feed is untrusted;
+        // reject NaN/negative prices or bad timestamps before caching.
+        return this.validatePriceData(this.convertToPriceData(realData, chain), 'getPrice');
       } catch (error) {
         this.handleGetPriceError(error, 'Chainlink', 'CHAINLINK_PRICE_ERROR');
       }

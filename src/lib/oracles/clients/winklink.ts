@@ -48,7 +48,9 @@ export class WINkLinkClient extends BaseOracleClient {
       );
 
       if (realPrice) {
-        return realPrice;
+        // Central schema validation: WINkLink's TRON contract data is untrusted;
+        // reject NaN/negative prices or bad timestamps before caching.
+        return this.validatePriceData(realPrice, 'getPrice');
       }
 
       throw this.createError(

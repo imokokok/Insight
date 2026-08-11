@@ -78,27 +78,32 @@ export class SupraClient extends BaseOracleClient {
         );
       }
 
-      return {
-        provider: OracleProvider.SUPRA,
-        symbol: upperSymbol,
-        price: latestData.price,
-        timestamp: latestData.timestamp,
-        decimals: latestData.decimals ?? 8,
-        confidence: 0.95,
-        chain: chain || Blockchain.ETHEREUM,
-        source: 'supra-dora',
-        pairIndex: latestData.pairIndex,
-        high24h: latestData.high24h,
-        low24h: latestData.low24h,
-        change24h: latestData.change24h ?? 0,
-        change24hPercent: latestData.change24hPercent ?? latestData.change24h ?? 0,
-        ingestionTimestamp: Date.now(),
-        verification: buildApiVerification(
-          `${SUPRA_DORA_REST_URL}/price`,
-          'fetchLatestPrice',
-          'Supra DORA'
-        ),
-      };
+      // Central schema validation: Supra's DORA response is untrusted; reject
+      // NaN/negative prices or bad timestamps before caching.
+      return this.validatePriceData(
+        {
+          provider: OracleProvider.SUPRA,
+          symbol: upperSymbol,
+          price: latestData.price,
+          timestamp: latestData.timestamp,
+          decimals: latestData.decimals ?? 8,
+          confidence: 0.95,
+          chain: chain || Blockchain.ETHEREUM,
+          source: 'supra-dora',
+          pairIndex: latestData.pairIndex,
+          high24h: latestData.high24h,
+          low24h: latestData.low24h,
+          change24h: latestData.change24h ?? 0,
+          change24hPercent: latestData.change24hPercent ?? latestData.change24h ?? 0,
+          ingestionTimestamp: Date.now(),
+          verification: buildApiVerification(
+            `${SUPRA_DORA_REST_URL}/price`,
+            'fetchLatestPrice',
+            'Supra DORA'
+          ),
+        },
+        'getPrice'
+      );
     } catch (error) {
       if (error && typeof error === 'object' && 'code' in error) {
         throw error;

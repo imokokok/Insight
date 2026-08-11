@@ -69,41 +69,46 @@ export class API3Client extends BaseOracleClient {
         );
       }
 
-      return {
-        provider: OracleProvider.API3,
-        symbol: symbol.toUpperCase(),
-        price: api3Data.price,
-        timestamp: api3Data.timestamp,
-        decimals: api3Data.decimals,
-        confidence: api3Data.confidence,
-        chain: targetChain,
-        source: api3Data.source,
-        dataSource: api3Data.confidence < 0.9 ? 'fallback' : 'real',
-        dapiName: api3Data.dapiName,
-        proxyAddress: api3Data.proxyAddress,
-        dataAge: api3Data.dataAge,
-        ingestionTimestamp: Date.now(),
-        metadataFallback: api3Data.confidence < 0.9 || undefined,
-        failureMode: api3Data.confidence < 0.9 ? FailureMode.FALLBACK_METADATA : FailureMode.NONE,
-        signalVector: buildSignalVector({
-          dataAgeSeconds: api3Data.dataAge ?? 0,
-          isOnChain: true,
-          hasVerification: !!api3Data.proxyAddress,
-          providerUptime: 98,
-          hasConfidence: api3Data.confidence !== undefined,
-          hasTimestamp: api3Data.timestamp > 0,
-          hasDecimals: api3Data.decimals !== undefined,
-          hasSource: !!api3Data.source,
-          verificationMethod: 'readDataFeed',
-        }),
-        verification: api3Data.proxyAddress
-          ? buildEvmVerification(
-              api3Data.proxyAddress,
-              BLOCKCHAIN_TO_CHAIN_ID[targetChain] || 1,
-              'readDataFeed'
-            )
-          : undefined,
-      };
+      // Central schema validation: API3's dAPI response is untrusted; reject
+      // NaN/negative prices or bad timestamps before caching.
+      return this.validatePriceData(
+        {
+          provider: OracleProvider.API3,
+          symbol: symbol.toUpperCase(),
+          price: api3Data.price,
+          timestamp: api3Data.timestamp,
+          decimals: api3Data.decimals,
+          confidence: api3Data.confidence,
+          chain: targetChain,
+          source: api3Data.source,
+          dataSource: api3Data.confidence < 0.9 ? 'fallback' : 'real',
+          dapiName: api3Data.dapiName,
+          proxyAddress: api3Data.proxyAddress,
+          dataAge: api3Data.dataAge,
+          ingestionTimestamp: Date.now(),
+          metadataFallback: api3Data.confidence < 0.9 || undefined,
+          failureMode: api3Data.confidence < 0.9 ? FailureMode.FALLBACK_METADATA : FailureMode.NONE,
+          signalVector: buildSignalVector({
+            dataAgeSeconds: api3Data.dataAge ?? 0,
+            isOnChain: true,
+            hasVerification: !!api3Data.proxyAddress,
+            providerUptime: 98,
+            hasConfidence: api3Data.confidence !== undefined,
+            hasTimestamp: api3Data.timestamp > 0,
+            hasDecimals: api3Data.decimals !== undefined,
+            hasSource: !!api3Data.source,
+            verificationMethod: 'readDataFeed',
+          }),
+          verification: api3Data.proxyAddress
+            ? buildEvmVerification(
+                api3Data.proxyAddress,
+                BLOCKCHAIN_TO_CHAIN_ID[targetChain] || 1,
+                'readDataFeed'
+              )
+            : undefined,
+        },
+        'getPrice'
+      );
     } catch (error) {
       this.handleGetPriceError(error, 'API3 oracle network', 'API3_PRICE_ERROR');
     }
