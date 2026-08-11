@@ -116,6 +116,18 @@ async function checkSymbolActive(
   }
 
   if (!supported) {
+    // No matching DB feed, but the client may still serve this symbol. The
+    // active-feed table is populated by a periodic discovery job and can lag
+    // behind (or temporarily exclude) symbols the oracle actually supports —
+    // e.g. Reflector's DB feeds currently list only a subset of its on-chain
+    // assets (EURC/AVAX/DOT/ATOM/XLM), so BTC/ETH were wrongly rejected
+    // before any RPC was even attempted. Use the client's curated symbol list
+    // as the authoritative source of symbol support rather than blocking a
+    // query the provider explicitly supports.
+    const client = await getOracleClient(provider);
+    if (client.isSymbolSupported(baseSymbol, undefined)) {
+      return { supported: true, activeFeeds: [] };
+    }
     const activeFeeds = Array.from(feedsMap.values());
     return { supported: false, activeFeeds };
   }

@@ -66,6 +66,16 @@ class ReflectorDataService {
   }
 
   private initServer(): void {
+    // Reflector queries Stellar's Soroban RPC (rpc.ankr.com) over HTTPS. Under
+    // Node 22 the global fetch uses undici's EnvHttpProxyAgent, which honors
+    // HTTPS_PROXY. In sandboxed/dev environments that proxy can mishandle HTTPS
+    // (forwards the CONNECT tunnel as plaintext), and ankr's nginx replies
+    // `400 The plain HTTP request was sent to HTTPS port`, so every Reflector
+    // price lookup fails while other HTTPS providers keep working. Bypass the
+    // proxy for the Stellar RPC host. This is a no-op when no proxy env vars are
+    // set, so it's safe in production.
+    this.ensureStellarRpcBypassesProxy();
+
     try {
       this.server = new rpc.Server(STELLAR_RPC_URL, {
         allowHttp: STELLAR_RPC_URL.startsWith('http://'),
@@ -86,6 +96,29 @@ class ReflectorDataService {
         error instanceof Error ? error : new Error(String(error))
       );
       this.server = null;
+    }
+  }
+
+  /**
+   * Appends the Stellar RPC host to NO_PROXY/no_proxy so undici skips the
+   * egress proxy for it. Idempotent and a no-op when no proxy is configured.
+   */
+  private ensureStellarRpcBypassesProxy(): void {
+    try {
+      const rpcHost = new URL(STELLAR_RPC_URL).host;
+      const existing = process.env.NO_PROXY ?? process.env.no_proxy ?? '';
+      const entries = existing
+        .split(/[,\s]+/)
+        .map((e) => e.trim())
+        .filter(Boolean);
+      if (entries.includes(rpcHost) || entries.includes(`.${rpcHost}`)) return;
+      entries.push(rpcHost);
+      const updated = entries.join(',');
+      process.env.NO_PROXY = updated;
+      process.env.no_proxy = updated;
+      logger.info('Stellar RPC host added to NO_PROXY (proxy bypass enabled)', { host: rpcHost });
+    } catch {
+      // STELLAR_RPC_URL is a constant; ignore any parse failure.
     }
   }
 
@@ -123,8 +156,16 @@ class ReflectorDataService {
   private buildManualScVals(assets: readonly string[]): void {
     for (const symbol of assets) {
       if (this.assetScValCache.has(symbol)) continue;
-      const symbolScVal = nativeToScVal(symbol, { type: 'symbol' });
-      const assetScVal = xdr.ScVal.scvVec([xdr.ScVal.scvU32(1), symbolScVal]);
+      // The Asset ScVal the contract expects is `scvVec([scvSymbol("Other"),
+      // scvSymbol(<symbol>)])` — i.e. the SEP-40 `Asset::Other(<symbol>)` enum
+      // variant serialized with the variant name as a *symbol* (NOT the numeric
+      // discriminant `scvU32(1)`). Passing `scvU32(1)` makes `lastprice` trap
+      // on-chain (WasmVm InvalidAction). This matches the exact bytes the
+      // contract's own `assets()` returns, so it's a faithful fallback.
+      const assetScVal = xdr.ScVal.scvVec([
+        xdr.ScVal.scvSymbol('Other'),
+        nativeToScVal(symbol, { type: 'symbol' }),
+      ]);
       this.assetScValCache.set(symbol, assetScVal);
     }
   }
@@ -132,18 +173,66 @@ class ReflectorDataService {
   private async fetchAssetScVals(_signal?: AbortSignal): Promise<void> {
     if (this.assetScValCache.size > 0) return;
 
-    // Use manual ScVal building as the PRIMARY path — skip the RPC calls
-    // entirely. The contract's assets() method returns ScVals with variant
-    // 'Other' (scvU32(1)) + symbol name, which is exactly what
-    // buildManualScVals produces. Eliminating these 2 network round-trips
-    // from the critical path is the key fix for transient timeout failures:
-    // fetchLatestPrice previously made 5+ sequential RPC calls, and a single
-    // slow Stellar RPC response could exhaust the withOracleRetry 15s budget,
-    // causing every Reflector feed in the batch to fail.
-    this.buildManualScVals(REFLECTOR_CRYPTO_ASSETS);
-    this.buildManualScVals(REFLECTOR_FOREX_ASSETS);
-
-    logger.info(`Built ${this.assetScValCache.size} asset ScVals manually (skipped RPC)`);
+    // The ScVal passed to `lastprice` must be byte-identical to what the
+    // contract itself returns from `assets()`. A hand-built
+    // scvVec([scvU32(1), scvSymbol(sym)]) (the previous shortcut) decodes as
+    // the correct Asset enum but makes `lastprice` trap on-chain
+    // (WasmVm InvalidAction / UnreachableCodeReached) for EVERY symbol, so
+    // every Reflector price lookup failed before any price was returned.
+    // Fetch the authoritative ScVals from the contract once and cache the
+    // exact xdr.ScVal objects so lastprice accepts them. Falls back to the
+    // manual build only if the contract call fails or returns nothing.
+    try {
+      const result = await this.simulateContractCall(
+        REFLECTOR_CRYPTO_CONTRACT,
+        REFLECTOR_CONTRACT_METHODS.ASSETS,
+        []
+      );
+      let loaded = 0;
+      // The SEP-40 `assets()` retval is an ScVal vec. In @stellar/stellar-sdk
+      // the enum switch name is `scvVec` (NOT `vec`) — comparing against `'vec'`
+      // was always false, so the real assets were never loaded and we always
+      // fell through to the (wrongly-encoded) manual fallback, which made
+      // `lastprice` trap on-chain for every symbol. `vec()` returns the array
+      // of Asset ScVals directly (no `.value` wrapper).
+      if (result.switch().name === 'scvVec') {
+        const assets = result.vec();
+        if (assets) {
+          for (const el of assets) {
+            let symbol: string | undefined;
+            try {
+              const native = scValToNative(el) as unknown[];
+              symbol = Array.isArray(native) ? String(native[1]) : undefined;
+            } catch {
+              symbol = undefined;
+            }
+            if (symbol) {
+              // Store the contract's EXACT xdr.ScVal — do not rebuild it, or the
+              // subtle encoding mismatch that breaks lastprice returns. Round-trip
+              // through XDR so the cached value is a self-contained ScVal; `el`
+              // is a child of the assets() response tree, and re-serializing a
+              // nested child via contract.call() can otherwise pull in the parent
+              // frame and make lastprice trap on-chain.
+              const detached = xdr.ScVal.fromXDR(el.toXDR());
+              this.assetScValCache.set(symbol.toUpperCase(), detached);
+              loaded++;
+            }
+          }
+        }
+      }
+      if (loaded === 0) {
+        this.buildManualScVals(REFLECTOR_CRYPTO_ASSETS);
+        this.buildManualScVals(REFLECTOR_FOREX_ASSETS);
+      }
+      logger.info(`Loaded ${this.assetScValCache.size} Reflector asset ScVals from contract`);
+    } catch (error) {
+      logger.warn(
+        'Failed to load Reflector asset ScVals from contract, using manual fallback',
+        error instanceof Error ? error : undefined
+      );
+      this.buildManualScVals(REFLECTOR_CRYPTO_ASSETS);
+      this.buildManualScVals(REFLECTOR_FOREX_ASSETS);
+    }
   }
 
   private async simulateContractCall(
