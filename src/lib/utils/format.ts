@@ -1,10 +1,10 @@
-/**
- * Checks if a value is a finite number
- * @param value - The value to check
- * @returns Boolean indicating if value is a finite number
- */
 import { getTimeAgoDiff, formatTimeAgoShort, formatTimeAgo } from '@/lib/utils/timestamp';
 
+/**
+ * Checks if a value is a finite number.
+ * @param value - The value to check.
+ * @returns `true` when `value` is a finite `number`, otherwise `false`.
+ */
 function isFiniteNumber(value: number): boolean {
   return typeof value === 'number' && Number.isFinite(value);
 }
@@ -84,6 +84,10 @@ export function formatNumberWithDecimals(
   minDecimals: number,
   maxDecimals: number
 ): string {
+  // Defensive guard: sibling formatters return the em-dash sentinel for
+  // non-finite input, so this leaf helper should behave consistently rather
+  // than emitting the literal string "NaN".
+  if (!isFiniteNumber(value)) return '—';
   let formatted = value.toFixed(maxDecimals);
   const dotIndex = formatted.indexOf('.');
   if (dotIndex !== -1) {
@@ -159,10 +163,12 @@ export function formatPrice(price: number): string {
 }
 
 /**
- * Formats a percentage value with appropriate decimal places
- * @param value - The percentage value (e.g., 0.15 for 0.15%)
- * @param options - Formatting options
- * @returns Formatted percentage string with % suffix
+ * Formats a signed numerical difference (e.g. a price or value delta) using a
+ * currency-style `$` prefix. Decimal precision scales with the magnitude of
+ * `basePrice` (and of `value`) so small deltas stay readable.
+ * @param value - The difference to format (e.g. 0.15 for a `+$0.15` move).
+ * @param basePrice - Optional reference magnitude used to choose precision.
+ * @returns A string like `+$1.23` or `-$0.000045`, or `$0.00` when value is 0.
  */
 export function formatPriceDiff(value: number, basePrice?: number): string {
   if (!isFiniteNumber(value)) return '—';

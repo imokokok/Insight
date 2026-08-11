@@ -116,7 +116,13 @@ export function calculateWeightedAverage(
 }
 
 export function calculatePercentile(sortedData: number[], percentile: number): number {
-  if (sortedData.length === 0) return NaN;
+  // Fail loud on invalid input instead of silently propagating NaN. The only
+  // production caller (useStatistics.ts) already guards length < 2, so this
+  // only changes behaviour for genuinely empty / non-array / non-finite input.
+  validateNumberArray(sortedData, 'calculatePercentile');
+  if (sortedData.length === 0) {
+    throw new Error('calculatePercentile: input array must be non-empty');
+  }
   if (percentile <= 0) return sortedData[0];
   if (percentile >= 100) return sortedData[sortedData.length - 1];
 
@@ -133,6 +139,11 @@ export function calculatePercentile(sortedData: number[], percentile: number): n
 }
 
 export function calculateZScore(value: number, mean: number, stdDev: number): number | null {
+  // Guard against non-finite inputs: previously a NaN/Infinity stdDev or mean
+  // would yield NaN rather than signalling "undefined" via null.
+  if (!Number.isFinite(value) || !Number.isFinite(mean) || !Number.isFinite(stdDev)) {
+    return null;
+  }
   if (stdDev === 0) return null;
   return (value - mean) / stdDev;
 }
@@ -173,7 +184,10 @@ const T_CRITICAL_TABLE_95: Record<number, number> = {
 export function getTCriticalValue(df: number, confidenceLevel: number = 0.95): number {
   if (df <= 0) return 1.96;
   if (confidenceLevel !== 0.95) return 1.96;
-  if (df >= 30) return 1.96;
+  // Use the table's exact entry for df === 30; only fall back to the normal
+  // approximation for strictly larger samples. The previous `>= 30` guard
+  // shadowed the table value and created a discontinuity at df = 30.1.
+  if (df > 30) return 1.96;
 
   const exactValue = T_CRITICAL_TABLE_95[Math.floor(df)];
   if (exactValue !== undefined) return exactValue;
