@@ -50,14 +50,24 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 function mergeWithFallback(apiData: SymbolsData): SymbolsData {
   const mergedOracleSymbols: Record<string, string[]> = {};
 
-  // Start with API data (DB-backed, authoritative)
+  // The DB-backed feed lists are authoritative for *additions* but are often
+  // incomplete: some providers only list a subset of the assets they actually
+  // serve (e.g. Reflector's DB feeds are Cosmos-only and omit BTC/ETH), which
+  // would collapse the cross-oracle "common symbols" intersection to zero.
+  // Union each provider's DB list with the curated static fallback so the
+  // shared majors (BTC, ETH, ...) survive and the intersection stays non-empty.
   for (const [provider, symbols] of Object.entries(apiData.oracleSymbols)) {
     if (symbols.length > 0) {
-      mergedOracleSymbols[provider] = [...symbols];
+      const union = new Set<string>(symbols);
+      for (const staticSymbol of staticFallback.oracleSymbols[provider] || []) {
+        union.add(staticSymbol);
+      }
+      mergedOracleSymbols[provider] = Array.from(union).sort();
     }
   }
 
-  // Fill in providers missing from the API with hardcoded data
+  // For providers the API returned with no symbols at all, fall back entirely
+  // to the hardcoded list.
   for (const [provider, symbols] of Object.entries(staticFallback.oracleSymbols)) {
     if (!mergedOracleSymbols[provider]) {
       mergedOracleSymbols[provider] = [...symbols];

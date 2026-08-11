@@ -20,7 +20,10 @@ interface UseCrossOraclePageOptions {
 }
 
 export function useCrossOraclePage(options: UseCrossOraclePageOptions = {}) {
-  const { initialSymbol = 'BTC/USD', initialOracles = [...ORACLE_PROVIDER_VALUES] } = options;
+  // Symbol lists (and the cross-oracle common-symbols intersection) use the
+  // bare base-asset form (e.g. "BTC"), not "BTC/USD", so default to that to
+  // stay consistent with the dropdown options and the curated symbol lists.
+  const { initialSymbol = 'BTC', initialOracles = [...ORACLE_PROVIDER_VALUES] } = options;
 
   const [selectedOracles, setSelectedOracles] = useState<OracleProvider[]>(initialOracles);
   const [selectedSymbol, setSelectedSymbol] = useState<string>(initialSymbol);
