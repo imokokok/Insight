@@ -202,13 +202,20 @@ function findClosestByTimestamp(
   // `low` is the first entry with timestamp >= targetTimestamp.
   const low = lowerBoundByTimestamp(sortedEntries, targetTimestamp);
 
-  // Compare candidates at `low` and `low - 1` to find the closest.
+  // `low` can equal `sortedEntries.length` when the target is past every entry,
+  // in which case the last entry is the closest. Guard against an undefined
+  // `curr` (and undefined timestamps in the data) to avoid a TypeError.
+  if (low >= sortedEntries.length) return sortedEntries[sortedEntries.length - 1];
   if (low === 0) return sortedEntries[0];
 
   const prev = sortedEntries[low - 1];
   const curr = sortedEntries[low];
 
-  if (Math.abs(curr.timestamp - targetTimestamp) < Math.abs(prev.timestamp - targetTimestamp)) {
+  if (
+    curr &&
+    Number.isFinite(curr.timestamp) &&
+    Math.abs(curr.timestamp - targetTimestamp) < Math.abs(prev.timestamp - targetTimestamp)
+  ) {
     return curr;
   }
   return prev;
@@ -244,11 +251,13 @@ function calculateDivergenceTimeSeries(
       return [];
     }
 
-    // Pre-sort each provider's valid entries by timestamp for binary search
+    // Pre-sort each provider's valid entries by timestamp for binary search.
+    // Entries without a finite timestamp are dropped — they can't participate
+    // in the closest-match search and would otherwise crash findClosestByTimestamp.
     const sortedValidMap = new Map<string, PriceHistoryEntry[]>();
     for (const [provider, entries] of priceHistoryMap) {
       const valid = (entries ?? [])
-        .filter((e) => e.success)
+        .filter((e) => e.success && Number.isFinite(e.timestamp))
         .sort((a, b) => a.timestamp - b.timestamp);
       sortedValidMap.set(provider, valid);
     }
@@ -258,7 +267,9 @@ function calculateDivergenceTimeSeries(
     for (const [provider, entries] of priceHistoryMap) {
       if (!entries || entries.length === 0) continue;
 
-      const sortedEntries = [...entries].sort((a, b) => a.timestamp - b.timestamp);
+      const sortedEntries = [...entries]
+        .filter((e) => e.success && Number.isFinite(e.timestamp))
+        .sort((a, b) => a.timestamp - b.timestamp);
       const points: DivergencePoint[] = [];
       const deviations: number[] = [];
       const directions: DivergenceDirection[] = [];

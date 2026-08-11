@@ -40,10 +40,16 @@ function findClosestByTimestamp(
 
   // `low` is the first entry with timestamp >= targetTimestamp.
   // The closest is either `low` or `low - 1`.
+  // `low` can equal `sortedEntries.length` when the target is past every entry;
+  // the last entry is then the closest. Guard `curr` against undefined and
+  // non-finite timestamps to avoid a TypeError.
+  if (low >= sortedEntries.length) return sortedEntries[sortedEntries.length - 1];
   if (low === 0) return sortedEntries[0];
 
   const prev = sortedEntries[low - 1];
   const curr = sortedEntries[low];
+
+  if (!curr || !Number.isFinite(curr.timestamp)) return prev;
 
   const currDiff = Math.abs(curr.timestamp - targetTimestamp);
   const prevDiff = Math.abs(prev.timestamp - targetTimestamp);
