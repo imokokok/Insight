@@ -1038,9 +1038,11 @@ describe('databaseOperations', () => {
         const result = await fetchPriceWithDatabase(mockProvider, maliciousSymbol, mockChain, true);
 
         expect(result.symbol).toBe(maliciousSymbol);
+        // The base symbol is normalized to uppercase before the DB lookup, so the
+        // lookup key is the upper-cased malicious string rather than the raw input.
         expect(mockGetPriceFromDatabase).toHaveBeenCalledWith(
           mockProvider,
-          maliciousSymbol,
+          "BTC'; DROP TABLE PRICES; --",
           mockChain
         );
       });

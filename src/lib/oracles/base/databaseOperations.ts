@@ -196,9 +196,14 @@ export async function fetchPriceWithDatabase(
   forceRefresh: boolean = false
 ): Promise<PriceData> {
   // Oracle services expect the base asset symbol (e.g. "BTC"), while some UI
-  // and API callers pass the full pair (e.g. "BTC/USD"). Normalize early so
-  // all downstream consumers receive the expected format.
-  const baseSymbol = extractBaseSymbol(symbol);
+  // and API callers pass the full pair (e.g. "btc/usd"). Normalize once: derive
+  // the base symbol and uppercase it so all downstream consumers (DB lookup,
+  // feed-registry match, feed-health update) use a single canonical form.
+  // Callers forward the raw user-supplied pair, which may arrive lowercase; the
+  // feed registry stores uppercase symbols, so an un-normalized base symbol
+  // would be rejected as unsupported and its feed-health update would silently
+  // no-op.
+  const baseSymbol = extractBaseSymbol(symbol).toUpperCase();
 
   try {
     const client = await getOracleClient(provider);
@@ -326,7 +331,11 @@ export async function fetchHistoricalPricesWithDatabase(
   period: number,
   useDatabase: boolean
 ): Promise<PriceData[]> {
-  const baseSymbol = extractBaseSymbol(symbol);
+  // Normalize once: derive the base symbol and uppercase it so all downstream
+  // consumers use a single canonical form. Callers forward the raw user-supplied
+  // pair, which may arrive lowercase; the feed registry stores uppercase
+  // symbols, so an un-normalized base symbol would be rejected as unsupported.
+  const baseSymbol = extractBaseSymbol(symbol).toUpperCase();
 
   try {
     const client = await getOracleClient(provider);

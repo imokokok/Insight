@@ -24,6 +24,10 @@ interface QueuedRequest {
   abortSignal?: AbortSignal;
   onAbort?: (() => void) | null;
   timeoutId?: NodeJS.Timeout;
+  // Set once this request has been finalized (settled) by either the normal
+  // completion path or the timeout path, so the other path can no-op instead
+  // of double-counting stats or double-settling the promise.
+  finalized?: boolean;
 }
 
 interface RequestQueueConfig {
@@ -173,6 +177,11 @@ export class RequestQueue {
 
       const result = await request.execute();
 
+      // A timeout may have finalized (rejected) this request while it was
+      // still running. If so, skip the success bookkeeping — the timeout path
+      // already adjusted `running`/`failed` and settled the promise.
+      if (request.finalized) return;
+
       clearTimeout(timeoutId);
       this.runningRequests.delete(request.id);
       this.completed++;
@@ -186,6 +195,10 @@ export class RequestQueue {
         running: this.running,
       });
     } catch (error) {
+      // Same guard as above: if a timeout already finalized this request, the
+      // failure path below would double-count.
+      if (request.finalized) return;
+
       clearTimeout(timeoutId);
       this.runningRequests.delete(request.id);
       this.failed++;
@@ -215,6 +228,7 @@ export class RequestQueue {
 
     const queueIndex = this.queue.findIndex((r) => r.id === request.id);
     if (queueIndex !== -1) {
+      request.finalized = true;
       this.queue.splice(queueIndex, 1);
       this.failed++;
 
@@ -230,6 +244,7 @@ export class RequestQueue {
     }
 
     if (this.runningRequests.has(request.id)) {
+      request.finalized = true;
       this.runningRequests.delete(request.id);
       this.failed++;
       this.running--;

@@ -41,6 +41,15 @@ export function getStatRating(metricType: string, value: number): StatRatingResu
       if (value >= 90) return { rating: 'attention', ...ratingConfig.attention };
       return { rating: 'danger', ...ratingConfig.danger };
 
+    case 'confidence':
+      // `confidence` is a 0-1 fraction (see formatConfidenceScore); thresholds
+      // mirror `consistency`/`agreement` on the 0-1 scale. Previously missing,
+      // so callers got `null` and the rating badge silently disappeared.
+      if (value >= 0.99) return { rating: 'excellent', ...ratingConfig.excellent };
+      if (value >= 0.95) return { rating: 'good', ...ratingConfig.good };
+      if (value >= 0.9) return { rating: 'attention', ...ratingConfig.attention };
+      return { rating: 'danger', ...ratingConfig.danger };
+
     case 'latency':
     case 'delay':
       if (absValue < 100) return { rating: 'excellent', ...ratingConfig.excellent };

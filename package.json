@@ -18,6 +18,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "knip": "knip",
+    "audit:api": "node scripts/api-usage-audit.mjs",
+    "audit:raul": "node scripts/api-usage-audit.mjs --name ThoughtProof",
     "clean:dev": "rm -rf .next && next dev",
     "clean:start": "rm -rf .next && next build && next start",
     "mcp:stdio": "tsx src/mcp/index.ts",

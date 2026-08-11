@@ -146,9 +146,10 @@ export class PerformanceMetricsCalculator {
     }
 
     const cacheEntry = this.metricsCache.get(key);
+    // A cache entry only needs invalidating once it is stale; there is nothing
+    // to invalidate when one does not exist yet (deleting a missing key is a
+    // no-op), so only the stale case is handled here.
     if (cacheEntry && Date.now() - cacheEntry.timestamp > 5000) {
-      this.invalidateCache(provider, symbol);
-    } else if (!cacheEntry) {
       this.invalidateCache(provider, symbol);
     }
   }
