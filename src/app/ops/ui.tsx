@@ -11,12 +11,6 @@ export function formatCompact(n: number): string {
   return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
 }
 
-/** Percentage formatting with one decimal (100 -> 100%, 99.4 -> 99.4%). */
-export function formatPct(n: number | null | undefined, digits = 1): string {
-  if (n == null || !Number.isFinite(n)) return '—';
-  return `${n.toFixed(digits)}%`;
-}
-
 /** Human relative time in zh-CN ("2 分钟前"); falls back to empty string. */
 export function relativeTime(iso?: string): string {
   if (!iso) return '';
@@ -212,10 +206,6 @@ export function EmptyState({ message }: { message: string }) {
       暂无数据{message ? ` — ${message}` : ''}
     </div>
   );
-}
-
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-gray-100 rounded ${className ?? 'h-4 w-full'}`} />;
 }
 
 export function ErrorBanner({ message }: { message: string }) {

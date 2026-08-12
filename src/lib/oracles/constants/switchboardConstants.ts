@@ -30,10 +30,6 @@ export const SWITCHBOARD_CACHE_TTL = {
 // (e.g. "63053870000000000000000" == $63053.87).
 export const SWITCHBOARD_DECIMALS = 18;
 
-// Preferred Surge source: WEIGHTED aggregates every configured market source
-// for a pair, giving the most stable cross-exchange consensus price.
-export const SWITCHBOARD_PREFERRED_SOURCE = 'WEIGHTED';
-
 /**
  * Switchboard supported symbols. Keep this list in sync with the keys of
  * `SWITCHBOARD_FEED_IDS` below — both are curated from the public Surge feed
@@ -214,16 +210,6 @@ export const SWITCHBOARD_FEED_IDS: Record<string, string> = {
   YFI: '94582c77707091b2688c6094a279abe52fe03d9396351e4d6f3f1e389a0723a3',
   ZEC: 'c909e0484b444ab0f4c75766374bde727fe0b3deaf39d201e1bc79e3034c6a37',
 };
-
-// Reverse lookup (feed hash → symbol) for discovery / response mapping.
-export const SWITCHBOARD_FEED_ID_TO_SYMBOL: Record<string, string> = Object.fromEntries(
-  Object.entries(SWITCHBOARD_FEED_IDS).map(([symbol, feedId]) => [feedId, symbol])
-);
-
-/** Synchronous hardcoded lookup (no DB round-trip). */
-export function getSwitchboardFeedId(symbol: string): string | null {
-  return SWITCHBOARD_FEED_IDS[symbol.toUpperCase()] ?? null;
-}
 
 /**
  * Database-first feed hash resolution: prefer the `oracle_feeds` row written by
