@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -67,10 +68,25 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
     <>
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-60 shrink-0 flex-col bg-white border-r border-gray-200 min-h-screen p-4">
-        <div className="px-3 py-2 mb-4">
-          <div className="text-sm font-semibold text-gray-900">Insight</div>
-          <div className="text-xs text-gray-500">Internal Ops Console</div>
-        </div>
+        <Link
+          href="/"
+          className="flex items-center gap-2 px-3 py-2 mb-4 rounded-lg hover:bg-gray-50 group"
+          aria-label="返回 Insight 主站"
+        >
+          <Image
+            src="/logos/owl-logo.svg"
+            alt="Insight"
+            width={28}
+            height={24}
+            className="group-hover:scale-105 transition-transform duration-300"
+          />
+          <div>
+            <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
+              Insight
+            </div>
+            <div className="text-xs text-gray-500">Internal Ops Console</div>
+          </div>
+        </Link>
         <div className="flex-1 overflow-y-auto">{navList}</div>
         <div className="mt-4 px-3 py-2 border-t border-gray-100 flex items-center gap-2 text-xs">
           {envBadge}
@@ -98,17 +114,43 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
               <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
             </svg>
           </button>
-          <span className="text-sm font-semibold text-gray-900">Insight · Ops</span>
+          <Link href="/" className="flex items-center gap-2 group" aria-label="返回 Insight 主站">
+            <Image
+              src="/logos/owl-logo.svg"
+              alt="Insight"
+              width={24}
+              height={20}
+              className="group-hover:scale-105 transition-transform duration-300"
+            />
+            <span className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
+              Insight
+            </span>
+          </Link>
         </div>
         {open && (
           <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
             <div className="absolute inset-0 bg-gray-900/40" onClick={() => setOpen(false)} />
             <aside className="absolute inset-y-0 left-0 w-60 max-w-[80%] bg-white border-r border-gray-200 p-4 overflow-y-auto">
-              <div className="px-3 py-2 mb-4 flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-semibold text-gray-900">Insight</div>
-                  <div className="text-xs text-gray-500">Internal Ops Console</div>
-                </div>
+              <div className="mb-4 flex items-center justify-between">
+                <Link
+                  href="/"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 group"
+                  aria-label="返回 Insight 主站"
+                >
+                  <Image
+                    src="/logos/owl-logo.svg"
+                    alt="Insight"
+                    width={28}
+                    height={24}
+                    className="group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
+                      Insight
+                    </div>
+                    <div className="text-xs text-gray-500">Internal Ops Console</div>
+                  </div>
+                </Link>
                 <button
                   type="button"
                   aria-label="关闭菜单"
