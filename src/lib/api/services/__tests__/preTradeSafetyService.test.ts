@@ -176,12 +176,23 @@ beforeEach(() => {
   // returns a valid object (mlModelVersion = null) instead of undefined.
   mockedGetModelStatus.mockReturnValue({ active: false, trainedAt: null, metrics: {} });
   // Default: v2 signer returns a stub so result.attestation is non-null when
-  // schemaVersion=2 is exercised. Individual tests override as needed.
-  mockedSignAttestationV2.mockResolvedValue({
-    uid: '0xV2STUB',
-    schemaVersion: 2,
-    attester: '0xV2ATTESTER',
-  } as never);
+  // schemaVersion=2 is exercised. The stub echoes the resolved CAIP-19 ids and
+  // derives coverageStatus from the quorum participant count (mirroring the real
+  // attestation) so provenance assertions can target realistic values. Individual
+  // tests override as needed.
+  mockedSignAttestationV2.mockImplementation(
+    (input: { participantCount?: number; sourceAssetId?: string; destinationAssetId?: string }) =>
+      ({
+        uid: '0xV2STUB',
+        schemaVersion: 2,
+        attester: '0xV2ATTESTER',
+        data: {
+          coverageStatus: (input.participantCount ?? 0) >= 3 ? 'SUFFICIENT' : 'INSUFFICIENT',
+          sourceAssetId: input.sourceAssetId,
+          destinationAssetId: input.destinationAssetId,
+        },
+      }) as never
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -750,5 +761,79 @@ describe('preTradeSafetyCheck — v2 schema', () => {
     expect(result.attestation?.schemaVersion).toBe(2);
     // Verdict still computed normally (quorum passes with 3 providers).
     expect(result.verdict).toBe('PASS');
+  });
+});
+
+describe('preTradeSafetyCheck — attestation provenance audit (0026)', () => {
+  it('writes signed=true + uid + attester + schema_version=2 + coverage_status to the audit row on a v2 PASS', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider }),
+      makeProvider({ provider: 'redstone' as OracleProvider }),
+      makeProvider({ provider: 'api3' as OracleProvider }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+    const { insert } = stubAuditClient();
+
+    await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+    await flushAudit();
+
+    expect(insert).toHaveBeenCalledTimes(1);
+    const payload = insert.mock.calls[0][0];
+    expect(payload.signed).toBe(true);
+    expect(payload.attestation_uid).toBe('0xV2STUB');
+    expect(payload.attester).toBe('0xV2ATTESTER');
+    expect(payload.schema_version).toBe(2);
+    expect(payload.coverage_status).toBe('SUFFICIENT');
+    expect(payload.unresolved_asset).toBeNull();
+  });
+
+  it('records coverage_status=INSUFFICIENT for a v2 quorum-gated BLOCK', async () => {
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
+    const { insert } = stubAuditClient();
+
+    await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+    await flushAudit();
+
+    const payload = insert.mock.calls[0][0];
+    expect(payload.signed).toBe(true);
+    expect(payload.verdict).toBe('BLOCK');
+    expect(payload.coverage_status).toBe('INSUFFICIENT');
+  });
+
+  it('captures the unresolved:<symbol>@<chain> marker in unresolved_asset (v2 registry gap)', async () => {
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus(
+        [
+          makeProvider({ provider: 'chainlink' as OracleProvider }),
+          makeProvider({ provider: 'redstone' as OracleProvider }),
+          makeProvider({ provider: 'api3' as OracleProvider }),
+        ],
+        { symbol: 'EXOTIC' }
+      )
+    );
+    const { insert } = stubAuditClient();
+
+    await preTradeSafetyCheck(makeInput({ asset: 'EXOTIC', schemaVersion: 2 }));
+    await flushAudit();
+
+    const payload = insert.mock.calls[0][0];
+    expect(payload.signed).toBe(true);
+    expect(payload.unresolved_asset).toBe('unresolved:EXOTIC@1');
+  });
+
+  it('writes signed=false + null uid + schema_version=1 when no attester key is configured (v1 default)', async () => {
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
+    const { insert } = stubAuditClient();
+
+    await preTradeSafetyCheck(makeInput());
+    await flushAudit();
+
+    const payload = insert.mock.calls[0][0];
+    expect(payload.signed).toBe(false);
+    expect(payload.attestation_uid).toBeNull();
+    expect(payload.attester).toBeNull();
+    expect(payload.schema_version).toBe(1);
+    expect(payload.coverage_status).toBeNull();
+    expect(payload.unresolved_asset).toBeNull();
   });
 });

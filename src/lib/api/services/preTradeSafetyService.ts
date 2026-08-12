@@ -270,6 +270,30 @@ async function logAudit(
   try {
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
     const client = createServiceRoleClient();
+
+    // Signature provenance — the trust-critical signal Raul's canary depends on
+    // (verdict=BLOCK AND signed AND uid AND http 200). Previously unrecorded, so
+    // a signing regression was only observable downstream via his probe. Derive
+    // it from the issued attestation so the signing-integrity dashboard can read
+    // it straight off the audit log.
+    const attestation = result.attestation;
+    const signed = attestation !== null;
+    const attestationUid = attestation?.uid ?? null;
+    const attester = attestation?.attester ?? null;
+    const schemaVersion = attestation?.schemaVersion ?? input.schemaVersion ?? 1;
+    let coverageStatus: string | null = null;
+    let unresolvedAsset: string | null = null;
+    // v2 carries coverageStatus + CAIP-19 sourceAssetId on its signed data; v1
+    // does not. Narrow via the field's presence (v1's schemaVersion is `number`,
+    // so a literal `=== 2` check alone cannot discriminate the union).
+    if (attestation && 'coverageStatus' in attestation.data) {
+      coverageStatus = attestation.data.coverageStatus ?? null;
+      const srcId = attestation.data.sourceAssetId;
+      if (typeof srcId === 'string' && srcId.startsWith('unresolved:')) {
+        unresolvedAsset = srcId;
+      }
+    }
+
     await client.from('pre_trade_checks').insert({
       asset: input.asset,
       chain_id: input.chainId,
@@ -294,6 +318,12 @@ async function logAudit(
       ml_score: result.mlScore,
       ml_model_version: result.mlModelVersion,
       latency_ms: result.latencyMs,
+      signed,
+      attestation_uid: attestationUid,
+      attester,
+      schema_version: schemaVersion,
+      coverage_status: coverageStatus,
+      unresolved_asset: unresolvedAsset,
     });
   } catch (error) {
     // Non-blocking: audit failure must never fail the safety check itself.
