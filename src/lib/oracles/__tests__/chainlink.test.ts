@@ -644,7 +644,7 @@ describe('ChainlinkClient', () => {
     });
 
     describe('Invalid timestamp formats', () => {
-      it('should handle zero timestamp', async () => {
+      it('should reject zero timestamp', async () => {
         const mockData = {
           symbol: 'ETH',
           price: 3500,
@@ -657,12 +657,10 @@ describe('ChainlinkClient', () => {
 
         (chainlinkOnChainService.getPrice as jest.Mock).mockResolvedValue(mockData);
 
-        const result = await client.getPrice('ETH');
-
-        expect(result.timestamp).toBe(0);
+        await expect(client.getPrice('ETH')).rejects.toThrow();
       });
 
-      it('should handle negative timestamp', async () => {
+      it('should reject negative timestamp', async () => {
         const mockData = {
           symbol: 'ETH',
           price: 3500,
@@ -675,9 +673,7 @@ describe('ChainlinkClient', () => {
 
         (chainlinkOnChainService.getPrice as jest.Mock).mockResolvedValue(mockData);
 
-        const result = await client.getPrice('ETH');
-
-        expect(result.timestamp).toBe(-1000);
+        await expect(client.getPrice('ETH')).rejects.toThrow();
       });
 
       it('should handle very large timestamp (far future)', async () => {
@@ -698,7 +694,7 @@ describe('ChainlinkClient', () => {
         expect(result.timestamp).toBe(9999999999999);
       });
 
-      it('should handle floating point timestamp', async () => {
+      it('should reject floating point timestamp', async () => {
         const mockData = {
           symbol: 'ETH',
           price: 3500,
@@ -711,9 +707,7 @@ describe('ChainlinkClient', () => {
 
         (chainlinkOnChainService.getPrice as jest.Mock).mockResolvedValue(mockData);
 
-        const result = await client.getPrice('ETH');
-
-        expect(result.timestamp).toBeDefined();
+        await expect(client.getPrice('ETH')).rejects.toThrow();
       });
     });
   });
