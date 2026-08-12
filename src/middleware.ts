@@ -11,7 +11,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('middleware');
 
-const PROTECTED_PATHS = ['/settings'];
+const PROTECTED_PATHS = ['/settings', '/ops'];
 
 // How long (in seconds) non-sensitive HTML pages may be cached by shared
 // edge caches (Vercel Edge / CDN). Browser always revalidates (max-age=0).
