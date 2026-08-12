@@ -37,6 +37,15 @@ const VERIFY_TIMEOUT_MS = 10_000;
 // from months ago — are rejected during verification.
 const API3_PROBE_MAX_DATA_AGE_MS = 48 * 60 * 60 * 1000;
 
+// Graceful pruning: a feed missing from a discovery run is only deactivated
+// after it fails re-verification ABSENT_PRUNE_THRESHOLD consecutive times.
+// One flaky discovery run must never kill a live feed (this was the root cause
+// of the 233-API3 bulk deactivation). PRUNE_COOLING_MS: a feed that returned a
+// successful price within this window is never pruned, even if re-verification
+// fails — it is clearly still live upstream.
+const ABSENT_PRUNE_THRESHOLD = 2;
+const PRUNE_COOLING_MS = 48 * 60 * 60 * 1000;
+
 /** Structured result returned by `runFeedSync` for both the HTTP route and the GH Actions script. */
 export interface FeedSyncResult {
   status: number;
@@ -47,7 +56,7 @@ export interface FeedSyncResult {
  * Probe-fetch a single feed to verify it can actually return a price.
  * Returns true if the feed successfully returns a valid price.
  */
-async function probeFeed(feed: OracleFeedInsert): Promise<boolean> {
+async function probeFeed(feed: OracleFeed | OracleFeedInsert): Promise<boolean> {
   try {
     const provider = feed.provider as OracleProvider;
     // Resolve the feed's own chain so multi-chain providers (e.g. API3 on
@@ -128,9 +137,18 @@ async function verifyDiscoveredFeeds(
 async function upsertDiscoveredFeeds(feeds: OracleFeedInsert[]): Promise<number> {
   if (feeds.length === 0) return 0;
   const supabase = createServiceRoleClient();
+  const now = new Date().toISOString();
+  // Rediscovered feeds are confirmed present: reset the absent counter and
+  // stamp last_discovery_at so they don't accumulate toward the prune
+  // threshold and are never re-pruned while they keep showing up.
+  const rows = feeds.map((f) => ({
+    ...f,
+    absent_discovery_runs: 0,
+    last_discovery_at: now,
+  }));
   const { data, error } = await supabase
     .from('oracle_feeds')
-    .upsert(feeds, { onConflict: 'provider,symbol,chain_id' })
+    .upsert(rows, { onConflict: 'provider,symbol,chain_id' })
     .select();
   if (error) {
     logger.error(
@@ -150,12 +168,13 @@ async function upsertDiscoveredFeeds(feeds: OracleFeedInsert[]): Promise<number>
 // that failed during a brief API outage and never came back online).
 // Per-probe timeout and batch size were originally sized for the sync-feeds
 // route's 60s maxDuration; now that this runs on GH Actions the 60s ceiling no
-// longer applies, but the bounds are kept conservative (40/run, 6s/probe) —
-// reactivation is rare and 40/run still catches every freshly-deactivated feed
-// in a single pass. Feeds are ordered by most-recent failure first; older /
-// permanently-dead feeds are re-checked by the weekly discovery pass.
+// longer applies. REACTIVATE_LIMIT was raised 40 → 200 so a large batch of
+// feeds deactivated by a transient incident (e.g. the 233-API3 bulk event)
+// recovers in a single 12h pass instead of trickling in over many days.
+// Feeds are ordered by most-recent failure first; older / permanently-dead
+// feeds are re-checked by the weekly discovery pass.
 const REACTIVATE_TIMEOUT_MS = 6_000;
-const REACTIVATE_LIMIT = 40;
+const REACTIVATE_LIMIT = 200;
 
 /**
  * Probe an inactive feed DIRECTLY via the oracle client, bypassing the
@@ -312,10 +331,20 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         // Only feeds that return valid data are upserted to the DB.
         const { verified, failedCount } = await verifyDiscoveredFeeds(discoveredFeeds);
 
-        // Deactivate existing active feeds that were not rediscovered this run.
-        // Only deactivate within chains that the discovery actually covered, so
+        // Graceful pruning of feeds active in the DB but absent from this
+        // discovery run. A single discovery miss can be a transient upstream /
+        // API blip, so each absent feed is re-verified by actually fetching its
+        // price before any decision:
+        //   - re-verified OK  → keep active, reset its absent counter
+        //   - re-verify fails → bump absent counter; deactivate only once it
+        //     reaches ABSENT_PRUNE_THRESHOLD, and never if the feed succeeded
+        //     within PRUNE_COOLING_MS (recently-live feeds stay up).
+        // This replaces the old behavior that bulk-killed every absent feed in
+        // one pass (the root cause of the 233-API3 mass deactivation).
+        // Deactivation still only happens within chains discovery covered, so
         // providers like Chainlink (Ethereum-only discovery) don't wipe feeds
-        // for other chains that were seeded separately.
+        // for other chains seeded separately.
+        let discoverPruned = 0;
         if (discoveredFeeds.length > 0) {
           try {
             const queries = getAdminQueries();
@@ -325,23 +354,73 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
             );
             const discoveredChainIds = new Set(discoveredFeeds.map((f) => f.chain_id));
 
-            // Collect feeds that need deactivation, then fire all
-            // deactivation calls in parallel (the RequestQueue inside
-            // DatabaseQueries bounds concurrency to 15, so this is safe).
-            const feedsToDeactivate = existingFeeds.filter(
+            const feedsToReconcile = existingFeeds.filter(
               (feed) =>
                 discoveredChainIds.has(feed.chain_id) &&
                 !discoveredKeys.has(`${feed.provider}:${feed.symbol}:${feed.chain_id}`)
             );
 
+            // Re-verify each absent feed (bounded by VERIFY_TIMEOUT_MS, same as
+            // discovery verification). The RequestQueue inside DatabaseQueries
+            // bounds DB write concurrency to 15, so the parallel writes below
+            // are safe.
+            const reconciliation = await mapWithConcurrency(
+              feedsToReconcile,
+              VERIFY_CONCURRENCY,
+              async (feed) => {
+                const ok = await Promise.race([
+                  probeFeed(feed),
+                  new Promise<boolean>((resolve) =>
+                    setTimeout(() => resolve(false), VERIFY_TIMEOUT_MS)
+                  ),
+                ]);
+                return { feed, ok };
+              }
+            );
+
+            const reVerified = reconciliation.filter((r) => r.ok);
+            const stillAbsent = reconciliation.filter((r) => !r.ok);
+
+            // Re-verified feeds stay active: stamp last_discovery_at and reset
+            // the absent counter so they don't drift toward the prune threshold.
             await Promise.all(
-              feedsToDeactivate.map((feed) =>
-                queries.deactivateOracleFeeds(feed.provider, feed.symbol, feed.chain_id)
+              reVerified.map((r) =>
+                queries.recordFeedDiscovered(r.feed.provider, r.feed.symbol, r.feed.chain_id)
               )
             );
+
+            // Failed feeds: skip pruning inside the cooling window, otherwise
+            // accumulate and deactivate only at the threshold.
+            for (const { feed } of stillAbsent) {
+              const lastSuccess = feed.last_success_at
+                ? new Date(feed.last_success_at).getTime()
+                : 0;
+              if (lastSuccess > Date.now() - PRUNE_COOLING_MS) {
+                // Recently successful — keep it; treat as rediscovered.
+                await queries.recordFeedDiscovered(feed.provider, feed.symbol, feed.chain_id);
+                continue;
+              }
+              const runs = await queries.incrementAbsentDiscoveryRuns(
+                feed.provider,
+                feed.symbol,
+                feed.chain_id
+              );
+              if (runs >= ABSENT_PRUNE_THRESHOLD) {
+                await queries.deactivateOracleFeeds(feed.provider, feed.symbol, feed.chain_id);
+                discoverPruned++;
+              }
+            }
+
+            if (reVerified.length > 0 || discoverPruned > 0) {
+              logger.info(
+                `Graceful pruning (${provider}): ${reVerified.length} re-verified & kept, ` +
+                  `${stillAbsent.length - discoverPruned} still absent (cooling/under threshold), ` +
+                  `${discoverPruned} deactivated.`
+              );
+            }
           } catch (error) {
             logger.error(
-              `Failed to deactivate stale feeds for ${provider}`,
+              `Failed to reconcile feeds for ${provider}`,
               error instanceof Error ? error : new Error(String(error))
             );
           }
@@ -375,6 +454,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
             verifiedFailed: failedCount,
             upserted,
             healthDeactivated,
+            pruned: discoverPruned,
             errors: discovery[0]?.errors.length || 0,
           },
         ];

@@ -8,7 +8,7 @@ name: Feed Reactivation
 # not days.
 #
 # Runs the `scripts/sync-feeds.ts` runner directly on GH Actions (no Vercel
-# curl) so the job is bound only by the probe budget (≤40 feeds × 6s), not by
+# curl) so the job is bound only by the probe budget (≤200 feeds × 6s), not by
 # Vercel's 60s serverless timeout. Delegates to the same `runFeedSync()` used
 # by the HTTP route, so behaviour is identical — only the executor changes.
 
@@ -25,7 +25,11 @@ permissions:
 jobs:
   reactivate-feeds:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Raised 5 → 15 min: REACTIVATE_LIMIT is now 200 (was 40), so a large batch
+    # of feeds deactivated by a transient incident recovers in a single 12h
+    # pass. 200 × 6s worst case ≈ 20 min, but probes run with concurrency and
+    # most skip fast, so 15 min is a safe ceiling with headroom.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

@@ -82,6 +82,11 @@ export interface OracleFeed {
   consecutive_failures?: number;
   last_success_at?: string | null;
   last_failure_at?: string | null;
+  // Lifecycle observability (migration 0025)
+  deactivated_reason?: string | null;
+  deactivated_at?: string | null;
+  absent_discovery_runs?: number;
+  last_discovery_at?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -97,6 +102,12 @@ export interface OracleFeedInsert {
   is_active?: boolean;
   source?: string;
   metadata?: Record<string, unknown> | null;
+  // Optional lifecycle fields — set by the discover/upsert pass so a
+  // rediscovered feed resets its absent counter and stamps last_discovery_at.
+  deactivated_reason?: string | null;
+  deactivated_at?: string | null;
+  absent_discovery_runs?: number;
+  last_discovery_at?: string | null;
 }
 
 export interface UserProfileUpdate {
@@ -359,9 +370,15 @@ export class DatabaseQueries {
 
   async deactivateOracleFeeds(provider: string, symbol: string, chainId: number): Promise<boolean> {
     return queryQueue.add(async () => {
+      const now = new Date().toISOString();
       const { error } = await this.client
         .from('oracle_feeds')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .update({
+          is_active: false,
+          updated_at: now,
+          deactivated_reason: 'discover_pruned',
+          deactivated_at: now,
+        })
         .eq('provider', provider)
         .eq('symbol', symbol)
         .eq('chain_id', chainId);
@@ -584,7 +601,12 @@ export class DatabaseQueries {
 
       const { data: deactivated, error } = await this.client
         .from('oracle_feeds')
-        .update({ is_active: false, updated_at: now })
+        .update({
+          is_active: false,
+          updated_at: now,
+          deactivated_reason: 'health_failed',
+          deactivated_at: now,
+        })
         .eq('is_active', true)
         .gte('consecutive_failures', threshold)
         .select('provider, symbol, chain_id');
@@ -612,7 +634,7 @@ export class DatabaseQueries {
    * (nulls last) so feeds that failed most recently — most likely to be
    * transient outages that just resolved — are re-probed first.
    */
-  async getInactiveFeeds(provider?: string, limit: number = 150): Promise<OracleFeed[]> {
+  async getInactiveFeeds(provider?: string, limit: number = 200): Promise<OracleFeed[]> {
     return queryQueue.add(async () => {
       let query = this.client
         .from('oracle_feeds')
@@ -655,6 +677,11 @@ export class DatabaseQueries {
           consecutive_failures: 0,
           last_success_at: now,
           updated_at: now,
+          // Clear deactivation audit fields and the absent counter so the feed
+          // fully rejoins the active set (no stale "discover_pruned" reason).
+          deactivated_reason: null,
+          deactivated_at: null,
+          absent_discovery_runs: 0,
         })
         .eq('provider', provider)
         .eq('symbol', symbol)
@@ -669,6 +696,90 @@ export class DatabaseQueries {
         return false;
       }
       return true;
+    });
+  }
+
+  /**
+   * Mark a feed as confirmed present by discovery. Keeps it active and clears
+   * its absent counter — used both when a feed re-verifies during the graceful
+   * pruning reconciliation and when it is rediscovered normally. Without this
+   * reset a transient discovery miss would accumulate and eventually trip the
+   * ABSENT_PRUNE_THRESHOLD even for a healthy feed.
+   */
+  async recordFeedDiscovered(provider: string, symbol: string, chainId: number): Promise<boolean> {
+    return queryQueue.add(async () => {
+      const now = new Date().toISOString();
+      const { error } = await this.client
+        .from('oracle_feeds')
+        .update({
+          last_discovery_at: now,
+          absent_discovery_runs: 0,
+          updated_at: now,
+        })
+        .eq('provider', provider)
+        .eq('symbol', symbol)
+        .eq('chain_id', chainId);
+
+      if (error) {
+        logger.error(
+          'Failed to record feed discovered',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return false;
+      }
+      return true;
+    });
+  }
+
+  /**
+   * Increment a feed's absent_discovery_runs counter and return the new value.
+   * Called when a feed is missing from discovery AND fails re-verification; the
+   * discover pass deactivates the feed only once the count reaches
+   * ABSENT_PRUNE_THRESHOLD. Read-modify-write is used (no dedicated RPC) since
+   * reconciliation runs serially within a single cron job — races are not a
+   * concern. Returns -1 on error.
+   */
+  async incrementAbsentDiscoveryRuns(
+    provider: string,
+    symbol: string,
+    chainId: number
+  ): Promise<number> {
+    return queryQueue.add(async () => {
+      const { data: current, error: readError } = await this.client
+        .from('oracle_feeds')
+        .select('absent_discovery_runs')
+        .eq('provider', provider)
+        .eq('symbol', symbol)
+        .eq('chain_id', chainId)
+        .maybeSingle();
+
+      if (readError) {
+        logger.error(
+          'Failed to read absent discovery runs',
+          readError instanceof Error ? readError : new Error(String(readError))
+        );
+        return -1;
+      }
+
+      const next = (current?.absent_discovery_runs ?? 0) + 1;
+      const now = new Date().toISOString();
+      const { data, error } = await this.client
+        .from('oracle_feeds')
+        .update({ absent_discovery_runs: next, updated_at: now })
+        .eq('provider', provider)
+        .eq('symbol', symbol)
+        .eq('chain_id', chainId)
+        .select('absent_discovery_runs')
+        .single();
+
+      if (error) {
+        logger.error(
+          'Failed to increment absent discovery runs',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        return -1;
+      }
+      return (data as { absent_discovery_runs: number } | null)?.absent_discovery_runs ?? next;
     });
   }
 
