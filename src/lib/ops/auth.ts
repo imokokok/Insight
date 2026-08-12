@@ -55,4 +55,14 @@ export async function requireOpsOwner(): Promise<void> {
     logger.warn('Non-owner attempted /ops access', { userId: user.id });
     redirect('/');
   }
+
+  // L2 hardening: audit trail. One structured line per granted access so we
+  // know who entered the internal console and when. (Per-sub-page granularity
+  // would require a dedicated audit table — a later L3 upgrade.) We log after
+  // both the auth session gate and the optional owner allowlist have passed.
+  logger.info('Ops console access granted', {
+    userId: user.id,
+    email: user.email,
+    ownerLockEnabled: owners.length > 0,
+  });
 }

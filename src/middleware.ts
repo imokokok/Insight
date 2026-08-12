@@ -69,6 +69,13 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next();
 
+  // L2 hardening: tell crawlers (and any proxy that respects it) not to index
+  // internal /ops & /settings pages. Belt-and-suspenders alongside the
+  // <meta name="robots"> tag emitted by the /ops layout's metadata.
+  if (isProtectedPage) {
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  }
+
   // Set or refresh the HttpOnly internal-token cookie on PAGE requests
   // only.  The browser stores the cookie and sends it automatically on
   // subsequent same-origin API calls.  We intentionally do NOT set the
