@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { requireOpsOwner } from '@/lib/ops/auth';
 
+import HealthStrip from './HealthStrip';
 import OpsSidebar from './OpsSidebar';
 
 // L2 hardening: never let search engines index the internal console.
@@ -16,13 +17,21 @@ export const metadata = {
   },
 };
 
+const ENV =
+  process.env.NEXT_PUBLIC_ENV ??
+  process.env.VERCEL_ENV ??
+  (process.env.NODE_ENV === 'development' ? 'DEV' : 'PROD');
+
 export default async function OpsLayout({ children }: { children: ReactNode }) {
   await requireOpsOwner();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
-      <OpsSidebar />
-      <main className="flex-1 min-w-0 overflow-y-auto">{children}</main>
+    <div className="min-h-screen bg-background flex">
+      <OpsSidebar env={ENV} />
+      <main className="flex-1 min-w-0 overflow-y-auto pt-12 lg:pt-0">
+        <HealthStrip />
+        {children}
+      </main>
     </div>
   );
 }

@@ -74,16 +74,16 @@ export default async function OpsOverviewPage({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card title="Signing integrity">
-          <p className="text-sm text-slate-600 mb-3">
+          <p className="text-sm text-gray-600 mb-3">
             Every BLOCK must be signed for Raul&apos;s canary to treat it as an enforceable stop.
             Unsigned BLOCKs fail open silently.
           </p>
-          <Link href="/ops/safety" className="text-sm text-slate-900 font-medium underline">
+          <Link href="/ops/safety" className="text-sm text-gray-900 font-medium underline">
             Open Safety &amp; Attestation →
           </Link>
         </Card>
         <Card title="Quick links">
-          <ul className="space-y-2 text-sm text-slate-600">
+          <ul className="space-y-2 text-sm text-gray-600">
             <li>
               <Link href="/ops/feeds" className="underline">
                 Feed health &amp; deactivation audit

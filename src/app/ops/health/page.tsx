@@ -76,7 +76,7 @@ export default async function OpsHealthPage() {
           <div className="overflow-x-auto">
             <table className={tableCls}>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
+                <tr className="text-left text-gray-500 border-b border-gray-100">
                   <th className={thCls}>Provider</th>
                   <th className={`${thCls} text-right`}>Score</th>
                   <th className={`${thCls} text-right`}>Uptime %</th>
@@ -90,26 +90,26 @@ export default async function OpsHealthPage() {
               <tbody>
                 {reputations.map((r) => (
                   <tr key={r.provider} className={trCls}>
-                    <td className="py-2 pr-3 font-medium text-slate-800">{r.provider}</td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-slate-700">
+                    <td className="py-2 pr-3 font-medium text-gray-800">{r.provider}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums text-gray-700">
                       {r.overall_score.toFixed(1)}
                     </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-slate-700">
+                    <td className="py-2 pr-3 text-right tabular-nums text-gray-700">
                       {r.uptime_percentage.toFixed(2)}
                     </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-slate-500">
+                    <td className="py-2 pr-3 text-right tabular-nums text-gray-500">
                       {r.avg_latency_ms}
                     </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-slate-500">
+                    <td className="py-2 pr-3 text-right tabular-nums text-gray-500">
                       {r.avg_deviation_pct.toFixed(2)}
                     </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-slate-500">
+                    <td className="py-2 pr-3 text-right tabular-nums text-gray-500">
                       {r.total_queries.toLocaleString()}
                     </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-slate-500">
+                    <td className="py-2 pr-3 text-right tabular-nums text-gray-500">
                       {r.supported_symbols_count}
                     </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-slate-500">
+                    <td className="py-2 pr-3 text-right tabular-nums text-gray-500">
                       {r.supported_chains_count}
                     </td>
                   </tr>
@@ -128,31 +128,31 @@ export default async function OpsHealthPage() {
                 <Badge tone={riskTone(report.overview.riskLevel)}>
                   {report.overview.riskLevel}
                 </Badge>
-                <span className="text-sm text-slate-600">{report.overview.reason}</span>
+                <span className="text-sm text-gray-600">{report.overview.reason}</span>
               </div>
               <dl className="grid grid-cols-2 gap-y-2 text-sm">
-                <dt className="text-slate-500">Monitored</dt>
-                <dd className="tabular-nums text-slate-700 text-right">
+                <dt className="text-gray-500">Monitored</dt>
+                <dd className="tabular-nums text-gray-700 text-right">
                   {report.overview.monitoredProviders}
                 </dd>
-                <dt className="text-slate-500">Heartbeat lost</dt>
-                <dd className="tabular-nums text-slate-700 text-right">
+                <dt className="text-gray-500">Heartbeat lost</dt>
+                <dd className="tabular-nums text-gray-700 text-right">
                   {report.overview.heartbeatMissingProviders}
                 </dd>
-                <dt className="text-slate-500">Delayed</dt>
-                <dd className="tabular-nums text-slate-700 text-right">
+                <dt className="text-gray-500">Delayed</dt>
+                <dd className="tabular-nums text-gray-700 text-right">
                   {report.overview.delayedProviders}
                 </dd>
-                <dt className="text-slate-500">With deviation</dt>
-                <dd className="tabular-nums text-slate-700 text-right">
+                <dt className="text-gray-500">With deviation</dt>
+                <dd className="tabular-nums text-gray-700 text-right">
                   {report.overview.providersWithDeviation}
                 </dd>
-                <dt className="text-slate-500">Dependency risk</dt>
-                <dd className="tabular-nums text-slate-700 text-right">
+                <dt className="text-gray-500">Dependency risk</dt>
+                <dd className="tabular-nums text-gray-700 text-right">
                   {report.overview.providersWithDependencyRisk}
                 </dd>
-                <dt className="text-slate-500">Anomalies</dt>
-                <dd className="tabular-nums text-slate-700 text-right">
+                <dt className="text-gray-500">Anomalies</dt>
+                <dd className="tabular-nums text-gray-700 text-right">
                   {report.overview.anomalyCount}
                 </dd>
               </dl>
@@ -164,17 +164,17 @@ export default async function OpsHealthPage() {
                 <Badge tone={riskTone(report.sharedDependency.level)}>
                   {report.sharedDependency.level}
                 </Badge>
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-gray-500">
                   systemic risk {report.sharedDependency.systemicRiskFactor.toFixed(2)}
                 </span>
               </div>
               {report.sharedDependency.sharedSourceGroups.length === 0 ? (
                 <EmptyState message="no shared upstream sources" />
               ) : (
-                <ul className="space-y-1.5 text-sm text-slate-600">
+                <ul className="space-y-1.5 text-sm text-gray-600">
                   {report.sharedDependency.sharedSourceGroups.map((g) => (
                     <li key={g.source}>
-                      <span className="font-mono text-xs text-slate-700">{g.source}</span> →{' '}
+                      <span className="font-mono text-xs text-gray-700">{g.source}</span> →{' '}
                       {g.oracles.join(', ')}
                     </li>
                   ))}

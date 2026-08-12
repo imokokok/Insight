@@ -113,20 +113,20 @@ export default async function OpsSafetyPage({
               <tbody>
                 {unsignedBlocks.map((b) => (
                   <tr key={b.id} className={trCls}>
-                    <td className="py-2 pr-3 tabular-nums text-slate-500">
+                    <td className="py-2 pr-3 tabular-nums text-gray-500">
                       {new Date(b.created_at).toISOString().slice(0, 16).replace('T', ' ')}
                     </td>
-                    <td className="py-2 pr-3 font-medium text-slate-800">{b.asset}</td>
-                    <td className="py-2 pr-3 tabular-nums text-slate-500">{b.chain_id}</td>
-                    <td className="py-2 pr-3 text-slate-600">{b.action}</td>
+                    <td className="py-2 pr-3 font-medium text-gray-800">{b.asset}</td>
+                    <td className="py-2 pr-3 tabular-nums text-gray-500">{b.chain_id}</td>
+                    <td className="py-2 pr-3 text-gray-600">{b.action}</td>
                     <td className="py-2 pr-3">
                       {b.coverage_status ? (
                         <Badge tone="warn">{b.coverage_status}</Badge>
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-gray-400">—</span>
                       )}
                     </td>
-                    <td className="py-2 pr-3 tabular-nums text-slate-500">
+                    <td className="py-2 pr-3 tabular-nums text-gray-500">
                       v{b.schema_version ?? '?'}
                     </td>
                   </tr>

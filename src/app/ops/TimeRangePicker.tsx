@@ -17,7 +17,7 @@ export default function TimeRangePicker({ current }: { current: RangeKey | strin
     <div
       role="group"
       aria-label="时间范围"
-      className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5"
+      className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5"
     >
       {RANGES.map((r) => {
         const active = current === r.key;
@@ -27,8 +27,8 @@ export default function TimeRangePicker({ current }: { current: RangeKey | strin
             href={`${pathname}?range=${r.key}`}
             className={
               active
-                ? 'px-3 py-1 rounded-md text-sm font-medium bg-slate-900 text-white'
-                : 'px-3 py-1 rounded-md text-sm text-slate-600 hover:bg-slate-100'
+                ? 'px-3 py-1 rounded-md text-sm font-medium bg-primary-600 text-white'
+                : 'px-3 py-1 rounded-md text-sm text-gray-600 hover:bg-gray-100'
             }
           >
             {r.label}

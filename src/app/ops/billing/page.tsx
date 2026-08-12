@@ -41,7 +41,7 @@ export default async function OpsBillingPage() {
               {Object.entries(billing.byPlan).map(([plan, count]) => (
                 <div key={plan} className="flex items-center justify-between text-sm">
                   <Badge tone="default">{plan}</Badge>
-                  <span className="tabular-nums text-slate-700 font-medium">{count}</span>
+                  <span className="tabular-nums text-gray-700 font-medium">{count}</span>
                 </div>
               ))}
             </div>
@@ -56,8 +56,8 @@ export default async function OpsBillingPage() {
                 .sort((a, b) => Number(a[0]) - Number(b[0]))
                 .map(([rl, count]) => (
                   <div key={rl} className="flex items-center justify-between text-sm">
-                    <span className="tabular-nums text-slate-600">{rl} req/min</span>
-                    <span className="tabular-nums text-slate-700 font-medium">{count}</span>
+                    <span className="tabular-nums text-gray-600">{rl} req/min</span>
+                    <span className="tabular-nums text-gray-700 font-medium">{count}</span>
                   </div>
                 ))}
             </div>

@@ -6,6 +6,8 @@ import type { Incident } from '@/lib/api/services/incidentService';
 
 import { Badge, EmptyState, tableCls, thCls, trCls } from '../ui';
 
+import { downloadCsv, nextSort, sortRows, type SortState } from './tableUtils';
+
 function severityTone(sev: string): 'default' | 'warn' | 'bad' {
   if (sev === 'critical' || sev === 'high') return 'bad';
   if (sev === 'medium') return 'warn';
@@ -16,8 +18,46 @@ function incidentWhen(inc: Incident): string | null {
   return inc.type === 'feed_failure' ? inc.lastFailureAt : inc.snapshotTime;
 }
 
+function incidentStatus(inc: Incident): string {
+  return inc.type === 'feed_failure' ? inc.status : 'recorded';
+}
+
+function cellValue(inc: Incident, key: string): string | number {
+  switch (key) {
+    case 'severity':
+      return inc.severity;
+    case 'type':
+      return inc.type;
+    case 'provider':
+      return inc.provider;
+    case 'symbol':
+      return inc.symbol;
+    case 'status':
+      return incidentStatus(inc);
+    case 'when':
+      return incidentWhen(inc) ?? '';
+    case 'detail':
+      return inc.description;
+    default:
+      return '';
+  }
+}
+
+type Col = { key: string; label: string; align?: 'right' };
+
+const COLS: Col[] = [
+  { key: 'severity', label: 'Severity' },
+  { key: 'type', label: 'Type' },
+  { key: 'provider', label: 'Provider' },
+  { key: 'symbol', label: 'Symbol' },
+  { key: 'status', label: 'Status' },
+  { key: 'when', label: 'When' },
+  { key: 'detail', label: 'Detail' },
+];
+
 export default function IncidentsTable({ incidents }: { incidents: Incident[] }) {
   const [q, setQ] = useState('');
+  const [sort, setSort] = useState<SortState>(null);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -31,36 +71,70 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
     );
   }, [q, incidents]);
 
+  const rows = useMemo(() => sortRows(filtered, sort, cellValue), [filtered, sort]);
+
+  function exportCsv() {
+    downloadCsv(
+      'incidents.csv',
+      ['severity', 'type', 'provider', 'symbol', 'status', 'when', 'description'],
+      filtered.map((inc) => [
+        inc.severity,
+        inc.type,
+        inc.provider,
+        inc.symbol,
+        incidentStatus(inc),
+        incidentWhen(inc) ?? '',
+        inc.description,
+      ])
+    );
+  }
+
   return (
     <div>
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="搜索 provider / symbol / 类型 / 严重度"
-        className="mb-3 w-full max-w-sm px-3 py-1.5 rounded-lg text-sm border border-slate-200 bg-white text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
-      />
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="搜索 provider / symbol / 类型 / 严重度"
+          className="flex-1 min-w-[200px] max-w-sm px-3 py-1.5 rounded-lg text-sm border border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200"
+        />
+        <button
+          type="button"
+          onClick={exportCsv}
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+        >
+          导出 CSV
+        </button>
+      </div>
       <div className="overflow-x-auto max-h-[60vh]">
         <table className={tableCls}>
           <thead>
             <tr>
-              <th className={thCls}>Severity</th>
-              <th className={thCls}>Type</th>
-              <th className={thCls}>Provider</th>
-              <th className={thCls}>Symbol</th>
-              <th className={thCls}>Status</th>
-              <th className={thCls}>When</th>
-              <th className={thCls}>Detail</th>
+              {COLS.map((c) => (
+                <th key={c.key} className={`${thCls} ${c.align === 'right' ? 'text-right' : ''}`}>
+                  <button
+                    type="button"
+                    onClick={() => setSort((prev) => nextSort(prev, c.key))}
+                    className={`inline-flex items-center gap-1 hover:text-gray-700 ${c.align === 'right' ? 'w-full justify-end' : ''}`}
+                  >
+                    {c.label}
+                    <span className="text-[10px] text-gray-400">
+                      {sort?.key === c.key ? (sort.dir === 'asc' ? '▲' : '▼') : '⇅'}
+                    </span>
+                  </button>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {rows.length === 0 ? (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={COLS.length}>
                   <EmptyState message="无匹配的 incident" />
                 </td>
               </tr>
             ) : (
-              filtered.map((inc, i) => {
+              rows.map((inc, i) => {
                 const when = incidentWhen(inc);
                 return (
                   <tr key={`${inc.type}-${inc.provider}-${inc.symbol}-${i}`} className={trCls}>
@@ -70,19 +144,19 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                     <td className="py-2 pr-3">
                       <Badge tone="default">{inc.type}</Badge>
                     </td>
-                    <td className="py-2 pr-3 font-medium text-slate-800">{inc.provider}</td>
-                    <td className="py-2 pr-3 text-slate-700">{inc.symbol}</td>
+                    <td className="py-2 pr-3 font-medium text-gray-800">{inc.provider}</td>
+                    <td className="py-2 pr-3 text-gray-700">{inc.symbol}</td>
                     <td className="py-2 pr-3">
                       {inc.type === 'feed_failure' ? (
                         <Badge tone={inc.status === 'ongoing' ? 'bad' : 'good'}>{inc.status}</Badge>
                       ) : (
-                        <span className="text-slate-400">recorded</span>
+                        <span className="text-gray-400">recorded</span>
                       )}
                     </td>
-                    <td className="py-2 pr-3 tabular-nums text-slate-500">
+                    <td className="py-2 pr-3 tabular-nums text-gray-500">
                       {when ? new Date(when).toISOString().slice(0, 16).replace('T', ' ') : '—'}
                     </td>
-                    <td className="py-2 pr-3 text-slate-600 max-w-md">{inc.description}</td>
+                    <td className="py-2 pr-3 text-gray-600 max-w-md">{inc.description}</td>
                   </tr>
                 );
               })
@@ -90,8 +164,8 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-slate-400 mt-2">
-        显示 {filtered.length} / {incidents.length}
+      <p className="text-xs text-gray-400 mt-2">
+        显示 {rows.length} / {incidents.length}
       </p>
     </div>
   );

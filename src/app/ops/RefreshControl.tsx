@@ -36,12 +36,12 @@ export default function RefreshControl({ intervalMs = 30000 }: { intervalMs?: nu
 
   return (
     <div className="flex items-center gap-3">
-      <label className="flex items-center gap-1.5 text-xs text-slate-500 select-none cursor-pointer">
+      <label className="flex items-center gap-1.5 text-xs text-gray-500 select-none cursor-pointer">
         <input
           type="checkbox"
           checked={auto}
           onChange={(e) => setAuto(e.target.checked)}
-          className="rounded border-slate-300 text-slate-900 focus:ring-slate-400"
+          className="rounded border-gray-300 text-primary-600 focus:ring-primary-400"
         />
         自动刷新
       </label>
@@ -49,7 +49,7 @@ export default function RefreshControl({ intervalMs = 30000 }: { intervalMs?: nu
         type="button"
         onClick={onRefresh}
         disabled={loading}
-        className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+        className="px-3 py-1.5 rounded-lg text-sm border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-60"
       >
         {loading ? '刷新中…' : '刷新'}
       </button>

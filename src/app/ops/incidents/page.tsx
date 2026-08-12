@@ -59,7 +59,7 @@ export default async function OpsIncidentsPage() {
               {typeKeys.map((type) => (
                 <div key={type} className="flex items-center justify-between text-sm">
                   <Badge tone="default">{type}</Badge>
-                  <span className="tabular-nums text-slate-700 font-medium">
+                  <span className="tabular-nums text-gray-700 font-medium">
                     {result.byType[type]}
                   </span>
                 </div>
@@ -75,7 +75,7 @@ export default async function OpsIncidentsPage() {
               {(['critical', 'high', 'medium', 'low'] as const).map((sev) => (
                 <div key={sev} className="flex items-center justify-between text-sm">
                   <Badge tone={severityTone(sev)}>{sev}</Badge>
-                  <span className="tabular-nums text-slate-700 font-medium">
+                  <span className="tabular-nums text-gray-700 font-medium">
                     {result.bySeverity[sev]}
                   </span>
                 </div>

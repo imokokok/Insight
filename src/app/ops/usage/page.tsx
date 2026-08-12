@@ -86,19 +86,19 @@ export default async function OpsUsagePage({
                 <tbody>
                   {usage.byHour.slice(-24).map((h) => (
                     <tr key={h.hour} className={trCls}>
-                      <td className="py-2 pr-3 tabular-nums text-slate-500">
+                      <td className="py-2 pr-3 tabular-nums text-gray-500">
                         {h.hour.slice(5, 13)}
                       </td>
-                      <td className="py-2 pr-3 text-right tabular-nums text-slate-700">
+                      <td className="py-2 pr-3 text-right tabular-nums text-gray-700">
                         {formatCompact(h.requests)}
                       </td>
-                      <td className="py-2 pr-3 text-right tabular-nums text-slate-500">
+                      <td className="py-2 pr-3 text-right tabular-nums text-gray-500">
                         {h.p50 ?? '—'}
                       </td>
-                      <td className="py-2 pr-3 text-right tabular-nums text-slate-500">
+                      <td className="py-2 pr-3 text-right tabular-nums text-gray-500">
                         {h.p95 ?? '—'}
                       </td>
-                      <td className="py-2 pr-3 text-right tabular-nums text-slate-500">
+                      <td className="py-2 pr-3 text-right tabular-nums text-gray-500">
                         {h.p99 ?? '—'}
                       </td>
                     </tr>

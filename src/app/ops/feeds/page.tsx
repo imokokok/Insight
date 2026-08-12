@@ -68,14 +68,14 @@ export default async function OpsFeedsPage() {
                   <span className="flex items-center gap-2">
                     <Badge tone={reasonTone(reason)}>{reason}</Badge>
                   </span>
-                  <span className="tabular-nums text-slate-700 font-medium">{count}</span>
+                  <span className="tabular-nums text-gray-700 font-medium">{count}</span>
                 </div>
               ))}
             </div>
           )}
         </Card>
         <Card title="Rediscover queue">
-          <p className="text-sm text-slate-600 mb-2">
+          <p className="text-sm text-gray-600 mb-2">
             Feeds absent from discovery for {summary.rediscoverQueue} consecutive run(s) — reconcile
             before pruning.
           </p>

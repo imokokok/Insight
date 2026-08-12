@@ -65,7 +65,7 @@ export default async function OpsCronPage() {
           <div className="overflow-x-auto">
             <table className={tableCls}>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
+                <tr className="text-left text-gray-500 border-b border-gray-100">
                   <th className={thCls}>Pipeline</th>
                   <th className={thCls}>Source</th>
                   <th className={thCls}>Last run</th>
@@ -77,19 +77,19 @@ export default async function OpsCronPage() {
               <tbody>
                 {jobs.map((j) => (
                   <tr key={j.name} className={trCls}>
-                    <td className="py-2 pr-3 font-medium text-slate-800">{j.name}</td>
-                    <td className="py-2 pr-3 font-mono text-xs text-slate-500">
+                    <td className="py-2 pr-3 font-medium text-gray-800">{j.name}</td>
+                    <td className="py-2 pr-3 font-mono text-xs text-gray-500">
                       {j.table}.{j.column}
                     </td>
-                    <td className="py-2 pr-3 tabular-nums text-slate-500">
+                    <td className="py-2 pr-3 tabular-nums text-gray-500">
                       {j.lastRunAt
                         ? new Date(j.lastRunAt).toISOString().slice(0, 16).replace('T', ' ')
                         : 'never'}
                     </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-slate-700">
+                    <td className="py-2 pr-3 text-right tabular-nums text-gray-700">
                       {fmtAge(j.ageMinutes)}
                     </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-slate-400">
+                    <td className="py-2 pr-3 text-right tabular-nums text-gray-400">
                       {fmtAge(j.staleThresholdMinutes)}
                     </td>
                     <td className="py-2 pr-3">

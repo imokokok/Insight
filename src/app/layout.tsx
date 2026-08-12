@@ -12,6 +12,7 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { FeedbackButton } from '@/components/feedback/FeedbackButton';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
+import { PublicChrome } from '@/components/PublicChrome';
 import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
 import { isOpsOwner } from '@/lib/ops/auth';
 import { QueryProvider } from '@/providers/QueryProvider';
@@ -79,18 +80,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <QueryProvider>
           <ErrorBoundary>
             <AppInitializer>
-              <Navbar isOpsOwner={showConsole} />
+              <PublicChrome>
+                <Navbar isOpsOwner={showConsole} />
+              </PublicChrome>
               <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>
                 {children}
               </main>
-              <Footer />
-              <ConnectionStatusIndicator
-                showLabel={false}
-                showReconnectButton={true}
-                className="fixed bottom-4 right-4 z-40"
-              />
-              <FeedbackButton />
-              <CookieConsent />
+              <PublicChrome>
+                <Footer />
+                <ConnectionStatusIndicator
+                  showLabel={false}
+                  showReconnectButton={true}
+                  className="fixed bottom-4 right-4 z-40"
+                />
+                <FeedbackButton />
+                <CookieConsent />
+              </PublicChrome>
             </AppInitializer>
           </ErrorBoundary>
         </QueryProvider>
