@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { getFeedHealth } from '@/lib/ops/opsQueries';
 
 import FeedsTable from '../components/FeedsTable';
@@ -8,8 +10,17 @@ export const metadata = {
   title: 'Feed Health - Insight Ops',
 };
 
-export default async function OpsFeedsPage() {
+export default async function OpsFeedsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ provider?: string }>;
+}) {
+  const { provider } = await searchParams;
   const { summary, problemFeeds } = await getFeedHealth();
+
+  const filteredFeeds = provider
+    ? problemFeeds.filter((f) => f.provider.toLowerCase() === provider.toLowerCase())
+    : problemFeeds;
 
   const reasonTone = (reason: string) => {
     if (reason === 'discover_pruned') return 'warn' as const;
@@ -22,10 +33,24 @@ export default async function OpsFeedsPage() {
     <div className="max-w-6xl mx-auto px-6 py-8">
       <PageHeader
         title="Feed Health"
-        subtitle="Oracle feed lifecycle & deactivation observability (oracle_feeds + 0025)"
+        subtitle="Oracle feed lifecycle & deactivation observability (oracle_feeds + 0025) · 当前全量快照"
         updatedAt={new Date().toISOString()}
         actions={<RefreshControl />}
       />
+
+      {provider && (
+        <div className="mb-4 flex items-center gap-2 text-sm">
+          <span className="text-gray-500">
+            筛选 provider：<span className="font-medium text-gray-800">{provider}</span>
+          </span>
+          <Link
+            href="/ops/feeds"
+            className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-200"
+          >
+            ✕ 清除
+          </Link>
+        </div>
+      )}
 
       {summary.errored && (
         <ErrorBanner message="Feed 健康数据查询失败，以下计数可能不完整或不可用。" />
@@ -87,8 +112,8 @@ export default async function OpsFeedsPage() {
         </Card>
       </div>
 
-      <Card title={`Problem feeds (${problemFeeds.length})`}>
-        <FeedsTable feeds={problemFeeds} />
+      <Card title={`Problem feeds (${filteredFeeds.length})`}>
+        <FeedsTable feeds={filteredFeeds} />
       </Card>
     </div>
   );

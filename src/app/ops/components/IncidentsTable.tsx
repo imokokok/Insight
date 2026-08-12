@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react';
 
+import Link from 'next/link';
+
 import type { Incident } from '@/lib/api/services/incidentService';
 
 import { Badge, EmptyState, tableCls, thCls, trCls } from '../ui';
@@ -144,7 +146,15 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                     <td className="py-2 pr-3">
                       <Badge tone="default">{inc.type}</Badge>
                     </td>
-                    <td className="py-2 pr-3 font-medium text-gray-800">{inc.provider}</td>
+                    <td className="py-2 pr-3 font-medium text-gray-800">
+                      <Link
+                        href={`/ops/feeds?provider=${encodeURIComponent(inc.provider)}`}
+                        className="text-primary-700 hover:underline"
+                        title={`查看 ${inc.provider} 的 feeds`}
+                      >
+                        {inc.provider}
+                      </Link>
+                    </td>
                     <td className="py-2 pr-3 text-gray-700">{inc.symbol}</td>
                     <td className="py-2 pr-3">
                       {inc.type === 'feed_failure' ? (

@@ -40,10 +40,19 @@ export default async function OpsOverviewPage({
 
       {stats.partial && <ErrorBanner message="部分概览数据查询失败，至少有一项指标不可信。" />}
 
+      <p className="text-xs text-gray-400 mb-6">
+        时间范围选择器仅影响 <span className="text-gray-600">Signing rate</span> 与{' '}
+        <span className="text-gray-600">Unsigned BLOCKs</span>；
+        <span className="text-gray-600">Incidents (7d)</span> 与{' '}
+        <span className="text-gray-600">Cron stale</span> 为固定窗口（近 7 天 /
+        新鲜度阈值），不受选择器影响。可点击指标下钻到对应页面。
+      </p>
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         <Stat
           label="Active feeds"
           value={stats.feedsActive}
+          href="/ops/feeds"
           hint={`${stats.feedsInactive} inactive · ${stats.providers} providers`}
         />
         <Stat
@@ -55,19 +64,27 @@ export default async function OpsOverviewPage({
           label={`Signing rate (${label})`}
           value={stats.signedRatePct != null ? `${stats.signedRatePct}%` : '—'}
           tone={signingTone}
+          href="/ops/safety"
           hint="signed / total pre-trade checks"
         />
         <Stat
           label={`Unsigned BLOCKs (${label})`}
           value={stats.unsignedBlocks}
           tone={stats.unsignedBlocks > 0 ? 'bad' : 'good'}
+          href="/ops/safety"
           hint="Raul canary failure quadrant"
         />
-        <Stat label="Incidents (7d)" value={stats.incidents7d} hint="from incident aggregation" />
+        <Stat
+          label="Incidents (7d)"
+          value={stats.incidents7d}
+          href="/ops/incidents"
+          hint="from incident aggregation"
+        />
         <Stat
           label="Cron stale"
           value={stats.cronStale}
           tone={stats.cronStale > 0 ? 'warn' : 'good'}
+          href="/ops/cron"
           hint="pipelines past freshness"
         />
       </div>

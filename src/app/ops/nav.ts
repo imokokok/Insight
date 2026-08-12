@@ -29,7 +29,7 @@ export const OPS_NAV: OpNavGroup[] = [
     title: 'Monitor',
     items: [
       { href: '/ops', label: 'Overview', exact: true, icon: LayoutDashboard },
-      { href: '/ops/health', label: 'Oracle Health', icon: Activity },
+      { href: '/ops/health', label: 'Provider Reputation', icon: Activity },
       { href: '/ops/safety', label: 'Safety & Attestation', icon: ShieldCheck },
     ],
   },

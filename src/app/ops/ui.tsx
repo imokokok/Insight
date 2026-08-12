@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import Link from 'next/link';
+
 export type Tone = 'default' | 'good' | 'warn' | 'bad' | 'info';
 
 /** Compact number formatting for high-magnitude ops metrics (12345 -> 12.3k). */
@@ -115,6 +117,7 @@ export function Stat({
   tone,
   delta,
   spark,
+  href,
 }: {
   label: string;
   value: ReactNode;
@@ -124,6 +127,8 @@ export function Stat({
   delta?: number;
   /** Mini sparkline series (any scale); rendered as a thin line under the value. */
   spark?: number[];
+  /** Optional drill-down target; renders the value as an internal link. */
+  href?: string;
 }) {
   const t = tone ?? 'default';
   const deltaNode =
@@ -143,7 +148,13 @@ export function Stat({
         )}
       </div>
       <div className={`text-2xl font-semibold mt-1 font-mono tabular-nums ${TONE_TEXT[t]}`}>
-        {value}
+        {href ? (
+          <Link href={href} className="hover:underline focus:underline" title={`打开 ${label}`}>
+            {value}
+          </Link>
+        ) : (
+          value
+        )}
       </div>
       <div className="mt-1 flex items-center gap-2 text-xs">
         {deltaNode && <span className="font-mono tabular-nums">{deltaNode}</span>}

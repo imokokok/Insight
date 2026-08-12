@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { getIncidentAggregation } from '@/lib/api/services/incidentService';
 import { get7dAgoUtc, getTodayUtc } from '@/lib/utils/date';
 
@@ -15,12 +17,18 @@ const severityTone = (sev: string): 'default' | 'warn' | 'bad' => {
   return 'default';
 };
 
-export default async function OpsIncidentsPage() {
+export default async function OpsIncidentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ provider?: string }>;
+}) {
+  const { provider } = await searchParams;
   const result = await getIncidentAggregation({
     from: get7dAgoUtc(),
     to: getTodayUtc(),
     limit: 200,
     offset: 0,
+    provider,
   });
 
   const typeKeys = Object.keys(result.byType);
@@ -34,6 +42,20 @@ export default async function OpsIncidentsPage() {
         updatedAt={new Date().toISOString()}
         actions={<RefreshControl />}
       />
+
+      {provider && (
+        <div className="mb-4 flex items-center gap-2 text-sm">
+          <span className="text-gray-500">
+            筛选 provider：<span className="font-medium text-gray-800">{provider}</span>
+          </span>
+          <Link
+            href="/ops/incidents"
+            className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-200"
+          >
+            ✕ 清除
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Stat label="Total (7d)" value={result.total} tone={result.total > 0 ? 'warn' : 'good'} />

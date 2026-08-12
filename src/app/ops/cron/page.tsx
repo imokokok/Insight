@@ -35,7 +35,7 @@ export default async function OpsCronPage() {
     <div className="max-w-6xl mx-auto px-6 py-8">
       <PageHeader
         title="Cron & Pipelines"
-        subtitle="Freshness of each background pipeline, derived from output-table latest rows"
+        subtitle="Freshness of each background pipeline, derived from output-table latest rows · 基于最新一行，无固定时间窗"
         updatedAt={new Date().toISOString()}
         actions={<RefreshControl />}
       />

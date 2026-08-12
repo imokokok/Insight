@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { getOracleHealthReport } from '@/lib/oracles/services/oracleHealthService';
 import { reputationService } from '@/lib/oracles/services/reputationService';
 import { getTodayUtc } from '@/lib/utils/date';
@@ -6,7 +8,7 @@ import RefreshControl from '../RefreshControl';
 import { PageHeader, Stat, Card, Badge, EmptyState, tableCls, thCls, trCls } from '../ui';
 
 export const metadata = {
-  title: 'Oracle Health - Insight Ops',
+  title: 'Provider Reputation - Insight Ops',
 };
 
 const riskTone = (level: string): 'good' | 'warn' | 'bad' => {
@@ -43,11 +45,20 @@ export default async function OpsHealthPage() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
       <PageHeader
-        title="Oracle Health"
-        subtitle="Per-provider reputation directory + today's oracle health report"
+        title="Provider Reputation"
+        subtitle="Per-provider reputation directory (provider-level) + today's oracle health report"
         updatedAt={new Date().toISOString()}
         actions={<RefreshControl />}
       />
+
+      <p className="text-xs text-gray-400 mb-6">
+        Provider 级声誉（聚合自 reputation_history），与{' '}
+        <Link href="/ops/feeds" className="underline">
+          Feeds
+        </Link>{' '}
+        页单个 feed 的生命周期口径不同——本页看「供应商整体」，Feeds 页看「每条 feed
+        的启停/失败」。点 provider 可下钻到该 provider 的 feeds / incidents。
+      </p>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Stat label="Monitored providers" value={reputations.length} />
@@ -90,7 +101,22 @@ export default async function OpsHealthPage() {
               <tbody>
                 {reputations.map((r) => (
                   <tr key={r.provider} className={trCls}>
-                    <td className="py-2 pr-3 font-medium text-gray-800">{r.provider}</td>
+                    <td className="py-2 pr-3 font-medium text-gray-800">
+                      <Link
+                        href={`/ops/feeds?provider=${encodeURIComponent(r.provider)}`}
+                        className="text-primary-700 hover:underline"
+                      >
+                        {r.provider}
+                      </Link>
+                      <span className="ml-2 text-xs">
+                        <Link
+                          href={`/ops/incidents?provider=${encodeURIComponent(r.provider)}`}
+                          className="text-gray-400 hover:text-gray-600 hover:underline"
+                        >
+                          incidents ↗
+                        </Link>
+                      </span>
+                    </td>
                     <td className="py-2 pr-3 text-right tabular-nums text-gray-700">
                       {r.overall_score.toFixed(1)}
                     </td>

@@ -16,7 +16,7 @@ export default async function OpsBillingPage() {
     <div className="max-w-6xl mx-auto px-6 py-8">
       <PageHeader
         title="Billing"
-        subtitle="API key plans & rate limits (api_keys)"
+        subtitle="API key plans & rate limits (api_keys) · 累计快照，非时间窗"
         updatedAt={new Date().toISOString()}
         actions={<RefreshControl />}
       />
