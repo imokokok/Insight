@@ -1,7 +1,7 @@
 import { getSigningIntegrity } from '@/lib/ops/opsQueries';
 
 import RefreshButton from '../RefreshButton';
-import { PageHeader, Stat, Card, Badge, EmptyState } from '../ui';
+import { PageHeader, Stat, Card, Badge, EmptyState, ErrorBanner } from '../ui';
 
 export const metadata = {
   title: 'Safety & Attestation - Insight Ops',
@@ -21,6 +21,8 @@ export default async function OpsSafetyPage() {
         subtitle="EIP-712 signing provenance on every pre-trade check (pre_trade_checks + 0026)"
         actions={<RefreshButton />}
       />
+
+      {summary.errored && <ErrorBanner message="签名数据查询失败，以下数字可能不完整或不可用。" />}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Stat

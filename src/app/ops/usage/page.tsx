@@ -1,7 +1,7 @@
 import { getApiUsage } from '@/lib/ops/opsQueries';
 
 import RefreshButton from '../RefreshButton';
-import { PageHeader, Stat, Card, Badge, EmptyState } from '../ui';
+import { PageHeader, Stat, Card, Badge, EmptyState, ErrorBanner } from '../ui';
 
 export const metadata = {
   title: 'API Usage - Insight Ops',
@@ -17,6 +17,10 @@ export default async function OpsUsagePage() {
         subtitle={`Request volume, errors & latency from api_key_usage (last ${usage.windowHours}h)`}
         actions={<RefreshButton />}
       />
+
+      {usage.errored && (
+        <ErrorBanner message="API 用量数据查询失败，以下请求/错误计数与延迟可能不完整或不可用。" />
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Stat label="Requests (24h)" value={usage.totalRequests.toLocaleString()} />

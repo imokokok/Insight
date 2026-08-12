@@ -24,6 +24,57 @@ function ageMinutes(iso: string | null): number | null {
   return Math.max(0, Math.round(ms / 60000));
 }
 
+// Row shapes for the paginated aggregations below. Kept narrow to what we select.
+interface PreTradeCheckRow {
+  created_at: string;
+  signed: boolean;
+  verdict: string | null;
+  coverage_status: string | null;
+  unresolved_asset: string | null;
+  attester: string | null;
+  schema_version: number | null;
+}
+
+interface ApiUsageRow {
+  endpoint: string;
+  status_code: number;
+  response_time_ms: number | null;
+  created_at: string;
+}
+
+/**
+ * Page through a Supabase query that would otherwise be SILENTLY truncated at
+ * the PostgREST `max_rows` cap (1000 in this project — see supabase/config.toml).
+ *
+ * supabase-js does NOT auto-paginate and does NOT warn when rows are truncated,
+ * so a bare `.select().gte(...)` on a high-volume table (api_key_usage,
+ * oracle_feeds with 1030 rows, pre_trade_checks) returns only the first 1000
+ * rows and the /ops console would render undercounted, misleading numbers. We
+ * loop `.range(from, to)` until a short page or an empty result, accumulating
+ * every matching row. Filter + order MUST be applied inside `buildPage` so each
+ * page is deterministic.
+ */
+const PAGE_SIZE = 1000;
+
+async function pagedSelect<T>(
+  buildPage: (
+    from: number,
+    to: number
+  ) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>
+): Promise<{ data: T[] | null; error: { message: string } | null }> {
+  const all: T[] = [];
+  let from = 0;
+  for (;;) {
+    const to = from + PAGE_SIZE - 1;
+    const { data, error } = await buildPage(from, to);
+    if (error) return { data: all, error };
+    if (!data || data.length === 0) return { data: all, error: null };
+    all.push(...data);
+    if (data.length < PAGE_SIZE) return { data: all, error: null };
+    from += PAGE_SIZE;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Signing integrity (pre_trade_checks + 0026 provenance columns)
 // ---------------------------------------------------------------------------
@@ -40,6 +91,8 @@ export interface SigningIntegritySummary {
   distinctAttesters: number;
   v1Rows: number;
   v2Rows: number;
+  /** True when the underlying query failed — numbers above are incomplete/unreliable. */
+  errored?: boolean;
 }
 
 export interface SigningTrendPoint {
@@ -70,12 +123,16 @@ export async function getSigningIntegrity(windowHours = 24): Promise<SigningInte
   const supabase = createServiceRoleClient();
   const since = hoursAgoIso(windowHours);
 
-  const { data, error } = await supabase
-    .from('pre_trade_checks')
-    .select(
-      'created_at, signed, verdict, coverage_status, unresolved_asset, attester, schema_version'
-    )
-    .gte('created_at', since);
+  const { data, error } = await pagedSelect<PreTradeCheckRow>((from, to) =>
+    supabase
+      .from('pre_trade_checks')
+      .select(
+        'created_at, signed, verdict, coverage_status, unresolved_asset, attester, schema_version'
+      )
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .range(from, to)
+  );
 
   if (error || !data) {
     return {
@@ -91,6 +148,7 @@ export async function getSigningIntegrity(windowHours = 24): Promise<SigningInte
         distinctAttesters: 0,
         v1Rows: 0,
         v2Rows: 0,
+        errored: true,
       },
       trend: [],
       unsignedBlocks: [],
@@ -178,6 +236,8 @@ export interface FeedHealthSummary {
   failingFeeds: number;
   staleFeeds: number;
   rediscoverQueue: number;
+  /** True when the underlying query failed — counts above are incomplete/unreliable. */
+  errored?: boolean;
 }
 
 export interface FeedRow {
@@ -201,11 +261,15 @@ const STALE_FEED_MINUTES = 120;
 
 export async function getFeedHealth(limit = 200): Promise<FeedHealth> {
   const supabase = createServiceRoleClient();
-  const { data, error } = await supabase
-    .from('oracle_feeds')
-    .select(
-      'provider, symbol, chain_id, is_active, consecutive_failures, last_success_at, last_failure_at, deactivated_reason, absent_discovery_runs'
-    );
+  const { data, error } = await pagedSelect<FeedRow>((from, to) =>
+    supabase
+      .from('oracle_feeds')
+      .select(
+        'provider, symbol, chain_id, is_active, consecutive_failures, last_success_at, last_failure_at, deactivated_reason, absent_discovery_runs'
+      )
+      .order('provider', { ascending: true })
+      .range(from, to)
+  );
 
   if (error || !data) {
     return {
@@ -217,6 +281,7 @@ export async function getFeedHealth(limit = 200): Promise<FeedHealth> {
         failingFeeds: 0,
         staleFeeds: 0,
         rediscoverQueue: 0,
+        errored: true,
       },
       problemFeeds: [],
     };
@@ -301,16 +366,22 @@ export interface ApiUsage {
   errorRatePct: number | null;
   byHour: UsageByHour[];
   byEndpoint: UsageByEndpoint[];
+  /** True when the underlying query failed — totals above are incomplete/unreliable. */
+  errored?: boolean;
 }
 
 export async function getApiUsage(windowHours = 24): Promise<ApiUsage> {
   const supabase = createServiceRoleClient();
   const since = hoursAgoIso(windowHours);
 
-  const { data, error } = await supabase
-    .from('api_key_usage')
-    .select('endpoint, status_code, response_time_ms, created_at')
-    .gte('created_at', since);
+  const { data, error } = await pagedSelect<ApiUsageRow>((from, to) =>
+    supabase
+      .from('api_key_usage')
+      .select('endpoint, status_code, response_time_ms, created_at')
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .range(from, to)
+  );
 
   if (error || !data) {
     return {
@@ -320,6 +391,7 @@ export async function getApiUsage(windowHours = 24): Promise<ApiUsage> {
       errorRatePct: null,
       byHour: [],
       byEndpoint: [],
+      errored: true,
     };
   }
 
@@ -396,20 +468,28 @@ export interface CronJob {
 
 export interface CronHealth {
   jobs: CronJob[];
+  /** True when any pipeline freshness query failed — treat freshness as unknown. */
+  errored?: boolean;
 }
 
-async function latestTimestamp(table: string, column: string): Promise<string | null> {
+async function latestTimestamp(
+  table: string,
+  column: string
+): Promise<{ value: string | null; errored: boolean }> {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from(table)
     .select(column)
     .order(column, { ascending: false })
     .limit(1);
-  if (error || !data || data.length === 0) return null;
+  // Distinguish a real query failure from "genuinely no rows" so the console can
+  // show an error instead of a misleading green "fresh" signal.
+  if (error) return { value: null, errored: true };
+  if (!data || data.length === 0) return { value: null, errored: false };
   const value = (data[0] as unknown as Record<string, unknown>)[column];
-  if (value == null) return null;
+  if (value == null) return { value: null, errored: false };
   // hourly_price_snapshots.snapshot_hour is a timestamptz; daily_reports.report_date is a date.
-  return String(value);
+  return { value: String(value), errored: false };
 }
 
 export async function getCronHealth(): Promise<CronHealth> {
@@ -419,6 +499,8 @@ export async function getCronHealth(): Promise<CronHealth> {
   const report = await latestTimestamp('daily_reports', 'report_date');
   const reputation = await latestTimestamp('oracle_reputation', 'last_calculated_at');
   const checks = await latestTimestamp('pre_trade_checks', 'created_at');
+
+  const errored = [snapshot, report, reputation, checks].some((r) => r.errored);
 
   const mk = (
     name: string,
@@ -440,15 +522,15 @@ export async function getCronHealth(): Promise<CronHealth> {
   };
 
   jobs.push(
-    mk('Snapshot collection (15m)', 'hourly_price_snapshots', 'snapshot_hour', snapshot, 90)
+    mk('Snapshot collection (15m)', 'hourly_price_snapshots', 'snapshot_hour', snapshot.value, 90)
   );
-  jobs.push(mk('Daily report (24h)', 'daily_reports', 'report_date', report, 26 * 60));
+  jobs.push(mk('Daily report (24h)', 'daily_reports', 'report_date', report.value, 26 * 60));
   jobs.push(
-    mk('Reputation recalc (1h)', 'oracle_reputation', 'last_calculated_at', reputation, 90)
+    mk('Reputation recalc (1h)', 'oracle_reputation', 'last_calculated_at', reputation.value, 90)
   );
-  jobs.push(mk('Pre-trade checks (live)', 'pre_trade_checks', 'created_at', checks, 24 * 60));
+  jobs.push(mk('Pre-trade checks (live)', 'pre_trade_checks', 'created_at', checks.value, 24 * 60));
 
-  return { jobs };
+  return { jobs, errored };
 }
 
 // ---------------------------------------------------------------------------
@@ -495,6 +577,8 @@ export interface OverviewStats {
   unsignedBlocks: number;
   incidents7d: number;
   cronStale: number;
+  /** True when one of the composed sub-queries failed — at least one stat is unreliable. */
+  partial?: boolean;
 }
 
 export async function getOverviewStats(): Promise<OverviewStats> {
@@ -514,6 +598,8 @@ export async function getOverviewStats(): Promise<OverviewStats> {
   const symbols = new Set(all.map((f) => f.symbol)).size;
   const chains = new Set(all.map((f) => f.chain_id)).size;
 
+  const partial = Boolean(signing.summary.errored || cron.errored);
+
   return {
     feedsActive: all.length,
     feedsInactive: inactiveResult.count ?? 0,
@@ -524,5 +610,6 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     unsignedBlocks: signing.summary.unsignedBlocks,
     incidents7d: incidents.total,
     cronStale: cron.jobs.filter((j) => j.stale).length,
+    partial,
   };
 }

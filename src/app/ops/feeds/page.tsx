@@ -1,7 +1,7 @@
 import { getFeedHealth } from '@/lib/ops/opsQueries';
 
 import RefreshButton from '../RefreshButton';
-import { PageHeader, Stat, Card, Badge, EmptyState } from '../ui';
+import { PageHeader, Stat, Card, Badge, EmptyState, ErrorBanner } from '../ui';
 
 export const metadata = {
   title: 'Feed Health - Insight Ops',
@@ -24,6 +24,10 @@ export default async function OpsFeedsPage() {
         subtitle="Oracle feed lifecycle & deactivation observability (oracle_feeds + 0025)"
         actions={<RefreshButton />}
       />
+
+      {summary.errored && (
+        <ErrorBanner message="Feed 健康数据查询失败，以下计数可能不完整或不可用。" />
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Stat

@@ -11,10 +11,13 @@ export default function RefreshButton() {
   return (
     <button
       type="button"
-      onClick={() => {
+      onClick={async () => {
         setLoading(true);
-        router.refresh();
-        setLoading(false);
+        try {
+          await router.refresh();
+        } finally {
+          setLoading(false);
+        }
       }}
       className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
     >

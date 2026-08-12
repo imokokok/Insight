@@ -15,6 +15,19 @@ describe('isOpsOwner (OPS_OWNER_USER_IDS allowlist)', () => {
     expect(isOpsOwner(null)).toBe(true);
   });
 
+  it('denies when the allowlist is unset in production (fail-closed)', () => {
+    const prevEnv = process.env.NODE_ENV;
+    delete process.env.OPS_OWNER_USER_IDS;
+    process.env.NODE_ENV = 'production';
+    try {
+      expect(isOpsOwner('anyone')).toBe(false);
+      expect(isOpsOwner(undefined)).toBe(false);
+      expect(isOpsOwner(null)).toBe(false);
+    } finally {
+      process.env.NODE_ENV = prevEnv;
+    }
+  });
+
   it('blocks when the allowlist is set but no user id is given', () => {
     process.env.OPS_OWNER_USER_IDS = 'uuid-a';
     expect(isOpsOwner(undefined)).toBe(false);

@@ -12,9 +12,14 @@ const logger = createLogger('ops-auth');
  *
  * Single source of truth shared by BOTH the server gate (`requireOpsOwner`)
  * and the client nav visibility (which receives only this boolean, never the
- * allowlist itself). If OPS_OWNER_USER_IDS is unset we return true so a solo
- * owner is never locked out before configuring the env (dev convenience).
- * Once set, it is enforced strictly.
+ * allowlist itself).
+ *
+ * SECURITY: this is an *authorization* gate, so it fails CLOSED in production.
+ * If OPS_OWNER_USER_IDS is unset we DENY in production (NODE_ENV === 'production')
+ * — otherwise any authenticated user could reach the internal console. In
+ * non-production (local dev / CI) we keep the dev convenience of allowing any
+ * user so a solo owner is never locked out before configuring the env. Once the
+ * allowlist is set (any environment) it is enforced strictly.
  */
 export function isOpsOwner(userId?: string | null): boolean {
   const owners = (process.env.OPS_OWNER_USER_IDS ?? '')
@@ -22,7 +27,8 @@ export function isOpsOwner(userId?: string | null): boolean {
     .map((id) => id.trim())
     .filter(Boolean);
 
-  if (owners.length === 0) return true;
+  // Fail-closed in production; dev/CI convenience only when not in production.
+  if (owners.length === 0) return process.env.NODE_ENV !== 'production';
   if (!userId) return false;
   return owners.includes(userId);
 }
@@ -33,9 +39,9 @@ export function isOpsOwner(userId?: string | null): boolean {
  * sub-page inherits the protection. The middleware already bounces
  * unauthenticated users to /login; this adds the owner restriction.
  *
- * If OPS_OWNER_USER_IDS is unset we allow any authenticated user (dev convenience
- * so a solo owner is never locked out before configuring the env). Once set, it
- * is enforced strictly.
+ * SECURITY: in production, if OPS_OWNER_USER_IDS is unset this DENIES access
+ * (fail-closed) so the internal console is never world-readable to any logged-in
+ * user. See `isOpsOwner` for the full rationale.
  */
 export async function requireOpsOwner(): Promise<void> {
   const cookieStore = await cookies();

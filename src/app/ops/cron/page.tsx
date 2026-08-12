@@ -1,7 +1,7 @@
 import { getCronHealth } from '@/lib/ops/opsQueries';
 
 import RefreshButton from '../RefreshButton';
-import { PageHeader, Stat, Card, Badge, EmptyState } from '../ui';
+import { PageHeader, Stat, Card, Badge, EmptyState, ErrorBanner } from '../ui';
 
 export const metadata = {
   title: 'Cron & Pipelines - Insight Ops',
@@ -16,7 +16,7 @@ function fmtAge(minutes: number | null): string {
 }
 
 export default async function OpsCronPage() {
-  const { jobs } = await getCronHealth();
+  const { jobs, errored } = await getCronHealth();
   const staleCount = jobs.filter((j) => j.stale).length;
   const hasAge = jobs.some((j) => j.ageMinutes != null);
   const oldestAge = hasAge ? Math.max(...jobs.map((j) => j.ageMinutes ?? 0)) : null;
@@ -29,13 +29,15 @@ export default async function OpsCronPage() {
         actions={<RefreshButton />}
       />
 
+      {errored && <ErrorBanner message="管道新鲜度查询失败，下列 Stale / Fresh 状态不可信。" />}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Stat label="Pipelines" value={jobs.length} />
         <Stat
           label="Stale"
-          value={staleCount}
-          tone={staleCount > 0 ? 'bad' : 'good'}
-          hint="past freshness window"
+          value={errored ? '—' : staleCount}
+          tone={errored ? 'bad' : staleCount > 0 ? 'bad' : 'good'}
+          hint={errored ? 'query failed' : 'past freshness window'}
         />
         <Stat label="Fresh" value={jobs.length - staleCount} tone="good" />
         <Stat

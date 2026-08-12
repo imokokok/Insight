@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getOverviewStats } from '@/lib/ops/opsQueries';
 
 import RefreshButton from './RefreshButton';
-import { PageHeader, Stat, Card, Badge } from './ui';
+import { PageHeader, Stat, Card, Badge, ErrorBanner } from './ui';
 
 export const metadata = {
   title: 'Ops Overview - Insight',
@@ -22,6 +22,8 @@ export default async function OpsOverviewPage() {
         subtitle="One-glance health of the Insight API & safety pipeline"
         actions={<RefreshButton />}
       />
+
+      {stats.partial && <ErrorBanner message="部分概览数据查询失败，至少有一项指标不可信。" />}
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         <Stat
