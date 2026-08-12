@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, Gauge } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import type { UserProfile } from '@/lib/supabase/auth';
@@ -10,6 +10,7 @@ import type { UserProfile } from '@/lib/supabase/auth';
 interface UserMenuDropdownProps {
   profile: UserProfile | null;
   userEmail: string | undefined;
+  isOpsOwner?: boolean;
   onClose: () => void;
   onSignOut: () => void;
 }
@@ -17,6 +18,7 @@ interface UserMenuDropdownProps {
 export default function UserMenuDropdown({
   profile,
   userEmail,
+  isOpsOwner = false,
   onClose,
   onSignOut,
 }: UserMenuDropdownProps) {
@@ -39,6 +41,16 @@ export default function UserMenuDropdown({
             <Settings className="w-4 h-4" />
             Settings
           </Link>
+          {isOpsOwner && (
+            <Link
+              href="/ops"
+              onClick={onClose}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Gauge className="w-4 h-4" />
+              Console
+            </Link>
+          )}
         </div>
         <div className="border-t border-gray-100 py-1">
           <Button

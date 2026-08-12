@@ -7,7 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Menu, User, Gauge } from 'lucide-react';
+import { Menu, User } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { useKeyboardShortcuts } from '@/hooks';
@@ -20,7 +20,7 @@ import {
   UserMenuDropdown,
   navigationConfig,
 } from './navigation';
-import { type NavGroup, type NavItem, type NavStructure } from './navigation/types';
+import { type NavGroup, type NavStructure } from './navigation/types';
 import { SearchButton } from './search/SearchButton';
 
 const GlobalSearch = dynamic(() => import('./search').then((m) => m.GlobalSearch), { ssr: false });
@@ -37,10 +37,11 @@ export default function Navbar({ isOpsOwner = false }: { isOpsOwner?: boolean })
   const [avatarError, setAvatarError] = useState(false);
 
   // Internal console entry — shown only to ops owners (decided server-side in
-  // the root layout, passed down as a boolean). Navigation visibility is UX
-  // only; /ops itself is still gated by requireOpsOwner() on the server.
-  const consoleItem: NavItem = { href: '/ops', label: 'Console', icon: Gauge };
-  const navItems: NavStructure = isOpsOwner ? [...navigationConfig, consoleItem] : navigationConfig;
+  // the root layout, passed down as a boolean). It lives in the avatar menu
+  // (UserMenuDropdown) and the mobile drawer, not in the main tab row.
+  // Navigation visibility is UX only; /ops itself is still gated by
+  // requireOpsOwner() on the server.
+  const navItems: NavStructure = navigationConfig;
 
   const currentPath = useMemo(() => {
     if (!pathname) return '/';
@@ -49,9 +50,6 @@ export default function Navbar({ isOpsOwner = false }: { isOpsOwner?: boolean })
   }, [pathname]);
 
   const isActive = (href: string) => {
-    if (href === '/') {
-      return currentPath === '/';
-    }
     return currentPath === href || currentPath.startsWith(href + '/');
   };
 
@@ -180,6 +178,7 @@ export default function Navbar({ isOpsOwner = false }: { isOpsOwner?: boolean })
                       <UserMenuDropdown
                         profile={profile}
                         userEmail={user.email}
+                        isOpsOwner={isOpsOwner}
                         onClose={() => setIsUserMenuOpen(false)}
                         onSignOut={handleSignOut}
                       />
@@ -219,6 +218,7 @@ export default function Navbar({ isOpsOwner = false }: { isOpsOwner?: boolean })
           onClose={() => setIsMobileMenuOpen(false)}
           navStructure={navItems}
           currentPath={currentPath}
+          isOpsOwner={isOpsOwner}
         />
       </nav>
 

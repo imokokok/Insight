@@ -1,5 +1,4 @@
 import {
-  LayoutDashboard,
   Search,
   BookOpen,
   Award,
@@ -17,12 +16,9 @@ import { oracleColors } from '@/lib/constants';
 
 import { type NavStructure } from './types';
 
+// Home is intentionally omitted: the logo links to "/" (see Navbar), so a
+// dedicated "Home" tab would be a redundant second route to the same page.
 export const navigationConfig: NavStructure = [
-  {
-    href: '/',
-    label: 'Home',
-    icon: LayoutDashboard,
-  },
   {
     href: '/price-query',
     label: 'Price Query',

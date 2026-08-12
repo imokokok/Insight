@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { X, ChevronDown } from 'lucide-react';
+import { X, ChevronDown, Gauge } from 'lucide-react';
 
 import { oracleColors } from './config';
 import { type NavStructure, type NavGroup } from './types';
@@ -15,9 +15,16 @@ interface MobileDrawerProps {
   onClose: () => void;
   navStructure: NavStructure;
   currentPath: string;
+  isOpsOwner?: boolean;
 }
 
-export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: MobileDrawerProps) {
+export function MobileDrawer({
+  isOpen,
+  onClose,
+  navStructure,
+  currentPath,
+  isOpsOwner = false,
+}: MobileDrawerProps) {
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
   const toggleGroup = (groupId: string) => {
@@ -175,6 +182,16 @@ export function MobileDrawer({ isOpen, onClose, navStructure, currentPath }: Mob
                 </Link>
               );
             })}
+            {isOpsOwner && (
+              <Link
+                href="/ops"
+                onClick={onClose}
+                className="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-50"
+              >
+                <Gauge className="w-5 h-5" />
+                <span className="font-medium">Console</span>
+              </Link>
+            )}
           </nav>
         </div>
       </div>

@@ -240,4 +240,49 @@ describe('MobileDrawer', () => {
     const logo = screen.getByAltText('Insight Logo');
     expect(logo).toBeInTheDocument();
   });
+
+  it('should not render Console when not an ops owner', () => {
+    render(
+      <MobileDrawer
+        isOpen={true}
+        onClose={mockOnClose}
+        navStructure={mockNavStructure}
+        currentPath="/"
+        isOpsOwner={false}
+      />
+    );
+
+    expect(screen.queryByText('Console')).not.toBeInTheDocument();
+  });
+
+  it('should render Console when an ops owner', () => {
+    render(
+      <MobileDrawer
+        isOpen={true}
+        onClose={mockOnClose}
+        navStructure={mockNavStructure}
+        currentPath="/"
+        isOpsOwner={true}
+      />
+    );
+
+    const consoleLink = screen.getByRole('link', { name: /console/i });
+    expect(consoleLink).toBeInTheDocument();
+    expect(consoleLink).toHaveAttribute('href', '/ops');
+  });
+
+  it('should call onClose when Console is clicked', () => {
+    render(
+      <MobileDrawer
+        isOpen={true}
+        onClose={mockOnClose}
+        navStructure={mockNavStructure}
+        currentPath="/"
+        isOpsOwner={true}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('link', { name: /console/i }));
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
 });
