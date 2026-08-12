@@ -7,7 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { Menu, User } from 'lucide-react';
+import { Menu, User, Gauge } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { useKeyboardShortcuts } from '@/hooks';
@@ -20,12 +20,12 @@ import {
   UserMenuDropdown,
   navigationConfig,
 } from './navigation';
-import { type NavGroup } from './navigation/types';
+import { type NavGroup, type NavItem, type NavStructure } from './navigation/types';
 import { SearchButton } from './search/SearchButton';
 
 const GlobalSearch = dynamic(() => import('./search').then((m) => m.GlobalSearch), { ssr: false });
 
-export default function Navbar() {
+export default function Navbar({ isOpsOwner = false }: { isOpsOwner?: boolean }) {
   const pathname = usePathname();
   const user = useUser();
   const profile = useProfile();
@@ -35,6 +35,12 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+
+  // Internal console entry — shown only to ops owners (decided server-side in
+  // the root layout, passed down as a boolean). Navigation visibility is UX
+  // only; /ops itself is still gated by requireOpsOwner() on the server.
+  const consoleItem: NavItem = { href: '/ops', label: 'Console', icon: Gauge };
+  const navItems: NavStructure = isOpsOwner ? [...navigationConfig, consoleItem] : navigationConfig;
 
   const currentPath = useMemo(() => {
     if (!pathname) return '/';
@@ -91,7 +97,7 @@ export default function Navbar() {
             </div>
 
             <div className="hidden lg:flex items-center justify-center space-x-0.5">
-              {navigationConfig.map((navItem) => {
+              {navItems.map((navItem) => {
                 if ('items' in navItem) {
                   const group = navItem as NavGroup;
                   const isGroupActive = group.items.some((item) => isActive(item.href));
@@ -211,7 +217,7 @@ export default function Navbar() {
         <MobileDrawer
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
-          navStructure={navigationConfig}
+          navStructure={navItems}
           currentPath={currentPath}
         />
       </nav>

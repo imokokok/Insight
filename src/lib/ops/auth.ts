@@ -8,6 +8,26 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('ops-auth');
 
 /**
+ * Pure check: is `userId` in the OPS_OWNER_USER_IDS allowlist?
+ *
+ * Single source of truth shared by BOTH the server gate (`requireOpsOwner`)
+ * and the client nav visibility (which receives only this boolean, never the
+ * allowlist itself). If OPS_OWNER_USER_IDS is unset we return true so a solo
+ * owner is never locked out before configuring the env (dev convenience).
+ * Once set, it is enforced strictly.
+ */
+export function isOpsOwner(userId?: string | null): boolean {
+  const owners = (process.env.OPS_OWNER_USER_IDS ?? '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  if (owners.length === 0) return true;
+  if (!userId) return false;
+  return owners.includes(userId);
+}
+
+/**
  * Gate an /ops route: must be logged in AND (if OPS_OWNER_USER_IDS is set) the
  * session user must be in the allowlist. Called from the /ops layout so every
  * sub-page inherits the protection. The middleware already bounces
@@ -46,12 +66,7 @@ export async function requireOpsOwner(): Promise<void> {
     redirect('/login?redirect=/ops');
   }
 
-  const owners = (process.env.OPS_OWNER_USER_IDS ?? '')
-    .split(',')
-    .map((id) => id.trim())
-    .filter(Boolean);
-
-  if (owners.length > 0 && !owners.includes(user.id)) {
+  if (!isOpsOwner(user.id)) {
     logger.warn('Non-owner attempted /ops access', { userId: user.id });
     redirect('/');
   }
@@ -63,6 +78,6 @@ export async function requireOpsOwner(): Promise<void> {
   logger.info('Ops console access granted', {
     userId: user.id,
     email: user.email,
-    ownerLockEnabled: owners.length > 0,
+    ownerLockEnabled: (process.env.OPS_OWNER_USER_IDS ?? '').trim().length > 0,
   });
 }
