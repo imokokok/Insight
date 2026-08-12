@@ -2,6 +2,19 @@ import type { ReactNode } from 'react';
 
 type Tone = 'default' | 'good' | 'warn' | 'bad';
 
+/** Compact number formatting for high-magnitude ops metrics (12345 -> 12.3k). */
+export function formatCompact(n: number): string {
+  if (!Number.isFinite(n)) return '—';
+  if (Math.abs(n) < 1000) return String(n);
+  return new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+}
+
+/** Shared, consistent table styling: bordered, sticky header, hover rows. */
+export const tableCls = 'w-full text-sm border-collapse';
+export const thCls =
+  'py-2 pr-3 text-left font-medium text-slate-500 border-b border-slate-100 sticky top-0 bg-white z-10';
+export const trCls = 'border-b border-slate-50 hover:bg-slate-50';
+
 const TONE_TEXT: Record<Tone, string> = {
   default: 'text-slate-900',
   good: 'text-emerald-600',
@@ -20,16 +33,23 @@ export function PageHeader({
   title,
   subtitle,
   actions,
+  updatedAt,
 }: {
   title: string;
   subtitle?: string;
   actions?: ReactNode;
+  updatedAt?: string;
 }) {
   return (
     <div className="flex items-start justify-between mb-6 gap-4">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
         {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+        {updatedAt && (
+          <p className="text-xs text-slate-400 mt-1">
+            最后更新于 {new Date(updatedAt).toLocaleTimeString('zh-CN', { hour12: false })}
+          </p>
+        )}
       </div>
       {actions}
     </div>

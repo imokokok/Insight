@@ -1,7 +1,17 @@
 import { getCronHealth } from '@/lib/ops/opsQueries';
 
-import RefreshButton from '../RefreshButton';
-import { PageHeader, Stat, Card, Badge, EmptyState, ErrorBanner } from '../ui';
+import RefreshControl from '../RefreshControl';
+import {
+  PageHeader,
+  Stat,
+  Card,
+  Badge,
+  EmptyState,
+  ErrorBanner,
+  tableCls,
+  thCls,
+  trCls,
+} from '../ui';
 
 export const metadata = {
   title: 'Cron & Pipelines - Insight Ops',
@@ -26,7 +36,8 @@ export default async function OpsCronPage() {
       <PageHeader
         title="Cron & Pipelines"
         subtitle="Freshness of each background pipeline, derived from output-table latest rows"
-        actions={<RefreshButton />}
+        updatedAt={new Date().toISOString()}
+        actions={<RefreshControl />}
       />
 
       {errored && <ErrorBanner message="管道新鲜度查询失败，下列 Stale / Fresh 状态不可信。" />}
@@ -52,20 +63,20 @@ export default async function OpsCronPage() {
           <EmptyState message="no pipelines tracked" />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className={tableCls}>
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="py-2 pr-3 font-medium">Pipeline</th>
-                  <th className="py-2 pr-3 font-medium">Source</th>
-                  <th className="py-2 pr-3 font-medium">Last run</th>
-                  <th className="py-2 pr-3 font-medium text-right">Age</th>
-                  <th className="py-2 pr-3 font-medium text-right">Threshold</th>
-                  <th className="py-2 pr-3 font-medium">Status</th>
+                  <th className={thCls}>Pipeline</th>
+                  <th className={thCls}>Source</th>
+                  <th className={thCls}>Last run</th>
+                  <th className={`${thCls} text-right`}>Age</th>
+                  <th className={`${thCls} text-right`}>Threshold</th>
+                  <th className={thCls}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {jobs.map((j) => (
-                  <tr key={j.name} className="border-b border-slate-50">
+                  <tr key={j.name} className={trCls}>
                     <td className="py-2 pr-3 font-medium text-slate-800">{j.name}</td>
                     <td className="py-2 pr-3 font-mono text-xs text-slate-500">
                       {j.table}.{j.column}

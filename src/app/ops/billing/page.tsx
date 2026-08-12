@@ -1,6 +1,6 @@
 import { getBillingSummary } from '@/lib/ops/opsQueries';
 
-import RefreshButton from '../RefreshButton';
+import RefreshControl from '../RefreshControl';
 import { PageHeader, Stat, Card, Badge, EmptyState } from '../ui';
 
 export const metadata = {
@@ -17,7 +17,8 @@ export default async function OpsBillingPage() {
       <PageHeader
         title="Billing"
         subtitle="API key plans & rate limits (api_keys)"
-        actions={<RefreshButton />}
+        updatedAt={new Date().toISOString()}
+        actions={<RefreshControl />}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

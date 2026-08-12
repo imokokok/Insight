@@ -581,11 +581,11 @@ export interface OverviewStats {
   partial?: boolean;
 }
 
-export async function getOverviewStats(): Promise<OverviewStats> {
+export async function getOverviewStats(windowHours = 24): Promise<OverviewStats> {
   const supabase = createServiceRoleClient();
   const [feeds, signing, incidents, cron, inactiveResult] = await Promise.all([
     getAllActiveFeedsByProvider(),
-    getSigningIntegrity(24),
+    getSigningIntegrity(windowHours),
     getIncidentAggregation({ from: get7dAgoUtc(), to: getTodayUtc(), limit: 1, offset: 0 }),
     getCronHealth(),
     supabase

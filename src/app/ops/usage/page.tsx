@@ -1,21 +1,47 @@
 import { getApiUsage } from '@/lib/ops/opsQueries';
 
-import RefreshButton from '../RefreshButton';
-import { PageHeader, Stat, Card, Badge, EmptyState, ErrorBanner } from '../ui';
+import UsageEndpointsTable from '../components/UsageEndpointsTable';
+import { rangeLabel, rangeToHours } from '../range';
+import RefreshControl from '../RefreshControl';
+import TimeRangePicker from '../TimeRangePicker';
+import {
+  PageHeader,
+  Stat,
+  Card,
+  EmptyState,
+  ErrorBanner,
+  formatCompact,
+  tableCls,
+  thCls,
+  trCls,
+} from '../ui';
 
 export const metadata = {
   title: 'API Usage - Insight Ops',
 };
 
-export default async function OpsUsagePage() {
-  const usage = await getApiUsage(24);
+export default async function OpsUsagePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { range } = await searchParams;
+  const hours = rangeToHours(range);
+  const label = rangeLabel(range);
+  const usage = await getApiUsage(hours);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
       <PageHeader
         title="API Usage"
         subtitle={`Request volume, errors & latency from api_key_usage (last ${usage.windowHours}h)`}
-        actions={<RefreshButton />}
+        updatedAt={new Date().toISOString()}
+        actions={
+          <div className="flex items-center gap-3">
+            <TimeRangePicker current={range ?? '24h'} />
+            <RefreshControl />
+          </div>
+        }
       />
 
       {usage.errored && (
@@ -23,10 +49,10 @@ export default async function OpsUsagePage() {
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Stat label="Requests (24h)" value={usage.totalRequests.toLocaleString()} />
+        <Stat label={`Requests (${label})`} value={formatCompact(usage.totalRequests)} />
         <Stat
           label="Errors (5xx)"
-          value={usage.totalErrors.toLocaleString()}
+          value={formatCompact(usage.totalErrors)}
           tone={usage.totalErrors > 0 ? 'warn' : 'good'}
         />
         <Stat
@@ -39,42 +65,7 @@ export default async function OpsUsagePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card title="By endpoint">
-          {usage.byEndpoint.length === 0 ? (
-            <EmptyState message="no usage in window" />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-slate-500 border-b border-slate-100">
-                    <th className="py-2 pr-3 font-medium">Endpoint</th>
-                    <th className="py-2 pr-3 font-medium text-right">Requests</th>
-                    <th className="py-2 pr-3 font-medium text-right">Errors</th>
-                    <th className="py-2 pr-3 font-medium text-right">Avg ms</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usage.byEndpoint.slice(0, 25).map((e) => (
-                    <tr key={e.endpoint} className="border-b border-slate-50">
-                      <td className="py-2 pr-3 font-mono text-xs text-slate-700">{e.endpoint}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums text-slate-700">
-                        {e.requests.toLocaleString()}
-                      </td>
-                      <td className="py-2 pr-3 text-right tabular-nums">
-                        {e.errors > 0 ? (
-                          <Badge tone="warn">{e.errors}</Badge>
-                        ) : (
-                          <span className="text-slate-400">0</span>
-                        )}
-                      </td>
-                      <td className="py-2 pr-3 text-right tabular-nums text-slate-500">
-                        {e.avgMs ?? '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <UsageEndpointsTable rows={usage.byEndpoint} />
         </Card>
 
         <Card title="Hourly latency (p50 / p95 / p99 ms)">
@@ -82,24 +73,24 @@ export default async function OpsUsagePage() {
             <EmptyState message="no usage in window" />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className={tableCls}>
                 <thead>
-                  <tr className="text-left text-slate-500 border-b border-slate-100">
-                    <th className="py-2 pr-3 font-medium">Hour</th>
-                    <th className="py-2 pr-3 font-medium text-right">Reqs</th>
-                    <th className="py-2 pr-3 font-medium text-right">p50</th>
-                    <th className="py-2 pr-3 font-medium text-right">p95</th>
-                    <th className="py-2 pr-3 font-medium text-right">p99</th>
+                  <tr>
+                    <th className={thCls}>Hour</th>
+                    <th className={`${thCls} text-right`}>Reqs</th>
+                    <th className={`${thCls} text-right`}>p50</th>
+                    <th className={`${thCls} text-right`}>p95</th>
+                    <th className={`${thCls} text-right`}>p99</th>
                   </tr>
                 </thead>
                 <tbody>
                   {usage.byHour.slice(-24).map((h) => (
-                    <tr key={h.hour} className="border-b border-slate-50">
+                    <tr key={h.hour} className={trCls}>
                       <td className="py-2 pr-3 tabular-nums text-slate-500">
                         {h.hour.slice(5, 13)}
                       </td>
                       <td className="py-2 pr-3 text-right tabular-nums text-slate-700">
-                        {h.requests.toLocaleString()}
+                        {formatCompact(h.requests)}
                       </td>
                       <td className="py-2 pr-3 text-right tabular-nums text-slate-500">
                         {h.p50 ?? '—'}

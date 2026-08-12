@@ -2,15 +2,24 @@ import Link from 'next/link';
 
 import { getOverviewStats } from '@/lib/ops/opsQueries';
 
-import RefreshButton from './RefreshButton';
+import { rangeLabel, rangeToHours } from './range';
+import RefreshControl from './RefreshControl';
+import TimeRangePicker from './TimeRangePicker';
 import { PageHeader, Stat, Card, Badge, ErrorBanner } from './ui';
 
 export const metadata = {
   title: 'Ops Overview - Insight',
 };
 
-export default async function OpsOverviewPage() {
-  const stats = await getOverviewStats();
+export default async function OpsOverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { range } = await searchParams;
+  const hours = rangeToHours(range);
+  const label = rangeLabel(range);
+  const stats = await getOverviewStats(hours);
 
   const signingTone =
     stats.signedRatePct == null ? 'default' : stats.signedRatePct < 100 ? 'warn' : 'good';
@@ -20,7 +29,13 @@ export default async function OpsOverviewPage() {
       <PageHeader
         title="Ops Overview"
         subtitle="One-glance health of the Insight API & safety pipeline"
-        actions={<RefreshButton />}
+        updatedAt={new Date().toISOString()}
+        actions={
+          <div className="flex items-center gap-3">
+            <TimeRangePicker current={range ?? '24h'} />
+            <RefreshControl />
+          </div>
+        }
       />
 
       {stats.partial && <ErrorBanner message="部分概览数据查询失败，至少有一项指标不可信。" />}
@@ -37,13 +52,13 @@ export default async function OpsOverviewPage() {
           hint="covered by active feeds"
         />
         <Stat
-          label="Signing rate (24h)"
+          label={`Signing rate (${label})`}
           value={stats.signedRatePct != null ? `${stats.signedRatePct}%` : '—'}
           tone={signingTone}
           hint="signed / total pre-trade checks"
         />
         <Stat
-          label="Unsigned BLOCKs (24h)"
+          label={`Unsigned BLOCKs (${label})`}
           value={stats.unsignedBlocks}
           tone={stats.unsignedBlocks > 0 ? 'bad' : 'good'}
           hint="Raul canary failure quadrant"
@@ -90,7 +105,9 @@ export default async function OpsOverviewPage() {
 
       {stats.unsignedBlocks > 0 && (
         <div className="mt-4">
-          <Badge tone="bad">{stats.unsignedBlocks} unsigned BLOCKs in last 24h</Badge>
+          <Badge tone="bad">
+            {stats.unsignedBlocks} unsigned BLOCKs in last {label}
+          </Badge>
         </div>
       )}
     </div>

@@ -1,32 +1,54 @@
 import { getSigningIntegrity } from '@/lib/ops/opsQueries';
 
-import RefreshButton from '../RefreshButton';
-import { PageHeader, Stat, Card, Badge, EmptyState, ErrorBanner } from '../ui';
+import TrendChart from '../components/TrendChart';
+import { rangeLabel, rangeToHours } from '../range';
+import RefreshControl from '../RefreshControl';
+import TimeRangePicker from '../TimeRangePicker';
+import {
+  PageHeader,
+  Stat,
+  Card,
+  Badge,
+  EmptyState,
+  ErrorBanner,
+  tableCls,
+  thCls,
+  trCls,
+} from '../ui';
 
 export const metadata = {
   title: 'Safety & Attestation - Insight Ops',
 };
 
-const MAX_BAR = 120;
-
-export default async function OpsSafetyPage() {
-  const { summary, trend, unsignedBlocks } = await getSigningIntegrity(24);
-
-  const maxTrend = Math.max(1, ...trend.map((t) => t.signed + t.unsigned));
+export default async function OpsSafetyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { range } = await searchParams;
+  const hours = rangeToHours(range);
+  const label = rangeLabel(range);
+  const { summary, trend, unsignedBlocks } = await getSigningIntegrity(hours);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
       <PageHeader
         title="Safety & Attestation"
         subtitle="EIP-712 signing provenance on every pre-trade check (pre_trade_checks + 0026)"
-        actions={<RefreshButton />}
+        updatedAt={new Date().toISOString()}
+        actions={
+          <div className="flex items-center gap-3">
+            <TimeRangePicker current={range ?? '24h'} />
+            <RefreshControl />
+          </div>
+        }
       />
 
       {summary.errored && <ErrorBanner message="签名数据查询失败，以下数字可能不完整或不可用。" />}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Stat
-          label="Signing rate (24h)"
+          label={`Signing rate (${label})`}
           value={summary.signedRatePct != null ? `${summary.signedRatePct}%` : '—'}
           tone={
             summary.signedRatePct == null
@@ -69,38 +91,7 @@ export default async function OpsSafetyPage() {
       </div>
 
       <Card title="Signing trend (hourly, signed vs unsigned)" className="mb-6">
-        {trend.length === 0 ? (
-          <EmptyState message="no pre-trade checks in window" />
-        ) : (
-          <div className="space-y-1.5">
-            {trend.map((t) => {
-              const signedW = Math.round((t.signed / maxTrend) * MAX_BAR);
-              const unsignedW = Math.round((t.unsigned / maxTrend) * MAX_BAR);
-              return (
-                <div key={t.hour} className="flex items-center gap-2 text-xs">
-                  <span className="w-14 shrink-0 text-slate-400 tabular-nums">
-                    {t.hour.slice(5, 13)}
-                  </span>
-                  <div className="flex-1 flex items-center gap-1">
-                    <div
-                      className="h-3 rounded bg-emerald-500"
-                      style={{ width: `${signedW}px` }}
-                      title={`signed ${t.signed}`}
-                    />
-                    <div
-                      className="h-3 rounded bg-red-500"
-                      style={{ width: `${unsignedW}px` }}
-                      title={`unsigned ${t.unsigned}`}
-                    />
-                  </div>
-                  <span className="w-24 shrink-0 text-right tabular-nums text-slate-500">
-                    {t.signed}✓ / {t.unsigned}✗
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <TrendChart trend={trend} />
       </Card>
 
       <Card title={`Unsigned BLOCKs (latest ${unsignedBlocks.length})`}>
@@ -108,20 +99,20 @@ export default async function OpsSafetyPage() {
           <EmptyState message="all BLOCKs signed" />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className={tableCls}>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="py-2 pr-3 font-medium">Time</th>
-                  <th className="py-2 pr-3 font-medium">Asset</th>
-                  <th className="py-2 pr-3 font-medium">Chain</th>
-                  <th className="py-2 pr-3 font-medium">Action</th>
-                  <th className="py-2 pr-3 font-medium">Coverage</th>
-                  <th className="py-2 pr-3 font-medium">Schema</th>
+                <tr>
+                  <th className={thCls}>Time</th>
+                  <th className={thCls}>Asset</th>
+                  <th className={thCls}>Chain</th>
+                  <th className={thCls}>Action</th>
+                  <th className={thCls}>Coverage</th>
+                  <th className={thCls}>Schema</th>
                 </tr>
               </thead>
               <tbody>
                 {unsignedBlocks.map((b) => (
-                  <tr key={b.id} className="border-b border-slate-50">
+                  <tr key={b.id} className={trCls}>
                     <td className="py-2 pr-3 tabular-nums text-slate-500">
                       {new Date(b.created_at).toISOString().slice(0, 16).replace('T', ' ')}
                     </td>

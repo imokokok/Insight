@@ -2,8 +2,8 @@ import { getOracleHealthReport } from '@/lib/oracles/services/oracleHealthServic
 import { reputationService } from '@/lib/oracles/services/reputationService';
 import { getTodayUtc } from '@/lib/utils/date';
 
-import RefreshButton from '../RefreshButton';
-import { PageHeader, Stat, Card, Badge, EmptyState } from '../ui';
+import RefreshControl from '../RefreshControl';
+import { PageHeader, Stat, Card, Badge, EmptyState, tableCls, thCls, trCls } from '../ui';
 
 export const metadata = {
   title: 'Oracle Health - Insight Ops',
@@ -45,7 +45,8 @@ export default async function OpsHealthPage() {
       <PageHeader
         title="Oracle Health"
         subtitle="Per-provider reputation directory + today's oracle health report"
-        actions={<RefreshButton />}
+        updatedAt={new Date().toISOString()}
+        actions={<RefreshControl />}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -73,22 +74,22 @@ export default async function OpsHealthPage() {
           <EmptyState message="no reputation rows" />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className={tableCls}>
               <thead>
                 <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="py-2 pr-3 font-medium">Provider</th>
-                  <th className="py-2 pr-3 font-medium text-right">Score</th>
-                  <th className="py-2 pr-3 font-medium text-right">Uptime %</th>
-                  <th className="py-2 pr-3 font-medium text-right">Avg latency ms</th>
-                  <th className="py-2 pr-3 font-medium text-right">Avg dev %</th>
-                  <th className="py-2 pr-3 font-medium text-right">Queries</th>
-                  <th className="py-2 pr-3 font-medium text-right">Symbols</th>
-                  <th className="py-2 pr-3 font-medium text-right">Chains</th>
+                  <th className={thCls}>Provider</th>
+                  <th className={`${thCls} text-right`}>Score</th>
+                  <th className={`${thCls} text-right`}>Uptime %</th>
+                  <th className={`${thCls} text-right`}>Avg latency ms</th>
+                  <th className={`${thCls} text-right`}>Avg dev %</th>
+                  <th className={`${thCls} text-right`}>Queries</th>
+                  <th className={`${thCls} text-right`}>Symbols</th>
+                  <th className={`${thCls} text-right`}>Chains</th>
                 </tr>
               </thead>
               <tbody>
                 {reputations.map((r) => (
-                  <tr key={r.provider} className="border-b border-slate-50">
+                  <tr key={r.provider} className={trCls}>
                     <td className="py-2 pr-3 font-medium text-slate-800">{r.provider}</td>
                     <td className="py-2 pr-3 text-right tabular-nums text-slate-700">
                       {r.overall_score.toFixed(1)}

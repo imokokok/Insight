@@ -1,7 +1,8 @@
-import { getIncidentAggregation, type Incident } from '@/lib/api/services/incidentService';
+import { getIncidentAggregation } from '@/lib/api/services/incidentService';
 import { get7dAgoUtc, getTodayUtc } from '@/lib/utils/date';
 
-import RefreshButton from '../RefreshButton';
+import IncidentsTable from '../components/IncidentsTable';
+import RefreshControl from '../RefreshControl';
 import { PageHeader, Stat, Card, Badge, EmptyState } from '../ui';
 
 export const metadata = {
@@ -13,10 +14,6 @@ const severityTone = (sev: string): 'default' | 'warn' | 'bad' => {
   if (sev === 'medium') return 'warn';
   return 'default';
 };
-
-function incidentWhen(inc: Incident): string | null {
-  return inc.type === 'feed_failure' ? inc.lastFailureAt : inc.snapshotTime;
-}
 
 export default async function OpsIncidentsPage() {
   const result = await getIncidentAggregation({
@@ -34,7 +31,8 @@ export default async function OpsIncidentsPage() {
       <PageHeader
         title="Incidents"
         subtitle="Oracle incidents aggregated from oracle_feeds & reputation_history (last 7d)"
-        actions={<RefreshButton />}
+        updatedAt={new Date().toISOString()}
+        actions={<RefreshControl />}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -88,58 +86,7 @@ export default async function OpsIncidentsPage() {
       </div>
 
       <Card title={`Incidents (${result.incidents.length} shown)`}>
-        {result.incidents.length === 0 ? (
-          <EmptyState message="no incidents in last 7d" />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="py-2 pr-3 font-medium">Severity</th>
-                  <th className="py-2 pr-3 font-medium">Type</th>
-                  <th className="py-2 pr-3 font-medium">Provider</th>
-                  <th className="py-2 pr-3 font-medium">Symbol</th>
-                  <th className="py-2 pr-3 font-medium">Status</th>
-                  <th className="py-2 pr-3 font-medium">When</th>
-                  <th className="py-2 pr-3 font-medium">Detail</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.incidents.map((inc, i) => {
-                  const when = incidentWhen(inc);
-                  return (
-                    <tr
-                      key={`${inc.type}-${inc.provider}-${inc.symbol}-${i}`}
-                      className="border-b border-slate-50"
-                    >
-                      <td className="py-2 pr-3">
-                        <Badge tone={severityTone(inc.severity)}>{inc.severity}</Badge>
-                      </td>
-                      <td className="py-2 pr-3">
-                        <Badge tone="default">{inc.type}</Badge>
-                      </td>
-                      <td className="py-2 pr-3 font-medium text-slate-800">{inc.provider}</td>
-                      <td className="py-2 pr-3 text-slate-700">{inc.symbol}</td>
-                      <td className="py-2 pr-3">
-                        {inc.type === 'feed_failure' ? (
-                          <Badge tone={inc.status === 'ongoing' ? 'bad' : 'good'}>
-                            {inc.status}
-                          </Badge>
-                        ) : (
-                          <span className="text-slate-400">recorded</span>
-                        )}
-                      </td>
-                      <td className="py-2 pr-3 tabular-nums text-slate-500">
-                        {when ? new Date(when).toISOString().slice(0, 16).replace('T', ' ') : '—'}
-                      </td>
-                      <td className="py-2 pr-3 text-slate-600 max-w-md">{inc.description}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <IncidentsTable incidents={result.incidents} />
       </Card>
     </div>
   );
