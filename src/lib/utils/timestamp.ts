@@ -106,85 +106,49 @@ export function getTimeAgoDiff(input: Date | number): TimeAgoResult {
   return { value: Math.floor(seconds / SECONDS_PER_DAY), unit: 'days', isFuture };
 }
 
+const TIME_UNIT_FORMAT: Record<TimeAgoResult['unit'], { long: string; short: string }> = {
+  seconds: { long: 'seconds', short: 's' },
+  minutes: { long: 'minutes', short: 'm' },
+  hours: { long: 'hours', short: 'h' },
+  days: { long: 'days', short: 'd' },
+};
+
 export function formatTimeAgo(diff: TimeAgoResult): string {
   const { value, unit, isFuture } = diff;
-
-  if (value === 0 && unit === 'seconds') {
-    return 'Just now';
-  }
-
-  if (isFuture) {
-    switch (unit) {
-      case 'seconds':
-        return `In ${value} seconds`;
-      case 'minutes':
-        return `In ${value} minutes`;
-      case 'hours':
-        return `In ${value} hours`;
-      case 'days':
-        return `In ${value} days`;
-      default:
-        return '';
-    }
-  }
-
-  switch (unit) {
-    case 'seconds':
-      return `${value} seconds ago`;
-    case 'minutes':
-      return `${value} minutes ago`;
-    case 'hours':
-      return `${value} hours ago`;
-    case 'days':
-      return `${value} days ago`;
-    default:
-      return '';
-  }
+  if (value === 0 && unit === 'seconds') return 'Just now';
+  const { long } = TIME_UNIT_FORMAT[unit];
+  return isFuture ? `In ${value} ${long}` : `${value} ${long} ago`;
 }
 
 export function formatTimeAgoShort(diff: TimeAgoResult): string {
   const { value, unit } = diff;
-
-  if (value === 0 && unit === 'seconds') {
-    return 'just now';
-  }
-
-  switch (unit) {
-    case 'seconds':
-      return `${value}s ago`;
-    case 'minutes':
-      return `${value}m ago`;
-    case 'hours':
-      return `${value}h ago`;
-    case 'days':
-      return `${value}d ago`;
-    default:
-      return '';
-  }
+  if (value === 0 && unit === 'seconds') return 'just now';
+  return `${value}${TIME_UNIT_FORMAT[unit].short} ago`;
 }
+
+const TIME_UNIT_COLORS: Record<TimeAgoResult['unit'], { future: string; past: string }> = {
+  seconds: { future: 'text-amber-500', past: 'text-emerald-600' },
+  minutes: { future: 'text-amber-500', past: 'text-emerald-600' },
+  hours: { future: 'text-gray-500', past: 'text-gray-500' },
+  days: { future: 'text-gray-400', past: 'text-gray-400' },
+};
 
 export function formatTimeAgoWithColor(
   diff: TimeAgoResult
 ): { text: string; color: string } | null {
   const { value, unit, isFuture } = diff;
 
-  // Past behavior is unchanged below; only the future case was missing
-  // (its siblings formatTimeAgo / formatTimeAgoShort already handle it).
   if (isFuture) {
-    switch (unit) {
-      case 'seconds':
-        return { text: `In ${value}s`, color: 'text-amber-500' };
-      case 'minutes':
-        return { text: `In ${value}m`, color: 'text-amber-500' };
-      case 'hours':
-        return { text: `In ${value}h`, color: 'text-gray-500' };
-      default:
-        return { text: `In ${value}d`, color: 'text-gray-400' };
-    }
+    return {
+      text: `In ${value}${TIME_UNIT_FORMAT[unit].short}`,
+      color: TIME_UNIT_COLORS[unit].future,
+    };
   }
-
+  // Past "seconds" collapses to "just now" regardless of magnitude (matches the
+  // sibling formatters' value-0 sentinel, but intentionally ignores value here).
   if (unit === 'seconds') return { text: 'just now', color: 'text-emerald-600' };
-  if (unit === 'minutes') return { text: `${value}m ago`, color: 'text-emerald-600' };
-  if (unit === 'hours') return { text: `${value}h ago`, color: 'text-gray-500' };
-  return { text: `${value}d ago`, color: 'text-gray-400' };
+  return {
+    text: `${value}${TIME_UNIT_FORMAT[unit].short} ago`,
+    color: TIME_UNIT_COLORS[unit].past,
+  };
 }

@@ -14,50 +14,60 @@ const ratingConfig: Record<StatRating, Omit<StatRatingResult, 'rating'>> = {
   danger: { label: 'Danger', color: '#dc2626', bgColor: '#fee2e2' },
 };
 
+// Aliases collapse onto a canonical metric key so the threshold table below
+// stays single-source-of-truth instead of repeating bands per synonym.
+const METRIC_ALIASES: Record<string, string> = {
+  stddev: 'stdDev',
+  standardDeviation: 'stdDev',
+  stdDev: 'stdDev',
+  std_dev: 'stdDev',
+  priceDeviation: 'deviation',
+  deviation: 'deviation',
+  agreement: 'consistency',
+  consistency: 'consistency',
+  confidence: 'confidence',
+  delay: 'latency',
+  latency: 'latency',
+};
+
+interface MetricScale {
+  // Whether to rate against the absolute magnitude (`true`) or the raw value (`false`).
+  useAbs: boolean;
+  // `lt` bands are upper bounds (value < excellent → excellent); `ge` bands are
+  // lower bounds (value >= excellent → excellent). The two families differ on purpose.
+  direction: 'lt' | 'ge';
+  excellent: number;
+  good: number;
+  attention: number;
+}
+
+const METRIC_SCALES: Record<string, MetricScale> = {
+  stdDev: { useAbs: true, direction: 'lt', excellent: 0.1, good: 0.5, attention: 1 },
+  deviation: { useAbs: true, direction: 'lt', excellent: 0.5, good: 2, attention: 5 },
+  consistency: { useAbs: false, direction: 'ge', excellent: 99, good: 95, attention: 90 },
+  confidence: { useAbs: false, direction: 'ge', excellent: 0.99, good: 0.95, attention: 0.9 },
+  latency: { useAbs: true, direction: 'lt', excellent: 100, good: 500, attention: 1000 },
+};
+
 export function getStatRating(metricType: string, value: number): StatRatingResult | null {
-  const absValue = Math.abs(value);
+  const scale = METRIC_SCALES[METRIC_ALIASES[metricType]];
+  if (!scale) return null;
 
-  switch (metricType) {
-    case 'stddev':
-    case 'standardDeviation':
-    case 'stdDev':
-    case 'std_dev':
-      if (absValue < 0.1) return { rating: 'excellent', ...ratingConfig.excellent };
-      if (absValue < 0.5) return { rating: 'good', ...ratingConfig.good };
-      if (absValue < 1) return { rating: 'attention', ...ratingConfig.attention };
-      return { rating: 'danger', ...ratingConfig.danger };
+  const v = scale.useAbs ? Math.abs(value) : value;
+  const { excellent, good, attention } = scale;
 
-    case 'deviation':
-    case 'priceDeviation':
-      if (absValue < 0.5) return { rating: 'excellent', ...ratingConfig.excellent };
-      if (absValue < 2) return { rating: 'good', ...ratingConfig.good };
-      if (absValue < 5) return { rating: 'attention', ...ratingConfig.attention };
-      return { rating: 'danger', ...ratingConfig.danger };
-
-    case 'consistency':
-    case 'agreement':
-      if (value >= 99) return { rating: 'excellent', ...ratingConfig.excellent };
-      if (value >= 95) return { rating: 'good', ...ratingConfig.good };
-      if (value >= 90) return { rating: 'attention', ...ratingConfig.attention };
-      return { rating: 'danger', ...ratingConfig.danger };
-
-    case 'confidence':
-      // `confidence` is a 0-1 fraction (see formatConfidenceScore); thresholds
-      // mirror `consistency`/`agreement` on the 0-1 scale. Previously missing,
-      // so callers got `null` and the rating badge silently disappeared.
-      if (value >= 0.99) return { rating: 'excellent', ...ratingConfig.excellent };
-      if (value >= 0.95) return { rating: 'good', ...ratingConfig.good };
-      if (value >= 0.9) return { rating: 'attention', ...ratingConfig.attention };
-      return { rating: 'danger', ...ratingConfig.danger };
-
-    case 'latency':
-    case 'delay':
-      if (absValue < 100) return { rating: 'excellent', ...ratingConfig.excellent };
-      if (absValue < 500) return { rating: 'good', ...ratingConfig.good };
-      if (absValue < 1000) return { rating: 'attention', ...ratingConfig.attention };
-      return { rating: 'danger', ...ratingConfig.danger };
-
-    default:
-      return null;
+  let rating: StatRating;
+  if (scale.direction === 'lt') {
+    if (v < excellent) rating = 'excellent';
+    else if (v < good) rating = 'good';
+    else if (v < attention) rating = 'attention';
+    else rating = 'danger';
+  } else {
+    if (v >= excellent) rating = 'excellent';
+    else if (v >= good) rating = 'good';
+    else if (v >= attention) rating = 'attention';
+    else rating = 'danger';
   }
+
+  return { rating, ...ratingConfig[rating] };
 }

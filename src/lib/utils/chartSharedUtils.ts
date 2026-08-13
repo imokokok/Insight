@@ -44,27 +44,38 @@ const chartColors = {
   },
 };
 
-export const getHeatmapColor = (value: number, min: number, max: number): string => {
-  const range = max - min;
-  const absValue = Math.abs(value);
+// Degenerate branch (range === 0 or sub-percent max): band by absolute value.
+const HEATMAP_ABS_BANDS: ReadonlyArray<{ max: number; color: string }> = [
+  { max: 0.001, color: semanticColors.success.DEFAULT },
+  { max: 0.003, color: semanticColors.success.dark },
+  { max: 0.005, color: '#65a30d' },
+  { max: 0.01, color: '#84cc16' },
+  { max: 0.03, color: semanticColors.warning.DEFAULT },
+  { max: 0.05, color: semanticColors.warning.dark },
+  { max: 0.1, color: '#f97316' },
+  { max: 0.3, color: semanticColors.danger.light },
+];
 
-  if (range === 0 || max < 0.01) {
-    if (absValue < 0.001) return semanticColors.success.DEFAULT;
-    if (absValue < 0.003) return semanticColors.success.dark || '#16a34a';
-    if (absValue < 0.005) return '#65a30d';
-    if (absValue < 0.01) return '#84cc16';
-    if (absValue < 0.03) return semanticColors.warning.DEFAULT;
-    if (absValue < 0.05) return semanticColors.warning.dark || '#f59e0b';
-    if (absValue < 0.1) return '#f97316';
-    if (absValue < 0.3) return semanticColors.danger.light || '#ea580c';
+// Normal branch: band by normalized position within [min, max].
+const HEATMAP_NORM_BANDS: ReadonlyArray<{ max: number; color: string }> = [
+  { max: 0.2, color: chartColors.heatmap.low },
+  { max: 0.4, color: '#84cc16' },
+  { max: 0.6, color: chartColors.heatmap.medium },
+  { max: 0.8, color: '#f97316' },
+];
+
+export const getHeatmapColor = (value: number, min: number, max: number): string => {
+  if (max - min === 0 || max < 0.01) {
+    const absValue = Math.abs(value);
+    for (const band of HEATMAP_ABS_BANDS) {
+      if (absValue < band.max) return band.color;
+    }
     return semanticColors.danger.DEFAULT;
   }
 
-  const normalized = (value - min) / range;
-
-  if (normalized < 0.2) return chartColors.heatmap.low;
-  if (normalized < 0.4) return '#84cc16';
-  if (normalized < 0.6) return chartColors.heatmap.medium;
-  if (normalized < 0.8) return '#f97316';
+  const normalized = (value - min) / (max - min);
+  for (const band of HEATMAP_NORM_BANDS) {
+    if (normalized < band.max) return band.color;
+  }
   return chartColors.heatmap.high;
 };

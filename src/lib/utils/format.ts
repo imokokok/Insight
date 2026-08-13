@@ -1,10 +1,5 @@
 import { getTimeAgoDiff, formatTimeAgoShort, formatTimeAgo } from '@/lib/utils/timestamp';
 
-/**
- * Checks if a value is a finite number.
- * @param value - The value to check.
- * @returns `true` when `value` is a finite `number`, otherwise `false`.
- */
 function isFiniteNumber(value: number): boolean {
   return typeof value === 'number' && Number.isFinite(value);
 }
@@ -19,26 +14,38 @@ const LARGE_NUMBER_THOUSAND = 1e3;
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
 
+// [absValue threshold, suffix] — first match wins.
+const COMPACT_UNITS: ReadonlyArray<readonly [number, string]> = [
+  [LARGE_NUMBER_TRILLION, 'T'],
+  [LARGE_NUMBER_BILLION, 'B'],
+  [LARGE_NUMBER_MILLION, 'M'],
+  [LARGE_NUMBER_THOUSAND, 'K'],
+];
+
+// Built once at module load; Intl handles the 12-hour AM/PM formatting and
+// thousands grouping that were previously hand-rolled below.
+const timeFormatter = new Intl.DateTimeFormat('en-US', {
+  hour: 'numeric',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: true,
+});
+const timeFormatterNoSeconds = new Intl.DateTimeFormat('en-US', {
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
+});
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'numeric',
+  day: 'numeric',
+  year: 'numeric',
+});
+
 export function addThousandSeparators(numStr: string): string {
   const parts = numStr.split('.');
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return parts.join('.');
 }
-
-const MONTHS_SHORT = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-] as const;
 
 export function formatCountdown(ms: number): string {
   if (ms <= 0) return '0s';
@@ -51,32 +58,11 @@ export function formatCountdown(ms: number): string {
 
 export function formatTimeString(date: Date | number, includeSeconds: boolean = true): string {
   const d = date instanceof Date ? date : new Date(date);
-  const hours = d.getHours();
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  const displayHours = hours % 12 || 12;
-  if (includeSeconds) {
-    const seconds = String(d.getSeconds()).padStart(2, '0');
-    return `${displayHours}:${minutes}:${seconds} ${ampm}`;
-  }
-  return `${displayHours}:${minutes} ${ampm}`;
-}
-
-function formatDateString(date: Date, style: 'short' | 'medium' | 'full' = 'short'): string {
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const year = date.getFullYear();
-  if (style === 'short') {
-    return `${month}/${day}/${year}`;
-  }
-  if (style === 'medium') {
-    return `${MONTHS_SHORT[date.getMonth()]} ${day}`;
-  }
-  return `${MONTHS_SHORT[date.getMonth()]} ${day}, ${year}`;
+  return (includeSeconds ? timeFormatter : timeFormatterNoSeconds).format(d);
 }
 
 export function formatDateTimeString(date: Date): string {
-  return `${formatDateString(date, 'short')}, ${formatTimeString(date)}`;
+  return `${dateFormatter.format(date)}, ${formatTimeString(date)}`;
 }
 
 export function formatNumberWithDecimals(
@@ -84,23 +70,15 @@ export function formatNumberWithDecimals(
   minDecimals: number,
   maxDecimals: number
 ): string {
-  // Defensive guard: sibling formatters return the em-dash sentinel for
-  // non-finite input, so this leaf helper should behave consistently rather
-  // than emitting the literal string "NaN".
+  // Sibling formatters return the em-dash sentinel for non-finite input, so
+  // this leaf helper behaves consistently rather than emitting "NaN". Intl
+  // collapses trailing zeros down to `minDecimals` and adds grouping commas.
   if (!isFiniteNumber(value)) return '—';
-  let formatted = value.toFixed(maxDecimals);
-  const dotIndex = formatted.indexOf('.');
-  if (dotIndex !== -1) {
-    let decimals = formatted.length - dotIndex - 1;
-    while (decimals > minDecimals && formatted.endsWith('0')) {
-      formatted = formatted.slice(0, -1);
-      decimals--;
-    }
-    if (formatted.endsWith('.')) {
-      formatted = formatted.slice(0, -1);
-    }
-  }
-  return addThousandSeparators(formatted);
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: minDecimals,
+    maximumFractionDigits: maxDecimals,
+    useGrouping: true,
+  }).format(value);
 }
 
 export function formatDataAge(seconds: number | null | undefined): string {
@@ -141,23 +119,23 @@ export function formatOracleTimestamp(timestamp: number | null | undefined): str
   return formatTimeString(new Date(timestamp));
 }
 
+// [absPrice threshold, minDecimals, maxDecimals] — first match wins.
+const PRICE_FORMAT_TIERS: ReadonlyArray<readonly [number, number, number]> = [
+  [PRICE_THRESHOLD_HIGH, 2, 2],
+  [1, 2, 4],
+  [PRICE_THRESHOLD_LOW, 4, 6],
+  [PRICE_THRESHOLD_VERY_LOW, 6, 8],
+  [0, 8, 12],
+];
+
 export function formatPrice(price: number): string {
   if (!isFiniteNumber(price)) return '—';
   if (price === 0) return '$0.00';
-
   const absPrice = Math.abs(price);
-
-  if (absPrice >= PRICE_THRESHOLD_HIGH) {
-    return `$${formatNumberWithDecimals(price, 2, 2)}`;
-  }
-  if (absPrice >= 1) {
-    return `$${formatNumberWithDecimals(price, 2, 4)}`;
-  }
-  if (absPrice >= PRICE_THRESHOLD_LOW) {
-    return `$${formatNumberWithDecimals(price, 4, 6)}`;
-  }
-  if (absPrice >= PRICE_THRESHOLD_VERY_LOW) {
-    return `$${formatNumberWithDecimals(price, 6, 8)}`;
+  for (const [threshold, min, max] of PRICE_FORMAT_TIERS) {
+    if (absPrice >= threshold) {
+      return `$${formatNumberWithDecimals(price, min, max)}`;
+    }
   }
   return `$${formatNumberWithDecimals(price, 8, 12)}`;
 }
@@ -174,17 +152,12 @@ export function formatPriceDiff(value: number, basePrice?: number): string {
   if (!isFiniteNumber(value)) return '—';
   if (value === 0) return '$0.00';
 
-  let decimals = 2;
-  if (basePrice && basePrice > PRICE_THRESHOLD_HIGH) {
-    decimals = 2;
-  } else if (basePrice && basePrice > 100) {
-    decimals = 3;
-  } else if (basePrice && basePrice > 1) {
-    decimals = 4;
-  } else {
-    decimals = 6;
+  let decimals = 6;
+  if (basePrice != null) {
+    if (basePrice > PRICE_THRESHOLD_HIGH) decimals = 2;
+    else if (basePrice > 100) decimals = 3;
+    else if (basePrice > 1) decimals = 4;
   }
-
   if (Math.abs(value) < 0.01) {
     decimals = Math.max(decimals, 4);
   }
@@ -201,21 +174,12 @@ export function formatPriceDiff(value: number, basePrice?: number): string {
 export function formatLargeNumber(value: number): string {
   if (!isFiniteNumber(value)) return '—';
   if (value === 0) return '$0.00';
-
   const absValue = Math.abs(value);
   const sign = value < 0 ? '-' : '';
-
-  if (absValue >= LARGE_NUMBER_TRILLION) {
-    return `${sign}$${(absValue / LARGE_NUMBER_TRILLION).toFixed(2)}T`;
-  }
-  if (absValue >= LARGE_NUMBER_BILLION) {
-    return `${sign}$${(absValue / LARGE_NUMBER_BILLION).toFixed(2)}B`;
-  }
-  if (absValue >= LARGE_NUMBER_MILLION) {
-    return `${sign}$${(absValue / LARGE_NUMBER_MILLION).toFixed(2)}M`;
-  }
-  if (absValue >= LARGE_NUMBER_THOUSAND) {
-    return `${sign}$${(absValue / LARGE_NUMBER_THOUSAND).toFixed(2)}K`;
+  for (const [threshold, suffix] of COMPACT_UNITS) {
+    if (absValue >= threshold) {
+      return `${sign}$${(absValue / threshold).toFixed(2)}${suffix}`;
+    }
   }
   return `${sign}$${absValue.toFixed(2)}`;
 }

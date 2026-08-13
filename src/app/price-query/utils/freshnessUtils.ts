@@ -127,14 +127,20 @@ export function calculateFreshnessScore(
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
+const CONSISTENCY_SCORE_BANDS: ReadonlyArray<{ max: number; score: number }> = [
+  { max: 0.1, score: 100 },
+  { max: 0.3, score: 95 },
+  { max: 0.5, score: 90 },
+  { max: 1, score: 70 },
+  { max: 2, score: 50 },
+  { max: 5, score: 30 },
+];
+
 function calculateConsistencyScore(deviationPercent: number): number {
   const absDeviation = Math.abs(deviationPercent);
-  if (absDeviation < 0.1) return 100;
-  if (absDeviation < 0.3) return 95;
-  if (absDeviation < 0.5) return 90;
-  if (absDeviation < 1) return 70;
-  if (absDeviation < 2) return 50;
-  if (absDeviation < 5) return 30;
+  for (const band of CONSISTENCY_SCORE_BANDS) {
+    if (absDeviation < band.max) return band.score;
+  }
   return 10;
 }
 
@@ -183,11 +189,17 @@ export function calculateHealthScore(
   };
 }
 
+const HEALTH_GRADES: ReadonlyArray<{ min: number; label: string; color: string; level: number }> = [
+  { min: 90, label: 'Excellent', color: '#10b981', level: 5 },
+  { min: 80, label: 'Good', color: '#3b82f6', level: 4 },
+  { min: 70, label: 'Fair', color: '#f59e0b', level: 3 },
+  { min: 50, label: 'Poor', color: '#f97316', level: 2 },
+];
+
 export function getHealthGrade(score: number): { label: string; color: string; level: number } {
-  if (score >= 90) return { label: 'Excellent', color: '#10b981', level: 5 };
-  if (score >= 80) return { label: 'Good', color: '#3b82f6', level: 4 };
-  if (score >= 70) return { label: 'Fair', color: '#f59e0b', level: 3 };
-  if (score >= 50) return { label: 'Poor', color: '#f97316', level: 2 };
+  for (const grade of HEALTH_GRADES) {
+    if (score >= grade.min) return { label: grade.label, color: grade.color, level: grade.level };
+  }
   return { label: 'Critical', color: '#ef4444', level: 1 };
 }
 

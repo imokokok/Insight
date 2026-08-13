@@ -360,10 +360,16 @@ function calculateConsensusConfidence(
   );
 }
 
+const CONFIDENCE_LEVELS: ReadonlyArray<{ min: number; level: ConsensusConfidenceLevel }> = [
+  { min: 0.8, level: 'high' },
+  { min: 0.6, level: 'medium' },
+  { min: 0.4, level: 'low' },
+];
+
 function getConfidenceLevel(confidence: number): ConsensusConfidenceLevel {
-  if (confidence >= 0.8) return 'high';
-  if (confidence >= 0.6) return 'medium';
-  if (confidence >= 0.4) return 'low';
+  for (const { min, level } of CONFIDENCE_LEVELS) {
+    if (confidence >= min) return level;
+  }
   return 'very_low';
 }
 
