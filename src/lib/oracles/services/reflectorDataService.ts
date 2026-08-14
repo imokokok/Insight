@@ -385,8 +385,12 @@ class ReflectorDataService {
       // lifetime but not awaited — a slow RPC here can't hold up the price
       // result. Previously these were awaited via Promise.all, adding up to
       // 15s to the critical path when the Stellar RPC was slow.
-      this.fetchResolution(contractId, signal).catch(() => {});
-      this.fetchVersion(contractId, signal).catch(() => {});
+      this.fetchResolution(contractId, signal).catch((err) =>
+        logger.warn('Reflector: failed to fetch optional resolution metadata', err)
+      );
+      this.fetchVersion(contractId, signal).catch((err) =>
+        logger.warn('Reflector: failed to fetch optional version metadata', err)
+      );
 
       const priceData: PriceData = {
         provider: OracleProvider.REFLECTOR,

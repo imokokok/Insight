@@ -21,7 +21,7 @@ function decodeHex(hex: string): string {
     const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
     const bytes = new Uint8Array(cleanHex.length / 2);
     for (let i = 0; i < cleanHex.length; i += 2) {
-      bytes[i / 2] = parseInt(cleanHex.substr(i, 2), 16);
+      bytes[i / 2] = parseInt(cleanHex.slice(i, i + 2), 16);
     }
     return new TextDecoder().decode(bytes);
   } catch {

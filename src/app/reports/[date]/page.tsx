@@ -5,8 +5,11 @@ import { notFound } from 'next/navigation';
 import { type Metadata } from 'next';
 
 import { reportService, type DailyReportData } from '@/lib/reports/reportService';
+import { createLogger } from '@/lib/utils/logger';
 
 import ReportDetailContent from './ReportDetailContent';
+
+const logger = createLogger('reports-detail-page');
 
 interface ReportDetailPageProps {
   params: Promise<{ date: string }>;
@@ -16,7 +19,10 @@ interface ReportDetailPageProps {
 // render within a single request. Without this, getReportByDate is
 // called twice per page view (metadata + render), doubling DB load.
 const getReportCached = cache(async (date: string): Promise<DailyReportData | null> => {
-  return reportService.getReportByDate(date).catch(() => null);
+  return reportService.getReportByDate(date).catch((err) => {
+    logger.error('Failed to load report', err instanceof Error ? err : new Error(String(err)));
+    return null;
+  });
 });
 
 export async function generateMetadata({ params }: ReportDetailPageProps): Promise<Metadata> {

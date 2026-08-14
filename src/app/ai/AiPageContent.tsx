@@ -20,6 +20,7 @@ import {
 import { ApiKeyManager } from '@/components/api-keys';
 import { PricingCtaSection } from '@/components/pricing';
 import { Button } from '@/components/ui/Button';
+import { createLogger } from '@/lib/utils/logger';
 import { useSession, useUser } from '@/stores/authStore';
 
 import { McpConfigGenerator } from '../mcp/components/McpConfigGenerator';
@@ -27,6 +28,8 @@ import { McpPlayground } from '../mcp/components/McpPlayground';
 
 import { CodeSnippetGenerator } from './components/CodeSnippetGenerator';
 import { PreTradeSafetyDemo } from './components/PreTradeSafetyDemo';
+
+const logger = createLogger('ai-page');
 
 interface ApiKeyItem {
   id: string;
@@ -125,8 +128,11 @@ export function AiPageContent() {
           setKeys(result.data.keys as ApiKeyItem[]);
         }
       })
-      .catch(() => {
-        // ignore
+      .catch((err) => {
+        logger.error(
+          'Failed to load API keys',
+          err instanceof Error ? err : new Error(String(err))
+        );
       });
 
     return () => {

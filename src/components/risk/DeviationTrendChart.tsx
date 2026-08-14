@@ -51,8 +51,9 @@ const RANGE_OPTIONS: RangeOption[] = [
 const LINE_COLORS = chartColors.sequence;
 
 function formatDateShort(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  // Local-time "M/D" label via Intl (equivalent to the previous
+  // getMonth()+1 / getDate() arithmetic for valid ISO inputs).
+  return new Date(iso).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
 }
 
 export function DeviationTrendChart({ symbol, className }: DeviationTrendChartProps) {

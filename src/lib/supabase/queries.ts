@@ -262,21 +262,22 @@ export class DatabaseQueries {
 
     const now = new Date();
     const match = ttl.match(/^(\d+)([smhd])$/);
+    const multiplier: Record<string, number> = {
+      s: 1000,
+      m: 60 * 1000,
+      h: 60 * 60 * 1000,
+      d: 24 * 60 * 60 * 1000,
+    };
 
     if (match) {
       const value = parseInt(match[1], 10);
       const unit = match[2];
-      const multiplier: Record<string, number> = {
-        s: 1000,
-        m: 60 * 1000,
-        h: 60 * 60 * 1000,
-        d: 24 * 60 * 60 * 1000,
-      };
       const ms = value * multiplier[unit];
       return new Date(now.getTime() + ms).toISOString();
     }
 
-    return new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+    // Fallback: 1 hour, mirroring the `h` unit above (single source of truth).
+    return new Date(now.getTime() + multiplier.h).toISOString();
   }
 
   // ─── Oracle Feeds ──────────────────────────────────────────────────

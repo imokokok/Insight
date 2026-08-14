@@ -158,7 +158,8 @@ export async function calculatePositionCriticalDeviation(
 
     // Fetch live prices
     // Use priceSymbol (if defined) for price lookup, e.g. iSUPRA → SUPRA, iUSDC → USDC
-    const priceQueries = Array.from(allSymbols).map((symbol) => {
+    const allSymbolsArray = Array.from(allSymbols);
+    const priceQueries = allSymbolsArray.map((symbol) => {
       const config = assetConfigs.get(symbol)!;
       return {
         provider: config.oracleProvider,
@@ -174,7 +175,7 @@ export async function calculatePositionCriticalDeviation(
       const p = prices[i];
       if (p.price > 0) {
         // Map price back to the original asset symbol (e.g. SUPRA price → iSUPRA entry)
-        const originalSymbol = Array.from(allSymbols)[i];
+        const originalSymbol = allSymbolsArray[i];
         priceMap.set(originalSymbol, p.price);
       }
     }
