@@ -2,7 +2,7 @@ import { encodeFunctionData } from 'viem';
 
 import { getChainlinkRPCConfig } from '@/lib/oracles/services/chainlinkDataSources';
 import { RpcClientWithFallback } from '@/lib/oracles/utils/rpcClientWithFallback';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('lst-exchange-rate');
 
@@ -65,10 +65,7 @@ function decodeUint256(data: string): bigint {
   try {
     return BigInt('0x' + cleanData.slice(0, 64));
   } catch (error) {
-    logger.error(
-      'Failed to decode uint256',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to decode uint256', normalizeError(error));
     return BigInt(0);
   }
 }

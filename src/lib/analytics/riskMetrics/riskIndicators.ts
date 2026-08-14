@@ -1,3 +1,5 @@
+import { normalizeError } from '@/lib/utils/logger';
+
 import {
   riskMetricsLogger as logger,
   type FreshnessRiskResult,
@@ -89,10 +91,7 @@ export function calculateFreshnessRisk(params: {
         .slice(0, 5),
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate freshness risk',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate freshness risk', normalizeError(error));
     return {
       score: 0,
       level: 'critical',
@@ -199,10 +198,7 @@ export function calculateManipulationResistance(params: {
       factors,
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate manipulation resistance',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate manipulation resistance', normalizeError(error));
     return {
       score: 0,
       level: 'critical',
@@ -294,10 +290,7 @@ export function calculateSharedDependency(params: {
       systemicRiskFactor,
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate shared dependency',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate shared dependency', normalizeError(error));
     return {
       score: 0,
       level: 'critical',

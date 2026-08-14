@@ -5,6 +5,7 @@ import { POST, getString, getStringField } from '../route';
 // --- Mocks ------------------------------------------------------------------
 
 jest.mock('@/lib/utils/logger', () => ({
+  normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
   createLogger: jest.fn(() => ({
     info: jest.fn(),
     warn: jest.fn(),

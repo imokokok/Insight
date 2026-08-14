@@ -1,4 +1,4 @@
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 import { OracleCache, ORACLE_CACHE_TTL } from '../base';
@@ -94,11 +94,7 @@ export class DIAPriceService {
       });
       return result;
     } catch (error) {
-      logger.error(
-        'Failed to get price from DIA API',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol, chain }
-      );
+      logger.error('Failed to get price from DIA API', normalizeError(error), { symbol, chain });
       return null;
     }
   }

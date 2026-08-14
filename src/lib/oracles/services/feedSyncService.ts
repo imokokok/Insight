@@ -1,6 +1,6 @@
 import { type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 import { DIA_ASSET_MAPPING, type DIAAssetConfig } from '../constants/diaConstants';
 import { FLARE_SYMBOL_TO_FEED_ID } from '../constants/flareConstants';
@@ -35,10 +35,7 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
     .upsert(feeds, { onConflict: 'provider,symbol,chain_id' })
     .select();
   if (error) {
-    logger.error(
-      'Failed to upsert feeds',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to upsert feeds', normalizeError(error));
     return 0;
   }
   return data?.length || 0;
@@ -108,10 +105,7 @@ class FeedSyncService {
 
       result.upserted = await upsertFeeds(feeds);
     } catch (error) {
-      logger.error(
-        'Failed to sync chainlink feeds from registry',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to sync chainlink feeds from registry', normalizeError(error));
       result.errors++;
     }
     return result;
@@ -150,10 +144,7 @@ class FeedSyncService {
       }
       result.discovered = sample.length;
     } catch (error) {
-      logger.error(
-        'Failed to verify feeds',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to verify feeds', normalizeError(error));
       result.errors++;
     }
     return result;

@@ -1,7 +1,7 @@
 import { TRON_CONFIG } from '@/lib/config/serverEnv';
 import { stringToPrice } from '@/lib/oracles/utils/oracleDataUtils';
 import { buildTronVerification } from '@/lib/oracles/utils/verificationUtils';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import {
   OracleProvider,
   Blockchain,
@@ -228,11 +228,7 @@ class WINkLinkRealDataService {
       logger.info('Successfully fetched price from WINkLink', { symbol, price: priceValue });
       return priceData;
     } catch (error) {
-      logger.error(
-        'Failed to get price from WINkLink contract',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol }
-      );
+      logger.error('Failed to get price from WINkLink contract', normalizeError(error), { symbol });
       return null;
     }
   }
@@ -383,7 +379,7 @@ class WINkLinkRealDataService {
 
         lastError = new Error(`Contract call returned no result for ${method}`);
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
+        lastError = normalizeError(error);
 
         if (signal?.aborted) {
           return null;
@@ -476,11 +472,7 @@ class WINkLinkRealDataService {
 
       return onChainData;
     } catch (error) {
-      logger.error(
-        'Failed to get WINkLink token on-chain data',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol }
-      );
+      logger.error('Failed to get WINkLink token on-chain data', normalizeError(error), { symbol });
       return null;
     }
   }

@@ -1,4 +1,5 @@
 import { semanticColors } from '@/lib/config/colors';
+import { normalizeError } from '@/lib/utils/logger';
 
 import { calculateHHIFromOracles, calculateDiversificationScore } from './concentrationMetrics';
 import { buildRobustCorrelationMatrix, calculateCorrelationRisk } from './correlationMetrics';
@@ -108,10 +109,7 @@ export function calculateRiskMetrics(input: RiskMetricsInput): RiskMetrics {
       },
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate risk metrics',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate risk metrics', normalizeError(error));
 
     return {
       hhi: {

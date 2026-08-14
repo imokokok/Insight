@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { createApiHandler } from '@/lib/api/handler';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { reputationService } from '@/lib/oracles/services/reputationService';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('ReputationRoute');
 
@@ -63,10 +63,7 @@ export const GET = createApiHandler(
         reputationService
           .calculateAndStore()
           .catch((error) => {
-            logger.error(
-              'Background reputation calculation failed',
-              error instanceof Error ? error : new Error(String(error))
-            );
+            logger.error('Background reputation calculation failed', normalizeError(error));
           })
           .finally(() => {
             releaseCalcLock();
@@ -99,10 +96,7 @@ export const GET = createApiHandler(
       reputationService
         .calculateAndStore()
         .catch((error) => {
-          logger.error(
-            'Background reputation calculation failed',
-            error instanceof Error ? error : new Error(String(error))
-          );
+          logger.error('Background reputation calculation failed', normalizeError(error));
         })
         .finally(() => {
           releaseCalcLock();

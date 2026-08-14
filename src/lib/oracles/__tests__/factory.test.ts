@@ -14,6 +14,7 @@ import {
 import type { IOracleClient, IOracleClientFactory } from '../interfaces';
 
 jest.mock('@/lib/utils/logger', () => ({
+  normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
   createLogger: () => ({
     info: jest.fn(),
     warn: jest.fn(),

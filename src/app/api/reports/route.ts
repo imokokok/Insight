@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createApiHandler } from '@/lib/api/handler';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { reportService } from '@/lib/reports/reportService';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('ReportsApi');
 
@@ -33,10 +33,7 @@ export const GET = createApiHandler(
       response.headers.set('Cache-Control', CACHE_PRESETS.static);
       return response;
     } catch (error) {
-      logger.error(
-        'Failed to list reports',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to list reports', normalizeError(error));
       return NextResponse.json(
         { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to load reports' } },
         { status: 500 }

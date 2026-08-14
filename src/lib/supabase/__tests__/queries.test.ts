@@ -10,6 +10,7 @@ import {
 } from '../queries';
 
 jest.mock('@/lib/utils/logger', () => ({
+  normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
   createLogger: () => ({
     info: jest.fn(),
     error: jest.fn(),

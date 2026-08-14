@@ -1,6 +1,6 @@
 import { type SupabaseClient } from '@supabase/supabase-js';
 
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { RequestQueue } from '@/lib/utils/requestQueue';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
 import { type UserProfile, type UserPreferences } from '@/types/analytics';
@@ -199,10 +199,7 @@ export class DatabaseQueries {
       const { data, error } = await query.maybeSingle();
 
       if (error) {
-        logger.error(
-          'Failed to get latest price',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to get latest price', normalizeError(error));
         return null;
       }
 
@@ -250,10 +247,7 @@ export class DatabaseQueries {
       const { data, error } = await query;
 
       if (error) {
-        logger.error(
-          'Failed to get price records',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to get price records', normalizeError(error));
         return null;
       }
 
@@ -302,10 +296,7 @@ export class DatabaseQueries {
       const { data, error } = await query;
 
       if (error) {
-        logger.error(
-          'Failed to get oracle feeds',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to get oracle feeds', normalizeError(error));
         return [];
       }
 
@@ -329,10 +320,7 @@ export class DatabaseQueries {
         .maybeSingle();
 
       if (error) {
-        logger.error(
-          'Failed to get oracle feed',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to get oracle feed', normalizeError(error));
         return null;
       }
 
@@ -357,10 +345,7 @@ export class DatabaseQueries {
         .select();
 
       if (error) {
-        logger.error(
-          'Failed to upsert oracle feeds',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to upsert oracle feeds', normalizeError(error));
         return 0;
       }
 
@@ -384,10 +369,7 @@ export class DatabaseQueries {
         .eq('chain_id', chainId);
 
       if (error) {
-        logger.error(
-          'Failed to deactivate oracle feed',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to deactivate oracle feed', normalizeError(error));
         return false;
       }
 
@@ -427,10 +409,7 @@ export class DatabaseQueries {
           .eq('chain_id', chainId);
 
         if (error) {
-          logger.error(
-            'Failed to update feed health (success)',
-            error instanceof Error ? error : new Error(String(error))
-          );
+          logger.error('Failed to update feed health (success)', normalizeError(error));
         }
       } else {
         // Increment consecutive_failures atomically
@@ -612,10 +591,7 @@ export class DatabaseQueries {
         .select('provider, symbol, chain_id');
 
       if (error) {
-        logger.error(
-          'Failed to deactivate stale feeds',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to deactivate stale feeds', normalizeError(error));
         return 0;
       }
 
@@ -649,10 +625,7 @@ export class DatabaseQueries {
 
       const { data, error } = await query;
       if (error) {
-        logger.error(
-          'Failed to get inactive feeds',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to get inactive feeds', normalizeError(error));
         return [];
       }
       return (data as OracleFeed[]) ?? [];
@@ -689,10 +662,7 @@ export class DatabaseQueries {
         .eq('is_active', false);
 
       if (error) {
-        logger.error(
-          'Failed to reactivate feed',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to reactivate feed', normalizeError(error));
         return false;
       }
       return true;
@@ -721,10 +691,7 @@ export class DatabaseQueries {
         .eq('chain_id', chainId);
 
       if (error) {
-        logger.error(
-          'Failed to record feed discovered',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to record feed discovered', normalizeError(error));
         return false;
       }
       return true;
@@ -773,10 +740,7 @@ export class DatabaseQueries {
         .single();
 
       if (error) {
-        logger.error(
-          'Failed to increment absent discovery runs',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to increment absent discovery runs', normalizeError(error));
         return -1;
       }
       return (data as { absent_discovery_runs: number } | null)?.absent_discovery_runs ?? next;
@@ -794,10 +758,7 @@ export class DatabaseQueries {
 
     if (error) {
       if (error.code !== 'PGRST116') {
-        logger.error(
-          'Failed to get user profile',
-          error instanceof Error ? error : new Error(String(error))
-        );
+        logger.error('Failed to get user profile', normalizeError(error));
       }
       return null;
     }
@@ -817,10 +778,7 @@ export class DatabaseQueries {
       .single();
 
     if (error) {
-      logger.error(
-        'Failed to upsert user profile',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to upsert user profile', normalizeError(error));
       return null;
     }
 

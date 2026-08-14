@@ -1,4 +1,4 @@
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 import { DIA_API_BASE_URL, fetchWithTimeout } from '../diaUtils';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
@@ -41,11 +41,7 @@ export class DIANetworkService {
 
       return result;
     } catch (error) {
-      logger.error(
-        'Failed to get supply data',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol }
-      );
+      logger.error('Failed to get supply data', normalizeError(error), { symbol });
       return null;
     }
   }
@@ -73,10 +69,7 @@ export class DIANetworkService {
 
       return result || [];
     } catch (error) {
-      logger.error(
-        'Failed to get exchanges',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to get exchanges', normalizeError(error));
       return [];
     }
   }

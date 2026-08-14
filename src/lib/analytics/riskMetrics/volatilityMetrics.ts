@@ -1,3 +1,5 @@
+import { normalizeError } from '@/lib/utils/logger';
+
 import { riskMetricsLogger as logger, type RiskLevel, type VolatilityResult } from './types';
 
 export function calculateVolatilityIndex(
@@ -61,10 +63,7 @@ export function calculateVolatilityIndex(
       dailyVolatility: Number(dailyVolatility.toFixed(4)),
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate volatility index',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate volatility index', normalizeError(error));
     return {
       index: 0,
       level: 'critical',

@@ -10,7 +10,7 @@ import {
 } from '@/lib/analytics/riskMetrics';
 import { chartColors } from '@/lib/config/colors';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
 
 import { extractPriceHistories, extractPriceHistoryTimestamps } from '../utils/historyExtraction';
@@ -199,10 +199,7 @@ export function useRiskMetrics(
         isCalculating: false,
       };
     } catch (error) {
-      logger.error(
-        'Error calculating risk metrics',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Error calculating risk metrics', normalizeError(error));
       return {
         riskMetrics: null,
         riskLevel: 'critical' as RiskLevel,

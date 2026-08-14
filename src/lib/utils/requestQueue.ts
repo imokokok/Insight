@@ -1,4 +1,4 @@
-import { createLogger } from './logger';
+import { createLogger, normalizeError } from './logger';
 
 const logger = createLogger('RequestQueue');
 
@@ -206,7 +206,7 @@ export class RequestQueue {
 
       cleanupAbortListener();
 
-      const err = error instanceof Error ? error : new Error(String(error));
+      const err = normalizeError(error);
       request.reject(err);
 
       logger.error('Request failed', err, {

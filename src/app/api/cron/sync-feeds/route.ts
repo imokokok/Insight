@@ -12,7 +12,7 @@ import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { type OracleFeed, type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { Blockchain, OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
 const logger = createLogger('CronSyncFeeds');
@@ -151,10 +151,7 @@ async function upsertDiscoveredFeeds(feeds: OracleFeedInsert[]): Promise<number>
     .upsert(rows, { onConflict: 'provider,symbol,chain_id' })
     .select();
   if (error) {
-    logger.error(
-      'Failed to upsert discovered feeds',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to upsert discovered feeds', normalizeError(error));
     return 0;
   }
   return data?.length || 0;
@@ -419,10 +416,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
               );
             }
           } catch (error) {
-            logger.error(
-              `Failed to reconcile feeds for ${provider}`,
-              error instanceof Error ? error : new Error(String(error))
-            );
+            logger.error(`Failed to reconcile feeds for ${provider}`, normalizeError(error));
           }
         }
 
@@ -436,10 +430,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
           const queries = getAdminQueries();
           healthDeactivated = await queries.deactivateStaleFeeds(3);
         } catch (error) {
-          logger.error(
-            'Failed to auto-deactivate stale feeds by health',
-            error instanceof Error ? error : new Error(String(error))
-          );
+          logger.error('Failed to auto-deactivate stale feeds by health', normalizeError(error));
         }
 
         // Feed rows changed (upserts + deactivations) — drop the
@@ -516,7 +507,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         };
     }
   } catch (error) {
-    logger.error('Feed sync failed', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Feed sync failed', normalizeError(error));
     return { status: 500, body: { success: false, error: 'Sync failed' } };
   }
 }

@@ -8,7 +8,7 @@ import {
   type StabilityHistoryPoint,
   type StabilityLevel,
 } from '@/lib/analytics/stabilityScore';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type PriceData } from '@/types/oracle';
 
 import { enrichWithConfidence } from '../utils/historyExtraction';
@@ -93,10 +93,7 @@ export function useStabilityScore(
         isCalculating: false,
       };
     } catch (error) {
-      logger.error(
-        'Error calculating stability score',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Error calculating stability score', normalizeError(error));
       return {
         stabilityResult: null,
         scores: [],

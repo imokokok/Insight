@@ -1,4 +1,5 @@
 import { type OracleMarketData } from '@/lib/services/marketData/types';
+import { normalizeError } from '@/lib/utils/logger';
 
 import {
   riskMetricsLogger as logger,
@@ -48,10 +49,7 @@ function calculateHHI(marketShares: number[]): HHIResult {
       concentrationRatio: Number(cr4.toFixed(2)),
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate HHI',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate HHI', normalizeError(error));
     return {
       value: 0,
       level: 'critical',
@@ -148,10 +146,7 @@ export function calculateDiversificationScore(params: {
       },
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate diversification score',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate diversification score', normalizeError(error));
     return {
       score: 0,
       level: 'critical',

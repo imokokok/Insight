@@ -8,7 +8,7 @@ import {
   type ProtocolTvlResult,
 } from '@/lib/protocols/services';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('CronProtocolMetrics');
 
@@ -52,10 +52,7 @@ async function upsertProtocolMetrics(results: ProtocolTvlResult[]): Promise<numb
     .upsert(rows, { onConflict: 'protocol_id' });
 
   if (error) {
-    logger.error(
-      `Failed to batch upsert ${rows.length} protocol metrics`,
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error(`Failed to batch upsert ${rows.length} protocol metrics`, normalizeError(error));
     return 0;
   }
 
@@ -96,10 +93,7 @@ async function upsertProtocolRiskParams(results: ProtocolRiskParamsResult[]): Pr
     .upsert(rows, { onConflict: 'protocol_id, asset_symbol' });
 
   if (error) {
-    logger.error(
-      `Failed to batch upsert ${rows.length} risk params`,
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error(`Failed to batch upsert ${rows.length} risk params`, normalizeError(error));
     return 0;
   }
 

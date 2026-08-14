@@ -4,7 +4,7 @@ import {
   oracleSupportedSymbols,
 } from '@/lib/oracles/constants/supportedSymbols';
 import { getAdminQueries } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { ORACLE_PROVIDER_VALUES } from '@/types/oracle';
 
 const logger = createLogger('SymbolsService');
@@ -99,10 +99,7 @@ export async function loadSymbolsFromDatabase(): Promise<SymbolsData> {
       );
       return data;
     } catch (error) {
-      logger.error(
-        'Failed to load symbols from database',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to load symbols from database', normalizeError(error));
 
       // Return cached data if available
       if (symbolCache) return symbolCache.data;

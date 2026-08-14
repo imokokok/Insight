@@ -25,7 +25,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import { NOWPAYMENTS_CONFIG } from '@/lib/config/serverEnv';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('nowpayments-billing');
 
@@ -133,11 +133,9 @@ export async function createInvoice(params: {
 
     return { invoiceId, invoiceUrl };
   } catch (error) {
-    logger.error(
-      'Failed to create NOWPayments invoice',
-      error instanceof Error ? error : new Error(String(error)),
-      { orderId: params.orderId }
-    );
+    logger.error('Failed to create NOWPayments invoice', normalizeError(error), {
+      orderId: params.orderId,
+    });
     return {
       error: error instanceof Error ? error.message : 'NOWPayments invoice failed',
     };
@@ -175,10 +173,7 @@ export function verifyIpnSignature(rawBody: string, signatureHeader: string | nu
     }
     return timingSafeEqual(a, b);
   } catch (error) {
-    logger.error(
-      'IPN signature verification failed',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('IPN signature verification failed', normalizeError(error));
     return false;
   }
 }
@@ -221,10 +216,7 @@ export function parseIpnEvent(
 
     return { id: paymentId, type: paymentStatus, data };
   } catch (error) {
-    logger.error(
-      'Failed to parse IPN payload',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to parse IPN payload', normalizeError(error));
     return null;
   }
 }
@@ -271,11 +263,9 @@ export async function getInvoice(invoiceId: string): Promise<{
       orderId: typeof data.order_id === 'string' ? data.order_id : undefined,
     };
   } catch (error) {
-    logger.error(
-      'Failed to retrieve invoice from NOWPayments',
-      error instanceof Error ? error : new Error(String(error)),
-      { invoiceId }
-    );
+    logger.error('Failed to retrieve invoice from NOWPayments', normalizeError(error), {
+      invoiceId,
+    });
     return null;
   }
 }
@@ -310,11 +300,9 @@ export async function getPaymentStatus(
       status: String(data.payment_status ?? 'unknown'),
     };
   } catch (error) {
-    logger.error(
-      'Failed to retrieve payment from NOWPayments',
-      error instanceof Error ? error : new Error(String(error)),
-      { paymentId }
-    );
+    logger.error('Failed to retrieve payment from NOWPayments', normalizeError(error), {
+      paymentId,
+    });
     return null;
   }
 }

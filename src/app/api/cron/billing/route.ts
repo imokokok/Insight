@@ -29,7 +29,7 @@ import {
   resetMonthlyQuota,
 } from '@/lib/api/apiKey';
 import { verifyCronSecret } from '@/lib/api/cronAuth';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('CronBilling');
 
@@ -112,7 +112,7 @@ export async function runBilling(): Promise<BillingResult> {
       },
     };
   } catch (error) {
-    logger.error('Billing cron failed', error instanceof Error ? error : new Error(String(error)));
+    logger.error('Billing cron failed', normalizeError(error));
     return { status: 500, body: { success: false, error: 'Billing cron failed' } };
   }
 }

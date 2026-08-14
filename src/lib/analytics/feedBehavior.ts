@@ -1,5 +1,5 @@
 import { ORACLE_EXPECTED_INTERVALS } from '@/lib/constants';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('feedBehavior');
 
@@ -178,10 +178,7 @@ function calculateUpdateRhythm(
       sampleConfidence: Number(sampleConfidence.toFixed(4)),
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate update rhythm',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate update rhythm', normalizeError(error));
     return {
       provider,
       expectedIntervalSeconds,
@@ -293,10 +290,7 @@ function calculateConfidenceIntervalMetrics(
       absoluteWidthScore,
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate confidence interval metrics',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate confidence interval metrics', normalizeError(error));
     return {
       provider,
       currentWidth: 0,
@@ -408,10 +402,7 @@ function calculateHeartbeat(
       recentReliability: Number(recentReliability.toFixed(4)),
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate heartbeat',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate heartbeat', normalizeError(error));
     return {
       provider,
       expectedUpdateCount: 0,
@@ -549,10 +540,7 @@ function calculateFeedHealthScore(params: {
       weightProfile,
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate feed health score',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate feed health score', normalizeError(error));
     return {
       provider: params.rhythm.provider,
       score: 0,
@@ -666,10 +654,7 @@ export function calculateFeedBehavior(
       confidenceSurgeCount,
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate feed behavior',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate feed behavior', normalizeError(error));
     return {
       rhythmMetrics: [],
       confidenceMetrics: [],

@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { type ZodSchema } from 'zod';
 
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { createZodValidationMiddleware } from '@/lib/validation/middleware';
 
 import { logApiKeyUsage } from './apiKey';
@@ -329,10 +329,7 @@ export function createApiHandler<
       const params = await routeContext.params;
       apiContext.validated = { ...apiContext.validated, params: params as TParams };
     } catch (error) {
-      logger.warn(
-        'Failed to parse route params',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.warn('Failed to parse route params', normalizeError(error));
     }
 
     if (corsHeaders && request.method === 'OPTIONS') {

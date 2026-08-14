@@ -1,4 +1,4 @@
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { lstExchangeRateService } from '@/lib/wrapped-assets/exchangeRateService';
 import type { Blockchain } from '@/types/oracle';
 
@@ -360,10 +360,7 @@ export async function calculatePositionCriticalDeviation(
       criticalCollateralPrice: Number(worstSingleAssetDeviation.criticalPrice.toFixed(4)),
     };
   } catch (error) {
-    logger.error(
-      `Failed to calculate position critical deviation`,
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error(`Failed to calculate position critical deviation`, normalizeError(error));
     throw error;
   }
 }

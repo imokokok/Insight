@@ -1,6 +1,6 @@
 import { PLANS, normalizePlan, type Plan } from '@/lib/billing/plans';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('api-key');
 
@@ -190,10 +190,7 @@ export async function validateApiKey(plainKey: string): Promise<ApiKeyValidation
 
     return result;
   } catch (error) {
-    logger.error(
-      'API key validation failed',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('API key validation failed', normalizeError(error));
     return null;
   }
 }

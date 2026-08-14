@@ -1,4 +1,4 @@
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('RpcClientWithFallback');
 
@@ -131,7 +131,7 @@ export class RpcClientWithFallback {
         if (signal) {
           signal.removeEventListener('abort', onExternalAbort);
         }
-        lastError = error instanceof Error ? error : new Error(String(error));
+        lastError = normalizeError(error);
 
         const isUserAbort = signal?.aborted;
         const isTimeout = error instanceof Error && error.name === 'AbortError' && !isUserAbort;

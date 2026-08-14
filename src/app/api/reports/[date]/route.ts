@@ -4,7 +4,7 @@ import { createApiHandler } from '@/lib/api/handler';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { reportService } from '@/lib/reports/reportService';
 import { getTodayUtc } from '@/lib/utils/date';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('ReportDetailApi');
 
@@ -37,10 +37,7 @@ export const GET = createApiHandler(
       );
       return response;
     } catch (error) {
-      logger.error(
-        'Failed to load report detail',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to load report detail', normalizeError(error));
       return NextResponse.json({ success: false, error: 'Failed to load report' }, { status: 500 });
     }
   },

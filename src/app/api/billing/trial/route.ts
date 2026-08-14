@@ -21,7 +21,7 @@ import { createApiKeyForUser } from '@/lib/api/apiKey';
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { TRIAL_DURATION_DAYS } from '@/lib/billing/plans';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('billing-trial');
 
@@ -104,11 +104,7 @@ export const POST = createApiHandler(
         trialEndsAt,
       });
     } catch (error) {
-      logger.error(
-        'Failed to create trial API key',
-        error instanceof Error ? error : new Error(String(error)),
-        { userId }
-      );
+      logger.error('Failed to create trial API key', normalizeError(error), { userId });
       // Note: trial_claimed_at was already set, but the key creation failed.
       // The user won't be able to claim again. Admin intervention may be needed
       // to reset trial_claimed_at manually — this is a rare edge case.

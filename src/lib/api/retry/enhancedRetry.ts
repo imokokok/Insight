@@ -1,5 +1,5 @@
 import { captureException, addBreadcrumb } from '@/lib/monitoring';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('enhanced-retry');
 
@@ -339,7 +339,7 @@ class EnhancedRetryManager {
           strategy: this.config.strategy,
         };
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
+        lastError = normalizeError(error);
 
         const context: RetryContext = {
           attempt,

@@ -7,7 +7,7 @@ import {
   type OracleLeadership,
   type DivergencePair,
 } from '@/lib/analytics/divergenceSignals';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type PriceData } from '@/types/oracle';
 
 import { type PriceHistoryMap } from './useOracleMemory';
@@ -77,10 +77,7 @@ export function useDivergenceSignals(
         isCalculating: false,
       };
     } catch (error) {
-      logger.error(
-        'Error calculating divergence signals',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Error calculating divergence signals', normalizeError(error));
       return {
         divergenceResult: null,
         timeSeries: [],

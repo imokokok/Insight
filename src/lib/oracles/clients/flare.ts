@@ -14,7 +14,7 @@ import {
 } from '@/lib/oracles/services/ftsoDataService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
   OracleProvider,
@@ -256,10 +256,7 @@ export class FlareClient extends BaseOracleClient {
       this.cache.set(cacheKey, onChainData, FLARE_CACHE_TTL.PRICE);
       return onChainData;
     } catch (error) {
-      logger.error(
-        `Failed to get on-chain data for ${symbol}`,
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error(`Failed to get on-chain data for ${symbol}`, normalizeError(error));
       return null;
     }
   }

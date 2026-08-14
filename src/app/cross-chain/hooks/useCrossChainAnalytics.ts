@@ -25,7 +25,7 @@ import {
 } from '@/lib/analytics/riskMetrics';
 import { calculateStability } from '@/lib/analytics/stabilityScore';
 import { chainColors } from '@/lib/constants';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { CHAIN_EXPECTED_INTERVALS } from '../constants';
@@ -638,10 +638,7 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         chainCount: chainPrices.length,
       };
     } catch (error) {
-      logger.error(
-        'Error calculating cross-chain analytics:',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Error calculating cross-chain analytics:', normalizeError(error));
       return {
         risk: getEmptyRiskResult(),
         divergence: getEmptyDivergenceResult(),

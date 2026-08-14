@@ -3,7 +3,7 @@ import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
 import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import { API3_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 
 import { resolveFeedAddress } from '../utils/dynamicFeedResolver';
@@ -256,10 +256,7 @@ async function readDAPIPrice(
       decimalsIsFallback: decimalsResult.isFallback,
     };
   } catch (error) {
-    logger.error(
-      `Failed to read dAPI price from ${proxyAddress}:`,
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error(`Failed to read dAPI price from ${proxyAddress}:`, normalizeError(error));
     return null;
   }
 }
@@ -275,7 +272,7 @@ function computeProxyAddress(dapiName: string, chainId: number): string | null {
   } catch (error) {
     logger.error(
       `Failed to compute proxy address for ${dapiName} on chain ${chainId}:`,
-      error instanceof Error ? error : new Error(String(error))
+      normalizeError(error)
     );
     return null;
   }
@@ -350,10 +347,7 @@ async function getAPI3Price(
       dataAge,
     };
   } catch (error) {
-    logger.error(
-      `Failed to get API3 price for ${symbol}:`,
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error(`Failed to get API3 price for ${symbol}:`, normalizeError(error));
     return null;
   }
 }

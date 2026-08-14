@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { reputationService } from '@/lib/oracles/services/reputationService';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('CronReputation');
 
@@ -21,10 +21,7 @@ export async function GET(request: Request) {
       message: `Cron calculation complete: ${result.success}/${result.total} successful`,
     });
   } catch (error) {
-    logger.error(
-      'Cron reputation calculation failed',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Cron reputation calculation failed', normalizeError(error));
     return NextResponse.json({ success: false, error: 'Calculation failed' }, { status: 500 });
   }
 }

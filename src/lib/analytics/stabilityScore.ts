@@ -1,5 +1,5 @@
 import { ORACLE_EXPECTED_INTERVALS } from '@/lib/constants';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('stabilityScore');
 
@@ -167,10 +167,7 @@ function calculatePriceConsistency(prices: number[]): number {
 
     return 100 * (1 - Math.min(deviationVolatility * 10, 1));
   } catch (error) {
-    logger.error(
-      'Failed to calculate price consistency',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate price consistency', normalizeError(error));
     return 50;
   }
 }
@@ -203,10 +200,7 @@ function calculateUpdateFrequencyConsistency(timestamps: number[]): number {
 
     return 100 * (1 - Math.min(cv, 1));
   } catch (error) {
-    logger.error(
-      'Failed to calculate update frequency consistency',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate update frequency consistency', normalizeError(error));
     return 50;
   }
 }
@@ -230,10 +224,7 @@ function calculateConfidenceStability(confidences: number[]): number {
 
     return 100 * (1 - Math.min(avgAbsChangeRate * 5, 1));
   } catch (error) {
-    logger.error(
-      'Failed to calculate confidence stability',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate confidence stability', normalizeError(error));
     return 80;
   }
 }
@@ -261,10 +252,7 @@ function calculateDataCompleteness(
 
     return 100 * Math.min(actualCount / expectedCount, 1);
   } catch (error) {
-    logger.error(
-      'Failed to calculate data completeness',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate data completeness', normalizeError(error));
     return 80;
   }
 }
@@ -325,10 +313,7 @@ function calculateStabilityScore(
       estimatedTimeToCritical,
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate stability score',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate stability score', normalizeError(error));
     return {
       provider,
       score: 0,
@@ -359,10 +344,7 @@ function detectDecayTrend(recentScores: number[]): DecayTrend {
     if (slope < 0.5) return 'stable';
     return 'improving';
   } catch (error) {
-    logger.error(
-      'Failed to detect decay trend',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to detect decay trend', normalizeError(error));
     return 'stable';
   }
 }
@@ -386,10 +368,7 @@ function estimateTimeToCritical(
 
     return Math.round(timeInSeconds);
   } catch (error) {
-    logger.error(
-      'Failed to estimate time to critical',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to estimate time to critical', normalizeError(error));
     return null;
   }
 }
@@ -500,10 +479,7 @@ export function calculateStability(
       worstScore: worstScore === 101 ? 0 : worstScore,
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate stability',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate stability', normalizeError(error));
     return {
       scores: [],
       history: [],

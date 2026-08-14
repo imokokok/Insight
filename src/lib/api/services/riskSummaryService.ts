@@ -9,7 +9,7 @@ import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('risk-summary-service');
@@ -110,7 +110,7 @@ async function fetchHourlyHistories(
   } catch (error) {
     logger.error(
       'Unexpected error fetching hourly price snapshots for risk summary',
-      error instanceof Error ? error : new Error(String(error))
+      normalizeError(error)
     );
   }
 

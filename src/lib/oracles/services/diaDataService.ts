@@ -1,4 +1,4 @@
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type Blockchain, type PriceData, type DIATokenOnChainData } from '@/types/oracle';
 
 import { OracleCache, createSingleton } from '../base';
@@ -106,11 +106,7 @@ class DIADataService {
 
       return onChainData;
     } catch (error) {
-      logger.error(
-        'Failed to get token on-chain data',
-        error instanceof Error ? error : new Error(String(error)),
-        { symbol }
-      );
+      logger.error('Failed to get token on-chain data', normalizeError(error), { symbol });
       return null;
     }
   }

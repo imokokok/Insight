@@ -79,7 +79,7 @@ export function ScoreRing({ score, size = 140 }: { score: number; size?: number 
           className={`font-black font-mono tracking-tighter ${size > 60 ? 'text-4xl' : 'text-[10px]'}`}
           style={{ color }}
         >
-          {size > 60 ? score.toFixed(0) : score.toFixed(0)}
+          {score.toFixed(0)}
         </span>
       </div>
     </div>

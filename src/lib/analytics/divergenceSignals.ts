@@ -1,4 +1,4 @@
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 import {
   calculateConsensusPrice as computeConsensus,
@@ -94,10 +94,7 @@ function getConsensusPrice(prices: number[]): number {
     const result = computeConsensus(inputs, 'median');
     return result.price;
   } catch (error) {
-    logger.error(
-      'Failed to calculate consensus price',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate consensus price', normalizeError(error));
     if (!prices || prices.length === 0) return 0;
     const sorted = [...prices].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
@@ -144,10 +141,7 @@ function calculateAcceleration(deviations: number[]): {
 
     return { value: Number(avgSecondDiff.toFixed(4)), status };
   } catch (error) {
-    logger.error(
-      'Failed to calculate acceleration',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate acceleration', normalizeError(error));
     return { value: 0, status: 'stable' };
   }
 }
@@ -185,10 +179,7 @@ function detectDirectionalBias(directions: DivergenceDirection[]): {
       count: maxConsecutive,
     };
   } catch (error) {
-    logger.error(
-      'Failed to detect directional bias',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to detect directional bias', normalizeError(error));
     return { isBias: false, count: 0 };
   }
 }
@@ -335,10 +326,7 @@ function calculateDivergenceTimeSeries(
     logger.debug(`Calculated divergence time series for ${results.length} providers`);
     return results;
   } catch (error) {
-    logger.error(
-      'Failed to calculate divergence time series',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate divergence time series', normalizeError(error));
     return [];
   }
 }
@@ -462,10 +450,7 @@ function calculateOracleLeadership(
     logger.debug(`Calculated oracle leadership for ${results.length} providers`);
     return results;
   } catch (error) {
-    logger.error(
-      'Failed to calculate oracle leadership',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate oracle leadership', normalizeError(error));
     return [];
   }
 }
@@ -519,10 +504,7 @@ function calculateDivergenceMatrix(priceData: PriceData[]): DivergencePair[][] {
     logger.debug(`Calculated divergence matrix for ${n} providers`);
     return matrix;
   } catch (error) {
-    logger.error(
-      'Failed to calculate divergence matrix',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate divergence matrix', normalizeError(error));
     return [];
   }
 }
@@ -577,10 +559,7 @@ export function calculateDivergenceSignals(
       maxAcceleration: Number(maxAcceleration.toFixed(4)),
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate divergence signals',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate divergence signals', normalizeError(error));
     return getEmptyResult();
   }
 }

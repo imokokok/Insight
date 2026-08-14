@@ -1,6 +1,6 @@
 import { type SupabaseClient } from '@supabase/supabase-js';
 
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 import { supabase } from './client';
 
@@ -129,10 +129,7 @@ class RealtimeManager {
     try {
       this.client.realtime.connect();
     } catch (error) {
-      logger.error(
-        'Failed to connect realtime client',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to connect realtime client', normalizeError(error));
       this.updateConnectionStatus('error');
     }
   }

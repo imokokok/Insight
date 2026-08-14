@@ -8,7 +8,7 @@ import { safeMax } from '@/lib/utils';
 import { getHeatmapColor } from '@/lib/utils/chartSharedUtils';
 import { downloadBlob } from '@/lib/utils/download';
 import { escapeCSVField } from '@/lib/utils/export';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { useColorblindMode } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
@@ -110,10 +110,7 @@ export function HeatmapDetailView() {
         `price-spread-heatmap-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
       );
     } catch (error) {
-      logger.error(
-        'Failed to export heatmap data',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to export heatmap data', normalizeError(error));
     }
   }, [filteredChains, heatmapData, maxHeatmapValue]);
 

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createUserClient } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 import { validateApiKey, type ApiKeyValidationResult } from '../apiKey';
 import { ApiResponseBuilder } from '../response';
@@ -54,10 +54,7 @@ async function extractBearerAuthContext(request: NextRequest): Promise<AuthConte
       accessToken: token,
     };
   } catch (error) {
-    logger.error(
-      'Auth extraction failed',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Auth extraction failed', normalizeError(error));
     return null;
   }
 }

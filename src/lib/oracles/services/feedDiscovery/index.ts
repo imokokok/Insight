@@ -1,4 +1,4 @@
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 import {
   discoverAPI3Feeds,
@@ -73,10 +73,7 @@ class FeedDiscoveryService {
         try {
           results.push(await discoverer());
         } catch (error) {
-          logger.error(
-            `Discovery failed for ${name}`,
-            error instanceof Error ? error : new Error(String(error))
-          );
+          logger.error(`Discovery failed for ${name}`, normalizeError(error));
           results.push({ provider: name, discovered: 0, feeds: [], errors: [String(error)] });
         }
       }

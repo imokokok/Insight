@@ -1,5 +1,5 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('rate-limit-store');
 
@@ -138,7 +138,7 @@ class SupabaseRateLimitStore implements RateLimitStore {
         this.memoryFallbackSince = Date.now();
         logger.warn(
           'Supabase rate limit unavailable, degrading to in-memory rate limiting',
-          error instanceof Error ? error : new Error(String(error))
+          normalizeError(error)
         );
       }
       return this.memoryFallback.increment(key, windowMs);

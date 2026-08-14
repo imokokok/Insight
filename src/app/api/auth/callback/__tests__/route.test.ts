@@ -14,6 +14,7 @@ jest.mock('@supabase/ssr', () => ({
 // otherwise strip the factory impl of `jest.fn(() => ({ ... }))` and turn
 // `createLogger()` into `undefined` on the route's error paths.
 jest.mock('@/lib/utils/logger', () => ({
+  normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
   createLogger: () => ({
     info: () => {},
     warn: () => {},

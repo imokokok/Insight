@@ -8,7 +8,7 @@ import {
 } from '@/lib/oracles/constants/supraConstants';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import {
   OracleProvider,
   Blockchain,
@@ -158,10 +158,7 @@ export class SupraClient extends BaseOracleClient {
       this.cache.set(cacheKey, onChainData, 60000);
       return onChainData;
     } catch (error) {
-      logger.error(
-        `Failed to get on-chain data for ${upperSymbol}`,
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error(`Failed to get on-chain data for ${upperSymbol}`, normalizeError(error));
       return null;
     }
   }
@@ -223,10 +220,7 @@ export class SupraClient extends BaseOracleClient {
         };
       });
     } catch (error) {
-      logger.error(
-        `Failed to get historical prices for ${upperSymbol}`,
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error(`Failed to get historical prices for ${upperSymbol}`, normalizeError(error));
       return [];
     }
   }

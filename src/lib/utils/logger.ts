@@ -161,3 +161,13 @@ class LoggerImpl implements Logger {
 export function createLogger(moduleName: string): Logger {
   return new LoggerImpl(moduleName);
 }
+
+/**
+ * Normalizes an unknown caught value into an `Error` for `logger.error`,
+ * which requires a concrete `Error` instance. Used pervasively at catch sites
+ * so the `instanceof Error ? error : new Error(String(error))` idiom lives in
+ * exactly one place.
+ */
+export function normalizeError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}

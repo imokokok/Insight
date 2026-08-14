@@ -8,6 +8,7 @@ global.fetch = jest.fn();
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
 
 jest.mock('@/lib/utils/logger', () => ({
+  normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
   createLogger: () => ({
     info: jest.fn(),
     warn: jest.fn(),

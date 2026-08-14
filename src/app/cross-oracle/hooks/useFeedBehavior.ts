@@ -9,7 +9,7 @@ import {
   type FeedHealthScore,
   type FeedHealthLevel,
 } from '@/lib/analytics/feedBehavior';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type PriceData } from '@/types/oracle';
 
 import { enrichWithConfidence } from '../utils/historyExtraction';
@@ -100,10 +100,7 @@ export function useFeedBehavior(
         isCalculating: false,
       };
     } catch (error) {
-      logger.error(
-        'Error calculating feed behavior',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Error calculating feed behavior', normalizeError(error));
       return {
         feedBehaviorResult: null,
         rhythmMetrics: [],

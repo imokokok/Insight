@@ -1,6 +1,6 @@
 import { type PriceRecordInsert, type PriceRecord } from '@/lib/supabase/queries';
 import { getAdminQueries } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type PriceData, type OracleProvider, type Blockchain } from '@/types/oracle';
 import { type FailureMode, type OracleSignalVector } from '@/types/oracle/signals';
 
@@ -79,10 +79,7 @@ export async function savePriceToDatabase(priceData: PriceData): Promise<boolean
     const result = await queries.savePriceRecord(record);
     return result !== null;
   } catch (error) {
-    logger.error(
-      'Failed to save price to database',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to save price to database', normalizeError(error));
     return false;
   }
 }
@@ -106,10 +103,7 @@ export async function getPriceFromDatabase(
 
     return recordToPriceData(record);
   } catch (error) {
-    logger.error(
-      'Failed to get price from database',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to get price from database', normalizeError(error));
     return null;
   }
 }
@@ -144,10 +138,7 @@ export async function getHistoricalPricesFromDatabase(
 
     return records.map(recordToPriceData);
   } catch (error) {
-    logger.error(
-      'Failed to get historical prices from database',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to get historical prices from database', normalizeError(error));
     return null;
   }
 }

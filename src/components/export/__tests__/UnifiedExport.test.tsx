@@ -20,6 +20,7 @@ jest.mock('framer-motion', () => ({
 }));
 
 jest.mock('@/lib/utils/logger', () => ({
+  normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
   createLogger: () => ({
     debug: jest.fn(),
     info: jest.fn(),

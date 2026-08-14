@@ -4,6 +4,7 @@ import { createRateLimitMiddleware } from '@/lib/api/middleware/rateLimitMiddlew
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 
 jest.mock('@/lib/utils/logger', () => ({
+  normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
   createLogger: jest.fn(() => ({
     info: jest.fn(),
     error: jest.fn(),

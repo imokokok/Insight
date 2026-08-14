@@ -1,5 +1,5 @@
 import { getSymbolCategory } from '@/lib/constants';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import {
   calculateMean,
   calculateMedian,
@@ -485,10 +485,7 @@ export function calculateConsensusPrice(
       recommendedMethod,
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate consensus price',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate consensus price', normalizeError(error));
     const prices = inputs.map((i) => i.price).filter((p) => p > 0);
     return {
       price: prices.length > 0 ? calculateMedian(prices) : 0,

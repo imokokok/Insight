@@ -42,7 +42,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { updateApiKeyPlanForUser } from '@/lib/api/apiKey';
 import { parseIpnEvent } from '@/lib/billing/nowpayments';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('nowpayments-webhook');
 
@@ -256,11 +256,10 @@ export async function POST(request: NextRequest) {
     await completeWebhookEvent(client, eventId);
     return NextResponse.json({ received: true });
   } catch (error) {
-    logger.error(
-      'Webhook handler failed',
-      error instanceof Error ? error : new Error(String(error)),
-      { eventType: event.type, eventId }
-    );
+    logger.error('Webhook handler failed', normalizeError(error), {
+      eventType: event.type,
+      eventId,
+    });
     await failWebhookEvent(client, eventId);
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }

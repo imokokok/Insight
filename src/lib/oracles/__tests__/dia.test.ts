@@ -3,6 +3,7 @@ import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 jest.mock('@/lib/utils/logger', () => ({
+  normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
   createLogger: () => ({
     info: jest.fn(),
     warn: jest.fn(),

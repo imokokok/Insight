@@ -1,6 +1,7 @@
 import { verifyCronSecret } from '@/lib/api/cronAuth';
 
 jest.mock('@/lib/utils/logger', () => ({
+  normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
   createLogger: jest.fn(() => ({
     info: jest.fn(),
     error: jest.fn(),

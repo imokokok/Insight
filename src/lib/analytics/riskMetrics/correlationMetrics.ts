@@ -1,3 +1,5 @@
+import { normalizeError } from '@/lib/utils/logger';
+
 import { riskMetricsLogger as logger, type CorrelationRiskResult, type RiskLevel } from './types';
 
 /**
@@ -162,10 +164,7 @@ export function calculateCorrelationRisk(
       oracleNames,
     };
   } catch (error) {
-    logger.error(
-      'Failed to calculate correlation risk',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    logger.error('Failed to calculate correlation risk', normalizeError(error));
     return {
       score: 0,
       level: 'critical',

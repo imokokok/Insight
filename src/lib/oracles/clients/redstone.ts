@@ -9,7 +9,7 @@ import {
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
   OracleProvider,
@@ -373,10 +373,7 @@ export class RedStoneClient extends BaseOracleClient {
       this.cache.set(cacheKey, onChainData, 60000);
       return onChainData;
     } catch (error) {
-      logger.error(
-        `Failed to get on-chain data for ${symbol}`,
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error(`Failed to get on-chain data for ${symbol}`, normalizeError(error));
       return null;
     }
   }

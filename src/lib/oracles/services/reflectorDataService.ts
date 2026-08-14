@@ -8,7 +8,7 @@ import {
   xdr,
 } from '@stellar/stellar-sdk';
 
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import type { PriceData } from '@/types/oracle';
 import { OracleProvider } from '@/types/oracle';
 import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
@@ -91,10 +91,7 @@ class ReflectorDataService {
       });
       logger.info('Reflector Soroban RPC server initialized', { url: STELLAR_RPC_URL });
     } catch (error) {
-      logger.error(
-        'Failed to initialize Soroban RPC server',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to initialize Soroban RPC server', normalizeError(error));
       this.server = null;
     }
   }
@@ -341,10 +338,7 @@ class ReflectorDataService {
 
       return null;
     } catch (error) {
-      logger.error(
-        'Failed to parse PriceData XDR',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error('Failed to parse PriceData XDR', normalizeError(error));
       return null;
     }
   }
@@ -423,10 +417,7 @@ class ReflectorDataService {
       this.setCache(cacheKey, priceData, REFLECTOR_CACHE_TTL.PRICE);
       return priceData;
     } catch (error) {
-      logger.error(
-        `Failed to fetch latest price for ${upper}`,
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.error(`Failed to fetch latest price for ${upper}`, normalizeError(error));
       throw error;
     }
   }
@@ -492,10 +483,7 @@ class ReflectorDataService {
       this.setCache(cacheKey, resolution, REFLECTOR_CACHE_TTL.METADATA);
       return resolution;
     } catch (error) {
-      logger.warn(
-        'Failed to fetch resolution',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.warn('Failed to fetch resolution', normalizeError(error));
       throw error;
     }
   }
@@ -525,10 +513,7 @@ class ReflectorDataService {
       this.setCache(cacheKey, version, REFLECTOR_CACHE_TTL.METADATA);
       return version;
     } catch (error) {
-      logger.warn(
-        'Failed to fetch version',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.warn('Failed to fetch version', normalizeError(error));
       throw error;
     }
   }
@@ -550,10 +535,7 @@ class ReflectorDataService {
       this.setCache(cacheKey, assets, REFLECTOR_CACHE_TTL.ASSETS);
       return assets;
     } catch (error) {
-      logger.warn(
-        'Failed to fetch assets, using default list',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.warn('Failed to fetch assets, using default list', normalizeError(error));
       return [...REFLECTOR_CRYPTO_ASSETS, ...REFLECTOR_FOREX_ASSETS];
     }
   }
@@ -583,10 +565,7 @@ class ReflectorDataService {
       this.setCache(cacheKey, ts, REFLECTOR_CACHE_TTL.PRICE);
       return ts;
     } catch (error) {
-      logger.warn(
-        'Failed to fetch last timestamp',
-        error instanceof Error ? error : new Error(String(error))
-      );
+      logger.warn('Failed to fetch last timestamp', normalizeError(error));
       throw error;
     }
   }
