@@ -87,6 +87,13 @@ export class RequestQueue {
     this.queue.splice(low, 0, request);
   }
 
+  private cleanupAbortListener(request: QueuedRequest): void {
+    if (request.abortSignal && request.onAbort) {
+      request.abortSignal.removeEventListener('abort', request.onAbort);
+      request.onAbort = null;
+    }
+  }
+
   async add<T>(
     execute: () => Promise<T>,
     options: {
@@ -161,13 +168,6 @@ export class RequestQueue {
 
     request.timeoutId = timeoutId;
 
-    const cleanupAbortListener = () => {
-      if (request.abortSignal && request.onAbort) {
-        request.abortSignal.removeEventListener('abort', request.onAbort);
-        request.onAbort = null;
-      }
-    };
-
     try {
       logger.debug('Executing request', {
         id: request.id,
@@ -187,7 +187,7 @@ export class RequestQueue {
       this.completed++;
       this.running--;
 
-      cleanupAbortListener();
+      this.cleanupAbortListener(request);
       request.resolve(result);
 
       logger.debug('Request completed', {
@@ -204,7 +204,7 @@ export class RequestQueue {
       this.failed++;
       this.running--;
 
-      cleanupAbortListener();
+      this.cleanupAbortListener(request);
 
       const err = normalizeError(error);
       request.reject(err);
@@ -219,20 +219,13 @@ export class RequestQueue {
   }
 
   private handleTimeout(request: QueuedRequest): void {
-    const cleanupAbortListener = () => {
-      if (request.abortSignal && request.onAbort) {
-        request.abortSignal.removeEventListener('abort', request.onAbort);
-        request.onAbort = null;
-      }
-    };
-
     const queueIndex = this.queue.findIndex((r) => r.id === request.id);
     if (queueIndex !== -1) {
       request.finalized = true;
       this.queue.splice(queueIndex, 1);
       this.failed++;
 
-      cleanupAbortListener();
+      this.cleanupAbortListener(request);
       const error = new DOMException('Request timeout', 'TimeoutError');
       request.reject(error);
 
@@ -249,7 +242,7 @@ export class RequestQueue {
       this.failed++;
       this.running--;
 
-      cleanupAbortListener();
+      this.cleanupAbortListener(request);
       const error = new DOMException('Request timeout', 'TimeoutError');
       request.reject(error);
 

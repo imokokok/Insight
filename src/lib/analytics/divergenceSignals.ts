@@ -95,7 +95,6 @@ function getConsensusPrice(prices: number[]): number {
     return result.price;
   } catch (error) {
     logger.error('Failed to calculate consensus price', normalizeError(error));
-    if (!prices || prices.length === 0) return 0;
     const sorted = [...prices].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
     if (sorted.length % 2 === 0) {
