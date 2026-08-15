@@ -8,7 +8,6 @@ import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 import {
   CHAINLINK_AGGREGATOR_ABI,
-  CHAINLINK_RPC_CONFIG,
   getChainlinkPriceFeedAsync,
   getChainlinkPriceFeed as getChainlinkPriceFeedSync,
   getChainlinkRPCConfig,
@@ -347,14 +346,10 @@ class ChainlinkOnChainService {
   }
 
   getSupportedChainIds(symbol: string): number[] {
-    // Derive the served chain set from the RPC config (the single source of
-    // truth for which chains we can read) and intersect it with the feeds we
-    // actually have an address for (DB-discovered or hard-coded fallback).
-    // This keeps the reported chains in sync with discovery + RPC as chains
-    // are added, rather than a stale hard-coded allowlist.
     const chainIds: number[] = [];
+    const supportedChains = [1, 42161, 137, 8453, 43114, 56, 10];
 
-    for (const chainId of Object.keys(CHAINLINK_RPC_CONFIG).map(Number)) {
+    for (const chainId of supportedChains) {
       if (getChainlinkPriceFeedSync(symbol, chainId)) {
         chainIds.push(chainId);
       }

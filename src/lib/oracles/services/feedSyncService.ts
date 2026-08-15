@@ -87,7 +87,7 @@ class FeedSyncService {
     };
     try {
       const symbols = getSupportedSymbols();
-      const discovered = await feedRegistryService.discoverFeedsOnAllChains(symbols);
+      const discovered = await feedRegistryService.discoverFeedsOnEthereum(symbols);
       result.discovered = discovered.length;
       if (discovered.length === 0) return result;
 
