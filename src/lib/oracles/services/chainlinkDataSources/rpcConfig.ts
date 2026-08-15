@@ -88,25 +88,4 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
     chainId: 10,
     name: 'Optimism',
   },
-  // --- Newly-enabled chains ---------------------------------------------
-  // Chainlink's Feed Registry is deployed at the same canonical address on
-  // every EVM chain that supports it, so the discovery job can resolve feeds
-  // on these chains on-chain. We only enable chains we have RPC access for.
-  // Scroll, zkSync Era and Linea are Alchemy-backed (reliable); additional
-  // chains can be added here as RPC endpoints become available.
-  534352: {
-    endpoints: buildEndpoints(ALCHEMY_RPC.scroll, ['https://rpc.scroll.io']),
-    chainId: 534352,
-    name: 'Scroll',
-  },
-  324: {
-    endpoints: buildEndpoints(ALCHEMY_RPC.zksync, ['https://mainnet.era.zksync.io']),
-    chainId: 324,
-    name: 'zkSync Era',
-  },
-  59144: {
-    endpoints: buildEndpoints(ALCHEMY_RPC.linea, ['https://rpc.linea.build']),
-    chainId: 59144,
-    name: 'Linea',
-  },
 };

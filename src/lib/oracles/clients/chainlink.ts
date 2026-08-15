@@ -35,13 +35,10 @@ const CHAINLINK_QUALITY_CONFIG = {
     [Blockchain.JUNO]: 0.0,
     [Blockchain.COSMOS]: 0.0,
     [Blockchain.OSMOSIS]: 0.0,
-    [Blockchain.SCROLL]: 0.95,
-    [Blockchain.ZKSYNC]: 0.96,
     [Blockchain.APTOS]: 0.0,
     [Blockchain.SUI]: 0.0,
     [Blockchain.GNOSIS]: 0.94,
     [Blockchain.MANTLE]: 0.95,
-    [Blockchain.LINEA]: 0.95,
     [Blockchain.CELESTIA]: 0.0,
     [Blockchain.INJECTIVE]: 0.0,
     [Blockchain.SEI]: 0.0,
@@ -72,7 +69,10 @@ export class ChainlinkClient extends BaseOracleClient {
   // CHAINLINK_RPC_CONFIG (rpcConfig.ts): a chain only works here if it has an
   // RPC endpoint and a deployed Feed Registry. Solana/Starknet are excluded —
   // they are non-EVM and the EVM Feed Registry/aggregator path cannot query
-  // them. Scroll/zkSync Era/Linea were added alongside their RPC entries.
+  // them. Scroll/zkSync Era/Linea are intentionally NOT listed: Chainlink does
+  // not deploy a Feed Registry on those L2s (the on-chain registry is Mainnet-
+  // only), and our CHAINLINK_PRICE_FEEDS fallback only covers the 7 chains
+  // below — so any feed request to them would fail regardless.
   // NOTE: do NOT derive this from CHAINLINK_RPC_CONFIG at class-field init —
   // that import is circular (chainlinkDataSources → cache → supabase/server →
   // back to this client) and leaves the binding undefined under Jest/CJS,
@@ -85,9 +85,6 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.AVALANCHE,
     Blockchain.BNB_CHAIN,
     Blockchain.BASE,
-    Blockchain.SCROLL,
-    Blockchain.ZKSYNC,
-    Blockchain.LINEA,
   ];
 
   defaultUpdateIntervalMinutes = 60;

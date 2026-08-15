@@ -12,9 +12,14 @@ import {
 
 const logger = createLogger('FeedRegistryService');
 
-// Chainlink Feed Registry contract on Ethereum Mainnet
-// https://docs.chain.link/data-feeds/feed-registry
-const FEED_REGISTRY_ADDRESS: `0x${string}` = '0x47Fb2585D2C56218820E33aF67D6d0066676e84f';
+// Chainlink Feed Registry contract on Ethereum Mainnet.
+// Canonical, deployed address (verified on-chain: getCode returns runtime
+// bytecode that self-identifies as "FeedRegistry 1.0.0" and owner() resolves
+// to the Chainlink multisig 0x21f73D42...). The previous constant
+// (0x47Fb2585D2C56218820E33aF67D6d0066676e84f) was a typo and is NOT deployed
+// on mainnet (eth_getCode == 0x), so discovery silently returned zero feeds.
+// Reference: https://docs.chain.link/data-feeds/feed-registry
+const FEED_REGISTRY_ADDRESS: `0x${string}` = '0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf';
 
 const FEED_REGISTRY_ABI = [
   {
