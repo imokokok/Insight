@@ -24,7 +24,12 @@ VALUES
   ('switchboard', 'USDD',   0, '3922ac076865b648c1e5fac88deed65127f2496ba91ff3d7ba85c8a852f6b381', 'USDD/USD',    18, 'stablecoin',  true, 'switchboard-crossbar', '{"quote":"USD","feedHash":"3922ac076865b648c1e5fac88deed65127f2496ba91ff3d7ba85c8a852f6b381","source_type":"surge-weighted"}'),
   ('switchboard', 'WIF',    0, '4195292b62f36aa94717ed48d3309fff60f1499c96f9dcf65165b85fc9ceeb96', 'WIF/USD',     18, 'crypto',     true, 'switchboard-crossbar', '{"quote":"USD","feedHash":"4195292b62f36aa94717ed48d3309fff60f1499c96f9dcf65165b85fc9ceeb96","source_type":"surge-weighted"}'),
   ('switchboard', 'XRP',    0, '4403dfe267ac4f30e15c10e21fb8ddfc4a4d42f69f2ca3d88c18c657f0ff8710', 'XRP/USD',     18, 'crypto',     true, 'switchboard-crossbar', '{"quote":"USD","feedHash":"4403dfe267ac4f30e15c10e21fb8ddfc4a4d42f69f2ca3d88c18c657f0ff8710","source_type":"surge-weighted"}'),
-  ('switchboard', 'FRAX',   0, '15eef02c4b3a0d1c3d830756d483ec265eee9b403952ea468de649d32c63f2b5', 'FRAX/USD',    18, 'stablecoin',  true, 'switchboard-crossbar', '{"quote":"USD","feedHash":"15eef02c4b3a0d1c3d830756d483ec265eee9b403952ea468de649d32c63f2b5","source_type":"surge-weighted"}')
+  ('switchboard', 'FRAX',   0, '15eef02c4b3a0d1c3d830756d483ec265eee9b403952ea468de649d32c63f2b5', 'FRAX/USD',    18, 'stablecoin',  true, 'switchboard-crossbar', '{"quote":"USD","feedHash":"15eef02c4b3a0d1c3d830756d483ec265eee9b403952ea468de649d32c63f2b5","source_type":"surge-weighted"}'),
+  -- HYPE / ICP were already present in switchboardSymbols + SWITCHBOARD_FEED_IDS
+  -- (verified 2026-08-01), and the live rows already exist; added here so this
+  -- migration is a complete, reproducible source of truth for the Raul set.
+  ('switchboard', 'HYPE',   0, '63e105a067be323be6114d3b6c6d96293203c4b8ad3d0dee5e159ea2af77b59c', 'HYPE/USD',    18, 'crypto',     true, 'switchboard-crossbar', '{"quote":"USD","feedHash":"63e105a067be323be6114d3b6c6d96293203c4b8ad3d0dee5e159ea2af77b59c","source_type":"surge-weighted"}'),
+  ('switchboard', 'ICP',    0, 'eea5c8930eecc680b0330edba97a56352cd6a144537f4c9c2d92f609da2371bc', 'ICP/USD',     18, 'crypto',     true, 'switchboard-crossbar', '{"quote":"USD","feedHash":"eea5c8930eecc680b0330edba97a56352cd6a144537f4c9c2d92f609da2371bc","source_type":"surge-weighted"}')
 ON CONFLICT (provider, symbol, chain_id)
 DO UPDATE SET
   address   = EXCLUDED.address,
