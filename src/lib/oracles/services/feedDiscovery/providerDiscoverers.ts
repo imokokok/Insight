@@ -20,7 +20,7 @@ export async function discoverChainlinkFeeds(): Promise<DiscoveryResult> {
 
   try {
     const symbols = getChainlinkDiscoverySymbols();
-    const discovered = await feedRegistryService.discoverFeedsOnEthereum(symbols);
+    const discovered = await feedRegistryService.discoverFeedsOnAllChains(symbols);
     result.discovered = discovered.length;
 
     result.feeds = discovered.map((f) => ({

@@ -4,7 +4,11 @@ import { createLogger } from '@/lib/utils/logger';
 
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
-import { CHAINLINK_AGGREGATOR_ABI, getChainlinkRPCConfig } from './chainlinkDataSources';
+import {
+  CHAINLINK_AGGREGATOR_ABI,
+  CHAINLINK_RPC_CONFIG,
+  getChainlinkRPCConfig,
+} from './chainlinkDataSources';
 
 const logger = createLogger('FeedRegistryService');
 
@@ -74,15 +78,16 @@ class FeedRegistryService {
   private rpcClient = new RpcClientWithFallback({ contextLabel: 'feed-registry' });
 
   /**
-   * Discover Chainlink feeds on Ethereum Mainnet via the Feed Registry contract.
-   * For each known symbol, queries getFeed(symbol, USD) to find the aggregator address,
-   * then reads decimals and description from the aggregator.
+   * Discover Chainlink feeds on a single chain via the Feed Registry contract.
+   * For each known symbol, queries getFeed(symbol, USD) to find the aggregator
+   * address, then reads decimals and description from the aggregator. Chains
+   * without a deployed Feed Registry simply yield no feeds (getFeed returns the
+   * zero address), so it is safe to call this for every RPC-configured chain.
    */
-  async discoverFeedsOnEthereum(symbols: string[]): Promise<DiscoveredFeed[]> {
-    const chainId = 1;
+  async discoverFeedsOnChain(chainId: number, symbols: string[]): Promise<DiscoveredFeed[]> {
     const config = getChainlinkRPCConfig(chainId);
     if (!config) {
-      logger.error('No RPC config for Ethereum Mainnet');
+      logger.warn(`No RPC config for chain ${chainId}; skipping Chainlink feed discovery`);
       return [];
     }
 
@@ -109,8 +114,39 @@ class FeedRegistryService {
       }
     }
 
-    logger.info(`Discovered ${feeds.length}/${symbols.length} feeds on Ethereum Mainnet`);
+    logger.info(`Discovered ${feeds.length}/${symbols.length} Chainlink feeds on chain ${chainId}`);
     return feeds;
+  }
+
+  /**
+   * Discover Chainlink feeds across every RPC-configured chain. The set of
+   * chains is derived from CHAINLINK_RPC_CONFIG so that adding RPC for a new
+   * chain automatically enables its feed discovery — no hard-coded chain list
+   * to keep in sync. Chains without a Feed Registry yield no feeds.
+   */
+  async discoverFeedsOnAllChains(symbols: string[]): Promise<DiscoveredFeed[]> {
+    const chainIds = Object.keys(CHAINLINK_RPC_CONFIG).map(Number);
+    logger.info(
+      `Discovering Chainlink feeds across ${chainIds.length} RPC-configured chains via Feed Registry`
+    );
+
+    const perChain = await Promise.allSettled(
+      chainIds.map((chainId) => this.discoverFeedsOnChain(chainId, symbols))
+    );
+
+    const all: DiscoveredFeed[] = [];
+    for (const result of perChain) {
+      if (result.status === 'fulfilled') {
+        all.push(...result.value);
+      } else {
+        logger.warn('Chainlink discovery failed for a chain', {
+          error: result.reason instanceof Error ? result.reason.message : String(result.reason),
+        });
+      }
+    }
+
+    logger.info(`Discovered ${all.length} Chainlink feeds total across ${chainIds.length} chains`);
+    return all;
   }
 
   private async discoverSingleFeed(

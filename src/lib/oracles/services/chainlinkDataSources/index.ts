@@ -4,6 +4,7 @@ import { CHAINLINK_RPC_CONFIG, type ChainlinkRPCConfig } from './rpcConfig';
 
 export type { ChainlinkPriceFeed } from './priceFeedConfig';
 export { CHAINLINK_PRICE_FEEDS } from './priceFeedConfig';
+export { CHAINLINK_RPC_CONFIG } from './rpcConfig';
 export { CHAINLINK_AGGREGATOR_ABI } from './abi';
 
 function getFeedFromHardcoded(symbol: string, chainId: number): ChainlinkPriceFeed | null {

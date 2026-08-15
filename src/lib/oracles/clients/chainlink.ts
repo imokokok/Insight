@@ -68,6 +68,15 @@ const CHAINLINK_QUALITY_CONFIG = {
 
 export class ChainlinkClient extends BaseOracleClient {
   name = OracleProvider.CHAINLINK;
+  // Chains ChainlinkClient can actually serve. This MUST stay in sync with
+  // CHAINLINK_RPC_CONFIG (rpcConfig.ts): a chain only works here if it has an
+  // RPC endpoint and a deployed Feed Registry. Solana/Starknet are excluded —
+  // they are non-EVM and the EVM Feed Registry/aggregator path cannot query
+  // them. Scroll/zkSync Era/Linea were added alongside their RPC entries.
+  // NOTE: do NOT derive this from CHAINLINK_RPC_CONFIG at class-field init —
+  // that import is circular (chainlinkDataSources → cache → supabase/server →
+  // back to this client) and leaves the binding undefined under Jest/CJS,
+  // throwing "Cannot convert undefined or null to object". Keep it explicit.
   supportedChains = [
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
@@ -76,6 +85,9 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.AVALANCHE,
     Blockchain.BNB_CHAIN,
     Blockchain.BASE,
+    Blockchain.SCROLL,
+    Blockchain.ZKSYNC,
+    Blockchain.LINEA,
   ];
 
   defaultUpdateIntervalMinutes = 60;
