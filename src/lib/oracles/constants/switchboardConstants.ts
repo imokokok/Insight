@@ -119,6 +119,18 @@ export const switchboardSymbols = [
   'XTZ',
   'YFI',
   'ZEC',
+  // Added 2026-08-15: Raul (ThoughtProof) tested these but Insight had no
+  // Switchboard feed — pulled from the live Surge catalogue (WEIGHTED/USD) and
+  // verified via GET /v2/update/{feedHash} → 200. Switchboard is chain-agnostic
+  // (c0) so these now count on every chain, including Ethereum.
+  // NOTE: MEGA was in the candidate set but its live feed hash returns no response
+  // (connection reset on crossbar), so it is intentionally excluded until healthy.
+  'POPCAT',
+  'PYUSD',
+  'STG',
+  'TAO',
+  'USDD',
+  'VVV',
 ] as const;
 
 /**
@@ -160,6 +172,13 @@ export const SWITCHBOARD_FEED_IDS: Record<string, string> = {
   FLOW: '002423ab6a34cd9827d92a94b67cf2c611ee6b3d190ba662f4899eeba37f7c0e',
   FLR: '8507ae5c76f392962e19f165194c6ec7581d6d6997e932022618a94e345383c4',
   FRAX: '15eef02c4b3a0d1c3d830756d483ec265eee9b403952ea468de649d32c63f2b5',
+  // Added 2026-08-15 (verified against live Surge catalogue, GET /v2/update/{feedHash} → 200):
+  POPCAT: 'e3cfb81941ca1dec019eec5a29d686fdde6e2d51e2b13f33a68cde2b72c72cc0',
+  PYUSD: '9ac21ccc4e8778c25119fa13a1e876f24a4bc42ca4f5912a05bec75759fa66d9',
+  STG: 'fd7a2e4bac42db5ca96a8a50592aedbe5101c87ca46bb8da1565fe9a99102056',
+  TAO: '3a06687cf8ccf9c5155c33b4faa539d2aab759447dd46bcf4a87f6a8363a7ba5',
+  USDD: '3922ac076865b648c1e5fac88deed65127f2496ba91ff3d7ba85c8a852f6b381',
+  VVV: '422f7dfd33dbe4066716777ac1a0e740009672d33fae47c66a5c0bbe70f13d1f',
   GALA: 'f7cc4982e9e37ad59fae1d7c439b57b7c2c0877d481df2ce01c9004bdfa6543a',
   GMX: '1d5dece10edcb41d1cf4a19aa65fac0d261b455eb57586b51ee3a923b82bc07a',
   GRT: '35780e5a1b059d795fa71cb527cba43069af8d9000a3d3f5225f6a573bf9d89d',

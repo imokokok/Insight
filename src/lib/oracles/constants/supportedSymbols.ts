@@ -152,6 +152,17 @@ export const redstoneSymbols = [
   'ARB',
   'OP',
   'INJ',
+  // Added 2026-08-15: confirmed served by RedStone's `redstone-rapid` signed
+  // price feed (api.redstone.finance/prices?provider=redstone-rapid) but
+  // previously absent from this static gate, so RedStone was excluded from the
+  // cross-chain quorum for Raul-collaboration BLOCKed assets. Adding them lets
+  // RedStone count as an independent participant on Ethereum.
+  // NOTE: ICP and STG were also probed but RedStone's rapid feed returns HTTP 500
+  // for them (symbol not in the signed feed), so they are intentionally excluded.
+  'TAO',
+  'HYPE',
+  'MEGA',
+  'PYUSD',
   // DeFi Tokens
   'AAVE',
   'SNX',
