@@ -240,8 +240,17 @@ export const redstoneSymbols = [
   'XPD',
 ] as const;
 
-// DIA supported symbols (based on actual detection results - 2026-04-14)
-// Only including symbols that can be correctly fetched
+// DIA supported symbols.
+//
+// Symbols with a verified blockchain + contract address live in
+// DIA_ASSET_MAPPING and resolve via the precise /v1/assetQuotation endpoint.
+// Symbols without a pinned address resolve via DIA's symbol-based
+// /v1/quotation/{symbol} fallback (see diaPriceService.getAssetPrice) — this
+// keeps the whitelist from silently dropping feeds. The list also covers every
+// asset tracked by the platform's other oracles so DIA participates in
+// cross-oracle comparison; forex/commodity/equity entries may not resolve on
+// DIA's free tier (graceful null, no error).
+// Expanded 2026-08-16 to close the cross-oracle coverage gap.
 export const diaSymbols = [
   'BTC',
   'ETH',
@@ -342,6 +351,111 @@ export const diaSymbols = [
   'LSK',
   'STEEM',
   'WAN',
+  // ── Added 2026-08-16: cross-oracle coverage gap ──
+  // Symbols already tracked by other oracles in the platform but previously
+  // absent from DIA's whitelist, so DIA never contributed to cross-oracle
+  // comparison for them. DIA's free API serves these; resolution now falls back
+  // to the symbol-based /v1/quotation/{symbol} endpoint (see diaPriceService),
+  // so no per-symbol contract address is required here.
+  'AAPL',
+  'AMZN',
+  'APE',
+  'AR',
+  'AUD',
+  'BAND',
+  'BLUR',
+  'BOME',
+  'BONK',
+  'BRL',
+  'BSV',
+  'BTT',
+  'CAD',
+  'CAKE',
+  'CBBTC',
+  'CFX',
+  'CHF',
+  'CNY',
+  'COIN',
+  'CVX',
+  'DASH',
+  'EIGEN',
+  'ENA',
+  'ENS',
+  'EUR',
+  'EURC',
+  'FLOKI',
+  'FLR',
+  'FXS',
+  'GBP',
+  'GOOGL',
+  'GRT',
+  'HKD',
+  'HYPE',
+  'IDR',
+  'IMX',
+  'INR',
+  'IO',
+  'JPY',
+  'JST',
+  'JTO',
+  'JUP',
+  'KAVA',
+  'KRW',
+  'LUSD',
+  'MANTA',
+  'MEGA',
+  'MEME',
+  'META',
+  'METH',
+  'MNT',
+  'MSFT',
+  'MXN',
+  'NFT',
+  'NOK',
+  'NOT',
+  'NVDA',
+  'NZD',
+  'ONDO',
+  'PAXG',
+  'PHP',
+  'POPCAT',
+  'PYUSD',
+  'REN',
+  'RETH',
+  'RPL',
+  'RUNE',
+  'SEK',
+  'SGB',
+  'SGD',
+  'STETH',
+  'STG',
+  'STRK',
+  'STX',
+  'SUN',
+  'SUPRA',
+  'TAO',
+  'TBTC',
+  'THETA',
+  'TRY',
+  'TSLA',
+  'TUSD',
+  'UMA',
+  'USDD',
+  'USDJ',
+  'USDS',
+  'VVV',
+  'W',
+  'WIN',
+  'WLD',
+  'XAG',
+  'XAU',
+  'XAUT',
+  'XDC',
+  'XPD',
+  'XPT',
+  'ZAR',
+  'ZK',
+  'ZRO',
 ] as const;
 
 // API3 dAPIs require an active paid plan; feeds deactivate when plans expire.

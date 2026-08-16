@@ -39,12 +39,24 @@ export class DIAPriceService {
 
       const assetConfig = await getDIAAssetConfigAsync(upperSymbol);
 
-      if (!assetConfig) {
-        logger.warn('Symbol not supported by DIA oracle', { symbol });
-        return null;
+      let url: string;
+      if (assetConfig) {
+        // Precise, address-based quotation for symbols we have a verified
+        // blockchain + contract mapping for.
+        url = `${DIA_API_BASE_URL}/assetQuotation/${assetConfig.blockchain}/${assetConfig.address}`;
+      } else {
+        // No hardcoded mapping and no DB feed for this symbol. DIA's free API
+        // also exposes a symbol-based quotation endpoint, so fall back to it
+        // instead of returning null. This is what makes the diaSymbols
+        // whitelist actually deliver data: the DIA_ASSET_MAPPING/DB address set
+        // is intentionally small, and without this fallback every whitelisted
+        // symbol lacking a pinned contract address (liquid majors like
+        // DOGE/XRP/SHIB/PEPE that DIA serves for free) silently dropped out.
+        // Symbols are not unique, so DIA returns the highest-volume match - an
+        // acceptable best-effort for cross-oracle comparison. 404 => symbol
+        // genuinely unsupported (resolved to null, not retried).
+        url = `${DIA_API_BASE_URL}/quotation/${upperSymbol}`;
       }
-
-      const url = `${DIA_API_BASE_URL}/assetQuotation/${assetConfig.blockchain}/${assetConfig.address}`;
 
       // DIA's public API (api.diadata.org) is flaky and occasionally returns
       // 5xx / times out for a few seconds. Without a retry, a single transient
@@ -58,7 +70,7 @@ export class DIAPriceService {
             timeout: REQUEST_TIMEOUT,
             signal,
           }),
-        `dia:assetQuotation:${upperSymbol}`,
+        `dia:quotation:${upperSymbol}`,
         ORACLE_RETRY_PRESETS.standard,
         signal
       );
