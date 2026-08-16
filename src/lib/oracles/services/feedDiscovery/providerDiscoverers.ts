@@ -218,7 +218,7 @@ export async function discoverRedStoneFeeds(): Promise<DiscoveryResult> {
 
   try {
     const response = await fetch(
-      'https://api.redstone.finance/prices?provider=redstone&limit=1000',
+      'https://api.redstone.finance/prices?provider=redstone&limit=5000',
       { signal: AbortSignal.timeout(30000) }
     );
 
@@ -226,12 +226,14 @@ export async function discoverRedStoneFeeds(): Promise<DiscoveryResult> {
       throw new Error(`RedStone API returned ${response.status}`);
     }
 
-    const data = (await response.json()) as Array<{
-      symbol: string;
-      value: number;
-      timestamp: number;
-    }>;
-    const prices = Array.isArray(data) ? data : [];
+    const data = (await response.json()) as
+      | Array<{ symbol: string; value: number; timestamp?: number }>
+      | Record<string, { symbol: string; value: number; timestamp?: number }>;
+    // RedStone's prices endpoint returns an OBJECT (symbol -> feed) for the
+    // full-feed (no `symbols=`) query, not an array. The old `Array.isArray`
+    // guard therefore made this discovery a permanent no-op (0 feeds). Normalise
+    // both shapes so we actually ingest the ~1000+ public RedStone feeds.
+    const prices = Array.isArray(data) ? data : Object.values(data ?? {});
 
     for (const item of prices) {
       if (!item.symbol) continue;
