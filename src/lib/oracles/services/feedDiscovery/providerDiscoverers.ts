@@ -289,6 +289,12 @@ const API3_DISCOVERY_CHAINS: Blockchain[] = [
   Blockchain.OPTIMISM,
 ];
 
+// Categories we actually cross-reference for free on-chain price feeds.
+// Admitting these lets discovery consider every sponsored dAPI instead of the
+// old arbitrary tracked-symbol gate; Equities/Commodities are excluded because
+// API3 carries essentially none of them as live /USD feeds.
+const API3_DISCOVERY_CATEGORIES = new Set(['Cryptocurrency', 'Stablecoin', 'Forex']);
+
 interface Api3DapiCatalogEntry {
   name: string;
   stage?: string;
@@ -342,9 +348,21 @@ export async function discoverAPI3Feeds(): Promise<DiscoveryResult> {
   try {
     const catalog = await fetchApi3DapiCatalog();
 
-    // Bound candidate dAPIs to symbols the project actually tracks so we
-    // don't fan out probes for hundreds of dAPIs the project will never
-    // query (equities/forex the project doesn't follow, etc.).
+    // Previously this gate was `trackedSymbols.has(base)` — a dAPI was only
+    // discovered if its base symbol already appeared in *some other* oracle's
+    // tracked list. That silently dropped ~half of API3's active /USD dAPIs
+    // (stETH, tBTC, cbBTC, USDe, GHO, POL, BERA, ...) that are genuinely
+    // sponsored/serving but simply not tracked elsewhere. Verified against the
+    // live catalog on 2026-08-16: 108 active /USD dAPIs, 55 of them excluded
+    // by the old gate.
+    //
+    // The real correctness gate is the on-chain `probeFeed` (it rejects
+    // unsponsored / stale dAPIs via the 48h freshness check), so we no longer
+    // need a tracked-symbol pre-filter. Instead we admit every active /USD dAPI
+    // in a category we actually cross-reference, and only fall back to the
+    // tracked set for dAPIs the catalogue left uncategorised — so we never lose
+    // a feed we already serve. Equities/Commodities are dropped (see
+    // API3_DISCOVERY_CATEGORIES above).
     const trackedSymbols = new Set(getAllSupportedSymbols().map((s) => s.toUpperCase()));
 
     const activeUsdDapis: Api3DapiCatalogEntry[] = [];
@@ -355,7 +373,12 @@ export async function discoverAPI3Feeds(): Promise<DiscoveryResult> {
       // dAPIs — their proxies return no data on any chain.
       if (dapi.stage && dapi.stage !== 'active') continue;
       const base = name.replace(/\/USD$/, '').toUpperCase();
-      if (!trackedSymbols.has(base)) continue;
+      const category = dapi.metadata?.category;
+      if (category) {
+        if (!API3_DISCOVERY_CATEGORIES.has(category)) continue;
+      } else if (!trackedSymbols.has(base)) {
+        continue;
+      }
       activeUsdDapis.push(dapi);
     }
 

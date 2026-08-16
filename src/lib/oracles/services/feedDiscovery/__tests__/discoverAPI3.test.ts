@@ -140,4 +140,41 @@ describe('discoverAPI3Feeds (catalog-based)', () => {
     expect(result.errors).toEqual([]);
     expect(result.discovered).toBe(7);
   });
+
+  it('discovers crypto/stablecoin dAPIs even when the base symbol is not tracked elsewhere', async () => {
+    const catalog = [
+      {
+        name: 'NEWCOIN/USD',
+        stage: 'active',
+        metadata: { category: 'Cryptocurrency' },
+        providers: [],
+      },
+      {
+        name: 'NEWSTABLE/USD',
+        stage: 'active',
+        metadata: { category: 'Stablecoin' },
+        providers: [],
+      },
+    ];
+    global.fetch = jest.fn().mockResolvedValue(mockCatalogResponse(catalog)) as never;
+
+    const result = await discoverAPI3Feeds();
+
+    const symbols = new Set(result.feeds.map((f) => f.symbol));
+    expect(symbols).toEqual(new Set(['NEWCOIN', 'NEWSTABLE']));
+  });
+
+  it('drops Equities/Commodities dAPIs that the project does not cross-reference', async () => {
+    const catalog = [
+      { name: 'AAPL/USD', stage: 'active', metadata: { category: 'Equities' }, providers: [] },
+      { name: 'XAU/USD', stage: 'active', metadata: { category: 'Commodities' }, providers: [] },
+      { name: 'BTC/USD', stage: 'active', metadata: { category: 'Cryptocurrency' }, providers: [] },
+    ];
+    global.fetch = jest.fn().mockResolvedValue(mockCatalogResponse(catalog)) as never;
+
+    const result = await discoverAPI3Feeds();
+
+    const symbols = new Set(result.feeds.map((f) => f.symbol));
+    expect(symbols).toEqual(new Set(['BTC']));
+  });
 });
