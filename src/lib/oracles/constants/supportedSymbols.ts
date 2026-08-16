@@ -634,6 +634,10 @@ export const winklinkSymbols = [
   'TUSD',
   'USDJ',
   'WBTC',
+  // Added 2026-08-16: verified live on TRON mainnet (see winklinkRealDataService WINKLINK_PRICE_FEEDS)
+  'U',
+  'BTTOLD', // legacy BTT (pre-swap) — live but legacy token
+  'SUNOLD', // legacy SUN (pre-migration) — live but legacy token
 ] as const;
 
 export const WINKLINK_SYMBOL_ALIASES: Record<string, string> = {

@@ -33,13 +33,6 @@ export class WINkLinkClient extends BaseOracleClient {
       const upperSymbol = symbol.toUpperCase();
       const resolvedSymbol = WINKLINK_SYMBOL_ALIASES[upperSymbol] || upperSymbol;
 
-      if (resolvedSymbol === 'WIN') {
-        throw this.createError(
-          'WIN token price is not available from WINkLink oracle network',
-          'NO_DATA_AVAILABLE'
-        );
-      }
-
       const realDataService = getWINkLinkRealDataService();
       const realPrice = await realDataService.getPriceFromContract(
         resolvedSymbol,

@@ -364,6 +364,10 @@ class FeedSyncService {
       'TUSD-USD': 'TBc3yBP8xcyQ1E3hDTUhRxToMrgekLH2kh',
       'USDJ-USD': 'TB1MyT7pDCNg8w7cSW1QvYKs4WPzErzP5k',
       'WBTC-USD': 'TCYS6aj9shB6rZNpTCqSkN1aTwkSnz1wHq',
+      // Added 2026-08-16: additional official mainnet USD feeds verified live on TRON mainnet.
+      'U-USD': 'TX6DsYNoMurRqnY9tRHuj4MnBoW76jVKa3',
+      'BTTOLD-USD': 'TEEnwU47Fgx4Ehii7Xs9bLWK3XKo4fs6sV', // legacy BTT (pre-swap)
+      'SUNOLD-USD': 'TEEuSdqyv2NFREtNoUXMTDSmJVK3KCuLac', // legacy SUN (pre-migration)
     };
 
     for (const [pair, address] of Object.entries(WINKLINK_PRICE_FEEDS)) {

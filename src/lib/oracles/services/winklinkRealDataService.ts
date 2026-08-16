@@ -61,6 +61,11 @@ const WINKLINK_PRICE_FEEDS: Record<string, string> = {
   'JST-USD': 'TE5rKoDzKmpVAQp1sn7x6V8biivR3d5r47', // JUST
   'SUN-USD': 'TRMgzSPsuWEcVpd5hv19XtLeCk8Z799sZa', // SUN
   'NFT-USD': 'TEC8b2oL6sAQFMiea73tTgjtTLwyV1GuZU', // APENFT
+  // Added 2026-08-16: additional official mainnet USD feeds verified live on TRON mainnet.
+  // (USDDOLD-USD intentionally omitted — its aggregator reverts "No access".)
+  'U-USD': 'TX6DsYNoMurRqnY9tRHuj4MnBoW76jVKa3',
+  'BTTOLD-USD': 'TEEnwU47Fgx4Ehii7Xs9bLWK3XKo4fs6sV', // legacy BTT (pre-swap)
+  'SUNOLD-USD': 'TEEuSdqyv2NFREtNoUXMTDSmJVK3KCuLac', // legacy SUN (pre-migration)
 };
 
 /**

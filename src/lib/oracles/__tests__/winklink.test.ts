@@ -217,17 +217,37 @@ describe('WINkLinkClient', () => {
   });
 
   describe('getPrice - WIN token', () => {
-    it('should reject WIN token with NO_DATA_AVAILABLE', async () => {
-      await expect(client.getPrice('WIN')).rejects.toMatchObject({
-        code: 'NO_DATA_AVAILABLE',
-      });
-      expect(mockRealDataService.getPriceFromContract).not.toHaveBeenCalled();
+    it('should fetch WIN token price like other symbols', async () => {
+      mockRealDataService.getPriceFromContract.mockResolvedValue(
+        createMockPriceData('WIN', 0.00003)
+      );
+
+      const result = await client.getPrice('WIN');
+
+      expect(mockRealDataService.getPriceFromContract).toHaveBeenCalledWith(
+        'WIN',
+        undefined,
+        undefined
+      );
+      expect(result.provider).toBe(OracleProvider.WINKLINK);
+      expect(result.symbol).toBe('WIN');
+      expect(result.price).toBe(0.00003);
+      expect(result.chain).toBe(Blockchain.TRON);
     });
 
-    it('should reject lowercase win token', async () => {
-      await expect(client.getPrice('win')).rejects.toMatchObject({
-        code: 'NO_DATA_AVAILABLE',
-      });
+    it('should normalize lowercase win token', async () => {
+      mockRealDataService.getPriceFromContract.mockResolvedValue(
+        createMockPriceData('WIN', 0.00003)
+      );
+
+      const result = await client.getPrice('win');
+
+      expect(mockRealDataService.getPriceFromContract).toHaveBeenCalledWith(
+        'WIN',
+        undefined,
+        undefined
+      );
+      expect(result.symbol).toBe('WIN');
     });
   });
 
