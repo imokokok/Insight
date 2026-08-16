@@ -302,6 +302,50 @@ export function buildSnapshotInputs(
 }
 
 /**
+ * Collapse snapshot inputs to at most ONE row per
+ * `(provider, symbol, chain_id)` — the unique key of `hourly_price_snapshots`
+ * (`hourly_price_snapshots_hour_provider_symbol_chain_uq`, migration 0017).
+ *
+ * WHY this is needed: `oracle_feeds` is keyed per feed
+ * (`provider, symbol, chain_id`), so a single asset can have several ACTIVE
+ * feeds that all resolve to the SAME base symbol at the snapshot layer — e.g.
+ * RedStone's chain-agnostic "ETH" and "ETH/USDC" both collapse to base "ETH" on
+ * `chain_id = 0` (via `extractBaseSymbol`). `fetchBatchPrices` legitimately
+ * pushes one query per matched feed, so without this collapse `upsert(...)`
+ * inside `upsertHourlySnapshots` would target the same unique row twice in a
+ * single statement and PostgreSQL throws
+ * "ON CONFLICT DO UPDATE command cannot affect row a second time", failing the
+ * whole collection run. This is a latent bug exposed when feed discovery started
+ * producing quote-suffixed chain-agnostic feeds.
+ *
+ * The chosen row keeps the most useful price: prefer a successful fetch; among
+ * successes the first seen wins (prices for the same asset are near-identical,
+ * so the row *identity* — not the exact value — is what must stay stable). A
+ * failed row is still kept when no success exists, so the hourly table still
+ * records the failure signal for that (provider, asset, chain).
+ *
+ * Feed health (`buildFeedHealthUpdates`) and consensus
+ * (`calculateConsensusBySymbol`) are computed from the RAW `results` array, so
+ * they are completely unaffected — every matched feed is still sampled, its
+ * health updated, and its price counted toward consensus.
+ *
+ * Pure + deterministic → unit-testable without DB or network.
+ */
+export function dedupeHourlySnapshotInputs(inputs: HourlySnapshotInput[]): HourlySnapshotInput[] {
+  const best = new Map<string, HourlySnapshotInput>();
+  for (const input of inputs) {
+    const key = `${input.provider}|${input.symbol}|${input.chainId}`;
+    const current = best.get(key);
+    // Prefer a successful row; once we hold a success, keep the first one
+    // (stable, near-identical asset price keeps the upserted row identity fixed).
+    if (!current || (!current.isSuccess && input.isSuccess)) {
+      best.set(key, input);
+    }
+  }
+  return [...best.values()];
+}
+
+/**
  * Map raw batch-fetch results into the feed-health update payload consumed by
  * `batchUpdateFeedHealth`.
  *
@@ -380,6 +424,11 @@ export async function collectSnapshot(): Promise<SnapshotCollectionResult> {
   const consensusBySymbol = calculateConsensusBySymbol(results);
 
   const inputs = buildSnapshotInputs(results, consensusBySymbol, snapshotHour);
+  // Collapse to one row per (provider, symbol, chain_id) BEFORE the upsert so a
+  // single asset backed by several active feeds (e.g. RedStone chain-agnostic
+  // "ETH" + "ETH/USDC") can't violate hourly_price_snapshots' unique key and
+  // crash the whole run. See dedupeHourlySnapshotInputs for the full rationale.
+  const hourlyInputs = dedupeHourlySnapshotInputs(inputs);
 
   const successCount = inputs.filter((i) => i.isSuccess).length;
   const failedCount = inputs.length - successCount;
@@ -390,7 +439,7 @@ export async function collectSnapshot(): Promise<SnapshotCollectionResult> {
 
   let insertedHourly = 0;
   try {
-    insertedHourly = await reportService.upsertHourlySnapshots(inputs);
+    insertedHourly = await reportService.upsertHourlySnapshots(hourlyInputs);
     logger.info(`Upserted ${insertedHourly} hourly snapshots for ${snapshotDate}`);
   } catch (upsertError) {
     const error = upsertError instanceof Error ? upsertError : new Error(String(upsertError));
@@ -448,7 +497,7 @@ export async function collectSnapshot(): Promise<SnapshotCollectionResult> {
     snapshotHour,
     snapshotTs: now,
     results,
-    inputs,
+    inputs: hourlyInputs,
     insertedHourly,
     updatedHealth,
     deactivated,
