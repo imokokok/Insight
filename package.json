@@ -24,6 +24,7 @@
     "clean:start": "rm -rf .next && next build && next start",
     "mcp:stdio": "tsx src/mcp/index.ts",
     "mcp:http": "tsx src/mcp/http-server.ts",
+    "sync:chainlink-catalog": "tsx scripts/sync-chainlink-catalog.ts",
     "test:mcp:e2e": "node --env-file=.env.local ./node_modules/.bin/jest src/mcp/__tests__/e2e.test.ts --testTimeout=120000 --runInBand",
     "prepare": "husky"
   },

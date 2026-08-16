@@ -2,12 +2,12 @@ import { type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 
+import { getAllCatalogFeeds } from '../../constants/chainlinkCatalogLoader';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '../../constants/chainMapping';
 import { getAllSupportedSymbols } from '../../constants/supportedSymbols';
 import { SWITCHBOARD_SURGE_FEEDS_URL } from '../../constants/switchboardConstants';
-import { feedRegistryService } from '../feedRegistryService';
 
-import { decodeFlareFeedId, getChainlinkDiscoverySymbols, inferCategory } from './discoveryHelpers';
+import { decodeFlareFeedId, inferCategory } from './discoveryHelpers';
 
 import type { DiscoveryResult } from './discoveryTypes';
 
@@ -19,25 +19,32 @@ export async function discoverChainlinkFeeds(): Promise<DiscoveryResult> {
   const result: DiscoveryResult = { provider: 'chainlink', discovered: 0, feeds: [], errors: [] };
 
   try {
-    const symbols = getChainlinkDiscoverySymbols();
-    const discovered = await feedRegistryService.discoverFeedsOnEthereum(symbols);
-    result.discovered = discovered.length;
+    // Iterate the committed catalog directory (the official universe). No live
+    // RPC is required — every network × base pair becomes a candidate feed, and
+    // the cron verify pass probes each one for a real price before upserting.
+    // This replaces the old mainnet-only Feed Registry probe (353-symbol
+    // whitelist) which was unreachable from the sandbox and returned nothing.
+    const catalogFeeds = getAllCatalogFeeds();
+    result.discovered = catalogFeeds.length;
 
-    result.feeds = discovered.map((f) => ({
+    result.feeds = catalogFeeds.map(({ symbol, chainId, entry }) => ({
       provider: 'chainlink',
-      symbol: f.symbol,
-      chain_id: f.chainId,
-      address: f.address,
-      name: f.description,
-      decimals: f.decimals,
-      category: f.category,
+      symbol,
+      chain_id: chainId,
+      address: entry.proxyAddress,
+      name: `${entry.base} / ${entry.quote}`,
+      decimals: entry.decimals,
+      category: entry.category,
       is_active: true,
-      source: 'feed-registry',
+      source: 'catalog',
     }));
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     result.errors.push(msg);
-    logger.error('Chainlink discovery failed', error instanceof Error ? error : new Error(msg));
+    logger.error(
+      'Chainlink catalog discovery failed',
+      error instanceof Error ? error : new Error(msg)
+    );
   }
 
   return result;

@@ -1,3 +1,8 @@
+import {
+  getCatalogSupportedSymbols,
+  getFeedFromCatalog,
+} from '../../constants/chainlinkCatalogLoader';
+
 import { feedCache, feedCacheKey, getFeedFromDatabase, isFeedCacheStale } from './cache';
 import { CHAINLINK_PRICE_FEEDS, type ChainlinkPriceFeed } from './priceFeedConfig';
 import { CHAINLINK_RPC_CONFIG, type ChainlinkRPCConfig } from './rpcConfig';
@@ -13,8 +18,9 @@ function getFeedFromHardcoded(symbol: string, chainId: number): ChainlinkPriceFe
 }
 
 /**
- * Get Chainlink price feed info from database first, falling back to hardcoded
- * data so basic assets work when the database is unavailable.
+ * Get Chainlink price feed info from database first, then the committed catalog
+ * directory (official universe), falling back to the curated hardcoded map so
+ * basic assets work when the database is unavailable.
  */
 export async function getChainlinkPriceFeedAsync(
   symbol: string,
@@ -29,20 +35,23 @@ export async function getChainlinkPriceFeedAsync(
     return dbFeed;
   }
 
-  return getFeedFromHardcoded(symbol, chainId);
+  // Directory-first: the committed catalog is the canonical official universe.
+  // Fall back to the curated hardcoded map only if the catalog has no entry.
+  return getFeedFromCatalog(symbol, chainId) ?? getFeedFromHardcoded(symbol, chainId);
 }
 
 /**
  * Synchronous version — reads from database cache if available.
- * Falls back to hardcoded data only if cache is empty (not yet seeded).
+ * Falls back to the catalog directory, then the curated hardcoded map (for
+ * bootstrapping before the DB is seeded).
  */
 export function getChainlinkPriceFeed(symbol: string, chainId: number): ChainlinkPriceFeed | null {
   // Check database cache first
   if (!isFeedCacheStale() && feedCache) {
     return feedCache.get(feedCacheKey(symbol, chainId)) || null;
   }
-  // Hardcoded fallback for bootstrapping before seed
-  return getFeedFromHardcoded(symbol, chainId);
+  // Catalog directory before the curated hardcoded fallback
+  return getFeedFromCatalog(symbol, chainId) ?? getFeedFromHardcoded(symbol, chainId);
 }
 
 export function getChainlinkRPCConfig(chainId: number): ChainlinkRPCConfig | null {
@@ -50,7 +59,11 @@ export function getChainlinkRPCConfig(chainId: number): ChainlinkRPCConfig | nul
 }
 
 export function getSupportedSymbols(): string[] {
-  return Object.keys(CHAINLINK_PRICE_FEEDS);
+  // The catalog is the broader official universe; union with the curated map so
+  // legacy callers still observe every symbol we explicitly track.
+  return Array.from(
+    new Set([...getCatalogSupportedSymbols(), ...Object.keys(CHAINLINK_PRICE_FEEDS)])
+  ).sort();
 }
 
 export function isPriceFeedSupported(symbol: string, chainId: number): boolean {

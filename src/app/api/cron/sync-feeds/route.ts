@@ -513,6 +513,23 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         return { status: 200, body: { success: true, mode: 'registry', results: summary } };
       }
 
+      case 'catalog': {
+        // Re-seed Chainlink feeds from the committed catalog directory (official
+        // universe). No live RPC required — safe to run on every cron tick and a
+        // best-effort refresh of the DB to match the directory. Run
+        // `npm run sync:chainlink-catalog` from an RPC-reachable env to EXPAND
+        // the directory itself to the full on-chain universe.
+        const results = [await feedSyncService.syncChainlinkFeedsFromCatalog()];
+        invalidateAllFeedsCache();
+        const summary = results.map((r) => ({
+          provider: r.provider,
+          discovered: r.discovered,
+          upserted: r.upserted,
+          errors: r.errors,
+        }));
+        return { status: 200, body: { success: true, mode: 'catalog', results: summary } };
+      }
+
       case 'verify': {
         // Verify existing feeds
         const results = [await feedSyncService.verifyChainlinkFeeds()];
@@ -547,7 +564,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         return {
           status: 400,
           body: {
-            error: `Unknown mode: ${mode}. Use: seed, discover, registry, verify, reactivate`,
+            error: `Unknown mode: ${mode}. Use: seed, discover, registry, catalog, verify, reactivate`,
           },
         };
     }

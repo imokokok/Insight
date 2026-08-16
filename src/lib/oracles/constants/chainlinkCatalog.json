@@ -1,0 +1,685 @@
+{
+  "version": "2026-08-16",
+  "source": "seed-from-CHAINLINK_PRICE_FEEDS; run `npm run sync:chainlink-catalog` to expand to official full set via on-chain Feed Registry",
+  "networks": {
+    "1": [
+      {
+        "base": "ETH",
+        "quote": "USD",
+        "proxyAddress": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BTC",
+        "quote": "USD",
+        "proxyAddress": "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "LINK",
+        "quote": "USD",
+        "proxyAddress": "0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "USDC",
+        "quote": "USD",
+        "proxyAddress": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+        "decimals": 8,
+        "category": "stablecoin"
+      },
+      {
+        "base": "USDT",
+        "quote": "USD",
+        "proxyAddress": "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D",
+        "decimals": 8,
+        "category": "stablecoin"
+      },
+      {
+        "base": "DAI",
+        "quote": "USD",
+        "proxyAddress": "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9",
+        "decimals": 8,
+        "category": "stablecoin"
+      },
+      {
+        "base": "MATIC",
+        "quote": "USD",
+        "proxyAddress": "0x7bAC85A8a13A4BcD8abb3eB7d6b4d632c5a57676",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "AVAX",
+        "quote": "USD",
+        "proxyAddress": "0xFF3EEb22B5E3dE6e705b44749C2559d704923FD7",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BNB",
+        "quote": "USD",
+        "proxyAddress": "0x14e613AC84a31f709eadbdF89C6CC390fDc9540A",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "AAVE",
+        "quote": "USD",
+        "proxyAddress": "0x547a514d5e3769680Ce22B2361c10Ea13619e8a9",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "APE",
+        "quote": "USD",
+        "proxyAddress": "0xD10aBbC76679a20055E167BB80A24ac851b37056",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "LDO",
+        "quote": "USD",
+        "proxyAddress": "0x4e844125952D32AcdF339BE976c98E22F6F318dB",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "1INCH",
+        "quote": "USD",
+        "proxyAddress": "0xc929ad75B72593967DE83E7F7Cda0493458261D9",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "WBTC",
+        "quote": "USD",
+        "proxyAddress": "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "CBBTC",
+        "quote": "USD",
+        "proxyAddress": "0x2665701293fCbEB223D11A08D826563EDcCE423A",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "TBTC",
+        "quote": "USD",
+        "proxyAddress": "0x8350b7De6a6a2C1368E7D4Bd968190e13E354297",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "STETH",
+        "quote": "USD",
+        "proxyAddress": "0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "EUR",
+        "quote": "USD",
+        "proxyAddress": "0xb49f677943BC038e9857d61E7d053CaA2C1734C1",
+        "decimals": 8,
+        "category": "forex"
+      },
+      {
+        "base": "GBP",
+        "quote": "USD",
+        "proxyAddress": "0x5c0Ab2d9b5a7ed9f470386e82BB36A3613cDd4b5",
+        "decimals": 8,
+        "category": "forex"
+      },
+      {
+        "base": "JPY",
+        "quote": "USD",
+        "proxyAddress": "0xBcE206caE7f0ec07b545EddE332A47C2F75bbeb3",
+        "decimals": 8,
+        "category": "forex"
+      },
+      {
+        "base": "CHF",
+        "quote": "USD",
+        "proxyAddress": "0x449d117117838fFA61263B61dA6301AA2a88B13A",
+        "decimals": 8,
+        "category": "forex"
+      },
+      {
+        "base": "AUD",
+        "quote": "USD",
+        "proxyAddress": "0x77F9710E7d0A19669A13c055F62cd80d313dF022",
+        "decimals": 8,
+        "category": "forex"
+      },
+      {
+        "base": "CAD",
+        "quote": "USD",
+        "proxyAddress": "0xa34317DB73e77d453b1B8d04550c44D10e981C8e",
+        "decimals": 8,
+        "category": "forex"
+      },
+      {
+        "base": "XAU",
+        "quote": "USD",
+        "proxyAddress": "0x214eD9Da11D2fbe465a6fc601a91E62EbEc1a0D6",
+        "decimals": 8,
+        "category": "commodity"
+      },
+      {
+        "base": "XAG",
+        "quote": "USD",
+        "proxyAddress": "0x379589227b15F1a12195D3f2d90bBc9F31f95235",
+        "decimals": 8,
+        "category": "commodity"
+      }
+    ],
+    "10": [
+      {
+        "base": "ETH",
+        "quote": "USD",
+        "proxyAddress": "0x13e3Ee699D1909E989722E753853AE30b17e08c5",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BTC",
+        "quote": "USD",
+        "proxyAddress": "0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "LINK",
+        "quote": "USD",
+        "proxyAddress": "0xCc232dcFAAE6354cE191Bd574108c1aD03f86450",
+        "decimals": 8,
+        "category": "crypto"
+      }
+    ],
+    "56": [
+      {
+        "base": "ETH",
+        "quote": "USD",
+        "proxyAddress": "0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BTC",
+        "quote": "USD",
+        "proxyAddress": "0x264990fbd0A4796A3E3d8E37C4d5F87a3aCa5Ebf",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "LINK",
+        "quote": "USD",
+        "proxyAddress": "0xca236E327F629f9Fc2c30A4E95775EbF0B89fac8",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BNB",
+        "quote": "USD",
+        "proxyAddress": "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "AAPL",
+        "quote": "USD",
+        "proxyAddress": "0xb7Ed5bE7977d61E83534230f3256C021e0fae0B6",
+        "decimals": 8,
+        "category": "equity"
+      },
+      {
+        "base": "AMZN",
+        "quote": "USD",
+        "proxyAddress": "0x51d08ca89d3E8c12535bA8AED33cdf2557AB5b2a",
+        "decimals": 8,
+        "category": "equity"
+      },
+      {
+        "base": "TSLA",
+        "quote": "USD",
+        "proxyAddress": "0xEEA2ae9c074E87596A85ABE698B2Afebc9B57893",
+        "decimals": 8,
+        "category": "equity"
+      },
+      {
+        "base": "GOOGL",
+        "quote": "USD",
+        "proxyAddress": "0xeDA73F8acb669274B15A977Cb0cdA57a84F18c2a",
+        "decimals": 8,
+        "category": "equity"
+      },
+      {
+        "base": "NVDA",
+        "quote": "USD",
+        "proxyAddress": "0xea5c2Cbb5cD57daC24E26180b19a929F3E9699B8",
+        "decimals": 8,
+        "category": "equity"
+      },
+      {
+        "base": "COIN",
+        "quote": "USD",
+        "proxyAddress": "0x2d1AB79D059e21aE519d88F978cAF39d74E31AEB",
+        "decimals": 8,
+        "category": "equity"
+      }
+    ],
+    "137": [
+      {
+        "base": "ETH",
+        "quote": "USD",
+        "proxyAddress": "0xF9680D99D6C9589e2a93a78A04A279e509205945",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BTC",
+        "quote": "USD",
+        "proxyAddress": "0xc907e116054ad103354f2d350fd2514433d57f6f",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "LINK",
+        "quote": "USD",
+        "proxyAddress": "0xd9FFdb71EbE7496cC440152d43986Aae0AB76665",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "MATIC",
+        "quote": "USD",
+        "proxyAddress": "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0",
+        "decimals": 8,
+        "category": "crypto"
+      }
+    ],
+    "8453": [
+      {
+        "base": "ETH",
+        "quote": "USD",
+        "proxyAddress": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BTC",
+        "quote": "USD",
+        "proxyAddress": "0x64c911996D3c6aC71f9b455B1E8E7266BcbD848f",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "LINK",
+        "quote": "USD",
+        "proxyAddress": "0x6b6C7139B4817185eAB5E1da0C09eEf74c7576f1",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "CBBTC",
+        "quote": "USD",
+        "proxyAddress": "0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D",
+        "decimals": 8,
+        "category": "crypto"
+      }
+    ],
+    "42161": [
+      {
+        "base": "ETH",
+        "quote": "USD",
+        "proxyAddress": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BTC",
+        "quote": "USD",
+        "proxyAddress": "0x6ce185860a4963106506C203335A2910413708e9",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "LINK",
+        "quote": "USD",
+        "proxyAddress": "0x86E53CF1B870786351Da77A57575e79CB55812CB",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "USDC",
+        "quote": "USD",
+        "proxyAddress": "0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3",
+        "decimals": 8,
+        "category": "stablecoin"
+      },
+      {
+        "base": "USDT",
+        "quote": "USD",
+        "proxyAddress": "0x3f3f5dF88dC9F13eac63DF89EC16ef6e7E25DdE7",
+        "decimals": 8,
+        "category": "stablecoin"
+      },
+      {
+        "base": "DAI",
+        "quote": "USD",
+        "proxyAddress": "0xc5C8E77B397E531B8EC06BFb0048328B30E9eCfB",
+        "decimals": 8,
+        "category": "stablecoin"
+      },
+      {
+        "base": "AVAX",
+        "quote": "USD",
+        "proxyAddress": "0x8bf61728eeDCE2F32c456454d87B5d6eD6150208",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BNB",
+        "quote": "USD",
+        "proxyAddress": "0x6970460aabF80C5BE983C6b74e5D06dEDCA95D4A",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "SOL",
+        "quote": "USD",
+        "proxyAddress": "0x24ceA4b8ce57cdA5058b924B9B9987992450590c",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "DOGE",
+        "quote": "USD",
+        "proxyAddress": "0x9A7FB1b3950837a8D9b40517626E11D4127C098C",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "AAVE",
+        "quote": "USD",
+        "proxyAddress": "0xaD1d5344AaDE45F43E596773Bcc4c423EAbdD034",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "MKR",
+        "quote": "USD",
+        "proxyAddress": "0xdE9f0894670c4EFcacF370426F10C3AD2Cdf147e",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "COMP",
+        "quote": "USD",
+        "proxyAddress": "0xe7C53FFd03Eb6ceF7d208bC4C13446c76d1E5884",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "APE",
+        "quote": "USD",
+        "proxyAddress": "0x221912ce795669f628c51c69b7d0873eDA9C03bB",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "LDO",
+        "quote": "USD",
+        "proxyAddress": "0xA43A34030088E6510FecCFb77E88ee5e7ed0fE64",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "YFI",
+        "quote": "USD",
+        "proxyAddress": "0x745Ab5b69E01E2BE1104Ca84937Bb71f96f5fB21",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "1INCH",
+        "quote": "USD",
+        "proxyAddress": "0x4bC735Ef24bf286983024CAd5D03f0738865Aaef",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "FRAX",
+        "quote": "USD",
+        "proxyAddress": "0x0809E3d38d1B4214958faf06D8b1B1a2b73f2ab8",
+        "decimals": 8,
+        "category": "stablecoin"
+      },
+      {
+        "base": "WBTC",
+        "quote": "USD",
+        "proxyAddress": "0xd0C7101eACbB49F3deCcCc166d238410D6D46d57",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "STETH",
+        "quote": "USD",
+        "proxyAddress": "0x07C5b924399cc23c24a95c8743DE4006a32b7f2a",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "SHIB",
+        "quote": "USD",
+        "proxyAddress": "0x0E278D14B4bf6429dDB0a1B353e2Ae8A4e128C93",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "UNI",
+        "quote": "USD",
+        "proxyAddress": "0x9C917083fDb403ab5ADbEC26Ee294f6EcAda2720",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "NEAR",
+        "quote": "USD",
+        "proxyAddress": "0xBF5C3fB2633e924598A46B9D07a174a9DBcF57C0",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "APT",
+        "quote": "USD",
+        "proxyAddress": "0xdc49F292ad1bb3DAb6C11363d74ED06F38b9bd9C",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "ARB",
+        "quote": "USD",
+        "proxyAddress": "0xb2A824043730FE05F3DA2efaFa1CBbe83fa548D6",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "OP",
+        "quote": "USD",
+        "proxyAddress": "0x205aaD468a11fd5D34fA7211bC6Bad5b3deB9b98",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "SNX",
+        "quote": "USD",
+        "proxyAddress": "0x054296f0D036b95531B4E14aFB578B80CFb41252",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "CRV",
+        "quote": "USD",
+        "proxyAddress": "0xaebDA2c976cfd1eE1977Eac079B4382acb849325",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "SUSHI",
+        "quote": "USD",
+        "proxyAddress": "0xb2A8BA74cbca38508BA1632761b56C897060147C",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "GMX",
+        "quote": "USD",
+        "proxyAddress": "0xDB98056FecFff59D032aB628337A4887110df3dB",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "GRT",
+        "quote": "USD",
+        "proxyAddress": "0x0F38D86FceF4955B705F35c9e41d1A16e0637c73",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "AXS",
+        "quote": "USD",
+        "proxyAddress": "0x5B58aA6E0651Ae311864876A55411F481aD86080",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "INJ",
+        "quote": "USD",
+        "proxyAddress": "0x6aCcBB82aF71B8a576B4C05D4aF92A83A035B991",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "SUI",
+        "quote": "USD",
+        "proxyAddress": "0x4a85B128EBDaFC24d5CB611e161376ffDECeB289",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "SEI",
+        "quote": "USD",
+        "proxyAddress": "0xCc9742d77622eE9abBF1Df03530594f9097bDcB3",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "TIA",
+        "quote": "USD",
+        "proxyAddress": "0x4096b9bfB4c34497B7a3939D4f629cf65EBf5634",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "TON",
+        "quote": "USD",
+        "proxyAddress": "0x0301e5D0A8f7490444ebd1921E3d0f0fe7722786",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "PEPE",
+        "quote": "USD",
+        "proxyAddress": "0x02DEd5a7EDDA750E3Eb240b54437a54d57b74dBE",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "WIF",
+        "quote": "USD",
+        "proxyAddress": "0xF7Ee427318d2Bd0EEd3c63382D0d52Ad8A68f90D",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "LUSD",
+        "quote": "USD",
+        "proxyAddress": "0x0411D28c94d85A36bC72Cb0f875dfA8371D8fFfF",
+        "decimals": 8,
+        "category": "stablecoin"
+      },
+      {
+        "base": "MNT",
+        "quote": "USD",
+        "proxyAddress": "0x37DDEE84dE03d039e1Bf809b7a01EDd2c4665771",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "RPL",
+        "quote": "USD",
+        "proxyAddress": "0xF0b7159BbFc341Cc41E7Cb182216F62c6d40533D",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "CVX",
+        "quote": "USD",
+        "proxyAddress": "0x851175a919f36c8e30197c09a9A49dA932c2CC00",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "CAKE",
+        "quote": "USD",
+        "proxyAddress": "0x256654437f1ADA8057684b18d742eFD14034C400",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BONK",
+        "quote": "USD",
+        "proxyAddress": "0x3d9145b5804E13Bc14d19c3DDbd3DA8fD02b5034",
+        "decimals": 8,
+        "category": "crypto"
+      }
+    ],
+    "43114": [
+      {
+        "base": "ETH",
+        "quote": "USD",
+        "proxyAddress": "0x976b3d034e162d8bd72d6b9c989d545b839003b0",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "BTC",
+        "quote": "USD",
+        "proxyAddress": "0x2779D32d5196c3C70aFc7189d76Ca6f99B2B8e7D",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "LINK",
+        "quote": "USD",
+        "proxyAddress": "0x1b8a25F73c9420dD507406C3A3816A276b62f56a",
+        "decimals": 8,
+        "category": "crypto"
+      },
+      {
+        "base": "AVAX",
+        "quote": "USD",
+        "proxyAddress": "0x0A77230d17318075983913bC2145DB16C7366156",
+        "decimals": 8,
+        "category": "crypto"
+      }
+    ]
+  }
+}

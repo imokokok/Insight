@@ -3,6 +3,7 @@ import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 import { createLogger } from '@/lib/utils/logger';
 
 import { OracleCache } from '../base';
+import { getCatalogSupportedChainIds } from '../constants/chainlinkCatalogLoader';
 import { stringToPrice } from '../utils/oracleDataUtils';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
@@ -346,16 +347,10 @@ class ChainlinkOnChainService {
   }
 
   getSupportedChainIds(symbol: string): number[] {
-    const chainIds: number[] = [];
-    const supportedChains = [1, 42161, 137, 8453, 43114, 56, 10];
-
-    for (const chainId of supportedChains) {
-      if (getChainlinkPriceFeedSync(symbol, chainId)) {
-        chainIds.push(chainId);
-      }
-    }
-
-    return chainIds;
+    // Directory-first: return every chain on which the committed catalog has a
+    // feed for this symbol. Previously this hard-coded the 7 app chains and
+    // probed the curated map; the catalog is the broader official universe.
+    return getCatalogSupportedChainIds(symbol);
   }
 
   isPriceFeedSupported(symbol: string, chainId: number): boolean {

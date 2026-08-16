@@ -2,6 +2,11 @@ import { type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
+import {
+  CHAINLINK_CATALOG_SOURCE,
+  CHAINLINK_CATALOG_VERSION,
+  getAllCatalogFeeds,
+} from '../constants/chainlinkCatalogLoader';
 import { DIA_ASSET_MAPPING, type DIAAssetConfig } from '../constants/diaConstants';
 import { FLARE_SYMBOL_TO_FEED_ID } from '../constants/flareConstants';
 import { REFLECTOR_ASSET_CONTRACT_MAP } from '../constants/reflectorConstants';
@@ -72,6 +77,51 @@ class FeedSyncService {
         result.discovered++;
       }
     }
+
+    result.upserted = await upsertFeeds(feeds);
+    return result;
+  }
+
+  /**
+   * Seed Chainlink feeds from the committed catalog directory (the official
+   * universe). This is now the PRIMARY seed path — it covers every network ×
+   * base pair we know about and does not require the on-chain Feed Registry to be
+   * reachable. Falls back to the curated hardcoded map only if the directory is
+   * somehow empty (defensive; should never happen).
+   */
+  async syncChainlinkFeedsFromCatalog(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'chainlink',
+      discovered: 0,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+
+    const catalogFeeds = getAllCatalogFeeds();
+    if (catalogFeeds.length === 0) {
+      // Defensive: if the directory is empty, fall back so we still seed the
+      // 95 hand-verified feeds instead of writing zero rows.
+      logger.warn('Chainlink catalog directory is empty; falling back to hardcoded map');
+      return this.seedChainlinkFeedsFromHardcoded();
+    }
+
+    const feeds: OracleFeedInsert[] = catalogFeeds.map(({ symbol, chainId, entry }) => ({
+      provider: 'chainlink',
+      symbol,
+      chain_id: chainId,
+      address: entry.proxyAddress,
+      name: `${entry.base} / ${entry.quote}`,
+      decimals: entry.decimals,
+      category: entry.category,
+      is_active: true,
+      source: 'catalog',
+    }));
+    result.discovered = feeds.length;
+
+    logger.info(
+      `Seeding Chainlink from catalog directory v${CHAINLINK_CATALOG_VERSION} (${CHAINLINK_CATALOG_SOURCE}) — ${feeds.length} feeds`
+    );
 
     result.upserted = await upsertFeeds(feeds);
     return result;
@@ -558,7 +608,7 @@ class FeedSyncService {
     const results: SyncResult[] = [];
 
     const seeders: Record<string, () => Promise<SyncResult>> = {
-      chainlink: () => this.seedChainlinkFeedsFromHardcoded(),
+      chainlink: () => this.syncChainlinkFeedsFromCatalog(),
       supra: () => this.seedSupraFeedsFromHardcoded(),
       dia: () => this.seedDIAFeedsFromHardcoded(),
       redstone: () => this.seedRedStoneFeedsFromHardcoded(),
@@ -574,8 +624,11 @@ class FeedSyncService {
     if (provider && seeders[provider]) {
       results.push(await seeders[provider]());
     } else if (provider === 'chainlink' || !provider) {
-      // For chainlink, also run registry discovery
-      results.push(await this.seedChainlinkFeedsFromHardcoded());
+      // Primary: seed the committed catalog directory (official universe, no RPC).
+      // Then run the on-chain Feed Registry as a best-effort mainnet freshness
+      // supplement (it updates proxy addresses / discovers any mainnet feeds the
+      // directory lacks). Other providers follow.
+      results.push(await this.syncChainlinkFeedsFromCatalog());
       results.push(await this.syncChainlinkFeedsFromRegistry());
       // Seed other providers
       for (const [name, seeder] of Object.entries(seeders)) {
