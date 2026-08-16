@@ -158,6 +158,9 @@ export const TWAP_TOKEN_ADDRESSES: Record<string, Record<number, `0x${string}`>>
   STETH: {
     1: ETHEREUM_TOKEN_ADDRESSES.STETH,
   },
+  RETH: {
+    1: '0xae78736Cd615f374D3085123A210448E74Fc6393',
+  },
   XRP: {
     1: '0x39fBBABf11738317a448031930706cd3e612e1B9',
   },
@@ -504,6 +507,108 @@ export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>>
       token1: 'USDC',
     },
   },
+  // --- Verified-via-on-chain-probe feeds (scripts/_tmp_twap_verify_feeds.mjs) ---
+  // All pools below confirmed: Uniswap V3 Factory.getPool exists, slot0 valid,
+  // and observe([1800,0]) succeeds (i.e. observationCardinality covers the
+  // default 30-min TWAP window). Picked the deepest USDC/WETH pool per chain.
+  MKR: {
+    1: {
+      address: '0xe8c6c9227491C0a8156A0106A0204d881BB7E531',
+      feeTier: 3000,
+      token0: 'MKR',
+      token1: 'WETH',
+    },
+  },
+  COMP: {
+    1: {
+      address: '0xea4Ba4CE14fdd287f380b55419B1C5b6c3f22ab6',
+      feeTier: 3000,
+      token0: 'COMP',
+      token1: 'WETH',
+    },
+    42161: {
+      // Thin 1% pool — verified fetchable but low liquidity; flag for monitoring.
+      address: '0x642E621DC9a68A3165557B58d56abdC5444faCB3',
+      feeTier: 10000,
+      token0: 'COMP',
+      token1: 'WETH',
+    },
+  },
+  SNX: {
+    1: {
+      address: '0xEDe8dd046586d22625Ae7fF2708F879eF7bdb8CF',
+      feeTier: 3000,
+      token0: 'SNX',
+      token1: 'WETH',
+    },
+    10: {
+      address: '0x0392b358CE4547601BEFa962680BedE836606ae2',
+      feeTier: 3000,
+      token0: 'WETH',
+      token1: 'SNX',
+    },
+  },
+  CRV: {
+    1: {
+      address: '0x919Fa96e88d67499339577Fa202345436bcDaf79',
+      feeTier: 3000,
+      token0: 'WETH',
+      token1: 'CRV',
+    },
+    42161: {
+      address: '0xa95b0F5a65a769d82AB4F3e82842E45B8bbAf101',
+      feeTier: 3000,
+      token0: 'CRV',
+      token1: 'WETH',
+    },
+  },
+  SUSHI: {
+    1: {
+      address: '0x73A6a761FE483bA19DeBb8f56aC5bbF14c0cdad1',
+      feeTier: 3000,
+      token0: 'SUSHI',
+      token1: 'WETH',
+    },
+    42161: {
+      // Thin 0.3% pool — verified fetchable but low liquidity; flag for monitoring.
+      address: '0xEB79e6aBFb3DCf64DA8B0967C3C61fdf57E84542',
+      feeTier: 3000,
+      token0: 'WETH',
+      token1: 'SUSHI',
+    },
+  },
+  BAL: {
+    1: {
+      address: '0xDC2c21F1B54dDaF39e944689a8f90cb844135cc9',
+      feeTier: 3000,
+      token0: 'BAL',
+      token1: 'WETH',
+    },
+  },
+  LDO: {
+    1: {
+      address: '0xa3f558aebAecAf0e11cA4b2199cC5Ed341edfd74',
+      feeTier: 3000,
+      token0: 'LDO',
+      token1: 'WETH',
+    },
+  },
+  STETH: {
+    1: {
+      address: '0x63818BbDd21E69bE108A23aC1E84cBf66399Bd7D',
+      feeTier: 10000,
+      token0: 'STETH',
+      token1: 'WETH',
+    },
+  },
+  RETH: {
+    1: {
+      address: '0xa4e0faA58465A2D369aa21B3e42d43374c6F9613',
+      feeTier: 500,
+      token0: 'RETH',
+      token1: 'WETH',
+    },
+  },
 };
 
 function buildEndpoints(alchemyUrl: string, publicEndpoints: string[]): string[] {
@@ -669,6 +774,10 @@ export const twapSymbols = [
 
   // Other major tokens
   'BNB',
+
+  // Liquid staking tokens (ETH-pegged, priced via WETH pool)
+  'STETH',
+  'RETH',
 ] as const;
 
 /**
