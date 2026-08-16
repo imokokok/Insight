@@ -184,6 +184,41 @@ export async function getActiveFeedsMap(provider: string): Promise<Map<string, O
   return loadFeedsForProvider(provider);
 }
 
+/**
+ * Synchronous, cache-only check for whether a provider currently has an active
+ * feed for a symbol. Reads the already-warm in-memory caches (populated by
+ * `loadFeedsForProvider` / `loadAllActiveFeeds`) WITHOUT triggering an async DB
+ * load, so it is safe to call from a synchronous context such as
+ * `BaseOracleClient.isSymbolSupported` (which is a sync method).
+ *
+ * Returns false when the cache is cold so the caller can fall back to its
+ * curated static symbol list. Used by RedStone's `isSymbolSupported` override:
+ * RedStone symbols are case-sensitive (e.g. `etrUSD_FUNDAMENTAL`), and the
+ * active-feed registry is the authoritative source for them, so a DB-backed
+ * check lets discovered (and mixed-case) feeds count as supported even though
+ * they are absent from the all-uppercase static list.
+ */
+export function isSymbolActiveInCacheSync(provider: string, symbol: string): boolean {
+  const normalized = extractBaseSymbol(symbol).toUpperCase();
+
+  // Per-provider cache (keyed by `${UPPERCASE}-${chainId}`). RedStone feeds are
+  // chain-agnostic (chain_id=0), so check the chain-0 key.
+  const providerCache = providerCaches.get(provider);
+  if (providerCache && !isCacheStale(provider)) {
+    if (providerCache.feeds.has(cacheKey(symbol, 0))) return true;
+  }
+
+  // Cross-provider aggregate cache — warmed by getAllActiveFeedsByProvider,
+  // which resolveProvidersForSymbol awaits before iterating providers.
+  if (allFeedsCache && !isAllFeedsCacheStale()) {
+    return allFeedsCache.feeds.some(
+      (f) => f.provider === provider && extractBaseSymbol(f.symbol).toUpperCase() === normalized
+    );
+  }
+
+  return false;
+}
+
 // ─── Cross-provider aggregates (backed by `loadAllActiveFeeds`) ──────
 // These are used by callers that previously hard-coded the full provider
 // list (sync-feeds cron, daily-report cron, dashboard SSR) or the full

@@ -53,6 +53,33 @@ export interface FeedSyncResult {
 }
 
 /**
+ * RedStone symbols are case-sensitive (e.g. `etrUSD_FUNDAMENTAL` / `CELO/EUR`);
+ * `redstone-rapid` returns HTTP 500 when a symbol is uppercased. During
+ * discovery these feeds are not yet in the active-feed table, so the shared
+ * `fetchPriceWithDatabase` path would reject them at the static
+ * `isSymbolSupported` gate (the curated list is all-uppercase) — and even if
+ * they passed, the live fetch would still uppercase and 500. Probe directly
+ * through the RedStone client with the original-case symbol (mirroring the API3
+ * branch above) so newly-discovered mixed-case feeds are verified and upserted.
+ */
+async function probeRedStoneFeed(feed: OracleFeed | OracleFeedInsert): Promise<boolean> {
+  try {
+    const provider = OracleProvider.REDSTONE;
+    const chain = getBlockchainByChainId(feed.chain_id);
+    const client = getDefaultFactory().getClient(provider);
+    const price = await Promise.race([
+      client.getPrice(feed.symbol, chain),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), VERIFY_TIMEOUT_MS)),
+    ]);
+    return (
+      !!price && typeof price.price === 'number' && Number.isFinite(price.price) && price.price > 0
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Probe-fetch a single feed to verify it can actually return a price.
  * Returns true if the feed successfully returns a valid price.
  */
@@ -64,6 +91,10 @@ async function probeFeed(feed: OracleFeed | OracleFeedInsert): Promise<boolean> 
     // client's default (Ethereum), which would cause checkSymbolActive to
     // reject them. chain_id=0 (chain-agnostic) → undefined → default chain.
     const chain = getBlockchainByChainId(feed.chain_id);
+
+    if (provider === OracleProvider.REDSTONE) {
+      return probeRedStoneFeed(feed);
+    }
 
     // API3 dAPIs are cross-chain and their per-chain activation can only be
     // confirmed by reading the communal proxy contract. The candidate feed

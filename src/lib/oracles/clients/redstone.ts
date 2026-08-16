@@ -7,6 +7,7 @@ import {
   isRedStoneSymbolSupportedAsync,
 } from '@/lib/oracles/constants/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
@@ -147,8 +148,14 @@ export class RedStoneClient extends BaseOracleClient {
           }
 
           try {
+            // RedStone's `redstone-rapid` endpoint is case-sensitive: mixed-case
+            // symbols such as `etrUSD_FUNDAMENTAL` / `CELO/EUR` return HTTP 500
+            // when uppercased. The canonical casing is supplied by the caller
+            // (the DB-feed symbol from discovery / fetchPriceWithDatabase's
+            // matched feed), so we pass it through verbatim. encodeURIComponent
+            // keeps pair-style symbols (e.g. `CELO/EUR`) safe in the query string.
             const response = await fetch(
-              `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}&provider=redstone-rapid`,
+              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol)}&provider=redstone-rapid`,
               {
                 method: 'GET',
                 headers: {
@@ -273,7 +280,10 @@ export class RedStoneClient extends BaseOracleClient {
 
     return {
       provider: this.name,
-      symbol: symbol.toUpperCase(),
+      // Preserve the exact requested casing — RedStone symbols are case-sensitive
+      // (e.g. `etrUSD_FUNDAMENTAL`) and downstream grouping keys off the
+      // requested symbol, so uppercasing here would corrupt mixed-case symbols.
+      symbol,
       price,
       timestamp,
       decimals: 8,
@@ -307,7 +317,7 @@ export class RedStoneClient extends BaseOracleClient {
             ...realPrice,
             chain,
             verification: buildApiVerification(
-              `${REDSTONE_API_BASE}/prices?symbol=${symbol.toUpperCase()}`,
+              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol)}`,
               'getPrice',
               'RedStone API'
             ),
@@ -329,6 +339,26 @@ export class RedStoneClient extends BaseOracleClient {
     this.cache.stopCleanupInterval();
     this.cache.clear();
     this.cache.startCleanupInterval();
+  }
+
+  /**
+   * DB-first symbol support, overriding the base class's curated static-list
+   * check. RedStone symbols are case-sensitive (e.g. `etrUSD_FUNDAMENTAL`),
+   * and the active-feed registry is the authoritative source — discovery upserts
+   * feeds (including mixed-case ones) that are absent from the all-uppercase
+   * static list. Without this, `resolveProvidersForSymbol` would exclude
+   * RedStone for any symbol not in the static list, so it would never be fetched
+   * or counted as a provider in consensus / pre-trade quorum.
+   *
+   * Reads the warm in-memory feed cache synchronously (no async DB call, since
+   * this is a sync method) and falls back to the curated static list — and its
+   * chain check — when the cache is cold.
+   */
+  override isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    if (isSymbolActiveInCacheSync('redstone', symbol)) {
+      return true;
+    }
+    return super.isSymbolSupported(symbol, chain);
   }
 
   override destroy(): void {
@@ -357,7 +387,7 @@ export class RedStoneClient extends BaseOracleClient {
       const dataAge = refTime ? Math.round((now - refTime) / 1000) : null;
 
       const onChainData: RedStoneTokenOnChainData = {
-        symbol: symbol.toUpperCase(),
+        symbol,
         price: priceData.price,
         decimals: priceData.decimals || 8,
         bid: priceData.confidenceInterval?.bid || null,

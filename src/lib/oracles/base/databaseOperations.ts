@@ -85,7 +85,7 @@ async function checkSymbolActive(
   provider: OracleProvider,
   baseSymbol: string,
   chainId: number
-): Promise<{ supported: boolean; activeFeeds: OracleFeed[] }> {
+): Promise<{ supported: boolean; activeFeeds: OracleFeed[]; matchedSymbol: string | null }> {
   // Hot-path optimization: iterate the cached feeds Map directly (no
   // `Array.from` allocation) with early exit. Only materialize the full
   // array when the symbol is NOT supported, since that array is used
@@ -101,16 +101,25 @@ async function checkSymbolActive(
     // hardcoded list.  This keeps the system usable when the DB is empty
     // while still rejecting clearly unsupported symbols.
     const client = getOracleClient(provider);
-    return { supported: client.isSymbolSupported(baseSymbol, undefined), activeFeeds: [] };
+    return {
+      supported: client.isSymbolSupported(baseSymbol, undefined),
+      activeFeeds: [],
+      matchedSymbol: null,
+    };
   }
 
   let supported = false;
+  let matchedSymbol: string | null = null;
   for (const feed of feedsMap.values()) {
     if (
       extractBaseSymbol(feed.symbol).toUpperCase() === baseSymbol &&
       matchesChainId(feed, chainId)
     ) {
       supported = true;
+      // Preserve the DB-stored (possibly mixed-case) symbol so providers whose
+      // API is case-sensitive (e.g. RedStone's `etrUSD_FUNDAMENTAL`) can be
+      // fetched in their canonical casing instead of the uppercased base.
+      matchedSymbol = feed.symbol;
       break;
     }
   }
@@ -126,13 +135,13 @@ async function checkSymbolActive(
     // query the provider explicitly supports.
     const client = await getOracleClient(provider);
     if (client.isSymbolSupported(baseSymbol, undefined)) {
-      return { supported: true, activeFeeds: [] };
+      return { supported: true, activeFeeds: [], matchedSymbol: null };
     }
     const activeFeeds = Array.from(feedsMap.values());
-    return { supported: false, activeFeeds };
+    return { supported: false, activeFeeds, matchedSymbol: null };
   }
 
-  return { supported: true, activeFeeds: [] };
+  return { supported: true, activeFeeds: [], matchedSymbol };
 }
 
 function getSupportedSymbolsForError(
@@ -226,12 +235,27 @@ export async function fetchPriceWithDatabase(
     // GitHub Action discovery, so price APIs follow the same supported-symbol
     // set as the symbol list. Hard-coded constants are used as a fallback when
     // the database is unreachable.
-    const { supported, activeFeeds } = await checkSymbolActive(provider, baseSymbol, chainId);
+    const { supported, activeFeeds, matchedSymbol } = await checkSymbolActive(
+      provider,
+      baseSymbol,
+      chainId
+    );
     if (!supported) {
       const supportedSymbols = getSupportedSymbolsForError(activeFeeds, chainId, () =>
         client.getSupportedSymbols()
       );
       throw UnsupportedSymbolError.create(baseSymbol, supportedSymbols, provider);
+    }
+
+    // RedStone's price API (redstone-rapid) is case-sensitive: mixed-case
+    // symbols such as `etrUSD_FUNDAMENTAL` / `CELO/EUR` return HTTP 500 when
+    // uppercased. The shared `baseSymbol` above is uppercased for the
+    // case-insensitive support gate, but the live fetch must use the DB-stored
+    // canonical casing (recovered via matchedSymbol) so we hit the API with the
+    // exact symbol. All other providers keep the uppercased base symbol.
+    let fetchSymbol = baseSymbol;
+    if (provider === OracleProvider.REDSTONE && matchedSymbol) {
+      fetchSymbol = matchedSymbol;
     }
 
     // DB cache lookup. A fresh cached row is returned as-is; a stale row is
@@ -244,7 +268,7 @@ export async function fetchPriceWithDatabase(
     // to the live fetch below unchanged.
     let staleDbPrice: PriceData | null = null;
     if (!forceRefresh && useDatabase && shouldUseDatabase()) {
-      const dbPrice = await getPriceFromDatabase(provider, baseSymbol, chain);
+      const dbPrice = await getPriceFromDatabase(provider, fetchSymbol, chain);
       if (dbPrice) {
         if (!isDbPriceStale(dbPrice, provider)) {
           return dbPrice;
@@ -263,7 +287,7 @@ export async function fetchPriceWithDatabase(
     }
 
     try {
-      const livePrice = await client.getPrice(baseSymbol, chain);
+      const livePrice = await client.getPrice(fetchSymbol, chain);
       if (!PROVIDERS_SKIPPING_DB_SAVE.has(provider)) {
         savePriceToDatabase(livePrice)
           .then(() => {
@@ -274,14 +298,14 @@ export async function fetchPriceWithDatabase(
             logger.error(
               'Failed to save price to database',
               err instanceof Error ? err : new Error(String(err)),
-              { provider, symbol: baseSymbol }
+              { provider, symbol: fetchSymbol }
             );
             if (consecutiveSaveFailures >= SAVE_FAILURE_THRESHOLD) {
               logger.warn(
                 'Price database save has failed consecutively; check database connectivity',
                 {
                   provider,
-                  symbol: baseSymbol,
+                  symbol: fetchSymbol,
                   consecutiveFailures: consecutiveSaveFailures,
                   threshold: SAVE_FAILURE_THRESHOLD,
                 }
@@ -353,7 +377,11 @@ export async function fetchHistoricalPricesWithDatabase(
     const client = await getOracleClient(provider);
     const chainId = getTargetChainId(chain, client.getDefaultChain());
 
-    const { supported, activeFeeds } = await checkSymbolActive(provider, baseSymbol, chainId);
+    const { supported, activeFeeds, matchedSymbol } = await checkSymbolActive(
+      provider,
+      baseSymbol,
+      chainId
+    );
     if (!supported) {
       const supportedSymbols = getSupportedSymbolsForError(activeFeeds, chainId, () =>
         client.getSupportedSymbols()
@@ -361,14 +389,22 @@ export async function fetchHistoricalPricesWithDatabase(
       throw UnsupportedSymbolError.create(baseSymbol, supportedSymbols, provider);
     }
 
+    // RedStone's API is case-sensitive; use the DB-stored canonical casing for
+    // the historical fetch so mixed-case symbols (e.g. `etrUSD_FUNDAMENTAL`)
+    // are not uppercased into a 500. Other providers keep the uppercased base.
+    let fetchSymbol = baseSymbol;
+    if (provider === OracleProvider.REDSTONE && matchedSymbol) {
+      fetchSymbol = matchedSymbol;
+    }
+
     if (useDatabase && shouldUseDatabase()) {
-      const dbPrices = await getHistoricalPricesFromDatabase(provider, baseSymbol, chain, period);
+      const dbPrices = await getHistoricalPricesFromDatabase(provider, fetchSymbol, chain, period);
       if (dbPrices && dbPrices.length > 0) {
         return dbPrices;
       }
     }
 
-    const livePrices = await client.getHistoricalPrices(baseSymbol, chain, period);
+    const livePrices = await client.getHistoricalPrices(fetchSymbol, chain, period);
     return livePrices;
   } catch (error) {
     if (error instanceof PriceFetchError || error instanceof OracleClientError) {

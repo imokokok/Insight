@@ -1,6 +1,7 @@
 import { OracleProviderError } from '@/lib/errors';
 import { RedStoneClient } from '@/lib/oracles/clients/redstone';
 import { REDSTONE_API_BASE } from '@/lib/oracles/constants/redstoneConstants';
+import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 global.fetch = jest.fn();
@@ -15,6 +16,14 @@ jest.mock('@/lib/utils/logger', () => ({
     error: jest.fn(),
     debug: jest.fn(),
   }),
+}));
+
+// Mock the feed-resolver cache helper so we can drive the DB-aware
+// isSymbolSupported override deterministically (cold cache → fallback to the
+// static list; warm cache → DB feed counts as supported).
+jest.mock('@/lib/oracles/utils/dynamicFeedResolver', () => ({
+  resolveFeed: jest.fn(),
+  isSymbolActiveInCacheSync: jest.fn(() => false),
 }));
 
 const createMockResponse = (
@@ -48,6 +57,9 @@ describe('RedStoneClient', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset the feed-resolver cache mock to "cold cache" so each test starts
+    // from the fallback (static list) path of the DB-aware isSymbolSupported.
+    (isSymbolActiveInCacheSync as jest.Mock).mockReturnValue(false);
     jest.useFakeTimers();
     mockFetch.mockReset();
     client = new RedStoneClient();
@@ -106,6 +118,29 @@ describe('RedStoneClient', () => {
       const symbols2 = client.getSupportedSymbols();
       expect(symbols1).not.toBe(symbols2);
       expect(symbols1).toEqual(symbols2);
+    });
+  });
+
+  describe('isSymbolSupported (DB-aware override)', () => {
+    it('returns true for a mixed-case symbol present in the active-feed cache', () => {
+      (isSymbolActiveInCacheSync as jest.Mock).mockReturnValue(true);
+
+      expect(client.isSymbolSupported('etrUSD_FUNDAMENTAL')).toBe(true);
+      expect(isSymbolActiveInCacheSync).toHaveBeenCalledWith('redstone', 'etrUSD_FUNDAMENTAL');
+    });
+
+    it('falls back to the static list when the cache is cold (false)', () => {
+      (isSymbolActiveInCacheSync as jest.Mock).mockReturnValue(false);
+
+      expect(client.isSymbolSupported('BTC')).toBe(true);
+      expect(client.isSymbolSupported('btc')).toBe(true);
+      expect(client.isSymbolSupported('UNKNOWN_SYMBOL_XYZ')).toBe(false);
+    });
+
+    it('still rejects a supported symbol on an unsupported chain', () => {
+      (isSymbolActiveInCacheSync as jest.Mock).mockReturnValue(false);
+
+      expect(client.isSymbolSupported('BTC', Blockchain.SOLANA)).toBe(false);
     });
   });
 
@@ -203,14 +238,34 @@ describe('RedStoneClient', () => {
       expect(result.chain).toBe(Blockchain.ARBITRUM);
     });
 
-    it('should handle lowercase symbol', async () => {
+    it('preserves the exact requested symbol case (RedStone rapid is case-sensitive)', async () => {
       mockFetch.mockResolvedValueOnce(createMockResponse([mockPriceData]));
 
       const result = await client.getPrice('btc');
 
-      expect(result.symbol).toBe('BTC');
+      // RedStone's redstone-rapid endpoint rejects uppercased/mismatched casing,
+      // so the client must forward the symbol verbatim rather than uppercasing it.
+      expect(result.symbol).toBe('btc');
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('symbol=BTC'),
+        expect.stringContaining('symbol=btc'),
+        expect.any(Object)
+      );
+    });
+
+    it('fetches mixed-case symbols without uppercasing (regression: etrUSD_FUNDAMENTAL)', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse([mockPriceData]));
+
+      const result = await client.getPrice('etrUSD_FUNDAMENTAL');
+
+      expect(result.symbol).toBe('etrUSD_FUNDAMENTAL');
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('symbol=etrUSD_FUNDAMENTAL'),
+        expect.any(Object)
+      );
+      // The buggy implementation uppercased to ETRUSD_FUNDAMENTAL, which the
+      // API answers with HTTP 500; assert we never send the uppercased form.
+      expect(mockFetch).not.toHaveBeenCalledWith(
+        expect.stringContaining('symbol=ETRUSD_FUNDAMENTAL'),
         expect.any(Object)
       );
     });
