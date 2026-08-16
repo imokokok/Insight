@@ -87,4 +87,17 @@ jobs:
             exit 0
           fi
           echo "Syncing ${PROVIDER} in ${MODE} mode..."
-          npx tsx scripts/sync-feeds.ts --mode="${MODE}" --provider="${PROVIDER}"
+          # Constant-only providers: these have no live-API discoverer, so
+          # `discover` mode is a no-op (it only verifies existing rows and adds
+          # nothing). Their feeds are curated in code constants and MUST be
+          # written via `seed` mode — otherwise new feeds (e.g. WINkLink U/BTTOLD/
+          # SUNOLD, Reflector forex, TWAP pools) never reach oracle_feeds and are
+          # silently excluded from cross-oracle consensus. Seed them explicitly.
+          case "${PROVIDER}" in
+            winklink|twap|twap-token|reflector)
+              npx tsx scripts/sync-feeds.ts --mode=seed --provider="${PROVIDER}"
+              ;;
+            *)
+              npx tsx scripts/sync-feeds.ts --mode="${MODE}" --provider="${PROVIDER}"
+              ;;
+          esac
