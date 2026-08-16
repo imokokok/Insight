@@ -66,7 +66,7 @@ function resolveChain(blockchain: string | undefined): Blockchain | undefined {
  * chain-agnostic feeds from pulling in providers such as Reflector that
  * only operate on Stellar).
  */
-async function resolveProvidersForSymbol(
+export async function resolveProvidersForSymbol(
   symbol: string,
   chain?: Blockchain
 ): Promise<OracleProvider[]> {
@@ -79,6 +79,7 @@ async function resolveProvidersForSymbol(
 
   for (const provider of Object.values(OracleProvider)) {
     let hasActiveFeed = false;
+    let hasSpecificChainFeed = false;
 
     const feeds = feedsByProvider.get(provider);
     if (feeds && feeds.length > 0) {
@@ -91,17 +92,34 @@ async function resolveProvidersForSymbol(
         const targetChainId = BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0;
         return chainId === targetChainId;
       });
+      // A DB-verified active feed bound to a concrete (non-zero) chain that
+      // matches the queried chain is sufficient proof of support, even when the
+      // provider's curated static list lags the DB. Chain-agnostic feeds
+      // (chain_id=0) are deliberately excluded here so a chain-specific
+      // provider (e.g. Reflector on Stellar) is never activated on a chain it
+      // does not serve. This mirrors the "trust the DB, don't gate on static
+      // lists" policy already applied in snapshotCollector.ts:117-120.
+      hasSpecificChainFeed = feeds.some((feed) => {
+        const feedSymbol = extractBaseSymbol((feed as { symbol: string }).symbol).toUpperCase();
+        if (feedSymbol !== baseSymbol) return false;
+        const chainId = (feed as { chain_id?: number }).chain_id ?? 0;
+        if (chainId === 0) return false;
+        if (!chain) return true;
+        const targetChainId = BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0;
+        return chainId === targetChainId;
+      });
     }
 
-    // Always delegate the final chain/symbol compatibility decision to the
-    // provider client. Active feeds alone are not enough because some feeds
-    // are chain-agnostic (chain_id=0) while the provider only supports a
-    // specific chain (e.g. Reflector on Stellar).
+    // The curated static list remains authoritative for chain-agnostic
+    // (chain_id=0) feeds. A concrete, DB-verified active feed on the queried
+    // chain overrides a stale static list so legitimately sponsored feeds are
+    // not silently dropped from consensus / pre-trade quorum.
     try {
       const client = getDefaultFactory().getClient(provider);
       if (
-        client.isSymbolSupported(baseSymbol, chain) &&
-        (hasActiveFeed || !feeds || feeds.length === 0)
+        (client.isSymbolSupported(baseSymbol, chain) &&
+          (hasActiveFeed || !feeds || feeds.length === 0)) ||
+        hasSpecificChainFeed
       ) {
         providers.push(provider);
       }
