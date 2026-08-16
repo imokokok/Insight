@@ -12,9 +12,10 @@ export const STELLAR_NETWORK_PASSPHRASE = 'Public Global Stellar Network ; Septe
 
 export const REFLECTOR_DEFAULT_ACCOUNT = 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF';
 
-// Reflector active assets verified against live Stellar RPC on 2026-07-03.
-// The contract only returns prices for the following crypto assets; all other
-// previously listed assets (including the entire forex set) currently fail.
+// Reflector active crypto assets, verified against live Stellar RPC on
+// 2026-08-16. `assets()` on the crypto contract lists 16 symbols, but MATIC
+// and DAI return `lastprice = null` (inactive feeds), so they are excluded.
+// The remaining 14 all serve live spot prices and match this list exactly.
 export const REFLECTOR_CRYPTO_ASSETS = [
   // Major Cryptocurrencies
   'BTC',
@@ -34,9 +35,38 @@ export const REFLECTOR_CRYPTO_ASSETS = [
   'EURC', // Circle Euro Coin
 ] as const;
 
-// Reflector's forex contract no longer returns data for the previously listed
-// pairs. Kept empty until the feed set is restored or re-verified.
-export const REFLECTOR_FOREX_ASSETS: string[] = [];
+// Reflector forex/commodity feeds, restored and verified against live Stellar
+// RPC on 2026-08-16. The forex contract (CBKGPWGK...) was previously empty
+// because it returned no data on 2026-07-03; it now serves all 24 symbols
+// below with live `lastprice` values (XAU is gold, a commodity feed). Decimals
+// match the crypto contract (14). These are Pulse (free) feeds — unconditionally
+// readable, no XRF payment required.
+export const REFLECTOR_FOREX_ASSETS = [
+  'EUR',
+  'GBP',
+  'CAD',
+  'BRL',
+  'JPY',
+  'CNY',
+  'MXN',
+  'KRW',
+  'TRY',
+  'ARS',
+  'PEN',
+  'VES',
+  'CLP',
+  'CRC',
+  'CDF',
+  'COP',
+  'HKD',
+  'INR',
+  'NGN',
+  'PHP',
+  'RUB',
+  'ZAR',
+  'XAU', // Gold (commodity)
+  'KES',
+] as const;
 
 export const REFLECTOR_ASSET_CONTRACT_MAP: Record<string, string> = {
   ...Object.fromEntries(REFLECTOR_CRYPTO_ASSETS.map((a) => [a, REFLECTOR_CRYPTO_CONTRACT])),
