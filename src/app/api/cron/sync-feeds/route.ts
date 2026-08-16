@@ -54,13 +54,18 @@ export interface FeedSyncResult {
 
 /**
  * RedStone symbols are case-sensitive (e.g. `etrUSD_FUNDAMENTAL` / `CELO/EUR`);
- * `redstone-rapid` returns HTTP 500 when a symbol is uppercased. During
+ * the price API returns HTTP 500 when a symbol is uppercased. During
  * discovery these feeds are not yet in the active-feed table, so the shared
  * `fetchPriceWithDatabase` path would reject them at the static
  * `isSymbolSupported` gate (the curated list is all-uppercase) — and even if
  * they passed, the live fetch would still uppercase and 500. Probe directly
  * through the RedStone client with the original-case symbol (mirroring the API3
  * branch above) so newly-discovered mixed-case feeds are verified and upserted.
+ *
+ * NOTE: RedStone discovery self-verifies from the prices the `provider=redstone`
+ * catalog already returns, so most feeds skip this probe entirely (see
+ * verifyDiscoveredFeeds' `preverified` short-circuit). This branch only runs for
+ * feeds that still need a live probe (e.g. reactivation / reconciliation).
  */
 async function probeRedStoneFeed(feed: OracleFeed | OracleFeedInsert): Promise<boolean> {
   try {
@@ -145,6 +150,15 @@ async function verifyDiscoveredFeeds(
   if (feeds.length === 0) return { verified: [], failedCount: 0 };
 
   const results = await mapWithConcurrency(feeds, VERIFY_CONCURRENCY, async (feed) => {
+    // RedStone discovery self-verifies from the live price the `provider=redstone`
+    // catalog already returns (see discoverRedStoneFeeds). Skip the per-symbol
+    // price probe for those feeds so we don't fire 1000+ rate-limited requests
+    // at RedStone from a single IP — the original cause of "collects almost
+    // nothing" (HTTP 500 -> 403 under bulk load, plus the 15-min timeout).
+    const meta = feed.metadata as Record<string, unknown> | undefined;
+    if (meta?.preverified === true) {
+      return { feed, ok: true };
+    }
     const ok = await Promise.race([
       probeFeed(feed),
       new Promise<boolean>((resolve) => setTimeout(() => resolve(false), VERIFY_TIMEOUT_MS)),

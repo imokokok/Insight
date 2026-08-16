@@ -148,14 +148,23 @@ export class RedStoneClient extends BaseOracleClient {
           }
 
           try {
-            // RedStone's `redstone-rapid` endpoint is case-sensitive: mixed-case
-            // symbols such as `etrUSD_FUNDAMENTAL` / `CELO/EUR` return HTTP 500
-            // when uppercased. The canonical casing is supplied by the caller
-            // (the DB-feed symbol from discovery / fetchPriceWithDatabase's
-            // matched feed), so we pass it through verbatim. encodeURIComponent
-            // keeps pair-style symbols (e.g. `CELO/EUR`) safe in the query string.
+            // RedStone's price API is case-sensitive: mixed-case symbols such as
+            // `etrUSD_FUNDAMENTAL` / `CELO/EUR` return HTTP 500 when uppercased.
+            // The canonical casing is supplied by the caller (the DB-feed symbol
+            // from discovery / fetchPriceWithDatabase's matched feed), so we pass
+            // it through verbatim. encodeURIComponent keeps pair-style symbols
+            // (e.g. `CELO/EUR`) safe in the query string.
+            //
+            // We query the `redstone` (full) data service, NOT `redstone-rapid`.
+            // Discovery pulls the full `provider=redstone` catalog (~1000+ feeds)
+            // and self-verifies from the prices it already returns, so the runtime
+            // fetch must use the SAME provider — otherwise the ~42% of symbols
+            // that have no `redstone-rapid` feed (RWA / `_FUNDAMENTAL` / many
+            // alt-coins) would 500 at snapshot time even though discovery proved
+            // they serve a valid price. `redstone` (full) serves the entire
+            // catalog; timestamps in the discovery payload were current.
             const response = await fetch(
-              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol)}&provider=redstone-rapid`,
+              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol)}&provider=redstone`,
               {
                 method: 'GET',
                 headers: {
@@ -317,7 +326,7 @@ export class RedStoneClient extends BaseOracleClient {
             ...realPrice,
             chain,
             verification: buildApiVerification(
-              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol)}`,
+              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol)}&provider=redstone`,
               'getPrice',
               'RedStone API'
             ),
@@ -395,7 +404,7 @@ export class RedStoneClient extends BaseOracleClient {
         spreadPercentage: priceData.confidenceInterval?.widthPercentage || null,
         supportedChainsCount: this.supportedChains.length,
         updateIntervalMinutes: this.defaultUpdateIntervalMinutes,
-        provider: priceData.source || 'redstone-rapid',
+        provider: priceData.source || 'redstone',
         dataAge,
         lastUpdated: priceData.timestamp,
       };

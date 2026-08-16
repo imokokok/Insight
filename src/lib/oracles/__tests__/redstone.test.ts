@@ -222,7 +222,7 @@ describe('RedStoneClient', () => {
       expect(result.confidenceInterval?.bid).toBeLessThan(result.price);
       expect(result.confidenceInterval?.ask).toBeGreaterThan(result.price);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${REDSTONE_API_BASE}/prices?symbol=BTC&provider=redstone-rapid`,
+        `${REDSTONE_API_BASE}/prices?symbol=BTC&provider=redstone`,
         expect.objectContaining({
           method: 'GET',
           headers: { Accept: 'application/json' },

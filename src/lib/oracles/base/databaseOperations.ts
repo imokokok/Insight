@@ -247,11 +247,11 @@ export async function fetchPriceWithDatabase(
       throw UnsupportedSymbolError.create(baseSymbol, supportedSymbols, provider);
     }
 
-    // RedStone's price API (redstone-rapid) is case-sensitive: mixed-case
-    // symbols such as `etrUSD_FUNDAMENTAL` / `CELO/EUR` return HTTP 500 when
-    // uppercased. The shared `baseSymbol` above is uppercased for the
-    // case-insensitive support gate, but the live fetch must use the DB-stored
-    // canonical casing (recovered via matchedSymbol) so we hit the API with the
+    // RedStone's price API is case-sensitive: mixed-case symbols such as
+    // `etrUSD_FUNDAMENTAL` / `CELO/EUR` return HTTP 500 when uppercased. The
+    // shared `baseSymbol` above is uppercased for the case-insensitive support
+    // gate, but the live fetch must use the DB-stored canonical casing
+    // (recovered via matchedSymbol) so we hit the API with the
     // exact symbol. All other providers keep the uppercased base symbol.
     let fetchSymbol = baseSymbol;
     if (provider === OracleProvider.REDSTONE && matchedSymbol) {

@@ -91,4 +91,42 @@ describe('discoverRedStoneFeeds', () => {
     expect(result.discovered).toBe(0);
     expect(result.errors.length).toBeGreaterThan(0);
   });
+
+  it('self-verifies each feed from the discovered price (preverified + discoveredValue)', async () => {
+    // The `provider=redstone` catalog returns each symbol WITH its live value,
+    // so discovery must mark feeds preverified (skipping the 1000+ rate-limited
+    // re-probes during verification) instead of re-fetching them.
+    mockFetch.mockResolvedValueOnce(
+      createMockResponse({
+        BTC: { symbol: 'BTC', value: 63000, timestamp: 1700000000000 },
+        ETH: { symbol: 'ETH', value: 3500, timestamp: 1700000000000 },
+      })
+    );
+
+    const result = await discoverRedStoneFeeds();
+
+    expect(result.discovered).toBe(2);
+    const btc = result.feeds.find((f) => f.symbol === 'BTC');
+    expect(btc?.metadata).toMatchObject({ preverified: true, discoveredValue: 63000 });
+    expect(btc?.source).toBe('redstone-api');
+  });
+
+  it('drops feeds whose discovered value is missing/non-finite/non-positive', async () => {
+    // A feed with no usable price must NOT be preverified (it would fail at
+    // runtime anyway). Discovery should skip it rather than upsert a dead feed.
+    mockFetch.mockResolvedValueOnce(
+      createMockResponse({
+        OK: { symbol: 'OK', value: 1, timestamp: 1700000000000 },
+        ZERO: { symbol: 'ZERO', value: 0, timestamp: 1700000000000 },
+        NEG: { symbol: 'NEG', value: -5, timestamp: 1700000000000 },
+        NAN: { symbol: 'NAN', value: NaN, timestamp: 1700000000000 },
+      })
+    );
+
+    const result = await discoverRedStoneFeeds();
+
+    expect(result.discovered).toBe(1);
+    expect(result.feeds.map((f) => f.symbol)).toEqual(['OK']);
+    expect(result.feeds[0].metadata).toMatchObject({ preverified: true });
+  });
 });

@@ -238,6 +238,24 @@ export async function discoverRedStoneFeeds(): Promise<DiscoveryResult> {
     for (const item of prices) {
       if (!item.symbol) continue;
 
+      // RedStone's `provider=redstone` (full) prices endpoint returns each
+      // feed WITH its current `value` + `timestamp`. That IS a live price, so we
+      // self-verify from it instead of re-fetching every symbol through the
+      // price client during discovery verification. Re-probing 1000+ symbols
+      // from a single IP trips RedStone's rate limit (HTTP 500 -> 403) and,
+      // combined with the 15-min job timeout, left discovery collecting almost
+      // nothing. Trusting the discovery payload avoids ~1000 outbound requests
+      // entirely. Guard: only keep feeds whose discovered value is a finite,
+      // positive number (mirrors parsePriceResponse's check).
+      const discoveredValue = item.value;
+      if (
+        typeof discoveredValue !== 'number' ||
+        !Number.isFinite(discoveredValue) ||
+        discoveredValue <= 0
+      ) {
+        continue;
+      }
+
       result.feeds.push({
         provider: 'redstone',
         symbol: item.symbol,
@@ -248,6 +266,13 @@ export async function discoverRedStoneFeeds(): Promise<DiscoveryResult> {
         category: inferCategory(item.symbol),
         is_active: true,
         source: 'redstone-api',
+        // Signals verifyDiscoveredFeeds to skip the per-symbol price probe —
+        // discovery already proved this feed serves a valid price.
+        metadata: {
+          preverified: true,
+          discoveredValue,
+          discoveredTimestamp: item.timestamp,
+        },
       });
     }
 
