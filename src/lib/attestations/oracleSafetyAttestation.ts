@@ -22,6 +22,7 @@
  */
 
 import { createLogger } from '@/lib/utils/logger';
+import { nowInSeconds } from '@/lib/utils/time';
 
 import { getAttesterAccount } from './attesterAccount';
 // Re-export so v1's public surface (getAttesterAddress) is unchanged.
@@ -136,7 +137,7 @@ function buildMessage(input: AttestationInput): AttestationData {
     maxDeviationBps: toUint(Math.abs(input.maxDeviationPct), BPS_SCALE),
     manipulationRiskBps: toUint(Math.max(0, Math.min(1, input.manipulationRiskScore)), 10000),
     participantCount: input.participantCount,
-    checkedAt: Math.floor(Date.now() / 1000),
+    checkedAt: nowInSeconds(),
     schemaVersion: ATTESTATION_SCHEMA_VERSION,
   };
 }
@@ -284,7 +285,7 @@ export async function verifyAttestation(
       };
     }
 
-    const now = Math.floor(Date.now() / 1000);
+    const now = nowInSeconds();
     const ageSeconds = message.checkedAt ? now - message.checkedAt : null;
     const expired = ageSeconds !== null && ageSeconds > attestation.validForSeconds;
 

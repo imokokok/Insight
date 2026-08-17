@@ -1,6 +1,7 @@
 import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
 import { createLogger } from '@/lib/utils/logger';
+import { nowInSeconds } from '@/lib/utils/time';
 
 import { OracleCache } from '../base';
 import { getCatalogSupportedChainIds } from '../constants/chainlinkCatalogLoader';
@@ -274,7 +275,7 @@ class ChainlinkOnChainService {
       }
 
       const STALE_PRICE_THRESHOLD_SECONDS = 3600;
-      const priceAge = Math.floor(Date.now() / 1000) - Number(decoded.updatedAt);
+      const priceAge = nowInSeconds() - Number(decoded.updatedAt);
       if (priceAge > STALE_PRICE_THRESHOLD_SECONDS) {
         logger.warn('Chainlink price is stale', {
           symbol: feed.symbol,

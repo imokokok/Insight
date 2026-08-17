@@ -13,6 +13,7 @@
  */
 
 import { createLogger } from '@/lib/utils/logger';
+import { nowInSeconds } from '@/lib/utils/time';
 
 const logger = createLogger('internalToken');
 
@@ -92,7 +93,7 @@ async function hmacSign(message: string): Promise<string> {
  * Generate a signed token: "hmac:timestamp".
  */
 export async function generateInternalToken(): Promise<string> {
-  const timestamp = Math.floor(Date.now() / 1000);
+  const timestamp = nowInSeconds();
   const signature = await hmacSign(String(timestamp));
   return `${signature}:${timestamp}`;
 }
@@ -112,7 +113,7 @@ export async function verifyInternalToken(token: string): Promise<boolean> {
   if (isNaN(timestamp)) return false;
 
   // Check expiry
-  const now = Math.floor(Date.now() / 1000);
+  const now = nowInSeconds();
   if (now - timestamp > TOKEN_TTL_SECONDS || timestamp - now > 60) {
     // Token is too old or has a future timestamp beyond 60s clock skew
     return false;

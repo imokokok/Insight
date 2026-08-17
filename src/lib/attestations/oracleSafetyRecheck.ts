@@ -33,6 +33,7 @@
  */
 
 import { createLogger } from '@/lib/utils/logger';
+import { nowInSeconds } from '@/lib/utils/time';
 
 import { getAttesterAccount } from './attesterAccount';
 import {
@@ -302,7 +303,7 @@ export async function verifyRecheck(
       };
     }
 
-    const now = Math.floor(Date.now() / 1000);
+    const now = nowInSeconds();
     const validUntil = Number(message.validUntil);
     const expired = now > validUntil;
 

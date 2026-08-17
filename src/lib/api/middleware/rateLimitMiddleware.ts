@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createLogger } from '@/lib/utils/logger';
+import { nowInSeconds } from '@/lib/utils/time';
 
 import { ApiResponseBuilder } from '../response';
 
@@ -147,7 +148,7 @@ function defaultRateLimitHandler(
   response.headers.set('Retry-After', String(retryAfter));
   response.headers.set('X-RateLimit-Limit', String(limit));
   response.headers.set('X-RateLimit-Remaining', '0');
-  response.headers.set('X-RateLimit-Reset', String(Math.floor(Date.now() / 1000) + retryAfter));
+  response.headers.set('X-RateLimit-Reset', String(nowInSeconds() + retryAfter));
 
   return response;
 }

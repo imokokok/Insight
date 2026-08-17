@@ -1,4 +1,5 @@
 import { createLogger } from '@/lib/utils/logger';
+import { nowInSeconds } from '@/lib/utils/time';
 
 import { OracleCache, createSingleton } from '../base';
 import {
@@ -142,7 +143,7 @@ class SwitchboardDataService {
           }
 
           // Crossbar `timestamp` is unix seconds when use_timestamp=true.
-          const timestampMs = (data.timestamp ?? Math.floor(Date.now() / 1000)) * 1000;
+          const timestampMs = (data.timestamp ?? nowInSeconds()) * 1000;
 
           return {
             price,

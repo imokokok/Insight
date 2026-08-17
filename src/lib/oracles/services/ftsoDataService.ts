@@ -1,6 +1,7 @@
 import { encodeFunctionData, decodeFunctionResult } from 'viem';
 
 import { createLogger } from '@/lib/utils/logger';
+import { nowInSeconds } from '@/lib/utils/time';
 
 import { OracleCache, createSingleton } from '../base';
 import {
@@ -221,7 +222,7 @@ class FtsoDataService {
 
       const feedData = this.decodeFeedResult(result);
       const price = this.calculatePrice(feedData.value, feedData.decimals);
-      const dataAge = Math.floor(Date.now() / 1000) - feedData.timestamp;
+      const dataAge = nowInSeconds() - feedData.timestamp;
 
       if (price <= 0) {
         throw new FtsoApiError(

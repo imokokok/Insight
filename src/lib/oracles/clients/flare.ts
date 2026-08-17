@@ -16,6 +16,7 @@ import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
+import { nowInSeconds } from '@/lib/utils/time';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
   OracleProvider,
@@ -160,7 +161,7 @@ export class FlareClient extends BaseOracleClient {
     const timestamp = toMilliseconds(ftsoData.timestamp);
     const confidenceInterval = this.generateConfidenceInterval(price, ftsoData.symbol);
 
-    const dataAgeSeconds = Math.floor(Date.now() / 1000) - ftsoData.timestamp;
+    const dataAgeSeconds = nowInSeconds() - ftsoData.timestamp;
     const freshnessScore = Math.max(0, 1 - dataAgeSeconds / 180);
     const dynamicConfidence = Math.min(0.99, 0.9 + freshnessScore * 0.09);
 
