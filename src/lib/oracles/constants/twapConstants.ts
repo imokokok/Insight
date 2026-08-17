@@ -609,14 +609,6 @@ export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>>
       token1: 'WETH',
     },
   },
-  ICP: {
-    1: {
-      address: '0xd62c876E09B238480995a92f9364Ecdef083c36f',
-      feeTier: 3000,
-      token0: 'ICP',
-      token1: 'WETH',
-    },
-  },
 };
 
 function buildEndpoints(alchemyUrl: string, publicEndpoints: string[]): string[] {
@@ -782,7 +774,6 @@ export const twapSymbols = [
 
   // Other major tokens
   'BNB',
-  'ICP', // Internet Computer — ICP/WETH 0.3% Uniswap V3 pool (0xd62c876E09B238480995a92f9364Ecdef083c36f)
 
   // Liquid staking tokens (ETH-pegged, priced via WETH pool)
   'STETH',
