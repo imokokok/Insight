@@ -205,6 +205,35 @@ export const DIA_ASSET_MAPPING: Record<string, DIAAssetConfig> = {
     blockchain: 'Ethereum',
     address: ETHEREUM_TOKEN_ADDRESSES.STETH,
   },
+  // ─── Raul canary set: verified DIA asset identifiers (2026-08-18) ────────
+  // These four were empirically confirmed against DIA's API to resolve to the
+  // CORRECT asset (no symbol-mapping collision) with 0% price spread across
+  // repeated pulls. Pinning the (blockchain, address) routes getAssetPrice to
+  // the precise `assetQuotation/{blockchain}/{address}` endpoint instead of the
+  // collision-prone `/quotation/{symbol}` fallback, eliminating the class of
+  // bug that previously made DIA flap ICP to an ETH-price match.
+  //   HYPE / ICP are native L1 tokens (no ERC-20), so their DIA address is the
+  //   chain-native identifier DIA indexes them under — NOT an Ethereum contract.
+  HYPE: {
+    symbol: 'HYPE',
+    blockchain: 'Hyperliquid',
+    address: '0x0d01dc56dcaaca66ad901c959b4011ec',
+  },
+  ICP: {
+    symbol: 'ICP',
+    blockchain: 'InternetComputer',
+    address: 'ryjl3-tyaaa-aaaaa-aaaba-cai',
+  },
+  VVV: {
+    symbol: 'VVV',
+    blockchain: 'Base',
+    address: '0xacfE6019Ed1A7Dc6f7B508C02d1b04ec88cC21bf',
+  },
+  STG: {
+    symbol: 'STG',
+    blockchain: 'Ethereum',
+    address: '0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6',
+  },
 };
 
 export async function getDIAAssetConfigAsync(symbol: string): Promise<DIAAssetConfig | null> {
