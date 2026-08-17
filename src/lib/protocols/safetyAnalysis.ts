@@ -1,3 +1,5 @@
+import { roundTo } from '@/lib/utils/format';
+
 import type {
   AssetAdjustment,
   AssetDeviationResult,
@@ -76,9 +78,9 @@ export function generateAdaptivePricePoints(
   }
 
   // Deduplicate and sort (descending)
-  const uniqueDeviations = Array.from(
-    new Set(deviationPoints.map((d) => Number(d.toFixed(2))))
-  ).sort((a, b) => b - a);
+  const uniqueDeviations = Array.from(new Set(deviationPoints.map((d) => roundTo(d, 2)))).sort(
+    (a, b) => b - a
+  );
 
   // Find the primary collateral (asset matching worstDeviation)
   const primaryCollateral = collaterals.find((c) => c.symbol === worstDeviation.symbol);
@@ -137,12 +139,12 @@ export function generateAdaptivePricePoints(
     }
 
     points.push({
-      deviationPercent: Number(deviation.toFixed(2)),
-      collateralPrice: Number(displayPrice.toFixed(2)),
-      collateralValue: Number(adjustedCollateralValue.toFixed(2)),
-      borrowValue: Number(adjustedBorrowValue.toFixed(2)),
-      collateralRatio: Number((ratio * 100).toFixed(2)),
-      healthFactor: Number(hf.toFixed(4)),
+      deviationPercent: roundTo(deviation, 2),
+      collateralPrice: roundTo(displayPrice, 2),
+      collateralValue: roundTo(adjustedCollateralValue, 2),
+      borrowValue: roundTo(adjustedBorrowValue, 2),
+      collateralRatio: roundTo(ratio * 100, 2),
+      healthFactor: roundTo(hf, 4),
       status,
       statusLabel,
     });
@@ -182,7 +184,7 @@ export function analyzeSafetyBuffer(
   for (const [symbol, deviation] of Object.entries(liveAssetDeviations)) {
     const absDev = Math.abs(deviation);
     if (absDev > 0) {
-      liveDepegBreakdown[symbol] = Number(absDev.toFixed(4));
+      liveDepegBreakdown[symbol] = roundTo(absDev, 4);
       liveDepegRiskPercent += absDev;
     }
   }
@@ -266,10 +268,10 @@ export function analyzeSafetyBuffer(
 
   return {
     overallLevel,
-    bufferPercent: Number(bufferPercent.toFixed(2)),
-    theoreticalBufferPercent: Number(theoreticalBufferPercent.toFixed(2)),
-    oracleAvgDeviationPercent: Number(oracleAvgDeviationPercent.toFixed(2)),
-    liveDepegRiskPercent: Number(liveDepegRiskPercent.toFixed(4)),
+    bufferPercent: roundTo(bufferPercent, 2),
+    theoreticalBufferPercent: roundTo(theoreticalBufferPercent, 2),
+    oracleAvgDeviationPercent: roundTo(oracleAvgDeviationPercent, 2),
+    liveDepegRiskPercent: roundTo(liveDepegRiskPercent, 4),
     liveDepegBreakdown,
     description,
     recommendations: recommendations.length > 0 ? recommendations : ['Position is in good shape'],
@@ -446,12 +448,12 @@ export function calculateSafetyParameterPlan(
   return {
     targetDeviationPercent,
     perAssetDeviationPercents,
-    targetHealthFactor: Number(targetHF.toFixed(4)),
-    targetCollateralRatio: Number(targetCollateralRatio.toFixed(4)),
+    targetHealthFactor: roundTo(targetHF, 4),
+    targetCollateralRatio: roundTo(targetCollateralRatio, 4),
     currentHealthFactor: currentHF,
-    currentWorstCaseHF: Number((isFinite(currentWorstHF) ? currentWorstHF : 0).toFixed(4)),
+    currentWorstCaseHF: roundTo(isFinite(currentWorstHF) ? currentWorstHF : 0, 4),
     needsAdjustment,
-    gapPercent: Number((isFinite(gapPercent) ? gapPercent : 0).toFixed(2)),
+    gapPercent: roundTo(isFinite(gapPercent) ? gapPercent : 0, 2),
     plans: {
       addCollateral: {
         adjustments: addCollateralAdjustments,

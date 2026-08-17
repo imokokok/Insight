@@ -8,6 +8,7 @@ import {
 } from '@/lib/oracles/constants/supraConstants';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import {
   OracleProvider,
@@ -202,7 +203,7 @@ export class SupraClient extends BaseOracleClient {
       const targetChain = chain || Blockchain.ETHEREUM;
 
       return data.map((item) => {
-        const change24h = Number((latestClose - item.close).toFixed(4));
+        const change24h = roundTo(latestClose - item.close, 4);
         const change24hPercent = Number(
           (((latestClose - item.close) / item.close) * 100).toFixed(2)
         );

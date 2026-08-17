@@ -1,5 +1,6 @@
 import { SupraClient } from '@/lib/oracles/clients/supra';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
+import { roundTo } from '@/lib/utils/format';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 jest.mock('@/lib/oracles/services/supraDataService', () => ({
@@ -314,10 +315,8 @@ describe('SupraClient', () => {
       const result = await client.getHistoricalPrices('BTC');
 
       const latestClose = 68000;
-      expect(result[0].change24h).toBe(Number((latestClose - 67200).toFixed(4)));
-      expect(result[0].change24hPercent).toBe(
-        Number((((latestClose - 67200) / 67200) * 100).toFixed(2))
-      );
+      expect(result[0].change24h).toBe(roundTo(latestClose - 67200, 4));
+      expect(result[0].change24hPercent).toBe(roundTo(((latestClose - 67200) / 67200) * 100, 2));
     });
 
     it('should return empty array for unsupported symbol', async () => {

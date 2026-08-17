@@ -8,6 +8,7 @@ import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
 import { oracleColors } from '@/lib/constants';
 import { DASHBOARD_ASSETS } from '@/lib/home/dashboardData';
 import type { DashboardPriceItem, ServerDashboardData } from '@/lib/home/dashboardData';
+import { roundTo } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
 
 import { AssetTable } from './AssetTable';
@@ -130,7 +131,7 @@ function computeAssetData(
     priceRange: {
       min: minPrice,
       max: maxPrice,
-      spreadPercent: Number(spreadPercent.toFixed(4)),
+      spreadPercent: roundTo(spreadPercent, 4),
     },
     providerCount: validPrices.length,
     totalProviders,

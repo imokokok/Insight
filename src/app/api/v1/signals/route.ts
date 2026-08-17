@@ -12,6 +12,7 @@ import { createCachedJsonResponse } from '@/lib/api/utils';
 import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { get7dAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
+import { roundTo } from '@/lib/utils/format';
 
 const SignalsQuerySchema = z.object({
   provider: SafeProviderSchema.optional(),
@@ -103,7 +104,7 @@ export const GET = createApiHandler(
 
     const averages: Record<string, number> = {};
     for (const [dim, agg] of Object.entries(vectorSums)) {
-      averages[dim] = agg.count > 0 ? Number((agg.sum / agg.count).toFixed(4)) : 0;
+      averages[dim] = agg.count > 0 ? roundTo(agg.sum / agg.count, 4) : 0;
     }
 
     const payload = {

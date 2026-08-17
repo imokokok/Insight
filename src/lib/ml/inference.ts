@@ -43,6 +43,7 @@
 
 import modelJson from '@/../ml/models/oracle_risk_model.json';
 
+import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('MlInference');
@@ -205,7 +206,7 @@ function verifyHorizon(horizon: MlHorizon): boolean {
       logger.warn('ML horizon self-verification failed; disabling this horizon', {
         evalWindowHours: horizon.evalWindowHours,
         expected,
-        got: Number(proba.toFixed(4)),
+        got: roundTo(proba, 4),
         tolerance: tol,
       });
       return false;
@@ -229,7 +230,7 @@ function getModel(): {
   const horizons: Record<string, { model: MlHorizon; verified: boolean }> = {};
 
   if (raw.version === 2) {
-    const m = raw as MlModelV2;
+    const m = raw;
     if (!m.active) return null;
     for (const [name, h] of Object.entries(m.horizons ?? {})) {
       if (!h || !h.trees || h.trees.length === 0) continue;
@@ -237,7 +238,7 @@ function getModel(): {
     }
   } else {
     // v1 legacy: single model at top level, treated as the 6h horizon.
-    const m = raw as MlModelV1;
+    const m = raw;
     if (!m.active || !m.trees || m.trees.length === 0) return null;
     const h: MlHorizon = {
       evalWindowHours: 6,
@@ -257,7 +258,7 @@ function getModel(): {
   cachedModel = {
     horizons,
     trainedAt: raw.trainedAt ?? null,
-    metrics: (raw as MlModelV2).metrics ?? {},
+    metrics: raw.metrics ?? {},
   };
   return cachedModel;
 }
@@ -289,7 +290,7 @@ export function scorePreTradeMultiHorizon(features: PreTradeFeatures): MultiHori
     if (!verified) continue;
     const vec = buildFeatureVector(map, model.featureNames);
     const bias = Math.log(model.baseScore / (1 - model.baseScore));
-    const proba = Number(sigmoid(scoreRaw(vec, model.trees) + bias).toFixed(4));
+    const proba = roundTo(sigmoid(scoreRaw(vec, model.trees) + bias), 4);
     anyScored = true;
     if (proba > combined) combined = proba;
     if (name === '1h') score1h = proba;
@@ -297,7 +298,7 @@ export function scorePreTradeMultiHorizon(features: PreTradeFeatures): MultiHori
   }
 
   if (!anyScored) return null;
-  return { combined: Number(combined.toFixed(4)), score1h, score6h };
+  return { combined: roundTo(combined, 4), score1h, score6h };
 }
 
 /**
@@ -325,7 +326,7 @@ export function getModelStatus(): {
   return {
     active: activeHorizons.length > 0,
     trainedAt: raw.trainedAt ?? null,
-    metrics: (raw as MlModelV2).metrics ?? raw.metrics ?? {},
+    metrics: raw.metrics ?? {},
     horizons: activeHorizons,
   };
 }

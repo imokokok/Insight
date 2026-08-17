@@ -4,6 +4,7 @@ import {
   getProtocolByIdWithDynamicData,
   getAllProtocolsWithDynamicData,
 } from '@/lib/protocols/dynamicData';
+import { roundTo } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
 
 import { ProtocolOracleExposureInputSchema, ProtocolsInputSchema } from './schemas';
@@ -111,7 +112,7 @@ export const getProtocolOracleExposureTool: McpToolDefinition<
           provider,
           assetCount: exposure.symbols.length,
           assets: exposure.symbols,
-          assetShare: Number((exposure.share * 100).toFixed(1)),
+          assetShare: roundTo(exposure.share * 100, 1),
           feedCount: relevantFeeds.length,
           overallScore: reputation?.overall_score ?? null,
           freshnessScore: reputation?.freshness_score ?? null,

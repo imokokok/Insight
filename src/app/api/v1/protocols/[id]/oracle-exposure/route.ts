@@ -10,6 +10,7 @@ import { createCachedJsonResponse } from '@/lib/api/utils';
 import { reputationService } from '@/lib/oracles/services/reputationService';
 import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
+import { roundTo } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
 
 export const OPTIONS = createOptionsHandler();
@@ -84,7 +85,7 @@ export const GET = createApiHandler(
           provider,
           assetCount: exposure.symbols.length,
           assets: exposure.symbols,
-          assetShare: Number((exposure.tvlShare * 100).toFixed(1)),
+          assetShare: roundTo(exposure.tvlShare * 100, 1),
           feedCount: relevantFeeds.length,
           overallScore: reputation?.overall_score ?? null,
           freshnessScore: reputation?.freshness_score ?? null,

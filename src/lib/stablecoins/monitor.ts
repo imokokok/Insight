@@ -3,6 +3,7 @@ import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { curvePoolService } from '@/lib/oracles/services/curvePoolService';
 import { twapOnChainService } from '@/lib/oracles/services/twapOnChainService';
 import { TTLCache } from '@/lib/utils/cache';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 import type { Blockchain, OracleProvider, PriceData } from '@/types/oracle';
 
@@ -209,25 +210,28 @@ function interpretOracleMarketDivergence(divergence: number): string {
 
 // ---------- Composite risk calculation ----------
 
+// Rank of each risk level; higher means more severe. Drives both the
+// composite-level selection and the oracle-vs-cross-divergence comparison.
+const RISK_LEVEL_RANK: Record<RiskLevel, number> = {
+  normal: 0,
+  warning: 1,
+  critical: 2,
+  severe: 3,
+};
+
 function calculateCompositeRisk(
   oracleRisk: RiskLevel,
   marketRisk: RiskLevel,
   crossRisk: RiskLevel
 ): { level: RiskLevel; reason: string } {
-  const riskOrder: RiskLevel[] = ['normal', 'warning', 'critical', 'severe'];
   const levels = [oracleRisk, marketRisk, crossRisk];
-  const maxLevel = levels.reduce((max, l) =>
-    riskOrder.indexOf(l) > riskOrder.indexOf(max) ? l : max
-  );
+  const maxLevel = levels.reduce((max, l) => (RISK_LEVEL_RANK[l] > RISK_LEVEL_RANK[max] ? l : max));
 
   // Generate one-sentence risk reason
   let reason: string;
   if (maxLevel === 'normal') {
     reason = 'All price sources are normal; no depeg risk detected';
-  } else if (
-    crossRisk !== 'normal' &&
-    riskOrder.indexOf(crossRisk) >= riskOrder.indexOf(oracleRisk)
-  ) {
+  } else if (crossRisk !== 'normal' && RISK_LEVEL_RANK[crossRisk] >= RISK_LEVEL_RANK[oracleRisk]) {
     reason = `Divergence detected between oracle and DEX market prices; possible oracle lag or market anomaly`;
   } else if (marketRisk !== 'normal') {
     reason = `Abnormal deviation in DEX market prices; may reflect actual depeg conditions`;
@@ -298,7 +302,7 @@ export async function calculateStablecoinDepegSnapshot(
   const oracleSources: SourcePriceSnapshot[] = successfulResults.map((r) => ({
     sourceId: `${r.source.provider}:${r.source.chain}:${symbol}`,
     provider: r.priceData.provider,
-    chain: (r.priceData.chain ?? r.source.chain) as Blockchain,
+    chain: r.priceData.chain ?? r.source.chain,
     symbol,
     price: r.priceData.price,
     timestamp: r.priceData.timestamp,
@@ -323,7 +327,7 @@ export async function calculateStablecoinDepegSnapshot(
   const marketSources: SourcePriceSnapshot[] = dexResults.map((r) => ({
     sourceId: `dex:${r.pool.dexName}:${r.pool.chain}:${symbol}`,
     provider: 'twap' as OracleProvider, // Use TWAP as provider for Uniswap; curve/1inch are not oracle providers
-    chain: r.pool.chain as Blockchain,
+    chain: r.pool.chain,
     symbol,
     price: r.price,
     timestamp: Date.now(),
@@ -375,21 +379,21 @@ export async function calculateStablecoinDepegSnapshot(
     targetPeg: config.targetPeg,
 
     // Oracle dimension
-    referencePrice: Number(oracleReferencePrice.toFixed(6)),
+    referencePrice: roundTo(oracleReferencePrice, 6),
     referenceMethod: 'filtered-median',
-    maxDeviationPercent: Number(oracleMaxDeviation.toFixed(4)),
-    minPrice: Number(oracleMinPrice.toFixed(6)),
-    maxPrice: Number(oracleMaxPrice.toFixed(6)),
-    spreadPercent: Number(oracleSpread.toFixed(4)),
+    maxDeviationPercent: roundTo(oracleMaxDeviation, 4),
+    minPrice: roundTo(oracleMinPrice, 6),
+    maxPrice: roundTo(oracleMaxPrice, 6),
+    spreadPercent: roundTo(oracleSpread, 4),
 
     // Market dimension
-    marketReferencePrice: Number((marketDeviation?.referencePrice ?? 0).toFixed(6)),
-    marketSpreadPercent: Number((marketDeviation?.spreadPercent ?? 0).toFixed(4)),
-    marketMinPrice: Number((marketDeviation?.minPrice ?? 0).toFixed(6)),
-    marketMaxPrice: Number((marketDeviation?.maxPrice ?? 0).toFixed(6)),
+    marketReferencePrice: roundTo(marketDeviation?.referencePrice ?? 0, 6),
+    marketSpreadPercent: roundTo(marketDeviation?.spreadPercent ?? 0, 4),
+    marketMinPrice: roundTo(marketDeviation?.minPrice ?? 0, 6),
+    marketMaxPrice: roundTo(marketDeviation?.maxPrice ?? 0, 6),
 
     // Oracle-Market cross dimension
-    oracleMarketDivergencePercent: Number(crossDivergence.divergencePercent.toFixed(4)),
+    oracleMarketDivergencePercent: roundTo(crossDivergence.divergencePercent, 4),
     oracleMarketDirection: crossDivergence.direction,
     oracleMarketInterpretation: crossDivergence.interpretation,
 

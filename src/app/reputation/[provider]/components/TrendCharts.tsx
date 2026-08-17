@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 
 import type { ReputationTrendPoint } from '@/lib/oracles/services/reputationService';
+import { roundTo } from '@/lib/utils/format';
 
 export function TrendCharts({
   trend,
@@ -28,8 +29,8 @@ export function TrendCharts({
     () =>
       trend.map((p) => ({
         date: p.snapshot_time,
-        successRate: Number(p.success_rate.toFixed(1)),
-        deviation: Number(p.avg_deviation_pct.toFixed(4)),
+        successRate: roundTo(p.success_rate, 1),
+        deviation: roundTo(p.avg_deviation_pct, 4),
         latency: p.avg_latency_ms,
         queries: p.query_count,
       })),

@@ -39,6 +39,7 @@ import {
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
 import { getConsensusPrice, type ConsensusPriceResponse } from './consensusPriceService';
@@ -480,7 +481,7 @@ function std(values: number[]): number {
 }
 
 function round4(x: number): number {
-  return Number.isFinite(x) ? Number(x.toFixed(4)) : 0;
+  return Number.isFinite(x) ? roundTo(x, 4) : 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -591,7 +592,7 @@ function computeManipulationRiskScore(args: {
     0.2 * normalize(spreadPct, THRESHOLDS.crossProviderSpreadPct.block) +
     0.15 * (staleRisk ? 0.8 : 0.1) +
     0.1 * (1 - clamp01(minReputation / 100));
-  return Number(clamp01(score).toFixed(4));
+  return roundTo(clamp01(score), 4);
 }
 
 function computeRecommendedMaxPosition(
@@ -646,8 +647,8 @@ async function computeProtocolSafety(
     return {
       protocolId: protocol.id,
       protocolName: protocol.name,
-      criticalDeviationPct: Number(criticalDeviationPct.toFixed(2)),
-      bufferConsumedPct: Number(bufferConsumedPct.toFixed(2)),
+      criticalDeviationPct: roundTo(criticalDeviationPct, 2),
+      bufferConsumedPct: roundTo(bufferConsumedPct, 2),
       liquidationThreshold,
       maxLtv,
     };
@@ -796,7 +797,7 @@ export async function preTradeSafetyCheck(
   const chain = getBlockchainByChainId(input.chainId);
 
   // 1. Cross-oracle consensus price (also embeds reputation + agreement).
-  let consensus: ConsensusPriceResponse;
+  let consensus: ConsensusPriceResponse | undefined;
   let consensusFailed = false;
   try {
     consensus = await getConsensusPrice(input.asset, chain);
@@ -804,7 +805,7 @@ export async function preTradeSafetyCheck(
     if (error instanceof UnsupportedSymbolError) {
       // No oracle coverage for this asset/chain — cannot verify, treat as BLOCK.
       consensusFailed = true;
-      consensus = undefined as unknown as ConsensusPriceResponse;
+      consensus = undefined;
       warnings.push(
         `No oracle coverage for ${input.asset} on chain ${input.chainId}. Cannot verify price integrity.`
       );
@@ -873,7 +874,7 @@ export async function preTradeSafetyCheck(
         methodResults: {} as Record<ConsensusMethod, number>,
         providers: [],
         recommendedProvider: null,
-      } as unknown as ConsensusPriceResponse;
+      };
       result.attestation = await issueAttestation(input, result, emptyConsensus, {
         maxAge: 0,
         worstDepegPct: 0,
@@ -917,7 +918,7 @@ export async function preTradeSafetyCheck(
     verdict = pickWorst(verdict, deviationVerdict);
     contributingFactors.push({
       rule: 'max_provider_deviation_pct',
-      value: Number(maxDeviationPct.toFixed(4)),
+      value: roundTo(maxDeviationPct, 4),
       threshold:
         THRESHOLDS.maxProviderDeviationPct[
           deviationVerdict.toLowerCase() as 'caution' | 'danger' | 'block'
@@ -935,7 +936,7 @@ export async function preTradeSafetyCheck(
     verdict = pickWorst(verdict, spreadVerdict);
     contributingFactors.push({
       rule: 'cross_provider_spread_pct',
-      value: Number(spreadPct.toFixed(4)),
+      value: roundTo(spreadPct, 4),
       threshold:
         THRESHOLDS.crossProviderSpreadPct[
           spreadVerdict.toLowerCase() as 'caution' | 'danger' | 'block'
@@ -965,7 +966,7 @@ export async function preTradeSafetyCheck(
     verdict = pickWorst(verdict, agreementVerdict);
     contributingFactors.push({
       rule: 'cross_provider_agreement',
-      value: Number(agreement.toFixed(4)),
+      value: roundTo(agreement, 4),
       threshold:
         THRESHOLDS.crossProviderAgreement[
           agreementVerdict.toLowerCase() as 'caution' | 'danger' | 'block'
@@ -990,7 +991,7 @@ export async function preTradeSafetyCheck(
     );
     contributingFactors.push({
       rule: 'stablecoin_depeg_pct',
-      value: Number(worstDepeg.toFixed(4)),
+      value: roundTo(worstDepeg, 4),
       threshold:
         THRESHOLDS.stablecoinDepegPct[depegVerdict.toLowerCase() as 'caution' | 'danger' | 'block'],
       triggeredVerdict: depegVerdict,
@@ -1075,8 +1076,8 @@ export async function preTradeSafetyCheck(
       spreadPct,
       participantCount: consensus.participantCount,
       staleDataRisk: staleRisk,
-      meanDeviationPct: Number(meanDeviationPct.toFixed(4)),
-      staleRatio: Number(staleRatio.toFixed(4)),
+      meanDeviationPct: roundTo(meanDeviationPct, 4),
+      staleRatio: roundTo(staleRatio, 4),
       deviationVelocity1h: hist.deviationVelocity1h,
       rollingVolatility6h: hist.rollingVolatility6h,
       deviationVelocity3h: hist.deviationVelocity3h,
@@ -1174,10 +1175,10 @@ export async function preTradeSafetyCheck(
   const result: PreTradeSafetyResult = {
     verdict,
     consensusPrice: consensus.consensusPrice,
-    maxDeviationPct: Number(maxDeviationPct.toFixed(4)),
+    maxDeviationPct: roundTo(maxDeviationPct, 4),
     manipulationRiskScore,
     staleDataRisk: staleRisk,
-    crossProviderAgreement: Number(agreement.toFixed(4)),
+    crossProviderAgreement: roundTo(agreement, 4),
     recommendedMaxPositionUsd,
     participantCount: consensus.participantCount,
     providerPrices,

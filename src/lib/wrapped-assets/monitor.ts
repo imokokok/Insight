@@ -1,6 +1,7 @@
 import { ORACLE_CACHE_TTL } from '@/lib/oracles/base';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { TTLCache } from '@/lib/utils/cache';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain, OracleProvider } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -178,11 +179,11 @@ export async function calculateWrappedAssetSnapshot(symbol: string): Promise<Wra
     displayName: config.displayName,
     type: config.type,
     underlyingSymbol: config.underlyingSymbol,
-    wrappedMarketPrice: Number(wrappedMarketPrice.toFixed(6)),
-    underlyingReferencePrice: Number(underlyingReferencePrice.toFixed(2)),
-    exchangeRate: Number(exchangeRate.toFixed(6)),
-    fairUnderlyingPrice: Number(fairUnderlyingPrice.toFixed(6)),
-    deviationPercent: Number(deviationPercent.toFixed(4)),
+    wrappedMarketPrice: roundTo(wrappedMarketPrice, 6),
+    underlyingReferencePrice: roundTo(underlyingReferencePrice, 2),
+    exchangeRate: roundTo(exchangeRate, 6),
+    fairUnderlyingPrice: roundTo(fairUnderlyingPrice, 6),
+    deviationPercent: roundTo(deviationPercent, 4),
     durationSeconds,
     riskLevel,
     sources: sources.sort((a, b) => a.price - b.price),

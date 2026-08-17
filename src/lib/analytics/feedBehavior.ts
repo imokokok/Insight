@@ -1,4 +1,5 @@
 import { ORACLE_EXPECTED_INTERVALS } from '@/lib/constants';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('feedBehavior');
@@ -168,14 +169,14 @@ function calculateUpdateRhythm(
     return {
       provider,
       expectedIntervalSeconds,
-      actualAvgIntervalSeconds: Number(mean.toFixed(4)),
-      intervalStdDev: Number(stdDev.toFixed(4)),
-      intervalCV: Number(cv.toFixed(4)),
+      actualAvgIntervalSeconds: roundTo(mean, 4),
+      intervalStdDev: roundTo(stdDev, 4),
+      intervalCV: roundTo(cv, 4),
       isAnomalous,
       anomalyType,
       intervals,
-      recentCV: Number(recentCV.toFixed(4)),
-      sampleConfidence: Number(sampleConfidence.toFixed(4)),
+      recentCV: roundTo(recentCV, 4),
+      sampleConfidence: roundTo(sampleConfidence, 4),
     };
   } catch (error) {
     logger.error('Failed to calculate update rhythm', normalizeError(error));
@@ -260,7 +261,7 @@ function calculateConfidenceIntervalMetrics(
         const changeRatio = currentWidth / prevWidth;
         if (changeRatio > 2) {
           isSurge = true;
-          surgeMagnitude = Number((changeRatio - 1).toFixed(4));
+          surgeMagnitude = roundTo(changeRatio - 1, 4);
         }
       }
     }
@@ -279,14 +280,14 @@ function calculateConfidenceIntervalMetrics(
 
     return {
       provider,
-      currentWidth: Number(currentWidth.toFixed(4)),
-      avgWidth: Number(avgWidth.toFixed(4)),
-      widthChangeRate: Number(widthChangeRate.toFixed(4)),
+      currentWidth: roundTo(currentWidth, 4),
+      avgWidth: roundTo(avgWidth, 4),
+      widthChangeRate: roundTo(widthChangeRate, 4),
       isSurge,
       surgeMagnitude,
       trend,
       widths,
-      ewmaChangeRate: Number(ewmaChangeRate.toFixed(4)),
+      ewmaChangeRate: roundTo(ewmaChangeRate, 4),
       absoluteWidthScore,
     };
   } catch (error) {
@@ -393,13 +394,13 @@ function calculateHeartbeat(
       provider,
       expectedUpdateCount,
       actualUpdateCount,
-      reliability: Number(reliability.toFixed(4)),
+      reliability: roundTo(reliability, 4),
       missedBeats,
-      maxGapSeconds: Number(maxGapSeconds.toFixed(4)),
+      maxGapSeconds: roundTo(maxGapSeconds, 4),
       isHeartbeatLost,
       lastUpdateTimestamp: lastTimestamp,
       heartbeatSeverity,
-      recentReliability: Number(recentReliability.toFixed(4)),
+      recentReliability: roundTo(recentReliability, 4),
     };
   } catch (error) {
     logger.error('Failed to calculate heartbeat', normalizeError(error));
@@ -536,7 +537,7 @@ function calculateFeedHealthScore(params: {
       confidenceStability: Math.round(confidenceStability),
       heartbeatReliability: Math.round(heartbeatScore),
       freshness: Math.round(freshness),
-      penaltyAmplification: Number(penaltyAmplification.toFixed(4)),
+      penaltyAmplification: roundTo(penaltyAmplification, 4),
       weightProfile,
     };
   } catch (error) {

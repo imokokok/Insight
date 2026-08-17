@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 
 import type { PositionCriticalResult } from '@/lib/protocols/protocolHealth';
+import { roundTo } from '@/lib/utils/format';
 
 interface RiskChartProps {
   result: PositionCriticalResult;
@@ -78,10 +79,10 @@ export function RiskChart({ result }: RiskChartProps) {
       const displayPrice = displayCollateral.price * (1 + d / 100);
 
       points.push({
-        price: Number(displayPrice.toFixed(2)),
-        ratio: Number(Math.max(0, ratio).toFixed(2)),
+        price: roundTo(displayPrice, 2),
+        ratio: roundTo(Math.max(0, ratio), 2),
         deviation: d,
-        hf: Number(hf.toFixed(4)),
+        hf: roundTo(hf, 4),
       });
     }
     return points;

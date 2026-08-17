@@ -1,5 +1,6 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { get7dAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
+import { roundTo } from '@/lib/utils/format';
 
 import {
   FeedFreshnessInputSchema,
@@ -283,11 +284,11 @@ export const getFeedUptimeTool: McpToolDefinition<typeof LatencyInputSchema> = {
         symbol: group.symbol,
         totalSnapshots: group.snapshots,
         successfulSnapshots: group.successes,
-        successRate: Number(successRate.toFixed(1)),
+        successRate: roundTo(successRate, 1),
         hoursWithData: group.hours.size,
         totalHours,
-        coveragePct: Number(Math.min(coveragePct, 100).toFixed(1)),
-        avgSnapshotsPerDay: Number(avgPerDay.toFixed(1)),
+        coveragePct: roundTo(Math.min(coveragePct, 100), 1),
+        avgSnapshotsPerDay: roundTo(avgPerDay, 1),
       };
     });
 

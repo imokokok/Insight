@@ -1,3 +1,4 @@
+import { roundTo } from '@/lib/utils/format';
 /**
  * Unsupervised oracle anomaly detection — the model-free layer that catches
  * manipulation patterns the supervised ML model has NEVER seen.
@@ -134,5 +135,5 @@ function sigmoid(x: number): number {
 }
 
 function round4(x: number): number {
-  return Number(x.toFixed(4));
+  return roundTo(x, 4);
 }

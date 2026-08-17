@@ -1,4 +1,5 @@
 import { ORACLE_EXPECTED_INTERVALS } from '@/lib/constants';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('stabilityScore');
@@ -309,7 +310,7 @@ function calculateStabilityScore(
       level,
       components,
       trend,
-      decayRate: Number(decayRate.toFixed(4)),
+      decayRate: roundTo(decayRate, 4),
       estimatedTimeToCritical,
     };
   } catch (error) {

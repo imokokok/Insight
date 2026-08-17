@@ -7,6 +7,7 @@ import { type OracleFeed } from '@/lib/supabase/queries';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { TTLCache } from '@/lib/utils/cache';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 import {
@@ -596,7 +597,7 @@ class ReputationService {
     if (!Number.isFinite(value)) return null;
     const normalized = value > 1 && value <= 100 ? value / 100 : value;
     const bounded = Math.max(0, Math.min(0.9999, normalized));
-    const rounded = Number(bounded.toFixed(4));
+    const rounded = roundTo(bounded, 4);
     return Number.isFinite(rounded) ? rounded : null;
   }
 

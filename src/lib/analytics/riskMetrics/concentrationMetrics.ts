@@ -1,4 +1,5 @@
 import { type OracleMarketData } from '@/lib/services/marketData/types';
+import { roundTo } from '@/lib/utils/format';
 import { normalizeError } from '@/lib/utils/logger';
 
 import {
@@ -46,7 +47,7 @@ function calculateHHI(marketShares: number[]): HHIResult {
       value: Math.round(hhi),
       level,
       description,
-      concentrationRatio: Number(cr4.toFixed(2)),
+      concentrationRatio: roundTo(cr4, 2),
     };
   } catch (error) {
     logger.error('Failed to calculate HHI', normalizeError(error));

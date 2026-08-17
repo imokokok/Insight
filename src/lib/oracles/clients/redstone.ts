@@ -10,6 +10,7 @@ import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { toMilliseconds } from '@/lib/utils/timestamp';
 import {
@@ -82,9 +83,9 @@ export class RedStoneClient extends BaseOracleClient {
     const halfSpread = price * (spreadPercentage / 100 / 2);
 
     return {
-      bid: Number((price - halfSpread).toFixed(4)),
-      ask: Number((price + halfSpread).toFixed(4)),
-      widthPercentage: Number(spreadPercentage.toFixed(4)),
+      bid: roundTo(price - halfSpread, 4),
+      ask: roundTo(price + halfSpread, 4),
+      widthPercentage: roundTo(spreadPercentage, 4),
     };
   }
 

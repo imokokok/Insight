@@ -2,6 +2,7 @@ import { getIncidentAggregation } from '@/lib/api/services/incidentService';
 import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { get7dAgoUtc, getTodayUtc } from '@/lib/utils/date';
+import { roundTo } from '@/lib/utils/format';
 
 // All queries here run with the service-role client (bypass RLS) and are meant
 // for the internal /ops console only. Aggregation is done in TS (not SQL) so no
@@ -195,7 +196,7 @@ export async function getSigningIntegrity(windowHours = 24): Promise<SigningInte
       total: data.length,
       signed,
       unsigned,
-      signedRatePct: data.length > 0 ? Number(((signed / data.length) * 100).toFixed(1)) : null,
+      signedRatePct: data.length > 0 ? roundTo((signed / data.length) * 100, 1) : null,
       unsignedBlocks,
       insufficientCoverage,
       unresolvedAssets,
@@ -436,7 +437,7 @@ export async function getApiUsage(windowHours = 24): Promise<ApiUsage> {
       requests: v.requests,
       errors: v.errors,
       avgMs: v.latencies.length
-        ? Number((v.latencies.reduce((s, n) => s + n, 0) / v.latencies.length).toFixed(1))
+        ? roundTo(v.latencies.reduce((s, n) => s + n, 0) / v.latencies.length, 1)
         : null,
     }))
     .sort((a, b) => b.requests - a.requests);
@@ -445,8 +446,7 @@ export async function getApiUsage(windowHours = 24): Promise<ApiUsage> {
     windowHours,
     totalRequests,
     totalErrors,
-    errorRatePct:
-      totalRequests > 0 ? Number(((totalErrors / totalRequests) * 100).toFixed(2)) : null,
+    errorRatePct: totalRequests > 0 ? roundTo((totalErrors / totalRequests) * 100, 2) : null,
     byHour,
     byEndpoint,
   };

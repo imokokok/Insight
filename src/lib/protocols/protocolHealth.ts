@@ -1,3 +1,4 @@
+import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { lstExchangeRateService } from '@/lib/wrapped-assets/exchangeRateService';
 import type { Blockchain } from '@/types/oracle';
@@ -330,15 +331,14 @@ export async function calculatePositionCriticalDeviation(
       chain: protocol.chain,
       collaterals: collateralDetails,
       borrows: borrowDetails,
-      totalCollateralValue: Number(totalCollateralValue.toFixed(4)),
-      totalAdjustedCollateralValue: Number(totalAdjustedCollateralValue.toFixed(4)),
-      totalBorrowValue: Number(totalBorrowValue.toFixed(4)),
-      currentCollateralRatio: Number(
-        (currentCollateralRatio === Infinity ? 0 : currentCollateralRatio).toFixed(4)
+      totalCollateralValue: roundTo(totalCollateralValue, 4),
+      totalAdjustedCollateralValue: roundTo(totalAdjustedCollateralValue, 4),
+      totalBorrowValue: roundTo(totalBorrowValue, 4),
+      currentCollateralRatio: roundTo(
+        currentCollateralRatio === Infinity ? 0 : currentCollateralRatio,
+        4
       ),
-      currentHealthFactor: Number(
-        (currentHealthFactor === Infinity ? 0 : currentHealthFactor).toFixed(4)
-      ),
+      currentHealthFactor: roundTo(currentHealthFactor === Infinity ? 0 : currentHealthFactor, 4),
       assetDeviations,
       jointDeviation,
       deviationRatios,
@@ -355,10 +355,10 @@ export async function calculatePositionCriticalDeviation(
       borrowSymbol: primaryBorrow.symbol,
       borrowAmount: primaryBorrow.amount,
       borrowPrice: primaryBorrow.price,
-      liquidationThreshold: Number(weightedLiquidationRatio.toFixed(4)),
-      criticalDeviationPercent: Number(worstDeviation.criticalDeviationPercent.toFixed(4)),
+      liquidationThreshold: roundTo(weightedLiquidationRatio, 4),
+      criticalDeviationPercent: roundTo(worstDeviation.criticalDeviationPercent, 4),
       // Use worst single-asset deviation's critical price (JOINT has criticalPrice=0, invalid for chart)
-      criticalCollateralPrice: Number(worstSingleAssetDeviation.criticalPrice.toFixed(4)),
+      criticalCollateralPrice: roundTo(worstSingleAssetDeviation.criticalPrice, 4),
     };
   } catch (error) {
     logger.error(`Failed to calculate position critical deviation`, normalizeError(error));

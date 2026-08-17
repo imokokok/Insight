@@ -1,3 +1,4 @@
+import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 import {
@@ -138,7 +139,7 @@ function calculateAcceleration(deviations: number[]): {
       status = 'stable';
     }
 
-    return { value: Number(avgSecondDiff.toFixed(4)), status };
+    return { value: roundTo(avgSecondDiff, 4), status };
   } catch (error) {
     logger.error('Failed to calculate acceleration', normalizeError(error));
     return { value: 0, status: 'stable' };
@@ -287,7 +288,7 @@ function calculateDivergenceTimeSeries(
 
         points.push({
           timestamp: entry.timestamp,
-          deviationPercent: Number(deviationPercent.toFixed(4)),
+          deviationPercent: roundTo(deviationPercent, 4),
           direction,
           price: currentPrice,
           consensusPrice,
@@ -311,14 +312,14 @@ function calculateDivergenceTimeSeries(
       results.push({
         provider,
         points,
-        currentDeviation: Number(currentDeviation.toFixed(4)),
+        currentDeviation: roundTo(currentDeviation, 4),
         currentDirection,
         acceleration,
         accelerationValue,
         isDirectionalBias,
         directionalBiasCount,
-        maxDeviation: Number(maxDeviation.toFixed(4)),
-        avgDeviation: Number(avgDeviation.toFixed(4)),
+        maxDeviation: roundTo(maxDeviation, 4),
+        avgDeviation: roundTo(avgDeviation, 4),
       });
     }
 
@@ -439,8 +440,8 @@ function calculateOracleLeadership(
       return {
         provider,
         status,
-        lagSeconds: Number(lagSeconds.toFixed(2)),
-        avgLagSeconds: Number(avgLagSeconds.toFixed(2)),
+        lagSeconds: roundTo(lagSeconds, 2),
+        avgLagSeconds: roundTo(avgLagSeconds, 2),
         firstResponseCount: firstResponseCounts.get(provider) ?? 0,
         totalUpdates: totalUpdates.get(provider) ?? 0,
       };
@@ -493,7 +494,7 @@ function calculateDivergenceMatrix(priceData: PriceData[]): DivergencePair[][] {
           matrix[i][j] = {
             providerA: uniqueData[i].provider,
             providerB: uniqueData[j].provider,
-            deviationPercent: Number(deviationPercent.toFixed(4)),
+            deviationPercent: roundTo(deviationPercent, 4),
             timestamp: Math.min(uniqueData[i].timestamp, uniqueData[j].timestamp),
           };
         }
@@ -555,7 +556,7 @@ export function calculateDivergenceSignals(
       acceleratingCount,
       directionalBiasCount,
       leadingOracle,
-      maxAcceleration: Number(maxAcceleration.toFixed(4)),
+      maxAcceleration: roundTo(maxAcceleration, 4),
     };
   } catch (error) {
     logger.error('Failed to calculate divergence signals', normalizeError(error));

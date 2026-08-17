@@ -4,6 +4,13 @@ function isFiniteNumber(value: number): boolean {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+// Round to a fixed number of decimals using the exact `Number(value.toFixed(n))`
+// idiom the codebase repeats ~130 times, so every caller stays byte-identical
+// while the rounding logic lives in one place (category B + H).
+export function roundTo(value: number, decimals = 4): number {
+  return Number(value.toFixed(decimals));
+}
+
 const PRICE_THRESHOLD_HIGH = 1000;
 const PRICE_THRESHOLD_LOW = 0.0001;
 const PRICE_THRESHOLD_VERY_LOW = 0.000001;

@@ -3,6 +3,7 @@ import {
   type PositionInput,
 } from '@/lib/protocols/protocolHealth';
 import { PROTOCOL_REGISTRY, type ProtocolConfig } from '@/lib/protocols/protocolRegistry';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 import { WRAPPED_ASSETS } from '@/lib/wrapped-assets/config';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
@@ -65,9 +66,9 @@ export function calculateMetrics(snapshots: SnapshotRow[]): DailyReportMetrics {
     totalSnapshots: total,
     successfulSnapshots: successful,
     failedSnapshots: failed,
-    overallSuccessRate: total > 0 ? Number(((successful / total) * 100).toFixed(2)) : 0,
-    avgDeviationPct: Number(avgDeviation.toFixed(4)),
-    maxDeviationPct: Number(maxDeviation.toFixed(4)),
+    overallSuccessRate: total > 0 ? roundTo((successful / total) * 100, 2) : 0,
+    avgDeviationPct: roundTo(avgDeviation, 4),
+    maxDeviationPct: roundTo(maxDeviation, 4),
     totalAnomalies: anomalies.length,
     criticalEvents,
     highEvents,
@@ -116,13 +117,13 @@ export function calculateAssetStats(snapshots: SnapshotRow[]): AssetDailyStats[]
 
     stats.push({
       symbol,
-      minPrice: Number(minPrice.toFixed(8)),
-      maxPrice: Number(maxPrice.toFixed(8)),
-      avgPrice: Number(avgPrice.toFixed(8)),
-      avgConsensusPrice: Number(avgConsensusPrice.toFixed(8)),
-      maxDeviationPct: Number(maxDeviation.toFixed(4)),
-      avgDeviationPct: Number(avgDeviation.toFixed(4)),
-      volatilityPct: Number(volatilityPct.toFixed(4)),
+      minPrice: roundTo(minPrice, 8),
+      maxPrice: roundTo(maxPrice, 8),
+      avgPrice: roundTo(avgPrice, 8),
+      avgConsensusPrice: roundTo(avgConsensusPrice, 8),
+      maxDeviationPct: roundTo(maxDeviation, 4),
+      avgDeviationPct: roundTo(avgDeviation, 4),
+      volatilityPct: roundTo(volatilityPct, 4),
       sampleCount: rows.length,
     });
   }
@@ -167,10 +168,10 @@ export function calculateProviderRankings(snapshots: SnapshotRow[]): ProviderRan
       provider: provider as OracleProvider,
       totalQueries: total,
       successQueries: successful.length,
-      successRate: Number(successRate.toFixed(2)),
+      successRate: roundTo(successRate, 2),
       avgLatencyMs: avgLatency,
-      avgDeviationPct: Number(avgDeviation.toFixed(4)),
-      maxDeviationPct: Number(maxDeviation.toFixed(4)),
+      avgDeviationPct: roundTo(avgDeviation, 4),
+      maxDeviationPct: roundTo(maxDeviation, 4),
       anomalyCount: anomalies,
       score: 0,
     };
@@ -195,7 +196,7 @@ export function extractDeviationEvents(snapshots: SnapshotRow[]): DeviationEvent
       hour: s.snapshot_hour,
       price: s.price,
       consensusPrice: s.consensus_price,
-      deviationPct: Number(s.deviation_pct.toFixed(4)),
+      deviationPct: roundTo(s.deviation_pct, 4),
       severity: getSeverity(s.deviation_pct),
     });
   }
@@ -253,8 +254,8 @@ export function calculateCoverageMatrix(snapshots: SnapshotRow[]): CoverageCell[
       total,
       success,
       failed,
-      avgDeviationPct: Number(avgDeviation.toFixed(4)),
-      maxDeviationPct: Number(maxDeviation.toFixed(4)),
+      avgDeviationPct: roundTo(avgDeviation, 4),
+      maxDeviationPct: roundTo(maxDeviation, 4),
     });
   }
 
@@ -553,7 +554,7 @@ export function calculateStablecoinDepegSummary(
   return Array.from(bySymbol.entries())
     .map(([symbol, maxDeviation]) => ({
       symbol,
-      maxDeviationPercent: Number(maxDeviation.toFixed(4)),
+      maxDeviationPercent: roundTo(maxDeviation, 4),
       riskLevel: getDepegRiskLevel(maxDeviation),
       affectedProtocols: findProtocolNamesUsingAsset(symbol),
     }))
@@ -577,7 +578,7 @@ export function calculateWrappedAssetPegSummary(
   return Array.from(bySymbol.entries())
     .map(([symbol, maxDeviation]) => ({
       symbol,
-      maxDeviationPercent: Number(maxDeviation.toFixed(4)),
+      maxDeviationPercent: roundTo(maxDeviation, 4),
       riskLevel: getWrappedPegRiskLevel(maxDeviation),
       affectedProtocols: findProtocolNamesUsingAsset(symbol),
     }))

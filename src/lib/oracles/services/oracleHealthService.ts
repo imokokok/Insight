@@ -19,6 +19,7 @@ import {
 import { type SnapshotRow } from '@/lib/reports/types';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getTodayUtc } from '@/lib/utils/date';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider } from '@/types/oracle';
 
@@ -543,8 +544,8 @@ export async function getOracleHealthReport(
         avgLatencyMs: ranking.avgLatencyMs,
         avgDeviationPct: ranking.avgDeviationPct,
         maxDeviationPct: ranking.maxDeviationPct,
-        avgDataAgeSeconds: Number(avgDataAgeSeconds.toFixed(2)),
-        maxDataAgeSeconds: Number(maxDataAgeSeconds.toFixed(2)),
+        avgDataAgeSeconds: roundTo(avgDataAgeSeconds, 2),
+        maxDataAgeSeconds: roundTo(maxDataAgeSeconds, 2),
         observedAssets,
       },
       feedHealth: {
@@ -572,7 +573,7 @@ export async function getOracleHealthReport(
         primaryDataSources,
         dataSourceCount: primaryDataSources.length,
         sharedWithProviders: sharedWithProviders.map((name) => providerNames[name] ?? name),
-        overlapRatio: Number(overlapRatio.toFixed(4)),
+        overlapRatio: roundTo(overlapRatio, 4),
         aggregationMethod: defaults.aggregationMethod,
         hasOnChainVerification: defaults.hasOnChainVerification,
       },

@@ -1,3 +1,5 @@
+import { roundTo } from '@/lib/utils/format';
+
 import type {
   AssetDeviationResult,
   DeviationScenario,
@@ -42,8 +44,8 @@ export function calculateAssetDeviations(
       results.push({
         symbol: c.symbol,
         currentPrice: c.price,
-        criticalDeviationPercent: Number(criticalDeviationPercent.toFixed(4)),
-        criticalPrice: Number(criticalPrice.toFixed(4)),
+        criticalDeviationPercent: roundTo(criticalDeviationPercent, 4),
+        criticalPrice: roundTo(criticalPrice, 4),
         direction: 'down',
         description: `${c.symbol} drops ${Math.abs(criticalDeviationPercent).toFixed(2)}% to $${criticalPrice.toFixed(2)} triggers liquidation`,
       });
@@ -52,8 +54,8 @@ export function calculateAssetDeviations(
       results.push({
         symbol: c.symbol,
         currentPrice: c.price,
-        criticalDeviationPercent: Number(criticalDeviationPercent.toFixed(4)),
-        criticalPrice: Number(criticalPrice.toFixed(4)),
+        criticalDeviationPercent: roundTo(criticalDeviationPercent, 4),
+        criticalPrice: roundTo(criticalPrice, 4),
         direction: 'down',
         description: `${c.symbol} dropping alone cannot trigger liquidation (protected by other collaterals)`,
       });
@@ -80,8 +82,8 @@ export function calculateAssetDeviations(
       results.push({
         symbol: b.symbol,
         currentPrice: b.price,
-        criticalDeviationPercent: Number(criticalDeviationPercent.toFixed(4)),
-        criticalPrice: Number(criticalPrice.toFixed(4)),
+        criticalDeviationPercent: roundTo(criticalDeviationPercent, 4),
+        criticalPrice: roundTo(criticalPrice, 4),
         direction: 'up',
         description: `${b.symbol} rises ${criticalDeviationPercent.toFixed(2)}% to $${criticalPrice.toFixed(2)} triggers liquidation`,
       });
@@ -89,8 +91,8 @@ export function calculateAssetDeviations(
       results.push({
         symbol: b.symbol,
         currentPrice: b.price,
-        criticalDeviationPercent: Number(criticalDeviationPercent.toFixed(4)),
-        criticalPrice: Number(criticalPrice.toFixed(4)),
+        criticalDeviationPercent: roundTo(criticalDeviationPercent, 4),
+        criticalPrice: roundTo(criticalPrice, 4),
         direction: 'up',
         description: `${b.symbol} rising alone cannot trigger liquidation`,
       });
@@ -206,7 +208,7 @@ export function calculateJointDeviation(
   return {
     symbol: 'JOINT',
     currentPrice: 0,
-    criticalDeviationPercent: Number(criticalDeviationPercent.toFixed(4)),
+    criticalDeviationPercent: roundTo(criticalDeviationPercent, 4),
     criticalPrice: 0,
     direction: 'down',
     description: `Joint deviation triggers liquidation (major-equiv δ = ${criticalDeviationPercent.toFixed(2)}%): collaterals [${collBreakdown}], borrows [${brwBreakdown}]`,
@@ -297,9 +299,9 @@ function buildDeviationScenario(
     label,
     deviationPercent,
     isJoint,
-    healthFactor: Number(healthFactor.toFixed(4)),
-    collateralRatio: Number(collateralRatio.toFixed(4)),
+    healthFactor: roundTo(healthFactor, 4),
+    collateralRatio: roundTo(collateralRatio, 4),
     status,
-    distanceToLiquidationPercent: Number(Math.max(0, distanceToLiquidationPercent).toFixed(2)),
+    distanceToLiquidationPercent: roundTo(Math.max(0, distanceToLiquidationPercent), 2),
   };
 }

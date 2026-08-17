@@ -11,6 +11,7 @@ import {
 } from '@/lib/oracles/services/chainlinkOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -120,7 +121,7 @@ export class ChainlinkClient extends BaseOracleClient {
       chainReliability * baseConfidence
     );
 
-    return Number(adjustedConfidence.toFixed(4));
+    return roundTo(adjustedConfidence, 4);
   }
 
   private convertToPriceData(chainlinkData: ChainlinkPriceData, chain?: Blockchain): PriceData {

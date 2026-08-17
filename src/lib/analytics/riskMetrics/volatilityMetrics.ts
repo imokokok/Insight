@@ -1,3 +1,4 @@
+import { roundTo } from '@/lib/utils/format';
 import { normalizeError } from '@/lib/utils/logger';
 
 import { riskMetricsLogger as logger, type RiskLevel, type VolatilityResult } from './types';
@@ -59,8 +60,8 @@ export function calculateVolatilityIndex(
       index,
       level,
       description,
-      annualizedVolatility: Number(annualizedVolatility.toFixed(4)),
-      dailyVolatility: Number(dailyVolatility.toFixed(4)),
+      annualizedVolatility: roundTo(annualizedVolatility, 4),
+      dailyVolatility: roundTo(dailyVolatility, 4),
     };
   } catch (error) {
     logger.error('Failed to calculate volatility index', normalizeError(error));
@@ -133,7 +134,7 @@ export function aggregateVolatilityResults(results: VolatilityResult[]): Volatil
     index: avgIndex,
     level,
     description,
-    annualizedVolatility: Number(avgAnnualized.toFixed(4)),
-    dailyVolatility: Number(avgDaily.toFixed(4)),
+    annualizedVolatility: roundTo(avgAnnualized, 4),
+    dailyVolatility: roundTo(avgDaily, 4),
   };
 }

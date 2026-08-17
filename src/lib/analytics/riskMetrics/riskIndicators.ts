@@ -1,3 +1,4 @@
+import { roundTo } from '@/lib/utils/format';
 import { normalizeError } from '@/lib/utils/logger';
 
 import {
@@ -259,7 +260,7 @@ export function calculateSharedDependency(params: {
           sharedSourceGroups.length
         : 0;
 
-    const systemicRiskFactor = Number((maxOverlapRatio * 0.6 + avgOverlapRatio * 0.4).toFixed(4));
+    const systemicRiskFactor = roundTo(maxOverlapRatio * 0.6 + avgOverlapRatio * 0.4, 4);
 
     const score = Math.min(Math.round(systemicRiskFactor * 100), 100);
 

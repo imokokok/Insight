@@ -1,3 +1,4 @@
+import { roundTo } from '@/lib/utils/format';
 import { normalizeError } from '@/lib/utils/logger';
 
 import { riskMetricsLogger as logger, type CorrelationRiskResult, type RiskLevel } from './types';
@@ -158,7 +159,7 @@ export function calculateCorrelationRisk(
       score,
       level,
       description,
-      avgCorrelation: Number(avgCorrelation.toFixed(4)),
+      avgCorrelation: roundTo(avgCorrelation, 4),
       highCorrelationPairs: highCorrelationPairs.slice(0, 5),
       correlationMatrix,
       oracleNames,

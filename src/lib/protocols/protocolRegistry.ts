@@ -6,6 +6,7 @@ import {
   AaveV3Polygon,
 } from '@aave-dao/aave-address-book';
 
+import { roundTo } from '@/lib/utils/format';
 import { OracleProvider, type Blockchain } from '@/types/oracle';
 
 export type AssetCategory = 'stablecoin' | 'major' | 'alt' | 'micro';
@@ -61,7 +62,7 @@ export function deriveDeviationRatios(protocol: ProtocolConfig): Record<string, 
       const referenceLt = 1 / reference.liquidationThreshold;
       const assetLt = 1 / asset.liquidationThreshold;
       const riskMultiplier = Math.pow(referenceLt / assetLt, 2);
-      ratios[asset.symbol] = Number((baseline * riskMultiplier).toFixed(3));
+      ratios[asset.symbol] = roundTo(baseline * riskMultiplier, 3);
     } else {
       ratios[asset.symbol] = baseline;
     }

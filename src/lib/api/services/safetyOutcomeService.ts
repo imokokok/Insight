@@ -22,6 +22,7 @@
  */
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('SafetyOutcome');
@@ -155,8 +156,8 @@ export async function computeOutcome(
     windowHours,
     evaluatedAt: new Date().toISOString(),
     baselinePrice,
-    maxPriceMovePct: Number(maxPriceMovePct.toFixed(4)),
-    maxDeviationPct: Number(maxDeviationPct.toFixed(4)),
+    maxPriceMovePct: roundTo(maxPriceMovePct, 4),
+    maxDeviationPct: roundTo(maxDeviationPct, 4),
     label,
     evidence,
   };

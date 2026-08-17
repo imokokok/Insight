@@ -11,6 +11,7 @@ import {
 import { createCachedJsonResponse } from '@/lib/api/utils';
 import { maxTrendDays, normalizePlan } from '@/lib/billing/plans';
 import { reputationService } from '@/lib/oracles/services/reputationService';
+import { roundTo } from '@/lib/utils/format';
 
 const RankingsQuerySchema = z.object({
   days: z
@@ -121,9 +122,9 @@ export const GET = createApiHandler(
       generatedAt: new Date().toISOString(),
       totalProviders: currentRanking.length,
       scoreDistribution: {
-        average: Number(avgScore.toFixed(1)),
-        max: Number(maxScore.toFixed(1)),
-        min: Number(minScore.toFixed(1)),
+        average: roundTo(avgScore, 1),
+        max: roundTo(maxScore, 1),
+        min: roundTo(minScore, 1),
       },
       rankings: rankChanges,
     };
