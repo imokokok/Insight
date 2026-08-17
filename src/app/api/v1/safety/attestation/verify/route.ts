@@ -129,6 +129,49 @@ export interface UnifiedVerificationResult {
 }
 
 /**
+ * Core fields shared by every verifier's result (v1 / v2 / recheck). Each
+ * verifier returns this 6-key core plus ONE schema-specific field: v1 carries
+ * `ageSeconds`, v2 + recheck carry `validUntil`. {@link toUnified} folds that
+ * into the 9-key {@link UnifiedVerificationResult} so the three branches in
+ * `verifyAttestationBySchema` stay byte-identical while the shape lives in one
+ * place (category B — collapse repetition).
+ */
+type CoreVerificationResult = {
+  valid: boolean;
+  attester: string;
+  uid: string | null;
+  checkedAt: number | null;
+  expired: boolean;
+  reason?: string;
+};
+
+/**
+ * Map a verifier's raw result + schema version into the unified shape. The one
+ * field each verifier doesn't natively carry is passed via `overrides`:
+ *   - v1          → validUntil derived from checkedAt + validForSeconds, ageSeconds from result
+ *   - v2 / recheck → validUntil from result, ageSeconds forced to null
+ * Public signature of `verifyAttestationBySchema` is unchanged; this is a pure
+ * internal mapper — no behavior shift, only one literal to maintain.
+ */
+function toUnified(
+  result: CoreVerificationResult,
+  schemaVersion: number,
+  overrides: { validUntil: number | null; ageSeconds: number | null }
+): UnifiedVerificationResult {
+  return {
+    valid: result.valid,
+    attester: result.attester,
+    uid: result.uid,
+    checkedAt: result.checkedAt,
+    validUntil: overrides.validUntil,
+    ageSeconds: overrides.ageSeconds,
+    expired: result.expired,
+    schemaVersion,
+    reason: result.reason,
+  };
+}
+
+/**
  * Route an attestation to its schema-versioned verifier:
  *   - v1 (schemaVersion=1)                 → v1 domain/types (11 fields)
  *   - v2 OracleSafetyCheck (schemaVersion=2, primaryType 'OracleSafetyCheck')
@@ -161,48 +204,21 @@ export async function verifyAttestationBySchema(
   // generic schemaVersion===2 branch.
   if (schemaVersion === V2_SCHEMA_VERSION && isRecheck) {
     const rc = await verifyRecheck(attestation as unknown as OracleSafetyRecheck);
-    return {
-      valid: rc.valid,
-      attester: rc.attester,
-      uid: rc.uid,
-      checkedAt: rc.checkedAt,
-      validUntil: rc.validUntil,
-      ageSeconds: null,
-      expired: rc.expired,
-      schemaVersion: V2_SCHEMA_VERSION,
-      reason: rc.reason,
-    };
+    return toUnified(rc, V2_SCHEMA_VERSION, { validUntil: rc.validUntil, ageSeconds: null });
   }
 
   if (schemaVersion === V2_SCHEMA_VERSION) {
     const v2 = await verifyAttestationV2(attestation as unknown as OracleSafetyAttestationV2);
-    return {
-      valid: v2.valid,
-      attester: v2.attester,
-      uid: v2.uid,
-      checkedAt: v2.checkedAt,
-      validUntil: v2.validUntil,
-      ageSeconds: null,
-      expired: v2.expired,
-      schemaVersion: V2_SCHEMA_VERSION,
-      reason: v2.reason,
-    };
+    return toUnified(v2, V2_SCHEMA_VERSION, { validUntil: v2.validUntil, ageSeconds: null });
   }
 
   if (schemaVersion === ATTESTATION_SCHEMA_VERSION) {
     const v1 = await verifyAttestation(attestation as unknown as OracleSafetyAttestation);
-    return {
-      valid: v1.valid,
-      attester: v1.attester,
-      uid: v1.uid,
-      checkedAt: v1.checkedAt,
-      // v1 has no explicit validUntil field; derive it for the unified shape.
+    // v1 has no explicit validUntil field; derive it for the unified shape.
+    return toUnified(v1, ATTESTATION_SCHEMA_VERSION, {
       validUntil: v1.checkedAt !== null ? v1.checkedAt + attestation.validForSeconds : null,
       ageSeconds: v1.ageSeconds,
-      expired: v1.expired,
-      schemaVersion: ATTESTATION_SCHEMA_VERSION,
-      reason: v1.reason,
-    };
+    });
   }
 
   return {
