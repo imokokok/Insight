@@ -217,7 +217,7 @@ async function exportToPDF(
       margin: { left: 14, right: 14 },
     });
 
-    yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+    yPos = doc.lastAutoTable.finalY + 10;
   }
 
   // Add chart
