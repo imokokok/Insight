@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-16",
+  "version": "2026-08-18",
   "source": "seed-from-CHAINLINK_PRICE_FEEDS; run `npm run sync:chainlink-catalog` to expand to official full set via on-chain Feed Registry",
   "networks": {
     "1": [
@@ -177,6 +177,13 @@
         "proxyAddress": "0x379589227b15F1a12195D3f2d90bBc9F31f95235",
         "decimals": 8,
         "category": "commodity"
+      },
+      {
+        "base": "STG",
+        "quote": "USD",
+        "proxyAddress": "0xFe5AFc4225E2626EB40Ca11A59962eBEEeb09E76",
+        "decimals": 8,
+        "category": "crypto"
       }
     ],
     "10": [
