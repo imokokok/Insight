@@ -1,4 +1,6 @@
+import { ON_CHAIN_TRUSTED_TIMESTAMP_PROVIDERS } from '@/lib/oracles/oracleAge';
 import { createLogger } from '@/lib/utils/logger';
+import { type OracleProvider } from '@/types/oracle/enums';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -79,9 +81,18 @@ export function percentile(values: number[], p: number): number {
  * — the caller must then NOT flag staleness (absence of evidence is not
  * staleness).
  *
- * IMPORTANT: price_snapshots.data_age_seconds must be the ORACLE's true age
- * (now - oracle timestamp), not the ingestion/cache timestamp. See the clock
- * fix in snapshotCollector.buildSnapshotInputs and consensusPriceService.
+ * IMPORTANT: price_snapshots.data_age_seconds must be the ORACLE's reported
+ * age (now - oracle timestamp), not the ingestion/cache timestamp. See the
+ * clock fix in snapshotCollector.buildSnapshotInputs and consensusPriceService.
+ *
+ * **Off-chain providers are excluded by design.** REDSTONE / DIA / REFLECTOR
+ * expose a SOURCE publish time as their `timestamp`, not the oracle's real
+ * update time. If we averaged their `data_age_seconds` into a p90, the result
+ * would collapse to 1-9 seconds and the cadence-relative staleness path would
+ * either always-pass (with the permissive resolver) or always-fail (with a
+ * strict one). Either way, the number is meaningless. Until each off-chain
+ * client computes a trustworthy `dataAge` from a real oracle signal, we
+ * return `null` for them and rely on the 7-day hard backstop instead.
  */
 export async function computeFeedStalenessBaseline(
   supabase: SupabaseClient,
@@ -91,6 +102,19 @@ export async function computeFeedStalenessBaseline(
   lookbackHours = 48,
   minSamples = 12
 ): Promise<FeedStalenessBaseline> {
+  if (!ON_CHAIN_TRUSTED_TIMESTAMP_PROVIDERS.has(provider as OracleProvider)) {
+    // Off-chain provider without a verified oracle-age signal — absence of
+    // evidence, not staleness. Hard backstop (7d) still applies.
+    return {
+      provider,
+      symbol,
+      chainId,
+      p90Seconds: null,
+      sampleCount: 0,
+      computedAt: new Date().toISOString(),
+    };
+  }
+
   const since = new Date(Date.now() - lookbackHours * 3600 * 1000).toISOString();
   const { data, error } = await supabase
     .from('price_snapshots')

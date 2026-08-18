@@ -52,24 +52,31 @@ describe('resolveOracleAgeSeconds', () => {
     expect(resolveOracleAgeSeconds(p, NOW)).toBe(9);
   });
 
-  it('returns null for off-chain providers without a reliable age signal (no false-fresh)', () => {
-    const p = makePrice({
+  it('resolves off-chain age from timestamp (permissive — cadence baseline is the strict gate)', () => {
+    // Off-chain aggregators (REDSTONE/DIA/REFLECTOR) report a SOURCE publish
+    // time as `timestamp`. At the runtime layer we still treat that as the
+    // oracle's reported age (byte-identical to the pre-fix behaviour) so the
+    // snapshot / consensus / pre-trade hot path is unaffected. The STRICT
+    // classification (these providers' ages are not trustworthy enough to
+    // build a cadence p90) lives in computeFeedStalenessBaseline, which
+    // returns null for any provider not in ON_CHAIN_TRUSTED_TIMESTAMP_PROVIDERS.
+    const redstone = makePrice({
       provider: OracleProvider.REDSTONE,
-      timestamp: NOW - 5_000, // source publish time, NOT oracle update time
+      timestamp: NOW - 5_000,
     });
-    expect(resolveOracleAgeSeconds(p, NOW)).toBeNull();
+    expect(resolveOracleAgeSeconds(redstone, NOW)).toBe(5);
 
     const dia = makePrice({
       provider: OracleProvider.DIA,
       timestamp: NOW - 5_000,
     });
-    expect(resolveOracleAgeSeconds(dia, NOW)).toBeNull();
+    expect(resolveOracleAgeSeconds(dia, NOW)).toBe(5);
 
     const reflector = makePrice({
       provider: OracleProvider.REFLECTOR,
       timestamp: NOW - 5_000,
     });
-    expect(resolveOracleAgeSeconds(reflector, NOW)).toBeNull();
+    expect(resolveOracleAgeSeconds(reflector, NOW)).toBe(5);
   });
 
   it('uses explicit dataAge for off-chain providers when they supply one', () => {
@@ -104,13 +111,16 @@ describe('resolveOracleAgeSeconds', () => {
     expect(resolveOracleAgeSeconds(missing, NOW)).toBeNull();
   });
 
-  it('returns null when provider is missing (cannot classify reliability)', () => {
+  it("uses timestamp when provider is missing (classification is not the resolver's job)", () => {
+    // Permissive resolver: a missing `provider` does not block age resolution.
+    // Provider classification for cadence-strictness lives in
+    // computeFeedStalenessBaseline, not here.
     const p = makePrice({
       // @ts-expect-error provider intentionally omitted
       provider: undefined,
       timestamp: NOW - 5_000,
     });
-    expect(resolveOracleAgeSeconds(p, NOW)).toBeNull();
+    expect(resolveOracleAgeSeconds(p, NOW)).toBe(5);
   });
 
   it('falls through to timestamp path when dataAge is negative', () => {
