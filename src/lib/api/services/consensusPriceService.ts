@@ -1,4 +1,9 @@
-import { calculateConsensusPrice, type ConsensusMethod } from '@/lib/analytics/consensusPrice';
+import {
+  calculateConsensusPrice,
+  FRESHNESS_STALE_AGE_SECONDS,
+  FRESHNESS_STALE_DIVERGENCE_PCT,
+  type ConsensusMethod,
+} from '@/lib/analytics/consensusPrice';
 import { UnsupportedSymbolError } from '@/lib/errors';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
@@ -28,6 +33,10 @@ export interface ConsensusProviderPrice {
   verification?: PriceData['verification'];
   reputationScore: number | null;
   status: 'success' | 'unsupported' | 'error';
+  /** Effectively stale: oracle-true age is old AND price diverges from the
+   *  fresh consensus (genuinely dead/wrong). A stale timestamp with a price in
+   *  consensus (timestamp anomaly, e.g. API3) is false. */
+  isStale: boolean;
   errorMessage?: string;
 }
 
@@ -157,10 +166,31 @@ async function fetchProviderPrice(
 }
 
 function calculateDataAgeSeconds(priceData: PriceData): number | null {
-  const refTime = priceData.ingestionTimestamp ?? priceData.timestamp;
+  // Use the oracle's OWN reported update time as the staleness reference.
+  // `ingestionTimestamp` is when *we* ingested/cached the row, and live fetches
+  // set it to Date.now() — using it previously made every fresh read look
+  // 0s old and blinded the pre-trade staleness gate. `priceData.timestamp` is
+  // the oracle's real last-update time, so now - timestamp is the true age.
+  // (When a client supplies an explicit per-oracle `dataAge`, honor it.)
+  if (typeof priceData.dataAge === 'number' && priceData.dataAge >= 0) {
+    return priceData.dataAge;
+  }
+  const refTime = priceData.timestamp;
   if (!refTime || refTime <= 0) return null;
   return Math.max(0, Math.floor((Date.now() - refTime) / 1000));
 }
+
+// SEMANTIC CHANGE (B3): historically this returned ~0 for live fetches because it
+// used ingestionTimestamp (which live fetches set to now()). Now it returns the
+// ORACLE's true age. Downstream callers that now correctly discount stale data:
+//   - consensusPriceService.buildProviderPrice -> ConsensusProviderPrice.dataAgeSeconds
+//     (drives isStale + the consensus freshness guard in consensusPrice.ts)
+//   - consensusPrice.weighted_median freshness weight (was blindingly 1.0)
+//   - reputationService.calculateAndStore -> calculateConsensusPrice input (its
+//     consensus now weights stale feeds down instead of treating them as fresh)
+// Callers that were already correct and are UNCHANGED: riskMetrics/riskIndicators
+// and crossChainComparison compute age from oracle.timestamp directly, so they
+// never relied on the broken clock and need no update.
 
 function buildProviderPrice(
   result: FetchProviderPriceResult,
@@ -168,12 +198,22 @@ function buildProviderPrice(
   excludedProviders: string[],
   reputations: Map<OracleProvider, number>
 ): ConsensusProviderPrice {
-  // consensusPrice is used to compute per-provider deviationPct.
-  void consensusPrice;
+  // consensusPrice is used to compute per-provider deviationPct and effective-staleness.
   const priceData = result.priceData;
   const price = priceData?.price ?? 0;
+  const dataAgeSeconds = priceData ? calculateDataAgeSeconds(priceData) : null;
   const deviationPct =
     price > 0 && consensusPrice > 0 ? ((price - consensusPrice) / consensusPrice) * 100 : null;
+
+  // Consensus-aware effective staleness: old oracle-true age AND the price
+  // diverges from the fresh consensus (>2%). A stale timestamp with a price in
+  // consensus (API3-style timestamp anomaly) is NOT flagged stale.
+  const isStale =
+    dataAgeSeconds !== null &&
+    dataAgeSeconds >= FRESHNESS_STALE_AGE_SECONDS &&
+    price > 0 &&
+    consensusPrice > 0 &&
+    Math.abs(price - consensusPrice) / consensusPrice > FRESHNESS_STALE_DIVERGENCE_PCT / 100;
 
   return {
     provider: result.provider,
@@ -184,11 +224,12 @@ function buildProviderPrice(
     isOutlier: excludedProviders.includes(result.provider),
     confidence: priceData?.confidence ?? null,
     timestamp: priceData?.timestamp ?? Date.now(),
-    dataAgeSeconds: priceData ? calculateDataAgeSeconds(priceData) : null,
+    dataAgeSeconds,
     source: priceData?.source,
     verification: priceData?.verification,
     reputationScore: reputations.get(result.provider) ?? null,
     status: result.status,
+    isStale,
     errorMessage: result.errorMessage,
   };
 }
@@ -257,6 +298,7 @@ export async function getConsensusPrice(
       price: r.priceData.price,
       timestamp: r.priceData.timestamp,
       ingestionTimestamp: r.priceData.ingestionTimestamp,
+      dataAgeSeconds: calculateDataAgeSeconds(r.priceData) ?? undefined,
       confidence: r.priceData.confidence ?? 0.8,
       confidenceInterval: r.priceData.confidenceInterval,
     }));

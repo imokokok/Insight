@@ -278,7 +278,11 @@ export function buildSnapshotInputs(
         }
       }
 
-      const refTime = item.price?.ingestionTimestamp ?? item.price?.timestamp;
+      // Use the oracle's OWN reported update time (item.price.timestamp), NOT
+      // ingestionTimestamp — live fetches set ingestionTimestamp = now, which
+      // would make every fresh snapshot look 0s old and poison the cadence
+      // baseline (feedCadence) that the pre-trade staleness gate depends on.
+      const refTime = item.price?.timestamp;
       const dataAgeSeconds = refTime ? Math.floor((now - refTime) / 1000) : null;
 
       const priceCheck = item.price ? sanitizePriceForSnapshot(item.price.price) : null;

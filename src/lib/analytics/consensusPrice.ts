@@ -19,6 +19,9 @@ export interface ConsensusPriceInput {
   price: number;
   timestamp: number;
   ingestionTimestamp?: number;
+  /** Oracle-true age in seconds (preferred over ingestionTimestamp for freshness).
+   *  When present and old, the freshness guard may exclude the participant. */
+  dataAgeSeconds?: number;
   confidence?: number;
   confidenceInterval?: {
     bid: number;
@@ -26,6 +29,22 @@ export interface ConsensusPriceInput {
     widthPercentage: number;
   };
 }
+
+/**
+ * Consensus freshness guard. A participant is treated as *effectively stale*
+ * (and excluded from the price aggregate) only when BOTH its oracle-true age is
+ * >= this AND its price diverges from the fresh consensus median by more than
+ * {@link FRESHNESS_STALE_DIVERGENCE_PCT}.
+ *
+ * Old age ALONE (e.g. API3 communal dAPIs report a 7-120d-old `updatedAt` while
+ * serving a current price) is a timestamp-source anomaly, NOT dead data, and
+ * must stay in the consensus — otherwise we would drop a provider's fresh price
+ * over a lying timestamp. This is the same consensus-aware principle used by the
+ * pre-trade 7-day hard backstop, applied at the consensus layer so a stuck/wrong
+ * feed cannot pollute the aggregate (the B-audit [HIGH]: "陈旧一致价拉偏 consensus").
+ */
+export const FRESHNESS_STALE_AGE_SECONDS = 3600;
+export const FRESHNESS_STALE_DIVERGENCE_PCT = 2.0;
 
 export interface ConsensusResult {
   price: number;
@@ -373,6 +392,22 @@ function getConfidenceLevel(confidence: number): ConsensusConfidenceLevel {
   return 'very_low';
 }
 
+/**
+ * True only when the participant is BOTH old (oracle-true age >=
+ * {@link FRESHNESS_STALE_AGE_SECONDS}) AND its price diverges from the fresh
+ * consensus median by more than {@link FRESHNESS_STALE_DIVERGENCE_PCT}. A stale
+ * timestamp with a price still in consensus is a timestamp-source anomaly and
+ * returns false (kept in the aggregate). Unknown age or fresh age returns false.
+ */
+function isEffectivelyStale(input: ConsensusPriceInput, refMedian: number): boolean {
+  const age = input.dataAgeSeconds;
+  if (age === undefined || age === null) return false;
+  if (age < FRESHNESS_STALE_AGE_SECONDS) return false;
+  if (refMedian <= 0 || input.price <= 0) return false;
+  const deviation = (Math.abs(input.price - refMedian) / refMedian) * 100;
+  return deviation > FRESHNESS_STALE_DIVERGENCE_PCT;
+}
+
 function computeMethod(
   method: ConsensusMethod,
   validInputs: ConsensusPriceInput[],
@@ -388,8 +423,11 @@ function computeMethod(
     case 'weighted_median':
       return weightedMedianMethod(validInputs, (input) => {
         const confidenceWeight = input.confidence ?? 0.8;
-        const refTime = input.ingestionTimestamp ?? input.timestamp;
-        const ageSeconds = (currentTime - refTime) / 1000;
+        // Oracle-true age when available; fall back to timestamp-based age.
+        // (Previously used ingestionTimestamp, which live fetches set to now() —
+        // blinding the weight so stale/API3 data got full weight. Same bad-clock
+        // bug B3 fixed in the pre-trade path.)
+        const ageSeconds = input.dataAgeSeconds ?? (currentTime - input.timestamp) / 1000;
         const freshnessWeight = Math.max(0.5, Math.exp(-ageSeconds / 600));
         const ciWidth = input.confidenceInterval?.widthPercentage ?? 10;
         const ciWeight = Math.max(0.1, 1 - ciWidth / 20);
@@ -450,11 +488,29 @@ export function calculateConsensusPrice(
     const recommendedMethod = getRecommendedMethod(category);
     const activeMethod = method ?? recommendedMethod;
 
-    const consensusPrice = computeMethod(activeMethod, valid, symbol);
+    // Freshness guard (consensus-aware): exclude participants that are BOTH old
+    // and price-divergent from the fresh consensus — genuinely dead/wrong data.
+    // A stale timestamp whose price still agrees (API3-style timestamp anomaly)
+    // is NOT excluded, so we never drop a provider's fresh price over a lying
+    // timestamp. When excluding would leave < 2 fresh participants we fall back
+    // to `valid` (can't safely drop sources), so participantCount (coverage)
+    // is always preserved.
+    const refMedian = calculateMedian(valid.map((i) => i.price));
+    const stale = valid.filter((i) => isEffectivelyStale(i, refMedian));
+    const fresh = valid.filter((i) => !stale.includes(i));
+    const useFresh = fresh.length >= 2;
+    const priceInputs = useFresh ? fresh : valid;
+    const freshnessExcluded = useFresh ? stale : [];
 
-    const validPrices = valid.map((i) => i.price);
+    const consensusPrice = computeMethod(activeMethod, priceInputs, symbol);
+
+    const validPrices = priceInputs.map((i) => i.price);
     const agreement = calculateAgreement(validPrices);
-    let confidence = calculateConsensusConfidence(valid.length, agreement, outliers.length);
+    let confidence = calculateConsensusConfidence(
+      valid.length,
+      agreement,
+      outliers.length + freshnessExcluded.length
+    );
 
     if (validInputs.length <= 2 && valid.length < validInputs.length) {
       confidence = Math.min(confidence, 0.39);
@@ -469,7 +525,10 @@ export function calculateConsensusPrice(
       max: Math.max(...validPrices),
     };
 
-    const excludedProviders = outliers.map((o) => o.provider);
+    const excludedProviders = [
+      ...outliers.map((o) => o.provider),
+      ...freshnessExcluded.map((o) => o.provider),
+    ];
 
     return {
       price: consensusPrice,
@@ -478,10 +537,10 @@ export function calculateConsensusPrice(
       confidence,
       agreement,
       participantCount: valid.length,
-      excludedCount: outliers.length,
+      excludedCount: excludedProviders.length,
       excludedProviders,
       priceRange,
-      methodResults: computeAllMethods(valid, symbol, currentTime),
+      methodResults: computeAllMethods(priceInputs, symbol, currentTime),
       recommendedMethod,
     };
   } catch (error) {

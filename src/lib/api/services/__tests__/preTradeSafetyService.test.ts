@@ -2,6 +2,7 @@ import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { signAttestationV2 } from '@/lib/attestations/oracleSafetyAttestationV2';
 import { UnsupportedSymbolError } from '@/lib/errors';
 import { getModelStatus, scorePreTradeMultiHorizon } from '@/lib/ml/inference';
+import { getFeedStalenessBaselineMap } from '@/lib/oracles/feedCadence';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { createServiceRoleClient } from '@/lib/supabase/server';
@@ -36,6 +37,15 @@ jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(),
 }));
 
+// Mock only the baseline LOOKUP; keep isCadenceStale (and the K/floor constants)
+// real so the service tests exercise the actual cadence-relative logic. Default
+// to an empty map (no baselines -> no staleness) so unrelated tests don't crash;
+// individual staleness tests override with mockResolvedValue.
+jest.mock('@/lib/oracles/feedCadence', () => ({
+  ...jest.requireActual('@/lib/oracles/feedCadence'),
+  getFeedStalenessBaselineMap: jest.fn(() => Promise.resolve(new Map())),
+}));
+
 // Mock the ML scorer so service tests assert against the rule-based fallback
 // (stable, model-independent) rather than the current baked-in model's scores.
 // The ML math itself is covered by src/lib/ml/__tests__/inference.test.ts. By
@@ -68,6 +78,9 @@ const mockedScorePreTradeMultiHorizon = scorePreTradeMultiHorizon as jest.Mocked
 >;
 const mockedGetModelStatus = getModelStatus as jest.MockedFunction<typeof getModelStatus>;
 const mockedSignAttestationV2 = signAttestationV2 as jest.MockedFunction<typeof signAttestationV2>;
+const mockedGetFeedStalenessBaselineMap = getFeedStalenessBaselineMap as jest.MockedFunction<
+  typeof getFeedStalenessBaselineMap
+>;
 
 // ---------------------------------------------------------------------------
 // Builders
@@ -283,11 +296,47 @@ describe('preTradeSafetyCheck — verdict engine', () => {
   });
 });
 
-describe('preTradeSafetyCheck — staleness rule', () => {
-  it('returns CAUTION when max data age is between 60s and 180s', async () => {
+describe('preTradeSafetyCheck — staleness rule (cadence-relative)', () => {
+  it('does NOT flag staleness when no observed cadence baseline exists', async () => {
+    // Absence of evidence is not staleness: without a baseline we never block.
+    mockedGetFeedStalenessBaselineMap.mockResolvedValue(new Map());
     const providers = [
-      makeProvider({ provider: 'chainlink' as OracleProvider, dataAgeSeconds: 90 }),
-      makeProvider({ provider: 'redstone' as OracleProvider, dataAgeSeconds: 10 }),
+      makeProvider({ provider: 'chainlink' as OracleProvider, dataAgeSeconds: 650 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, dataAgeSeconds: 5 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(makeInput());
+
+    expect(result.verdict).not.toBe('BLOCK');
+    expect(result.staleDataRisk).toBe(false);
+    expect(result.contributingFactors.find((f) => f.rule === 'data_stale_seconds')).toBeUndefined();
+  });
+
+  it('does NOT flag a slow-but-healthy source within its own cadence', async () => {
+    // API3-like ~24h cadence; a normal 24h-old reading is well within rhythm.
+    mockedGetFeedStalenessBaselineMap.mockResolvedValue(
+      new Map<string, number | null>([['api3', 86_400]])
+    );
+    const providers = [
+      makeProvider({ provider: 'api3' as OracleProvider, dataAgeSeconds: 86_400 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(makeInput());
+
+    expect(result.verdict).not.toBe('BLOCK');
+    expect(result.staleDataRisk).toBe(false);
+  });
+
+  it('returns a soft CAUTION when a feed falls ~8x behind its own cadence', async () => {
+    // Chainlink-like ~15min cadence; 8000s is ~9x the p90 -> stale.
+    mockedGetFeedStalenessBaselineMap.mockResolvedValue(
+      new Map<string, number | null>([['chainlink', 900]])
+    );
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, dataAgeSeconds: 8000 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, dataAgeSeconds: 5 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
 
@@ -298,10 +347,19 @@ describe('preTradeSafetyCheck — staleness rule', () => {
     expect(result.contributingFactors.find((f) => f.rule === 'data_stale_seconds')).toBeDefined();
   });
 
-  it('returns BLOCK when max data age >= 600s', async () => {
+  it('returns BLOCK only when data age is >= 7 days AND the price diverges from consensus (genuinely dead)', async () => {
+    // The 7d hard backstop is fail-closed for genuinely dead data: the feed is
+    // both >=7d old AND its price is well off the fresh consensus.
+    mockedGetFeedStalenessBaselineMap.mockResolvedValue(
+      new Map<string, number | null>([['chainlink', 900]])
+    );
     const providers = [
-      makeProvider({ provider: 'chainlink' as OracleProvider, dataAgeSeconds: 650 }),
-      makeProvider({ provider: 'redstone' as OracleProvider, dataAgeSeconds: 5 }),
+      makeProvider({
+        provider: 'chainlink' as OracleProvider,
+        dataAgeSeconds: 700_000,
+        price: 1900,
+      }),
+      makeProvider({ provider: 'redstone' as OracleProvider, dataAgeSeconds: 5, price: 1860 }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
 
@@ -309,6 +367,33 @@ describe('preTradeSafetyCheck — staleness rule', () => {
 
     expect(result.verdict).toBe('BLOCK');
     expect(result.staleDataRisk).toBe(true);
+    expect(
+      result.contributingFactors.find(
+        (f) => f.rule === 'data_stale_seconds' && f.triggeredVerdict === 'BLOCK'
+      )
+    ).toBeDefined();
+  });
+
+  it('does NOT hard-block a 7d-stale timestamp when the price agrees with consensus (timestamp anomaly)', async () => {
+    // Mirrors the real API3 communal-dAPI behavior: the dAPI reports a 7-120d-old
+    // `updatedAt` while serving a current price within <1% of fresh providers.
+    // Such a stale timestamp must surface as a soft CAUTION, never a BLOCK —
+    // otherwise BTC/ETH/USDC/SOL would falsely block on every chain API3 covers.
+    mockedGetFeedStalenessBaselineMap.mockResolvedValue(new Map());
+    const providers = [
+      makeProvider({ provider: 'api3' as OracleProvider, dataAgeSeconds: 700_000, price: 1860 }),
+      makeProvider({ provider: 'chainlink' as OracleProvider, dataAgeSeconds: 5, price: 1860 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, dataAgeSeconds: 5, price: 1860 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(makeInput());
+
+    expect(result.verdict).not.toBe('BLOCK');
+    expect(result.verdict).toBe('CAUTION');
+    expect(
+      result.contributingFactors.find((f) => f.rule === 'data_stale_timestamp_anomaly')
+    ).toBeDefined();
   });
 });
 
@@ -387,12 +472,15 @@ describe('preTradeSafetyCheck — position size ratio', () => {
 
 describe('preTradeSafetyCheck — worst verdict aggregation', () => {
   it('picks the worst verdict across multiple triggered rules', async () => {
-    // deviation 1.5% -> CAUTION, stale 650s -> BLOCK
+    // deviation 9.5% -> BLOCK; chainlink 8000s vs 900s cadence -> CAUTION (soft)
+    mockedGetFeedStalenessBaselineMap.mockResolvedValue(
+      new Map<string, number | null>([['chainlink', 900]])
+    );
     const providers = [
       makeProvider({
         provider: 'chainlink' as OracleProvider,
-        deviationPct: 1.5,
-        dataAgeSeconds: 650,
+        deviationPct: 9.5,
+        dataAgeSeconds: 8000,
       }),
       makeProvider({
         provider: 'redstone' as OracleProvider,

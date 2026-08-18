@@ -330,6 +330,64 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     });
   });
 
+  describe('freshness guard (consensus-aware stale exclusion)', () => {
+    it('excludes a participant that is old AND price-divergent (genuinely stale), but keeps coverage', () => {
+      const inputs = [
+        makeInput({ provider: 'chainlink', price: 62000, dataAgeSeconds: 7200, confidence: 0.95 }),
+        makeInput({ provider: 'redstone', price: 64500, dataAgeSeconds: 10, confidence: 0.95 }),
+        makeInput({ provider: 'dia', price: 64600, dataAgeSeconds: 30, confidence: 0.95 }),
+      ];
+      const result = calculateConsensusPrice(inputs, 'median', 'BTC');
+
+      expect(result.excludedProviders).toContain('chainlink');
+      // Coverage is preserved: the stale source still counts as a participant.
+      expect(result.participantCount).toBe(3);
+      // Price uses the fresh subset (redstone/dia), not the stale 62000.
+      expect(result.price).toBeCloseTo(64550, -2);
+    });
+
+    it('keeps a participant with an old timestamp but a consensus price (API3-like timestamp anomaly)', () => {
+      const inputs = [
+        makeInput({ provider: 'api3', price: 64500, dataAgeSeconds: 10_000_000, confidence: 0.95 }),
+        makeInput({ provider: 'redstone', price: 64500, dataAgeSeconds: 10, confidence: 0.95 }),
+        makeInput({ provider: 'dia', price: 64600, dataAgeSeconds: 30, confidence: 0.95 }),
+      ];
+      const result = calculateConsensusPrice(inputs, 'median', 'BTC');
+
+      // Timestamp anomaly: old `updatedAt` but price in consensus -> NOT excluded.
+      expect(result.excludedProviders).not.toContain('api3');
+      expect(result.participantCount).toBe(3);
+      // API3's fresh price IS included in the aggregate; median of [64500,64500,64600] = 64500.
+      expect(result.price).toBeCloseTo(64500, -2);
+    });
+
+    it('does not exclude anyone when all participants are old and divergent (fallback to valid)', () => {
+      const inputs = [
+        makeInput({ provider: 'a', price: 60000, dataAgeSeconds: 7200, confidence: 0.9 }),
+        makeInput({ provider: 'b', price: 69000, dataAgeSeconds: 7200, confidence: 0.9 }),
+      ];
+      const result = calculateConsensusPrice(inputs, 'median', 'BTC');
+
+      // Fresh subset would be empty (<2) -> fall back to valid, no exclusion.
+      expect(result.excludedProviders).not.toContain('a');
+      expect(result.excludedProviders).not.toContain('b');
+      expect(result.participantCount).toBe(2);
+    });
+
+    it('ignores freshness when no dataAgeSeconds is supplied (legacy behaviour)', () => {
+      const inputs = [
+        makeInput({ provider: 'chainlink', price: 62000 }),
+        makeInput({ provider: 'redstone', price: 64500 }),
+        makeInput({ provider: 'dia', price: 64600 }),
+      ];
+      const result = calculateConsensusPrice(inputs, 'median', 'BTC');
+
+      // No age info -> freshness guard does not fire; only z-score may act.
+      expect(result.excludedProviders).not.toContain('chainlink');
+      expect(result.participantCount).toBe(3);
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle empty inputs', () => {
       const result = calculateConsensusPrice([], 'median', 'BTC');
