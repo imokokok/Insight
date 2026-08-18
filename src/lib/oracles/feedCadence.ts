@@ -29,6 +29,26 @@ export const STALE_FLOOR_SECONDS = 3600;
  */
 export const HARD_STALE_BLOCK_SECONDS = 604800;
 
+/**
+ * Master switch for the cadence-relative CAUTION path.
+ *
+ * Opt-in (default OFF) until every provider reports a trustworthy oracle age.
+ * Several off-chain aggregators (REDSTONE / DIA / REFLECTOR) expose a SOURCE
+ * publish time as their `timestamp`, not the oracle's real update time. Their
+ * cadence baselines therefore collapse to a few seconds and the path produces
+ * misleading always-fresh verdicts. Age resolution (`resolveOracleAgeSeconds`)
+ * already returns `null` for those providers so they contribute NO baseline, but
+ * the switch keeps the CAUTION branch fully dormant until the remaining
+ * provider age signals are verified end-to-end.
+ *
+ * Enable with `ENABLE_CADENCE_CAUTION=true` once baselines are trustworthy.
+ * Read at call time (not module load) so it is configurable per environment and
+ * unit-testable.
+ */
+export function isCadenceCautionEnabled(): boolean {
+  return process.env.ENABLE_CADENCE_CAUTION === 'true';
+}
+
 export interface FeedStalenessBaseline {
   provider: string;
   symbol: string;
@@ -141,6 +161,7 @@ export function isCadenceStale(
   multiplier: number = CAUTION_STALE_MULTIPLIER,
   floorSeconds: number = STALE_FLOOR_SECONDS
 ): boolean {
+  if (!isCadenceCautionEnabled()) return false;
   if (baselineP90Seconds == null || baselineP90Seconds <= 0) return false;
   if (currentAgeSeconds <= floorSeconds) return false;
   return currentAgeSeconds > multiplier * baselineP90Seconds;

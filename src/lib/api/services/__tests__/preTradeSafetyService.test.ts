@@ -46,6 +46,14 @@ jest.mock('@/lib/oracles/feedCadence', () => ({
   getFeedStalenessBaselineMap: jest.fn(() => Promise.resolve(new Map())),
 }));
 
+// The cadence-relative CAUTION path is opt-in via ENABLE_CADENCE_CAUTION (default
+// OFF until every provider reports a trustworthy oracle age). These service
+// tests exercise that path, so enable it for the whole file. resolveOracleAgeSeconds
+// still returns null for off-chain aggregators without a reliable signal, so the
+// REDSTONE rows above never fabricate staleness — only on-chain feeds with a real
+// age + baseline reach the CAUTION/BLOCK thresholds.
+process.env.ENABLE_CADENCE_CAUTION = 'true';
+
 // Mock the ML scorer so service tests assert against the rule-based fallback
 // (stable, model-independent) rather than the current baked-in model's scores.
 // The ML math itself is covered by src/lib/ml/__tests__/inference.test.ts. By

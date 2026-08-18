@@ -8,6 +8,7 @@ import { UnsupportedSymbolError } from '@/lib/errors';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { reputationService } from '@/lib/oracles/services/reputationService';
 import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
@@ -166,18 +167,9 @@ async function fetchProviderPrice(
 }
 
 function calculateDataAgeSeconds(priceData: PriceData): number | null {
-  // Use the oracle's OWN reported update time as the staleness reference.
-  // `ingestionTimestamp` is when *we* ingested/cached the row, and live fetches
-  // set it to Date.now() — using it previously made every fresh read look
-  // 0s old and blinded the pre-trade staleness gate. `priceData.timestamp` is
-  // the oracle's real last-update time, so now - timestamp is the true age.
-  // (When a client supplies an explicit per-oracle `dataAge`, honor it.)
-  if (typeof priceData.dataAge === 'number' && priceData.dataAge >= 0) {
-    return priceData.dataAge;
-  }
-  const refTime = priceData.timestamp;
-  if (!refTime || refTime <= 0) return null;
-  return Math.max(0, Math.floor((Date.now() - refTime) / 1000));
+  // Delegate to the shared resolver so consensus + snapshot + pre-trade all use
+  // ONE definition of "oracle true age".
+  return resolveOracleAgeSeconds(priceData);
 }
 
 // SEMANTIC CHANGE (B3): historically this returned ~0 for live fetches because it

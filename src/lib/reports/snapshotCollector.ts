@@ -18,6 +18,7 @@ import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import {
@@ -278,12 +279,13 @@ export function buildSnapshotInputs(
         }
       }
 
-      // Use the oracle's OWN reported update time (item.price.timestamp), NOT
-      // ingestionTimestamp — live fetches set ingestionTimestamp = now, which
-      // would make every fresh snapshot look 0s old and poison the cadence
-      // baseline (feedCadence) that the pre-trade staleness gate depends on.
-      const refTime = item.price?.timestamp;
-      const dataAgeSeconds = refTime ? Math.floor((now - refTime) / 1000) : null;
+      // Use the shared oracle-age resolver so snapshot writes and live
+      // pre-trade agree on what "age" means. It prefers an explicit per-oracle
+      // `dataAge`, trusts `item.price.timestamp` only for on-chain providers
+      // (their timestamp IS the oracle update time), and returns null for
+      // off-chain aggregators whose `timestamp` is a publish time — so their
+      // cadence baseline stays null instead of being fabricated as "seconds old".
+      const dataAgeSeconds = item.price ? resolveOracleAgeSeconds(item.price, now) : null;
 
       const priceCheck = item.price ? sanitizePriceForSnapshot(item.price.price) : null;
       const isSuccess = item.error === null && priceCheck?.valid === true;

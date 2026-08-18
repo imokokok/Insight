@@ -1,6 +1,7 @@
 import {
   percentile,
   isCadenceStale,
+  isCadenceCautionEnabled,
   CAUTION_STALE_MULTIPLIER,
   STALE_FLOOR_SECONDS,
   HARD_STALE_BLOCK_SECONDS,
@@ -34,7 +35,41 @@ describe('percentile', () => {
   });
 });
 
-describe('isCadenceStale', () => {
+describe('isCadenceCautionEnabled', () => {
+  const prev = process.env.ENABLE_CADENCE_CAUTION;
+
+  afterEach(() => {
+    if (prev === undefined) delete process.env.ENABLE_CADENCE_CAUTION;
+    else process.env.ENABLE_CADENCE_CAUTION = prev;
+  });
+
+  it('is OFF by default', () => {
+    delete process.env.ENABLE_CADENCE_CAUTION;
+    expect(isCadenceCautionEnabled()).toBe(false);
+  });
+
+  it('is ON only when explicitly set to "true"', () => {
+    process.env.ENABLE_CADENCE_CAUTION = 'true';
+    expect(isCadenceCautionEnabled()).toBe(true);
+    process.env.ENABLE_CADENCE_CAUTION = '1';
+    expect(isCadenceCautionEnabled()).toBe(false);
+    process.env.ENABLE_CADENCE_CAUTION = 'false';
+    expect(isCadenceCautionEnabled()).toBe(false);
+  });
+});
+
+describe('isCadenceStale (CAUTION switch enabled)', () => {
+  // The path is opt-in; these logic tests only hold when the switch is on.
+  let prev: string | undefined;
+  beforeAll(() => {
+    prev = process.env.ENABLE_CADENCE_CAUTION;
+    process.env.ENABLE_CADENCE_CAUTION = 'true';
+  });
+  afterAll(() => {
+    if (prev === undefined) delete process.env.ENABLE_CADENCE_CAUTION;
+    else process.env.ENABLE_CADENCE_CAUTION = prev;
+  });
+
   it('never flags when no baseline is known (absence of evidence is not staleness)', () => {
     expect(isCadenceStale(1_000_000, null)).toBe(false);
     expect(isCadenceStale(1_000_000, 0)).toBe(false);
@@ -69,6 +104,25 @@ describe('isCadenceStale', () => {
     // baseline=100, K=5 -> threshold 500, floor=500
     expect(isCadenceStale(400, 100, 5, 500)).toBe(false); // below floor
     expect(isCadenceStale(1000, 100, 5, 500)).toBe(true); // above both
+  });
+});
+
+describe('isCadenceStale (CAUTION switch DISABLED)', () => {
+  let prev: string | undefined;
+  beforeAll(() => {
+    prev = process.env.ENABLE_CADENCE_CAUTION;
+    delete process.env.ENABLE_CADENCE_CAUTION;
+  });
+  afterAll(() => {
+    if (prev === undefined) delete process.env.ENABLE_CADENCE_CAUTION;
+    else process.env.ENABLE_CADENCE_CAUTION = prev;
+  });
+
+  it('is fully dormant: never flags even with a clear stale signal', () => {
+    const baseline = 900;
+    expect(isCadenceStale(10 * baseline, baseline)).toBe(false);
+    expect(isCadenceStale(1_000_000, null)).toBe(false);
+    expect(isCadenceStale(1_000_000, baseline)).toBe(false);
   });
 });
 
