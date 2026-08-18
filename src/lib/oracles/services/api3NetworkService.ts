@@ -332,7 +332,14 @@ async function getAPI3Price(
 
     logger.info(`Successfully fetched ${symbol} price from API3: $${reading.value}`);
 
-    const dataAge = Date.now() - reading.timestamp;
+    // `reading.timestamp` is already epoch MILLISECONDS (on-chain `updatedAt`
+    // seconds * 1000). The system convention — and every consumer of
+    // `PriceData.dataAge` (resolveOracleAgeSeconds, the `data_age_seconds`
+    // integer column, pre-trade confidence scoring) — expects `dataAge` in
+    // SECONDS. Reporting raw ms made stale API3 feeds overflow the 32-bit
+    // `data_age_seconds` column ("value out of range for type integer") and
+    // corrupted staleness scoring; convert ms → s here.
+    const dataAge = Math.max(0, Math.floor((Date.now() - reading.timestamp) / 1000));
 
     const confidence = reading.decimalsIsFallback ? 0.45 : 0.98;
 

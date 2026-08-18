@@ -131,4 +131,27 @@ describe('resolveOracleAgeSeconds', () => {
     });
     expect(resolveOracleAgeSeconds(p, NOW)).toBe(7);
   });
+
+  it('clamps an out-of-range dataAge (wrong unit, e.g. ms) instead of overflowing the integer column', () => {
+    // Regression guard for the snapshot-collect cron failure: API3 reported
+    // `dataAge` in MILLISECONDS, so a merely stale feed (103 days) produced
+    // ~8.9e9 ms — which overflowed the Postgres INTEGER `data_age_seconds`
+    // column ("value out of range for type integer") and aborted the 15-min
+    // run. The resolver must clamp to the column max so a single bad feed can
+    // never fail the whole run.
+    const staleApi3 = makePrice({
+      provider: OracleProvider.API3,
+      timestamp: NOW - 10_000,
+      dataAge: 8_900_000_000, // ms-scale; > 2_147_483_647
+    });
+    expect(resolveOracleAgeSeconds(staleApi3, NOW)).toBe(2_147_483_647);
+
+    // A sane seconds-scale value passes through untouched.
+    const normalApi3 = makePrice({
+      provider: OracleProvider.API3,
+      timestamp: NOW - 10_000,
+      dataAge: 120,
+    });
+    expect(resolveOracleAgeSeconds(normalApi3, NOW)).toBe(120);
+  });
 });
