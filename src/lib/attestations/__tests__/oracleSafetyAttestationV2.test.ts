@@ -152,12 +152,117 @@ describe('oracleSafetyAttestationV2', () => {
     expect(insufficient.coverageStatus).toBe('INSUFFICIENT');
   });
 
-  it('pins independenceStatus=UNASSESSED + sourceGroupCount=0 (v2.0)', async () => {
+  it('derives independenceStatus=ASSESSED + sourceGroupCount from distinct non-derived groups (v2.1)', async () => {
+    // baseInput's included observations are chainlink + api3 → 2 distinct
+    // non-derived groups → ASSESSED, sourceGroupCount = 2.
     const msg = await buildMessage(baseInput());
-    expect(msg.independenceStatus).toBe('UNASSESSED');
-    expect(msg.sourceGroupCount).toBe(0);
+    expect(msg.independenceStatus).toBe('ASSESSED');
+    expect(msg.sourceGroupCount).toBe(2);
     expect(msg.evaluationScope).toBe('SOURCE_ASSET_ONLY');
     expect(msg.schemaVersion).toBe(2);
+  });
+
+  it('flags INSUFFICIENT_INDEPENDENCE on a fake quorum (>=3 participants, same operator)', async () => {
+    // Three participants but all chainlink → 1 distinct non-derived group.
+    const msg = await buildMessage(
+      baseInput({
+        participantCount: 3,
+        providerObservations: [
+          {
+            provider: 'chainlink',
+            feedId: 'a',
+            value: 300005000000n,
+            timestamp: 1700000000n,
+            dataAgeSeconds: 2n,
+            included: true,
+            exclusionReason: '',
+          },
+          {
+            provider: 'chainlink',
+            feedId: 'b',
+            value: 299990000000n,
+            timestamp: 1700000001n,
+            dataAgeSeconds: 1n,
+            included: true,
+            exclusionReason: '',
+          },
+          {
+            provider: 'chainlink',
+            feedId: 'c',
+            value: 300010000000n,
+            timestamp: 1700000002n,
+            dataAgeSeconds: 3n,
+            included: true,
+            exclusionReason: '',
+          },
+        ],
+      })
+    );
+    expect(msg.independenceStatus).toBe('INSUFFICIENT_INDEPENDENCE');
+    expect(msg.sourceGroupCount).toBe(1);
+  });
+
+  it('excludes derived (TWAP) from the independence group count', async () => {
+    // chainlink + TWAP + switchboard → 2 distinct NON-derived groups (TWAP
+    // excluded), so ASSESSED and sourceGroupCount = 2.
+    const msg = await buildMessage(
+      baseInput({
+        participantCount: 3,
+        providerObservations: [
+          {
+            provider: 'chainlink',
+            feedId: 'a',
+            value: 300005000000n,
+            timestamp: 1700000000n,
+            dataAgeSeconds: 2n,
+            included: true,
+            exclusionReason: '',
+          },
+          {
+            provider: 'twap',
+            feedId: 'b',
+            value: 299990000000n,
+            timestamp: 1700000001n,
+            dataAgeSeconds: 1n,
+            included: true,
+            exclusionReason: '',
+          },
+          {
+            provider: 'switchboard',
+            feedId: 'c',
+            value: 300010000000n,
+            timestamp: 1700000002n,
+            dataAgeSeconds: 3n,
+            included: true,
+            exclusionReason: '',
+          },
+        ],
+      })
+    );
+    expect(msg.independenceStatus).toBe('ASSESSED');
+    expect(msg.sourceGroupCount).toBe(2);
+  });
+
+  it('flags INSUFFICIENT_INDEPENDENCE when only a derived source is present', async () => {
+    // TWAP only (derived) → 0 non-derived groups → INSUFFICIENT_INDEPENDENCE.
+    const msg = await buildMessage(
+      baseInput({
+        participantCount: 1,
+        providerObservations: [
+          {
+            provider: 'twap',
+            feedId: 'b',
+            value: 299990000000n,
+            timestamp: 1700000001n,
+            dataAgeSeconds: 1n,
+            included: true,
+            exclusionReason: '',
+          },
+        ],
+      })
+    );
+    expect(msg.independenceStatus).toBe('INSUFFICIENT_INDEPENDENCE');
+    expect(msg.sourceGroupCount).toBe(0);
   });
 
   it('binds requestHash / reasonCodesHash / providerObservationsHash to the inputs', async () => {
@@ -216,7 +321,7 @@ describe('oracleSafetyAttestationV2', () => {
     // published v2 domain + 26-field type layout.
     const mod = await import('../oracleSafetyAttestationV2');
     const att = await mod.signAttestationV2(baseInput());
-    expect(att!.uid).toBe('0x6822cdca18d73ed65d0913506bd14db3b183692140924110d06acca703797c4b');
+    expect(att!.uid).toBe('0xc71ac3e88727919511a0d5d7e0924975a5956f7bcfb70590a041af1a9007fdec');
   });
 
   it('survives a JSON round trip and still verifies (wire compatibility)', async () => {

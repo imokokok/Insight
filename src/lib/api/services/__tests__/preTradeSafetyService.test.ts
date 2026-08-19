@@ -68,6 +68,7 @@ jest.mock('@/lib/ml/inference', () => ({
 // module's V2_REQUIRED_PARTICIPANT_COUNT must stay real (drives the quorum gate).
 jest.mock('@/lib/attestations/oracleSafetyAttestationV2', () => ({
   V2_REQUIRED_PARTICIPANT_COUNT: 3,
+  V2_REQUIRED_NON_DERIVED_GROUPS: 2,
   signAttestationV2: jest.fn(),
 }));
 
@@ -825,6 +826,95 @@ describe('preTradeSafetyCheck — v2 schema', () => {
     const arg = mockedSignAttestationV2.mock.calls[0][0];
     expect(arg.sourceAssetId).toBe(arg.destinationAssetId);
     expect(arg.sourceAssetId).toBe('eip155:1/slip44:60');
+  });
+
+  it('v2 independence gate: a fake quorum (3 same-operator participants) BLOCKs with INSUFFICIENT_INDEPENDENCE', async () => {
+    // Quorum clears (3 providers) but all chainlink → 1 distinct non-derived
+    // group → independence gate must BLOCK (v2 only).
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus([
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+      ])
+    );
+
+    const result = await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+
+    expect(result.verdict).toBe('BLOCK');
+    const factor = result.contributingFactors.find((f) => f.rule === 'oracle_independence');
+    expect(factor).toBeDefined();
+    expect(factor?.triggeredVerdict).toBe('BLOCK');
+    expect(factor?.value).toBe(1);
+    expect(factor?.threshold).toBe(2);
+  });
+
+  it('v2 independence gate: ≥2 distinct non-derived groups passes (no oracle_independence factor)', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider }),
+      makeProvider({ provider: 'redstone' as OracleProvider }),
+      makeProvider({ provider: 'api3' as OracleProvider }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+
+    expect(result.verdict).toBe('PASS');
+    expect(
+      result.contributingFactors.find((f) => f.rule === 'oracle_independence')
+    ).toBeUndefined();
+  });
+
+  it('v2 independence gate: a derived source (TWAP) does NOT satisfy the group count', async () => {
+    // chainlink + TWAP + switchboard → 2 non-derived groups → ASSESSED (passes).
+    // Proves TWAP is excluded from the independence count (Raul 16:09).
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider }),
+      makeProvider({ provider: 'twap' as OracleProvider }),
+      makeProvider({ provider: 'switchboard' as OracleProvider }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+
+    expect(result.verdict).toBe('PASS');
+    expect(
+      result.contributingFactors.find((f) => f.rule === 'oracle_independence')
+    ).toBeUndefined();
+  });
+
+  it('v2: a 2-group asset (VVV-like) is stopped by the quorum gate, NOT independence', async () => {
+    // 2 distinct non-derived groups (dia + switchboard) clear independence, but
+    // the participant count (2) fails the quorum → BLOCK via INSUFFICIENT_COVERAGE.
+    // Independence must NOT fire (it would be a false INSUFFICIENT_INDEPENDENCE).
+    const providers = [
+      makeProvider({ provider: 'dia' as OracleProvider }),
+      makeProvider({ provider: 'switchboard' as OracleProvider }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+
+    expect(result.verdict).toBe('BLOCK');
+    expect(result.contributingFactors.find((f) => f.rule === 'oracle_coverage')).toBeDefined();
+    expect(
+      result.contributingFactors.find((f) => f.rule === 'oracle_independence')
+    ).toBeUndefined();
+  });
+
+  it('v1 (default) does NOT apply the independence gate', async () => {
+    // Same 3 chainlink participants, no schemaVersion → v1 passes (no gate).
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus([
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+      ])
+    );
+
+    const result = await preTradeSafetyCheck(makeInput());
+
+    expect(result.verdict).toBe('PASS');
   });
 
   it('v2 signs the attestation with an explicit unresolved marker when the source asset is unresolvable to CAIP-19 (rule #10)', async () => {

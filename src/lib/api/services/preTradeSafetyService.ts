@@ -28,8 +28,10 @@ import {
   signAttestationV2,
   type OracleSafetyAttestationV2,
   V2_REQUIRED_PARTICIPANT_COUNT,
+  V2_REQUIRED_NON_DERIVED_GROUPS,
 } from '@/lib/attestations/oracleSafetyAttestationV2';
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
+import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
 import { UnsupportedSymbolError } from '@/lib/errors';
 import {
   getModelStatus,
@@ -890,6 +892,43 @@ async function issueAttestation(
 }
 
 /**
+ * v2.1 independence gate (v2 only). Orthogonal to the quorum gate: the quorum
+ * counts PARTICIPANTS, this counts distinct OPERATOR groups. A fake quorum
+ * (>=3 participants that are all the same operator) clears the quorum but must
+ * still BLOCK here. TWAP is derived (on-chain) and does NOT count toward the
+ * group count (Raul 16:09). Independent of the attestation's independenceStatus
+ * field, which buildMessage derives from the same included provider set.
+ *
+ * Pushes the `oracle_independence` contributing factor + warning and returns
+ * 'BLOCK' when the distinct non-derived group count is below the floor; null
+ * otherwise (caller folds the verdict in via pickWorst).
+ */
+function applyV2IndependenceGate(
+  input: PreTradeSafetyInput,
+  consensus: ConsensusPriceResponse,
+  contributingFactors: ContributingFactor[],
+  warnings: string[]
+): SafetyVerdict | null {
+  const includedProviders = consensus.providers
+    .filter((p) => p.status === 'success')
+    .map((p) => p.provider);
+  const nonDerivedGroups = nonDerivedGroupCount(includedProviders);
+  if (nonDerivedGroups >= V2_REQUIRED_NON_DERIVED_GROUPS) return null;
+
+  contributingFactors.push({
+    rule: 'oracle_independence',
+    value: nonDerivedGroups,
+    threshold: V2_REQUIRED_NON_DERIVED_GROUPS,
+    triggeredVerdict: 'BLOCK',
+    message: `Only ${nonDerivedGroups} distinct non-derived oracle operator group(s) feed ${input.asset} on chain ${input.chainId}; v2 independence gate requires ≥${V2_REQUIRED_NON_DERIVED_GROUPS} (INSUFFICIENT_INDEPENDENCE).`,
+  });
+  warnings.push(
+    `v2 independence gate: ${nonDerivedGroups} distinct non-derived operator group(s) < required ${V2_REQUIRED_NON_DERIVED_GROUPS}.`
+  );
+  return 'BLOCK';
+}
+
+/**
  * Run a pre-trade oracle safety check.
  *
  * @param input Trade intent (asset, chain, action, amount).
@@ -1340,6 +1379,12 @@ export async function preTradeSafetyCheck(
     warnings.push(
       `v2 quorum gate: ${consensus.participantCount} provider(s) < required ${V2_REQUIRED_PARTICIPANT_COUNT}.`
     );
+  }
+
+  // 10b. v2 independence gate (orthogonal to the quorum gate, v2 only).
+  if (input.schemaVersion === 2) {
+    const indep = applyV2IndependenceGate(input, consensus, contributingFactors, warnings);
+    if (indep) verdict = pickWorst(verdict, indep);
   }
 
   void startedAtMs; // marker for future per-phase timing

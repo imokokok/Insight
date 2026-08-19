@@ -14,8 +14,13 @@
  *   - reasonCodesHash: distinguishes BLOCK-from-missing-evidence vs
  *     BLOCK-from-market-danger without expanding the signed field set.
  *   - Quorum gate: participantCount vs requiredParticipantCount(=3) →
- *     coverageStatus (SUFFICIENT / INSUFFICIENT). independenceStatus is
- *     UNASSESSED in v2.0 (source-group gate reserved for v2.1, sourceGroupCount=0).
+ *     coverageStatus (SUFFICIENT / INSUFFICIENT).
+ *   - Independence gate (v2.1): distinct NON-DERIVED source groups vs
+ *     V2_REQUIRED_NON_DERIVED_GROUPS(=2) → independenceStatus
+ *     (ASSESSED / INSUFFICIENT_INDEPENDENCE) and sourceGroupCount. TWAP is
+ *     derived and excluded from the group count (Raul 16:09). This is orthogonal
+ *     to the quorum gate: a fake quorum (>=3 participants, same operator) fails
+ *     independence even though the participant count clears the quorum.
  *   - evaluationScope = SOURCE_ASSET_ONLY + evaluatedAssetIdsHash (v2.0 only
  *     evaluates the source leg; destinationAssetId is BOUND but not EVALUATED).
  *   - validUntil + checkedAt bound the attestation window explicitly.
@@ -43,6 +48,7 @@ import {
   computeProviderObservationsHash,
 } from './providerObservationsHash';
 import { computeReasonCodesHash, reasonCodesFromContributingFactors } from './reasonCodesHash';
+import { nonDerivedGroupCount } from './sourceGroups';
 
 const logger = createLogger('OracleSafetyAttestationV2');
 
@@ -51,6 +57,9 @@ export const V2_SCHEMA_VERSION = 2;
 export const V2_VALID_FOR_SECONDS = 600;
 /** Quorum floor: fewer independent providers than this → INSUFFICIENT coverage. */
 export const V2_REQUIRED_PARTICIPANT_COUNT = 3;
+/** Independence floor: fewer distinct NON-DERIVED operator groups than this →
+ *  INSUFFICIENT_INDEPENDENCE. Raul 16:09: TWAP (derived) does NOT count. */
+export const V2_REQUIRED_NON_DERIVED_GROUPS = 2;
 /** Attester label (human-readable) carried in the JSON envelope, not signed. */
 export const V2_ATTESTER_LABEL = 'Insight Oracle Safety Attestation';
 
@@ -130,7 +139,7 @@ export const V2_TYPES = {
 // ---------------------------------------------------------------------------
 
 export type CoverageStatus = 'SUFFICIENT' | 'INSUFFICIENT';
-export type IndependenceStatus = 'UNASSESSED'; // v2.1 will add ASSESSED
+export type IndependenceStatus = 'ASSESSED' | 'INSUFFICIENT_INDEPENDENCE';
 export type EvaluationScope = 'SOURCE_ASSET_ONLY'; // v2.1 will add SOURCE_AND_DESTINATION
 
 function deriveCoverageStatus(participantCount: number): CoverageStatus {
@@ -317,6 +326,18 @@ export async function buildMessage(input: AttestationInputV2): Promise<Attestati
 
   const providerObservationsHash = computeProviderObservationsHash(input.providerObservations);
 
+  // v2.1 independence gate: count distinct NON-DERIVED source groups among the
+  // included providers. Derived sources (TWAP) are excluded from the count per
+  // Raul 16:09, but still feed the quorum. This is DERIVED inside buildMessage so
+  // the attestation can't disagree with its own signed evidence (same reason the
+  // hashes are derived here). Orthogonal to the quorum gate in the service.
+  const includedProviders = input.providerObservations
+    .filter((o) => o.included)
+    .map((o) => o.provider);
+  const nonDerivedGroups = nonDerivedGroupCount(includedProviders);
+  const independenceStatus: IndependenceStatus =
+    nonDerivedGroups >= V2_REQUIRED_NON_DERIVED_GROUPS ? 'ASSESSED' : 'INSUFFICIENT_INDEPENDENCE';
+
   // v2.0 evaluation scope: only the source leg is evaluated.
   const evaluatedAssetIdsHash = await computeEvaluatedAssetIdsHash([input.sourceAssetId]);
 
@@ -333,8 +354,8 @@ export async function buildMessage(input: AttestationInputV2): Promise<Attestati
     participantCount: Math.max(0, Math.floor(input.participantCount)),
     requiredParticipantCount: V2_REQUIRED_PARTICIPANT_COUNT,
     coverageStatus: deriveCoverageStatus(input.participantCount),
-    independenceStatus: 'UNASSESSED',
-    sourceGroupCount: 0,
+    independenceStatus,
+    sourceGroupCount: nonDerivedGroups,
     crossProviderAgreementBps: toUint(input.crossProviderAgreement, AGREEMENT_SCALE),
     maxStablecoinDepegBps: toUint(input.maxStablecoinDepegPct, PCT_SCALE),
     maxDataAgeSeconds: Math.max(0, Math.floor(input.maxDataAgeSeconds)),

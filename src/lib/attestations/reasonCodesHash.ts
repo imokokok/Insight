@@ -8,10 +8,10 @@
  * we sign a single `reasonCodesHash = keccak(sorted unique reasonCodes array)`.
  * The full contributingFactors stay in JSON; the hash binds the reason set.
  *
- * Reason codes (v2.0):
+ * Reason codes (v2.0 + v2.1):
  *   INSUFFICIENT_COVERAGE, MAX_DEVIATION, CROSS_SPREAD, STALE_DATA,
  *   LOW_AGREEMENT, STABLECOIN_DEPEG, POSITION_VS_LIQUIDITY, PROTOCOL_BUFFER
- * (`INSUFFICIENT_INDEPENDENCE` reserved for v2.1's source-group gate.)
+ *   INSUFFICIENT_INDEPENDENCE (v2.1's source-group / operator-independence gate)
  *
  * Encoding: `keccak256(abi.encode(['string[]'], [sortedUniqueCodes]))`.
  * ABI-encoding a string[] is standard, length-prefixed, deterministic — both
@@ -28,7 +28,8 @@ export type ReasonCode =
   | 'LOW_AGREEMENT'
   | 'STABLECOIN_DEPEG'
   | 'POSITION_VS_LIQUIDITY'
-  | 'PROTOCOL_BUFFER';
+  | 'PROTOCOL_BUFFER'
+  | 'INSUFFICIENT_INDEPENDENCE';
 
 /**
  * Map the pre-trade rule engine's `contributingFactors[].rule` strings to the
@@ -45,6 +46,7 @@ export const RULE_TO_REASON_CODE: Record<string, ReasonCode> = {
   stablecoin_depeg_pct: 'STABLECOIN_DEPEG',
   position_to_liquidity_ratio: 'POSITION_VS_LIQUIDITY',
   protocol_buffer_consumed: 'PROTOCOL_BUFFER',
+  oracle_independence: 'INSUFFICIENT_INDEPENDENCE',
 };
 
 /**
