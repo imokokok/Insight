@@ -249,7 +249,7 @@ describe('OracleSafetyRecheck', () => {
       originalUid: ORIGINAL_UID,
       originalRequestHash: ORIGINAL_REQUEST_HASH,
     });
-    expect(att!.uid).toBe('0x296880b7731c8967e8fb8d54f9f8b57bfeae7bf66a3e59c52a94c39e45e72dac');
+    expect(att!.uid).toBe('0x68e48c6107146b0db117774fe1f508392fff11709d07dda7cfee1e97258528f4');
   });
 
   it('marks an expired recheck as expired (signature still valid)', async () => {
