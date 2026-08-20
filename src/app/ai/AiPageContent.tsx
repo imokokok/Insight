@@ -327,10 +327,8 @@ export function AiPageContent() {
               filename="claude_desktop_config.json"
               snippet={`{
   "mcpServers": {
-    "insight": {
-      "command": "npx",
-      "args": ["-y", "@insight/mcp-server"],
-      "env": { "INSIGHT_API_KEY": "ins_..." }
+    "insight-oracle": {
+      "url": "https://www.oracleinsight.xyz/api/mcp"
     }
   }
 }`}
@@ -340,10 +338,8 @@ export function AiPageContent() {
               filename="~/.cursor/mcp.json"
               snippet={`{
   "mcpServers": {
-    "insight": {
-      "command": "npx",
-      "args": ["-y", "@insight/mcp-server"],
-      "env": { "INSIGHT_API_KEY": "ins_..." }
+    "insight-oracle": {
+      "url": "https://www.oracleinsight.xyz/api/mcp"
     }
   }
 }`}
