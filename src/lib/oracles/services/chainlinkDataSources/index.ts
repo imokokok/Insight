@@ -46,9 +46,17 @@ export async function getChainlinkPriceFeedAsync(
  * bootstrapping before the DB is seeded).
  */
 export function getChainlinkPriceFeed(symbol: string, chainId: number): ChainlinkPriceFeed | null {
-  // Check database cache first
+  // Check database cache first. On a cache hit we return immediately; on a
+  // cache miss we must still fall through to the catalog / curated map rather
+  // than returning null. The cache is populated ONLY from oracle_feeds, so any
+  // symbol that lives in the committed catalog (or curated map) but has no DB
+  // row — e.g. TBTC, which discovery's verify step cannot probe because it is
+  // itself gated on this resolver — would otherwise be permanently unresolvable
+  // once the cache is warm. This preserves the documented resolution priority
+  // (DB cache → catalog directory → curated hardcoded map).
   if (!isFeedCacheStale() && feedCache) {
-    return feedCache.get(feedCacheKey(symbol, chainId)) || null;
+    const cached = feedCache.get(feedCacheKey(symbol, chainId));
+    if (cached) return cached;
   }
   // Catalog directory before the curated hardcoded fallback
   return getFeedFromCatalog(symbol, chainId) ?? getFeedFromHardcoded(symbol, chainId);
