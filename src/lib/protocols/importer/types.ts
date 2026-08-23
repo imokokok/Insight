@@ -9,7 +9,7 @@ export interface ImportedAssetEntry {
 export interface SkippedAssetEntry {
   underlyingAsset: `0x${string}`;
   symbol: string;
-  reason: 'unsupported' | 'unknown_reserve';
+  reason: 'unsupported' | 'unknown_reserve' | 'reserve_metadata_unavailable';
 }
 
 export interface ImportedPosition {

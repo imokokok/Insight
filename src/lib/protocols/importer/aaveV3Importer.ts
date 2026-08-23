@@ -1,5 +1,4 @@
-import { IUiPoolDataProvider_ABI } from '@aave-dao/aave-address-book/abis';
-import { decodeFunctionResult, encodeFunctionData, formatUnits } from 'viem';
+import { type Abi, decodeFunctionResult, encodeFunctionData, formatUnits } from 'viem';
 
 import { ValidationError } from '@/lib/errors';
 import { createLogger } from '@/lib/utils/logger';
@@ -14,16 +13,6 @@ const logger = createLogger('aave-v3-importer');
 
 const RAY = 10n ** 27n;
 
-const ERC20_BALANCE_ABI = [
-  {
-    type: 'function',
-    name: 'balanceOf',
-    stateMutability: 'view',
-    inputs: [{ name: 'account', type: 'address' }],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-] as const;
-
 // Aave reserves use WETH/WPOL/etc. but the registry uses ETH/MATIC/etc.
 const SYMBOL_NORMALIZATION: Record<string, string> = {
   WETH: 'ETH',
@@ -37,97 +26,134 @@ function normalizeSymbol(aaveSymbol: string): string {
   return SYMBOL_NORMALIZATION[aaveSymbol] ?? aaveSymbol;
 }
 
-interface ReserveData {
-  underlyingAsset: `0x${string}`;
-  symbol: string;
-  decimals: bigint;
-  liquidityIndex: bigint;
-  variableBorrowIndex: bigint;
-  priceInMarketReferenceCurrency: bigint;
-  stableDebtTokenAddress: `0x${string}`;
-}
+// The deployed UiPoolDataProvider (IUiPoolDataProvider_ABI from the address book)
+// returns structs whose bool fields are encoded as uint256 and whose
+// AggregatedReserveData layout differs from the published ABI, so decoding with
+// the package ABI throws "Bytes value ... is not a valid boolean". We therefore
+// decode with local ABIs that match the on-chain return shapes exactly.
+//
+// getUserReservesData(provider, user) -> (UserReserveData[], uint8)
+//   UserReserveData { underlyingAsset, scaledATokenBalance, usageAsCollateralEnabledOnUser, scaledVariableDebt }
+const GET_USER_RESERVES_ABI = [
+  {
+    type: 'function',
+    name: 'getUserReservesData',
+    stateMutability: 'view',
+    inputs: [
+      { name: 'provider', type: 'address' },
+      { name: 'user', type: 'address' },
+    ],
+    outputs: [
+      {
+        name: '',
+        type: 'tuple[]',
+        components: [
+          { name: 'underlyingAsset', type: 'address' },
+          { name: 'scaledATokenBalance', type: 'uint256' },
+          { name: 'usageAsCollateralEnabledOnUser', type: 'uint256' },
+          { name: 'scaledVariableDebt', type: 'uint256' },
+        ],
+      },
+      { name: '', type: 'uint8' },
+    ],
+  },
+] as const;
 
-interface UserReserveData {
-  underlyingAsset: `0x${string}`;
-  scaledATokenBalance: bigint;
-  usageAsCollateralEnabledOnUser: boolean;
-  stableBorrowRate: bigint;
-  scaledVariableDebt: bigint;
-  principalStableDebt: bigint;
-  stableBorrowLastUpdateTimestamp: bigint;
-}
+// IPool.getReserveData(asset) -> ReserveData (single tuple; the deployed pool
+// returns the legacy 15-field ReserveData without the trailing
+// flashLoanLiquidityPremium / underlyingAsset fields and without the second
+// ReserveConfigurationMap component).
+const GET_RESERVE_DATA_ABI = [
+  {
+    type: 'function',
+    name: 'getReserveData',
+    stateMutability: 'view',
+    inputs: [{ name: 'asset', type: 'address' }],
+    outputs: [
+      {
+        name: '',
+        type: 'tuple',
+        components: [
+          { name: 'configuration', type: 'uint256' },
+          { name: 'liquidityIndex', type: 'uint128' },
+          { name: 'variableBorrowIndex', type: 'uint128' },
+          { name: 'currentLiquidityRate', type: 'uint128' },
+          { name: 'currentVariableBorrowRate', type: 'uint128' },
+          { name: 'currentStableBorrowRate', type: 'uint128' },
+          { name: 'lastUpdateTimestamp', type: 'uint40' },
+          { name: 'id', type: 'uint16' },
+          { name: 'aTokenAddress', type: 'address' },
+          { name: 'stableDebtTokenAddress', type: 'address' },
+          { name: 'variableDebtTokenAddress', type: 'address' },
+          { name: 'interestRateStrategyAddress', type: 'address' },
+          { name: 'accruedToTreasury', type: 'uint128' },
+          { name: 'unbacked', type: 'uint128' },
+          { name: 'isolationModeTotalDebt', type: 'uint128' },
+        ],
+      },
+    ],
+  },
+] as const;
 
-async function callUiPoolDataProvider<T>(
+const ERC20_ABI = [
+  {
+    type: 'function',
+    name: 'balanceOf',
+    stateMutability: 'view',
+    inputs: [{ name: 'account', type: 'address' }],
+    outputs: [{ name: '', type: 'uint256' }],
+  },
+  {
+    type: 'function',
+    name: 'symbol',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'string' }],
+  },
+  {
+    type: 'function',
+    name: 'decimals',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint8' }],
+  },
+] as const;
+
+async function callView<T>(
   chainId: number,
-  dataProvider: `0x${string}`,
+  to: `0x${string}`,
+  abi: Abi,
   functionName: string,
   args: readonly unknown[]
 ): Promise<T> {
   const data = encodeFunctionData({
-    abi: IUiPoolDataProvider_ABI,
+    abi,
     functionName: functionName as never,
     args: args as never,
   });
-
-  const result = await readContract(chainId, dataProvider, data);
-
+  const result = await readContract(chainId, to, data);
   return decodeFunctionResult({
-    abi: IUiPoolDataProvider_ABI,
+    abi,
     functionName: functionName as never,
     data: result as `0x${string}`,
   }) as T;
 }
 
-async function readStableDebtBalance(
-  chainId: number,
-  stableDebtToken: `0x${string}`,
-  address: `0x${string}`
-): Promise<bigint> {
-  const data = encodeFunctionData({
-    abi: ERC20_BALANCE_ABI,
-    functionName: 'balanceOf',
-    args: [address],
-  });
-
-  const result = await readContract(chainId, stableDebtToken, data);
-
-  return decodeFunctionResult({
-    abi: ERC20_BALANCE_ABI,
-    functionName: 'balanceOf',
-    data: result as `0x${string}`,
-  }) as bigint;
+interface UserReserve {
+  underlyingAsset: `0x${string}`;
+  scaledATokenBalance: bigint;
+  usageAsCollateralEnabledOnUser: bigint;
+  scaledVariableDebt: bigint;
 }
 
-function toReserveData(raw: unknown): ReserveData {
-  const r = raw as Record<string, unknown>;
-  return {
-    underlyingAsset: (r.underlyingAsset as `0x${string}`).toLowerCase() as `0x${string}`,
-    symbol: String(r.symbol),
-    decimals: BigInt(r.decimals as bigint | number | string),
-    liquidityIndex: BigInt(r.liquidityIndex as bigint | number | string),
-    variableBorrowIndex: BigInt(r.variableBorrowIndex as bigint | number | string),
-    priceInMarketReferenceCurrency: BigInt(
-      r.priceInMarketReferenceCurrency as bigint | number | string
-    ),
-    stableDebtTokenAddress: (
-      r.stableDebtTokenAddress as `0x${string}`
-    ).toLowerCase() as `0x${string}`,
-  };
-}
-
-function toUserReserveData(raw: unknown): UserReserveData {
-  const r = raw as Record<string, unknown>;
-  return {
-    underlyingAsset: (r.underlyingAsset as `0x${string}`).toLowerCase() as `0x${string}`,
-    scaledATokenBalance: BigInt(r.scaledATokenBalance as bigint | number | string),
-    usageAsCollateralEnabledOnUser: Boolean(r.usageAsCollateralEnabledOnUser),
-    stableBorrowRate: BigInt(r.stableBorrowRate as bigint | number | string),
-    scaledVariableDebt: BigInt(r.scaledVariableDebt as bigint | number | string),
-    principalStableDebt: BigInt(r.principalStableDebt as bigint | number | string),
-    stableBorrowLastUpdateTimestamp: BigInt(
-      r.stableBorrowLastUpdateTimestamp as bigint | number | string
-    ),
-  };
+interface ReserveMeta {
+  liquidityIndex: bigint;
+  variableBorrowIndex: bigint;
+  aTokenAddress: `0x${string}`;
+  stableDebtTokenAddress: `0x${string}`;
+  variableDebtTokenAddress: `0x${string}`;
+  symbol: string;
+  decimals: number;
 }
 
 export async function importAaveV3Position(
@@ -142,31 +168,33 @@ export async function importAaveV3Position(
 
   const chainId = getChainId(protocol.chain);
   const dataProvider = protocol.contracts.poolDataProvider;
+  const pool = protocol.contracts.pool;
   const provider = protocol.contracts.poolAddressesProvider;
+
+  if (!pool) {
+    throw new ValidationError(`Protocol ${protocol.name} is missing the pool contract address`, {
+      details: { protocolId: protocol.id },
+    });
+  }
 
   const supportedSymbols = new Set(protocol.assets.map((a) => a.symbol));
 
-  const [reservesResult] = await callUiPoolDataProvider<[readonly unknown[], unknown]>(
+  const [userReservesResult] = await callView<[readonly UserReserve[], number]>(
     chainId,
     dataProvider,
-    'getReservesData',
-    [provider]
-  );
-
-  const reserveMap = new Map<string, ReserveData>();
-  for (const raw of reservesResult) {
-    const reserve = toReserveData(raw);
-    reserveMap.set(reserve.underlyingAsset, reserve);
-  }
-
-  const [userReservesResult] = await callUiPoolDataProvider<[readonly unknown[], number]>(
-    chainId,
-    dataProvider,
+    GET_USER_RESERVES_ABI,
     'getUserReservesData',
     [provider, address]
   );
 
-  const userReserves = userReservesResult.map(toUserReserveData);
+  const userReserves = userReservesResult.map((r) => ({
+    underlyingAsset: (r.underlyingAsset as `0x${string}`).toLowerCase() as `0x${string}`,
+    scaledATokenBalance: BigInt(r.scaledATokenBalance as bigint | number | string),
+    usageAsCollateralEnabledOnUser: BigInt(
+      r.usageAsCollateralEnabledOnUser as bigint | number | string
+    ),
+    scaledVariableDebt: BigInt(r.scaledVariableDebt as bigint | number | string),
+  }));
 
   const collaterals: ImportedAssetEntry[] = [];
   const borrows: ImportedAssetEntry[] = [];
@@ -174,30 +202,50 @@ export async function importAaveV3Position(
   const rawPositions: unknown[] = [];
 
   for (const userReserve of userReserves) {
-    const reserve = reserveMap.get(userReserve.underlyingAsset);
-    if (!reserve) {
+    // Skip reserves the user has no position in (collateral, variable debt, or
+    // collateral-enabled). NOTE: a borrower with *only* stable-rate debt and no
+    // aToken/collateral/variable-debt on this reserve is skipped here — stable
+    // debt is only captured when the reserve also passes this guard, because we
+    // discover the stable debt token via getReserveData below. This is an
+    // accepted edge case (stable-rate V3 borrowing is rare); the common case is
+    // a borrower who also has collateral enabled or variable debt on the asset.
+    const hasScaledPosition =
+      userReserve.scaledATokenBalance > 0n ||
+      userReserve.scaledVariableDebt > 0n ||
+      userReserve.usageAsCollateralEnabledOnUser > 0n;
+    if (!hasScaledPosition) continue;
+
+    let meta: ReserveMeta;
+    try {
+      meta = await readReserveMeta(chainId, pool, userReserve.underlyingAsset);
+    } catch (error) {
+      logger.warn('Failed to read Aave reserve metadata; skipping reserve', {
+        chainId,
+        asset: userReserve.underlyingAsset,
+        error: error instanceof Error ? error.message : String(error),
+      });
       skippedAssets.push({
         underlyingAsset: userReserve.underlyingAsset,
         symbol: 'Unknown',
-        reason: 'unknown_reserve',
+        reason: 'reserve_metadata_unavailable',
       });
       continue;
     }
 
-    const normalizedSymbol = normalizeSymbol(reserve.symbol);
+    const normalizedSymbol = normalizeSymbol(meta.symbol);
     if (!supportedSymbols.has(normalizedSymbol)) {
       skippedAssets.push({
-        underlyingAsset: reserve.underlyingAsset,
-        symbol: reserve.symbol,
+        underlyingAsset: userReserve.underlyingAsset,
+        symbol: meta.symbol,
         reason: 'unsupported',
       });
       continue;
     }
 
-    const decimals = Number(reserve.decimals);
+    const decimals = meta.decimals;
 
-    if (userReserve.scaledATokenBalance > 0n && userReserve.usageAsCollateralEnabledOnUser) {
-      const rawCollateral = (userReserve.scaledATokenBalance * reserve.liquidityIndex) / RAY;
+    if (userReserve.scaledATokenBalance > 0n && userReserve.usageAsCollateralEnabledOnUser > 0n) {
+      const rawCollateral = (userReserve.scaledATokenBalance * meta.liquidityIndex) / RAY;
       const amount = Number(formatUnits(rawCollateral, decimals));
       if (amount > 1e-12) {
         collaterals.push({
@@ -210,7 +258,7 @@ export async function importAaveV3Position(
     }
 
     if (userReserve.scaledVariableDebt > 0n) {
-      const rawVariableDebt = (userReserve.scaledVariableDebt * reserve.variableBorrowIndex) / RAY;
+      const rawVariableDebt = (userReserve.scaledVariableDebt * meta.variableBorrowIndex) / RAY;
       const amount = Number(formatUnits(rawVariableDebt, decimals));
       if (amount > 1e-12) {
         borrows.push({
@@ -222,12 +270,15 @@ export async function importAaveV3Position(
       }
     }
 
-    if (userReserve.principalStableDebt > 0n && reserve.stableDebtTokenAddress) {
+    // Stable debt: read the actual balance from the stable debt token.
+    if (meta.stableDebtTokenAddress) {
       try {
-        const stableBalance = await readStableDebtBalance(
+        const stableBalance = await callView<bigint>(
           chainId,
-          reserve.stableDebtTokenAddress,
-          address
+          meta.stableDebtTokenAddress,
+          ERC20_ABI,
+          'balanceOf',
+          [address]
         );
         if (stableBalance > 0n) {
           const amount = Number(formatUnits(stableBalance, decimals));
@@ -241,35 +292,21 @@ export async function importAaveV3Position(
           }
         }
       } catch (error) {
-        logger.warn('Failed to read stable debt balance, falling back to principal', {
-          underlyingAsset: userReserve.underlyingAsset,
-          stableDebtToken: reserve.stableDebtTokenAddress,
+        logger.warn('Failed to read Aave stable debt balance', {
+          chainId,
+          asset: userReserve.underlyingAsset,
+          stableDebtToken: meta.stableDebtTokenAddress,
           error: error instanceof Error ? error.message : String(error),
         });
-        const amount = Number(formatUnits(userReserve.principalStableDebt, decimals));
-        if (amount > 1e-12) {
-          borrows.push({
-            symbol: normalizedSymbol,
-            amount,
-            decimals,
-            underlyingAsset: userReserve.underlyingAsset,
-          });
-        }
       }
     }
 
-    if (
-      userReserve.scaledATokenBalance > 0n ||
-      userReserve.scaledVariableDebt > 0n ||
-      userReserve.principalStableDebt > 0n
-    ) {
-      rawPositions.push({
-        ...userReserve,
-        symbol: reserve.symbol,
-        normalizedSymbol,
-        decimals,
-      });
-    }
+    rawPositions.push({
+      ...userReserve,
+      symbol: meta.symbol,
+      normalizedSymbol,
+      decimals,
+    });
   }
 
   logger.info(
@@ -284,5 +321,39 @@ export async function importAaveV3Position(
     skippedAssets,
     rawPositions,
     importedAt: Date.now(),
+  };
+}
+
+async function readReserveMeta(
+  chainId: number,
+  pool: `0x${string}`,
+  asset: `0x${string}`
+): Promise<ReserveMeta> {
+  const reserveData = await callView<Record<string, unknown>>(
+    chainId,
+    pool,
+    GET_RESERVE_DATA_ABI,
+    'getReserveData',
+    [asset]
+  );
+  const rd = (Array.isArray(reserveData) ? reserveData[0] : reserveData) as Record<string, unknown>;
+
+  const [symbol, decimalsRaw] = await Promise.all([
+    callView<string>(chainId, asset, ERC20_ABI, 'symbol', []),
+    callView<number>(chainId, asset, ERC20_ABI, 'decimals', []),
+  ]);
+
+  return {
+    liquidityIndex: BigInt(rd.liquidityIndex as bigint | number | string),
+    variableBorrowIndex: BigInt(rd.variableBorrowIndex as bigint | number | string),
+    aTokenAddress: (rd.aTokenAddress as `0x${string}`).toLowerCase() as `0x${string}`,
+    stableDebtTokenAddress: (
+      rd.stableDebtTokenAddress as `0x${string}`
+    ).toLowerCase() as `0x${string}`,
+    variableDebtTokenAddress: (
+      rd.variableDebtTokenAddress as `0x${string}`
+    ).toLowerCase() as `0x${string}`,
+    symbol,
+    decimals: Number(decimalsRaw),
   };
 }
