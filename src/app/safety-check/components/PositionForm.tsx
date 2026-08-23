@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import type { Blockchain } from '@/types/oracle';
 
 import { usePositionImporter } from '../hooks/usePositionImporter';
+import { useWalletConnect } from '../hooks/useWalletConnect';
 
 import { AssetSelector } from './AssetSelector';
 import { ProtocolSearch } from './ProtocolSearch';
@@ -54,13 +55,20 @@ export function PositionForm({
 
   const [importAddress, setImportAddress] = useState('');
   const { isImporting, importError, importedPosition, importPosition } = usePositionImporter();
+  const wallet = useWalletConnect();
 
-  const canImport = Boolean(selectedProtocol?.contracts?.poolDataProvider);
+  const canImport = Boolean(
+    selectedProtocol?.contracts?.poolDataProvider ||
+    selectedProtocol?.contracts?.comet ||
+    selectedProtocol?.contracts?.comptroller ||
+    selectedProtocol?.contracts?.morpho
+  );
 
-  const handleImport = async () => {
-    if (!selectedProtocol || !importAddress.match(/^0x[a-fA-F0-9]{40}$/)) return;
+  const handleImport = async (addrOverride?: string) => {
+    const addr = addrOverride ?? importAddress;
+    if (!selectedProtocol || !addr.match(/^0x[a-fA-F0-9]{40}$/)) return;
 
-    const position = await importPosition(importAddress, selectedProtocol.id);
+    const position = await importPosition(addr, selectedProtocol.id);
     if (!position) return;
 
     onCollateralRowsChange(
@@ -82,6 +90,11 @@ export function PositionForm({
           }))
         : [{ id: `asset-${++assetRowSeq}`, symbol: '', amount: '' }]
     );
+  };
+
+  const handleWalletConnect = async () => {
+    const addr = await wallet.connect();
+    if (addr) handleImport(addr);
   };
 
   const addCollateralRow = () => {
@@ -190,6 +203,32 @@ export function PositionForm({
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Import On-Chain Position
               </label>
+              {!wallet.address ? (
+                <Button
+                  onClick={handleWalletConnect}
+                  isLoading={wallet.isConnecting}
+                  disabled={isLoading || isImporting}
+                  size="md"
+                  className="w-full"
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span className="ml-1">Connect Wallet</span>
+                </Button>
+              ) : (
+                <div className="flex items-center justify-between rounded-lg bg-primary-50 border border-primary-100 px-3 py-2">
+                  <span className="text-xs text-slate-600 font-mono">
+                    {wallet.address.slice(0, 6)}…{wallet.address.slice(-4)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={wallet.disconnect}
+                    className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              )}
+              {wallet.error && <p className="text-xs text-red-600">{wallet.error}</p>}
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -205,7 +244,7 @@ export function PositionForm({
                   )}
                 />
                 <Button
-                  onClick={handleImport}
+                  onClick={() => handleImport()}
                   isLoading={isImporting}
                   disabled={isLoading || isImporting || !importAddress.match(/^0x[a-fA-F0-9]{40}$/)}
                   size="md"
