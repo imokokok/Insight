@@ -21,22 +21,22 @@ const COOKIE_NAME = '__internal';
 const TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
 function getSecret(): string {
-  const secret = process.env.INTERNAL_API_SECRET;
+  // Resolution order: a dedicated INTERNAL_API_SECRET first, then fall back to
+  // CSRF_SECRET / JWT_SECRET. All three are real operator-configured secrets,
+  // so using any of them in production is safe — only the hardcoded dev
+  // fallback below is forbidden outside local development. This matches the
+  // behavior the thrown error message documents.
+  const secret =
+    process.env.INTERNAL_API_SECRET || process.env.CSRF_SECRET || process.env.JWT_SECRET;
+
   if (secret) {
     return secret;
   }
 
-  // In production, a secret MUST be configured — a hardcoded fallback would
-  // allow any attacker who knows the default to forge internal tokens.
+  // In production a real secret MUST be configured — a hardcoded fallback
+  // would let anyone who knows the default forge internal tokens.
   if (process.env.NODE_ENV === 'production') {
     throw new Error('INTERNAL_API_SECRET (or CSRF_SECRET / JWT_SECRET) must be set in production');
-  }
-
-  // Dev-only fallback: derive from other available secrets so the mechanism
-  // still works locally without extra configuration.
-  const fallback = process.env.CSRF_SECRET || process.env.JWT_SECRET;
-  if (fallback) {
-    return fallback;
   }
 
   // Last resort for local development only — a predictable key is acceptable

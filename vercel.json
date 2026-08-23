@@ -3,6 +3,9 @@
     "src/app/api/oracles/[provider]/route.ts": {
       "maxDuration": 30
     },
+    "src/app/api/protocol-health/route.ts": {
+      "maxDuration": 30
+    },
     "src/app/api/reputation/route.ts": {
       "maxDuration": 60
     },
