@@ -2,6 +2,19 @@ import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('RpcClientWithFallback');
 
+/**
+ * A JSON-RPC error returned in the node's response body (e.g. `execution
+ * reverted`, `method not found`). The node is alive and reachable — this is a
+ * deterministic, on-chain result, NOT an outage. It must NOT poison endpoint
+ * health and (being deterministic) does not benefit from retrying other nodes.
+ */
+export class RpcApplicationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RpcApplicationError';
+  }
+}
+
 interface RPCResponse<T> {
   jsonrpc: '2.0';
   id: number;
@@ -118,7 +131,11 @@ export class RpcClientWithFallback {
         const result: RPCResponse<T> = await response.json();
 
         if (result.error) {
-          throw new Error(`RPC error: ${result.error.message}`);
+          // The node responded with a JSON-RPC error. It is alive, so we must
+          // NOT mark it unhealthy (that would wrongly poison the shared pool
+          // for every other caller on this chain). Surface it as an
+          // application error so the caller can decide how to handle it.
+          throw new RpcApplicationError(`RPC error: ${result.error.message}`);
         }
 
         this.currentEndpointIndex[key] = endpointIndex;
@@ -135,12 +152,18 @@ export class RpcClientWithFallback {
 
         const isUserAbort = signal?.aborted;
         const isTimeout = error instanceof Error && error.name === 'AbortError' && !isUserAbort;
+        const isApplicationError = error instanceof RpcApplicationError;
 
         if (isUserAbort) {
           throw new Error(`Request aborted for ${this.contextLabel}/${key}`);
         }
 
-        if (!isTimeout) {
+        // A contract revert / JSON-RPC application error means the node answered
+        // and is healthy — do NOT mark it down. (Timeouts are also transient and
+        // excluded.) Only real transport failures (connection refused, 5xx,
+        // DNS, module/network errors) poison the endpoint so the pool routes
+        // around a dead node.
+        if (!isTimeout && !isApplicationError) {
           const healthKey = `${key}-${endpointIndex}`;
           this.endpointHealth[healthKey] = false;
           this.endpointFailureTime[healthKey] = Date.now();
@@ -153,7 +176,7 @@ export class RpcClientWithFallback {
             endpoint,
             method,
           });
-        } else {
+        } else if (!isApplicationError) {
           logger.warn(`RPC endpoint ${endpoint} failed, trying next`, {
             context: this.contextLabel,
             key,
@@ -191,6 +214,11 @@ export class RpcClientWithFallback {
     }
 
     return result;
+  }
+
+  async getBlockNumber(key: string, endpoints: string[]): Promise<bigint> {
+    const result = await this.rpcCallWithFallback<string>(key, endpoints, 'eth_blockNumber', []);
+    return BigInt(result);
   }
 
   async getLogs(

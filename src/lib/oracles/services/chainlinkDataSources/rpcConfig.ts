@@ -32,6 +32,7 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
       'https://ethereum.publicnode.com',
       'https://rpc.ankr.com/eth',
       'https://eth.drpc.org',
+      'https://rpc.mevblocker.io',
     ]),
     chainId: 1,
     name: 'Ethereum Mainnet',
@@ -56,6 +57,7 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
     endpoints: buildEndpoints(ALCHEMY_RPC.base, [
       'https://mainnet.base.org',
       'https://base.publicnode.com',
+      'https://base.drpc.org',
     ]),
     chainId: 8453,
     name: 'Base',
