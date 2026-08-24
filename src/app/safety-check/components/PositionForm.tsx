@@ -17,6 +17,7 @@ import { useWalletConnect } from '../hooks/useWalletConnect';
 
 import { AssetSelector } from './AssetSelector';
 import { ProtocolSearch } from './ProtocolSearch';
+import { WalletPicker } from './WalletPicker';
 
 interface AssetRow {
   id: string;
@@ -54,6 +55,7 @@ export function PositionForm({
   const assets = useMemo(() => selectedProtocol?.assets ?? [], [selectedProtocol]);
 
   const [importAddress, setImportAddress] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
   const { isImporting, importError, importedPosition, importPosition } = usePositionImporter();
   const wallet = useWalletConnect();
 
@@ -92,9 +94,12 @@ export function PositionForm({
     );
   };
 
-  const handleWalletConnect = async () => {
-    const addr = await wallet.connect();
-    if (addr) handleImport(addr);
+  const handleSelectWallet = async (rdns: string) => {
+    const addr = await wallet.connect(rdns);
+    if (addr) {
+      handleImport(addr);
+      setPickerOpen(false);
+    }
   };
 
   const addCollateralRow = () => {
@@ -205,9 +210,9 @@ export function PositionForm({
               </label>
               {!wallet.address ? (
                 <Button
-                  onClick={handleWalletConnect}
+                  onClick={() => setPickerOpen(true)}
                   isLoading={wallet.isConnecting}
-                  disabled={isLoading || isImporting}
+                  disabled={isLoading || isImporting || wallet.isConnecting}
                   size="md"
                   className="w-full"
                 >
@@ -272,6 +277,15 @@ export function PositionForm({
               )}
             </div>
           )}
+
+          <WalletPicker
+            open={pickerOpen}
+            wallets={wallet.wallets}
+            isConnecting={wallet.isConnecting}
+            connectingRdns={wallet.connectingRdns}
+            onSelect={handleSelectWallet}
+            onClose={() => setPickerOpen(false)}
+          />
 
           <div className="space-y-4">
             {/* Collateral Section */}
