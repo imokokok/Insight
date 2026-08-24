@@ -1,6 +1,15 @@
 import { renderHook, act } from '@testing-library/react';
+import { EthereumProvider } from '@walletconnect/ethereum-provider';
 
 import { useWalletConnect, type InjectedProvider } from './useWalletConnect';
+
+// Reference the mocked SDK for assertions inside the WalletConnect suite.
+
+// WalletConnect SDK is heavy and touches WebSocket/window — mock it so the
+// connect flow runs synchronously against a fake provider.
+jest.mock('@walletconnect/ethereum-provider', () => ({
+  EthereumProvider: { init: jest.fn() },
+}));
 
 const RABBY_ADDR = '0x' + 'b'.repeat(40);
 const METAMASK_ADDR = '0x' + 'a'.repeat(40);
@@ -102,5 +111,68 @@ describe('useWalletConnect (EIP-6963)', () => {
     expect(metamask.request).toHaveBeenCalledWith({ method: 'eth_requestAccounts' });
     // Fallback entry is the only wallet and is flagged as 'injected'.
     expect(result.current.wallets.map((w) => w.rdns)).toEqual(['injected']);
+  });
+});
+
+describe('useWalletConnect (WalletConnect)', () => {
+  const WC_ADDR = '0x' + 'c'.repeat(40);
+  const init = EthereumProvider.init as unknown as jest.Mock;
+
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID = 'test-project-id';
+    init.mockReset();
+    localStorage.clear();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+    delete process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+  });
+
+  it('exposes walletConnectEnabled when a projectId is configured', () => {
+    const { result } = renderHook(() => useWalletConnect());
+    expect(result.current.walletConnectEnabled).toBe(true);
+  });
+
+  it('connectWalletConnect uses the WalletConnect provider and returns the address', async () => {
+    const mockProvider = {
+      on: jest.fn(),
+      removeListener: jest.fn(),
+      request: jest.fn().mockResolvedValue([`eip155:1:${WC_ADDR}`]),
+      disconnect: jest.fn().mockResolvedValue(undefined),
+      close: jest.fn().mockResolvedValue(undefined),
+    };
+    init.mockResolvedValue(mockProvider);
+
+    const { result } = renderHook(() => useWalletConnect());
+
+    let addr: string | null = null;
+    await act(async () => {
+      addr = await result.current.connectWalletConnect();
+    });
+
+    expect(addr).toBe(WC_ADDR);
+    expect(init).toHaveBeenCalledWith(
+      expect.objectContaining({ projectId: 'test-project-id', showQrModal: false })
+    );
+    expect(mockProvider.on).toHaveBeenCalledWith('display_uri', expect.any(Function));
+    expect(mockProvider.request).toHaveBeenCalledWith({ method: 'eth_requestAccounts' });
+    expect(result.current.address).toBe(WC_ADDR);
+    expect(result.current.selectedRdns).toBe('walletconnect');
+  });
+
+  it('reports an error and returns null when no projectId is configured', async () => {
+    delete process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+    const { result } = renderHook(() => useWalletConnect());
+    expect(result.current.walletConnectEnabled).toBe(false);
+
+    let addr: string | null = null;
+    await act(async () => {
+      addr = await result.current.connectWalletConnect();
+    });
+    expect(addr).toBe(null);
+    expect(result.current.walletConnectError).toBe('WalletConnect is not configured.');
   });
 });

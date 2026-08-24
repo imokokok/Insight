@@ -1,7 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, X } from 'lucide-react';
+import { Wallet, X, QrCode, ScanLine } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 import { cn } from '@/lib/utils';
 
@@ -16,6 +17,18 @@ interface WalletPickerProps {
   connectingRdns: string | null;
   onSelect: (rdns: string) => void;
   onClose: () => void;
+  /** True when a WalletConnect projectId is configured (QR entry shows). */
+  walletConnectEnabled: boolean;
+  /** Live WalletConnect URI to render as a QR code. */
+  walletConnectUri: string | null;
+  /** Error specific to the WalletConnect flow. */
+  walletConnectError: string | null;
+  /** True while a WalletConnect session is being established (awaiting scan). */
+  isWalletConnecting: boolean;
+  /** Starts a WalletConnect (QR) session. */
+  onWalletConnect: () => void;
+  /** Aborts an in-progress WalletConnect session / clears the QR code. */
+  onWalletConnectCancel: () => void;
 }
 
 export function WalletPicker({
@@ -25,7 +38,15 @@ export function WalletPicker({
   connectingRdns,
   onSelect,
   onClose,
+  walletConnectEnabled,
+  walletConnectUri,
+  walletConnectError,
+  isWalletConnecting,
+  onWalletConnect,
+  onWalletConnectCancel,
 }: WalletPickerProps) {
+  const showingQr = Boolean(walletConnectUri) || isWalletConnecting;
+
   return (
     <AnimatePresence>
       {open && (
@@ -50,7 +71,9 @@ export function WalletPicker({
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Wallet className="w-4 h-4 text-blue-600" />
-                <h3 className="text-sm font-semibold text-slate-900">Connect a Wallet</h3>
+                <h3 className="text-sm font-semibold text-slate-900">
+                  {showingQr ? 'Scan with WalletConnect' : 'Connect a Wallet'}
+                </h3>
               </div>
               <button
                 type="button"
@@ -62,65 +85,131 @@ export function WalletPicker({
               </button>
             </div>
 
-            {wallets.length === 0 ? (
-              <div className="text-sm text-slate-600 leading-relaxed">
-                <p>No browser wallet detected.</p>
-                <p className="mt-2 text-slate-500">
-                  Install{' '}
-                  <a
-                    href="https://metamask.io/download/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-primary-600 hover:underline"
+            <AnimatePresence mode="wait">
+              {showingQr ? (
+                <motion.div
+                  key="wc-qr"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex flex-col items-center text-center"
+                >
+                  <div className="rounded-xl border border-slate-200 bg-white p-3">
+                    {walletConnectUri ? (
+                      <QRCodeSVG value={walletConnectUri} size={200} level="M" />
+                    ) : (
+                      <div className="w-[200px] h-[200px] flex items-center justify-center text-slate-400 text-sm">
+                        Preparing…
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                    Open your mobile wallet app and scan this code to connect.
+                  </p>
+                  {walletConnectError && (
+                    <p className="mt-2 text-xs text-red-600">{walletConnectError}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={onWalletConnectCancel}
+                    className="mt-4 text-xs text-slate-500 hover:text-slate-700 transition-colors"
                   >
-                    MetaMask
-                  </a>{' '}
-                  or{' '}
-                  <a
-                    href="https://rabby.io/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-primary-600 hover:underline"
-                  >
-                    Rabby
-                  </a>{' '}
-                  to import your on-chain position.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {wallets.map((w) => {
-                  const isConnectingThis = isConnecting && connectingRdns === w.rdns;
-                  return (
+                    Cancel
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="wc-list"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="space-y-2"
+                >
+                  {wallets.length === 0 ? (
+                    <div className="text-sm text-slate-600 leading-relaxed">
+                      <p>No browser wallet detected.</p>
+                      <p className="mt-2 text-slate-500">
+                        Install{' '}
+                        <a
+                          href="https://metamask.io/download/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary-600 hover:underline"
+                        >
+                          MetaMask
+                        </a>{' '}
+                        or{' '}
+                        <a
+                          href="https://rabby.io/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary-600 hover:underline"
+                        >
+                          Rabby
+                        </a>{' '}
+                        to import your on-chain position.
+                      </p>
+                    </div>
+                  ) : (
+                    wallets.map((w) => {
+                      const isConnectingThis = isConnecting && connectingRdns === w.rdns;
+                      return (
+                        <button
+                          key={w.uuid}
+                          type="button"
+                          disabled={isConnecting || isWalletConnecting}
+                          onClick={() => onSelect(w.rdns)}
+                          className={cn(
+                            'w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors',
+                            'border-slate-200 hover:border-primary-300 hover:bg-primary-50/50',
+                            'disabled:opacity-60 disabled:cursor-not-allowed'
+                          )}
+                        >
+                          {w.icon ? (
+                            // Wallet-supplied data URI; safe (no external network request).
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={w.icon} alt="" className="w-7 h-7 rounded-md" />
+                          ) : (
+                            <span className="w-7 h-7 rounded-md bg-slate-100 flex items-center justify-center">
+                              <Wallet className="w-4 h-4 text-slate-500" />
+                            </span>
+                          )}
+                          <span className="flex-1 text-sm font-medium text-slate-900">
+                            {w.name}
+                          </span>
+                          {isConnectingThis && (
+                            <span className="text-xs text-primary-600">Connecting…</span>
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
+
+                  {walletConnectEnabled && (
                     <button
-                      key={w.uuid}
                       type="button"
-                      disabled={isConnecting}
-                      onClick={() => onSelect(w.rdns)}
+                      disabled={isConnecting || isWalletConnecting}
+                      onClick={onWalletConnect}
                       className={cn(
                         'w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors',
                         'border-slate-200 hover:border-primary-300 hover:bg-primary-50/50',
                         'disabled:opacity-60 disabled:cursor-not-allowed'
                       )}
                     >
-                      {w.icon ? (
-                        // Wallet-supplied data URI; safe (no external network request).
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={w.icon} alt="" className="w-7 h-7 rounded-md" />
-                      ) : (
-                        <span className="w-7 h-7 rounded-md bg-slate-100 flex items-center justify-center">
-                          <Wallet className="w-4 h-4 text-slate-500" />
-                        </span>
-                      )}
-                      <span className="flex-1 text-sm font-medium text-slate-900">{w.name}</span>
-                      {isConnectingThis && (
-                        <span className="text-xs text-primary-600">Connecting…</span>
-                      )}
+                      <span className="w-7 h-7 rounded-md bg-slate-900 flex items-center justify-center">
+                        <QrCode className="w-4 h-4 text-white" />
+                      </span>
+                      <span className="flex-1 text-sm font-medium text-slate-900">
+                        WalletConnect
+                      </span>
+                      <ScanLine className="w-4 h-4 text-slate-400" />
                     </button>
-                  );
-                })}
-              </div>
-            )}
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}

@@ -102,6 +102,14 @@ export function PositionForm({
     }
   };
 
+  const handleWalletConnect = async () => {
+    const addr = await wallet.connectWalletConnect();
+    if (addr) {
+      handleImport(addr);
+      setPickerOpen(false);
+    }
+  };
+
   const addCollateralRow = () => {
     onCollateralRowsChange([
       ...collateralRows,
@@ -285,6 +293,12 @@ export function PositionForm({
             connectingRdns={wallet.connectingRdns}
             onSelect={handleSelectWallet}
             onClose={() => setPickerOpen(false)}
+            walletConnectEnabled={wallet.walletConnectEnabled}
+            walletConnectUri={wallet.walletConnectUri}
+            walletConnectError={wallet.walletConnectError}
+            isWalletConnecting={wallet.isWalletConnecting}
+            onWalletConnect={handleWalletConnect}
+            onWalletConnectCancel={wallet.cancelWalletConnect}
           />
 
           <div className="space-y-4">
