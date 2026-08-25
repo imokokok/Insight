@@ -54,6 +54,14 @@ export interface SafetyBufferAnalysis {
   liveDepegRiskPercent: number;
   // Per-asset breakdown of live deviations (symbol → absolute deviation %)
   liveDepegBreakdown: Record<string, number>;
+  // Oracle uncertainty band (adverse half-width, % of price). The adverse side is
+  // where the user is liquidated earlier than displayed. Combines consensus
+  // deviation, live depeg, and oracle staleness — purely observable signals, no
+  // model dependency. A heuristic estimate, not a statistical confidence interval.
+  bandHalfWidthPercent: number;
+  // True when oracle health could not be verified (no reputation data). The band is
+  // then a conservative placeholder, not a measured deviation.
+  bandUnknown: boolean;
   description: string;
   recommendations: string[];
 }
@@ -218,6 +226,19 @@ export interface PositionCriticalResult {
   liquidationThreshold: number;
   criticalDeviationPercent: number;
   criticalCollateralPrice: number;
+  // Oracle uncertainty band around the displayed liquidation price. The displayed
+  // liquidation price rests on the oracle feed; this captures how far that price
+  // could be off due to consensus deviation, live depeg, and staleness. Asymmetric:
+  // the adverse tail (liquidation happens earlier) uses the full band width, the
+  // favorable tail uses half.
+  liquidationPriceBand: {
+    center: number;
+    lower: number;
+    upper: number;
+    adversePercent: number;
+    favorablePercent: number;
+    unknown: boolean;
+  };
 }
 
 export interface PriceLookup {

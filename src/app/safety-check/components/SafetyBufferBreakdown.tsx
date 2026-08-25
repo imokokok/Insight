@@ -1,10 +1,22 @@
 import type { SafetyBufferAnalysis } from '@/lib/protocols/protocolHealth';
+import { formatPrice } from '@/lib/utils/format';
 
 interface SafetyBufferBreakdownProps {
   safetyBuffer: SafetyBufferAnalysis;
+  liquidationPriceBand?: {
+    center: number;
+    lower: number;
+    upper: number;
+    adversePercent: number;
+    favorablePercent: number;
+    unknown: boolean;
+  };
 }
 
-export function SafetyBufferBreakdown({ safetyBuffer }: SafetyBufferBreakdownProps) {
+export function SafetyBufferBreakdown({
+  safetyBuffer,
+  liquidationPriceBand,
+}: SafetyBufferBreakdownProps) {
   const hasLiveRisk = safetyBuffer.liveDepegRiskPercent > 0;
   const items = [
     {
@@ -37,39 +49,78 @@ export function SafetyBufferBreakdown({ safetyBuffer }: SafetyBufferBreakdownPro
   });
 
   const gridCols = hasLiveRisk ? 'grid-cols-4' : 'grid-cols-3';
+  const hasBand = safetyBuffer.bandHalfWidthPercent > 0;
 
   return (
-    <div className={`grid ${gridCols} gap-2 mb-3`}>
-      {items.map((item) => (
-        <div
-          key={item.label}
-          className={`bg-white/60 rounded-md border p-2.5 text-center ${
-            item.label === 'Live Depeg Risk'
-              ? 'border-amber-200/60'
-              : item.label === 'Effective Buffer'
-                ? 'border-primary-200/40'
-                : 'border-black/5'
-          }`}
-        >
-          <span className="text-[10px] text-gray-500 uppercase tracking-wider block mb-0.5">
-            {item.label}
-          </span>
-          <span
-            className={`text-sm font-bold font-mono ${
+    <div className="mb-3">
+      <div className={`grid ${gridCols} gap-2`}>
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className={`bg-white/60 rounded-md border p-2.5 text-center ${
               item.label === 'Live Depeg Risk'
-                ? 'text-amber-600'
+                ? 'border-amber-200/60'
                 : item.label === 'Effective Buffer'
-                  ? 'text-primary-600'
-                  : 'text-gray-900'
+                  ? 'border-primary-200/40'
+                  : 'border-black/5'
             }`}
           >
-            {item.value}
-          </span>
-          <span className="text-[9px] text-gray-400 block truncate" title={item.sub}>
-            {item.sub}
-          </span>
+            <span className="text-[10px] text-gray-500 uppercase tracking-wider block mb-0.5">
+              {item.label}
+            </span>
+            <span
+              className={`text-sm font-bold font-mono ${
+                item.label === 'Live Depeg Risk'
+                  ? 'text-amber-600'
+                  : item.label === 'Effective Buffer'
+                    ? 'text-primary-600'
+                    : 'text-gray-900'
+              }`}
+            >
+              {item.value}
+            </span>
+            <span className="text-[9px] text-gray-400 block truncate" title={item.sub}>
+              {item.sub}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {hasBand && (
+        <div className="mt-2 rounded-md border border-purple-200/60 bg-purple-50/60 p-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-purple-700">
+              Oracle Uncertainty Band
+            </span>
+            <span
+              className="text-sm font-bold font-mono text-purple-700"
+              title={
+                safetyBuffer.bandUnknown
+                  ? 'Conservative placeholder — oracle health could not be verified'
+                  : 'Adverse (earlier-liquidation) half-width; favorable side is ~half'
+              }
+            >
+              ±{safetyBuffer.bandHalfWidthPercent.toFixed(2)}%{safetyBuffer.bandUnknown ? ' *' : ''}
+            </span>
+          </div>
+          {liquidationPriceBand && liquidationPriceBand.center > 0 && (
+            <p className="mt-1 text-[11px] leading-snug text-purple-600/90">
+              Displayed liq. price{' '}
+              <span className="font-mono">{formatPrice(liquidationPriceBand.center)}</span> may
+              actually be anywhere in{' '}
+              <span className="font-mono">
+                {formatPrice(liquidationPriceBand.lower)} –{' '}
+                {formatPrice(liquidationPriceBand.upper)}
+              </span>
+              {safetyBuffer.bandUnknown && (
+                <span className="ml-1 rounded bg-purple-100/70 px-1 text-[9px] text-purple-600">
+                  unverified
+                </span>
+              )}
+            </p>
+          )}
         </div>
-      ))}
+      )}
     </div>
   );
 }

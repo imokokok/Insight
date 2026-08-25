@@ -145,7 +145,30 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
                 <span className="text-slate-900 font-mono font-medium">
                   {formatPrice(worstDeviation.criticalPrice)}
                 </span>
+                {result.liquidationPriceBand.adversePercent > 0 && (
+                  <>
+                    {' '}
+                    ±
+                    <span className="font-mono font-medium text-purple-600">
+                      {result.liquidationPriceBand.adversePercent.toFixed(2)}%
+                    </span>
+                  </>
+                )}
                 , your position will face liquidation
+                {result.liquidationPriceBand.adversePercent > 0 && (
+                  <span className="mt-1 block text-[11px] leading-snug text-purple-600/90">
+                    Oracle uncertainty: liquidation price may actually be{' '}
+                    <span className="font-mono">
+                      {formatPrice(result.liquidationPriceBand.lower)} –{' '}
+                      {formatPrice(result.liquidationPriceBand.upper)}
+                    </span>
+                    {result.liquidationPriceBand.unknown && (
+                      <span className="ml-1 rounded bg-purple-100/70 px-1 text-[9px] text-purple-600">
+                        unverified
+                      </span>
+                    )}
+                  </span>
+                )}
               </>
             )}
           </p>
@@ -220,7 +243,10 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
           </div>
           <p className="text-sm text-slate-700 mb-3">{result.safetyBuffer.description}</p>
 
-          <SafetyBufferBreakdown safetyBuffer={result.safetyBuffer} />
+          <SafetyBufferBreakdown
+            safetyBuffer={result.safetyBuffer}
+            liquidationPriceBand={result.liquidationPriceBand}
+          />
 
           {result.safetyBuffer.recommendations.length > 0 && (
             <div className="space-y-1.5">

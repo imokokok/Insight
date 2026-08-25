@@ -11,7 +11,11 @@ import {
 import { getProtocolByIdWithDynamicData, type EnrichedProtocolConfig } from './dynamicData';
 import { getChainId } from './importer/chainId';
 import { deriveDeviationRatios } from './protocolRegistry';
-import { analyzeSafetyBuffer, generateAdaptivePricePoints } from './safetyAnalysis';
+import {
+  analyzeSafetyBuffer,
+  computeLiquidationPriceBand,
+  generateAdaptivePricePoints,
+} from './safetyAnalysis';
 
 import type {
   AssetEntry,
@@ -359,6 +363,15 @@ export async function calculatePositionCriticalDeviation(
       criticalDeviationPercent: roundTo(worstDeviation.criticalDeviationPercent, 4),
       // Use worst single-asset deviation's critical price (JOINT has criticalPrice=0, invalid for chart)
       criticalCollateralPrice: roundTo(worstSingleAssetDeviation.criticalPrice, 4),
+      // Oracle uncertainty band around the displayed liquidation price. The displayed
+      // liquidation price rests on the oracle feed; fold the safety-buffer band
+      // half-width into an absolute price range so users see how far it could be off.
+      liquidationPriceBand: computeLiquidationPriceBand(
+        worstSingleAssetDeviation.criticalPrice,
+        worstSingleAssetDeviation.direction,
+        safetyBuffer.bandHalfWidthPercent,
+        safetyBuffer.bandUnknown
+      ),
     };
   } catch (error) {
     logger.error(`Failed to calculate position critical deviation`, normalizeError(error));

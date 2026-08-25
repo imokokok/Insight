@@ -154,6 +154,53 @@ export function generateAdaptivePricePoints(
 }
 
 /**
+ * Asymmetric liquidation-price uncertainty band.
+ *
+ * The displayed liquidation price rests on the oracle feed. The band captures how
+ * far it could be off due to consensus deviation, live depeg, and staleness. It is
+ * asymmetric: the ADVERSE tail (the direction that liquidates the user EARLIER
+ * than displayed) carries the full half-width, while the FAVORABLE tail (delaying
+ * liquidation) is only half. A favorable surprise only buys time, so we do not
+ * extend it as far.
+ *
+ * @param center         displayed critical price (the nominal liquidation price)
+ * @param direction      'down' for collateral-drop liquidation, 'up' for borrow-rise
+ * @param adversePercent full adverse half-width in percent (the danger side)
+ * @param unknown        true when oracle health could not be verified
+ */
+export function computeLiquidationPriceBand(
+  center: number,
+  direction: 'down' | 'up',
+  adversePercent: number,
+  unknown = false
+): {
+  center: number;
+  lower: number;
+  upper: number;
+  adversePercent: number;
+  favorablePercent: number;
+  unknown: boolean;
+} {
+  const favorable = roundTo(adversePercent * 0.5, 4);
+  const upper = roundTo(
+    center * (1 + (direction === 'down' ? favorable : adversePercent) / 100),
+    4
+  );
+  const lower = roundTo(
+    center * (1 - (direction === 'down' ? adversePercent : favorable) / 100),
+    4
+  );
+  return {
+    center: roundTo(center, 4),
+    lower,
+    upper,
+    adversePercent: roundTo(adversePercent, 2),
+    favorablePercent: favorable,
+    unknown,
+  };
+}
+
+/**
  * Safety buffer analysis
  * Evaluate the safety distance from liquidation and generate recommendations.
  *
@@ -172,11 +219,11 @@ export function analyzeSafetyBuffer(
 ): SafetyBufferAnalysis {
   const theoreticalBufferPercent = Math.abs(worstDeviation.criticalDeviationPercent);
 
-  // Average oracle deviation across all providers used by this position
-  const oracleAvgDeviationPercent =
-    oracleWarnings.length > 0
-      ? oracleWarnings.reduce((sum, w) => sum + w.avgDeviationPct, 0) / oracleWarnings.length
-      : 0;
+  // Oracle consensus deviation: how far providers disagree right now.
+  const hasOracleData = oracleWarnings.length > 0;
+  const oracleAvgDeviationPercent = hasOracleData
+    ? oracleWarnings.reduce((sum, w) => sum + w.avgDeviationPct, 0) / oracleWarnings.length
+    : 0;
 
   // Live depeg/peg risk: sum of absolute live deviations for position assets
   const liveDepegBreakdown: Record<string, number> = {};
@@ -189,11 +236,44 @@ export function analyzeSafetyBuffer(
     }
   }
 
-  // Effective (real) safety buffer after subtracting oracle inaccuracy AND live depeg risk
-  const bufferPercent = Math.max(
-    0,
-    theoreticalBufferPercent - oracleAvgDeviationPercent - liveDepegRiskPercent
+  // Oracle staleness penalty: a stale oracle may not reflect the latest market
+  // move. Derive a conservative contribution from each provider's freshness score
+  // (0–100): freshness 0 → +2%, 100 → 0%. The worst provider dominates (max).
+  const stalenessPenaltyPercent = hasOracleData
+    ? Math.min(
+        2,
+        oracleWarnings.reduce(
+          (maxP, w) => Math.max(maxP, Math.min(Math.max(0, 100 - w.freshnessScore) / 50, 2)),
+          0
+        )
+      )
+    : 0;
+
+  // Oracle-unknown uncertainty: when reputation data is missing we cannot verify
+  // the oracle at all. That is the MOST uncertain case, not zero — use a
+  // conservative placeholder and flag the band as unknown.
+  const UNKNOWN_ORACLE_UNCERTAINTY = 10;
+  const bandUnknown = !hasOracleData;
+  const oracleUncertaintyPercent = hasOracleData
+    ? oracleAvgDeviationPercent
+    : UNKNOWN_ORACLE_UNCERTAINTY;
+
+  // Oracle uncertainty band (adverse half-width, % of price). Combines consensus
+  // deviation, live depeg, and staleness into a single ± figure around the
+  // displayed liquidation price. Conservative sum of observable signals (no model
+  // dependency), capped at 50%. This is a heuristic estimate, not a statistical CI.
+  const bandHalfWidthPercent = Math.min(
+    50,
+    oracleUncertaintyPercent + liveDepegRiskPercent + stalenessPenaltyPercent
   );
+
+  // Effective (real) safety buffer after subtracting the FULL oracle uncertainty
+  // band. Because the band half-width is the adverse side, subtracting it makes the
+  // displayed safety margin conservative: the real liquidation price can be closer
+  // to the current price than displayed, so the real buffer is smaller. This is
+  // what makes the band actually tighten the safety conclusion instead of only
+  // decorating it.
+  const bufferPercent = Math.max(0, theoreticalBufferPercent - bandHalfWidthPercent);
   const recommendations: string[] = [];
 
   let overallLevel: SafetyBufferAnalysis['overallLevel'];
@@ -201,14 +281,21 @@ export function analyzeSafetyBuffer(
 
   // Build description parts
   const deductionParts: string[] = [];
-  if (oracleAvgDeviationPercent > 0) {
-    deductionParts.push(`${oracleAvgDeviationPercent.toFixed(2)}% oracle deviation`);
+  if (oracleUncertaintyPercent > 0) {
+    deductionParts.push(
+      hasOracleData
+        ? `${oracleUncertaintyPercent.toFixed(2)}% oracle deviation`
+        : `${oracleUncertaintyPercent.toFixed(2)}% oracle uncertainty (unverified)`
+    );
   }
   if (liveDepegRiskPercent > 0) {
     const assetNames = Object.entries(liveDepegBreakdown)
       .map(([s, d]) => `${s} ${d.toFixed(2)}%`)
       .join(', ');
     deductionParts.push(`${liveDepegRiskPercent.toFixed(2)}% live depeg/peg risk (${assetNames})`);
+  }
+  if (stalenessPenaltyPercent > 0) {
+    deductionParts.push(`${stalenessPenaltyPercent.toFixed(2)}% oracle staleness`);
   }
   const deductionText = deductionParts.length > 0 ? `after ${deductionParts.join(' and ')}` : '';
 
@@ -266,6 +353,20 @@ export function analyzeSafetyBuffer(
     );
   }
 
+  // Oracle uncertainty band awareness: the displayed liquidation price carries an
+  // error band; flag it so users keep extra buffer above the nominal threshold.
+  if (bandHalfWidthPercent >= 1.5 && healthFactor >= 1) {
+    recommendations.push(
+      bandUnknown
+        ? `Oracle health is unverified; a conservative ±${bandHalfWidthPercent.toFixed(
+            2
+          )}% uncertainty band applies — keep extra buffer above the nominal liquidation threshold`
+        : `Oracle uncertainty band is ±${bandHalfWidthPercent.toFixed(
+            2
+          )}% — your displayed liquidation price could be off by this much; keep extra buffer above the nominal threshold`
+    );
+  }
+
   return {
     overallLevel,
     bufferPercent: roundTo(bufferPercent, 2),
@@ -273,6 +374,8 @@ export function analyzeSafetyBuffer(
     oracleAvgDeviationPercent: roundTo(oracleAvgDeviationPercent, 2),
     liveDepegRiskPercent: roundTo(liveDepegRiskPercent, 4),
     liveDepegBreakdown,
+    bandHalfWidthPercent: roundTo(bandHalfWidthPercent, 2),
+    bandUnknown,
     description,
     recommendations: recommendations.length > 0 ? recommendations : ['Position is in good shape'],
   };
