@@ -35,6 +35,7 @@ const features: Feature[] = [
       'Multi-asset collateral and borrow support',
       'Health factor gauge and safety buffer analysis',
       'Protocol-derived liquidation thresholds',
+      'Pre-trade borrow check: buffer-consumption bar + freeze / wait / add-collateral actions',
     ],
     accent: 'emerald',
   },

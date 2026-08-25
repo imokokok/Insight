@@ -53,3 +53,4 @@ supabase/backups/
 
 # AI agent working memory (local only — never commit)
 .workbuddy-ai/
+.workbuddy/

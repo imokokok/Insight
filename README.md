@@ -1,6 +1,6 @@
-# Insight - Oracle Transparency & Risk Infrastructure
+# Insight — Oracle Transparency & Risk Infrastructure
 
-Insight is an oracle transparency and risk infrastructure platform that serves both professional researchers and everyday DeFi users. It provides 15-minute price tracking, cross-oracle comparison, risk analysis, and position safety checks across 10 oracle providers and 40+ blockchain networks.
+Insight is an oracle transparency and risk infrastructure platform for DeFi. It tracks prices across **10 oracle providers and 40+ blockchain networks** — and turns that cross-oracle data into a **decision-grade safety check** that AI agents run before touching on-chain money.
 
 **See through every oracle. Trust with clarity.**
 
@@ -8,44 +8,86 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 
 ## Table of Contents
 
+- [The Flagship: Pre-Trade Oracle Safety Check](#the-flagship-pre-trade-oracle-safety-check)
 - [Key Features](#key-features)
 - [Supported Oracles](#supported-oracles)
-- [Supported Protocols (Safety Check)](#supported-protocols-safety-check)
+- [Supported Protocols](#supported-protocols-safety-check)
 - [Technology Stack](#technology-stack)
 - [Getting Started](#getting-started)
 - [Project Structure](#project-structure)
 - [API Access](#api-access)
-- [API Endpoints](#api-endpoints)
-- [Navigation](#navigation)
 - [AI Agent Integration (MCP Server)](#ai-agent-integration-mcp-server)
+- [Data Pipeline](#data-pipeline)
+
+## The Flagship: Pre-Trade Oracle Safety Check
+
+The "AI agent immune system." Before an agent (or human) executes any on-chain **swap / borrow / lend / liquidate / repay**, it calls one checkpoint that aggregates cross-oracle consensus prices, per-provider deviation, data freshness, stablecoin peg status, and reputation — and returns a single, machine-readable verdict:
+
+> **PASS · CAUTION · DANGER · BLOCK** + a recommended maximum position size
+
+Agents must not execute when the verdict is DANGER or BLOCK. Every call is audit-logged, building the data flywheel for the ML risk model.
+
+### How it decides — deterministic rule engine
+
+| Signal                                    | What it catches                                                                                                                   |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Max provider deviation                    | One oracle diverging from consensus                                                                                               |
+| Cross-provider spread                     | Oracles disagreeing with each other                                                                                               |
+| Provider agreement                        | Consensus quality breaking down                                                                                                   |
+| Cadence-relative staleness                | A feed falling behind its own observed rhythm (soft CAUTION) — plus a 7-day absolute hard-block backstop for genuinely dead feeds |
+| Stablecoin depeg                          | Peg breakages contaminating lending markets                                                                                       |
+| **Protocol buffer consumption (lending)** | How much of a protocol's max-LTV liquidation buffer the current oracle dispersion already eats                                    |
+
+**Lending freeze — the "decisive & actionable" layer.** When cross-oracle dispersion consumes **≥95% of a protocol's max-LTV liquidation buffer** _and_ the erosion is sustained (24h z-score elevated or 3h deviation velocity still rising), **new borrowing is frozen (BLOCK)**. One-tick volatility spikes are not frozen. Instead of only flagging risk, the check returns concrete actions: `freeze_borrow`, `wait_convergence`, `add_collateral`, `reduce_position`. Recommended borrow size shrinks in step with buffer consumption (floor 10%). Swap remains unaffected — a swap opens no liquidatable position.
+
+### ML augmentation (experimental — never drives the verdict)
+
+- A **multi-horizon ML model** (1h + 6h) produces a manipulation risk score [0,1] that feeds the displayed risk level and audit log. The verdict itself is produced by the deterministic rule engine only.
+- **Unsupervised anomaly detection** (z-score + EWMA residual vs 24h baseline) catches novel manipulation the supervised model has never seen.
+- If no verified model is active, the score gracefully falls back to a hand-tuned rule-based formula — the check never depends on ML availability.
+
+### Verifiable attestations
+
+Every check can be signed as an **EIP-712 offchain attestation** — a portable, gasless, tamper-evident proof that "Insight verified oracle state for this trade at time T". Agents relay it in tx memo / calldata / logs so users and protocols can recognize the agent ran the oracle immune-system check.
+
+- **v1** — 11-field attestation (default, backward compatible).
+- **v2** — 26-field attestation: CAIP-19 asset-pair binding, request hash, provider-observations hash, reason-codes hash, plus a **quorum gate** (≥3 independent providers) and an **independence gate** (≥3 distinct non-derived operator groups) that escalate to BLOCK. Unresolvable assets are signed with an explicit `unresolved:` marker rather than silently dropped.
+
+Anyone can verify a signature against the published attester address via `POST /api/v1/safety/attestation/verify` (public, no API key). The feature is disabled (non-breaking) when no signer key is configured.
+
+### Access
+
+- **MCP tool** — `pre_trade_safety_check` (one of 32 tools).
+- **REST** — `GET /api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=100000`.
+- **Web** — interactive demo at `/ai`; the same lending check is embedded live on every position at `/safety-check`.
 
 ## Key Features
 
 ### For DeFi Users
 
-- **Safety Check (Position Critical Deviation)** - Enter your DeFi lending position to calculate the exact oracle price deviation that would trigger liquidation. Supports multi-asset positions across Aave V3, Compound V3, Morpho Blue, Venus, and BENQI. Provides health factor gauge, safety buffer analysis, and oracle reliability warnings.
-- **Stablecoin Depeg Tracker** - 15-minute tracking of USDC, USDT, DAI, and other stablecoins across oracle providers and chains. Detects depegs, tracks duration, maps affected lending protocols, and explains how collateral and borrow positions are impacted.
-- **Wrapped Asset Peg Tracker** - Tracks WBTC, wstETH, cbETH, and other wrapped or liquid-staking tokens for deviations against their underlying assets. Includes on-chain LST exchange rates, cross-source deviation analysis, and protocol impact mapping.
-- **Price Query** - Query current prices from any oracle provider with a simple interface. View on-chain data, confidence intervals, and price freshness at a glance.
+- **Safety Check** — enter a lending position to get the exact oracle price deviation that would trigger liquidation, health factor gauge, safety buffer analysis, and per-asset bidirectional deviation — now with the pre-trade lending check (buffer-consumption bar + recommended actions) right on the position page.
+- **Stablecoin Depeg Tracker** — 15-minute tracking of USDC, USDT, DAI and others across providers and chains, with depeg duration, affected lending protocols, and impact explanation.
+- **Wrapped Asset Peg Tracker** — WBTC, wstETH, cbETH and other wrapped / liquid-staking tokens vs their underlying, including on-chain LST exchange rates and protocol impact mapping.
+- **Price Query** — query any provider with on-chain data, confidence intervals, and freshness at a glance.
 
 ### For Researchers & Analysts
 
-- **Price Insight** - Unified cross-oracle and cross-chain price analysis with dimension switching. Compare prices across providers and blockchains with 4 consensus algorithms, risk analysis, divergence signal detection, and feed health tracking.
-- **Oracle Reputation System** - Persistent 7-day rolling reputation scores with accuracy, uptime, reliability, latency, and freshness metrics. Detailed provider profiles with trend charts and score breakdowns.
-- **Daily Reports** - Daily aggregated oracle market snapshots with consensus prices, provider rankings, stablecoin depeg summaries, wrapped asset peg summaries, and risk highlights.
+- **Price Insight** — unified cross-oracle / cross-chain analysis with 4 consensus algorithms, risk analysis, divergence signal detection, and feed health tracking.
+- **Oracle Reputation System** — persistent 7-day rolling scores (accuracy, uptime, reliability, latency, freshness) with provider profiles and trend charts.
+- **Daily Reports** — aggregated oracle market snapshots with consensus prices, provider rankings, depeg / peg summaries, and risk highlights.
 
 ### For AI Agents
 
-- **Pre-Trade Oracle Safety Check** - The "AI agent immune system." Before an AI agent executes any on-chain swap/borrow/lend/liquidation/repay, it calls this checkpoint to verify oracle integrity. Aggregates cross-oracle consensus, per-provider deviation, data freshness, stablecoin peg status, and reputation into a single **PASS / CAUTION / DANGER / BLOCK** verdict with a recommended maximum position size. Agents must not execute trades when the verdict is DANGER or BLOCK. Available as an MCP tool (`pre_trade_safety_check`) and a REST endpoint (`GET /api/v1/safety/pre-trade`); every call is audit-logged to build a data flywheel for a future ML risk model.
-- **Verifiable Safety Attestation** - When the optional `ATTESTATION_SIGNER_PRIVATE_KEY` is configured, every pre-trade check is signed as an EIP-712 **offchain attestation** — a portable, gasless, tamper-evident proof that "Insight verified oracle state for this trade at time T". Agents relay the attestation in tx memo / calldata / logs so users and protocols can recognize that the agent ran the oracle immune-system check. Anyone can verify a signature against the published attester address via `POST /api/v1/safety/attestation/verify` (public, no API key). The attester identity + EIP-712 schema are published at `GET /api/v1/safety/attestation/verify`. Unset key = feature disabled (non-breaking).
-- **MCP Server** - 32 tools exposing the full platform (prices, consensus, risk, reputation, stablecoin pegs, protocol parameters, position safety) to Claude, Cursor, Windsurf, and any MCP-compatible client. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
+- **Pre-Trade Oracle Safety Check** — the flagship checkpoint described above.
+- **32-tool MCP server** — prices, consensus, risk, reputation, stablecoin pegs, protocol parameters, position safety, pre-trade checks — callable by Claude, Cursor, Windsurf, and any MCP-compatible client.
+- **Verifiable attestations** — signed EIP-712 proof agents can relay to users and protocols.
 
-### Shared Features
+### Shared
 
-- **Data Export** - Export data in CSV, JSON, Excel, PDF, and PNG formats.
-- **Consensus Price** - Multiple consensus algorithms (median, trimmed mean, weighted median, IQR-filtered).
-- **Data Transparency** - Data source indicators and update time tracking.
-- **Accessibility Support** - Keyboard navigation, colorblind mode, screen reader support.
+- **Data Export** — CSV, JSON, Excel, PDF, PNG.
+- **Consensus Price** — median, trimmed mean, weighted median, IQR-filtered.
+- **Data Transparency** — source indicators and update-time tracking.
+- **Accessibility** — keyboard navigation, colorblind mode, screen reader support.
 
 ## Supported Oracles
 
@@ -79,79 +121,54 @@ Insight is an oracle transparency and risk infrastructure platform that serves b
 | Venus Protocol | BNB Chain | $1.7B | BNB, BTCB, ETH, USDT, USDC                       |
 | BENQI          | Avalanche | $500M | AVAX, WETH, BTC.b, WBTC, USDC, USDt, DAI, LINK   |
 
-Safety Check calculates: critical deviation percentage, liquidation trigger price, health factor (with circular gauge), safety buffer level (safe/moderate/risky/dangerous), per-asset bidirectional deviation analysis, collateral ratio curve chart, and oracle reliability warnings. Per-asset deviation bounds are derived from each protocol's own liquidation-threshold parameters.
+The safety check calculates critical deviation percentage, liquidation trigger price, health factor (circular gauge), safety buffer level (safe / moderate / risky / dangerous), per-asset bidirectional deviation analysis, collateral ratio curve, and oracle reliability warnings. Per-asset deviation bounds are derived from each protocol's own liquidation-threshold parameters — the same values power the pre-trade lending freeze.
 
 ## Technology Stack
 
-- **Framework**: Next.js 16.2.4 (App Router) + React 19.2.3 + TypeScript 5.x
-- **Styling**: Tailwind CSS 4.x
-- **State Management**: React Query 5.99.0, Zustand 5.0.11
-- **Charts**: Recharts 3.8.0
-- **Database & Auth**: Supabase 2.98.0 (PostgreSQL + RLS + pg_cron)
-- **Blockchain**: viem 2.47.6, @api3/contracts 27.0.0, supra-oracle-sdk 1.0.4, @stellar/stellar-sdk 15.0.1
-- **Billing**: Creem 1.5.4 (Merchant of Record) - API-key subscriptions and plan gating
-- **Error Tracking**: Sentry 10.43.0
-- **Observability**: Vercel Analytics, Vercel Speed Insights, web-vitals 5.1.0
+- **Framework**: Next.js 16 (App Router) + React 19 + TypeScript 5
+- **Styling**: Tailwind CSS 4
+- **State Management**: React Query 5, Zustand 5
+- **Charts**: Recharts 3
+- **Database & Auth**: Supabase (PostgreSQL + RLS + pg_cron)
+- **Blockchain**: viem 2, @api3/contracts, supra-oracle-sdk, @stellar/stellar-sdk
+- **AI Agent Layer**: @modelcontextprotocol/sdk 1.x (stdio + HTTP transports)
+- **Billing**: Creem (Merchant of Record) — API-key subscriptions and plan gating
+- **Validation**: zod 4
+- **Error Tracking**: Sentry
+- **Observability**: Vercel Analytics, Vercel Speed Insights
 
 ## Getting Started
 
 ```bash
 npm install
-```
-
-Set up environment variables (see `src/lib/config/env.ts` for reference), then:
-
-```bash
 npm run dev
 ```
 
-### Key Environment Variables
-
-**Required (production):**
-
-- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (server-side)
-- `CSRF_SECRET` - CSRF protection secret
-- `JWT_SECRET` - JWT signing secret
-
-**Optional:**
-
-- `NEXT_PUBLIC_SENTRY_DSN` - Sentry DSN (enables error tracking)
-- `NEXT_PUBLIC_APP_URL` - Public app URL (defaults to `http://localhost:3000`)
-- `NEXT_PUBLIC_ENABLE_ANALYTICS` / `NEXT_PUBLIC_ENABLE_PERFORMANCE_MONITORING` - feature flags
-- `USE_REAL_CHAINLINK_DATA` / `USE_REAL_API3_DATA` / `USE_REAL_TWAP_DATA` / `USE_REAL_REFLECTOR_DATA` / `USE_REAL_FLARE_DATA` - toggle real on-chain data (default `true`)
-- `CREEM_API_KEY`, `CREEM_PRODUCT_PRO_MONTHLY`, `CREEM_PRODUCT_PRO_YEARLY`, `CREEM_PRODUCT_PROTOCOL_MONTHLY`, `CREEM_PRODUCT_PROTOCOL_YEARLY`, `CREEM_WEBHOOK_SECRET_TEST` / `CREEM_WEBHOOK_SECRET_LIVE` - Creem billing (gracefully degrades to free-only when unset)
-- `ALCHEMY_<CHAIN>_RPC` - Alchemy RPC endpoints per chain (Ethereum, Arbitrum, Polygon, Base, Optimism, Solana, BNB, Avalanche, zkSync, Scroll, Mantle, Linea)
-- `TRON_RPC_URL`, `TRONGRID_API_KEY` - TRON / WINkLink access
-- `ALLOWED_ORIGINS`, `SESSION_TIMEOUT`, `MAX_REQUEST_SIZE` - security tuning
-
-In non-production, missing secrets fall back to safe dev defaults so the app runs without a full env setup.
+Set up environment variables first (see `src/lib/config/env.ts` for the full reference). Required in production: Supabase URL + anon key + service-role key, `CSRF_SECRET`, `JWT_SECRET`. In non-production, missing secrets fall back to safe dev defaults so the app runs without a full env setup. Optional: Sentry DSN, Creem billing keys (degrades to free-only when unset), per-chain `ALCHEMY_<CHAIN>_RPC` endpoints, TRON / WINkLink access, and `ATTESTATION_SIGNER_PRIVATE_KEY` to enable signed pre-trade attestations.
 
 ## Project Structure
 
 ```
 src/
-├── app/          # Next.js App Router — pages + API routes (/api/v1, /api/mcp, internal /api/*)
-├── components/   # React UI components (home, risk, settings, navigation, ui, ...)
-├── hooks/        # React hooks (e.g. useAutoRefresh)
-├── lib/          # Core logic — analytics, api, billing, config, oracles, protocols, risk, supabase, ...
-├── mcp/          # MCP server implementation (stdio + http transports)
+├── app/          # Next.js App Router — pages + API routes (/api/v1, /api/mcp)
+├── components/   # React UI components (incl. shared safety/ LendingSafetyPanel)
+├── hooks/        # React hooks
+├── lib/          # Core logic — analytics, api, attestations, billing, ml, oracles,
+│                 #   protocols, risk, stablecoins, supabase, ...
+├── mcp/          # MCP server implementation (stdio + http transports, 32 tools)
 ├── providers/    # React context providers
 ├── stores/       # Zustand state stores
 ├── types/        # TypeScript type definitions
 └── __mocks__/    # Jest mocks
 ```
 
-Database migrations and Supabase config live under `supabase/` (split into 7 migration files by object type; new migrations start at `0008`). GitHub Actions cron workflows live under `.github/workflows/`.
+Database migrations and Supabase config live under `supabase/`. The ML training pipeline lives under `ml/` (`ml/train.py`, models output to `ml/models/`). Standalone TypeScript runners for scheduled jobs live under `scripts/`.
 
 ## API Access
 
-Insight exposes a versioned REST API (`/api/v1/`) for programmatic access, authenticated with `X-API-Key`. API keys are created from the Settings page; the plaintext key is shown only once at creation and stored as a SHA-256 hash. Request handling order is authentication first, then per-key rate limiting.
+Insight exposes a versioned REST API (`/api/v1/`) authenticated with `X-API-Key` (created from the Settings page; plaintext shown once, stored as SHA-256 hash). The full interactive reference (OpenAPI 3.1, live "Try It Out", code snippets) is at **`/docs/api`**.
 
 ### Data Access Tiers
-
-Endpoints are grouped into 4 access tiers. Free users get a limited daily trial quota on Tier 2; Tier 3 is hard-gated.
 
 | Tier | Access level          | Data                                                                                              | Required plan            |
 | ---- | --------------------- | ------------------------------------------------------------------------------------------------- | ------------------------ |
@@ -160,7 +177,7 @@ Endpoints are grouped into 4 access tiers. Free users get a limited daily trial 
 | 2    | Deep Analysis         | Deviation, correlation, latency, anomaly signals, 15-min snapshots, price history, feed freshness | Pro+ (Free: 5/day trial) |
 | 3    | Protocol Intelligence | Oracle exposure, cross-chain spreads, incident timeline, coverage analysis                        | Protocol+                |
 
-Reputation trend history is also tiered: Free 7 days, Pro 30 days, Protocol/Enterprise 90 days.
+Reputation trend history is tiered too: Free 7 days, Pro 30 days, Protocol/Enterprise 90 days.
 
 ### Plans
 
@@ -171,105 +188,13 @@ Reputation trend history is also tiered: Free 7 days, Pro 30 days, Protocol/Ente
 | Protocol   | 60 req/min | 100,000       | $499/mo       |
 | Enterprise | Unlimited  | Unlimited     | Contact sales |
 
-See `src/lib/billing/plans.ts` for the single source of truth. Quotas align with the 15-minute data cadence noted above.
+See `src/lib/billing/plans.ts` for the single source of truth.
 
-## API Endpoints
-
-### Public REST API (`/api/v1/`)
-
-API-key authenticated (`X-API-Key`), versioned. Categories include:
-
-- **Prices** - `/api/v1/prices`, `/api/v1/prices/consensus`, `/api/v1/prices/batch`, `/api/v1/prices/history`
-- **Reputation** - `/api/v1/reputation`, `/api/v1/reputation/rankings`, `/api/v1/reputation/[provider]`
-- **Feeds** - `/api/v1/feeds`, `/api/v1/feeds/freshness`, `/api/v1/feeds/heartbeat-stats`, `/api/v1/feeds/[feedId]/health`
-- **Analysis** - `/api/v1/deviation`, `/api/v1/correlation`, `/api/v1/latency`, `/api/v1/anomalies`, `/api/v1/signals`, `/api/v1/risk/summary`
-- **Safety** - `/api/v1/safety/position`, `/api/v1/safety/liquidation`, `/api/v1/safety/pre-trade`, `/api/v1/safety/attestation/verify` (public, no API key)
-- **Risk assets** - `/api/v1/stablecoins/depeg`, `/api/v1/wrapped-assets/peg`
-- **Protocols** - `/api/v1/protocols`, `/api/v1/protocols/risk-params`, `/api/v1/protocols/[id]/risk-params`, `/api/v1/protocols/[id]/oracle-exposure`, `/api/v1/cross-chain/spreads`, `/api/v1/incidents`, `/api/v1/coverage`
-- **Reports & metadata** - `/api/v1/reports/daily/[date]`, `/api/v1/hourly-snapshots`, `/api/v1/price-snapshots`, `/api/v1/symbols`, `/api/v1/oracles/health`, `/api/v1/metrics`, `/api/v1/health`, `/api/v1/price-records/export`
-
-The full interactive reference (OpenAPI 3.1, live "Try It Out", code snippets) is at **`/docs/api`**.
-
-### Internal API (Session Authentication)
-
-Used by the web UI; authenticated via Supabase session or an HttpOnly internal token cookie.
-
-- `GET/PUT /api/auth/profile`, `POST /api/auth/delete-account`, `GET /api/auth/callback`
-- `GET /api/oracles/[provider]`, `POST /api/oracles/batch`
-- `GET/POST /api/reputation`, `GET /api/reputation/[provider]`
-- `POST /api/protocol-health`, `GET /api/protocol-health/plan`, `POST /api/protocol-health/import`
-- `GET /api/reports`, `GET /api/reports/[date]`
-- `GET /api/symbols`, `GET /api/protocols`, `GET /api/stablecoin-depeg`, `GET /api/wrapped-assets`
-- `GET/POST /api/price-records/export`
-- `GET/POST /api/user/api-keys`, `GET/DELETE /api/user/api-keys/[id]`, `GET /api/user/api-keys/[id]/usage`
-- `POST /api/billing/checkout`, `POST /api/billing/portal`, `GET/POST /api/billing/subscription`, `POST /api/billing/trial`, `POST /api/billing/webhook`
-
-### Scheduled Jobs
-
-Scheduled jobs run primarily as **GitHub Actions workflows** (`.github/workflows/`), executing standalone TypeScript runners in `scripts/` directly on the runner. This escapes Vercel's 60s serverless timeout — several pipelines (snapshot collection, feed discovery, protocol risk-params) routinely exceed that ceiling. The corresponding `/api/cron/*` HTTP routes are retained as `workflow_dispatch` / manual-trigger fallbacks and share the same runner functions, so behaviour is identical regardless of executor.
-
-| Workflow                | Schedule           | Script / Mechanism                                     | Purpose                                                                                                          |
-| ----------------------- | ------------------ | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `snapshot-collect`      | Every 15 min       | `scripts/collect-snapshot.ts`                          | Collect prices from all feeds; dual-writes `hourly_price_snapshots` (upsert) + `price_snapshots` (15-min append) |
-| `safety-outcome`        | Every 2 hours      | `scripts/safety-outcome.ts`                            | Backfill outcome labels for pre-trade safety checks                                                              |
-| `protocol-tvl`          | Every 4 hours      | `scripts/protocol-metrics.ts --mode=tvl`               | Sync protocol TVL from DefiLlama                                                                                 |
-| `protocol-risk-params`  | Every 6 hours      | `scripts/protocol-metrics.ts --mode=risk-params`       | Sync per-asset risk parameters from lending protocols                                                            |
-| `feed-reactivation`     | Every 12 hours     | `scripts/sync-feeds.ts --mode=reactivate`              | Re-probe deactivated feeds and revive recovered ones                                                             |
-| `daily-report-publish`  | Daily (00:00 UTC)  | `scripts/daily-report-publish.ts`                      | Generate and persist the previous day's daily report                                                             |
-| `billing`               | Daily (00:30 UTC)  | `scripts/billing.ts`                                   | Subscription lifecycle: trial/sub expiry, quota reset, zombie cleanup                                            |
-| `feed-discovery`        | Weekly (Mon 04:00) | `scripts/sync-feeds.ts --mode=discover`                | Discover new oracle feeds from each provider's official API                                                      |
-| `ml-train`              | Every 3 days       | `ml/train.py`                                          | Retrain the oracle-risk ML model and trigger a Vercel redeploy                                                   |
-| _pg_cron (in Supabase)_ | Hourly             | `recalculate_all_reputations()`                        | Recompute 7-day rolling reputation scores (runs inside the database)                                             |
-| _pg_cron (in Supabase)_ | Daily              | `price-snapshots-cleanup` / `hourly-snapshots-cleanup` | Delete snapshot rows older than 6 months (retention)                                                             |
-
-The 15-min `snapshot-collect` workflow's `:00` run supersedes the legacy hourly `daily-report-cron`, whose schedule is disabled (the workflow is kept as a manual `workflow_dispatch` catch-up). Snapshot collection also keeps Supabase active, making the previous weekly keep-alive ping redundant.
-
-## Navigation
-
-| Page                      | Path                        | Description                                                                                   | Auth Required |
-| ------------------------- | --------------------------- | --------------------------------------------------------------------------------------------- | ------------- |
-| Home                      | `/`                         | Dashboard with consensus prices, oracle health status, and quick actions                      | No            |
-| Price Query               | `/price-query`              | Single oracle price query with on-chain data and confidence intervals                         | No            |
-| Safety Check              | `/safety-check`             | Position critical deviation calculator with liquidation risk analysis                         | No            |
-| Stablecoin Depeg Tracker  | `/stablecoin-depeg`         | Stablecoin depeg tracking with protocol impact analysis                                       | No            |
-| Wrapped Asset Peg Tracker | `/wrapped-assets`           | Wrapped and LST peg risk tracking against underlying assets                                   | No            |
-| Price Insight             | `/price-insight`            | Unified cross-oracle and cross-chain price analysis                                           | No            |
-| Oracle Directory          | `/reputation`               | Oracle provider profiles and 7-day rolling reputation scores                                  | No            |
-| Provider Detail           | `/reputation/[provider]`    | Detailed provider profile with trend charts and score breakdowns                              | No            |
-| Daily Reports             | `/reports`                  | Daily oracle performance summaries with price deviations, rankings, and risk highlights       | No            |
-| Report Detail             | `/reports/[date]`           | Detailed daily report with metrics, deviations, and risk analysis                             | No            |
-| API & Pricing             | `/api`                      | API product page, data access tiers, plans, and pricing                                       | No            |
-| Pricing (alias)           | `/pricing`                  | Redirects to `/api#pricing`                                                                   | No            |
-| AI Agents                 | `/ai`                       | AI agent hub: pre-trade oracle safety check, MCP config generator, and tool playground        | No            |
-| Documentation             | `/docs`                     | Quick start, feature guides, methodology, architecture, data sources, and developer resources | No            |
-| API Reference             | `/docs/api`                 | Interactive REST API reference (OpenAPI 3.1) with code examples                               | No            |
-| API Reference (alt)       | `/docs/api-reference`       | Alternate API reference entry                                                                 | No            |
-| Settings                  | `/settings`                 | Profile, preferences, API keys, and billing management                                        | Yes           |
-| Login                     | `/login`                    | User login page                                                                               | No            |
-| Register                  | `/register`                 | User registration page                                                                        | No            |
-| Forgot Password           | `/auth/forgot-password`     | Password reset request page                                                                   | No            |
-| Reset Password            | `/auth/reset-password`      | Password reset confirmation page                                                              | No            |
-| Verify Email              | `/auth/verify-email`        | Email verification page                                                                       | No            |
-| Resend Verification       | `/auth/resend-verification` | Resend email verification link                                                                | No            |
-| Contact                   | `/contact`                  | Contact page                                                                                  | No            |
-| Privacy Policy            | `/privacy`                  | Privacy policy page                                                                           | No            |
-| Terms of Service          | `/terms`                    | Terms of service page                                                                         | No            |
+Key endpoint groups (all under `/api/v1/`): `prices*`, `reputation*`, `feeds*`, `deviation`, `correlation`, `latency`, `anomalies`, `signals`, `safety/*` (position, liquidation, pre-trade, attestation/verify), `stablecoins/depeg`, `wrapped-assets/peg`, `protocols*`, `cross-chain/spreads`, `incidents`, `coverage`, `reports/daily/[date]`, `hourly-snapshots`, `price-snapshots`, `symbols`, `oracles/health`, `metrics`, `health`.
 
 ## AI Agent Integration (MCP Server)
 
-Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server so AI agents like Claude, Cursor, and Windsurf can query prices, consensus, risk summaries, liquidation risk, stablecoin pegs, and protocol parameters directly in natural language — no raw REST calls or SQL required. The flagship capability is the **pre-trade oracle safety check** (`pre_trade_safety_check`), an "immune system" agents call before executing any on-chain trade to verify oracle data is not being manipulated.
-
-The MCP layer reuses the same internal services as `/api/v1/*` — no duplicated business logic.
-
-- **[`MCP.md`](./MCP.md)** — value proposition, quick start, use cases, pricing, and deployment overview.
-- **[`MCP-TECH.md`](./MCP-TECH.md)** — detailed architecture, transports, authentication, environment variables, and development.
-
-**Web hub:** Visit **`/ai`** in the app to:
-
-- Run the interactive pre-trade safety check demo.
-- Copy one-click MCP configurations for Cursor, Windsurf, and Claude Desktop.
-- Manage API keys for MCP access.
-- Test all 32 tools in the browser-based MCP Playground.
+Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — **32 tools** covering prices, consensus, risk summaries, liquidation stress tests, stablecoin pegs, reputation, feed health, and protocol parameters, with the flagship `pre_trade_safety_check` on top. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
 
 Quick start:
 
@@ -278,4 +203,10 @@ npm run mcp:stdio   # stdio transport for local agents
 npm run mcp:http    # HTTP transport on http://127.0.0.1:3001/mcp
 ```
 
-When the Next.js app is running, the MCP endpoint is also available at `/api/mcp` with the same authentication, rate limiting, and quota enforcement as the REST API. The pre-trade safety check is also available as a plain REST endpoint: `GET /api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=100000`.
+When the Next.js app is running, the endpoint is also available at `/api/mcp` with the same authentication, rate limiting, and quota enforcement as the REST API.
+
+**Web hub — visit `/ai`** in the app to run the interactive pre-trade safety demo, copy one-click MCP configs for Cursor / Windsurf / Claude Desktop, manage API keys, and test all 32 tools in the browser-based MCP Playground.
+
+## Data Pipeline
+
+Snapshot and reputation collection runs on a fixed cadence: **15-minute price snapshots** (dual-written to hourly + 15-min tables), **hourly reputation recalculation** (in-database `pg_cron`), and **daily report publication**. Supporting jobs — feed discovery, feed reactivation, protocol TVL / risk-params sync (DefiLlama + lending protocols), safety-outcome label backfill, ML retraining (every 3 days), and billing lifecycle — run as scheduled GitHub Actions workflows using the runners in `scripts/` (this escapes Vercel's serverless timeout; the equivalent `/api/cron/*` routes remain as manual-trigger fallbacks). Snapshot retention is 6 months.
