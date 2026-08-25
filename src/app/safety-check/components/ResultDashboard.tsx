@@ -33,6 +33,7 @@ import type { Blockchain } from '@/types/oracle';
 
 import { CircularGauge } from './CircularGauge';
 import { CountUp } from './CountUp';
+import { LendingSafetySection } from './LendingSafetySection';
 import { SafetyBufferBreakdown } from './SafetyBufferBreakdown';
 import { SafetyPlannerPanel } from './SafetyPlannerPanel';
 
@@ -265,6 +266,14 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
           <OracleReliabilityWarnings warnings={result.oracleWarnings} />
         )}
       </div>
+
+      {/* Pre-Trade Lending Safety: live pre-trade check answering "is it safe to
+          open / increase this borrow right now?" for the position's protocol+asset. */}
+      <LendingSafetySection
+        protocolId={result.protocolId}
+        asset={result.collateralSymbol}
+        chain={result.chain}
+      />
 
       {/* Safety Parameter Planner (inverse solver — action prescription) */}
       <SafetyPlannerPanel position={position} existingResult={result} />
