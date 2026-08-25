@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, ShieldAlert, ShieldX } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react';
 
 import type {
   LendingSafetyAction,
@@ -35,7 +35,45 @@ export function LendingSafetyPanel({
   if (!protocolSafety && actions.length === 0) return null;
 
   const frozen = actions.some((a) => a.type === 'freeze_borrow');
-  const hasSafety = protocolSafety !== null;
+  const bufferPct = protocolSafety?.bufferConsumedPct ?? 0;
+  // Visual level matches the backend verdict thresholds so the badge the user
+  // sees is the same one the rule engine produced — and crucially, the SAFE
+  // state is rendered as a clear "checked and safe" badge, not silence.
+  type Level = 'safe' | 'caution' | 'danger' | 'frozen';
+  const level: Level = frozen
+    ? 'frozen'
+    : bufferPct >= 80
+      ? 'danger'
+      : bufferPct >= 50
+        ? 'caution'
+        : 'safe';
+
+  const levelConfig = {
+    safe: {
+      label: '✓ SAFE TO BORROW',
+      cls: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200',
+      iconColor: 'text-emerald-600',
+      Icon: ShieldCheck,
+    },
+    caution: {
+      label: 'CAUTION',
+      cls: 'bg-amber-100 text-amber-700 ring-1 ring-amber-200',
+      iconColor: 'text-amber-600',
+      Icon: AlertTriangle,
+    },
+    danger: {
+      label: 'DANGER',
+      cls: 'bg-orange-100 text-orange-700 ring-1 ring-orange-200',
+      iconColor: 'text-orange-600',
+      Icon: ShieldAlert,
+    },
+    frozen: {
+      label: '✕ FROZEN',
+      cls: 'bg-red-100 text-red-700 ring-1 ring-red-200',
+      iconColor: 'text-red-600',
+      Icon: ShieldX,
+    },
+  }[level];
 
   return (
     <div
@@ -44,21 +82,15 @@ export function LendingSafetyPanel({
       }`}
     >
       <div className="flex items-center gap-2 mb-3">
-        {frozen ? (
-          <ShieldX className="w-5 h-5 text-red-600" />
-        ) : hasSafety ? (
-          <ShieldAlert className="w-5 h-5 text-amber-600" />
-        ) : (
-          <AlertTriangle className="w-5 h-5 text-slate-500" />
-        )}
+        <levelConfig.Icon className={`w-5 h-5 ${levelConfig.iconColor}`} />
         <h4 className="text-sm font-semibold text-slate-900">
           Lending Safety · {protocolSafety?.protocolName ?? 'Protocol'}
         </h4>
-        {frozen && (
-          <span className="px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-700 rounded-full">
-            BORROW FROZEN
-          </span>
-        )}
+        <span
+          className={`ml-auto px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full tracking-wide ${levelConfig.cls}`}
+        >
+          {levelConfig.label}
+        </span>
       </div>
 
       {protocolSafety && <BufferConsumptionBar safety={protocolSafety} />}
