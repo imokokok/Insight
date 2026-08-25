@@ -141,6 +141,17 @@ export interface ContributingFactor {
   message: string;
 }
 
+export interface LendingSafetyAction {
+  type: 'freeze_borrow' | 'reduce_position' | 'wait_convergence' | 'add_collateral';
+  severity: 'info' | 'caution' | 'danger' | 'block';
+  title: string;
+  detail: string;
+  /** Wait until cross-oracle deviation falls below this % before borrowing. */
+  targetDeviationPct?: number;
+  /** Target buffer consumption (%) the position should stay under. */
+  targetBufferPct?: number;
+}
+
 export interface PreTradeSafetyResult {
   verdict: SafetyVerdict;
   consensusPrice: number;
@@ -162,6 +173,12 @@ export interface PreTradeSafetyResult {
   warnings: string[];
   contributingFactors: ContributingFactor[];
   protocolSafety: ProtocolSafetyContext | null;
+  /**
+   * Concrete, user-executable actions for the lending (borrow) path. Empty for
+   * non-lending actions or when cross-oracle dispersion is within safe bounds.
+   * Drives the "decisive & actionable" lending-safety layer.
+   */
+  recommendedActions: LendingSafetyAction[];
   /**
    * Raw ML output: predicted probability [0,1] of an abnormal oracle event in
    * the next 6h. When non-null, `manipulationRiskScore` equals this value (the
@@ -242,6 +259,20 @@ const STALE_DIVERGENCE_BLOCK_PCT = 2.0;
  * context stays informational for swaps.
  */
 const PROTOCOL_BUFFER_THRESHOLDS = { caution: 50, danger: 80 } as const;
+/**
+ * Borrow is hard-frozen when cross-oracle dispersion consumes this % of the
+ * protocol's max-LTV liquidation buffer. Chosen from the threshold simulation
+ * (scripts/insight_lending_safety/sim_threshold.mjs): at 95% the real hourly
+ * deviation data showed ~0% false-freeze even with the sustained-only gate.
+ */
+const LENDING_FREEZE_BUFFER_PCT = 95;
+/**
+ * Sustained-only gate for the freeze: the high buffer consumption must also be
+ * statistically significant (24h z-score elevated) or still rising (3h deviation
+ * velocity > 0). A one-tick spike that happens to cross 95% on otherwise-normal
+ * volatility is NOT frozen — this is the anti-false-positive guard.
+ */
+const LENDING_FREEZE_ZSCORE_MIN = 1.0;
 const LENDING_ACTIONS: readonly TradeAction[] = ['borrow', 'lend', 'repay', 'liquidate'];
 
 const VERDICT_RANK: Record<SafetyVerdict, number> = {
@@ -708,14 +739,257 @@ function computeManipulationRiskScore(args: {
 }
 
 function computeRecommendedMaxPosition(
-  manipulationRiskScore: number,
-  maxDeviationPct: number
+  maxDeviationPct: number,
+  protocolSafety: ProtocolSafetyContext | null
 ): number {
   const base = 1_000_000; // USD baseline
-  const riskFactor = 1 - manipulationRiskScore;
   const deviationFactor = 1 / (1 + Math.abs(maxDeviationPct) / 2);
-  const recommended = Math.round((base * riskFactor * deviationFactor) / 1000) * 1000;
+  // Decisive, deterministic coupling: when cross-oracle dispersion already
+  // consumes a share of the protocol's max-LTV liquidation buffer, shrink the
+  // recommended borrow size in step with it. A 2% deviation on a thick buffer
+  // is harmless; the same 2% on a nearly-consumed buffer is a real, imminent
+  // liquidation risk. Sizing is driven ONLY by observable oracle dispersion —
+  // the ML manipulation score is NOT used here (it is unvalidated for
+  // manipulation-specific accuracy and would otherwise soft-false-positive on
+  // normal high-volatility days).
+  const bufferFactor = protocolSafety
+    ? Math.max(0.1, 1 - protocolSafety.bufferConsumedPct / 100)
+    : 1;
+  const recommended = Math.round((base * deviationFactor * bufferFactor) / 1000) * 1000;
   return Math.max(10_000, recommended);
+}
+
+/**
+ * Build the concrete, user-executable lending-safety actions from the protocol
+ * buffer context. This is the "actionable" half of the cross-oracle dispersion
+ * signal: rather than only flagging risk, it tells the borrower exactly what to
+ * do (freeze / wait for convergence / add collateral / borrow less).
+ */
+function buildLendingActions(args: {
+  protocolSafety: ProtocolSafetyContext;
+  maxDeviationPct: number;
+  frozen: boolean;
+}): LendingSafetyAction[] {
+  const { protocolSafety, maxDeviationPct, frozen } = args;
+  const { bufferConsumedPct, criticalDeviationPct, protocolName } = protocolSafety;
+  // Deviation that brings the buffer back down to the CAUTION line (50%).
+  const targetDeviationPct = roundTo(
+    criticalDeviationPct * (PROTOCOL_BUFFER_THRESHOLDS.caution / 100),
+    2
+  );
+  const actions: LendingSafetyAction[] = [];
+
+  if (frozen) {
+    actions.push({
+      type: 'freeze_borrow',
+      severity: 'block',
+      title: 'New borrowing is frozen',
+      detail: `Cross-oracle dispersion currently consumes ${bufferConsumedPct.toFixed(0)}% of ${protocolName}'s max-LTV liquidation buffer. Borrowing now risks forced liquidation on a single provider tick. Wait for oracle consensus to converge.`,
+    });
+  }
+
+  if (frozen || bufferConsumedPct >= PROTOCOL_BUFFER_THRESHOLDS.danger) {
+    actions.push({
+      type: 'wait_convergence',
+      severity: frozen ? 'danger' : 'caution',
+      title: 'Wait for oracle consensus to converge',
+      detail: `Do not borrow until cross-oracle deviation falls to ≤ ${targetDeviationPct}% (currently ${maxDeviationPct.toFixed(2)}%). This re-widens the liquidation buffer before you take on debt.`,
+      targetDeviationPct,
+    });
+  }
+
+  if (bufferConsumedPct >= PROTOCOL_BUFFER_THRESHOLDS.caution) {
+    actions.push({
+      type: 'add_collateral',
+      severity: bufferConsumedPct >= PROTOCOL_BUFFER_THRESHOLDS.danger ? 'danger' : 'caution',
+      title: 'Add collateral or borrow less',
+      detail: `Oracle dispersion already consumes ${bufferConsumedPct.toFixed(0)}% of the liquidation buffer. Add collateral to re-widen it, or keep the new borrow small.`,
+      targetBufferPct: PROTOCOL_BUFFER_THRESHOLDS.caution,
+    });
+  }
+
+  return actions;
+}
+
+/**
+ * Evaluate the cross-oracle dispersion rule for lending actions in isolation,
+ * so the (large) preTradeSafetyCheck function stays within its line budget and
+ * the rule stays readable. Returns the verdict contribution, contributing
+ * factors, warnings, and concrete lending actions — the caller merges them in.
+ *
+ * Decisive & actionable: when dispersion already consumes a share of the
+ * protocol's max-LTV liquidation buffer it (a) escalates the verdict and
+ * (b) freezes NEW borrowing once consumption reaches LENDING_FREEZE_BUFFER_PCT
+ * AND is sustained (24h z-score elevated OR 3h deviation velocity still
+ * rising). Swaps are excluded — a swap opens no liquidatable position, so the
+ * context stays informational only. The freeze is deterministic (oracle
+ * dispersion + historical sustainedness); the ML manipulation score is
+ * intentionally NOT consulted here, since it is unvalidated for
+ * manipulation-specific accuracy.
+ */
+type ProtocolBufferRuleResult = {
+  verdict: RuleVerdict | null;
+  factors: ContributingFactor[];
+  warnings: string[];
+  actions: LendingSafetyAction[];
+};
+
+function evaluateProtocolBufferRule(args: {
+  protocolSafety: ProtocolSafetyContext | null;
+  action: TradeAction;
+  asset: string;
+  maxDeviationPct: number;
+  historicalState: HistoricalOracleState;
+}): ProtocolBufferRuleResult {
+  const empty: ProtocolBufferRuleResult = { verdict: null, factors: [], warnings: [], actions: [] };
+  // Lending actions only; swaps stay informational (no liquidatable position).
+  if (!args.protocolSafety || !LENDING_ACTIONS.includes(args.action)) return empty;
+  const ps = args.protocolSafety;
+  const b = ps.bufferConsumedPct;
+  const result: ProtocolBufferRuleResult = { ...empty };
+
+  const bufferVerdict: RuleVerdict | null =
+    b >= PROTOCOL_BUFFER_THRESHOLDS.danger
+      ? 'DANGER'
+      : b >= PROTOCOL_BUFFER_THRESHOLDS.caution
+        ? 'CAUTION'
+        : null;
+  if (bufferVerdict) {
+    result.verdict = bufferVerdict;
+    result.factors.push({
+      rule: 'protocol_buffer_consumed',
+      value: b,
+      threshold: PROTOCOL_BUFFER_THRESHOLDS[bufferVerdict.toLowerCase() as 'caution' | 'danger'],
+      triggeredVerdict: bufferVerdict,
+      message: `Current oracle deviation consumes ${b.toFixed(1)}% of ${ps.protocolName}'s max-LTV safety buffer (critical deviation ${ps.criticalDeviationPct.toFixed(2)}%) for ${args.asset}.`,
+    });
+    result.warnings.push(
+      `Oracle deviation vs ${ps.protocolName} liquidation buffer: ${b.toFixed(0)}% consumed.`
+    );
+  }
+
+  // Decisive freeze (lending only): block NEW borrowing once dispersion
+  // consumes >= LENDING_FREEZE_BUFFER_PCT of the buffer, but only when it is
+  // sustained — a one-tick spike on otherwise-normal volatility is NOT frozen
+  // (anti-false-positive), matching the threshold-simulation result (~0%
+  // false-freeze at 95%).
+  const isSustained =
+    args.historicalState.maxDeviationZscore24h >= LENDING_FREEZE_ZSCORE_MIN ||
+    args.historicalState.deviationVelocity3h > 0;
+  const frozen = b >= LENDING_FREEZE_BUFFER_PCT && isSustained;
+  if (frozen) {
+    result.verdict = 'BLOCK';
+    result.factors.push({
+      rule: 'protocol_buffer_frozen',
+      value: b,
+      threshold: LENDING_FREEZE_BUFFER_PCT,
+      triggeredVerdict: 'BLOCK',
+      message: `Borrow frozen: cross-oracle dispersion consumes ${b.toFixed(1)}% of ${ps.protocolName}'s max-LTV liquidation buffer and is sustained (z=${args.historicalState.maxDeviationZscore24h.toFixed(2)}, v3h=${args.historicalState.deviationVelocity3h.toFixed(2)}).`,
+    });
+    result.warnings.push(
+      `Borrowing frozen: oracle dispersion consumes ${b.toFixed(0)}% of ${ps.protocolName}'s liquidation buffer and is not converging.`
+    );
+  }
+
+  result.actions = buildLendingActions({
+    protocolSafety: ps,
+    maxDeviationPct: args.maxDeviationPct,
+    frozen,
+  });
+  return result;
+}
+
+/**
+ * Compute the manipulation / anomaly risk score block (ML when a verified
+ * model is active, rule-based fallback otherwise) in isolation, so the large
+ * preTradeSafetyCheck function stays within its line budget. The returned
+ * score feeds the displayed risk level and audit log ONLY — it is intentionally
+ * NOT used to escalate the verdict or size the recommended position, since the
+ * model is unvalidated for manipulation-specific accuracy.
+ */
+interface ManipulationRiskResult {
+  mlScore: number | null;
+  mlModelVersion: string | null;
+  mlScore1h: number | null;
+  mlScore6h: number | null;
+  anomalyScore: number;
+  manipulationRiskScore: number;
+}
+
+function computeManipulationRisk(args: {
+  providerPrices: Record<string, ProviderPriceDetail>;
+  historicalState: HistoricalOracleState;
+  maxDeviationPct: number;
+  spreadPct: number;
+  consensus: { participantCount: number };
+  staleRisk: boolean;
+  agreement: number;
+  minReputation: number;
+}): ManipulationRiskResult {
+  let mlScore: number | null = null;
+  let mlModelVersion: string | null = null;
+  let mlScore1h: number | null = null;
+  let mlScore6h: number | null = null;
+  let anomalyScore = 0;
+  try {
+    const successfulProviders = Object.values(args.providerPrices).filter(
+      (d) => d.status === 'success'
+    );
+    const absDevs = successfulProviders
+      .map((d) => d.deviationPct)
+      .filter((v): v is number => v !== null)
+      .map((v) => Math.abs(v));
+    const meanDeviationPct =
+      absDevs.length > 0 ? absDevs.reduce((s, v) => s + v, 0) / absDevs.length : 0;
+    const staleRatio =
+      successfulProviders.length > 0
+        ? successfulProviders.filter((d) => d.isStale).length / successfulProviders.length
+        : 0;
+    const hist = args.historicalState;
+    const anomaly: AnomalyScoreResult = computeAnomalyScore(
+      hist.history.map((p) => ({
+        maxDeviationPct: p.maxDeviationPct,
+        consensusPrice: p.consensusPrice,
+        participantCount: p.participantCount,
+      })),
+      args.maxDeviationPct
+    );
+    anomalyScore = anomaly.anomalyScore;
+    const multi: MultiHorizonScore | null = scorePreTradeMultiHorizon({
+      maxDeviationPct: args.maxDeviationPct,
+      spreadPct: args.spreadPct,
+      participantCount: args.consensus.participantCount,
+      staleDataRisk: args.staleRisk,
+      meanDeviationPct: roundTo(meanDeviationPct, 4),
+      staleRatio: roundTo(staleRatio, 4),
+      deviationVelocity1h: hist.deviationVelocity1h,
+      rollingVolatility6h: hist.rollingVolatility6h,
+      deviationVelocity3h: hist.deviationVelocity3h,
+      participantCountDelta1h: hist.participantCountDelta1h,
+      maxDeviationZscore24h: hist.maxDeviationZscore24h,
+    });
+    if (multi !== null) {
+      mlScore = multi.combined;
+      mlScore1h = multi.score1h;
+      mlScore6h = multi.score6h;
+      mlModelVersion = getModelStatus().trainedAt;
+    }
+  } catch (error) {
+    logger.warn('ML scoring failed; falling back to rule-based risk score', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+  const manipulationRiskScore =
+    mlScore !== null
+      ? mlScore
+      : computeManipulationRiskScore({
+          maxDeviationPct: args.maxDeviationPct,
+          crossProviderAgreement: args.agreement,
+          spreadPct: args.spreadPct,
+          staleRisk: args.staleRisk,
+          minReputation: args.minReputation,
+        });
+  return { mlScore, mlModelVersion, mlScore1h, mlScore6h, anomalyScore, manipulationRiskScore };
 }
 
 /**
@@ -991,6 +1265,7 @@ export async function preTradeSafetyCheck(
       warnings,
       contributingFactors,
       protocolSafety: null,
+      recommendedActions: [],
       mlScore: null,
       mlModelVersion: null,
       mlScore1h: null,
@@ -1076,6 +1351,28 @@ export async function preTradeSafetyCheck(
   const protocolSafety = input.protocolId
     ? await computeProtocolSafety(input.protocolId, input.asset, maxDeviationPct)
     : null;
+
+  // 4c. One bounded historical fetch — also reused by the ML/anomaly layer below
+  // (step 6) so we pay a single DB round-trip. The lending freeze rule uses it to
+  // distinguish a sustained buffer erosion from a one-tick volatility spike.
+  let historicalState: HistoricalOracleState = EMPTY_HISTORY;
+  try {
+    historicalState = await fetchHistoricalOracleState(input.asset, {
+      maxDeviationPct,
+      consensusPrice: consensus.consensusPrice,
+      participantCount: consensus.participantCount,
+    });
+  } catch (error) {
+    logger.warn('Historical oracle state fetch failed; lending freeze uses snapshot only', {
+      asset: input.asset,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  // Concrete, user-executable lending actions (decisive & actionable layer).
+  // Populated by the protocol_buffer_consumed rule below; empty when dispersion
+  // is within safe bounds or the action is not a lending action.
+  let lendingActions: LendingSafetyAction[] = [];
 
   // 5. Rule engine.
   let verdict: SafetyVerdict = 'PASS';
@@ -1211,117 +1508,45 @@ export async function preTradeSafetyCheck(
     warnings.push(`Active stablecoin depeg detected (${worstDepeg.toFixed(2)}%).`);
   }
 
-  // Protocol buffer rule (lending actions only): escalate when the current
-  // cross-oracle deviation consumes a large share of the protocol's max-LTV
-  // safety buffer. For swaps the context stays informational (no escalation),
-  // since a swap doesn't open a liquidatable position.
-  if (protocolSafety && LENDING_ACTIONS.includes(input.action)) {
-    const bufferVerdict: RuleVerdict | null =
-      protocolSafety.bufferConsumedPct >= PROTOCOL_BUFFER_THRESHOLDS.danger
-        ? 'DANGER'
-        : protocolSafety.bufferConsumedPct >= PROTOCOL_BUFFER_THRESHOLDS.caution
-          ? 'CAUTION'
-          : null;
-    if (bufferVerdict) {
-      verdict = pickWorst(verdict, bufferVerdict);
-      contributingFactors.push({
-        rule: 'protocol_buffer_consumed',
-        value: protocolSafety.bufferConsumedPct,
-        threshold: PROTOCOL_BUFFER_THRESHOLDS[bufferVerdict.toLowerCase() as 'caution' | 'danger'],
-        triggeredVerdict: bufferVerdict,
-        message: `Current oracle deviation consumes ${protocolSafety.bufferConsumedPct.toFixed(1)}% of ${protocolSafety.protocolName}'s max-LTV safety buffer (critical deviation ${protocolSafety.criticalDeviationPct.toFixed(2)}%) for ${input.asset}.`,
-      });
-      warnings.push(
-        `Oracle deviation vs ${protocolSafety.protocolName} liquidation buffer: ${protocolSafety.bufferConsumedPct.toFixed(0)}% consumed.`
-      );
-    }
-  }
+  // Protocol buffer rule (lending actions only): escalate + freeze based on
+  // how much cross-oracle dispersion consumes the protocol's max-LTV buffer.
+  // Extracted into evaluateProtocolBufferRule (below) to keep this function
+  // within its line budget; see that helper for the sustained-freeze logic.
+  const bufferRule = evaluateProtocolBufferRule({
+    protocolSafety,
+    action: input.action,
+    asset: input.asset,
+    maxDeviationPct,
+    historicalState,
+  });
+  if (bufferRule.verdict) verdict = pickWorst(verdict, bufferRule.verdict);
+  contributingFactors.push(...bufferRule.factors);
+  warnings.push(...bufferRule.warnings);
+  lendingActions = bufferRule.actions;
 
-  // 6. Manipulation risk score. ML-driven when a verified model is active
-  // (replaces the hand-tuned weighted formula below); falls back to that
-  // formula only when no model is available, so the check degrades gracefully
-  // to rules-only. The verdict itself still comes from the rule engine — this
-  // score feeds the displayed risk level and recommended position sizing.
-  let mlScore: number | null = null;
-  let mlModelVersion: string | null = null;
-  let mlScore1h: number | null = null;
-  let mlScore6h: number | null = null;
-  let anomalyScore = 0;
-  try {
-    const successfulProviders = Object.values(providerPrices).filter((d) => d.status === 'success');
-    const absDevs = successfulProviders
-      .map((d) => d.deviationPct)
-      .filter((v): v is number => v !== null)
-      .map((v) => Math.abs(v));
-    const meanDeviationPct =
-      absDevs.length > 0 ? absDevs.reduce((s, v) => s + v, 0) / absDevs.length : 0;
-    const staleRatio =
-      successfulProviders.length > 0
-        ? successfulProviders.filter((d) => d.isStale).length / successfulProviders.length
-        : 0;
-
-    // ONE bounded historical fetch serves both the 5 temporal ML features and the
-    // unsupervised anomaly layer — no extra DB round-trip per feature.
-    const hist = await fetchHistoricalOracleState(input.asset, {
-      maxDeviationPct,
-      consensusPrice: consensus.consensusPrice,
-      participantCount: consensus.participantCount,
-    });
-
-    // Unsupervised anomaly score (Step 2): model-free outlier detection on the
-    // 24h baseline. Catches novel manipulation the supervised ML can't.
-    const anomaly: AnomalyScoreResult = computeAnomalyScore(
-      hist.history.map((p) => ({
-        maxDeviationPct: p.maxDeviationPct,
-        consensusPrice: p.consensusPrice,
-        participantCount: p.participantCount,
-      })),
-      maxDeviationPct
-    );
-    anomalyScore = anomaly.anomalyScore;
-
-    // Supervised ML score (Step 1): dual-horizon (1h + 6h), combined = max so
-    // EITHER horizon flagging risk raises manipulationRiskScore.
-    const multi: MultiHorizonScore | null = scorePreTradeMultiHorizon({
-      maxDeviationPct,
-      spreadPct,
-      participantCount: consensus.participantCount,
-      staleDataRisk: staleRisk,
-      meanDeviationPct: roundTo(meanDeviationPct, 4),
-      staleRatio: roundTo(staleRatio, 4),
-      deviationVelocity1h: hist.deviationVelocity1h,
-      rollingVolatility6h: hist.rollingVolatility6h,
-      deviationVelocity3h: hist.deviationVelocity3h,
-      participantCountDelta1h: hist.participantCountDelta1h,
-      maxDeviationZscore24h: hist.maxDeviationZscore24h,
-    });
-    if (multi !== null) {
-      mlScore = multi.combined;
-      mlScore1h = multi.score1h;
-      mlScore6h = multi.score6h;
-      mlModelVersion = getModelStatus().trainedAt;
-    }
-  } catch (error) {
-    logger.warn('ML scoring failed; falling back to rule-based risk score', {
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
-  const manipulationRiskScore =
-    mlScore !== null
-      ? mlScore
-      : computeManipulationRiskScore({
-          maxDeviationPct,
-          crossProviderAgreement: agreement,
-          spreadPct,
-          staleRisk,
-          minReputation,
-        });
+  // 6. Manipulation risk score (extracted into computeManipulationRisk so this
+  // function stays within its line budget). ML-driven when a verified model is
+  // active, else the hand-tuned rule-based fallback. The verdict still comes
+  // from the rule engine — this score feeds display + audit only.
+  const risk = computeManipulationRisk({
+    providerPrices,
+    historicalState,
+    maxDeviationPct,
+    spreadPct,
+    consensus,
+    staleRisk,
+    agreement,
+    minReputation,
+  });
+  const mlScore = risk.mlScore;
+  const mlModelVersion = risk.mlModelVersion;
+  const mlScore1h = risk.mlScore1h;
+  const mlScore6h = risk.mlScore6h;
+  const anomalyScore = risk.anomalyScore;
+  const manipulationRiskScore = risk.manipulationRiskScore;
 
   // 7. Recommended max position.
-  const recommendedMaxPositionUsd = computeRecommendedMaxPosition(
-    manipulationRiskScore,
-    maxDeviationPct
-  );
+  const recommendedMaxPositionUsd = computeRecommendedMaxPosition(maxDeviationPct, protocolSafety);
 
   // 8. Amount vs recommended position sanity.
   if (input.tradeAmountUsd > recommendedMaxPositionUsd * 3) {
@@ -1403,6 +1628,7 @@ export async function preTradeSafetyCheck(
     warnings: warnings.length > 0 ? warnings : ['No oracle risk signals detected.'],
     contributingFactors,
     protocolSafety,
+    recommendedActions: lendingActions,
     mlScore,
     mlModelVersion,
     mlScore1h,
