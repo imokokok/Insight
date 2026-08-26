@@ -22,6 +22,7 @@ import {
   CANONICAL_REQUEST_TYPES,
   CANONICAL_REQUEST_PRIMARY_TYPE,
 } from '@/lib/attestations/canonicalRequestHash';
+import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import {
   V2_DOMAIN,
   V2_TYPES,
@@ -68,31 +69,25 @@ export async function GET(request: NextRequest) {
 
   const attester = await getAttesterAddress();
 
+  // Key-lifecycle windows (added 2026-08-26 in response to the VERITAS
+  // collaboration). Anchoring fixes the retroactive-forgery gap, but only a
+  // published validity window lets a verifier say "trust this key up to a
+  // given date". validUntil: null = no scheduled expiry until the first
+  // rotation; revoked flips on compromise. The key list is config-driven
+  // (ATTESTATION_KEYS_CONFIG) so rotation can publish a second key with its
+  // own window without a code change (see key-rotation-procedure.md §5.1).
+  const registry = buildKeyRegistryConfig(attester);
+
   const body = {
     issuer: origin,
     mic: V2_ATTESTER_LABEL,
     /** The EIP-712 attestation is signed by a secp256k1 key; the recovered
      *  signer address IS the public verification key. Trust a receipt only if
      *  its `attester` field equals one of these addresses AND it verifies
-     *  against the schema below. */
-    public_keys: attester
-      ? [
-          {
-            key_id: 'insight-oracle-safety-v2',
-            public_key: attester,
-            algorithm: 'EIP-712/secp256k1',
-            /** Key-lifecycle windows (added 2026-08-26 in response to VERITAS
-             *  collaboration). Anchoring fixes the retroactive-forgery gap, but
-             *  only a published validity window lets a verifier say "trust this
-             *  key up to a given date". validUntil: null = no scheduled expiry
-             *  until the first rotation; revoked flips on compromise. */
-            validFrom: process.env.ATTESTATION_KEY_VALID_FROM ?? '2026-08-05',
-            validUntil: null,
-            revoked: false,
-            note: 'Trust OracleSafetyCheck / OracleSafetyRecheck receipts whose `attester` equals this address AND whose `checkedAt` is within [validFrom, validUntil ?? ∞) and not revoked.',
-          },
-        ]
-      : [],
+     *  against the schema below AND (when enforced) its `checkedAt` falls
+     *  inside the key's [validFrom, validUntil) window and it is not revoked. */
+    public_keys: registry.keys,
+    revoked_keys: registry.revoked,
     attestation_enabled: attester !== null,
     schemas: {
       OracleSafetyCheck: {
@@ -113,14 +108,16 @@ export async function GET(request: NextRequest) {
     },
     verify: `${origin}/api/v1/safety/attestation/verify`,
     sample: `${origin}/api/v1/safety/attestation/sample`,
-    /** Rotation contract (added 2026-08-26). Single active key today. To
-     *  rotate: generate a new key, publish it with validFrom = activation
-     *  time, retain the prior key with validUntil for the overlap window, and
-     *  set revoked = true on compromise. Compromised-or-expired keys move here
-     *  so historical receipts keep a verifiable trust boundary. */
+    /** Rotation contract (added 2026-08-26). Target cadence: annual, or
+     *  immediately on compromise (ROTATION_TARGET_CADENCE_DAYS). To rotate:
+     *  generate a new key, publish it with validFrom = activation time, retain
+     *  the prior key with validUntil for the overlap window, and set
+     *  revoked = true on compromise. Compromised-or-expired keys move to
+     *  `revoked_keys` (each with revoked_at + reason) so historical receipts
+     *  keep a verifiable trust boundary. The key list is config-driven
+     *  (ATTESTATION_KEYS_CONFIG / ATTESTATION_REVOKED_KEYS_CONFIG). */
     key_rotation_policy:
-      'single active key; rotate by publishing new key_id with validFrom, retaining prior key with validUntil for overlap; revoke on compromise',
-    revoked_keys: [],
+      'config-driven multi-key; rotate by publishing new key_id with validFrom, retaining prior key with validUntil for overlap; revoke on compromise (annual target or immediate)',
   };
 
   return NextResponse.json(body, {

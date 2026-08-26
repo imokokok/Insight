@@ -40,6 +40,10 @@ import {
   CANONICAL_REQUEST_PRIMARY_TYPE,
 } from '@/lib/attestations/canonicalRequestHash';
 import {
+  buildKeyRegistryConfig,
+  isAttestationKeyValid,
+} from '@/lib/attestations/keyRegistryConfig';
+import {
   verifyAttestation,
   getAttesterAddress,
   ATTESTATION_DOMAIN,
@@ -296,6 +300,29 @@ export const POST = createApiHandler<
     // signature, so a structurally-invalid payload can't forge a valid
     // attestation — it just returns valid:false.
     const verification = await verifyAttestationBySchema(body.attestation);
+
+    // Optional server-side key-window enforcement (key-rotation-procedure.md
+    // §5 gap 4). OFF by default: the registry validity window is primarily a
+    // verifier-side rule, and enabling it is a registration-time decision.
+    // When ATTESTATION_ENFORCE_KEY_WINDOW=true we additionally reject
+    // attestations whose attester key is revoked or whose `checkedAt` falls
+    // outside the published [validFrom, validUntil) window. The crypto check
+    // above already proved the signature is genuine; this adds the trust-window
+    // gate on top.
+    if (
+      process.env.ATTESTATION_ENFORCE_KEY_WINDOW === 'true' &&
+      verification.valid &&
+      verification.attester
+    ) {
+      const attester = await getAttesterAddress();
+      const config = buildKeyRegistryConfig(attester);
+      if (!isAttestationKeyValid(verification.attester, verification.checkedAt, config)) {
+        verification.valid = false;
+        verification.expired = true;
+        verification.reason =
+          'attester key is revoked or its checkedAt is outside the published validity window';
+      }
+    }
 
     return NextResponse.json(
       ApiResponseBuilder.success(verification, {
