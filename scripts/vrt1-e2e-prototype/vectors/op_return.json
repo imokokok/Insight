@@ -1,0 +1,18 @@
+{
+  "description": "OP_RETURN payload roundtrip (49 bytes).",
+  "input": {
+    "epoch": 7,
+    "leaf_count": 5,
+    "merkle_root_hex": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+  },
+  "parsed": {
+    "epoch": 7,
+    "leaf_count": 5,
+    "merkle_root_hex": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+    "tag": "VRT1",
+    "version": 1
+  },
+  "payload_hex": "5652543101000000000000000700000005cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+  "payload_length_bytes": 49,
+  "spec_section": "5"
+}

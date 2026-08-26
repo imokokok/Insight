@@ -98,7 +98,7 @@ const fail = (label) => {
 
 console.log('=== 0. Toolchain self-test against public vrt1-spec vectors ===');
 
-const vec = JSON.parse(readFileSync('/tmp/vrt1-vectors/agent_action.json', 'utf8'));
+const vec = JSON.parse(readFileSync(join(__dirname, 'vectors', 'agent_action.json'), 'utf8'));
 const vecPayload = {
   action_type: vec.action.action_type,
   agent: vec.action.agent,
@@ -124,7 +124,7 @@ okVerify
   : fail('schnorr verify failed on vector');
 
 // Merkle root self-test (tree of size 7 from merkle.json)
-const merkleVec = JSON.parse(readFileSync('/tmp/vrt1-vectors/merkle.json', 'utf8'));
+const merkleVec = JSON.parse(readFileSync(join(__dirname, 'vectors', 'merkle.json'), 'utf8'));
 {
   const tree = merkleVec.trees['7'];
   const leaves = tree.leaves_hex.map(hexToBytes);
@@ -136,7 +136,7 @@ const merkleVec = JSON.parse(readFileSync('/tmp/vrt1-vectors/merkle.json', 'utf8
 
 // OP_RETURN self-test
 {
-  const opv = JSON.parse(readFileSync('/tmp/vrt1-vectors/op_return.json', 'utf8'));
+  const opv = JSON.parse(readFileSync(join(__dirname, 'vectors', 'op_return.json'), 'utf8'));
   const payload = buildOpReturn(opv.input.epoch, opv.input.leaf_count, opv.input.merkle_root_hex);
   bytesToHex(payload) === opv.payload_hex
     ? pass(`OP_RETURN payload (${opv.payload_length_bytes}B) matches vector`)
