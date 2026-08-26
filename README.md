@@ -51,7 +51,7 @@ Agents must not execute when the verdict is DANGER or BLOCK. Every call is audit
 Every check can be signed as an **EIP-712 offchain attestation** — a portable, gasless, tamper-evident proof that "Insight verified oracle state for this trade at time T". Agents relay it in tx memo / calldata / logs so users and protocols can recognize the agent ran the oracle immune-system check.
 
 - **v1** — 11-field attestation (default, backward compatible).
-- **v2** — 26-field attestation: CAIP-19 asset-pair binding, request hash, provider-observations hash, reason-codes hash, plus a **quorum gate** (≥3 independent providers) and an **independence gate** (≥3 distinct non-derived operator groups) that escalate to BLOCK. Unresolvable assets are signed with an explicit `unresolved:` marker rather than silently dropped.
+- **v2** — 26-field attestation: CAIP-19 asset-pair binding, request hash, provider-observations hash, reason-codes hash, plus a **quorum gate** (≥3 independent providers) and an **independence gate** (≥2 distinct non-derived operator groups) that escalate to BLOCK. Unresolvable assets are signed with an explicit `unresolved:` marker rather than silently dropped.
 
 Anyone can verify a signature against the published attester address via `POST /api/v1/safety/attestation/verify` (public, no API key). The feature is disabled (non-breaking) when no signer key is configured.
 
