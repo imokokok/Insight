@@ -1,0 +1,187 @@
+{
+  "attestation": {
+    "uid": "0x08e2d411797b04db481ae0ac10ee96e3676b528a99b605e3bb8e557d3d275b91",
+    "schemaVersion": 2,
+    "attester": "0xa268676C85b927D64a4e2384636874f76D69e419",
+    "attesterLabel": "Insight Oracle Safety Attestation",
+    "signedAt": "2026-08-25T18:04:08.841Z",
+    "validForSeconds": 600,
+    "validUntil": 1787681648,
+    "signature": "0xf93157a34016404bbdbc11e97146223004df335fcecd950db52d5bdb564f0a6357da3012dbf3e3b26060078fcb86e099de61ff6ed8c21beb38570e006089870f1b",
+    "verifyUrl": "https://www.oracleinsight.xyz/api/v1/safety/attestation/verify",
+    "data": {
+      "verdict": "PASS",
+      "sourceAssetId": "eip155:1/slip44:60",
+      "destinationAssetId": "eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "subjectChainId": 1,
+      "action": "swap",
+      "tradeAmountUsd": 10000000000,
+      "consensusPrice": 300012000000,
+      "maxDeviationBps": 80,
+      "manipulationRiskBps": 500,
+      "participantCount": 7,
+      "requiredParticipantCount": 3,
+      "coverageStatus": "SUFFICIENT",
+      "independenceStatus": "ASSESSED",
+      "sourceGroupCount": 7,
+      "crossProviderAgreementBps": 9920,
+      "maxStablecoinDepegBps": 0,
+      "maxDataAgeSeconds": 9,
+      "recommendedMaxPositionUsd": 10000000000,
+      "reasonCodesHash": "0x569e75fc77c1a856f6daaf9e69d8a9566ca34aa47f9133711ce065a571af0cfd",
+      "requestHash": "0xd9123f4d07987219385997482269e13f0727d10d3bab8ec453afa94cf3563912",
+      "evaluationScope": "SOURCE_ASSET_ONLY",
+      "evaluatedAssetIdsHash": "0x08d8c93d2f0e710195398373ae826c528c5b539211ad13c8d1a9157c157bf234",
+      "providerObservationsHash": "0xf56dc093aa0ad3354721e128772fc178199f9f7f877d78b2e4e7ca63bd68a200",
+      "validUntil": 1787681648,
+      "checkedAt": 1787681048,
+      "schemaVersion": 2
+    },
+    "eip712": {
+      "domain": {
+        "name": "Insight Oracle Safety",
+        "version": "2",
+        "chainId": 1
+      },
+      "types": {
+        "OracleSafetyCheck": [
+          {
+            "name": "verdict",
+            "type": "string"
+          },
+          {
+            "name": "sourceAssetId",
+            "type": "string"
+          },
+          {
+            "name": "destinationAssetId",
+            "type": "string"
+          },
+          {
+            "name": "subjectChainId",
+            "type": "uint256"
+          },
+          {
+            "name": "action",
+            "type": "string"
+          },
+          {
+            "name": "tradeAmountUsd",
+            "type": "uint256"
+          },
+          {
+            "name": "consensusPrice",
+            "type": "uint256"
+          },
+          {
+            "name": "maxDeviationBps",
+            "type": "uint256"
+          },
+          {
+            "name": "manipulationRiskBps",
+            "type": "uint256"
+          },
+          {
+            "name": "participantCount",
+            "type": "uint256"
+          },
+          {
+            "name": "requiredParticipantCount",
+            "type": "uint256"
+          },
+          {
+            "name": "coverageStatus",
+            "type": "string"
+          },
+          {
+            "name": "independenceStatus",
+            "type": "string"
+          },
+          {
+            "name": "sourceGroupCount",
+            "type": "uint256"
+          },
+          {
+            "name": "crossProviderAgreementBps",
+            "type": "uint256"
+          },
+          {
+            "name": "maxStablecoinDepegBps",
+            "type": "uint256"
+          },
+          {
+            "name": "maxDataAgeSeconds",
+            "type": "uint256"
+          },
+          {
+            "name": "recommendedMaxPositionUsd",
+            "type": "uint256"
+          },
+          {
+            "name": "reasonCodesHash",
+            "type": "bytes32"
+          },
+          {
+            "name": "requestHash",
+            "type": "bytes32"
+          },
+          {
+            "name": "evaluationScope",
+            "type": "string"
+          },
+          {
+            "name": "evaluatedAssetIdsHash",
+            "type": "bytes32"
+          },
+          {
+            "name": "providerObservationsHash",
+            "type": "bytes32"
+          },
+          {
+            "name": "validUntil",
+            "type": "uint256"
+          },
+          {
+            "name": "checkedAt",
+            "type": "uint256"
+          },
+          {
+            "name": "schemaVersion",
+            "type": "uint256"
+          }
+        ]
+      },
+      "primaryType": "OracleSafetyCheck",
+      "canonicalRequestDomain": {
+        "name": "Insight Canonical Pre-Trade Request",
+        "version": "1",
+        "chainId": 1
+      },
+      "canonicalRequestTypes": {
+        "CanonicalPreTradeRequest": [
+          {
+            "name": "subjectChainId",
+            "type": "uint256"
+          },
+          {
+            "name": "sourceAssetId",
+            "type": "string"
+          },
+          {
+            "name": "destinationAssetId",
+            "type": "string"
+          },
+          {
+            "name": "action",
+            "type": "string"
+          },
+          {
+            "name": "tradeAmountUsd",
+            "type": "uint256"
+          }
+        ]
+      },
+      "canonicalRequestPrimaryType": "CanonicalPreTradeRequest"
+    }
+  }
+}
