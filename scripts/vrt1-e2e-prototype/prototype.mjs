@@ -23,6 +23,8 @@ const canonicalize = (
 ).default;
 
 const VRT1_ACTION_TAG = 'VRT1/agent-action';
+// Fixed aux_rand for deterministic (reproducible) Schnorr signatures.
+const AUX_RAND = sha256(new TextEncoder().encode('insight-vrt1-prototype-aux-2026-08-26'));
 
 // ---------------------------------------------------------------------------
 // Primitives (from spec §4, §5, §8)
@@ -182,7 +184,7 @@ const actionPayload = buildActionPayload({
 
 const canonHex = bytesToHex(canonicalBytes(actionPayload));
 const aid2 = actionId(actionPayload);
-const sig = schnorr.sign(hexToBytes(aid2), agentPriv);
+const sig = schnorr.sign(hexToBytes(aid2), agentPriv, AUX_RAND);
 
 console.log(`  agent (x-only pubkey, prototype demo key): ${agentPubXOnly}`);
 console.log(`  action_type: ${actionPayload.action_type}`);
@@ -280,6 +282,134 @@ proofOk
   : fail('inclusion proof mismatch');
 
 // ---------------------------------------------------------------------------
+// 3c. Section 8.3 Nostr wrapping (kind 1990)
+//     Spec REQUIRES consumers to verify BOTH the outer Nostr event signature
+//     AND the inner action signature, AND event.pubkey == action.agent.
+// ---------------------------------------------------------------------------
+console.log('--- section 8.3 Nostr wrapping (kind 1990) ---');
+const nostrContent = Buffer.from(
+  JSON.stringify({ action: actionPayload, sig: bytesToHex(sig) })
+).toString('base64');
+const nostrTags = [
+  ['d', aid2],
+  ['t', actionPayload.action_type],
+];
+const nostrCreatedAt = data.checkedAt;
+const nostrEvent = {
+  id: '',
+  pubkey: agentPubXOnly,
+  created_at: nostrCreatedAt,
+  kind: 1990,
+  tags: nostrTags,
+  content: nostrContent,
+  sig: '',
+};
+// NIP-01 id: sha256 of the no-whitespace serialized array
+const nostrSerialized = JSON.stringify([
+  0,
+  nostrEvent.pubkey,
+  nostrEvent.created_at,
+  nostrEvent.kind,
+  nostrEvent.tags,
+  nostrEvent.content,
+]);
+const nostrId = bytesToHex(sha256(new TextEncoder().encode(nostrSerialized)));
+const nostrSig = bytesToHex(schnorr.sign(hexToBytes(nostrId), agentPriv, AUX_RAND));
+nostrEvent.id = nostrId;
+nostrEvent.sig = nostrSig;
+
+const nostrSigOk = schnorr.verify(
+  hexToBytes(nostrSig),
+  hexToBytes(nostrId),
+  hexToBytes(agentPubXOnly)
+);
+nostrSigOk
+  ? pass('Nostr kind 1990 event signature verifies (outer)')
+  : fail('Nostr event sig invalid');
+const pubkeyMatchOk = nostrEvent.pubkey === actionPayload.agent;
+pubkeyMatchOk ? pass('event.pubkey == action.agent') : fail('event.pubkey mismatch');
+const contentParsed = JSON.parse(Buffer.from(nostrContent, 'base64').toString('utf8'));
+const innerActionSigOk =
+  contentParsed.sig === bytesToHex(sig) &&
+  contentParsed.action.ts === actionPayload.ts &&
+  schnorr.verify(hexToBytes(contentParsed.sig), hexToBytes(aid2), hexToBytes(agentPubXOnly));
+innerActionSigOk
+  ? pass('inner action signature re-verified from event content')
+  : fail('inner action sig mismatch in event content');
+
+// ---------------------------------------------------------------------------
+// 3d. Negative vectors: tampering MUST be rejected
+// ---------------------------------------------------------------------------
+console.log('--- negative vectors (tamper must be rejected) ---');
+const tamperedCanon = canonicalBytes(actionPayload);
+tamperedCanon[3] ^= 0x01;
+const tamperedId = bytesToHex(taggedHash(VRT1_ACTION_TAG, tamperedCanon));
+tamperedId !== aid2
+  ? pass('tampered canonical -> different action_id (rejected)')
+  : fail('tamper NOT detected');
+const badSig = Uint8Array.from(sig);
+badSig[10] ^= 0x01;
+schnorr.verify(badSig, hexToBytes(aid2), hexToBytes(agentPubXOnly))
+  ? fail('bad signature accepted')
+  : pass('flipped sig byte -> Schnorr rejects');
+let curBad = dblSha256(concatBytes(new Uint8Array([0x00]), demoLeafA));
+for (let i = 0; i < proofSiblings.length; i++) {
+  curBad =
+    proofDirs[i] === 0
+      ? dblSha256(concatBytes(new Uint8Array([0x01]), curBad, proofSiblings[i]))
+      : dblSha256(concatBytes(new Uint8Array([0x01]), proofSiblings[i], curBad));
+}
+bytesToHex(curBad) !== bytesToHex(batchRoot)
+  ? pass('wrong leaf -> inclusion proof rejected')
+  : fail('wrong leaf accepted');
+
+// ---------------------------------------------------------------------------
+// 3e. Verify-from-chain (live, read-only): parse VERITAS' real mainnet anchor
+//     This is NOT our batch; it proves the on-chain payload parses per §5.1
+//     and that our builder produces the same wire format as a real anchor.
+// ---------------------------------------------------------------------------
+console.log('--- verify-from-chain (live mainnet anchor, read-only) ---');
+const VERITAS_MAINNET_ANCHOR_TXID =
+  '92b2c4e434ae347f867e36a5ec7a1b608fd35ca45158caa258638c82215aafa0';
+let chainVerify = null;
+try {
+  const res = await fetch(`https://mempool.space/api/tx/${VERITAS_MAINNET_ANCHOR_TXID}`, {
+    signal: AbortSignal.timeout(15000),
+  });
+  const tx = await res.json();
+  const opOut = (tx.vout || []).find((vo) => vo.scriptpubkey && vo.scriptpubkey.startsWith('6a'));
+  if (!opOut) throw new Error('no OP_RETURN output in tx');
+  const payload = Uint8Array.from(Buffer.from(opOut.scriptpubkey.slice(4), 'hex'));
+  const dv = new DataView(payload.buffer);
+  chainVerify = {
+    txid: tx.txid,
+    confirmed: tx.status && tx.status.confirmed === true,
+    block_height: tx.status ? tx.status.block_height : null,
+    tag: new TextDecoder().decode(payload.slice(0, 4)),
+    version: payload[4],
+    epoch: Number(dv.getBigUint64(5, false)),
+    leaf_count: dv.getUint32(13, false),
+    merkle_root_hex: bytesToHex(payload.slice(17)),
+    payload_length: payload.length,
+  };
+  const conforms =
+    chainVerify.confirmed &&
+    chainVerify.tag === 'VRT1' &&
+    chainVerify.version === 1 &&
+    chainVerify.payload_length === 49 &&
+    chainVerify.leaf_count >= 1;
+  conforms
+    ? pass(
+        `real on-chain anchor parses per §5.1: ${chainVerify.txid.slice(0, 16)}… block ${chainVerify.block_height} epoch ${chainVerify.epoch} leaves ${chainVerify.leaf_count} root ${chainVerify.merkle_root_hex.slice(0, 16)}…`
+      )
+    : fail('on-chain anchor does not conform to §5.1');
+} catch (e) {
+  console.log(
+    `  SKIP  live chain check unreachable (${e.message}); offline format check covered by op_return vector`
+  );
+}
+
+// ---------------------------------------------------------------------------
 // 4. Write artifacts
 // ---------------------------------------------------------------------------
 console.log('=== 4. Artifacts ===');
@@ -290,6 +420,7 @@ const record = {
   sig_hex: bytesToHex(sig),
   agent_privkey_hex_demo_only: bytesToHex(agentPriv),
   agent_pubkey_xonly_hex: agentPubXOnly,
+  nostr_event: nostrEvent,
   inner_eip712: {
     uid: att.uid,
     attester: att.attester,
@@ -308,6 +439,18 @@ const anchor = {
   spec_section: '5',
   broadcast:
     'NOT_BROADCAST (free-path prototype; mainnet anchor is VERITAS anchoring service / future production step)',
+  chain_verify_live: chainVerify
+    ? {
+        txid: chainVerify.txid,
+        confirmed: chainVerify.confirmed,
+        block_height: chainVerify.block_height,
+        epoch: chainVerify.epoch,
+        leaf_count: chainVerify.leaf_count,
+        merkle_root_hex: chainVerify.merkle_root_hex,
+        payload_length: chainVerify.payload_length,
+        note: 'VERITAS mainnet anchor (read-only parse per §5.1); NOT our batch',
+      }
+    : { note: 'live chain check unreachable; offline format check covered by op_return vector' },
 };
 writeFileSync(join(__dirname, 'vrt1-action.json'), JSON.stringify(record, null, 2));
 writeFileSync(join(__dirname, 'anchor-epoch.json'), JSON.stringify(anchor, null, 2));

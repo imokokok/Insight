@@ -5,5 +5,15 @@
   "op_return_payload_hex": "565254310100000000002d768c00000001a96e83142adc3bc461237817d36c8ff64f990e0039b03d9932b16d04d5c1350d",
   "op_return_payload_length_bytes": 49,
   "spec_section": "5",
-  "broadcast": "NOT_BROADCAST (free-path prototype; mainnet anchor is VERITAS anchoring service / future production step)"
+  "broadcast": "NOT_BROADCAST (free-path prototype; mainnet anchor is VERITAS anchoring service / future production step)",
+  "chain_verify_live": {
+    "txid": "92b2c4e434ae347f867e36a5ec7a1b608fd35ca45158caa258638c82215aafa0",
+    "confirmed": true,
+    "block_height": 953581,
+    "epoch": 0,
+    "leaf_count": 1,
+    "merkle_root_hex": "6fff8e44b5f1341f6866ac12a9c1c5b2a1ab8e62a628c0b0bed9a698f22bbf41",
+    "payload_length": 49,
+    "note": "VERITAS mainnet anchor (read-only parse per §5.1); NOT our batch"
+  }
 }

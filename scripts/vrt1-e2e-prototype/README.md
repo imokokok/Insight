@@ -29,18 +29,24 @@ node scripts/vrt1-e2e-prototype/prototype.mjs
    verdict 入 `outcome`、`ts = checkedAt`（epoch = `floor(ts/600)` = 2979468）→
    外层 Schnorr 签名 → Merkle（单叶子 batch + 3 叶子含包含性证明演示）→ 49B OP_RETURN 载荷。
 3. **离线验证**：外层 Schnorr 验签 + 内层 EIP-712 recover == attester + Merkle 包含性证明 + OP_RETURN 往返解析。
+4. **§8.3 Nostr 包装（kind 1990）**：按 NIP-01 构造事件（`["d", action_id]` + `["t", action_type]` tags，content = base64(`{"action", "sig"}`)），外层 Nostr 事件签名验签 + `event.pubkey == action.agent` + 从 content 重验内层 action 签名（spec 强制三验）。
+5. **负向量**：篡改 canonical → action_id 变化被拒；翻转 sig 字节 → Schnorr 拒绝；错误 leaf → 包含性证明拒绝。
+6. **从链验证（live，只读）**：抓取 VERITAS 真实主网锚点 `92b2c4e4…5aafa0`（block 953,581），按 §5.1 解析其 OP_RETURN（tag/version/epoch/leaf_count/root），证明链上真实载荷与本构造器字节格式一致。若网络不可达则 SKIP（离线格式检查由 op_return 向量覆盖）。
 
-产出：`vrt1-action.json`（record + action_id + canonical + 双签名）、`anchor-epoch.json`（epoch/root/OP_RETURN）。
+产出：`vrt1-action.json`（record + action_id + canonical + 双签名 + Nostr 事件）、`anchor-epoch.json`（epoch/root/OP_RETURN + chain_verify）。
 
 ## 边界（诚实声明）
 
-- **未广播主网**。本原型是免费路线：一切离线构造与验证，不花一分钱。
-  Bitcoin 真实上链（OP_RETURN tx + block 确认）属 VERITAS 锚定服务或我方后续生产步骤，
-  到那一步才谈成本（主网单批矿工费通常 1–3 美元，批量聚合后每 receipt 边际成本趋近 0）。
+- **未广播我方批次**。本原型是免费路线：一切离线构造与验证，加上对 VERITAS 真实主网锚点的只读从链解析，不花一分钱。
+  我方 receipt 的批次**没有 txid、没有 block 确认**；真实广播（主网或测试网）需一条锚定路径
+  （对方锚定服务 / 我们自己的节点+UTXO），到那一步才谈成本（主网单批矿工费通常 1–3 美元，
+  批量聚合后每 receipt 边际成本趋近 0）。
 - **VRT1 agent key 是确定性演示密钥**（`sha256("insight-vrt1-prototype-agent-key-2026-08-26")`），
   **不是**生产 EIP-712 attester 私钥，也不是正式 VRT1 agent key；正式 key 的派生/注册
   待与对方确认（对应 §5.4 或独立注册流程）。
 - 映射形态（params/outcome 布局、`insight.oracle-safety-check` 自定义 action_type）为草案，
-  待对方正式 VRT1 record format + canonical test vectors 回发后做 byte-exact 收敛。
+  公开向量仅有通用 `review` 类型；byte-exact 对拍只对通用向量成立，**我方自定义类型的
+  正式 canonical 向量待对方回发后收敛**。
 - epoch 对齐：VRT1 epoch = 600s（§2.2）与 receipt `validUntil = checkedAt + 600s` 巧合对齐，
-  原型以 `floor(checkedAt/600)` 取 epoch；该语义在 reserved type 注册时一并确认。
+  原型以 `floor(checkedAt/600)` 取 epoch（本例 2979468）；该语义在 reserved type 注册时一并确认。
+- 签名确定性：固定 aux_rand（`insight-vrt1-prototype-aux-2026-08-26`）保证重跑字节稳定。
