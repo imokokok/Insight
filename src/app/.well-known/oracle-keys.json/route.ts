@@ -81,7 +81,15 @@ export async function GET(request: NextRequest) {
             key_id: 'insight-oracle-safety-v2',
             public_key: attester,
             algorithm: 'EIP-712/secp256k1',
-            note: 'Trust OracleSafetyCheck / OracleSafetyRecheck receipts whose `attester` equals this address.',
+            /** Key-lifecycle windows (added 2026-08-26 in response to VERITAS
+             *  collaboration). Anchoring fixes the retroactive-forgery gap, but
+             *  only a published validity window lets a verifier say "trust this
+             *  key up to a given date". validUntil: null = no scheduled expiry
+             *  until the first rotation; revoked flips on compromise. */
+            validFrom: process.env.ATTESTATION_KEY_VALID_FROM ?? '2026-08-05',
+            validUntil: null,
+            revoked: false,
+            note: 'Trust OracleSafetyCheck / OracleSafetyRecheck receipts whose `attester` equals this address AND whose `checkedAt` is within [validFrom, validUntil ?? ∞) and not revoked.',
           },
         ]
       : [],
@@ -105,6 +113,14 @@ export async function GET(request: NextRequest) {
     },
     verify: `${origin}/api/v1/safety/attestation/verify`,
     sample: `${origin}/api/v1/safety/attestation/sample`,
+    /** Rotation contract (added 2026-08-26). Single active key today. To
+     *  rotate: generate a new key, publish it with validFrom = activation
+     *  time, retain the prior key with validUntil for the overlap window, and
+     *  set revoked = true on compromise. Compromised-or-expired keys move here
+     *  so historical receipts keep a verifiable trust boundary. */
+    key_rotation_policy:
+      'single active key; rotate by publishing new key_id with validFrom, retaining prior key with validUntil for overlap; revoke on compromise',
+    revoked_keys: [],
   };
 
   return NextResponse.json(body, {
