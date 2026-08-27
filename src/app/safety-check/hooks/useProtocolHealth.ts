@@ -9,7 +9,9 @@ interface UseProtocolHealthReturn {
   result: PositionCriticalResult | null;
   isLoading: boolean;
   error: string | null;
-  calculate: (input: PositionInput) => Promise<void>;
+  /** Error from a background refresh; does not clear `result`. */
+  refreshError: string | null;
+  calculate: (input: PositionInput, opts?: { keepResultOnError?: boolean }) => Promise<void>;
   clear: () => void;
 }
 
@@ -17,50 +19,62 @@ export function useProtocolHealth(): UseProtocolHealthReturn {
   const [result, setResult] = useState<PositionCriticalResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
-  const calculate = useCallback(async (input: PositionInput) => {
-    setIsLoading(true);
-    setError(null);
+  const calculate = useCallback(
+    async (input: PositionInput, opts?: { keepResultOnError?: boolean }) => {
+      const keepResult = Boolean(opts?.keepResultOnError);
+      setIsLoading(true);
+      if (keepResult) setRefreshError(null);
+      else setError(null);
 
-    try {
-      const response = await fetch('/api/protocol-health', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(input),
-      });
-
-      let json: { success?: boolean; error?: { message?: string }; data?: unknown };
       try {
-        json = await response.json();
-      } catch {
-        throw new Error(
-          `Failed to calculate position critical deviation (HTTP ${response.status})`
-        );
-      }
+        const response = await fetch('/api/protocol-health', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(input),
+        });
 
-      if (!response.ok || !json.success) {
-        const message = json.error?.message || 'Failed to calculate position critical deviation';
-        throw new Error(message);
-      }
+        let json: { success?: boolean; error?: { message?: string }; data?: unknown };
+        try {
+          json = await response.json();
+        } catch {
+          throw new Error(
+            `Failed to calculate position critical deviation (HTTP ${response.status})`
+          );
+        }
 
-      setResult(json.data as PositionCriticalResult);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      logger.error(`Failed to calculate position health: ${message}`);
-      setError(message);
-      setResult(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+        if (!response.ok || !json.success) {
+          const message = json.error?.message || 'Failed to calculate position critical deviation';
+          throw new Error(message);
+        }
+
+        setResult(json.data as PositionCriticalResult);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        logger.error(`Failed to calculate position health: ${message}`);
+        if (keepResult) {
+          // Background refresh: keep the last good result on screen.
+          setRefreshError(message);
+        } else {
+          setError(message);
+          setResult(null);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
 
   const clear = useCallback(() => {
     setResult(null);
     setError(null);
+    setRefreshError(null);
     setIsLoading(false);
   }, []);
 
-  return { result, isLoading, error, calculate, clear };
+  return { result, isLoading, error, refreshError, calculate, clear };
 }

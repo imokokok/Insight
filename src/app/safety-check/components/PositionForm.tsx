@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { motion } from 'framer-motion';
 import { Wallet, ArrowDown, Zap, Plus, X, Download } from 'lucide-react';
@@ -59,6 +59,13 @@ export function PositionForm({
   const { isImporting, importError, importedPosition, importPosition } = usePositionImporter();
   const wallet = useWalletConnect();
 
+  // Curated, user-facing status for the import flow (success / warn / error).
+  // Keeps the wallet-import → calculate journey closed-loop with clear feedback.
+  const [importStatus, setImportStatus] = useState<{
+    type: 'success' | 'warn' | 'error';
+    message: string;
+  } | null>(null);
+
   const canImport = Boolean(
     selectedProtocol?.contracts?.poolDataProvider ||
     selectedProtocol?.contracts?.comet ||
@@ -66,15 +73,40 @@ export function PositionForm({
     selectedProtocol?.contracts?.morpho
   );
 
+  // Clear any import status when the user switches protocol.
+  useEffect(() => {
+    setImportStatus(null);
+  }, [selectedProtocol?.id]);
+
   const handleImport = async (addrOverride?: string) => {
-    const addr = addrOverride ?? importAddress;
-    if (!selectedProtocol || !addr.match(/^0x[a-fA-F0-9]{40}$/)) return;
+    const addr = (addrOverride ?? importAddress).trim();
+    setImportStatus(null);
+
+    if (!selectedProtocol) return;
+
+    if (!addr.match(/^0x[a-fA-F0-9]{40}$/)) {
+      setImportStatus({ type: 'error', message: '请输入有效的 0x 钱包地址（42 位字符）。' });
+      return;
+    }
+    if (!canImport) {
+      setImportStatus({
+        type: 'error',
+        message: `${selectedProtocol.name} 暂不支持链上导入，请手动填写仓位。`,
+      });
+      return;
+    }
 
     const position = await importPosition(addr, selectedProtocol.id);
-    if (!position) return;
+    if (!position) {
+      // Hook sets `importError` on failure (chain / server error).
+      return;
+    }
+
+    const hasCollateral = position.collaterals.length > 0;
+    const hasBorrow = position.borrows.length > 0;
 
     onCollateralRowsChange(
-      position.collaterals.length > 0
+      hasCollateral
         ? position.collaterals.map((c) => ({
             id: `asset-${++assetRowSeq}`,
             symbol: c.symbol,
@@ -84,7 +116,7 @@ export function PositionForm({
     );
 
     onBorrowRowsChange(
-      position.borrows.length > 0
+      hasBorrow
         ? position.borrows.map((b) => ({
             id: `asset-${++assetRowSeq}`,
             symbol: b.symbol,
@@ -92,6 +124,32 @@ export function PositionForm({
           }))
         : [{ id: `asset-${++assetRowSeq}`, symbol: '', amount: '' }]
     );
+
+    if (hasCollateral && hasBorrow) {
+      // Both sides present → close the loop: run the stress test immediately.
+      onSubmit({
+        collaterals: position.collaterals.map((c) => ({ symbol: c.symbol, amount: c.amount })),
+        borrows: position.borrows.map((b) => ({ symbol: b.symbol, amount: b.amount })),
+      });
+      setImportStatus({
+        type: 'success',
+        message: `已导入 ${position.collaterals.length} 项抵押 / ${position.borrows.length} 项借贷，正在计算临界偏离…`,
+      });
+    } else if (hasCollateral || hasBorrow) {
+      // One side only — cannot calculate without both; nudge the user.
+      setImportStatus({
+        type: 'warn',
+        message: hasCollateral
+          ? `检测到 ${position.collaterals.length} 项抵押，但未检测到借贷。请补充借出资产后再计算。`
+          : `检测到 ${position.borrows.length} 项借贷，但未检测到抵押。请补充抵押资产后再计算。`,
+      });
+    } else {
+      // Address imported fine but holds no position on this protocol.
+      setImportStatus({
+        type: 'warn',
+        message: `在 ${selectedProtocol.name} 上未检测到该地址的任何持仓。可换一个协议重试，或手动填写。`,
+      });
+    }
   };
 
   const handleSelectWallet = async (rdns: string) => {
@@ -211,7 +269,7 @@ export function PositionForm({
             <h3 className="text-sm font-semibold text-slate-900">Fill Position</h3>
           </div>
 
-          {canImport && (
+          {canImport ? (
             <div className="mb-4 p-3 rounded-xl bg-slate-50/70 border border-slate-100 space-y-2">
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Import On-Chain Position
@@ -246,7 +304,10 @@ export function PositionForm({
                 <input
                   type="text"
                   value={importAddress}
-                  onChange={(e) => setImportAddress(e.target.value)}
+                  onChange={(e) => {
+                    setImportAddress(e.target.value);
+                    setImportStatus(null);
+                  }}
                   placeholder="0x..."
                   disabled={isLoading || isImporting}
                   className={cn(
@@ -266,7 +327,21 @@ export function PositionForm({
                   <span className="hidden sm:inline ml-1">Import</span>
                 </Button>
               </div>
-              {importError && <p className="text-xs text-red-600">{importError}</p>}
+              {importStatus && (
+                <p
+                  className={cn(
+                    'text-xs',
+                    importStatus.type === 'success' && 'text-emerald-600',
+                    importStatus.type === 'warn' && 'text-amber-700',
+                    importStatus.type === 'error' && 'text-red-600'
+                  )}
+                >
+                  {importStatus.message}
+                </p>
+              )}
+              {!importStatus && importError && (
+                <p className="text-xs text-red-600">{importError}</p>
+              )}
 
               {importedPosition && importedPosition.skippedAssets.length > 0 && (
                 <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded p-2">
@@ -283,6 +358,12 @@ export function PositionForm({
                   </ul>
                 </div>
               )}
+            </div>
+          ) : (
+            <div className="mb-4 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+              <p className="text-xs text-slate-500">
+                该协议暂不支持链上导入，请手动填写抵押与借出资产。
+              </p>
             </div>
           )}
 

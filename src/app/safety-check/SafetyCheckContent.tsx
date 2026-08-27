@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 
@@ -83,10 +83,18 @@ export default function SafetyCheckContent() {
     { id: 'borrow-init', symbol: '', amount: '' },
   ]);
 
-  const { result, isLoading, error, calculate, clear } = useProtocolHealth();
+  const { result, isLoading, error, refreshError, calculate, clear } = useProtocolHealth();
   const [lastPosition, setLastPosition] = useState<PositionInput | null>(null);
   const [calculationKey, setCalculationKey] = useState(0);
   const searchParams = useSearchParams();
+
+  // ── Live refresh (price / health-factor drift) ──
+  // Imported positions are real on-chain positions; their market-derived metrics
+  // (prices, HF, critical deviation) drift continuously. We keep them fresh by
+  // re-running the calculation with the same position on a timer and on demand.
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
+  const [prevSnapshot, setPrevSnapshot] = useState<{ hf: number; critical: number } | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     async function fetchProtocols() {
@@ -120,9 +128,47 @@ export default function SafetyCheckContent() {
     async (position: PositionInput) => {
       setCalculationKey((k) => k + 1);
       await calculate(position);
+      // Mark a fresh baseline so the live-refresh "updated Xs ago" timer resets
+      // and no stale drift comparison is shown after a manual (re)calculation.
+      setLastRefreshedAt(Date.now());
+      setPrevSnapshot(null);
     },
-    [calculate]
+    [calculate, setLastRefreshedAt, setPrevSnapshot]
   );
+
+  // Background refresh: recompute with the same position to pick up current prices
+  // and health factor. Never blanks the dashboard on a transient error.
+  const handleRefresh = useCallback(async () => {
+    if (!lastPosition || isRefreshing) return;
+    if (result) {
+      setPrevSnapshot({
+        hf: result.currentHealthFactor,
+        critical: Math.abs(result.worstDeviation.criticalDeviationPercent),
+      });
+    }
+    setIsRefreshing(true);
+    try {
+      await calculate(lastPosition, { keepResultOnError: true });
+      setLastRefreshedAt(Date.now());
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [lastPosition, isRefreshing, result, calculate]);
+
+  // Auto-refresh every 45s while a result is on screen (paused when tab hidden).
+  const handleRefreshRef = useRef(handleRefresh);
+  useEffect(() => {
+    handleRefreshRef.current = handleRefresh;
+  }, [handleRefresh]);
+
+  useEffect(() => {
+    if (step !== 3 || !lastPosition) return;
+    const AUTO_REFRESH_MS = 45 * 1000;
+    const id = setInterval(() => {
+      if (!document.hidden) handleRefreshRef.current();
+    }, AUTO_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [step, lastPosition]);
 
   // Auto-fill defaults and calculate on mount, optionally from URL params
   useEffect(() => {
@@ -341,7 +387,16 @@ export default function SafetyCheckContent() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.4 }}
                 >
-                  <ResultDashboard result={result} position={lastPosition!} onReset={handleReset} />
+                  <ResultDashboard
+                    result={result}
+                    position={lastPosition!}
+                    onReset={handleReset}
+                    onRefresh={handleRefresh}
+                    isRefreshing={isRefreshing}
+                    lastRefreshedAt={lastRefreshedAt}
+                    prevSnapshot={prevSnapshot}
+                    refreshError={refreshError}
+                  />
                 </motion.div>
               ) : (
                 <motion.div

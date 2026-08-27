@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -45,6 +45,16 @@ interface ResultDashboardProps {
   result: PositionCriticalResult;
   position: PositionInput;
   onReset: () => void;
+  /** Manual refresh of prices / health factor. */
+  onRefresh: () => void;
+  /** True while a background or manual refresh is in flight. */
+  isRefreshing: boolean;
+  /** Timestamp (ms) of the last successful calculation/refresh. */
+  lastRefreshedAt: number | null;
+  /** Metric snapshot captured before the most recent refresh, for drift display. */
+  prevSnapshot: { hf: number; critical: number } | null;
+  /** Last background-refresh error (result is kept on screen). */
+  refreshError: string | null;
 }
 
 const SAFETY_CONFIGS: Record<
@@ -67,7 +77,16 @@ const SAFETY_CONFIGS: Record<
   dangerous: { icon: ShieldX, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
 };
 
-export function ResultDashboard({ result, position, onReset }: ResultDashboardProps) {
+export function ResultDashboard({
+  result,
+  position,
+  onReset,
+  onRefresh,
+  isRefreshing,
+  lastRefreshedAt,
+  prevSnapshot,
+  refreshError,
+}: ResultDashboardProps) {
   const status = useMemo(() => {
     const hf = result.currentHealthFactor;
     if (hf < 1) return { label: 'Already Liquidated', color: 'text-slate-500', bg: 'bg-slate-50' };
@@ -92,6 +111,65 @@ export function ResultDashboard({ result, position, onReset }: ResultDashboardPr
       transition={{ duration: 0.5 }}
       className="space-y-5"
     >
+      {/* ── Live refresh bar (price / health-factor drift) ── */}
+      <div className="flex items-center justify-between bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-3">
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <span
+            className="relative flex h-2 w-2"
+            title="Prices & health factor refresh automatically. Position amounts reflect your last import."
+          >
+            {isRefreshing && (
+              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75" />
+            )}
+            <span
+              className={cn(
+                'relative inline-flex h-2 w-2 rounded-full',
+                isRefreshing ? 'bg-emerald-400' : 'bg-emerald-500'
+              )}
+            />
+          </span>
+          <span className="font-medium text-slate-600">Live prices</span>
+          <span className="text-slate-300">·</span>
+          <UpdatedAgo since={lastRefreshedAt} />
+          {refreshError && (
+            <span className="text-red-600 ml-1" title={refreshError}>
+              refresh failed
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {prevSnapshot && (
+            <span className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-slate-400">
+              <span>
+                HF {prevSnapshot.hf.toFixed(2)}→{result.currentHealthFactor.toFixed(2)}
+                <DriftArrow delta={result.currentHealthFactor - prevSnapshot.hf} />
+              </span>
+              <span className="text-slate-300">|</span>
+              <span>
+                Crit {prevSnapshot.critical.toFixed(2)}%→
+                {Math.abs(result.worstDeviation.criticalDeviationPercent).toFixed(2)}%
+                <DriftArrow
+                  delta={
+                    Math.abs(result.worstDeviation.criticalDeviationPercent) - prevSnapshot.critical
+                  }
+                />
+              </span>
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            title="Refresh prices & health factor"
+            className="flex items-center gap-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw className={cn('w-3.5 h-3.5', isRefreshing && 'animate-spin')} />
+            Refresh
+          </button>
+        </div>
+      </div>
+
       {/* ── Section 1: Core Conclusion ── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Critical Deviation */}
@@ -832,4 +910,34 @@ function formatCompactNumber(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(2)}K`;
   return value.toFixed(2);
+}
+
+function UpdatedAgo({ since }: { since: number | null }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  // Lightweight 5s ticker so only this tiny label re-renders, not the whole dashboard.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!since) return <span>Not yet calculated</span>;
+  const secs = Math.max(0, Math.round((now - since) / 1000));
+  if (secs < 60) return <span>Updated {secs}s ago</span>;
+  const mins = Math.floor(secs / 60);
+  return (
+    <span>
+      Updated {mins}m {secs % 60}s ago
+    </span>
+  );
+}
+
+function DriftArrow({ delta }: { delta: number }) {
+  if (Math.abs(delta) < 0.005) return <span className="text-slate-400">→</span>;
+  const up = delta > 0;
+  return (
+    <span className={up ? 'text-emerald-600' : 'text-red-600'}>
+      {up ? ' ▲' : ' ▼'} {Math.abs(delta).toFixed(2)}
+    </span>
+  );
 }
