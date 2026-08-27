@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type RefObject } from 'react';
 
 import { motion } from 'framer-motion';
-import { Wallet, ArrowDown, Zap, Plus, X, Download } from 'lucide-react';
+import { Wallet, ArrowDown, Zap, Plus, X, Download, MousePointerClick } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { chainNames } from '@/lib/constants';
@@ -13,11 +13,9 @@ import { cn } from '@/lib/utils';
 import type { Blockchain } from '@/types/oracle';
 
 import { usePositionImporter } from '../hooks/usePositionImporter';
-import { useWalletConnect } from '../hooks/useWalletConnect';
 
 import { AssetSelector } from './AssetSelector';
 import { ProtocolSearch } from './ProtocolSearch';
-import { WalletPicker } from './WalletPicker';
 
 interface AssetRow {
   id: string;
@@ -38,6 +36,10 @@ interface PositionFormProps {
   borrowRows: AssetRow[];
   onCollateralRowsChange: (rows: AssetRow[]) => void;
   onBorrowRowsChange: (rows: AssetRow[]) => void;
+  /** Connected / pasted address from the WalletGate (primary entry). */
+  address: string | null;
+  /** Scrolls the manual panel into view (used by the no-lending CTA). */
+  manualEntryRef?: RefObject<HTMLDivElement | null>;
 }
 
 export function PositionForm({
@@ -51,13 +53,13 @@ export function PositionForm({
   borrowRows,
   onCollateralRowsChange,
   onBorrowRowsChange,
+  address,
+  manualEntryRef,
 }: PositionFormProps) {
   const assets = useMemo(() => selectedProtocol?.assets ?? [], [selectedProtocol]);
 
   const [importAddress, setImportAddress] = useState('');
-  const [pickerOpen, setPickerOpen] = useState(false);
   const { isImporting, importError, importedPosition, importPosition } = usePositionImporter();
-  const wallet = useWalletConnect();
 
   // Curated, user-facing status for the import flow (success / warn / error).
   // Keeps the wallet-import → calculate journey closed-loop with clear feedback.
@@ -73,13 +75,18 @@ export function PositionForm({
     selectedProtocol?.contracts?.morpho
   );
 
+  // Prefill the import box with the connected address from the WalletGate.
+  useEffect(() => {
+    if (address) setImportAddress(address);
+  }, [address]);
+
   // Clear any import status when the user switches protocol.
   useEffect(() => {
     setImportStatus(null);
   }, [selectedProtocol?.id]);
 
-  const handleImport = async (addrOverride?: string) => {
-    const addr = (addrOverride ?? importAddress).trim();
+  const handleImport = async () => {
+    const addr = (importAddress || address || '').trim();
     setImportStatus(null);
 
     if (!selectedProtocol) return;
@@ -152,22 +159,6 @@ export function PositionForm({
     }
   };
 
-  const handleSelectWallet = async (rdns: string) => {
-    const addr = await wallet.connect(rdns);
-    if (addr) {
-      handleImport(addr);
-      setPickerOpen(false);
-    }
-  };
-
-  const handleWalletConnect = async () => {
-    const addr = await wallet.connectWalletConnect();
-    if (addr) {
-      handleImport(addr);
-      setPickerOpen(false);
-    }
-  };
-
   const addCollateralRow = () => {
     onCollateralRowsChange([
       ...collateralRows,
@@ -222,17 +213,20 @@ export function PositionForm({
   const usedBorrowSymbols = borrowRows.map((r) => r.symbol).filter(Boolean);
 
   return (
-    <div className="space-y-4">
-      {/* Protocol Card */}
+    <div className="space-y-4" ref={manualEntryRef}>
+      {/* Protocol Card (secondary / manual path) */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
       >
-        <div className="flex items-center gap-2 mb-3">
-          <Wallet className="w-4 h-4 text-blue-600" />
-          <h3 className="text-sm font-semibold text-slate-900">Select Protocol</h3>
+        <div className="flex items-center gap-2 mb-1">
+          <MousePointerClick className="w-4 h-4 text-slate-400" />
+          <h3 className="text-sm font-semibold text-slate-900">手动选择协议（可选）</h3>
         </div>
+        <p className="text-xs text-slate-400 mb-3">
+          钱包自动扫描为主；此处用于指定某一协议，或用一个不同的地址导入。
+        </p>
         <ProtocolSearch
           protocols={protocols}
           selectedProtocol={selectedProtocol}
@@ -274,32 +268,14 @@ export function PositionForm({
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Import On-Chain Position
               </label>
-              {!wallet.address ? (
-                <Button
-                  onClick={() => setPickerOpen(true)}
-                  isLoading={wallet.isConnecting}
-                  disabled={isLoading || isImporting || wallet.isConnecting}
-                  size="md"
-                  className="w-full"
-                >
-                  <Wallet className="w-4 h-4" />
-                  <span className="ml-1">Connect Wallet</span>
-                </Button>
-              ) : (
-                <div className="flex items-center justify-between rounded-lg bg-primary-50 border border-primary-100 px-3 py-2">
+              {address && (
+                <div className="flex items-center gap-2 rounded-lg bg-primary-50 border border-primary-100 px-3 py-2">
+                  <Wallet className="w-3.5 h-3.5 text-primary-600" />
                   <span className="text-xs text-slate-600 font-mono">
-                    {wallet.address.slice(0, 6)}…{wallet.address.slice(-4)}
+                    使用连接地址 {address.slice(0, 6)}…{address.slice(-4)}
                   </span>
-                  <button
-                    type="button"
-                    onClick={wallet.disconnect}
-                    className="text-xs text-slate-400 hover:text-red-500 transition-colors"
-                  >
-                    Disconnect
-                  </button>
                 </div>
               )}
-              {wallet.error && <p className="text-xs text-red-600">{wallet.error}</p>}
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -308,7 +284,7 @@ export function PositionForm({
                     setImportAddress(e.target.value);
                     setImportStatus(null);
                   }}
-                  placeholder="0x..."
+                  placeholder="0x...（或连接钱包后自动填入）"
                   disabled={isLoading || isImporting}
                   className={cn(
                     'flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all font-mono',
@@ -318,7 +294,7 @@ export function PositionForm({
                   )}
                 />
                 <Button
-                  onClick={() => handleImport()}
+                  onClick={handleImport}
                   isLoading={isImporting}
                   disabled={isLoading || isImporting || !importAddress.match(/^0x[a-fA-F0-9]{40}$/)}
                   size="md"
@@ -366,21 +342,6 @@ export function PositionForm({
               </p>
             </div>
           )}
-
-          <WalletPicker
-            open={pickerOpen}
-            wallets={wallet.wallets}
-            isConnecting={wallet.isConnecting}
-            connectingRdns={wallet.connectingRdns}
-            onSelect={handleSelectWallet}
-            onClose={() => setPickerOpen(false)}
-            walletConnectEnabled={wallet.walletConnectEnabled}
-            walletConnectUri={wallet.walletConnectUri}
-            walletConnectError={wallet.walletConnectError}
-            isWalletConnecting={wallet.isWalletConnecting}
-            onWalletConnect={handleWalletConnect}
-            onWalletConnectCancel={wallet.cancelWalletConnect}
-          />
 
           <div className="space-y-4">
             {/* Collateral Section */}

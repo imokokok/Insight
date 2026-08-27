@@ -1,20 +1,28 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Calculator } from 'lucide-react';
+import { Shield, Calculator, Loader2 } from 'lucide-react';
 
+import { isImportableProtocol } from '@/lib/protocols/detection';
+import type { ProtocolDetection } from '@/lib/protocols/detection';
 import type { EnrichedProtocolConfig } from '@/lib/protocols/dynamicData';
 import type { AssetEntry, PositionInput } from '@/lib/protocols/protocolHealth';
 import type { ProtocolConfig } from '@/lib/protocols/protocolRegistry';
+import { PROTOCOL_REGISTRY } from '@/lib/protocols/protocolRegistry';
 
+import { NoLendingEmptyState } from './components/NoLendingEmptyState';
+import { PortfolioDashboard } from './components/PortfolioDashboard';
 import { PositionForm } from './components/PositionForm';
 import { ResultDashboard } from './components/ResultDashboard';
 import { StepIndicator } from './components/StepIndicator';
+import { WalletGate } from './components/WalletGate';
+import { usePortfolioDetect } from './hooks/usePortfolioDetect';
 import { useProtocolHealth } from './hooks/useProtocolHealth';
+import { useWalletConnect } from './hooks/useWalletConnect';
 
 // 协议列表客户端缓存，避免组件 mount 时重复请求
 let protocolsCache: { data: EnrichedProtocolConfig[]; timestamp: number } | null = null;
@@ -69,6 +77,26 @@ function getProtocolDefaults(protocol: ProtocolConfig): {
   };
 }
 
+/** True when a detection's imported position has both collateral and borrow sides. */
+function isCompletePosition(d: ProtocolDetection): boolean {
+  return (
+    d.hasPosition &&
+    !!d.position &&
+    d.position.collaterals.length > 0 &&
+    d.position.borrows.length > 0
+  );
+}
+
+/** Convert an imported position into the stress-test input shape. */
+function detectionToPosition(d: ProtocolDetection): PositionInput {
+  const pos = d.position!;
+  return {
+    protocolId: d.protocolId,
+    collaterals: pos.collaterals.map((c) => ({ symbol: c.symbol, amount: c.amount })),
+    borrows: pos.borrows.map((b) => ({ symbol: b.symbol, amount: b.amount })),
+  };
+}
+
 export default function SafetyCheckContent() {
   const [step, setStep] = useState(1);
   const [selectedProtocol, setSelectedProtocol] = useState<EnrichedProtocolConfig | null>(null);
@@ -83,22 +111,26 @@ export default function SafetyCheckContent() {
     { id: 'borrow-init', symbol: '', amount: '' },
   ]);
 
+  // 钱包优先入口
+  const wallet = useWalletConnect();
+  const [address, setAddress] = useState<string | null>(null);
+  const manualEntryRef = useRef<HTMLDivElement>(null);
+
+  // 跨协议自动探测
+  const { detecting, detections, detectError, detect, reset: resetDetect } = usePortfolioDetect();
+
   const { result, isLoading, error, refreshError, calculate, clear } = useProtocolHealth();
   const [lastPosition, setLastPosition] = useState<PositionInput | null>(null);
   const [calculationKey, setCalculationKey] = useState(0);
   const searchParams = useSearchParams();
 
   // ── Live refresh (price / health-factor drift) ──
-  // Imported positions are real on-chain positions; their market-derived metrics
-  // (prices, HF, critical deviation) drift continuously. We keep them fresh by
-  // re-running the calculation with the same position on a timer and on demand.
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
   const [prevSnapshot, setPrevSnapshot] = useState<{ hf: number; critical: number } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     async function fetchProtocols() {
-      // 使用客户端缓存
       if (protocolsCache && Date.now() - protocolsCache.timestamp < PROTOCOLS_CACHE_TTL) {
         setProtocols(protocolsCache.data);
         return;
@@ -128,8 +160,6 @@ export default function SafetyCheckContent() {
     async (position: PositionInput) => {
       setCalculationKey((k) => k + 1);
       await calculate(position);
-      // Mark a fresh baseline so the live-refresh "updated Xs ago" timer resets
-      // and no stale drift comparison is shown after a manual (re)calculation.
       setLastRefreshedAt(Date.now());
       setPrevSnapshot(null);
     },
@@ -170,13 +200,16 @@ export default function SafetyCheckContent() {
     return () => clearInterval(id);
   }, [step, lastPosition]);
 
-  // Auto-fill defaults and calculate on mount, optionally from URL params
+  // Deep-link params (shared report URLs) still auto-calculate a sample; the
+  // wallet-first flow otherwise waits for the user to connect / paste an address.
   useEffect(() => {
     if (protocols.length === 0) return;
 
     const protocolId = searchParams.get('protocol');
     const collateralSymbol = searchParams.get('collateral');
     const borrowSymbol = searchParams.get('borrow');
+
+    if (!protocolId && !collateralSymbol && !borrowSymbol) return;
 
     const protocol = protocols.find((p) => p.id === protocolId) ?? protocols[0];
     if (!protocol) return;
@@ -187,12 +220,6 @@ export default function SafetyCheckContent() {
       position,
     } = getProtocolDefaults(protocol);
 
-    // Override collateral with URL param if the asset is supported by the protocol.
-    // Use a category-aware default amount: the protocol default (e.g. 2.5) is
-    // calibrated for major assets like ETH (~$1792), so reusing it for a
-    // stablecoin collateral would only provide ~$2.5 USD value and trigger an
-    // immediate liquidation. Stablecoins need a much larger amount (~$4000) to
-    // match the default collateral USD value.
     const collateralAsset = protocol.assets.find((a) => a.symbol === collateralSymbol);
     const collateralAmount =
       collateralAsset?.category === 'stablecoin' ? '4000' : (defaults[0]?.amount ?? '1.5');
@@ -201,7 +228,6 @@ export default function SafetyCheckContent() {
         ? [{ id: 'collateral-url', symbol: collateralSymbol, amount: collateralAmount }]
         : defaults;
 
-    // Override borrow with URL param if the asset is supported by the protocol
     const borrowRows =
       borrowSymbol && protocol.assets.some((a) => a.symbol === borrowSymbol)
         ? [
@@ -218,7 +244,6 @@ export default function SafetyCheckContent() {
     setBorrowRows(borrowRows);
     setStep(2);
 
-    // Auto-calculate with default data
     if (position) {
       const urlPosition: PositionInput = {
         protocolId: protocol.id,
@@ -235,8 +260,45 @@ export default function SafetyCheckContent() {
     }
   }, [startCalculation, searchParams, protocols]);
 
+  // 钱包地址变化 → 自动扫描所有协议
+  const handleAddressChange = useCallback(
+    async (addr: string) => {
+      setAddress(addr);
+      clear();
+      setStep(1);
+      setLastPosition(null);
+      await detect(addr);
+    },
+    [clear, detect]
+  );
+
+  const handleDisconnect = useCallback(() => {
+    setAddress(null);
+    resetDetect();
+    clear();
+    setStep(1);
+    setSelectedProtocol(null);
+    setCollateralRows([{ id: 'collateral-init', symbol: '', amount: '' }]);
+    setBorrowRows([{ id: 'borrow-init', symbol: '', amount: '' }]);
+    setLastPosition(null);
+    wallet.disconnect();
+  }, [resetDetect, clear, wallet]);
+
+  // 自动扫描结果：若恰好一个完整仓位 → 自动计算；否则交由组合视图渲染
+  useEffect(() => {
+    if (!detections) return;
+    const complete = detections.filter(isCompletePosition);
+    const withPositions = detections.filter((d) => d.hasPosition);
+    if (complete.length === 1 && withPositions.length === 1) {
+      const position = detectionToPosition(complete[0]);
+      setLastPosition(position);
+      void startCalculation(position).then(() => setStep(3));
+    }
+  }, [detections, startCalculation]);
+
   const handleSelectProtocol = useCallback(
     (protocol: EnrichedProtocolConfig) => {
+      resetDetect(); // 手动路径：清除自动探测视图
       setSelectedProtocol(protocol);
       const { collateralRows, borrowRows, position } = getProtocolDefaults(protocol);
       setCollateralRows(collateralRows);
@@ -244,14 +306,13 @@ export default function SafetyCheckContent() {
       setStep(2);
       clear();
 
-      // Auto-calculate with default data for the new protocol
       if (position) {
         setLastPosition(position);
         startCalculation(position);
         setStep(3);
       }
     },
-    [startCalculation, clear]
+    [resetDetect, startCalculation, clear]
   );
 
   const handleSubmit = useCallback(
@@ -262,21 +323,49 @@ export default function SafetyCheckContent() {
         collaterals: data.collaterals,
         borrows: data.borrows,
       };
+      resetDetect(); // 手动路径：清除自动探测视图，确保展示手动结果
       setLastPosition(position);
       await startCalculation(position);
       setStep(3);
     },
-    [selectedProtocol, startCalculation]
+    [selectedProtocol, startCalculation, resetDetect]
   );
 
   const handleReset = useCallback(() => {
-    setStep(1);
-    setSelectedProtocol(null);
-    setCollateralRows([{ id: 'collateral-init', symbol: '', amount: '' }]);
-    setBorrowRows([{ id: 'borrow-init', symbol: '', amount: '' }]);
-    setLastPosition(null);
-    clear();
-  }, [clear]);
+    handleDisconnect();
+  }, [handleDisconnect]);
+
+  const handleManualEntry = useCallback(() => {
+    manualEntryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!selectedProtocol && protocols.length > 0) {
+      handleSelectProtocol(protocols[0]);
+    }
+  }, [manualEntryRef, selectedProtocol, protocols, handleSelectProtocol]);
+
+  // 派生视图状态
+  const supportedProtocols = useMemo(
+    () =>
+      PROTOCOL_REGISTRY.filter(isImportableProtocol).map((p) => ({ name: p.name, chain: p.chain })),
+    []
+  );
+  const supportedCount = supportedProtocols.length;
+  const positionsFound = detections ? detections.filter((d) => d.hasPosition).length : null;
+
+  const completeCount = detections ? detections.filter(isCompletePosition).length : 0;
+  const withPositionsCount = detections ? detections.filter((d) => d.hasPosition).length : 0;
+
+  const view: 'result' | 'single-pending' | 'detecting' | 'portfolio' | 'empty' | 'idle' =
+    result && step === 3
+      ? 'result'
+      : detections && completeCount === 1 && withPositionsCount === 1
+        ? 'single-pending'
+        : detecting
+          ? 'detecting'
+          : detections
+            ? withPositionsCount >= 1
+              ? 'portfolio'
+              : 'empty'
+            : 'idle';
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -291,8 +380,7 @@ export default function SafetyCheckContent() {
               Position Critical Deviation
             </h1>
             <p className="text-base text-slate-500 mt-2 max-w-2xl">
-              Enter your DeFi position to calculate the oracle price deviation that would trigger
-              liquidation. Stress-test collaterals, borrows, and joint deviation scenarios.
+              连接钱包，自动扫描你在各大借贷协议上的持仓并实时计算清算临界偏离；也可手动选择协议录入。
             </p>
           </div>
         </div>
@@ -302,6 +390,17 @@ export default function SafetyCheckContent() {
           {/* Left sidebar */}
           <aside className="xl:w-[400px] xl:flex-shrink-0">
             <div className="xl:sticky xl:top-4 space-y-4">
+              <WalletGate
+                address={address}
+                onAddress={handleAddressChange}
+                wallet={wallet}
+                detecting={detecting}
+                detectError={detectError}
+                positionsFound={positionsFound}
+                supportedCount={supportedCount}
+                onDisconnect={handleDisconnect}
+              />
+
               <StepIndicator
                 key={calculationKey}
                 isCalculating={isLoading}
@@ -326,6 +425,8 @@ export default function SafetyCheckContent() {
                 borrowRows={borrowRows}
                 onCollateralRowsChange={setCollateralRows}
                 onBorrowRowsChange={setBorrowRows}
+                address={address}
+                manualEntryRef={manualEntryRef}
               />
 
               {/* Example hint */}
@@ -341,8 +442,8 @@ export default function SafetyCheckContent() {
                     <h4 className="text-sm font-semibold text-slate-900">Example</h4>
                   </div>
                   <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                    Suppose you deposited <strong>1 ETH</strong> as collateral on{' '}
-                    <strong>Aave V3 (Ethereum)</strong> and borrowed <strong>1000 USDC</strong>:
+                    假设你在 <strong>Aave V3 (Ethereum)</strong> 抵押 <strong>1 ETH</strong> 并借出{' '}
+                    <strong>1000 USDC</strong>：
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="bg-slate-50 rounded-lg p-2.5">
@@ -379,7 +480,7 @@ export default function SafetyCheckContent() {
           {/* Right content */}
           <main className="flex-1 min-w-0">
             <AnimatePresence mode="wait">
-              {step === 3 && result ? (
+              {view === 'result' && result ? (
                 <motion.div
                   key="result"
                   initial={{ opacity: 0, y: 20 }}
@@ -398,9 +499,50 @@ export default function SafetyCheckContent() {
                     refreshError={refreshError}
                   />
                 </motion.div>
+              ) : view === 'portfolio' && detections ? (
+                <motion.div
+                  key="portfolio"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <PortfolioDashboard detections={detections} onReset={handleReset} />
+                </motion.div>
+              ) : view === 'empty' && detections ? (
+                <motion.div
+                  key="empty-lending"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <NoLendingEmptyState
+                    address={address}
+                    supportedProtocols={supportedProtocols}
+                    onManualEntry={handleManualEntry}
+                    onRescan={() => address && detect(address)}
+                  />
+                </motion.div>
+              ) : view === 'detecting' || view === 'single-pending' ? (
+                <motion.div
+                  key="scanning"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="bg-white rounded-2xl border border-slate-100 shadow-sm py-20 flex flex-col items-center justify-center text-center"
+                >
+                  <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+                  <h3 className="text-base font-semibold text-slate-900 mb-1">
+                    {view === 'detecting' ? '正在扫描借贷协议…' : '正在计算临界偏离…'}
+                  </h3>
+                  <p className="text-sm text-slate-500 max-w-sm">
+                    跨 {supportedCount} 个已支持协议并行读取链上仓位，请稍候。
+                  </p>
+                </motion.div>
               ) : (
                 <motion.div
-                  key="empty"
+                  key="idle"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -409,12 +551,9 @@ export default function SafetyCheckContent() {
                   <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
                     <Shield className="w-7 h-7 text-blue-500" />
                   </div>
-                  <h3 className="text-base font-semibold text-slate-900 mb-1">
-                    Start Calculating Your Critical Deviation
-                  </h3>
+                  <h3 className="text-base font-semibold text-slate-900 mb-1">连接钱包开始分析</h3>
                   <p className="text-sm text-slate-500 max-w-sm">
-                    Select a protocol and fill in your position parameters on the left, the system
-                    will automatically calculate your personal liquidation critical value
+                    连接钱包或粘贴地址即可自动扫描你的借贷持仓；也可以在左侧手动选择协议录入。
                   </p>
                 </motion.div>
               )}
