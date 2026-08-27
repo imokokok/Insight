@@ -16,78 +16,24 @@ import { schnorr } from '@noble/curves/secp256k1';
 import { sha256 } from '@noble/hashes/sha256';
 import { bytesToHex, hexToBytes, concatBytes } from '@noble/hashes/utils';
 import { hashTypedData, recoverAddress } from 'viem';
+import {
+  AUX_RAND,
+  VRT1_ACTION_TAG,
+  buildCanonicalPayload,
+  buildOpReturn,
+  canonicalBytes,
+  actionId,
+  dblSha256,
+  merkleRoot,
+  taggedHash,
+} from './vrt1-encoding.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const canonicalize = (
-  await import('file:///Users/imokokok/.workbuddy/insight_aps_demo/node_modules/canonicalize/lib/canonicalize.js')
-).default;
-
-const VRT1_ACTION_TAG = 'VRT1/agent-action';
-// Fixed aux_rand for deterministic (reproducible) Schnorr signatures.
-const AUX_RAND = sha256(new TextEncoder().encode('insight-vrt1-prototype-aux-2026-08-26'));
 
 // ---------------------------------------------------------------------------
-// Primitives (from spec §4, §5, §8)
+// Primitives used in the self-test section live in vrt1-encoding.mjs
+// (single source of truth for canonical encoding rules, revised §5.2).
 // ---------------------------------------------------------------------------
-
-// tagged_hash(tag, msg) = SHA256(SHA256(tag) || SHA256(tag) || msg)
-function taggedHash(tag, msg) {
-  const t = sha256(new TextEncoder().encode(tag));
-  return sha256(concatBytes(t, t, msg));
-}
-
-// Merkle: RFC-6962 prefixes + Bitcoin-style odd-leaf duplication, d = double SHA-256
-function dblSha256(b) {
-  return sha256(sha256(b));
-}
-
-function merkleRoot(leaves /* array of Uint8Array 32B */) {
-  let level = leaves.map((leaf) => dblSha256(concatBytes(new Uint8Array([0x00]), leaf)));
-  while (level.length > 1) {
-    if (level.length % 2 === 1) level.push(level[level.length - 1]); // odd-leaf duplication
-    const next = [];
-    for (let i = 0; i < level.length; i += 2) {
-      next.push(dblSha256(concatBytes(new Uint8Array([0x01]), level[i], level[i + 1])));
-    }
-    level = next;
-  }
-  return level[0];
-}
-
-// OP_RETURN payload: tag(4) | version(1) | epoch(8 BE) | leaf_count(4 BE) | root(32)
-function buildOpReturn(epoch, leafCount, rootHex) {
-  const root = hexToBytes(rootHex);
-  const buf = new Uint8Array(49);
-  buf.set(new TextEncoder().encode('VRT1'), 0);
-  buf[4] = 0x01; // version
-  const dv = new DataView(buf.buffer);
-  dv.setBigUint64(5, BigInt(epoch), false);
-  dv.setUint32(13, leafCount, false);
-  buf.set(root, 17);
-  return buf;
-}
-
-// Build a VRT1 agent action payload object (per §8.1) and its canonical bytes
-function buildActionPayload(overrides) {
-  return {
-    action_type: 'insight.oracle-safety-check',
-    agent: overrides.agent,
-    outcome: overrides.outcome,
-    params: overrides.params,
-    target: overrides.target,
-    ts: overrides.ts,
-    v: 1,
-  };
-}
-
-function canonicalBytes(payload) {
-  return new TextEncoder().encode(canonicalize(payload));
-}
-
-// action_id := hex(tagged_hash("VRT1/agent-action", canonical_json(payload)))
-function actionId(payload) {
-  return bytesToHex(taggedHash(VRT1_ACTION_TAG, canonicalBytes(payload)));
-}
 
 // ---------------------------------------------------------------------------
 // 0. Toolchain self-test against public vectors (byte-exact)
@@ -150,7 +96,9 @@ const merkleVec = JSON.parse(readFileSync(join(__dirname, 'vectors', 'merkle.jso
 // ---------------------------------------------------------------------------
 console.log('=== 1. Production receipt -> VRT1 agent_action ===');
 
-const receipt = JSON.parse(readFileSync(join(__dirname, 'sample-receipt.json'), 'utf8'));
+const receipt = JSON.parse(
+  readFileSync(process.argv[2] || join(__dirname, 'sample-receipt.json'), 'utf8')
+);
 const att = receipt.attestation;
 const data = att.data;
 
@@ -159,28 +107,9 @@ const data = att.data;
 const agentPriv = sha256(new TextEncoder().encode('insight-vrt1-prototype-agent-key-2026-08-26'));
 const agentPubXOnly = bytesToHex(schnorr.getPublicKey(agentPriv));
 
-// 26-field struct -> params (per mapping draft, snake_case keys)
-const structFields = {};
-for (const f of att.eip712.types.OracleSafetyCheck) {
-  structFields[f.name] = data[f.name];
-}
-
-const actionPayload = buildActionPayload({
-  agent: agentPubXOnly,
-  outcome: { verdict: data.verdict, schema_version: 2 },
-  params: {
-    oracle_safety_check_v2: structFields,
-    eip712_attestation: {
-      uid: att.uid,
-      signature: att.signature,
-      signedAt: att.signedAt,
-      attester: att.attester,
-      verify_url: att.verifyUrl,
-    },
-  },
-  target: `${data.sourceAssetId}->${data.destinationAssetId}`,
-  ts: data.checkedAt,
-});
+// 26-field struct -> params, canonical encoding applied per revised §5.2/§5.1
+// (bytes32 -> strip 0x + lowercase; uint256 -> decimal string; CAIP-19 -> byte-identical).
+const actionPayload = buildCanonicalPayload(receipt, agentPubXOnly);
 
 const canonHex = bytesToHex(canonicalBytes(actionPayload));
 const aid2 = actionId(actionPayload);

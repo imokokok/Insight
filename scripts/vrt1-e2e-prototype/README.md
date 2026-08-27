@@ -10,7 +10,10 @@
 ## 运行
 
 ```bash
-node scripts/vrt1-e2e-prototype/prototype.mjs
+node scripts/vrt1-e2e-prototype/prototype.mjs                 # 默认用 sample-receipt.json
+node scripts/vrt1-e2e-prototype/prototype.mjs <receipt.json>  # 传入重签/其他 receipt
+node scripts/vrt1-e2e-prototype/convergence-check.mjs         # 收敛验收（3 负向量 + 正向量）
+node scripts/vrt1-e2e-prototype/resign-pilot.mjs --private-key <hex> [--out <path>]  # 9/2 重签
 ```
 
 依赖：`@noble/curves`（Schnorr/secp256k1）、`@noble/hashes`（sha256）、`viem`（EIP-712）、
@@ -33,7 +36,20 @@ node scripts/vrt1-e2e-prototype/prototype.mjs
 5. **负向量**：篡改 canonical → action_id 变化被拒；翻转 sig 字节 → Schnorr 拒绝；错误 leaf → 包含性证明拒绝。
 6. **从链验证（live，只读）**：抓取 VERITAS 真实主网锚点 `92b2c4e4…5aafa0`（block 953,581），按 §5.1 解析其 OP_RETURN（tag/version/epoch/leaf_count/root），证明链上真实载荷与本构造器字节格式一致。若网络不可达则 SKIP（离线格式检查由 op_return 向量覆盖）。
 
-产出：`vrt1-action.json`（record + action_id + canonical + 双签名 + Nostr 事件）、`anchor-epoch.json`（epoch/root/OP_RETURN + chain_verify）。
+产出：`vrt1-action.json`（record + action_id + canonical + 双签名 + Nostr 事件）、`anchor-epoch.json`（epoch/root/OP_RETURN + chain_verify）、`convergence-report.json`（收敛验收）。
+
+## Canonical 编码规则（修正版 §5.2/§5.1，对方 2026-08-27 确认；单一事实源 = `vrt1-encoding.mjs`）
+
+- **Class A hex 字节字段**（4 evidence hashes + `uid` + `attester` + EIP-712 `signature`）：
+  **去 `0x` 前缀 + 全小写**。这是规范化一种编码。
+- **CAIP-19 标识符**（`sourceAssetId`/`destinationAssetId`，如 `eip155:1/erc20:0xA0b8…`）：
+  **字节原样、大小写保留**。`0x` 是标识符一部分、EIP-55 混合大小写携带意义，lowercase 是改标识符而非规范化。
+- **uint256 → decimal string**（§5.1，如 `tradeAmountUsd: "10000000000"`）。
+- **aux_rand = 32 个零字节**（对方 8.27 规范：没有它你产出有效但不同的签名，追一个不是差异的差异）。
+
+收敛结果：canonical 1726 → **1744 字节**，action_id `f7bde1f2…` → **`3559e92e…`**。
+`convergence-check.mjs` 本地验收：3 个负向量（0x 前缀 / CAIP-19 被 lowercased / uint256 写成 JSON number）
+全部被拒 + 正向量 action_id 稳定复现。**最终 byte-exact 确认待对方 generator 到货后对拍。**
 
 ## 边界（诚实声明）
 
@@ -44,9 +60,11 @@ node scripts/vrt1-e2e-prototype/prototype.mjs
 - **VRT1 agent key 是确定性演示密钥**（`sha256("insight-vrt1-prototype-agent-key-2026-08-26")`），
   **不是**生产 EIP-712 attester 私钥，也不是正式 VRT1 agent key；正式 key 的派生/注册
   待与对方确认（对应 §5.4 或独立注册流程）。
-- 映射形态（params/outcome 布局、`insight.oracle-safety-check` 自定义 action_type）为草案，
-  公开向量仅有通用 `review` 类型；byte-exact 对拍只对通用向量成立，**我方自定义类型的
-  正式 canonical 向量待对方回发后收敛**。
+- 映射形态已按对方 8.27 确认收敛：`insight.oracle-safety-check`（namespaced）、`target` = 资产对、
+  26 字段连续 `params`（非 10/15 拆分）。**正式 canonical 向量待对方回发后做最终 byte-exact 对拍**
+  （本地验收已先行通过）。
 - epoch 对齐：VRT1 epoch = 600s（§2.2）与 receipt `validUntil = checkedAt + 600s` 巧合对齐，
   原型以 `floor(checkedAt/600)` 取 epoch（本例 2979468）；该语义在 reserved type 注册时一并确认。
-- 签名确定性：固定 aux_rand（`insight-vrt1-prototype-aux-2026-08-26`）保证重跑字节稳定。
+- 签名确定性：固定 aux_rand = 32 零字节（规范），保证重跑字节稳定。
+- **9/2 时限项**：`sample-receipt.json` 用旧 key（validUntil 2026-09-02）签，9/2 后锚定会被
+  verifier 拒；`resign-pilot.mjs` 用当前 key 重签（同 26 字段 + 新时间戳，uid/action_id 随之变化）。
