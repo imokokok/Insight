@@ -89,7 +89,7 @@ export function buildOpReturn(epoch, leafCount, rootHex) {
 // Build a VRT1 agent action payload object (per §8.1)
 export function buildActionPayload(overrides) {
   return {
-    action_type: 'insight.oracle-safety-check',
+    action_type: overrides.action_type || 'insight.oracle-safety-check',
     agent: overrides.agent,
     outcome: overrides.outcome,
     params: overrides.params,

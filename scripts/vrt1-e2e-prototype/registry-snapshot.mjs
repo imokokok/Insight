@@ -29,9 +29,8 @@ import {
   canonicalBytes,
   actionId,
   bytesToHex,
-  schnorr,
+  demoAgentPubXOnly,
 } from './vrt1-encoding.mjs';
-import { sha256 } from '@noble/hashes/sha256';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -63,9 +62,8 @@ const keys = (registry.public_keys || registry.keys || []).map((k) => ({
   revoked: k.revoked ?? false,
 }));
 
-// deterministic prototype agent key (same as prototype.mjs / convergence-check.mjs)
-const agentPriv = sha256(new TextEncoder().encode('insight-vrt1-prototype-agent-key-2026-08-26'));
-const agentPubXOnly = bytesToHex(schnorr.getPublicKey(agentPriv));
+// DEMO agent key per the counterparty vectors (0x55..55, published deliberately)
+const agentPubXOnly = demoAgentPubXOnly();
 
 const ts = Math.floor(Date.now() / 1000);
 const snapshot = {
