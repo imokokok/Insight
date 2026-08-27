@@ -40,8 +40,8 @@ const receipt = loadSampleReceipt();
 const att = receipt.attestation;
 const data = att.data;
 
-// deterministic prototype agent key (same as prototype.mjs)
-const agentPriv = sha256(new TextEncoder().encode('insight-vrt1-prototype-agent-key-2026-08-26'));
+// DEMO agent key per the counterparty vectors (0x55..55, published deliberately)
+const agentPriv = new Uint8Array(32).fill(0x55);
 const agentPubXOnly = bytesToHex(schnorr.getPublicKey(agentPriv));
 
 const pass = (label) => console.log(`  PASS  ${label}`);

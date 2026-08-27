@@ -1,0 +1,28 @@
+{
+  "batch_of_three": {
+    "leaves_hex": [
+      "157a3cb81e437eb5c4e57e3756e9237bca2f936c0dd7e72ab6b3995433eba8ac",
+      "6423e538f15bc5cb393e8cf19d416e6e7ff755f66ab270c4c5194be04ab52d39",
+      "e1bcdb7e2e1156755cc9428d4fe75e452f25a0bfa70e5ed299751bbe683abc5d"
+    ],
+    "proof_for_index_0": {
+      "directions": ["R", "R"],
+      "index": 0,
+      "leaf_hex": "157a3cb81e437eb5c4e57e3756e9237bca2f936c0dd7e72ab6b3995433eba8ac",
+      "siblings_hex": [
+        "0c4bc8a3f630afc7743b6cdc8794eb67293016b9f0a72ac194950f5377df7aa0",
+        "ae7e47d664f84bf45764d582e335c98f5539e856d9360e310ae51f585af765f1"
+      ],
+      "verify_expected": true
+    },
+    "root_hex": "0d69504d7b48e476fa05317cf63a3a8446218260092002668738926a84b7711c",
+    "size": 3
+  },
+  "description": "Single-leaf and 3-leaf batches. leaf = action_id; leaf_hash = sha256d(0x00||leaf); node = sha256d(0x01||L||R); odd levels duplicate the last node.",
+  "single": {
+    "leaves_hex": ["157a3cb81e437eb5c4e57e3756e9237bca2f936c0dd7e72ab6b3995433eba8ac"],
+    "root_hex": "1d4a7a5d49f643317400d8aa1dbbbeb9637bed0bed1d524f9b23722dd89ce9bb",
+    "size": 1
+  },
+  "spec_section": "4"
+}

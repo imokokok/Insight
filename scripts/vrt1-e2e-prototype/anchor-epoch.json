@@ -1,8 +1,8 @@
 {
   "epoch": 2979468,
   "leaf_count": 1,
-  "merkle_root_hex": "9ef8c9cf50704d49b5f3f973198c729503eecc40290f887cf41704f3448746a7",
-  "op_return_payload_hex": "565254310100000000002d768c000000019ef8c9cf50704d49b5f3f973198c729503eecc40290f887cf41704f3448746a7",
+  "merkle_root_hex": "1d4a7a5d49f643317400d8aa1dbbbeb9637bed0bed1d524f9b23722dd89ce9bb",
+  "op_return_payload_hex": "565254310100000000002d768c000000011d4a7a5d49f643317400d8aa1dbbbeb9637bed0bed1d524f9b23722dd89ce9bb",
   "op_return_payload_length_bytes": 49,
   "spec_section": "5",
   "broadcast": "NOT_BROADCAST (free-path prototype; mainnet anchor is VERITAS anchoring service / future production step)",

@@ -22,6 +22,7 @@ import {
   buildCanonicalPayload,
   buildOpReturn,
   canonicalBytes,
+  canonicalize,
   actionId,
   dblSha256,
   merkleRoot,
@@ -102,9 +103,9 @@ const receipt = JSON.parse(
 const att = receipt.attestation;
 const data = att.data;
 
-// VRT1 agent key: deterministic PROTOTYPE key (pending key-registration talk
-// with VERITAS). Not the production EIP-712 attester key.
-const agentPriv = sha256(new TextEncoder().encode('insight-vrt1-prototype-agent-key-2026-08-26'));
+// VRT1 agent key: DEMO key per the counterparty vectors (0x55..55, published so
+// vectors are reproducible). Not the production EIP-712 attester key.
+const agentPriv = new Uint8Array(32).fill(0x55);
 const agentPubXOnly = bytesToHex(schnorr.getPublicKey(agentPriv));
 
 // 26-field struct -> params, canonical encoding applied per revised §5.2/§5.1
@@ -216,13 +217,9 @@ proofOk
 //     AND the inner action signature, AND event.pubkey == action.agent.
 // ---------------------------------------------------------------------------
 console.log('--- section 8.3 Nostr wrapping (kind 1990) ---');
-const nostrContent = Buffer.from(
-  JSON.stringify({ action: actionPayload, sig: bytesToHex(sig) })
-).toString('base64');
-const nostrTags = [
-  ['d', aid2],
-  ['t', actionPayload.action_type],
-];
+// content: plain JSON (not base64), matching the counterparty vector; tags: []
+const nostrContent = canonicalize({ action: actionPayload, sig: bytesToHex(sig) });
+const nostrTags = [];
 const nostrCreatedAt = data.checkedAt;
 const nostrEvent = {
   id: '',
@@ -257,7 +254,7 @@ nostrSigOk
   : fail('Nostr event sig invalid');
 const pubkeyMatchOk = nostrEvent.pubkey === actionPayload.agent;
 pubkeyMatchOk ? pass('event.pubkey == action.agent') : fail('event.pubkey mismatch');
-const contentParsed = JSON.parse(Buffer.from(nostrContent, 'base64').toString('utf8'));
+const contentParsed = JSON.parse(nostrContent); // plain JSON, per counterparty vector
 const innerActionSigOk =
   contentParsed.sig === bytesToHex(sig) &&
   contentParsed.action.ts === actionPayload.ts &&

@@ -108,7 +108,12 @@ export function actionId(payload) {
   return bytesToHex(taggedHash(VRT1_ACTION_TAG, canonicalBytes(payload)));
 }
 
-// Build the canonical payload from a production receipt.
+// Build the canonical payload from a production receipt, byte-exact to the
+// counterparty generator (gen-insight-vectors.py, Tutankhamun 2026-08-27):
+//   - agent key: DEMO 0x55..55 (published so vectors are reproducible)
+//   - eip712_attestation: {attester, signature, uid, signedAt, domain, primary_type}
+//     (no verify_url; domain.chainId as decimal STRING)
+//   - outcome.schema_version: NUMBER (schemaVersion, not a decimal string)
 // `encode` lets the acceptance harness deliberately violate a rule to build a
 // negative vector (default = canonical).
 export function buildCanonicalPayload(receipt, agentPubXOnly, encode = 'canonical') {
@@ -140,20 +145,31 @@ export function buildCanonicalPayload(receipt, agentPubXOnly, encode = 'canonica
   const eip = (v) => (encode === 'neg-hex-0x' ? v : normalizeHex(v));
   return buildActionPayload({
     agent: agentPubXOnly,
-    outcome: { verdict: data.verdict, schema_version: toDecimalString(2) },
+    outcome: { verdict: data.verdict, schema_version: data.schemaVersion }, // NUMBER
     params: {
       oracle_safety_check_v2: structFields,
       eip712_attestation: {
-        uid: eip(att.uid),
-        signature: eip(att.signature),
-        signedAt: att.signedAt,
         attester: eip(att.attester),
-        verify_url: att.verifyUrl,
+        signature: eip(att.signature),
+        uid: eip(att.uid),
+        signedAt: att.signedAt,
+        domain: {
+          name: att.eip712.domain.name,
+          version: att.eip712.domain.version,
+          chainId: String(att.eip712.domain.chainId), // decimal STRING
+        },
+        primary_type: att.eip712.primaryType,
       },
     },
     target: `${data.sourceAssetId}->${data.destinationAssetId}`, // CAIP-19, casing preserved
     ts: data.checkedAt,
   });
+}
+
+// DEMO agent key per the counterparty vectors (0x55..55, published deliberately).
+export function demoAgentPubXOnly() {
+  const seck = new Uint8Array(32).fill(0x55);
+  return bytesToHex(schnorr.getPublicKey(seck));
 }
 
 // Load the bundled production sample receipt

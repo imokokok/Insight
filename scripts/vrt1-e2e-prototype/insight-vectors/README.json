@@ -1,0 +1,31 @@
+{
+  "canonical_json": "json.dumps(obj, sort_keys=True, separators=(',',':'), ensure_ascii=False) - keys sorted recursively by UTF-8 codepoint, no whitespace, non-ASCII NOT escaped",
+  "canonical_json_note": "This generator reproduces VRT1's own published agent_action.json vector byte-for-byte (canonical bytes, action_id, pubkey, signature), so the encoding here is validated against the spec's output rather than only against itself.",
+  "files": {
+    "action.json": "positive vector: action, canonical bytes, action_id, Schnorr sig",
+    "merkle.json": "leaf/node rule, single + 3-leaf batch with inclusion proof",
+    "negative.json": "cases that MUST be rejected",
+    "nostr_1990.json": "kind 1990 wrapping with the three required checks",
+    "op_return.json": "49-byte anchor payload for both batches",
+    "source-receipt.json": "the production Insight receipt these vectors are built from"
+  },
+  "generated": "2026-08-26",
+  "normalisation_rule_5_2": {
+    "class_A_normalise_strip_0x_lowercase": [
+      "attester",
+      "evaluatedAssetIdsHash",
+      "providerObservationsHash",
+      "reasonCodesHash",
+      "requestHash",
+      "signature",
+      "uid"
+    ],
+    "class_B_verbatim_never_touch": ["destinationAssetId", "sourceAssetId", "target"],
+    "test": "if lowercasing loses information it is Class B"
+  },
+  "schnorr_aux_rand": "32 zero bytes. Confirmed as the VRT1 convention by reproducing the published agent_action.json signature byte-exact with it. Required to reproduce sig_hex.",
+  "source_receipt_uid": "0x08e2d411797b04db481ae0ac10ee96e3676b528a99b605e3bb8e557d3d275b91",
+  "type": "insight.oracle-safety-check",
+  "uint256_encoding_5_1": "decimal strings, uniformly, including small fields",
+  "vrt1_version": 1
+}
