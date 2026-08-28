@@ -7,7 +7,10 @@
 对应合作：Insight × VERITAS（VRT1 规范，Tutankhamun Castillo El-Bey，proofofagent.net）。
 Insight 是第一个被 VERITAS 锚定 record 的外部实现，也是 §8.5 `key_registry_snapshot`
 record type 的提出方（经对方同意泛化，规范文本 credit Insight 出处）。
-合作往来档案是内部记录，不随本仓库发布。
+
+合作往来档案与对方交付包（round1 向量、round3 的 §8.5 / 2.2 AMENDED 文本与向量）是内部
+记录，归档在 `.trae/veritas-collaboration/`（gitignore），不随本仓库发布——对方交付物默认
+不进公开仓库，除非对方书面授权。
 
 ## 运行
 
@@ -25,10 +28,29 @@ node scripts/vrt1-e2e-prototype/build-vvv-demo.mjs            # VVV→USDC 第�
 依赖：`@noble/curves`（Schnorr/secp256k1）、`@noble/hashes`（sha256）、`viem`（EIP-712）、
 `canonicalize`（RFC 8785 JCS）。均已登记在 `package.json`，`npm install` 后即可跑。
 
-`build-genesis.mjs` 与 `build-vvv-demo.mjs` 需要 agent 私钥，私钥不进仓库，
-从 `VRT1_AGENT_KEY_DIR`（默认 `~/.workbuddy/veritas_deliverable/vrt1-agent-keys/`）读取。
-外层 VRT1 签名需要它；内层 EIP-712 生产签名由 Vercel 环境的 attester key 持有，
-本地重建时退化为演示签名（已在产物中如实标注）。
+### 只有本人能跑的两个脚本
+
+`build-genesis.mjs` 与 `build-vvv-demo.mjs` 依赖两个**仓库外**的输入，路径硬编码在脚本里：
+
+- agent 私钥 `~/.workbuddy/veritas_deliverable/vrt1-agent-keys/`（chmod 600，不进仓库、
+  也不进 Vercel env）。外层 VRT1 签名需要它。
+- `build-vvv-demo.mjs` 还需 VVV→USDC 的真实生产输出
+  `~/.workbuddy/interai_deliverable/deliverable-1-pre-trade-responses.json`。
+
+外部读者无法复现，这是有意的：私钥不可分享，生产数据属于另一次交付。但它们的
+**产物留在仓库里**（`registry-genesis.json`、`vvv-vrt1-record.json`），可直接校验，
+见「已归档的锚定证据」。
+
+内层 EIP-712 生产签名由 Vercel 环境的 attester key 持有，本地重建时退化为演示签名，
+这一点在 `vvv-vrt1-record.json` 的 `note` 字段里如实标注了，不是隐含的。
+
+> 注意：这两个脚本会**覆盖**上述产物。产物是已锚定 / 已交付的事实记录，
+> 重跑前先确认你确实想替换它们。
+
+`conformance-round2/gen-conformance-vectors.py` 是对方提供的 round-2 向量生成器
+（纯 Python、零第三方依赖）。它按对方自己的目录结构工作，期望输入在
+`conformance-round2/insight-vectors/`，该目录不在本仓库，故直接运行会失败。
+仓库只保留它生成的产物 `conformance-vectors/`，校验跑产物即可，无需重生成。
 
 ## 做了什么
 
