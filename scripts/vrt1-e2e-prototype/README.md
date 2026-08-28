@@ -12,6 +12,10 @@ record type 的提出方（经对方同意泛化，规范文本 credit Insight �
 记录，归档在 `.trae/veritas-collaboration/`（gitignore），不随本仓库发布——对方交付物默认
 不进公开仓库，除非对方书面授权。
 
+例外：`conformance-round2/`（共享 conformance 套件与 §8.5 规范正文）随本仓库发布。它不是
+内部往来，而是公开规范的一部分——§8.5 已正式登记进 VRT1 且规范文本 credit Insight 出处，
+保留它是公开的署名凭据。
+
 ## 运行
 
 ```bash
@@ -65,7 +69,7 @@ node scripts/vrt1-e2e-prototype/build-vvv-demo.mjs            # VVV→USDC 第�
    verdict 入 `outcome`、`ts = checkedAt`（epoch = `floor(ts/600)` = 2979468）→
    外层 Schnorr 签名 → Merkle（单叶子 batch + 3 叶子含包含性证明演示）→ 49B OP_RETURN 载荷。
 3. **离线验证**：外层 Schnorr 验签 + 内层 EIP-712 recover == attester + Merkle 包含性证明 + OP_RETURN 往返解析。
-4. **§8.3 Nostr 包装（kind 1990）**：按 NIP-01 构造事件（tags 空数组、content = 明文 canonical JSON `{"action","sig"}`，与对方向量一致），外层 Nostr 事件签名验签 + `event.pubkey == action.agent` + 从 content 重验内层 action 签名（spec 强制三验）。
+4. **§8.3 Nostr 包装（kind 1990）**：按 NIP-01 构造事件（tags 空数组、content = 明文 canonical JSON `{"action","sig"}` 而非 base64；格式与对方向量一致，该向量未随本仓库发布，此处按商定格式构造后自验），外层 Nostr 事件签名验签 + `event.pubkey == action.agent` + 从 content 重验内层 action 签名（spec 强制三验）。
 5. **负向量**：篡改 canonical → action_id 变化被拒；翻转 sig 字节 → Schnorr 拒绝；错误 leaf → 包含性证明拒绝。
 6. **从链验证（live，只读）**：抓取 VERITAS 真实主网锚点 `92b2c4e4…5aafa0`（block 953,581），按 §5.1 解析其 OP_RETURN（tag/version/epoch/leaf_count/root），证明链上真实载荷与本构造器字节格式一致。若网络不可达则 SKIP（离线格式检查由 op_return 向量覆盖）。
 
