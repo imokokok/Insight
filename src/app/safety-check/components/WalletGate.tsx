@@ -80,70 +80,76 @@ export function WalletGate({
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
       <div className="flex items-center gap-2 mb-4">
-        <ShieldCheck className="w-4 h-4 text-blue-600" />
+        <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
         <h3 className="text-sm font-semibold text-slate-900">Connect Wallet</h3>
-        <span className="text-xs text-slate-400 font-normal">· 自动扫描你的借贷持仓</span>
+        <span className="text-xs text-slate-400 font-normal truncate">· 推荐 · 自动扫描持仓</span>
       </div>
 
       {/* Connected address chip */}
       {address && (
-        <div className="mb-3 flex items-center justify-between rounded-lg bg-primary-50 border border-primary-100 px-3 py-2">
-          <span className="text-xs text-slate-600 font-mono">
+        <div className="mb-3 flex items-center justify-between gap-2 min-w-0 rounded-lg bg-primary-50 border border-primary-100 px-3 py-2">
+          <span className="text-xs text-slate-600 font-mono truncate">
             {address.slice(0, 6)}…{address.slice(-4)}
           </span>
           <button
             type="button"
             onClick={onDisconnect}
-            className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+            className="shrink-0 text-xs text-slate-400 hover:text-red-500 transition-colors"
           >
             Disconnect
           </button>
         </div>
       )}
 
-      {/* Connect + paste row */}
-      <div className="flex flex-col sm:flex-row gap-2">
-        <Button
-          onClick={() => setPickerOpen(true)}
-          isLoading={wallet.isConnecting || wallet.isWalletConnecting}
-          disabled={detecting}
-          size="md"
-          className="sm:w-auto"
-        >
-          <Wallet className="w-4 h-4" />
-          <span className="ml-1">{address ? 'Switch Wallet' : 'Connect Wallet'}</span>
-        </Button>
+      {/* Primary CTA: connect wallet */}
+      <Button
+        onClick={() => setPickerOpen(true)}
+        isLoading={wallet.isConnecting || wallet.isWalletConnecting}
+        disabled={detecting}
+        size="md"
+        className="w-full"
+      >
+        <Wallet className="w-4 h-4" />
+        <span>{address ? 'Switch Wallet' : 'Connect Wallet'}</span>
+      </Button>
 
-        <div className="flex gap-2 flex-1">
-          <input
-            type="text"
-            value={pasted}
-            onChange={(e) => setPasted(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleScanPasted();
-            }}
-            placeholder="或粘贴钱包地址 0x…"
-            disabled={detecting}
-            className={cn(
-              'flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all font-mono',
-              pasted.match(ADDRESS_RE) ? 'border-primary-300' : 'border-slate-200'
-            )}
-          />
-          <Button
-            onClick={handleScanPasted}
-            isLoading={detecting}
-            disabled={detecting || !pasted.trim()}
-            size="md"
-            variant="secondary"
-          >
-            {detecting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Search className="w-4 h-4" />
-            )}
-            <span className="hidden sm:inline ml-1">Scan</span>
-          </Button>
-        </div>
+      <div className="my-3 flex items-center gap-3">
+        <div className="h-px flex-1 bg-slate-100" />
+        <span className="text-[11px] text-slate-400 whitespace-nowrap">或粘贴地址</span>
+        <div className="h-px flex-1 bg-slate-100" />
+      </div>
+
+      {/* Paste address row */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={pasted}
+          onChange={(e) => setPasted(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleScanPasted();
+          }}
+          placeholder="或粘贴钱包地址 0x…"
+          disabled={detecting}
+          className={cn(
+            'flex-1 min-w-0 w-full px-3 py-2 bg-white border rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all font-mono',
+            pasted.match(ADDRESS_RE) ? 'border-primary-300' : 'border-slate-200'
+          )}
+        />
+        <Button
+          onClick={handleScanPasted}
+          isLoading={detecting}
+          disabled={detecting || !pasted.trim()}
+          size="md"
+          variant="secondary"
+          className="shrink-0"
+        >
+          {detecting ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Search className="w-4 h-4" />
+          )}
+          <span className="ml-1">Scan</span>
+        </Button>
       </div>
 
       {wallet.error && !detectError && <p className="text-xs text-red-600 mt-2">{wallet.error}</p>}
@@ -158,8 +164,8 @@ export function WalletGate({
             statusLine.tone === 'muted' && 'text-slate-500'
           )}
         >
-          {detecting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          {statusLine.tone !== 'muted' && <X className="w-3.5 h-3.5" />}
+          {detecting && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
+          {statusLine.tone !== 'muted' && <X className="w-3.5 h-3.5 shrink-0" />}
           <span>{statusLine.text}</span>
         </div>
       )}

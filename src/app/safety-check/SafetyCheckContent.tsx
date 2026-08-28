@@ -20,6 +20,7 @@ import { PositionForm } from './components/PositionForm';
 import { ResultDashboard } from './components/ResultDashboard';
 import { StepIndicator } from './components/StepIndicator';
 import { WalletGate } from './components/WalletGate';
+import { useEntryDemo } from './hooks/useEntryDemo';
 import { usePortfolioDetect } from './hooks/usePortfolioDetect';
 import { useProtocolHealth } from './hooks/useProtocolHealth';
 import { useWalletConnect } from './hooks/useWalletConnect';
@@ -123,6 +124,9 @@ export default function SafetyCheckContent() {
   const [lastPosition, setLastPosition] = useState<PositionInput | null>(null);
   const [calculationKey, setCalculationKey] = useState(0);
   const searchParams = useSearchParams();
+  const hasDeepLink = Boolean(
+    searchParams.get('protocol') || searchParams.get('collateral') || searchParams.get('borrow')
+  );
 
   // ── Live refresh (price / health-factor drift) ──
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
@@ -272,18 +276,6 @@ export default function SafetyCheckContent() {
     [clear, detect]
   );
 
-  const handleDisconnect = useCallback(() => {
-    setAddress(null);
-    resetDetect();
-    clear();
-    setStep(1);
-    setSelectedProtocol(null);
-    setCollateralRows([{ id: 'collateral-init', symbol: '', amount: '' }]);
-    setBorrowRows([{ id: 'borrow-init', symbol: '', amount: '' }]);
-    setLastPosition(null);
-    wallet.disconnect();
-  }, [resetDetect, clear, wallet]);
-
   // 自动扫描结果：若恰好一个完整仓位 → 自动计算；否则交由组合视图渲染
   useEffect(() => {
     if (!detections) return;
@@ -314,6 +306,24 @@ export default function SafetyCheckContent() {
     },
     [resetDetect, startCalculation, clear]
   );
+
+  // 首次进入（未连接钱包、无分享链接）→ 用默认协议的演示仓位自动计算一次，
+  // 页面一进来就展示结果，同时左侧手动输入框可见可编辑；
+  // 用户连接钱包后，handleAddressChange 会清空演示状态并切换到钱包扫描流程。
+  const resetDemo = useEntryDemo(protocols, address, hasDeepLink, handleSelectProtocol);
+
+  const handleDisconnect = useCallback(() => {
+    setAddress(null);
+    resetDetect();
+    clear();
+    setStep(1);
+    setSelectedProtocol(null);
+    setCollateralRows([{ id: 'collateral-init', symbol: '', amount: '' }]);
+    setBorrowRows([{ id: 'borrow-init', symbol: '', amount: '' }]);
+    setLastPosition(null);
+    resetDemo(); // 断开钱包后回到默认演示状态
+    wallet.disconnect();
+  }, [resetDetect, clear, wallet, resetDemo]);
 
   const handleSubmit = useCallback(
     async (data: { collaterals: AssetEntry[]; borrows: AssetEntry[] }) => {
@@ -354,18 +364,27 @@ export default function SafetyCheckContent() {
   const completeCount = detections ? detections.filter(isCompletePosition).length : 0;
   const withPositionsCount = detections ? detections.filter((d) => d.hasPosition).length : 0;
 
-  const view: 'result' | 'single-pending' | 'detecting' | 'portfolio' | 'empty' | 'idle' =
+  const view:
+    | 'result'
+    | 'calculating'
+    | 'single-pending'
+    | 'detecting'
+    | 'portfolio'
+    | 'empty'
+    | 'idle' =
     result && step === 3
       ? 'result'
       : detections && completeCount === 1 && withPositionsCount === 1
         ? 'single-pending'
         : detecting
           ? 'detecting'
-          : detections
-            ? withPositionsCount >= 1
-              ? 'portfolio'
-              : 'empty'
-            : 'idle';
+          : isLoading && !result
+            ? 'calculating'
+            : detections
+              ? withPositionsCount >= 1
+                ? 'portfolio'
+                : 'empty'
+              : 'idle';
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -524,7 +543,7 @@ export default function SafetyCheckContent() {
                     onRescan={() => address && detect(address)}
                   />
                 </motion.div>
-              ) : view === 'detecting' || view === 'single-pending' ? (
+              ) : view === 'detecting' || view === 'single-pending' || view === 'calculating' ? (
                 <motion.div
                   key="scanning"
                   initial={{ opacity: 0 }}
@@ -537,7 +556,9 @@ export default function SafetyCheckContent() {
                     {view === 'detecting' ? '正在扫描借贷协议…' : '正在计算临界偏离…'}
                   </h3>
                   <p className="text-sm text-slate-500 max-w-sm">
-                    跨 {supportedCount} 个已支持协议并行读取链上仓位，请稍候。
+                    {view === 'detecting'
+                      ? `跨 ${supportedCount} 个已支持协议并行读取链上仓位，请稍候。`
+                      : '正在读取市场价格并计算临界偏离，请稍候。'}
                   </p>
                 </motion.div>
               ) : (
