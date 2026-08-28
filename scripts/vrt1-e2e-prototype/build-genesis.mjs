@@ -23,11 +23,20 @@ import { homedir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import { schnorr } from '@noble/curves/secp256k1';
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils';
-import { buildActionPayload, canonicalBytes, actionId, normalizeHex, AUX_RAND } from './vrt1-encoding.mjs';
+import {
+  buildActionPayload,
+  canonicalBytes,
+  actionId,
+  normalizeHex,
+  AUX_RAND,
+} from './vrt1-encoding.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
-const arg = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : undefined; };
+const arg = (n) => {
+  const i = args.indexOf(n);
+  return i >= 0 ? args[i + 1] : undefined;
+};
 const tsOverride = arg('--ts');
 const outPath = arg('--out') || join(__dirname, 'registry-genesis.json');
 const REGISTRY_URL = 'https://www.oracleinsight.xyz/.well-known/oracle-keys.json';
@@ -41,7 +50,11 @@ const REGISTRY = await (async () => {
 const keyDir = join(homedir(), '.workbuddy/veritas_deliverable/vrt1-agent-keys');
 const agentPriv = hexToBytes(readFileSync(join(keyDir, 'agent-key.priv.hex'), 'utf8').trim());
 const agentPub = bytesToHex(schnorr.getPublicKey(agentPriv));
-const recoveryPub = bytesToHex(schnorr.getPublicKey(hexToBytes(readFileSync(join(keyDir, 'recovery-key.priv.hex'), 'utf8').trim())));
+const recoveryPub = bytesToHex(
+  schnorr.getPublicKey(
+    hexToBytes(readFileSync(join(keyDir, 'recovery-key.priv.hex'), 'utf8').trim())
+  )
+);
 
 const attesters = (REGISTRY.public_keys || REGISTRY.keys || []).map((k) => ({
   key_id: k.key_id,
@@ -98,6 +111,11 @@ const aid = actionId(payload);
 const sig = bytesToHex(schnorr.sign(hexToBytes(aid), agentPriv, randomBytes(32)));
 
 const genesis = {
+  // draft flag dropped per Tutankhamun 2026-08-28 (round 3): the genesis is
+  // anchored (block 964,407), a "draft" label on the trust root of the whole
+  // key history would be wrong. NOTE: do not re-run this script for the real
+  // genesis - a fresh ts would change the action_id away from the anchored
+  // 87b750e4...
   record_type: 'key_registry_snapshot',
   action: payload,
   action_id_hex: aid,
@@ -105,7 +123,6 @@ const genesis = {
   canonical_byte_length: canonHex.length / 2,
   agent_pubkey_xonly_hex: agentPub,
   sig_hex: sig,
-  draft: true,
   note: 'Genesis snapshot. No parent_action (omitted, never null). Agent key listed in keys (secp256k1_xonly) so the registry binds its own signer; recovery key listed from genesis per the round-3 recommendation. Signed by the agent key with fresh aux_rand.',
 };
 writeFileSync(outPath, JSON.stringify(genesis, null, 2));
