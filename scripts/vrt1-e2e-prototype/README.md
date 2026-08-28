@@ -14,7 +14,12 @@ record type 的提出方（经对方同意泛化，规范文本 credit Insight �
 
 例外：`conformance-round2/`（共享 conformance 套件与 §8.5 规范正文）随本仓库发布。它不是
 内部往来，而是公开规范的一部分——§8.5 已正式登记进 VRT1 且规范文本 credit Insight 出处，
-保留它是公开的署名凭据。
+保留它是公开的署名凭据。Insight 的正式署名在 `VRT1-section-8.5-key-registry-snapshot.md`
+（"Type contributed by Insight"）。
+
+同一目录下的对方 mapping 讨论稿 `insight-vrt1-schema-mapping.md` 不在此列：它自述
+"Draft for discussion"、且其中 CONFIRM 项是 proposal 而非 decision，与 round-3 的 AMENDED
+文本同属「对方未发布草稿」，已一并归档，不进公开仓库。
 
 ## 运行
 
