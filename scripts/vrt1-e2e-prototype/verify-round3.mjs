@@ -1,7 +1,8 @@
 // Genesis 自检：我方 §8.5 key_registry_snapshot genesis 的合规性。
 //
-// 对方向量复算部分已移除——round3 向量是对方交付物，不进公开仓库，原件归档在
-// .trae/veritas-collaboration/counterparty-packages/round3-agent-key-and-epoch/。
+// 对方向量复算部分已移除——round3 向量是对方交付物，不进公开仓库。原件保留在 git 历史，
+// 需要时取回：
+//   git show 687f9d60^:scripts/vrt1-e2e-prototype/conformance-round3/
 // 用法: node verify-round3.mjs
 import { createHash } from 'crypto';
 import { readFileSync } from 'fs';
