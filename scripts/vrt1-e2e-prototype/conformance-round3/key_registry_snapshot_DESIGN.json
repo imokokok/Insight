@@ -1,0 +1,43 @@
+{
+  "action_type": "key_registry_snapshot",
+  "demo_key": {
+    "agent_pubkey_xonly_hex": "9ac20335eb38768d2052be1dbbc3c8f6178407458e51e6b4ad22f1d91758895b",
+    "aux_rand_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+    "privkey_hex_demo_only": "5555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "key_entry": {
+    "custody": "REQUIRED. Declared custody of the private key: hot_process | kms | hsm | offline | air_gapped | unknown. The enumeration is UNORDERED. VRT1 supplies the vocabulary so custody is comparable across attesters; it does not rank the values and does not endorse any of them. 'unknown' is always available and is not a failure.",
+    "key_id": "Operator-scoped stable identifier.",
+    "key_type": "REQUIRED. What public_key holds, so a consumer can mechanise the 'did this key sign that receipt' check: 'eth_address' | 'secp256k1_xonly' | 'secp256k1_compressed' | 'ed25519'. Extensible.",
+    "public_key": "Class A hex (5.2): 0x stripped, lowercase.",
+    "revoked": "Boolean.",
+    "valid_from": "Integer Unix seconds.",
+    "valid_until": "Integer Unix seconds, or null for open-ended. A null valid_until MUST be SERIALISED as null, not omitted — unlike parent_action. Two spellings of 'no expiry' would otherwise produce two action_ids."
+  },
+  "keys_are_synthetic": "The public_key values are sha256-derived placeholders, not real key material for any operator.",
+  "note_on_active": "'Active' means 'not revoked'. It does not mean 'currently inside its window' — window membership is evaluated by the verifier against a signing time, not summarised in the record.",
+  "origin": "Type contributed by Insight (oracleinsight.xyz), who built the first implementation as insight.key-registry-snapshot. Generalised with their agreement: every attester that publishes a key registry has the same problem, so namespacing it would make two identical records non-interoperable.",
+  "purpose": "A key registry lives on the operator's own server and its validity windows are self-asserted. Anchoring the snapshot moves the registry's trust from the operator's web server to Bitcoin. Chaining the snapshots turns 'each snapshot is authentic' into 'this is the complete history' — without a chain, an operator can publish snapshot A and snapshot C and silently omit B, which is exactly how a briefly-active key would be hidden.",
+  "schema": {
+    "action_type": "MUST be the literal string 'key_registry_snapshot'.",
+    "outcome.active_count": "Integer. Count of entries with revoked == false.",
+    "outcome.revoked_count": "Integer. Count of entries with revoked == true.",
+    "params.snapshot.keys": "Array of key entries. ORDER IS SIGNIFICANT and MUST be preserved; canonical JSON sorts object keys, never arrays.",
+    "params.snapshot.schema_version": "Integer. VRT1-native.",
+    "params.snapshot.ts": "Integer Unix seconds, as of snapshot construction.",
+    "parent_action": "Previous snapshot's action_id. OMITTED for the genesis snapshot (8.1: a null parent MUST be omitted, never serialised).",
+    "target": "Operator-chosen registry identifier. MUST be stable across the chain."
+  },
+  "signer_authorization": {
+    "agent_key_in_its_own_registry": "The signing key SHOULD appear in params.snapshot.keys with key_type 'secp256k1_xonly'. Without it the registry authenticates every key except the one that authenticated the registry.",
+    "fails_only_in_context": "A successor signed by an unlisted key hashes correctly and its signature verifies against its own agent field. It is refused by its parent alone. An implementation that verifies records one at a time will accept it.",
+    "genesis_trust_root": "The genesis has no parent and cannot be authorized by one. Its trust root is NOT cryptographic and MUST NOT be presented as though it were: it is the anchor, which fixes the genesis in time, plus an out-of-band binding of the agent pubkey to the operator. That first hop is a human trust decision.",
+    "snapshot_ts_ordering": "params.snapshot.ts MUST NOT be later than the action ts.",
+    "successor_must_be_authorized": "A non-genesis snapshot MUST be signed by a key its parent_action snapshot lists unrevoked, with a validity window containing the successor's ts. An outgoing signing key authorizes its replacement; a key no ancestor vouches for cannot introduce itself."
+  },
+  "spec_section": "8.4",
+  "status": "REGISTERED in VRT1 Section 8.5 — generic, not vendor-namespaced",
+  "validity_semantics": "A consumer checks key validity AT SIGNING TIME. A receipt signed while its key was inside its published window stays verifiable after that window closes; revocation stops forward trust and does not reach backward into an anchored set.",
+  "vectors": "The conformance vectors for this type ship in vrt1-spec/test-vectors/key_registry_snapshot.json: two chained positives with a signing-key handover, six one-rule negatives, and one chain negative that is valid in isolation and invalid in context.",
+  "vectors_live_at": "vrt1-spec/test-vectors/key_registry_snapshot.json (generated by that repo's tests/generate_vectors.py; the positives below are the same design under this suite's demo key)"
+}
