@@ -246,6 +246,29 @@ async function fetchLiveAssetDeviations(symbols: string[]): Promise<Record<strin
 }
 
 /**
+ * Module-level short-TTL cache for live consensus deviations. The safety-check
+ * page auto-refreshes every 45s; without this, every refresh (and every user)
+ * would re-fetch every provider for every asset on every request. A 60s
+ * snapshot is still far fresher than the minutes-stale reputation averages it
+ * replaces, while bounding provider calls to ~1 wave per asset per 60s per warm
+ * instance. Only non-zero deviations are cached (failures retry next call).
+ */
+const CONSENSUS_CACHE_TTL_MS = 60_000;
+const consensusDeviationCache = new Map<string, { value: number; expiresAt: number }>();
+
+function getCachedConsensusDeviation(key: string): number | null {
+  const hit = consensusDeviationCache.get(key);
+  if (hit && hit.expiresAt > Date.now()) return hit.value;
+  if (hit) consensusDeviationCache.delete(key);
+  return null;
+}
+
+/** Test-only: clears the module-level consensus cache between test cases. */
+export function resetConsensusDeviationCacheForTests(): void {
+  consensusDeviationCache.clear();
+}
+
+/**
  * Fetch the live cross-oracle consensus deviation for each position asset:
  * the max |deviation from consensus| across the providers serving that asset
  * RIGHT NOW (the same signal the pre-trade check uses). This replaces the
@@ -254,26 +277,43 @@ async function fetchLiveAssetDeviations(symbols: string[]): Promise<Record<strin
  *
  * Non-blocking: an asset with no oracle coverage (UnsupportedSymbolError) or a
  * transient failure is skipped; the buffer then falls back to reputation.
+ *
+ * Exported for unit testing; only used by this route.
  */
-async function fetchLiveConsensusDeviations(
+export async function fetchLiveConsensusDeviations(
   symbols: string[],
   chain: string
 ): Promise<Record<string, number>> {
   const deviations: Record<string, number> = {};
   if (symbols.length === 0) return deviations;
 
-  const results = await Promise.allSettled(
-    symbols.map((symbol) => getConsensusPrice(symbol, chain))
-  );
+  const cacheKey = (symbol: string) => `${chain}:${symbol}`;
+  const toFetch: string[] = [];
+  for (const symbol of symbols) {
+    const cached = getCachedConsensusDeviation(cacheKey(symbol));
+    if (cached !== null) deviations[symbol] = cached;
+    else toFetch.push(symbol);
+  }
 
-  results.forEach((r, i) => {
-    if (r.status === 'fulfilled') {
+  if (toFetch.length > 0) {
+    const results = await Promise.allSettled(
+      toFetch.map((symbol) => getConsensusPrice(symbol, chain))
+    );
+
+    results.forEach((r, i) => {
+      const symbol = toFetch[i];
+      if (r.status !== 'fulfilled') return;
       const maxDev = r.value.providers
         .filter((p) => p.status === 'success' && p.deviationPct !== null)
         .reduce((m, p) => Math.max(m, Math.abs(p.deviationPct as number)), 0);
-      if (maxDev > 0) deviations[symbols[i]] = maxDev;
-    }
-  });
+      if (maxDev <= 0) return;
+      deviations[symbol] = maxDev;
+      consensusDeviationCache.set(cacheKey(symbol), {
+        value: maxDev,
+        expiresAt: Date.now() + CONSENSUS_CACHE_TTL_MS,
+      });
+    });
+  }
 
   return deviations;
 }
@@ -337,13 +377,21 @@ export const POST = createApiHandler(
         ([provider, symbols]) => ({ provider, symbols: Array.from(symbols) })
       );
 
+      // Live consensus deviation feeds the collateral-side liquidation buffer,
+      // so only the position's collateral assets need it — a borrow's consensus
+      // spread (usually a stablecoin) does not move the liquidation price and
+      // only adds provider-fetch cost.
+      const collateralSymbols = new Set<string>();
+      (input.collaterals ?? []).forEach((c) => collateralSymbols.add(c.symbol));
+      if (input.collateralSymbol) collateralSymbols.add(input.collateralSymbol);
+
       // Build oracle warnings, fetch live depeg/peg data, and fetch the live
-      // cross-oracle consensus deviation per asset in parallel; all are
+      // cross-oracle consensus deviation per collateral in parallel; all are
       // independent and only feed into the safety-buffer analysis.
       const [oracleWarnings, liveAssetDeviations, liveConsensusDeviations] = await Promise.all([
         buildOracleWarnings(providerMappings),
         fetchLiveAssetDeviations(allSymbols.size > 0 ? Array.from(allSymbols) : []),
-        fetchLiveConsensusDeviations(Array.from(allSymbols), protocol?.chain ?? ''),
+        fetchLiveConsensusDeviations(Array.from(collateralSymbols), protocol?.chain ?? ''),
       ]);
 
       const result = await calculatePositionCriticalDeviation(
