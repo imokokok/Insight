@@ -130,8 +130,9 @@ export function buildCanonicalPayload(receipt, agentPubXOnly, encode = 'canonica
       if (encode === 'neg-uint-number') return Number(raw); // negative: JSON number
       return toDecimalString(raw);
     }
-    if (encode === 'neg-caip19-lower') {
-      // negative: wrongly lowercase a CAIP-19 identifier
+    if (encode === 'neg-caip19-lower' && CAIP19_FIELDS.has(f.name)) {
+      // negative: wrongly lowercase a CAIP-19 identifier (field-type scoped,
+      // per Tutankhamun 2026-08-28: only CAIP-19 fields, nothing else)
       return String(raw).toLowerCase();
     }
     return raw; // string: CAIP-19 etc, byte-identical
@@ -161,7 +162,7 @@ export function buildCanonicalPayload(receipt, agentPubXOnly, encode = 'canonica
         primary_type: att.eip712.primaryType,
       },
     },
-    target: `${data.sourceAssetId}->${data.destinationAssetId}`, // CAIP-19, casing preserved
+    target: `${structFields.sourceAssetId}->${structFields.destinationAssetId}`, // CAIP-19, casing preserved; built from the MUTATED struct so negatives exercise it (Tutankhamun 2026-08-28)
     ts: data.checkedAt,
   });
 }

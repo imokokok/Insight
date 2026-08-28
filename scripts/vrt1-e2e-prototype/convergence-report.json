@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T03:45:35.116Z",
+  "generated_at": "2026-08-28T03:05:07.399Z",
   "standard": "Tutankhamun 2026-08-27 convergence acceptance",
   "canonical_encoding": {
     "class_a_hex_fields": [
@@ -29,7 +29,7 @@
     },
     "caip19_wrongly_lowercased": {
       "rejected": true,
-      "divergent_action_id": "75f69fc7bef18d144d6fa94ad7adb96814a482811b7cce2fbe87f9c07c6208f9"
+      "divergent_action_id": "0182bf4d1bc21607fc866529e05320c0a5f784ac915e3b987eb7cd4ae80e5999"
     },
     "uint256_as_json_number": {
       "rejected": true,
