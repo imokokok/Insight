@@ -95,6 +95,56 @@ describe('analyzeSafetyBuffer — oracle uncertainty band', () => {
     expect(result.bandHalfWidthPercent).toBe(50);
     expect(result.bufferPercent).toBeCloseTo(Math.max(0, 80 - 50), 2);
   });
+
+  it('prefers the live cross-oracle consensus deviation over the reputation average', () => {
+    // Reputation says 1.5% avg; the live on-demand consensus says 3.2% for the
+    // position's worst asset. The live signal must win (it is current and
+    // asset-specific) and be flagged as the 'live' source.
+    const result = analyzeSafetyBuffer(
+      makeDeviation({ criticalDeviationPercent: -20 }),
+      1.8,
+      [makeDeviation({ criticalDeviationPercent: -20 })],
+      [makeWarning({ avgDeviationPct: 1.5 })],
+      {},
+      { ETH: 3.2, USDC: 0.1 }
+    );
+
+    expect(result.consensusSource).toBe('live');
+    expect(result.liveConsensusDeviationPercent).toBeCloseTo(3.2, 2);
+    // Per-asset map preserved for breakdown display
+    expect(result.liveConsensusDeviations['ETH']).toBeCloseTo(3.2, 4);
+    expect(result.bandUnknown).toBe(false);
+    // Band at least the live deviation (plus depeg/staleness), buffer fully tightens
+    expect(result.bandHalfWidthPercent).toBeGreaterThanOrEqual(3.2);
+    expect(result.bufferPercent).toBeCloseTo(Math.max(0, 20 - result.bandHalfWidthPercent), 2);
+  });
+
+  it('falls back to the reputation average when no live consensus data exists', () => {
+    const result = analyzeSafetyBuffer(
+      makeDeviation({ criticalDeviationPercent: -20 }),
+      1.8,
+      [makeDeviation({ criticalDeviationPercent: -20 })],
+      [makeWarning({ avgDeviationPct: 2 })]
+    );
+
+    expect(result.consensusSource).toBe('reputation');
+    expect(result.liveConsensusDeviationPercent).toBe(0);
+    expect(result.bandUnknown).toBe(false);
+    expect(result.bandHalfWidthPercent).toBeGreaterThanOrEqual(2);
+  });
+
+  it('flags the band unknown (placeholder) when neither live nor reputation data exists', () => {
+    const result = analyzeSafetyBuffer(
+      makeDeviation({ criticalDeviationPercent: -20 }),
+      1.8,
+      [makeDeviation({ criticalDeviationPercent: -20 })],
+      []
+    );
+
+    expect(result.consensusSource).toBe('none');
+    expect(result.bandUnknown).toBe(true);
+    expect(result.bandHalfWidthPercent).toBe(10);
+  });
 });
 
 describe('computeLiquidationPriceBand — asymmetric direction', () => {

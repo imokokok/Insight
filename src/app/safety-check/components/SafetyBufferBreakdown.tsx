@@ -24,12 +24,26 @@ export function SafetyBufferBreakdown({
       value: `${safetyBuffer.theoreticalBufferPercent.toFixed(2)}%`,
       sub: 'before deductions',
     },
-    {
-      label: 'Oracle Deviation',
-      value: `${safetyBuffer.oracleAvgDeviationPercent.toFixed(2)}%`,
-      sub: 'avg consensus',
-    },
   ];
+
+  // Oracle uncertainty row reflects the live cross-oracle consensus deviation
+  // when available; otherwise the provider-history reputation average. Hidden
+  // when no oracle signal exists (the unverified placeholder band covers it).
+  if (safetyBuffer.consensusSource !== 'none') {
+    const live = safetyBuffer.consensusSource === 'live';
+    const oracleUsed = live
+      ? safetyBuffer.liveConsensusDeviationPercent
+      : safetyBuffer.oracleAvgDeviationPercent;
+    items.push({
+      label: 'Oracle Deviation',
+      value: `${oracleUsed.toFixed(2)}%`,
+      sub: live
+        ? Object.entries(safetyBuffer.liveConsensusDeviations)
+            .map(([s, d]) => `${s} ${d.toFixed(2)}%`)
+            .join(', ') || 'live cross-oracle consensus'
+        : 'provider history avg',
+    });
+  }
 
   // Add live depeg/peg risk row if present
   if (hasLiveRisk) {
@@ -48,7 +62,8 @@ export function SafetyBufferBreakdown({
     sub: 'real safety',
   });
 
-  const gridCols = hasLiveRisk ? 'grid-cols-4' : 'grid-cols-3';
+  const gridCols =
+    items.length <= 2 ? 'grid-cols-2' : items.length === 3 ? 'grid-cols-3' : 'grid-cols-4';
   const hasBand = safetyBuffer.bandHalfWidthPercent > 0;
 
   return (

@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createApiHandler } from '@/lib/api/handler';
+import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { fetchPricesForPosition } from '@/lib/api/services/priceQueries';
 import { reputationService } from '@/lib/oracles/services/reputationService';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
@@ -244,6 +245,39 @@ async function fetchLiveAssetDeviations(symbols: string[]): Promise<Record<strin
   return deviations;
 }
 
+/**
+ * Fetch the live cross-oracle consensus deviation for each position asset:
+ * the max |deviation from consensus| across the providers serving that asset
+ * RIGHT NOW (the same signal the pre-trade check uses). This replaces the
+ * minutes-stale provider-level reputation average in the safety-buffer oracle
+ * deduction, making the effective buffer genuinely real-time.
+ *
+ * Non-blocking: an asset with no oracle coverage (UnsupportedSymbolError) or a
+ * transient failure is skipped; the buffer then falls back to reputation.
+ */
+async function fetchLiveConsensusDeviations(
+  symbols: string[],
+  chain: string
+): Promise<Record<string, number>> {
+  const deviations: Record<string, number> = {};
+  if (symbols.length === 0) return deviations;
+
+  const results = await Promise.allSettled(
+    symbols.map((symbol) => getConsensusPrice(symbol, chain))
+  );
+
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      const maxDev = r.value.providers
+        .filter((p) => p.status === 'success' && p.deviationPct !== null)
+        .reduce((m, p) => Math.max(m, Math.abs(p.deviationPct as number)), 0);
+      if (maxDev > 0) deviations[symbols[i]] = maxDev;
+    }
+  });
+
+  return deviations;
+}
+
 export const POST = createApiHandler(
   async (request: NextRequest) => {
     let body: unknown;
@@ -303,11 +337,13 @@ export const POST = createApiHandler(
         ([provider, symbols]) => ({ provider, symbols: Array.from(symbols) })
       );
 
-      // Build oracle warnings and fetch live depeg/peg data in parallel; both are
-      // independent of each other and only feed into the safety-buffer analysis.
-      const [oracleWarnings, liveAssetDeviations] = await Promise.all([
+      // Build oracle warnings, fetch live depeg/peg data, and fetch the live
+      // cross-oracle consensus deviation per asset in parallel; all are
+      // independent and only feed into the safety-buffer analysis.
+      const [oracleWarnings, liveAssetDeviations, liveConsensusDeviations] = await Promise.all([
         buildOracleWarnings(providerMappings),
         fetchLiveAssetDeviations(allSymbols.size > 0 ? Array.from(allSymbols) : []),
+        fetchLiveConsensusDeviations(Array.from(allSymbols), protocol?.chain ?? ''),
       ]);
 
       const result = await calculatePositionCriticalDeviation(
@@ -315,7 +351,8 @@ export const POST = createApiHandler(
         fetchPricesForPosition,
         oracleWarnings,
         liveAssetDeviations,
-        protocol
+        protocol,
+        liveConsensusDeviations
       );
 
       // Merge warnings into result

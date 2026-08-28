@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react';
+import { Activity, AlertTriangle, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react';
 
 import type {
   LendingSafetyAction,
@@ -14,12 +14,52 @@ export const ACTION_SEVERITY_STYLE: Record<LendingSafetyAction['severity'], stri
   block: 'bg-red-100 text-red-700',
 };
 
+type PreTradeVerdict = 'PASS' | 'CAUTION' | 'DANGER' | 'BLOCK';
+
+const VERDICT_STYLE: Record<
+  PreTradeVerdict,
+  { label: string; cls: string; iconCls: string; summary: string }
+> = {
+  PASS: {
+    label: 'PASS',
+    cls: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200',
+    iconCls: 'text-emerald-600',
+    summary: 'Oracle data healthy — safe to proceed.',
+  },
+  CAUTION: {
+    label: 'CAUTION',
+    cls: 'bg-amber-100 text-amber-700 ring-1 ring-amber-200',
+    iconCls: 'text-amber-600',
+    summary: 'Minor risk signals — consider reducing size.',
+  },
+  DANGER: {
+    label: 'DANGER',
+    cls: 'bg-orange-100 text-orange-700 ring-1 ring-orange-200',
+    iconCls: 'text-orange-600',
+    summary: 'Significant oracle risk — do not act without review.',
+  },
+  BLOCK: {
+    label: 'BLOCK',
+    cls: 'bg-red-100 text-red-700 ring-1 ring-red-200',
+    iconCls: 'text-red-600',
+    summary: 'Critical risk — do not act. Oracle may be manipulated.',
+  },
+};
+
+/** Risk-score color helper shared by the forward-looking ML risk lines. */
+function riskColor(score: number): string {
+  if (score >= 0.5) return 'text-red-600';
+  if (score >= 0.3) return 'text-amber-600';
+  return 'text-emerald-600';
+}
+
 /**
  * Lending-path decision panel: renders how much of the protocol's max-LTV
  * liquidation buffer the current cross-oracle dispersion consumes, plus the
  * concrete actions (freeze / wait / add collateral) recommended by the
- * deterministic rule engine. Renders nothing when the check carried no
- * protocol context (e.g. swap actions).
+ * deterministic rule engine, plus the live pre-trade verdict and the
+ * forward-looking ML manipulation risk. Renders nothing when the check carried
+ * no protocol context (e.g. swap actions).
  *
  * Shared between the pre-trade demo on the /ai page and the live
  * /safety-check position page (where it answers "is it safe to open or
@@ -28,9 +68,32 @@ export const ACTION_SEVERITY_STYLE: Record<LendingSafetyAction['severity'], stri
 export function LendingSafetyPanel({
   protocolSafety,
   actions,
+  verdict,
+  maxDeviationPct,
+  crossProviderAgreement,
+  participantCount,
+  manipulationRiskScore,
+  mlScore1h,
+  mlScore6h,
+  anomalyScore,
 }: {
   protocolSafety: ProtocolSafetyContext | null;
   actions: LendingSafetyAction[];
+  /** Pre-trade verdict summarizing all oracle signals into one decision. */
+  verdict?: PreTradeVerdict;
+  /** Live max |deviation from consensus| for the checked asset. */
+  maxDeviationPct?: number;
+  /** Share of providers agreeing on the consensus price (0..1). */
+  crossProviderAgreement?: number;
+  participantCount?: number;
+  /** Effective manipulation-risk score [0,1] (ML-assisted when a model is active). */
+  manipulationRiskScore?: number;
+  /** Predictive ML risk, near-term 1h horizon (null when the model is inactive). */
+  mlScore1h?: number | null;
+  /** Predictive ML risk, strategic 6h horizon (null when the model is inactive). */
+  mlScore6h?: number | null;
+  /** Model-free 24h baseline anomaly score [0,1]. */
+  anomalyScore?: number;
 }) {
   if (!protocolSafety && actions.length === 0) return null;
 
@@ -93,7 +156,85 @@ export function LendingSafetyPanel({
         </span>
       </div>
 
+      {verdict && (
+        <div className="mb-3 flex items-start gap-2.5 rounded-xl bg-slate-50 border border-slate-200 p-3">
+          <span
+            className={`shrink-0 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md tracking-wide ${VERDICT_STYLE[verdict].cls}`}
+          >
+            Pre-Trade {VERDICT_STYLE[verdict].label}
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs text-slate-700">{VERDICT_STYLE[verdict].summary}</p>
+            {(maxDeviationPct !== undefined ||
+              crossProviderAgreement !== undefined ||
+              participantCount !== undefined) && (
+              <p className="mt-1 text-[11px] font-mono text-slate-500">
+                {maxDeviationPct !== undefined && (
+                  <span
+                    className={
+                      Math.abs(maxDeviationPct) >= 3 ? 'text-red-600 font-semibold' : undefined
+                    }
+                  >
+                    dev {maxDeviationPct.toFixed(2)}%
+                  </span>
+                )}
+                {maxDeviationPct !== undefined && crossProviderAgreement !== undefined && ' · '}
+                {crossProviderAgreement !== undefined && (
+                  <span
+                    className={
+                      crossProviderAgreement < 0.85 ? 'text-red-600 font-semibold' : undefined
+                    }
+                  >
+                    agreement {(crossProviderAgreement * 100).toFixed(0)}%
+                  </span>
+                )}
+                {participantCount !== undefined && <span> · {participantCount} providers</span>}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {protocolSafety && <BufferConsumptionBar safety={protocolSafety} />}
+
+      {(mlScore1h !== null || mlScore6h !== null || anomalyScore !== undefined) && (
+        <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200 p-3">
+          <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Activity className="w-3 h-3" />
+            Forward-looking oracle risk
+          </p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+            {(mlScore1h !== null || mlScore6h !== null) && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">ML 1h / 6h</span>
+                <span
+                  className={`font-mono font-semibold ${riskColor(
+                    Math.max(mlScore1h ?? 0, mlScore6h ?? 0)
+                  )}`}
+                >
+                  {mlScore1h?.toFixed(2) ?? '—'} / {mlScore6h?.toFixed(2) ?? '—'}
+                </span>
+              </div>
+            )}
+            {anomalyScore !== undefined && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Anomaly (24h)</span>
+                <span className={`font-mono font-semibold ${riskColor(anomalyScore)}`}>
+                  {anomalyScore.toFixed(2)}
+                </span>
+              </div>
+            )}
+          </div>
+          {manipulationRiskScore !== undefined && (
+            <p className="mt-1.5 text-[11px] text-slate-500">
+              Manipulation risk{' '}
+              <span className={`font-mono font-semibold ${riskColor(manipulationRiskScore)}`}>
+                {manipulationRiskScore.toFixed(2)}
+              </span>
+            </p>
+          )}
+        </div>
+      )}
 
       {actions.length > 0 && (
         <div className="mt-3 space-y-2">

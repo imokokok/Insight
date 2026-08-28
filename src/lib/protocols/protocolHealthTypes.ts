@@ -64,6 +64,18 @@ export interface SafetyBufferAnalysis {
   bandUnknown: boolean;
   description: string;
   recommendations: string[];
+  // Live cross-oracle consensus deviation actually used for the oracle-uncertainty
+  // deduction: max |deviation from consensus| across the position's assets, fetched
+  // on-demand. 0 when no live consensus data was available.
+  liveConsensusDeviationPercent: number;
+  // Data source behind the oracle-uncertainty deduction:
+  //  - 'live': on-demand cross-oracle consensus deviation (most current)
+  //  - 'reputation': provider-level historical averages from the scheduled cache
+  //  - 'none': no oracle signal → conservative placeholder band
+  consensusSource: 'live' | 'reputation' | 'none';
+  // Per-asset live consensus deviations (symbol → max |deviation from consensus| %),
+  // for breakdown display. Empty when unavailable.
+  liveConsensusDeviations: Record<string, number>;
 }
 
 export interface OracleWarning {

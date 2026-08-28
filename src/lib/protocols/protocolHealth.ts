@@ -114,7 +114,8 @@ export async function calculatePositionCriticalDeviation(
   ) => Promise<PriceLookup[]>,
   oracleWarnings?: OracleWarning[],
   liveAssetDeviations?: Record<string, number>,
-  protocolOverride?: EnrichedProtocolConfig
+  protocolOverride?: EnrichedProtocolConfig,
+  liveConsensusDeviations?: Record<string, number>
 ): Promise<PositionCriticalResult> {
   const startTime = Date.now();
 
@@ -308,7 +309,8 @@ export async function calculatePositionCriticalDeviation(
       currentHealthFactor,
       assetDeviations,
       oracleWarnings ?? [],
-      liveAssetDeviations ?? {}
+      liveAssetDeviations ?? {},
+      liveConsensusDeviations ?? {}
     );
 
     // Fixed deviation scenarios (1% / 3% / 5%) for user-friendly risk assessment

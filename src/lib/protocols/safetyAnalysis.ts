@@ -215,15 +215,27 @@ export function analyzeSafetyBuffer(
   healthFactor: number,
   assetDeviations: AssetDeviationResult[],
   oracleWarnings: OracleWarning[],
-  liveAssetDeviations: Record<string, number> = {}
+  liveAssetDeviations: Record<string, number> = {},
+  liveConsensusDeviations: Record<string, number> = {}
 ): SafetyBufferAnalysis {
   const theoreticalBufferPercent = Math.abs(worstDeviation.criticalDeviationPercent);
 
-  // Oracle consensus deviation: how far providers disagree right now.
-  const hasOracleData = oracleWarnings.length > 0;
-  const oracleAvgDeviationPercent = hasOracleData
+  // Oracle consensus deviation: prefer the LIVE cross-oracle consensus deviation
+  // (computed on-demand from this position's assets right now) over the provider
+  // historical averages from the reputation cache. Live data is asset-specific and
+  // current; the reputation average is a minutes-stale schedule-cached provider
+  // figure. The worst asset's live deviation dominates (conservative).
+  const hasReputationData = oracleWarnings.length > 0;
+  const liveConsensusValues = Object.values(liveConsensusDeviations).filter(
+    (v) => Number.isFinite(v) && v > 0
+  );
+  const liveConsensusDeviationPercent =
+    liveConsensusValues.length > 0 ? Math.max(...liveConsensusValues) : 0;
+  const oracleAvgDeviationPercent = hasReputationData
     ? oracleWarnings.reduce((sum, w) => sum + w.avgDeviationPct, 0) / oracleWarnings.length
     : 0;
+
+  const hasOracleData = hasReputationData || liveConsensusDeviationPercent > 0;
 
   // Live depeg/peg risk: sum of absolute live deviations for position assets
   const liveDepegBreakdown: Record<string, number> = {};
@@ -249,14 +261,25 @@ export function analyzeSafetyBuffer(
       )
     : 0;
 
-  // Oracle-unknown uncertainty: when reputation data is missing we cannot verify
-  // the oracle at all. That is the MOST uncertain case, not zero — use a
-  // conservative placeholder and flag the band as unknown.
+  // Oracle-unknown uncertainty: when we have neither live consensus nor reputation
+  // data we cannot verify the oracle at all. That is the MOST uncertain case, not
+  // zero — use a conservative placeholder and flag the band as unknown.
   const UNKNOWN_ORACLE_UNCERTAINTY = 10;
   const bandUnknown = !hasOracleData;
-  const oracleUncertaintyPercent = hasOracleData
-    ? oracleAvgDeviationPercent
-    : UNKNOWN_ORACLE_UNCERTAINTY;
+  // Live consensus deviation wins when present; reputation average only when no
+  // live signal exists; otherwise the conservative placeholder.
+  const oracleUncertaintyPercent =
+    liveConsensusDeviationPercent > 0
+      ? liveConsensusDeviationPercent
+      : hasOracleData
+        ? oracleAvgDeviationPercent
+        : UNKNOWN_ORACLE_UNCERTAINTY;
+  const consensusSource: SafetyBufferAnalysis['consensusSource'] =
+    liveConsensusDeviationPercent > 0
+      ? 'live'
+      : oracleAvgDeviationPercent > 0
+        ? 'reputation'
+        : 'none';
 
   // Oracle uncertainty band (adverse half-width, % of price). Combines consensus
   // deviation, live depeg, and staleness into a single ± figure around the
@@ -283,9 +306,11 @@ export function analyzeSafetyBuffer(
   const deductionParts: string[] = [];
   if (oracleUncertaintyPercent > 0) {
     deductionParts.push(
-      hasOracleData
-        ? `${oracleUncertaintyPercent.toFixed(2)}% oracle deviation`
-        : `${oracleUncertaintyPercent.toFixed(2)}% oracle uncertainty (unverified)`
+      consensusSource === 'live'
+        ? `${oracleUncertaintyPercent.toFixed(2)}% live cross-oracle deviation`
+        : consensusSource === 'reputation'
+          ? `${oracleUncertaintyPercent.toFixed(2)}% oracle deviation (provider history)`
+          : `${oracleUncertaintyPercent.toFixed(2)}% oracle uncertainty (unverified)`
     );
   }
   if (liveDepegRiskPercent > 0) {
@@ -378,6 +403,11 @@ export function analyzeSafetyBuffer(
     bandUnknown,
     description,
     recommendations: recommendations.length > 0 ? recommendations : ['Position is in good shape'],
+    liveConsensusDeviationPercent: roundTo(liveConsensusDeviationPercent, 2),
+    consensusSource,
+    liveConsensusDeviations: Object.fromEntries(
+      Object.entries(liveConsensusDeviations).map(([s, d]) => [s, roundTo(d, 4)])
+    ),
   };
 }
 

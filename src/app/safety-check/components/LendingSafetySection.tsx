@@ -28,6 +28,17 @@ const CHAIN_NAME_TO_ID: Record<string, number> = {
 interface PreTradePayload {
   protocolSafety: ProtocolSafetyContext | null;
   recommendedActions: LendingSafetyAction[];
+  // Decision summary + forward-looking signals surfaced from the live pre-trade
+  // check so the position page shows not only "how far from liquidation" but
+  // "is it safe to act right now" (verdict) and the predictive ML risk.
+  verdict?: 'PASS' | 'CAUTION' | 'DANGER' | 'BLOCK';
+  maxDeviationPct?: number;
+  crossProviderAgreement?: number;
+  participantCount?: number;
+  manipulationRiskScore?: number;
+  mlScore1h?: number | null;
+  mlScore6h?: number | null;
+  anomalyScore?: number;
 }
 
 export function LendingSafetySection({
@@ -93,9 +104,28 @@ export function LendingSafetySection({
           setData({
             protocolSafety: payload.protocolSafety ?? null,
             recommendedActions: payload.recommendedActions ?? [],
+            verdict: payload.verdict,
+            maxDeviationPct: payload.maxDeviationPct,
+            crossProviderAgreement: payload.crossProviderAgreement,
+            participantCount: payload.participantCount,
+            manipulationRiskScore: payload.manipulationRiskScore,
+            mlScore1h: payload.mlScore1h ?? null,
+            mlScore6h: payload.mlScore6h ?? null,
+            anomalyScore: payload.anomalyScore,
           });
         } else {
-          setData({ protocolSafety: null, recommendedActions: [] });
+          setData({
+            protocolSafety: null,
+            recommendedActions: [],
+            verdict: undefined,
+            maxDeviationPct: undefined,
+            crossProviderAgreement: undefined,
+            participantCount: undefined,
+            manipulationRiskScore: undefined,
+            mlScore1h: null,
+            mlScore6h: null,
+            anomalyScore: undefined,
+          });
         }
       })
       .catch((err) => {
@@ -139,16 +169,25 @@ export function LendingSafetySection({
         </div>
       )}
 
-      {data && (data.protocolSafety || data.recommendedActions.length > 0) && (
+      {data && (data.protocolSafety || data.recommendedActions.length > 0 || data.verdict) && (
         <LendingSafetyPanel
           protocolSafety={data.protocolSafety}
           actions={data.recommendedActions}
+          verdict={data.verdict}
+          maxDeviationPct={data.maxDeviationPct}
+          crossProviderAgreement={data.crossProviderAgreement}
+          participantCount={data.participantCount}
+          manipulationRiskScore={data.manipulationRiskScore}
+          mlScore1h={data.mlScore1h}
+          mlScore6h={data.mlScore6h}
+          anomalyScore={data.anomalyScore}
         />
       )}
 
       {data &&
         !data.protocolSafety &&
         data.recommendedActions.length === 0 &&
+        !data.verdict &&
         !loading &&
         !error && (
           <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
