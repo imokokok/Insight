@@ -1,6 +1,6 @@
 // Build the VRT1 §8.5 key_registry_snapshot GENESIS for Insight.
 //
-// Per Tutankhamun 2026-08-28 (round 3):
+// Per VRT1 §8.5:
 //   - the signing agent key MUST appear in params.snapshot.keys (key_type
 //     secp256k1_xonly) or the registry still has nothing binding the signer
 //     to Insight — the circularity moves up one level instead of going away
@@ -111,9 +111,9 @@ const aid = actionId(payload);
 const sig = bytesToHex(schnorr.sign(hexToBytes(aid), agentPriv, randomBytes(32)));
 
 const genesis = {
-  // draft flag dropped per Tutankhamun 2026-08-28 (round 3): the genesis is
-  // anchored (block 964,407), a "draft" label on the trust root of the whole
-  // key history would be wrong. NOTE: do not re-run this script for the real
+  // No draft flag: the genesis is anchored (block 964,407), a "draft" label on
+  // the trust root of the whole key history would be wrong.
+  // NOTE: do not re-run this script for the real
   // genesis - a fresh ts would change the action_id away from the anchored
   // 87b750e4...
   record_type: 'key_registry_snapshot',
@@ -123,7 +123,7 @@ const genesis = {
   canonical_byte_length: canonHex.length / 2,
   agent_pubkey_xonly_hex: agentPub,
   sig_hex: sig,
-  note: 'Genesis snapshot. No parent_action (omitted, never null). Agent key listed in keys (secp256k1_xonly) so the registry binds its own signer; recovery key listed from genesis per the round-3 recommendation. Signed by the agent key with fresh aux_rand.',
+  note: 'Genesis snapshot. No parent_action (omitted, never null). Agent key listed in keys (secp256k1_xonly) so the registry binds its own signer; a second recovery key is listed from genesis because the design has no recovery path otherwise. Signed by the agent key with fresh aux_rand.',
 };
 writeFileSync(outPath, JSON.stringify(genesis, null, 2));
 console.log(`agent pubkey   : ${agentPub}`);

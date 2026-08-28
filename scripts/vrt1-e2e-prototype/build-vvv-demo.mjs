@@ -1,9 +1,10 @@
 // VVV->USDC end-to-end VRT1 record (second-asset demo).
 //
-// Data: real production VVV->USDC BLOCK output collected 2026-08 (interai
-// deliverable-1): sourceGroupCount=2 == independence requirement, coverage
-// INSUFFICIENT at 2/3 participants — the gate binds at its exact threshold and
-// the coverage gate fails closed, so the verdict is BLOCK.
+// Data: real production VVV->USDC BLOCK output collected 2026-08
+// (an earlier delivery, kept outside this repository): sourceGroupCount=2 ==
+// independence requirement, coverage INSUFFICIENT at 2/3 participants — the gate
+// binds at its exact threshold and the coverage gate fails closed, so the
+// verdict is BLOCK.
 //
 // Inner EIP-712: signed locally with a DEMO attester key, because the
 // production attester private key is locked in Vercel env vars and cannot sign
@@ -32,12 +33,16 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Real production VVV->USDC BLOCK data (2026-08, sourceGroupCount=2)
-const src = JSON.parse(
-  readFileSync(
-    process.env.HOME + '/.workbuddy/interai_deliverable/deliverable-1-pre-trade-responses.json',
-    'utf8'
-  )
-);
+const srcPath = process.env.VRT1_VVV_SOURCE;
+if (!srcPath) {
+  console.error(
+    'Set VRT1_VVV_SOURCE to the pre-trade responses JSON.\n' +
+      'This input lives outside the repository and is not redistributable, so it\n' +
+      'is passed in rather than hard-coded.'
+  );
+  process.exit(1);
+}
+const src = JSON.parse(readFileSync(srcPath, 'utf8'));
 const findVVV = (o) => {
   if (o === null || typeof o !== 'object') return null;
   if (o.sourceAssetId && String(o.sourceAssetId).includes('VVV')) return o;

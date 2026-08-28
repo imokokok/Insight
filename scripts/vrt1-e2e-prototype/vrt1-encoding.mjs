@@ -1,7 +1,6 @@
 // VRT1 canonical encoding shared module.
 //
-// Single source of truth for the canonical encoding rules agreed with
-// Tutankhamun (VERITAS) on 2026-08-27:
+// Single source of truth for the canonical encoding rules (VRT1 §5.1/§5.2):
 //
 //   Class A (hex-encoded byte fields) -> strip 0x, lowercase:
 //     the four evidence hashes (reasonCodesHash, requestHash,
@@ -28,9 +27,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export { canonicalize };
 
 export const VRT1_ACTION_TAG = 'VRT1/agent-action';
-// Per Tutankhamun (2026-08-27): the aux_rand for the Schnorr signatures is
-// thirty two zero bytes. Without it you produce a valid signature that is not
-// the same signature.
+// Per VRT1 §5.2: the aux_rand for the Schnorr signatures is thirty two zero
+// bytes. Without it you produce a valid signature that is not the same
+// signature.
 export const AUX_RAND = new Uint8Array(32); // 32 zero bytes
 
 // ---- encoding rule classes (two literal sets, as in the counterparty generator) ----
@@ -108,7 +107,7 @@ export function actionId(payload) {
 }
 
 // Build the canonical payload from a production receipt, byte-exact to the
-// counterparty generator (gen-insight-vectors.py, Tutankhamun 2026-08-27):
+// shared conformance suite in conformance-round2/conformance-vectors/:
 //   - agent key: DEMO 0x55..55 (published so vectors are reproducible)
 //   - eip712_attestation: {attester, signature, uid, signedAt, domain, primary_type}
 //     (no verify_url; domain.chainId as decimal STRING)
@@ -130,8 +129,8 @@ export function buildCanonicalPayload(receipt, agentPubXOnly, encode = 'canonica
       return toDecimalString(raw);
     }
     if (encode === 'neg-caip19-lower' && CAIP19_FIELDS.has(f.name)) {
-      // negative: wrongly lowercase a CAIP-19 identifier (field-type scoped,
-      // per Tutankhamun 2026-08-28: only CAIP-19 fields, nothing else)
+      // negative: wrongly lowercase a CAIP-19 identifier (field-type scoped:
+      // only CAIP-19 fields, nothing else)
       return String(raw).toLowerCase();
     }
     return raw; // string: CAIP-19 etc, byte-identical
@@ -161,7 +160,7 @@ export function buildCanonicalPayload(receipt, agentPubXOnly, encode = 'canonica
         primary_type: att.eip712.primaryType,
       },
     },
-    target: `${structFields.sourceAssetId}->${structFields.destinationAssetId}`, // CAIP-19, casing preserved; built from the MUTATED struct so negatives exercise it (Tutankhamun 2026-08-28)
+    target: `${structFields.sourceAssetId}->${structFields.destinationAssetId}`, // CAIP-19, casing preserved; built from the MUTATED struct so negatives exercise it
     ts: data.checkedAt,
   });
 }

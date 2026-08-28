@@ -60,5 +60,5 @@
   "canonical_byte_length": 1133,
   "agent_pubkey_xonly_hex": "299a3d33b17a6ee05f3fdf0b10cde3a074a6c49bb918ffb5ce404ea61762142b",
   "sig_hex": "8ff7c6923a0292cca5fbfa72d0c82983d30edc23c2441cbbccd94b88fbd0db36d7399c1e12b7cb4c3547ed46acf00a09d9180b0cb1786601fa3ce7d69141231a",
-  "note": "Genesis snapshot. No parent_action (omitted, never null). Agent key listed in keys (secp256k1_xonly) so the registry binds its own signer; recovery key listed from genesis per the round-3 recommendation. Signed by the agent key with fresh aux_rand."
+  "note": "Genesis snapshot. No parent_action (omitted, never null). Agent key listed in keys (secp256k1_xonly) so the registry binds its own signer; a second recovery key is listed from genesis because the design has no recovery path otherwise. Signed by the agent key with fresh aux_rand."
 }

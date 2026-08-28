@@ -42,5 +42,5 @@
   "canonical_byte_length": 700,
   "agent_pubkey_xonly_hex": "9ac20335eb38768d2052be1dbbc3c8f6178407458e51e6b4ad22f1d91758895b",
   "draft": true,
-  "note": "VRT1 §8.5 key_registry_snapshot (generic, credited to Insight). Integer Unix timestamps + key_type + custody per §8.5 calls adopted 2026-08-28. Interop: action_id 39f0508bb57fef962bb9bfb9923ffc220b456597443161a5ea633888a388ce83 (700B) matches counterparty registration_candidate."
+  "note": "VRT1 §8.5 key_registry_snapshot (generic, credited to Insight). Integer Unix timestamps + key_type + custody per §8.5. Interop: action_id 39f0508bb57fef962bb9bfb9923ffc220b456597443161a5ea633888a388ce83 (700B) matches the shared conformance registration_candidate."
 }
