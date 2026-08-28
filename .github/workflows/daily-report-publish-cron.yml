@@ -8,11 +8,19 @@ name: Daily Report Publish
 # report generation can exceed the ceiling. Delegates to the same
 # `runDailyReportPublish()` used by the HTTP route, so behaviour is
 # identical — only the executor changes.
+#
+# Self-healing:
+#   - The primary job retries a transient failure up to 3 times with backoff.
+#   - A second scheduled run later in the day (backfill) re-publishes only if
+#     the report row is still missing (--if-missing), so a dropped or very
+#     late GitHub `schedule` trigger still gets the report out that day.
 
 on:
   schedule:
-    # Every day at 00:00 UTC (08:00 Beijing Time)
+    # Primary: every day at 00:00 UTC (08:00 Beijing Time)
     - cron: '0 0 * * *'
+    # Backfill: every day at 05:30 UTC (13:30 Beijing Time) — self-heal fallback
+    - cron: '30 5 * * *'
   workflow_dispatch:
 
 permissions:
@@ -20,8 +28,10 @@ permissions:
 
 jobs:
   publish-report:
+    name: Publish (00:00 UTC)
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 0 * * *'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -30,8 +40,41 @@ jobs:
           cache: 'npm'
       - run: npm ci
 
-      - name: Publish previous day's daily report
+      - name: Publish previous day's daily report (retry x3)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: npx tsx scripts/daily-report-publish.ts
+        run: |
+          set -u
+          for attempt in 1 2 3; do
+            echo "[daily-report-publish] attempt ${attempt}/3"
+            if npx tsx scripts/daily-report-publish.ts; then
+              echo "[daily-report-publish] completed on attempt ${attempt}"
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "[daily-report-publish] attempt ${attempt} failed; retrying in $((attempt * 60))s"
+              sleep "$((attempt * 60))"
+            fi
+          done
+          echo "::error::All 3 publish attempts failed"
+          exit 1
+
+  backfill-report:
+    name: Backfill (05:30 UTC, if missing)
+    if: github.event.schedule == '30 5 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Publish previous day's report only if missing
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/daily-report-publish.ts --if-missing
