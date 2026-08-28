@@ -16,32 +16,25 @@ export const ACTION_SEVERITY_STYLE: Record<LendingSafetyAction['severity'], stri
 
 type PreTradeVerdict = 'PASS' | 'CAUTION' | 'DANGER' | 'BLOCK';
 
-const VERDICT_STYLE: Record<
-  PreTradeVerdict,
-  { label: string; cls: string; iconCls: string; summary: string }
-> = {
+const VERDICT_STYLE: Record<PreTradeVerdict, { label: string; cls: string; summary: string }> = {
   PASS: {
     label: 'PASS',
     cls: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200',
-    iconCls: 'text-emerald-600',
     summary: 'Oracle data healthy — safe to proceed.',
   },
   CAUTION: {
     label: 'CAUTION',
     cls: 'bg-amber-100 text-amber-700 ring-1 ring-amber-200',
-    iconCls: 'text-amber-600',
     summary: 'Minor risk signals — consider reducing size.',
   },
   DANGER: {
     label: 'DANGER',
     cls: 'bg-orange-100 text-orange-700 ring-1 ring-orange-200',
-    iconCls: 'text-orange-600',
     summary: 'Significant oracle risk — do not act without review.',
   },
   BLOCK: {
     label: 'BLOCK',
     cls: 'bg-red-100 text-red-700 ring-1 ring-red-200',
-    iconCls: 'text-red-600',
     summary: 'Critical risk — do not act. Oracle may be manipulated.',
   },
 };
@@ -95,7 +88,10 @@ export function LendingSafetyPanel({
   /** Model-free 24h baseline anomaly score [0,1]. */
   anomalyScore?: number;
 }) {
-  if (!protocolSafety && actions.length === 0) return null;
+  // Render when there is a lending context to show OR a live pre-trade verdict
+  // (the verdict carries the decision even when the protocol has no buffer
+  // context, e.g. an unrecognized protocol still gets a consensus/ML verdict).
+  if (!protocolSafety && actions.length === 0 && !verdict) return null;
 
   const frozen = actions.some((a) => a.type === 'freeze_borrow');
   const bufferPct = protocolSafety?.bufferConsumedPct ?? 0;
@@ -147,13 +143,17 @@ export function LendingSafetyPanel({
       <div className="flex items-center gap-2 mb-3">
         <levelConfig.Icon className={`w-5 h-5 ${levelConfig.iconColor}`} />
         <h4 className="text-sm font-semibold text-slate-900">
-          Lending Safety · {protocolSafety?.protocolName ?? 'Protocol'}
+          {protocolSafety
+            ? `Lending Safety · ${protocolSafety.protocolName}`
+            : 'Pre-Trade Safety Check'}
         </h4>
-        <span
-          className={`ml-auto px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full tracking-wide ${levelConfig.cls}`}
-        >
-          {levelConfig.label}
-        </span>
+        {protocolSafety && (
+          <span
+            className={`ml-auto px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full tracking-wide ${levelConfig.cls}`}
+          >
+            {levelConfig.label}
+          </span>
+        )}
       </div>
 
       {verdict && (
