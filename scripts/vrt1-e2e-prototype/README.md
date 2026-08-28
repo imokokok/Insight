@@ -4,31 +4,40 @@
 组合双签名（内层 EIP-712/secp256k1 + 外层 BIP340 Schnorr），批量 Merkle，构造 49B OP_RETURN
 锚定载荷，并全程离线验证。
 
-对应合作：Insight × VERITAS（vrt1-spec，Tutankhamun）。事实源见
-`.trae/veritas-collaboration/01-complete-history-and-technical-record.md` §5.4 / §10。
+对应合作：Insight × VERITAS（VRT1 规范，Tutankhamun Castillo El-Bey，proofofagent.net）。
+Insight 是第一个被 VERITAS 锚定 record 的外部实现，也是 §8.5 `key_registry_snapshot`
+record type 的提出方（经对方同意泛化，规范文本 credit Insight 出处）。
+合作往来档案是内部记录，不随本仓库发布。
 
 ## 运行
 
 ```bash
-node scripts/vrt1-e2e-prototype/prototype.mjs                 # 默认用 sample-receipt.json
-node scripts/vrt1-e2e-prototype/prototype.mjs <receipt.json>  # 传入重签/其他 receipt
-node scripts/vrt1-e2e-prototype/convergence-check.mjs         # 本地验收（3 负向量 + 正向量）
-node scripts/vrt1-e2e-prototype/verify-against-vectors.mjs    # 对方 vectors 全量 byte-exact 对拍（最终验收）
-node scripts/vrt1-e2e-prototype/resign-pilot.mjs --private-key <hex> [--out <path>]  # 9/2 重签
-node scripts/vrt1-e2e-prototype/registry-snapshot.mjs         # 第二 record type 候选形态
+npm run verify:vrt1                                           # 校验套件全跑（round-2 一致性 + genesis 合规）
+node scripts/vrt1-e2e-prototype/verify-round2.mjs             # 只跑 round-2 共享 conformance 复算
+node scripts/vrt1-e2e-prototype/verify-round3.mjs             # 只跑我方 §8.5 genesis 合规自检
+node scripts/vrt1-e2e-prototype/prototype.mjs                 # 端到端演示（默认 sample-receipt.json）
+node scripts/vrt1-e2e-prototype/prototype.mjs <receipt.json>  # 传入其他 receipt
+node scripts/vrt1-e2e-prototype/registry-snapshot.mjs         # §8.5 registry record 候选形态
+node scripts/vrt1-e2e-prototype/build-genesis.mjs             # 重建 §8.5 genesis（需 agent 私钥）
+node scripts/vrt1-e2e-prototype/build-vvv-demo.mjs            # VVV→USDC 第二资产演示 record
 ```
 
 依赖：`@noble/curves`（Schnorr/secp256k1）、`@noble/hashes`（sha256）、`viem`（EIP-712）、
-`canonicalize`（RFC 8785 JCS，取自 `~/.workbuddy/insight_aps_demo/node_modules`）。
+`canonicalize`（RFC 8785 JCS）。均已登记在 `package.json`，`npm install` 后即可跑。
+
+`build-genesis.mjs` 与 `build-vvv-demo.mjs` 需要 agent 私钥，私钥不进仓库，
+从 `VRT1_AGENT_KEY_DIR`（默认 `~/.workbuddy/veritas_deliverable/vrt1-agent-keys/`）读取。
+外层 VRT1 签名需要它；内层 EIP-712 生产签名由 Vercel 环境的 attester key 持有，
+本地重建时退化为演示签名（已在产物中如实标注）。
 
 ## 做了什么
 
 1. **工具链自检**（必须先于一切）：用公开 vrt1-spec test vectors 做字节级对拍——
-   - `test-vectors/agent_action.json`：canonical JSON（RFC 8785 字典序）、
+   - `vectors/agent_action.json`：canonical JSON（RFC 8785 字典序）、
      `action_id = tagged_hash("VRT1/agent-action", canonical)`、Schnorr 验签；
-   - `test-vectors/merkle.json`：size=7 树的 Merkle root（RFC-6962 0x00/0x01 前缀 +
+   - `vectors/merkle.json`：size=7 树的 Merkle root（RFC-6962 0x00/0x01 前缀 +
      Bitcoin 式奇数叶子复制，double-SHA256）；
-   - `test-vectors/op_return.json`：49B OP_RETURN 载荷（`VRT1`|version|epoch(8BE)|leaf_count(4BE)|root(32)）。
+   - `vectors/op_return.json`：49B OP_RETURN 载荷（`VRT1`|version|epoch(8BE)|leaf_count(4BE)|root(32)）。
 2. **真实路径**：`sample-receipt.json`（生产 fresh receipt，uid `0x08e2d411…`）→
    26 字段入 `params.oracle_safety_check_v2`、EIP-712 签名/uid 入 `params.eip712_attestation`、
    verdict 入 `outcome`、`ts = checkedAt`（epoch = `floor(ts/600)` = 2979468）→
@@ -38,7 +47,11 @@ node scripts/vrt1-e2e-prototype/registry-snapshot.mjs         # 第二 record ty
 5. **负向量**：篡改 canonical → action_id 变化被拒；翻转 sig 字节 → Schnorr 拒绝；错误 leaf → 包含性证明拒绝。
 6. **从链验证（live，只读）**：抓取 VERITAS 真实主网锚点 `92b2c4e4…5aafa0`（block 953,581），按 §5.1 解析其 OP_RETURN（tag/version/epoch/leaf_count/root），证明链上真实载荷与本构造器字节格式一致。若网络不可达则 SKIP（离线格式检查由 op_return 向量覆盖）。
 
-产出：`vrt1-action.json`（record + action_id + canonical + 双签名 + Nostr 事件）、`anchor-epoch.json`（epoch/root/OP_RETURN + chain_verify）、`convergence-report.json`（收敛验收）。
+本地产出（不入仓库）：`vrt1-action.json`（record + action_id + canonical + 双签名 + Nostr 事件）、
+`anchor-epoch.json`（epoch/root/OP_RETURN + chain_verify）。
+
+已归档的锚定证据在仓库内：`registry-genesis.json`（§8.5 genesis，action_id `87b750e4…`，
+已由对方锚定于 block 964,407）、`vvv-vrt1-record.json`（VVV→USDC 第二资产演示 record）。
 
 ## Canonical 编码规则（修正版 §5.2/§5.1，对方 2026-08-27 确认；单一事实源 = `vrt1-encoding.mjs`）
 
@@ -51,10 +64,13 @@ node scripts/vrt1-e2e-prototype/registry-snapshot.mjs         # 第二 record ty
 - **eip712_attestation envelope**：`{attester, signature, uid, signedAt, domain{name,version,chainId 字符串}, primary_type}`（无 verify_url，与对方向量一致）。
 - **VRT1 agent key（原型 demo）**：`0x55..55`（对方发布的正向量密钥，可复现；非生产 key）。
 
-**已收敛（byte-exact）**：canonical **1769 字节**、action_id **`157a3cb8…`**（与对方 `insight-vectors/` 完全一致）。
-`verify-against-vectors.mjs` 对拍对方 5 个向量文件（action/merkle/op_return/nostr_1990/negative）：
-正向量全部 byte-exact、5 个负向量全部被拒 → **BYTE-EXACT CONVERGED**。
-`convergence-check.mjs` 本地验收（3 负向量 + 正向量复现）同步通过。
+**已收敛（byte-exact）**：canonical **1769 字节**、action_id **`157a3cb8…`**，与共享 conformance
+套件中的 `positive_oracle_safety_check.json` 逐字节一致。
+
+`npm run verify:vrt1` 全量复算：
+round-2 共享套件 **29/29**（interop draft/candidate、safety-check 正负向量、registry
+genesis/successor 与 5 个负向量、我方 700B 重建 vs candidate byte-exact），
+我方 §8.5 genesis 合规 **9/9**，全绿。
 
 ## 边界（诚实声明）
 
@@ -64,12 +80,12 @@ node scripts/vrt1-e2e-prototype/registry-snapshot.mjs         # 第二 record ty
   批量聚合后每 receipt 边际成本趋近 0）。
 - **VRT1 agent key 是确定性演示密钥**（`0x55..55`，与对方发布的正向量一致，可复现），
   **不是**生产 EIP-712 attester 私钥，也不是正式 VRT1 agent key；正式 key 的派生/注册
-  待与对方确认（对应 §5.4 或独立注册流程）。
+  走 §8.5 genesis（见 `registry-genesis.json`）。
 - 映射形态已按对方 8.27 确认收敛：`insight.oracle-safety-check`（namespaced）、`target` = 资产对、
-  26 字段连续 `params`（非 10/15 拆分）。**已与对方 canonical vectors byte-exact 对拍通过**
-  （`verify-against-vectors.mjs`，18 项全过）。
+  26 字段连续 `params`（非 10/15 拆分），**已与共享 canonical vectors byte-exact 对拍通过**（29 项全过）。
 - epoch 对齐：VRT1 epoch = 600s（§2.2）与 receipt `validUntil = checkedAt + 600s` 巧合对齐，
-  原型以 `floor(checkedAt/600)` 取 epoch（本例 2979468）；该语义在 reserved type 注册时一并确认。
+  原型以 `floor(checkedAt/600)` 取 epoch（本例 2979468）；按 2.2 AMENDED，epoch 是**批次标签而非时钟**，
+  跨 oracle 不可比，时间证据来自锚定区块且只是上界。
 - 签名确定性：固定 aux_rand = 32 零字节（规范），保证重跑字节稳定。
-- **9/2 时限项**：`sample-receipt.json` 用旧 key（validUntil 2026-09-02）签，9/2 后锚定会被
-  verifier 拒；`resign-pilot.mjs` 用当前 key 重签（同 26 字段 + 新时间戳，uid/action_id 随之变化）。
+- `sample-receipt.json` 由 2026-08 的 attester key 签名，该 key 的发布窗口已随密钥轮换
+  （Route A，2026-08-27）关闭，故它只作编码与流程演示，不再作为待锚定对象。

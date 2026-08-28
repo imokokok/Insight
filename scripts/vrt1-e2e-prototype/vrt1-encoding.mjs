@@ -15,18 +15,17 @@
 //
 //   uint256 -> decimal strings (spec §5.1).
 //
-// Used by prototype.mjs (real path) and convergence-check.mjs (acceptance).
+// Used by prototype.mjs (real path), registry-snapshot.mjs and build-genesis.mjs.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import canonicalize from 'canonicalize';
 import { schnorr } from '@noble/curves/secp256k1';
 import { sha256 } from '@noble/hashes/sha256';
 import { bytesToHex, hexToBytes, concatBytes } from '@noble/hashes/utils';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-export const canonicalize = (
-  await import('file:///Users/imokokok/.workbuddy/insight_aps_demo/node_modules/canonicalize/lib/canonicalize.js')
-).default;
+export { canonicalize };
 
 export const VRT1_ACTION_TAG = 'VRT1/agent-action';
 // Per Tutankhamun (2026-08-27): the aux_rand for the Schnorr signatures is
