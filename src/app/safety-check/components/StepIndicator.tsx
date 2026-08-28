@@ -101,7 +101,12 @@ export function StepIndicator({ isCalculating, hasResult, hasError }: StepIndica
           })}
         </div>
 
-        <div className="absolute top-4 left-0 right-0 h-0.5 bg-slate-100 -z-0">
+        {/* Connector line: runs between the first and last step circle centers.
+            Each of the 4 equal flex-1 steps spans 25% of the row, so circle
+            centers sit at 12.5% / 37.5% / 62.5% / 87.5% — left-[12.5%]
+            right-[12.5%] keeps the line under the circles instead of running
+            edge-to-edge past them (which overflows the card visually). */}
+        <div className="absolute top-4 left-[12.5%] right-[12.5%] h-0.5 bg-slate-100 -z-0">
           <motion.div
             className={cn('h-full rounded-full', hasError ? 'bg-red-500' : 'bg-blue-600')}
             initial={false}
