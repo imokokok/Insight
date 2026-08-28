@@ -1,0 +1,57 @@
+name: Oracle Watch Collect
+
+# Low-frequency feed-health snapshot collection for the Oracle Watch time-series
+# spine (feed_health_snapshots). Runs DIRECTLY on the GitHub runner (not a curl
+# to a Vercel function) so it escapes the 60s serverless timeout — a collection
+# pass fans out live cross-oracle fetches across ~16 symbols.
+#
+# Every 30 minutes: evaluates each target through getOracleWatchSignal (live
+# consensus + ML manipulation risk + provider reputation) and appends one row
+# per symbol to feed_health_snapshots, which powers /api/v1/oracle-watch/history.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+# Prevent overlapping runs. If one exceeds 30 min (almost never — typical
+# runtime is well under 2 min), queue rather than cancel (same reasoning as
+# snapshot-collect).
+concurrency:
+  group: oracle-watch-collect
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify required secrets
+        run: |
+          set -u
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
+            echo "::error::SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY secrets are required (same secrets already used by snapshot-collect / ml-train-cron)."
+            exit 1
+          fi
+
+      - name: Collect Oracle Watch snapshots
+        run: npx tsx scripts/collect-oracle-watch.ts

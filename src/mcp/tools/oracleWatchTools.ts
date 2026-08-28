@@ -27,6 +27,12 @@ export const oracleWatchTool: McpToolDefinition<typeof OracleWatchInputSchema> =
       signal.consensusPrice !== null
         ? `- Consensus price: $${formatPrice(signal.consensusPrice)}`
         : '',
+      signal.mlRiskScore !== null
+        ? `- ML manipulation risk: ${signal.mlRiskLevel?.toUpperCase() ?? 'n/a'} (${(signal.mlRiskScore * 100).toFixed(1)}/100, forward-looking)`
+        : '',
+      signal.avgReputation !== null
+        ? `- Provider reputation: avg ${signal.avgReputation} / min ${signal.minReputation ?? 'n/a'} (0-100)`
+        : '',
       '',
       '**Providers:**',
       ...signal.providers.map((p) => {

@@ -18,6 +18,7 @@ import { getAppUrl } from '@/lib/utils/appUrl';
 import { useSession } from '@/stores/authStore';
 
 type Verdict = 'normal' | 'caution' | 'danger';
+type MlRiskLevel = 'low' | 'medium' | 'high';
 
 interface OracleWatchSignal {
   symbol: string;
@@ -31,6 +32,12 @@ interface OracleWatchSignal {
   staleCount: number;
   consensusPrice: number | null;
   reason: string;
+  mlRiskScore: number | null;
+  mlScore1h: number | null;
+  mlScore6h: number | null;
+  mlRiskLevel: MlRiskLevel | null;
+  avgReputation: number | null;
+  minReputation: number | null;
   providers: Array<{
     provider: string;
     status: 'success' | 'unsupported' | 'error';
@@ -270,7 +277,62 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
             warn={result.outlierCount > 0}
           />
           <Metric label="Stale" value={String(result.staleCount)} warn={result.staleCount > 0} />
+          <Metric
+            label="Avg Reputation"
+            value={result.avgReputation !== null ? result.avgReputation.toFixed(1) : 'n/a'}
+            warn={(result.avgReputation ?? 100) < 60}
+          />
+          <Metric
+            label="Min Reputation"
+            value={result.minReputation !== null ? result.minReputation.toFixed(1) : 'n/a'}
+            warn={(result.minReputation ?? 100) < 50}
+          />
         </div>
+
+        {result.mlRiskScore !== null && result.mlRiskLevel !== null && (
+          <div className="mt-3 pt-3 border-t border-slate-200/70">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                ML Manipulation Risk (advisory)
+              </span>
+              <span className="text-[11px] font-semibold uppercase text-slate-400">
+                score {result.mlRiskScore.toFixed(3)}
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  result.mlRiskLevel === 'high'
+                    ? 'bg-red-500'
+                    : result.mlRiskLevel === 'medium'
+                      ? 'bg-amber-400'
+                      : 'bg-emerald-500'
+                }`}
+                style={{ width: `${Math.min(100, Math.max(4, result.mlRiskScore * 100))}%` }}
+              />
+            </div>
+            <div className="mt-1.5 flex items-center justify-between text-[11px] text-slate-500">
+              <span>
+                Level:{' '}
+                <span
+                  className={`font-semibold uppercase ${
+                    result.mlRiskLevel === 'high'
+                      ? 'text-red-600'
+                      : result.mlRiskLevel === 'medium'
+                        ? 'text-amber-600'
+                        : 'text-emerald-600'
+                  }`}
+                >
+                  {result.mlRiskLevel}
+                </span>{' '}
+                · 1h {result.mlScore1h?.toFixed(3)} · 6h {result.mlScore6h?.toFixed(3)}
+              </span>
+              <span className="text-[10px] text-slate-400">
+                forward-looking, does not override verdict
+              </span>
+            </div>
+          </div>
+        )}
 
         <div className="mt-3 pt-2.5 border-t border-slate-200/70 flex items-center gap-1.5 text-[11px] text-slate-500">
           <Radar className="w-3 h-3" />
@@ -363,6 +425,10 @@ The agent returns a machine-readable verdict:
 #   "participantCount": 4,
 #   "outlierCount": 0,
 #   "staleCount": 0,
+#   "mlRiskScore": 0.08,         # forward-looking manipulation risk (advisory)
+#   "mlRiskLevel": "low",
+#   "avgReputation": 92.5,
+#   "minReputation": 88.0,
 #   "providers": [ ... ]
 # } }`;
 

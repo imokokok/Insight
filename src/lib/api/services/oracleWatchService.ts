@@ -1,6 +1,10 @@
 import { UnsupportedSymbolError } from '@/lib/errors';
+import { scorePreTradeMultiHorizon } from '@/lib/ml/inference';
+import { TTLCache } from '@/lib/utils/cache';
+import { roundTo } from '@/lib/utils/format';
 
 import { getConsensusPrice, type ConsensusPriceResponse } from './consensusPriceService';
+import { fetchHistoricalOracleState } from './oracleWatchHistory';
 
 /**
  * Oracle Watch — the always-on companion to Pre-Trade.
@@ -13,10 +17,28 @@ import { getConsensusPrice, type ConsensusPriceResponse } from './consensusPrice
  * (maxProviderDeviationPct: caution 1.0 / danger 3.0 / block 8.0; agreement:
  * caution 0.95 / danger 0.85 / block 0.7) so both surfaces speak the same
  * severity language.
+ *
+ * ML risk score: the present-state verdict is pure threshold rules over live
+ * cross-oracle deviation/agreement/outliers/staleness (unchanged). On top of
+ * that, a forward-looking ML manipulation-risk score is surfaced as an
+ * ADVISORY signal (mlRiskScore + mlRiskLevel) built from the same
+ * PreTradeFeatures consumed by pre-trade's ML scorer — it does not override
+ * the threshold verdict.
  */
 
 export type OracleWatchSeverity = 'normal' | 'caution' | 'danger';
 export type OracleWatchRecommendation = 'proceed' | 'proceed_with_caution' | 'halt';
+export type OracleWatchMlRiskLevel = 'low' | 'medium' | 'high';
+
+export interface OracleWatchProvider {
+  provider: string;
+  status: 'success' | 'unsupported' | 'error';
+  deviationPct: number | null;
+  isOutlier: boolean;
+  isStale: boolean;
+  /** Per-provider reputation (0-100 from the reputation service), if known. */
+  reputationScore: number | null;
+}
 
 export interface OracleWatchResult {
   symbol: string;
@@ -33,13 +55,18 @@ export interface OracleWatchResult {
   consensusPrice: number | null;
   /** Short machine-readable reason for the verdict. */
   reason: string;
-  providers: Array<{
-    provider: string;
-    status: 'success' | 'unsupported' | 'error';
-    deviationPct: number | null;
-    isOutlier: boolean;
-    isStale: boolean;
-  }>;
+  /** Forward-looking ML manipulation-risk score (0-1), advisory. Null if the
+   *  model is unavailable or there is no cross-oracle coverage. */
+  mlRiskScore: number | null;
+  /** Combined score decomposed per horizon; may both be null. */
+  mlScore1h: number | null;
+  mlScore6h: number | null;
+  /** Discrete advisory gate derived from mlRiskScore. */
+  mlRiskLevel: OracleWatchMlRiskLevel | null;
+  /** Average / worst reputation across responding providers (0-100). */
+  avgReputation: number | null;
+  minReputation: number | null;
+  providers: OracleWatchProvider[];
   evaluatedAt: string;
 }
 
@@ -50,7 +77,107 @@ const DEV_DANGER_PCT = 3.0;
 const AGREEMENT_CAUTION = 0.95;
 const AGREEMENT_DANGER = 0.85;
 
+// Advisory ML risk-level buckets (low-is-good).
+const ML_LEVEL_MEDIUM = 0.3;
+const ML_LEVEL_HIGH = 0.6;
+
+// Short-TTL in-memory cache keyed by symbol|chain. Oracle Watch fetches live
+// cross-oracle providers (expensive) on every uncached call, so agents that
+// poll frequently are amortized by this bounded cache. Same cost discipline as
+// the safety-check live-consensus cache.
+const ORACLE_WATCH_CACHE_TTL_MS = 15_000;
+const oracleWatchCache = new TTLCache({ maxSize: 500 });
+
+/** Reset the Oracle Watch cache (used by tests). */
+export function clearOracleWatchCache(): void {
+  oracleWatchCache.clear();
+}
+
+function cacheKey(symbol: string, chain?: string): string {
+  return `${symbol.toUpperCase()}|${chain ?? ''}`;
+}
+
+/** Build the ML advisory fields from a live consensus result + history. */
+async function computeMlRisk(
+  result: ConsensusPriceResponse,
+  maxDeviationPct: number
+): Promise<{
+  mlRiskScore: number | null;
+  mlScore1h: number | null;
+  mlScore6h: number | null;
+  mlRiskLevel: OracleWatchMlRiskLevel | null;
+}> {
+  const base = { mlRiskScore: null, mlScore1h: null, mlScore6h: null, mlRiskLevel: null };
+  if (result.participantCount === 0 || result.consensusPrice === null) return base;
+
+  const successProviders = result.providers.filter((p) => p.status === 'success');
+  const absDevs = successProviders
+    .map((p) => p.deviationPct)
+    .filter((v): v is number => v !== null && Number.isFinite(v))
+    .map((v) => Math.abs(v));
+  const meanDeviationPct =
+    absDevs.length > 0 ? absDevs.reduce((s, v) => s + v, 0) / absDevs.length : 0;
+  const staleCount = successProviders.filter((p) => p.isStale).length;
+  const staleRatio = successProviders.length > 0 ? staleCount / successProviders.length : 0;
+
+  // Cross-provider spread over responding prices (min/max → %), matching
+  // pre-trade's computeSpread semantics so training and live agree.
+  const prices = successProviders.filter((p) => p.price > 0).map((p) => p.price);
+  let spreadPct = 0;
+  if (prices.length >= 2) {
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const ref = (min + max) / 2;
+    spreadPct = ref > 0 ? ((max - min) / ref) * 100 : 0;
+  }
+
+  const historical = await fetchHistoricalOracleState(result.symbol, {
+    maxDeviationPct,
+    consensusPrice: result.consensusPrice,
+    participantCount: result.participantCount,
+  });
+
+  const multi = scorePreTradeMultiHorizon({
+    maxDeviationPct,
+    spreadPct,
+    participantCount: result.participantCount,
+    staleDataRisk: staleCount > 0,
+    meanDeviationPct: roundTo(meanDeviationPct, 4),
+    staleRatio: roundTo(staleRatio, 4),
+    deviationVelocity1h: historical.deviationVelocity1h,
+    rollingVolatility6h: historical.rollingVolatility6h,
+    deviationVelocity3h: historical.deviationVelocity3h,
+    participantCountDelta1h: historical.participantCountDelta1h,
+    maxDeviationZscore24h: historical.maxDeviationZscore24h,
+  });
+
+  if (multi === null) return base;
+
+  const level =
+    multi.combined >= ML_LEVEL_HIGH ? 'high' : multi.combined >= ML_LEVEL_MEDIUM ? 'medium' : 'low';
+
+  return {
+    mlRiskScore: multi.combined,
+    mlScore1h: multi.score1h,
+    mlScore6h: multi.score6h,
+    mlRiskLevel: level,
+  };
+}
+
 export async function getOracleWatchSignal(
+  symbol: string,
+  chain?: string
+): Promise<OracleWatchResult> {
+  const key = cacheKey(symbol, chain);
+  const cached = oracleWatchCache.get<OracleWatchResult>(key);
+  if (cached) return cached;
+
+  const result = await computeOracleWatchSignal(symbol, chain);
+  oracleWatchCache.set(key, result, ORACLE_WATCH_CACHE_TTL_MS);
+  return result;
+}
+
+async function computeOracleWatchSignal(
   symbol: string,
   chain?: string
 ): Promise<OracleWatchResult> {
@@ -77,6 +204,12 @@ export async function getOracleWatchSignal(
         staleCount: 0,
         consensusPrice: null,
         reason: 'no_cross_oracle_coverage',
+        mlRiskScore: null,
+        mlScore1h: null,
+        mlScore6h: null,
+        mlRiskLevel: null,
+        avgReputation: null,
+        minReputation: null,
         providers: [],
         evaluatedAt,
       };
@@ -92,12 +225,24 @@ export async function getOracleWatchSignal(
   const outlierCount = successProviders.filter((p) => p.isOutlier).length;
   const staleCount = successProviders.filter((p) => p.isStale).length;
 
-  const providers = result.providers.map((p) => ({
+  // Surface reputation from the reputation service, already attached to each
+  // consensus provider. Aggregated as avg/min for a single gateable number.
+  const reputations = successProviders
+    .map((p) => p.reputationScore)
+    .filter((s): s is number => s !== null && Number.isFinite(s));
+  const avgReputation =
+    reputations.length > 0
+      ? roundTo(reputations.reduce((s, v) => s + v, 0) / reputations.length, 1)
+      : null;
+  const minReputation = reputations.length > 0 ? Math.min(...reputations) : null;
+
+  const providers: OracleWatchProvider[] = result.providers.map((p) => ({
     provider: p.provider,
     status: p.status,
     deviationPct: p.deviationPct,
     isOutlier: p.isOutlier,
     isStale: p.isStale,
+    reputationScore: p.reputationScore,
   }));
 
   // Consensus computed but zero participants (every fetch failed) — treat as
@@ -115,6 +260,12 @@ export async function getOracleWatchSignal(
       staleCount: 0,
       consensusPrice: result.consensusPrice,
       reason: 'no_cross_oracle_coverage',
+      mlRiskScore: null,
+      mlScore1h: null,
+      mlScore6h: null,
+      mlRiskLevel: null,
+      avgReputation,
+      minReputation,
       providers,
       evaluatedAt,
     };
@@ -143,6 +294,8 @@ export async function getOracleWatchSignal(
     reason = 'within_tolerance';
   }
 
+  const ml = await computeMlRisk(result, maxDeviationPct);
+
   return {
     symbol: result.symbol,
     chain: result.chain ?? null,
@@ -155,6 +308,9 @@ export async function getOracleWatchSignal(
     staleCount,
     consensusPrice: result.consensusPrice,
     reason,
+    ...ml,
+    avgReputation,
+    minReputation,
     providers,
     evaluatedAt,
   };
