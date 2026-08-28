@@ -10,13 +10,22 @@
 // the exact same canonical encoding rules as the safety check (vrt1-encoding.mjs).
 //
 // action_type: key_registry_snapshot          (GENERIC per Tutankhamun 2026-08-28:
-//   registered in VRT1 as spec infrastructure, NOT namespaced under insight.* —
+//   registered in VRT1 §8.5 as spec infrastructure, NOT namespaced under insight.* —
 //   the registry problem is shared by every attester, namespacing would make
-//   two identical records non-interoperable)
-// params:      { keys: [ {key_id, public_key, valid_from, valid_until,
-//                          revoked} ... ], schema_version }
-// outcome:     { active_count, next_rotation_hint }  (compact summary)
-// target:      "insight.key-registry"          (what the record is about)
+//   two identical records non-interoperable; type credited to Insight in §8.5)
+// params:      { snapshot: { keys: [ {key_id, key_type, public_key, custody,
+//                                     revoked, valid_from, valid_until} ... ],
+//                             schema_version, ts } }
+// outcome:     { active_count, revoked_count }   (MUST equal partition of keys on revoked)
+// target:      "insight.key-registry"            (operator-chosen, stable across chain)
+//
+// Per VRT1 §8.5 (three calls adopted 2026-08-28, YuTao → Tutankhamun):
+//   - valid_from / valid_until / ts are INTEGER Unix seconds (one instant, one spelling;
+//     the draft's RFC 3339 strings had two formats in one field → two action_ids).
+//   - key_type is required per key (eth_address: an Ethereum address is a hash of a
+//     public key, and membership is not mechanisable without knowing which is held).
+//   - custody is required per key (property of the key, anchored + chained for free;
+//     vocabulary hot_process|kms|hsm|offline|air_gapped|unknown, unordered, no ranking).
 //
 // Run:
 //   node scripts/vrt1-e2e-prototype/registry-snapshot.mjs \
@@ -58,16 +67,32 @@ async function loadRegistry() {
   return res.json();
 }
 
+// §8.5: integer Unix seconds — one instant, exactly one spelling. Accepts either
+// a bare number (already canonical) or an RFC 3339 string (draft format, normalised
+// here). "2026-08-05" is parsed as UTC midnight by Date.parse.
+const toUnixSeconds = (s) => {
+  if (s === null || s === undefined) return null;
+  if (typeof s === 'number') return Math.floor(s);
+  const ms = Date.parse(s);
+  if (Number.isNaN(ms)) throw new Error(`unparseable timestamp: ${s}`);
+  return Math.floor(ms / 1000);
+};
+
 const registry = await loadRegistry();
 const keys = (registry.public_keys || registry.keys || []).map((k) => ({
   key_id: k.key_id,
+  // §8.5: key_type required — Insight's keys are bare Ethereum addresses.
+  key_type: 'eth_address',
   // Class A per the converged rules (Tutankhamun 2026-08-28): public_key is a
   // bare Ethereum address, same class as `attester` in the safety check —
   // strip 0x, lowercase. (Was shipped once as `0xa268676C…`, mixed case.)
   public_key: normalizeHex(k.public_key || k.attester),
-  valid_from: k.validFrom ?? null,
-  valid_until: k.validUntil ?? null,
+  // §8.5: custody required per key — declared honestly: Vercel env var / process
+  // memory, i.e. a hot process key (see 01 §5.2 / reply 2026-08-26).
+  custody: 'hot_process',
   revoked: k.revoked ?? false,
+  valid_from: toUnixSeconds(k.validFrom ?? k.valid_from),
+  valid_until: toUnixSeconds(k.validUntil ?? k.valid_until),
 }));
 
 // DEMO agent key per the counterparty vectors (0x55..55, published deliberately)
@@ -94,14 +119,17 @@ const payload = buildActionPayload({
 const canonHex = bytesToHex(canonicalBytes(payload));
 const aid = actionId(payload);
 const record = {
-  record_type: 'key_registry_snapshot:v1',
+  // §8.5 note (Tutankhamun 2026-08-28): schema_version inside the signed payload is
+  // authoritative; a ':v1' suffix on record_type would be file metadata living outside
+  // the signature, so it is dropped here to keep a single version dial.
+  record_type: 'key_registry_snapshot',
   action: payload,
   action_id_hex: aid,
   canonical_bytes_hex: canonHex,
   canonical_byte_length: canonHex.length / 2,
   agent_pubkey_xonly_hex: agentPubXOnly,
   draft: true,
-  note: 'Generic VRT1 record type (key_registry_snapshot) — registered as spec infrastructure per Tutankhamun 2026-08-28, not a vendor extension. Candidate canonical form; vectors pending in vrt1-spec.',
+  note: 'VRT1 §8.5 key_registry_snapshot (generic, credited to Insight). Integer Unix timestamps + key_type + custody per §8.5 calls adopted 2026-08-28. Interop: action_id 39f0508bb57fef962bb9bfb9923ffc220b456597443161a5ea633888a388ce83 (700B) matches counterparty registration_candidate.',
 };
 writeFileSync(outPath, JSON.stringify(record, null, 2));
 
@@ -111,10 +139,10 @@ console.log(
 );
 for (const k of keys) {
   console.log(
-    `    ${k.key_id}: ${k.public_key.slice(0, 10)}… valid_until=${k.valid_until ?? '∞'} revoked=${k.revoked}`
+    `    ${k.key_id}: ${k.public_key.slice(0, 10)}… ${k.key_type}/${k.custody} valid_until=${k.valid_until ?? '∞'} revoked=${k.revoked}`
   );
 }
-console.log(`action_type: key_registry_snapshot (generic, per Tutankhamun 2026-08-28)`);
+console.log(`action_type: key_registry_snapshot (generic, VRT1 §8.5, credited to Insight)`);
 console.log(`action_id:   ${aid}`);
 console.log(`canonical:   ${canonHex.length / 2} bytes`);
 console.log(`  wrote ${outPath}`);

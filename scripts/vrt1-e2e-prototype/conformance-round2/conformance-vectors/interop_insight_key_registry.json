@@ -1,0 +1,101 @@
+{
+  "action_type": "key_registry_snapshot",
+  "draft_action_id_as_reported_by_insight": "29e75d580c843d9aae3ba18d2fdb6ee92c240fa045d518409bfcc8d6d022b2d0",
+  "draft_as_sent": {
+    "action": {
+      "action_type": "key_registry_snapshot",
+      "agent": "9ac20335eb38768d2052be1dbbc3c8f6178407458e51e6b4ad22f1d91758895b",
+      "outcome": {
+        "active_count": 2,
+        "revoked_count": 0
+      },
+      "params": {
+        "snapshot": {
+          "keys": [
+            {
+              "key_id": "insight-oracle-safety-v2",
+              "public_key": "a268676c85b927d64a4e2384636874f76d69e419",
+              "revoked": false,
+              "valid_from": "2026-08-05",
+              "valid_until": "2026-09-02T17:35:36.000Z"
+            },
+            {
+              "key_id": "insight-oracle-safety-v2-202609",
+              "public_key": "6506f789edd43338a416f59822a63f309f97e8ce",
+              "revoked": false,
+              "valid_from": "2026-08-26T17:35:36.000Z",
+              "valid_until": null
+            }
+          ],
+          "schema_version": 1,
+          "ts": 1787804390
+        }
+      },
+      "target": "insight.key-registry",
+      "ts": 1787804390,
+      "v": 1
+    },
+    "action_id_hex": "29e75d580c843d9aae3ba18d2fdb6ee92c240fa045d518409bfcc8d6d022b2d0",
+    "agent_pubkey_xonly_hex": "9ac20335eb38768d2052be1dbbc3c8f6178407458e51e6b4ad22f1d91758895b",
+    "canonical_bytes_hex": "7b22616374696f6e5f74797065223a226b65795f72656769737472795f736e617073686f74222c226167656e74223a2239616332303333356562333837363864323035326265316462626333633866363137383430373435386535316536623461643232663164393137353838393562222c226f7574636f6d65223a7b226163746976655f636f756e74223a322c227265766f6b65645f636f756e74223a307d2c22706172616d73223a7b22736e617073686f74223a7b226b657973223a5b7b226b65795f6964223a22696e73696768742d6f7261636c652d7361666574792d7632222c227075626c69635f6b6579223a2261323638363736633835623932376436346134653233383436333638373466373664363965343139222c227265766f6b6564223a66616c73652c2276616c69645f66726f6d223a22323032362d30382d3035222c2276616c69645f756e74696c223a22323032362d30392d30325431373a33353a33362e3030305a227d2c7b226b65795f6964223a22696e73696768742d6f7261636c652d7361666574792d76322d323032363039222c227075626c69635f6b6579223a2236353036663738396564643433333338613431366635393832326136336633303966393765386365222c227265766f6b6564223a66616c73652c2276616c69645f66726f6d223a22323032362d30382d32365431373a33353a33362e3030305a222c2276616c69645f756e74696c223a6e756c6c7d5d2c22736368656d615f76657273696f6e223a312c227473223a313738373830343339307d7d2c22746172676574223a22696e73696768742e6b65792d7265676973747279222c227473223a313738373830343339302c2276223a317d",
+    "canonical_bytes_len": 636,
+    "note": "Insight's 2026-08-28 draft, reproduced byte-exact.",
+    "sig_hex": "6c8f1fc6c76252f03078e95d44148ef6971d51e3e07da3af322f523c6cb62ce591a938d66343e907af41e89df56a1b2529d4d9da98155c76d0ac4bbaa469dfd2",
+    "verify_result_expected": true
+  },
+  "open_questions_the_candidate_answers": [
+    "valid_from mixes two formats in one field today ('2026-08-05' and '2026-08-26T17:35:36.000Z'). Both are legal RFC 3339 and they are not the same string, so the same instant has two spellings and two action_ids. Integer Unix seconds removes the class: it is what 8.1 `ts` already uses.",
+    "key_type is required so 'was this receipt signed by a key in the registry' is mechanisable — an Ethereum address is a hash of a public key, not a public key.",
+    "custody is required per key, which is where the field both sides agreed on belongs: custody is a property of a key, not of every receipt, and it becomes anchored and chained for free."
+  ],
+  "provenance": "Recomputed from Insight's 2026-08-28 file: 636 canonical bytes, action_id 29e75d58..., matching the values they reported.",
+  "purpose": "Byte-exact interop target for Insight's own draft record, so both implementations line up before the spec text is finalised.",
+  "record_type_note": "Their envelope carries record_type 'key_registry_snapshot:v1' while the signed payload carries action_type 'key_registry_snapshot' and versions via params.snapshot.schema_version. Two version dials, only one inside the signed bytes. schema_version is authoritative; the ':v1' suffix is file metadata and is neither signed nor anchored.",
+  "registration_candidate": {
+    "action": {
+      "action_type": "key_registry_snapshot",
+      "agent": "9ac20335eb38768d2052be1dbbc3c8f6178407458e51e6b4ad22f1d91758895b",
+      "outcome": {
+        "active_count": 2,
+        "revoked_count": 0
+      },
+      "params": {
+        "snapshot": {
+          "keys": [
+            {
+              "custody": "hot_process",
+              "key_id": "insight-oracle-safety-v2",
+              "key_type": "eth_address",
+              "public_key": "a268676c85b927d64a4e2384636874f76d69e419",
+              "revoked": false,
+              "valid_from": 1785888000,
+              "valid_until": 1788370536
+            },
+            {
+              "custody": "hot_process",
+              "key_id": "insight-oracle-safety-v2-202609",
+              "key_type": "eth_address",
+              "public_key": "6506f789edd43338a416f59822a63f309f97e8ce",
+              "revoked": false,
+              "valid_from": 1787765736,
+              "valid_until": null
+            }
+          ],
+          "schema_version": 1,
+          "ts": 1787804390
+        }
+      },
+      "target": "insight.key-registry",
+      "ts": 1787804390,
+      "v": 1
+    },
+    "action_id_hex": "39f0508bb57fef962bb9bfb9923ffc220b456597443161a5ea633888a388ce83",
+    "agent_pubkey_xonly_hex": "9ac20335eb38768d2052be1dbbc3c8f6178407458e51e6b4ad22f1d91758895b",
+    "canonical_bytes_hex": "7b22616374696f6e5f74797065223a226b65795f72656769737472795f736e617073686f74222c226167656e74223a2239616332303333356562333837363864323035326265316462626333633866363137383430373435386535316536623461643232663164393137353838393562222c226f7574636f6d65223a7b226163746976655f636f756e74223a322c227265766f6b65645f636f756e74223a307d2c22706172616d73223a7b22736e617073686f74223a7b226b657973223a5b7b22637573746f6479223a22686f745f70726f63657373222c226b65795f6964223a22696e73696768742d6f7261636c652d7361666574792d7632222c226b65795f74797065223a226574685f61646472657373222c227075626c69635f6b6579223a2261323638363736633835623932376436346134653233383436333638373466373664363965343139222c227265766f6b6564223a66616c73652c2276616c69645f66726f6d223a313738353838383030302c2276616c69645f756e74696c223a313738383337303533367d2c7b22637573746f6479223a22686f745f70726f63657373222c226b65795f6964223a22696e73696768742d6f7261636c652d7361666574792d76322d323032363039222c226b65795f74797065223a226574685f61646472657373222c227075626c69635f6b6579223a2236353036663738396564643433333338613431366635393832326136336633303966393765386365222c227265766f6b6564223a66616c73652c2276616c69645f66726f6d223a313738373736353733362c2276616c69645f756e74696c223a6e756c6c7d5d2c22736368656d615f76657273696f6e223a312c227473223a313738373830343339307d7d2c22746172676574223a22696e73696768742e6b65792d7265676973747279222c227473223a313738373830343339302c2276223a317d",
+    "canonical_bytes_len": 700,
+    "note": "NOT a conformance vector. What the same registry becomes under the proposed registration schema: integer timestamps, key_type, custody.",
+    "sig_hex": "3f1cd43ff059adf44555280f37446dfec80ba752f65578bfc71ae619fa8161233b96439339f307f2d5a4b07096c3dc2863e1396ab26bc3c73f7e9a75586bd5c1",
+    "verify_result_expected": true
+  },
+  "spec_section": "8.4"
+}
