@@ -3778,6 +3778,18 @@ components:
             reason:
               type: string
               description: Machine-readable reason for the verdict.
+            quorumSatisfied:
+              type: boolean
+              description: True when at least 3 independent providers are responding.
+            trustScore:
+              type: number
+              minimum: 0
+              maximum: 100
+              description: Composite 0-100 credibility rating an agent can gate on.
+            trustLevel:
+              type: string
+              enum: [low, medium, high]
+              description: Discrete credibility gate derived from trustScore.
             providers:
               type: array
               items:

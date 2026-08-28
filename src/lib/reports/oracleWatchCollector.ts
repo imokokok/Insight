@@ -56,6 +56,9 @@ export interface FeedHealthSnapshotRow {
   ml_risk_level: string | null;
   avg_reputation: number | null;
   min_reputation: number | null;
+  quorum_satisfied: boolean | null;
+  trust_score: number | null;
+  trust_level: string | null;
 }
 
 /** Map an Oracle Watch signal onto the feed_health_snapshots row shape. */
@@ -80,6 +83,9 @@ export function buildFeedHealthSnapshotRow(
     ml_risk_level: signal.mlRiskLevel,
     avg_reputation: signal.avgReputation,
     min_reputation: signal.minReputation,
+    quorum_satisfied: signal.quorumSatisfied ?? null,
+    trust_score: typeof signal.trustScore === 'number' ? signal.trustScore : null,
+    trust_level: signal.trustLevel ?? null,
   };
 }
 

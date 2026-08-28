@@ -24,6 +24,9 @@ describe('oracleWatchTool', () => {
       staleCount: 0,
       consensusPrice: 3000,
       reason: 'within_tolerance',
+      quorumSatisfied: true,
+      trustScore: 88,
+      trustLevel: 'high',
       providers: [
         {
           provider: 'chainlink',
@@ -43,6 +46,8 @@ describe('oracleWatchTool', () => {
     expect(result).toContain('Verdict: NORMAL');
     expect(result).toContain('Recommendation: proceed');
     expect(result).toContain('Agreement: 99.00%');
+    expect(result).toContain('Credibility trust score: 88/100 (HIGH)');
+    expect(result).toContain('Independent providers met quorum: yes');
     expect(result).toContain('CHAINLINK: ok');
   });
 

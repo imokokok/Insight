@@ -5,6 +5,11 @@ import { roundTo } from '@/lib/utils/format';
 
 import { getConsensusPrice, type ConsensusPriceResponse } from './consensusPriceService';
 import { fetchHistoricalOracleState } from './oracleWatchHistory';
+import {
+  computeOracleWatchTrust,
+  type OracleWatchTrust,
+  type OracleWatchTrustLevel,
+} from './oracleWatchTrust';
 
 /**
  * Oracle Watch — the always-on companion to Pre-Trade.
@@ -29,6 +34,10 @@ import { fetchHistoricalOracleState } from './oracleWatchHistory';
 export type OracleWatchSeverity = 'normal' | 'caution' | 'danger';
 export type OracleWatchRecommendation = 'proceed' | 'proceed_with_caution' | 'halt';
 export type OracleWatchMlRiskLevel = 'low' | 'medium' | 'high';
+export type { OracleWatchTrustLevel, OracleWatchTrustComponents } from './oracleWatchTrust';
+
+/** Independent providers required to avoid a DANGER quorum verdict. */
+export const QUORUM_MIN = 3;
 
 export interface OracleWatchProvider {
   provider: string;
@@ -66,6 +75,14 @@ export interface OracleWatchResult {
   /** Average / worst reputation across responding providers (0-100). */
   avgReputation: number | null;
   minReputation: number | null;
+  /** True when at least QUORUM_MIN independent providers are responding. */
+  quorumSatisfied: boolean;
+  /** Composite 0-100 credibility rating (higher = more trustworthy). */
+  trustScore: number;
+  /** Discrete gate built from trustScore. */
+  trustLevel: OracleWatchTrustLevel;
+  /** Per-component trust breakdown (0-1 each, higher = better). */
+  trustComponents: OracleWatchTrust['components'];
   providers: OracleWatchProvider[];
   evaluatedAt: string;
 }
@@ -212,6 +229,16 @@ async function computeOracleWatchSignal(
     // DANGER verdict instead of a 4xx/5xx (mirrors pre-trade returning BLOCK
     // for unsupported symbols).
     if (error instanceof UnsupportedSymbolError) {
+      const trust = computeOracleWatchTrust({
+        participantCount: 0,
+        agreement: 0,
+        maxDeviationPct: null,
+        mlRiskScore: null,
+        outlierCount: 0,
+        staleCount: 0,
+        avgReputation: null,
+        minReputation: null,
+      });
       return {
         symbol: symbol.toUpperCase(),
         chain: chain ?? null,
@@ -230,6 +257,10 @@ async function computeOracleWatchSignal(
         mlRiskLevel: null,
         avgReputation: null,
         minReputation: null,
+        quorumSatisfied: false,
+        trustScore: trust.score,
+        trustLevel: trust.level,
+        trustComponents: trust.components,
         providers: [],
         evaluatedAt,
       };
@@ -268,6 +299,16 @@ async function computeOracleWatchSignal(
   // Consensus computed but zero participants (every fetch failed) — treat as
   // no usable coverage.
   if (result.participantCount === 0) {
+    const trust = computeOracleWatchTrust({
+      participantCount: 0,
+      agreement: 0,
+      maxDeviationPct: null,
+      mlRiskScore: null,
+      outlierCount: 0,
+      staleCount: 0,
+      avgReputation,
+      minReputation,
+    });
     return {
       symbol: result.symbol,
       chain: result.chain ?? null,
@@ -286,19 +327,38 @@ async function computeOracleWatchSignal(
       mlRiskLevel: null,
       avgReputation,
       minReputation,
+      quorumSatisfied: false,
+      trustScore: trust.score,
+      trustLevel: trust.level,
+      trustComponents: trust.components,
       providers,
       evaluatedAt,
     };
   }
 
+  // Forward-looking ML risk is needed BEFORE the verdict so it can participate
+  // in the gate (an advisory score must never be wholly ignored, but also must
+  // not override hard rule breaches).
+  const ml = await computeMlRisk(result, maxDeviationPct);
+
+  const quorumSatisfied = result.participantCount >= QUORUM_MIN;
+
   let verdict: OracleWatchSeverity;
   let recommendation: OracleWatchRecommendation;
   let reason: string;
 
-  if (maxDeviationPct >= DEV_DANGER_PCT || result.agreement < AGREEMENT_DANGER) {
+  const devDanger = maxDeviationPct >= DEV_DANGER_PCT;
+  const agreeDanger = result.agreement < AGREEMENT_DANGER;
+  if (devDanger || agreeDanger || result.participantCount < QUORUM_MIN) {
     verdict = 'danger';
     recommendation = 'halt';
-    reason = 'deviation_or_agreement_breached_danger';
+    // When the danger is purely a coverage shortfall, name it so agents can
+    // react (e.g. wait for more providers) rather than misread it as a price
+    // divergence.
+    reason =
+      !devDanger && !agreeDanger
+        ? 'insufficient_cross_oracle_quorum'
+        : 'deviation_or_agreement_breached_danger';
   } else if (
     maxDeviationPct >= DEV_CAUTION_PCT ||
     result.agreement < AGREEMENT_CAUTION ||
@@ -314,7 +374,25 @@ async function computeOracleWatchSignal(
     reason = 'within_tolerance';
   }
 
-  const ml = await computeMlRisk(result, maxDeviationPct);
+  // ML forward-risk escalation: a healthy-now feed with high predicted
+  // manipulation risk must be throttled to caution (never bluntly blocked on
+  // the ML alone), closing the gap where a purely-advisory ML could be ignored.
+  if (verdict === 'normal' && ml.mlRiskLevel === 'high') {
+    verdict = 'caution';
+    recommendation = 'proceed_with_caution';
+    reason = 'ml_forward_risk_high';
+  }
+
+  const trust = computeOracleWatchTrust({
+    participantCount: result.participantCount,
+    agreement: result.agreement,
+    maxDeviationPct: maxDeviationPct || null,
+    mlRiskScore: ml.mlRiskScore,
+    outlierCount,
+    staleCount,
+    avgReputation,
+    minReputation,
+  });
 
   return {
     symbol: result.symbol,
@@ -331,6 +409,10 @@ async function computeOracleWatchSignal(
     ...ml,
     avgReputation,
     minReputation,
+    quorumSatisfied,
+    trustScore: trust.score,
+    trustLevel: trust.level,
+    trustComponents: trust.components,
     providers,
     evaluatedAt,
   };

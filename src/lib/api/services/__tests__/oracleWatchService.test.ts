@@ -111,7 +111,12 @@ describe('getOracleWatchSignal', () => {
     mockGetConsensusPrice.mockResolvedValueOnce(
       makeResponse({
         agreement: 0.98,
-        providers: [makeProvider({ deviationPct: 1.2 })],
+        participantCount: 3,
+        providers: [
+          makeProvider({ deviationPct: 0.2 }),
+          makeProvider({ deviationPct: 1.2, provider: 'pyth' }),
+          makeProvider({ deviationPct: 0.3, provider: 'redstone' }),
+        ],
       })
     );
 
@@ -126,7 +131,12 @@ describe('getOracleWatchSignal', () => {
     mockGetConsensusPrice.mockResolvedValueOnce(
       makeResponse({
         agreement: 0.93,
-        providers: [makeProvider({ deviationPct: 0.4 })],
+        participantCount: 3,
+        providers: [
+          makeProvider({ deviationPct: 0.4 }),
+          makeProvider({ deviationPct: 0.4, provider: 'pyth' }),
+          makeProvider({ deviationPct: 0.4, provider: 'redstone' }),
+        ],
       })
     );
 
@@ -139,9 +149,11 @@ describe('getOracleWatchSignal', () => {
     mockGetConsensusPrice.mockResolvedValueOnce(
       makeResponse({
         agreement: 0.98,
+        participantCount: 3,
         providers: [
           makeProvider({ deviationPct: 0.4, isOutlier: true, provider: 'chainlink' }),
           makeProvider({ deviationPct: 0.2, isStale: true, provider: 'pyth' }),
+          makeProvider({ deviationPct: 0.2, provider: 'redstone' }),
         ],
       })
     );
@@ -151,6 +163,78 @@ describe('getOracleWatchSignal', () => {
     expect(signal.verdict).toBe('caution');
     expect(signal.outlierCount).toBe(1);
     expect(signal.staleCount).toBe(1);
+  });
+
+  it('returns DANGER / insufficient_cross_oracle_quorum when too few providers respond', async () => {
+    mockGetConsensusPrice.mockResolvedValueOnce(
+      makeResponse({
+        agreement: 0.99,
+        participantCount: 1,
+        providers: [makeProvider({ deviationPct: 0.2 })],
+      })
+    );
+
+    const signal = await getOracleWatchSignal('ETH');
+
+    expect(signal.verdict).toBe('danger');
+    expect(signal.recommendation).toBe('halt');
+    expect(signal.reason).toBe('insufficient_cross_oracle_quorum');
+    expect(signal.quorumSatisfied).toBe(false);
+  });
+
+  it('escalates a healthy-now feed to CAUTION when forward-looking ML risk is high', async () => {
+    mockScoreMl.mockReturnValue({ combined: 0.72, score1h: 0.9, score6h: 0.72 });
+    mockGetConsensusPrice.mockResolvedValueOnce(
+      makeResponse({
+        agreement: 0.99,
+        participantCount: 3,
+        providers: [
+          makeProvider({ deviationPct: 0.2 }),
+          makeProvider({ deviationPct: 0.1, provider: 'pyth' }),
+          makeProvider({ deviationPct: 0.3, provider: 'redstone' }),
+        ],
+      })
+    );
+
+    const signal = await getOracleWatchSignal('ETH');
+
+    expect(signal.mlRiskLevel).toBe('high');
+    expect(signal.verdict).toBe('caution');
+    expect(signal.recommendation).toBe('proceed_with_caution');
+    expect(signal.reason).toBe('ml_forward_risk_high');
+  });
+
+  it('surfaces a high trust score for healthy, well-covered, reputable feeds', async () => {
+    mockGetConsensusPrice.mockResolvedValueOnce(
+      makeResponse({
+        agreement: 0.99,
+        participantCount: 5,
+        providers: [
+          makeProvider({ deviationPct: 0.1, reputationScore: 95 }),
+          makeProvider({ deviationPct: 0.1, reputationScore: 92, provider: 'pyth' }),
+          makeProvider({ deviationPct: 0.1, reputationScore: 90, provider: 'redstone' }),
+          makeProvider({ deviationPct: 0.1, reputationScore: 88, provider: 'chainlink' }),
+          makeProvider({ deviationPct: 0.1, reputationScore: 85, provider: 'api3' }),
+        ],
+      })
+    );
+
+    const signal = await getOracleWatchSignal('ETH');
+
+    expect(signal.verdict).toBe('normal');
+    expect(signal.quorumSatisfied).toBe(true);
+    expect(signal.trustLevel).toBe('high');
+    expect(signal.trustScore).toBeGreaterThanOrEqual(75);
+    expect(signal.trustComponents).toEqual(
+      expect.objectContaining({
+        quorum: expect.any(Number),
+        agreement: expect.any(Number),
+        deviation: expect.any(Number),
+        ml: expect.any(Number),
+        reputation: expect.any(Number),
+        cleanliness: expect.any(Number),
+      })
+    );
   });
 
   it('returns DANGER / halt when max deviation breaches the danger threshold', async () => {

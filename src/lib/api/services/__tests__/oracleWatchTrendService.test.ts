@@ -1,6 +1,8 @@
 import {
   aggregateOracleWatchSeries,
+  summarizeOracleWatchSeries,
   type OracleWatchHistoryPoint,
+  type OracleWatchTrustLevel,
 } from '@/lib/api/services/oracleWatchTrendService';
 
 const point = (
@@ -10,7 +12,9 @@ const point = (
   maxDeviationPct: number | null = null,
   participantCount = 5,
   mlRiskScore: number | null = null,
-  mlRiskLevel: string | null = null
+  mlRiskLevel: string | null = null,
+  trustScore: number | null = null,
+  trustLevel: OracleWatchTrustLevel | null = null
 ): OracleWatchHistoryPoint => ({
   evaluatedAt,
   verdict,
@@ -20,6 +24,8 @@ const point = (
   participantCount,
   mlRiskScore,
   mlRiskLevel: mlRiskLevel as never,
+  trustScore,
+  trustLevel,
 });
 
 describe('aggregateOracleWatchSeries', () => {
@@ -68,5 +74,45 @@ describe('aggregateOracleWatchSeries', () => {
     expect(daily[0].verdict).toBe('normal');
     expect(daily[1].evaluatedAt).toBe('2026-08-28T00:00:00.000Z');
     expect(daily[1].verdict).toBe('danger');
+  });
+
+  it('keeps the worst (lowest) trust score within an hourly bucket', () => {
+    const series = [
+      point('2026-08-28T00:00:00.000Z', 'normal', 0.99, 0.2, 5, null, null, 88, 'high'),
+      point('2026-08-28T00:30:00.000Z', 'caution', 0.9, 1.6, 5, null, null, 44, 'low'),
+    ];
+    const hourly = aggregateOracleWatchSeries(series, 'hourly');
+    expect(hourly[0].trustScore).toBe(44);
+    expect(hourly[0].trustLevel).toBe('low');
+  });
+});
+
+describe('summarizeOracleWatchSeries', () => {
+  it('returns the empty default when there are no points', () => {
+    const summary = summarizeOracleWatchSeries([]);
+    expect(summary.pointCount).toBe(0);
+    expect(summary.currentVerdict).toBeNull();
+    expect(summary.stabilityScore).toBe(0);
+    expect(summary.trustScore).toBeNull();
+    expect(summary.trustLevel).toBeNull();
+    expect(summary.lastCollectedAt).toBeNull();
+  });
+
+  it('computes stability, degraded ratio and mean trust from the series', () => {
+    const summary = summarizeOracleWatchSeries([
+      point('2026-08-28T00:00:00.000Z', 'normal', 0.99, 0.2, 5, null, null, 90, 'high'),
+      point('2026-08-28T00:30:00.000Z', 'normal', 0.98, 0.3, 5, null, null, 82, 'high'),
+      point('2026-08-28T01:00:00.000Z', 'danger', 0.7, 4.2, 3, null, null, 30, 'low'),
+    ]);
+
+    expect(summary.pointCount).toBe(3);
+    expect(summary.normal).toBe(2);
+    expect(summary.danger).toBe(1);
+    expect(summary.degradedRatio).toBeCloseTo(1 / 3, 4);
+    expect(summary.stabilityScore).toBeCloseTo(66.67, 2);
+    expect(summary.trustScore).toBe(67); // Math.round((90+82+30)/3)
+    expect(summary.trustLevel).toBe('medium');
+    expect(summary.currentVerdict).toBe('danger');
+    expect(summary.maxDeviationPct).toBe(4.2);
   });
 });

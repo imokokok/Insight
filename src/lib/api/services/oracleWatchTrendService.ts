@@ -1,7 +1,7 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
-import type { OracleWatchMlRiskLevel } from './oracleWatchService';
+import type { OracleWatchMlRiskLevel, OracleWatchTrustLevel } from './oracleWatchService';
 
 const logger = createLogger('oracle-watch-trend');
 
@@ -24,6 +24,9 @@ export interface OracleWatchHistoryPoint {
   participantCount: number;
   mlRiskScore: number | null;
   mlRiskLevel: OracleWatchMlRiskLevel | null;
+  /** Composite 0-100 credibility rating (higher = better). */
+  trustScore: number | null;
+  trustLevel: OracleWatchTrustLevel | null;
 }
 
 export interface OracleWatchHistorySummary {
@@ -36,10 +39,21 @@ export interface OracleWatchHistorySummary {
   danger: number;
   /** Fraction of time spent in caution or danger (0-1). Low is good. */
   degradedRatio: number;
+  /** Stability: 0-100 share of snapshots rated NORMAL in the window. */
+  stabilityScore: number;
   /** Mean cross-provider agreement over the window (0-1). */
   avgAgreement: number;
   /** Worst deviation seen in the window (%). */
   maxDeviationPct: number | null;
+  /** Mean of the most recent trust scores (0-100), or null when unknown. */
+  trustScore: number | null;
+  /** Discrete trust gate derived from the mean trust score. */
+  trustLevel: OracleWatchTrustLevel | null;
+  /** Timestamp of the newest snapshot in the window, or null when empty. */
+  lastCollectedAt: string | null;
+  /** True when collection has gone quiet (newest snapshot older than the
+   *  staleness window) so agents do not gate on a cold spine. */
+  spineStale: boolean;
 }
 
 /** Bucketing granularity for /history. '30min' returns the raw spine as-is. */
@@ -111,6 +125,9 @@ export function aggregateOracleWatchSeries(
     const mlScores = group
       .map((p) => p.mlRiskScore)
       .filter((v): v is number => v !== null && Number.isFinite(v));
+    const trustScores = group
+      .map((p) => p.trustScore)
+      .filter((v): v is number => v !== null && Number.isFinite(v));
 
     return {
       evaluatedAt: key,
@@ -124,6 +141,14 @@ export function aggregateOracleWatchSeries(
       mlRiskLevel:
         mlScores.length > 0
           ? (group[group.findIndex((p) => p.mlRiskScore === Math.max(...mlScores))]?.mlRiskLevel ??
+            null)
+          : null,
+      // Worst (lowest) trust within the bucket — consistent with keeping the
+      // worst verdict for the window.
+      trustScore: trustScores.length > 0 ? Math.min(...trustScores) : null,
+      trustLevel:
+        trustScores.length > 0
+          ? (group[group.findIndex((p) => p.trustScore === Math.min(...trustScores))]?.trustLevel ??
             null)
           : null,
     };
@@ -142,8 +167,13 @@ export function summarizeOracleWatchSeries(
       caution: 0,
       danger: 0,
       degradedRatio: 0,
+      stabilityScore: 0,
       avgAgreement: 0,
       maxDeviationPct: null,
+      trustScore: null,
+      trustLevel: null,
+      lastCollectedAt: null,
+      spineStale: false,
     };
   }
 
@@ -152,6 +182,7 @@ export function summarizeOracleWatchSeries(
   let danger = 0;
   let agreementSum = 0;
   let maxDeviationPct: number | null = null;
+  const trustScores: number[] = [];
 
   for (const p of points) {
     if (p.verdict === 'normal') normal += 1;
@@ -161,10 +192,17 @@ export function summarizeOracleWatchSeries(
     if (p.maxDeviationPct !== null) {
       maxDeviationPct = Math.max(maxDeviationPct ?? 0, p.maxDeviationPct);
     }
+    if (p.trustScore !== null && Number.isFinite(p.trustScore)) {
+      trustScores.push(p.trustScore);
+    }
   }
 
   const currentVerdict = points[points.length - 1].verdict;
   const degradedRatio = points.length > 0 ? (caution + danger) / points.length : 0;
+  const trustScore =
+    trustScores.length > 0
+      ? Math.round(trustScores.reduce((s, v) => s + v, 0) / trustScores.length)
+      : null;
 
   return {
     pointCount: points.length,
@@ -173,8 +211,16 @@ export function summarizeOracleWatchSeries(
     caution,
     danger,
     degradedRatio,
+    stabilityScore: Math.round((normal / points.length) * 100 * 100) / 100,
     avgAgreement: points.length > 0 ? agreementSum / points.length : 0,
     maxDeviationPct,
+    trustScore,
+    trustLevel:
+      trustScore === null ? null : trustScore >= 75 ? 'high' : trustScore >= 50 ? 'medium' : 'low',
+    // Aggregation is pure; staleness is resolved relative to `now` by the
+    // caller (getOracleWatchHistory). Default to the newest point here.
+    lastCollectedAt: points[points.length - 1].evaluatedAt,
+    spineStale: false,
   };
 }
 
@@ -213,8 +259,23 @@ export async function getOracleWatchHistory(args: {
     participantCount: row.participant_count,
     mlRiskScore: row.ml_risk_score,
     mlRiskLevel: row.ml_risk_level,
+    trustScore: row.trust_score,
+    trustLevel: row.trust_level,
   }));
   const series = aggregateOracleWatchSeries(raw, interval);
+  const summary = summarizeOracleWatchSeries(series);
+
+  // Spine staleness guard: the 30-min collector writes every ~30 min. If the
+  // newest snapshot is older than the staleness window, surface `spineStale`
+  // so a dependent agent does not treat a cold trend as trustworthy.
+  const now = Date.now();
+  let spineStale = false;
+  let lastCollectedAt: string | null = summary.lastCollectedAt;
+  if (raw.length > 0) {
+    const newest = Date.parse(raw[raw.length - 1].evaluatedAt);
+    lastCollectedAt = raw[raw.length - 1].evaluatedAt;
+    if (Number.isNaN(newest) || now - newest > SPINE_STALE_WINDOW_MS) spineStale = true;
+  }
 
   return {
     symbol,
@@ -222,9 +283,15 @@ export async function getOracleWatchHistory(args: {
     days,
     grain: interval,
     series,
-    summary: summarizeOracleWatchSeries(series),
+    summary: { ...summary, lastCollectedAt, spineStale },
   };
 }
+
+/**
+ * Staleness window for the spine: 1.5x the 30-min collection cadence. Past
+ * this the most recent row is treated as cold and `spineStale` is set.
+ */
+const SPINE_STALE_WINDOW_MS = 45 * 60 * 1000;
 
 // Keep logger referenced for future diagnostics while avoiding a no-shadow lint
 // on the unused import in non-node runtimes.

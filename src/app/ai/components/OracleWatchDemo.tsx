@@ -19,6 +19,7 @@ import { useSession } from '@/stores/authStore';
 
 type Verdict = 'normal' | 'caution' | 'danger';
 type MlRiskLevel = 'low' | 'medium' | 'high';
+type TrustLevel = 'low' | 'medium' | 'high';
 
 interface OracleWatchSignal {
   symbol: string;
@@ -38,6 +39,9 @@ interface OracleWatchSignal {
   mlRiskLevel: MlRiskLevel | null;
   avgReputation: number | null;
   minReputation: number | null;
+  quorumSatisfied: boolean;
+  trustScore: number;
+  trustLevel: TrustLevel;
   providers: Array<{
     provider: string;
     status: 'success' | 'unsupported' | 'error';
@@ -272,6 +276,16 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
           />
           <Metric label="Consensus Providers" value={String(result.participantCount)} />
           <Metric
+            label="Quorum"
+            value={result.quorumSatisfied ? 'met' : 'short'}
+            warn={!result.quorumSatisfied}
+          />
+          <Metric
+            label="Trust Score"
+            value={`${result.trustScore}/100`}
+            warn={result.trustScore < 50}
+          />
+          <Metric
             label="Outliers"
             value={String(result.outlierCount)}
             warn={result.outlierCount > 0}
@@ -287,6 +301,40 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
             value={result.minReputation !== null ? result.minReputation.toFixed(1) : 'n/a'}
             warn={(result.minReputation ?? 100) < 50}
           />
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-slate-200/70">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              Credibility Trust Score
+            </span>
+            <span
+              className={`text-[11px] font-semibold uppercase ${
+                result.trustLevel === 'high'
+                  ? 'text-emerald-600'
+                  : result.trustLevel === 'medium'
+                    ? 'text-amber-600'
+                    : 'text-red-600'
+              }`}
+            >
+              {result.trustLevel} · {result.trustScore}/100
+            </span>
+          </div>
+          <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+            <div
+              className={`h-full rounded-full ${
+                result.trustLevel === 'high'
+                  ? 'bg-emerald-500'
+                  : result.trustLevel === 'medium'
+                    ? 'bg-amber-400'
+                    : 'bg-red-500'
+              }`}
+              style={{ width: `${Math.min(100, Math.max(4, result.trustScore))}%` }}
+            />
+          </div>
+          <div className="mt-1 text-[10px] text-slate-400">
+            composite of quorum · agreement · deviation · ML risk · reputation · cleanliness
+          </div>
         </div>
 
         {result.mlRiskScore !== null && result.mlRiskLevel !== null && (
@@ -411,7 +459,8 @@ tool: oracle_watch
 The agent returns a machine-readable verdict:
 - Verdict: NORMAL | CAUTION | DANGER
 - Recommendation: proceed | proceed_with_caution | halt
-- Reason: within_tolerance | deviation_agreement_outlier_or_stale | deviation_or_agreement_breached_danger | no_cross_oracle_coverage`;
+- Reason: within_tolerance | deviation_agreement_outlier_or_stale | deviation_or_agreement_breached_danger | insufficient_cross_oracle_quorum | ml_forward_risk_high | no_cross_oracle_coverage
+Also gate on the composite Credibility Trust Score (0-100, low|medium|high).`;
 
   const restSnippet = `curl -X GET "${baseUrl}/api/v1/oracle-watch?symbol=${encodeURIComponent(asset.toUpperCase())}&chain=${safeChain}" \\
   -H "X-API-Key: ins_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \\
@@ -429,6 +478,9 @@ The agent returns a machine-readable verdict:
 #   "mlRiskLevel": "low",
 #   "avgReputation": 92.5,
 #   "minReputation": 88.0,
+#   "quorumSatisfied": true,     # >= 3 independent providers
+#   "trustScore": 88,            # composite credibility rating 0-100
+#   "trustLevel": "high",
 #   "providers": [ ... ]
 # } }`;
 

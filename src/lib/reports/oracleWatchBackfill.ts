@@ -22,6 +22,7 @@
 /* eslint-disable no-console */
 import { calculateAgreement } from '@/lib/analytics/consensusPrice';
 import { median } from '@/lib/api/services/oracleWatchHistory';
+import { computeOracleWatchTrust } from '@/lib/api/services/oracleWatchTrust';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { roundTo } from '@/lib/utils/format';
 
@@ -108,6 +109,17 @@ export function buildBackfillRowForHour(
     reason = 'within_tolerance';
   }
 
+  const trust = computeOracleWatchTrust({
+    participantCount,
+    agreement,
+    maxDeviationPct: maxDeviationPct === null ? null : Math.abs(maxDeviationPct),
+    mlRiskScore: null,
+    outlierCount,
+    staleCount,
+    avgReputation: null,
+    minReputation: null,
+  });
+
   return {
     symbol,
     chain: null,
@@ -125,6 +137,9 @@ export function buildBackfillRowForHour(
     ml_risk_level: null,
     avg_reputation: null,
     min_reputation: null,
+    quorum_satisfied: participantCount >= 3,
+    trust_score: trust.score,
+    trust_level: trust.level,
   };
 }
 

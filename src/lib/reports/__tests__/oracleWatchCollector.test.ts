@@ -38,6 +38,9 @@ function makeSignal(overrides: Partial<OracleWatchResult> = {}): OracleWatchResu
     mlRiskLevel: 'low',
     avgReputation: 88,
     minReputation: 84,
+    quorumSatisfied: true,
+    trustScore: 86,
+    trustLevel: 'high' as const,
     providers: [],
     evaluatedAt: '2026-08-28T00:00:00.000Z',
     ...overrides,
@@ -81,6 +84,9 @@ describe('buildFeedHealthSnapshotRow', () => {
       ml_risk_level: 'low',
       avg_reputation: 88,
       min_reputation: 84,
+      quorum_satisfied: true,
+      trust_score: 86,
+      trust_level: 'high',
     });
   });
 

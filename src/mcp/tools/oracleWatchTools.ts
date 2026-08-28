@@ -30,6 +30,12 @@ export const oracleWatchTool: McpToolDefinition<typeof OracleWatchInputSchema> =
       signal.mlRiskScore !== null
         ? `- ML manipulation risk: ${signal.mlRiskLevel?.toUpperCase() ?? 'n/a'} (${(signal.mlRiskScore * 100).toFixed(1)}/100, forward-looking)`
         : '',
+      typeof signal.trustScore === 'number'
+        ? `- Credibility trust score: ${signal.trustScore}/100 (${signal.trustLevel?.toUpperCase()})`
+        : '',
+      typeof signal.quorumSatisfied === 'boolean'
+        ? `- Independent providers met quorum: ${signal.quorumSatisfied ? 'yes' : 'no'}`
+        : '',
       signal.avgReputation !== null
         ? `- Provider reputation: avg ${signal.avgReputation} / min ${signal.minReputation ?? 'n/a'} (0-100)`
         : '',
