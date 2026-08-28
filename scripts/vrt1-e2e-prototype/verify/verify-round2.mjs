@@ -6,7 +6,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const base = process.argv[2] || join(here, 'conformance-round2');
+const base = process.argv[2] || join(here, '../conformance-round2');
 const vecDir = join(base, 'conformance-vectors');
 
 // VRT1 tagged_hash
@@ -72,7 +72,7 @@ for (const n of design.negatives)
   check(`registry neg: ${n.case.slice(0, 46)}`, actionId(n.canonical_bytes_hex), n.action_id_hex);
 
 // 4. 我方 registry-snapshot.json（700B 重建版）vs interop registration_candidate
-const mine = JSON.parse(readFileSync(join(here, 'registry-snapshot.json'), 'utf8'));
+const mine = JSON.parse(readFileSync(join(here, '../evidence/registry-snapshot.json'), 'utf8'));
 const cand = interop.registration_candidate;
 check('我方 700B 重建 vs candidate byte-exact', mine.canonical_bytes_hex, cand.canonical_bytes_hex);
 check(

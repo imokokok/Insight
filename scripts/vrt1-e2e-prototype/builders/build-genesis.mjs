@@ -29,7 +29,7 @@ import {
   actionId,
   normalizeHex,
   AUX_RAND,
-} from './vrt1-encoding.mjs';
+} from '../src/vrt1-encoding.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -38,7 +38,7 @@ const arg = (n) => {
   return i >= 0 ? args[i + 1] : undefined;
 };
 const tsOverride = arg('--ts');
-const outPath = arg('--out') || join(__dirname, 'registry-genesis.json');
+const outPath = arg('--out') || join(__dirname, '../evidence/registry-genesis.json');
 const REGISTRY_URL = 'https://www.oracleinsight.xyz/.well-known/oracle-keys.json';
 
 const REGISTRY = await (async () => {

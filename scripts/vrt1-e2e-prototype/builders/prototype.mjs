@@ -8,7 +8,7 @@
 // Toolchain self-test first (byte-exact against public vectors), then the real
 // production receipt from sample-receipt.json.
 //
-// Run: node scripts/vrt1-e2e-prototype/prototype.mjs
+// Run: node scripts/vrt1-e2e-prototype/builders/prototype.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -27,7 +27,7 @@ import {
   dblSha256,
   merkleRoot,
   taggedHash,
-} from './vrt1-encoding.mjs';
+} from '../src/vrt1-encoding.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -47,7 +47,7 @@ const fail = (label) => {
 
 console.log('=== 0. Toolchain self-test against public vrt1-spec vectors ===');
 
-const vec = JSON.parse(readFileSync(join(__dirname, 'vectors', 'agent_action.json'), 'utf8'));
+const vec = JSON.parse(readFileSync(join(__dirname, '../vectors', 'agent_action.json'), 'utf8'));
 const vecPayload = {
   action_type: vec.action.action_type,
   agent: vec.action.agent,
@@ -73,7 +73,7 @@ okVerify
   : fail('schnorr verify failed on vector');
 
 // Merkle root self-test (tree of size 7 from merkle.json)
-const merkleVec = JSON.parse(readFileSync(join(__dirname, 'vectors', 'merkle.json'), 'utf8'));
+const merkleVec = JSON.parse(readFileSync(join(__dirname, '../vectors', 'merkle.json'), 'utf8'));
 {
   const tree = merkleVec.trees['7'];
   const leaves = tree.leaves_hex.map(hexToBytes);
@@ -85,7 +85,7 @@ const merkleVec = JSON.parse(readFileSync(join(__dirname, 'vectors', 'merkle.jso
 
 // OP_RETURN self-test
 {
-  const opv = JSON.parse(readFileSync(join(__dirname, 'vectors', 'op_return.json'), 'utf8'));
+  const opv = JSON.parse(readFileSync(join(__dirname, '../vectors', 'op_return.json'), 'utf8'));
   const payload = buildOpReturn(opv.input.epoch, opv.input.leaf_count, opv.input.merkle_root_hex);
   bytesToHex(payload) === opv.payload_hex
     ? pass(`OP_RETURN payload (${opv.payload_length_bytes}B) matches vector`)
@@ -98,7 +98,7 @@ const merkleVec = JSON.parse(readFileSync(join(__dirname, 'vectors', 'merkle.jso
 console.log('=== 1. Production receipt -> VRT1 agent_action ===');
 
 const receipt = JSON.parse(
-  readFileSync(process.argv[2] || join(__dirname, 'sample-receipt.json'), 'utf8')
+  readFileSync(process.argv[2] || join(__dirname, '../fixtures/sample-receipt.json'), 'utf8')
 );
 const att = receipt.attestation;
 const data = att.data;

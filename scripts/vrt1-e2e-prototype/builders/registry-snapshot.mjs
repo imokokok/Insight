@@ -27,7 +27,7 @@
 //     vocabulary hot_process|kms|hsm|offline|air_gapped|unknown, unordered, no ranking).
 //
 // Run:
-//   node scripts/vrt1-e2e-prototype/registry-snapshot.mjs \
+//   node scripts/vrt1-e2e-prototype/builders/registry-snapshot.mjs \
 //     [--registry <path|url>] [--out <path>] [--ts <unix_seconds>]
 //
 // Default input: the live production registry at oracleinsight.xyz (read-only).
@@ -42,7 +42,7 @@ import {
   bytesToHex,
   demoAgentPubXOnly,
   normalizeHex,
-} from './vrt1-encoding.mjs';
+} from '../src/vrt1-encoding.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -53,7 +53,7 @@ const arg = (name) => {
 
 const REGISTRY_URL = 'https://www.oracleinsight.xyz/.well-known/oracle-keys.json';
 const input = arg('--registry');
-const outPath = arg('--out') || join(__dirname, 'registry-snapshot.json');
+const outPath = arg('--out') || join(__dirname, '../evidence/registry-snapshot.json');
 const tsOverride = arg('--ts');
 
 async function loadRegistry() {

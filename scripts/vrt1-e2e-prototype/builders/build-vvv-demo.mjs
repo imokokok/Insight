@@ -28,7 +28,7 @@ import {
   actionId,
   canonicalize,
   taggedHash,
-} from './vrt1-encoding.mjs';
+} from '../src/vrt1-encoding.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -66,7 +66,7 @@ console.log(
 );
 
 // Production EIP-712 schema (from the anchored sample receipt)
-const sample = JSON.parse(readFileSync(join(__dirname, 'sample-receipt.json'), 'utf8'));
+const sample = JSON.parse(readFileSync(join(__dirname, '../fixtures/sample-receipt.json'), 'utf8'));
 const att = sample.attestation;
 const domain = att.eip712.domain;
 const types = { OracleSafetyCheck: att.eip712.types.OracleSafetyCheck };
@@ -144,5 +144,5 @@ const record = {
     does_not_demonstrate: 'independence failing (would need sourceGroupCount=1)',
   },
 };
-writeFileSync(join(__dirname, 'vvv-vrt1-record.json'), JSON.stringify(record, null, 2));
+writeFileSync(join(__dirname, '../evidence/vvv-vrt1-record.json'), JSON.stringify(record, null, 2));
 console.log('wrote vvv-vrt1-record.json');

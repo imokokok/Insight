@@ -12,20 +12,34 @@ record type 的提出方，规范文本 credit Insight 出处。
 
 例外：`conformance-round2/`（共享 conformance 套件与 §8.5 规范正文）随本仓库发布。它不是
 内部往来，而是公开规范的一部分——§8.5 已正式登记进 VRT1，保留它是公开的署名凭据。
-Insight 的正式署名在 `VRT1-section-8.5-key-registry-snapshot.md`
+Insight 的正式署名在 `conformance-round2/VRT1-section-8.5-key-registry-snapshot.md`
 （"Type contributed by Insight"）。
+
+## 目录结构
+
+```
+vrt1-e2e-prototype/
+├── README.md                本文档
+├── src/vrt1-encoding.mjs    编码单一事实源（builders 复用）
+├── builders/                record 生成入口（prototype / build-genesis / build-vvv-demo / registry-snapshot）
+├── verify/                  独立校验器（刻意不复用被测实现）：verify-round2 / verify-round3
+├── vectors/                 公开 vrt1-spec 向量（canonical / merkle / op_return）
+├── conformance-round2/      对方共享 conformance 套件 + §8.5 正文（署名凭据）
+├── evidence/                已锚定 / 已交付记录（勿重跑覆盖）
+└── fixtures/                演示输入（sample-receipt.json）
+```
 
 ## 运行
 
 ```bash
 npm run verify:vrt1                                           # 校验套件全跑（round-2 一致性 + genesis 合规）
-node scripts/vrt1-e2e-prototype/verify-round2.mjs             # 只跑 round-2 共享 conformance 复算
-node scripts/vrt1-e2e-prototype/verify-round3.mjs             # 只跑我方 §8.5 genesis 合规自检
-node scripts/vrt1-e2e-prototype/prototype.mjs                 # 端到端演示（默认 sample-receipt.json）
-node scripts/vrt1-e2e-prototype/prototype.mjs <receipt.json>  # 传入其他 receipt
-node scripts/vrt1-e2e-prototype/registry-snapshot.mjs         # §8.5 registry record 候选形态
-node scripts/vrt1-e2e-prototype/build-genesis.mjs             # 重建 §8.5 genesis（需 agent 私钥）
-node scripts/vrt1-e2e-prototype/build-vvv-demo.mjs            # VVV→USDC 第二资产演示 record
+node scripts/vrt1-e2e-prototype/verify/verify-round2.mjs      # 只跑 round-2 共享 conformance 复算
+node scripts/vrt1-e2e-prototype/verify/verify-round3.mjs      # 只跑我方 §8.5 genesis 合规自检
+node scripts/vrt1-e2e-prototype/builders/prototype.mjs        # 端到端演示（默认 sample-receipt.json）
+node scripts/vrt1-e2e-prototype/builders/prototype.mjs <receipt.json>  # 传入其他 receipt
+node scripts/vrt1-e2e-prototype/builders/registry-snapshot.mjs          # §8.5 registry record 候选形态
+node scripts/vrt1-e2e-prototype/builders/build-genesis.mjs              # 重建 §8.5 genesis（需 agent 私钥）
+node scripts/vrt1-e2e-prototype/builders/build-vvv-demo.mjs             # VVV→USDC 第二资产演示 record
 ```
 
 依赖：`@noble/curves`（Schnorr/secp256k1）、`@noble/hashes`（sha256）、`viem`（EIP-712）、
@@ -41,7 +55,7 @@ node scripts/vrt1-e2e-prototype/build-vvv-demo.mjs            # VVV→USDC 第�
   `VRT1_VVV_SOURCE` 传入该文件路径（该输入属另一次交付，不可再分发，故不写死在仓库里）。
 
 外部读者无法复现，这是有意的：私钥不可分享，生产数据不可再分发。但它们的
-**产物留在仓库里**（`registry-genesis.json`、`vvv-vrt1-record.json`），可直接校验，
+**产物留在仓库里**（`evidence/registry-genesis.json`、`evidence/vvv-vrt1-record.json`），可直接校验，
 见「已归档的锚定证据」。
 
 内层 EIP-712 生产签名由 Vercel 环境的 attester key 持有，本地重建时退化为演示签名，
@@ -75,14 +89,14 @@ node scripts/vrt1-e2e-prototype/build-vvv-demo.mjs            # VVV→USDC 第�
 本地产出（不入仓库）：`vrt1-action.json`（record + action_id + canonical + 双签名 + Nostr 事件）、
 `anchor-epoch.json`（epoch/root/OP_RETURN + chain_verify）。
 
-已归档的锚定证据在仓库内：`registry-genesis.json`（§8.5 genesis，action_id `87b750e4…`，
-已由对方锚定于 block 964,407）、`vvv-vrt1-record.json`（VVV→USDC 第二资产演示 record）。
+已归档的锚定证据在仓库内：`evidence/registry-genesis.json`（§8.5 genesis，action_id `87b750e4…`，
+已由对方锚定于 block 964,407）、`evidence/vvv-vrt1-record.json`（VVV→USDC 第二资产演示 record）。
 
 ## Canonical 编码规则（§5.1/§5.2）
 
-生产编码的**单一事实源是 `vrt1-encoding.mjs`**：所有 builder 都 import 它，规则只此一份。
+生产编码的**单一事实源是 `src/vrt1-encoding.mjs`**：`builders/` 下的脚本都 import 它，规则只此一份。
 
-校验则相反——`verify-round2.mjs` 与 `verify-round3.mjs` **刻意不 import 它**，各自独立实现
+校验则相反——`verify/verify-round2.mjs` 与 `verify/verify-round3.mjs` **刻意不 import 它**，各自独立实现
 `tagged_hash` / `action_id`。这是有意的：校验器若复用被测实现，编码模块的 bug 会自我确认，
 29/29 就成了安慰剂。
 

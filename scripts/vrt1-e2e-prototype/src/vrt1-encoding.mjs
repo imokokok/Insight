@@ -14,7 +14,8 @@
 //
 //   uint256 -> decimal strings (spec §5.1).
 //
-// Used by prototype.mjs (real path), registry-snapshot.mjs and build-genesis.mjs.
+// Used by the builders/ scripts (prototype.mjs, registry-snapshot.mjs,
+// build-genesis.mjs, build-vvv-demo.mjs).
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -173,7 +174,7 @@ export function demoAgentPubXOnly() {
 
 // Load the bundled production sample receipt
 export function loadSampleReceipt() {
-  return JSON.parse(readFileSync(join(__dirname, 'sample-receipt.json'), 'utf8'));
+  return JSON.parse(readFileSync(join(__dirname, '../fixtures/sample-receipt.json'), 'utf8'));
 }
 
 export { schnorr, bytesToHex, hexToBytes };

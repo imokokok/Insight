@@ -30,7 +30,7 @@ const aid = (hex) =>
     .digest('hex');
 
 // 1. 我方 genesis 合规性
-const g = JSON.parse(readFileSync(join(proto, 'registry-genesis.json'), 'utf8'));
+const g = JSON.parse(readFileSync(join(proto, '../evidence/registry-genesis.json'), 'utf8'));
 check('genesis: action_id 复算', aid(g.canonical_bytes_hex) === g.action_id_hex);
 check(
   'genesis: 外层 Schnorr verify',
