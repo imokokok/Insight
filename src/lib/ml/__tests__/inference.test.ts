@@ -27,6 +27,12 @@ const FEATURE_KEY: Record<string, keyof PreTradeFeatures> = {
   deviation_velocity_3h: 'deviationVelocity3h',
   participant_count_delta_1h: 'participantCountDelta1h',
   max_deviation_zscore_24h: 'maxDeviationZscore24h',
+  // --- v3 governance features (optional in PreTradeFeatures; numeric) ---
+  agreement: 'agreement',
+  outlier_count: 'outlierCount',
+  stale_count: 'staleCount',
+  avg_reputation: 'avgReputation',
+  min_reputation: 'minReputation',
 };
 
 const BASE_FEATURES: PreTradeFeatures = {
@@ -120,6 +126,34 @@ describe('ml inference', () => {
     expect(map.deviation_velocity_3h).toBe(0.6);
     expect(map.participant_count_delta_1h).toBe(-1);
     expect(map.max_deviation_zscore_24h).toBe(2.1);
+  });
+
+  it('applies neutral defaults for the optional 30-min governance features when absent', () => {
+    // A pre-trade caller passes only the 11 core features — the richer 30-min
+    // governance features must degrade to their documented neutral prior so a
+    // retrained model (16 features) scores pre-trade consistently with training.
+    const map = featuresFromPreTrade(BASE_FEATURES);
+    expect(map.agreement).toBe(1); // perfect agreement ⇒ no 30-min signal
+    expect(map.outlier_count).toBe(0);
+    expect(map.stale_count).toBe(0);
+    expect(map.avg_reputation).toBe(0.5); // unknown reputation
+    expect(map.min_reputation).toBe(0.5);
+  });
+
+  it('honors explicitly supplied 30-min governance features', () => {
+    const map = featuresFromPreTrade({
+      ...BASE_FEATURES,
+      agreement: 0.4,
+      outlierCount: 2,
+      staleCount: 1,
+      avgReputation: 0.6,
+      minReputation: 0.2,
+    });
+    expect(map.agreement).toBe(0.4);
+    expect(map.outlier_count).toBe(2);
+    expect(map.stale_count).toBe(1);
+    expect(map.avg_reputation).toBe(0.6);
+    expect(map.min_reputation).toBe(0.2);
   });
 
   it('returns null when no active model is present (rules-only fallback)', () => {

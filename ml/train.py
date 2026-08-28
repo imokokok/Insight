@@ -76,6 +76,15 @@ FEATURE_NAMES = [
     "deviation_velocity_3h",       # max_dev(T) - max_dev(T-3h)
     "participant_count_delta_1h",  # participant_count(T) - participant_count(T-1)
     "max_deviation_zscore_24h",    # (dev - mean24) / std24
+    # --- v3 governance features (from the 30-min Oracle Watch spine) ---
+    # Neutral fill matches src/lib/ml/inference.ts featuresFromPreTrade defaults:
+    #   agreement=1.0 (perfect ⇒ no signal), outlier/stale=0, reputation=0.5 (unknown).
+    # They stay constant (harmless) until the 30-min spine accumulates enough rows.
+    "agreement",                   # cross-provider agreement (0-1, mean of hour)
+    "outlier_count",               # provider count flagged outlier (sum of hour)
+    "stale_count",                 # provider count stale >=60s (sum of hour)
+    "avg_reputation",              # mean provider reputation (0-1 normalized)
+    "min_reputation",              # worst provider reputation (0-1 normalized)
 ]
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "oracle_risk_model.json")
@@ -157,6 +166,70 @@ def fetch_rows(base_url: str, service_key: str) -> pd.DataFrame:
     df = df.dropna(subset=["price"])
     df = df[df["price"] > 0]
     return df
+
+
+# Neutral value for each v3 governance feature when a row has no 30-min Oracle
+# Watch spine to source from. MUST mirror src/lib/ml/inference.ts
+# featuresFromPreTrade defaults so training and all live scorers agree.
+V3_NEUTRAL = {
+    "agreement": 1.0,
+    "outlier_count": 0,
+    "stale_count": 0,
+    "avg_reputation": 0.5,
+    "min_reputation": 0.5,
+}
+
+
+def fetch_health_rows(base_url: str, service_key: str) -> pd.DataFrame:
+    """Page through feed_health_snapshots (30-min Oracle Watch spine).
+
+    Returns a per-(symbol, hour) aggregate of the v3 governance features, or an
+    empty DataFrame when the table is empty/unreachable so training degrades to
+    neutral-fill (graceful: the 30-min recorder may still be accumulating).
+    """
+    try:
+        cutoff = (datetime.now(timezone.utc) - timedelta(weeks=LOOKBACK_WEEKS)).isoformat()
+        url = base_url.rstrip("/") + "/rest/v1/feed_health_snapshots"
+        select = "symbol,evaluated_at,agreement,outlier_count,stale_count,avg_reputation,min_reputation"
+        params = {"select": select, "evaluated_at": f"gte.{cutoff}", "order": "symbol,evaluated_at"}
+        headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
+        rows = []
+        offset = 0
+        while True:
+            headers["Range"] = f"{offset}-{offset + PAGE_SIZE - 1}"
+            r = requests.get(url, headers=headers, params=params, timeout=60)
+            r.raise_for_status()
+            chunk = r.json()
+            rows.extend(chunk)
+            offset += PAGE_SIZE
+            if len(chunk) < PAGE_SIZE:
+                break
+        if not rows:
+            return pd.DataFrame()
+        health = pd.DataFrame(rows)
+        health["evaluated_at"] = pd.to_datetime(health["evaluated_at"], utc=True)
+        health["snapshot_hour"] = health["evaluated_at"].dt.floor("h")
+        for c in ("agreement", "outlier_count", "stale_count", "avg_reputation", "min_reputation"):
+            health[c] = pd.to_numeric(health[c], errors="coerce")
+        g = health.groupby(["symbol", "snapshot_hour"], sort=True)
+        out = pd.DataFrame(
+            {
+                "agreement": g["agreement"].mean(),
+                "outlier_count": g["outlier_count"].sum(),
+                "stale_count": g["stale_count"].sum(),
+                "avg_reputation": g["avg_reputation"].mean(),
+                "min_reputation": g["min_reputation"].mean(),
+            }
+        ).reset_index()
+        # Reputation values from the spine are 0-100 (reputation service scale);
+        # normalize to [0,1] to match live inference.
+        out["avg_reputation"] = out["avg_reputation"] / 100.0
+        out["min_reputation"] = out["min_reputation"] / 100.0
+        log(f"Fetched {len(out)} (symbol, hour) from feed_health_snapshots.")
+        return out
+    except Exception as exc:  # noqa: BLE001 - graceful degradation
+        log(f"feed_health_snapshots unavailable ({exc}); using neutral v3 features.")
+        return pd.DataFrame()
 
 
 def build_hourly_frame(df: pd.DataFrame) -> pd.DataFrame:
@@ -244,9 +317,15 @@ def label_for_horizon(hourly: pd.DataFrame, hours: int) -> pd.Series:
     return labels
 
 
-def build_dataset(df: pd.DataFrame) -> pd.DataFrame:
+def build_dataset(df: pd.DataFrame, health_df: pd.DataFrame | None = None) -> pd.DataFrame:
     """Build the feature matrix + per-horizon labels, one row per (symbol, hour)."""
     hourly = build_hourly_frame(df)
+    # Attach the v3 governance features from the 30-min spine (per symbol,hour),
+    # neutral-filling hours that pre-date or lack spine coverage.
+    if health_df is not None and not health_df.empty:
+        hourly = hourly.merge(health_df, on=["symbol", "snapshot_hour"], how="left")
+    for col in V3_NEUTRAL:
+        hourly[col] = hourly[col].fillna(V3_NEUTRAL[col])
     # Attach horizon labels.
     for h in HORIZONS:
         hourly[f"label_{h}h"] = label_for_horizon(hourly, h)
@@ -394,7 +473,8 @@ def main() -> int:
         return write_null_model(f"insufficient raw data ({len(df)} < {MIN_TOTAL})")
 
     log("Building labeled dataset (mining 1h + 6h-ahead outcomes)...")
-    data = build_dataset(df)
+    health_df = fetch_health_rows(base_url, service_key)
+    data = build_dataset(df, health_df)
     n_total = len(data)
     log(f"Dataset: {n_total} examples.")
     for h in HORIZONS:

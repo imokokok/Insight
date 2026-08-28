@@ -119,6 +119,20 @@ async function computeMlRisk(
     absDevs.length > 0 ? absDevs.reduce((s, v) => s + v, 0) / absDevs.length : 0;
   const staleCount = successProviders.filter((p) => p.isStale).length;
   const staleRatio = successProviders.length > 0 ? staleCount / successProviders.length : 0;
+  const outlierCount = successProviders.filter((p) => p.isOutlier).length;
+
+  // 30-min governance features, normalized for the ML scorer. Reputation is
+  // 0-100 from the reputation service → /100 to [0,1]. These feed the v3
+  // features (nullable in PreTradeFeatures); the neutral defaults only apply
+  // when a caller has no 30-min context (pre-trade safety), not here.
+  const reputations = successProviders
+    .map((p) => p.reputationScore)
+    .filter((s): s is number => s !== null && Number.isFinite(s));
+  const avgReputation =
+    reputations.length > 0
+      ? roundTo(reputations.reduce((s, v) => s + v, 0) / reputations.length / 100, 4)
+      : 0.5;
+  const minReputation = reputations.length > 0 ? roundTo(Math.min(...reputations) / 100, 4) : 0.5;
 
   // Cross-provider spread over responding prices (min/max → %), matching
   // pre-trade's computeSpread semantics so training and live agree.
@@ -149,6 +163,12 @@ async function computeMlRisk(
     deviationVelocity3h: historical.deviationVelocity3h,
     participantCountDelta1h: historical.participantCountDelta1h,
     maxDeviationZscore24h: historical.maxDeviationZscore24h,
+    // 30-min governance context (real values; not neutral defaults here).
+    agreement: result.agreement,
+    outlierCount,
+    staleCount,
+    avgReputation,
+    minReputation,
   });
 
   if (multi === null) return base;

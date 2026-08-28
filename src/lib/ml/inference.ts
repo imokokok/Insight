@@ -122,6 +122,21 @@ export interface PreTradeFeatures {
   participantCountDelta1h: number;
   /** (current max_dev - mean24) / std24. How anomalous is NOW vs baseline. */
   maxDeviationZscore24h: number;
+  // --- v3 governance/trust features (from the 30-min Oracle Watch spine.
+  // OPTIONAL so pre-trade safety, which has no 30-min context, keeps passing
+  // exactly its 11 features unchanged — featuresFromPreTrade applies neutral
+  // defaults below, matching training's neutral fill. A richer model scores
+  // pre-trade on the neutral prior rather than crashing on missing keys.) ---
+  /** Cross-provider agreement (0-1, low is bad) from the 30-min spine. */
+  agreement?: number;
+  /** Provider count flagged as outlier in the 30-min spine. */
+  outlierCount?: number;
+  /** Provider count deemed stale (data_age >= 60s) in the 30-min spine. */
+  staleCount?: number;
+  /** Average provider reputation (0-1 normalized) in the 30-min spine. */
+  avgReputation?: number;
+  /** Worst provider reputation (0-1 normalized) in the 30-min spine. */
+  minReputation?: number;
 }
 
 /** Map a feature map onto a horizon's featureNames order (0-fill missing). */
@@ -189,6 +204,16 @@ export function featuresFromPreTrade(f: PreTradeFeatures): FeatureMap {
     deviation_velocity_3h: f.deviationVelocity3h,
     participant_count_delta_1h: f.participantCountDelta1h,
     max_deviation_zscore_24h: f.maxDeviationZscore24h,
+    // --- v3 governance features. Neutral defaults mirror train.py's neutral
+    // fill for rows without a 30-min spine, so a retrained richer model sees
+    // the same "no 30-min context" prior whether scoring pre-trade or
+    // Oracle Watch. Conventions: agreement=1 (perfect agreement ⇒ no signal),
+    // outlier/stale=0 (none flagged), reputation=0.5 (unknown/neutral). ---
+    agreement: f.agreement ?? 1,
+    outlier_count: f.outlierCount ?? 0,
+    stale_count: f.staleCount ?? 0,
+    avg_reputation: f.avgReputation ?? 0.5,
+    min_reputation: f.minReputation ?? 0.5,
   };
 }
 

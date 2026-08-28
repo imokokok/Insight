@@ -42,12 +42,92 @@ export interface OracleWatchHistorySummary {
   maxDeviationPct: number | null;
 }
 
+/** Bucketing granularity for /history. '30min' returns the raw spine as-is. */
+export type OracleWatchInterval = '30min' | 'hourly' | 'daily';
+
 export interface OracleWatchHistoryResult {
   symbol: string;
   chain: string | null;
   days: number;
+  /** Requested aggregation grain ('30min' = raw). */
+  grain: OracleWatchInterval;
   series: OracleWatchHistoryPoint[];
   summary: OracleWatchHistorySummary;
+}
+
+/** Severity rank used when collapsing a bucket to its worst verdict. */
+const VERDICT_RANK: Record<string, number> = { normal: 0, caution: 1, danger: 2 };
+
+/** Round an ISO timestamp down to the requested grain boundary. */
+function bucketKey(evaluatedAt: string, interval: OracleWatchInterval): string {
+  const d = new Date(evaluatedAt);
+  if (Number.isNaN(d.getTime())) return evaluatedAt;
+  if (interval === '30min') return d.toISOString();
+  if (interval === 'hourly') {
+    d.setUTCMinutes(0, 0, 0);
+    return d.toISOString();
+  }
+  d.setUTCHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
+/**
+ * Aggregate a raw series to a coarser grain. Each bucket keeps the worst
+ * verdict, the max deviation, the mean agreement/participant count, and the
+ * latest mlRisk/level. Pure so it is trivially unit-testable.
+ */
+export function aggregateOracleWatchSeries(
+  points: OracleWatchHistoryPoint[],
+  interval: OracleWatchInterval
+): OracleWatchHistoryPoint[] {
+  if (interval === '30min' || points.length === 0) return points;
+
+  const buckets = new Map<string, OracleWatchHistoryPoint[]>();
+  for (const p of points) {
+    const key = bucketKey(p.evaluatedAt, interval);
+    const arr = buckets.get(key) ?? [];
+    arr.push(p);
+    buckets.set(key, arr);
+  }
+
+  const keys = Array.from(buckets.keys()).sort();
+  return keys.map((key) => {
+    const group = buckets.get(key)!;
+    let verdict = 'normal';
+    for (const p of group) {
+      if ((VERDICT_RANK[p.verdict] ?? 0) > (VERDICT_RANK[verdict] ?? 0)) verdict = p.verdict;
+    }
+    const devs = group
+      .map((p) => p.maxDeviationPct)
+      .filter((v): v is number => v !== null && Number.isFinite(v));
+    const agreement = group.reduce((s, p) => s + p.agreement, 0) / group.length;
+    const participantCount = Math.round(
+      group.reduce((s, p) => s + p.participantCount, 0) / group.length
+    );
+    // Worst/best by severity, recommendation from the worst-verdict point.
+    const worstPoint = group.reduce((a, b) =>
+      (VERDICT_RANK[b.verdict] ?? 0) > (VERDICT_RANK[a.verdict] ?? 0) ? b : a
+    );
+    const mlScores = group
+      .map((p) => p.mlRiskScore)
+      .filter((v): v is number => v !== null && Number.isFinite(v));
+
+    return {
+      evaluatedAt: key,
+      verdict,
+      recommendation: worstPoint.recommendation,
+      maxDeviationPct: devs.length > 0 ? Math.max(...devs) : null,
+      agreement: Number(agreement.toFixed(4)),
+      participantCount,
+      mlRiskScore: mlScores.length > 0 ? Math.max(...mlScores) : null,
+      // Take the mlRiskLevel of the point that produced the worst ml score.
+      mlRiskLevel:
+        mlScores.length > 0
+          ? (group[group.findIndex((p) => p.mlRiskScore === Math.max(...mlScores))]?.mlRiskLevel ??
+            null)
+          : null,
+    };
+  });
 }
 
 /** Pure aggregation over a series — kept separate so it is trivial to unit-test. */
@@ -102,8 +182,10 @@ export async function getOracleWatchHistory(args: {
   symbol: string;
   chain?: string;
   days: number;
+  interval?: OracleWatchInterval;
 }): Promise<OracleWatchHistoryResult> {
   const { symbol, chain, days } = args;
+  const interval: OracleWatchInterval = args.interval ?? '30min';
   const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
   const supabase = createServiceRoleClient();
@@ -122,7 +204,7 @@ export async function getOracleWatchHistory(args: {
     throw new Error(`Failed to fetch Oracle Watch history: ${error.message}`);
   }
 
-  const series: OracleWatchHistoryPoint[] = (data ?? []).map((row) => ({
+  const raw: OracleWatchHistoryPoint[] = (data ?? []).map((row) => ({
     evaluatedAt: row.evaluated_at,
     verdict: row.verdict,
     recommendation: row.recommendation,
@@ -132,11 +214,13 @@ export async function getOracleWatchHistory(args: {
     mlRiskScore: row.ml_risk_score,
     mlRiskLevel: row.ml_risk_level,
   }));
+  const series = aggregateOracleWatchSeries(raw, interval);
 
   return {
     symbol,
     chain: chain ?? null,
     days,
+    grain: interval,
     series,
     summary: summarizeOracleWatchSeries(series),
   };

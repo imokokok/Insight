@@ -357,7 +357,13 @@ function detectDualSourceOutliers(
  */
 const AGREEMENT_CV_SENSITIVITY = 10;
 
-function calculateAgreement(prices: number[]): number {
+/**
+ * Cross-provider agreement from a price set, as a 0-1 score (higher = more
+ * agreement). Exported for the Oracle Watch historical backfill so its
+ * agreement matches the live consensus engine exactly.
+ * @param prices Non-empty array of provider prices.
+ */
+export function calculateAgreement(prices: number[]): number {
   if (prices.length < 2) return 1;
   const mean = calculateMean(prices);
   if (mean === 0) return 0;
