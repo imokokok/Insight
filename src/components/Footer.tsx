@@ -27,6 +27,7 @@ export default function Footer() {
   const safetyLinks = [
     { label: 'Safety Check', href: '/safety-check' },
     { label: 'Pre-Trade Safety Check', href: '/ai#safety-check' },
+    { label: 'Oracle Watch', href: '/ai#oracle-watch' },
     { label: 'Stablecoin Depeg', href: '/stablecoin-depeg' },
     { label: 'Wrapped Asset Peg', href: '/wrapped-assets' },
   ];

@@ -44,7 +44,7 @@ const resources: Resource[] = [
     icon: <Bot className="w-6 h-6" />,
     title: 'AI / MCP Server',
     description:
-      'Connect AI agents like Claude and Cursor via the Model Context Protocol — with pre-trade oracle safety checks.',
+      'Connect AI agents like Claude and Cursor via the Model Context Protocol — with pre-trade oracle safety checks and the always-on Oracle Watch signal.',
     href: '/ai',
     accent: 'violet',
   },

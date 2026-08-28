@@ -1117,6 +1117,51 @@ paths:
         '402':
           $ref: '#/components/responses/PlanUpgradeRequired'
 
+  /oracle-watch:
+    get:
+      operationId: oracleWatch
+      tags: [Safety]
+      summary: Oracle Watch — always-on cross-oracle trust signal 🔒
+      description: |
+        Always-on companion to the pre-trade safety check. Condenses live cross-oracle
+        consensus deviation, agreement, quorum, outliers and staleness into a single
+        `NORMAL` / `CAUTION` / `DANGER` verdict with a `proceed` / `proceed_with_caution` /
+        `halt` recommendation. Agents should poll this signal to keep long-running strategies
+        (yield, keepers, portfolios) safe between trades and pause when the verdict turns
+        `DANGER`. When an asset has no cross-oracle coverage, the endpoint degrades to a
+        `DANGER` / `halt` verdict instead of erroring. Verdict thresholds reuse the pre-trade
+        rule set (deviation 1% / 3%, agreement 0.95 / 0.85) so both surfaces speak the same
+        severity language.
+
+        **Requires Pro plan or higher.**
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          description: Asset symbol, e.g. ETH, BTC.
+          schema:
+            type: string
+            example: ETH
+        - name: chain
+          in: query
+          required: false
+          description: Optional blockchain filter, e.g. ethereum, arbitrum, base.
+          schema:
+            type: string
+            example: ethereum
+      responses:
+        '200':
+          description: Oracle Watch verdict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OracleWatchResponse'
+        '402':
+          $ref: '#/components/responses/PlanUpgradeRequired'
+
   # ── Risk Signals ─────────────────────────────────────────
   /oracles/health:
     get:
@@ -3680,6 +3725,79 @@ components:
               format: date-time
             latencyMs:
               type: integer
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    OracleWatchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            symbol:
+              type: string
+              description: Asset symbol.
+            chain:
+              type: string
+              nullable: true
+              description: Blockchain the signal was scoped to, if any.
+            verdict:
+              type: string
+              enum: [normal, caution, danger]
+              description: |
+                Always-on trust verdict. `danger` means pause dependent operations; it also
+                covers assets with no cross-oracle coverage.
+            recommendation:
+              type: string
+              enum: [proceed, proceed_with_caution, halt]
+              description: Actionable recommendation for an agent.
+            maxDeviationPct:
+              type: number
+              nullable: true
+              description: Max |deviation from consensus| across responding providers.
+            agreement:
+              type: number
+              minimum: 0
+              maximum: 1
+              description: Cross-provider agreement (1 = perfect agreement).
+            participantCount:
+              type: integer
+              description: Number of providers that contributed a price.
+            outlierCount:
+              type: integer
+              description: Number of responding providers flagged as outliers.
+            staleCount:
+              type: integer
+              description: Number of responding providers whose data is stale.
+            consensusPrice:
+              type: number
+              nullable: true
+              description: Cross-oracle consensus price for the asset.
+            reason:
+              type: string
+              description: Machine-readable reason for the verdict.
+            providers:
+              type: array
+              items:
+                type: object
+                properties:
+                  provider:
+                    type: string
+                  status:
+                    type: string
+                    enum: [success, unsupported, error]
+                  deviationPct:
+                    type: number
+                    nullable: true
+                  isOutlier:
+                    type: boolean
+                  isStale:
+                    type: boolean
+            evaluatedAt:
+              type: string
+              format: date-time
         meta:
           $ref: '#/components/schemas/ApiMeta'
 

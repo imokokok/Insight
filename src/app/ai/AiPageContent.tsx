@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import Link from 'next/link';
 
@@ -9,7 +9,9 @@ import {
   Brain,
   Code2,
   ExternalLink,
+  Eye,
   Key,
+  Radar,
   ShieldCheck,
   Sparkles,
   Terminal,
@@ -27,6 +29,7 @@ import { McpConfigGenerator } from '../mcp/components/McpConfigGenerator';
 import { McpPlayground } from '../mcp/components/McpPlayground';
 
 import { CodeSnippetGenerator } from './components/CodeSnippetGenerator';
+import { OracleWatchDemo } from './components/OracleWatchDemo';
 import { PreTradeSafetyDemo } from './components/PreTradeSafetyDemo';
 
 const logger = createLogger('ai-page');
@@ -55,7 +58,7 @@ const CAPABILITIES = [
   },
   {
     icon: Terminal,
-    title: '32 MCP Tools',
+    title: '33 MCP Tools',
     description:
       'Prices, consensus, risk summaries, position stress tests, stablecoin depeg, reputation rankings, feed health — all callable by any MCP-compatible client.',
     accent: 'text-blue-600 bg-blue-50',
@@ -88,6 +91,12 @@ const AGENT_USE_CASES = [
     prompt:
       '"Generate an oracle health report for the last 24 hours, focusing on depeg events and feed latency."',
   },
+  {
+    icon: Radar,
+    title: 'Always-on monitoring',
+    prompt:
+      '"I run a yield strategy on ETH. Poll oracle_watch every 5 minutes and pause withdrawals if the verdict ever turns DANGER."',
+  },
 ];
 
 const INTEGRATION_STEPS = [
@@ -103,8 +112,8 @@ const INTEGRATION_STEPS = [
   },
   {
     step: '3',
-    title: 'Ask your agent to check before trading',
-    body: 'Agents auto-discover the pre_trade_safety_check tool and should call it before any on-chain action.',
+    title: 'Gate every action and every running strategy',
+    body: 'Agents auto-discover the pre_trade_safety_check tool for one-off trades and the oracle_watch tool to keep running strategies safe between actions.',
   },
 ];
 
@@ -188,7 +197,7 @@ export function AiPageContent() {
             <p className="text-lg sm:text-xl text-slate-600 leading-relaxed mb-4 max-w-2xl mx-auto">
               AI agents are the new DeFi users — but they can&apos;t tell when a price is being
               manipulated. Insight gives every agent a pre-trade safety checkpoint: cross-oracle
-              consensus, manipulation risk scoring, and 32 MCP tools it can call directly.
+              consensus, manipulation risk scoring, and 33 MCP tools it can call directly.
             </p>
 
             <p className="text-sm text-slate-500 mb-6">
@@ -253,6 +262,28 @@ export function AiPageContent() {
                 <p className="text-sm text-slate-600 leading-relaxed">{cap.description}</p>
               </div>
             ))}
+
+            <a
+              href="#oracle-watch"
+              className="sm:col-span-2 lg:col-span-4 p-6 bg-gradient-to-r from-violet-50 via-white to-emerald-50 border border-violet-100 rounded-2xl hover:border-violet-200 transition-colors flex flex-col sm:flex-row sm:items-center gap-4"
+            >
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-violet-600 text-white flex-shrink-0">
+                <Radar className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-slate-900 mb-1">
+                  Oracle Watch — the always-on companion
+                </h3>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Pre-trade checks a single moment; Oracle Watch keeps watching. A live cross-oracle
+                  trust signal (NORMAL / CAUTION / DANGER) that agents can poll to keep running
+                  strategies — yield, keepers, portfolios — safe between trades.
+                </p>
+              </div>
+              <span className="text-sm font-medium text-violet-700 whitespace-nowrap">
+                Try it live →
+              </span>
+            </a>
           </div>
         </div>
       </section>
@@ -290,6 +321,46 @@ export function AiPageContent() {
             </code>{' '}
             REST endpoint.
           </p>
+        </div>
+      </section>
+
+      {/* ===================== ORACLE WATCH DEMO ===================== */}
+      <section id="oracle-watch" className="py-16 sm:py-20 bg-white border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-xs font-medium mb-4">
+              <Radar className="w-3.5 h-3.5" />
+              Always-on · Direction 2
+            </div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Oracle Watch</h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              Pre-trade checks the moment before an action. Oracle Watch keeps watching between
+              actions — a live cross-oracle trust signal that running strategies can poll and gate
+              on, instead of trusting a price silently.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
+            <OracleWatchDemo apiKey={defaultApiKey} />
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <InfoTile
+              icon={<Eye className="w-4 h-4" />}
+              title="For running strategies"
+              body="Yield bots, keepers and portfolio managers poll the signal periodically and pause when it turns DANGER."
+            />
+            <InfoTile
+              icon={<Zap className="w-4 h-4" />}
+              title="One verdict, same language"
+              body="NORMAL / CAUTION / DANGER reuses the pre-trade severity thresholds (deviation 1%/3%, agreement 0.95/0.85), so agents speak one consistent risk language."
+            />
+            <InfoTile
+              icon={<Terminal className="w-4 h-4" />}
+              title="MCP + REST"
+              body="Call it from any MCP client as oracle_watch, or hit GET /api/v1/oracle-watch directly. No cross-oracle coverage degrades to DANGER, not an error."
+            />
+          </div>
         </div>
       </section>
 
@@ -352,7 +423,10 @@ call pre_trade_safety_check with the
 asset, chainId, action and amount.
 If the verdict is DANGER or BLOCK,
 do NOT execute — report the risk
-factors to the user instead.`}
+factors to the user instead.
+For long-running strategies, poll
+oracle_watch periodically and pause
+when the verdict turns DANGER.`}
             />
           </div>
         </div>
@@ -438,9 +512,13 @@ factors to the user instead.`}
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">MCP Tool Playground</h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Test any of the 32 tools — including{' '}
+              Test any of the 33 tools — including{' '}
               <code className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-mono text-sm text-slate-700">
                 pre_trade_safety_check
+              </code>{' '}
+              and{' '}
+              <code className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-mono text-sm text-slate-700">
+                oracle_watch
               </code>{' '}
               — without leaving the browser.
             </p>
@@ -473,7 +551,7 @@ function UseCasesSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {AGENT_USE_CASES.map((useCase) => (
             <div
               key={useCase.title}
@@ -513,6 +591,18 @@ function ConfigSnippetCard({
       <pre className="p-4 text-xs font-mono text-slate-300 overflow-x-auto leading-relaxed">
         {snippet}
       </pre>
+    </div>
+  );
+}
+
+function InfoTile({ icon, title, body }: { icon: ReactNode; title: string; body: string }) {
+  return (
+    <div className="p-5 bg-slate-50 border border-slate-100 rounded-2xl">
+      <div className="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center mb-3">
+        {icon}
+      </div>
+      <h4 className="text-sm font-semibold text-slate-900 mb-1.5">{title}</h4>
+      <p className="text-xs text-slate-600 leading-relaxed">{body}</p>
     </div>
   );
 }

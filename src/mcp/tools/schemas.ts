@@ -25,6 +25,11 @@ export const ConsensusPriceInputSchema = z.object({
     .describe('Consensus aggregation method'),
 });
 
+export const OracleWatchInputSchema = z.object({
+  symbol: SafeSymbolSchema.describe('Asset symbol, e.g. BTC, ETH'),
+  chain: SafeChainSchema.optional().describe('Optional blockchain filter'),
+});
+
 export const RiskSummaryInputSchema = z.object({
   symbol: SafeSymbolSchema.describe('Asset symbol, e.g. BTC, ETH'),
   providers: z

@@ -1,0 +1,433 @@
+'use client';
+
+import { useState } from 'react';
+
+import {
+  CheckCircle2,
+  Check,
+  Copy,
+  Loader2,
+  Radar,
+  ShieldAlert,
+  ShieldCheck,
+  XCircle,
+} from 'lucide-react';
+
+import { Button } from '@/components/ui/Button';
+import { getAppUrl } from '@/lib/utils/appUrl';
+import { useSession } from '@/stores/authStore';
+
+type Verdict = 'normal' | 'caution' | 'danger';
+
+interface OracleWatchSignal {
+  symbol: string;
+  chain: string | null;
+  verdict: Verdict;
+  recommendation: 'proceed' | 'proceed_with_caution' | 'halt';
+  maxDeviationPct: number | null;
+  agreement: number;
+  participantCount: number;
+  outlierCount: number;
+  staleCount: number;
+  consensusPrice: number | null;
+  reason: string;
+  providers: Array<{
+    provider: string;
+    status: 'success' | 'unsupported' | 'error';
+    deviationPct: number | null;
+    isOutlier: boolean;
+    isStale: boolean;
+  }>;
+  evaluatedAt: string;
+}
+
+const CHAIN_OPTIONS = [
+  { label: 'Any chain', value: '' },
+  { label: 'Ethereum', value: 'ethereum' },
+  { label: 'Arbitrum', value: 'arbitrum' },
+  { label: 'Optimism', value: 'optimism' },
+  { label: 'Base', value: 'base' },
+  { label: 'BNB Chain', value: 'bnb-chain' },
+  { label: 'Avalanche', value: 'avalanche' },
+  { label: 'Polygon', value: 'polygon' },
+];
+
+const VERDICT_CONFIG: Record<
+  Verdict,
+  {
+    label: string;
+    color: string;
+    bg: string;
+    border: string;
+    icon: typeof ShieldCheck;
+    summary: string;
+  }
+> = {
+  normal: {
+    label: 'NORMAL',
+    color: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-200',
+    icon: CheckCircle2,
+    summary: 'Cross-oracle data is healthy and consistent. Safe to keep depending on the feed.',
+  },
+  caution: {
+    label: 'CAUTION',
+    color: 'text-amber-700',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    icon: ShieldCheck,
+    summary: 'Minor divergence, outliers or staleness detected. Consider reducing exposure.',
+  },
+  danger: {
+    label: 'DANGER',
+    color: 'text-red-700',
+    bg: 'bg-red-50',
+    border: 'border-red-200',
+    icon: ShieldAlert,
+    summary: 'Significant oracle risk — or no cross-oracle coverage. Pause dependent operations.',
+  },
+};
+
+function formatUsd(n: number): string {
+  return n.toLocaleString('en-US', { maximumFractionDigits: 4 });
+}
+
+function formatPct(n: number, withSign = true): string {
+  return `${n >= 0 && withSign ? '+' : ''}${n.toFixed(2)}%`;
+}
+
+export function OracleWatchDemo({ apiKey }: { apiKey?: string }) {
+  const session = useSession();
+  const [asset, setAsset] = useState('ETH');
+  const [chain, setChain] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<OracleWatchSignal | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function runWatch() {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const params = new URLSearchParams({ symbol: asset });
+      if (chain) params.set('chain', chain);
+      const headers: Record<string, string> = {};
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      } else if (apiKey) {
+        headers['X-API-Key'] = apiKey;
+      }
+
+      const res = await fetch(`/api/v1/oracle-watch?${params.toString()}`, { headers });
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        const code = json?.error?.code ?? 'UNKNOWN';
+        const message = json?.error?.message ?? 'Request failed';
+        setError(`${code}: ${message}`);
+        return;
+      }
+
+      setResult(json.data as OracleWatchSignal);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Network error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const canCall = Boolean(session?.access_token || apiKey);
+
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* ---- Form ---- */}
+        <div className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Asset</label>
+            <input
+              type="text"
+              value={asset}
+              onChange={(e) => setAsset(e.target.value.toUpperCase())}
+              placeholder="ETH"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Chain (optional)
+            </label>
+            <select
+              value={chain}
+              onChange={(e) => setChain(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {CHAIN_OPTIONS.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <Button
+            onClick={runWatch}
+            disabled={loading || !canCall}
+            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Watching cross-oracle feeds…
+              </>
+            ) : (
+              <>
+                <Radar className="w-4 h-4" />
+                Run Oracle Watch
+              </>
+            )}
+          </Button>
+
+          {!canCall && (
+            <p className="text-xs text-slate-500 text-center">
+              Sign in or provide an API key below to run a live check.
+            </p>
+          )}
+          {error && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span className="font-mono">{error}</span>
+            </div>
+          )}
+        </div>
+
+        {/* ---- Result ---- */}
+        <div className="space-y-4">
+          {!result && !loading && (
+            <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+              <Radar className="w-10 h-10 text-slate-300 mb-3" />
+              <p className="text-sm text-slate-500 max-w-xs">
+                Pick an asset and run Oracle Watch. Insight aggregates live cross-oracle deviation,
+                agreement, quorum, outliers and staleness into one verdict an agent can gate on.
+              </p>
+            </div>
+          )}
+
+          {result && <OracleWatchSignalCard result={result} />}
+        </div>
+      </div>
+
+      <CallingMethods asset={asset} chain={chain} />
+    </div>
+  );
+}
+
+function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
+  const cfg = VERDICT_CONFIG[result.verdict];
+  const Icon = cfg.icon;
+
+  return (
+    <div className="space-y-4">
+      <div className={`p-5 rounded-2xl border-2 ${cfg.border} ${cfg.bg}`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <Icon className={`w-7 h-7 ${cfg.color}`} />
+            <div>
+              <div className={`text-xl font-bold ${cfg.color}`}>{cfg.label}</div>
+              <div className="text-xs text-slate-600">{cfg.summary}</div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-xs text-slate-500">Recommendation</div>
+            <div className="text-sm font-mono font-medium text-slate-800">
+              {result.recommendation}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          <Metric
+            label="Consensus Price"
+            value={result.consensusPrice !== null ? `$${formatUsd(result.consensusPrice)}` : 'n/a'}
+          />
+          <Metric
+            label="Max Deviation"
+            value={result.maxDeviationPct !== null ? formatPct(result.maxDeviationPct) : 'n/a'}
+            warn={(result.maxDeviationPct ?? 0) >= 3}
+          />
+          <Metric
+            label="Provider Agreement"
+            value={`${(result.agreement * 100).toFixed(1)}%`}
+            warn={result.agreement < 0.85}
+          />
+          <Metric label="Consensus Providers" value={String(result.participantCount)} />
+          <Metric
+            label="Outliers"
+            value={String(result.outlierCount)}
+            warn={result.outlierCount > 0}
+          />
+          <Metric label="Stale" value={String(result.staleCount)} warn={result.staleCount > 0} />
+        </div>
+
+        <div className="mt-3 pt-2.5 border-t border-slate-200/70 flex items-center gap-1.5 text-[11px] text-slate-500">
+          <Radar className="w-3 h-3" />
+          <span>
+            Reason: <span className="font-mono text-slate-600">{result.reason}</span> · evaluated at{' '}
+            <span className="font-mono">{new Date(result.evaluatedAt).toLocaleTimeString()}</span>
+          </span>
+        </div>
+      </div>
+
+      {result.providers.length > 0 && (
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
+            <h4 className="text-sm font-semibold text-slate-700">
+              Provider Breakdown ({result.participantCount} responding)
+            </h4>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {result.providers.map((p) => (
+              <div
+                key={p.provider}
+                className="px-4 py-2.5 flex items-center justify-between text-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-slate-800 capitalize">{p.provider}</span>
+                  {p.isOutlier && (
+                    <span className="px-1.5 py-0.5 text-[10px] font-medium bg-red-100 text-red-700 rounded">
+                      OUTLIER
+                    </span>
+                  )}
+                  {p.isStale && (
+                    <span className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded">
+                      STALE
+                    </span>
+                  )}
+                  {p.status !== 'success' && (
+                    <span className="px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-500 rounded">
+                      {p.status}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-4 font-mono text-xs text-slate-600">
+                  <span>{p.status === 'success' ? 'ok' : p.status}</span>
+                  <span
+                    className={
+                      p.deviationPct !== null && Math.abs(p.deviationPct) >= 3
+                        ? 'text-red-600 font-semibold'
+                        : ''
+                    }
+                  >
+                    {p.deviationPct === null ? 'n/a' : formatPct(p.deviationPct)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CallingMethods({ asset, chain }: { asset: string; chain: string }) {
+  const [tab, setTab] = useState<'mcp' | 'rest'>('mcp');
+  const [copied, setCopied] = useState(false);
+  const baseUrl = getAppUrl();
+  const safeChain = chain || 'ethereum';
+
+  const mcpSnippet = `Call the MCP tool:
+tool: oracle_watch
+{
+  "symbol": "${asset.toUpperCase()}",
+  "chain": "${safeChain}"
+}
+
+The agent returns a machine-readable verdict:
+- Verdict: NORMAL | CAUTION | DANGER
+- Recommendation: proceed | proceed_with_caution | halt
+- Reason: within_tolerance | deviation_agreement_outlier_or_stale | deviation_or_agreement_breached_danger | no_cross_oracle_coverage`;
+
+  const restSnippet = `curl -X GET "${baseUrl}/api/v1/oracle-watch?symbol=${encodeURIComponent(asset.toUpperCase())}&chain=${safeChain}" \\
+  -H "X-API-Key: ins_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \\
+  -H "Accept: application/json"
+
+# Response: { "data": {
+#   "verdict": "normal|caution|danger",
+#   "recommendation": "proceed|proceed_with_caution|halt",
+#   "maxDeviationPct": 0.42,
+#   "agreement": 0.99,
+#   "participantCount": 4,
+#   "outlierCount": 0,
+#   "staleCount": 0,
+#   "providers": [ ... ]
+# } }`;
+
+  const code = tab === 'mcp' ? mcpSnippet : restSnippet;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // ignore
+    }
+  };
+
+  return (
+    <div className="rounded-xl overflow-hidden bg-slate-900 border border-slate-800">
+      <div className="flex items-center justify-between px-3 py-2 bg-slate-950 border-b border-slate-800">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setTab('mcp')}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              tab === 'mcp'
+                ? 'bg-slate-700 text-white'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            MCP · oracle_watch
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('rest')}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              tab === 'rest'
+                ? 'bg-slate-700 text-white'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            REST · /api/v1/oracle-watch
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
+        >
+          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <pre className="p-4 text-xs text-slate-200 overflow-x-auto font-mono leading-relaxed max-h-[440px]">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+}
+
+function Metric({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-slate-500">{label}</span>
+      <span className={`font-mono font-medium ${warn ? 'text-red-600' : 'text-slate-800'}`}>
+        {value}
+      </span>
+    </div>
+  );
+}

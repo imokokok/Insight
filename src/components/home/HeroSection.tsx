@@ -82,7 +82,8 @@ export function HeroSection() {
             Insight is independent oracle transparency and risk infrastructure for DeFi. Verify,
             compare, and stress-test prices across Chainlink, RedStone, API3 and more — so faulty
             feeds never take your protocol by surprise. Give your AI agents a pre-trade oracle
-            safety checkpoint before they execute a single on-chain trade.
+            safety checkpoint before they execute a single on-chain trade, plus an always-on Oracle
+            Watch signal to keep running strategies safe between trades.
           </motion.p>
 
           <motion.div variants={itemVariants}>

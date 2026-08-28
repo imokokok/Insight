@@ -30,6 +30,11 @@ export const ConsensusPriceJsonSchema = z.object({
     .describe('Consensus aggregation method'),
 });
 
+export const OracleWatchJsonSchema = z.object({
+  symbol: z.string().describe('Asset symbol, e.g. BTC, ETH'),
+  chain: chainEnum.optional().describe('Optional blockchain filter'),
+});
+
 export const RiskSummaryJsonSchema = z.object({
   symbol: z.string().describe('Asset symbol, e.g. BTC, ETH'),
   providers: z

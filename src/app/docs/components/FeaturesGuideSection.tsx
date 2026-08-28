@@ -10,6 +10,7 @@ import {
   FileText,
   GitCompare,
   Layers,
+  Radar,
   Search,
   Shield,
   ShieldCheck,
@@ -38,6 +39,20 @@ const features: Feature[] = [
       'Pre-trade borrow check: buffer-consumption bar + freeze / wait / add-collateral actions',
     ],
     accent: 'emerald',
+  },
+  {
+    icon: <Radar className="w-6 h-6" />,
+    title: 'Oracle Watch',
+    description:
+      'Always-on cross-oracle trust signal (NORMAL / CAUTION / DANGER) that AI agents running long-lived strategies can poll and gate on between trades.',
+    href: '/ai#oracle-watch',
+    highlights: [
+      'Live consensus deviation, agreement, quorum, outliers and staleness',
+      'proceed / proceed_with_caution / halt recommendation',
+      'Reuses the pre-trade severity thresholds for one consistent risk language',
+      'No cross-oracle coverage degrades to DANGER / halt — never errors',
+    ],
+    accent: 'violet',
   },
   {
     icon: <AlertTriangle className="w-6 h-6" />,

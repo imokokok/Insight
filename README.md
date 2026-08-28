@@ -1,6 +1,6 @@
 # Insight — Oracle Transparency & Risk Infrastructure
 
-Insight is an oracle transparency and risk infrastructure platform for DeFi. It tracks prices across **10 oracle providers and 40+ blockchain networks** — and turns that cross-oracle data into a **decision-grade safety check** that AI agents run before touching on-chain money.
+Insight is an oracle transparency and risk infrastructure platform for DeFi. It tracks prices across **10 oracle providers and 40+ blockchain networks** — and turns that cross-oracle data into a **decision-grade safety check** that AI agents run before touching on-chain money, plus an **always-on cross-oracle trust signal (Oracle Watch)** that keeps running strategies safe between trades.
 
 **See through every oracle. Trust with clarity.**
 
@@ -9,6 +9,7 @@ Insight is an oracle transparency and risk infrastructure platform for DeFi. It 
 ## Table of Contents
 
 - [The Flagship: Pre-Trade Oracle Safety Check](#the-flagship-pre-trade-oracle-safety-check)
+- [Oracle Watch: Always-On Cross-Oracle Monitoring](#oracle-watch-always-on-cross-oracle-monitoring)
 - [Key Features](#key-features)
 - [Supported Oracles](#supported-oracles)
 - [Supported Protocols](#supported-protocols-safety-check)
@@ -57,9 +58,34 @@ Anyone can verify a signature against the published attester address via `POST /
 
 ### Access
 
-- **MCP tool** — `pre_trade_safety_check` (one of 32 tools).
+- **MCP tool** — `pre_trade_safety_check` (one of 33 tools).
 - **REST** — `GET /api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=100000`.
 - **Web** — interactive demo at `/ai`; the same lending check is embedded live on every position at `/safety-check`.
+
+## Oracle Watch: Always-On Cross-Oracle Monitoring
+
+The always-on companion to Pre-Trade. Pre-trade answers "can I trade this price right now?" for a single moment; Oracle Watch answers "can my strategy keep depending on this feed?" with a consolidated, live cross-oracle trust signal any agent can poll and gate on — no trade required.
+
+> **NORMAL · CAUTION · DANGER** + a `proceed` / `proceed_with_caution` / `halt` recommendation
+
+Agents running long-lived strategies (yield bots, keepers, portfolio managers) should poll the signal on a schedule and **pause when the verdict turns DANGER**. It is the counterpart to the one-off pre-trade checkpoint for the between-trades window.
+
+### How it decides
+
+Oracle Watch condenses the same underlying consensus data into one verdict using **the same severity thresholds as Pre-Trade** (max deviation: caution 1.0% / danger 3.0%; agreement: caution 0.95 / danger 0.85), so both surfaces speak one consistent risk language:
+
+| Signal                     | NORMAL | CAUTION                   | DANGER                                                                  |
+| -------------------------- | ------ | ------------------------- | ----------------------------------------------------------------------- |
+| Max cross-oracle deviation | < 1.0% | 1.0% – 3.0%               | ≥ 3.0%                                                                  |
+| Cross-provider agreement   | ≥ 0.95 | 0.85 – 0.95               | < 0.85                                                                  |
+| Outliers / staleness       | none   | any outlier or stale feed | — (escalated by deviation/agreement)                                    |
+| No cross-oracle coverage   | —      | —                         | `DANGER` / `halt` (`no_cross_oracle_coverage`) — degrades, never errors |
+
+### Access
+
+- **MCP tool** — `oracle_watch` (one of 33 tools). Pair it with `pre_trade_safety_check` for the decision moment.
+- **REST** — `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum`.
+- **Web** — interactive demo with MCP + REST calling methods at `/ai#oracle-watch`.
 
 ## Key Features
 
@@ -155,7 +181,7 @@ src/
 ├── hooks/        # React hooks
 ├── lib/          # Core logic — analytics, api, attestations, billing, ml, oracles,
 │                 #   protocols, risk, stablecoins, supabase, ...
-├── mcp/          # MCP server implementation (stdio + http transports, 32 tools)
+├── mcp/          # MCP server implementation (stdio + http transports, 33 tools)
 ├── providers/    # React context providers
 ├── stores/       # Zustand state stores
 ├── types/        # TypeScript type definitions
@@ -190,11 +216,11 @@ Reputation trend history is tiered too: Free 7 days, Pro 30 days, Protocol/Enter
 
 See `src/lib/billing/plans.ts` for the single source of truth.
 
-Key endpoint groups (all under `/api/v1/`): `prices*`, `reputation*`, `feeds*`, `deviation`, `correlation`, `latency`, `anomalies`, `signals`, `safety/*` (position, liquidation, pre-trade, attestation/verify), `stablecoins/depeg`, `wrapped-assets/peg`, `protocols*`, `cross-chain/spreads`, `incidents`, `coverage`, `reports/daily/[date]`, `hourly-snapshots`, `price-snapshots`, `symbols`, `oracles/health`, `metrics`, `health`.
+Key endpoint groups (all under `/api/v1/`): `prices*`, `reputation*`, `feeds*`, `deviation`, `correlation`, `latency`, `anomalies`, `signals`, `safety/*` (position, liquidation, pre-trade, attestation/verify), `oracle-watch`, `stablecoins/depeg`, `wrapped-assets/peg`, `protocols*`, `cross-chain/spreads`, `incidents`, `coverage`, `reports/daily/[date]`, `hourly-snapshots`, `price-snapshots`, `symbols`, `oracles/health`, `metrics`, `health`.
 
 ## AI Agent Integration (MCP Server)
 
-Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — **32 tools** covering prices, consensus, risk summaries, liquidation stress tests, stablecoin pegs, reputation, feed health, and protocol parameters, with the flagship `pre_trade_safety_check` on top. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
+Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — **33 tools** covering prices, consensus, risk summaries, liquidation stress tests, stablecoin pegs, reputation, feed health, and protocol parameters, with the flagship `pre_trade_safety_check` and the always-on `oracle_watch` signal on top. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
 
 Quick start:
 
@@ -205,7 +231,7 @@ npm run mcp:http    # HTTP transport on http://127.0.0.1:3001/mcp
 
 When the Next.js app is running, the endpoint is also available at `/api/mcp` with the same authentication, rate limiting, and quota enforcement as the REST API.
 
-**Web hub — visit `/ai`** in the app to run the interactive pre-trade safety demo, copy one-click MCP configs for Cursor / Windsurf / Claude Desktop, manage API keys, and test all 32 tools in the browser-based MCP Playground.
+**Web hub — visit `/ai`** in the app to run the interactive pre-trade safety demo and the Oracle Watch demo, copy one-click MCP configs for Cursor / Windsurf / Claude Desktop, manage API keys, and test all 33 tools in the browser-based MCP Playground.
 
 ## Data Pipeline
 

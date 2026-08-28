@@ -32,6 +32,7 @@ import {
   MetricsJsonSchema,
   OraclePriceJsonSchema,
   OracleSetupRecommendationJsonSchema,
+  OracleWatchJsonSchema,
   PositionSafetyJsonSchema,
   PreTradeSafetyJsonSchema,
   PriceHistoryJsonSchema,
@@ -51,6 +52,7 @@ import {
   getOracleHealthTool,
   getOraclePriceTool,
 } from './oracleTools';
+import { oracleWatchTool } from './oracleWatchTools';
 import { preTradeSafetyCheckTool } from './preTradeSafetyTools';
 import { getProtocolOracleExposureTool, getProtocolsTool } from './protocolTools';
 import { getDailyReportTool, getIncidentsTool } from './reportTools';
@@ -102,6 +104,7 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getMetricsTool,
   checkPositionSafetyTool,
   preTradeSafetyCheckTool,
+  oracleWatchTool,
 ];
 
 const JSON_SCHEMA_MAP: Record<
@@ -264,6 +267,11 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   pre_trade_safety_check: PreTradeSafetyJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  oracle_watch: OracleWatchJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];
