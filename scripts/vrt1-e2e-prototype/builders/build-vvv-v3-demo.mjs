@@ -95,10 +95,10 @@ const data = {
   ...v2Data,
   requiredSourceGroupCount: String(V3_REQUIRED_SOURCE_GROUP_COUNT),
   // NUMBER, not a decimal string: the VRT1-native `outcome.schema_version` is
-  // a JSON integer per §5.1. The struct's own uint256 field is decimal string.
+  // a JSON integer (VRT1-native payloads). The struct's own uint256 field is decimal string.
   schemaVersion: 3,
-  // Same reason: the record carries `ts` from checkedAt, and §5.1 makes
-  // VRT1-native integers JSON integers. The struct field stays a decimal
+  // Same reason: the record carries `ts` from checkedAt, and VRT1-native
+  // integers stay JSON integers. The struct field stays a decimal
   // string (the encoder re-widens it).
   checkedAt: Number(v2Data.checkedAt),
 };

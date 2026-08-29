@@ -138,5 +138,9 @@
   },
   "scale_source": "src/lib/attestations/oracleSafetyAttestationV2.ts (PRICE_SCALE / USD_SCALE / PCT_SCALE / AGREEMENT_SCALE / MANIP_SCALE)",
   "pinned_at": "2026-08-29",
-  "status": "draft for type registration — the two items gating registration are this scale declaration and requiredSourceGroupCount"
+  "status": "draft for type registration — the two registration gates (this scale declaration and requiredSourceGroupCount) were verified and cleared by VERITAS on 2026-08-29; awaiting registration submission",
+  "deployment_default": {
+    "as_of": "2026-08-29",
+    "note": "As of the pin date, schema v3 is opt-in and schema v1 (11 fields, no gates) remains the service default. The anchored records demonstrate what the reserved type does; they do not describe Insight's default live traffic."
+  }
 }

@@ -1,6 +1,6 @@
 // VRT1 canonical encoding shared module.
 //
-// Single source of truth for the canonical encoding rules (VRT1 §5.1/§5.2):
+// Single source of truth for the canonical encoding rules (VRT1 §1.2/§1.5):
 //
 //   Class A (hex-encoded byte fields) -> strip 0x, lowercase:
 //     the four evidence hashes (reasonCodesHash, requestHash,
@@ -12,7 +12,7 @@
 //     EIP-55 mixed casing carries meaning. Lowercasing does not normalise an
 //     encoding, it changes an identifier.
 //
-//   uint256 -> decimal strings (spec §5.1).
+//   uint256 -> decimal strings (spec §1.2).
 //
 // Used by the builders/ scripts (prototype.mjs, registry-snapshot.mjs,
 // build-genesis.mjs, build-vvv-demo.mjs).
@@ -28,9 +28,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export { canonicalize };
 
 export const VRT1_ACTION_TAG = 'VRT1/agent-action';
-// Per VRT1 §5.2: the aux_rand for the Schnorr signatures is thirty two zero
-// bytes. Without it you produce a valid signature that is not the same
-// signature.
+// Per the published VRT1 test vectors: the aux_rand for the Schnorr
+// signatures is thirty two zero bytes. Without it you produce a valid
+// signature that is not the same signature.
 export const AUX_RAND = new Uint8Array(32); // 32 zero bytes
 
 // ---- encoding rule classes (two literal sets, as in the counterparty generator) ----

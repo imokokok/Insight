@@ -128,7 +128,7 @@ PASS  coverage gate recomputes to the signed coverageStatus — 2 vs 3 → INSUF
 PASS  independence gate recomputes to the signed independenceStatus (v3 only) — 2 vs 2 → ASSESSED
 ```
 
-## Canonical 编码规则（§5.1/§5.2）
+## Canonical 编码规则（§1.2/§1.5）
 
 生产编码的**单一事实源是 `src/vrt1-encoding.mjs`**：`builders/` 下的脚本都 import 它，规则只此一份。
 
@@ -140,8 +140,8 @@ PASS  independence gate recomputes to the signed independenceStatus (v3 only) �
   **去 `0x` 前缀 + 全小写**。这是规范化一种编码。
 - **CAIP-19 标识符**（`sourceAssetId`/`destinationAssetId`/`target`，如 `eip155:1/erc20:0xA0b8…`）：
   **字节原样、大小写保留**。`0x` 是标识符一部分、EIP-55 混合大小写携带意义，lowercase 是改标识符而非规范化。
-- **uint256 → decimal string**（§5.1，如 `tradeAmountUsd: "10000000000"`）；`outcome.schema_version` 除外（number，与对方向量一致）。
-- **aux_rand = 32 个零字节**（§5.2：没有它你产出有效但不同的签名，追一个不是差异的差异）。
+- **uint256 → decimal string**（§1.2，如 `tradeAmountUsd: "10000000000"`）；`outcome.schema_version` 除外（number，与对方向量一致）。
+- **aux_rand = 32 个零字节**（共享向量约定：没有它你产出有效但不同的签名，追一个不是差异的差异）。
 - **eip712_attestation envelope**：`{attester, signature, uid, signedAt, domain{name,version,chainId 字符串}, primary_type}`（无 verify_url，与共享向量一致）。
 - **VRT1 agent key（原型 demo）**：`0x55..55`（共享 conformance 套件发布的正向量密钥，可复现；非生产 key）。
 

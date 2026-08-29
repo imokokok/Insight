@@ -33,7 +33,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ---------------------------------------------------------------------------
 // Primitives used in the self-test section live in vrt1-encoding.mjs
-// (single source of truth for canonical encoding rules, revised §5.2).
+// (single source of truth for canonical encoding rules, per VRT1 §1.2/§1.5).
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
@@ -108,7 +108,7 @@ const data = att.data;
 const agentPriv = new Uint8Array(32).fill(0x55);
 const agentPubXOnly = bytesToHex(schnorr.getPublicKey(agentPriv));
 
-// 26-field struct -> params, canonical encoding applied per revised §5.2/§5.1
+// 26-field struct -> params, canonical encoding applied per VRT1 §1.5/§1.2
 // (bytes32 -> strip 0x + lowercase; uint256 -> decimal string; CAIP-19 -> byte-identical).
 const actionPayload = buildCanonicalPayload(receipt, agentPubXOnly);
 

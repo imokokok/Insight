@@ -82,7 +82,7 @@ const keys = (registry.public_keys || registry.keys || []).map((k) => ({
   key_id: k.key_id,
   // §8.5: key_type required — Insight's keys are bare Ethereum addresses.
   key_type: 'eth_address',
-  // Class A per §5.2: public_key is a bare Ethereum address, same class as
+  // Class A per §1.5: public_key is a bare Ethereum address, same class as
   // `attester` in the safety check — strip 0x, lowercase.
   public_key: normalizeHex(k.public_key || k.attester),
   // §8.5: custody required per key — declared honestly: Vercel env var / process
