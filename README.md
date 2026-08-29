@@ -53,8 +53,9 @@ Every check can be signed as an **EIP-712 offchain attestation** — a portable,
 
 - **v1** — 11-field attestation (default, backward compatible).
 - **v2** — 26-field attestation: CAIP-19 asset-pair binding, request hash, provider-observations hash, reason-codes hash, plus a **quorum gate** (≥3 independent providers) and an **independence gate** (≥2 distinct non-derived operator groups) that escalate to BLOCK. Unresolvable assets are signed with an explicit `unresolved:` marker rather than silently dropped.
+- **v3** — 27-field attestation: identical evidence to v2 plus **the independence threshold itself** (`requiredSourceGroupCount`). v2 signs `sourceGroupCount` without the number it is compared against, so a third party cannot tell whether the gate passed without reading this codebase. v3 puts both operands inside the signature, which makes the gate checkable from the bytes alone. Same gates, same verdict policy as v2.
 
-Anyone can verify a signature against the published attester address via `POST /api/v1/safety/attestation/verify` (public, no API key). The feature is disabled (non-breaking) when no signer key is configured.
+Anyone can verify a signature against the published attester address via `POST /api/v1/safety/attestation/verify` (public, no API key). The feature is disabled (non-breaking) when no signer key is configured. v1/v2/v3 coexist; the endpoint routes by the attestation's own `schemaVersion` and publishes all three type layouts from `GET` (`latestSchemaVersion` is 3).
 
 ### Access
 

@@ -1,5 +1,6 @@
 import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { signAttestationV2 } from '@/lib/attestations/oracleSafetyAttestationV2';
+import { signAttestationV3 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import { UnsupportedSymbolError } from '@/lib/errors';
 import { getModelStatus, scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 import { getFeedStalenessBaselineMap } from '@/lib/oracles/feedCadence';
@@ -63,13 +64,19 @@ jest.mock('@/lib/ml/inference', () => ({
   getModelStatus: jest.fn(() => ({ active: false, trainedAt: null, metrics: {} })),
 }));
 
-// Mock the v2 signer so v2 service tests assert the ROUTING/PLUMBING (CAIP-19
-// ids, provider observations, quorum gate) without a live attester key. The v2
-// module's V2_REQUIRED_PARTICIPANT_COUNT must stay real (drives the quorum gate).
+// Mock the v2/v3 signers so v2/v3 service tests assert the ROUTING/PLUMBING
+// (CAIP-19 ids, provider observations, quorum gate) without a live attester
+// key. Everything else in the modules stays real — the gate constants drive the
+// quorum/independence gates, and v3 builds its type layout from v2's field
+// list, so a hand-rolled partial mock would break the plumbing under test.
 jest.mock('@/lib/attestations/oracleSafetyAttestationV2', () => ({
-  V2_REQUIRED_PARTICIPANT_COUNT: 3,
-  V2_REQUIRED_NON_DERIVED_GROUPS: 2,
+  ...jest.requireActual('@/lib/attestations/oracleSafetyAttestationV2'),
   signAttestationV2: jest.fn(),
+}));
+
+jest.mock('@/lib/attestations/oracleSafetyAttestationV3', () => ({
+  ...jest.requireActual('@/lib/attestations/oracleSafetyAttestationV3'),
+  signAttestationV3: jest.fn(),
 }));
 
 const mockedGetConsensusPrice = getConsensusPrice as jest.MockedFunction<typeof getConsensusPrice>;
@@ -87,6 +94,7 @@ const mockedScorePreTradeMultiHorizon = scorePreTradeMultiHorizon as jest.Mocked
 >;
 const mockedGetModelStatus = getModelStatus as jest.MockedFunction<typeof getModelStatus>;
 const mockedSignAttestationV2 = signAttestationV2 as jest.MockedFunction<typeof signAttestationV2>;
+const mockedSignAttestationV3 = signAttestationV3 as jest.MockedFunction<typeof signAttestationV3>;
 const mockedGetFeedStalenessBaselineMap = getFeedStalenessBaselineMap as jest.MockedFunction<
   typeof getFeedStalenessBaselineMap
 >;
@@ -894,6 +902,47 @@ describe('preTradeSafetyCheck — v2 schema', () => {
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
 
     const result = await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+
+    expect(result.verdict).toBe('BLOCK');
+    expect(result.contributingFactors.find((f) => f.rule === 'oracle_coverage')).toBeDefined();
+    expect(
+      result.contributingFactors.find((f) => f.rule === 'oracle_independence')
+    ).toBeUndefined();
+  });
+
+  it('v3 routes the same evidence to the v3 signer (not v2)', async () => {
+    // v3 is v2's evidence + the signed independence threshold. The gates are
+    // identical; only the signer differs, and it must be the v3 one.
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus([
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+        makeProvider({ provider: 'api3' as OracleProvider }),
+        makeProvider({ provider: 'redstone' as OracleProvider }),
+      ])
+    );
+
+    const result = await preTradeSafetyCheck(makeInput({ schemaVersion: 3 }));
+
+    expect(mockedSignAttestationV3).toHaveBeenCalledTimes(1);
+    expect(mockedSignAttestationV2).not.toHaveBeenCalled();
+
+    // The input handed to the signer carries the same evidence v2 would get.
+    const input = mockedSignAttestationV3.mock.calls[0][0];
+    expect(input.verdict).toBe(result.verdict);
+    expect(input.participantCount).toBe(3);
+  });
+
+  it('v3 applies both gates exactly as v2 does', async () => {
+    // 2 distinct groups (dia + switchboard) clear independence; 2 participants
+    // fail the quorum → BLOCK via INSUFFICIENT_COVERAGE, independence silent.
+    // This is the same shape as the VVV production record.
+    const providers = [
+      makeProvider({ provider: 'dia' as OracleProvider }),
+      makeProvider({ provider: 'switchboard' as OracleProvider }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(makeInput({ schemaVersion: 3 }));
 
     expect(result.verdict).toBe('BLOCK');
     expect(result.contributingFactors.find((f) => f.rule === 'oracle_coverage')).toBeDefined();

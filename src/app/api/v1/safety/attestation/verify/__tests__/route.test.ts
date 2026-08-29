@@ -120,6 +120,41 @@ describe('verify route — verifyAttestationBySchema routing', () => {
     expect(result.ageSeconds).toBeNull();
   });
 
+  it('routes a v3 attestation to the v3 verifier and returns valid', async () => {
+    const { signAttestationV3 } = await import('@/lib/attestations/oracleSafetyAttestationV3');
+    const { verifyAttestationBySchema } = await import('../route');
+
+    const att = await signAttestationV3(V2_INPUT);
+    expect(att).not.toBeNull();
+
+    const result = await verifyAttestationBySchema(att!);
+    expect(result.valid).toBe(true);
+    expect(result.schemaVersion).toBe(3);
+    expect(result.attester).toBe(TEST_ATTESTER);
+    expect(result.uid).toBe(att!.uid);
+    expect(result.expired).toBe(false);
+    expect(result.validUntil).toBe(att!.data.validUntil);
+    expect(result.ageSeconds).toBeNull();
+  });
+
+  it('routes a v3 recheck to the v3 recheck verifier (not plain v3)', async () => {
+    const { buildMessageV3 } = await import('@/lib/attestations/oracleSafetyAttestationV3');
+    const { signRecheckV3 } = await import('@/lib/attestations/oracleSafetyRecheckV3');
+    const { verifyAttestationBySchema } = await import('../route');
+
+    const data = await buildMessageV3(V2_INPUT);
+    const rc = await signRecheckV3({
+      v3Data: data,
+      originalUid: ('0x' + 'ab'.repeat(32)) as `0x${string}`,
+      originalRequestHash: data.requestHash,
+    });
+    expect(rc).not.toBeNull();
+
+    const result = await verifyAttestationBySchema(JSON.parse(JSON.stringify(rc)));
+    expect(result.valid).toBe(true);
+    expect(result.schemaVersion).toBe(3);
+  });
+
   it('verifies a v2 attestation after a JSON wire round trip', async () => {
     // The attestation travels through API responses + the verify body as JSON.
     // bigint can't be JSON-serialized, so v2 data stores numbers. This proves

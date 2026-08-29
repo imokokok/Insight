@@ -1,0 +1,142 @@
+{
+  "$comment": "Registration pin for the reserved type 'insight.oracle-safety-check' at schema v3. Two things a consumer cannot derive from a signed receipt are declared here: (1) the per-field integer scale, because the struct carries no scale marker and an anchored attestation would otherwise freeze the ambiguity permanently; (2) the policy constants, which are now ALSO carried inside the signed struct so this file is a cross-check rather than the only source. Every constant below is pinned to the source file that produces it.",
+  "record_type": "insight.oracle-safety-check",
+  "schema_version": 3,
+  "eip712": {
+    "domain": {
+      "name": "Insight Oracle Safety",
+      "version": "3",
+      "chainId": 1
+    },
+    "primaryType": "OracleSafetyCheck",
+    "signed_field_count": 27,
+    "field_order_note": "v2's 26 fields in v2 order, with requiredSourceGroupCount appended. Appending keeps the v2 prefix identical; the typehash differs because the field set differs."
+  },
+  "recheck": {
+    "primaryType": "OracleSafetyRecheck",
+    "signed_field_count": 29,
+    "note": "v3's 27 fields + originalUid (bytes32) + originalRequestHash (bytes32), appended."
+  },
+  "field_scales": {
+    "verdict": {
+      "scale": 1,
+      "kind": "enum_string",
+      "values": ["PASS", "CAUTION", "DANGER", "BLOCK"]
+    },
+    "sourceAssetId": {
+      "scale": 1,
+      "kind": "caip19_or_unresolved_marker",
+      "note": "canonical CAIP-19 when the asset resolves; otherwise 'unresolved:<symbol>@<chainId>'. Left byte-identical."
+    },
+    "destinationAssetId": { "scale": 1, "kind": "caip19_or_unresolved_marker" },
+    "subjectChainId": { "scale": 1, "unit": "chain_id" },
+    "action": {
+      "scale": 1,
+      "kind": "enum_string",
+      "values": ["swap", "borrow", "lend", "liquidate", "repay"]
+    },
+    "tradeAmountUsd": { "scale": 1000000, "unit": "usd", "constant": "USD_SCALE" },
+    "consensusPrice": { "scale": 100000000, "unit": "usd_per_asset", "constant": "PRICE_SCALE" },
+    "maxDeviationBps": {
+      "scale": 100,
+      "unit": "basis_points",
+      "constant": "PCT_SCALE",
+      "note": "percent x 100"
+    },
+    "manipulationRiskBps": {
+      "scale": 10000,
+      "unit": "basis_points",
+      "constant": "MANIP_SCALE",
+      "note": "0..1 risk score x 1e4"
+    },
+    "participantCount": { "scale": 1, "unit": "count" },
+    "requiredParticipantCount": { "scale": 1, "unit": "count", "policy_constant": true },
+    "coverageStatus": {
+      "scale": 1,
+      "kind": "enum_string",
+      "values": ["SUFFICIENT", "INSUFFICIENT"]
+    },
+    "independenceStatus": {
+      "scale": 1,
+      "kind": "enum_string",
+      "values": ["ASSESSED", "INSUFFICIENT_INDEPENDENCE"]
+    },
+    "sourceGroupCount": {
+      "scale": 1,
+      "unit": "count",
+      "note": "distinct NON-DERIVED operator groups among included providers; derived sources (e.g. TWAP) are excluded"
+    },
+    "requiredSourceGroupCount": {
+      "scale": 1,
+      "unit": "count",
+      "policy_constant": true,
+      "added_in": 3,
+      "note": "signed since v3 so the independence gate is checkable without the issuer's source code"
+    },
+    "crossProviderAgreementBps": {
+      "scale": 10000,
+      "unit": "basis_points",
+      "constant": "AGREEMENT_SCALE",
+      "note": "0..1 agreement x 1e4"
+    },
+    "maxStablecoinDepegBps": {
+      "scale": 100,
+      "unit": "basis_points",
+      "constant": "PCT_SCALE",
+      "note": "percent x 100; 0 when no stablecoin leg"
+    },
+    "maxDataAgeSeconds": { "scale": 1, "unit": "seconds" },
+    "recommendedMaxPositionUsd": { "scale": 1000000, "unit": "usd", "constant": "USD_SCALE" },
+    "reasonCodesHash": {
+      "scale": 1,
+      "kind": "bytes32",
+      "encoding": "keccak256 over the sorted contributing-factor rule strings"
+    },
+    "requestHash": {
+      "scale": 1,
+      "kind": "bytes32",
+      "encoding": "EIP-712 hash of CanonicalPreTradeRequest"
+    },
+    "evaluationScope": { "scale": 1, "kind": "enum_string", "values": ["SOURCE_ASSET_ONLY"] },
+    "evaluatedAssetIdsHash": {
+      "scale": 1,
+      "kind": "bytes32",
+      "encoding": "keccak256(abi.encode(string[] sorted unique assetIds))"
+    },
+    "providerObservationsHash": {
+      "scale": 1,
+      "kind": "bytes32",
+      "encoding": "keccak256 over the provider observation entries (included AND excluded)"
+    },
+    "validUntil": { "scale": 1, "unit": "unix_seconds" },
+    "checkedAt": { "scale": 1, "unit": "unix_seconds" },
+    "schemaVersion": { "scale": 1, "unit": "version", "value": 3 }
+  },
+  "policy_constants": [
+    {
+      "name": "requiredParticipantCount",
+      "value": 3,
+      "gate": "quorum",
+      "comparison": "participantCount >= requiredParticipantCount ? SUFFICIENT : INSUFFICIENT",
+      "signed_since": 2,
+      "source": "src/lib/attestations/oracleSafetyAttestationV2.ts (V2_REQUIRED_PARTICIPANT_COUNT)"
+    },
+    {
+      "name": "requiredSourceGroupCount",
+      "value": 2,
+      "gate": "independence",
+      "comparison": "sourceGroupCount >= requiredSourceGroupCount ? ASSESSED : INSUFFICIENT_INDEPENDENCE",
+      "signed_since": 3,
+      "source": "src/lib/attestations/oracleSafetyAttestationV2.ts (V2_REQUIRED_NON_DERIVED_GROUPS), re-exported as V3_REQUIRED_SOURCE_GROUP_COUNT",
+      "note": "v2 signed sourceGroupCount but not this threshold, so the gate was not verifiable by a third party. v3 signs both operands."
+    }
+  ],
+  "validity": {
+    "window_seconds": 600,
+    "rule": "validUntil = checkedAt + 600; expiry is checked server-side at verify time and is also derivable by the verifier",
+    "anchored_is_not_freshness": "a Bitcoin anchor proves the check happened in the form recorded before that block. It does NOT prove the check is still fresh enough to act on."
+  },
+  "scale_source": "src/lib/attestations/oracleSafetyAttestationV2.ts (PRICE_SCALE / USD_SCALE / PCT_SCALE / AGREEMENT_SCALE / MANIP_SCALE)",
+  "pinned_at": "2026-08-29",
+  "status": "draft for type registration — the two items gating registration are this scale declaration and requiredSourceGroupCount"
+}

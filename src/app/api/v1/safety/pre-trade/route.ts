@@ -28,10 +28,11 @@ const PreTradeQuerySchema = z.object({
     .optional()
     .describe('Optional lending protocol id to evaluate against (e.g. aave-v3-ethereum)'),
   schemaVersion: z
-    .union([z.literal(1), z.literal(2)])
+    .union([z.literal(1), z.literal(2), z.literal(3)])
     .optional()
     .describe(
-      'Attestation schema version: 1 (default, 11-field) or 2 (26-field, CAIP-19 + quorum gate)'
+      'Attestation schema version: 1 (default, 11-field), 2 (26-field, CAIP-19 + quorum gate), ' +
+        'or 3 (27-field: v2 + the signed independence threshold, so the gate is self-verifying)'
     ),
   destinationAsset: z
     .string()

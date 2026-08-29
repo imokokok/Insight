@@ -87,6 +87,7 @@ export default async function OpsSafetyPage({
         />
         <Stat label="v1 rows" value={summary.v1Rows} hint="11-field schema" />
         <Stat label="v2 rows" value={summary.v2Rows} hint="26-field CAIP-19" />
+        <Stat label="v3 rows" value={summary.v3Rows} hint="27-field, signed threshold" />
         <Stat label="Window" value={`${summary.windowHours}h`} hint="rolling" />
       </div>
 

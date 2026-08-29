@@ -1,6 +1,6 @@
 # VRT1 端到端原型（免费路线）
 
-把 Insight 生产 `OracleSafetyCheck`（EIP-712 v2，26 字段）映射为 VRT1 §8 agent action，
+把 Insight 生产 `OracleSafetyCheck`（EIP-712 v2 26 字段 / v3 27 字段）映射为 VRT1 §8 agent action，
 组合双签名（内层 EIP-712/secp256k1 + 外层 BIP340 Schnorr），批量 Merkle，构造 49B OP_RETURN
 锚定载荷，并全程离线验证。
 
@@ -21,11 +21,12 @@ Insight 的正式署名在 `conformance-round2/VRT1-section-8.5-key-registry-sna
 vrt1-e2e-prototype/
 ├── README.md                本文档
 ├── src/vrt1-encoding.mjs    编码单一事实源（builders 复用）
-├── builders/                record 生成入口（prototype / build-genesis / build-vvv-demo / registry-snapshot）
-├── verify/                  独立校验器（刻意不复用被测实现）：verify-round2 / verify-round3
+├── builders/                record 生成入口（prototype / build-genesis / build-vvv-demo / build-vvv-v3-demo / registry-snapshot）
+├── verify/                  独立校验器（刻意不复用被测实现）：verify-round2 / verify-round3 / verify-vvv-v3
 ├── vectors/                 公开 vrt1-spec 向量（canonical / merkle / op_return）
 ├── conformance-round2/      对方共享 conformance 套件 + §8.5 正文（署名凭据）
 ├── evidence/                已锚定 / 已交付记录（勿重跑覆盖）
+├── registration/            reserved type 注册 pin（per-field scale + 策略常量）
 └── fixtures/                演示输入（sample-receipt.json）
 ```
 
@@ -39,7 +40,9 @@ node scripts/vrt1-e2e-prototype/builders/prototype.mjs        # 端到端演示�
 node scripts/vrt1-e2e-prototype/builders/prototype.mjs <receipt.json>  # 传入其他 receipt
 node scripts/vrt1-e2e-prototype/builders/registry-snapshot.mjs          # §8.5 registry record 候选形态
 node scripts/vrt1-e2e-prototype/builders/build-genesis.mjs              # 重建 §8.5 genesis（需 agent 私钥）
-node scripts/vrt1-e2e-prototype/builders/build-vvv-demo.mjs             # VVV→USDC 第二资产演示 record
+node scripts/vrt1-e2e-prototype/builders/build-vvv-demo.mjs             # VVV→USDC 第二资产演示 record（v2，26 字段）
+node scripts/vrt1-e2e-prototype/builders/build-vvv-v3-demo.mjs          # 同一份生产数据重建为 v3（27 字段）
+node scripts/vrt1-e2e-prototype/verify/verify-vvv-v3.mjs                # v3 record 离线复算（13 项）
 ```
 
 依赖：`@noble/curves`（Schnorr/secp256k1）、`@noble/hashes`（sha256）、`viem`（EIP-712）、
@@ -47,12 +50,16 @@ node scripts/vrt1-e2e-prototype/builders/build-vvv-demo.mjs             # VVV→
 
 ### 只有本人能跑的两个脚本
 
-`build-genesis.mjs` 与 `build-vvv-demo.mjs` 依赖两个**仓库外**的输入：
+`build-genesis.mjs`、`build-vvv-demo.mjs`、`build-vvv-v3-demo.mjs` 依赖**仓库外**的输入：
 
 - agent 私钥 `~/.workbuddy/veritas_deliverable/vrt1-agent-keys/`（chmod 600，不进仓库、
   也不进 Vercel env）。外层 VRT1 签名需要它。
 - `build-vvv-demo.mjs` 还需 VVV→USDC 的真实生产输出，通过环境变量
   `VRT1_VVV_SOURCE` 传入该文件路径（该输入属另一次交付，不可再分发，故不写死在仓库里）。
+- `build-vvv-v3-demo.mjs` 不需要那个外部输入——它从已归档的 `evidence/vvv-vrt1-record.json`
+  读回同一批生产数据，因此除 agent 私钥外可复现。它还会回读
+  `src/lib/attestations/oracleSafetyAttestationV2.ts` 里的 `V2_REQUIRED_NON_DERIVED_GROUPS`，
+  若与脚本要签的阈值不一致就直接报错（签进去的常量不许和引擎跑的常量分叉）。
 
 外部读者无法复现，这是有意的：私钥不可分享，生产数据不可再分发。但它们的
 **产物留在仓库里**（`evidence/registry-genesis.json`、`evidence/vvv-vrt1-record.json`），可直接校验，
@@ -90,7 +97,36 @@ node scripts/vrt1-e2e-prototype/builders/build-vvv-demo.mjs             # VVV→
 `anchor-epoch.json`（epoch/root/OP_RETURN + chain_verify）。
 
 已归档的锚定证据在仓库内：`evidence/registry-genesis.json`（§8.5 genesis，action_id `87b750e4…`，
-已由对方锚定于 block 964,407）、`evidence/vvv-vrt1-record.json`（VVV→USDC 第二资产演示 record）。
+已由对方锚定于 block 964,407）、`evidence/vvv-vrt1-record.json`（VVV→USDC 第二资产演示 record，v2）、
+`evidence/vvv-vrt1-record-v3.json`（同一份生产数据重建为 v3）。
+
+## v3：把独立性阈值签进去（2026-08-29）
+
+v2 的 26 个签名字段里有 `sourceGroupCount`（实测的不同 operator group 数），却**没有**它被拿来
+比较的那个要求值——`requiredSourceGroupCount`（= 2）只存在于代码库里。于是"2 对一个要求 2"
+是签发方的一句断言：拿到 receipt 的人必须相信签发方的源码才能判断这道门是过还是没过。
+同一 struct 里 quorum 门的两个操作数（`participantCount` / `requiredParticipantCount`）都在签名内，
+所以同一份 receipt 里一道门可证、另一道门不可证。
+
+v3 只加一个字段：`requiredSourceGroupCount`（uint256，追加在末尾，v2 的 26 字段前缀原样不动）。
+门逻辑、阈值、verdict 政策全部不变——同一个 gate，只是把阈值摆进签名里。
+
+产物：`evidence/vvv-vrt1-record-v3.json`
+
+- 数据 = v2 那份**同一批真实生产 BLOCK 输出**（`unresolved:VVV@1`、sourceGroupCount=2、
+  coverage INSUFFICIENT 2/3、verdict BLOCK），从 v2 record 读回，不是重新采集；
+- 内层 EIP-712 27 字段用**演示 attester key** 签（生产 attester 在 Vercel env，与 v2 一致，如实标注）；
+- 外层用**真实 agent key** `299a3d33…` 签——该 key 在已锚定的 genesis（block 964,407）里；
+- action_id `c0e8ea3f…`，canonical 1784 字节；
+- `params` 键为 `oracle_safety_check_v3`（**不复用 v2 的键**：键名参与 canonical 字节，
+  复用会让按 v2 形状解析的人读到不同字段集而不自知）。
+
+`verify/verify-vvv-v3.mjs` 是独立复算器（不 import 生成脚本），13 项全过，其中两项是 v2 做不到的：
+
+```text
+PASS  coverage gate recomputes to the signed coverageStatus — 2 vs 3 → INSUFFICIENT
+PASS  independence gate recomputes to the signed independenceStatus (v3 only) — 2 vs 2 → ASSESSED
+```
 
 ## Canonical 编码规则（§5.1/§5.2）
 
@@ -127,7 +163,8 @@ genesis/successor 与 5 个负向量、我方 700B 重建 vs candidate byte-exac
   **不是**生产 EIP-712 attester 私钥，也不是正式 VRT1 agent key；正式 key 的派生/注册
   走 §8.5 genesis（见 `registry-genesis.json`）。
 - 映射形态已收敛：`insight.oracle-safety-check`（namespaced）、`target` = 资产对、
-  26 字段连续 `params`（非 10/15 拆分），**已与共享 canonical vectors byte-exact 对拍通过**（29 项全过）。
+  26 字段连续 `params`（非 10/15 拆分，v3 为 27 字段，键 `oracle_safety_check_v3`），
+  **已与共享 canonical vectors byte-exact 对拍通过**（29 项全过）。
 - epoch 对齐：VRT1 epoch = 600s（§2.2）与 receipt `validUntil = checkedAt + 600s` 巧合对齐，
   原型以 `floor(checkedAt/600)` 取 epoch（本例 2979468）；epoch 是**批次标签而非时钟**，
   跨 oracle 不可比，时间证据来自锚定区块且只是上界。

@@ -71,6 +71,13 @@ const RecheckBodySchema = z.object({
     .positive()
     .optional()
     .describe('Drift threshold (percent) above which stillValid=false. Default 2%'),
+  schemaVersion: z
+    .union([z.literal(2), z.literal(3)])
+    .optional()
+    .describe(
+      'Schema version of the re-run + recheck: 2 (default, 28-field recheck) or 3 ' +
+        '(29-field recheck over the 27-field base that signs the independence threshold)'
+    ),
 });
 
 export const OPTIONS = createOptionsHandler();
@@ -100,6 +107,7 @@ export const POST = createApiHandler(
         originalRequestHash: body.originalRequestHash as `0x${string}`,
         originalConsensusPrice: body.originalConsensusPrice,
         maxDriftPct: body.maxDriftPct,
+        schemaVersion: body.schemaVersion,
       },
       { apiKeyId: context.auth?.apiKey?.keyId }
     );

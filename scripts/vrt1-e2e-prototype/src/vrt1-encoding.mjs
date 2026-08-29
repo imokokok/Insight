@@ -115,7 +115,20 @@ export function actionId(payload) {
 //   - outcome.schema_version: NUMBER (schemaVersion, not a decimal string)
 // `encode` lets the acceptance harness deliberately violate a rule to build a
 // negative vector (default = canonical).
-export function buildCanonicalPayload(receipt, agentPubXOnly, encode = 'canonical') {
+//
+// `paramsKey` names the params sub-object carrying the signed struct. v2
+// attestation data sits under `oracle_safety_check_v2`; v3 (which adds the
+// signed independence threshold) sits under `oracle_safety_check_v3`. The key
+// is part of the canonical bytes, so a v3 record MUST NOT reuse the v2 key —
+// a consumer looking for the v2 shape would otherwise read a different field
+// set without noticing, which is exactly the silent disagreement this
+// canonicalisation work exists to prevent.
+export function buildCanonicalPayload(
+  receipt,
+  agentPubXOnly,
+  encode = 'canonical',
+  paramsKey = 'oracle_safety_check_v2'
+) {
   const att = receipt.attestation;
   const data = att.data;
 
@@ -147,7 +160,7 @@ export function buildCanonicalPayload(receipt, agentPubXOnly, encode = 'canonica
     agent: agentPubXOnly,
     outcome: { verdict: data.verdict, schema_version: data.schemaVersion }, // NUMBER
     params: {
-      oracle_safety_check_v2: structFields,
+      [paramsKey]: structFields,
       eip712_attestation: {
         attester: eip(att.attester),
         signature: eip(att.signature),

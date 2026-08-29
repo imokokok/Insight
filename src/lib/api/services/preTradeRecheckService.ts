@@ -29,7 +29,15 @@ import type {
   AttestationDataV2,
   OracleSafetyAttestationV2,
 } from '@/lib/attestations/oracleSafetyAttestationV2';
+import type {
+  AttestationDataV3,
+  OracleSafetyAttestationV3,
+} from '@/lib/attestations/oracleSafetyAttestationV3';
 import { signRecheck, type OracleSafetyRecheck } from '@/lib/attestations/oracleSafetyRecheck';
+import {
+  signRecheckV3,
+  type OracleSafetyRecheckV3,
+} from '@/lib/attestations/oracleSafetyRecheckV3';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
@@ -54,9 +62,13 @@ export interface PreTradeRecheckInput {
   targetProviders?: string[];
   protocolId?: string;
 
-  /** Reference to the original v2 attestation being re-verified. */
+  /** Reference to the original attestation being re-verified. */
   originalUid: string;
   originalRequestHash: `0x${string}`;
+
+  /** Schema version of the re-run + recheck: 2 (26-field base, default) or 3
+   *  (27-field base — carries the signed independence threshold). */
+  schemaVersion?: 2 | 3;
 
   /** Raw consensus price from the original response, for drift comparison. */
   originalConsensusPrice?: number;
@@ -73,10 +85,10 @@ export type RecheckStillValidReason =
   | 'original_request_hash_mismatch';
 
 export interface PreTradeRecheckResult extends PreTradeSafetyResult {
-  /** The recheck attestation (28-field OracleSafetyRecheck), or null when no
-   *  attester key is configured / signing failed. Distinct from
-   *  `attestation` (the v2 OracleSafetyCheck from the re-run). */
-  recheck: OracleSafetyRecheck | null;
+  /** The recheck attestation (28-field OracleSafetyRecheck at v2, 29-field at
+   *  v3), or null when no attester key is configured / signing failed. Distinct
+   *  from `attestation` (the OracleSafetyCheck from the re-run). */
+  recheck: OracleSafetyRecheck | OracleSafetyRecheckV3 | null;
   /** Echoed original references (for the response + client confirmation). */
   originalUid: string;
   originalRequestHash: `0x${string}`;
@@ -100,8 +112,11 @@ export async function preTradeRecheck(
   input: PreTradeRecheckInput,
   meta: AuditMeta = {}
 ): Promise<PreTradeRecheckResult> {
-  // 1. Re-run the safety check with v2 schema (fresh oracle state). Pass the
-  //    audit meta through so the re-run's audit row attributes to the same key.
+  // 1. Re-run the safety check with the requested schema (fresh oracle state).
+  //    Pass the audit meta through so the re-run's audit row attributes to the
+  //    same key. Default stays v2 so existing callers are unaffected; v3 is
+  //    opt-in and produces a recheck over the 27-field base.
+  const recheckSchema = input.schemaVersion ?? 2;
   const result = await preTradeSafetyCheck(
     {
       asset: input.asset,
@@ -110,31 +125,34 @@ export async function preTradeRecheck(
       tradeAmountUsd: input.tradeAmountUsd,
       targetProviders: input.targetProviders,
       protocolId: input.protocolId,
-      schemaVersion: 2,
+      schemaVersion: recheckSchema,
       destinationAsset: input.destinationAsset,
     },
     meta
   );
 
-  // 2. Build the recheck attestation from the fresh v2 data + original refs.
-  //    The re-run's v2 attestation carries the current checkedAt / validUntil /
+  // 2. Build the recheck attestation from the fresh data + original refs.
+  //    The re-run's attestation carries the current checkedAt / validUntil /
   //    verdict / requestHash; we append originalUid + originalRequestHash and
   //    sign under the OracleSafetyRecheck type.
-  let recheck: OracleSafetyRecheck | null = null;
-  const v2Att = result.attestation as OracleSafetyAttestationV2 | null;
+  let recheck: OracleSafetyRecheck | OracleSafetyRecheckV3 | null = null;
+  const baseAtt = result.attestation as
+    | OracleSafetyAttestationV2
+    | OracleSafetyAttestationV3
+    | null;
 
-  if (v2Att && v2Att.schemaVersion === 2) {
+  if (baseAtt && (baseAtt.schemaVersion === 2 || baseAtt.schemaVersion === 3)) {
     // Enforce the same-trade binding invariant (Raul's spec): a recheck must
     // re-run the SAME trade params as the original, so its own requestHash must
     // equal the originalRequestHash the caller claims to be rechecking. If they
     // differ, the caller passed inconsistent references and we must NOT issue a
     // signed continuity proof that falsely binds to the claimed original — we
     // surface the mismatch instead of signing a misleading attestation.
-    if (v2Att.data.requestHash !== input.originalRequestHash) {
+    if (baseAtt.data.requestHash !== input.originalRequestHash) {
       logger.warn('recheck binding invariant violated: re-run requestHash != originalRequestHash', {
         asset: input.asset,
         chainId: input.chainId,
-        rerunRequestHash: v2Att.data.requestHash,
+        rerunRequestHash: baseAtt.data.requestHash,
         claimedOriginalRequestHash: input.originalRequestHash,
       });
       return {
@@ -148,11 +166,18 @@ export async function preTradeRecheck(
       };
     }
 
-    recheck = await signRecheck({
-      v2Data: v2Att.data as AttestationDataV2,
-      originalUid: input.originalUid,
-      originalRequestHash: input.originalRequestHash,
-    });
+    recheck =
+      baseAtt.schemaVersion === 3
+        ? await signRecheckV3({
+            v3Data: baseAtt.data as AttestationDataV3,
+            originalUid: input.originalUid as `0x${string}`,
+            originalRequestHash: input.originalRequestHash,
+          })
+        : await signRecheck({
+            v2Data: baseAtt.data as AttestationDataV2,
+            originalUid: input.originalUid,
+            originalRequestHash: input.originalRequestHash,
+          });
   }
 
   // 3. Drift vs the original consensus price (raw, un-scaled).
@@ -179,10 +204,11 @@ export async function preTradeRecheck(
   } else if (!recheck) {
     // Verdict + drift are fine, but no portable recheck proof could be issued.
     // The safety SIGNAL is still valid; only the signed attestation is missing.
-    // Distinguish "attestation subsystem off" (no v2 either) from "v2 worked
-    // but recheck signing threw" so operators can diagnose the gap.
+    // Distinguish "attestation subsystem off" (no base attestation either)
+    // from "the base attestation worked but recheck signing threw" so
+    // operators can diagnose the gap.
     stillValid = true;
-    stillValidReason = v2Att ? 'recheck_sign_failed' : 'no_attester_key';
+    stillValidReason = baseAtt ? 'recheck_sign_failed' : 'no_attester_key';
   } else {
     stillValid = true;
     stillValidReason = 'ok';

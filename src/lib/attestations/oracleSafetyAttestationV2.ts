@@ -196,7 +196,7 @@ export interface AttestationDataV2 {
  * verifyTypedData. It is NEVER serialized to JSON (the public attestation
  * carries the number-valued {@link AttestationDataV2} instead).
  */
-interface V2BigIntMessage {
+export interface V2BigIntMessage {
   verdict: string;
   sourceAssetId: string;
   destinationAssetId: string;
@@ -226,8 +226,11 @@ interface V2BigIntMessage {
 }
 
 /** Widen the JSON-serializable {@link AttestationDataV2} to its bigint twin
- *  for viem EIP-712 crypto ops. Pure / synchronous / deterministic. */
-function toBigIntMessageV2(data: AttestationDataV2): V2BigIntMessage {
+ *  for viem EIP-712 crypto ops. Pure / synchronous / deterministic.
+ *
+ *  Exported so v3 can reuse the 26-field widening instead of re-implementing
+ *  it (v3 = these 26 fields + one appended threshold). */
+export function toBigIntMessageV2(data: AttestationDataV2): V2BigIntMessage {
   return {
     verdict: data.verdict,
     sourceAssetId: data.sourceAssetId,

@@ -92,6 +92,7 @@ export interface SigningIntegritySummary {
   distinctAttesters: number;
   v1Rows: number;
   v2Rows: number;
+  v3Rows: number;
   /** True when the underlying query failed — numbers above are incomplete/unreliable. */
   errored?: boolean;
 }
@@ -149,6 +150,7 @@ export async function getSigningIntegrity(windowHours = 24): Promise<SigningInte
         distinctAttesters: 0,
         v1Rows: 0,
         v2Rows: 0,
+        v3Rows: 0,
         errored: true,
       },
       trend: [],
@@ -164,6 +166,7 @@ export async function getSigningIntegrity(windowHours = 24): Promise<SigningInte
   let unresolvedAssets = 0;
   let v1Rows = 0;
   let v2Rows = 0;
+  let v3Rows = 0;
   const buckets = new Map<string, { signed: number; unsigned: number }>();
 
   for (const row of data) {
@@ -176,7 +179,8 @@ export async function getSigningIntegrity(windowHours = 24): Promise<SigningInte
     if (row.verdict === 'BLOCK' && !row.signed) unsignedBlocks++;
     if (row.coverage_status === 'INSUFFICIENT') insufficientCoverage++;
     if (row.unresolved_asset) unresolvedAssets++;
-    if (row.schema_version === 2) v2Rows++;
+    if (row.schema_version === 3) v3Rows++;
+    else if (row.schema_version === 2) v2Rows++;
     else if (row.schema_version === 1) v1Rows++;
 
     const hour = new Date(row.created_at).toISOString().slice(0, 13);
@@ -203,6 +207,7 @@ export async function getSigningIntegrity(windowHours = 24): Promise<SigningInte
       distinctAttesters: attesters.size,
       v1Rows,
       v2Rows,
+      v3Rows,
     },
     trend,
     unsignedBlocks: await getUnsignedBlocks(),

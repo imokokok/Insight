@@ -26,10 +26,15 @@ import {
 } from '@/lib/attestations/oracleSafetyAttestation';
 import {
   signAttestationV2,
+  type AttestationInputV2,
   type OracleSafetyAttestationV2,
   V2_REQUIRED_PARTICIPANT_COUNT,
   V2_REQUIRED_NON_DERIVED_GROUPS,
 } from '@/lib/attestations/oracleSafetyAttestationV2';
+import {
+  signAttestationV3,
+  type OracleSafetyAttestationV3,
+} from '@/lib/attestations/oracleSafetyAttestationV3';
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
 import { UnsupportedSymbolError } from '@/lib/errors';
@@ -87,10 +92,15 @@ export interface PreTradeSafetyInput {
    * 11-field EIP-712 attestation + the loose (no-quorum-gate) verdict policy.
    * v2 issues the 26-field attestation (CAIP-19 pair binding, requestHash,
    * providerObservationsHash, reasonCodesHash, quorum gate) per the locked v2
-   * spec. The verdict itself differs only in that v2 escalates <3 independent
+   * spec. v3 issues the same evidence plus the independence threshold
+   * (`requiredSourceGroupCount`, 27 fields) so the independence gate is
+   * self-verifying instead of requiring the issuer's source code.
+   *
+   * v2 and v3 share the same verdict policy (quorum + independence gates).
+   * The verdict itself differs only in that v2/v3 escalate <3 independent
    * providers to BLOCK (INSUFFICIENT_COVERAGE).
    */
-  schemaVersion?: 1 | 2;
+  schemaVersion?: 1 | 2 | 3;
   /**
    * Optional destination asset symbol (the other leg of a swap). v2 binds it as
    * destinationAssetId (CAIP-19) but does NOT evaluate it (evaluationScope =
@@ -213,7 +223,11 @@ export interface PreTradeSafetyResult {
    * system check. null when no attester key is configured (feature disabled) or
    * signing fails — never affects the verdict itself.
    */
-  attestation: OracleSafetyAttestation | OracleSafetyAttestationV2 | null;
+  attestation:
+    | OracleSafetyAttestation
+    | OracleSafetyAttestationV2
+    | OracleSafetyAttestationV3
+    | null;
   evaluatedAt: string;
   latencyMs: number;
 }
@@ -963,9 +977,9 @@ async function issueAttestation(
   result: PreTradeSafetyResult,
   consensus: ConsensusPriceResponse,
   aggregates: { maxAge: number; worstDepegPct: number }
-): Promise<OracleSafetyAttestation | OracleSafetyAttestationV2 | null> {
+): Promise<OracleSafetyAttestation | OracleSafetyAttestationV2 | OracleSafetyAttestationV3 | null> {
   // v1 path (default) — unchanged behavior.
-  if (input.schemaVersion !== 2) {
+  if (input.schemaVersion !== 2 && input.schemaVersion !== 3) {
     return signAttestation({
       verdict: result.verdict,
       asset: input.asset,
@@ -1004,7 +1018,7 @@ async function issueAttestation(
   const destinationAsset = resolveCaip19(destSymbol, input.chainId);
   const destinationAssetId = destinationAsset?.id ?? `unresolved:${destSymbol}@${input.chainId}`;
 
-  return signAttestationV2({
+  const attestationInput: AttestationInputV2 = {
     verdict: result.verdict,
     sourceAssetId: sourceAssetId,
     destinationAssetId,
@@ -1021,11 +1035,18 @@ async function issueAttestation(
     recommendedMaxPositionUsd: result.recommendedMaxPositionUsd,
     contributingFactors: result.contributingFactors,
     providerObservations: buildProviderObservations(consensus),
-  });
+  };
+
+  // v2 and v3 take the same evidence and the same gates. v3 additionally signs
+  // the independence threshold, so a holder of the receipt can check the gate
+  // without access to this codebase.
+  return input.schemaVersion === 3
+    ? signAttestationV3(attestationInput)
+    : signAttestationV2(attestationInput);
 }
 
 /**
- * v2.1 independence gate (v2 only). Orthogonal to the quorum gate: the quorum
+ * v2.1 independence gate (v2 and v3). Orthogonal to the quorum gate: the quorum
  * counts PARTICIPANTS, this counts distinct OPERATOR groups. A fake quorum
  * (>=3 participants that are all the same operator) clears the quorum but must
  * still BLOCK here. TWAP is derived (on-chain) and does NOT count toward the
@@ -1447,11 +1468,12 @@ export async function preTradeSafetyCheck(
   const worstDepegPct =
     depegWarnings.length > 0 ? Math.max(...depegWarnings.map((w) => w.deviationPct)) : 0;
 
-  // 10. v2 quorum gate (v2 only). v1 keeps its looser policy so existing
-  // callers/tests are unaffected. v2 escalates <3 independent providers to
+  // 10. quorum gate (v2 and v3). v1 keeps its looser policy so existing
+  // callers/tests are unaffected. v2/v3 escalate <3 independent providers to
   // BLOCK + INSUFFICIENT_COVERAGE — Raul's locked "no single-provider verdicts"
   // stance. This is a verdict-level rule (independent of the attestation).
-  if (input.schemaVersion === 2 && consensus.participantCount < V2_REQUIRED_PARTICIPANT_COUNT) {
+  const gatedSchema = input.schemaVersion ?? 1;
+  if (gatedSchema >= 2 && consensus.participantCount < V2_REQUIRED_PARTICIPANT_COUNT) {
     verdict = pickWorst(verdict, 'BLOCK');
     contributingFactors.push({
       rule: 'oracle_coverage',
@@ -1465,8 +1487,8 @@ export async function preTradeSafetyCheck(
     );
   }
 
-  // 10b. v2 independence gate (orthogonal to the quorum gate, v2 only).
-  if (input.schemaVersion === 2) {
+  // 10b. independence gate (orthogonal to the quorum gate, v2 and v3).
+  if (gatedSchema >= 2) {
     const indep = applyV2IndependenceGate(input, consensus, contributingFactors, warnings);
     if (indep) verdict = pickWorst(verdict, indep);
   }

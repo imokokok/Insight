@@ -62,6 +62,14 @@ import {
   type OracleSafetyAttestationV2,
 } from '@/lib/attestations/oracleSafetyAttestationV2';
 import {
+  verifyAttestationV3,
+  V3_DOMAIN,
+  V3_TYPES,
+  V3_PRIMARY_TYPE,
+  V3_SCHEMA_VERSION,
+  type OracleSafetyAttestationV3,
+} from '@/lib/attestations/oracleSafetyAttestationV3';
+import {
   verifyRecheck,
   RECHECK_DOMAIN,
   RECHECK_TYPES,
@@ -69,6 +77,13 @@ import {
   RECHECK_TYPE,
   type OracleSafetyRecheck,
 } from '@/lib/attestations/oracleSafetyRecheck';
+import {
+  verifyRecheckV3,
+  RECHECK_V3_DOMAIN,
+  RECHECK_V3_TYPES,
+  RECHECK_V3_PRIMARY_TYPE,
+  type OracleSafetyRecheckV3,
+} from '@/lib/attestations/oracleSafetyRecheckV3';
 
 /** Ethereum address (0x + 40 hex). Validated lightly here; the EIP-712 crypto
  *  layer is the real authority on whether the signature is genuine. */
@@ -182,6 +197,12 @@ function toUnified(
  *                                          → v2 domain/types (26 fields)
  *   - v2 OracleSafetyRecheck (schemaVersion=2, primaryType 'OracleSafetyRecheck')
  *                                          → recheck domain/types (28 fields)
+ *   - v3 OracleSafetyCheck (schemaVersion=3, primaryType 'OracleSafetyCheck')
+ *                                          → v3 domain/types (27 fields = v2's
+ *                                            26 + the signed independence
+ *                                            threshold)
+ *   - v3 OracleSafetyRecheck (schemaVersion=3, primaryType 'OracleSafetyRecheck')
+ *                                          → v3 recheck domain/types (29 fields)
  *
  * The recheck carries schemaVersion=2 (v2 family) but a distinct primaryType,
  * so it MUST be routed before the plain-v2 branch — otherwise it would be
@@ -204,11 +225,22 @@ export async function verifyAttestationBySchema(
     (attestation as { type?: string }).type === RECHECK_TYPE ||
     primaryType === RECHECK_PRIMARY_TYPE;
 
-  // Recheck branch: 28-field type, distinct from plain v2. Must come BEFORE the
-  // generic schemaVersion===2 branch.
+  // Recheck branches: the recheck types are distinct from the plain types and
+  // carry the same primaryType across v2 and v3, so the schemaVersion decides
+  // which layout (28 vs 29 fields) applies. Must come BEFORE the plain branches.
+  if (schemaVersion === V3_SCHEMA_VERSION && isRecheck) {
+    const rc = await verifyRecheckV3(attestation as unknown as OracleSafetyRecheckV3);
+    return toUnified(rc, V3_SCHEMA_VERSION, { validUntil: rc.validUntil, ageSeconds: null });
+  }
+
   if (schemaVersion === V2_SCHEMA_VERSION && isRecheck) {
     const rc = await verifyRecheck(attestation as unknown as OracleSafetyRecheck);
     return toUnified(rc, V2_SCHEMA_VERSION, { validUntil: rc.validUntil, ageSeconds: null });
+  }
+
+  if (schemaVersion === V3_SCHEMA_VERSION) {
+    const v3 = await verifyAttestationV3(attestation as unknown as OracleSafetyAttestationV3);
+    return toUnified(v3, V3_SCHEMA_VERSION, { validUntil: v3.validUntil, ageSeconds: null });
   }
 
   if (schemaVersion === V2_SCHEMA_VERSION) {
@@ -234,7 +266,7 @@ export async function verifyAttestationBySchema(
     ageSeconds: null,
     expired: false,
     schemaVersion,
-    reason: `Unsupported schemaVersion ${schemaVersion}; supported: 1 (v1), 2 (v2).`,
+    reason: `Unsupported schemaVersion ${schemaVersion}; supported: 1 (v1), 2 (v2), 3 (v3).`,
   };
 }
 
@@ -271,6 +303,13 @@ interface AttestationStatus {
       canonicalRequest: Eip712Descriptor;
       /** Recheck type (v2 family, 28 fields = v2's 26 + originalUid +
        *  originalRequestHash). Distinct primaryType 'OracleSafetyRecheck'. */
+      recheck: SchemaDescriptor;
+    };
+    3: SchemaDescriptor & {
+      canonicalRequest: Eip712Descriptor;
+      /** Recheck type (v3 family, 29 fields = v3's 27 + originalUid +
+       *  originalRequestHash, both bytes32). Distinct primaryType
+       *  'OracleSafetyRecheck'. */
       recheck: SchemaDescriptor;
     };
   };
@@ -357,7 +396,7 @@ export const GET = createApiHandler<
           attester,
           attesterLabel: ATTESTER_LABEL,
           attestationEnabled: attester !== null,
-          latestSchemaVersion: V2_SCHEMA_VERSION,
+          latestSchemaVersion: V3_SCHEMA_VERSION,
           // Backward-compat top-level fields (v1). New consumers use `schemas`.
           schemaVersion: ATTESTATION_SCHEMA_VERSION,
           eip712: {
@@ -392,6 +431,27 @@ export const GET = createApiHandler<
                   domain: RECHECK_DOMAIN,
                   types: RECHECK_TYPES,
                   primaryType: RECHECK_PRIMARY_TYPE,
+                },
+              },
+            },
+            3: {
+              schemaVersion: V3_SCHEMA_VERSION,
+              eip712: {
+                domain: V3_DOMAIN,
+                types: V3_TYPES,
+                primaryType: V3_PRIMARY_TYPE,
+              },
+              canonicalRequest: {
+                domain: CANONICAL_REQUEST_DOMAIN,
+                types: CANONICAL_REQUEST_TYPES,
+                primaryType: CANONICAL_REQUEST_PRIMARY_TYPE,
+              },
+              recheck: {
+                schemaVersion: V3_SCHEMA_VERSION,
+                eip712: {
+                  domain: RECHECK_V3_DOMAIN,
+                  types: RECHECK_V3_TYPES,
+                  primaryType: RECHECK_V3_PRIMARY_TYPE,
                 },
               },
             },
