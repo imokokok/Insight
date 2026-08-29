@@ -330,8 +330,76 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     });
   });
 
+  describe('robust outlier gate (median + MAD)', () => {
+    it('detects a grossly contaminated provider at n=6, where the old z-score cap made it impossible', () => {
+      // Mirrors the live BNB incident: TWAP returned 6.14e20 (an un-normalised
+      // wei value) while five providers clustered around 689. At n=6 the old
+      // gate's ceiling was (n-1)/√n = 2.041, below its 2.5 threshold, so the
+      // contaminant always survived and inflated maxDeviationPct to 8.9e19.
+      const inputs = [
+        makeInput({ provider: 'chainlink', price: 688.95 }),
+        makeInput({ provider: 'redstone', price: 688.55 }),
+        makeInput({ provider: 'dia', price: 688.82 }),
+        makeInput({ provider: 'supra', price: 690.3 }),
+        makeInput({ provider: 'winklink', price: 686.0 }),
+        makeInput({ provider: 'twap', price: 6.14e20 }),
+      ];
+      const result = calculateConsensusPrice(inputs, 'median', 'BNB');
+
+      expect(result.excludedProviders).toContain('twap');
+      expect(result.participantCount).toBe(5);
+      // Median of the five healthy providers.
+      expect(result.price).toBeCloseTo(688.82, 1);
+    });
+
+    it('does not flag healthy providers when the cluster is extremely tight', () => {
+      // Mirrors live USDT: chainlink sat 0.017% off a very tight cluster. Pure
+      // MAD produces a huge modified z-score there (MAD approaches zero) and
+      // would drop a perfectly good provider, so the material-deviation floor
+      // has to hold it in.
+      const inputs = [
+        makeInput({ provider: 'chainlink', price: 1.00017 }),
+        makeInput({ provider: 'redstone', price: 1.0 }),
+        makeInput({ provider: 'dia', price: 1.0 }),
+        makeInput({ provider: 'api3', price: 1.00001 }),
+        makeInput({ provider: 'twap', price: 1.0 }),
+        makeInput({ provider: 'reflector', price: 1.00002 }),
+        makeInput({ provider: 'flare', price: 1.00014 }),
+      ];
+      const result = calculateConsensusPrice(inputs, 'median', 'USDT');
+
+      expect(result.excludedProviders).not.toContain('chainlink');
+      expect(result.excludedProviders).not.toContain('flare');
+      expect(result.participantCount).toBe(7);
+    });
+
+    it('caps exclusions at a third of participants so a majority can never be dropped', () => {
+      // Collusion guard. Nine providers, four badly corrupted. Without a cap
+      // all four would be removed; the cap keeps participantCount from
+      // collapsing toward the coverage floor on the strength of the gate alone.
+      const inputs = [
+        makeInput({ provider: 'p1', price: 50000 }),
+        makeInput({ provider: 'p2', price: 50010 }),
+        makeInput({ provider: 'p3', price: 49990 }),
+        makeInput({ provider: 'p4', price: 50020 }),
+        makeInput({ provider: 'p5', price: 49980 }),
+        makeInput({ provider: 'bad1', price: 80000 }),
+        makeInput({ provider: 'bad2', price: 81000 }),
+        makeInput({ provider: 'bad3', price: 79000 }),
+        makeInput({ provider: 'bad4', price: 80500 }),
+      ];
+      const result = calculateConsensusPrice(inputs, 'median', 'BTC');
+
+      expect(result.excludedCount).toBe(3);
+      expect(result.participantCount).toBe(6);
+      // One corrupted source survives the cap, but the median resists it:
+      // median(49980, 49990, 50000, 50010, 50020, 79000) = 50005.
+      expect(result.price).toBeCloseTo(50005, 0);
+    });
+  });
+
   describe('freshness guard (consensus-aware stale exclusion)', () => {
-    it('excludes a participant that is old AND price-divergent (genuinely stale), but keeps coverage', () => {
+    it('excludes a stale, price-divergent participant and drops it from coverage', () => {
       const inputs = [
         makeInput({ provider: 'chainlink', price: 62000, dataAgeSeconds: 7200, confidence: 0.95 }),
         makeInput({ provider: 'redstone', price: 64500, dataAgeSeconds: 10, confidence: 0.95 }),
@@ -340,9 +408,15 @@ describe('consensusPrice - dual-source anomaly detection', () => {
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
       expect(result.excludedProviders).toContain('chainlink');
-      // Coverage is preserved: the stale source still counts as a participant.
-      expect(result.participantCount).toBe(3);
-      // Price uses the fresh subset (redstone/dia), not the stale 62000.
+      // 62000 sits 3.88% off the 64500/64600 cluster — both materially AND
+      // statistically significant, so the robust price gate removes it before
+      // the freshness guard ever runs, and its coverage goes with it.
+      //
+      // The previous z-score gate could not fire here at all: at n=3 its cap
+      // is (n-1)/√n = 1.155, far below the 2.5 threshold. The stale source
+      // therefore used to survive detection AND count toward coverage.
+      expect(result.participantCount).toBe(2);
+      // Price uses the surviving subset (redstone/dia), not the stale 62000.
       expect(result.price).toBeCloseTo(64550, -2);
     });
 
@@ -374,7 +448,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
       expect(result.participantCount).toBe(2);
     });
 
-    it('ignores freshness when no dataAgeSeconds is supplied (legacy behaviour)', () => {
+    it('ignores freshness when no dataAgeSeconds is supplied, but the price gate still applies', () => {
       const inputs = [
         makeInput({ provider: 'chainlink', price: 62000 }),
         makeInput({ provider: 'redstone', price: 64500 }),
@@ -382,9 +456,12 @@ describe('consensusPrice - dual-source anomaly detection', () => {
       ];
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
-      // No age info -> freshness guard does not fire; only z-score may act.
-      expect(result.excludedProviders).not.toContain('chainlink');
-      expect(result.participantCount).toBe(3);
+      // No age info -> the freshness guard cannot fire. The robust price gate
+      // is age-independent, so a materially divergent source is still dropped.
+      // Under the old z-score gate this case was indistinguishable from
+      // "no exclusion" because n=3 capped the score at 1.155.
+      expect(result.excludedProviders).toContain('chainlink');
+      expect(result.participantCount).toBe(2);
     });
   });
 

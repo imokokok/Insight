@@ -521,9 +521,16 @@ class TwapOnChainService {
           chainId,
           signal
         );
-        if (poolAddress && poolAddress !== '0x0000000000000000000000000000000000000000') {
-          return { address: poolAddress, feeTier: fee, token0: symbol, token1: 'USDC' };
-        }
+        const oriented = await this.orientPool(
+          poolAddress,
+          tokenAddress,
+          usdcAddress,
+          symbol,
+          'USDC',
+          chainId,
+          signal
+        );
+        if (oriented) return { address: poolAddress!, feeTier: fee, ...oriented };
       }
 
       const wethAddress = await getTwapTokenAddressAsync('WETH', chainId);
@@ -535,12 +542,97 @@ class TwapOnChainService {
           chainId,
           signal
         );
-        if (poolAddress && poolAddress !== '0x0000000000000000000000000000000000000000') {
-          return { address: poolAddress, feeTier: fee, token0: symbol, token1: 'WETH' };
-        }
+        const oriented = await this.orientPool(
+          poolAddress,
+          tokenAddress,
+          wethAddress,
+          symbol,
+          'WETH',
+          chainId,
+          signal
+        );
+        if (oriented) return { address: poolAddress!, feeTier: fee, ...oriented };
       }
     }
 
+    return null;
+  }
+
+  /**
+   * Resolve which side of a discovered pool the queried symbol actually sits on.
+   *
+   * Uniswap V3 stores token0/token1 sorted by ADDRESS VALUE, which has nothing
+   * to do with the order we passed to `findPoolAddress`. Assuming the probe
+   * order therefore reads the tick backwards for any symbol whose address sorts
+   * above its pair — BNB (0xb8c7…) vs USDC (0xa0b8…) on Ethereum being the live
+   * case, where the inverted reading produced a price of 6.14e20 instead of
+   * ~689 and poisoned every consensus it entered.
+   *
+   * Returns null when the on-chain ordering cannot be confirmed, or when the
+   * pool has no liquidity. A missing price is safe; an inverted or frozen one
+   * silently corrupts consensus, so we decline rather than guess.
+   */
+  private async orientPool(
+    poolAddress: `0x${string}` | null,
+    symbolTokenAddress: string,
+    pairTokenAddress: string,
+    symbol: string,
+    pairSymbol: string,
+    chainId: number,
+    signal?: AbortSignal
+  ): Promise<{ token0: string; token1: string } | null> {
+    if (!poolAddress || poolAddress === '0x0000000000000000000000000000000000000000') {
+      return null;
+    }
+
+    let realToken0: string;
+    let realToken1: string;
+    let liquidity: bigint;
+    try {
+      const [t0, t1, liq] = await Promise.all([
+        this.ethCall(chainId, poolAddress, '0x0dfe1681', signal),
+        this.ethCall(chainId, poolAddress, '0xd21220a7', signal),
+        this.ethCall(chainId, poolAddress, this.encodeLiquidityCall(), signal),
+      ]);
+      realToken0 = ('0x' + t0.slice(-40)).toLowerCase();
+      realToken1 = ('0x' + t1.slice(-40)).toLowerCase();
+      liquidity = this.decodeLiquidity(liq);
+    } catch {
+      return null;
+    }
+
+    // A zero-liquidity pool has no market. Whatever price its slot0 reports is
+    // the number the deployer seeded and it never moves, so quoting it as a live
+    // oracle price is worse than quoting nothing — it looks plausible enough to
+    // survive sanity checks and quietly poisons every consensus it enters.
+    if (liquidity <= BigInt(0)) {
+      logger.warn('Discovered TWAP pool has zero liquidity; skipping', {
+        symbol,
+        pairSymbol,
+        chainId,
+        poolAddress,
+      });
+      return null;
+    }
+
+    const symbolAddr = symbolTokenAddress.toLowerCase();
+    const pairAddr = pairTokenAddress.toLowerCase();
+
+    if (realToken0 === symbolAddr && realToken1 === pairAddr) {
+      return { token0: symbol, token1: pairSymbol };
+    }
+    if (realToken0 === pairAddr && realToken1 === symbolAddr) {
+      return { token0: pairSymbol, token1: symbol };
+    }
+
+    logger.warn('Discovered TWAP pool has unexpected token pair; skipping', {
+      symbol,
+      pairSymbol,
+      chainId,
+      poolAddress,
+      realToken0,
+      realToken1,
+    });
     return null;
   }
 

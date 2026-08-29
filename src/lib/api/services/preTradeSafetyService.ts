@@ -447,6 +447,20 @@ function buildProviderPrices(
   return out;
 }
 
+/**
+ * Providers the consensus engine has already rejected as outliers must not feed
+ * the dispersion metrics. They were excluded precisely because they do not
+ * describe the asset, so letting their distance from consensus drive the verdict
+ * would silently undo the exclusion — a single contaminated source could keep a
+ * healthy feed pinned at BLOCK. Falls back to the unfiltered set when every
+ * provider was excluded, so a genuinely divergent market still reports its real
+ * spread instead of collapsing to zero.
+ */
+function inConsensusOrAll<T>(filtered: [string, T][], isOutlier: (d: T) => boolean): [string, T][] {
+  const kept = filtered.filter(([, d]) => !isOutlier(d));
+  return kept.length > 0 ? kept : filtered;
+}
+
 function computeMaxDeviation(
   providerPrices: Record<string, ProviderPriceDetail>,
   targetProviders?: string[]
@@ -458,7 +472,8 @@ function computeMaxDeviation(
       : entries;
   const successful = filtered.filter(([, d]) => d.status === 'success' && d.deviationPct !== null);
   if (successful.length === 0) return 0;
-  return Math.max(...successful.map(([, d]) => Math.abs(d.deviationPct as number)));
+  const scored = inConsensusOrAll(successful, (d) => d.isOutlier);
+  return Math.max(...scored.map(([, d]) => Math.abs(d.deviationPct as number)));
 }
 
 function computeSpread(
@@ -470,9 +485,9 @@ function computeSpread(
     targetProviders && targetProviders.length > 0
       ? entries.filter(([provider]) => targetProviders.includes(provider))
       : entries;
-  const prices = filtered
-    .filter(([, d]) => d.status === 'success' && d.price > 0)
-    .map(([, d]) => d.price);
+  const successful = filtered.filter(([, d]) => d.status === 'success' && d.price > 0);
+  const scored = inConsensusOrAll(successful, (d) => d.isOutlier);
+  const prices = scored.map(([, d]) => d.price);
   if (prices.length < 2) return 0;
   const min = Math.min(...prices);
   const max = Math.max(...prices);

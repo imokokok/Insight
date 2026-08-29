@@ -5,7 +5,6 @@ import {
   calculateMedian,
   calculateStandardDeviationFromVariance,
   calculateVariance,
-  calculateZScore,
 } from '@/lib/utils/statistics';
 
 const logger = createLogger('consensusPrice');
@@ -231,6 +230,36 @@ interface DetectOutliersContext {
   historyKey?: string;
 }
 
+/**
+ * Robust outlier gate (3+ sources): median + MAD instead of mean + sample σ.
+ *
+ * WHY NOT MEAN + σ: under a SAMPLE standard deviation (÷ n-1) a single point's
+ * z-score is mathematically capped at (n-1)/√n. For n ≤ 8 that cap sits below
+ * the former 2.5 threshold (n=6 → 2.041, n=8 → 2.475), so the old gate could
+ * never fire at the participant counts this system actually observes. A
+ * contaminated provider always survived detection and went on to poison
+ * maxDeviationPct / agreement while the consensus price itself stayed correct.
+ *
+ * WHY NOT PURE MAD: when providers agree tightly, MAD collapses toward zero and
+ * trivial spread (e.g. 0.017% on USDT) yields an enormous modified z-score,
+ * flagging healthy providers. Requiring BOTH statistical significance AND a
+ * materially large absolute deviation keeps the gate honest — measured on live
+ * data this cuts false exclusions from 10 providers to 3 with identical verdict
+ * corrections.
+ */
+const OUTLIER_MAD_Z_THRESHOLD = 3.5;
+const OUTLIER_MIN_ABS_DEVIATION_PCT = 1.0;
+/** Scales MAD to a σ-equivalent for normally distributed data. */
+const MAD_CONSISTENCY_CONSTANT = 0.6745;
+/**
+ * COLLUSION GUARD. MAD is anchored on the median, which a colluding majority
+ * controls: if most providers were manipulated together, the honest minority
+ * would score as outliers and be discarded, silently building consensus on the
+ * corrupted majority. Capping exclusions ensures a majority can never be
+ * dropped — at most a third of participants, and never below two survivors.
+ */
+const MAX_OUTLIER_EXCLUSION_RATIO = 1 / 3;
+
 function detectOutliers(
   inputs: ConsensusPriceInput[],
   context?: DetectOutliersContext
@@ -253,26 +282,43 @@ function detectOutliers(
   }
 
   const prices = inputs.map((i) => i.price);
-  const mean = calculateMean(prices);
-  const stdDev = calculateStandardDeviationFromVariance(calculateVariance(prices, mean));
+  const medianPrice = calculateMedian(prices);
+  const mad = calculateMedian(prices.map((p) => Math.abs(p - medianPrice)));
 
-  if (stdDev === 0) {
+  if (mad === 0) {
     return { valid: inputs, outliers: [] };
   }
 
-  const outlierThreshold = 2.5;
+  const scored = inputs.map((input) => ({
+    input,
+    zScore: (MAD_CONSISTENCY_CONSTANT * Math.abs(input.price - medianPrice)) / mad,
+    absDeviationPct:
+      medianPrice > 0 ? (Math.abs(input.price - medianPrice) / medianPrice) * 100 : 0,
+  }));
 
-  const valid: ConsensusPriceInput[] = [];
-  const outliers: ConsensusPriceInput[] = [];
+  const candidates = scored
+    .filter(
+      (c) => c.zScore > OUTLIER_MAD_Z_THRESHOLD && c.absDeviationPct > OUTLIER_MIN_ABS_DEVIATION_PCT
+    )
+    .sort((a, b) => b.zScore - a.zScore);
 
-  for (const input of inputs) {
-    const zScore = Math.abs(calculateZScore(input.price, mean, stdDev) ?? 0);
-    if (zScore > outlierThreshold) {
-      outliers.push(input);
-    } else {
-      valid.push(input);
-    }
+  if (candidates.length === 0) {
+    return { valid: inputs, outliers: [] };
   }
+
+  const maxExclusions = Math.min(
+    Math.floor(inputs.length * MAX_OUTLIER_EXCLUSION_RATIO),
+    inputs.length - 2
+  );
+  const excluded = candidates.slice(0, Math.max(0, maxExclusions));
+
+  if (excluded.length === 0) {
+    return { valid: inputs, outliers: [] };
+  }
+
+  const excludedSet = new Set(excluded.map((c) => c.input));
+  const outliers = excluded.map((c) => c.input);
+  const valid = inputs.filter((i) => !excludedSet.has(i));
 
   if (valid.length === 0) {
     return { valid: inputs, outliers: [] };

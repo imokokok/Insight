@@ -47,6 +47,11 @@ export interface OracleWatchProvider {
   isStale: boolean;
   /** Per-provider reputation (0-100 from the reputation service), if known. */
   reputationScore: number | null;
+  /** Provider observation metadata needed by signed Watch attestations. */
+  price: number;
+  timestamp: number;
+  dataAgeSeconds: number | null;
+  source?: string;
 }
 
 export interface OracleWatchResult {
@@ -269,7 +274,15 @@ async function computeOracleWatchSignal(
   }
 
   const successProviders = result.providers.filter((p) => p.status === 'success');
-  const maxDeviationPct = successProviders.reduce(
+  // Sources the consensus engine already rejected as outliers must not drive the
+  // deviation gate: they were excluded precisely because they do not describe the
+  // asset, so counting their distance from consensus would undo the exclusion and
+  // keep a healthy feed pinned at DANGER. Falls back to the full set only when
+  // every provider was excluded, so a genuinely divergent market still reports
+  // its real deviation instead of collapsing to zero.
+  const consensusProviders = successProviders.filter((p) => !p.isOutlier);
+  const devProviders = consensusProviders.length > 0 ? consensusProviders : successProviders;
+  const maxDeviationPct = devProviders.reduce(
     (m, p) => (p.deviationPct === null ? m : Math.max(m, Math.abs(p.deviationPct))),
     0
   );
@@ -294,6 +307,10 @@ async function computeOracleWatchSignal(
     isOutlier: p.isOutlier,
     isStale: p.isStale,
     reputationScore: p.reputationScore,
+    price: p.price,
+    timestamp: p.timestamp,
+    dataAgeSeconds: p.dataAgeSeconds,
+    source: p.source,
   }));
 
   // Consensus computed but zero participants (every fetch failed) — treat as
