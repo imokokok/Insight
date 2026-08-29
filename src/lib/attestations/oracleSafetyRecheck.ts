@@ -68,9 +68,10 @@ export const RECHECK_PRIMARY_TYPE = 'OracleSafetyRecheck';
 /**
  * The 28 signed fields = v2's 26 + `originalUid` (string) + `originalRequestHash`
  * (bytes32). Field order is fixed — appending the reference fields (rather than
- * inserting) keeps the v2 prefix byte-identical, so a v2 verifier reading the
- * first 26 fields sees the same layout. Changing the order or count is a
- * schema-version bump.
+ * inserting) preserves the v2 field-name prefix, which makes version-to-version
+ * diffs readable. It is not a compatibility guarantee: a recheck is never
+ * mistaken for a check because `primaryType` is `OracleSafetyRecheck`, not
+ * `OracleSafetyCheck`. Changing the order or count is a schema-version bump.
  */
 export const RECHECK_TYPES = {
   OracleSafetyRecheck: [

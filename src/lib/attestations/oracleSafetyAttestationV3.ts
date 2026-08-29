@@ -20,10 +20,18 @@
  * changes nothing else. v1 (11 fields) and v2 (26 fields) are left completely
  * untouched and remain verifiable — v3 is additive, not a migration.
  *
- * Field order: the new field is APPENDED, keeping v2's 26-field prefix
- * byte-identical (the same reasoning as `OracleSafetyRecheck`'s append). Any
- * fixed position is equally valid for the typehash; appending keeps the diff
- * minimal and the v2 prefix readable as a prefix.
+ * Field order: the new field is APPENDED. Keep two claims separate here.
+ * (1) Appending preserves v2's field-NAME/TYPE prefix and 25 of the 26 values
+ *     byte-for-byte. The 26th, `schemaVersion`, moves from 2 to 3 by
+ *     construction. So the prefix is a diffing convenience, NOT a v2 struct: a
+ *     consumer that parsed the first 26 fields of a v3 attestation as v2 would
+ *     read the correct layout with one field announcing schemaVersion 3.
+ * (2) What actually prevents that misparse is not the prefix at all. It is the
+ *     EIP-712 domain version ('3') and, on the VRT1 side, the params key
+ *     `oracle_safety_check_v3`, which sits inside the canonical bytes. A
+ *     consumer looking for the v2 key does not find it and stops.
+ * Any fixed position is equally valid for the typehash; appending is chosen
+ * because it keeps the diff minimal.
  *
  * Determinism: identical to v2 (the extra field is a constant for a given
  * schema version), so a fixed input still yields one reproducible UID.
@@ -85,9 +93,11 @@ export const V3_PRIMARY_TYPE = 'OracleSafetyCheck';
  *  count it is compared against. */
 const V3_ADDED_FIELDS = [{ name: 'requiredSourceGroupCount', type: 'uint256' }] as const;
 
-/** The 27 signed fields = v2's 26 (unchanged, same order) + the independence
- *  threshold appended. Field order is fixed — changing it changes every UID
- *  and is a schema-version bump. */
+/** The 27 signed fields = v2's 26 (same names, types and order) + the
+ *  independence threshold appended. Note that "same fields" is a statement
+ *  about the schema, not about the values: `schemaVersion` is 3 here, not 2.
+ *  Field order is fixed — changing it changes every UID and is a schema-version
+ *  bump. */
 export const V3_TYPES = {
   OracleSafetyCheck: [...V2_TYPES.OracleSafetyCheck, ...V3_ADDED_FIELDS],
 } as const;

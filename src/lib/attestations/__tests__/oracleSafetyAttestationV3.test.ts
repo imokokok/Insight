@@ -209,7 +209,7 @@ describe('oracleSafetyAttestationV3', () => {
 
   // ---- layout ----
 
-  it('keeps v2’s 26 fields as an unchanged prefix and appends one field', () => {
+  it('keeps v2’s 26 field names and types as a prefix and appends one field', () => {
     const v2Names = V2_TYPES.OracleSafetyCheck.map((f) => `${f.name}:${f.type}`);
     const v3Names = V3_TYPES.OracleSafetyCheck.map((f) => `${f.name}:${f.type}`);
 

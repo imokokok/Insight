@@ -229,7 +229,9 @@ export interface V2BigIntMessage {
  *  for viem EIP-712 crypto ops. Pure / synchronous / deterministic.
  *
  *  Exported so v3 can reuse the 26-field widening instead of re-implementing
- *  it (v3 = these 26 fields + one appended threshold). */
+ *  it (v3 = these 26 fields + one appended threshold). The widened values are
+ *  whatever the caller passes, so v3 feeds it a message whose `schemaVersion`
+ *  is already 3. */
 export function toBigIntMessageV2(data: AttestationDataV2): V2BigIntMessage {
   return {
     verdict: data.verdict,

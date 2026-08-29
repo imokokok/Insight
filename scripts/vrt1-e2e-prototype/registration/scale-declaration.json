@@ -10,7 +10,7 @@
     },
     "primaryType": "OracleSafetyCheck",
     "signed_field_count": 27,
-    "field_order_note": "v2's 26 fields in v2 order, with requiredSourceGroupCount appended. Appending keeps the v2 prefix identical; the typehash differs because the field set differs."
+    "field_order_note": "v2's 26 field names in v2 order, with requiredSourceGroupCount appended. Appending keeps the field-name prefix identical and 25 of the 26 values byte-identical, but the prefix is NOT a v2 struct: schemaVersion moves from \"2\" to \"3\". Prefix compatibility is a convenience for diffing only. What prevents a consumer from misparsing v3 as v2 is the params key rename to oracle_safety_check_v3, which is inside the canonical bytes. Those two claims must be kept separate."
   },
   "recheck": {
     "primaryType": "OracleSafetyRecheck",

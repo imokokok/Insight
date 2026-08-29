@@ -18,7 +18,10 @@
  *     same schema bump avoids a second breaking change later.
  *
  * Schema shape: 27 v3 fields + 2 reference fields = 29 signed fields, appended
- * (not inserted) so the v3 prefix stays byte-identical.
+ * (not inserted) so the v3 field-name prefix is preserved. That is a diffing
+ * convenience only. What prevents a v2 recheck from being read as a v3 recheck
+ * is the domain version ('3') plus `originalUid` being `bytes32` here and
+ * `string` in v2, not the prefix.
  *
  * Routing: the recheck carries `schemaVersion: 3` and
  * `eip712.primaryType: 'OracleSafetyRecheck'`. The verify endpoint routes on
@@ -57,7 +60,8 @@ export const RECHECK_V3_DOMAIN = V3_DOMAIN;
 export const RECHECK_V3_PRIMARY_TYPE = 'OracleSafetyRecheck';
 
 /** The 29 signed fields = v3's 27 + `originalUid` (bytes32) +
- *  `originalRequestHash` (bytes32). Appended, so the v3 prefix is unchanged. */
+ *  `originalRequestHash` (bytes32). Appended, so the v3 field-name prefix is
+ *  preserved; `schemaVersion` inside those 27 fields reads 3. */
 export const RECHECK_V3_TYPES = {
   OracleSafetyRecheck: [
     ...V3_TYPES.OracleSafetyCheck,
