@@ -84,6 +84,13 @@ function getTargetChainId(chain: Blockchain | undefined, defaultChain: Blockchai
 // Quote assets whose units are treated as USD. A pair feed `BASE/QUOTE`
 // reports how many QUOTE units one BASE is worth, so only a USD-equivalent
 // QUOTE produces a USD price.
+//
+// Deliberately narrower than the TWAP pool-price derivation, which also
+// accepts DAI/FRAX as USD (see `stablecoins` in twapOnChainService). A pool
+// is a marginal price source and a DAI/FRAX quote is still ~USD; but a feed
+// quoted in DAI/FRAX is itself a depeg-sensitive asset, and serving its price
+// as USD would smuggle that depeg risk into a "USD" consensus feed. Keep the
+// feed-matching set to the two near-frictionless USD stablecoins.
 const USD_EQUIVALENT_QUOTES = new Set(['USD', 'USDT', 'USDC']);
 
 /**
