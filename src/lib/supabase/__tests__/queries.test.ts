@@ -287,3 +287,80 @@ describe('User Profile operations - upsertUserProfile', () => {
     expect(result).toBeNull();
   });
 });
+
+describe('getOracleFeeds paging', () => {
+  // A thenable that also chains `.eq()` (mirrors the PostgREST builder: the
+  // resolver calls `.range()` then `.eq()` on the returned object).
+  const createPageThenable = (value: unknown) => {
+    const promise = new Promise((resolve) => resolve(value));
+    const thenable = {
+      eq: jest.fn().mockReturnThis(),
+      then: promise.then.bind(promise),
+      catch: promise.catch.bind(promise),
+      finally: promise.finally.bind(promise),
+    };
+    return thenable;
+  };
+
+  const makeFeeds = (count: number, provider = 'redstone') =>
+    Array.from({ length: count }, (_, i) => ({
+      provider,
+      symbol: `SYM${i}`,
+      chain_id: 0,
+      is_active: true,
+    }));
+
+  // Drive the paging loop: each `.range()` call resolves with the next page.
+  const mockRangePages = (
+    pages: Array<{ data: unknown[]; error: unknown; count: number | null }>
+  ) => {
+    let i = 0;
+    mockQuery.range.mockImplementation(() =>
+      createPageThenable(pages[i++] ?? { data: [], error: null, count: null })
+    );
+  };
+
+  it('returns all rows when the registry fits in one page', async () => {
+    const feeds = makeFeeds(3);
+    mockRangePages([{ data: feeds, error: null, count: 3 }]);
+
+    const result = await queries.getOracleFeeds('redstone');
+
+    expect(result).toHaveLength(3);
+    expect(mockClient.from).toHaveBeenCalledWith('oracle_feeds');
+    expect(mockQuery.range).toHaveBeenCalledWith(0, 499);
+  });
+
+  it('pages through a registry larger than one page and reconciles the exact count', async () => {
+    mockRangePages([
+      { data: makeFeeds(500), error: null, count: 700 },
+      { data: makeFeeds(200), error: null, count: 700 },
+    ]);
+
+    const result = await queries.getOracleFeeds('redstone');
+
+    expect(result).toHaveLength(700);
+    expect(mockQuery.range).toHaveBeenCalledTimes(2);
+  });
+
+  it('fails closed (returns []) when a later page errors instead of a truncated registry', async () => {
+    mockRangePages([
+      { data: makeFeeds(500), error: null, count: 700 },
+      { data: [], error: { message: 'boom' }, count: 700 },
+    ]);
+
+    const result = await queries.getOracleFeeds('redstone');
+
+    expect(result).toEqual([]);
+  });
+
+  it('fails closed when the exact count does not match the loaded rows (server-side truncation)', async () => {
+    // A server cap below the page size clamps the first page short, so the
+    // loop ends early; only the exact count reveals the missing rows.
+    mockRangePages([{ data: makeFeeds(300), error: null, count: 700 }]);
+
+    const result = await queries.getOracleFeeds('redstone');
+
+    expect(result).toEqual([]);
+  });
+});

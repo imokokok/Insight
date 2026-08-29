@@ -21,10 +21,13 @@ const queryQueue = new RequestQueue({
   defaultTimeout: 30000,
 });
 
-// Page size for `oracle_feeds` reads. Must not exceed the server's
-// `db-max-rows` (1000 on Supabase): a larger `.range()` window is silently
-// clamped, not rejected.
-const ORACLE_FEEDS_PAGE_SIZE = 1000;
+// Page size for `oracle_feeds` reads. Conservative, kept well under the
+// server's `db-max-rows` (1000 on Supabase): a larger `.range()` window is
+// silently clamped to the cap, not rejected, and a clamped first page would
+// look like the last page and silently truncate the registry. The exact-count
+// completeness check in getOracleFeeds() is the backstop if the cap ever drops
+// below this.
+const ORACLE_FEEDS_PAGE_SIZE = 500;
 
 export interface PriceRecord {
   id?: string;
@@ -291,6 +294,10 @@ export class DatabaseQueries {
     return queryQueue.add(async () => {
       const feeds: OracleFeed[] = [];
       let offset = 0;
+      // Exact total from PostgREST `count`, so a registry truncated by a page
+      // (e.g. a server cap below ORACLE_FEEDS_PAGE_SIZE) can be detected
+      // instead of silently served.
+      let total: number | null = null;
 
       // PostgREST caps every response at the server's `db-max-rows` (1000 on
       // Supabase). The cap is silent: a request for more rows still returns
@@ -312,7 +319,7 @@ export class DatabaseQueries {
       for (;;) {
         let query = this.client
           .from('oracle_feeds')
-          .select('*')
+          .select('*', { count: 'exact' })
           .eq('is_active', true)
           .order('symbol', { ascending: true })
           .order('chain_id', { ascending: true })
@@ -327,26 +334,47 @@ export class DatabaseQueries {
           query = query.eq('chain_id', chainId);
         }
 
-        const { data, error } = await query;
+        const { data, error, count } = await query;
 
         if (error) {
           logger.error('Failed to get oracle feeds', normalizeError(error), {
             provider,
             offset,
           });
-          // Return the pages collected so far rather than discarding a
-          // partially loaded registry.
-          return feeds;
+          // Fail closed. Returning the pages collected so far would silently
+          // truncate the registry — the exact failure mode this paging exists
+          // to recover — and the partial list would be cached for the 5-minute
+          // TTL. An empty list instead triggers the documented hardcoded
+          // fallback in the cache layers.
+          return [];
         }
 
         const page = data || [];
         feeds.push(...page);
+        total = count ?? total;
 
         // A short page means the last page was reached.
         if (page.length < ORACLE_FEEDS_PAGE_SIZE) {
           break;
         }
         offset += ORACLE_FEEDS_PAGE_SIZE;
+      }
+
+      // If a server cap below ORACLE_FEEDS_PAGE_SIZE clamped a page short, the
+      // loop ends early with rows missing. Only the exact count can tell, so
+      // fail closed instead of serving a silently truncated registry.
+      if (total !== null && feeds.length !== total) {
+        logger.error(
+          'Oracle feeds paging ended incomplete',
+          new Error('loaded rows do not match the exact count'),
+          {
+            provider,
+            loaded: feeds.length,
+            total,
+            pageSize: ORACLE_FEEDS_PAGE_SIZE,
+          }
+        );
+        return [];
       }
 
       return feeds;
