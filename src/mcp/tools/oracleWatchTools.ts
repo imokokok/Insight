@@ -1,4 +1,7 @@
 import { getOracleWatchSignal } from '@/lib/api/services/oracleWatchService';
+import { signWatchAttestation } from '@/lib/attestations/oracleWatchAttestation';
+import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
+import type { Blockchain } from '@/types/oracle';
 
 import { formatPercent, formatPrice } from './formatters';
 import { OracleWatchInputSchema } from './schemas';
@@ -54,6 +57,29 @@ export const oracleWatchTool: McpToolDefinition<typeof OracleWatchInputSchema> =
         return `- ${p.provider.toUpperCase()}: ${flags || 'ok'}${deviation}`;
       }),
     ];
+
+    // Oracle Watch attestation — a portable, verifiable proof of this signal.
+    // An agent gating a long-running strategy on Watch can log the receipt so
+    // the decision is auditable after the fact, the same way pre-trade receipts
+    // make one-off trades auditable.
+    const attestation = await signWatchAttestation({
+      signal,
+      providers: signal.providers,
+      subjectChainId: signal.chain ? (BLOCKCHAIN_TO_CHAIN_ID[signal.chain as Blockchain] ?? 0) : 0,
+    });
+    if (attestation) {
+      lines.push('', '**Oracle Watch attestation (verifiable proof):**');
+      lines.push(`- Attester: ${attestation.attester} (${attestation.attesterLabel})`);
+      lines.push(`- UID: ${attestation.uid}`);
+      lines.push(
+        `- Verdict: ${attestation.data.verdict} (trust ${attestation.data.trustScore}/100)`
+      );
+      lines.push(`- Valid for: ${attestation.validForSeconds}s`);
+      lines.push(
+        `- Verify at: POST ${attestation.verifyUrl} with body { "attestation": <object> }`
+      );
+      lines.push('- Signature: ' + attestation.signature.slice(0, 42) + '…');
+    }
 
     return lines.filter(Boolean).join('\n');
   },

@@ -88,6 +88,26 @@ Oracle Watch condenses the same underlying consensus data into one verdict using
 - **REST** — `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum`.
 - **Web** — interactive demo with MCP + REST calling methods at `/ai#oracle-watch`.
 
+### Signed Watch attestations (EIP-712)
+
+Every Watch signal can carry a signed `OracleWatchCheck` receipt — the always-on
+counterpart to the pre-trade attestation. It uses the same attester key and the
+same evidence-binding primitives, so one verifier handles both surfaces. Pass
+`?attest=false` to skip it.
+
+- **Signed fields (22)** — verdict, recommendation, trust score/level, consensus
+  price, deviation, agreement, participant count, outlier/stale counts, ML risk,
+  reputation, `providerObservationsHash`, `requestHash`, evaluatedAt, validUntil.
+- **The quorum threshold is signed too** — `requiredParticipantCount` sits next to
+  the `participantCount` it gates, so a holder can check the quorum decision
+  without Insight's source code.
+- **Sample** — `GET /api/v1/oracle-watch/attestation/sample?symbol=ETH`.
+- **Verify** — `POST /api/v1/oracle-watch/attestation/verify` with `{ "attestation": <receipt> }`.
+  Public and unauthenticated; anyone holding a receipt can check it.
+
+Signing is additive: if no attester key is configured the field is `null` and the
+signal itself is unchanged.
+
 ## Key Features
 
 ### For DeFi Users
