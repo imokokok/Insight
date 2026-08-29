@@ -4,6 +4,27 @@ import { createLogger, normalizeError } from '@/lib/utils/logger';
 const logger = createLogger('oracle-watch-history');
 
 /**
+ * Minimum completed hourly points before the 24h z-score means anything.
+ * Mirrors training's `rolling(24, min_periods=3)` in ml/train.py: with fewer
+ * points the "24h baseline" is not a 24h baseline, and serving a statistic the
+ * model was never fitted on is a train/serve mismatch.
+ */
+const MIN_POINTS_FOR_ZSCORE = 3;
+
+/**
+ * Bound on |z|. The baseline window can contain a feed that is simply wrong —
+ * a cross-rate registered as a USD quote sits at a fixed ~-86% for weeks,
+ * pulling the baseline mean dozens of points away from any live value and
+ * producing z-scores in the hundreds. Those are artefacts, not signal, and are
+ * equally outside anything the model saw in training.
+ *
+ * Safe for the pre-trade lending freeze, which only compares
+ * `maxDeviationZscore24h >= 1.0`: clamping to ±ZSCORE_CLAMP leaves every value
+ * that could ever cross that threshold untouched.
+ */
+const ZSCORE_CLAMP = 10;
+
+/**
  * Shared historical cross-oracle feature mining, extracted from the pre-trade
  * safety service so the Oracle Watch signal can reuse the SAME feature
  * semantics as training (mirrors build_hourly_frame() in ml/train.py).
@@ -58,6 +79,10 @@ function std(values: number[]): number {
 
 function round4(x: number): number {
   return Number.isFinite(x) ? roundTo(x, 4) : 0;
+}
+
+function clamp(x: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, x));
 }
 
 /** What the live check contributes to the ML feature vector. */
@@ -141,10 +166,16 @@ export async function fetchHistoricalOracleState(
     const rollingVolatility6h = returns.length >= 2 ? std(returns) * 100 : 0;
 
     // 24h z-score of max deviation: (live - mean24) / std24 over completed history.
+    // Requires enough completed hours to be a 24h baseline at all, and is bounded
+    // so a single mis-registered feed inside the window cannot push the feature
+    // hundreds of standard deviations out of range.
     const devs = completed.map((p) => p.maxDeviationPct);
     const mean = devs.reduce((s, v) => s + v, 0) / devs.length;
     const devStd = std(devs);
-    const maxDeviationZscore24h = devStd > 1e-9 ? (live.maxDeviationPct - mean) / devStd : 0;
+    const maxDeviationZscore24h =
+      n >= MIN_POINTS_FOR_ZSCORE && devStd > 1e-9
+        ? clamp((live.maxDeviationPct - mean) / devStd, -ZSCORE_CLAMP, ZSCORE_CLAMP)
+        : 0;
 
     return {
       history: completed,

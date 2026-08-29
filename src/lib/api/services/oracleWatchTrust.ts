@@ -51,6 +51,15 @@ export interface OracleWatchTrust {
 
 /** Providers required for full quorum credit (rewards deeper coverage). */
 const QUORUM_OK = 4;
+/**
+ * Providers required before the signal can be called trustworthy AT ALL.
+ * Mirrors the verdict quorum floor (QUORUM_MIN in oracleWatchService): below
+ * this, agreement and deviation are artefacts of a tiny sample — two points
+ * always "agree" with a median computed from themselves — so letting them earn
+ * full credit produced scores like "trust 86/100 (high)" alongside a
+ * "danger / halt" verdict in the same response.
+ */
+const QUORUM_FLOOR = 3;
 /** Deviation at/above this removes all deviation credit (matches DANGER dev = 3.0). */
 const DEV_DANGER_PCT = 3.0;
 /** Neutral ML manipulation-risk when no model / score is available. */
@@ -71,10 +80,13 @@ function deviationCredit(maxDeviationPct: number | null): number {
 
 export function computeOracleWatchTrust(input: OracleWatchTrustInput): OracleWatchTrust {
   const noCoverage = input.participantCount === 0;
+  // Below the floor there are too few independent sources to establish
+  // credibility with, even if the ones that did respond look perfect.
+  const belowQuorum = input.participantCount < QUORUM_FLOOR;
 
   // No independent source → nothing to establish credibility with, so the
   // coverage-dependent credits should be zero (≠ their neutral 0.5 default).
-  const quorum = noCoverage ? 0 : clamp(input.participantCount / QUORUM_OK, 0, 1);
+  const quorum = belowQuorum ? 0 : clamp(input.participantCount / QUORUM_OK, 0, 1);
   const agreement = noCoverage ? 0 : clamp(input.agreement, 0, 1);
   const deviation = noCoverage ? 0 : deviationCredit(input.maxDeviationPct);
   const cleanliness = noCoverage || input.outlierCount > 0 || input.staleCount > 0 ? 0.5 : 1;
@@ -88,19 +100,23 @@ export function computeOracleWatchTrust(input: OracleWatchTrustInput): OracleWat
   const reputationRaw = (input.minReputation ?? input.avgReputation ?? 50) / 100;
   const reputation = clamp(reputationRaw, 0, 1);
 
-  const score = clamp(
-    Math.round(
-      100 *
-        (quorum * 0.25 +
-          agreement * 0.2 +
-          deviation * 0.2 +
-          ml * 0.15 +
-          reputation * 0.1 +
-          cleanliness * 0.1)
-    ),
-    0,
-    100
+  const weighted = Math.round(
+    100 *
+      (quorum * 0.25 +
+        agreement * 0.2 +
+        deviation * 0.2 +
+        ml * 0.15 +
+        reputation * 0.1 +
+        cleanliness * 0.1)
   );
+
+  // A coverage shortfall has to be able to override otherwise-perfect component
+  // scores: agreement/deviation/reputation near 1.0 with only two sources say
+  // nothing, so the total is held below the medium tier rather than being
+  // allowed to contradict the DANGER/halt verdict sitting next to it.
+  const score = belowQuorum
+    ? Math.min(clamp(weighted, 0, 100), TRUST_MED - 1)
+    : clamp(weighted, 0, 100);
 
   const level: OracleWatchTrustLevel =
     score >= TRUST_HIGH ? 'high' : score >= TRUST_MED ? 'medium' : 'low';

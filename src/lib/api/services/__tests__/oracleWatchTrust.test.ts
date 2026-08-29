@@ -36,6 +36,36 @@ describe('computeOracleWatchTrust', () => {
     expect(t.components.deviation).toBe(0);
   });
 
+  it('never rates a below-quorum signal above low, even when every other component is perfect', () => {
+    // Two providers always "agree" with a median computed from themselves, so
+    // perfect agreement/deviation/reputation must not outvote the coverage
+    // shortfall — otherwise the score contradicts the danger/halt verdict
+    // returned in the same response.
+    for (const participantCount of [1, 2]) {
+      const t = computeOracleWatchTrust({
+        ...base,
+        participantCount,
+        agreement: 1,
+        maxDeviationPct: 0.001,
+        mlRiskScore: 0.05,
+        avgReputation: 98,
+        minReputation: 98,
+      });
+
+      expect(t.level).toBe('low');
+      expect(t.score).toBeLessThan(50);
+      expect(t.components.quorum).toBe(0);
+    }
+  });
+
+  it('still rewards coverage once the quorum floor is met', () => {
+    const atFloor = computeOracleWatchTrust({ ...base, participantCount: 3 });
+    const belowFloor = computeOracleWatchTrust({ ...base, participantCount: 2 });
+
+    expect(atFloor.score).toBeGreaterThan(belowFloor.score);
+    expect(atFloor.components.quorum).toBeGreaterThan(0);
+  });
+
   it('penalizes low quorum, high ML risk and dirty feeds', () => {
     const high = computeOracleWatchTrust({
       ...base,
