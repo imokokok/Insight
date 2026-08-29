@@ -21,6 +21,11 @@ const queryQueue = new RequestQueue({
   defaultTimeout: 30000,
 });
 
+// Page size for `oracle_feeds` reads. Must not exceed the server's
+// `db-max-rows` (1000 on Supabase): a larger `.range()` window is silently
+// clamped, not rejected.
+const ORACLE_FEEDS_PAGE_SIZE = 1000;
+
 export interface PriceRecord {
   id?: string;
   provider: string;
@@ -284,24 +289,67 @@ export class DatabaseQueries {
 
   async getOracleFeeds(provider: string, chainId?: number): Promise<OracleFeed[]> {
     return queryQueue.add(async () => {
-      let query = this.client.from('oracle_feeds').select('*').eq('is_active', true);
+      const feeds: OracleFeed[] = [];
+      let offset = 0;
 
-      if (provider) {
-        query = query.eq('provider', provider);
+      // PostgREST caps every response at the server's `db-max-rows` (1000 on
+      // Supabase). The cap is silent: a request for more rows still returns
+      // HTTP 206 with just the first N and a `content-range` header reporting
+      // the true total, so callers cannot detect the truncation from the
+      // payload alone. A bare `.select()` therefore started returning a partial
+      // registry once it grew past the cap — RedStone alone holds 1074 active
+      // feeds, 1835 across all providers. Every feed past the cutoff was
+      // invisible to the feed resolver, so providers silently dropped out of
+      // consensus: `resolveProvidersForSymbol` no longer saw a RedStone feed
+      // for HYPE, participantCount fell 3 -> 2, and the pre-trade verdict went
+      // to BLOCK even though a direct fetch of the same symbol still worked.
+      // Paging with an explicit `.range()` is the only way past the cap.
+      //
+      // The ORDER BY is required for two reasons: paging is only correct
+      // against a stable sort (without it pages can overlap or skip rows), and
+      // feed consumers pick the first match for a symbol, so the order decides
+      // which feed prices it.
+      for (;;) {
+        let query = this.client
+          .from('oracle_feeds')
+          .select('*')
+          .eq('is_active', true)
+          .order('symbol', { ascending: true })
+          .order('chain_id', { ascending: true })
+          .order('id', { ascending: true })
+          .range(offset, offset + ORACLE_FEEDS_PAGE_SIZE - 1);
+
+        if (provider) {
+          query = query.eq('provider', provider);
+        }
+
+        if (chainId !== undefined) {
+          query = query.eq('chain_id', chainId);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          logger.error('Failed to get oracle feeds', normalizeError(error), {
+            provider,
+            offset,
+          });
+          // Return the pages collected so far rather than discarding a
+          // partially loaded registry.
+          return feeds;
+        }
+
+        const page = data || [];
+        feeds.push(...page);
+
+        // A short page means the last page was reached.
+        if (page.length < ORACLE_FEEDS_PAGE_SIZE) {
+          break;
+        }
+        offset += ORACLE_FEEDS_PAGE_SIZE;
       }
 
-      if (chainId !== undefined) {
-        query = query.eq('chain_id', chainId);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        logger.error('Failed to get oracle feeds', normalizeError(error));
-        return [];
-      }
-
-      return data || [];
+      return feeds;
     });
   }
 

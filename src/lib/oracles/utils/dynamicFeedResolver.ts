@@ -9,7 +9,10 @@ const logger = createLogger('DynamicFeedResolver');
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 interface FeedCacheEntry {
+  /** Every active feed, keyed by its exact DB symbol and chain. */
   feeds: Map<string, OracleFeed>;
+  /** Case-insensitive index into `feeds`, for O(1) lookup/resolution. */
+  lookup: Map<string, OracleFeed>;
   timestamp: number;
 }
 
@@ -100,8 +103,31 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
   return allFeedsFetchPromise;
 }
 
-function cacheKey(symbol: string, chainId: number): string {
-  return `${symbol.toUpperCase()}-${chainId}`;
+/**
+ * Storage key: the DB symbol verbatim, so two feeds that differ only by
+ * letter case (`XAUt` vs `XAUT`) both survive instead of one overwriting the
+ * other. Callers that iterate the map see every feed the provider has.
+ */
+function feedKey(symbol: string, chainId: number): string {
+  return `${symbol}-${chainId}`;
+}
+
+/** Case-insensitive lookup key for O(1) membership checks and resolution. */
+function lookupKey(symbol: string, chainId: number): string {
+  return `${symbol.toLowerCase()}-${chainId}`;
+}
+
+/**
+ * True when the symbol still has lower-case letters, i.e. it is the provider's
+ * canonical mixed-case spelling rather than an upper-cased copy of it.
+ *
+ * RedStone's price API is case-sensitive and returns HTTP 500 for upper-cased
+ * mixed-case symbols (`XAUt`, `stETH`, `rETH` all fail as `XAUT`/`STETH`/
+ * `RETH`). Discovery can upsert both spellings of the same feed, so when they
+ * collide in the case-insensitive index the mixed-case one must win.
+ */
+function hasCanonicalCasing(symbol: string): boolean {
+  return symbol !== symbol.toUpperCase();
 }
 
 function isCacheStale(provider: string): boolean {
@@ -117,16 +143,23 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
   }
 
   const map = new Map<string, OracleFeed>();
+  const lookup = new Map<string, OracleFeed>();
 
   try {
     const queries = getAdminQueries();
     const feeds = await queries.getOracleFeeds(provider);
 
     for (const feed of feeds) {
-      map.set(cacheKey(feed.symbol, feed.chain_id), feed);
+      map.set(feedKey(feed.symbol, feed.chain_id), feed);
+
+      const key = lookupKey(feed.symbol, feed.chain_id);
+      const existing = lookup.get(key);
+      if (!existing || (hasCanonicalCasing(feed.symbol) && !hasCanonicalCasing(existing.symbol))) {
+        lookup.set(key, feed);
+      }
     }
 
-    providerCaches.set(provider, { feeds: map, timestamp: Date.now() });
+    providerCaches.set(provider, { feeds: map, lookup, timestamp: Date.now() });
     logger.debug(`Loaded ${map.size} feeds for ${provider} from database`);
   } catch (error) {
     logger.warn(
@@ -156,8 +189,9 @@ export async function resolveFeed(
 ): Promise<OracleFeed | null> {
   if (typeof window !== 'undefined') return null;
 
-  const feeds = await loadFeedsForProvider(provider);
-  return feeds.get(cacheKey(symbol, chainId)) || null;
+  await loadFeedsForProvider(provider);
+  const cache = providerCaches.get(provider);
+  return cache?.lookup.get(lookupKey(symbol, chainId)) || null;
 }
 
 /**
@@ -174,8 +208,9 @@ export async function resolveFeedAddress(
 }
 
 /**
- * Get the active-feeds Map (keyed by `cacheKey(symbol, chain_id)`) for a
- * provider, backed by the 5-minute cache.
+ * Get the active-feeds Map for a provider, backed by the 5-minute cache.
+ * Keyed by the exact DB symbol and chain, so feeds differing only by letter
+ * case are both present; use `resolveFeed` for case-insensitive lookup.
  *
  * Exposed so hot-path callers can check membership / iterate without
  * allocating a new array on every request.
@@ -201,11 +236,11 @@ export async function getActiveFeedsMap(provider: string): Promise<Map<string, O
 export function isSymbolActiveInCacheSync(provider: string, symbol: string): boolean {
   const normalized = extractBaseSymbol(symbol).toUpperCase();
 
-  // Per-provider cache (keyed by `${UPPERCASE}-${chainId}`). RedStone feeds are
+  // Per-provider cache (case-insensitive index). RedStone feeds are
   // chain-agnostic (chain_id=0), so check the chain-0 key.
   const providerCache = providerCaches.get(provider);
   if (providerCache && !isCacheStale(provider)) {
-    if (providerCache.feeds.has(cacheKey(symbol, 0))) return true;
+    if (providerCache.lookup.has(lookupKey(symbol, 0))) return true;
   }
 
   // Cross-provider aggregate cache — warmed by getAllActiveFeedsByProvider,

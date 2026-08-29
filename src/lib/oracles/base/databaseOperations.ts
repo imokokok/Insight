@@ -81,17 +81,78 @@ function getTargetChainId(chain: Blockchain | undefined, defaultChain: Blockchai
   return BLOCKCHAIN_TO_CHAIN_ID[targetChain] ?? 0;
 }
 
+// Quote assets whose units are treated as USD. A pair feed `BASE/QUOTE`
+// reports how many QUOTE units one BASE is worth, so only a USD-equivalent
+// QUOTE produces a USD price.
+const USD_EQUIVALENT_QUOTES = new Set(['USD', 'USDT', 'USDC']);
+
+/**
+ * Find the feed that prices `baseSymbol` in USD, or null when the provider
+ * has no USD-denominated feed for it.
+ *
+ * Two passes so the answer never depends on row order:
+ *   1. an exact symbol match (`USDC`, `HYPE`) — the canonical USD feed;
+ *   2. a USD-denominated pair (`ETH/USDC`, `etrUSD_FUNDAMENTAL/USD`).
+ *
+ * Non-USD pairs are rejected even when their base matches. Accepting them
+ * served FX and cross-asset ratios as USD prices: `extractBaseSymbol` reduces
+ * `USDC/EUR` to `USDC`, and whichever feed happened to sort first won, so the
+ * USDC price oscillated between 0.9999 and 0.863 and tripped the stablecoin
+ * depeg gate at -13.7%. The same lottery would serve `WBTC/BTC` (~1.0) as the
+ * price of WBTC (~100k) if that feed ever sorted first.
+ *
+ * Rejecting a non-USD pair does not make a symbol unsupported: the caller
+ * falls back to the provider's curated symbol list and fetches the bare
+ * symbol, which is the correct USD feed.
+ */
+function findUsdDenominatedFeed(
+  feedsMap: Map<string, OracleFeed>,
+  baseSymbol: string,
+  chainId: number
+): OracleFeed | null {
+  // Preserve the DB-stored (possibly mixed-case) symbol so providers whose
+  // API is case-sensitive (e.g. RedStone's `etrUSD_FUNDAMENTAL`) can be
+  // fetched in their canonical casing instead of the uppercased base.
+  //
+  // Discovery can upsert both spellings of one feed (`XAUt` and `XAUT`).
+  // RedStone's API rejects the upper-cased form with HTTP 500, so when both
+  // are present the variant that still has lower-case letters must win.
+  let upperCasedMatch: OracleFeed | null = null;
+  for (const feed of feedsMap.values()) {
+    if (feed.symbol.toUpperCase() !== baseSymbol || !matchesChainId(feed, chainId)) {
+      continue;
+    }
+    if (feed.symbol !== feed.symbol.toUpperCase()) {
+      return feed;
+    }
+    if (!upperCasedMatch) upperCasedMatch = feed;
+  }
+  if (upperCasedMatch) return upperCasedMatch;
+
+  let upperCasedPair: OracleFeed | null = null;
+  const pairPrefix = `${baseSymbol}/`;
+  for (const feed of feedsMap.values()) {
+    const upper = feed.symbol.toUpperCase();
+    if (!upper.startsWith(pairPrefix) || !matchesChainId(feed, chainId)) {
+      continue;
+    }
+    if (!USD_EQUIVALENT_QUOTES.has(upper.slice(pairPrefix.length))) {
+      continue;
+    }
+    if (feed.symbol !== feed.symbol.toUpperCase()) {
+      return feed;
+    }
+    if (!upperCasedPair) upperCasedPair = feed;
+  }
+
+  return upperCasedPair;
+}
+
 async function checkSymbolActive(
   provider: OracleProvider,
   baseSymbol: string,
   chainId: number
 ): Promise<{ supported: boolean; activeFeeds: OracleFeed[]; matchedSymbol: string | null }> {
-  // Hot-path optimization: iterate the cached feeds Map directly (no
-  // `Array.from` allocation) with early exit. Only materialize the full
-  // array when the symbol is NOT supported, since that array is used
-  // solely for building the "supported symbols" error message.
-  // Pure optimization — the `supported` boolean is identical to the
-  // previous `getActiveFeeds(...).some(...)` computation.
   const feedsMap = await getActiveFeedsMap(provider).catch(() => new Map<string, OracleFeed>());
 
   if (feedsMap.size === 0) {
@@ -108,23 +169,12 @@ async function checkSymbolActive(
     };
   }
 
-  let supported = false;
-  let matchedSymbol: string | null = null;
-  for (const feed of feedsMap.values()) {
-    if (
-      extractBaseSymbol(feed.symbol).toUpperCase() === baseSymbol &&
-      matchesChainId(feed, chainId)
-    ) {
-      supported = true;
-      // Preserve the DB-stored (possibly mixed-case) symbol so providers whose
-      // API is case-sensitive (e.g. RedStone's `etrUSD_FUNDAMENTAL`) can be
-      // fetched in their canonical casing instead of the uppercased base.
-      matchedSymbol = feed.symbol;
-      break;
-    }
-  }
+  // Preserve the DB-stored (possibly mixed-case) symbol so providers whose
+  // API is case-sensitive (e.g. RedStone's `etrUSD_FUNDAMENTAL`) can be
+  // fetched in their canonical casing instead of the uppercased base.
+  const matchedSymbol = findUsdDenominatedFeed(feedsMap, baseSymbol, chainId)?.symbol ?? null;
 
-  if (!supported) {
+  if (!matchedSymbol) {
     // No matching DB feed, but the client may still serve this symbol. The
     // active-feed table is populated by a periodic discovery job and can lag
     // behind (or temporarily exclude) symbols the oracle actually supports —
@@ -189,15 +239,15 @@ function recordFeedHealthFailure(
       .then((feedsMap) => {
         let feedChainId = chainId;
         let feedSymbol = baseSymbol;
-        for (const feed of feedsMap.values()) {
-          if (
-            extractBaseSymbol(feed.symbol).toUpperCase() === baseSymbol &&
-            matchesChainId(feed, chainId)
-          ) {
-            feedChainId = feed.chain_id;
-            feedSymbol = feed.symbol;
-            break;
-          }
+        // Resolve with the same rule the price fetch uses, so a failure is
+        // recorded against the feed that actually served the symbol. Matching
+        // on the bare base symbol picked an arbitrary feed when several share
+        // it — a USDC failure could be charged to `USDC/EUR`, leaving the real
+        // `USDC` feed at consecutive_failures = 0 and never auto-deactivating.
+        const matchedFeed = findUsdDenominatedFeed(feedsMap, baseSymbol, chainId);
+        if (matchedFeed) {
+          feedChainId = matchedFeed.chain_id;
+          feedSymbol = matchedFeed.symbol;
         }
         return queries.updateFeedHealth(provider, feedSymbol, feedChainId, false);
       })
