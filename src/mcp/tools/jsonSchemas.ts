@@ -35,6 +35,24 @@ export const OracleWatchJsonSchema = z.object({
   chain: chainEnum.optional().describe('Optional blockchain filter'),
 });
 
+/** `oracle_watch_history`. Defaults are documented rather than applied here so
+ *  zod v4's toJSONSchema() stays happy (no `.default()` in the wire schema). */
+export const OracleWatchHistoryJsonSchema = z.object({
+  symbol: z.string().describe('Asset symbol, e.g. BTC, ETH'),
+  chain: chainEnum.optional().describe('Optional blockchain filter'),
+  days: z
+    .number()
+    .int()
+    .min(1)
+    .max(30)
+    .optional()
+    .describe('Look-back window in days (1-30, default 7)'),
+  interval: z
+    .enum(['30min', 'hourly', 'daily'])
+    .optional()
+    .describe('Aggregation grain: 30min (raw spine), hourly, or daily. Default hourly'),
+});
+
 export const RiskSummaryJsonSchema = z.object({
   symbol: z.string().describe('Asset symbol, e.g. BTC, ETH'),
   providers: z

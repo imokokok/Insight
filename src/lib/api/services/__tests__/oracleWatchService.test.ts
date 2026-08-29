@@ -416,3 +416,116 @@ describe('getOracleWatchSignal — caching', () => {
     expect(mockGetConsensusPrice).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('getOracleWatchSignal — independence gate', () => {
+  it('counts TWAP toward quorum but never toward independence', async () => {
+    mockGetConsensusPrice.mockResolvedValueOnce(
+      makeResponse({
+        agreement: 0.99,
+        participantCount: 3,
+        providers: [
+          makeProvider({ provider: 'chainlink', deviationPct: 0.1 }),
+          makeProvider({ provider: 'redstone', deviationPct: 0.1 }),
+          makeProvider({ provider: 'twap', deviationPct: 0.1 }),
+        ],
+      })
+    );
+
+    const signal = await getOracleWatchSignal('ETH', 'ethereum');
+
+    expect(signal.participantCount).toBe(3);
+    expect(signal.quorumSatisfied).toBe(true);
+    // chainlink + redstone = 2 non-derived groups; TWAP is derived and excluded
+    // from the count even though it feeds the consensus.
+    expect(signal.sourceGroupCount).toBe(2);
+    expect(signal.independenceSatisfied).toBe(true);
+    expect(signal.requiredSourceGroupCount).toBe(2);
+    expect(signal.verdict).toBe('normal');
+    expect(signal.reasonCodes).toEqual([]);
+  });
+
+  it('halts on a single operator even when quorum is satisfied and prices agree', async () => {
+    // The case a headcount gate cannot see: three responses, one operator
+    // behind all of them. Deviation and agreement are near-perfect.
+    mockGetConsensusPrice.mockResolvedValueOnce(
+      makeResponse({
+        agreement: 0.999,
+        participantCount: 3,
+        providers: [
+          makeProvider({ provider: 'chainlink', deviationPct: 0.01 }),
+          makeProvider({ provider: 'twap', deviationPct: 0.01 }),
+          makeProvider({ provider: 'twap', deviationPct: 0.01 }),
+        ],
+      })
+    );
+
+    const signal = await getOracleWatchSignal('ETH', 'ethereum');
+
+    expect(signal.quorumSatisfied).toBe(true);
+    expect(signal.sourceGroupCount).toBe(1);
+    expect(signal.independenceSatisfied).toBe(false);
+    expect(signal.verdict).toBe('danger');
+    expect(signal.recommendation).toBe('halt');
+    // The dominant-cause string must name independence, not deviation — the
+    // prices were fine, the sourcing was not.
+    expect(signal.reason).toBe('insufficient_oracle_independence');
+    expect(signal.reasonCodes).toContain('INSUFFICIENT_INDEPENDENCE');
+  });
+
+  it('emits both gates when quorum and independence fail together', async () => {
+    mockGetConsensusPrice.mockResolvedValueOnce(
+      makeResponse({
+        agreement: 0.99,
+        participantCount: 2,
+        providers: [
+          makeProvider({ provider: 'chainlink', deviationPct: 0.1 }),
+          makeProvider({ provider: 'twap', deviationPct: 0.1 }),
+        ],
+      })
+    );
+
+    const signal = await getOracleWatchSignal('ETH', 'ethereum');
+
+    expect(signal.quorumSatisfied).toBe(false);
+    expect(signal.independenceSatisfied).toBe(false);
+    // A single `reason` string can only name one of them; the codes carry both.
+    expect(signal.reason).toBe('insufficient_cross_oracle_quorum');
+    expect(signal.reasonCodes).toEqual(['INSUFFICIENT_INDEPENDENCE', 'INSUFFICIENT_QUORUM']);
+  });
+
+  it('holds the trust score below medium when independence fails', async () => {
+    // Without this, a feed sourced entirely from one operator could report
+    // "trust 86/100 (high)" next to a "danger / halt" verdict.
+    mockGetConsensusPrice.mockResolvedValueOnce(
+      makeResponse({
+        agreement: 1,
+        participantCount: 3,
+        providers: [
+          makeProvider({ provider: 'chainlink', deviationPct: 0, reputationScore: 95 }),
+          makeProvider({ provider: 'twap', deviationPct: 0, reputationScore: 95 }),
+          makeProvider({ provider: 'twap', deviationPct: 0, reputationScore: 95 }),
+        ],
+      })
+    );
+
+    const signal = await getOracleWatchSignal('ETH', 'ethereum');
+
+    expect(signal.independenceSatisfied).toBe(false);
+    expect(signal.trustScore).toBeLessThan(50);
+    expect(signal.trustLevel).toBe('low');
+    expect(signal.trustComponents.quorum).toBe(0);
+  });
+
+  it('reports NO_COVERAGE alone when nothing responded', async () => {
+    mockGetConsensusPrice.mockResolvedValueOnce(
+      makeResponse({ agreement: 0, participantCount: 0, providers: [], consensusPrice: null })
+    );
+
+    const signal = await getOracleWatchSignal('ETH', 'ethereum');
+
+    // Not a pile of every gate that happens to be unsatisfied — one code that
+    // says what actually happened: there was nothing to judge.
+    expect(signal.reasonCodes).toEqual(['NO_COVERAGE']);
+    expect(signal.independenceSatisfied).toBe(false);
+  });
+});

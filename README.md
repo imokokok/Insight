@@ -75,18 +75,64 @@ Agents running long-lived strategies (yield bots, keepers, portfolio managers) s
 
 Oracle Watch condenses the same underlying consensus data into one verdict using **the same severity thresholds as Pre-Trade** (max deviation: caution 1.0% / danger 3.0%; agreement: caution 0.95 / danger 0.85), so both surfaces speak one consistent risk language:
 
-| Signal                     | NORMAL | CAUTION                   | DANGER                                                                  |
-| -------------------------- | ------ | ------------------------- | ----------------------------------------------------------------------- |
-| Max cross-oracle deviation | < 1.0% | 1.0% – 3.0%               | ≥ 3.0%                                                                  |
-| Cross-provider agreement   | ≥ 0.95 | 0.85 – 0.95               | < 0.85                                                                  |
-| Outliers / staleness       | none   | any outlier or stale feed | — (escalated by deviation/agreement)                                    |
-| No cross-oracle coverage   | —      | —                         | `DANGER` / `halt` (`no_cross_oracle_coverage`) — degrades, never errors |
+| Signal                      | NORMAL | CAUTION                   | DANGER                                                                  |
+| --------------------------- | ------ | ------------------------- | ----------------------------------------------------------------------- |
+| Max cross-oracle deviation  | < 1.0% | 1.0% – 3.0%               | ≥ 3.0%                                                                  |
+| Cross-provider agreement    | ≥ 0.95 | 0.85 – 0.95               | < 0.85                                                                  |
+| Outliers / staleness        | none   | any outlier or stale feed | — (escalated by deviation/agreement)                                    |
+| Independent operator groups | ≥ 2    | —                         | < 2 (`insufficient_oracle_independence`)                                |
+| No cross-oracle coverage    | —      | —                         | `DANGER` / `halt` (`no_cross_oracle_coverage`) — degrades, never errors |
+
+**Independence is not the same as headcount.** Three responses can come from one
+operator — three white-labelled wrappers of Chainlink, or two real sources plus a
+TWAP — and still satisfy a quorum of 3 while describing a single point of
+failure. The independence gate counts _distinct non-derived operator groups_
+(`sourceGroupCount`); TWAP feeds the consensus and the quorum count but never the
+independence count. It is the same gate Pre-Trade has enforced since v2.1.
+
+### Reason codes
+
+A single `reason` string can only name the dominant cause, so every response also
+carries `reasonCodes` — the full set of conditions that fired. That is what makes
+a "pause when DANGER" policy explainable after the fact:
+
+`NO_COVERAGE` · `INSUFFICIENT_QUORUM` · `INSUFFICIENT_INDEPENDENCE` ·
+`MAX_DEVIATION` · `LOW_AGREEMENT` · `OUTLIER_PRESENT` · `STALE_DATA` ·
+`ML_FORWARD_RISK_HIGH`
+
+v2 receipts sign `reasonCodesHash` alongside them, so the diagnosis travels with
+the proof instead of living only in a log.
 
 ### Access
 
-- **MCP tool** — `oracle_watch` (one of 33 tools). Pair it with `pre_trade_safety_check` for the decision moment.
-- **REST** — `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum`.
+- **MCP tools** — `oracle_watch` (live point signal) and `oracle_watch_history`
+  (retrospective trend), two of 34. Pair them with `pre_trade_safety_check` for
+  the decision moment.
+- **REST** — `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` and
+  `GET /api/v1/oracle-watch/history?symbol=ETH&chain=arbitrum&days=7`.
 - **Web** — interactive demo with MCP + REST calling methods at `/ai#oracle-watch`.
+
+### History coverage — what we promise
+
+Oracle Watch is positioned as always-on, but "always-on" cannot mean "every pair
+has a retrospective curve". Collection costs one full cross-oracle evaluation per
+pair every 30 minutes, so we publish a narrow promise and keep it:
+
+> **History is guaranteed for ETH / BTC / USDC / USDT on Ethereum, Arbitrum and
+> Base.** Every other pair still returns a live point signal from `oracle_watch`,
+> but no curve.
+
+An out-of-universe pair returns an empty `series` plus
+`meta.historyGuaranteed: false` — never a silent empty array, which a dependent
+agent would otherwise read as "no incidents".
+
+### Per-issuance audit log
+
+Every judgment actually returned to a caller — receipt or not — is recorded in
+`oracle_watch_checks` (uid, symbol, chain, verdict, recommendation, reason codes,
+both gate counts with their thresholds, validity window, issuing surface). That
+is what lets us answer "which receipt did this agent gate on" after the fact.
+The write is fire-and-forget: it can never fail, slow, or change a signal.
 
 ### Signed Watch attestations (EIP-712)
 
@@ -95,12 +141,25 @@ counterpart to the pre-trade attestation. It uses the same attester key and the
 same evidence-binding primitives, so one verifier handles both surfaces. Pass
 `?attest=false` to skip it.
 
-- **Signed fields (22)** — verdict, recommendation, trust score/level, consensus
-  price, deviation, agreement, participant count, outlier/stale counts, ML risk,
-  reputation, `providerObservationsHash`, `requestHash`, evaluatedAt, validUntil.
-- **The quorum threshold is signed too** — `requiredParticipantCount` sits next to
-  the `participantCount` it gates, so a holder can check the quorum decision
-  without Insight's source code.
+New receipts are **v2 — 26 signed fields**: verdict, recommendation, trust
+score/level, consensus price, deviation, agreement, participant count, outlier/
+stale counts, ML risk, reputation, `providerObservationsHash`, `requestHash`,
+evaluatedAt, validUntil, plus:
+
+- **The quorum threshold** — `requiredParticipantCount` next to the
+  `participantCount` it gates.
+- **The independence gate** — `sourceGroupCount`, `requiredSourceGroupCount` and
+  `independenceSatisfied`. Without them a holder cannot tell whether "quorum
+  satisfied" means three independent operators or three wrappers of one.
+- **`reasonCodesHash`** — binds the composable reason-code set above.
+
+Every threshold is signed next to the value it judges, so a receipt is
+self-contained: a holder can re-derive the verdict without Insight's source code.
+
+- **v1 stays verifiable** — its 22-field layout is frozen rather than rewritten,
+  so receipts already in counterparties' hands keep validating. Both layouts are
+  published in `.well-known/oracle-keys.json`, which also carries Watch's own
+  `verify` / `sample` pointers.
 - **Sample** — `GET /api/v1/oracle-watch/attestation/sample?symbol=ETH`.
 - **Verify** — `POST /api/v1/oracle-watch/attestation/verify` with `{ "attestation": <receipt> }`.
   Public and unauthenticated; anyone holding a receipt can check it.

@@ -31,6 +31,14 @@ export interface OracleWatchTrustInput {
   /** Provider reputation on the 0-100 service scale (null = unknown). */
   avgReputation: number | null;
   minReputation: number | null;
+  /**
+   * Distinct NON-DERIVED operator groups among the participants. Omit for
+   * callers that predate the independence gate — it then falls back to
+   * `participantCount`, which is the optimistic (pre-gate) assumption.
+   */
+  sourceGroupCount?: number;
+  /** Independence floor. Defaults to INDEPENDENCE_FLOOR. */
+  requiredSourceGroupCount?: number;
 }
 
 /** Per-component normalized contribution (each 0-1, higher is better). */
@@ -60,6 +68,14 @@ const QUORUM_OK = 4;
  * "danger / halt" verdict in the same response.
  */
 const QUORUM_FLOOR = 3;
+/**
+ * Distinct non-derived operator groups required before the signal can be
+ * called trustworthy. Mirrors the verdict independence gate (INDEPENDENCE_MIN
+ * in oracleWatchService): three white-labelled wrappers of one operator earn
+ * full quorum credit while describing a single point of failure, so without
+ * this the score could read "high" next to a "danger / halt" verdict.
+ */
+const INDEPENDENCE_FLOOR = 2;
 /** Deviation at/above this removes all deviation credit (matches DANGER dev = 3.0). */
 const DEV_DANGER_PCT = 3.0;
 /** Neutral ML manipulation-risk when no model / score is available. */
@@ -83,10 +99,16 @@ export function computeOracleWatchTrust(input: OracleWatchTrustInput): OracleWat
   // Below the floor there are too few independent sources to establish
   // credibility with, even if the ones that did respond look perfect.
   const belowQuorum = input.participantCount < QUORUM_FLOOR;
+  // Independence is a separate axis from headcount: N providers that all
+  // resolve to one operator are one source of truth wearing N badges.
+  const requiredGroups = input.requiredSourceGroupCount ?? INDEPENDENCE_FLOOR;
+  const sourceGroupCount = input.sourceGroupCount ?? input.participantCount;
+  const belowIndependence = sourceGroupCount < requiredGroups;
+  const belowFloor = belowQuorum || belowIndependence;
 
   // No independent source → nothing to establish credibility with, so the
   // coverage-dependent credits should be zero (≠ their neutral 0.5 default).
-  const quorum = belowQuorum ? 0 : clamp(input.participantCount / QUORUM_OK, 0, 1);
+  const quorum = belowFloor ? 0 : clamp(input.participantCount / QUORUM_OK, 0, 1);
   const agreement = noCoverage ? 0 : clamp(input.agreement, 0, 1);
   const deviation = noCoverage ? 0 : deviationCredit(input.maxDeviationPct);
   const cleanliness = noCoverage || input.outlierCount > 0 || input.staleCount > 0 ? 0.5 : 1;
@@ -110,11 +132,12 @@ export function computeOracleWatchTrust(input: OracleWatchTrustInput): OracleWat
         cleanliness * 0.1)
   );
 
-  // A coverage shortfall has to be able to override otherwise-perfect component
-  // scores: agreement/deviation/reputation near 1.0 with only two sources say
-  // nothing, so the total is held below the medium tier rather than being
+  // A coverage or independence shortfall has to be able to override
+  // otherwise-perfect component scores: agreement/deviation/reputation near 1.0
+  // with only two sources — or with three sources that are all one operator —
+  // says nothing, so the total is held below the medium tier rather than being
   // allowed to contradict the DANGER/halt verdict sitting next to it.
-  const score = belowQuorum
+  const score = belowFloor
     ? Math.min(clamp(weighted, 0, 100), TRUST_MED - 1)
     : clamp(weighted, 0, 100);
 

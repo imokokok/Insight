@@ -6,34 +6,45 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
 
+import { ORACLE_WATCH_HISTORY_UNIVERSE, type OracleWatchTarget } from './oracleWatchUniverse';
+
 const logger = createLogger('oracle-watch-collector');
 
-/** Symbols (chain-optional → global cross-oracle coverage) the collector tops
- *  up the feed_health_snapshots time-series with on every run. Kept curated
- *  for v1 to bound upstream provider-fetch cost at the 30-min cadence. */
-export interface OracleWatchTarget {
-  symbol: string;
-  chain?: string;
-}
+export type { OracleWatchTarget } from './oracleWatchUniverse';
 
+/** Chain-agnostic symbols: one global cross-oracle view each. Kept curated to
+ *  bound upstream provider-fetch cost at the 30-min cadence. */
+const GLOBAL_TARGET_SYMBOLS = [
+  'BTC',
+  'ETH',
+  'SOL',
+  'BNB',
+  'XRP',
+  'ADA',
+  'AVAX',
+  'ARB',
+  'OP',
+  'LINK',
+  'UNI',
+  'AAVE',
+  'MATIC',
+  'USDC',
+  'USDT',
+  'DAI',
+] as const;
+
+/**
+ * Every target the collector evaluates on each pass: the global spine PLUS the
+ * per-chain pairs `/history` promises a curve for.
+ *
+ * The global rows answer "is this asset healthy across every feed we see"; the
+ * per-chain rows answer "is it healthy on the chain my strategy runs on" —
+ * which is a different question when one chain's feed is the broken one.
+ */
 export const ORACLE_WATCH_TARGETS: OracleWatchTarget[] = [
-  { symbol: 'BTC' },
-  { symbol: 'ETH' },
-  { symbol: 'SOL' },
-  { symbol: 'BNB' },
-  { symbol: 'XRP' },
-  { symbol: 'ADA' },
-  { symbol: 'AVAX' },
-  { symbol: 'ARB' },
-  { symbol: 'OP' },
-  { symbol: 'LINK' },
-  { symbol: 'UNI' },
-  { symbol: 'AAVE' },
-  { symbol: 'MATIC' },
-  { symbol: 'USDC' },
-  { symbol: 'USDT' },
-  { symbol: 'DAI' },
-].map((t) => ({ symbol: t.symbol }));
+  ...GLOBAL_TARGET_SYMBOLS.map((symbol) => ({ symbol })),
+  ...ORACLE_WATCH_HISTORY_UNIVERSE.map((t) => ({ symbol: t.symbol, chain: t.chain })),
+];
 
 /** Serialization bound for the fan-out across targets (mirrors reputation cron
  *  to avoid tripping upstream rate limits). */

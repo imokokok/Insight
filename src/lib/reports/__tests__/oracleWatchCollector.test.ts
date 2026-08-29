@@ -4,7 +4,12 @@ import {
 } from '@/lib/api/services/oracleWatchService';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
-import { buildFeedHealthSnapshotRow, collectOracleWatchSnapshots } from '../oracleWatchCollector';
+import {
+  ORACLE_WATCH_TARGETS,
+  buildFeedHealthSnapshotRow,
+  collectOracleWatchSnapshots,
+} from '../oracleWatchCollector';
+import { ORACLE_WATCH_HISTORY_UNIVERSE } from '../oracleWatchUniverse';
 
 jest.mock('@/lib/api/services/oracleWatchService', () => ({
   getOracleWatchSignal: jest.fn(),
@@ -39,6 +44,11 @@ function makeSignal(overrides: Partial<OracleWatchResult> = {}): OracleWatchResu
     avgReputation: 88,
     minReputation: 84,
     quorumSatisfied: true,
+    requiredParticipantCount: 3,
+    reasonCodes: [],
+    sourceGroupCount: 2,
+    requiredSourceGroupCount: 2,
+    independenceSatisfied: true,
     trustScore: 86,
     trustLevel: 'high' as const,
     providers: [],
@@ -140,5 +150,34 @@ describe('collectOracleWatchSnapshots', () => {
     mockGetSignal.mockResolvedValue(makeSignal());
 
     await expect(collectOracleWatchSnapshots([{ symbol: 'ETH' }])).rejects.toThrow('db down');
+  });
+});
+
+describe('ORACLE_WATCH_TARGETS', () => {
+  it('collects every pair the history promise depends on', () => {
+    // The promise in oracleWatchUniverse is only worth anything if the
+    // collector actually writes these rows.
+    for (const pair of ORACLE_WATCH_HISTORY_UNIVERSE) {
+      expect(ORACLE_WATCH_TARGETS).toContainEqual({ symbol: pair.symbol, chain: pair.chain });
+    }
+  });
+
+  it('keeps the global spine alongside the per-chain pairs', () => {
+    // Global answers "is this asset healthy anywhere"; per-chain answers "on the
+    // chain my strategy runs on". Dropping either loses a distinct question.
+    expect(ORACLE_WATCH_TARGETS).toContainEqual({ symbol: 'BTC' });
+    expect(ORACLE_WATCH_TARGETS).toContainEqual({ symbol: 'ETH' });
+  });
+
+  it('passes the chain through to the signal lookup and the row', async () => {
+    const insertMock = mockInsert(mockInsertResult);
+    mockGetSignal.mockResolvedValue(makeSignal({ symbol: 'ETH', chain: 'arbitrum' }));
+
+    await collectOracleWatchSnapshots([{ symbol: 'ETH', chain: 'arbitrum' }]);
+
+    expect(mockGetSignal).toHaveBeenCalledWith('ETH', 'arbitrum');
+    expect(insertMock.mock.calls[0][0]).toEqual([
+      expect.objectContaining({ symbol: 'ETH', chain: 'arbitrum' }),
+    ]);
   });
 });

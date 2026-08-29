@@ -36,7 +36,7 @@ const features = [
   {
     title: 'AI Agents',
     description:
-      'Give AI agents a pre-trade oracle safety checkpoint — PASS/CAUTION/DANGER/BLOCK before any on-chain trade, plus 33 MCP tools.',
+      'Give AI agents a pre-trade oracle safety checkpoint — PASS/CAUTION/DANGER/BLOCK before any on-chain trade, plus 34 MCP tools.',
     href: '/ai',
     icon: Bot,
     size: 'small' as const,

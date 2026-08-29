@@ -12,11 +12,15 @@ import type { OracleWatchProvider, OracleWatchResult } from '@/lib/api/services/
 
 import {
   buildWatchMessage,
+  buildWatchMessageV1,
   signWatchAttestation,
   verifyWatchAttestation,
   watchTypedDataArgs,
+  CURRENT_WATCH_SCHEMA_VERSION,
   WATCH_REQUIRED_PARTICIPANT_COUNT,
+  WATCH_REQUIRED_SOURCE_GROUP_COUNT,
   WATCH_SCHEMA_VERSION,
+  WATCH_SCHEMA_VERSION_V2,
   WATCH_VALID_FOR_SECONDS,
 } from '../oracleWatchAttestation';
 
@@ -68,6 +72,11 @@ function signal(overrides: Partial<OracleWatchResult> = {}): OracleWatchResult {
     avgReputation: 91.5,
     minReputation: 88,
     quorumSatisfied: true,
+    requiredParticipantCount: WATCH_REQUIRED_PARTICIPANT_COUNT,
+    reasonCodes: [],
+    sourceGroupCount: 2,
+    requiredSourceGroupCount: WATCH_REQUIRED_SOURCE_GROUP_COUNT,
+    independenceSatisfied: true,
     trustScore: 94,
     trustLevel: 'high',
     trustComponents: {
@@ -114,7 +123,7 @@ describe('oracleWatchAttestation — message construction', () => {
     expect(m.agreementBps).toBe(Math.round(0.9867 * 1e4));
     expect(m.avgReputationBps).toBe(Math.round(91.5 * 100));
     expect(m.mlRiskBps).toBe(Math.round(0.08 * 1e4));
-    expect(m.schemaVersion).toBe(WATCH_SCHEMA_VERSION);
+    expect(m.schemaVersion).toBe(CURRENT_WATCH_SCHEMA_VERSION);
   });
 
   it('signs the quorum threshold next to the count it gates', async () => {
@@ -166,7 +175,7 @@ describe('oracleWatchAttestation — sign and verify', () => {
     if (!attestation) return;
 
     expect(attestation.attester).toBe(TEST_ATTESTER);
-    expect(attestation.schemaVersion).toBe(WATCH_SCHEMA_VERSION);
+    expect(attestation.schemaVersion).toBe(CURRENT_WATCH_SCHEMA_VERSION);
 
     const result = await verifyWatchAttestation(attestation);
     expect(result.valid).toBe(true);
@@ -246,5 +255,72 @@ describe('oracleWatchAttestation — sign and verify', () => {
     expect(args.domain.name).toBe('Insight Oracle Watch');
     expect(args.primaryType).toBe('OracleWatchCheck');
     expect(args.types.OracleWatchCheck).toHaveLength(22);
+  });
+});
+
+describe('oracleWatchAttestation — v1/v2 schema coexistence', () => {
+  const original = process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
+
+  beforeAll(() => {
+    process.env.ATTESTATION_SIGNER_PRIVATE_KEY = TEST_PRIVATE_KEY;
+  });
+
+  afterAll(() => {
+    if (original === undefined) delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
+    else process.env.ATTESTATION_SIGNER_PRIVATE_KEY = original;
+  });
+
+  it('issues v2 by default and v1 only on explicit request', async () => {
+    const v2 = await signWatchAttestation(input());
+    const v1 = await signWatchAttestation({ ...input(), schemaVersion: 1 });
+    expect(v2?.schemaVersion).toBe(WATCH_SCHEMA_VERSION_V2);
+    expect(v1?.schemaVersion).toBe(WATCH_SCHEMA_VERSION);
+  });
+
+  it('keeps a v1 receipt verifiable after the v2 upgrade', async () => {
+    // The entire reason v1's layout is frozen: receipts already handed to
+    // counterparties must not stop validating the day we ship v2.
+    const v1 = await signWatchAttestation({ ...input(), schemaVersion: 1 });
+    if (!v1) throw new Error('expected a v1 receipt');
+    const result = await verifyWatchAttestation(v1);
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBe('verified');
+  });
+
+  it('routes typed-data by schemaVersion, never by the payload eip712 block', async () => {
+    const v1 = await buildWatchMessageV1(input());
+    const v2 = await buildWatchMessage(input());
+    expect(watchTypedDataArgs(v1).types.OracleWatchCheck).toHaveLength(22);
+    expect(watchTypedDataArgs(v2).types.OracleWatchCheck).toHaveLength(26);
+  });
+
+  it('signs the independence gate so a receipt explains its own verdict', async () => {
+    const m = await buildWatchMessage(input({ sourceGroupCount: 1, independenceSatisfied: false }));
+    expect(m.schemaVersion).toBe(2);
+    if (m.schemaVersion === 2) {
+      expect(m.sourceGroupCount).toBe(1);
+      expect(m.requiredSourceGroupCount).toBe(WATCH_REQUIRED_SOURCE_GROUP_COUNT);
+      expect(m.independenceSatisfied).toBe(false);
+    }
+  });
+
+  it('binds the reason-code set into the v2 signature', async () => {
+    const healthy = await buildWatchMessage(input());
+    const degraded = await buildWatchMessage(
+      input({ reasonCodes: ['INSUFFICIENT_INDEPENDENCE', 'MAX_DEVIATION'] })
+    );
+    expect(healthy.schemaVersion).toBe(2);
+    expect(degraded.schemaVersion).toBe(2);
+    if (healthy.schemaVersion === 2 && degraded.schemaVersion === 2) {
+      expect(healthy.reasonCodesHash).not.toBe(degraded.reasonCodesHash);
+      // An empty set still hashes to a well-defined, stable value.
+      expect(healthy.reasonCodesHash).toMatch(/^0x[0-9a-f]{64}$/);
+    }
+  });
+
+  it('produces different UIDs for v1 and v2 of the same signal', async () => {
+    const a = await signWatchAttestation({ ...input(), schemaVersion: 1 });
+    const b = await signWatchAttestation(input());
+    expect(a?.uid).not.toBe(b?.uid);
   });
 });

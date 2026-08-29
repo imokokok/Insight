@@ -58,7 +58,7 @@ const CAPABILITIES = [
   },
   {
     icon: Terminal,
-    title: '33 MCP Tools',
+    title: '34 MCP Tools',
     description:
       'Prices, consensus, risk summaries, position stress tests, stablecoin depeg, reputation rankings, feed health — all callable by any MCP-compatible client.',
     accent: 'text-blue-600 bg-blue-50',
@@ -197,7 +197,7 @@ export function AiPageContent() {
             <p className="text-lg sm:text-xl text-slate-600 leading-relaxed mb-4 max-w-2xl mx-auto">
               AI agents are the new DeFi users — but they can&apos;t tell when a price is being
               manipulated. Insight gives every agent a pre-trade safety checkpoint: cross-oracle
-              consensus, manipulation risk scoring, and 33 MCP tools it can call directly.
+              consensus, manipulation risk scoring, and 34 MCP tools it can call directly.
             </p>
 
             <p className="text-sm text-slate-500 mb-6">
@@ -512,7 +512,7 @@ when the verdict turns DANGER.`}
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">MCP Tool Playground</h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Test any of the 33 tools — including{' '}
+              Test any of the 34 tools — including{' '}
               <code className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-mono text-sm text-slate-700">
                 pre_trade_safety_check
               </code>{' '}

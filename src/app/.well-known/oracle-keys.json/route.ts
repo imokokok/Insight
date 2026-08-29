@@ -35,6 +35,17 @@ import {
   RECHECK_TYPES,
   RECHECK_PRIMARY_TYPE,
 } from '@/lib/attestations/oracleSafetyRecheck';
+import {
+  CURRENT_WATCH_SCHEMA_VERSION,
+  WATCH_DOMAIN,
+  WATCH_PRIMARY_TYPE,
+  WATCH_SCHEMA_VERSION,
+  WATCH_TYPES,
+  WATCH_TYPES_V2,
+  WATCH_VALID_FOR_SECONDS,
+  WATCH_REQUIRED_PARTICIPANT_COUNT,
+  WATCH_REQUIRED_SOURCE_GROUP_COUNT,
+} from '@/lib/attestations/oracleWatchAttestation';
 
 /** Loose EIP-712 descriptor shape for JSON (domain version widened to string). */
 interface Eip712Descriptor {
@@ -105,9 +116,42 @@ export async function GET(request: NextRequest) {
           CANONICAL_REQUEST_PRIMARY_TYPE
         ),
       },
+      /**
+       * Oracle Watch — the always-on cross-oracle trust signal. v2 is the
+       * current signing layout and carries the independence gate
+       * (`sourceGroupCount` / `requiredSourceGroupCount` / `independenceSatisfied`)
+       * plus `reasonCodesHash`, so a receipt explains WHY a feed was called
+       * DANGER without the holder needing our source code.
+       */
+      OracleWatchCheck: {
+        schemaVersion: CURRENT_WATCH_SCHEMA_VERSION,
+        eip712: descriptor(WATCH_DOMAIN, WATCH_TYPES_V2 as never, WATCH_PRIMARY_TYPE),
+        validForSeconds: WATCH_VALID_FOR_SECONDS,
+        /** Gate thresholds signed into every receipt alongside the observed
+         *  values — a receipt is self-contained by construction. */
+        gates: {
+          requiredParticipantCount: WATCH_REQUIRED_PARTICIPANT_COUNT,
+          requiredSourceGroupCount: WATCH_REQUIRED_SOURCE_GROUP_COUNT,
+        },
+        verify: `${origin}/api/v1/oracle-watch/attestation/verify`,
+        sample: `${origin}/api/v1/oracle-watch/attestation/sample`,
+      },
+      /** v1 Watch layout: RETIRED FOR SIGNING, but kept published so receipts
+       *  already handed to counterparties keep verifying after the upgrade. */
+      OracleWatchCheckV1: {
+        schemaVersion: WATCH_SCHEMA_VERSION,
+        retiredForSigning: true,
+        eip712: descriptor(WATCH_DOMAIN, WATCH_TYPES as never, WATCH_PRIMARY_TYPE),
+        verify: `${origin}/api/v1/oracle-watch/attestation/verify`,
+      },
     },
     verify: `${origin}/api/v1/safety/attestation/verify`,
     sample: `${origin}/api/v1/safety/attestation/sample`,
+    /** Oracle Watch's verification half, kept separate from the pre-trade pair
+     *  above: the two surfaces have different EIP-712 domains and different
+     *  gate semantics, so a verifier must not be able to cross-replay them. */
+    watch_verify: `${origin}/api/v1/oracle-watch/attestation/verify`,
+    watch_sample: `${origin}/api/v1/oracle-watch/attestation/sample`,
     /** Rotation contract (added 2026-08-26). Target cadence: annual, or
      *  immediately on compromise (ROTATION_TARGET_CADENCE_DAYS). To rotate:
      *  generate a new key, publish it with validFrom = activation time, retain

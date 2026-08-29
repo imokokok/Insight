@@ -1,3 +1,4 @@
+import { recordOracleWatchCheckAsync } from '@/lib/api/services/oracleWatchAudit';
 import { getOracleWatchSignal } from '@/lib/api/services/oracleWatchService';
 import { signWatchAttestation } from '@/lib/attestations/oracleWatchAttestation';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
@@ -25,8 +26,13 @@ export const oracleWatchTool: McpToolDefinition<typeof OracleWatchInputSchema> =
         signal.maxDeviationPct !== null ? formatPercent(signal.maxDeviationPct) : 'n/a'
       }`,
       `- Agreement: ${(signal.agreement * 100).toFixed(2)}%`,
-      `- Consensus providers: ${signal.participantCount} responding`,
+      `- Consensus providers: ${signal.participantCount}/${signal.requiredParticipantCount} responding (quorum ${signal.quorumSatisfied ? 'met' : 'NOT met'})`,
+      // Independence is NOT implied by quorum: three white-labelled wrappers of
+      // one operator clear the quorum floor while describing a single point of
+      // failure. TWAP feeds the consensus but never this count.
+      `- Independent operator groups: ${signal.sourceGroupCount}/${signal.requiredSourceGroupCount} non-derived (independence ${signal.independenceSatisfied ? 'met' : 'NOT met'})`,
       `- Outliers: ${signal.outlierCount}, Stale: ${signal.staleCount}`,
+      signal.reasonCodes.length > 0 ? `- Reason codes: ${signal.reasonCodes.join(', ')}` : '',
       signal.consensusPrice !== null
         ? `- Consensus price: $${formatPrice(signal.consensusPrice)}`
         : '',
@@ -62,11 +68,20 @@ export const oracleWatchTool: McpToolDefinition<typeof OracleWatchInputSchema> =
     // An agent gating a long-running strategy on Watch can log the receipt so
     // the decision is auditable after the fact, the same way pre-trade receipts
     // make one-off trades auditable.
+    const subjectChainId = signal.chain
+      ? (BLOCKCHAIN_TO_CHAIN_ID[signal.chain as Blockchain] ?? 0)
+      : 0;
     const attestation = await signWatchAttestation({
       signal,
       providers: signal.providers,
-      subjectChainId: signal.chain ? (BLOCKCHAIN_TO_CHAIN_ID[signal.chain as Blockchain] ?? 0) : 0,
+      subjectChainId,
     });
+
+    // Per-issuance audit row. MCP is the surface agents actually gate on, so
+    // without it we have no evidence Watch is being used at all — and no way to
+    // answer "which receipt did this agent gate on" after the fact.
+    recordOracleWatchCheckAsync(signal, attestation, { source: 'mcp', subjectChainId });
+
     if (attestation) {
       lines.push('', '**Oracle Watch attestation (verifiable proof):**');
       lines.push(`- Attester: ${attestation.attester} (${attestation.attesterLabel})`);

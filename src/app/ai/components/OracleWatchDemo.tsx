@@ -21,6 +21,21 @@ type Verdict = 'normal' | 'caution' | 'danger';
 type MlRiskLevel = 'low' | 'medium' | 'high';
 type TrustLevel = 'low' | 'medium' | 'high';
 
+/**
+ * The signed receipt the endpoint returns alongside the signal. Null when no
+ * attester key is configured — signing is additive and never changes a verdict.
+ */
+interface WatchAttestation {
+  uid: string;
+  schemaVersion: 1 | 2;
+  attester: string;
+  attesterLabel: string;
+  validUntil: number;
+  validForSeconds: number;
+  signature: string;
+  verifyUrl: string;
+}
+
 interface OracleWatchSignal {
   symbol: string;
   chain: string | null;
@@ -33,6 +48,17 @@ interface OracleWatchSignal {
   staleCount: number;
   consensusPrice: number | null;
   reason: string;
+  /**
+   * Optional because this is a client component reading a live JSON payload:
+   * an older deployment (or a cached response) may not carry them yet, and the
+   * demo must render rather than crash on a missing field.
+   */
+  reasonCodes?: string[];
+  requiredParticipantCount?: number;
+  sourceGroupCount?: number;
+  requiredSourceGroupCount?: number;
+  independenceSatisfied?: boolean;
+  attestation?: WatchAttestation | null;
   mlRiskScore: number | null;
   mlScore1h: number | null;
   mlScore6h: number | null;
@@ -274,11 +300,30 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
             value={`${(result.agreement * 100).toFixed(1)}%`}
             warn={result.agreement < 0.85}
           />
-          <Metric label="Consensus Providers" value={String(result.participantCount)} />
+          <Metric
+            label="Consensus Providers"
+            value={
+              result.requiredParticipantCount
+                ? `${result.participantCount} / ${result.requiredParticipantCount}`
+                : String(result.participantCount)
+            }
+            warn={!result.quorumSatisfied}
+          />
           <Metric
             label="Quorum"
             value={result.quorumSatisfied ? 'met' : 'short'}
             warn={!result.quorumSatisfied}
+          />
+          {/* Independence is a different axis from headcount: three responses can
+              come from one operator. */}
+          <Metric
+            label="Independent Groups"
+            value={
+              result.sourceGroupCount !== undefined && result.requiredSourceGroupCount !== undefined
+                ? `${result.sourceGroupCount} / ${result.requiredSourceGroupCount}`
+                : 'n/a'
+            }
+            warn={result.independenceSatisfied === false}
           />
           <Metric
             label="Trust Score"
@@ -389,6 +434,20 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
             <span className="font-mono">{new Date(result.evaluatedAt).toLocaleTimeString()}</span>
           </span>
         </div>
+
+        {result.reasonCodes && result.reasonCodes.length > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] text-slate-500">Codes:</span>
+            {result.reasonCodes.map((code) => (
+              <span
+                key={code}
+                className="px-1.5 py-0.5 text-[10px] font-mono font-medium bg-slate-100 text-slate-600 rounded"
+              >
+                {code}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {result.providers.length > 0 && (
@@ -436,6 +495,56 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {result.attestation && (
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-slate-700">
+              Signed Receipt (EIP-712 · v{result.attestation.schemaVersion})
+            </h4>
+            <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+              verifiable
+            </span>
+          </div>
+          <div className="px-4 py-3 space-y-2 text-xs">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 shrink-0">UID</span>
+              <span className="font-mono text-slate-700 truncate">{result.attestation.uid}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 shrink-0">Attester</span>
+              <span className="font-mono text-slate-700 truncate">
+                {result.attestation.attester}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 shrink-0">Valid until</span>
+              <span className="font-mono text-slate-700">
+                {new Date(result.attestation.validUntil * 1000).toLocaleTimeString()}
+                <span className="text-slate-400">
+                  {' '}
+                  · {result.attestation.validForSeconds}s window
+                </span>
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500 shrink-0">Signature</span>
+              <span className="font-mono text-slate-700 truncate">
+                {result.attestation.signature.slice(0, 42)}…
+              </span>
+            </div>
+          </div>
+          <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/60 text-[11px] text-slate-500">
+            Verify independently:{' '}
+            <span className="font-mono text-slate-600 break-all">
+              POST {result.attestation.verifyUrl}
+            </span>{' '}
+            with <span className="font-mono">{'{ "attestation": <receipt> }'}</span>. Schemas and
+            public keys are published at{' '}
+            <span className="font-mono text-slate-600">/.well-known/oracle-keys.json</span>.
           </div>
         </div>
       )}

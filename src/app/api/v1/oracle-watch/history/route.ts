@@ -12,6 +12,7 @@ import { getOracleWatchHistory } from '@/lib/api/services/oracleWatchTrendServic
 import type { OracleWatchInterval } from '@/lib/api/services/oracleWatchTrendService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { maxTrendDays, normalizePlan } from '@/lib/billing/plans';
+import { HISTORY_UNIVERSE_NOTE, isInHistoryUniverse } from '@/lib/reports/oracleWatchUniverse';
 import { SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
 
 export const OracleWatchHistoryQuerySchema = z.object({
@@ -56,6 +57,18 @@ export const GET = createApiHandler(
             days: result.days,
             grain: result.grain,
             currentVerdict: result.summary.currentVerdict,
+            /**
+             * An empty `series` is ambiguous: it can mean "quiet" or "we never
+             * collect this pair". Say which, so a caller cannot mistake a
+             * coverage gap for a clean bill of health.
+             */
+            historyGuaranteed: isInHistoryUniverse(result.symbol, result.chain),
+            historyNote:
+              result.series.length === 0
+                ? isInHistoryUniverse(result.symbol, result.chain)
+                  ? 'Empty series for a pair inside the committed universe — the collector has not written it yet or is failing. Treat as UNKNOWN, not healthy.'
+                  : `No history for this pair. ${HISTORY_UNIVERSE_NOTE}`
+                : HISTORY_UNIVERSE_NOTE,
           },
         })
       ),

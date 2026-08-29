@@ -23,6 +23,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
+import { recordOracleWatchCheckAsync } from '@/lib/api/services/oracleWatchAudit';
 import { getOracleWatchSignal } from '@/lib/api/services/oracleWatchService';
 import { signWatchAttestation } from '@/lib/attestations/oracleWatchAttestation';
 import { SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
@@ -60,6 +61,15 @@ export const GET = createApiHandler<
       subjectChainId: 1,
     });
 
+    // Audit the sample issuance too. A sample is the first thing an integrator
+    // touches, so a signing regression shows up here before it shows up in
+    // production traffic — but only if the failure is recorded.
+    recordOracleWatchCheckAsync(signal, attestation, {
+      source: 'sample',
+      apiKeyId: context.auth?.apiKey?.keyId ?? null,
+      subjectChainId: 1,
+    });
+
     if (!attestation) {
       return NextResponse.json(
         ApiResponseBuilder.error(
@@ -82,7 +92,7 @@ export const GET = createApiHandler<
           attestation,
           wellKnown: `${base}/.well-known/oracle-keys.json`,
           verify: `${base}/api/v1/oracle-watch/attestation/verify`,
-          note: `Freshly signed OracleWatchCheck v1 for a live ${symbol} signal. Valid for WATCH_VALID_FOR_SECONDS from evaluatedAt. Verify it at the verify endpoint or against the .well-known key.`,
+          note: `Freshly signed OracleWatchCheck v${attestation.schemaVersion} for a live ${symbol} signal. Valid for WATCH_VALID_FOR_SECONDS from evaluatedAt. Verify it at the verify endpoint or against the .well-known key.`,
         },
         { requestId: context.requestId }
       )

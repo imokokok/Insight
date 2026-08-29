@@ -1,3 +1,5 @@
+import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
+import { watchReasonCodes, type WatchReasonCode } from '@/lib/attestations/watchReasonCodes';
 import { UnsupportedSymbolError } from '@/lib/errors';
 import { scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 import { TTLCache } from '@/lib/utils/cache';
@@ -38,6 +40,17 @@ export type { OracleWatchTrustLevel, OracleWatchTrustComponents } from './oracle
 
 /** Independent providers required to avoid a DANGER quorum verdict. */
 export const QUORUM_MIN = 3;
+
+/**
+ * Distinct NON-DERIVED operator groups required to avoid a DANGER independence
+ * verdict. Mirrors pre-trade's v2.1 independence gate
+ * (V2_REQUIRED_NON_DERIVED_GROUPS): counting providers alone is not enough —
+ * three white-labelled wrappers of one operator, or two real sources plus a
+ * TWAP, all satisfy `QUORUM_MIN` while describing a single point of failure.
+ * Derived sources (TWAP) still feed the consensus and the quorum count, but
+ * never the independence count.
+ */
+export const INDEPENDENCE_MIN = 2;
 
 export interface OracleWatchProvider {
   provider: string;
@@ -82,6 +95,22 @@ export interface OracleWatchResult {
   minReputation: number | null;
   /** True when at least QUORUM_MIN independent providers are responding. */
   quorumSatisfied: boolean;
+  /**
+   * Composable reason codes for the verdict (v2 receipts sign their hash).
+   * A single `reason` string cannot distinguish a price divergence from a
+   * quorum shortfall from an independence failure — three states with
+   * different remediations. Empty when the feed is healthy.
+   */
+  reasonCodes: WatchReasonCode[];
+  /** Quorum floor the signal is judged against (QUORUM_MIN), surfaced so a
+   *  consumer can read the gate off the payload and not just off a receipt. */
+  requiredParticipantCount: number;
+  /** Distinct NON-DERIVED operator groups among the responding providers. */
+  sourceGroupCount: number;
+  /** Independence floor the signal is judged against (INDEPENDENCE_MIN). */
+  requiredSourceGroupCount: number;
+  /** True when at least INDEPENDENCE_MIN non-derived groups are responding. */
+  independenceSatisfied: boolean;
   /** Composite 0-100 credibility rating (higher = more trustworthy). */
   trustScore: number;
   /** Discrete gate built from trustScore. */
@@ -90,6 +119,65 @@ export interface OracleWatchResult {
   trustComponents: OracleWatchTrust['components'];
   providers: OracleWatchProvider[];
   evaluatedAt: string;
+}
+
+/**
+ * The no-coverage verdict: nothing to cross-check against, which is the most
+ * dangerous state for a dependent agent. Degrades to DANGER/halt rather than
+ * erroring (mirrors pre-trade returning BLOCK for unsupported symbols).
+ *
+ * Shared by the unsupported-symbol path and the "every fetch failed" path so
+ * both emit an identical, fully-populated result.
+ */
+function noCoverageResult(args: {
+  symbol: string;
+  chain: string | null;
+  consensusPrice: number | null;
+  avgReputation: number | null;
+  minReputation: number | null;
+  providers: OracleWatchProvider[];
+  evaluatedAt: string;
+}): OracleWatchResult {
+  const trust = computeOracleWatchTrust({
+    participantCount: 0,
+    agreement: 0,
+    maxDeviationPct: null,
+    mlRiskScore: null,
+    outlierCount: 0,
+    staleCount: 0,
+    avgReputation: args.avgReputation,
+    minReputation: args.minReputation,
+  });
+  return {
+    symbol: args.symbol,
+    chain: args.chain,
+    verdict: 'danger',
+    recommendation: 'halt',
+    maxDeviationPct: null,
+    agreement: 0,
+    participantCount: 0,
+    outlierCount: 0,
+    staleCount: 0,
+    consensusPrice: args.consensusPrice,
+    reason: 'no_cross_oracle_coverage',
+    mlRiskScore: null,
+    mlScore1h: null,
+    mlScore6h: null,
+    mlRiskLevel: null,
+    avgReputation: args.avgReputation,
+    minReputation: args.minReputation,
+    quorumSatisfied: false,
+    requiredParticipantCount: QUORUM_MIN,
+    reasonCodes: ['NO_COVERAGE'],
+    sourceGroupCount: 0,
+    requiredSourceGroupCount: INDEPENDENCE_MIN,
+    independenceSatisfied: false,
+    trustScore: trust.score,
+    trustLevel: trust.level,
+    trustComponents: trust.components,
+    providers: args.providers,
+    evaluatedAt: args.evaluatedAt,
+  };
 }
 
 // Mirrors pre-trade's Phase 1 rule thresholds (high-is-bad unless noted).
@@ -234,41 +322,15 @@ async function computeOracleWatchSignal(
     // DANGER verdict instead of a 4xx/5xx (mirrors pre-trade returning BLOCK
     // for unsupported symbols).
     if (error instanceof UnsupportedSymbolError) {
-      const trust = computeOracleWatchTrust({
-        participantCount: 0,
-        agreement: 0,
-        maxDeviationPct: null,
-        mlRiskScore: null,
-        outlierCount: 0,
-        staleCount: 0,
-        avgReputation: null,
-        minReputation: null,
-      });
-      return {
+      return noCoverageResult({
         symbol: symbol.toUpperCase(),
         chain: chain ?? null,
-        verdict: 'danger',
-        recommendation: 'halt',
-        maxDeviationPct: null,
-        agreement: 0,
-        participantCount: 0,
-        outlierCount: 0,
-        staleCount: 0,
         consensusPrice: null,
-        reason: 'no_cross_oracle_coverage',
-        mlRiskScore: null,
-        mlScore1h: null,
-        mlScore6h: null,
-        mlRiskLevel: null,
         avgReputation: null,
         minReputation: null,
-        quorumSatisfied: false,
-        trustScore: trust.score,
-        trustLevel: trust.level,
-        trustComponents: trust.components,
         providers: [],
         evaluatedAt,
-      };
+      });
     }
     throw error;
   }
@@ -316,41 +378,15 @@ async function computeOracleWatchSignal(
   // Consensus computed but zero participants (every fetch failed) — treat as
   // no usable coverage.
   if (result.participantCount === 0) {
-    const trust = computeOracleWatchTrust({
-      participantCount: 0,
-      agreement: 0,
-      maxDeviationPct: null,
-      mlRiskScore: null,
-      outlierCount: 0,
-      staleCount: 0,
-      avgReputation,
-      minReputation,
-    });
-    return {
+    return noCoverageResult({
       symbol: result.symbol,
       chain: result.chain ?? null,
-      verdict: 'danger',
-      recommendation: 'halt',
-      maxDeviationPct: null,
-      agreement: 0,
-      participantCount: 0,
-      outlierCount: 0,
-      staleCount: 0,
       consensusPrice: result.consensusPrice,
-      reason: 'no_cross_oracle_coverage',
-      mlRiskScore: null,
-      mlScore1h: null,
-      mlScore6h: null,
-      mlRiskLevel: null,
       avgReputation,
       minReputation,
-      quorumSatisfied: false,
-      trustScore: trust.score,
-      trustLevel: trust.level,
-      trustComponents: trust.components,
       providers,
       evaluatedAt,
-    };
+    });
   }
 
   // Forward-looking ML risk is needed BEFORE the verdict so it can participate
@@ -360,22 +396,33 @@ async function computeOracleWatchSignal(
 
   const quorumSatisfied = result.participantCount >= QUORUM_MIN;
 
+  // Independence gate (mirrors pre-trade's v2.1 gate). `quorumSatisfied` only
+  // counts heads; three white-labelled wrappers of one operator — or two real
+  // sources plus a TWAP — clear QUORUM_MIN while describing a single point of
+  // failure. Derived groups (TWAP) still feed the consensus and the quorum
+  // count but are excluded here by nonDerivedGroupCount.
+  const sourceGroupCount = nonDerivedGroupCount(successProviders.map((p) => p.provider));
+  const independenceSatisfied = sourceGroupCount >= INDEPENDENCE_MIN;
+
   let verdict: OracleWatchSeverity;
   let recommendation: OracleWatchRecommendation;
   let reason: string;
 
   const devDanger = maxDeviationPct >= DEV_DANGER_PCT;
   const agreeDanger = result.agreement < AGREEMENT_DANGER;
-  if (devDanger || agreeDanger || result.participantCount < QUORUM_MIN) {
+  if (devDanger || agreeDanger || !quorumSatisfied || !independenceSatisfied) {
     verdict = 'danger';
     recommendation = 'halt';
-    // When the danger is purely a coverage shortfall, name it so agents can
-    // react (e.g. wait for more providers) rather than misread it as a price
-    // divergence.
-    reason =
-      !devDanger && !agreeDanger
-        ? 'insufficient_cross_oracle_quorum'
-        : 'deviation_or_agreement_breached_danger';
+    // Name the dominant cause so an agent can remediate: waiting for more
+    // providers, waiting for a second real operator, and halting on a price
+    // divergence are three different responses to the same verdict.
+    if (devDanger || agreeDanger) {
+      reason = 'deviation_or_agreement_breached_danger';
+    } else if (!quorumSatisfied) {
+      reason = 'insufficient_cross_oracle_quorum';
+    } else {
+      reason = 'insufficient_oracle_independence';
+    }
   } else if (
     maxDeviationPct >= DEV_CAUTION_PCT ||
     result.agreement < AGREEMENT_CAUTION ||
@@ -391,14 +438,31 @@ async function computeOracleWatchSignal(
     reason = 'within_tolerance';
   }
 
+  const mlRiskHigh = ml.mlRiskLevel === 'high';
+
   // ML forward-risk escalation: a healthy-now feed with high predicted
   // manipulation risk must be throttled to caution (never bluntly blocked on
   // the ML alone), closing the gap where a purely-advisory ML could be ignored.
-  if (verdict === 'normal' && ml.mlRiskLevel === 'high') {
+  if (verdict === 'normal' && mlRiskHigh) {
     verdict = 'caution';
     recommendation = 'proceed_with_caution';
     reason = 'ml_forward_risk_high';
   }
+
+  // `reason` names the DOMINANT cause; `reasonCodes` lists every condition that
+  // fired, including advisory ones the dominant reason would otherwise mask.
+  // v2 receipts sign the codes' hash so the diagnosis travels with the proof.
+  const reasonCodes = watchReasonCodes({
+    participantCount: result.participantCount,
+    sourceGroupCount,
+    requiredParticipantCount: QUORUM_MIN,
+    requiredSourceGroupCount: INDEPENDENCE_MIN,
+    deviationDanger: devDanger,
+    agreementDanger: agreeDanger,
+    outlierCount,
+    staleCount,
+    mlForwardRiskHigh: mlRiskHigh,
+  });
 
   const trust = computeOracleWatchTrust({
     participantCount: result.participantCount,
@@ -409,6 +473,8 @@ async function computeOracleWatchSignal(
     staleCount,
     avgReputation,
     minReputation,
+    sourceGroupCount,
+    requiredSourceGroupCount: INDEPENDENCE_MIN,
   });
 
   return {
@@ -427,6 +493,11 @@ async function computeOracleWatchSignal(
     avgReputation,
     minReputation,
     quorumSatisfied,
+    requiredParticipantCount: QUORUM_MIN,
+    reasonCodes,
+    sourceGroupCount,
+    requiredSourceGroupCount: INDEPENDENCE_MIN,
+    independenceSatisfied,
     trustScore: trust.score,
     trustLevel: trust.level,
     trustComponents: trust.components,

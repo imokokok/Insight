@@ -1,5 +1,6 @@
 import { getIncidentAggregation } from '@/lib/api/services/incidentService';
 import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { ORACLE_WATCH_HISTORY_UNIVERSE } from '@/lib/reports/oracleWatchUniverse';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { get7dAgoUtc, getTodayUtc } from '@/lib/utils/date';
 import { roundTo } from '@/lib/utils/format';
@@ -616,5 +617,204 @@ export async function getOverviewStats(windowHours = 24): Promise<OverviewStats>
     incidents7d: incidents.total,
     cronStale: cron.jobs.filter((j) => j.stale).length,
     partial,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Oracle Watch integrity (oracle_watch_checks + feed_health_snapshots)
+// ---------------------------------------------------------------------------
+//
+// Two things can go silently wrong with Watch, and neither was visible before
+// this section existed:
+//
+//   1. Signing can break while the signal keeps working. Watch signing is
+//      deliberately additive — a missing key must never change a verdict — so a
+//      broken attester produced perfectly healthy-looking API responses with no
+//      receipt attached. `attestedRatePct` is the only way to see it.
+//
+//   2. The 30-min collector can stop writing while the live endpoint keeps
+//      answering. `/history` then returns a short or empty series, which a
+//      dependent agent reads as "quiet". `spineStale` + `universeGaps` surface
+//      that as a monitoring failure rather than a feed verdict.
+
+/**
+ * Collector cadence is 30 min. Allow one missed pass plus scheduling slack
+ * before declaring the spine stale — a cron job that drifts a few minutes is
+ * normal, one that missed a full cycle is not.
+ */
+const WATCH_SPINE_STALE_MINUTES = 75;
+
+/** Newest spine rows pulled for the freshness / universe-gap check. */
+const WATCH_SPINE_LOOKBACK_ROWS = 3000;
+
+interface OracleWatchCheckRow {
+  created_at: string;
+  symbol: string;
+  chain: string | null;
+  attested: boolean;
+  verdict: string | null;
+  recommendation: string | null;
+  quorum_satisfied: boolean;
+  independence_satisfied: boolean;
+  reason_codes: string[] | null;
+  uid: string | null;
+}
+
+export interface OracleWatchHaltRow {
+  created_at: string;
+  symbol: string;
+  chain: string | null;
+  verdict: string | null;
+  reason_codes: string[] | null;
+}
+
+export interface OracleWatchIntegritySummary {
+  windowHours: number;
+  /** Judgments issued in the window (one row per oracle_watch / REST call). */
+  total: number;
+  /** Of those, how many carried a verifiable receipt. */
+  attested: number;
+  attestedRatePct: number | null;
+  /** Judgments that told a caller to halt. */
+  halts: number;
+  /**
+   * Halts issued WITHOUT a receipt. This is the canary quadrant: we told an
+   * agent to stop and handed it nothing it can prove later.
+   */
+  unattestedHalts: number;
+  quorumFailures: number;
+  /** Independence-gate failures — providers all resolve to one operator. */
+  independenceFailures: number;
+  /** Distinct (symbol, chain) pairs judged — usage breadth. */
+  distinctPairs: number;
+
+  /** Newest feed_health_snapshots row, and its age. */
+  spineLastEvaluatedAt: string | null;
+  spineAgeMinutes: number | null;
+  /** True when the collector has gone quiet. */
+  spineStale: boolean;
+  /** Committed-universe pairs with NO spine row in the window. */
+  universeGaps: string[];
+
+  /** True when a sub-query failed — numbers above are unreliable. */
+  errored?: boolean;
+}
+
+export interface OracleWatchIntegrity {
+  summary: OracleWatchIntegritySummary;
+  unattestedHalts: OracleWatchHaltRow[];
+}
+
+const EMPTY_WATCH_INTEGRITY = (windowHours: number): OracleWatchIntegrity => ({
+  summary: {
+    windowHours,
+    total: 0,
+    attested: 0,
+    attestedRatePct: null,
+    halts: 0,
+    unattestedHalts: 0,
+    quorumFailures: 0,
+    independenceFailures: 0,
+    distinctPairs: 0,
+    spineLastEvaluatedAt: null,
+    spineAgeMinutes: null,
+    spineStale: true,
+    universeGaps: ORACLE_WATCH_HISTORY_UNIVERSE.map((t) => `${t.symbol}@${t.chain}`),
+  },
+  unattestedHalts: [],
+});
+
+export async function getOracleWatchIntegrity(windowHours = 24): Promise<OracleWatchIntegrity> {
+  const supabase = createServiceRoleClient();
+  const since = hoursAgoIso(windowHours);
+
+  const [checksResult, spineResult] = await Promise.all([
+    pagedSelect<OracleWatchCheckRow>((from, to) =>
+      supabase
+        .from('oracle_watch_checks')
+        .select(
+          'created_at, symbol, chain, attested, verdict, recommendation, quorum_satisfied, independence_satisfied, reason_codes, uid'
+        )
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .range(from, to)
+    ),
+    supabase
+      .from('feed_health_snapshots')
+      .select('evaluated_at, symbol, chain')
+      .gte('evaluated_at', since)
+      .order('evaluated_at', { ascending: false })
+      .limit(WATCH_SPINE_LOOKBACK_ROWS),
+  ]);
+
+  if (checksResult.error) {
+    return {
+      ...EMPTY_WATCH_INTEGRITY(windowHours),
+      summary: { ...EMPTY_WATCH_INTEGRITY(windowHours).summary, errored: true },
+    };
+  }
+
+  const rows = checksResult.data ?? [];
+
+  let attested = 0;
+  let halts = 0;
+  let unattestedHalts = 0;
+  let quorumFailures = 0;
+  let independenceFailures = 0;
+  const pairs = new Set<string>();
+  const haltRows: OracleWatchHaltRow[] = [];
+
+  for (const row of rows) {
+    if (row.attested) attested++;
+    pairs.add(`${row.symbol}@${row.chain ?? 'global'}`);
+    if (!row.quorum_satisfied) quorumFailures++;
+    if (!row.independence_satisfied) independenceFailures++;
+    if (row.recommendation === 'halt') {
+      halts++;
+      if (!row.attested) {
+        unattestedHalts++;
+        // Bound the payload: ops needs the recent failures, not all of them.
+        if (haltRows.length < 25) {
+          haltRows.push({
+            created_at: row.created_at,
+            symbol: row.symbol,
+            chain: row.chain,
+            verdict: row.verdict,
+            reason_codes: row.reason_codes,
+          });
+        }
+      }
+    }
+  }
+
+  // ---- Spine freshness + universe gaps -------------------------------------
+  const spineRows = spineResult.data ?? [];
+  const spineLastEvaluatedAt = spineRows.length > 0 ? spineRows[0].evaluated_at : null;
+  const spineAgeMinutes = ageMinutes(spineLastEvaluatedAt);
+  const spineStale = spineAgeMinutes === null || spineAgeMinutes > WATCH_SPINE_STALE_MINUTES;
+
+  const seen = new Set(spineRows.map((r) => `${r.symbol}@${r.chain ?? 'global'}`));
+  const universeGaps = ORACLE_WATCH_HISTORY_UNIVERSE.map((t) => `${t.symbol}@${t.chain}`).filter(
+    (key) => !seen.has(key)
+  );
+
+  return {
+    summary: {
+      windowHours,
+      total: rows.length,
+      attested,
+      attestedRatePct: rows.length > 0 ? roundTo((attested / rows.length) * 100, 1) : null,
+      halts,
+      unattestedHalts,
+      quorumFailures,
+      independenceFailures,
+      distinctPairs: pairs.size,
+      spineLastEvaluatedAt,
+      spineAgeMinutes,
+      spineStale,
+      universeGaps,
+      errored: Boolean(spineResult.error) || undefined,
+    },
+    unattestedHalts: haltRows,
   };
 }

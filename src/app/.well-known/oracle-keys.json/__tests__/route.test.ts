@@ -48,6 +48,43 @@ describe('.well-known/oracle-keys.json route', () => {
     expect(body.sample).toContain('/api/v1/safety/attestation/sample');
   });
 
+  it('publishes the Oracle Watch schema so one URL is enough to verify a receipt', async () => {
+    const { GET } = await import('../route');
+    const response = await GET(
+      new Request('https://www.oracleinsight.xyz/.well-known/oracle-keys.json')
+    );
+    const body = await response.json();
+
+    // Watch is a separate EIP-712 domain from pre-trade. Its descriptor was the
+    // missing half: a counterparty holding a Watch receipt had no published
+    // types to verify it against.
+    const watch = body.schemas.OracleWatchCheck;
+    expect(watch.eip712.primaryType).toBe('OracleWatchCheck');
+    expect(watch.eip712.domain.name).toBe('Insight Oracle Watch');
+    expect(watch.schemaVersion).toBe(2);
+
+    // v2 signs the independence gate and the reason codes — the field names must
+    // be public or a holder cannot recompute the UID.
+    const fields = watch.eip712.types.OracleWatchCheck.map((f: { name: string }) => f.name);
+    expect(fields).toContain('sourceGroupCount');
+    expect(fields).toContain('requiredSourceGroupCount');
+    expect(fields).toContain('independenceSatisfied');
+    expect(fields).toContain('reasonCodesHash');
+
+    // Thresholds travel with the descriptor so a receipt is self-checking.
+    expect(watch.gates.requiredParticipantCount).toBe(3);
+    expect(watch.gates.requiredSourceGroupCount).toBe(2);
+
+    // v1 stays published: receipts already in the wild must keep verifying.
+    expect(body.schemas.OracleWatchCheckV1.schemaVersion).toBe(1);
+    expect(body.schemas.OracleWatchCheckV1.retiredForSigning).toBe(true);
+
+    // Separate pointers — the two surfaces must never be conflated.
+    expect(body.watch_verify).toContain('/api/v1/oracle-watch/attestation/verify');
+    expect(body.watch_sample).toContain('/api/v1/oracle-watch/attestation/sample');
+    expect(body.verify).toContain('/api/v1/safety/attestation/verify');
+  });
+
   it('reports empty public_keys when the attester key is unconfigured', async () => {
     delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
     jest.resetModules();

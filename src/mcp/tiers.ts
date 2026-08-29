@@ -54,6 +54,19 @@ const MCP_TOOL_TIERS: Record<string, McpToolTier> = {
   get_price_history: 'pro',
   check_position_safety: 'pro',
   pre_trade_safety_check: 'pro',
+  /**
+   * Oracle Watch is the always-on companion to `pre_trade_safety_check` and is
+   * plan-guarded identically on REST (`V1_STANDARD_MIDDLEWARES` → planGuard:
+   * true → minPlan 'pro'). Leaving it unlisted here would default it to 'free'
+   * and hand Pro-gated signal — plus a signed receipt — to Free API keys. That
+   * MCP/REST tier drift is precisely what this file exists to prevent.
+   */
+  oracle_watch: 'pro',
+  /**
+   * The retrospective trend is the same Pro-gated spine as the REST
+   * `/oracle-watch/history` endpoint (also `planGuard: true`).
+   */
+  oracle_watch_history: 'pro',
 };
 
 /** Minimum plan required to call a tool via an API key. Defaults to 'free'. */

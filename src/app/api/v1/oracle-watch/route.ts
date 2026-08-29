@@ -8,6 +8,7 @@ import {
   ApiResponseBuilder,
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
+import { recordOracleWatchCheckAsync } from '@/lib/api/services/oracleWatchAudit';
 import { getOracleWatchSignal } from '@/lib/api/services/oracleWatchService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { signWatchAttestation } from '@/lib/attestations/oracleWatchAttestation';
@@ -32,10 +33,16 @@ export const GET = createApiHandler(
   async (_request, context) => {
     const query = context.validated!.query as z.infer<typeof OracleWatchQuerySchema>;
 
+    const startedAt = Date.now();
+
     // getOracleWatchSignal degrades unsupported symbols / zero coverage into a
     // DANGER verdict internally, so any throw here is genuinely unexpected —
     // let the createApiHandler error middleware translate it to a 500.
     const result = await getOracleWatchSignal(query.symbol, query.chain);
+
+    const subjectChainId = result.chain
+      ? (BLOCKCHAIN_TO_CHAIN_ID[result.chain as Blockchain] ?? 0)
+      : 0;
 
     // Signed proof of this signal. Null when no attester key is configured;
     // it must never change the verdict or fail the request.
@@ -45,10 +52,17 @@ export const GET = createApiHandler(
         : await signWatchAttestation({
             signal: result,
             providers: result.providers,
-            subjectChainId: result.chain
-              ? (BLOCKCHAIN_TO_CHAIN_ID[result.chain as Blockchain] ?? 0)
-              : 0,
+            subjectChainId,
           });
+
+    // Per-issuance audit row: without it, "this agent gated on a receipt" is
+    // unanswerable after the fact. Fire-and-forget — never blocks the response.
+    recordOracleWatchCheckAsync(result, attestation, {
+      source: 'rest',
+      apiKeyId: context.auth?.apiKey?.keyId ?? null,
+      latencyMs: Date.now() - startedAt,
+      subjectChainId,
+    });
 
     const response: NextResponse = new Response(
       JSON.stringify(
