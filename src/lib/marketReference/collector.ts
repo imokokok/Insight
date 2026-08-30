@@ -27,10 +27,13 @@
  *    version, client-measured latency) so provenance is separable from
  *    applicability.
  *
- * Binance note: api.binance.com is geo-blocked in some GitHub runner regions;
- * it is collected best-effort (Kraken + Coinbase are the dependable pair and
- * both are US-runner-safe). Cross-exchange consistency is computed by the
- * `market_reference_hourly` view, not asserted here.
+ * Gemini note: replaced Binance as the third source. Binance's public API is
+ * geo-blocked (HTTP 451) on GitHub US runners, so it contributed zero
+ * successful rows in production. Gemini (NY-regulated, public keyless
+ * pubticker, verified live for BTC/ETH/USDC/USDT) gives us three dependable,
+ * US-runner-safe, high-credibility sources — a 3-source median bounds any
+ * single source's influence on the reference. Cross-exchange consistency is
+ * computed by the `market_reference_hourly` view, not asserted here.
  */
 
 import { createLogger } from '@/lib/utils/logger';
@@ -38,7 +41,7 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('MarketReference');
 
 /** Bump when the fetch/row semantics change; pinned for reproducibility. */
-export const COLLECTOR_VERSION = '1.0.0';
+export const COLLECTOR_VERSION = '1.1.0'; // 1.1.0: Binance -> Gemini third source
 
 /** Quote currency for all rows. */
 export const MARKET_REFERENCE_QUOTE = 'USD';
@@ -65,11 +68,13 @@ const KRAKEN_PAIRS: Record<string, string> = {
   USDT: 'USDTZUSD',
 };
 
-const BINANCE_SYMBOLS: Record<string, string> = {
-  ETH: 'ETHUSDT',
-  BTC: 'BTCUSDT',
-  USDC: 'USDCUSDT',
-  USDT: 'USDTUSDT',
+// Gemini ticker symbols (lowercase base + usd). VERIFIED against the live
+// API for all four universe symbols (public pubticker, no key, US-friendly).
+const GEMINI_TICKERS: Record<string, string> = {
+  ETH: 'ethusd',
+  BTC: 'btcusd',
+  USDC: 'usdcusd',
+  USDT: 'usdtusd',
 };
 
 export interface ExchangeQuote {
@@ -150,13 +155,13 @@ async function fetchKrakenSpot(symbol: string, fetchImpl: typeof fetch): Promise
   return { exchange: 'kraken', symbol, price: parsePrice(ticker.c?.[0]) };
 }
 
-async function fetchBinanceSpot(symbol: string, fetchImpl: typeof fetch): Promise<ExchangeQuote> {
-  const pair = BINANCE_SYMBOLS[symbol];
-  const url = `https://api.binance.com/api/v3/ticker/price?symbol=${pair}`;
+async function fetchGeminiSpot(symbol: string, fetchImpl: typeof fetch): Promise<ExchangeQuote> {
+  const ticker = GEMINI_TICKERS[symbol];
+  const url = `https://api.gemini.com/v1/pubticker/${ticker}`;
   const r = await fetchImpl(url);
-  if (!r.ok) throw new Error(`binance ${r.status}`);
-  const body = (await r.json()) as { price?: unknown };
-  return { exchange: 'binance', symbol, price: parsePrice(body.price) };
+  if (!r.ok) throw new Error(`gemini ${r.status}`);
+  const body = (await r.json()) as { last?: unknown };
+  return { exchange: 'gemini', symbol, price: parsePrice(body.last) };
 }
 
 const ADAPTERS: Array<{
@@ -165,7 +170,7 @@ const ADAPTERS: Array<{
 }> = [
   { name: 'coinbase', fn: fetchCoinbaseSpot },
   { name: 'kraken', fn: fetchKrakenSpot },
-  { name: 'binance', fn: fetchBinanceSpot },
+  { name: 'gemini', fn: fetchGeminiSpot },
 ];
 
 /**

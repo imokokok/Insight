@@ -1,9 +1,10 @@
 /* eslint-disable no-console */
 /**
- * Market-reference collector entry (GitHub Actions `market-reference-collect.yml`,
- * every 15 min). Delegates to `collectMarketReference()` (which queries
- * Coinbase/Kraken/Binance spot) and upserts one row per (symbol, exchange,
- * snapshot_ts) into `market_reference_snapshots` (migration 0037).
+ * Market-reference collector entry (the step inside snapshot-collect.yml and
+ * the manual market-reference-collect.yml workflow). Delegates to
+ * `collectMarketReference()` (which queries Coinbase/Kraken/Gemini spot) and
+ * upserts one row per (symbol, exchange, snapshot_ts) into
+ * `market_reference_snapshots` (migration 0037).
  *
  * Run locally:
  *   npx tsx --env-file=.env.local scripts/collect-market-reference.ts

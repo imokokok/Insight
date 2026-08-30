@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS "public"."market_reference_snapshots" (
 ALTER TABLE "public"."market_reference_snapshots" OWNER TO "postgres";
 
 COMMENT ON TABLE "public"."market_reference_snapshots" IS 'Independent CEX market-reference prices (external truth layer) per (symbol, exchange, snapshot_ts). Populated every 15 min by GitHub Actions market-reference-collect; also by backfill-market-reference for historical windows.';
-COMMENT ON COLUMN "public"."market_reference_snapshots"."exchange" IS 'CEX source: coinbase | kraken | binance (binance geo-blocked in some runner regions, collected best-effort).';
+COMMENT ON COLUMN "public"."market_reference_snapshots"."exchange" IS 'CEX source: coinbase | kraken | gemini (Gemini replaced Binance, whose public API is geo-blocked on GitHub US runners with HTTP 451; verified live for all four symbols).';
 COMMENT ON COLUMN "public"."market_reference_snapshots"."ref_price" IS 'Quote price in `quote` currency; NULL on failed fetch (fail-closed, never estimated).';
 COMMENT ON COLUMN "public"."market_reference_snapshots"."volume" IS 'Period volume (candles/backfill); NULL for live spot rows.';
 COMMENT ON COLUMN "public"."market_reference_snapshots"."data_age_seconds" IS 'Client-measured fetch latency at collection time (freshness proxy).';

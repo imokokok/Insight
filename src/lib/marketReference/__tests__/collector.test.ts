@@ -30,8 +30,8 @@ describe('collectMarketReference', () => {
               : 'USDCUSD';
         return jsonResponse({ error: [], result: { [pair]: { c: ['3001.0'] } } });
       }
-      if (u.includes('api.binance.com')) {
-        return jsonResponse({ price: '3002.25' });
+      if (u.includes('api.gemini.com')) {
+        return jsonResponse({ last: '3002.25' });
       }
       throw new Error('unexpected url ' + u);
     });
@@ -44,7 +44,7 @@ describe('collectMarketReference', () => {
     const eth = rows.filter((r) => r.symbol === 'ETH');
     expect(eth).toHaveLength(3);
     expect(eth.every((r) => r.is_success)).toBe(true);
-    expect(eth.map((r) => r.exchange).sort()).toEqual(['binance', 'coinbase', 'kraken']);
+    expect(eth.map((r) => r.exchange).sort()).toEqual(['coinbase', 'gemini', 'kraken']);
     expect(eth[0].quote).toBe('USD');
     expect(eth[0].collector_version).toBeTruthy();
     expect(eth[0].data_age_seconds).toBeGreaterThanOrEqual(0);
@@ -75,8 +75,8 @@ describe('collectMarketReference', () => {
           },
         });
       }
-      if (u.includes('api.binance.com')) {
-        return jsonResponse({ price: '1.0' });
+      if (u.includes('api.gemini.com')) {
+        return jsonResponse({ last: '1.0' });
       }
       throw new Error('boom');
     });
@@ -87,7 +87,7 @@ describe('collectMarketReference', () => {
 
     const btcRows = rows.filter((r) => r.symbol === 'BTC');
     expect(btcRows).toHaveLength(3);
-    expect(btcRows.filter((r) => r.is_success)).toHaveLength(2); // coinbase + binance ok
+    expect(btcRows.filter((r) => r.is_success)).toHaveLength(2); // coinbase + gemini ok
     expect(btcRows.find((r) => r.exchange === 'kraken')?.is_success).toBe(false);
     expect(btcRows.find((r) => r.exchange === 'kraken')?.error_message).toContain('kraken down');
     expect(btcRows.find((r) => r.exchange === 'kraken')?.ref_price).toBeNull();
@@ -129,7 +129,7 @@ describe('collectMarketReference', () => {
           },
         });
       }
-      return jsonResponse({ price: '5' });
+      return jsonResponse({ last: '5' });
     });
 
     const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), { fetchImpl });
@@ -145,7 +145,7 @@ describe('collectMarketReference', () => {
       if (u.includes('api.kraken.com')) {
         return jsonResponse({ error: ['EGeneral:Too many requests'], result: {} });
       }
-      return jsonResponse({ price: '1.0' });
+      return jsonResponse({ last: '1.0' });
     });
 
     const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), { fetchImpl });
