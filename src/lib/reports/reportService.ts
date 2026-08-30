@@ -1,3 +1,5 @@
+import { getMlOutcomeMetrics } from '@/lib/api/services/mlOutcomeMetrics';
+import { getModelStatus } from '@/lib/ml/inference';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -121,6 +123,10 @@ class ReportService {
     }
 
     const metrics = calculateMetrics(snapshots);
+    // ML model health: which model is deployed, its out-of-time test metrics,
+    // and the realized closed-loop accuracy on labeled pre-trade checks. A
+    // failure here must never fail the report — degrade to absent/errored.
+    metrics.mlModelHealth = await buildMlModelHealth();
     const topAssets = calculateAssetStats(snapshots);
     const providerRankings = calculateProviderRankings(snapshots);
     const deviationEvents = extractDeviationEvents(snapshots);
@@ -381,3 +387,32 @@ class ReportService {
 }
 
 export const reportService = new ReportService();
+
+/**
+ * ML model health snapshot for the daily report: the deployed model's identity
+ * + out-of-time test metrics, plus the realized closed-loop accuracy on labeled
+ * pre-trade checks from the last 7 days. Fail-soft — a metrics/supabase hiccup
+ * yields a degraded snapshot, never a thrown error.
+ */
+async function buildMlModelHealth(): Promise<NonNullable<DailyReportMetrics['mlModelHealth']>> {
+  const status = getModelStatus();
+  const base: NonNullable<DailyReportMetrics['mlModelHealth']> = {
+    active: status.active,
+    trainedAt: status.trainedAt,
+    horizons: status.horizonDetails.map((h) => ({
+      name: h.name,
+      verified: h.verified,
+      auc: h.auc,
+      precision: h.precision,
+      recall: h.recall,
+    })),
+    realized: null,
+  };
+  try {
+    const m = await getMlOutcomeMetrics(24 * 7);
+    base.realized = m.errored ? null : { labeled: m.labeled, positives: m.positives, auc: m.auc };
+  } catch {
+    // realized stays null — the report still carries the model status.
+  }
+  return base;
+}

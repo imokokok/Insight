@@ -239,6 +239,18 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
             <ProtocolLiquidationRiskPanelInsight risks={report.protocolLiquidationRisks ?? []} />
           </CollapsibleSummarySection>
 
+          {/* ML model health */}
+          {report.metrics.mlModelHealth && (
+            <CollapsibleSummarySection
+              title="ML model health"
+              icon={Shield}
+              className="mb-6"
+              summary={<MlModelHealthPreview health={report.metrics.mlModelHealth} />}
+            >
+              <MlModelHealthPanel health={report.metrics.mlModelHealth} />
+            </CollapsibleSummarySection>
+          )}
+
           {/* Detailed data tables with summary preview */}
           <CollapsibleSummarySection
             title="Provider performance"
@@ -295,5 +307,98 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
         </div>
       </div>
     </ErrorBoundary>
+  );
+}
+
+function MlModelHealthPreview({
+  health,
+}: {
+  health: NonNullable<DailyReportData['metrics']['mlModelHealth']>;
+}) {
+  if (!health.active) {
+    return <span className="text-sm text-gray-500">Model inactive — rule-based signals only.</span>;
+  }
+  const horizons = health.horizons
+    .filter((h) => h.verified)
+    .map((h) => `${h.name} auc ${h.auc !== null ? h.auc.toFixed(3) : 'n/a'}`)
+    .join(' · ');
+  const realized = health.realized;
+  return (
+    <span className="text-sm text-gray-600">
+      {horizons || 'no verified horizons'}
+      {realized && realized.labeled > 0
+        ? ` · realized ${realized.auc !== null ? realized.auc.toFixed(3) : 'n/a'} on ${realized.labeled} labeled checks`
+        : ''}
+    </span>
+  );
+}
+
+function MlModelHealthPanel({
+  health,
+}: {
+  health: NonNullable<DailyReportData['metrics']['mlModelHealth']>;
+}) {
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="flex items-center gap-2">
+        <span
+          className={`inline-block w-2 h-2 rounded-full ${health.active ? 'bg-green-500' : 'bg-gray-300'}`}
+        />
+        <span className="font-medium text-gray-800">{health.active ? 'Active' : 'Inactive'}</span>
+        <span className="text-gray-500">
+          {health.trainedAt ? `· trained ${health.trainedAt.slice(0, 10)}` : ''}
+        </span>
+      </div>
+
+      {health.horizons.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-gray-500 border-b border-gray-200">
+                <th className="py-2 pr-3 font-medium">Horizon</th>
+                <th className="py-2 pr-3 font-medium">Verified</th>
+                <th className="py-2 pr-3 font-medium">Test AUC</th>
+                <th className="py-2 pr-3 font-medium">Precision @0.5</th>
+                <th className="py-2 pr-3 font-medium">Recall @0.5</th>
+              </tr>
+            </thead>
+            <tbody>
+              {health.horizons.map((h) => (
+                <tr key={h.name} className="border-b border-gray-100">
+                  <td className="py-2 pr-3 font-medium text-gray-800">{h.name}</td>
+                  <td className="py-2 pr-3 text-gray-600">{h.verified ? 'yes' : 'no'}</td>
+                  <td className="py-2 pr-3 tabular-nums text-gray-600">
+                    {h.auc !== null ? h.auc.toFixed(4) : '—'}
+                  </td>
+                  <td className="py-2 pr-3 tabular-nums text-gray-600">
+                    {h.precision !== null ? h.precision.toFixed(4) : '—'}
+                  </td>
+                  <td className="py-2 pr-3 tabular-nums text-gray-600">
+                    {h.recall !== null ? h.recall.toFixed(4) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="text-xs text-gray-500 leading-relaxed">
+        {health.realized && health.realized.labeled > 0 ? (
+          <p>
+            Realized closed-loop accuracy on labeled pre-trade checks (last 7 days):{' '}
+            {health.realized.labeled.toLocaleString()} checks,{' '}
+            {health.realized.positives.toLocaleString()} with abnormal outcomes, realized AUC{' '}
+            {health.realized.auc !== null ? health.realized.auc.toFixed(3) : 'n/a'}. The score feeds
+            display and audit only — it does not escalate verdicts or size positions.
+          </p>
+        ) : (
+          <p>
+            No realized accuracy yet — checks are labeled by the outcome backfill 6h after each
+            pre-trade check runs.
+          </p>
+        )}
+      </div>
+    </div>
   );
 }

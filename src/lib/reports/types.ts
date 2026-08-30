@@ -151,6 +151,28 @@ export interface DailyReportMetrics {
   activeProviders: number;
   activeAssets: number;
   activeHours: number;
+  /**
+   * ML manipulation-risk model health snapshot (build-time model status +
+   * realized closed-loop accuracy). Populated by reportService when the model
+   * is active; absent on reports generated before this field existed.
+   */
+  mlModelHealth?: {
+    active: boolean;
+    trainedAt: string | null;
+    horizons: Array<{
+      name: string;
+      verified: boolean;
+      auc: number | null;
+      precision: number | null;
+      recall: number | null;
+    }>;
+    /** Realized accuracy on labeled pre-trade checks (last 7 days). */
+    realized: {
+      labeled: number;
+      positives: number;
+      auc: number | null;
+    } | null;
+  };
 }
 
 export interface DailyReportData {

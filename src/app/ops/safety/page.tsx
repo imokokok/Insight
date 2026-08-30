@@ -1,3 +1,5 @@
+import { getMlOutcomeMetrics } from '@/lib/api/services/mlOutcomeMetrics';
+import { getModelStatus } from '@/lib/ml/inference';
 import { getOracleWatchIntegrity, getSigningIntegrity } from '@/lib/ops/opsQueries';
 
 import TrendChart from '../components/TrendChart';
@@ -28,9 +30,11 @@ export default async function OpsSafetyPage({
   const { range } = await searchParams;
   const hours = rangeToHours(range);
   const label = rangeLabel(range);
-  const [{ summary, trend, unsignedBlocks }, watch] = await Promise.all([
+  const [{ summary, trend, unsignedBlocks }, watch, mlStatus, mlOutcome] = await Promise.all([
     getSigningIntegrity(hours),
     getOracleWatchIntegrity(hours),
+    Promise.resolve(getModelStatus()),
+    getMlOutcomeMetrics(Math.max(hours, 24 * 7)),
   ]);
   const w = watch.summary;
 
@@ -267,6 +271,122 @@ export default async function OpsSafetyPage({
                 </div>
               </div>
             )}
+          </div>
+        )}
+      </Card>
+
+      {/* ---- ML model health ---------------------------------------------- */}
+      <div className="mt-10 mb-3">
+        <h2 className="text-lg font-semibold text-gray-800">ML model health</h2>
+        <p className="text-sm text-gray-500">
+          Manipulation-risk model status, out-of-time test metrics, and realized accuracy on labeled
+          pre-trade checks (<code>ml_score</code> × <code>outcome_label</code> closed loop)
+        </p>
+      </div>
+
+      {mlOutcome.errored && (
+        <ErrorBanner message="ML 闭环指标查询失败， realized 数字可能不完整或不可用。" />
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Stat
+          label="Model"
+          value={mlStatus.active ? 'active' : 'inactive'}
+          tone={mlStatus.active ? 'good' : 'warn'}
+          hint={
+            mlStatus.trainedAt
+              ? `trained ${mlStatus.trainedAt.slice(0, 10)}`
+              : 'no model trained yet'
+          }
+        />
+        <Stat
+          label="Verified horizons"
+          value={mlStatus.horizons.join(', ') || '—'}
+          hint="self-verification vs XGBoost"
+        />
+        <Stat
+          label="Labeled checks (7d)"
+          value={mlOutcome.labeled}
+          hint={`${mlOutcome.positives} positive outcomes`}
+        />
+        <Stat
+          label="Realized AUC (7d)"
+          value={mlOutcome.auc !== null ? mlOutcome.auc.toFixed(3) : '—'}
+          tone={mlOutcome.auc !== null && mlOutcome.auc < 0.6 ? 'warn' : 'default'}
+          hint="live ml_score vs outcome_label"
+        />
+      </div>
+
+      <Card title="ML horizons (out-of-time test metrics from training)">
+        {mlStatus.horizonDetails.length === 0 ? (
+          <EmptyState message="no active model — pre-trade falls back to the rule-based score" />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className={tableCls}>
+              <thead>
+                <tr>
+                  <th className={thCls}>Horizon</th>
+                  <th className={thCls}>Verified</th>
+                  <th className={thCls}>Test AUC</th>
+                  <th className={thCls}>Precision @0.5</th>
+                  <th className={thCls}>Recall @0.5</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mlStatus.horizonDetails.map((h) => (
+                  <tr key={h.name} className={trCls}>
+                    <td className="py-2 pr-3 font-medium text-gray-800">{h.name}</td>
+                    <td className="py-2 pr-3">
+                      {h.verified ? <Badge tone="good">yes</Badge> : <Badge tone="bad">no</Badge>}
+                    </td>
+                    <td className="py-2 pr-3 tabular-nums text-gray-600">
+                      {h.auc !== null ? h.auc.toFixed(4) : '—'}
+                    </td>
+                    <td className="py-2 pr-3 tabular-nums text-gray-600">
+                      {h.precision !== null ? h.precision.toFixed(4) : '—'}
+                    </td>
+                    <td className="py-2 pr-3 tabular-nums text-gray-600">
+                      {h.recall !== null ? h.recall.toFixed(4) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <Card title="Realized precision by score bucket (labeled checks)" className="mt-6">
+        {mlOutcome.labeled === 0 ? (
+          <EmptyState message="no labeled checks yet — the outcome backfill labels them 6h after each check" />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className={tableCls}>
+              <thead>
+                <tr>
+                  <th className={thCls}>Score ≥</th>
+                  <th className={thCls}>Checks</th>
+                  <th className={thCls}>Abnormal outcomes</th>
+                  <th className={thCls}>Realized precision</th>
+                  <th className={thCls}>Recall</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mlOutcome.buckets.map((b) => (
+                  <tr key={b.threshold} className={trCls}>
+                    <td className="py-2 pr-3 tabular-nums text-gray-800">{b.threshold}</td>
+                    <td className="py-2 pr-3 tabular-nums text-gray-600">{b.n}</td>
+                    <td className="py-2 pr-3 tabular-nums text-gray-600">{b.positives}</td>
+                    <td className="py-2 pr-3 tabular-nums text-gray-600">
+                      {b.precision !== null ? `${(b.precision * 100).toFixed(1)}%` : '—'}
+                    </td>
+                    <td className="py-2 pr-3 tabular-nums text-gray-600">
+                      {b.recall !== null ? `${(b.recall * 100).toFixed(1)}%` : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </Card>

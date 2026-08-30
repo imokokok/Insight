@@ -705,7 +705,12 @@ describe('preTradeSafetyCheck — protocol safety context', () => {
 
 describe('preTradeSafetyCheck — ML score plumbing', () => {
   it('uses the ML combined score as manipulationRiskScore and exposes both horizons', async () => {
-    mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus([
+        makeProvider(),
+        makeProvider({ provider: 'pyth' as OracleProvider, isOutlier: true, reputationScore: 70 }),
+      ])
+    );
     mockedScorePreTradeMultiHorizon.mockReturnValue({
       combined: 0.42,
       score1h: 0.31,
@@ -722,7 +727,7 @@ describe('preTradeSafetyCheck — ML score plumbing', () => {
     expect(result.mlModelVersion).toBeNull();
     // The scorer received the 11-feature set (incl. the v2 temporal features).
     expect(mockedScorePreTradeMultiHorizon).toHaveBeenCalledTimes(1);
-    const features = mockedScorePreTradeMultiHorizon.mock.calls[0][0];
+    const [features, opts] = mockedScorePreTradeMultiHorizon.mock.calls[0];
     expect(features).toEqual(
       expect.objectContaining({
         meanDeviationPct: expect.any(Number),
@@ -734,6 +739,15 @@ describe('preTradeSafetyCheck — ML score plumbing', () => {
         maxDeviationZscore24h: expect.any(Number),
       })
     );
+    // v3 governance features must carry REAL live values (train/serve skew
+    // guard): the model was trained on them, so scoring at the neutral prior
+    // would silently degrade pre-trade relative to Oracle Watch.
+    expect(features.agreement).toEqual(expect.any(Number));
+    expect(features.outlierCount).toBe(1); // pyth flagged outlier
+    expect(features.minReputation).toBeCloseTo(0.7, 5); // min(90,70)/100
+    expect(features.avgReputation).toBeCloseTo(0.8, 5); // mean(90,70)/100
+    // Asset class routing: the input asset flows through for calibration.
+    expect(opts).toEqual({ assetClass: 'ETH' });
   });
 
   it('falls back to the rule-based score when no ML model is active (multi-horizon null)', async () => {

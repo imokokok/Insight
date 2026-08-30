@@ -356,6 +356,15 @@ describe('getOracleWatchSignal — reputation & ML advisory', () => {
     expect(signal.mlScore1h).toBe(0.9);
     expect(signal.mlScore6h).toBe(0.72);
     expect(signal.mlRiskLevel).toBe('high');
+
+    // The scorer must receive the REAL v3 governance values and the symbol for
+    // per-asset-class calibration (train/serve skew guard on the Watch path).
+    expect(mockScoreMl).toHaveBeenCalledTimes(1);
+    const [features, opts] = mockScoreMl.mock.calls[0];
+    expect(features.agreement).toBe(0.98);
+    expect(features.outlierCount).toBe(0);
+    expect(features.avgReputation).toBe(0.5); // neutral when no reputations supplied
+    expect(opts).toEqual({ assetClass: 'ETH' });
   });
 
   it('leaves ML advisory fields null when the scorer has no model', async () => {

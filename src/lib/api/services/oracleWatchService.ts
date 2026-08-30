@@ -261,25 +261,28 @@ async function computeMlRisk(
     participantCount: result.participantCount,
   });
 
-  const multi = scorePreTradeMultiHorizon({
-    maxDeviationPct,
-    spreadPct,
-    participantCount: result.participantCount,
-    staleDataRisk: staleCount > 0,
-    meanDeviationPct: roundTo(meanDeviationPct, 4),
-    staleRatio: roundTo(staleRatio, 4),
-    deviationVelocity1h: historical.deviationVelocity1h,
-    rollingVolatility6h: historical.rollingVolatility6h,
-    deviationVelocity3h: historical.deviationVelocity3h,
-    participantCountDelta1h: historical.participantCountDelta1h,
-    maxDeviationZscore24h: historical.maxDeviationZscore24h,
-    // 30-min governance context (real values; not neutral defaults here).
-    agreement: result.agreement,
-    outlierCount,
-    staleCount,
-    avgReputation,
-    minReputation,
-  });
+  const multi = scorePreTradeMultiHorizon(
+    {
+      maxDeviationPct,
+      spreadPct,
+      participantCount: result.participantCount,
+      staleDataRisk: staleCount > 0,
+      meanDeviationPct: roundTo(meanDeviationPct, 4),
+      staleRatio: roundTo(staleRatio, 4),
+      deviationVelocity1h: historical.deviationVelocity1h,
+      rollingVolatility6h: historical.rollingVolatility6h,
+      deviationVelocity3h: historical.deviationVelocity3h,
+      participantCountDelta1h: historical.participantCountDelta1h,
+      maxDeviationZscore24h: historical.maxDeviationZscore24h,
+      // 30-min governance context (real values; not neutral defaults here).
+      agreement: result.agreement,
+      outlierCount,
+      staleCount,
+      avgReputation,
+      minReputation,
+    },
+    { assetClass: result.symbol }
+  );
 
   if (multi === null) return base;
 

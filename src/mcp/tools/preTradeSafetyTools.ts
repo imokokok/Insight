@@ -15,7 +15,7 @@ import {
   type PreTradeSafetyInput,
 } from '@/lib/api/services/preTradeSafetyService';
 
-import { formatPercent, formatPrice } from './formatters';
+import { formatPercent, formatPrice, buildMlModelMetadataLines } from './formatters';
 import { PreTradeSafetyInputSchema } from './schemas';
 
 import type { McpToolDefinition } from './types';
@@ -102,6 +102,7 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
     if (result.mlScore6h !== null) {
       lines.push(`- ML 6h (strategic): ${result.mlScore6h.toFixed(2)}`);
     }
+    lines.push(...buildMlModelMetadataLines());
     lines.push(
       `- Anomaly (model-free): ${result.anomalyScore.toFixed(2)}${
         result.anomalyScore >= 0.5 ? ' ⚠️ ELEVATED' : ''

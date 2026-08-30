@@ -65,9 +65,31 @@ export interface MlHorizon {
   featureNames: string[];
   baseScore: number;
   trees: MlModelNode[][];
+  /** Per-feature fill for names missing from the caller's feature map. */
+  neutralFill?: Record<string, number>;
+  /** Reliability tables mapping raw probability -> realized positive rate. */
+  calibration?: MlCalibration;
   metrics: Record<string, unknown>;
   verificationSamples?: Array<[FeatureVector, number]>;
   verificationTolerance?: number;
+}
+
+/**
+ * Reliability calibration exported by train.py: equal-width bins over the RAW
+ * probability; `calibrated[i]` is the realized positive rate in bin i on the
+ * out-of-time test split. Class tables exist only when that class had enough
+ * test data — the scorer falls back default -> raw.
+ */
+export interface MlCalibration {
+  default?: CalibrationTable | null;
+  stable?: CalibrationTable | null;
+  volatile?: CalibrationTable | null;
+}
+
+export interface CalibrationTable {
+  bins: number;
+  counts: number[];
+  calibrated: number[];
 }
 
 /** v2 model: dual-horizon. */
@@ -139,12 +161,49 @@ export interface PreTradeFeatures {
   minReputation?: number;
 }
 
-/** Map a feature map onto a horizon's featureNames order (0-fill missing). */
-function buildFeatureVector(features: FeatureMap, featureNames: string[]): FeatureVector {
+/** Map a feature map onto a horizon's featureNames order. Missing names are
+ * filled from the horizon's (or model-level) neutralFill map when present —
+ * e.g. agreement's neutral is 1.0, NOT 0 — and fall back to 0 otherwise.
+ * Exported for the contract tests (trainer ↔ scorer fill semantics). */
+export function buildFeatureVector(
+  features: FeatureMap,
+  featureNames: string[],
+  neutralFill?: Record<string, number>
+): FeatureVector {
   return featureNames.map((name) => {
     const v = features[name];
-    return Number.isFinite(v) ? (v as number) : 0;
+    if (Number.isFinite(v)) return v as number;
+    const neutral = neutralFill?.[name];
+    return typeof neutral === 'number' && Number.isFinite(neutral) ? neutral : 0;
   });
+}
+
+/** 'stable' or 'volatile' — MUST mirror STABLE_ASSETS in ml/train.py. */
+export function assetClassFor(asset: string): 'stable' | 'volatile' {
+  const STABLE_ASSETS = new Set(['USDC', 'USDT', 'DAI', 'USDS', 'FDUSD', 'TUSD', 'PYUSD', 'USD1']);
+  return STABLE_ASSETS.has(asset.toUpperCase()) ? 'stable' : 'volatile';
+}
+
+/**
+ * Map a raw probability through the horizon's reliability table for the given
+ * asset class. Falls back: class table -> default table -> raw (clamped).
+ * Piecewise-constant by design — the calibrated value is the realized positive
+ * rate observed in that probability bin on the out-of-time test split.
+ */
+export function applyCalibration(
+  raw: number,
+  calibration: MlCalibration | undefined,
+  assetClass: 'stable' | 'volatile'
+): number {
+  const p = Math.min(Math.max(raw, 0), 1);
+  const table = calibration?.[assetClass] ?? calibration?.default ?? null;
+  if (!table || !Array.isArray(table.calibrated) || table.calibrated.length === 0) return p;
+  const bins = table.calibrated.length;
+  const idx = Math.min(Math.floor(p * bins), bins - 1);
+  const calibrated = table.calibrated[idx];
+  return typeof calibrated === 'number' && Number.isFinite(calibrated)
+    ? Math.min(Math.max(calibrated, 0), 1)
+    : p;
 }
 
 let cachedModel: {
@@ -152,6 +211,11 @@ let cachedModel: {
   trainedAt: string | null;
   metrics: Record<string, unknown>;
 } | null = null;
+// The model JSON is baked in at build time, so an "unavailable" outcome
+// (inactive model / all horizons failed verification) is deterministic.
+// Cache it — otherwise every scorePreTrade call re-runs the (expensive)
+// tree-walking verification before concluding there is nothing to score.
+let modelUnavailable = false;
 
 function sigmoid(x: number): number {
   if (x >= 0) {
@@ -250,13 +314,17 @@ function getModel(): {
   metrics: Record<string, unknown>;
 } | null {
   if (cachedModel) return cachedModel;
+  if (modelUnavailable) return null;
 
   const raw = modelJson as unknown as MlModelV2 | MlModelV1;
   const horizons: Record<string, { model: MlHorizon; verified: boolean }> = {};
 
   if (raw.version === 2) {
     const m = raw;
-    if (!m.active) return null;
+    if (!m.active) {
+      modelUnavailable = true;
+      return null;
+    }
     for (const [name, h] of Object.entries(m.horizons ?? {})) {
       if (!h || !h.trees || h.trees.length === 0) continue;
       horizons[name] = { model: h, verified: verifyHorizon(h) };
@@ -264,7 +332,10 @@ function getModel(): {
   } else {
     // v1 legacy: single model at top level, treated as the 6h horizon.
     const m = raw;
-    if (!m.active || !m.trees || m.trees.length === 0) return null;
+    if (!m.active || !m.trees || m.trees.length === 0) {
+      modelUnavailable = true;
+      return null;
+    }
     const h: MlHorizon = {
       evalWindowHours: 6,
       featureNames: m.featureNames,
@@ -278,7 +349,11 @@ function getModel(): {
   }
 
   const verifiedAny = Object.values(horizons).some((h) => h.verified);
-  if (!verifiedAny) return null;
+  if (!verifiedAny) {
+    logger.warn('ML model unavailable: no horizon passed self-verification');
+    modelUnavailable = true;
+    return null;
+  }
 
   cachedModel = {
     horizons,
@@ -300,11 +375,22 @@ export interface MultiHorizonScore {
  * Score pre-trade features across all horizons. Returns per-horizon scores plus
  * a combined (max) score, or null if no verified model is available (rules-only
  * fallback). The combined score is what feeds manipulationRiskScore.
+ *
+ * `opts.assetClass` (a raw symbol like "USDC" is accepted) routes the raw
+ * probability through the horizon's reliability calibration table for that
+ * class when the model exports one — so the score is comparable across stable
+ * and volatile assets. Without a class/default table the raw probability is
+ * returned unchanged (backward compatible with models that predate
+ * calibration).
  */
-export function scorePreTradeMultiHorizon(features: PreTradeFeatures): MultiHorizonScore | null {
+export function scorePreTradeMultiHorizon(
+  features: PreTradeFeatures,
+  opts?: { assetClass?: string }
+): MultiHorizonScore | null {
   const cached = getModel();
   if (!cached) return null;
   const map = featuresFromPreTrade(features);
+  const assetClass = opts?.assetClass ? assetClassFor(opts.assetClass) : null;
 
   let combined = 0;
   let score1h: number | null = null;
@@ -313,9 +399,13 @@ export function scorePreTradeMultiHorizon(features: PreTradeFeatures): MultiHori
 
   for (const [name, { model, verified }] of Object.entries(cached.horizons)) {
     if (!verified) continue;
-    const vec = buildFeatureVector(map, model.featureNames);
+    const vec = buildFeatureVector(map, model.featureNames, model.neutralFill);
     const bias = Math.log(model.baseScore / (1 - model.baseScore));
-    const proba = roundTo(sigmoid(scoreRaw(vec, model.trees) + bias), 4);
+    const raw = sigmoid(scoreRaw(vec, model.trees) + bias);
+    const proba = roundTo(
+      assetClass ? applyCalibration(raw, model.calibration, assetClass) : raw,
+      4
+    );
     anyScored = true;
     if (proba > combined) combined = proba;
     if (name === '1h') score1h = proba;
@@ -342,16 +432,42 @@ export function getModelStatus(): {
   trainedAt: string | null;
   metrics: Record<string, unknown>;
   horizons: string[];
+  /** Per-horizon verification + out-of-time test metrics (Ops/health surfaces). */
+  horizonDetails: Array<{
+    name: string;
+    verified: boolean;
+    evalWindowHours: number;
+    auc: number | null;
+    precision: number | null;
+    recall: number | null;
+  }>;
 } {
   const raw = modelJson as unknown as MlModelV2 | MlModelV1;
   const cached = getModel();
   const activeHorizons = cached
     ? Object.keys(cached.horizons).filter((k) => cached.horizons[k].verified)
     : [];
+  const horizonDetails = cached
+    ? Object.entries(cached.horizons).map(([name, { model, verified }]) => ({
+        name,
+        verified,
+        evalWindowHours: model.evalWindowHours,
+        auc: typeof model.metrics.auc === 'number' ? model.metrics.auc : null,
+        precision:
+          typeof model.metrics['precision_at_0.5'] === 'number'
+            ? (model.metrics['precision_at_0.5'] as number)
+            : null,
+        recall:
+          typeof model.metrics['recall_at_0.5'] === 'number'
+            ? (model.metrics['recall_at_0.5'] as number)
+            : null,
+      }))
+    : [];
   return {
     active: activeHorizons.length > 0,
     trainedAt: raw.trainedAt ?? null,
     metrics: raw.metrics ?? {},
     horizons: activeHorizons,
+    horizonDetails,
   };
 }

@@ -17,18 +17,34 @@ abnormal event follow in the next H hours? (abnormal = consensus price moves
 >=5% OR cross-oracle deviation spikes >=8% — the SAME label definition as the
 safetyOutcomeService backfill, so mined and flywheel labels are consistent.)
 
-ENRICHED FEATURES (11, was 7): the original 7 plus
+ENRICHED FEATURES (16): the original 7 plus
   rolling_volatility_6h       rolling std of 1h consensus returns, 6h window
   deviation_velocity_3h       max_dev(T) - max_dev(T-3h)  (longer-term trend)
   participant_count_delta_1h providers online now vs 1h ago (drops = risk)
   max_deviation_zscore_24h   how anomalous is current dev vs 24h baseline
+  agreement / outlier_count / stale_count / avg_reputation / min_reputation
+                             v3 governance features from the 30-min Oracle
+                             Watch spine (neutral-filled when unavailable)
+
+EVALUATION: time-based 80/20 split with PURGE + EMBARGO — training rows whose
+label window reaches into the test period are dropped, so test metrics measure
+true out-of-time skill (overlapping label windows otherwise leak future info
+across the boundary and inflate AUC).
+
+CALIBRATION: each horizon exports a reliability table (raw-probability bin ->
+realized positive rate) per asset class (stable/volatile/default), computed on
+the test split. The TS scorer routes scores through it so the Watch "high"
+bucket means the same thing across asset classes.
 
 Feature definitions are EXACTLY mirrored by src/lib/ml/inference.ts (see
 FEATURE_NAMES below and featuresFromPreTrade there). The TS scorer maps by NAME,
-so a v1 model (7 features) and a v2 model (11) both score correctly.
+so models with any subset of these features all score correctly (missing names
+are filled from the exported neutralFill map, then 0).
 
 Runs offline (GitHub Actions runner every 3 days, or locally). Not in the app
-hot path. Gracefully writes a null model when there is too little data.
+hot path. Gracefully writes a null model when there is too little data — or
+when the 30-min spine is empty/unreachable (v3 features fall back to their
+neutral values and training proceeds).
 
 Env:
   SUPABASE_URL            e.g. https://<ref>.supabase.co
@@ -56,6 +72,19 @@ STALE_SECONDS = 60  # mirrors THRESHOLDS.dataStaleSeconds.caution
 
 MIN_TOTAL = 500
 MIN_POSITIVES = 15  # per horizon; below this the horizon is skipped
+
+# Assets treated as the "stable" class for per-class calibration. Everything
+# else (ETH, BTC, ...) trains into the "volatile" class. Mirrors the live
+# classifier in src/lib/ml/inference.ts assetClassFor() — keep both in sync.
+STABLE_ASSETS = {"USDC", "USDT", "DAI", "USDS", "FDUSD", "TUSD", "PYUSD", "USD1"}
+
+# Calibration bins: equal-width on the RAW probability, calibrated value =
+# realized positive rate within the bin (reliability table). A class with too
+# few test rows/positives exports no table for that class (falls back to
+# default at inference).
+CALIBRATION_BINS = 10
+CALIBRATION_MIN_ROWS = 200
+CALIBRATION_MIN_POS = 10
 
 # Only train on the last LOOKBACK_WEEKS of snapshots. Enough for the 6h
 # eval-window labeling + the 24h rolling z-score feature plus a healthy train/
@@ -179,6 +208,56 @@ V3_NEUTRAL = {
     "min_reputation": 0.5,
 }
 
+# Per-feature fill for UNKNOWN feature names at inference time. v1/v2 features
+# default to 0 (they are all magnitudes/counts where 0 = "no signal"); v3
+# governance features carry their neutral prior. Exported into the model JSON
+# so the TS scorer fills missing names from this map instead of a blind 0
+# (a future feature whose neutral is not 0 would otherwise be silently
+# mis-filled by older scorers).
+NEUTRAL_FILL = {**{name: 0.0 for name in FEATURE_NAMES if name not in V3_NEUTRAL}, **V3_NEUTRAL}
+
+
+def asset_class(symbol: str) -> str:
+    """'stable' or 'volatile' — MUST mirror assetClassFor() in inference.ts."""
+    return "stable" if symbol.upper() in STABLE_ASSETS else "volatile"
+
+
+def compute_calibration(y_true: np.ndarray, proba: np.ndarray) -> dict:
+    """Reliability table on the RAW probability: per-bin realized positive rate.
+
+    Bins are equal-width over [0, 1] on the raw (uncalibrated) probability; the
+    calibrated value is the fraction of positives observed in that bin on the
+    test split. Empty bins inherit the nearest non-empty bin's value so the
+    exported table is always dense. Returns None (as a null table) when there
+    is too little data to calibrate reliably.
+    """
+    n = len(y_true)
+    n_pos = int(np.sum(y_true))
+    if n < CALIBRATION_MIN_ROWS or n_pos < CALIBRATION_MIN_POS:
+        return None
+    edges = np.linspace(0.0, 1.0, CALIBRATION_BINS + 1)
+    idx = np.clip(np.digitize(proba, edges[1:-1], right=False), 0, CALIBRATION_BINS - 1)
+    counts = np.bincount(idx, minlength=CALIBRATION_BINS)
+    sums = np.bincount(idx, weights=y_true, minlength=CALIBRATION_BINS)
+    with np.errstate(invalid="ignore"):
+        rates = np.where(counts > 0, sums / np.maximum(counts, 1), np.nan)
+    # Fill empty bins from the nearest non-empty neighbor.
+    for i in range(CALIBRATION_BINS):
+        if np.isnan(rates[i]):
+            for step in range(1, CALIBRATION_BINS):
+                for j in (i - step, i + step):
+                    if 0 <= j < CALIBRATION_BINS and not np.isnan(rates[j]):
+                        rates[i] = rates[j]
+                        break
+                if not np.isnan(rates[i]):
+                    break
+    rates = np.clip(np.nan_to_num(rates, nan=0.0), 0.0, 1.0)
+    return {
+        "bins": CALIBRATION_BINS,
+        "counts": [int(c) for c in counts],
+        "calibrated": [round(float(r), 6) for r in rates],
+    }
+
 
 def fetch_health_rows(base_url: str, service_key: str) -> pd.DataFrame:
     """Page through feed_health_snapshots (30-min Oracle Watch spine).
@@ -218,7 +297,10 @@ def fetch_health_rows(base_url: str, service_key: str) -> pd.DataFrame:
                 "outlier_count": g["outlier_count"].sum(),
                 "stale_count": g["stale_count"].sum(),
                 "avg_reputation": g["avg_reputation"].mean(),
-                "min_reputation": g["min_reputation"].mean(),
+                # Worst provider reputation across the whole hour (min of the
+                # per-snapshot minima) — matches the live "min_reputation =
+                # worst provider right now" semantics and errs conservative.
+                "min_reputation": g["min_reputation"].min(),
             }
         ).reset_index()
         # Reputation values from the spine are 0-100 (reputation service scale);
@@ -321,15 +403,23 @@ def build_dataset(df: pd.DataFrame, health_df: pd.DataFrame | None = None) -> pd
     """Build the feature matrix + per-horizon labels, one row per (symbol, hour)."""
     hourly = build_hourly_frame(df)
     # Attach the v3 governance features from the 30-min spine (per symbol,hour),
-    # neutral-filling hours that pre-date or lack spine coverage.
+    # neutral-filling hours that pre-date or lack spine coverage. When the spine
+    # is empty/unreachable (no merge above) the columns don't exist yet — create
+    # them at the neutral value so training still runs (graceful degradation).
     if health_df is not None and not health_df.empty:
         hourly = hourly.merge(health_df, on=["symbol", "snapshot_hour"], how="left")
-    for col in V3_NEUTRAL:
-        hourly[col] = hourly[col].fillna(V3_NEUTRAL[col])
+    for col, neutral in V3_NEUTRAL.items():
+        if col not in hourly.columns:
+            hourly[col] = neutral
+        else:
+            hourly[col] = hourly[col].fillna(neutral)
     # Attach horizon labels.
     for h in HORIZONS:
         hourly[f"label_{h}h"] = label_for_horizon(hourly, h)
-    out = hourly[FEATURE_NAMES + [f"label_{h}h" for h in HORIZONS] + ["snapshot_hour"]].copy()
+    # Keep symbol for per-asset-class calibration at train time.
+    out = hourly[
+        ["symbol"] + FEATURE_NAMES + [f"label_{h}h" for h in HORIZONS] + ["snapshot_hour"]
+    ].copy()
     return out
 
 
@@ -379,6 +469,7 @@ def write_null_model(reason: str) -> int:
                 "trainedAt": datetime.now(timezone.utc).isoformat(),
                 "inactiveReason": reason,
                 "featureNames": FEATURE_NAMES,
+                "neutralFill": NEUTRAL_FILL,
                 "horizons": {},
                 "metrics": {},
             },
@@ -401,13 +492,30 @@ def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
         log(f"[{hours}h] skipped — only {n_pos} positives (< {MIN_POSITIVES}).")
         return None
 
-    # Time-based split: earliest 80% train, latest 20% test (no future leakage).
+    # Time-based split with PURGE + EMBARGO: labels look `hours` ahead, so a
+    # train row near the boundary shares its outcome window with test rows and
+    # leaks future information into training. Split at the 80% quantile of
+    # snapshot_hour, then (a) embargo — test starts at the split time, and
+    # (b) purge — training rows whose label window reaches into the test period
+    # are dropped. Test metrics therefore measure true out-of-time skill.
     sub = data[data[label_col].notna()].sort_values("snapshot_hour").reset_index(drop=True)
-    split = int(len(sub) * 0.8)
-    train, test = sub.iloc[:split], sub.iloc[split:]
+    split_time = sub["snapshot_hour"].quantile(0.8)
+    train = sub[sub["snapshot_hour"] < split_time - pd.Timedelta(hours=hours)]
+    test = sub[sub["snapshot_hour"] >= split_time]
+    used_purge = True
+    if len(train) < 50 or len(test) < 20:
+        # Degenerate split (heavily gapped data) — fall back to a plain time
+        # split rather than refusing to train; the purge gap is best-effort.
+        split = int(len(sub) * 0.8)
+        train, test = sub.iloc[:split], sub.iloc[split:]
+        used_purge = False
     X_tr, y_tr = train[FEATURE_NAMES].values, train[label_col].values
     X_te, y_te = test[FEATURE_NAMES].values, test[label_col].values
-    log(f"[{hours}h] Train: {len(train)} ({int(y_tr.sum())} pos) | Test: {len(test)} ({int(y_te.sum())} pos)")
+    log(
+        f"[{hours}h] Train: {len(train)} ({int(y_tr.sum())} pos) | "
+        f"Test: {len(test)} ({int(y_te.sum())} pos) | "
+        f"split: {'purge ' + str(hours) + 'h before ' + str(split_time) if used_purge else 'plain 80/20 (degenerate gap)'}"
+    )
 
     pos_tr = int(y_tr.sum())
     neg_tr = len(y_tr) - pos_tr
@@ -437,6 +545,27 @@ def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
     metrics["recall_at_0.5"] = float(recall_score(y_te, pred50, zero_division=0))
     log(f"[{hours}h] Metrics: {metrics}")
 
+    # Reliability calibration per asset class, computed on the test split.
+    # Raw XGBoost probabilities with scale_pos_weight are systematically
+    # inflated; the exported tables let the TS scorer map raw proba -> realized
+    # positive rate so the Watch "high" bucket means the same thing across
+    # stable and volatile assets. Class tables need enough data; otherwise the
+    # scorer falls back to the default table, then to the raw probability.
+    y_all = np.asarray(y_te)
+    p_all = np.asarray(proba_te)
+    is_stable = test["symbol"].map(asset_class).eq("stable").values
+    calibration = {
+        "default": compute_calibration(y_all, p_all),
+        "stable": compute_calibration(y_all[is_stable], p_all[is_stable]),
+        "volatile": compute_calibration(y_all[~is_stable], p_all[~is_stable]),
+    }
+    log(
+        f"[{hours}h] Calibration tables: "
+        f"default={'yes' if calibration['default'] else 'no'}, "
+        f"stable={'yes' if calibration['stable'] else 'no'}, "
+        f"volatile={'yes' if calibration['volatile'] else 'no'}"
+    )
+
     # Verification samples: the TS inference must reproduce these probabilities.
     sample_idx = np.linspace(0, len(test) - 1, num=min(VERIFICATION_SAMPLE_COUNT, len(test))).astype(int)
     verification = [[X_te[i].tolist(), float(proba_te[i])] for i in sample_idx]
@@ -451,8 +580,10 @@ def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
     return {
         "evalWindowHours": hours,
         "featureNames": FEATURE_NAMES,
+        "neutralFill": NEUTRAL_FILL,
         "baseScore": 0.5,  # logit(0.5) = 0, so proba = sigmoid(sum of leaves)
         "trees": trees,
+        "calibration": calibration,
         "metrics": metrics,
         "verificationSamples": verification,
         "verificationTolerance": VERIFICATION_TOLERANCE,

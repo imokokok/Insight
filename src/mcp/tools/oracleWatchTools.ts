@@ -4,7 +4,7 @@ import { signWatchAttestation } from '@/lib/attestations/oracleWatchAttestation'
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import type { Blockchain } from '@/types/oracle';
 
-import { formatPercent, formatPrice } from './formatters';
+import { buildMlModelMetadataLines, formatPercent, formatPrice } from './formatters';
 import { OracleWatchInputSchema } from './schemas';
 
 import type { McpToolDefinition } from './types';
@@ -39,6 +39,7 @@ export const oracleWatchTool: McpToolDefinition<typeof OracleWatchInputSchema> =
       signal.mlRiskScore !== null
         ? `- ML manipulation risk: ${signal.mlRiskLevel?.toUpperCase() ?? 'n/a'} (${(signal.mlRiskScore * 100).toFixed(1)}/100, forward-looking)`
         : '',
+      ...buildMlModelMetadataLines(),
       typeof signal.trustScore === 'number'
         ? `- Credibility trust score: ${signal.trustScore}/100 (${signal.trustLevel?.toUpperCase()})`
         : '',

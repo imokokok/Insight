@@ -813,6 +813,8 @@ function computeManipulationRisk(args: {
   staleRisk: boolean;
   agreement: number;
   minReputation: number;
+  /** Raw asset symbol — routes the score through per-asset-class calibration. */
+  asset: string;
 }): ManipulationRiskResult {
   let mlScore: number | null = null;
   let mlModelVersion: string | null = null;
@@ -833,6 +835,21 @@ function computeManipulationRisk(args: {
       successfulProviders.length > 0
         ? successfulProviders.filter((d) => d.isStale).length / successfulProviders.length
         : 0;
+    // v3 governance features (the 30-min Oracle Watch model was trained on
+    // them). Live pre-trade supplies the same real-time semantics Oracle Watch
+    // does — agreement from the consensus engine, reputation 0-100 -> 0-1,
+    // outlier/stale counts from the successful provider set. Passing the
+    // neutral defaults instead would be a train/serve skew: the model learned
+    // real values for these, so scoring them at the neutral prior degrades it.
+    const outlierCount = successfulProviders.filter((d) => d.isOutlier).length;
+    const staleCount = successfulProviders.filter((d) => d.isStale).length;
+    const reputations = successfulProviders
+      .map((d) => d.reputationScore)
+      .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+    const avgReputation =
+      reputations.length > 0
+        ? reputations.reduce((s, v) => s + v, 0) / reputations.length / 100
+        : undefined;
     const hist = args.historicalState;
     const anomaly: AnomalyScoreResult = computeAnomalyScore(
       hist.history.map((p) => ({
@@ -843,19 +860,29 @@ function computeManipulationRisk(args: {
       args.maxDeviationPct
     );
     anomalyScore = anomaly.anomalyScore;
-    const multi: MultiHorizonScore | null = scorePreTradeMultiHorizon({
-      maxDeviationPct: args.maxDeviationPct,
-      spreadPct: args.spreadPct,
-      participantCount: args.consensus.participantCount,
-      staleDataRisk: args.staleRisk,
-      meanDeviationPct: roundTo(meanDeviationPct, 4),
-      staleRatio: roundTo(staleRatio, 4),
-      deviationVelocity1h: hist.deviationVelocity1h,
-      rollingVolatility6h: hist.rollingVolatility6h,
-      deviationVelocity3h: hist.deviationVelocity3h,
-      participantCountDelta1h: hist.participantCountDelta1h,
-      maxDeviationZscore24h: hist.maxDeviationZscore24h,
-    });
+    const multi: MultiHorizonScore | null = scorePreTradeMultiHorizon(
+      {
+        maxDeviationPct: args.maxDeviationPct,
+        spreadPct: args.spreadPct,
+        participantCount: args.consensus.participantCount,
+        staleDataRisk: args.staleRisk,
+        meanDeviationPct: roundTo(meanDeviationPct, 4),
+        staleRatio: roundTo(staleRatio, 4),
+        deviationVelocity1h: hist.deviationVelocity1h,
+        rollingVolatility6h: hist.rollingVolatility6h,
+        deviationVelocity3h: hist.deviationVelocity3h,
+        participantCountDelta1h: hist.participantCountDelta1h,
+        maxDeviationZscore24h: hist.maxDeviationZscore24h,
+        // --- v3 governance features: REAL values (neutral defaults only for
+        // reputation when no successful provider reported one) ---
+        agreement: args.agreement,
+        outlierCount,
+        staleCount,
+        avgReputation,
+        minReputation: args.minReputation / 100,
+      },
+      { assetClass: args.asset }
+    );
     if (multi !== null) {
       mlScore = multi.combined;
       mlScore1h = multi.score1h;
@@ -1432,6 +1459,7 @@ export async function preTradeSafetyCheck(
     staleRisk,
     agreement,
     minReputation,
+    asset: input.asset,
   });
   const mlScore = risk.mlScore;
   const mlModelVersion = risk.mlModelVersion;

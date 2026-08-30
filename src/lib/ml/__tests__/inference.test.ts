@@ -1,6 +1,9 @@
 import modelJson from '@/../ml/models/oracle_risk_model.json';
 
 import {
+  applyCalibration,
+  assetClassFor,
+  buildFeatureVector,
   featuresFromPreTrade,
   getModelStatus,
   scorePreTrade,
@@ -213,5 +216,80 @@ describe('ml inference', () => {
     expect(status.horizons.length).toBeGreaterThan(0);
     // The strategic 6h horizon must always be present when the model is active.
     expect(status.horizons).toContain('6h');
+    // Ops/health surfaces need per-horizon verification + test metrics.
+    expect(status.horizonDetails.length).toBe(status.horizons.length);
+    for (const d of status.horizonDetails) {
+      expect(d.verified).toBe(true);
+      expect(d.evalWindowHours).toBeGreaterThan(0);
+    }
+  });
+
+  describe('neutralFill', () => {
+    const NAMES = ['agreement', 'unknown_future_feature', 'max_deviation_pct'];
+
+    it('fills missing names from the horizon neutralFill map before falling back to 0', () => {
+      const vec = buildFeatureVector({}, NAMES, {
+        agreement: 1.0,
+        unknown_future_feature: 0.5,
+        max_deviation_pct: 0,
+      });
+      expect(vec).toEqual([1.0, 0.5, 0]);
+    });
+
+    it('falls back to 0 when a name is in neither the map nor neutralFill', () => {
+      const vec = buildFeatureVector({ agreement: 0.3 }, NAMES, { agreement: 1.0 });
+      expect(vec).toEqual([0.3, 0, 0]);
+    });
+
+    it('treats present-but-non-finite values as missing', () => {
+      const vec = buildFeatureVector({ agreement: NaN, max_deviation_pct: 2 }, NAMES, {
+        agreement: 1.0,
+      });
+      expect(vec).toEqual([1.0, 0, 2]);
+    });
+  });
+
+  describe('assetClassFor', () => {
+    it('classifies the committed stable universe as stable (case-insensitive)', () => {
+      for (const s of ['USDC', 'usdt', 'DAI', 'USDS']) {
+        expect(assetClassFor(s)).toBe('stable');
+      }
+    });
+
+    it('classifies volatile assets as volatile', () => {
+      for (const s of ['ETH', 'btc', 'WBTC', 'SOL']) {
+        expect(assetClassFor(s)).toBe('volatile');
+      }
+    });
+  });
+
+  describe('applyCalibration', () => {
+    const TABLE = {
+      bins: 10,
+      counts: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+      calibrated: [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.95],
+    };
+
+    it('maps a raw probability through its asset-class bin', () => {
+      const cal = { default: TABLE, stable: null, volatile: null };
+      expect(applyCalibration(0.05, cal, 'stable')).toBe(0.01); // bin 0
+      expect(applyCalibration(0.95, cal, 'stable')).toBe(0.95); // bin 9 (clamp idx)
+      expect(applyCalibration(0.31, cal, 'stable')).toBe(0.04); // bin 3
+    });
+
+    it('falls back class -> default -> raw', () => {
+      const withDefault = { default: TABLE, stable: null, volatile: null };
+      expect(applyCalibration(0.05, withDefault, 'volatile')).toBe(0.01);
+      expect(applyCalibration(0.42, undefined, 'stable')).toBe(0.42);
+      expect(applyCalibration(0.42, {}, 'volatile')).toBe(0.42);
+    });
+
+    it('clamps out-of-range raw values and ignores malformed tables', () => {
+      expect(applyCalibration(1.7, { default: TABLE }, 'stable')).toBe(0.95);
+      expect(applyCalibration(-0.2, { default: TABLE }, 'stable')).toBe(0.01);
+      expect(
+        applyCalibration(0.5, { default: { bins: 10, counts: [], calibrated: [] } }, 'stable')
+      ).toBe(0.5);
+    });
   });
 });

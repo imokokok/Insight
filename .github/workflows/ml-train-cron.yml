@@ -67,6 +67,55 @@ jobs:
               print(f"inactiveReason={m.get('inactiveReason')}")
           PY
 
+      - name: Regression gate (test AUC must not drop vs previous model)
+        run: |
+          set -u
+          python - <<'PY'
+          import json, subprocess, sys
+
+          AUC_DROP_TOLERANCE = 0.03
+
+          new = json.load(open("ml/models/oracle_risk_model.json"))
+          if not new.get("active"):
+              print("New model is inactive; regression gate skipped.")
+              sys.exit(0)
+
+          old_raw = subprocess.run(
+              ["git", "show", "HEAD:ml/models/oracle_risk_model.json"],
+              capture_output=True, text=True,
+          )
+          if old_raw.returncode != 0:
+              print("No previous model on HEAD; gate skipped.")
+              sys.exit(0)
+          old = json.loads(old_raw.stdout)
+          if not old.get("active"):
+              print("Previous model was inactive; gate skipped.")
+              sys.exit(0)
+
+          def horizons(m):
+              # v2: metrics live under horizons[name]["metrics"]; v1: top level.
+              if m.get("version") == 2 and m.get("horizons"):
+                  return {k: v.get("metrics", {}) for k, v in m["horizons"].items() if v}
+              return {"6h": m.get("metrics", {})} if m.get("metrics") else {}
+
+          old_h, new_h = horizons(old), horizons(new)
+          failed = False
+          for name in sorted(set(old_h) & set(new_h)):
+              old_auc, new_auc = old_h[name].get("auc"), new_h[name].get("auc")
+              if old_auc is None or new_auc is None:
+                  continue
+              delta = new_auc - old_auc
+              status = "OK" if delta >= -AUC_DROP_TOLERANCE else "REGRESSION"
+              print(f"{name}: old auc {old_auc:.4f} -> new auc {new_auc:.4f} (delta {delta:+.4f}) {status}")
+              if delta < -AUC_DROP_TOLERANCE:
+                  print(f"::error::Horizon {name} test AUC dropped by more than {AUC_DROP_TOLERANCE}. "
+                        "The retrained model is refused; investigate data drift before force-committing. "
+                        "(NOTE: test-set changes — e.g. the purge split — legitimately move AUC; "
+                        "verify against the training log before overriding.)")
+                  failed = True
+          sys.exit(1 if failed else 0)
+          PY
+
       - name: Commit model if changed and trigger redeploy
         env:
           # Optional: Vercel deploy hook URL. Create one in Vercel → Project →
