@@ -171,7 +171,7 @@ a = clone()
 for k in HEX_A: a["params"]["oracle_safety_check_v2"][k] = d[k]
 for k in ("attester", "signature", "uid"): a["params"]["eip712_attestation"][k] = rec[k]
 N1 = negvec("Class A hex carried raw from the receipt: 0x prefix and original casing, all 7 fields",
-            "5.2 Class A", a)
+            "VRT1 §1.5 (Class A hex)", a)
 ck("N1 reproduces Insight's e11080d7…", N1["action_id_hex"].startswith("e11080d7"))
 
 # N2 — destinationAssetId lowercased and NOTHING else.
@@ -179,27 +179,27 @@ a = clone()
 s = a["params"]["oracle_safety_check_v2"]
 s["destinationAssetId"] = s["destinationAssetId"].lower()
 N2 = negvec("Class B destinationAssetId lowercased, nothing else touched (EIP-55 checksum destroyed)",
-            "5.2 Class B", a)
+            "VRT1 §1.5 (preserve: not a declared hex-byte field)", a)
 
 # N3 — target lowercased and NOTHING else. Neither side tested this before.
 a = clone()
 a["target"] = a["target"].lower()
 N3 = negvec("Class B target lowercased, nothing else touched (constructed field, previously untested)",
-            "5.2 Class B", a)
+            "VRT1 §1.5 (preserve: not a declared hex-byte field)", a)
 
 # N4 — uint256 as JSON numbers. The one case both sides already matched on.
 a = clone()
 s = a["params"]["oracle_safety_check_v2"]
 for k in UINTS: s[k] = int(s[k])
 N4 = negvec("uint256 struct fields as JSON numbers instead of decimal strings",
-            "5.1 foreign struct", a)
+            "mapping §5.1 (decimal strings for a carried foreign struct)", a)
 ck("N4 still reproduces the agreed 64d36637…", N4["action_id_hex"].startswith("64d36637"))
 
 # N5 — outcome.schema_version as a decimal string. Pins the corrected 5.1 scope.
 a = clone()
 a["outcome"]["schema_version"] = str(a["outcome"]["schema_version"])
 N5 = negvec("VRT1-native outcome.schema_version as a decimal string instead of an integer",
-            "5.1 VRT1-native", a)
+            "mapping §5.1 (VRT1-native integers stay integers)", a)
 
 # Retained: the round-1 conjunction, so Insight's existing assertion does not go red.
 a = clone()
@@ -207,7 +207,7 @@ s = a["params"]["oracle_safety_check_v2"]
 s["destinationAssetId"] = s["destinationAssetId"].lower()
 a["target"] = a["target"].lower()
 NCOMBINED = negvec("both Class B fields lowercased (round-1 vector; conjunction of N2 and N3)",
-                   "5.2 Class B", a)
+                   "VRT1 §1.5 (preserve: not a declared hex-byte field)", a)
 ck("retained combined case is the round-1 0182bf4d…",
    NCOMBINED["action_id_hex"].startswith("0182bf4d"))
 
@@ -461,20 +461,31 @@ w(OUT, "README.json", {
     "canonical_json": "json.dumps(obj, sort_keys=True, separators=(',',':'), "
                       "ensure_ascii=False) — object keys sorted recursively by UTF-8 "
                       "codepoint, no whitespace, non-ASCII NOT escaped, ARRAYS NEVER SORTED",
-    "rule_5_1_integer_encoding":
+    "citation_convention":
+        "Section numbers are ambiguous across the two documents, so they are always "
+        "qualified here. 'VRT1 §N' means the published specification at "
+        "github.com/Ifasola34/vrt1-spec; 'mapping §N' means the OracleSafetyCheck "
+        "field-mapping document. Note VRT1 §5.1 is the anchor wire format and VRT1 §5.2 "
+        "is the OP_RETURN script, neither of which has anything to do with encoding rules.",
+    "rule_mapping_5_1_integer_encoding":
         "Decimal strings apply to the integer-typed fields of a signed foreign struct carried "
         "inside params. VRT1-native payload integers (v, ts, schema_version, counts) are JSON "
         "integers, always, regardless of value. The test is struct ownership, not magnitude: "
         "a threshold would be a canonicalisation bug, because a value crossing it would change "
         "type mid-life. Decimal strings are base 10, no leading zeros, no leading '+'.",
-    "rule_5_2_hex_classes": {
+    "rule_vrt1_1_5_hex_normalisation": {
         "class_A_normalise_strip_0x_lowercase":
             "Hex-encoded byte strings, at EVERY depth of the payload: bytes32 digests, "
             "signatures, addresses, key material.",
         "class_B_verbatim_never_touch":
             "CAIP-19 asset identifiers and anything built from them. 0x is part of the "
             "identifier and EIP-55 casing is a checksum.",
-        "test": "if lowercasing loses information it is Class B",
+        "default":
+            "Preserve. Normalisation applies ONLY to values already known to be hex-encoded "
+            "bytes; every other string is byte-identical whatever it looks like. Stated as a "
+            "default rather than a second category so a value belonging to neither list "
+            "(e.g. 'unresolved:VVV@1') is answered without extending the rule.",
+        "test": "declared to hold hex bytes, or not",
         "applies_recursively": True},
     "negatives_are_inputs":
         "Each negative ships as literal canonical bytes and an expected action_id, violating "
@@ -483,6 +494,8 @@ w(OUT, "README.json", {
     "files": {
         "positive_oracle_safety_check.json": "round-1 positive, restated",
         "negatives_oracle_safety_check.json": "five one-rule negatives + round-1 conjunction",
+        "negatives_vvv_v3.json": "the §1.5 default side: a string that is neither hex nor "
+                                 "CAIP-19, preserved",
         "key_registry_snapshot_DESIGN.json": "rationale + schema for the generic type "
                                              "(vectors themselves ship in vrt1-spec)",
         "interop_insight_key_registry.json": "Insight's draft byte-exact + registration candidate"},

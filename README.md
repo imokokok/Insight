@@ -57,6 +57,8 @@ Every check can be signed as an **EIP-712 offchain attestation** — a portable,
 
 Anyone can verify a signature against the published attester address via `POST /api/v1/safety/attestation/verify` (public, no API key). The feature is disabled (non-breaking) when no signer key is configured. v1/v2/v3 coexist; the endpoint routes by the attestation's own `schemaVersion` and publishes all three type layouts from `GET` (`latestSchemaVersion` is 3).
 
+**VRT1 (§8.6)** — Insight's OracleSafetyCheck is listed as a vendor action type in the VRT1 specification, as a pointer to our machine-readable scale declaration: https://github.com/Ifasola34/vrt1-spec/blob/main/registry/vendor-action-types.json. The declaration pins the per-field integer scale and both policy constants (`requiredParticipantCount`, `requiredSourceGroupCount`); at schema v3 both constants are also inside the signed struct, so the gates are checkable from the bytes alone. Listing records that the type exists, where its declaration is, and what those bytes hashed to. It is not an endorsement of Insight's verdicts, and it does not describe Insight's default traffic: schema v1 (11 fields, no gates) remains the service default and v3 is opt-in.
+
 ### Access
 
 - **MCP tool** — `pre_trade_safety_check` (one of 33 tools).

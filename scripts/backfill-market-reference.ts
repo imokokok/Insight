@@ -3,14 +3,26 @@
  * Historical market-reference backfill (workflow_dispatch only).
  *
  * Pulls ~BACKFILL_DAYS of hourly candles from Coinbase Exchange (primary,
- * US-runner-safe, start/end paging) and Kraken OHLC (secondary) for the
- * universe symbols, then upserts them into `market_reference_snapshots` as
- * successful rows (volume populated from candles).
+ * start/end paging) and Kraken OHLC (secondary) for the universe symbols,
+ * then upserts them into `market_reference_snapshots` as successful rows
+ * (volume populated from candles).
  *
  * Why: the Track-B training label (oracle-vs-market divergence) needs months
  * of reference history. Waiting for the 15-min collector to accumulate it
  * would delay validation by months; backfilling 90 days unlocks historical
  * labels immediately.
+ *
+ * Hardening (from live-run failures):
+ *  - every request has a 15s AbortController timeout — a stalled exchange API
+ *    can never hang the run;
+ *  - Coinbase paging is capped at 12 pages with an advance guard (if the API
+ *    stops honoring start/end and returns the same page, bail instead of
+ *    looping forever);
+ *  - Kraken paging is capped at 12 pages with a cursor-advance guard;
+ *  - rows are flushed per symbol (idempotent upsert) so partial progress
+ *    survives a later failure;
+ *  - a hard deadline force-exits the process so the workflow fails fast with
+ *    a visible error instead of riding the job timeout.
  *
  * Run locally:
  *   npx tsx --env-file=.env.local scripts/backfill-market-reference.ts
@@ -44,24 +56,35 @@ const KRAKEN_PAIRS: Record<string, string> = {
   USDT: 'USDTZUSD',
 };
 
+/** Per-request timeout (ms) — abort a stalled call, never hang the run. */
+const REQUEST_TIMEOUT_MS = 15_000;
+/** Hard deadline (ms): force-exit so the workflow fails fast, not at 20 min. */
+const HARD_DEADLINE_MS = 11 * 60 * 1000;
+
 interface Candle {
   time: Date;
   close: number;
   volume: number;
 }
 
-async function fetchCoinbaseCandles(
-  symbol: string,
-  start: Date,
-  end: Date,
-  fetchImpl: typeof fetch
-): Promise<Candle[]> {
+/** Fetch with a hard timeout so a stalled exchange API cannot hang the run. */
+async function fetchWithTimeout(url: string, ms = REQUEST_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchCoinbaseCandles(symbol: string, start: Date, end: Date): Promise<Candle[]> {
   const product = COINBASE_PRODUCTS[symbol];
   const url =
     `https://api.exchange.coinbase.com/products/${product}/candles` +
     `?granularity=3600&start=${encodeURIComponent(start.toISOString())}` +
     `&end=${encodeURIComponent(end.toISOString())}`;
-  const r = await fetchImpl(url);
+  const r = await fetchWithTimeout(url);
   if (!r.ok) throw new Error(`coinbase candles ${r.status}`);
   const body = (await r.json()) as Array<[number, number, number, number, number, number]>;
   return body
@@ -71,44 +94,55 @@ async function fetchCoinbaseCandles(
 
 async function fetchKrakenOhlc(
   symbol: string,
-  sinceEpoch: number,
-  fetchImpl: typeof fetch
-): Promise<{ candles: Candle[]; last: number }> {
+  sinceEpoch: number
+): Promise<Candle[]> {
   const pair = KRAKEN_PAIRS[symbol];
   const url = `https://api.kraken.com/0/public/OHLC?pair=${pair}&interval=60&since=${sinceEpoch}`;
-  const r = await fetchImpl(url);
+  const r = await fetchWithTimeout(url);
   if (!r.ok) throw new Error(`kraken ohlc ${r.status}`);
   const body = (await r.json()) as {
+    error?: unknown[];
     result?: { last?: number | string; [key: string]: unknown };
   };
-  const list = body.result?.[pair] as Array<[number, string, string, string, string, string, string, number]> | undefined;
-  const candles = (list ?? [])
-    .filter((c) => Array.isArray(c) && c.length >= 7 && Number.isFinite(Number(c[4])) && Number(c[4]) > 0)
+  if (Array.isArray(body.error) && body.error.length > 0) {
+    throw new Error(`kraken ${String(body.error[0])}`);
+  }
+  const list = body.result?.[pair] as
+    | Array<[number, string, string, string, string, string, string, number]>
+    | undefined;
+  if (!list) throw new Error(`kraken unexpected response shape (pair ${pair} not in result)`);
+  return (list ?? [])
+    .filter(
+      (c) => Array.isArray(c) && c.length >= 7 && Number.isFinite(Number(c[4])) && Number(c[4]) > 0
+    )
     .map((c) => ({ time: new Date(Number(c[0]) * 1000), close: Number(c[4]), volume: Number(c[6]) }));
-  const last = Number(body.result?.last ?? 0);
-  return { candles, last };
 }
 
 async function backfillSymbol(
   symbol: string,
   days: number,
-  fetchImpl: typeof fetch,
   rows: MarketReferenceRow[]
 ): Promise<void> {
   const now = new Date();
   const startAll = new Date(now.getTime() - days * 86400_000);
 
-  // --- Coinbase: page backwards in 300-candle (12.5-day) windows. ----------
+  // --- Coinbase: page backwards in 300-candle (12.5-day) windows. -----------
+  // Hard cap + advance guard: if the API ever stops honoring start/end, `end`
+  // stops advancing and we bail instead of looping forever.
   let end = now;
-  while (end > startAll) {
+  for (let page = 0; page < 12 && end > startAll; page++) {
     const start = new Date(Math.max(startAll.getTime(), end.getTime() - 12.5 * 86400_000));
     let candles: Candle[] = [];
     try {
-      candles = await fetchCoinbaseCandles(symbol, start, end, fetchImpl);
+      candles = await fetchCoinbaseCandles(symbol, start, end);
     } catch (error) {
-      console.warn(`[backfill] coinbase ${symbol} ${start.toISOString()} failed:`, error);
-      break; // abort this source rather than looping forever on an error
+      console.warn(
+        `[backfill] coinbase ${symbol} page ${page} (${start.toISOString()}) failed:`,
+        error instanceof Error ? error.message : error
+      );
+      break;
     }
+    console.log(`[backfill] coinbase ${symbol} page ${page}: ${candles.length} candles`);
     for (const c of candles) {
       rows.push({
         snapshot_ts: c.time.toISOString(),
@@ -125,22 +159,27 @@ async function backfillSymbol(
     }
     if (candles.length === 0) break;
     const oldest = candles[candles.length - 1].time;
+    if (oldest.getTime() >= end.getTime()) {
+      console.warn(`[backfill] coinbase ${symbol} page ${page} did not advance; aborting source`);
+      break;
+    }
     end = oldest;
   }
 
-  // --- Kraken: page forward using the `since`/`last` cursor. ---------------
+  // --- Kraken: page forward using the `since` cursor. -----------------------
   let since = Math.floor(startAll.getTime() / 1000);
-  let last = since;
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 12; i++) {
     let candles: Candle[] = [];
     try {
-      const res = await fetchKrakenOhlc(symbol, since, fetchImpl);
-      candles = res.candles;
-      last = res.last;
+      candles = await fetchKrakenOhlc(symbol, since);
     } catch (error) {
-      console.warn(`[backfill] kraken ${symbol} since=${since} failed:`, error);
+      console.warn(
+        `[backfill] kraken ${symbol} since=${since} failed:`,
+        error instanceof Error ? error.message : error
+      );
       break;
     }
+    console.log(`[backfill] kraken ${symbol} page ${i}: ${candles.length} candles`);
     if (candles.length === 0) break;
     for (const c of candles) {
       rows.push({
@@ -157,29 +196,23 @@ async function backfillSymbol(
       });
     }
     const newest = candles[candles.length - 1].time.getTime() / 1000;
-    if (last <= since || newest >= now.getTime() / 1000 - 3600) break;
-    since = Math.max(last, since + 1);
+    if (newest >= now.getTime() / 1000 - 3600) break; // reached the present hour
+    if (newest <= since) {
+      console.warn(`[backfill] kraken ${symbol} cursor not advancing (since=${since}); aborting`);
+      break;
+    }
+    since = Math.max(Number.isFinite(newest) ? newest : since + 1, since + 1);
   }
 
-  console.log(`[backfill] ${symbol}: ${rows.filter((r) => r.symbol === symbol).length} rows so far`);
+  console.log(
+    `[backfill] ${symbol}: ${rows.filter((r) => r.symbol === symbol).length} rows so far`
+  );
 }
 
-async function main(): Promise<void> {
-  const days = Number(process.argv.find((a) => a.startsWith('--days='))?.split('=')[1]) || BACKFILL_DAYS;
-  console.log(`[backfill] backfilling ${days} days of market reference…`);
-  const rows: MarketReferenceRow[] = [];
-  for (const symbol of MARKET_REFERENCE_SYMBOLS) {
-    await backfillSymbol(symbol, days, fetch, rows);
-  }
-
-  console.log(`[backfill] total rows: ${rows.length}`);
-  if (rows.length === 0) {
-    console.error('[backfill] nothing fetched — aborting without writing');
-    process.exit(1);
-  }
-
+/** Upsert a batch; idempotent (ignoreDuplicates) so partial progress persists. */
+async function flushRows(rows: MarketReferenceRow[]): Promise<number> {
+  if (rows.length === 0) return 0;
   const supabase = createServiceRoleClient();
-  // Batch upsert in chunks to stay well under Supabase payload limits.
   const CHUNK = 2000;
   let inserted = 0;
   for (let i = 0; i < rows.length; i += CHUNK) {
@@ -191,12 +224,44 @@ async function main(): Promise<void> {
     if (error) throw new Error(error.message);
     inserted += chunk.length;
   }
-  console.log(`[backfill] inserted ${inserted} rows (idempotent, retries safe)`);
+  return inserted;
 }
 
+async function main(): Promise<void> {
+  const days =
+    Number(process.argv.find((a) => a.startsWith('--days='))?.split('=')[1]) || BACKFILL_DAYS;
+  console.log(`[backfill] backfilling ${days} days of market reference…`);
+  let rows: MarketReferenceRow[] = [];
+  let inserted = 0;
+  for (const symbol of MARKET_REFERENCE_SYMBOLS) {
+    await backfillSymbol(symbol, days, rows);
+    inserted += await flushRows(rows);
+    console.log(`[backfill] flushed ${rows.length} rows for ${symbol} (cumulative ${inserted})`);
+    rows = [];
+  }
+
+  console.log(`[backfill] done: ${inserted} rows upserted (idempotent, retries safe)`);
+  if (inserted === 0) {
+    console.error('[backfill] nothing fetched — aborting without writing');
+    process.exit(1);
+  }
+}
+
+// Hard deadline: fail fast and loudly instead of riding the 20-min job timeout.
+const deadlineTimer = setTimeout(() => {
+  console.error(`[backfill] hard deadline (${HARD_DEADLINE_MS}ms) exceeded — forcing exit`);
+  process.exit(1);
+}, HARD_DEADLINE_MS);
+deadlineTimer.unref?.();
+
 main()
-  .then(() => process.exit(0))
+  .then(() => {
+    clearTimeout(deadlineTimer);
+    const graceTimer = setTimeout(() => process.exit(0), 2000);
+    graceTimer.unref?.();
+  })
   .catch((error) => {
+    clearTimeout(deadlineTimer);
     console.error('[backfill] failed:', error);
     process.exit(1);
   });

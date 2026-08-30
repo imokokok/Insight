@@ -110,6 +110,9 @@ export interface MarketReferenceDeps {
   now?: () => number;
 }
 
+/** Per-request timeout (ms) — abort a stalled exchange call, never hang a run. */
+export const REQUEST_TIMEOUT_MS = 15_000;
+
 /** Parse a string/unknown price from an exchange response; null if unusable. */
 function parsePrice(value: unknown): number | null {
   if (typeof value !== 'string' && typeof value !== 'number') return null;
@@ -175,7 +178,18 @@ export async function collectMarketReference(
   snapshotTs: Date,
   deps: MarketReferenceDeps = {}
 ): Promise<{ rows: MarketReferenceRow[]; summary: MarketReferenceSummary }> {
-  const fetchImpl = deps.fetchImpl ?? fetch;
+  const rawFetch = deps.fetchImpl ?? fetch;
+  // Hard per-request timeout so a stalled exchange API cannot hang a 15-min
+  // collection run (the workflow deadline is a backstop, not the first line).
+  const fetchImpl = async (url: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      return await rawFetch(url, { ...init, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
   const now = deps.now ?? Date.now;
   const snapshotIso = snapshotTs.toISOString();
   const rows: MarketReferenceRow[] = [];
