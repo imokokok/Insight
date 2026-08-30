@@ -20,7 +20,7 @@
     "knip": "knip",
     "audit:api": "node scripts/api-usage-audit.mjs",
     "audit:raul": "node scripts/api-usage-audit.mjs --name ThoughtProof",
-    "verify:vrt1": "node scripts/vrt1-e2e-prototype/verify/verify-round2.mjs && node scripts/vrt1-e2e-prototype/verify/verify-round3.mjs",
+    "verify:vrt1": "node scripts/vrt1-e2e-prototype/verify/verify-round2.mjs && node scripts/vrt1-e2e-prototype/verify/verify-round3.mjs && node scripts/vrt1-e2e-prototype/verify/verify-scale-pin.mjs",
     "clean:dev": "rm -rf .next && next dev",
     "clean:start": "rm -rf .next && next build && next start",
     "mcp:stdio": "tsx src/mcp/index.ts",
