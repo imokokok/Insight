@@ -1,20 +1,23 @@
 {
   "canonical_json": "json.dumps(obj, sort_keys=True, separators=(',',':'), ensure_ascii=False) — object keys sorted recursively by UTF-8 codepoint, no whitespace, non-ASCII NOT escaped, ARRAYS NEVER SORTED",
+  "citation_convention": "Section numbers are ambiguous across the two documents, so they are always qualified here. 'VRT1 §N' means the published specification at github.com/Ifasola34/vrt1-spec; 'mapping §N' means the OracleSafetyCheck field-mapping document. Note VRT1 §5.1 is the anchor wire format and VRT1 §5.2 is the OP_RETURN script, neither of which has anything to do with encoding rules.",
   "demo_key_warning": "The agent key is 0x55..55, published deliberately so the vectors are reproducible. It is never a production key.",
   "files": {
     "interop_insight_key_registry.json": "Insight's draft byte-exact + registration candidate",
     "key_registry_snapshot_DESIGN.json": "rationale + schema for the generic type (vectors themselves ship in vrt1-spec)",
     "negatives_oracle_safety_check.json": "five one-rule negatives + round-1 conjunction",
+    "negatives_vvv_v3.json": "the §1.5 default side: a string that is neither hex nor CAIP-19, preserved",
     "positive_oracle_safety_check.json": "round-1 positive, restated"
   },
   "generated": "2026-08-28",
   "negatives_are_inputs": "Each negative ships as literal canonical bytes and an expected action_id, violating exactly one rule. Reconstructing a negative from a description tests the reconstruction, not the rule.",
-  "rule_5_1_integer_encoding": "Decimal strings apply to the integer-typed fields of a signed foreign struct carried inside params. VRT1-native payload integers (v, ts, schema_version, counts) are JSON integers, always, regardless of value. The test is struct ownership, not magnitude: a threshold would be a canonicalisation bug, because a value crossing it would change type mid-life. Decimal strings are base 10, no leading zeros, no leading '+'.",
-  "rule_5_2_hex_classes": {
+  "rule_mapping_5_1_integer_encoding": "Decimal strings apply to the integer-typed fields of a signed foreign struct carried inside params. VRT1-native payload integers (v, ts, schema_version, counts) are JSON integers, always, regardless of value. The test is struct ownership, not magnitude: a threshold would be a canonicalisation bug, because a value crossing it would change type mid-life. Decimal strings are base 10, no leading zeros, no leading '+'.",
+  "rule_vrt1_1_5_hex_normalisation": {
     "applies_recursively": true,
     "class_A_normalise_strip_0x_lowercase": "Hex-encoded byte strings, at EVERY depth of the payload: bytes32 digests, signatures, addresses, key material.",
     "class_B_verbatim_never_touch": "CAIP-19 asset identifiers and anything built from them. 0x is part of the identifier and EIP-55 casing is a checksum.",
-    "test": "if lowercasing loses information it is Class B"
+    "default": "Preserve. Normalisation applies ONLY to values already known to be hex-encoded bytes; every other string is byte-identical whatever it looks like. Stated as a default rather than a second category so a value belonging to neither list (e.g. 'unresolved:VVV@1') is answered without extending the rule.",
+    "test": "declared to hold hex bytes, or not"
   },
   "suite": "VRT1 shared conformance vectors, round 2",
   "supersedes": "the negative half of insight-vectors/negative.json",
