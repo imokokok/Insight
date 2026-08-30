@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -400,6 +401,12 @@ export default function SafetyCheckContent() {
             </h1>
             <p className="text-base text-slate-500 mt-2 max-w-2xl">
               连接钱包，自动扫描你在各大借贷协议上的持仓并实时计算清算临界偏离；也可手动选择协议录入。
+            </p>
+            <p className="text-sm text-slate-400 mt-2">
+              Every check is signed, and every receipt can be verified by anyone.{' '}
+              <Link href="/docs#verifiable-receipts" className="text-blue-600 hover:underline">
+                Verify a receipt
+              </Link>
             </p>
           </div>
         </div>

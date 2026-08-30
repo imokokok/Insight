@@ -207,6 +207,13 @@ export function AiPageContent() {
               </Link>
             </p>
 
+            <p className="text-sm text-slate-500 mb-6">
+              Every check is signed, and every receipt can be verified by anyone.{' '}
+              <Link href="/docs#verifiable-receipts" className="text-blue-600 hover:underline">
+                Verify a receipt
+              </Link>
+            </p>
+
             <div className="flex flex-wrap items-center justify-center gap-3">
               <a
                 href="#safety-check"

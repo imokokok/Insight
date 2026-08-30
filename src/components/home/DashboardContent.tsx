@@ -18,6 +18,7 @@ import { HomeApiTeaser } from './HomeApiTeaser';
 import { LiveStatusStrip } from './LiveStatusStrip';
 import { OracleHealthGrid } from './OracleHealthGrid';
 import { UseCaseBanner } from './UseCaseBanner';
+import { VerifiabilityBanner } from './VerifiabilityBanner';
 
 export interface AssetConsensusData {
   symbol: string;
@@ -176,6 +177,9 @@ export default function DashboardContent({ initialData }: DashboardContentProps)
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 space-y-12 lg:space-y-20">
         {/* Risk story hook */}
         <UseCaseBanner />
+
+        {/* Verifiability narrative */}
+        <VerifiabilityBanner />
 
         {/* Core feature entry points */}
         <FeatureGrid />

@@ -49,6 +49,8 @@ Agents must not execute when the verdict is DANGER or BLOCK. Every call is audit
 
 ### Verifiable attestations
 
+Every check is signed, and every receipt can be verified by anyone, without trusting Insight. The public verify endpoint checks the signature against the published attester key, routes by the attestation's own schemaVersion, and at schema v3 both safety gates are recomputable from the bytes alone because both policy constants are inside the signed struct.
+
 Every check can be signed as an **EIP-712 offchain attestation** — a portable, gasless, tamper-evident proof that "Insight verified oracle state for this trade at time T". Agents relay it in tx memo / calldata / logs so users and protocols can recognize the agent ran the oracle immune-system check.
 
 - **v1** — 11-field attestation (default, backward compatible).

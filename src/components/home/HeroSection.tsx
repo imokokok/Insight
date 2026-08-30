@@ -79,11 +79,12 @@ export function HeroSection() {
             variants={itemVariants}
             className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8 max-w-2xl"
           >
-            Insight is independent oracle transparency and risk infrastructure for DeFi. Verify,
-            compare, and stress-test prices across Chainlink, RedStone, API3 and more — so faulty
-            feeds never take your protocol by surprise. Give your AI agents a pre-trade oracle
-            safety checkpoint before they execute a single on-chain trade, plus an always-on Oracle
-            Watch signal to keep running strategies safe between trades.
+            Insight is independent oracle transparency and risk infrastructure for DeFi. Every check
+            is signed, and every receipt can be verified by anyone without trusting us. Compare and
+            stress-test prices across Chainlink, RedStone, API3 and more, so faulty feeds never take
+            your protocol by surprise. Give your AI agents a pre-trade oracle safety checkpoint
+            before they execute a single on-chain trade, plus an always-on Oracle Watch signal to
+            keep running strategies safe between trades.
           </motion.p>
 
           <motion.div variants={itemVariants}>
@@ -103,6 +104,12 @@ export function HeroSection() {
               className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-slate-200 hover:text-white hover:bg-white/10 hover:border-white/20 rounded-xl font-semibold backdrop-blur-sm transition-all duration-200"
             >
               Explore risk tools
+            </Link>
+            <Link
+              href="/docs#verifiable-receipts"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-slate-200 hover:text-white hover:bg-white/10 hover:border-white/20 rounded-xl font-semibold backdrop-blur-sm transition-all duration-200"
+            >
+              Verify a receipt
             </Link>
           </motion.div>
 

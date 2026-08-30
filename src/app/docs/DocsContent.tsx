@@ -9,6 +9,7 @@ import {
   MethodologySection,
   QuickStartSection,
   TechnicalDocsSection,
+  VerifiableReceiptsSection,
 } from './components';
 
 export default function DocsContent() {
@@ -19,6 +20,7 @@ export default function DocsContent() {
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <QuickStartSection />
         <FeaturesGuideSection />
+        <VerifiableReceiptsSection />
         <TechnicalDocsSection />
         <MethodologySection />
         <ArchitectureSection />
