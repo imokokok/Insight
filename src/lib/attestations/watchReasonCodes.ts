@@ -34,6 +34,10 @@
  *   STALE_DATA                — at least one provider served stale data.
  *   ML_FORWARD_RISK_HIGH      — advisory forward-looking manipulation risk in
  *                               the high bucket (escalates NORMAL → CAUTION).
+ *   MARKET_DIVERGENCE         — advisory oracle-vs-market divergence: consensus
+ *                               deviates >= 2% from the independent CEX market
+ *                               reference (external truth layer). Evidence,
+ *                               never a verdict input by itself.
  */
 export type WatchReasonCode =
   | 'NO_COVERAGE'
@@ -43,7 +47,8 @@ export type WatchReasonCode =
   | 'LOW_AGREEMENT'
   | 'OUTLIER_PRESENT'
   | 'STALE_DATA'
-  | 'ML_FORWARD_RISK_HIGH';
+  | 'ML_FORWARD_RISK_HIGH'
+  | 'MARKET_DIVERGENCE';
 
 /** Inputs the verdict rule engine produces; pure mapping to codes below. */
 export interface WatchReasonInputs {
@@ -63,6 +68,8 @@ export interface WatchReasonInputs {
   staleCount: number;
   /** Advisory ML forward-risk in the high bucket. */
   mlForwardRiskHigh: boolean;
+  /** Advisory oracle-vs-market divergence (consensus vs CEX reference >= 2%). */
+  marketDivergence: boolean;
 }
 
 /**
@@ -88,6 +95,7 @@ export function watchReasonCodes(input: WatchReasonInputs): WatchReasonCode[] {
   if (input.outlierCount > 0) codes.add('OUTLIER_PRESENT');
   if (input.staleCount > 0) codes.add('STALE_DATA');
   if (input.mlForwardRiskHigh) codes.add('ML_FORWARD_RISK_HIGH');
+  if (input.marketDivergence) codes.add('MARKET_DIVERGENCE');
 
   return [...codes].sort();
 }

@@ -2,6 +2,7 @@ import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { signAttestationV2 } from '@/lib/attestations/oracleSafetyAttestationV2';
 import { signAttestationV3 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import { UnsupportedSymbolError } from '@/lib/errors';
+import { computeMarketDivergencePct } from '@/lib/marketReference/client';
 import { getModelStatus, scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 import { getFeedStalenessBaselineMap } from '@/lib/oracles/feedCadence';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
@@ -64,6 +65,13 @@ jest.mock('@/lib/ml/inference', () => ({
   getModelStatus: jest.fn(() => ({ active: false, trainedAt: null, metrics: {} })),
 }));
 
+// The v4 oracle-vs-market divergence feature is fetched only when a model is
+// active; mock the reference client so a model-active test can assert the
+// feature passes through without hitting Supabase.
+jest.mock('@/lib/marketReference/client', () => ({
+  computeMarketDivergencePct: jest.fn(),
+}));
+
 // Mock the v2/v3 signers so v2/v3 service tests assert the ROUTING/PLUMBING
 // (CAIP-19 ids, provider observations, quorum gate) without a live attester
 // key. Everything else in the modules stays real — the gate constants drive the
@@ -93,6 +101,9 @@ const mockedScorePreTradeMultiHorizon = scorePreTradeMultiHorizon as jest.Mocked
   typeof scorePreTradeMultiHorizon
 >;
 const mockedGetModelStatus = getModelStatus as jest.MockedFunction<typeof getModelStatus>;
+const mockedDivergence = computeMarketDivergencePct as jest.MockedFunction<
+  typeof computeMarketDivergencePct
+>;
 const mockedSignAttestationV2 = signAttestationV2 as jest.MockedFunction<typeof signAttestationV2>;
 const mockedSignAttestationV3 = signAttestationV3 as jest.MockedFunction<typeof signAttestationV3>;
 const mockedGetFeedStalenessBaselineMap = getFeedStalenessBaselineMap as jest.MockedFunction<
@@ -748,6 +759,29 @@ describe('preTradeSafetyCheck — ML score plumbing', () => {
     expect(features.avgReputation).toBeCloseTo(0.8, 5); // mean(90,70)/100
     // Asset class routing: the input asset flows through for calibration.
     expect(opts).toEqual({ assetClass: 'ETH' });
+  });
+
+  it('passes the v4 oracle-vs-market divergence feature when a model is active', async () => {
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
+    mockedGetModelStatus.mockReturnValue({
+      active: true,
+      trainedAt: '2026-08-30T00:00:00Z',
+      metrics: {},
+    });
+    mockedDivergence.mockResolvedValue(2.5);
+    mockedScorePreTradeMultiHorizon.mockReturnValue({
+      combined: 0.5,
+      score1h: 0.4,
+      score6h: 0.5,
+    });
+
+    await preTradeSafetyCheck(makeInput());
+
+    // The external-truth feature is only fetched when the model is active
+    // (hot path unchanged under the rules-only fallback) and flows through.
+    expect(mockedDivergence).toHaveBeenCalledWith('ETH', expect.any(Number));
+    const [features] = mockedScorePreTradeMultiHorizon.mock.calls[0];
+    expect(features.oracleVsMarketDeviationPct).toBe(2.5);
   });
 
   it('falls back to the rule-based score when no ML model is active (multi-horizon null)', async () => {

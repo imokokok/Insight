@@ -159,6 +159,11 @@ export interface PreTradeFeatures {
   avgReputation?: number;
   /** Worst provider reputation (0-1 normalized) in the 30-min spine. */
   minReputation?: number;
+  /** |consensus - CEX market reference| / ref * 100 (external truth layer).
+   * Optional like the v3 features: pre-trade neutral-fills 0 (no divergence
+   * signal) when the reference layer is absent — matching training's neutral
+   * fill, so a retrained 17-feature model scores pre-trade consistently. */
+  oracleVsMarketDeviationPct?: number;
 }
 
 /** Map a feature map onto a horizon's featureNames order. Missing names are
@@ -278,6 +283,9 @@ export function featuresFromPreTrade(f: PreTradeFeatures): FeatureMap {
     stale_count: f.staleCount ?? 0,
     avg_reputation: f.avgReputation ?? 0.5,
     min_reputation: f.minReputation ?? 0.5,
+    // --- v4 external-truth feature. Neutral 0 = no divergence signal when the
+    // market-reference layer has no row (matches training's neutral fill). ---
+    oracle_vs_market_deviation_pct: f.oracleVsMarketDeviationPct ?? 0,
   };
 }
 

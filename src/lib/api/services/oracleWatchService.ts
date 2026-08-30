@@ -1,6 +1,7 @@
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
 import { watchReasonCodes, type WatchReasonCode } from '@/lib/attestations/watchReasonCodes';
 import { UnsupportedSymbolError } from '@/lib/errors';
+import { computeMarketDivergencePct } from '@/lib/marketReference/client';
 import { scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 import { TTLCache } from '@/lib/utils/cache';
 import { roundTo } from '@/lib/utils/format';
@@ -190,6 +191,12 @@ const AGREEMENT_DANGER = 0.85;
 // Advisory ML risk-level buckets (low-is-good).
 const ML_LEVEL_MEDIUM = 0.3;
 const ML_LEVEL_HIGH = 0.6;
+
+// Advisory oracle-vs-market divergence threshold (%): consensus deviating this
+// far from the independent CEX reference fires the MARKET_DIVERGENCE reason
+// code. Mirrors the training Track-B label threshold (MARKET_DIVERGENCE_PCT).
+// Evidence only — never a verdict input.
+const MARKET_DIVERGENCE_ADVISORY_PCT = 2.0;
 
 // Short-TTL in-memory cache keyed by symbol|chain. Oracle Watch fetches live
 // cross-oracle providers (expensive) on every uncached call, so agents that
@@ -443,6 +450,18 @@ async function computeOracleWatchSignal(
 
   const mlRiskHigh = ml.mlRiskLevel === 'high';
 
+  // Advisory oracle-vs-market divergence from the external truth layer
+  // (consensus vs independent CEX reference >= MARKET_DIVERGENCE_ADVISORY_PCT).
+  // Evidence, never a verdict input: it surfaces as a reason code and lets
+  // agents see the market-truth signal, but cannot by itself escalate.
+  let marketDivergence = false;
+  try {
+    const div = await computeMarketDivergencePct(result.symbol, result.consensusPrice);
+    marketDivergence = div !== null && div >= MARKET_DIVERGENCE_ADVISORY_PCT;
+  } catch {
+    marketDivergence = false; // reference layer down → no signal
+  }
+
   // ML forward-risk escalation: a healthy-now feed with high predicted
   // manipulation risk must be throttled to caution (never bluntly blocked on
   // the ML alone), closing the gap where a purely-advisory ML could be ignored.
@@ -465,6 +484,7 @@ async function computeOracleWatchSignal(
     outlierCount,
     staleCount,
     mlForwardRiskHigh: mlRiskHigh,
+    marketDivergence,
   });
 
   const trust = computeOracleWatchTrust({

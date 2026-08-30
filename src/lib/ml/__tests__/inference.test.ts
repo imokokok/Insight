@@ -141,6 +141,8 @@ describe('ml inference', () => {
     expect(map.stale_count).toBe(0);
     expect(map.avg_reputation).toBe(0.5); // unknown reputation
     expect(map.min_reputation).toBe(0.5);
+    // v4 external-truth feature: absent reference ⇒ neutral 0 divergence.
+    expect(map.oracle_vs_market_deviation_pct).toBe(0);
   });
 
   it('honors explicitly supplied 30-min governance features', () => {

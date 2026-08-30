@@ -115,6 +115,54 @@ describe('safetyOutcomeService — computeOutcome', () => {
     const outcome = await computeOutcome('ETH', CHECK_AT);
     expect(outcome).toBeNull();
   });
+
+  it('labels POSITIVE on Track-B oracle-vs-market divergence (label spec v2)', async () => {
+    // Consensus flat at 1860 (no price move, no deviation spike) — but the CEX
+    // reference drops to ~1785 → 4.2% divergence: the blind-spot case Track A
+    // cannot see, which Track B must catch.
+    const snapRows = [snap(-1, 1860), snap(1, 1861, 0.4), snap(2, 1860, 0.3)];
+    const refRows = [
+      {
+        ref_hour: new Date(new Date(CHECK_AT).getTime() + 3600_000).toISOString(),
+        ref_price: 1785,
+      },
+      {
+        ref_hour: new Date(new Date(CHECK_AT).getTime() + 2 * 3600_000).toISOString(),
+        ref_price: 1786,
+      },
+    ];
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: jest.fn((table: string) =>
+        table === 'market_reference_hourly'
+          ? makeChain({ data: refRows, error: null })
+          : makeChain({ data: snapRows, error: null })
+      ),
+    } as never);
+
+    const outcome = await computeOutcome('ETH', CHECK_AT);
+
+    expect(outcome).not.toBeNull();
+    expect(outcome!.label).toBe(true);
+    expect(outcome!.maxMarketDivergencePct).toBeGreaterThanOrEqual(
+      OUTCOME_THRESHOLDS.marketDivergencePct
+    );
+    expect(outcome!.maxPriceMovePct).toBeLessThan(OUTCOME_THRESHOLDS.priceMovePct);
+    expect(outcome!.maxDeviationPct).toBeLessThan(OUTCOME_THRESHOLDS.deviationPct);
+    expect(outcome!.evidence.some((e) => e.includes('Oracle-vs-market divergence'))).toBe(true);
+  });
+
+  it('excludes Track-B (null, not zero) when the reference layer has no coverage', async () => {
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: () => makeChain({ data: [snap(-1, 1860), snap(1, 1861, 0.4)], error: null }),
+    } as never);
+
+    const outcome = await computeOutcome('ETH', CHECK_AT);
+
+    expect(outcome).not.toBeNull();
+    expect(outcome!.maxMarketDivergencePct).toBeNull();
+    // With no price move, no deviation spike and no reference → negative label.
+    expect(outcome!.label).toBe(false);
+  });
 });
 
 describe('safetyOutcomeService — backfillOutcomes', () => {

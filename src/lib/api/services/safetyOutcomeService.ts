@@ -37,6 +37,11 @@ export const OUTCOME_THRESHOLDS = {
   priceMovePct: 5,
   /** Max cross-oracle deviation (%) in the window that counts as abnormal. */
   deviationPct: 8,
+  /** Track-B: oracle-vs-market divergence (%) that counts as abnormal —
+   *  mirrors ml/train.py MARKET_DIVERGENCE_PCT (label spec v2). */
+  marketDivergencePct: 2,
+  /** Label spec version — must match ml/train.py LABEL_SPEC_VERSION. */
+  labelSpecVersion: 2,
   /** Max rows to label per cron run (free-tier friendly). */
   batchSize: 50,
 } as const;
@@ -47,8 +52,16 @@ export interface SafetyOutcome {
   baselinePrice: number | null;
   maxPriceMovePct: number;
   maxDeviationPct: number;
+  /** Track-B: max oracle-vs-market divergence (%) in the window (null when
+   *  the market-reference layer had no coverage — excluded, not zero). */
+  maxMarketDivergencePct: number | null;
   label: boolean;
   evidence: string[];
+}
+
+interface RefHourRow {
+  ref_hour: string;
+  ref_price: number | null;
 }
 
 export interface BackfillSummary {
@@ -140,9 +153,46 @@ export async function computeOutcome(
     if (entry.maxDev > maxDeviationPct) maxDeviationPct = entry.maxDev;
   }
 
+  // Track-B (label spec v2): oracle-vs-market divergence over the same window,
+  // from the CEX market-reference layer. |avgConsensus_hour - ref_hour|/ref*100.
+  // No reference coverage => null (excluded from the label, never a zero fill).
+  let maxMarketDivergencePct: number | null = null;
+  let divergenceAbnormal = false;
+  try {
+    const { data: refData, error: refError } = await supabase
+      .from('market_reference_hourly')
+      .select('ref_hour, ref_price')
+      .eq('symbol', asset)
+      .gt('ref_hour', fromMinus.toISOString())
+      .lte('ref_hour', to.toISOString())
+      .order('ref_hour', { ascending: true });
+    if (!refError && refData && refData.length > 0) {
+      const refRows = refData as RefHourRow[];
+      const refByHour = new Map(
+        refRows
+          .filter((r) => typeof r.ref_price === 'number' && (r.ref_price as number) > 0)
+          .map((r) => [new Date(r.ref_hour).getTime(), r.ref_price as number])
+      );
+      for (const [key, entry] of byHour.entries()) {
+        const ref = refByHour.get(new Date(key).getTime());
+        if (ref === undefined || entry.consensus.length === 0) continue;
+        const avgConsensus = entry.consensus.reduce((a, b) => a + b, 0) / entry.consensus.length;
+        const div = (Math.abs(avgConsensus - ref) / ref) * 100;
+        if (maxMarketDivergencePct === null || div > maxMarketDivergencePct) {
+          maxMarketDivergencePct = div;
+        }
+      }
+      divergenceAbnormal =
+        maxMarketDivergencePct !== null &&
+        maxMarketDivergencePct >= OUTCOME_THRESHOLDS.marketDivergencePct;
+    }
+  } catch {
+    // Reference layer unreachable: divergence stays null (excluded).
+  }
+
   const priceAbnormal = maxPriceMovePct >= OUTCOME_THRESHOLDS.priceMovePct;
   const devAbnormal = maxDeviationPct >= OUTCOME_THRESHOLDS.deviationPct;
-  const label = priceAbnormal || devAbnormal;
+  const label = priceAbnormal || devAbnormal || divergenceAbnormal;
 
   const evidence: string[] = [];
   if (priceAbnormal) {
@@ -151,6 +201,11 @@ export async function computeOutcome(
   if (devAbnormal) {
     evidence.push(`Cross-oracle deviation reached ${maxDeviationPct.toFixed(2)}% in window.`);
   }
+  if (divergenceAbnormal) {
+    evidence.push(
+      `Oracle-vs-market divergence reached ${(maxMarketDivergencePct ?? 0).toFixed(2)}% in window.`
+    );
+  }
 
   return {
     windowHours,
@@ -158,6 +213,8 @@ export async function computeOutcome(
     baselinePrice,
     maxPriceMovePct: roundTo(maxPriceMovePct, 4),
     maxDeviationPct: roundTo(maxDeviationPct, 4),
+    maxMarketDivergencePct:
+      maxMarketDivergencePct !== null ? roundTo(maxMarketDivergencePct, 4) : null,
     label,
     evidence,
   };

@@ -68,7 +68,17 @@ from sklearn.metrics import roc_auc_score, precision_score, recall_score
 HORIZONS = [1, 6]  # hours ahead to predict (1h near-term + 6h strategic)
 PRICE_MOVE_PCT = 5.0
 DEVIATION_PCT = 8.0
+# Track-B: oracle-vs-market divergence threshold. |consensus - CEX ref| / ref
+# >= this % within the horizon counts as abnormal — the external-truth label
+# component that consensus-only labels cannot see. Mirrors
+# safetyOutcomeService.OUTCOME_THRESHOLDS.marketDivergencePct.
+MARKET_DIVERGENCE_PCT = 2.0
 STALE_SECONDS = 60  # mirrors THRESHOLDS.dataStaleSeconds.caution
+
+# Label specification version. Bump (and mirror in safetyOutcomeService) every
+# time the label definition changes so mined and flywheel labels stay
+# comparable — the version is exported with the model.
+LABEL_SPEC_VERSION = 2  # v2 = Track A (price/dev) OR Track B (market divergence)
 
 MIN_TOTAL = 500
 MIN_POSITIVES = 15  # per horizon; below this the horizon is skipped
@@ -114,6 +124,11 @@ FEATURE_NAMES = [
     "stale_count",                 # provider count stale >=60s (sum of hour)
     "avg_reputation",              # mean provider reputation (0-1 normalized)
     "min_reputation",              # worst provider reputation (0-1 normalized)
+    # --- v4 external-truth feature (from the CEX market-reference layer) ---
+    # |consensus - CEX ref| / ref * 100. Neutral fill 0 (no divergence signal)
+    # when the reference layer has no row for that (symbol, hour) — mirrors
+    # the live neutral default in src/lib/ml/inference.ts featuresFromPreTrade.
+    "oracle_vs_market_deviation_pct",  # consensus vs CEX reference divergence (%, abs)
 ]
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "oracle_risk_model.json")
@@ -372,17 +387,33 @@ def build_hourly_frame(df: pd.DataFrame) -> pd.DataFrame:
     return hourly
 
 
-def label_for_horizon(hourly: pd.DataFrame, hours: int) -> pd.Series:
+def label_for_horizon(hourly: pd.DataFrame, hours: int):
     """Compute the abnormal-event label for a given prediction horizon.
 
-    Mirrors safetyOutcomeService: consensus moves >= PRICE_MOVE_PCT OR cross-
-    oracle max deviation spikes >= DEVIATION_PCT within the next `hours` hours.
+    Label spec v2 (LABEL_SPEC_VERSION = 2): abnormal = Track A (consensus
+    moves >= PRICE_MOVE_PCT OR cross-oracle max deviation spikes >=
+    DEVIATION_PCT) OR Track B (oracle-vs-market divergence >=
+    MARKET_DIVERGENCE_PCT) within the next `hours` hours. Mirrors
+    safetyOutcomeService OUTCOME_THRESHOLDS (incl. marketDivergencePct).
+
+    Returns (labels, ev_price, ev_dev, ev_div): the label series plus one
+    per-row event-type flag series each, so training metrics can report how
+    many positives each track contributed (a row may trigger several).
     """
     labels = pd.Series(0, index=hourly.index, dtype=int)
+    ev_price = pd.Series(0, index=hourly.index, dtype=int)
+    ev_dev = pd.Series(0, index=hourly.index, dtype=int)
+    ev_div = pd.Series(0, index=hourly.index, dtype=int)
+    has_div = "oracle_vs_market_deviation_pct" in hourly.columns
     for _, grp in hourly.groupby("symbol", sort=False):
         idx = grp.index
         consensus = grp["consensus"].astype(float).values
         max_dev = grp["max_deviation_pct"].abs().values
+        div = (
+            grp["oracle_vs_market_deviation_pct"].abs().values
+            if has_div
+            else np.zeros(len(grp))
+        )
         n = len(grp)
         for i in range(n):
             j_end = min(i + 1 + hours, n)
@@ -394,12 +425,66 @@ def label_for_horizon(hourly: pd.DataFrame, hours: int) -> pd.Series:
             future_cons = consensus[i + 1 : j_end]
             max_move = np.abs(future_cons - baseline).max() / baseline * 100.0
             max_dev_future = float(np.max(max_dev[i + 1 : j_end])) if j_end > i + 1 else 0.0
-            if max_move >= PRICE_MOVE_PCT or max_dev_future >= DEVIATION_PCT:
+            max_div_future = float(np.max(div[i + 1 : j_end])) if j_end > i + 1 else 0.0
+            is_price = max_move >= PRICE_MOVE_PCT
+            is_dev = max_dev_future >= DEVIATION_PCT
+            is_div = max_div_future >= MARKET_DIVERGENCE_PCT
+            if is_price or is_dev or is_div:
                 labels.loc[idx[i]] = 1
-    return labels
+                ev_price.loc[idx[i]] = int(is_price)
+                ev_dev.loc[idx[i]] = int(is_dev)
+                ev_div.loc[idx[i]] = int(is_div)
+    return labels, ev_price, ev_dev, ev_div
 
 
-def build_dataset(df: pd.DataFrame, health_df: pd.DataFrame | None = None) -> pd.DataFrame:
+def fetch_market_reference_rows(base_url: str, service_key: str) -> pd.DataFrame:
+    """Page through the market_reference_hourly rollup view (external truth layer).
+
+    Returns per-(symbol, hour) median CEX reference price, or an empty
+    DataFrame when the table/view is empty or unreachable so training degrades
+    to the neutral divergence fill (0 = no signal). Fail-closed by design:
+    absent reference data never fabricates a divergence.
+    """
+    try:
+        cutoff = (datetime.now(timezone.utc) - timedelta(weeks=LOOKBACK_WEEKS)).isoformat()
+        url = base_url.rstrip("/") + "/rest/v1/market_reference_hourly"
+        select = "symbol,ref_hour,ref_price"
+        params = {
+            "select": select,
+            "ref_hour": f"gte.{cutoff}",
+            "order": "symbol,ref_hour",
+        }
+        headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
+        rows = []
+        offset = 0
+        while True:
+            headers["Range"] = f"{offset}-{offset + PAGE_SIZE - 1}"
+            r = requests.get(url, headers=headers, params=params, timeout=60)
+            r.raise_for_status()
+            chunk = r.json()
+            rows.extend(chunk)
+            offset += PAGE_SIZE
+            if len(chunk) < PAGE_SIZE:
+                break
+        if not rows:
+            return pd.DataFrame()
+        ref = pd.DataFrame(rows)
+        ref["snapshot_hour"] = pd.to_datetime(ref["ref_hour"], utc=True)
+        ref["ref_price"] = pd.to_numeric(ref["ref_price"], errors="coerce")
+        ref = ref.dropna(subset=["ref_price"])
+        ref = ref[ref["ref_price"] > 0]
+        log(f"Fetched {len(ref)} (symbol, hour) from market_reference_hourly.")
+        return ref[["symbol", "snapshot_hour", "ref_price"]]
+    except Exception as exc:  # noqa: BLE001 - graceful degradation
+        log(f"market_reference_hourly unavailable ({exc}); using neutral divergence feature.")
+        return pd.DataFrame()
+
+
+def build_dataset(
+    df: pd.DataFrame,
+    health_df: pd.DataFrame | None = None,
+    ref_df: pd.DataFrame | None = None,
+) -> pd.DataFrame:
     """Build the feature matrix + per-horizon labels, one row per (symbol, hour)."""
     hourly = build_hourly_frame(df)
     # Attach the v3 governance features from the 30-min spine (per symbol,hour),
@@ -413,12 +498,34 @@ def build_dataset(df: pd.DataFrame, health_df: pd.DataFrame | None = None) -> pd
             hourly[col] = neutral
         else:
             hourly[col] = hourly[col].fillna(neutral)
-    # Attach horizon labels.
+    # Attach the external-truth feature (v4) from the CEX market-reference
+    # layer. |consensus - ref| / ref * 100, neutral 0 when no reference row
+    # exists for that (symbol, hour) — fail-closed, never an estimated fill.
+    if ref_df is not None and not ref_df.empty:
+        hourly = hourly.merge(ref_df, on=["symbol", "snapshot_hour"], how="left")
+    if "ref_price" not in hourly.columns:
+        hourly["ref_price"] = np.nan
+    has_ref = hourly["ref_price"].notna() & (hourly["ref_price"] > 0) & (hourly["consensus"] > 0)
+    hourly["oracle_vs_market_deviation_pct"] = np.where(
+        has_ref,
+        (hourly["consensus"] - hourly["ref_price"]).abs() / hourly["ref_price"] * 100.0,
+        0.0,
+    )
+    # Attach horizon labels (label spec v2: Track A OR Track B) + per-event-type
+    # flags so metrics can report how many positives each track contributed.
     for h in HORIZONS:
-        hourly[f"label_{h}h"] = label_for_horizon(hourly, h)
+        labels, ev_price, ev_dev, ev_div = label_for_horizon(hourly, h)
+        hourly[f"label_{h}h"] = labels
+        hourly[f"ev_price_{h}h"] = ev_price
+        hourly[f"ev_dev_{h}h"] = ev_dev
+        hourly[f"ev_div_{h}h"] = ev_div
     # Keep symbol for per-asset-class calibration at train time.
     out = hourly[
-        ["symbol"] + FEATURE_NAMES + [f"label_{h}h" for h in HORIZONS] + ["snapshot_hour"]
+        ["symbol"]
+        + FEATURE_NAMES
+        + [f"label_{h}h" for h in HORIZONS]
+        + [f"ev_{t}_{h}h" for t in ("price", "dev", "div") for h in HORIZONS]
+        + ["snapshot_hour"]
     ].copy()
     return out
 
@@ -468,6 +575,7 @@ def write_null_model(reason: str) -> int:
                 "active": False,
                 "trainedAt": datetime.now(timezone.utc).isoformat(),
                 "inactiveReason": reason,
+                "labelSpecVersion": LABEL_SPEC_VERSION,
                 "featureNames": FEATURE_NAMES,
                 "neutralFill": NEUTRAL_FILL,
                 "horizons": {},
@@ -534,6 +642,11 @@ def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
         "n_test": int(len(test)),
         "n_positive_train": int(y_tr.sum()),
         "n_positive_test": int(y_te.sum()),
+        # Label-spec-v2 event-type breakdown (train split): how many positives
+        # each track contributed. A row may trigger several — buckets overlap.
+        "n_pos_price": int(train[f"ev_price_{hours}h"].sum()),
+        "n_pos_deviation": int(train[f"ev_dev_{hours}h"].sum()),
+        "n_pos_divergence": int(train[f"ev_div_{hours}h"].sum()),
         "best_iteration": int(model.best_iteration) if model.best_iteration is not None else int(xgb_params["n_estimators"]),
     }
     try:
@@ -605,12 +718,19 @@ def main() -> int:
 
     log("Building labeled dataset (mining 1h + 6h-ahead outcomes)...")
     health_df = fetch_health_rows(base_url, service_key)
-    data = build_dataset(df, health_df)
+    ref_df = fetch_market_reference_rows(base_url, service_key)
+    data = build_dataset(df, health_df, ref_df)
     n_total = len(data)
     log(f"Dataset: {n_total} examples.")
+    n_ref = int(data["oracle_vs_market_deviation_pct"].gt(0).sum())
+    log(f"  rows with market-reference coverage: {n_ref} ({100*n_ref/max(n_total,1):.1f}%)")
     for h in HORIZONS:
         n_pos = int(data[f"label_{h}h"].sum())
-        log(f"  {h}h positives: {n_pos} ({100*n_pos/max(n_total,1):.2f}%)")
+        n_div = int(data[f"ev_div_{h}h"].sum())
+        log(
+            f"  {h}h positives: {n_pos} ({100*n_pos/max(n_total,1):.2f}%)"
+            f" | of which Track-B divergence: {n_div}"
+        )
 
     if n_total < MIN_TOTAL:
         return write_null_model(f"insufficient labeled data (total={n_total})")
@@ -630,7 +750,12 @@ def main() -> int:
         "version": 2,
         "active": True,
         "trainedAt": datetime.now(timezone.utc).isoformat(),
-        "labelDefinition": f"consensus price moves >= {PRICE_MOVE_PCT}% OR cross-oracle deviation >= {DEVIATION_PCT}% within H hours",
+        "labelSpecVersion": LABEL_SPEC_VERSION,
+        "labelDefinition": (
+            f"consensus price moves >= {PRICE_MOVE_PCT}% OR cross-oracle deviation >= "
+            f"{DEVIATION_PCT}% OR oracle-vs-market divergence >= {MARKET_DIVERGENCE_PCT}% "
+            f"within H hours (label spec v{LABEL_SPEC_VERSION})"
+        ),
         "featureNames": FEATURE_NAMES,
         "horizons": horizons,
         "metrics": metrics_summary,

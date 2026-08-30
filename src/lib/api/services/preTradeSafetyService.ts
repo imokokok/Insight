@@ -38,6 +38,7 @@ import {
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
 import { UnsupportedSymbolError } from '@/lib/errors';
+import { computeMarketDivergencePct } from '@/lib/marketReference/client';
 import {
   getModelStatus,
   scorePreTradeMultiHorizon,
@@ -815,6 +816,9 @@ function computeManipulationRisk(args: {
   minReputation: number;
   /** Raw asset symbol — routes the score through per-asset-class calibration. */
   asset: string;
+  /** Oracle-vs-market divergence (%) from the external truth layer; null when
+   *  unavailable (the feature neutral-fills 0). */
+  marketDivergencePct: number | null;
 }): ManipulationRiskResult {
   let mlScore: number | null = null;
   let mlModelVersion: string | null = null;
@@ -880,6 +884,10 @@ function computeManipulationRisk(args: {
         staleCount,
         avgReputation,
         minReputation: args.minReputation / 100,
+        // --- v4 external-truth feature: oracle-vs-market divergence. Null
+        // (neutral 0 at featuresFromPreTrade) when the reference layer is
+        // absent — fail-closed, never a fabricated divergence. ---
+        oracleVsMarketDeviationPct: args.marketDivergencePct ?? undefined,
       },
       { assetClass: args.asset }
     );
@@ -1450,6 +1458,19 @@ export async function preTradeSafetyCheck(
   // function stays within its line budget). ML-driven when a verified model is
   // active, else the hand-tuned rule-based fallback. The verdict still comes
   // from the rule engine — this score feeds display + audit only.
+  // The v4 oracle-vs-market divergence feature is only fetched when a model is
+  // active (bounded rollup read, 60s cache) so the hot path stays unchanged
+  // under the rules-only fallback.
+  let marketDivergencePct: number | null = null;
+  // getModelStatus may return a partial/undefined shape under test mocks;
+  // treat anything but an explicit active:true as "no model".
+  if (getModelStatus()?.active === true) {
+    try {
+      marketDivergencePct = await computeMarketDivergencePct(input.asset, consensus.consensusPrice);
+    } catch {
+      marketDivergencePct = null; // fail-closed: neutral 0 feature
+    }
+  }
   const risk = computeManipulationRisk({
     providerPrices,
     historicalState,
@@ -1460,6 +1481,7 @@ export async function preTradeSafetyCheck(
     agreement,
     minReputation,
     asset: input.asset,
+    marketDivergencePct,
   });
   const mlScore = risk.mlScore;
   const mlModelVersion = risk.mlModelVersion;

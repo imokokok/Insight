@@ -12,6 +12,7 @@ function inputs(overrides: Partial<WatchReasonInputs> = {}): WatchReasonInputs {
     outlierCount: 0,
     staleCount: 0,
     mlForwardRiskHigh: false,
+    marketDivergence: false,
     ...overrides,
   };
 }
@@ -63,15 +64,24 @@ describe('watchReasonCodes', () => {
         outlierCount: 1,
         staleCount: 2,
         mlForwardRiskHigh: true,
+        marketDivergence: true,
       })
     );
     expect(codes).toEqual([
       'LOW_AGREEMENT',
+      'MARKET_DIVERGENCE',
       'MAX_DEVIATION',
       'ML_FORWARD_RISK_HIGH',
       'OUTLIER_PRESENT',
       'STALE_DATA',
     ]);
+  });
+
+  it('emits MARKET_DIVERGENCE alone on an otherwise-healthy feed', () => {
+    // The oracle-consensus gates all pass, but consensus deviates from the
+    // independent CEX reference — the advisory only a market-truth layer can
+    // raise. Must NOT affect the verdict gates (evidence, not a verdict input).
+    expect(watchReasonCodes(inputs({ marketDivergence: true }))).toEqual(['MARKET_DIVERGENCE']);
   });
 
   it('emits codes the dominant reason string would otherwise hide', () => {
