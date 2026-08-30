@@ -55,14 +55,14 @@ const COINBASE_PRODUCTS: Record<string, string> = {
 };
 
 const KRAKEN_PAIRS: Record<string, string> = {
-  // Canonical Kraken pair names: Kraken normalizes aliases and keys the Ticker
-  // response by the CANONICAL name (e.g. ETH -> "XETHZUSD"), so the request
-  // param MUST be the canonical name or the result lookup misses (verified
-  // against the live API: pair=ETHUSD responds keyed "XETHZUSD").
+  // Canonical Kraken pair names — VERIFIED against the live API: Kraken
+  // normalizes aliases and keys the Ticker response by the canonical name
+  // (ETHUSD -> XETHZUSD, XBTUSD -> XXBTZUSD, USDTUSD -> USDTZUSD; USDCUSD
+  // stays as-is). The request param AND the result lookup must both use these.
   ETH: 'XETHZUSD',
-  BTC: 'XBTUSD',
+  BTC: 'XXBTZUSD',
   USDC: 'USDCUSD',
-  USDT: 'USDTUSD',
+  USDT: 'USDTZUSD',
 };
 
 const BINANCE_SYMBOLS: Record<string, string> = {
@@ -131,9 +131,20 @@ async function fetchKrakenSpot(symbol: string, fetchImpl: typeof fetch): Promise
   const url = `https://api.kraken.com/0/public/Ticker?pair=${pair}`;
   const r = await fetchImpl(url);
   if (!r.ok) throw new Error(`kraken ${r.status}`);
-  const body = (await r.json()) as { result?: Record<string, { c?: unknown[] }> };
+  // Kraken returns HTTP 200 with a non-empty `error` array on failures
+  // (e.g. rate limits) — surface the real reason instead of a generic miss.
+  const body = (await r.json()) as {
+    error?: unknown[];
+    result?: Record<string, { c?: unknown[] }>;
+  };
+  if (Array.isArray(body.error) && body.error.length > 0) {
+    throw new Error(`kraken ${String(body.error[0])}`);
+  }
   const ticker = body.result?.[pair];
-  return { exchange: 'kraken', symbol, price: parsePrice(ticker?.c?.[0]) };
+  if (!ticker) {
+    throw new Error(`kraken unexpected response shape (pair ${pair} not in result)`);
+  }
+  return { exchange: 'kraken', symbol, price: parsePrice(ticker.c?.[0]) };
 }
 
 async function fetchBinanceSpot(symbol: string, fetchImpl: typeof fetch): Promise<ExchangeQuote> {

@@ -19,15 +19,16 @@ describe('collectMarketReference', () => {
       }
       if (u.includes('api.kraken.com')) {
         // price lives at result[PAIR].c[0]; response keyed by the CANONICAL
-        // pair name (XETHZUSD, not ETHUSD) — the exact live-API behavior.
+        // pair names verified against the live API (XETHZUSD, XXBTZUSD,
+        // USDCUSD, USDTZUSD).
         const pair = u.includes('XETHZUSD')
           ? 'XETHZUSD'
-          : u.includes('XBTUSD')
-            ? 'XBTUSD'
-            : u.includes('USDTUSD')
-              ? 'USDTUSD'
+          : u.includes('XXBTZUSD')
+            ? 'XXBTZUSD'
+            : u.includes('USDTZUSD')
+              ? 'USDTZUSD'
               : 'USDCUSD';
-        return jsonResponse({ result: { [pair]: { c: ['3001.0'] } } });
+        return jsonResponse({ error: [], result: { [pair]: { c: ['3001.0'] } } });
       }
       if (u.includes('api.binance.com')) {
         return jsonResponse({ price: '3002.25' });
@@ -64,12 +65,13 @@ describe('collectMarketReference', () => {
         return jsonResponse({ data: { amount: '1.0' } });
       }
       if (u.includes('api.kraken.com')) {
-        if (u.includes('XBTUSD')) throw new Error('kraken down for BTC');
+        if (u.includes('XXBTZUSD')) throw new Error('kraken down for BTC');
         return jsonResponse({
+          error: [],
           result: {
             XETHZUSD: { c: ['1.0'] },
             USDCUSD: { c: ['1.0'] },
-            USDTUSD: { c: ['1.0'] },
+            USDTZUSD: { c: ['1.0'] },
           },
         });
       }
@@ -118,11 +120,12 @@ describe('collectMarketReference', () => {
       if (u.includes('api.coinbase.com')) return jsonResponse({ data: { amount: '0' } });
       if (u.includes('api.kraken.com')) {
         return jsonResponse({
+          error: [],
           result: {
             XETHZUSD: { c: ['-1'] },
-            XBTUSD: { c: ['5'] },
+            XXBTZUSD: { c: ['5'] },
             USDCUSD: { c: ['5'] },
-            USDTUSD: { c: ['5'] },
+            USDTZUSD: { c: ['5'] },
           },
         });
       }
@@ -133,5 +136,21 @@ describe('collectMarketReference', () => {
     const ethCoinbase = rows.find((r) => r.symbol === 'ETH' && r.exchange === 'coinbase')!;
     expect(ethCoinbase.is_success).toBe(false);
     expect(ethCoinbase.error_message).toBe('unusable price from exchange');
+  });
+
+  it('surfaces Kraken HTTP-200 error bodies (e.g. rate limit) instead of a generic miss', async () => {
+    const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
+      const u = String(url);
+      if (u.includes('api.coinbase.com')) return jsonResponse({ data: { amount: '1.0' } });
+      if (u.includes('api.kraken.com')) {
+        return jsonResponse({ error: ['EGeneral:Too many requests'], result: {} });
+      }
+      return jsonResponse({ price: '1.0' });
+    });
+
+    const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), { fetchImpl });
+    const ethKraken = rows.find((r) => r.symbol === 'ETH' && r.exchange === 'kraken')!;
+    expect(ethKraken.is_success).toBe(false);
+    expect(ethKraken.error_message).toContain('EGeneral:Too many requests');
   });
 });

@@ -35,12 +35,13 @@ const COINBASE_PRODUCTS: Record<string, string> = {
 };
 
 const KRAKEN_PAIRS: Record<string, string> = {
-  // Canonical Kraken names (Ticker/OHLC responses are keyed by the canonical
-  // name — ETH is "XETHZUSD", not "ETHUSD"). Matches collector.ts.
+  // Canonical Kraken names — VERIFIED against the live API: Ticker/OHLC
+  // responses are keyed by the canonical name (ETH -> XETHZUSD, BTC ->
+  // XXBTZUSD, USDT -> USDTZUSD; USDC -> USDCUSD). Matches collector.ts.
   ETH: 'XETHZUSD',
-  BTC: 'XBTUSD',
+  BTC: 'XXBTZUSD',
   USDC: 'USDCUSD',
-  USDT: 'USDTUSD',
+  USDT: 'USDTZUSD',
 };
 
 interface Candle {
