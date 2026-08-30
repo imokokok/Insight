@@ -18,8 +18,15 @@ describe('collectMarketReference', () => {
         return jsonResponse({ data: { amount: '3000.5' } }); // ETH
       }
       if (u.includes('api.kraken.com')) {
-        // price lives at result[PAIR].c[0]
-        const pair = u.includes('ETHUSD') ? 'ETHUSD' : u.includes('XBTUSD') ? 'XBTUSD' : 'USDCUSD';
+        // price lives at result[PAIR].c[0]; response keyed by the CANONICAL
+        // pair name (XETHZUSD, not ETHUSD) — the exact live-API behavior.
+        const pair = u.includes('XETHZUSD')
+          ? 'XETHZUSD'
+          : u.includes('XBTUSD')
+            ? 'XBTUSD'
+            : u.includes('USDTUSD')
+              ? 'USDTUSD'
+              : 'USDCUSD';
         return jsonResponse({ result: { [pair]: { c: ['3001.0'] } } });
       }
       if (u.includes('api.binance.com')) {
@@ -59,7 +66,11 @@ describe('collectMarketReference', () => {
       if (u.includes('api.kraken.com')) {
         if (u.includes('XBTUSD')) throw new Error('kraken down for BTC');
         return jsonResponse({
-          result: { ETHUSD: { c: ['1.0'] }, USDCUSD: { c: ['1.0'] }, USDTUSD: { c: ['1.0'] } },
+          result: {
+            XETHZUSD: { c: ['1.0'] },
+            USDCUSD: { c: ['1.0'] },
+            USDTUSD: { c: ['1.0'] },
+          },
         });
       }
       if (u.includes('api.binance.com')) {
@@ -108,7 +119,7 @@ describe('collectMarketReference', () => {
       if (u.includes('api.kraken.com')) {
         return jsonResponse({
           result: {
-            ETHUSD: { c: ['-1'] },
+            XETHZUSD: { c: ['-1'] },
             XBTUSD: { c: ['5'] },
             USDCUSD: { c: ['5'] },
             USDTUSD: { c: ['5'] },

@@ -55,7 +55,11 @@ const COINBASE_PRODUCTS: Record<string, string> = {
 };
 
 const KRAKEN_PAIRS: Record<string, string> = {
-  ETH: 'ETHUSD',
+  // Canonical Kraken pair names: Kraken normalizes aliases and keys the Ticker
+  // response by the CANONICAL name (e.g. ETH -> "XETHZUSD"), so the request
+  // param MUST be the canonical name or the result lookup misses (verified
+  // against the live API: pair=ETHUSD responds keyed "XETHZUSD").
+  ETH: 'XETHZUSD',
   BTC: 'XBTUSD',
   USDC: 'USDCUSD',
   USDT: 'USDTUSD',

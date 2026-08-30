@@ -1,0 +1,59 @@
+name: Backfill Market Reference
+
+# One-shot historical backfill of the external truth layer. Pulls
+# BACKFILL_DAYS of hourly candles (Coinbase Exchange + Kraken OHLC) for the
+# universe symbols and upserts them into `market_reference_snapshots`
+# (migration 0037 must be applied first).
+#
+# Trigger manually: Actions → Backfill Market Reference → Run workflow →
+# set "days" (default 90). Idempotent (upsert with ignoreDuplicates), safe to
+# re-run after a partial failure.
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Days of history to backfill'
+        required: false
+        default: '90'
+        type: number
+
+concurrency:
+  group: market-reference-backfill
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  BACKFILL_DAYS: ${{ inputs.days || '90' }}
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify required secrets
+        run: |
+          set -u
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
+            echo "::error::SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY secrets are required."
+            exit 1
+          fi
+
+      - name: Backfill market reference
+        run: npx tsx scripts/backfill-market-reference.ts --days="${BACKFILL_DAYS}"
