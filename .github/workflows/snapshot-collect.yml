@@ -89,3 +89,11 @@ jobs:
 
       - name: Collect snapshots
         run: npx tsx scripts/collect-snapshot.ts
+
+      # External truth layer (CEX market reference), same 15-min cadence, same
+      # proven runner. Runs here — not as a separate schedule — because GitHub
+      # Actions did not register the new market-reference-collect.yml cron
+      # (0 scheduled runs after hours). This workflow's schedule demonstrably
+      # fires (728+ runs). Idempotent per-snapshot_ts upsert.
+      - name: Collect market reference
+        run: npx tsx scripts/collect-market-reference.ts

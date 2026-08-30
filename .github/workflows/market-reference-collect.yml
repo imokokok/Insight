@@ -1,21 +1,12 @@
 name: Market Reference Collect
 
-# External truth layer collection: independent CEX spot prices for the Oracle
-# Watch universe, every 15 minutes, running DIRECTLY on the GitHub runner
-# (escapes Vercel's 60s serverless timeout — same pattern as snapshot-collect).
-#
-# Writes one row per (symbol, exchange, snapshot_ts) to
-# `market_reference_snapshots` (migration 0037). Fail-closed: a symbol with
-# zero successful quotes yields only failed rows, never an estimated price.
-# Cross-exchange consistency is read from the `market_reference_hourly` view.
-#
-# Binance (api.binance.com) is geo-blocked in some runner regions and is
-# collected best-effort; Coinbase + Kraken are the dependable pair.
+# Manual fallback for external-truth-layer collection. The REAL 15-min cadence
+# runs inside snapshot-collect.yml (step "Collect market reference") because
+# GitHub Actions did not register this file's `schedule` cron (0 scheduled runs
+# after hours; only workflow_dispatch fired). Keep this as a manual trigger for
+# one-off catch-up runs.
 
 on:
-  schedule:
-    # Every 15 minutes at :00,:15,:30,:45
-    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 concurrency:
