@@ -2,3 +2,9 @@ node_modules
 .next
 out
 build
+
+# Registration pin for the VRT1 action type. Its sha256 is the value a verifier
+# checks, so its bytes must not be touched by a formatter. Regenerate the served
+# copy with scripts/vrt1-e2e-prototype/builders/build-scale-declaration-route.mjs
+# and re-run `npm run verify:vrt1` after any deliberate edit.
+scripts/vrt1-e2e-prototype/registration/scale-declaration.json
