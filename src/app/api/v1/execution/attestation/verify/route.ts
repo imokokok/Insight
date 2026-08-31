@@ -19,8 +19,6 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { z } from 'zod';
-
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { getAttesterAddress } from '@/lib/attestations/attesterAccount';
 import {
@@ -38,6 +36,10 @@ import {
   EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
   type ExecutionReceipt,
 } from '@/lib/attestations/executionReceipt';
+import {
+  ExecutionVerifyBodySchema,
+  type ExecutionVerifyBody,
+} from '@/lib/attestations/executionVerifyRequest';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 
 const PUBLIC_MIDDLEWARES = {
@@ -48,32 +50,17 @@ const PUBLIC_MIDDLEWARES = {
   cors: true,
 };
 
-const VerifyBodySchema = z.object({
-  attestation: z
-    .object({
-      uid: z.string(),
-      // Routing inside the crypto layer is by this version, never by the
-      // payload's informational `eip712` block. Accept both v1 and the current
-      // v2 receipts — issueExecutionReceipt emits v2, so rejecting it would make
-      // every real receipt fail validation before reaching the verifier.
-      schemaVersion: z.union([
-        z.literal(EXECUTION_SCHEMA_VERSION),
-        z.literal(EXECUTION_SCHEMA_VERSION_V2),
-      ]),
-      attester: z.string(),
-      signature: z.string(),
-      data: z.record(z.string(), z.unknown()),
-    })
-    .passthrough(),
-});
-
-type VerifyBody = z.infer<typeof VerifyBodySchema>;
+// Both published versions must be accepted here: issueExecutionReceipt emits
+// v2, so an inner `z.literal(EXECUTION_SCHEMA_VERSION)` rejects every real
+// receipt before it reaches the verifier. The schema lives in its own module so
+// that rule is unit-tested rather than trusted.
+// (see executionVerifyRequest.ts)
 
 export const OPTIONS = createOptionsHandler();
 
 export const POST = createApiHandler<
   unknown,
-  VerifyBody,
+  ExecutionVerifyBody,
   Record<string, unknown>,
   Record<string, string>
 >(
@@ -105,7 +92,7 @@ export const POST = createApiHandler<
   },
   {
     middlewares: PUBLIC_MIDDLEWARES,
-    validation: { body: VerifyBodySchema },
+    validation: { body: ExecutionVerifyBodySchema },
   }
 );
 
