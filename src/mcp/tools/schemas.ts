@@ -327,6 +327,51 @@ export const PreTradeSafetyInputSchema = z.object({
     ),
 });
 
+/**
+ * Inputs for the `agent_begin_trade` tool — the pre-trade half of the verifiable
+ * execution loop. An agent hands its swap/DeFi intent; Insight runs the oracle
+ * safety check and, if the verdict allows trading, returns a machine-readable
+ * "execution certification handle" (preTradeUid + requestHash + certified price
+ * and slippage band) the agent feeds into `execution_receipt` after it executes
+ * the trade with its own wallet. `destinationAsset` and `maxSlippageBps` are
+ * required because the handle must pin the exact pair and tolerance the receipt
+ * will be judged against.
+ */
+export const AgentBeginTradeInputSchema = z.object({
+  asset: SafeSymbolSchema.describe('Source asset symbol being sold, e.g. ETH, BTC, USDC'),
+  destinationAsset: SafeSymbolSchema.describe(
+    'Destination asset symbol being bought, e.g. USDC, ETH'
+  ),
+  chainId: z
+    .number()
+    .int()
+    .describe('Chain ID where the trade executes, e.g. 1=Ethereum, 42161=Arbitrum, 8453=Base'),
+  action: z
+    .enum(['swap', 'borrow', 'lend', 'liquidate', 'repay'])
+    .describe('Type of DeFi operation being considered'),
+  tradeAmountUsd: z.number().positive().describe('Trade size in USD'),
+  maxSlippageBps: z
+    .number()
+    .int()
+    .min(0)
+    .describe(
+      'Agent execution tolerance; echoed into the execution receipt as the signed slippage bound'
+    ),
+  targetProviders: z
+    .array(SafeProviderSchema)
+    .optional()
+    .describe('Optional: restrict the check to specific oracle providers'),
+  protocolId: z.string().optional().describe('Optional lending protocol id (lending actions only)'),
+  sourceGroupCount: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe(
+      'Distinct non-derived operator groups the agent gated on; defaults to participantCount'
+    ),
+});
+
 export const MetricsInputSchema = z.object({});
 
 export const ProviderReputationInputSchema = z.object({
@@ -386,4 +431,33 @@ export const ExecutionReceiptInputSchema = z.object({
     .regex(/^0x[0-9a-fA-F]{40}$/)
     .optional()
     .describe('Address whose balances define the trade; defaults to tx sender'),
+});
+
+/** Input for `verify_execution_pair`: the two receipts an agent produced for one
+ *  action — the pre-trade oracle-safety attestation it gated on, and the
+ *  Execution Receipt proving how it filled. Both are opaque signed objects, so
+ *  the shape is enforced loosely and the crypto layer re-derives each hash. */
+export const VerifyExecutionPairInputSchema = z.object({
+  preTradeAttestation: z
+    .object({
+      uid: z.string(),
+      schemaVersion: z.number(),
+      attester: z.string(),
+      data: z.record(z.string(), z.any()),
+      signature: z.string(),
+      type: z.string().optional(),
+      eip712: z.record(z.string(), z.any()).optional(),
+    })
+    .passthrough()
+    .describe('The pre-trade oracle-safety attestation the agent gated on.'),
+  executionReceipt: z
+    .object({
+      uid: z.string(),
+      schemaVersion: z.number(),
+      attester: z.string(),
+      signature: z.string(),
+      data: z.record(z.string(), z.any()),
+    })
+    .passthrough()
+    .describe('The Execution Receipt to check against the pre-trade attestation.'),
 });

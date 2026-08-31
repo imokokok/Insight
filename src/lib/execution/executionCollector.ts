@@ -11,8 +11,11 @@
  * Honesty rules this module is built around — each one exists because the
  * alternative produces a confident-looking receipt that is wrong:
  *
- *   - A native-asset leg has no `Transfer` event. Rather than infer an amount
- *     it does not have, the collector reports the price as unavailable.
+ *   - A native-asset SOURCE leg (the asset the agent sold) is read from the
+ *     transaction's `value` — native leaves the sender's balance directly. A
+ *     native DESTINATION leg (the asset bought) emits no `Transfer` and is not
+ *     in `value` either, so it is genuinely unobservable and the price stays
+ *     unavailable rather than being guessed.
  *   - `decimals()` returning null is NOT treated as 18. Assuming 18 for a
  *     6-decimal token misstates the fill price by a factor of a trillion.
  *   - A reverted transaction is a real, signable outcome (nothing settled), not
@@ -24,7 +27,12 @@
 import { parseCaip19 } from '@/lib/attestations/caip19';
 import { RpcClientWithFallback } from '@/lib/oracles/utils/rpcClientWithFallback';
 
-import { DECIMALS_SELECTOR, decodeAllTransfers, parseDecimalsResult } from './events';
+import {
+  DECIMALS_SELECTOR,
+  decodeAllTransfers,
+  parseDecimalsResult,
+  type DecodedTransfer,
+} from './events';
 
 export type ExecutionCollectionCode = 'NOT_FOUND' | 'RPC_ERROR' | 'UNSUPPORTED_CHAIN';
 
@@ -73,19 +81,66 @@ export interface CollectExecutionParams {
   client?: RpcClientWithFallback;
 }
 
-/** Resolve a CAIP-19 id to an ERC-20 address, or explain why we cannot.
- *  Native assets (slip44) and non-EVM namespaces emit no `Transfer` event, so
- *  they are reported rather than guessed. */
-function erc20AddressFor(
-  assetId: string,
-  chainId: number
-): { address: `0x${string}` } | { unavailable: 'NATIVE_ASSET_LEG' | 'UNSUPPORTED_CHAIN' } {
+/**
+ * Classify an asset leg by what the collector can read from a receipt.
+ *   - 'erc20'      → readable from `Transfer` events (address known).
+ *   - 'native'     → the chain's gas token (slip44). No Transfer event; the
+ *                    amount SOLD is the transaction's `value`, but the amount
+ *                    BOUGHT is not observable (see the native handling below),
+ *                    so the price is only ever readable when the native leg is
+ *                    the SOURCE.
+ *   - 'unsupported' → non-EVM, or an id we cannot parse. Nothing to attribute.
+ */
+interface AssetSpec {
+  kind: 'erc20' | 'native' | 'unsupported';
+  /** Lowercased ERC-20 contract address (erc20 kind only). */
+  address?: string;
+}
+
+function assetSpecFor(assetId: string, chainId: number): AssetSpec {
   const parsed = parseCaip19(assetId);
-  if (!parsed) return { unavailable: 'UNSUPPORTED_CHAIN' };
-  if (parsed.chainNamespace !== 'eip155') return { unavailable: 'UNSUPPORTED_CHAIN' };
-  if (parsed.assetNamespace !== 'erc20') return { unavailable: 'NATIVE_ASSET_LEG' };
-  if (parsed.chainReference !== chainId) return { unavailable: 'UNSUPPORTED_CHAIN' };
-  return { address: parsed.assetReference.toLowerCase() as `0x${string}` };
+  if (!parsed || parsed.chainNamespace !== 'eip155') return { kind: 'unsupported' };
+  if (parsed.chainReference !== chainId) return { kind: 'unsupported' };
+  if (parsed.assetNamespace === 'slip44') return { kind: 'native' };
+  if (parsed.assetNamespace === 'erc20') {
+    return { kind: 'erc20', address: parsed.assetReference.toLowerCase() };
+  }
+  return { kind: 'unsupported' };
+}
+
+/**
+ * Sum the taker-relevant `Transfer`s for one ERC-20 leg and convert to human
+ * units. Direction 'out' attributes tokens LEAVING the taker (the source leg);
+ * 'in' attributes tokens ARRIVING to the taker (the destination leg). Returns
+ * null when the leg emitted no attributable transfer or its `decimals()` could
+ * not be read — a missing amount is reported, never assumed (treating a null
+ * decimals as 18 would misstate the price for a 6-decimal token by a trillion).
+ */
+async function readErc20Amount(params: {
+  tokenAddress: string;
+  taker: string;
+  direction: 'out' | 'in';
+  transfers: DecodedTransfer[];
+  client: RpcClientWithFallback;
+  key: string;
+  endpoints: string[];
+  signal?: AbortSignal;
+}): Promise<number | null> {
+  let raw = 0n;
+  for (const t of params.transfers) {
+    if (t.token.toLowerCase() !== params.tokenAddress) continue;
+    if (params.direction === 'out' && t.from === params.taker) raw += t.value;
+    if (params.direction === 'in' && t.to === params.taker) raw += t.value;
+  }
+  const decimals = await fetchDecimals(
+    params.client,
+    params.key,
+    params.endpoints,
+    params.tokenAddress as `0x${string}`,
+    params.signal
+  );
+  if (raw === 0n || decimals === null) return null;
+  return Number(raw) / 10 ** decimals;
 }
 
 export async function collectExecutionFacts(
@@ -162,15 +217,12 @@ export async function collectExecutionFacts(
     };
   }
 
-  const source = erc20AddressFor(sourceAssetId, chainId);
-  const destination = erc20AddressFor(destinationAssetId, chainId);
-  if ('unavailable' in source || 'unavailable' in destination) {
-    const reason =
-      'unavailable' in source
-        ? source.unavailable
-        : 'unavailable' in destination
-          ? destination.unavailable
-          : 'UNSUPPORTED_CHAIN';
+  const sourceSpec = assetSpecFor(sourceAssetId, chainId);
+  const destinationSpec = assetSpecFor(destinationAssetId, chainId);
+  if (sourceSpec.kind === 'unsupported' || destinationSpec.kind === 'unsupported') {
+    // Non-EVM asset, or an id we cannot parse: no Transfer event and no value
+    // semantics we understand, so there is nothing to attribute. Report it as
+    // an unavailable fill rather than guessing a (wrong) price.
     return {
       ok: true,
       facts: {
@@ -183,8 +235,7 @@ export async function collectExecutionFacts(
         executedPrice: null,
         feeNative,
         executedAt,
-        unavailableReason:
-          reason === 'NATIVE_ASSET_LEG' ? 'NATIVE_ASSET_LEG' : 'FILL_PRICE_UNAVAILABLE',
+        unavailableReason: 'FILL_PRICE_UNAVAILABLE',
       },
     };
   }
@@ -195,52 +246,71 @@ export async function collectExecutionFacts(
   }
 
   const transfers = decodeAllTransfers(receipt.logs);
+  const NATIVE_DECIMALS = 18; // wei; native gas tokens are always 18 decimals.
 
-  // Attribute by direction relative to the taker: source leaves the taker,
-  // destination arrives to the taker. Summing (rather than taking a single
-  // event) handles routers that split a route across several transfers.
-  let sourceRaw = 0n;
-  let destinationRaw = 0n;
-  for (const t of transfers) {
-    if (t.token.toLowerCase() === source.address && t.from === taker) sourceRaw += t.value;
-    if (t.token.toLowerCase() === destination.address && t.to === taker) destinationRaw += t.value;
+  // A native leg cannot be read from `Transfer` events. The native amount SOLD
+  // (source native) is the transaction's `value` — but only when the taker is
+  // the transaction sender, since native leaves the sender's balance directly.
+  // The native amount BOUGHT (destination native) never appears in a Transfer
+  // log or in tx.value (that is what was sent, not received), so it is genuinely
+  // unreadable and the price stays unavailable — we do not guess it.
+  const needsTx = sourceSpec.kind === 'native' || destinationSpec.kind === 'native';
+  let txValueWei: bigint | null = null;
+  if (needsTx) {
+    try {
+      const tx = await client.getTransactionByHash(key, endpoints, txHash, signal);
+      txValueWei = tx?.value ? BigInt(tx.value) : null;
+    } catch {
+      txValueWei = null;
+    }
   }
 
-  const sourceDecimals = await fetchDecimals(client, key, endpoints, source.address, signal);
-  const destinationDecimals = await fetchDecimals(
-    client,
-    key,
-    endpoints,
-    destination.address,
-    signal
-  );
-
-  if (
-    sourceRaw === 0n ||
-    destinationRaw === 0n ||
-    sourceDecimals === null ||
-    destinationDecimals === null
-  ) {
-    // Nothing to compare. This is missing evidence, not a measured drift.
-    return {
-      ok: true,
-      facts: {
-        txHash,
-        chainId,
-        blockNumber,
-        fillStatus: 'FULL',
-        sourceAmount: null,
-        destinationAmount: null,
-        executedPrice: null,
-        feeNative,
-        executedAt,
-        unavailableReason: 'AMOUNT_NOT_ATTRIBUTED',
-      },
-    };
+  // Source leg.
+  let sourceAmount: number | null = null;
+  if (sourceSpec.kind === 'native') {
+    sourceAmount =
+      txValueWei !== null && taker === (receipt.from ?? '').toLowerCase()
+        ? Number(txValueWei) / 10 ** NATIVE_DECIMALS
+        : null;
+  } else {
+    sourceAmount = await readErc20Amount({
+      tokenAddress: sourceSpec.address!,
+      taker,
+      direction: 'out',
+      transfers,
+      client,
+      key,
+      endpoints,
+      signal,
+    });
   }
 
-  const sourceAmount = Number(sourceRaw) / 10 ** sourceDecimals;
-  const destinationAmount = Number(destinationRaw) / 10 ** destinationDecimals;
+  // Destination leg. A native destination is unobservable → price unavailable.
+  const destinationNativeUnreadable = destinationSpec.kind === 'native';
+  const destinationAmount = destinationNativeUnreadable
+    ? null
+    : await readErc20Amount({
+        tokenAddress: destinationSpec.address!,
+        taker,
+        direction: 'in',
+        transfers,
+        client,
+        key,
+        endpoints,
+        signal,
+      });
+
+  const executedPrice =
+    sourceAmount !== null && sourceAmount > 0 && destinationAmount !== null && destinationAmount > 0
+      ? destinationAmount / sourceAmount
+      : null;
+
+  let unavailableReason: ExecutionFacts['unavailableReason'] = null;
+  if (destinationNativeUnreadable) {
+    unavailableReason = 'NATIVE_ASSET_LEG';
+  } else if (sourceAmount === null || destinationAmount === null) {
+    unavailableReason = 'AMOUNT_NOT_ATTRIBUTED';
+  }
 
   return {
     ok: true,
@@ -251,10 +321,10 @@ export async function collectExecutionFacts(
       fillStatus: 'FULL',
       sourceAmount,
       destinationAmount,
-      executedPrice: sourceAmount > 0 ? destinationAmount / sourceAmount : null,
+      executedPrice,
       feeNative,
       executedAt,
-      unavailableReason: null,
+      unavailableReason,
     },
   };
 }

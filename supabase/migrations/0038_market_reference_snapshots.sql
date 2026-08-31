@@ -1,4 +1,4 @@
--- Migration 0037: market reference snapshots (external truth layer)
+-- Migration 0038: market reference snapshots (external truth layer)
 --
 -- Independent CEX market-reference prices for the Oracle Watch universe
 -- (ETH/BTC/USDC/USDT). This is the "external ground truth" layer that lets

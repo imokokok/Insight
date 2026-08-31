@@ -44,46 +44,44 @@ import {
   isAttestationKeyValid,
 } from '@/lib/attestations/keyRegistryConfig';
 import {
-  verifyAttestation,
   getAttesterAddress,
   ATTESTATION_DOMAIN,
   ATTESTATION_TYPES,
   ATTESTATION_PRIMARY_TYPE,
   ATTESTATION_SCHEMA_VERSION,
   ATTESTER_LABEL,
-  type OracleSafetyAttestation,
 } from '@/lib/attestations/oracleSafetyAttestation';
 import {
-  verifyAttestationV2,
   V2_DOMAIN,
   V2_TYPES,
   V2_PRIMARY_TYPE,
   V2_SCHEMA_VERSION,
-  type OracleSafetyAttestationV2,
 } from '@/lib/attestations/oracleSafetyAttestationV2';
 import {
-  verifyAttestationV3,
   V3_DOMAIN,
   V3_TYPES,
   V3_PRIMARY_TYPE,
   V3_SCHEMA_VERSION,
-  type OracleSafetyAttestationV3,
 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import {
-  verifyRecheck,
   RECHECK_DOMAIN,
   RECHECK_TYPES,
   RECHECK_PRIMARY_TYPE,
-  RECHECK_TYPE,
-  type OracleSafetyRecheck,
 } from '@/lib/attestations/oracleSafetyRecheck';
 import {
-  verifyRecheckV3,
   RECHECK_V3_DOMAIN,
   RECHECK_V3_TYPES,
   RECHECK_V3_PRIMARY_TYPE,
-  type OracleSafetyRecheckV3,
 } from '@/lib/attestations/oracleSafetyRecheckV3';
+import {
+  verifyAttestationBySchema,
+  type UnifiedVerificationResult,
+} from '@/lib/attestations/verifyAttestationBySchema';
+
+// Re-exported so existing importers that reached the verifier through this
+// route module keep resolving (the implementation now lives in the shared lib).
+export { verifyAttestationBySchema } from '@/lib/attestations/verifyAttestationBySchema';
+export type { UnifiedVerificationResult } from '@/lib/attestations/verifyAttestationBySchema';
 
 /** Ethereum address (0x + 40 hex). Validated lightly here; the EIP-712 crypto
  *  layer is the real authority on whether the signature is genuine. */
@@ -127,148 +125,9 @@ const VerifyBodySchema = z.object({
 
 type VerifyBody = z.infer<typeof VerifyBodySchema>;
 
-/**
- * Unified verification result — a superset of the v1 and v2 verifier outputs
- * so callers get one stable shape regardless of schemaVersion. `schemaVersion`
- * tells them which domain/types were used; `ageSeconds` is v1-only,
- * `validUntil` is v2-only (null on the other branch).
- */
-export interface UnifiedVerificationResult {
-  valid: boolean;
-  attester: string;
-  uid: string | null;
-  checkedAt: number | null;
-  /** v2 explicit deadline (checkedAt + validForSeconds). null for v1. */
-  validUntil: number | null;
-  /** v1 age-since-checkedAt. null for v2. */
-  ageSeconds: number | null;
-  expired: boolean;
-  schemaVersion: number;
-  reason?: string;
-}
-
-/**
- * Core fields shared by every verifier's result (v1 / v2 / recheck). Each
- * verifier returns this 6-key core plus ONE schema-specific field: v1 carries
- * `ageSeconds`, v2 + recheck carry `validUntil`. {@link toUnified} folds that
- * into the 9-key {@link UnifiedVerificationResult} so the three branches in
- * `verifyAttestationBySchema` stay byte-identical while the shape lives in one
- * place (category B — collapse repetition).
- */
-type CoreVerificationResult = {
-  valid: boolean;
-  attester: string;
-  uid: string | null;
-  checkedAt: number | null;
-  expired: boolean;
-  reason?: string;
-};
-
-/**
- * Map a verifier's raw result + schema version into the unified shape. The one
- * field each verifier doesn't natively carry is passed via `overrides`:
- *   - v1          → validUntil derived from checkedAt + validForSeconds, ageSeconds from result
- *   - v2 / recheck → validUntil from result, ageSeconds forced to null
- * Public signature of `verifyAttestationBySchema` is unchanged; this is a pure
- * internal mapper — no behavior shift, only one literal to maintain.
- */
-function toUnified(
-  result: CoreVerificationResult,
-  schemaVersion: number,
-  overrides: { validUntil: number | null; ageSeconds: number | null }
-): UnifiedVerificationResult {
-  return {
-    valid: result.valid,
-    attester: result.attester,
-    uid: result.uid,
-    checkedAt: result.checkedAt,
-    validUntil: overrides.validUntil,
-    ageSeconds: overrides.ageSeconds,
-    expired: result.expired,
-    schemaVersion,
-    reason: result.reason,
-  };
-}
-
-/**
- * Route an attestation to its schema-versioned verifier:
- *   - v1 (schemaVersion=1)                 → v1 domain/types (11 fields)
- *   - v2 OracleSafetyCheck (schemaVersion=2, primaryType 'OracleSafetyCheck')
- *                                          → v2 domain/types (26 fields)
- *   - v2 OracleSafetyRecheck (schemaVersion=2, primaryType 'OracleSafetyRecheck')
- *                                          → recheck domain/types (28 fields)
- *   - v3 OracleSafetyCheck (schemaVersion=3, primaryType 'OracleSafetyCheck')
- *                                          → v3 domain/types (27 fields = v2's
- *                                            26 + the signed independence
- *                                            threshold)
- *   - v3 OracleSafetyRecheck (schemaVersion=3, primaryType 'OracleSafetyRecheck')
- *                                          → v3 recheck domain/types (29 fields)
- *
- * The recheck carries schemaVersion=2 (v2 family) but a distinct primaryType,
- * so it MUST be routed before the plain-v2 branch — otherwise it would be
- * verified against the 26-field type (ignoring originalUid + originalRequestHash)
- * and always fail UID recovery. Extracted as a pure, exported helper so the
- * routing decision is unit-testable without the API middleware stack.
- *
- * Unknown schema versions / primaryTypes return an invalid result rather than
- * throwing, so the public endpoint can respond with a structured `valid: false`.
- */
-export async function verifyAttestationBySchema(
-  attestation: VerifyBody['attestation']
-): Promise<UnifiedVerificationResult> {
-  const schemaVersion = attestation.schemaVersion;
-  // `type` is the envelope discriminator (recheck sets it to 'OracleSafetyRecheck');
-  // `primaryType` is the EIP-712 primary type. Either suffices to detect a recheck
-  // — check both so a recheck routes correctly even if one is missing.
-  const primaryType = attestation.eip712?.primaryType;
-  const isRecheck =
-    (attestation as { type?: string }).type === RECHECK_TYPE ||
-    primaryType === RECHECK_PRIMARY_TYPE;
-
-  // Recheck branches: the recheck types are distinct from the plain types and
-  // carry the same primaryType across v2 and v3, so the schemaVersion decides
-  // which layout (28 vs 29 fields) applies. Must come BEFORE the plain branches.
-  if (schemaVersion === V3_SCHEMA_VERSION && isRecheck) {
-    const rc = await verifyRecheckV3(attestation as unknown as OracleSafetyRecheckV3);
-    return toUnified(rc, V3_SCHEMA_VERSION, { validUntil: rc.validUntil, ageSeconds: null });
-  }
-
-  if (schemaVersion === V2_SCHEMA_VERSION && isRecheck) {
-    const rc = await verifyRecheck(attestation as unknown as OracleSafetyRecheck);
-    return toUnified(rc, V2_SCHEMA_VERSION, { validUntil: rc.validUntil, ageSeconds: null });
-  }
-
-  if (schemaVersion === V3_SCHEMA_VERSION) {
-    const v3 = await verifyAttestationV3(attestation as unknown as OracleSafetyAttestationV3);
-    return toUnified(v3, V3_SCHEMA_VERSION, { validUntil: v3.validUntil, ageSeconds: null });
-  }
-
-  if (schemaVersion === V2_SCHEMA_VERSION) {
-    const v2 = await verifyAttestationV2(attestation as unknown as OracleSafetyAttestationV2);
-    return toUnified(v2, V2_SCHEMA_VERSION, { validUntil: v2.validUntil, ageSeconds: null });
-  }
-
-  if (schemaVersion === ATTESTATION_SCHEMA_VERSION) {
-    const v1 = await verifyAttestation(attestation as unknown as OracleSafetyAttestation);
-    // v1 has no explicit validUntil field; derive it for the unified shape.
-    return toUnified(v1, ATTESTATION_SCHEMA_VERSION, {
-      validUntil: v1.checkedAt !== null ? v1.checkedAt + attestation.validForSeconds : null,
-      ageSeconds: v1.ageSeconds,
-    });
-  }
-
-  return {
-    valid: false,
-    attester: attestation.attester,
-    uid: attestation.uid ?? null,
-    checkedAt: null,
-    validUntil: null,
-    ageSeconds: null,
-    expired: false,
-    schemaVersion,
-    reason: `Unsupported schemaVersion ${schemaVersion}; supported: 1 (v1), 2 (v2), 3 (v3).`,
-  };
-}
+// verifyAttestationBySchema + UnifiedVerificationResult now live in
+// @/lib/attestations/verifyAttestationBySchema (re-exported above) so the
+// execution trust layer can reuse them without importing this route module.
 
 /** Loose EIP-712 domain/type shape for the informational GET response. v1 and
  *  v2 domains differ only in the `version` literal ('1' vs '2'); widening to

@@ -143,7 +143,7 @@ describe('collectExecutionFacts', () => {
     expect(result.facts.unavailableReason).toBe('FILL_PRICE_UNAVAILABLE');
   });
 
-  it('reports a native-asset leg as unavailable rather than guessing an amount', async () => {
+  it('reports a native DESTINATION leg as unavailable (bought native is unobservable)', async () => {
     const receipt: RpcTransactionReceipt = {
       transactionHash: '0xnative',
       transactionIndex: '0x0',
@@ -164,9 +164,10 @@ describe('collectExecutionFacts', () => {
       txHash: '0xnative' as `0x${string}`,
       chainId: 1,
       endpoints,
-      // ETH is a native (slip44) asset — no Transfer event exists for it.
-      sourceAssetId: 'eip155:1/slip44:60',
-      destinationAssetId: `eip155:1/erc20:${DST}`,
+      // Selling an ERC-20 for ETH: the bought native leg is not in any Transfer
+      // log nor in tx.value, so the price must stay unavailable.
+      sourceAssetId: `eip155:1/erc20:${SRC}`,
+      destinationAssetId: 'eip155:1/slip44:60',
       taker: TAKER,
       client: fakeClient({ receipt, block: { timestamp: '0x1' } }),
     });
@@ -175,6 +176,61 @@ describe('collectExecutionFacts', () => {
     if (!result.ok) return;
     expect(result.facts.executedPrice).toBeNull();
     expect(result.facts.unavailableReason).toBe('NATIVE_ASSET_LEG');
+  });
+
+  it('reads a native SOURCE leg (sold native) from tx.value and computes the price', async () => {
+    const receipt: RpcTransactionReceipt = {
+      transactionHash: '0xsellnative',
+      transactionIndex: '0x0',
+      blockHash: '0xblock',
+      blockNumber: '0x13',
+      // The native leg leaves the taker's balance directly, so from === taker.
+      from: TAKER,
+      to: '0xdead' as `0x${string}`,
+      cumulativeGasUsed: '0x1',
+      gasUsed: '0x5208',
+      effectiveGasPrice: '0x3b9aca00',
+      status: '0x1',
+      type: '0x2',
+      contractAddress: null,
+      logs: [
+        // 0.4 WETH arrives to the taker (destination is an ERC-20).
+        transferLog(DST, ROUTER, TAKER, 4n * 10n ** 17n),
+      ],
+    };
+
+    const client = fakeClient({
+      receipt,
+      block: { timestamp: '0x1' },
+      decimals: '0x12',
+    });
+    // The sold native amount lives in the transaction's value, not a Transfer.
+    (client as unknown as { getTransactionByHash: jest.Mock }).getTransactionByHash = jest.fn(
+      async () => ({ value: '0x' + (2n * 10n ** 18n).toString(16), from: TAKER })
+    );
+    (client.ethCall as jest.Mock).mockImplementation(async (_k, _e, token) => {
+      const d = token.toLowerCase() === SRC ? 6 : 18;
+      return ('0x' + d.toString(16).padStart(64, '0')) as `0x${string}`;
+    });
+
+    const result = await collectExecutionFacts({
+      txHash: '0xsellnative' as `0x${string}`,
+      chainId: 1,
+      endpoints,
+      // Selling 2 ETH for WETH.
+      sourceAssetId: 'eip155:1/slip44:60',
+      destinationAssetId: `eip155:1/erc20:${DST}`,
+      taker: TAKER,
+      client,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.facts.sourceAmount).toBeCloseTo(2, 9);
+    expect(result.facts.destinationAmount).toBeCloseTo(0.4, 9);
+    // 0.4 / 2 = 0.2 WETH per ETH.
+    expect(result.facts.executedPrice).toBeCloseTo(0.2, 10);
+    expect(result.facts.unavailableReason).toBeNull();
   });
 
   it('returns NOT_FOUND (not an error) when the node has never seen the tx', async () => {

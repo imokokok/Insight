@@ -1,5 +1,6 @@
 import { createLogger } from '@/lib/utils/logger';
 
+import { agentBeginTradeTool } from './agentBeginTradeTools';
 import {
   getAnomaliesTool,
   getCorrelationTool,
@@ -26,6 +27,8 @@ import {
   DateQueryJsonSchema,
   DeviationJsonSchema,
   ExecutionReceiptJsonSchema,
+  AgentBeginTradeJsonSchema,
+  VerifyExecutionPairJsonSchema,
   FeedFreshnessJsonSchema,
   FeedHealthJsonSchema,
   FeedsJsonSchema,
@@ -69,6 +72,7 @@ import {
 import { checkPositionSafetyTool } from './safetyTools';
 import { getStablecoinPegTool } from './stablecoinTools';
 import { getStablecoinListTool, getSymbolsTool, recommendOracleSetupTool } from './utilityTools';
+import { verifyExecutionPairTool } from './verifyExecutionPairTools';
 import { getWrappedAssetPegTool } from './wrappedAssetTools';
 
 import type { McpToolCallResult, McpToolDefinition } from './types';
@@ -111,6 +115,8 @@ const MCP_TOOLS: McpToolDefinition[] = [
   oracleWatchTool,
   oracleWatchHistoryTool,
   executionReceiptTool,
+  agentBeginTradeTool,
+  verifyExecutionPairTool,
 ];
 
 const JSON_SCHEMA_MAP: Record<
@@ -288,6 +294,16 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   execution_receipt: ExecutionReceiptJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  agent_begin_trade: AgentBeginTradeJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  verify_execution_pair: VerifyExecutionPairJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

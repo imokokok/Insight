@@ -271,6 +271,36 @@ export const PreTradeSafetyJsonSchema = z.object({
     .describe('Optional: restrict the check to specific oracle providers'),
 });
 
+/** Wire schema for `agent_begin_trade`. No `.default()` so zod v4 toJSONSchema()
+ *  stays happy; the tool pins schemaVersion 3 internally and applies the
+ *  sourceGroupCount default from participantCount. */
+export const AgentBeginTradeJsonSchema = z.object({
+  asset: z.string().describe('Source asset symbol being sold, e.g. ETH, USDC'),
+  destinationAsset: z.string().describe('Destination asset symbol being bought, e.g. USDC, ETH'),
+  chainId: z
+    .number()
+    .int()
+    .describe('Chain ID where the trade executes, e.g. 1=Ethereum, 42161=Arbitrum, 8453=Base'),
+  action: z.enum(['swap', 'borrow', 'lend', 'liquidate', 'repay']),
+  tradeAmountUsd: z.number().positive().describe('Trade size in USD'),
+  maxSlippageBps: z
+    .number()
+    .int()
+    .min(0)
+    .describe('Agent execution tolerance; echoed into the execution receipt'),
+  targetProviders: z
+    .array(providerEnum)
+    .optional()
+    .describe('Optional: restrict the check to specific oracle providers'),
+  protocolId: z.string().optional().describe('Optional lending protocol id (lending actions only)'),
+  sourceGroupCount: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe('Distinct non-derived operator groups; defaults to participantCount'),
+});
+
 export const MetricsJsonSchema = z.object({});
 
 export const ProviderReputationJsonSchema = z.object({
@@ -308,4 +338,29 @@ export const ExecutionReceiptJsonSchema = z.object({
     .string()
     .optional()
     .describe('Address whose balances define the trade; defaults to tx sender'),
+});
+
+export const VerifyExecutionPairJsonSchema = z.object({
+  preTradeAttestation: z
+    .object({
+      uid: z.string(),
+      schemaVersion: z.number(),
+      attester: z.string(),
+      data: z.record(z.string(), z.any()),
+      signature: z.string(),
+      type: z.string().optional(),
+      eip712: z.record(z.string(), z.any()).optional(),
+    })
+    .passthrough()
+    .describe('The pre-trade oracle-safety attestation the agent gated on.'),
+  executionReceipt: z
+    .object({
+      uid: z.string(),
+      schemaVersion: z.number(),
+      attester: z.string(),
+      signature: z.string(),
+      data: z.record(z.string(), z.any()),
+    })
+    .passthrough()
+    .describe('The Execution Receipt to check against the pre-trade attestation.'),
 });
