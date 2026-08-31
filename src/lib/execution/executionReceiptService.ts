@@ -10,11 +10,12 @@
  * source-group counts + age at execution) so a holder can judge whether that
  * basis was still sound at settlement.
  *
- * It is deliberately stateless about pre-trade: the caller hands in the pre-trade
- * fields it needs (the agent already holds its own pre-trade receipt). The
- * cryptographic pairing (`preTradeUid` + `requestHash`) lives in the signed
- * receipt; this module never queries the pre-trade table, so the dependency is
- * by proof, not by database join.
+ * It does not query the pre-trade table — the dependency is by proof, not by
+ * database join. What it does instead is stronger: when the caller presents the
+ * signed pre-trade attestations, they are verified first and every binding
+ * field is read out of the verified payload, so the caller cannot steer the
+ * quote it will be graded against. Without them the receipt is still issued, but
+ * marked SELF_REPORTED and barred from a FAITHFUL verdict.
  *
  * Honesty boundaries enforced here:
  *   - An unsupported chain yields a clean error, never a guessed endpoint.
@@ -31,6 +32,7 @@ import {
   derivePriceDeltaBps,
   EXECUTION_REQUIRED_PARTICIPANT_COUNT,
   EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
+  type ExecutionBindingMode,
   type ExecutionReceipt,
   type ExecutionReceiptInput,
   type FillStatus,
@@ -39,6 +41,7 @@ import {
 import { type RpcClientWithFallback } from '@/lib/oracles/utils/rpcClientWithFallback';
 
 import { collectExecutionFacts, type ExecutionFacts } from './executionCollector';
+import { resolvePreTradeBinding, type PreTradeAttestationEnvelope } from './preTradeBinding';
 import { getRpcEndpoints } from './rpcEndpoints';
 
 /** Beyond this age, the oracle basis the agent gated on is treated as stale and
@@ -50,7 +53,19 @@ export type IssueExecutionReceiptErrorCode =
   | 'UNSUPPORTED_CHAIN'
   | 'NOT_FOUND'
   | 'RPC_ERROR'
-  | 'SIGNING_UNAVAILABLE';
+  | 'SIGNING_UNAVAILABLE'
+  /** A pre-trade attestation was presented but did not verify. Never downgraded
+   *  to a weaker receipt: claiming a provenance you cannot prove is a rejection,
+   *  not a lesser product. */
+  | 'PRE_TRADE_VERIFICATION_FAILED';
+
+/** The pre-trade attestation originals, when the caller can present them.
+ *  Supplying BOTH upgrades the receipt to a VERIFIED binding, which is the only
+ *  way a receipt can reach a FAITHFUL verdict. */
+export interface PreTradeOriginals {
+  source: PreTradeAttestationEnvelope;
+  destination: PreTradeAttestationEnvelope;
+}
 
 export interface IssueExecutionReceiptParams {
   // --- Pre-trade binding (the agent holds its own pre-trade receipt) ---
@@ -66,6 +81,12 @@ export interface IssueExecutionReceiptParams {
   sourceGroupCount: number;
   /** Unix seconds the pre-trade was signed — bounds oracleDataAgeAtExec. */
   preTradeSignedAt: number;
+  /** The signed pre-trade gates themselves. When both are present and verify,
+   *  every binding field above is re-derived from the verified payloads and the
+   *  receipt is marked VERIFIED. When absent, the fields above are the caller's
+   *  own assertion and the receipt says so (SELF_REPORTED), which can never be
+   *  graded FAITHFUL. */
+  preTradeAttestations?: PreTradeOriginals | null;
 
   // --- The trade the agent committed to ---
   /** Target price, in the SAME convention as executedPrice (e.g. units of
@@ -92,7 +113,18 @@ export interface IssueExecutionReceiptParams {
 }
 
 export type IssueExecutionReceiptResult =
-  | { ok: true; receipt: ExecutionReceipt; facts: ExecutionFacts }
+  | {
+      ok: true;
+      receipt: ExecutionReceipt;
+      facts: ExecutionFacts;
+      /** Echoed so the caller can see why a receipt did not come back FAITHFUL. */
+      binding: {
+        bindingMode: ExecutionBindingMode;
+        quotedPrice: number;
+        preTradeSignedAt: number;
+        preTradeExpired: boolean;
+      };
+    }
   | { ok: false; code: IssueExecutionReceiptErrorCode; message: string };
 
 /** Build the executed-side reason-code set from the evidence. Pure and local;
@@ -107,6 +139,7 @@ function deriveReasonCodes(params: {
   oracleAgeSeconds: number;
   participantCount: number;
   sourceGroupCount: number;
+  bindingMode: ExecutionBindingMode;
 }): string[] {
   if (params.fillStatus === 'REVERTED' || params.fillStatus === 'FAILED') {
     return [params.fillStatus === 'REVERTED' ? 'TX_REVERTED' : 'TX_FAILED'];
@@ -119,6 +152,19 @@ function deriveReasonCodes(params: {
   }
 
   const codes: string[] = [];
+
+  // A gate signed AFTER the fill cannot have authorised it. This used to be
+  // invisible: the age was clamped with Math.max(0, ...), so a pre-trade
+  // fabricated after a favourable fill reported the freshest possible age.
+  // Report it first — it invalidates everything the quote comparison claims.
+  if (params.oracleAgeSeconds < 0) {
+    codes.push('PRE_TRADE_AFTER_EXECUTION');
+  }
+  // No proven pre-trade: the quote this receipt compares against is the
+  // caller's own assertion, so faithfulness is not gradable.
+  if (params.bindingMode !== 'VERIFIED') {
+    codes.push('PRE_TRADE_NOT_PRESENTED');
+  }
   // Symmetric band (matches the status derivation): a fill outside ±maxSlippageBps
   // of the certified price is slippage, in either direction.
   if (Math.abs(params.priceDeltaBps) > params.maxSlippageBps) codes.push('SLIPPAGE_EXCEEDED');
@@ -152,6 +198,29 @@ export async function issueExecutionReceipt(
     };
   }
 
+  // Resolve HOW we are bound to the pre-trade gate before anything is signed.
+  // When originals are presented, every binding field below is re-derived from
+  // the verified payloads, so the receipt cannot be steered by the caller.
+  const bindingResult = await resolvePreTradeBinding({
+    source: params.preTradeAttestations?.source ?? null,
+    destination: params.preTradeAttestations?.destination ?? null,
+    selfReported: {
+      preTradeUid: params.preTradeUid,
+      requestHash: params.requestHash,
+      sourceAssetId: params.sourceAssetId,
+      destinationAssetId: params.destinationAssetId,
+      subjectChainId: params.subjectChainId,
+      participantCount: params.participantCount,
+      sourceGroupCount: params.sourceGroupCount,
+      preTradeSignedAt: params.preTradeSignedAt,
+      quotedPrice: params.quotedPrice,
+    },
+  });
+  if (!bindingResult.ok) {
+    return { ok: false, code: bindingResult.code, message: bindingResult.message };
+  }
+  const binding = bindingResult.binding;
+
   const factsResult = await collectExecutionFacts({
     txHash: params.txHash,
     chainId,
@@ -174,28 +243,36 @@ export async function issueExecutionReceipt(
   const facts = factsResult.facts;
 
   const executedAt = facts.executedAt ?? Math.floor(Date.now() / 1000);
-  const oracleAgeSeconds = Math.max(0, executedAt - params.preTradeSignedAt);
+  // Signed NEGATIVE when the pre-trade post-dates the fill. It used to be
+  // clamped to 0, which made a gate fabricated after a favourable fill look
+  // like the freshest possible one. The receipt's stored age stays non-negative
+  // (the EIP-712 field is unsigned), but the ordering violation is reported as
+  // a reason code and forces an UNDETERMINED verdict.
+  const oracleAgeSeconds = executedAt - binding.preTradeSignedAt;
 
-  const priceDeltaBps = derivePriceDeltaBps(params.quotedPrice, facts.executedPrice ?? 0);
+  const priceDeltaBps = derivePriceDeltaBps(binding.quotedPrice, facts.executedPrice ?? 0);
   const reasonCodes = deriveReasonCodes({
     fillStatus: facts.fillStatus,
     unavailableReason: facts.unavailableReason,
     priceDeltaBps,
     maxSlippageBps: params.maxSlippageBps ?? 50,
     oracleAgeSeconds,
-    participantCount: params.participantCount,
-    sourceGroupCount: params.sourceGroupCount,
+    participantCount: binding.participantCount,
+    sourceGroupCount: binding.sourceGroupCount,
+    bindingMode: binding.bindingMode,
   });
 
   const input: ExecutionReceiptInput = {
-    preTradeUid: params.preTradeUid,
-    requestHash: params.requestHash,
-    sourceAssetId: params.sourceAssetId,
-    destinationAssetId: params.destinationAssetId,
-    subjectChainId: params.subjectChainId,
+    preTradeUid: binding.preTradeUid as `0x${string}`,
+    requestHash: binding.requestHash as `0x${string}`,
+    preTradeSignedAt: binding.preTradeSignedAt,
+    bindingMode: binding.bindingMode,
+    sourceAssetId: binding.sourceAssetId,
+    destinationAssetId: binding.destinationAssetId,
+    subjectChainId: binding.subjectChainId,
     settlementChainId: params.settlementChainId,
     action: params.action ?? 'SWAP',
-    quotedPrice: params.quotedPrice,
+    quotedPrice: binding.quotedPrice,
     executedPrice: facts.executedPrice ?? 0,
     maxSlippageBps: params.maxSlippageBps,
     quotedAmountUsd: params.quotedAmountUsd ?? 0,
@@ -206,8 +283,8 @@ export async function issueExecutionReceipt(
     blockNumber: Number(facts.blockNumber ?? 0),
     executedAt,
     oracleDataAgeAtExecSeconds: oracleAgeSeconds,
-    participantCount: params.participantCount,
-    sourceGroupCount: params.sourceGroupCount,
+    participantCount: binding.participantCount,
+    sourceGroupCount: binding.sourceGroupCount,
     mevRiskScore: params.mevRiskScore,
     reasonCodes,
   };
@@ -221,5 +298,15 @@ export async function issueExecutionReceipt(
     };
   }
 
-  return { ok: true, receipt, facts };
+  return {
+    ok: true,
+    receipt,
+    facts,
+    binding: {
+      bindingMode: binding.bindingMode,
+      quotedPrice: binding.quotedPrice,
+      preTradeSignedAt: binding.preTradeSignedAt,
+      preTradeExpired: binding.preTradeExpired,
+    },
+  };
 }

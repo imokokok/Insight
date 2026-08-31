@@ -80,8 +80,12 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
 
     // Destination-leg consensus price, to express the certified quote as
     // destination-per-source (the convention the execution receipt shares with
-    // the on-chain executedPrice).
+    // the on-chain executedPrice). We also keep the destination attestation
+    // original: the agent must hand BOTH pre-trade originals back to
+    // execution_receipt for a VERIFIED binding, and agent_begin_trade is the
+    // only moment that holds both at once.
     let destinationConsensus: number;
+    let destinationAttestation = undefined as typeof sourceCheck.attestation | undefined;
     try {
       const destCheck = await preTradeSafetyCheck({
         asset: args.destinationAsset,
@@ -93,8 +97,13 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
         schemaVersion: 3,
       });
       destinationConsensus = destCheck.consensusPrice;
+      destinationAttestation = destCheck.attestation;
     } catch {
       return `agent_begin_trade failed: could not resolve a consensus price for destination asset "${args.destinationAsset}".`;
+    }
+
+    if (!destinationAttestation) {
+      return 'agent_begin_trade failed: destination pre-trade attestation was not signed (attester key misconfigured?).';
     }
 
     const sourceConsensus = sourceCheck.consensusPrice;
@@ -138,6 +147,15 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
       action: args.action.toUpperCase(),
       verdict: sourceCheck.verdict,
       preTradeVerifyUrl: attestation.verifyUrl,
+      // The two signed pre-trade originals. Passing these to execution_receipt
+      // upgrades the Execution Receipt to a VERIFIED binding: every bound field
+      // is then read from the verified payloads instead of from this handle, so
+      // a malicious agent cannot widen its own quote or provider counts. Omit
+      // them and the receipt falls back to SELF_REPORTED (never FAITHFUL).
+      preTradeAttestations: {
+        source: attestation,
+        destination: destinationAttestation,
+      },
     };
 
     const lines = [
@@ -150,10 +168,11 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
       `Tolerance band: ±${args.maxSlippageBps} bps. Oracle participant providers: ${sourceCheck.participantCount}.`,
       '',
       'Next step: execute the trade with YOUR wallet, then call `execution_receipt` with the',
-      'handle above (preTradeUid, requestHash, sourceAssetId, destinationAssetId, subjectChainId,',
-      'settlementChainId, participantCount, sourceGroupCount, preTradeSignedAt, quotedPrice,',
-      'maxSlippageBps, action) plus the settlement txHash. Insight will collect the on-chain fill',
-      'and sign a verifiable Execution Receipt paired to this pre-trade gate.',
+      'handle above plus the settlement txHash. Crucially, pass `preTradeAttestations` back too —',
+      'it is the pair of signed pre-trade originals. Without them the receipt is SELF_REPORTED',
+      'and can never read FAITHFUL; with them it is VERIFIED (every bound field re-derived from',
+      'the verified payloads). Insight will collect the on-chain fill and sign a verifiable',
+      'Execution Receipt paired to this pre-trade gate.',
     ];
     return lines.join('\n');
   },

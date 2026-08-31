@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { VerifyExecutionPairWidget } from '@/components/verifiability/VerifyExecutionPairWidget';
 import { VerifyReceiptWidget } from '@/components/verifiability/VerifyReceiptWidget';
 
 const ANCHORS = [
@@ -38,6 +39,8 @@ export function VerifiableReceiptsSection() {
         </div>
 
         <VerifyReceiptWidget />
+
+        <VerifyExecutionPairWidget />
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">

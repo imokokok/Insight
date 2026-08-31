@@ -75,6 +75,18 @@ const IssueBodySchema = z.object({
     .regex(HEX_ADDRESS)
     .optional()
     .describe('Address whose balances define the trade; defaults to tx sender'),
+  /** The signed pre-trade gates, when the caller can present them. Supplying
+   *  BOTH upgrades the receipt to a VERIFIED binding: every binding field above
+   *  is then re-derived from the verified payloads instead of trusted from the
+   *  request, and the receipt becomes eligible for a FAITHFUL verdict. Omitting
+   *  them still returns a receipt, marked SELF_REPORTED and never FAITHFUL. */
+  preTradeAttestations: z
+    .object({
+      source: z.record(z.string(), z.unknown()),
+      destination: z.record(z.string(), z.unknown()),
+    })
+    .optional()
+    .describe('Signed pre-trade attestations for the source and destination assets'),
 });
 
 type IssueBody = z.infer<typeof IssueBodySchema>;
@@ -110,6 +122,12 @@ export const POST = createApiHandler<
       mevRiskScore: body.mevRiskScore,
       txHash: body.txHash as `0x${string}`,
       taker: body.taker as `0x${string}` | undefined,
+      preTradeAttestations: body.preTradeAttestations
+        ? {
+            source: body.preTradeAttestations.source as never,
+            destination: body.preTradeAttestations.destination as never,
+          }
+        : null,
     });
 
     if (!result.ok) {
@@ -120,7 +138,9 @@ export const POST = createApiHandler<
             ? 404
             : result.code === 'SIGNING_UNAVAILABLE'
               ? 503
-              : 502;
+              : result.code === 'PRE_TRADE_VERIFICATION_FAILED'
+                ? 400
+                : 502;
       return NextResponse.json(
         ApiResponseBuilder.error(result.code, result.message, { requestId: context.requestId }),
         { status }
@@ -150,7 +170,13 @@ export const POST = createApiHandler<
           wellKnown: `${base}/.well-known/oracle-keys.json`,
           verify: `${base}/api/v1/execution/attestation/verify`,
           executionStatus: result.receipt.data.executionStatus,
+          bindingMode: result.receipt.data.bindingMode,
+          binding: result.binding,
           note: `Freshly signed ExecutionReceipt v${result.receipt.schemaVersion}. executionStatus is Insight's verdict on whether the fill matched the certified price within the signed bound — not a claim the price was correct.`,
+          bindingNote:
+            result.receipt.data.bindingMode === 'VERIFIED'
+              ? 'Binding VERIFIED: the pre-trade attestations were signature-checked and every binding field was taken from the verified payload.'
+              : "Binding SELF_REPORTED: no pre-trade attestation was presented, so the quoted price and oracle basis are the caller's own assertion. Such a receipt can never be FAITHFUL — supply preTradeAttestations to make it gradeable.",
         },
         { requestId: context.requestId }
       )

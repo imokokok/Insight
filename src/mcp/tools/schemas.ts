@@ -431,6 +431,18 @@ export const ExecutionReceiptInputSchema = z.object({
     .regex(/^0x[0-9a-fA-F]{40}$/)
     .optional()
     .describe('Address whose balances define the trade; defaults to tx sender'),
+  /** The signed pre-trade originals returned by `agent_begin_trade`. Passing
+   *  BOTH upgrades the receipt to a VERIFIED binding: every bound field is then
+   *  re-derived from the verified payloads instead of trusted from this request,
+   *  and the receipt becomes eligible for a FAITHFUL verdict. Omit and the
+   *  receipt falls back to SELF_REPORTED (never FAITHFUL). */
+  preTradeAttestations: z
+    .object({
+      source: z.record(z.string(), z.unknown()),
+      destination: z.record(z.string(), z.unknown()),
+    })
+    .optional()
+    .describe('Signed pre-trade attestations for the source and destination assets'),
 });
 
 /** Input for `verify_execution_pair`: the two receipts an agent produced for one

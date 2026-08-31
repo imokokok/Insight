@@ -54,6 +54,23 @@ jest.mock('@/lib/attestations/executionReceipt', () => {
   };
 });
 
+// The binding resolver is exercised with real signatures in its own suite.
+// Here it is stubbed to a VERIFIED binding that echoes the caller's values, so
+// these tests stay focused on the orchestration: RPC resolution, on-chain
+// collection, and the verdict the evidence produces.
+jest.mock('../preTradeBinding', () => {
+  const actual = jest.requireActual('../preTradeBinding');
+  return {
+    ...actual,
+    resolvePreTradeBinding: async (params: {
+      selfReported: Record<string, unknown>;
+    }): Promise<unknown> => ({
+      ok: true,
+      binding: { ...params.selfReported, bindingMode: 'VERIFIED', preTradeExpired: false },
+    }),
+  };
+});
+
 const TAKER = '0x1111111111111111111111111111111111111111' as const;
 const SRC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const;
 const DST = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' as const;
@@ -180,5 +197,23 @@ describe('issueExecutionReceipt', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.receipt.data.executionStatus).toBe('NOT_EXECUTED');
+  });
+
+  it('refuses FAITHFUL when the pre-trade gate post-dates the fill', async () => {
+    // The post-hoc selection hole: execute first, then obtain a gate that
+    // flatters the fill. The gate timestamp is signed into the receipt, so the
+    // ordering violation stays visible to any holder.
+    const result = await issueExecutionReceipt({
+      ...baseArgs,
+      preTradeSignedAt: 1_700_000_600, // 600s AFTER the block timestamp
+      client: fakeClient(swapReceipt(1000n * 10n ** 6n, 4n * 10n ** 17n)),
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // The fill itself was clean — it just cannot be graded against a gate that
+    // did not exist yet.
+    expect(result.receipt.data.slippageSatisfied).toBe(true);
+    expect(result.receipt.data.preTradeSignedAt).toBe(1_700_000_600);
+    expect(result.receipt.data.executionStatus).toBe('UNDETERMINED');
   });
 });

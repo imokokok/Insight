@@ -31,6 +31,7 @@ import {
   EXECUTION_TYPES,
   EXECUTION_PRIMARY_TYPE,
   EXECUTION_SCHEMA_VERSION,
+  EXECUTION_SCHEMA_VERSION_V2,
   CURRENT_EXECUTION_SCHEMA_VERSION,
 } from '@/lib/attestations/executionReceipt';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
@@ -62,11 +63,17 @@ const PreTradeAttestationSchema = z
   })
   .passthrough();
 
-/** Loose envelope for the Execution Receipt (same philosophy). */
+/** Loose envelope for the Execution Receipt (same philosophy). Accepts both
+ *  v1 and v2 receipts — v2 adds the signed bindingMode + preTradeSignedAt, and
+ *  is what issueExecutionReceipt emits today. A literal(1) here would silently
+ *  reject every real v2 receipt, so we accept the supported schema set. */
 const ExecutionReceiptSchema = z
   .object({
     uid: z.string(),
-    schemaVersion: z.literal(EXECUTION_SCHEMA_VERSION),
+    schemaVersion: z.union([
+      z.literal(EXECUTION_SCHEMA_VERSION),
+      z.literal(EXECUTION_SCHEMA_VERSION_V2),
+    ]),
     attester: z.string(),
     signature: z.string(),
     data: z.record(z.string(), z.any()),

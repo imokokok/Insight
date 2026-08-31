@@ -1,5 +1,5 @@
 /**
- * Unit tests for the Execution Receipt (30 signed fields).
+ * Unit tests for the Execution Receipt (v2: 32 signed fields; v1: 30).
  *
  * These tests pin the two properties the receipt exists to provide, not just
  * the mechanics:
@@ -36,11 +36,15 @@ const TX = '0x' + 'ab'.repeat(32);
 const PRE_TRADE_UID = '0x' + '11'.repeat(32);
 const REQUEST_HASH = '0x' + '22'.repeat(32);
 
-/** A clean fill: 10bps of drift against a 50bps bound, oracle gates holding. */
+/** A clean fill: 10bps of drift against a 50bps bound, oracle gates holding.
+ *  `preTradeSignedAt` sits 3s before `executedAt`, matching the 3s oracle age,
+ *  and the binding is VERIFIED — the only combination that may reach FAITHFUL. */
 function baseInput(overrides: Partial<ExecutionReceiptInput> = {}): ExecutionReceiptInput {
   return {
     preTradeUid: PRE_TRADE_UID,
     requestHash: REQUEST_HASH,
+    preTradeSignedAt: NOW_S - 3,
+    bindingMode: 'VERIFIED',
     sourceAssetId: ETH_NATIVE,
     destinationAssetId: USDC_ETH,
     subjectChainId: 1,
@@ -90,14 +94,16 @@ describe('executionReceipt', () => {
     const receipt = await mod.signExecutionReceipt(baseInput());
     expect(receipt).not.toBeNull();
     expect(receipt!.attester).toBe(TEST_ATTESTER);
-    expect(receipt!.schemaVersion).toBe(1);
+    expect(receipt!.schemaVersion).toBe(2);
     expect(receipt!.data.executionStatus).toBe('FAITHFUL');
+    expect(receipt!.data.bindingMode).toBe('VERIFIED');
 
     const result = await mod.verifyExecutionReceipt(receipt!);
     expect(result.valid).toBe(true);
     expect(result.attester).toBe(TEST_ATTESTER);
     expect(result.expired).toBe(false);
     expect(result.executionStatus).toBe('FAITHFUL');
+    expect(result.bindingMode).toBe('VERIFIED');
   });
 
   it('rejects a tampered execution status (signature no longer matches)', async () => {
@@ -253,6 +259,57 @@ describe('executionReceipt', () => {
     const mod = await import('../executionReceipt');
     const msg = await mod.buildExecutionMessage(baseInput({ executedPrice: 0 }));
     expect(msg.executionStatus).toBe('UNDETERMINED');
+  });
+
+  // ---- v2: the binding must be real, and the gate must precede the fill ----
+
+  it('refuses FAITHFUL when the pre-trade was signed after the fill', async () => {
+    // The ordering hole: a gate produced once a favourable fill is already
+    // known did not authorise it. Under v1 the negative age was clamped to 0
+    // and read as the freshest possible gate.
+    const mod = await import('../executionReceipt');
+    const msg = await mod.buildExecutionMessage(baseInput({ preTradeSignedAt: NOW_S + 120 }));
+    expect(msg.slippageSatisfied).toBe(true);
+    expect(msg.executionStatus).toBe('UNDETERMINED');
+  });
+
+  it('refuses FAITHFUL when the pre-trade time is absent', async () => {
+    const mod = await import('../executionReceipt');
+    const msg = await mod.buildExecutionMessage(baseInput({ preTradeSignedAt: 0 }));
+    expect(msg.executionStatus).toBe('UNDETERMINED');
+  });
+
+  it('refuses FAITHFUL when the binding is only self-reported', async () => {
+    // A signature over caller-supplied values proves we signed those values,
+    // not that a matching gate existed. Without a proven quote there is nothing
+    // to be faithful to.
+    const mod = await import('../executionReceipt');
+    const msg = await mod.buildExecutionMessage(baseInput({ bindingMode: 'SELF_REPORTED' }));
+    expect(msg.slippageSatisfied).toBe(true);
+    expect(msg.independenceSatisfied).toBe(true);
+    expect(msg.bindingMode).toBe('SELF_REPORTED');
+    expect(msg.executionStatus).toBe('UNDETERMINED');
+  });
+
+  it('still records DEVIATED on a self-reported binding when the fill breached the bound', async () => {
+    // Adverse findings are graded before the binding check. Withholding a
+    // breach because the caller declined to show its gate would let an unproven
+    // submission hide a bad fill.
+    const mod = await import('../executionReceipt');
+    const msg = await mod.buildExecutionMessage(
+      baseInput({ bindingMode: 'SELF_REPORTED', executedPrice: 3030 })
+    );
+    expect(msg.executionStatus).toBe('DEVIATED');
+  });
+
+  it('routes verification by the signed schema version, keeping v1 receipts verifiable', async () => {
+    const mod = await import('../executionReceipt');
+    expect(mod.executionTypesForSchemaVersion(1).ExecutionReceipt).toHaveLength(30);
+    expect(mod.executionTypesForSchemaVersion(2).ExecutionReceipt).toHaveLength(32);
+    // v1 layout must not declare the v2-only fields.
+    const v1Names = mod.executionTypesForSchemaVersion(1).ExecutionReceipt.map((f) => f.name);
+    expect(v1Names).not.toContain('bindingMode');
+    expect(v1Names).not.toContain('preTradeSignedAt');
   });
 
   // ---- pairing with the pre-trade receipt ----

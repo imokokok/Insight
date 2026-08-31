@@ -47,6 +47,12 @@ export const executionReceiptTool: McpToolDefinition<typeof ExecutionReceiptInpu
       mevRiskScore: args.mevRiskScore,
       txHash: args.txHash as `0x${string}`,
       taker: args.taker as `0x${string}` | undefined,
+      preTradeAttestations: args.preTradeAttestations
+        ? {
+            source: args.preTradeAttestations.source as never,
+            destination: args.preTradeAttestations.destination as never,
+          }
+        : null,
     });
 
     if (!result.ok) {
