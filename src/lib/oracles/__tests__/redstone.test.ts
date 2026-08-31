@@ -51,6 +51,22 @@ const createMockResponse = (
   } as unknown as Response;
 };
 
+/**
+ * Build a response whose payload echoes the symbol in the requested URL.
+ *
+ * The client rejects a payload whose symbol differs from the one asked for
+ * (see `assertSymbolMatches`), so a test that requests more than one symbol
+ * against a single shared mock cannot reuse a hardcoded payload.
+ */
+const echoRequestedSymbol = (value = 68000.5) => {
+  return (url: string): Response => {
+    const symbol = new URL(url).searchParams.get('symbol') ?? 'BTC';
+    return createMockResponse([
+      { symbol, value, timestamp: Date.now(), provider: 'redstone-rapid' },
+    ]);
+  };
+};
+
 /* eslint-disable max-lines-per-function */
 describe('RedStoneClient', () => {
   let client: RedStoneClient;
@@ -253,7 +269,9 @@ describe('RedStoneClient', () => {
     });
 
     it('fetches mixed-case symbols without uppercasing (regression: etrUSD_FUNDAMENTAL)', async () => {
-      mockFetch.mockResolvedValueOnce(createMockResponse([mockPriceData]));
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse([{ ...mockPriceData, symbol: 'etrUSD_FUNDAMENTAL' }])
+      );
 
       const result = await client.getPrice('etrUSD_FUNDAMENTAL');
 
@@ -325,6 +343,50 @@ describe('RedStoneClient', () => {
       const result = await client.getPrice('BTC');
 
       expect(result.timestamp).toBe(timestampInMs);
+    });
+  });
+
+  describe('getPrice - response symbol verification', () => {
+    const base = { value: 100, timestamp: Date.now(), provider: 'redstone-rapid' };
+
+    it('rejects a cross-rate feed returned for a different requested symbol', async () => {
+      // Observed 2026-08-24..26: `?symbol=WBTC` answered with WBTC/BTC (~1.0)
+      // and `?symbol=USDC` with USDC/BRL (~5.2). Taking data[0] blindly stored
+      // those cross-rates as USD prices, which skewed consensus silently.
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse([{ ...base, symbol: 'WBTC/BTC', value: 0.99892257 }])
+      );
+
+      await expect(client.getPrice('WBTC')).rejects.toMatchObject({
+        code: 'REDSTONE_ERROR',
+        errorCode: 'PARSE_ERROR',
+      });
+    });
+
+    it('does not retry a symbol mismatch', async () => {
+      mockFetch.mockResolvedValue(
+        createMockResponse([{ ...base, symbol: 'USDC/BRL', value: 5.211 }])
+      );
+
+      await expect(client.getPrice('USDC')).rejects.toBeDefined();
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('accepts a casing-only difference from the API', async () => {
+      mockFetch.mockResolvedValueOnce(
+        createMockResponse([{ ...base, symbol: 'wbtc', value: 79088.71 }])
+      );
+
+      const result = await client.getPrice('WBTC');
+
+      expect(result.price).toBe(79088.71);
+      expect(result.symbol).toBe('WBTC');
+    });
+
+    it('rejects a response that carries no symbol', async () => {
+      mockFetch.mockResolvedValueOnce(createMockResponse([{ ...base }]));
+
+      await expect(client.getPrice('WBTC')).rejects.toMatchObject({ errorCode: 'PARSE_ERROR' });
     });
   });
 
@@ -450,7 +512,7 @@ describe('RedStoneClient', () => {
     });
 
     it('should have separate cache entries for different symbols', async () => {
-      mockFetch.mockResolvedValue(createMockResponse([mockPriceData]));
+      mockFetch.mockImplementation(echoRequestedSymbol());
 
       await client.getPrice('BTC');
       await client.getPrice('ETH');
@@ -881,11 +943,7 @@ describe('RedStoneClient', () => {
   describe('integration scenarios', () => {
     it('should handle multiple sequential requests', async () => {
       const symbols = ['BTC', 'ETH', 'SOL'];
-      mockFetch.mockResolvedValue(
-        createMockResponse([
-          { symbol: 'BTC', value: 68000, timestamp: Date.now(), provider: 'redstone-rapid' },
-        ])
-      );
+      mockFetch.mockImplementation(echoRequestedSymbol(68000));
 
       for (const symbol of symbols) {
         await client.getPrice(symbol);

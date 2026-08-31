@@ -271,7 +271,55 @@ export class RedStoneClient extends BaseOracleClient {
     }
   }
 
+  /**
+   * Confirm the feed RedStone answered with is the feed we asked for.
+   *
+   * The `?symbol=X` endpoint does not always resolve to exactly `X`. Observed
+   * 2026-08-24 to 2026-08-26 (~45h): a request for `WBTC` came back as
+   * `WBTC/BTC` (~1.0), `STETH` as `stETH/ETH` (~1.0) and `USDC` as `USDC/BRL`
+   * (~5.17). The caller took `data[0]` unconditionally, so those cross-rate
+   * values were persisted as if they were USD prices and skewed consensus for
+   * the whole window without ever raising an error.
+   *
+   * RedStone symbols are case-sensitive, so the comparison is exact. A
+   * case-insensitive fallback keeps a pure casing normalisation on their side
+   * from breaking a feed that works today, but any wider difference is a
+   * different asset and must not be stored.
+   */
+  private assertSymbolMatches(response: RedStonePriceResponse, symbol: string): void {
+    const returned = response.symbol;
+
+    if (typeof returned !== 'string' || returned.length === 0) {
+      throw new OracleProviderError(
+        `Missing symbol in response for ${symbol}`,
+        'redstone',
+        'PARSE_ERROR',
+        { symbol, receivedSymbol: returned }
+      );
+    }
+
+    if (returned === symbol) {
+      return;
+    }
+
+    if (returned.toLowerCase() === symbol.toLowerCase()) {
+      logger.warn('RedStone returned the requested symbol with different casing', {
+        requested: symbol,
+        received: returned,
+      });
+      return;
+    }
+
+    throw new OracleProviderError(
+      `Symbol mismatch: requested ${symbol}, received ${returned}`,
+      'redstone',
+      'PARSE_ERROR',
+      { symbol, receivedSymbol: returned }
+    );
+  }
+
   private parsePriceResponse(response: RedStonePriceResponse, symbol: string): PriceData {
+    this.assertSymbolMatches(response, symbol);
     const price = response.value;
     // External API data is untrusted. A missing/non-finite `value` must be
     // rejected here rather than cached as NaN, which would otherwise poison
