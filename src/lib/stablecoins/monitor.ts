@@ -2,6 +2,7 @@ import { ORACLE_CACHE_TTL } from '@/lib/oracles/base';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { curvePoolService } from '@/lib/oracles/services/curvePoolService';
 import { twapOnChainService } from '@/lib/oracles/services/twapOnChainService';
+import { findAffectedProtocols } from '@/lib/risk/findAffectedProtocols';
 import { TTLCache } from '@/lib/utils/cache';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
@@ -15,7 +16,6 @@ import {
 import { trackRiskLevelDuration } from '../risk/durationTracker';
 import { calculateDeviationPercent, calculateFilteredMedian, getRiskLevel } from '../risk/utils';
 
-import { findAffectedStablecoinProtocols } from './affectedProtocols';
 import { getStablecoinConfig, type StablecoinSymbol, type DexPoolConfig } from './config';
 
 import type {
@@ -60,7 +60,7 @@ export interface StablecoinDepegSnapshot {
   riskReason: string;
 
   sources: SourcePriceSnapshot[];
-  affectedProtocols: Awaited<ReturnType<typeof findAffectedStablecoinProtocols>>;
+  affectedProtocols: Awaited<ReturnType<typeof findAffectedProtocols>>;
   lastUpdated: number;
 }
 
@@ -365,10 +365,14 @@ export async function calculateStablecoinDepegSnapshot(
   const durationSeconds = trackRiskLevelDuration(`stablecoin:${symbol}`, composite.level);
 
   // === Step 7: Affected protocols (enhanced with divergence) ===
-  const affectedProtocols = await findAffectedStablecoinProtocols(
-    symbol,
-    crossDivergence.divergencePercent
-  );
+  const affectedProtocols = await findAffectedProtocols(symbol, {
+    includeBorrowRole: true,
+    oracleMarketDivergence: crossDivergence.divergencePercent,
+    buildRiskSummary: ({ protocolName, chainName, ltPercent, role }) =>
+      role === 'collateral'
+        ? `${protocolName} on ${chainName} accepts ${symbol} as collateral (LT ${ltPercent.toFixed(0)}%). A depreciation of ${symbol} reduces the Health Factor of positions using it as collateral.`
+        : `${protocolName} on ${chainName} supports borrowing ${symbol} (LT ${ltPercent.toFixed(0)}%). An appreciation of ${symbol} makes debt denominated in ${symbol} more likely to trigger liquidation.`,
+  });
 
   // === Build final snapshot ===
   const allSources = [...oracleSources, ...marketSources].sort((a, b) => a.price - b.price);

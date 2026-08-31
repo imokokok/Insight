@@ -1,5 +1,6 @@
 import { ORACLE_CACHE_TTL } from '@/lib/oracles/base';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { findAffectedProtocols } from '@/lib/risk/findAffectedProtocols';
 import { TTLCache } from '@/lib/utils/cache';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
@@ -10,7 +11,6 @@ import { WRAPPED_ASSET_RISK_THRESHOLDS } from '../risk/constants';
 import { trackRiskLevelDuration } from '../risk/durationTracker';
 import { calculateDeviationPercent, calculateFilteredMedian, getRiskLevel } from '../risk/utils';
 
-import { findAffectedWrappedAssetProtocols } from './affectedProtocols';
 import { getWrappedAssetConfig } from './config';
 import { lstExchangeRateService } from './exchangeRateService';
 
@@ -40,7 +40,7 @@ export interface WrappedAssetSnapshot {
   riskLevel: 'normal' | 'warning' | 'critical' | 'severe';
   durationSeconds: number;
   sources: SourcePriceSnapshot[];
-  affectedProtocols: Awaited<ReturnType<typeof findAffectedWrappedAssetProtocols>>;
+  affectedProtocols: Awaited<ReturnType<typeof findAffectedProtocols>>;
   lastUpdated: number;
 }
 
@@ -187,7 +187,10 @@ export async function calculateWrappedAssetSnapshot(symbol: string): Promise<Wra
     durationSeconds,
     riskLevel,
     sources: sources.sort((a, b) => a.price - b.price),
-    affectedProtocols: await findAffectedWrappedAssetProtocols(symbol),
+    affectedProtocols: await findAffectedProtocols(symbol, {
+      buildRiskSummary: ({ protocolName, chainName, ltPercent }) =>
+        `${protocolName} on ${chainName} accepts ${symbol} as collateral (LT ${ltPercent.toFixed(0)}%). If ${symbol} trades at a discount to its underlying asset, the Health Factor of positions collateralized by ${symbol} will decline.`,
+    }),
     lastUpdated: Date.now(),
   };
 

@@ -1,6 +1,5 @@
+import { PegMonitorContent } from '@/components/risk/PegMonitorContent';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
-
-import StablecoinDepegContent from './StablecoinDepegContent';
 
 import type { Metadata } from 'next';
 
@@ -13,5 +12,5 @@ export const metadata: Metadata = {
 export default async function StablecoinDepegPage() {
   const initialSnapshots = await calculateAllStablecoinSnapshots();
 
-  return <StablecoinDepegContent initialSnapshots={initialSnapshots} />;
+  return <PegMonitorContent kind="stablecoin" initialSnapshots={initialSnapshots} />;
 }

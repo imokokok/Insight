@@ -14,6 +14,7 @@ import { formatPrice } from '@/lib/utils/format';
 
 import { ImpactCard } from './ImpactCard';
 import { MetricCard } from './MetricCard';
+import { PegSiblingNav } from './PegSiblingNav';
 import { RiskTrackerAssetList } from './RiskTrackerAssetList';
 import { RiskTrackerDetailPanel } from './RiskTrackerDetailPanel';
 import { RiskTrackerHero } from './RiskTrackerHero';
@@ -23,7 +24,7 @@ import type { HeatmapCell } from './RiskHeatmap';
 const VALID_TABS = ['overview', 'sources', 'protocols'] as const;
 type ValidTab = (typeof VALID_TABS)[number];
 
-interface RiskSnapshotBase {
+export interface RiskSnapshotBase {
   symbol: string;
   displayName: string;
   riskLevel: RiskLevel;
@@ -349,6 +350,8 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
         icon={heroIcon}
         stats={summaryStats}
       />
+
+      <PegSiblingNav page={page} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

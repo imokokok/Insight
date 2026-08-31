@@ -1,6 +1,5 @@
+import { PegMonitorContent } from '@/components/risk/PegMonitorContent';
 import { calculateAllWrappedAssetSnapshots } from '@/lib/wrapped-assets/monitor';
-
-import WrappedAssetsContent from './WrappedAssetsContent';
 
 import type { Metadata } from 'next';
 
@@ -13,5 +12,5 @@ export const metadata: Metadata = {
 export default async function WrappedAssetsPage() {
   const initialSnapshots = await calculateAllWrappedAssetSnapshots();
 
-  return <WrappedAssetsContent initialSnapshots={initialSnapshots} />;
+  return <PegMonitorContent kind="wrapped" initialSnapshots={initialSnapshots} />;
 }
