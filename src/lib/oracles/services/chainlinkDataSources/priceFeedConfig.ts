@@ -139,7 +139,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<string, Record<number, ChainlinkPrice
       category: 'crypto',
     },
     43114: {
-      address: '0x1b8a25F73c9420dD507406C3A3816A276b62f56a',
+      address: '0x49ccd9ca821EfEab2b98c60dC60F518E765EDe9a',
       name: 'LINK / USD',
       symbol: 'LINK',
       decimals: 8,
