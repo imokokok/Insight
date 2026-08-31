@@ -133,7 +133,7 @@ export const EXECUTION_TYPES_V1 = {
     { name: 'action', type: 'string' },
     { name: 'quotedPrice', type: 'uint256' },
     { name: 'executedPrice', type: 'uint256' },
-    { name: 'priceDeltaBps', type: 'uint256' },
+    { name: 'priceDeltaBps', type: 'int256' },
     { name: 'maxSlippageBps', type: 'uint256' },
     { name: 'slippageSatisfied', type: 'bool' },
     { name: 'quotedAmountUsd', type: 'uint256' },
@@ -176,7 +176,7 @@ export const EXECUTION_TYPES_V2 = {
     { name: 'action', type: 'string' },
     { name: 'quotedPrice', type: 'uint256' },
     { name: 'executedPrice', type: 'uint256' },
-    { name: 'priceDeltaBps', type: 'uint256' },
+    { name: 'priceDeltaBps', type: 'int256' },
     { name: 'maxSlippageBps', type: 'uint256' },
     { name: 'slippageSatisfied', type: 'bool' },
     { name: 'quotedAmountUsd', type: 'uint256' },
@@ -223,8 +223,10 @@ const RATIO_SCALE = 1e4; // 0..1 ratio -> bps
  *  `toUint`: viem's EIP-712 ops need bigint, so the public message stores
  *  numbers and {@link toBigIntMessage} widens them back only for the crypto.
  *  All values stay far under Number.MAX_SAFE_INTEGER, so the round trip is
- *  exact. Negative drift is clamped to 0 here because `priceDeltaBps` carries
- *  its sign in a separate convention (see {@link derivePriceDeltaBps}). */
+ *  exact. This helper is for genuinely non-negative fields (prices, USD
+ *  amounts, counts, ages). `priceDeltaBps` is NOT passed through here: it is a
+ *  SIGNED quantity (negative = the agent got a better price than certified) and
+ *  is carried as `int256`, so its sign is preserved in the signature. */
 function toUint(n: number, scale: number): number {
   if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.round(n * scale));

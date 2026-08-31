@@ -58,7 +58,7 @@ export interface ExecutionFacts {
    *  `blockNumber` remains the authoritative anchor in that case. */
   executedAt: number | null;
   /** Machine-readable reason the price is unavailable, when it is. */
-  unavailableReason: 'FILL_PRICE_UNAVAILABLE' | 'NATIVE_ASSET_LEG' | 'AMOUNT_NOT_ATTRIBUTED' | null;
+  unavailableReason: 'FILL_PRICE_UNAVAILABLE' | 'NATIVE_ASSET_LEG' | 'PRICE_NOT_ATTRIBUTED' | null;
 }
 
 export type ExecutionCollectionResult =
@@ -309,7 +309,7 @@ export async function collectExecutionFacts(
   if (destinationNativeUnreadable) {
     unavailableReason = 'NATIVE_ASSET_LEG';
   } else if (sourceAmount === null || destinationAmount === null) {
-    unavailableReason = 'AMOUNT_NOT_ATTRIBUTED';
+    unavailableReason = 'PRICE_NOT_ATTRIBUTED';
   }
 
   return {

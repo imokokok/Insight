@@ -110,7 +110,10 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
     if (!(sourceConsensus > 0)) {
       return `agent_begin_trade failed: source asset "${args.asset}" has no usable consensus price.`;
     }
-    const quotedPrice = destinationConsensus / sourceConsensus;
+    // Destination-per-source (e.g. WETH/USDC) so it matches the on-chain
+    // executedPrice convention and the execution receipt's slippage math. With
+    // USD consensus prices this is sourceUSD / destUSD.
+    const quotedPrice = sourceConsensus / destinationConsensus;
 
     let sourceAssetId: string;
     let destinationAssetId: string;

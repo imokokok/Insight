@@ -30,6 +30,7 @@ import {
   EXECUTION_TYPES,
   EXECUTION_PRIMARY_TYPE,
   EXECUTION_SCHEMA_VERSION,
+  EXECUTION_SCHEMA_VERSION_V2,
   CURRENT_EXECUTION_SCHEMA_VERSION,
   EXECUTION_VALID_FOR_SECONDS,
   EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
@@ -52,8 +53,13 @@ const VerifyBodySchema = z.object({
     .object({
       uid: z.string(),
       // Routing inside the crypto layer is by this version, never by the
-      // payload's informational `eip712` block.
-      schemaVersion: z.literal(EXECUTION_SCHEMA_VERSION),
+      // payload's informational `eip712` block. Accept both v1 and the current
+      // v2 receipts — issueExecutionReceipt emits v2, so rejecting it would make
+      // every real receipt fail validation before reaching the verifier.
+      schemaVersion: z.union([
+        z.literal(EXECUTION_SCHEMA_VERSION),
+        z.literal(EXECUTION_SCHEMA_VERSION_V2),
+      ]),
       attester: z.string(),
       signature: z.string(),
       data: z.record(z.string(), z.unknown()),
@@ -138,6 +144,9 @@ export const GET = createApiHandler<
               },
             },
           },
+          /** v2 (the version issueExecutionReceipt emits) adds the signed
+           *  bindingMode + preTradeSignedAt fields. Both are accepted. */
+          supportedSchemaVersions: [EXECUTION_SCHEMA_VERSION, EXECUTION_SCHEMA_VERSION_V2],
           /** The layout new receipts are signed with. */
           eip712: {
             domain: EXECUTION_DOMAIN,

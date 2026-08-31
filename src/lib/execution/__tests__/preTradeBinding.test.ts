@@ -114,8 +114,10 @@ describe('resolvePreTradeBinding', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.binding.bindingMode).toBe('VERIFIED');
-    // 2500 / 1.0, and NOT the 999_999 the caller asserted.
-    expect(result.binding.quotedPrice).toBeCloseTo(2500, 6);
+    // Destination-per-source = sourceUSD / destUSD = 1.0 / 2500 ≈ 0.0004 WETH
+    // per USDC, and NOT the 999_999 the caller asserted. This matches the
+    // on-chain executedPrice convention (destination amount / source amount).
+    expect(result.binding.quotedPrice).toBeCloseTo(0.0004, 8);
     expect(result.binding.preTradeUid).toBe(source!.uid);
     expect(result.binding.requestHash).toBe(source!.data.requestHash);
     expect(result.binding.preTradeSignedAt).toBe(CHECKED_AT_S);

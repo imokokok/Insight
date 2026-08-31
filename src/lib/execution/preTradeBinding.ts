@@ -221,7 +221,10 @@ export async function resolvePreTradeBinding(params: {
       participantCount: toNumber(sourceData.participantCount),
       sourceGroupCount: toNumber(sourceData.sourceGroupCount),
       preTradeSignedAt: toNumber(sourceData.checkedAt),
-      quotedPrice: destConsensus / sourceConsensus,
+      // The quote is destination-per-source so it is directly comparable to the
+      // on-chain executedPrice (also destination/source). consensusPrice is the
+      // asset's USD price, so destination-per-source = sourceUSD / destUSD.
+      quotedPrice: sourceConsensus / destConsensus,
       preTradeExpired: sourceResult.expired || destResult.expired,
     },
   };

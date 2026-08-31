@@ -113,10 +113,11 @@ export async function verifyExecutionPair(
     fieldToString(preTradeData.requestHash) === fieldToString(execData.requestHash);
 
   const preTradeChain = Number(fieldToString(preTradeData.subjectChainId) || -1);
-  const chainMatch =
-    preTradeChain > 0 &&
-    preTradeChain === Number(execData.subjectChainId) &&
-    preTradeChain === Number(execData.settlementChainId);
+  // The pre-trade only knows its subject chain; the receipt carries both a
+  // subject chain (derived from the pre-trade's binding) and a settlement chain
+  // (where the tx actually landed). The meaningful comparison is the pre-trade
+  // subject chain against the receipt's subject chain.
+  const chainMatch = preTradeChain > 0 && preTradeChain === Number(execData.subjectChainId);
 
   const assetMatch =
     fieldToString(preTradeData.sourceAssetId) === fieldToString(execData.sourceAssetId) &&

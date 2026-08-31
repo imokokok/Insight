@@ -57,7 +57,9 @@ export const GET = createApiHandler<
       participantCount: 4,
       sourceGroupCount: 3,
       preTradeSignedAt: SAMPLE_SIGNED_AT,
-      quotedPrice: 2450.12,
+      // Destination-per-source (WETH per USDC) to match the on-chain
+      // executedPrice convention: ~1 / 2450.
+      quotedPrice: 0.000408,
       maxSlippageBps: 50,
       action: 'SWAP',
       quotedAmountUsd: 1000,
