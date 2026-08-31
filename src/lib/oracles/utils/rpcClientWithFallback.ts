@@ -26,6 +26,64 @@ interface RPCResponse<T> {
   };
 }
 
+/**
+ * A transaction receipt as returned by `eth_getTransactionReceipt`.
+ *
+ * Numeric fields arrive as hex strings (`0x…`) and are deliberately NOT
+ * widened here: the receipt is raw evidence, and callers that turn it into a
+ * signed statement must do their own parsing so a malformed value surfaces as
+ * an error rather than silently becoming 0.
+ */
+export interface RpcTransactionReceipt {
+  transactionHash: `0x${string}` | null;
+  transactionIndex: string | null;
+  blockHash: `0x${string}` | null;
+  /** Hex block number, null while the transaction is still pending. */
+  blockNumber: string | null;
+  from: `0x${string}`;
+  to: `0x${string}` | null;
+  cumulativeGasUsed: string;
+  gasUsed: string;
+  effectiveGasPrice: string;
+  /** '0x1' = success, '0x0' = reverted. */
+  status: string;
+  type?: string;
+  contractAddress: `0x${string}` | null;
+  logs: Array<{
+    address: `0x${string}`;
+    topics: `0x${string}`[];
+    data: `0x${string}`;
+    blockNumber: string | null;
+    transactionHash: `0x${string}` | null;
+    transactionIndex?: string | null;
+    logIndex: string | null;
+    removed?: boolean;
+  }>;
+}
+
+/** A block header subset, as returned by `eth_getBlockByNumber`. */
+export interface RpcBlock {
+  number: string | null;
+  hash: `0x${string}` | null;
+  /** Hex unix timestamp of block production. */
+  timestamp: string;
+}
+
+/** A transaction as returned by `eth_getTransactionByHash`. */
+export interface RpcTransaction {
+  hash: `0x${string}` | null;
+  blockNumber: string | null;
+  from: `0x${string}`;
+  to: `0x${string}` | null;
+  /** Hex value transferred, in wei. */
+  value: string;
+  gasPrice?: string;
+  input?: `0x${string}`;
+}
+
+/** Block tag accepted by the read methods. Hex strings must be 0x-prefixed. */
+export type RpcBlockTag = 'latest' | 'earliest' | 'pending' | `0x${string}` | number;
+
 export class RpcClientWithFallback {
   private requestId = 0;
   private endpointHealth: Record<string, boolean> = {};
@@ -190,18 +248,30 @@ export class RpcClientWithFallback {
     throw lastError || new Error(`All RPC endpoints failed for ${this.contextLabel}/${key}`);
   }
 
+  /**
+   * `eth_call` with an optional block tag.
+   *
+   * The block parameter was originally hardcoded to 'latest'. Historical reads
+   * need a real block parameter, so it is now accepted — but the default stays
+   * 'latest' and every pre-existing caller is unaffected. Note that reading at
+   * an old block requires an archival endpoint; a non-archival node typically
+   * answers with an error or a misleading 'latest' value, so callers that need
+   * historical state should treat a failure here as "unavailable", not as a
+   * zero.
+   */
   async ethCall(
     key: string,
     endpoints: string[],
     to: `0x${string}`,
     data: `0x${string}`,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    blockTag: RpcBlockTag = 'latest'
   ): Promise<string> {
     const result = await this.rpcCallWithFallback<string>(
       key,
       endpoints,
       'eth_call',
-      [{ to, data }, 'latest'],
+      [{ to, data }, this.blockParam(blockTag)],
       signal
     );
 
@@ -240,5 +310,74 @@ export class RpcClientWithFallback {
       signal
     );
     return result ?? [];
+  }
+
+  /** Normalise a block tag for the JSON-RPC params array. Numeric block
+   *  numbers are converted to the 0x-prefixed hex the spec requires; the
+   *  named tags pass through unchanged. */
+  private blockParam(tag: RpcBlockTag): `0x${string}` | 'latest' | 'earliest' | 'pending' {
+    if (typeof tag === 'number') {
+      return `0x${tag.toString(16)}` as `0x${string}`;
+    }
+    return tag;
+  }
+
+  /**
+   * `eth_getTransactionReceipt`. Returns null for a transaction the node does
+   * not know about yet (pending or unknown hash) — this is a legitimate answer,
+   * not an error, so it must not be conflated with a node failure.
+   */
+  async getTransactionReceipt(
+    key: string,
+    endpoints: string[],
+    txHash: `0x${string}`,
+    signal?: AbortSignal
+  ): Promise<RpcTransactionReceipt | null> {
+    const result = await this.rpcCallWithFallback<RpcTransactionReceipt | null>(
+      key,
+      endpoints,
+      'eth_getTransactionReceipt',
+      [txHash],
+      signal
+    );
+    return result ?? null;
+  }
+
+  /** `eth_getTransactionByHash`. Null when the node has never seen the hash. */
+  async getTransactionByHash(
+    key: string,
+    endpoints: string[],
+    txHash: `0x${string}`,
+    signal?: AbortSignal
+  ): Promise<RpcTransaction | null> {
+    const result = await this.rpcCallWithFallback<RpcTransaction | null>(
+      key,
+      endpoints,
+      'eth_getTransactionByHash',
+      [txHash],
+      signal
+    );
+    return result ?? null;
+  }
+
+  /**
+   * `eth_getBlockByNumber` with the transaction hashes omitted — only the
+   * header fields this codebase needs (number, hash, timestamp). Returns null
+   * for blocks outside the node's retained range.
+   */
+  async getBlockByNumber(
+    key: string,
+    endpoints: string[],
+    blockTag: RpcBlockTag,
+    signal?: AbortSignal
+  ): Promise<RpcBlock | null> {
+    const result = await this.rpcCallWithFallback<RpcBlock | null>(
+      key,
+      endpoints,
+      'eth_getBlockByNumber',
+      [this.blockParam(blockTag), false],
+      signal
+    );
+    return result ?? null;
   }
 }

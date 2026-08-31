@@ -334,3 +334,56 @@ export const ProviderReputationInputSchema = z.object({
   trend: z.boolean().optional().describe('Include historical trend data'),
   days: z.number().int().min(1).max(365).optional().default(30).describe('Trend period in days'),
 });
+
+/**
+ * Inputs for the `execution_receipt` tool. The agent hands back the pre-trade
+ * fields it was certified against (it already holds its own pre-trade receipt)
+ * plus the settlement txHash. The cryptographic pairing lives in the signed
+ * receipt (`preTradeUid` + `requestHash`); nothing here is a database join.
+ * `quotedPrice` and the on-chain `executedPrice` MUST share the caller's price
+ * convention (the service does not assume which way the oracle price was quoted).
+ */
+export const ExecutionReceiptInputSchema = z.object({
+  preTradeUid: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/, 'preTradeUid must be a 0x-prefixed 32-byte hex')
+    .describe('UID of the paired pre-trade attestation'),
+  requestHash: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/, 'requestHash must be a 0x-prefixed 32-byte hex')
+    .describe('Canonical request commitment from the pre-trade attestation'),
+  sourceAssetId: z.string().min(1).describe('CAIP-19 id of the asset sold'),
+  destinationAssetId: z.string().min(1).describe('CAIP-19 id of the asset bought'),
+  subjectChainId: z.number().int().describe('Chain id the pre-trade was scoped to'),
+  settlementChainId: z.number().int().describe('Chain id the transaction settled on'),
+  participantCount: z.number().int().min(0).describe('Oracle providers the agent gated on'),
+  sourceGroupCount: z
+    .number()
+    .int()
+    .min(0)
+    .describe('Distinct non-derived operator groups the agent gated on'),
+  preTradeSignedAt: z.number().int().describe('Unix seconds the pre-trade was signed'),
+  quotedPrice: z
+    .number()
+    .describe('Target price, same convention as executedPrice (e.g. dest per source)'),
+  maxSlippageBps: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe('Signed slippage bound; defaults to 50'),
+  action: z.string().optional().describe('Action label, e.g. SWAP'),
+  quotedAmountUsd: z.number().optional().describe('Informational notional the agent intended'),
+  executedAmountUsd: z.number().optional().describe('Informational notional actually filled'),
+  actualFeeUsd: z.number().optional().describe('Informational fee paid'),
+  mevRiskScore: z.number().optional().describe('Advisory 0..1 MEV-exposure estimate'),
+  txHash: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/, 'txHash must be a 0x-prefixed 32-byte hex')
+    .describe('Settlement transaction hash'),
+  taker: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{40}$/)
+    .optional()
+    .describe('Address whose balances define the trade; defaults to tx sender'),
+});

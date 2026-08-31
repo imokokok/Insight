@@ -22,6 +22,16 @@ import {
   CANONICAL_REQUEST_TYPES,
   CANONICAL_REQUEST_PRIMARY_TYPE,
 } from '@/lib/attestations/canonicalRequestHash';
+import {
+  EXECUTION_DOMAIN,
+  EXECUTION_TYPES,
+  EXECUTION_PRIMARY_TYPE,
+  EXECUTION_SCHEMA_VERSION,
+  EXECUTION_VALID_FOR_SECONDS,
+  EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
+  EXECUTION_REQUIRED_PARTICIPANT_COUNT,
+  EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
+} from '@/lib/attestations/executionReceipt';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import {
   V2_DOMAIN,
@@ -144,6 +154,29 @@ export async function GET(request: NextRequest) {
         eip712: descriptor(WATCH_DOMAIN, WATCH_TYPES as never, WATCH_PRIMARY_TYPE),
         verify: `${origin}/api/v1/oracle-watch/attestation/verify`,
       },
+      /**
+       * Execution Receipt — the "did the agent actually fill at the certified
+       * price" half of the trust layer. Its EIP-712 domain is distinct from both
+       * pre-trade and Watch (chainId=1 separator, name "Insight Execution") so a
+       * receipt can never be replayed across surfaces. The gate thresholds are
+       * signed NEXT TO the observed counts so a receipt is self-checking, exactly
+       * as with Watch. Its independence gate is the agent's own pre-trade basis,
+       * carried forward — not an independent re-proof of oracle independence.
+       */
+      ExecutionReceipt: {
+        schemaVersion: EXECUTION_SCHEMA_VERSION,
+        eip712: descriptor(EXECUTION_DOMAIN, EXECUTION_TYPES as never, EXECUTION_PRIMARY_TYPE),
+        validForSeconds: EXECUTION_VALID_FOR_SECONDS,
+        gates: {
+          requiredParticipantCount: EXECUTION_REQUIRED_PARTICIPANT_COUNT,
+          requiredSourceGroupCount: EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
+          /** Fallback bound a receipt used when no tighter per-action bound was
+           *  supplied; the binding value is always the one signed in the receipt. */
+          defaultMaxSlippageBps: EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
+        },
+        verify: `${origin}/api/v1/execution/attestation/verify`,
+        sample: `${origin}/api/v1/execution/attestation/sample`,
+      },
     },
     verify: `${origin}/api/v1/safety/attestation/verify`,
     sample: `${origin}/api/v1/safety/attestation/sample`,
@@ -152,6 +185,10 @@ export async function GET(request: NextRequest) {
      *  gate semantics, so a verifier must not be able to cross-replay them. */
     watch_verify: `${origin}/api/v1/oracle-watch/attestation/verify`,
     watch_sample: `${origin}/api/v1/oracle-watch/attestation/sample`,
+    /** Execution Receipt's verification half: a third distinct domain, kept
+     *  separate so a verifier cannot conflate pre-trade / watch / execution. */
+    execution_verify: `${origin}/api/v1/execution/attestation/verify`,
+    execution_sample: `${origin}/api/v1/execution/attestation/sample`,
     /** Rotation contract (added 2026-08-26). Target cadence: annual, or
      *  immediately on compromise (ROTATION_TARGET_CADENCE_DAYS). To rotate:
      *  generate a new key, publish it with validFrom = activation time, retain

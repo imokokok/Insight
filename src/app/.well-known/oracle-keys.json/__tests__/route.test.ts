@@ -85,6 +85,33 @@ describe('.well-known/oracle-keys.json route', () => {
     expect(body.verify).toContain('/api/v1/safety/attestation/verify');
   });
 
+  it('publishes the Execution Receipt schema (the "did it fill faithfully" half)', async () => {
+    const { GET } = await import('../route');
+    const response = await GET(
+      new Request('https://www.oracleinsight.xyz/.well-known/oracle-keys.json')
+    );
+    const body = await response.json();
+
+    // The third distinct EIP-712 domain, published so a counterparty holding an
+    // Execution Receipt has the types + gates to verify it without our source.
+    const exec = body.schemas.ExecutionReceipt;
+    expect(exec).toBeDefined();
+    expect(exec.schemaVersion).toBe(1);
+    expect(exec.eip712.primaryType).toBe('ExecutionReceipt');
+    expect(exec.eip712.domain.name).toBe('Insight Execution');
+    expect(exec.eip712.domain.chainId).toBe(1);
+
+    // Gate thresholds travel with the descriptor so a receipt is self-checking.
+    expect(exec.gates.requiredParticipantCount).toBe(3);
+    expect(exec.gates.requiredSourceGroupCount).toBe(2);
+    expect(exec.gates.defaultMaxSlippageBps).toBe(50);
+
+    // Separate pointers — the execution domain must never be conflated with
+    // pre-trade or watch.
+    expect(body.execution_verify).toContain('/api/v1/execution/attestation/verify');
+    expect(body.execution_sample).toContain('/api/v1/execution/attestation/sample');
+  });
+
   it('reports empty public_keys when the attester key is unconfigured', async () => {
     delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
     jest.resetModules();
