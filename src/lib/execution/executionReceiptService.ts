@@ -30,6 +30,7 @@
 
 import {
   derivePriceDeltaBps,
+  EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
   EXECUTION_REQUIRED_PARTICIPANT_COUNT,
   EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
   type ExecutionBindingMode,
@@ -255,7 +256,7 @@ export async function issueExecutionReceipt(
     fillStatus: facts.fillStatus,
     unavailableReason: facts.unavailableReason,
     priceDeltaBps,
-    maxSlippageBps: params.maxSlippageBps ?? 50,
+    maxSlippageBps: params.maxSlippageBps ?? EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
     oracleAgeSeconds,
     participantCount: binding.participantCount,
     sourceGroupCount: binding.sourceGroupCount,
