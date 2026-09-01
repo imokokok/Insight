@@ -42,3 +42,7 @@ console.log('  4. Run a pre-trade check at /pre-trade-safety — the result now 
 console.log('     an EIP-712 attestation you can verify in the panel below.\n');
 console.log('⚠  Keep this key safe. Anyone holding it can sign attestations as you.');
 console.log('   Store it in your secrets manager, never in git.\n');
+console.log('── On rotation ────────────────────────────────────────');
+console.log('   Keep the PREVIOUS private key. Relying parties that pinned the old');
+console.log('   attester may ask you to sign a transition with both the old and the');
+console.log('   new key, and production only ever holds the current one.\n');
