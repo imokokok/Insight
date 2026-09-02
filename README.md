@@ -278,32 +278,37 @@ Database migrations and Supabase config live under `supabase/`. The ML training 
 
 Insight exposes a versioned REST API (`/api/v1/`) authenticated with `X-API-Key` (created from the Settings page; plaintext shown once, stored as SHA-256 hash). The full interactive reference (OpenAPI 3.1, live "Try It Out", code snippets) is at **`/docs/api`**.
 
-### Data Access Tiers
+### Access & Billing
 
-| Tier | Access level          | Data                                                                                              | Required plan            |
-| ---- | --------------------- | ------------------------------------------------------------------------------------------------- | ------------------------ |
-| 0    | Public Metadata       | Health check, symbols, providers, active feeds                                                    | None                     |
-| 1    | Reliability Snapshots | Current prices, reputation rankings, daily reports                                                | Any (incl. Free)         |
-| 2    | Deep Analysis         | Deviation, correlation, latency, anomaly signals, 15-min snapshots, price history, feed freshness | Pro+ (Free: 5/day trial) |
-| 3    | Protocol Intelligence | Oracle exposure, cross-chain spreads, incident timeline, coverage analysis                        | Protocol+                |
+Access is gated by a **credit wallet**, not plan tiers. There is **no recurring
+free tier and no feature gating** — every paying user gets every endpoint and
+MCP tool. A call is allowed iff the key's credit balance covers its metering
+class cost.
 
-Reputation trend history is tiered too: Free 7 days, Pro 30 days, Protocol/Enterprise 90 days.
+| Component | Description |
+| --------- | ----------- |
+| **Trial** | New users get **30 one-time trial credits** after email verification (`POST /api/billing/signup-grant`). It never refreshes and never re-issues. |
+| **Subscriptions** | **Developer** ($49/mo → 10,000 credits/mo, 30 req/min) and **Team** ($199/mo → 50,000 credits/mo, 60 req/min). Yearly = 10× monthly. **Enterprise** is contact-sales unlimited. Subscriptions add a monthly credit allowance to the wallet; features are identical across plans. |
+| **Credit packs** | Prepaid top-ups, no subscription required: **Starter** (25,000 cr / $39), **Builder** (100,000 cr / $129), **Agent** (500,000 cr / $499). |
+| **Per-call metering** | Every call is charged from the wallet by metering class C1–C4 (see `src/lib/billing/metering.ts`). |
+
+All paying users get the full 90-day history/reputation window. Payments are
+crypto-only via NOWPayments (USDC-denominated); subscriptions run one billing
+cycle with no auto-renewal. The public website (prices, protocols, rankings)
+stays free to browse — only API-key calls are metered.
 
 ### Plans
 
-| Plan       | Rate limit | Included credit allowance        | Per-call metering        | Price         |
-| ---------- | ---------- | -------------------------------- | ------------------------ | ------------- |
-| Free       | 5 req/min  | 1,000 API calls/mo (request cap) | —                        | $0            |
-| Pro        | 30 req/min | 10,000 credits/mo                | C1–C4 (0.5 / 2 / 5 / 10) | $49/mo        |
-| Protocol   | 60 req/min | 100,000 credits/mo               | C1–C4 (0.5 / 2 / 5 / 10) | $499/mo       |
-| Enterprise | Unlimited  | Unlimited (contract)             | —                        | Contact sales |
+| Plan       | Rate limit | Included credits/mo | Per-call metering        | Price          |
+| ---------- | ---------- | ------------------- | ------------------------ | -------------- |
+| Developer  | 30 req/min | 10,000              | C1–C4 (0.5 / 2 / 5 / 10) | $49/mo         |
+| Team       | 60 req/min | 50,000              | C1–C4 (0.5 / 2 / 5 / 10) | $199/mo        |
+| Enterprise | Unlimited  | Unlimited           | —                        | Contact sales  |
 
-Paid plans are **credit-metered**: each call is priced by metering class (see
-`src/lib/billing/metering.ts`) and charged from the user's prepaid credit
-wallet (`credit_wallet` / `credit_ledger`, migration `0039`). The monthly
-allowance is credited on subscription activation and at each cycle (billing
-cron). Additional credits can be bought as prepaid packs from Settings →
-Billing or the pricing page. Free keys use a flat monthly request cap.
+Credits are stored in `credit_wallet` / `credit_ledger` (migration `0039`).
+The monthly allowance is credited on subscription activation and at each cycle
+(billing cron). Additional credits can be bought as prepaid packs from Settings
+→ Billing or the pricing page.
 
 See `src/lib/billing/plans.ts` for the single source of truth.
 

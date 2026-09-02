@@ -1,0 +1,5 @@
+# Build output and local installs. Only src/ + package.json are source.
+# Kept local to verifier/ so the repo-root .gitignore is untouched.
+dist/
+node_modules/
+*.tsbuildinfo

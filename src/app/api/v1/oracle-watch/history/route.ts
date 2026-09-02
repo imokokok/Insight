@@ -31,8 +31,9 @@ export const GET = createApiHandler(
   async (_request, context) => {
     const query = context.validated!.query as z.infer<typeof OracleWatchHistoryQuerySchema>;
 
-    // Tier the history window by plan for API-key requests: Free 7d, Pro 30d,
-    // Protocol/Enterprise 90d. Session (UI) requests are left unclamped.
+    // Credit-wallet model: no per-plan tiering — every API-key request is
+    // capped at the flat 90-day maximum window (maxTrendDays). Session (UI)
+    // requests are left unclamped.
     let days = query.days;
     const apiKeyPlan = context.auth?.apiKey?.plan;
     if (apiKeyPlan) {

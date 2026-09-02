@@ -40,15 +40,22 @@ info:
 
     ## Plans & Pricing
 
-    | Plan | Price | Rate Limit | Monthly Quota | High-Value Endpoints |
-    |------|-------|-----------|---------------|---------------------|
-    | **Free** | $0 | 5 req/min | 1,000 | 5 trial calls/day |
-    | **Pro** | $49/mo | 30 req/min | 10,000 | Unlimited |
-    | **Protocol** | $499/mo | 60 req/min | 100,000 | Unlimited |
-    | **Enterprise** | Contact us | Unlimited | Unlimited | Unlimited |
+    Access is gated by a **credit wallet**, not plan tiers. There is no recurring
+    free tier and no feature gating — every paying user gets every endpoint and
+    MCP tool; a call is allowed iff the key's credit balance covers its metering
+    class cost (C1–C4). New users receive a **one-time 30-credit trial** after
+    email verification (it never refreshes).
 
-    Endpoints marked with 🔒 are high-value endpoints. Free users get 5 trial calls/day.
-    All paid plans include a 7-day free trial of Pro.
+    | Plan | Price | Rate Limit | Included credits/mo | Credit Packs (pay-as-you-go) |
+    |------|-------|-----------|---------------------|------------------------------|
+    | **Developer** | $49/mo | 30 req/min | 10,000 | Starter 25k / $39 |
+    | **Team** | $199/mo | 60 req/min | 50,000 | Builder 100k / $129 |
+    | **Enterprise** | Contact us | Unlimited | Unlimited | Agent 500k / $499 |
+
+    Endpoints marked with 🔒 are **credit-metered** (charged per call from the
+    wallet). Public metadata endpoints (`/health`, `/symbols`) are free.
+    Payments are crypto-only via NOWPayments (USDC-denominated); there is no
+    auto-renewal — subscriptions run one billing cycle.
 
     ---
 
@@ -65,13 +72,16 @@ info:
     | `X-RateLimit-Reset` | Unix timestamp when the window resets |
     | `Retry-After` | Seconds until you can retry (only on 429) |
 
-    **Quota Headers:**
+    **Quota / Credit Headers:**
 
     | Header | Description |
     |--------|-------------|
-    | `X-Quota-Limit` | Monthly request quota |
-    | `X-Quota-Remaining` | Remaining monthly quota |
-    | `X-Quota-Reset` | Unix timestamp when quota resets |
+    | `X-Quota-Limit` | Remaining credit balance (credit wallet) |
+    | `X-Quota-Remaining` | Remaining credit balance |
+    | `X-Quota-Reset` | Unix timestamp when the balance resets (monthly cycle) |
+    | `X-Credit-Cost` | Credits charged for this call (metering class) |
+    | `X-Credit-Balance` | Wallet balance remaining after the call |
+    | `X-Credit-Denied` | Reason a call was rejected for insufficient credits |
 
     ---
 

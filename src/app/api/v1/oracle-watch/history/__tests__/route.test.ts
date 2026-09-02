@@ -2,10 +2,11 @@
  * Unit tests for the Oracle Watch history endpoint.
  *
  * Unwraps createApiHandler but runs the real Zod query validation (via
- * validateQuerySchema) so the actual gate + plan-tiering logic is exercised.
- * The time-series service is mocked. Covers plan-based history-window
- * clipping (Free→7d, Pro→30d, Protocol stays at the requested window),
- * session (UI) requests left unclamped, and schema rejection.
+ * validateQuerySchema) so the actual gate + window-clipping logic is
+ * exercised. The time-series service is mocked. In the credit-wallet model
+ * there is no per-plan tiering — every API-key request is capped at the flat
+ * 90-day maximum window (maxTrendDays), and session (UI) requests are left
+ * unclamped. Also covers schema rejection.
  */
 
 import { getOracleWatchHistory } from '@/lib/api/services/oracleWatchTrendService';
@@ -70,10 +71,10 @@ describe('Oracle Watch history route', () => {
     jest.clearAllMocks();
   });
 
-  it('returns history with the requested window for a pro API key (<= 30d)', async () => {
+  it('returns history with the requested window for an API key (<= 90d)', async () => {
     mockGetHistory.mockResolvedValue(buildResult('ETH', 'ethereum', 15));
     const response = await callGet('symbol=ETH&chain=ethereum&days=15', {
-      auth: { apiKey: { plan: 'pro' } },
+      auth: { apiKey: { plan: 'developer' } },
     });
     const body = await response.json();
 
@@ -88,35 +89,23 @@ describe('Oracle Watch history route', () => {
     });
   });
 
-  it('clips the window to 7 days for a free API key', async () => {
-    mockGetHistory.mockResolvedValue(buildResult('BTC', null, 7));
-    const response = await callGet('symbol=BTC&days=60', {
-      auth: { apiKey: { plan: 'free' } },
+  it('clips the window to the 90-day maximum for an API key requesting more', async () => {
+    mockGetHistory.mockResolvedValue(buildResult('BTC', null, 90));
+    const response = await callGet('symbol=BTC&days=200', {
+      auth: { apiKey: { plan: 'team' } },
     });
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body.success).toBe(true);
-    expect(body.data.days).toBe(7);
-    expect(mockGetHistory).toHaveBeenCalledWith({ symbol: 'BTC', chain: undefined, days: 7 });
+    expect(body.data.days).toBe(90);
+    expect(mockGetHistory).toHaveBeenCalledWith({ symbol: 'BTC', chain: undefined, days: 90 });
   });
 
-  it('clips the window to 30 days for a pro API key requesting more', async () => {
-    mockGetHistory.mockResolvedValue(buildResult('SOL', null, 30));
-    const response = await callGet('symbol=SOL&days=90', {
-      auth: { apiKey: { plan: 'pro' } },
-    });
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.data.days).toBe(30);
-    expect(mockGetHistory).toHaveBeenCalledWith({ symbol: 'SOL', chain: undefined, days: 30 });
-  });
-
-  it('keeps a 90d window for protocol keys', async () => {
+  it('keeps a 90d window for an API key (maximum is the same for every plan)', async () => {
     mockGetHistory.mockResolvedValue(buildResult('SOL', null, 90));
     const response = await callGet('symbol=SOL&days=90', {
-      auth: { apiKey: { plan: 'protocol' } },
+      auth: { apiKey: { plan: 'developer' } },
     });
     const body = await response.json();
 
