@@ -257,8 +257,9 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
 
         {/* Footnote */}
         <p className="text-xs text-slate-400 text-center mt-8 max-w-2xl mx-auto">
-          There is no free tier and no trial — API access starts at a $49 Developer subscription
-          (10,000 credits/mo) or a $39 prepaid Starter pack. The website remains free to browse.
+          New users get 30 free trial credits after email verification. API access starts at a $49
+          Developer subscription (10,000 credits/mo) or a $39 prepaid Starter pack. The website
+          remains free to browse.
         </p>
       </div>
     </section>

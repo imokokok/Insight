@@ -8,7 +8,9 @@
  *
  * Metering is a single credit-wallet path shared with REST: an API key may
  * call a tool iff its balance covers the tool's credit cost (getToolCreditCost).
- * There is no free tier, no plan-based feature gating and no trial.
+ * There is no recurring free tier and no plan-based feature gating — the only
+ * "free" credits are the one-time 30-credit signup trial grant, which simply
+ * tops up the same wallet.
  */
 
 import { logApiKeyUsage } from '@/lib/api/apiKey';

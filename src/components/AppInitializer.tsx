@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 import dynamic from 'next/dynamic';
 
+import { TrialGrantNotice } from '@/components/billing/TrialGrantNotice';
 import { ShortcutProvider, ShortcutInitializer } from '@/components/shortcuts';
 import { setUser } from '@/lib/monitoring';
 import { initWebVitals } from '@/lib/monitoring/webVitals';
@@ -41,6 +42,7 @@ export function AppInitializer({ children }: { children: React.ReactNode }) {
     <ShortcutProvider>
       <ShortcutInitializer />
       <ShortcutHelpPanel />
+      <TrialGrantNotice />
       {children}
     </ShortcutProvider>
   );

@@ -46,9 +46,11 @@ type QuotaMiddlewareResult =
  * credit-wallet precheck before the handler runs; the authoritative charge is
  * consumed fire-and-forget via consumeCredits only after a 2xx response.
  *
- * There is no free tier, no plan-based feature gating and no trial: "can this
+ * There is no recurring free tier and no plan-based feature gating: "can this
  * call proceed?" is answered solely by the wallet balance covering the credit
- * cost. The only bypass is Enterprise (unlimited), which skips metering.
+ * cost. The only free credits are the one-time 30-credit signup trial grant
+ * (a wallet top-up, see POST /api/billing/signup-grant). The only bypass is
+ * Enterprise (unlimited), which skips metering.
  *
  * Runs in sequence with rateLimitMiddleware — a request must pass rate limit
  * AND credit precheck to succeed.

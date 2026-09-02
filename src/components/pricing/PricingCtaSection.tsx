@@ -20,7 +20,7 @@ interface PricingCtaSectionProps {
 const DEFAULTS = {
   title: 'Credit-based, per-call pricing',
   subtitle:
-    'No free tier and no trial. Developer/Team subscriptions include a monthly credit allowance spent per call (C1–C4); top up prepaid credit packs for agent-heavy workloads. Every paying user gets every endpoint. Crypto payments via NOWPayments.',
+    'New users get 30 free trial credits after email verification. Developer/Team subscriptions include a monthly credit allowance spent per call (C1–C4); top up prepaid credit packs for agent-heavy workloads. Every paying user gets every endpoint. Crypto payments via NOWPayments.',
   buttonText: 'View Pricing',
   href: '/api#pricing',
   className: '',

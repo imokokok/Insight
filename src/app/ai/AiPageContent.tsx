@@ -539,7 +539,7 @@ when the verdict turns DANGER.`}
 
       <PricingCtaSection
         title="AI Agent Pricing"
-        subtitle="MCP and safety-check calls share the same credit meter and billing as the REST API. No free tier — Developer from 49 USDC/mo (10,000 credits) or pay-as-you-go top-up packs."
+        subtitle="MCP and safety-check calls share the same credit meter and billing as the REST API. New users get 30 free trial credits after email verification — Developer from 49 USDC/mo (10,000 credits) or pay-as-you-go top-up packs."
         buttonText="View Pricing"
       />
     </div>

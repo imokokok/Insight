@@ -127,13 +127,13 @@ export default function RegisterContent() {
           <div className="bg-amber-50 border border-amber-200 p-3 mb-4 rounded-lg flex items-start gap-2">
             <Coins className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
-              API access is credit-metered and paid-only (no free tier, no trial). After verifying
-              your email, subscribe (Developer from $49/mo — 10,000 credits) or top up a prepaid
-              pack in{' '}
+              API access is credit-metered. New users get 30 free trial credits after email
+              verification — enough to sample the endpoints. After that, subscribe (Developer from
+              $49/mo — 10,000 credits) or top up a prepaid pack in{' '}
               <Link href="/settings?tab=billing" className="font-semibold underline">
                 Settings → Billing
               </Link>{' '}
-              to start calling every endpoint and MCP tool.
+              to keep calling every endpoint and MCP tool.
             </p>
           </div>
           <div className="space-y-3">

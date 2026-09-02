@@ -34,7 +34,10 @@ let _initPromise: Promise<void> | null = null;
  */
 async function claimSignupGrant(): Promise<void> {
   try {
-    await apiClient.post('/api/billing/signup-grant', {});
+    const { data } = await apiClient.post<{ granted: boolean }>('/api/billing/signup-grant', {});
+    if (data?.granted) {
+      useAuthStore.setState({ trialGranted: true });
+    }
   } catch {
     // Non-fatal: the user can still pay and use the API without the trial.
   }
@@ -48,6 +51,10 @@ interface AuthState {
   error: AuthError | Error | null;
   initialized: boolean;
   subscription: Subscription | null;
+  /** Set once when the one-time signup trial credit is claimed this session
+   *  (drives the dismissible "you got 30 free credits" notice). Never
+   *  persisted — it is an ephemeral toast, not account state. */
+  trialGranted: boolean;
 }
 
 interface AuthActions {
@@ -67,6 +74,7 @@ interface AuthActions {
   resendVerification: (email: string, redirectTo?: string) => Promise<{ error: AuthError | null }>;
   refreshProfile: () => Promise<void>;
   clearError: () => void;
+  dismissTrialNotice: () => void;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -124,6 +132,7 @@ export const useAuthStore = create<AuthStore>()(
         error: null,
         initialized: false,
         subscription: null,
+        trialGranted: false,
 
         initialize: async () => {
           if (get().initialized) return;
@@ -357,6 +366,7 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         clearError: () => set({ error: null }),
+        dismissTrialNotice: () => set({ trialGranted: false }),
       }),
       {
         name: 'auth-store',
