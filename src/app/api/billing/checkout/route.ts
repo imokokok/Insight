@@ -82,17 +82,29 @@ export const POST = createApiHandler(
 
     const { type } = parsed.data;
 
+    // Require the type-specific fields up-front so a malformed request returns
+    // a clean 400 instead of crashing later on PLANS[undefined] (500).
+    if (type === 'subscription' && (!parsed.data.plan || !parsed.data.interval)) {
+      return NextResponse.json(
+        ApiResponseBuilder.error(
+          'BAD_REQUEST',
+          'A plan and interval are required for a subscription'
+        ),
+        { status: 400 }
+      );
+    }
+    if (type === 'topup' && !parsed.data.pack) {
+      return NextResponse.json(
+        ApiResponseBuilder.error('BAD_REQUEST', 'A credit pack is required for a top-up'),
+        { status: 400 }
+      );
+    }
+
     const origin = getAppUrl() || request.nextUrl.origin;
 
     // ----- Top-up: buy a prepaid credit pack -------------------------------
     if (type === 'topup') {
-      const pack = parsed.data.pack;
-      if (!pack) {
-        return NextResponse.json(
-          ApiResponseBuilder.error('BAD_REQUEST', 'A credit pack is required for a top-up'),
-          { status: 400 }
-        );
-      }
+      const pack = parsed.data.pack as NonNullable<typeof parsed.data.pack>;
 
       // Credit packs are available to EVERY user with no subscription or
       // trial requirement — the wallet balance alone grants access to all

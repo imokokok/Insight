@@ -55,7 +55,7 @@ function createSupabaseMock(stores: {
     const calls: Record<string, unknown[]> = {};
 
     const chain: Record<string, unknown> = {};
-    for (const fn of ['select', 'update', 'insert', 'upsert', 'eq', 'order', 'limit', 'is']) {
+    for (const fn of ['select', 'update', 'insert', 'upsert', 'eq', 'order', 'limit', 'is', 'in']) {
       chain[fn] = jest.fn((...args: unknown[]) => {
         calls[fn] = calls[fn] ?? [];
         calls[fn].push(args);
@@ -463,5 +463,159 @@ describe('POST /api/billing/webhook', () => {
     // Verify the event_id inserted/queried uses payment_id:status format.
     const fromCalls = supabase.from.mock.calls;
     expect(fromCalls.length).toBeGreaterThan(0);
+  });
+});
+
+describe('top-up & pending-state IPN edge cases', () => {
+  it('credits the wallet and marks the purchase paid on a top-up `finished` IPN', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_topup1',
+      type: 'finished',
+      data: { invoice_id: 'inv_topup1', order_id: 'purchase_1' },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(
+      createSupabaseMock({
+        selectData: {
+          credit_purchases: {
+            id: 'purchase_1',
+            user_id: 'user_topup',
+            credits: 25000,
+            status: 'incomplete',
+          },
+          subscriptions: null,
+        },
+      })
+    );
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(200);
+    expect(mockTopUpCredits).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user_topup',
+        amount: 25000,
+        meteringKey: 'topup:inv_topup1',
+        kind: 'topup',
+      })
+    );
+    // A top-up is not a subscription — no plan upgrade.
+    expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalled();
+  });
+
+  it('does NOT mark a top-up purchase paid when the wallet credit fails', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_topup2',
+      type: 'finished',
+      data: { invoice_id: 'inv_topup2', order_id: 'purchase_2' },
+    });
+    const supabase = createSupabaseMock({
+      selectData: {
+        credit_purchases: {
+          id: 'purchase_2',
+          user_id: 'user_topup2',
+          credits: 100000,
+          status: 'incomplete',
+        },
+        subscriptions: null,
+      },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(supabase);
+    mockTopUpCredits.mockResolvedValue(null); // transient DB failure in the RPC
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(200);
+    // Purchase must remain 'incomplete' (no status:'paid' update) so a retry /
+    // the "I've paid" reconcile can still credit the wallet.
+    const purchaseUpdates = supabase.from.mock.calls
+      .map((call, i) =>
+        call[0] === 'credit_purchases'
+          ? ((
+              supabase.from.mock.results[i].value as unknown as {
+                __calls?: Record<string, unknown[]>;
+              }
+            ).__calls?.update ?? [])
+          : []
+      )
+      .flat();
+    expect(purchaseUpdates).toHaveLength(0);
+  });
+
+  it('ignores partially_paid when the subscription is already active (out-of-order guard)', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_pp1',
+      type: 'partially_paid',
+      data: { invoice_id: 'inv_pp1' },
+    });
+    const supabase = createSupabaseMock({
+      selectData: {
+        subscriptions: {
+          id: 'sub_pp1',
+          user_id: 'user_pp',
+          plan: 'developer',
+          interval: 'month',
+          status: 'active',
+        },
+      },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(supabase);
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(200);
+    // A late partially_paid must not downgrade an already-active row to
+    // past_due — assert no subscriptions update ran.
+    const subUpdates = supabase.from.mock.calls
+      .map((call, i) =>
+        call[0] === 'subscriptions'
+          ? ((
+              supabase.from.mock.results[i].value as unknown as {
+                __calls?: Record<string, unknown[]>;
+              }
+            ).__calls?.update ?? [])
+          : []
+      )
+      .flat();
+    expect(subUpdates).toHaveLength(0);
+  });
+
+  it('cancels a past_due subscription on expired (partially paid then lapsed)', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_pd1',
+      type: 'expired',
+      data: { invoice_id: 'inv_pd1' },
+    });
+    const supabase = createSupabaseMock({
+      selectData: {
+        subscriptions: {
+          id: 'sub_pd1',
+          user_id: 'user_pd',
+          plan: 'developer',
+          interval: 'month',
+          status: 'past_due',
+        },
+      },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(supabase);
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(200);
+    // Past-due rows were never activated/credited — expired must cancel them
+    // (otherwise the "I've paid" reconcile would be stuck forever).
+    const subUpdates = supabase.from.mock.calls
+      .map((call, i) =>
+        call[0] === 'subscriptions'
+          ? ((
+              supabase.from.mock.results[i].value as unknown as {
+                __calls?: Record<string, unknown[]>;
+              }
+            ).__calls?.update ?? [])
+          : []
+      )
+      .flat();
+    expect(
+      subUpdates.some((args) => (args[0] as Record<string, unknown>).status === 'canceled')
+    ).toBe(true);
   });
 });

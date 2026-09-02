@@ -155,6 +155,25 @@ export async function handlePaymentConfirmed(
         ref: invoiceId ?? undefined,
       });
 
+      if (newBalance === null) {
+        // The wallet was NOT credited (transient DB error inside
+        // top_up_credits). Leave the purchase 'incomplete' so a retry — a
+        // second confirmed/finished IPN, or the user's "I've paid" reconcile —
+        // re-attempts the credit. Marking it 'paid' here would permanently
+        // lose the credits with no recovery path.
+        logger.error(
+          'Top-up confirmed but credit failed — purchase left incomplete for retry',
+          new Error('top_up_credits returned null'),
+          {
+            userId: purchase.user_id,
+            credits: purchase.credits,
+            purchaseId: purchase.id,
+            paymentId,
+          }
+        );
+        return;
+      }
+
       await client
         .from('credit_purchases')
         .update({
@@ -287,12 +306,24 @@ export async function handlePaymentConfirmed(
 /**
  * Handle partially_paid: mark the subscription past_due (awaiting top-up).
  * Do NOT upgrade — the user hasn't paid the full amount yet.
+ *
+ * Only a still-incomplete (never-activated) subscription may be marked
+ * past_due. A late/duplicate partially_paid IPN must not downgrade a row that
+ * was already activated by an earlier confirmed/finished event.
  */
 export async function handlePartiallyPaid(client: ServiceClient, data: IpnData) {
   const sub = await findSubscriptionByInvoice(client, data);
   if (!sub) {
     logger.warn('partially_paid: no subscription row found', {
       invoiceId: getStringField(data, 'invoice_id', 'invoiceId'),
+    });
+    return;
+  }
+
+  if (sub.status !== 'incomplete') {
+    logger.info('partially_paid ignored — subscription not incomplete', {
+      subscriptionId: sub.id,
+      currentStatus: sub.status,
     });
     return;
   }
@@ -358,9 +389,13 @@ export async function handlePaymentExpiredOrFailed(client: ServiceClient, data: 
     return;
   }
 
-  if (sub.status !== 'incomplete') {
-    // Already active (or already canceled/past_due) — do not touch.
-    logger.info('expired/failed ignored — subscription not in incomplete state', {
+  // Cancel rows that were never activated: 'incomplete' (never paid) and
+  // 'past_due' (partially paid then expired — payment never completed, so no
+  // credits were granted and no upgrade happened). Never touch 'active' rows —
+  // a late expired IPN must not cancel a payment that already settled.
+  if (sub.status !== 'incomplete' && sub.status !== 'past_due') {
+    // Already active (or already canceled) — do not touch.
+    logger.info('expired/failed ignored — subscription not in incomplete/past_due state', {
       subscriptionId: sub.id,
       currentStatus: sub.status,
     });
@@ -371,7 +406,7 @@ export async function handlePaymentExpiredOrFailed(client: ServiceClient, data: 
     .from('subscriptions')
     .update({ status: 'canceled', updated_at: new Date().toISOString() })
     .eq('id', sub.id)
-    .eq('status', 'incomplete'); // belt-and-suspenders: only update if still incomplete
+    .in('status', ['incomplete', 'past_due']); // belt-and-suspenders: only update if still pending
 
   if (error) {
     logger.warn('Failed to mark subscription canceled', {
