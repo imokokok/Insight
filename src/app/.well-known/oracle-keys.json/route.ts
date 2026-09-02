@@ -24,9 +24,14 @@ import {
 } from '@/lib/attestations/canonicalRequestHash';
 import {
   EXECUTION_DOMAIN,
-  EXECUTION_TYPES,
   EXECUTION_PRIMARY_TYPE,
   EXECUTION_SCHEMA_VERSION,
+  EXECUTION_SCHEMA_VERSION_V2,
+  EXECUTION_SCHEMA_VERSION_V3,
+  EXECUTION_TYPES_V1,
+  EXECUTION_TYPES_V2,
+  EXECUTION_TYPES_V3,
+  executionDomainV3,
   EXECUTION_VALID_FOR_SECONDS,
   EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
   EXECUTION_REQUIRED_PARTICIPANT_COUNT,
@@ -34,12 +39,24 @@ import {
 } from '@/lib/attestations/executionReceipt';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import {
+  ATTESTATION_DOMAIN,
+  ATTESTATION_TYPES,
+  ATTESTATION_PRIMARY_TYPE,
+  ATTESTATION_SCHEMA_VERSION,
+} from '@/lib/attestations/oracleSafetyAttestation';
+import {
   V2_DOMAIN,
   V2_TYPES,
   V2_PRIMARY_TYPE,
   V2_SCHEMA_VERSION,
   V2_ATTESTER_LABEL,
 } from '@/lib/attestations/oracleSafetyAttestationV2';
+import {
+  V3_DOMAIN,
+  V3_TYPES,
+  V3_PRIMARY_TYPE,
+  V3_SCHEMA_VERSION,
+} from '@/lib/attestations/oracleSafetyAttestationV3';
 import {
   RECHECK_DOMAIN,
   RECHECK_TYPES,
@@ -57,15 +74,16 @@ import {
   WATCH_REQUIRED_SOURCE_GROUP_COUNT,
 } from '@/lib/attestations/oracleWatchAttestation';
 
-/** Loose EIP-712 descriptor shape for JSON (domain version widened to string). */
+/** Loose EIP-712 descriptor shape for JSON (domain version widened to string;
+ *  `environment` appears on domains that structurally separate deployments). */
 interface Eip712Descriptor {
-  domain: { name: string; version: string; chainId: number };
+  domain: { name: string; version: string; chainId: number; environment?: string };
   types: Record<string, Array<{ name: string; type: string }>>;
   primaryType: string;
 }
 
 function descriptor(
-  domain: { name: string; version: string; chainId: number },
+  domain: { name: string; version: string; chainId: number; environment?: string },
   types: Record<string, Array<{ name: string; type: string }>>,
   primaryType: string
 ): Eip712Descriptor {
@@ -111,9 +129,33 @@ export async function GET(request: NextRequest) {
     revoked_keys: registry.revoked,
     attestation_enabled: attester !== null,
     schemas: {
+      /**
+       * Pre-trade Oracle Safety Check. v3 is the current signing layout: 27
+       * fields (v2's 26 plus the signed `requiredSourceGroupCount` threshold,
+       * VERITAS), under domain version 3. Published alongside the v1/v2
+       * layouts below so a stranger who holds a gate of ANY version can rebuild
+       * its EIP-712 struct from this document alone (Headless H6).
+       */
       OracleSafetyCheck: {
+        schemaVersion: V3_SCHEMA_VERSION,
+        eip712: descriptor(V3_DOMAIN, V3_TYPES as never, V3_PRIMARY_TYPE),
+      },
+      /** v2 layout (26 fields, domain version 2): superseded by v3 but kept so
+       *  v2 gates already handed out keep verifying. */
+      OracleSafetyCheckV2: {
         schemaVersion: V2_SCHEMA_VERSION,
+        retiredForSigning: true,
         eip712: descriptor(V2_DOMAIN, V2_TYPES as never, V2_PRIMARY_TYPE),
+      },
+      /** v1 layout (11 fields, domain version 1): the original pre-trade line. */
+      OracleSafetyCheckV1: {
+        schemaVersion: ATTESTATION_SCHEMA_VERSION,
+        retiredForSigning: true,
+        eip712: descriptor(
+          ATTESTATION_DOMAIN,
+          ATTESTATION_TYPES as never,
+          ATTESTATION_PRIMARY_TYPE
+        ),
       },
       OracleSafetyRecheck: {
         schemaVersion: V2_SCHEMA_VERSION,
@@ -162,10 +204,22 @@ export async function GET(request: NextRequest) {
        * signed NEXT TO the observed counts so a receipt is self-checking, exactly
        * as with Watch. Its independence gate is the agent's own pre-trade basis,
        * carried forward — not an independent re-proof of oracle independence.
+       *
+       * v3 (43 fields) is the current signing layout, under a domain that
+       * carries `environment` so a staging receipt is structurally separable
+       * from a production one. The published domain here is resolved from the
+       * deployment environment at request time. v1 (30 fields) and v2 (32
+       * fields) layouts are published as separate entries below, each under the
+       * domain it was actually signed with, so a stranger rebuilding a receipt
+       * of any version recovers the signer (Headless H6).
        */
       ExecutionReceipt: {
-        schemaVersion: EXECUTION_SCHEMA_VERSION,
-        eip712: descriptor(EXECUTION_DOMAIN, EXECUTION_TYPES as never, EXECUTION_PRIMARY_TYPE),
+        schemaVersion: EXECUTION_SCHEMA_VERSION_V3,
+        eip712: descriptor(
+          executionDomainV3(),
+          EXECUTION_TYPES_V3 as never,
+          EXECUTION_PRIMARY_TYPE
+        ),
         validForSeconds: EXECUTION_VALID_FOR_SECONDS,
         gates: {
           requiredParticipantCount: EXECUTION_REQUIRED_PARTICIPANT_COUNT,
@@ -176,6 +230,23 @@ export async function GET(request: NextRequest) {
         },
         verify: `${origin}/api/v1/execution/attestation/verify`,
         sample: `${origin}/api/v1/execution/attestation/sample`,
+      },
+      /** v2 receipt (32 fields): superseded by v3 but kept published so receipts
+       *  already handed to counterparties keep verifying. Same domain as v1. */
+      ExecutionReceiptV2: {
+        schemaVersion: EXECUTION_SCHEMA_VERSION_V2,
+        retiredForSigning: true,
+        eip712: descriptor(EXECUTION_DOMAIN, EXECUTION_TYPES_V2 as never, EXECUTION_PRIMARY_TYPE),
+        validForSeconds: EXECUTION_VALID_FOR_SECONDS,
+        verify: `${origin}/api/v1/execution/attestation/verify`,
+      },
+      /** v1 receipt (30 fields): the original execution line. */
+      ExecutionReceiptV1: {
+        schemaVersion: EXECUTION_SCHEMA_VERSION,
+        retiredForSigning: true,
+        eip712: descriptor(EXECUTION_DOMAIN, EXECUTION_TYPES_V1 as never, EXECUTION_PRIMARY_TYPE),
+        validForSeconds: EXECUTION_VALID_FOR_SECONDS,
+        verify: `${origin}/api/v1/execution/attestation/verify`,
       },
     },
     verify: `${origin}/api/v1/safety/attestation/verify`,

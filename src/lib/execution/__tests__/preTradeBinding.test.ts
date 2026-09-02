@@ -27,6 +27,18 @@ const DAI = 'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F';
 
 const CHECKED_AT_S = 1_700_000_000;
 
+/** The unix-seconds signing time signAttestationV3 stamps on the envelope
+ *  (Headless H4: preTradeSignedAt must carry the SIGNING time, not the
+ *  self-declared checkedAt). */
+const signedAtSeconds = (gate: { signedAt?: unknown }) => {
+  const raw = gate?.signedAt;
+  if (typeof raw === 'string' && raw.trim() !== '') {
+    const ms = Date.parse(raw);
+    if (Number.isFinite(ms)) return Math.floor(ms / 1000);
+  }
+  return 0;
+};
+
 function preTradeInput(overrides: Partial<AttestationInputV2> = {}): AttestationInputV2 {
   return {
     verdict: 'PASS',
@@ -120,7 +132,11 @@ describe('resolvePreTradeBinding', () => {
     expect(result.binding.quotedPrice).toBeCloseTo(0.0004, 8);
     expect(result.binding.preTradeUid).toBe(source!.uid);
     expect(result.binding.requestHash).toBe(source!.data.requestHash);
-    expect(result.binding.preTradeSignedAt).toBe(CHECKED_AT_S);
+    // H4: the receipt's preTradeSignedAt is the gate's SIGNING time (envelope
+    // signedAt — here, when the test signed it), NOT the self-declared
+    // data.checkedAt the signer chose for the observation window.
+    expect(result.binding.preTradeSignedAt).toBe(signedAtSeconds(source!));
+    expect(result.binding.preTradeSignedAt).not.toBe(CHECKED_AT_S);
     expect(result.binding.participantCount).toBe(4);
     expect(result.binding.subjectChainId).toBe(1);
   });
@@ -196,6 +212,10 @@ describe('resolvePreTradeBinding', () => {
     if (!result.ok) return;
     expect(result.binding.bindingMode).toBe('VERIFIED');
     expect(result.binding.preTradeExpired).toBe(true);
-    expect(result.binding.preTradeSignedAt).toBe(CHECKED_AT_S - 3600);
+    // Expiry is judged on the gate's data window, but the binding time is
+    // still the envelope SIGNING time (the gate was signed just now, in this
+    // test), never the stale checkedAt the test injected.
+    expect(result.binding.preTradeSignedAt).toBe(signedAtSeconds(stale!));
+    expect(result.binding.preTradeSignedAt).not.toBe(CHECKED_AT_S - 3600);
   });
 });

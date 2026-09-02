@@ -14,25 +14,33 @@
  * integration test (`executionTrustLoop.integration.test.ts`) cannot cover.
  *
  * The loop:
- *   1. find a real, recent USDC/WETH swap on the Uniswap V3 0.05% pool
+ *   1. find a real, recent USDC/WETH swap on the Uniswap V3 0.05% pool whose
+ *      direct counterparty is a single party that paid the source token into
+ *      the pool and received and kept the destination token (its position
+ *      change equals the swap; fee-taking aggregator routes and bot fills whose
+ *      tokens never move through one party are never graded — Headless H1/H2/H3)
  *   2. read the pool's mid price at the block BEFORE the swap and use it as the
  *      pre-trade quote — independent of the fill, since it is the state the
  *      agent was shown before executing, not a number derived from the trade
  *      being graded
- *   3. sign v3 pre-trade SOURCE + DESTINATION gates 30s before settlement
+ *   3. sign v3 pre-trade SOURCE + DESTINATION gates, with the test clock wound
+ *      back to 30s before settlement so the gates genuinely predate the fill
+ *      and FAITHFUL is reachable (Headless H4: preTradeSignedAt is the gate's
+ *      SIGNING time — the test clock is the forward-demo construction)
  *   4. issueExecutionReceipt  -> collects the REAL tx from mainnet
  *   5. verifyExecutionReceipt -> real signature + window verification
- *   6. verifyExecutionPair    -> cryptographic closed-loop binding
+ *   6. verifyExecutionPair    -> cryptographic closed-loop binding (both gates)
  *
  * Why candidates are filtered, and what is still being asserted:
- *   A receipt is only graded on a transaction whose Transfer-level attribution
- *   reconciles with the pool's own Swap accounting — i.e. a clean single-pool
- *   swap where the taker's legs are unambiguous. Aggregator routes and multi-hop
- *   fills are skipped because there the correct answer is genuinely a different
- *   (harder) question, not because they would fail. What is asserted, on the
- *   transaction that does qualify, is that the collector's Transfer attribution
- *   reproduces the venue's own numbers to full precision, and that the verdict
- *   and closed-loop status match an independently recomputed expectation.
+ *   A receipt is only graded on a transaction whose sender-side Transfer-level
+ *   attribution reconciles with the pool's own Swap accounting to <1e-6
+ *   relative — i.e. a fill with no fee path between the sender and the pool
+ *   leg. Fee-taking aggregator routes and multi-hop fills are skipped because
+ *   there the correct answer is genuinely a different (harder) question, not
+ *   because they would fail. What is asserted, on the transaction that does
+ *   qualify, is that the collector's Transfer attribution reproduces the
+ *   venue's own numbers to full precision, and that the verdict and
+ *   closed-loop status match an independently recomputed expectation.
  *
  * Trading direction is never guessed: it is read from the pool's Swap event
  * (amount0 > 0 means USDC went in), and attribution is then required to agree
@@ -70,9 +78,12 @@ const MAX_SLIPPAGE_BPS = 100;
  *  positive (fresh basis) while honouring preTradeSignedAt <= executedAt. */
 const GATE_LEAD_SECONDS = 30;
 
-/** Receipts are valid for executedAt + 600s, so only recent swaps can be graded. */
-const SEARCH_BLOCKS = 40;
-const MAX_CANDIDATES = 25;
+/** Receipts are valid for executedAt + 600s, so only recent swaps can be graded.
+ *  publicnode serves eth_getLogs ~100 blocks back on the free tier, and
+ *  qualifying (single-counterparty) fills are sparse, so both are overridable:
+ *   SEARCH_BLOCKS=100 MAX_CANDIDATES=150 LIVE_CHAIN=1 npx jest ... */
+const SEARCH_BLOCKS = Number(process.env.SEARCH_BLOCKS ?? 40);
+const MAX_CANDIDATES = Number(process.env.MAX_CANDIDATES ?? 25);
 
 const hex = (n: number) => '0x' + n.toString(16);
 
@@ -269,33 +280,45 @@ describeIfLive('verifiable execution trust loop — LIVE mainnet settlement', ()
 
         const transfers = decodeAllTransfers(receipt.logs);
 
-        // Find a taker whose Transfers match the direction the pool reported.
-        // Preferring the tx sender; a router-mediated swap may attribute to
-        // the router instead. Attribution SUMS matching transfers, so a
-        // candidate only qualifies when that sum equals the pool's amount.
-        const candidates = [
-          (receipt.from as string).toLowerCase(),
-          ...[...new Set(transfers.map((t) => t.from))].filter(
-            (a) => a !== (receipt.from as string).toLowerCase()
-          ),
-        ];
-        let picked: { taker: string; sold: bigint; bought: bigint } | null = null;
-        for (const taker of candidates) {
-          const sold = transfers
-            .filter((t) => t.from === taker && t.token.toLowerCase() === swap.soldToken)
-            .reduce((acc, t) => acc + t.value, 0n);
-          const bought = transfers
-            .filter((t) => t.to === taker && t.token.toLowerCase() === swap.boughtToken)
-            .reduce((acc, t) => acc + t.value, 0n);
-          if (sold > 0n && bought > 0n) {
-            picked = { taker, sold, bought };
-            break;
-          }
-        }
-        if (!picked) {
+        // Attribution must name the TRADER and use its REALISED price
+        // (Headless H1/H2/H3). Only fills in which ONE party's position change
+        // equals the swap are graded: the address that paid the source token
+        // INTO the pool and received the destination token FROM it and kept it
+        // (never an aggregator router; never the gas-paying EOA of a bot whose
+        // tokens never move). Integrity checks: no destination token flows
+        // onward from that party (it kept the fill), and no source token flows
+        // into it (it sold its own holdings).
+        const poolAddr = POOL.toLowerCase();
+        const soldLegs = transfers.filter(
+          (t) => t.token.toLowerCase() === swap.soldToken && t.to.toLowerCase() === poolAddr
+        );
+        const boughtLegs = transfers.filter(
+          (t) => t.token.toLowerCase() === swap.boughtToken && t.from.toLowerCase() === poolAddr
+        );
+        if (soldLegs.length !== 1 || boughtLegs.length !== 1) {
           skipped++;
           continue;
         }
+        const counterparty = soldLegs[0].from.toLowerCase();
+        if (counterparty !== boughtLegs[0].to.toLowerCase()) {
+          skipped++;
+          continue;
+        }
+        const routedAway = transfers.some(
+          (t) => t.token.toLowerCase() === swap.boughtToken && t.from.toLowerCase() === counterparty
+        );
+        const collectedIn = transfers.some(
+          (t) => t.token.toLowerCase() === swap.soldToken && t.to.toLowerCase() === counterparty
+        );
+        if (routedAway || collectedIn) {
+          skipped++;
+          continue;
+        }
+        const picked: { taker: string; sold: bigint; bought: bigint } = {
+          taker: counterparty,
+          sold: soldLegs[0].value,
+          bought: boughtLegs[0].value,
+        };
 
         const sourceDecimals = swap.soldToken === USDC ? 6 : 18;
         const destDecimals = swap.boughtToken === USDC ? 6 : 18;
@@ -330,12 +353,26 @@ describeIfLive('verifiable execution trust loop — LIVE mainnet settlement', ()
         const destAssetId = `eip155:1/erc20:${swap.boughtToken}`;
 
         const gateMs = (executedAt - GATE_LEAD_SECONDS) * 1000;
-        const sourceGate = await signAttestationV3(
-          preTradeInput(sourceAssetId, destAssetId, srcUsd, gateMs)
-        );
-        const destGate = await signAttestationV3(
-          preTradeInput(destAssetId, sourceAssetId, dstUsd, gateMs)
-        );
+        // Headless H4: a receipt only signs FAITHFUL when the gate was signed
+        // BEFORE the fill, and `preTradeSignedAt` now carries the gate's real
+        // envelope signature time. This suite settles on HISTORICAL swaps, so
+        // to exercise the forward path the test clock is wound back to just
+        // before the fill while the gates are signed — a test construction
+        // (a forward demo signs in real time), not a claim about these bytes.
+        jest.useFakeTimers();
+        jest.setSystemTime((executedAt - GATE_LEAD_SECONDS) * 1000);
+        let sourceGate: Awaited<ReturnType<typeof signAttestationV3>> = null;
+        let destGate: Awaited<ReturnType<typeof signAttestationV3>> = null;
+        try {
+          sourceGate = await signAttestationV3(
+            preTradeInput(sourceAssetId, destAssetId, srcUsd, gateMs)
+          );
+          destGate = await signAttestationV3(
+            preTradeInput(destAssetId, sourceAssetId, dstUsd, gateMs)
+          );
+        } finally {
+          jest.useRealTimers();
+        }
         expect(sourceGate).not.toBeNull();
         expect(destGate).not.toBeNull();
 
@@ -362,7 +399,9 @@ describeIfLive('verifiable execution trust loop — LIVE mainnet settlement', ()
         }
 
         const verify = await verifyExecutionReceipt(issue.receipt);
-        const pair = await verifyExecutionPair(sourceGate!, issue.receipt);
+        // v3 receipts commit to BOTH gates (F1): present the destination gate,
+        // or the destination binding fails rather than being silently skipped.
+        const pair = await verifyExecutionPair(sourceGate!, issue.receipt, destGate!);
 
         const quotedPrice = srcUsd / dstUsd;
         const expectedDeltaBps = ((swap.price - quotedPrice) / quotedPrice) * 10_000;
@@ -395,8 +434,8 @@ describeIfLive('verifiable execution trust loop — LIVE mainnet settlement', ()
           '(expected)'
         );
         console.log(
-          'executionStatus   :',
-          issue.receipt.data.executionStatus,
+          'priceExecutionStatus:',
+          issue.receipt.data.priceExecutionStatus,
           '(receipt)',
           expectedStatus,
           '(expected)'
@@ -410,6 +449,20 @@ describeIfLive('verifiable execution trust loop — LIVE mainnet settlement', ()
         // 1. VERIFIED binding: the quote came from the gates, not the caller.
         expect(issue.receipt.data.bindingMode).toBe('VERIFIED');
 
+        // 1b. Precedence (Headless H4): the receipt carries the gate's SIGNING
+        //     time, which the test clock placed before the fill — so FAITHFUL
+        //     is reachable only when the ordering genuinely held.
+        expect(issue.binding.preTradeSignedAt).toBeGreaterThan(0);
+        expect(issue.binding.preTradeSignedAt).toBeLessThanOrEqual(executedAt);
+        expect(issue.binding.preTradeSignedAt).toBeLessThanOrEqual(Math.floor(Date.now() / 1000));
+
+        // 1c. The receipt names the TRADER (H1): subject = taker = the pool's
+        //     direct counterparty (the party whose position change equals the
+        //     swap), never an aggregator router.
+        expect(issue.receipt.data.subject?.toLowerCase()).toBe(picked.taker);
+        expect(issue.receipt.data.taker?.toLowerCase()).toBe(picked.taker);
+        expect(issue.receipt.data.claimRole).toBe('THIRD_PARTY_OBSERVATION');
+
         // 2. The collector read the REAL chain: its Transfer-attributed fill
         //    reproduces the pool's own Swap accounting to full precision.
         const got = issue.facts.executedPrice as number;
@@ -417,7 +470,7 @@ describeIfLive('verifiable execution trust loop — LIVE mainnet settlement', ()
         expect(rel(got, swap.price)).toBeLessThan(1e-6);
 
         // 3. The verdict is CORRECT, not merely favourable.
-        expect(issue.receipt.data.executionStatus).toBe(expectedStatus);
+        expect(issue.receipt.data.priceExecutionStatus).toBe(expectedStatus);
         expect(Math.abs(issue.receipt.data.priceDeltaBps - expectedDeltaBps)).toBeLessThan(1);
 
         // 4. The receipt verifies independently, and the loop closes.
@@ -426,7 +479,8 @@ describeIfLive('verifiable execution trust loop — LIVE mainnet settlement', ()
         expect(pair.pairedValid).toBe(true);
         expect(pair.binding.preTradeUidMatch).toBe(true);
         expect(pair.binding.requestHashMatch).toBe(true);
-        expect(pair.closedLoopStatus).toBe(`CLOSED_${expectedStatus}`);
+        // v3 receipts carry the PRICE_ prefix: the loop closed on PRICE only.
+        expect(pair.closedLoopStatus).toBe(`PRICE_CLOSED_${expectedStatus}`);
 
         closed = true;
         break;

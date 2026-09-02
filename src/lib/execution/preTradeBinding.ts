@@ -110,6 +110,39 @@ function toText(value: unknown): string {
   return '';
 }
 
+/**
+ * The unix-seconds time a pre-trade attestation was actually SIGNED, read from
+ * the envelope's `signedAt` (ISO-8601 string, or epoch seconds/milliseconds).
+ *
+ * This is the Headless H4 fix. The receipt's signed `preTradeSignedAt` field
+ * claims to be "the pre-trade signing time" (see executionReceipt.ts v2 note),
+ * and a holder checks it against the settlement to establish precedence. But
+ * the gate's EIP-712 struct only signs `checkedAt` — the observation time the
+ * SIGNER chose — which a backfilled demo could set to any moment before the
+ * trade, making a gate signed after a favourable fill look like it preceded
+ * it. The envelope's `signedAt` is the actual signature action time, and it
+ * must be the value a VERIFIED receipt carries, so the receipt and the gate
+ * envelope agree with each other and with the on-chain clock.
+ *
+ * Returns 0 when no parseable signature time exists. A zero propagates to the
+ * receipt as an UNDETERMINED verdict (deriveExecutionStatus requires
+ * preTradeSignedAt > 0 and <= executedAt for FAITHFUL) — honest: a gate whose
+ * signing time cannot be established must not be claimed to have preceded
+ * anything.
+ */
+function parseEnvelopeSignedAtSeconds(envelope: PreTradeAttestationEnvelope | null): number {
+  const raw = envelope?.signedAt;
+  if (typeof raw === 'string' && raw.trim() !== '') {
+    const ms = Date.parse(raw);
+    if (Number.isFinite(ms)) return Math.floor(ms / 1000);
+  }
+  if (typeof raw === 'number' && Number.isFinite(raw) && raw > 0) {
+    // Milliseconds (13 digits) vs seconds (10 digits) — both carry real clocks.
+    return raw > 1e12 ? Math.floor(raw / 1000) : Math.floor(raw);
+  }
+  return 0;
+}
+
 /** Verify one pre-trade original and return its checked-at time and consensus
  *  price (unscaled), or a failure reason. */
 async function verifyOne(
@@ -231,7 +264,14 @@ export async function resolvePreTradeBinding(params: {
       subjectChainId: toNumber(sourceData.subjectChainId) || selfReported.subjectChainId,
       participantCount: toNumber(sourceData.participantCount),
       sourceGroupCount: toNumber(sourceData.sourceGroupCount),
-      preTradeSignedAt: toNumber(sourceData.checkedAt),
+      // The gate's SIGNING time, read from the envelope (`signedAt`), never its
+      // self-declared observation time (`data.checkedAt`) — Headless H4. A
+      // backfilled gate therefore reads as what it is: signed AFTER the fill it
+      // supposedly authorised, which forces the receipt's verdict to
+      // UNDETERMINED via PRE_TRADE_AFTER_EXECUTION. Only when the envelope
+      // carries no parseable signature time do we fall back to the signed
+      // checkedAt, because it is then the only time evidence the gate offers.
+      preTradeSignedAt: parseEnvelopeSignedAtSeconds(source) || toNumber(sourceData.checkedAt),
       // The quote is destination-per-source so it is directly comparable to the
       // on-chain executedPrice (also destination/source). consensusPrice is the
       // asset's USD price, so destination-per-source = sourceUSD / destUSD.

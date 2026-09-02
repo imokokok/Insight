@@ -81,8 +81,12 @@ const SLOT0_SELECTOR = '0x3850c7bd';
 
 const MAX_SLIPPAGE_BPS = 100;
 const GATE_LEAD_SECONDS = 30;
-const SEARCH_BLOCKS = 40;
-const MAX_CANDIDATES = 25;
+/** Search window / candidate budget. publicnode serves eth_getLogs ~100 blocks
+ *  back on the free tier, and qualifying (single-counterparty) fills are
+ *  sparse, so both are overridable for a re-run:
+ *   SEARCH_BLOCKS=100 MAX_CANDIDATES=150 npx tsx scripts/export-execution-receipt-bytes.ts */
+const SEARCH_BLOCKS = Number(process.env.SEARCH_BLOCKS ?? 40);
+const MAX_CANDIDATES = Number(process.env.MAX_CANDIDATES ?? 25);
 
 const hex = (n: number) => '0x' + n.toString(16);
 
@@ -245,26 +249,50 @@ async function main() {
 
       const transfers = decodeAllTransfers(receipt.logs);
 
-      const candidates = [
-        (receipt.from as string).toLowerCase(),
-        ...[...new Set(transfers.map((t) => t.from))].filter(
-          (a) => a !== (receipt.from as string).toLowerCase()
-        ),
-      ];
-      let picked: { taker: string; sold: bigint; bought: bigint } | null = null;
-      for (const taker of candidates) {
-        const sold = transfers
-          .filter((t) => t.from === taker && t.token.toLowerCase() === swap.soldToken)
-          .reduce((acc, t) => acc + t.value, 0n);
-        const bought = transfers
-          .filter((t) => t.to === taker && t.token.toLowerCase() === swap.boughtToken)
-          .reduce((acc, t) => acc + t.value, 0n);
-        if (sold > 0n && bought > 0n) {
-          picked = { taker, sold, bought };
-          break;
-        }
-      }
-      if (!picked) continue;
+      // H1/H2/H3 (Headless 2026-09-02): attribution must name the TRADER, and
+      // it must be the trader's REALISED price. The demo only grades fills in
+      // which ONE party's position change equals the swap — the address that
+      // paid the source token INTO the pool and received the destination token
+      // FROM the pool:
+      //   subject = taker = that party (H1): never an aggregator router, never
+      //   the gas-paying EOA of a bot whose tokens never move.
+      //   executedPrice = destination received / source paid = that party's
+      //   realised price (H3 — what the trader actually got). Because that same
+      //   party is the pool's sole counterparty and keeps what it bought, its
+      //   realised price equals the pool leg exactly: there is no fee path.
+      // Two integrity checks keep intermediates out:
+      //   - no destination token flows onward FROM that party in this tx (the
+      //     party kept the fill; it did not route a remainder onward)
+      //   - no source token flows INTO that party in this tx (the party sold
+      //     its own holdings; it did not collect from others)
+      // Anything else — aggregator fee-split, flash-repay, multi-party routing
+      // — fails the checks and is SKIPPED, never mis-graded by naming an
+      // intermediate as the trader (H1) or reading the pool leg as the
+      // trader's fill (H3). The Transfer-side reconstruction then reconciles
+      // with the pool's Swap event as a consistency check (H2).
+      const poolAddr = POOL.toLowerCase();
+      const soldLegs = transfers.filter(
+        (t) => t.token.toLowerCase() === swap.soldToken && t.to.toLowerCase() === poolAddr
+      );
+      const boughtLegs = transfers.filter(
+        (t) => t.token.toLowerCase() === swap.boughtToken && t.from.toLowerCase() === poolAddr
+      );
+      if (soldLegs.length !== 1 || boughtLegs.length !== 1) continue;
+      const counterparty = soldLegs[0].from.toLowerCase();
+      if (counterparty !== boughtLegs[0].to.toLowerCase()) continue;
+      const routedAway = transfers.some(
+        (t) => t.token.toLowerCase() === swap.boughtToken && t.from.toLowerCase() === counterparty
+      );
+      const collectedIn = transfers.some(
+        (t) => t.token.toLowerCase() === swap.soldToken && t.to.toLowerCase() === counterparty
+      );
+      if (routedAway || collectedIn) continue;
+      const sender = (receipt.from as string).toLowerCase();
+      const picked: { taker: string; sold: bigint; bought: bigint } = {
+        taker: counterparty,
+        sold: soldLegs[0].value,
+        bought: boughtLegs[0].value,
+      };
 
       const sourceDecimals = swap.soldToken === USDC ? 6 : 18;
       const destDecimals = swap.boughtToken === USDC ? 6 : 18;
@@ -354,8 +382,19 @@ async function main() {
         String(issue.receipt.data.measuredFieldsHash).toLowerCase();
 
       const expectedDeltaBps = ((swap.price - srcUsd / dstUsd) / (srcUsd / dstUsd)) * 10_000;
-      const expectedStatus =
-        Math.abs(expectedDeltaBps) <= MAX_SLIPPAGE_BPS ? 'FAITHFUL' : 'DEVIATED';
+      // Independent recompute of the verdict, mirroring deriveExecutionStatus:
+      // the signed verdict can only be FAITHFUL/DEVIATED when the gate was
+      // signed BEFORE the fill. This demo backfills a historical swap, so the
+      // gates were signed after settlement and the expected verdict is
+      // UNDETERMINED (PRE_TRADE_AFTER_EXECUTION) — Headless H4. Claiming
+      // FAITHFUL here would reproduce exactly the bug the finding named.
+      const precedenceHolds =
+        issue.binding.preTradeSignedAt > 0 && issue.binding.preTradeSignedAt <= executedAt;
+      const expectedStatus = !precedenceHolds
+        ? 'UNDETERMINED'
+        : Math.abs(expectedDeltaBps) <= MAX_SLIPPAGE_BPS
+          ? 'FAITHFUL'
+          : 'DEVIATED';
 
       const v3Layout = EXECUTION_TYPES_V3.ExecutionReceipt.map((f) => f.name);
       const v3Domain = executionDomainV3();
@@ -375,6 +414,8 @@ async function main() {
             'receipt is NOT anchored; anchoring remains the stated next step',
             "the quoted price is the execution venue's OWN pre-swap mid (block before the swap) re-expressed as USD; the receipt signs quoteVenueIndependent=false and quoteBasis=PREV_BLOCK_CLOSE accordingly (VERITAS F3/F4)",
             'the pre-trade gates in this package are DEMO records: their provider observations carry placeholder feed ids and their consensus was set to the venue mid (a demo shortcut). Production pre-trade clients are never the execution venue',
+            "attribution names the pool's DIRECT COUNTERPARTY as subject/taker: the single party that paid the source token into the pool and received and kept the destination token. executedPrice = that party's realised price (destination received / source paid), which equals the pool leg exactly because no fee path or onward routing exists; aggregator-fee and multi-party routes are SKIPPED, never mis-graded by naming an intermediate as trader or reading the pool leg as the trader's fill (Headless H1/H2/H3)",
+            "this demo backfills a HISTORICAL swap, so the gates were signed after the settlement: the receipt carries the gates' real signature time as preTradeSignedAt, which is later than the fill, and the signed verdict is therefore UNDETERMINED with reason PRE_TRADE_AFTER_EXECUTION. Precedence is NOT claimed for this package; a forward demo (gate signed before execution) is required to sign FAITHFUL (Headless H4)",
           ],
         },
         schemas: {
@@ -406,7 +447,17 @@ async function main() {
           txHash,
           blockNumber: blockNum,
           executedAt,
+          /** The trader the receipt is about: the pool's direct counterparty —
+           *  the single party that paid the source token into the pool,
+           *  received the destination token from it and kept it (Headless H1:
+           *  an aggregator router, or the gas-paying EOA of a bot whose tokens
+           *  never move, is never named as the trader). */
           taker: picked.taker,
+          /** The tx sender (gas payer). Informational: for bot-executed fills
+           *  this EOA is NOT the trader and its balance never changes. */
+          sender,
+          attribution:
+            'counterparty-side: executedPrice = destination received from the pool / source paid into the pool by the named party — its realised price (H3), which for this archetype equals the pool leg exactly (no fee path, no onward routing, no collection from others); the Transfer-side reconstruction reconciles with the pool Swap event as a consistency check (H2); everything else is skipped, never mis-graded (Headless H1/H2/H3)',
           legs: { soldToken: swap.soldToken, boughtToken: swap.boughtToken },
           poolSwapAmounts: { soldHuman: swap.soldHuman, boughtHuman: swap.boughtHuman },
           preSwapBlockNumber: blockNum - 1,
@@ -455,7 +506,7 @@ async function main() {
             binding: pair.binding,
           },
           assertionsHeld: [
-            'collector Transfer-attributed executedPrice reproduces the pool Swap event to <1e-6 relative',
+            `attributed executedPrice ${issue.facts.executedPrice} equals the named party's realised price (destination received from the pool / source paid into the pool) and reconciles with the pool Swap event to <1e-6 relative — no fee path can be read as the trader's fill (H2/H3)`,
             `receipt priceExecutionStatus == ${issue.receipt.data.priceExecutionStatus} matches independent recompute ${expectedStatus}`,
             'the signed data keys equal the published v3 layout (43 fields, in order)',
             `maxSlippageBps is a SIGNED field (v3 struct position ${v3Layout.indexOf('maxSlippageBps') + 1} of ${v3Layout.length}), and the verdict uses that same signed value`,
