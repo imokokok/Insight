@@ -169,7 +169,7 @@ describe('verifiable execution trust loop (real crypto)', () => {
     delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
   });
 
-  it('closes the loop as CLOSED_FAITHFUL for a faithful fill within the band', async () => {
+  it('closes the loop as PRICE_CLOSED_FAITHFUL for a faithful fill within the band', async () => {
     // SOURCE = USDC ($1), DESTINATION = WETH ($2500) → VERIFIED quote
     // = sourceUSD/destUSD = 1/2500 = 0.0004 WETH per USDC.
     const source = await signAttestationV3(preTradeInput({ consensusPrice: 1.0 }));
@@ -201,7 +201,7 @@ describe('verifiable execution trust loop (real crypto)', () => {
     if (!result.ok) return;
     expect(result.receipt.data.bindingMode).toBe('VERIFIED');
     expect(result.receipt.data.quotedPrice / 1e8).toBeCloseTo(0.0004, 8);
-    expect(result.receipt.data.executionStatus).toBe('FAITHFUL');
+    expect(result.receipt.data.priceExecutionStatus).toBe('FAITHFUL');
     expect(result.receipt.data.priceDeltaBps).toBe(0);
 
     // The receipt is independently verifiable.
@@ -210,14 +210,19 @@ describe('verifiable execution trust loop (real crypto)', () => {
     expect(verify.executionStatus).toBe('FAITHFUL');
 
     // The closed loop: this receipt genuinely belongs to this pre-trade gate.
-    const pair = await verifyExecutionPair(source!, result.receipt);
+    // v3 receipts commit to BOTH gates of the quote (F1), so the destination
+    // gate must be presented for the loop to close.
+    const pair = await verifyExecutionPair(source!, result.receipt, destination!);
     expect(pair.pairedValid).toBe(true);
-    expect(pair.closedLoopStatus).toBe('CLOSED_FAITHFUL');
+    expect(pair.closedLoopStatus).toBe('PRICE_CLOSED_FAITHFUL');
     expect(pair.binding.preTradeUidMatch).toBe(true);
     expect(pair.binding.requestHashMatch).toBe(true);
+    expect(pair.binding.destinationPreTradeUidMatch).toBe(true);
+    expect(pair.binding.preTradeUidsHashMatch).toBe(true);
+    expect(pair.destinationPreTrade?.uid).toBe(destination!.uid);
   });
 
-  it('reports CLOSED_DEVIATED when the fill drifts past the certified band', async () => {
+  it('reports PRICE_CLOSED_DEVIATED when the fill drifts past the certified band', async () => {
     const source = await signAttestationV3(preTradeInput({ consensusPrice: 1.0 }));
     const destination = await signAttestationV3(
       preTradeInput({ sourceAssetId: WETH, destinationAssetId: USDC, consensusPrice: 2500 })
@@ -245,11 +250,13 @@ describe('verifiable execution trust loop (real crypto)', () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.receipt.data.executionStatus).toBe('DEVIATED');
+    expect(result.receipt.data.priceExecutionStatus).toBe('DEVIATED');
     expect(result.receipt.data.priceDeltaBps).toBe(-250);
 
-    const pair = await verifyExecutionPair(source!, result.receipt);
+    const pair = await verifyExecutionPair(source!, result.receipt, destination!);
     expect(pair.pairedValid).toBe(true);
-    expect(pair.closedLoopStatus).toBe('CLOSED_DEVIATED');
+    expect(pair.closedLoopStatus).toBe('PRICE_CLOSED_DEVIATED');
+    expect(pair.binding.destinationPreTradeUidMatch).toBe(true);
+    expect(pair.binding.preTradeUidsHashMatch).toBe(true);
   });
 });

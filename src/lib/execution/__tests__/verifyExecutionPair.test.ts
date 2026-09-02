@@ -127,6 +127,8 @@ describe('verifyExecutionPair', () => {
     expect(result.binding).toEqual({
       preTradeUidMatch: true,
       requestHashMatch: true,
+      destinationPreTradeUidMatch: true,
+      preTradeUidsHashMatch: true,
       chainMatch: true,
       assetMatch: true,
     });

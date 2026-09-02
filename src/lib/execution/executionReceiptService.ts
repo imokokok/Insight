@@ -28,15 +28,18 @@
  *     was quoted, so it will not silently assume one).
  */
 
+import { type MeasurableExecutionField } from '@/lib/attestations/executionCommitments';
 import {
   derivePriceDeltaBps,
   EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
   EXECUTION_REQUIRED_PARTICIPANT_COUNT,
   EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
+  type ClaimRole,
   type ExecutionBindingMode,
   type ExecutionReceipt,
   type ExecutionReceiptInput,
   type FillStatus,
+  type QuoteBasis,
   signExecutionReceipt,
 } from '@/lib/attestations/executionReceipt';
 import { type RpcClientWithFallback } from '@/lib/oracles/utils/rpcClientWithFallback';
@@ -98,10 +101,37 @@ export interface IssueExecutionReceiptParams {
   action?: string;
 
   // --- Informational notional (not part of the slippage verdict) ---
+  /** Only values the caller genuinely measured should be supplied. v3 commits
+   *  to WHICH fields were measured (`measuredFieldsHash`); a field omitted here
+   *  is signed as an unmeasured zero, which is honest, while a supplied value
+   *  is signed as a measured one. */
   quotedAmountUsd?: number;
   executedAmountUsd?: number;
   actualFeeUsd?: number;
   mevRiskScore?: number;
+
+  // --- v3 quote-basis claims ---
+  /** Whether `quotedPrice` came from a source independent of the venue the
+   *  agent executed on. Defaults to FALSE (v3's honest default): deriving the
+   *  quote from the venue itself is the common construction, and independence
+   *  must be claimed, never implied. */
+  quoteVenueIndependent?: boolean;
+  /** Which price state `quotedPrice` was taken against. Defaults to
+   *  UNSPECIFIED — a receipt that does not record the convention must not look
+   *  like one that did. */
+  quoteBasis?: QuoteBasis;
+  /** The block `quotedPrice` was read from. 0 when not applicable. */
+  quoteBlockNumber?: number;
+  /** Age of the price state the quote came from, seconds. Distinct from the
+   *  pre-trade attestation's own age (`executedAt − preTradeSignedAt`). */
+  priceStateAgeAtExecSeconds?: number;
+  /** v3: whose execution this is. Defaults to THIRD_PARTY_OBSERVATION — an
+   *  observer of public settlements must claim the first-person role to get it. */
+  claimRole?: ClaimRole;
+  /** v3: uid of the destination pre-trade gate, when the caller holds one. When
+   *  originals are presented it is read from the verified destination payload
+   *  and this input is ignored. */
+  destinationPreTradeUid?: `0x${string}` | null;
 
   // --- On-chain settlement to collect ---
   txHash: `0x${string}`;
@@ -124,6 +154,9 @@ export type IssueExecutionReceiptResult =
         quotedPrice: number;
         preTradeSignedAt: number;
         preTradeExpired: boolean;
+        /** v3: the destination-gate uid committed to by `preTradeUidsHash`.
+         *  Null when no destination gate was proven or claimed. */
+        destinationPreTradeUid: string | null;
       };
     }
   | { ok: false; code: IssueExecutionReceiptErrorCode; message: string };
@@ -207,6 +240,7 @@ export async function issueExecutionReceipt(
     destination: params.preTradeAttestations?.destination ?? null,
     selfReported: {
       preTradeUid: params.preTradeUid,
+      destinationPreTradeUid: params.destinationPreTradeUid ?? null,
       requestHash: params.requestHash,
       sourceAssetId: params.sourceAssetId,
       destinationAssetId: params.destinationAssetId,
@@ -263,11 +297,28 @@ export async function issueExecutionReceipt(
     bindingMode: binding.bindingMode,
   });
 
+  // v3 commits to which notional fields were genuinely measured. A field the
+  // caller did not supply is signed as an unmeasured zero — `measuredFieldsHash`
+  // is what lets a holder tell "measured zero" from "never measured" (F2).
+  const measuredFields: MeasurableExecutionField[] = [];
+  if (params.quotedAmountUsd !== undefined) measuredFields.push('quotedAmountUsd');
+  if (params.executedAmountUsd !== undefined) measuredFields.push('executedAmountUsd');
+  if (params.actualFeeUsd !== undefined) measuredFields.push('actualFeeUsd');
+  if (params.mevRiskScore !== undefined) measuredFields.push('mevRiskBps');
+
   const input: ExecutionReceiptInput = {
     preTradeUid: binding.preTradeUid as `0x${string}`,
+    destinationPreTradeUid: (binding.destinationPreTradeUid ?? undefined) as
+      | `0x${string}`
+      | undefined,
     requestHash: binding.requestHash as `0x${string}`,
     preTradeSignedAt: binding.preTradeSignedAt,
     bindingMode: binding.bindingMode,
+    claimRole: params.claimRole,
+    // The signed taker is whoever the chain says moved the balances. The
+    // collector prefers a caller-supplied taker for attribution but falls back
+    // to the transaction sender; null only when the receipt had no sender.
+    taker: facts.taker ?? undefined,
     sourceAssetId: binding.sourceAssetId,
     destinationAssetId: binding.destinationAssetId,
     subjectChainId: binding.subjectChainId,
@@ -276,9 +327,14 @@ export async function issueExecutionReceipt(
     quotedPrice: binding.quotedPrice,
     executedPrice: facts.executedPrice ?? 0,
     maxSlippageBps: params.maxSlippageBps,
+    quoteVenueIndependent: params.quoteVenueIndependent,
+    quoteBasis: params.quoteBasis,
+    quoteBlockNumber: params.quoteBlockNumber,
+    priceStateAgeAtExecSeconds: params.priceStateAgeAtExecSeconds,
     quotedAmountUsd: params.quotedAmountUsd ?? 0,
     executedAmountUsd: params.executedAmountUsd ?? 0,
     actualFeeUsd: params.actualFeeUsd ?? 0,
+    measuredFields,
     fillStatus: facts.fillStatus,
     txHash: params.txHash,
     blockNumber: Number(facts.blockNumber ?? 0),
@@ -308,6 +364,9 @@ export async function issueExecutionReceipt(
       quotedPrice: binding.quotedPrice,
       preTradeSignedAt: binding.preTradeSignedAt,
       preTradeExpired: binding.preTradeExpired,
+      /** v3: the destination-gate uid committed to by `preTradeUidsHash`. Null
+       *  on a SELF_REPORTED binding with no claimed destination gate. */
+      destinationPreTradeUid: binding.destinationPreTradeUid,
     },
   };
 }

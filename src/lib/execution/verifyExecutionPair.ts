@@ -13,23 +13,31 @@
  * binding between them:
  *   - `executionReceipt.data.preTradeUid` === `preTradeAttestation.uid`
  *   - `executionReceipt.data.requestHash` === `preTradeAttestation.data.requestHash`
- *   - chain + asset ids corroborate (informational; the two hashes above are the
+ *   - v3: when the receipt commits to a SECOND gate, that gate must be presented
+ *     and its uid must equal `executionReceipt.data.destinationPreTradeUid`, and
+ *     `preTradeUidsHash` must recompute from the presented gates in order (F1) —
+ *     this is what stops the denominator of a two-leg quote being swapped for a
+ *     different gate after signing.
+ *   - chain + asset ids corroborate (informational; the hashes above are the
  *     authoritative binding, since they are signed into both receipts).
  *
  * The resulting `closedLoopStatus` is the execution receipt's own verdict, now
  * proven to be about this pre-trade:
- *   CLOSED_FAITHFUL    — bound + FAITHFUL
- *   CLOSED_DEVIATED    — bound + DEVIATED
- *   CLOSED_NOT_EXECUTED — bound + NOT_EXECUTED
- *   CLOSED_UNDETERMINED — bound + UNDETERMINED (fill price unreadable)
- *   PAIR_INVALID       — binding or a signature failed
+ *   CLOSED_FAITHFUL     — bound + FAITHFUL (v1/v2 receipts)
+ *   PRICE_CLOSED_FAITHFUL — the same, on a v3 receipt whose signed verdict is
+ *                           `priceExecutionStatus` — the scope travels in the
+ *                           name (F2): the loop closed on PRICE only, and says
+ *                           nothing about size, fees or timing.
+ *   …DEVIATED / …NOT_EXECUTED / …UNDETERMINED as above; PAIR_INVALID when the
+ *   binding or a signature failed.
  *
  * Disclosure boundary (verification != endorsement): this proves the loop
  * closed and was faithful to the CERTIFIED price within the signed band. It
  * does not assert the certified price was "correct" or the trade well-timed.
  */
 
-import type { ExecutionReceipt, ExecutionStatus } from '@/lib/attestations/executionReceipt';
+import { computePreTradeUidsHash } from '@/lib/attestations/executionCommitments';
+import { type ExecutionReceipt, type ExecutionStatus } from '@/lib/attestations/executionReceipt';
 import { verifyExecutionReceipt } from '@/lib/attestations/executionReceipt';
 import {
   verifyAttestationBySchema,
@@ -49,11 +57,19 @@ export interface PreTradeAttestationInput {
   [key: string]: unknown;
 }
 
+/** v1/v2 closed-loop verdicts (the receipt's own verdict field was
+ *  `executionStatus`; scope was not in the name). */
 export type ClosedLoopStatus =
   | 'CLOSED_FAITHFUL'
   | 'CLOSED_DEVIATED'
   | 'CLOSED_NOT_EXECUTED'
   | 'CLOSED_UNDETERMINED'
+  /** v3: the signed verdict field is `priceExecutionStatus`, so the closed-loop
+   *  verdict carries that scope explicitly: faithful on PRICE. */
+  | 'PRICE_CLOSED_FAITHFUL'
+  | 'PRICE_CLOSED_DEVIATED'
+  | 'PRICE_CLOSED_NOT_EXECUTED'
+  | 'PRICE_CLOSED_UNDETERMINED'
   | 'PAIR_INVALID';
 
 export interface ExecutionPairBinding {
@@ -61,6 +77,13 @@ export interface ExecutionPairBinding {
   preTradeUidMatch: boolean;
   /** Execution receipt's requestHash equals the pre-trade attestation's data.requestHash. */
   requestHashMatch: boolean;
+  /** v3: the destination gate the receipt commits to was presented and its uid
+   *  matches `data.destinationPreTradeUid`. True trivially on v1/v2 (which bind
+   *  one gate) and on a v3 receipt that commits to no destination gate. */
+  destinationPreTradeUidMatch: boolean;
+  /** v3: `data.preTradeUidsHash` recomputes from the presented gates, in order.
+   *  True trivially on v1/v2, which do not carry the commitment. */
+  preTradeUidsHashMatch: boolean;
   /** Settlement chain in the execution receipt matches the pre-trade's subjectChainId. */
   chainMatch: boolean;
   /** Both CAIP-19 asset ids correlate between the two receipts. */
@@ -68,9 +91,13 @@ export interface ExecutionPairBinding {
 }
 
 export interface ExecutionPairVerification {
-  /** True only when both receipts verify AND the two cryptographic bindings hold. */
+  /** True only when both receipts verify AND the cryptographic bindings hold
+   *  (including the v3 destination-gate + hash checks when they apply). */
   pairedValid: boolean;
   preTrade: UnifiedVerificationResult;
+  /** Verification result for the destination gate, when the receipt commits to
+   *  one and one was presented. Null otherwise. */
+  destinationPreTrade: UnifiedVerificationResult | null;
   execution: {
     valid: boolean;
     expired: boolean;
@@ -78,10 +105,13 @@ export interface ExecutionPairVerification {
     reason: string;
   };
   binding: ExecutionPairBinding;
-  /** The closed-loop verdict a principal can act on. */
+  /** The closed-loop verdict a principal can act on. v3 receipts carry the
+   *  PRICE_ prefix so the scope is in the name. */
   closedLoopStatus: ClosedLoopStatus;
   reason: string;
 }
+
+const ZERO_BYTES32 = `0x${'0'.repeat(64)}`;
 
 /** Read a field that may be a hex string, number, or absent. */
 function fieldToString(value: unknown): string {
@@ -93,24 +123,79 @@ function fieldToString(value: unknown): string {
 }
 
 /**
- * Verify that a pre-trade attestation and an Execution Receipt describe the same
- * authorized action and that both are genuinely signed by Insight. Pure: it only
- * calls the two existing verifiers and compares the binding fields.
+ * Verify that pre-trade attestation(s) and an Execution Receipt describe the
+ * same authorized action and that all are genuinely signed by Insight. Pure: it
+ * only calls the existing verifiers and compares the binding fields.
+ *
+ * v3 receipts commit to up to TWO gates (source + destination, see F1). Pass the
+ * destination original when the receipt declares one; when it is missing the
+ * destination binding fails rather than being silently skipped.
  */
 export async function verifyExecutionPair(
   preTradeAttestation: PreTradeAttestationInput,
-  executionReceipt: ExecutionReceipt
+  executionReceipt: ExecutionReceipt,
+  destinationPreTradeAttestation?: PreTradeAttestationInput | null
 ): Promise<ExecutionPairVerification> {
-  const preTrade = await verifyAttestationBySchema(preTradeAttestation as never);
-  const exec = await verifyExecutionReceipt(executionReceipt);
+  const [preTrade, exec, destinationPreTrade] = await Promise.all([
+    verifyAttestationBySchema(preTradeAttestation as never),
+    verifyExecutionReceipt(executionReceipt),
+    destinationPreTradeAttestation
+      ? verifyAttestationBySchema(destinationPreTradeAttestation as never)
+      : Promise.resolve(null),
+  ]);
 
   const preTradeData = preTradeAttestation.data ?? {};
   const execData = executionReceipt.data;
+  const schemaVersion = Number(execData.schemaVersion) || 0;
+  const v3 = schemaVersion >= 3;
 
   const preTradeUidMatch =
     preTrade.uid != null && preTrade.uid === fieldToString(execData.preTradeUid);
   const requestHashMatch =
     fieldToString(preTradeData.requestHash) === fieldToString(execData.requestHash);
+
+  // --- v3 (F1): the quote is source consensus over destination consensus, so
+  // the receipt commits to BOTH gates and their ORDER. Verify both claims. ---
+  const declaredDestinationUid = fieldToString(execData.destinationPreTradeUid);
+  const commitsDestinationGate =
+    v3 && declaredDestinationUid !== '' && declaredDestinationUid !== ZERO_BYTES32;
+  let destinationPreTradeUidMatch = true;
+  let destinationReason = '';
+  if (commitsDestinationGate) {
+    const destUid = destinationPreTrade?.uid ?? null;
+    // An expired gate is still a genuine gate (matches the source-side rule):
+    // what matters here is that the presented gate is real and is the one the
+    // receipt committed to. Only a signature/UID failure is fatal.
+    const destSignatureOk =
+      destinationPreTrade != null &&
+      (destinationPreTrade.valid ||
+        (destinationPreTrade.expired && destinationPreTrade.reason === 'expired'));
+    destinationPreTradeUidMatch =
+      destSignatureOk &&
+      destUid != null &&
+      destUid.toLowerCase() === declaredDestinationUid.toLowerCase();
+    if (!destinationPreTradeUidMatch) {
+      destinationReason =
+        destinationPreTrade == null
+          ? 'execution receipt commits to a destination pre-trade gate that was not presented'
+          : !destSignatureOk
+            ? 'destination pre-trade gate failed verification'
+            : 'destination pre-trade gate uid does not match the receipt commitment';
+    }
+  }
+  let preTradeUidsHashMatch = true;
+  if (v3 && execData.preTradeUidsHash) {
+    const presentedUids: `0x${string}`[] = [fieldToString(execData.preTradeUid) as `0x${string}`];
+    if (commitsDestinationGate && destinationPreTradeUidMatch) {
+      presentedUids.push(declaredDestinationUid as `0x${string}`);
+    }
+    // The receipt must never claim an ordered gate set that is not provable
+    // from what was presented. On a SELF_REPORTED receipt that committed to the
+    // source gate alone, the single-uid hash must still recompute.
+    const expected = computePreTradeUidsHash(presentedUids);
+    preTradeUidsHashMatch =
+      fieldToString(execData.preTradeUidsHash).toLowerCase() === expected.toLowerCase();
+  }
 
   const preTradeChain = Number(fieldToString(preTradeData.subjectChainId) || -1);
   // The pre-trade only knows its subject chain; the receipt carries both a
@@ -125,7 +210,14 @@ export async function verifyExecutionPair(
 
   const preTradeValid = preTrade.valid && !preTrade.expired;
   const execValid = exec.valid && !exec.expired;
-  const pairedValid = preTradeValid && execValid && preTradeUidMatch && requestHashMatch;
+  const destinationGatePresent = !commitsDestinationGate || destinationPreTradeUidMatch;
+  const pairedValid =
+    preTradeValid &&
+    execValid &&
+    preTradeUidMatch &&
+    requestHashMatch &&
+    preTradeUidsHashMatch &&
+    destinationGatePresent;
 
   let closedLoopStatus: ClosedLoopStatus;
   let reason: string;
@@ -139,28 +231,35 @@ export async function verifyExecutionPair(
           ? 'execution receipt does not reference the pre-trade attestation uid'
           : !requestHashMatch
             ? 'execution receipt requestHash does not match the pre-trade attestation'
-            : 'pairing failed';
+            : destinationReason || !preTradeUidsHashMatch
+              ? !preTradeUidsHashMatch
+                ? 'execution receipt preTradeUidsHash does not recompute from the presented gates'
+                : destinationReason
+              : 'pairing failed';
   } else {
-    // Both receipts valid + cryptographically bound. The closed-loop verdict is
-    // the execution receipt's own verdict, now proven to belong to this pre-trade.
+    // Both receipts valid + cryptographically bound (including every gate the
+    // receipt commits to). The closed-loop verdict is the execution receipt's
+    // own verdict, now proven to belong to this pre-trade. On v3 the verdict
+    // field is `priceExecutionStatus` and the prefix carries that scope.
+    const prefix = v3 ? 'PRICE_' : '';
     switch (exec.executionStatus) {
       case 'FAITHFUL':
-        closedLoopStatus = 'CLOSED_FAITHFUL';
+        closedLoopStatus = `${prefix}CLOSED_FAITHFUL` as ClosedLoopStatus;
         reason =
           'agent filled within the certified band and the receipt is bound to a valid pre-trade gate';
         break;
       case 'DEVIATED':
-        closedLoopStatus = 'CLOSED_DEVIATED';
+        closedLoopStatus = `${prefix}CLOSED_DEVIATED` as ClosedLoopStatus;
         reason =
           'receipt bound to a valid pre-trade gate but the fill drifted past the certified band';
         break;
       case 'NOT_EXECUTED':
-        closedLoopStatus = 'CLOSED_NOT_EXECUTED';
+        closedLoopStatus = `${prefix}CLOSED_NOT_EXECUTED` as ClosedLoopStatus;
         reason =
           'receipt bound to a valid pre-trade gate but the transaction reverted (nothing settled)';
         break;
       default:
-        closedLoopStatus = 'CLOSED_UNDETERMINED';
+        closedLoopStatus = `${prefix}CLOSED_UNDETERMINED` as ClosedLoopStatus;
         reason =
           'receipt bound to a valid pre-trade gate but the on-chain fill price was unreadable';
     }
@@ -169,13 +268,21 @@ export async function verifyExecutionPair(
   return {
     pairedValid,
     preTrade,
+    destinationPreTrade,
     execution: {
       valid: exec.valid,
       expired: exec.expired,
       executionStatus: exec.executionStatus,
       reason: exec.reason,
     },
-    binding: { preTradeUidMatch, requestHashMatch, chainMatch, assetMatch },
+    binding: {
+      preTradeUidMatch,
+      requestHashMatch,
+      destinationPreTradeUidMatch,
+      preTradeUidsHashMatch,
+      chainMatch,
+      assetMatch,
+    },
     closedLoopStatus,
     reason,
   };

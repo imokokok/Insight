@@ -57,6 +57,11 @@ export interface ExecutionFacts {
   /** Block timestamp, unix seconds. Null when the block could not be read;
    *  `blockNumber` remains the authoritative anchor in that case. */
   executedAt: number | null;
+  /** The address whose balance changes define this settlement: the
+   *  caller-supplied taker when given, else the transaction sender — read from
+   *  chain, never guessed. Null only when the receipt carried no sender.
+   *  Signed as v3's `taker` (and the default `subject`). */
+  taker: `0x${string}` | null;
   /** Machine-readable reason the price is unavailable, when it is. */
   unavailableReason: 'FILL_PRICE_UNAVAILABLE' | 'NATIVE_ASSET_LEG' | 'PRICE_NOT_ATTRIBUTED' | null;
 }
@@ -212,6 +217,9 @@ export async function collectExecutionFacts(
         executedPrice: null,
         feeNative,
         executedAt,
+        taker: receipt.from
+          ? ((params.taker ?? receipt.from).toLowerCase() as `0x${string}`)
+          : null,
         unavailableReason: 'FILL_PRICE_UNAVAILABLE',
       },
     };
@@ -235,6 +243,9 @@ export async function collectExecutionFacts(
         executedPrice: null,
         feeNative,
         executedAt,
+        taker: receipt.from
+          ? ((params.taker ?? receipt.from).toLowerCase() as `0x${string}`)
+          : null,
         unavailableReason: 'FILL_PRICE_UNAVAILABLE',
       },
     };
@@ -324,6 +335,7 @@ export async function collectExecutionFacts(
       executedPrice,
       feeNative,
       executedAt,
+      taker,
       unavailableReason,
     },
   };

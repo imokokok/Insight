@@ -7,18 +7,36 @@
  * USDC/WETH swap, real EIP-712 pre-trade gates, and a real signed execution
  * receipt. The package contains everything a verifier needs to re-check the
  * receipt WITHOUT trusting us:
- *   - the full signed receipt (30 fields + EIP-712 signature + domain + types)
+ *   - the full signed receipt (43 signed fields on v3 + EIP-712 signature +
+ *     domain + types)
+ *   - ALL published schema layouts (v1 30 / v2 32 / v3 43) so a receipt of any
+ *     version can be re-typed without fetching anything (VERITAS F0)
  *   - the pre-trade gate envelopes (quotedPrice is DERIVED from them)
+ *   - the canonical request preimage, so `requestHash` is openable and
+ *     recomputable (VERITAS F6)
  *   - the on-chain tx hash / block / pool, so the fill can be re-collected
  *   - our own verification outputs (to compare against, not to trust)
  *
+ * v3 was built against the VERITAS findings F0-F7; every finding is either a
+ * signed field in this receipt or a documented disclosure:
+ *   F1 destinationPreTradeUid + preTradeUidsHash  F2 measuredFieldsHash +
+ *      priceExecutionStatus rename                F3 quoteVenueIndependent=false
+ *   F4 quoteBasis + quoteBlockNumber              F5 attestation/priceState ages
+ *   F6 subject/taker/claimRole + request preimage F7 priceScale + environment
+ *   F0 all schema layouts published (also live at the verify endpoint)
+ *
  * Honest labels, by design:
  *   - the signing key is a TEST key (anvil default), NOT the production
- *     attester key. Structural verification (fields, signature, verdict) is
- *     unaffected; identity verification (did Insight's production key sign)
- *     is NOT claimed.
+ *     attester key, and the signed domain environment is `nonproduction`.
+ *     Structural verification (fields, signature, verdict) is unaffected;
+ *     identity verification (did Insight's production key sign) is NOT claimed.
  *   - the receipt is NOT anchored. Anchoring is the stated next step, not a
  *     claim made here.
+ *   - the receipt signs quoteVenueIndependent=false: this demo derives the
+ *     quoted price from the execution venue's OWN pre-swap mid (re-expressed as
+ *     USD through the two legs). The pre-trade gates in this package are demo
+ *     records whose "consensus" was set to that same mid — a demo shortcut, not
+ *     a production construction (production oracle clients are never the venue).
  *
  * Run:
  *   npx tsx scripts/export-execution-receipt-bytes.ts [outdir]
@@ -28,10 +46,24 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
-import { verifyExecutionReceipt } from '@/lib/attestations/executionReceipt';
+import { verifyExecutionReceipt, EXECUTION_DOMAIN } from '@/lib/attestations/executionReceipt';
+import {
+  EXECUTION_TYPES_V1,
+  EXECUTION_TYPES_V2,
+  EXECUTION_TYPES_V3,
+  executionDomainV3,
+  EXECUTION_PRIMARY_TYPE,
+} from '@/lib/attestations/executionReceipt';
 import type { AttestationInputV2 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import { signAttestationV3 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
+import {
+  CANONICAL_REQUEST_DOMAIN,
+  CANONICAL_REQUEST_PRIMARY_TYPE,
+  CANONICAL_REQUEST_TYPES,
+  computeRequestHash,
+} from '@/lib/attestations/canonicalRequestHash';
+import { computeMeasuredFieldsHash } from '@/lib/attestations/executionCommitments';
 
 import { decodeAllTransfers } from '@/lib/execution/events';
 import { issueExecutionReceipt } from '@/lib/execution/executionReceiptService';
@@ -248,6 +280,14 @@ async function main() {
 
       const mid = await midWethPerUsdcAt(blockNum - 1);
       if (!(mid > 0)) continue;
+      // The quote basis is the pool's mid at the close of the previous block.
+      // Record that block's timestamp so the signed price-state age at
+      // execution (F5) is derivable from on-chain data alone.
+      const preSwapBlock = await rpc<{ timestamp: string }>('eth_getBlockByNumber', [
+        hex(blockNum - 1),
+        false,
+      ]);
+      const preSwapBlockTs = Number(preSwapBlock?.timestamp ?? 0);
 
       const usdWeth = 1 / mid;
       const srcUsd = swap.soldToken === USDC ? 1 : usdWeth;
@@ -280,24 +320,84 @@ async function main() {
         txHash,
         taker: picked.taker as `0x${string}`,
         preTradeAttestations: { source: sourceGate!, destination: destGate! },
+        // --- v3 honest claims (VERITAS F3/F4/F5/F6/F7) ---
+        // Insight observed this settlement; it did not perform it.
+        claimRole: 'THIRD_PARTY_OBSERVATION',
+        // The quote is the venue's own pre-swap mid re-expressed as USD; it is
+        // NOT independent of the venue where the order filled (F3). Silence
+        // must not read as independence.
+        quoteVenueIndependent: false,
+        quoteBasis: 'PREV_BLOCK_CLOSE',
+        quoteBlockNumber: blockNum - 1,
+        priceStateAgeAtExecSeconds: preSwapBlockTs > 0 ? executedAt - preSwapBlockTs : 0,
       });
       if (!issue.ok) throw new Error(`issue failed: ${issue.code} ${issue.message}`);
 
       const verify = await verifyExecutionReceipt(issue.receipt);
-      const pair = await verifyExecutionPair(sourceGate, issue.receipt);
+      // v3 commits to BOTH gates (F1); present the destination gate too.
+      const pair = await verifyExecutionPair(sourceGate, issue.receipt, destGate);
+
+      // Independent recomputes for the package's self-check section.
+      const requestPreimage = {
+        subjectChainId: 1,
+        sourceAssetId,
+        destinationAssetId: destAssetId,
+        action: 'swap',
+        tradeAmountUsd: 50_000,
+      };
+      const requestHashRecomputed = computeRequestHash(requestPreimage);
+      const requestHashMatches =
+        requestHashRecomputed.toLowerCase() === sourceGate.data.requestHash.toLowerCase() &&
+        requestHashRecomputed.toLowerCase() === issue.receipt.data.requestHash.toLowerCase();
+      const measuredFieldsOpen =
+        computeMeasuredFieldsHash([]).toLowerCase() ===
+        String(issue.receipt.data.measuredFieldsHash).toLowerCase();
 
       const expectedDeltaBps = ((swap.price - srcUsd / dstUsd) / (srcUsd / dstUsd)) * 10_000;
       const expectedStatus =
         Math.abs(expectedDeltaBps) <= MAX_SLIPPAGE_BPS ? 'FAITHFUL' : 'DEVIATED';
 
+      const v3Layout = EXECUTION_TYPES_V3.ExecutionReceipt.map((f) => f.name);
+      const v3Domain = executionDomainV3();
+      const receiptDataKeys = Object.keys(issue.receipt.data ?? {});
+      const signedKeysMatchLayout =
+        receiptDataKeys.length === v3Layout.length &&
+        v3Layout.every((n, i) => receiptDataKeys[i] === n);
+
       const pkg = {
         meta: {
           generatedAt: new Date().toISOString(),
           purpose: 'self-contained execution-receipt bytes for independent verification',
+          schemaVersion: issue.receipt.schemaVersion,
+          signedFieldCount: v3Layout.length,
           honestyLabels: [
-            'signing key is a TEST key (anvil default), NOT the production attester key; structural verification is unaffected, identity verification is NOT claimed',
+            'signing key is a TEST key (anvil default), NOT the production attester key; the signed domain environment is nonproduction; structural verification is unaffected, identity verification is NOT claimed',
             'receipt is NOT anchored; anchoring remains the stated next step',
+            "the quoted price is the execution venue's OWN pre-swap mid (block before the swap) re-expressed as USD; the receipt signs quoteVenueIndependent=false and quoteBasis=PREV_BLOCK_CLOSE accordingly (VERITAS F3/F4)",
+            'the pre-trade gates in this package are DEMO records: their provider observations carry placeholder feed ids and their consensus was set to the venue mid (a demo shortcut). Production pre-trade clients are never the execution venue',
           ],
+        },
+        schemas: {
+          // F0: every published layout travels with the package, and each is
+          // also live at the public verify endpoint (GET /api/v1/execution/attestation/verify).
+          v1: {
+            signedFieldCount: EXECUTION_TYPES_V1.ExecutionReceipt.length,
+            domain: EXECUTION_DOMAIN,
+            primaryType: EXECUTION_PRIMARY_TYPE,
+            types: EXECUTION_TYPES_V1,
+          },
+          v2: {
+            signedFieldCount: EXECUTION_TYPES_V2.ExecutionReceipt.length,
+            domain: EXECUTION_DOMAIN,
+            primaryType: EXECUTION_PRIMARY_TYPE,
+            types: EXECUTION_TYPES_V2,
+          },
+          v3: {
+            signedFieldCount: v3Layout.length,
+            domain: v3Domain,
+            primaryType: EXECUTION_PRIMARY_TYPE,
+            types: EXECUTION_TYPES_V3,
+          },
         },
         onchain: {
           chainId: 1,
@@ -309,6 +409,8 @@ async function main() {
           taker: picked.taker,
           legs: { soldToken: swap.soldToken, boughtToken: swap.boughtToken },
           poolSwapAmounts: { soldHuman: swap.soldHuman, boughtHuman: swap.boughtHuman },
+          preSwapBlockNumber: blockNum - 1,
+          preSwapBlockTs,
           preSwapMidWethPerUsdc: mid,
           independentExpectedDeltaBps: expectedDeltaBps,
           independentExpectedStatus: expectedStatus,
@@ -316,7 +418,29 @@ async function main() {
         preTrade: {
           sourceGate,
           destinationGate: destGate,
-          note: 'quotedPrice in the receipt is DERIVED from these gates (VERIFIED binding), not caller-supplied',
+          note: 'quotedPrice in the receipt is DERIVED from these gates (VERIFIED binding), not caller-supplied. Gate consensus here was set to the venue mid (demo shortcut, see honestyLabels)',
+        },
+        // F6: the canonical request preimage. recompute requestHash with
+        //   hashTypedData({ domain, types, primaryType, message }) and compare
+        //   to receipt.data.requestHash and sourceGate.data.requestHash.
+        requestPreimage: {
+          message: requestPreimage,
+          domain: CANONICAL_REQUEST_DOMAIN,
+          types: CANONICAL_REQUEST_TYPES,
+          primaryType: CANONICAL_REQUEST_PRIMARY_TYPE,
+          note: 'tradeAmountUsd is uint256 scaled x1e6 (50000 -> 50000000000n)',
+          matchesReceiptAndSourceGate: requestHashMatches,
+        },
+        // F2: which notional fields were measured. This demo measured none of
+        // the four notional fields (price only was derived from Transfer
+        // amounts), so the signed commitment is the empty-set hash
+        // keccak256("") — openable by enumerating the 16 subsets.
+        measuredFields: {
+          signedHash: issue.receipt.data.measuredFieldsHash,
+          measured: [] as string[],
+          enumerationNote:
+            'any of the 16 subsets of [actualFeeUsd, executedAmountUsd, mevRiskBps, quotedAmountUsd] -> keccak256(join("-", sorted names)); empty set = keccak256("")',
+          emptySetHashMatches: measuredFieldsOpen,
         },
         receipt: issue.receipt,
         facts: {
@@ -332,8 +456,15 @@ async function main() {
           },
           assertionsHeld: [
             'collector Transfer-attributed executedPrice reproduces the pool Swap event to <1e-6 relative',
-            `receipt executionStatus == ${issue.receipt.data.executionStatus} matches independent recompute ${expectedStatus}`,
-            `maxSlippageBps (${issue.receipt.data.maxSlippageBps}) is a SIGNED field (v2 struct field 12 of 32), and verdict uses the same signed value`,
+            `receipt priceExecutionStatus == ${issue.receipt.data.priceExecutionStatus} matches independent recompute ${expectedStatus}`,
+            'the signed data keys equal the published v3 layout (43 fields, in order)',
+            `maxSlippageBps is a SIGNED field (v3 struct position ${v3Layout.indexOf('maxSlippageBps') + 1} of ${v3Layout.length}), and the verdict uses that same signed value`,
+            `closed loop closes only when BOTH gates verify: ${pair.closedLoopStatus} with destinationPreTradeUidMatch=${pair.binding.destinationPreTradeUidMatch} and preTradeUidsHashMatch=${pair.binding.preTradeUidsHashMatch} (F1)`,
+            `requestHash recomputes from the canonical preimage and matches both the source gate and the receipt: ${requestHashMatches} (F6)`,
+            `subject=${issue.receipt.data.subject}, taker=${issue.receipt.data.taker}, claimRole=${issue.receipt.data.claimRole} (F6)`,
+            `quoteVenueIndependent=${issue.receipt.data.quoteVenueIndependent}, quoteBasis=${issue.receipt.data.quoteBasis}, quoteBlockNumber=${issue.receipt.data.quoteBlockNumber} (F3/F4)`,
+            `priceScale=${issue.receipt.data.priceScale} (x1e8), domain environment=${v3Domain.environment} (F7)`,
+            `attestationAgeAtExecSeconds=${issue.receipt.data.attestationAgeAtExecSeconds}, priceStateAgeAtExecSeconds=${issue.receipt.data.priceStateAgeAtExecSeconds} (F5)`,
           ],
         },
       };
@@ -342,7 +473,7 @@ async function main() {
       const outPath = join(outdir, `execution-receipt-bytes-${stamp}.json`);
       writeFileSync(outPath, JSON.stringify(pkg, replacer, 2) + '\n');
 
-      console.log('\n=== EXECUTION RECEIPT BYTES PACKAGE ===');
+      console.log('\n=== EXECUTION RECEIPT BYTES PACKAGE (v3) ===');
       console.log('out          :', outPath);
       console.log('tx           :', txHash, '(block', blockNum + ')');
       console.log('legs         :', swap.soldToken, '->', swap.boughtToken);
@@ -355,14 +486,25 @@ async function main() {
       );
       console.log(
         'status       :',
-        issue.receipt.data.executionStatus,
+        issue.receipt.data.priceExecutionStatus,
         '/ expected',
         expectedStatus
       );
       console.log('verify       :', verify.valid, '/', verify.executionStatus);
-      console.log('closedLoop   :', pair.closedLoopStatus);
+      console.log('closedLoop   :', pair.closedLoopStatus, '/', pair.pairedValid);
+      console.log(
+        'v3 claims    :',
+        'subject',
+        issue.receipt.data.subject.slice(0, 10),
+        '| venueIndependent',
+        issue.receipt.data.quoteVenueIndependent,
+        '| basis',
+        issue.receipt.data.quoteBasis,
+        '| fields',
+        v3Layout.length
+      );
       console.log('uid          :', issue.receipt.uid);
-      console.log('signer       :', issue.receipt.attester, '(test key)');
+      console.log('signer       :', issue.receipt.attester, '(test key, nonproduction)');
       return;
     } catch (e) {
       lastErr = e;

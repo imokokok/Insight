@@ -45,6 +45,12 @@ export const executionReceiptTool: McpToolDefinition<typeof ExecutionReceiptInpu
       executedAmountUsd: args.executedAmountUsd,
       actualFeeUsd: args.actualFeeUsd,
       mevRiskScore: args.mevRiskScore,
+      quoteVenueIndependent: args.quoteVenueIndependent,
+      quoteBasis: args.quoteBasis,
+      quoteBlockNumber: args.quoteBlockNumber,
+      priceStateAgeAtExecSeconds: args.priceStateAgeAtExecSeconds,
+      claimRole: args.claimRole,
+      destinationPreTradeUid: (args.destinationPreTradeUid ?? null) as `0x${string}` | null,
       txHash: args.txHash as `0x${string}`,
       taker: args.taker as `0x${string}` | undefined,
       preTradeAttestations: args.preTradeAttestations
@@ -69,15 +75,25 @@ export const executionReceiptTool: McpToolDefinition<typeof ExecutionReceiptInpu
     });
 
     const d = result.receipt.data;
+    const verdict = d.priceExecutionStatus ?? d.executionStatus;
+    const attestationAge = d.attestationAgeAtExecSeconds ?? d.oracleDataAgeAtExecSeconds;
     const lines = [
       '**Execution Receipt (verifiable proof of faithful fill):**',
-      `- Execution status: ${d.executionStatus}`,
+      `- Execution status: ${verdict}`,
       `- Fill status: ${d.fillStatus}`,
+      `- Claim role: ${d.claimRole ?? 'THIRD_PARTY_OBSERVATION'} (subject: ${d.subject ?? d.taker ?? 'unattributed'})`,
       `- Pre-trade UID: ${d.preTradeUid}`,
-      `- Quoted price: ${d.quotedPrice / 1e8}`,
+      ...(d.destinationPreTradeUid
+        ? [
+            `- Destination-gate UID: ${d.destinationPreTradeUid}`,
+            `- preTradeUidsHash: ${d.preTradeUidsHash}`,
+          ]
+        : []),
+      `- Quoted price: ${d.quotedPrice / 1e8}${d.quoteBasis ? ` (basis: ${d.quoteBasis}${d.quoteBlockNumber ? ` @ block ${d.quoteBlockNumber}` : ''}, venue-independent: ${String(d.quoteVenueIndependent)})` : ''}`,
       `- Executed price: ${d.executedPrice / 1e8}`,
       `- Price delta: ${d.priceDeltaBps} bps (bound ${d.maxSlippageBps} bps, satisfied: ${d.slippageSatisfied})`,
-      `- Oracle basis at execution: ${d.participantCount} providers / ${d.sourceGroupCount} independent groups, ${d.oracleDataAgeAtExecSeconds}s old`,
+      `- Oracle basis at execution: ${d.participantCount} providers / ${d.sourceGroupCount} independent groups, attestation ${attestationAge}s old${d.priceStateAgeAtExecSeconds != null ? ` (price state ${d.priceStateAgeAtExecSeconds}s old)` : ''}`,
+      `- Notional fields measured: ${d.measuredFieldsHash ?? 'n/a (v2)'}`,
       `- Settlement: tx ${d.txHash} on chain ${d.settlementChainId}, block ${d.blockNumber}`,
       `- Attester: ${result.receipt.attester} (${result.receipt.attesterLabel})`,
       `- UID: ${result.receipt.uid}`,
@@ -85,7 +101,7 @@ export const executionReceiptTool: McpToolDefinition<typeof ExecutionReceiptInpu
       `- Verify at: POST ${result.receipt.verifyUrl} with body { "attestation": <object> }`,
       '- Signature: ' + result.receipt.signature.slice(0, 42) + '…',
       '',
-      "Note: executionStatus is Insight's verdict on whether the fill matched the certified price within the signed bound — not a claim the price was correct or the trade well-timed (verification != endorsement).",
+      `Note: ${verdict} is Insight's verdict on whether the fill matched the certified PRICE within the signed bound (the v3 field name priceExecutionStatus states that scope; it is not a claim the price was correct, the size conformed to any cap, or the trade was well-timed — verification != endorsement).`,
     ];
 
     return lines.join('\n');

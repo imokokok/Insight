@@ -48,6 +48,11 @@ import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
 
 import { getAttesterAccount } from './attesterAccount';
+import {
+  computeMeasuredFieldsHash,
+  computePreTradeUidsHash,
+  type MeasurableExecutionField,
+} from './executionCommitments';
 import { computeReasonCodesHash } from './reasonCodesHash';
 
 const logger = createLogger('ExecutionReceipt');
@@ -77,12 +82,60 @@ export const EXECUTION_SCHEMA_VERSION = 1;
  * `schemaVersion` and re-derives the matching type layout.
  */
 export const EXECUTION_SCHEMA_VERSION_V2 = 2;
+
+/**
+ * v3 closes eight findings from the VERITAS independent verification pass
+ * (2026-09-02). Every one of them is the same shape: the receipt made a
+ * statement whose scope, subject or basis lived outside the signature, so a
+ * holder could not check it from the bytes alone. v3 moves each of those into a
+ * signed field rather than into documentation.
+ *
+ *   F0  — the v1 type definition is now published alongside the struct, so the
+ *         "field 11 of 30" claim is checkable rather than taken on trust.
+ *   F1  — `destinationPreTradeUid` + `preTradeUidsHash`. quotedPrice is the
+ *         ratio of TWO gates and the denominator is the entire volatile leg.
+ *         v2 signed one uid and shipped the other out of band, so substituting a
+ *         different destination gate left every signature valid. The hash
+ *         additionally commits to the ORDERED set, so multi-leg routes are
+ *         covered without another schema bump.
+ *   F2  — `measuredFieldsHash`, and `executionStatus` is renamed
+ *         `priceExecutionStatus`. A signed zero cannot be distinguished from
+ *         "not measured", and the verdict only ever graded price. Both are now
+ *         stated in the bytes: the hash says which notional fields were really
+ *         measured, and the field name says what the verdict covers.
+ *   F3  — `quoteVenueIndependent`. When the quote is derived from the venue the
+ *         agent executes on, the pre-trade independence gate is describing a
+ *         nominal provider set rather than the price actually used. That is now
+ *         a signed boolean instead of a prose caveat.
+ *   F4  — `quoteBasis` + `quoteBlockNumber`. Which mid the quote was taken
+ *         against (prior block close, or the state immediately before the swap)
+ *         changes the measured drift by ~0.6 bps on this pair and is material at
+ *         a tight tolerance.
+ *   F5  — `attestationAgeAtExecSeconds` + `priceStateAgeAtExecSeconds`. Two
+ *         different clocks were both called "data age", which made a compliant
+ *         receipt read as 2.5x past the gate's staleness bound.
+ *   F6  — `subject`, `taker` and `claimRole`. Nothing signed named whose
+ *         execution this was. Insight observes settlements; it does not execute
+ *         them. An observer's statement about a third party's transaction and an
+ *         executor's first-person claim are different speech acts, and the
+ *         default role is the observer one because that is what this is.
+ *   F7  — `priceScale` is declared in the struct (a fixed 1e8 was assumed, and
+ *         an assumed scale is exactly the ambiguity that produced a 100x error
+ *         in the verification pass), and the v3 domain carries `environment` so
+ *         a staging receipt is structurally separable from a production one
+ *         once a production key exists.
+ *
+ * v1 and v2 receipts stay verifiable: the verify path routes on the signed
+ * `schemaVersion` and re-derives the matching type layout AND domain.
+ */
+export const EXECUTION_SCHEMA_VERSION_V3 = 3;
 /** Schema version new receipts are signed with. */
-export const CURRENT_EXECUTION_SCHEMA_VERSION = EXECUTION_SCHEMA_VERSION_V2;
+export const CURRENT_EXECUTION_SCHEMA_VERSION = EXECUTION_SCHEMA_VERSION_V3;
 /** Every schema version this module can verify. */
 export const SUPPORTED_EXECUTION_SCHEMA_VERSIONS = [
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
+  EXECUTION_SCHEMA_VERSION_V3,
 ] as const;
 
 /**
@@ -106,12 +159,60 @@ export const EXECUTION_REQUIRED_SOURCE_GROUP_COUNT = 2;
 export const EXECUTION_ATTESTER_LABEL = 'Insight Execution Receipt';
 
 /** EIP-712 domain. Distinct `name` from the pre-trade and watch domains so a
- *  receipt can never be replayed across surfaces. chainId=1 is a separator. */
+ *  receipt can never be replayed across surfaces. chainId=1 is a separator.
+ *
+ *  v1 and v2 used this domain. It is frozen: adding a field to a shared domain
+ *  would invalidate every receipt already signed with it, so v3 gets its own
+ *  (see {@link EXECUTION_DOMAIN_V3}). */
 export const EXECUTION_DOMAIN = {
   name: 'Insight Execution',
   version: '1',
   chainId: 1,
 } as const;
+
+/**
+ * The deployment environment a receipt was signed in.
+ *
+ * `production` is the hosted product on the public domain; anything else
+ * (preview, branch deploy, local, test run) is `nonproduction`. This exists so
+ * that once a production attester key ships, a staging receipt cannot be
+ * presented as a production one — the difference is in the signed domain rather
+ * than only in which key signed it.
+ *
+ * Derivation is a documented rule, not a guess: we check the configured public
+ * app URL first (a preview deploy keeps its own URL) and fall back to the
+ * platform's environment variable.
+ */
+export function executionEnvironment(): 'production' | 'nonproduction' {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+  if (appUrl.includes('oracleinsight.xyz')) return 'production';
+  if (process.env.VERCEL_ENV === 'production') return 'production';
+  return 'nonproduction';
+}
+
+/**
+ * v3 domain. Adds `environment` only; `name`, `version` and `chainId` are
+ * unchanged so the digest difference is attributable to a single decision.
+ *
+ * No `verifyingContract`: Insight has no deployed attestation registry to point
+ * at, and putting an address we do not control into a signed domain would be a
+ * placeholder wearing a contract's clothes. `environment` buys the structural
+ * separation the finding asked for without inventing one.
+ */
+export function executionDomainV3(environment = executionEnvironment()) {
+  return {
+    name: 'Insight Execution',
+    version: '1',
+    chainId: 1,
+    environment,
+  } as const;
+}
+
+/** Resolve the EIP-712 domain for a signed schema version. v1/v2 share the
+ *  frozen domain; v3 carries the environment. */
+export function executionDomainForSchemaVersion(schemaVersion: number) {
+  return schemaVersion >= EXECUTION_SCHEMA_VERSION_V3 ? executionDomainV3() : EXECUTION_DOMAIN;
+}
 
 export const EXECUTION_PRIMARY_TYPE = 'ExecutionReceipt';
 
@@ -201,14 +302,86 @@ export const EXECUTION_TYPES_V2 = {
   ],
 } as const;
 
+/**
+ * The v3 signed fields (43) = v2's 32, two of them renamed, plus eleven.
+ *
+ * Renamed (the old name over-stated its scope, so downstream readers could
+ * over-read it):
+ *   - `executionStatus`            -> `priceExecutionStatus` (F2)
+ *   - `oracleDataAgeAtExecSeconds` -> `attestationAgeAtExecSeconds` (F5)
+ *
+ * Added, each next to the value it qualifies so a holder reads them together:
+ *   - `claimRole`, `subject`, `taker`          right after the binding mode, so
+ *     whose execution this is comes before anything claimed about it (F6);
+ *   - `destinationPreTradeUid`, `preTradeUidsHash` beside `preTradeUid`, so the
+ *     full quote basis is signed (F1);
+ *   - `priceScale`                             after the two prices it scales (F7);
+ *   - `quoteBasis`, `quoteBlockNumber`, `quoteVenueIndependent` after the
+ *     prices, so the baseline and the venue-independence of the quote travel
+ *     with the quote (F4, F3);
+ *   - `measuredFieldsHash`                     after the four notional fields it
+ *     describes (F2);
+ *   - `priceStateAgeAtExecSeconds`             beside the renamed attestation
+ *     age, so the two clocks are distinguishable (F5).
+ */
+export const EXECUTION_TYPES_V3 = {
+  ExecutionReceipt: [
+    { name: 'bindingMode', type: 'string' },
+    { name: 'claimRole', type: 'string' },
+    { name: 'subject', type: 'address' },
+    { name: 'taker', type: 'address' },
+    { name: 'preTradeUid', type: 'bytes32' },
+    { name: 'destinationPreTradeUid', type: 'bytes32' },
+    { name: 'preTradeUidsHash', type: 'bytes32' },
+    { name: 'requestHash', type: 'bytes32' },
+    { name: 'sourceAssetId', type: 'string' },
+    { name: 'destinationAssetId', type: 'string' },
+    { name: 'subjectChainId', type: 'uint256' },
+    { name: 'settlementChainId', type: 'uint256' },
+    { name: 'action', type: 'string' },
+    { name: 'quotedPrice', type: 'uint256' },
+    { name: 'executedPrice', type: 'uint256' },
+    { name: 'priceScale', type: 'uint8' },
+    { name: 'quoteBasis', type: 'string' },
+    { name: 'quoteBlockNumber', type: 'uint256' },
+    { name: 'quoteVenueIndependent', type: 'bool' },
+    { name: 'priceDeltaBps', type: 'int256' },
+    { name: 'maxSlippageBps', type: 'uint256' },
+    { name: 'slippageSatisfied', type: 'bool' },
+    { name: 'quotedAmountUsd', type: 'uint256' },
+    { name: 'executedAmountUsd', type: 'uint256' },
+    { name: 'actualFeeUsd', type: 'uint256' },
+    { name: 'measuredFieldsHash', type: 'bytes32' },
+    { name: 'fillStatus', type: 'string' },
+    { name: 'priceExecutionStatus', type: 'string' },
+    { name: 'txHash', type: 'bytes32' },
+    { name: 'blockNumber', type: 'uint256' },
+    { name: 'executedAt', type: 'uint256' },
+    { name: 'preTradeSignedAt', type: 'uint256' },
+    { name: 'attestationAgeAtExecSeconds', type: 'uint256' },
+    { name: 'priceStateAgeAtExecSeconds', type: 'uint256' },
+    { name: 'participantCount', type: 'uint256' },
+    { name: 'requiredParticipantCount', type: 'uint256' },
+    { name: 'sourceGroupCount', type: 'uint256' },
+    { name: 'requiredSourceGroupCount', type: 'uint256' },
+    { name: 'independenceSatisfied', type: 'bool' },
+    { name: 'mevRiskBps', type: 'uint256' },
+    { name: 'reasonCodesHash', type: 'bytes32' },
+    { name: 'validUntil', type: 'uint256' },
+    { name: 'schemaVersion', type: 'uint256' },
+  ],
+} as const;
+
 /** Layout new receipts are signed with. */
-export const EXECUTION_TYPES = EXECUTION_TYPES_V2;
+export const EXECUTION_TYPES = EXECUTION_TYPES_V3;
 
 /** Resolve the EIP-712 type layout for a signed schema version. Unknown
  *  versions fall back to the current layout, which fails UID recovery (a
  *  tampered or unsupported receipt must never verify, never throw). */
 export function executionTypesForSchemaVersion(schemaVersion: number) {
-  return schemaVersion === EXECUTION_SCHEMA_VERSION ? EXECUTION_TYPES_V1 : EXECUTION_TYPES_V2;
+  if (schemaVersion === EXECUTION_SCHEMA_VERSION) return EXECUTION_TYPES_V1;
+  if (schemaVersion === EXECUTION_SCHEMA_VERSION_V2) return EXECUTION_TYPES_V2;
+  return EXECUTION_TYPES_V3;
 }
 
 // ---------------------------------------------------------------------------
@@ -218,6 +391,16 @@ export function executionTypesForSchemaVersion(schemaVersion: number) {
 const PRICE_SCALE = 1e8; // prices -> uint256
 const USD_SCALE = 1e6; // USD amounts -> uint256
 const RATIO_SCALE = 1e4; // 0..1 ratio -> bps
+/** The power of ten {@link PRICE_SCALE} represents. Signed as v3's `priceScale`
+ *  so the scale is declared in the struct rather than assumed by a reader. */
+const PRICE_SCALE_EXPONENT = Math.log10(PRICE_SCALE);
+
+/** Address that "no party is named" is encoded as. `subject`/`taker` are v3
+ *  fields; an old receipt that cannot name anyone signs zero rather than
+ *  implying a party. */
+const ZERO_ADDRESS: `0x${string}` = `0x${'0'.repeat(40)}`;
+/** The same idea for a bytes32 uid slot with no value. */
+const ZERO_BYTES32: `0x${string}` = `0x${'0'.repeat(64)}`;
 
 /** Returns a JSON-serializable uint256-encoded number. Mirrors v2/v3's
  *  `toUint`: viem's EIP-712 ops need bigint, so the public message stores
@@ -255,11 +438,82 @@ export type FillStatus = 'FULL' | 'PARTIAL' | 'REVERTED' | 'FAILED';
  * saying DEVIATED asserts a drift that was never measured. Neither is honest,
  * so the verdict says which one it is.
  *
+ * ## It is a verdict about PRICE, and since v3 the field says so
+ *
+ * The comparison is quoted price against filled price. Nothing here grades the
+ * SIZE of the fill against the gate's own recommended cap, or the fee, or the
+ * timing. That scope is defensible, but it was only ever stated in prose, and a
+ * downstream reader had no way to know it from the bytes — a receipt binding a
+ * settlement many times larger than the cap it was checked against still read
+ * FAITHFUL, correctly by its own rules and misleadingly to anyone assuming
+ * "faithful" meant "conformed to the gate".
+ *
+ * v3 renames the signed field to `priceExecutionStatus` so the scope travels in
+ * the bytes. The values are unchanged, so v1/v2 receipts keep verifying; what
+ * changed is that the name can no longer be over-read (VERITAS finding F2).
+ *
  * This is Insight's verdict, in the same sense pre-trade's `verdict` is: it
- * describes whether the execution matched what Insight certified, never whether
- * the price was right or the trade was wise.
+ * describes whether the execution matched the price Insight certified, never
+ * whether the price was right or the trade was wise.
  */
-export type ExecutionStatus = 'FAITHFUL' | 'DEVIATED' | 'NOT_EXECUTED' | 'UNDETERMINED';
+export type PriceExecutionStatus = 'FAITHFUL' | 'DEVIATED' | 'NOT_EXECUTED' | 'UNDETERMINED';
+
+/** Legacy name, kept so v1/v2 payloads and their readers still type-check. All
+ *  new code should use {@link PriceExecutionStatus} — the values never changed,
+ *  only what the name promises. */
+export type ExecutionStatus = PriceExecutionStatus;
+
+/**
+ * Whose execution this receipt is a statement about (v3, signed).
+ *
+ * This is not a formality. Insight reads settlements off chain; it does not
+ * execute them. A receipt about a transaction a third party submitted is an
+ * OBSERVER's statement, and a receipt about a trade Insight's own agent executed
+ * is a FIRST-PARTY claim. Both are legitimate, they answer different questions,
+ * and for evidence about what an agent did the difference is the whole point.
+ * Nothing in v1 or v2 distinguished them: `taker` lived in an unsigned block, so
+ * a holder could not tell whose trade they were reading about (VERITAS F6).
+ *
+ *   FIRST_PARTY_EXECUTION    — the subject is the party Insight attests acted,
+ *                              and Insight is attesting its own execution.
+ *   THIRD_PARTY_OBSERVATION  — Insight observed a settlement by someone else and
+ *                              is reporting what it saw on chain.
+ *
+ * The default is THIRD_PARTY_OBSERVATION. That is the honest default for a
+ * service that reads public settlements, and it means a caller must actively
+ * claim the stronger role rather than receiving it.
+ */
+export type ClaimRole = 'FIRST_PARTY_EXECUTION' | 'THIRD_PARTY_OBSERVATION';
+
+export const DEFAULT_CLAIM_ROLE: ClaimRole = 'THIRD_PARTY_OBSERVATION';
+
+/**
+ * Which price state the quoted price was taken against (v3, signed).
+ *
+ * Two defensible baselines sit about 0.6 bps apart on the pair this was found
+ * on: the venue's mid at the close of the block BEFORE the settlement, and its
+ * mid immediately before the swap inside the settlement block. At a 100 bps
+ * tolerance the choice is immaterial; at 5 or 10 bps it is a material part of
+ * the verdict, and in v2 nothing recorded which one was used (VERITAS F4).
+ *
+ *   PREV_BLOCK_CLOSE   — mid at the close of `quoteBlockNumber`, one or more
+ *                        blocks before the settlement.
+ *   PRE_SWAP_IN_BLOCK  — mid immediately before this swap, inside the
+ *                        settlement block. The only convention consistent with
+ *                        theory on a fee-paying venue: execution cannot beat the
+ *                        mid it trades against.
+ *   ORACLE_CONSENSUS   — the quote is the pre-trade oracle consensus, not a
+ *                        venue mid at all.
+ *   UNSPECIFIED        — the convention was not recorded. Receipts that cannot
+ *                        say must not look like receipts that can.
+ */
+export type QuoteBasis =
+  | 'PREV_BLOCK_CLOSE'
+  | 'PRE_SWAP_IN_BLOCK'
+  | 'ORACLE_CONSENSUS'
+  | 'UNSPECIFIED';
+
+export const DEFAULT_QUOTE_BASIS: QuoteBasis = 'UNSPECIFIED';
 
 /** Reason codes specific to execution. Distinct from the pre-trade and watch
  *  sets: they describe what happened at settlement, not at quote time. */
@@ -310,7 +564,20 @@ export type ExecutionBindingMode = 'VERIFIED' | 'SELF_REPORTED';
 export interface ExecutionReceiptData {
   /** v2 only: how the pre-trade binding was established. Absent on v1. */
   bindingMode?: ExecutionBindingMode;
+  /** v3 only: whose execution this is. Absent on v1/v2, which could not say. */
+  claimRole?: ClaimRole;
+  /** v3 only: the party whose execution is being attested. */
+  subject?: `0x${string}`;
+  /** v3 only: the address whose balance changes define the fill, read from chain. */
+  taker?: `0x${string}`;
   preTradeUid: `0x${string}`;
+  /** v3 only: the SECOND gate quotedPrice was built from. `quotedPrice` is
+   *  source consensus over destination consensus, so this gate supplies the
+   *  entire volatile leg; v2 signed one uid and shipped this one unbound. */
+  destinationPreTradeUid?: `0x${string}`;
+  /** v3 only: commitment to the ordered set of gates the quote was built from.
+   *  Generalises to multi-leg routes. Empty-set hash when no gate is proven. */
+  preTradeUidsHash?: `0x${string}`;
   requestHash: `0x${string}`;
   sourceAssetId: string;
   destinationAssetId: string;
@@ -319,21 +586,52 @@ export interface ExecutionReceiptData {
   action: string;
   quotedPrice: number;
   executedPrice: number;
+  /** v3 only: the power of ten the two prices above are scaled by. Signed so
+   *  the scale is declared, not assumed — an assumed scale is how a 1e8 price
+   *  field got read as a 1e6 USD field and produced a 100x error. */
+  priceScale?: number;
+  /** v3 only: which price state `quotedPrice` was taken against. */
+  quoteBasis?: QuoteBasis;
+  /** v3 only: the block `quotedPrice` was read from. 0 when not applicable. */
+  quoteBlockNumber?: number;
+  /** v3 only: whether the quote came from a source independent of the venue the
+   *  agent executed on. False means the independence fields describe a nominal
+   *  provider set rather than the price actually used. */
+  quoteVenueIndependent?: boolean;
   priceDeltaBps: number;
   maxSlippageBps: number;
   slippageSatisfied: boolean;
   quotedAmountUsd: number;
   executedAmountUsd: number;
   actualFeeUsd: number;
+  /** v3 only: commitment to which of the four notional fields above were
+   *  genuinely measured. A signed zero without this is ambiguous between
+   *  "measured, and it was zero" and "never measured". */
+  measuredFieldsHash?: `0x${string}`;
   fillStatus: FillStatus;
-  executionStatus: ExecutionStatus;
+  /** v3: the verdict, in a name that states its scope (price only). */
+  priceExecutionStatus?: PriceExecutionStatus;
+  /** v1/v2 legacy name for the same verdict, present only on receipts signed
+   *  before the rename. v3 receipts do not set it. */
+  executionStatus?: ExecutionStatus;
   txHash: `0x${string}`;
   blockNumber: number;
   executedAt: number;
   /** v2 only: unix seconds the paired pre-trade attestation was signed. Lets a
    *  holder check the gate preceded the settlement. Absent on v1. */
   preTradeSignedAt?: number;
-  oracleDataAgeAtExecSeconds: number;
+  /** Age of the pre-trade ATTESTATION at execution: executedAt − preTradeSignedAt.
+   *  v3's name for what v1/v2 called `oracleDataAgeAtExecSeconds` — that name
+   *  was the finding (F5): a reader comparing it against the gate's
+   *  maxDataAgeSeconds concluded the receipt was 2.5x past its staleness bound,
+   *  because the two fields measure different clocks. */
+  attestationAgeAtExecSeconds?: number;
+  /** v1/v2 legacy name for {@link attestationAgeAtExecSeconds}. */
+  oracleDataAgeAtExecSeconds?: number;
+  /** v3 only: age of the PRICE STATE the quote was actually taken from, in
+   *  seconds. On the verified example this is 12 while the attestation age is
+   *  30 — both true, and before v3 there was only one field to hold them. */
+  priceStateAgeAtExecSeconds?: number;
   participantCount: number;
   requiredParticipantCount: number;
   sourceGroupCount: number;
@@ -350,7 +648,13 @@ export interface ExecutionReceiptData {
 export interface ExecutionBigIntMessage {
   /** v2 only. Must be populated whenever the v2 layout is used. */
   bindingMode?: string;
+  /** v3. */
+  claimRole?: string;
+  subject?: `0x${string}`;
+  taker?: `0x${string}`;
   preTradeUid: `0x${string}`;
+  destinationPreTradeUid?: `0x${string}`;
+  preTradeUidsHash?: `0x${string}`;
   requestHash: `0x${string}`;
   sourceAssetId: string;
   destinationAssetId: string;
@@ -359,20 +663,32 @@ export interface ExecutionBigIntMessage {
   action: string;
   quotedPrice: bigint;
   executedPrice: bigint;
+  priceScale?: bigint;
+  quoteBasis?: string;
+  quoteBlockNumber?: bigint;
+  quoteVenueIndependent?: boolean;
   priceDeltaBps: bigint;
   maxSlippageBps: bigint;
   slippageSatisfied: boolean;
   quotedAmountUsd: bigint;
   executedAmountUsd: bigint;
   actualFeeUsd: bigint;
+  measuredFieldsHash?: `0x${string}`;
   fillStatus: string;
+  /** Both spellings are always populated. viem encodes strictly from the type
+   *  layout, so the one the layout does not declare is inert — that is what
+   *  lets one message object serve v1/v2 and v3. */
+  priceExecutionStatus: string;
   executionStatus: string;
   txHash: `0x${string}`;
   blockNumber: bigint;
   executedAt: bigint;
   /** v2 only. Must be populated whenever the v2 layout is used. */
   preTradeSignedAt?: bigint;
+  /** Both spellings populated, for the same reason as the status above. */
+  attestationAgeAtExecSeconds: bigint;
   oracleDataAgeAtExecSeconds: bigint;
+  priceStateAgeAtExecSeconds?: bigint;
   participantCount: bigint;
   requiredParticipantCount: bigint;
   sourceGroupCount: bigint;
@@ -415,6 +731,44 @@ export interface ExecutionReceiptInput {
   /** Slippage bound to judge the drift against. Defaults to
    *  {@link EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS}. */
   maxSlippageBps?: number;
+  /** v3: whose execution this is. Defaults to THIRD_PARTY_OBSERVATION, because
+   *  that is what an observer of public settlements actually is; a caller that
+   *  wants the first-person claim has to say so. */
+  claimRole?: ClaimRole;
+  /** v3: the party whose execution is being attested. Defaults to the on-chain
+   *  taker, which for an observed settlement is the party that traded. When it
+   *  cannot be established it is the zero address, and the receipt says nothing
+   *  about identity rather than implying one. */
+  subject?: `0x${string}`;
+  /** v3: the on-chain address whose balance changes define the fill. */
+  taker?: `0x${string}`;
+  /** v3: the second gate quotedPrice was built from. Required for a receipt
+   *  that claims a bound quote basis; absent means the hash commitment binds
+   *  only the source gate. */
+  destinationPreTradeUid?: `0x${string}`;
+  /** v3: the ordered set of gate uids the quote was built from. Defaults to
+   *  [preTradeUid, destinationPreTradeUid] when the latter is supplied, and to
+   *  [preTradeUid] otherwise — the receipt must never claim an ordered set it
+   *  did not use. */
+  preTradeUids?: ReadonlyArray<`0x${string}`>;
+  /** v3: which baseline `quotedPrice` was taken against. Defaults to
+   *  UNSPECIFIED — a receipt that does not know must not claim one. */
+  quoteBasis?: QuoteBasis;
+  /** v3: the block `quotedPrice` was read from. 0 when not applicable. */
+  quoteBlockNumber?: number;
+  /** v3: whether the quote is independent of the venue being executed on.
+   *  Defaults to FALSE. That default is deliberate and is the honest one: the
+   *  common construction derives the quote from the same venue, and claiming
+   *  independence by omission would make the independence fields describe a
+   *  nominal provider set rather than the price used. */
+  quoteVenueIndependent?: boolean;
+  /** v3: age of the price state the quote came from, seconds. Distinct from the
+   *  attestation's own age; 0 when unknown. */
+  priceStateAgeAtExecSeconds?: number;
+  /** v3: which of the four notional fields were actually measured. Anything not
+   *  listed is signed as unmeasured, so `0` can no longer be read as a real
+   *  zero. Defaults to the empty set. */
+  measuredFields?: ReadonlyArray<MeasurableExecutionField>;
   /** Notional the pre-trade check was scoped to (raw USD). */
   quotedAmountUsd: number;
   /** Notional actually filled (raw USD). */
@@ -426,7 +780,10 @@ export interface ExecutionReceiptInput {
   blockNumber: number;
   /** Execution time, unix seconds. */
   executedAt: number;
-  /** Age of the oracle consensus at the moment of execution, seconds. */
+  /** Age of the pre-trade ATTESTATION at the moment of execution, seconds
+   *  (executedAt − preTradeSignedAt). Not the age of the price state: that is
+   *  `priceStateAgeAtExecSeconds`, and conflating the two made a compliant
+   *  receipt read as 2.5x past the gate's staleness bound (VERITAS F5). */
   oracleDataAgeAtExecSeconds: number;
   participantCount: number;
   /** Distinct NON-DERIVED operator groups at execution. */
@@ -542,9 +899,42 @@ export async function buildExecutionMessage(
   const reasonCodesHash = computeReasonCodesHash(input.reasonCodes ?? []);
   const validUntil = input.executedAt + EXECUTION_VALID_FOR_SECONDS;
 
+  // --- v3 claims, each derived with an honest default so that nothing is
+  // implied by omission. A field that cannot be stated is stated as absent. ---
+  const claimRole: ClaimRole = input.claimRole ?? DEFAULT_CLAIM_ROLE;
+  const quoteBasis: QuoteBasis = input.quoteBasis ?? DEFAULT_QUOTE_BASIS;
+  // Independence is claimed only when it was real. The common construction
+  // derives the quote from the venue itself, and silence must not read as
+  // independence (VERITAS F3).
+  const quoteVenueIndependent = input.quoteVenueIndependent ?? false;
+  const measuredFieldsHash = computeMeasuredFieldsHash(input.measuredFields ?? []);
+  // Commit to the ordered gate set actually used: both legs when a destination
+  // gate was proven, the single source gate otherwise. Never a set the receipt
+  // did not build its quote from.
+  const preTradeUids =
+    input.preTradeUids ??
+    (input.destinationPreTradeUid
+      ? [input.preTradeUid, input.destinationPreTradeUid]
+      : [input.preTradeUid]);
+  const preTradeUidsHash = computePreTradeUidsHash(preTradeUids);
+  // Addresses are case-insensitive; normalising to lowercase keeps the signed
+  // bytes deterministic for the same party, whatever casing the caller used
+  // (EIP-55 checksum is a display convention, not part of the address).
+  const taker = (input.taker ?? ZERO_ADDRESS).toLowerCase() as `0x${string}`;
+  // An observed settlement is a statement about whoever traded; when no on-chain
+  // taker can be established, the subject is zero rather than an implied party.
+  const subject = input.subject ? (input.subject.toLowerCase() as `0x${string}`) : taker;
+  const destinationPreTradeUid = input.destinationPreTradeUid ?? ZERO_BYTES32;
+  const priceStateAgeAtExecSeconds = Math.max(0, Math.floor(input.priceStateAgeAtExecSeconds ?? 0));
+
   return {
     bindingMode,
+    claimRole,
+    subject,
+    taker,
     preTradeUid: input.preTradeUid,
+    destinationPreTradeUid,
+    preTradeUidsHash,
     requestHash: input.requestHash,
     sourceAssetId: input.sourceAssetId,
     destinationAssetId: input.destinationAssetId,
@@ -553,19 +943,25 @@ export async function buildExecutionMessage(
     action: input.action,
     quotedPrice: toUint(input.quotedPrice, PRICE_SCALE),
     executedPrice: toUint(input.executedPrice, PRICE_SCALE),
+    priceScale: PRICE_SCALE_EXPONENT,
+    quoteBasis,
+    quoteBlockNumber: Math.max(0, Math.floor(input.quoteBlockNumber ?? 0)),
+    quoteVenueIndependent,
     priceDeltaBps: Math.trunc(priceDeltaBps),
     maxSlippageBps: Math.max(0, Math.trunc(maxSlippageBps)),
     slippageSatisfied,
     quotedAmountUsd: toUint(input.quotedAmountUsd, USD_SCALE),
     executedAmountUsd: toUint(input.executedAmountUsd, USD_SCALE),
     actualFeeUsd: toUint(input.actualFeeUsd, USD_SCALE),
+    measuredFieldsHash,
     fillStatus: input.fillStatus,
-    executionStatus,
+    priceExecutionStatus: executionStatus,
     txHash: input.txHash,
     blockNumber: Math.max(0, Math.floor(input.blockNumber)),
     executedAt: Math.max(0, Math.floor(input.executedAt)),
     preTradeSignedAt: Math.max(0, Math.floor(input.preTradeSignedAt)),
-    oracleDataAgeAtExecSeconds: Math.max(0, Math.floor(input.oracleDataAgeAtExecSeconds)),
+    attestationAgeAtExecSeconds: Math.max(0, Math.floor(input.oracleDataAgeAtExecSeconds)),
+    priceStateAgeAtExecSeconds,
     participantCount: Math.max(0, Math.floor(input.participantCount)),
     requiredParticipantCount: EXECUTION_REQUIRED_PARTICIPANT_COUNT,
     sourceGroupCount: Math.max(0, Math.floor(input.sourceGroupCount)),
@@ -578,11 +974,24 @@ export async function buildExecutionMessage(
   };
 }
 
-/** Widen the JSON-serializable message to its bigint twin for viem. Pure. */
+/** Widen the JSON-serializable message to its bigint twin for viem. Pure.
+ *
+ *  Every key is populated, including both spellings of the renamed fields and
+ *  defaults for fields a schema version does not carry. viem encodes strictly
+ *  from the type layout resolved by `schemaVersion`, so keys the layout does
+ *  not declare are inert and a single object serves v1, v2 and v3. */
 export function toBigIntMessage(data: ExecutionReceiptData): ExecutionBigIntMessage {
+  const schemaVersion = Number(data.schemaVersion) || CURRENT_EXECUTION_SCHEMA_VERSION;
+  const verdict = data.priceExecutionStatus ?? data.executionStatus ?? 'UNDETERMINED';
+  const attestationAge = data.attestationAgeAtExecSeconds ?? data.oracleDataAgeAtExecSeconds ?? 0;
   return {
     bindingMode: data.bindingMode ?? 'SELF_REPORTED',
+    claimRole: data.claimRole ?? DEFAULT_CLAIM_ROLE,
+    subject: data.subject ?? data.taker ?? ZERO_ADDRESS,
+    taker: data.taker ?? ZERO_ADDRESS,
     preTradeUid: data.preTradeUid,
+    destinationPreTradeUid: data.destinationPreTradeUid ?? ZERO_BYTES32,
+    preTradeUidsHash: data.preTradeUidsHash ?? computePreTradeUidsHash([]),
     requestHash: data.requestHash,
     sourceAssetId: data.sourceAssetId,
     destinationAssetId: data.destinationAssetId,
@@ -591,19 +1000,27 @@ export function toBigIntMessage(data: ExecutionReceiptData): ExecutionBigIntMess
     action: data.action,
     quotedPrice: BigInt(data.quotedPrice),
     executedPrice: BigInt(data.executedPrice),
+    priceScale: BigInt(data.priceScale ?? PRICE_SCALE_EXPONENT),
+    quoteBasis: data.quoteBasis ?? DEFAULT_QUOTE_BASIS,
+    quoteBlockNumber: BigInt(data.quoteBlockNumber ?? 0),
+    quoteVenueIndependent: data.quoteVenueIndependent ?? false,
     priceDeltaBps: BigInt(data.priceDeltaBps),
     maxSlippageBps: BigInt(data.maxSlippageBps),
     slippageSatisfied: data.slippageSatisfied,
     quotedAmountUsd: BigInt(data.quotedAmountUsd),
     executedAmountUsd: BigInt(data.executedAmountUsd),
     actualFeeUsd: BigInt(data.actualFeeUsd),
+    measuredFieldsHash: data.measuredFieldsHash ?? computeMeasuredFieldsHash([]),
     fillStatus: data.fillStatus,
-    executionStatus: data.executionStatus,
+    priceExecutionStatus: verdict,
+    executionStatus: verdict,
     txHash: data.txHash,
     blockNumber: BigInt(data.blockNumber),
     executedAt: BigInt(data.executedAt),
     preTradeSignedAt: BigInt(data.preTradeSignedAt ?? 0),
-    oracleDataAgeAtExecSeconds: BigInt(data.oracleDataAgeAtExecSeconds),
+    attestationAgeAtExecSeconds: BigInt(attestationAge),
+    oracleDataAgeAtExecSeconds: BigInt(attestationAge),
+    priceStateAgeAtExecSeconds: BigInt(data.priceStateAgeAtExecSeconds ?? 0),
     participantCount: BigInt(data.participantCount),
     requiredParticipantCount: BigInt(data.requiredParticipantCount),
     sourceGroupCount: BigInt(data.sourceGroupCount),
@@ -612,14 +1029,17 @@ export function toBigIntMessage(data: ExecutionReceiptData): ExecutionBigIntMess
     mevRiskBps: BigInt(data.mevRiskBps),
     reasonCodesHash: data.reasonCodesHash,
     validUntil: BigInt(data.validUntil),
-    schemaVersion: BigInt(data.schemaVersion),
+    schemaVersion: BigInt(schemaVersion),
   };
 }
 
-/** EIP-712 typed-data args (domain + types + message) — shared by sign/verify. */
+/** EIP-712 typed-data args (domain + types + message) — shared by sign/verify.
+ *  Both the type layout and the domain resolve from the signed `schemaVersion`,
+ *  so a v1/v2 receipt verifies against the frozen domain and a v3 receipt
+ *  against the environment-carrying domain. */
 export function executionTypedDataArgs(message: ExecutionReceiptData) {
   return {
-    domain: EXECUTION_DOMAIN,
+    domain: executionDomainForSchemaVersion(message.schemaVersion),
     types: executionTypesForSchemaVersion(message.schemaVersion),
     primaryType: EXECUTION_PRIMARY_TYPE,
     message: toBigIntMessage(message),
@@ -641,10 +1061,10 @@ export interface ExecutionReceipt {
   signature: string;
   verifyUrl: string;
   data: ExecutionReceiptData;
-  /** Informational only — verification always re-derives types from
+  /** Informational only — verification always re-derives domain and types from
    *  `data.schemaVersion`, never from this block. */
   eip712: {
-    domain: typeof EXECUTION_DOMAIN;
+    domain: typeof EXECUTION_DOMAIN | ReturnType<typeof executionDomainV3>;
     types: typeof EXECUTION_TYPES;
     primaryType: typeof EXECUTION_PRIMARY_TYPE;
   };
@@ -692,7 +1112,7 @@ export async function signExecutionReceipt(
       verifyUrl: getVerifyUrl(),
       data: message,
       eip712: {
-        domain: EXECUTION_DOMAIN,
+        domain: executionDomainForSchemaVersion(CURRENT_EXECUTION_SCHEMA_VERSION),
         types: EXECUTION_TYPES,
         primaryType: EXECUTION_PRIMARY_TYPE,
       },
@@ -746,7 +1166,7 @@ export async function verifyExecutionReceipt(
         executedAt: Number(message.executedAt) || null,
         validUntil: Number(message.validUntil) || null,
         expired: false,
-        executionStatus: message.executionStatus ?? null,
+        executionStatus: message.priceExecutionStatus ?? message.executionStatus ?? null,
         bindingMode,
         schemaVersion,
         reason: 'uid_mismatch: data was modified after signing',
@@ -770,7 +1190,7 @@ export async function verifyExecutionReceipt(
         executedAt: Number(message.executedAt) || null,
         validUntil: Number(message.validUntil) || null,
         expired,
-        executionStatus: message.executionStatus ?? null,
+        executionStatus: message.priceExecutionStatus ?? message.executionStatus ?? null,
         bindingMode,
         schemaVersion,
         reason: 'signature_invalid: not signed by the claimed attester',
@@ -784,7 +1204,7 @@ export async function verifyExecutionReceipt(
       executedAt: Number(message.executedAt) || null,
       validUntil: Number(message.validUntil) || null,
       expired,
-      executionStatus: message.executionStatus ?? null,
+      executionStatus: message.priceExecutionStatus ?? message.executionStatus ?? null,
       bindingMode,
       schemaVersion,
       reason: expired ? 'receipt_expired' : 'verified',

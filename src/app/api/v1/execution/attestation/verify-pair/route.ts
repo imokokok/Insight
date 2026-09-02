@@ -27,12 +27,13 @@ import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/li
 import { getAttesterAddress } from '@/lib/attestations/attesterAccount';
 import {
   EXECUTION_ATTESTER_LABEL,
-  EXECUTION_DOMAIN,
   EXECUTION_TYPES,
   EXECUTION_PRIMARY_TYPE,
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
+  EXECUTION_SCHEMA_VERSION_V3,
   CURRENT_EXECUTION_SCHEMA_VERSION,
+  executionDomainV3,
 } from '@/lib/attestations/executionReceipt';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import {
@@ -63,16 +64,18 @@ const PreTradeAttestationSchema = z
   })
   .passthrough();
 
-/** Loose envelope for the Execution Receipt (same philosophy). Accepts both
- *  v1 and v2 receipts — v2 adds the signed bindingMode + preTradeSignedAt, and
- *  is what issueExecutionReceipt emits today. A literal(1) here would silently
- *  reject every real v2 receipt, so we accept the supported schema set. */
+/** Loose envelope for the Execution Receipt (same philosophy). Accepts all
+ *  published schema versions — v1 predates the signed binding fields, v2 adds
+ *  bindingMode + preTradeSignedAt, v3 (current) carries the full quote-basis,
+ *  subject and scope commitments. A literal(1) here would silently reject every
+ *  real receipt, so we accept the supported schema set. */
 const ExecutionReceiptSchema = z
   .object({
     uid: z.string(),
     schemaVersion: z.union([
       z.literal(EXECUTION_SCHEMA_VERSION),
       z.literal(EXECUTION_SCHEMA_VERSION_V2),
+      z.literal(EXECUTION_SCHEMA_VERSION_V3),
     ]),
     attester: z.string(),
     signature: z.string(),
@@ -83,6 +86,10 @@ const ExecutionReceiptSchema = z
 const VerifyPairBodySchema = z.object({
   preTradeAttestation: PreTradeAttestationSchema,
   executionReceipt: ExecutionReceiptSchema,
+  /** v3 only: the destination pre-trade gate when the Execution Receipt commits
+   *  to one via data.destinationPreTradeUid. Required for v3 receipts signed
+   *  with a two-gate VERIFIED binding. */
+  destinationPreTradeAttestation: PreTradeAttestationSchema.optional(),
 });
 
 type VerifyPairBody = z.infer<typeof VerifyPairBodySchema>;
@@ -107,7 +114,8 @@ export const POST = createApiHandler<
     const body = context.validated!.body!;
     const result = await verifyExecutionPair(
       body.preTradeAttestation as unknown as PreTradeAttestationInput,
-      body.executionReceipt as never
+      body.executionReceipt as never,
+      body.destinationPreTradeAttestation as unknown as PreTradeAttestationInput | undefined
     );
 
     return NextResponse.json(
@@ -126,6 +134,16 @@ export const POST = createApiHandler<
             reason: result.preTrade.reason,
           },
           execution: result.execution,
+          destinationPreTrade: result.destinationPreTrade
+            ? {
+                valid: result.destinationPreTrade.valid,
+                expired: result.destinationPreTrade.expired,
+                uid: result.destinationPreTrade.uid,
+                schemaVersion: result.destinationPreTrade.schemaVersion,
+                attester: result.destinationPreTrade.attester,
+                reason: result.destinationPreTrade.reason,
+              }
+            : null,
         },
         { requestId: context.requestId }
       )
@@ -161,9 +179,13 @@ export const GET = createApiHandler<
             preTradeUid: 'executionReceipt.data.preTradeUid must equal preTradeAttestation.uid',
             requestHash:
               'executionReceipt.data.requestHash must equal preTradeAttestation.data.requestHash',
+            destinationPreTradeUid:
+              'v3: when executionReceipt.data.destinationPreTradeUid is set, it must equal destinationPreTradeAttestation.uid and that gate must verify',
+            preTradeUidsHash:
+              'v3: executionReceipt.data.preTradeUidsHash must recompute from the presented gate uids, in order (source then destination)',
           },
           executionReceiptEip712: {
-            domain: EXECUTION_DOMAIN,
+            domain: executionDomainV3(),
             types: EXECUTION_TYPES,
             primaryType: EXECUTION_PRIMARY_TYPE,
           },

@@ -55,7 +55,9 @@ export async function recordExecutionReceipt(
       settlement_chain_id: meta.settlementChainId ?? data.settlementChainId,
 
       action: data.action,
-      execution_status: data.executionStatus,
+      // v3 renamed the signed field to priceExecutionStatus; both spellings
+      // read here so every schema version lands the same column.
+      execution_status: data.priceExecutionStatus ?? data.executionStatus,
       fill_status: data.fillStatus,
 
       quoted_price: data.quotedPrice / 1e8,
@@ -72,7 +74,8 @@ export async function recordExecutionReceipt(
       block_number: data.blockNumber,
       executed_at: new Date(data.executedAt * 1000).toISOString(),
 
-      oracle_data_age_at_exec_seconds: data.oracleDataAgeAtExecSeconds,
+      oracle_data_age_at_exec_seconds:
+        data.oracleDataAgeAtExecSeconds ?? data.attestationAgeAtExecSeconds,
       participant_count: data.participantCount,
       required_participant_count: data.requiredParticipantCount,
       source_group_count: data.sourceGroupCount,

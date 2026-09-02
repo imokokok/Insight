@@ -6,10 +6,11 @@
  * `route.ts` is not an option — and an untested schema is exactly how the
  * v1-only `z.literal` slipped in and rejected every v2 receipt.
  *
- * Both published schema versions are accepted: v1 predates the signed binding
- * fields, v2 (what issueExecutionReceipt emits) adds bindingMode +
- * preTradeSignedAt. Rejecting either would break real receipts before they
- * ever reach the verifier.
+ * All published schema versions are accepted: v1 predates the signed binding
+ * fields, v2 (what issueExecutionReceipt emitted before the VERITAS pass) adds
+ * bindingMode + preTradeSignedAt, and v3 (the current emitter) carries the
+ * full quote-basis, subject and scope commitments. Rejecting any of them would
+ * break real receipts before they ever reach the verifier.
  */
 
 import { z } from 'zod';
@@ -17,6 +18,7 @@ import { z } from 'zod';
 import {
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
+  EXECUTION_SCHEMA_VERSION_V3,
 } from '@/lib/attestations/executionReceipt';
 
 export const ExecutionVerifyBodySchema = z.object({
@@ -26,6 +28,7 @@ export const ExecutionVerifyBodySchema = z.object({
       schemaVersion: z.union([
         z.literal(EXECUTION_SCHEMA_VERSION),
         z.literal(EXECUTION_SCHEMA_VERSION_V2),
+        z.literal(EXECUTION_SCHEMA_VERSION_V3),
       ]),
       attester: z.string(),
       signature: z.string(),

@@ -68,6 +68,18 @@ function baseInput(overrides: Partial<ExecutionReceiptInput> = {}): ExecutionRec
   };
 }
 
+/** EIP-712 digest of typed data. Async because viem's crypto import is async in
+ *  this test environment. */
+async function hashTypedDataForTest(args: {
+  domain: unknown;
+  types: unknown;
+  primaryType: string;
+  message: unknown;
+}): Promise<string> {
+  const { hashTypedData } = await import('viem');
+  return hashTypedData(args as never);
+}
+
 describe('executionReceipt', () => {
   beforeEach(() => {
     jest.resetModules();
@@ -94,8 +106,8 @@ describe('executionReceipt', () => {
     const receipt = await mod.signExecutionReceipt(baseInput());
     expect(receipt).not.toBeNull();
     expect(receipt!.attester).toBe(TEST_ATTESTER);
-    expect(receipt!.schemaVersion).toBe(2);
-    expect(receipt!.data.executionStatus).toBe('FAITHFUL');
+    expect(receipt!.schemaVersion).toBe(3);
+    expect(receipt!.data.priceExecutionStatus).toBe('FAITHFUL');
     expect(receipt!.data.bindingMode).toBe('VERIFIED');
 
     const result = await mod.verifyExecutionReceipt(receipt!);
@@ -111,14 +123,14 @@ describe('executionReceipt', () => {
     const receipt = await mod.signExecutionReceipt(baseInput());
     const tampered = {
       ...receipt!,
-      data: { ...receipt!.data, executionStatus: 'FAITHFUL' as const },
+      data: { ...receipt!.data, priceExecutionStatus: 'FAITHFUL' as const },
     };
     // Flip a DEVIATED receipt to FAITHFUL to confirm the verdict is protected.
     const deviated = await mod.signExecutionReceipt(baseInput({ executedPrice: 3030 }));
-    expect(deviated!.data.executionStatus).toBe('DEVIATED');
+    expect(deviated!.data.priceExecutionStatus).toBe('DEVIATED');
     const forgedVerdict = {
       ...deviated!,
-      data: { ...deviated!.data, executionStatus: 'FAITHFUL' as const },
+      data: { ...deviated!.data, priceExecutionStatus: 'FAITHFUL' as const },
     };
     const result = await mod.verifyExecutionReceipt(forgedVerdict);
     expect(result.valid).toBe(false);
@@ -195,7 +207,7 @@ describe('executionReceipt', () => {
     expect(msg.priceDeltaBps).toBe(10);
     expect(msg.slippageSatisfied).toBe(true);
     expect(msg.independenceSatisfied).toBe(true);
-    expect(msg.executionStatus).toBe('FAITHFUL');
+    expect(msg.priceExecutionStatus).toBe('FAITHFUL');
   });
 
   it('marks a fill past the bound as DEVIATED', async () => {
@@ -203,7 +215,7 @@ describe('executionReceipt', () => {
     const msg = await mod.buildExecutionMessage(baseInput({ executedPrice: 3030 }));
     expect(msg.priceDeltaBps).toBeGreaterThan(msg.maxSlippageBps);
     expect(msg.slippageSatisfied).toBe(false);
-    expect(msg.executionStatus).toBe('DEVIATED');
+    expect(msg.priceExecutionStatus).toBe('DEVIATED');
   });
 
   it('treats a better-than-quoted fill as satisfying the bound (negative drift)', async () => {
@@ -211,16 +223,16 @@ describe('executionReceipt', () => {
     const msg = await mod.buildExecutionMessage(baseInput({ executedPrice: 2990 }));
     expect(msg.priceDeltaBps).toBeLessThan(0);
     expect(msg.slippageSatisfied).toBe(true);
-    expect(msg.executionStatus).toBe('FAITHFUL');
+    expect(msg.priceExecutionStatus).toBe('FAITHFUL');
   });
 
   it('marks a reverted or failed transaction as NOT_EXECUTED', async () => {
     const mod = await import('../executionReceipt');
     const reverted = await mod.buildExecutionMessage(baseInput({ fillStatus: 'REVERTED' }));
-    expect(reverted.executionStatus).toBe('NOT_EXECUTED');
+    expect(reverted.priceExecutionStatus).toBe('NOT_EXECUTED');
 
     const failed = await mod.buildExecutionMessage(baseInput({ fillStatus: 'FAILED' }));
-    expect(failed.executionStatus).toBe('NOT_EXECUTED');
+    expect(failed.priceExecutionStatus).toBe('NOT_EXECUTED');
   });
 
   it('marks a partial fill as DEVIATED even when inside the bound', async () => {
@@ -229,7 +241,7 @@ describe('executionReceipt', () => {
     const mod = await import('../executionReceipt');
     const msg = await mod.buildExecutionMessage(baseInput({ fillStatus: 'PARTIAL' }));
     expect(msg.slippageSatisfied).toBe(true);
-    expect(msg.executionStatus).toBe('DEVIATED');
+    expect(msg.priceExecutionStatus).toBe('DEVIATED');
   });
 
   it('marks a clean fill as DEVIATED when oracle independence lapsed at execution', async () => {
@@ -239,7 +251,7 @@ describe('executionReceipt', () => {
     const msg = await mod.buildExecutionMessage(baseInput({ sourceGroupCount: 1 }));
     expect(msg.independenceSatisfied).toBe(false);
     expect(msg.slippageSatisfied).toBe(true);
-    expect(msg.executionStatus).toBe('DEVIATED');
+    expect(msg.priceExecutionStatus).toBe('DEVIATED');
   });
 
   it('claims no drift and no verdict when there is no certified price to drift from', async () => {
@@ -251,14 +263,14 @@ describe('executionReceipt', () => {
     expect(mod.derivePriceDeltaBps(0, 3000)).toBe(0);
     const msg = await mod.buildExecutionMessage(baseInput({ quotedPrice: 0, executedPrice: 0 }));
     expect(msg.priceDeltaBps).toBe(0);
-    expect(msg.executionStatus).toBe('UNDETERMINED');
+    expect(msg.priceExecutionStatus).toBe('UNDETERMINED');
   });
 
   it('marks a fill with no readable executed price as UNDETERMINED, not DEVIATED', async () => {
     // Unreadable fill data is missing evidence, not proven drift.
     const mod = await import('../executionReceipt');
     const msg = await mod.buildExecutionMessage(baseInput({ executedPrice: 0 }));
-    expect(msg.executionStatus).toBe('UNDETERMINED');
+    expect(msg.priceExecutionStatus).toBe('UNDETERMINED');
   });
 
   // ---- v2: the binding must be real, and the gate must precede the fill ----
@@ -270,13 +282,13 @@ describe('executionReceipt', () => {
     const mod = await import('../executionReceipt');
     const msg = await mod.buildExecutionMessage(baseInput({ preTradeSignedAt: NOW_S + 120 }));
     expect(msg.slippageSatisfied).toBe(true);
-    expect(msg.executionStatus).toBe('UNDETERMINED');
+    expect(msg.priceExecutionStatus).toBe('UNDETERMINED');
   });
 
   it('refuses FAITHFUL when the pre-trade time is absent', async () => {
     const mod = await import('../executionReceipt');
     const msg = await mod.buildExecutionMessage(baseInput({ preTradeSignedAt: 0 }));
-    expect(msg.executionStatus).toBe('UNDETERMINED');
+    expect(msg.priceExecutionStatus).toBe('UNDETERMINED');
   });
 
   it('refuses FAITHFUL when the binding is only self-reported', async () => {
@@ -288,7 +300,7 @@ describe('executionReceipt', () => {
     expect(msg.slippageSatisfied).toBe(true);
     expect(msg.independenceSatisfied).toBe(true);
     expect(msg.bindingMode).toBe('SELF_REPORTED');
-    expect(msg.executionStatus).toBe('UNDETERMINED');
+    expect(msg.priceExecutionStatus).toBe('UNDETERMINED');
   });
 
   it('still records DEVIATED on a self-reported binding when the fill breached the bound', async () => {
@@ -299,17 +311,289 @@ describe('executionReceipt', () => {
     const msg = await mod.buildExecutionMessage(
       baseInput({ bindingMode: 'SELF_REPORTED', executedPrice: 3030 })
     );
-    expect(msg.executionStatus).toBe('DEVIATED');
+    expect(msg.priceExecutionStatus).toBe('DEVIATED');
   });
 
-  it('routes verification by the signed schema version, keeping v1 receipts verifiable', async () => {
+  it('routes verification by the signed schema version, keeping v1/v2 receipts verifiable', async () => {
     const mod = await import('../executionReceipt');
     expect(mod.executionTypesForSchemaVersion(1).ExecutionReceipt).toHaveLength(30);
     expect(mod.executionTypesForSchemaVersion(2).ExecutionReceipt).toHaveLength(32);
+    expect(mod.executionTypesForSchemaVersion(3).ExecutionReceipt).toHaveLength(43);
     // v1 layout must not declare the v2-only fields.
     const v1Names = mod.executionTypesForSchemaVersion(1).ExecutionReceipt.map((f) => f.name);
     expect(v1Names).not.toContain('bindingMode');
     expect(v1Names).not.toContain('preTradeSignedAt');
+    // v2 layout must not declare the v3-only fields.
+    const v2Names = mod.executionTypesForSchemaVersion(2).ExecutionReceipt.map((f) => f.name);
+    expect(v2Names).not.toContain('claimRole');
+    expect(v2Names).not.toContain('destinationPreTradeUid');
+    expect(v2Names).not.toContain('measuredFieldsHash');
+    // v3 renamed the scope-overstating fields (F2/F5) and adds the subject
+    // claims (F6).
+    const v3Names = mod.executionTypesForSchemaVersion(3).ExecutionReceipt.map((f) => f.name);
+    expect(v3Names).toContain('priceExecutionStatus');
+    expect(v3Names).not.toContain('executionStatus');
+    expect(v3Names).toContain('attestationAgeAtExecSeconds');
+    expect(v3Names).not.toContain('oracleDataAgeAtExecSeconds');
+    expect(v3Names).toContain('claimRole');
+    expect(v3Names).toContain('subject');
+    expect(v3Names).toContain('taker');
+    expect(v3Names).toContain('destinationPreTradeUid');
+    expect(v3Names).toContain('preTradeUidsHash');
+    expect(v3Names).toContain('priceScale');
+    expect(v3Names).toContain('quoteBasis');
+    expect(v3Names).toContain('quoteVenueIndependent');
+    expect(v3Names).toContain('measuredFieldsHash');
+    expect(v3Names).toContain('priceStateAgeAtExecSeconds');
+    // v3 verifies against the environment-carrying domain; v1/v2 against the
+    // frozen one.
+    expect(mod.executionDomainForSchemaVersion(3).environment).toBeDefined();
+    expect(mod.executionDomainForSchemaVersion(2).environment).toBeUndefined();
+  });
+
+  // ---- v3: everything about the quote basis is now signed (F1/F3/F4/F7) ----
+
+  it('v3 commits to both gates via destinationPreTradeUid + preTradeUidsHash', async () => {
+    const mod = await import('../executionReceipt');
+    const destinationUid = ('0x' + '33'.repeat(32)) as `0x${string}`;
+    const msg = await mod.buildExecutionMessage(
+      baseInput({ destinationPreTradeUid: destinationUid })
+    );
+    expect(msg.destinationPreTradeUid).toBe(destinationUid);
+    // The hash commits to the ORDERED pair (source then destination): reversing
+    // the order changes the commitment, because reversing the legs reverses the
+    // quote's meaning.
+    const { computePreTradeUidsHash } = await import('../executionCommitments');
+    expect(msg.preTradeUidsHash).toBe(computePreTradeUidsHash([PRE_TRADE_UID, destinationUid]));
+    expect(msg.preTradeUidsHash).not.toBe(
+      computePreTradeUidsHash([destinationUid, PRE_TRADE_UID as `0x${string}`])
+    );
+    // A tampered destination gate changes the hash, so every signature breaks.
+    const receipt = await mod.signExecutionReceipt(
+      baseInput({ destinationPreTradeUid: destinationUid })
+    );
+    const swapped = {
+      ...receipt!,
+      data: { ...receipt!.data, destinationPreTradeUid: '0x' + '44'.repeat(32) },
+    };
+    const result = await mod.verifyExecutionReceipt(swapped);
+    expect(result.valid).toBe(false);
+  });
+
+  it('v3 signs which notional fields were measured (measuredFieldsHash)', async () => {
+    const mod = await import('../executionReceipt');
+    const { computeMeasuredFieldsHash } = await import('../executionCommitments');
+    // Supplying measured values puts them in the committed set…
+    const msg = await mod.buildExecutionMessage(
+      baseInput({
+        measuredFields: ['executedAmountUsd', 'actualFeeUsd'],
+        quotedAmountUsd: 0, // signed zero, deliberately NOT in the set
+      })
+    );
+    expect(msg.measuredFieldsHash).toBe(
+      computeMeasuredFieldsHash(['executedAmountUsd', 'actualFeeUsd'])
+    );
+    // …while an omitted field signs zero as "never measured". The empty-set
+    // hash is keccak256 of the empty string — a defined value a verifier can
+    // enumerate and match without asking us for anything.
+    const empty = await mod.buildExecutionMessage(baseInput({ measuredFields: [] }));
+    expect(empty.measuredFieldsHash).toBe(computeMeasuredFieldsHash([]));
+    expect(empty.measuredFieldsHash).not.toBe(msg.measuredFieldsHash);
+  });
+
+  it('v3 defaults the subject claims to the honest observer position', async () => {
+    const mod = await import('../executionReceipt');
+    const taker = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' as `0x${string}`;
+    // No claim made → THIRD_PARTY_OBSERVATION, subject defaults to the taker.
+    const msg = await mod.buildExecutionMessage(baseInput({ taker }));
+    expect(msg.claimRole).toBe('THIRD_PARTY_OBSERVATION');
+    expect(msg.subject).toBe(taker.toLowerCase());
+    expect(msg.taker).toBe(taker.toLowerCase());
+    // An explicit first-party claim is honoured.
+    const firstParty = await mod.buildExecutionMessage(
+      baseInput({ claimRole: 'FIRST_PARTY_EXECUTION', taker, subject: taker })
+    );
+    expect(firstParty.claimRole).toBe('FIRST_PARTY_EXECUTION');
+    // No taker at all → zero address, never an implied party.
+    const noOne = await mod.buildExecutionMessage(baseInput({ taker: undefined }));
+    expect(noOne.taker).toBe('0x' + '0'.repeat(40));
+    expect(noOne.subject).toBe('0x' + '0'.repeat(40));
+  });
+
+  it('v3 defaults the quote-basis claims to the honest unknown', async () => {
+    const mod = await import('../executionReceipt');
+    const msg = await mod.buildExecutionMessage(baseInput());
+    // Independence must be claimed, never implied by omission.
+    expect(msg.quoteVenueIndependent).toBe(false);
+    expect(msg.quoteBasis).toBe('UNSPECIFIED');
+    expect(msg.quoteBlockNumber).toBe(0);
+    expect(msg.priceScale).toBe(8);
+    const explicit = await mod.buildExecutionMessage(
+      baseInput({
+        quoteVenueIndependent: true,
+        quoteBasis: 'PREV_BLOCK_CLOSE',
+        quoteBlockNumber: 20999999,
+        priceStateAgeAtExecSeconds: 12,
+      })
+    );
+    expect(explicit.quoteVenueIndependent).toBe(true);
+    expect(explicit.quoteBasis).toBe('PREV_BLOCK_CLOSE');
+    expect(explicit.quoteBlockNumber).toBe(20999999);
+    expect(explicit.priceStateAgeAtExecSeconds).toBe(12);
+  });
+});
+
+describe('executionReceipt frozen layouts and pairing', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    process.env.ATTESTATION_SIGNER_PRIVATE_KEY = TEST_PRIVATE_KEY;
+    jest.spyOn(Date, 'now').mockReturnValue(NOW_MS);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
+  });
+
+  it('keeps a v1-style receipt verifiable against the frozen v1 layout (regression)', async () => {
+    const mod = await import('../executionReceipt');
+    const { privateKeyToAccount } = await import('viem/accounts');
+    const account = privateKeyToAccount(TEST_PRIVATE_KEY as `0x${string}`);
+    // Reconstruct the exact signed fields a v1 receipt carried: no bindingMode,
+    // no preTradeSignedAt, verdict named executionStatus, age named
+    // oracleDataAgeAtExecSeconds.
+    const v1Data = {
+      preTradeUid: PRE_TRADE_UID,
+      requestHash: REQUEST_HASH,
+      sourceAssetId: ETH_NATIVE,
+      destinationAssetId: USDC_ETH,
+      subjectChainId: 1,
+      settlementChainId: 1,
+      action: 'swap',
+      quotedPrice: 3000.05 * 1e8,
+      executedPrice: 3003.0 * 1e8,
+      priceDeltaBps: 10,
+      maxSlippageBps: 50,
+      slippageSatisfied: true,
+      quotedAmountUsd: 50000 * 1e6,
+      executedAmountUsd: 50000 * 1e6,
+      actualFeeUsd: 12.5 * 1e6,
+      fillStatus: 'FULL',
+      executionStatus: 'FAITHFUL',
+      txHash: TX,
+      blockNumber: 21_000_000,
+      executedAt: NOW_S,
+      oracleDataAgeAtExecSeconds: 3,
+      participantCount: 4,
+      requiredParticipantCount: 3,
+      sourceGroupCount: 2,
+      requiredSourceGroupCount: 2,
+      independenceSatisfied: true,
+      mevRiskBps: 0.05 * 1e4,
+      reasonCodesHash: '0x' + 'aa'.repeat(32),
+      validUntil: NOW_S + 600,
+      schemaVersion: 1,
+    } as never;
+    const bigintTwin = mod.toBigIntMessage(v1Data);
+    const args = {
+      domain: mod.EXECUTION_DOMAIN,
+      types: mod.EXECUTION_TYPES_V1,
+      primaryType: mod.EXECUTION_PRIMARY_TYPE,
+      message: bigintTwin,
+    } as never;
+    const uid = await hashTypedDataForTest(args);
+    const receipt = {
+      uid,
+      schemaVersion: 1,
+      attester: TEST_ATTESTER,
+      attesterLabel: mod.EXECUTION_ATTESTER_LABEL,
+      signedAt: new Date(NOW_MS).toISOString(),
+      validForSeconds: mod.EXECUTION_VALID_FOR_SECONDS,
+      validUntil: NOW_S + 600,
+      signature: await account.signTypedData(args),
+      verifyUrl: '',
+      data: v1Data,
+      eip712: {
+        domain: mod.EXECUTION_DOMAIN,
+        types: mod.EXECUTION_TYPES_V1,
+        primaryType: mod.EXECUTION_PRIMARY_TYPE,
+      },
+    } as never;
+
+    const result = await mod.verifyExecutionReceipt(receipt);
+    expect(result.valid).toBe(true);
+    expect(result.schemaVersion).toBe(1);
+    expect(result.executionStatus).toBe('FAITHFUL');
+  });
+
+  it('keeps a v2-style receipt verifiable against the frozen v2 layout (regression)', async () => {
+    const mod = await import('../executionReceipt');
+    const { privateKeyToAccount } = await import('viem/accounts');
+    const account = privateKeyToAccount(TEST_PRIVATE_KEY as `0x${string}`);
+    const v2Data = {
+      bindingMode: 'VERIFIED',
+      preTradeUid: PRE_TRADE_UID,
+      requestHash: REQUEST_HASH,
+      sourceAssetId: ETH_NATIVE,
+      destinationAssetId: USDC_ETH,
+      subjectChainId: 1,
+      settlementChainId: 1,
+      action: 'swap',
+      quotedPrice: 3000.05 * 1e8,
+      executedPrice: 3003.0 * 1e8,
+      priceDeltaBps: 10,
+      maxSlippageBps: 50,
+      slippageSatisfied: true,
+      quotedAmountUsd: 50000 * 1e6,
+      executedAmountUsd: 50000 * 1e6,
+      actualFeeUsd: 12.5 * 1e6,
+      fillStatus: 'FULL',
+      executionStatus: 'FAITHFUL',
+      txHash: TX,
+      blockNumber: 21_000_000,
+      executedAt: NOW_S,
+      preTradeSignedAt: NOW_S - 3,
+      oracleDataAgeAtExecSeconds: 3,
+      participantCount: 4,
+      requiredParticipantCount: 3,
+      sourceGroupCount: 2,
+      requiredSourceGroupCount: 2,
+      independenceSatisfied: true,
+      mevRiskBps: 0.05 * 1e4,
+      reasonCodesHash: '0x' + 'aa'.repeat(32),
+      validUntil: NOW_S + 600,
+      schemaVersion: 2,
+    } as never;
+    const args = {
+      domain: mod.EXECUTION_DOMAIN,
+      types: mod.EXECUTION_TYPES_V2,
+      primaryType: mod.EXECUTION_PRIMARY_TYPE,
+      message: mod.toBigIntMessage(v2Data),
+    } as never;
+    const uid = await hashTypedDataForTest(args);
+    const receipt = {
+      uid,
+      schemaVersion: 2,
+      attester: TEST_ATTESTER,
+      attesterLabel: mod.EXECUTION_ATTESTER_LABEL,
+      signedAt: new Date(NOW_MS).toISOString(),
+      validForSeconds: mod.EXECUTION_VALID_FOR_SECONDS,
+      validUntil: NOW_S + 600,
+      signature: await account.signTypedData(args),
+      verifyUrl: '',
+      data: v2Data,
+      eip712: {
+        domain: mod.EXECUTION_DOMAIN,
+        types: mod.EXECUTION_TYPES_V2,
+        primaryType: mod.EXECUTION_PRIMARY_TYPE,
+      },
+    } as never;
+
+    const result = await mod.verifyExecutionReceipt(receipt);
+    expect(result.valid).toBe(true);
+    expect(result.schemaVersion).toBe(2);
+    expect(result.executionStatus).toBe('FAITHFUL');
+    expect(result.bindingMode).toBe('VERIFIED');
   });
 
   // ---- pairing with the pre-trade receipt ----

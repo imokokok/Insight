@@ -51,6 +51,10 @@ export interface PreTradeAttestationEnvelope {
  *  originals are presented (and ignored, apart from `preTradeUid`, when they are). */
 export interface SelfReportedPreTrade {
   preTradeUid: string;
+  /** v3: the caller's claimed destination-gate uid. Carried only when the
+   *  caller asserts one; the SELF_REPORTED receipt then commits to it in
+   *  `preTradeUidsHash` exactly as claimed, with no VERIFIED strength. */
+  destinationPreTradeUid?: string | null;
   requestHash: string;
   sourceAssetId: string;
   destinationAssetId: string;
@@ -64,6 +68,11 @@ export interface SelfReportedPreTrade {
 export interface ResolvedPreTradeBinding {
   bindingMode: ExecutionBindingMode;
   preTradeUid: string;
+  /** v3: uid of the SECOND pre-trade gate the quote was built from (the
+   *  destination leg). Null when the binding is SELF_REPORTED — the caller
+   *  showed no destination original, so the receipt commits to the source gate
+   *  only and must not claim a two-gate basis it did not prove. */
+  destinationPreTradeUid: string | null;
   requestHash: string;
   sourceAssetId: string;
   destinationAssetId: string;
@@ -150,6 +159,7 @@ export async function resolvePreTradeBinding(params: {
       binding: {
         bindingMode: 'SELF_REPORTED',
         preTradeUid: selfReported.preTradeUid,
+        destinationPreTradeUid: selfReported.destinationPreTradeUid ?? null,
         requestHash: selfReported.requestHash,
         sourceAssetId: selfReported.sourceAssetId,
         destinationAssetId: selfReported.destinationAssetId,
@@ -214,6 +224,7 @@ export async function resolvePreTradeBinding(params: {
     binding: {
       bindingMode: 'VERIFIED',
       preTradeUid: source.uid,
+      destinationPreTradeUid: destination.uid,
       requestHash: toText(sourceData.requestHash),
       sourceAssetId: toText(sourceData.sourceAssetId) || selfReported.sourceAssetId,
       destinationAssetId: sourceDestinationAsset || selfReported.destinationAssetId,

@@ -26,14 +26,19 @@ import {
   EXECUTION_ATTESTER_LABEL,
   EXECUTION_DOMAIN,
   EXECUTION_TYPES,
+  EXECUTION_TYPES_V1,
+  EXECUTION_TYPES_V2,
+  EXECUTION_TYPES_V3,
   EXECUTION_PRIMARY_TYPE,
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
+  EXECUTION_SCHEMA_VERSION_V3,
   CURRENT_EXECUTION_SCHEMA_VERSION,
   EXECUTION_VALID_FOR_SECONDS,
   EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
   EXECUTION_REQUIRED_PARTICIPANT_COUNT,
   EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
+  executionDomainV3,
   type ExecutionReceipt,
 } from '@/lib/attestations/executionReceipt';
 import {
@@ -122,21 +127,41 @@ export const GET = createApiHandler<
           /** Same for the independence gate: distinct non-derived operator
            *  groups required, signed next to the observed count. */
           requiredSourceGroupCount: EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
+          /** Each published version's real EIP-712 layout and domain, so a
+           *  holder can check a claim like "field 11 of 30" from the bytes
+           *  rather than taking our word for it (VERITAS F0). */
           schemas: {
-            '1': {
+            [`${EXECUTION_SCHEMA_VERSION}`]: {
               eip712: {
                 domain: EXECUTION_DOMAIN,
-                types: EXECUTION_TYPES,
+                types: EXECUTION_TYPES_V1,
+                primaryType: EXECUTION_PRIMARY_TYPE,
+              },
+            },
+            [`${EXECUTION_SCHEMA_VERSION_V2}`]: {
+              eip712: {
+                domain: EXECUTION_DOMAIN,
+                types: EXECUTION_TYPES_V2,
+                primaryType: EXECUTION_PRIMARY_TYPE,
+              },
+            },
+            [`${EXECUTION_SCHEMA_VERSION_V3}`]: {
+              eip712: {
+                domain: executionDomainV3(),
+                types: EXECUTION_TYPES_V3,
                 primaryType: EXECUTION_PRIMARY_TYPE,
               },
             },
           },
-          /** v2 (the version issueExecutionReceipt emits) adds the signed
-           *  bindingMode + preTradeSignedAt fields. Both are accepted. */
-          supportedSchemaVersions: [EXECUTION_SCHEMA_VERSION, EXECUTION_SCHEMA_VERSION_V2],
+          /** All published schema versions are accepted by the verifier. */
+          supportedSchemaVersions: [
+            EXECUTION_SCHEMA_VERSION,
+            EXECUTION_SCHEMA_VERSION_V2,
+            EXECUTION_SCHEMA_VERSION_V3,
+          ],
           /** The layout new receipts are signed with. */
           eip712: {
-            domain: EXECUTION_DOMAIN,
+            domain: executionDomainV3(),
             types: EXECUTION_TYPES,
             primaryType: EXECUTION_PRIMARY_TYPE,
           },

@@ -431,6 +431,41 @@ export const ExecutionReceiptInputSchema = z.object({
     .regex(/^0x[0-9a-fA-F]{40}$/)
     .optional()
     .describe('Address whose balances define the trade; defaults to tx sender'),
+  destinationPreTradeUid: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/)
+    .optional()
+    .describe(
+      'v3: uid of the destination pre-trade gate the quote was built from. Ignored when preTradeAttestations are supplied.'
+    ),
+  quoteVenueIndependent: z
+    .boolean()
+    .optional()
+    .describe(
+      'v3: whether quotedPrice is independent of the venue executed on. Defaults to false — independence must be claimed, never implied.'
+    ),
+  quoteBasis: z
+    .enum(['PREV_BLOCK_CLOSE', 'PRE_SWAP_IN_BLOCK', 'ORACLE_CONSENSUS', 'UNSPECIFIED'])
+    .optional()
+    .describe('v3: which price state quotedPrice was taken against'),
+  quoteBlockNumber: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe('v3: block the quoted price was read from (0 when not applicable)'),
+  priceStateAgeAtExecSeconds: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe('v3: age of the price state the quote came from, seconds'),
+  claimRole: z
+    .enum(['FIRST_PARTY_EXECUTION', 'THIRD_PARTY_OBSERVATION'])
+    .optional()
+    .describe(
+      'v3: whose execution this receipt describes. Defaults to THIRD_PARTY_OBSERVATION — an observer of public settlements must claim the first-person role to get it.'
+    ),
   /** The signed pre-trade originals returned by `agent_begin_trade`. Passing
    *  BOTH upgrades the receipt to a VERIFIED binding: every bound field is then
    *  re-derived from the verified payloads instead of trusted from this request,
@@ -472,4 +507,19 @@ export const VerifyExecutionPairInputSchema = z.object({
     })
     .passthrough()
     .describe('The Execution Receipt to check against the pre-trade attestation.'),
+  destinationPreTradeAttestation: z
+    .object({
+      uid: z.string(),
+      schemaVersion: z.number(),
+      attester: z.string(),
+      data: z.record(z.string(), z.any()),
+      signature: z.string(),
+      type: z.string().optional(),
+      eip712: z.record(z.string(), z.any()).optional(),
+    })
+    .passthrough()
+    .optional()
+    .describe(
+      'v3 only: the SECOND pre-trade gate (destination leg) when the Execution Receipt commits to one via data.destinationPreTradeUid. Required for v3 receipts signed with a two-gate VERIFIED binding; omitting it fails the destination-gate binding check.'
+    ),
 });

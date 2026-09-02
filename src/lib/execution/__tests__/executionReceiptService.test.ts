@@ -170,7 +170,7 @@ describe('issueExecutionReceipt', () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.receipt.data.executionStatus).toBe('FAITHFUL');
+    expect(result.receipt.data.priceExecutionStatus).toBe('FAITHFUL');
     expect(result.receipt.data.preTradeUid).toBe(baseArgs.preTradeUid);
     expect(result.receipt.data.slippageSatisfied).toBe(true);
   });
@@ -185,7 +185,7 @@ describe('issueExecutionReceipt', () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.receipt.data.executionStatus).toBe('DEVIATED');
+    expect(result.receipt.data.priceExecutionStatus).toBe('DEVIATED');
     expect(result.receipt.data.priceDeltaBps).toBeLessThan(0);
   });
 
@@ -196,7 +196,7 @@ describe('issueExecutionReceipt', () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.receipt.data.executionStatus).toBe('NOT_EXECUTED');
+    expect(result.receipt.data.priceExecutionStatus).toBe('NOT_EXECUTED');
   });
 
   it('refuses FAITHFUL when the pre-trade gate post-dates the fill', async () => {
@@ -214,6 +214,6 @@ describe('issueExecutionReceipt', () => {
     // did not exist yet.
     expect(result.receipt.data.slippageSatisfied).toBe(true);
     expect(result.receipt.data.preTradeSignedAt).toBe(1_700_000_600);
-    expect(result.receipt.data.executionStatus).toBe('UNDETERMINED');
+    expect(result.receipt.data.priceExecutionStatus).toBe('UNDETERMINED');
   });
 });

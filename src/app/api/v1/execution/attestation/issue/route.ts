@@ -75,6 +75,44 @@ const IssueBodySchema = z.object({
     .regex(HEX_ADDRESS)
     .optional()
     .describe('Address whose balances define the trade; defaults to tx sender'),
+  /** v3: uid of the destination pre-trade gate, when the caller holds one.
+   *  Ignored when preTradeAttestations are supplied (the destination uid is
+   *  then read from the verified payload). */
+  destinationPreTradeUid: z
+    .string()
+    .regex(HEX32)
+    .optional()
+    .describe('v3: uid of the destination pre-trade gate the quote was built from'),
+  /** v3: whether quotedPrice is independent of the venue executed on. Defaults
+   *  to false — deriving the quote from the venue itself is the common
+   *  construction and independence must be claimed, never implied. */
+  quoteVenueIndependent: z
+    .boolean()
+    .optional()
+    .describe('v3: quote is independent of the execution venue'),
+  /** v3: which price state quotedPrice was taken against. */
+  quoteBasis: z
+    .enum(['PREV_BLOCK_CLOSE', 'PRE_SWAP_IN_BLOCK', 'ORACLE_CONSENSUS', 'UNSPECIFIED'])
+    .optional()
+    .describe('v3: baseline the quoted price was read from'),
+  quoteBlockNumber: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe('v3: block the quoted price was read from (0 when not applicable)'),
+  priceStateAgeAtExecSeconds: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe('v3: age of the price state the quote came from, seconds'),
+  /** v3: whose execution this is. Defaults to THIRD_PARTY_OBSERVATION — an
+   *  observer of public settlements must claim the first-person role to get it. */
+  claimRole: z
+    .enum(['FIRST_PARTY_EXECUTION', 'THIRD_PARTY_OBSERVATION'])
+    .optional()
+    .describe('v3: whose execution this receipt describes'),
   /** The signed pre-trade gates, when the caller can present them. Supplying
    *  BOTH upgrades the receipt to a VERIFIED binding: every binding field above
    *  is then re-derived from the verified payloads instead of trusted from the
@@ -120,6 +158,12 @@ export const POST = createApiHandler<
       executedAmountUsd: body.executedAmountUsd,
       actualFeeUsd: body.actualFeeUsd,
       mevRiskScore: body.mevRiskScore,
+      quoteVenueIndependent: body.quoteVenueIndependent,
+      quoteBasis: body.quoteBasis,
+      quoteBlockNumber: body.quoteBlockNumber,
+      priceStateAgeAtExecSeconds: body.priceStateAgeAtExecSeconds,
+      claimRole: body.claimRole,
+      destinationPreTradeUid: (body.destinationPreTradeUid ?? null) as `0x${string}` | null,
       txHash: body.txHash as `0x${string}`,
       taker: body.taker as `0x${string}` | undefined,
       preTradeAttestations: body.preTradeAttestations
@@ -169,10 +213,13 @@ export const POST = createApiHandler<
           attestation: result.receipt,
           wellKnown: `${base}/.well-known/oracle-keys.json`,
           verify: `${base}/api/v1/execution/attestation/verify`,
-          executionStatus: result.receipt.data.executionStatus,
+          executionStatus:
+            result.receipt.data.priceExecutionStatus ?? result.receipt.data.executionStatus,
           bindingMode: result.receipt.data.bindingMode,
           binding: result.binding,
-          note: `Freshly signed ExecutionReceipt v${result.receipt.schemaVersion}. executionStatus is Insight's verdict on whether the fill matched the certified price within the signed bound — not a claim the price was correct.`,
+          note: `Freshly signed ExecutionReceipt v${result.receipt.schemaVersion}. Its verdict (signed as ${
+            result.receipt.schemaVersion >= 3 ? 'priceExecutionStatus' : 'executionStatus'
+          }) is Insight's statement on whether the fill matched the certified price within the signed band — never a claim the price was correct.`,
           bindingNote:
             result.receipt.data.bindingMode === 'VERIFIED'
               ? 'Binding VERIFIED: the pre-trade attestations were signature-checked and every binding field was taken from the verified payload.'
