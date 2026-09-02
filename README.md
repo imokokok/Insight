@@ -9,6 +9,7 @@ Insight is an oracle transparency and risk infrastructure platform for DeFi. It 
 ## Table of Contents
 
 - [The Flagship: Pre-Trade Oracle Safety Check](#the-flagship-pre-trade-oracle-safety-check)
+- [Independent Receipt Verification](#independent-receipt-verification)
 - [Oracle Watch: Always-On Cross-Oracle Monitoring](#oracle-watch-always-on-cross-oracle-monitoring)
 - [Key Features](#key-features)
 - [Supported Oracles](#supported-oracles)
@@ -58,6 +59,36 @@ Every check can be signed as an **EIP-712 offchain attestation** — a portable,
 - **v3** — 27-field attestation: identical evidence to v2 plus **the independence threshold itself** (`requiredSourceGroupCount`). v2 signs `sourceGroupCount` without the number it is compared against, so a third party cannot tell whether the gate passed without reading this codebase. v3 puts both operands inside the signature, which makes the gate checkable from the bytes alone. Same gates, same verdict policy as v2.
 
 Anyone can verify a signature against the published attester address via `POST /api/v1/safety/attestation/verify` (public, no API key). The feature is disabled (non-breaking) when no signer key is configured. v1/v2/v3 coexist; the endpoint routes by the attestation's own `schemaVersion` and publishes all three type layouts from `GET` (`latestSchemaVersion` is 3).
+
+## Independent Receipt Verification
+
+For integrations that should not depend on Insight being online, the repository also ships a standalone verifier package in [`verifier/`](./verifier/). It can be published or copied into a separate consumer repository without importing the Next.js app.
+
+```bash
+# From a checkout of this repository
+npm install ./verifier
+```
+
+After the package is published to npm, the equivalent consumer command will be:
+
+```bash
+npm install verify-insight-receipt
+```
+
+```ts
+import { verifyReceipt } from 'verify-insight-receipt';
+
+const result = await verifyReceipt(receipt, { keyRegistry });
+if (result.code !== 'ok') {
+  throw new Error(`Receipt failed: ${result.code}`);
+}
+```
+
+`verifyReceipt()` performs EIP-712 verification locally with no API key, database, environment variable, or default network call. Pass the published `/.well-known/oracle-keys.json` document when the consumer also wants attester key-window status. Verification is not endorsement: a valid receipt proves that the signed bytes were issued by the listed signer and were not modified; it does not prove that the underlying trade or verdict was correct.
+
+If a consumer explicitly wants to share anonymous verification outcomes, `reportVerification()` is a separate opt-in API. Insight does not use client-side verification calls as its primary usage metric. The reliable product metric is **evidence utilization**: the share of issued attestation UIDs that later appear as `execution_receipts.pre_trade_uid`. The read-only report script is [`verifier/scripts/evidence-utilization.mjs`](./verifier/scripts/evidence-utilization.mjs).
+
+The package supports v1, v2, v3, and v2/v3 recheck receipts. Its schema constants are guarded against production drift by `src/lib/attestations/__tests__/verifierParity.test.ts`.
 
 **VRT1 (§8.6)** — Insight's OracleSafetyCheck is listed as a vendor action type in the VRT1 specification, as a pointer to our machine-readable scale declaration: https://github.com/Ifasola34/vrt1-spec/blob/main/registry/vendor-action-types.json. The declaration pins the per-field integer scale and both policy constants (`requiredParticipantCount`, `requiredSourceGroupCount`); at schema v3 both constants are also inside the signed struct, so the gates are checkable from the bytes alone. Listing records that the type exists, where its declaration is, and what those bytes hashed to. It is not an endorsement of Insight's verdicts, and it does not describe Insight's default traffic: schema v1 (11 fields, no gates) remains the service default and v3 is opt-in.
 
@@ -190,7 +221,7 @@ signal itself is unchanged.
 
 - **Pre-Trade Oracle Safety Check** — the flagship checkpoint described above.
 - **32-tool MCP server** — prices, consensus, risk, reputation, stablecoin pegs, protocol parameters, position safety, pre-trade checks — callable by Claude, Cursor, Windsurf, and any MCP-compatible client.
-- **Verifiable attestations** — signed EIP-712 proof agents can relay to users and protocols.
+- **Verifiable attestations** — signed EIP-712 proof agents can relay to users and protocols, with a standalone local verifier for consumers that need independent verification.
 
 ### Shared
 
@@ -285,12 +316,12 @@ free tier and no feature gating** — every paying user gets every endpoint and
 MCP tool. A call is allowed iff the key's credit balance covers its metering
 class cost.
 
-| Component | Description |
-| --------- | ----------- |
-| **Trial** | New users get **30 one-time trial credits** after email verification (`POST /api/billing/signup-grant`). It never refreshes and never re-issues. |
-| **Subscriptions** | **Developer** ($49/mo → 10,000 credits/mo, 30 req/min) and **Team** ($199/mo → 50,000 credits/mo, 60 req/min). Yearly = 10× monthly. **Enterprise** is contact-sales unlimited. Subscriptions add a monthly credit allowance to the wallet; features are identical across plans. |
-| **Credit packs** | Prepaid top-ups, no subscription required: **Starter** (25,000 cr / $39), **Builder** (100,000 cr / $129), **Agent** (500,000 cr / $499). |
-| **Per-call metering** | Every call is charged from the wallet by metering class C1–C4 (see `src/lib/billing/metering.ts`). |
+| Component             | Description                                                                                                                                                                                                                                                                      |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Trial**             | New users get **30 one-time trial credits** after email verification (`POST /api/billing/signup-grant`). It never refreshes and never re-issues.                                                                                                                                 |
+| **Subscriptions**     | **Developer** ($49/mo → 10,000 credits/mo, 30 req/min) and **Team** ($199/mo → 50,000 credits/mo, 60 req/min). Yearly = 10× monthly. **Enterprise** is contact-sales unlimited. Subscriptions add a monthly credit allowance to the wallet; features are identical across plans. |
+| **Credit packs**      | Prepaid top-ups, no subscription required: **Starter** (25,000 cr / $39), **Builder** (100,000 cr / $129), **Agent** (500,000 cr / $499).                                                                                                                                        |
+| **Per-call metering** | Every call is charged from the wallet by metering class C1–C4 (see `src/lib/billing/metering.ts`).                                                                                                                                                                               |
 
 All paying users get the full 90-day history/reputation window. Payments are
 crypto-only via NOWPayments (USDC-denominated); subscriptions run one billing
@@ -299,11 +330,11 @@ stays free to browse — only API-key calls are metered.
 
 ### Plans
 
-| Plan       | Rate limit | Included credits/mo | Per-call metering        | Price          |
-| ---------- | ---------- | ------------------- | ------------------------ | -------------- |
-| Developer  | 30 req/min | 10,000              | C1–C4 (0.5 / 2 / 5 / 10) | $49/mo         |
-| Team       | 60 req/min | 50,000              | C1–C4 (0.5 / 2 / 5 / 10) | $199/mo        |
-| Enterprise | Unlimited  | Unlimited           | —                        | Contact sales  |
+| Plan       | Rate limit | Included credits/mo | Per-call metering        | Price         |
+| ---------- | ---------- | ------------------- | ------------------------ | ------------- |
+| Developer  | 30 req/min | 10,000              | C1–C4 (0.5 / 2 / 5 / 10) | $49/mo        |
+| Team       | 60 req/min | 50,000              | C1–C4 (0.5 / 2 / 5 / 10) | $199/mo       |
+| Enterprise | Unlimited  | Unlimited           | —                        | Contact sales |
 
 Credits are stored in `credit_wallet` / `credit_ledger` (migration `0039`).
 The monthly allowance is credited on subscription activation and at each cycle

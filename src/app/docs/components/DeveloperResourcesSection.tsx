@@ -41,6 +41,14 @@ const resources: Resource[] = [
     accent: 'violet',
   },
   {
+    icon: <FileCode className="w-6 h-6" />,
+    title: 'Receipt Verifier',
+    description:
+      'Verify EIP-712 receipts locally with no API key, database access, or dependency on Insight being online.',
+    href: '#verifiable-receipts',
+    accent: 'emerald',
+  },
+  {
     icon: <Bot className="w-6 h-6" />,
     title: 'AI / MCP Server',
     description:
@@ -84,6 +92,11 @@ const faqs = [
     question: 'Why does historical data require a provider?',
     answer:
       'Historical data is provider-specific and cannot be aggregated across oracles. You must specify which oracle provider to query, e.g., ?provider=chainlink.',
+  },
+  {
+    question: 'How can I verify an Insight receipt without calling the API?',
+    answer:
+      'Install the package from the repository verifier/ directory now, or from npm after publication. verifyReceipt() recomputes the EIP-712 hash and recovers the signer locally. It does not need an API key, database access, or a network request. Pass the published oracle-keys.json document separately when you also want key-window status.',
   },
 ];
 

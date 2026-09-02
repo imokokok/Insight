@@ -42,6 +42,35 @@ export function VerifiableReceiptsSection() {
 
         <VerifyExecutionPairWidget />
 
+        <div className="mt-8 rounded-xl border border-blue-100 bg-blue-50 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 mb-2">
+            Verify locally, without calling Insight
+          </h3>
+          <p className="text-sm text-slate-600 leading-relaxed mb-4">
+            For agents and protocols that need an independent verification path, the repository
+            includes a standalone npm package. It recomputes the EIP-712 hash and recovers the
+            signer locally; it does not need an API key, database access, or a network request.
+          </p>
+          <pre className="text-xs leading-relaxed text-slate-700 font-mono overflow-x-auto whitespace-pre rounded-lg bg-white border border-blue-100 p-4">
+            {`# From the Insight repository
+npm install ./verifier
+
+# After npm publication
+npm install verify-insight-receipt
+
+import { verifyReceipt } from 'verify-insight-receipt';
+
+const result = await verifyReceipt(receipt, { keyRegistry });
+if (result.code !== 'ok') {
+  throw new Error(result.code);
+}`}
+          </pre>
+          <p className="text-xs text-slate-500 mt-3">
+            Verification is not endorsement. A valid result proves the signed bytes and signer
+            relationship, not that the underlying trade or verdict was correct.
+          </p>
+        </div>
+
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
             <h3 className="text-sm font-semibold text-slate-900 mb-3">
