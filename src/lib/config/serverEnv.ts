@@ -132,8 +132,11 @@ interface NowPaymentsConfig {
 }
 
 function parseNowPaymentsConfig(): NowPaymentsConfig {
-  // Default to sandbox (api-sandbox.nowpayments.io) unless explicitly 'false'.
-  const testMode = process.env.NOWPAYMENTS_TEST_MODE !== 'false';
+  // Production (api.nowpayments.io) is the default. Sandbox is an EXPLICIT
+  // opt-in via NOWPAYMENTS_TEST_MODE=true — this prevents a deployment that
+  // forgets the flag from silently running against the sandbox when expecting
+  // real payments (the previous `!== 'false'` default did exactly that).
+  const testMode = process.env.NOWPAYMENTS_TEST_MODE === 'true';
 
   const config: NowPaymentsConfig = {
     apiKey: process.env.NOWPAYMENTS_API_KEY || null,
@@ -148,12 +151,12 @@ function parseNowPaymentsConfig(): NowPaymentsConfig {
   // non-fatal (dashboard-configured), but warning-worthy for audit.
   config.isConfigured = !!config.apiKey && !!config.ipnSecret;
 
-  if (process.env.NODE_ENV === 'production' && !config.isConfigured) {
-    logger.warn('NOWPayments is not fully configured — billing will be disabled', {
-      hasApiKey: !!config.apiKey,
-      hasIpnSecret: !!config.ipnSecret,
-      hasWalletAddress: !!config.walletAddress,
-    });
+  // Loud guard: if test mode is on but the config looks production-ready,
+  // surface it clearly so nobody mistakes a sandbox run for a live one.
+  if (config.testMode && config.isConfigured) {
+    logger.warn(
+      'NOWPayments is in SANDBOX (test) mode — invoices go to api-sandbox.nowpayments.io and will NOT receive real payments'
+    );
   }
 
   return config;
