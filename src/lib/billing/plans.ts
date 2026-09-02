@@ -6,8 +6,11 @@
  * and the pricing page. Changing a limit here propagates everywhere.
  *
  * Model (2026-09): Codex-style paid platform.
- *   - NO free tier and NO free trial. API access requires either an active
+ *   - NO recurring free tier. API access requires either an active
  *     subscription or a positive credit-wallet balance.
+ *   - New users get ONE non-refreshing trial grant (30 cr) after email
+ *     verification so they can sample the API before paying — see
+ *     POST /api/billing/signup-grant. It never refreshes and never re-issues.
  *   - ALL features are open to any paying user — there is no Tier 2/3 feature
  *     gating. The only gate is the wallet: a call is allowed iff the balance
  *     covers its credit cost (see metering.ts).

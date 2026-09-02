@@ -25,6 +25,21 @@ const logger = createLogger('authStore');
 
 let _initPromise: Promise<void> | null = null;
 
+/**
+ * Fire-and-forget claim of the one-time signup trial credit (see
+ * POST /api/billing/signup-grant). Runs on every actual sign-in; the server
+ * gate (email-verified + idempotent metering_key `signup:<userId>`) makes it a
+ * safe no-op after the first successful claim, so this is intentionally not
+ * awaited and never blocks the auth flow.
+ */
+async function claimSignupGrant(): Promise<void> {
+  try {
+    await apiClient.post('/api/billing/signup-grant', {});
+  } catch {
+    // Non-fatal: the user can still pay and use the API without the trial.
+  }
+}
+
 interface AuthState {
   user: User | null;
   session: Session | null;
@@ -150,6 +165,7 @@ export const useAuthStore = create<AuthStore>()(
                   if (event === 'SIGNED_IN' && newSession?.user) {
                     const profile = await fetchUserProfile(newSession.user.id, newSession);
                     set({ profile });
+                    claimSignupGrant();
                   } else if (event === 'SIGNED_OUT') {
                     set({ profile: null });
                   }
