@@ -43,6 +43,7 @@ import {
   buildKeyRegistryConfig,
   isAttestationKeyValid,
 } from '@/lib/attestations/keyRegistryConfig';
+import { getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
 import {
   getAttesterAddress,
   ATTESTATION_DOMAIN,
@@ -213,7 +214,10 @@ export const POST = createApiHandler<
       verification.attester
     ) {
       const attester = await getAttesterAddress();
-      const config = buildKeyRegistryConfig(attester);
+      // H8: the sample signer participates in the published trust window too,
+      // so a sample receipt verifies (and is labeled via the registry) under
+      // window enforcement.
+      const config = buildKeyRegistryConfig(attester, await getSampleAttesterAddress());
       if (!isAttestationKeyValid(verification.attester, verification.checkedAt, config)) {
         verification.valid = false;
         verification.expired = true;

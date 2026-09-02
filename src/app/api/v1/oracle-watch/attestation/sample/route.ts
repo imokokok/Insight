@@ -55,11 +55,16 @@ export const GET = createApiHandler<
     const chain = query?.chain;
 
     const signal = await getOracleWatchSignal(symbol, chain);
-    const attestation = await signWatchAttestation({
-      signal,
-      providers: signal.providers,
-      subjectChainId: 1,
-    });
+    // H8: signed with the DEDICATED sample signer (registry role "sample"),
+    // never the production attester; 503 when the sample key is unconfigured.
+    const attestation = await signWatchAttestation(
+      {
+        signal,
+        providers: signal.providers,
+        subjectChainId: 1,
+      },
+      { sample: true }
+    );
 
     // Audit the sample issuance too. A sample is the first thing an integrator
     // touches, so a signing regression shows up here before it shows up in
@@ -74,7 +79,7 @@ export const GET = createApiHandler<
       return NextResponse.json(
         ApiResponseBuilder.error(
           'attestation_unavailable',
-          'Insight attester key is not configured on this instance; no signed sample can be produced.'
+          'Dedicated sample signer key is not configured on this instance; no signed sample can be produced. The production attester key never signs samples (Headless H8).'
         ),
         { status: 503 }
       );
@@ -92,7 +97,7 @@ export const GET = createApiHandler<
           attestation,
           wellKnown: `${base}/.well-known/oracle-keys.json`,
           verify: `${base}/api/v1/oracle-watch/attestation/verify`,
-          note: `Freshly signed OracleWatchCheck v${attestation.schemaVersion} for a live ${symbol} signal. Valid for WATCH_VALID_FOR_SECONDS from evaluatedAt. Verify it at the verify endpoint or against the .well-known key.`,
+          note: `Freshly signed OracleWatchCheck v${attestation.schemaVersion} for a live ${symbol} signal, signed by the dedicated SAMPLE signer (.well-known registry, role "sample"). Valid for WATCH_VALID_FOR_SECONDS from evaluatedAt. Verify it at the verify endpoint or against the .well-known key; never treat it as evidence of a real trade.`,
         },
         { requestId: context.requestId }
       )

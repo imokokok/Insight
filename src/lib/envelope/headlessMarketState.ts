@@ -198,6 +198,29 @@ export function extractHeadlessReceipt(envelope: HeadlessDemoResponse): Headless
   return envelope.receipt ?? envelope;
 }
 
+/** The v5.0 response carries every signed field twice — flattened at the top
+ * level AND inside the nested `receipt` object — and only the nested copy is
+ * covered by the signature (Michael's kit finding, 2026-09-02, CC-14a/b).
+ * This gate reads from the nested receipt and never from the top level, so a
+ * top-level-only tamper cannot influence a decision; but we still fail closed
+ * on an inconsistent body rather than silently ignoring it, so a consumer of
+ * our response can never be shown an unsigned convenience copy that differs
+ * from the signed object. Returns null when consistent (or when the response
+ * is the flattened shape with no duplicate copies). */
+export function headlessTwoCopyMismatch(envelope: HeadlessDemoResponse): string | null {
+  const receipt = envelope.receipt;
+  if (!receipt) return null;
+  const top = envelope as unknown as Record<string, unknown>;
+  const signed = receipt as unknown as Record<string, unknown>;
+  for (const key of Object.keys(receipt)) {
+    if (!(key in top)) continue;
+    if (top[key] !== signed[key]) {
+      return `two_copy_mismatch: field '${key}' top-level=${JSON.stringify(top[key])} receipt=${JSON.stringify(signed[key])}; the top-level copy is not covered by the signature`;
+    }
+  }
+  return null;
+}
+
 /** Structured "unfetchable" result. Any fetch/parse failure becomes this, so
  * the envelope gate fails closed with a diagnosis instead of a 500. Exported
  * for callers that compose the primitives themselves (e.g. the prototype's
@@ -235,6 +258,28 @@ export async function fetchAndVerifyHeadlessMarketState(
       fetchHeadlessKeyRegistry(),
     ]);
     const receipt = extractHeadlessReceipt(envelope);
+    // Fail closed if the two copies disagree (top-level-only tamper): the
+    // convenience copy is unsigned, so an inconsistent body is untrustworthy
+    // even though every read below goes through the signed receipt object.
+    const twoCopyMismatch = headlessTwoCopyMismatch(envelope);
+    if (twoCopyMismatch) {
+      return {
+        envelope,
+        result: {
+          valid: false,
+          signatureValid: false,
+          expired: false,
+          issuer: receipt.issuer,
+          receiptId: receipt.receipt_id,
+          mic: receipt.mic,
+          status: receipt.status,
+          issuedAt: receipt.issued_at,
+          expiresAt: receipt.expires_at,
+          keyId: receipt.public_key_id,
+          reason: twoCopyMismatch,
+        },
+      };
+    }
     const result = verifyHeadlessMarketStateAgainstRegistry(receipt, registry);
     return { envelope, result };
   } catch (error) {

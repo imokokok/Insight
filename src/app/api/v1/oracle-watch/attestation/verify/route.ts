@@ -22,7 +22,10 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { getAttesterAddress } from '@/lib/attestations/attesterAccount';
+import {
+  getAttesterAddress,
+  getSampleAttesterAddress,
+} from '@/lib/attestations/attesterAccount';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import {
   verifyWatchAttestation,
@@ -111,7 +114,7 @@ export const GET = createApiHandler<
       ApiResponseBuilder.success(
         {
           attester,
-          registry: buildKeyRegistryConfig(attester),
+          registry: buildKeyRegistryConfig(attester, await getSampleAttesterAddress()),
           schemaVersion: CURRENT_WATCH_SCHEMA_VERSION,
           validForSeconds: WATCH_VALID_FOR_SECONDS,
           /** Signed alongside participantCount so a receipt is self-contained:

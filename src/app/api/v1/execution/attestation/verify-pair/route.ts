@@ -24,7 +24,10 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { getAttesterAddress } from '@/lib/attestations/attesterAccount';
+import {
+  getAttesterAddress,
+  getSampleAttesterAddress,
+} from '@/lib/attestations/attesterAccount';
 import {
   EXECUTION_ATTESTER_LABEL,
   EXECUTION_DOMAIN,
@@ -172,7 +175,7 @@ export const GET = createApiHandler<
         {
           attester,
           attesterLabel: EXECUTION_ATTESTER_LABEL,
-          registry: buildKeyRegistryConfig(attester),
+          registry: buildKeyRegistryConfig(attester, await getSampleAttesterAddress()),
           schemaVersion: CURRENT_EXECUTION_SCHEMA_VERSION,
           usage:
             'POST { "preTradeAttestation": <attestation>, "executionReceipt": <ExecutionReceipt> } ' +

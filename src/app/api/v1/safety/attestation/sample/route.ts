@@ -44,13 +44,17 @@ export const GET = createApiHandler<
   Record<string, string>
 >(
   async (_request: NextRequest, context: ApiHandlerContext<Record<string, unknown>>) => {
-    const attestation = await signAttestationV2(buildSampleAttestationInput(Date.now()));
+    // H8: signed with the DEDICATED sample signer (registry role "sample"),
+    // never the production attester; 503 when the sample key is unconfigured.
+    const attestation = await signAttestationV2(buildSampleAttestationInput(Date.now()), {
+      sample: true,
+    });
 
     if (!attestation) {
       return NextResponse.json(
         ApiResponseBuilder.error(
           'attestation_unavailable',
-          'Insight attester key is not configured on this instance; no signed sample can be produced.'
+          'Dedicated sample signer key is not configured on this instance; no signed sample can be produced. The production attester key never signs samples (Headless H8).'
         ),
         { status: 503 }
       );
@@ -68,7 +72,7 @@ export const GET = createApiHandler<
           attestation,
           wellKnown: `${base}/.well-known/oracle-keys.json`,
           verify: `${base}/api/v1/safety/attestation/verify`,
-          note: 'Freshly signed OracleSafetyCheck v2 for a representative ETH/USDC swap. Valid for V2_VALID_FOR_SECONDS from checkedAt. Verify it at the verify endpoint or against the .well-known key.',
+          note: 'Freshly signed OracleSafetyCheck v2 for a representative ETH/USDC swap, signed by the dedicated SAMPLE signer (.well-known registry, role "sample"). Valid for V2_VALID_FOR_SECONDS from checkedAt. Verify it at the verify endpoint or against the .well-known key; never treat it as evidence of a real trade.',
         },
         { requestId: context.requestId }
       )

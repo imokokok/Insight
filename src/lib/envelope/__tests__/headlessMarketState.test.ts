@@ -18,6 +18,7 @@ import {
   verifyHeadlessMarketStateReceipt,
   verifyHeadlessMarketStateAgainstRegistry,
   fetchAndVerifyHeadlessMarketState,
+  headlessTwoCopyMismatch,
   type HeadlessMarketStateReceipt,
   type HeadlessKeyRegistry,
 } from '@/lib/envelope/headlessMarketState';
@@ -168,6 +169,31 @@ describe('verifyHeadlessMarketStateAgainstRegistry', () => {
   });
 });
 
+describe('headlessTwoCopyMismatch', () => {
+  const receipt = buildReceipt();
+
+  it('returns null for the flattened shape (no nested receipt copy)', () => {
+    expect(headlessTwoCopyMismatch({ ...receipt })).toBeNull();
+  });
+
+  it('returns null when every top-level copy equals the signed receipt object', () => {
+    expect(headlessTwoCopyMismatch({ ...receipt, receipt })).toBeNull();
+  });
+
+  it('flags a top-level-only status tamper (CC-14a shape), naming both values', () => {
+    const mismatch = headlessTwoCopyMismatch({ ...receipt, status: 'CLOSED', receipt });
+    expect(mismatch).toMatch(/two_copy_mismatch/);
+    expect(mismatch).toContain("field 'status'");
+    expect(mismatch).toContain('top-level="CLOSED"');
+    expect(mismatch).toContain('receipt="OPEN"');
+  });
+
+  it('flags a top-level-only signature tamper as well', () => {
+    const mismatch = headlessTwoCopyMismatch({ ...receipt, signature: '00'.repeat(64), receipt });
+    expect(mismatch).toContain("field 'signature'");
+  });
+});
+
 describe('fetchAndVerifyHeadlessMarketState', () => {
   const originalFetch = global.fetch;
 
@@ -206,5 +232,29 @@ describe('fetchAndVerifyHeadlessMarketState', () => {
     expect(side.envelope).toBeNull();
     expect(side.result.valid).toBe(false);
     expect(side.result.reason).toContain('fetch_failed');
+  });
+
+  it('fails closed on a top-level-only tamper before touching crypto (kit CC-14a)', async () => {
+    process.env.HEADLESS_ORACLE_BASE_URL = 'https://headless.test';
+    const receipt = buildReceipt();
+    global.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/v5/demo')) {
+        // Top-level convenience copy flipped; the signed receipt object is untouched.
+        return new Response(JSON.stringify({ ...receipt, status: 'CLOSED', receipt }), {
+          status: 200,
+        });
+      }
+      if (url.includes('oracle-keys.json')) {
+        return new Response(JSON.stringify(REGISTRY), { status: 200 });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as typeof fetch;
+
+    const side = await fetchAndVerifyHeadlessMarketState('XCOI');
+    expect(side.envelope).not.toBeNull();
+    expect(side.result.valid).toBe(false);
+    expect(side.result.signatureValid).toBe(false);
+    expect(side.result.reason).toMatch(/two_copy_mismatch: field 'status'/);
   });
 });

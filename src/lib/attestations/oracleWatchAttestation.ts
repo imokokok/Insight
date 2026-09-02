@@ -30,7 +30,7 @@ import type { OracleWatchProvider, OracleWatchResult } from '@/lib/api/services/
 import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
 
-import { getAttesterAccount } from './attesterAccount';
+import { getAttesterAccount, getSampleAttesterAccount } from './attesterAccount';
 import {
   computeProviderObservationsHash,
   type ProviderObservationEntry,
@@ -485,9 +485,15 @@ function getVerifyUrl(): string {
  * reproduced in tests.
  */
 export async function signWatchAttestation(
-  input: AttestationWatchInput
+  input: AttestationWatchInput,
+  opts?: { sample?: boolean }
 ): Promise<OracleWatchAttestation | null> {
-  const account = await getAttesterAccount();
+  // opts.sample (Headless H8, 2026-09-02): dedicated sample signer, labelled
+  // role "sample" in the .well-known registry; null (fail-closed) when the
+  // sample key is unconfigured — the production key never signs a sample.
+  const account = opts?.sample
+    ? await getSampleAttesterAccount()
+    : await getAttesterAccount();
   if (!account) return null;
 
   try {

@@ -20,7 +20,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { getAttesterAddress } from '@/lib/attestations/attesterAccount';
+import {
+  getAttesterAddress,
+  getSampleAttesterAddress,
+} from '@/lib/attestations/attesterAccount';
 import {
   verifyExecutionReceipt,
   EXECUTION_ATTESTER_LABEL,
@@ -116,7 +119,7 @@ export const GET = createApiHandler<
         {
           attester,
           attesterLabel: EXECUTION_ATTESTER_LABEL,
-          registry: buildKeyRegistryConfig(attester),
+          registry: buildKeyRegistryConfig(attester, await getSampleAttesterAddress()),
           schemaVersion: CURRENT_EXECUTION_SCHEMA_VERSION,
           validForSeconds: EXECUTION_VALID_FOR_SECONDS,
           /** Default slippage bound, published so a holder knows the fallback a

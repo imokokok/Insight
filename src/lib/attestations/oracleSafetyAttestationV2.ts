@@ -36,7 +36,7 @@
 import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
 
-import { getAttesterAccount } from './attesterAccount';
+import { getAttesterAccount, getSampleAttesterAccount } from './attesterAccount';
 import {
   CANONICAL_REQUEST_DOMAIN,
   CANONICAL_REQUEST_PRIMARY_TYPE,
@@ -428,9 +428,15 @@ function getVerifyUrl(): string {
 // ---------------------------------------------------------------------------
 
 export async function signAttestationV2(
-  input: AttestationInputV2
+  input: AttestationInputV2,
+  opts?: { sample?: boolean }
 ): Promise<OracleSafetyAttestationV2 | null> {
-  const account = await getAttesterAccount();
+  // opts.sample (Headless H8, 2026-09-02): dedicated sample signer, labelled
+  // role "sample" in the .well-known registry; null (fail-closed) when the
+  // sample key is unconfigured — the production key never signs a sample.
+  const account = opts?.sample
+    ? await getSampleAttesterAccount()
+    : await getAttesterAccount();
   if (!account) return null;
 
   try {
