@@ -7,29 +7,33 @@
  * USDC/WETH swap, real EIP-712 pre-trade gates, and a real signed execution
  * receipt. The package contains everything a verifier needs to re-check the
  * receipt WITHOUT trusting us:
- *   - the full signed receipt (43 signed fields on v3 + EIP-712 signature +
+ *   - the full signed receipt (44 signed fields on v4 + EIP-712 signature +
  *     domain + types)
- *   - ALL published schema layouts (v1 30 / v2 32 / v3 43) so a receipt of any
- *     version can be re-typed without fetching anything (VERITAS F0)
+ *   - ALL published schema layouts (v1 30 / v2 32 / v3 43 / v4 44) so a receipt
+ *     of any version can be re-typed without fetching anything (VERITAS F0)
  *   - the pre-trade gate envelopes (quotedPrice is DERIVED from them)
  *   - the canonical request preimage, so `requestHash` is openable and
  *     recomputable (VERITAS F6)
  *   - the on-chain tx hash / block / pool, so the fill can be re-collected
  *   - our own verification outputs (to compare against, not to trust)
  *
- * v3 was built against the VERITAS findings F0-F7; every finding is either a
- * signed field in this receipt or a documented disclosure:
+ * v3 was built against the VERITAS findings F0-F7; v4 (2026-09-02, Headless
+ * H7) moves `environment` from the (inert) EIP-712 domain into the signed
+ * message as the 44th field. Every finding is either a signed field in this
+ * receipt or a documented disclosure:
  *   F1 destinationPreTradeUid + preTradeUidsHash  F2 measuredFieldsHash +
  *      priceExecutionStatus rename                F3 quoteVenueIndependent=false
  *   F4 quoteBasis + quoteBlockNumber              F5 attestation/priceState ages
- *   F6 subject/taker/claimRole + request preimage F7 priceScale + environment
+ *   F6 subject/taker/claimRole + request preimage F7 priceScale (domain
+ *      environment superseded by v4's signed message field, Headless H7)
  *   F0 all schema layouts published (also live at the verify endpoint)
  *
  * Honest labels, by design:
  *   - the signing key is a TEST key (anvil default), NOT the production
- *     attester key, and the signed domain environment is `nonproduction`.
- *     Structural verification (fields, signature, verdict) is unaffected;
- *     identity verification (did Insight's production key sign) is NOT claimed.
+ *     attester key, and the signed `environment` MESSAGE field is
+ *     `nonproduction`. Structural verification (fields, signature, verdict) is
+ *     unaffected; identity verification (did Insight's production key sign) is
+ *     NOT claimed.
  *   - the receipt is NOT anchored. Anchoring is the stated next step, not a
  *     claim made here.
  *   - the receipt signs quoteVenueIndependent=false: this demo derives the
@@ -51,7 +55,7 @@ import {
   EXECUTION_TYPES_V1,
   EXECUTION_TYPES_V2,
   EXECUTION_TYPES_V3,
-  executionDomainV3,
+  EXECUTION_TYPES_V4,
   EXECUTION_PRIMARY_TYPE,
 } from '@/lib/attestations/executionReceipt';
 import type { AttestationInputV2 } from '@/lib/attestations/oracleSafetyAttestationV3';
@@ -396,21 +400,22 @@ async function main() {
           ? 'FAITHFUL'
           : 'DEVIATED';
 
-      const v3Layout = EXECUTION_TYPES_V3.ExecutionReceipt.map((f) => f.name);
-      const v3Domain = executionDomainV3();
+      // The layout the receipt was actually signed with: current = v4 (44
+      // fields = v3's 43 + the signed `environment` message field, H7).
+      const currentLayout = EXECUTION_TYPES_V4.ExecutionReceipt.map((f) => f.name);
       const receiptDataKeys = Object.keys(issue.receipt.data ?? {});
       const signedKeysMatchLayout =
-        receiptDataKeys.length === v3Layout.length &&
-        v3Layout.every((n, i) => receiptDataKeys[i] === n);
+        receiptDataKeys.length === currentLayout.length &&
+        currentLayout.every((n, i) => receiptDataKeys[i] === n);
 
       const pkg = {
         meta: {
           generatedAt: new Date().toISOString(),
           purpose: 'self-contained execution-receipt bytes for independent verification',
           schemaVersion: issue.receipt.schemaVersion,
-          signedFieldCount: v3Layout.length,
+          signedFieldCount: currentLayout.length,
           honestyLabels: [
-            'signing key is a TEST key (anvil default), NOT the production attester key; the signed domain environment is nonproduction; structural verification is unaffected, identity verification is NOT claimed',
+            'signing key is a TEST key (anvil default), NOT the production attester key; the signed `environment` MESSAGE field is nonproduction (v4: v3 declared environment on the EIP-712 domain, which never entered the signature — Headless H7); structural verification is unaffected, identity verification is NOT claimed',
             'receipt is NOT anchored; anchoring remains the stated next step',
             "the quoted price is the execution venue's OWN pre-swap mid (block before the swap) re-expressed as USD; the receipt signs quoteVenueIndependent=false and quoteBasis=PREV_BLOCK_CLOSE accordingly (VERITAS F3/F4)",
             'the pre-trade gates in this package are DEMO records: their provider observations carry placeholder feed ids and their consensus was set to the venue mid (a demo shortcut). Production pre-trade clients are never the execution venue',
@@ -434,10 +439,16 @@ async function main() {
             types: EXECUTION_TYPES_V2,
           },
           v3: {
-            signedFieldCount: v3Layout.length,
-            domain: v3Domain,
+            signedFieldCount: EXECUTION_TYPES_V3.ExecutionReceipt.length,
+            domain: EXECUTION_DOMAIN,
             primaryType: EXECUTION_PRIMARY_TYPE,
             types: EXECUTION_TYPES_V3,
+          },
+          v4: {
+            signedFieldCount: EXECUTION_TYPES_V4.ExecutionReceipt.length,
+            domain: EXECUTION_DOMAIN,
+            primaryType: EXECUTION_PRIMARY_TYPE,
+            types: EXECUTION_TYPES_V4,
           },
         },
         onchain: {
@@ -508,13 +519,13 @@ async function main() {
           assertionsHeld: [
             `attributed executedPrice ${issue.facts.executedPrice} equals the named party's realised price (destination received from the pool / source paid into the pool) and reconciles with the pool Swap event to <1e-6 relative — no fee path can be read as the trader's fill (H2/H3)`,
             `receipt priceExecutionStatus == ${issue.receipt.data.priceExecutionStatus} matches independent recompute ${expectedStatus}`,
-            'the signed data keys equal the published v3 layout (43 fields, in order)',
-            `maxSlippageBps is a SIGNED field (v3 struct position ${v3Layout.indexOf('maxSlippageBps') + 1} of ${v3Layout.length}), and the verdict uses that same signed value`,
+            `the signed data keys equal the published current layout (v${issue.receipt.schemaVersion}, ${currentLayout.length} fields, in order)`,
+            `maxSlippageBps is a SIGNED field (struct position ${currentLayout.indexOf('maxSlippageBps') + 1} of ${currentLayout.length}), and the verdict uses that same signed value`,
             `closed loop closes only when BOTH gates verify: ${pair.closedLoopStatus} with destinationPreTradeUidMatch=${pair.binding.destinationPreTradeUidMatch} and preTradeUidsHashMatch=${pair.binding.preTradeUidsHashMatch} (F1)`,
             `requestHash recomputes from the canonical preimage and matches both the source gate and the receipt: ${requestHashMatches} (F6)`,
             `subject=${issue.receipt.data.subject}, taker=${issue.receipt.data.taker}, claimRole=${issue.receipt.data.claimRole} (F6)`,
             `quoteVenueIndependent=${issue.receipt.data.quoteVenueIndependent}, quoteBasis=${issue.receipt.data.quoteBasis}, quoteBlockNumber=${issue.receipt.data.quoteBlockNumber} (F3/F4)`,
-            `priceScale=${issue.receipt.data.priceScale} (x1e8), domain environment=${v3Domain.environment} (F7)`,
+            `priceScale=${issue.receipt.data.priceScale} (x1e8), environment=${issue.receipt.data.environment} (v4 signed message field — the v3 domain's declared environment never entered the signature, H7)`,
             `attestationAgeAtExecSeconds=${issue.receipt.data.attestationAgeAtExecSeconds}, priceStateAgeAtExecSeconds=${issue.receipt.data.priceStateAgeAtExecSeconds} (F5)`,
           ],
         },
@@ -524,7 +535,7 @@ async function main() {
       const outPath = join(outdir, `execution-receipt-bytes-${stamp}.json`);
       writeFileSync(outPath, JSON.stringify(pkg, replacer, 2) + '\n');
 
-      console.log('\n=== EXECUTION RECEIPT BYTES PACKAGE (v3) ===');
+      console.log('\n=== EXECUTION RECEIPT BYTES PACKAGE (v' + issue.receipt.schemaVersion + ') ===');
       console.log('out          :', outPath);
       console.log('tx           :', txHash, '(block', blockNum + ')');
       console.log('legs         :', swap.soldToken, '->', swap.boughtToken);
@@ -544,7 +555,7 @@ async function main() {
       console.log('verify       :', verify.valid, '/', verify.executionStatus);
       console.log('closedLoop   :', pair.closedLoopStatus, '/', pair.pairedValid);
       console.log(
-        'v3 claims    :',
+        'v4 claims    :',
         'subject',
         issue.receipt.data.subject.slice(0, 10),
         '| venueIndependent',
@@ -552,7 +563,7 @@ async function main() {
         '| basis',
         issue.receipt.data.quoteBasis,
         '| fields',
-        v3Layout.length
+        currentLayout.length
       );
       console.log('uid          :', issue.receipt.uid);
       console.log('signer       :', issue.receipt.attester, '(test key, nonproduction)');

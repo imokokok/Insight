@@ -29,16 +29,17 @@ import {
   EXECUTION_TYPES_V1,
   EXECUTION_TYPES_V2,
   EXECUTION_TYPES_V3,
+  EXECUTION_TYPES_V4,
   EXECUTION_PRIMARY_TYPE,
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
   EXECUTION_SCHEMA_VERSION_V3,
+  EXECUTION_SCHEMA_VERSION_V4,
   CURRENT_EXECUTION_SCHEMA_VERSION,
   EXECUTION_VALID_FOR_SECONDS,
   EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
   EXECUTION_REQUIRED_PARTICIPANT_COUNT,
   EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
-  executionDomainV3,
   type ExecutionReceipt,
 } from '@/lib/attestations/executionReceipt';
 import {
@@ -147,8 +148,19 @@ export const GET = createApiHandler<
             },
             [`${EXECUTION_SCHEMA_VERSION_V3}`]: {
               eip712: {
-                domain: executionDomainV3(),
+                // v3 signed over the frozen three-field domain: its declared
+                // `environment` never entered the digest (Headless H7), so the
+                // published descriptor must not re-introduce it or a strict
+                // rebuild would fail to recover the signer.
+                domain: EXECUTION_DOMAIN,
                 types: EXECUTION_TYPES_V3,
+                primaryType: EXECUTION_PRIMARY_TYPE,
+              },
+            },
+            [`${EXECUTION_SCHEMA_VERSION_V4}`]: {
+              eip712: {
+                domain: EXECUTION_DOMAIN,
+                types: EXECUTION_TYPES_V4,
                 primaryType: EXECUTION_PRIMARY_TYPE,
               },
             },
@@ -158,10 +170,11 @@ export const GET = createApiHandler<
             EXECUTION_SCHEMA_VERSION,
             EXECUTION_SCHEMA_VERSION_V2,
             EXECUTION_SCHEMA_VERSION_V3,
+            EXECUTION_SCHEMA_VERSION_V4,
           ],
           /** The layout new receipts are signed with. */
           eip712: {
-            domain: executionDomainV3(),
+            domain: EXECUTION_DOMAIN,
             types: EXECUTION_TYPES,
             primaryType: EXECUTION_PRIMARY_TYPE,
           },

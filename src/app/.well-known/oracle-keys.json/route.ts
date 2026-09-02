@@ -28,10 +28,11 @@ import {
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
   EXECUTION_SCHEMA_VERSION_V3,
+  EXECUTION_SCHEMA_VERSION_V4,
   EXECUTION_TYPES_V1,
   EXECUTION_TYPES_V2,
   EXECUTION_TYPES_V3,
-  executionDomainV3,
+  EXECUTION_TYPES_V4,
   EXECUTION_VALID_FOR_SECONDS,
   EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
   EXECUTION_REQUIRED_PARTICIPANT_COUNT,
@@ -205,19 +206,22 @@ export async function GET(request: NextRequest) {
        * as with Watch. Its independence gate is the agent's own pre-trade basis,
        * carried forward — not an independent re-proof of oracle independence.
        *
-       * v3 (43 fields) is the current signing layout, under a domain that
-       * carries `environment` so a staging receipt is structurally separable
-       * from a production one. The published domain here is resolved from the
-       * deployment environment at request time. v1 (30 fields) and v2 (32
-       * fields) layouts are published as separate entries below, each under the
-       * domain it was actually signed with, so a stranger rebuilding a receipt
-       * of any version recovers the signer (Headless H6).
+       * v4 (44 fields) is the current signing layout. `environment` — the
+       * deployment the receipt was signed in — is the 44th SIGNED MESSAGE field
+       * (Headless H7): v3 declared it on the EIP-712 domain, but domain
+       * separators only support the five standard fields, so it never entered
+       * the digest. The domain here is therefore the frozen three-field one,
+       * identical for every version, and the deployment separation lives in the
+       * message bytes. v3 (43 fields), v2 (32) and v1 (30) layouts are published
+       * as separate retired entries, each under the domain it actually signed
+       * with, so a stranger rebuilding a receipt of any version recovers the
+       * signer (Headless H6).
        */
       ExecutionReceipt: {
-        schemaVersion: EXECUTION_SCHEMA_VERSION_V3,
+        schemaVersion: EXECUTION_SCHEMA_VERSION_V4,
         eip712: descriptor(
-          executionDomainV3(),
-          EXECUTION_TYPES_V3 as never,
+          EXECUTION_DOMAIN,
+          EXECUTION_TYPES_V4 as never,
           EXECUTION_PRIMARY_TYPE
         ),
         validForSeconds: EXECUTION_VALID_FOR_SECONDS,
@@ -230,6 +234,20 @@ export async function GET(request: NextRequest) {
         },
         verify: `${origin}/api/v1/execution/attestation/verify`,
         sample: `${origin}/api/v1/execution/attestation/sample`,
+      },
+      /**
+       * v3 receipt (43 fields): superseded by v4 (whose only change is the
+       * signed `environment` message field) but kept published so receipts
+       * already handed to counterparties keep verifying. Its declared
+       * domain-`environment` never entered the digest, so the descriptor below
+       * carries the three-field domain the bytes really commit to (H7).
+       */
+      ExecutionReceiptV3: {
+        schemaVersion: EXECUTION_SCHEMA_VERSION_V3,
+        retiredForSigning: true,
+        eip712: descriptor(EXECUTION_DOMAIN, EXECUTION_TYPES_V3 as never, EXECUTION_PRIMARY_TYPE),
+        validForSeconds: EXECUTION_VALID_FOR_SECONDS,
+        verify: `${origin}/api/v1/execution/attestation/verify`,
       },
       /** v2 receipt (32 fields): superseded by v3 but kept published so receipts
        *  already handed to counterparties keep verifying. Same domain as v1. */

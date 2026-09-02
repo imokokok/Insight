@@ -1,7 +1,8 @@
 // Independent verification of the VERITAS execution-receipt bytes package.
 // Uses only viem's standard EIP-712 primitives — no Insight business code.
-// Schema-version aware: checks v1/v2/v3 packages; the v3-only claims (F1-F7)
-// run only when the receipt is v3.
+// Schema-version aware: checks v1/v2/v3/v4 packages; the v3+ claims (F1-F7,
+// and H7's environment-as-message-field on v4) run only when the receipt is
+// v3 or newer.
 // Usage: node veritas-bytes-verify.mjs <bytes-package.json>
 import fs from 'node:fs';
 import { hashTypedData, verifyTypedData, keccak256 } from 'viem';
@@ -14,7 +15,7 @@ if (!file) {
 const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
 const r = pkg.receipt;
 const version = Number(r.data.schemaVersion) || 0;
-const v3 = version >= 3;
+const modern = version >= 3;
 
 let failures = 0;
 const check = (name, ok, extra = '') => {
@@ -28,7 +29,11 @@ const field = (d, ...names) => {
   return undefined;
 };
 
-console.log(`package schemaVersion=${version}${v3 ? ' (v3, 43-field layout)' : ''}`);
+console.log(
+  `package schemaVersion=${version}${
+    version >= 4 ? ' (v4, 44-field layout)' : version === 3 ? ' (v3, 43-field layout)' : ''
+  }`
+);
 
 console.log('== 1. Receipt uid recompute (EIP-712 digest) ==');
 const typed = {
@@ -58,11 +63,11 @@ for (const name of ['maxSlippageBps', 'priceDeltaBps']) {
   const pos = fields.indexOf(name);
   check(`${name} inside signed struct`, pos >= 0, `position ${pos + 1} of ${fields.length}`);
 }
-const statusField = v3 ? 'priceExecutionStatus' : 'executionStatus';
+const statusField = modern ? 'priceExecutionStatus' : 'executionStatus';
 check(
   `verdict field is ${statusField} and signed`,
   fields.includes(statusField),
-  v3 ? 'F2: scope travels in the name (PRICE only)' : ''
+  modern ? 'F2: scope travels in the name (PRICE only)' : ''
 );
 
 console.log('== 4. Verdict derives from the SIGNED values ==');
@@ -114,8 +119,8 @@ check(
   r.data.bindingMode === 'VERIFIED' && r.data.preTradeUid === pkg.preTrade.sourceGate.uid
 );
 
-if (v3) {
-  console.log('== 7. v3 F1: both gates are committed, in order ==');
+if (modern) {
+  console.log('== 7. v3+ F1: both gates are committed, in order ==');
   const destUid = r.data.destinationPreTradeUid;
   const destCommitted =
     typeof destUid === 'string' &&
@@ -181,11 +186,25 @@ if (v3) {
       Number(r.data.quoteBlockNumber) === pkg.onchain.preSwapBlockNumber
   );
   check('priceScale == 8 (x1e8)', Number(r.data.priceScale) === 8);
-  check(
-    'v3 domain carries environment (F7) and no placeholder verifyingContract',
-    typeof r.eip712.domain.environment === 'string' && !('verifyingContract' in r.eip712.domain),
-    `environment=${r.eip712.domain.environment}`
-  );
+  if (version >= 4) {
+    // H7: environment moved from the (inert) EIP-712 domain into the signed
+    // message as the 44th field. The descriptor must therefore carry NO
+    // domain environment and a message field that recovers the signer.
+    const envField = r.data.environment;
+    check(
+      'v4 signs environment as a message field; domain carries none (H7)',
+      typeof envField === 'string' &&
+        fields.includes('environment') &&
+        !('environment' in r.eip712.domain),
+      `environment=${envField}`
+    );
+  } else {
+    check(
+      'v3 domain carries environment (F7) and no placeholder verifyingContract',
+      typeof r.eip712.domain.environment === 'string' && !('verifyingContract' in r.eip712.domain),
+      `environment=${r.eip712.domain.environment}`
+    );
+  }
   check(
     'two distinct age fields (attestation vs price state)',
     Number(r.data.attestationAgeAtExecSeconds) > 0 &&
@@ -217,7 +236,7 @@ try {
     { jsonrpc: '2.0', id: 2, method: 'eth_getBlockByNumber', params: [null, false] },
     { jsonrpc: '2.0', id: 3, method: 'eth_chainId', params: [] },
   ];
-  if (v3 && Number.isInteger(pkg.onchain.preSwapBlockNumber)) {
+  if (modern && Number.isInteger(pkg.onchain.preSwapBlockNumber)) {
     reqs.push({
       jsonrpc: '2.0',
       id: 4,
@@ -250,7 +269,7 @@ try {
       `head=${parseInt(headRes.result.number, 16)}`
     );
   }
-  if (v3 && preSwapRes && preSwapRes.result) {
+  if (modern && preSwapRes && preSwapRes.result) {
     const ts = parseInt(preSwapRes.result.timestamp, 16);
     check(
       'preSwapBlock timestamp matches package (age is on-chain derivable)',

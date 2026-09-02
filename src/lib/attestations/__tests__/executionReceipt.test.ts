@@ -106,9 +106,15 @@ describe('executionReceipt', () => {
     const receipt = await mod.signExecutionReceipt(baseInput());
     expect(receipt).not.toBeNull();
     expect(receipt!.attester).toBe(TEST_ATTESTER);
-    expect(receipt!.schemaVersion).toBe(3);
+    expect(receipt!.schemaVersion).toBe(4);
     expect(receipt!.data.priceExecutionStatus).toBe('FAITHFUL');
     expect(receipt!.data.bindingMode).toBe('VERIFIED');
+    // v4 signs the deployment as the 44th MESSAGE field (Headless H7); the
+    // EIP-712 domain stays the frozen three-field one (a domain-declared
+    // environment never entered v3's signature).
+    expect(receipt!.data.environment).toBe('nonproduction');
+    expect(receipt!.eip712.domain).toEqual(mod.EXECUTION_DOMAIN);
+    expect(receipt!.eip712.types).toEqual(mod.EXECUTION_TYPES_V4);
 
     const result = await mod.verifyExecutionReceipt(receipt!);
     expect(result.valid).toBe(true);
@@ -314,11 +320,12 @@ describe('executionReceipt', () => {
     expect(msg.priceExecutionStatus).toBe('DEVIATED');
   });
 
-  it('routes verification by the signed schema version, keeping v1/v2 receipts verifiable', async () => {
+  it('routes verification by the signed schema version, keeping v1/v2/v3 receipts verifiable', async () => {
     const mod = await import('../executionReceipt');
     expect(mod.executionTypesForSchemaVersion(1).ExecutionReceipt).toHaveLength(30);
     expect(mod.executionTypesForSchemaVersion(2).ExecutionReceipt).toHaveLength(32);
     expect(mod.executionTypesForSchemaVersion(3).ExecutionReceipt).toHaveLength(43);
+    expect(mod.executionTypesForSchemaVersion(4).ExecutionReceipt).toHaveLength(44);
     // v1 layout must not declare the v2-only fields.
     const v1Names = mod.executionTypesForSchemaVersion(1).ExecutionReceipt.map((f) => f.name);
     expect(v1Names).not.toContain('bindingMode');
@@ -345,10 +352,19 @@ describe('executionReceipt', () => {
     expect(v3Names).toContain('quoteVenueIndependent');
     expect(v3Names).toContain('measuredFieldsHash');
     expect(v3Names).toContain('priceStateAgeAtExecSeconds');
-    // v3 verifies against the environment-carrying domain; v1/v2 against the
-    // frozen one.
-    expect(mod.executionDomainForSchemaVersion(3).environment).toBeDefined();
-    expect(mod.executionDomainForSchemaVersion(2).environment).toBeUndefined();
+    // v4 = v3's 43 fields PLUS `environment`, appended last (Headless H7): the
+    // deployment is signed as a message field because a domain-declared
+    // environment never entered v3's digest. The EIP-712 domain is therefore
+    // the frozen three-field one for EVERY version.
+    const v4Names = mod.executionTypesForSchemaVersion(4).ExecutionReceipt.map((f) => f.name);
+    expect(v4Names.slice(0, 43)).toEqual(v3Names);
+    expect(v4Names[43]).toBe('environment');
+    expect(mod.executionTypesForSchemaVersion(3)).not.toBe(mod.EXECUTION_TYPES_V4);
+    expect(mod.executionDomainForSchemaVersion(3)).toEqual(mod.EXECUTION_DOMAIN);
+    expect(mod.executionDomainForSchemaVersion(4)).toEqual(mod.EXECUTION_DOMAIN);
+    expect(mod.executionDomainForSchemaVersion(2)).toEqual(mod.EXECUTION_DOMAIN);
+    expect(mod.executionDomainForSchemaVersion(1)).toEqual(mod.EXECUTION_DOMAIN);
+    expect('environment' in mod.executionDomainForSchemaVersion(4)).toBe(false);
   });
 
   // ---- v3: everything about the quote basis is now signed (F1/F3/F4/F7) ----

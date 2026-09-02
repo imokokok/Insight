@@ -96,15 +96,31 @@ describe('.well-known/oracle-keys.json route', () => {
     // Execution Receipt has the types + gates to verify it without our source.
     const exec = body.schemas.ExecutionReceipt;
     expect(exec).toBeDefined();
-    expect(exec.schemaVersion).toBe(1);
+    // v4 is the current signing layout (44 fields: v3's 43 + environment).
+    expect(exec.schemaVersion).toBe(4);
     expect(exec.eip712.primaryType).toBe('ExecutionReceipt');
     expect(exec.eip712.domain.name).toBe('Insight Execution');
     expect(exec.eip712.domain.chainId).toBe(1);
+    // H7: the domain is the frozen three-field one — v3's declared
+    // domain-environment never entered the signature, so v4 signs the
+    // deployment as the 44th message field instead.
+    expect(exec.eip712.domain.environment).toBeUndefined();
+    const execFields = exec.eip712.types.ExecutionReceipt.map((f: { name: string }) => f.name);
+    expect(execFields).toHaveLength(44);
+    expect(execFields[43]).toBe('environment');
 
     // Gate thresholds travel with the descriptor so a receipt is self-checking.
     expect(exec.gates.requiredParticipantCount).toBe(3);
     expect(exec.gates.requiredSourceGroupCount).toBe(2);
     expect(exec.gates.defaultMaxSlippageBps).toBe(50);
+
+    // v3 stays published (frozen, retired for signing) under the three-field
+    // domain its bytes really commit to; older layouts remain too.
+    expect(body.schemas.ExecutionReceiptV3.schemaVersion).toBe(3);
+    expect(body.schemas.ExecutionReceiptV3.retiredForSigning).toBe(true);
+    expect(body.schemas.ExecutionReceiptV3.eip712.domain.environment).toBeUndefined();
+    expect(body.schemas.ExecutionReceiptV2.retiredForSigning).toBe(true);
+    expect(body.schemas.ExecutionReceiptV1.retiredForSigning).toBe(true);
 
     // Separate pointers — the execution domain must never be conflated with
     // pre-trade or watch.

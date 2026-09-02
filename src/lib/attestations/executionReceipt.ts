@@ -123,19 +123,41 @@ export const EXECUTION_SCHEMA_VERSION_V2 = 2;
  *         an assumed scale is exactly the ambiguity that produced a 100x error
  *         in the verification pass), and the v3 domain carries `environment` so
  *         a staging receipt is structurally separable from a production one
- *         once a production key exists.
+ *         once a production key exists. (The domain half of F7 turned out
+ *         inert — signers drop non-standard domain fields, Headless H7; v4
+ *         signs `environment` as a message field, see below.)
  *
  * v1 and v2 receipts stay verifiable: the verify path routes on the signed
  * `schemaVersion` and re-derives the matching type layout AND domain.
  */
 export const EXECUTION_SCHEMA_VERSION_V3 = 3;
+
+/**
+ * v4 (2026-09-02, Headless recheck H7) fixes where `environment` lives.
+ *
+ * v3's F7 change declared `environment` on the EIP-712 DOMAIN. That never
+ * entered the signature: EIP-712 domain separators are limited to the five
+ * standard fields (name, version, chainId, verifyingContract, salt), and every
+ * conforming signer drops unknown domain keys before hashing. A byte-level
+ * recheck of the v3 repair package recovered the signer only when
+ * `environment` was OMITTED from the domain — the staging-vs-production
+ * separation v3 promised was documentation, not cryptography.
+ *
+ * v4 moves `environment` into the signed message as the 44th field. The domain
+ * is the same frozen three-field {@link EXECUTION_DOMAIN} for every version
+ * (v1..v4), because that is the domain v1..v3 actually signed over. v3 stays
+ * frozen and verifiable; the registry describes it with the three-field domain
+ * its bytes really commit to.
+ */
+export const EXECUTION_SCHEMA_VERSION_V4 = 4;
 /** Schema version new receipts are signed with. */
-export const CURRENT_EXECUTION_SCHEMA_VERSION = EXECUTION_SCHEMA_VERSION_V3;
+export const CURRENT_EXECUTION_SCHEMA_VERSION = EXECUTION_SCHEMA_VERSION_V4;
 /** Every schema version this module can verify. */
 export const SUPPORTED_EXECUTION_SCHEMA_VERSIONS = [
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
   EXECUTION_SCHEMA_VERSION_V3,
+  EXECUTION_SCHEMA_VERSION_V4,
 ] as const;
 
 /**
@@ -161,9 +183,12 @@ export const EXECUTION_ATTESTER_LABEL = 'Insight Execution Receipt';
 /** EIP-712 domain. Distinct `name` from the pre-trade and watch domains so a
  *  receipt can never be replayed across surfaces. chainId=1 is a separator.
  *
- *  v1 and v2 used this domain. It is frozen: adding a field to a shared domain
- *  would invalidate every receipt already signed with it, so v3 gets its own
- *  (see {@link EXECUTION_DOMAIN_V3}). */
+ *  FROZEN for every schema version. EIP-712 domains only allow the five
+ *  standard fields, so nothing may ever be added here; a version that needs to
+ *  bind more context (v4's `environment`) declares it as a signed MESSAGE field
+ *  instead. v3's attempt to carry `environment` on the domain never entered the
+ *  digest (Headless H7) — v3 receipts verify against this domain like every
+ *  other version. */
 export const EXECUTION_DOMAIN = {
   name: 'Insight Execution',
   version: '1',
@@ -190,28 +215,17 @@ export function executionEnvironment(): 'production' | 'nonproduction' {
   return 'nonproduction';
 }
 
-/**
- * v3 domain. Adds `environment` only; `name`, `version` and `chainId` are
- * unchanged so the digest difference is attributable to a single decision.
+/** Resolve the EIP-712 domain for a signed schema version.
  *
- * No `verifyingContract`: Insight has no deployed attestation registry to point
- * at, and putting an address we do not control into a signed domain would be a
- * placeholder wearing a contract's clothes. `environment` buys the structural
- * separation the finding asked for without inventing one.
- */
-export function executionDomainV3(environment = executionEnvironment()) {
-  return {
-    name: 'Insight Execution',
-    version: '1',
-    chainId: 1,
-    environment,
-  } as const;
-}
-
-/** Resolve the EIP-712 domain for a signed schema version. v1/v2 share the
- *  frozen domain; v3 carries the environment. */
-export function executionDomainForSchemaVersion(schemaVersion: number) {
-  return schemaVersion >= EXECUTION_SCHEMA_VERSION_V3 ? executionDomainV3() : EXECUTION_DOMAIN;
+ *  Every version (v1..v4) signs over the same frozen three-field domain. v3
+ *  tried to vary the domain by deployment (`environment`, VERITAS F7), but
+ *  EIP-712 domains cannot carry non-standard fields — signers drop them before
+ *  hashing, so the variation never entered the signature (Headless H7). v4
+ *  binds the deployment as a signed message field instead (the 44th); the
+ *  domain itself stays constant so v1..v4 all re-derive from
+ *  {@link EXECUTION_DOMAIN}. The parameter is kept for call-site clarity. */
+export function executionDomainForSchemaVersion(_schemaVersion: number) {
+  return EXECUTION_DOMAIN;
 }
 
 export const EXECUTION_PRIMARY_TYPE = 'ExecutionReceipt';
@@ -372,8 +386,29 @@ export const EXECUTION_TYPES_V3 = {
   ],
 } as const;
 
+/**
+ * The v4 signed fields (44) = v3's 43 plus `environment`, appended LAST so the
+ * v3 field order is a byte-identical prefix and the only change is the new
+ * binding.
+ *
+ * `environment` is `'production' | 'nonproduction'` (see
+ * {@link executionEnvironment}). v3 had declared it on the EIP-712 domain; a
+ * byte-level recheck proved that never entered the signature, because domain
+ * separators only support the five standard fields and signers drop the rest
+ * (Headless H7). As a signed message field it is real: a staging receipt and a
+ * production receipt signed by the same key now differ in the bytes. Verify
+ * re-derives the value from the receipt's own `data.environment`, so stripping
+ * or swapping it breaks the UID and the signature.
+ */
+export const EXECUTION_TYPES_V4 = {
+  ExecutionReceipt: [
+    ...EXECUTION_TYPES_V3.ExecutionReceipt,
+    { name: 'environment', type: 'string' },
+  ],
+} as const;
+
 /** Layout new receipts are signed with. */
-export const EXECUTION_TYPES = EXECUTION_TYPES_V3;
+export const EXECUTION_TYPES = EXECUTION_TYPES_V4;
 
 /** Resolve the EIP-712 type layout for a signed schema version. Unknown
  *  versions fall back to the current layout, which fails UID recovery (a
@@ -381,7 +416,8 @@ export const EXECUTION_TYPES = EXECUTION_TYPES_V3;
 export function executionTypesForSchemaVersion(schemaVersion: number) {
   if (schemaVersion === EXECUTION_SCHEMA_VERSION) return EXECUTION_TYPES_V1;
   if (schemaVersion === EXECUTION_SCHEMA_VERSION_V2) return EXECUTION_TYPES_V2;
-  return EXECUTION_TYPES_V3;
+  if (schemaVersion === EXECUTION_SCHEMA_VERSION_V3) return EXECUTION_TYPES_V3;
+  return EXECUTION_TYPES_V4;
 }
 
 // ---------------------------------------------------------------------------
@@ -641,6 +677,11 @@ export interface ExecutionReceiptData {
   reasonCodesHash: `0x${string}`;
   validUntil: number;
   schemaVersion: number;
+  /** v4 only: the deployment the receipt was signed in (`production` |
+   *  `nonproduction`), signed as the 44th message field. v3 tried to carry it
+   *  on the EIP-712 domain, which never entered the signature (H7). Absent on
+   *  v1..v3, whose layouts do not declare it. */
+  environment?: 'production' | 'nonproduction';
 }
 
 /** BigInt twin of {@link ExecutionReceiptData}, fed to viem's EIP-712 ops.
@@ -698,6 +739,10 @@ export interface ExecutionBigIntMessage {
   reasonCodesHash: `0x${string}`;
   validUntil: bigint;
   schemaVersion: bigint;
+  /** v4. Populated verbatim from `data.environment` whenever the v4 layout is
+   *  used; on v1..v3 layouts the key is inert (viem encodes strictly from the
+   *  type layout). */
+  environment?: string;
 }
 
 /** Raw (un-scaled) inputs. Verdict fields are DERIVED inside buildMessage so
@@ -927,6 +972,12 @@ export async function buildExecutionMessage(
   const destinationPreTradeUid = input.destinationPreTradeUid ?? ZERO_BYTES32;
   const priceStateAgeAtExecSeconds = Math.max(0, Math.floor(input.priceStateAgeAtExecSeconds ?? 0));
 
+  // --- v4: where this was signed ---
+  // Signed as a message field (44th). v3 declared it on the EIP-712 domain,
+  // which signers drop before hashing, so the deployment separation was never
+  // cryptographic (Headless H7). As a signed field it is.
+  const environment = executionEnvironment();
+
   return {
     bindingMode,
     claimRole,
@@ -971,6 +1022,7 @@ export async function buildExecutionMessage(
     reasonCodesHash,
     validUntil,
     schemaVersion: CURRENT_EXECUTION_SCHEMA_VERSION,
+    environment,
   };
 }
 
@@ -1030,13 +1082,19 @@ export function toBigIntMessage(data: ExecutionReceiptData): ExecutionBigIntMess
     reasonCodesHash: data.reasonCodesHash,
     validUntil: BigInt(data.validUntil),
     schemaVersion: BigInt(schemaVersion),
+    // Populated verbatim from the receipt's own data: a v4 signature commits
+    // to exactly the string the signer wrote, and a stripped or swapped value
+    // must break recovery. An absent value encodes as '' — never a default
+    // guess — so a v4 receipt missing `environment` cannot verify.
+    environment: data.environment ?? '',
   };
 }
 
 /** EIP-712 typed-data args (domain + types + message) — shared by sign/verify.
- *  Both the type layout and the domain resolve from the signed `schemaVersion`,
- *  so a v1/v2 receipt verifies against the frozen domain and a v3 receipt
- *  against the environment-carrying domain. */
+ *  The type layout resolves from the signed `schemaVersion`; the domain is the
+ *  frozen three-field one for every version. v1..v3 receipts keep verifying
+ *  because that is the domain they were signed over; v4 additionally binds the
+ *  deployment via its signed `environment` message field. */
 export function executionTypedDataArgs(message: ExecutionReceiptData) {
   return {
     domain: executionDomainForSchemaVersion(message.schemaVersion),
@@ -1064,7 +1122,7 @@ export interface ExecutionReceipt {
   /** Informational only — verification always re-derives domain and types from
    *  `data.schemaVersion`, never from this block. */
   eip712: {
-    domain: typeof EXECUTION_DOMAIN | ReturnType<typeof executionDomainV3>;
+    domain: typeof EXECUTION_DOMAIN;
     types: typeof EXECUTION_TYPES;
     primaryType: typeof EXECUTION_PRIMARY_TYPE;
   };

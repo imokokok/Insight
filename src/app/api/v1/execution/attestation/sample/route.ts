@@ -17,8 +17,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
+import { signExecutionReceipt } from '@/lib/attestations/executionReceipt';
 import { recordExecutionReceiptAsync } from '@/lib/execution/executionReceiptAudit';
-import { issueExecutionReceipt } from '@/lib/execution/executionReceiptService';
 
 const PUBLIC_MIDDLEWARES = {
   logging: true,
@@ -36,7 +36,6 @@ const SAMPLE_REQUEST_HASH =
   '0x0000000000000000000000000000000000000000000000000000000000000002' as const;
 const SAMPLE_TX_HASH =
   '0x0000000000000000000000000000000000000000000000000000000000000003' as const;
-const SAMPLE_SIGNED_AT = 1767000000;
 
 export const OPTIONS = createOptionsHandler();
 
@@ -47,7 +46,15 @@ export const GET = createApiHandler<
   Record<string, string>
 >(
   async (_request: NextRequest, context) => {
-    const result = await issueExecutionReceipt({
+    // Signed directly from synthetic facts — deliberately NOT routed through
+    // issueExecutionReceipt, whose v3/v4 collector reads the settlement off
+    // chain. A fake tx hash would fail RPC lookup (502): the sample's purpose
+    // is to demo the signature + verify loop, so the settlement facts are
+    // supplied, clearly labelled synthetic, and never claimed as on-chain
+    // evidence. With no pre-trade attestations to present, the binding is
+    // SELF_REPORTED and the verdict is honestly UNDETERMINED.
+    const executedAt = Math.floor(Date.now() / 1000);
+    const receipt = await signExecutionReceipt({
       preTradeUid: SAMPLE_PRE_TRADE_UID as `0x${string}`,
       requestHash: SAMPLE_REQUEST_HASH as `0x${string}`,
       sourceAssetId: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
@@ -56,29 +63,38 @@ export const GET = createApiHandler<
       settlementChainId: 8453,
       participantCount: 4,
       sourceGroupCount: 3,
-      preTradeSignedAt: SAMPLE_SIGNED_AT,
+      preTradeSignedAt: executedAt - 30,
       // Destination-per-source (WETH per USDC) to match the on-chain
       // executedPrice convention: ~1 / 2450.
       quotedPrice: 0.000408,
+      executedPrice: 0.0004082,
       maxSlippageBps: 50,
       action: 'SWAP',
       quotedAmountUsd: 1000,
       executedAmountUsd: 1001.5,
       actualFeeUsd: 0.42,
       mevRiskScore: 0.05,
+      measuredFields: ['quotedAmountUsd', 'executedAmountUsd', 'actualFeeUsd', 'mevRiskBps'],
+      fillStatus: 'FULL',
       txHash: SAMPLE_TX_HASH as `0x${string}`,
+      blockNumber: 30000000,
+      executedAt,
+      oracleDataAgeAtExecSeconds: 30,
       taker: '0x0000000000000000000000000000000000000004' as `0x${string}`,
     });
 
-    if (!result.ok) {
-      const status = result.code === 'SIGNING_UNAVAILABLE' ? 503 : 502;
+    if (!receipt) {
       return NextResponse.json(
-        ApiResponseBuilder.error(result.code, result.message, { requestId: context.requestId }),
-        { status }
+        ApiResponseBuilder.error(
+          'SIGNING_UNAVAILABLE',
+          'Insight attester key is not configured; no execution receipt could be signed.',
+          { requestId: context.requestId }
+        ),
+        { status: 503 }
       );
     }
 
-    recordExecutionReceiptAsync(result.receipt, {
+    recordExecutionReceiptAsync(receipt, {
       source: 'sample',
       subjectChainId: 8453,
       settlementChainId: 8453,
@@ -94,7 +110,7 @@ export const GET = createApiHandler<
       ApiResponseBuilder.success(
         {
           isSample: true,
-          attestation: result.receipt,
+          attestation: receipt,
           wellKnown: `${base}/.well-known/oracle-keys.json`,
           verify: `${base}/api/v1/execution/attestation/verify`,
           note: 'SYNTHETIC sample: signature is genuine (verify it), but the settlement facts are demo data. Do not treat as evidence of a real trade.',

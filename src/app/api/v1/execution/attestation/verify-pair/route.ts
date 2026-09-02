@@ -27,13 +27,14 @@ import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/li
 import { getAttesterAddress } from '@/lib/attestations/attesterAccount';
 import {
   EXECUTION_ATTESTER_LABEL,
+  EXECUTION_DOMAIN,
   EXECUTION_TYPES,
   EXECUTION_PRIMARY_TYPE,
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
   EXECUTION_SCHEMA_VERSION_V3,
+  EXECUTION_SCHEMA_VERSION_V4,
   CURRENT_EXECUTION_SCHEMA_VERSION,
-  executionDomainV3,
 } from '@/lib/attestations/executionReceipt';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import {
@@ -66,9 +67,10 @@ const PreTradeAttestationSchema = z
 
 /** Loose envelope for the Execution Receipt (same philosophy). Accepts all
  *  published schema versions — v1 predates the signed binding fields, v2 adds
- *  bindingMode + preTradeSignedAt, v3 (current) carries the full quote-basis,
- *  subject and scope commitments. A literal(1) here would silently reject every
- *  real receipt, so we accept the supported schema set. */
+ *  bindingMode + preTradeSignedAt, v3 carries the full quote-basis, subject and
+ *  scope commitments, and v4 (current) adds the signed `environment` message
+ *  field. A literal(1) here would silently reject every real receipt, so we
+ *  accept the supported schema set. */
 const ExecutionReceiptSchema = z
   .object({
     uid: z.string(),
@@ -76,6 +78,7 @@ const ExecutionReceiptSchema = z
       z.literal(EXECUTION_SCHEMA_VERSION),
       z.literal(EXECUTION_SCHEMA_VERSION_V2),
       z.literal(EXECUTION_SCHEMA_VERSION_V3),
+      z.literal(EXECUTION_SCHEMA_VERSION_V4),
     ]),
     attester: z.string(),
     signature: z.string(),
@@ -180,12 +183,12 @@ export const GET = createApiHandler<
             requestHash:
               'executionReceipt.data.requestHash must equal preTradeAttestation.data.requestHash',
             destinationPreTradeUid:
-              'v3: when executionReceipt.data.destinationPreTradeUid is set, it must equal destinationPreTradeAttestation.uid and that gate must verify',
+              'v3+: when executionReceipt.data.destinationPreTradeUid is set, it must equal destinationPreTradeAttestation.uid and that gate must verify',
             preTradeUidsHash:
-              'v3: executionReceipt.data.preTradeUidsHash must recompute from the presented gate uids, in order (source then destination)',
+              'v3+: executionReceipt.data.preTradeUidsHash must recompute from the presented gate uids, in order (source then destination)',
           },
           executionReceiptEip712: {
-            domain: executionDomainV3(),
+            domain: EXECUTION_DOMAIN,
             types: EXECUTION_TYPES,
             primaryType: EXECUTION_PRIMARY_TYPE,
           },
