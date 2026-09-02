@@ -19,7 +19,8 @@ import { NextResponse } from 'next/server';
 
 import { createApiKeyForUser } from '@/lib/api/apiKey';
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { TRIAL_DURATION_DAYS } from '@/lib/billing/plans';
+import { topUpCredits } from '@/lib/billing/creditWallet';
+import { planCreditGrant, TRIAL_DURATION_DAYS } from '@/lib/billing/plans';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
@@ -112,6 +113,21 @@ export const POST = createApiHandler(
         ApiResponseBuilder.error('INTERNAL_ERROR', 'Failed to create trial API key'),
         { status: 500 }
       );
+    }
+
+    // 4. Fund the trial wallet with the Pro monthly credit allowance.
+    //    Paid plans are credit-metered (plan != 'free' → precheckCredits), so
+    //    a trial key with an empty wallet would be rejected with 402 on every
+    //    call. Crediting the allowance here makes the trial immediately usable.
+    const grant = planCreditGrant('pro'); // 10_000
+    if (grant > 0) {
+      await topUpCredits({
+        userId,
+        amount: grant,
+        meteringKey: `grant:${userId}:trial:${result.record.id}`,
+        kind: 'grant',
+        ref: 'Pro trial allowance',
+      });
     }
 
     logger.info('Pro trial claimed', { userId, trialEndsAt, keyId: result.record.id });

@@ -10,7 +10,12 @@ import { createLogger } from '@/lib/utils/logger';
 
 import packageJson from '../../package.json';
 
-import { checkMcpPlanGuard, consumeMcpQuota, recordMcpToolUsage } from './middleware';
+import {
+  checkMcpPlanGuard,
+  consumeMcpQuota,
+  precheckMcpToolQuota,
+  recordMcpToolUsage,
+} from './middleware';
 import { executeTool, getToolDefinitions } from './tools';
 
 import type { McpAuthContext } from './auth';
@@ -52,6 +57,17 @@ export function createMcpServer(auth?: McpAuthContext): Server {
           recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
           return {
             content: [{ type: 'text', text: `Plan guard: ${guard.reason}` }],
+            isError: true,
+          };
+        }
+
+        // Credit gate: reject before executing if the key can't afford THIS
+        // tool (the HTTP-boundary precheck only tests the cheapest class).
+        const creditCheck = await precheckMcpToolQuota(auth, name);
+        if (!creditCheck.allowed) {
+          recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
+          return {
+            content: [{ type: 'text', text: `Insufficient credits: ${creditCheck.reason}` }],
             isError: true,
           };
         }

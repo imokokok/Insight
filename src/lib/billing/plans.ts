@@ -114,19 +114,19 @@ export const CREDIT_PACKS = {
     name: 'Starter Pack',
     credits: 25_000,
     priceUsd: 39,
-    description: '≈5,000 deep-analysis calls or ≈2,500 pre-trade checks',
+    description: '≈12,500 deep-analysis calls or ≈5,000 pre-trade checks',
   },
   builder: {
     name: 'Builder Pack',
     credits: 100_000,
     priceUsd: 129,
-    description: '≈20,000 deep-analysis calls or ≈10,000 pre-trade checks',
+    description: '≈50,000 deep-analysis calls or ≈20,000 pre-trade checks',
   },
   agent: {
     name: 'Agent Pack',
     credits: 500_000,
     priceUsd: 499,
-    description: '≈50,000 pre-trade checks or ≈25,000 attested receipts',
+    description: '≈100,000 pre-trade checks or ≈50,000 attested receipts',
   },
 } as const;
 

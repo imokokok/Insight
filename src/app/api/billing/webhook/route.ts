@@ -432,14 +432,21 @@ async function handlePaymentConfirmed(
   await updateApiKeyPlanForUser(sub.user_id, sub.plan as 'pro' | 'protocol');
 
   // First cycle: credit the plan's monthly credit allowance so the user is
-  // immediately spendable (the monthly cron handles subsequent cycles).
+  // immediately spendable. The key matches add_monthly_credits (migration
+  // 0040), so the cron's per-cycle / per-month grants are idempotent:
+  //   - monthly: one allowance per billing cycle  -> grant:<user>:sub:<subId>
+  //   - yearly:  one allowance per calendar month -> grant:<user>:sub:<subId>:<YYYY-MM>
   if (wasIncomplete) {
     const grant = planCreditGrant(sub.plan as 'pro' | 'protocol');
     if (grant > 0) {
+      const grantKey =
+        interval === 'year'
+          ? `grant:${sub.user_id}:sub:${sub.id}:${now.toISOString().slice(0, 7)}`
+          : `grant:${sub.user_id}:sub:${sub.id}`;
       await topUpCredits({
         userId: sub.user_id,
         amount: grant,
-        meteringKey: `grant:${sub.user_id}:sub:${sub.id}`,
+        meteringKey: grantKey,
         kind: 'grant',
         ref: `${sub.plan} first-cycle allowance`,
       });
@@ -448,6 +455,7 @@ async function handlePaymentConfirmed(
         plan: sub.plan,
         grant,
         subscriptionId: sub.id,
+        interval,
       });
     }
   }
@@ -505,6 +513,35 @@ async function handlePaymentExpiredOrFailed(
   client: ReturnType<typeof createServiceRoleClient>,
   data: IpnData
 ) {
+  // Credit-purchase invoice: mark canceled (no wallet change — it was never
+  // credited). Guard on 'incomplete' so a late expired IPN can't touch a
+  // purchase that was already paid.
+  const purchase = await findCreditPurchaseByInvoice(client, data);
+  if (purchase) {
+    if (purchase.status === 'incomplete') {
+      const { error } = await client
+        .from('credit_purchases')
+        .update({ status: 'canceled', updated_at: new Date().toISOString() })
+        .eq('id', purchase.id);
+      if (error) {
+        logger.warn('Failed to cancel expired/failed credit purchase', {
+          purchaseId: purchase.id,
+          error: error.message,
+        });
+      } else {
+        logger.info('Credit purchase marked canceled (invoice expired/failed)', {
+          purchaseId: purchase.id,
+        });
+      }
+    } else {
+      logger.info('expired/failed IPN ignored — credit purchase not incomplete', {
+        purchaseId: purchase.id,
+        currentStatus: purchase.status,
+      });
+    }
+    return;
+  }
+
   const sub = await findSubscriptionByInvoice(client, data);
   if (!sub) {
     logger.warn('expired/failed IPN: no subscription row found', {
@@ -548,6 +585,46 @@ async function handlePaymentRefunded(
   client: ReturnType<typeof createServiceRoleClient>,
   data: IpnData
 ) {
+  // Credit-purchase refund: claw back the granted credits. Spent credits
+  // leave a negative balance, which is correct — the user owes them and must
+  // top up before spending again. Idempotent on the refund metering key.
+  const purchase = await findCreditPurchaseByInvoice(client, data);
+  if (purchase) {
+    if (purchase.status === 'paid') {
+      const newBalance = await topUpCredits({
+        userId: purchase.user_id,
+        amount: -purchase.credits,
+        meteringKey: `refund:${purchase.id}:${purchase.user_id}`,
+        kind: 'refund',
+        ref: `refund of ${purchase.credits} credit top-up`,
+      });
+
+      const { error } = await client
+        .from('credit_purchases')
+        .update({ status: 'canceled', updated_at: new Date().toISOString() })
+        .eq('id', purchase.id);
+
+      if (error) {
+        logger.warn('Failed to mark refunded credit purchase canceled', {
+          purchaseId: purchase.id,
+          error: error.message,
+        });
+      }
+      logger.info('Credit purchase refunded — wallet debited', {
+        userId: purchase.user_id,
+        credits: purchase.credits,
+        newBalance,
+        purchaseId: purchase.id,
+      });
+    } else {
+      logger.info('refunded IPN ignored — credit purchase not in paid state', {
+        purchaseId: purchase.id,
+        currentStatus: purchase.status,
+      });
+    }
+    return;
+  }
+
   const sub = await findSubscriptionByInvoice(client, data);
   if (!sub) {
     logger.warn('refunded IPN: no subscription row found', {

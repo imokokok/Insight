@@ -37,15 +37,23 @@ const ENDPOINT_RULES: Array<[RegExp, MeteringClass]> = [
   [/\/safety\//, 'C3'],
   [/\/oracle-watch/, 'C3'],
 
-  // C2 — deep analysis.
-  [/\/(deviation|correlation|latency|anomalies)\//, 'C2'],
-  [/\/(risk|consensus|history|batch|coverage|incidents)\//, 'C2'],
+  // C2 — deep analysis. Next.js route paths have NO trailing slash
+  // (`/api/v1/deviation`), so each rule must match a keyword followed by
+  // either another path segment or the end of the path — a bare `\/` would
+  // never match and would silently underprice these endpoints as C1.
+  [/\/(?:deviation|correlation|latency|anomalies)(?:\/|$)/, 'C2'],
+  [/\/(?:risk|consensus|history|batch|coverage|incidents)(?:\/|$)/, 'C2'],
   [
-    /\/(feed-health|feeds\/freshness|oracles\/health|oracles\/reputation|reputation|stablecoins|wrapped-assets)\//,
+    /\/(?:feed-health|feeds\/freshness|oracles\/health|oracles\/reputation|reputation|stablecoins|wrapped-assets)(?:\/|$)/,
     'C2',
   ],
-  [/\/protocol-health/, 'C2'],
-  [/\/price-snapshots/, 'C2'],
+  [/\/protocol-health(?:\/|$)/, 'C2'],
+  [/\/price-snapshots(?:\/|$)/, 'C2'],
+  // Protocol-level deep analysis (matches the MCP C2 tool pricing for the
+  // same data): risk params, oracle exposure, cross-chain spreads.
+  [/(?:risk-params|oracle-exposure|spreads)(?:\/|$)/, 'C2'],
+  // Per-feed health (matches MCP get_feed_health, which is C2).
+  [/\/feeds\/[^/]+\/health(?:\/|$)/, 'C2'],
 ];
 
 /**
@@ -61,10 +69,15 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/pre_trade|oracle_watch|position_safety|liquidation/, 'C3'],
 
   // C2 — deep analysis tools (non-list).
-  [/get_(risk|deviation|correlation|latency|anomal[y]?|consensus|history|incident)/, 'C2'],
+  [
+    /get_(risk|deviation|correlation|latency|anomal[y]?|consensus|history|incident)|compare_oracle_deviation/,
+    'C2',
+  ],
   [/get_(feed|oracle)_(health|freshness|uptime|prices_batch)/, 'C2'],
   [/check_position_safety|check_liquidation_risk/, 'C2'],
-  [/get_(protocol|incident|coverage|stablecoin|wrapped|exposure|spread)/, 'C2'],
+  // `get_protocol_` (underscore) excludes the plain `get_protocols` listing,
+  // which is foundational C1 data — mirroring REST `/api/v1/protocols`.
+  [/get_protocol_|get_incident|get_coverage|get_stablecoin|get_wrapped|exposure|spread/, 'C2'],
 ];
 
 /**

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { type ZodSchema } from 'zod';
 
+import { consumeCredits } from '@/lib/billing/creditWallet';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { createZodValidationMiddleware } from '@/lib/validation/middleware';
 
@@ -479,6 +480,29 @@ export function createApiHandler<
       }
 
       const response = await handler(request, apiContext);
+
+      // Commit the credit charge only when the request SUCCEEDED (2xx).
+      // The quota middleware sets pendingCharge for paid keys but deliberately
+      // defers the charge until here, so a request that is later blocked by
+      // planGuard (402) or fails in the handler (4xx/5xx) is NOT metered —
+      // mirroring the MCP server, which consumes credits only when a tool call
+      // succeeds. consumeCredits re-checks balance/budget atomically and is
+      // idempotent, so it stays the source of truth.
+      const pendingCharge = apiContext.quotaInfo?.pendingCharge;
+      if (pendingCharge && response.status >= 200 && response.status < 300) {
+        consumeCredits(
+          pendingCharge.apiKeyId,
+          pendingCharge.cost,
+          pendingCharge.meteringKey,
+          request.nextUrl.pathname
+        ).catch((err) => {
+          logger.warn('Async credit consume failed', {
+            apiKeyId: pendingCharge.apiKeyId,
+            cost: pendingCharge.cost,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        });
+      }
 
       if (apiContext.rateLimitInfo) {
         applyRateLimitHeaders(response, apiContext.rateLimitInfo);

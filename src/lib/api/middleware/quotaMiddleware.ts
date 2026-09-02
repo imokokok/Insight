@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { consumeCredits, makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
+import { makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
 import { getCreditCost } from '@/lib/billing/metering';
 import { PLANS, normalizePlan } from '@/lib/billing/plans';
 import { createLogger } from '@/lib/utils/logger';
@@ -32,6 +32,10 @@ export interface QuotaInfo {
    *  the per-call credit cost. Surfaced by the handler as X-Credit-* headers. */
   creditBalance?: number;
   creditCost?: number;
+  /** For paid (credit-metered) keys: the charge to commit AFTER the handler
+   *  succeeds. The handler fires consumeCredits only on a 2xx response, so a
+   *  request that is plan-guarded or fails in the handler is not metered. */
+  pendingCharge?: { apiKeyId: string; meteringKey: string; cost: number };
 }
 
 type QuotaMiddlewareResult =
@@ -133,17 +137,11 @@ export function createQuotaMiddleware(
         return { success: false, response };
       }
 
-      // Charge fire-and-forget. The RPC re-checks balance/budget atomically and
-      // is idempotent, so a transient overdraw cannot double-charge or spiral.
-      const meteringKey = makeMeteringKey(`rest:${context.apiKeyId}`);
-      consumeCredits(context.apiKeyId, cost, meteringKey, request.nextUrl.pathname).catch((err) => {
-        logger.warn('Async credit consume failed', {
-          apiKeyId: context.apiKeyId,
-          cost,
-          error: err instanceof Error ? err.message : String(err),
-        });
-      });
-
+      // Do NOT charge here — commit only after the handler succeeds (2xx).
+      // Charging up-front would bill plan-guarded 402s and handler 4xx/5xx
+      // failures. The charge is attached to quotaInfo and fired by the
+      // handler; the RPC re-checks balance/budget atomically and is
+      // idempotent, so a transient overdraw cannot double-charge or spiral.
       return {
         success: true,
         quotaInfo: {
@@ -153,6 +151,11 @@ export function createQuotaMiddleware(
           used: 0,
           creditBalance: precheck.balance,
           creditCost: cost,
+          pendingCharge: {
+            apiKeyId: context.apiKeyId,
+            meteringKey: makeMeteringKey(`rest:${context.apiKeyId}`),
+            cost,
+          },
         },
       };
     }

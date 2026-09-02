@@ -378,7 +378,11 @@ export function BillingPanel() {
       </div>
 
       {/* Credit wallet */}
-      <CreditWalletCard accessToken={accessToken} onError={setError} />
+      <CreditWalletCard
+        accessToken={accessToken}
+        onError={setError}
+        topupEligible={hasActiveSubscription || Boolean(trialKeyData)}
+      />
 
       {/* Usage chart */}
       {primaryKey && (

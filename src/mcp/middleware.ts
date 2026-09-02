@@ -180,6 +180,42 @@ function checkFreeMonthlyQuota(auth: McpApiKeyAuth): McpQuotaResult {
 }
 
 /**
+ * Per-tool credit precheck for paid API keys. Runs inside the tool-call
+ * handler where the tool name IS known, so a key whose balance is below the
+ * ACTUAL cost of this specific tool is rejected BEFORE the tool executes.
+ *
+ * The HTTP-boundary {@link checkMcpQuota} only prechecks against the cheapest
+ * class (0.5cr) because the tool name is unavailable there. Without this
+ * per-tool check, a key with e.g. 1 credit could call a C4 tool (10cr)
+ * repeatedly and get it for free — the fire-and-forget consume would fail
+ * silently afterwards. Mirrors the REST precheck, which uses the actual
+ * endpoint cost.
+ */
+export async function precheckMcpToolQuota(
+  auth: McpAuthContext,
+  toolName: string
+): Promise<{ allowed: boolean; reason?: string }> {
+  if (auth.type !== 'apikey') {
+    return { allowed: true };
+  }
+
+  const plan = normalizePlan(auth.apiKey.plan);
+  // Free keys use the legacy monthly counter; unlimited (enterprise) plans
+  // are never metered.
+  if (plan === 'free' || PLANS[plan].monthlyQuota < 0) {
+    return { allowed: true };
+  }
+
+  const cost = getToolCreditCost(toolName);
+  const precheck = await precheckCredits(auth.apiKey.keyId, cost);
+  if (!precheck.ok) {
+    return { allowed: false, reason: precheck.reason ?? 'Insufficient credits' };
+  }
+
+  return { allowed: true };
+}
+
+/**
  * Consume credits for a successful MCP tool call (paid keys), or increment
  * the monthly-quota counter (free keys). Fire-and-forget, mirroring the REST
  * quota middleware. No-op for session and shared-bearer callers.

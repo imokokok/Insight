@@ -92,6 +92,42 @@ export const POST = createApiHandler(
           { status: 400 }
         );
       }
+
+      // Credit packs are layered ON TOP of a paid plan. A free user's wallet
+      // is unspendable: planGuard still blocks Tier 2/3, and the free monthly
+      // counter caps Tier 1 regardless of balance — buying a pack would just
+      // be a donation. Require an active subscription or an active Pro trial.
+      const serviceClient = createServiceRoleClient();
+      const nowIso = new Date().toISOString();
+      const [{ data: activeSub }, { data: activeTrialKey }] = await Promise.all([
+        serviceClient
+          .from('subscriptions')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .gte('current_period_end', nowIso)
+          .limit(1)
+          .maybeSingle(),
+        serviceClient
+          .from('api_keys')
+          .select('id')
+          .eq('user_id', userId)
+          .gt('trial_ends_at', nowIso)
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+      if (!activeSub && !activeTrialKey) {
+        return NextResponse.json(
+          ApiResponseBuilder.error(
+            'PAID_PLAN_REQUIRED',
+            'Credit top-ups require an active paid subscription or Pro trial. Upgrade first at /api#pricing.',
+            { retryable: false }
+          ),
+          { status: 403 }
+        );
+      }
+
       const packConfig = CREDIT_PACKS[pack];
 
       const orderId = crypto.randomUUID();
@@ -115,7 +151,6 @@ export const POST = createApiHandler(
       }
 
       // Record a pending credit purchase so the IPN can credit the wallet.
-      const serviceClient = createServiceRoleClient();
       const { error: insertError } = await serviceClient.from('credit_purchases').insert({
         id: orderId,
         user_id: userId,
