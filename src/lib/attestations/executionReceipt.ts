@@ -748,6 +748,14 @@ export interface ExecutionBigIntMessage {
 /** Raw (un-scaled) inputs. Verdict fields are DERIVED inside buildMessage so
  *  the receipt can't disagree with its own signed evidence. */
 export interface ExecutionReceiptInput {
+  /** Optional: sign against a specific PUBLISHED layout (v1..v4) instead of the
+   *  current one. Defaults to the current layout. The sample endpoint exposes
+   *  this so an integrator can fetch a verifiable sample of ANY published
+   *  version — the one layout nobody has exercised is the one nobody can
+   *  integrate against (VERITAS round-2 N1). An unknown version falls back to
+   *  the current layout rather than producing a receipt that claims a layout
+   *  it does not use. */
+  schemaVersion?: number;
   /** UID of the pre-trade attestation this execution was authorised against. */
   preTradeUid: `0x${string}`;
   /** The SAME canonical request commitment pre-trade signed. */
@@ -1021,7 +1029,13 @@ export async function buildExecutionMessage(
     mevRiskBps: toUint(input.mevRiskScore ?? 0, RATIO_SCALE),
     reasonCodesHash,
     validUntil,
-    schemaVersion: CURRENT_EXECUTION_SCHEMA_VERSION,
+    // Signed against the requested PUBLISHED layout when one was asked for
+    // (sample of any version, N1); unknown versions fall back to current.
+    schemaVersion: SUPPORTED_EXECUTION_SCHEMA_VERSIONS.includes(
+      input.schemaVersion as (typeof SUPPORTED_EXECUTION_SCHEMA_VERSIONS)[number]
+    )
+      ? (input.schemaVersion as (typeof SUPPORTED_EXECUTION_SCHEMA_VERSIONS)[number])
+      : CURRENT_EXECUTION_SCHEMA_VERSION,
     environment,
   };
 }
@@ -1123,7 +1137,10 @@ export interface ExecutionReceipt {
    *  `data.schemaVersion`, never from this block. */
   eip712: {
     domain: typeof EXECUTION_DOMAIN;
-    types: typeof EXECUTION_TYPES;
+    // Any published layout may be recorded here (the receipt is informational;
+    // verification re-derives the types from data.schemaVersion), so the field
+    // is the union of every version's types, not just the current one.
+    types: ReturnType<typeof executionTypesForSchemaVersion>;
     primaryType: typeof EXECUTION_PRIMARY_TYPE;
   };
 }
@@ -1160,7 +1177,7 @@ export async function signExecutionReceipt(
 
     return {
       uid,
-      schemaVersion: CURRENT_EXECUTION_SCHEMA_VERSION,
+      schemaVersion: message.schemaVersion,
       attester: account.address,
       attesterLabel: EXECUTION_ATTESTER_LABEL,
       signedAt: new Date().toISOString(),
@@ -1170,8 +1187,8 @@ export async function signExecutionReceipt(
       verifyUrl: getVerifyUrl(),
       data: message,
       eip712: {
-        domain: executionDomainForSchemaVersion(CURRENT_EXECUTION_SCHEMA_VERSION),
-        types: EXECUTION_TYPES,
+        domain: executionDomainForSchemaVersion(message.schemaVersion),
+        types: executionTypesForSchemaVersion(message.schemaVersion),
         primaryType: EXECUTION_PRIMARY_TYPE,
       },
     };
