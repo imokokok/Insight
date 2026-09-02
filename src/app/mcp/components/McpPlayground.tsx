@@ -226,10 +226,9 @@ function UsageBadge({
         Rate limit: <strong className="text-slate-900">{rateLimit.remaining}</strong> /{' '}
         {rateLimit.limit}
       </span>
-      {quota && quota.limit >= 0 && (
+      {quota && quota.remaining >= 0 && (
         <span>
-          Monthly quota: <strong className="text-slate-900">{quota.remaining}</strong> /{' '}
-          {quota.limit}
+          Credit balance: <strong className="text-slate-900">{quota.remaining}</strong> cr
         </span>
       )}
     </div>

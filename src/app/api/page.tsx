@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Insight API — Oracle Reliability for DeFi',
   description:
-    '15-minute oracle reliability assessment: cross-provider reputation, deviation, depeg risk, liquidation stress tests and anomaly detection via REST API. Free 1,000 calls/mo.',
+    '15-minute oracle reliability assessment: cross-provider reputation, deviation, depeg risk, liquidation stress tests and anomaly detection via REST API. Credit-metered per call — subscribe or top up.',
   keywords: [
     'oracle API',
     'DeFi API',

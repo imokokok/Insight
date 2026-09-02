@@ -64,7 +64,7 @@ export default function RefundPage() {
               <p className="text-slate-700 leading-relaxed">Refunds are not provided for:</p>
               <ul className="list-disc list-inside text-slate-700 space-y-1 ml-4 mt-2">
                 <li>Subscriptions past the 14-day review window</li>
-                <li>Partial usage of API quota within the current billing cycle</li>
+                <li>Partial usage of credits within the current billing cycle</li>
                 <li>Abuse of service or violations of our Terms of Service</li>
                 <li>Accounts terminated for misconduct</li>
                 <li>Loss of access to the wallet used for payment</li>
@@ -77,8 +77,9 @@ export default function RefundPage() {
               </h2>
               <p className="text-slate-700 leading-relaxed">
                 Subscriptions do not auto-renew. You retain access until the end of your current
-                billing period, after which your account automatically reverts to the Free plan. To
-                continue service, manually renew from{' '}
+                billing period, after which your keys revert to the base Developer tier and any
+                remaining credit-wallet balance keeps working on a pay-as-you-go basis. To continue
+                at the subscribed allowance, manually renew from{' '}
                 <Link
                   href="/settings?tab=billing"
                   className="text-blue-600 hover:text-blue-700 font-medium"

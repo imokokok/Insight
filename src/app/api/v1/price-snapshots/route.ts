@@ -16,7 +16,7 @@ import { get7dAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
 /**
  * 15-minute grain price snapshots.
  *
- * Backs the "Historical snapshots (15-min grain)" Tier 2 feature advertised on
+ * Backs the "Historical snapshots (15-min grain)" feature advertised on
  * the pricing page. Reads from the `price_snapshots` table populated by the
  * GitHub Actions `snapshot-collect` workflow (every 15 min), which is 4x denser
  * than `hourly_price_snapshots`. Retention is 6 months (pg_cron
@@ -92,7 +92,7 @@ export const GET = createApiHandler(
     );
   },
   {
-    // Tier 2 deep-analysis endpoint
+    // C2 deep-analysis endpoint (credit-metered)
     middlewares: V1_STANDARD_MIDDLEWARES,
     validation: { query: SnapshotQuerySchema },
   }

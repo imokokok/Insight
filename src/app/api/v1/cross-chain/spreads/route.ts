@@ -92,7 +92,7 @@ export const GET = createApiHandler(
     }
   },
   {
-    // Tier 3 protocol-level intelligence
+    // C2 deep-analysis endpoint (credit-metered)
     middlewares: V1_PROTOCOL_TIER_MIDDLEWARES,
     validation: { query: CrossChainSpreadQuerySchema },
   }

@@ -88,8 +88,8 @@ export function McpConfigGenerator({ defaultApiKey }: McpConfigGeneratorProps) {
           config.
         </p>
         <p className="mt-1 text-xs text-slate-500">
-          The Free plan includes 1,000 calls/mo; some advanced tools (e.g. check_position_safety)
-          require Pro or higher.{' '}
+          MCP tool calls are credit-metered per call (C1–C4) — subscribe or top up credits. Every
+          paying user gets all 34 tools.{' '}
           <Link href="/api#pricing" className="text-blue-600 hover:underline">
             See pricing →
           </Link>

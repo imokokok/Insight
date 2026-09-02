@@ -38,7 +38,7 @@ interface UseMcpClientResult {
   error: string | null;
   /** Rate-limit state parsed from the last response headers. */
   rateLimit: RateLimitInfo | null;
-  /** Quota state parsed from the last response headers (only present for API-key auth). */
+  /** Credit balance parsed from the last response headers (API-key auth only). */
   quota: { limit: number; remaining: number; resetAt: number } | null;
   /** Clear the error state. */
   clearError: () => void;
@@ -51,7 +51,8 @@ interface UseMcpClientResult {
  *   1. Supabase session JWT from the auth store (logged-in users).
  *   2. Explicit `apiKey` option passed to the hook.
  *
- * The hook parses rate-limit and quota headers so the UI can show usage.
+ * The hook parses rate-limit and credit-balance headers so the UI can show
+ * usage. `quota.remaining` is the remaining credit balance for API-key calls.
  */
 export function useMcpClient(options: UseMcpClientOptions = {}): UseMcpClientResult {
   const session = useSession();
@@ -97,11 +98,12 @@ export function useMcpClient(options: UseMcpClientOptions = {}): UseMcpClientRes
         const resetAt = Number(response.headers.get('X-RateLimit-Reset') || '0') * 1000;
         setRateLimit(limit > 0 ? { limit, remaining, resetAt } : null);
 
+        // Credit model: X-Quota-Remaining carries the remaining credit balance.
         const quotaLimit = Number(response.headers.get('X-Quota-Limit') || '-1');
-        const quotaRemaining = Number(response.headers.get('X-Quota-Remaining') || '0');
+        const quotaRemaining = Number(response.headers.get('X-Quota-Remaining') || '-1');
         const quotaResetAt = Number(response.headers.get('X-Quota-Reset') || '0') * 1000;
         setQuota(
-          quotaLimit >= 0
+          quotaRemaining >= 0
             ? { limit: quotaLimit, remaining: quotaRemaining, resetAt: quotaResetAt }
             : null
         );

@@ -55,10 +55,10 @@ function jsonResponse(
  * Before the request reaches the MCP server we run:
  *   1. Authentication (API key, Supabase session, or MCP_BEARER_TOKEN)
  *   2. Per-identity rate limiting
- *   3. Monthly quota enforcement for API-key users
+ *   3. Credit-wallet precheck for API-key users (402 when balance is empty)
  *
  * The resulting auth context is passed into the MCP server so individual tool
- * calls can apply plan guards and usage logging.
+ * calls can apply credit prechecks/charges and usage logging.
  */
 export async function handleMcpHttpRequest(request: Request): Promise<McpHttpHandlerResult> {
   const authResult = await authenticateMcpRequest(request);
@@ -122,8 +122,8 @@ export async function handleMcpHttpRequest(request: Request): Promise<McpHttpHan
 
   const response = await transport.handleRequest(request);
 
-  // Merge rate-limit/quota headers into the final MCP response so consumers
-  // can track limits without parsing JSON-RPC bodies.
+  // Merge rate-limit/credit headers into the final MCP response so consumers
+  // can track limits and their credit balance without parsing JSON-RPC bodies.
   const merged = new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -132,7 +132,10 @@ export async function handleMcpHttpRequest(request: Request): Promise<McpHttpHan
   merged.headers.set('X-RateLimit-Limit', String(rateLimit.limit));
   merged.headers.set('X-RateLimit-Remaining', String(rateLimit.remaining));
   merged.headers.set('X-RateLimit-Reset', String(Math.floor(rateLimit.resetAt / 1000)));
-  if (quota.limit >= 0) {
+  // Credit model: X-Quota-* carries the remaining credit balance (limit is -1
+  // — there is no monthly call cap). Only set for API-key callers that have a
+  // wallet (remaining >= 0).
+  if (quota.remaining >= 0) {
     merged.headers.set('X-Quota-Limit', String(quota.limit));
     merged.headers.set('X-Quota-Remaining', String(quota.remaining));
     merged.headers.set(

@@ -113,7 +113,8 @@ const cronJobs = [
   {
     name: 'billing',
     schedule: 'Daily',
-    purpose: 'Subscription lifecycle: trial/sub expiry, quota reset, zombie cleanup',
+    purpose:
+      'Grant subscription credit allowances, downgrade expired subs, clean up zombie invoices',
   },
   {
     name: 'feed-discovery',

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { Mail, User, UserPlus, Loader2, CheckCircle, AlertCircle, Gift } from 'lucide-react';
+import { Mail, User, UserPlus, Loader2, CheckCircle, AlertCircle, Coins } from 'lucide-react';
 
 import {
   AuthPageLayout,
@@ -125,13 +125,15 @@ export default function RegisterContent() {
           </div>
 
           <div className="bg-amber-50 border border-amber-200 p-3 mb-4 rounded-lg flex items-start gap-2">
-            <Gift className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <Coins className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
-              After verifying your email, claim your <strong>7-day Pro Trial</strong> in{' '}
+              API access is credit-metered and paid-only (no free tier, no trial). After verifying
+              your email, subscribe (Developer from $49/mo — 10,000 credits) or top up a prepaid
+              pack in{' '}
               <Link href="/settings?tab=billing" className="font-semibold underline">
                 Settings → Billing
               </Link>{' '}
-              — 10,000 credits / month included · deep-analysis + pre-trade unlocked · 30 req/min.
+              to start calling every endpoint and MCP tool.
             </p>
           </div>
           <div className="space-y-3">

@@ -47,7 +47,7 @@ export const GET = createApiHandler(
     );
   },
   {
-    // Tier 2 deep-analysis endpoint
+    // C2 deep-analysis endpoint (credit-metered)
     middlewares: V1_STANDARD_MIDDLEWARES,
     validation: { query: StablecoinQuerySchema },
   }
