@@ -20,10 +20,6 @@ import { CREDIT_PACKS, CREDIT_PACK_ORDER } from '@/lib/billing/plans';
 interface CreditWalletCardProps {
   accessToken: string | null | undefined;
   onError?: (message: string) => void;
-  /** Whether the user can buy credit packs (needs an active paid subscription
-   *  or Pro trial). When false, top-up buttons are hidden — packs are layered
-   *  on top of a paid plan and a free user's wallet is otherwise unspendable. */
-  topupEligible?: boolean;
 }
 
 interface WalletData {
@@ -32,11 +28,7 @@ interface WalletData {
   recent: Array<{ delta: number; kind: string; ref: string | null; createdAt: string }>;
 }
 
-export function CreditWalletCard({
-  accessToken,
-  onError,
-  topupEligible = true,
-}: CreditWalletCardProps) {
+export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps) {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [topUpLoading, setTopUpLoading] = useState<string | null>(null);
 
@@ -115,35 +107,31 @@ export function CreditWalletCard({
         </div>
         <div className="rounded-xl p-4 border border-slate-200 border-dashed">
           <div className="text-sm text-slate-600 mb-3">Top up credits</div>
-          {topupEligible ? (
-            <div className="flex flex-wrap gap-2">
-              {CREDIT_PACK_ORDER.map((pack) => (
-                <Button
-                  key={pack}
-                  variant="secondary"
-                  size="sm"
-                  disabled={topUpLoading === pack}
-                  onClick={() => handleTopUp(pack)}
-                  leftIcon={
-                    topUpLoading === pack ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Zap className="w-4 h-4" />
-                    )
-                  }
-                  className="rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                  title={CREDIT_PACKS[pack].description}
-                >
-                  {CREDIT_PACKS[pack].credits.toLocaleString()} · ${CREDIT_PACKS[pack].priceUsd}
-                </Button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Credit packs are an add-on to a paid plan. Upgrade to Pro or Protocol (or claim your
-              7-day Pro trial) to buy extra credits.
-            </p>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {CREDIT_PACK_ORDER.map((pack) => (
+              <Button
+                key={pack}
+                variant="secondary"
+                size="sm"
+                disabled={topUpLoading === pack}
+                onClick={() => handleTopUp(pack)}
+                leftIcon={
+                  topUpLoading === pack ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Zap className="w-4 h-4" />
+                  )
+                }
+                className="rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                title={CREDIT_PACKS[pack].description}
+              >
+                {CREDIT_PACKS[pack].credits.toLocaleString()} · ${CREDIT_PACKS[pack].priceUsd}
+              </Button>
+            ))}
+          </div>
+          <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+            No subscription required — a positive balance unlocks every endpoint and MCP tool.
+          </p>
         </div>
       </div>
 

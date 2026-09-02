@@ -13,26 +13,9 @@ interface PricingCardsProps {
   billingCycle: 'monthly' | 'yearly';
 }
 
-const planOrder = ['free', 'pro', 'protocol'] as const;
+const planOrder = ['developer', 'team', 'enterprise'] as const;
 
-const planHighlights: Record<string, string[]> = {
-  free: ['1,000 API calls / month', 'Current prices & daily reports', '7-day reputation trends'],
-  pro: [
-    '10,000 credits / month included',
-    'Deep analysis — 2 cr per call',
-    'pre-trade & oracle-watch gates — 5 cr per call',
-    'CSV / Excel export',
-  ],
-  protocol: [
-    '100,000 credits / month included',
-    'Protocol exposure analysis',
-    'Attested receipts — 10 cr per call',
-    'Incident timeline & coverage',
-    'Priority batch queue',
-  ],
-};
-
-/** Per-percall metering classes surfaced on the pricing page. */
+/** Per-call metering classes surfaced on the pricing page. */
 const METERING_ROWS = [
   { cls: 'C1', cost: '0.5 cr', desc: 'Foundational data — prices, listings, daily reports' },
   { cls: 'C2', cost: '2 cr', desc: 'Deep analysis — deviation, correlation, risk, history' },
@@ -48,7 +31,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
   const [loadingPack, setLoadingPack] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubscribe = async (planId: 'pro' | 'protocol') => {
+  const handleSubscribe = async (planId: 'developer' | 'team') => {
     setError(null);
 
     // If not logged in, send to register first — they can subscribe after auth.
@@ -126,20 +109,21 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {planOrder.map((planId) => {
           const plan = PLANS[planId];
+          const isTeam = planId === 'team';
+          const isEnterprise = planId === 'enterprise';
           const price = billingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly;
-          const isPro = planId === 'pro';
-          const isProtocol = planId === 'protocol';
-          const isPaid = planId === 'pro' || planId === 'protocol';
           const isLoading = loadingPlan === planId;
 
           return (
             <div
               key={planId}
               className={`relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm transition-all hover:shadow-md ${
-                isPro ? 'border-blue-200 ring-1 ring-blue-100 md:-mt-2 md:mb-2' : 'border-slate-100'
+                isTeam
+                  ? 'border-blue-200 ring-1 ring-blue-100 md:-mt-2 md:mb-2'
+                  : 'border-slate-100'
               }`}
             >
-              {isPro && (
+              {isTeam && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider shadow-sm">
                     Most Popular
@@ -149,39 +133,43 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
 
               <div className="mb-5">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-bold text-slate-900 capitalize">{plan.name}</h3>
-                  {isProtocol && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-bold uppercase tracking-wider">
-                      Enterprise
+                  <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
+                  {isEnterprise && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-wider">
+                      Contact sales
                     </span>
                   )}
                 </div>
                 <p className="text-sm text-slate-500 leading-relaxed">
-                  {isPro
-                    ? 'For analysts and builders who need deep oracle risk signals.'
-                    : isProtocol
+                  {isTeam
+                    ? 'For teams running batch analytics and multi-agent workloads.'
+                    : isEnterprise
                       ? 'For protocol teams and risk committees managing systemic exposure.'
-                      : 'For developers exploring oracle reliability data.'}
+                      : 'For analysts and builders who need deep oracle risk signals.'}
                 </p>
               </div>
 
               <div className="mb-5">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold tracking-tight text-slate-900">
-                    {billingCycle === 'yearly' && price ? Math.round(price / 12) : (price ?? 0)}
-                  </span>
-                  <span className="text-sm text-slate-500">USDC/mo</span>
-                </div>
-                {billingCycle === 'yearly' && price && price > 0 && (
-                  <p className="text-xs text-slate-400 mt-1">{price} USDC billed annually</p>
-                )}
-                {isPaid && (
-                  <p className="text-xs text-slate-400 mt-1">Crypto payment · no auto-renew</p>
+                {isEnterprise ? (
+                  <div className="text-3xl font-bold tracking-tight text-slate-900">Custom</div>
+                ) : (
+                  <>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold tracking-tight text-slate-900">
+                        {billingCycle === 'yearly' && price ? Math.round(price / 12) : (price ?? 0)}
+                      </span>
+                      <span className="text-sm text-slate-500">USDC/mo</span>
+                    </div>
+                    {billingCycle === 'yearly' && price && price > 0 && (
+                      <p className="text-xs text-slate-400 mt-1">{price} USDC billed annually</p>
+                    )}
+                    <p className="text-xs text-slate-400 mt-1">Crypto payment · no auto-renew</p>
+                  </>
                 )}
               </div>
 
               <ul className="space-y-3 mb-7 flex-1">
-                {planHighlights[planId].map((feature) => (
+                {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm text-slate-600">
                     <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
                     <span>{feature}</span>
@@ -189,13 +177,20 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                 ))}
               </ul>
 
-              {isPaid ? (
+              {isEnterprise ? (
+                <a
+                  href="mailto:sales@oracleinsight.xyz?subject=Enterprise%20plan"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
+                >
+                  Contact sales
+                </a>
+              ) : (
                 <button
                   type="button"
-                  onClick={() => handleSubscribe(planId as 'pro' | 'protocol')}
+                  onClick={() => handleSubscribe(planId as 'developer' | 'team')}
                   disabled={isLoading}
                   className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
-                    isPro
+                    isTeam
                       ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-900/10'
                       : 'bg-slate-900 hover:bg-slate-800 text-white'
                   }`}
@@ -203,13 +198,6 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                   {isLoading ? 'Redirecting…' : 'Subscribe with crypto'}
                 </button>
-              ) : (
-                <a
-                  href="/register"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
-                >
-                  Get started free
-                </a>
               )}
             </div>
           );
@@ -225,8 +213,8 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
             <h3 className="text-base font-bold text-slate-900">Per-call credit pricing</h3>
           </div>
           <p className="text-sm text-slate-500 mb-4">
-            Each endpoint/tool costs credits by metering class. Subscribe for a monthly allowance,
-            then top up when your agents burn through it.
+            Every paying user gets all endpoints and MCP tools. Each call costs credits by metering
+            class — subscribe for a monthly allowance, then top up when your agents burn through it.
           </p>
           <div className="space-y-2">
             {METERING_ROWS.map((row) => (
@@ -258,7 +246,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
             <h3 className="text-base font-bold text-slate-900">Prepaid credit packs</h3>
           </div>
           <p className="text-sm text-slate-500 mb-4">
-            Layered on top of a plan — buy credits now, spend per call. Good for high-frequency and
+            No subscription required — add credits and spend per call. Good for high-frequency and
             bursty agent workloads.
           </p>
           <div className="space-y-2">

@@ -2,21 +2,32 @@
  * Single source of truth for all billing plan configuration.
  *
  * Every component that needs to know "what does plan X include?" reads from
- * this file — the API key creation, the quota middleware, the plan guard, the
- * pricing page, and the billing panel. Changing a limit here propagates everywhere.
+ * this file — the API key creation, the quota middleware, the billing panel,
+ * and the pricing page. Changing a limit here propagates everywhere.
+ *
+ * Model (2026-09): Codex-style paid platform.
+ *   - NO free tier and NO free trial. API access requires either an active
+ *     subscription or a positive credit-wallet balance.
+ *   - ALL features are open to any paying user — there is no Tier 2/3 feature
+ *     gating. The only gate is the wallet: a call is allowed iff the balance
+ *     covers its credit cost (see metering.ts).
+ *   - Subscriptions are Developer / Team (credit allowance + rate limit differ,
+ *     features are identical). Enterprise is contact-sales unlimited.
+ *   - Credits can be topped up on demand via CREDIT_PACKS, no subscription
+ *     required (pure pay-as-you-go).
+ *   - The public website (prices, protocols, rankings) stays free to browse;
+ *     only API-key calls are metered.
  *
  * Positioning: Insight is NOT a real-time oracle tracker. It is a
  * reliability-assessment platform — price snapshots are polled every 15
  * minutes, reputation scores are recalculated hourly, and all data is
- * aggregated into daily reports. The quotas below are sized to that cadence:
- * polling faster than 15 minutes yields no fresher snapshot data, so clients
- * should cache on their side. The previous quotas (10K / 100K / 1M per month)
- * were sized like a real-time market-data API and were neither sustainable
- * for a solo project on Supabase nor aligned with the actual data freshness.
+ * aggregated into daily reports. The allowances below are sized to that
+ * cadence: polling faster than 15 minutes yields no fresher snapshot data, so
+ * clients should cache on their side.
  *
  * Pricing rationale (validated against 2026-07 market):
- *   - Pro 49 USDC/mo     : matches Moralis Starter, QuickNode Build (developer sweet spot)
- *   - Protocol 499 USDC/mo: matches DefiLlama Pro, QuickNode Scale (team sweet spot)
+ *   - Developer 49 USDC/mo  : matches Moralis Starter, QuickNode Build (developer sweet spot)
+ *   - Team 199 USDC/mo      : between QuickNode Scale and DefiLlama Pro (team sweet spot)
  *   - Yearly = 10x monthly (2 months free) : standard industry discount
  *
  * Payments are processed via NOWPayments (crypto only). Prices are denominated
@@ -26,54 +37,34 @@
  */
 
 export const PLANS = {
-  free: {
-    name: 'Free',
-    rateLimit: 5, // requests per minute — 15-min data, no need for fast polling
-    monthlyQuota: 1_000, // requests per calendar month
-    dailyTrialQuota: 5, // calls/day to Tier 2 deep-analysis endpoints for free users
-    priceMonthly: 0,
-    priceYearly: 0,
-    features: [
-      '1,000 API calls / month',
-      '5 requests / minute',
-      'Oracle reliability rankings (7-day trend)',
-      'Current prices across 10+ oracles',
-      '5 trial calls/day to deep-analysis endpoints',
-      'Daily reliability reports',
-    ],
-  },
-  pro: {
-    name: 'Pro',
-    rateLimit: 30,
-    monthlyQuota: 10_000,
-    dailyTrialQuota: null, // unlimited — no daily cap for paid plans
+  developer: {
+    name: 'Developer',
+    rateLimit: 30, // requests per minute
+    monthlyQuota: 10_000, // credits included per billing cycle with a subscription
     priceMonthly: 49,
     priceYearly: 490,
     features: [
       '10,000 credits / month included',
       '30 requests / minute',
-      'Full deep-analysis suite (deviation, correlation, latency, risk)',
+      'Full platform access — every endpoint & MCP tool',
       'Historical 15-minute snapshots (6-month archive)',
+      'Reliability rankings (90-day trend)',
       'Protocol risk parameters & position stress tests',
-      'Anomaly detection (30-day window)',
-      'Reliability rankings (30-day trend)',
+      'Anomaly detection, incident timeline & coverage analysis',
       'CSV / Excel export',
       'Email support (48h SLA)',
     ],
   },
-  protocol: {
-    name: 'Protocol',
-    rateLimit: 60,
-    monthlyQuota: 100_000,
-    dailyTrialQuota: null,
-    priceMonthly: 499,
-    priceYearly: 4990,
+  team: {
+    name: 'Team',
+    rateLimit: 60, // requests per minute
+    monthlyQuota: 50_000, // credits included per billing cycle with a subscription
+    priceMonthly: 199,
+    priceYearly: 1990,
     features: [
-      '100,000 credits / month included',
+      '50,000 credits / month included',
       '60 requests / minute',
-      'Protocol-level intelligence (oracle exposure, cross-chain spreads)',
-      'Incident timeline & single-point-of-failure coverage analysis',
-      'Reliability rankings (90-day trend)',
+      'Full platform access — every endpoint & MCP tool',
       'Batch query priority queue',
       'Quarterly reliability review',
       '99.5% uptime SLA',
@@ -84,7 +75,6 @@ export const PLANS = {
     name: 'Enterprise',
     rateLimit: -1, // unlimited
     monthlyQuota: -1, // unlimited
-    dailyTrialQuota: null,
     priceMonthly: null, // contact sales
     priceYearly: null,
     features: [
@@ -100,13 +90,15 @@ export const PLANS = {
 
 export type Plan = keyof typeof PLANS;
 
-/** Ordered list for display in pricing page. */
-export const PLAN_ORDER: Plan[] = ['free', 'pro', 'protocol', 'enterprise'];
+/** Billing cycle options for subscriptions. */
+export type BillingInterval = 'month' | 'year';
+
+/** Ordered list for display in pricing page (also the tier ladder, ascending). */
+export const PLAN_ORDER: Plan[] = ['developer', 'team', 'enterprise'];
 
 // ---------------------------------------------------------------------------
-// Credit packs — prepaid top-ups layered on top of the flat plans.
-// A paid plan includes a monthly credit allowance (see PLAN_CREDIT_GRANT);
-// these packs let an agent-heavy consumer buy more credits on demand.
+// Credit packs — prepaid top-ups. Available to every user (no subscription
+// required): a wallet with balance can call ANY endpoint/tool at C1..C4 rates.
 // ---------------------------------------------------------------------------
 
 export const CREDIT_PACKS = {
@@ -135,76 +127,30 @@ export type CreditPack = keyof typeof CREDIT_PACKS;
 export const CREDIT_PACK_ORDER: CreditPack[] = ['starter', 'builder', 'agent'];
 
 /**
- * Monthly credit allowance a paid plan grants to its holder's wallet (per
- * subscription billing cycle, credited via add_monthly_credits cron + at
- * subscription activation). Mirrors the previous flat per-month quota, now
- * denominated in credits that are spent per-call at C1..C4 rates.
+ * Monthly credit allowance a subscription plan grants to its holder's wallet
+ * (per billing cycle, credited via add_monthly_credits cron + at subscription
+ * activation). Enterprise is unlimited and receives no grant.
  */
 export function planCreditGrant(planValue: Plan): number {
-  if (planValue === 'pro') return PLANS.pro.monthlyQuota; // 10_000
-  if (planValue === 'protocol') return PLANS.protocol.monthlyQuota; // 100_000
-  return 0;
+  if (planValue === 'developer') return PLANS.developer.monthlyQuota; // 10_000
+  if (planValue === 'team') return PLANS.team.monthlyQuota; // 50_000
+  return 0; // enterprise — unlimited
 }
 
 /**
- * Tier membership is NOT defined by allowlists here — it is enforced by the
- * planGuard middleware whenever a route MOUNTS it (`planGuard: true` for
- * Tier 2, `planGuard: { minPlan: 'protocol' }` for Tier 3). Mounting IS
- * protection; there is no separate runtime allowlist check. See
- * src/lib/api/middleware/planGuard.ts and the Data Access Tier Matrix on the
- * /api page for the documented tier membership.
+ * Maximum historical trend window (in days) the reputation / ranking endpoints
+ * may return. All paying users get the full window — there is no free tier and
+ * no feature gating, so this is a flat constant rather than a per-plan cap.
  */
-
-/** Trial duration in days for the 7-day Pro trial. */
-export const TRIAL_DURATION_DAYS = 7;
-
-/** Subscription billing intervals supported by NOWPayments checkout. */
-export type BillingInterval = 'month' | 'year';
-
-/**
- * Does the user's plan satisfy a minimum-plan requirement?
- *
- * Uses the tier ladder defined by PLAN_ORDER (free < pro < protocol <
- * enterprise). A higher tier always satisfies a lower requirement, so a
- * Protocol user passes a `minPlan: 'pro'` check, but a Pro user does NOT
- * pass a `minPlan: 'protocol'` check.
- *
- * Used by planGuard to decide Tier 2 (minPlan 'pro') vs Tier 3
- * (minPlan 'protocol') access.
- */
-export function planSatisfies(userPlan: Plan, minPlan: Plan): boolean {
-  return PLAN_ORDER.indexOf(userPlan) >= PLAN_ORDER.indexOf(minPlan);
+export function maxTrendDays(_plan: Plan): number {
+  return 90;
 }
 
-/**
- * Maximum historical trend window (in days) a plan may request on the
- * reputation / ranking endpoints. Tiered so deeper reliability history is a
- * paid differentiator: Free 7d, Pro 30d, Protocol/Enterprise 90d.
- *
- * Applied only to API-key requests on the Tier 1 reputation endpoints
- * (rankings, per-provider trend). Session (UI) requests are left unclamped —
- * the UI governs its own display and session requests already bypass
- * API-plan gating.
- */
-export function maxTrendDays(plan: Plan): number {
-  if (plan === 'protocol' || plan === 'enterprise') return 90;
-  if (plan === 'pro') return 30;
-  return 7; // free
-}
-
-/** Is this key currently within its trial window? */
-export function isTrialActive(trialEndsAt: string | null | undefined): boolean {
-  if (!trialEndsAt) return false;
-  return new Date(trialEndsAt).getTime() > Date.now();
-}
-
-/**
- * Normalize a plan string from the DB to a valid Plan key.
- * Defaults to 'free' for unknown / null values.
- */
+/** Normalize a plan string from the DB to a valid Plan key. Defaults to
+ *  'developer' (the base tier) for unknown / null values. */
 export function normalizePlan(plan: string | null | undefined): Plan {
   if (plan && plan in PLANS) {
     return plan as Plan;
   }
-  return 'free';
+  return 'developer';
 }

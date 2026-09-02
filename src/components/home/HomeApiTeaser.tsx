@@ -34,8 +34,8 @@ const SELLING_POINTS = [
   },
   {
     icon: Zap,
-    label: 'Free Tier',
-    description: 'Start integrating with a free API key and generous quota',
+    label: 'Credit Metered',
+    description: 'Pay per call by data class (C1–C4) — subscribe or top up credits',
   },
 ];
 

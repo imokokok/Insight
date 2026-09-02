@@ -5,16 +5,12 @@
  * .github/workflows/billing-cron.yml).
  *
  * Responsibilities:
- *   1. Every day: downgrade API keys whose 7-day Pro trial has expired back
- *      to free (trial_ends_at < now() AND plan = 'pro').
- *   2. Every day: downgrade API keys for users whose NOWPayments subscription
+ *   1. Every day: downgrade API keys for users whose NOWPayments subscription
  *      has expired (current_period_end < now() AND status = 'active') — but
  *      only if the user has no remaining active, unexpired subscription.
- *   3. Every day: cancel subscription rows stuck in 'incomplete' status for
+ *   2. Every day: cancel subscription rows stuck in 'incomplete' status for
  *      more than 24 hours (abandoned checkouts / lost IPNs).
- *   4. On the 1st of each month: reset monthly_quota_used to 0 for all
- *      non-enterprise keys and advance quota_reset_at by one month.
- *   5. Every day: credit each active subscriber's monthly credit allowance to
+ *   3. Every day: credit each active subscriber's monthly credit allowance to
  *      their credit wallet (idempotent per user+month — new subscribers are
  *      also immediately granted their first-cycle allowance at the webhook).
  *
@@ -25,12 +21,7 @@
 
 import { NextResponse } from 'next/server';
 
-import {
-  cleanupIncompleteSubscriptions,
-  downgradeExpiredSubscriptions,
-  downgradeExpiredTrials,
-  resetMonthlyQuota,
-} from '@/lib/api/apiKey';
+import { cleanupIncompleteSubscriptions, downgradeExpiredSubscriptions } from '@/lib/api/apiKey';
 import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { addMonthlyCredits } from '@/lib/billing/creditWallet';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
@@ -55,26 +46,15 @@ export interface BillingResult {
  */
 export async function runBilling(): Promise<BillingResult> {
   const now = new Date();
-  const isMonthStart = now.getUTCDate() === 1;
 
   const results: {
-    trialsDowngraded: number;
     subscriptionsDowngraded: number;
     subscriptionsCleanedUp: number;
-    quotaReset?: number;
     creditsGranted?: number;
-  } = { trialsDowngraded: 0, subscriptionsDowngraded: 0, subscriptionsCleanedUp: 0 };
+  } = { subscriptionsDowngraded: 0, subscriptionsCleanedUp: 0 };
 
   try {
-    // 1. Daily: downgrade expired trial keys
-    logger.info('Billing cron: starting downgradeExpiredTrials');
-    const trialResult = await downgradeExpiredTrials();
-    results.trialsDowngraded = trialResult.downgraded;
-    logger.info('Billing cron: downgradeExpiredTrials complete', {
-      trialsDowngraded: results.trialsDowngraded,
-    });
-
-    // 2. Daily: downgrade expired NOWPayments subscriptions
+    // 1. Daily: downgrade expired NOWPayments subscriptions
     logger.info('Billing cron: starting downgradeExpiredSubscriptions');
     const subResult = await downgradeExpiredSubscriptions();
     results.subscriptionsDowngraded = subResult.downgraded;
@@ -82,7 +62,7 @@ export async function runBilling(): Promise<BillingResult> {
       subscriptionsDowngraded: results.subscriptionsDowngraded,
     });
 
-    // 3. Daily: cleanup zombie incomplete subscription rows (>24h old)
+    // 2. Daily: cleanup zombie incomplete subscription rows (>24h old)
     logger.info('Billing cron: starting cleanupIncompleteSubscriptions');
     const cleanupResult = await cleanupIncompleteSubscriptions();
     results.subscriptionsCleanedUp = cleanupResult.cleanedUp;
@@ -90,17 +70,7 @@ export async function runBilling(): Promise<BillingResult> {
       subscriptionsCleanedUp: results.subscriptionsCleanedUp,
     });
 
-    // 4. Monthly (1st of month): reset quota counters
-    if (isMonthStart) {
-      logger.info('Billing cron: starting resetMonthlyQuota');
-      const quotaResult = await resetMonthlyQuota();
-      results.quotaReset = quotaResult.reset;
-      logger.info('Billing cron: resetMonthlyQuota complete', {
-        quotaReset: results.quotaReset,
-      });
-    }
-
-    // 5. Daily: credit active subscribers' monthly credit allowance. Idempotent
+    // 3. Daily: credit active subscribers' monthly credit allowance. Idempotent
     //    per (user, month), so running daily is safe — this also catches
     //    subscribers whose allowance was missed at activation.
     logger.info('Billing cron: starting addMonthlyCredits');
@@ -112,7 +82,6 @@ export async function runBilling(): Promise<BillingResult> {
 
     logger.info('Billing cron complete', {
       ...results,
-      isMonthStart,
       utcDate: now.toISOString(),
     });
 
@@ -121,9 +90,7 @@ export async function runBilling(): Promise<BillingResult> {
       body: {
         success: true,
         data: results,
-        message: `Billing cron complete: ${results.trialsDowngraded} trials, ${results.subscriptionsDowngraded} expired subs, ${results.subscriptionsCleanedUp} zombies cleaned, ${results.creditsGranted} wallets credited${
-          results.quotaReset !== undefined ? `, ${results.quotaReset} keys quota reset` : ''
-        }`,
+        message: `Billing cron complete: ${results.subscriptionsDowngraded} expired subs downgraded, ${results.subscriptionsCleanedUp} zombies cleaned, ${results.creditsGranted} wallets credited`,
       },
     };
   } catch (error) {

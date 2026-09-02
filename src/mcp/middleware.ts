@@ -1,22 +1,24 @@
 /**
- * @fileoverview MCP rate-limit, quota and plan-guard helpers
+ * @fileoverview MCP rate-limit and credit helpers
  *
  * These helpers reuse the same backend primitives as the REST API
- * (rateLimitStore, incrementApiKeyQuota, PLANS) but are shaped for the MCP
- * streaming HTTP transport, which uses standard Request/Response instead of
- * Next.js types.
+ * (rateLimitStore, creditWallet, PLANS) but are shaped for the MCP streaming
+ * HTTP transport, which uses standard Request/Response instead of Next.js
+ * types.
+ *
+ * Metering is a single credit-wallet path shared with REST: an API key may
+ * call a tool iff its balance covers the tool's credit cost (getToolCreditCost).
+ * There is no free tier, no plan-based feature gating and no trial.
  */
 
-import { incrementApiKeyQuota, logApiKeyUsage } from '@/lib/api/apiKey';
+import { logApiKeyUsage } from '@/lib/api/apiKey';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 import { consumeCredits, makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
 import { getToolCreditCost } from '@/lib/billing/metering';
-import { isTrialActive, normalizePlan, planSatisfies, PLANS } from '@/lib/billing/plans';
+import { normalizePlan, PLANS } from '@/lib/billing/plans';
 import { createLogger } from '@/lib/utils/logger';
 
-import { getToolTier } from './tiers';
-
-import type { McpAuthContext, McpApiKeyAuth } from './auth';
+import type { McpAuthContext } from './auth';
 
 const logger = createLogger('mcp-middleware');
 
@@ -95,17 +97,16 @@ interface McpQuotaResult {
 }
 
 /**
- * Pre-check the monthly quota / credit balance for API-key authenticated MCP
- * calls WITHOUT consuming it. This runs at the HTTP boundary so an
- * already-exhausted key is short-circuited with a 402 before the JSON-RPC
- * message is even dispatched.
+ * Pre-check the credit balance for API-key authenticated MCP calls WITHOUT
+ * consuming it. This runs at the HTTP boundary so an already-exhausted key is
+ * short-circuited with a 402 before the JSON-RPC message is even dispatched.
  *
  * The actual credit charge happens later, in {@link consumeMcpQuota}, only
  * when a tool call succeeds — so protocol overhead (`initialize`,
- * `tools/list`, `ping`) and plan-guarded / failed tool calls do NOT cost the
- * user. Session and shared-bearer callers are never metered.
+ * `tools/list`, `ping`) and failed tool calls do NOT cost the user. Session
+ * and shared-bearer callers are never metered.
  *
- * Tool name is unavailable at the HTTP boundary, so paid keys are checked
+ * Tool name is unavailable at the HTTP boundary, so API keys are checked
  * against the cheapest class cost (0.5) — enough to short-circuit an empty
  * wallet. The precise per-tool cost is charged in consumeMcpQuota.
  */
@@ -117,18 +118,13 @@ export async function checkMcpQuota(auth: McpAuthContext): Promise<McpQuotaResul
   const plan = normalizePlan(auth.apiKey.plan);
   const planConfig = PLANS[plan];
 
-  // Free keys: legacy monthly-quota check from the cached validation result.
-  if (plan === 'free') {
-    return checkFreeMonthlyQuota(auth);
-  }
-
-  // Paid keys: credit-wallet precheck at the cheapest class cost. Fail open on
-  // transient DB error (precheckCredits already fall-open). Unlimited
-  // (enterprise) plans skip the check.
+  // Unlimited (enterprise) plans skip the check.
   if (planConfig.monthlyQuota < 0) {
-    return { allowed: true, limit: -1, remaining: -1, resetAt: auth.apiKey.quotaResetAt };
+    return { allowed: true, limit: -1, remaining: -1, resetAt: new Date().toISOString() };
   }
 
+  // Credit-wallet precheck at the cheapest class cost. Fail open on transient
+  // DB error (precheckCredits already fall-open).
   const minCost = 0.5;
   const precheck = await precheckCredits(auth.apiKey.keyId, minCost);
   if (!precheck.ok) {
@@ -137,52 +133,21 @@ export async function checkMcpQuota(auth: McpAuthContext): Promise<McpQuotaResul
       plan,
       reason: precheck.reason,
     });
-    return { allowed: false, limit: -1, remaining: 0, resetAt: auth.apiKey.quotaResetAt };
+    return { allowed: false, limit: -1, remaining: 0, resetAt: new Date().toISOString() };
   }
 
   return {
     allowed: true,
     limit: -1,
     remaining: precheck.balance ?? 0,
-    resetAt: auth.apiKey.quotaResetAt,
-  };
-}
-
-function checkFreeMonthlyQuota(auth: McpApiKeyAuth): McpQuotaResult {
-  const plan = normalizePlan(auth.apiKey.plan);
-  const limit = PLANS[plan].monthlyQuota;
-
-  if (limit < 0) {
-    return { allowed: true, limit: -1, remaining: -1, resetAt: auth.apiKey.quotaResetAt };
-  }
-
-  const used = auth.apiKey.monthlyQuotaUsed ?? 0;
-  const resetAt = auth.apiKey.quotaResetAt ?? new Date().toISOString();
-  const effectiveUsed = new Date(resetAt).getTime() < Date.now() ? 0 : used;
-
-  if (effectiveUsed >= limit) {
-    logger.warn('MCP monthly quota exceeded', {
-      apiKeyId: auth.apiKey.keyId,
-      plan,
-      used: effectiveUsed,
-      limit,
-    });
-
-    return { allowed: false, limit, remaining: 0, resetAt };
-  }
-
-  return {
-    allowed: true,
-    limit,
-    remaining: Math.max(0, limit - effectiveUsed),
-    resetAt,
+    resetAt: new Date().toISOString(),
   };
 }
 
 /**
- * Per-tool credit precheck for paid API keys. Runs inside the tool-call
- * handler where the tool name IS known, so a key whose balance is below the
- * ACTUAL cost of this specific tool is rejected BEFORE the tool executes.
+ * Per-tool credit precheck for API keys. Runs inside the tool-call handler
+ * where the tool name IS known, so a key whose balance is below the ACTUAL
+ * cost of this specific tool is rejected BEFORE the tool executes.
  *
  * The HTTP-boundary {@link checkMcpQuota} only prechecks against the cheapest
  * class (0.5cr) because the tool name is unavailable there. Without this
@@ -200,9 +165,8 @@ export async function precheckMcpToolQuota(
   }
 
   const plan = normalizePlan(auth.apiKey.plan);
-  // Free keys use the legacy monthly counter; unlimited (enterprise) plans
-  // are never metered.
-  if (plan === 'free' || PLANS[plan].monthlyQuota < 0) {
+  // Unlimited (enterprise) plans are never metered.
+  if (PLANS[plan].monthlyQuota < 0) {
     return { allowed: true };
   }
 
@@ -216,9 +180,9 @@ export async function precheckMcpToolQuota(
 }
 
 /**
- * Consume credits for a successful MCP tool call (paid keys), or increment
- * the monthly-quota counter (free keys). Fire-and-forget, mirroring the REST
- * quota middleware. No-op for session and shared-bearer callers.
+ * Consume credits for a successful MCP tool call. Fire-and-forget, mirroring
+ * the REST quota middleware. No-op for session, shared-bearer and unlimited
+ * (enterprise) callers.
  */
 export function consumeMcpQuota(auth: McpAuthContext, toolName: string): void {
   if (auth.type !== 'apikey') {
@@ -226,16 +190,6 @@ export function consumeMcpQuota(auth: McpAuthContext, toolName: string): void {
   }
 
   const plan = normalizePlan(auth.apiKey.plan);
-
-  if (plan === 'free') {
-    incrementApiKeyQuota(auth.apiKey.keyId).catch((err) => {
-      logger.warn('MCP async quota increment failed', {
-        apiKeyId: auth.apiKey.keyId,
-        error: err instanceof Error ? err.message : String(err),
-      });
-    });
-    return;
-  }
 
   if (PLANS[plan].monthlyQuota < 0) {
     // Unlimited (enterprise) — not metered.
@@ -280,50 +234,4 @@ export function recordMcpToolUsage(
       error: err instanceof Error ? err.message : String(err),
     });
   });
-}
-
-interface McpPlanGuardResult {
-  allowed: boolean;
-  reason?: string;
-}
-
-/**
- * Enforce per-tool plan access, mirroring the REST API planGuard so the same
- * data is gated identically via MCP and REST.
- *
- *   - 'free' tools: never gated.
- *   - 'pro' (Tier 2) tools: pass for pro/protocol/enterprise keys, and for
- *     free keys with an active Pro trial. Other free keys are blocked.
- *   - 'protocol' (Tier 3) tools: hard gate — only protocol/enterprise keys
- *     pass. Pro (even during a trial) and free are blocked.
- *
- * Session (website) and shared-bearer callers always bypass the gate, matching
- * the REST behaviour where Bearer session requests skip planGuard.
- */
-export function checkMcpPlanGuard(auth: McpAuthContext, toolName: string): McpPlanGuardResult {
-  const requiredTier = getToolTier(toolName);
-
-  // Free tools, and session/bearer callers (app UI / shared token), are never gated.
-  if (requiredTier === 'free' || auth.type !== 'apikey') {
-    return { allowed: true };
-  }
-
-  const plan = normalizePlan(auth.apiKey.plan);
-
-  // Paid plans that satisfy the required tier pass.
-  if (planSatisfies(plan, requiredTier)) {
-    return { allowed: true };
-  }
-
-  // Tier 2 (pro) tools: an active Pro trial grants access, mirroring the REST
-  // planGuard. Tier 3 (protocol) tools are a hard gate — trials do NOT apply.
-  if (requiredTier === 'pro' && isTrialActive(auth.apiKey.trialEndsAt)) {
-    return { allowed: true };
-  }
-
-  const planName = PLANS[requiredTier].name;
-  return {
-    allowed: false,
-    reason: `Tool "${toolName}" requires the ${planName} plan or higher. Upgrade at /api#pricing.`,
-  };
 }

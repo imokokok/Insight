@@ -15,5 +15,3 @@ export {
   type QuotaMiddlewareOptions,
   type QuotaInfo,
 } from './quotaMiddleware';
-
-export { createPlanGuardMiddleware, type PlanGuardOptions, type PlanGuardInfo } from './planGuard';

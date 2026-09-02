@@ -96,7 +96,7 @@ export function HeroSection() {
               href="/register"
               className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-blue-900/20 hover:shadow-blue-900/30 hover:-translate-y-0.5"
             >
-              Start building free
+              Start building
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link

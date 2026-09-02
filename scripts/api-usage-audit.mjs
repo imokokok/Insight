@@ -66,7 +66,7 @@ async function main() {
   // 1. Locate the key(s).
   let keyQuery = supabase
     .from('api_keys')
-    .select('id, name, key_prefix, last_used_at, expires_at, monthly_quota_used');
+    .select('id, name, key_prefix, last_used_at, expires_at, plan');
   if (id) keyQuery = keyQuery.eq('id', id);
   else if (prefix) keyQuery = keyQuery.eq('key_prefix', prefix);
   else keyQuery = keyQuery.ilike('name', `%${name}%`);
@@ -88,7 +88,7 @@ async function main() {
   console.log(`\nMatched ${keys.length} key(s) for "${name}":`);
   for (const k of keys) {
     console.log(
-      `  - ${k.name} | id=${k.id} | prefix=${k.key_prefix} | last_used=${k.last_used_at ?? 'n/a'} | expires=${k.expires_at ?? 'n/a'} | monthly_used=${k.monthly_quota_used ?? 'n/a'}`
+      `  - ${k.name} | id=${k.id} | prefix=${k.key_prefix} | last_used=${k.last_used_at ?? 'n/a'} | expires=${k.expires_at ?? 'n/a'} | plan=${k.plan ?? 'n/a'}`
     );
   }
 

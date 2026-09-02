@@ -20,9 +20,6 @@ interface ApiKeyRecord {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
-  monthly_quota_used?: number;
-  quota_reset_at?: string;
-  trial_ends_at?: string | null;
 }
 
 export interface ApiKeyValidationResult {
@@ -30,9 +27,6 @@ export interface ApiKeyValidationResult {
   userId: string;
   plan: string;
   rateLimit: number;
-  monthlyQuotaUsed: number;
-  quotaResetAt: string;
-  trialEndsAt: string | null;
 }
 
 interface GeneratedApiKey {
@@ -127,9 +121,7 @@ export async function validateApiKey(plainKey: string): Promise<ApiKeyValidation
   try {
     const { data, error } = await client
       .from('api_keys')
-      .select(
-        'id, user_id, plan, rate_limit, is_active, expires_at, monthly_quota_used, quota_reset_at, trial_ends_at'
-      )
+      .select('id, user_id, plan, rate_limit, is_active, expires_at')
       .eq('key_hash', keyHash)
       .single();
 
@@ -166,9 +158,6 @@ export async function validateApiKey(plainKey: string): Promise<ApiKeyValidation
       userId: data.user_id,
       plan: data.plan,
       rateLimit: data.rate_limit,
-      monthlyQuotaUsed: data.monthly_quota_used ?? 0,
-      quotaResetAt: data.quota_reset_at ?? new Date().toISOString(),
-      trialEndsAt: data.trial_ends_at ?? null,
     };
 
     setCachedApiKey(keyHash, result);
@@ -202,7 +191,7 @@ export async function listApiKeysForUser(
   const { data, error } = await client
     .from('api_keys')
     .select(
-      'id, user_id, name, key_prefix, plan, rate_limit, is_active, last_used_at, expires_at, created_at, updated_at, monthly_quota_used, quota_reset_at, trial_ends_at'
+      'id, user_id, name, key_prefix, plan, rate_limit, is_active, last_used_at, expires_at, created_at, updated_at'
     )
     .eq('user_id', userId)
     .eq('is_active', true)
@@ -223,15 +212,14 @@ export async function createApiKeyForUser(
     plan?: string;
     rateLimit?: number;
     expiresAt?: string | null;
-    trialEndsAt?: string | null;
   } = {}
 ): Promise<{ record: Omit<ApiKeyRecord, 'key_hash'>; plainKey: string }> {
   const prepared = await prepareApiKeyForStorage(name);
   const client = createServiceRoleClient();
 
   const plan: Plan = normalizePlan(options.plan);
-  // Default rate_limit comes from the plan config (Free=5, Pro=30, Protocol=60).
-  // Explicit overrides (e.g. admin tooling) still win.
+  // Default rate_limit comes from the plan config (Developer=30, Team=60,
+  // Enterprise unlimited). Explicit overrides (e.g. admin tooling) still win.
   const rateLimit = options.rateLimit ?? PLANS[plan].rateLimit;
 
   const { data, error } = await client
@@ -244,7 +232,6 @@ export async function createApiKeyForUser(
       plan,
       rate_limit: rateLimit,
       expires_at: options.expiresAt ?? null,
-      trial_ends_at: options.trialEndsAt ?? null,
     })
     .select(
       'id, user_id, name, key_prefix, plan, rate_limit, is_active, last_used_at, expires_at, created_at, updated_at'
@@ -329,112 +316,10 @@ export async function logApiKeyUsage(record: ApiKeyUsageRecord): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Quota & plan management functions.
-// Used by: quotaMiddleware (incrementApiKeyQuota), planGuard
-// (getDailyEndpointUsage), cron/billing (resetMonthlyQuota,
-// downgradeExpiredTrials), webhook handler (updateApiKeyPlanForUser).
+// Plan management functions.
+// Used by: cron/billing (downgradeExpiredSubscriptions, cleanupIncompleteSubscriptions),
+// webhook handler (updateApiKeyPlanForUser).
 // ---------------------------------------------------------------------------
-
-/**
- * Atomically increment the monthly quota counter for a key. Called by
- * quotaMiddleware after a successful request. Uses a PostgreSQL RPC
- * (increment_api_key_quota) to avoid the read-modify-write race that would
- * occur with a SELECT + UPDATE pattern.
- *
- * Note: this is fire-and-forget from the request path (the handler already
- * calls logApiKeyUsage async). A missed increment here only means the user
- * gets slightly more quota than they paid for — acceptable trade-off vs
- * blocking every API call on a synchronous DB write.
- */
-export async function incrementApiKeyQuota(keyId: string): Promise<void> {
-  const client = createServiceRoleClient();
-  const { error } = await client.rpc('increment_api_key_quota', { key_id: keyId });
-
-  if (error) {
-    logger.warn('Failed to increment API key quota', { keyId, error: error.message });
-  }
-}
-
-/**
- * Count today's calls to a specific endpoint across all of a user's API keys.
- * Used by planGuard to enforce the Free-tier daily trial quota on Tier 2
- * endpoints.
- *
- * Intentionally NOT cached. A previous 5-minute cache let a Free user fire a
- * burst of Tier 2 requests that all saw the same stale count (0) and were all
- * admitted, effectively bypassing the 5-calls/day trial limit. The DB hit per
- * guarded request is acceptable because this path is only reached by Free,
- * non-trial users on Tier 2 endpoints — a small subset that is already
- * rate-limited (5 req/min), so the query volume is bounded.
- *
- * Residual over-count: usage is recorded asynchronously (logApiKeyUsage is
- * fire-and-forget), so a handful of truly concurrent requests may all be
- * admitted before their usage rows commit. This is bounded by the rate limit
- * and is consistent with the fire-and-forget trade-off already accepted by the
- * monthly quota middleware.
- */
-export async function getDailyEndpointUsage(userId: string, endpoint: string): Promise<number> {
-  const client = createServiceRoleClient();
-
-  const { data, error } = await client.rpc('get_daily_endpoint_usage', {
-    p_user_id: userId,
-    p_endpoint: endpoint,
-  });
-
-  if (error) {
-    logger.warn('Failed to get daily endpoint usage', {
-      userId,
-      endpoint,
-      error: error.message,
-    });
-    return 0;
-  }
-
-  return typeof data === 'number' ? data : 0;
-}
-
-/**
- * Reset monthly_quota_used to 0 for all keys and advance quota_reset_at by
- * one month. Called by the billing cron on the 1st of each month.
- *
- * Implemented as a server-side RPC to avoid serializing a potentially large
- * RETURNING result set over the network, which has caused Vercel 504 timeouts.
- */
-export async function resetMonthlyQuota(): Promise<{ reset: number }> {
-  const client = createServiceRoleClient();
-
-  const { data, error } = await client.rpc('reset_monthly_quota');
-
-  if (error) {
-    logger.error('Failed to reset monthly quota', error);
-    throw new Error('Failed to reset monthly quota');
-  }
-
-  return { reset: typeof data === 'number' ? data : 0 };
-}
-
-/**
- * Downgrade all API keys whose Pro trial has expired back to free.
- * Called daily by the billing cron. Returns the number of keys downgraded.
- *
- * Implemented as a server-side RPC to avoid serializing a potentially large
- * RETURNING result set over the network, which has caused Vercel 504 timeouts.
- */
-export async function downgradeExpiredTrials(): Promise<{ downgraded: number }> {
-  const client = createServiceRoleClient();
-
-  const { data, error } = await client.rpc('downgrade_expired_trials');
-
-  if (error) {
-    logger.error('Failed to downgrade expired trials', error);
-    throw new Error('Failed to downgrade expired trials');
-  }
-
-  // Clear the validation cache so downgraded keys lose Pro rate limit immediately.
-  invalidateApiKeyCache();
-
-  return { downgraded: typeof data === 'number' ? data : 0 };
-}
 
 /**
  * Downgrade API keys for users whose NOWPayments subscription has expired
@@ -447,7 +332,7 @@ export async function downgradeExpiredTrials(): Promise<{ downgraded: number }> 
  * expired.
  *
  * Implemented as a server-side RPC to avoid serializing a potentially large
- * RETURNING result set over the network (same reason as resetMonthlyQuota).
+ * RETURNING result set over the network.
  */
 export async function downgradeExpiredSubscriptions(): Promise<{ downgraded: number }> {
   const client = createServiceRoleClient();
@@ -483,9 +368,9 @@ export async function cleanupIncompleteSubscriptions(): Promise<{ cleanedUp: num
 
 /**
  * Update all of a user's API keys to a new plan (and matching rate_limit).
- * Called by the NOWPayments webhook handler when a payment is confirmed
- * (upgrade) or refunded (downgrade to free). Returns the number of keys
- * updated. Idempotent — repeating with the same plan is a no-op.
+ * Called by the NOWPayments webhook handler when a payment is confirmed.
+ * Returns the number of keys updated. Idempotent — repeating with the same
+ * plan is a no-op.
  */
 export async function updateApiKeyPlanForUser(
   userId: string,
@@ -505,10 +390,6 @@ export async function updateApiKeyPlanForUser(
   }
   if (options.stripeSubscriptionId !== undefined) {
     updatePayload.stripe_subscription_id = options.stripeSubscriptionId;
-  }
-  // When upgrading to a paid plan via NOWPayments webhook, clear any trial_ends_at.
-  if (plan !== 'free') {
-    updatePayload.trial_ends_at = null;
   }
 
   const { data, error } = await client

@@ -8,8 +8,7 @@
  *     early with a 402 before doing any work.
  *   - consumeCredits: the authoritative, atomic, idempotent charge. It is
  *     fire-and-forget from the request path (a missed charge only means the
- *     user gets a marginally cheaper call), mirroring the pre-existing
- *     fire-and-forget contract of incrementApiKeyQuota — but unlike it, the
+ *     user gets a marginally cheaper call), but unlike a plain counter the
  *     underlying RPC re-checks balance/budget atomically and a metering_key
  *     guarantees no double-charge on a retry.
  *   - topUpCredits: credits a wallet (subscription grant, manual top-up,

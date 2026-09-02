@@ -2,11 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { AlertCircle, FileJson, Loader2, Lock, Play, Terminal, Wrench } from 'lucide-react';
+import { AlertCircle, FileJson, Loader2, Play, Terminal, Wrench } from 'lucide-react';
 
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { Button } from '@/components/ui/Button';
-import { getToolTier, getToolTierLabel } from '@/mcp/tiers';
 
 import { useMcpClient } from '../hooks/useMcpClient';
 
@@ -125,18 +124,11 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
             {tools.map((tool) => (
               <option key={tool.name} value={tool.name}>
                 {tool.name}
-                {getToolTierLabel(tool.name)}
               </option>
             ))}
           </select>
           {selectedToolDef?.description && (
             <p className="mt-1.5 text-sm text-slate-500">{selectedToolDef.description}</p>
-          )}
-          {selectedToolDef && getToolTier(selectedToolDef.name) !== 'free' && (
-            <p className="mt-1.5 text-xs text-amber-600 flex items-center gap-1">
-              <Lock className="w-3 h-3" /> This tool requires the{' '}
-              {getToolTier(selectedToolDef.name) === 'protocol' ? 'Protocol' : 'Pro'} plan or higher
-            </p>
           )}
         </div>
 

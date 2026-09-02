@@ -1,207 +1,135 @@
 'use client';
 
-import { Fragment } from 'react';
-
-import { Check, Crown, Globe, Minus, Sparkles, Zap } from 'lucide-react';
+import { Check, Coins, Globe, Lock, Zap } from 'lucide-react';
 
 /**
- * Data Access Tier Matrix
+ * Data Access Matrix
  *
- * Visualises the 4-tier data-access model so users can see exactly which
- * data categories and endpoints each plan unlocks. This is the single
- * place that documents the tier ladder on the marketing surface — the
- * authoritative source of truth for enforcement lives in:
- *   - src/lib/billing/plans.ts  (plan definitions + tier ladder)
- *   - src/lib/api/middleware/planGuard.ts  (runtime enforcement)
+ * In the Codex-style model there are NO feature tiers and NO feature gating:
+ * any paying user (subscription or topped-up credit wallet) can call every
+ * endpoint and MCP tool. The only gate is the credit wallet — a call is
+ * allowed iff the balance covers its metering-class cost.
  *
- * Tier ladder:
- *   Tier 0 — Public metadata (no key required): symbols, feeds, provider list
- *   Tier 1 — Free reliability snapshots: current prices, reputation (7d), daily reports
- *   Tier 2 — Pro deep analysis: deviation, correlation, latency, snapshots, stress tests
- *   Tier 3 — Protocol intelligence: oracle exposure, cross-chain spreads, incidents, coverage
+ * This component therefore documents two access surfaces:
+ *   - Public website (free, no key): browse prices, protocols, rankings, reports.
+ *   - API / MCP (paid, credit-metered): everything, priced per call (C1–C4).
+ *
+ * The authoritative per-call pricing lives in src/lib/billing/metering.ts;
+ * plan definitions (Developer/Team/Enterprise) live in src/lib/billing/plans.ts.
  */
 
-type CellValue = boolean | string;
+// --- Metering classes surfaced as the pricing ladder -------------------------
 
-interface AccessRow {
-  label: string;
-  free: CellValue;
-  pro: CellValue;
-  protocol: CellValue;
-  hint?: string;
-}
-
-interface AccessGroup {
-  tierLabel: string;
-  tierDescription: string;
-  tierBadge: string;
-  tierIcon: React.ReactNode;
-  rows: AccessRow[];
-}
-
-// --- Access data -----------------------------------------------------------
-// Cells: true = full checkmark, false = dash (not available), string = custom badge
-
-const accessGroups: AccessGroup[] = [
+const METERING_CLASSES = [
   {
-    tierLabel: 'Tier 0 · Public Metadata',
-    tierDescription: 'No API key required — public reference data',
-    tierBadge: 'bg-slate-100 text-slate-600',
-    tierIcon: <Globe className="w-4 h-4" />,
-    rows: [
-      {
-        label: 'Oracle feed registry (symbols, providers, chains)',
-        free: true,
-        pro: true,
-        protocol: true,
-      },
-      {
-        label: 'API health & status endpoints',
-        free: true,
-        pro: true,
-        protocol: true,
-      },
-    ],
+    cls: 'C1',
+    cost: '0.5 credits',
+    desc: 'Foundational data — prices, listings, daily reports',
   },
   {
-    tierLabel: 'Tier 1 · Reliability Snapshots',
-    tierDescription: 'Free plan — 15-minute reliability assessment essentials',
-    tierBadge: 'bg-blue-100 text-blue-700',
-    tierIcon: <Zap className="w-4 h-4" />,
-    rows: [
-      {
-        label: 'Current prices + on-chain verification',
-        free: true,
-        pro: true,
-        protocol: true,
-      },
-      {
-        label: 'Oracle reliability rankings & reputation',
-        free: '7-day trend',
-        pro: '30-day trend',
-        protocol: '90-day trend',
-        hint: 'Deeper trend history is a paid differentiator',
-      },
-      {
-        label: 'Daily reliability reports',
-        free: true,
-        pro: true,
-        protocol: true,
-      },
-    ],
+    cls: 'C2',
+    cost: '2 credits',
+    desc: 'Deep analysis — deviation, correlation, risk, history',
   },
   {
-    tierLabel: 'Tier 2 · Deep Analysis',
-    tierDescription: 'Pro plan — the analytical value that distinguishes paid tiers',
-    tierBadge: 'bg-primary-100 text-primary-700',
-    tierIcon: <Sparkles className="w-4 h-4" />,
-    rows: [
-      {
-        label: 'Deviation, correlation & divergence signals',
-        free: '5 trial/day',
-        pro: true,
-        protocol: true,
-        hint: 'Free users get a limited daily trial quota on Tier 2 endpoints',
-      },
-      {
-        label: 'Latency, feed freshness & heartbeat stats',
-        free: '5 trial/day',
-        pro: true,
-        protocol: true,
-      },
-      {
-        label: 'Historical snapshots (6-month archive, 15-min grain)',
-        free: false,
-        pro: true,
-        protocol: true,
-      },
-      {
-        label: 'Protocol risk parameters & liquidation stress tests',
-        free: false,
-        pro: true,
-        protocol: true,
-      },
-      {
-        label: 'Stablecoin depeg & wrapped-asset peg tracking',
-        free: '5 trial/day',
-        pro: true,
-        protocol: true,
-      },
-      {
-        label: 'Anomaly detection (30-day window)',
-        free: false,
-        pro: true,
-        protocol: true,
-      },
-      {
-        label: 'CSV / Excel export',
-        free: false,
-        pro: true,
-        protocol: true,
-      },
-    ],
+    cls: 'C3',
+    cost: '5 credits',
+    desc: 'Agent gates — pre-trade safety, oracle-watch',
   },
   {
-    tierLabel: 'Tier 3 · Protocol Intelligence',
-    tierDescription: 'Protocol plan — premium data for protocol teams & risk committees',
-    tierBadge: 'bg-purple-100 text-purple-700',
-    tierIcon: <Crown className="w-4 h-4" />,
-    rows: [
-      {
-        label: 'Oracle exposure analysis (per-protocol)',
-        free: false,
-        pro: false,
-        protocol: true,
-        hint: 'Hard-gated: Pro (even with active trial) is blocked',
-      },
-      {
-        label: 'Cross-chain price spreads',
-        free: false,
-        pro: false,
-        protocol: true,
-      },
-      {
-        label: 'Incident timeline & coverage analysis',
-        free: false,
-        pro: false,
-        protocol: true,
-      },
-      {
-        label: 'Batch query priority queue',
-        free: false,
-        pro: false,
-        protocol: true,
-      },
-    ],
+    cls: 'C4',
+    cost: '10 credits',
+    desc: 'Proofs & receipts — attested execution receipts',
   },
 ];
 
-// --- Cell renderer ---------------------------------------------------------
+// --- Access surface data -----------------------------------------------------
 
-function AccessCell({ value }: { value: CellValue }) {
-  if (value === true) {
+interface AccessRow {
+  label: string;
+  web: boolean; // free public website (no key)
+  api: boolean; // API / MCP (paid, credit-metered)
+  hint?: string;
+}
+
+const accessRows: AccessRow[] = [
+  {
+    label: 'Prices, feed health & provider listings',
+    web: true,
+    api: true,
+    hint: 'The website embeds these; the API serves them machine-readable.',
+  },
+  {
+    label: 'Oracle reliability rankings & reputation',
+    web: true,
+    api: true,
+    hint: 'Full 90-day trend on every paying key — no per-plan trend caps.',
+  },
+  {
+    label: 'Daily reliability reports',
+    web: true,
+    api: true,
+  },
+  {
+    label: 'Deviation, correlation & divergence signals',
+    web: false,
+    api: true,
+  },
+  {
+    label: 'Historical snapshots (6-month archive, 15-min grain)',
+    web: false,
+    api: true,
+  },
+  {
+    label: 'Protocol risk parameters & liquidation stress tests',
+    web: false,
+    api: true,
+  },
+  {
+    label: 'Stablecoin depeg & wrapped-asset peg tracking',
+    web: false,
+    api: true,
+  },
+  {
+    label: 'Anomaly detection (30-day window)',
+    web: false,
+    api: true,
+  },
+  {
+    label: 'Oracle exposure analysis, cross-chain spreads, incidents',
+    web: false,
+    api: true,
+  },
+  {
+    label: 'Pre-trade safety checks, oracle-watch & attested receipts',
+    web: false,
+    api: true,
+  },
+  {
+    label: 'CSV / Excel export & batch query queue',
+    web: false,
+    api: true,
+  },
+];
+
+// --- Cell renderer -----------------------------------------------------------
+
+function AccessCell({ value }: { value: boolean }) {
+  if (value) {
     return (
       <span className="inline-flex items-center justify-center">
         <Check className="w-4 h-4 text-success-500" />
       </span>
     );
   }
-  if (value === false) {
-    return (
-      <span className="inline-flex items-center justify-center">
-        <Minus className="w-4 h-4 text-slate-300" />
-      </span>
-    );
-  }
-  // String value — render as a small badge (e.g. "7-day trend", "5 trial/day")
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-      {value}
+    <span className="inline-flex items-center justify-center">
+      <Lock className="w-3.5 h-3.5 text-slate-300" />
     </span>
   );
 }
 
-// --- Component -------------------------------------------------------------
+// --- Component ---------------------------------------------------------------
 
 export function DataAccessTierMatrix({ className = '' }: { className?: string }) {
   return (
@@ -210,12 +138,11 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
         {/* Section header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-            Data access by tier
+            One platform, no feature gates
           </h2>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Four tiers of data, sized to a 15-minute reliability cadence. Free covers the
-            essentials; Pro unlocks the deep-analysis suite; Protocol adds premium intelligence for
-            risk committees.
+            Browsing the website is free. Calling the API is credit-metered — every endpoint and MCP
+            tool is open to any paying user, priced per call by data class.
           </p>
         </div>
 
@@ -227,111 +154,111 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
                 <th className="text-left py-4 px-4 text-sm font-semibold text-slate-900 w-2/5">
                   Data category
                 </th>
-                <th className="text-center py-4 px-4 text-sm font-semibold text-slate-700">Free</th>
-                <th className="text-center py-4 px-4 text-sm font-semibold text-blue-700">Pro</th>
-                <th className="text-center py-4 px-4 text-sm font-semibold text-purple-700">
-                  Protocol
+                <th className="text-center py-4 px-4 text-sm font-semibold text-slate-700">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Globe className="w-4 h-4" />
+                    Public web
+                  </span>
+                  <span className="block text-xs font-normal text-slate-400 mt-0.5">
+                    free, no key
+                  </span>
+                </th>
+                <th className="text-center py-4 px-4 text-sm font-semibold text-blue-700">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Zap className="w-4 h-4" />
+                    API &amp; MCP
+                  </span>
+                  <span className="block text-xs font-normal text-slate-400 mt-0.5">
+                    paid, credit-metered
+                  </span>
                 </th>
               </tr>
             </thead>
             <tbody>
-              {accessGroups.map((group) => (
-                <Fragment key={group.tierLabel}>
-                  {/* Tier group header row */}
-                  <tr className="bg-slate-50/70">
-                    <td colSpan={4} className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${group.tierBadge}`}
-                        >
-                          {group.tierIcon}
-                          {group.tierLabel}
-                        </span>
-                        <span className="text-xs text-slate-500">{group.tierDescription}</span>
-                      </div>
-                    </td>
-                  </tr>
-                  {/* Data rows */}
-                  {group.rows.map((row) => (
-                    <tr
-                      key={row.label}
-                      className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
-                    >
-                      <td className="py-3 px-4">
-                        <div>
-                          <span className="text-sm text-slate-700">{row.label}</span>
-                          {row.hint && <p className="text-xs text-slate-400 mt-0.5">{row.hint}</p>}
-                        </div>
-                      </td>
-                      <td className="text-center py-3 px-4">
-                        <AccessCell value={row.free} />
-                      </td>
-                      <td className="text-center py-3 px-4">
-                        <AccessCell value={row.pro} />
-                      </td>
-                      <td className="text-center py-3 px-4">
-                        <AccessCell value={row.protocol} />
-                      </td>
-                    </tr>
-                  ))}
-                </Fragment>
+              {accessRows.map((row) => (
+                <tr
+                  key={row.label}
+                  className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
+                >
+                  <td className="py-3 px-4">
+                    <div>
+                      <span className="text-sm text-slate-700">{row.label}</span>
+                      {row.hint && <p className="text-xs text-slate-400 mt-0.5">{row.hint}</p>}
+                    </div>
+                  </td>
+                  <td className="text-center py-3 px-4">
+                    <AccessCell value={row.web} />
+                  </td>
+                  <td className="text-center py-3 px-4">
+                    <AccessCell value={row.api} />
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
         </div>
 
         {/* Mobile card layout (hidden on desktop) */}
-        <div className="md:hidden space-y-8">
-          {accessGroups.map((group) => (
+        <div className="md:hidden space-y-4">
+          {accessRows.map((row) => (
             <div
-              key={group.tierLabel}
+              key={row.label}
               className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
             >
-              <div className="p-4 border-b border-slate-100 bg-slate-50/70">
-                <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${group.tierBadge}`}
-                  >
-                    {group.tierIcon}
-                    {group.tierLabel}
+              <div className="p-4 bg-white">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <span className="text-sm text-slate-700 flex-1">{row.label}</span>
+                </div>
+                {row.hint && <p className="text-xs text-slate-400 mb-2">{row.hint}</p>}
+                <div className="flex items-center gap-4 text-xs">
+                  <span className="flex items-center gap-1">
+                    <Globe className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-slate-400">Web:</span>
+                    <AccessCell value={row.web} />
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5 text-blue-400" />
+                    <span className="text-slate-400">API:</span>
+                    <AccessCell value={row.api} />
                   </span>
                 </div>
-                <p className="text-xs text-slate-500">{group.tierDescription}</p>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {group.rows.map((row) => (
-                  <div key={row.label} className="p-4 bg-white">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <span className="text-sm text-slate-700 flex-1">{row.label}</span>
-                    </div>
-                    {row.hint && <p className="text-xs text-slate-400 mb-2">{row.hint}</p>}
-                    <div className="flex items-center gap-4 text-xs">
-                      <span className="flex items-center gap-1">
-                        <span className="text-slate-400">Free:</span>
-                        <AccessCell value={row.free} />
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="text-slate-400">Pro:</span>
-                        <AccessCell value={row.pro} />
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="text-slate-400">Protocol:</span>
-                        <AccessCell value={row.protocol} />
-                      </span>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           ))}
         </div>
 
+        {/* Metering classes legend */}
+        <div className="mt-12 max-w-3xl mx-auto rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/70">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <Coins className="w-4 h-4 text-amber-500" />
+              Per-call credit pricing (API / MCP)
+            </div>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {METERING_CLASSES.map((mc) => (
+              <div key={mc.cls} className="flex items-center justify-between px-5 py-3">
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-bold">
+                    {mc.cls}
+                  </span>
+                  <span className="text-sm text-slate-700">{mc.desc}</span>
+                </div>
+                <span className="text-sm font-medium text-slate-500">{mc.cost}</span>
+              </div>
+            ))}
+          </div>
+          <p className="px-5 py-3 text-xs text-slate-400 border-t border-slate-100">
+            Credits come from your wallet — a monthly allowance with Developer/Team, or prepaid
+            top-up packs. When the balance can&apos;t cover the next call, it returns HTTP 402 with
+            a top-up link. Enterprise is unlimited.
+          </p>
+        </div>
+
         {/* Footnote */}
         <p className="text-xs text-slate-400 text-center mt-8 max-w-2xl mx-auto">
-          Access is enforced at runtime by the plan-guard middleware. Tier 2 endpoints return HTTP
-          402 for free users once the daily trial quota is exhausted; Tier 3 endpoints are
-          hard-gated to the Protocol plan. Trend windows (7 / 30 / 90 days) are clamped per API key
-          plan on the reputation endpoints.
+          There is no free tier and no trial — API access starts at a $49 Developer subscription
+          (10,000 credits/mo) or a $39 prepaid Starter pack. The website remains free to browse.
         </p>
       </div>
     </section>

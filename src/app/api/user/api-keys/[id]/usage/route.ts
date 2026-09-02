@@ -5,7 +5,6 @@
  *   - Total calls
  *   - Calls grouped by date (YYYY-MM-DD)
  *   - Calls grouped by endpoint
- *   - Current monthly quota used + reset date
  *
  * Used by the UsageChart component in the BillingPanel.
  *
@@ -42,7 +41,7 @@ export const GET = createApiHandler(
     // 1. Verify the key belongs to the user (prevent IDOR)
     const { data: key, error: keyError } = await client
       .from('api_keys')
-      .select('id, name, plan, monthly_quota_used, quota_reset_at')
+      .select('id, name, plan')
       .eq('id', keyId)
       .eq('user_id', userId)
       .single();
@@ -88,8 +87,6 @@ export const GET = createApiHandler(
           id: key.id,
           name: key.name,
           plan: key.plan,
-          monthlyQuotaUsed: key.monthly_quota_used,
-          quotaResetAt: key.quota_reset_at,
         },
         total,
         byDate: Array.from(dateMap.entries())

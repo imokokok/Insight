@@ -14,7 +14,6 @@ import {
   createErrorMiddleware,
   createRateLimitMiddleware,
   createQuotaMiddleware,
-  createPlanGuardMiddleware,
   logResponse,
   type AuthContext,
   type LoggingMiddlewareOptions,
@@ -22,8 +21,6 @@ import {
   type RateLimitMiddlewareOptions,
   type QuotaMiddlewareOptions,
   type QuotaInfo,
-  type PlanGuardOptions,
-  type PlanGuardInfo,
 } from './middleware';
 import { extractClientIp, rateLimitKeyGenerator } from './middleware/rateLimitMiddleware';
 import { ApiResponseBuilder } from './response';
@@ -33,29 +30,18 @@ import type { ApiResponse, ApiSuccessResponse } from './response/ApiResponse';
 const logger = createLogger('api-handler');
 
 /** Standard v1 middleware stack: authenticated (user or API key), API-rate-limited,
- *  quota-enforced, plan-gated, and CORS-enabled. Used by the majority of v1 endpoints. */
+ *  credit-quota-enforced, and CORS-enabled. Used by the majority of v1 endpoints. */
 export const V1_STANDARD_MIDDLEWARES: MiddlewareConfig = {
   logging: true,
   auth: { required: true, allowApiKey: true },
   rateLimit: { preset: 'api' },
   quota: true,
-  planGuard: true,
   cors: true,
 };
 
-/** Protocol-tier v1 middleware stack: same as standard but requires the 'protocol' plan.
- *  Used for protocol-level intelligence endpoints. */
-export const V1_PROTOCOL_TIER_MIDDLEWARES: MiddlewareConfig = {
-  logging: true,
-  auth: { required: true, allowApiKey: true },
-  rateLimit: { preset: 'api' },
-  quota: true,
-  planGuard: { minPlan: 'protocol' },
-  cors: true,
-};
-
-/** Read-only v1 middleware stack: authenticated and rate-limited, but without plan gating.
- *  Used by endpoints that should be available to all authenticated users. */
+/** Read-only v1 middleware stack: authenticated and rate-limited, but without
+ *  quota enforcement. Used by endpoints that should be available to all
+ *  authenticated users. */
 export const V1_READ_ONLY_MIDDLEWARES: MiddlewareConfig = {
   logging: true,
   auth: { required: true, allowApiKey: true },
@@ -63,6 +49,14 @@ export const V1_READ_ONLY_MIDDLEWARES: MiddlewareConfig = {
   quota: true,
   cors: true,
 };
+
+/**
+ * Historical alias for the old protocol-tier stack. With the Codex-style model
+ * there is no feature gating — every paying user gets all endpoints — so this
+ * is now identical to V1_STANDARD_MIDDLEWARES. Kept as a named export so the
+ * routes that referenced it don't need individual edits.
+ */
+export const V1_PROTOCOL_TIER_MIDDLEWARES: MiddlewareConfig = V1_STANDARD_MIDDLEWARES;
 
 interface RateLimitInfo {
   remaining: number;
@@ -79,7 +73,6 @@ export interface ApiHandlerContext<
   auth?: AuthContext;
   rateLimitInfo?: RateLimitInfo;
   quotaInfo?: QuotaInfo;
-  planGuardInfo?: PlanGuardInfo;
   validated?: {
     body?: TBody;
     query?: TQuery;
@@ -104,7 +97,6 @@ interface MiddlewareConfig {
   rateLimit?: RateLimitMiddlewareOptions | boolean;
   cors?: CorsOptions | boolean;
   quota?: QuotaMiddlewareOptions | boolean;
-  planGuard?: PlanGuardOptions | boolean;
 }
 
 interface CorsOptions {
@@ -283,12 +275,6 @@ export function createApiHandler<
       : middlewares.quota
     : null;
 
-  const planGuardOptions: PlanGuardOptions | null = middlewares.planGuard
-    ? typeof middlewares.planGuard === 'boolean'
-      ? {}
-      : middlewares.planGuard
-    : null;
-
   const corsOptions: CorsOptions =
     middlewares.cors === false
       ? { origin: '', methods: [], headers: [] }
@@ -428,7 +414,7 @@ export function createApiHandler<
         }
       }
 
-      // Quota middleware: monthly quota enforcement (depends on apiKey, must run after auth)
+      // Quota middleware: credit-wallet enforcement (depends on apiKey, must run after auth)
       if (quotaOptions && !internal) {
         const apiKey = apiContext.auth?.apiKey;
         const quotaContext = apiKey
@@ -436,8 +422,6 @@ export function createApiHandler<
               apiKeyId: apiKey.keyId,
               userId: apiKey.userId,
               plan: apiKey.plan,
-              monthlyQuotaUsed: apiKey.monthlyQuotaUsed,
-              quotaResetAt: apiKey.quotaResetAt,
             }
           : undefined;
 
@@ -454,40 +438,14 @@ export function createApiHandler<
         apiContext.quotaInfo = quotaResult.quotaInfo;
       }
 
-      // PlanGuard middleware: highest-value endpoint access control (depends on apiKey)
-      if (planGuardOptions && !internal) {
-        const apiKey = apiContext.auth?.apiKey;
-        const planGuardContext = apiKey
-          ? {
-              apiKeyId: apiKey.keyId,
-              userId: apiKey.userId,
-              plan: apiKey.plan,
-              trialEndsAt: apiKey.trialEndsAt,
-            }
-          : undefined;
-
-        const planGuardMiddleware = createPlanGuardMiddleware(planGuardOptions, planGuardContext);
-        const planGuardResult = await planGuardMiddleware(request);
-
-        if (!planGuardResult.success) {
-          logResponse(apiContext.requestId, 402, startTime);
-          recordApiKeyUsage(request, 402, startTime, apiKey?.keyId);
-          if (corsHeaders) applyCorsHeaders(planGuardResult.response, corsHeaders);
-          return planGuardResult.response;
-        }
-
-        apiContext.planGuardInfo = planGuardResult.info;
-      }
-
       const response = await handler(request, apiContext);
 
       // Commit the credit charge only when the request SUCCEEDED (2xx).
-      // The quota middleware sets pendingCharge for paid keys but deliberately
-      // defers the charge until here, so a request that is later blocked by
-      // planGuard (402) or fails in the handler (4xx/5xx) is NOT metered —
-      // mirroring the MCP server, which consumes credits only when a tool call
-      // succeeds. consumeCredits re-checks balance/budget atomically and is
-      // idempotent, so it stays the source of truth.
+      // The quota middleware sets pendingCharge but deliberately defers the
+      // charge until here, so a request that fails in the handler (4xx/5xx) is
+      // NOT metered — mirroring the MCP server, which consumes credits only
+      // when a tool call succeeds. consumeCredits re-checks balance/budget
+      // atomically and is idempotent, so it stays the source of truth.
       const pendingCharge = apiContext.quotaInfo?.pendingCharge;
       if (pendingCharge && response.status >= 200 && response.status < 300) {
         consumeCredits(
@@ -508,31 +466,12 @@ export function createApiHandler<
         applyRateLimitHeaders(response, apiContext.rateLimitInfo);
       }
 
-      if (apiContext.quotaInfo && apiContext.quotaInfo.limit >= 0) {
-        response.headers.set('X-Quota-Limit', String(apiContext.quotaInfo.limit));
-        response.headers.set('X-Quota-Remaining', String(apiContext.quotaInfo.remaining));
-        response.headers.set(
-          'X-Quota-Reset',
-          String(Math.floor(new Date(apiContext.quotaInfo.resetAt).getTime() / 1000))
-        );
-      }
-
-      // Paid (credit-metered) keys: expose pre-call credit balance and per-call
-      // cost so agent clients can steer retries / surface balance to operators.
+      // Credit-metered keys: expose pre-call credit balance and per-call cost
+      // so agent clients can steer retries / surface balance to operators.
       if (apiContext.quotaInfo?.creditCost !== undefined) {
         response.headers.set('X-Credit-Cost', String(apiContext.quotaInfo.creditCost));
         if (apiContext.quotaInfo.creditBalance !== undefined) {
           response.headers.set('X-Credit-Balance', String(apiContext.quotaInfo.creditBalance));
-        }
-      }
-
-      if (apiContext.planGuardInfo && apiContext.planGuardInfo.isHighestValueEndpoint) {
-        response.headers.set('X-Plan', apiContext.planGuardInfo.plan);
-        if (apiContext.planGuardInfo.trialRemaining >= 0) {
-          response.headers.set(
-            'X-Plan-Trial-Remaining',
-            String(apiContext.planGuardInfo.trialRemaining)
-          );
         }
       }
 

@@ -19,7 +19,7 @@
  *   expired / failed            → mark canceled (only if still incomplete —
  *                                 guards against out-of-order expired arriving
  *                                 after a confirmed/finished)
- *   refunded                    → downgrade to free + mark canceled
+ *   refunded                    → downgrade to developer + mark canceled
  *
  * IMPORTANT: This route does NOT use createApiHandler. NOWPayments requires
  * the raw request body for signature verification — `request.json()` would
@@ -42,7 +42,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { updateApiKeyPlanForUser } from '@/lib/api/apiKey';
 import { topUpCredits } from '@/lib/billing/creditWallet';
 import { parseIpnEvent } from '@/lib/billing/nowpayments';
-import { planCreditGrant } from '@/lib/billing/plans';
+import { planCreditGrant, type Plan } from '@/lib/billing/plans';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
@@ -428,8 +428,9 @@ async function handlePaymentConfirmed(
     // Continue to upgrade API keys anyway — the user paid.
   }
 
-  // Upgrade all of the user's active API keys to the paid plan.
-  await updateApiKeyPlanForUser(sub.user_id, sub.plan as 'pro' | 'protocol');
+  // Upgrade all of the user's active API keys to the subscribed plan.
+  const plan = sub.plan as Plan;
+  await updateApiKeyPlanForUser(sub.user_id, plan);
 
   // First cycle: credit the plan's monthly credit allowance so the user is
   // immediately spendable. The key matches add_monthly_credits (migration
@@ -437,7 +438,7 @@ async function handlePaymentConfirmed(
   //   - monthly: one allowance per billing cycle  -> grant:<user>:sub:<subId>
   //   - yearly:  one allowance per calendar month -> grant:<user>:sub:<subId>:<YYYY-MM>
   if (wasIncomplete) {
-    const grant = planCreditGrant(sub.plan as 'pro' | 'protocol');
+    const grant = planCreditGrant(plan);
     if (grant > 0) {
       const grantKey =
         interval === 'year'
@@ -578,8 +579,8 @@ async function handlePaymentExpiredOrFailed(
 }
 
 /**
- * Handle refunded: downgrade the user's API keys to free immediately and
- * mark the subscription canceled. The refund overrides any remaining period.
+ * Handle refunded: downgrade the user's API keys to the base (developer) tier
+ * and mark the subscription canceled. The refund overrides any remaining period.
  */
 async function handlePaymentRefunded(
   client: ReturnType<typeof createServiceRoleClient>,
@@ -633,8 +634,10 @@ async function handlePaymentRefunded(
     return;
   }
 
-  // Downgrade all of the user's active API keys back to free.
-  await updateApiKeyPlanForUser(sub.user_id, 'free');
+  // Downgrade all of the user's active API keys to the base (developer) tier.
+  // Any remaining credit-wallet balance is untouched, so the user can keep
+  // consuming on a pay-as-you-go basis.
+  await updateApiKeyPlanForUser(sub.user_id, 'developer');
 
   const { error } = await client
     .from('subscriptions')
@@ -647,7 +650,7 @@ async function handlePaymentRefunded(
       error: error.message,
     });
   } else {
-    logger.info('Refund processed — user downgraded to free', {
+    logger.info('Refund processed — user downgraded to developer', {
       userId: sub.user_id,
       subscriptionId: sub.id,
     });

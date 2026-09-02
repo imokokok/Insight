@@ -14,7 +14,8 @@
  *      reverse-look up this row by invoice_id to read plan/interval/user.
  *   4. Return the invoice URL for the frontend to redirect to.
  *
- * Request body: { plan: 'pro' | 'protocol', interval: 'month' | 'year' }
+ * Request body: { plan: 'developer' | 'team', interval: 'month' | 'year' }
+ *               { type: 'topup', pack: 'starter' | 'builder' | 'agent' }
  * Response:     { success: true, data: { url: string } }
  *               { success: false, error: { code, message } }
  *
@@ -40,7 +41,7 @@ const CheckoutSchema = z.object({
   // 'subscription': renew/upgrade to a paid plan (existing flow).
   // 'topup':        buy a prepaid credit pack, added to the wallet.
   type: z.enum(['subscription', 'topup']).default('subscription'),
-  plan: z.enum(['pro', 'protocol']).optional(),
+  plan: z.enum(['developer', 'team']).optional(),
   interval: z.enum(['month', 'year']).optional(),
   pack: z.enum(['starter', 'builder', 'agent']).optional(),
 });
@@ -93,41 +94,10 @@ export const POST = createApiHandler(
         );
       }
 
-      // Credit packs are layered ON TOP of a paid plan. A free user's wallet
-      // is unspendable: planGuard still blocks Tier 2/3, and the free monthly
-      // counter caps Tier 1 regardless of balance — buying a pack would just
-      // be a donation. Require an active subscription or an active Pro trial.
+      // Credit packs are available to EVERY user with no subscription or
+      // trial requirement — the wallet balance alone grants access to all
+      // endpoints/tools at C1..C4 rates (pure pay-as-you-go).
       const serviceClient = createServiceRoleClient();
-      const nowIso = new Date().toISOString();
-      const [{ data: activeSub }, { data: activeTrialKey }] = await Promise.all([
-        serviceClient
-          .from('subscriptions')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('status', 'active')
-          .gte('current_period_end', nowIso)
-          .limit(1)
-          .maybeSingle(),
-        serviceClient
-          .from('api_keys')
-          .select('id')
-          .eq('user_id', userId)
-          .gt('trial_ends_at', nowIso)
-          .limit(1)
-          .maybeSingle(),
-      ]);
-
-      if (!activeSub && !activeTrialKey) {
-        return NextResponse.json(
-          ApiResponseBuilder.error(
-            'PAID_PLAN_REQUIRED',
-            'Credit top-ups require an active paid subscription or Pro trial. Upgrade first at /api#pricing.',
-            { retryable: false }
-          ),
-          { status: 403 }
-        );
-      }
-
       const packConfig = CREDIT_PACKS[pack];
 
       const orderId = crypto.randomUUID();

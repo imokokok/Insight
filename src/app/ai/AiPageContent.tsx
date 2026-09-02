@@ -103,7 +103,7 @@ const INTEGRATION_STEPS = [
   {
     step: '1',
     title: 'Create an API Key',
-    body: 'Sign in, generate an API key. Free tier includes 1,000 calls/mo; Pro from 49 USDC/mo.',
+    body: 'Sign in, generate an API key. API access is credit-metered — subscriptions from 49 USDC/mo or prepaid top-up packs.',
   },
   {
     step: '2',
@@ -201,7 +201,7 @@ export function AiPageContent() {
             </p>
 
             <p className="text-sm text-slate-500 mb-6">
-              MCP calls share your API quota · Free 1,000 calls/mo · Pro from 49 USDC/mo ·{' '}
+              MCP calls share your API credit meter · subscriptions from 49 USDC/mo ·{' '}
               <Link href="/api#pricing" className="text-blue-600 hover:underline">
                 See pricing
               </Link>
@@ -539,7 +539,7 @@ when the verdict turns DANGER.`}
 
       <PricingCtaSection
         title="AI Agent Pricing"
-        subtitle="MCP and safety-check calls share the same quotas and billing as the REST API. Free includes 1,000 calls/mo, Pro starts at 49 USDC/mo, and you can upgrade or downgrade anytime."
+        subtitle="MCP and safety-check calls share the same credit meter and billing as the REST API. No free tier — Developer from 49 USDC/mo (10,000 credits) or pay-as-you-go top-up packs."
         buttonText="View Pricing"
       />
     </div>

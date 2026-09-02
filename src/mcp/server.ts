@@ -10,12 +10,7 @@ import { createLogger } from '@/lib/utils/logger';
 
 import packageJson from '../../package.json';
 
-import {
-  checkMcpPlanGuard,
-  consumeMcpQuota,
-  precheckMcpToolQuota,
-  recordMcpToolUsage,
-} from './middleware';
+import { consumeMcpQuota, precheckMcpToolQuota, recordMcpToolUsage } from './middleware';
 import { executeTool, getToolDefinitions } from './tools';
 
 import type { McpAuthContext } from './auth';
@@ -50,19 +45,9 @@ export function createMcpServer(auth?: McpAuthContext): Server {
       const startTime = Date.now();
       logger.info(`MCP tool called: ${name}`, { args });
 
-      // Plan guard: block Free-tier API keys from the most expensive tools.
+      // Credit gate: reject before executing if the key can't afford THIS
+      // tool (the HTTP-boundary precheck only tests the cheapest class).
       if (auth) {
-        const guard = checkMcpPlanGuard(auth, name);
-        if (!guard.allowed) {
-          recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
-          return {
-            content: [{ type: 'text', text: `Plan guard: ${guard.reason}` }],
-            isError: true,
-          };
-        }
-
-        // Credit gate: reject before executing if the key can't afford THIS
-        // tool (the HTTP-boundary precheck only tests the cheapest class).
         const creditCheck = await precheckMcpToolQuota(auth, name);
         if (!creditCheck.allowed) {
           recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
@@ -76,10 +61,10 @@ export function createMcpServer(auth?: McpAuthContext): Server {
       const result = await executeTool(name, args);
 
       if (auth) {
-        // Only consume monthly quota when the tool actually returned data.
-        // Protocol overhead (initialize/tools/list/ping), plan-guarded calls
-        // and execution failures are NOT metered — mirroring the REST API
-        // which only counts successful data requests.
+        // Only consume credits when the tool actually returned data.
+        // Protocol overhead (initialize/tools/list/ping) and execution
+        // failures are NOT metered — mirroring the REST API which only
+        // charges successful data requests.
         if (!result.isError) {
           consumeMcpQuota(auth, name);
         }

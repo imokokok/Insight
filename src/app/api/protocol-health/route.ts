@@ -424,18 +424,16 @@ export const POST = createApiHandler(
   {
     middlewares: {
       logging: true,
-      // This route exposes Tier 2 deep-analysis data (position stress test)
-      // that /api/v1/safety/position gates behind planGuard. Keep it open for
-      // the app's own UI — the internal-cookie path skips auth via
-      // skipInternalAuthAndRateLimit below — but require external callers to
-      // authenticate with an API key and bill/gate them identically to the v1
-      // endpoint. Without this, anonymous scrapers could fetch for free the
-      // same data the v1 API charges for, and Free API-key users could bypass
-      // the Tier 2 daily-trial limit via this legacy route.
+      // This route exposes deep-analysis data (position stress test) that
+      // /api/v1/safety/position serves through the credit-quota middleware.
+      // Keep it open for the app's own UI — the internal-cookie path skips
+      // auth via skipInternalAuthAndRateLimit below — but require external
+      // callers to authenticate with an API key and bill them identically to
+      // the v1 endpoint. Without this, anonymous scrapers could fetch for
+      // free the same data the v1 API charges for.
       auth: { required: true, allowApiKey: true },
       rateLimit: { preset: 'api' },
       quota: true,
-      planGuard: true,
       cors: true,
     },
     skipInternalAuthAndRateLimit: true,

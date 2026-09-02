@@ -2,16 +2,9 @@
 
 import { useState } from 'react';
 
-import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
-
 import { PricingCards } from './PricingCards';
 
-interface PricingSectionProps {
-  showTrialBanner?: boolean;
-}
-
-export function PricingSection({ showTrialBanner = true }: PricingSectionProps) {
+export function PricingSection() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   return (
@@ -47,22 +40,6 @@ export function PricingSection({ showTrialBanner = true }: PricingSectionProps) 
             </button>
           </div>
         </div>
-
-        {showTrialBanner && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl mx-auto mb-10"
-          >
-            <div className="flex items-start sm:items-center gap-3 p-4 rounded-2xl bg-blue-50/70 border border-blue-100 text-blue-800">
-              <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5 sm:mt-0" />
-              <p className="text-sm leading-relaxed">
-                <strong>7-day Pro trial.</strong> Every new account gets full access to Tier 2
-                endpoints for 7 days — no payment required.
-              </p>
-            </div>
-          </motion.div>
-        )}
 
         <PricingCards billingCycle={billingCycle} />
       </div>

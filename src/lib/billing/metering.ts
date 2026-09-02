@@ -5,8 +5,7 @@
  * value-and-cost-weighted credit system. Each endpoint/tool maps to a
  * metering class (C1..C4) with a credit cost per call. Both the REST quota
  * middleware and the MCP middleware read from this file, so the same data is
- * priced identically across surfaces — mirroring how tiers.ts keeps MCP/REST
- * plan gating in sync.
+ * priced identically across surfaces.
  *
  * Classes (cost = supplier cost + value to the calling agent):
  *   C1 (0.5cr)  — foundational, cached data (prices, listings, reports)
@@ -43,10 +42,7 @@ const ENDPOINT_RULES: Array<[RegExp, MeteringClass]> = [
   // never match and would silently underprice these endpoints as C1.
   [/\/(?:deviation|correlation|latency|anomalies)(?:\/|$)/, 'C2'],
   [/\/(?:risk|consensus|history|batch|coverage|incidents)(?:\/|$)/, 'C2'],
-  [
-    /\/(?:feed-health|feeds\/freshness|oracles\/health|oracles\/reputation|reputation|stablecoins|wrapped-assets)(?:\/|$)/,
-    'C2',
-  ],
+  [/\/(?:feed-health|feeds\/freshness|oracles\/health|stablecoins|wrapped-assets)(?:\/|$)/, 'C2'],
   [/\/protocol-health(?:\/|$)/, 'C2'],
   [/\/price-snapshots(?:\/|$)/, 'C2'],
   // Protocol-level deep analysis (matches the MCP C2 tool pricing for the
@@ -57,9 +53,8 @@ const ENDPOINT_RULES: Array<[RegExp, MeteringClass]> = [
 ];
 
 /**
- * Ordered [predicate, class] rules for MCP tool names. The MCP surface from
- * tiers.ts covers most Tier 2/3 tools with regex-safe names like
- * `pre_trade_safety_check` and `get_risk_summary`. Default is C1.
+ * Ordered [predicate, class] rules for MCP tool names. Uses regex-safe tool
+ * names like `pre_trade_safety_check` and `get_risk_summary`. Default is C1.
  */
 const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   // C4 — receipts / verification.
