@@ -43,7 +43,7 @@ export const GET = createApiHandler(
     const { data: apiKeys, error: keysError } = await serviceClient
       .from('api_keys')
       .select(
-        'id, name, plan, rate_limit, monthly_quota_used, quota_reset_at, trial_ends_at, is_active'
+        'id, name, plan, rate_limit, monthly_quota_used, quota_reset_at, trial_ends_at, budget_monthly, is_active'
       )
       .eq('user_id', userId)
       .eq('is_active', true)
@@ -80,6 +80,7 @@ export const GET = createApiHandler(
           monthlyQuotaUsed: key.monthly_quota_used,
           quotaResetAt: key.quota_reset_at,
           trialEndsAt: key.trial_ends_at,
+          budgetMonthly: key.budget_monthly,
         })),
         trialClaimedAt: profile?.trial_claimed_at ?? null,
       })

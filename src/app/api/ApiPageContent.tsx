@@ -164,8 +164,8 @@ const FAQ_ITEMS = [
     a: 'Insight collects price snapshots every 15 minutes and recalculates reputation scores hourly. Prices are also fetched on demand (5-minute cache). Daily reports aggregate the day\u2019s deviation events and liquidation stress tests. Polling faster than 15 minutes yields no fresher snapshot data, so clients should cache accordingly.',
   },
   {
-    q: 'What happens if I exceed my quota?',
-    a: 'API calls return HTTP 402 with a QUOTA_EXCEEDED error code. You can upgrade your plan at any time from Settings → Billing. The quota resets on the 1st of each month.',
+    q: 'What happens if I run out of quota / credits?',
+    a: 'Free keys return HTTP 402 with a QUOTA_EXCEEDED error once the monthly call allowance is used, and reset on the 1st of each month. Paid keys are credit-metered: each call costs credits by metering class (C1–C4), you get a monthly allowance with your plan, and can top up prepaid credit packs from Settings → Billing. When the wallet balance (or a key’s monthly credit budget) is exhausted, calls return HTTP 402 with CREDIT_EXHAUSTED and the response includes your balance and a path to top up.',
   },
   {
     q: 'Can I get a refund?',
@@ -455,11 +455,12 @@ function PricingSectionBlock() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-              Simple, quota-based pricing
+              Pay for what your agents use
             </h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Free 1,000 calls/mo. Pro 49 USDC/mo. Protocol 499 USDC/mo. Annual plans include 2
-              months free. Crypto payments via NOWPayments.
+              Free 1,000 calls/mo. Paid plans include a monthly credit allowance spent per call
+              (C1–C4). Top up prepaid credit packs for high-frequency and bursty agent workloads.
+              Crypto payments via NOWPayments.
             </p>
           </div>
           <PricingSection showTrialBanner={false} />

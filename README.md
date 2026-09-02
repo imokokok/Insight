@@ -291,12 +291,19 @@ Reputation trend history is tiered too: Free 7 days, Pro 30 days, Protocol/Enter
 
 ### Plans
 
-| Plan       | Rate limit | Monthly quota | Price         |
-| ---------- | ---------- | ------------- | ------------- |
-| Free       | 5 req/min  | 1,000         | $0            |
-| Pro        | 30 req/min | 10,000        | $49/mo        |
-| Protocol   | 60 req/min | 100,000       | $499/mo       |
-| Enterprise | Unlimited  | Unlimited     | Contact sales |
+| Plan       | Rate limit | Included credit allowance        | Per-call metering        | Price         |
+| ---------- | ---------- | -------------------------------- | ------------------------ | ------------- |
+| Free       | 5 req/min  | 1,000 API calls/mo (request cap) | —                        | $0            |
+| Pro        | 30 req/min | 10,000 credits/mo                | C1–C4 (0.5 / 2 / 5 / 10) | $49/mo        |
+| Protocol   | 60 req/min | 100,000 credits/mo               | C1–C4 (0.5 / 2 / 5 / 10) | $499/mo       |
+| Enterprise | Unlimited  | Unlimited (contract)             | —                        | Contact sales |
+
+Paid plans are **credit-metered**: each call is priced by metering class (see
+`src/lib/billing/metering.ts`) and charged from the user's prepaid credit
+wallet (`credit_wallet` / `credit_ledger`, migration `0039`). The monthly
+allowance is credited on subscription activation and at each cycle (billing
+cron). Additional credits can be bought as prepaid packs from Settings →
+Billing or the pricing page. Free keys use a flat monthly request cap.
 
 See `src/lib/billing/plans.ts` for the single source of truth.
 

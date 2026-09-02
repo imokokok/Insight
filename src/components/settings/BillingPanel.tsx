@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { PLANS, isTrialActive, normalizePlan, type Plan } from '@/lib/billing/plans';
 import { useSession } from '@/stores/authStore';
 
+import { CreditWalletCard } from './CreditWalletCard';
+import { KeyBudgetEditor } from './KeyBudgetEditor';
 import { UsageChart } from './UsageChart';
 
 interface SubscriptionData {
@@ -29,6 +31,7 @@ interface SubscriptionData {
     monthlyQuotaUsed: number;
     quotaResetAt: string;
     trialEndsAt: string | null;
+    budgetMonthly: number | null;
   }>;
   trialClaimedAt: string | null;
 }
@@ -374,6 +377,9 @@ export function BillingPanel() {
         </div>
       </div>
 
+      {/* Credit wallet */}
+      <CreditWalletCard accessToken={accessToken} onError={setError} />
+
       {/* Usage chart */}
       {primaryKey && (
         <div className="mb-8">
@@ -404,55 +410,70 @@ export function BillingPanel() {
             {apiKeys.map((key) => {
               const keyPlan = normalizePlan(key.plan);
               const keyPlanConfig = PLANS[keyPlan];
+              const isCredited = keyPlan !== 'free';
               const quotaPct =
-                keyPlanConfig.monthlyQuota > 0
+                !isCredited && keyPlanConfig.monthlyQuota > 0
                   ? Math.min(100, (key.monthlyQuotaUsed / keyPlanConfig.monthlyQuota) * 100)
                   : 0;
 
               return (
                 <div
                   key={key.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white border border-slate-100 rounded-xl hover:border-slate-200 transition-colors"
+                  className="flex flex-col gap-3 p-4 bg-white border border-slate-100 rounded-xl hover:border-slate-200 transition-colors"
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
-                        PLAN_BADGE_STYLES[keyPlan] ?? PLAN_BADGE_STYLES.free
-                      }`}
-                    >
-                      {keyPlanConfig.name}
-                    </span>
-                    <span className="text-sm font-medium text-slate-900 truncate">{key.name}</span>
-                    {isTrialActive(key.trialEndsAt) && (
-                      <span className="inline-flex items-center text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                        <Gift className="w-3 h-3 mr-1" />
-                        {Math.ceil(
-                          (new Date(key.trialEndsAt!).getTime() - Date.now()) /
-                            (24 * 60 * 60 * 1000)
-                        )}
-                        d left
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0 min-w-[180px]">
-                    <div className="text-xs text-slate-500 tabular-nums">
-                      {key.monthlyQuotaUsed.toLocaleString()} /{' '}
-                      {keyPlanConfig.monthlyQuota > 0
-                        ? keyPlanConfig.monthlyQuota.toLocaleString()
-                        : '∞'}
-                    </div>
-                    <div className="w-32 bg-slate-200 rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          quotaPct > 80
-                            ? 'bg-red-500'
-                            : quotaPct > 50
-                              ? 'bg-amber-500'
-                              : 'bg-emerald-500'
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
+                          PLAN_BADGE_STYLES[keyPlan] ?? PLAN_BADGE_STYLES.free
                         }`}
-                        style={{ width: `${quotaPct}%` }}
-                      />
+                      >
+                        {keyPlanConfig.name}
+                      </span>
+                      <span className="text-sm font-medium text-slate-900 truncate">
+                        {key.name}
+                      </span>
+                      {isTrialActive(key.trialEndsAt) && (
+                        <span className="inline-flex items-center text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                          <Gift className="w-3 h-3 mr-1" />
+                          {Math.ceil(
+                            (new Date(key.trialEndsAt!).getTime() - Date.now()) /
+                              (24 * 60 * 60 * 1000)
+                          )}
+                          d left
+                        </span>
+                      )}
                     </div>
+                    {!isCredited ? (
+                      <div className="flex items-center gap-3 flex-shrink-0 min-w-[180px]">
+                        <div className="text-xs text-slate-500 tabular-nums">
+                          {key.monthlyQuotaUsed.toLocaleString()} /{' '}
+                          {keyPlanConfig.monthlyQuota > 0
+                            ? keyPlanConfig.monthlyQuota.toLocaleString()
+                            : '∞'}
+                        </div>
+                        <div className="w-32 bg-slate-200 rounded-full h-2 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              quotaPct > 80
+                                ? 'bg-red-500'
+                                : quotaPct > 50
+                                  ? 'bg-amber-500'
+                                  : 'bg-emerald-500'
+                            }`}
+                            style={{ width: `${quotaPct}%` }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <KeyBudgetEditor
+                        accessToken={accessToken}
+                        keyId={key.id}
+                        defaultBudget={key.budgetMonthly}
+                        onSaved={fetchSubscription}
+                        onError={setError}
+                      />
+                    )}
                   </div>
                 </div>
               );

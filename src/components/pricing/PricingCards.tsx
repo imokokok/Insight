@@ -4,9 +4,9 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Coins, Loader2, Zap } from 'lucide-react';
 
-import { PLANS } from '@/lib/billing/plans';
+import { CREDIT_PACKS, CREDIT_PACK_ORDER, PLANS } from '@/lib/billing/plans';
 import { useSession } from '@/stores/authStore';
 
 interface PricingCardsProps {
@@ -18,25 +18,34 @@ const planOrder = ['free', 'pro', 'protocol'] as const;
 const planHighlights: Record<string, string[]> = {
   free: ['1,000 API calls / month', 'Current prices & daily reports', '7-day reputation trends'],
   pro: [
-    '10,000 API calls / month',
-    'Deviation, correlation & divergence',
-    'Historical 15-minute snapshots',
+    '10,000 credits / month included',
+    'Deep analysis — 2 cr per call',
+    'pre-trade & oracle-watch gates — 5 cr per call',
     'CSV / Excel export',
   ],
   protocol: [
-    '100,000 API calls / month',
+    '100,000 credits / month included',
     'Protocol exposure analysis',
-    'Cross-chain spread tracking',
+    'Attested receipts — 10 cr per call',
     'Incident timeline & coverage',
     'Priority batch queue',
   ],
 };
+
+/** Per-percall metering classes surfaced on the pricing page. */
+const METERING_ROWS = [
+  { cls: 'C1', cost: '0.5 cr', desc: 'Foundational data — prices, listings, daily reports' },
+  { cls: 'C2', cost: '2 cr', desc: 'Deep analysis — deviation, correlation, risk, history' },
+  { cls: 'C3', cost: '5 cr', desc: 'Agent gates — pre-trade safety, oracle-watch' },
+  { cls: 'C4', cost: '10 cr', desc: 'Proofs & receipts — attested execution receipts' },
+];
 
 export function PricingCards({ billingCycle }: PricingCardsProps) {
   const router = useRouter();
   const session = useSession();
   const accessToken = session?.access_token;
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [loadingPack, setLoadingPack] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubscribe = async (planId: 'pro' | 'protocol') => {
@@ -72,6 +81,38 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Checkout failed');
       setLoadingPlan(null);
+    }
+  };
+
+  const handleTopUp = async (pack: (typeof CREDIT_PACK_ORDER)[number]) => {
+    setError(null);
+
+    if (!accessToken) {
+      const redirect = encodeURIComponent(`/pricing`);
+      router.push(`/register?redirect=${redirect}`);
+      return;
+    }
+
+    setLoadingPack(pack);
+    try {
+      const response = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ type: 'topup', pack }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Failed to start top-up');
+      }
+
+      window.location.href = result.data.url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Top-up failed');
+      setLoadingPack(null);
     }
   };
 
@@ -173,6 +214,85 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
             </div>
           );
         })}
+      </div>
+
+      {/* Per-call metering + credit packs */}
+      <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Metering classes */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Coins className="w-5 h-5 text-emerald-600" />
+            <h3 className="text-base font-bold text-slate-900">Per-call credit pricing</h3>
+          </div>
+          <p className="text-sm text-slate-500 mb-4">
+            Each endpoint/tool costs credits by metering class. Subscribe for a monthly allowance,
+            then top up when your agents burn through it.
+          </p>
+          <div className="space-y-2">
+            {METERING_ROWS.map((row) => (
+              <div
+                key={row.cls}
+                className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center">
+                    {row.cls}
+                  </span>
+                  <div>
+                    <div className="text-sm font-medium text-slate-900">{row.desc}</div>
+                  </div>
+                </div>
+                <div className="text-sm font-semibold text-emerald-700 tabular-nums">
+                  {row.cost}
+                  <span className="ml-1 text-xs font-normal text-slate-400">/ call</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Credit packs */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Zap className="w-5 h-5 text-blue-600" />
+            <h3 className="text-base font-bold text-slate-900">Prepaid credit packs</h3>
+          </div>
+          <p className="text-sm text-slate-500 mb-4">
+            Layered on top of a plan — buy credits now, spend per call. Good for high-frequency and
+            bursty agent workloads.
+          </p>
+          <div className="space-y-2">
+            {CREDIT_PACK_ORDER.map((pack) => {
+              const config = CREDIT_PACKS[pack];
+              const isLoading = loadingPack === pack;
+              return (
+                <button
+                  key={pack}
+                  type="button"
+                  onClick={() => handleTopUp(pack)}
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-left"
+                >
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900">
+                      {config.name}
+                      <span className="ml-2 text-xs font-normal text-slate-400">
+                        {config.credits.toLocaleString()} credits
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">{config.description}</div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span className="text-lg font-bold text-slate-900 tabular-nums">
+                      ${config.priceUsd}
+                    </span>
+                    {isLoading && <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

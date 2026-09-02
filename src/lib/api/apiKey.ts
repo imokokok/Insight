@@ -532,3 +532,26 @@ export async function updateApiKeyPlanForUser(
 
   return { updated: data?.length ?? 0 };
 }
+
+/**
+ * Set (or clear, when amount is null) the optional per-key monthly credit
+ * budget. Enforced inside the credit precheck/consume RPCs against the
+ * credit_ledger for the current month. Scoped to the key's owning user.
+ */
+export async function setApiKeyBudget(
+  keyId: string,
+  userId: string,
+  amount: number | null
+): Promise<void> {
+  const client = createServiceRoleClient();
+  const { error } = await client
+    .from('api_keys')
+    .update({ budget_monthly: amount })
+    .eq('id', keyId)
+    .eq('user_id', userId);
+
+  if (error) {
+    logger.error('Failed to set API key budget', new Error(error.message), { keyId, userId });
+    throw new Error('Failed to set API key budget');
+  }
+}

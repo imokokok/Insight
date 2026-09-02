@@ -493,6 +493,15 @@ export function createApiHandler<
         );
       }
 
+      // Paid (credit-metered) keys: expose pre-call credit balance and per-call
+      // cost so agent clients can steer retries / surface balance to operators.
+      if (apiContext.quotaInfo?.creditCost !== undefined) {
+        response.headers.set('X-Credit-Cost', String(apiContext.quotaInfo.creditCost));
+        if (apiContext.quotaInfo.creditBalance !== undefined) {
+          response.headers.set('X-Credit-Balance', String(apiContext.quotaInfo.creditBalance));
+        }
+      }
+
       if (apiContext.planGuardInfo && apiContext.planGuardInfo.isHighestValueEndpoint) {
         response.headers.set('X-Plan', apiContext.planGuardInfo.plan);
         if (apiContext.planGuardInfo.trialRemaining >= 0) {

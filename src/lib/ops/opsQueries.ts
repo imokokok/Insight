@@ -540,6 +540,70 @@ export async function getCronHealth(): Promise<CronHealth> {
 }
 
 // ---------------------------------------------------------------------------
+// Credit ledger (credit_ledger) — per-call credit economics for ops
+// ---------------------------------------------------------------------------
+
+export interface CreditUsage {
+  windowHours: number;
+  /** Credits consumed by usage charges (kind='usage', negative delta). */
+  totalSpent: number;
+  /** Credits added by topups + grants (positive delta). */
+  totalCredited: number;
+  /** totalCredited - totalSpent. */
+  net: number;
+  /** Number of billed (credit-charged) calls. */
+  billedCalls: number;
+  /** True when the query failed (e.g. migration 0039 not applied) — unreliable. */
+  errored?: boolean;
+}
+
+export async function getCreditUsage(windowHours = 24): Promise<CreditUsage> {
+  const supabase = createServiceRoleClient();
+  const since = hoursAgoIso(windowHours);
+
+  const { data, error } = await pagedSelect<{ delta: number; kind: string }>((from, to) =>
+    supabase
+      .from('credit_ledger')
+      .select('delta, kind')
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .range(from, to)
+  );
+
+  if (error || !data) {
+    return {
+      windowHours,
+      totalSpent: 0,
+      totalCredited: 0,
+      net: 0,
+      billedCalls: 0,
+      errored: true,
+    };
+  }
+
+  let spent = 0;
+  let credited = 0;
+  let billedCalls = 0;
+  for (const row of data) {
+    const delta = Number(row.delta);
+    if (row.kind === 'usage' && delta < 0) {
+      spent += -delta;
+      billedCalls++;
+    } else if (delta > 0) {
+      credited += delta;
+    }
+  }
+
+  return {
+    windowHours,
+    totalSpent: roundTo(spent, 2),
+    totalCredited: roundTo(credited, 2),
+    net: roundTo(credited - spent, 2),
+    billedCalls,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Billing summary (api_keys)
 // ---------------------------------------------------------------------------
 

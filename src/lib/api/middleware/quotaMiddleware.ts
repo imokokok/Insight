@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { consumeCredits, makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
+import { getCreditCost } from '@/lib/billing/metering';
 import { PLANS, normalizePlan } from '@/lib/billing/plans';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -26,6 +28,10 @@ export interface QuotaInfo {
   remaining: number;
   resetAt: string;
   used: number;
+  /** Present for paid (credit-metered) keys: balance left after this call and
+   *  the per-call credit cost. Surfaced by the handler as X-Credit-* headers. */
+  creditBalance?: number;
+  creditCost?: number;
 }
 
 type QuotaMiddlewareResult =
@@ -33,17 +39,19 @@ type QuotaMiddlewareResult =
   | { success: false; response: NextResponse };
 
 /**
- * Monthly quota middleware: enforces the per-month call cap that defines the
- * Flat Tier pricing model (Free 1K, Pro 10K, Protocol 100K, Enterprise ∞).
+ * Quota / credit middleware:
  *
- * Distinct from rateLimitMiddleware (which enforces per-minute caps). Both
- * run in sequence — a request must pass both the rate limit AND the monthly
- * quota to succeed.
+ *   - PAID plans (pro / protocol): per-call CREDIT metering. Each request is
+ *     priced by getCreditCost(path). The wallet precheck short-circuits a
+ *     request whose balance (or per-key monthly budget) is exhausted, and the
+ *     authoritative charge is consumed fire-and-forget via consumeCredits.
  *
- * The quota counter (monthly_quota_used) is read from the cached
- * ApiKeyValidationResult that authMiddleware already populated, so there is
- * no extra DB hit on the hot path. The increment happens async after the
- * response is sent (fire-and-forget, same pattern as logApiKeyUsage).
+ *   - FREE plan: legacy monthly-quota counter (monthly_quota_used). Unchanged.
+ *     Tier 2/3 deep endpoints for Free users are gated separately by the
+ *     planGuard middleware's daily trial quota.
+ *
+ * Both run in sequence with rateLimitMiddleware — a request must pass rate
+ * limit AND quota/credit to succeed.
  */
 export function createQuotaMiddleware(
   options: QuotaMiddlewareOptions = {},
@@ -51,7 +59,7 @@ export function createQuotaMiddleware(
 ) {
   const { enabled = true } = options;
 
-  return async (_request: NextRequest): Promise<QuotaMiddlewareResult> => {
+  return async (request: NextRequest): Promise<QuotaMiddlewareResult> => {
     if (!enabled) {
       return {
         success: true,
@@ -59,9 +67,8 @@ export function createQuotaMiddleware(
       };
     }
 
-    // No API key in context → no quota to enforce. This happens for Bearer
-    // (user session) requests originating from the app's own UI, which skip
-    // API-style quota. Rate limiting still applies.
+    // No API key in context → Bearer (user session) request from the app's own
+    // UI, which skips API-style quota/credit. Rate limiting still applies.
     if (!context?.apiKeyId) {
       return {
         success: true,
@@ -81,6 +88,76 @@ export function createQuotaMiddleware(
       };
     }
 
+    // ----- Paid plans: credit-metered, per-call cost -----------------------
+    if (plan !== 'free') {
+      const cost = getCreditCost(request.nextUrl.pathname);
+      const precheck = await precheckCredits(context.apiKeyId, cost);
+
+      if (!precheck.ok) {
+        const reason = precheck.reason ?? 'INSUFFICIENT_CREDITS';
+        logger.warn('Credit precheck rejected request', {
+          apiKeyId: context.apiKeyId,
+          plan,
+          path: request.nextUrl.pathname,
+          cost,
+          reason,
+        });
+
+        const upgradeUrl = reason === 'BUDGET_EXCEEDED' ? '/settings?tab=billing' : '/api#pricing';
+        const detailText =
+          reason === 'BUDGET_EXCEEDED'
+            ? `This key's monthly credit budget is exhausted (${precheck.used ?? 0}/${precheck.budget ?? 0} credits).`
+            : `You need ${cost} credit${cost === 1 ? '' : 's'} for this endpoint, but your balance is ${precheck.balance ?? 0}.`;
+
+        const response = NextResponse.json(
+          ApiResponseBuilder.error('CREDIT_EXHAUSTED', detailText, {
+            retryable: false,
+            details: {
+              reason,
+              cost,
+              balance: precheck.balance,
+              budget: precheck.budget,
+              used: precheck.used,
+              plan,
+              topupUrl: '/api#pricing',
+              upgradeUrl,
+            },
+          }),
+          { status: 402 }
+        );
+
+        response.headers.set('X-Credit-Cost', String(cost));
+        response.headers.set('X-Credit-Balance', String(precheck.balance ?? 0));
+        response.headers.set('X-Credit-Denied', reason);
+
+        return { success: false, response };
+      }
+
+      // Charge fire-and-forget. The RPC re-checks balance/budget atomically and
+      // is idempotent, so a transient overdraw cannot double-charge or spiral.
+      const meteringKey = makeMeteringKey(`rest:${context.apiKeyId}`);
+      consumeCredits(context.apiKeyId, cost, meteringKey, request.nextUrl.pathname).catch((err) => {
+        logger.warn('Async credit consume failed', {
+          apiKeyId: context.apiKeyId,
+          cost,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
+
+      return {
+        success: true,
+        quotaInfo: {
+          limit: -1,
+          remaining: -1,
+          resetAt: '',
+          used: 0,
+          creditBalance: precheck.balance,
+          creditCost: cost,
+        },
+      };
+    }
+
+    // ----- Free plan: legacy monthly quota counter -------------------------
     const used = context.monthlyQuotaUsed ?? 0;
     const resetAt = context.quotaResetAt ?? new Date().toISOString();
 

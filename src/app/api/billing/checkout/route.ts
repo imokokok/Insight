@@ -29,7 +29,7 @@ import { z } from 'zod';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { createInvoice } from '@/lib/billing/nowpayments';
-import { PLANS, type BillingInterval, type Plan } from '@/lib/billing/plans';
+import { CREDIT_PACKS, PLANS, type BillingInterval, type Plan } from '@/lib/billing/plans';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getAppUrl } from '@/lib/utils/appUrl';
 import { createLogger } from '@/lib/utils/logger';
@@ -37,8 +37,12 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('billing-checkout');
 
 const CheckoutSchema = z.object({
-  plan: z.enum(['pro', 'protocol']),
-  interval: z.enum(['month', 'year']),
+  // 'subscription': renew/upgrade to a paid plan (existing flow).
+  // 'topup':        buy a prepaid credit pack, added to the wallet.
+  type: z.enum(['subscription', 'topup']).default('subscription'),
+  plan: z.enum(['pro', 'protocol']).optional(),
+  interval: z.enum(['month', 'year']).optional(),
+  pack: z.enum(['starter', 'builder', 'agent']).optional(),
 });
 
 /** Billing cycle length in days for each interval. */
@@ -75,6 +79,78 @@ export const POST = createApiHandler(
       );
     }
 
+    const { type } = parsed.data;
+
+    const origin = getAppUrl() || request.nextUrl.origin;
+
+    // ----- Top-up: buy a prepaid credit pack -------------------------------
+    if (type === 'topup') {
+      const pack = parsed.data.pack;
+      if (!pack) {
+        return NextResponse.json(
+          ApiResponseBuilder.error('BAD_REQUEST', 'A credit pack is required for a top-up'),
+          { status: 400 }
+        );
+      }
+      const packConfig = CREDIT_PACKS[pack];
+
+      const orderId = crypto.randomUUID();
+      const description = `Insight ${packConfig.name} — ${packConfig.credits.toLocaleString()} credits`;
+
+      const invoiceResult = await createInvoice({
+        priceAmount: packConfig.priceUsd,
+        priceCurrency: 'usd',
+        orderId,
+        description,
+        ipnCallbackUrl: `${origin}/api/billing/webhook`,
+        successUrl: `${origin}/settings?tab=billing&status=success`,
+        cancelUrl: `${origin}/settings?tab=billing&status=cancel`,
+      });
+
+      if ('error' in invoiceResult) {
+        return NextResponse.json(
+          ApiResponseBuilder.error('PAYMENT_ERROR', invoiceResult.error, { retryable: false }),
+          { status: 502 }
+        );
+      }
+
+      // Record a pending credit purchase so the IPN can credit the wallet.
+      const serviceClient = createServiceRoleClient();
+      const { error: insertError } = await serviceClient.from('credit_purchases').insert({
+        id: orderId,
+        user_id: userId,
+        credits: packConfig.credits,
+        price_usd: packConfig.priceUsd,
+        nowpayments_invoice_id: invoiceResult.invoiceId,
+        status: 'incomplete',
+      });
+
+      if (insertError) {
+        logger.error(
+          'Failed to pre-create credit purchase row after invoice creation',
+          new Error(insertError.message),
+          { userId, pack, invoiceId: invoiceResult.invoiceId }
+        );
+        return NextResponse.json(
+          ApiResponseBuilder.error(
+            'INTERNAL_ERROR',
+            'Created invoice but failed to record credit purchase — please contact support'
+          ),
+          { status: 500 }
+        );
+      }
+
+      logger.info('Credit top-up invoice created', {
+        userId,
+        pack,
+        credits: packConfig.credits,
+        invoiceId: invoiceResult.invoiceId,
+        orderId,
+      });
+
+      return NextResponse.json(ApiResponseBuilder.success({ url: invoiceResult.invoiceUrl }));
+    }
+
     const { plan, interval } = parsed.data;
     const planConfig = PLANS[plan as Plan];
     const priceAmount = interval === 'year' ? planConfig.priceYearly : planConfig.priceMonthly;
@@ -86,10 +162,6 @@ export const POST = createApiHandler(
       );
     }
 
-    const origin = getAppUrl() || request.nextUrl.origin;
-
-    // 1. Generate orderId upfront (used as NOWPayments order_id and as the
-    //    subscriptions row id, so the IPN callback can reverse-look up the row).
     const orderId = crypto.randomUUID();
     const description = `Insight ${planConfig.name} plan — ${interval}ly subscription`;
 

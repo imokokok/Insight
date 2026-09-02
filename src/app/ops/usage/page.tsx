@@ -1,4 +1,4 @@
-import { getApiUsage } from '@/lib/ops/opsQueries';
+import { getCreditUsage, getApiUsage } from '@/lib/ops/opsQueries';
 
 import UsageEndpointsTable from '../components/UsageEndpointsTable';
 import { rangeLabel, rangeToHours } from '../range';
@@ -29,6 +29,7 @@ export default async function OpsUsagePage({
   const hours = rangeToHours(range);
   const label = rangeLabel(range);
   const usage = await getApiUsage(hours);
+  const credit = await getCreditUsage(hours);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
@@ -47,7 +48,9 @@ export default async function OpsUsagePage({
       {usage.errored && (
         <ErrorBanner message="API 用量数据查询失败，以下请求/错误计数与延迟可能不完整或不可用。" />
       )}
-
+      {credit.errored && (
+        <ErrorBanner message="信用账本 (credit_ledger) 数据查询失败 —— 请确认已应用迁移 0039。" />
+      )}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Stat label={`Requests (${label})`} value={formatCompact(usage.totalRequests)} />
         <Stat
@@ -61,6 +64,27 @@ export default async function OpsUsagePage({
           tone={usage.errorRatePct != null && usage.errorRatePct > 1 ? 'warn' : 'good'}
         />
         <Stat label="Endpoints" value={usage.byEndpoint.length} hint="distinct" />
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Stat label={`Credits spent (${label})`} value={credit.totalSpent} hint="cr" />
+        <Stat
+          label="Billed calls"
+          value={formatCompact(credit.billedCalls)}
+          hint="credit-metered"
+        />
+        <Stat
+          label="Wallet credited"
+          value={credit.totalCredited}
+          hint="topups + grants"
+          tone={credit.totalCredited > 0 ? 'good' : undefined}
+        />
+        <Stat
+          label="Net (in - out)"
+          value={credit.net}
+          hint="cr"
+          tone={credit.net < 0 ? 'warn' : 'good'}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

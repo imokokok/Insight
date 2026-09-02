@@ -131,7 +131,7 @@ export default function RegisterContent() {
               <Link href="/settings?tab=billing" className="font-semibold underline">
                 Settings → Billing
               </Link>{' '}
-              — 10,000 API calls / month, 30 req/min, all endpoints unlocked.
+              — 10,000 credits / month included · deep-analysis + pre-trade unlocked · 30 req/min.
             </p>
           </div>
           <div className="space-y-3">

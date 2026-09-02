@@ -18,9 +18,9 @@ interface PricingCtaSectionProps {
 }
 
 const DEFAULTS = {
-  title: 'Simple, quota-based pricing',
+  title: 'Credit-based, per-call pricing',
   subtitle:
-    'Free 1,000 calls/mo. Pro 49 USDC/mo. Protocol 499 USDC/mo. Annual plans include 2 months free. Crypto payments via NOWPayments.',
+    'Free 1,000 calls/mo. Paid plans include a monthly credit allowance spent per call (C1–C4). Top up prepaid credit packs for agent-heavy workloads. Crypto payments via NOWPayments.',
   buttonText: 'View Pricing',
   href: '/api#pricing',
   className: '',

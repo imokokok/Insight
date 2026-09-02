@@ -14,6 +14,9 @@
  *      more than 24 hours (abandoned checkouts / lost IPNs).
  *   4. On the 1st of each month: reset monthly_quota_used to 0 for all
  *      non-enterprise keys and advance quota_reset_at by one month.
+ *   5. Every day: credit each active subscriber's monthly credit allowance to
+ *      their credit wallet (idempotent per user+month — new subscribers are
+ *      also immediately granted their first-cycle allowance at the webhook).
  *
  * Auth: CRON_SECRET Bearer token (see verifyCronSecret).
  * This route does NOT use createApiHandler — it's a simple cron trigger,
@@ -29,6 +32,7 @@ import {
   resetMonthlyQuota,
 } from '@/lib/api/apiKey';
 import { verifyCronSecret } from '@/lib/api/cronAuth';
+import { addMonthlyCredits } from '@/lib/billing/creditWallet';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('CronBilling');
@@ -58,6 +62,7 @@ export async function runBilling(): Promise<BillingResult> {
     subscriptionsDowngraded: number;
     subscriptionsCleanedUp: number;
     quotaReset?: number;
+    creditsGranted?: number;
   } = { trialsDowngraded: 0, subscriptionsDowngraded: 0, subscriptionsCleanedUp: 0 };
 
   try {
@@ -95,6 +100,16 @@ export async function runBilling(): Promise<BillingResult> {
       });
     }
 
+    // 5. Daily: credit active subscribers' monthly credit allowance. Idempotent
+    //    per (user, month), so running daily is safe — this also catches
+    //    subscribers whose allowance was missed at activation.
+    logger.info('Billing cron: starting addMonthlyCredits');
+    const creditCount = await addMonthlyCredits();
+    results.creditsGranted = creditCount ?? 0;
+    logger.info('Billing cron: addMonthlyCredits complete', {
+      creditsGranted: results.creditsGranted,
+    });
+
     logger.info('Billing cron complete', {
       ...results,
       isMonthStart,
@@ -106,7 +121,7 @@ export async function runBilling(): Promise<BillingResult> {
       body: {
         success: true,
         data: results,
-        message: `Billing cron complete: ${results.trialsDowngraded} trials, ${results.subscriptionsDowngraded} expired subs, ${results.subscriptionsCleanedUp} zombies cleaned${
+        message: `Billing cron complete: ${results.trialsDowngraded} trials, ${results.subscriptionsDowngraded} expired subs, ${results.subscriptionsCleanedUp} zombies cleaned, ${results.creditsGranted} wallets credited${
           results.quotaReset !== undefined ? `, ${results.quotaReset} keys quota reset` : ''
         }`,
       },

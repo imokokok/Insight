@@ -50,7 +50,7 @@ export const PLANS = {
     priceMonthly: 49,
     priceYearly: 490,
     features: [
-      '10,000 API calls / month',
+      '10,000 credits / month included',
       '30 requests / minute',
       'Full deep-analysis suite (deviation, correlation, latency, risk)',
       'Historical 15-minute snapshots (6-month archive)',
@@ -69,7 +69,7 @@ export const PLANS = {
     priceMonthly: 499,
     priceYearly: 4990,
     features: [
-      '100,000 API calls / month',
+      '100,000 credits / month included',
       '60 requests / minute',
       'Protocol-level intelligence (oracle exposure, cross-chain spreads)',
       'Incident timeline & single-point-of-failure coverage analysis',
@@ -102,6 +102,49 @@ export type Plan = keyof typeof PLANS;
 
 /** Ordered list for display in pricing page. */
 export const PLAN_ORDER: Plan[] = ['free', 'pro', 'protocol', 'enterprise'];
+
+// ---------------------------------------------------------------------------
+// Credit packs — prepaid top-ups layered on top of the flat plans.
+// A paid plan includes a monthly credit allowance (see PLAN_CREDIT_GRANT);
+// these packs let an agent-heavy consumer buy more credits on demand.
+// ---------------------------------------------------------------------------
+
+export const CREDIT_PACKS = {
+  starter: {
+    name: 'Starter Pack',
+    credits: 25_000,
+    priceUsd: 39,
+    description: '≈5,000 deep-analysis calls or ≈2,500 pre-trade checks',
+  },
+  builder: {
+    name: 'Builder Pack',
+    credits: 100_000,
+    priceUsd: 129,
+    description: '≈20,000 deep-analysis calls or ≈10,000 pre-trade checks',
+  },
+  agent: {
+    name: 'Agent Pack',
+    credits: 500_000,
+    priceUsd: 499,
+    description: '≈50,000 pre-trade checks or ≈25,000 attested receipts',
+  },
+} as const;
+
+export type CreditPack = keyof typeof CREDIT_PACKS;
+
+export const CREDIT_PACK_ORDER: CreditPack[] = ['starter', 'builder', 'agent'];
+
+/**
+ * Monthly credit allowance a paid plan grants to its holder's wallet (per
+ * subscription billing cycle, credited via add_monthly_credits cron + at
+ * subscription activation). Mirrors the previous flat per-month quota, now
+ * denominated in credits that are spent per-call at C1..C4 rates.
+ */
+export function planCreditGrant(planValue: Plan): number {
+  if (planValue === 'pro') return PLANS.pro.monthlyQuota; // 10_000
+  if (planValue === 'protocol') return PLANS.protocol.monthlyQuota; // 100_000
+  return 0;
+}
 
 /**
  * Tier membership is NOT defined by allowlists here — it is enforced by the

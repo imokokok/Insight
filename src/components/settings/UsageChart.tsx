@@ -119,32 +119,45 @@ export function UsageChart({ apiKeyId, plan, accessToken }: UsageChartProps) {
   const quotaLimit = planConfig.monthlyQuota;
   const quotaUsed = data.key.monthlyQuotaUsed;
   const quotaPct = quotaLimit > 0 ? Math.min(100, (quotaUsed / quotaLimit) * 100) : 0;
+  const isCredited = plan !== 'free';
 
   return (
     <div className="space-y-6">
-      {/* Monthly quota summary */}
-      <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-semibold text-slate-700">Monthly quota usage</span>
-          <span className="text-sm text-slate-500 tabular-nums">
-            {quotaUsed.toLocaleString()} / {quotaLimit > 0 ? quotaLimit.toLocaleString() : '∞'}{' '}
-            calls
-          </span>
+      {/* Monthly quota summary — free keys only. Paid keys are credit-metered. */}
+      {!isCredited ? (
+        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-semibold text-slate-700">Monthly quota usage</span>
+            <span className="text-sm text-slate-500 tabular-nums">
+              {quotaUsed.toLocaleString()} / {quotaLimit > 0 ? quotaLimit.toLocaleString() : '∞'}{' '}
+              calls
+            </span>
+          </div>
+          <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                quotaPct > 80 ? 'bg-red-500' : quotaPct > 50 ? 'bg-amber-500' : 'bg-emerald-500'
+              }`}
+              style={{ width: `${quotaPct}%` }}
+            />
+          </div>
+          {data.key.quotaResetAt && (
+            <p className="text-xs text-slate-400 mt-2">
+              Resets on {new Date(data.key.quotaResetAt).toLocaleDateString()}
+            </p>
+          )}
         </div>
-        <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              quotaPct > 80 ? 'bg-red-500' : quotaPct > 50 ? 'bg-amber-500' : 'bg-emerald-500'
-            }`}
-            style={{ width: `${quotaPct}%` }}
-          />
-        </div>
-        {data.key.quotaResetAt && (
-          <p className="text-xs text-slate-400 mt-2">
-            Resets on {new Date(data.key.quotaResetAt).toLocaleDateString()}
+      ) : (
+        <div className="bg-emerald-50/60 rounded-xl p-4 border border-emerald-100">
+          <div className="text-sm font-semibold text-emerald-800">
+            {planConfig.name} key — credit-metered
+          </div>
+          <p className="text-xs text-emerald-700/80 mt-1">
+            This key is charged per call from your credit wallet (C1–C4). See your balance and top
+            up in Settings → Billing.
           </p>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Daily usage bar chart */}
       <div>

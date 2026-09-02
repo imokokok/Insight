@@ -9,6 +9,8 @@
 
 import { incrementApiKeyQuota, logApiKeyUsage } from '@/lib/api/apiKey';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
+import { consumeCredits, makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
+import { getToolCreditCost } from '@/lib/billing/metering';
 import { isTrialActive, normalizePlan, planSatisfies, PLANS } from '@/lib/billing/plans';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -93,27 +95,62 @@ interface McpQuotaResult {
 }
 
 /**
- * Pre-check the monthly quota for API-key authenticated MCP calls WITHOUT
- * consuming it. This runs at the HTTP boundary so an already-exhausted key is
- * short-circuited with a 402 before the JSON-RPC message is even dispatched.
+ * Pre-check the monthly quota / credit balance for API-key authenticated MCP
+ * calls WITHOUT consuming it. This runs at the HTTP boundary so an
+ * already-exhausted key is short-circuited with a 402 before the JSON-RPC
+ * message is even dispatched.
  *
- * The actual quota decrement happens later, in {@link consumeMcpQuota}, only
- * when a tool call succeeds — so protocol overhead (`initialize`, `tools/list`,
- * `ping`) and plan-guarded / failed tool calls do NOT cost the user quota.
- * Session and shared-bearer callers are never metered by the API-key quota.
+ * The actual credit charge happens later, in {@link consumeMcpQuota}, only
+ * when a tool call succeeds — so protocol overhead (`initialize`,
+ * `tools/list`, `ping`) and plan-guarded / failed tool calls do NOT cost the
+ * user. Session and shared-bearer callers are never metered.
+ *
+ * Tool name is unavailable at the HTTP boundary, so paid keys are checked
+ * against the cheapest class cost (0.5) — enough to short-circuit an empty
+ * wallet. The precise per-tool cost is charged in consumeMcpQuota.
  */
-export function checkMcpQuota(auth: McpAuthContext): McpQuotaResult {
+export async function checkMcpQuota(auth: McpAuthContext): Promise<McpQuotaResult> {
   if (auth.type !== 'apikey') {
     return { allowed: true, limit: -1, remaining: -1, resetAt: new Date().toISOString() };
   }
 
-  return checkApiKeyQuota(auth);
-}
-
-function checkApiKeyQuota(auth: McpApiKeyAuth): McpQuotaResult {
   const plan = normalizePlan(auth.apiKey.plan);
   const planConfig = PLANS[plan];
-  const limit = planConfig.monthlyQuota;
+
+  // Free keys: legacy monthly-quota check from the cached validation result.
+  if (plan === 'free') {
+    return checkFreeMonthlyQuota(auth);
+  }
+
+  // Paid keys: credit-wallet precheck at the cheapest class cost. Fail open on
+  // transient DB error (precheckCredits already fall-open). Unlimited
+  // (enterprise) plans skip the check.
+  if (planConfig.monthlyQuota < 0) {
+    return { allowed: true, limit: -1, remaining: -1, resetAt: auth.apiKey.quotaResetAt };
+  }
+
+  const minCost = 0.5;
+  const precheck = await precheckCredits(auth.apiKey.keyId, minCost);
+  if (!precheck.ok) {
+    logger.warn('MCP credit precheck rejected', {
+      apiKeyId: auth.apiKey.keyId,
+      plan,
+      reason: precheck.reason,
+    });
+    return { allowed: false, limit: -1, remaining: 0, resetAt: auth.apiKey.quotaResetAt };
+  }
+
+  return {
+    allowed: true,
+    limit: -1,
+    remaining: precheck.balance ?? 0,
+    resetAt: auth.apiKey.quotaResetAt,
+  };
+}
+
+function checkFreeMonthlyQuota(auth: McpApiKeyAuth): McpQuotaResult {
+  const plan = normalizePlan(auth.apiKey.plan);
+  const limit = PLANS[plan].monthlyQuota;
 
   if (limit < 0) {
     return { allowed: true, limit: -1, remaining: -1, resetAt: auth.apiKey.quotaResetAt };
@@ -134,10 +171,6 @@ function checkApiKeyQuota(auth: McpApiKeyAuth): McpQuotaResult {
     return { allowed: false, limit, remaining: 0, resetAt };
   }
 
-  // NOTE: do NOT increment here. The counter is decremented only when a tool
-  // call actually succeeds (see consumeMcpQuota). Reporting the pre-decrement
-  // remaining so the header reflects the cached usage snapshot consistently
-  // with the fire-and-forget increment semantics used by the REST API.
   return {
     allowed: true,
     limit,
@@ -147,19 +180,39 @@ function checkApiKeyQuota(auth: McpApiKeyAuth): McpQuotaResult {
 }
 
 /**
- * Consume one unit of monthly quota for a successful MCP tool call.
- * Fire-and-forget, mirroring the REST quota middleware. No-op for session and
- * shared-bearer callers, and for unlimited plans (increment_api_key_quota is a
- * harmless no-op on unlimited keys but we skip the DB round-trip anyway).
+ * Consume credits for a successful MCP tool call (paid keys), or increment
+ * the monthly-quota counter (free keys). Fire-and-forget, mirroring the REST
+ * quota middleware. No-op for session and shared-bearer callers.
  */
-export function consumeMcpQuota(auth: McpAuthContext): void {
+export function consumeMcpQuota(auth: McpAuthContext, toolName: string): void {
   if (auth.type !== 'apikey') {
     return;
   }
 
-  incrementApiKeyQuota(auth.apiKey.keyId).catch((err) => {
-    logger.warn('MCP async quota increment failed', {
+  const plan = normalizePlan(auth.apiKey.plan);
+
+  if (plan === 'free') {
+    incrementApiKeyQuota(auth.apiKey.keyId).catch((err) => {
+      logger.warn('MCP async quota increment failed', {
+        apiKeyId: auth.apiKey.keyId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
+    return;
+  }
+
+  if (PLANS[plan].monthlyQuota < 0) {
+    // Unlimited (enterprise) — not metered.
+    return;
+  }
+
+  const cost = getToolCreditCost(toolName);
+  const meteringKey = makeMeteringKey(`mcp:${auth.apiKey.keyId}:${toolName}`);
+  consumeCredits(auth.apiKey.keyId, cost, meteringKey, `/mcp/tools/${toolName}`).catch((err) => {
+    logger.warn('MCP async credit consume failed', {
       apiKeyId: auth.apiKey.keyId,
+      cost,
+      toolName,
       error: err instanceof Error ? err.message : String(err),
     });
   });

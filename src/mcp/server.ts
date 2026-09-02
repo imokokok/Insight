@@ -65,7 +65,7 @@ export function createMcpServer(auth?: McpAuthContext): Server {
         // and execution failures are NOT metered — mirroring the REST API
         // which only counts successful data requests.
         if (!result.isError) {
-          consumeMcpQuota(auth);
+          consumeMcpQuota(auth, name);
         }
         recordMcpToolUsage(auth, name, result.isError ? 500 : 200, Date.now() - startTime);
       }

@@ -87,14 +87,18 @@ export async function handleMcpHttpRequest(request: Request): Promise<McpHttpHan
     };
   }
 
-  const quota = checkMcpQuota(authResult.auth);
+  const quota = await checkMcpQuota(authResult.auth);
   if (!quota.allowed) {
     return {
-      response: jsonResponse({ error: 'Monthly quota exceeded', resetAt: quota.resetAt }, 402, {
-        'X-Quota-Limit': String(quota.limit),
-        'X-Quota-Remaining': '0',
-        'X-Quota-Reset': String(Math.floor(new Date(quota.resetAt).getTime() / 1000)),
-      }),
+      response: jsonResponse(
+        { error: 'Quota or credit balance exhausted', resetAt: quota.resetAt },
+        402,
+        {
+          'X-Quota-Limit': String(quota.limit),
+          'X-Quota-Remaining': '0',
+          'X-Quota-Reset': String(Math.floor(new Date(quota.resetAt).getTime() / 1000)),
+        }
+      ),
       cleanup: async () => {},
     };
   }

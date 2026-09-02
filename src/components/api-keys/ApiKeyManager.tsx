@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 import Link from 'next/link';
 
-import { AlertCircle, Check, Copy, Gift, Key, Loader2, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, Check, Coins, Copy, Gift, Key, Loader2, Plus, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { PLANS, isTrialActive, normalizePlan } from '@/lib/billing/plans';
@@ -314,6 +314,7 @@ export function ApiKeyManager({
                 const quotaLimit = planConfig.monthlyQuota;
                 const quotaPct =
                   quotaLimit > 0 ? Math.min(100, (key.monthlyQuotaUsed / quotaLimit) * 100) : 0;
+                const isCredited = keyPlan !== 'free';
                 const trialActive = isTrialActive(key.trialEndsAt);
 
                 return (
@@ -342,24 +343,31 @@ export function ApiKeyManager({
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-500">{key.rateLimit}/min</td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 min-w-[80px] max-w-[120px] bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              quotaPct > 80
-                                ? 'bg-red-500'
-                                : quotaPct > 50
-                                  ? 'bg-amber-500'
-                                  : 'bg-emerald-500'
-                            }`}
-                            style={{ width: `${quotaPct}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-slate-500 whitespace-nowrap tabular-nums">
-                          {key.monthlyQuotaUsed.toLocaleString()}/
-                          {quotaLimit > 0 ? quotaLimit.toLocaleString() : '∞'}
+                      {isCredited ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md whitespace-nowrap">
+                          <Coins className="w-3.5 h-3.5" />
+                          Credit-metered
                         </span>
-                      </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 min-w-[80px] max-w-[120px] bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                quotaPct > 80
+                                  ? 'bg-red-500'
+                                  : quotaPct > 50
+                                    ? 'bg-amber-500'
+                                    : 'bg-emerald-500'
+                              }`}
+                              style={{ width: `${quotaPct}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-slate-500 whitespace-nowrap tabular-nums">
+                            {key.monthlyQuotaUsed.toLocaleString()}/
+                            {quotaLimit > 0 ? quotaLimit.toLocaleString() : '∞'}
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-500">
                       {formatDate(key.lastUsedAt)}

@@ -40,7 +40,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { updateApiKeyPlanForUser } from '@/lib/api/apiKey';
+import { topUpCredits } from '@/lib/billing/creditWallet';
 import { parseIpnEvent } from '@/lib/billing/nowpayments';
+import { planCreditGrant } from '@/lib/billing/plans';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
@@ -310,24 +312,97 @@ async function findSubscriptionByInvoice(
 }
 
 /**
- * Handle confirmed/finished: upgrade the user's API keys to the subscribed
- * plan and activate the subscription row with a fresh period_end computed
- * from the webhook arrival time (so the cycle starts at payment confirmation).
+ * Look up a credit purchase row by NOWPayments invoice_id (preferred) or
+ * order_id (the credit_purchases.id uuid set at checkout). For top-up IPNs.
+ */
+async function findCreditPurchaseByInvoice(
+  client: ReturnType<typeof createServiceRoleClient>,
+  data: IpnData
+): Promise<{
+  id: string;
+  user_id: string;
+  credits: number;
+  status: string;
+} | null> {
+  const invoiceId = getStringField(data, 'invoice_id', 'invoiceId');
+  const orderId = getStringField(data, 'order_id', 'orderId');
+
+  if (invoiceId) {
+    const { data: row } = await client
+      .from('credit_purchases')
+      .select('id, user_id, credits, status')
+      .eq('nowpayments_invoice_id', invoiceId)
+      .maybeSingle();
+    if (row) return row;
+  }
+
+  if (orderId) {
+    const { data: row } = await client
+      .from('credit_purchases')
+      .select('id, user_id, credits, status')
+      .eq('id', orderId)
+      .maybeSingle();
+    if (row) return row;
+  }
+
+  return null;
+}
+
+/**
+ * Handle confirmed/finished: credit the wallet for a top-up invoice, OR
+ * upgrade the user's API keys to the subscribed plan (and grant the first
+ * cycle's credit allowance) for a subscription invoice.
  */
 async function handlePaymentConfirmed(
   client: ReturnType<typeof createServiceRoleClient>,
   data: IpnData,
   paymentId: string
 ) {
+  const invoiceId = getStringField(data, 'invoice_id', 'invoiceId');
+
+  // --- Top-up invoice: credit the wallet (idempotent on metering key). -----
+  const purchase = await findCreditPurchaseByInvoice(client, data);
+  if (purchase) {
+    if (purchase.status === 'incomplete') {
+      const newBalance = await topUpCredits({
+        userId: purchase.user_id,
+        amount: purchase.credits,
+        meteringKey: `topup:${paymentId}`,
+        kind: 'topup',
+        ref: invoiceId ?? undefined,
+      });
+
+      await client
+        .from('credit_purchases')
+        .update({
+          status: 'paid',
+          nowpayments_payment_id: paymentId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', purchase.id);
+
+      logger.info('Credit top-up confirmed — wallet credited', {
+        userId: purchase.user_id,
+        credits: purchase.credits,
+        newBalance,
+        paymentId,
+        purchaseId: purchase.id,
+      });
+    }
+    return;
+  }
+
+  // --- Subscription invoice (existing flow). --------------------------------
   const sub = await findSubscriptionByInvoice(client, data);
   if (!sub) {
     logger.warn('confirmed/finished IPN: no subscription row found', {
-      invoiceId: getStringField(data, 'invoice_id', 'invoiceId'),
+      invoiceId,
       orderId: getStringField(data, 'order_id', 'orderId'),
     });
     return;
   }
 
+  const wasIncomplete = sub.status === 'incomplete';
   const interval = sub.interval === 'year' ? 'year' : 'month';
   const now = new Date();
   const periodEnd = new Date(now.getTime() + PERIOD_DAYS[interval] * 24 * 60 * 60 * 1000);
@@ -355,6 +430,27 @@ async function handlePaymentConfirmed(
 
   // Upgrade all of the user's active API keys to the paid plan.
   await updateApiKeyPlanForUser(sub.user_id, sub.plan as 'pro' | 'protocol');
+
+  // First cycle: credit the plan's monthly credit allowance so the user is
+  // immediately spendable (the monthly cron handles subsequent cycles).
+  if (wasIncomplete) {
+    const grant = planCreditGrant(sub.plan as 'pro' | 'protocol');
+    if (grant > 0) {
+      await topUpCredits({
+        userId: sub.user_id,
+        amount: grant,
+        meteringKey: `grant:${sub.user_id}:sub:${sub.id}`,
+        kind: 'grant',
+        ref: `${sub.plan} first-cycle allowance`,
+      });
+      logger.info('Granted first-cycle credit allowance', {
+        userId: sub.user_id,
+        plan: sub.plan,
+        grant,
+        subscriptionId: sub.id,
+      });
+    }
+  }
 
   logger.info('Payment confirmed — user upgraded', {
     userId: sub.user_id,
