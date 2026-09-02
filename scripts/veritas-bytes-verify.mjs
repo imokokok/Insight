@@ -79,11 +79,31 @@ check(
   `delta=${delta}, max=${maxSlip}, pkg.slippageSatisfied=${r.data.slippageSatisfied}`
 );
 const verdict = r.data.priceExecutionStatus ?? r.data.executionStatus;
+// Independent recompute mirroring the receipt's own deriveExecutionStatus
+// semantics (no Insight code imported here). A receipt may only claim FAITHFUL
+// when slippage is satisfied; UNDETERMINED has three legitimate exits:
+// unreadable price, a gate signed AFTER the fill (backfilled demo packages —
+// Headless H4), or a binding that is not VERIFIED. Both shipped demo packages
+// (v3 repaired, v4) are backfilled, so their preTradeSignedAt > executedAt and
+// the honest verdict is UNDETERMINED — this recompute must accept that.
+const exAt = Number(r.data.executedAt);
+const pts = Number(r.data.preTradeSignedAt);
+const precedenceHolds = Number.isFinite(pts) && pts > 0 && pts <= exAt;
+const priceReadable =
+  Number(r.data.quotedPrice) > 0 && Number(r.data.executedPrice) > 0;
+const statusMatches =
+  (r.data.slippageSatisfied === true && verdict === 'FAITHFUL') ||
+  (r.data.slippageSatisfied === false && verdict !== 'FAITHFUL') ||
+  (verdict === 'UNDETERMINED' &&
+    (!precedenceHolds ||
+      r.data.bindingMode !== 'VERIFIED' ||
+      !priceReadable ||
+      !Number.isFinite(Number(r.data.quotedPrice)) ||
+      !Number.isFinite(Number(r.data.executedPrice))));
 check(
   `${statusField} == independent recompute from signed numbers`,
-  (r.data.slippageSatisfied === true && verdict === 'FAITHFUL') ||
-    (r.data.slippageSatisfied === false && verdict !== 'FAITHFUL'),
-  `signed verdict=${verdict}`
+  statusMatches,
+  `signed verdict=${verdict}, precedence=${precedenceHolds ? 'holds' : 'FALSE (gate after fill → UNDETERMINED)'}`
 );
 check(
   'independent expected status (package onchain) agrees',
@@ -205,12 +225,21 @@ if (modern) {
       `environment=${r.eip712.domain.environment}`
     );
   }
+  // F5: two DISTINCT clocks must be readable as distinct. priceStateAge is
+  // always on-chain derivable (>0 here) and checked against the block
+  // timestamps below; attestationAge may legitimately be 0 when the gate was
+  // signed after the fill (backfilled demo packages — Headless H4), because
+  // then there is no "attestation age at execution" to report. The check is
+  // therefore: both present, different from each other, priceState positive.
+  const attAge = Number(r.data.attestationAgeAtExecSeconds);
+  const stateAge = Number(r.data.priceStateAgeAtExecSeconds);
   check(
     'two distinct age fields (attestation vs price state)',
-    Number(r.data.attestationAgeAtExecSeconds) > 0 &&
-      Number(r.data.priceStateAgeAtExecSeconds) > 0 &&
-      r.data.attestationAgeAtExecSeconds !== r.data.priceStateAgeAtExecSeconds,
-    `attestationAge=${r.data.attestationAgeAtExecSeconds}s priceStateAge=${r.data.priceStateAgeAtExecSeconds}s`
+    Number.isFinite(attAge) &&
+      Number.isFinite(stateAge) &&
+      attAge !== stateAge &&
+      stateAge > 0,
+    `attestationAge=${attAge}s priceStateAge=${stateAge}s`
   );
   check(
     'priceStateAgeAtExecSeconds == executedAt - preSwapBlockTs (on-chain derivable)',
