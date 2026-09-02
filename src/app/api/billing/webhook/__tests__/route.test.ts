@@ -24,6 +24,11 @@ jest.mock('@/lib/api/apiKey', () => ({
   updateApiKeyPlanForUser: (...args: unknown[]) => mockUpdateApiKeyPlanForUser(...args),
 }));
 
+const mockTopUpCredits = jest.fn();
+jest.mock('@/lib/billing/creditWallet', () => ({
+  topUpCredits: (...args: unknown[]) => mockTopUpCredits(...args),
+}));
+
 const mockCreateServiceRoleClient = jest.fn();
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: (...args: unknown[]) => mockCreateServiceRoleClient(...args),
@@ -110,6 +115,7 @@ describe('POST /api/billing/webhook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUpdateApiKeyPlanForUser.mockResolvedValue(undefined);
+    mockTopUpCredits.mockResolvedValue(10000);
   });
 
   it('returns 400 when signature verification fails', async () => {
@@ -143,33 +149,58 @@ describe('POST /api/billing/webhook', () => {
     expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalled();
   });
 
-  it('upgrades the user on `finished` IPN with fresh period_end', async () => {
+  it('upgrades the user on `finished` IPN with fresh period_end and first-cycle grant', async () => {
     mockParseIpnEvent.mockReturnValue({
       id: 'pay_2',
       type: 'finished',
       data: { invoice_id: 'inv_2', order_id: 'order_2' },
     });
-    mockCreateServiceRoleClient.mockReturnValue(
-      createSupabaseMock({
-        selectData: {
-          processed_webhook_events: null,
-          subscriptions: {
-            id: 'order_2',
-            user_id: 'user_123',
-            plan: 'pro',
-            interval: 'month',
-            status: 'incomplete',
-          },
+    const supabase = createSupabaseMock({
+      selectData: {
+        processed_webhook_events: null,
+        credit_purchases: null,
+        subscriptions: {
+          id: 'order_2',
+          user_id: 'user_123',
+          plan: 'developer',
+          interval: 'month',
+          status: 'incomplete',
         },
-      })
-    );
+      },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(supabase);
 
     const response = await POST(createPostRequest('payload'));
     const body = await parseBody(response);
 
     expect(response.status).toBe(200);
     expect(body).toEqual({ received: true });
-    expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_123', 'pro');
+    expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_123', 'developer');
+    // First-cycle allowance granted (developer = 10k), keyed per billing cycle.
+    expect(mockTopUpCredits).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user_123',
+        amount: 10000,
+        meteringKey: 'grant:user_123:sub:order_2',
+        kind: 'grant',
+      })
+    );
+    // Any OTHER active subscription for the user is superseded (canceled) so
+    // the monthly allowance can never be granted twice.
+    const updateCalls = supabase.from.mock.calls
+      .map((call, i) =>
+        call[0] === 'subscriptions'
+          ? ((
+              supabase.from.mock.results[i].value as unknown as {
+                __calls?: Record<string, unknown[]>;
+              }
+            ).__calls?.update ?? [])
+          : []
+      )
+      .flat();
+    expect(
+      updateCalls.some((args) => (args[0] as Record<string, unknown>).status === 'canceled')
+    ).toBe(true);
   });
 
   it('upgrades the user on `confirmed` IPN (same as finished)', async () => {
@@ -181,10 +212,11 @@ describe('POST /api/billing/webhook', () => {
     mockCreateServiceRoleClient.mockReturnValue(
       createSupabaseMock({
         selectData: {
+          credit_purchases: null,
           subscriptions: {
             id: 'sub_3',
             user_id: 'user_conf',
-            plan: 'protocol',
+            plan: 'team',
             interval: 'year',
             status: 'incomplete',
           },
@@ -195,7 +227,16 @@ describe('POST /api/billing/webhook', () => {
     const response = await POST(createPostRequest('payload'));
 
     expect(response.status).toBe(200);
-    expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_conf', 'protocol');
+    expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_conf', 'team');
+    // Yearly: one allowance per calendar month, keyed with the YYYY-MM suffix.
+    expect(mockTopUpCredits).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user_conf',
+        amount: 50000,
+        meteringKey: expect.stringMatching(/^grant:user_conf:sub:sub_3:\d{4}-\d{2}$/),
+        kind: 'grant',
+      })
+    );
   });
 
   it('marks subscription past_due on partially_paid (no upgrade)', async () => {
@@ -210,7 +251,7 @@ describe('POST /api/billing/webhook', () => {
           subscriptions: {
             id: 'sub_4',
             user_id: 'user_partial',
-            plan: 'pro',
+            plan: 'developer',
             interval: 'month',
             status: 'incomplete',
           },
@@ -222,6 +263,7 @@ describe('POST /api/billing/webhook', () => {
 
     expect(response.status).toBe(200);
     expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalled();
+    expect(mockTopUpCredits).not.toHaveBeenCalled();
   });
 
   it('marks subscription canceled on expired when row is incomplete', async () => {
@@ -236,7 +278,7 @@ describe('POST /api/billing/webhook', () => {
           subscriptions: {
             id: 'sub_5',
             user_id: 'user_exp',
-            plan: 'pro',
+            plan: 'developer',
             interval: 'month',
             status: 'incomplete',
           },
@@ -263,7 +305,7 @@ describe('POST /api/billing/webhook', () => {
           subscriptions: {
             id: 'sub_6',
             user_id: 'user_late',
-            plan: 'pro',
+            plan: 'developer',
             interval: 'month',
             status: 'active', // already paid via earlier confirmed IPN
           },
@@ -275,11 +317,10 @@ describe('POST /api/billing/webhook', () => {
 
     expect(response.status).toBe(200);
     // Critical: must NOT downgrade an active user due to a late expired IPN.
-    expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalledWith('user_late', 'free');
     expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalled();
   });
 
-  it('downgrades the user to free on refunded IPN', async () => {
+  it('downgrades the user to developer on refunded IPN (base tier, still metered)', async () => {
     mockParseIpnEvent.mockReturnValue({
       id: 'pay_7',
       type: 'refunded',
@@ -291,7 +332,7 @@ describe('POST /api/billing/webhook', () => {
           subscriptions: {
             id: 'sub_7',
             user_id: 'user_refund',
-            plan: 'pro',
+            plan: 'team',
             interval: 'month',
             status: 'active',
           },
@@ -302,7 +343,55 @@ describe('POST /api/billing/webhook', () => {
     const response = await POST(createPostRequest('payload'));
 
     expect(response.status).toBe(200);
-    expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_refund', 'free');
+    // There is no 'free' tier in the credit-wallet model — refunds downgrade to
+    // the base Developer tier, and any wallet balance remains spendable.
+    expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_refund', 'developer');
+  });
+
+  it('does NOT reset the billing period or re-grant on a duplicate confirmed IPN', async () => {
+    // The row is already 'active' (a first confirmed/finished already ran), so a
+    // duplicate confirmed/finished must NOT reset current_period_*, must NOT
+    // cancel-other-subs again, and must NOT grant a second allowance — but it
+    // still re-applies the plan (idempotent).
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_dup',
+      type: 'confirmed',
+      data: { invoice_id: 'inv_dup' },
+    });
+    const supabase = createSupabaseMock({
+      selectData: {
+        credit_purchases: null,
+        subscriptions: {
+          id: 'sub_dup',
+          user_id: 'user_dup',
+          plan: 'developer',
+          interval: 'month',
+          status: 'active', // already activated by the first confirmed IPN
+        },
+      },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(supabase);
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(200);
+    // Plan still (re)applied — idempotent.
+    expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_dup', 'developer');
+    // No second allowance grant.
+    expect(mockTopUpCredits).not.toHaveBeenCalled();
+    // No period-reset update (status stays active; no row update at all).
+    const updateCalls = supabase.from.mock.calls
+      .map((call, i) =>
+        call[0] === 'subscriptions'
+          ? ((
+              supabase.from.mock.results[i].value as unknown as {
+                __calls?: Record<string, unknown[]>;
+              }
+            ).__calls?.update ?? [])
+          : []
+      )
+      .flat();
+    expect(updateCalls).toHaveLength(0);
   });
 
   it('logs and skips waiting/confirming IPN without action', async () => {
@@ -328,10 +417,11 @@ describe('POST /api/billing/webhook', () => {
     mockCreateServiceRoleClient.mockReturnValue(
       createSupabaseMock({
         selectData: {
+          credit_purchases: null,
           subscriptions: {
             id: 'sub_9',
             user_id: 'user_throw',
-            plan: 'pro',
+            plan: 'developer',
             interval: 'month',
             status: 'incomplete',
           },
@@ -355,10 +445,11 @@ describe('POST /api/billing/webhook', () => {
     });
     const supabase = createSupabaseMock({
       selectData: {
+        credit_purchases: null,
         subscriptions: {
           id: 'sub_10',
           user_id: 'user_multi',
-          plan: 'pro',
+          plan: 'developer',
           interval: 'month',
           status: 'incomplete',
         },

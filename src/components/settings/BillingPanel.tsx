@@ -4,7 +4,16 @@ import { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { AlertCircle, Check, CreditCard, Key, Loader2, TrendingUp, Zap } from 'lucide-react';
+import {
+  AlertCircle,
+  Check,
+  CreditCard,
+  Key,
+  Loader2,
+  RefreshCw,
+  TrendingUp,
+  Zap,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { PLANS, normalizePlan, type Plan } from '@/lib/billing/plans';
@@ -16,6 +25,7 @@ import { UsageChart } from './UsageChart';
 
 interface SubscriptionData {
   subscription: {
+    id: string;
     plan: string;
     status: string;
     interval: string;
@@ -120,6 +130,39 @@ export function BillingPanel() {
     }
   };
 
+  // "I've paid" — the user has paid but the subscription is stuck in
+  // incomplete/past_due (NOWPayments IPNs are not guaranteed). Reconcile
+  // against the provider; idempotent server-side, so re-running is safe.
+  const handleReconcile = async () => {
+    if (!accessToken || !subscription?.id) return;
+    setActionLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/billing/reconcile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ type: 'subscription', id: subscription.id }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Failed to check payment');
+      }
+
+      if (result.data?.status === 'active') {
+        setError('Payment confirmed — your subscription is now active');
+      }
+      await fetchSubscription();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to check payment');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
@@ -170,6 +213,10 @@ export function BillingPanel() {
   const apiKeys = data?.apiKeys ?? [];
   const hasActiveSubscription =
     subscription && ['active', 'past_due'].includes(subscription.status);
+  // Payment initiated but not yet settled — offer the "I've paid" reconcile
+  // action (NOWPayments IPNs are not guaranteed to be delivered).
+  const isPendingSubscription =
+    subscription && ['incomplete', 'past_due'].includes(subscription.status);
 
   // Determine the user's effective plan — there is no free tier, so the
   // subscription plan (or the base Developer tier) is always the plan.
@@ -233,10 +280,18 @@ export function BillingPanel() {
               </p>
             )}
 
-            {!hasActiveSubscription && (
+            {!hasActiveSubscription && !isPendingSubscription && (
               <p className="text-sm text-slate-600">
                 No active subscription — add credits (pay-as-you-go) or subscribe for a monthly
                 credit allowance. Every feature is unlocked to paying users.
+              </p>
+            )}
+
+            {isPendingSubscription && (
+              <p className="text-sm text-amber-700">
+                Your {subscription.interval === 'year' ? 'annual' : 'monthly'} payment is pending
+                confirmation. Already paid? Click “I&apos;ve paid” to verify with the payment
+                provider.
               </p>
             )}
           </div>
@@ -260,7 +315,7 @@ export function BillingPanel() {
               </Button>
             )}
 
-            {!hasActiveSubscription && (
+            {!hasActiveSubscription && !isPendingSubscription && (
               <Button
                 onClick={() => router.push('/api#pricing')}
                 variant="secondary"
@@ -268,6 +323,24 @@ export function BillingPanel() {
                 className="rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50"
               >
                 Subscribe
+              </Button>
+            )}
+
+            {isPendingSubscription && (
+              <Button
+                onClick={handleReconcile}
+                disabled={actionLoading}
+                variant="secondary"
+                leftIcon={
+                  actionLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )
+                }
+                className="rounded-xl border-amber-200 text-amber-700 hover:bg-amber-100"
+              >
+                {actionLoading ? 'Checking…' : 'I&apos;ve paid'}
               </Button>
             )}
           </div>

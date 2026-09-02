@@ -12,7 +12,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { Coins, Loader2, Zap } from 'lucide-react';
+import { CheckCircle2, Coins, Loader2, Zap } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { CREDIT_PACKS, CREDIT_PACK_ORDER } from '@/lib/billing/plans';
@@ -25,12 +25,14 @@ interface CreditWalletCardProps {
 interface WalletData {
   balance: number;
   frozen: number;
+  pending: Array<{ id: string; credits: number; invoiceId: string | null; createdAt: string }>;
   recent: Array<{ delta: number; kind: string; ref: string | null; createdAt: string }>;
 }
 
 export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps) {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [topUpLoading, setTopUpLoading] = useState<string | null>(null);
+  const [reconcileLoading, setReconcileLoading] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,6 +78,49 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
     } catch (err) {
       onError?.(err instanceof Error ? err.message : 'Failed to start top-up');
       setTopUpLoading(null);
+    }
+  };
+
+  // "I've paid" — reconcile a pending top-up against NOWPayments in case the
+  // IPN was lost/delayed. Idempotent server-side, so re-running is safe.
+  const handleReconcile = async (id: string) => {
+    if (!accessToken) return;
+    setReconcileLoading(id);
+    try {
+      const response = await fetch('/api/billing/reconcile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ type: 'topup', id }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Failed to check payment');
+      }
+
+      if (result.data?.status === 'paid') {
+        onError?.('Payment confirmed — credits added to your wallet');
+      } else if (
+        result.data?.providerStatus === 'confirmed' ||
+        result.data?.providerStatus === 'finished'
+      ) {
+        // Fallback: server reported a settled provider state.
+      }
+      // Reload the wallet to reflect the reconciled state.
+      const reload = await fetch('/api/billing/wallet', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const reloadResult = await reload.json();
+      if (reload.ok && reloadResult.success) {
+        setWallet(reloadResult.data);
+      }
+    } catch (err) {
+      onError?.(err instanceof Error ? err.message : 'Failed to check payment');
+    } finally {
+      setReconcileLoading(null);
     }
   };
 
@@ -134,6 +179,48 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
           </p>
         </div>
       </div>
+
+      {wallet && wallet.pending.length > 0 && (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-amber-700 mb-2">
+            Pending top-ups
+          </h4>
+          <ul className="space-y-2">
+            {wallet.pending.map((p) => (
+              <li key={p.id} className="flex items-center justify-between gap-3 text-sm flex-wrap">
+                <div>
+                  <span className="font-medium text-slate-700">
+                    {Number(p.credits).toLocaleString()} cr
+                  </span>
+                  <span className="text-slate-500">
+                    {' '}
+                    · created {new Date(p.createdAt).toLocaleDateString()}
+                  </span>
+                  <span className="block text-xs text-slate-400">
+                    Payment sent but not yet confirmed — paid? Click to verify.
+                  </span>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={reconcileLoading === p.id}
+                  onClick={() => handleReconcile(p.id)}
+                  leftIcon={
+                    reconcileLoading === p.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="w-4 h-4" />
+                    )
+                  }
+                  className="rounded-xl border-amber-200 text-amber-700 hover:bg-amber-100"
+                >
+                  {reconcileLoading === p.id ? 'Checking…' : 'I&apos;ve paid'}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {wallet && wallet.recent.length > 0 && (
         <div className="mt-4">

@@ -29,6 +29,19 @@ export const GET = createApiHandler(
     const wallet = await getWalletBalance(userId);
 
     const serviceClient = createServiceRoleClient();
+
+    // Pending top-up purchases (invoice created but not yet settled). Surfaced
+    // so the UI can offer the "I've paid" reconcile action — NOWPayments IPNs
+    // are not guaranteed, and without this a lost IPN leaves an 'incomplete'
+    // top-up stuck forever.
+    const { data: pending } = await serviceClient
+      .from('credit_purchases')
+      .select('id, credits, nowpayments_invoice_id, created_at')
+      .eq('user_id', userId)
+      .eq('status', 'incomplete')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
     const { data: recent } = await serviceClient
       .from('credit_ledger')
       .select('delta, kind, ref_id, created_at')
@@ -40,6 +53,12 @@ export const GET = createApiHandler(
       ApiResponseBuilder.success({
         balance: wallet?.balance ?? 0,
         frozen: wallet?.frozen ?? 0,
+        pending: (pending ?? []).map((row) => ({
+          id: row.id,
+          credits: Number(row.credits),
+          invoiceId: row.nowpayments_invoice_id,
+          createdAt: row.created_at,
+        })),
         recent: (recent ?? []).map((row) => ({
           delta: Number(row.delta),
           kind: row.kind,

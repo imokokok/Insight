@@ -26,15 +26,21 @@ export const GET = createApiHandler(
       });
     }
 
-    // 1. Fetch the user's most recent subscription (RLS-enforced via user client)
+    // 1. Fetch the user's recent subscriptions (RLS-enforced via user client).
+    //    Prefer the most recent row that is actually active (or past_due) so an
+    //    abandoned/duplicate 'incomplete' checkout cannot mask the user's real
+    //    subscription. Fall back to the latest row of any status.
     const userClient = createUserClient(accessToken);
-    const { data: subscription, error: subError } = await userClient
+    const { data: recentSubs, error: subError } = await userClient
       .from('subscriptions')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(5);
+
+    const subscription = Array.isArray(recentSubs)
+      ? (recentSubs.find((s) => s.status === 'active' || s.status === 'past_due') ?? recentSubs[0])
+      : null;
 
     // 2. Fetch all active API keys (service role — key rows are not exposed
     //    via user RLS)
