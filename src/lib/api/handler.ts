@@ -29,11 +29,20 @@ import type { ApiResponse, ApiSuccessResponse } from './response/ApiResponse';
 
 const logger = createLogger('api-handler');
 
-/** Standard v1 middleware stack: authenticated (user or API key), API-rate-limited,
- *  credit-quota-enforced, and CORS-enabled. Used by the majority of v1 endpoints. */
+/** Standard v1 middleware stack: API-key authenticated, API-rate-limited,
+ *  credit-quota-enforced, and CORS-enabled. Used by the majority of v1
+ *  endpoints.
+ *
+ *  NOTE: auth requires an API key (requireApiKey) — Bearer session tokens are
+ *  NOT accepted on the external v1 API surface. Session users carry no API key,
+ *  so the quota middleware would skip credit metering entirely, letting a
+ *  registered user call the paid API for free. The app's own UI either uses the
+ *  non-v1 internal routes or (for interactive widgets) opts into
+ *  skipInternalAuthAndRateLimit, which identifies it via the HMAC-signed
+ *  internal cookie. */
 export const V1_STANDARD_MIDDLEWARES: MiddlewareConfig = {
   logging: true,
-  auth: { required: true, allowApiKey: true },
+  auth: { required: true, allowApiKey: true, requireApiKey: true },
   rateLimit: { preset: 'api' },
   quota: true,
   cors: true,
@@ -44,7 +53,7 @@ export const V1_STANDARD_MIDDLEWARES: MiddlewareConfig = {
  *  authenticated users. */
 export const V1_READ_ONLY_MIDDLEWARES: MiddlewareConfig = {
   logging: true,
-  auth: { required: true, allowApiKey: true },
+  auth: { required: true, allowApiKey: true, requireApiKey: true },
   rateLimit: { preset: 'api' },
   quota: true,
   cors: true,
@@ -91,7 +100,9 @@ type ApiHandler<
 ) => Promise<NextResponse<ApiResponse<T>> | NextResponse<ApiSuccessResponse<T>> | NextResponse>;
 
 interface MiddlewareConfig {
-  auth?: { required?: boolean; roles?: string[]; allowApiKey?: boolean } | boolean;
+  auth?:
+    | { required?: boolean; roles?: string[]; allowApiKey?: boolean; requireApiKey?: boolean }
+    | boolean;
   logging?: LoggingMiddlewareOptions | boolean;
   error?: ErrorMiddlewareOptions;
   rateLimit?: RateLimitMiddlewareOptions | boolean;
@@ -448,18 +459,39 @@ export function createApiHandler<
       // atomically and is idempotent, so it stays the source of truth.
       const pendingCharge = apiContext.quotaInfo?.pendingCharge;
       if (pendingCharge && response.status >= 200 && response.status < 300) {
-        consumeCredits(
+        const charge = await consumeCredits(
           pendingCharge.apiKeyId,
           pendingCharge.cost,
           pendingCharge.meteringKey,
           request.nextUrl.pathname
-        ).catch((err) => {
-          logger.warn('Async credit consume failed', {
+        );
+
+        if (!charge.ok) {
+          // The authoritative charge was rejected (INSUFFICIENT_CREDITS /
+          // BUDGET_EXCEEDED / KEY_NOT_FOUND) even though the precheck passed —
+          // concurrent requests raced past the optimistic precheck. Do NOT hand
+          // the response over for free: withhold it with a 402. consumeCredits
+          // only reports ok:false for a genuine rejection (DB/RPC errors fail
+          // open with ok:true), so this never mis-charges on transient issues.
+          logger.warn('Credit consume rejected after handler success — withholding response', {
             apiKeyId: pendingCharge.apiKeyId,
             cost: pendingCharge.cost,
-            error: err instanceof Error ? err.message : String(err),
+            reason: charge.reason,
           });
-        });
+          const deniedResponse = NextResponse.json(
+            ApiResponseBuilder.error(
+              'CREDIT_EXHAUSTED',
+              `This call requires ${pendingCharge.cost} credit${
+                pendingCharge.cost === 1 ? '' : 's'
+              } but the charge could not be applied. Top up at /api#pricing.`,
+              { retryable: false, details: { reason: charge.reason, cost: pendingCharge.cost } }
+            ),
+            { status: 402 }
+          );
+          deniedResponse.headers.set('X-Credit-Cost', String(pendingCharge.cost));
+          if (corsHeaders) applyCorsHeaders(deniedResponse, corsHeaders);
+          return deniedResponse;
+        }
       }
 
       if (apiContext.rateLimitInfo) {

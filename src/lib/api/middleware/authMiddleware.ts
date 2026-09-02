@@ -20,6 +20,11 @@ interface AuthMiddlewareOptions {
   required?: boolean;
   roles?: string[];
   allowApiKey?: boolean;
+  /** When true, ONLY an API key is accepted — Bearer (user session) tokens are
+   *  rejected. Used by the external v1 API surface so a registered user cannot
+   *  use their session token to bypass credit metering (session requests have
+   *  no API key, so the quota middleware would otherwise skip charging). */
+  requireApiKey?: boolean;
 }
 
 type AuthMiddlewareResult =
@@ -78,8 +83,17 @@ async function extractApiKeyAuthContext(request: NextRequest): Promise<AuthConte
 
 async function extractAuthContext(
   request: NextRequest,
-  allowApiKey = false
+  options: { allowApiKey?: boolean; requireApiKey?: boolean } = {}
 ): Promise<AuthContext | null> {
+  const { allowApiKey = false, requireApiKey = false } = options;
+
+  // requireApiKey: the external API surface only accepts API keys. Do not even
+  // try Bearer session tokens — accepting them would let a registered user
+  // bypass metering (quota only runs when an API key is present).
+  if (requireApiKey) {
+    return extractApiKeyAuthContext(request);
+  }
+
   const bearerContext = await extractBearerAuthContext(request);
   if (bearerContext) {
     return bearerContext;
@@ -93,10 +107,10 @@ async function extractAuthContext(
 }
 
 export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
-  const { required = true, roles = [], allowApiKey = false } = options;
+  const { required = true, roles = [], allowApiKey = false, requireApiKey = false } = options;
 
   return async (request: NextRequest): Promise<AuthMiddlewareResult> => {
-    const authContext = await extractAuthContext(request, allowApiKey);
+    const authContext = await extractAuthContext(request, { allowApiKey, requireApiKey });
 
     if (!authContext) {
       if (required) {

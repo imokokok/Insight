@@ -20,6 +20,7 @@
 
 import { timingSafeEqual } from 'node:crypto';
 
+import { getInternalTokenFromCookieHeader, verifyInternalToken } from '@/lib/api/internalToken';
 import { createUserClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -145,6 +146,25 @@ function timingSafeEqualString(a: string, b: string): boolean {
 }
 
 /**
+ * Verify the request carries a valid internal-token cookie (issued to the
+ * app's own UI on page load). Used to distinguish website-playground requests
+ * (free) from external agents trying to use a stolen/self-issued session JWT
+ * (must pay via an API key).
+ */
+async function hasValidInternalCookie(request: Request): Promise<boolean> {
+  const token = getInternalTokenFromCookieHeader(request.headers.get('cookie'));
+  if (!token) return false;
+  try {
+    return await verifyInternalToken(token);
+  } catch (error) {
+    logger.warn('Internal token verification failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/**
  * Authenticate an incoming MCP HTTP request.
  *
  * Returns the auth context on success, or a structured failure that can be
@@ -170,7 +190,19 @@ export async function authenticateMcpRequest(
 
     const sessionAuth = await extractSessionAuth(token);
     if (sessionAuth) {
-      return { success: true, auth: sessionAuth };
+      // Session JWTs are only accepted from the website's own playground (the
+      // browser sends the HttpOnly internal cookie automatically). An external
+      // agent carrying a session token has no such cookie and must use an API
+      // key — otherwise a registered user could bypass credit metering.
+      if (await hasValidInternalCookie(request)) {
+        return { success: true, auth: sessionAuth };
+      }
+      return {
+        success: false,
+        error:
+          'Session tokens are only accepted from the website UI. Use X-API-Key for API access.',
+        statusCode: 401,
+      };
     }
 
     const bearerAuth = extractSharedBearerAuth(token);

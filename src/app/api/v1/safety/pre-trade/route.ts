@@ -91,5 +91,10 @@ export const GET = createApiHandler(
   {
     middlewares: V1_STANDARD_MIDDLEWARES,
     validation: { query: PreTradeQuerySchema },
+    // Powers the free website's pre-trade safety demos (/ai, /safety-check).
+    // UI requests are identified by the internal cookie and skip
+    // auth/rate-limit/quota; external callers still need an API key and are
+    // metered.
+    skipInternalAuthAndRateLimit: true,
   }
 );

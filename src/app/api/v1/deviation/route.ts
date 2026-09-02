@@ -47,5 +47,10 @@ export const GET = createApiHandler(
   {
     middlewares: V1_STANDARD_MIDDLEWARES,
     validation: { query: DeviationQuerySchema },
+    // This endpoint also powers the free website's deviation chart. Requests
+    // from the app's own UI are identified by the HMAC-signed internal cookie
+    // and skip auth/rate-limit/quota; external callers still need an API key
+    // and are metered.
+    skipInternalAuthAndRateLimit: true,
   }
 );

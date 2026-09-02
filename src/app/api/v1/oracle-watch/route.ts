@@ -85,5 +85,9 @@ export const GET = createApiHandler(
   {
     middlewares: V1_STANDARD_MIDDLEWARES,
     validation: { query: OracleWatchQuerySchema },
+    // Powers the free website's oracle-watch demo. UI requests are identified
+    // by the internal cookie and skip auth/rate-limit/quota; external callers
+    // still need an API key and are metered.
+    skipInternalAuthAndRateLimit: true,
   }
 );

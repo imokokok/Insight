@@ -127,6 +127,22 @@ export async function verifyInternalToken(token: string): Promise<boolean> {
 /** The cookie name used to store the internal token. */
 export const INTERNAL_COOKIE_NAME = COOKIE_NAME;
 
+/**
+ * Extract the internal token from a raw `Cookie` request header (e.g. the MCP
+ * transport, which receives a plain Request rather than NextRequest). Returns
+ * null when absent.
+ */
+export function getInternalTokenFromCookieHeader(cookieHeader: string | null): string | null {
+  if (!cookieHeader) return null;
+  for (const part of cookieHeader.split(';')) {
+    const trimmed = part.trim();
+    if (trimmed.startsWith(`${COOKIE_NAME}=`)) {
+      return trimmed.slice(COOKIE_NAME.length + 1);
+    }
+  }
+  return null;
+}
+
 /** Cookie options for Set-Cookie header. */
 export const INTERNAL_COOKIE_OPTIONS = {
   httpOnly: true,
