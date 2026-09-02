@@ -157,6 +157,16 @@ function preTradeInput(
   checkedAtMs: number
 ): AttestationInputV2 {
   const ts = BigInt(Math.floor(checkedAtMs / 1000));
+  // Observations describe THE ASSET THIS GATE PRICES: feed ids are derived
+  // from the asset id and values carry the asset's own USD price. Two gates
+  // over two different assets therefore carry DIFFERENT
+  // providerObservationsHash values — two honest gates over different assets
+  // cannot share that hash (VERITAS round 2, the placeholder-gate test they
+  // gifted us). The earlier demo reused one observation block for both gates,
+  // which was exactly that fingerprint; it is fixed here rather than left as
+  // another thing a third party could find.
+  const feedPrefix = `demo-feed:${sourceAssetId}`;
+  const value = BigInt(Math.round(consensusPriceUsd * 1e8));
   return {
     verdict: 'PASS',
     sourceAssetId,
@@ -176,8 +186,8 @@ function preTradeInput(
     providerObservations: [
       {
         provider: 'chainlink',
-        feedId: '0xfeed0001',
-        value: 1_00000000n,
+        feedId: `${feedPrefix}:1`,
+        value,
         timestamp: ts,
         dataAgeSeconds: 4n,
         included: true,
@@ -185,8 +195,8 @@ function preTradeInput(
       },
       {
         provider: 'api3',
-        feedId: '0xfeed0002',
-        value: 1_00000000n,
+        feedId: `${feedPrefix}:2`,
+        value,
         timestamp: ts,
         dataAgeSeconds: 6n,
         included: true,
@@ -194,8 +204,8 @@ function preTradeInput(
       },
       {
         provider: 'redstone',
-        feedId: '0xfeed0003',
-        value: 1_00000000n,
+        feedId: `${feedPrefix}:3`,
+        value,
         timestamp: ts,
         dataAgeSeconds: 5n,
         included: true,
@@ -381,6 +391,27 @@ async function main() {
       const requestHashMatches =
         requestHashRecomputed.toLowerCase() === sourceGate.data.requestHash.toLowerCase() &&
         requestHashRecomputed.toLowerCase() === issue.receipt.data.requestHash.toLowerCase();
+      // F11 (VERITAS round 2): the DESTINATION gate's requestHash had no
+      // preimage in the package. Its canonical request commits the same trade
+      // seen from the destination leg (source and destination swapped), so
+      // ship that preimage too and recompute it here.
+      const destinationRequestPreimage = {
+        subjectChainId: 1,
+        sourceAssetId: destAssetId,
+        destinationAssetId: sourceAssetId,
+        action: 'swap',
+        tradeAmountUsd: 50_000,
+      };
+      const destinationRequestHashRecomputed = computeRequestHash(destinationRequestPreimage);
+      const destinationRequestHashMatches =
+        destinationRequestHashRecomputed.toLowerCase() ===
+        destGate.data.requestHash.toLowerCase();
+      // The counterparties' placeholder-gate test, run on OUR OWN gates: two
+      // gates over two different assets must never share one
+      // providerObservationsHash.
+      const gateObservationHashesDiffer =
+        String(sourceGate.data.providerObservationsHash).toLowerCase() !==
+        String(destGate.data.providerObservationsHash).toLowerCase();
       const measuredFieldsOpen =
         computeMeasuredFieldsHash([]).toLowerCase() ===
         String(issue.receipt.data.measuredFieldsHash).toLowerCase();
@@ -418,7 +449,8 @@ async function main() {
             'signing key is a TEST key (anvil default), NOT the production attester key; the signed `environment` MESSAGE field is nonproduction (v4: v3 declared environment on the EIP-712 domain, which never entered the signature — Headless H7); structural verification is unaffected, identity verification is NOT claimed',
             'receipt is NOT anchored; anchoring remains the stated next step',
             "the quoted price is the execution venue's OWN pre-swap mid (block before the swap) re-expressed as USD; the receipt signs quoteVenueIndependent=false and quoteBasis=PREV_BLOCK_CLOSE accordingly (VERITAS F3/F4)",
-            'the pre-trade gates in this package are DEMO records: their provider observations carry placeholder feed ids and their consensus was set to the venue mid (a demo shortcut). Production pre-trade clients are never the execution venue',
+            'the pre-trade gates in this package are DEMO records: their consensus was set to the venue mid (a demo shortcut) and their observations carry demo feed ids derived from the priced asset. Production pre-trade clients are never the execution venue. The two gates over two different assets carry DIFFERENT providerObservationsHash values (the placeholder-gate test from VERITAS round 2 holds here by construction)',
+            'fillStatus grades the EXECUTION OUTCOME of the fill (full/partial/reverted) — it is NOT a size verdict against the request: executedAmountUsd is honestly signed as unmeasured, so no signed field claims what the fill size was relative to the $50,000 request. A scope rename (priceFillStatus) is planned for the next layout revision (F9)',
             "attribution names the pool's DIRECT COUNTERPARTY as subject/taker: the single party that paid the source token into the pool and received and kept the destination token. executedPrice = that party's realised price (destination received / source paid), which equals the pool leg exactly because no fee path or onward routing exists; aggregator-fee and multi-party routes are SKIPPED, never mis-graded by naming an intermediate as trader or reading the pool leg as the trader's fill (Headless H1/H2/H3)",
             "this demo backfills a HISTORICAL swap, so the gates were signed after the settlement: the receipt carries the gates' real signature time as preTradeSignedAt, which is later than the fill, and the signed verdict is therefore UNDETERMINED with reason PRE_TRADE_AFTER_EXECUTION. Precedence is NOT claimed for this package; a forward demo (gate signed before execution) is required to sign FAITHFUL (Headless H4)",
           ],
@@ -492,6 +524,16 @@ async function main() {
           primaryType: CANONICAL_REQUEST_PRIMARY_TYPE,
           note: 'tradeAmountUsd is uint256 scaled x1e6 (50000 -> 50000000000n)',
           matchesReceiptAndSourceGate: requestHashMatches,
+          // F11: the destination gate's requestHash opens too. Its canonical
+          // request is the same trade seen from the destination leg (the two
+          // asset ids swapped); one preimage per gate, no unexplained hash left.
+          destinationPreimage: {
+            message: destinationRequestPreimage,
+            domain: CANONICAL_REQUEST_DOMAIN,
+            types: CANONICAL_REQUEST_TYPES,
+            primaryType: CANONICAL_REQUEST_PRIMARY_TYPE,
+            matchesDestinationGate: destinationRequestHashMatches,
+          },
         },
         // F2: which notional fields were measured. This demo measured none of
         // the four notional fields (price only was derived from Transfer
@@ -501,8 +543,17 @@ async function main() {
           signedHash: issue.receipt.data.measuredFieldsHash,
           measured: [] as string[],
           enumerationNote:
-            'any of the 16 subsets of [actualFeeUsd, executedAmountUsd, mevRiskBps, quotedAmountUsd] -> keccak256(join("-", sorted names)); empty set = keccak256("")',
+            'any of the 16 subsets of [actualFeeUsd, executedAmountUsd, mevRiskBps, quotedAmountUsd] -> keccak256(join(",", sorted unique names)); separator is a comma; empty set = keccak256("")',
           emptySetHashMatches: measuredFieldsOpen,
+        },
+        // N2 (VERITAS round 2): the preTradeUidsHash construction, written
+        // down so the next verifier does not recover it by trial.
+        preTradeUidsHashRule: {
+          construction:
+            'keccak256(concat(uid_1, uid_2, ...)) over the ordered gate uids of the quote basis, in route order (source first)',
+          encoding:
+            'each uid enters as its 32 raw bytes (0x stripped); NO separator; NO sorting; two-leg route -> [sourceGateUid, destinationGateUid]',
+          emptySet: 'keccak256("") — the SELF_REPORTED case',
         },
         receipt: issue.receipt,
         facts: {
@@ -523,6 +574,8 @@ async function main() {
             `maxSlippageBps is a SIGNED field (struct position ${currentLayout.indexOf('maxSlippageBps') + 1} of ${currentLayout.length}), and the verdict uses that same signed value`,
             `closed loop closes only when BOTH gates verify: ${pair.closedLoopStatus} with destinationPreTradeUidMatch=${pair.binding.destinationPreTradeUidMatch} and preTradeUidsHashMatch=${pair.binding.preTradeUidsHashMatch} (F1)`,
             `requestHash recomputes from the canonical preimage and matches both the source gate and the receipt: ${requestHashMatches} (F6)`,
+            `destination gate requestHash recomputes from its own preimage (destination-leg view of the same request): ${destinationRequestHashMatches} (F11)`,
+            `the two gates over two different assets carry DIFFERENT providerObservationsHash values: ${gateObservationHashesDiffer} (placeholder-gate test, VERITAS round 2)`,
             `subject=${issue.receipt.data.subject}, taker=${issue.receipt.data.taker}, claimRole=${issue.receipt.data.claimRole} (F6)`,
             `quoteVenueIndependent=${issue.receipt.data.quoteVenueIndependent}, quoteBasis=${issue.receipt.data.quoteBasis}, quoteBlockNumber=${issue.receipt.data.quoteBlockNumber} (F3/F4)`,
             `priceScale=${issue.receipt.data.priceScale} (x1e8), environment=${issue.receipt.data.environment} (v4 signed message field — the v3 domain's declared environment never entered the signature, H7)`,

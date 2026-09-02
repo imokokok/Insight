@@ -106,4 +106,44 @@ describe('computeProviderObservationsHash', () => {
       '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470'
     );
   });
+
+  // VERITAS round 2 (2026-09-02) gifted us a one-line placeholder-gate test:
+  // two honest gates covering two DIFFERENT assets can never share one
+  // providerObservationsHash, because the observations bind the feed ids and
+  // values of the asset actually priced. Our v3 demo packet reused one
+  // observation block for both gates — exactly that fingerprint. These tests
+  // pin the property so the demo/production path cannot regress into it.
+  describe('placeholder-gate fingerprint (VERITAS round 2)', () => {
+    const assetObservations = (
+      feedId: string,
+      priceUsd: number,
+      ts: bigint
+    ): ProviderObservationEntry[] =>
+      ['chainlink', 'api3', 'redstone'].map((provider, i) => ({
+        provider,
+        feedId: `${feedId}:${i + 1}`,
+        value: BigInt(Math.round(priceUsd * 1e8)),
+        timestamp: ts,
+        dataAgeSeconds: BigInt(4 + i * 2),
+        included: true,
+        exclusionReason: '',
+      }));
+
+    it('gates over two different assets never share the hash', () => {
+      const wethGate = assetObservations('demo-feed:eip155:1/erc20:WETH', 3000.05, 1700000000n);
+      const usdcGate = assetObservations('demo-feed:eip155:1/erc20:USDC', 1.0, 1700000000n);
+      expect(computeProviderObservationsHash(wethGate)).not.toBe(
+        computeProviderObservationsHash(usdcGate)
+      );
+    });
+
+    it('the hash changes even when only the feed id differs (same values)', () => {
+      // The fingerprint came from placeholders sharing EVERYTHING. Bind on the
+      // feed id alone: identical values under a different feed are a different
+      // observation set.
+      const a = entries.map((e) => ({ ...e, feedId: 'feed-A' }));
+      const b = entries.map((e) => ({ ...e, feedId: 'feed-B' }));
+      expect(computeProviderObservationsHash(a)).not.toBe(computeProviderObservationsHash(b));
+    });
+  });
 });

@@ -124,6 +124,48 @@ describe('executionReceipt', () => {
     expect(result.bindingMode).toBe('VERIFIED');
   });
 
+  it('signs against any PUBLISHED layout on request (sample of v1..v4, N1)', async () => {
+    // The published-but-never-exercised layout was the one thing keeping F0
+    // open (VERITAS round 2, N1). The sample path can now sign the same facts
+    // against v1..v4 so every published layout has a verifiable sample.
+    const mod = await import('../executionReceipt');
+
+    for (const version of [1, 2, 3, 4] as const) {
+      const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: version }));
+      expect(receipt).not.toBeNull();
+      expect(receipt!.schemaVersion).toBe(version);
+
+      // The envelope's types are the layout the receipt was actually signed
+      // with — not silently the current one.
+      const expectedTypes =
+        version === 1
+          ? mod.EXECUTION_TYPES_V1
+          : version === 2
+            ? mod.EXECUTION_TYPES_V2
+            : version === 3
+              ? mod.EXECUTION_TYPES_V3
+              : mod.EXECUTION_TYPES_V4;
+      expect(receipt!.eip712.types).toEqual(expectedTypes);
+
+      // And it round-trips: the verify path routes on the SIGNED version.
+      const result = await mod.verifyExecutionReceipt(receipt!);
+      expect(result.valid).toBe(true);
+      expect(result.schemaVersion).toBe(version);
+    }
+  });
+
+  it('falls back to the current layout for an unknown requested version', async () => {
+    // A caller asking for a version that was never published must not receive
+    // a receipt that CLAIMS that version; it silently gets the current layout
+    // and the envelope reports what was actually signed.
+    const mod = await import('../executionReceipt');
+    const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: 99 }));
+    expect(receipt).not.toBeNull();
+    expect(receipt!.schemaVersion).toBe(4);
+    const result = await mod.verifyExecutionReceipt(receipt!);
+    expect(result.valid).toBe(true);
+  });
+
   it('rejects a tampered execution status (signature no longer matches)', async () => {
     const mod = await import('../executionReceipt');
     const receipt = await mod.signExecutionReceipt(baseInput());
@@ -627,5 +669,60 @@ describe('executionReceipt frozen layouts and pairing', () => {
     const mod = await import('../executionReceipt');
     expect(mod.EXECUTION_REQUIRED_PARTICIPANT_COUNT).toBe(3);
     expect(mod.EXECUTION_REQUIRED_SOURCE_GROUP_COUNT).toBe(2);
+  });
+
+  // ---- attestation-age sentinel (Headless round 3) ----
+
+  it('signs the UNDEFINED sentinel, not 0, when the pre-trade attestation post-dates the fill', async () => {
+    // Michael, 2026-09-02: "an age for an attestation that did not yet exist
+    // is undefined and 0 reads as fresh." A gate signed 70s after the fill has
+    // an age of −70s; the old clamp signed "the freshest possible gate".
+    const mod = await import('../executionReceipt');
+    const msg = await mod.buildExecutionMessage(
+      baseInput({
+        preTradeSignedAt: NOW_S + 70, // gate signed AFTER the fill
+        oracleDataAgeAtExecSeconds: -70,
+      })
+    );
+    expect(msg.attestationAgeAtExecSeconds).toBe(mod.ATTESTATION_AGE_UNDEFINED_SENTINEL);
+    expect(mod.ATTESTATION_AGE_UNDEFINED_SENTINEL).toBe(4294967295);
+    // The truth of the ordering violation stays in the bytes verbatim.
+    expect(msg.preTradeSignedAt).toBe(NOW_S + 70);
+    // And such a receipt can never grade itself FAITHFUL.
+    expect(msg.priceExecutionStatus).toBe('UNDETERMINED');
+  });
+
+  it('signs real ages unchanged, including a genuine 0', async () => {
+    const mod = await import('../executionReceipt');
+    const fresh = await mod.buildExecutionMessage(
+      baseInput({ preTradeSignedAt: NOW_S, oracleDataAgeAtExecSeconds: 0 })
+    );
+    expect(fresh.attestationAgeAtExecSeconds).toBe(0);
+    const older = await mod.buildExecutionMessage(
+      baseInput({ preTradeSignedAt: NOW_S - 70, oracleDataAgeAtExecSeconds: 70 })
+    );
+    expect(older.attestationAgeAtExecSeconds).toBe(70);
+  });
+
+  it('signs samples with the dedicated sample signer and fails closed without one (H8)', async () => {
+    const mod = await import('../executionReceipt');
+    // No sample key configured (only the production key is, from beforeEach):
+    // the sample path must refuse to sign rather than fall back.
+    const receipt = await mod.signExecutionReceipt(baseInput(), { sample: true });
+    expect(receipt).toBeNull();
+
+    // With a dedicated sample key, the sample verifies and is signed by a
+    // DIFFERENT address than the production attester.
+    process.env.ATTESTATION_SAMPLE_SIGNER_PRIVATE_KEY =
+      '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d';
+    jest.resetModules();
+    const mod2 = await import('../executionReceipt');
+    const sample = await mod2.signExecutionReceipt(baseInput(), { sample: true });
+    const prod = await mod2.signExecutionReceipt(baseInput());
+    expect(sample).not.toBeNull();
+    expect(prod).not.toBeNull();
+    expect(sample!.attester).not.toBe(prod!.attester);
+    const result = await mod2.verifyExecutionReceipt(sample!);
+    expect(result.valid).toBe(true);
   });
 });

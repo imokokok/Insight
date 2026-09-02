@@ -16,7 +16,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { getAttesterAddress } from '@/lib/attestations/attesterAccount';
+import { getAttesterAddress, getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
 import {
   CANONICAL_REQUEST_DOMAIN,
   CANONICAL_REQUEST_TYPES,
@@ -108,6 +108,10 @@ export async function GET(request: NextRequest) {
   const origin = resolveOrigin(request);
 
   const attester = await getAttesterAddress();
+  // Dedicated SAMPLE signer (Headless H8, 2026-09-02): published alongside the
+  // attester keys with role "sample", so the synthetic/real distinction is
+  // checkable from the signature's signer plus this document alone.
+  const sampleAttester = await getSampleAttesterAddress();
 
   // Key-lifecycle windows (added 2026-08-26 in response to the VERITAS
   // collaboration). Anchoring fixes the retroactive-forgery gap, but only a
@@ -116,7 +120,7 @@ export async function GET(request: NextRequest) {
   // rotation; revoked flips on compromise. The key list is config-driven
   // (ATTESTATION_KEYS_CONFIG) so rotation can publish a second key with its
   // own window without a code change (see key-rotation-procedure.md §5.1).
-  const registry = buildKeyRegistryConfig(attester);
+  const registry = buildKeyRegistryConfig(attester, sampleAttester);
 
   const body = {
     issuer: origin,
@@ -232,6 +236,41 @@ export async function GET(request: NextRequest) {
            *  supplied; the binding value is always the one signed in the receipt. */
           defaultMaxSlippageBps: EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
         },
+        /** Commitment constructions a verifier must be able to OPEN from the
+         *  bytes alone. Written down because the rule was recoverable only by
+         *  trial (VERITAS round 2 found it on the fifth candidate) — one line
+         *  here saves the next verifier the guessing (N2). */
+        commitments: {
+          /** v3+: keccak256(concat(uid_1 ‖ uid_2 ‖ …)) over the ORDERED gate
+           *  uids of the quote basis, in route order (source first). Each uid
+           *  enters as its 32 raw bytes (0x stripped), NO separator, NO
+           *  sorting. Empty set → keccak256("") (the SELF_REPORTED case). */
+          preTradeUidsHash: 'keccak256(concat(uids in route order, 32 raw bytes each, no separator)); empty set -> keccak256("")',
+          /** v3+: keccak256(join(",", sorted unique field names)) over the
+           *  measurable notional fields that were genuinely measured. Universe:
+           *  [actualFeeUsd, executedAmountUsd, mevRiskBps, quotedAmountUsd].
+           *  Empty set → keccak256("") (VERITAS F2). */
+          measuredFieldsHash: 'keccak256(join(",", sorted unique measured field names)); universe + empty-set rule as for preTradeUidsHash',
+        },
+        /** Reserved VALUES a verifier must be able to INTERPRET from the bytes
+         *  alone (Headless round 3, 2026-09-02). The layout is frozen, so a
+         *  field that is undefined cannot be omitted — it carries a sentinel
+         *  instead of an honest-looking 0. */
+        sentinels: {
+          /** v3/v4: the paired pre-trade attestation did not exist at
+           *  execution (signed after the fill), so its age is undefined. 0
+           *  would read as the freshest possible gate; UINT32_MAX cannot be a
+           *  real age (the receipt's own validity window is 600s), and a
+           *  receipt carrying it is UNDETERMINED by the precedence rule. */
+          attestationAgeAtExecSeconds: {
+            value: 4294967295,
+            meaning: 'undefined — the paired pre-trade attestation did not exist at execution (signed after the fill); such a receipt is never FAITHFUL',
+          },
+        },
+        /** Sample receipts are signed by the key below with role "sample" —
+         *  a synthetic demo receipt is distinguishable from a real one by its
+         *  signer alone (Headless H8). */
+        sampleSigningKeyRole: 'sample',
         verify: `${origin}/api/v1/execution/attestation/verify`,
         sample: `${origin}/api/v1/execution/attestation/sample`,
       },

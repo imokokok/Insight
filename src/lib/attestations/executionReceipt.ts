@@ -47,7 +47,7 @@
 import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
 
-import { getAttesterAccount } from './attesterAccount';
+import { getAttesterAccount, getSampleAttesterAccount } from './attesterAccount';
 import {
   computeMeasuredFieldsHash,
   computePreTradeUidsHash,
@@ -170,6 +170,24 @@ export const EXECUTION_VALID_FOR_SECONDS = 600;
 /** Default slippage bound, signed alongside the observed drift. Callers may
  *  pass a tighter bound per action; the signed value is whatever was used. */
 export const EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS = 50;
+
+/**
+ * Sentinel for `attestationAgeAtExecSeconds` when the paired pre-trade
+ * attestation DID NOT EXIST at execution (the gate was signed after the fill,
+ * so its age is undefined — Headless round-3, 2026-09-02).
+ *
+ * The layout is frozen (v1..v4 all carry this field as uint256), so the age
+ * cannot be omitted; and a signed 0 was dishonest — 0 reads as "the freshest
+ * possible gate", when the truth is "there was no gate yet". UINT32_MAX
+ * (4294967295) is the sentinel: no real attestation age approaches it (the
+ * receipts' own validUntil window is 600s), it encodes cleanly as a JSON
+ * number and a uint256, and it is documented in the .well-known registry's
+ * ExecutionReceipt entry so a verifier can interpret it without our source.
+ * A receipt carrying the sentinel is, by construction, not FAITHFUL — the
+ * precedence check in {@link deriveExecutionStatus} routes it to
+ * UNDETERMINED.
+ */
+export const ATTESTATION_AGE_UNDEFINED_SENTINEL = 4294967295;
 
 /** Quorum floor copied from the pre-trade/watch line so the three receipt
  *  types cannot drift on what "enough independent providers" means. */
@@ -1019,7 +1037,17 @@ export async function buildExecutionMessage(
     blockNumber: Math.max(0, Math.floor(input.blockNumber)),
     executedAt: Math.max(0, Math.floor(input.executedAt)),
     preTradeSignedAt: Math.max(0, Math.floor(input.preTradeSignedAt)),
-    attestationAgeAtExecSeconds: Math.max(0, Math.floor(input.oracleDataAgeAtExecSeconds)),
+    // H8-adjacent (Headless round 3): a NEGATIVE age means the pre-trade
+    // attestation was signed AFTER the fill — it did not exist at execution,
+    // so its age is undefined, not 0. Clamping to 0 (the old behaviour) signed
+    // "the freshest possible gate" over a gate that post-dates the trade it
+    // supposedly authorised. The sentinel says "undefined" in the bytes; the
+    // verdict layer independently refuses FAITHFUL on the ordering violation.
+    attestationAgeAtExecSeconds:
+      Number.isFinite(input.oracleDataAgeAtExecSeconds) &&
+      input.oracleDataAgeAtExecSeconds >= 0
+        ? Math.floor(input.oracleDataAgeAtExecSeconds)
+        : ATTESTATION_AGE_UNDEFINED_SENTINEL,
     priceStateAgeAtExecSeconds,
     participantCount: Math.max(0, Math.floor(input.participantCount)),
     requiredParticipantCount: EXECUTION_REQUIRED_PARTICIPANT_COUNT,
@@ -1160,11 +1188,21 @@ function getVerifyUrl(): string {
 
 /** Sign an execution fact. Returns null when no attester key is configured:
  *  the execution data itself remains valid and unchanged; the receipt is
- *  additive and must never become a dependency of the settlement path. */
+ *  additive and must never become a dependency of the settlement path.
+ *
+ *  `opts.sample` (Headless H8, 2026-09-02): sign with the DEDICATED sample
+ *  signer instead of the production attester, so a synthetic demo receipt is
+ *  distinguishable from a real one by its signer alone — the .well-known
+ *  registry publishes the sample key with role "sample". When the sample key
+ *  is unconfigured this returns null (fail-closed): a production key must
+ *  never sign a sample, and there is no fallback. */
 export async function signExecutionReceipt(
-  input: ExecutionReceiptInput
+  input: ExecutionReceiptInput,
+  opts?: { sample?: boolean }
 ): Promise<ExecutionReceipt | null> {
-  const account = await getAttesterAccount();
+  const account = opts?.sample
+    ? await getSampleAttesterAccount()
+    : await getAttesterAccount();
   if (!account) return null;
 
   try {
