@@ -10,6 +10,7 @@ import {
   Anchor,
   Key,
   Bot,
+  BadgeCheck,
 } from 'lucide-react';
 
 import { oracleColors } from '@/lib/constants';
@@ -95,6 +96,11 @@ export const navigationConfig: NavStructure = [
     href: '/ai',
     label: 'AI',
     icon: Bot,
+  },
+  {
+    href: '/verify',
+    label: 'Verify',
+    icon: BadgeCheck,
   },
   {
     href: '/docs',

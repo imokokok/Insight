@@ -36,7 +36,7 @@ export function VerifiabilityBanner() {
             verdict, and schema v1 remains the service default while v3 is opt-in.
           </p>
           <Link
-            href="/docs#verifiable-receipts"
+            href="/verify"
             className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
           >
             Try it with a real receipt

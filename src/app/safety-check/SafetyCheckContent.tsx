@@ -404,7 +404,7 @@ export default function SafetyCheckContent() {
             </p>
             <p className="text-sm text-slate-400 mt-2">
               Every check is signed, and every receipt can be verified by anyone.{' '}
-              <Link href="/docs#verifiable-receipts" className="text-blue-600 hover:underline">
+              <Link href="/verify" className="text-blue-600 hover:underline">
                 Verify a receipt
               </Link>
             </p>

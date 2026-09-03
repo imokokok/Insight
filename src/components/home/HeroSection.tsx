@@ -106,7 +106,7 @@ export function HeroSection() {
               Explore risk tools
             </Link>
             <Link
-              href="/docs#verifiable-receipts"
+              href="/verify"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-slate-200 hover:text-white hover:bg-white/10 hover:border-white/20 rounded-xl font-semibold backdrop-blur-sm transition-all duration-200"
             >
               Verify a receipt
