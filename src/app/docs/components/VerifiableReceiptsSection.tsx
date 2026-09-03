@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { ShieldCheck } from 'lucide-react';
+
 import { VerifyExecutionPairWidget } from '@/components/verifiability/VerifyExecutionPairWidget';
 import { VerifyReceiptWidget } from '@/components/verifiability/VerifyReceiptWidget';
 
@@ -38,6 +40,27 @@ export function VerifiableReceiptsSection() {
           </p>
         </div>
 
+        <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900 mb-1">
+                Try it now — verify a receipt in your browser
+              </h3>
+              <p className="text-sm leading-relaxed text-slate-600">
+                No install, no API key. Open{' '}
+                <Link className="font-semibold text-emerald-700 hover:underline" href="/verify">
+                  /verify
+                </Link>{' '}
+                and the page fetches a public sample receipt plus the published key registry, then
+                re-checks the EIP-712 signature entirely on your device using{' '}
+                <code className="font-mono text-xs">verify-insight-receipt</code>. Insight never
+                sees the result.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <VerifyReceiptWidget />
 
         <VerifyExecutionPairWidget />
@@ -57,7 +80,7 @@ export function VerifiableReceiptsSection() {
             >
               verify-insight-receipt
             </a>{' '}
-            (v0.1.0). It recomputes the EIP-712 hash and recovers the signer locally; it does not
+            (v0.1.1). It recomputes the EIP-712 hash and recovers the signer locally; it does not
             need an API key, database access, or a network request.
           </p>
           <pre className="text-xs leading-relaxed text-slate-700 font-mono overflow-x-auto whitespace-pre rounded-lg bg-white border border-blue-100 p-4">

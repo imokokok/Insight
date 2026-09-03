@@ -64,7 +64,9 @@ Anyone can verify a signature against the published attester address via `POST /
 
 For integrations that should not depend on Insight being online, the repository also ships a standalone verifier package in [`verifier/`](./verifier/). It can be published or copied into a separate consumer repository without importing the Next.js app.
 
-**Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt) **v0.1.0**.
+**Live in-browser verifier —** the deployed site hosts a zero-trust demo at [`/verify`](https://www.oracleinsight.xyz/verify). It fetches a public sample receipt and the published `/.well-known/oracle-keys.json` registry, then re-verifies the EIP-712 signature entirely in your browser with `verify-insight-receipt`. No server, no API key, no trust in Insight — the verdict is computed on the client and never sent back.
+
+**Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt) **v0.1.1**.
 
 ```bash
 # Published package (recommended)
