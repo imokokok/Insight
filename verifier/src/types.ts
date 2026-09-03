@@ -103,7 +103,8 @@ export interface KeyEntry {
   key_id: string;
   /** EIP-712 attester address (0x…). The recovered signer address IS the key. */
   public_key: string;
-  algorithm: 'EIP-712/secp256k1';
+  /** Present in older registry documents; omitted by the live document. */
+  algorithm?: 'EIP-712/secp256k1';
   /** ISO date the key became trustworthy. */
   validFrom: string;
   /** ISO date the key stops being trustworthy. null = no scheduled expiry. */
@@ -121,8 +122,16 @@ export interface RevokedKey {
   reason: string;
 }
 
-/** Shape of the document published at /.well-known/oracle-keys.json */
+/**
+ * Shape of the document published at /.well-known/oracle-keys.json.
+ *
+ * The live document uses `public_keys` / `revoked_keys`; older consumers and
+ * some test fixtures use `keys` / `revoked`. Both are accepted so a verifier
+ * built against either shape resolves the signer's trust window.
+ */
 export interface KeyRegistry {
-  keys: KeyEntry[];
+  keys?: KeyEntry[];
+  public_keys?: KeyEntry[];
   revoked?: RevokedKey[];
+  revoked_keys?: RevokedKey[];
 }

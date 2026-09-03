@@ -10,6 +10,16 @@ is genuine using nothing but public-key cryptography.
 npm install verify-insight-receipt
 ```
 
+**Try it now.** See the whole chain run in one command — fetch a live signed
+receipt from Insight's public endpoint, then verify it on your own machine with
+no API key and no trust in Insight:
+
+```bash
+node node_modules/verify-insight-receipt/examples/quickstart.mjs
+# or from this repo, after npm install:
+node examples/quickstart.mjs
+```
+
 ```ts
 import { verifyReceipt } from 'verify-insight-receipt';
 
@@ -53,20 +63,20 @@ if (result.keyStatus === 'revoked') throw new Error('signer key is revoked');
 
 `result.code` is a stable enum:
 
-| code | meaning |
-|---|---|
-| `ok` | Signature recovered, UID matched, binding invariants held, not expired |
-| `uid_mismatch` | Payload was modified after signing |
-| `signature_invalid` | Signature does not recover to `attester` |
-| `signature_missing` | No signature on the receipt |
-| `expired` | Past the receipt's own validity deadline |
-| `recheck_binding_mismatch` | A recheck's `requestHash` ≠ its `originalRequestHash` |
-| `unsupported_schema` | `schemaVersion` is not one this library knows |
-| `malformed` | Missing or wrongly-typed field |
+| code                       | meaning                                                                |
+| -------------------------- | ---------------------------------------------------------------------- |
+| `ok`                       | Signature recovered, UID matched, binding invariants held, not expired |
+| `uid_mismatch`             | Payload was modified after signing                                     |
+| `signature_invalid`        | Signature does not recover to `attester`                               |
+| `signature_missing`        | No signature on the receipt                                            |
+| `expired`                  | Past the receipt's own validity deadline                               |
+| `recheck_binding_mismatch` | A recheck's `requestHash` ≠ its `originalRequestHash`                  |
+| `unsupported_schema`       | `schemaVersion` is not one this library knows                          |
+| `malformed`                | Missing or wrongly-typed field                                         |
 
 ### Two things to know about `valid`
 
-**`valid` and `keyStatus` are separate on purpose.** A signature proves *who*
+**`valid` and `keyStatus` are separate on purpose.** A signature proves _who_
 signed, not that the key was trustworthy at the time. Collapsing them would
 make a receipt flip from valid to invalid the moment a key is rotated —
 retroactively rewriting a statement that was true when it was made.
@@ -82,13 +92,13 @@ Branch on `code` / `expired`.
 
 ## Supported schemas
 
-| schemaVersion | primaryType | signed fields |
-|---|---|---|
-| 1 | `OracleSafetyCheck` | 11 |
-| 2 | `OracleSafetyCheck` | 26 |
-| 2 | `OracleSafetyRecheck` | 28 (v2 + `originalUid` + `originalRequestHash`) |
-| 3 | `OracleSafetyCheck` | 27 (v2 + `requiredSourceGroupCount`) |
-| 3 | `OracleSafetyRecheck` | 29 (v3 + `originalUid` + `originalRequestHash`) |
+| schemaVersion | primaryType           | signed fields                                   |
+| ------------- | --------------------- | ----------------------------------------------- |
+| 1             | `OracleSafetyCheck`   | 11                                              |
+| 2             | `OracleSafetyCheck`   | 26                                              |
+| 2             | `OracleSafetyRecheck` | 28 (v2 + `originalUid` + `originalRequestHash`) |
+| 3             | `OracleSafetyCheck`   | 27 (v2 + `requiredSourceGroupCount`)            |
+| 3             | `OracleSafetyRecheck` | 29 (v3 + `originalUid` + `originalRequestHash`) |
 
 `originalUid` is typed `string` in the v2 recheck and `bytes32` in the v3
 recheck. That asymmetry is deliberate and preserved: a UID is a 32-byte hash, so
@@ -108,8 +118,9 @@ Pass the document published at `/.well-known/oracle-keys.json` to have the
 signer's trust window evaluated:
 
 ```ts
-const registry = await fetch('https://www.oracleinsight.xyz/.well-known/oracle-keys.json')
-  .then((r) => r.json());
+const registry = await fetch('https://www.oracleinsight.xyz/.well-known/oracle-keys.json').then(
+  (r) => r.json()
+);
 
 const result = await verifyReceipt(receipt, { keyRegistry: registry });
 // result.keyStatus: 'valid' | 'unknown_key' | 'revoked' | 'outside_window' | 'not_checked'

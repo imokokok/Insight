@@ -29,7 +29,8 @@ export function resolveKeyStatus(
   if (!registry || !attester) return 'not_checked';
 
   const addr = attester.toLowerCase();
-  const entry = (registry.keys ?? []).find(
+  const keys = registry.public_keys ?? registry.keys ?? [];
+  const entry = keys.find(
     (k: KeyEntry) => typeof k?.public_key === 'string' && k.public_key.toLowerCase() === addr
   );
   if (!entry) return 'unknown_key';
@@ -38,7 +39,8 @@ export function resolveKeyStatus(
   // Superset of the server-side rule (isAttestationKeyValid): we also honour
   // the registry's `revoked` array. A registry that lists a key there while
   // leaving `revoked: false` on the entry is self-contradictory; fail closed.
-  if ((registry.revoked ?? []).some((r) => r?.key_id === entry.key_id)) return 'revoked';
+  const revoked = registry.revoked_keys ?? registry.revoked ?? [];
+  if (revoked.some((r) => r?.key_id === entry.key_id)) return 'revoked';
 
   // No timestamp means the window cannot be evaluated, so it cannot be claimed.
   if (checkedAt == null) return 'outside_window';
