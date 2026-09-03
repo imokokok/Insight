@@ -190,6 +190,14 @@ export const GET = createApiHandler<
     }
 
     // --- price-integrity member (Insight OracleSafetyCheck v2) ---
+    // Signed v2 here deliberately: this envelope is the pre-trade prototype
+    // Michael Msebenzi specified around the v2 Insight receipt, and the
+    // Headless market-state member carries the matching v2 layout contract.
+    // The ACTIVE registry OracleSafetyCheck contract is v3 (served by the
+    // /api/v1/safety/attestation/sample route); this envelope is a separate,
+    // labelled diagnostic surface and is not the public sample the ZAP1
+    // pilot target. Keeping it on v2 here keeps the two-receipt prototype
+    // byte-stable for Headless's consumer.
     const backdateMs = demo === 'expired' ? Date.now() - EXPIRED_DEMO_BACKDATE_MS : Date.now();
     let insightReceipt = await signAttestationV2(buildSampleAttestationInput(backdateMs));
     if (insightReceipt && demo === 'tampered') {
