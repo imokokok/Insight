@@ -64,15 +64,14 @@ Anyone can verify a signature against the published attester address via `POST /
 
 For integrations that should not depend on Insight being online, the repository also ships a standalone verifier package in [`verifier/`](./verifier/). It can be published or copied into a separate consumer repository without importing the Next.js app.
 
-```bash
-# From a checkout of this repository
-npm install ./verifier
-```
-
-After the package is published to npm, the equivalent consumer command will be:
+**Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt) **v0.1.0**.
 
 ```bash
+# Published package (recommended)
 npm install verify-insight-receipt
+
+# Or from a checkout of this repository
+npm install ./verifier
 ```
 
 ```ts

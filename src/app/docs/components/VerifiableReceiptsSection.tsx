@@ -48,15 +48,24 @@ export function VerifiableReceiptsSection() {
           </h3>
           <p className="text-sm text-slate-600 leading-relaxed mb-4">
             For agents and protocols that need an independent verification path, the repository
-            includes a standalone npm package. It recomputes the EIP-712 hash and recovers the
-            signer locally; it does not need an API key, database access, or a network request.
+            includes a standalone npm package — published as{' '}
+            <a
+              className="text-blue-600 hover:underline"
+              href="https://www.npmjs.com/package/verify-insight-receipt"
+              target="_blank"
+              rel="noreferrer"
+            >
+              verify-insight-receipt
+            </a>{' '}
+            (v0.1.0). It recomputes the EIP-712 hash and recovers the signer locally; it does not
+            need an API key, database access, or a network request.
           </p>
           <pre className="text-xs leading-relaxed text-slate-700 font-mono overflow-x-auto whitespace-pre rounded-lg bg-white border border-blue-100 p-4">
-            {`# From the Insight repository
-npm install ./verifier
-
-# After npm publication
+            {`# Published package (recommended)
 npm install verify-insight-receipt
+
+# Or from the Insight repository
+npm install ./verifier
 
 import { verifyReceipt } from 'verify-insight-receipt';
 
