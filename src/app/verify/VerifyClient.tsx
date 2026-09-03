@@ -9,9 +9,10 @@ import { verifyReceipt } from 'verify-insight-receipt';
 
 import { shortAddress } from '@/components/verifiability/verifyReceipt';
 
-import type { KeyRegistry, VerifyResult } from 'verify-insight-receipt';
+import type { KeyRegistry, RoutableAttestation, VerifyResult } from 'verify-insight-receipt';
 
 type Status = 'loading' | 'done' | 'error';
+type Mode = 'sample' | 'paste';
 
 interface DemoState {
   status: Status;
@@ -34,14 +35,33 @@ function fmtTime(ts: number | null): string {
   return new Date(ts * 1000).toISOString().replace('T', ' ').replace('.000Z', ' UTC');
 }
 
+function fetchRegistry(): Promise<KeyRegistry | undefined> {
+  return fetch('/.well-known/oracle-keys.json')
+    .then((res) => (res.ok ? res.json() : undefined))
+    .catch(() => undefined);
+}
+
 export default function VerifyClient() {
+  const [mode, setMode] = useState<Mode>('sample');
+  const [pastedInput, setPastedInput] = useState('');
   const [state, setState] = useState<DemoState>({ status: 'loading' });
 
-  const runVerify = useCallback(async () => {
+  // All verification goes through the library — this component never
+  // re-implements any crypto. It only supplies the receipt + the public
+  // key registry and renders whatever the library decides.
+  const verifyAttestation = useCallback(
+    async (attestation: RoutableAttestation, registry: KeyRegistry | undefined) => {
+      const result = await verifyReceipt(attestation, registry ? { keyRegistry: registry } : {});
+      setState({ status: 'done', result, attestation, registry });
+    },
+    []
+  );
+
+  const runSample = useCallback(async () => {
     try {
-      const [sampleRes, regRes] = await Promise.all([
+      const [sampleRes, registry] = await Promise.all([
         fetch('/api/v1/safety/attestation/sample'),
-        fetch('/.well-known/oracle-keys.json'),
+        fetchRegistry(),
       ]);
 
       if (!sampleRes.ok) {
@@ -63,30 +83,37 @@ export default function VerifyClient() {
         return;
       }
 
-      // Registry is public and same-origin; if it is briefly unavailable we
-      // still verify the signature (keyStatus will simply be not_checked).
-      let registry: KeyRegistry | undefined;
-      if (regRes.ok) {
-        try {
-          registry = (await regRes.json()) as KeyRegistry;
-        } catch {
-          registry = undefined;
-        }
-      }
-
-      const result = await verifyReceipt(attestation, registry ? { keyRegistry: registry } : {});
-      setState({ status: 'done', result, attestation, registry });
+      await verifyAttestation(attestation, registry);
     } catch (err) {
       setState({
         status: 'error',
         error: err instanceof Error ? err.message : 'Network error while verifying.',
       });
     }
-  }, []);
+  }, [verifyAttestation]);
+
+  const runPaste = useCallback(async () => {
+    let attestation: RoutableAttestation;
+    try {
+      attestation = JSON.parse(pastedInput) as RoutableAttestation;
+    } catch {
+      setState({ status: 'error', error: 'Receipt is not valid JSON.' });
+      return;
+    }
+    try {
+      const registry = await fetchRegistry();
+      await verifyAttestation(attestation, registry);
+    } catch (err) {
+      setState({
+        status: 'error',
+        error: err instanceof Error ? err.message : 'Network error while verifying.',
+      });
+    }
+  }, [pastedInput, verifyAttestation]);
 
   useEffect(() => {
-    void runVerify();
-  }, [runVerify]);
+    if (mode === 'sample') void runSample();
+  }, [mode, runSample]);
 
   const result = state.status === 'done' ? state.result : undefined;
   const verified = !!result && result.code === 'ok' && result.keyStatus === 'valid';
@@ -105,6 +132,8 @@ export default function VerifyClient() {
         })()
       : undefined;
 
+  const runCurrent = mode === 'sample' ? runSample : runPaste;
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-[920px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -118,8 +147,7 @@ export default function VerifyClient() {
               Verify a receipt in your browser
             </h1>
             <p className="text-base text-slate-500 mt-2 max-w-2xl">
-              This page fetches a live sample OracleSafetyCheck and verifies its EIP-712 signature{' '}
-              <strong>entirely client-side</strong> with{' '}
+              Verify an Insight OracleSafetyCheck <strong>entirely client-side</strong> with{' '}
               <code className="text-slate-700">verify-insight-receipt</code>. No server, no API key,
               no trust in Insight — Insight only serves the public sample and the public key
               registry.
@@ -129,9 +157,9 @@ export default function VerifyClient() {
             type="button"
             onClick={() => {
               setState({ status: 'loading' });
-              void runVerify();
+              void runCurrent();
             }}
-            disabled={state.status === 'loading'}
+            disabled={state.status === 'loading' || (mode === 'paste' && !pastedInput.trim())}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors self-start"
           >
             {state.status === 'loading' ? (
@@ -139,15 +167,65 @@ export default function VerifyClient() {
             ) : (
               <RefreshCw className="w-4 h-4" />
             )}
-            {state.status === 'loading' ? 'Verifying…' : 'Verify again'}
+            {state.status === 'loading'
+              ? 'Verifying…'
+              : mode === 'sample'
+                ? 'Verify again'
+                : 'Verify receipt'}
           </button>
         </div>
+
+        {/* Mode switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+          <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1">
+            <button
+              type="button"
+              onClick={() => setMode('sample')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                mode === 'sample'
+                  ? 'bg-slate-900 text-white'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Live sample
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('paste')}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                mode === 'paste' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Paste a receipt
+            </button>
+          </div>
+          <span className="text-xs text-slate-400">
+            Verification runs in your browser via{' '}
+            <code className="text-slate-500">verify-insight-receipt</code> — nothing leaves the
+            page.
+          </span>
+        </div>
+
+        {mode === 'paste' && (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
+            <label className="block text-sm font-semibold text-slate-900 mb-2">Receipt JSON</label>
+            <textarea
+              value={pastedInput}
+              onChange={(e) => setPastedInput(e.target.value)}
+              placeholder="Paste an OracleSafetyCheck or OracleSafetyRecheck receipt JSON here…"
+              spellCheck={false}
+              className="w-full h-48 rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            />
+          </div>
+        )}
 
         {state.status === 'loading' && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm py-20 flex flex-col items-center justify-center text-center">
             <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
             <h3 className="text-base font-semibold text-slate-900 mb-1">
-              Fetching a live sample & verifying in your browser…
+              {mode === 'sample'
+                ? 'Fetching a live sample & verifying in your browser…'
+                : 'Verifying the receipt you pasted…'}
             </h3>
             <p className="text-sm text-slate-500 max-w-sm">
               Pulling the signed receipt and the published key registry, then recovering the
@@ -163,8 +241,14 @@ export default function VerifyClient() {
                 <XCircle className="w-5 h-5 text-red-500" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-900">Sample unavailable</h3>
-                <p className="text-sm text-slate-500">Could not load a live receipt to verify.</p>
+                <h3 className="text-base font-semibold text-slate-900">
+                  {mode === 'sample' ? 'Sample unavailable' : 'Could not verify'}
+                </h3>
+                <p className="text-sm text-slate-500">
+                  {mode === 'sample'
+                    ? 'Could not load a live receipt to verify.'
+                    : 'The receipt could not be verified.'}
+                </p>
               </div>
             </div>
             <p className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-lg px-4 py-3 mb-4">
