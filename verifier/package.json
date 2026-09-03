@@ -1,6 +1,6 @@
 {
   "name": "verify-insight-receipt",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Verify Insight oracle-safety receipts locally. No network, no API key, no dependency on Insight being online.",
   "license": "MIT",
   "main": "./dist/index.js",
