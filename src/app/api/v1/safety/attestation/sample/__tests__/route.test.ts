@@ -4,10 +4,11 @@
  * The route wraps its handler in createApiHandler (auth/rate-limit/quota/CORS).
  * We unwrap that mock so the real signing logic runs: set the test SAMPLE
  * signer key, call GET, and assert the returned attestation is a genuine,
- * verifiable OracleSafetyCheck v2 signed by the SAMPLE signer. A second case
- * proves graceful-disable (503) when the sample key is absent, matching the
- * contract Michael asked for — and since H8 the PRODUCTION key never signs a
- * sample (the third case pins that: production key alone is still 503).
+ * verifiable OracleSafetyCheck v3 (the ACTIVE registry contract since the
+ * ZAP1 pilot finding, 2026-09-03) signed by the SAMPLE signer. A second case
+ * proves graceful-disable (503) when the sample key is absent — and since H8
+ * the PRODUCTION key never signs a sample (the third case pins that:
+ * production key alone is still 503).
  */
 
 // Unwrap createApiHandler so GET is the raw handler (middleware is orthogonal
@@ -37,9 +38,9 @@ describe('sample receipt route', () => {
     delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
   });
 
-  it('returns a freshly signed, verifiable OracleSafetyCheck v2', async () => {
+  it('returns a freshly signed, verifiable OracleSafetyCheck v3 (the active contract)', async () => {
     const { GET } = await import('../route');
-    const { verifyAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
+    const { verifyAttestationV3 } = await import('@/lib/attestations/oracleSafetyAttestationV3');
 
     const response = await GET(new Request('https://www.oracleinsight.xyz'), {
       requestId: 'test',
@@ -50,21 +51,28 @@ describe('sample receipt route', () => {
     expect(body.success).toBe(true);
 
     const att = body.data.attestation;
-    expect(att.schemaVersion).toBe(2);
+    expect(att.schemaVersion).toBe(3);
+    expect(att.eip712.domain.version).toBe('3');
     expect(att.attester).toBe(TEST_ATTESTER);
     expect(att.data.verdict).toBe('PASS');
     // Seven distinct non-derived providers → independence gate clears.
     expect(att.data.participantCount).toBe(7);
     expect(att.data.independenceStatus).toBe('ASSESSED');
     expect(att.data.coverageStatus).toBe('SUFFICIENT');
+    // v3's added field: the independence threshold is SIGNED, not implied.
+    expect(att.data.requiredSourceGroupCount).toBe(2);
+    // 27 fields = v2's 26 + requiredSourceGroupCount.
+    expect(att.eip712.types.OracleSafetyCheck).toHaveLength(27);
 
-    // The returned receipt must verify against Insight's v2 verifier.
-    const result = await verifyAttestationV2(att);
+    // The returned receipt must verify against Insight's v3 verifier.
+    const result = await verifyAttestationV3(att);
     expect(result.valid).toBe(true);
     expect(result.attester).toBe(TEST_ATTESTER);
 
     expect(body.data.wellKnown).toContain('/.well-known/oracle-keys.json');
     expect(body.data.verify).toContain('/api/v1/safety/attestation/verify');
+    expect(body.data.registryStatus).toContain('/.well-known/oracle-registry-status.json');
+    expect(body.data.note).toContain('v3');
   });
 
   it('returns 503 when the sample signer key is unconfigured', async () => {
