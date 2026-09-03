@@ -27,7 +27,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { signExecutionReceipt } from '@/lib/attestations/executionReceipt';
+import {
+  projectExecutionDataForSchemaVersion,
+  signExecutionReceipt,
+} from '@/lib/attestations/executionReceipt';
 import { recordExecutionReceiptAsync } from '@/lib/execution/executionReceiptAudit';
 
 const PUBLIC_MIDDLEWARES = {
@@ -149,6 +152,17 @@ export const GET = createApiHandler<
       settlementChainId: 8453,
     });
 
+    // The response carries the message projected onto the layout that was
+    // actually signed (VERITAS round 3, closing F0/F8): `signExecutionReceipt`
+    // emits the full current-layout message, but when ?schemaVersion=1..3 was
+    // asked for, the signature covered THAT layout. Shipping the full message
+    // beside a smaller type declaration would be self-inconsistent for any
+    // independent verifier that rebuilds typed data from the payload alone, so
+    // the data is projected to the signed layout's field set and spellings.
+    // The audit below records the receipt before projection — its rows keep
+    // the current-layout message either way.
+    const projectedData = projectExecutionDataForSchemaVersion(receipt.data, receipt.schemaVersion);
+
     const base =
       process.env.NEXT_PUBLIC_APP_URL ||
       (process.env.NODE_ENV === 'production'
@@ -159,7 +173,7 @@ export const GET = createApiHandler<
       ApiResponseBuilder.success(
         {
           isSample: true,
-          attestation: receipt,
+          attestation: { ...receipt, data: projectedData },
           wellKnown: `${base}/.well-known/oracle-keys.json`,
           verify: `${base}/api/v1/execution/attestation/verify`,
           note: 'SYNTHETIC sample: signed by the dedicated SAMPLE signer (see .well-known registry, role "sample"), so the synthetic nature is checkable from the signature itself. Settlement facts are demo data; never treat as evidence of a real trade.',

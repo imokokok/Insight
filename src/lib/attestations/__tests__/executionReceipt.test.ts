@@ -748,4 +748,64 @@ describe('executionReceipt frozen layouts and pairing', () => {
     const result = await mod2.verifyExecutionReceipt(sample!);
     expect(result.valid).toBe(true);
   });
+
+  // ---- layout projection for sample payloads (VERITAS round 3, F0/F8) ----
+
+  it('projects the message onto the signed layout so a v1 payload is self-consistent', async () => {
+    // The v1 sample used to ship the full current-layout message (44 keys,
+    // current spellings) beside a 30-field v1 type declaration. An independent
+    // verifier rebuilding typed data from the payload alone found keys the
+    // types declared were missing from the data. Projection ships exactly the
+    // field set (and spellings) the signature covered.
+    const mod = await import('../executionReceipt');
+    const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: 1 }));
+    expect(receipt).not.toBeNull();
+
+    const projected = mod.projectExecutionDataForSchemaVersion(receipt!.data, 1);
+    const v1Names = mod.EXECUTION_TYPES_V1.ExecutionReceipt.map((f) => f.name);
+    expect(Object.keys(projected)).toEqual(v1Names);
+    expect(projected).not.toHaveProperty('environment');
+    // The two v3 renames translate back to the spellings v1 declares.
+    const p = projected as unknown as Record<string, unknown>;
+    expect(p.executionStatus).toBe(receipt!.data.priceExecutionStatus);
+    expect(p.oracleDataAgeAtExecSeconds).toBe(receipt!.data.attestationAgeAtExecSeconds);
+
+    // The projected payload still verifies on its own: the verify path
+    // recomputes the UID from the data it is handed (as an independent
+    // verifier would), and that UID matches the one that was signed.
+    const result = await mod.verifyExecutionReceipt({ ...receipt!, data: projected });
+    expect(result.valid).toBe(true);
+    expect(result.executionStatus).toBe('FAITHFUL');
+  });
+
+  it('projects v2/v3 to their own key sets and leaves v4 unchanged', async () => {
+    const mod = await import('../executionReceipt');
+    for (const version of [2, 3] as const) {
+      const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: version }));
+      expect(receipt).not.toBeNull();
+      const expectedTypes = version === 2 ? mod.EXECUTION_TYPES_V2 : mod.EXECUTION_TYPES_V3;
+      const projected = mod.projectExecutionDataForSchemaVersion(receipt!.data, version);
+      expect(Object.keys(projected)).toEqual(expectedTypes.ExecutionReceipt.map((f) => f.name));
+      const result = await mod.verifyExecutionReceipt({ ...receipt!, data: projected });
+      expect(result.valid).toBe(true);
+    }
+    // v3 must keep the CURRENT spellings (no executionStatus key) and v4 is
+    // returned untouched (identity, no copy).
+    const r3 = await mod.signExecutionReceipt(baseInput({ schemaVersion: 3 }));
+    const p3 = mod.projectExecutionDataForSchemaVersion(r3!.data, 3);
+    expect(p3).not.toHaveProperty('executionStatus');
+    expect(p3).not.toHaveProperty('environment');
+    const r4 = await mod.signExecutionReceipt(baseInput());
+    expect(mod.projectExecutionDataForSchemaVersion(r4!.data, 4)).toBe(r4!.data);
+  });
+
+  it('fails loudly instead of emitting a hole when a declared field is missing', async () => {
+    const mod = await import('../executionReceipt');
+    const msg = await mod.buildExecutionMessage(baseInput());
+    const holey = { ...msg } as unknown as Record<string, unknown>;
+    delete holey.priceExecutionStatus;
+    expect(() => mod.projectExecutionDataForSchemaVersion(holey as never, 3)).toThrow(
+      /carries no "priceExecutionStatus"/
+    );
+  });
 });

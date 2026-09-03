@@ -1044,8 +1044,7 @@ export async function buildExecutionMessage(
     // supposedly authorised. The sentinel says "undefined" in the bytes; the
     // verdict layer independently refuses FAITHFUL on the ordering violation.
     attestationAgeAtExecSeconds:
-      Number.isFinite(input.oracleDataAgeAtExecSeconds) &&
-      input.oracleDataAgeAtExecSeconds >= 0
+      Number.isFinite(input.oracleDataAgeAtExecSeconds) && input.oracleDataAgeAtExecSeconds >= 0
         ? Math.floor(input.oracleDataAgeAtExecSeconds)
         : ATTESTATION_AGE_UNDEFINED_SENTINEL,
     priceStateAgeAtExecSeconds,
@@ -1146,6 +1145,61 @@ export function executionTypedDataArgs(message: ExecutionReceiptData) {
   } as const;
 }
 
+/**
+ * Field-name aliases for the two renames between v1/v2 and v3 (VERITAS F2/F5).
+ * A layout that still declares the OLD spelling must be served its values under
+ * that spelling: `buildExecutionMessage` emits only the current names, while the
+ * signature covered the old ones (viem encodes strictly from the layout), so a
+ * projected payload has to translate back. Values never changed, only names.
+ */
+const EXECUTION_LEGACY_FIELD_ALIASES = {
+  executionStatus: 'priceExecutionStatus',
+  oracleDataAgeAtExecSeconds: 'attestationAgeAtExecSeconds',
+} as const;
+
+/**
+ * Project a fully-populated current-layout message onto the field set and the
+ * spellings that a PUBLISHED layout (v1..v4) declares, for payloads handed to
+ * a reader (the sample endpoint). The signature is untouched: it covered the
+ * requested layout all along, so projecting only decides which keys travel
+ * beside it. A holder can then rebuild the typed data from the projected data
+ * plus the published layout alone, with no private field-name mapping.
+ *
+ * Without this, a v1 sample shipped the full current-layout message (44 keys,
+ * current spellings) beside a 30-field v1 type declaration — self-inconsistent
+ * for any independent verifier that rebuilds from the payload (found while
+ * closing VERITAS round-3 F0/F8: the v1 sample must be independently
+ * verifiable, not just verifiable by our own endpoint).
+ *
+ * v4 (current) is returned unchanged. Unknown versions fall back to v4 the
+ * same way the signer does. A field the message cannot supply fails loudly:
+ * a projected payload must never carry a hole.
+ */
+export function projectExecutionDataForSchemaVersion(
+  data: ExecutionReceiptData,
+  schemaVersion: number
+): ExecutionReceiptData {
+  if (schemaVersion === CURRENT_EXECUTION_SCHEMA_VERSION) return data;
+  const layout = executionTypesForSchemaVersion(schemaVersion);
+  const fields = layout.ExecutionReceipt;
+  const source = data as unknown as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const field of fields) {
+    const name = field.name;
+    const currentName =
+      name in EXECUTION_LEGACY_FIELD_ALIASES
+        ? EXECUTION_LEGACY_FIELD_ALIASES[name as keyof typeof EXECUTION_LEGACY_FIELD_ALIASES]
+        : name;
+    if (!(currentName in source)) {
+      throw new Error(
+        `projectExecutionDataForSchemaVersion: v${schemaVersion} layout declares "${name}" but the message carries no "${currentName}"`
+      );
+    }
+    out[name] = source[currentName];
+  }
+  return out as unknown as ExecutionReceiptData;
+}
+
 // ---------------------------------------------------------------------------
 // Public envelope
 // ---------------------------------------------------------------------------
@@ -1200,9 +1254,7 @@ export async function signExecutionReceipt(
   input: ExecutionReceiptInput,
   opts?: { sample?: boolean }
 ): Promise<ExecutionReceipt | null> {
-  const account = opts?.sample
-    ? await getSampleAttesterAccount()
-    : await getAttesterAccount();
+  const account = opts?.sample ? await getSampleAttesterAccount() : await getAttesterAccount();
   if (!account) return null;
 
   try {
