@@ -459,6 +459,29 @@ describe('executionReceipt', () => {
     expect(empty.measuredFieldsHash).not.toBe(msg.measuredFieldsHash);
   });
 
+  it('v3 measuredFieldsHash separator is a comma — pins F13 with ≥2 fields', async () => {
+    // VERITAS round 3 F13: the shipped v3 packet's embedded enumeration note
+    // said join("-"), while the code (executionCommitments.ts FIELD_SEPARATOR,
+    // unchanged since e2f0ccb6), the registry and the export tool all say
+    // join(","). Exactly one published rule disagreed with the code, and from
+    // outside there was no way to tell which — every packet ever shipped signed
+    // the EMPTY set, which hashes identically under both rules. The separator
+    // only discriminates at ≥2 fields, so the regression is pinned here.
+    const { keccak256, toBytes } = await import('viem');
+    const { computeMeasuredFieldsHash } = await import('../executionCommitments');
+    const two = ['actualFeeUsd', 'executedAmountUsd'] as const;
+    expect(computeMeasuredFieldsHash(two)).toBe(
+      keccak256(toBytes('actualFeeUsd,executedAmountUsd'))
+    );
+    expect(computeMeasuredFieldsHash(two)).not.toBe(
+      keccak256(toBytes('actualFeeUsd-executedAmountUsd'))
+    );
+    // One field: no separator ever appears, so the two rules are byte-identical
+    // there — a future pack needs ≥2 measured fields for bytes to discriminate.
+    const one = ['actualFeeUsd'] as const;
+    expect(computeMeasuredFieldsHash(one)).toBe(keccak256(toBytes('actualFeeUsd')));
+  });
+
   it('v3 defaults the subject claims to the honest observer position', async () => {
     const mod = await import('../executionReceipt');
     const taker = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' as `0x${string}`;

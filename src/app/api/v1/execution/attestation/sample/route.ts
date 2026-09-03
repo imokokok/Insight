@@ -47,6 +47,29 @@ const SAMPLE_REQUEST_HASH =
 const SAMPLE_TX_HASH =
   '0x0000000000000000000000000000000000000000000000000000000000000003' as const;
 
+/**
+ * Parse the optional ?schemaVersion= override.
+ *
+ * Absent or blank → undefined (sign the CURRENT layout). An unknown integer is
+ * returned as-is: buildExecutionMessage falls back to the current layout for a
+ * version it does not know, and the response reports what was actually signed,
+ * so a caller can never mistake the layout.
+ *
+ * VERITAS round 3 F14: the default must never reach the signer as 0. The old
+ * code coerced `get(...) ?? ''` through Number(), and Number('') is 0, which
+ * passed Number.isInteger and put the plain /sample call on the unknown-value
+ * fallback branch instead of the no-override branch. If that fallback is ever
+ * tightened to reject unknown versions, the default sample would silently
+ * break — this keeps "no version asked" distinguishable from "version 0".
+ */
+export function parseRequestedSchemaVersion(raw: string | null): number | undefined {
+  if (raw === null) return undefined;
+  const trimmed = raw.trim();
+  if (trimmed === '') return undefined;
+  const n = Number(trimmed);
+  return Number.isInteger(n) ? n : undefined;
+}
+
 export const OPTIONS = createOptionsHandler();
 
 export const GET = createApiHandler<
@@ -60,7 +83,9 @@ export const GET = createApiHandler<
     // facts against that PUBLISHED layout (N1). Unknown values fall back to the
     // current layout inside buildExecutionMessage — the response reports what
     // was actually signed, so a caller can never mistake the layout.
-    const requestedVersion = Number(request.nextUrl.searchParams.get('schemaVersion') ?? '');
+    const requestedVersion = parseRequestedSchemaVersion(
+      request.nextUrl.searchParams.get('schemaVersion')
+    );
     // Signed directly from synthetic facts — deliberately NOT routed through
     // issueExecutionReceipt, whose v3/v4 collector reads the settlement off
     // chain. A fake tx hash would fail RPC lookup (502): the sample's purpose
@@ -74,7 +99,9 @@ export const GET = createApiHandler<
     const executedAt = Math.floor(Date.now() / 1000);
     const receipt = await signExecutionReceipt(
       {
-        schemaVersion: Number.isInteger(requestedVersion) ? requestedVersion : undefined,
+        // parseRequestedSchemaVersion already returns undefined for absent,
+        // blank or non-integer input (F14), so this is the signer input.
+        schemaVersion: requestedVersion,
         preTradeUid: SAMPLE_PRE_TRADE_UID as `0x${string}`,
         requestHash: SAMPLE_REQUEST_HASH as `0x${string}`,
         sourceAssetId: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',

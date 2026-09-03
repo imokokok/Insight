@@ -75,6 +75,34 @@ function compareHex(a: string, b: string): number {
 }
 
 /**
+ * VERITAS round 3 N6: the count and agreement figure a gate signs BESIDE its
+ * observations must be derivable from those observations, so a consumer holding
+ * one gate can recompute the signed numbers from the presented evidence rather
+ * than trusting a self-asserted figure. (The earlier demo packet signed
+ * participantCount 4 beside three observations and 9900 bps of agreement
+ * beside three identical values.)
+ *
+ * participantCount = the number of INCLUDED observations. Excluded entries are
+ * evidence the verdict saw and discarded, not voices in the quorum, so they do
+ * not count toward coverage.
+ *
+ * crossProviderAgreement = 1 - (max - min) / max over the included values
+ * (×1e8-scaled prices). Identical values → 1.0 (perfect agreement → 10000 bps);
+ * a 5% spread between the closest and farthest included quote → 0.95.
+ */
+export function deriveParticipantCount(entries: ProviderObservationEntry[]): number {
+  return entries.filter((e) => e.included).length;
+}
+
+export function deriveCrossProviderAgreement(entries: ProviderObservationEntry[]): number {
+  const included = entries.filter((e) => e.included).map((e) => Number(e.value));
+  if (included.length === 0) return 0;
+  const max = Math.max(...included);
+  const min = Math.min(...included);
+  return max > 0 ? 1 - (max - min) / max : 1;
+}
+
+/**
  * Compute the canonical providerObservationsHash. Pure & deterministic.
  *
  * Empty list → keccak256 of empty bytes (a stable, published constant) so the

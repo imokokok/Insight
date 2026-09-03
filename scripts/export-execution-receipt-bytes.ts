@@ -62,6 +62,10 @@ import type { AttestationInputV2 } from '@/lib/attestations/oracleSafetyAttestat
 import { signAttestationV3 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import {
+  deriveCrossProviderAgreement,
+  deriveParticipantCount,
+} from '@/lib/attestations/providerObservationsHash';
+import {
   CANONICAL_REQUEST_DOMAIN,
   CANONICAL_REQUEST_PRIMARY_TYPE,
   CANONICAL_REQUEST_TYPES,
@@ -167,6 +171,41 @@ function preTradeInput(
   // another thing a third party could find.
   const feedPrefix = `demo-feed:${sourceAssetId}`;
   const value = BigInt(Math.round(consensusPriceUsd * 1e8));
+  // The gate's participantCount and agreement figure are DERIVED from the
+  // observations it actually presents (deriveParticipantCount /
+  // deriveCrossProviderAgreement in providerObservationsHash.ts), so a consumer
+  // counting the evidence beside the signature gets back the signed numbers.
+  // VERITAS round 3 N6: the earlier demo signed participantCount 4 beside three
+  // observations and 9900 bps of agreement beside three identical values.
+  const providerObservations: ProviderObservationEntry[] = [
+    {
+      provider: 'chainlink',
+      feedId: `${feedPrefix}:1`,
+      value,
+      timestamp: ts,
+      dataAgeSeconds: 4n,
+      included: true,
+      exclusionReason: '',
+    },
+    {
+      provider: 'api3',
+      feedId: `${feedPrefix}:2`,
+      value,
+      timestamp: ts,
+      dataAgeSeconds: 6n,
+      included: true,
+      exclusionReason: '',
+    },
+    {
+      provider: 'redstone',
+      feedId: `${feedPrefix}:3`,
+      value,
+      timestamp: ts,
+      dataAgeSeconds: 5n,
+      included: true,
+      exclusionReason: '',
+    },
+  ];
   return {
     verdict: 'PASS',
     sourceAssetId,
@@ -177,41 +216,13 @@ function preTradeInput(
     consensusPrice: consensusPriceUsd,
     maxDeviationPct: 0.2,
     manipulationRiskScore: 0.01,
-    participantCount: 4,
-    crossProviderAgreement: 0.99,
+    participantCount: deriveParticipantCount(providerObservations),
+    crossProviderAgreement: deriveCrossProviderAgreement(providerObservations),
     maxStablecoinDepegPct: 0.01,
     maxDataAgeSeconds: 12,
     recommendedMaxPositionUsd: 100_000,
     contributingFactors: [],
-    providerObservations: [
-      {
-        provider: 'chainlink',
-        feedId: `${feedPrefix}:1`,
-        value,
-        timestamp: ts,
-        dataAgeSeconds: 4n,
-        included: true,
-        exclusionReason: '',
-      },
-      {
-        provider: 'api3',
-        feedId: `${feedPrefix}:2`,
-        value,
-        timestamp: ts,
-        dataAgeSeconds: 6n,
-        included: true,
-        exclusionReason: '',
-      },
-      {
-        provider: 'redstone',
-        feedId: `${feedPrefix}:3`,
-        value,
-        timestamp: ts,
-        dataAgeSeconds: 5n,
-        included: true,
-        exclusionReason: '',
-      },
-    ] as ProviderObservationEntry[],
+    providerObservations,
     checkedAtMs,
   } as AttestationInputV2;
 }
@@ -339,12 +350,13 @@ async function main() {
       const destAssetId = `eip155:1/erc20:${swap.boughtToken}`;
 
       const gateMs = (executedAt - GATE_LEAD_SECONDS) * 1000;
-      const sourceGate = await signAttestationV3(
-        preTradeInput(sourceAssetId, destAssetId, srcUsd, gateMs)
-      );
-      const destGate = await signAttestationV3(
-        preTradeInput(destAssetId, sourceAssetId, dstUsd, gateMs)
-      );
+      // Hold the INPUTS, not just the signed gates, so the self-check can
+      // assert the signed counts/agreement equal what the presented
+      // observations derive to (VERITAS round 3 N6).
+      const srcGateInput = preTradeInput(sourceAssetId, destAssetId, srcUsd, gateMs);
+      const destGateInput = preTradeInput(destAssetId, sourceAssetId, dstUsd, gateMs);
+      const sourceGate = await signAttestationV3(srcGateInput);
+      const destGate = await signAttestationV3(destGateInput);
       if (!sourceGate || !destGate) throw new Error('gate signing failed');
 
       const issue = await issueExecutionReceipt({
@@ -354,7 +366,10 @@ async function main() {
         destinationAssetId: destAssetId,
         subjectChainId: 1,
         settlementChainId: 1,
-        participantCount: 4,
+        // N6 (VERITAS round 3): the receipt echoes the gates' DERIVED counts —
+        // participantCount equals the included observations each gate presents,
+        // never a separately-hardcoded figure that can drift from the evidence.
+        participantCount: srcGateInput.participantCount,
         sourceGroupCount: 3,
         preTradeSignedAt: executedAt - GATE_LEAD_SECONDS,
         quotedPrice: 0, // VERIFIED binding derives it from the gates
@@ -404,8 +419,7 @@ async function main() {
       };
       const destinationRequestHashRecomputed = computeRequestHash(destinationRequestPreimage);
       const destinationRequestHashMatches =
-        destinationRequestHashRecomputed.toLowerCase() ===
-        destGate.data.requestHash.toLowerCase();
+        destinationRequestHashRecomputed.toLowerCase() === destGate.data.requestHash.toLowerCase();
       // The counterparties' placeholder-gate test, run on OUR OWN gates: two
       // gates over two different assets must never share one
       // providerObservationsHash.
@@ -415,6 +429,19 @@ async function main() {
       const measuredFieldsOpen =
         computeMeasuredFieldsHash([]).toLowerCase() ===
         String(issue.receipt.data.measuredFieldsHash).toLowerCase();
+      // N6 (VERITAS round 3): the signed gate numbers must equal what the
+      // presented observations derive to — participantCount = included count,
+      // agreementBps = 1 - (max-min)/max over the included values ×1e4.
+      const sourceCountDerives =
+        Number(sourceGate.data.participantCount) === Number(srcGateInput.participantCount);
+      const sourceAgreementDerives =
+        Number(sourceGate.data.crossProviderAgreementBps) ===
+        Math.round(srcGateInput.crossProviderAgreement * 1e4);
+      const destCountDerives =
+        Number(destGate.data.participantCount) === Number(destGateInput.participantCount);
+      const destAgreementDerives =
+        Number(destGate.data.crossProviderAgreementBps) ===
+        Math.round(destGateInput.crossProviderAgreement * 1e4);
 
       const expectedDeltaBps = ((swap.price - srcUsd / dstUsd) / (srcUsd / dstUsd)) * 10_000;
       // Independent recompute of the verdict, mirroring deriveExecutionStatus:
@@ -450,6 +477,7 @@ async function main() {
             'receipt is NOT anchored; anchoring remains the stated next step',
             "the quoted price is the execution venue's OWN pre-swap mid (block before the swap) re-expressed as USD; the receipt signs quoteVenueIndependent=false and quoteBasis=PREV_BLOCK_CLOSE accordingly (VERITAS F3/F4)",
             'the pre-trade gates in this package are DEMO records: their consensus was set to the venue mid (a demo shortcut) and their observations carry demo feed ids derived from the priced asset. Production pre-trade clients are never the execution venue. The two gates over two different assets carry DIFFERENT providerObservationsHash values (the placeholder-gate test from VERITAS round 2 holds here by construction)',
+            'each gate derives participantCount and crossProviderAgreement from the observations it presents (VERITAS round 3 N6): count = its included observations, agreement = 1 - (max-min)/max over the included values — the demo values are identical, so agreement signs at 10000 bps (perfect), not a hand-set figure beside them',
             'fillStatus grades the EXECUTION OUTCOME of the fill (full/partial/reverted) — it is NOT a size verdict against the request: executedAmountUsd is honestly signed as unmeasured, so no signed field claims what the fill size was relative to the $50,000 request. A scope rename (priceFillStatus) is planned for the next layout revision (F9)',
             "attribution names the pool's DIRECT COUNTERPARTY as subject/taker: the single party that paid the source token into the pool and received and kept the destination token. executedPrice = that party's realised price (destination received / source paid), which equals the pool leg exactly because no fee path or onward routing exists; aggregator-fee and multi-party routes are SKIPPED, never mis-graded by naming an intermediate as trader or reading the pool leg as the trader's fill (Headless H1/H2/H3)",
             "this demo backfills a HISTORICAL swap, so the gates were signed after the settlement: the receipt carries the gates' real signature time as preTradeSignedAt, which is later than the fill, and the signed verdict is therefore UNDETERMINED with reason PRE_TRADE_AFTER_EXECUTION. Precedence is NOT claimed for this package; a forward demo (gate signed before execution) is required to sign FAITHFUL (Headless H4)",
@@ -576,6 +604,7 @@ async function main() {
             `requestHash recomputes from the canonical preimage and matches both the source gate and the receipt: ${requestHashMatches} (F6)`,
             `destination gate requestHash recomputes from its own preimage (destination-leg view of the same request): ${destinationRequestHashMatches} (F11)`,
             `the two gates over two different assets carry DIFFERENT providerObservationsHash values: ${gateObservationHashesDiffer} (placeholder-gate test, VERITAS round 2)`,
+            `gate counts & agreement derive from the presented observations (VERITAS round 3 N6): source participantCount ${sourceGate.data.participantCount} == ${srcGateInput.participantCount} included observations: ${sourceCountDerives}, agreementBps ${sourceGate.data.crossProviderAgreementBps} == ${Math.round(srcGateInput.crossProviderAgreement * 1e4)}: ${sourceAgreementDerives}; destination participantCount ${destGate.data.participantCount} == ${destGateInput.participantCount}: ${destCountDerives}, agreementBps ${destGate.data.crossProviderAgreementBps} == ${Math.round(destGateInput.crossProviderAgreement * 1e4)}: ${destAgreementDerives}`,
             `subject=${issue.receipt.data.subject}, taker=${issue.receipt.data.taker}, claimRole=${issue.receipt.data.claimRole} (F6)`,
             `quoteVenueIndependent=${issue.receipt.data.quoteVenueIndependent}, quoteBasis=${issue.receipt.data.quoteBasis}, quoteBlockNumber=${issue.receipt.data.quoteBlockNumber} (F3/F4)`,
             `priceScale=${issue.receipt.data.priceScale} (x1e8), environment=${issue.receipt.data.environment} (v4 signed message field — the v3 domain's declared environment never entered the signature, H7)`,
@@ -588,7 +617,9 @@ async function main() {
       const outPath = join(outdir, `execution-receipt-bytes-${stamp}.json`);
       writeFileSync(outPath, JSON.stringify(pkg, replacer, 2) + '\n');
 
-      console.log('\n=== EXECUTION RECEIPT BYTES PACKAGE (v' + issue.receipt.schemaVersion + ') ===');
+      console.log(
+        '\n=== EXECUTION RECEIPT BYTES PACKAGE (v' + issue.receipt.schemaVersion + ') ==='
+      );
       console.log('out          :', outPath);
       console.log('tx           :', txHash, '(block', blockNum + ')');
       console.log('legs         :', swap.soldToken, '->', swap.boughtToken);

@@ -5,7 +5,11 @@
  * keccak each, sort the 32-byte hashes lexicographically, concat, keccak.
  */
 
-import { computeProviderObservationsHash } from '../providerObservationsHash';
+import {
+  computeProviderObservationsHash,
+  deriveCrossProviderAgreement,
+  deriveParticipantCount,
+} from '../providerObservationsHash';
 
 import type { ProviderObservationEntry } from '../providerObservationsHash';
 
@@ -144,6 +148,56 @@ describe('computeProviderObservationsHash', () => {
       const a = entries.map((e) => ({ ...e, feedId: 'feed-A' }));
       const b = entries.map((e) => ({ ...e, feedId: 'feed-B' }));
       expect(computeProviderObservationsHash(a)).not.toBe(computeProviderObservationsHash(b));
+    });
+  });
+
+  // VERITAS round 3 N6: the count and agreement figure a gate signs beside its
+  // observations must DERIVE from those observations, so a consumer holding one
+  // gate can recompute the signed numbers from the presented evidence. The
+  // earlier demo packet signed participantCount 4 beside three observations and
+  // 9900 bps of agreement beside three identical values.
+  describe('gate count & agreement derive from observations (VERITAS round 3 N6)', () => {
+    const obs = (
+      values: number[],
+      included: boolean[] = values.map(() => true)
+    ): ProviderObservationEntry[] =>
+      values.map((v, i) => ({
+        provider: `p${i}`,
+        feedId: `feed:${i}`,
+        value: BigInt(Math.round(v * 1e8)),
+        timestamp: 1700000000n,
+        dataAgeSeconds: BigInt(4 + i),
+        included: included[i],
+        exclusionReason: included[i] ? '' : 'EXCLUDED',
+      }));
+
+    it('participantCount counts INCLUDED observations only', () => {
+      const threeWithOneExcluded = obs([3000, 3000, 3000], [true, true, false]);
+      expect(deriveParticipantCount(threeWithOneExcluded)).toBe(2);
+      expect(deriveParticipantCount([])).toBe(0);
+    });
+
+    it('agreement is 1 (10000 bps) when the included values are identical', () => {
+      const identical = obs([3000, 3000, 3000]);
+      expect(deriveCrossProviderAgreement(identical)).toBe(1);
+      expect(Math.round(deriveCrossProviderAgreement(identical) * 1e4)).toBe(10_000);
+    });
+
+    it('agreement falls with the included values spread: 1 - (max-min)/max', () => {
+      // 3000 vs 3006 -> 1 - 6/3006 = 500/501 ≈ 0.998003992… -> 9980 bps.
+      const spread = obs([3000, 3006]);
+      expect(deriveCrossProviderAgreement(spread)).toBeCloseTo(500 / 501, 12);
+      expect(Math.round(deriveCrossProviderAgreement(spread) * 1e4)).toBe(9_980);
+    });
+
+    it('excluded entries do not move the agreement figure', () => {
+      const oneExcluded = obs([3000, 3006, 2000], [true, true, false]);
+      expect(deriveCrossProviderAgreement(oneExcluded)).toBeCloseTo(500 / 501, 12);
+    });
+
+    it('empty observation set has no quorum: count 0, agreement 0', () => {
+      expect(deriveParticipantCount([])).toBe(0);
+      expect(deriveCrossProviderAgreement([])).toBe(0);
     });
   });
 });
