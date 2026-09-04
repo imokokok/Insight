@@ -181,7 +181,7 @@ export function OracleHealthGrid() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-100px' }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-5 lg:p-6"
+      className="border-y border-slate-900/15 bg-white/30 p-5 sm:p-6 lg:p-8"
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
@@ -206,16 +206,13 @@ export function OracleHealthGrid() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+      <div className="grid grid-cols-3 divide-x divide-slate-900/10 border-y border-slate-900/10 mb-6">
         {(['healthy', 'degraded', 'down'] as const).map((status) => {
           const config = statusConfig[status];
           const count = counts[status];
           const percentage = counts.total > 0 ? (count / counts.total) * 100 : 0;
           return (
-            <div
-              key={status}
-              className={`flex flex-col rounded-xl border ${config.border} ${config.bg} px-3 py-2.5 sm:px-4 sm:py-3`}
-            >
+            <div key={status} className={`flex flex-col px-3 py-3 sm:px-4 ${config.bg}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <span className={`w-2 h-2 rounded-full ${config.dot}`} />
@@ -243,7 +240,7 @@ export function OracleHealthGrid() {
         })}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-5">
+      <div className="grid grid-cols-2 divide-x divide-y divide-slate-900/10 border-y border-slate-900/10 sm:grid-cols-3 lg:grid-cols-6 lg:divide-y-0 mb-6">
         {[
           {
             icon: BarChart3,
@@ -279,10 +276,7 @@ export function OracleHealthGrid() {
         ].map((metric) => {
           const Icon = metric.icon;
           return (
-            <div
-              key={metric.label}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100"
-            >
+            <div key={metric.label} className="flex items-center gap-2 px-3 py-3 bg-white/20">
               <Icon className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
               <div className="min-w-0">
                 <div className="text-[10px] text-slate-500 font-medium">{metric.label}</div>
@@ -301,7 +295,7 @@ export function OracleHealthGrid() {
       <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
         <table className="w-full min-w-[640px] text-sm">
           <thead>
-            <tr className="bg-slate-50/80 border-b border-slate-100">
+            <tr className="border-b border-slate-900/10">
               <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Provider
               </th>
@@ -325,7 +319,7 @@ export function OracleHealthGrid() {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-900/10">
             {providers.map((provider) => {
               const { score, status } = getStatus(provider);
               const config = statusConfig[status];
@@ -336,7 +330,7 @@ export function OracleHealthGrid() {
                 totalQueries > 0 ? ((totalQueries - failedQueries) / totalQueries) * 100 : 0;
 
               return (
-                <tr key={provider} className="hover:bg-slate-50/70 transition-colors group">
+                <tr key={provider} className="hover:bg-blue-50/35 transition-colors group">
                   <td className="px-3 py-3">
                     <Link
                       href={`/reputation/${provider}`}

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, TrendingUp } from 'lucide-react';
+import { ArrowRight, ShieldAlert } from 'lucide-react';
 
 export function UseCaseBanner() {
   return (
@@ -10,56 +10,51 @@ export function UseCaseBanner() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-100px' }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="relative overflow-hidden rounded-2xl bg-slate-900 border border-slate-800"
+      className="relative overflow-hidden border border-slate-900/15 bg-[#eaf1fb]"
     >
-      {/* Subtle grid texture */}
       <div
-        className="absolute inset-0 opacity-[0.04]"
+        className="absolute inset-0 opacity-[0.3]"
         style={{
           backgroundImage:
-            'linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)',
+            'linear-gradient(to right, rgba(37,99,235,0.16) 1px, transparent 1px), linear-gradient(to bottom, rgba(37,99,235,0.16) 1px, transparent 1px)',
           backgroundSize: '48px 48px',
         }}
       />
-
-      {/* Top glow line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+      <div className="absolute -right-12 -top-12 h-56 w-56 rounded-full border-[28px] border-blue-600/15" />
 
       <div className="relative p-6 sm:p-8 lg:p-10">
         <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-10">
-          {/* Left: key figures */}
           <div className="flex items-center gap-4 sm:gap-6 lg:flex-shrink-0">
             <div className="text-center lg:text-left">
-              <div className="text-3xl sm:text-4xl lg:text-5xl font-bold font-mono text-gradient-primary tracking-tight">
-                2.85%
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-semibold font-mono text-blue-700 tracking-tight">
+                BEFORE
               </div>
-              <div className="text-xs sm:text-sm text-slate-400 mt-1">Oracle deviation</div>
+              <div className="text-xs sm:text-sm text-slate-600 mt-1">execution</div>
             </div>
-            <div className="w-px h-14 bg-slate-700 hidden sm:block" />
+            <div className="w-px h-14 bg-slate-900/15 hidden sm:block" />
             <div className="text-center lg:text-left">
-              <div className="text-3xl sm:text-4xl lg:text-5xl font-bold font-mono text-white tracking-tight">
-                $26M
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-semibold font-mono text-slate-950 tracking-tight">
+                NOT AFTER
               </div>
-              <div className="text-xs sm:text-sm text-slate-400 mt-1">Unfair liquidations</div>
+              <div className="text-xs sm:text-sm text-slate-600 mt-1">an incident</div>
             </div>
           </div>
 
-          {/* Right: narrative + CTA */}
           <div className="flex-1">
-            <div className="flex items-center gap-2 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-2">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>Risk Brief</span>
+            <div className="flex items-center gap-2 text-blue-700 text-xs font-semibold uppercase tracking-wider mb-2">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>Risk scenario</span>
             </div>
-            <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-white mb-2 leading-tight">
-              Oracle deviation can liquidate healthy positions
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-slate-950 mb-2 leading-tight">
+              A small oracle deviation can become a large execution outcome.
             </h2>
-            <p className="text-sm sm:text-base text-slate-400 leading-relaxed mb-5 max-w-2xl">
-              On March 10, 2026, a 2.85% wstETH oracle mismatch caused ~$26M in unfair liquidations.
-              Insight&apos;s Safety Check exposes these deviations before they hit your positions.
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-5 max-w-2xl">
+              Model deviation against your protocol&apos;s thresholds and see how a changed oracle
+              value could affect a position before a risk engine has to react.
             </p>
             <Link
               href="/safety-check"
-              className="inline-flex items-center gap-2 px-5 py-2.5 border border-slate-600 text-slate-200 hover:text-white hover:border-slate-400 hover:bg-slate-800 rounded-xl font-medium transition-all duration-200"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-950 text-white hover:bg-blue-700 font-medium transition-all duration-200"
             >
               Run Safety Check
               <ArrowRight className="w-4 h-4" />

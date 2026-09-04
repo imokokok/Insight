@@ -431,10 +431,78 @@ body {
 
 /* Premium text gradient */
 .text-gradient-primary {
-  background: linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #a78bfa 100%);
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #60a5fa 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Homepage: the dark hero is a product surface, not a decorative image. */
+.home-canvas {
+  background-image:
+    radial-gradient(circle at 82% 22%, rgba(219, 234, 254, 0.52), transparent 28rem),
+    linear-gradient(180deg, #f8f7f4 0%, #ffffff 32%, #f8f7f4 100%);
+}
+
+.ice-hero {
+  min-height: min(760px, calc(100vh - 64px));
+}
+
+.ice-hero-wash {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(248, 247, 244, 0.98) 0%,
+      rgba(248, 247, 244, 0.95) 34%,
+      rgba(248, 247, 244, 0.43) 56%,
+      rgba(248, 247, 244, 0.06) 78%
+    ),
+    linear-gradient(0deg, rgba(248, 247, 244, 0.24), transparent 32%);
+}
+
+.ice-hero-grain {
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.06) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(90deg, black, rgba(0, 0, 0, 0.42) 48%, transparent 84%);
+}
+
+.home-kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: #1d4ed8;
+}
+
+.home-hero-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.09) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, black, transparent 82%);
+}
+
+@media (max-width: 640px) {
+  .ice-hero {
+    min-height: 690px;
+  }
+
+  .ice-hero-wash {
+    background: linear-gradient(
+      180deg,
+      rgba(248, 247, 244, 0.98) 0%,
+      rgba(248, 247, 244, 0.94) 58%,
+      rgba(248, 247, 244, 0.5) 100%
+    );
+  }
+
+  .ice-hero-grain {
+    mask-image: linear-gradient(to bottom, black, rgba(0, 0, 0, 0.24) 70%, transparent);
+  }
 }
 
 /* ============================================

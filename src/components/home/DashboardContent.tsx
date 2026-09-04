@@ -12,6 +12,11 @@ import { roundTo } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
 
 import { AssetTable } from './AssetTable';
+import {
+  OracleClosingSection,
+  OracleProcessSection,
+  OracleQuestionSection,
+} from './EditorialNarrative';
 import { FeatureGrid } from './FeatureGrid';
 import { HeroSection } from './HeroSection';
 import { HomeApiTeaser } from './HomeApiTeaser';
@@ -171,45 +176,95 @@ export default function DashboardContent({ initialData }: DashboardContentProps)
   ).length;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
+    <div className="home-canvas min-h-screen bg-[#f8f7f4]">
       <HeroSection />
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 space-y-12 lg:space-y-20">
-        {/* Risk story hook */}
-        <UseCaseBanner />
+      <div className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 lg:px-12 lg:pb-28">
+        <OracleQuestionSection />
 
-        {/* Verifiability narrative */}
-        <VerifiabilityBanner />
+        <section className="py-16 sm:py-20 lg:py-28">
+          <div className="mb-8 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
+            <p className="home-kicker">03 — The evidence</p>
+            <div>
+              <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
+                Look at the sources, not only the result.
+              </h2>
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
+                Live consensus is more useful when its spread, provider coverage, and update time
+                are visible at the same moment.
+              </p>
+            </div>
+          </div>
+          <LiveStatusStrip
+            activeProviders={activeProviders}
+            totalProviders={totalProviders}
+            avgSpread={avgSpread}
+            healthyCount={healthyCount}
+            totalAssets={DASHBOARD_ASSETS.length}
+            updateInterval="30s"
+          />
+          <div className="mt-6">
+            <AssetTable assets={assetData} isLoading={isLoading} />
+          </div>
+        </section>
 
-        {/* Core feature entry points */}
-        <FeatureGrid />
+        <OracleProcessSection />
 
-        {/* Live status strip */}
-        <LiveStatusStrip
-          activeProviders={activeProviders}
-          totalProviders={totalProviders}
-          avgSpread={avgSpread}
-          healthyCount={healthyCount}
-          totalAssets={DASHBOARD_ASSETS.length}
-          updateInterval="30s"
-        />
+        <section className="py-16 sm:py-20 lg:py-28">
+          <div className="mb-8 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
+            <p className="home-kicker">05 — Live signals</p>
+            <div>
+              <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
+                The network should be as observable as the price.
+              </h2>
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
+                Review provider health, coverage, and deviation context before you let a feed inform
+                a critical decision.
+              </p>
+            </div>
+          </div>
+          <OracleHealthGrid />
+        </section>
 
-        {/* Cross-oracle consensus price table */}
-        <AssetTable assets={assetData} isLoading={isLoading} />
+        <section className="border-t border-slate-900/10 py-16 sm:py-20 lg:py-28">
+          <div className="mb-10 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
+            <p className="home-kicker">06 — Make risk actionable</p>
+            <div>
+              <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
+                Different questions. One clear audit trail.
+              </h2>
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
+                Move from price discovery to execution safety with tools designed for protocols,
+                operators, developers, and AI agents.
+              </p>
+            </div>
+          </div>
+          <FeatureGrid />
+          <div className="mt-6">
+            <UseCaseBanner />
+          </div>
+        </section>
 
-        {/* Developer API teaser */}
-        <HomeApiTeaser />
+        <section className="border-t border-slate-900/10 py-16 sm:py-20 lg:py-28">
+          <div className="mb-10 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
+            <p className="home-kicker">07 — Keep it verifiable</p>
+            <div>
+              <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
+                Evidence that travels with the decision.
+              </h2>
+            </div>
+          </div>
+          <VerifiabilityBanner />
+          <div className="mt-6">
+            <HomeApiTeaser />
+          </div>
+        </section>
 
-        {/* Oracle network health and reputation */}
-        <OracleHealthGrid />
+        <OracleClosingSection />
 
-        {/* Transparency disclaimer */}
-        <div className="text-center">
-          <p className="inline-flex items-center gap-2 text-xs text-slate-400 px-4 py-2 rounded-full bg-white border border-slate-100 shadow-sm">
-            Prices are aggregated for transparency. Verify critical values on-chain before
-            execution.
-          </p>
-        </div>
+        <p className="mt-7 text-center text-xs text-slate-500">
+          Prices are aggregated for transparency. Verify critical values on-chain before execution.
+        </p>
       </div>
     </div>
   );

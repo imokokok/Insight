@@ -82,15 +82,14 @@ function SpreadIndicator({ spread }: { spread: number }) {
   const trend = getSpreadTrend(spread);
   const Icon = spread === 0 ? Minus : spread <= 0.1 ? TrendingDown : TrendingUp;
   const colors = {
-    low: 'text-emerald-700 bg-emerald-50 border-emerald-100',
-    medium: 'text-amber-700 bg-amber-50 border-amber-100',
-    high: 'text-rose-700 bg-rose-50 border-rose-100',
+    low: 'text-emerald-700',
+    medium: 'text-amber-700',
+    high: 'text-rose-700',
   };
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${colors[trend]}`}
-    >
+    <span className={`inline-flex items-center gap-1 text-xs font-semibold ${colors[trend]}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current" />
       <Icon className="w-3 h-3" />
       {formatSpread(spread)}
     </span>
@@ -141,13 +140,19 @@ function AssetTableComponent({ assets, isLoading }: AssetTableProps) {
       viewport={{ once: true, margin: '-100px' }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-end justify-between gap-5 mb-5">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Cross-Oracle Consensus Prices
+          <div className="flex items-center gap-3">
+            <span className="h-px w-8 bg-blue-600" />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-700">
+              Live consensus ledger
+            </p>
+          </div>
+          <h2 className="mt-3 text-2xl font-semibold text-slate-900 tracking-[-0.035em]">
+            Cross-oracle price evidence
           </h2>
-          <p className="text-base text-slate-500 mt-1">
-            Transparent median across active oracle providers, with source verification
+          <p className="text-sm text-slate-500 mt-2">
+            Transparent median, provider coverage, and source-level range in one record.
           </p>
         </div>
         <Link
@@ -159,40 +164,40 @@ function AssetTableComponent({ assets, isLoading }: AssetTableProps) {
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="border-y border-slate-900/15 bg-white/25 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-100">
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <tr className="border-b border-slate-900/10">
+                <th className="px-5 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
                   Asset
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
                   Consensus Price
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
                   Spread
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
                   Range
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
                   Providers
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
                   Last Update
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="px-5 py-4 text-right text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
                   Action
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-900/10">
               {showSkeleton
                 ? Array.from({ length: 4 }).map((_, i) => <AssetRowSkeleton key={i} />)
                 : assets.map((asset) => (
-                    <tr key={asset.symbol} className="hover:bg-slate-50/70 transition-colors group">
-                      <td className="px-4 py-4">
+                    <tr key={asset.symbol} className="group transition-colors hover:bg-blue-50/35">
+                      <td className="px-5 py-5">
                         <div className="flex items-center gap-3">
                           <CryptoIcon symbol={asset.symbol} />
                           <div>
@@ -201,22 +206,22 @@ function AssetTableComponent({ assets, isLoading }: AssetTableProps) {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4">
-                        <div className="font-mono tabular-nums text-base font-semibold text-slate-900">
+                      <td className="px-4 py-5">
+                        <div className="font-mono tabular-nums text-base font-semibold tracking-[-0.02em] text-slate-900">
                           {formatPrice(asset.consensusPrice, asset.symbol)}
                         </div>
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-5">
                         <SpreadIndicator spread={asset.priceRange.spreadPercent} />
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-5">
                         <div className="font-mono tabular-nums text-slate-700">
                           {asset.priceRange.min > 0
                             ? `${formatPrice(asset.priceRange.min, asset.symbol)} - ${formatPrice(asset.priceRange.max, asset.symbol)}`
                             : '—'}
                         </div>
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-5">
                         <div className="flex items-center gap-2">
                           <div className="flex -space-x-2">
                             {asset.sources.slice(0, 4).map((source) => (
@@ -237,13 +242,13 @@ function AssetTableComponent({ assets, isLoading }: AssetTableProps) {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-5">
                         <div className="inline-flex items-center gap-1.5 text-xs text-slate-500">
                           <Clock className="w-3.5 h-3.5" />
                           {formatRelativeTime(asset.lastUpdatedAt)}
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-right">
+                      <td className="px-5 py-5 text-right">
                         <Link
                           href={`/price-insight?symbol=${asset.symbol}`}
                           className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"

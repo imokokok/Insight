@@ -22,7 +22,7 @@ const POINTS = [
 
 export function VerifiabilityBanner() {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 sm:p-8">
+    <section className="border-y border-slate-900/15 bg-white/30 p-6 sm:p-8">
       <div className="grid gap-6 lg:grid-cols-[1.2fr_2fr] items-center">
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-blue-600 mb-2">
@@ -47,7 +47,7 @@ export function VerifiabilityBanner() {
           {POINTS.map(({ icon: Icon, title, text }) => (
             <li
               key={title}
-              className="rounded-xl border border-slate-100 bg-slate-50 p-4 flex flex-col gap-2"
+              className="border-l border-slate-900/15 px-4 py-2 first:border-l-0 sm:px-5"
             >
               <Icon className="w-5 h-5 text-blue-600" />
               <div className="text-sm font-semibold text-slate-900">{title}</div>

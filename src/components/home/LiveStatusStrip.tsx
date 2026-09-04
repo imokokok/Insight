@@ -18,10 +18,10 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, label, value, tone = 'slate' }: StatCardProps) {
   const toneStyles = {
-    blue: 'bg-blue-50/60 border-blue-100/80 text-blue-900',
-    emerald: 'bg-emerald-50/60 border-emerald-100/80 text-emerald-900',
-    amber: 'bg-amber-50/60 border-amber-100/80 text-amber-900',
-    slate: 'bg-slate-50/80 border-slate-100 text-slate-900',
+    blue: 'text-blue-900',
+    emerald: 'text-emerald-900',
+    amber: 'text-amber-900',
+    slate: 'text-slate-900',
   };
 
   const iconToneStyles = {
@@ -33,11 +33,13 @@ function StatCard({ icon: Icon, label, value, tone = 'slate' }: StatCardProps) {
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${toneStyles[tone]} transition-colors`}
+      className={`flex min-w-0 items-center gap-3 px-4 py-3 ${toneStyles[tone]} transition-colors`}
     >
       <Icon className={`w-4 h-4 flex-shrink-0 ${iconToneStyles[tone]}`} />
       <div>
-        <div className="text-xs text-slate-500 font-medium mb-0.5">{label}</div>
+        <div className="text-[10px] uppercase tracking-[0.12em] text-slate-500 font-semibold mb-1">
+          {label}
+        </div>
         <div className="text-base lg:text-lg font-semibold font-mono tabular-nums tracking-tight">
           {value}
         </div>
@@ -57,22 +59,22 @@ export function LiveStatusStrip({
   const spreadTone = avgSpread > 1 ? 'amber' : avgSpread > 0 ? 'emerald' : 'slate';
 
   return (
-    <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 sm:p-5">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-        <div className="flex items-center gap-4">
+    <section className="border-y border-slate-900/15 bg-white/30 py-4 backdrop-blur-sm sm:py-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-4 px-4 lg:pr-7">
           <div className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 [animation-duration:2s]" />
             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
           </div>
           <div>
-            <div className="text-sm font-semibold text-slate-900">Network Live</div>
+            <div className="text-sm font-semibold text-slate-950">Network live</div>
             <div className="text-xs text-slate-500">
-              Aggregated transparency feed refreshed every {updateInterval}
+              Independent feed comparison refreshed every {updateInterval}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 divide-x divide-y divide-slate-900/10 border-y border-slate-900/10 sm:grid-cols-4 sm:divide-y-0 lg:border-y-0">
           <StatCard
             icon={Layers}
             label="Active Oracles"
