@@ -145,8 +145,8 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="editorial-workspace min-h-screen">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
         <ReputationHero
           isCalculating={isCalculating}
           calcMessage={calcMessage}
@@ -157,7 +157,7 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
 
         {/* Loading state — single render path */}
         {isLoading && (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex items-center justify-center border-y border-slate-900/15 py-20">
             <div className="flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-blue-500 animate-pulse" />
               <span className="text-sm text-slate-500 font-bold">Loading oracle data...</span>
@@ -167,7 +167,7 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
 
         {/* Error state — single render path */}
         {error && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+          <div className="flex items-center gap-3 border-y border-amber-300 bg-amber-50/70 p-4">
             <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
             <div>
               <p className="text-sm font-bold text-amber-800">No reputation data available</p>
@@ -197,7 +197,7 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
                 "waiting for calculation" notice above the table. The Hero's
                 refresh area already reflects an active `isCalculating` run. */}
             {allUnrated && !isCalculating && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+              <div className="mb-6 flex items-center gap-3 border-y border-blue-300 bg-blue-50/70 p-4">
                 <Loader2 className="w-5 h-5 text-blue-500 animate-spin flex-shrink-0" />
                 <div>
                   <p className="text-sm font-bold text-blue-800">Waiting for calculation...</p>
@@ -226,14 +226,17 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
               hybridCount={typeCounts.hybrid}
             />
 
-            <div className="flex items-center justify-between mb-4">
-              <TypeLegend
-                onchainCount={typeCounts.onchain}
-                apiCount={typeCounts.api}
-                hybridCount={typeCounts.hybrid}
-              />
-              <span className="text-[11px] text-slate-400 font-medium">
-                {filteredProviders.length} of {reputations.length} providers
+            <div className="mb-4 flex flex-col gap-3 border-b border-slate-900/15 pb-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="editorial-index mb-2">02 — Compare the record</p>
+                <TypeLegend
+                  onchainCount={typeCounts.onchain}
+                  apiCount={typeCounts.api}
+                  hybridCount={typeCounts.hybrid}
+                />
+              </div>
+              <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
+                Showing {filteredProviders.length} / {reputations.length} providers
               </span>
             </div>
 

@@ -1,9 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Award, Loader2, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 
 import { NextUpdateCountdown } from '@/app/reputation/components/ReputationStats';
+import { EditorialWorkspaceHeader } from '@/components/editorial';
 import { cn } from '@/lib/utils';
 
 interface ReputationHeroProps {
@@ -14,14 +14,6 @@ interface ReputationHeroProps {
   refreshPending: boolean;
 }
 
-/**
- * Compact light header for the reputation directory.
- *
- * Replaces the previous dark `bg-slate-950` hero with gradient orbs — a
- * data-tool page should let the comparison table be the visual focus, so
- * the header now mirrors the badge + h1 + description pattern used by the
- * other data pages (e.g. PriceQuery's QueryHeader).
- */
 export function ReputationHero({
   isCalculating,
   calcMessage,
@@ -30,31 +22,18 @@ export function ReputationHero({
   refreshPending,
 }: ReputationHeroProps) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 mb-6"
-    >
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="min-w-0">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-[11px] font-bold mb-3">
-            <Award className="w-3.5 h-3.5" />
-            <span>Live oracle reputation tracking</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-1.5">
-            Oracle Reputation Center
-          </h1>
-          <p className="text-sm text-slate-500 leading-relaxed max-w-2xl">
-            Compare oracle providers across accuracy, uptime, latency, and deviation with
-            transparent, rolling 7-day reputation scores.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 flex-shrink-0">
+    <EditorialWorkspaceHeader
+      index="04"
+      stage="Assess"
+      eyebrow="A rolling, evidence-led directory of Oracle providers. Reputation is earned from observed behaviour, not brand familiarity."
+      title="Judge the feed by its record, not its name."
+      description="Compare accuracy, uptime, latency, deviation, and coverage across the providers Insight has actually observed during the rolling seven-day window."
+      evidence={['Observed accuracy', 'Operational uptime', 'Coverage record']}
+      action={
+        <div className="flex flex-wrap items-center gap-2">
           {isCalculating ? (
-            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-100 rounded-lg">
-              <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+            <div className="flex items-center gap-2 border-l-2 border-blue-600 bg-blue-50/70 px-3 py-2">
+              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
               <span className="text-xs font-bold text-blue-700">
                 {calcMessage || 'Recalculating...'}
               </span>
@@ -63,22 +42,23 @@ export function ReputationHero({
             <>
               <NextUpdateCountdown nextRecalcAt={nextRecalcAt} />
               <button
+                type="button"
                 onClick={onRefresh}
                 disabled={refreshPending || isCalculating}
                 className={cn(
-                  'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border',
+                  'flex items-center gap-2 border px-4 py-2 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
                   refreshPending || isCalculating
-                    ? 'bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed'
-                    : 'bg-blue-600 text-white border-transparent hover:bg-blue-700 shadow-sm'
+                    ? 'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400'
+                    : 'border-slate-950 bg-slate-950 text-white hover:border-blue-700 hover:bg-blue-700'
                 )}
               >
-                <RefreshCw className={cn('w-3.5 h-3.5', refreshPending && 'animate-spin')} />
-                {refreshPending ? 'Calculating...' : 'Refresh'}
+                <RefreshCw className={cn('h-3.5 w-3.5', refreshPending && 'animate-spin')} />
+                {refreshPending ? 'Calculating...' : 'Refresh scores'}
               </button>
             </>
           )}
         </div>
-      </div>
-    </motion.section>
+      }
+    />
   );
 }

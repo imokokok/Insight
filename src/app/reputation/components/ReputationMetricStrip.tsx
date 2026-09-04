@@ -1,7 +1,3 @@
-'use client';
-
-import { motion } from 'framer-motion';
-
 import { cn } from '@/lib/utils';
 import { addThousandSeparators } from '@/lib/utils/format';
 
@@ -42,41 +38,46 @@ export function ReputationMetricStrip({
     {
       label: 'Average reputation',
       value: averageScore,
-      color: 'text-violet-600',
+      color: 'text-blue-700',
       isScore: true,
     },
     {
       label: 'Total queries (7d)',
       value: totalQueries,
-      color: 'text-amber-600',
+      color: 'text-slate-950',
       format: true,
     },
-    { label: 'Symbols tracked', value: totalSymbols, suffix: '+', color: 'text-cyan-600' },
+    { label: 'Symbols tracked', value: totalSymbols, suffix: '+', color: 'text-blue-600' },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-      {metrics.map((m, i) => (
-        <motion.div
-          key={m.label}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: Math.min(i * 0.05, 0.25) }}
-          className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm"
-        >
-          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-1">
-            {m.label}
-          </p>
-          <div className="flex items-baseline gap-1.5">
-            <span className={cn('text-2xl font-black font-mono tracking-tight', m.color)}>
-              {m.format
-                ? addThousandSeparators(String(m.value))
-                : m.value.toFixed(m.isScore ? 0 : 0)}
-            </span>
-            {m.suffix && <span className="text-sm font-bold text-slate-400">{m.suffix}</span>}
+    <section className="mb-7" aria-label="Reputation summary">
+      <div className="mb-3 flex items-center justify-between border-b border-slate-900/15 pb-3">
+        <p className="editorial-index">01 — Read the field</p>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
+          Rolling 7 days
+        </span>
+      </div>
+      <div className="grid grid-cols-2 border-y border-slate-900/15 sm:grid-cols-3 lg:grid-cols-5">
+        {metrics.map((m) => (
+          <div
+            key={m.label}
+            className="border-b border-r border-slate-900/10 bg-white/35 p-4 last:border-r-0 sm:p-5 lg:border-b-0"
+          >
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              {m.label}
+            </p>
+            <div className="flex items-baseline gap-1.5">
+              <span className={cn('text-2xl font-black font-mono tracking-tight', m.color)}>
+                {m.format
+                  ? addThousandSeparators(String(m.value))
+                  : m.value.toFixed(m.isScore ? 0 : 0)}
+              </span>
+              {m.suffix && <span className="text-sm font-bold text-slate-400">{m.suffix}</span>}
+            </div>
           </div>
-        </motion.div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </section>
   );
 }

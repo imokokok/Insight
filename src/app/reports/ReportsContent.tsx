@@ -15,6 +15,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
+import { EditorialWorkspaceHeader } from '@/components/editorial';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import { providerNames } from '@/lib/constants';
@@ -61,9 +62,9 @@ function MetricCard({
   subvalue?: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4">
-      <div className="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center flex-shrink-0">
-        <Icon className="w-5 h-5 text-slate-500" />
+    <div className="flex min-w-0 items-start gap-3 border-b border-r border-slate-900/10 bg-white/35 p-4 last:border-r-0 lg:border-b-0 lg:p-5">
+      <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center border border-blue-200 bg-blue-50">
+        <Icon className="h-3.5 w-3.5 text-blue-600" />
       </div>
       <div>
         <p className="text-xl font-bold text-slate-900 tracking-tight tabular-nums">{value}</p>
@@ -97,29 +98,32 @@ function Header({
 
   return (
     <div className="mb-8">
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-8">
-        <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-[11px] font-semibold uppercase tracking-wider mb-3">
-            Reliability Summaries
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-2">
-            Daily Oracle Reports
-          </h1>
-          <p className="text-base text-slate-500 leading-relaxed max-w-2xl">
-            Automated cross-oracle consensus summaries. Track provider uptime, price deviations, and
-            risk highlights across tracked assets.
-          </p>
-        </div>
-        <button
-          onClick={handleCopy}
-          className="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 bg-white"
-        >
-          {copied ? <CheckCircle2 className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-          {copied ? 'Copied' : 'Share'}
-        </button>
-      </div>
+      <EditorialWorkspaceHeader
+        index="05"
+        stage="Review"
+        eyebrow="A dated archive of cross-oracle observations. Each report records what the network saw, when it saw it, and where reliability changed."
+        title="Turn daily observations into an audit trail."
+        description="Review provider availability, consensus quality, deviation events, and asset coverage as a sequence of evidence—not a collection of snapshots."
+        evidence={['Dated observations', 'Risk events', 'Reliability history']}
+        action={
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="inline-flex items-center gap-2 border border-slate-900/20 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-500 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            {copied ? <CheckCircle2 className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+            {copied ? 'Copied' : 'Share archive'}
+          </button>
+        }
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="mb-3 flex items-center justify-between border-b border-slate-900/15 pb-3">
+        <p className="editorial-index">01 — Archive coverage</p>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
+          UTC record
+        </span>
+      </div>
+      <div className="grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard icon={FileText} label="Reports published" value={reportCount} />
         <MetricCard icon={Globe} label="Oracle providers" value={providerCount} />
         <MetricCard
@@ -227,7 +231,7 @@ function Pagination({
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          className="inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors border border-slate-200 bg-white"
+          className="inline-flex items-center gap-1 border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
           Previous
@@ -235,7 +239,7 @@ function Pagination({
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors border border-slate-200 bg-white"
+          className="inline-flex items-center gap-1 border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Next
           <ChevronRight className="w-3.5 h-3.5" />
@@ -264,15 +268,16 @@ function ReportsContentInner({ initialReports }: { initialReports: ReportSummary
   const assetCount = latestReport?.metrics.activeAssets ?? 0;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="editorial-workspace min-h-screen">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
         <Header reportCount={reportCount} providerCount={providerCount} assetCount={assetCount} />
 
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-              All reports
-            </h2>
+          <div className="mb-4 flex items-end justify-between border-b border-slate-900/15 pb-3">
+            <div>
+              <p className="editorial-index mb-1">02 — Open the record</p>
+              <h2 className="text-xl font-bold tracking-tight text-slate-950">Daily reports</h2>
+            </div>
             {initialReports.length > 0 && (
               <span className="text-xs font-semibold text-slate-500">
                 {paginatedReports.length} of {initialReports.length}
@@ -290,8 +295,8 @@ function ReportsContentInner({ initialReports }: { initialReports: ReportSummary
             />
           ) : (
             <>
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="hidden lg:grid grid-cols-12 gap-4 px-5 py-3 bg-slate-50/80 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <div className="overflow-hidden border-y border-slate-900/15 bg-white/45">
+                <div className="hidden lg:grid grid-cols-12 gap-4 px-5 py-3 bg-slate-100/60 border-b border-slate-900/15 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                   <div className="col-span-2">Date</div>
                   <div className="col-span-1">Status</div>
                   <div className="col-span-7">Summary</div>

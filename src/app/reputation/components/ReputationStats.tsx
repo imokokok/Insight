@@ -28,7 +28,7 @@ function NextUpdateCountdown({ nextRecalcAt }: { nextRecalcAt: string | null | u
 
   if (!nextRecalcAt || !remaining) return null;
   return (
-    <span className="text-[11px] text-slate-500 flex items-center gap-1.5 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 font-medium">
+    <span className="flex items-center gap-1.5 border border-slate-200 bg-white px-3 py-2 text-[11px] font-medium text-slate-500">
       <Clock className="w-3 h-3" />
       Next update in {remaining}
     </span>
@@ -101,8 +101,8 @@ function TypeLegend({
       icon: Layers,
       label: 'Hybrid',
       count: hybridCount,
-      color: 'text-violet-600',
-      bg: 'bg-violet-50',
+      color: 'text-slate-700',
+      bg: 'bg-slate-100',
     },
   ];
 
@@ -112,7 +112,7 @@ function TypeLegend({
         <div
           key={label}
           className={cn(
-            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold border',
+            'inline-flex items-center gap-1.5 border px-2.5 py-1 text-[11px] font-semibold',
             bg,
             color,
             color.replace('text-', 'border-').replace('600', '200')

@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 
-import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 
 import {
@@ -60,13 +59,13 @@ export function ReputationComparisonTable({
   );
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="overflow-hidden border-y border-slate-900/15 bg-white/45">
       <div className="overflow-x-auto">
         {/* min-w kept at 820px (tightened from 900px) to reduce horizontal
             scroll distance on small screens while preserving column density. */}
         <table className="w-full min-w-[820px]">
           <thead>
-            <tr className="bg-slate-50/80 border-b border-slate-100">
+            <tr className="border-b border-slate-900/15 bg-slate-100/60">
               <th className="text-left px-4 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[260px]">
                 Provider
               </th>
@@ -74,15 +73,25 @@ export function ReputationComparisonTable({
                 <th
                   key={h.key}
                   className={cn(
-                    'text-left px-3 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-700 transition-colors select-none',
+                    'px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500',
                     h.width
                   )}
-                  onClick={() => onSort(h.key)}
+                  aria-sort={
+                    sort.key === h.key
+                      ? sort.direction === 'desc'
+                        ? 'descending'
+                        : 'ascending'
+                      : 'none'
+                  }
                 >
-                  <span className="inline-flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => onSort(h.key)}
+                    className="inline-flex items-center transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  >
                     {h.label}
                     <SortIcon active={sort.key === h.key} direction={sort.direction} />
-                  </span>
+                  </button>
                 </th>
               ))}
               <th className="text-right px-4 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider w-[100px]">
@@ -91,7 +100,7 @@ export function ReputationComparisonTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {providers.map((provider, idx) => {
+            {providers.map((provider) => {
               const rep = reputationMap.get(provider);
               const providerType = (PROVIDER_TYPE_CONFIG[provider]?.type || 'api') as ProviderType;
               const typeConf = TYPE_CONFIG[providerType];
@@ -105,14 +114,7 @@ export function ReputationComparisonTable({
                   : null;
 
               return (
-                <motion.tr
-                  key={provider}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  // Cap stagger to avoid long cascades when many providers render.
-                  transition={{ duration: 0.25, delay: Math.min(idx * 0.04, 0.4) }}
-                  className="group hover:bg-slate-50/60 transition-colors"
-                >
+                <tr key={provider} className="group hover:bg-slate-50/60 transition-colors">
                   <td className="px-4 py-4">
                     <Link href={`/reputation/${encodeURIComponent(provider)}`} className="block">
                       <ProviderIdentity
@@ -202,7 +204,7 @@ export function ReputationComparisonTable({
                     <Link
                       href={`/reputation/${encodeURIComponent(provider)}`}
                       className={cn(
-                        'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
+                        'inline-flex items-center gap-1 border px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
                         'bg-slate-50 text-slate-600 border border-slate-100',
                         'group-hover:bg-blue-50 group-hover:text-blue-700 group-hover:border-blue-200'
                       )}
@@ -211,7 +213,7 @@ export function ReputationComparisonTable({
                       <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                   </td>
-                </motion.tr>
+                </tr>
               );
             })}
           </tbody>
