@@ -26,9 +26,9 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
   await requireOpsOwner();
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="ops-workspace flex min-h-screen bg-[#f8f7f4]">
       <OpsSidebar env={ENV} />
-      <main className="flex-1 min-w-0 overflow-y-auto pt-12 lg:pt-0">
+      <main className="min-w-0 flex-1 overflow-y-auto pt-12 lg:pt-0">
         <HealthStrip />
         {children}
       </main>

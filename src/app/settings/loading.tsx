@@ -3,8 +3,8 @@ import { SkeletonCard, FormFieldSkeleton } from '@/components/ui/SkeletonPattern
 
 export default function SettingsLoading() {
   return (
-    <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="editorial-workspace min-h-screen">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12">
         <div className="flex items-center gap-3 mb-8">
           <Skeleton variant="rounded" width="40px" height="40px" />
           <div>

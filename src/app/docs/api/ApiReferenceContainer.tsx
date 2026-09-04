@@ -55,7 +55,7 @@ const SCALAR_CUSTOM_CSS = `
   }
 
   .scalar-app .scalar-sidebar-item {
-    border-radius: 0.375rem;
+    border-radius: 0;
     color: #374151;
     font-size: 0.8125rem;
     padding: 0.375rem 0.625rem;
@@ -86,7 +86,7 @@ const SCALAR_CUSTOM_CSS = `
   .scalar-app .scalar-search-input {
     background-color: #ffffff;
     border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
+    border-radius: 0.125rem;
     font-size: 0.8125rem;
   }
 
@@ -115,7 +115,7 @@ const SCALAR_CUSTOM_CSS = `
   .scalar-app .scalar-card,
   .scalar-app .scalar-api-reference__operation {
     border-color: #e5e7eb;
-    border-radius: 0.75rem;
+    border-radius: 0.125rem;
     background-color: #ffffff;
   }
 
@@ -154,8 +154,8 @@ const SCALAR_CUSTOM_CSS = `
   }
 
   .scalar-app .scalar-method--put {
-    color: #7c3aed;
-    background-color: #f5f3ff;
+    color: #1d4ed8;
+    background-color: #eff6ff;
   }
 
   /* Code blocks & client examples */
@@ -167,7 +167,7 @@ const SCALAR_CUSTOM_CSS = `
   .scalar-app pre {
     background-color: #f9fafb;
     border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
+    border-radius: 0.125rem;
   }
 
   /* Tabs for client languages */
@@ -188,7 +188,7 @@ const SCALAR_CUSTOM_CSS = `
   /* Buttons inside Scalar */
   .scalar-app .scalar-button,
   .scalar-app button.scalar-button {
-    border-radius: 0.5rem;
+    border-radius: 0.125rem;
     font-weight: 500;
   }
 
@@ -204,7 +204,7 @@ const SCALAR_CUSTOM_CSS = `
   /* Tables (auth, pricing, etc.) */
   .scalar-app table {
     border-color: #e5e7eb;
-    border-radius: 0.5rem;
+    border-radius: 0;
     overflow: hidden;
   }
 
@@ -233,7 +233,7 @@ const SCALAR_CUSTOM_CSS = `
 
 export function ApiReferenceContainer() {
   return (
-    <div className="h-full bg-white">
+    <div className="min-h-[70vh] bg-white">
       <ApiReferenceReact
         configuration={{
           url: '/openapi.yaml',

@@ -22,12 +22,10 @@ function HeaderButton({
   children,
 }: HeaderButtonProps) {
   const baseStyles =
-    'inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2';
+    'inline-flex items-center justify-center gap-1.5 border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2';
   const variants = {
-    primary:
-      'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] shadow-sm',
-    secondary:
-      'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 active:scale-[0.98]',
+    primary: 'border-blue-700 bg-blue-700 text-white hover:bg-slate-950',
+    secondary: 'border-slate-300 bg-white text-slate-700 hover:border-blue-400 hover:text-blue-700',
   };
   const linkProps = external ? { target: '_blank', rel: 'noopener noreferrer' } : {};
 
@@ -47,16 +45,16 @@ function HeaderButton({
 
 export function ApiDocsHeader() {
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4">
+    <header className="sticky top-0 z-30 border-b border-slate-900/15 bg-[#f8f7f4]/95 backdrop-blur">
+      <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
+        <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           {/* Left: title & meta */}
           <div className="flex items-start gap-3 min-w-0">
-            <div className="hidden sm:flex w-10 h-10 bg-blue-50 rounded-lg items-center justify-center text-blue-600 shrink-0">
+            <div className="hidden h-10 w-10 shrink-0 items-center justify-center border border-blue-200 bg-blue-50 text-blue-700 sm:flex">
               <Terminal className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
+              <div className="mb-1 flex items-center gap-2">
                 <Link
                   href="/docs"
                   className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 transition-colors"
@@ -67,9 +65,14 @@ export function ApiDocsHeader() {
                 <span className="text-slate-300">/</span>
                 <span className="text-xs text-slate-500">API Reference</span>
               </div>
-              <h1 className="text-lg sm:text-xl font-bold text-slate-900 truncate">
-                Insight Oracle API
-              </h1>
+              <div className="flex items-baseline gap-3">
+                <h1 className="truncate text-lg font-bold text-slate-950 sm:text-xl">
+                  Insight Oracle API
+                </h1>
+                <span className="hidden font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-700 md:inline">
+                  Reference 01
+                </span>
+              </div>
               <p className="text-xs text-slate-500 hidden sm:block">
                 OpenAPI 3.1 · 40 endpoints ·{' '}
                 <code className="text-blue-600 bg-blue-50 px-1 py-0.5 rounded">

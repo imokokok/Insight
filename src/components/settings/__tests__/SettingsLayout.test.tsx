@@ -14,11 +14,15 @@ describe('SettingsLayout', () => {
     jest.clearAllMocks();
   });
 
-  it('should render settings title and subtitle', () => {
+  it('should render the account workspace title and subtitle', () => {
     render(<SettingsLayout {...defaultProps} />);
 
-    expect(screen.getByText('Settings')).toBeInTheDocument();
-    expect(screen.getByText('Manage your account settings and preferences')).toBeInTheDocument();
+    expect(
+      screen.getByText('Keep access, usage, and preferences under your control.')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Manage the account state that follows you across Insight/)
+    ).toBeInTheDocument();
   });
 
   it('should render all tabs', () => {
@@ -40,7 +44,7 @@ describe('SettingsLayout', () => {
     render(<SettingsLayout {...defaultProps} activeTab="profile" />);
 
     const profileTab = screen.getByRole('button', { name: /profile/i });
-    expect(profileTab).toHaveClass('bg-blue-600');
+    expect(profileTab).toHaveClass('bg-blue-700');
   });
 
   it('should call onTabChange when tab is clicked', () => {

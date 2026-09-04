@@ -56,13 +56,16 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="editorial-workspace min-h-screen">
       <SettingsHero />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <nav className="lg:w-72 flex-shrink-0" aria-label="Settings">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-2">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
+          <nav className="flex-shrink-0 lg:w-72" aria-label="Settings">
+            <p className="editorial-index mb-4 border-b border-slate-900/15 pb-3">
+              01 — Select workspace
+            </p>
+            <div className="border-y border-slate-900/15 bg-white/35">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -72,10 +75,10 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
                     key={tab.id}
                     onClick={() => onTabChange(tab.id)}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`w-full flex items-center gap-3 px-3 py-3 text-left transition-all duration-200 rounded-xl mb-1 last:mb-0 ${
+                    className={`flex w-full items-center gap-3 border-b border-slate-900/10 px-3 py-3 text-left transition-colors last:border-b-0 ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-900/10'
-                        : 'text-slate-600 hover:bg-blue-50/50 hover:text-slate-900'
+                        ? 'bg-blue-700 text-white'
+                        : 'text-slate-600 hover:bg-blue-50/60 hover:text-slate-900'
                     }`}
                   >
                     <Icon
@@ -99,7 +102,10 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
             </div>
           </nav>
 
-          <main className="flex-1 min-w-0" role="main">
+          <main className="min-w-0 flex-1" role="main">
+            <p className="editorial-index mb-4 border-b border-slate-900/15 pb-3">
+              02 — Manage account state
+            </p>
             {children}
           </main>
         </div>

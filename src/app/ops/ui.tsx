@@ -70,9 +70,14 @@ export function PageHeader({
   const abs = updatedAt ? new Date(updatedAt).toLocaleTimeString('zh-CN', { hour12: false }) : '';
   const rel = relativeTime(updatedAt);
   return (
-    <div className="flex items-start justify-between mb-6 gap-4">
+    <header className="mb-7 flex flex-col justify-between gap-4 border-b border-slate-900/15 pb-5 sm:flex-row sm:items-end">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+        <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700">
+          Operations record
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+          {title}
+        </h1>
         {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
         {updatedAt && (
           <p className="text-xs text-gray-400 mt-1" title={abs}>
@@ -81,7 +86,7 @@ export function PageHeader({
         )}
       </div>
       {actions}
-    </div>
+    </header>
   );
 }
 
@@ -95,9 +100,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div
-      className={`bg-white rounded-card shadow-card border border-gray-200 p-5 ${className ?? ''}`}
-    >
+    <div className={`border-y border-slate-900/15 bg-white/55 p-5 ${className ?? ''}`}>
       {title && <h2 className="text-sm font-semibold text-gray-700 mb-3">{title}</h2>}
       {children}
     </div>
@@ -134,7 +137,7 @@ export function Stat({
       <span className="text-gray-400">▬ 0</span>
     );
   return (
-    <div className="bg-white rounded-card shadow-card border border-gray-200 p-4">
+    <div className="border-y border-slate-900/15 bg-white/55 p-4">
       <div className="flex items-center justify-between">
         <div className="text-xs text-gray-500">{label}</div>
         {tone && tone !== 'default' && (
@@ -193,7 +196,7 @@ export function Sparkline({ points, tone = 'info' }: { points: number[]; tone?: 
 export function Badge({ children, tone }: { children: ReactNode; tone?: Tone }) {
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${TONE_BADGE[tone ?? 'default']}`}
+      className={`inline-flex items-center border-l-2 border-current px-2 py-0.5 text-xs font-medium ${TONE_BADGE[tone ?? 'default']}`}
     >
       {children}
     </span>
@@ -212,7 +215,7 @@ export function ErrorBanner({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="mb-4 rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 text-sm text-danger-700"
+      className="mb-4 border-l-2 border-danger-500 bg-danger-50 px-4 py-3 text-sm text-danger-700"
     >
       {message}
     </div>

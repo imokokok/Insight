@@ -14,49 +14,49 @@ export function AuthPageLayout({
   cardClassName?: string;
 }) {
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="editorial-workspace flex min-h-screen">
       {/* Brand side — hidden on mobile */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-5/12 relative overflow-hidden bg-slate-950">
-        <div
-          className="absolute inset-0 opacity-[0.15]"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
-            backgroundSize: '40px 40px',
-          }}
-        />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-blue-500/20 blur-[120px] rounded-full" />
-
-        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
+      <div className="relative hidden overflow-hidden border-r border-slate-900/15 lg:flex lg:w-1/2 xl:w-5/12">
+        <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
           <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/20">
-              <ShieldCheck className="w-5 h-5 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center border border-blue-200 bg-blue-50">
+              <ShieldCheck className="w-5 h-5 text-blue-700" />
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">Insight</span>
+            <span className="text-xl font-bold tracking-tight text-slate-950">Insight</span>
           </Link>
 
-          <div className="space-y-6">
-            <blockquote className="text-2xl font-semibold text-white leading-snug tracking-tight">
-              Independent oracle transparency and risk infrastructure for DeFi.
+          <div className="space-y-8">
+            <p className="editorial-index">Access — Identity</p>
+            <blockquote className="max-w-md text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-slate-950 xl:text-5xl">
+              Evidence should remain inspectable, even after you sign in.
             </blockquote>
-            <p className="text-slate-400 leading-relaxed max-w-sm">
-              Monitor cross-oracle consensus, detect price divergence, and stress-test positions
-              with 15-minute reliability data.
+            <p className="max-w-sm leading-relaxed text-slate-600">
+              One account connects your saved preferences, API keys, credit wallet, signed receipts,
+              and agent integrations.
             </p>
+            <ol className="grid max-w-md border-y border-slate-900/15 text-xs font-semibold uppercase tracking-[0.1em] text-slate-600">
+              <li className="flex gap-4 border-b border-slate-900/10 py-3">
+                <span className="font-mono text-blue-700">01</span> Protect credentials
+              </li>
+              <li className="flex gap-4 border-b border-slate-900/10 py-3">
+                <span className="font-mono text-blue-700">02</span> Control access
+              </li>
+              <li className="flex gap-4 py-3">
+                <span className="font-mono text-blue-700">03</span> Preserve provenance
+              </li>
+            </ol>
           </div>
 
-          <p className="text-xs text-slate-500">
+          <p className="border-t border-slate-900/10 pt-4 text-xs text-slate-500">
             © {new Date().getFullYear()} Insight. All rights reserved.
           </p>
         </div>
       </div>
 
       {/* Form side */}
-      <div className="flex-1 flex items-center justify-center px-4 py-12 lg:px-12">
+      <div className="flex flex-1 items-center justify-center px-5 py-12 sm:px-8 lg:px-12">
         <div className="w-full max-w-md">
-          <div
-            className={`bg-white border border-slate-100 rounded-2xl shadow-sm p-8 ${cardClassName}`}
-          >
+          <div className={`border-y border-slate-900/15 bg-white/55 p-7 sm:p-8 ${cardClassName}`}>
             {children}
           </div>
         </div>
@@ -68,8 +68,8 @@ export function AuthPageLayout({
 export function AuthBrandLogo() {
   return (
     <Link href="/" className="inline-flex items-center justify-center gap-2 group">
-      <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm shadow-blue-900/10 group-hover:bg-blue-700 transition-colors">
-        <ShieldCheck className="w-5 h-5 text-white" />
+      <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50 transition-colors group-hover:bg-blue-100">
+        <ShieldCheck className="w-5 h-5 text-blue-700" />
       </div>
       <span className="text-xl font-bold text-slate-900 tracking-tight">Insight</span>
     </Link>
@@ -94,7 +94,7 @@ export function AuthResultCard({
   return (
     <>
       <div
-        className={`w-16 h-16 ${iconBgClass} flex items-center justify-center mx-auto mb-6 rounded-2xl`}
+        className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center border border-slate-900/10 ${iconBgClass}`}
       >
         <Icon className={`w-8 h-8 ${iconTextClass}`} />
       </div>
@@ -107,7 +107,7 @@ export function AuthResultCard({
 
 export function AuthErrorAlert({ message, id }: { message: string; id?: string }) {
   return (
-    <div id={id} className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl">
+    <div id={id} className="mb-6 border-l-2 border-red-500 bg-red-50 p-4">
       <p className="text-sm text-red-700 font-medium">{message}</p>
     </div>
   );
@@ -117,7 +117,7 @@ export function AuthPageSuspense({ children }: { children: React.ReactNode }) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        <div className="editorial-workspace flex min-h-screen items-center justify-center px-4">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
             <p className="text-slate-600 font-medium">Loading...</p>
@@ -135,7 +135,7 @@ export function GoToLoginButton({ redirect }: { redirect?: string }) {
   return (
     <Link
       href={href}
-      className="block w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors rounded-xl text-center shadow-sm shadow-blue-900/10"
+      className="block w-full bg-slate-950 px-6 py-3 text-center font-semibold text-white transition-colors hover:bg-blue-700"
     >
       Go to Login
     </Link>

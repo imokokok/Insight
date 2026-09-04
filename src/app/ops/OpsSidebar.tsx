@@ -22,7 +22,7 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
     exact ? pathname === href : pathname.startsWith(href);
 
   const navList = (
-    <nav className="space-y-1">
+    <nav className="space-y-1 border-t border-slate-900/10 pt-4">
       {OPS_NAV.map((group) => (
         <div key={group.title} className="mb-3">
           <div className="px-3 mb-1 text-[11px] font-medium uppercase tracking-wider text-gray-400">
@@ -39,12 +39,12 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
                 onClick={() => setOpen(false)}
                 className={
                   active
-                    ? 'relative flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-primary-700 bg-primary-50'
-                    : 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100'
+                    ? 'relative flex items-center gap-2.5 border-r-2 border-primary-700 bg-primary-50 px-3 py-2 text-sm font-medium text-primary-700'
+                    : 'flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100'
                 }
               >
                 {active && (
-                  <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-primary-600" />
+                  <span className="absolute bottom-1.5 left-0 top-1.5 w-0.5 bg-primary-600" />
                 )}
                 <Icon className="w-4 h-4 shrink-0" aria-hidden />
                 <span>{item.label}</span>
@@ -58,7 +58,7 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
 
   const envBadge = (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${ENV_TONE[env] ?? ENV_TONE.DEV}`}
+      className={`inline-flex items-center border-l-2 border-current px-2 py-0.5 text-xs font-medium ${ENV_TONE[env] ?? ENV_TONE.DEV}`}
     >
       {env}
     </span>
@@ -67,10 +67,10 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-60 shrink-0 flex-col bg-white border-r border-gray-200 min-h-screen p-4">
+      <aside className="hidden min-h-screen w-60 shrink-0 flex-col border-r border-slate-900/15 bg-white/70 p-4 lg:flex">
         <Link
           href="/"
-          className="flex items-center gap-2 px-3 py-2 mb-4 rounded-lg hover:bg-gray-50 group"
+          className="group mb-4 flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
           aria-label="返回 Insight 主站"
         >
           <Image
@@ -84,13 +84,15 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
             <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
               Insight
             </div>
-            <div className="text-xs text-gray-500">Internal Ops Console</div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-gray-500">
+              Internal Ops Console
+            </div>
           </div>
         </Link>
         <div className="flex-1 overflow-y-auto">{navList}</div>
         <div className="mt-4 px-3 py-2 border-t border-gray-100 flex items-center gap-2 text-xs">
           {envBadge}
-          <span className="text-gray-400">环境</span>
+          <span className="text-gray-400">Environment</span>
         </div>
       </aside>
 
@@ -101,7 +103,7 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
             type="button"
             aria-label="打开菜单"
             onClick={() => setOpen(true)}
-            className="p-1.5 rounded-md text-gray-600 hover:bg-gray-100"
+            className="p-1.5 text-gray-600 hover:bg-gray-100"
           >
             <svg
               className="w-5 h-5"
@@ -130,11 +132,11 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
         {open && (
           <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
             <div className="absolute inset-0 bg-gray-900/40" onClick={() => setOpen(false)} />
-            <aside className="absolute inset-y-0 left-0 w-60 max-w-[80%] bg-white border-r border-gray-200 p-4 overflow-y-auto">
+            <aside className="absolute inset-y-0 left-0 w-60 max-w-[80%] overflow-y-auto border-r border-gray-200 bg-[#f8f7f4] p-4">
               <div className="mb-4 flex items-center justify-between">
                 <Link
                   href="/"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 group"
+                  className="group flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
                   aria-label="返回 Insight 主站"
                 >
                   <Image
@@ -148,14 +150,16 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
                     <div className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
                       Insight
                     </div>
-                    <div className="text-xs text-gray-500">Internal Ops Console</div>
+                    <div className="font-mono text-[10px] uppercase tracking-wider text-gray-500">
+                      Internal Ops Console
+                    </div>
                   </div>
                 </Link>
                 <button
                   type="button"
                   aria-label="关闭菜单"
                   onClick={() => setOpen(false)}
-                  className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100"
+                  className="p-1.5 text-gray-500 hover:bg-gray-100"
                 >
                   <svg
                     className="w-5 h-5"

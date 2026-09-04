@@ -45,7 +45,7 @@ const BillingPanel = dynamic(
 
 function PanelLoadingSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
+    <div className="border-y border-slate-900/15 bg-white/55 p-8">
       <div className="animate-pulse space-y-4">
         <div className="h-6 bg-slate-200 w-40 rounded-xl" />
         <div className="h-4 bg-slate-200 w-64 rounded-xl" />
@@ -109,7 +109,7 @@ export default function SettingsContent() {
 
   if (loading || !initialized || !isClient) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="editorial-workspace min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="flex items-center gap-3 mb-8">
@@ -141,7 +141,7 @@ export default function SettingsContent() {
 
   return (
     <motion.div
-      className="bg-slate-50 min-h-screen"
+      className="editorial-workspace min-h-screen"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as const }}

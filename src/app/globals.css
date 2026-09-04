@@ -532,6 +532,26 @@ body {
   box-shadow: none;
 }
 
+/* Dense internal operations variant: same material palette, tighter rhythm. */
+.ops-workspace {
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.025) 1px, transparent 1px), #f8f7f4;
+  background-size: 48px 48px;
+}
+
+.ops-workspace .rounded-card,
+.ops-workspace .rounded-xl,
+.ops-workspace .rounded-lg {
+  border-radius: 0.25rem;
+}
+
+.ops-workspace .shadow-card,
+.ops-workspace .shadow-sm,
+.ops-workspace .shadow-md {
+  box-shadow: none;
+}
+
 @media (max-width: 640px) {
   .editorial-workspace::before {
     background-size: 48px 48px;

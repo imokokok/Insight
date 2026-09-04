@@ -44,7 +44,7 @@ interface SubscriptionData {
 
 const PLAN_BADGE_STYLES: Record<string, string> = {
   developer: 'bg-blue-100 text-blue-700',
-  team: 'bg-purple-100 text-purple-700',
+  team: 'bg-blue-100 text-blue-700',
   enterprise: 'bg-amber-100 text-amber-700',
 };
 

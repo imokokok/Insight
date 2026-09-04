@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 
 export default function ApiDocsPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="editorial-workspace flex min-h-screen flex-col">
       <ApiDocsHeader />
-      <main className="flex-1">
+      <main className="min-w-0 flex-1 border-t border-slate-900/10 bg-white/65">
         <ApiReferenceContainerDynamic />
       </main>
     </div>
