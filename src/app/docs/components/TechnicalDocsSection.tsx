@@ -17,7 +17,7 @@ interface DocCard {
   description: string;
   href: string;
   tags: string[];
-  accent: 'emerald' | 'blue' | 'violet' | 'amber';
+  accent: 'emerald' | 'blue' | 'amber';
   external?: boolean;
   anchor?: boolean;
 }
@@ -49,7 +49,7 @@ const docs: DocCard[] = [
       'Next.js App Router with Supabase, React Query, Zustand, and 10 oracle client implementations.',
     href: '#architecture',
     tags: ['Next.js', 'Supabase', 'TypeScript'],
-    accent: 'violet',
+    accent: 'blue',
     anchor: true,
   },
   {
@@ -68,8 +68,8 @@ const docs: DocCard[] = [
     description:
       'Connect Claude, Cursor, and other MCP clients to oracle prices, risk summaries, pre-trade safety checks, Oracle Watch monitoring, liquidation stress tests, and more.',
     href: '/ai',
-    tags: ['AI Agents', '33 Tools', 'MCP', 'Pre-Trade Safety'],
-    accent: 'violet',
+    tags: ['AI Agents', '34 Tools', 'MCP', 'Pre-Trade Safety'],
+    accent: 'blue',
   },
 ];
 
@@ -85,12 +85,6 @@ const accentStyles = {
     text: 'text-blue-600',
     border: 'group-hover:border-blue-200',
     tag: 'bg-blue-50 text-blue-700',
-  },
-  violet: {
-    bg: 'bg-violet-50',
-    text: 'text-violet-600',
-    border: 'group-hover:border-violet-200',
-    tag: 'bg-violet-50 text-violet-700',
   },
   amber: {
     bg: 'bg-amber-50',

@@ -213,7 +213,7 @@ export function OracleWatchDemo({ apiKey }: { apiKey?: string }) {
           <Button
             onClick={runWatch}
             disabled={loading || !canCall}
-            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-blue-700 hover:bg-blue-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
           >
             {loading ? (
               <>

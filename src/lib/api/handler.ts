@@ -483,7 +483,7 @@ export function createApiHandler<
               'CREDIT_EXHAUSTED',
               `This call requires ${pendingCharge.cost} credit${
                 pendingCharge.cost === 1 ? '' : 's'
-              } but the charge could not be applied. Top up at /api#pricing.`,
+              } but the charge could not be applied. Top up at /pricing.`,
               { retryable: false, details: { reason: charge.reason, cost: pendingCharge.cost } }
             ),
             { status: 402 }

@@ -16,7 +16,7 @@ interface StatBadgeProps {
   icon: React.ElementType;
   label: string;
   value: string;
-  tone?: 'neutral' | 'blue' | 'emerald' | 'amber' | 'violet';
+  tone?: 'neutral' | 'blue' | 'emerald' | 'amber';
 }
 
 function StatBadge({ icon: Icon, label, value, tone = 'neutral' }: StatBadgeProps) {
@@ -25,7 +25,6 @@ function StatBadge({ icon: Icon, label, value, tone = 'neutral' }: StatBadgeProp
     blue: 'bg-blue-50/60 border-blue-100 text-blue-900',
     emerald: 'bg-emerald-50/60 border-emerald-100 text-emerald-900',
     amber: 'bg-amber-50/60 border-amber-100 text-amber-900',
-    violet: 'bg-violet-50/60 border-violet-100 text-violet-900',
   };
 
   return (
@@ -46,7 +45,7 @@ function StatBadge({ icon: Icon, label, value, tone = 'neutral' }: StatBadgeProp
 const platformHighlights = [
   { icon: Layers, label: 'Oracle Providers', value: '10+', tone: 'blue' as const },
   { icon: MapPin, label: 'Blockchains', value: '40+', tone: 'emerald' as const },
-  { icon: BarChart3, label: 'Consensus Algorithms', value: '4', tone: 'violet' as const },
+  { icon: BarChart3, label: 'Consensus Algorithms', value: '4', tone: 'blue' as const },
 ];
 
 const steps = [
@@ -112,7 +111,7 @@ export default function QuickStartSection() {
 
       {/* Steps */}
       <div className="relative">
-        <div className="hidden md:block absolute top-12 left-[calc(16.67%+24px)] right-[calc(16.67%+24px)] h-0.5 bg-gradient-to-r from-blue-100 via-indigo-100 to-violet-100" />
+        <div className="absolute left-[calc(16.67%+24px)] right-[calc(16.67%+24px)] top-12 hidden h-px bg-blue-200 md:block" />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
           {steps.map((step, index) => (
@@ -121,7 +120,7 @@ export default function QuickStartSection() {
               className="group bg-white border border-slate-100 rounded-2xl p-6 hover:shadow-md hover:border-blue-200 transition-all"
             >
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:scale-105 transition-transform">
+                <div className="flex h-12 w-12 items-center justify-center border border-blue-200 bg-blue-50 text-blue-700 transition-colors group-hover:bg-blue-100">
                   <step.icon className="w-6 h-6" />
                 </div>
                 <span className="w-7 h-7 bg-slate-100 text-slate-500 text-xs font-bold rounded-full flex items-center justify-center group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">

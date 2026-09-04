@@ -19,10 +19,10 @@ import {
   Lock,
   Play,
   Shield,
-  Sparkles,
 } from 'lucide-react';
 
 import { ApiKeyManager } from '@/components/api-keys';
+import { EditorialWorkspaceHeader } from '@/components/editorial';
 import { DataAccessTierMatrix, PricingSection } from '@/components/pricing';
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { Button } from '@/components/ui/Button';
@@ -194,54 +194,20 @@ function HeroSection() {
   const router = useRouter();
 
   return (
-    <section className="relative overflow-hidden bg-slate-950 border-b border-slate-800">
-      <div
-        className="absolute top-0 right-1/4 w-[600px] h-[600px] rounded-full opacity-50"
-        style={{
-          background:
-            'radial-gradient(circle, rgba(59,130,246,0.18) 0%, rgba(59,130,246,0.05) 40%, transparent 70%)',
-          filter: 'blur(80px)',
-        }}
-      />
-      <div
-        className="absolute bottom-0 left-1/4 w-[500px] h-[500px] rounded-full opacity-50"
-        style={{
-          background:
-            'radial-gradient(circle, rgba(139,92,246,0.14) 0%, rgba(139,92,246,0.04) 40%, transparent 70%)',
-          filter: 'blur(70px)',
-        }}
-      />
-      <div
-        className="absolute inset-0 opacity-[0.15]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
-          backgroundSize: '64px 64px',
-        }}
-      />
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-blue-200 text-xs font-semibold uppercase tracking-wider mb-6">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>REST API v1</span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-6">
-            Insight Oracle API
-          </h1>
-
-          <p className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8 max-w-2xl mx-auto">
-            15-minute oracle reliability assessment — reputation, deviation, depeg risk, liquidation
-            stress tests and anomaly detection across 10+ oracle providers and 40+ blockchain
-            networks.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-3">
+    <section className="editorial-frame mx-auto max-w-[1440px] px-5 pt-4 sm:px-8 lg:px-12">
+      <EditorialWorkspaceHeader
+        index="09"
+        stage="Integrate"
+        eyebrow="REST API v1 · Oracle evidence and risk infrastructure for production systems"
+        title="Move verified market evidence into your system."
+        description="Query prices, consensus, reputation, depeg risk, protocol exposure, and execution safety through one typed interface with explicit freshness and verification metadata."
+        evidence={['Authenticated access', 'Typed evidence', 'Metered usage']}
+        action={
+          <div className="flex flex-wrap items-center gap-2">
             {user ? (
               <Link
                 href="#keys"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors shadow-sm shadow-blue-900/10"
+                className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
               >
                 <Key className="w-4 h-4" />
                 Create API Key
@@ -250,7 +216,7 @@ function HeroSection() {
               <button
                 type="button"
                 onClick={() => router.push('/register?redirect=/api')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors shadow-sm shadow-blue-900/10"
+                className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
               >
                 <Play className="w-4 h-4" />
                 Get Started Free
@@ -258,38 +224,41 @@ function HeroSection() {
             )}
             <Link
               href="/docs/api"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 text-slate-200 hover:text-white hover:bg-white/10 rounded-xl font-semibold transition-colors"
+              className="inline-flex items-center gap-2 border border-slate-900/20 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-500 hover:text-blue-700"
             >
               <BookOpen className="w-4 h-4" />
               Read Docs
             </Link>
           </div>
-        </div>
-      </div>
+        }
+      />
     </section>
   );
 }
 
 function FeaturesSection() {
   return (
-    <section className="py-16 sm:py-20 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-            Built for DeFi data pipelines
-          </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            A single API for oracle prices, risk tracking and protocol analytics.
-          </p>
+    <section className="py-14 sm:py-20">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="mb-10 grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+          <p className="editorial-index">01 — Capability surface</p>
+          <div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+              One interface. The evidence remains visible.
+            </h2>
+            <p className="max-w-2xl text-lg text-slate-600">
+              A single API for oracle prices, risk tracking and protocol analytics.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm hover:border-blue-200 transition-colors"
+              className="border-b border-r border-slate-900/10 bg-white/35 p-6 transition-colors hover:bg-blue-50/35"
             >
-              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
+              <div className="mb-4 flex h-9 w-9 items-center justify-center border border-blue-200 bg-blue-50 text-blue-600">
                 <feature.icon className="w-5 h-5" />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-2">{feature.title}</h3>
@@ -307,10 +276,11 @@ function QuickStartSection() {
   const codeExamples = getCodeExamples();
 
   return (
-    <section className="py-16 sm:py-20 bg-white border-y border-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="border-y border-slate-900/10 bg-white/45 py-14 sm:py-20">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div>
+            <p className="editorial-index mb-5">02 — First request</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
               Start building in minutes
             </h2>
@@ -321,7 +291,7 @@ function QuickStartSection() {
             <div className="space-y-6">
               {STEPS.map((item) => (
                 <div key={item.step} className="flex gap-4">
-                  <div className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold shrink-0">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-blue-200 bg-blue-50 font-mono text-sm font-bold text-blue-700">
                     {item.step}
                   </div>
                   <div>
@@ -340,7 +310,7 @@ function QuickStartSection() {
                   key={lang}
                   type="button"
                   onClick={() => setActiveLang(lang)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                  className={`px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
                     activeLang === lang
                       ? 'bg-slate-900 text-white'
                       : 'text-slate-600 hover:bg-slate-100'
@@ -364,23 +334,26 @@ function KeyManagerSection() {
   const router = useRouter();
 
   return (
-    <section id="keys" className="py-16 sm:py-20 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-            Your API Keys
-          </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Create and manage keys, view usage, and revoke access when needed.
-          </p>
+    <section id="keys" className="py-14 sm:py-20">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="mb-10 grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+          <p className="editorial-index">04 — Access control</p>
+          <div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+              Your API Keys
+            </h2>
+            <p className="max-w-2xl text-lg text-slate-600">
+              Create and manage keys, view usage, and revoke access when needed.
+            </p>
+          </div>
         </div>
 
         {user && session?.access_token ? (
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
+          <div className="mx-auto max-w-4xl border-y border-slate-900/15 bg-white/45 p-6 md:p-8">
             <ApiKeyManager accessToken={session.access_token} />
           </div>
         ) : (
-          <div className="max-w-xl mx-auto text-center bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
+          <div className="mx-auto max-w-xl border-y border-slate-900/15 bg-white/45 p-8 text-center">
             <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 mx-auto mb-4">
               <Lock className="w-6 h-6" />
             </div>
@@ -403,16 +376,17 @@ function KeyManagerSection() {
 
 function FaqSection() {
   return (
-    <section className="py-16 sm:py-20 bg-white">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight text-center mb-10">
+    <section className="border-y border-slate-900/10 bg-white/45 py-14 sm:py-20">
+      <div className="mx-auto max-w-4xl px-5 sm:px-8">
+        <p className="editorial-index mb-5">05 — Operational questions</p>
+        <h2 className="mb-10 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
           Frequently asked questions
         </h2>
         <div className="space-y-4">
           {FAQ_ITEMS.map((item, idx) => (
             <div
               key={idx}
-              className="bg-slate-50 rounded-2xl border border-slate-100 p-6 hover:border-slate-200 transition-colors"
+              className="border-b border-slate-900/10 bg-transparent p-6 transition-colors hover:bg-slate-50"
             >
               <h3 className="font-bold text-slate-900 mb-2">{item.q}</h3>
               <p className="text-sm text-slate-600 leading-relaxed">{item.a}</p>
@@ -426,16 +400,16 @@ function FaqSection() {
 
 function DocsCtaSection() {
   return (
-    <section className="py-16 sm:py-20 bg-slate-950 text-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <section className="border-t border-slate-900/15 bg-blue-50/55 py-14 sm:py-20">
+      <div className="mx-auto max-w-4xl px-5 text-center sm:px-8">
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Ready to integrate?</h2>
-        <p className="text-lg text-slate-300 mb-8 max-w-2xl mx-auto">
+        <p className="mx-auto mb-8 max-w-2xl text-lg text-slate-600">
           Explore the full API reference for endpoint details, authentication, rate limits, error
           codes and code examples.
         </p>
         <Link
           href="/docs/api"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors shadow-sm shadow-blue-900/10"
+          className="inline-flex items-center gap-2 border border-blue-700 bg-blue-700 px-6 py-3 font-semibold text-white transition-colors hover:bg-slate-950"
         >
           <BookOpen className="w-5 h-5" />
           View API Reference
@@ -449,18 +423,21 @@ function DocsCtaSection() {
 function PricingSectionBlock() {
   return (
     <>
-      <section id="pricing" className="py-16 sm:py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-              Pay for what your agents use
-            </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              New users get 30 free trial credits after email verification, and every paying user
-              gets all endpoints. Developer/Team subscriptions include a monthly credit allowance
-              spent per call (C1–C4); top up prepaid credit packs for high-frequency and bursty
-              agent workloads. Crypto payments via NOWPayments.
-            </p>
+      <section id="pricing" className="py-14 sm:py-20">
+        <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+          <div className="mb-8 grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+            <p className="editorial-index">03 — Select capacity</p>
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+                Pay for what your agents use
+              </h2>
+              <p className="max-w-2xl text-lg text-slate-600">
+                New users get 30 free trial credits after email verification, and every paying user
+                gets all endpoints. Developer/Team subscriptions include a monthly credit allowance
+                spent per call (C1–C4); top up prepaid credit packs for high-frequency and bursty
+                agent workloads. Crypto payments via NOWPayments.
+              </p>
+            </div>
           </div>
           <PricingSection />
         </div>
@@ -472,7 +449,7 @@ function PricingSectionBlock() {
 
 export function ApiPageContent() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="editorial-workspace min-h-screen">
       <HeroSection />
       <FeaturesSection />
       <QuickStartSection />

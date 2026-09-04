@@ -22,7 +22,7 @@ interface Resource {
   description: string;
   href: string;
   external?: boolean;
-  accent: 'amber' | 'blue' | 'violet' | 'emerald';
+  accent: 'amber' | 'blue' | 'emerald';
 }
 
 const resources: Resource[] = [
@@ -38,7 +38,7 @@ const resources: Resource[] = [
     title: 'Integration Guide',
     description: 'Learn how to embed Insight data into your application or smart contract.',
     href: '/docs/api#integration',
-    accent: 'violet',
+    accent: 'blue',
   },
   {
     icon: <FileCode className="w-6 h-6" />,
@@ -54,7 +54,7 @@ const resources: Resource[] = [
     description:
       'Connect AI agents like Claude and Cursor via the Model Context Protocol — with pre-trade oracle safety checks and the always-on Oracle Watch signal.',
     href: '/ai',
-    accent: 'violet',
+    accent: 'blue',
   },
   {
     icon: <FileCode className="w-6 h-6" />,
@@ -110,11 +110,6 @@ const accentStyles = {
     bg: 'bg-blue-50',
     text: 'text-blue-600',
     border: 'group-hover:border-blue-200',
-  },
-  violet: {
-    bg: 'bg-violet-50',
-    text: 'text-violet-600',
-    border: 'group-hover:border-violet-200',
   },
   emerald: {
     bg: 'bg-emerald-50',

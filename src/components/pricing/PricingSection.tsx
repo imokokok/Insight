@@ -11,11 +11,11 @@ export function PricingSection() {
     <section className="py-8 sm:py-12">
       <div className="max-w-6xl mx-auto">
         {/* Billing toggle */}
-        <div className="flex justify-center mb-10">
-          <div className="inline-flex items-center gap-1 p-1 bg-white border border-slate-200 rounded-xl shadow-sm">
+        <div className="mb-10 flex justify-start">
+          <div className="inline-flex items-center border border-slate-900/15 bg-white">
             <button
               onClick={() => setBillingCycle('monthly')}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+              className={`px-4 py-2 text-sm font-semibold transition-all ${
                 billingCycle === 'monthly'
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
@@ -25,7 +25,7 @@ export function PricingSection() {
             </button>
             <button
               onClick={() => setBillingCycle('yearly')}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all inline-flex items-center gap-2 ${
+              className={`inline-flex items-center gap-2 border-l border-slate-900/10 px-4 py-2 text-sm font-semibold transition-all ${
                 billingCycle === 'yearly'
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'

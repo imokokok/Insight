@@ -14,7 +14,7 @@ const ALLOWED_REDIRECT_PATHS = [
  *
  * Only allows same-origin relative paths that are known app routes. Query
  * strings and hash fragments are ignored when checking the path root, so
- * `/settings?tab=billing` and `/api#pricing` are accepted because `/settings`
+ * `/settings?tab=billing` and `/pricing` are accepted because `/settings`
  * and `/api` are in the allowlist.
  */
 export function isValidRedirectPath(path: string | null | undefined): boolean {

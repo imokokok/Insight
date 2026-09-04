@@ -141,7 +141,7 @@ export default function DataSourcesSection() {
           {/* Verification note */}
           <motion.div
             variants={itemVariants}
-            className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 rounded-2xl p-6"
+            className="border border-blue-100 bg-blue-50/70 p-6 rounded-2xl"
           >
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-600 shadow-sm flex-shrink-0">

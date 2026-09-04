@@ -11,7 +11,7 @@ interface PricingCtaSectionProps {
   subtitle?: string;
   /** CTA button text. */
   buttonText?: string;
-  /** CTA button href. Defaults to /api#pricing. */
+  /** CTA button href. Defaults to the standalone pricing page. */
   href?: string;
   /** Extra classes for the outer <section>. */
   className?: string;
@@ -22,7 +22,7 @@ const DEFAULTS = {
   subtitle:
     'New users get 30 free trial credits after email verification. Developer/Team subscriptions include a monthly credit allowance spent per call (C1–C4); top up prepaid credit packs for agent-heavy workloads. Every paying user gets every endpoint. Crypto payments via NOWPayments.',
   buttonText: 'View Pricing',
-  href: '/api#pricing',
+  href: '/pricing',
   className: '',
 } as const;
 

@@ -213,8 +213,8 @@ export default function ArchitectureSection() {
           className="mb-10"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 bg-violet-100 rounded-xl">
-              <Layers className="w-6 h-6 text-violet-600" />
+            <div className="p-2.5 bg-blue-100 rounded-xl">
+              <Layers className="w-6 h-6 text-blue-700" />
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
               Architecture
@@ -240,10 +240,10 @@ export default function ArchitectureSection() {
               {layers.map((layer) => (
                 <div
                   key={layer.title}
-                  className="group border border-slate-100 rounded-xl p-5 hover:shadow-md hover:border-violet-200 transition-all"
+                  className="group border border-slate-100 rounded-xl p-5 hover:shadow-md hover:border-blue-200 transition-all"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-violet-50 rounded-lg flex items-center justify-center text-violet-600 flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-700 flex-shrink-0 group-hover:scale-105 transition-transform">
                       <layer.icon className="w-5 h-5" />
                     </div>
                     <div>
@@ -267,8 +267,8 @@ export default function ArchitectureSection() {
               </div>
               <h3 className="text-xl font-bold text-slate-900">Core Data Model</h3>
             </div>
-            <div className="overflow-hidden rounded-xl border border-slate-100">
-              <table className="w-full text-left">
+            <div className="max-w-full overflow-x-auto rounded-xl border border-slate-100">
+              <table className="min-w-[36rem] text-left">
                 <thead className="bg-slate-50 border-b border-slate-100">
                   <tr>
                     <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">

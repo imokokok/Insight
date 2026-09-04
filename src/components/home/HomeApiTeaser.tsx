@@ -135,7 +135,7 @@ export function HomeApiTeaser() {
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
-                href="/api#pricing"
+                href="/pricing"
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 hover:text-blue-700 hover:border-blue-200 hover:bg-blue-50/50 font-semibold transition-all duration-200"
               >
                 <CreditCard className="w-4 h-4" />

@@ -133,21 +133,24 @@ function AccessCell({ value }: { value: boolean }) {
 
 export function DataAccessTierMatrix({ className = '' }: { className?: string }) {
   return (
-    <section className={`py-16 sm:py-20 bg-slate-50 ${className}`}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className={`bg-white/35 py-16 sm:py-20 ${className}`}>
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         {/* Section header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-            One platform, no feature gates
-          </h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Browsing the website is free. Calling the API is credit-metered — every endpoint and MCP
-            tool is open to any paying user, priced per call by data class.
-          </p>
+        <div className="mb-12 grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+          <p className="editorial-index">02 — Inspect access</p>
+          <div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
+              One platform, no feature gates
+            </h2>
+            <p className="max-w-2xl text-lg text-slate-600">
+              Browsing the website is free. Calling the API is credit-metered — every endpoint and
+              MCP tool is open to any paying user, priced per call by data class.
+            </p>
+          </div>
         </div>
 
         {/* Desktop table (hidden on mobile) */}
-        <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-100 bg-white shadow-sm">
+        <div className="hidden overflow-x-auto border-y border-slate-900/15 bg-white/50 md:block">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/70">
@@ -203,7 +206,7 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
           {accessRows.map((row) => (
             <div
               key={row.label}
-              className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+              className="overflow-hidden border-y border-slate-900/15 bg-white/50"
             >
               <div className="p-4 bg-white">
                 <div className="flex items-start justify-between gap-3 mb-2">
@@ -228,7 +231,7 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
         </div>
 
         {/* Metering classes legend */}
-        <div className="mt-12 max-w-3xl mx-auto rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+        <div className="mt-12 max-w-3xl overflow-hidden border-y border-slate-900/15 bg-white/50">
           <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/70">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
               <Coins className="w-4 h-4 text-amber-500" />

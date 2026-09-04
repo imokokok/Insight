@@ -2,10 +2,8 @@
 
 import Link from 'next/link';
 
-import { motion } from 'framer-motion';
 import {
   ArrowRight,
-  BookOpen,
   Bot,
   Database,
   FileCode,
@@ -15,6 +13,8 @@ import {
   Sparkles,
   Terminal,
 } from 'lucide-react';
+
+import { EditorialWorkspaceHeader } from '@/components/editorial';
 
 interface QuickLink {
   href: string;
@@ -34,127 +34,83 @@ const quickLinks: QuickLink[] = [
   { href: '/ai', label: 'AI / MCP Server', icon: Bot, external: true },
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05, delayChildren: 0.1 },
-  },
-};
-
-const easeOutExpo = [0.16, 1, 0.3, 1] as const;
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: easeOutExpo },
-  },
-};
-
-function QuickLinkButton({ link }: { link: QuickLink }) {
+function QuickLinkButton({ link, index }: { link: QuickLink; index: number }) {
   const Icon = link.icon;
-  const baseClass =
-    'group inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all';
+  const className =
+    'group grid min-h-28 grid-cols-[auto_1fr_auto] items-start gap-3 border-b border-r border-slate-900/10 bg-white/35 p-5 transition-colors hover:bg-blue-50/45 focus-visible:z-10';
+  const content = (
+    <>
+      <span className="font-mono text-[10px] text-blue-700">
+        {String(index + 1).padStart(2, '0')}
+      </span>
+      <span>
+        <Icon className="mb-5 h-4 w-4 text-slate-500 transition-colors group-hover:text-blue-700" />
+        <span className="block text-sm font-semibold text-slate-800">{link.label}</span>
+      </span>
+      <ArrowRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-blue-700" />
+    </>
+  );
 
   if (link.external) {
     return (
-      <Link
-        href={link.href}
-        className={`${baseClass} bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 hover:text-white hover:border-white/20`}
-      >
-        <Icon className="w-4 h-4 text-slate-400 group-hover:text-blue-300 transition-colors" />
-        <span>{link.label}</span>
-        <ArrowRight className="w-3.5 h-3.5 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+      <Link href={link.href} className={className}>
+        {content}
       </Link>
     );
   }
 
   return (
-    <a
-      href={link.href}
-      className={`${baseClass} bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 hover:text-white hover:border-white/20`}
-    >
-      <Icon className="w-4 h-4 text-slate-400 group-hover:text-blue-300 transition-colors" />
-      <span>{link.label}</span>
-      <ArrowRight className="w-3.5 h-3.5 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+    <a href={link.href} className={className}>
+      {content}
     </a>
   );
 }
 
 export default function DocsHero() {
   return (
-    <section className="relative overflow-hidden bg-slate-950 border-b border-slate-800">
-      {/* Blue gradient orb */}
-      <div
-        className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full opacity-50"
-        style={{
-          background:
-            'radial-gradient(circle, rgba(59,130,246,0.18) 0%, rgba(59,130,246,0.06) 40%, transparent 70%)',
-          filter: 'blur(80px)',
-        }}
-      />
-      {/* Purple gradient orb */}
-      <div
-        className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full opacity-40"
-        style={{
-          background:
-            'radial-gradient(circle, rgba(139,92,246,0.14) 0%, rgba(139,92,246,0.04) 40%, transparent 70%)',
-          filter: 'blur(70px)',
-        }}
-      />
-
-      {/* Grid pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.15]"
-        style={{
-          backgroundImage:
-            'linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px)',
-          backgroundSize: '64px 64px',
-        }}
+    <section className="editorial-frame mx-auto max-w-[1440px] px-5 pt-4 sm:px-8 lg:px-12">
+      <EditorialWorkspaceHeader
+        index="11"
+        stage="Learn"
+        eyebrow="Insight documentation · Product logic, risk methodology, architecture, data sources, and integration references"
+        title="Understand the evidence before you depend on it."
+        description="Follow an oracle price from collection through consensus, health analysis, risk interpretation, and signed verification. Then connect the same evidence to your application or agent."
+        evidence={['Product workflow', 'Risk methodology', 'Developer reference']}
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="#quickstart"
+              className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-medium text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
+            >
+              Start with the workflow
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <Link
+              href="/docs/api"
+              className="inline-flex items-center gap-2 border border-slate-900/20 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-blue-400 hover:text-blue-700"
+            >
+              API reference
+            </Link>
+          </div>
+        }
       />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="max-w-3xl"
+      <div className="py-10 sm:py-12">
+        <div className="mb-5 grid gap-3 border-b border-slate-900/15 pb-4 sm:grid-cols-[0.68fr_1.32fr]">
+          <p className="editorial-index">Index — Documentation map</p>
+          <p className="max-w-xl text-sm leading-relaxed text-slate-600">
+            Start with a task, inspect the method behind it, then move into the implementation
+            reference when you are ready to integrate.
+          </p>
+        </div>
+        <nav
+          aria-label="Documentation sections"
+          className="grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4"
         >
-          <motion.div
-            variants={itemVariants}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-blue-200 text-xs font-medium mb-6 backdrop-blur-sm"
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>Insight Documentation</span>
-          </motion.div>
-
-          <motion.h1
-            variants={itemVariants}
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1] mb-6"
-          >
-            Build with confidence
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-violet-400">
-              on oracle data.
-            </span>
-          </motion.h1>
-
-          <motion.p
-            variants={itemVariants}
-            className="text-lg sm:text-xl text-slate-300 leading-relaxed mb-8 max-w-2xl"
-          >
-            Learn how to use Insight for oracle reliability tracking, cross-oracle comparison, risk
-            surveillance, and programmatic data access.
-          </motion.p>
-
-          <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-3">
-            {quickLinks.map((link) => (
-              <QuickLinkButton key={link.href} link={link} />
-            ))}
-          </motion.div>
-        </motion.div>
+          {quickLinks.map((link, index) => (
+            <QuickLinkButton key={link.href} link={link} index={index} />
+          ))}
+        </nav>
       </div>
     </section>
   );

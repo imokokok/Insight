@@ -103,7 +103,7 @@ export function createQuotaMiddleware(
         reason,
       });
 
-      const upgradeUrl = reason === 'BUDGET_EXCEEDED' ? '/settings?tab=billing' : '/api#pricing';
+      const upgradeUrl = reason === 'BUDGET_EXCEEDED' ? '/settings?tab=billing' : '/pricing';
       const detailText =
         reason === 'BUDGET_EXCEEDED'
           ? `This key's monthly credit budget is exhausted (${precheck.used ?? 0}/${precheck.budget ?? 0} credits).`
@@ -119,7 +119,7 @@ export function createQuotaMiddleware(
             budget: precheck.budget,
             used: precheck.used,
             plan,
-            topupUrl: '/api#pricing',
+            topupUrl: '/pricing',
             upgradeUrl,
           },
         }),

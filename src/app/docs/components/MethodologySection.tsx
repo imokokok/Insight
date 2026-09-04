@@ -224,8 +224,8 @@ export default function MethodologySection() {
           {/* Consensus */}
           <SectionCard>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-violet-50 rounded-lg">
-                <Scale className="w-5 h-5 text-violet-600" />
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Scale className="w-5 h-5 text-blue-700" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Consensus Algorithms</h3>
             </div>
@@ -239,11 +239,11 @@ export default function MethodologySection() {
               {consensusMethods.map((method) => (
                 <div
                   key={method.key}
-                  className="border border-slate-100 rounded-xl p-5 bg-slate-50/50 hover:bg-slate-50 hover:border-violet-200 transition-all"
+                  className="border border-slate-100 rounded-xl p-5 bg-slate-50/50 hover:bg-slate-50 hover:border-blue-200 transition-all"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold text-slate-900">{method.title}</h4>
-                    <span className="text-xs font-medium px-2.5 py-1 bg-violet-100 text-violet-700 rounded-full">
+                    <span className="text-xs font-medium px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full">
                       {method.bestFor}
                     </span>
                   </div>
@@ -252,12 +252,12 @@ export default function MethodologySection() {
               ))}
             </div>
 
-            <div className="p-5 bg-violet-50 rounded-xl border border-violet-100">
-              <h4 className="font-semibold text-violet-900 mb-2 flex items-center gap-2">
+            <div className="p-5 bg-blue-50 rounded-xl border border-blue-100">
+              <h4 className="font-semibold text-blue-950 mb-2 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Outlier Detection
               </h4>
-              <p className="text-sm text-violet-800 leading-relaxed">
+              <p className="text-sm text-blue-800 leading-relaxed">
                 Outliers are detected using Z-score over 2.5 standard deviations, dual-source
                 arbitration when only two prices exist, and history-aware checks against the last 10
                 consensus points. Excluded providers are surfaced in the divergence UI and used to

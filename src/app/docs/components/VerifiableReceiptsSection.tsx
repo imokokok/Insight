@@ -103,12 +103,12 @@ if (result.code !== 'ok') {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+        <div className="mt-8 grid min-w-0 gap-6 lg:grid-cols-2">
+          <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-5">
             <h3 className="text-sm font-semibold text-slate-900 mb-3">
               Verify from the command line
             </h3>
-            <pre className="text-xs leading-relaxed text-slate-700 font-mono overflow-x-auto whitespace-pre">
+            <pre className="max-w-full overflow-x-auto whitespace-pre font-mono text-xs leading-relaxed text-slate-700">
               {`# fetch a real signed sample
 curl -s https://www.oracleinsight.xyz/api/v1/safety/attestation/sample \\
   | jq .data.attestation > receipt.json
@@ -124,13 +124,13 @@ curl -s https://www.oracleinsight.xyz/.well-known/vrt1-scale-declaration.json \\
             </pre>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+          <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-5">
             <h3 className="text-sm font-semibold text-slate-900 mb-3">Where the evidence lives</h3>
-            <ul className="text-sm text-slate-600 space-y-2.5">
+            <ul className="space-y-2.5 break-words text-sm text-slate-600">
               <li>
                 <span className="font-semibold text-slate-900">Published keys</span> —{' '}
                 <Link
-                  className="text-blue-600 hover:underline"
+                  className="break-all text-blue-600 hover:underline"
                   href="/.well-known/oracle-keys.json"
                   target="_blank"
                 >
@@ -140,7 +140,7 @@ curl -s https://www.oracleinsight.xyz/.well-known/vrt1-scale-declaration.json \\
               <li>
                 <span className="font-semibold text-slate-900">Scale declaration</span> —{' '}
                 <Link
-                  className="text-blue-600 hover:underline"
+                  className="break-all text-blue-600 hover:underline"
                   href="/.well-known/vrt1-scale-declaration.json"
                   target="_blank"
                 >

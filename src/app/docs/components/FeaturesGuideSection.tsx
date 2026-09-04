@@ -22,7 +22,7 @@ interface Feature {
   description: string;
   href: string;
   highlights: string[];
-  accent: 'blue' | 'emerald' | 'amber' | 'violet' | 'red' | 'cyan';
+  accent: 'blue' | 'emerald' | 'amber' | 'red' | 'cyan';
 }
 
 const features: Feature[] = [
@@ -52,7 +52,7 @@ const features: Feature[] = [
       'Reuses the pre-trade severity thresholds for one consistent risk language',
       'No cross-oracle coverage degrades to DANGER / halt — never errors',
     ],
-    accent: 'violet',
+    accent: 'blue',
   },
   {
     icon: <AlertTriangle className="w-6 h-6" />,
@@ -104,7 +104,7 @@ const features: Feature[] = [
       '4 consensus algorithms and divergence signals',
       'Risk analysis, feed health, and reliability ranking',
     ],
-    accent: 'violet',
+    accent: 'blue',
   },
   {
     icon: <Award className="w-6 h-6" />,
@@ -153,12 +153,6 @@ const accentStyles = {
     border: 'group-hover:border-amber-200',
     dot: 'bg-amber-500',
   },
-  violet: {
-    bg: 'bg-violet-50',
-    text: 'text-violet-600',
-    border: 'group-hover:border-violet-200',
-    dot: 'bg-violet-500',
-  },
   red: {
     bg: 'bg-red-50',
     text: 'text-red-600',
@@ -196,7 +190,7 @@ const quickCards = [
     icon: BarChart3,
     title: 'Multi-format Export',
     description: 'CSV, JSON, Excel, PDF, PNG',
-    tone: 'violet',
+    tone: 'blue',
   },
 ];
 
@@ -204,14 +198,12 @@ const quickCardStyles: Record<string, string> = {
   blue: 'bg-blue-50/60 border-blue-100 hover:border-blue-200',
   emerald: 'bg-emerald-50/60 border-emerald-100 hover:border-emerald-200',
   amber: 'bg-amber-50/60 border-amber-100 hover:border-amber-200',
-  violet: 'bg-violet-50/60 border-violet-100 hover:border-violet-200',
 };
 
 const quickIconStyles: Record<string, string> = {
   blue: 'text-blue-600',
   emerald: 'text-emerald-600',
   amber: 'text-amber-600',
-  violet: 'text-violet-600',
 };
 
 export default function FeaturesGuideSection() {
@@ -219,8 +211,8 @@ export default function FeaturesGuideSection() {
     <section id="features" className="py-16 scroll-mt-20 border-t border-slate-100">
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-violet-100 rounded-lg">
-            <Layers className="w-5 h-5 text-violet-600" />
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <Layers className="w-5 h-5 text-blue-700" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900">Features Guide</h2>
         </div>
