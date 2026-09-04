@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
+import { EditorialStatePage } from '@/components/editorial';
 import { captureException } from '@/lib/monitoring';
 
 interface ErrorProps {
@@ -19,30 +20,30 @@ export default function Error({ error, reset }: ErrorProps) {
   }, [error]);
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-4">
-      <div className="text-center max-w-md bg-white border border-gray-200 rounded-lg p-8">
-        <div className="w-20 h-20 bg-danger-50 flex items-center justify-center mx-auto mb-6 rounded-lg">
-          <AlertTriangle className="w-10 h-10 text-danger-500" />
-        </div>
-
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">Something went wrong</h1>
-
-        <p className="text-gray-600 mb-2">
-          An error occurred while loading this page. Please try again.
-        </p>
-
-        {error.message && process.env.NODE_ENV === 'development' && (
-          <p className="text-sm text-gray-500 mb-6 font-mono bg-gray-50 p-3 text-left overflow-auto max-h-32">
-            {error.message}
-          </p>
-        )}
-
-        {error.digest && <p className="text-xs text-gray-400 mb-6">Error ID: {error.digest}</p>}
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+    <EditorialStatePage
+      index="E1"
+      eyebrow="Recoverable interruption"
+      code="ERROR"
+      title="This record could not be assembled."
+      description="The page encountered an unexpected condition while loading its evidence. Retry the request, or return to the main index without losing the rest of your session."
+      icon={<AlertTriangle className="h-6 w-6" />}
+      detail={
+        <>
+          {error.message && process.env.NODE_ENV === 'development' && (
+            <p className="max-h-32 overflow-auto border-l-2 border-red-500 bg-red-50 p-3 text-left font-mono text-sm text-slate-600">
+              {error.message}
+            </p>
+          )}
+          {error.digest && (
+            <p className="mt-3 font-mono text-xs text-slate-400">Error ID: {error.digest}</p>
+          )}
+        </>
+      }
+      actions={
+        <>
           <button
             onClick={reset}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors rounded-md"
+            className="inline-flex items-center justify-center gap-2 border border-slate-950 bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           >
             <RefreshCw className="w-4 h-4" />
             Try Again
@@ -50,13 +51,13 @@ export default function Error({ error, reset }: ErrorProps) {
 
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors rounded-md"
+            className="inline-flex items-center justify-center gap-2 border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-400 hover:text-blue-700"
           >
             <Home className="w-4 h-4" />
             Back to Home
           </Link>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }

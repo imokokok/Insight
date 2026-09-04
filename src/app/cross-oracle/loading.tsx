@@ -2,9 +2,12 @@ import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function CrossOracleLoading() {
   return (
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
+    <div className="editorial-workspace mx-auto min-h-screen max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12">
+      <p className="editorial-index mb-6 border-b border-slate-900/15 pb-4">
+        Loading — Cross-oracle record
+      </p>
       {/* Control panel */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
+      <div className="mb-6 border-y border-slate-900/15 bg-white/55 p-5">
         <Skeleton variant="text" width="180px" height="20px" className="mb-4" />
         <div className="flex flex-col sm:flex-row gap-3">
           <Skeleton variant="rounded" width="220px" height="40px" />
@@ -21,7 +24,7 @@ export default function CrossOracleLoading() {
       </div>
 
       {/* Price table */}
-      <div className="bg-white rounded-xl border border-gray-200/70 shadow-sm overflow-hidden">
+      <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
         <div className="bg-gray-50/80 border-b border-gray-100 px-5 py-3.5 flex gap-6">
           <Skeleton variant="text" width="100px" height="12px" />
           <Skeleton variant="text" width="80px" height="12px" />

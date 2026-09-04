@@ -45,7 +45,7 @@ export default async function OpsFeedsPage({
           </span>
           <Link
             href="/ops/feeds"
-            className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-200"
+            className="inline-flex items-center gap-1 border-l-2 border-gray-400 bg-gray-100 px-2 py-0.5 text-xs text-gray-600 hover:border-primary-500 hover:text-primary-700"
           >
             ✕ 清除
           </Link>

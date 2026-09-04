@@ -56,7 +56,7 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
   ];
 
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace settings-surface min-h-screen">
       <SettingsHero />
 
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">

@@ -35,16 +35,14 @@ interface UsageChartProps {
 }
 
 const PIE_COLORS = [
-  '#6366f1',
-  '#8b5cf6',
-  '#a855f7',
-  '#d946ef',
-  '#ec4899',
-  '#f43f5e',
-  '#ef4444',
-  '#f97316',
-  '#f59e0b',
-  '#eab308',
+  '#0f172a',
+  '#1e3a8a',
+  '#1d4ed8',
+  '#2563eb',
+  '#3b82f6',
+  '#60a5fa',
+  '#93c5fd',
+  '#bfdbfe',
 ];
 
 const SLATE_500 = '#64748b';
@@ -118,7 +116,7 @@ export function UsageChart({ apiKeyId, plan, accessToken }: UsageChartProps) {
   return (
     <div className="space-y-6">
       {/* Metering summary — every key is credit-metered from the wallet. */}
-      <div className="bg-emerald-50/60 rounded-xl p-4 border border-emerald-100">
+      <div className="border-l-2 border-emerald-500 bg-emerald-50/60 p-4">
         <div className="text-sm font-semibold text-emerald-800">
           {planConfig.name} key — credit-metered
         </div>
@@ -148,14 +146,14 @@ export function UsageChart({ apiKeyId, plan, accessToken }: UsageChartProps) {
             />
             <Tooltip
               contentStyle={{
-                borderRadius: '12px',
+                borderRadius: '2px',
                 border: `1px solid ${SLATE_200}`,
                 fontSize: '13px',
                 backgroundColor: '#ffffff',
               }}
               labelFormatter={(label) => `Date: ${formatDateShort(label as string)}`}
             />
-            <Bar dataKey="count" fill="#2563eb" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="count" fill="#2563eb" radius={0} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -182,7 +180,7 @@ export function UsageChart({ apiKeyId, plan, accessToken }: UsageChartProps) {
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    borderRadius: '12px',
+                    borderRadius: '2px',
                     border: `1px solid ${SLATE_200}`,
                     fontSize: '13px',
                     backgroundColor: '#ffffff',

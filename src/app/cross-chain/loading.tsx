@@ -2,12 +2,15 @@ import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function CrossChainLoading() {
   return (
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
+    <div className="editorial-workspace mx-auto min-h-screen max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12">
+      <p className="editorial-index mb-6 border-b border-slate-900/15 pb-4">
+        Loading — Cross-chain record
+      </p>
       <Skeleton variant="text" width="240px" height="28px" className="mb-2" />
       <Skeleton variant="text" width="360px" height="16px" className="mb-6" />
 
       {/* Chain selector + filters */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
+      <div className="mb-6 border-y border-slate-900/15 bg-white/55 p-5">
         <div className="flex flex-wrap gap-3 mb-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} variant="rounded" width="100px" height="36px" />
@@ -22,7 +25,7 @@ export default function CrossChainLoading() {
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200/70 p-4 shadow-sm">
+          <div key={i} className="border-y border-slate-900/15 bg-white/55 p-4">
             <Skeleton variant="text" width="80px" height="11px" className="mb-2" />
             <Skeleton variant="text" width="60px" height="24px" />
           </div>
@@ -30,7 +33,7 @@ export default function CrossChainLoading() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200/70 shadow-sm overflow-hidden">
+      <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
         <div className="bg-gray-50/80 border-b border-gray-100 px-5 py-3.5 flex gap-6">
           <Skeleton variant="text" width="90px" height="12px" />
           <Skeleton variant="text" width="80px" height="12px" />

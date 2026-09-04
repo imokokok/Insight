@@ -41,7 +41,7 @@ export default function RefreshControl({ intervalMs = 30000 }: { intervalMs?: nu
           type="checkbox"
           checked={auto}
           onChange={(e) => setAuto(e.target.checked)}
-          className="rounded border-gray-300 text-primary-600 focus:ring-primary-400"
+          className="border-gray-300 text-primary-600 focus:ring-primary-400"
         />
         自动刷新
       </label>
@@ -49,7 +49,7 @@ export default function RefreshControl({ intervalMs = 30000 }: { intervalMs?: nu
         type="button"
         onClick={onRefresh}
         disabled={loading}
-        className="px-3 py-1.5 rounded-lg text-sm border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-60"
+        className="border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition-colors hover:border-primary-400 hover:text-primary-700 disabled:opacity-60"
       >
         {loading ? '刷新中…' : '刷新'}
       </button>

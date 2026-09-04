@@ -11,16 +11,16 @@ export function ApiKeysPanel() {
 
   if (!accessToken) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
+      <div className="settings-record p-6 md:p-8">
         <p className="text-sm text-slate-500">Please sign in to manage your API keys.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
+    <section className="settings-record p-6 md:p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+        <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
           <Key className="w-5 h-5 text-blue-600" />
         </div>
         <div>
@@ -29,6 +29,6 @@ export function ApiKeysPanel() {
         </div>
       </div>
       <ApiKeyManager accessToken={accessToken} />
-    </div>
+    </section>
   );
 }

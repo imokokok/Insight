@@ -168,10 +168,10 @@ export function DataManagementPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <section className="settings-record">
         <div className="px-6 py-5 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
               <Database className="w-5 h-5 text-blue-600" />
             </div>
             <div>
@@ -183,23 +183,23 @@ export function DataManagementPanel() {
 
         <div className="p-6 space-y-6">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <div className="border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-700">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm flex items-center gap-2">
+            <div className="flex items-center gap-2 border-l-2 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
           )}
 
           <div className="space-y-3">
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <div className="border-y border-slate-900/10 bg-white/45 p-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                  <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
                     <FileJson className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
@@ -219,17 +219,17 @@ export function DataManagementPanel() {
                       <Download className="w-4 h-4" />
                     )
                   }
-                  className="rounded-xl"
+                  className="rounded-sm"
                 >
                   Export
                 </Button>
               </div>
             </div>
 
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <div className="border-y border-slate-900/10 bg-white/45 p-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                  <div className="flex h-10 w-10 items-center justify-center border border-emerald-200 bg-emerald-50">
                     <Download className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
@@ -247,7 +247,7 @@ export function DataManagementPanel() {
                       <Download className="w-4 h-4" />
                     )
                   }
-                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700"
+                  className="rounded-sm bg-emerald-600 hover:bg-emerald-700"
                 >
                   Export
                 </Button>
@@ -255,12 +255,12 @@ export function DataManagementPanel() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <section className="settings-record">
         <div className="px-6 py-5 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center border border-amber-200 bg-amber-50">
               <Trash2 className="w-5 h-5 text-amber-600" />
             </div>
             <div>
@@ -271,7 +271,7 @@ export function DataManagementPanel() {
         </div>
 
         <div className="p-6">
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl mb-4">
+          <div className="mb-4 border-l-2 border-amber-500 bg-amber-50 p-4">
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-amber-800">
@@ -294,17 +294,17 @@ export function DataManagementPanel() {
                 <Trash2 className="w-4 h-4" />
               )
             }
-            className="rounded-xl border-amber-200 text-amber-700 hover:bg-amber-50"
+            className="rounded-sm border-amber-200 text-amber-700 hover:bg-amber-50"
           >
             Clear Local Data
           </Button>
         </div>
-      </div>
+      </section>
 
-      <div className="bg-white rounded-2xl border border-red-200 shadow-sm overflow-hidden ring-1 ring-red-100">
+      <section className="settings-record border-red-300">
         <div className="px-6 py-5 border-b border-red-100 bg-red-50/80">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center border border-red-200 bg-red-100">
               <UserX className="w-5 h-5 text-red-600" />
             </div>
             <div>
@@ -324,14 +324,14 @@ export function DataManagementPanel() {
                 variant="danger"
                 onClick={() => setShowDeleteConfirm(true)}
                 leftIcon={<UserX className="w-4 h-4" />}
-                className="rounded-xl"
+                className="rounded-sm"
               >
                 Delete Account
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="border-l-2 border-red-500 bg-red-50 p-4">
                 <p className="text-sm text-red-800 font-medium mb-2">
                   Are you sure you want to delete your account?
                 </p>
@@ -343,7 +343,7 @@ export function DataManagementPanel() {
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="Type DELETE to confirm"
-                className="w-full px-4 py-2.5 border border-red-300 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all duration-200"
+                className="w-full border border-red-300 px-4 py-2.5 outline-none transition-colors focus:border-red-500 focus:ring-2 focus:ring-red-500/15"
               />
 
               <div className="flex gap-3">
@@ -358,7 +358,7 @@ export function DataManagementPanel() {
                       <UserX className="w-4 h-4" />
                     )
                   }
-                  className="rounded-xl"
+                  className="rounded-sm"
                 >
                   Confirm Delete
                 </Button>
@@ -369,7 +369,7 @@ export function DataManagementPanel() {
                     setDeleteConfirmText('');
                   }}
                   leftIcon={<X className="w-4 h-4" />}
-                  className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="rounded-sm border-slate-200 text-slate-700 hover:bg-slate-50"
                 >
                   Cancel
                 </Button>
@@ -377,14 +377,14 @@ export function DataManagementPanel() {
             </div>
           )}
         </div>
-      </div>
+      </section>
 
       {showClearConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
+          <div className="mx-4 w-full max-w-md overflow-hidden border border-slate-900/15 bg-[#f8f7f4]">
             <div className="p-6">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center border border-amber-200 bg-amber-100">
                   <AlertTriangle className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
@@ -400,7 +400,7 @@ export function DataManagementPanel() {
               <Button
                 variant="secondary"
                 onClick={() => setShowClearConfirm(false)}
-                className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="rounded-sm border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 Cancel
               </Button>
@@ -414,7 +414,7 @@ export function DataManagementPanel() {
                     <Trash2 className="w-4 h-4" />
                   )
                 }
-                className="rounded-xl bg-amber-600 hover:bg-amber-700"
+                className="rounded-sm bg-amber-600 hover:bg-amber-700"
               >
                 Clear Data
               </Button>

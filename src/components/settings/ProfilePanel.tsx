@@ -36,10 +36,10 @@ function formatMemberSince(date: Date | string | undefined): string {
 }
 
 const inputClassName =
-  'w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 bg-white text-slate-900 placeholder-slate-400';
+  'w-full border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 outline-none transition-colors focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15';
 
 const passwordInputClassName =
-  'w-full pl-12 pr-12 py-3 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors rounded-xl';
+  'w-full border border-slate-300 bg-white py-3 pl-12 pr-12 text-slate-900 placeholder-slate-400 outline-none transition-colors focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15';
 
 export function ProfilePanel() {
   const user = useUser();
@@ -152,10 +152,10 @@ export function ProfilePanel() {
   return (
     <div className="space-y-6">
       {/* Profile Settings Card */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <section className="settings-record">
         <div className="px-6 py-5 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
               <Mail className="w-5 h-5 text-blue-600" />
             </div>
             <div>
@@ -167,13 +167,13 @@ export function ProfilePanel() {
 
         <div className="p-6 space-y-6">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <div className="border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-700">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm flex items-center gap-2">
+            <div className="flex items-center gap-2 border-l-2 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700">
               <CheckCircle className="w-4 h-4" />
               {success}
             </div>
@@ -190,7 +190,7 @@ export function ProfilePanel() {
 
             <div className="flex-1 w-full">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="flex items-center gap-3 border-y border-slate-900/10 bg-white/45 p-3">
                   <Calendar className="w-4 h-4 text-slate-400" />
                   <div>
                     <p className="text-xs text-slate-500">Member since</p>
@@ -200,7 +200,7 @@ export function ProfilePanel() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="flex items-center gap-3 border-y border-slate-900/10 bg-white/45 p-3">
                   <ShieldCheck
                     className={`w-4 h-4 ${isVerified ? 'text-emerald-500' : 'text-amber-500'}`}
                   />
@@ -247,7 +247,7 @@ export function ProfilePanel() {
                     type="email"
                     value={user?.email || ''}
                     disabled
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-500 cursor-not-allowed"
+                    className="w-full cursor-not-allowed border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-500"
                   />
                   <p className="text-xs text-slate-500 mt-1.5">Email address cannot be changed</p>
                 </div>
@@ -266,19 +266,19 @@ export function ProfilePanel() {
                   <Save className="w-4 h-4" />
                 )
               }
-              className="rounded-xl"
+              className="rounded-sm"
             >
               Save Changes
             </Button>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Password Management Card */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <section className="settings-record">
         <div className="px-6 py-5 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
               <Key className="w-5 h-5 text-blue-600" />
             </div>
             <div>
@@ -294,7 +294,7 @@ export function ProfilePanel() {
               variant="secondary"
               leftIcon={<Key className="w-4 h-4" />}
               onClick={() => setShowPasswordForm(true)}
-              className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50"
+              className="rounded-sm border-slate-300 text-slate-700 hover:border-blue-400 hover:bg-blue-50/40"
             >
               Change Password
             </Button>
@@ -363,7 +363,7 @@ export function ProfilePanel() {
                       <CheckCircle className="w-4 h-4" />
                     )
                   }
-                  className="rounded-xl"
+                  className="rounded-sm"
                 >
                   Update Password
                 </Button>
@@ -375,7 +375,7 @@ export function ProfilePanel() {
                     setNewPassword('');
                     setConfirmPassword('');
                   }}
-                  className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="rounded-sm border-slate-300 text-slate-700 hover:bg-slate-50"
                 >
                   Cancel
                 </Button>
@@ -383,7 +383,7 @@ export function ProfilePanel() {
             </div>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

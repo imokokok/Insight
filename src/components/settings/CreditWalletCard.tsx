@@ -125,9 +125,9 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
   };
 
   return (
-    <div className="mb-8 p-5 border border-slate-200 rounded-2xl">
+    <section className="mb-8 border-y border-slate-900/15 bg-white/35 p-5">
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+        <div className="flex h-9 w-9 items-center justify-center border border-emerald-200 bg-emerald-50">
           <Coins className="w-5 h-5 text-emerald-600" />
         </div>
         <div>
@@ -139,7 +139,7 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <div className="bg-emerald-50/60 rounded-xl p-4 border border-emerald-100">
+        <div className="border-y border-emerald-200 bg-emerald-50/50 p-4">
           <div className="text-sm text-emerald-800">Available balance</div>
           <div className="text-3xl font-bold text-emerald-700 tabular-nums mt-1">
             {wallet ? Number(wallet.balance).toLocaleString() : '–'}
@@ -150,7 +150,7 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
             </div>
           )}
         </div>
-        <div className="rounded-xl p-4 border border-slate-200 border-dashed">
+        <div className="border-y border-dashed border-slate-300 p-4">
           <div className="text-sm text-slate-600 mb-3">Top up credits</div>
           <div className="flex flex-wrap gap-2">
             {CREDIT_PACK_ORDER.map((pack) => (
@@ -167,7 +167,7 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
                     <Zap className="w-4 h-4" />
                   )
                 }
-                className="rounded-xl border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                className="rounded-sm border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                 title={CREDIT_PACKS[pack].description}
               >
                 {CREDIT_PACKS[pack].credits.toLocaleString()} · ${CREDIT_PACKS[pack].priceUsd}
@@ -181,7 +181,7 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
       </div>
 
       {wallet && wallet.pending.length > 0 && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+        <div className="mt-4 border-l-2 border-amber-500 bg-amber-50/50 p-4">
           <h4 className="text-xs font-semibold uppercase tracking-wide text-amber-700 mb-2">
             Pending top-ups
           </h4>
@@ -212,7 +212,7 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
                       <CheckCircle2 className="w-4 h-4" />
                     )
                   }
-                  className="rounded-xl border-amber-200 text-amber-700 hover:bg-amber-100"
+                  className="rounded-sm border-amber-200 text-amber-700 hover:bg-amber-100"
                 >
                   {reconcileLoading === p.id ? 'Checking…' : 'I&apos;ve paid'}
                 </Button>
@@ -255,6 +255,6 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
           </ul>
         </div>
       )}
-    </div>
+    </section>
   );
 }

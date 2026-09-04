@@ -26,18 +26,22 @@ export default async function HealthStrip() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-6 pt-8 mb-6 flex flex-wrap items-center gap-2">
-      {items.map((it) => (
-        <span
-          key={it.label}
-          className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs"
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${TONE_DOT[it.tone]}`} />
-          <span className="text-gray-500">{it.label}</span>
-          <span className="font-mono tabular-nums font-medium text-gray-900">{it.value}</span>
-        </span>
-      ))}
-      {s.partial && <span className="text-xs text-warning-600">部分数据可能不完整</span>}
+    <div className="mx-auto mb-6 max-w-6xl px-6 pt-8">
+      <div className="grid border-y border-slate-900/15 bg-white/45 sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-slate-900/10">
+        {items.map((it, index) => (
+          <div key={it.label} className="border-b border-slate-900/10 px-4 py-3 lg:border-b-0">
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-gray-500">
+              <span className={`h-1.5 w-1.5 rounded-full ${TONE_DOT[it.tone]}`} />
+              <span className="font-mono text-[9px] text-blue-700">0{index + 1}</span>
+              {it.label}
+            </div>
+            <div className="mt-1 font-mono text-lg font-semibold tabular-nums text-slate-950">
+              {it.value}
+            </div>
+          </div>
+        ))}
+      </div>
+      {s.partial && <p className="mt-2 text-xs text-warning-600">部分数据可能不完整</p>}
     </div>
   );
 }

@@ -30,7 +30,7 @@ interface CreatedKey {
 
 const PLAN_BADGE_STYLES: Record<string, string> = {
   developer: 'bg-blue-100 text-blue-700',
-  team: 'bg-purple-100 text-purple-700',
+  team: 'bg-blue-100 text-blue-800',
   enterprise: 'bg-amber-100 text-amber-700',
 };
 
@@ -181,7 +181,7 @@ export function ApiKeyManager({
       {showHeader && (
         <div className="mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
               <Key className="w-5 h-5 text-blue-600" />
             </div>
             <div>
@@ -196,7 +196,7 @@ export function ApiKeyManager({
       )}
 
       {createdKey && (
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+        <div className="mb-6 border-l-2 border-amber-500 bg-amber-50 p-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
             <div className="flex-1">
@@ -205,14 +205,14 @@ export function ApiKeyManager({
                 This is the only time you will see the full key. Store it somewhere safe.
               </p>
               <div className="mt-3 flex items-center gap-2">
-                <code className="flex-1 block px-3 py-2 bg-white border border-amber-200 rounded-xl text-sm font-mono text-slate-900 break-all">
+                <code className="block flex-1 break-all border border-amber-200 bg-white px-3 py-2 font-mono text-sm text-slate-900">
                   {createdKey.plainKey}
                 </code>
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => copyToClipboard(createdKey.plainKey)}
-                  className="shrink-0 rounded-xl border-amber-200 text-amber-800 hover:bg-amber-100"
+                  className="shrink-0 rounded-sm border-amber-200 text-amber-800 hover:bg-amber-100"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
@@ -221,7 +221,7 @@ export function ApiKeyManager({
                 variant="ghost"
                 size="sm"
                 onClick={() => setCreatedKey(null)}
-                className="mt-3 text-amber-900 hover:bg-amber-100 rounded-lg"
+                className="mt-3 rounded-sm text-amber-900 hover:bg-amber-100"
               >
                 I have copied my key
               </Button>
@@ -238,7 +238,7 @@ export function ApiKeyManager({
             onChange={(e) => setNewKeyName(e.target.value)}
             placeholder="e.g. Local Development"
             maxLength={100}
-            className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm text-slate-900 placeholder-slate-400 transition-all"
+            className="flex-1 border border-slate-300 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
           />
           <Button
             type="submit"
@@ -246,7 +246,7 @@ export function ApiKeyManager({
             leftIcon={
               creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />
             }
-            className="shrink-0 rounded-xl"
+            className="shrink-0 rounded-sm"
           >
             Create Key
           </Button>
@@ -254,13 +254,13 @@ export function ApiKeyManager({
       </form>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center gap-2">
+        <div className="mb-6 flex items-center gap-2 border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
       )}
 
-      <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+      <div className="overflow-x-auto border-y border-slate-900/15">
         {loading ? (
           <div className="p-8 flex justify-center">
             <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
@@ -307,7 +307,7 @@ export function ApiKeyManager({
                     <td className="px-4 py-3 text-sm font-medium text-slate-900">{key.name}</td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
+                        className={`inline-flex items-center border-l-2 border-current px-2 py-0.5 text-xs font-medium ${
                           PLAN_BADGE_STYLES[keyPlan] ?? PLAN_BADGE_STYLES.developer
                         }`}
                       >
@@ -321,7 +321,7 @@ export function ApiKeyManager({
                       {key.rateLimit < 0 ? 'Unlimited' : `${key.rateLimit}/min`}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 whitespace-nowrap border-l-2 border-emerald-500 bg-emerald-50 px-2 py-1 text-xs text-emerald-700">
                         <Coins className="w-3.5 h-3.5" />
                         Credit-metered
                       </span>
@@ -334,7 +334,7 @@ export function ApiKeyManager({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRevoke(key.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg"
+                        className="rounded-sm text-red-600 hover:bg-red-50 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -347,7 +347,7 @@ export function ApiKeyManager({
         )}
       </div>
 
-      <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm text-slate-600">
+      <div className="mt-6 border-y border-slate-900/10 bg-white/45 p-4 text-sm text-slate-600">
         <p className="font-semibold text-slate-900 mb-1">{topPlanConfig.name} plan</p>
         <p>
           Every API call is priced in credits from your wallet — a call succeeds only when the

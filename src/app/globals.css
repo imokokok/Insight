@@ -532,6 +532,35 @@ body {
   box-shadow: none;
 }
 
+/* Account controls use the same archive grammar while preserving native form affordances. */
+.settings-surface .settings-record {
+  overflow: hidden;
+  border-top: 1px solid rgb(15 23 42 / 15%);
+  border-bottom: 1px solid rgb(15 23 42 / 15%);
+  background: rgb(255 255 255 / 48%);
+}
+
+.settings-surface input:not([type='checkbox']):not([type='radio']),
+.settings-surface textarea,
+.settings-surface select {
+  border-radius: 0.125rem;
+}
+
+.settings-surface .rounded-2xl,
+.settings-surface .rounded-xl,
+.settings-surface .rounded-lg,
+.settings-surface .rounded-md {
+  border-radius: 0.125rem;
+}
+
+.settings-surface [class*='shadow-'] {
+  box-shadow: none;
+}
+
+.settings-surface .bg-gradient-to-br {
+  background-image: none;
+}
+
 /* Dense internal operations variant: same material palette, tighter rhythm. */
 .ops-workspace {
   background:

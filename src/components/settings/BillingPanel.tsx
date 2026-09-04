@@ -165,9 +165,9 @@ export function BillingPanel() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
+      <div className="settings-record p-6 md:p-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+          <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
             <CreditCard className="w-5 h-5 text-blue-600" />
           </div>
           <div>
@@ -184,9 +184,9 @@ export function BillingPanel() {
 
   if (error && !data) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
+      <div className="settings-record p-6 md:p-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+          <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
             <CreditCard className="w-5 h-5 text-blue-600" />
           </div>
           <div>
@@ -194,14 +194,14 @@ export function BillingPanel() {
             <p className="text-sm text-slate-500">Manage your subscription, usage, and billing</p>
           </div>
         </div>
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center gap-2">
+        <div className="flex items-center gap-2 border-l-2 border-red-500 bg-red-50 p-4 text-sm text-red-700">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
         <Button
           onClick={fetchSubscription}
           variant="secondary"
-          className="mt-4 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50"
+          className="mt-4 rounded-sm border-slate-200 text-slate-700 hover:bg-slate-50"
         >
           Retry
         </Button>
@@ -227,9 +227,9 @@ export function BillingPanel() {
   const primaryKey = apiKeys[0];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 md:p-8">
+    <section className="settings-record p-6 md:p-8">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+        <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
           <CreditCard className="w-5 h-5 text-blue-600" />
         </div>
         <div>
@@ -239,20 +239,20 @@ export function BillingPanel() {
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center gap-2">
+        <div className="mb-6 flex items-center gap-2 border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
       )}
 
       {/* Current plan section */}
-      <div className="mb-8 p-5 bg-gradient-to-br from-blue-50/60 to-white border border-blue-100 rounded-2xl">
+      <div className="mb-8 border-y border-blue-200 bg-blue-50/35 p-5">
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-sm text-slate-500">Current plan</span>
               <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                className={`inline-flex items-center border-l-2 border-current px-2.5 py-0.5 text-xs font-medium ${
                   PLAN_BADGE_STYLES[currentPlan] ?? PLAN_BADGE_STYLES.developer
                 }`}
               >
@@ -260,7 +260,7 @@ export function BillingPanel() {
               </span>
               {subscription && (
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  className={`inline-flex items-center border-l-2 border-current px-2.5 py-0.5 text-xs font-medium ${
                     STATUS_BADGE_STYLES[subscription.status] ?? 'bg-slate-100 text-slate-600'
                   }`}
                 >
@@ -309,7 +309,7 @@ export function BillingPanel() {
                     <Check className="w-4 h-4" />
                   )
                 }
-                className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="rounded-sm border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 Renew
               </Button>
@@ -320,7 +320,7 @@ export function BillingPanel() {
                 onClick={() => router.push('/pricing')}
                 variant="secondary"
                 leftIcon={<Zap className="w-4 h-4" />}
-                className="rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50"
+                className="rounded-sm border-blue-200 text-blue-700 hover:bg-blue-50"
               >
                 Subscribe
               </Button>
@@ -338,7 +338,7 @@ export function BillingPanel() {
                     <RefreshCw className="w-4 h-4" />
                   )
                 }
-                className="rounded-xl border-amber-200 text-amber-700 hover:bg-amber-100"
+                className="rounded-sm border-amber-200 text-amber-700 hover:bg-amber-100"
               >
                 {actionLoading ? 'Checking…' : 'I&apos;ve paid'}
               </Button>
@@ -358,7 +358,7 @@ export function BillingPanel() {
             Usage for &ldquo;{primaryKey.name}&rdquo;
           </h3>
           {accessToken && (
-            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+            <div className="border-y border-slate-900/10 bg-white/45 p-5">
               <UsageChart
                 apiKeyId={primaryKey.id}
                 plan={normalizePlan(primaryKey.plan)}
@@ -384,12 +384,12 @@ export function BillingPanel() {
               return (
                 <div
                   key={key.id}
-                  className="flex flex-col gap-3 p-4 bg-white border border-slate-100 rounded-xl hover:border-slate-200 transition-colors"
+                  className="flex flex-col gap-3 border-y border-slate-900/10 bg-white/50 p-4 transition-colors hover:bg-blue-50/30"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
+                        className={`inline-flex items-center border-l-2 border-current px-2 py-0.5 text-xs font-medium ${
                           PLAN_BADGE_STYLES[keyPlan] ?? PLAN_BADGE_STYLES.developer
                         }`}
                       >
@@ -416,6 +416,6 @@ export function BillingPanel() {
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

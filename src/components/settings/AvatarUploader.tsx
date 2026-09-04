@@ -112,7 +112,7 @@ export function AvatarUploader({
         <div className="flex gap-2">
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-xl hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-2 border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
           >
@@ -126,7 +126,7 @@ export function AvatarUploader({
           {currentAvatarUrl && (
             <button
               type="button"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 border border-red-600 rounded-xl hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-2 border border-red-600 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={handleDeleteAvatar}
               disabled={isUploading}
             >

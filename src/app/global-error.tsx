@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import { AlertOctagon, RefreshCw, Home } from 'lucide-react';
 
+import { EditorialStatePage } from '@/components/editorial';
 import { captureException } from '@/lib/monitoring';
 
 interface GlobalErrorProps {
@@ -21,30 +22,31 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
-          <div className="text-center max-w-lg bg-white p-8 border border-gray-200 rounded-lg">
-            <div className="w-24 h-24 bg-danger-50 flex items-center justify-center mx-auto mb-6">
-              <AlertOctagon className="w-12 h-12 text-danger-500" />
-            </div>
-
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Something went wrong</h1>
-
-            <p className="text-gray-600 mb-4">
-              We apologize for the inconvenience. A critical error has occurred.
-            </p>
-
-            {error.message && process.env.NODE_ENV === 'development' && (
-              <p className="text-sm text-gray-500 mb-6 font-mono bg-gray-50 p-3 text-left overflow-auto max-h-40">
-                {error.message}
-              </p>
-            )}
-
-            {error.digest && <p className="text-xs text-gray-400 mb-6">Error ID: {error.digest}</p>}
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <EditorialStatePage
+          index="E0"
+          eyebrow="System interruption"
+          code="PAUSED"
+          title="Insight cannot complete this view right now."
+          description="A critical interface error interrupted the current request. Retry the application state, or return home and begin from a clean route."
+          icon={<AlertOctagon className="h-6 w-6" />}
+          fullHeight
+          detail={
+            <>
+              {error.message && process.env.NODE_ENV === 'development' && (
+                <p className="max-h-40 overflow-auto border-l-2 border-red-500 bg-red-50 p-3 text-left font-mono text-sm text-slate-600">
+                  {error.message}
+                </p>
+              )}
+              {error.digest && (
+                <p className="mt-3 font-mono text-xs text-slate-400">Error ID: {error.digest}</p>
+              )}
+            </>
+          }
+          actions={
+            <>
               <button
                 onClick={reset}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors rounded-md"
+                className="inline-flex items-center justify-center gap-2 border border-slate-950 bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
               >
                 <RefreshCw className="w-4 h-4" />
                 Try Again
@@ -52,14 +54,14 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
               <Link
                 href="/"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors rounded-md"
+                className="inline-flex items-center justify-center gap-2 border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-400 hover:text-blue-700"
               >
                 <Home className="w-4 h-4" />
                 Back to Home
               </Link>
-            </div>
-          </div>
-        </div>
+            </>
+          }
+        />
       </body>
     </html>
   );

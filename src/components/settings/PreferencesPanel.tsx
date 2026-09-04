@@ -179,10 +179,10 @@ export function PreferencesPanel() {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <section className="settings-record">
             <div className="px-6 py-5 border-b border-slate-100">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
                   <Database className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
@@ -194,14 +194,14 @@ export function PreferencesPanel() {
 
             <div className="p-6 space-y-6">
               {success && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm flex items-center gap-2">
+                <div className="flex items-center gap-2 border-l-2 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700">
                   <CheckCircle className="w-4 h-4" />
                   {success}
                 </div>
               )}
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                <div className="border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-700">
                   {error}
                 </div>
               )}
@@ -217,10 +217,10 @@ export function PreferencesPanel() {
                       <button
                         key={option.value}
                         onClick={() => updatePreference('defaultOracle', option.value)}
-                        className={`px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                        className={`border px-3 py-2 text-sm font-medium transition-colors ${
                           preferences.defaultOracle === option.value
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300'
+                            ? 'border-blue-700 bg-blue-700 text-white'
+                            : 'border-slate-200 bg-white/70 text-slate-700 hover:border-blue-300 hover:bg-blue-50/50'
                         }`}
                       >
                         {option.label}
@@ -292,7 +292,7 @@ export function PreferencesPanel() {
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
           <div className="flex justify-end">
             <Button
@@ -305,7 +305,7 @@ export function PreferencesPanel() {
                   <Save className="w-4 h-4" />
                 )
               }
-              className="rounded-xl"
+              className="rounded-sm"
             >
               Save Settings
             </Button>

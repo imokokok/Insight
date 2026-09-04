@@ -95,17 +95,17 @@ export default function FeedsTable({ feeds }: { feeds: FeedRow[] }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="搜索 provider / symbol / 原因"
-          className="flex-1 min-w-[200px] max-w-sm px-3 py-1.5 rounded-lg text-sm border border-gray-200 bg-white text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-200"
+          className="min-w-[200px] max-w-sm flex-1 border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
         />
         <button
           type="button"
           onClick={exportCsv}
-          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+          className="inline-flex shrink-0 items-center gap-1.5 border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:border-primary-400 hover:text-primary-700"
         >
           导出 CSV
         </button>
       </div>
-      <div className="overflow-x-auto max-h-[60vh]">
+      <div className="max-h-[60vh] overflow-x-auto border-y border-slate-900/10">
         <table className={tableCls}>
           <thead>
             <tr>

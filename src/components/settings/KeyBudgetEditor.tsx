@@ -76,13 +76,13 @@ export function KeyBudgetEditor({
         value={value}
         disabled={!editing}
         onChange={(e) => setValue(e.target.value)}
-        className="w-28 px-2.5 py-1.5 rounded-lg border border-slate-200 text-sm font-mono text-slate-700 focus:border-blue-400 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+        className="w-28 border border-slate-200 px-2.5 py-1.5 font-mono text-sm text-slate-700 focus:border-blue-400 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
       />
       {editing ? (
         <Button
           variant="secondary"
           size="sm"
-          className="rounded-lg border-blue-200 text-blue-700 hover:bg-blue-50"
+          className="rounded-sm border-blue-200 text-blue-700 hover:bg-blue-50"
           leftIcon={<Save className="w-3.5 h-3.5" />}
           onClick={save}
         >
@@ -92,7 +92,7 @@ export function KeyBudgetEditor({
         <Button
           variant="ghost"
           size="sm"
-          className="rounded-lg text-slate-500"
+          className="rounded-sm text-slate-500"
           onClick={() => setEditing(true)}
         >
           Edit
