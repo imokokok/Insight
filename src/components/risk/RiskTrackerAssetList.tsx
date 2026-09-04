@@ -42,8 +42,8 @@ export function RiskTrackerAssetList<T extends RiskSnapshotBase>({
   onSelect,
 }: RiskTrackerAssetListProps<T>) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden lg:sticky lg:top-6">
-      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 space-y-2">
+    <div className="overflow-hidden border-y border-slate-900/15 bg-white/45 lg:sticky lg:top-24">
+      <div className="space-y-2 border-b border-slate-900/10 bg-slate-50/50 px-4 py-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-slate-900">Tracked Assets</h2>
           {lastUpdatedAt && (
@@ -60,7 +60,7 @@ export function RiskTrackerAssetList<T extends RiskSnapshotBase>({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search assets..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full border-0 border-b border-slate-300 bg-transparent py-1.5 pl-8 pr-3 text-xs focus:border-blue-600 focus:outline-none focus:ring-0"
           />
         </div>
       </div>
@@ -75,8 +75,10 @@ export function RiskTrackerAssetList<T extends RiskSnapshotBase>({
             const isSelected = selectedSymbol === snapshot.symbol;
             return (
               <button
+                type="button"
                 key={snapshot.symbol}
                 onClick={() => onSelect(snapshot.symbol)}
+                aria-pressed={isSelected}
                 className={cn(
                   'w-full px-4 py-3.5 text-left transition-colors hover:bg-slate-50',
                   isSelected

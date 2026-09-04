@@ -12,14 +12,9 @@ interface ImpactCardProps {
 
 export function ImpactCard({ title, count, description, icon, className }: ImpactCardProps) {
   return (
-    <div
-      className={cn(
-        'bg-slate-50 rounded-xl border border-slate-100 p-4 transition-shadow hover:shadow-sm',
-        className
-      )}
-    >
+    <div className={cn('border-y border-slate-900/15 bg-slate-50/60 p-4', className)}>
       <div className="flex items-center gap-2 mb-2">
-        <div className="p-1.5 bg-white rounded-lg shadow-sm text-slate-500">{icon}</div>
+        <div className="border border-blue-200 bg-white p-1.5 text-blue-600">{icon}</div>
         <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
       </div>
       <div className="text-2xl font-bold text-slate-900 mb-1">{count}</div>

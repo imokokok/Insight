@@ -22,11 +22,11 @@ const SIBLING: Record<'stablecoin' | 'wrapped', { href: string; label: string; d
 export function PegSiblingNav({ page }: { page: 'stablecoin' | 'wrapped' }) {
   const sibling = SIBLING[page];
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+    <div className="editorial-frame mx-auto max-w-[1440px] px-5 pt-6 sm:px-8 lg:px-12">
       <Link
         href={sibling.href}
         className={cn(
-          'group flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-colors hover:border-blue-300 hover:bg-blue-50/40'
+          'group flex items-center justify-between gap-4 border-y border-slate-900/15 bg-white/35 px-4 py-3 transition-colors hover:border-blue-300 hover:bg-blue-50/40'
         )}
       >
         <div className="min-w-0">

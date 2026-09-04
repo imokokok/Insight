@@ -19,7 +19,7 @@ const WRAPPED_TYPE_LABELS: Record<string, string> = {
 export const pegMonitorConfigs = {
   stablecoin: {
     page: 'stablecoin',
-    title: 'Stablecoin Depeg Tracker',
+    title: 'See the peg before the protocol feels it.',
     description:
       '15-minute tracking of USDC, USDT, DAI and other major stablecoins across oracle providers and chains, mapped to DeFi protocols that accept them as collateral or borrow assets.',
     apiEndpoint: '/api/stablecoin-depeg',
@@ -39,7 +39,7 @@ export const pegMonitorConfigs = {
 
       return (
         <div className="space-y-5">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 border-y border-slate-900/15 sm:grid-cols-4">
             <MetricCard label="Reference Price" value={formatPrice(snapshot.referencePrice)} />
             <MetricCard
               label="Max Deviation"
@@ -51,12 +51,12 @@ export const pegMonitorConfigs = {
           </div>
 
           {snapshot.marketReferencePrice > 0 && (
-            <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+            <div className="border-y border-slate-900/15 bg-slate-50/60 p-4">
               <h4 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-blue-600" />
                 Oracle vs DEX Market
               </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+              <div className="mb-3 grid grid-cols-2 border-y border-slate-900/15 sm:grid-cols-4">
                 <MetricCard
                   label="Market Price"
                   value={formatPrice(snapshot.marketReferencePrice)}
@@ -86,7 +86,7 @@ export const pegMonitorConfigs = {
           )}
 
           {snapshot.riskReason && snapshot.riskLevel !== 'normal' && (
-            <div className="bg-amber-50 rounded-xl border border-amber-200 p-3">
+            <div className="border-l-2 border-amber-500 bg-amber-50 p-3">
               <p className="text-sm text-amber-800">{snapshot.riskReason}</p>
             </div>
           )}
@@ -112,7 +112,7 @@ export const pegMonitorConfigs = {
 
   wrapped: {
     page: 'wrapped',
-    title: 'Wrapped Asset Peg Tracker',
+    title: 'Measure what the wrapper is really worth.',
     description:
       'Tracking WBTC, wstETH, cbETH and other wrapped or liquid-staking tokens for peg deviations against their underlying assets, with protocol impact analysis.',
     apiEndpoint: '/api/wrapped-assets',
@@ -125,7 +125,7 @@ export const pegMonitorConfigs = {
     getAssetSubtext: (s: WrappedAssetSnapshot) => WRAPPED_TYPE_LABELS[s.type],
     renderOverview: (snapshot: WrappedAssetSnapshot) => (
       <div className="space-y-5">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 border-y border-slate-900/15 sm:grid-cols-4">
           <MetricCard label="Market Price" value={formatPrice(snapshot.wrappedMarketPrice)} />
           <MetricCard
             label="Fair Value"
@@ -136,7 +136,7 @@ export const pegMonitorConfigs = {
         </div>
 
         {snapshot.type === 'lst-eth' && (
-          <div className="bg-blue-50 rounded-xl border border-blue-100 p-4">
+          <div className="border-l-2 border-blue-600 bg-blue-50 p-4">
             <h4 className="text-sm font-semibold text-blue-900 mb-2">Liquid Staking Token Note</h4>
             <p className="text-sm text-blue-700 leading-relaxed">
               {snapshot.symbol} is a liquid staking token. Its fair value is computed as market

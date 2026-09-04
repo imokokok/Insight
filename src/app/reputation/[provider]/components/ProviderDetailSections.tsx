@@ -132,10 +132,10 @@ export function ProviderProfile({ provider }: { provider: string }) {
   if (!profile) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/60 p-5">
+    <section className="border-y border-slate-900/15 bg-white/45 p-5">
       <div className="flex items-center gap-2 mb-3">
-        <div className="p-1.5 rounded-lg bg-violet-50">
-          <Sparkles className="w-4 h-4 text-violet-500" />
+        <div className="border border-blue-200 bg-blue-50 p-1.5">
+          <Sparkles className="w-4 h-4 text-blue-600" />
         </div>
         <h2 className="text-sm font-black text-gray-900">Provider Profile</h2>
       </div>
@@ -169,7 +169,7 @@ export function ProviderProfile({ provider }: { provider: string }) {
           </span>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -185,17 +185,20 @@ export function ScoreBreakdown({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/60 p-5">
+    <section className="border-y border-slate-900/15 bg-white/45 p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-amber-50">
-            <Award className="w-4 h-4 text-amber-500" />
+          <div className="border border-blue-200 bg-blue-50 p-1.5">
+            <Award className="w-4 h-4 text-blue-600" />
           </div>
           <h2 className="text-sm font-black text-gray-900">Score Composition</h2>
         </div>
         <button
+          type="button"
           onClick={() => setExpanded(!expanded)}
-          className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+          aria-expanded={expanded}
+          aria-label={expanded ? 'Hide score methodology' : 'Show score methodology'}
+          className="p-1 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           {expanded ? (
             <ChevronUp className="w-4 h-4 text-gray-400" />
@@ -267,18 +270,18 @@ export function ScoreBreakdown({
               },
               { color: 'bg-emerald-400', title: 'Uptime (20%)', desc: 'Successful response rate' },
               {
-                color: 'bg-violet-400',
+                color: 'bg-blue-700',
                 title: 'Reliability (20%)',
                 desc: 'Consistency of performance with stability bonus',
               },
               { color: 'bg-amber-400', title: 'Freshness (15%)', desc: 'Data update frequency' },
               {
-                color: 'bg-cyan-400',
+                color: 'bg-slate-500',
                 title: 'Latency (10%)',
                 desc: 'Response speed (baseline-normalized per provider)',
               },
               {
-                color: 'bg-rose-400',
+                color: 'bg-red-500',
                 title: 'Deviation (5%)',
                 desc: 'Price deviation from consensus (unified curve)',
               },
@@ -293,13 +296,13 @@ export function ScoreBreakdown({
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
 export function HowItWorks() {
   return (
-    <div className="bg-white rounded-xl border border-gray-200/60 p-5">
+    <section className="border-l-2 border-blue-600 bg-blue-50/35 p-5">
       <div className="flex items-start gap-3">
         <div className="p-1.5 rounded-lg bg-blue-50 flex-shrink-0">
           <Info className="w-4 h-4 text-blue-500" />
@@ -315,18 +318,18 @@ export function HowItWorks() {
               },
               { color: 'bg-emerald-400', title: 'Uptime (20%)', desc: 'Successful response rate' },
               {
-                color: 'bg-violet-400',
+                color: 'bg-blue-700',
                 title: 'Reliability (20%)',
                 desc: 'Consistency of performance with stability bonus',
               },
               { color: 'bg-amber-400', title: 'Freshness (15%)', desc: 'Data update frequency' },
               {
-                color: 'bg-cyan-400',
+                color: 'bg-slate-500',
                 title: 'Latency (10%)',
                 desc: 'Response speed (baseline-normalized per provider)',
               },
               {
-                color: 'bg-rose-400',
+                color: 'bg-red-500',
                 title: 'Deviation (5%)',
                 desc: 'Price deviation from consensus (unified curve)',
               },
@@ -349,7 +352,7 @@ export function HowItWorks() {
           </p>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -367,12 +370,16 @@ export function Sidebar({
   timeAgo: ReturnType<typeof formatTimeAgo>;
 }) {
   return (
-    <div className="lg:w-[380px] lg:flex-shrink-0">
-      <div className="bg-white rounded-xl border border-gray-200/60 p-5 lg:sticky lg:top-20">
+    <aside>
+      <div className="border-y border-slate-900/15 bg-white/45 p-5 lg:sticky lg:top-24">
+        <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+          <p className="editorial-index">01 — Read the score</p>
+          <span className="font-mono text-[10px] text-slate-400">7 DAYS</span>
+        </div>
         <div className="flex items-center gap-3 mb-5">
           <OracleLogo provider={provider as OracleProvider} size={36} />
           <div>
-            <h1 className="text-xl font-black text-gray-900">{providerName}</h1>
+            <h2 className="text-xl font-black text-gray-900">{providerName}</h2>
             <p className="text-[10px] text-gray-400 font-mono uppercase tracking-wide">
               {provider}
             </p>
@@ -432,7 +439,7 @@ export function Sidebar({
             value={reputation.reliability_score}
             suffix="%"
             maxVal={100}
-            color="#8b5cf6"
+            color="#2563eb"
             weight={20}
           />
           <MetricRow
@@ -492,6 +499,6 @@ export function Sidebar({
           )}
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

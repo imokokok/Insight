@@ -21,6 +21,7 @@ import {
   XCircle,
 } from 'lucide-react';
 
+import { EditorialWorkspaceHeader } from '@/components/editorial';
 import { ErrorBoundary } from '@/components/error-boundary';
 import type { DailyReportData } from '@/lib/reports/reportService';
 
@@ -95,45 +96,52 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
 
   return (
     <ErrorBoundary level="page" componentName="ReportDetailContent">
-      <div className="min-h-screen bg-[#FAFAFA]">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          {/* Breadcrumb */}
-          <Link
-            href="/reports"
-            className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors mb-8"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back to reports
-          </Link>
-
-          {/* Header */}
-          <header className="mb-10">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
-              <div className="max-w-2xl">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {dateLabel}
-                  </span>
-                  <StatusBadge metrics={report.metrics} />
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-semibold text-gray-950 tracking-tight mb-3">
-                  {report.reportTitle}
-                </h1>
-                <p className="text-[15px] text-gray-600 leading-relaxed">{report.summary}</p>
+      <div className="editorial-workspace min-h-screen">
+        <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
+          <EditorialWorkspaceHeader
+            index="05.1"
+            stage="Daily record"
+            eyebrow={`${dateLabel} · ${report.reportTitle}`}
+            title="Read the day as evidence, not noise."
+            description={report.summary}
+            evidence={['Network health', 'Deviation events', 'Coverage record']}
+            action={
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href="/reports"
+                  className="group inline-flex items-center gap-1.5 border border-slate-900/20 bg-white px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:border-blue-400 hover:text-blue-700"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+                  Report archive
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-3 py-2 text-xs font-medium text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
+                >
+                  {copied ? <CheckCircle2 className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+                  {copied ? 'Copied' : 'Share'}
+                </button>
               </div>
-              <button
-                onClick={handleCopy}
-                className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 self-start"
-              >
-                {copied ? <CheckCircle2 className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-                {copied ? 'Copied' : 'Share'}
-              </button>
+            }
+          />
+
+          <div className="mb-3 mt-7 flex flex-col gap-3 border-b border-slate-900/15 pb-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="editorial-index mb-1">01 — Daily position</p>
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <Calendar className="h-3.5 w-3.5" />
+                {dateLabel}
+                <StatusBadge metrics={report.metrics} />
+              </div>
             </div>
-          </header>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
+              15 minute snapshots
+            </span>
+          </div>
 
           {/* KPIs */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="mb-7 grid grid-cols-2 border-y border-slate-900/15 lg:grid-cols-4">
             <MetricCard
               label="Success rate"
               value={`${report.metrics.overallSuccessRate.toFixed(1)}%`}
@@ -184,10 +192,16 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
 
           {/* Key takeaways */}
           <div className="mb-10">
+            <p className="editorial-index mb-3 border-b border-slate-900/15 pb-3">
+              02 — Read the conclusions
+            </p>
             <KeyTakeaways report={report} />
           </div>
 
           {/* Feedback overview */}
+          <p className="editorial-index mb-3 border-b border-slate-900/15 pb-3">
+            03 — Inspect the evidence
+          </p>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             <SectionCard title="Network health" icon={Shield}>
               <HealthScoreGauge report={report} />

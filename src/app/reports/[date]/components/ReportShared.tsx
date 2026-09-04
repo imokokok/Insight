@@ -44,9 +44,9 @@ export function SectionCard({
   className?: string;
 }) {
   return (
-    <section className={cn('bg-white rounded-xl border border-gray-200 shadow-sm', className)}>
-      <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
-        <Icon className="w-4 h-4 text-gray-500" />
+    <section className={cn('border-y border-slate-900/15 bg-white/45', className)}>
+      <div className="flex items-center gap-2 border-b border-slate-900/10 px-5 py-4">
+        <Icon className="w-4 h-4 text-blue-600" />
         <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
@@ -71,16 +71,18 @@ export function CollapsibleSummarySection({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className={cn('bg-white rounded-xl border border-gray-200 shadow-sm', className)}>
-      <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
-        <Icon className="w-4 h-4 text-gray-500" />
+    <section className={cn('border-y border-slate-900/15 bg-white/45', className)}>
+      <div className="flex items-center gap-2 border-b border-slate-900/10 px-5 py-4">
+        <Icon className="w-4 h-4 text-blue-600" />
         <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
       </div>
       <div className="p-5">
         {open ? children : summary}
         <button
+          type="button"
           onClick={() => setOpen((prev) => !prev)}
-          className="inline-flex items-center gap-1.5 mt-4 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+          aria-expanded={open}
+          className="mt-4 inline-flex items-center gap-1.5 border-b border-slate-400 pb-1 text-xs font-medium text-gray-600 transition-colors hover:border-blue-600 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           {open ? (
             <>
@@ -120,14 +122,14 @@ export function MetricCard({
   }[tone];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+    <div className="border-b border-r border-slate-900/10 bg-white/35 p-5 last:border-r-0 lg:border-b-0">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs text-gray-500 mb-1">{label}</p>
           <p className="text-2xl font-semibold text-gray-950 font-tabular">{value}</p>
           {subtext && <p className="text-xs text-gray-500 mt-1">{subtext}</p>}
         </div>
-        <div className={cn('p-2 rounded-lg', toneClass)}>
+        <div className={cn('border border-current/10 p-2', toneClass)}>
           <Icon className="w-4 h-4" />
         </div>
       </div>
@@ -152,7 +154,7 @@ export function PanelInsight({
   return (
     <div
       className={cn(
-        'mt-4 px-3 py-2.5 rounded-lg border text-xs leading-relaxed flex items-start gap-2',
+        'mt-4 flex items-start gap-2 border-l-2 px-3 py-2.5 text-xs leading-relaxed',
         toneClasses
       )}
     >
@@ -166,7 +168,7 @@ export function KeyTakeaways({ report }: { report: DailyReportData }) {
   const takeaways = report.recommendations ?? [];
   if (takeaways.length === 0) {
     return (
-      <div className="flex items-start gap-3 text-gray-600 bg-gray-50 border border-gray-200 rounded-lg p-4">
+      <div className="flex items-start gap-3 border-y border-gray-200 bg-gray-50 p-4 text-gray-600">
         <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
         <p className="text-sm">No key takeaways for this period.</p>
       </div>
@@ -176,7 +178,7 @@ export function KeyTakeaways({ report }: { report: DailyReportData }) {
   const maxItems = report.metrics.criticalEvents > 0 || report.metrics.highEvents > 0 ? 5 : 3;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+    <div className="border-y border-slate-900/15 bg-white/45 p-5">
       <div className="flex items-center gap-2 mb-4">
         <Lightbulb className="w-4 h-4 text-amber-500" />
         <h2 className="text-sm font-semibold text-gray-900">Key takeaways</h2>
@@ -184,7 +186,7 @@ export function KeyTakeaways({ report }: { report: DailyReportData }) {
       <ul className="space-y-3">
         {takeaways.slice(0, maxItems).map((text, index) => (
           <li key={index} className="flex items-start gap-3 text-sm text-gray-700 leading-relaxed">
-            <span className="flex-shrink-0 w-5 h-5 rounded-md bg-gray-100 text-gray-600 flex items-center justify-center text-[10px] font-semibold">
+            <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center border border-slate-200 bg-gray-100 text-[10px] font-semibold text-gray-600">
               {index + 1}
             </span>
             {text}
@@ -200,10 +202,10 @@ export function getReportRiskLevelConfig(level: ReportRiskLevel) {
     case 'severe':
       return {
         label: 'Severe',
-        dot: 'bg-purple-500',
-        text: 'text-purple-700',
-        bg: 'bg-purple-50',
-        border: 'border-purple-100',
+        dot: 'bg-red-700',
+        text: 'text-red-800',
+        bg: 'bg-red-50',
+        border: 'border-red-200',
       };
     case 'critical':
       return {

@@ -39,7 +39,7 @@ export function TrendCharts({
 
   if (trend.length < 2) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200/60 p-5">
+      <section className="border-y border-slate-900/15 bg-white/45 p-5">
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="w-5 h-5 text-gray-400" />
           <h3 className="text-sm font-black text-gray-900">Performance Trend</h3>
@@ -51,20 +51,20 @@ export function TrendCharts({
           </p>
           <p className="text-xs text-gray-300 mt-1">Data is collected every 15 minutes</p>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/60 p-5">
+    <section className="border-y border-slate-900/15 bg-white/45 p-5">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-blue-50">
+          <div className="border border-blue-200 bg-blue-50 p-1.5">
             <BarChart3 className="w-4 h-4 text-blue-500" />
           </div>
           <h3 className="text-sm font-black text-gray-900">Performance Trend</h3>
         </div>
-        <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2.5 py-1 rounded-full">
+        <span className="border-l border-slate-300 px-2.5 py-1 font-mono text-[10px] font-bold text-gray-400">
           {trend.length} data points
         </span>
       </div>
@@ -95,7 +95,7 @@ export function TrendCharts({
           unit="ms"
         />
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -144,7 +144,7 @@ function TrendArea({
           <RechartsTooltip
             contentStyle={{
               fontSize: 11,
-              borderRadius: 10,
+              borderRadius: 2,
               border: '1px solid #e5e7eb',
               boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
             }}
@@ -198,7 +198,7 @@ function TrendLine({
           <RechartsTooltip
             contentStyle={{
               fontSize: 11,
-              borderRadius: 10,
+              borderRadius: 2,
               border: '1px solid #e5e7eb',
               boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
             }}

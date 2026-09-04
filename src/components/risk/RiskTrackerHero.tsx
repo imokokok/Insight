@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { AlertCircle, ShieldAlert, TrendingUp } from 'lucide-react';
 
+import { EditorialWorkspaceHeader } from '@/components/editorial';
 import { RISK_LEVELS } from '@/lib/risk/constants';
 import type { RiskLevel } from '@/lib/risk/types';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,7 @@ interface RiskSummaryStat {
 }
 
 interface RiskTrackerHeroProps {
+  page: 'stablecoin' | 'wrapped';
   title: string;
   description: string;
   eyebrow?: string;
@@ -24,29 +25,6 @@ interface RiskTrackerHeroProps {
   stats: RiskSummaryStat[];
   className?: string;
 }
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.05,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: [0.16, 1, 0.3, 1] as const,
-    },
-  },
-};
 
 function getStatIcon(icon: RiskSummaryStat['icon']) {
   switch (icon) {
@@ -66,6 +44,7 @@ function getLevelStyles(level?: RiskLevel) {
 }
 
 export function RiskTrackerHero({
+  page,
   title,
   description,
   eyebrow = 'Risk Surveillance',
@@ -75,102 +54,52 @@ export function RiskTrackerHero({
 }: RiskTrackerHeroProps) {
   return (
     <section
-      className={cn(
-        'relative overflow-hidden bg-gradient-to-br from-blue-50/80 via-slate-50/60 to-white border-b border-slate-200',
-        className
-      )}
+      className={cn('editorial-frame mx-auto max-w-[1440px] px-5 pt-4 sm:px-8 lg:px-12', className)}
     >
-      {/* Abstract gradient orbs */}
-      <div
-        className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full opacity-40"
-        style={{
-          background:
-            'radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(59,130,246,0.04) 40%, transparent 70%)',
-          filter: 'blur(80px)',
-        }}
-      />
-      <div
-        className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full opacity-40"
-        style={{
-          background:
-            'radial-gradient(circle, rgba(139,92,246,0.1) 0%, rgba(139,92,246,0.03) 40%, transparent 70%)',
-          filter: 'blur(70px)',
-        }}
+      <EditorialWorkspaceHeader
+        index={page === 'stablecoin' ? '07' : '08'}
+        stage="Monitor"
+        eyebrow={`${eyebrow} · Live peg evidence across sources and protocols`}
+        title={title}
+        description={description}
+        evidence={['Source agreement', 'Deviation duration', 'Protocol impact']}
+        action={
+          <div className="inline-flex items-center gap-2 border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
+            {icon}
+            Live surveillance
+          </div>
+        }
       />
 
-      {/* Grid pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            'linear-gradient(to right, #94a3b8 1px, transparent 1px), linear-gradient(to bottom, #94a3b8 1px, transparent 1px)',
-          backgroundSize: '64px 64px',
-        }}
-      />
-
-      <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-10 sm:pt-14 sm:pb-14">
-        <motion.div
-          className="max-w-5xl"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.div
-            variants={itemVariants}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-blue-200 text-blue-700 text-xs font-medium mb-5 shadow-sm"
+      <div className="mb-3 mt-7 flex items-center justify-between border-b border-slate-900/15 pb-3">
+        <p className="editorial-index">01 — Market condition</p>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
+          60s refresh
+        </span>
+      </div>
+      <div className="grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-3">
+        {stats.map((stat) => (
+          <div
+            key={stat.id}
+            className={cn(
+              'flex items-center gap-3 border-b border-r border-slate-900/10 bg-white/35 px-4 py-4 last:border-r-0 sm:border-b-0',
+              stat.id === 'alerts' && stat.level && getLevelStyles(stat.level)
+            )}
           >
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>{eyebrow}</span>
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="flex items-start gap-4 mb-5">
-            <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-200 text-blue-600 hidden sm:flex">
-              {icon}
-            </div>
+            <div className="text-blue-600">{getStatIcon(stat.icon)}</div>
             <div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight leading-[1.1]">
-                {title}
-              </h1>
-              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-3xl mt-2">
-                {description}
-              </p>
-            </div>
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-3">
-            {stats.map((stat) => (
-              <div
-                key={stat.id}
-                className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-xl border shadow-sm min-w-[140px]',
-                  stat.id === 'alerts' && stat.level
-                    ? getLevelStyles(stat.level)
-                    : 'bg-white/80 backdrop-blur-sm border-slate-200'
-                )}
-              >
-                <div
-                  className={cn(
-                    'p-1.5 rounded-lg',
-                    stat.id === 'alerts'
-                      ? stat.level && stat.level !== 'normal'
-                        ? RISK_LEVELS[stat.level].bg
-                        : 'bg-emerald-50'
-                      : 'bg-slate-50'
-                  )}
-                >
-                  {getStatIcon(stat.icon)}
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500 font-medium">{stat.label}</div>
-                  <div className="text-lg font-bold text-slate-900 leading-tight">{stat.value}</div>
-                  {stat.subtext && (
-                    <div className="text-[10px] text-slate-400 mt-0.5">{stat.subtext}</div>
-                  )}
-                </div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                {stat.label}
               </div>
-            ))}
-          </motion.div>
-        </motion.div>
+              <div className="font-mono text-xl font-bold leading-tight text-slate-950">
+                {stat.value}
+              </div>
+              {stat.subtext && (
+                <div className="mt-0.5 text-[10px] text-slate-400">{stat.subtext}</div>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );

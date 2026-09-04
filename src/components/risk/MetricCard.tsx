@@ -17,7 +17,7 @@ export function MetricCard({ label, value, trend = 'neutral', className }: Metri
   return (
     <div
       className={cn(
-        'bg-slate-50 rounded-xl border border-slate-100 p-3 transition-colors hover:bg-slate-100/50',
+        'border-b border-r border-slate-900/10 bg-slate-50/60 p-3 transition-colors hover:bg-slate-100/70 last:border-r-0',
         className
       )}
     >

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { motion } from 'framer-motion';
 import { Activity, AlertCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui';
@@ -81,9 +80,7 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ValidTab>('overview');
   const [searchQuery, setSearchQuery] = useState('');
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(
-    initialSnapshots.length > 0 ? Date.now() : null
-  );
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
   const hasInitializedRef = useRef(false);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -314,7 +311,7 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
 
   if (loading && snapshots.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="editorial-workspace flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Activity className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" />
           <p className="text-slate-600">Loading {page} tracking data...</p>
@@ -325,8 +322,8 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
 
   if (error && snapshots.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-xl border border-red-200 p-6 text-center">
+      <div className="editorial-workspace flex min-h-screen items-center justify-center p-6">
+        <div className="w-full max-w-md border-y border-red-200 bg-white/60 p-6 text-center">
           <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
           <h2 className="text-lg font-semibold text-slate-900 mb-2">Failed to Load</h2>
           <p className="text-sm text-slate-600 mb-4">{error}</p>
@@ -337,13 +334,9 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
   }
 
   return (
-    <motion.div
-      className="min-h-screen bg-slate-50"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as const }}
-    >
+    <div className="editorial-workspace min-h-screen">
       <RiskTrackerHero
+        page={page}
         title={title}
         description={description}
         eyebrow={heroEyebrow}
@@ -353,9 +346,13 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
 
       <PegSiblingNav page={page} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-3 xl:col-span-3">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-7 sm:px-8 lg:px-12 lg:pb-28">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-12">
+          <aside>
+            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+              <p className="editorial-index">02 — Select the asset</p>
+              <span className="font-mono text-[10px] text-slate-400">INPUT</span>
+            </div>
             <RiskTrackerAssetList
               snapshots={filteredSnapshots}
               selectedSymbol={selectedSymbol}
@@ -366,9 +363,13 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
               onSearchChange={setSearchQuery}
               onSelect={handleSelectSymbol}
             />
-          </div>
+          </aside>
 
-          <div className="lg:col-span-9 xl:col-span-9">
+          <section className="min-w-0" aria-label={`${title} evidence`}>
+            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+              <p className="editorial-index">03 — Inspect the evidence</p>
+              <span className="font-mono text-[10px] text-slate-400">ANALYSIS</span>
+            </div>
             {selectedSnapshot && (
               <RiskTrackerDetailPanel
                 snapshot={selectedSnapshot}
@@ -387,10 +388,10 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
                 onRefresh={handleManualRefresh}
               />
             )}
-          </div>
+          </section>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
