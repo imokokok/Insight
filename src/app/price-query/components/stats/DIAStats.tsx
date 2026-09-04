@@ -43,7 +43,7 @@ export function DIAStats({ data }: DIAStatsProps) {
       />
       <StatCard
         icon={Store}
-        iconColor="text-indigo-500"
+        iconColor="text-blue-700"
         title="Exchange Count"
         value={
           data.activeExchangeCount > 0
@@ -54,7 +54,7 @@ export function DIAStats({ data }: DIAStatsProps) {
       />
       <StatCard
         icon={Zap}
-        iconColor="text-purple-500"
+        iconColor="text-blue-600"
         title="Trading Pair Count"
         value={
           data.totalTradingPairs > 0

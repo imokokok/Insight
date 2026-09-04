@@ -53,14 +53,16 @@ function PriceQueryContentInner() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="editorial-workspace min-h-screen">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
         <div aria-live="polite" className="sr-only">
           {isLoading ? 'Loading data...' : `${queryResults.length} results`}
         </div>
 
-        <div className="flex flex-col gap-3 mb-4">
-          <QueryHeader />
+        <QueryHeader />
+
+        <div className="editorial-status-rail my-7 flex flex-col gap-3 border-y border-slate-900/15 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="editorial-index">Live query status</p>
           <LiveStatusBar
             isConnected={queryErrors.length === 0 && !isLoading}
             latency={queryDuration ?? undefined}
@@ -75,17 +77,25 @@ function PriceQueryContentInner() {
           />
         </div>
 
-        <div className="flex flex-col xl:flex-row gap-6">
-          <aside className="xl:w-[400px] xl:flex-shrink-0">
-            <div className="xl:sticky xl:top-4 space-y-4">
+        <div className="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
+          <aside>
+            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+              <p className="editorial-index">01 — Define the query</p>
+              <span className="font-mono text-[10px] text-slate-400">INPUT</span>
+            </div>
+            <div className="space-y-4 xl:sticky xl:top-24">
               <QueryForm />
               <QuickLinksPanel symbol={selectedSymbol} />
             </div>
           </aside>
 
-          <main className="flex-1 min-w-0">
+          <section className="min-w-0" aria-label="Price query evidence">
+            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+              <p className="editorial-index">02 — Inspect the evidence</p>
+              <span className="font-mono text-[10px] text-slate-400">OUTPUT</span>
+            </div>
             <QueryResults onChainData={onChainData satisfies OnChainData} />
-          </main>
+          </section>
         </div>
       </div>
     </div>

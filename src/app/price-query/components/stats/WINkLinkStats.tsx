@@ -34,14 +34,14 @@ export function WINkLinkStats({ data }: WINkLinkStatsProps) {
       />
       <StatCard
         icon={Clock}
-        iconColor="text-indigo-500"
+        iconColor="text-blue-700"
         title="Response Time"
         value={data.avgResponseTime != null ? `${data.avgResponseTime}ms` : '-'}
         description="Average response time"
       />
       <StatCard
         icon={Clock}
-        iconColor="text-purple-500"
+        iconColor="text-blue-600"
         title="Data Age"
         value={formatDataAge(data.priceUpdateTime)}
         description="Time since last update"

@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Calculator, Loader2 } from 'lucide-react';
+import { ArrowRight, Shield, Calculator, Loader2 } from 'lucide-react';
 
+import { EditorialWorkspaceHeader } from '@/components/editorial';
 import { isImportableProtocol } from '@/lib/protocols/detection';
 import type { ProtocolDetection } from '@/lib/protocols/detection';
 import type { EnrichedProtocolConfig } from '@/lib/protocols/dynamicData';
@@ -388,34 +389,34 @@ export default function SafetyCheckContent() {
               : 'idle';
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-8">
-          <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-100 text-amber-700 text-[11px] font-semibold uppercase tracking-wider mb-3">
-              Liquidation Risk Stress Test
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-              Position Critical Deviation
-            </h1>
-            <p className="text-base text-slate-500 mt-2 max-w-2xl">
-              连接钱包，自动扫描你在各大借贷协议上的持仓并实时计算清算临界偏离；也可手动选择协议录入。
-            </p>
-            <p className="text-sm text-slate-400 mt-2">
-              Every check is signed, and every receipt can be verified by anyone.{' '}
-              <Link href="/verify" className="text-blue-600 hover:underline">
-                Verify a receipt
-              </Link>
-            </p>
-          </div>
-        </div>
+    <div className="editorial-workspace min-h-screen">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
+        <EditorialWorkspaceHeader
+          index="03"
+          stage="Decide"
+          eyebrow="Liquidation-risk stress testing. Import a live lending position or describe it manually before testing the consequence of an oracle move."
+          title="Model the consequence before the market does."
+          description="Connect a wallet to scan supported lending positions, or enter one manually. Insight calculates critical deviation, health-factor pressure, and concrete adjustments."
+          evidence={['Position context', 'Deviation threshold', 'Signed outcome']}
+          action={
+            <Link
+              href="/verify"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800"
+            >
+              Verify a receipt <ArrowRight className="h-4 w-4" />
+            </Link>
+          }
+        />
 
         {/* Main layout */}
-        <div className="flex flex-col xl:flex-row gap-6">
+        <div className="grid gap-8 pt-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
           {/* Left sidebar */}
-          <aside className="xl:w-[400px] xl:flex-shrink-0">
-            <div className="xl:sticky xl:top-4 space-y-4">
+          <aside>
+            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+              <p className="editorial-index">01 — Define the position</p>
+              <span className="font-mono text-[10px] text-slate-400">INPUT</span>
+            </div>
+            <div className="xl:sticky xl:top-24 space-y-4">
               <WalletGate
                 address={address}
                 onAddress={handleAddressChange}
@@ -461,7 +462,7 @@ export default function SafetyCheckContent() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
+                  className="editorial-panel border-y border-slate-900/15 bg-white/35 p-5"
                 >
                   <div className="flex items-center gap-2 mb-3">
                     <Calculator className="w-4 h-4 text-blue-600" />
@@ -504,7 +505,11 @@ export default function SafetyCheckContent() {
           </aside>
 
           {/* Right content */}
-          <main className="flex-1 min-w-0">
+          <section className="min-w-0" aria-label="Safety check result">
+            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+              <p className="editorial-index">02 — Read the outcome</p>
+              <span className="font-mono text-[10px] text-slate-400">DECISION</span>
+            </div>
             <AnimatePresence mode="wait">
               {view === 'result' && result ? (
                 <motion.div
@@ -556,7 +561,7 @@ export default function SafetyCheckContent() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm py-20 flex flex-col items-center justify-center text-center"
+                  className="editorial-panel border-y border-slate-900/15 bg-white/35 py-20 flex flex-col items-center justify-center text-center"
                 >
                   <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
                   <h3 className="text-base font-semibold text-slate-900 mb-1">
@@ -574,7 +579,7 @@ export default function SafetyCheckContent() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm py-20 flex flex-col items-center justify-center text-center"
+                  className="editorial-panel border-y border-slate-900/15 bg-white/35 py-20 flex flex-col items-center justify-center text-center"
                 >
                   <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
                     <Shield className="w-7 h-7 text-blue-500" />
@@ -586,7 +591,7 @@ export default function SafetyCheckContent() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </main>
+          </section>
         </div>
       </div>
     </div>

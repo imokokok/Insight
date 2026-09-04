@@ -43,7 +43,7 @@ export function API3Stats({
       />
       <StatCard
         icon={Globe}
-        iconColor="text-indigo-500"
+        iconColor="text-blue-700"
         title="Blockchain"
         value={chain || '-'}
         description="Blockchain network"
@@ -57,7 +57,7 @@ export function API3Stats({
       />
       <StatCard
         icon={Clock}
-        iconColor="text-purple-500"
+        iconColor="text-blue-600"
         title="Data Age"
         value={formatDataAge(dataAge)}
         description="Time since last update"

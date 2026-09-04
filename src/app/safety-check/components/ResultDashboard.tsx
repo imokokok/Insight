@@ -196,7 +196,7 @@ export function ResultDashboard({
               className={cn(
                 'text-xs font-semibold px-2 py-1 rounded-full',
                 isJoint
-                  ? 'bg-purple-50 text-purple-700'
+                  ? 'bg-blue-50 text-blue-700'
                   : isDown
                     ? 'bg-red-50 text-red-700'
                     : 'bg-amber-50 text-amber-700'
@@ -228,21 +228,21 @@ export function ResultDashboard({
                   <>
                     {' '}
                     ±
-                    <span className="font-mono font-medium text-purple-600">
+                    <span className="font-mono font-medium text-blue-700">
                       {result.liquidationPriceBand.adversePercent.toFixed(2)}%
                     </span>
                   </>
                 )}
                 , your position will face liquidation
                 {result.liquidationPriceBand.adversePercent > 0 && (
-                  <span className="mt-1 block text-[11px] leading-snug text-purple-600/90">
+                  <span className="mt-1 block text-[11px] leading-snug text-blue-700/90">
                     Oracle uncertainty: liquidation price may actually be{' '}
                     <span className="font-mono">
                       {formatPrice(result.liquidationPriceBand.lower)} –{' '}
                       {formatPrice(result.liquidationPriceBand.upper)}
                     </span>
                     {result.liquidationPriceBand.unknown && (
-                      <span className="ml-1 rounded bg-purple-100/70 px-1 text-[9px] text-purple-600">
+                      <span className="ml-1 rounded bg-blue-100/70 px-1 text-[9px] text-blue-700">
                         unverified
                       </span>
                     )}
@@ -546,7 +546,7 @@ function JointDeviationCard({
     return { symbol: b.symbol, delta: majorEquivK * ratio * 100, direction: 'up' as const };
   });
 
-  // Joint deviation is always the most conservative scenario — use purple accent
+  // Joint deviation is always the most conservative scenario — use the product blue accent.
   const levelConfig =
     absDeviation < 5
       ? { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' }
@@ -561,21 +561,21 @@ function JointDeviationCard({
       className={cn(
         'flex flex-col gap-2 p-3 rounded-2xl border',
         isWorst
-          ? cn(levelConfig.bg, levelConfig.border, 'ring-1 ring-purple-200')
-          : 'border-purple-100 bg-purple-50/40'
+          ? cn(levelConfig.bg, levelConfig.border, 'ring-1 ring-blue-200')
+          : 'border-blue-100 bg-blue-50/40'
       )}
     >
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 w-20 shrink-0">
           <span className="font-medium text-slate-900 text-sm">JOINT</span>
           {isWorst && (
-            <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-purple-100 text-purple-600">
+            <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-blue-100 text-blue-700">
               WORST
             </span>
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <AlertTriangle className="w-3.5 h-3.5 text-purple-500" />
+          <AlertTriangle className="w-3.5 h-3.5 text-blue-600" />
           <span className={cn('text-sm font-bold font-mono', levelConfig.color)}>
             {absDeviation.toFixed(2)}%
           </span>
@@ -654,13 +654,13 @@ function OracleReliabilityWarnings({
                 <div className="flex items-center gap-1.5">
                   <Link
                     href={`/reputation/${encodeURIComponent(warning.provider)}`}
-                    className="text-sm font-medium text-slate-900 hover:text-indigo-600 transition-colors"
+                    className="text-sm font-medium text-slate-900 hover:text-blue-700 transition-colors"
                   >
                     {providerNames[warning.provider] ?? warning.provider}
                   </Link>
                   <Link
                     href={`/reputation/${encodeURIComponent(warning.provider)}`}
-                    className="text-slate-300 hover:text-indigo-500 transition-colors"
+                    className="text-slate-300 hover:text-blue-600 transition-colors"
                     title="View reputation details"
                   >
                     <ExternalLink className="w-3 h-3" />

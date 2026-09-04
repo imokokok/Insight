@@ -77,14 +77,14 @@ export function ReflectorStats({ data }: ReflectorStatsProps) {
       />
       <StatCard
         icon={Database}
-        iconColor="text-purple-500"
+        iconColor="text-blue-600"
         title="Base Asset"
         value={baseAsset}
         description="Base asset symbol"
       />
       <StatCard
         icon={Database}
-        iconColor="text-indigo-500"
+        iconColor="text-blue-700"
         title="Contract Version"
         value={version ? `v${version}` : '-'}
         description="Reflector contract version"

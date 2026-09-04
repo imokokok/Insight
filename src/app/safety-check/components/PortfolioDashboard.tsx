@@ -31,13 +31,13 @@ interface PortfolioDashboardProps {
 }
 
 function UpdatedAgo({ since }: { since: number | null }) {
-  const [, force] = useState(0);
+  const [now, setNow] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => force((n) => n + 1), 5000);
+    const id = setInterval(() => setNow(Date.now()), 5000);
     return () => clearInterval(id);
   }, []);
-  if (!since) return <span>just now</span>;
-  const secs = Math.max(0, Math.round((Date.now() - since) / 1000));
+  if (!since || !now) return <span>just now</span>;
+  const secs = Math.max(0, Math.round((now - since) / 1000));
   if (secs < 5) return <span>just now</span>;
   if (secs < 60) return <span>Updated {secs}s ago</span>;
   const mins = Math.floor(secs / 60);
@@ -163,7 +163,7 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
 
       {/* Combined summary */}
       {combined && (
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-sm p-6 text-white">
+        <div className="bg-gradient-to-br from-slate-950 to-blue-800 rounded-2xl shadow-sm p-6 text-white">
           <div className="flex items-center gap-2 mb-4">
             <Layers className="w-5 h-5" />
             <h3 className="text-base font-semibold">Portfolio Liquidation Guard</h3>

@@ -31,7 +31,7 @@ export function ChainlinkStats({
       />
       <StatCard
         icon={Layers}
-        iconColor="text-indigo-500"
+        iconColor="text-blue-700"
         title="Answered In Round"
         value={answeredInRound ? `#${answeredInRound.slice(-6)}` : '-'}
         description="Round ID where answer was provided"
@@ -52,7 +52,7 @@ export function ChainlinkStats({
       />
       <StatCard
         icon={History}
-        iconColor="text-purple-500"
+        iconColor="text-blue-600"
         title="Round Started"
         value={formatOracleTimestamp(startedAt)}
         description="Time when current round started"

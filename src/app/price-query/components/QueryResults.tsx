@@ -89,13 +89,15 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
         />
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-6 py-6 border-b border-slate-100">
+      <div className="editorial-panel border-y border-slate-900/15 bg-white/35 overflow-hidden">
+        <div className="px-5 py-6 sm:px-6 sm:py-7 border-b border-slate-900/10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               <TokenIcon symbol={selectedSymbol} />
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">{selectedSymbol}</h2>
+                <h2 className="text-2xl font-semibold tracking-[-0.035em] text-slate-950">
+                  {selectedSymbol}
+                </h2>
                 <p className="text-sm text-slate-500 flex items-center gap-1.5">
                   <Database className="w-3.5 h-3.5" />
                   {queryResults.length} Data Sources
@@ -104,14 +106,16 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
             </div>
 
             <div className="text-left sm:text-right">
-              <p className="text-sm text-slate-500 mb-1">Current Price</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 mb-1">
+                Observed consensus
+              </p>
               <div className="flex items-baseline gap-3 sm:justify-end">
                 <PriceFlash
                   value={currentPriceValue}
                   // eslint-disable-next-line react-hooks/refs -- previousPriceValueRef is updated in an effect after render; reading it here passes the pre-update value to PriceFlash for the flash animation, then the effect updates it for the next cycle.
                   previousValue={previousPriceValueRef.current ?? undefined}
                 >
-                  <span className="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight">
+                  <span className="font-mono text-4xl sm:text-5xl font-semibold text-slate-950 tracking-[-0.045em]">
                     {formatPrice(currentPriceValue)}
                   </span>
                 </PriceFlash>
@@ -120,8 +124,8 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
           </div>
         </div>
 
-        <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="px-5 py-5 border-b border-slate-900/10 bg-blue-50/20 sm:px-6">
+          <div className="grid grid-cols-2 divide-x divide-y divide-slate-900/10 border-y border-slate-900/10 md:grid-cols-3 lg:grid-cols-6 lg:divide-y-0">
             <StatsCardsSelector
               currentResult={queryResults[0]}
               diaOnChainData={diaOnChainData}
@@ -163,13 +167,13 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
           </div>
         </div>
 
-        <div className="p-6" ref={chartContainerRef}>
+        <div className="p-5 sm:p-6" ref={chartContainerRef}>
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-1 h-5 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full"></div>
+            <div className="h-px w-8 bg-blue-600"></div>
             <h3 className="text-sm font-semibold text-slate-800">Data Freshness Tracker</h3>
             <span className="text-xs text-slate-400 ml-2">Live data age tracking</span>
           </div>
-          <div className="bg-slate-50/50 rounded-xl border border-slate-100 p-4">
+          <div className="border-y border-slate-900/10 bg-white/25 p-4">
             <PriceFreshnessMonitor queryResults={queryResults} avgPrice={avgPrice} />
           </div>
         </div>
@@ -229,9 +233,9 @@ function CompareResultsSection({
   });
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-        <GitCompare className="w-4 h-4 text-violet-500" />
+    <div className="editorial-panel border-y border-slate-900/15 bg-white/35 overflow-hidden">
+      <div className="px-6 py-4 border-b border-slate-900/10 flex items-center gap-2">
+        <GitCompare className="w-4 h-4 text-blue-700" />
         <h3 className="text-sm font-semibold text-slate-800">Price Comparison</h3>
         <span className="text-xs text-slate-400 ml-2">
           {primaryResults.length} primary vs {compareResults.length} compare
@@ -240,7 +244,7 @@ function CompareResultsSection({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/50">
+            <tr className="border-b border-slate-900/10 bg-blue-50/20">
               <th className="text-left py-2.5 px-4 font-medium text-slate-500 text-xs">Oracle</th>
               <th className="text-left py-2.5 px-4 font-medium text-slate-500 text-xs">Chain</th>
               <th className="text-right py-2.5 px-4 font-medium text-slate-500 text-xs">
@@ -254,7 +258,7 @@ function CompareResultsSection({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-900/10">
             {comparisonRows.map((row) => (
               <tr key={row.key} className="hover:bg-slate-50 transition-colors">
                 <td className="py-2.5 px-4">

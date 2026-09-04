@@ -126,7 +126,7 @@ export function TokenIcon({ symbol, className = 'w-14 h-14' }: TokenIconProps) {
 
   return (
     <div
-      className={`rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg ${className}`}
+      className={`rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white font-bold text-xl shadow-lg ${className}`}
     >
       {symbol.slice(0, 2)}
     </div>

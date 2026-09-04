@@ -237,7 +237,7 @@ function MetricCard({
 }) {
   const TrendIcon = trend?.icon ?? Minus;
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 flex flex-col justify-between min-w-[140px]">
+    <div className="border-l border-slate-900/10 p-4 flex flex-col justify-between min-w-[140px] first:border-l-0">
       <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
         {label}
       </span>
@@ -299,9 +299,9 @@ function MarketSnapshotSummaryComponent({
   const spreadTrend = getTrend(summary.spread);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
+    <div className="editorial-panel grid grid-cols-1 border-y border-slate-900/15 bg-white/35 mb-8 lg:grid-cols-12">
       {/* Summary panel */}
-      <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      <div className="border-b border-slate-900/10 p-5 lg:col-span-5 lg:border-b-0 lg:border-r">
         <div className="flex items-center gap-2 mb-3">
           <Activity className="w-4 h-4 text-blue-600 flex-shrink-0" />
           <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
@@ -311,14 +311,14 @@ function MarketSnapshotSummaryComponent({
         <p className="text-sm text-slate-700 leading-relaxed">{summary.text}</p>
         <div className="flex flex-wrap items-center gap-2 mt-4">
           <div
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${riskBadge.bgClass} ${riskBadge.textClass} ${riskBadge.borderClass}`}
+            className={`inline-flex items-center gap-1.5 border-l-2 px-2.5 py-1 ${riskBadge.textClass} ${riskBadge.borderClass}`}
           >
             <RiskIcon className="w-3.5 h-3.5" />
             <span className="text-xs font-semibold">{riskBadge.label}</span>
             <span className="text-xs font-mono opacity-80">{summary.riskScore}</span>
           </div>
           <div
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${healthBadge.bgClass} ${healthBadge.colorClass} ${healthBadge.borderClass}`}
+            className={`inline-flex items-center gap-1.5 border-l-2 px-2.5 py-1 ${healthBadge.colorClass} ${healthBadge.borderClass}`}
           >
             <HealthIcon className="w-3.5 h-3.5" />
             <span className="text-xs font-semibold capitalize">{healthBadge.label}</span>
@@ -330,7 +330,7 @@ function MarketSnapshotSummaryComponent({
       </div>
 
       {/* Metric cards */}
-      <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3">
         <MetricCard
           label={dimension === 'oracle' ? 'Consensus Price' : 'Average Price'}
           value={summary.consensusPrice ? formatPrice(summary.consensusPrice) : '—'}

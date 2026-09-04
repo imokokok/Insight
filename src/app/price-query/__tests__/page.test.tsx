@@ -193,8 +193,9 @@ describe('PriceQueryPage', () => {
     it('should have correct container styles', () => {
       renderPriceQueryPage();
 
-      const container = screen.getByTestId('query-header').parentElement?.parentElement;
-      expect(container).toHaveClass('max-w-[1600px]');
+      const container = screen.getByTestId('query-header').parentElement;
+      expect(container).toHaveClass('editorial-frame');
+      expect(container).toHaveClass('max-w-[1440px]');
       expect(container).toHaveClass('mx-auto');
     });
 

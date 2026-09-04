@@ -38,7 +38,7 @@ export function FlareStats({ data }: FlareStatsProps) {
       />
       <StatCard
         icon={Hash}
-        iconColor="text-indigo-500"
+        iconColor="text-blue-700"
         title="Feed ID"
         value={truncateAddress(feedId, 10, 6)}
         description="FTSO feed identifier"
@@ -60,7 +60,7 @@ export function FlareStats({ data }: FlareStatsProps) {
       />
       <StatCard
         icon={Zap}
-        iconColor="text-purple-500"
+        iconColor="text-blue-600"
         title="Network"
         value={network ? network.toUpperCase() : '-'}
         description="Flare network"

@@ -102,13 +102,13 @@ export function SafetyBufferBreakdown({
       </div>
 
       {hasBand && (
-        <div className="mt-2 rounded-md border border-purple-200/60 bg-purple-50/60 p-2.5">
+        <div className="mt-2 rounded-md border border-blue-200/60 bg-blue-50/60 p-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-purple-700">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-blue-700">
               Oracle Uncertainty Band
             </span>
             <span
-              className="text-sm font-bold font-mono text-purple-700"
+              className="text-sm font-bold font-mono text-blue-700"
               title={
                 safetyBuffer.bandUnknown
                   ? 'Conservative placeholder — oracle health could not be verified'
@@ -119,7 +119,7 @@ export function SafetyBufferBreakdown({
             </span>
           </div>
           {liquidationPriceBand && liquidationPriceBand.center > 0 && (
-            <p className="mt-1 text-[11px] leading-snug text-purple-600/90">
+            <p className="mt-1 text-[11px] leading-snug text-blue-700/90">
               Displayed liq. price{' '}
               <span className="font-mono">{formatPrice(liquidationPriceBand.center)}</span> may
               actually be anywhere in{' '}
@@ -128,7 +128,7 @@ export function SafetyBufferBreakdown({
                 {formatPrice(liquidationPriceBand.upper)}
               </span>
               {safetyBuffer.bandUnknown && (
-                <span className="ml-1 rounded bg-purple-100/70 px-1 text-[9px] text-purple-600">
+                <span className="ml-1 rounded bg-blue-100/70 px-1 text-[9px] text-blue-700">
                   unverified
                 </span>
               )}

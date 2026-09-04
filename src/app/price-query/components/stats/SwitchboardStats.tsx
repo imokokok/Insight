@@ -57,14 +57,14 @@ export function SwitchboardStats({
       />
       <StatCard
         icon={Globe}
-        iconColor="text-indigo-500"
+        iconColor="text-blue-700"
         title="Source"
         value={source || '-'}
         description="Data source gateway"
       />
       <StatCard
         icon={Clock}
-        iconColor="text-purple-500"
+        iconColor="text-blue-600"
         title="Ingestion Time"
         value={formatOracleTimestamp(ingestionTimestamp)}
         description="When the price was ingested"

@@ -63,7 +63,7 @@ export function TwapStats({ data }: TwapStatsProps) {
       />
       <StatCard
         icon={Clock}
-        iconColor="text-purple-500"
+        iconColor="text-blue-600"
         title="TWAP Interval"
         value={data.twapInterval ? `${data.twapInterval / 60}m` : '-'}
         description="Time interval for TWAP calculation"
@@ -78,7 +78,7 @@ export function TwapStats({ data }: TwapStatsProps) {
       />
       <StatCard
         icon={Hash}
-        iconColor="text-indigo-500"
+        iconColor="text-blue-700"
         title="Pool Address"
         value={truncateAddress(data.poolAddress)}
         description="Liquidity pool address"

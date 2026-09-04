@@ -1,5 +1,7 @@
 'use client';
 
+import { EditorialWorkspaceHeader } from '@/components/editorial';
+
 import { useQueryDataStable, useQueryParams } from '../contexts';
 
 import UnifiedExportSection from './UnifiedExportSection';
@@ -12,21 +14,14 @@ export function QueryHeader() {
     stats;
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
-      <div>
-        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-[11px] font-semibold uppercase tracking-wider mb-3">
-          On-Demand Oracle Prices
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-          Price Query
-        </h1>
-        <p className="text-base text-slate-500 mt-2 max-w-2xl">
-          Query current oracle prices across providers and chains with on-chain verification
-          metadata.
-        </p>
-      </div>
-
-      <div className="flex items-center gap-2">
+    <EditorialWorkspaceHeader
+      index="01"
+      stage="Observe"
+      eyebrow="On-demand oracle price inspection. Choose a provider, network, and asset to expose the record behind the number."
+      title="Ask the source before trusting the price."
+      description="Query current oracle prices with their chain, freshness, source metadata, and verification context kept together."
+      evidence={['Source identity', 'Update freshness', 'Verification record']}
+      action={
         <UnifiedExportSection
           loading={loading}
           queryResults={queryResults}
@@ -38,7 +33,7 @@ export function QueryHeader() {
           standardDeviation={standardDeviation}
           standardDeviationPercent={standardDeviationPercent}
         />
-      </div>
-    </div>
+      }
+    />
   );
 }

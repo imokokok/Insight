@@ -60,12 +60,12 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
-      className="bg-gradient-to-br from-indigo-50/40 to-purple-50/30 rounded-lg border border-indigo-200 shadow-sm p-5"
+      className="editorial-panel border-y border-slate-900/15 bg-blue-50/25 p-5"
     >
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-          <Sliders className="w-4 h-4 text-indigo-600" />
+        <div className="w-8 h-8 border border-blue-200 bg-blue-50 flex items-center justify-center">
+          <Sliders className="w-4 h-4 text-blue-700" />
         </div>
         <div>
           <h4 className="text-sm font-semibold text-gray-900">Safety Parameter Planner</h4>
@@ -80,7 +80,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
             <Target className="w-3.5 h-3.5" />
             Target Deviation Tolerance
           </label>
-          <span className="text-lg font-bold text-indigo-600 font-mono">
+          <span className="text-lg font-bold text-blue-700 font-mono">
             <CountUp end={targetDeviation} duration={300} decimals={1} />%
           </span>
         </div>
@@ -91,7 +91,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
           step={0.5}
           value={targetDeviation}
           onChange={(e) => setTargetDeviation(parseFloat(e.target.value))}
-          className="w-full h-2 bg-indigo-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+          className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-700"
         />
         <div className="flex justify-between text-[10px] text-gray-400 mt-1">
           <span>1% (Strict)</span>
@@ -105,7 +105,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
             {Object.entries(plan.perAssetDeviationPercents).map(([symbol, delta]) => (
               <span
                 key={symbol}
-                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100"
+                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100"
                 title={`${symbol} deviation = ${delta.toFixed(2)}% (major-equiv × category ratio)`}
               >
                 {symbol} {delta.toFixed(2)}%
@@ -139,9 +139,9 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
               {plan.currentWorstCaseHF.toFixed(3)}
             </p>
           </div>
-          <div className="bg-white rounded-lg p-3 border border-indigo-100">
-            <p className="text-[10px] text-indigo-400 uppercase tracking-wider">Target HF*</p>
-            <p className="text-base font-bold font-mono text-indigo-600">
+          <div className="bg-white rounded-lg p-3 border border-blue-100">
+            <p className="text-[10px] text-blue-500 uppercase tracking-wider">Target HF*</p>
+            <p className="text-base font-bold font-mono text-blue-700">
               {plan.targetHealthFactor.toFixed(3)}
             </p>
           </div>
@@ -174,7 +174,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
 
       {/* ── 公式提示 ── */}
       {plan && (
-        <div className="bg-indigo-50/50 rounded-md p-2.5 mb-4 text-xs text-gray-600 font-mono break-all">
+        <div className="bg-blue-50/50 rounded-md p-2.5 mb-4 text-xs text-gray-600 font-mono break-all">
           targetHF* = (1 + δ) / (1 − δ) = (1 + {(targetDeviation / 100).toFixed(3)}) / (1 −{' '}
           {(targetDeviation / 100).toFixed(3)}) = {plan.targetHealthFactor.toFixed(3)}
           <span className="block text-[10px] text-gray-400 mt-1 font-sans">
@@ -187,7 +187,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
       {/* ── Loading / Error ── */}
       {isLoading && (
         <div className="flex items-center justify-center py-6 text-sm text-gray-400">
-          <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mr-2" />
+          <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-700 rounded-full animate-spin mr-2" />
           Calculating adjustments...
         </div>
       )}
@@ -213,7 +213,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
                   className={cn(
                     'flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-all',
                     effectiveActiveTab === tab.id
-                      ? 'bg-white text-indigo-600 shadow-sm'
+                      ? 'bg-white text-blue-700 shadow-sm'
                       : 'text-gray-500 hover:text-gray-700'
                   )}
                 >
@@ -271,7 +271,7 @@ function renderPlanTab(plan: SafetyParameterPlan, tab: PlanTab) {
 
       <div className="flex items-center justify-between px-1">
         <span className="text-xs text-gray-500">Total Adjustment</span>
-        <span className="text-sm font-bold text-indigo-600 font-mono">
+        <span className="text-sm font-bold text-blue-700 font-mono">
           ${planData.totalDeltaValueUsd.toFixed(2)}
         </span>
       </div>
@@ -296,8 +296,8 @@ function AdjustmentRow({ adjustment: adj }: { adjustment: AssetAdjustment }) {
     },
     withdraw_collateral: {
       label: 'Withdraw',
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
+      color: 'text-blue-700',
+      bg: 'bg-blue-50',
       icon: ArrowDownUp,
     },
   }[adj.action];

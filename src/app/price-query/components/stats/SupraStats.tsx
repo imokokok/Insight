@@ -37,7 +37,7 @@ export function SupraStats({ data }: SupraStatsProps) {
       />
       <StatCard
         icon={Hash}
-        iconColor="text-indigo-500"
+        iconColor="text-blue-700"
         title="Pair Index"
         value={`#${pairIndex}`}
         description="Trading pair identifier"
@@ -59,7 +59,7 @@ export function SupraStats({ data }: SupraStatsProps) {
       />
       <StatCard
         icon={Database}
-        iconColor="text-purple-500"
+        iconColor="text-blue-600"
         title="Data Source"
         value={source}
         description="Oracle data source"

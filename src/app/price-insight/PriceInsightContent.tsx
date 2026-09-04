@@ -5,6 +5,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useCrossChainAnalytics } from '@/app/cross-chain/hooks/useCrossChainAnalytics';
 import { useCrossChainDataState } from '@/app/cross-chain/hooks/useCrossChainDataState';
 import { useCrossOraclePage } from '@/app/cross-oracle/hooks/useCrossOraclePage';
+import { EditorialWorkspaceHeader } from '@/components/editorial';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { LiveStatusBar, SegmentedControl } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
@@ -87,30 +88,27 @@ export default function PriceInsightContent() {
 
   return (
     <ErrorBoundary level="page" componentName="PriceInsightContent">
-      <div className="min-h-screen bg-slate-50">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Header */}
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-8">
-            <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-100 text-blue-700 text-[11px] font-semibold uppercase tracking-wider mb-3">
-                Cross-Oracle Price Verification
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-                Price Insight
-              </h1>
-              <p className="text-base text-slate-500 mt-2 max-w-2xl">
-                Compare oracle prices across providers and chains. Detect divergence, stale feeds,
-                and consensus drift in real time.
-              </p>
-            </div>
-            <DimensionSwitcher dimension={dimension} onDimensionChange={handleDimensionChange} />
-          </div>
+      <div className="editorial-workspace min-h-screen">
+        <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
+          <EditorialWorkspaceHeader
+            index="02"
+            stage="Compare"
+            eyebrow="Cross-oracle and cross-chain price verification. Agreement is evidence; divergence is a signal to investigate."
+            title="See where the market agrees—and where it does not."
+            description="Compare providers or chains without losing the context of consensus, spread, anomalies, feed behaviour, and data freshness."
+            evidence={['Consensus context', 'Divergence signals', 'Feed behaviour']}
+            action={
+              <DimensionSwitcher dimension={dimension} onDimensionChange={handleDimensionChange} />
+            }
+          />
 
-          {dimension === 'oracle' ? (
-            <OracleDimension activeTab={activeTab} onTabChange={setActiveTab} />
-          ) : (
-            <ChainDimension activeTab={activeTab} onTabChange={setActiveTab} />
-          )}
+          <div className="pt-7">
+            {dimension === 'oracle' ? (
+              <OracleDimension activeTab={activeTab} onTabChange={setActiveTab} />
+            ) : (
+              <ChainDimension activeTab={activeTab} onTabChange={setActiveTab} />
+            )}
+          </div>
         </div>
       </div>
     </ErrorBoundary>
@@ -182,7 +180,7 @@ function OracleDimension({
 
   return (
     <>
-      <div className="flex items-center justify-between mb-5 px-1">
+      <div className="editorial-status-rail flex items-center justify-between border-y border-slate-900/15 px-1 py-3 mb-6">
         <LiveStatusBar
           isConnected={!isLoading}
           latency={undefined}
@@ -216,9 +214,13 @@ function OracleDimension({
         }
       />
 
-      <div className="flex flex-col xl:flex-row gap-6">
-        <aside className="xl:w-[400px] xl:flex-shrink-0">
-          <div className="xl:sticky xl:top-4">
+      <div className="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
+        <aside>
+          <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+            <p className="editorial-index">01 — Set comparison</p>
+            <span className="font-mono text-[10px] text-slate-400">INPUT</span>
+          </div>
+          <div className="xl:sticky xl:top-24">
             <OracleControlPanel
               selectedSymbol={selectedSymbol}
               onSymbolChange={setSelectedSymbol}
@@ -237,7 +239,11 @@ function OracleDimension({
           </div>
         </aside>
 
-        <main className="flex-1 min-w-0">
+        <section className="min-w-0" aria-label="Oracle comparison evidence">
+          <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+            <p className="editorial-index">02 — Read the evidence</p>
+            <span className="font-mono text-[10px] text-slate-400">ANALYSIS</span>
+          </div>
           <TabNavigation activeTab={activeTab} onTabChange={onTabChange} dimension="oracle" />
 
           <OracleQueryResults
@@ -272,7 +278,7 @@ function OracleDimension({
             currentConsensusMethod={consensusMethod}
             onConsensusMethodChange={setConsensusMethod}
           />
-        </main>
+        </section>
       </div>
     </>
   );
@@ -302,7 +308,7 @@ function ChainDimension({
     <>
       <CrossChainDataInitializer />
 
-      <div className="flex items-center justify-between mb-5 px-1">
+      <div className="editorial-status-rail flex items-center justify-between border-y border-slate-900/15 px-1 py-3 mb-6">
         <LiveStatusBar
           isConnected={refreshStatus !== 'error'}
           latency={undefined}
@@ -340,12 +346,16 @@ function ChainDimension({
         }
       />
 
-      <div className="flex flex-col xl:flex-row gap-4">
-        <div className="xl:w-[360px] flex-shrink-0">
-          <div className="xl:sticky xl:top-6 space-y-4">
+      <div className="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
+        <aside>
+          <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+            <p className="editorial-index">01 — Set comparison</p>
+            <span className="font-mono text-[10px] text-slate-400">INPUT</span>
+          </div>
+          <div className="xl:sticky xl:top-24 space-y-4">
             <ChainControlPanel />
 
-            <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+            <div className="editorial-panel border-y border-slate-900/15 bg-white/35 p-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Auto Refresh</span>
                 <SegmentedControl
@@ -360,13 +370,17 @@ function ChainDimension({
               </div>
             </div>
           </div>
-        </div>
+        </aside>
 
-        <div className="flex-1 min-w-0">
+        <section className="min-w-0" aria-label="Cross-chain comparison evidence">
+          <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+            <p className="editorial-index">02 — Read the evidence</p>
+            <span className="font-mono text-[10px] text-slate-400">ANALYSIS</span>
+          </div>
           <TabNavigation activeTab={activeTab} onTabChange={onTabChange} dimension="chain" />
 
           {isInitialLoading ? (
-            <div className="py-20 flex flex-col justify-center items-center gap-3 bg-white rounded-2xl border border-slate-200 mt-4 shadow-sm">
+            <div className="py-20 flex flex-col justify-center items-center gap-3 bg-white/35 border-y border-slate-900/15 mt-4">
               <div className="w-8 h-8 border-2 border-slate-300 border-t-blue-600 animate-spin rounded-full" />
               <div className="text-sm text-slate-500 font-medium">Loading cross-chain data...</div>
             </div>
@@ -377,7 +391,7 @@ function ChainDimension({
               isRefreshing={isRefreshing}
             />
           )}
-        </div>
+        </section>
       </div>
     </>
   );

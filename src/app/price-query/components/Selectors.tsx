@@ -131,21 +131,21 @@ export function Selectors() {
 
   return (
     <div
-      className="bg-white rounded-2xl shadow-sm border border-slate-100"
+      className="editorial-panel border-y border-slate-900/15 bg-white/35"
       role="region"
       aria-label="Price query selectors"
     >
-      <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-          <Search className="w-4 h-4 text-slate-500" aria-hidden="true" />
-          Price Query
+      <div className="px-4 py-4 border-b border-slate-900/10 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2.5">
+          <Search className="w-4 h-4 text-blue-700" aria-hidden="true" />
+          Query parameters
         </h2>
         <button
           onClick={refetch}
           disabled={isLoading}
           aria-busy={isLoading}
           aria-label={isLoading ? 'Loading...' : 'Query'}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-slate-950 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           {isLoading ? (
             <RefreshCw className="w-3 h-3 animate-spin" aria-hidden="true" />
@@ -183,7 +183,7 @@ export function Selectors() {
           />
         </section>
 
-        <section className="py-3 border-t border-slate-100" aria-labelledby="blockchain-label">
+        <section className="py-3 border-t border-slate-900/10" aria-labelledby="blockchain-label">
           <label className="block text-xs font-medium text-slate-700 mb-2">
             Blockchain
             {!selectedOracle && (
@@ -217,7 +217,7 @@ export function Selectors() {
           />
         </section>
 
-        <section className="py-3 border-t border-slate-100" aria-labelledby="symbol-label">
+        <section className="py-3 border-t border-slate-900/10" aria-labelledby="symbol-label">
           <label className="block text-xs font-medium text-slate-700 mb-2">Symbol</label>
           <DropdownSelect
             options={symbolOptions}
@@ -231,7 +231,7 @@ export function Selectors() {
           />
         </section>
 
-        <section className="py-3 border-t border-slate-100" aria-labelledby="autorefresh-label">
+        <section className="py-3 border-t border-slate-900/10" aria-labelledby="autorefresh-label">
           <label className="block text-xs font-medium text-slate-700 mb-2">Auto Refresh</label>
           <AutoRefreshControl
             refreshInterval={autoRefresh.refreshInterval}

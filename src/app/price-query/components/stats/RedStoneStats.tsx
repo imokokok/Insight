@@ -37,14 +37,14 @@ export function RedStoneStats({ data }: RedStoneStatsProps) {
       />
       <StatCard
         icon={TrendingUp}
-        iconColor="text-indigo-500"
+        iconColor="text-blue-700"
         title="Ask Price"
         value={data.ask ? formatPrice(data.ask) : '-'}
         description="Ask price from RedStone"
       />
       <StatCard
         icon={Database}
-        iconColor="text-purple-500"
+        iconColor="text-blue-600"
         title="Data Source"
         value={data.provider ? data.provider.replace('redstone-', '').toUpperCase() : '-'}
         description="RedStone data provider"
