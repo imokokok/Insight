@@ -100,7 +100,7 @@ export function AffectedProtocolCard({
   return (
     <div
       className={cn(
-        'rounded-2xl border bg-white p-5 shadow-sm transition-shadow hover:shadow-md',
+        'border-l-2 border-y border-r bg-white/55 p-5 transition-colors hover:bg-white',
         riskLevel === 'critical' || riskLevel === 'severe'
           ? 'border-red-200'
           : riskLevel === 'warning'
@@ -113,7 +113,7 @@ export function AffectedProtocolCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h4 className="text-base font-semibold text-slate-900">{protocol.protocolName}</h4>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+            <span className="border-l border-slate-300 bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-600">
               {chainName}
             </span>
           </div>
@@ -134,7 +134,7 @@ export function AffectedProtocolCard({
 
           {/* P2: Live HF impact estimate */}
           {hfImpactEstimate && (
-            <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <div className="mt-3 border-l-2 border-amber-500 bg-amber-50 p-3">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
                 <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">

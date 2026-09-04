@@ -23,13 +23,19 @@ export function TrialGrantNotice() {
 
   return (
     <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,520px)] animate-fade-in">
-      <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-white/95 backdrop-blur shadow-lg p-4">
-        <Gift className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+      <div className="relative flex items-start gap-4 border border-emerald-300 bg-[#f8f7f4] p-4">
+        <span className="absolute inset-y-0 left-0 w-1 bg-emerald-500" aria-hidden="true" />
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-emerald-300 bg-emerald-50">
+          <Gift className="h-4 w-4 text-emerald-700" />
+        </div>
         <div className="flex-1 text-sm">
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-700">
+            Trial credit issued
+          </p>
           <p className="font-semibold text-slate-900">You&apos;ve got 30 free trial credits!</p>
           <p className="text-slate-600 mt-0.5">
             Sample the API now — then{' '}
-            <Link href="/pricing" className="font-semibold underline">
+            <Link href="/pricing" className="font-semibold text-blue-700 underline">
               view plans
             </Link>{' '}
             to keep going with a subscription or top-up.
@@ -38,7 +44,7 @@ export function TrialGrantNotice() {
         <button
           type="button"
           onClick={dismissTrialNotice}
-          className="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0"
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center border border-slate-900/15 text-slate-500 transition-colors hover:border-blue-600 hover:text-blue-700"
           aria-label="Dismiss trial notice"
         >
           <X className="w-4 h-4" />

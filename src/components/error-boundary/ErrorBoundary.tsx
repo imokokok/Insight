@@ -266,7 +266,7 @@ function DefaultErrorFallback({
     >
       <div
         className={`
-          flex items-center justify-center rounded-full mb-4
+          mb-4 flex items-center justify-center border border-slate-900/15
           ${config.bgColor}
           ${level === 'global' || level === 'page' ? 'w-20 h-20' : ''}
           ${level === 'section' ? 'w-16 h-16' : ''}
@@ -329,9 +329,9 @@ function DefaultErrorFallback({
           className={`
             inline-flex items-center gap-2 font-medium transition-colors
             ${config.buttonClass}
-            ${level === 'global' || level === 'page' ? 'px-6 py-3 rounded-md' : ''}
-            ${level === 'section' ? 'px-4 py-2 rounded-md text-sm' : ''}
-            ${level === 'component' ? 'px-3 py-1.5 rounded text-sm' : ''}
+            ${level === 'global' || level === 'page' ? 'border border-current px-6 py-3' : ''}
+            ${level === 'section' ? 'border border-current px-4 py-2 text-sm' : ''}
+            ${level === 'component' ? 'border border-current px-3 py-1.5 text-sm' : ''}
           `}
         >
           <span>🔄</span>
@@ -341,7 +341,7 @@ function DefaultErrorFallback({
         {level === 'global' && (
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors rounded-md"
+            className="inline-flex items-center gap-2 border border-gray-300 px-6 py-3 font-medium text-gray-700 transition-colors hover:border-blue-600 hover:text-blue-700"
           >
             <span>🏠</span>
             Back to Home
@@ -355,12 +355,12 @@ function DefaultErrorFallback({
 const THEME_STYLES: Record<string, { bg: string; button: string }> = {
   blue: { bg: 'bg-blue-100', button: 'bg-blue-600 hover:bg-blue-700' },
   green: { bg: 'bg-green-100', button: 'bg-green-600 hover:bg-green-700' },
-  purple: { bg: 'bg-purple-100', button: 'bg-purple-600 hover:bg-purple-700' },
+  purple: { bg: 'bg-blue-100', button: 'bg-blue-600 hover:bg-blue-700' },
   red: { bg: 'bg-red-100', button: 'bg-red-600 hover:bg-red-700' },
   orange: { bg: 'bg-orange-100', button: 'bg-orange-600 hover:bg-orange-700' },
-  indigo: { bg: 'bg-indigo-100', button: 'bg-indigo-600 hover:bg-indigo-700' },
-  pink: { bg: 'bg-pink-100', button: 'bg-pink-600 hover:bg-pink-700' },
-  cyan: { bg: 'bg-cyan-100', button: 'bg-cyan-600 hover:bg-cyan-700' },
+  indigo: { bg: 'bg-blue-100', button: 'bg-blue-600 hover:bg-blue-700' },
+  pink: { bg: 'bg-blue-100', button: 'bg-blue-600 hover:bg-blue-700' },
+  cyan: { bg: 'bg-blue-100', button: 'bg-blue-600 hover:bg-blue-700' },
   yellow: { bg: 'bg-yellow-100', button: 'bg-yellow-600 hover:bg-yellow-700' },
 };
 
@@ -393,8 +393,8 @@ const ERROR_CONFIGS: Array<{
       icon: '📈',
       title: 'Oracle Error',
       message: _.message,
-      bgColor: themeStyle?.bg || 'bg-purple-100',
-      buttonClass: themeStyle?.button || 'bg-purple-600 text-white hover:bg-purple-700',
+      bgColor: themeStyle?.bg || 'bg-blue-100',
+      buttonClass: themeStyle?.button || 'bg-blue-600 text-white hover:bg-blue-700',
     }),
   },
   {
@@ -405,8 +405,8 @@ const ERROR_CONFIGS: Array<{
       message: (error as PriceFetchError).retryable
         ? 'Failed to fetch price data. Please try again.'
         : 'Unable to retrieve price data at this time.',
-      bgColor: themeStyle?.bg || 'bg-purple-100',
-      buttonClass: themeStyle?.button || 'bg-purple-600 text-white hover:bg-purple-700',
+      bgColor: themeStyle?.bg || 'bg-blue-100',
+      buttonClass: themeStyle?.button || 'bg-blue-600 text-white hover:bg-blue-700',
     }),
   },
   {

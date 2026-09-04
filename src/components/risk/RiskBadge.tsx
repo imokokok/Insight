@@ -16,7 +16,7 @@ export function RiskBadge({ level, className, showDot = true }: RiskBadgeProps) 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border',
+        'inline-flex items-center gap-1.5 border-l-2 px-2.5 py-1 text-xs font-semibold',
         config.bg,
         config.border,
         config.color,
@@ -33,7 +33,7 @@ export function RiskBadge({ level, className, showDot = true }: RiskBadgeProps) 
                 ? 'bg-amber-500'
                 : level === 'critical'
                   ? 'bg-red-500'
-                  : 'bg-purple-500'
+                  : 'bg-red-700'
           )}
         />
       )}

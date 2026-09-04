@@ -184,7 +184,7 @@ export function ControlPanel({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
       {/* Panel header - optimized for mobile display */}
       <div className="px-4 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
@@ -196,7 +196,7 @@ export function ControlPanel({
         {/* Mobile expand/collapse button */}
         <button
           onClick={() => setIsMobileExpanded(!isMobileExpanded)}
-          className="lg:hidden inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+          className="inline-flex items-center gap-1 border border-transparent px-2 py-1.5 text-xs text-slate-600 transition-colors hover:border-slate-900/15 hover:bg-white hover:text-blue-700 lg:hidden"
           aria-expanded={isMobileExpanded}
         >
           {isMobileExpanded ? (
@@ -239,16 +239,16 @@ export function ControlPanel({
         )}
 
         {/* Asset selection */}
-        <section className="bg-slate-50/70 rounded-xl p-3 border border-slate-100">
+        <section className="border-y border-slate-900/15 bg-slate-50/70 p-3">
           <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
             Trading Pair
           </label>
           {selectedOracles.length === 0 ? (
-            <div className="w-full px-3 py-2.5 text-sm text-slate-400 bg-slate-100 border border-slate-200 rounded-lg">
+            <div className="w-full border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm text-slate-400">
               Select an oracle first
             </div>
           ) : commonSymbols.length === 0 ? (
-            <div className="w-full px-3 py-3 text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg">
+            <div className="w-full border-l-2 border-amber-500 bg-amber-50 px-3 py-3 text-sm text-amber-700">
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <div>
@@ -278,7 +278,7 @@ export function ControlPanel({
         </section>
 
         {/* Oracle multi-select - with hover tooltip */}
-        <section className="bg-slate-50/70 rounded-xl p-3 border border-slate-100">
+        <section className="border-y border-slate-900/15 bg-slate-50/70 p-3">
           <div className="flex items-center justify-between mb-2.5">
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
               Oracles
@@ -301,7 +301,7 @@ export function ControlPanel({
           </div>
 
           {/* Oracle selection button grid */}
-          <div className="flex flex-wrap gap-1.5 p-1.5 bg-slate-100/80 rounded-xl relative">
+          <div className="relative flex flex-wrap border border-slate-900/15 bg-white">
             {oracleOptions.map((option) => {
               const selected = selectedOracles.includes(option.value as OracleProvider);
               const featureInfo = oracleFeatureInfoMap[option.value as string];
@@ -315,11 +315,11 @@ export function ControlPanel({
                     onClick={() => handleOracleToggle(option.value as OracleProvider)}
                     onMouseEnter={() => setHoveredOracle(option.value as OracleProvider)}
                     onMouseLeave={() => setHoveredOracle(null)}
-                    className={`relative inline-flex items-center gap-1.5 font-semibold transition-all duration-200 ease-out rounded-lg px-2.5 py-1.5 text-xs ${
+                    className={`relative inline-flex items-center gap-1.5 border-r border-slate-900/15 px-2.5 py-1.5 text-xs font-semibold transition-colors ${
                       selected
-                        ? 'bg-white text-slate-900 shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50/60'
-                    } ${isUnsupported ? 'opacity-50' : ''} active:scale-[0.98]`}
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                    } ${isUnsupported ? 'opacity-50' : ''}`}
                     style={{ zIndex: selected ? 1 : 0 }}
                   >
                     <span
@@ -337,7 +337,7 @@ export function ControlPanel({
                   {/* Hover tooltip */}
                   {hoveredOracle === option.value && (
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-56">
-                      <div className="bg-gray-900 text-white rounded-lg shadow-xl p-3 text-xs">
+                      <div className="border border-slate-700 bg-gray-900 p-3 text-xs text-white shadow-[0_16px_40px_rgba(15,23,42,0.18)]">
                         {/* Tooltip arrow */}
                         <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
 
@@ -410,7 +410,7 @@ export function ControlPanel({
         </section>
 
         {/* Auto refresh control */}
-        <section className="bg-slate-50/70 rounded-xl p-3 border border-slate-100">
+        <section className="border-y border-slate-900/15 bg-slate-50/70 p-3">
           <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
             Auto Refresh
           </label>
@@ -428,7 +428,7 @@ export function ControlPanel({
           <button
             onClick={onQuery}
             disabled={isLoading || selectedOracles.length === 0}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-xl shadow-sm shadow-blue-900/10 active:scale-[0.98] transform"
+            className="inline-flex w-full items-center justify-center gap-2 border border-blue-600 bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading ? (
               <>

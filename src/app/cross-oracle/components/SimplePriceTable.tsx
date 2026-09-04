@@ -231,11 +231,11 @@ function SimplePriceTableComponent({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-1/3 mb-4" />
+      <div className="animate-pulse border-y border-slate-900/15 bg-white/55 p-6">
+        <div className="mb-4 h-8 w-1/3 bg-gray-200" />
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-12 bg-gray-100 rounded" />
+            <div key={i} className="h-12 border-b border-slate-200 bg-gray-100" />
           ))}
         </div>
       </div>
@@ -244,7 +244,7 @@ function SimplePriceTableComponent({
 
   if (!priceData.length) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+      <div className="border-y border-slate-900/15 bg-white/55 p-12 text-center">
         <Activity className="w-12 h-12 text-gray-300 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">No Data</h3>
         <p className="text-gray-500">Select a trading pair and an oracle to view price data</p>
@@ -253,7 +253,7 @@ function SimplePriceTableComponent({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50">
@@ -368,7 +368,7 @@ function SimplePriceTableComponent({
 
                   <td className="px-4 py-3 whitespace-nowrap text-right">
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getDeviationBgColor(
+                      className={`inline-flex items-center gap-1 border-l-2 px-2 py-0.5 text-xs font-medium ${getDeviationBgColor(
                         row.deviationPercent
                       )} ${getDeviationColor(row.deviationPercent)}`}
                     >

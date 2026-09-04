@@ -160,10 +160,10 @@ const accentStyles = {
     dot: 'bg-red-500',
   },
   cyan: {
-    bg: 'bg-cyan-50',
-    text: 'text-cyan-600',
-    border: 'group-hover:border-cyan-200',
-    dot: 'bg-cyan-500',
+    bg: 'bg-blue-50',
+    text: 'text-blue-700',
+    border: 'group-hover:border-blue-200',
+    dot: 'bg-blue-500',
   },
 };
 
@@ -211,7 +211,7 @@ export default function FeaturesGuideSection() {
     <section id="features" className="py-16 scroll-mt-20 border-t border-slate-100">
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-blue-100 rounded-lg">
+          <div className="border border-blue-200 bg-blue-50 p-2">
             <Layers className="w-5 h-5 text-blue-700" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900">Features Guide</h2>
@@ -221,18 +221,18 @@ export default function FeaturesGuideSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 border-l border-t border-slate-900/15 lg:grid-cols-2">
         {features.map((feature, index) => {
           const accent = accentStyles[feature.accent];
           return (
             <Link
               key={index}
               href={feature.href}
-              className={`group block bg-white border border-slate-100 rounded-2xl p-6 hover:shadow-md transition-all ${accent.border}`}
+              className={`group block border-b border-r bg-white p-6 transition-colors hover:bg-blue-50/30 ${accent.border}`}
             >
               <div className="flex items-start gap-4 mb-4">
                 <div
-                  className={`w-12 h-12 ${accent.bg} rounded-xl flex items-center justify-center ${accent.text} flex-shrink-0 group-hover:scale-105 transition-transform`}
+                  className={`flex h-12 w-12 flex-shrink-0 items-center justify-center border border-slate-900/10 ${accent.bg} ${accent.text}`}
                 >
                   {feature.icon}
                 </div>
@@ -262,13 +262,13 @@ export default function FeaturesGuideSection() {
         })}
       </div>
 
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="mt-8 grid grid-cols-1 border-l border-t border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
         {quickCards.map((card, index) => {
           const Icon = card.icon;
           return (
             <div
               key={index}
-              className={`flex items-center gap-3 p-4 rounded-2xl border transition-colors ${quickCardStyles[card.tone]}`}
+              className={`flex items-center gap-3 border-b border-r p-4 transition-colors ${quickCardStyles[card.tone]}`}
             >
               <Icon className={`w-5 h-5 ${quickIconStyles[card.tone]} flex-shrink-0`} />
               <div>

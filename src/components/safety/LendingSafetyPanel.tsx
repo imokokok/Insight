@@ -136,7 +136,7 @@ export function LendingSafetyPanel({
 
   return (
     <div
-      className={`rounded-2xl border p-5 ${
+      className={`border-l-2 border-y border-r p-5 ${
         frozen ? 'bg-red-50 border-red-200' : 'bg-white border-slate-200'
       }`}
     >
@@ -149,7 +149,7 @@ export function LendingSafetyPanel({
         </h4>
         {protocolSafety && (
           <span
-            className={`ml-auto px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full tracking-wide ${levelConfig.cls}`}
+            className={`ml-auto border-l-2 border-current px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${levelConfig.cls}`}
           >
             {levelConfig.label}
           </span>
@@ -157,9 +157,9 @@ export function LendingSafetyPanel({
       </div>
 
       {verdict && (
-        <div className="mb-3 flex items-start gap-2.5 rounded-xl bg-slate-50 border border-slate-200 p-3">
+        <div className="mb-3 flex items-start gap-2.5 border-l-2 border-blue-600 bg-slate-50 p-3">
           <span
-            className={`shrink-0 px-2 py-0.5 text-[10px] font-bold uppercase rounded-md tracking-wide ${VERDICT_STYLE[verdict].cls}`}
+            className={`shrink-0 border-l-2 border-current px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${VERDICT_STYLE[verdict].cls}`}
           >
             Pre-Trade {VERDICT_STYLE[verdict].label}
           </span>
@@ -198,7 +198,7 @@ export function LendingSafetyPanel({
       {protocolSafety && <BufferConsumptionBar safety={protocolSafety} />}
 
       {(mlScore1h !== null || mlScore6h !== null || anomalyScore !== undefined) && (
-        <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200 p-3">
+        <div className="mt-3 border-y border-slate-900/15 bg-slate-50 p-3">
           <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <Activity className="w-3 h-3" />
             Forward-looking oracle risk
@@ -273,8 +273,8 @@ export function BufferConsumptionBar({ safety }: { safety: ProtocolSafetyContext
           critical {safety.criticalDeviationPct.toFixed(2)}%
         </span>
       </div>
-      <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
-        <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
+      <div className="h-2.5 overflow-hidden bg-slate-100">
+        <div className={`h-full ${barColor}`} style={{ width: `${pct}%` }} />
       </div>
       <p className="text-[11px] text-slate-500 mt-1.5 leading-snug">
         Liquidation triggers when collateral drops {safety.criticalDeviationPct.toFixed(2)}% — the
@@ -286,7 +286,7 @@ export function BufferConsumptionBar({ safety }: { safety: ProtocolSafetyContext
 
 function LendingActionRow({ action }: { action: LendingSafetyAction }) {
   return (
-    <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+    <div className="flex items-start gap-2.5 border-b border-slate-900/10 bg-slate-50 p-2.5 last:border-b-0">
       <span
         className={`shrink-0 mt-0.5 px-1.5 py-0.5 text-[10px] font-bold uppercase rounded ${ACTION_SEVERITY_STYLE[action.severity]}`}
       >

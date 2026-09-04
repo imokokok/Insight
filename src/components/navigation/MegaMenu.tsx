@@ -6,7 +6,6 @@ import Link from 'next/link';
 
 import { ChevronDown, ArrowRight } from 'lucide-react';
 
-import { oracleColors } from './config';
 import { type NavGroup } from './types';
 
 interface MegaMenuProps {
@@ -86,10 +85,10 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
       <button
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
-        className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+        className={`relative flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors duration-200 ${
           isActive || isGroupActive
-            ? 'text-primary-600 bg-primary-50'
-            : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+            ? 'border-primary-600 text-primary-700'
+            : 'border-transparent text-gray-600 hover:border-slate-300 hover:text-primary-700'
         }`}
         aria-expanded={isOpen}
         aria-haspopup="true"
@@ -97,7 +96,7 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
         {GroupIcon && <GroupIcon className="w-4 h-4" />}
         <span>{group.label}</span>
         <span
-          className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none transition-colors duration-200 ${
+          className={`inline-flex h-[18px] min-w-[18px] items-center justify-center border-l px-1 font-mono text-[10px] font-bold leading-none transition-colors duration-200 ${
             isActive || isGroupActive
               ? 'bg-primary-200 text-primary-700'
               : isOpen || isHovered
@@ -110,19 +109,16 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
         <ChevronDown
           className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
-        {(isActive || isGroupActive) && (
-          <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary-600 rounded-full" />
-        )}
       </button>
 
       {!isOpen && isHovered && (
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1.5 flex items-center gap-1 px-2.5 py-1.5 bg-white border border-gray-100 rounded-lg shadow-md z-50 animate-fade-in">
+        <div className="absolute left-1/2 top-full z-50 mt-1.5 flex -translate-x-1/2 items-center gap-1 border border-slate-900/15 bg-[#f8f7f4] px-2.5 py-1.5 animate-fade-in">
           {group.items.slice(0, 5).map((item) => {
             const ItemIcon = item.icon;
             return (
               <div
                 key={item.href}
-                className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] text-gray-500"
+                className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] text-gray-500"
               >
                 {ItemIcon && <ItemIcon className="w-3 h-3" />}
                 <span>{item.label}</span>
@@ -137,26 +133,25 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
 
       {isOpen && (
         <div
-          className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-[540px] bg-white border border-gray-100 rounded-xl shadow-xl z-50 animate-fade-in overflow-hidden"
+          className="absolute left-1/2 top-full z-50 mt-2 w-[580px] -translate-x-1/2 overflow-hidden border border-slate-900/15 bg-[#f8f7f4] animate-fade-in"
           role="menu"
         >
-          <div className="px-5 py-3.5 border-b border-gray-100 bg-gray-50/50">
+          <div className="border-b border-slate-900/15 bg-white/55 px-5 py-3.5">
             <div className="flex items-center gap-2">
               {GroupIcon && <GroupIcon className="w-4 h-4 text-primary-600" />}
               <span className="text-sm font-semibold text-gray-900">{group.label}</span>
-              <span className="text-xs text-gray-400 ml-1">{group.items.length} features</span>
+              <span className="ml-auto font-mono text-[10px] uppercase tracking-wider text-gray-400">
+                {group.items.length} records
+              </span>
             </div>
           </div>
 
-          <div className="p-3">
-            <div className="grid grid-cols-2 gap-1">
+          <div>
+            <div className="grid grid-cols-2">
               {group.items.map((item) => {
                 const ItemIcon = item.icon;
                 const isItemActive =
                   currentPath === item.href || currentPath.startsWith(item.href + '/');
-                const oracleKey = item.href.replace('/', '') as keyof typeof oracleColors;
-                const accentColor = oracleColors[oracleKey];
-
                 return (
                   <Link
                     key={item.href}
@@ -165,35 +160,23 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
                       setIsOpen(false);
                       onItemClick?.();
                     }}
-                    className={`flex items-start gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative ${
+                    className={`group relative flex items-start gap-3 border-b border-r border-slate-900/10 px-4 py-4 transition-colors duration-200 ${
                       isItemActive
-                        ? 'bg-primary-50 text-primary-600'
-                        : 'hover:bg-gray-50 text-gray-700'
+                        ? 'bg-primary-50 text-primary-700'
+                        : 'text-gray-700 hover:bg-white/70'
                     }`}
                     role="menuitem"
                   >
                     {ItemIcon && (
-                      <div
-                        className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
-                          isItemActive ? 'bg-primary-100' : 'bg-gray-100 group-hover:bg-white'
-                        }`}
-                        style={
-                          accentColor && !isItemActive
-                            ? { backgroundColor: `${accentColor}15` }
-                            : {}
-                        }
-                      >
-                        <ItemIcon
-                          className="w-4 h-4"
-                          style={accentColor && !isItemActive ? { color: accentColor } : {}}
-                        />
+                      <div className="flex-shrink-0 border border-blue-200 bg-blue-50 p-2 text-blue-700 transition-colors group-hover:bg-white">
+                        <ItemIcon className="w-4 h-4" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">{item.label}</span>
                         {item.badge && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-700 leading-none">
+                          <span className="inline-flex items-center border-l-2 border-emerald-500 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-emerald-700">
                             {item.badge}
                           </span>
                         )}
@@ -205,7 +188,7 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
                       )}
                     </div>
                     {isItemActive && (
-                      <div className="w-1.5 h-1.5 bg-primary-600 rounded-full mt-2 flex-shrink-0" />
+                      <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 bg-primary-600" />
                     )}
                   </Link>
                 );
@@ -213,7 +196,7 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
             </div>
           </div>
 
-          <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
+          <div className="border-t border-slate-900/15 bg-white/55 px-5 py-3">
             <Link
               href="/docs"
               onClick={() => setIsOpen(false)}

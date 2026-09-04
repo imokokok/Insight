@@ -304,7 +304,7 @@ export function HowItWorks() {
   return (
     <section className="border-l-2 border-blue-600 bg-blue-50/35 p-5">
       <div className="flex items-start gap-3">
-        <div className="p-1.5 rounded-lg bg-blue-50 flex-shrink-0">
+        <div className="flex-shrink-0 border border-blue-200 bg-blue-50 p-1.5">
           <Info className="w-4 h-4 text-blue-500" />
         </div>
         <div className="text-sm text-gray-600">
@@ -414,7 +414,7 @@ export function Sidebar({
           <MiniRing score={reputation.reliability_score} label="Reliability" />
         </div>
 
-        <div className="bg-gray-50/80 rounded-lg p-3.5 border border-gray-100">
+        <div className="border-y border-slate-900/10 bg-gray-50/80 p-3.5">
           <MetricRow
             icon={Target}
             label="Accuracy"
@@ -485,7 +485,7 @@ export function Sidebar({
           />
         </div>
 
-        <div className="mt-3 flex items-center justify-between px-3.5 py-2.5 bg-blue-50/80 rounded-lg border border-blue-100">
+        <div className="mt-3 flex items-center justify-between border-l-2 border-blue-600 bg-blue-50/80 px-3.5 py-2.5">
           <div className="flex items-center gap-2">
             <Activity className="w-3.5 h-3.5 text-blue-500" />
             <span className="text-xs text-blue-700 font-black">

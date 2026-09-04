@@ -160,6 +160,8 @@ export function DataTablePro<T extends Record<string, unknown>>({
 
   const currentRowHeight = rowHeight || densityConfig.rowHeight;
 
+  // TanStack Virtual intentionally owns mutable measurement functions outside React memoization.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: virtualScroll ? sortedData.length : 0,
     getScrollElement: () => scrollRef.current,
@@ -194,11 +196,11 @@ export function DataTablePro<T extends Record<string, unknown>>({
     return (
       <div
         className={cn(
-          'flex flex-col items-center justify-center py-12 px-4 bg-white rounded-lg border border-gray-200',
+          'flex flex-col items-center justify-center border-y border-slate-900/15 bg-white/55 px-4 py-12',
           className
         )}
       >
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center border border-blue-200 bg-blue-50">
           <svg
             className="w-8 h-8 text-gray-400"
             fill="none"
@@ -284,7 +286,7 @@ export function DataTablePro<T extends Record<string, unknown>>({
 
       {resizingColumn && <div className="fixed inset-0 z-50 cursor-col-resize" />}
       {loading && (
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-40">
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-white/90">
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
             <span className="text-sm text-gray-600">Loading...</span>

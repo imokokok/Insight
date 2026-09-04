@@ -70,9 +70,13 @@ export function AutoRefreshControl({
   return (
     <div className={cn('relative', className)} ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-label={`Auto refresh: ${currentLabel}`}
         className={cn(
-          'inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md border transition-colors',
+          'inline-flex items-center gap-1.5 border px-2.5 py-1.5 text-xs font-medium transition-colors',
           isActive
             ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
             : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -87,11 +91,18 @@ export function AutoRefreshControl({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-slate-200 z-50 overflow-hidden">
+        <div
+          role="menu"
+          aria-label="Auto refresh interval"
+          className="absolute right-0 z-50 mt-1 w-44 overflow-hidden border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.12)]"
+        >
           <div className="py-1">
             {REFRESH_INTERVALS.map((option) => (
               <button
                 key={option.value}
+                type="button"
+                role="menuitemradio"
+                aria-checked={refreshInterval === option.value}
                 onClick={() => handleSelect(option.value)}
                 className={cn(
                   'w-full px-3 py-2 text-left text-xs hover:bg-slate-50 flex items-center justify-between transition-colors',

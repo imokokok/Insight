@@ -218,7 +218,7 @@ export function PositionForm({
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
+        className="border-y border-slate-900/15 bg-white/55 p-5"
       >
         <div className="flex items-center gap-2 mb-1">
           <MousePointerClick className="w-4 h-4 text-slate-400" />
@@ -256,7 +256,7 @@ export function PositionForm({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
+          className="border-y border-slate-900/15 bg-white/55 p-5"
         >
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-4 h-4 text-blue-600" />
@@ -264,12 +264,12 @@ export function PositionForm({
           </div>
 
           {canImport ? (
-            <div className="mb-4 p-3 rounded-xl bg-slate-50/70 border border-slate-100 space-y-2">
+            <div className="mb-4 space-y-2 border-y border-slate-900/15 bg-slate-50/70 p-3">
               <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Import On-Chain Position
               </label>
               {address && (
-                <div className="flex items-center gap-2 rounded-lg bg-primary-50 border border-primary-100 px-3 py-2">
+                <div className="flex items-center gap-2 border-l-2 border-primary-600 bg-primary-50 px-3 py-2">
                   <Wallet className="w-3.5 h-3.5 text-primary-600" />
                   <span className="text-xs text-slate-600 font-mono">
                     使用连接地址 {address.slice(0, 6)}…{address.slice(-4)}
@@ -287,7 +287,7 @@ export function PositionForm({
                   placeholder="0x...（或连接钱包后自动填入）"
                   disabled={isLoading || isImporting}
                   className={cn(
-                    'flex-1 min-w-0 px-3 py-2 bg-white border rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all font-mono',
+                    'flex-1 min-w-0 border bg-white px-3 py-2 font-mono text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600',
                     importAddress.match(/^0x[a-fA-F0-9]{40}$/)
                       ? 'border-primary-300'
                       : 'border-slate-200'
@@ -336,7 +336,7 @@ export function PositionForm({
               )}
             </div>
           ) : (
-            <div className="mb-4 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+            <div className="mb-4 border-y border-slate-900/15 bg-slate-50/70 p-3">
               <p className="text-xs text-slate-500">
                 该协议暂不支持链上导入，请手动填写抵押与借出资产。
               </p>
@@ -387,7 +387,7 @@ export function PositionForm({
                             placeholder="0.00"
                             disabled={isLoading}
                             className={cn(
-                              'w-full px-3 py-2 bg-white border rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all font-mono',
+                              'w-full border bg-white px-3 py-2 font-mono text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600',
                               parseFloat(row.amount) > 0 ? 'border-primary-300' : 'border-slate-200'
                             )}
                           />
@@ -465,7 +465,7 @@ export function PositionForm({
                           placeholder="0.00"
                           disabled={isLoading}
                           className={cn(
-                            'w-full px-3 py-2 bg-white border rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all font-mono',
+                            'w-full border bg-white px-3 py-2 font-mono text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600',
                             parseFloat(row.amount) > 0 ? 'border-primary-300' : 'border-slate-200'
                           )}
                         />

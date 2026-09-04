@@ -37,7 +37,7 @@ export function ColumnVisibilityDropdown<T extends Record<string, unknown>>({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors',
+          'inline-flex items-center gap-1.5 border px-2.5 py-1.5 text-xs font-medium transition-colors',
           'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
           someVisible && 'text-blue-600 border-blue-200 bg-blue-50'
         )}
@@ -49,7 +49,7 @@ export function ColumnVisibilityDropdown<T extends Record<string, unknown>>({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] bg-white rounded-lg border border-gray-200 shadow-lg py-1">
+        <div className="absolute right-0 top-full z-50 mt-1 min-w-[190px] border border-slate-900/20 bg-[#f8f7f4] py-1">
           <div className="px-3 py-2 border-b border-gray-100">
             <button
               type="button"
@@ -58,7 +58,7 @@ export function ColumnVisibilityDropdown<T extends Record<string, unknown>>({
             >
               <div
                 className={cn(
-                  'w-4 h-4 rounded border flex items-center justify-center transition-colors',
+                  'flex h-4 w-4 items-center justify-center border transition-colors',
                   allVisible
                     ? 'bg-blue-600 border-blue-600'
                     : someVisible
@@ -90,7 +90,7 @@ export function ColumnVisibilityDropdown<T extends Record<string, unknown>>({
                 >
                   <div
                     className={cn(
-                      'w-4 h-4 rounded border flex items-center justify-center transition-colors',
+                      'flex h-4 w-4 items-center justify-center border transition-colors',
                       isVisible ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
                     )}
                   >

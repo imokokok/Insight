@@ -93,7 +93,7 @@ export function HealthScoreCards({
 }: HealthScoreCardsProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="border-y border-slate-900/15 bg-white/55 p-4">
         <div className="flex items-center gap-2 mb-2">
           <BarChart3 className="w-4 h-4 text-blue-500" />
           <span className="text-xs font-medium text-gray-700">Overall Health</span>
@@ -107,7 +107,7 @@ export function HealthScoreCards({
         </span>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="border-y border-slate-900/15 bg-white/55 p-4">
         <div className="flex items-center gap-2 mb-2">
           <Activity
             className={`w-4 h-4 ${anomalyCount > 0 ? 'text-red-500' : 'text-emerald-500'}`}
@@ -124,7 +124,7 @@ export function HealthScoreCards({
         </span>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="border-y border-slate-900/15 bg-white/55 p-4">
         <div className="flex items-center gap-2 mb-2">
           <AlertTriangle
             className={`w-4 h-4 ${heartbeatLostCount > 0 ? 'text-red-500' : 'text-emerald-500'}`}
@@ -141,7 +141,7 @@ export function HealthScoreCards({
         </span>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="border-y border-slate-900/15 bg-white/55 p-4">
         <div className="flex items-center gap-2 mb-2">
           <Zap
             className={`w-4 h-4 ${confidenceSurgeCount > 0 ? 'text-orange-500' : 'text-emerald-500'}`}
@@ -169,7 +169,7 @@ export function OracleHealthScoresSection({ healthScores }: OracleHealthScoresSe
   const rankedScores = [...healthScores].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-gray-700" />
@@ -198,7 +198,7 @@ export function OracleHealthScoresSection({ healthScores }: OracleHealthScoresSe
             .slice(0, 2);
 
           return (
-            <div key={oracle.provider} className="border border-gray-100 rounded-lg p-4">
+            <div key={oracle.provider} className="border-b border-slate-900/10 p-4 last:border-b-0">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-900">
@@ -222,7 +222,7 @@ export function OracleHealthScoresSection({ healthScores }: OracleHealthScoresSe
                   weakestSignals.map((metric) => (
                     <span
                       key={`${oracle.provider}-${metric.label}`}
-                      className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-700"
+                      className="inline-flex items-center gap-1 border-l border-slate-300 bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-700"
                     >
                       {metric.label}
                       <span className="font-mono">{metric.value}%</span>
@@ -251,7 +251,7 @@ export function RhythmAnalysisSection({ rhythmMetrics }: RhythmAnalysisSectionPr
   const hiddenHealthyCount = rhythmMetrics.length - flaggedMetrics.length;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <Activity className="w-5 h-5 text-gray-700" />
@@ -268,7 +268,7 @@ export function RhythmAnalysisSection({ rhythmMetrics }: RhythmAnalysisSectionPr
       </div>
       <div className="space-y-3">
         {flaggedMetrics.length === 0 && (
-          <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-4 text-sm text-emerald-800">
+          <div className="border-l-2 border-emerald-500 bg-emerald-50/60 p-4 text-sm text-emerald-800">
             No update rhythm anomalies detected across tracked providers.
           </div>
         )}
@@ -280,7 +280,7 @@ export function RhythmAnalysisSection({ rhythmMetrics }: RhythmAnalysisSectionPr
           const barPosition = Math.min(Math.max(ratio, 0), 2);
           const barPercent = (barPosition / 2) * 100;
           return (
-            <div key={oracle.provider} className="border border-gray-100 rounded-lg p-4">
+            <div key={oracle.provider} className="border-b border-slate-900/10 p-4 last:border-b-0">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-900">
                   {capitalize(oracle.provider)}
@@ -317,10 +317,10 @@ export function RhythmAnalysisSection({ rhythmMetrics }: RhythmAnalysisSectionPr
                   </span>
                 </span>
               </div>
-              <div className="relative w-full bg-gray-100 rounded-full h-2">
+              <div className="relative h-2 w-full bg-gray-100">
                 <div className="absolute top-0 h-2 w-px bg-gray-400" style={{ left: '50%' }} />
                 <div
-                  className="h-2 rounded-full transition-all duration-500"
+                  className="h-2 transition-all duration-500"
                   style={{
                     width: `${barPercent}%`,
                     backgroundColor:
@@ -377,7 +377,7 @@ export function HeartbeatMonitorSection({
   const hiddenHealthyCount = heartbeatMetrics.length - flaggedMetrics.length;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <Heart className="w-5 h-5 text-gray-700" />
@@ -394,7 +394,7 @@ export function HeartbeatMonitorSection({
       </div>
       <div className="space-y-3">
         {flaggedMetrics.length === 0 && (
-          <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-4 text-sm text-emerald-800">
+          <div className="border-l-2 border-emerald-500 bg-emerald-50/60 p-4 text-sm text-emerald-800">
             All tracked feeds have active heartbeats with acceptable reliability.
           </div>
         )}
@@ -412,7 +412,7 @@ export function HeartbeatMonitorSection({
                 ? `${Math.floor(timeSinceLastUpdate / 60)}m ago`
                 : `${Math.floor(timeSinceLastUpdate / 3600)}h ago`;
           return (
-            <div key={oracle.provider} className="border border-gray-100 rounded-lg p-4">
+            <div key={oracle.provider} className="border-b border-slate-900/10 p-4 last:border-b-0">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-900">
                   {capitalize(oracle.provider)}
@@ -431,9 +431,9 @@ export function HeartbeatMonitorSection({
                 <span className="text-xs text-gray-500">Reliability:</span>
                 <span className="text-sm font-bold font-mono text-gray-900">{reliabilityPct}%</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
+              <div className="mb-3 h-2 w-full bg-gray-100">
                 <div
-                  className={`h-2 rounded-full transition-all duration-500 ${barColor}`}
+                  className={`h-2 transition-all duration-500 ${barColor}`}
                   style={{ width: `${Math.min(reliabilityPct, 100)}%` }}
                 />
               </div>
@@ -490,7 +490,7 @@ export function ConfidenceIntervalSection({ confidenceMetrics }: ConfidenceInter
   const hiddenStableCount = trackedMetrics.length - flaggedMetrics.length;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <Zap className="w-5 h-5 text-gray-700" />
@@ -509,7 +509,7 @@ export function ConfidenceIntervalSection({ confidenceMetrics }: ConfidenceInter
       </div>
       <div className="space-y-3">
         {flaggedMetrics.length === 0 && (
-          <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-4 text-sm text-emerald-800">
+          <div className="border-l-2 border-emerald-500 bg-emerald-50/60 p-4 text-sm text-emerald-800">
             No expanding or surged confidence intervals detected.
           </div>
         )}
@@ -518,7 +518,7 @@ export function ConfidenceIntervalSection({ confidenceMetrics }: ConfidenceInter
           const changePct = (oracle.widthChangeRate * 100).toFixed(1);
           const maxW = Math.max(...oracle.widths, 0.01);
           return (
-            <div key={oracle.provider} className="border border-gray-100 rounded-lg p-4">
+            <div key={oracle.provider} className="border-b border-slate-900/10 p-4 last:border-b-0">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-900">
                   {capitalize(oracle.provider)}

@@ -128,10 +128,12 @@ export function DataUpdateTime({
 
   if (variant === 'detailed') {
     return (
-      <div className={`${config.bgColor} ${config.borderColor} border rounded-lg p-3 ${className}`}>
+      <div
+        className={`${config.bgColor} ${config.borderColor} border-l-2 border-y border-r p-3 ${className}`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-full bg-white`}>
+            <div className="border border-current/15 bg-white p-2">
               <StatusIcon size={20} className={config.color} />
             </div>
             <div>
@@ -171,7 +173,7 @@ export function DataUpdateTime({
             <button
               onClick={onRefresh}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex w-full items-center justify-center gap-2 border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-blue-600 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <>
@@ -194,7 +196,7 @@ export function DataUpdateTime({
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
       <div
-        className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${config.bgColor} ${config.borderColor} border`}
+        className={`flex items-center gap-1.5 border-l-2 px-2 py-1 ${config.bgColor} ${config.borderColor}`}
       >
         <div className={`w-1.5 h-1.5 rounded-full ${config.dotColor}`} />
         <StatusIcon size={12} className={config.color} />

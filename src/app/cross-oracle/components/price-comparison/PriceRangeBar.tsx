@@ -35,7 +35,7 @@ function PriceRangeBarComponent({
 
   return (
     <div className="w-full">
-      <div className="relative h-3 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-600 rounded-full overflow-hidden">
+      <div className="relative h-2 overflow-hidden bg-blue-100">
         <div
           className="absolute top-0 bottom-0 w-1 bg-white border-2 border-gray-800 transform -translate-x-1/2"
           style={{ left: `${medianPosition}%` }}
@@ -44,7 +44,7 @@ function PriceRangeBarComponent({
 
         {currentPosition !== null && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full transform -translate-x-1/2 shadow-sm"
+            className="absolute top-1/2 h-3 w-1 -translate-x-1/2 -translate-y-1/2 transform bg-emerald-600"
             style={{ left: `${currentPosition}%` }}
             title={`Current: ${formatPrice(currentPrice!)}`}
           />

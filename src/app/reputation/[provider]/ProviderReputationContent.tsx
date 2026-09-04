@@ -83,7 +83,7 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12">
           <Link
             href="/reputation"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 mb-6 group font-bold px-3 py-2 rounded-lg border border-gray-200 hover:border-primary-200 hover:bg-primary-50/50 transition-all"
+            className="group mb-6 inline-flex items-center gap-2 border border-gray-200 px-3 py-2 text-sm font-bold text-gray-600 transition-colors hover:border-primary-200 hover:bg-primary-50/50 hover:text-primary-600"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             Back to Reputation

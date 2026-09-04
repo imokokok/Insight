@@ -128,7 +128,7 @@ function SimplePriceComparisonTabComponent({
       </div>
 
       {stats.anomalyCount > 0 && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+        <div className="flex items-center gap-2 border-l-2 border-amber-500 bg-amber-50 px-3 py-2 text-xs text-amber-700">
           <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
           <span>
             Anomalies detected — check <strong>Risk Analysis</strong> and{' '}
@@ -164,13 +164,13 @@ function SimplePriceComparisonTabComponent({
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
               <Activity className="w-3.5 h-3.5 text-gray-400" />
-              <div className="flex items-center gap-1 p-0.5 bg-gray-100 rounded-md">
+              <div className="flex items-center border border-slate-900/15 bg-white">
                 <button
                   onClick={() => setAnomalyMode('deviation')}
                   className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
                     anomalyMode === 'deviation'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-500 hover:bg-blue-50 hover:text-blue-700'
                   }`}
                 >
                   Deviation
@@ -179,8 +179,8 @@ function SimplePriceComparisonTabComponent({
                   onClick={() => setAnomalyMode('zscore')}
                   className={`px-2 py-1 text-[10px] font-medium rounded transition-all ${
                     anomalyMode === 'zscore'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-500 hover:bg-blue-50 hover:text-blue-700'
                   }`}
                 >
                   Z-Score

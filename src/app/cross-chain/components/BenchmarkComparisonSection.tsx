@@ -77,25 +77,25 @@ export function BenchmarkComparisonSection({ chainPrices }: BenchmarkComparisonS
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
         <h3 className="text-sm font-semibold text-gray-900">Benchmark Comparison</h3>
       </div>
       <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+        <div className="mb-6 grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-3 md:divide-x md:divide-slate-900/10">
+          <div className="bg-gray-50 p-4 text-center">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Average</p>
             <p className="text-xl font-semibold text-gray-900">
               {formatPrice(benchmarkData.industryAverage)}
             </p>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="bg-gray-50 p-4 text-center">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Median</p>
             <p className="text-xl font-semibold text-gray-900">
               {formatPrice(benchmarkData.industryMedian)}
             </p>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="bg-gray-50 p-4 text-center">
             <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Highest Price</p>
             <p className="text-xl font-semibold text-gray-900">
               {formatPrice(benchmarkData.industryBest)}

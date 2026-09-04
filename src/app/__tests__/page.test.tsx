@@ -50,11 +50,9 @@ describe('HomePage', () => {
     it('should render the hero headline and value proposition', () => {
       renderDashboard();
 
-      expect(screen.getByText('Make oracle risk')).toBeInTheDocument();
-      expect(screen.getByText('transparent before it strikes.')).toBeInTheDocument();
-      expect(
-        screen.getByText(/faulty feeds never take your protocol by surprise/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText('See the price')).toBeInTheDocument();
+      expect(screen.getByText('before it becomes risk.')).toBeInTheDocument();
+      expect(screen.getByText(/price data beneath your protocol inspectable/i)).toBeInTheDocument();
     });
 
     it('should render search bar', () => {
@@ -77,12 +75,10 @@ describe('HomePage', () => {
       renderDashboard();
 
       expect(
-        screen.getByText('Oracle deviation can liquidate healthy positions')
+        screen.getByText('A price is only useful when you can inspect what stands behind it.')
       ).toBeInTheDocument();
-      expect(
-        screen.getByText('Oracle transparency, from data to risk signals')
-      ).toBeInTheDocument();
-      expect(screen.getByText('Price Insight')).toBeInTheDocument();
+      expect(screen.getByText('Different questions. One clear audit trail.')).toBeInTheDocument();
+      expect(screen.getAllByText('Price Insight').length).toBeGreaterThanOrEqual(1);
     });
   });
 

@@ -24,7 +24,7 @@ export const StatCard = memo(function StatCard({
   const cardContent = (
     <div
       className={cn(
-        'relative bg-white rounded-xl p-4 border border-gray-100 shadow-sm',
+        'relative border-y border-slate-900/15 bg-white/55 p-4',
         description && 'cursor-help'
       )}
     >
@@ -41,7 +41,7 @@ export const StatCard = memo(function StatCard({
         </p>
         {rating && (
           <span
-            className="inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded"
+            className="inline-flex items-center border-l-2 border-current px-1.5 py-0.5 text-xs font-medium"
             style={{ color: rating.color, backgroundColor: rating.bgColor }}
           >
             {rating.label}

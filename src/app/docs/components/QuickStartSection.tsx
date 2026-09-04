@@ -29,9 +29,9 @@ function StatBadge({ icon: Icon, label, value, tone = 'neutral' }: StatBadgeProp
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-sm ${toneStyles[tone]}`}
+      className={`flex items-center gap-3 border-l-2 border-y border-r px-4 py-3 ${toneStyles[tone]}`}
     >
-      <div className="w-9 h-9 rounded-lg bg-white border border-slate-100 flex items-center justify-center flex-shrink-0">
+      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-slate-900/15 bg-white">
         <Icon className="w-4 h-4 text-slate-600" />
       </div>
       <div>
@@ -79,10 +79,10 @@ export default function QuickStartSection() {
   return (
     <section id="quickstart" className="py-16 scroll-mt-20">
       {/* Header bar */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6 mb-8">
+      <div className="mb-8 border-y border-slate-900/15 bg-white/55 p-5 sm:p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex items-start gap-4">
-            <div className="p-2.5 bg-blue-50 rounded-xl shrink-0">
+            <div className="shrink-0 border border-blue-200 bg-blue-50 p-2.5">
               <Rocket className="w-6 h-6 text-blue-600" />
             </div>
             <div>
@@ -117,7 +117,7 @@ export default function QuickStartSection() {
           {steps.map((step, index) => (
             <div
               key={index}
-              className="group bg-white border border-slate-100 rounded-2xl p-6 hover:shadow-md hover:border-blue-200 transition-all"
+              className="group border-b border-slate-900/10 bg-white/55 p-6 transition-colors last:border-b-0 hover:bg-blue-50/30"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex h-12 w-12 items-center justify-center border border-blue-200 bg-blue-50 text-blue-700 transition-colors group-hover:bg-blue-100">
@@ -143,7 +143,7 @@ export default function QuickStartSection() {
         ].map((item, index) => (
           <div
             key={index}
-            className="flex items-center gap-3 p-4 bg-white border border-slate-100 rounded-2xl"
+            className="flex items-center gap-3 border-b border-slate-900/10 bg-white/55 p-4 last:border-b-0"
           >
             <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
             <span className="text-sm text-slate-700">{item}</span>
@@ -158,7 +158,7 @@ export default function QuickStartSection() {
             <Link
               key={cta.href}
               href={cta.href}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 border border-blue-600 bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
             >
               {cta.label}
               <ArrowRight className="w-4 h-4" />
@@ -167,7 +167,7 @@ export default function QuickStartSection() {
             <Link
               key={cta.href}
               href={cta.href}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-700 font-medium border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-2 border border-slate-300 bg-white px-6 py-3 font-medium text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700"
             >
               {cta.label}
             </Link>

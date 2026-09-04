@@ -126,7 +126,7 @@ function SectionCard({
   return (
     <motion.div
       variants={itemVariants}
-      className={`bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-sm ${className}`}
+      className={`border-y border-slate-900/15 bg-white/55 p-6 sm:p-8 ${className}`}
     >
       {children}
     </motion.div>
@@ -146,7 +146,7 @@ export default function MethodologySection() {
           className="mb-10"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 bg-emerald-100 rounded-xl">
+            <div className="border border-emerald-200 bg-emerald-100 p-2.5">
               <BookOpen className="w-6 h-6 text-emerald-600" />
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
@@ -170,7 +170,7 @@ export default function MethodologySection() {
           {/* Data collection */}
           <SectionCard>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-50 rounded-lg">
+              <div className="border border-blue-200 bg-blue-50 p-2">
                 <Layers className="w-5 h-5 text-blue-600" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Data Collection</h3>
@@ -187,7 +187,7 @@ export default function MethodologySection() {
               {collectionItems.map((item) => (
                 <div
                   key={item.label}
-                  className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100"
+                  className="flex items-center justify-between border-b border-slate-900/10 bg-slate-50 p-4 last:border-b-0"
                 >
                   <span className="text-sm text-slate-500">{item.label}</span>
                   <span className="text-sm font-medium text-slate-900 text-right">
@@ -201,7 +201,7 @@ export default function MethodologySection() {
           {/* Validation */}
           <SectionCard>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-emerald-50 rounded-lg">
+              <div className="border border-emerald-200 bg-emerald-50 p-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-600" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Validation Rules</h3>
@@ -213,7 +213,10 @@ export default function MethodologySection() {
             </p>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {validationRules.map((rule) => (
-                <li key={rule} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                <li
+                  key={rule}
+                  className="flex items-start gap-3 border-b border-slate-900/10 bg-slate-50 p-3 last:border-b-0"
+                >
                   <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
                   <span className="text-sm text-slate-700 leading-relaxed">{rule}</span>
                 </li>
@@ -224,7 +227,7 @@ export default function MethodologySection() {
           {/* Consensus */}
           <SectionCard>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-50 rounded-lg">
+              <div className="border border-blue-200 bg-blue-50 p-2">
                 <Scale className="w-5 h-5 text-blue-700" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Consensus Algorithms</h3>
@@ -239,7 +242,7 @@ export default function MethodologySection() {
               {consensusMethods.map((method) => (
                 <div
                   key={method.key}
-                  className="border border-slate-100 rounded-xl p-5 bg-slate-50/50 hover:bg-slate-50 hover:border-blue-200 transition-all"
+                  className="border-b border-slate-900/10 bg-slate-50/50 p-5 transition-colors last:border-b-0 hover:bg-white"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold text-slate-900">{method.title}</h4>
@@ -252,7 +255,7 @@ export default function MethodologySection() {
               ))}
             </div>
 
-            <div className="p-5 bg-blue-50 rounded-xl border border-blue-100">
+            <div className="border-l-2 border-blue-600 bg-blue-50 p-5">
               <h4 className="font-semibold text-blue-950 mb-2 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Outlier Detection
@@ -269,7 +272,7 @@ export default function MethodologySection() {
           {/* Reputation */}
           <SectionCard>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-amber-50 rounded-lg">
+              <div className="border border-amber-200 bg-amber-50 p-2">
                 <Gauge className="w-5 h-5 text-amber-600" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Reputation Scoring</h3>
@@ -284,7 +287,7 @@ export default function MethodologySection() {
               {reputationMetrics.map((metric) => (
                 <div
                   key={metric.title}
-                  className="border border-slate-100 rounded-xl p-5 hover:shadow-sm hover:border-amber-200 transition-all"
+                  className="border-b border-slate-900/10 p-5 transition-colors last:border-b-0 hover:bg-amber-50/30"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold text-slate-900">{metric.title}</h4>
@@ -296,7 +299,7 @@ export default function MethodologySection() {
                 </div>
               ))}
             </div>
-            <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
+            <div className="flex items-start gap-3 border-l-2 border-amber-500 bg-amber-50 p-4">
               <Timer className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-amber-800 leading-relaxed">
                 A sample-size factor (0.85–1.0) is applied when fewer than 100 samples exist, and a

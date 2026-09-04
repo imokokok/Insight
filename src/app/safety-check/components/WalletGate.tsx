@@ -78,7 +78,7 @@ export function WalletGate({
   })();
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center gap-2 mb-4">
         <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
         <h3 className="text-sm font-semibold text-slate-900">Connect Wallet</h3>
@@ -87,7 +87,7 @@ export function WalletGate({
 
       {/* Connected address chip */}
       {address && (
-        <div className="mb-3 flex items-center justify-between gap-2 min-w-0 rounded-lg bg-primary-50 border border-primary-100 px-3 py-2">
+        <div className="mb-3 flex min-w-0 items-center justify-between gap-2 border-l-2 border-blue-600 bg-primary-50 px-3 py-2">
           <span className="text-xs text-slate-600 font-mono truncate">
             {address.slice(0, 6)}…{address.slice(-4)}
           </span>
@@ -131,7 +131,7 @@ export function WalletGate({
           placeholder="或粘贴钱包地址 0x…"
           disabled={detecting}
           className={cn(
-            'flex-1 min-w-0 w-full px-3 py-2 bg-white border rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all font-mono',
+            'flex-1 min-w-0 w-full border bg-white px-3 py-2 font-mono text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600',
             pasted.match(ADDRESS_RE) ? 'border-primary-300' : 'border-slate-200'
           )}
         />
@@ -152,16 +152,20 @@ export function WalletGate({
         </Button>
       </div>
 
-      {wallet.error && !detectError && <p className="text-xs text-red-600 mt-2">{wallet.error}</p>}
+      {wallet.error && !detectError && (
+        <p className="mt-3 border-l-2 border-red-500 bg-red-50 px-3 py-2 text-xs text-red-700">
+          {wallet.error}
+        </p>
+      )}
 
       {statusLine && (
         <div
           className={cn(
-            'mt-3 text-xs flex items-center gap-2',
-            statusLine.tone === 'error' && 'text-red-600',
-            statusLine.tone === 'warn' && 'text-amber-700',
-            statusLine.tone === 'ok' && 'text-emerald-600',
-            statusLine.tone === 'muted' && 'text-slate-500'
+            'mt-3 flex items-center gap-2 border-l-2 px-3 py-2 text-xs',
+            statusLine.tone === 'error' && 'border-red-500 bg-red-50 text-red-700',
+            statusLine.tone === 'warn' && 'border-amber-500 bg-amber-50 text-amber-700',
+            statusLine.tone === 'ok' && 'border-emerald-500 bg-emerald-50 text-emerald-700',
+            statusLine.tone === 'muted' && 'border-blue-500 bg-blue-50 text-slate-600'
           )}
         >
           {detecting && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}

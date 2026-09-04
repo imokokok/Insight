@@ -156,14 +156,14 @@ export function LendingSafetySection({
       </div>
 
       {loading && !data && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 flex items-center gap-2 text-sm text-slate-500">
+        <div className="flex items-center gap-2 border-y border-slate-900/15 bg-white/55 p-5 text-sm text-slate-500">
           <Loader2 className="w-4 h-4 animate-spin" />
           Running pre-trade oracle safety check…
         </div>
       )}
 
       {error && !loading && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-2 text-sm text-amber-800">
+        <div className="flex items-start gap-2 border-l-2 border-amber-500 bg-amber-50 p-4 text-sm text-amber-800">
           <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
           <span>Pre-trade check unavailable: {error}</span>
         </div>
@@ -190,7 +190,7 @@ export function LendingSafetySection({
         !data.verdict &&
         !loading &&
         !error && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
+          <div className="border-l-2 border-emerald-500 bg-emerald-50 p-4 text-sm text-slate-600">
             Oracle dispersion within safe bounds for this borrow on {asset}.
           </div>
         )}

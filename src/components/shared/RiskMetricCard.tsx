@@ -28,9 +28,9 @@ export function ScoreBar({
 }) {
   const percentage = Math.min((value / maxValue) * 100, 100);
   return (
-    <div className="w-full bg-gray-100 rounded-full h-2">
+    <div className="h-2 w-full bg-gray-100">
       <div
-        className="h-2 rounded-full transition-all duration-500"
+        className="h-2 transition-all duration-500"
         style={{ width: `${percentage}%`, backgroundColor: color }}
       />
     </div>
@@ -76,14 +76,14 @@ export function RiskMetricCard({
 }) {
   const badge = getLevelBadge(level);
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Icon className={`w-4 h-4 ${iconColor}`} />
           <span className="text-sm font-medium text-gray-700">{title}</span>
         </div>
         <span
-          className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded ${badge.bgClass} ${badge.textClass}`}
+          className={`inline-flex items-center border-l-2 border-current px-2 py-0.5 text-[10px] font-medium ${badge.bgClass} ${badge.textClass}`}
         >
           {badge.label}
         </span>

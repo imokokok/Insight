@@ -86,7 +86,7 @@ export function SegmentedControl<T = string>({
             <button
               onClick={handleSelectAll}
               disabled={disabled}
-              className="text-[10px] px-2 py-1 text-gray-600 bg-white hover:bg-gray-50 transition-all duration-200 rounded-md border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+              className="border border-gray-300 bg-white px-2 py-1 text-[10px] text-gray-600 transition-colors hover:border-primary-400 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {allSelected ? resolvedDeselectAllLabel : resolvedSelectAllLabel}
             </button>
@@ -94,7 +94,7 @@ export function SegmentedControl<T = string>({
         </div>
       )}
       <div
-        className="flex flex-wrap gap-1 p-1 bg-gray-100/80 rounded-lg"
+        className="flex flex-wrap border border-gray-300 bg-white"
         style={{ isolation: 'isolate' }}
       >
         {options.map((option) => {
@@ -104,9 +104,11 @@ export function SegmentedControl<T = string>({
               key={String(option.value)}
               onClick={() => handleSelect(option)}
               disabled={disabled || option.disabled}
-              className={`relative inline-flex items-center gap-1.5 font-medium transition-all duration-200 ease-out rounded-md ${sizeClasses[size]} ${
-                selected ? 'bg-white text-gray-900 shadow-md' : 'text-gray-600 hover:text-gray-900'
-              } ${disabled || option.disabled ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.98] hover:bg-gray-50/50'}`}
+              className={`relative inline-flex items-center gap-1.5 border-r border-gray-200 font-medium transition-colors duration-200 ease-out last:border-r-0 ${sizeClasses[size]} ${
+                selected
+                  ? 'bg-primary-700 text-white'
+                  : 'text-gray-600 hover:bg-primary-50/50 hover:text-primary-700'
+              } ${disabled || option.disabled ? 'cursor-not-allowed opacity-50' : ''}`}
               style={{ zIndex: mounted && selected ? 1 : 0 }}
             >
               {option.icon && (

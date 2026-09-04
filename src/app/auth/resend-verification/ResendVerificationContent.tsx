@@ -62,7 +62,7 @@ function ResendVerificationForm() {
             <GoToLoginButton redirect={redirectPath} />
             <button
               onClick={reset}
-              className="w-full px-6 py-3 border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 transition-colors rounded-xl"
+              className="w-full border border-slate-300 px-6 py-3 font-medium text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700"
             >
               Send Again
             </button>
@@ -100,7 +100,7 @@ function ResendVerificationForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="Enter your email"
-              className="w-full pl-12 pr-4 py-3 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-colors rounded-xl"
+              className="w-full border border-slate-300 py-3 pl-12 pr-4 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
             />
           </div>
         </div>
@@ -108,7 +108,7 @@ function ResendVerificationForm() {
         <button
           type="submit"
           disabled={isLoading || !email}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-xl"
+          className="flex w-full items-center justify-center gap-2 bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
           <span>{isLoading ? 'Sending...' : 'Send Verification Email'}</span>

@@ -76,8 +76,8 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
           <Image
             src="/logos/owl-logo.svg"
             alt="Insight"
-            width={28}
-            height={24}
+            width={30}
+            height={27}
             className="group-hover:scale-105 transition-transform duration-300"
           />
           <div>
@@ -120,8 +120,8 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
             <Image
               src="/logos/owl-logo.svg"
               alt="Insight"
-              width={24}
-              height={20}
+              width={20}
+              height={18}
               className="group-hover:scale-105 transition-transform duration-300"
             />
             <span className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
@@ -142,8 +142,8 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
                   <Image
                     src="/logos/owl-logo.svg"
                     alt="Insight"
-                    width={28}
-                    height={24}
+                    width={30}
+                    height={27}
                     className="group-hover:scale-105 transition-transform duration-300"
                   />
                   <div>

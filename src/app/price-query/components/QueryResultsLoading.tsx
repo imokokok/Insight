@@ -9,16 +9,23 @@ export function QueryResultsLoading() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+      <div className="border-y border-slate-200 bg-white/70 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-slate-900">Loading data...</h3>
           <span className="text-xs text-slate-500">
             {queryProgress.completed} / {queryProgress.total}
           </span>
         </div>
-        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+        <div
+          className="h-1.5 w-full overflow-hidden bg-slate-200"
+          role="progressbar"
+          aria-label="Oracle query progress"
+          aria-valuemin={0}
+          aria-valuemax={Math.max(queryProgress.total, 1)}
+          aria-valuenow={queryProgress.completed}
+        >
           <div
-            className="h-2 rounded-full transition-all duration-300 bg-blue-600"
+            className="h-full bg-blue-600 transition-[width] duration-300"
             style={{
               width: `${queryProgress.total > 0 ? Math.min(100, (queryProgress.completed / queryProgress.total) * 100) : 0}%`,
             }}

@@ -18,9 +18,9 @@ function ShortcutItem({ shortcut, label }: ShortcutItemProps) {
   const displayShortcut = getPlatformShortcut(shortcut);
 
   return (
-    <div className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors">
+    <div className="flex items-center justify-between border-b border-slate-900/10 px-3 py-2.5 transition-colors last:border-b-0 hover:bg-white/70">
       <span className="text-sm text-gray-700">{label}</span>
-      <kbd className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 border border-gray-200 rounded text-xs font-mono text-gray-600">
+      <kbd className="inline-flex items-center gap-1 border border-slate-900/15 bg-white px-2 py-1 font-mono text-xs text-slate-600">
         {displayShortcut}
       </kbd>
     </div>
@@ -37,10 +37,10 @@ function ShortcutCategory({ title, shortcuts }: ShortcutCategoryProps) {
 
   return (
     <div className="mb-6">
-      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
+      <h3 className="mb-2 px-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700">
         {title}
       </h3>
-      <div className="space-y-1">
+      <div className="border-y border-slate-900/10">
         {shortcuts.map((item, index) => (
           <ShortcutItem
             key={`${item.label}-${index}`}
@@ -131,7 +131,7 @@ export function ShortcutHelpPanel() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+            className="fixed inset-0 z-50 bg-slate-950/45"
             onClick={closeHelp}
           />
 
@@ -142,13 +142,13 @@ export function ShortcutHelpPanel() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden pointer-events-auto max-h-[80vh] flex flex-col"
+              className="pointer-events-auto flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden border border-slate-900/20 bg-[#f8f7f4]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center">
+                  <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50">
                     <Keyboard className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
@@ -158,7 +158,7 @@ export function ShortcutHelpPanel() {
                 </div>
                 <button
                   onClick={closeHelp}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="border border-slate-900/15 p-2 transition-colors hover:border-blue-600 hover:text-blue-700"
                   aria-label="Close"
                 >
                   <X className="w-5 h-5 text-gray-500" />
@@ -176,7 +176,7 @@ export function ShortcutHelpPanel() {
                 ))}
 
                 {/* Tips */}
-                <div className="mt-6 p-4 bg-primary-50 rounded-lg">
+                <div className="mt-6 border-l-2 border-blue-600 bg-blue-50/70 p-4">
                   <div className="flex items-start gap-3">
                     <Command className="w-5 h-5 text-primary-600 mt-0.5 flex-shrink-0" />
                     <div>
@@ -190,12 +190,10 @@ export function ShortcutHelpPanel() {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+              <div className="border-t border-slate-900/15 bg-white/55 px-6 py-4">
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <span>Press ? to toggle this panel</span>
-                  <kbd className="px-2 py-1 bg-white border border-gray-200 rounded font-mono">
-                    ?
-                  </kbd>
+                  <kbd className="border border-slate-900/15 bg-white px-2 py-1 font-mono">?</kbd>
                 </div>
               </div>
             </motion.div>

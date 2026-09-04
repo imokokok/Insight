@@ -37,7 +37,7 @@ export function ProviderRankingTable({ rankings }: { rankings: ProviderRanking[]
         {canExpand && (
           <button
             onClick={() => setShowAll((prev) => !prev)}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1 border border-transparent px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-slate-900/15 hover:bg-white hover:text-blue-700"
           >
             {showAll ? (
               <>
@@ -53,7 +53,7 @@ export function ProviderRankingTable({ rankings }: { rankings: ProviderRanking[]
           </button>
         )}
       </div>
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto border-y border-slate-900/15 bg-white/55">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
@@ -121,9 +121,9 @@ export function ProviderRankingTable({ rankings }: { rankings: ProviderRanking[]
                       <span className="text-sm font-semibold text-gray-900 font-tabular w-8">
                         {ranking.score.toFixed(0)}
                       </span>
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[60px]">
+                      <div className="h-1.5 min-w-[60px] flex-1 overflow-hidden bg-gray-100">
                         <div
-                          className="h-full rounded-full transition-all"
+                          className="h-full transition-all"
                           style={{
                             width: `${scorePct}%`,
                             backgroundColor: color,
@@ -254,7 +254,7 @@ export function AssetTable({ assets }: { assets: DailyReportData['topAssets'] })
         {canExpand && (
           <button
             onClick={() => setShowAll((prev) => !prev)}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1 border border-transparent px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-slate-900/15 hover:bg-white hover:text-blue-700"
           >
             {showAll ? (
               <>
@@ -270,7 +270,7 @@ export function AssetTable({ assets }: { assets: DailyReportData['topAssets'] })
           </button>
         )}
       </div>
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto border-y border-slate-900/15 bg-white/55">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
@@ -321,9 +321,9 @@ export function AssetTable({ assets }: { assets: DailyReportData['topAssets'] })
                       <span className="text-xs text-gray-500 font-tabular w-20 text-right">
                         {formatPrice(asset.minPrice)}
                       </span>
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[60px]">
+                      <div className="h-1.5 min-w-[60px] flex-1 overflow-hidden bg-gray-100">
                         <div
-                          className="h-full rounded-full bg-gray-300"
+                          className="h-full bg-gray-300"
                           style={{ width: `${rangeWidthPct}%` }}
                         />
                       </div>
@@ -334,9 +334,9 @@ export function AssetTable({ assets }: { assets: DailyReportData['topAssets'] })
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[40px]">
+                      <div className="h-1.5 min-w-[40px] flex-1 overflow-hidden bg-gray-100">
                         <div
-                          className={cn('h-full rounded-full transition-all', volTone)}
+                          className={cn('h-full transition-all', volTone)}
                           style={{ width: `${volatilityPct}%` }}
                         />
                       </div>
@@ -439,7 +439,7 @@ export function CoverageMatrix({ matrix }: { matrix: DailyReportData['coverageMa
 
   if (abnormalCells.length === 0) {
     return (
-      <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+      <div className="flex items-start gap-3 border-l-2 border-emerald-500 bg-emerald-50 p-4 text-emerald-800">
         <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium">No coverage anomalies</p>
@@ -472,7 +472,7 @@ export function CoverageMatrix({ matrix }: { matrix: DailyReportData['coverageMa
         </p>
         <button
           onClick={() => setShowAll((prev) => !prev)}
-          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1 border border-transparent px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-slate-900/15 hover:bg-white hover:text-blue-700"
         >
           {showAll ? (
             <>
@@ -488,7 +488,7 @@ export function CoverageMatrix({ matrix }: { matrix: DailyReportData['coverageMa
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto border-y border-slate-900/15 bg-white/55">
         <table className="min-w-full text-xs">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>

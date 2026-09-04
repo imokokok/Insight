@@ -46,12 +46,12 @@ function ResultIcon({ result }: { result: SearchResult }) {
   }
 
   const defaultIcons: Record<SearchResult['type'], React.ReactNode> = {
-    oracle: <div className="w-5 h-5 rounded-full bg-primary-500" aria-hidden="true" />,
-    pair: <div className="w-5 h-5 rounded bg-success-500" aria-hidden="true" />,
-    blockchain: <div className="w-5 h-5 rounded bg-purple-500" aria-hidden="true" />,
-    page: <div className="w-5 h-5 rounded bg-gray-500" aria-hidden="true" />,
-    feature: <div className="w-5 h-5 rounded bg-warning-500" aria-hidden="true" />,
-    documentation: <div className="w-5 h-5 rounded bg-indigo-500" aria-hidden="true" />,
+    oracle: <div className="h-5 w-5 bg-primary-700" aria-hidden="true" />,
+    pair: <div className="h-5 w-5 bg-primary-600" aria-hidden="true" />,
+    blockchain: <div className="h-5 w-5 bg-blue-500" aria-hidden="true" />,
+    page: <div className="h-5 w-5 bg-slate-700" aria-hidden="true" />,
+    feature: <div className="h-5 w-5 bg-primary-400" aria-hidden="true" />,
+    documentation: <div className="h-5 w-5 bg-blue-800" aria-hidden="true" />,
   };
 
   return defaultIcons[result.type] || null;
@@ -73,7 +73,7 @@ function SearchResultItem({ result, isActive, onSelect, onHover, itemRef }: Sear
       }}
       onMouseEnter={onHover}
       className={`
-        flex items-center gap-3 px-4 py-3 sm:py-4 transition-colors duration-150 rounded-lg
+        flex items-center gap-3 border-b border-slate-900/10 px-4 py-3 sm:py-4 transition-colors duration-150
         ${isActive ? 'bg-primary-50 border-l-2 border-primary-500' : 'hover:bg-gray-50 border-l-2 border-transparent'}
         cursor-pointer
         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset
@@ -81,7 +81,7 @@ function SearchResultItem({ result, isActive, onSelect, onHover, itemRef }: Sear
     >
       <div
         className={`
-          flex-shrink-0 w-8 h-8 rounded-md flex items-center justify-center
+          flex h-8 w-8 flex-shrink-0 items-center justify-center border
           ${isActive ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}
         `}
         aria-hidden="true"
@@ -140,7 +140,7 @@ function EmptyState({ query }: { query: string }) {
       aria-live="polite"
       className="flex flex-col items-center justify-center py-12 px-4 text-center"
     >
-      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center border border-slate-300 bg-white">
         <Search className="w-8 h-8 text-gray-400" aria-hidden="true" />
       </div>
       <h3 className="text-lg font-medium text-gray-900 mb-1">No results found</h3>
@@ -167,7 +167,7 @@ function InitialState() {
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-      <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mb-4">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center border border-primary-200 bg-primary-50">
         <Search className="w-8 h-8 text-primary-500" aria-hidden="true" />
       </div>
       <h3 className="text-lg font-medium text-gray-900 mb-1">Search</h3>
@@ -178,7 +178,7 @@ function InitialState() {
         {shortcuts.map((shortcut) => (
           <div key={shortcut.key} className="flex items-center gap-2 text-xs text-gray-500">
             <kbd
-              className="px-2 py-1 bg-gray-100 rounded-md text-gray-700 font-mono"
+              className="border border-slate-300 bg-white px-2 py-1 font-mono text-gray-700"
               aria-label={shortcut.keyLabel}
             >
               {shortcut.key}

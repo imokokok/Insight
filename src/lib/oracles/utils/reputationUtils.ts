@@ -152,7 +152,7 @@ export function formatTimeAgo(isoString: string | null): { text: string; color: 
 export const SCORE_WEIGHTS = [
   { key: 'accuracy', label: 'Accuracy', weight: 30, color: '#3b82f6' },
   { key: 'uptime', label: 'Uptime', weight: 20, color: '#10b981' },
-  { key: 'reliability', label: 'Reliability', weight: 20, color: '#8b5cf6' },
+  { key: 'reliability', label: 'Reliability', weight: 20, color: '#2563eb' },
   { key: 'freshness', label: 'Freshness', weight: 15, color: '#f59e0b' },
   { key: 'latency', label: 'Latency', weight: 10, color: '#06b6d4' },
   { key: 'deviation', label: 'Deviation', weight: 5, color: '#f43f5e' },

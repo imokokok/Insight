@@ -32,18 +32,18 @@ function ChartTabSwitcherComponent({ activeTab, onTabChange }: ChartTabSwitcherP
   ];
 
   return (
-    <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+    <div className="flex items-center border border-slate-300 bg-white">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={`
-            flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md
-            transition-all duration-200
+            flex items-center gap-2 px-3 py-2 text-sm font-medium
+            transition-colors duration-200
             ${
               activeTab === tab.id
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
             }
           `}
         >

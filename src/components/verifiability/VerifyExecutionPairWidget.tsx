@@ -100,7 +100,7 @@ export function VerifyExecutionPairWidget() {
   );
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden mt-8">
+    <div className="mt-8 overflow-hidden border-y border-slate-900/15 bg-white/55">
       <div className="px-5 py-4 border-b border-slate-100">
         <div className="text-sm font-semibold text-slate-900">Verify a closed execution loop</div>
         <div className="text-xs text-slate-500 mt-0.5">
@@ -122,7 +122,7 @@ export function VerifyExecutionPairWidget() {
               onChange={(e) => setPreTrade(e.target.value)}
               placeholder="Paste the pre-trade oracle-safety attestation (source leg)…"
               spellCheck={false}
-              className="w-full h-40 p-3 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono text-slate-700 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400"
+              className="h-40 w-full resize-y border border-slate-900/15 bg-slate-50 p-3 font-mono text-xs text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
           <div>
@@ -132,7 +132,7 @@ export function VerifyExecutionPairWidget() {
               onChange={(e) => setReceipt(e.target.value)}
               placeholder="Paste the Execution Receipt (from execution_receipt)…"
               spellCheck={false}
-              className="w-full h-40 p-3 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono text-slate-700 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400"
+              className="h-40 w-full resize-y border border-slate-900/15 bg-slate-50 p-3 font-mono text-xs text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
           <div>
@@ -144,7 +144,7 @@ export function VerifyExecutionPairWidget() {
               onChange={(e) => setDestinationPreTrade(e.target.value)}
               placeholder="Only if the receipt commits to a destination gate…"
               spellCheck={false}
-              className="w-full h-40 p-3 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono text-slate-700 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400"
+              className="h-40 w-full resize-y border border-slate-900/15 bg-slate-50 p-3 font-mono text-xs text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
         </div>
@@ -154,7 +154,7 @@ export function VerifyExecutionPairWidget() {
             type="button"
             onClick={() => runVerify(preTrade, receipt, destinationPreTrade)}
             disabled={state === 'loading'}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
+            className="inline-flex items-center gap-2 border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
             {state === 'loading' ? 'Verifying…' : 'Verify pair'}
           </button>
@@ -164,17 +164,17 @@ export function VerifyExecutionPairWidget() {
         </div>
 
         {state === 'error' && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="border-l-2 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
         {result && (
-          <div className="rounded-lg border border-slate-200 divide-y divide-slate-100">
+          <div className="divide-y divide-slate-900/10 border-y border-slate-900/15">
             <div className="flex items-center justify-between px-4 py-3">
               <span className="text-sm font-semibold text-slate-900">Closed-loop status</span>
               <span
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${statusTone(
+                className={`inline-flex items-center gap-1.5 border-l-2 border-current px-2.5 py-1 text-xs font-semibold ${statusTone(
                   result.closedLoopStatus
                 )}`}
               >

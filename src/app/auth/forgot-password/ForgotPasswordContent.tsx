@@ -35,7 +35,7 @@ function ForgotPasswordForm() {
 
   if (isSuccess) {
     return (
-      <AuthPageLayout cardClassName="text-center shadow-sm">
+      <AuthPageLayout cardClassName="text-center">
         <AuthResultCard
           icon={CheckCircle}
           iconBgClass="bg-emerald-100"
@@ -47,7 +47,7 @@ function ForgotPasswordForm() {
             <GoToLoginButton redirect={redirectParam} />
             <button
               onClick={reset}
-              className="w-full px-6 py-3 border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 hover:border-slate-300 transition-colors rounded-xl"
+              className="w-full border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700"
             >
               Send Again
             </button>
@@ -58,10 +58,10 @@ function ForgotPasswordForm() {
   }
 
   return (
-    <AuthPageLayout cardClassName="shadow-sm">
+    <AuthPageLayout>
       <div className="text-center mb-8">
         <AuthBrandLogo />
-        <div className="w-16 h-16 bg-blue-100 flex items-center justify-center mx-auto mt-4 mb-4 rounded-2xl">
+        <div className="mx-auto mb-4 mt-4 flex h-16 w-16 items-center justify-center border border-blue-200 bg-blue-50">
           <KeyRound className="w-8 h-8 text-blue-600" />
         </div>
         <h2 className="text-xl font-bold text-slate-900">Forgot Password</h2>
@@ -88,7 +88,7 @@ function ForgotPasswordForm() {
               placeholder="Enter your email address"
               aria-invalid={!!error}
               aria-describedby={error ? 'forgot-password-error' : undefined}
-              className="w-full pl-12 pr-4 py-3 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors rounded-xl"
+              className="w-full border border-slate-300 py-3 pl-12 pr-4 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
             />
           </div>
         </div>
@@ -96,7 +96,7 @@ function ForgotPasswordForm() {
         <button
           type="submit"
           disabled={isLoading || !email}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm shadow-blue-900/10"
+          className="flex w-full items-center justify-center gap-2 bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
           <span>{isLoading ? 'Sending...' : 'Send Reset Link'}</span>

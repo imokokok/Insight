@@ -85,7 +85,7 @@ export function VerifyReceiptWidget() {
   const result = state.status === 'done' ? state.result : undefined;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
       <div className="px-5 py-4 border-b border-slate-100">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -98,7 +98,7 @@ export function VerifyReceiptWidget() {
             type="button"
             onClick={loadSample}
             disabled={state.status === 'loading'}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors"
+            className="inline-flex items-center gap-2 border border-blue-600 bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
             Load a real sample receipt
           </button>
@@ -111,7 +111,7 @@ export function VerifyReceiptWidget() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Paste an Insight receipt (JSON) here, or load the sample…"
           spellCheck={false}
-          className="w-full h-40 p-3 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono text-slate-700 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400"
+          className="h-40 w-full resize-y border border-slate-900/15 bg-slate-50 p-3 font-mono text-xs text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
 
         <div className="flex flex-wrap items-center gap-3">
@@ -119,7 +119,7 @@ export function VerifyReceiptWidget() {
             type="button"
             onClick={() => runVerify(input)}
             disabled={state.status === 'loading'}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
+            className="inline-flex items-center gap-2 border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
             {state.status === 'loading' ? 'Verifying…' : 'Verify'}
           </button>
@@ -129,17 +129,17 @@ export function VerifyReceiptWidget() {
         </div>
 
         {state.status === 'error' && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="border-l-2 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-700">
             {state.error}
           </div>
         )}
 
         {result && (
-          <div className="rounded-lg border border-slate-200 divide-y divide-slate-100">
+          <div className="divide-y divide-slate-900/10 border-y border-slate-900/15">
             <div className="flex items-center justify-between px-4 py-3">
               <span className="text-sm font-semibold text-slate-900">Signature</span>
               <span
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                className={`inline-flex items-center gap-1.5 border-l-2 border-current px-2.5 py-1 text-xs font-semibold ${
                   result.valid ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                 }`}
               >

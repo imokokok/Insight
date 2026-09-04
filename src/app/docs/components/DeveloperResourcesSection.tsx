@@ -161,7 +161,7 @@ export default function DeveloperResourcesSection() {
     <section id="developer" className="py-16 scroll-mt-20 border-t border-slate-100">
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-amber-100 rounded-lg">
+          <div className="border border-amber-200 bg-amber-100 p-2">
             <Wrench className="w-5 h-5 text-amber-600" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900">Developer Resources</h2>
@@ -183,10 +183,10 @@ export default function DeveloperResourcesSection() {
             <LinkWrapper
               key={index}
               {...wrapperProps}
-              className={`group block bg-white border border-slate-100 rounded-2xl p-6 hover:shadow-md transition-all ${accent.border}`}
+              className={`group block border-b border-slate-900/10 bg-white/55 p-6 transition-colors last:border-b-0 hover:bg-blue-50/30 ${accent.border}`}
             >
               <div
-                className={`w-12 h-12 ${accent.bg} rounded-xl flex items-center justify-center ${accent.text} mb-4 group-hover:scale-105 transition-transform`}
+                className={`mb-4 flex h-12 w-12 items-center justify-center border border-current/15 ${accent.bg} ${accent.text} transition-colors`}
               >
                 {resource.icon}
               </div>
@@ -208,7 +208,7 @@ export default function DeveloperResourcesSection() {
         })}
       </div>
 
-      <div id="faq" className="bg-white border border-slate-100 rounded-2xl p-6">
+      <div id="faq" className="border-y border-slate-900/15 bg-white/55 p-6">
         <div className="flex items-center gap-3 mb-6">
           <HelpCircle className="w-5 h-5 text-blue-600" />
           <h3 className="text-lg font-semibold text-slate-900">Frequently Asked Questions</h3>

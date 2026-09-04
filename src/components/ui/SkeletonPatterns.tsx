@@ -17,9 +17,9 @@ export function PageHeaderSkeleton({
 
 export function StatsCardsSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 border-l border-t border-gray-200 md:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+        <div key={i} className="bg-white border-b border-r border-gray-200 p-4 space-y-2">
           <Skeleton variant="text" width="80px" height="14px" />
           <Skeleton variant="text" width="100px" height="24px" />
         </div>
@@ -30,9 +30,9 @@ export function StatsCardsSkeleton({ count = 4 }: { count?: number }) {
 
 export function ChartAreaSkeleton({ titleWidth = '150px' }: { titleWidth?: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
+    <div className="border-y border-gray-200 bg-white/70 p-6">
       <Skeleton variant="text" width={titleWidth} height="18px" className="mb-4" />
-      <Skeleton variant="rectangular" width="100%" height="300px" className="rounded-md" />
+      <Skeleton variant="rectangular" width="100%" height="300px" />
     </div>
   );
 }
@@ -45,9 +45,7 @@ export function SkeletonCard({
   className?: string;
 }) {
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg ${className} space-y-3`}>
-      {children}
-    </div>
+    <div className={`border-y border-gray-200 bg-white/70 ${className} space-y-3`}>{children}</div>
   );
 }
 
@@ -61,7 +59,7 @@ export function FormFieldSkeleton({
   return (
     <div className="space-y-2">
       <Skeleton variant="text" width={labelWidth} height="18px" />
-      <Skeleton variant="rectangular" width="100%" height={inputHeight} className="rounded-md" />
+      <Skeleton variant="rectangular" width="100%" height={inputHeight} />
     </div>
   );
 }

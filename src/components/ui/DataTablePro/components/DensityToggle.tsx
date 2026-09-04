@@ -14,7 +14,7 @@ export function DensityToggle({ density, onChange }: DensityToggleProps) {
   ] as const;
 
   return (
-    <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-md">
+    <div className="flex items-center border border-slate-900/15 bg-white">
       {options.map((option) => {
         const Icon = option.icon;
         const isActive = density === option.key;
@@ -24,10 +24,10 @@ export function DensityToggle({ density, onChange }: DensityToggleProps) {
             type="button"
             onClick={() => onChange(option.key)}
             className={cn(
-              'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-all',
+              'flex items-center gap-1 border-r border-slate-900/15 px-2 py-1 text-xs font-medium transition-colors last:border-r-0',
               isActive
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-500 hover:bg-blue-50 hover:text-blue-700'
             )}
             title={option.label}
           >

@@ -47,15 +47,21 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-slate-900 text-slate-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12">
+    <footer className="border-t border-slate-900/15 bg-[#f8f7f4] text-slate-700">
+      <div className="mx-auto max-w-[1440px] px-5 py-12 sm:px-8 lg:px-12 lg:py-16">
+        <div className="mb-10 flex items-center justify-between border-b border-slate-900/15 pb-5">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-700">
+            Insight — Reference index
+          </p>
+          <p className="hidden text-xs text-slate-400 sm:block">Evidence before execution.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-12 lg:gap-12">
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <Image src="/logos/owl-logo-white.svg" alt="Insight Logo" width={32} height={28} />
-              <span className="text-white font-bold text-xl">Insight</span>
+              <Image src="/logos/owl-logo.svg" alt="Insight Logo" width={30} height={27} />
+              <span className="text-xl font-bold text-slate-950">Insight</span>
             </Link>
-            <p className="text-slate-400 text-sm leading-relaxed mb-6 max-w-xs">
+            <p className="mb-6 max-w-xs text-sm leading-relaxed text-slate-600">
               Oracle transparency and risk infrastructure for DeFi. 15-minute price verification,
               cross-oracle comparison, position safety checks, and programmatic data access across
               10+ providers and 40+ blockchain networks.
@@ -65,7 +71,8 @@ export default function Footer() {
               {socialLinks.map((social) => {
                 const isExternal =
                   social.href.startsWith('http') || social.href.startsWith('mailto:');
-                const className = 'text-slate-400 hover:text-white transition-colors duration-200';
+                const className =
+                  'text-slate-400 transition-colors duration-200 hover:text-blue-700';
                 const icon = <social.icon className="w-5 h-5" />;
 
                 return isExternal ? (
@@ -94,7 +101,7 @@ export default function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
+            <h3 className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-700">
               Platform
             </h3>
             <ul className="space-y-3">
@@ -102,7 +109,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-slate-400 hover:text-white text-sm transition-colors duration-200"
+                    className="text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
                   >
                     {link.label}
                   </Link>
@@ -112,7 +119,7 @@ export default function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
+            <h3 className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-700">
               Safety
             </h3>
             <ul className="space-y-3">
@@ -120,7 +127,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-slate-400 hover:text-white text-sm transition-colors duration-200"
+                    className="text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
                   >
                     {link.label}
                   </Link>
@@ -130,7 +137,7 @@ export default function Footer() {
           </div>
 
           <div className="lg:col-span-2">
-            <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
+            <h3 className="mb-4 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-700">
               Resources
             </h3>
             <ul className="space-y-3">
@@ -140,7 +147,7 @@ export default function Footer() {
                     href={link.href}
                     target={link.href.startsWith('http') ? '_blank' : undefined}
                     rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                    className="text-slate-400 hover:text-white text-sm transition-colors duration-200 flex items-center space-x-2"
+                    className="flex items-center space-x-2 text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
                   >
                     <link.icon className="w-4 h-4" />
                     <span>{link.label}</span>
@@ -152,32 +159,32 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="border-t border-slate-900/15">
+        <div className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 lg:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-slate-500 text-sm">© 2026 Insight. All rights reserved.</p>
+            <p className="font-mono text-xs text-slate-500">© 2026 Insight. All rights reserved.</p>
             <div className="flex items-center space-x-6">
               <Link
                 href="/privacy"
-                className="text-slate-500 hover:text-slate-300 text-sm transition-colors duration-200"
+                className="text-sm text-slate-500 transition-colors duration-200 hover:text-blue-700"
               >
                 Privacy Policy
               </Link>
               <Link
                 href="/terms"
-                className="text-slate-500 hover:text-slate-300 text-sm transition-colors duration-200"
+                className="text-sm text-slate-500 transition-colors duration-200 hover:text-blue-700"
               >
                 Terms of Service
               </Link>
               <Link
                 href="/refund"
-                className="text-slate-500 hover:text-slate-300 text-sm transition-colors duration-200"
+                className="text-sm text-slate-500 transition-colors duration-200 hover:text-blue-700"
               >
                 Refund Policy
               </Link>
               <Link
                 href="/contact"
-                className="text-slate-500 hover:text-slate-300 text-sm transition-colors duration-200"
+                className="text-sm text-slate-500 transition-colors duration-200 hover:text-blue-700"
               >
                 Contact
               </Link>

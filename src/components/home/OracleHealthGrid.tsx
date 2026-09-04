@@ -185,7 +185,7 @@ export function OracleHealthGrid() {
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+          <div className="flex h-10 w-10 items-center justify-center border-l-2 border-blue-600 bg-blue-50">
             <Activity className="w-5 h-5 text-blue-600" />
           </div>
           <div>

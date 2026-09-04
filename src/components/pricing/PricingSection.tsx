@@ -17,7 +17,7 @@ export function PricingSection() {
               onClick={() => setBillingCycle('monthly')}
               className={`px-4 py-2 text-sm font-semibold transition-all ${
                 billingCycle === 'monthly'
-                  ? 'bg-slate-900 text-white shadow-sm'
+                  ? 'bg-blue-600 text-white'
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -27,13 +27,13 @@ export function PricingSection() {
               onClick={() => setBillingCycle('yearly')}
               className={`inline-flex items-center gap-2 border-l border-slate-900/10 px-4 py-2 text-sm font-semibold transition-all ${
                 billingCycle === 'yearly'
-                  ? 'bg-slate-900 text-white shadow-sm'
+                  ? 'bg-blue-600 text-white'
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
               }`}
             >
               Yearly
               {billingCycle === 'yearly' && (
-                <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold bg-emerald-500 text-white rounded">
+                <span className="inline-flex items-center border-l border-emerald-700 bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
                   -17%
                 </span>
               )}

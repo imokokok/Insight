@@ -98,7 +98,7 @@ export function RiskChart({ result }: RiskChartProps) {
   const worstDeviation = chartDeviation;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+    <div className="border-y border-slate-900/15 bg-white/55 p-4">
       <h4 className="text-sm font-semibold text-gray-900 mb-1">Collateral Ratio Curve</h4>
       <p className="text-xs text-gray-500 mb-4">
         {worstDeviation.direction === 'down'
@@ -110,8 +110,8 @@ export function RiskChart({ result }: RiskChartProps) {
           <AreaChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
             <defs>
               <linearGradient id="riskGradientLight" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
-                <stop offset="50%" stopColor="#6366f1" stopOpacity={0.05} />
+                <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2} />
+                <stop offset="50%" stopColor="#2563eb" stopOpacity={0.05} />
                 <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
               </linearGradient>
             </defs>
@@ -134,11 +134,11 @@ export function RiskChart({ result }: RiskChartProps) {
               contentStyle={{
                 backgroundColor: '#fff',
                 border: '1px solid #e5e7eb',
-                borderRadius: '8px',
+                borderRadius: '2px',
                 padding: '10px',
                 fontSize: '12px',
                 color: '#374151',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                boxShadow: 'none',
               }}
               formatter={(value, name) => [
                 name === 'ratio' ? `${Number(value).toFixed(1)}%` : value,
@@ -177,11 +177,11 @@ export function RiskChart({ result }: RiskChartProps) {
             <Area
               type="monotone"
               dataKey="ratio"
-              stroke="#6366f1"
+              stroke="#2563eb"
               strokeWidth={2}
               fill="url(#riskGradientLight)"
               dot={false}
-              activeDot={{ r: 4, fill: '#6366f1', stroke: '#fff', strokeWidth: 2 }}
+              activeDot={{ r: 4, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }}
             />
           </AreaChart>
         </ResponsiveContainer>

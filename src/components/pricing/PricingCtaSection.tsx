@@ -35,16 +35,21 @@ export function PricingCtaSection({
 }: PricingCtaSectionProps) {
   return (
     <section className={`py-16 sm:py-20 bg-slate-950 ${className}`}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">{title}</h2>
-        <p className="text-lg text-slate-300 mb-8 max-w-2xl mx-auto">{subtitle}</p>
-        <Link
-          href={href}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors shadow-sm shadow-blue-900/10"
-        >
-          {buttonText}
-          <ArrowRight className="w-4 h-4" />
-        </Link>
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-[0.45fr_1fr] lg:px-8">
+        <p className="font-mono text-xs uppercase tracking-[0.22em] text-blue-400">
+          Commercial access
+        </p>
+        <div>
+          <h2 className="mb-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">{title}</h2>
+          <p className="mb-8 max-w-2xl text-lg text-slate-300">{subtitle}</p>
+          <Link
+            href={href}
+            className="inline-flex items-center gap-2 border border-blue-500 bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
+          >
+            {buttonText}
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
     </section>
   );

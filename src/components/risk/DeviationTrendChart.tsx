@@ -122,12 +122,7 @@ export function DeviationTrendChart({ symbol, className }: DeviationTrendChartPr
   }
 
   return (
-    <div
-      className={cn(
-        'bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden',
-        className
-      )}
-    >
+    <div className={cn('overflow-hidden border-y border-slate-900/15 bg-white/55', className)}>
       <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">

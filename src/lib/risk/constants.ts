@@ -24,9 +24,9 @@ export const RISK_LEVELS: Record<string, RiskLevelConfig> = {
   },
   severe: {
     label: 'Severe',
-    color: 'text-purple-600',
-    bg: 'bg-purple-50',
-    border: 'border-purple-200',
+    color: 'text-blue-700',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
     threshold: Infinity,
   },
 };

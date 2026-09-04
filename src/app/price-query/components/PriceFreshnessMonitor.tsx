@@ -276,7 +276,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
   return (
     <div className="space-y-5">
       {overallStats && (
-        <div className="bg-gradient-to-br from-slate-50 to-slate-50 rounded-xl p-4 border border-slate-200">
+        <div className="border-y border-slate-900/15 bg-slate-50 p-4">
           <div className="flex items-start gap-4">
             <div className="relative">
               <HealthRing score={overallStats.avgHealthScore} size={90} />
@@ -305,7 +305,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
                     </span>
                   )}
                   {heartbeatLostCount > 0 && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">
+                    <span className="inline-flex items-center gap-1 border-l-2 border-red-500 bg-red-100 px-2 py-0.5 font-medium text-red-700">
                       💔 {heartbeatLostCount} Heartbeat{heartbeatLostCount > 1 ? 's' : ''} Lost
                     </span>
                   )}
@@ -315,7 +315,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
               <DistributionBar stats={overallStats} />
 
               <div className="grid grid-cols-3 gap-3 pt-2">
-                <div className="bg-white rounded-lg p-2 border border-slate-100">
+                <div className="border-l border-slate-900/15 bg-white p-2">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Timer className="w-3 h-3 text-slate-500" />
                     <span className="text-[10px] text-slate-500">Avg Freshness</span>
@@ -324,7 +324,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
                     {formatFreshness(Math.round(overallStats.avgFreshness))}
                   </p>
                 </div>
-                <div className="bg-white rounded-lg p-2 border border-slate-100">
+                <div className="border-l border-slate-900/15 bg-white p-2">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Activity className="w-3 h-3 text-slate-500" />
                     <span className="text-[10px] text-slate-500">Avg Lag Ratio</span>
@@ -333,7 +333,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
                     {overallStats.avgLagRatio.toFixed(2)}x
                   </p>
                 </div>
-                <div className="bg-white rounded-lg p-2 border border-slate-100">
+                <div className="border-l border-slate-900/15 bg-white p-2">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Shield className="w-3 h-3 text-slate-500" />
                     <span className="text-[10px] text-slate-500">Reliability</span>
@@ -350,10 +350,8 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
 
       {overallStats && overallStats.hasIssues && (
         <div
-          className={`rounded-lg p-3 border ${
-            overallStats.hasCritical
-              ? 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200'
-              : 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200'
+          className={`border-l-2 border-y border-r p-3 ${
+            overallStats.hasCritical ? 'bg-red-50 border-red-300' : 'bg-amber-50 border-amber-300'
           }`}
         >
           <div className="flex items-start gap-2">
@@ -372,17 +370,17 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
               </p>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {overallStats.staleCount > 0 && (
-                  <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                  <span className="border-l-2 border-red-500 bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
                     {overallStats.staleCount} Stale
                   </span>
                 )}
                 {overallStats.criticalCount > 0 && (
-                  <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">
+                  <span className="border-l-2 border-orange-500 bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
                     {overallStats.criticalCount} Critical
                   </span>
                 )}
                 {overallStats.delayedCount > 0 && (
-                  <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full font-medium">
+                  <span className="border-l-2 border-amber-500 bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
                     {overallStats.delayedCount} Delayed
                   </span>
                 )}
@@ -513,9 +511,9 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
                   </td>
                   <td className="py-2.5 px-3">
                     <div className="flex flex-col items-center">
-                      <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div className="h-1.5 w-16 overflow-hidden bg-slate-200">
                         <div
-                          className="h-full rounded-full transition-all"
+                          className="h-full transition-all"
                           style={{
                             width: `${source.reliability}%`,
                             backgroundColor:
@@ -535,7 +533,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
                   <td className="py-2.5 px-3">
                     <div className="flex flex-col items-center">
                       <div
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border"
+                        className="inline-flex items-center gap-1 border-l-2 border-current px-2 py-0.5 text-xs font-medium"
                         style={{
                           borderColor: grade.color,
                           backgroundColor: `${grade.color}15`,
@@ -559,7 +557,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
         </table>
       </div>
 
-      <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+      <div className="border-y border-slate-900/15 bg-slate-50 p-3">
         <div className="flex items-center gap-2 mb-2">
           <Info className="w-3.5 h-3.5 text-slate-500" />
           <p className="text-xs font-medium text-slate-600">Freshness Algorithm</p>
@@ -584,7 +582,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
       </div>
 
       {!hasMultipleSources && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="border-l-2 border-blue-600 bg-blue-50 p-3">
           <div className="flex items-start gap-2">
             <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
@@ -599,7 +597,7 @@ export function PriceFreshnessMonitor({ queryResults, avgPrice }: PriceFreshness
       )}
 
       {overallStats && !overallStats.hasIssues && hasMultipleSources && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+        <div className="border-l-2 border-emerald-500 bg-emerald-50 p-3">
           <div className="flex items-start gap-2">
             <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
             <div className="flex-1">

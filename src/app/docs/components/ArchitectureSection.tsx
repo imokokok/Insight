@@ -193,7 +193,7 @@ function SectionCard({
   return (
     <motion.div
       variants={itemVariants}
-      className={`bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-sm ${className}`}
+      className={`border-y border-slate-900/15 bg-white/55 p-6 sm:p-8 ${className}`}
     >
       {children}
     </motion.div>
@@ -213,7 +213,7 @@ export default function ArchitectureSection() {
           className="mb-10"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 bg-blue-100 rounded-xl">
+            <div className="border border-blue-200 bg-blue-100 p-2.5">
               <Layers className="w-6 h-6 text-blue-700" />
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
@@ -240,10 +240,10 @@ export default function ArchitectureSection() {
               {layers.map((layer) => (
                 <div
                   key={layer.title}
-                  className="group border border-slate-100 rounded-xl p-5 hover:shadow-md hover:border-blue-200 transition-all"
+                  className="group border-b border-slate-900/10 p-5 transition-colors last:border-b-0 hover:bg-blue-50/30"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-700 flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center border border-blue-200 bg-blue-50 text-blue-700 transition-colors group-hover:bg-blue-100">
                       <layer.icon className="w-5 h-5" />
                     </div>
                     <div>
@@ -262,12 +262,12 @@ export default function ArchitectureSection() {
           {/* Data model */}
           <SectionCard>
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-blue-50 rounded-lg">
+              <div className="border border-blue-200 bg-blue-50 p-2">
                 <Database className="w-5 h-5 text-blue-600" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Core Data Model</h3>
             </div>
-            <div className="max-w-full overflow-x-auto rounded-xl border border-slate-100">
+            <div className="max-w-full overflow-x-auto border-y border-slate-900/15">
               <table className="min-w-[36rem] text-left">
                 <thead className="bg-slate-50 border-b border-slate-100">
                   <tr>
@@ -296,7 +296,7 @@ export default function ArchitectureSection() {
           {/* Oracle client layer */}
           <SectionCard>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-emerald-50 rounded-lg">
+              <div className="border border-emerald-200 bg-emerald-50 p-2">
                 <RefreshCw className="w-5 h-5 text-emerald-600" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Oracle Client Layer</h3>
@@ -315,7 +315,7 @@ export default function ArchitectureSection() {
               {providers.map((provider) => (
                 <div
                   key={provider}
-                  className="text-center px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-lg text-sm font-medium text-slate-700 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
+                  className="border-b border-slate-900/10 bg-slate-50 px-3 py-2.5 text-center text-sm font-medium text-slate-700 transition-colors last:border-b-0 hover:bg-emerald-50/30"
                 >
                   {provider}
                 </div>
@@ -326,7 +326,7 @@ export default function ArchitectureSection() {
           {/* Cron jobs */}
           <SectionCard>
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-amber-50 rounded-lg">
+              <div className="border border-amber-200 bg-amber-50 p-2">
                 <Timer className="w-5 h-5 text-amber-600" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Automation & Cron Jobs</h3>
@@ -335,7 +335,7 @@ export default function ArchitectureSection() {
               {cronJobs.map((job) => (
                 <div
                   key={job.name}
-                  className="border border-slate-100 rounded-xl p-4 hover:bg-slate-50/50 hover:border-amber-200 transition-all"
+                  className="border-b border-slate-900/10 p-4 transition-colors last:border-b-0 hover:bg-amber-50/30"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-mono text-sm font-medium text-slate-900">{job.name}</span>
@@ -352,7 +352,7 @@ export default function ArchitectureSection() {
           {/* Security */}
           <SectionCard>
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-red-50 rounded-lg">
+              <div className="border border-red-200 bg-red-50 p-2">
                 <Lock className="w-5 h-5 text-red-600" />
               </div>
               <h3 className="text-xl font-bold text-slate-900">Security & Reliability</h3>
@@ -361,7 +361,7 @@ export default function ArchitectureSection() {
               {securityItems.map((item) => (
                 <div
                   key={item.title}
-                  className="border border-slate-100 rounded-xl p-5 hover:border-red-200 transition-all"
+                  className="border-b border-slate-900/10 p-5 transition-colors last:border-b-0 hover:bg-red-50/25"
                 >
                   <h4 className="font-semibold text-slate-900 mb-1">{item.title}</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">{item.description}</p>

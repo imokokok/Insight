@@ -133,7 +133,7 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
       className="space-y-5"
     >
       {/* Live refresh bar */}
-      <div className="flex items-center justify-between bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-3">
+      <div className="flex items-center justify-between border-y border-slate-900/15 bg-white/55 px-5 py-3">
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <span className="relative flex h-2 w-2">
             {isRefreshing && (
@@ -163,7 +163,7 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
 
       {/* Combined summary */}
       {combined && (
-        <div className="bg-gradient-to-br from-slate-950 to-blue-800 rounded-2xl shadow-sm p-6 text-white">
+        <div className="border-l-2 border-blue-500 bg-slate-950 p-6 text-white">
           <div className="flex items-center gap-2 mb-4">
             <Layers className="w-5 h-5" />
             <h3 className="text-base font-semibold">Portfolio Liquidation Guard</h3>
@@ -193,14 +193,17 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
             </div>
           </div>
           {combined.correlations.length > 0 && (
-            <div className="mt-4 bg-white/10 rounded-xl p-3">
+            <div className="mt-4 border-y border-white/15 bg-white/5 p-3">
               <div className="flex items-center gap-2 mb-1.5">
                 <AlertTriangle className="w-4 h-4 text-amber-200" />
                 <span className="text-xs font-semibold text-amber-100">相关性风险</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {combined.correlations.map((c) => (
-                  <span key={c.symbol} className="text-xs bg-white/15 rounded-full px-2.5 py-1">
+                  <span
+                    key={c.symbol}
+                    className="border-l border-blue-400 bg-white/10 px-2.5 py-1 text-xs"
+                  >
                     <span className="font-mono font-semibold">{c.symbol}</span> 出现在{' '}
                     {c.protocols.join('、')}
                   </span>
@@ -216,12 +219,12 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
 
       {/* Loading / error */}
       {isLoading && !entries && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm py-16 flex items-center justify-center text-slate-400 text-sm">
+        <div className="flex items-center justify-center border-y border-slate-900/15 bg-white/55 py-16 text-sm text-slate-400">
           正在计算各协议临界偏离…
         </div>
       )}
       {error && (
-        <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-center">
+        <div className="border-l-2 border-red-500 bg-red-50 p-4 text-center">
           <p className="text-red-700 text-sm font-semibold">{error}</p>
         </div>
       )}
@@ -241,7 +244,7 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
 
       {/* Incomplete (single-sided) detections */}
       {incomplete.length > 0 && (
-        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+        <div className="border-l-2 border-amber-500 bg-amber-50 p-4">
           <p className="text-xs font-semibold text-amber-800 mb-2">
             以下协议只检测到单侧持仓，无法计算清算临界（需同时有抵押与借贷）：
           </p>
@@ -264,7 +267,7 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
 
       {/* Errored detections */}
       {errored.length > 0 && (
-        <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+        <div className="border-l-2 border-red-500 bg-red-50 p-4">
           <p className="text-xs font-semibold text-red-700 mb-2">以下协议扫描失败：</p>
           <ul className="space-y-1">
             {errored.map((d) => (
@@ -280,7 +283,7 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
       )}
 
       {complete.length === 0 && !isLoading && !error && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 text-center text-sm text-slate-500">
+        <div className="border-y border-slate-900/15 bg-white/55 p-6 text-center text-sm text-slate-500">
           没有可用于压力测试的完整仓位（需要同时有抵押与借贷资产）。可返回手动补录，或在其他协议上检查。
         </div>
       )}
@@ -339,7 +342,7 @@ function ProtocolCard({
   const hfColor = hf < 1.05 ? 'text-red-600' : hf < 1.2 ? 'text-amber-600' : 'text-emerald-600';
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center justify-between mb-3">
         <div>
           <h4 className="text-sm font-semibold text-slate-900">{entry.name}</h4>
@@ -351,13 +354,13 @@ function ProtocolCard({
       </div>
 
       <div className="grid grid-cols-2 gap-3 text-sm">
-        <div className="bg-slate-50 rounded-lg p-2.5">
+        <div className="border-l border-slate-900/15 bg-slate-50 p-2.5">
           <span className="text-xs text-slate-500">清算临界偏离</span>
           <p className="font-semibold text-slate-900 mt-0.5">
             {isDown ? '↓' : '↑'} {distance.toFixed(1)}%
           </p>
         </div>
-        <div className="bg-slate-50 rounded-lg p-2.5">
+        <div className="border-l border-slate-900/15 bg-slate-50 p-2.5">
           <span className="text-xs text-slate-500">抵押 / 借款</span>
           <p className="font-semibold text-slate-900 mt-0.5">
             {result.collaterals.length} / {result.borrows.length}

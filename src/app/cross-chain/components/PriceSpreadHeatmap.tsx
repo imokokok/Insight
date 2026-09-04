@@ -287,13 +287,13 @@ export function HeatmapDetailView() {
         </div>
       </div>
 
-      <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+      <div className="mt-4 border-y border-gray-200 bg-gray-50 p-3">
         <div className="flex items-center justify-between gap-4">
           <span className="text-xs text-gray-500 whitespace-nowrap">
             {colorblindMode ? 'Low Diff' : 'Low'}
           </span>
           <div
-            className="flex-1 h-3 rounded-full"
+            className="h-2 flex-1"
             style={{
               background: colorblindMode
                 ? `linear-gradient(to right, ${colorblindLegendConfig.heatmap.lowColor}, ${colorblindLegendConfig.heatmap.highColor})`

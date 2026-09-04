@@ -62,7 +62,7 @@ export function ProtocolSearch({
     <div ref={containerRef} className="relative w-full">
       <div
         className={cn(
-          'flex items-center gap-3 bg-white border rounded-lg px-3 py-2.5 shadow-sm transition-all',
+          'flex items-center gap-3 border border-slate-300 bg-white px-3 py-2.5 transition-colors',
           isOpen
             ? 'border-primary-400 ring-2 ring-primary-100'
             : 'border-gray-200 hover:border-gray-300',
@@ -77,14 +77,14 @@ export function ProtocolSearch({
               <span className="font-medium text-gray-900 truncate text-sm">
                 {selectedProtocol.name}
               </span>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+              <span className="border-l-2 border-blue-500 bg-blue-50 px-2 py-0.5 text-xs text-slate-600">
                 {chainNames[selectedProtocol.chain as Blockchain] ?? selectedProtocol.chain}
               </span>
             </div>
             <button
               onClick={handleClear}
               disabled={disabled}
-              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+              className="p-1 transition-colors hover:bg-slate-100"
               type="button"
             >
               <X className="w-3.5 h-3.5 text-gray-400" />
@@ -112,8 +112,8 @@ export function ProtocolSearch({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 mt-2 w-full bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden">
-          <div className="max-h-64 overflow-y-auto py-1">
+        <div className="absolute z-50 mt-1 w-full overflow-hidden border border-slate-300 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
+          <div className="max-h-64 divide-y divide-slate-100 overflow-y-auto">
             {filtered.length === 0 ? (
               <div className="px-4 py-6 text-center text-gray-500 text-sm">
                 No matching protocols found
@@ -124,18 +124,18 @@ export function ProtocolSearch({
                   key={protocol.id}
                   onClick={() => handleSelect(protocol)}
                   className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left',
+                    'flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-blue-50/60',
                     selectedProtocol?.id === protocol.id && 'bg-primary-50'
                   )}
                   type="button"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center border border-blue-200 bg-primary-50">
                     <Shield className="w-4 h-4 text-primary-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm text-gray-900">{protocol.name}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">
+                      <span className="border-l-2 border-slate-300 bg-slate-50 px-1.5 py-0.5 text-xs text-slate-500">
                         {chainNames[protocol.chain as Blockchain] ?? protocol.chain}
                       </span>
                     </div>

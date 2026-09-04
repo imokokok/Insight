@@ -137,7 +137,7 @@ function DivergenceStatsCards({
 }: DivergenceStatsCardsProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="border-y border-slate-900/15 bg-white/55 p-5">
         <div className="flex items-center gap-2 mb-2">
           <Zap
             className={`w-4 h-4 ${acceleratingCount > 0 ? 'text-red-500' : 'text-emerald-500'}`}
@@ -159,7 +159,7 @@ function DivergenceStatsCards({
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="border-y border-slate-900/15 bg-white/55 p-5">
         <div className="flex items-center gap-2 mb-2">
           <Navigation
             className={`w-4 h-4 ${directionalBiasCount > 0 ? 'text-orange-500' : 'text-emerald-500'}`}
@@ -174,7 +174,7 @@ function DivergenceStatsCards({
         <p className="text-[10px] text-gray-400 mt-1">{directionalLabel}</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="border-y border-slate-900/15 bg-white/55 p-5">
         <div className="flex items-center gap-2 mb-2">
           <TrendingUp className="w-4 h-4 text-blue-500" />
           <span className="text-sm font-medium text-gray-700">{leadingLabel}</span>
@@ -196,7 +196,7 @@ interface TimeSeriesSectionProps {
 
 function TimeSeriesSection({ timeSeries, title, getDisplayName }: TimeSeriesSectionProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-5 h-5 text-gray-700" />
         <span className="text-base font-semibold text-gray-900">{title}</span>
@@ -213,7 +213,7 @@ function TimeSeriesSection({ timeSeries, title, getDisplayName }: TimeSeriesSect
           return (
             <div
               key={ts.provider}
-              className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors"
+              className="border-b border-slate-900/10 p-3 transition-colors last:border-b-0 hover:bg-white"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -248,9 +248,9 @@ function TimeSeriesSection({ timeSeries, title, getDisplayName }: TimeSeriesSect
 
               <div className="flex items-center gap-3 mb-2">
                 <div className="flex-1">
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
+                  <div className="h-1.5 w-full bg-gray-100">
                     <div
-                      className={`h-1.5 rounded-full transition-all duration-500 ${getDeviationBgColor(ts.currentDeviation)}`}
+                      className={`h-1.5 transition-all duration-500 ${getDeviationBgColor(ts.currentDeviation)}`}
                       style={{ width: `${barWidth}%` }}
                     />
                   </div>
@@ -282,7 +282,7 @@ interface LeadershipSectionProps {
 
 function LeadershipSection({ leadership, title, getDisplayName }: LeadershipSectionProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center gap-2 mb-4">
         <Navigation className="w-5 h-5 text-gray-700" />
         <span className="text-base font-semibold text-gray-900">{title}</span>
@@ -296,7 +296,7 @@ function LeadershipSection({ leadership, title, getDisplayName }: LeadershipSect
           return (
             <div
               key={entity.provider}
-              className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition-colors"
+              className="border-b border-slate-900/10 p-3 transition-colors last:border-b-0 hover:bg-white"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -329,9 +329,9 @@ function LeadershipSection({ leadership, title, getDisplayName }: LeadershipSect
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-gray-400 w-14">Lead Rate</span>
-                <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+                <div className="h-1.5 flex-1 bg-gray-100">
                   <div
-                    className="h-1.5 rounded-full bg-blue-500 transition-all duration-500"
+                    className="h-1.5 bg-blue-500 transition-all duration-500"
                     style={{ width: `${Math.min(reliability, 100)}%` }}
                   />
                 </div>
@@ -364,7 +364,7 @@ function DivergenceMatrixSection({
   getDisplayName,
 }: DivergenceMatrixSectionProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center gap-2 mb-4">
         <Grid3x3 className="w-5 h-5 text-gray-700" />
         <span className="text-base font-semibold text-gray-900">{title}</span>
@@ -429,7 +429,7 @@ interface FeedHealthSectionProps {
 
 function FeedHealthSection({ feedHealthScores, title, getDisplayName }: FeedHealthSectionProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center gap-2 mb-4">
         <Activity className="w-5 h-5 text-gray-700" />
         <span className="text-base font-semibold text-gray-900">{title}</span>
@@ -438,7 +438,7 @@ function FeedHealthSection({ feedHealthScores, title, getDisplayName }: FeedHeal
         {feedHealthScores.map((entity) => {
           const badge = getScoreBadge(entity.score);
           return (
-            <div key={entity.provider} className="border border-gray-100 rounded-lg p-3">
+            <div key={entity.provider} className="border-b border-slate-900/10 p-3 last:border-b-0">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-900">
@@ -452,9 +452,9 @@ function FeedHealthSection({ feedHealthScores, title, getDisplayName }: FeedHeal
                 </div>
                 <span className="text-lg font-bold text-gray-900 font-mono">{entity.score}</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
+              <div className="mb-3 h-2 w-full bg-gray-100">
                 <div
-                  className="h-2 rounded-full transition-all duration-500"
+                  className="h-2 transition-all duration-500"
                   style={{
                     width: `${entity.score}%`,
                     backgroundColor: getScoreColor(entity.score),

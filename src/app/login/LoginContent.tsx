@@ -86,7 +86,7 @@ function LoginForm() {
   const displayError = errorInfo?.message || error?.message;
 
   return (
-    <AuthPageLayout cardClassName="shadow-sm">
+    <AuthPageLayout>
       <div className="text-center mb-8">
         <AuthBrandLogo />
         <h2 className="mt-4 text-xl font-semibold text-slate-900">Login</h2>
@@ -94,7 +94,7 @@ function LoginForm() {
       </div>
 
       {displayError && (
-        <div id="login-error" className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg">
+        <div id="login-error" className="mb-6 border-l-2 border-danger-500 bg-danger-50 p-4">
           <div className="flex items-start gap-3">
             {errorInfo?.type === 'email_not_confirmed' ? (
               <MailWarning className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5" />
@@ -134,7 +134,7 @@ function LoginForm() {
               placeholder="Enter your email"
               aria-invalid={!!displayError}
               aria-describedby={displayError ? 'login-error' : undefined}
-              className="w-full pl-12 pr-4 py-3 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors rounded-xl"
+              className="w-full border border-slate-300 py-3 pl-12 pr-4 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
             />
           </div>
         </div>

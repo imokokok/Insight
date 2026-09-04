@@ -70,7 +70,7 @@ export function RiskSummaryPreview({ report }: { report: DailyReportData }) {
 
   if (riskImpacts.length === 0) {
     return (
-      <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+      <div className="flex items-start gap-3 border-l-2 border-emerald-500 bg-emerald-50 p-4 text-emerald-800">
         <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium">No material risks identified</p>
@@ -118,7 +118,7 @@ export function RiskSummaryPreview({ report }: { report: DailyReportData }) {
             <div
               key={`${impact.category}-${impact.title}-${index}`}
               className={cn(
-                'flex items-start justify-between gap-3 rounded-lg border px-3 py-2.5',
+                'flex items-start justify-between gap-3 border-b px-3 py-2.5 last:border-b-0',
                 config.bg,
                 config.border
               )}
@@ -163,7 +163,7 @@ export function DeviationEventsPreview({ report }: { report: DailyReportData }) 
 
   if (deviationEvents.length === 0) {
     return (
-      <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+      <div className="flex items-start gap-3 border-l-2 border-emerald-500 bg-emerald-50 p-4 text-emerald-800">
         <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium">No significant deviations recorded</p>
@@ -192,7 +192,7 @@ export function DeviationEventsPreview({ report }: { report: DailyReportData }) 
           return (
             <div
               key={`${e.provider}-${e.symbol}-${e.hour}-${index}`}
-              className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
+              className="flex items-center justify-between border-b border-gray-200 p-3 last:border-b-0"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span
@@ -269,7 +269,7 @@ export function LiquidationRiskPreview({ risks }: { risks: ProtocolLiquidationRi
         return (
           <div
             key={risk.protocolId}
-            className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
+            className="flex items-center justify-between border-b border-gray-200 p-3 last:border-b-0"
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -341,7 +341,7 @@ export function ProviderPerformancePreview({ rankings }: { rankings: ProviderRan
       <div className="space-y-2">
         {abnormal.length > 0 ? (
           <>
-            <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+            <div className="flex items-center justify-between border-b border-gray-200 p-3 last:border-b-0">
               <div className="flex items-center gap-2 min-w-0">
                 <span
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -364,7 +364,7 @@ export function ProviderPerformancePreview({ rankings }: { rankings: ProviderRan
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+            <div className="flex items-center justify-between border-b border-gray-200 p-3 last:border-b-0">
               <div className="flex items-center gap-2 min-w-0">
                 <span
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -388,7 +388,7 @@ export function ProviderPerformancePreview({ rankings }: { rankings: ProviderRan
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+          <div className="flex items-center justify-between border-b border-gray-200 p-3 last:border-b-0">
             <div className="flex items-center gap-2 min-w-0">
               <span
                 className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -460,7 +460,7 @@ export function AssetPerformancePreview({ assets }: { assets: DailyReportData['t
         {abnormal.slice(0, 3).map((asset) => (
           <div
             key={asset.symbol}
-            className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
+            className="flex items-center justify-between border-b border-gray-200 p-3 last:border-b-0"
           >
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900">{asset.symbol}</p>
@@ -504,7 +504,7 @@ export function AssetPerformancePreview({ assets }: { assets: DailyReportData['t
         ))}
 
         {abnormal.length === 0 && (
-          <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+          <div className="flex items-center justify-between border-b border-gray-200 p-3 last:border-b-0">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900">{mostVolatile.symbol}</p>
               <p className="text-xs text-gray-500">Most volatile today</p>
@@ -553,7 +553,7 @@ export function FailureBreakdownPreview({
         {topItems.map((item) => (
           <div
             key={`${item.provider}-${item.symbol}`}
-            className="flex items-start justify-between rounded-lg border border-gray-200 p-3"
+            className="flex items-start justify-between border-b border-gray-200 p-3 last:border-b-0"
           >
             <div className="min-w-0">
               <p className="text-sm font-medium text-gray-900">

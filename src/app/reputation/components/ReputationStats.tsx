@@ -37,9 +37,9 @@ function NextUpdateCountdown({ nextRecalcAt }: { nextRecalcAt: string | null | u
 
 function ComparisonInfo() {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-start gap-3">
-        <div className="p-1.5 rounded-lg bg-blue-50 flex-shrink-0">
+        <div className="flex-shrink-0 border border-blue-200 bg-blue-50 p-1.5">
           <Info className="w-4 h-4 text-blue-500" />
         </div>
         <div className="text-sm text-slate-600">

@@ -91,7 +91,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
           step={0.5}
           value={targetDeviation}
           onChange={(e) => setTargetDeviation(parseFloat(e.target.value))}
-          className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-700"
+          className="h-2 w-full cursor-pointer appearance-none bg-blue-100 accent-blue-700"
         />
         <div className="flex justify-between text-[10px] text-gray-400 mt-1">
           <span>1% (Strict)</span>
@@ -122,13 +122,13 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
           animate={{ opacity: 1 }}
           className="grid grid-cols-4 gap-2 mb-5"
         >
-          <div className="bg-white rounded-lg p-3 border border-gray-100">
+          <div className="border-r border-slate-900/10 bg-white p-3">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider">Current HF</p>
             <p className="text-base font-bold font-mono text-gray-700">
               {plan.currentHealthFactor.toFixed(3)}
             </p>
           </div>
-          <div className="bg-white rounded-lg p-3 border border-gray-100">
+          <div className="border-r border-slate-900/10 bg-white p-3">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider">Worst-case HF</p>
             <p
               className={cn(
@@ -139,7 +139,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
               {plan.currentWorstCaseHF.toFixed(3)}
             </p>
           </div>
-          <div className="bg-white rounded-lg p-3 border border-blue-100">
+          <div className="border-r border-slate-900/10 bg-white p-3">
             <p className="text-[10px] text-blue-500 uppercase tracking-wider">Target HF*</p>
             <p className="text-base font-bold font-mono text-blue-700">
               {plan.targetHealthFactor.toFixed(3)}
@@ -147,7 +147,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
           </div>
           <div
             className={cn(
-              'rounded-lg p-3 border',
+              'border-l-2 p-3',
               plan.needsAdjustment ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100'
             )}
           >
@@ -192,7 +192,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
         </div>
       )}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-600 flex items-center gap-2">
+        <div className="flex items-center gap-2 border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle className="w-4 h-4" />
           {error}
         </div>
@@ -202,7 +202,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
       {plan && !isLoading && (
         <>
           {/* Tab 切换 */}
-          <div className="flex gap-1 p-1 bg-gray-100 rounded-lg mb-4">
+          <div className="mb-4 flex border border-slate-900/15 bg-white">
             {availableTabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -211,10 +211,10 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    'flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-all',
+                    'flex flex-1 items-center justify-center gap-1.5 border-r border-slate-900/15 px-3 py-2 text-xs font-medium transition-colors last:border-r-0',
                     effectiveActiveTab === tab.id
-                      ? 'bg-white text-blue-700 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-500 hover:bg-blue-50 hover:text-blue-700'
                   )}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -237,7 +237,7 @@ export function SafetyPlannerPanel({ position, existingResult }: SafetyPlannerPa
           </AnimatePresence>
 
           {/* 场景验证 */}
-          <div className="mt-4 flex items-center gap-2 text-xs text-gray-500 bg-white/60 rounded-md p-2.5">
+          <div className="mt-4 flex items-center gap-2 border-l-2 border-emerald-500 bg-white/60 p-2.5 text-xs text-gray-500">
             <Check className="w-3.5 h-3.5 text-emerald-500" />
             After adjustment, worst-case HF at {targetDeviation}% deviation:
             <span
@@ -263,7 +263,7 @@ function renderPlanTab(plan: SafetyParameterPlan, tab: PlanTab) {
     <div className="space-y-3">
       <p className="text-sm text-gray-600">{planData.description}</p>
 
-      <div className="bg-white rounded-lg border border-gray-100 divide-y divide-gray-50">
+      <div className="divide-y divide-slate-900/10 border-y border-slate-900/15 bg-white/55">
         {planData.adjustments.map((adj, i) => (
           <AdjustmentRow key={i} adjustment={adj} />
         ))}

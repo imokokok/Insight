@@ -21,7 +21,11 @@ import {
   RiskMetricCard,
   formatStaleness,
 } from '@/components/shared/RiskMetricCard';
-import { type RiskLevel, DEFAULT_RISK_WEIGHTS } from '@/lib/analytics/riskMetrics';
+import {
+  type RiskLevel,
+  type RiskWeights,
+  DEFAULT_RISK_WEIGHTS,
+} from '@/lib/analytics/riskMetrics';
 
 export interface BaseRiskMetrics {
   riskScore: number;
@@ -51,7 +55,7 @@ export interface BaseRiskMetrics {
   sharedDependencyLevel: RiskLevel;
   sharedSourceGroups: Array<{ source: string; oracles: string[] }>;
   systemicRiskFactor: number;
-  weights: import('@/lib/analytics/riskMetrics').RiskWeights;
+  weights: RiskWeights;
   divergenceAccelerationScore: number;
   divergenceAccelerationLevel: RiskLevel;
   feedBehaviorHealthAvg: number;
@@ -215,14 +219,14 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="border-y border-slate-900/15 bg-white/55 p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-gray-700" />
             <span className="text-base font-semibold text-gray-900">Overall Risk Score</span>
           </div>
           <span
-            className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg ${overallBadge.bgClass} ${overallBadge.textClass}`}
+            className={`inline-flex items-center border-l-2 border-current px-2.5 py-1 text-xs font-semibold ${overallBadge.bgClass} ${overallBadge.textClass}`}
           >
             {overallBadge.label}
           </span>
@@ -230,7 +234,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
         <div className="flex items-center gap-4">
           <div className="flex-shrink-0">
             <div
-              className="w-20 h-20 rounded-full flex items-center justify-center border-4"
+              className="flex h-20 w-20 items-center justify-center border-4"
               style={{ borderColor: riskColor }}
             >
               <span className="text-2xl font-bold text-gray-900">{riskScore}</span>
@@ -297,7 +301,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
 
         <RiskMetricCard
           icon={TrendingDown}
-          iconColor="text-purple-500"
+          iconColor="text-blue-600"
           title={labels.volatilityTitle}
           description={labels.volatilityDescription}
           value={volatilityIndex}
@@ -343,7 +347,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
 
         <RiskMetricCard
           icon={Clock}
-          iconColor="text-cyan-500"
+          iconColor="text-blue-600"
           title="Data Freshness Risk"
           description={labels.freshnessDescription}
           value={freshnessScore}
@@ -358,7 +362,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
               <div className="space-y-1">
                 {staleOracles.map((oracle, i) => (
                   <div key={i} className="flex items-center gap-1.5 text-xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                     <span className="text-gray-600">
                       {oracle.name}: {formatStaleness(oracle.stalenessSeconds)} old
                     </span>
@@ -376,7 +380,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
 
         <RiskMetricCard
           icon={Lock}
-          iconColor="text-indigo-500"
+          iconColor="text-blue-700"
           title="Manipulation Resistance"
           description={labels.manipulationDescription}
           value={manipulationResistanceScore}
@@ -451,7 +455,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
 
         <RiskMetricCard
           icon={Share2}
-          iconColor="text-rose-500"
+          iconColor="text-blue-600"
           title="Shared Dependency Risk"
           description={labels.sharedDependencyDescription}
           value={sharedDependencyScore}
@@ -466,7 +470,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
               <div className="space-y-1">
                 {sharedSourceGroups.map((group, i) => (
                   <div key={i} className="flex items-center gap-1.5 text-xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                     <span className="text-gray-600">
                       <span className="font-medium capitalize">{group.source}</span>
                       {' → '}
@@ -489,7 +493,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
 
         <RiskMetricCard
           icon={Zap}
-          iconColor="text-pink-500"
+          iconColor="text-blue-600"
           title="Divergence Acceleration Risk"
           description={labels.divergenceDescription}
           value={divergenceAccelerationScore}
@@ -499,7 +503,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
 
         <RiskMetricCard
           icon={Heart}
-          iconColor="text-teal-500"
+          iconColor="text-blue-700"
           title={labels.feedBehaviorTitle}
           description={labels.feedBehaviorDescription}
           value={feedBehaviorValue}
@@ -520,7 +524,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
 
         <RiskMetricCard
           icon={TrendingDown}
-          iconColor="text-violet-500"
+          iconColor="text-blue-600"
           title="Stability Decay Risk"
           description={labels.stabilityDescription}
           value={stabilityDecayScore}
@@ -530,7 +534,7 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
       </div>
 
       {riskAttribution.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="border-y border-slate-900/15 bg-white/55 p-5">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="w-4 h-4 text-amber-500" />
             <span className="text-sm font-medium text-gray-700">Risk Attribution Analysis</span>
@@ -541,7 +545,10 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
           </p>
           <div className="space-y-3">
             {riskAttribution.map((item, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div
+                key={i}
+                className="flex items-center gap-3 border-b border-slate-900/10 bg-white/35 p-3 last:border-b-0"
+              >
                 <div className="flex-shrink-0 w-16 text-right">
                   <span className="text-sm font-mono font-medium text-gray-700">
                     {item.contribution.toFixed(1)}%
@@ -551,9 +558,9 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-medium text-gray-700">{item.dimension}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-1.5 w-full overflow-hidden bg-gray-200">
                     <div
-                      className="h-1.5 rounded-full bg-amber-500"
+                      className="h-1.5 bg-amber-500"
                       style={{ width: `${Math.min(item.contribution, 100)}%` }}
                     />
                   </div>

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
-import { getAppUrl } from '@/lib/utils/appUrl';
+import { useAppUrl } from '@/hooks/useAppUrl';
 import { useSession } from '@/stores/authStore';
 
 type Verdict = 'normal' | 'caution' | 'danger';
@@ -189,7 +189,7 @@ export function OracleWatchDemo({ apiKey }: { apiKey?: string }) {
               value={asset}
               onChange={(e) => setAsset(e.target.value.toUpperCase())}
               placeholder="ETH"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+              className="w-full border border-slate-900/20 bg-white px-3.5 py-2.5 font-mono text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
@@ -200,7 +200,7 @@ export function OracleWatchDemo({ apiKey }: { apiKey?: string }) {
             <select
               value={chain}
               onChange={(e) => setChain(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-slate-900/20 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               {CHAIN_OPTIONS.map((c) => (
                 <option key={c.value} value={c.value}>
@@ -213,7 +213,7 @@ export function OracleWatchDemo({ apiKey }: { apiKey?: string }) {
           <Button
             onClick={runWatch}
             disabled={loading || !canCall}
-            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-blue-700 hover:bg-blue-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+            className="inline-flex w-full items-center justify-center gap-2 border border-blue-700 bg-blue-700 px-5 py-3 font-medium text-white transition-colors hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             {loading ? (
               <>
@@ -234,7 +234,7 @@ export function OracleWatchDemo({ apiKey }: { apiKey?: string }) {
             </p>
           )}
           {error && (
-            <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <div className="flex items-start gap-2 border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-700">
               <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span className="font-mono">{error}</span>
             </div>
@@ -244,7 +244,7 @@ export function OracleWatchDemo({ apiKey }: { apiKey?: string }) {
         {/* ---- Result ---- */}
         <div className="space-y-4">
           {!result && !loading && (
-            <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+            <div className="flex h-full min-h-[300px] flex-col items-center justify-center border-y border-dashed border-slate-300 bg-slate-50 p-8 text-center">
               <Radar className="w-10 h-10 text-slate-300 mb-3" />
               <p className="text-sm text-slate-500 max-w-xs">
                 Pick an asset and run Oracle Watch. Insight aggregates live cross-oracle deviation,
@@ -268,7 +268,7 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
 
   return (
     <div className="space-y-4">
-      <div className={`p-5 rounded-2xl border-2 ${cfg.border} ${cfg.bg}`}>
+      <div className={`border-l-2 border-y border-r p-5 ${cfg.border} ${cfg.bg}`}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
             <Icon className={`w-7 h-7 ${cfg.color}`} />
@@ -365,9 +365,9 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
               {result.trustLevel} · {result.trustScore}/100
             </span>
           </div>
-          <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+          <div className="h-2 overflow-hidden bg-slate-200">
             <div
-              className={`h-full rounded-full ${
+              className={`h-full ${
                 result.trustLevel === 'high'
                   ? 'bg-emerald-500'
                   : result.trustLevel === 'medium'
@@ -392,9 +392,9 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
                 score {result.mlRiskScore.toFixed(3)}
               </span>
             </div>
-            <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
+            <div className="h-2 overflow-hidden bg-slate-200">
               <div
-                className={`h-full rounded-full ${
+                className={`h-full ${
                   result.mlRiskLevel === 'high'
                     ? 'bg-red-500'
                     : result.mlRiskLevel === 'medium'
@@ -451,7 +451,7 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
       </div>
 
       {result.providers.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
           <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
             <h4 className="text-sm font-semibold text-slate-700">
               Provider Breakdown ({result.participantCount} responding)
@@ -500,12 +500,12 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
       )}
 
       {result.attestation && (
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
           <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
             <h4 className="text-sm font-semibold text-slate-700">
               Signed Receipt (EIP-712 · v{result.attestation.schemaVersion})
             </h4>
-            <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+            <span className="border-l-2 border-emerald-500 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
               verifiable
             </span>
           </div>
@@ -555,7 +555,7 @@ function OracleWatchSignalCard({ result }: { result: OracleWatchSignal }) {
 function CallingMethods({ asset, chain }: { asset: string; chain: string }) {
   const [tab, setTab] = useState<'mcp' | 'rest'>('mcp');
   const [copied, setCopied] = useState(false);
-  const baseUrl = getAppUrl();
+  const baseUrl = useAppUrl();
   const safeChain = chain || 'ethereum';
 
   const mcpSnippet = `Call the MCP tool:
@@ -606,16 +606,16 @@ Also gate on the composite Credibility Trust Score (0-100, low|medium|high).`;
   };
 
   return (
-    <div className="rounded-xl overflow-hidden bg-slate-900 border border-slate-800">
+    <div className="overflow-hidden border border-slate-800 bg-slate-900">
       <div className="flex items-center justify-between px-3 py-2 bg-slate-950 border-b border-slate-800">
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setTab('mcp')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            className={`border px-3 py-1.5 text-xs font-medium transition-colors ${
               tab === 'mcp'
-                ? 'bg-slate-700 text-white'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                ? 'border-slate-600 bg-slate-700 text-white'
+                : 'border-transparent text-slate-400 hover:bg-slate-800 hover:text-slate-200'
             }`}
           >
             MCP · oracle_watch
@@ -623,10 +623,10 @@ Also gate on the composite Credibility Trust Score (0-100, low|medium|high).`;
           <button
             type="button"
             onClick={() => setTab('rest')}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            className={`border px-3 py-1.5 text-xs font-medium transition-colors ${
               tab === 'rest'
-                ? 'bg-slate-700 text-white'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                ? 'border-slate-600 bg-slate-700 text-white'
+                : 'border-transparent text-slate-400 hover:bg-slate-800 hover:text-slate-200'
             }`}
           >
             REST · /api/v1/oracle-watch
@@ -635,7 +635,7 @@ Also gate on the composite Credibility Trust Score (0-100, low|medium|high).`;
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
+          className="inline-flex items-center gap-1.5 border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700"
         >
           {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
           {copied ? 'Copied' : 'Copy'}

@@ -38,7 +38,7 @@ export function AssetSelector({
           {label}
         </label>
       )}
-      <div className={cn('flex flex-wrap gap-2', compact && 'gap-1.5')}>
+      <div className="flex flex-wrap border-l border-t border-slate-300">
         {assets.map((asset, i) => {
           const Icon = ICON_MAP[asset.symbol] ?? Coins;
           const isSelected = selected === asset.symbol;
@@ -53,16 +53,14 @@ export function AssetSelector({
               disabled={disabled}
               type="button"
               className={cn(
-                'relative flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-all duration-200',
+                'relative flex items-center gap-1.5 border-b border-r border-slate-300 px-3 py-2 text-sm font-medium transition-colors duration-200',
                 compact && 'px-2 py-1.5 text-xs',
                 isSelected
-                  ? 'bg-primary-50 border-primary-300 text-primary-700 shadow-sm'
-                  : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-700'
               )}
             >
-              <Icon
-                className={cn('w-3.5 h-3.5', isSelected ? 'text-primary-600' : 'text-gray-400')}
-              />
+              <Icon className={cn('w-3.5 h-3.5', isSelected ? 'text-white' : 'text-gray-400')} />
               {asset.symbol}
             </motion.button>
           );

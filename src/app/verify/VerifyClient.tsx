@@ -265,14 +265,14 @@ export default function VerifyClient() {
                     </p>
                   </div>
                 </div>
-                <p className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-lg px-4 py-3 mb-4">
+                <p className="mb-4 border-l-2 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {state.error}
                 </p>
                 <p className="text-sm text-slate-600 leading-relaxed mb-4">
                   The production sample signer may be unconfigured on this instance. You can still
                   verify any receipt locally — install the package and run the quickstart:
                 </p>
-                <pre className="bg-slate-900 text-slate-100 text-xs rounded-lg p-4 overflow-x-auto">
+                <pre className="overflow-x-auto bg-slate-900 p-4 text-xs text-slate-100">
                   <code>{`npm i verify-insight-receipt
 node node_modules/verify-insight-receipt/examples/quickstart.mjs`}</code>
                 </pre>
@@ -331,11 +331,11 @@ node node_modules/verify-insight-receipt/examples/quickstart.mjs`}</code>
                       </p>
                     </div>
                     <div className="ml-auto hidden sm:flex flex-col items-end gap-1.5">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-700">
+                      <span className="inline-flex items-center gap-1.5 border-l-2 border-blue-500 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700">
                         code: {result.code}
                       </span>
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                        className={`inline-flex items-center gap-1.5 border-l-2 px-2.5 py-1 text-xs font-semibold ${
                           KEY_STATUS_STYLES[result.keyStatus] ?? KEY_STATUS_STYLES.not_checked
                         }`}
                       >

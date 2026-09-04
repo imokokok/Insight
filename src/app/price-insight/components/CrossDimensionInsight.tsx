@@ -158,31 +158,28 @@ function CrossDimensionInsightComponent(props: CrossDimensionInsightProps) {
   if (insights.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 mt-4">
+    <div className="mt-4 border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center gap-2 mb-4">
-        <Link2 className="w-4 h-4 text-violet-500" />
+        <Link2 className="h-4 w-4 text-blue-600" />
         <span className="text-sm font-medium text-gray-700">Cross-Dimension Insights</span>
       </div>
       <p className="text-xs text-gray-500 mb-4">
         Correlated findings across price, risk, feed health, and divergence dimensions — patterns
         that are only visible when analyzing dimensions together
       </p>
-      <div className="space-y-3">
+      <div className="divide-y divide-slate-900/10 border-y border-slate-900/10">
         {insights.map((insight, i) => {
           const config = getSeverityConfig(insight.severity);
           const Icon = config.icon;
           return (
-            <div
-              key={i}
-              className={`rounded-lg border p-4 ${config.bgClass} ${config.borderClass}`}
-            >
+            <div key={i} className={`border-l-2 p-4 ${config.bgClass} ${config.borderClass}`}>
               <div className="flex items-start gap-3">
                 <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${config.iconColor}`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-sm font-medium text-gray-900">{insight.title}</span>
                     <span
-                      className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded ${config.badgeBg} ${config.badgeText}`}
+                      className={`inline-flex items-center border-l-2 px-1.5 py-0.5 text-[10px] font-medium ${config.borderClass} ${config.badgeBg} ${config.badgeText}`}
                     >
                       {config.badgeLabel}
                     </span>
@@ -194,7 +191,7 @@ function CrossDimensionInsightComponent(props: CrossDimensionInsightProps) {
                     {insight.relatedDimensions.map((dim) => (
                       <span
                         key={dim}
-                        className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded bg-white/60 text-gray-600 border border-gray-200"
+                        className="inline-flex items-center border-l-2 border-blue-300 bg-white/60 px-1.5 py-0.5 text-[10px] font-medium text-gray-600"
                       >
                         {dim}
                       </span>

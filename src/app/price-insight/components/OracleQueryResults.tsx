@@ -203,16 +203,16 @@ function OracleQueryResultsComponent({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-4">
+      <div className="mt-4 border-y border-slate-900/15 bg-white/55 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-slate-900">Loading oracle data...</h3>
           <span className="text-xs font-medium text-slate-400">
             {queryProgress.completed} / {queryProgress.total}
           </span>
         </div>
-        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+        <div className="h-2 w-full overflow-hidden bg-slate-100">
           <div
-            className="h-2 rounded-full transition-all duration-300 bg-blue-600"
+            className="h-2 bg-blue-600 transition-all duration-300"
             style={{
               width: `${Math.min(100, queryProgress.total > 0 ? (queryProgress.completed / queryProgress.total) * 100 : 0)}%`,
             }}
@@ -224,7 +224,7 @@ function OracleQueryResultsComponent({
 
   if (oracleDataError?.globalError && !oracleDataError.isPartialSuccess && priceData.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mt-4">
+      <div className="mt-4 border-y border-slate-900/15 bg-white/55 p-6">
         <OracleErrorPanel
           oracleDataError={oracleDataError}
           retryOracle={retryOracle}
@@ -264,10 +264,14 @@ function OracleQueryResultsComponent({
         />
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
         <div className="min-h-[400px] p-6">
           {activeTab === 'comparison' && (
-            <Suspense fallback={<div className="animate-pulse h-48 bg-slate-100 rounded-xl" />}>
+            <Suspense
+              fallback={
+                <div className="h-48 animate-pulse border-y border-slate-900/10 bg-slate-100" />
+              }
+            >
               <LazySimplePriceComparisonTab
                 priceData={priceData}
                 selectedSymbol={selectedSymbol}
@@ -285,7 +289,11 @@ function OracleQueryResultsComponent({
             </Suspense>
           )}
           {activeTab === 'divergence' && (
-            <Suspense fallback={<div className="animate-pulse h-48 bg-slate-100 rounded-xl" />}>
+            <Suspense
+              fallback={
+                <div className="h-48 animate-pulse border-y border-slate-900/10 bg-slate-100" />
+              }
+            >
               <LazyDivergenceSignalTab
                 timeSeries={divergenceSignals.timeSeries}
                 leadership={divergenceSignals.leadership}
@@ -298,7 +306,11 @@ function OracleQueryResultsComponent({
             </Suspense>
           )}
           {activeTab === 'feedHealth' && (
-            <Suspense fallback={<div className="animate-pulse h-48 bg-slate-100 rounded-xl" />}>
+            <Suspense
+              fallback={
+                <div className="h-48 animate-pulse border-y border-slate-900/10 bg-slate-100" />
+              }
+            >
               <LazyFeedHealthTab
                 rhythmMetrics={feedBehavior.rhythmMetrics}
                 confidenceMetrics={feedBehavior.confidenceMetrics}
@@ -313,7 +325,11 @@ function OracleQueryResultsComponent({
             </Suspense>
           )}
           {activeTab === 'risk' && (
-            <Suspense fallback={<div className="animate-pulse h-48 bg-slate-100 rounded-xl" />}>
+            <Suspense
+              fallback={
+                <div className="h-48 animate-pulse border-y border-slate-900/10 bg-slate-100" />
+              }
+            >
               <LazyRiskAnalysisTab
                 riskMetrics={riskMetrics}
                 oracleCount={priceData.length}

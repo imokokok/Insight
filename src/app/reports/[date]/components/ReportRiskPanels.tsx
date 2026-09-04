@@ -50,7 +50,7 @@ export function DeviationEvents({ report }: { report: DailyReportData }) {
 
   if (events.length === 0) {
     return (
-      <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+      <div className="flex items-start gap-3 border-l-2 border-emerald-500 bg-emerald-50 p-4 text-emerald-800">
         <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium">No material deviations</p>
@@ -66,7 +66,7 @@ export function DeviationEvents({ report }: { report: DailyReportData }) {
     <div className="space-y-4">
       {/* Compact anomaly source summary */}
       {(topProviders.length > 0 || topAssets.length > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg">
+        <div className="grid grid-cols-1 border-y border-slate-900/15 bg-gray-50 p-3 sm:grid-cols-2 sm:divide-x sm:divide-slate-900/10">
           <div>
             <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
               Top affected providers
@@ -119,7 +119,7 @@ export function DeviationEvents({ report }: { report: DailyReportData }) {
           return (
             <div
               key={`${event.provider}-${event.symbol}-${event.hour}-${index}`}
-              className={cn('rounded-lg border px-4 py-3', config.bg, config.border)}
+              className={cn('border-l-2 border-y border-r px-4 py-3', config.bg, config.border)}
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -231,8 +231,8 @@ export function AnomalyBreakdown({ report }: { report: DailyReportData }) {
               </div>
               <span className="text-sm font-semibold text-gray-900 font-tabular">{count}</span>
             </div>
-            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-              <div className={cn('h-full rounded-full', config.dot)} style={{ width: `${pct}%` }} />
+            <div className="h-1.5 w-full overflow-hidden bg-gray-100">
+              <div className={cn('h-full', config.dot)} style={{ width: `${pct}%` }} />
             </div>
           </div>
         );
@@ -314,7 +314,7 @@ export function PreviousDayComparison({
             : 'text-gray-500';
         const Icon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
         return (
-          <div key={item.label} className="bg-gray-50 rounded-lg p-3">
+          <div key={item.label} className="border-l border-slate-900/15 bg-gray-50 p-3">
             <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
               {item.label}
             </p>
@@ -390,7 +390,7 @@ export function UnifiedRiskPanel({ report }: { report: DailyReportData }) {
 
   if (riskImpacts.length === 0 && deviationEvents.length === 0) {
     return (
-      <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+      <div className="flex items-start gap-3 border-l-2 border-emerald-500 bg-emerald-50 p-4 text-emerald-800">
         <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium">No material risks identified</p>
@@ -434,7 +434,7 @@ export function UnifiedRiskPanel({ report }: { report: DailyReportData }) {
           return (
             <div
               key={`${impact.category}-${impact.title}-${index}`}
-              className={cn('rounded-lg border px-4 py-3', config.bg, config.border)}
+              className={cn('border-l-2 border-y border-r px-4 py-3', config.bg, config.border)}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">

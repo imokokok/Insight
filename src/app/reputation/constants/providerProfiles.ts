@@ -253,8 +253,8 @@ export const TYPE_CONFIG: Record<ProviderType, ProviderTypeStyle> = {
     label: 'Hybrid',
     icon: Layers,
     color: '#7c3aed',
-    textClass: 'text-violet-700',
-    bgClass: 'bg-violet-50',
-    borderClass: 'border-violet-200',
+    textClass: 'text-blue-700',
+    bgClass: 'bg-blue-50',
+    borderClass: 'border-blue-200',
   },
 };

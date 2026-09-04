@@ -233,7 +233,7 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
             value={asset}
             onChange={(e) => setAsset(e.target.value.toUpperCase())}
             placeholder="ETH"
-            className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+            className="w-full border border-slate-900/20 bg-white px-3.5 py-2.5 font-mono text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           />
         </div>
 
@@ -243,7 +243,7 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
             <select
               value={chainId}
               onChange={(e) => setChainId(Number(e.target.value))}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-slate-900/20 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               {CHAIN_OPTIONS.map((c) => (
                 <option key={c.value} value={c.value}>
@@ -257,7 +257,7 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
             <select
               value={action}
               onChange={(e) => setAction(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-slate-900/20 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               {ACTION_OPTIONS.map((a) => (
                 <option key={a.value} value={a.value}>
@@ -276,7 +276,7 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
             <select
               value={protocolId}
               onChange={(e) => setProtocolId(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-slate-900/20 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               {PROTOCOL_OPTIONS.map((p) => (
                 <option key={p.value} value={p.value}>
@@ -300,7 +300,7 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="100000"
-              className="w-full pl-7 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+              className="w-full border border-slate-900/20 bg-white py-2.5 pl-7 pr-3.5 font-mono text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
         </div>
@@ -308,7 +308,7 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
         <Button
           onClick={runCheck}
           disabled={loading || !canCall}
-          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+          className="inline-flex w-full items-center justify-center gap-2 border border-blue-600 bg-blue-600 px-5 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
           {loading ? (
             <>
@@ -329,7 +329,7 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
           </p>
         )}
         {error && (
-          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          <div className="flex items-start gap-2 border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-700">
             <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span className="font-mono">{error}</span>
           </div>
@@ -339,7 +339,7 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
       {/* ---- Result ---- */}
       <div className="space-y-4">
         {!result && !loading && (
-          <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-8 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+          <div className="flex h-full min-h-[300px] flex-col items-center justify-center border-y border-dashed border-slate-300 bg-slate-50 p-8 text-center">
             <ShieldCheck className="w-10 h-10 text-slate-300 mb-3" />
             <p className="text-sm text-slate-500 max-w-xs">
               Fill in the trade intent and run a check. Insight will aggregate cross-oracle
@@ -360,7 +360,7 @@ function VerdictCard({ result, isLending }: { result: SafetyResult; isLending: b
 
   return (
     <div className="space-y-4">
-      <div className={`p-5 rounded-2xl border-2 ${cfg.border} ${cfg.bg}`}>
+      <div className={`border-l-2 border-y border-r p-5 ${cfg.border} ${cfg.bg}`}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
             <Icon className={`w-7 h-7 ${cfg.color}`} />
@@ -425,7 +425,7 @@ function VerdictCard({ result, isLending }: { result: SafetyResult; isLending: b
         </div>
 
         {result.attestation && (
-          <div className="mt-2.5 px-3 py-2 bg-emerald-50/60 border border-emerald-200/70 rounded-lg flex items-center justify-between text-[11px]">
+          <div className="mt-2.5 flex items-center justify-between border-l-2 border-emerald-500 bg-emerald-50/60 px-3 py-2 text-[11px]">
             <div className="flex items-center gap-1.5 text-emerald-700">
               <ShieldCheck className="w-3 h-3" />
               <span className="font-medium">Attestation issued</span>
@@ -446,7 +446,7 @@ function VerdictCard({ result, isLending }: { result: SafetyResult; isLending: b
       )}
 
       {Object.keys(result.providerPrices).length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
           <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
             <h4 className="text-sm font-semibold text-slate-700">
               Provider Breakdown ({result.participantCount} providers)
@@ -488,7 +488,7 @@ function VerdictCard({ result, isLending }: { result: SafetyResult; isLending: b
       )}
 
       {result.contributingFactors.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-4">
+        <div className="border-y border-slate-900/15 bg-white/55 p-4">
           <div className="flex items-center gap-2 mb-2.5">
             <AlertTriangle className="w-4 h-4 text-amber-500" />
             <h4 className="text-sm font-semibold text-slate-700">Triggered Risk Factors</h4>
@@ -497,12 +497,12 @@ function VerdictCard({ result, isLending }: { result: SafetyResult; isLending: b
             {result.contributingFactors.map((f, i) => (
               <li key={i} className="text-xs text-slate-600 flex items-start gap-2">
                 <span
-                  className={`px-1.5 py-0.5 rounded font-semibold flex-shrink-0 ${
+                  className={`flex-shrink-0 border-l-2 px-1.5 py-0.5 font-semibold ${
                     f.triggeredVerdict === 'BLOCK'
-                      ? 'bg-red-100 text-red-700'
+                      ? 'border-red-500 bg-red-100 text-red-700'
                       : f.triggeredVerdict === 'DANGER'
-                        ? 'bg-orange-100 text-orange-700'
-                        : 'bg-amber-100 text-amber-700'
+                        ? 'border-orange-500 bg-orange-100 text-orange-700'
+                        : 'border-amber-500 bg-amber-100 text-amber-700'
                   }`}
                 >
                   {f.triggeredVerdict}
@@ -515,13 +515,13 @@ function VerdictCard({ result, isLending }: { result: SafetyResult; isLending: b
       )}
 
       {result.depegWarnings.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-4">
+        <div className="border-y border-slate-900/15 bg-white/55 p-4">
           <h4 className="text-sm font-semibold text-slate-700 mb-2">Active Stablecoin Depeg</h4>
           <div className="flex flex-wrap gap-2">
             {result.depegWarnings.map((w) => (
               <span
                 key={w.stablecoin}
-                className="px-2.5 py-1 text-xs font-mono bg-slate-100 text-slate-700 rounded-lg"
+                className="border-l-2 border-amber-500 bg-amber-50 px-2.5 py-1 font-mono text-xs text-slate-700"
               >
                 {w.stablecoin}: {formatPct(w.deviationPct)}
               </span>

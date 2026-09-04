@@ -48,10 +48,15 @@ export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelPr
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="fixed right-4 top-16 z-50 w-96 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden"
+      className="fixed right-4 top-20 z-50 w-[min(24rem,calc(100vw-2rem))] overflow-hidden border border-slate-900/20 bg-[#f8f7f4]"
     >
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Export History</h3>
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-blue-700">
+            Local archive
+          </p>
+          <h3 className="text-lg font-semibold text-gray-900">Export History</h3>
+        </div>
         <div className="flex items-center gap-2">
           {filteredHistory.length > 0 && (
             <button
@@ -82,7 +87,7 @@ export function ExportHistoryPanel({ onClose, dataSource }: ExportHistoryPanelPr
               <div key={item.id} className="p-3 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2 min-w-0">
-                    <div className="p-1.5 bg-gray-100 rounded text-gray-600">
+                    <div className="border border-blue-200 bg-blue-50 p-1.5 text-blue-700">
                       {formatIcons[item.format]}
                     </div>
                     <div className="min-w-0">

@@ -54,7 +54,7 @@ export default function DataSourcesSection() {
           className="mb-10"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 bg-amber-100 rounded-xl">
+            <div className="border border-amber-200 bg-amber-100 p-2.5">
               <Database className="w-6 h-6 text-amber-600" />
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
@@ -80,9 +80,9 @@ export default function DataSourcesSection() {
               <motion.div
                 key={item.label}
                 variants={itemVariants}
-                className="bg-white border border-slate-100 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-amber-200 transition-all"
+                className="flex items-center gap-4 border-b border-slate-900/10 bg-white/55 p-5 transition-colors last:border-b-0 hover:bg-amber-50/30"
               >
-                <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+                <div className="flex h-12 w-12 items-center justify-center border border-amber-200 bg-amber-50 text-amber-600">
                   <Globe className="w-6 h-6" />
                 </div>
                 <div>
@@ -96,7 +96,7 @@ export default function DataSourcesSection() {
           {/* Providers table */}
           <motion.div
             variants={itemVariants}
-            className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm"
+            className="overflow-hidden border-y border-slate-900/15 bg-white/55"
           >
             <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -141,10 +141,10 @@ export default function DataSourcesSection() {
           {/* Verification note */}
           <motion.div
             variants={itemVariants}
-            className="border border-blue-100 bg-blue-50/70 p-6 rounded-2xl"
+            className="border-l-2 border-blue-600 bg-blue-50/70 p-6"
           >
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-600 shadow-sm flex-shrink-0">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center border border-amber-200 bg-white text-amber-600">
                 <Database className="w-5 h-5" />
               </div>
               <div>

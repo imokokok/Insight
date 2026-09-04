@@ -51,7 +51,7 @@ export function RedStoneStats({ data }: RedStoneStatsProps) {
       />
       <StatCard
         icon={Clock}
-        iconColor="text-rose-500"
+        iconColor="text-blue-600"
         title="Data Age"
         value={formatDataAge(data.dataAge)}
         description="Time since last update"

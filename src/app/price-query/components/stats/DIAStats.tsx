@@ -65,7 +65,7 @@ export function DIAStats({ data }: DIAStatsProps) {
       />
       <StatCard
         icon={TrendingUp}
-        iconColor="text-rose-500"
+        iconColor="text-blue-600"
         title="24h Volume"
         value={data.totalVolume24h > 0 ? formatLargeNumber(data.totalVolume24h) : '-'}
         description="Total volume in 24 hours"

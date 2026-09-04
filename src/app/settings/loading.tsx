@@ -13,12 +13,12 @@ export default function SettingsLoading() {
           </div>
         </div>
 
-        <div className="flex gap-6">
-          <div className="w-64 space-y-2">
+        <div className="flex flex-col gap-6 md:flex-row">
+          <div className="w-full border-l border-t border-gray-200 md:w-64">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3"
+                className="flex items-center gap-3 border-b border-r border-gray-200 bg-white p-4"
               >
                 <Skeleton variant="circular" width="24px" height="24px" />
                 <Skeleton variant="text" width="100px" height="16px" />
@@ -34,15 +34,10 @@ export default function SettingsLoading() {
                 <FormFieldSkeleton labelWidth="80px" inputHeight="40px" />
                 <div>
                   <Skeleton variant="text" width="60px" height="14px" className="mb-2" />
-                  <Skeleton
-                    variant="rectangular"
-                    width="100%"
-                    height="80px"
-                    className="rounded-md"
-                  />
+                  <Skeleton variant="rectangular" width="100%" height="80px" />
                 </div>
               </div>
-              <Skeleton variant="rectangular" width="120px" height="36px" className="rounded-md" />
+              <Skeleton variant="rectangular" width="120px" height="36px" />
             </SkeletonCard>
           </div>
         </div>

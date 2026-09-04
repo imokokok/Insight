@@ -42,7 +42,7 @@ export function McpToolParamsForm({ schema, value, onChange }: McpToolParamsForm
 
   if (Object.keys(properties).length === 0) {
     return (
-      <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 text-sm text-slate-500">
+      <div className="border-l-2 border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
         This tool takes no parameters.
       </div>
     );
@@ -105,7 +105,7 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
         <select
           value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value || undefined)}
-          className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1.5 w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         >
           {!required && <option value="">-- Select --</option>}
           {property.enum?.map((option) => (
@@ -159,7 +159,7 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
           }}
           min={property.minimum}
           max={property.maximum}
-          className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1.5 w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
       </div>
     );
@@ -198,7 +198,7 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
               const selected = Array.from(e.target.selectedOptions).map((o) => o.value);
               onChange(selected.length > 0 ? selected : undefined);
             }}
-            className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[120px]"
+            className="mt-1.5 min-h-[120px] w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
             {itemEnum.map((option) => (
               <option key={String(option)} value={String(option)}>
@@ -223,7 +223,7 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
             onChange(trimmed ? trimmed.split(',').map((s) => s.trim()) : undefined);
           }}
           placeholder="Separate multiple values with commas"
-          className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1.5 w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
       </div>
     );
@@ -236,7 +236,7 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
       <div className={cn(depth > 0 && 'pl-4 border-l-2 border-slate-100')}>
         {label}
         {description}
-        <div className="mt-2 p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-4">
+        <div className="mt-2 space-y-4 border-y border-slate-900/15 bg-slate-50 p-4">
           {Object.entries(property.properties ?? {}).map(([childName, childProp]) => (
             <FormField
               key={childName}
@@ -263,7 +263,7 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
         value={value === undefined || value === null ? '' : String(value)}
         onChange={(e) => onChange(e.target.value || undefined)}
         placeholder={property.pattern ? `Format: ${property.pattern}` : undefined}
-        className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="mt-1.5 w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
       />
     </div>
   );
@@ -302,7 +302,7 @@ function ArrayOfObjectsField({ itemSchema, value, onChange }: ArrayOfObjectsFiel
         </p>
       )}
       {value.map((row, index) => (
-        <div key={index} className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+        <div key={index} className="border-b border-slate-900/10 bg-slate-50 p-4 last:border-b-0">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
               Item #{index + 1}

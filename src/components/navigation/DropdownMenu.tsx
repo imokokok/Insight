@@ -6,7 +6,6 @@ import Link from 'next/link';
 
 import { ChevronDown } from 'lucide-react';
 
-import { oracleColors } from './config';
 import { type NavGroup } from './types';
 
 interface DropdownMenuProps {
@@ -74,10 +73,10 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
       <button
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
-        className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+        className={`relative flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors duration-200 ${
           isActive || isGroupActive
-            ? 'text-primary-600 bg-primary-50'
-            : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+            ? 'border-primary-600 text-primary-600'
+            : 'border-transparent text-gray-600 hover:border-slate-300 hover:text-primary-700'
         }`}
         aria-expanded={isOpen}
         aria-haspopup="true"
@@ -87,23 +86,17 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
         <ChevronDown
           className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
-        {(isActive || isGroupActive) && (
-          <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary-600 " />
-        )}
       </button>
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-100 rounded-lg py-2 z-50 animate-fade-in"
+          className="absolute left-0 top-full z-50 mt-2 w-72 border border-slate-900/15 bg-[#f8f7f4] py-1 animate-fade-in"
           role="menu"
         >
           {group.items.map((item) => {
             const ItemIcon = item.icon;
             const isItemActive =
               currentPath === item.href || currentPath.startsWith(item.href + '/');
-            const oracleKey = item.href.replace('/', '') as keyof typeof oracleColors;
-            const accentColor = oracleColors[oracleKey];
-
             return (
               <Link
                 key={item.href}
@@ -112,24 +105,16 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
                   setIsOpen(false);
                   onItemClick?.();
                 }}
-                className={`flex items-start gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200 group ${
-                  isItemActive ? 'bg-primary-50 text-primary-600' : 'hover:bg-gray-50 text-gray-700'
+                className={`group mx-1 flex items-start gap-3 border-b border-slate-900/10 px-4 py-3 transition-colors duration-200 last:border-b-0 ${
+                  isItemActive
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-700 hover:bg-white/70'
                 }`}
                 role="menuitem"
               >
                 {ItemIcon && (
-                  <div
-                    className={`p-2 rounded-md transition-colors ${
-                      isItemActive ? 'bg-primary-100' : 'bg-gray-100 group-hover:bg-white'
-                    }`}
-                    style={
-                      accentColor && !isItemActive ? { backgroundColor: `${accentColor}15` } : {}
-                    }
-                  >
-                    <ItemIcon
-                      className="w-4 h-4"
-                      style={accentColor && !isItemActive ? { color: accentColor } : {}}
-                    />
+                  <div className="border border-blue-200 bg-blue-50 p-2 text-blue-700 transition-colors group-hover:bg-white">
+                    <ItemIcon className="w-4 h-4" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -140,7 +125,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
                     </div>
                   )}
                 </div>
-                {isItemActive && <div className="w-1.5 h-1.5 bg-primary-600  mt-2" />}
+                {isItemActive && <div className="mt-2 h-1.5 w-1.5 bg-primary-600" />}
               </Link>
             );
           })}

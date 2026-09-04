@@ -35,7 +35,7 @@ export function TwapStats({ data }: TwapStatsProps) {
     <>
       <StatCard
         icon={TrendingUp}
-        iconColor="text-pink-500"
+        iconColor="text-blue-600"
         title="TWAP Price"
         value={formatOraclePrice(data.twapPrice, 2, 6)}
         description="Time-weighted average price"
@@ -49,7 +49,7 @@ export function TwapStats({ data }: TwapStatsProps) {
       />
       <StatCard
         icon={Droplets}
-        iconColor="text-cyan-500"
+        iconColor="text-blue-700"
         title="Pool Liquidity"
         value={formatLiquidity(data.liquidity)}
         description="Total liquidity in pool"

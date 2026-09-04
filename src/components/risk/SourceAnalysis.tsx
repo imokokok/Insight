@@ -77,9 +77,9 @@ function SourceStatCard({
   className?: string;
 }) {
   return (
-    <div className={cn('bg-slate-50 rounded-xl p-4 border border-slate-100', className)}>
+    <div className={cn('border-r border-slate-900/15 bg-white/45 p-4 last:border-r-0', className)}>
       <div className="flex items-center gap-2 mb-2">
-        <div className="p-1.5 bg-white rounded-lg shadow-sm text-slate-500">{icon}</div>
+        <div className="border border-blue-200 bg-blue-50 p-1.5 text-blue-700">{icon}</div>
         <span className="text-xs font-medium text-slate-500">{label}</span>
       </div>
       <div className="flex items-center gap-2">
@@ -116,7 +116,7 @@ export function SourceAnalysis({ sources, className }: SourceAnalysisProps) {
   return (
     <div className={cn('space-y-5', className)}>
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
         <SourceStatCard
           label="Highest Price"
           value={stats.highest ? formatPrice(stats.highest.price) : '-'}
@@ -162,7 +162,7 @@ export function SourceAnalysis({ sources, className }: SourceAnalysisProps) {
       </div>
 
       {/* Deviation distribution */}
-      <div className="bg-slate-50 rounded-2xl border border-slate-100 p-4">
+      <div className="border-y border-slate-900/15 bg-white/45 p-4">
         <h4 className="text-sm font-semibold text-slate-900 mb-4">Deviation Distribution</h4>
         <div className="space-y-3">
           {sources
@@ -184,10 +184,10 @@ export function SourceAnalysis({ sources, className }: SourceAnalysisProps) {
                     <div className="text-[10px] text-slate-400 truncate">{source.chain}</div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-2 overflow-hidden bg-slate-200">
                       <div
                         className={cn(
-                          'h-full rounded-full transition-all',
+                          'h-full transition-all',
                           isPositive ? 'bg-red-400' : 'bg-emerald-400'
                         )}
                         style={{ width: `${width}%` }}
@@ -211,7 +211,7 @@ export function SourceAnalysis({ sources, className }: SourceAnalysisProps) {
 
       {/* Methodology and verification */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-100 p-4">
+        <div className="border-l-2 border-blue-600 bg-white/55 p-4">
           <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-blue-600" />
             Consensus Methodology
@@ -223,7 +223,7 @@ export function SourceAnalysis({ sources, className }: SourceAnalysisProps) {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-100 p-4">
+        <div className="border-l-2 border-blue-600 bg-white/55 p-4">
           <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
             {stats.onChainCount >= stats.apiCount ? (
               <Shield className="w-4 h-4 text-emerald-600" />

@@ -40,7 +40,7 @@ export function VerifiableReceiptsSection() {
           </p>
         </div>
 
-        <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+        <div className="mt-6 border-l-2 border-emerald-500 bg-emerald-50 p-5">
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
             <div>
@@ -65,7 +65,7 @@ export function VerifiableReceiptsSection() {
 
         <VerifyExecutionPairWidget />
 
-        <div className="mt-8 rounded-xl border border-blue-100 bg-blue-50 p-5">
+        <div className="mt-8 border-l-2 border-blue-600 bg-blue-50 p-5">
           <h3 className="text-sm font-semibold text-slate-900 mb-2">
             Verify locally, without calling Insight
           </h3>
@@ -83,7 +83,7 @@ export function VerifiableReceiptsSection() {
             (v0.1.1). It recomputes the EIP-712 hash and recovers the signer locally; it does not
             need an API key, database access, or a network request.
           </p>
-          <pre className="text-xs leading-relaxed text-slate-700 font-mono overflow-x-auto whitespace-pre rounded-lg bg-white border border-blue-100 p-4">
+          <pre className="overflow-x-auto whitespace-pre border-y border-blue-100 bg-white p-4 font-mono text-xs leading-relaxed text-slate-700">
             {`# Published package (recommended)
 npm install verify-insight-receipt
 
@@ -104,7 +104,7 @@ if (result.code !== 'ok') {
         </div>
 
         <div className="mt-8 grid min-w-0 gap-6 lg:grid-cols-2">
-          <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-5">
+          <div className="min-w-0 border-y border-slate-900/15 bg-slate-50 p-5">
             <h3 className="text-sm font-semibold text-slate-900 mb-3">
               Verify from the command line
             </h3>
@@ -124,7 +124,7 @@ curl -s https://www.oracleinsight.xyz/.well-known/vrt1-scale-declaration.json \\
             </pre>
           </div>
 
-          <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-5">
+          <div className="min-w-0 border-y border-slate-900/15 bg-slate-50 p-5">
             <h3 className="text-sm font-semibold text-slate-900 mb-3">Where the evidence lives</h3>
             <ul className="space-y-2.5 break-words text-sm text-slate-600">
               <li>

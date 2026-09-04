@@ -7,7 +7,6 @@ import Link from 'next/link';
 
 import { X, ChevronDown, Gauge } from 'lucide-react';
 
-import { oracleColors } from './config';
 import { type NavStructure, type NavGroup } from './types';
 
 interface MobileDrawerProps {
@@ -43,29 +42,31 @@ export function MobileDrawer({
 
   return (
     <>
-      <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 animate-fade-in"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 z-40 bg-black/30 animate-fade-in" onClick={onClose} />
 
-      <div className="fixed inset-y-0 right-0 w-full sm:max-w-sm bg-white rounded-l-lg z-50 animate-slide-in-right">
+      <div className="fixed inset-y-0 right-0 z-50 w-full border-l border-slate-900/15 bg-[#f8f7f4] sm:max-w-md animate-slide-in-right">
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between border-b border-slate-900/15 px-5 py-5">
             <div className="flex items-center gap-3">
-              <Image src="/logos/owl-logo.svg" alt="Insight Logo" width={32} height={28} priority />
-              <div className="text-xl font-bold text-primary-600">Insight</div>
-              <div className="text-lg font-semibold text-gray-900">Menu</div>
+              <Image src="/logos/owl-logo.svg" alt="Insight Logo" width={30} height={27} priority />
+              <div>
+                <div className="text-lg font-bold text-slate-950">Insight</div>
+                <span className="sr-only">Menu</span>
+                <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-blue-700">
+                  Navigation index
+                </div>
+              </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+              className="border border-transparent p-2 text-gray-500 transition-colors hover:border-slate-300 hover:bg-white hover:text-gray-900"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <nav className="flex-1 overflow-y-auto py-4 px-2">
+          <nav className="flex-1 overflow-y-auto px-4 py-5">
             {navStructure.map((navItem) => {
               if ('items' in navItem) {
                 const group = navItem as NavGroup;
@@ -74,13 +75,13 @@ export function MobileDrawer({
                 const GroupIcon = group.icon;
 
                 return (
-                  <div key={group.id} className="mb-2">
+                  <div key={group.id} className="border-b border-slate-900/10">
                     <button
                       onClick={() => toggleGroup(group.id)}
-                      className={`w-full flex items-center justify-between px-4 py-3 mx-2 rounded-lg transition-colors ${
+                      className={`flex w-full items-center justify-between border-l-2 px-3 py-3 transition-colors ${
                         isActive
-                          ? 'bg-primary-50 text-primary-600'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          ? 'border-primary-600 bg-primary-50 text-primary-700'
+                          : 'border-transparent text-gray-700 hover:bg-white/70'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -95,49 +96,32 @@ export function MobileDrawer({
                     </button>
 
                     {isExpanded && (
-                      <div className="mt-1 ml-4 space-y-1 animate-fade-in">
+                      <div className="ml-4 border-l border-slate-900/10 animate-fade-in">
                         {group.items.map((item) => {
                           const ItemIcon = item.icon;
                           const isItemActive =
                             currentPath === item.href || currentPath.startsWith(item.href + '/');
-                          const oracleKey = item.href.replace('/', '') as keyof typeof oracleColors;
-                          const accentColor = oracleColors[oracleKey];
-
                           return (
                             <Link
                               key={item.href}
                               href={item.href}
                               onClick={onClose}
-                              className={`flex items-start gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
+                              className={`flex items-start gap-3 border-b border-slate-900/10 px-4 py-3 transition-colors ${
                                 isItemActive
-                                  ? 'bg-primary-50 text-primary-600'
-                                  : 'text-gray-600 hover:bg-gray-50'
+                                  ? 'bg-primary-50 text-primary-700'
+                                  : 'text-gray-600 hover:bg-white/70'
                               }`}
                             >
                               {ItemIcon && (
-                                <div
-                                  className={`p-1.5 rounded-md flex-shrink-0 ${
-                                    isItemActive ? 'bg-primary-100' : 'bg-gray-100'
-                                  }`}
-                                  style={
-                                    accentColor && !isItemActive
-                                      ? { backgroundColor: `${accentColor}15` }
-                                      : {}
-                                  }
-                                >
-                                  <ItemIcon
-                                    className="w-4 h-4"
-                                    style={
-                                      accentColor && !isItemActive ? { color: accentColor } : {}
-                                    }
-                                  />
+                                <div className="flex-shrink-0 border border-blue-200 bg-blue-50 p-1.5 text-blue-700">
+                                  <ItemIcon className="w-4 h-4" />
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm font-medium">{item.label}</span>
                                   {item.badge && (
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-700 leading-none">
+                                    <span className="inline-flex items-center border-l-2 border-emerald-500 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-emerald-700">
                                       {item.badge}
                                     </span>
                                   )}
@@ -149,7 +133,7 @@ export function MobileDrawer({
                                 )}
                               </div>
                               {isItemActive && (
-                                <div className="ml-auto w-1.5 h-1.5 bg-primary-600 rounded-full mt-2 flex-shrink-0" />
+                                <div className="ml-auto mt-2 h-1.5 w-1.5 flex-shrink-0 bg-primary-600" />
                               )}
                             </Link>
                           );
@@ -170,10 +154,10 @@ export function MobileDrawer({
                   key={item.href}
                   href={item.href}
                   onClick={onClose}
-                  className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors ${
+                  className={`flex items-center gap-3 border-b border-l-2 border-slate-900/10 px-3 py-3 transition-colors ${
                     isItemActive
-                      ? 'bg-primary-50 text-primary-600'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'border-l-primary-600 bg-primary-50 text-primary-700'
+                      : 'border-l-transparent text-gray-700 hover:bg-white/70'
                   }`}
                 >
                   {ItemIcon && <ItemIcon className="w-5 h-5" />}
@@ -186,7 +170,7 @@ export function MobileDrawer({
               <Link
                 href="/ops"
                 onClick={onClose}
-                className="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-50"
+                className="flex items-center gap-3 border-b border-slate-900/10 px-3 py-3 text-gray-700 transition-colors hover:bg-white/70"
               >
                 <Gauge className="w-5 h-5" />
                 <span className="font-medium">Console</span>

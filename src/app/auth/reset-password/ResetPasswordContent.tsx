@@ -100,7 +100,7 @@ function ResetPasswordForm() {
         >
           <Link
             href="/auth/forgot-password"
-            className="block w-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors rounded-xl"
+            className="block w-full bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
           >
             Request New Link
           </Link>
@@ -148,7 +148,7 @@ function ResetPasswordForm() {
             placeholder="Enter new password"
             aria-invalid={!!error}
             aria-describedby={error ? 'reset-password-error' : undefined}
-            className="w-full pl-12 pr-12 py-3 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-colors rounded-xl"
+            className="w-full border border-slate-300 py-3 pl-12 pr-12 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           />
         </div>
 
@@ -167,14 +167,14 @@ function ResetPasswordForm() {
             placeholder="Confirm new password"
             aria-invalid={!!error}
             aria-describedby={error ? 'reset-password-error' : undefined}
-            className="w-full pl-12 pr-12 py-3 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-colors rounded-xl"
+            className="w-full border border-slate-300 py-3 pl-12 pr-12 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           />
         </div>
 
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-xl"
+          className="flex w-full items-center justify-center gap-2 bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Lock className="w-5 h-5" />}
           <span>{isLoading ? 'Resetting...' : 'Reset Password'}</span>

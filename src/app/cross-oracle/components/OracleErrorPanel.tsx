@@ -75,15 +75,15 @@ function getErrorTypeInfo(errorType: OracleErrorType): {
     case 'cors':
       return {
         icon: Shield,
-        color: 'text-purple-600',
-        bgColor: 'bg-purple-50',
+        color: 'text-blue-700',
+        bgColor: 'bg-blue-50',
         label: ERROR_TYPE_LABELS[errorType],
       };
     case 'authorization':
       return {
         icon: Shield,
-        color: 'text-rose-600',
-        bgColor: 'bg-rose-50',
+        color: 'text-red-700',
+        bgColor: 'bg-red-50',
         label: ERROR_TYPE_LABELS[errorType],
       };
     default:
@@ -118,14 +118,14 @@ const OracleErrorItem = memo(function OracleErrorItem({
 
   return (
     <div
-      className={`flex items-start gap-3 p-3 rounded-lg ${typeInfo.bgColor} border border-gray-200`}
+      className={`flex items-start gap-3 border-l-2 border-y border-r border-gray-200 p-3 ${typeInfo.bgColor}`}
     >
       <Icon className={`w-5 h-5 mt-0.5 ${typeInfo.color}`} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-medium text-gray-900">{error.provider}</span>
           <span
-            className={`text-xs px-2 py-0.5 rounded-full ${typeInfo.color} ${typeInfo.bgColor}`}
+            className={`border-l-2 border-current px-2 py-0.5 text-xs ${typeInfo.color} ${typeInfo.bgColor}`}
           >
             {typeInfo.label}
           </span>
@@ -171,7 +171,7 @@ const PartialSuccessBanner = memo(function PartialSuccessBanner({
   isRetrying,
 }: PartialSuccessBannerProps) {
   return (
-    <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-lg">
+    <div className="flex items-center justify-between border-l-2 border-amber-500 bg-amber-50 p-4">
       <div className="flex items-center gap-3">
         <AlertTriangle className="w-5 h-5 text-amber-600" />
         <div>
@@ -209,7 +209,7 @@ const GlobalErrorBanner = memo(function GlobalErrorBanner({
   isRetrying,
 }: GlobalErrorBannerProps) {
   return (
-    <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
+    <div className="flex items-center justify-between border-l-2 border-red-500 bg-red-50 p-4">
       <div className="flex items-center gap-3">
         <AlertCircle className="w-5 h-5 text-red-600" />
         <div>

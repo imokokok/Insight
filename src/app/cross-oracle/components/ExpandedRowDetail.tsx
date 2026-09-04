@@ -100,8 +100,8 @@ function getAnomalyReason(row: TableRow): string {
 
 export function ExpandedRowDetail({ row }: { row: TableRow }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-sm py-3 px-2">
-      <div className="bg-white p-3 rounded-lg border border-gray-100">
+    <div className="grid grid-cols-2 border-y border-slate-900/10 px-2 py-3 text-sm sm:grid-cols-3 lg:grid-cols-4">
+      <div className="border-r border-slate-900/10 bg-white p-3">
         <span className="text-gray-500 block text-xs mb-1">Price Deviation</span>
         <div className="flex flex-col">
           <span className="font-mono text-lg text-gray-900">
@@ -117,7 +117,7 @@ export function ExpandedRowDetail({ row }: { row: TableRow }) {
         </div>
       </div>
 
-      <div className="bg-white p-3 rounded-lg border border-gray-100">
+      <div className="border-r border-slate-900/10 bg-white p-3">
         <span className="text-gray-500 block text-xs mb-1">Update Time</span>
         {row.updateTime > 0 ? (
           <div className="flex flex-col">
@@ -141,17 +141,17 @@ export function ExpandedRowDetail({ row }: { row: TableRow }) {
         )}
       </div>
 
-      <div className="bg-white p-3 rounded-lg border border-gray-100">
+      <div className="border-r border-slate-900/10 bg-white p-3">
         <span className="text-gray-500 block text-xs mb-1">Status</span>
         {row.isAnomaly ? (
           <div>
             <span
-              className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${
+              className={`inline-flex items-center gap-1 border-l-2 px-2 py-0.5 text-xs font-medium ${
                 row.severity === 'high'
-                  ? 'text-red-600 bg-red-100'
+                  ? 'border-red-500 bg-red-100 text-red-700'
                   : row.severity === 'medium'
-                    ? 'text-orange-600 bg-orange-100'
-                    : 'text-yellow-600 bg-yellow-100'
+                    ? 'border-orange-500 bg-orange-100 text-orange-700'
+                    : 'border-yellow-500 bg-yellow-100 text-yellow-700'
               }`}
             >
               <AlertTriangle className="w-3 h-3" />
@@ -160,7 +160,7 @@ export function ExpandedRowDetail({ row }: { row: TableRow }) {
             <p className="text-xs text-gray-500 mt-1">Possible reasons: {getAnomalyReason(row)}</p>
           </div>
         ) : (
-          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded text-green-600 bg-green-100">
+          <span className="inline-flex items-center gap-1 border-l-2 border-emerald-500 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
             <CheckCircle2 className="w-3 h-3" />
             Normal
           </span>
@@ -168,7 +168,7 @@ export function ExpandedRowDetail({ row }: { row: TableRow }) {
       </div>
 
       {row.verification && (
-        <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+        <div className="border-l-2 border-emerald-500 bg-green-50 p-3">
           <span className="text-gray-500 block text-xs mb-1">On-Chain Verification</span>
           <div className="space-y-1">
             <div className="text-xs text-gray-600">

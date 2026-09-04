@@ -25,8 +25,11 @@ export default function UserMenuDropdown({
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 py-2 z-50 shadow-lg rounded-md">
-        <div className="px-4 py-2 border-b border-gray-100">
+      <div className="absolute right-0 z-50 mt-2 w-64 border border-slate-900/15 bg-[#f8f7f4] py-2">
+        <div className="border-b border-slate-900/15 px-4 py-3">
+          <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.18em] text-blue-700">
+            Account record
+          </p>
           <p className="text-sm font-medium text-gray-900 truncate">
             {profile?.display_name || 'User'}
           </p>
@@ -36,7 +39,7 @@ export default function UserMenuDropdown({
           <Link
             href="/settings"
             onClick={onClose}
-            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 border-b border-slate-900/10 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-white/70 hover:text-blue-700"
           >
             <Settings className="w-4 h-4" />
             Settings
@@ -45,7 +48,7 @@ export default function UserMenuDropdown({
             <Link
               href="/ops"
               onClick={onClose}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-white/70 hover:text-blue-700"
             >
               <Gauge className="w-4 h-4" />
               Console

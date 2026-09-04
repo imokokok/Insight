@@ -66,7 +66,7 @@ function DivergenceSignalTabComponent({
       </div>
 
       {timeSeries.length === 0 && (
-        <div className="bg-blue-50 rounded-xl border border-blue-200 p-6 text-center">
+        <div className="border-l-2 border-blue-600 bg-blue-50 p-6 text-center">
           <Activity className="w-8 h-8 text-blue-400 mx-auto mb-2" />
           <p className="text-sm font-medium text-blue-700">
             Insufficient Data for Divergence Analysis
@@ -76,7 +76,7 @@ function DivergenceSignalTabComponent({
       )}
 
       {timeSeries.length > 0 && timeSeries.every((ts) => ts.points.length < 3) && (
-        <div className="bg-amber-50 rounded-xl border border-amber-200 p-4 text-center">
+        <div className="border-l-2 border-amber-500 bg-amber-50 p-4 text-center">
           <p className="text-xs text-amber-700">
             Limited data available — acceleration and directional bias detection require 3+ data
             points {labels.limitedDataSuffix}. Keep auto-refresh enabled to accumulate more data.

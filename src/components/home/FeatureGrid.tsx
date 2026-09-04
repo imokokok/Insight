@@ -108,15 +108,15 @@ export function FeatureGrid() {
         ))}
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 grid grid-cols-1 border-l border-t border-slate-900/10 sm:grid-cols-2 lg:grid-cols-4">
         {highlights.map((item) => {
           const Icon = item.icon;
           return (
             <div
               key={item.label}
-              className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-3 shadow-[0_1px_1px_rgba(15,23,42,0.02)]"
+              className="flex items-center gap-3 border-b border-r border-slate-900/10 bg-white/55 px-4 py-3"
             >
-              <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-slate-200 bg-white">
                 <Icon className="w-4 h-4 text-slate-600" />
               </div>
               <div>

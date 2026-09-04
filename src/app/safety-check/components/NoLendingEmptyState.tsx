@@ -40,10 +40,10 @@ export function NoLendingEmptyState({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8"
+      className="border-y border-slate-900/15 bg-white/55 p-8"
     >
       <div className="flex flex-col items-center text-center">
-        <div className="w-14 h-14 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center border border-amber-200 bg-amber-50">
           <SearchX className="w-7 h-7 text-amber-500" />
         </div>
         <h3 className="text-lg font-semibold text-slate-900 mb-2">未检测到借贷持仓</h3>
@@ -60,7 +60,7 @@ export function NoLendingEmptyState({
       </div>
 
       {/* Possible reasons */}
-      <div className="mt-6 bg-slate-50 rounded-xl border border-slate-100 p-4">
+      <div className="mt-6 border-y border-slate-900/15 bg-slate-50 p-4">
         <div className="flex items-center gap-2 mb-2">
           <ShieldQuestion className="w-4 h-4 text-slate-400" />
           <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -106,7 +106,7 @@ export function NoLendingEmptyState({
             {supportedProtocols.map((p) => (
               <div
                 key={`${p.name}-${p.chain}`}
-                className="flex items-center justify-between rounded-lg border border-slate-100 bg-white px-3 py-2"
+                className="flex items-center justify-between border-b border-slate-900/10 bg-white px-3 py-2 last:border-b-0"
               >
                 <span className="text-sm text-slate-700">{p.name}</span>
                 <span className="text-xs text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">

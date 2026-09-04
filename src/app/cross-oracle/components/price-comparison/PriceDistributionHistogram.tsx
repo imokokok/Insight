@@ -87,7 +87,7 @@ function PriceDistributionHistogramComponent({
   }, [priceData, anomalies]);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-900">Price Distribution</h4>
         <div className="flex items-center gap-4 text-xs">
@@ -138,7 +138,7 @@ function PriceDistributionHistogramComponent({
               contentStyle={{
                 backgroundColor: chartColors.recharts.white,
                 border: `1px solid ${chartColors.recharts.border}`,
-                borderRadius: '8px',
+                borderRadius: '2px',
                 fontSize: '12px',
               }}
             />
@@ -155,7 +155,7 @@ function PriceDistributionHistogramComponent({
                 dy: -20,
               }}
             />
-            <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="count">
               {histogramData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}

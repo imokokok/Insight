@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 import { type LucideIcon } from 'lucide-react';
 
 import { oracleColors, providerNames } from '@/lib/constants';
@@ -30,14 +32,14 @@ export function OracleLogo({
   const src = ORACLE_LOGO_MAP[provider];
   if (!src) return null;
   return (
-    <img
+    <Image
       src={src}
       alt={`${providerNames[provider] || provider} logo`}
       width={size}
       height={size}
       className={cn('rounded-full object-contain flex-shrink-0', className)}
-      onError={(e) => {
-        (e.target as HTMLImageElement).style.display = 'none';
+      onError={(event) => {
+        event.currentTarget.style.display = 'none';
       }}
     />
   );
@@ -326,7 +328,7 @@ export function ProviderIdentity({
   return (
     <div className="flex items-center gap-3">
       <div
-        className="rounded-xl flex items-center justify-center flex-shrink-0 ring-1 ring-gray-100"
+        className="flex flex-shrink-0 items-center justify-center border border-gray-100"
         style={{ width: size, height: size, backgroundColor: `${color}10` }}
       >
         <OracleLogo provider={provider} size={Math.round(size * 0.55)} />

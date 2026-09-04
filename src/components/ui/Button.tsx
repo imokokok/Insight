@@ -41,24 +41,23 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+      'inline-flex items-center justify-center gap-2 border font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
     const variants = {
       primary:
-        'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 active:scale-[0.98] shadow-sm hover:shadow-md',
+        'border-primary-700 bg-primary-700 text-white hover:border-slate-950 hover:bg-slate-950',
       secondary:
-        'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 active:scale-[0.98]',
+        'border-gray-300 bg-white text-gray-700 hover:border-primary-400 hover:bg-primary-50/40 hover:text-primary-700 active:bg-gray-100',
       ghost:
-        'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-700 active:bg-gray-200 active:scale-[0.98]',
-      danger:
-        'bg-danger-600 text-white hover:bg-danger-700 active:bg-danger-800 active:scale-[0.98] shadow-sm hover:shadow-md',
+        'border-transparent bg-transparent text-gray-600 hover:border-gray-200 hover:bg-white/70 hover:text-gray-900 active:bg-gray-100',
+      danger: 'border-danger-700 bg-danger-700 text-white hover:bg-danger-800 active:bg-danger-900',
     };
 
     const sizes = {
-      sm: 'px-3 py-1.5 text-sm rounded-md',
-      md: 'px-4 py-2.5 text-sm rounded-md',
-      lg: 'px-6 py-3 text-base rounded-lg',
-      icon: 'p-2 rounded-md',
+      sm: 'px-3 py-1.5 text-sm rounded-sm',
+      md: 'px-4 py-2.5 text-sm rounded-sm',
+      lg: 'px-6 py-3 text-base rounded-sm',
+      icon: 'p-2 rounded-sm',
     };
 
     return (

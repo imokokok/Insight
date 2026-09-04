@@ -38,7 +38,7 @@ export const QuickLinksPanel = memo(function QuickLinksPanel({
       label: 'Price Insight',
       description: 'Cross-oracle and cross-chain comparison',
       icon: BarChart3,
-      colorClass: 'text-violet-600 bg-violet-50',
+      colorClass: 'text-blue-700 bg-blue-50',
     },
     {
       href: `/reputation`,
@@ -50,7 +50,7 @@ export const QuickLinksPanel = memo(function QuickLinksPanel({
   ];
 
   return (
-    <div className={cn('bg-white rounded-2xl border border-slate-100 shadow-sm p-4', className)}>
+    <div className={cn('border-y border-slate-900/15 bg-white/55 p-4', className)}>
       <h3 className="text-sm font-semibold text-slate-800 mb-3">Explore Further</h3>
       <div className="space-y-2">
         {links.map((link) => {
@@ -59,11 +59,11 @@ export const QuickLinksPanel = memo(function QuickLinksPanel({
             <a
               key={link.label}
               href={link.href}
-              className="group flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+              className="group flex items-start gap-3 border-b border-slate-900/10 p-3 transition-colors last:border-b-0 hover:bg-white"
             >
               <div
                 className={cn(
-                  'w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0',
+                  'flex h-9 w-9 flex-shrink-0 items-center justify-center border border-current/15',
                   link.colorClass
                 )}
               >

@@ -47,10 +47,10 @@ function PanelLoadingSkeleton() {
   return (
     <div className="border-y border-slate-900/15 bg-white/55 p-8">
       <div className="animate-pulse space-y-4">
-        <div className="h-6 bg-slate-200 w-40 rounded-xl" />
-        <div className="h-4 bg-slate-200 w-64 rounded-xl" />
-        <div className="h-10 bg-slate-200 w-full rounded-xl" />
-        <div className="h-10 bg-slate-200 w-full rounded-xl" />
+        <div className="h-6 w-40 bg-slate-200" />
+        <div className="h-4 w-64 bg-slate-200" />
+        <div className="h-10 w-full bg-slate-200" />
+        <div className="h-10 w-full bg-slate-200" />
       </div>
     </div>
   );
@@ -113,20 +113,20 @@ export default function SettingsContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-slate-200 rounded-xl" />
+              <div className="h-10 w-10 bg-slate-200" />
               <div>
-                <div className="h-6 bg-slate-200 w-24 mb-2 rounded-xl" />
-                <div className="h-4 bg-slate-200 w-48 rounded-xl" />
+                <div className="mb-2 h-6 w-24 bg-slate-200" />
+                <div className="h-4 w-48 bg-slate-200" />
               </div>
             </div>
             <div className="flex gap-6">
               <div className="w-64 space-y-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-16 bg-slate-200 rounded-xl" />
+                  <div key={i} className="h-16 border-b border-slate-300 bg-slate-200" />
                 ))}
               </div>
               <div className="flex-1">
-                <div className="h-96 bg-slate-200 rounded-2xl" />
+                <div className="h-96 border-y border-slate-300 bg-slate-200" />
               </div>
             </div>
           </div>

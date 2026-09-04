@@ -93,7 +93,7 @@ export function RiskTrackerDetailPanel<T extends RiskSnapshotBase>({
               {snapshot.symbol} · {snapshot.displayName}
             </h2>
             {typeLabels && typeLabels[(snapshot as { type?: string }).type ?? ''] && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+              <span className="border-l border-slate-300 bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-600">
                 {typeLabels[(snapshot as { type?: string }).type ?? '']}
               </span>
             )}

@@ -75,21 +75,25 @@ export default function Navbar({ isOpsOwner = false }: { isOpsOwner?: boolean })
 
   return (
     <>
-      <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 transition-all duration-300">
-        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex justify-between h-16">
+      <nav className="sticky top-0 z-40 border-b border-slate-900/15 bg-[#f8f7f4]">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-8 lg:px-10">
+          <div className="flex h-[68px] justify-between">
             <div className="flex items-center">
-              <Link href="/" className="flex-shrink-0 flex items-center gap-2.5 group">
+              <Link href="/" className="group flex flex-shrink-0 items-center gap-2.5">
                 <Image
                   src="/logos/owl-logo.svg"
                   alt="Insight Logo"
-                  width={36}
-                  height={32}
-                  className="group-hover:scale-105 transition-transform duration-300"
+                  width={40}
+                  height={36}
                   priority
                 />
-                <div className="text-xl font-bold text-primary-600 group-hover:text-primary-700 transition-colors duration-300">
-                  Insight
+                <div>
+                  <div className="text-xl font-bold tracking-tight text-slate-950 transition-colors group-hover:text-primary-700">
+                    Insight
+                  </div>
+                  <div className="hidden font-mono text-[8px] uppercase tracking-[0.2em] text-slate-400 xl:block">
+                    Oracle evidence
+                  </div>
                 </div>
               </Link>
             </div>
@@ -129,10 +133,10 @@ export default function Navbar({ isOpsOwner = false }: { isOpsOwner?: boolean })
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all duration-200 relative rounded-md ${
+                    className={`relative flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                       active
-                        ? 'text-primary-600 bg-primary-50'
-                        : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                        ? 'border-primary-600 text-primary-700'
+                        : 'border-transparent text-gray-600 hover:border-slate-300 hover:text-primary-700'
                     }`}
                   >
                     {ItemIcon && <ItemIcon className="w-4 h-4" />}
@@ -152,9 +156,9 @@ export default function Navbar({ isOpsOwner = false }: { isOpsOwner?: boolean })
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                       aria-expanded={isUserMenuOpen}
                       aria-haspopup="menu"
-                      className="flex items-center gap-2 p-1.5 hover:bg-gray-50 rounded-md transition-colors"
+                      className="flex items-center gap-2 border border-transparent p-1.5 transition-colors hover:border-slate-300 hover:bg-white"
                     >
-                      <div className="w-8 h-8 bg-primary-600 flex items-center justify-center text-white text-sm font-medium overflow-hidden rounded">
+                      <div className="flex h-8 w-8 items-center justify-center overflow-hidden bg-primary-700 text-sm font-medium text-white">
                         {profile?.avatar_url && !avatarError ? (
                           <Image
                             key={profile.avatar_url}

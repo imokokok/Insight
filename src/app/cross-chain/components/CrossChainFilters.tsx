@@ -71,20 +71,20 @@ export function CrossChainFilters() {
   ].filter(Boolean).length;
 
   return (
-    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+    <div className="overflow-hidden border-y border-slate-900/15 bg-white/55">
       <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-100 bg-slate-50/80">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-slate-500" />
           <span className="text-sm font-semibold text-slate-900">Filters</span>
           {activeFilterCount > 0 && (
-            <span className="px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 rounded-full">
+            <span className="border-l-2 border-blue-600 bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
               {activeFilterCount}
             </span>
           )}
         </div>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1.5 rounded-lg transition-colors hover:bg-slate-100 text-slate-500"
+          className="border border-transparent p-1.5 text-slate-500 transition-colors hover:border-slate-900/15 hover:bg-white hover:text-blue-700"
           aria-label={isCollapsed ? 'Expand' : 'Collapse'}
           aria-expanded={!isCollapsed}
           aria-controls="filters-content"

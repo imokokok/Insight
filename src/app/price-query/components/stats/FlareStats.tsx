@@ -52,7 +52,7 @@ export function FlareStats({ data }: FlareStatsProps) {
       />
       <StatCard
         icon={Timer}
-        iconColor="text-rose-500"
+        iconColor="text-blue-600"
         title="Data Age"
         value={formatDataAge(dataAge)}
         description="Time since last update"

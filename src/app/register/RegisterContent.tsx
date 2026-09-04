@@ -110,7 +110,7 @@ export default function RegisterContent() {
           title="Registration Successful"
           description={`Verification email has been sent to ${email}.`}
         >
-          <div className="bg-blue-50 border border-blue-200 p-4 mb-6 text-left rounded-lg">
+          <div className="mb-6 border-l-2 border-blue-600 bg-blue-50 p-4 text-left">
             <div className="flex items-start gap-3">
               <Mail className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-800">
@@ -124,7 +124,7 @@ export default function RegisterContent() {
             </div>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 p-3 mb-4 rounded-lg flex items-start gap-2">
+          <div className="mb-4 flex items-start gap-2 border-l-2 border-amber-500 bg-amber-50 p-3">
             <Coins className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
               API access is credit-metered. New users get 30 free trial credits after email
@@ -147,7 +147,7 @@ export default function RegisterContent() {
                 setDisplayName('');
                 setAgreedToTerms(false);
               }}
-              className="w-full px-6 py-3 border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-200 transition-colors rounded-xl"
+              className="w-full border border-slate-300 px-6 py-3 font-medium text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700"
             >
               Use Another Email
             </button>
@@ -158,7 +158,7 @@ export default function RegisterContent() {
   }
 
   return (
-    <AuthPageLayout cardClassName="shadow-sm">
+    <AuthPageLayout>
       <div className="text-center mb-8">
         <AuthBrandLogo />
         <h2 className="mt-4 text-xl font-semibold text-slate-900">Create Account</h2>
@@ -166,10 +166,7 @@ export default function RegisterContent() {
       </div>
 
       {displayError && (
-        <div
-          id="register-error"
-          className="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg"
-        >
+        <div id="register-error" className="mb-6 border-l-2 border-danger-500 bg-danger-50 p-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-danger-600">{displayError}</p>
@@ -193,7 +190,7 @@ export default function RegisterContent() {
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Enter your display name"
               maxLength={100}
-              className="w-full pl-12 pr-4 py-3 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 transition-colors rounded-xl"
+              className="w-full border border-slate-300 py-3 pl-12 pr-4 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
             />
           </div>
         </div>
@@ -215,7 +212,7 @@ export default function RegisterContent() {
               placeholder="Enter your email"
               aria-invalid={!!displayError}
               aria-describedby={displayError ? 'register-error' : undefined}
-              className="w-full pl-12 pr-4 py-3 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 transition-colors rounded-xl"
+              className="w-full border border-slate-300 py-3 pl-12 pr-4 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
             />
           </div>
         </div>
@@ -232,14 +229,14 @@ export default function RegisterContent() {
             placeholder="Create a password"
             aria-invalid={!!displayError}
             aria-describedby={displayError ? 'register-error' : undefined}
-            className="w-full pl-12 pr-12 py-3 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 transition-colors rounded-xl"
+            className="w-full border border-slate-300 py-3 pl-12 pr-12 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           />
           {password && (
             <div className="mt-2">
               <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-1.5 flex-1 overflow-hidden bg-slate-200">
                   <div
-                    className={`h-full rounded-full transition-all duration-300 ${
+                    className={`h-full transition-all duration-300 ${
                       passwordStrength.score <= 2
                         ? 'bg-danger-500 w-1/3'
                         : passwordStrength.score <= 4
@@ -299,7 +296,7 @@ export default function RegisterContent() {
             placeholder="Confirm your password"
             aria-invalid={!!displayError}
             aria-describedby={displayError ? 'register-error' : undefined}
-            className="w-full pl-12 pr-12 py-3 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 transition-colors rounded-xl"
+            className="w-full border border-slate-300 py-3 pl-12 pr-12 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           />
         </div>
 
@@ -310,7 +307,7 @@ export default function RegisterContent() {
             checked={agreedToTerms}
             onChange={(e) => setAgreedToTerms(e.target.checked)}
             required
-            className="h-4 w-4 mt-1 text-blue-600 focus:ring-blue-500 border-slate-200 rounded-xl"
+            className="mt-1 h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-500"
           />
           <label htmlFor="terms" className="ml-2 text-sm text-slate-600">
             <span>I agree to the </span>
@@ -327,7 +324,7 @@ export default function RegisterContent() {
         <button
           type="submit"
           disabled={isLoading || !agreedToTerms}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-xl"
+          className="flex w-full items-center justify-center gap-2 bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin" />

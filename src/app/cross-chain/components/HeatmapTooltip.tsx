@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 
 import { baseColors, semanticColors } from '@/lib/config/colors';
 import { type Blockchain, type PriceData } from '@/types/oracle';
@@ -16,6 +16,14 @@ interface HeatmapTooltipProps {
   isPinned?: boolean;
   onClose?: () => void;
 }
+
+const subscribeToViewport = (onStoreChange: () => void) => {
+  window.addEventListener('resize', onStoreChange);
+  return () => window.removeEventListener('resize', onStoreChange);
+};
+
+const getViewportWidth = () => window.innerWidth;
+const getServerViewportWidth = () => 0;
 
 export function HeatmapTooltip({
   cell,
@@ -37,15 +45,11 @@ export function HeatmapTooltip({
     return { xPrice, yPrice };
   }, [cell, currentPrices]);
 
-  const [viewportWidth, setViewportWidth] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth : 0
+  const viewportWidth = useSyncExternalStore(
+    subscribeToViewport,
+    getViewportWidth,
+    getServerViewportWidth
   );
-
-  useEffect(() => {
-    const handleResize = () => setViewportWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   if (!cell || !cellData) return null;
 
@@ -59,11 +63,11 @@ export function HeatmapTooltip({
 
   return (
     <div
-      className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 min-w-[200px]"
+      className="min-w-[200px] border border-gray-200 bg-white p-3 shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
       style={tooltipStyle}
     >
       {isPinned && onClose && (
-        <button onClick={onClose} className="absolute top-1 right-1 p-1 hover:bg-gray-100 rounded">
+        <button onClick={onClose} className="absolute right-1 top-1 p-1 hover:bg-gray-100">
           <svg
             className="w-4 h-4 text-gray-400"
             fill="none"

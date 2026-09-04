@@ -72,14 +72,14 @@ export function DataSourceList({
   const chainCount = new Set(sources.map((s) => s.chain)).size;
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg ${className}`}>
+    <div className={`border-y border-slate-900/15 bg-white/55 ${className}`}>
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 py-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary-50 rounded-lg">
+          <div className="border border-blue-200 bg-primary-50 p-2">
             <Database size={18} className="text-primary-600" />
           </div>
           <div>

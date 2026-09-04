@@ -199,13 +199,13 @@ export function LiveStatusBar({
     <Tooltip content={tooltipContent} placement="bottom">
       <div
         className={cn(
-          'inline-flex items-center gap-2 px-2 py-1 bg-white border border-gray-200 rounded-md shadow-sm cursor-help',
+          'inline-flex cursor-help items-center gap-2 border border-slate-900/15 bg-white px-2 py-1',
           className
         )}
       >
         <div
           className={cn(
-            'flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs',
+            'flex items-center gap-1 border-l-2 border-current px-1.5 py-0.5 text-xs',
             freshness.bgColor
           )}
         >

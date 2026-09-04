@@ -73,7 +73,7 @@ export function ConnectionStatusIndicator({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <div
-        className={`flex items-center gap-1.5 px-2 py-1  text-xs font-medium ${config.bgColor} ${config.color}`}
+        className={`flex items-center gap-1.5 border-l-2 px-2 py-1 font-mono text-xs font-medium ${config.bgColor} ${config.color}`}
       >
         <span className={`text-sm ${connectionStatus === 'connecting' ? 'animate-pulse' : ''}`}>
           {config.icon}
@@ -85,7 +85,7 @@ export function ConnectionStatusIndicator({
         <button
           onClick={handleReconnect}
           disabled={isReconnecting}
-          className="text-xs px-2 py-1 bg-primary-500 text-white rounded hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="border border-primary-600 bg-primary-600 px-2 py-1 text-xs text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isReconnecting ? 'Reconnecting...' : 'Reconnect'}
         </button>

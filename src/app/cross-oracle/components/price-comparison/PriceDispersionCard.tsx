@@ -23,9 +23,9 @@ function PriceDispersionCardComponent({ standardDeviation, avgPrice }: PriceDisp
   }, [standardDeviation, avgPrice]);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center gap-2 mb-4">
-        <BarChart3 className="w-4 h-4 text-purple-500" />
+        <BarChart3 className="h-4 w-4 text-blue-600" />
         <span className="text-sm font-medium text-gray-500">Price Dispersion</span>
       </div>
 
@@ -36,7 +36,7 @@ function PriceDispersionCardComponent({ standardDeviation, avgPrice }: PriceDisp
           <div className="text-lg font-semibold text-gray-900">{standardDeviation.toFixed(4)}</div>
           <div className="text-xs text-gray-500">Std Dev</div>
           <div
-            className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap border border-slate-700 bg-gray-900 px-3 py-2 text-xs text-white opacity-0 shadow-[0_16px_40px_rgba(15,23,42,0.18)] transition-opacity duration-200 group-hover:opacity-100"
             role="tooltip"
           >
             Deviation of oracle quotes from mean; lower values indicate higher consistency.
@@ -47,7 +47,7 @@ function PriceDispersionCardComponent({ standardDeviation, avgPrice }: PriceDisp
           <div className="text-lg font-semibold text-gray-900">{(cv * 100).toFixed(4)}%</div>
           <div className="text-xs text-gray-500">CV</div>
           <div
-            className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap border border-slate-700 bg-gray-900 px-3 py-2 text-xs text-white opacity-0 shadow-[0_16px_40px_rgba(15,23,42,0.18)] transition-opacity duration-200 group-hover:opacity-100"
             role="tooltip"
           >
             Coefficient of Variation — ratio of standard deviation to mean. Enables comparison

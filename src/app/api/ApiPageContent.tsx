@@ -26,7 +26,7 @@ import { EditorialWorkspaceHeader } from '@/components/editorial';
 import { DataAccessTierMatrix, PricingSection } from '@/components/pricing';
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { Button } from '@/components/ui/Button';
-import { getAppUrl } from '@/lib/utils/appUrl';
+import { useAppUrl } from '@/hooks/useAppUrl';
 import { useSession, useUser } from '@/stores/authStore';
 
 const FEATURES = [
@@ -97,8 +97,7 @@ const STEPS = [
   },
 ];
 
-function getCodeExamples(): Record<string, string> {
-  const baseUrl = getAppUrl();
+function getCodeExamples(baseUrl: string): Record<string, string> {
   return {
     curl: `curl -H "X-API-Key: ins_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \\
   "${baseUrl}/api/v1/prices?provider=chainlink&symbol=BTC%2FUSD&chain=ethereum"`,
@@ -273,7 +272,7 @@ function FeaturesSection() {
 
 function QuickStartSection() {
   const [activeLang, setActiveLang] = useState<'curl' | 'js' | 'ts' | 'python'>('curl');
-  const codeExamples = getCodeExamples();
+  const codeExamples = getCodeExamples(useAppUrl());
 
   return (
     <section className="border-y border-slate-900/10 bg-white/45 py-14 sm:py-20">

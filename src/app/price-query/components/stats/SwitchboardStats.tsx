@@ -50,7 +50,7 @@ export function SwitchboardStats({
       />
       <StatCard
         icon={Shield}
-        iconColor="text-rose-500"
+        iconColor="text-blue-600"
         title="Confidence Score"
         value={formatConfidenceScore(confidence)}
         description="Overall confidence score"

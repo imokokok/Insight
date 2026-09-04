@@ -436,7 +436,7 @@ export default function SafetyCheckContent() {
               />
 
               {protocolsError && (
-                <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-center">
+                <div className="border-l-2 border-red-500 bg-red-50 p-4 text-center">
                   <p className="text-red-700 text-sm font-semibold">{protocolsError}</p>
                 </div>
               )}
@@ -473,19 +473,19 @@ export default function SafetyCheckContent() {
                     <strong>1000 USDC</strong>：
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="bg-slate-50 rounded-lg p-2.5">
+                    <div className="border-l border-slate-900/15 bg-slate-50 p-2.5">
                       <span className="text-xs text-slate-500">Liquidation Threshold</span>
                       <p className="font-semibold text-slate-900 mt-0.5">82.5%</p>
                     </div>
-                    <div className="bg-slate-50 rounded-lg p-2.5">
+                    <div className="border-l border-slate-900/15 bg-slate-50 p-2.5">
                       <span className="text-xs text-slate-500">Collateral Factor</span>
                       <p className="font-semibold text-slate-900 mt-0.5">80%</p>
                     </div>
-                    <div className="bg-slate-50 rounded-lg p-2.5">
+                    <div className="border-l border-slate-900/15 bg-slate-50 p-2.5">
                       <span className="text-xs text-slate-500">Collateral Value</span>
                       <p className="font-semibold text-slate-900 mt-0.5">$3,000</p>
                     </div>
-                    <div className="bg-slate-50 rounded-lg p-2.5">
+                    <div className="border-l border-slate-900/15 bg-slate-50 p-2.5">
                       <span className="text-xs text-slate-500">Critical Deviation</span>
                       <p className="font-semibold text-red-600 mt-0.5">-40.05%</p>
                     </div>
@@ -497,7 +497,7 @@ export default function SafetyCheckContent() {
               )}
 
               {error && (
-                <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-center">
+                <div className="border-l-2 border-red-500 bg-red-50 p-4 text-center">
                   <p className="text-red-700 text-sm font-semibold">{error}</p>
                 </div>
               )}
@@ -581,7 +581,7 @@ export default function SafetyCheckContent() {
                   exit={{ opacity: 0 }}
                   className="editorial-panel border-y border-slate-900/15 bg-white/35 py-20 flex flex-col items-center justify-center text-center"
                 >
-                  <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center border border-blue-200 bg-blue-50">
                     <Shield className="w-7 h-7 text-blue-500" />
                   </div>
                   <h3 className="text-base font-semibold text-slate-900 mb-1">连接钱包开始分析</h3>

@@ -114,6 +114,8 @@ const eslintConfig = defineConfig([
     'node_modules/**',
     'coverage/**',
     'dist/**',
+    '**/dist/**',
+    'ml/.venv/**',
     '*.config.{js,mjs,ts}',
     'scripts/**',
   ]),

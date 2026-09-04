@@ -45,7 +45,7 @@ export function RiskTabs({ tabs, activeTab, onChange, className }: RiskTabsProps
                 {typeof tab.badge === 'number' && tab.badge > 0 && (
                   <span
                     className={cn(
-                      'inline-flex items-center justify-center min-w-[1.25rem] px-1.5 h-5 text-xs rounded-full',
+                      'inline-flex h-5 min-w-[1.25rem] items-center justify-center border-l border-current px-1.5 text-xs',
                       activeTab === tab.id
                         ? 'bg-blue-100 text-blue-700'
                         : 'bg-slate-100 text-slate-600'

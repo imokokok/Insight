@@ -59,7 +59,7 @@ export function ChainlinkStats({
       />
       <StatCard
         icon={Shield}
-        iconColor="text-rose-500"
+        iconColor="text-blue-600"
         title="Feed Description"
         value={source || '-'}
         description="Description of the price feed"

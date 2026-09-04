@@ -145,7 +145,7 @@ export function UnifiedExport({
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled || isExporting}
-        className="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 border border-transparent px-2.5 py-1.5 text-sm text-slate-600 transition-colors hover:border-slate-900/15 hover:bg-white hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isExporting ? (
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -163,10 +163,12 @@ export function UnifiedExport({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+            className="absolute right-0 top-full z-50 mt-1 w-64 border border-slate-900/20 bg-[#f8f7f4]"
           >
             <div className="p-2">
-              <p className="text-xs text-gray-500 px-2 py-1">Select Format</p>
+              <p className="px-2 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-blue-700">
+                Select Format
+              </p>
               {EXPORT_FORMAT_CONFIGS.map((format) => (
                 <button
                   key={format.value}
@@ -174,19 +176,19 @@ export function UnifiedExport({
                     handleFormatChange(format.value);
                     setShowConfig(true);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="flex w-full items-center gap-3 border-t border-slate-900/10 px-3 py-2.5 text-sm text-slate-700 transition-colors hover:bg-white"
                 >
-                  <span className="text-gray-400">{formatIcons[format.value]}</span>
+                  <span className="flex h-7 w-7 items-center justify-center border border-blue-200 bg-blue-50 text-blue-700">
+                    {formatIcons[format.value]}
+                  </span>
                   <span>{format.label}</span>
                 </button>
               ))}
             </div>
 
-            <div className="border-t border-gray-100" />
-
             <button
               onClick={() => setShowHistory(true)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex w-full items-center gap-3 border-t border-slate-900/15 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-white"
             >
               <History className="w-4 h-4 text-gray-400" />
               <span>History</span>
@@ -202,9 +204,9 @@ export function UnifiedExport({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50"
+            className="absolute right-0 top-full z-50 mt-2 w-[min(24rem,calc(100vw-2rem))] border border-slate-900/20 bg-[#f8f7f4]"
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <div className="flex items-center justify-between border-b border-slate-900/15 px-4 py-3">
               <div className="flex items-center gap-2">
                 {formatIcons[config.format]}
                 <span className="font-medium text-gray-900">
@@ -213,7 +215,7 @@ export function UnifiedExport({
               </div>
               <button
                 onClick={() => setShowConfig(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex h-8 w-8 items-center justify-center border border-slate-900/15 text-slate-500 transition-colors hover:border-blue-600 hover:text-blue-700"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -241,17 +243,17 @@ export function UnifiedExport({
                 </div>
               </div>
 
-              <div className="max-h-48 overflow-y-auto space-y-2 border border-gray-100 rounded-lg p-2">
+              <div className="max-h-48 overflow-y-auto border-y border-slate-900/15">
                 {config.fields.map((field) => (
                   <label
                     key={field.key}
-                    className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded-md"
+                    className="flex cursor-pointer items-center gap-2 border-b border-slate-900/10 px-2 py-2 last:border-b-0 hover:bg-white"
                   >
                     <input
                       type="checkbox"
                       checked={field.selected}
                       onChange={() => toggleField(field.key)}
-                      className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
+                      className="border-gray-300 text-primary-600 focus:ring-blue-600"
                     />
                     <span className="text-sm text-gray-700">{field.label}</span>
                   </label>
@@ -266,7 +268,7 @@ export function UnifiedExport({
                     onChange={(e) =>
                       setConfig((prev) => ({ ...prev, includeMetadata: e.target.checked }))
                     }
-                    className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
+                    className="border-gray-300 text-primary-600 focus:ring-blue-600"
                   />
                   <span className="text-sm text-gray-700">Include Metadata</span>
                 </label>
@@ -280,7 +282,7 @@ export function UnifiedExport({
                         onChange={(e) =>
                           setConfig((prev) => ({ ...prev, includeChart: e.target.checked }))
                         }
-                        className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
+                        className="border-gray-300 text-primary-600 focus:ring-blue-600"
                       />
                       <span className="text-sm text-gray-700">Include Chart</span>
                     </label>
@@ -291,7 +293,7 @@ export function UnifiedExport({
                         onChange={(e) =>
                           setConfig((prev) => ({ ...prev, includeStats: e.target.checked }))
                         }
-                        className="rounded border-gray-300 text-primary-600 focus:ring-blue-600"
+                        className="border-gray-300 text-primary-600 focus:ring-blue-600"
                       />
                       <span className="text-sm text-gray-700">Include Statistics</span>
                     </label>
@@ -299,22 +301,29 @@ export function UnifiedExport({
                 )}
               </div>
 
-              <div className="mt-4 p-3 bg-gray-50 border border-gray-100 rounded-lg">
-                <p className="text-xs text-gray-500 mb-1">Data Preview</p>
-                <p className="text-sm text-gray-700">
-                  Records: <span className="font-medium">{data.length}</span>
-                </p>
-                <p className="text-sm text-gray-700">
-                  Selected Fields: <span className="font-medium">{selectedFieldsCount}</span>
-                </p>
+              <div className="mt-4 grid grid-cols-2 border-y border-slate-900/15 bg-white/55">
+                <div className="border-r border-slate-900/15 p-3">
+                  <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                    Records
+                  </p>
+                  <p className="font-mono text-lg font-semibold text-slate-900">{data.length}</p>
+                </div>
+                <div className="p-3">
+                  <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-slate-500">
+                    Fields
+                  </p>
+                  <p className="font-mono text-lg font-semibold text-slate-900">
+                    {selectedFieldsCount}
+                  </p>
+                </div>
               </div>
             </div>
 
             {isExporting && (
               <div className="px-4 pb-2">
-                <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-1 overflow-hidden bg-slate-200">
                   <motion.div
-                    className="h-full bg-primary-600 rounded-full"
+                    className="h-full bg-primary-600"
                     initial={{ width: 0 }}
                     animate={{ width: `${exportProgress}%` }}
                     transition={{ duration: 0.3 }}
@@ -324,18 +333,18 @@ export function UnifiedExport({
               </div>
             )}
 
-            <div className="flex gap-2 p-4 border-t border-gray-100">
+            <div className="flex gap-2 border-t border-slate-900/15 p-4">
               <button
                 onClick={() => setShowConfig(false)}
                 disabled={isExporting}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="flex-1 border border-slate-900/20 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-blue-600 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleExport}
                 disabled={isExporting || selectedFieldsCount === 0}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex flex-1 items-center justify-center gap-2 border border-primary-600 bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isExporting ? (
                   <>

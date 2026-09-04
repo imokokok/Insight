@@ -120,13 +120,13 @@ function VerifyEmailForm() {
         <div className="space-y-3">
           <Link
             href="/auth/resend-verification"
-            className="block w-full px-6 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors rounded-xl"
+            className="block w-full bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
           >
             Resend Verification Email
           </Link>
           <Link
             href="/register"
-            className="block w-full px-6 py-3 border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 transition-colors rounded-xl"
+            className="block w-full border border-slate-300 px-6 py-3 font-medium text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700"
           >
             Register Again
           </Link>

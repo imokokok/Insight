@@ -47,28 +47,44 @@ export function ChainQueryResults({ activeTab, analytics, isRefreshing }: ChainQ
       )}
       {activeTab === 'comparison' && (
         <SectionErrorBoundary componentName="OverviewTab">
-          <Suspense fallback={<div className="animate-pulse h-48 bg-slate-100 rounded-xl" />}>
+          <Suspense
+            fallback={
+              <div className="h-48 animate-pulse border-y border-slate-900/10 bg-slate-100" />
+            }
+          >
             <LazyOverviewTab />
           </Suspense>
         </SectionErrorBoundary>
       )}
       {activeTab === 'risk' && (
         <SectionErrorBoundary componentName="RiskAnalysisTab">
-          <Suspense fallback={<div className="animate-pulse h-48 bg-slate-100 rounded-xl" />}>
+          <Suspense
+            fallback={
+              <div className="h-48 animate-pulse border-y border-slate-900/10 bg-slate-100" />
+            }
+          >
             <LazyRiskAnalysisTab risk={analytics.risk} chainCount={analytics.chainCount} />
           </Suspense>
         </SectionErrorBoundary>
       )}
       {activeTab === 'divergence' && (
         <SectionErrorBoundary componentName="DivergenceSignalTab">
-          <Suspense fallback={<div className="animate-pulse h-48 bg-slate-100 rounded-xl" />}>
+          <Suspense
+            fallback={
+              <div className="h-48 animate-pulse border-y border-slate-900/10 bg-slate-100" />
+            }
+          >
             <LazyDivergenceSignalTab divergence={analytics.divergence} feed={analytics.feed} />
           </Suspense>
         </SectionErrorBoundary>
       )}
       {activeTab === 'feedHealth' && (
         <SectionErrorBoundary componentName="FeedHealthTab">
-          <Suspense fallback={<div className="animate-pulse h-48 bg-slate-100 rounded-xl" />}>
+          <Suspense
+            fallback={
+              <div className="h-48 animate-pulse border-y border-slate-900/10 bg-slate-100" />
+            }
+          >
             <LazyFeedHealthTab
               rhythmMetrics={analytics.feed.rhythmMetrics}
               confidenceMetrics={analytics.feed.confidenceMetrics}

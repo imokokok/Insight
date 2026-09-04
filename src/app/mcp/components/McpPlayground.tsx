@@ -119,7 +119,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
             id="tool-select"
             value={selectedTool}
             onChange={(e) => applyTool(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
             {tools.map((tool) => (
               <option key={tool.name} value={tool.name}>
@@ -138,7 +138,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
       </div>
 
       {!isAuthenticated && (
-        <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800 flex items-start gap-2">
+        <div className="flex items-start gap-2 border-l-2 border-amber-500 bg-amber-50 p-3 text-sm text-amber-800">
           <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
           Without signing in or providing an API Key, the Playground may fail due to missing
           authentication. Add a key in the config generator above, or sign in and retry.
@@ -146,7 +146,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
       )}
 
       {(error || loadError) && (
-        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 flex items-start gap-2">
+        <div className="flex items-start gap-2 border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
           {error || loadError}
         </div>
@@ -174,7 +174,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
               value={jsonValues}
               onChange={(e) => setJsonValues(e.target.value)}
               rows={14}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-slate-900/20 bg-white px-3 py-2 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           ) : (
             <McpToolParamsForm
@@ -201,7 +201,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
           {result ? (
             <CodeBlock code={JSON.stringify(result, null, 2)} label="JSON response" />
           ) : (
-            <div className="h-64 rounded-xl border border-dashed border-slate-300 flex items-center justify-center text-sm text-slate-400">
+            <div className="flex h-64 items-center justify-center border-y border-dashed border-slate-300 text-sm text-slate-400">
               Call the tool on the left to see results
             </div>
           )}
@@ -221,7 +221,7 @@ function UsageBadge({
   if (!rateLimit || rateLimit.limit <= 0) return null;
 
   return (
-    <div className="inline-flex flex-col gap-1 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+    <div className="inline-flex flex-col gap-1 border-l-2 border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-500">
       <span>
         Rate limit: <strong className="text-slate-900">{rateLimit.remaining}</strong> /{' '}
         {rateLimit.limit}

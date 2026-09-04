@@ -114,7 +114,7 @@ function MiniMetric({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="bg-white/60 rounded-xl p-3 border border-slate-100/60">
+    <div className="border-l border-slate-900/15 bg-white/55 p-3 first:border-l-0">
       <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
         {icon}
         {label}
@@ -128,19 +128,17 @@ export function RiskAssessmentCard(props: RiskAssessmentCardProps) {
   const { riskLevel, deviationPercent, durationSeconds, affectedProtocolCount } = props;
   const config = RISK_LEVELS[riskLevel];
 
-  const gradientColor =
+  const statusColor =
     riskLevel === 'normal'
-      ? 'from-emerald-400 to-emerald-600'
+      ? 'bg-emerald-500'
       : riskLevel === 'warning'
-        ? 'from-amber-400 to-amber-600'
-        : riskLevel === 'critical'
-          ? 'from-red-400 to-red-600'
-          : 'from-purple-400 to-purple-600';
+        ? 'bg-amber-500'
+        : 'bg-red-500';
 
   return (
     <div
       className={cn(
-        'relative rounded-2xl border bg-white p-5 shadow-sm overflow-hidden',
+        'relative overflow-hidden border bg-white/55 p-5',
         riskLevel === 'critical' || riskLevel === 'severe'
           ? 'border-red-200'
           : riskLevel === 'warning'
@@ -149,13 +147,12 @@ export function RiskAssessmentCard(props: RiskAssessmentCardProps) {
         props.className
       )}
     >
-      {/* Top gradient strip */}
-      <div className={cn('absolute top-0 left-0 right-0 h-1 bg-gradient-to-r', gradientColor)} />
+      <div className={cn('absolute inset-y-0 left-0 w-1', statusColor)} aria-hidden="true" />
 
       <div className="flex flex-col lg:flex-row gap-5">
         {/* Left: status */}
         <div className="flex items-start gap-4 lg:w-1/2">
-          <div className={cn('p-3 rounded-xl shrink-0', config.bg, config.color)}>
+          <div className={cn('shrink-0 border border-current/15 p-3', config.bg, config.color)}>
             {getRiskIcon(riskLevel)}
           </div>
           <div className="flex-1">
@@ -167,7 +164,7 @@ export function RiskAssessmentCard(props: RiskAssessmentCardProps) {
         </div>
 
         {/* Right: mini metrics */}
-        <div className="grid grid-cols-3 gap-3 lg:w-1/2">
+        <div className="grid grid-cols-3 border-y border-slate-900/15 lg:w-1/2">
           <MiniMetric
             label="Deviation"
             value={`${deviationPercent > 0 ? '+' : ''}${deviationPercent.toFixed(3)}%`}

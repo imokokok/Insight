@@ -137,7 +137,7 @@ export function EmptyStateEnhanced({
 
   const variantClasses = {
     default: '',
-    card: 'bg-white border border-gray-200 rounded-xl shadow-sm',
+    card: 'border-y border-slate-900/15 bg-white/45',
     page: 'min-h-[60vh]',
   };
 
@@ -152,11 +152,11 @@ export function EmptyStateEnhanced({
     >
       <div
         className={cn(
-          'flex items-center justify-center rounded-full bg-gray-100 mb-4',
+          'mb-4 flex items-center justify-center border border-blue-200 bg-blue-50 text-blue-700',
           sizes.iconWrapper
         )}
       >
-        {icon || <Icon className={cn('text-gray-400', sizes.icon)} />}
+        {icon || <Icon className={cn('text-blue-600', sizes.icon)} />}
       </div>
       <h3 className={cn('font-semibold text-gray-900 mb-2', sizes.title)}>
         {title || defaultText.title}

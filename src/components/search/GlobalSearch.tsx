@@ -204,7 +204,7 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
             animate={{ opacity: 1 }}
             exit={prefersReducedMotion ? undefined : { opacity: 0 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.15 }}
-            className="fixed inset-0 bg-black/40 z-50 supports-[backdrop-filter]:backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-slate-950/40"
             onClick={onClose}
             aria-hidden="true"
           />
@@ -221,10 +221,10 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.95, y: -20 }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: 'easeOut' }}
-              className="w-full max-w-2xl mx-4 bg-white rounded-lg shadow-2xl overflow-hidden pointer-events-auto"
+              className="pointer-events-auto mx-4 w-full max-w-3xl overflow-hidden border border-slate-900/20 bg-[#f8f7f4]"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-3 border-b border-slate-900/15 px-5 py-5">
                 <Search className="w-5 h-5 text-gray-400 flex-shrink-0" aria-hidden="true" />
                 <input
                   ref={inputRef}
@@ -240,7 +240,7 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
                   value={query}
                   onChange={handleQueryChange}
                   placeholder="Search oracles, pairs, blockchains..."
-                  className="flex-1 text-lg text-gray-900 placeholder-gray-400 bg-transparent border-none outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+                  className="flex-1 border-none bg-transparent text-lg text-gray-900 placeholder-gray-400 outline-none focus:ring-0"
                   autoComplete="off"
                   autoCorrect="off"
                   autoCapitalize="off"
@@ -250,13 +250,13 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
                   <button
                     onClick={handleClear}
                     aria-label="Clear search"
-                    className="p-1 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    className="border border-transparent p-1 transition-colors hover:border-gray-300 hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                   >
                     <X className="w-4 h-4 text-gray-400" aria-hidden="true" />
                   </button>
                 )}
                 <div className="hidden md:flex items-center gap-1 text-xs text-gray-400">
-                  <kbd className="px-2 py-1 bg-gray-100 rounded-md font-mono">ESC</kbd>
+                  <kbd className="border border-slate-300 bg-white px-2 py-1 font-mono">ESC</kbd>
                 </div>
               </div>
 
@@ -278,7 +278,7 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
 
                 {error && (
                   <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                    <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center border border-red-200 bg-red-50">
                       <Search className="w-8 h-8 text-red-400" aria-hidden="true" />
                     </div>
                     <h3 className="text-lg font-medium text-gray-900 mb-1">Search Error</h3>
@@ -287,7 +287,7 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
                     </p>
                     <button
                       onClick={retry}
-                      className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      className="border border-primary-700 bg-primary-700 px-4 py-2 text-white transition-colors hover:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                     >
                       Retry
                     </button>
@@ -312,7 +312,7 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
                 )}
               </div>
 
-              <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
+              <div className="flex items-center justify-between border-t border-slate-900/15 bg-white/55 px-5 py-3 font-mono text-xs text-gray-500">
                 <div className="hidden sm:flex items-center gap-4">
                   <div className="flex items-center gap-1">
                     <ArrowUp className="w-3 h-3" aria-hidden="true" />

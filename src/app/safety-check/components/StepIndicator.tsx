@@ -46,7 +46,7 @@ export function StepIndicator({ isCalculating, hasResult, hasError }: StepIndica
       : '0%';
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+    <div className="w-full border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm font-semibold text-slate-900">Calculation Process</span>
         <StatusBadge isCalculating={isCalculating} hasResult={hasResult} hasError={hasError} />

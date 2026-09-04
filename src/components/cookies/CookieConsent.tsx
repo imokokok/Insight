@@ -111,14 +111,14 @@ export function CookieConsent() {
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-desc"
       className={cn(
-        'fixed bottom-4 left-1/2 -translate-x-1/2 z-50',
-        'w-[calc(100vw-2rem)] max-w-md sm:max-w-lg',
-        'bg-white rounded-2xl shadow-2xl border border-gray-200'
+        'fixed bottom-4 left-1/2 z-50 -translate-x-1/2',
+        'w-[calc(100vw-2rem)] max-w-2xl',
+        'border border-slate-900/20 bg-[#f8f7f4]'
       )}
     >
       <div className="p-5">
         <div className="flex items-start gap-3 mb-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-100 text-primary-600 shrink-0">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-primary-200 bg-primary-50 text-primary-700">
             <svg
               className="w-5 h-5"
               viewBox="0 0 24 24"
@@ -151,13 +151,13 @@ export function CookieConsent() {
         </div>
 
         {showPrefs && (
-          <div className="mb-4 space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <div className="mb-4 space-y-3 border-y border-slate-900/15 bg-white/55 p-3">
             <label className="flex items-start gap-3 cursor-not-allowed">
               <input
                 type="checkbox"
                 checked
                 disabled
-                className="mt-0.5 h-4 w-4 text-primary-600 rounded border-gray-300"
+                className="mt-0.5 h-4 w-4 border-gray-300 text-primary-600"
               />
               <div className="flex-1">
                 <div className="text-sm font-medium text-gray-900">Essential (Required)</div>
@@ -172,7 +172,7 @@ export function CookieConsent() {
                 type="checkbox"
                 checked={prefs.analytics}
                 onChange={(e) => setPrefs((p) => ({ ...p, analytics: e.target.checked }))}
-                className="mt-0.5 h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                className="mt-0.5 h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
               />
               <div className="flex-1">
                 <div className="text-sm font-medium text-gray-900">Analytics & Performance</div>
@@ -187,7 +187,7 @@ export function CookieConsent() {
                 type="checkbox"
                 checked={prefs.functional}
                 onChange={(e) => setPrefs((p) => ({ ...p, functional: e.target.checked }))}
-                className="mt-0.5 h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                className="mt-0.5 h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
               />
               <div className="flex-1">
                 <div className="text-sm font-medium text-gray-900">Functional</div>

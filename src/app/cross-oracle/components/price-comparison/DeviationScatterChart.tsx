@@ -78,7 +78,7 @@ function DeviationScatterChartComponent({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-gray-900">Deviation Analysis</h4>
         <div className="flex items-center gap-3 text-xs">
@@ -143,7 +143,7 @@ function DeviationScatterChartComponent({
                 if (active && payload && payload.length) {
                   const data = payload[0].payload as ScatterDataPoint;
                   return (
-                    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+                    <div className="border border-slate-300 bg-white p-3 shadow-[0_16px_40px_rgba(15,23,42,0.12)]">
                       <p className="font-medium text-gray-900">{data.name}</p>
                       <p className="text-sm text-gray-600">Price: {formatPrice(data.x)}</p>
                       <p className="text-sm text-gray-600">

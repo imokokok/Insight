@@ -151,7 +151,7 @@ export function NetworkHealthInsight({ report }: { report: DailyReportData }) {
 export function ProtocolLiquidationRiskPanel({ risks }: { risks: ProtocolLiquidationRisk[] }) {
   if (risks.length === 0) {
     return (
-      <div className="flex items-start gap-3 text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-4">
+      <div className="flex items-start gap-3 border-l-2 border-emerald-500 bg-emerald-50 p-4 text-emerald-800">
         <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium">No liquidation stress-test data</p>
@@ -239,7 +239,7 @@ function ProtocolLiquidationRiskCard({ risk }: { risk: ProtocolLiquidationRisk }
           : 'text-emerald-600';
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="border-y border-slate-900/15 bg-white/55 p-4">
       <div className="flex items-start justify-between gap-4 mb-3">
         <div>
           <div className="flex items-center gap-2">
@@ -293,7 +293,11 @@ function ScenarioStatusBadge({ status }: { status: ProtocolLiquidationScenario['
 
   return (
     <span
-      className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full', config.bg, config.text)}
+      className={cn(
+        'border-l-2 border-current px-2 py-0.5 text-[10px] font-semibold',
+        config.bg,
+        config.text
+      )}
     >
       {config.label}
     </span>
@@ -315,8 +319,8 @@ function ScenarioTable({
   return (
     <div
       className={cn(
-        'rounded-lg p-3',
-        isPrimary ? 'bg-primary-50/50 border border-primary-100' : 'bg-gray-50'
+        'border-y p-3',
+        isPrimary ? 'border-primary-200 bg-primary-50/50' : 'border-slate-200 bg-gray-50'
       )}
     >
       <div className="flex items-center gap-2 mb-2">
@@ -326,7 +330,7 @@ function ScenarioTable({
           {title}
         </h4>
         {isPrimary && (
-          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700">
+          <span className="border-l-2 border-blue-600 bg-primary-100 px-1.5 py-0.5 text-[10px] font-semibold text-primary-700">
             Primary
           </span>
         )}

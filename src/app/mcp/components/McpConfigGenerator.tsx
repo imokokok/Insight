@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 import { Check, Copy } from 'lucide-react';
 
-import { getAppUrl } from '@/lib/utils/appUrl';
+import { useAppUrl } from '@/hooks/useAppUrl';
 
 interface McpConfigGeneratorProps {
   /** Default API key to embed in the generated config. */
@@ -17,7 +17,7 @@ export function McpConfigGenerator({ defaultApiKey }: McpConfigGeneratorProps) {
   const [apiKey, setApiKey] = useState(defaultApiKey ?? '');
   const [copied, setCopied] = useState(false);
 
-  const baseUrl = getAppUrl();
+  const baseUrl = useAppUrl();
 
   const cursorConfig = useMemo(() => {
     const server: Record<string, unknown> = {
@@ -81,7 +81,7 @@ export function McpConfigGenerator({ defaultApiKey }: McpConfigGeneratorProps) {
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           placeholder="ins_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+          className="w-full border border-slate-300 px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"
         />
         <p className="mt-1.5 text-xs text-slate-500">
           Leave empty to generate a local stdio config; paste a key to generate a remote HTTP
@@ -123,7 +123,7 @@ interface ConfigCardProps {
 
 function ConfigCard({ title, config, copied, onCopy }: ConfigCardProps) {
   return (
-    <div className="rounded-xl overflow-hidden bg-slate-900 border border-slate-800">
+    <div className="overflow-hidden border border-slate-800 bg-slate-900">
       <div className="flex items-center justify-between px-4 py-2.5 bg-slate-950 border-b border-slate-800">
         <span className="text-xs font-medium text-slate-400">{title}</span>
         <button

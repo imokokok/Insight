@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 export function StatusBadge({ metrics }: { metrics: DailyReportData['metrics'] }) {
   if (metrics.criticalEvents > 0) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 text-red-700 border border-red-100 text-[11px] font-medium">
+      <span className="inline-flex items-center gap-1.5 border-l-2 border-red-500 bg-red-50 px-2.5 py-1 text-[11px] font-medium text-red-700">
         <AlertTriangle className="w-3 h-3" />
         {metrics.criticalEvents} critical events
       </span>
@@ -18,14 +18,14 @@ export function StatusBadge({ metrics }: { metrics: DailyReportData['metrics'] }
   }
   if (metrics.highEvents > 0) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-orange-50 text-orange-700 border border-orange-100 text-[11px] font-medium">
+      <span className="inline-flex items-center gap-1.5 border-l-2 border-orange-500 bg-orange-50 px-2.5 py-1 text-[11px] font-medium text-orange-700">
         <AlertTriangle className="w-3 h-3" />
         {metrics.highEvents} high risk events
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100 text-[11px] font-medium">
+    <span className="inline-flex items-center gap-1.5 border-l-2 border-emerald-500 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
       <CheckCircle2 className="w-3 h-3" />
       Stable
     </span>

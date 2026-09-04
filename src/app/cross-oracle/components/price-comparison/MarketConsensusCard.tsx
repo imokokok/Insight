@@ -85,7 +85,7 @@ function MarketConsensusCardComponent({
   const activeMethod = currentMethod ?? consensusResult?.method ?? 'median';
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="group relative flex items-center gap-2 mb-1">
@@ -100,7 +100,7 @@ function MarketConsensusCardComponent({
               </span>
             )}
             <div
-              className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap border border-slate-700 bg-gray-900 px-3 py-2 text-xs text-white opacity-0 shadow-[0_16px_40px_rgba(15,23,42,0.18)] transition-opacity duration-200 group-hover:opacity-100"
               role="tooltip"
             >
               Aggregated consensus price from all oracle quotes using{' '}
@@ -123,8 +123,10 @@ function MarketConsensusCardComponent({
         <div className="flex flex-col items-end gap-2">
           {changePercent !== null && (
             <div
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg ${
-                changePercent >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+              className={`flex items-center gap-1 border-l-2 px-3 py-1.5 ${
+                changePercent >= 0
+                  ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                  : 'border-red-500 bg-red-50 text-red-700'
               }`}
             >
               {changePercent >= 0 ? (
@@ -140,7 +142,7 @@ function MarketConsensusCardComponent({
             <select
               value={activeMethod}
               onChange={(e) => onMethodChange(e.target.value as ConsensusMethod)}
-              className="text-[10px] border border-gray-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-600"
+              className="border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               {ALL_METHODS.map((method) => (
                 <option key={method} value={method}>
@@ -203,7 +205,7 @@ function MarketConsensusCardComponent({
               ).toFixed(2) + '%'
             : 'N/A'}
           <div
-            className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap border border-slate-700 bg-gray-900 px-3 py-2 text-xs text-white opacity-0 shadow-[0_16px_40px_rgba(15,23,42,0.18)] transition-opacity duration-200 group-hover:opacity-100"
             role="tooltip"
           >
             Price spread between oracle quotes, lower means higher consistency
@@ -244,8 +246,8 @@ function MarketConsensusCardComponent({
                 return (
                   <div
                     key={method}
-                    className={`flex items-center justify-between px-2 py-1.5 rounded text-xs ${
-                      isActive ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'
+                    className={`flex items-center justify-between border-b border-slate-900/10 px-2 py-1.5 text-xs ${
+                      isActive ? 'border-l-2 border-l-blue-600 bg-blue-50' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -255,7 +257,7 @@ function MarketConsensusCardComponent({
                         {getConsensusMethodLabel(method)}
                       </span>
                       {isRecommended && (
-                        <span className="px-1 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[9px] font-medium">
+                        <span className="border-l-2 border-emerald-500 bg-emerald-50 px-1 py-0.5 text-[9px] font-medium text-emerald-700">
                           Default
                         </span>
                       )}

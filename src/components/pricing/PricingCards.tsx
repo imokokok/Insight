@@ -102,11 +102,11 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
   return (
     <div>
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+        <div className="mb-4 border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-700">
           {error}
         </div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-3">
         {planOrder.map((planId) => {
           const plan = PLANS[planId];
           const isTeam = planId === 'team';
@@ -117,16 +117,16 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
           return (
             <div
               key={planId}
-              className={`relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm transition-all hover:shadow-md ${
+              className={`relative flex flex-col border-slate-900/15 bg-white/55 p-6 transition-colors hover:bg-white md:border-r md:last:border-r-0 ${
                 isTeam
-                  ? 'border-blue-200 ring-1 ring-blue-100 md:-mt-2 md:mb-2'
-                  : 'border-slate-100'
+                  ? 'border-l-2 border-l-blue-600 md:border-l-0 md:border-t-2 md:border-t-blue-600'
+                  : 'border-l-0 border-t-0'
               }`}
             >
               {isTeam && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                    Most Popular
+                <div className="absolute right-5 top-0">
+                  <span className="inline-flex items-center bg-blue-600 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white">
+                    Recommended
                   </span>
                 </div>
               )}
@@ -135,7 +135,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
                   {isEnterprise && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-wider">
+                    <span className="inline-flex items-center border-l-2 border-amber-500 bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
                       Contact sales
                     </span>
                   )}
@@ -180,7 +180,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
               {isEnterprise ? (
                 <a
                   href="mailto:sales@oracleinsight.xyz?subject=Enterprise%20plan"
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
+                  className="inline-flex w-full items-center justify-center gap-2 border border-slate-900/20 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700"
                 >
                   Contact sales
                 </a>
@@ -189,10 +189,10 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                   type="button"
                   onClick={() => handleSubscribe(planId as 'developer' | 'team')}
                   disabled={isLoading}
-                  className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  className={`inline-flex w-full items-center justify-center gap-2 border px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                     isTeam
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-900/10'
-                      : 'bg-slate-900 hover:bg-slate-800 text-white'
+                      ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700'
+                      : 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800'
                   }`}
                 >
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -205,9 +205,9 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
       </div>
 
       {/* Per-call metering + credit packs */}
-      <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="mt-10 grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-2">
         {/* Metering classes */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="border-b border-slate-900/15 bg-white/55 p-6 md:border-b-0 md:border-r">
           <div className="flex items-center gap-2 mb-4">
             <Coins className="w-5 h-5 text-emerald-600" />
             <h3 className="text-base font-bold text-slate-900">Per-call credit pricing</h3>
@@ -216,14 +216,14 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
             Every paying user gets all endpoints and MCP tools. Each call costs credits by metering
             class — subscribe for a monthly allowance, then top up when your agents burn through it.
           </p>
-          <div className="space-y-2">
+          <div className="border-y border-slate-900/15">
             {METERING_ROWS.map((row) => (
               <div
                 key={row.cls}
-                className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3"
+                className="flex items-center justify-between gap-3 border-b border-slate-900/10 px-4 py-3 last:border-b-0"
               >
                 <div className="flex items-center gap-3">
-                  <span className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center">
+                  <span className="flex h-9 w-9 items-center justify-center border border-emerald-200 bg-emerald-50 font-mono text-sm font-bold text-emerald-700">
                     {row.cls}
                   </span>
                   <div>
@@ -240,7 +240,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
         </div>
 
         {/* Credit packs */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="bg-white/55 p-6">
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-5 h-5 text-blue-600" />
             <h3 className="text-base font-bold text-slate-900">Prepaid credit packs</h3>
@@ -249,7 +249,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
             No subscription required — add credits and spend per call. Good for high-frequency and
             bursty agent workloads.
           </p>
-          <div className="space-y-2">
+          <div className="border-y border-slate-900/15">
             {CREDIT_PACK_ORDER.map((pack) => {
               const config = CREDIT_PACKS[pack];
               const isLoading = loadingPack === pack;
@@ -259,7 +259,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                   type="button"
                   onClick={() => handleTopUp(pack)}
                   disabled={isLoading}
-                  className="w-full flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-3 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-left"
+                  className="flex w-full items-center justify-between gap-3 border-b border-slate-900/10 bg-white/35 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-blue-50/45 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <div>
                     <div className="text-sm font-semibold text-slate-900">

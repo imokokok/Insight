@@ -82,7 +82,7 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
         {isVisible && !disabled && (
           <div
             className={cn(
-              'absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-md shadow-lg whitespace-nowrap',
+              'absolute z-50 whitespace-nowrap border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white',
               'transition-opacity duration-200',
               placementStyles[placement],
               contentClassName

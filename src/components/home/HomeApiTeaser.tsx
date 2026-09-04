@@ -17,7 +17,7 @@ import {
   Zap,
 } from 'lucide-react';
 
-import { getAppUrl } from '@/lib/utils/appUrl';
+import { useAppUrl } from '@/hooks/useAppUrl';
 
 type Language = 'curl' | 'python' | 'javascript';
 
@@ -39,19 +39,19 @@ const SELLING_POINTS = [
   },
 ];
 
-const EXAMPLES: Record<Language, string> = {
+const getExamples = (baseUrl: string): Record<Language, string> => ({
   curl: `curl -H "X-API-Key: ins_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \\
-  "${getAppUrl()}/api/v1/prices?provider=chainlink&symbol=BTC%2FUSD&chain=ethereum"`,
+  "${baseUrl}/api/v1/prices?provider=chainlink&symbol=BTC%2FUSD&chain=ethereum"`,
   python: `import requests
 
-url = "${getAppUrl()}/api/v1/prices"
+url = "${baseUrl}/api/v1/prices"
 headers = {"X-API-Key": "ins_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
 params = {"provider": "chainlink", "symbol": "BTC/USD", "chain": "ethereum"}
 
 response = requests.get(url, headers=headers, params=params)
 data = response.json()
 print(data["price"])`,
-  javascript: `const url = new URL("${getAppUrl()}/api/v1/prices");
+  javascript: `const url = new URL("${baseUrl}/api/v1/prices");
 url.searchParams.set("provider", "chainlink");
 url.searchParams.set("symbol", "BTC/USD");
 url.searchParams.set("chain", "ethereum");
@@ -61,7 +61,7 @@ const res = await fetch(url, {
 });
 const data = await res.json();
 console.log(data.price);`,
-};
+});
 
 const LANGUAGE_LABELS: Record<Language, string> = {
   curl: 'cURL',
@@ -72,10 +72,11 @@ const LANGUAGE_LABELS: Record<Language, string> = {
 export function HomeApiTeaser() {
   const [language, setLanguage] = useState<Language>('curl');
   const [copied, setCopied] = useState(false);
+  const examples = getExamples(useAppUrl());
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(EXAMPLES[language]);
+      await navigator.clipboard.writeText(examples[language]);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -113,7 +114,7 @@ export function HomeApiTeaser() {
                 const Icon = point.icon;
                 return (
                   <div key={point.label} className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center flex-shrink-0">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center border border-slate-200 bg-slate-50">
                       <Icon className="w-4 h-4 text-slate-600" />
                     </div>
                     <div>
@@ -128,7 +129,7 @@ export function HomeApiTeaser() {
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href="/api"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-950 hover:bg-blue-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                className="inline-flex items-center gap-2 bg-slate-950 px-5 py-2.5 font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
               >
                 <Key className="w-4 h-4" />
                 Get API Key
@@ -164,10 +165,10 @@ export function HomeApiTeaser() {
                     key={lang}
                     type="button"
                     onClick={() => setLanguage(lang)}
-                    className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                    className={`border px-3 py-1 text-xs font-medium transition-colors ${
                       language === lang
-                        ? 'bg-slate-700 text-white'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                        ? 'border-slate-600 bg-slate-700 text-white'
+                        : 'border-transparent text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                     }`}
                   >
                     {LANGUAGE_LABELS[lang]}
@@ -177,7 +178,7 @@ export function HomeApiTeaser() {
               <button
                 type="button"
                 onClick={handleCopy}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-xs font-medium transition-colors"
+                className="inline-flex items-center gap-1.5 border border-transparent px-2.5 py-1.5 text-xs font-medium text-slate-400 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-slate-200"
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? 'Copied' : 'Copy'}
@@ -193,7 +194,7 @@ export function HomeApiTeaser() {
                   transition={{ duration: 0.2 }}
                   className="text-sm text-slate-200 font-mono leading-relaxed whitespace-pre"
                 >
-                  <code>{EXAMPLES[language]}</code>
+                  <code>{examples[language]}</code>
                 </motion.pre>
               </AnimatePresence>
             </div>

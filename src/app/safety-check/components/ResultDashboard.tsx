@@ -112,7 +112,7 @@ export function ResultDashboard({
       className="space-y-5"
     >
       {/* ── Live refresh bar (price / health-factor drift) ── */}
-      <div className="flex items-center justify-between bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-3">
+      <div className="flex items-center justify-between border-y border-slate-900/15 bg-white/55 px-5 py-3">
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <span
             className="relative flex h-2 w-2"
@@ -177,7 +177,7 @@ export function ResultDashboard({
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="lg:col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col justify-center"
+          className="flex flex-col justify-center border-y border-slate-900/15 bg-white/55 p-5 lg:col-span-3"
         >
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
             Critical Deviation
@@ -194,7 +194,7 @@ export function ResultDashboard({
             </span>
             <span
               className={cn(
-                'text-xs font-semibold px-2 py-1 rounded-full',
+                'border-l-2 border-current px-2 py-1 text-xs font-semibold',
                 isJoint
                   ? 'bg-blue-50 text-blue-700'
                   : isDown
@@ -267,7 +267,7 @@ export function ResultDashboard({
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col items-center justify-center"
+          className="flex flex-col items-center justify-center border-y border-slate-900/15 bg-white/55 p-5 lg:col-span-2"
         >
           <CircularGauge value={result.currentHealthFactor} size={140} strokeWidth={9} />
           <motion.div
@@ -305,14 +305,14 @@ export function ResultDashboard({
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className={cn('rounded-2xl border shadow-sm p-5', safetyConfig.bg, safetyConfig.border)}
+          className={cn('border-l-2 border-y border-r p-5', safetyConfig.bg, safetyConfig.border)}
         >
           <div className="flex items-center gap-2 mb-3">
             <SafetyIcon className={cn('w-5 h-5', safetyConfig.color)} />
             <h4 className="text-sm font-semibold text-slate-900">Safety Buffer</h4>
             <span
               className={cn(
-                'text-xs font-semibold px-2 py-0.5 rounded-full capitalize',
+                'border-l-2 border-current px-2 py-0.5 text-xs font-semibold capitalize',
                 safetyConfig.bg,
                 safetyConfig.color
               )}
@@ -361,7 +361,7 @@ export function ResultDashboard({
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="bg-white rounded-2xl border border-slate-100 shadow-sm"
+        className="border-y border-slate-900/15 bg-white/55"
       >
         {/* Detail stat cards as a compact header row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-slate-100 border-b border-slate-100">
@@ -439,7 +439,7 @@ export function ResultDashboard({
         {(result.collaterals.length > 1 || result.borrows.length > 1) && (
           <div className="space-y-4">
             {/* Collateral Details */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="border-y border-slate-900/15 bg-white/55 p-5">
               <h4 className="text-sm font-semibold text-slate-900 mb-3">Collateral Breakdown</h4>
               <div className="space-y-2">
                 {result.collaterals.map((c) => (
@@ -469,7 +469,7 @@ export function ResultDashboard({
             </div>
 
             {/* Borrow Details */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="border-y border-slate-900/15 bg-white/55 p-5">
               <h4 className="text-sm font-semibold text-slate-900 mb-3">Borrow Breakdown</h4>
               <div className="space-y-2">
                 {result.borrows.map((b) => (
@@ -559,7 +559,7 @@ function JointDeviationCard({
   return (
     <div
       className={cn(
-        'flex flex-col gap-2 p-3 rounded-2xl border',
+        'flex flex-col gap-2 border p-3',
         isWorst
           ? cn(levelConfig.bg, levelConfig.border, 'ring-1 ring-blue-200')
           : 'border-blue-100 bg-blue-50/40'
@@ -620,7 +620,7 @@ function OracleReliabilityWarnings({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.22 }}
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
+      className="border-y border-slate-900/15 bg-white/55 p-5"
     >
       <div className="flex items-center gap-2 mb-3">
         <AlertTriangle className="w-4 h-4 text-slate-500" />
@@ -639,7 +639,7 @@ function OracleReliabilityWarnings({
             <div
               key={warning.provider}
               className={cn(
-                'rounded-2xl border p-4',
+                'border-l-2 border-y border-r p-4',
                 levelConfig.bg,
                 warning.level === 'healthy'
                   ? 'border-emerald-200'
@@ -669,7 +669,7 @@ function OracleReliabilityWarnings({
                 <div className="flex items-center gap-1.5">
                   <span
                     className={cn(
-                      'text-xs font-semibold px-2 py-0.5 rounded-full',
+                      'border-l-2 border-current px-2 py-0.5 text-xs font-semibold',
                       levelConfig.bg,
                       levelConfig.color
                     )}
@@ -729,7 +729,7 @@ function UserRiskSummary({ result }: { result: PositionCriticalResult }) {
 
   if (result.currentHealthFactor < 1) {
     return (
-      <div className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-2xl p-4">
+      <div className="border-l-2 border-red-500 bg-red-50 p-4 text-sm text-red-700">
         <AlertTriangle className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
         Your position is currently eligible for liquidation. Please take action immediately.
       </div>
@@ -738,7 +738,7 @@ function UserRiskSummary({ result }: { result: PositionCriticalResult }) {
 
   if (!worstScenario) {
     return (
-      <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
+      <div className="border-l-2 border-emerald-500 bg-emerald-50 p-4 text-sm text-emerald-700">
         <ShieldCheck className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
         Your position is currently safe. Even if collateral prices drop 5%, there is still a
         comfortable buffer before liquidation.
@@ -748,7 +748,7 @@ function UserRiskSummary({ result }: { result: PositionCriticalResult }) {
 
   const isJoint = worstScenario.isJoint;
   return (
-    <div className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-2xl p-4">
+    <div className="border-l-2 border-amber-500 bg-amber-50 p-4 text-sm text-amber-700">
       <AlertTriangle className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
       Watch out: if <strong>{worstScenario.label}</strong>, your Health Factor would drop to{' '}
       <strong>{worstScenario.healthFactor.toFixed(2)}</strong>, leaving only{' '}
@@ -770,7 +770,11 @@ function ScenarioStatusBadge({ status }: { status: DeviationScenario['status'] }
 
   return (
     <span
-      className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full', config.bg, config.text)}
+      className={cn(
+        'border-l-2 border-current px-2 py-0.5 text-[10px] font-semibold',
+        config.bg,
+        config.text
+      )}
     >
       {config.label}
     </span>
@@ -788,7 +792,7 @@ function DeviationScenarioPanel({ scenarios }: { scenarios: DeviationScenario[] 
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15 }}
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
+      className="border-y border-slate-900/15 bg-white/55 p-5"
     >
       <div className="flex items-center gap-2 mb-4">
         <TrendingDown className="w-4 h-4 text-slate-500" />
@@ -837,7 +841,7 @@ function ScenarioGroup({
   return (
     <div
       className={cn(
-        'rounded-2xl p-3.5',
+        'border-l-2 p-3.5',
         isPrimary ? 'bg-primary-50/50 border border-primary-100' : 'bg-slate-50'
       )}
     >
@@ -848,7 +852,7 @@ function ScenarioGroup({
           {title}
         </h5>
         {isPrimary && (
-          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700">
+          <span className="border-l-2 border-primary-600 bg-primary-100 px-1.5 py-0.5 text-[10px] font-semibold text-primary-700">
             Primary
           </span>
         )}
@@ -866,7 +870,7 @@ function ScenarioGroup({
           <div
             key={s.label}
             className={cn(
-              'flex items-center justify-between p-2.5 rounded-2xl',
+              'flex items-center justify-between border-b border-slate-900/10 p-2.5 last:border-b-0',
               isPrimary ? 'bg-white border border-primary-100' : 'bg-white border border-slate-100'
             )}
           >
@@ -894,7 +898,7 @@ function ScenarioGroup({
 
 function ProtocolDisclaimer() {
   return (
-    <div className="text-xs text-slate-500 bg-slate-50 border border-slate-100 rounded-2xl p-3 flex items-start gap-2">
+    <div className="flex items-start gap-2 border-l-2 border-slate-300 bg-slate-50 p-3 text-xs text-slate-500">
       <Info className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
       <p>
         Risk parameters are sourced from public protocol documentation and represent commonly

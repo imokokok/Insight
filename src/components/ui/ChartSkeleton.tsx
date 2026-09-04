@@ -23,12 +23,12 @@ export function ChartSkeleton({
       {showToolbar && (
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-32 bg-gray-200 rounded-md" />
-            <div className="h-5 w-16 bg-gray-200 rounded-md" />
+            <div className="h-8 w-32 bg-gray-200" />
+            <div className="h-5 w-16 bg-gray-200" />
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-gray-200 rounded-md" />
-            <div className="h-8 w-8 bg-gray-200 rounded-md" />
+            <div className="h-8 w-8 bg-gray-200" />
+            <div className="h-8 w-8 bg-gray-200" />
           </div>
         </div>
       )}
@@ -82,7 +82,6 @@ export function ChartSkeleton({
                 height="60"
                 fill={chartColors.recharts.grid}
                 opacity="0.3"
-                rx="4"
               />
             </>
           )}
@@ -142,7 +141,6 @@ export function ChartSkeleton({
                   width="40"
                   height={100 - (i % 3) * 20}
                   fill={chartColors.recharts.grid}
-                  rx="4"
                 />
               ))}
             </>
@@ -160,48 +158,48 @@ interface HeroSkeletonProps {
 export function HeroSkeleton({ className = '' }: HeroSkeletonProps) {
   return (
     <section className={`relative min-h-screen flex flex-col overflow-hidden ${className}`}>
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100" />
+      <div className="absolute inset-0 bg-[#f8f7f4]" />
       <div className="relative z-10 flex-1 flex items-center px-6 lg:px-12 xl:px-20 py-12">
         <div className="w-full max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="skeleton-shimmer inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full mb-8">
-              <div className="w-8 h-4 bg-gray-200 rounded" />
+            <div className="skeleton-shimmer inline-flex items-center gap-2 border-l-2 border-emerald-500 bg-emerald-50 px-3 py-1.5 mb-8">
+              <div className="w-8 h-4 bg-gray-200" />
             </div>
 
             <div className="skeleton-shimmer mb-6">
-              <div className="h-12 sm:h-14 md:h-16 lg:h-20 w-3/4 mx-auto bg-gray-200 rounded-lg mb-4" />
-              <div className="h-12 sm:h-14 md:h-16 lg:h-20 w-2/3 mx-auto bg-gray-200 rounded-lg" />
+              <div className="h-12 sm:h-14 md:h-16 lg:h-20 w-3/4 mx-auto bg-gray-200 mb-4" />
+              <div className="h-12 sm:h-14 md:h-16 lg:h-20 w-2/3 mx-auto bg-gray-200" />
             </div>
 
-            <div className="skeleton-shimmer h-6 w-96 max-w-full mx-auto mb-10 bg-gray-200 rounded" />
+            <div className="skeleton-shimmer h-6 w-96 max-w-full mx-auto mb-10 bg-gray-200" />
 
             <div className="skeleton-shimmer max-w-2xl mx-auto mb-4">
-              <div className="h-14 bg-gray-200 rounded-xl" />
+              <div className="h-14 bg-gray-200" />
             </div>
 
             <div className="skeleton-shimmer flex items-center justify-center gap-2 flex-wrap mb-10">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="px-3 py-1 h-7 w-16 bg-gray-200 rounded-full" />
+                <div key={i} className="px-3 py-1 h-7 w-16 bg-gray-200" />
               ))}
             </div>
 
             <div className="skeleton-shimmer flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12">
-              <div className="h-12 w-40 bg-gray-200 rounded-lg" />
-              <div className="h-12 w-40 bg-gray-200 rounded-lg" />
+              <div className="h-12 w-40 bg-gray-200" />
+              <div className="h-12 w-40 bg-gray-200" />
             </div>
 
-            <div className="skeleton-shimmer grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+            <div className="skeleton-shimmer grid grid-cols-1 border-l border-t border-gray-200 md:grid-cols-3 max-w-3xl mx-auto">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white border border-gray-200 rounded-lg p-5">
+                <div key={i} className="bg-white border-b border-r border-gray-200 p-5">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 bg-gray-100 h-10 w-10 rounded-lg" />
-                      <div className="h-4 w-20 bg-gray-200 rounded" />
+                      <div className="p-2.5 bg-gray-100 h-10 w-10" />
+                      <div className="h-4 w-20 bg-gray-200" />
                     </div>
-                    <div className="h-6 w-16 bg-gray-200 rounded-md" />
+                    <div className="h-6 w-16 bg-gray-200" />
                   </div>
-                  <div className="h-9 w-24 bg-gray-200 rounded-md mb-3" />
-                  <div className="h-12 w-full bg-gray-200 rounded-md" />
+                  <div className="h-9 w-24 bg-gray-200 mb-3" />
+                  <div className="h-12 w-full bg-gray-200" />
                 </div>
               ))}
             </div>

@@ -51,8 +51,8 @@ function getHeatmapColor(
   const normal = [209, 250, 229]; // emerald-100
   const warning = [254, 243, 199]; // amber-100
   const critical = [254, 226, 226]; // red-100
-  const severe = [243, 232, 255]; // purple-100
-  const extreme = [237, 233, 254]; // purple-200
+  const severe = [254, 202, 202]; // red-200
+  const extreme = [252, 165, 165]; // red-300
 
   if (abs <= thresholds.warning) {
     const factor = thresholds.warning === 0 ? 0 : abs / thresholds.warning;
@@ -67,7 +67,7 @@ function getHeatmapColor(
     return { bg: interpolateColor(critical, severe, factor), text: '#991b1b' };
   }
   const factor = Math.min(1, (abs - thresholds.severe) / thresholds.severe);
-  return { bg: interpolateColor(severe, extreme, factor), text: '#6b21a8' };
+  return { bg: interpolateColor(severe, extreme, factor), text: '#7f1d1d' };
 }
 
 function getRiskLevelFromDeviation(
@@ -123,7 +123,7 @@ export function RiskHeatmap({
 
   return (
     <div className={cn('space-y-3', className)}>
-      <div className="overflow-auto rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-auto border-y border-slate-200 bg-white">
         <div
           className="grid gap-px bg-slate-200 min-w-max"
           style={{
@@ -192,8 +192,6 @@ export function RiskHeatmap({
                     placement="top"
                   >
                     <motion.button
-                      whileHover={cell ? { scale: 1.05 } : undefined}
-                      transition={{ duration: 0.15 }}
                       onClick={() => cell && onCellClick?.(cell)}
                       disabled={!cell}
                       className={cn(

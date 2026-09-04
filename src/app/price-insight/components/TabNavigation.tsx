@@ -53,7 +53,7 @@ export function TabNavigation({
 }: TabNavigationProps) {
   return (
     <div
-      className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-100"
+      className="inline-flex border border-slate-900/15 bg-white"
       role="tablist"
       aria-label="Analysis tabs"
     >
@@ -67,10 +67,10 @@ export function TabNavigation({
             role="tab"
             aria-selected={isActive}
             title={tab.description}
-            className={`flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 ${
+            className={`flex items-center gap-1.5 border-r border-slate-900/15 px-3.5 py-2 text-sm font-semibold transition-colors last:border-r-0 ${
               isActive
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                ? 'bg-blue-600 text-white'
+                : 'text-slate-500 hover:bg-blue-50 hover:text-blue-700'
             }`}
           >
             <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />

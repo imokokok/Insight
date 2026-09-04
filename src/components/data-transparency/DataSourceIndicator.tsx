@@ -154,7 +154,7 @@ function FailureModeBadge({ failureMode }: { failureMode: FailureMode }) {
 
   return (
     <div
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${style.bg} ${style.border}`}
+      className={`inline-flex items-center gap-1 border-l-2 px-2 py-0.5 ${style.bg} ${style.border}`}
     >
       <AlertTriangle size={12} className={style.text} />
       <span className={`text-xs font-medium ${style.text}`}>
@@ -174,9 +174,9 @@ function SignalVectorBars({ signalVector }: { signalVector: OracleSignalVector }
         return (
           <div key={key} className="flex items-center gap-2 text-xs">
             <span className="text-gray-500 w-24 shrink-0">{SIGNAL_LABELS[key]}</span>
-            <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-1 flex-1 overflow-hidden bg-gray-200">
               <div
-                className={`h-full rounded-full ${
+                className={`h-full ${
                   percent >= 80
                     ? 'bg-success-500'
                     : percent >= 60
@@ -252,9 +252,9 @@ function ConfidenceBar({
           )}
         </span>
       </div>
-      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+      <div className="h-1.5 overflow-hidden bg-gray-200">
         <div
-          className={`h-full rounded-full ${
+          className={`h-full ${
             confidencePercent >= 90
               ? 'bg-success-500'
               : confidencePercent >= 70
@@ -346,7 +346,7 @@ export function DataSourceIndicator({
   if (variant === 'detailed') {
     return (
       <div
-        className={`${config.bgColor} ${config.borderColor} border rounded-lg ${sizes.padding} ${className}`}
+        className={`${config.bgColor} ${config.borderColor} border-l-2 ${sizes.padding} ${className}`}
       >
         <div className={`flex items-start ${sizes.gap}`}>
           <div className="flex-shrink-0">
@@ -359,13 +359,13 @@ export function DataSourceIndicator({
                 {providerName}
               </span>
               <div
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${config.bgColor} ${config.borderColor} border`}
+                className={`inline-flex items-center gap-1 border-l-2 px-2 py-0.5 ${config.bgColor} ${config.borderColor}`}
               >
                 <CredibilityIcon size={12} className={config.color} />
                 <span className={`${config.color} text-xs font-medium`}>{config.label}</span>
               </div>
               {source.metadataFallback && (
-                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
+                <div className="inline-flex items-center gap-1 border-l-2 border-amber-300 bg-amber-50 px-2 py-0.5">
                   <AlertTriangle size={12} className="text-amber-600" />
                   <span className="text-amber-600 text-xs font-medium">Fallback</span>
                 </div>
@@ -426,13 +426,13 @@ export function DataSourceIndicator({
       {showChain && source.chain && <span className="text-xs text-gray-500">• {source.chain}</span>}
 
       <div
-        className={`relative inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${config.bgColor} ${config.borderColor} border`}
+        className={`relative inline-flex items-center gap-1 border-l-2 px-2 py-0.5 ${config.bgColor} ${config.borderColor}`}
       >
         <CredibilityIcon size={12} className={config.color} />
         <span className={`${config.color} text-xs font-medium`}>{config.label}</span>
 
         {showTooltip && (
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap z-50">
+          <div className="absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap border border-slate-700 bg-gray-900 px-3 py-2 text-xs text-white shadow-[0_16px_40px_rgba(15,23,42,0.18)]">
             {showConfidence && source.confidence !== undefined && source.confidence !== null && (
               <div className="font-medium">
                 Confidence: {confidencePercent}%

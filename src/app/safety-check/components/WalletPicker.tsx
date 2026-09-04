@@ -51,14 +51,14 @@ export function WalletPicker({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
           <motion.div
-            className="w-full max-w-sm bg-white rounded-2xl border border-slate-100 shadow-xl p-5"
+            className="w-full max-w-sm border border-slate-900/20 bg-[#f8f7f4] p-5"
             initial={{ opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -95,7 +95,7 @@ export function WalletPicker({
                   transition={{ duration: 0.15 }}
                   className="flex flex-col items-center text-center"
                 >
-                  <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <div className="border-y border-slate-900/15 bg-white p-3">
                     {walletConnectUri ? (
                       <QRCodeSVG value={walletConnectUri} size={200} level="M" />
                     ) : (
@@ -162,7 +162,7 @@ export function WalletPicker({
                           disabled={isConnecting || isWalletConnecting}
                           onClick={() => onSelect(w.rdns)}
                           className={cn(
-                            'w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors',
+                            'flex w-full items-center gap-3 border-b border-slate-900/10 px-3 py-2.5 text-left transition-colors last:border-b-0',
                             'border-slate-200 hover:border-primary-300 hover:bg-primary-50/50',
                             'disabled:opacity-60 disabled:cursor-not-allowed'
                           )}
@@ -193,7 +193,7 @@ export function WalletPicker({
                       disabled={isConnecting || isWalletConnecting}
                       onClick={onWalletConnect}
                       className={cn(
-                        'w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors',
+                        'flex w-full items-center gap-3 border-b border-slate-900/10 px-3 py-2.5 text-left transition-colors last:border-b-0',
                         'border-slate-200 hover:border-primary-300 hover:bg-primary-50/50',
                         'disabled:opacity-60 disabled:cursor-not-allowed'
                       )}

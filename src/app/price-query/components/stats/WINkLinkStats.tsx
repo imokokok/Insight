@@ -48,7 +48,7 @@ export function WINkLinkStats({ data }: WINkLinkStatsProps) {
       />
       <StatCard
         icon={Shield}
-        iconColor="text-rose-500"
+        iconColor="text-blue-600"
         title="Node Uptime"
         value={data.nodeUptime != null ? `${data.nodeUptime.toFixed(2)}%` : '-'}
         description="Node uptime percentage"

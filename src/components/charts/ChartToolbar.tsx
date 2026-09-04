@@ -11,7 +11,6 @@ import {
   Settings,
 } from 'lucide-react';
 
-import { baseColors } from '@/lib/config/colors';
 import { cn } from '@/lib/utils';
 
 type TimeRange = '1H' | '24H' | '7D' | '30D' | '1Y' | 'ALL';
@@ -74,27 +73,22 @@ export function ChartToolbar({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center justify-between gap-3',
-        'p-3 bg-white border border-gray-200 rounded-lg',
+        'flex flex-wrap items-center justify-between gap-3 border-y border-slate-900/15 bg-white/45 px-3 py-2',
         className
       )}
     >
       {/* Time Range Selector - Desktop */}
-      <div className="hidden sm:flex items-center gap-1 p-1 bg-gray-100 rounded-md">
+      <div className="hidden items-center border border-slate-900/15 sm:flex">
         {timeRanges.map((range) => (
           <button
             key={range}
             onClick={() => handleRangeChange(range)}
             className={cn(
-              'px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
+              'border-r border-slate-900/15 px-3 py-1.5 font-mono text-xs font-medium transition-colors last:border-r-0',
               selectedRange === range
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'bg-blue-600 text-white'
+                : 'bg-transparent text-slate-600 hover:bg-white hover:text-slate-950'
             )}
-            style={{
-              backgroundColor: selectedRange === range ? baseColors.gray[50] : undefined,
-              color: selectedRange === range ? baseColors.gray[900] : undefined,
-            }}
           >
             {timeRangeLabels[range]}
           </button>
@@ -105,13 +99,13 @@ export function ChartToolbar({
       <div className="sm:hidden relative">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-all duration-200"
+          className="flex items-center gap-2 border border-slate-900/15 bg-white px-3 py-1.5 font-mono text-xs font-medium text-slate-700 transition-colors hover:border-blue-600"
         >
           {timeRangeLabels[selectedRange as TimeRange] || selectedRange}
           <ChevronDown className="w-3.5 h-3.5" />
         </button>
         {isMobileMenuOpen && (
-          <div className="absolute top-full left-0 mt-1 z-50 min-w-[80px] bg-white border border-gray-200 rounded-md shadow-lg">
+          <div className="absolute left-0 top-full z-50 mt-1 min-w-[96px] border border-slate-900/20 bg-[#f8f7f4]">
             {timeRanges.map((range) => (
               <button
                 key={range}
@@ -120,10 +114,10 @@ export function ChartToolbar({
                   setIsMobileMenuOpen(false);
                 }}
                 className={cn(
-                  'w-full px-3 py-2 text-xs font-medium text-left transition-all duration-200 first:rounded-t-md last:rounded-b-md',
+                  'w-full border-b border-slate-900/10 px-3 py-2 text-left font-mono text-xs font-medium transition-colors last:border-b-0',
                   selectedRange === range
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-700 hover:bg-white'
                 )}
               >
                 {timeRangeLabels[range]}
@@ -137,7 +131,7 @@ export function ChartToolbar({
       <div className="flex items-center gap-2">
         {/* Chart Type Switcher */}
         {chartTypes && chartTypes.length > 0 && onTypeChange && (
-          <div className="hidden sm:flex items-center gap-1 p-1 bg-gray-100 rounded-md">
+          <div className="hidden items-center border border-slate-900/15 sm:flex">
             {chartTypes.map((type) => {
               const config = chartTypeConfig[type];
               const Icon = config.icon;
@@ -147,12 +141,12 @@ export function ChartToolbar({
                   key={type}
                   onClick={() => !isDisabled && handleTypeChange(type)}
                   className={cn(
-                    'flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
+                    'flex items-center gap-1.5 border-r border-slate-900/15 px-2.5 py-1.5 text-xs font-medium transition-colors last:border-r-0',
                     isDisabled
                       ? 'opacity-50 cursor-not-allowed'
                       : selectedType === type
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-600 hover:bg-white hover:text-slate-950'
                   )}
                   title={
                     isDisabled ? `${config.label} (Unavailable with multiple series)` : config.label
@@ -168,7 +162,7 @@ export function ChartToolbar({
 
         {/* Chart Type Switcher - Mobile */}
         {chartTypes && chartTypes.length > 0 && onTypeChange && (
-          <div className="sm:hidden flex items-center gap-1 p-1 bg-gray-100 rounded-md">
+          <div className="flex items-center border border-slate-900/15 sm:hidden">
             {chartTypes.map((type) => {
               const config = chartTypeConfig[type];
               const Icon = config.icon;
@@ -178,12 +172,12 @@ export function ChartToolbar({
                   key={type}
                   onClick={() => !isDisabled && handleTypeChange(type)}
                   className={cn(
-                    'flex items-center justify-center w-7 h-7 rounded-md transition-all duration-200',
+                    'flex h-8 w-8 items-center justify-center border-r border-slate-900/15 transition-colors last:border-r-0',
                     isDisabled
                       ? 'opacity-50 cursor-not-allowed'
                       : selectedType === type
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-600 hover:bg-white hover:text-slate-950'
                   )}
                   title={
                     isDisabled ? `${config.label} (Unavailable with multiple series)` : config.label
@@ -201,8 +195,7 @@ export function ChartToolbar({
           <button
             onClick={onExport}
             className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
-              'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              'flex items-center gap-1.5 border border-slate-900/15 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700'
             )}
           >
             <Download className="w-3.5 h-3.5" />
@@ -212,7 +205,7 @@ export function ChartToolbar({
 
         {/* Settings Button - Mobile Only */}
         <button
-          className="sm:hidden flex items-center justify-center w-7 h-7 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200"
+          className="flex h-8 w-8 items-center justify-center border border-slate-900/15 bg-white text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700 sm:hidden"
           title="Settings"
         >
           <Settings className="w-3.5 h-3.5" />

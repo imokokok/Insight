@@ -162,13 +162,12 @@ export function DropdownSelect<T = string>({
         disabled={disabled}
         className={`
           w-full flex items-center justify-between gap-2 px-3 py-2
-          bg-white border border-gray-200 text-sm rounded-lg
-          hover:border-gray-300 hover:bg-gray-50/50
+          bg-white border border-gray-300 text-sm rounded-sm
+          hover:border-primary-400 hover:bg-primary-50/20
           focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500
-          transition-all duration-200 ease-out
-          active:scale-[0.98]
+          transition-colors duration-200 ease-out
           ${isOpen ? 'border-primary-500 ring-2 ring-primary-500/20' : ''}
-          ${disabled ? 'opacity-50 cursor-not-allowed active:scale-100' : ''}
+          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         `}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
@@ -183,7 +182,7 @@ export function DropdownSelect<T = string>({
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 mt-1.5 w-full min-w-[200px] bg-white rounded-xl shadow-xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-1 duration-200 overflow-hidden"
+          className="absolute left-0 top-full z-50 mt-1.5 w-full min-w-[200px] overflow-hidden border border-slate-900/15 bg-[#f8f7f4] animate-in fade-in slide-in-from-top-1 duration-200"
           role="listbox"
         >
           {searchable && (
@@ -197,7 +196,7 @@ export function DropdownSelect<T = string>({
                   onChange={(e) => handleSearchQueryChange(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={resolvedSearchPlaceholder}
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-200"
+                  className="w-full border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 />
               </div>
             </div>

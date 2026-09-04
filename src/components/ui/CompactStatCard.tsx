@@ -88,9 +88,8 @@ const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
         ref={ref}
         className={cn(
           'relative flex flex-col',
-          'p-4 bg-white rounded-lg border border-gray-200',
-          'transition-all duration-200',
-          'hover:border-gray-300 hover:shadow-sm',
+          'border-y border-slate-900/15 bg-white/55 p-4',
+          'transition-colors duration-200 hover:bg-white',
           className
         )}
       >
@@ -104,7 +103,7 @@ const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
 
             {rating && (
               <span
-                className="inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded"
+                className="inline-flex items-center border-l-2 border-current px-1.5 py-0.5 text-xs font-medium"
                 style={{ color: rating.color, backgroundColor: rating.bgColor }}
               >
                 {rating.label}
@@ -114,7 +113,7 @@ const CompactStatCard = forwardRef<HTMLDivElement, CompactStatCardProps>(
             {change && (
               <div
                 className={cn(
-                  'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium',
+                  'inline-flex items-center gap-0.5 border-l-2 border-current px-1.5 py-0.5 text-xs font-medium',
                   trendColors.bg,
                   trendColors.text
                 )}

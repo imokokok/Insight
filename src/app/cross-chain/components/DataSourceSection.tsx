@@ -140,10 +140,10 @@ export function DataSourceSection({
     });
 
     return (
-      <div className="mb-8 bg-white border border-gray-200 rounded-lg shadow-sm">
+      <div className="mb-8 border-y border-slate-900/15 bg-white/55">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary-50 rounded-lg">
+            <div className="border border-blue-200 bg-primary-50 p-2">
               <Database size={18} className="text-primary-600" />
             </div>
             <div>
@@ -187,7 +187,7 @@ export function DataSourceSection({
             />
             <span className="font-medium text-gray-900">{providerName}</span>
             <div
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${credConfig.bgColor} border border-current`}
+              className={`inline-flex items-center gap-1 border-l-2 border-current px-2 py-0.5 ${credConfig.bgColor}`}
             >
               <ShieldCheck size={12} className={credConfig.color} />
               <span className={`${credConfig.color} text-xs font-medium`}>{credConfig.label}</span>
@@ -202,7 +202,7 @@ export function DataSourceSection({
               return (
                 <div
                   key={point.chain}
-                  className="flex flex-col p-2 bg-gray-50 rounded-lg border border-gray-200"
+                  className="flex flex-col border-l border-slate-900/15 bg-gray-50 p-2"
                 >
                   <span className="text-xs font-medium text-gray-900 truncate">{chainName}</span>
                   <div className="flex items-center gap-1 mt-1">
@@ -255,7 +255,7 @@ export function DataSourceSection({
         isLoading={isLoading}
         error={error}
         title="Data Sources"
-        className="shadow-sm"
+        className="border-y border-slate-900/15"
         showUpdateTime
         initiallyExpanded={false}
         maxVisible={6}

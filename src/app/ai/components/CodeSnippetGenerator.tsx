@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 
 import { Check, Copy } from 'lucide-react';
 
-import { getAppUrl } from '@/lib/utils/appUrl';
+import { useAppUrl } from '@/hooks/useAppUrl';
 
 interface CodeSnippetGeneratorProps {
   /** Default API key to embed in the generated snippet. */
@@ -33,7 +33,7 @@ const CHAINS: { id: number; label: string }[] = [
 const ACTIONS = ['swap', 'borrow', 'lend', 'liquidate', 'repay'] as const;
 
 const INPUT_CLASS =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white';
+  'w-full border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-600';
 
 /**
  * REST code snippet generator for the pre-trade safety check.
@@ -53,7 +53,7 @@ export function CodeSnippetGenerator({ defaultApiKey }: CodeSnippetGeneratorProp
   const [language, setLanguage] = useState<Language>('curl');
   const [copied, setCopied] = useState(false);
 
-  const baseUrl = getAppUrl();
+  const baseUrl = useAppUrl();
   const keyPlaceholder = 'ins_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
   const keyValue = apiKey.trim() || keyPlaceholder;
 
@@ -216,7 +216,7 @@ export function CodeSnippetGenerator({ defaultApiKey }: CodeSnippetGeneratorProp
         />
       </Field>
 
-      <div className="rounded-xl overflow-hidden bg-slate-900 border border-slate-800">
+      <div className="overflow-hidden border border-slate-800 bg-slate-900">
         <div className="flex items-center justify-between px-3 py-2 bg-slate-950 border-b border-slate-800">
           <div className="flex items-center gap-1 overflow-x-auto">
             {LANGUAGES.map((lang) => (
