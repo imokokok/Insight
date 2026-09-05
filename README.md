@@ -363,4 +363,16 @@ When the Next.js app is running, the endpoint is also available at `/api/mcp` wi
 
 ## Data Pipeline
 
-Snapshot and reputation collection runs on a fixed cadence: **15-minute price snapshots** (dual-written to hourly + 15-min tables), **hourly reputation recalculation** (in-database `pg_cron`), and **daily report publication**. Supporting jobs — feed discovery, feed reactivation, protocol TVL / risk-params sync (DefiLlama + lending protocols), safety-outcome label backfill, ML retraining (every 3 days), and billing lifecycle — run as scheduled GitHub Actions workflows using the runners in `scripts/` (this escapes Vercel's serverless timeout; the equivalent `/api/cron/*` routes remain as manual-trigger fallbacks). Snapshot retention is 6 months.
+Supabase `pg_cron` is the reliable clock for the six product-critical jobs. It
+uses `pg_net` plus a repository-scoped token in Vault to dispatch dependency-free
+GitHub Actions runners; GitHub performs the network/compute-heavy work and writes
+results directly to Supabase, so Vercel spends no background Active CPU. Guarded
+native GitHub schedules remain as stale-ledger fallbacks. Supporting jobs — feed
+discovery, feed reactivation, protocol TVL / risk-params sync, ML retraining, and
+billing lifecycle — remain low-frequency GitHub schedules. The authenticated
+`/api/cron/*` routes are manual recovery paths. Fine-grained, hourly, and market
+reference snapshots are retained for 120 days, preserving the advertised 90-day
+history window and the eight-week ML lookback.
+
+Deployment and rollback instructions live in
+[`docs/operations/cron-dispatcher.md`](docs/operations/cron-dispatcher.md).

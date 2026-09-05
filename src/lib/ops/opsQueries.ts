@@ -478,6 +478,23 @@ export interface CronHealth {
   errored?: boolean;
 }
 
+export interface CronDispatchRun {
+  id: string;
+  workflowFile: string;
+  scheduledFor: string;
+  source: 'supabase_cron' | 'github_fallback' | 'manual';
+  status: 'dispatching' | 'running' | 'succeeded' | 'failed' | 'cancelled' | 'timed_out';
+  githubRunUrl: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface CronDispatchHistory {
+  runs: CronDispatchRun[];
+  /** True before migration 0045 is applied or when the ledger query fails. */
+  errored: boolean;
+}
+
 async function latestTimestamp(
   table: string,
   column: string
@@ -537,6 +554,36 @@ export async function getCronHealth(): Promise<CronHealth> {
   jobs.push(mk('Pre-trade checks (live)', 'pre_trade_checks', 'created_at', checks.value, 24 * 60));
 
   return { jobs, errored };
+}
+
+/** End-to-end scheduler history. Output freshness above remains the final
+ * product-health signal; this ledger identifies whether a failure occurred in
+ * Supabase dispatch, GitHub queueing, or the runner itself. */
+export async function getCronDispatchHistory(limit = 30): Promise<CronDispatchHistory> {
+  const supabase = createServiceRoleClient();
+  const { data, error } = await supabase
+    .from('cron_dispatch_runs')
+    .select(
+      'id, workflow_file, scheduled_for, source, status, github_run_url, started_at, completed_at'
+    )
+    .order('created_at', { ascending: false })
+    .limit(Math.max(1, Math.min(limit, 100)));
+
+  if (error || !data) return { runs: [], errored: true };
+
+  return {
+    runs: data.map((row) => ({
+      id: String(row.id),
+      workflowFile: String(row.workflow_file),
+      scheduledFor: String(row.scheduled_for),
+      source: row.source as CronDispatchRun['source'],
+      status: row.status as CronDispatchRun['status'],
+      githubRunUrl: row.github_run_url ? String(row.github_run_url) : null,
+      startedAt: row.started_at ? String(row.started_at) : null,
+      completedAt: row.completed_at ? String(row.completed_at) : null,
+    })),
+    errored: false,
+  };
 }
 
 // ---------------------------------------------------------------------------

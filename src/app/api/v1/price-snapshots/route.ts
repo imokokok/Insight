@@ -19,8 +19,8 @@ import { get7dAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
  * Backs the "Historical snapshots (15-min grain)" feature advertised on
  * the pricing page. Reads from the `price_snapshots` table populated by the
  * GitHub Actions `snapshot-collect` workflow (every 15 min), which is 4x denser
- * than `hourly_price_snapshots`. Retention is 6 months (pg_cron
- * `price-snapshots-cleanup`), so the date range is clamped to that window.
+ * than `hourly_price_snapshots`. Physical retention is 120 days (pg_cron
+ * `price-snapshots-cleanup`), preserving the product's 90-day history window.
  *
  * The lean numeric schema mirrors `hourly_price_snapshots` but adds the precise
  * `snapshot_ts` (15-min grain) alongside `snapshot_hour` for hourly alignment.

@@ -19,7 +19,7 @@ env:
 jobs:
   train:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -116,6 +116,33 @@ jobs:
           sys.exit(1 if failed else 0)
           PY
 
+      # Oracle Watch's dependency-free runner contains the statically imported
+      # model. Rebuild it only when training changed the model so scheduled
+      # inference never lags behind the deployed application model.
+      - name: Check whether model changed
+        id: model-diff
+        run: |
+          if git diff --quiet -- ml/models/oracle_risk_model.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node for cron bundle refresh
+        if: steps.model-diff.outputs.changed == 'true'
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install bundler dependencies
+        if: steps.model-diff.outputs.changed == 'true'
+        run: npm ci --ignore-scripts --prefer-offline --no-audit --no-fund
+
+      - name: Refresh dependency-free cron bundles
+        if: steps.model-diff.outputs.changed == 'true'
+        run: npm run build:cron
+
       - name: Commit model if changed and trigger redeploy
         env:
           # Optional: Vercel deploy hook URL. Create one in Vercel → Project →
@@ -128,11 +155,11 @@ jobs:
           set -u
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- ml/models/oracle_risk_model.json; then
+          if git diff --quiet -- ml/models/oracle_risk_model.json .github/cron-dist; then
             echo "Model unchanged; nothing to commit."
             exit 0
           fi
-          git add ml/models/oracle_risk_model.json
+          git add ml/models/oracle_risk_model.json .github/cron-dist
           git commit -m "chore(ml): retrain oracle risk model [skip ci]" || true
           git push
 

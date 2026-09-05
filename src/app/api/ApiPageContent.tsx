@@ -40,7 +40,7 @@ const FEATURES = [
     icon: Database,
     title: '15-Minute Snapshots',
     description:
-      'Reliability snapshots polled every 15 minutes — consensus price, per-provider deviation and latency, up to one year back.',
+      'Reliability snapshots polled every 15 minutes — consensus price, per-provider deviation and latency, with a 90-day history window.',
   },
   {
     icon: Layers,

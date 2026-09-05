@@ -10,16 +10,26 @@ name: Snapshot Collect
 #   - price_snapshots (append, 15-min grain) — ML / anomaly detection, 4x
 #     denser signal than the previous hourly-only cadence
 #
-# Public repo → unlimited Actions minutes. 6 months of 15-min data is retained
-# by the price-snapshots-cleanup pg_cron job (migration 0023). This run also
+# Public repo → unlimited Actions minutes. 120 days of 15-min data is retained
+# by the price-snapshots-cleanup pg_cron job (migration 0043). This run also
 # keeps Supabase active (free tier pauses after 1 week of inactivity), which is
 # why the former weekly keep-alive ping in feed-discovery.yml was removed.
 
 on:
   schedule:
-    # Every 15 minutes at :00,:15,:30,:45
+    # Same nominal cadence as Supabase. The guard turns this into a no-op while
+    # recent dispatcher runs succeed, and automatically runs after a missed slot.
     - cron: '*/15 * * * *'
   workflow_dispatch:
+    inputs:
+      dispatch_id:
+        description: 'Supabase cron_dispatch_runs id (empty for manual/fallback runs)'
+        required: false
+        type: string
+      scheduled_for:
+        description: 'Supabase scheduled slot (audit only)'
+        required: false
+        type: string
 
 # Prevent overlapping 15-min runs. If a run exceeds 15 min (extremely
 # unlikely — typical runtime is ~50s), queue the new run instead of
@@ -43,6 +53,8 @@ permissions:
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  CRON_WORKFLOW: snapshot-collect.yml
+  CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
   # Alchemy RPC keys (optional — public RPC fallbacks exist, but Alchemy
   # is more reliable for on-chain oracle reads). Same keys as .env.local.
   ALCHEMY_ETHEREUM_RPC: ${{ secrets.ALCHEMY_ETHEREUM_RPC }}
@@ -70,16 +82,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Check whether native fallback is needed
+        id: guard
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          FALLBACK_MAX_AGE_MINUTES: '25'
+        run: node scripts/cron-control.mjs guard
 
       - name: Verify required secrets
+        if: steps.guard.outputs.should_run == 'true'
         run: |
           set -u
           if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
@@ -87,8 +98,18 @@ jobs:
             exit 1
           fi
 
+      - name: Start run ledger
+        if: steps.guard.outputs.should_run == 'true'
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/cron-control.mjs start
+
       - name: Collect snapshots
-        run: npx tsx scripts/collect-snapshot.ts
+        if: steps.guard.outputs.should_run == 'true'
+        run: node .github/cron-dist/collect-snapshot.mjs
 
       # External truth layer (CEX market reference), same 15-min cadence, same
       # proven runner. Runs here — not as a separate schedule — because GitHub
@@ -96,4 +117,11 @@ jobs:
       # (0 scheduled runs after hours). This workflow's schedule demonstrably
       # fires (728+ runs). Idempotent per-snapshot_ts upsert.
       - name: Collect market reference
-        run: npx tsx scripts/collect-market-reference.ts
+        if: steps.guard.outputs.should_run == 'true'
+        run: node .github/cron-dist/collect-market-reference.mjs
+
+      - name: Finish run ledger
+        if: always() && steps.guard.outputs.should_run == 'true'
+        env:
+          CRON_CONCLUSION: ${{ job.status }}
+        run: node scripts/cron-control.mjs finish

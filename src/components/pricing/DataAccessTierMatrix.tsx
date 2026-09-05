@@ -76,7 +76,7 @@ const accessRows: AccessRow[] = [
     api: true,
   },
   {
-    label: 'Historical snapshots (6-month archive, 15-min grain)',
+    label: 'Historical snapshots (90-day archive, 15-min grain)',
     web: false,
     api: true,
   },

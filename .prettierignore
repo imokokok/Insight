@@ -2,6 +2,7 @@ node_modules
 .next
 out
 build
+.github/cron-dist
 
 # Registration pin for the VRT1 action type. Its sha256 is the value a verifier
 # checks, so its bytes must not be touched by a formatter. Regenerate the served

@@ -52,9 +52,9 @@ const layers = [
   {
     icon: Timer,
     title: 'Automation',
-    subtitle: 'GitHub Actions + pg_cron',
+    subtitle: 'pg_cron + GitHub Actions',
     description:
-      'Network and compute-heavy jobs run directly in GitHub Actions (snapshots, reputation, feed cadence, reports, and billing), with HTTP routes retained as manual fallbacks. Feed-cadence baselines use one set-based Supabase RPC instead of per-feed network requests. Supabase pg_cron is reserved for local cleanup and lightweight SQL maintenance.',
+      'Supabase pg_cron dispatches six product-critical workflows through pg_net using a token encrypted in Vault. Dependency-free GitHub runners perform the heavy work, guarded native schedules provide fallback, and a 30-day ledger records completion. Vercel is not used for background compute.',
   },
 ];
 
@@ -82,6 +82,11 @@ const cronJobs = [
     name: 'snapshot-collect',
     schedule: '15 min',
     purpose: 'Collect price snapshots from all oracle feeds (dual-writes hourly + 15-min tables)',
+  },
+  {
+    name: 'oracle-watch-collect',
+    schedule: '30 min',
+    purpose: 'Persist the Oracle Watch credibility history and trust signal',
   },
   {
     name: 'reputation',

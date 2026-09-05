@@ -28,6 +28,7 @@
     "sync:chainlink-catalog": "tsx scripts/sync-chainlink-catalog.ts",
     "cron:reputation": "tsx scripts/reputation.ts",
     "cron:feed-cadence": "tsx scripts/feed-cadence.ts",
+    "build:cron": "node scripts/build-cron-bundles.mjs",
     "test:mcp:e2e": "node --env-file=.env.local ./node_modules/.bin/jest src/mcp/__tests__/e2e.test.ts --testTimeout=120000 --runInBand",
     "prepare": "husky"
   },
@@ -57,7 +58,6 @@
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.577.0",
     "next": "16.2.4",
-    "verify-insight-receipt": "0.1.1",
     "qrcode.react": "^4.2.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -87,6 +87,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
+    "esbuild": "^0.28.1",
     "husky": "^9.1.7",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",

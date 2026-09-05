@@ -38,15 +38,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
       - name: Verify required secrets
         run: |
           set -u
@@ -56,4 +47,4 @@ jobs:
           fi
 
       - name: Backfill market reference
-        run: npx tsx scripts/backfill-market-reference.ts --days="${BACKFILL_DAYS}"
+        run: node .github/cron-dist/backfill-market-reference.mjs --days="${BACKFILL_DAYS}"

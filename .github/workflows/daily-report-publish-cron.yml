@@ -17,38 +17,51 @@ name: Daily Report Publish
 
 on:
   schedule:
-    # Primary: every day at 00:00 UTC (08:00 Beijing Time)
-    - cron: '0 0 * * *'
     # Backfill: every day at 05:30 UTC (13:30 Beijing Time) — self-heal fallback
     - cron: '30 5 * * *'
   workflow_dispatch:
+    inputs:
+      dispatch_id:
+        description: 'Supabase cron_dispatch_runs id'
+        required: false
+        type: string
+      scheduled_for:
+        description: 'Supabase scheduled slot (audit only)'
+        required: false
+        type: string
 
 permissions:
   contents: read
 
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  CRON_WORKFLOW: daily-report-publish-cron.yml
+  CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+
 jobs:
   publish-report:
-    name: Publish (00:00 UTC)
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 0 * * *'
+    name: Publish (Supabase primary)
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: 'npm'
-      - run: npm ci
+
+      - name: Start run ledger
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/cron-control.mjs start
 
       - name: Publish previous day's daily report (retry x3)
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           set -u
           for attempt in 1 2 3; do
             echo "[daily-report-publish] attempt ${attempt}/3"
-            if npx tsx scripts/daily-report-publish.ts; then
+            if node .github/cron-dist/daily-report-publish.mjs; then
               echo "[daily-report-publish] completed on attempt ${attempt}"
               exit 0
             fi
@@ -60,6 +73,12 @@ jobs:
           echo "::error::All 3 publish attempts failed"
           exit 1
 
+      - name: Finish run ledger
+        if: always()
+        env:
+          CRON_CONCLUSION: ${{ job.status }}
+        run: node scripts/cron-control.mjs finish
+
   backfill-report:
     name: Backfill (05:30 UTC, if missing)
     if: github.event.schedule == '30 5 * * *'
@@ -67,14 +86,20 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: 'npm'
-      - run: npm ci
+
+      - name: Start fallback ledger
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/cron-control.mjs start
 
       - name: Publish previous day's report only if missing
+        run: node .github/cron-dist/daily-report-publish.mjs --if-missing
+
+      - name: Finish fallback ledger
+        if: always()
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: npx tsx scripts/daily-report-publish.ts --if-missing
+          CRON_CONCLUSION: ${{ job.status }}
+        run: node scripts/cron-control.mjs finish

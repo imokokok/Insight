@@ -6,9 +6,18 @@ name: Reputation Calculation
 
 on:
   schedule:
-    # Offset from the :00/:15/:30/:45 snapshot collectors.
+    # Existing hourly clock remains as a guarded fallback.
     - cron: '7 * * * *'
   workflow_dispatch:
+    inputs:
+      dispatch_id:
+        description: 'Supabase cron_dispatch_runs id'
+        required: false
+        type: string
+      scheduled_for:
+        description: 'Supabase scheduled slot (audit only)'
+        required: false
+        type: string
 
 concurrency:
   group: reputation-calculation
@@ -17,20 +26,41 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  CRON_WORKFLOW: reputation-cron.yml
+  CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+
 jobs:
   calculate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci
+
+      - name: Check whether native fallback is needed
+        id: guard
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          FALLBACK_MAX_AGE_MINUTES: '90'
+        run: node scripts/cron-control.mjs guard
+
+      - name: Start run ledger
+        if: steps.guard.outputs.should_run == 'true'
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/cron-control.mjs start
 
       - name: Calculate provider reputation
+        if: steps.guard.outputs.should_run == 'true'
+        run: node .github/cron-dist/reputation.mjs
+
+      - name: Finish run ledger
+        if: always() && steps.guard.outputs.should_run == 'true'
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: npx tsx scripts/reputation.ts
+          CRON_CONCLUSION: ${{ job.status }}
+        run: node scripts/cron-control.mjs finish

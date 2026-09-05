@@ -32,11 +32,6 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: 'npm'
-      - run: npm ci
 
       - name: Run feed reactivation
         env:
@@ -59,4 +54,4 @@ jobs:
           TRON_SOLIDITY_RPC: ${{ secrets.TRON_SOLIDITY_RPC }}
           TRON_FULLNODE_RPC: ${{ secrets.TRON_FULLNODE_RPC }}
           TRONGRID_API_KEY: ${{ secrets.TRONGRID_API_KEY }}
-        run: npx tsx scripts/sync-feeds.ts --mode=reactivate
+        run: node .github/cron-dist/sync-feeds.mjs --mode=reactivate

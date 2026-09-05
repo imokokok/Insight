@@ -1,4 +1,4 @@
-import { getCronHealth } from '@/lib/ops/opsQueries';
+import { getCronDispatchHistory, getCronHealth } from '@/lib/ops/opsQueries';
 
 import RefreshControl from '../RefreshControl';
 import {
@@ -26,7 +26,10 @@ function fmtAge(minutes: number | null): string {
 }
 
 export default async function OpsCronPage() {
-  const { jobs, errored } = await getCronHealth();
+  const [{ jobs, errored }, dispatch] = await Promise.all([
+    getCronHealth(),
+    getCronDispatchHistory(),
+  ]);
   const staleCount = jobs.filter((j) => j.stale).length;
   const hasAge = jobs.some((j) => j.ageMinutes != null);
   const oldestAge = hasAge ? Math.max(...jobs.map((j) => j.ageMinutes ?? 0)) : null;
@@ -108,6 +111,72 @@ export default async function OpsCronPage() {
           </div>
         )}
       </Card>
+
+      <div className="mt-6">
+        <Card title="Scheduler dispatch ledger (30 days)">
+          {dispatch.errored ? (
+            <EmptyState message="dispatcher ledger unavailable — apply migration 0045 to activate it" />
+          ) : dispatch.runs.length === 0 ? (
+            <EmptyState message="dispatcher is installed; no runs recorded yet" />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className={tableCls}>
+                <thead>
+                  <tr className="text-left text-gray-500 border-b border-gray-100">
+                    <th className={thCls}>Workflow</th>
+                    <th className={thCls}>Source</th>
+                    <th className={thCls}>Scheduled</th>
+                    <th className={thCls}>Completed</th>
+                    <th className={thCls}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dispatch.runs.map((run) => (
+                    <tr key={run.id} className={trCls}>
+                      <td className="py-2 pr-3 font-mono text-xs">
+                        {run.githubRunUrl ? (
+                          <a
+                            href={run.githubRunUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            {run.workflowFile}
+                          </a>
+                        ) : (
+                          run.workflowFile
+                        )}
+                      </td>
+                      <td className="py-2 pr-3 text-xs text-gray-500">{run.source}</td>
+                      <td className="py-2 pr-3 tabular-nums text-gray-500">
+                        {new Date(run.scheduledFor).toISOString().slice(0, 16).replace('T', ' ')}
+                      </td>
+                      <td className="py-2 pr-3 tabular-nums text-gray-500">
+                        {run.completedAt
+                          ? new Date(run.completedAt).toISOString().slice(0, 16).replace('T', ' ')
+                          : '—'}
+                      </td>
+                      <td className="py-2 pr-3">
+                        <Badge
+                          tone={
+                            run.status === 'succeeded'
+                              ? 'good'
+                              : run.status === 'running' || run.status === 'dispatching'
+                                ? 'warn'
+                                : 'bad'
+                          }
+                        >
+                          {run.status}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   );
 }

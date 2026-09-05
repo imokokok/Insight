@@ -50,7 +50,7 @@ export const PLANS = {
       '10,000 credits / month included',
       '30 requests / minute',
       'Full platform access — every endpoint & MCP tool',
-      'Historical 15-minute snapshots (6-month archive)',
+      'Historical 15-minute snapshots (90-day archive)',
       'Reliability rankings (90-day trend)',
       'Protocol risk parameters & position stress tests',
       'Anomaly detection, incident timeline & coverage analysis',

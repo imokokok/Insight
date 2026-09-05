@@ -50,11 +50,6 @@ jobs:
           - switchboard
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: 'npm'
-      - run: npm ci
 
       - name: Discover ${{ matrix.provider }} feeds
         env:
@@ -95,9 +90,9 @@ jobs:
           # silently excluded from cross-oracle consensus. Seed them explicitly.
           case "${PROVIDER}" in
             winklink|twap|twap-token|reflector)
-              npx tsx scripts/sync-feeds.ts --mode=seed --provider="${PROVIDER}"
+              node .github/cron-dist/sync-feeds.mjs --mode=seed --provider="${PROVIDER}"
               ;;
             *)
-              npx tsx scripts/sync-feeds.ts --mode="${MODE}" --provider="${PROVIDER}"
+              node .github/cron-dist/sync-feeds.mjs --mode="${MODE}" --provider="${PROVIDER}"
               ;;
           esac
