@@ -1,4 +1,4 @@
-# `@oracle-insight/guard`
+# `oracle-insight-guard`
 
 The execution workflow SDK for Insight. It connects the existing paid API surfaces into one agent-safe flow:
 
@@ -13,7 +13,7 @@ The SDK is a client-side orchestration layer, not a local risk engine. It sends 
 ## Install
 
 ```bash
-npm install @oracle-insight/guard
+npm install oracle-insight-guard
 ```
 
 Use it from a trusted server or agent runtime only. Do not expose an Insight API key in a browser bundle.
@@ -23,7 +23,7 @@ Use it from a trusted server or agent runtime only. Do not expose an Insight API
 `executeSwap` never invokes `submitTransaction` when either pre-trade check returns `DANGER` or `BLOCK`. It defaults both checks to attestation schema v3 and then sends the two signed proofs to the receipt issuer, producing a `VERIFIED` rather than self-reported receipt.
 
 ```ts
-import { InsightGuard } from '@oracle-insight/guard';
+import { InsightGuard } from 'oracle-insight-guard';
 
 const guard = new InsightGuard({ apiKey: process.env.INSIGHT_API_KEY! });
 

@@ -16,15 +16,12 @@ import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
 import type { Blockchain } from '@/types/oracle';
 
-const OracleWatchQuerySchema = z.object({
+export const OracleWatchQuerySchema = z.object({
   symbol: SafeSymbolSchema.describe('Asset symbol, e.g. ETH, BTC'),
   chain: SafeChainSchema.optional().describe('Optional blockchain, e.g. ethereum, arbitrum, base'),
   /** Set to false to skip the signed attestation (payload only). Signing is
    *  additive and never affects the signal itself. */
-  attest: z
-    .enum(['true', 'false'])
-    .optional()
-    .describe('Include a signed EIP-712 attestation (default: true)'),
+  attest: z.boolean().optional().describe('Include a signed EIP-712 attestation (default: true)'),
 });
 
 export const OPTIONS = createOptionsHandler();
@@ -47,7 +44,7 @@ export const GET = createApiHandler(
     // Signed proof of this signal. Null when no attester key is configured;
     // it must never change the verdict or fail the request.
     const attestation =
-      query.attest === 'false'
+      query.attest === false
         ? null
         : await signWatchAttestation({
             signal: result,

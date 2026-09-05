@@ -1,8 +1,16 @@
 {
-  "name": "@oracle-insight/guard",
+  "name": "oracle-insight-guard",
   "version": "0.1.0",
   "description": "Guard DeFi agent execution with Insight pre-trade checks, Oracle Watch, and signed execution receipts.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imokokok/Insight.git",
+    "directory": "sdk"
+  },
+  "homepage": "https://www.oracleinsight.xyz/sdk",
+  "bugs": "https://github.com/imokokok/Insight/issues",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

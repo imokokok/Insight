@@ -56,9 +56,9 @@ const workflow = [
   },
 ];
 
-const installCode = `npm install @oracle-insight/guard`;
+const installCode = `npm install oracle-insight-guard`;
 
-const workflowCode = `import { InsightGuard } from '@oracle-insight/guard';
+const workflowCode = `import { InsightGuard } from 'oracle-insight-guard';
 
 const guard = new InsightGuard({ apiKey: process.env.INSIGHT_API_KEY! });
 

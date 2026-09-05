@@ -124,3 +124,28 @@ test('executeSwap submits only after two gates and issues a verified receipt', a
     preTrade('USDC').attestation.uid
   );
 });
+
+test('oracleWatch sends the attestation flag in the API query', async () => {
+  let requestUrl;
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async (url) => {
+      requestUrl = new URL(url);
+      return api({
+        symbol: 'ETH',
+        chain: 'ethereum',
+        verdict: 'normal',
+        recommendation: 'proceed',
+        reason: 'healthy',
+        reasonCodes: [],
+        evaluatedAt: '2026-09-05T00:00:00.000Z',
+      });
+    },
+  });
+
+  const result = await guard.client.oracleWatch({ symbol: 'ETH', chain: 'ethereum' });
+
+  assert.equal(result.recommendation, 'proceed');
+  assert.equal(requestUrl.pathname, '/api/v1/oracle-watch');
+  assert.equal(requestUrl.searchParams.get('attest'), 'true');
+});

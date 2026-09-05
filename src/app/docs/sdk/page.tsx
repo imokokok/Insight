@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     'Integrate Insight Guard: two-sided pre-trade gates, Oracle Watch halt handling, and verified execution receipts for DeFi agents.',
 };
 
-const installCode = `npm install @oracle-insight/guard`;
+const installCode = `npm install oracle-insight-guard`;
 
 const gateCode = `const guard = new InsightGuard({
   apiKey: process.env.INSIGHT_API_KEY!,
