@@ -213,7 +213,9 @@ export default function SdkPage() {
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
             Guard uses the same API key and the existing C3/C4 credit meter: pre-trade and Watch
-            calls are C3; execution receipt issuance is C4. There is no second billing model.
+            calls are C3; execution receipt issuance is C4. A successful two-sided guarded swap uses
+            20 credits at current prices (two C3 gates plus one C4 receipt), excluding Watch
+            polling. There is no second billing model.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link

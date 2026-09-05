@@ -11,6 +11,7 @@ import {
   Key,
   Bot,
   Code,
+  CircleDollarSign,
   BadgeCheck,
 } from 'lucide-react';
 
@@ -85,23 +86,40 @@ export const navigationConfig: NavStructure = [
     ],
   },
   {
-    // Points to the API product/landing page (/api), NOT the API docs page
-    // (/docs/api). The docs page lives under the Documentation tab so the two
-    // don't both highlight — isActive() uses startsWith, and /docs/api would
-    // match both /docs and /docs/api.
-    href: '/api',
-    label: 'API',
-    icon: Key,
-  },
-  {
-    href: '/ai',
-    label: 'AI',
-    icon: Bot,
-  },
-  {
-    href: '/sdk',
-    label: 'SDK',
+    id: 'build',
+    label: 'Build',
     icon: Code,
+    megaMenu: true,
+    items: [
+      {
+        href: '/sdk',
+        label: 'Guard SDK',
+        icon: Code,
+        badge: 'Recommended',
+        description:
+          'One guarded workflow for pre-trade gates, Oracle Watch halts, and VERIFIED execution receipts',
+      },
+      {
+        href: '/api',
+        label: 'REST API',
+        icon: Key,
+        description:
+          'Use atomic price, risk, evidence, and execution endpoints in your own integration',
+      },
+      {
+        href: '/ai',
+        label: 'AI / MCP',
+        icon: Bot,
+        description:
+          'Give Claude, Cursor, and MCP-compatible agents direct access to Insight tools',
+      },
+      {
+        href: '/docs',
+        label: 'Developer Docs',
+        icon: BookOpen,
+        description: 'Read API, SDK, receipt verification, and integration references',
+      },
+    ],
   },
   {
     href: '/verify',
@@ -109,9 +127,9 @@ export const navigationConfig: NavStructure = [
     icon: BadgeCheck,
   },
   {
-    href: '/docs',
-    label: 'Documentation',
-    icon: BookOpen,
+    href: '/pricing',
+    label: 'Pricing',
+    icon: CircleDollarSign,
   },
 ];
 

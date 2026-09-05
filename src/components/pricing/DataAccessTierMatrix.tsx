@@ -12,7 +12,8 @@ import { Check, Coins, Globe, Lock, Zap } from 'lucide-react';
  *
  * This component therefore documents two access surfaces:
  *   - Public website (free, no key): browse prices, protocols, rankings, reports.
- *   - API / MCP (paid, credit-metered): everything, priced per call (C1–C4).
+ *   - REST API / AI-MCP / Guard SDK (paid, credit-metered): everything,
+ *     priced per call (C1–C4) from the same wallet.
  *
  * The authoritative per-call pricing lives in src/lib/billing/metering.ts;
  * plan definitions (Developer/Team/Enterprise) live in src/lib/billing/plans.ts.
@@ -143,8 +144,9 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
               One platform, no feature gates
             </h2>
             <p className="max-w-2xl text-lg text-slate-600">
-              Browsing the website is free. Calling the API is credit-metered — every endpoint and
-              MCP tool is open to any paying user, priced per call by data class.
+              Browsing the website is free. REST API, AI/MCP, and Guard SDK calls share one credit
+              wallet — every endpoint and tool is open to any paying user, priced per call by data
+              class.
             </p>
           </div>
         </div>

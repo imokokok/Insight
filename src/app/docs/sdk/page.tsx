@@ -144,7 +144,10 @@ export default function SdkDocsPage() {
           <h2 className="text-2xl font-bold text-slate-900">Billing and verification boundary</h2>
           <p className="mt-3 max-w-3xl leading-relaxed text-slate-600">
             Guard uses the same API key and credit wallet as direct API calls. Pre-Trade and Oracle
-            Watch are C3 calls; execution receipt issuance is C4. A valid signed receipt proves the
+            Watch are C3 calls; execution receipt issuance is C4. A successful two-sided
+            <code>executeSwap()</code> uses two C3 calls and one C4 call (20 credits at current
+            prices), before optional Watch polling. REST API, AI/MCP, and Guard are distinct
+            integration surfaces that draw from the same wallet. A valid signed receipt proves the
             issuer and integrity of its bytes; it is not a guarantee that the market price or trade
             was correct.
           </p>

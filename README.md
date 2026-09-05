@@ -73,6 +73,18 @@ two-sided Pre-Trade gate → transaction submission → VERIFIED Execution Recei
 
 `@oracle-insight/guard` does not embed a copy of Insight's rules or signing keys. It calls the existing API with the integrator's API key, so risk decisions, EIP-712 attestations, audit logs, and C3/C4 credit metering stay server-side and authoritative. `executeSwap()` does not call the supplied transaction submitter when either pre-trade result is `DANGER` or `BLOCK`; when both signed v2/v3 proofs are available, it sends them with the transaction hash to issue a `VERIFIED` execution receipt.
 
+### Integration surfaces and billing
+
+These are distinct ways to integrate Insight, not separate wallets or feature tiers:
+
+| Surface       | Best for                                                                    | Credit behavior                                                                                                                                                                                                           |
+| ------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **REST API**  | Custom applications that need individual data, analysis, or risk endpoints  | Each successful endpoint call draws its C1–C4 cost from the API key's wallet.                                                                                                                                             |
+| **AI / MCP**  | Claude, Cursor, Windsurf, and other MCP-compatible agents                   | Each successful tool call draws the equivalent C1–C4 cost from the same wallet.                                                                                                                                           |
+| **Guard SDK** | Agents that should gate, execute, monitor, and retain proof as one workflow | No separate SDK fee. It calls the underlying endpoints: a successful two-sided `executeSwap()` uses two C3 pre-trade calls plus one C4 receipt call (**20 credits** at current prices), excluding optional Watch polling. |
+
+Oracle Watch polling is a C3 call per signal. Plans and prepaid top-ups only add credit capacity; every paying user can use every surface. See [Pricing](https://www.oracleinsight.xyz/pricing) for the current wallet and plan details.
+
 ```bash
 npm install @oracle-insight/guard
 ```

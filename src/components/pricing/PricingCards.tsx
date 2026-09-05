@@ -19,8 +19,16 @@ const planOrder = ['developer', 'team', 'enterprise'] as const;
 const METERING_ROWS = [
   { cls: 'C1', cost: '0.5 cr', desc: 'Foundational data — prices, listings, daily reports' },
   { cls: 'C2', cost: '2 cr', desc: 'Deep analysis — deviation, correlation, risk, history' },
-  { cls: 'C3', cost: '5 cr', desc: 'Agent gates — pre-trade safety, oracle-watch' },
-  { cls: 'C4', cost: '10 cr', desc: 'Proofs & receipts — attested execution receipts' },
+  {
+    cls: 'C3',
+    cost: '5 cr',
+    desc: 'Agent gates — pre-trade safety and Oracle Watch across REST, MCP, or Guard',
+  },
+  {
+    cls: 'C4',
+    cost: '10 cr',
+    desc: 'Proofs & receipts — attested execution receipts across every integration surface',
+  },
 ];
 
 export function PricingCards({ billingCycle }: PricingCardsProps) {

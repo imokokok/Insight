@@ -10,7 +10,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Pricing — Insight Oracle Evidence Infrastructure',
   description:
-    'Choose an Insight API and MCP capacity plan. Every paying user gets every endpoint, with transparent per-call credit metering and prepaid top-ups.',
+    'Choose capacity for Insight REST API, AI/MCP, and Guard SDK usage. Every paying user gets every endpoint, with transparent per-call credit metering and prepaid top-ups.',
 };
 
 const BILLING_FACTS = [
@@ -43,9 +43,9 @@ export default function PricingPage() {
         <EditorialWorkspaceHeader
           index="12"
           stage="Choose"
-          eyebrow="Capacity, not feature gates · Website access stays public; API and MCP calls draw from one credit wallet"
+          eyebrow="Capacity, not feature gates · Website access stays public; REST API, AI/MCP, and Guard SDK calls draw from one credit wallet"
           title="Pay for the evidence your system actually uses."
-          description="Choose a monthly capacity allowance or add prepaid credits when you need them. Every paid path opens the same endpoints, tools, risk analysis, and verification features."
+          description="Choose a monthly capacity allowance or add prepaid credits when you need them. REST API, AI/MCP, and Guard SDK are distinct integration paths over the same endpoints, tools, risk analysis, verification features, and credit wallet."
           evidence={['One credit wallet', 'All endpoints', 'Transparent metering']}
           action={
             <div className="flex flex-wrap items-center gap-2">

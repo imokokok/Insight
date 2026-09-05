@@ -93,4 +93,6 @@ This package does not add a second billing model. It uses the current API endpoi
 - Pre-Trade and Oracle Watch are C3 credit-metered calls.
 - Execution Receipt issuance is a C4 credit-metered call.
 
+A successful `executeSwap()` makes two Pre-Trade checks and one receipt request, so its minimum API cost is **20 credits** at the current C3/C4 prices (2 × 5 + 10), excluding any optional Oracle Watch polling. A source-side block costs one C3 check; a destination-side block costs two C3 checks. The SDK has no separate fee or wallet: REST API, AI/MCP, and SDK activity all draw from the same API-key credit wallet.
+
 The SDK never embeds signing keys or reimplements the risk rules. A signed receipt proves that Insight issued the signed bytes; it is not a guarantee that a trade or market price was correct.
