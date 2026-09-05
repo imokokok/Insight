@@ -54,7 +54,7 @@ const layers = [
     title: 'Automation',
     subtitle: 'GitHub Actions + pg_cron',
     description:
-      'Network and compute-heavy jobs run directly in GitHub Actions (snapshots, reputation, feed cadence, reports, and billing), with HTTP routes retained as manual fallbacks. Supabase pg_cron is reserved for local cleanup and lightweight SQL maintenance.',
+      'Network and compute-heavy jobs run directly in GitHub Actions (snapshots, reputation, feed cadence, reports, and billing), with HTTP routes retained as manual fallbacks. Feed-cadence baselines use one set-based Supabase RPC instead of per-feed network requests. Supabase pg_cron is reserved for local cleanup and lightweight SQL maintenance.',
   },
 ];
 

@@ -192,61 +192,43 @@ export function isCadenceStale(
 }
 
 /**
- * Persist baselines for every active feed back into oracle_feeds. Intended to be
- * run on a schedule (e.g. a daily cron) so the pre-trade hot path is an O(1)
- * read. On any per-feed error it logs and continues — one bad feed must not
- * abort the whole batch.
+ * Refresh baselines for every active feed with one set-based database call.
+ * The SQL function scans the snapshot window once and updates all matching
+ * oracle_feeds rows without PostgREST pagination or per-feed round trips.
  *
- * Returns the number of feeds whose baseline was successfully written.
+ * Returns the number of active feeds written by the database operation.
  */
 export async function updateAllFeedStalenessBaselines(supabase: SupabaseClient): Promise<number> {
-  const { data: feeds, error } = await supabase
-    .from('oracle_feeds')
-    .select('provider, symbol, chain_id')
-    .eq('is_active', true);
+  const { data, error } = await supabase.rpc('refresh_oracle_feed_cadence_baselines', {
+    p_lookback_hours: 48,
+    p_min_samples: 12,
+  });
 
-  if (error || !feeds || feeds.length === 0) {
-    logger.warn('updateAllFeedStalenessBaselines: failed to list active feeds', {
-      error: error?.message,
-    });
-    return 0;
+  if (error) {
+    throw new Error(`Feed-cadence baseline RPC failed: ${error.message}`);
   }
 
-  // Dedupe (provider, symbol, chain_id) — oracle_feeds is keyed per feed.
-  const seen = new Set<string>();
-  let updated = 0;
+  const rawRow = Array.isArray(data) ? data[0] : data;
+  const row = rawRow as {
+    updated_count?: number | string | null;
+    scanned_count?: number | string | null;
+  } | null;
 
-  for (const f of feeds) {
-    const key = `${f.provider}|${f.symbol}|${f.chain_id}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    try {
-      const baseline = await computeFeedStalenessBaseline(
-        supabase,
-        f.provider,
-        f.symbol,
-        f.chain_id
-      );
-      const { error: updErr } = await supabase
-        .from('oracle_feeds')
-        .update({
-          observed_data_age_p90_s: baseline.p90Seconds,
-          observed_cadence_updated_at: baseline.computedAt,
-        })
-        .eq('provider', f.provider)
-        .eq('symbol', f.symbol)
-        .eq('chain_id', f.chain_id);
-      if (!updErr) updated++;
-    } catch (e) {
-      logger.warn('updateAllFeedStalenessBaselines: feed update failed', {
-        key,
-        error: e instanceof Error ? e.message : String(e),
-      });
-    }
+  if (!row) {
+    throw new Error('Feed-cadence baseline RPC returned no result');
   }
 
-  logger.info('updateAllFeedStalenessBaselines complete', { updated, scanned: seen.size });
+  const updated = Number(row?.updated_count ?? 0);
+  const scanned = Number(row?.scanned_count ?? 0);
+
+  if (!Number.isSafeInteger(updated) || updated < 0) {
+    throw new Error('Feed-cadence baseline RPC returned an invalid updated count');
+  }
+  if (!Number.isSafeInteger(scanned) || scanned < 0 || updated > scanned) {
+    throw new Error('Feed-cadence baseline RPC returned an invalid scanned count');
+  }
+
+  logger.info('updateAllFeedStalenessBaselines complete', { updated, scanned });
   return updated;
 }
 
