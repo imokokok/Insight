@@ -35,9 +35,10 @@ const resources: Resource[] = [
   },
   {
     icon: <Code2 className="w-6 h-6" />,
-    title: 'Integration Guide',
-    description: 'Learn how to embed Insight data into your application or smart contract.',
-    href: '/docs/api#integration',
+    title: 'Guard SDK',
+    description:
+      'Add two-sided pre-trade gates, Oracle Watch halt handling, and verified execution receipts to a DeFi agent.',
+    href: '/docs/sdk',
     accent: 'blue',
   },
   {

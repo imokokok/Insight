@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Layers,
   Server,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface DocCard {
@@ -70,6 +71,15 @@ const docs: DocCard[] = [
     href: '/ai',
     tags: ['AI Agents', '34 Tools', 'MCP', 'Pre-Trade Safety'],
     accent: 'blue',
+  },
+  {
+    icon: <ShieldCheck className="w-6 h-6" />,
+    title: 'Guard SDK',
+    description:
+      'Use the complete execution workflow: two-sided pre-trade gates, Oracle Watch halt handling, and VERIFIED execution receipts.',
+    href: '/docs/sdk',
+    tags: ['DeFi Agents', 'TypeScript', 'Execution Guard'],
+    accent: 'emerald',
   },
 ];
 

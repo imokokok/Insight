@@ -9,6 +9,7 @@ Insight is an oracle transparency and risk infrastructure platform for DeFi. It 
 ## Table of Contents
 
 - [The Flagship: Pre-Trade Oracle Safety Check](#the-flagship-pre-trade-oracle-safety-check)
+- [Agent Guard SDK](#agent-guard-sdk)
 - [Independent Receipt Verification](#independent-receipt-verification)
 - [Oracle Watch: Always-On Cross-Oracle Monitoring](#oracle-watch-always-on-cross-oracle-monitoring)
 - [Key Features](#key-features)
@@ -59,6 +60,24 @@ Every check can be signed as an **EIP-712 offchain attestation** — a portable,
 - **v3** — 27-field attestation: identical evidence to v2 plus **the independence threshold itself** (`requiredSourceGroupCount`). v2 signs `sourceGroupCount` without the number it is compared against, so a third party cannot tell whether the gate passed without reading this codebase. v3 puts both operands inside the signature, which makes the gate checkable from the bytes alone. Same gates, same verdict policy as v2.
 
 Anyone can verify a signature against the published attester address via `POST /api/v1/safety/attestation/verify` (public, no API key). The feature is disabled (non-breaking) when no signer key is configured. v1/v2/v3 coexist; the endpoint routes by the attestation's own `schemaVersion` and publishes all three type layouts from `GET` (`latestSchemaVersion` is 3).
+
+## Agent Guard SDK
+
+The publishable TypeScript package in [`sdk/`](./sdk) turns the three agent-facing services into one explicit execution workflow:
+
+```text
+two-sided Pre-Trade gate → transaction submission → VERIFIED Execution Receipt
+                ↑
+        Oracle Watch can halt the strategy between trades
+```
+
+`@oracle-insight/guard` does not embed a copy of Insight's rules or signing keys. It calls the existing API with the integrator's API key, so risk decisions, EIP-712 attestations, audit logs, and C3/C4 credit metering stay server-side and authoritative. `executeSwap()` does not call the supplied transaction submitter when either pre-trade result is `DANGER` or `BLOCK`; when both signed v2/v3 proofs are available, it sends them with the transaction hash to issue a `VERIFIED` execution receipt.
+
+```bash
+npm install @oracle-insight/guard
+```
+
+See [`sdk/README.md`](./sdk/README.md) for the package API, or visit [`/sdk`](https://www.oracleinsight.xyz/sdk) and [`/docs/sdk`](https://www.oracleinsight.xyz/docs/sdk) for the product overview and integration guide.
 
 ## Independent Receipt Verification
 

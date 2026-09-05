@@ -9,7 +9,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
   description:
-    'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, RedStone, API3 and more. Give AI agents a pre-trade oracle safety checkpoint via MCP.',
+    'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, RedStone, API3 and more. Give DeFi agents a pre-trade gate, Oracle Watch halt signal, and signed execution record via Guard SDK or MCP.',
   keywords: [
     'oracle',
     'chainlink',
@@ -22,6 +22,8 @@ export const metadata: Metadata = {
     'infrastructure',
     'AI agents',
     'MCP',
+    'DeFi agent SDK',
+    'execution receipt',
     'pre-trade safety',
     'uni',
   ],

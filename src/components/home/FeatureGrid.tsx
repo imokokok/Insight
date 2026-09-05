@@ -33,13 +33,13 @@ const features = [
     tags: ['Protocol thresholds', 'Deviation stress', 'What-if'],
   },
   {
-    title: 'AI Agents',
+    title: 'Agent Guard SDK',
     description:
-      'Give AI agents a pre-trade oracle safety checkpoint — PASS/CAUTION/DANGER/BLOCK before any on-chain trade, plus 34 MCP tools.',
-    href: '/ai',
+      'Give DeFi agents one guarded workflow: pre-trade gates, Oracle Watch halts, and verified execution receipts.',
+    href: '/sdk',
     icon: Bot,
     size: 'small' as const,
-    tags: ['Pre-trade safety', 'MCP server', 'Claude / Cursor'],
+    tags: ['Gate before submit', 'Watch halt', 'Signed receipt'],
   },
   {
     title: 'Daily Reports',

@@ -93,10 +93,11 @@ export function HeroSection() {
               Run a safety check
             </Link>
             <Link
-              href="/verify"
+              href="/sdk"
               className="hidden items-center gap-2 px-2 py-3 text-sm font-semibold text-slate-700 transition-colors hover:text-blue-700 sm:inline-flex"
             >
-              Verify receipt
+              Build with Guard SDK
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </motion.div>
 

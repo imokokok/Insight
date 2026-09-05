@@ -1,0 +1,35 @@
+{
+  "name": "@oracle-insight/guard",
+  "version": "0.1.0",
+  "description": "Guard DeFi agent execution with Insight pre-trade checks, Oracle Watch, and signed execution receipts.",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "defi",
+    "ai-agent",
+    "oracle",
+    "risk",
+    "execution",
+    "attestation"
+  ]
+}

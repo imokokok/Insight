@@ -72,7 +72,7 @@ const steps = [
 const ctas = [
   { href: '/price-query', label: 'Start Searching', primary: true },
   { href: '/price-insight', label: 'Compare Oracles', primary: false },
-  { href: '/reputation', label: 'View Reputation', primary: false },
+  { href: '/sdk', label: 'Build a guarded agent', primary: false },
 ];
 
 export default function QuickStartSection() {

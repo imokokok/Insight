@@ -17,6 +17,8 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "sdk:build": "npm --prefix sdk run build",
+    "sdk:test": "npm --prefix sdk test",
     "knip": "knip",
     "audit:api": "node scripts/api-usage-audit.mjs",
     "audit:raul": "node scripts/api-usage-audit.mjs --name ThoughtProof",

@@ -10,6 +10,7 @@ import {
   Layers,
   Rocket,
   Scale,
+  ShieldCheck,
   Sparkles,
   Terminal,
 } from 'lucide-react';
@@ -31,6 +32,7 @@ const quickLinks: QuickLink[] = [
   { href: '#architecture', label: 'Architecture', icon: Layers },
   { href: '#data-sources', label: 'Data Sources', icon: Database },
   { href: '/docs/api', label: 'API Reference', icon: Terminal, external: true },
+  { href: '/docs/sdk', label: 'Guard SDK', icon: ShieldCheck, external: true },
   { href: '/ai', label: 'AI / MCP Server', icon: Bot, external: true },
 ];
 
@@ -86,10 +88,10 @@ export default function DocsHero() {
               <ArrowRight className="h-4 w-4" />
             </a>
             <Link
-              href="/docs/api"
+              href="/docs/sdk"
               className="inline-flex items-center gap-2 border border-slate-900/20 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-blue-400 hover:text-blue-700"
             >
-              API reference
+              Guard SDK
             </Link>
           </div>
         }

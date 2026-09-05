@@ -10,6 +10,7 @@ import {
   Anchor,
   Key,
   Bot,
+  Code,
   BadgeCheck,
 } from 'lucide-react';
 
@@ -96,6 +97,11 @@ export const navigationConfig: NavStructure = [
     href: '/ai',
     label: 'AI',
     icon: Bot,
+  },
+  {
+    href: '/sdk',
+    label: 'SDK',
+    icon: Code,
   },
   {
     href: '/verify',

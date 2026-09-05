@@ -228,6 +228,13 @@ function HeroSection() {
               <BookOpen className="w-4 h-4" />
               Read Docs
             </Link>
+            <Link
+              href="/sdk"
+              className="inline-flex items-center gap-2 border border-slate-900/20 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-500 hover:text-blue-700"
+            >
+              <Shield className="w-4 h-4" />
+              Guard SDK
+            </Link>
           </div>
         }
       />

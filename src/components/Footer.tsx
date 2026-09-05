@@ -22,6 +22,7 @@ export default function Footer() {
     { label: 'API', href: '/api' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'AI Agents', href: '/ai' },
+    { label: 'Guard SDK', href: '/sdk' },
   ];
 
   const safetyLinks = [
@@ -36,6 +37,7 @@ export default function Footer() {
     { label: 'Documentation', href: '/docs', icon: DocumentationIcon },
     { label: 'API Reference', href: '/docs/api', icon: DocumentationIcon },
     { label: 'AI / MCP Docs', href: '/ai', icon: DocumentationIcon },
+    { label: 'Guard SDK Docs', href: '/docs/sdk', icon: DocumentationIcon },
     { label: 'GitHub', href: 'https://github.com/imokokok/Insight', icon: GitHubIcon },
   ];
 
