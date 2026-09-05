@@ -1,9 +1,6 @@
 import './globals.css';
 
 import { Inter, JetBrains_Mono } from 'next/font/google';
-import { cookies } from 'next/headers';
-
-import { createServerClient } from '@supabase/ssr';
 
 import { AppInitializer } from '@/components/AppInitializer';
 import { ConditionalAnalytics } from '@/components/cookies/ConditionalAnalytics';
@@ -14,7 +11,6 @@ import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import { PublicChrome } from '@/components/PublicChrome';
 import { ConnectionStatusIndicator } from '@/components/realtime/ConnectionStatus';
-import { isOpsOwner } from '@/lib/ops/auth';
 import { QueryProvider } from '@/providers/QueryProvider';
 
 import type { Metadata } from 'next';
@@ -40,35 +36,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Server-side: resolve whether the current session user is an ops owner so
-  // the client Navbar can show/hide the internal "Console" tab. We only ever
-  // pass the resulting boolean down — OPS_OWNER_USER_IDS itself stays server-only
-  // and never reaches the client bundle.
-  const cookieStore = await cookies();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  let userId: string | undefined;
-  if (supabaseUrl && supabaseAnonKey) {
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {
-          // Read-only: we never write auth cookies from a Server Component.
-        },
-      },
-    });
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    userId = user?.id;
-  }
-
-  const showConsole = isOpsOwner(userId);
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
@@ -81,7 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ErrorBoundary>
             <AppInitializer>
               <PublicChrome>
-                <Navbar isOpsOwner={showConsole} />
+                <Navbar />
               </PublicChrome>
               <main className="flex-1" style={{ backgroundColor: 'var(--background)' }}>
                 {children}

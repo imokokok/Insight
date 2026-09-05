@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { type ZodSchema } from 'zod';
 
 import { consumeCredits } from '@/lib/billing/creditWallet';
+import { CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS } from '@/lib/billing/metering';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { createZodValidationMiddleware } from '@/lib/validation/middleware';
 
@@ -489,6 +490,7 @@ export function createApiHandler<
             { status: 402 }
           );
           deniedResponse.headers.set('X-Credit-Cost', String(pendingCharge.cost));
+          deniedResponse.headers.set('Retry-After', String(CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS));
           if (corsHeaders) applyCorsHeaders(deniedResponse, corsHeaders);
           return deniedResponse;
         }

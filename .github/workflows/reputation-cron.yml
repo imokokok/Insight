@@ -1,0 +1,36 @@
+name: Reputation Calculation
+
+# Fetches the provider test basket, writes reputation_history, and aggregates
+# the rolling provider scores directly from a GitHub runner. The authenticated
+# Vercel route remains available only as a manual fallback.
+
+on:
+  schedule:
+    # Offset from the :00/:15/:30/:45 snapshot collectors.
+    - cron: '7 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: reputation-calculation
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  calculate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+
+      - name: Calculate provider reputation
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/reputation.ts

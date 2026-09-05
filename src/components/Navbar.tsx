@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -11,6 +11,7 @@ import { Menu, User } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 import { useKeyboardShortcuts } from '@/hooks';
+import { apiClient } from '@/lib/api/client/ApiClient';
 import { useUser, useProfile, useAuthLoading, useAuthActions } from '@/stores/authStore';
 
 import {
@@ -25,7 +26,7 @@ import { SearchButton } from './search/SearchButton';
 
 const GlobalSearch = dynamic(() => import('./search').then((m) => m.GlobalSearch), { ssr: false });
 
-export default function Navbar({ isOpsOwner = false }: { isOpsOwner?: boolean }) {
+export default function Navbar() {
   const pathname = usePathname();
   const user = useUser();
   const profile = useProfile();
@@ -35,12 +36,37 @@ export default function Navbar({ isOpsOwner = false }: { isOpsOwner?: boolean })
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  const [opsOwnerUserId, setOpsOwnerUserId] = useState<string | null>(null);
+  const isOpsOwner = Boolean(user && opsOwnerUserId === user.id);
 
-  // Internal console entry — shown only to ops owners (decided server-side in
-  // the root layout, passed down as a boolean). It lives in the avatar menu
-  // (UserMenuDropdown) and the mobile drawer, not in the main tab row.
-  // Navigation visibility is UX only; /ops itself is still gated by
-  // requireOpsOwner() on the server.
+  // Resolve the UX-only Console link after the client auth store initializes.
+  // Keeping this check out of the root Server Component lets public pages stay
+  // static/ISR. /ops itself remains protected by requireOpsOwner() server-side.
+  useEffect(() => {
+    let active = true;
+
+    if (loading || !user) {
+      return () => {
+        active = false;
+      };
+    }
+
+    void apiClient
+      .get<{ isOpsOwner: boolean }>('/api/auth/ops-status', { cache: 'no-store' })
+      .then(({ data }) => {
+        if (active) setOpsOwnerUserId(data.isOpsOwner ? user.id : null);
+      })
+      .catch(() => {
+        // Navigation visibility is not an authorization boundary. Fail closed
+        // and leave the server-side /ops gate as the source of truth.
+        if (active) setOpsOwnerUserId(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [loading, user]);
+
   const navItems: NavStructure = navigationConfig;
 
   const currentPath = useMemo(() => {

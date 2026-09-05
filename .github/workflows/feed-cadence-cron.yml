@@ -1,0 +1,35 @@
+name: Feed Cadence Baselines
+
+# Maintains observed_data_age_p90_s directly from a GitHub runner. This keeps
+# the optional cadence-relative CAUTION signal warm without spending Vercel
+# Active CPU or relying on a pg_net HTTP call.
+
+on:
+  schedule:
+    - cron: '23 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: feed-cadence-baselines
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+
+      - name: Update feed cadence baselines
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/feed-cadence.ts

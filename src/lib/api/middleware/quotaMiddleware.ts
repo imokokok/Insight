@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
-import { getCreditCost } from '@/lib/billing/metering';
+import { CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS, getCreditCost } from '@/lib/billing/metering';
 import { PLANS, normalizePlan } from '@/lib/billing/plans';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -129,6 +129,7 @@ export function createQuotaMiddleware(
       response.headers.set('X-Credit-Cost', String(cost));
       response.headers.set('X-Credit-Balance', String(precheck.balance ?? 0));
       response.headers.set('X-Credit-Denied', reason);
+      response.headers.set('Retry-After', String(CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS));
 
       return { success: false, response };
     }

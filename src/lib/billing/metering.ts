@@ -25,6 +25,13 @@ export const CREDIT_COST: Record<MeteringClass, number> = {
 };
 
 /**
+ * Credit exhaustion is an operator-action condition, not a transient server
+ * error. Tell automated consumers to wait until their next normal polling
+ * cycle instead of creating a tight 402 retry loop.
+ */
+export const CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS = 30 * 60;
+
+/**
  * Ordered [regex, class] rules for REST endpoint paths. First match wins.
  * The default (no match) is C1 — cheap foundational data.
  */

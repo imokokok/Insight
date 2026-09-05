@@ -7,28 +7,40 @@ import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('CronFeedCadence');
 
+export interface FeedCadenceCronResult {
+  status: number;
+  body: Record<string, unknown>;
+}
+
 /**
  * Backfills oracle_feed staleness baselines (observed_data_age_p90_s) so the
- * pre-trade cadence-relative staleness check has data to read. Triggered by the
- * pg_cron job `feed-cadence-baselines` (registered in migration 0032) via the
- * SECURITY DEFINER SQL fn `trigger_feed_cadence_backfill()`, which POSTs here
- * exactly like `trigger_reputation_fetch` -> /api/cron/reputation.
+ * pre-trade cadence-relative staleness check has data to read. Scheduled runs
+ * execute directly on GitHub Actions; the HTTP route is retained as a manual
+ * authenticated fallback.
  */
-export async function GET(request: Request) {
-  const authResponse = verifyCronSecret(request);
-  if (authResponse) return authResponse;
-
+export async function runFeedCadenceBackfill(): Promise<FeedCadenceCronResult> {
   try {
     const supabase = createServiceRoleClient();
     const updated = await updateAllFeedStalenessBaselines(supabase);
     logger.info(`Cron feed-cadence baseline backfill complete: ${updated} feeds updated`);
-    return NextResponse.json({
-      success: true,
-      data: { updated },
-      message: `Feed-cadence baseline backfill complete: ${updated} feeds updated`,
-    });
+    return {
+      status: 200,
+      body: {
+        success: true,
+        data: { updated },
+        message: `Feed-cadence baseline backfill complete: ${updated} feeds updated`,
+      },
+    };
   } catch (error) {
     logger.error('Cron feed-cadence baseline backfill failed', normalizeError(error));
-    return NextResponse.json({ success: false, error: 'Backfill failed' }, { status: 500 });
+    return { status: 500, body: { success: false, error: 'Backfill failed' } };
   }
+}
+
+export async function GET(request: Request) {
+  const authResponse = verifyCronSecret(request);
+  if (authResponse) return authResponse;
+
+  const { status, body } = await runFeedCadenceBackfill();
+  return NextResponse.json(body, { status });
 }

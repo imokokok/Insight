@@ -1,6 +1,6 @@
-import SafetyCheckContent from './SafetyCheckContent';
+import { Suspense } from 'react';
 
-export const dynamic = 'force-dynamic';
+import SafetyCheckContent from './SafetyCheckContent';
 
 export const metadata = {
   title: 'Safety Check - Insight',
@@ -8,5 +8,9 @@ export const metadata = {
 };
 
 export default function SafetyCheckPage() {
-  return <SafetyCheckContent />;
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f8f7f4]" aria-busy="true" />}>
+      <SafetyCheckContent />
+    </Suspense>
+  );
 }

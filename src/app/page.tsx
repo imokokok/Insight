@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 15;
+export const revalidate = 60;
 
 export default function HomePage() {
   return (

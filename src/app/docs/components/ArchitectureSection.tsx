@@ -54,17 +54,20 @@ const layers = [
     title: 'Automation',
     subtitle: 'GitHub Actions + pg_cron',
     description:
-      'Scheduled jobs run as GitHub Actions workflows (snapshot collection every 15 min, feed sync, daily reports, billing) with HTTP routes retained as manual fallbacks. Reputation recalculation and retention cleanup run inside Supabase via pg_cron.',
+      'Network and compute-heavy jobs run directly in GitHub Actions (snapshots, reputation, feed cadence, reports, and billing), with HTTP routes retained as manual fallbacks. Supabase pg_cron is reserved for local cleanup and lightweight SQL maintenance.',
   },
 ];
 
 const tables = [
   { name: 'price_records', purpose: 'Raw and normalized prices with TTL' },
   { name: 'oracle_feeds', purpose: 'Active feed metadata per provider + chain' },
-  { name: 'hourly_price_snapshots', purpose: 'Hourly-grain snapshots (upsert, 6-month retention)' },
+  {
+    name: 'hourly_price_snapshots',
+    purpose: 'Hourly-grain snapshots (upsert, 120-day retention)',
+  },
   {
     name: 'price_snapshots',
-    purpose: '15-min-grain snapshots for ML / anomaly detection (6-month retention)',
+    purpose: '15-min-grain snapshots for ML / anomaly detection (120-day retention)',
   },
   { name: 'reputation_history', purpose: 'Per-fetch samples for scoring' },
   { name: 'oracle_reputation', purpose: 'Aggregated 7-day provider scores' },
@@ -83,7 +86,12 @@ const cronJobs = [
   {
     name: 'reputation',
     schedule: 'Hourly',
-    purpose: 'Recompute 7-day rolling reputation scores (Supabase pg_cron)',
+    purpose: 'Fetch provider samples and recompute 7-day rolling scores (GitHub Actions)',
+  },
+  {
+    name: 'feed-cadence',
+    schedule: 'Daily',
+    purpose: 'Refresh per-feed observed staleness baselines (GitHub Actions)',
   },
   {
     name: 'safety-outcome',

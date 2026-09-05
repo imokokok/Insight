@@ -126,11 +126,11 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
  *
  * Wraps `fetchDashboardInitialData` with Next.js `unstable_cache` so the
  * expensive 4×5 oracle price fan-out can be reused across SSR renders and
- * ISR revalidations. The TTL matches the route-level `revalidate` (15s) to
+ * ISR revalidations. The TTL matches the route-level `revalidate` (60s) to
  * keep the dashboard fresh while avoiding repeated DB/upstream oracle calls.
  */
 export const fetchDashboardInitialDataCached = unstable_cache(
   fetchDashboardInitialData,
   ['dashboard-initial-data'],
-  { revalidate: 15 }
+  { revalidate: 60 }
 );
