@@ -8,14 +8,15 @@
  * Model (2026-09): Codex-style paid platform.
  *   - NO recurring free tier. API access requires either an active
  *     subscription or a positive credit-wallet balance.
- *   - New users get ONE non-refreshing trial grant (30 cr) after email
+ *   - New users get ONE non-refreshing trial grant (100 cr) after email
  *     verification so they can sample the API before paying — see
  *     POST /api/billing/signup-grant. It never refreshes and never re-issues.
  *   - ALL features are open to any paying user — there is no Tier 2/3 feature
  *     gating. The only gate is the wallet: a call is allowed iff the balance
  *     covers its credit cost (see metering.ts).
- *   - Subscriptions are Developer / Team (credit allowance + rate limit differ,
- *     features are identical). Enterprise is contact-sales unlimited.
+ *   - Subscriptions are Developer / Team / Scale (credit allowance + rate
+ *     limit differ, features are identical). Enterprise is contact-sales
+ *     unlimited.
  *   - Credits can be topped up on demand via CREDIT_PACKS, no subscription
  *     required (pure pay-as-you-go).
  *   - The public website (prices, protocols, rankings) stays free to browse;
@@ -29,8 +30,9 @@
  * clients should cache on their side.
  *
  * Pricing rationale (validated against 2026-07 market):
- *   - Developer 49 USDC/mo  : matches Moralis Starter, QuickNode Build (developer sweet spot)
- *   - Team 199 USDC/mo      : between QuickNode Scale and DefiLlama Pro (team sweet spot)
+ *   - Developer 49 USDC/mo  : 60K credits, entry production workload
+ *   - Team 199 USDC/mo      : 300K credits, multi-agent workload
+ *   - Scale 499 USDC/mo     : 1M credits, high-volume production workload
  *   - Yearly = 10x monthly (2 months free) : standard industry discount
  *
  * Payments are processed via NOWPayments (crypto only). Prices are denominated
@@ -42,13 +44,13 @@
 export const PLANS = {
   developer: {
     name: 'Developer',
-    rateLimit: 30, // requests per minute
-    monthlyQuota: 10_000, // credits included per billing cycle with a subscription
+    rateLimit: 60, // requests per minute
+    monthlyQuota: 60_000, // credits included per billing cycle with a subscription
     priceMonthly: 49,
     priceYearly: 490,
     features: [
-      '10,000 credits / month included',
-      '30 requests / minute',
+      '60,000 credits / month included',
+      '60 requests / minute',
       'Full platform access — every endpoint & MCP tool',
       'Historical 15-minute snapshots (90-day archive)',
       'Reliability rankings (90-day trend)',
@@ -60,18 +62,34 @@ export const PLANS = {
   },
   team: {
     name: 'Team',
-    rateLimit: 60, // requests per minute
-    monthlyQuota: 50_000, // credits included per billing cycle with a subscription
+    rateLimit: 300, // requests per minute
+    monthlyQuota: 300_000, // credits included per billing cycle with a subscription
     priceMonthly: 199,
     priceYearly: 1990,
     features: [
-      '50,000 credits / month included',
-      '60 requests / minute',
+      '300,000 credits / month included',
+      '300 requests / minute',
       'Full platform access — every endpoint & MCP tool',
       'Batch query priority queue',
       'Quarterly reliability review',
       '99.5% uptime SLA',
       'Slack support (24h SLA)',
+    ],
+  },
+  scale: {
+    name: 'Scale',
+    rateLimit: 1_200, // requests per minute
+    monthlyQuota: 1_000_000, // credits included per billing cycle with a subscription
+    priceMonthly: 499,
+    priceYearly: 4990,
+    features: [
+      '1,000,000 credits / month included',
+      '1,200 requests / minute',
+      'Full platform access — every endpoint & MCP tool',
+      'Highest-priority batch queue',
+      'Monthly reliability review',
+      '99.9% uptime SLA',
+      'Dedicated support channel (4h SLA)',
     ],
   },
   enterprise: {
@@ -97,7 +115,7 @@ export type Plan = keyof typeof PLANS;
 export type BillingInterval = 'month' | 'year';
 
 /** Ordered list for display in pricing page (also the tier ladder, ascending). */
-export const PLAN_ORDER: Plan[] = ['developer', 'team', 'enterprise'];
+export const PLAN_ORDER: Plan[] = ['developer', 'team', 'scale', 'enterprise'];
 
 // ---------------------------------------------------------------------------
 // Credit packs — prepaid top-ups. Available to every user (no subscription
@@ -135,8 +153,9 @@ export const CREDIT_PACK_ORDER: CreditPack[] = ['starter', 'builder', 'agent'];
  * activation). Enterprise is unlimited and receives no grant.
  */
 export function planCreditGrant(planValue: Plan): number {
-  if (planValue === 'developer') return PLANS.developer.monthlyQuota; // 10_000
-  if (planValue === 'team') return PLANS.team.monthlyQuota; // 50_000
+  if (planValue === 'developer') return PLANS.developer.monthlyQuota; // 60_000
+  if (planValue === 'team') return PLANS.team.monthlyQuota; // 300_000
+  if (planValue === 'scale') return PLANS.scale.monthlyQuota; // 1_000_000
   return 0; // enterprise — unlimited
 }
 

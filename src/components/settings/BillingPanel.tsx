@@ -45,6 +45,7 @@ interface SubscriptionData {
 const PLAN_BADGE_STYLES: Record<string, string> = {
   developer: 'bg-blue-100 text-blue-700',
   team: 'bg-blue-100 text-blue-700',
+  scale: 'bg-indigo-100 text-indigo-800',
   enterprise: 'bg-amber-100 text-amber-700',
 };
 
@@ -100,7 +101,7 @@ export function BillingPanel() {
     // and interval. Crypto payments have no auto-renew, so users must manually
     // initiate each billing cycle before expiry.
     const currentInterval = subscription?.interval === 'year' ? 'year' : 'month';
-    const currentPlan = subscription?.plan as 'developer' | 'team' | undefined;
+    const currentPlan = subscription?.plan as 'developer' | 'team' | 'scale' | undefined;
     if (!currentPlan) {
       setError('No active subscription plan found to renew');
       return;

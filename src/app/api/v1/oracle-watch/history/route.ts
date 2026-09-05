@@ -22,7 +22,9 @@ export const OracleWatchHistoryQuerySchema = z.object({
   interval: z
     .enum(['30min', 'hourly', 'daily'])
     .optional()
-    .describe('Aggregation grain: 30min (raw), hourly, or daily'),
+    .describe(
+      'Aggregation grain: 30min, hourly, or daily; long windows are automatically rolled up'
+    ),
 });
 
 export const OPTIONS = createOptionsHandler();

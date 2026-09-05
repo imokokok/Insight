@@ -25,6 +25,12 @@ BEGIN;
 -- ============================================================================
 -- 1. Rename legacy plan values → developer / team, with matching rate limits.
 -- ============================================================================
+-- Drop the legacy constraints BEFORE rewriting existing rows. PostgreSQL CHECK
+-- constraints are immediate, so updating free/pro/protocol to developer/team
+-- while the old enum is still installed fails as soon as any legacy row exists.
+ALTER TABLE "public"."api_keys" DROP CONSTRAINT IF EXISTS "api_keys_plan_check";
+ALTER TABLE "public"."subscriptions" DROP CONSTRAINT IF EXISTS "subscriptions_plan_check";
+
 -- Note: within one UPDATE all expressions see the OLD row, so the CASE on
 -- "plan" below refers to the pre-rename value.
 UPDATE "public"."api_keys"
@@ -55,12 +61,10 @@ UPDATE "public"."subscriptions"
 -- ============================================================================
 -- 2. Rebuild plan CHECK constraints (developer / team / enterprise only).
 -- ============================================================================
-ALTER TABLE "public"."api_keys" DROP CONSTRAINT IF EXISTS "api_keys_plan_check";
 ALTER TABLE "public"."api_keys"
   ADD CONSTRAINT "api_keys_plan_check"
   CHECK ("plan" IN ('developer', 'team', 'enterprise'));
 
-ALTER TABLE "public"."subscriptions" DROP CONSTRAINT IF EXISTS "subscriptions_plan_check";
 ALTER TABLE "public"."subscriptions"
   ADD CONSTRAINT "subscriptions_plan_check"
   CHECK ("plan" IN ('developer', 'team', 'enterprise'));

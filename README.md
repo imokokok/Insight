@@ -126,7 +126,7 @@ The package supports v1, v2, v3, and v2/v3 recheck receipts. Its schema constant
 
 ### Access
 
-- **MCP tool** — `pre_trade_safety_check` (one of 33 tools).
+- **MCP tool** — `pre_trade_safety_check` (one of 37 tools).
 - **REST** — `GET /api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=100000`.
 - **Web** — interactive demo at `/ai`; the same lending check is embedded live on every position at `/safety-check`.
 
@@ -173,10 +173,12 @@ the proof instead of living only in a log.
 ### Access
 
 - **MCP tools** — `oracle_watch` (live point signal) and `oracle_watch_history`
-  (retrospective trend), two of 34. Pair them with `pre_trade_safety_check` for
+  (retrospective trend), two of 37. Pair them with `pre_trade_safety_check` for
   the decision moment.
 - **REST** — `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` and
-  `GET /api/v1/oracle-watch/history?symbol=ETH&chain=arbitrum&days=7`.
+  `GET /api/v1/oracle-watch/history?symbol=ETH&chain=arbitrum&days=7`. Every
+  paying key gets the full 90-day window; long windows roll up hourly or daily
+  in Postgres so responses remain complete and bounded.
 - **Web** — interactive demo with MCP + REST calling methods at `/ai#oracle-watch`.
 
 ### History coverage — what we promise
@@ -252,7 +254,7 @@ signal itself is unchanged.
 ### For AI Agents
 
 - **Pre-Trade Oracle Safety Check** — the flagship checkpoint described above.
-- **32-tool MCP server** — prices, consensus, risk, reputation, stablecoin pegs, protocol parameters, position safety, pre-trade checks — callable by Claude, Cursor, Windsurf, and any MCP-compatible client.
+- **37-tool MCP server** — prices, consensus, risk, reputation, stablecoin pegs, protocol parameters, position safety, pre-trade checks — callable by Claude, Cursor, Windsurf, and any MCP-compatible client.
 - **Verifiable attestations** — signed EIP-712 proof agents can relay to users and protocols, with a standalone local verifier for consumers that need independent verification.
 
 ### Shared
@@ -305,7 +307,7 @@ The safety check calculates critical deviation percentage, liquidation trigger p
 - **Database & Auth**: Supabase (PostgreSQL + RLS + pg_cron)
 - **Blockchain**: viem 2, @api3/contracts, supra-oracle-sdk, @stellar/stellar-sdk
 - **AI Agent Layer**: @modelcontextprotocol/sdk 1.x (stdio + HTTP transports)
-- **Billing**: Creem (Merchant of Record) — API-key subscriptions and plan gating
+- **Billing**: NOWPayments — USDC-denominated subscriptions, prepaid credit packs, and per-call credit-wallet metering
 - **Validation**: zod 4
 - **Error Tracking**: Sentry
 - **Observability**: Vercel Analytics, Vercel Speed Insights
@@ -317,7 +319,7 @@ npm install
 npm run dev
 ```
 
-Set up environment variables first (see `src/lib/config/env.ts` for the full reference). Required in production: Supabase URL + anon key + service-role key, `CSRF_SECRET`, `JWT_SECRET`. In non-production, missing secrets fall back to safe dev defaults so the app runs without a full env setup. Optional: Sentry DSN, Creem billing keys (degrades to free-only when unset), per-chain `ALCHEMY_<CHAIN>_RPC` endpoints, TRON / WINkLink access, and `ATTESTATION_SIGNER_PRIVATE_KEY` to enable signed pre-trade attestations.
+Set up environment variables first (see `src/lib/config/serverEnv.ts` for the full reference). Required in production: Supabase URL + anon key + service-role key, `CSRF_SECRET`, `JWT_SECRET`. In non-production, missing secrets fall back to safe dev defaults so the app runs without a full env setup. Optional: Sentry DSN, NOWPayments billing keys (checkout is unavailable when unset), per-chain `ALCHEMY_<CHAIN>_RPC` endpoints, TRON / WINkLink access, and `ATTESTATION_SIGNER_PRIVATE_KEY` to enable signed pre-trade attestations.
 
 ## Project Structure
 
@@ -328,7 +330,7 @@ src/
 ├── hooks/        # React hooks
 ├── lib/          # Core logic — analytics, api, attestations, billing, ml, oracles,
 │                 #   protocols, risk, stablecoins, supabase, ...
-├── mcp/          # MCP server implementation (stdio + http transports, 33 tools)
+├── mcp/          # MCP server implementation (stdio + http transports, 37 tools)
 ├── providers/    # React context providers
 ├── stores/       # Zustand state stores
 ├── types/        # TypeScript type definitions
@@ -348,12 +350,12 @@ free tier and no feature gating** — every paying user gets every endpoint and
 MCP tool. A call is allowed iff the key's credit balance covers its metering
 class cost.
 
-| Component             | Description                                                                                                                                                                                                                                                                      |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Trial**             | New users get **30 one-time trial credits** after email verification (`POST /api/billing/signup-grant`). It never refreshes and never re-issues.                                                                                                                                 |
-| **Subscriptions**     | **Developer** ($49/mo → 10,000 credits/mo, 30 req/min) and **Team** ($199/mo → 50,000 credits/mo, 60 req/min). Yearly = 10× monthly. **Enterprise** is contact-sales unlimited. Subscriptions add a monthly credit allowance to the wallet; features are identical across plans. |
-| **Credit packs**      | Prepaid top-ups, no subscription required: **Starter** (25,000 cr / $39), **Builder** (100,000 cr / $129), **Agent** (500,000 cr / $499).                                                                                                                                        |
-| **Per-call metering** | Every call is charged from the wallet by metering class C1–C4 (see `src/lib/billing/metering.ts`).                                                                                                                                                                               |
+| Component             | Description                                                                                                                                                                                                                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Trial**             | New users get **100 one-time trial credits** after email verification (`POST /api/billing/signup-grant`). It never refreshes and never re-issues.                                                                                                                                  |
+| **Subscriptions**     | **Developer** ($49/mo → 60,000 credits/mo, 60 req/min), **Team** ($199/mo → 300,000 credits/mo, 300 req/min), and **Scale** ($499/mo → 1,000,000 credits/mo, 1,200 req/min). Yearly = 10× monthly. **Enterprise** is contact-sales unlimited. Features are identical across plans. |
+| **Credit packs**      | Prepaid top-ups, no subscription required: **Starter** (25,000 cr / $39), **Builder** (100,000 cr / $129), **Agent** (500,000 cr / $499).                                                                                                                                          |
+| **Per-call metering** | Every call is charged from the wallet by metering class C1–C4 (see `src/lib/billing/metering.ts`).                                                                                                                                                                                 |
 
 All paying users get the full 90-day history/reputation window. Payments are
 crypto-only via NOWPayments (USDC-denominated); subscriptions run one billing
@@ -362,11 +364,12 @@ stays free to browse — only API-key calls are metered.
 
 ### Plans
 
-| Plan       | Rate limit | Included credits/mo | Per-call metering        | Price         |
-| ---------- | ---------- | ------------------- | ------------------------ | ------------- |
-| Developer  | 30 req/min | 10,000              | C1–C4 (0.5 / 2 / 5 / 10) | $49/mo        |
-| Team       | 60 req/min | 50,000              | C1–C4 (0.5 / 2 / 5 / 10) | $199/mo       |
-| Enterprise | Unlimited  | Unlimited           | —                        | Contact sales |
+| Plan       | Rate limit    | Included credits/mo | Per-call metering        | Price         |
+| ---------- | ------------- | ------------------- | ------------------------ | ------------- |
+| Developer  | 60 req/min    | 60,000              | C1–C4 (0.5 / 2 / 5 / 10) | $49/mo        |
+| Team       | 300 req/min   | 300,000             | C1–C4 (0.5 / 2 / 5 / 10) | $199/mo       |
+| Scale      | 1,200 req/min | 1,000,000           | C1–C4 (0.5 / 2 / 5 / 10) | $499/mo       |
+| Enterprise | Unlimited     | Unlimited           | —                        | Contact sales |
 
 Credits are stored in `credit_wallet` / `credit_ledger` (migration `0039`).
 The monthly allowance is credited on subscription activation and at each cycle
@@ -379,7 +382,7 @@ Key endpoint groups (all under `/api/v1/`): `prices*`, `reputation*`, `feeds*`, 
 
 ## AI Agent Integration (MCP Server)
 
-Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — **33 tools** covering prices, consensus, risk summaries, liquidation stress tests, stablecoin pegs, reputation, feed health, and protocol parameters, with the flagship `pre_trade_safety_check` and the always-on `oracle_watch` signal on top. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
+Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — **37 tools** covering prices, consensus, risk summaries, liquidation stress tests, stablecoin pegs, reputation, feed health, and protocol parameters, with the flagship `pre_trade_safety_check` and the always-on `oracle_watch` signal on top. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
 
 Quick start:
 
@@ -390,7 +393,7 @@ npm run mcp:http    # HTTP transport on http://127.0.0.1:3001/mcp
 
 When the Next.js app is running, the endpoint is also available at `/api/mcp` with the same authentication, rate limiting, and quota enforcement as the REST API.
 
-**Web hub — visit `/ai`** in the app to run the interactive pre-trade safety demo and the Oracle Watch demo, copy one-click MCP configs for Cursor / Windsurf / Claude Desktop, manage API keys, and test all 33 tools in the browser-based MCP Playground.
+**Web hub — visit `/ai`** in the app to run the interactive pre-trade safety demo and the Oracle Watch demo, copy one-click MCP configs for Cursor / Windsurf / Claude Desktop, manage API keys, and test all 37 tools in the browser-based MCP Playground.
 
 ## Data Pipeline
 

@@ -1,4 +1,5 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 
 import type { OracleWatchMlRiskLevel, OracleWatchTrustLevel } from './oracleWatchService';
@@ -68,6 +69,23 @@ export interface OracleWatchHistoryResult {
   series: OracleWatchHistoryPoint[];
   summary: OracleWatchHistorySummary;
 }
+
+interface OracleWatchHistoryRpcRow {
+  bucket_at: string;
+  last_observed_at: string;
+  verdict: string;
+  recommendation: string;
+  max_deviation_pct: number | null;
+  agreement: number;
+  participant_count: number;
+  ml_risk_score: number | null;
+  ml_risk_level: OracleWatchMlRiskLevel | null;
+  trust_score: number | null;
+  trust_level: OracleWatchTrustLevel | null;
+}
+
+const HISTORY_CACHE_TTL_MS = 5 * 60 * 1000;
+const historyRowsCache = new TTLCache({ maxSize: 256 });
 
 /** Severity rank used when collapsing a bucket to its worst verdict. */
 const VERDICT_RANK: Record<string, number> = { normal: 0, caution: 1, danger: 2 };
@@ -224,6 +242,52 @@ export function summarizeOracleWatchSeries(
   };
 }
 
+/**
+ * Bound every history response below Supabase/PostgREST's 1,000-row guard.
+ * The product promise is the look-back window, not 30-minute resolution over
+ * the entire archive: recent windows may stay raw, while longer windows are
+ * automatically rolled up without dropping any retained time range.
+ */
+export function resolveOracleWatchHistoryInterval(
+  days: number,
+  requested: OracleWatchInterval = '30min'
+): OracleWatchInterval {
+  if (days > 30) return 'daily';
+  if (days > 7 && requested === '30min') return 'hourly';
+  return requested;
+}
+
+async function fetchOracleWatchHistoryRows(args: {
+  symbol: string;
+  chain?: string;
+  days: number;
+  interval: OracleWatchInterval;
+}): Promise<OracleWatchHistoryRpcRow[]> {
+  const cacheKey = [
+    args.symbol.toUpperCase(),
+    args.chain?.toLowerCase() ?? 'global',
+    args.days,
+    args.interval,
+  ].join(':');
+  const cached = historyRowsCache.get<OracleWatchHistoryRpcRow[]>(cacheKey);
+  if (cached !== null) return cached;
+
+  const supabase = createServiceRoleClient();
+  const { data, error } = await supabase.rpc('get_oracle_watch_history', {
+    p_symbol: args.symbol,
+    p_chain: args.chain ?? null,
+    p_days: args.days,
+    p_interval: args.interval,
+  });
+  if (error) {
+    throw new Error(`Failed to fetch Oracle Watch history: ${error.message}`);
+  }
+
+  const rows = (data ?? []) as OracleWatchHistoryRpcRow[];
+  historyRowsCache.set(cacheKey, rows, HISTORY_CACHE_TTL_MS);
+  return rows;
+}
+
 export async function getOracleWatchHistory(args: {
   symbol: string;
   chain?: string;
@@ -231,27 +295,11 @@ export async function getOracleWatchHistory(args: {
   interval?: OracleWatchInterval;
 }): Promise<OracleWatchHistoryResult> {
   const { symbol, chain, days } = args;
-  const interval: OracleWatchInterval = args.interval ?? '30min';
-  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const interval = resolveOracleWatchHistoryInterval(days, args.interval);
+  const rows = await fetchOracleWatchHistoryRows({ symbol, chain, days, interval });
 
-  const supabase = createServiceRoleClient();
-  let query = supabase
-    .from('feed_health_snapshots')
-    .select('*')
-    .eq('symbol', symbol)
-    .gte('evaluated_at', cutoff)
-    .order('evaluated_at', { ascending: true });
-  if (chain) {
-    query = query.eq('chain', chain);
-  }
-
-  const { data, error } = await query;
-  if (error) {
-    throw new Error(`Failed to fetch Oracle Watch history: ${error.message}`);
-  }
-
-  const raw: OracleWatchHistoryPoint[] = (data ?? []).map((row) => ({
-    evaluatedAt: row.evaluated_at,
+  const series: OracleWatchHistoryPoint[] = rows.map((row) => ({
+    evaluatedAt: row.bucket_at,
     verdict: row.verdict,
     recommendation: row.recommendation,
     maxDeviationPct: row.max_deviation_pct,
@@ -262,7 +310,6 @@ export async function getOracleWatchHistory(args: {
     trustScore: row.trust_score,
     trustLevel: row.trust_level,
   }));
-  const series = aggregateOracleWatchSeries(raw, interval);
   const summary = summarizeOracleWatchSeries(series);
 
   // Spine staleness guard: the 30-min collector writes every ~30 min. If the
@@ -271,9 +318,9 @@ export async function getOracleWatchHistory(args: {
   const now = Date.now();
   let spineStale = false;
   let lastCollectedAt: string | null = summary.lastCollectedAt;
-  if (raw.length > 0) {
-    const newest = Date.parse(raw[raw.length - 1].evaluatedAt);
-    lastCollectedAt = raw[raw.length - 1].evaluatedAt;
+  if (rows.length > 0) {
+    lastCollectedAt = rows[rows.length - 1].last_observed_at;
+    const newest = Date.parse(lastCollectedAt);
     if (Number.isNaN(newest) || now - newest > SPINE_STALE_WINDOW_MS) spineStale = true;
   }
 

@@ -67,7 +67,7 @@ async function callPost(context: Record<string, unknown> = {}): Promise<Response
 describe('POST /api/billing/signup-grant', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockTopUpCredits.mockResolvedValue(30);
+    mockTopUpCredits.mockResolvedValue(100);
   });
 
   it('returns 401 without an authenticated user', async () => {
@@ -87,7 +87,7 @@ describe('POST /api/billing/signup-grant', () => {
     expect(mockTopUpCredits).not.toHaveBeenCalled();
   });
 
-  it('grants 30 credits once to a verified new user', async () => {
+  it('grants 100 credits once to a verified new user', async () => {
     mockCreateServiceRoleClient.mockReturnValue(
       createServiceMock({ emailConfirmedAt: '2026-09-03T00:00:00Z', existingGrant: false })
     );
@@ -95,10 +95,10 @@ describe('POST /api/billing/signup-grant', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.data).toEqual({ granted: true, balance: 30 });
+    expect(body.data).toEqual({ granted: true, balance: 100 });
     expect(mockTopUpCredits).toHaveBeenCalledWith({
       userId: 'user_1',
-      amount: 30,
+      amount: 100,
       meteringKey: 'signup:user_1',
       kind: 'grant',
       ref: 'signup',
@@ -109,13 +109,13 @@ describe('POST /api/billing/signup-grant', () => {
     mockCreateServiceRoleClient.mockReturnValue(
       createServiceMock({ emailConfirmedAt: '2026-09-03T00:00:00Z', existingGrant: true })
     );
-    mockTopUpCredits.mockResolvedValue(30);
+    mockTopUpCredits.mockResolvedValue(100);
 
     const response = await callPost();
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.data).toEqual({ granted: false, balance: 30 });
+    expect(body.data).toEqual({ granted: false, balance: 100 });
     // topUpCredits is still called — idempotent server-side, same key.
     expect(mockTopUpCredits).toHaveBeenCalledWith(
       expect.objectContaining({ meteringKey: 'signup:user_1' })

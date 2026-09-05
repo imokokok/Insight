@@ -14,7 +14,7 @@
  *      reverse-look up this row by invoice_id to read plan/interval/user.
  *   4. Return the invoice URL for the frontend to redirect to.
  *
- * Request body: { plan: 'developer' | 'team', interval: 'month' | 'year' }
+ * Request body: { plan: 'developer' | 'team' | 'scale', interval: 'month' | 'year' }
  *               { type: 'topup', pack: 'starter' | 'builder' | 'agent' }
  * Response:     { success: true, data: { url: string } }
  *               { success: false, error: { code, message } }
@@ -41,7 +41,7 @@ const CheckoutSchema = z.object({
   // 'subscription': renew/upgrade to a paid plan (existing flow).
   // 'topup':        buy a prepaid credit pack, added to the wallet.
   type: z.enum(['subscription', 'topup']).default('subscription'),
-  plan: z.enum(['developer', 'team']).optional(),
+  plan: z.enum(['developer', 'team', 'scale']).optional(),
   interval: z.enum(['month', 'year']).optional(),
   pack: z.enum(['starter', 'builder', 'agent']).optional(),
 });

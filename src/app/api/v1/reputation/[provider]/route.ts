@@ -60,8 +60,8 @@ export const GET = createApiHandler(
     const data: Record<string, unknown> = { reputation };
 
     if (trend) {
-      // Tier the trend window by plan for API-key requests: Free 7d, Pro 30d,
-      // Protocol/Enterprise 90d. Session (UI) requests are left unclamped.
+      // All credit-backed API keys receive the same 90-day history window.
+      // Session (UI) requests are already bounded by the request schema.
       let trendDays = days;
       const apiKeyPlan = context.auth?.apiKey?.plan;
       if (apiKeyPlan) {

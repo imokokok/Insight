@@ -44,13 +44,15 @@ export const OracleWatchHistoryJsonSchema = z.object({
     .number()
     .int()
     .min(1)
-    .max(30)
+    .max(90)
     .optional()
-    .describe('Look-back window in days (1-30, default 7)'),
+    .describe('Look-back window in days (1-90, default 7)'),
   interval: z
     .enum(['30min', 'hourly', 'daily'])
     .optional()
-    .describe('Aggregation grain: 30min (raw spine), hourly, or daily. Default hourly'),
+    .describe(
+      'Aggregation grain: 30min, hourly, or daily. Default hourly; 8-30d raw requests roll up hourly and windows over 30d roll up daily'
+    ),
 });
 
 export const RiskSummaryJsonSchema = z.object({

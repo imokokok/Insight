@@ -32,7 +32,7 @@ export function TrialGrantNotice() {
           <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-emerald-700">
             Trial credit issued
           </p>
-          <p className="font-semibold text-slate-900">You&apos;ve got 30 free trial credits!</p>
+          <p className="font-semibold text-slate-900">You&apos;ve got 100 free trial credits!</p>
           <p className="text-slate-600 mt-0.5">
             Sample the API now — then{' '}
             <Link href="/pricing" className="font-semibold text-blue-700 underline">

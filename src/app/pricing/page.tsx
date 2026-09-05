@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 const BILLING_FACTS = [
   {
-    value: '30',
+    value: '100',
     label: 'Trial credits',
     detail: 'One grant after email verification',
   },
@@ -53,7 +53,7 @@ export default function PricingPage() {
                 href="/register?redirect=/pricing"
                 className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
               >
-                Start with 30 credits
+                Start with 100 credits
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
@@ -94,11 +94,11 @@ export default function PricingPage() {
             <p className="editorial-index">01 — Select capacity</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                One evidence layer. Three operating scales.
+                One evidence layer. Four operating scales.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-                Developer and Team include monthly credits and defined rate limits. Enterprise adds
-                unlimited calls, custom service levels, and dedicated support.
+                Developer, Team, and Scale include monthly credits and defined rate limits.
+                Enterprise adds unlimited calls, custom service levels, and dedicated support.
               </p>
             </div>
           </div>

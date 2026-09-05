@@ -52,7 +52,7 @@ interface AuthState {
   initialized: boolean;
   subscription: Subscription | null;
   /** Set once when the one-time signup trial credit is claimed this session
-   *  (drives the dismissible "you got 30 free credits" notice). Never
+   *  (drives the dismissible "you got 100 free credits" notice). Never
    *  persisted — it is an ephemeral toast, not account state. */
   trialGranted: boolean;
 }

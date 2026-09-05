@@ -6,14 +6,21 @@ import { useRouter } from 'next/navigation';
 
 import { Check, Coins, Loader2, Zap } from 'lucide-react';
 
-import { CREDIT_PACKS, CREDIT_PACK_ORDER, PLANS } from '@/lib/billing/plans';
+import { CREDIT_PACKS, CREDIT_PACK_ORDER, PLANS, PLAN_ORDER, type Plan } from '@/lib/billing/plans';
 import { useSession } from '@/stores/authStore';
 
 interface PricingCardsProps {
   billingCycle: 'monthly' | 'yearly';
 }
 
-const planOrder = ['developer', 'team', 'enterprise'] as const;
+type SelfServePlan = Exclude<Plan, 'enterprise'>;
+
+const PLAN_DESCRIPTIONS: Record<Plan, string> = {
+  developer: 'For analysts and builders running production oracle checks.',
+  team: 'For teams running batch analytics and multi-agent workloads.',
+  scale: 'For high-volume applications with sustained agent traffic.',
+  enterprise: 'For protocols and risk committees managing systemic exposure.',
+};
 
 /** Per-call metering classes surfaced on the pricing page. */
 const METERING_ROWS = [
@@ -39,7 +46,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
   const [loadingPack, setLoadingPack] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubscribe = async (planId: 'developer' | 'team') => {
+  const handleSubscribe = async (planId: SelfServePlan) => {
     setError(null);
 
     // If not logged in, send to register first — they can subscribe after auth.
@@ -114,8 +121,8 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
           {error}
         </div>
       )}
-      <div className="grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-3">
-        {planOrder.map((planId) => {
+      <div className="grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-2 xl:grid-cols-4">
+        {PLAN_ORDER.map((planId) => {
           const plan = PLANS[planId];
           const isTeam = planId === 'team';
           const isEnterprise = planId === 'enterprise';
@@ -149,11 +156,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                   )}
                 </div>
                 <p className="text-sm text-slate-500 leading-relaxed">
-                  {isTeam
-                    ? 'For teams running batch analytics and multi-agent workloads.'
-                    : isEnterprise
-                      ? 'For protocol teams and risk committees managing systemic exposure.'
-                      : 'For analysts and builders who need deep oracle risk signals.'}
+                  {PLAN_DESCRIPTIONS[planId]}
                 </p>
               </div>
 
@@ -195,7 +198,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
               ) : (
                 <button
                   type="button"
-                  onClick={() => handleSubscribe(planId as 'developer' | 'team')}
+                  onClick={() => handleSubscribe(planId as SelfServePlan)}
                   disabled={isLoading}
                   className={`inline-flex w-full items-center justify-center gap-2 border px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                     isTeam

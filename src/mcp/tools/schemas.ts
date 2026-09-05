@@ -30,12 +30,8 @@ export const OracleWatchInputSchema = z.object({
   chain: SafeChainSchema.optional().describe('Optional blockchain filter'),
 });
 
-/**
- * History look-back for `oracle_watch_history`. Capped at 30d because the tool
- * is Pro-tier (REST allows 90d on Protocol) and the MCP handler has no plan
- * context to clamp against — bounding the input is the honest alternative to
- * silently truncating it later.
- */
+/** History look-back for `oracle_watch_history`. Every credit-backed plan gets
+ * the same 90-day archive across REST and MCP. */
 export const OracleWatchHistoryInputSchema = z.object({
   symbol: SafeSymbolSchema.describe('Asset symbol, e.g. BTC, ETH'),
   chain: SafeChainSchema.optional().describe('Optional blockchain filter'),
@@ -43,14 +39,16 @@ export const OracleWatchHistoryInputSchema = z.object({
     .number()
     .int()
     .min(1)
-    .max(30)
+    .max(90)
     .optional()
     .default(7)
-    .describe('Look-back window in days (1-30, default 7)'),
+    .describe('Look-back window in days (1-90, default 7)'),
   interval: z
     .enum(['30min', 'hourly', 'daily'])
     .optional()
-    .describe('Aggregation grain: 30min (raw spine), hourly, or daily. Default 30min')
+    .describe(
+      'Aggregation grain: 30min, hourly, or daily. Default hourly; 8-30d raw requests roll up hourly and windows over 30d roll up daily'
+    )
     .default('hourly'),
 });
 

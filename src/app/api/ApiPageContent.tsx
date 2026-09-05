@@ -164,7 +164,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What happens if I run out of quota / credits?',
-    a: 'Every API key is credit-metered: each call costs credits by metering class (C1–C4). Credits come from your wallet — a monthly allowance with a Developer/Team subscription, or prepaid top-up packs from Settings → Billing. When the wallet balance (or a key’s monthly credit budget) can’t cover the next call, requests return HTTP 402 with CREDIT_EXHAUSTED and the response includes your balance and a top-up link.',
+    a: 'Every API key is credit-metered: each call costs credits by metering class (C1–C4). Credits come from your wallet — a monthly allowance with a Developer, Team, or Scale subscription, or prepaid top-up packs from Settings → Billing. When the wallet balance (or a key’s monthly credit budget) can’t cover the next call, requests return HTTP 402 with CREDIT_EXHAUSTED and the response includes your balance and a top-up link.',
   },
   {
     q: 'Can I get a refund?',
@@ -172,15 +172,15 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Is commercial use allowed?',
-    a: 'Yes. Every paid plan (Developer, Team, Enterprise) includes commercial use rights. You can use the API in production applications, SaaS products, and internal tools. Attribution is appreciated but not required.',
+    a: 'Yes. Every paid plan (Developer, Team, Scale, Enterprise) includes commercial use rights. You can use the API in production applications, SaaS products, and internal tools. Attribution is appreciated but not required.',
   },
   {
     q: 'What are the rate limits?',
-    a: 'Developer: 30 req/min, Team: 60 req/min, Enterprise: custom. These are sized to the 15-minute data cadence — polling faster than 15 minutes yields no fresher snapshot data. Rate limit headers (X-RateLimit-*) are included in every response so you can implement client-side backoff.',
+    a: 'Developer: 60 req/min, Team: 300 req/min, Scale: 1,200 req/min, Enterprise: custom. These are sized to the 15-minute data cadence while allowing production traffic bursts. Rate limit headers (X-RateLimit-*) are included in every response so you can implement client-side backoff.',
   },
   {
     q: 'Do you offer a free trial?',
-    a: 'New users get 30 free trial credits after email verification — enough to sample the endpoints before paying. There is no recurring free tier; once the trial is used, you can start with a $39 prepaid Starter Pack (pay-as-you-go) or a Developer subscription from $49/mo, which includes 10,000 credits. The website itself stays free to browse.',
+    a: 'New users get 100 free trial credits after email verification — enough for five complete Guard workflows. There is no recurring free tier; once the trial is used, you can start with a $39 prepaid Starter Pack (pay-as-you-go) or a Developer subscription from $49/mo, which includes 60,000 credits. The website itself stays free to browse.',
   },
   {
     q: 'Is the data verified on-chain?',
@@ -438,10 +438,10 @@ function PricingSectionBlock() {
                 Pay for what your agents use
               </h2>
               <p className="max-w-2xl text-lg text-slate-600">
-                New users get 30 free trial credits after email verification, and every paying user
-                gets all endpoints. Developer/Team subscriptions include a monthly credit allowance
-                spent per call (C1–C4); top up prepaid credit packs for high-frequency and bursty
-                agent workloads. Crypto payments via NOWPayments.
+                New users get 100 free trial credits after email verification, and every paying user
+                gets all endpoints. Developer, Team, and Scale subscriptions include a monthly
+                credit allowance spent per call (C1–C4); top up prepaid credit packs for
+                high-frequency and bursty agent workloads. Crypto payments via NOWPayments.
               </p>
             </div>
           </div>

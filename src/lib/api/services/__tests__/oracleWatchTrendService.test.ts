@@ -1,5 +1,6 @@
 import {
   aggregateOracleWatchSeries,
+  resolveOracleWatchHistoryInterval,
   summarizeOracleWatchSeries,
   type OracleWatchHistoryPoint,
   type OracleWatchTrustLevel,
@@ -84,6 +85,24 @@ describe('aggregateOracleWatchSeries', () => {
     const hourly = aggregateOracleWatchSeries(series, 'hourly');
     expect(hourly[0].trustScore).toBe(44);
     expect(hourly[0].trustLevel).toBe('low');
+  });
+});
+
+describe('resolveOracleWatchHistoryInterval', () => {
+  it('keeps raw 30-minute points only for windows up to 7 days', () => {
+    expect(resolveOracleWatchHistoryInterval(7, '30min')).toBe('30min');
+    expect(resolveOracleWatchHistoryInterval(8, '30min')).toBe('hourly');
+  });
+
+  it('rolls windows over 30 days up to daily points', () => {
+    expect(resolveOracleWatchHistoryInterval(30, 'hourly')).toBe('hourly');
+    expect(resolveOracleWatchHistoryInterval(31, 'hourly')).toBe('daily');
+    expect(resolveOracleWatchHistoryInterval(90, '30min')).toBe('daily');
+  });
+
+  it('respects an explicitly coarser grain', () => {
+    expect(resolveOracleWatchHistoryInterval(7, 'daily')).toBe('daily');
+    expect(resolveOracleWatchHistoryInterval(30, 'daily')).toBe('daily');
   });
 });
 

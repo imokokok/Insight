@@ -9,7 +9,7 @@
  * Metering is a single credit-wallet path shared with REST: an API key may
  * call a tool iff its balance covers the tool's credit cost (getToolCreditCost).
  * There is no recurring free tier and no plan-based feature gating — the only
- * "free" credits are the one-time 30-credit signup trial grant, which simply
+ * "free" credits are the one-time 100-credit signup trial grant, which simply
  * tops up the same wallet.
  */
 

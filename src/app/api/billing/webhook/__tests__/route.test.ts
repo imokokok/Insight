@@ -115,7 +115,7 @@ describe('POST /api/billing/webhook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUpdateApiKeyPlanForUser.mockResolvedValue(undefined);
-    mockTopUpCredits.mockResolvedValue(10000);
+    mockTopUpCredits.mockResolvedValue(60000);
   });
 
   it('returns 400 when signature verification fails', async () => {
@@ -176,11 +176,11 @@ describe('POST /api/billing/webhook', () => {
     expect(response.status).toBe(200);
     expect(body).toEqual({ received: true });
     expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_123', 'developer');
-    // First-cycle allowance granted (developer = 10k), keyed per billing cycle.
+    // First-cycle allowance granted (developer = 60k), keyed per billing cycle.
     expect(mockTopUpCredits).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'user_123',
-        amount: 10000,
+        amount: 60000,
         meteringKey: 'grant:user_123:sub:order_2',
         kind: 'grant',
       })
@@ -232,7 +232,7 @@ describe('POST /api/billing/webhook', () => {
     expect(mockTopUpCredits).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'user_conf',
-        amount: 50000,
+        amount: 300000,
         meteringKey: expect.stringMatching(/^grant:user_conf:sub:sub_3:\d{4}-\d{2}$/),
         kind: 'grant',
       })

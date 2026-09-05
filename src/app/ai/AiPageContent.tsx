@@ -509,7 +509,7 @@ when the verdict turns DANGER.`}
             <div>
               <h2 className="text-3xl font-bold text-slate-900 mb-4">MCP Tool Playground</h2>
               <p className="max-w-2xl text-lg text-slate-600">
-                Test any of the 34 tools — including{' '}
+                Test any of the 37 tools — including{' '}
                 <code className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-mono text-sm text-slate-700">
                   pre_trade_safety_check
                 </code>{' '}
@@ -530,7 +530,7 @@ when the verdict turns DANGER.`}
 
       <PricingCtaSection
         title="AI Agent Pricing"
-        subtitle="MCP and safety-check calls share the same credit meter and billing as the REST API. New users get 30 free trial credits after email verification — Developer from 49 USDC/mo (10,000 credits) or pay-as-you-go top-up packs."
+        subtitle="MCP and safety-check calls share the same credit meter and billing as the REST API. New users get 100 free trial credits after email verification — Developer from 49 USDC/mo (60,000 credits) or pay-as-you-go top-up packs."
         buttonText="View Pricing"
       />
     </div>

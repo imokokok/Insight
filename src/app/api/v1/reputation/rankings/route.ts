@@ -28,9 +28,9 @@ export const GET = createApiHandler(
   async (_request: NextRequest, context) => {
     let days = context.validated!.query!.days;
 
-    // Tier the historical trend window by plan for API-key requests: Free 7d,
-    // Pro 30d, Protocol/Enterprise 90d. Session (UI) requests are left
-    // unclamped — the UI governs its own display and bypasses API-plan gating.
+    // All credit-backed API keys receive the same 90-day history window; the
+    // helper remains centralized so the public contract has one source of truth.
+    // Session (UI) requests are already bounded by the request schema.
     const apiKeyPlan = context.auth?.apiKey?.plan;
     if (apiKeyPlan) {
       const maxDays = maxTrendDays(normalizePlan(apiKeyPlan));

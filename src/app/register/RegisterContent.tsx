@@ -127,9 +127,9 @@ export default function RegisterContent() {
           <div className="mb-4 flex items-start gap-2 border-l-2 border-amber-500 bg-amber-50 p-3">
             <Coins className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
-              API access is credit-metered. New users get 30 free trial credits after email
+              API access is credit-metered. New users get 100 free trial credits after email
               verification — enough to sample the endpoints. After that, subscribe (Developer from
-              $49/mo — 10,000 credits) or top up a prepaid pack in{' '}
+              $49/mo — 60,000 credits) or top up a prepaid pack in{' '}
               <Link href="/settings?tab=billing" className="font-semibold underline">
                 Settings → Billing
               </Link>{' '}

@@ -16,7 +16,7 @@ import { Check, Coins, Globe, Lock, Zap } from 'lucide-react';
  *     priced per call (C1–C4) from the same wallet.
  *
  * The authoritative per-call pricing lives in src/lib/billing/metering.ts;
- * plan definitions (Developer/Team/Enterprise) live in src/lib/billing/plans.ts.
+ * plan definitions (Developer/Team/Scale/Enterprise) live in src/lib/billing/plans.ts.
  */
 
 // --- Metering classes surfaced as the pricing ladder -------------------------
@@ -254,16 +254,16 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
             ))}
           </div>
           <p className="px-5 py-3 text-xs text-slate-400 border-t border-slate-100">
-            Credits come from your wallet — a monthly allowance with Developer/Team, or prepaid
-            top-up packs. When the balance can&apos;t cover the next call, it returns HTTP 402 with
-            a top-up link. Enterprise is unlimited.
+            Credits come from your wallet — a monthly allowance with Developer, Team, or Scale, or
+            prepaid top-up packs. When the balance can&apos;t cover the next call, it returns HTTP
+            402 with a top-up link. Enterprise is unlimited.
           </p>
         </div>
 
         {/* Footnote */}
         <p className="text-xs text-slate-400 text-center mt-8 max-w-2xl mx-auto">
-          New users get 30 free trial credits after email verification. API access starts at a $49
-          Developer subscription (10,000 credits/mo) or a $39 prepaid Starter pack. The website
+          New users get 100 free trial credits after email verification. API access starts at a $49
+          Developer subscription (60,000 credits/mo) or a $39 prepaid Starter pack. The website
           remains free to browse.
         </p>
       </div>

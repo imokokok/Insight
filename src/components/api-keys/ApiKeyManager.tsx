@@ -31,6 +31,7 @@ interface CreatedKey {
 const PLAN_BADGE_STYLES: Record<string, string> = {
   developer: 'bg-blue-100 text-blue-700',
   team: 'bg-blue-100 text-blue-800',
+  scale: 'bg-indigo-100 text-indigo-800',
   enterprise: 'bg-amber-100 text-amber-700',
 };
 
@@ -164,7 +165,12 @@ export function ApiKeyManager({
     return new Date(value).toLocaleString();
   };
 
-  const order: Array<'developer' | 'team' | 'enterprise'> = ['developer', 'team', 'enterprise'];
+  const order: Array<'developer' | 'team' | 'scale' | 'enterprise'> = [
+    'developer',
+    'team',
+    'scale',
+    'enterprise',
+  ];
   const topPlan =
     keys.length === 0
       ? 'developer'

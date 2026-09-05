@@ -1,7 +1,7 @@
 /**
  * POST /api/billing/signup-grant
  *
- * One-time trial credit grant for new users (30 credits) so they can sample
+ * One-time trial credit grant for new users (100 credits) so they can sample
  * the API before paying. Requirements:
  *
  *   - Email-verified account only (anti-farming; OAuth signups are verified).
@@ -23,9 +23,9 @@ import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('billing-signup-grant');
 
-/** Trial credits granted once per user. Sized so ~15 cheap + a few deep calls
- *  are possible — enough to evaluate the platform, too small to farm. */
-export const TRIAL_CREDITS = 30;
+/** Trial credits granted once per user. Enough for five complete Guard
+ *  workflows (2x C3 + 1x C4), while remaining a bounded one-time grant. */
+export const TRIAL_CREDITS = 100;
 
 export const POST = createApiHandler(
   async (_request, context) => {

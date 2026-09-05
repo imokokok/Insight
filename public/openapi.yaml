@@ -1269,6 +1269,66 @@ paths:
         '402':
           $ref: '#/components/responses/CreditExhausted'
 
+  /oracle-watch/history:
+    get:
+      operationId: getOracleWatchHistory
+      tags: [Safety]
+      summary: Retrospective Oracle Watch credibility trend 🔒
+      description: |
+        Returns verdict stability, degraded-time ratio, worst deviation, mean credibility,
+        and a time series for Oracle Watch. API-key requests receive the full retained
+        90-day window on every paid plan. To keep responses bounded and complete, 30-minute
+        points are available for windows up to 7 days, 8–30 day windows are rolled up hourly,
+        and windows over 30 days are rolled up daily.
+
+        Omitting `chain` selects the global (`chain IS NULL`) series; it does not mix rows
+        from multiple blockchains.
+
+        **Credit-metered** — any API key with sufficient credit balance.
+      security:
+        - apiKey: []
+        - bearer: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          description: Asset symbol, e.g. ETH, BTC.
+          schema:
+            type: string
+            example: ETH
+        - name: chain
+          in: query
+          required: false
+          description: Optional blockchain filter. Omit for the global series.
+          schema:
+            type: string
+            example: arbitrum
+        - name: days
+          in: query
+          required: false
+          description: Look-back window. API-key requests are capped at 90 days.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+        - name: interval
+          in: query
+          required: false
+          description: Requested grain; long windows are automatically rolled up as described above.
+          schema:
+            type: string
+            enum: [30min, hourly, daily]
+      responses:
+        '200':
+          description: Oracle Watch historical credibility trend
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OracleWatchHistoryResponse'
+        '402':
+          $ref: '#/components/responses/CreditExhausted'
+
   # ── Risk Signals ─────────────────────────────────────────
   /oracles/health:
     get:
@@ -3966,6 +4026,118 @@ components:
             evaluatedAt:
               type: string
               format: date-time
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+
+    OracleWatchHistoryPoint:
+      type: object
+      properties:
+        evaluatedAt:
+          type: string
+          format: date-time
+          description: Start of the returned aggregation bucket.
+        verdict:
+          type: string
+          enum: [normal, caution, danger]
+        recommendation:
+          type: string
+        maxDeviationPct:
+          type: number
+          nullable: true
+        agreement:
+          type: number
+          minimum: 0
+          maximum: 1
+        participantCount:
+          type: integer
+        mlRiskScore:
+          type: number
+          nullable: true
+        mlRiskLevel:
+          type: string
+          nullable: true
+          enum: [low, medium, high]
+        trustScore:
+          type: number
+          nullable: true
+          minimum: 0
+          maximum: 100
+        trustLevel:
+          type: string
+          nullable: true
+          enum: [low, medium, high]
+
+    OracleWatchHistorySummary:
+      type: object
+      properties:
+        pointCount:
+          type: integer
+        currentVerdict:
+          type: string
+          nullable: true
+          enum: [normal, caution, danger]
+        normal:
+          type: integer
+        caution:
+          type: integer
+        danger:
+          type: integer
+        degradedRatio:
+          type: number
+          minimum: 0
+          maximum: 1
+        stabilityScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        avgAgreement:
+          type: number
+          minimum: 0
+          maximum: 1
+        maxDeviationPct:
+          type: number
+          nullable: true
+        trustScore:
+          type: number
+          nullable: true
+          minimum: 0
+          maximum: 100
+        trustLevel:
+          type: string
+          nullable: true
+          enum: [low, medium, high]
+        lastCollectedAt:
+          type: string
+          format: date-time
+          nullable: true
+        spineStale:
+          type: boolean
+
+    OracleWatchHistoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            symbol:
+              type: string
+            chain:
+              type: string
+              nullable: true
+            days:
+              type: integer
+            grain:
+              type: string
+              enum: [30min, hourly, daily]
+              description: Effective grain after automatic long-window rollup.
+            series:
+              type: array
+              items:
+                $ref: '#/components/schemas/OracleWatchHistoryPoint'
+            summary:
+              $ref: '#/components/schemas/OracleWatchHistorySummary'
         meta:
           $ref: '#/components/schemas/ApiMeta'
 

@@ -48,7 +48,7 @@ type QuotaMiddlewareResult =
  *
  * There is no recurring free tier and no plan-based feature gating: "can this
  * call proceed?" is answered solely by the wallet balance covering the credit
- * cost. The only free credits are the one-time 30-credit signup trial grant
+ * cost. The only free credits are the one-time 100-credit signup trial grant
  * (a wallet top-up, see POST /api/billing/signup-grant). The only bypass is
  * Enterprise (unlimited), which skips metering.
  *

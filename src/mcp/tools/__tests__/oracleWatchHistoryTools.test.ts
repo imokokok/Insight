@@ -4,6 +4,7 @@ import {
 } from '@/lib/api/services/oracleWatchTrendService';
 
 import { oracleWatchHistoryTool } from '../oracleWatchHistoryTools';
+import { OracleWatchHistoryInputSchema } from '../schemas';
 
 jest.mock('@/lib/api/services/oracleWatchTrendService', () => ({
   getOracleWatchHistory: jest.fn(),
@@ -161,5 +162,12 @@ describe('oracleWatchHistoryTool', () => {
       days: 30,
       interval: 'daily',
     });
+  });
+
+  it('accepts the full 90-day archive promised to every paid plan', () => {
+    expect(OracleWatchHistoryInputSchema.safeParse({ symbol: 'ETH', days: 90 }).success).toBe(true);
+    expect(OracleWatchHistoryInputSchema.safeParse({ symbol: 'ETH', days: 91 }).success).toBe(
+      false
+    );
   });
 });
