@@ -1,9 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 
-import { PortfolioDashboard } from './PortfolioDashboard';
 import type { ProtocolDetection } from '@/lib/protocols/detection';
 import type { ProtocolHealthEntry } from '@/lib/protocols/portfolio';
 import type { PositionCriticalResult } from '@/lib/protocols/protocolHealth';
+
+import { PortfolioDashboard } from './PortfolioDashboard';
 
 const mockHealth = {
   entries: [] as ProtocolHealthEntry[],
@@ -40,9 +41,23 @@ function result(critical: number, collateralSymbols: string[]): PositionCritical
     currentCollateralRatio: 2,
     currentHealthFactor: 1.6,
     assetDeviations: [],
-    jointDeviation: { symbol: 'JOINT', currentPrice: 0, criticalDeviationPercent: critical, criticalPrice: 0, direction: 'down', description: '' },
+    jointDeviation: {
+      symbol: 'JOINT',
+      currentPrice: 0,
+      criticalDeviationPercent: critical,
+      criticalPrice: 0,
+      direction: 'down',
+      description: '',
+    },
     deviationRatios: {},
-    worstDeviation: { symbol: 'JOINT', currentPrice: 0, criticalDeviationPercent: critical, criticalPrice: 0, direction: 'down', description: '' },
+    worstDeviation: {
+      symbol: 'JOINT',
+      currentPrice: 0,
+      criticalDeviationPercent: critical,
+      criticalPrice: 0,
+      direction: 'down',
+      description: '',
+    },
     pricePoints: [],
     safetyBuffer: {} as never,
     oracleWarnings: [],
@@ -57,7 +72,14 @@ function result(critical: number, collateralSymbols: string[]): PositionCritical
     liquidationThreshold: 1.25,
     criticalDeviationPercent: critical,
     criticalCollateralPrice: 0,
-    liquidationPriceBand: { center: 100, lower: 90, upper: 110, adversePercent: 10, favorablePercent: 10, unknown: false },
+    liquidationPriceBand: {
+      center: 100,
+      lower: 90,
+      upper: 110,
+      adversePercent: 10,
+      favorablePercent: 10,
+      unknown: false,
+    },
     skippedAssets: [],
   } as unknown as PositionCriticalResult;
 }
@@ -89,8 +111,18 @@ describe('PortfolioDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHealth.entries = [
-      { protocolId: 'aave-v3-ethereum', name: 'Aave V3', chain: 'ethereum', result: result(-28.3, ['ETH']) },
-      { protocolId: 'compound-v3-ethereum', name: 'Compound V3', chain: 'ethereum', result: result(-22.1, ['ETH']) },
+      {
+        protocolId: 'aave-v3-ethereum',
+        name: 'Aave V3',
+        chain: 'ethereum',
+        result: result(-28.3, ['ETH']),
+      },
+      {
+        protocolId: 'compound-v3-ethereum',
+        name: 'Compound V3',
+        chain: 'ethereum',
+        result: result(-22.1, ['ETH']),
+      },
     ];
     mockHealth.isLoading = false;
     mockHealth.error = null;

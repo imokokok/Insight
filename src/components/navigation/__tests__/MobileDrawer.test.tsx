@@ -12,7 +12,11 @@ jest.mock('../config', () => ({
 
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+  default: ({ src, alt }: { src: string; alt: string }) => (
+    // Test double for next/image; optimization is intentionally outside jsdom.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} />
+  ),
 }));
 
 const mockNavStructure: NavStructure = [

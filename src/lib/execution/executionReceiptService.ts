@@ -58,6 +58,8 @@ export type IssueExecutionReceiptErrorCode =
   | 'NOT_FOUND'
   | 'RPC_ERROR'
   | 'SIGNING_UNAVAILABLE'
+  | 'UNSUPPORTED_CROSS_CHAIN'
+  | 'UNCOMMITTED_EXECUTION_POLICY'
   /** A pre-trade attestation was presented but did not verify. Never downgraded
    *  to a weaker receipt: claiming a provenance you cannot prove is a rejection,
    *  not a lesser product. */
@@ -174,6 +176,8 @@ function deriveReasonCodes(params: {
   participantCount: number;
   sourceGroupCount: number;
   bindingMode: ExecutionBindingMode;
+  preTradeValidUntil: number;
+  executedAt: number;
 }): string[] {
   if (params.fillStatus === 'REVERTED' || params.fillStatus === 'FAILED') {
     return [params.fillStatus === 'REVERTED' ? 'TX_REVERTED' : 'TX_FAILED'];
@@ -193,6 +197,13 @@ function deriveReasonCodes(params: {
   // Report it first — it invalidates everything the quote comparison claims.
   if (params.oracleAgeSeconds < 0) {
     codes.push('PRE_TRADE_AFTER_EXECUTION');
+  }
+  if (
+    params.bindingMode === 'VERIFIED' &&
+    params.preTradeValidUntil > 0 &&
+    params.executedAt > params.preTradeValidUntil
+  ) {
+    codes.push('PRE_TRADE_OUTSIDE_EXECUTION_WINDOW');
   }
   // No proven pre-trade: the quote this receipt compares against is the
   // caller's own assertion, so faithfulness is not gradable.
@@ -222,7 +233,16 @@ function deriveReasonCodes(params: {
 export async function issueExecutionReceipt(
   params: IssueExecutionReceiptParams
 ): Promise<IssueExecutionReceiptResult> {
-  const chainId = params.subjectChainId;
+  if (params.subjectChainId !== params.settlementChainId) {
+    return {
+      ok: false,
+      code: 'UNSUPPORTED_CROSS_CHAIN',
+      message:
+        'Cross-chain settlement evidence is not supported yet; subjectChainId must equal settlementChainId.',
+    };
+  }
+
+  const chainId = params.settlementChainId;
   const endpoints = getRpcEndpoints(chainId);
   if (!endpoints) {
     return {
@@ -245,6 +265,7 @@ export async function issueExecutionReceipt(
       sourceAssetId: params.sourceAssetId,
       destinationAssetId: params.destinationAssetId,
       subjectChainId: params.subjectChainId,
+      action: params.action,
       participantCount: params.participantCount,
       sourceGroupCount: params.sourceGroupCount,
       preTradeSignedAt: params.preTradeSignedAt,
@@ -256,12 +277,30 @@ export async function issueExecutionReceipt(
   }
   const binding = bindingResult.binding;
 
+  // A VERIFIED receipt may only use the system policy that existed before the
+  // fill. A caller-selected post-settlement band is not evidence of compliance.
+  if (
+    binding.bindingMode === 'VERIFIED' &&
+    params.maxSlippageBps !== undefined &&
+    params.maxSlippageBps !== EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS
+  ) {
+    return {
+      ok: false,
+      code: 'UNCOMMITTED_EXECUTION_POLICY',
+      message: `VERIFIED receipts currently require the pre-committed ${EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS} bps execution policy.`,
+    };
+  }
+  const maxSlippageBps =
+    binding.bindingMode === 'VERIFIED'
+      ? EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS
+      : (params.maxSlippageBps ?? EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS);
+
   const factsResult = await collectExecutionFacts({
     txHash: params.txHash,
     chainId,
     endpoints,
-    sourceAssetId: params.sourceAssetId,
-    destinationAssetId: params.destinationAssetId,
+    sourceAssetId: binding.sourceAssetId,
+    destinationAssetId: binding.destinationAssetId,
     taker: params.taker,
     signal: params.signal,
     client: params.client,
@@ -290,11 +329,13 @@ export async function issueExecutionReceipt(
     fillStatus: facts.fillStatus,
     unavailableReason: facts.unavailableReason,
     priceDeltaBps,
-    maxSlippageBps: params.maxSlippageBps ?? EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
+    maxSlippageBps,
     oracleAgeSeconds,
     participantCount: binding.participantCount,
     sourceGroupCount: binding.sourceGroupCount,
     bindingMode: binding.bindingMode,
+    preTradeValidUntil: binding.preTradeValidUntil,
+    executedAt,
   });
 
   // v3 commits to which notional fields were genuinely measured. A field the
@@ -313,6 +354,7 @@ export async function issueExecutionReceipt(
       | undefined,
     requestHash: binding.requestHash as `0x${string}`,
     preTradeSignedAt: binding.preTradeSignedAt,
+    preTradeValidUntil: binding.preTradeValidUntil,
     bindingMode: binding.bindingMode,
     claimRole: params.claimRole,
     // The signed taker is whoever the chain says moved the balances. The
@@ -323,10 +365,10 @@ export async function issueExecutionReceipt(
     destinationAssetId: binding.destinationAssetId,
     subjectChainId: binding.subjectChainId,
     settlementChainId: params.settlementChainId,
-    action: params.action ?? 'SWAP',
+    action: binding.action,
     quotedPrice: binding.quotedPrice,
     executedPrice: facts.executedPrice ?? 0,
-    maxSlippageBps: params.maxSlippageBps,
+    maxSlippageBps,
     quoteVenueIndependent: params.quoteVenueIndependent,
     quoteBasis: params.quoteBasis,
     quoteBlockNumber: params.quoteBlockNumber,

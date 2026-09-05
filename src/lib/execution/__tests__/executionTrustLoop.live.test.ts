@@ -72,7 +72,9 @@ const SLOT0_SELECTOR = '0x3850c7bd';
 
 /** Slippage band the agent is held to: wide enough to absorb the real price
  *  impact of a normal swap, tight enough that a genuine deviation shows. */
-const MAX_SLIPPAGE_BPS = 100;
+// VERIFIED receipts currently use the platform policy committed before the
+// fill; callers cannot widen it after seeing settlement.
+const MAX_SLIPPAGE_BPS = 50;
 
 /** How long before settlement the gates are signed. Keeps oracleAgeSeconds
  *  positive (fresh basis) while honouring preTradeSignedAt <= executedAt. */

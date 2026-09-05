@@ -32,6 +32,7 @@ import type {
   RpcTransactionReceipt,
 } from '@/lib/oracles/utils/rpcClientWithFallback';
 
+import { verifyExecutionPair as verifyExecutionPairOffline } from '../../../../verifier/src';
 import { TRANSFER_TOPIC } from '../events';
 import { issueExecutionReceipt } from '../executionReceiptService';
 import { verifyExecutionPair } from '../verifyExecutionPair';
@@ -220,6 +221,28 @@ describe('verifiable execution trust loop (real crypto)', () => {
     expect(pair.binding.destinationPreTradeUidMatch).toBe(true);
     expect(pair.binding.preTradeUidsHashMatch).toBe(true);
     expect(pair.destinationPreTrade?.uid).toBe(destination!.uid);
+
+    const offline = await verifyExecutionPairOffline(
+      source! as never,
+      result.receipt as never,
+      destination! as never,
+      {
+        keyRegistry: {
+          keys: [
+            {
+              key_id: 'test',
+              public_key: result.receipt.attester,
+              validFrom: '2020-01-01',
+              validUntil: null,
+              revoked: false,
+              role: 'attester',
+            },
+          ],
+        },
+      }
+    );
+    expect(offline.pairedValid).toBe(true);
+    expect(offline.closedLoopStatus).toBe('PRICE_CLOSED_FAITHFUL');
   });
 
   it('reports PRICE_CLOSED_DEVIATED when the fill drifts past the certified band', async () => {

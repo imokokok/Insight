@@ -10,6 +10,8 @@
 
 import { createHmac } from 'node:crypto';
 
+import type * as NowPayments from '@/lib/billing/nowpayments';
+
 // Silence logger output during tests.
 jest.mock('@/lib/utils/logger', () => ({
   normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
@@ -23,7 +25,7 @@ jest.mock('@/lib/utils/logger', () => ({
 
 const TEST_IPN_SECRET = 'test-ipn-secret-key-0123456789';
 
-type NowPaymentsModule = typeof import('@/lib/billing/nowpayments');
+type NowPaymentsModule = typeof NowPayments;
 
 /**
  * Load the real nowpayments module in an isolated module registry so that

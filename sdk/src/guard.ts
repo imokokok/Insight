@@ -61,7 +61,7 @@ export class InsightGuard {
       ...request.source,
       schemaVersion: request.source.schemaVersion ?? 3,
     });
-    if (!sourceDecision.allowed) {
+    if (!sourceDecision.allowed || !isExecutionAuthorised(sourceDecision.result.verdict)) {
       return {
         status: 'blocked',
         stage: 'source_pre_trade',
@@ -73,7 +73,10 @@ export class InsightGuard {
       ...request.destination,
       schemaVersion: request.destination.schemaVersion ?? 3,
     });
-    if (!destinationDecision.allowed) {
+    if (
+      !destinationDecision.allowed ||
+      !isExecutionAuthorised(destinationDecision.result.verdict)
+    ) {
       return {
         status: 'blocked',
         stage: 'destination_pre_trade',
@@ -198,6 +201,26 @@ function buildVerifiedReceiptDraft(
       'Pre-trade attestations are missing canonical asset-pair bindings.'
     );
   }
+
+  const sourceChain = number(sourceData.subjectChainId);
+  const destinationChain = number(destinationData.subjectChainId);
+  if (sourceChain !== destinationChain || sourceChain !== receipt.settlementChainId) {
+    throw new ReceiptConfigurationError(
+      'Source gate, destination gate and settlement must use the same chain.'
+    );
+  }
+  if (
+    text(sourceData.action).toLowerCase() !== text(destinationData.action).toLowerCase() ||
+    (receipt.action != null &&
+      receipt.action.toLowerCase() !== text(sourceData.action).toLowerCase())
+  ) {
+    throw new ReceiptConfigurationError(
+      'Both gates and the receipt must describe the same action.'
+    );
+  }
+  if (number(sourceData.tradeAmountUsd) !== number(destinationData.tradeAmountUsd)) {
+    throw new ReceiptConfigurationError('Both gates must commit to the same trade amount.');
+  }
   if (
     sourceAssetId !== destinationDestinationAssetId ||
     destinationAssetId !== destinationSourceAssetId
@@ -227,7 +250,7 @@ function buildVerifiedReceiptDraft(
     settlementChainId: receipt.settlementChainId,
     participantCount: number(sourceData.participantCount),
     sourceGroupCount: number(sourceData.sourceGroupCount),
-    preTradeSignedAt: signedAtSeconds(sourceAttestation) || number(sourceData.checkedAt),
+    preTradeSignedAt: number(sourceData.checkedAt),
     quotedPrice: sourceConsensusUsd / destinationConsensusUsd,
     maxSlippageBps: receipt.maxSlippageBps,
     action: receipt.action ?? 'SWAP',
@@ -263,17 +286,8 @@ function text(value: unknown): string {
   return typeof value === 'string' ? value : '';
 }
 
-function signedAtSeconds(attestation: SignedAttestation): number {
-  if (typeof attestation.signedAt === 'number') {
-    return attestation.signedAt > 1e12
-      ? Math.floor(attestation.signedAt / 1000)
-      : Math.floor(attestation.signedAt);
-  }
-  if (typeof attestation.signedAt === 'string') {
-    const millis = Date.parse(attestation.signedAt);
-    if (Number.isFinite(millis)) return Math.floor(millis / 1000);
-  }
-  return 0;
+function isExecutionAuthorised(verdict: string): boolean {
+  return verdict === 'PASS' || verdict === 'CAUTION';
 }
 
 function targetKey(target: OracleWatchTarget): string {

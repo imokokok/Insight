@@ -7,6 +7,7 @@
 
 import type { ExecutionReceipt, ExecutionStatus } from '@/lib/attestations/executionReceipt';
 import { verifyExecutionReceipt } from '@/lib/attestations/executionReceipt';
+import type { KeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import { verifyAttestationBySchema } from '@/lib/attestations/verifyAttestationBySchema';
 
 import { verifyExecutionPair } from '../verifyExecutionPair';
@@ -23,10 +24,27 @@ jest.mock('@/lib/attestations/executionReceipt', () => ({
 const mockVerifyAttestation = verifyAttestationBySchema as unknown as jest.Mock;
 const mockVerifyExecution = verifyExecutionReceipt as unknown as jest.Mock;
 
+const CHECKED_AT = 1_700_000_000;
+const EXECUTED_AT = CHECKED_AT + 30;
+const registry: KeyRegistryConfig = {
+  keys: [
+    {
+      key_id: 'test',
+      public_key: '0xattester',
+      algorithm: 'EIP-712/secp256k1',
+      validFrom: '2020-01-01',
+      validUntil: null,
+      revoked: false,
+      role: 'attester',
+    },
+  ],
+  revoked: [],
+};
+
 function fakeExecReceipt(over: Partial<ExecutionReceipt['data']> = {}): ExecutionReceipt {
   return {
     uid: '0xexec',
-    schemaVersion: 1,
+    schemaVersion: 2,
     attester: '0xattester',
     attesterLabel: 'Execution',
     signedAt: '',
@@ -42,6 +60,7 @@ function fakeExecReceipt(over: Partial<ExecutionReceipt['data']> = {}): Executio
       subjectChainId: 1,
       settlementChainId: 1,
       action: 'SWAP',
+      bindingMode: 'VERIFIED',
       quotedPrice: 0,
       executedPrice: 0,
       priceDeltaBps: 0,
@@ -54,7 +73,7 @@ function fakeExecReceipt(over: Partial<ExecutionReceipt['data']> = {}): Executio
       executionStatus: 'FAITHFUL',
       txHash: '0xtx',
       blockNumber: 0,
-      executedAt: 0,
+      executedAt: EXECUTED_AT,
       oracleDataAgeAtExecSeconds: 0,
       participantCount: 3,
       requiredParticipantCount: 3,
@@ -63,8 +82,8 @@ function fakeExecReceipt(over: Partial<ExecutionReceipt['data']> = {}): Executio
       independenceSatisfied: true,
       mevRiskBps: 0,
       reasonCodesHash: '0x00',
-      validUntil: 0,
-      schemaVersion: 1,
+      validUntil: EXECUTED_AT + 600,
+      schemaVersion: 2,
       ...over,
     },
     eip712: { domain: {} as never, types: {} as never, primaryType: '' },
@@ -82,6 +101,9 @@ function fakePreTrade(over: Record<string, unknown> = {}) {
       subjectChainId: 1,
       sourceAssetId: 'eip155:1/erc20:0xaaa',
       destinationAssetId: 'eip155:1/erc20:0xbbb',
+      verdict: 'PASS',
+      action: 'swap',
+      tradeAmountUsd: 1_000_000,
       ...over,
     },
   };
@@ -101,8 +123,8 @@ function mockBoth(
     attester: '0xattester',
     reason: '',
     schemaVersion: 3,
-    checkedAt: 0,
-    validUntil: 0,
+    checkedAt: CHECKED_AT,
+    validUntil: CHECKED_AT + 600,
     ageSeconds: 0,
   });
   mockVerifyExecution.mockResolvedValue({
@@ -112,15 +134,20 @@ function mockBoth(
     reason: '',
     uid: '0xexec',
     attester: '0xattester',
-    executedAt: 0,
-    validUntil: 0,
+    bindingMode: 'VERIFIED',
+    executedAt: EXECUTED_AT,
+    validUntil: EXECUTED_AT + 600,
   });
+}
+
+function verifyPair(preTrade: ReturnType<typeof fakePreTrade>, execution: ExecutionReceipt) {
+  return verifyExecutionPair(preTrade, execution, null, { registry });
 }
 
 describe('verifyExecutionPair', () => {
   it('closes the loop as FAITHFUL when both receipts verify and bind', async () => {
     mockBoth();
-    const result = await verifyExecutionPair(fakePreTrade(), fakeExecReceipt());
+    const result = await verifyPair(fakePreTrade(), fakeExecReceipt());
 
     expect(result.pairedValid).toBe(true);
     expect(result.closedLoopStatus).toBe('CLOSED_FAITHFUL');
@@ -131,15 +158,18 @@ describe('verifyExecutionPair', () => {
       preTradeUidsHashMatch: true,
       chainMatch: true,
       assetMatch: true,
+      actionMatch: true,
+      destinationGateMatch: true,
+      trustedSigners: true,
+      preTradeAuthorized: true,
+      executionWithinGateWindow: true,
+      verifiedBinding: true,
     });
   });
 
   it('is PAIR_INVALID when the requestHash does not match', async () => {
     mockBoth();
-    const result = await verifyExecutionPair(
-      fakePreTrade({ requestHash: '0xother' }),
-      fakeExecReceipt()
-    );
+    const result = await verifyPair(fakePreTrade({ requestHash: '0xother' }), fakeExecReceipt());
 
     expect(result.pairedValid).toBe(false);
     expect(result.closedLoopStatus).toBe('PAIR_INVALID');
@@ -156,11 +186,11 @@ describe('verifyExecutionPair', () => {
       attester: '0xattester',
       reason: '',
       schemaVersion: 3,
-      checkedAt: 0,
-      validUntil: 0,
+      checkedAt: CHECKED_AT,
+      validUntil: CHECKED_AT + 600,
       ageSeconds: 0,
     });
-    const result = await verifyExecutionPair(fakePreTrade(), fakeExecReceipt());
+    const result = await verifyPair(fakePreTrade(), fakeExecReceipt());
 
     expect(result.pairedValid).toBe(false);
     expect(result.closedLoopStatus).toBe('PAIR_INVALID');
@@ -169,7 +199,7 @@ describe('verifyExecutionPair', () => {
 
   it('is PAIR_INVALID when the execution receipt signature is invalid', async () => {
     mockBoth({ execValid: false });
-    const result = await verifyExecutionPair(fakePreTrade(), fakeExecReceipt());
+    const result = await verifyPair(fakePreTrade(), fakeExecReceipt());
 
     expect(result.pairedValid).toBe(false);
     expect(result.closedLoopStatus).toBe('PAIR_INVALID');
@@ -178,7 +208,7 @@ describe('verifyExecutionPair', () => {
 
   it('is PAIR_INVALID when the pre-trade attestation is invalid', async () => {
     mockBoth({ preTradeValid: false });
-    const result = await verifyExecutionPair(fakePreTrade(), fakeExecReceipt());
+    const result = await verifyPair(fakePreTrade(), fakeExecReceipt());
 
     expect(result.pairedValid).toBe(false);
     expect(result.closedLoopStatus).toBe('PAIR_INVALID');
@@ -187,7 +217,7 @@ describe('verifyExecutionPair', () => {
 
   it('derives CLOSED_DEVIATED from a DEVIATED execution status', async () => {
     mockBoth({ execStatus: 'DEVIATED' });
-    const result = await verifyExecutionPair(fakePreTrade(), fakeExecReceipt());
+    const result = await verifyPair(fakePreTrade(), fakeExecReceipt());
 
     expect(result.pairedValid).toBe(true);
     expect(result.closedLoopStatus).toBe('CLOSED_DEVIATED');
@@ -195,7 +225,7 @@ describe('verifyExecutionPair', () => {
 
   it('derives CLOSED_NOT_EXECUTED from a NOT_EXECUTED execution status', async () => {
     mockBoth({ execStatus: 'NOT_EXECUTED' });
-    const result = await verifyExecutionPair(fakePreTrade(), fakeExecReceipt());
+    const result = await verifyPair(fakePreTrade(), fakeExecReceipt());
 
     expect(result.pairedValid).toBe(true);
     expect(result.closedLoopStatus).toBe('CLOSED_NOT_EXECUTED');
@@ -203,25 +233,66 @@ describe('verifyExecutionPair', () => {
 
   it('derives CLOSED_UNDETERMINED when the fill price was unreadable', async () => {
     mockBoth({ execStatus: 'UNDETERMINED' });
-    const result = await verifyExecutionPair(fakePreTrade(), fakeExecReceipt());
+    const result = await verifyPair(fakePreTrade(), fakeExecReceipt());
 
     expect(result.pairedValid).toBe(true);
     expect(result.closedLoopStatus).toBe('CLOSED_UNDETERMINED');
   });
 
-  it('still closes the loop when chain/asset ids disagree but the signed bindings match', async () => {
+  it('rejects the pair when chain or asset ids disagree', async () => {
     mockBoth();
-    const result = await verifyExecutionPair(
+    const result = await verifyPair(
       fakePreTrade({ subjectChainId: 42161, sourceAssetId: 'eip155:1/erc20:0xccc' }),
       fakeExecReceipt()
     );
 
-    // The cryptographic binding (uid + requestHash) is what gates pairing, so the
-    // loop still closes; the corroborating chain/asset fields are surfaced for a
-    // human to notice the mismatch.
-    expect(result.pairedValid).toBe(true);
-    expect(result.closedLoopStatus).toBe('CLOSED_FAITHFUL');
+    expect(result.pairedValid).toBe(false);
+    expect(result.closedLoopStatus).toBe('PAIR_INVALID');
     expect(result.binding.chainMatch).toBe(false);
     expect(result.binding.assetMatch).toBe(false);
+  });
+
+  it('accepts a historically expired proof when execution occurred inside the signed gate window', async () => {
+    mockBoth();
+    mockVerifyAttestation.mockResolvedValue({
+      valid: false,
+      expired: true,
+      uid: '0xpt',
+      attester: '0xattester',
+      reason: 'expired',
+      schemaVersion: 3,
+      checkedAt: CHECKED_AT,
+      validUntil: CHECKED_AT + 600,
+      ageSeconds: null,
+    });
+    mockVerifyExecution.mockResolvedValue({
+      valid: false,
+      expired: true,
+      executionStatus: 'FAITHFUL',
+      bindingMode: 'VERIFIED',
+      reason: 'receipt_expired',
+      uid: '0xexec',
+      attester: '0xattester',
+      executedAt: EXECUTED_AT,
+      validUntil: EXECUTED_AT + 600,
+    });
+    const result = await verifyPair(fakePreTrade(), fakeExecReceipt());
+    expect(result.pairedValid).toBe(true);
+    expect(result.closedLoopStatus).toBe('CLOSED_FAITHFUL');
+  });
+
+  it('rejects a BLOCK gate and a self-reported execution binding', async () => {
+    mockBoth();
+    const blocked = await verifyPair(fakePreTrade({ verdict: 'BLOCK' }), fakeExecReceipt());
+    expect(blocked.pairedValid).toBe(false);
+    expect(blocked.binding.preTradeAuthorized).toBe(false);
+
+    mockBoth();
+    const selfReported = await verifyPair(
+      fakePreTrade(),
+      fakeExecReceipt({ bindingMode: 'SELF_REPORTED' })
+    );
+    expect(selfReported.pairedValid).toBe(false);
+    expect(selfReported.binding.verifiedBinding).toBe(false);
   });
 });

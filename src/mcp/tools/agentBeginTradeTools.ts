@@ -90,11 +90,12 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
       const destCheck = await preTradeSafetyCheck({
         asset: args.destinationAsset,
         chainId: args.chainId,
-        action: 'swap',
+        action: args.action,
         tradeAmountUsd: args.tradeAmountUsd,
         targetProviders: args.targetProviders,
         protocolId: args.protocolId,
         schemaVersion: 3,
+        destinationAsset: args.asset,
       });
       destinationConsensus = destCheck.consensusPrice;
       destinationAttestation = destCheck.attestation;
@@ -146,7 +147,7 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
       sourceGroupCount,
       preTradeSignedAt,
       quotedPrice,
-      maxSlippageBps: args.maxSlippageBps,
+      maxSlippageBps: 50,
       action: args.action.toUpperCase(),
       verdict: sourceCheck.verdict,
       preTradeVerifyUrl: attestation.verifyUrl,

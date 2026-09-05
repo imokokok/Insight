@@ -31,7 +31,7 @@ import {
   projectExecutionDataForSchemaVersion,
   signExecutionReceipt,
 } from '@/lib/attestations/executionReceipt';
-import { recordExecutionReceiptAsync } from '@/lib/execution/executionReceiptAudit';
+import { recordExecutionReceipt } from '@/lib/execution/executionReceiptAudit';
 
 const PUBLIC_MIDDLEWARES = {
   logging: true,
@@ -146,11 +146,22 @@ export const GET = createApiHandler<
       );
     }
 
-    recordExecutionReceiptAsync(receipt, {
-      source: 'sample',
-      subjectChainId: 8453,
-      settlementChainId: 8453,
-    });
+    try {
+      await recordExecutionReceipt(receipt, {
+        source: 'sample',
+        subjectChainId: 8453,
+        settlementChainId: 8453,
+      });
+    } catch {
+      return NextResponse.json(
+        ApiResponseBuilder.error(
+          'AUDIT_PERSISTENCE_FAILED',
+          'The sample receipt could not be durably stored; retry the request.',
+          { requestId: context.requestId }
+        ),
+        { status: 503 }
+      );
+    }
 
     // The response carries the message projected onto the layout that was
     // actually signed (VERITAS round 3, closing F0/F8): `signExecutionReceipt`

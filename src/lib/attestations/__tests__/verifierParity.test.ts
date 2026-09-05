@@ -26,6 +26,18 @@ import { hashTypedData } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
 import {
+  buildExecutionMessage,
+  EXECUTION_DOMAIN,
+  EXECUTION_PRIMARY_TYPE,
+  EXECUTION_TYPES_V1,
+  EXECUTION_TYPES_V2,
+  EXECUTION_TYPES_V3,
+  EXECUTION_TYPES_V4,
+  executionTypedDataArgs,
+  verifyExecutionReceipt as verifyExecutionReceiptInApp,
+  type ExecutionReceipt,
+} from '@/lib/attestations/executionReceipt';
+import {
   ATTESTATION_DOMAIN,
   ATTESTATION_PRIMARY_TYPE,
   ATTESTATION_TYPES,
@@ -44,7 +56,11 @@ import {
 } from '@/lib/attestations/oracleSafetyRecheckV3';
 import { verifyAttestationBySchema } from '@/lib/attestations/verifyAttestationBySchema';
 
-import { verifyReceipt } from '../../../../verifier/src/index';
+import * as verifierExecution from '../../../../verifier/src/execution';
+import {
+  verifyExecutionReceipt as verifyExecutionReceiptOffline,
+  verifyReceipt,
+} from '../../../../verifier/src/index';
 import * as verifierSchemas from '../../../../verifier/src/schemas';
 
 import type { RoutableAttestation } from '../../../../verifier/src/types';
@@ -194,6 +210,10 @@ describe('verifier layout parity', () => {
     ['v3', V3_TYPES, verifierSchemas.V3_TYPES],
     ['recheck', RECHECK_TYPES, verifierSchemas.RECHECK_TYPES],
     ['recheckV3', RECHECK_V3_TYPES, verifierSchemas.RECHECK_V3_TYPES],
+    ['executionV1', EXECUTION_TYPES_V1, verifierExecution.EXECUTION_TYPES_V1],
+    ['executionV2', EXECUTION_TYPES_V2, verifierExecution.EXECUTION_TYPES_V2],
+    ['executionV3', EXECUTION_TYPES_V3, verifierExecution.EXECUTION_TYPES_V3],
+    ['executionV4', EXECUTION_TYPES_V4, verifierExecution.EXECUTION_TYPES_V4],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ] as Array<[string, any, any]>)('%s types are identical', (_name, prod, ver) => {
     expect(JSON.stringify(ver)).toBe(JSON.stringify(prod));
@@ -229,6 +249,83 @@ describe('verifier layout parity', () => {
     (_name, prodDomain, verDomain, prodPrimary, verPrimary) => {
       expect(JSON.stringify(verDomain)).toBe(JSON.stringify(prodDomain));
       expect(verPrimary).toBe(prodPrimary);
+    }
+  );
+
+  it('execution domain + primaryType are identical', () => {
+    expect(verifierExecution.EXECUTION_DOMAIN).toEqual(EXECUTION_DOMAIN);
+    expect(verifierExecution.EXECUTION_PRIMARY_TYPE).toBe(EXECUTION_PRIMARY_TYPE);
+  });
+});
+
+describe('offline Execution Receipt parity', () => {
+  it.each([1, 2, 3, 4])(
+    'verifies a genuine v%s receipt with the same cryptographic result',
+    async (schemaVersion) => {
+      const now = nowSec();
+      const account = privateKeyToAccount(TEST_PRIVATE_KEY);
+      const data = await buildExecutionMessage({
+        schemaVersion,
+        bindingMode: 'VERIFIED',
+        preTradeUid: H1,
+        destinationPreTradeUid: H2,
+        requestHash: H3,
+        preTradeSignedAt: now - 30,
+        sourceAssetId: 'eip155:1/erc20:0xaaa',
+        destinationAssetId: 'eip155:1/erc20:0xbbb',
+        subjectChainId: 1,
+        settlementChainId: 1,
+        action: 'SWAP',
+        quotedPrice: 1,
+        executedPrice: 1,
+        quotedAmountUsd: 100,
+        executedAmountUsd: 100,
+        actualFeeUsd: 1,
+        fillStatus: 'FULL',
+        txHash: H4,
+        blockNumber: 1,
+        executedAt: now,
+        oracleDataAgeAtExecSeconds: 30,
+        participantCount: 4,
+        sourceGroupCount: 3,
+      });
+      const args = executionTypedDataArgs(data);
+      const receipt = {
+        uid: hashTypedData(args),
+        schemaVersion,
+        attester: account.address,
+        attesterLabel: 'test',
+        signedAt: new Date().toISOString(),
+        validForSeconds: 600,
+        validUntil: data.validUntil,
+        signature: await account.signTypedData(args),
+        verifyUrl: '',
+        data,
+        eip712: {
+          domain: EXECUTION_DOMAIN,
+          types: verifierExecution.executionTypesForSchemaVersion(schemaVersion)!,
+          primaryType: EXECUTION_PRIMARY_TYPE,
+        },
+      } as unknown as ExecutionReceipt;
+      const registry = {
+        keys: [
+          {
+            key_id: 'test',
+            public_key: account.address,
+            validFrom: '2020-01-01',
+            validUntil: null,
+            revoked: false,
+            role: 'attester' as const,
+          },
+        ],
+      };
+
+      const app = await verifyExecutionReceiptInApp(receipt);
+      const offline = await verifyExecutionReceiptOffline(receipt, { keyRegistry: registry });
+      expect(offline.cryptographicValid).toBe(app.valid);
+      expect(offline.uid).toBe(app.uid);
+      expect(offline.executionStatus).toBe(app.executionStatus);
+      expect(offline.trustedAttester).toBe(true);
     }
   );
 });

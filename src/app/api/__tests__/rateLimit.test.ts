@@ -1,4 +1,4 @@
-import { type NextRequest } from 'next/server';
+import { type NextRequest, type NextResponse } from 'next/server';
 
 import { createRateLimitMiddleware } from '@/lib/api/middleware/rateLimitMiddleware';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
@@ -284,11 +284,7 @@ describe('API Rate Limit Tests', () => {
     it('should use custom handler for rate limit exceeded', async () => {
       const customHandler = jest.fn((_req: NextRequest, _retryAfter: number) => {
         return new Response(JSON.stringify({ custom: 'error' }), { status: 429 });
-      }) as unknown as (
-        request: NextRequest,
-        retryAfter: number,
-        limit?: number
-      ) => import('next/server').NextResponse;
+      }) as unknown as (request: NextRequest, retryAfter: number, limit?: number) => NextResponse;
 
       const middleware = createRateLimitMiddleware({
         maxRequests: 1,

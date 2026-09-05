@@ -1,4 +1,5 @@
 import { buildCombinedPortfolio, type ProtocolHealthEntry } from './portfolio';
+
 import type { PositionCriticalResult } from './protocolHealth';
 
 function makeResult(opts: {
@@ -6,7 +7,10 @@ function makeResult(opts: {
   borrow: number;
   critical: number;
   collateralSymbols: string[];
-  skipped?: { symbol: string; reason: 'unsupported' | 'unknown_reserve' | 'reserve_metadata_unavailable' }[];
+  skipped?: {
+    symbol: string;
+    reason: 'unsupported' | 'unknown_reserve' | 'reserve_metadata_unavailable';
+  }[];
   bandUnknown?: boolean;
 }): PositionCriticalResult {
   return {
@@ -75,8 +79,28 @@ function makeResult(opts: {
 describe('buildCombinedPortfolio', () => {
   it('sums collateral / borrow and reports the first-to-break protocol', () => {
     const entries: ProtocolHealthEntry[] = [
-      { protocolId: 'aave', name: 'Aave V3', chain: 'ethereum', result: makeResult({ collateral: 10000, borrow: 5000, critical: -28.3, collateralSymbols: ['ETH'] }) },
-      { protocolId: 'compound', name: 'Compound V3', chain: 'ethereum', result: makeResult({ collateral: 8000, borrow: 4000, critical: -22.1, collateralSymbols: ['ETH', 'WBTC'] }) },
+      {
+        protocolId: 'aave',
+        name: 'Aave V3',
+        chain: 'ethereum',
+        result: makeResult({
+          collateral: 10000,
+          borrow: 5000,
+          critical: -28.3,
+          collateralSymbols: ['ETH'],
+        }),
+      },
+      {
+        protocolId: 'compound',
+        name: 'Compound V3',
+        chain: 'ethereum',
+        result: makeResult({
+          collateral: 8000,
+          borrow: 4000,
+          critical: -22.1,
+          collateralSymbols: ['ETH', 'WBTC'],
+        }),
+      },
     ];
 
     const combined = buildCombinedPortfolio(entries);
@@ -91,8 +115,28 @@ describe('buildCombinedPortfolio', () => {
 
   it('flags correlated collateral exposure across protocols', () => {
     const entries: ProtocolHealthEntry[] = [
-      { protocolId: 'aave', name: 'Aave V3', chain: 'ethereum', result: makeResult({ collateral: 10000, borrow: 5000, critical: -28.3, collateralSymbols: ['ETH', 'WBTC'] }) },
-      { protocolId: 'compound', name: 'Compound V3', chain: 'ethereum', result: makeResult({ collateral: 8000, borrow: 4000, critical: -22.1, collateralSymbols: ['ETH', 'CBETH'] }) },
+      {
+        protocolId: 'aave',
+        name: 'Aave V3',
+        chain: 'ethereum',
+        result: makeResult({
+          collateral: 10000,
+          borrow: 5000,
+          critical: -28.3,
+          collateralSymbols: ['ETH', 'WBTC'],
+        }),
+      },
+      {
+        protocolId: 'compound',
+        name: 'Compound V3',
+        chain: 'ethereum',
+        result: makeResult({
+          collateral: 8000,
+          borrow: 4000,
+          critical: -22.1,
+          collateralSymbols: ['ETH', 'CBETH'],
+        }),
+      },
     ];
 
     const combined = buildCombinedPortfolio(entries);

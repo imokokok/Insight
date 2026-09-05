@@ -15,7 +15,7 @@
  * agent.
  */
 
-import { recordExecutionReceiptAsync } from '@/lib/execution/executionReceiptAudit';
+import { recordExecutionReceipt } from '@/lib/execution/executionReceiptAudit';
 import { issueExecutionReceipt } from '@/lib/execution/executionReceiptService';
 
 import { ExecutionReceiptInputSchema } from './schemas';
@@ -68,11 +68,15 @@ export const executionReceiptTool: McpToolDefinition<typeof ExecutionReceiptInpu
     // MCP is the surface agents actually gate on, so without the audit row we
     // have no evidence the feature is being used — and no way to answer "which
     // receipt did this agent gate on" after the fact.
-    recordExecutionReceiptAsync(result.receipt, {
-      source: 'mcp',
-      subjectChainId: args.subjectChainId,
-      settlementChainId: args.settlementChainId,
-    });
+    try {
+      await recordExecutionReceipt(result.receipt, {
+        source: 'mcp',
+        subjectChainId: args.subjectChainId,
+        settlementChainId: args.settlementChainId,
+      });
+    } catch {
+      return 'execution_receipt failed (AUDIT_PERSISTENCE_FAILED): the signed receipt could not be durably stored; retry the request.';
+    }
 
     const d = result.receipt.data;
     const verdict = d.priceExecutionStatus ?? d.executionStatus;

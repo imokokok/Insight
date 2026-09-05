@@ -13,6 +13,8 @@
 //   INSIGHT_API_KEY=... node quickstart.mjs ETH 1 liquidate 50000
 // verifies a production-attester verdict for asset/chainId/action/tradeAmountUsd.
 
+/* eslint-disable no-console -- this executable example reports results to stdout */
+
 import { verifyReceipt } from 'verify-insight-receipt';
 
 const BASE = process.env.INSIGHT_BASE || 'https://www.oracleinsight.xyz';
@@ -42,7 +44,7 @@ async function getRealAttestation([asset, chainId, action, amount]) {
 }
 
 // The document at /.well-known/oracle-keys.json ships as `public_keys` /
-// `revoked_keys`; verify-insight-receipt@0.1.0 parses `keys` / `revoked`.
+// `revoked_keys`; the verifier accepts both the public and normalized registry shapes.
 // Normalize so this demo verifies correctly on the published package until
 // the package's registry parsing is updated.
 function normalizeKeyRegistry(reg) {

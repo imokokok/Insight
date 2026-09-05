@@ -24,6 +24,20 @@ export {
   type VerificationReport,
 } from './report';
 export { resolveKeyStatus } from './keyRegistry';
+export {
+  verifyExecutionReceipt,
+  verifyExecutionPair,
+  executionTypesForSchemaVersion,
+  EXECUTION_DOMAIN,
+  EXECUTION_PRIMARY_TYPE,
+  EXECUTION_TYPES_V1,
+  EXECUTION_TYPES_V2,
+  EXECUTION_TYPES_V3,
+  EXECUTION_TYPES_V4,
+  type ExecutionReceipt,
+  type ExecutionVerificationResult,
+  type ExecutionPairResult,
+} from './execution';
 
 export {
   DOMAIN_BY_SCHEMA,

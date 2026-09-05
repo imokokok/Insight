@@ -491,9 +491,7 @@ export async function signWatchAttestation(
   // opts.sample (Headless H8, 2026-09-02): dedicated sample signer, labelled
   // role "sample" in the .well-known registry; null (fail-closed) when the
   // sample key is unconfigured — the production key never signs a sample.
-  const account = opts?.sample
-    ? await getSampleAttesterAccount()
-    : await getAttesterAccount();
+  const account = opts?.sample ? await getSampleAttesterAccount() : await getAttesterAccount();
   if (!account) return null;
 
   try {

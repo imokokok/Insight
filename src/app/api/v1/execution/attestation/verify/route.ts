@@ -20,10 +20,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import {
-  getAttesterAddress,
-  getSampleAttesterAddress,
-} from '@/lib/attestations/attesterAccount';
+import { getAttesterAddress, getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
 import {
   verifyExecutionReceipt,
   EXECUTION_ATTESTER_LABEL,
@@ -49,7 +46,7 @@ import {
   ExecutionVerifyBodySchema,
   type ExecutionVerifyBody,
 } from '@/lib/attestations/executionVerifyRequest';
-import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
+import { buildKeyRegistryConfig, trustedAttesterEntry } from '@/lib/attestations/keyRegistryConfig';
 
 const PUBLIC_MIDDLEWARES = {
   logging: true,
@@ -77,11 +74,22 @@ export const POST = createApiHandler<
     const body = context.validated!.body!;
     const { attestation } = body;
     const result = await verifyExecutionReceipt(attestation as unknown as ExecutionReceipt);
+    const registry = buildKeyRegistryConfig(
+      await getAttesterAddress(),
+      await getSampleAttesterAddress()
+    );
+    const trustedKey = trustedAttesterEntry(result.attester, result.executedAt, registry);
+    const cryptographicValid =
+      result.valid || (result.expired && result.reason === 'receipt_expired');
+    const valid = result.valid && trustedKey !== null;
 
     return NextResponse.json(
       ApiResponseBuilder.success(
         {
-          valid: result.valid,
+          valid,
+          cryptographicValid,
+          trustedAttester: trustedKey !== null,
+          keyId: trustedKey?.key_id ?? null,
           attester: result.attester,
           uid: result.uid,
           executedAt: result.executedAt,
@@ -93,7 +101,10 @@ export const POST = createApiHandler<
            *  trade was well-timed (verification != endorsement). */
           executionStatus: result.executionStatus,
           schemaVersion: attestation.schemaVersion,
-          reason: result.reason,
+          reason:
+            cryptographicValid && !trustedKey
+              ? 'untrusted_attester: signature is valid but the signer is not an authorised production key'
+              : result.reason,
         },
         { requestId: context.requestId }
       )

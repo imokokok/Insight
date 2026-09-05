@@ -36,9 +36,15 @@
  * does not assert the certified price was "correct" or the trade well-timed.
  */
 
+import { getAttesterAddress, getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
 import { computePreTradeUidsHash } from '@/lib/attestations/executionCommitments';
 import { type ExecutionReceipt, type ExecutionStatus } from '@/lib/attestations/executionReceipt';
 import { verifyExecutionReceipt } from '@/lib/attestations/executionReceipt';
+import {
+  buildKeyRegistryConfig,
+  trustedAttesterEntry,
+  type KeyRegistryConfig,
+} from '@/lib/attestations/keyRegistryConfig';
 import {
   verifyAttestationBySchema,
   type UnifiedVerificationResult,
@@ -88,6 +94,18 @@ export interface ExecutionPairBinding {
   chainMatch: boolean;
   /** Both CAIP-19 asset ids correlate between the two receipts. */
   assetMatch: boolean;
+  /** The signed action is the same in the gate and execution receipt. */
+  actionMatch: boolean;
+  /** A committed destination gate is the exact opposite leg with the same scope. */
+  destinationGateMatch: boolean;
+  /** All presented proofs were signed by registry-authorised production keys. */
+  trustedSigners: boolean;
+  /** PASS/CAUTION on every pre-trade gate; DANGER/BLOCK never authorise execution. */
+  preTradeAuthorized: boolean;
+  /** The settlement occurred inside every signed pre-trade validity window. */
+  executionWithinGateWindow: boolean;
+  /** Current receipts must prove their gate originals, not merely repeat caller claims. */
+  verifiedBinding: boolean;
 }
 
 export interface ExecutionPairVerification {
@@ -100,6 +118,7 @@ export interface ExecutionPairVerification {
   destinationPreTrade: UnifiedVerificationResult | null;
   execution: {
     valid: boolean;
+    cryptographicValid: boolean;
     expired: boolean;
     executionStatus: ExecutionStatus | null;
     reason: string;
@@ -131,10 +150,15 @@ function fieldToString(value: unknown): string {
  * destination original when the receipt declares one; when it is missing the
  * destination binding fails rather than being silently skipped.
  */
+// The verifier deliberately enumerates every independent trust predicate and
+// every diagnostic branch; splitting those checks would obscure the fail-closed
+// conjunction that this function is responsible for auditing.
+// eslint-disable-next-line complexity
 export async function verifyExecutionPair(
   preTradeAttestation: PreTradeAttestationInput,
   executionReceipt: ExecutionReceipt,
-  destinationPreTradeAttestation?: PreTradeAttestationInput | null
+  destinationPreTradeAttestation?: PreTradeAttestationInput | null,
+  options?: { registry?: KeyRegistryConfig }
 ): Promise<ExecutionPairVerification> {
   const [preTrade, exec, destinationPreTrade] = await Promise.all([
     verifyAttestationBySchema(preTradeAttestation as never),
@@ -207,35 +231,109 @@ export async function verifyExecutionPair(
   const assetMatch =
     fieldToString(preTradeData.sourceAssetId) === fieldToString(execData.sourceAssetId) &&
     fieldToString(preTradeData.destinationAssetId) === fieldToString(execData.destinationAssetId);
+  const actionMatch =
+    fieldToString(preTradeData.action).toLowerCase() ===
+    fieldToString(execData.action).toLowerCase();
+  const destinationData = destinationPreTradeAttestation?.data ?? {};
+  const destinationGateMatch =
+    !commitsDestinationGate ||
+    (fieldToString(destinationData.sourceAssetId) ===
+      fieldToString(preTradeData.destinationAssetId) &&
+      fieldToString(destinationData.destinationAssetId) ===
+        fieldToString(preTradeData.sourceAssetId) &&
+      Number(destinationData.subjectChainId) === Number(preTradeData.subjectChainId) &&
+      fieldToString(destinationData.action).toLowerCase() ===
+        fieldToString(preTradeData.action).toLowerCase() &&
+      Number(destinationData.tradeAmountUsd) === Number(preTradeData.tradeAmountUsd));
 
-  const preTradeValid = preTrade.valid && !preTrade.expired;
-  const execValid = exec.valid && !exec.expired;
+  const registry =
+    options?.registry ??
+    buildKeyRegistryConfig(await getAttesterAddress(), await getSampleAttesterAddress());
+  const preTradeCryptoValid = preTrade.valid || (preTrade.expired && preTrade.reason === 'expired');
+  const execCryptoValid = exec.valid || (exec.expired && exec.reason === 'receipt_expired');
+  const destinationCryptoValid =
+    destinationPreTrade == null ||
+    destinationPreTrade.valid ||
+    (destinationPreTrade.expired && destinationPreTrade.reason === 'expired');
+  const trustedSigners =
+    trustedAttesterEntry(preTrade.attester, preTrade.checkedAt, registry) !== null &&
+    trustedAttesterEntry(exec.attester, exec.executedAt, registry) !== null &&
+    (!commitsDestinationGate ||
+      (destinationPreTrade != null &&
+        trustedAttesterEntry(
+          destinationPreTrade.attester,
+          destinationPreTrade.checkedAt,
+          registry
+        ) !== null));
+  const allowedVerdict = (value: unknown) => {
+    const verdict = fieldToString(value).toUpperCase();
+    return verdict === 'PASS' || verdict === 'CAUTION';
+  };
+  const preTradeAuthorized =
+    allowedVerdict(preTradeData.verdict) &&
+    (!commitsDestinationGate || allowedVerdict(destinationPreTradeAttestation?.data?.verdict));
+  const executedAt = Number(execData.executedAt);
+  const insideWindow = (result: UnifiedVerificationResult | null) =>
+    result != null &&
+    result.checkedAt != null &&
+    result.validUntil != null &&
+    executedAt >= result.checkedAt &&
+    executedAt <= result.validUntil;
+  const executionWithinGateWindow =
+    insideWindow(preTrade) && (!commitsDestinationGate || insideWindow(destinationPreTrade));
+  const verifiedBinding =
+    exec.bindingMode === 'VERIFIED' && fieldToString(execData.bindingMode) === 'VERIFIED';
   const destinationGatePresent = !commitsDestinationGate || destinationPreTradeUidMatch;
   const pairedValid =
-    preTradeValid &&
-    execValid &&
+    preTradeCryptoValid &&
+    execCryptoValid &&
+    destinationCryptoValid &&
+    trustedSigners &&
+    preTradeAuthorized &&
+    executionWithinGateWindow &&
+    verifiedBinding &&
     preTradeUidMatch &&
     requestHashMatch &&
     preTradeUidsHashMatch &&
-    destinationGatePresent;
+    destinationGatePresent &&
+    chainMatch &&
+    assetMatch &&
+    actionMatch &&
+    destinationGateMatch;
 
   let closedLoopStatus: ClosedLoopStatus;
   let reason: string;
   if (!pairedValid) {
     closedLoopStatus = 'PAIR_INVALID';
-    reason = !preTradeValid
-      ? 'pre-trade attestation is invalid or expired'
-      : !execValid
-        ? 'execution receipt is invalid or expired'
-        : !preTradeUidMatch
-          ? 'execution receipt does not reference the pre-trade attestation uid'
-          : !requestHashMatch
-            ? 'execution receipt requestHash does not match the pre-trade attestation'
-            : destinationReason || !preTradeUidsHashMatch
-              ? !preTradeUidsHashMatch
-                ? 'execution receipt preTradeUidsHash does not recompute from the presented gates'
-                : destinationReason
-              : 'pairing failed';
+    reason = !preTradeCryptoValid
+      ? 'pre-trade attestation signature is invalid'
+      : !execCryptoValid
+        ? 'execution receipt signature is invalid'
+        : !trustedSigners
+          ? 'one or more receipts were not signed by an authorised production attester'
+          : !preTradeAuthorized
+            ? 'the pre-trade verdict did not authorise execution'
+            : !executionWithinGateWindow
+              ? 'the settlement did not occur inside the signed pre-trade validity window'
+              : !verifiedBinding
+                ? 'execution receipt binding is self-reported, not verified'
+                : !preTradeUidMatch
+                  ? 'execution receipt does not reference the pre-trade attestation uid'
+                  : !requestHashMatch
+                    ? 'execution receipt requestHash does not match the pre-trade attestation'
+                    : destinationReason || !preTradeUidsHashMatch
+                      ? !preTradeUidsHashMatch
+                        ? 'execution receipt preTradeUidsHash does not recompute from the presented gates'
+                        : destinationReason
+                      : !chainMatch
+                        ? 'execution receipt subject chain does not match the pre-trade gate'
+                        : !assetMatch
+                          ? 'execution receipt assets do not match the pre-trade gate'
+                          : !actionMatch
+                            ? 'execution receipt action does not match the pre-trade gate'
+                            : !destinationGateMatch
+                              ? 'destination gate is not the exact opposite leg with the same signed scope'
+                              : 'pairing failed';
   } else {
     // Both receipts valid + cryptographically bound (including every gate the
     // receipt commits to). The closed-loop verdict is the execution receipt's
@@ -271,6 +369,7 @@ export async function verifyExecutionPair(
     destinationPreTrade,
     execution: {
       valid: exec.valid,
+      cryptographicValid: execCryptoValid,
       expired: exec.expired,
       executionStatus: exec.executionStatus,
       reason: exec.reason,
@@ -282,6 +381,12 @@ export async function verifyExecutionPair(
       preTradeUidsHashMatch,
       chainMatch,
       assetMatch,
+      actionMatch,
+      destinationGateMatch,
+      trustedSigners,
+      preTradeAuthorized,
+      executionWithinGateWindow,
+      verifiedBinding,
     },
     closedLoopStatus,
     reason,

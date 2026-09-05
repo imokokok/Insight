@@ -70,7 +70,7 @@ export interface ExecutionReceiptRequest {
   quotedPrice: number;
   txHash: string;
   taker?: string;
-  maxSlippageBps?: number;
+  maxSlippageBps?: 50;
   action?: string;
   quotedAmountUsd?: number;
   executedAmountUsd?: number;
@@ -127,7 +127,7 @@ export interface SubmittedTransaction {
 
 export interface SwapReceiptOptions {
   settlementChainId: number;
-  maxSlippageBps?: number;
+  maxSlippageBps?: 50;
   action?: string;
   quotedAmountUsd?: number;
   executedAmountUsd?: number;

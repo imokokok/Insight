@@ -351,11 +351,9 @@ export const AgentBeginTradeInputSchema = z.object({
     .describe('Type of DeFi operation being considered'),
   tradeAmountUsd: z.number().positive().describe('Trade size in USD'),
   maxSlippageBps: z
-    .number()
-    .int()
-    .min(0)
+    .literal(50)
     .describe(
-      'Agent execution tolerance; echoed into the execution receipt as the signed slippage bound'
+      'Current pre-committed execution tolerance. Custom post-settlement bounds are rejected.'
     ),
   targetProviders: z
     .array(SafeProviderSchema)
@@ -412,11 +410,9 @@ export const ExecutionReceiptInputSchema = z.object({
     .number()
     .describe('Target price, same convention as executedPrice (e.g. dest per source)'),
   maxSlippageBps: z
-    .number()
-    .int()
-    .min(0)
+    .literal(50)
     .optional()
-    .describe('Signed slippage bound; defaults to 50'),
+    .describe('Pre-committed platform bound; currently fixed at 50 bps'),
   action: z.string().optional().describe('Action label, e.g. SWAP'),
   quotedAmountUsd: z.number().optional().describe('Informational notional the agent intended'),
   executedAmountUsd: z.number().optional().describe('Informational notional actually filled'),

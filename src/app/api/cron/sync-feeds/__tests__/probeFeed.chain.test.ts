@@ -1,5 +1,6 @@
 import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { getDefaultFactory } from '@/lib/oracles/factory';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscovery';
 import { getAdminQueries, createServiceRoleClient } from '@/lib/supabase/server';
@@ -9,6 +10,7 @@ import { GET } from '../route';
 
 jest.mock('@/lib/api/cronAuth');
 jest.mock('@/lib/oracles/base/databaseOperations');
+jest.mock('@/lib/oracles/factory');
 jest.mock('@/lib/oracles/services/api3NetworkService');
 jest.mock('@/lib/oracles/services/feedDiscovery');
 jest.mock('@/lib/supabase/server');
@@ -18,6 +20,8 @@ const mockedVerifyCronSecret = verifyCronSecret as jest.MockedFunction<typeof ve
 const mockedFetchPrice = fetchPriceWithDatabase as jest.MockedFunction<
   typeof fetchPriceWithDatabase
 >;
+const mockedGetDefaultFactory = getDefaultFactory as jest.MockedFunction<typeof getDefaultFactory>;
+const mockedRedstoneGetPrice = jest.fn();
 const mockedApi3GetPrice = api3NetworkService.getPrice as jest.MockedFunction<
   typeof api3NetworkService.getPrice
 >;
@@ -61,6 +65,10 @@ function setupDefaultMocks() {
     dapiName: 'BTC/USD',
     proxyAddress: '0x0',
     dataAge: 0,
+  } as never);
+  mockedRedstoneGetPrice.mockResolvedValue({ price: 1, timestamp: Date.now() });
+  mockedGetDefaultFactory.mockReturnValue({
+    getClient: jest.fn(() => ({ getPrice: mockedRedstoneGetPrice })),
   } as never);
   mockedGetAdminQueries.mockReturnValue({
     getOracleFeeds: jest.fn().mockResolvedValue([]),
@@ -127,12 +135,13 @@ describe('probeFeed — chain resolution (bug fix)', () => {
     );
   });
 
-  it('probes chain-agnostic feed (chain_id=0) with undefined via fetchPriceWithDatabase (unchanged)', async () => {
+  it('probes chain-agnostic RedStone feed directly with an undefined chain', async () => {
     mockDiscovery(OracleProvider.REDSTONE, [makeFeed('redstone', 'ETH', 0)]);
 
     await GET(new Request('http://localhost/api/cron/sync-feeds?mode=discover&provider=redstone'));
 
-    expect(mockedFetchPrice).toHaveBeenCalledWith('redstone', 'ETH', undefined, false, true);
+    expect(mockedRedstoneGetPrice).toHaveBeenCalledWith('ETH', undefined);
+    expect(mockedFetchPrice).not.toHaveBeenCalled();
   });
 
   it('verifies all multi-chain API3 feeds that previously would have been dropped', async () => {

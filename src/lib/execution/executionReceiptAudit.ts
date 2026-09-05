@@ -1,18 +1,18 @@
 /**
- * @fileoverview Execution Receipt per-issuance audit log (fire-and-forget).
+ * @fileoverview Durable Execution Receipt per-issuance evidence store.
  *
  * Mirrors `oracleWatchAudit.ts` in purpose and contract: the signed receipt is
  * the durable, authoritative artifact, and this table is the forensics trail a
  * counterparty needs when it asks "this agent claims it filled faithfully —
  * WHICH receipt, and what did it say?"
  *
- * Non-blocking by construction. Audit failure must never fail, slow, or change
- * the signal itself; the caller awaits nothing on the critical path. A dropped
- * audit row is a reporting gap, not a correctness gap.
+ * A signed receipt is returned only after its complete envelope has been
+ * persisted. Otherwise the service would advertise a forensic trail that may
+ * not exist once the caller loses the response.
  */
 
 import type { ExecutionReceipt } from '@/lib/attestations/executionReceipt';
-import { createLogger, normalizeError } from '@/lib/utils/logger';
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('execution-receipt-audit');
 
@@ -28,19 +28,19 @@ export interface ExecutionAuditMeta {
 }
 
 /**
- * Record one Execution Receipt issuance. Fire-and-forget: never throws, never
- * blocks. Call it without awaiting on anything a user is waiting for.
+ * Record one complete Execution Receipt issuance. Throws when persistence
+ * fails so issuing surfaces can fail closed instead of silently dropping proof.
  */
 export async function recordExecutionReceipt(
   receipt: ExecutionReceipt,
   meta: ExecutionAuditMeta
 ): Promise<void> {
-  try {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const client = createServiceRoleClient();
+  const { createServiceRoleClient } = await import('@/lib/supabase/server');
+  const client = createServiceRoleClient();
 
-    const data = receipt.data;
-    const { error } = await client.from('execution_receipts').insert({
+  const data = receipt.data;
+  const { error } = await client.from('execution_receipts').upsert(
+    {
       uid: receipt.uid,
       attested: true,
       attester: receipt.attester,
@@ -48,6 +48,10 @@ export async function recordExecutionReceipt(
       valid_until: new Date(data.validUntil * 1000).toISOString(),
 
       pre_trade_uid: data.preTradeUid,
+      destination_pre_trade_uid: data.destinationPreTradeUid ?? null,
+      binding_mode: data.bindingMode ?? null,
+      environment: data.environment ?? null,
+      receipt_payload: receipt,
 
       source_asset_id: data.sourceAssetId,
       destination_asset_id: data.destinationAssetId,
@@ -89,35 +93,15 @@ export async function recordExecutionReceipt(
       source: meta.source,
       api_key_id: meta.apiKeyId ?? null,
       latency_ms: meta.latencyMs ?? null,
-    });
+    },
+    { onConflict: 'uid' }
+  );
 
-    if (error) {
-      logger.warn('Failed to record execution receipt', {
-        uid: receipt.uid,
-        source: meta.source,
-        error: error.message,
-      });
-    }
-  } catch (error) {
-    // Audit logging is strictly additive — a DB outage must never surface to an
-    // agent that is mid-trade on the signal.
-    logger.warn('Execution receipt audit threw', {
+  if (error) {
+    logger.error('Failed to persist execution receipt', new Error(error.message), {
       uid: receipt.uid,
-      error: normalizeError(error),
+      source: meta.source,
     });
+    throw new Error(`execution receipt persistence failed: ${error.message}`);
   }
-}
-
-/**
- * Non-blocking wrapper: kicks the write off without making the caller wait.
- * `void` + `.catch()` rather than a bare floating promise, so an unhandled
- * rejection can never take the process down.
- */
-export function recordExecutionReceiptAsync(
-  receipt: ExecutionReceipt,
-  meta: ExecutionAuditMeta
-): void {
-  void recordExecutionReceipt(receipt, meta).catch(() => {
-    /* already logged inside */
-  });
 }

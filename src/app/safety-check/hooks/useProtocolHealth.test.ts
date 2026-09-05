@@ -1,7 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
 
-import { useProtocolHealth } from './useProtocolHealth';
 import type { PositionCriticalResult, PositionInput } from '@/lib/protocols/protocolHealth';
+
+import { useProtocolHealth } from './useProtocolHealth';
 
 const POSITION: PositionInput = {
   protocolId: 'aave-v3-eth',

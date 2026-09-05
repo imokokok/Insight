@@ -129,14 +129,10 @@ export function useDynamicSymbols() {
     isMountedRef.current = true;
 
     if (globalCache && Date.now() - globalCacheTimestamp < CACHE_TTL_MS) {
-      setData(globalCache);
-      setLoading(false);
       return;
     }
 
     const abortController = new AbortController();
-    setLoading(true);
-    setError(null);
 
     fetchSymbols(abortController.signal)
       .then((result) => {

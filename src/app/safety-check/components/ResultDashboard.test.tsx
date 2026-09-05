@@ -1,5 +1,9 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 
+import type { PositionCriticalResult, PositionInput } from '@/lib/protocols/protocolHealth';
+
+import { ResultDashboard } from './ResultDashboard';
+
 // Mock the heavy / network-touching children so the test isolates the new
 // live-refresh bar and its wiring without rendering charts or firing fetches.
 jest.mock('./RiskChart', () => ({ RiskChart: () => null }));
@@ -8,9 +12,6 @@ jest.mock('./SafetyPlannerPanel', () => ({ SafetyPlannerPanel: () => null }));
 jest.mock('./SafetyBufferBreakdown', () => ({ SafetyBufferBreakdown: () => null }));
 jest.mock('./CircularGauge', () => ({ CircularGauge: () => null }));
 jest.mock('./CountUp', () => ({ CountUp: () => null }));
-
-import { ResultDashboard } from './ResultDashboard';
-import type { PositionCriticalResult, PositionInput } from '@/lib/protocols/protocolHealth';
 
 const POSITION: PositionInput = {
   protocolId: 'aave-v3-eth',

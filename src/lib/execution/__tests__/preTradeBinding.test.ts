@@ -11,8 +11,13 @@
  * signatures were checked first — never out of the request.
  */
 
+import { hashTypedData } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+
 import {
+  type AttestationDataV3,
   signAttestationV3,
+  v3TypedDataArgs,
   type AttestationInputV2,
 } from '@/lib/attestations/oracleSafetyAttestationV3';
 
@@ -26,18 +31,6 @@ const WETH = 'eip155:1/erc20:0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
 const DAI = 'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F';
 
 const CHECKED_AT_S = 1_700_000_000;
-
-/** The unix-seconds signing time signAttestationV3 stamps on the envelope
- *  (Headless H4: preTradeSignedAt must carry the SIGNING time, not the
- *  self-declared checkedAt). */
-const signedAtSeconds = (gate: { signedAt?: unknown }) => {
-  const raw = gate?.signedAt;
-  if (typeof raw === 'string' && raw.trim() !== '') {
-    const ms = Date.parse(raw);
-    if (Number.isFinite(ms)) return Math.floor(ms / 1000);
-  }
-  return 0;
-};
 
 function preTradeInput(overrides: Partial<AttestationInputV2> = {}): AttestationInputV2 {
   return {
@@ -79,11 +72,13 @@ describe('resolvePreTradeBinding', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env.ATTESTATION_SIGNER_PRIVATE_KEY = TEST_PRIVATE_KEY;
+    process.env.ATTESTATION_KEY_VALID_FROM = '2020-01-01';
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
     delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
+    delete process.env.ATTESTATION_KEY_VALID_FROM;
   });
 
   const selfReported: SelfReportedPreTrade = {
@@ -132,11 +127,9 @@ describe('resolvePreTradeBinding', () => {
     expect(result.binding.quotedPrice).toBeCloseTo(0.0004, 8);
     expect(result.binding.preTradeUid).toBe(source!.uid);
     expect(result.binding.requestHash).toBe(source!.data.requestHash);
-    // H4: the receipt's preTradeSignedAt is the gate's SIGNING time (envelope
-    // signedAt — here, when the test signed it), NOT the self-declared
-    // data.checkedAt the signer chose for the observation window.
-    expect(result.binding.preTradeSignedAt).toBe(signedAtSeconds(source!));
-    expect(result.binding.preTradeSignedAt).not.toBe(CHECKED_AT_S);
+    // Only signed EIP-712 fields can establish precedence. `signedAt` is
+    // mutable envelope metadata, while checkedAt is covered by the signature.
+    expect(result.binding.preTradeSignedAt).toBe(CHECKED_AT_S);
     expect(result.binding.participantCount).toBe(4);
     expect(result.binding.subjectChainId).toBe(1);
   });
@@ -159,14 +152,45 @@ describe('resolvePreTradeBinding', () => {
     expect(result.code).toBe('PRE_TRADE_VERIFICATION_FAILED');
   });
 
-  it('rejects a pre-trade signed by an unrecognised key', async () => {
+  it('rejects a cryptographically valid self-signed gate from an unrecognised key', async () => {
     const { source, destination } = await signPair(1.0, 2500);
+    const attacker = privateKeyToAccount(
+      '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d'
+    );
+    const args = v3TypedDataArgs(source!.data as AttestationDataV3);
     const forged = {
       ...source!,
-      attester: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // anvil account 1
+      uid: hashTypedData(args),
+      attester: attacker.address,
+      signature: await attacker.signTypedData(args),
     };
     const result = await resolvePreTradeBinding({ source: forged, destination, selfReported });
     expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.message).toMatch(/authorised production attester/);
+  });
+
+  it('ignores a forged unsigned envelope signedAt value', async () => {
+    const { source, destination } = await signPair(1.0, 2500);
+    const result = await resolvePreTradeBinding({
+      source: { ...source!, signedAt: '1970-01-01T00:00:01.000Z' },
+      destination,
+      selfReported,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.binding.preTradeSignedAt).toBe(CHECKED_AT_S);
+  });
+
+  it.each(['DANGER', 'BLOCK'] as const)('rejects a %s gate as non-authorising', async (verdict) => {
+    const source = await signAttestationV3(preTradeInput({ verdict }));
+    const destination = await signAttestationV3(
+      preTradeInput({ sourceAssetId: WETH, destinationAssetId: USDC, consensusPrice: 2500 })
+    );
+    const result = await resolvePreTradeBinding({ source, destination, selfReported });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.message).toMatch(/did not authorise execution/);
   });
 
   it('rejects two gates that describe different asset pairs', async () => {
@@ -201,7 +225,12 @@ describe('resolvePreTradeBinding', () => {
       preTradeInput({ checkedAtMs: (CHECKED_AT_S - 3600) * 1000 })
     );
     const fresh = await signAttestationV3(
-      preTradeInput({ sourceAssetId: WETH, destinationAssetId: USDC, consensusPrice: 2500 })
+      preTradeInput({
+        sourceAssetId: WETH,
+        destinationAssetId: USDC,
+        consensusPrice: 2500,
+        checkedAtMs: (CHECKED_AT_S - 3600) * 1000,
+      })
     );
     const result = await resolvePreTradeBinding({
       source: stale,
@@ -212,10 +241,7 @@ describe('resolvePreTradeBinding', () => {
     if (!result.ok) return;
     expect(result.binding.bindingMode).toBe('VERIFIED');
     expect(result.binding.preTradeExpired).toBe(true);
-    // Expiry is judged on the gate's data window, but the binding time is
-    // still the envelope SIGNING time (the gate was signed just now, in this
-    // test), never the stale checkedAt the test injected.
-    expect(result.binding.preTradeSignedAt).toBe(signedAtSeconds(stale!));
-    expect(result.binding.preTradeSignedAt).not.toBe(CHECKED_AT_S - 3600);
+    expect(result.binding.preTradeSignedAt).toBe(CHECKED_AT_S - 3600);
+    expect(result.binding.preTradeValidUntil).toBe(CHECKED_AT_S - 3000);
   });
 });

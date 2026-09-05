@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 
 import { WalletGate } from './WalletGate';
+
 import type { UseWalletConnectReturn } from '../hooks/useWalletConnect';
 
 const baseWallet = {

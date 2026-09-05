@@ -21,13 +21,21 @@ node examples/quickstart.mjs
 ```
 
 ```ts
-import { verifyReceipt } from 'verify-insight-receipt';
+import { verifyReceipt, verifyExecutionReceipt, verifyExecutionPair } from 'verify-insight-receipt';
 
 const result = await verifyReceipt(receipt);
 
 if (result.code !== 'ok') {
   throw new Error(`bad receipt: ${result.code}`);
 }
+
+const execution = await verifyExecutionReceipt(executionReceipt, { keyRegistry });
+if (!execution.valid) throw new Error(execution.reason);
+
+const loop = await verifyExecutionPair(sourcePreTrade, executionReceipt, destinationPreTrade, {
+  keyRegistry,
+});
+if (!loop.pairedValid) throw new Error(loop.reason);
 ```
 
 ---
@@ -37,7 +45,9 @@ if (result.code !== 'ok') {
 **Does:** recompute the EIP-712 hash from published schema constants, check it
 against the `uid` the receipt claims, recover the signer from the signature and
 compare it to `attester`, enforce the recheck binding invariant, and evaluate
-the receipt's own validity deadline.
+the receipt's own validity deadline. For execution pairs it additionally checks
+production-key roles, PASS/CAUTION authorisation, exact gate/asset/action/chain
+bindings, and whether settlement happened inside both signed gate windows.
 
 **Does not:** hold a signing key, read an environment variable, or make an
 outbound request. This is not a configuration default — it is a property of the
@@ -99,6 +109,10 @@ Branch on `code` / `expired`.
 | 2             | `OracleSafetyRecheck` | 28 (v2 + `originalUid` + `originalRequestHash`) |
 | 3             | `OracleSafetyCheck`   | 27 (v2 + `requiredSourceGroupCount`)            |
 | 3             | `OracleSafetyRecheck` | 29 (v3 + `originalUid` + `originalRequestHash`) |
+| 1             | `ExecutionReceipt`    | 30                                              |
+| 2             | `ExecutionReceipt`    | 32                                              |
+| 3             | `ExecutionReceipt`    | 43                                              |
+| 4             | `ExecutionReceipt`    | 44 (v3 + signed `environment`)                  |
 
 `originalUid` is typed `string` in the v2 recheck and `bytes32` in the v3
 recheck. That asymmetry is deliberate and preserved: a UID is a 32-byte hash, so

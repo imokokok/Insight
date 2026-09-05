@@ -103,8 +103,7 @@ export function buildKeyRegistryConfig(
         key_id: process.env.ATTESTATION_SAMPLE_KEY_ID ?? DEFAULT_SAMPLE_KEY_ID,
         public_key: sampleAttester,
         algorithm: 'EIP-712/secp256k1',
-        validFrom:
-          process.env.ATTESTATION_SAMPLE_KEY_VALID_FROM ?? '2026-09-03',
+        validFrom: process.env.ATTESTATION_SAMPLE_KEY_VALID_FROM ?? '2026-09-03',
         validUntil: null,
         revoked: false,
         role: 'sample',
@@ -131,9 +130,7 @@ export function buildKeyRegistryConfig(
         // its address (deduped by address, the verification identity).
         if (
           sampleEntry &&
-          !keys.some(
-            (k) => k.public_key.toLowerCase() === sampleEntry.public_key.toLowerCase()
-          )
+          !keys.some((k) => k.public_key.toLowerCase() === sampleEntry.public_key.toLowerCase())
         ) {
           keys.push(sampleEntry);
         }
@@ -181,14 +178,33 @@ export function isAttestationKeyValid(
   const entry = config.keys.find((k) => k.public_key.toLowerCase() === addr);
   if (!entry) return false;
   if (entry.revoked) return false;
+  if (config.revoked.some((revocation) => revocation.key_id === entry.key_id)) return false;
   if (checkedAt == null) return false;
 
+  const checkedAtMs = checkedAt * 1000;
   const from = Date.parse(entry.validFrom);
-  if (!Number.isNaN(from) && checkedAt < from) return false;
+  if (!Number.isNaN(from) && checkedAtMs < from) return false;
 
   if (entry.validUntil) {
     const until = Date.parse(entry.validUntil);
-    if (!Number.isNaN(until) && checkedAt > until) return false;
+    if (!Number.isNaN(until) && checkedAtMs > until) return false;
   }
   return true;
+}
+
+/** Resolve the registry entry that authorises a production attestation.
+ * Cryptographic validity alone is insufficient: anybody can create a key and
+ * self-sign an otherwise well-formed EIP-712 document. */
+export function trustedAttesterEntry(
+  attester: string,
+  checkedAt: number | null,
+  config: KeyRegistryConfig
+): KeyEntry | null {
+  if (!isAttestationKeyValid(attester, checkedAt, config)) return null;
+  const entry = config.keys.find(
+    (candidate) => candidate.public_key.toLowerCase() === attester.toLowerCase()
+  );
+  // Missing role is the backwards-compatible production-attester default.
+  if (!entry || entry.role === 'sample') return null;
+  return entry;
 }

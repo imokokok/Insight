@@ -1,7 +1,7 @@
 {
   "name": "verify-insight-receipt",
-  "version": "0.1.1",
-  "description": "Verify Insight oracle-safety receipts locally. No network, no API key, no dependency on Insight being online.",
+  "version": "0.2.0",
+  "description": "Verify Insight pre-trade and Execution Receipts locally, including the closed-loop pair proof.",
   "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

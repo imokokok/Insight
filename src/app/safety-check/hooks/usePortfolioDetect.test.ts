@@ -1,7 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
 
-import { usePortfolioDetect } from './usePortfolioDetect';
 import type { ProtocolDetection } from '@/lib/protocols/detection';
+
+import { usePortfolioDetect } from './usePortfolioDetect';
 
 const SAMPLE_DETECTIONS: ProtocolDetection[] = [
   {

@@ -26,7 +26,7 @@ import {
   ApiResponseBuilder,
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
-import { recordExecutionReceiptAsync } from '@/lib/execution/executionReceiptAudit';
+import { recordExecutionReceipt } from '@/lib/execution/executionReceiptAudit';
 import { issueExecutionReceipt } from '@/lib/execution/executionReceiptService';
 
 const HEX32 = /^0x[0-9a-fA-F]{64}$/;
@@ -43,8 +43,8 @@ const IssueBodySchema = z.object({
     .describe('Canonical request commitment from the pre-trade attestation'),
   sourceAssetId: z.string().min(1).describe('CAIP-19 id of the asset sold'),
   destinationAssetId: z.string().min(1).describe('CAIP-19 id of the asset bought'),
-  subjectChainId: z.number().int().describe('Chain id the pre-trade was scoped to'),
-  settlementChainId: z.number().int().describe('Chain id the transaction settled on'),
+  subjectChainId: z.number().int().positive().describe('Chain id the pre-trade was scoped to'),
+  settlementChainId: z.number().int().positive().describe('Chain id the transaction settled on'),
   participantCount: z.number().int().min(0).describe('Oracle providers the agent gated on'),
   sourceGroupCount: z
     .number()
@@ -56,11 +56,9 @@ const IssueBodySchema = z.object({
     .number()
     .describe('Target price, same convention as executedPrice (e.g. destination per source)'),
   maxSlippageBps: z
-    .number()
-    .int()
-    .min(0)
+    .literal(50)
     .optional()
-    .describe('Signed slippage bound; defaults to 50'),
+    .describe('Pre-committed platform bound; currently fixed at 50 bps'),
   action: z.string().optional().describe('Action label, e.g. SWAP'),
   quotedAmountUsd: z.number().optional().describe('Informational notional the agent intended'),
   executedAmountUsd: z.number().optional().describe('Informational notional actually filled'),
@@ -184,22 +182,34 @@ export const POST = createApiHandler<
               ? 503
               : result.code === 'PRE_TRADE_VERIFICATION_FAILED'
                 ? 400
-                : 502;
+                : result.code === 'UNSUPPORTED_CROSS_CHAIN' ||
+                    result.code === 'UNCOMMITTED_EXECUTION_POLICY'
+                  ? 400
+                  : 502;
       return NextResponse.json(
         ApiResponseBuilder.error(result.code, result.message, { requestId: context.requestId }),
         { status }
       );
     }
 
-    // Fire-and-forget audit. Never blocks the response; a dropped row is a
-    // reporting gap, not a correctness gap.
-    recordExecutionReceiptAsync(result.receipt, {
-      source: 'rest',
-      apiKeyId: context.auth?.apiKey?.keyId ?? null,
-      latencyMs: Date.now() - startedAt,
-      subjectChainId: body.subjectChainId,
-      settlementChainId: body.settlementChainId,
-    });
+    try {
+      await recordExecutionReceipt(result.receipt, {
+        source: 'rest',
+        apiKeyId: context.auth?.apiKey?.keyId ?? null,
+        latencyMs: Date.now() - startedAt,
+        subjectChainId: body.subjectChainId,
+        settlementChainId: body.settlementChainId,
+      });
+    } catch {
+      return NextResponse.json(
+        ApiResponseBuilder.error(
+          'AUDIT_PERSISTENCE_FAILED',
+          'The receipt was signed but could not be durably stored; retry with the same request.',
+          { requestId: context.requestId }
+        ),
+        { status: 503 }
+      );
+    }
 
     const base =
       process.env.NEXT_PUBLIC_APP_URL ||

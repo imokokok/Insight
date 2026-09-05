@@ -17,7 +17,11 @@ jest.mock('next/image', () => ({
     alt: string;
     width: number;
     height: number;
-  }) => <img src={src} alt={alt} width={width} height={height} />,
+  }) => (
+    // Test double for next/image; optimization is intentionally outside jsdom.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} width={width} height={height} />
+  ),
 }));
 
 jest.mock('next/link', () => ({

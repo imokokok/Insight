@@ -36,6 +36,8 @@ function preTrade(asset, verdict = 'PASS') {
         sourceAssetId: source ? sourceId : destinationId,
         destinationAssetId: source ? destinationId : sourceId,
         subjectChainId: 1,
+        action: 'swap',
+        tradeAmountUsd: 1000000000,
         participantCount: 3,
         sourceGroupCount: 2,
         requestHash: hash,
@@ -118,11 +120,32 @@ test('executeSwap submits only after two gates and issues a verified receipt', a
   );
   const receiptPayload = JSON.parse(requests[2].body);
   assert.equal(receiptPayload.txHash, txHash);
+  assert.equal(receiptPayload.preTradeSignedAt, 1757030400);
   assert.equal(receiptPayload.preTradeAttestations.source.uid, preTrade('ETH').attestation.uid);
   assert.equal(
     receiptPayload.preTradeAttestations.destination.uid,
     preTrade('USDC').attestation.uid
   );
+});
+
+test('executeSwap cannot be configured to submit a BLOCK verdict', async () => {
+  let submitted = false;
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    policy: { blockedPreTradeVerdicts: [] },
+    fetch: async () => api(preTrade('ETH', 'BLOCK')),
+  });
+  const result = await guard.executeSwap({
+    source: sourceRequest,
+    destination: destinationRequest,
+    receipt: { settlementChainId: 1 },
+    submitTransaction: async () => {
+      submitted = true;
+      return { txHash };
+    },
+  });
+  assert.equal(result.status, 'blocked');
+  assert.equal(submitted, false);
 });
 
 test('oracleWatch sends the attestation flag in the API query', async () => {

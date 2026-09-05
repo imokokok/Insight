@@ -586,6 +586,8 @@ export type ExecutionReasonCode =
    *  have gated it. A receipt that claims FAITHFUL must be able to rule this
    *  out; when it cannot, the verdict is UNDETERMINED. */
   | 'PRE_TRADE_AFTER_EXECUTION'
+  /** The fill happened after the signed pre-trade authorisation expired. */
+  | 'PRE_TRADE_OUTSIDE_EXECUTION_WINDOW'
   /** v2: no pre-trade attestation was presented, so the binding is the caller's
    *  own assertion. The receipt still records what was claimed, but it refuses
    *  to grade faithfulness against an unproven quote. */
@@ -783,6 +785,9 @@ export interface ExecutionReceiptInput {
    *  When absent, the ordering is unknown and the verdict becomes UNDETERMINED
    *  rather than silently assumed favourable. */
   preTradeSignedAt: number;
+  /** Earliest signed expiry of the pre-trade gates. Used while deriving the
+   * verdict; the original gates remain the independently verifiable source. */
+  preTradeValidUntil?: number;
   /** How {@link preTradeUid} / {@link requestHash} and the carried-forward
    *  oracle basis were established. Defaults to SELF_REPORTED, which can never
    *  reach a FAITHFUL verdict. */
@@ -913,6 +918,7 @@ export function deriveExecutionStatus(params: {
   executedPrice: number;
   bindingMode: ExecutionBindingMode;
   preTradeSignedAt: number;
+  preTradeValidUntil?: number;
   executedAt: number;
 }): ExecutionStatus {
   if (params.fillStatus === 'REVERTED' || params.fillStatus === 'FAILED') return 'NOT_EXECUTED';
@@ -929,6 +935,13 @@ export function deriveExecutionStatus(params: {
     !Number.isFinite(params.preTradeSignedAt) ||
     params.preTradeSignedAt <= 0 ||
     params.preTradeSignedAt > params.executedAt
+  ) {
+    return 'UNDETERMINED';
+  }
+  if (
+    params.preTradeValidUntil !== undefined &&
+    params.preTradeValidUntil > 0 &&
+    params.executedAt > params.preTradeValidUntil
   ) {
     return 'UNDETERMINED';
   }
@@ -965,6 +978,7 @@ export async function buildExecutionMessage(
     executedPrice: input.executedPrice,
     bindingMode,
     preTradeSignedAt: input.preTradeSignedAt,
+    preTradeValidUntil: input.preTradeValidUntil,
     executedAt: input.executedAt,
   });
   const reasonCodesHash = computeReasonCodesHash(input.reasonCodes ?? []);

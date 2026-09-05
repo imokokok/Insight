@@ -1,13 +1,14 @@
-import { PROTOCOL_REGISTRY } from './protocolRegistry';
 import { detectPositions, isImportableProtocol } from './detection';
+import { importPosition } from './importer';
+import { PROTOCOL_REGISTRY } from './protocolRegistry';
+
 import type { ImportedPosition } from './importer/types';
 
 jest.mock('./importer', () => ({
   importPosition: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { importPosition } = require('./importer') as { importPosition: jest.Mock };
+const mockImportPosition = importPosition as jest.Mock;
 
 function makePosition(opts: {
   collaterals: number;
@@ -55,10 +56,10 @@ describe('isImportableProtocol', () => {
 describe('detectPositions', () => {
   const ADDRESS = '0x1111111111111111111111111111111111111111' as `0x${string}`;
 
-  afterEach(() => importPosition.mockReset());
+  afterEach(() => mockImportPosition.mockReset());
 
   it('returns one detection per registry protocol with correct support flags', async () => {
-    importPosition.mockResolvedValue(makePosition({ collaterals: 1, borrows: 1 }));
+    mockImportPosition.mockResolvedValue(makePosition({ collaterals: 1, borrows: 1 }));
 
     const detections = await detectPositions(ADDRESS);
 
@@ -72,7 +73,7 @@ describe('detectPositions', () => {
   });
 
   it('marks hasPosition for protocols returning a non-empty position', async () => {
-    importPosition.mockImplementation(async (protocol) => {
+    mockImportPosition.mockImplementation(async (protocol) => {
       // Only Aave has a position; everything else empty.
       if (protocol.id === 'aave-v3-ethereum') {
         return makePosition({ collaterals: 2, borrows: 1 });
@@ -90,7 +91,7 @@ describe('detectPositions', () => {
   });
 
   it('captures per-protocol scan errors without dropping the whole scan', async () => {
-    importPosition.mockImplementation(async (protocol) => {
+    mockImportPosition.mockImplementation(async (protocol) => {
       if (protocol.id === 'aave-v3-ethereum') {
         throw new Error('RPC timeout');
       }
@@ -108,7 +109,7 @@ describe('detectPositions', () => {
   });
 
   it('surfaces skipped (un-configured) assets from the import', async () => {
-    importPosition.mockResolvedValue(makePosition({ collaterals: 1, borrows: 1, skipped: 2 }));
+    mockImportPosition.mockResolvedValue(makePosition({ collaterals: 1, borrows: 1, skipped: 2 }));
 
     const detections = await detectPositions(ADDRESS);
     const aave = detections.find((d) => d.protocolId === 'aave-v3-ethereum')!;

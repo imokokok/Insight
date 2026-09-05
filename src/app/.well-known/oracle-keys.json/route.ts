@@ -223,11 +223,7 @@ export async function GET(request: NextRequest) {
        */
       ExecutionReceipt: {
         schemaVersion: EXECUTION_SCHEMA_VERSION_V4,
-        eip712: descriptor(
-          EXECUTION_DOMAIN,
-          EXECUTION_TYPES_V4 as never,
-          EXECUTION_PRIMARY_TYPE
-        ),
+        eip712: descriptor(EXECUTION_DOMAIN, EXECUTION_TYPES_V4 as never, EXECUTION_PRIMARY_TYPE),
         validForSeconds: EXECUTION_VALID_FOR_SECONDS,
         gates: {
           requiredParticipantCount: EXECUTION_REQUIRED_PARTICIPANT_COUNT,
@@ -245,12 +241,14 @@ export async function GET(request: NextRequest) {
            *  uids of the quote basis, in route order (source first). Each uid
            *  enters as its 32 raw bytes (0x stripped), NO separator, NO
            *  sorting. Empty set → keccak256("") (the SELF_REPORTED case). */
-          preTradeUidsHash: 'keccak256(concat(uids in route order, 32 raw bytes each, no separator)); empty set -> keccak256("")',
+          preTradeUidsHash:
+            'keccak256(concat(uids in route order, 32 raw bytes each, no separator)); empty set -> keccak256("")',
           /** v3+: keccak256(join(",", sorted unique field names)) over the
            *  measurable notional fields that were genuinely measured. Universe:
            *  [actualFeeUsd, executedAmountUsd, mevRiskBps, quotedAmountUsd].
            *  Empty set → keccak256("") (VERITAS F2). */
-          measuredFieldsHash: 'keccak256(join(",", sorted unique measured field names)); universe + empty-set rule as for preTradeUidsHash',
+          measuredFieldsHash:
+            'keccak256(join(",", sorted unique measured field names)); universe + empty-set rule as for preTradeUidsHash',
         },
         /** Reserved VALUES a verifier must be able to INTERPRET from the bytes
          *  alone (Headless round 3, 2026-09-02). The layout is frozen, so a
@@ -264,7 +262,8 @@ export async function GET(request: NextRequest) {
            *  receipt carrying it is UNDETERMINED by the precedence rule. */
           attestationAgeAtExecSeconds: {
             value: 4294967295,
-            meaning: 'undefined — the paired pre-trade attestation did not exist at execution (signed after the fill); such a receipt is never FAITHFUL',
+            meaning:
+              'undefined — the paired pre-trade attestation did not exist at execution (signed after the fill); such a receipt is never FAITHFUL',
           },
         },
         /** Sample receipts are signed by the key below with role "sample" —

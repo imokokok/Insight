@@ -43,14 +43,15 @@ info:
     Access is gated by a **credit wallet**, not plan tiers. There is no recurring
     free tier and no feature gating — every paying user gets every endpoint and
     MCP tool; a call is allowed iff the key's credit balance covers its metering
-    class cost (C1–C4). New users receive a **one-time 30-credit trial** after
+    class cost (C1–C4). New users receive a **one-time 100-credit trial** after
     email verification (it never refreshes).
 
     | Plan | Price | Rate Limit | Included credits/mo | Credit Packs (pay-as-you-go) |
     |------|-------|-----------|---------------------|------------------------------|
-    | **Developer** | $49/mo | 30 req/min | 10,000 | Starter 25k / $39 |
-    | **Team** | $199/mo | 60 req/min | 50,000 | Builder 100k / $129 |
-    | **Enterprise** | Contact us | Unlimited | Unlimited | Agent 500k / $499 |
+    | **Developer** | $49/mo | 60 req/min | 60,000 | Starter 25k / $39 |
+    | **Team** | $199/mo | 300 req/min | 300,000 | Builder 100k / $129 |
+    | **Scale** | $499/mo | 1,200 req/min | 1,000,000 | Agent 500k / $499 |
+    | **Enterprise** | Contact us | Unlimited | Unlimited | Available on every paid path |
 
     Endpoints marked with 🔒 are **credit-metered** (charged per call from the
     wallet). Public metadata endpoints (`/health`, `/symbols`) are free.
@@ -223,10 +224,106 @@ tags:
     description: Snapshots, exports, and daily reports
   - name: Alerts
     description: User price alerts (session auth only)
+  - name: Execution Evidence
+    description: Issue, retrieve, and independently verify signed execution receipts
 
 security: []
 
 paths:
+  /execution/attestation/issue:
+    post:
+      operationId: issueExecutionReceipt
+      tags: [Execution Evidence]
+      summary: Issue a durable signed Execution Receipt
+      description: Collects settlement facts on chain, verifies both pre-trade gates, signs the result, and durably stores the complete envelope before returning it. Cross-chain settlements and caller-selected post-settlement policies are rejected.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutionIssueRequest'
+      responses:
+        '200':
+          description: Receipt signed and persisted
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid or unprovable execution binding
+        '503':
+          description: Signing or durable persistence unavailable
+
+  /execution/attestation/verify:
+    post:
+      operationId: verifyExecutionReceipt
+      tags: [Execution Evidence]
+      summary: Verify one Execution Receipt
+      description: Recomputes its UID and signature and requires a registry-authorised production signer. Public and unmetered.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [attestation]
+              properties:
+                attestation:
+                  $ref: '#/components/schemas/ExecutionReceipt'
+      responses:
+        '200':
+          description: Verification result; inspect valid, cryptographicValid, trustedAttester, expired and reason
+
+  /execution/attestation/verify-pair:
+    post:
+      operationId: verifyExecutionPair
+      tags: [Execution Evidence]
+      summary: Verify the pre-trade → settlement closed loop
+      description: Verifies signatures, production-key trust, exact signed bindings, authorising verdicts, and that settlement occurred inside every signed gate window. Historical expired envelopes remain verifiable.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [preTradeAttestation, executionReceipt]
+              properties:
+                preTradeAttestation:
+                  type: object
+                  additionalProperties: true
+                destinationPreTradeAttestation:
+                  type: object
+                  additionalProperties: true
+                executionReceipt:
+                  $ref: '#/components/schemas/ExecutionReceipt'
+      responses:
+        '200':
+          description: Cryptographic closed-loop verification result
+
+  /execution/attestation/{uid}:
+    get:
+      operationId: getExecutionReceipt
+      tags: [Execution Evidence]
+      summary: Retrieve a durable receipt by UID
+      description: Returns the complete signed envelope. The 32-byte UID acts as an unguessable content identifier.
+      security: []
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^0x[0-9a-fA-F]{64}$'
+      responses:
+        '200':
+          description: Complete persisted signed envelope
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   # ── Public ──────────────────────────────────────────────
   /health:
     get:
@@ -1651,6 +1748,68 @@ components:
 
   # ── Schemas ─────────────────────────────────────────────
   schemas:
+    ExecutionReceipt:
+      type: object
+      required: [uid, schemaVersion, attester, signature, data]
+      properties:
+        uid:
+          type: string
+          pattern: '^0x[0-9a-fA-F]{64}$'
+        schemaVersion:
+          type: integer
+          enum: [1, 2, 3, 4]
+        attester:
+          type: string
+          pattern: '^0x[0-9a-fA-F]{40}$'
+        signature:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+        eip712:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+
+    ExecutionIssueRequest:
+      type: object
+      required:
+        - preTradeUid
+        - requestHash
+        - sourceAssetId
+        - destinationAssetId
+        - subjectChainId
+        - settlementChainId
+        - participantCount
+        - sourceGroupCount
+        - preTradeSignedAt
+        - quotedPrice
+        - txHash
+      properties:
+        preTradeUid: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' }
+        requestHash: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' }
+        sourceAssetId: { type: string }
+        destinationAssetId: { type: string }
+        subjectChainId: { type: integer, minimum: 1 }
+        settlementChainId: { type: integer, minimum: 1 }
+        participantCount: { type: integer, minimum: 0 }
+        sourceGroupCount: { type: integer, minimum: 0 }
+        preTradeSignedAt: { type: integer }
+        quotedPrice: { type: number }
+        maxSlippageBps:
+          type: integer
+          enum: [50]
+          description: Current signed platform policy; custom post-settlement values are rejected.
+        action: { type: string }
+        txHash: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' }
+        taker: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+        preTradeAttestations:
+          type: object
+          required: [source, destination]
+          properties:
+            source: { type: object, additionalProperties: true }
+            destination: { type: object, additionalProperties: true }
+
     # ── Enums ────────────────────────────────────────
     OracleProvider:
       type: string

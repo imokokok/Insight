@@ -22,10 +22,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import {
-  getAttesterAddress,
-  getSampleAttesterAddress,
-} from '@/lib/attestations/attesterAccount';
+import { getAttesterAddress, getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
 import {
   verifyWatchAttestation,

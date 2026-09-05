@@ -284,10 +284,8 @@ export const AgentBeginTradeJsonSchema = z.object({
   action: z.enum(['swap', 'borrow', 'lend', 'liquidate', 'repay']),
   tradeAmountUsd: z.number().positive().describe('Trade size in USD'),
   maxSlippageBps: z
-    .number()
-    .int()
-    .min(0)
-    .describe('Agent execution tolerance; echoed into the execution receipt'),
+    .literal(50)
+    .describe('Current pre-committed execution tolerance; custom values are rejected'),
   targetProviders: z
     .array(providerEnum)
     .optional()
@@ -327,7 +325,10 @@ export const ExecutionReceiptJsonSchema = z.object({
   quotedPrice: z
     .number()
     .describe('Target price, same convention as executedPrice (e.g. dest per source)'),
-  maxSlippageBps: z.number().int().optional().describe('Signed slippage bound; defaults to 50'),
+  maxSlippageBps: z
+    .literal(50)
+    .optional()
+    .describe('Pre-committed platform bound; currently fixed at 50 bps'),
   action: z.string().optional().describe('Action label, e.g. SWAP'),
   quotedAmountUsd: z.number().optional().describe('Informational notional the agent intended'),
   executedAmountUsd: z.number().optional().describe('Informational notional actually filled'),

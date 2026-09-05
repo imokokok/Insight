@@ -97,7 +97,7 @@ For integrations that should not depend on Insight being online, the repository 
 
 **Live in-browser verifier —** the deployed site hosts a zero-trust demo at [`/verify`](https://www.oracleinsight.xyz/verify). It fetches a public sample receipt and the published `/.well-known/oracle-keys.json` registry, then re-verifies the EIP-712 signature entirely in your browser with `verify-insight-receipt`. No server, no API key, no trust in Insight — the verdict is computed on the client and never sent back.
 
-**Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt) **v0.1.1**.
+**Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt) **v0.2.0**.
 
 ```bash
 # Published package (recommended)

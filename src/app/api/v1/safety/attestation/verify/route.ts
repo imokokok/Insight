@@ -34,6 +34,7 @@ import {
   ApiResponseBuilder,
   type ApiHandlerContext,
 } from '@/lib/api/handler';
+import { getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
 import {
   CANONICAL_REQUEST_DOMAIN,
   CANONICAL_REQUEST_TYPES,
@@ -43,7 +44,6 @@ import {
   buildKeyRegistryConfig,
   isAttestationKeyValid,
 } from '@/lib/attestations/keyRegistryConfig';
-import { getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
 import {
   getAttesterAddress,
   ATTESTATION_DOMAIN,

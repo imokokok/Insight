@@ -44,6 +44,7 @@ function baseInput(overrides: Partial<ExecutionReceiptInput> = {}): ExecutionRec
     preTradeUid: PRE_TRADE_UID,
     requestHash: REQUEST_HASH,
     preTradeSignedAt: NOW_S - 3,
+    preTradeValidUntil: NOW_S + 597,
     bindingMode: 'VERIFIED',
     sourceAssetId: ETH_NATIVE,
     destinationAssetId: USDC_ETH,
@@ -256,6 +257,12 @@ describe('executionReceipt', () => {
     expect(msg.slippageSatisfied).toBe(true);
     expect(msg.independenceSatisfied).toBe(true);
     expect(msg.priceExecutionStatus).toBe('FAITHFUL');
+  });
+
+  it('never marks a fill after the signed pre-trade gate expired as FAITHFUL', async () => {
+    const mod = await import('../executionReceipt');
+    const msg = await mod.buildExecutionMessage(baseInput({ preTradeValidUntil: NOW_S - 1 }));
+    expect(msg.priceExecutionStatus).toBe('UNDETERMINED');
   });
 
   it('marks a fill past the bound as DEVIATED', async () => {

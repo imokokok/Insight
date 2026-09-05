@@ -1,5 +1,6 @@
 import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { getDefaultFactory } from '@/lib/oracles/factory';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscovery';
 import { invalidateAllFeedsCache } from '@/lib/oracles/utils/dynamicFeedResolver';
@@ -9,6 +10,7 @@ import { GET } from '../route';
 
 jest.mock('@/lib/api/cronAuth');
 jest.mock('@/lib/oracles/base/databaseOperations');
+jest.mock('@/lib/oracles/factory');
 jest.mock('@/lib/oracles/services/api3NetworkService');
 jest.mock('@/lib/oracles/services/feedDiscovery');
 jest.mock('@/lib/supabase/server');
@@ -18,6 +20,8 @@ const mockedVerifyCronSecret = verifyCronSecret as jest.MockedFunction<typeof ve
 const mockedFetchPrice = fetchPriceWithDatabase as jest.MockedFunction<
   typeof fetchPriceWithDatabase
 >;
+const mockedGetDefaultFactory = getDefaultFactory as jest.MockedFunction<typeof getDefaultFactory>;
+const mockedRedstoneGetPrice = jest.fn();
 const mockedDiscoverAll = feedDiscoveryService.discoverAll as jest.MockedFunction<
   typeof feedDiscoveryService.discoverAll
 >;
@@ -85,7 +89,18 @@ function setupMocks(scenario: Scenario) {
     }),
   } as never);
 
-  // Probe path: BTC honours the scenario, everything else succeeds.
+  mockedGetDefaultFactory.mockReturnValue({
+    getClient: jest.fn(() => ({ getPrice: mockedRedstoneGetPrice })),
+  } as never);
+  mockedRedstoneGetPrice.mockImplementation((symbol: string) =>
+    symbol === 'BTC'
+      ? scenario.btcProbeOk
+        ? Promise.resolve({ price: 1, timestamp: Date.now() })
+        : Promise.resolve(null)
+      : Promise.resolve({ price: 1, timestamp: Date.now() })
+  );
+
+  // Non-RedStone probe path: BTC honours the scenario, everything else succeeds.
   mockedFetchPrice.mockImplementation(((_p: unknown, symbol: string) =>
     symbol === 'BTC'
       ? scenario.btcProbeOk

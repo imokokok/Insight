@@ -66,7 +66,12 @@ jest.mock('../preTradeBinding', () => {
       selfReported: Record<string, unknown>;
     }): Promise<unknown> => ({
       ok: true,
-      binding: { ...params.selfReported, bindingMode: 'VERIFIED', preTradeExpired: false },
+      binding: {
+        ...params.selfReported,
+        action: params.selfReported.action ?? 'SWAP',
+        bindingMode: 'VERIFIED',
+        preTradeExpired: false,
+      },
     }),
   };
 });
@@ -144,6 +149,28 @@ const baseArgs = {
 };
 
 describe('issueExecutionReceipt', () => {
+  it('fails closed when subject and settlement chains differ', async () => {
+    const result = await issueExecutionReceipt({
+      ...baseArgs,
+      settlementChainId: 42161,
+      client: fakeClient(null),
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe('UNSUPPORTED_CROSS_CHAIN');
+  });
+
+  it('rejects a post-settlement custom policy on a VERIFIED binding', async () => {
+    const result = await issueExecutionReceipt({
+      ...baseArgs,
+      maxSlippageBps: 500,
+      client: fakeClient(swapReceipt(1000n * 10n ** 6n, 4n * 10n ** 17n)),
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.code).toBe('UNCOMMITTED_EXECUTION_POLICY');
+  });
+
   it('rejects an unsupported chain with a clean error, never a guessed endpoint', async () => {
     const result = await issueExecutionReceipt({
       ...baseArgs,
