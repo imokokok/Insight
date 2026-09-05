@@ -49,10 +49,10 @@ export function MobileDrawer({
           <div className="flex items-center justify-between border-b border-slate-900/15 px-5 py-5">
             <div className="flex items-center gap-3">
               <Image
-                src="/logos/insight-fisheye.svg"
+                src="/logos/insight-glacier-cut.svg"
                 alt="Insight Logo"
-                width={30}
-                height={23}
+                width={24}
+                height={30}
                 priority
               />
               <div>

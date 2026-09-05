@@ -74,10 +74,10 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
           aria-label="返回 Insight 主站"
         >
           <Image
-            src="/logos/insight-fisheye.svg"
+            src="/logos/insight-glacier-cut.svg"
             alt="Insight"
-            width={30}
-            height={23}
+            width={24}
+            height={30}
             className="group-hover:scale-105 transition-transform duration-300"
           />
           <div>
@@ -118,10 +118,10 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
           </button>
           <Link href="/" className="flex items-center gap-2 group" aria-label="返回 Insight 主站">
             <Image
-              src="/logos/insight-fisheye.svg"
+              src="/logos/insight-glacier-cut.svg"
               alt="Insight"
-              width={20}
-              height={15}
+              width={16}
+              height={20}
               className="group-hover:scale-105 transition-transform duration-300"
             />
             <span className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
@@ -140,10 +140,10 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
                   aria-label="返回 Insight 主站"
                 >
                   <Image
-                    src="/logos/insight-fisheye.svg"
+                    src="/logos/insight-glacier-cut.svg"
                     alt="Insight"
-                    width={30}
-                    height={23}
+                    width={24}
+                    height={30}
                     className="group-hover:scale-105 transition-transform duration-300"
                   />
                   <div>

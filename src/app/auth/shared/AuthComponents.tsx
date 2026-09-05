@@ -21,10 +21,10 @@ export function AuthPageLayout({
         <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
           <Link href="/" className="inline-flex items-center gap-2 group">
             <Image
-              src="/logos/insight-fisheye.svg"
+              src="/logos/insight-glacier-cut.svg"
               alt="Insight Logo"
-              width={36}
-              height={28}
+              width={29}
+              height={36}
               priority
             />
             <span className="text-xl font-bold tracking-tight text-slate-950">Insight</span>
@@ -74,10 +74,10 @@ export function AuthBrandLogo() {
   return (
     <Link href="/" className="inline-flex items-center justify-center gap-2 group">
       <Image
-        src="/logos/insight-fisheye.svg"
+        src="/logos/insight-glacier-cut.svg"
         alt="Insight Logo"
-        width={40}
-        height={31}
+        width={32}
+        height={39}
         className="transition-transform group-hover:scale-105"
         priority
       />
