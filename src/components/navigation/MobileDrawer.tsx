@@ -48,7 +48,13 @@ export function MobileDrawer({
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between border-b border-slate-900/15 px-5 py-5">
             <div className="flex items-center gap-3">
-              <Image src="/logos/owl-logo.svg" alt="Insight Logo" width={30} height={27} priority />
+              <Image
+                src="/logos/insight-fisheye.svg"
+                alt="Insight Logo"
+                width={30}
+                height={23}
+                priority
+              />
               <div>
                 <div className="text-lg font-bold text-slate-950">Insight</div>
                 <span className="sr-only">Menu</span>

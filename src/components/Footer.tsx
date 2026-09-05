@@ -58,7 +58,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-12 lg:gap-12">
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <Image src="/logos/owl-logo.svg" alt="Insight Logo" width={30} height={27} />
+              <Image src="/logos/insight-fisheye.svg" alt="Insight Logo" width={30} height={23} />
               <span className="text-xl font-bold text-slate-950">Insight</span>
             </Link>
             <p className="mb-6 max-w-xs text-sm leading-relaxed text-slate-600">

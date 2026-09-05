@@ -2,9 +2,10 @@
 
 import { Suspense } from 'react';
 
+import Image from 'next/image';
 import Link from 'next/link';
 
-import { Loader2, ShieldCheck } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export function AuthPageLayout({
   children,
@@ -19,9 +20,13 @@ export function AuthPageLayout({
       <div className="relative hidden overflow-hidden border-r border-slate-900/15 lg:flex lg:w-1/2 xl:w-5/12">
         <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
           <Link href="/" className="inline-flex items-center gap-2 group">
-            <div className="flex h-9 w-9 items-center justify-center border border-blue-200 bg-blue-50">
-              <ShieldCheck className="w-5 h-5 text-blue-700" />
-            </div>
+            <Image
+              src="/logos/insight-fisheye.svg"
+              alt="Insight Logo"
+              width={36}
+              height={28}
+              priority
+            />
             <span className="text-xl font-bold tracking-tight text-slate-950">Insight</span>
           </Link>
 
@@ -68,9 +73,14 @@ export function AuthPageLayout({
 export function AuthBrandLogo() {
   return (
     <Link href="/" className="inline-flex items-center justify-center gap-2 group">
-      <div className="flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50 transition-colors group-hover:bg-blue-100">
-        <ShieldCheck className="w-5 h-5 text-blue-700" />
-      </div>
+      <Image
+        src="/logos/insight-fisheye.svg"
+        alt="Insight Logo"
+        width={40}
+        height={31}
+        className="transition-transform group-hover:scale-105"
+        priority
+      />
       <span className="text-xl font-bold text-slate-900 tracking-tight">Insight</span>
     </Link>
   );

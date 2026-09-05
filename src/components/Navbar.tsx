@@ -107,10 +107,10 @@ export default function Navbar() {
             <div className="flex items-center">
               <Link href="/" className="group flex flex-shrink-0 items-center gap-2.5">
                 <Image
-                  src="/logos/owl-logo.svg"
+                  src="/logos/insight-fisheye.svg"
                   alt="Insight Logo"
                   width={40}
-                  height={36}
+                  height={31}
                   priority
                 />
                 <div>
