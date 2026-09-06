@@ -49,7 +49,7 @@ jobs:
           - flare
           - switchboard
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Discover ${{ matrix.provider }} feeds
         env:

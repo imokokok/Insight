@@ -31,7 +31,7 @@ jobs:
     # most skip fast, so 15 min is a safe ceiling with headroom.
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Run feed reactivation
         env:
