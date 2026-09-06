@@ -46,6 +46,11 @@ The database is the system of record. Before production launch, enable the
 highest Supabase backup/PITR option available for the project and verify that
 its retention meets the target below.
 
+The 2026-09-06 production audit reported no listed recovery points and PITR
+disabled. Do not treat the database as launch-ready until a recovery option is
+enabled and a restore drill succeeds; enabling a paid backup tier requires the
+project owner's explicit approval.
+
 - Target RPO: 24 hours with daily backups; 15 minutes when PITR is enabled.
 - Target RTO: four hours for database restore and application validation.
 - Retain at least seven daily recovery points and one monthly recovery point.
@@ -64,6 +69,27 @@ Restore drill:
    data, one read-only API-key request, and credit balance reconciliation.
 5. Compare row counts and the newest snapshot timestamp. Document duration and
    any manual step; delete the isolated project only after evidence is saved.
+
+## Database security gate
+
+Run the Supabase security advisor after every database migration. A release is
+blocked by exposed `SECURITY DEFINER` functions, owner-privileged views, or RLS
+being disabled on a table reachable through the Data API.
+
+1. Apply migrations to staging and run
+   `supabase db advisors --linked --type security --level warn`.
+2. Confirm internal RPCs and datasets remain service-role-only. Exercise the
+   server API that wraps each changed object; never validate by putting a
+   service-role key in a browser.
+3. Verify anonymous requests cannot read `price_snapshots`,
+   `market_reference_hourly`, or `active_alerts_with_prices`, while snapshot
+   collection, readiness, market-reference reads, billing, and rate limiting
+   continue to work through the server.
+4. Enable leaked-password protection in Supabase Auth before launch. This is a
+   provider-level setting, not a SQL migration, and may depend on the selected
+   Supabase plan.
+5. Export the post-migration schema and attach the clean advisor result to the
+   release evidence.
 
 ## Release checklist
 
