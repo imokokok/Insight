@@ -55,8 +55,7 @@ export function useCrossChainQueries(
     refetchIntervalInBackground: false,
     placeholderData: (previousData: Map<Blockchain, PriceData> | undefined) => previousData,
     refetchOnWindowFocus: false,
-    retry: 1,
-    retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 3000),
+    retry: false,
   });
 
   const triggerForceRefresh = useCallback(() => {

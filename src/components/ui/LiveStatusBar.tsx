@@ -122,20 +122,18 @@ export function LiveStatusBar({
   className,
   freshnessThreshold = 30000,
 }: LiveStatusBarProps) {
-  const [currentTime, setCurrentTime] = useState<Date | null>(() => {
-    if (typeof window !== 'undefined') {
-      return new Date();
-    }
-    return null;
-  });
-  const isMounted = typeof window !== 'undefined';
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    const frame = requestAnimationFrame(() => setCurrentTime(new Date()));
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearInterval(timer);
+    };
   }, []);
 
   const connectionStatus: ConnectionStatus = isReconnecting
@@ -145,11 +143,12 @@ export function LiveStatusBar({
       : 'disconnected';
 
   const freshnessLevel = useMemo(
-    () => getDataFreshnessLevel(lastUpdate, freshnessThreshold, currentTime ?? undefined),
+    () =>
+      currentTime
+        ? getDataFreshnessLevel(lastUpdate, freshnessThreshold, currentTime)
+        : ('expired' as const),
     [lastUpdate, freshnessThreshold, currentTime]
   );
-
-  const displayTime = currentTime ?? new Date();
 
   const statusConfig = getStatusConfig();
   const freshnessConfig = getFreshnessConfig();
@@ -157,32 +156,16 @@ export function LiveStatusBar({
   const freshness = freshnessConfig[freshnessLevel];
   const StatusIcon = status.icon;
 
-  const tooltipContent = isMounted ? (
+  const tooltipContent = (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
         <Clock className="w-3 h-3 text-gray-400" />
-        <span className="font-mono">{formatUTCTime(displayTime)}</span>
+        <span className="font-mono">
+          {currentTime ? formatUTCTime(currentTime) : '--:--:-- UTC'}
+        </span>
       </div>
       <div className="flex items-center gap-2">
         <span>Response Time: {formatLatency(latency)}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <StatusIcon className="w-3 h-3" style={{ color: status.color }} />
-        <span style={{ color: status.color }}>{status.label}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <Activity className="w-3 h-3" style={{ color: freshness.color }} />
-        <span style={{ color: freshness.color }}>{freshness.label}</span>
-      </div>
-    </div>
-  ) : (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-2">
-        <Clock className="w-3 h-3 text-gray-400" />
-        <span className="font-mono">--:--:-- UTC</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span>Latency: {formatLatency(latency)}</span>
       </div>
       <div className="flex items-center gap-2">
         <StatusIcon className="w-3 h-3" style={{ color: status.color }} />
@@ -232,7 +215,7 @@ export function LiveStatusBar({
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <Clock className="w-3 h-3" />
           <span className="whitespace-nowrap">
-            {isMounted ? formatLastUpdate(lastUpdate) : '--'}
+            {currentTime ? formatLastUpdate(lastUpdate) : '--'}
           </span>
         </div>
 

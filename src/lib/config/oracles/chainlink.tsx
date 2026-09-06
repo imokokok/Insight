@@ -1,4 +1,3 @@
-import { ChainlinkClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -29,8 +28,6 @@ export const chainlinkConfig = createOracleConfig({
     Blockchain.LINEA,
     Blockchain.SOLANA,
   ],
-  clientClass: ChainlinkClient,
-  clientOptions: { useRealData: true },
   color: '#2563EB',
   features: {
     hasNodeAnalytics: true,

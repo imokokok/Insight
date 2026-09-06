@@ -1,4 +1,3 @@
-import { API3Client } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -17,7 +16,6 @@ export const api3Config = createOracleConfig({
     Blockchain.BNB_CHAIN,
     Blockchain.OPTIMISM,
   ],
-  clientClass: API3Client,
   color: '#DB2777',
   features: {
     hasQuantifiableSecurity: true,

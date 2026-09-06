@@ -1,6 +1,5 @@
 import { type ReactNode } from 'react';
 
-import { type BaseOracleClient } from '@/lib/oracles/client';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 interface MarketDataConfig {
@@ -53,7 +52,6 @@ interface OracleConfig {
   symbol: string;
   defaultChain: Blockchain;
   supportedChains: Blockchain[];
-  getClient: () => BaseOracleClient;
   icon: ReactNode;
   iconBgColor: string;
   themeColor: string;

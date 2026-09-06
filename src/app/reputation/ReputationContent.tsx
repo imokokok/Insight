@@ -12,7 +12,7 @@ import {
   type ReputationListData,
 } from '@/hooks/data/useReputations';
 import { providerNames } from '@/lib/constants';
-import { PROVIDER_TYPE_CONFIG } from '@/lib/oracles/services/reputationService';
+import { PROVIDER_TYPE_CONFIG } from '@/lib/oracles/reputationMetadata';
 import { type OracleProvider } from '@/types/oracle';
 
 import {

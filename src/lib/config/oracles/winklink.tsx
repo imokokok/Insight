@@ -1,4 +1,3 @@
-import { WINkLinkClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -9,7 +8,6 @@ export const winklinkConfig = createOracleConfig({
   symbol: 'WIN',
   defaultChain: Blockchain.TRON,
   supportedChains: [Blockchain.BNB_CHAIN, Blockchain.TRON, Blockchain.ETHEREUM],
-  clientClass: WINkLinkClient,
   color: '#FF4D4D',
   features: {
     hasPriceFeeds: true,

@@ -5,7 +5,6 @@
 
 import { useMemo } from 'react';
 
-import { type BaseOracleClient } from '@/lib/oracles/client';
 import {
   calculateMean,
   calculateMedian,
@@ -21,7 +20,6 @@ import { calculatePercentile, getTCriticalValue } from '../utils';
 interface UseStatisticsParams {
   currentPrices: PriceData[];
   filteredChains: Blockchain[];
-  currentClient: BaseOracleClient;
 }
 
 interface UseStatisticsReturn {

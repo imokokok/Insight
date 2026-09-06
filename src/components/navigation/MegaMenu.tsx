@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { ChevronDown, ArrowRight } from 'lucide-react';
 
@@ -16,16 +17,23 @@ interface MegaMenuProps {
 }
 
 export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenuProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const prefetchGroup = useCallback(() => {
+    group.items.forEach((item) => router.prefetch(item.href));
+    router.prefetch('/docs');
+  }, [group.items, router]);
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
     setIsHovered(true);
+    prefetchGroup();
     timeoutRef.current = setTimeout(() => {
       setIsOpen(true);
     }, 80);
@@ -85,6 +93,7 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
       <button
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
+        onFocus={prefetchGroup}
         className={`relative flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors duration-200 ${
           isActive || isGroupActive
             ? 'border-primary-600 text-primary-700'

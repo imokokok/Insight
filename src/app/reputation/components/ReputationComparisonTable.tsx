@@ -11,7 +11,7 @@ import {
   ScoreBadge,
 } from '@/app/reputation/components/ReputationShared';
 import { TYPE_CONFIG, type ProviderType } from '@/app/reputation/constants/providerProfiles';
-import { PROVIDER_TYPE_CONFIG } from '@/lib/oracles/services/reputationService';
+import { PROVIDER_TYPE_CONFIG } from '@/lib/oracles/reputationMetadata';
 import type { OracleReputation } from '@/lib/oracles/services/reputationService';
 import { getDeviationPillClass, getLatencyPillClass } from '@/lib/oracles/utils/reputationUtils';
 import { cn } from '@/lib/utils';

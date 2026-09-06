@@ -4,19 +4,15 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-// TODO: move client instantiation to API routes to avoid pulling viem/contracts
-// into the browser bundle. Keep only metadata fetches client-side.
-import { getDefaultFactory } from '@/lib/oracles';
+import { useDynamicSymbols } from '@/hooks/data/useDynamicSymbols';
+import { getOracleChains } from '@/lib/oracles/metadata';
 import { priceKeys } from '@/lib/queryKeys';
-import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import { type QueryResult } from '../constants';
 import { buildQueryTasks, type QueryError } from '../utils/queryTaskUtils';
 
 import { useBatchOracleQuery, type BatchQueryTask } from './usePriceQueries';
-
-const logger = createLogger('usePriceQueryData');
 
 export type { QueryError };
 
@@ -58,6 +54,7 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   } = params;
 
   const queryClient = useQueryClient();
+  const metadata = useDynamicSymbols();
   const [dismissedErrorKeys, setDismissedErrorKeys] = useState<Set<string>>(new Set());
   const [dismissedSignature, setDismissedSignature] = useState('');
   const [queryDuration, setQueryDuration] = useState<number | null>(null);
@@ -71,15 +68,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
   );
 
   const { primaryTasks, compareTasks, needsChainSelection } = useMemo(
-    () =>
-      buildQueryTasks(
-        selectedOracle,
-        selectedChain,
-        selectedSymbol,
-        isCompareMode,
-        getDefaultFactory()
-      ),
-    [selectedOracle, selectedChain, selectedSymbol, isCompareMode]
+    () => buildQueryTasks(selectedOracle, selectedChain, selectedSymbol, isCompareMode, metadata),
+    [selectedOracle, selectedChain, selectedSymbol, isCompareMode, metadata]
   );
 
   const batchTasks: BatchQueryTask[] = useMemo(
@@ -172,19 +162,8 @@ export function usePriceQueryData(params: UsePriceQueryDataParams): UsePriceQuer
 
   const supportedChainsBySelectedOracles = useMemo(() => {
     if (!selectedOracle) return new Set<Blockchain>();
-    try {
-      const supported = new Set<Blockchain>();
-      const client = getDefaultFactory().getClient(selectedOracle);
-      client.supportedChains.forEach((chain) => supported.add(chain));
-      return supported;
-    } catch (error) {
-      logger.warn('Failed to get supported chains for oracle', {
-        selectedOracle,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      return new Set<Blockchain>();
-    }
-  }, [selectedOracle]);
+    return new Set(getOracleChains(metadata, selectedOracle));
+  }, [selectedOracle, metadata]);
 
   const refetch = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: priceKeys.bySymbol(selectedSymbol) });

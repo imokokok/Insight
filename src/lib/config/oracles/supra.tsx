@@ -1,4 +1,3 @@
-import { SupraClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -35,7 +34,6 @@ export const supraConfig = createOracleConfig({
     Blockchain.BLAST,
     Blockchain.STARKNET,
   ],
-  clientClass: SupraClient,
   color: '#14B8A6',
   features: {
     hasValidatorAnalytics: true,

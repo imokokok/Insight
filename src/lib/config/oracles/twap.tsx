@@ -1,4 +1,3 @@
-import { TWAPClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -16,8 +15,6 @@ export const twapConfig = createOracleConfig({
     Blockchain.BASE,
     Blockchain.BNB_CHAIN,
   ],
-  clientClass: TWAPClient,
-  clientOptions: { useRealData: true },
   color: '#FF007A',
   features: {
     hasPriceFeeds: true,

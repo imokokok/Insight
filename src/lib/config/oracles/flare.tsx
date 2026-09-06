@@ -1,4 +1,3 @@
-import { FlareClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -9,8 +8,6 @@ export const flareConfig = createOracleConfig({
   symbol: 'FLR',
   defaultChain: Blockchain.FLARE,
   supportedChains: [Blockchain.FLARE],
-  clientClass: FlareClient,
-  clientOptions: { useRealData: true },
   color: '#8B0FE5',
   features: {
     hasNodeAnalytics: true,

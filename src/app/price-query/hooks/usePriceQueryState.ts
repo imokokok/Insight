@@ -4,9 +4,11 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 
 import { usePreferences } from '@/hooks';
 import { useDynamicSymbols } from '@/hooks/data/useDynamicSymbols';
-// TODO: move client instantiation to API routes to avoid pulling viem/contracts
-// into the browser bundle. Keep only metadata fetches client-side.
-import { getDefaultFactory } from '@/lib/oracles';
+import {
+  getOracleChains,
+  isOracleSymbolSupported,
+  type OracleMetadata,
+} from '@/lib/oracles/metadata';
 import { parseQueryParams, updateUrlParams, type QueryConfig } from '@/lib/utils/urlParams';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -24,33 +26,26 @@ interface UsePriceQueryStateReturn {
   urlParamsParsed: boolean;
 }
 
-function getFirstSupportedChain(oracle: OracleProvider): Blockchain | null {
-  try {
-    const client = getDefaultFactory().getClient(oracle);
-    const chains = client.supportedChains;
-    return chains.length > 0 ? chains[0] : null;
-  } catch {
-    return null;
-  }
+function getFirstSupportedChain(
+  oracle: OracleProvider,
+  metadata: OracleMetadata
+): Blockchain | null {
+  return getOracleChains(metadata, oracle)[0] ?? null;
 }
 
 function getFirstSupportedSymbol(
   oracle: OracleProvider,
   chain: Blockchain,
-  oracleSymbols: Record<string, string[]>
+  oracleSymbols: Record<string, string[]>,
+  metadata: OracleMetadata
 ): string {
   const symbols = oracleSymbols[oracle];
   if (!symbols || symbols.length === 0) return 'BTC';
 
-  try {
-    const client = getDefaultFactory().getClient(oracle);
-    for (const symbol of symbols) {
-      if (client.isSymbolSupported(symbol, chain)) {
-        return symbol;
-      }
+  for (const symbol of symbols) {
+    if (isOracleSymbolSupported(metadata, oracle, symbol, chain)) {
+      return symbol;
     }
-  } catch {
-    // fallback to first symbol in list
   }
 
   return symbols[0];
@@ -58,7 +53,8 @@ function getFirstSupportedSymbol(
 
 export function usePriceQueryState(): UsePriceQueryStateReturn {
   const { preferences } = usePreferences();
-  const { oracleSymbols } = useDynamicSymbols();
+  const metadata = useDynamicSymbols();
+  const { oracleSymbols } = metadata;
 
   const [selectedOracle, _setSelectedOracle] = useState<OracleProvider | null>(null);
   const [selectedChain, _setSelectedChain] = useState<Blockchain | null>(null);
@@ -133,9 +129,9 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       const defaultTimeRange = timeRangeMapping[preferences.defaultTimeRange] || 24;
 
       // Auto-select first supported chain and symbol for the default oracle
-      const defaultChain = getFirstSupportedChain(defaultOracle);
+      const defaultChain = getFirstSupportedChain(defaultOracle, metadata);
       const defaultSymbol = defaultChain
-        ? getFirstSupportedSymbol(defaultOracle, defaultChain, oracleSymbols)
+        ? getFirstSupportedSymbol(defaultOracle, defaultChain, oracleSymbols, metadata)
         : 'BTC';
 
       selectedOracleRef.current = defaultOracle;
@@ -174,6 +170,7 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
     preferences.defaultTimeRange,
     preferences.defaultSymbol,
     oracleSymbols,
+    metadata,
     setSelectedOracle,
     setSelectedChain,
     setSelectedSymbol,

@@ -29,11 +29,11 @@ function formatPercent(num: number): string {
   return `${num.toFixed(1)}%`;
 }
 
-function formatRelativeTime(timestamp: string | number | null | undefined): string {
+function formatRelativeTime(timestamp: string | number | null | undefined, now: number): string {
   if (!timestamp) return '—';
   const time = typeof timestamp === 'string' ? new Date(timestamp).getTime() : timestamp;
   if (!time || time <= 0) return '—';
-  const seconds = Math.floor((Date.now() - time) / 1000);
+  const seconds = Math.floor((now - time) / 1000);
   if (seconds < 0) return 'just now';
   if (seconds < 60) return `${seconds}s ago`;
   const minutes = Math.floor(seconds / 60);
@@ -54,7 +54,7 @@ interface AggregateMetrics {
   lastCalculatedAt: string | null;
 }
 
-export function OracleHealthGrid() {
+export function OracleHealthGrid({ now }: { now: number }) {
   const { data: reputationData, isLoading } = useReputations();
 
   const { providers, statusMap, detailsMap, counts, aggregates } = useMemo(() => {
@@ -409,7 +409,7 @@ export function OracleHealthGrid() {
                   <td className="px-3 py-3">
                     <div className="inline-flex items-center gap-1.5 text-xs text-slate-500">
                       <Clock className="w-3.5 h-3.5" />
-                      {formatRelativeTime(details?.last_calculated_at)}
+                      {formatRelativeTime(details?.last_calculated_at, now)}
                     </div>
                   </td>
                 </tr>

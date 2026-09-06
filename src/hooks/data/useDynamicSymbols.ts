@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   getAllSupportedSymbols,
   getAssetClass,
   oracleSupportedSymbols,
 } from '@/lib/oracles/constants/supportedSymbols';
+import { createStaticOracleMetadata, type OracleMetadata } from '@/lib/oracles/metadata';
 
-interface SymbolsData {
+interface SymbolsData extends OracleMetadata {
   symbols: string[];
   oracleSymbols: Record<string, string[]>;
   categories: Record<string, string>;
@@ -29,7 +30,12 @@ function buildStaticFallback(): SymbolsData {
   for (const symbol of allSymbols) {
     categories[symbol] = getAssetClass(symbol);
   }
-  return { symbols: allSymbols, oracleSymbols: oracleSyms, categories };
+  return {
+    symbols: allSymbols,
+    oracleSymbols: oracleSyms,
+    categories,
+    ...createStaticOracleMetadata(),
+  };
 }
 
 const staticFallback = buildStaticFallback();
@@ -89,6 +95,8 @@ function mergeWithFallback(apiData: SymbolsData): SymbolsData {
     symbols: Array.from(allSymbols).sort(),
     oracleSymbols: mergedOracleSymbols,
     categories: mergedCategories,
+    oracleChains: apiData.oracleChains ?? staticFallback.oracleChains,
+    oracleChainSymbols: apiData.oracleChainSymbols ?? staticFallback.oracleChainSymbols,
   };
 }
 
@@ -153,5 +161,5 @@ export function useDynamicSymbols() {
     };
   }, []);
 
-  return { ...data, loading, error };
+  return useMemo(() => ({ ...data, loading, error }), [data, loading, error]);
 }

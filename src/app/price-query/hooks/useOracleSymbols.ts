@@ -1,11 +1,12 @@
 import { useMemo, useCallback } from 'react';
 
 import { useDynamicSymbols } from '@/hooks/data/useDynamicSymbols';
-import { getDefaultFactory } from '@/lib/oracles/factory';
-import { createLogger } from '@/lib/utils/logger';
+import {
+  getOracleChains,
+  getOracleSymbolsForChain,
+  isOracleSymbolSupported,
+} from '@/lib/oracles/metadata';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
-
-const logger = createLogger('useOracleSymbols');
 
 interface UseOracleSymbolsReturn {
   supportedSymbols: string[];
@@ -15,7 +16,8 @@ interface UseOracleSymbolsReturn {
 }
 
 export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSymbolsReturn {
-  const { symbols, oracleSymbols } = useDynamicSymbols();
+  const metadata = useDynamicSymbols();
+  const { symbols, oracleSymbols } = metadata;
 
   const supportedSymbols = useMemo(() => {
     if (selectedOracles.length === 0) {
@@ -57,20 +59,14 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       if (!isSupportedByOracle) return false;
 
       if (chain !== undefined) {
-        return selectedOracles.some((oracle) => {
-          try {
-            const client = getDefaultFactory().getClient(oracle);
-            return client.isSymbolSupported(symbol, chain);
-          } catch {
-            logger.warn(`Failed to get supported chains for symbol on oracle`);
-            return false;
-          }
-        });
+        return selectedOracles.some((oracle) =>
+          isOracleSymbolSupported(metadata, oracle, symbol, chain)
+        );
       }
 
       return true;
     },
-    [selectedOracles, oracleSymbols]
+    [selectedOracles, oracleSymbols, metadata]
   );
 
   const getSupportedChainsForSymbol = useCallback(
@@ -82,19 +78,14 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       const chainsSet = new Set<Blockchain>();
 
       selectedOracles.forEach((oracle) => {
-        try {
-          const client = getDefaultFactory().getClient(oracle);
-          if (client.isSymbolSupported(symbol)) {
-            client.supportedChains.forEach((chain) => chainsSet.add(chain));
-          }
-        } catch {
-          logger.warn(`Failed to get supported chains for symbol`, { symbol, oracle });
-        }
+        getOracleChains(metadata, oracle).forEach((chain) => {
+          if (isOracleSymbolSupported(metadata, oracle, symbol, chain)) chainsSet.add(chain);
+        });
       });
 
       return Array.from(chainsSet);
     },
-    [selectedOracles]
+    [selectedOracles, metadata]
   );
 
   const getSymbolsForChain = useCallback(
@@ -106,24 +97,9 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
       const symbolsSet = new Set<string>();
 
       selectedOracles.forEach((oracle) => {
-        try {
-          const client = getDefaultFactory().getClient(oracle);
-          if ('getSupportedSymbolsForChain' in client) {
-            const chainSymbols = (
-              client as { getSupportedSymbolsForChain: (chain: Blockchain) => string[] }
-            ).getSupportedSymbolsForChain(chain);
-            chainSymbols.forEach((symbol) => symbolsSet.add(symbol));
-          } else {
-            const allSymbols = client.getSupportedSymbols();
-            allSymbols.forEach((symbol) => {
-              if (client.isSymbolSupported(symbol, chain)) {
-                symbolsSet.add(symbol);
-              }
-            });
-          }
-        } catch {
-          logger.warn(`Failed to get symbols for chain`, { chain, oracle });
-        }
+        getOracleSymbolsForChain(metadata, oracle, chain).forEach((symbol) =>
+          symbolsSet.add(symbol)
+        );
       });
 
       const result = Array.from(symbolsSet);
@@ -134,7 +110,7 @@ export function useOracleSymbols(selectedOracles: OracleProvider[]): UseOracleSy
         return orderA - orderB;
       });
     },
-    [selectedOracles, symbols]
+    [selectedOracles, symbols, metadata]
   );
 
   return {

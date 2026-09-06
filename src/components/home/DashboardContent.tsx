@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
 import { oracleColors } from '@/lib/constants';
-import { DASHBOARD_ASSETS } from '@/lib/home/dashboardData';
+import { DASHBOARD_ASSETS } from '@/lib/home/dashboardConstants';
 import type { DashboardPriceItem, ServerDashboardData } from '@/lib/home/dashboardData';
 import { roundTo } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
@@ -40,7 +40,8 @@ interface DashboardContentProps {
 }
 
 async function fetchDashboardBatch(
-  queries: Array<{ provider: OracleProvider; symbol: string }>
+  queries: Array<{ provider: OracleProvider; symbol: string }>,
+  signal?: AbortSignal
 ): Promise<DashboardPriceItem[]> {
   if (queries.length === 0) return [];
 
@@ -48,6 +49,7 @@ async function fetchDashboardBatch(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ queries }),
+    signal,
   });
 
   if (!response.ok) {
@@ -73,13 +75,13 @@ function useDashboardPrices(initialPrices: DashboardPriceItem[], mainOracles: Or
 
   return useQuery<DashboardPriceItem[], Error>({
     queryKey: ['dashboard-prices', queries.map((q) => `${q.provider}-${q.symbol}`).join(',')],
-    queryFn: () => fetchDashboardBatch(queries),
+    queryFn: ({ signal }) => fetchDashboardBatch(queries, signal),
     initialData: initialPrices.length > 0 ? initialPrices : undefined,
-    staleTime: 15_000,
-    refetchInterval: 30_000,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
-    retry: 1,
+    retry: false,
   });
 }
 
@@ -147,10 +149,20 @@ function computeAssetData(
 }
 
 export default function DashboardContent({ initialData }: DashboardContentProps) {
+  const [now, setNow] = useState(initialData.fetchedAt);
   const mainOracles = initialData.mainOracles;
   const totalProviders = mainOracles.length;
 
   const { data: batchResults, isLoading } = useDashboardPrices(initialData.prices, mainOracles);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setNow(Date.now()));
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearInterval(timer);
+    };
+  }, []);
 
   const assetData = useMemo(() => {
     const results = batchResults ?? initialData.prices ?? [];
@@ -201,10 +213,10 @@ export default function DashboardContent({ initialData }: DashboardContentProps)
             avgSpread={avgSpread}
             healthyCount={healthyCount}
             totalAssets={DASHBOARD_ASSETS.length}
-            updateInterval="30s"
+            updateInterval="60s"
           />
           <div className="mt-6">
-            <AssetTable assets={assetData} isLoading={isLoading} />
+            <AssetTable assets={assetData} isLoading={isLoading} now={now} />
           </div>
         </section>
 
@@ -223,7 +235,7 @@ export default function DashboardContent({ initialData }: DashboardContentProps)
               </p>
             </div>
           </div>
-          <OracleHealthGrid />
+          <OracleHealthGrid now={now} />
         </section>
 
         <section className="border-t border-slate-900/10 py-16 sm:py-20 lg:py-28">

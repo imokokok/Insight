@@ -2,10 +2,17 @@
 
 import { useSyncExternalStore } from 'react';
 
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/next';
+import dynamic from 'next/dynamic';
 
-import { hasAnalyticsConsent } from './CookieConsent';
+import { hasAnalyticsConsent } from '@/lib/cookies/consent';
+
+const Analytics = dynamic(() => import('@vercel/analytics/react').then((m) => m.Analytics), {
+  ssr: false,
+});
+const SpeedInsights = dynamic(
+  () => import('@vercel/speed-insights/next').then((m) => m.SpeedInsights),
+  { ssr: false }
+);
 
 function subscribe(callback: () => void): () => void {
   if (typeof window === 'undefined') return () => {};

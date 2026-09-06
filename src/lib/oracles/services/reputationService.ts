@@ -20,6 +20,7 @@ import {
 } from '@/types/oracle/signals';
 
 import { oracleSupportedSymbols } from '../constants/supportedSymbols';
+import { PROVIDER_TYPE_CONFIG } from '../reputationMetadata';
 
 const logger = createLogger('ReputationService');
 
@@ -51,22 +52,6 @@ const FALLBACK_TOP_SYMBOLS = [
 ] as const;
 
 const TOP_SYMBOLS_TARGET_COUNT = 9;
-
-export const PROVIDER_TYPE_CONFIG: Record<
-  OracleProvider,
-  { type: 'onchain' | 'api' | 'hybrid'; latencyBaseline: number }
-> = {
-  [OracleProvider.FLARE]: { type: 'onchain', latencyBaseline: 1500 },
-  [OracleProvider.CHAINLINK]: { type: 'onchain', latencyBaseline: 1200 },
-  [OracleProvider.API3]: { type: 'onchain', latencyBaseline: 1000 },
-  [OracleProvider.TWAP]: { type: 'onchain', latencyBaseline: 1400 },
-  [OracleProvider.WINKLINK]: { type: 'onchain', latencyBaseline: 1200 },
-  [OracleProvider.REFLECTOR]: { type: 'onchain', latencyBaseline: 1200 },
-  [OracleProvider.DIA]: { type: 'api', latencyBaseline: 500 },
-  [OracleProvider.REDSTONE]: { type: 'api', latencyBaseline: 350 },
-  [OracleProvider.SUPRA]: { type: 'api', latencyBaseline: 500 },
-  [OracleProvider.SWITCHBOARD]: { type: 'api', latencyBaseline: 450 },
-};
 
 interface ReputationHistoryEntry {
   provider: string;

@@ -50,8 +50,9 @@ export function useBatchOracleQuery(
       refetchInterval,
       refetchIntervalInBackground: false,
       placeholderData: (previousData: PriceData | undefined) => previousData,
-      retry: 2,
-      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 3000),
+      // The API route owns provider-aware retry/backoff. A second retry layer
+      // here amplified failures and kept work running after navigation.
+      retry: false,
       refetchOnWindowFocus: false,
     }));
   }, [tasks, enabled, refetchInterval, forceRefresh]);

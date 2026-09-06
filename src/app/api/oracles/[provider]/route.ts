@@ -49,6 +49,7 @@ export const GET = createApiHandler(
       symbol,
       chain: chainValue,
       forceRefresh,
+      signal: _request.signal,
     });
   },
   {

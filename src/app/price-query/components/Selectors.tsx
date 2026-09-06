@@ -6,12 +6,14 @@ import { Search, RefreshCw } from 'lucide-react';
 
 import { DropdownSelect, type SelectorOption } from '@/components/ui';
 import { useDynamicSymbols } from '@/hooks/data/useDynamicSymbols';
-import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { symbols, oracleColors, chainColors } from '@/lib/constants';
-// TODO: move client instantiation to API routes to avoid pulling viem/contracts
-// into the browser bundle. Keep only metadata fetches client-side.
-import { getDefaultFactory } from '@/lib/oracles';
 import { getAssetClass, ASSET_CLASS_CATEGORIES } from '@/lib/oracles/constants/supportedSymbols';
+import {
+  getOracleChains,
+  isOracleSymbolSupported,
+  PRICE_ORACLE_ORDER,
+  type OracleMetadata,
+} from '@/lib/oracles/metadata';
 import { type OracleProvider, type Blockchain, BLOCKCHAIN_VALUES } from '@/types/oracle';
 
 import { useQueryData, useQueryParams } from '../contexts';
@@ -19,30 +21,23 @@ import { useOracleSymbols } from '../hooks/useOracleSymbols';
 
 import { AutoRefreshControl } from './AutoRefreshControl';
 
-function getFirstSupportedChain(oracle: OracleProvider): Blockchain | null {
-  try {
-    const client = getDefaultFactory().getClient(oracle);
-    const chains = client.supportedChains;
-    return chains.length > 0 ? chains[0] : null;
-  } catch {
-    return null;
-  }
+function getFirstSupportedChain(
+  oracle: OracleProvider,
+  metadata: OracleMetadata
+): Blockchain | null {
+  return getOracleChains(metadata, oracle)[0] ?? null;
 }
 
 function getFirstSupportedSymbol(
   oracle: OracleProvider,
   chain: Blockchain,
-  allSymbols: string[]
+  allSymbols: string[],
+  metadata: OracleMetadata
 ): string {
-  try {
-    const client = getDefaultFactory().getClient(oracle);
-    for (const symbol of allSymbols) {
-      if (client.isSymbolSupported(symbol, chain)) {
-        return symbol;
-      }
+  for (const symbol of allSymbols) {
+    if (isOracleSymbolSupported(metadata, oracle, symbol, chain)) {
+      return symbol;
     }
-  } catch {
-    // fallback
   }
   return allSymbols[0] || 'BTC';
 }
@@ -58,7 +53,8 @@ export function Selectors() {
     supportedChainsBySelectedOracles,
   } = useQueryParams();
   const { isLoading, refetch, autoRefresh } = useQueryData();
-  const { symbols: dynamicSymbols, categories } = useDynamicSymbols();
+  const metadata = useDynamicSymbols();
+  const { symbols: dynamicSymbols, categories } = metadata;
 
   const {
     supportedSymbols,
@@ -116,18 +112,17 @@ export function Selectors() {
     categories,
   ]);
 
-  const oracleOptions: SelectorOption<OracleProvider>[] =
-    getPriceOracleProvidersSortedByMarketCap().map((oracle) => ({
-      value: oracle,
-      label: oracle,
-      color: oracleColors[oracle],
-      icon: (
-        <span
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: oracleColors[oracle] }}
-        />
-      ),
-    }));
+  const oracleOptions: SelectorOption<OracleProvider>[] = PRICE_ORACLE_ORDER.map((oracle) => ({
+    value: oracle,
+    label: oracle,
+    color: oracleColors[oracle],
+    icon: (
+      <span
+        className="w-1.5 h-1.5 rounded-full"
+        style={{ backgroundColor: oracleColors[oracle] }}
+      />
+    ),
+  }));
 
   return (
     <div
@@ -166,13 +161,14 @@ export function Selectors() {
               const newOracle = value as OracleProvider;
               setSelectedOracle(newOracle);
               // Auto-select first supported chain and symbol for the new oracle
-              const firstChain = getFirstSupportedChain(newOracle);
+              const firstChain = getFirstSupportedChain(newOracle, metadata);
               setSelectedChain(firstChain);
               if (firstChain) {
                 const firstSymbol = getFirstSupportedSymbol(
                   newOracle,
                   firstChain,
-                  dynamicSymbols.length > 0 ? dynamicSymbols : symbols
+                  dynamicSymbols.length > 0 ? dynamicSymbols : symbols,
+                  metadata
                 );
                 setSelectedSymbol(firstSymbol);
               } else {
@@ -204,7 +200,8 @@ export function Selectors() {
                   const firstSymbol = getFirstSupportedSymbol(
                     selectedOracle,
                     newChain,
-                    dynamicSymbols.length > 0 ? dynamicSymbols : symbols
+                    dynamicSymbols.length > 0 ? dynamicSymbols : symbols,
+                    metadata
                   );
                   setSelectedSymbol(firstSymbol);
                 } else {

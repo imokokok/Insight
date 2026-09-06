@@ -5,74 +5,18 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/Button';
+import {
+  DEFAULT_PREFERENCES,
+  loadConsent,
+  saveConsent,
+  type CookiePreferences,
+} from '@/lib/cookies/consent';
 import { cn } from '@/lib/utils';
-
-const CONSENT_KEY = 'insight-cookie-consent';
-const CONSENT_VERSION = 1;
-
-interface CookiePreferences {
-  /** Always true; required for core functionality */
-  essential: boolean;
-  /** Vercel Analytics, Speed Insights, Sentry */
-  analytics: boolean;
-  /** Remember preferences and settings */
-  functional: boolean;
-}
-
-interface CookieConsentRecord {
-  version: number;
-  timestamp: string;
-  preferences: CookiePreferences;
-}
-
-const DEFAULT_PREFERENCES: CookiePreferences = {
-  essential: true,
-  analytics: false,
-  functional: false,
-};
-
-function loadConsent(): CookieConsentRecord | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(CONSENT_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as CookieConsentRecord;
-    if (parsed.version !== CONSENT_VERSION) return null;
-    if (!parsed.preferences || typeof parsed.preferences !== 'object') return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function saveConsent(preferences: CookiePreferences): void {
-  const record: CookieConsentRecord = {
-    version: CONSENT_VERSION,
-    timestamp: new Date().toISOString(),
-    preferences: { ...preferences, essential: true },
-  };
-  try {
-    localStorage.setItem(CONSENT_KEY, JSON.stringify(record));
-  } catch {
-    // Ignore write failures (e.g. private mode)
-  }
-  // Notify other components (e.g. ConditionalAnalytics) that consent changed
-  window.dispatchEvent(new CustomEvent('cookie-consent-change'));
-}
-
-function getCookiePreferences(): CookiePreferences | null {
-  const record = loadConsent();
-  return record?.preferences ?? null;
-}
-
-export function hasAnalyticsConsent(): boolean {
-  return getCookiePreferences()?.analytics === true;
-}
 
 /**
  * GDPR / ePrivacy compliant cookie consent banner. Displayed on first visit
  * until the user makes a choice. Non-essential tracking scripts must wait for
- * explicit opt-in via {@link hasAnalyticsConsent}.
+ * explicit opt-in.
  */
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);

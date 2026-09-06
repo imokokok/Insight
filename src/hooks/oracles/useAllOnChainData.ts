@@ -1,15 +1,11 @@
 'use client';
 
-import { OracleProvider, type Blockchain } from '@/types/oracle';
-import type { OnChainData } from '@/types/oracle/onChainData';
+import { useMemo } from 'react';
 
-import { useDIAOnChainData } from './useDIAOnChainData';
-import { useFlareOnChainData } from './useFlareOnChainData';
-import { useRedStoneOnChainData } from './useRedStoneOnChainData';
-import { useReflectorOnChainData } from './useReflectorOnChainData';
-import { useSupraOnChainData } from './useSupraOnChainData';
-import { useTwapOnChainData } from './useTwapOnChainData';
-import { useWINkLinkOnChainData } from './useWINkLinkOnChainData';
+import { useQueries } from '@tanstack/react-query';
+
+import { OracleProvider, type Blockchain } from '@/types/oracle';
+import type { AnyOnChainData, OnChainData } from '@/types/oracle/onChainData';
 
 interface UseAllOnChainDataParams {
   selectedOracle: OracleProvider | null;
@@ -21,66 +17,67 @@ interface UseAllOnChainDataParams {
 export function useAllOnChainData(params: UseAllOnChainDataParams): OnChainData {
   const { selectedOracle, selectedSymbol, selectedChain, queryResults } = params;
 
-  const shouldFetch = (provider: OracleProvider) =>
-    !selectedOracle ||
-    selectedOracle === provider ||
-    queryResults.some((r) => r.provider === provider);
-
-  const enabled = (provider: OracleProvider) => shouldFetch(provider) && !!selectedSymbol;
-
-  const { data: diaOnChainData, isLoading: isDIADataLoading } = useDIAOnChainData({
-    symbol: selectedSymbol,
-    chain: selectedChain ?? undefined,
-    enabled: enabled(OracleProvider.DIA),
-  });
-
-  const { data: winklinkOnChainData, isLoading: isWINkLinkDataLoading } = useWINkLinkOnChainData({
-    symbol: selectedSymbol,
-    enabled: enabled(OracleProvider.WINKLINK),
-  });
-
-  const { data: redstoneOnChainData, isLoading: isRedStoneDataLoading } = useRedStoneOnChainData({
-    symbol: selectedSymbol,
-    enabled: enabled(OracleProvider.REDSTONE),
-  });
-
-  const { data: supraOnChainData, isLoading: isSupraDataLoading } = useSupraOnChainData({
-    symbol: selectedSymbol,
-    enabled: enabled(OracleProvider.SUPRA),
-  });
-
-  const { data: twapOnChainData, isLoading: isTwapDataLoading } = useTwapOnChainData({
-    symbol: selectedSymbol,
-    chain: selectedChain ?? undefined,
-    enabled: enabled(OracleProvider.TWAP),
-  });
-
-  const { data: reflectorOnChainData, isLoading: isReflectorDataLoading } = useReflectorOnChainData(
-    {
-      symbol: selectedSymbol,
-      enabled: enabled(OracleProvider.REFLECTOR),
-    }
+  const providers = useMemo(
+    () => [
+      OracleProvider.DIA,
+      OracleProvider.WINKLINK,
+      OracleProvider.REDSTONE,
+      OracleProvider.SUPRA,
+      OracleProvider.TWAP,
+      OracleProvider.REFLECTOR,
+      OracleProvider.FLARE,
+    ],
+    []
   );
 
-  const { data: flareOnChainData, isLoading: isFlareDataLoading } = useFlareOnChainData({
-    symbol: selectedSymbol,
-    enabled: enabled(OracleProvider.FLARE),
+  const results = useQueries({
+    queries: providers.map((provider) => ({
+      queryKey: ['oracle-on-chain', provider, selectedSymbol, selectedChain ?? 'default'],
+      queryFn: async ({ signal }: { signal: AbortSignal }): Promise<AnyOnChainData | null> => {
+        const params = new URLSearchParams({ provider, symbol: selectedSymbol });
+        if (selectedChain) params.set('chain', selectedChain);
+        const response = await fetch(`/api/oracles/on-chain?${params}`, { signal });
+        if (!response.ok) throw new Error(`Failed to fetch ${provider} details`);
+        const body = (await response.json()) as { data?: AnyOnChainData | null };
+        return body.data ?? null;
+      },
+      enabled:
+        !!selectedSymbol &&
+        (!selectedOracle ||
+          selectedOracle === provider ||
+          queryResults.some((result) => result.provider === provider)),
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      refetchInterval: 60_000,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: false,
+      retry: false,
+    })),
   });
 
+  const getResult = (provider: OracleProvider) => results[providers.indexOf(provider)];
+  const dia = getResult(OracleProvider.DIA);
+  const winklink = getResult(OracleProvider.WINKLINK);
+  const redstone = getResult(OracleProvider.REDSTONE);
+  const supra = getResult(OracleProvider.SUPRA);
+  const twap = getResult(OracleProvider.TWAP);
+  const reflector = getResult(OracleProvider.REFLECTOR);
+  const flare = getResult(OracleProvider.FLARE);
+
   return {
-    diaOnChainData,
-    isDIADataLoading,
-    winklinkOnChainData,
-    isWINkLinkDataLoading,
-    redstoneOnChainData,
-    isRedStoneDataLoading,
-    supraOnChainData,
-    isSupraDataLoading,
-    twapOnChainData,
-    isTwapDataLoading,
-    reflectorOnChainData,
-    isReflectorDataLoading,
-    flareOnChainData,
-    isFlareDataLoading,
+    diaOnChainData: dia?.data ?? null,
+    isDIADataLoading: dia?.isLoading ?? false,
+    winklinkOnChainData: winklink?.data ?? null,
+    isWINkLinkDataLoading: winklink?.isLoading ?? false,
+    redstoneOnChainData: redstone?.data ?? null,
+    isRedStoneDataLoading: redstone?.isLoading ?? false,
+    supraOnChainData: supra?.data ?? null,
+    isSupraDataLoading: supra?.isLoading ?? false,
+    twapOnChainData: twap?.data ?? null,
+    isTwapDataLoading: twap?.isLoading ?? false,
+    reflectorOnChainData: reflector?.data ?? null,
+    isReflectorDataLoading: reflector?.isLoading ?? false,
+    flareOnChainData: flare?.data ?? null,
+    isFlareDataLoading: flare?.isLoading ?? false,
   };
 }

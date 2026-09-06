@@ -6,7 +6,7 @@ import { Blockchain } from '@/types/oracle';
 
 import { type ChainStats } from '../constants';
 import { useStatistics } from '../hooks/useStatistics';
-import { useCurrentClient, useFilteredChains } from '../useCrossChainData';
+import { useFilteredChains } from '../useCrossChainData';
 import { getConsistencyRating, formatPrice } from '../utils';
 
 import { BenchmarkComparisonSection } from './BenchmarkComparisonSection';
@@ -24,12 +24,9 @@ export function OverviewTab() {
   const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
 
   const filteredChains = useFilteredChains();
-  const currentClient = useCurrentClient();
-
   const statistics = useStatistics({
     currentPrices,
     filteredChains,
-    currentClient,
   });
 
   const {

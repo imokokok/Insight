@@ -13,7 +13,7 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import { useReputationDetail } from '@/hooks/data/useReputations';
 import { providerNames } from '@/lib/constants';
-import { PROVIDER_TYPE_CONFIG } from '@/lib/oracles/services/reputationService';
+import { PROVIDER_TYPE_CONFIG } from '@/lib/oracles/reputationMetadata';
 import {
   getScoreBadge,
   formatTimeAgo,

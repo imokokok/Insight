@@ -14,7 +14,7 @@ import { type Blockchain } from '@/types/oracle';
 import { useChartData } from '../hooks/useChartData';
 import { useCrossChainTable } from '../hooks/useCrossChainTable';
 import { useStatistics } from '../hooks/useStatistics';
-import { useCurrentClient, useFilteredChains } from '../useCrossChainData';
+import { useFilteredChains } from '../useCrossChainData';
 import { chainNames, chainColors, calculateZScore, isOutlier } from '../utils';
 
 interface TableRow extends Record<string, unknown> {
@@ -39,12 +39,9 @@ export function PriceComparisonTable() {
   const thresholdConfig = useCrossChainConfigStore((s) => s.thresholdConfig);
 
   const filteredChains = useFilteredChains();
-  const currentClient = useCurrentClient();
-
   const statistics = useStatistics({
     currentPrices,
     filteredChains,
-    currentClient,
   });
 
   const chart = useChartData({

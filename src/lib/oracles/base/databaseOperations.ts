@@ -271,7 +271,8 @@ export async function fetchPriceWithDatabase(
   symbol: string,
   chain: Blockchain | undefined,
   useDatabase: boolean,
-  forceRefresh: boolean = false
+  forceRefresh: boolean = false,
+  signal?: AbortSignal
 ): Promise<PriceData> {
   // Oracle services expect the base asset symbol (e.g. "BTC"), while some UI
   // and API callers pass the full pair (e.g. "btc/usd"). Normalize once: derive
@@ -344,7 +345,7 @@ export async function fetchPriceWithDatabase(
     }
 
     try {
-      const livePrice = await client.getPrice(fetchSymbol, chain);
+      const livePrice = await client.getPrice(fetchSymbol, chain, { signal });
       if (!PROVIDERS_SKIPPING_DB_SAVE.has(provider)) {
         savePriceToDatabase(livePrice)
           .then(() => {

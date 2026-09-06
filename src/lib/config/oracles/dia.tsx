@@ -1,4 +1,3 @@
-import { DIAClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -21,7 +20,6 @@ export const diaConfig = createOracleConfig({
     Blockchain.GNOSIS,
     Blockchain.KAVA,
   ],
-  clientClass: DIAClient,
   color: '#6366F1',
   features: {
     hasCoreFeatures: true,

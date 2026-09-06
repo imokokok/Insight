@@ -19,6 +19,7 @@ interface OracleQueryParams {
   chain?: Blockchain;
   period?: number;
   forceRefresh?: boolean;
+  signal?: AbortSignal;
 }
 
 async function fetchPriceFromOracle(params: OracleQueryParams): Promise<PriceData> {
@@ -30,7 +31,8 @@ async function fetchPriceFromOracle(params: OracleQueryParams): Promise<PriceDat
     baseSymbol,
     params.chain,
     true,
-    params.forceRefresh
+    params.forceRefresh,
+    params.signal
   );
 }
 

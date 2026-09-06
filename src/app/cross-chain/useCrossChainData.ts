@@ -2,21 +2,16 @@
 
 import { useMemo } from 'react';
 
-// TODO: move client instantiation to API routes to avoid pulling viem/contracts
-// into the browser bundle. Keep only metadata fetches client-side.
-import { getDefaultFactory } from '@/lib/oracles';
+import { useDynamicSymbols } from '@/hooks/data/useDynamicSymbols';
+import { getOracleChains } from '@/lib/oracles/metadata';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
 import { useCrossChainUIStore } from '@/stores/crossChainUIStore';
 import { type Blockchain } from '@/types/oracle';
 
-export function useCurrentClient() {
-  const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
-  return useMemo(() => getDefaultFactory().getClient(selectedProvider), [selectedProvider]);
-}
-
 export function useSupportedChains(): Blockchain[] {
-  const currentClient = useCurrentClient();
-  return useMemo(() => [...currentClient.supportedChains], [currentClient]);
+  const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
+  const metadata = useDynamicSymbols();
+  return useMemo(() => getOracleChains(metadata, selectedProvider), [metadata, selectedProvider]);
 }
 
 export function useFilteredChains(): Blockchain[] {

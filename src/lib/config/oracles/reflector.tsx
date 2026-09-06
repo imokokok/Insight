@@ -1,4 +1,3 @@
-import { ReflectorClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -9,8 +8,6 @@ export const reflectorConfig = createOracleConfig({
   symbol: 'XLM',
   defaultChain: Blockchain.STELLAR,
   supportedChains: [Blockchain.STELLAR],
-  clientClass: ReflectorClient,
-  clientOptions: { useRealData: true },
   color: '#F59E0B',
   features: {
     hasNodeAnalytics: true,

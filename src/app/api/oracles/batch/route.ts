@@ -68,40 +68,64 @@ export const POST = createApiHandler(
 
     const { queries, forceRefresh } = validation.data;
 
-    const data: BatchPriceResult[] = await mapWithConcurrency(
-      queries,
-      BATCH_FETCH_CONCURRENCY,
-      async (query): Promise<BatchPriceResult> => {
-        try {
-          const price = await fetchPriceWithDatabase(
-            query.provider as OracleProvider,
-            query.symbol,
-            query.chain as Blockchain | undefined,
-            true,
-            forceRefresh
-          );
-          return {
-            provider: query.provider,
-            symbol: query.symbol,
-            chain: query.chain,
-            price,
-            error: null,
-          };
-        } catch (error) {
-          const message = error instanceof Error ? error.message : 'Unknown error';
-          logger.error(
-            `Batch query failed for ${query.provider}/${query.symbol}/${query.chain}: ${message}`
-          );
-          return {
-            provider: query.provider,
-            symbol: query.symbol,
-            chain: query.chain,
-            price: null,
-            error: message,
-          };
-        }
+    // A single browser request fans out into multiple provider calls. Passing
+    // request.signal directly to every fetch adds many listeners to the same
+    // EventTarget and triggers Node's MaxListenersExceededWarning. One parent
+    // listener fans cancellation out to per-query signals without weakening
+    // the leave-page cancellation behavior.
+    const queryControllers = queries.map(() => new AbortController());
+    const abortQueries = () => {
+      for (const controller of queryControllers) {
+        if (!controller.signal.aborted) controller.abort(request.signal.reason);
       }
-    );
+    };
+
+    if (request.signal.aborted) {
+      abortQueries();
+    } else {
+      request.signal.addEventListener('abort', abortQueries, { once: true });
+    }
+
+    let data: BatchPriceResult[];
+    try {
+      data = await mapWithConcurrency(
+        queries,
+        BATCH_FETCH_CONCURRENCY,
+        async (query, index): Promise<BatchPriceResult> => {
+          try {
+            const price = await fetchPriceWithDatabase(
+              query.provider as OracleProvider,
+              query.symbol,
+              query.chain as Blockchain | undefined,
+              true,
+              forceRefresh,
+              queryControllers[index].signal
+            );
+            return {
+              provider: query.provider,
+              symbol: query.symbol,
+              chain: query.chain,
+              price,
+              error: null,
+            };
+          } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unknown error';
+            logger.error(
+              `Batch query failed for ${query.provider}/${query.symbol}/${query.chain}: ${message}`
+            );
+            return {
+              provider: query.provider,
+              symbol: query.symbol,
+              chain: query.chain,
+              price: null,
+              error: message,
+            };
+          }
+        }
+      );
+    } finally {
+      request.signal.removeEventListener('abort', abortQueries);
+    }
 
     const hasErrors = data.some((item) => item.error !== null);
 

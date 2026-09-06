@@ -1,4 +1,3 @@
-import { RedStoneClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -26,7 +25,6 @@ export const redstoneConfig = createOracleConfig({
     Blockchain.APTOS,
     Blockchain.SUI,
   ],
-  clientClass: RedStoneClient,
   color: '#FF6B6B',
   features: {
     hasPublisherAnalytics: true,

@@ -1,6 +1,7 @@
 import { unstable_cache } from 'next/cache';
 
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
+import { DASHBOARD_ASSETS } from '@/lib/home/dashboardConstants';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { getActiveProviders, getAllActiveSymbols } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
@@ -8,12 +9,6 @@ import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, ORACLE_PROVIDER_VALUES, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('dashboard-data');
-
-// Canonical "wanted" lists — these drive the UI layout (4 asset rows × 5
-// oracle columns). The actual query list at runtime is the intersection
-// of these with what the DB reports as active, so the dashboard never
-// wastes fetches on pairs that have no active feed.
-export const DASHBOARD_ASSETS = ['BTC', 'ETH', 'USDT', 'SOL'] as const;
 
 const FALLBACK_MAIN_ORACLES: OracleProvider[] = [
   OracleProvider.CHAINLINK,

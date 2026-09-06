@@ -1,6 +1,5 @@
 import Image from 'next/image';
 
-import { type BaseOracleClient } from '@/lib/oracles';
 import { type OracleProvider, type Blockchain } from '@/types/oracle';
 
 import {
@@ -68,47 +67,19 @@ export const COMMON_TABS = {
   DATA_STREAMS: { id: 'data-streams', label: 'Data Streams' },
 } as const;
 
-function createClientSingleton<T>(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ClientClass: new (...args: any[]) => T,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  options?: Record<string, any>
-): () => T {
-  let _client: T | null = null;
-  return () => {
-    if (!_client) _client = options ? new ClientClass(options) : new ClientClass();
-    return _client;
-  };
-}
-
 export function createOracleConfig(params: {
   provider: OracleProvider;
   name: string;
   symbol: string;
   defaultChain: Blockchain;
   supportedChains: Blockchain[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  clientClass: new (...args: any[]) => any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  clientOptions?: Record<string, any>;
   color: string;
   features?: Partial<OracleConfig['features']>;
   tabs: OracleTab[];
   views?: OracleViewConfig[];
 }): OracleConfig {
-  const {
-    provider,
-    name,
-    symbol,
-    defaultChain,
-    supportedChains,
-    clientClass,
-    clientOptions,
-    color,
-    features,
-    tabs,
-    views,
-  } = params;
+  const { provider, name, symbol, defaultChain, supportedChains, color, features, tabs, views } =
+    params;
 
   return {
     provider,
@@ -117,7 +88,6 @@ export function createOracleConfig(params: {
     symbol,
     defaultChain,
     supportedChains,
-    getClient: createClientSingleton(clientClass, clientOptions) as () => BaseOracleClient,
     iconBgColor: color,
     themeColor: color,
     icon: (

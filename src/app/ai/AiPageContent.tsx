@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import {
   Bot,
@@ -118,6 +119,7 @@ const INTEGRATION_STEPS = [
 ];
 
 export function AiPageContent() {
+  const router = useRouter();
   const user = useUser();
   const session = useSession();
   const [keys, setKeys] = useState<ApiKeyItem[]>([]);
@@ -492,7 +494,7 @@ when the verdict turns DANGER.`}
                   Sign in to create an API Key and have it auto-filled in the config generator and
                   safety check demo.
                 </p>
-                <Button onClick={() => (window.location.href = '/login?redirect=/ai')}>
+                <Button onClick={() => router.push('/login?redirect=/ai')}>
                   Sign in / Sign up
                 </Button>
               </div>

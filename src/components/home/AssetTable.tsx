@@ -15,6 +15,7 @@ import type { AssetConsensusData } from './DashboardContent';
 interface AssetTableProps {
   assets: AssetConsensusData[];
   isLoading: boolean;
+  now: number;
 }
 
 function formatPrice(price: number, symbol: string): string {
@@ -34,9 +35,9 @@ function formatSpread(percent: number): string {
   return `${percent.toFixed(2)}%`;
 }
 
-function formatRelativeTime(timestamp: number): string {
+function formatRelativeTime(timestamp: number, now: number): string {
   if (!timestamp || timestamp <= 0) return '—';
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  const seconds = Math.floor((now - timestamp) / 1000);
   if (seconds < 0) return 'just now';
   if (seconds < 60) return `${seconds}s ago`;
   const minutes = Math.floor(seconds / 60);
@@ -130,7 +131,7 @@ function AssetRowSkeleton() {
   );
 }
 
-function AssetTableComponent({ assets, isLoading }: AssetTableProps) {
+function AssetTableComponent({ assets, isLoading, now }: AssetTableProps) {
   const showSkeleton = isLoading && assets.every((a) => a.consensusPrice === 0);
 
   return (
@@ -245,7 +246,7 @@ function AssetTableComponent({ assets, isLoading }: AssetTableProps) {
                       <td className="px-4 py-5">
                         <div className="inline-flex items-center gap-1.5 text-xs text-slate-500">
                           <Clock className="w-3.5 h-3.5" />
-                          {formatRelativeTime(asset.lastUpdatedAt)}
+                          {formatRelativeTime(asset.lastUpdatedAt, now)}
                         </div>
                       </td>
                       <td className="px-5 py-5 text-right">

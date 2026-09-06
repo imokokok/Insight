@@ -47,7 +47,10 @@ interface BatchPriceResponse {
 const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
 
 const ORACLE_RETRY_CONFIG: Partial<EnhancedRetryConfig> = {
-  maxAttempts: 2,
+  // Oracle routes already perform provider-aware retries server-side. Retrying
+  // the whole HTTP request here multiplied one user query into many upstream
+  // attempts, so the browser performs exactly one cancellable request.
+  maxAttempts: 1,
   baseDelay: 1000,
   maxDelay: 5000,
   strategy: 'exponential',

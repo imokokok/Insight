@@ -9,7 +9,7 @@ import {
 } from '@/lib/api/internalToken';
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger('middleware');
+const logger = createLogger('proxy');
 
 const PROTECTED_PATHS = ['/settings', '/ops'];
 
@@ -46,7 +46,7 @@ async function isAuthenticated(request: NextRequest): Promise<boolean> {
   }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isApiRoute = pathname.startsWith('/api/');
   const isProtectedPage = !isApiRoute && PROTECTED_PATHS.some((p) => pathname.startsWith(p));
@@ -88,7 +88,7 @@ export async function middleware(request: NextRequest) {
       response.cookies.set(INTERNAL_COOKIE_NAME, token, INTERNAL_COOKIE_OPTIONS);
 
       // Protected pages and emergency rollback (PAGE_CACHE_S_MAXAGE=0) must
-      // never be cached, so the middleware always runs and the auth check
+      // never be cached, so the proxy always runs and the auth check
       // above is enforced.
       if (isProtectedPage || PAGE_CACHE_S_MAXAGE <= 0) {
         response.headers.set(

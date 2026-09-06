@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 
-import { getDefaultFactory } from '@/lib/oracles';
-import { type BaseOracleClient } from '@/lib/oracles/client';
+import { useDynamicSymbols } from '@/hooks/data/useDynamicSymbols';
+import { getOracleChains } from '@/lib/oracles/metadata';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
@@ -18,12 +18,12 @@ interface UseCrossChainDataStateReturn {
   lastUpdated: Date | null;
   recommendedBaseChain: Blockchain | null;
   supportedChains: Blockchain[];
-  currentClient: BaseOracleClient;
   fetchData: () => Promise<void>;
 }
 
 export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const selectedProvider = useCrossChainSelectorStore((s) => s.selectedProvider);
+  const metadata = useDynamicSymbols();
   const selectedSymbol = useCrossChainSelectorStore((s) => s.selectedSymbol);
   const selectedTimeRange = useCrossChainSelectorStore((s) => s.selectedTimeRange);
   const selectedBaseChain = useCrossChainSelectorStore((s) => s.selectedBaseChain);
@@ -45,11 +45,10 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const setCrossChainComparison = useCrossChainDataStore((s) => s.setCrossChainComparison);
   const setFetchData = useCrossChainDataStore((s) => s.setFetchData);
 
-  const currentClient = useMemo(
-    () => getDefaultFactory().getClient(selectedProvider),
-    [selectedProvider]
+  const supportedChains = useMemo(
+    () => getOracleChains(metadata, selectedProvider),
+    [metadata, selectedProvider]
   );
-  const supportedChains = useMemo(() => currentClient.supportedChains, [currentClient]);
 
   const { fetchData: fetchDataInternal } = useDataFetching(
     selectedProvider,
@@ -135,7 +134,6 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     lastUpdated,
     recommendedBaseChain,
     supportedChains,
-    currentClient,
     fetchData: fetchDataInternal,
   };
 }

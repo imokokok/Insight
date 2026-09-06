@@ -1,13 +1,13 @@
-'use client';
-
-import type { OracleClientFactory } from '@/lib/oracles';
-import type { BaseOracleClient } from '@/lib/oracles/base';
+import {
+  getOracleChains,
+  isOracleSymbolSupported,
+  type OracleMetadata,
+} from '@/lib/oracles/metadata';
 import { type Blockchain, OracleProvider } from '@/types/oracle';
 
 interface QueryTask {
   provider: OracleProvider;
   chain: Blockchain;
-  client: BaseOracleClient;
   isCompare: boolean;
 }
 
@@ -22,7 +22,7 @@ export function buildQueryTasks(
   selectedChain: Blockchain | null,
   selectedSymbol: string,
   isCompareMode: boolean,
-  oracleClientFactory: OracleClientFactory
+  metadata: OracleMetadata
 ): {
   primaryTasks: QueryTask[];
   compareTasks: QueryTask[];
@@ -39,40 +39,32 @@ export function buildQueryTasks(
   }
 
   for (const provider of allProviders) {
-    let client: BaseOracleClient;
-    try {
-      client = oracleClientFactory.getClient(provider);
-    } catch {
+    if (!isOracleSymbolSupported(metadata, provider, selectedSymbol)) {
       continue;
     }
 
-    if (!client.isSymbolSupported(selectedSymbol)) {
-      continue;
-    }
-
-    const chains = selectedChain ? [selectedChain] : client.supportedChains;
+    const supportedChains = getOracleChains(metadata, provider);
+    const chains = selectedChain ? [selectedChain] : supportedChains;
 
     for (const chain of chains) {
-      if (!client.supportedChains.includes(chain)) {
+      if (!isOracleSymbolSupported(metadata, provider, selectedSymbol, chain)) {
         continue;
       }
 
       primaryTasks.push({
         provider,
         chain,
-        client,
         isCompare: false,
       });
     }
 
     if (isCompareMode && selectedChain) {
-      const otherChains = client.supportedChains.filter((c) => c !== selectedChain);
+      const otherChains = supportedChains.filter((c) => c !== selectedChain);
       for (const chain of otherChains) {
-        if (client.isSymbolSupported(selectedSymbol, chain)) {
+        if (isOracleSymbolSupported(metadata, provider, selectedSymbol, chain)) {
           compareTasks.push({
             provider,
             chain,
-            client,
             isCompare: true,
           });
         }

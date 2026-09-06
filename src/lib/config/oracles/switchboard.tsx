@@ -1,4 +1,3 @@
-import { SwitchboardClient } from '@/lib/oracles';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
@@ -26,7 +25,6 @@ export const switchboardConfig = createOracleConfig({
     Blockchain.FLARE,
     Blockchain.SUPRA_CHAIN,
   ],
-  clientClass: SwitchboardClient,
   color: '#2DD4BF',
   features: {
     hasPriceFeeds: true,
