@@ -25,6 +25,7 @@ const mockInitialData: ServerDashboardData = {
     OracleProvider.API3,
     OracleProvider.DIA,
   ],
+  reputations: [],
 };
 
 const createWrapper = () => {

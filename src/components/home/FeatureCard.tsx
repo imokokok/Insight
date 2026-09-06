@@ -1,6 +1,5 @@
 import Link from 'next/link';
 
-import { motion } from 'framer-motion';
 import { ArrowRight, type LucideIcon } from 'lucide-react';
 
 interface FeatureCardProps {
@@ -47,10 +46,8 @@ export function FeatureCard({
   };
 
   return (
-    <motion.div
-      whileHover={{ y: -3 }}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className={className}
+    <div
+      className={`transition-transform duration-200 ease-out hover:-translate-y-[3px] ${className}`}
     >
       <Link
         href={href}
@@ -88,6 +85,6 @@ export function FeatureCard({
           <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }

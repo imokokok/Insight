@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useReducer, useCallback, useMemo } from 'react';
 
-import type { KeyboardShortcut } from '@/hooks';
+import type { KeyboardShortcut } from '@/hooks/ui/useKeyboardShortcuts';
 
 // ============================================================================
 // Type definitions

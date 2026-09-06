@@ -17,7 +17,7 @@ info:
 
     ```bash
     curl -H "X-API-Key: ins_your_key_here" \
-      "https://oracleinsight.xyz/api/v1/prices?provider=chainlink&symbol=BTC%2FUSD&chain=ethereum"
+      "https://www.oracleinsight.xyz/api/v1/prices?provider=chainlink&symbol=BTC%2FUSD&chain=ethereum"
     ```
 
     ---
@@ -144,7 +144,7 @@ info:
     const symbol = encodeURIComponent('BTC/USD');
 
     const response = await fetch(
-      `https://oracleinsight.xyz/api/v1/prices?provider=chainlink&symbol=${symbol}&chain=ethereum`,
+      `https://www.oracleinsight.xyz/api/v1/prices?provider=chainlink&symbol=${symbol}&chain=ethereum`,
       { headers: { 'X-API-Key': API_KEY } }
     );
 
@@ -156,7 +156,7 @@ info:
     **Batch query:**
 
     ```javascript
-    const response = await fetch('https://oracleinsight.xyz/api/v1/prices/batch', {
+    const response = await fetch('https://www.oracleinsight.xyz/api/v1/prices/batch', {
       method: 'POST',
       headers: {
         'X-API-Key': API_KEY,
@@ -188,13 +188,13 @@ info:
     - **Use batch endpoints** to reduce request count when querying multiple prices.
   contact:
     name: Insight API Support
-    url: https://oracleinsight.xyz/docs/api
+    url: https://www.oracleinsight.xyz/docs/api
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: https://oracleinsight.xyz/api/v1
+  - url: https://www.oracleinsight.xyz/api/v1
     description: Production
   - url: http://localhost:3000/api/v1
     description: Local development

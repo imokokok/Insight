@@ -5,10 +5,8 @@ import { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { motion } from 'framer-motion';
 import { Activity, ArrowRight, BarChart3, Clock, Database, Globe, Zap } from 'lucide-react';
 
-import { useReputations } from '@/hooks/data/useReputations';
 import { providerNames } from '@/lib/constants';
 import type { OracleReputation } from '@/lib/oracles/services/reputationService';
 import { type OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
@@ -54,11 +52,16 @@ interface AggregateMetrics {
   lastCalculatedAt: string | null;
 }
 
-export function OracleHealthGrid({ now }: { now: number }) {
-  const { data: reputationData, isLoading } = useReputations();
-
+export function OracleHealthGrid({
+  now,
+  reputations,
+  isLoading = false,
+}: {
+  now: number;
+  reputations: OracleReputation[];
+  isLoading?: boolean;
+}) {
   const { providers, statusMap, detailsMap, counts, aggregates } = useMemo(() => {
-    const reputations = reputationData?.data ?? [];
     const map = new Map<string, { score: number; status: 'healthy' | 'degraded' | 'down' }>();
     const detailsMap = new Map<string, OracleReputation>();
     for (const r of reputations) {
@@ -136,7 +139,7 @@ export function OracleHealthGrid({ now }: { now: number }) {
       counts: { healthy, degraded, down, total: list.length },
       aggregates,
     };
-  }, [reputationData?.data, isLoading]);
+  }, [reputations, isLoading]);
 
   const getStatus = (provider: OracleProvider) => {
     const rep = statusMap.get(provider);
@@ -176,13 +179,7 @@ export function OracleHealthGrid({ now }: { now: number }) {
   };
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="border-y border-slate-900/15 bg-white/30 p-5 sm:p-6 lg:p-8"
-    >
+    <section className="home-view-reveal border-y border-slate-900/15 bg-white/30 p-5 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center border-l-2 border-blue-600 bg-blue-50">
@@ -418,6 +415,6 @@ export function OracleHealthGrid({ now }: { now: number }) {
           </tbody>
         </table>
       </div>
-    </motion.section>
+    </section>
   );
 }

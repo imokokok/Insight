@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import { LogOut, Settings, Gauge } from 'lucide-react';
 
-import { Button } from '@/components/ui';
+import { Button } from '@/components/ui/Button';
 import type { UserProfile } from '@/lib/supabase/auth';
 
 interface UserMenuDropdownProps {

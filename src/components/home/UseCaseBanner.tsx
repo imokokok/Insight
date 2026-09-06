@@ -1,17 +1,10 @@
 import Link from 'next/link';
 
-import { motion } from 'framer-motion';
 import { ArrowRight, ShieldAlert } from 'lucide-react';
 
 export function UseCaseBanner() {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="relative overflow-hidden border border-slate-900/15 bg-[#eaf1fb]"
-    >
+    <section className="home-view-reveal relative overflow-hidden border border-slate-900/15 bg-[#eaf1fb]">
       <div
         className="absolute inset-0 opacity-[0.3]"
         style={{
@@ -62,6 +55,6 @@ export function UseCaseBanner() {
           </div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 }

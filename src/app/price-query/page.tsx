@@ -1,3 +1,5 @@
+import { QueryProvider } from '@/providers/QueryProvider';
+
 import PriceQueryContent from './PriceQueryContent';
 
 export const metadata = {
@@ -6,5 +8,9 @@ export const metadata = {
 };
 
 export default function PriceQueryPage() {
-  return <PriceQueryContent />;
+  return (
+    <QueryProvider>
+      <PriceQueryContent />
+    </QueryProvider>
+  );
 }

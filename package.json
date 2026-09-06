@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run perf:budget",
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix .",
@@ -21,6 +21,7 @@
     "sdk:test": "npm --prefix sdk test",
     "knip": "knip",
     "audit:api": "node scripts/api-usage-audit.mjs",
+    "perf:budget": "node scripts/check-home-bundle-budget.mjs",
     "audit:raul": "node scripts/api-usage-audit.mjs --name ThoughtProof",
     "verify:vrt1": "node scripts/vrt1-e2e-prototype/verify/verify-round2.mjs && node scripts/vrt1-e2e-prototype/verify/verify-round3.mjs && node scripts/vrt1-e2e-prototype/verify/verify-scale-pin.mjs",
     "clean:dev": "rm -rf .next && next dev",

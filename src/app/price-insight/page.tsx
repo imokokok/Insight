@@ -1,3 +1,5 @@
+import { QueryProvider } from '@/providers/QueryProvider';
+
 import PriceInsightContent from './PriceInsightContent';
 
 import type { Metadata } from 'next';
@@ -8,5 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function PriceInsightPage() {
-  return <PriceInsightContent />;
+  return (
+    <QueryProvider>
+      <PriceInsightContent />
+    </QueryProvider>
+  );
 }

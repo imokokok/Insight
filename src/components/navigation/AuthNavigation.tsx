@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { User } from 'lucide-react';
 
 import { TrialGrantNotice } from '@/components/billing/TrialGrantNotice';
-import { Button } from '@/components/ui';
+import { Button } from '@/components/ui/Button';
 import { apiClient } from '@/lib/api/client/ApiClient';
 import { setUser } from '@/lib/monitoring';
 import {

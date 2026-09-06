@@ -8,7 +8,7 @@ const subscribe = () => () => {};
 
 const getServerAppUrl = () => {
   const configured = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim().replace(/\/+$/, '');
-  return configured || 'https://oracleinsight.xyz';
+  return configured || 'https://www.oracleinsight.xyz';
 };
 
 /**

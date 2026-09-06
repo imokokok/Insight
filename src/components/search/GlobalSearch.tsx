@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Command, ArrowUp, ArrowDown, CornerDownLeft } from 'lucide-react';
 
-import { useKeyboardShortcuts, useDebounce } from '@/hooks';
+import { useKeyboardShortcuts } from '@/hooks/ui/useKeyboardShortcuts';
+import { useDebounce } from '@/hooks/utils/useDebounce';
 
 import { SearchGroupSection, EmptyState, InitialState } from './SearchResultItems';
 import { type SearchResult } from './types';

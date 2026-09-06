@@ -5,12 +5,11 @@ import { memo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { motion } from 'framer-motion';
 import { ArrowRight, Clock, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 
 import { providerNames } from '@/lib/constants';
 
-import type { AssetConsensusData } from './DashboardContent';
+import type { AssetConsensusData } from './types';
 
 interface AssetTableProps {
   assets: AssetConsensusData[];
@@ -135,12 +134,7 @@ function AssetTableComponent({ assets, isLoading, now }: AssetTableProps) {
   const showSkeleton = isLoading && assets.every((a) => a.consensusPrice === 0);
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-    >
+    <section className="home-view-reveal">
       <div className="flex items-end justify-between gap-5 mb-5">
         <div>
           <div className="flex items-center gap-3">
@@ -274,7 +268,7 @@ function AssetTableComponent({ assets, isLoading, now }: AssetTableProps) {
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-    </motion.section>
+    </section>
   );
 }
 

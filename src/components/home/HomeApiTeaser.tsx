@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 import Link from 'next/link';
 
-import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowRight,
   BookOpen,
@@ -85,13 +84,7 @@ export function HomeApiTeaser() {
   };
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="border border-slate-900/12 bg-white/80 shadow-[0_18px_40px_rgba(15,23,42,0.05)] overflow-hidden"
-    >
+    <section className="home-view-reveal border border-slate-900/12 bg-white/80 shadow-[0_18px_40px_rgba(15,23,42,0.05)] overflow-hidden">
       <div className="p-6 sm:p-8 lg:p-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           <div>
@@ -185,22 +178,16 @@ export function HomeApiTeaser() {
               </button>
             </div>
             <div className="p-4 sm:p-5 overflow-x-auto">
-              <AnimatePresence mode="wait">
-                <motion.pre
-                  key={language}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-sm text-slate-200 font-mono leading-relaxed whitespace-pre"
-                >
-                  <code>{examples[language]}</code>
-                </motion.pre>
-              </AnimatePresence>
+              <pre
+                key={language}
+                className="home-code-swap text-sm text-slate-200 font-mono leading-relaxed whitespace-pre"
+              >
+                <code>{examples[language]}</code>
+              </pre>
             </div>
           </div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 }

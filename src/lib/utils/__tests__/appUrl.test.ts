@@ -29,7 +29,7 @@ describe('getAppUrl', () => {
 
   it('falls back to the hardcoded default when the env var is unset', () => {
     delete process.env.NEXT_PUBLIC_APP_URL;
-    expect(getAppUrl()).toBe('https://oracleinsight.xyz');
+    expect(getAppUrl()).toBe('https://www.oracleinsight.xyz');
   });
 
   it('returns the env var with a single trailing slash stripped', () => {

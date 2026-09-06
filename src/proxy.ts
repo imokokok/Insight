@@ -6,17 +6,13 @@ import {
   generateInternalToken,
   INTERNAL_COOKIE_NAME,
   INTERNAL_COOKIE_OPTIONS,
+  verifyInternalToken,
 } from '@/lib/api/internalToken';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('proxy');
 
 const PROTECTED_PATHS = ['/settings', '/ops'];
-
-// How long (in seconds) non-sensitive HTML pages may be cached by shared
-// edge caches (Vercel Edge / CDN). Browser always revalidates (max-age=0).
-// Set PAGE_CACHE_S_MAXAGE=0 to restore the previous no-store behavior.
-const PAGE_CACHE_S_MAXAGE = Number(process.env.PAGE_CACHE_S_MAXAGE ?? 15);
 
 async function isAuthenticated(request: NextRequest): Promise<boolean> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -76,37 +72,22 @@ export async function proxy(request: NextRequest) {
     response.headers.set('X-Robots-Tag', 'noindex, nofollow');
   }
 
-  // Set or refresh the HttpOnly internal-token cookie on PAGE requests
-  // only.  The browser stores the cookie and sends it automatically on
-  // subsequent same-origin API calls.  We intentionally do NOT set the
-  // cookie on API route responses — otherwise an external API caller
-  // (curl -c, Postman) could extract it from the Set-Cookie header and
-  // use it to bypass rate-limiting on later requests.
+  // This proxy only runs for protected pages and product demos whose paid API
+  // equivalents intentionally remain free in the website UI. Public marketing
+  // and content pages bypass it completely, allowing their HTML to be cached at
+  // the edge without a Set-Cookie header.
   if (!isApiRoute) {
     try {
-      const token = await generateInternalToken();
-      response.cookies.set(INTERNAL_COOKIE_NAME, token, INTERNAL_COOKIE_OPTIONS);
-
-      // Protected pages and emergency rollback (PAGE_CACHE_S_MAXAGE=0) must
-      // never be cached, so the proxy always runs and the auth check
-      // above is enforced.
-      if (isProtectedPage || PAGE_CACHE_S_MAXAGE <= 0) {
-        response.headers.set(
-          'Cache-Control',
-          'private, no-store, no-cache, must-revalidate, max-age=0'
-        );
-      } else {
-        // Public, edge-cacheable pages: shared caches may serve the HTML for
-        // PAGE_CACHE_S_MAXAGE seconds. The browser still revalidates every
-        // time (max-age=0), so the __internal cookie is refreshed on each
-        // browser request. The cookie itself is a HMAC-signed UI-origin
-        // marker (no user data), so sharing a cached response for a short
-        // window does not weaken the security model.
-        response.headers.set(
-          'Cache-Control',
-          `public, s-maxage=${PAGE_CACHE_S_MAXAGE}, max-age=0, stale-while-revalidate=${PAGE_CACHE_S_MAXAGE}`
-        );
+      const existingToken = request.cookies.get(INTERNAL_COOKIE_NAME)?.value;
+      const hasValidToken = existingToken ? await verifyInternalToken(existingToken) : false;
+      if (!hasValidToken) {
+        const token = await generateInternalToken();
+        response.cookies.set(INTERNAL_COOKIE_NAME, token, INTERNAL_COOKIE_OPTIONS);
       }
+
+      // Every matched page is either authenticated or mints the UI token, so
+      // it must not be stored in a shared cache.
+      response.headers.set('Cache-Control', 'private, no-store, max-age=0');
     } catch (error) {
       // Non-fatal: if token generation fails (e.g. crypto unavailable),
       // the API routes will simply not recognize the request as internal.
@@ -121,12 +102,15 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// NOTE: matcher must be a static array (Next.js requirement).
-// Match all routes so the internal cookie can be set on page requests
-// and verified on API requests.  Static assets (_next/static, images,
-// etc.) are excluded by the matcher pattern.
+// Keep the edge proxy off public marketing/content routes. These are the only
+// UI surfaces that need authentication or the signed free-product token.
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml)).*)',
+    '/settings/:path*',
+    '/ops/:path*',
+    '/price-insight/:path*',
+    '/safety-check/:path*',
+    '/stablecoin-depeg/:path*',
+    '/ai/:path*',
   ],
 };

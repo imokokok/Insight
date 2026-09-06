@@ -101,11 +101,26 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
+        ],
+      },
+      ...[
+        '/api/v1/:path*',
+        '/api/auth/:path*',
+        '/api/user/:path*',
+        '/api/billing/:path*',
+        '/api/cron/:path*',
+        '/api/price-records/:path*',
+        '/api/protocol-health/:path*',
+        '/api/stablecoin-depeg',
+        '/api/mcp',
+      ].map((source) => ({
+        source,
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
           { key: 'Pragma', value: 'no-cache' },
           { key: 'Expires', value: '0' },
         ],
-      },
+      })),
     ];
   },
 };

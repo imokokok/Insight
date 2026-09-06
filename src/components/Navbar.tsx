@@ -9,8 +9,8 @@ import { usePathname } from 'next/navigation';
 
 import { Menu } from 'lucide-react';
 
-import { Button } from '@/components/ui';
-import { useKeyboardShortcuts } from '@/hooks';
+import { Button } from '@/components/ui/Button';
+import { useKeyboardShortcuts } from '@/hooks/ui/useKeyboardShortcuts';
 
 import { DropdownMenu, MegaMenu, MobileDrawer, navigationConfig } from './navigation';
 import { type NavGroup, type NavStructure } from './navigation/types';

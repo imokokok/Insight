@@ -3,6 +3,7 @@ import { unstable_cache } from 'next/cache';
 import { getPriceOracleProvidersSortedByMarketCap } from '@/lib/config/oracles';
 import { DASHBOARD_ASSETS } from '@/lib/home/dashboardConstants';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { reputationService, type OracleReputation } from '@/lib/oracles/services/reputationService';
 import { getActiveProviders, getAllActiveSymbols } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
@@ -32,6 +33,9 @@ export interface ServerDashboardData {
   // so its refetch queries match the server-rendered tiles instead of
   // re-deriving from a (now removed) hard-coded constant.
   mainOracles: OracleProvider[];
+  // Included in the server payload so the health table does not issue an
+  // immediate second request after hydration.
+  reputations: OracleReputation[];
 }
 
 // Bound concurrent upstream oracle fetches during SSR. Without this, 20
@@ -66,9 +70,15 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
   // Resolve the active symbol/provider sets once per SSR. These hit the
   // 5-minute aggregate cache in dynamicFeedResolver, so in the common
   // case they return immediately without a DB round-trip.
-  const [activeSymbols, mainOracles] = await Promise.all([
+  const [activeSymbols, mainOracles, reputations] = await Promise.all([
     getAllActiveSymbols([]),
     resolveMainOracles(),
+    reputationService.getReputations().catch((error) => {
+      logger.warn('Server reputation prefetch failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return [];
+    }),
   ]);
 
   const activeSymbolSet = new Set(activeSymbols.map((s) => s.toUpperCase()));
@@ -113,6 +123,7 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
     fetchedAt: Date.now(),
     hasError: results.some((r) => r.error !== null),
     mainOracles,
+    reputations,
   };
 }
 

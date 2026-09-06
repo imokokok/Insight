@@ -1,5 +1,6 @@
 import type { ReputationListData } from '@/hooks/data/useReputations';
 import { reputationService, type OracleReputation } from '@/lib/oracles/services/reputationService';
+import { QueryProvider } from '@/providers/QueryProvider';
 
 import ReputationContent from './ReputationContent';
 
@@ -28,5 +29,9 @@ export default async function ReputationPage() {
     initialData = undefined;
   }
 
-  return <ReputationContent initialData={initialData} />;
+  return (
+    <QueryProvider>
+      <ReputationContent initialData={initialData} />
+    </QueryProvider>
+  );
 }

@@ -89,8 +89,7 @@ export const GET = createApiHandler(
     middlewares: {
       logging: true,
       rateLimit: { preset: 'moderate' },
-      auth: { required: true, allowApiKey: true },
+      auth: { required: false },
     },
-    skipInternalAuthAndRateLimit: true,
   }
 );

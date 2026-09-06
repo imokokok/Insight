@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import { HeroSkeleton } from '@/components/ui';
+import { HeroSkeleton } from '@/components/ui/ChartSkeleton';
 
 import { DashboardDataFetcher } from './DashboardDataFetcher';
 

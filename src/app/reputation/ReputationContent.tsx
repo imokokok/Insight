@@ -13,6 +13,7 @@ import {
 } from '@/hooks/data/useReputations';
 import { providerNames } from '@/lib/constants';
 import { PROVIDER_TYPE_CONFIG } from '@/lib/oracles/reputationMetadata';
+import { useUser } from '@/stores/authStore';
 import { type OracleProvider } from '@/types/oracle';
 
 import {
@@ -27,6 +28,7 @@ import { TypeLegend } from './components/ReputationStats';
 import { PROVIDER_PROFILES } from './constants/providerProfiles';
 
 function ReputationContentInner({ initialData }: { initialData?: ReputationListData }) {
+  const user = useUser();
   const { data, isLoading, error } = useReputations({ initialData });
   const recalculate = useRecalculateReputation();
 
@@ -153,6 +155,7 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
           nextRecalcAt={nextRecalcAt}
           onRefresh={() => recalculate.mutate()}
           refreshPending={recalculate.isPending}
+          canRefresh={Boolean(user)}
         />
 
         {/* Loading state — single render path */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useKeyboardShortcuts, useGlobalKeyboardListener } from '@/hooks';
+import { useGlobalKeyboardListener, useKeyboardShortcuts } from '@/hooks/ui/useKeyboardShortcuts';
 import { useUIStore } from '@/stores/uiStore';
 
 import { useShortcutContext } from './ShortcutContext';

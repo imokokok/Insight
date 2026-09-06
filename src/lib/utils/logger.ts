@@ -84,27 +84,27 @@ function formatConsoleOutput(entry: LogEntry): string {
 }
 
 function reportToSentry(entry: LogEntry): void {
-  if (entry.level !== 'error') return;
+  if (entry.level !== 'error' || !process.env.NEXT_PUBLIC_SENTRY_DSN) return;
 
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Sentry = require('@sentry/nextjs');
-    if (Sentry && typeof Sentry.captureException === 'function') {
-      const error = entry.error
-        ? Object.assign(new Error(entry.error.message), {
-            name: entry.error.name,
-            stack: entry.error.stack,
-          })
-        : new Error(entry.message);
+  const error = entry.error
+    ? Object.assign(new Error(entry.error.message), {
+        name: entry.error.name,
+        stack: entry.error.stack,
+      })
+    : new Error(entry.message);
 
+  // Error reporting must not put the full browser SDK on every route's
+  // critical path. Load it only if an error actually needs reporting.
+  void import('@sentry/nextjs')
+    .then((Sentry) =>
       Sentry.captureException(error, {
         tags: { module: entry.module, logger: 'createLogger' },
         extra: { ...entry.data, logMessage: entry.message },
-      });
-    }
-  } catch {
-    // Sentry not available or not configured
-  }
+      })
+    )
+    .catch(() => {
+      // Sentry is optional and must never make logging fail.
+    });
 }
 
 function outputToConsole(entry: LogEntry): void {

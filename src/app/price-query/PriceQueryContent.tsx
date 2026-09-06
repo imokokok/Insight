@@ -4,7 +4,8 @@ import { useRef, useCallback } from 'react';
 
 import { ErrorBoundary } from '@/components/error-boundary';
 import { LiveStatusBar } from '@/components/ui';
-import { useCommonShortcuts, useAllOnChainData } from '@/hooks';
+import { useAllOnChainData } from '@/hooks/oracles/useAllOnChainData';
+import { useCommonShortcuts } from '@/hooks/ui/useKeyboardShortcuts';
 
 import { QueryHeader, QueryForm, QueryResults, QuickLinksPanel } from './components';
 import { type OnChainData } from './constants';

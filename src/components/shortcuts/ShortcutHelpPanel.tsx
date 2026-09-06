@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Command, Keyboard } from 'lucide-react';
 
-import { getPlatformShortcut, type KeyboardShortcut } from '@/hooks';
+import { getPlatformShortcut, type KeyboardShortcut } from '@/hooks/ui/useKeyboardShortcuts';
 
 import { useShortcutContext } from './ShortcutContext';
 

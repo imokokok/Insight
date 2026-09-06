@@ -1,6 +1,5 @@
 import Link from 'next/link';
 
-import { motion } from 'framer-motion';
 import { ArrowRight, CheckCircle2, CircleDot, ScanSearch, ShieldCheck } from 'lucide-react';
 
 const steps = [
@@ -110,13 +109,7 @@ export function OracleProcessSection() {
 
 export function OracleClosingSection() {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="relative overflow-hidden border border-slate-900/15 bg-[#edf3fc] px-6 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-20"
-    >
+    <section className="home-view-reveal relative overflow-hidden border border-slate-900/15 bg-[#edf3fc] px-6 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-20">
       <div className="absolute -right-24 -top-28 h-80 w-80 rounded-full border-[34px] border-blue-600/15" />
       <div className="absolute bottom-0 right-16 h-44 w-px bg-blue-700/20" />
       <div className="relative grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
@@ -150,6 +143,6 @@ export function OracleClosingSection() {
           </div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 }

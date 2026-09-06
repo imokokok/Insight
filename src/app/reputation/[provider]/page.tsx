@@ -2,6 +2,8 @@
 
 import { use } from 'react';
 
+import { QueryProvider } from '@/providers/QueryProvider';
+
 import ProviderReputationContent from './ProviderReputationContent';
 
 export default function ProviderReputationPage({
@@ -10,5 +12,9 @@ export default function ProviderReputationPage({
   params: Promise<{ provider: string }>;
 }) {
   const { provider } = use(params);
-  return <ProviderReputationContent provider={decodeURIComponent(provider)} />;
+  return (
+    <QueryProvider>
+      <ProviderReputationContent provider={decodeURIComponent(provider)} />
+    </QueryProvider>
+  );
 }

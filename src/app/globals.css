@@ -478,6 +478,57 @@ body {
   color: #1d4ed8;
 }
 
+/* Preserve the homepage's premium motion without shipping Framer Motion for
+   static presentation. The reveal is compositor-only and honours the global
+   reduced-motion rule below. */
+@keyframes home-reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.home-hero-reveal {
+  opacity: 0;
+  animation: home-reveal-up 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.home-hero-reveal-1 {
+  animation-delay: 100ms;
+}
+
+.home-hero-reveal-2 {
+  animation-delay: 180ms;
+}
+
+.home-hero-reveal-3 {
+  animation-delay: 260ms;
+}
+
+.home-hero-reveal-4 {
+  animation-delay: 340ms;
+}
+
+.home-hero-reveal-5 {
+  animation-delay: 420ms;
+}
+
+.home-hero-reveal-6 {
+  animation-delay: 500ms;
+}
+
+.home-view-reveal {
+  animation: home-reveal-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.home-code-swap {
+  animation: home-reveal-up 200ms ease-out both;
+}
+
 /* Editorial product workspace shared by the observe / compare / decide flow. */
 .editorial-workspace {
   position: relative;
@@ -584,6 +635,10 @@ body {
     linear-gradient(rgba(15, 23, 42, 0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(15, 23, 42, 0.025) 1px, transparent 1px), #f8f7f4;
   background-size: 48px 48px;
+}
+
+body:has(.ops-workspace) .public-chrome {
+  display: none;
 }
 
 .ops-workspace .rounded-card,

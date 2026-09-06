@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 
-import { usePreferences } from '@/hooks';
 import { useDynamicSymbols } from '@/hooks/data/useDynamicSymbols';
+import { usePreferences } from '@/hooks/utils/usePreferences';
 import {
   getOracleChains,
   isOracleSymbolSupported,

@@ -1,4 +1,5 @@
 {
+  "regions": ["sin1"],
   "functions": {
     "src/app/api/oracles/[provider]/route.ts": {
       "maxDuration": 30
