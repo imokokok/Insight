@@ -42,18 +42,20 @@ browser and synthetic monitoring without changing response bodies.
 
 ## Backup and restore
 
-The database is the system of record. Before production launch, enable the
-highest Supabase backup/PITR option available for the project and verify that
-its retention meets the target below.
+The database is the system of record. This project intentionally operates on
+Supabase Free: automatic backups and PITR are not release requirements. Use
+encrypted logical exports stored outside the repository as the recovery path,
+and never commit a database dump or connection credential to Git.
 
-The 2026-09-06 production audit reported no listed recovery points and PITR
-disabled. Do not treat the database as launch-ready until a recovery option is
-enabled and a restore drill succeeds; enabling a paid backup tier requires the
-project owner's explicit approval.
+The 2026-09-06 production audit reported no provider-managed recovery points,
+which is expected on Free. Keep a recent logical export before every schema or
+billing change and perform a restore drill against an isolated local or
+non-production database.
 
-- Target RPO: 24 hours with daily backups; 15 minutes when PITR is enabled.
+- Target RPO: 24 hours when daily logical exports are maintained.
 - Target RTO: four hours for database restore and application validation.
-- Retain at least seven daily recovery points and one monthly recovery point.
+- Retain at least seven encrypted daily exports and one monthly export outside
+  Supabase and GitHub.
 - Export a schema-only snapshot after every migration release.
 - Run a restore drill into an isolated, non-production project every month.
 
@@ -85,11 +87,14 @@ being disabled on a table reachable through the Data API.
    `market_reference_hourly`, or `active_alerts_with_prices`, while snapshot
    collection, readiness, market-reference reads, billing, and rate limiting
    continue to work through the server.
-4. Enable leaked-password protection in Supabase Auth before launch. This is a
-   provider-level setting, not a SQL migration, and may depend on the selected
-   Supabase plan.
-5. Export the post-migration schema and attach the clean advisor result to the
-   release evidence.
+4. Treat the advisor's leaked-password-protection warning as an accepted Free
+   plan limitation. Keep the application's existing 8–128 character,
+   uppercase/lowercase/number/symbol validation on registration and password
+   changes, and re-test those flows after auth changes.
+5. Do not make Pro-only Auth or backup features a launch requirement unless the
+   project owner explicitly changes the cost boundary.
+6. Export the post-migration schema and attach the advisor result, including
+   accepted Free-plan warnings, to the release evidence.
 
 ## Release checklist
 
