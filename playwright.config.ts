@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const testPort = process.env.PLAYWRIGHT_PORT ?? '3000';
+const testBaseUrl = process.env.BASE_URL ?? `http://127.0.0.1:${testPort}`;
+
 /**
  * Playwright configuration for E2E testing
  * @see https://playwright.dev/docs/test-configuration
@@ -25,7 +28,7 @@ export default defineConfig({
   /* Shared settings for all the projects below */
   use: {
     /* Base URL to use in actions like `await page.goto('/')` */
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: testBaseUrl,
 
     /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
@@ -68,8 +71,8 @@ export default defineConfig({
 
   /* Run local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+    command: `npm run dev -- --hostname 127.0.0.1 --port ${testPort}`,
+    url: testBaseUrl,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

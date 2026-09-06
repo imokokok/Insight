@@ -43,6 +43,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { getMaxRequestBytes, rejectOversizedRequest } from '@/lib/api/requestLimits';
 import { parseIpnEvent } from '@/lib/billing/nowpayments';
 import {
   getString,
@@ -190,7 +191,13 @@ async function failWebhookEvent(
 }
 
 export async function POST(request: NextRequest) {
+  const oversizedResponse = rejectOversizedRequest(request);
+  if (oversizedResponse) return oversizedResponse;
+
   const payload = await request.text();
+  if (new TextEncoder().encode(payload).byteLength > getMaxRequestBytes()) {
+    return NextResponse.json({ error: 'Payload too large' }, { status: 413 });
+  }
 
   const event = parseIpnEvent(payload, request.headers);
   if (!event) {

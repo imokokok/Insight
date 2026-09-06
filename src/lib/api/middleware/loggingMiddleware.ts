@@ -99,6 +99,8 @@ export function logResponse(requestId: string, statusCode: number, startTime: nu
 
   if (statusCode >= 400) {
     logger.warn('Request completed with error', { response: responseLog });
+  } else if (duration >= 2000) {
+    logger.warn('Slow request completed', { response: responseLog });
   } else {
     logger.info('Request completed', { response: responseLog });
   }

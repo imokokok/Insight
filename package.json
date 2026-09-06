@@ -2,6 +2,9 @@
   "name": "insight",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build && npm run perf:budget",
@@ -12,6 +15,7 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "validate": "npm run lint && npm run typecheck && npm run test && npm run knip",
+    "validate:ci": "npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run knip && npm run sdk:build && npm run sdk:test && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -69,7 +73,6 @@
     "tailwind-merge": "^3.5.0",
     "verify-insight-receipt": "^0.2.0",
     "viem": "^2.47.6",
-    "web-vitals": "^5.1.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },
@@ -85,12 +88,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.28.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
-    "esbuild": "^0.28.1",
     "husky": "^9.1.7",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",

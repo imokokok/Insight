@@ -113,44 +113,12 @@ jest.mock('../contexts', () => ({
   }),
 }));
 
-jest.mock('@/hooks', () => ({
-  useCommonShortcuts: jest.fn(),
-  useDIAOnChainData: () => ({ data: null, isLoading: false }),
-  useWINkLinkOnChainData: () => ({ data: null, isLoading: false }),
-  useRedStoneOnChainData: () => ({ data: null, isLoading: false }),
-  useAllOnChainData: () => ({
-    diaOnChainData: null,
-    isDIADataLoading: false,
-    winklinkOnChainData: null,
-    isWINkLinkDataLoading: false,
-    redstoneOnChainData: null,
-    isRedStoneDataLoading: false,
-    supraOnChainData: null,
-    isSupraDataLoading: false,
-    twapOnChainData: null,
-    isTwapDataLoading: false,
-    reflectorOnChainData: null,
-    isReflectorDataLoading: false,
-    flareOnChainData: null,
-    isFlareDataLoading: false,
-  }),
-}));
-
 jest.mock('@/components/ui', () => ({
   LiveStatusBar: ({ isConnected, latency }: { isConnected: boolean; latency?: number }) => (
     <div data-testid="live-status" data-connected={isConnected} data-latency={latency}>
       LiveStatusBar
     </div>
   ),
-}));
-
-jest.mock('@/lib/oracles', () => ({
-  OracleProvider: {
-    CHAINLINK: 'chainlink',
-    DIA: 'dia',
-    REDSTONE: 'redstone',
-    WINKLINK: 'winklink',
-  },
 }));
 
 const createWrapper = () => {

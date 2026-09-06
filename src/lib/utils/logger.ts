@@ -28,8 +28,10 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 };
 
 function getMinLogLevel(): LogLevel {
+  const configured = process.env.LOG_LEVEL as LogLevel | undefined;
+  if (configured && configured in LOG_LEVELS) return configured;
   const env = process.env.NODE_ENV || 'development';
-  return env === 'production' ? 'error' : 'debug';
+  return env === 'production' ? 'warn' : 'debug';
 }
 
 const cachedMinLogLevel: LogLevel = getMinLogLevel();

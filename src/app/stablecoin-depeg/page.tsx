@@ -10,7 +10,13 @@ export const metadata: Metadata = {
 };
 
 export default async function StablecoinDepegPage() {
-  const initialSnapshots = await calculateAllStablecoinSnapshots();
+  // Keep deployments independent from live RPC/oracle availability. The
+  // client immediately fetches the same API when this build-time shell is
+  // empty, while runtime rendering can still provide an initial snapshot.
+  const initialSnapshots =
+    process.env.NEXT_PHASE === 'phase-production-build'
+      ? []
+      : await calculateAllStablecoinSnapshots();
 
   return <PegMonitorContent kind="stablecoin" initialSnapshots={initialSnapshots} />;
 }

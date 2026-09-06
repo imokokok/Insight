@@ -16,7 +16,9 @@ async function main(): Promise<void> {
   const PROD = process.env.ATTESTATION_SIGNER_PRIVATE_KEY as `0x${string}` | undefined;
   const SAMPLE = process.env.ATTESTATION_SAMPLE_SIGNER_PRIVATE_KEY as `0x${string}` | undefined;
   if (!PROD || !SAMPLE) {
-    console.error('need both ATTESTATION_SIGNER_PRIVATE_KEY and ATTESTATION_SAMPLE_SIGNER_PRIVATE_KEY');
+    console.error(
+      'need both ATTESTATION_SIGNER_PRIVATE_KEY and ATTESTATION_SAMPLE_SIGNER_PRIVATE_KEY'
+    );
     process.exit(2);
   }
 
@@ -95,16 +97,14 @@ async function main(): Promise<void> {
   // violation (preTradeSignedAt > executedAt) and confirm the signed field
   // is 4294967295, NOT 0. We invoke the production build/signer via the
   // lib code (no HTTP), so we don't need a server.
-  const { buildExecutionMessage, signExecutionReceipt } = await import(
-    '../src/lib/attestations/executionReceipt.js'
-  );
+  const { buildExecutionMessage, signExecutionReceipt } =
+    await import('../src/lib/attestations/executionReceipt.js');
   const signedPre = await signExecutionReceipt(
     {
       preTradeUid: ('0x' + 'a'.repeat(64)) as `0x${string}`,
       requestHash: ('0x' + 'b'.repeat(64)) as `0x${string}`,
       sourceAssetId: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-      destinationAssetId:
-        'eip155:8453/erc20:0x4200000000000000000000000000000000000006',
+      destinationAssetId: 'eip155:8453/erc20:0x4200000000000000000000000000000000000006',
       subjectChainId: 8453,
       settlementChainId: 8453,
       participantCount: 4,
@@ -126,7 +126,7 @@ async function main(): Promise<void> {
       blockNumber: 30000000,
       mevRiskScore: 0.05,
       taker: '0x0000000000000000000000000000000000000004' as `0x${string}`,
-    },
+    }
     // Production path — uses ATTESTATION_SIGNER_PRIVATE_KEY, the prod key
     // from above. H8 stays separate via the { sample: true } code path which
     // is NOT exercised here.
@@ -140,8 +140,7 @@ async function main(): Promise<void> {
     preTradeUid: ('0x' + 'a'.repeat(64)) as `0x${string}`,
     requestHash: ('0x' + 'b'.repeat(64)) as `0x${string}`,
     sourceAssetId: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-    destinationAssetId:
-      'eip155:8453/erc20:0x4200000000000000000000000000000000000006',
+    destinationAssetId: 'eip155:8453/erc20:0x4200000000000000000000000000000000000006',
     subjectChainId: 8453,
     settlementChainId: 8453,
     participantCount: 4,
@@ -163,7 +162,10 @@ async function main(): Promise<void> {
     mevRiskScore: 0.05,
     taker: '0x0000000000000000000000000000000000000004' as `0x${string}`,
   });
-  console.log('attestationAgeAtExecSeconds (post-dated):', buildRecheck.attestationAgeAtExecSeconds);
+  console.log(
+    'attestationAgeAtExecSeconds (post-dated):',
+    buildRecheck.attestationAgeAtExecSeconds
+  );
   if (buildRecheck.attestationAgeAtExecSeconds !== 4294967295) {
     console.error(
       `FAIL: post-dated pre-trade signed as age=${buildRecheck.attestationAgeAtExecSeconds}, expected sentinel 4294967295 (Michael: "0 reads as fresh")`

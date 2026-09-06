@@ -32,11 +32,11 @@ async function isAuthenticated(request: NextRequest): Promise<boolean> {
       },
     });
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    return session !== null;
+    // Cookie-backed getSession() does not verify that the token was signed by
+    // Supabase. getClaims() verifies the JWT locally against the cached JWKS
+    // (or falls back to the Auth server for symmetric projects).
+    const { data, error } = await supabase.auth.getClaims();
+    return !error && data?.claims != null;
   } catch {
     return false;
   }

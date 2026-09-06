@@ -3,6 +3,14 @@ node_modules
 out
 build
 .github/cron-dist
+sdk/dist
+verifier/dist
+ml/models
+
+# Generated/pinned VRT1 conformance artifacts. Formatting changes their exact
+# bytes, which are part of the verifier test vectors.
+scripts/vrt1-e2e-prototype/conformance-round2/conformance-vectors/key_registry_snapshot.json
+scripts/vrt1-e2e-prototype/conformance-round2/VRT1-section-8.5-key-registry-snapshot.md
 
 # Registration pin for the VRT1 action type. Its sha256 is the value a verifier
 # checks, so its bytes must not be touched by a formatter. Regenerate the served

@@ -89,8 +89,7 @@ const verdict = r.data.priceExecutionStatus ?? r.data.executionStatus;
 const exAt = Number(r.data.executedAt);
 const pts = Number(r.data.preTradeSignedAt);
 const precedenceHolds = Number.isFinite(pts) && pts > 0 && pts <= exAt;
-const priceReadable =
-  Number(r.data.quotedPrice) > 0 && Number(r.data.executedPrice) > 0;
+const priceReadable = Number(r.data.quotedPrice) > 0 && Number(r.data.executedPrice) > 0;
 const statusMatches =
   (r.data.slippageSatisfied === true && verdict === 'FAITHFUL') ||
   (r.data.slippageSatisfied === false && verdict !== 'FAITHFUL') ||
@@ -235,10 +234,7 @@ if (modern) {
   const stateAge = Number(r.data.priceStateAgeAtExecSeconds);
   check(
     'two distinct age fields (attestation vs price state)',
-    Number.isFinite(attAge) &&
-      Number.isFinite(stateAge) &&
-      attAge !== stateAge &&
-      stateAge > 0,
+    Number.isFinite(attAge) && Number.isFinite(stateAge) && attAge !== stateAge && stateAge > 0,
     `attestationAge=${attAge}s priceStateAge=${stateAge}s`
   );
   check(

@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { after, type NextRequest, NextResponse } from 'next/server';
 
 import { type ZodSchema } from 'zod';
 
@@ -23,7 +23,9 @@ import {
   type QuotaMiddlewareOptions,
   type QuotaInfo,
 } from './middleware';
+import { checkPreAuthBurstLimit } from './middleware/preAuthBurstLimiter';
 import { extractClientIp, rateLimitKeyGenerator } from './middleware/rateLimitMiddleware';
+import { rejectOversizedRequest } from './requestLimits';
 import { ApiResponseBuilder } from './response';
 
 import type { ApiResponse, ApiSuccessResponse } from './response/ApiResponse';
@@ -49,9 +51,9 @@ export const V1_STANDARD_MIDDLEWARES: MiddlewareConfig = {
   cors: true,
 };
 
-/** Read-only v1 middleware stack: authenticated and rate-limited, but without
- *  quota enforcement. Used by endpoints that should be available to all
- *  authenticated users. */
+/** Read-oriented v1 middleware stack. These endpoints remain authenticated,
+ *  rate-limited, and credit-metered like the rest of the paid API; the name
+ *  describes HTTP behaviour, not a billing exemption. */
 export const V1_READ_ONLY_MIDDLEWARES: MiddlewareConfig = {
   logging: true,
   auth: { required: true, allowApiKey: true, requireApiKey: true },
@@ -146,6 +148,10 @@ interface CreateApiHandlerOptions<
    *  The cookie is HttpOnly + SameSite=Strict, making it unforgeable by
    *  external API consumers. */
   skipInternalAuthAndRateLimit?: boolean;
+  /** Per-instance burst shield applied before validation/auth. Set < 0 to disable. */
+  preAuthBurstLimit?: number;
+  /** Maximum declared request body size. Defaults to MAX_REQUEST_SIZE or 1 MiB. */
+  maxBodyBytes?: number;
 }
 
 const DEFAULT_CORS_HEADERS = [
@@ -199,21 +205,42 @@ function recordApiKeyUsage(
     return;
   }
 
-  logApiKeyUsage({
-    apiKeyId,
-    endpoint: request.nextUrl.pathname,
-    method: request.method,
-    statusCode,
-    responseTimeMs: Date.now() - startTime,
-    ipAddress: extractClientIp(request),
-    userAgent: request.headers.get('user-agent') ?? undefined,
-  }).catch((error) => {
-    logger.warn('Failed to record API key usage', {
+  const task = async () => {
+    await logApiKeyUsage({
       apiKeyId,
       endpoint: request.nextUrl.pathname,
-      error: error instanceof Error ? error.message : String(error),
+      method: request.method,
+      statusCode,
+      responseTimeMs: Date.now() - startTime,
+      ipAddress: extractClientIp(request),
+      userAgent: request.headers.get('user-agent') ?? undefined,
     });
-  });
+  };
+
+  // `after` extends the serverless request lifetime without delaying the
+  // response. Unit tests and non-Next callers have no request work store, so
+  // retain a safe best-effort fallback there.
+  try {
+    after(task);
+  } catch {
+    void task().catch((error) => {
+      logger.warn('Failed to record API key usage', {
+        apiKeyId,
+        endpoint: request.nextUrl.pathname,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
+  }
+}
+
+function applyDiagnosticHeaders(
+  response: NextResponse,
+  requestId: string,
+  startTime: number
+): void {
+  const duration = Date.now() - startTime;
+  response.headers.set('X-Request-Id', requestId);
+  response.headers.set('Server-Timing', `app;dur=${duration}`);
 }
 
 /**
@@ -257,7 +284,14 @@ export function createApiHandler<
   request: NextRequest,
   context: { params: Promise<Record<string, string>> }
 ) => Promise<NextResponse> {
-  const { middlewares = {}, validation, onError, skipInternalAuthAndRateLimit = false } = options;
+  const {
+    middlewares = {},
+    validation,
+    onError,
+    skipInternalAuthAndRateLimit = false,
+    preAuthBurstLimit,
+    maxBodyBytes,
+  } = options;
 
   const validationMiddleware = validation
     ? createZodValidationMiddleware<TBody, TQuery, TParams>(validation)
@@ -347,6 +381,24 @@ export function createApiHandler<
         apiContext.requestId = `req_${crypto.randomUUID().replace(/-/g, '')}`;
       }
 
+      const oversizedResponse = rejectOversizedRequest(request, maxBodyBytes);
+      if (oversizedResponse) {
+        applyDiagnosticHeaders(oversizedResponse, apiContext.requestId, startTime);
+        if (corsHeaders) applyCorsHeaders(oversizedResponse, corsHeaders);
+        return oversizedResponse;
+      }
+
+      // A local burst shield must run before parsing or DB-backed auth. The
+      // normal distributed/API-key limiter below remains authoritative.
+      if (baseRateLimitOptions && !internal) {
+        const burstResponse = checkPreAuthBurstLimit(request, preAuthBurstLimit);
+        if (burstResponse) {
+          applyDiagnosticHeaders(burstResponse, apiContext.requestId, startTime);
+          if (corsHeaders) applyCorsHeaders(burstResponse, corsHeaders);
+          return burstResponse;
+        }
+      }
+
       // Run Zod validation after logging so the requestId is available, but
       // before auth/rate-limit to fail fast on malformed input.
       if (validationMiddleware) {
@@ -358,6 +410,7 @@ export function createApiHandler<
           logResponse(apiContext.requestId, 400, startTime);
           recordApiKeyUsage(request, 400, startTime, apiContext.auth?.apiKey?.keyId);
           const validationResponse = validationResult.response!;
+          applyDiagnosticHeaders(validationResponse, apiContext.requestId, startTime);
           if (corsHeaders) applyCorsHeaders(validationResponse, corsHeaders);
           return validationResponse;
         }
@@ -374,6 +427,7 @@ export function createApiHandler<
         const authResult = await authMiddleware(request);
         if (!authResult.success) {
           logResponse(apiContext.requestId, authResult.response.status, startTime);
+          applyDiagnosticHeaders(authResult.response, apiContext.requestId, startTime);
           if (corsHeaders) applyCorsHeaders(authResult.response, corsHeaders);
           return authResult.response;
         }
@@ -414,6 +468,7 @@ export function createApiHandler<
           if (!rateLimitResult.success) {
             logResponse(apiContext.requestId, 429, startTime);
             recordApiKeyUsage(request, 429, startTime, apiContext.auth?.apiKey?.keyId);
+            applyDiagnosticHeaders(rateLimitResult.response, apiContext.requestId, startTime);
             if (corsHeaders) applyCorsHeaders(rateLimitResult.response, corsHeaders);
             return rateLimitResult.response;
           }
@@ -443,6 +498,7 @@ export function createApiHandler<
         if (!quotaResult.success) {
           logResponse(apiContext.requestId, 402, startTime);
           recordApiKeyUsage(request, 402, startTime, apiKey?.keyId);
+          applyDiagnosticHeaders(quotaResult.response, apiContext.requestId, startTime);
           if (corsHeaders) applyCorsHeaders(quotaResult.response, corsHeaders);
           return quotaResult.response;
         }
@@ -491,6 +547,7 @@ export function createApiHandler<
           );
           deniedResponse.headers.set('X-Credit-Cost', String(pendingCharge.cost));
           deniedResponse.headers.set('Retry-After', String(CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS));
+          applyDiagnosticHeaders(deniedResponse, apiContext.requestId, startTime);
           if (corsHeaders) applyCorsHeaders(deniedResponse, corsHeaders);
           return deniedResponse;
         }
@@ -513,6 +570,8 @@ export function createApiHandler<
         applyCorsHeaders(response, corsHeaders);
       }
 
+      applyDiagnosticHeaders(response, apiContext.requestId, startTime);
+
       logResponse(apiContext.requestId, response.status, startTime);
       recordApiKeyUsage(request, response.status, startTime, apiContext.auth?.apiKey?.keyId);
       return response;
@@ -528,6 +587,7 @@ export function createApiHandler<
             startTime,
             apiContext.auth?.apiKey?.keyId
           );
+          applyDiagnosticHeaders(errorResponse, apiContext.requestId, startTime);
           if (corsHeaders) applyCorsHeaders(errorResponse, corsHeaders);
           return errorResponse;
         } catch (handlerError) {
@@ -537,6 +597,7 @@ export function createApiHandler<
           );
           const errResponse = await errorMiddleware(error, apiContext.requestId);
           recordApiKeyUsage(request, errResponse.status, startTime, apiContext.auth?.apiKey?.keyId);
+          applyDiagnosticHeaders(errResponse, apiContext.requestId, startTime);
           if (corsHeaders) applyCorsHeaders(errResponse, corsHeaders);
           return errResponse;
         }
@@ -544,6 +605,7 @@ export function createApiHandler<
 
       const errResponse = await errorMiddleware(error, apiContext.requestId);
       recordApiKeyUsage(request, errResponse.status, startTime, apiContext.auth?.apiKey?.keyId);
+      applyDiagnosticHeaders(errResponse, apiContext.requestId, startTime);
       if (corsHeaders) applyCorsHeaders(errResponse, corsHeaders);
       return errResponse;
     }

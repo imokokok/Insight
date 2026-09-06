@@ -38,6 +38,16 @@ export interface ServerDashboardData {
   reputations: OracleReputation[];
 }
 
+export function createEmptyDashboardData(): ServerDashboardData {
+  return {
+    prices: [],
+    fetchedAt: 0,
+    hasError: false,
+    mainOracles: FALLBACK_MAIN_ORACLES,
+    reputations: [],
+  };
+}
+
 // Bound concurrent upstream oracle fetches during SSR. Without this, 20
 // parallel `fetchPriceWithDatabase` calls (4 assets × 5 oracles) fan out
 // simultaneously, piling up on the shared DB request queue and on upstream

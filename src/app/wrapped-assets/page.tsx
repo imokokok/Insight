@@ -10,7 +10,13 @@ export const metadata: Metadata = {
 };
 
 export default async function WrappedAssetsPage() {
-  const initialSnapshots = await calculateAllWrappedAssetSnapshots();
+  // Keep deployments independent from live RPC/oracle availability. The
+  // client immediately fetches the same API when this build-time shell is
+  // empty, while runtime rendering can still provide an initial snapshot.
+  const initialSnapshots =
+    process.env.NEXT_PHASE === 'phase-production-build'
+      ? []
+      : await calculateAllWrappedAssetSnapshots();
 
   return <PegMonitorContent kind="wrapped" initialSnapshots={initialSnapshots} />;
 }

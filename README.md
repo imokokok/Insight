@@ -409,4 +409,7 @@ reference snapshots are retained for 120 days, preserving the advertised 90-day
 history window and the eight-week ML lookback.
 
 Deployment and rollback instructions live in
-[`docs/operations/cron-dispatcher.md`](docs/operations/cron-dispatcher.md).
+[`docs/operations/cron-dispatcher.md`](docs/operations/cron-dispatcher.md). The
+service objectives, monitoring, backups, release checks, load testing, incident
+response, and application rollback process are in
+[`docs/operations/production-readiness.md`](docs/operations/production-readiness.md).

@@ -26,10 +26,6 @@ jest.mock('@/components/Navbar', () => ({
   default: () => null,
 }));
 
-jest.mock('@/components/realtime/ConnectionStatus', () => ({
-  ConnectionStatusIndicator: () => null,
-}));
-
 jest.mock('@/providers/QueryProvider', () => ({
   QueryProvider: ({ children }: { children: React.ReactNode }) => children,
 }));

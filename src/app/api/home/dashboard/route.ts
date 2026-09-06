@@ -2,6 +2,7 @@ import { createCachedJsonResponse } from '@/lib/api/utils';
 import { fetchDashboardInitialDataCached } from '@/lib/home/dashboardData';
 
 export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 /**
  * Fixed-shape public dashboard snapshot. A GET endpoint lets Vercel's edge

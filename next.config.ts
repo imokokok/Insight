@@ -7,6 +7,23 @@ const withBundleAnalyzer = createBundleAnalyzer({
   openAnalyzer: process.env.CI !== 'true',
 });
 
+const contentSecurityPolicyReportOnly = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "connect-src 'self' https: wss:",
+  "frame-src 'self' https:",
+  "worker-src 'self' blob:",
+  "form-action 'self' https://*.nowpayments.io",
+  'report-uri /api/security/csp-report',
+  'upgrade-insecure-requests',
+].join('; ');
+
 const nextConfig: NextConfig = {
   transpilePackages: ['recharts'],
   compiler: {
@@ -92,7 +109,7 @@ const nextConfig: NextConfig = {
           },
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Content-Security-Policy-Report-Only', value: contentSecurityPolicyReportOnly },
         ],
       },
       {

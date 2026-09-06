@@ -92,10 +92,7 @@ async function fetchCoinbaseCandles(symbol: string, start: Date, end: Date): Pro
     .map((c) => ({ time: new Date(c[0] * 1000), close: c[4], volume: c[5] }));
 }
 
-async function fetchKrakenOhlc(
-  symbol: string,
-  sinceEpoch: number
-): Promise<Candle[]> {
+async function fetchKrakenOhlc(symbol: string, sinceEpoch: number): Promise<Candle[]> {
   const pair = KRAKEN_PAIRS[symbol];
   const url = `https://api.kraken.com/0/public/OHLC?pair=${pair}&interval=60&since=${sinceEpoch}`;
   const r = await fetchWithTimeout(url);
@@ -115,7 +112,11 @@ async function fetchKrakenOhlc(
     .filter(
       (c) => Array.isArray(c) && c.length >= 7 && Number.isFinite(Number(c[4])) && Number(c[4]) > 0
     )
-    .map((c) => ({ time: new Date(Number(c[0]) * 1000), close: Number(c[4]), volume: Number(c[6]) }));
+    .map((c) => ({
+      time: new Date(Number(c[0]) * 1000),
+      close: Number(c[4]),
+      volume: Number(c[6]),
+    }));
 }
 
 async function backfillSymbol(

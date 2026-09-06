@@ -111,7 +111,7 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
       }
     };
 
-    if (initialData.prices.length === 0) void refresh();
+    if (initialData.prices.length === 0 || initialData.hasError) void refresh();
     const refreshTimer = window.setInterval(() => void refresh(), 60_000);
     window.addEventListener('online', refresh);
     document.addEventListener('visibilitychange', refreshWhenVisible);
@@ -123,7 +123,7 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
       window.removeEventListener('online', refresh);
       document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
-  }, [initialData.prices.length]);
+  }, [initialData.hasError, initialData.prices.length]);
 
   const currentData = dashboardData;
   const results = currentData.prices;

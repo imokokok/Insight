@@ -24,14 +24,16 @@ info:
 
     ## Authentication
 
-    Most endpoints require authentication via one of two methods:
+    External v1 endpoints accept API keys only. Browser account-management
+    endpoints outside `/api/v1` use Supabase session bearer tokens.
 
     | Method | Header | Use Case |
     |--------|--------|----------|
     | **API Key** | `X-API-Key: ins_...` | External integrations, scripts, bots |
-    | **Bearer Token** | `Authorization: Bearer <jwt>` | Web UI session (Supabase Auth) |
+    | **Bearer Token** | `Authorization: Bearer <jwt>` | Account/alert endpoints explicitly marked as session-authenticated |
 
-    - Both methods are accepted on most endpoints. The `alerts` endpoints only accept Bearer tokens.
+    - Credit-metered `/api/v1` endpoints require an API key. Bearer tokens cannot bypass metering.
+    - The `alerts` endpoints are the documented exception and require a Bearer session token.
     - Public endpoints (`/health`, `/symbols`) require no authentication.
 
     ⚠️ **Keep your key safe** — API keys are shown only once when created. Rotate them immediately if leaked.
@@ -131,6 +133,7 @@ info:
     | `CREDIT_EXHAUSTED` | 402 | Wallet balance insufficient to cover the call's metering cost |
     | `INSUFFICIENT_DATA` | 422 | Not enough data points to compute the requested metric |
     | `RATE_LIMIT_EXCEEDED` | 429 | Too many requests. Retry after the timestamp in the header |
+    | `PAYLOAD_TOO_LARGE` | 413 | Request body exceeds the configured maximum size |
     | `INTERNAL_ERROR` | 500 | Unexpected server error |
 
     ---
@@ -202,6 +205,8 @@ servers:
 tags:
   - name: Public
     description: No authentication required
+  - name: System
+    description: Service liveness and dependency readiness
   - name: Prices
     description: Historical and latest oracle price data
   - name: Consensus
@@ -220,6 +225,8 @@ tags:
     description: Deviation, correlation, signals, latency, anomalies 🔒
   - name: Risk Signals
     description: Stablecoin depeg, wrapped asset peg, incidents
+  - name: Oracle Watch
+    description: Signed oracle monitoring signals and history
   - name: Data
     description: Snapshots, exports, and daily reports
   - name: Alerts
@@ -363,7 +370,6 @@ paths:
       description: High-level platform metrics — provider count, active feeds, symbols, chains, and top providers.
       security:
         - apiKey: []
-        - bearer: []
       responses:
         '200':
           description: Platform metrics
@@ -381,7 +387,6 @@ paths:
       description: Fetch the latest price for a symbol from a supported oracle provider.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - $ref: '#/components/parameters/provider'
         - $ref: '#/components/parameters/symbol'
@@ -405,7 +410,6 @@ paths:
       description: Query prices for up to 20 asset/provider combinations in a single request.
       security:
         - apiKey: []
-        - bearer: []
       requestBody:
         required: true
         content:
@@ -434,7 +438,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - $ref: '#/components/parameters/symbol'
         - $ref: '#/components/parameters/chain'
@@ -465,7 +468,6 @@ paths:
       description: Fetch historical price data for a symbol over a given period.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - $ref: '#/components/parameters/provider'
         - $ref: '#/components/parameters/symbol'
@@ -496,7 +498,6 @@ paths:
       description: Query the oracle feed registry with filters. Returns feed metadata, contract addresses, and health indicators.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: provider
           in: query
@@ -543,7 +544,6 @@ paths:
       description: Check data freshness status (fresh/stale/outdated/never) for oracle feeds.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: provider
           in: query
@@ -574,7 +574,6 @@ paths:
       description: Heartbeat statistics (success rate, coverage, daily snapshot count) for oracle feeds over a date range.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: provider
           in: query
@@ -602,7 +601,6 @@ paths:
       description: Health status for a single oracle feed (healthy/degraded/critical).
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: feedId
           in: path
@@ -630,7 +628,6 @@ paths:
       description: Real-time reputation scores for every oracle provider, including accuracy, reliability, freshness, uptime, deviation, and latency.
       security:
         - apiKey: []
-        - bearer: []
       responses:
         '200':
           description: Reputation data
@@ -647,7 +644,6 @@ paths:
       description: Ranked leaderboard of oracle providers with score trends over a configurable period.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: days
           in: query
@@ -673,7 +669,6 @@ paths:
       description: Detailed reputation data for a specific oracle provider, with optional trend data.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: provider
           in: path
@@ -716,7 +711,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - $ref: '#/components/parameters/symbol'
         - $ref: '#/components/parameters/dateFrom'
@@ -743,7 +737,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: provider
           in: query
@@ -790,7 +783,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - $ref: '#/components/parameters/symbol'
         - $ref: '#/components/parameters/dateFrom'
@@ -820,7 +812,6 @@ paths:
       description: Latency percentile statistics (p50/p90/p95/p99) for oracle providers over a date range.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: provider
           in: query
@@ -852,7 +843,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: days
           in: query
@@ -883,7 +873,6 @@ paths:
         **Credit-metered** — protocol-level intelligence, open to any paying key.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: provider
           in: query
@@ -933,7 +922,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - $ref: '#/components/parameters/symbol'
         - name: providers
@@ -977,7 +965,6 @@ paths:
         **Credit-metered** — protocol-level intelligence, open to any paying key.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - $ref: '#/components/parameters/provider'
         - $ref: '#/components/parameters/symbol'
@@ -1007,7 +994,6 @@ paths:
       description: List all integrated lending protocols with dynamic risk data.
       security:
         - apiKey: []
-        - bearer: []
       responses:
         '200':
           description: Protocol list
@@ -1027,7 +1013,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       responses:
         '200':
           description: All protocol risk parameters
@@ -1050,7 +1035,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: id
           in: path
@@ -1081,7 +1065,6 @@ paths:
         **Credit-metered** — protocol-level intelligence, open to any paying key.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: id
           in: path
@@ -1114,7 +1097,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - $ref: '#/components/parameters/date'
       responses:
@@ -1141,7 +1123,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       requestBody:
         required: true
         content:
@@ -1174,7 +1155,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: asset
           in: query
@@ -1243,7 +1223,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: symbol
           in: query
@@ -1287,7 +1266,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: symbol
           in: query
@@ -1338,7 +1316,6 @@ paths:
       description: Comprehensive daily oracle health report with provider risk levels, feed diagnostics, shared-source dependency analysis, and risk impacts.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - $ref: '#/components/parameters/date'
       responses:
@@ -1359,7 +1336,6 @@ paths:
       description: Detect depeg events for stablecoins by comparing oracle prices with DEX market prices.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: symbol
           in: query
@@ -1387,7 +1363,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: symbol
           in: query
@@ -1416,7 +1391,6 @@ paths:
         **Credit-metered** — protocol-level intelligence, open to any paying key.
       security:
         - apiKey: []
-        - bearer: []
       responses:
         '200':
           description: Coverage data
@@ -1435,7 +1409,6 @@ paths:
       description: Query hourly price snapshots from the database for analysis and backtesting.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: symbol
           in: query
@@ -1481,7 +1454,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: symbol
           in: query
@@ -1530,7 +1502,6 @@ paths:
         **Credit-metered** — any API key with sufficient credit balance.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: symbol
           in: query
@@ -1573,7 +1544,6 @@ paths:
       description: Full daily oracle risk report including metrics, provider rankings, deviation events, coverage matrix, and recommendations.
       security:
         - apiKey: []
-        - bearer: []
       parameters:
         - name: date
           in: path
@@ -1655,6 +1625,123 @@ paths:
                 $ref: '#/components/schemas/AlertResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /health/ready:
+    get:
+      operationId: getHealthReadiness
+      tags: [System]
+      summary: Dependency readiness
+      description: Checks database availability and freshness of the latest 15-minute price snapshot.
+      security: []
+      responses:
+        '200':
+          description: Dependencies are ready
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '503':
+          description: Database unavailable or price data stale
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiErrorResponse' }
+
+  /safety/pre-trade/recheck:
+    post:
+      operationId: recheckPreTradeSafety
+      tags: [Safety]
+      summary: Re-check a previously attested trade
+      description: Re-runs the safety check with fresh oracle state and binds the result to the original UID and request hash.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [asset, chainId, action, tradeAmountUsd, originalUid, originalRequestHash]
+              properties:
+                asset: { type: string }
+                chainId: { type: integer }
+                action: { type: string, enum: [swap, borrow, lend, liquidate, repay] }
+                tradeAmountUsd: { type: number, exclusiveMinimum: 0 }
+                originalUid: { type: string }
+                originalRequestHash: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' }
+                originalConsensusPrice: { type: number, exclusiveMinimum: 0 }
+                maxDriftPct: { type: number, exclusiveMinimum: 0 }
+                schemaVersion: { type: integer, enum: [2, 3] }
+      responses:
+        '200': { description: Fresh bound re-check result }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/attestation/verify:
+    get:
+      operationId: getSafetyAttestationVerificationSchema
+      tags: [Safety]
+      summary: Get safety attestation verification schemas
+      security: []
+      responses:
+        '200': { description: Attester identity and supported EIP-712 schemas }
+    post:
+      operationId: verifySafetyAttestation
+      tags: [Safety]
+      summary: Verify a safety attestation
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [attestation]
+              properties:
+                attestation: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result }
+
+  /oracle-watch/attestation/verify:
+    get:
+      operationId: getOracleWatchAttestationVerificationSchema
+      tags: [Oracle Watch]
+      summary: Get Oracle Watch verification schema
+      security: []
+      responses:
+        '200': { description: Attester identity and supported EIP-712 schemas }
+    post:
+      operationId: verifyOracleWatchAttestation
+      tags: [Oracle Watch]
+      summary: Verify an Oracle Watch attestation
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [attestation]
+              properties:
+                attestation: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result }
+
+  /safety/envelope:
+    get:
+      operationId: verifySafetyEnvelope
+      tags: [Safety]
+      summary: Verify the two-receipt safety envelope
+      description: Public prototype that combines price-integrity and market-state receipts and fails closed.
+      security: []
+      parameters:
+        - name: demo
+          in: query
+          schema: { type: string, enum: [live, expired, tampered, tampered-market], default: live }
+        - name: mic
+          in: query
+          schema: { type: string, pattern: '^[A-Z]{4}$', default: XCOI }
+      responses:
+        '200': { description: Envelope verdict and independently verifiable member receipts }
+        '400': { description: Invalid demo mode or MIC }
 
 # ══════════════════════════════════════════════════════════
 components:

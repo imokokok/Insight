@@ -57,7 +57,9 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`[collect-market-reference] done in ${((Date.now() - startedAt) / 1000).toFixed(1)}s`);
+  console.log(
+    `[collect-market-reference] done in ${((Date.now() - startedAt) / 1000).toFixed(1)}s`
+  );
 }
 
 const HARD_DEADLINE_MS = Number(process.env.MARKET_REF_DEADLINE_MS) || 10 * 60 * 1000;
