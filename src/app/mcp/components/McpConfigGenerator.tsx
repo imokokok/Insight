@@ -11,13 +11,16 @@ import { useAppUrl } from '@/hooks/useAppUrl';
 interface McpConfigGeneratorProps {
   /** Default API key to embed in the generated config. */
   defaultApiKey?: string;
+  /** Keeps the adjacent playground in sync with manually entered keys. */
+  onApiKeyChange?: (apiKey: string) => void;
 }
 
-export function McpConfigGenerator({ defaultApiKey }: McpConfigGeneratorProps) {
-  const [apiKey, setApiKey] = useState(defaultApiKey ?? '');
+export function McpConfigGenerator({ defaultApiKey, onApiKeyChange }: McpConfigGeneratorProps) {
+  const [customApiKey, setCustomApiKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const baseUrl = useAppUrl();
+  const apiKey = customApiKey ?? defaultApiKey ?? '';
 
   const cursorConfig = useMemo(() => {
     const server: Record<string, unknown> = {
@@ -79,7 +82,10 @@ export function McpConfigGenerator({ defaultApiKey }: McpConfigGeneratorProps) {
           id="mcp-api-key"
           type="text"
           value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+          onChange={(e) => {
+            setCustomApiKey(e.target.value);
+            onApiKeyChange?.(e.target.value);
+          }}
           placeholder="ins_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
           className="w-full border border-slate-300 px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"
         />

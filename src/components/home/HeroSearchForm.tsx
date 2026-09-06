@@ -33,6 +33,7 @@ export function HeroSearchForm() {
           <Search className="w-5 h-5 text-slate-500 ml-4 flex-shrink-0" />
           <input
             type="text"
+            aria-label="Search an asset or oracle provider"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search BTC, ETH, LINK, UNI, or an oracle provider..."

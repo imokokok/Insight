@@ -65,13 +65,13 @@ export function WalletGate({
 
   const statusLine = (() => {
     if (detecting)
-      return { text: `正在扫描 ${supportedCount} 个借贷协议…`, tone: 'muted' as const };
+      return { text: `Scanning ${supportedCount} lending protocols…`, tone: 'muted' as const };
     if (detectError) return { text: detectError, tone: 'error' as const };
     if (positionsFound === 0 && address)
-      return { text: '在所支持的借贷协议上未检测到任何持仓。', tone: 'warn' as const };
+      return { text: 'No positions found on supported lending protocols.', tone: 'warn' as const };
     if (positionsFound && positionsFound > 0)
       return {
-        text: `在 ${positionsFound} 个协议上检测到持仓，正在计算临界偏离…`,
+        text: `Found positions on ${positionsFound} protocol(s). Calculating critical deviation…`,
         tone: 'ok' as const,
       };
     return null;
@@ -82,7 +82,9 @@ export function WalletGate({
       <div className="flex items-center gap-2 mb-4">
         <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
         <h3 className="text-sm font-semibold text-slate-900">Connect Wallet</h3>
-        <span className="text-xs text-slate-400 font-normal truncate">· 推荐 · 自动扫描持仓</span>
+        <span className="text-xs text-slate-400 font-normal truncate">
+          · Recommended · Automatic position scan
+        </span>
       </div>
 
       {/* Connected address chip */}
@@ -115,7 +117,7 @@ export function WalletGate({
 
       <div className="my-3 flex items-center gap-3">
         <div className="h-px flex-1 bg-slate-100" />
-        <span className="text-[11px] text-slate-400 whitespace-nowrap">或粘贴地址</span>
+        <span className="text-[11px] text-slate-400 whitespace-nowrap">or paste an address</span>
         <div className="h-px flex-1 bg-slate-100" />
       </div>
 
@@ -128,7 +130,7 @@ export function WalletGate({
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleScanPasted();
           }}
-          placeholder="或粘贴钱包地址 0x…"
+          placeholder="Paste wallet address 0x…"
           disabled={detecting}
           className={cn(
             'flex-1 min-w-0 w-full border bg-white px-3 py-2 font-mono text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600',

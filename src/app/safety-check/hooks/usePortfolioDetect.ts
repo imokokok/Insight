@@ -39,7 +39,7 @@ export function usePortfolioDetect(): UsePortfolioDetectReturn {
     setDetectError(null);
 
     if (!address.match(ADDRESS_RE)) {
-      setDetectError('请输入有效的 0x 钱包地址（42 位字符）。');
+      setDetectError('Enter a valid 42-character 0x wallet address.');
       setDetections(null);
       return;
     }

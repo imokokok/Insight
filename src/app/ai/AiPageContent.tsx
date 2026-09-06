@@ -123,6 +123,7 @@ export function AiPageContent() {
   const user = useUser();
   const session = useSession();
   const [keys, setKeys] = useState<ApiKeyItem[]>([]);
+  const [configuredApiKey, setConfiguredApiKey] = useState('');
 
   useEffect(() => {
     if (!session?.access_token) return;
@@ -427,7 +428,7 @@ when the verdict turns DANGER.`}
             </div>
           </div>
 
-          <McpConfigGenerator defaultApiKey={defaultApiKey} />
+          <McpConfigGenerator defaultApiKey={defaultApiKey} onApiKeyChange={setConfiguredApiKey} />
         </div>
       </section>
 
@@ -525,7 +526,7 @@ when the verdict turns DANGER.`}
           </div>
 
           <div className="border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
-            <McpPlayground apiKey={defaultApiKey} />
+            <McpPlayground apiKey={configuredApiKey.trim() || defaultApiKey} />
           </div>
         </div>
       </section>

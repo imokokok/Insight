@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 import type { PositionCriticalResult, PositionInput } from '@/lib/protocols/protocolHealth';
 import { createLogger } from '@/lib/utils/logger';
@@ -20,9 +20,22 @@ export function useProtocolHealth(): UseProtocolHealthReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef(0);
+
+  useEffect(
+    () => () => {
+      activeRequestRef.current?.abort();
+    },
+    []
+  );
 
   const calculate = useCallback(
     async (input: PositionInput, opts?: { keepResultOnError?: boolean }) => {
+      activeRequestRef.current?.abort();
+      const controller = new AbortController();
+      activeRequestRef.current = controller;
+      const requestId = ++requestIdRef.current;
       const keepResult = Boolean(opts?.keepResultOnError);
       setIsLoading(true);
       if (keepResult) setRefreshError(null);
@@ -35,6 +48,7 @@ export function useProtocolHealth(): UseProtocolHealthReturn {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(input),
+          signal: controller.signal,
         });
 
         let json: { success?: boolean; error?: { message?: string }; data?: unknown };
@@ -51,8 +65,11 @@ export function useProtocolHealth(): UseProtocolHealthReturn {
           throw new Error(message);
         }
 
-        setResult(json.data as PositionCriticalResult);
+        if (requestId === requestIdRef.current) {
+          setResult(json.data as PositionCriticalResult);
+        }
       } catch (err) {
+        if (controller.signal.aborted) return;
         const message = err instanceof Error ? err.message : 'Unknown error';
         logger.error(`Failed to calculate position health: ${message}`);
         if (keepResult) {
@@ -63,13 +80,19 @@ export function useProtocolHealth(): UseProtocolHealthReturn {
           setResult(null);
         }
       } finally {
-        setIsLoading(false);
+        if (requestId === requestIdRef.current) {
+          activeRequestRef.current = null;
+          setIsLoading(false);
+        }
       }
     },
     []
   );
 
   const clear = useCallback(() => {
+    activeRequestRef.current?.abort();
+    activeRequestRef.current = null;
+    requestIdRef.current += 1;
     setResult(null);
     setError(null);
     setRefreshError(null);

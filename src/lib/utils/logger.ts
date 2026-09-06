@@ -38,6 +38,13 @@ function shouldLog(level: LogLevel): boolean {
   return LOG_LEVELS[level] >= LOG_LEVELS[cachedMinLogLevel];
 }
 
+function isExpectedAbort(message: string, error?: Error): boolean {
+  const combined = `${message} ${error?.name ?? ''} ${error?.message ?? ''}`;
+  if (/timed?\s*out|timeout/i.test(combined)) return false;
+  const code = (error as (Error & { code?: string }) | undefined)?.code;
+  return code === 'ABORT_ERROR' || /AbortError|\babort(?:ed)?\b/i.test(combined);
+}
+
 function formatTimestamp(): string {
   return new Date().toISOString();
 }
@@ -146,6 +153,7 @@ class LoggerImpl implements Logger {
 
   error(message: string, error?: Error, data?: Record<string, unknown>): void {
     if (!shouldLog('error')) return;
+    if (isExpectedAbort(message, error)) return;
     const entry = formatLogEntry('error', this.moduleName, message, data, error);
     outputToConsole(entry);
     reportToSentry(entry);

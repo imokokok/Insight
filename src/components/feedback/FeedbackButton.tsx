@@ -41,12 +41,12 @@ export function FeedbackButton() {
         leftIcon={<MessageCircle className="w-4 h-4" />}
         aria-label="Open feedback"
         className={cn(
-          'fixed bottom-4 left-4 z-40 h-10 pl-3 pr-4 rounded-sm',
+          'fixed bottom-3 left-3 z-40 h-10 w-10 rounded-sm px-0 sm:bottom-4 sm:left-4 sm:w-auto sm:pl-3 sm:pr-4',
           'border-primary-700 bg-primary-700 text-white hover:bg-slate-950',
           'focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2'
         )}
       >
-        Feedback
+        <span className="hidden sm:inline">Feedback</span>
       </Button>
 
       {/* Backdrop */}

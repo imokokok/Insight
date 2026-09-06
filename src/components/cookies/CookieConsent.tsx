@@ -18,7 +18,11 @@ import { cn } from '@/lib/utils';
  * until the user makes a choice. Non-essential tracking scripts must wait for
  * explicit opt-in.
  */
-export function CookieConsent() {
+interface CookieConsentProps {
+  onDecision?: () => void;
+}
+
+export function CookieConsent({ onDecision }: CookieConsentProps) {
   const [visible, setVisible] = useState(false);
   const [showPrefs, setShowPrefs] = useState(false);
   const [prefs, setPrefs] = useState<CookiePreferences>(DEFAULT_PREFERENCES);
@@ -33,17 +37,20 @@ export function CookieConsent() {
   const handleAcceptAll = () => {
     saveConsent({ essential: true, analytics: true, functional: true });
     setVisible(false);
+    onDecision?.();
   };
 
   const handleRejectNonEssential = () => {
     saveConsent({ essential: true, analytics: false, functional: false });
     setVisible(false);
+    onDecision?.();
   };
 
   const handleSavePreferences = () => {
     saveConsent(prefs);
     setVisible(false);
     setShowPrefs(false);
+    onDecision?.();
   };
 
   if (!visible) return null;
@@ -55,139 +62,148 @@ export function CookieConsent() {
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-desc"
       className={cn(
-        'fixed bottom-4 left-1/2 z-50 -translate-x-1/2',
-        'w-[calc(100vw-2rem)] max-w-2xl',
-        'border border-slate-900/20 bg-[#f8f7f4]'
+        'fixed inset-x-3 bottom-3 z-50 sm:left-1/2 sm:right-auto sm:w-[calc(100vw-2rem)] sm:max-w-3xl sm:-translate-x-1/2',
+        'border border-slate-900/20 bg-[#f8f7f4] shadow-[0_18px_50px_rgba(15,23,42,0.16)]'
       )}
     >
-      <div className="p-5">
-        <div className="flex items-start gap-3 mb-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-primary-200 bg-primary-50 text-primary-700">
-            <svg
-              className="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-4-4 4 4 0 0 1-4-4z" />
-              <circle cx="8.5" cy="8.5" r="1" />
-              <circle cx="15" cy="11" r="1" />
-              <circle cx="9" cy="14" r="1" />
-            </svg>
+      <div className="p-4 sm:p-5">
+        <div className={cn(!showPrefs && 'sm:flex sm:items-center sm:gap-5')}>
+          <div className="mb-3 flex min-w-0 flex-1 items-start gap-3 sm:mb-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-primary-200 bg-primary-50 text-primary-700">
+              <svg
+                className="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-4-4 4 4 0 0 1-4-4z" />
+                <circle cx="8.5" cy="8.5" r="1" />
+                <circle cx="15" cy="11" r="1" />
+                <circle cx="9" cy="14" r="1" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 id="cookie-consent-title" className="text-base font-semibold text-gray-900">
+                Cookie Preferences
+              </h3>
+              <p id="cookie-consent-desc" className="text-sm text-gray-500 mt-1 leading-relaxed">
+                We use optional cookies for analytics and performance. See our{' '}
+                <Link
+                  href="/privacy"
+                  className="text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Privacy Policy
+                </Link>{' '}
+                for details; essential cookies are always enabled.
+              </p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 id="cookie-consent-title" className="text-base font-semibold text-gray-900">
-              Cookie Preferences
-            </h3>
-            <p id="cookie-consent-desc" className="text-sm text-gray-500 mt-1 leading-relaxed">
-              We use cookies to operate the platform, analyze usage, and improve your experience.
-              You can choose which categories to allow. See our{' '}
-              <Link href="/privacy" className="text-primary-600 hover:text-primary-700 font-medium">
-                Privacy Policy
-              </Link>{' '}
-              for details.
-            </p>
-          </div>
-        </div>
 
-        {showPrefs && (
-          <div className="mb-4 space-y-3 border-y border-slate-900/15 bg-white/55 p-3">
-            <label className="flex items-start gap-3 cursor-not-allowed">
-              <input
-                type="checkbox"
-                checked
-                disabled
-                className="mt-0.5 h-4 w-4 border-gray-300 text-primary-600"
-              />
-              <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">Essential (Required)</div>
-                <div className="text-xs text-gray-500">
-                  Authentication, session, security. Always on.
+          {showPrefs && (
+            <div className="mb-4 space-y-3 border-y border-slate-900/15 bg-white/55 p-3">
+              <label className="flex items-start gap-3 cursor-not-allowed">
+                <input
+                  type="checkbox"
+                  checked
+                  disabled
+                  className="mt-0.5 h-4 w-4 border-gray-300 text-primary-600"
+                />
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">Essential (Required)</div>
+                  <div className="text-xs text-gray-500">
+                    Authentication, session, security. Always on.
+                  </div>
                 </div>
-              </div>
-            </label>
+              </label>
 
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={prefs.analytics}
-                onChange={(e) => setPrefs((p) => ({ ...p, analytics: e.target.checked }))}
-                className="mt-0.5 h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">Analytics & Performance</div>
-                <div className="text-xs text-gray-500">
-                  Vercel Analytics, Speed Insights, Sentry. Helps us understand usage and fix bugs.
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={prefs.analytics}
+                  onChange={(e) => setPrefs((p) => ({ ...p, analytics: e.target.checked }))}
+                  className="mt-0.5 h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">Analytics & Performance</div>
+                  <div className="text-xs text-gray-500">
+                    Vercel Analytics, Speed Insights, Sentry. Helps us understand usage and fix
+                    bugs.
+                  </div>
                 </div>
-              </div>
-            </label>
+              </label>
 
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={prefs.functional}
-                onChange={(e) => setPrefs((p) => ({ ...p, functional: e.target.checked }))}
-                className="mt-0.5 h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">Functional</div>
-                <div className="text-xs text-gray-500">
-                  Remember your preferences and personalized settings.
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={prefs.functional}
+                  onChange={(e) => setPrefs((p) => ({ ...p, functional: e.target.checked }))}
+                  className="mt-0.5 h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-900">Functional</div>
+                  <div className="text-xs text-gray-500">
+                    Remember your preferences and personalized settings.
+                  </div>
                 </div>
-              </div>
-            </label>
-          </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row gap-2">
-          {!showPrefs ? (
-            <>
-              <Button onClick={handleAcceptAll} size="sm" className="flex-1 whitespace-nowrap">
-                Accept all
-              </Button>
-              <Button
-                onClick={handleRejectNonEssential}
-                variant="secondary"
-                size="sm"
-                className="flex-1 whitespace-nowrap"
-              >
-                Reject non-essential
-              </Button>
-              <Button
-                onClick={() => setShowPrefs(true)}
-                variant="ghost"
-                size="sm"
-                className="flex-1 whitespace-nowrap"
-              >
-                Preferences
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                onClick={handleSavePreferences}
-                size="sm"
-                className="flex-1 whitespace-nowrap"
-              >
-                Save preferences
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowPrefs(false);
-                  setPrefs(DEFAULT_PREFERENCES);
-                }}
-                variant="ghost"
-                size="sm"
-                className="flex-1 whitespace-nowrap"
-              >
-                Back
-              </Button>
-            </>
+              </label>
+            </div>
           )}
+
+          <div
+            className={cn(
+              'grid grid-cols-2 gap-2 sm:flex sm:shrink-0',
+              showPrefs && 'grid-cols-1 sm:w-full'
+            )}
+          >
+            {!showPrefs ? (
+              <>
+                <Button onClick={handleAcceptAll} size="sm" className="flex-1 whitespace-nowrap">
+                  Accept all
+                </Button>
+                <Button
+                  onClick={handleRejectNonEssential}
+                  variant="secondary"
+                  size="sm"
+                  className="flex-1 whitespace-nowrap"
+                >
+                  Reject non-essential
+                </Button>
+                <Button
+                  onClick={() => setShowPrefs(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="col-span-2 flex-1 whitespace-nowrap sm:col-span-1"
+                >
+                  Preferences
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={handleSavePreferences}
+                  size="sm"
+                  className="flex-1 whitespace-nowrap"
+                >
+                  Save preferences
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowPrefs(false);
+                    setPrefs(DEFAULT_PREFERENCES);
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="flex-1 whitespace-nowrap"
+                >
+                  Back
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

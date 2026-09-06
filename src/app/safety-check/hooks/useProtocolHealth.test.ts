@@ -168,4 +168,24 @@ describe('useProtocolHealth', () => {
     expect(result.current.refreshError).toBe('timeout');
     expect(result.current.error).toBeNull();
   });
+
+  it('aborts the previous calculation when a newer one starts', async () => {
+    const signals: AbortSignal[] = [];
+    fetchMock.mockImplementation((_url: string, init: RequestInit) => {
+      signals.push(init.signal as AbortSignal);
+      return new Promise(() => undefined);
+    });
+
+    const { result } = renderHook(() => useProtocolHealth());
+    act(() => {
+      void result.current.calculate(POSITION);
+    });
+    act(() => {
+      void result.current.calculate(POSITION);
+    });
+
+    expect(signals).toHaveLength(2);
+    expect(signals[0].aborted).toBe(true);
+    expect(signals[1].aborted).toBe(false);
+  });
 });

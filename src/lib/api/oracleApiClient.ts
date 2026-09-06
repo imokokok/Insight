@@ -184,7 +184,7 @@ function createAbortControllerWithTimeout(
   const onExternalAbort = signal
     ? () => {
         clearTimeout(timeoutId);
-        controller.abort(new Error(`External abort for ${key}`));
+        controller.abort(new DOMException(`External abort for ${key}`, 'AbortError'));
         removePendingRequest(key);
       }
     : undefined;
@@ -207,7 +207,7 @@ function createAbortControllerWithTimeout(
         // cleanup, and without an explicit abort the fetch would hang until
         // the server closes the connection. If the fetch already completed,
         // abort() is a no-op.
-        pending.controller.abort(new Error(`Request ${key} cleaned up`));
+        pending.controller.abort(new DOMException(`Request ${key} cleaned up`, 'AbortError'));
       }
       pendingRequests.delete(key);
     }
@@ -403,7 +403,7 @@ function deduplicatedFetch<T>(
     }
   }
 
-  return promise;
+  return placeholder;
 }
 
 async function fetchPriceFromApi({

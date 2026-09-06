@@ -159,6 +159,12 @@ function calculateDelay(attempt: number, config: EnhancedRetryConfig): number {
   return Math.max(baseDelay, Math.round(Math.min(delay + jitter, maxDelay)));
 }
 
+function isAbortError(error: Error): boolean {
+  if (error.name === 'AbortError') return true;
+  const code = (error as Error & { code?: string }).code;
+  return code === 'ABORT_ERROR' || /\babort(?:ed)?\b/i.test(error.message);
+}
+
 function shouldRetry(error: Error, attempt: number, config: EnhancedRetryConfig): boolean {
   if (attempt >= config.maxAttempts) {
     return false;
@@ -357,15 +363,19 @@ class EnhancedRetryManager {
         const shouldRetryResult = shouldRetry(lastError, attempt, this.config);
 
         if (!shouldRetryResult) {
-          this.circuitBreaker?.recordFailure();
-          callbacks?.onFailure?.(lastError, context);
+          // Navigation and component lifecycle cancellation are expected control
+          // flow. They must not degrade circuit health or pollute monitoring.
+          if (!isAbortError(lastError)) {
+            this.circuitBreaker?.recordFailure();
+            callbacks?.onFailure?.(lastError, context);
 
-          captureException(lastError, {
-            operationName,
-            attempt,
-            maxAttempts: this.config.maxAttempts,
-            strategy: this.config.strategy,
-          });
+            captureException(lastError, {
+              operationName,
+              attempt,
+              maxAttempts: this.config.maxAttempts,
+              strategy: this.config.strategy,
+            });
+          }
 
           return {
             success: false,

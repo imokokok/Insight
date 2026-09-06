@@ -69,7 +69,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
         {!isLoading && leftIcon}
-        {size !== 'icon' && children}
+        {(!isLoading || size !== 'icon') && children}
         {!isLoading && rightIcon}
       </button>
     );

@@ -6,6 +6,7 @@ import { AlertCircle, FileJson, Loader2, Play, Terminal, Wrench } from 'lucide-r
 
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { Button } from '@/components/ui/Button';
+import { useSession } from '@/stores/authStore';
 
 import { useMcpClient } from '../hooks/useMcpClient';
 
@@ -33,6 +34,7 @@ function getSchemaDefaults(schema?: ToolInputSchema): Record<string, unknown> {
 }
 
 export function McpPlayground({ apiKey }: McpPlaygroundProps) {
+  const session = useSession();
   const { call, loading, error, rateLimit, quota, clearError } = useMcpClient({ apiKey });
   const [tools, setTools] = useState<Tool[]>([]);
   const [selectedTool, setSelectedTool] = useState<string>('');
@@ -41,6 +43,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
   const [useJsonMode, setUseJsonMode] = useState(false);
   const [result, setResult] = useState<unknown>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const isAuthenticated = Boolean(session?.access_token || apiKey?.trim());
 
   const applyTool = (toolName: string, toolList: Tool[] = tools) => {
     const tool = toolList.find((t) => t.name === toolName);
@@ -53,7 +56,15 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setTools([]);
+      setSelectedTool('');
+      setLoadError(null);
+      return;
+    }
+
     let cancelled = false;
+    setLoadError(null);
     call('tools/list')
       .then((res) => {
         if (cancelled) return;
@@ -71,7 +82,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call]);
+  }, [call, isAuthenticated]);
 
   const selectedToolDef = useMemo(
     () => tools.find((t) => t.name === selectedTool),
@@ -103,11 +114,6 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
     setResult(res);
   };
 
-  const isAuthenticated = useMemo(() => {
-    // The hook will use session if available; we surface a hint when neither session nor key is present.
-    return Boolean(apiKey);
-  }, [apiKey]);
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -120,6 +126,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
             value={selectedTool}
             onChange={(e) => applyTool(e.target.value)}
             className="w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            disabled={!isAuthenticated}
           >
             {tools.map((tool) => (
               <option key={tool.name} value={tool.name}>
@@ -140,8 +147,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
       {!isAuthenticated && (
         <div className="flex items-start gap-2 border-l-2 border-amber-500 bg-amber-50 p-3 text-sm text-amber-800">
           <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-          Without signing in or providing an API Key, the Playground may fail due to missing
-          authentication. Add a key in the config generator above, or sign in and retry.
+          Sign in or add an API key in the config generator above to load and call MCP tools.
         </div>
       )}
 
@@ -171,6 +177,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
 
           {useJsonMode ? (
             <textarea
+              aria-label="Tool parameters as JSON"
               value={jsonValues}
               onChange={(e) => setJsonValues(e.target.value)}
               rows={14}
@@ -187,6 +194,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
           <Button
             onClick={handleCall}
             isLoading={loading}
+            disabled={!isAuthenticated || !selectedTool}
             leftIcon={loading ? <Loader2 className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           >
             Call Tool

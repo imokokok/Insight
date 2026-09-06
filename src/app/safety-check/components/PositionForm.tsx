@@ -92,13 +92,13 @@ export function PositionForm({
     if (!selectedProtocol) return;
 
     if (!addr.match(/^0x[a-fA-F0-9]{40}$/)) {
-      setImportStatus({ type: 'error', message: '请输入有效的 0x 钱包地址（42 位字符）。' });
+      setImportStatus({ type: 'error', message: 'Enter a valid 42-character 0x wallet address.' });
       return;
     }
     if (!canImport) {
       setImportStatus({
         type: 'error',
-        message: `${selectedProtocol.name} 暂不支持链上导入，请手动填写仓位。`,
+        message: `${selectedProtocol.name} does not support on-chain import yet. Enter the position manually.`,
       });
       return;
     }
@@ -140,21 +140,21 @@ export function PositionForm({
       });
       setImportStatus({
         type: 'success',
-        message: `已导入 ${position.collaterals.length} 项抵押 / ${position.borrows.length} 项借贷，正在计算临界偏离…`,
+        message: `Imported ${position.collaterals.length} collateral and ${position.borrows.length} borrow asset(s). Calculating critical deviation…`,
       });
     } else if (hasCollateral || hasBorrow) {
       // One side only — cannot calculate without both; nudge the user.
       setImportStatus({
         type: 'warn',
         message: hasCollateral
-          ? `检测到 ${position.collaterals.length} 项抵押，但未检测到借贷。请补充借出资产后再计算。`
-          : `检测到 ${position.borrows.length} 项借贷，但未检测到抵押。请补充抵押资产后再计算。`,
+          ? `Found ${position.collaterals.length} collateral asset(s), but no borrow. Add a borrowed asset to calculate risk.`
+          : `Found ${position.borrows.length} borrowed asset(s), but no collateral. Add collateral to calculate risk.`,
       });
     } else {
       // Address imported fine but holds no position on this protocol.
       setImportStatus({
         type: 'warn',
-        message: `在 ${selectedProtocol.name} 上未检测到该地址的任何持仓。可换一个协议重试，或手动填写。`,
+        message: `No position was found for this address on ${selectedProtocol.name}. Try another protocol or enter it manually.`,
       });
     }
   };
@@ -222,10 +222,13 @@ export function PositionForm({
       >
         <div className="flex items-center gap-2 mb-1">
           <MousePointerClick className="w-4 h-4 text-slate-400" />
-          <h3 className="text-sm font-semibold text-slate-900">手动选择协议（可选）</h3>
+          <h3 className="text-sm font-semibold text-slate-900">
+            Choose a protocol manually (optional)
+          </h3>
         </div>
         <p className="text-xs text-slate-400 mb-3">
-          钱包自动扫描为主；此处用于指定某一协议，或用一个不同的地址导入。
+          Automatic wallet scanning is the primary path. Use this to target one protocol or import a
+          different address.
         </p>
         <ProtocolSearch
           protocols={protocols}
@@ -272,7 +275,7 @@ export function PositionForm({
                 <div className="flex items-center gap-2 border-l-2 border-primary-600 bg-primary-50 px-3 py-2">
                   <Wallet className="w-3.5 h-3.5 text-primary-600" />
                   <span className="text-xs text-slate-600 font-mono">
-                    使用连接地址 {address.slice(0, 6)}…{address.slice(-4)}
+                    Using connected address {address.slice(0, 6)}…{address.slice(-4)}
                   </span>
                 </div>
               )}
@@ -284,7 +287,7 @@ export function PositionForm({
                     setImportAddress(e.target.value);
                     setImportStatus(null);
                   }}
-                  placeholder="0x...（或连接钱包后自动填入）"
+                  placeholder="0x… (filled automatically after connecting)"
                   disabled={isLoading || isImporting}
                   className={cn(
                     'flex-1 min-w-0 border bg-white px-3 py-2 font-mono text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600',
@@ -338,7 +341,8 @@ export function PositionForm({
           ) : (
             <div className="mb-4 border-y border-slate-900/15 bg-slate-50/70 p-3">
               <p className="text-xs text-slate-500">
-                该协议暂不支持链上导入，请手动填写抵押与借出资产。
+                This protocol does not support on-chain import yet. Enter collateral and borrowed
+                assets manually.
               </p>
             </div>
           )}

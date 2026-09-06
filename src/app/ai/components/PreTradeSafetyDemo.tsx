@@ -227,8 +227,14 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
       {/* ---- Form ---- */}
       <div className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Asset</label>
+          <label
+            htmlFor="pre-trade-asset"
+            className="block text-sm font-medium text-slate-700 mb-1.5"
+          >
+            Asset
+          </label>
           <input
+            id="pre-trade-asset"
             type="text"
             value={asset}
             onChange={(e) => setAsset(e.target.value.toUpperCase())}
@@ -239,8 +245,14 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Chain</label>
+            <label
+              htmlFor="pre-trade-chain"
+              className="block text-sm font-medium text-slate-700 mb-1.5"
+            >
+              Chain
+            </label>
             <select
+              id="pre-trade-chain"
               value={chainId}
               onChange={(e) => setChainId(Number(e.target.value))}
               className="w-full border border-slate-900/20 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -253,8 +265,14 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Action</label>
+            <label
+              htmlFor="pre-trade-action"
+              className="block text-sm font-medium text-slate-700 mb-1.5"
+            >
+              Action
+            </label>
             <select
+              id="pre-trade-action"
               value={action}
               onChange={(e) => setAction(e.target.value)}
               className="w-full border border-slate-900/20 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -270,10 +288,14 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
 
         {isLending && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label
+              htmlFor="pre-trade-protocol"
+              className="block text-sm font-medium text-slate-700 mb-1.5"
+            >
               Lending Protocol
             </label>
             <select
+              id="pre-trade-protocol"
               value={protocolId}
               onChange={(e) => setProtocolId(e.target.value)}
               className="w-full border border-slate-900/20 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -288,7 +310,10 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+          <label
+            htmlFor="pre-trade-amount"
+            className="block text-sm font-medium text-slate-700 mb-1.5"
+          >
             Trade size (USD)
           </label>
           <div className="relative">
@@ -296,6 +321,7 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
               $
             </span>
             <input
+              id="pre-trade-amount"
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}

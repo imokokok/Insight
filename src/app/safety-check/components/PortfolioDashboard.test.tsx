@@ -138,7 +138,7 @@ describe('PortfolioDashboard', () => {
     // Weakest protocol = Compound V3 (appears in both the combined card and its own card).
     expect(screen.getAllByText('Compound V3').length).toBeGreaterThanOrEqual(1);
     // ETH correlated across both protocols
-    expect(screen.getByText(/相关性风险/i)).toBeInTheDocument();
+    expect(screen.getByText(/correlation risk/i)).toBeInTheDocument();
     expect(screen.getAllByText(/ETH/).length).toBeGreaterThanOrEqual(1);
   });
 
@@ -157,6 +157,8 @@ describe('PortfolioDashboard', () => {
   it('shows a helpful message when there are no complete positions', () => {
     mockHealth.entries = [];
     render(<PortfolioDashboard detections={detections} onReset={jest.fn()} />);
-    expect(screen.getByText(/没有可用于压力测试的完整仓位/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/no complete position is available for stress testing/i)
+    ).toBeInTheDocument();
   });
 });

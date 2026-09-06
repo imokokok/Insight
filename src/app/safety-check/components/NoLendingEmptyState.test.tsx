@@ -22,10 +22,10 @@ describe('NoLendingEmptyState', () => {
       />
     );
 
-    expect(screen.getByText(/未检测到借贷持仓/i)).toBeInTheDocument();
-    expect(screen.getByText(/手动录入仓位/i)).toBeInTheDocument();
-    expect(screen.getByText(/重新扫描/i)).toBeInTheDocument();
-    expect(screen.getByText(/可能的原因/i)).toBeInTheDocument();
+    expect(screen.getByText(/no lending positions found/i)).toBeInTheDocument();
+    expect(screen.getByText(/enter a position manually/i)).toBeInTheDocument();
+    expect(screen.getByText(/scan again/i)).toBeInTheDocument();
+    expect(screen.getByText(/possible reasons/i)).toBeInTheDocument();
   });
 
   it('wires the manual entry and rescan buttons', () => {
@@ -38,8 +38,8 @@ describe('NoLendingEmptyState', () => {
       />
     );
 
-    fireEvent.click(screen.getByText(/手动录入仓位/i));
-    fireEvent.click(screen.getByText(/重新扫描/i));
+    fireEvent.click(screen.getByText(/enter a position manually/i));
+    fireEvent.click(screen.getByText(/scan again/i));
     expect(onManualEntry).toHaveBeenCalledTimes(1);
     expect(onRescan).toHaveBeenCalledTimes(1);
   });
@@ -55,7 +55,7 @@ describe('NoLendingEmptyState', () => {
     );
 
     expect(screen.queryByText('Aave V3')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText(/查看已支持/i));
+    fireEvent.click(screen.getByText(/view .* supported protocols/i));
     expect(screen.getByText('Aave V3')).toBeInTheDocument();
     expect(screen.getByText('Compound V3')).toBeInTheDocument();
     expect(screen.getByText('Morpho Blue')).toBeInTheDocument();

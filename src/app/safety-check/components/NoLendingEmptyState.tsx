@@ -22,9 +22,9 @@ interface NoLendingEmptyStateProps {
 }
 
 const REASONS = [
-  '该地址只持有现货 / LP / 质押资产，没有在借贷协议中抵押或借款。',
-  '持仓位于暂不支持的链或协议上（扫描仅覆盖已接入的借贷市场）。',
-  '这是一个尚未进行过借贷操作的新钱包。',
+  'The address only holds spot, LP, or staked assets and has no lending position.',
+  'The position is on a chain or protocol that is not supported yet.',
+  'This is a new wallet that has not used a lending protocol.',
 ];
 
 export function NoLendingEmptyState({
@@ -46,16 +46,16 @@ export function NoLendingEmptyState({
         <div className="mb-4 flex h-14 w-14 items-center justify-center border border-amber-200 bg-amber-50">
           <SearchX className="w-7 h-7 text-amber-500" />
         </div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">未检测到借贷持仓</h3>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">No lending positions found</h3>
         <p className="text-sm text-slate-500 max-w-md leading-relaxed">
-          我们在已支持的借贷协议上扫描了
+          We scanned supported lending protocols for
           {address && (
             <span className="font-mono text-slate-600">
               {' '}
               {address.slice(0, 6)}…{address.slice(-4)}{' '}
             </span>
           )}
-          ，没有发现任何活跃的抵押或借贷仓位。
+          and found no active collateral or borrow positions.
         </p>
       </div>
 
@@ -64,7 +64,7 @@ export function NoLendingEmptyState({
         <div className="flex items-center gap-2 mb-2">
           <ShieldQuestion className="w-4 h-4 text-slate-400" />
           <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-            可能的原因
+            Possible reasons
           </span>
         </div>
         <ul className="space-y-1.5 text-sm text-slate-600">
@@ -81,11 +81,11 @@ export function NoLendingEmptyState({
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <Button onClick={onManualEntry} size="md" className="flex-1">
           <PenLine className="w-4 h-4" />
-          <span className="ml-1">手动录入仓位</span>
+          <span className="ml-1">Enter a position manually</span>
         </Button>
         <Button onClick={onRescan} size="md" variant="secondary" className="flex-1">
           <RefreshCw className="w-4 h-4" />
-          <span className="ml-1">重新扫描</span>
+          <span className="ml-1">Scan again</span>
         </Button>
       </div>
 
@@ -96,7 +96,7 @@ export function NoLendingEmptyState({
           onClick={() => setShowList((v) => !v)}
           className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 transition-colors"
         >
-          <span>查看已支持的 {supportedProtocols.length} 个协议</span>
+          <span>View {supportedProtocols.length} supported protocols</span>
           <ChevronDown
             className={cn('w-3.5 h-3.5 transition-transform', showList && 'rotate-180')}
           />

@@ -39,7 +39,7 @@ describe('WalletGate', () => {
       />
     );
 
-    const input = screen.getByPlaceholderText(/粘贴钱包地址/i);
+    const input = screen.getByPlaceholderText(/paste wallet address/i);
     fireEvent.change(input, { target: { value: '0xabc1230000000000000000000000000000000000' } });
     fireEvent.click(screen.getByRole('button', { name: /Scan/i }));
 
@@ -80,6 +80,6 @@ describe('WalletGate', () => {
         onDisconnect={jest.fn()}
       />
     );
-    expect(screen.getByText(/正在扫描 12 个借贷协议/i)).toBeInTheDocument();
+    expect(screen.getByText(/scanning 12 lending protocols/i)).toBeInTheDocument();
   });
 });

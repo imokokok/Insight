@@ -169,10 +169,12 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
             <h3 className="text-base font-semibold">Portfolio Liquidation Guard</h3>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Metric label="抵押总值" value={formatPrice(combined.totalCollateralUsd)} />
-            <Metric label="借款总值" value={formatPrice(combined.totalBorrowUsd)} />
+            <Metric label="Total Collateral" value={formatPrice(combined.totalCollateralUsd)} />
+            <Metric label="Total Borrowed" value={formatPrice(combined.totalBorrowUsd)} />
             <div>
-              <p className="text-[11px] uppercase tracking-wider text-blue-100">组合清算距离</p>
+              <p className="text-[11px] uppercase tracking-wider text-blue-100">
+                Portfolio Distance
+              </p>
               <p className="text-2xl font-bold mt-1">
                 {combined.combinedLiquidationDistancePercent.toFixed(1)}%
               </p>
@@ -183,10 +185,12 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
                     unit="%"
                   />
                 )}
-              <p className="text-[11px] text-blue-100 mt-1">价格再跌这么多最先爆仓</p>
+              <p className="text-[11px] text-blue-100 mt-1">
+                First liquidation after this price drop
+              </p>
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-wider text-blue-100">最弱协议</p>
+              <p className="text-[11px] uppercase tracking-wider text-blue-100">Weakest Protocol</p>
               <p className="text-lg font-semibold mt-2 truncate" title={combined.weakestName ?? ''}>
                 {combined.weakestName ?? '—'}
               </p>
@@ -196,7 +200,7 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
             <div className="mt-4 border-y border-white/15 bg-white/5 p-3">
               <div className="flex items-center gap-2 mb-1.5">
                 <AlertTriangle className="w-4 h-4 text-amber-200" />
-                <span className="text-xs font-semibold text-amber-100">相关性风险</span>
+                <span className="text-xs font-semibold text-amber-100">Correlation Risk</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {combined.correlations.map((c) => (
@@ -204,13 +208,13 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
                     key={c.symbol}
                     className="border-l border-blue-400 bg-white/10 px-2.5 py-1 text-xs"
                   >
-                    <span className="font-mono font-semibold">{c.symbol}</span> 出现在{' '}
-                    {c.protocols.join('、')}
+                    <span className="font-mono font-semibold">{c.symbol}</span> appears in{' '}
+                    {c.protocols.join(', ')}
                   </span>
                 ))}
               </div>
               <p className="text-[11px] text-blue-100 mt-2">
-                同一资产跨多池，单笔价格下跌会同时冲击多个仓位。
+                The same asset spans multiple pools, so one price move can affect several positions.
               </p>
             </div>
           )}
@@ -220,7 +224,7 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
       {/* Loading / error */}
       {isLoading && !entries && (
         <div className="flex items-center justify-center border-y border-slate-900/15 bg-white/55 py-16 text-sm text-slate-400">
-          正在计算各协议临界偏离…
+          Calculating critical deviation across protocols…
         </div>
       )}
       {error && (
@@ -246,18 +250,19 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
       {incomplete.length > 0 && (
         <div className="border-l-2 border-amber-500 bg-amber-50 p-4">
           <p className="text-xs font-semibold text-amber-800 mb-2">
-            以下协议只检测到单侧持仓，无法计算清算临界（需同时有抵押与借贷）：
+            These protocols only have one side of a position, so liquidation risk cannot be
+            calculated without both collateral and borrowed assets:
           </p>
           <ul className="space-y-1">
             {incomplete.map((d) => (
               <li key={d.protocolId} className="text-xs text-amber-700 flex items-center gap-2">
                 <span>
-                  {d.name}（{chainNames[d.chain as Blockchain] ?? d.chain}）—{' '}
+                  {d.name} ({chainNames[d.chain as Blockchain] ?? d.chain}) —{' '}
                   {d.position?.collaterals.length
-                    ? '仅抵押'
+                    ? 'collateral only'
                     : d.position?.borrows.length
-                      ? '仅借贷'
-                      : '空'}
+                      ? 'borrow only'
+                      : 'empty'}
                 </span>
               </li>
             ))}
@@ -268,13 +273,13 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
       {/* Errored detections */}
       {errored.length > 0 && (
         <div className="border-l-2 border-red-500 bg-red-50 p-4">
-          <p className="text-xs font-semibold text-red-700 mb-2">以下协议扫描失败：</p>
+          <p className="text-xs font-semibold text-red-700 mb-2">These protocol scans failed:</p>
           <ul className="space-y-1">
             {errored.map((d) => (
               <li key={d.protocolId} className="text-xs text-red-600 flex items-center gap-2">
                 <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
                 <span>
-                  {d.name}（{chainNames[d.chain as Blockchain] ?? d.chain}）— {d.error}
+                  {d.name} ({chainNames[d.chain as Blockchain] ?? d.chain}) — {d.error}
                 </span>
               </li>
             ))}
@@ -284,7 +289,8 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
 
       {complete.length === 0 && !isLoading && !error && (
         <div className="border-y border-slate-900/15 bg-white/55 p-6 text-center text-sm text-slate-500">
-          没有可用于压力测试的完整仓位（需要同时有抵押与借贷资产）。可返回手动补录，或在其他协议上检查。
+          No complete position is available for stress testing. Add both collateral and borrowed
+          assets manually, or check another protocol.
         </div>
       )}
 
@@ -294,7 +300,7 @@ export function PortfolioDashboard({ detections, onReset }: PortfolioDashboardPr
         className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
-        返回重新连接钱包
+        Reconnect wallet
       </button>
     </motion.div>
   );
@@ -355,13 +361,13 @@ function ProtocolCard({
 
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="border-l border-slate-900/15 bg-slate-50 p-2.5">
-          <span className="text-xs text-slate-500">清算临界偏离</span>
+          <span className="text-xs text-slate-500">Critical Deviation</span>
           <p className="font-semibold text-slate-900 mt-0.5">
             {isDown ? '↓' : '↑'} {distance.toFixed(1)}%
           </p>
         </div>
         <div className="border-l border-slate-900/15 bg-slate-50 p-2.5">
-          <span className="text-xs text-slate-500">抵押 / 借款</span>
+          <span className="text-xs text-slate-500">Collateral / Borrowed</span>
           <p className="font-semibold text-slate-900 mt-0.5">
             {result.collaterals.length} / {result.borrows.length}
           </p>
@@ -370,7 +376,7 @@ function ProtocolCard({
 
       {!band.unknown && (
         <div className="mt-3 text-xs text-slate-500 flex items-center gap-1">
-          <span>清算价区间</span>
+          <span>Liquidation Price Band</span>
           <span className="font-mono text-slate-600">
             {formatPrice(band.lower)} – {formatPrice(band.upper)}
           </span>
@@ -379,7 +385,7 @@ function ProtocolCard({
 
       {skipped.length > 0 && (
         <div className="mt-2 text-xs text-amber-700">
-          未导入：
+          Not imported:{' '}
           {skipped
             .map((a) => (a.reason === 'unsupported' ? `${a.symbol} (not configured)` : a.symbol))
             .join(', ')}

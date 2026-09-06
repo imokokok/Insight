@@ -106,7 +106,6 @@ export default function SafetyCheckContent() {
   const [protocols, setProtocols] = useState<EnrichedProtocolConfig[]>([]);
   const [protocolsError, setProtocolsError] = useState<string | null>(null);
 
-  // 多资产表单状态
   const [collateralRows, setCollateralRows] = useState<AssetRow[]>([
     { id: 'collateral-init', symbol: '', amount: '' },
   ]);
@@ -114,12 +113,10 @@ export default function SafetyCheckContent() {
     { id: 'borrow-init', symbol: '', amount: '' },
   ]);
 
-  // 钱包优先入口
   const wallet = useWalletConnect();
   const [address, setAddress] = useState<string | null>(null);
   const manualEntryRef = useRef<HTMLDivElement>(null);
 
-  // 跨协议自动探测
   const { detecting, detections, detectError, detect, reset: resetDetect } = usePortfolioDetect();
 
   const { result, isLoading, error, refreshError, calculate, clear } = useProtocolHealth();
@@ -469,8 +466,8 @@ export default function SafetyCheckContent() {
                     <h4 className="text-sm font-semibold text-slate-900">Example</h4>
                   </div>
                   <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                    假设你在 <strong>Aave V3 (Ethereum)</strong> 抵押 <strong>1 ETH</strong> 并借出{' '}
-                    <strong>1000 USDC</strong>：
+                    Suppose you deposit <strong>1 ETH</strong> on{' '}
+                    <strong>Aave V3 (Ethereum)</strong> and borrow <strong>1000 USDC</strong>：
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="border-l border-slate-900/15 bg-slate-50 p-2.5">
@@ -565,12 +562,14 @@ export default function SafetyCheckContent() {
                 >
                   <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
                   <h3 className="text-base font-semibold text-slate-900 mb-1">
-                    {view === 'detecting' ? '正在扫描借贷协议…' : '正在计算临界偏离…'}
+                    {view === 'detecting'
+                      ? 'Scanning lending protocols…'
+                      : 'Calculating critical deviation…'}
                   </h3>
                   <p className="text-sm text-slate-500 max-w-sm">
                     {view === 'detecting'
-                      ? `跨 ${supportedCount} 个已支持协议并行读取链上仓位，请稍候。`
-                      : '正在读取市场价格并计算临界偏离，请稍候。'}
+                      ? `Reading on-chain positions across ${supportedCount} supported protocols in parallel.`
+                      : 'Reading market prices and calculating the critical deviation.'}
                   </p>
                 </motion.div>
               ) : (
@@ -584,9 +583,12 @@ export default function SafetyCheckContent() {
                   <div className="mb-4 flex h-14 w-14 items-center justify-center border border-blue-200 bg-blue-50">
                     <Shield className="w-7 h-7 text-blue-500" />
                   </div>
-                  <h3 className="text-base font-semibold text-slate-900 mb-1">连接钱包开始分析</h3>
+                  <h3 className="text-base font-semibold text-slate-900 mb-1">
+                    Connect a wallet to begin
+                  </h3>
                   <p className="text-sm text-slate-500 max-w-sm">
-                    连接钱包或粘贴地址即可自动扫描你的借贷持仓；也可以在左侧手动选择协议录入。
+                    Connect a wallet or paste an address to scan lending positions automatically, or
+                    choose a protocol on the left for manual entry.
                   </p>
                 </motion.div>
               )}
