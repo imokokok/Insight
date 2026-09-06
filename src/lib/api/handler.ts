@@ -32,6 +32,26 @@ import type { ApiResponse, ApiSuccessResponse } from './response/ApiResponse';
 
 const logger = createLogger('api-handler');
 
+const PROTECTED_CACHE_CONTROL = 'private, no-store, max-age=0';
+
+/**
+ * Authenticated responses must never be stored by a browser or shared CDN.
+ *
+ * Several read endpoints intentionally cache their underlying public market
+ * data, but their HTTP response also proves API-key validity and triggers
+ * metering. Allowing that response into a shared cache lets later requests
+ * reuse it without running authentication, revocation, rate-limit, or credit
+ * checks. Apply this policy at the handler boundary so an endpoint cannot
+ * accidentally override it with a public cache preset.
+ */
+export function applyProtectedCachePolicy(response: NextResponse): void {
+  response.headers.set('Cache-Control', PROTECTED_CACHE_CONTROL);
+  response.headers.set('Vercel-CDN-Cache-Control', 'no-store');
+  response.headers.set('CDN-Cache-Control', 'no-store');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+}
+
 /** Standard v1 middleware stack: API-key authenticated, API-rate-limited,
  *  credit-quota-enforced, and CORS-enabled. Used by the majority of v1
  *  endpoints.
@@ -507,6 +527,16 @@ export function createApiHandler<
       }
 
       const response = await handler(request, apiContext);
+
+      // Route-level response helpers may opt into public caching for market
+      // data. On an authenticated route the HTTP response itself is never
+      // public: serving it from a CDN would bypass auth, revocation, rate
+      // limits, usage logging, and credit metering entirely. This also covers
+      // signed internal-cookie requests so they cannot prime a public cache
+      // that an external caller could later hit.
+      if (authMiddleware) {
+        applyProtectedCachePolicy(response);
+      }
 
       // Commit the credit charge only when the request SUCCEEDED (2xx).
       // The quota middleware sets pendingCharge but deliberately defers the
