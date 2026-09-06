@@ -17,6 +17,10 @@ export const metadata = {
   },
 };
 
+// Authentication and every child page depend on request cookies/live
+// operational data. Never execute or freeze this private console at build time.
+export const dynamic = 'force-dynamic';
+
 const ENV =
   process.env.NEXT_PUBLIC_ENV ??
   process.env.VERCEL_ENV ??
