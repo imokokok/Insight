@@ -15,7 +15,7 @@
  *
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
  */
-import { runBilling } from '@/app/api/cron/billing/route';
+import { runBilling } from '@/app/api/cron/billing/runner';
 
 async function main(): Promise<void> {
   const startedAt = Date.now();

@@ -1,6 +1,6 @@
 import { validateQuerySchema } from '@/lib/validation';
 
-import { OracleWatchQuerySchema } from '../route';
+import { OracleWatchQuerySchema } from '../querySchema';
 
 async function validate(query: string) {
   const request = new Request(`https://www.oracleinsight.xyz/api/v1/oracle-watch?${query}`);

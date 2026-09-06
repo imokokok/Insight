@@ -12,7 +12,7 @@
 import { getOracleWatchHistory } from '@/lib/api/services/oracleWatchTrendService';
 import { validateQuerySchema } from '@/lib/validation';
 
-import { OracleWatchHistoryQuerySchema } from '../route';
+import { OracleWatchHistoryQuerySchema } from '../querySchema';
 
 jest.mock('@/lib/api/handler', () => {
   const actual = jest.requireActual('@/lib/api/handler');

@@ -22,19 +22,19 @@ jest.mock('@/lib/api/handler', () => {
 
 describe('parseRequestedSchemaVersion (F14)', () => {
   it('returns undefined when no query parameter is present (never 0)', async () => {
-    const { parseRequestedSchemaVersion } = await import('../route');
+    const { parseRequestedSchemaVersion } = await import('../schemaVersion');
     // Old behaviour: null ?? '' -> Number('') -> 0 -> Number.isInteger(0) true.
     expect(parseRequestedSchemaVersion(null)).toBeUndefined();
   });
 
   it('returns undefined for a blank or whitespace-only parameter', async () => {
-    const { parseRequestedSchemaVersion } = await import('../route');
+    const { parseRequestedSchemaVersion } = await import('../schemaVersion');
     expect(parseRequestedSchemaVersion('')).toBeUndefined();
     expect(parseRequestedSchemaVersion('   ')).toBeUndefined();
   });
 
   it('parses explicit published layout versions', async () => {
-    const { parseRequestedSchemaVersion } = await import('../route');
+    const { parseRequestedSchemaVersion } = await import('../schemaVersion');
     expect(parseRequestedSchemaVersion('1')).toBe(1);
     expect(parseRequestedSchemaVersion('2')).toBe(2);
     expect(parseRequestedSchemaVersion('3')).toBe(3);
@@ -44,7 +44,7 @@ describe('parseRequestedSchemaVersion (F14)', () => {
   });
 
   it('returns undefined for non-integer junk', async () => {
-    const { parseRequestedSchemaVersion } = await import('../route');
+    const { parseRequestedSchemaVersion } = await import('../schemaVersion');
     expect(parseRequestedSchemaVersion('abc')).toBeUndefined();
     expect(parseRequestedSchemaVersion('12abc')).toBeUndefined();
     expect(parseRequestedSchemaVersion('4.5')).toBeUndefined();
@@ -52,7 +52,7 @@ describe('parseRequestedSchemaVersion (F14)', () => {
   });
 
   it('passes unknown integers through — the fallback is downstream', async () => {
-    const { parseRequestedSchemaVersion } = await import('../route');
+    const { parseRequestedSchemaVersion } = await import('../schemaVersion');
     // buildExecutionMessage falls back to the current layout for a version it
     // does not know; the parser must not silently rewrite 99 into something else.
     expect(parseRequestedSchemaVersion('99')).toBe(99);

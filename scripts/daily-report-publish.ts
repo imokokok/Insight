@@ -22,7 +22,7 @@
  *
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
  */
-import { runDailyReportPublish } from '@/app/api/cron/daily-report/publish/route';
+import { runDailyReportPublish } from '@/app/api/cron/daily-report/publish/runner';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
 /** Target report date = the previous UTC calendar day (same logic as the route). */

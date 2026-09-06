@@ -1,6 +1,8 @@
 import { type NextRequest } from 'next/server';
 
-import { POST, getString, getStringField } from '../route';
+import { getString, getStringField } from '@/lib/billing/subscriptionLifecycle';
+
+import { POST } from '../route';
 
 // --- Mocks ------------------------------------------------------------------
 

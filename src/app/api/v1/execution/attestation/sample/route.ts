@@ -33,6 +33,8 @@ import {
 } from '@/lib/attestations/executionReceipt';
 import { recordExecutionReceipt } from '@/lib/execution/executionReceiptAudit';
 
+import { parseRequestedSchemaVersion } from './schemaVersion';
+
 const PUBLIC_MIDDLEWARES = {
   logging: true,
   auth: false,
@@ -49,29 +51,6 @@ const SAMPLE_REQUEST_HASH =
   '0x0000000000000000000000000000000000000000000000000000000000000002' as const;
 const SAMPLE_TX_HASH =
   '0x0000000000000000000000000000000000000000000000000000000000000003' as const;
-
-/**
- * Parse the optional ?schemaVersion= override.
- *
- * Absent or blank → undefined (sign the CURRENT layout). An unknown integer is
- * returned as-is: buildExecutionMessage falls back to the current layout for a
- * version it does not know, and the response reports what was actually signed,
- * so a caller can never mistake the layout.
- *
- * VERITAS round 3 F14: the default must never reach the signer as 0. The old
- * code coerced `get(...) ?? ''` through Number(), and Number('') is 0, which
- * passed Number.isInteger and put the plain /sample call on the unknown-value
- * fallback branch instead of the no-override branch. If that fallback is ever
- * tightened to reject unknown versions, the default sample would silently
- * break — this keeps "no version asked" distinguishable from "version 0".
- */
-export function parseRequestedSchemaVersion(raw: string | null): number | undefined {
-  if (raw === null) return undefined;
-  const trimmed = raw.trim();
-  if (trimmed === '') return undefined;
-  const n = Number(trimmed);
-  return Number.isInteger(n) ? n : undefined;
-}
 
 export const OPTIONS = createOptionsHandler();
 

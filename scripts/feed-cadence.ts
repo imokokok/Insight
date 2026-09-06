@@ -5,7 +5,7 @@
  * Runs the same pipeline as the authenticated HTTP fallback without invoking
  * Vercel. Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.
  */
-import { runFeedCadenceBackfill } from '@/app/api/cron/feed-cadence/route';
+import { runFeedCadenceBackfill } from '@/app/api/cron/feed-cadence/runner';
 
 async function main(): Promise<void> {
   const startedAt = Date.now();

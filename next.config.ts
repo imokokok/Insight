@@ -25,7 +25,15 @@ const contentSecurityPolicyReportOnly = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['recharts'],
+  transpilePackages: [
+    'recharts',
+    'uint8array-extras',
+    '@exodus/bytes',
+    '@stellar/stellar-sdk',
+    '@noble/hashes',
+    '@noble/curves',
+    '@noble/ed25519',
+  ],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },

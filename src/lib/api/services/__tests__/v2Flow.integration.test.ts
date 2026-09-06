@@ -30,7 +30,7 @@ import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import type { Blockchain, OracleProvider } from '@/types/oracle';
 
-// Stub the API handler so importing the verify route (for verifyAttestationBySchema)
+// Stub the API handler used by the route-level integration fixtures.
 // doesn't pull the middleware chain into the test.
 jest.mock('@/lib/api/handler', () => ({
   createApiHandler: jest.fn(() => jest.fn()),
@@ -141,7 +141,7 @@ describe('v2 flow integration: pre-trade v2 → recheck → verify', () => {
     const { preTradeSafetyCheck } = await import('../preTradeSafetyService');
     const { preTradeRecheck } = await import('../preTradeRecheckService');
     const { verifyAttestationBySchema } =
-      await import('@/app/api/v1/safety/attestation/verify/route');
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     // ---- Step 1: pre-trade v2 check → real v2 attestation ----
     const tradeInput = {
@@ -217,7 +217,7 @@ describe('v2 flow integration: pre-trade v2 → recheck → verify', () => {
     const { preTradeSafetyCheck } = await import('../preTradeSafetyService');
     const { preTradeRecheck } = await import('../preTradeRecheckService');
     const { verifyAttestationBySchema } =
-      await import('@/app/api/v1/safety/attestation/verify/route');
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     const original = await preTradeSafetyCheck({
       asset: 'ETH',
@@ -296,7 +296,7 @@ describe('v2 flow integration: pre-trade v2 → recheck → verify', () => {
     // verifies as a genuine Insight attestation.
     const { preTradeSafetyCheck } = await import('../preTradeSafetyService');
     const { verifyAttestationBySchema } =
-      await import('@/app/api/v1/safety/attestation/verify/route');
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     // Single provider → v2 quorum gate forces BLOCK (INSUFFICIENT_COVERAGE).
     mockedGetConsensusPrice.mockResolvedValue(

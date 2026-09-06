@@ -1,7 +1,5 @@
 import { type NextResponse } from 'next/server';
 
-import { z } from 'zod';
-
 import {
   createApiHandler,
   createOptionsHandler,
@@ -13,16 +11,11 @@ import { getOracleWatchSignal } from '@/lib/api/services/oracleWatchService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { signWatchAttestation } from '@/lib/attestations/oracleWatchAttestation';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
-import { SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
 import type { Blockchain } from '@/types/oracle';
 
-export const OracleWatchQuerySchema = z.object({
-  symbol: SafeSymbolSchema.describe('Asset symbol, e.g. ETH, BTC'),
-  chain: SafeChainSchema.optional().describe('Optional blockchain, e.g. ethereum, arbitrum, base'),
-  /** Set to false to skip the signed attestation (payload only). Signing is
-   *  additive and never affects the signal itself. */
-  attest: z.boolean().optional().describe('Include a signed EIP-712 attestation (default: true)'),
-});
+import { OracleWatchQuerySchema } from './querySchema';
+
+import type { z } from 'zod';
 
 export const OPTIONS = createOptionsHandler();
 

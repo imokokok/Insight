@@ -23,7 +23,7 @@
  *
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
  */
-import { runProtocolMetrics } from '@/app/api/cron/protocol-metrics/route';
+import { runProtocolMetrics } from '@/app/api/cron/protocol-metrics/runner';
 
 function parseArgs(): { mode: string } {
   const args = process.argv.slice(2);

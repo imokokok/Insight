@@ -23,7 +23,7 @@
  *
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
  */
-import { runFeedSync } from '@/app/api/cron/sync-feeds/route';
+import { runFeedSync } from '@/app/api/cron/sync-feeds/runner';
 
 function parseArgs(): { mode: string; provider: string } {
   const args = process.argv.slice(2);

@@ -187,13 +187,13 @@ class ReflectorDataService {
       );
       let loaded = 0;
       // The SEP-40 `assets()` retval is an ScVal vec. In @stellar/stellar-sdk
-      // the enum switch name is `scvVec` (NOT `vec`) — comparing against `'vec'`
+      // the discriminant is `scvVec` (NOT `vec`) — comparing against `'vec'`
       // was always false, so the real assets were never loaded and we always
       // fell through to the (wrongly-encoded) manual fallback, which made
-      // `lastprice` trap on-chain for every symbol. `vec()` returns the array
+      // `lastprice` trap on-chain for every symbol. `vec` contains the array
       // of Asset ScVals directly (no `.value` wrapper).
-      if (result.switch().name === 'scvVec') {
-        const assets = result.vec();
+      if (result.type === 'scvVec') {
+        const assets = result.vec;
         if (assets) {
           for (const el of assets) {
             let symbol: string | undefined;
@@ -318,7 +318,7 @@ class ReflectorDataService {
     decimals: number
   ): { price: number; timestamp: number } | null {
     try {
-      if (scVal.switch() === xdr.ScValType.scvVoid()) {
+      if (scVal.type === 'scvVoid') {
         return null;
       }
 

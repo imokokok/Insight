@@ -16,7 +16,7 @@
 
 // Stub the API handler so importing the route doesn't pull the middleware
 // chain (supabase/rate-limit stores) into a unit test. POST/GET become no-ops;
-// only the exported `verifyAttestationBySchema` helper is exercised.
+// only the shared `verifyAttestationBySchema` helper is exercised.
 jest.mock('@/lib/api/handler', () => ({
   createApiHandler: jest.fn(() => jest.fn()),
   createOptionsHandler: jest.fn(() => jest.fn()),
@@ -86,7 +86,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
 
   it('routes a v1 attestation to the v1 verifier and returns valid', async () => {
     const { signAttestation } = await import('@/lib/attestations/oracleSafetyAttestation');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     const att = await signAttestation(V1_INPUT);
     expect(att).not.toBeNull();
@@ -104,7 +105,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
 
   it('routes a v2 attestation to the v2 verifier and returns valid', async () => {
     const { signAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     const att = await signAttestationV2(V2_INPUT);
     expect(att).not.toBeNull();
@@ -122,7 +124,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
 
   it('routes a v3 attestation to the v3 verifier and returns valid', async () => {
     const { signAttestationV3 } = await import('@/lib/attestations/oracleSafetyAttestationV3');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     const att = await signAttestationV3(V2_INPUT);
     expect(att).not.toBeNull();
@@ -140,7 +143,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
   it('routes a v3 recheck to the v3 recheck verifier (not plain v3)', async () => {
     const { buildMessageV3 } = await import('@/lib/attestations/oracleSafetyAttestationV3');
     const { signRecheckV3 } = await import('@/lib/attestations/oracleSafetyRecheckV3');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     const data = await buildMessageV3(V2_INPUT);
     const rc = await signRecheckV3({
@@ -160,7 +164,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
     // bigint can't be JSON-serialized, so v2 data stores numbers. This proves
     // the round trip is lossless end-to-end through the routing helper.
     const { signAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     const att = await signAttestationV2(V2_INPUT);
     // JSON.stringify throws on bigint — if any field were still bigint this
@@ -175,7 +180,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
 
   it('rejects a tampered v2 attestation (uid no longer matches the data)', async () => {
     const { signAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     const att = await signAttestationV2(V2_INPUT);
     const tampered = {
@@ -191,7 +197,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
 
   it('rejects an unknown schemaVersion with a structured invalid result', async () => {
     const { signAttestation } = await import('@/lib/attestations/oracleSafetyAttestation');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     const att = await signAttestation(V1_INPUT);
     // Claim a schema version the endpoint doesn't know how to route.
@@ -216,7 +223,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
 
   it('marks an expired v2 attestation as expired (but signature still valid)', async () => {
     const { signAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     // Sign with a pinned old check time, then advance "now" past validUntil.
     const att = await signAttestationV2({ ...V2_INPUT, checkedAtMs: NOW_MS });
@@ -237,7 +245,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
     // originalUid + originalRequestHash and always mismatch the UID).
     const { signAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
     const { signRecheck } = await import('@/lib/attestations/oracleSafetyRecheck');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     // 1. Sign the original v2 attestation (the one being re-verified).
     const original = await signAttestationV2(V2_INPUT);
@@ -267,7 +276,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
     // so the router falls through to the schemaVersion===2 (v2) branch.
     const { signAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
     const { signRecheck } = await import('@/lib/attestations/oracleSafetyRecheck');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     const original = await signAttestationV2(V2_INPUT);
     const recheck = await signRecheck({
@@ -292,7 +302,8 @@ describe('verify route — verifyAttestationBySchema routing', () => {
   it('verifies a recheck after a JSON wire round trip', async () => {
     const { signAttestationV2 } = await import('@/lib/attestations/oracleSafetyAttestationV2');
     const { signRecheck } = await import('@/lib/attestations/oracleSafetyRecheck');
-    const { verifyAttestationBySchema } = await import('../route');
+    const { verifyAttestationBySchema } =
+      await import('@/lib/attestations/verifyAttestationBySchema');
 
     const original = await signAttestationV2(V2_INPUT);
     const recheck = await signRecheck({

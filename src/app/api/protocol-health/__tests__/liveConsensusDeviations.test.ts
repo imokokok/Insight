@@ -4,7 +4,10 @@ import {
   type ConsensusProviderPrice,
 } from '@/lib/api/services/consensusPriceService';
 
-import { fetchLiveConsensusDeviations, resetConsensusDeviationCacheForTests } from '../route';
+import {
+  fetchLiveConsensusDeviations,
+  resetConsensusDeviationCacheForTests,
+} from '../implementation';
 
 // jest.mock is hoisted above imports at runtime by babel-jest.
 jest.mock('@/lib/api/services/consensusPriceService', () => ({

@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server';
 import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { reputationService } from '@/lib/oracles/services/reputationService';
 
-import { GET, runReputationCalculation } from '../route';
+import { GET } from '../route';
+import { runReputationCalculation } from '../runner';
 
 jest.mock('@/lib/api/cronAuth', () => ({
   verifyCronSecret: jest.fn(),

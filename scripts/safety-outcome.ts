@@ -16,7 +16,7 @@
  *
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
  */
-import { runSafetyOutcomeBackfill } from '@/app/api/cron/safety-outcome/route';
+import { runSafetyOutcomeBackfill } from '@/app/api/cron/safety-outcome/runner';
 
 async function main(): Promise<void> {
   const startedAt = Date.now();

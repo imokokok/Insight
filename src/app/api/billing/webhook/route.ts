@@ -46,8 +46,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getMaxRequestBytes, rejectOversizedRequest } from '@/lib/api/requestLimits';
 import { parseIpnEvent } from '@/lib/billing/nowpayments';
 import {
-  getString,
-  getStringField,
   handlePartiallyPaid,
   handlePaymentConfirmed,
   handlePaymentExpiredOrFailed,
@@ -58,8 +56,6 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('nowpayments-webhook');
-
-export { getString, getStringField };
 
 const WEBHOOK_PROVIDER = 'nowpayments';
 

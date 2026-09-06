@@ -5,7 +5,7 @@
  * Runs the same pipeline as the authenticated HTTP fallback without invoking
  * Vercel. Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.
  */
-import { runReputationCalculation } from '@/app/api/cron/reputation/route';
+import { runReputationCalculation } from '@/app/api/cron/reputation/runner';
 
 async function main(): Promise<void> {
   const startedAt = Date.now();

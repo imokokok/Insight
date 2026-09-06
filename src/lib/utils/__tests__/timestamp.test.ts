@@ -45,8 +45,14 @@ describe('toMilliseconds', () => {
 });
 
 describe('getTimeAgoDiff', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('flags a future timestamp with isFuture', () => {
-    const future = Date.now() + 3 * 60 * 60 * 1000; // +3h
+    const now = Date.now();
+    jest.spyOn(Date, 'now').mockReturnValue(now);
+    const future = now + 3 * 60 * 60 * 1000; // +3h
     const diff = getTimeAgoDiff(future);
     expect(diff.isFuture).toBe(true);
     expect(diff.unit).toBe('hours');
@@ -54,7 +60,9 @@ describe('getTimeAgoDiff', () => {
   });
 
   it('flags a past timestamp without isFuture', () => {
-    const past = Date.now() - 2 * 24 * 60 * 60 * 1000; // -2d
+    const now = Date.now();
+    jest.spyOn(Date, 'now').mockReturnValue(now);
+    const past = now - 2 * 24 * 60 * 60 * 1000; // -2d
     const diff = getTimeAgoDiff(past);
     expect(diff.isFuture).toBe(false);
     expect(diff.unit).toBe('days');
@@ -62,7 +70,9 @@ describe('getTimeAgoDiff', () => {
   });
 
   it('accepts a raw millisecond number', () => {
-    const past = Date.now() - 5 * 60 * 1000;
+    const now = Date.now();
+    jest.spyOn(Date, 'now').mockReturnValue(now);
+    const past = now - 5 * 60 * 1000;
     const diff = getTimeAgoDiff(past);
     expect(diff.isFuture).toBe(false);
     expect(diff.unit).toBe('minutes');

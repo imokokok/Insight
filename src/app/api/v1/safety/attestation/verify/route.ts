@@ -79,11 +79,6 @@ import {
   type UnifiedVerificationResult,
 } from '@/lib/attestations/verifyAttestationBySchema';
 
-// Re-exported so existing importers that reached the verifier through this
-// route module keep resolving (the implementation now lives in the shared lib).
-export { verifyAttestationBySchema } from '@/lib/attestations/verifyAttestationBySchema';
-export type { UnifiedVerificationResult } from '@/lib/attestations/verifyAttestationBySchema';
-
 /** Ethereum address (0x + 40 hex). Validated lightly here; the EIP-712 crypto
  *  layer is the real authority on whether the signature is genuine. */
 const AddressSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address');
@@ -126,8 +121,8 @@ const VerifyBodySchema = z.object({
 
 type VerifyBody = z.infer<typeof VerifyBodySchema>;
 
-// verifyAttestationBySchema + UnifiedVerificationResult now live in
-// @/lib/attestations/verifyAttestationBySchema (re-exported above) so the
+// verifyAttestationBySchema + UnifiedVerificationResult live in
+// @/lib/attestations/verifyAttestationBySchema so the
 // execution trust layer can reuse them without importing this route module.
 
 /** Loose EIP-712 domain/type shape for the informational GET response. v1 and
