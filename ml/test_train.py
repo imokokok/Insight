@@ -13,6 +13,7 @@ from ml.train import (
     label_for_horizon,
     label_from_fine_events,
     merge_flywheel_examples,
+    select_operating_thresholds,
 )
 
 
@@ -161,6 +162,14 @@ class FeatureSemanticsTest(unittest.TestCase):
         self.assertIsNotNone(table)
         calibrated = table["calibrated"]
         self.assertTrue(all(a <= b for a, b in zip(calibrated, calibrated[1:])))
+
+    def test_operating_thresholds_are_learned_from_validation_scores(self):
+        labels = np.array([0] * 80 + [1] * 20)
+        scores = np.array([0.03] * 50 + [0.08] * 30 + [0.08] * 5 + [0.14] * 15)
+        thresholds = select_operating_thresholds(labels, scores)
+        self.assertLess(thresholds["medium"], thresholds["high"])
+        self.assertEqual(thresholds["high"], 0.14)
+        self.assertEqual(thresholds["medium"], 0.08)
 
 
 if __name__ == "__main__":

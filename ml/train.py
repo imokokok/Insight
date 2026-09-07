@@ -103,9 +103,9 @@ STABLE_ASSETS = {"USDC", "USDT", "DAI", "USDS", "FDUSD", "TUSD", "PYUSD", "USD1"
 CALIBRATION_BINS = 10
 CALIBRATION_MIN_ROWS = 200
 CALIBRATION_MIN_POS = 10
-# A calibrated onset probability is much lower than the old current-state risk
-# score. A 15% chance of an abnormal event within six hours is operationally
-# high for a safety gate even though it is well below the generic 0.5 cutoff.
+# Fallbacks used only if validation cannot support learned operating cutoffs.
+# Normal models select both thresholds on validation and report performance on
+# the untouched test split, so the deployed boundary is versioned and useful.
 RISK_MEDIUM_THRESHOLD = 0.10
 RISK_HIGH_THRESHOLD = 0.15
 
@@ -386,6 +386,66 @@ def apply_calibration_table(proba: np.ndarray, table: dict) -> np.ndarray:
     calibrated = np.asarray(table["calibrated"], dtype=float)
     idx = np.minimum((np.clip(proba, 0.0, 1.0) * len(calibrated)).astype(int), len(calibrated) - 1)
     return calibrated[idx]
+
+
+def select_operating_thresholds(y_true: np.ndarray, calibrated: np.ndarray) -> dict:
+    """Select useful medium/high cutoffs from validation data only.
+
+    High favors precision (F0.5) while requiring a non-trivial alert group and
+    at least 10% recall. Medium is the narrowest lower band that expands recall
+    by roughly 20 points. The final test split never enters this selection.
+    """
+    y = np.asarray(y_true, dtype=int)
+    scores = np.asarray(calibrated, dtype=float)
+    valid = np.isfinite(scores)
+    y, scores = y[valid], scores[valid]
+    if len(y) == 0 or int(y.sum()) == 0:
+        return {"medium": RISK_MEDIUM_THRESHOLD, "high": RISK_HIGH_THRESHOLD}
+
+    min_alerts = max(10, int(np.ceil(len(y) * 0.01)))
+    candidates = []
+    for threshold in sorted(set(float(value) for value in scores)):
+        pred = scores >= threshold
+        predicted = int(pred.sum())
+        true_positive = int(y[pred].sum()) if predicted else 0
+        if predicted < min_alerts or true_positive == 0:
+            continue
+        precision = true_positive / predicted
+        recall = true_positive / int(y.sum())
+        beta_sq = 0.25
+        f05 = (
+            (1 + beta_sq) * precision * recall / (beta_sq * precision + recall)
+            if precision + recall > 0
+            else 0.0
+        )
+        candidates.append(
+            {
+                "threshold": threshold,
+                "precision": precision,
+                "recall": recall,
+                "f05": f05,
+            }
+        )
+    eligible_high = [candidate for candidate in candidates if candidate["recall"] >= 0.10]
+    if not eligible_high:
+        return {"medium": RISK_MEDIUM_THRESHOLD, "high": RISK_HIGH_THRESHOLD}
+    high = max(
+        eligible_high,
+        key=lambda candidate: (candidate["f05"], candidate["precision"], candidate["threshold"]),
+    )
+    lower = [candidate for candidate in candidates if candidate["threshold"] < high["threshold"]]
+    target_recall = min(0.80, max(0.50, high["recall"] + 0.20))
+    expanded = [candidate for candidate in lower if candidate["recall"] >= target_recall]
+    if expanded:
+        medium = max(expanded, key=lambda candidate: candidate["threshold"])["threshold"]
+    elif lower:
+        medium = max(lower, key=lambda candidate: candidate["threshold"])["threshold"]
+    else:
+        medium = max(0.01, high["threshold"] / 2)
+    return {
+        "medium": round(float(medium), 6),
+        "high": round(float(high["threshold"]), 6),
+    }
 
 
 def fetch_health_rows(base_url: str, service_key: str) -> pd.DataFrame:
@@ -1081,16 +1141,36 @@ def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
         log(f"[{hours}h] skipped — validation data cannot support probability calibration.")
         return None
 
+    calibrated_val = np.empty_like(proba_val)
+    for mask, name in ((is_stable, "stable"), (~is_stable, "volatile")):
+        table = calibration[name] or calibration["default"]
+        calibrated_val[mask] = apply_calibration_table(proba_val[mask], table)
+    risk_thresholds = select_operating_thresholds(y_val, calibrated_val)
+    validation_high = (calibrated_val >= risk_thresholds["high"]).astype(int)
+    metrics["validation_precision_at_high_threshold"] = float(
+        precision_score(y_val, validation_high, zero_division=0)
+    )
+    metrics["validation_recall_at_high_threshold"] = float(
+        recall_score(y_val, validation_high, zero_division=0)
+    )
+
     stable_test = test["symbol"].map(asset_class).eq("stable").values
     calibrated_te = np.empty_like(proba_te)
     for mask, name in ((stable_test, "stable"), (~stable_test, "volatile")):
         table = calibration[name] or calibration["default"]
         calibrated_te[mask] = apply_calibration_table(proba_te[mask], table)
     pred50 = (calibrated_te >= 0.5).astype(int)
-    pred_high = (calibrated_te >= RISK_HIGH_THRESHOLD).astype(int)
+    pred_medium = (calibrated_te >= risk_thresholds["medium"]).astype(int)
+    pred_high = (calibrated_te >= risk_thresholds["high"]).astype(int)
     metrics["brier_calibrated"] = float(brier_score_loss(y_te, calibrated_te))
     metrics["precision_at_0.5"] = float(precision_score(y_te, pred50, zero_division=0))
     metrics["recall_at_0.5"] = float(recall_score(y_te, pred50, zero_division=0))
+    metrics["precision_at_medium_threshold"] = float(
+        precision_score(y_te, pred_medium, zero_division=0)
+    )
+    metrics["recall_at_medium_threshold"] = float(
+        recall_score(y_te, pred_medium, zero_division=0)
+    )
     metrics["precision_at_high_threshold"] = float(
         precision_score(y_te, pred_high, zero_division=0)
     )
@@ -1119,10 +1199,7 @@ def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
         "featureNames": FEATURE_NAMES,
         "neutralFill": NEUTRAL_FILL,
         "baseScore": 0.5,  # logit(0.5) = 0, so proba = sigmoid(sum of leaves)
-        "riskThresholds": {
-            "medium": RISK_MEDIUM_THRESHOLD,
-            "high": RISK_HIGH_THRESHOLD,
-        },
+        "riskThresholds": risk_thresholds,
         "trees": trees,
         "calibration": calibration,
         "metrics": metrics,
