@@ -1,6 +1,7 @@
 import { InsightClient } from './client';
 import { ReceiptConfigurationError, TradeBlockedError } from './errors';
 import {
+  buildInsightPriorSealContextCommitment,
   buildPriorSealExactCallIntent,
   generatePriorSealAuthorizationNonce,
   PriorSealBridgeError,
@@ -121,12 +122,18 @@ export class InsightGuard {
 
     const authorizationNonce =
       request.priorSeal.authorizationNonce ?? generatePriorSealAuthorizationNonce();
+    const insightContextCommitment = buildInsightPriorSealContextCommitment({
+      sourceAttestation: gated.receiptDraft.preTradeAttestations!.source,
+      destinationAttestation: gated.receiptDraft.preTradeAttestations!.destination,
+      maxSlippageBps: gated.receiptDraft.maxSlippageBps,
+    });
     const intent = buildPriorSealExactCallIntent({
       transaction: preparedTransaction,
       intentId: request.priorSeal.intentId ?? `insight:${authorizationNonce.slice(2, 34)}`,
       sourceAssetId: gated.receiptDraft.sourceAssetId,
       validUntil,
       minConfirmations: request.priorSeal.confirmations,
+      contextCommitments: [insightContextCommitment],
     });
     const preparedAuthorization = await request.priorSeal.client.prepareAuthorization(
       {
@@ -194,10 +201,20 @@ export class InsightGuard {
         ? { priorSeal: evidenceError(priorSealResult.reason) }
         : {}),
     };
+    const priorSealPending = Boolean(
+      priorSealEvidence &&
+      (['PENDING', 'NOT_FOUND', 'RPC_ERROR', 'RPC_TIMEOUT'].includes(
+        priorSealEvidence.observation.status
+      ) ||
+        (priorSealEvidence.observationJob &&
+          !['COMPLETED', 'UNDETERMINED', 'FAILED'].includes(
+            priorSealEvidence.observationJob.state
+          )))
+    );
     const evidenceStatus =
-      insightReceipt && priorSealEvidence?.receipt
+      insightReceipt && priorSealEvidence?.receipt && !priorSealPending
         ? 'COMPLETE'
-        : priorSealEvidence && !priorSealEvidence.receipt
+        : priorSealPending
           ? 'PRIORSEAL_PENDING'
           : insightReceipt || priorSealEvidence?.receipt
             ? 'PARTIAL'

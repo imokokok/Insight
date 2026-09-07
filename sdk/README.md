@@ -110,7 +110,9 @@ const result = await guard.executeSwapWithPriorSeal({
 });
 ```
 
-The returned `evidenceStatus` is `COMPLETE` only when both independent receipts are present. A post-broadcast outage returns the surviving evidence as `PARTIAL` or `PRIORSEAL_PENDING`; it does not relabel one issuer's receipt as the other's. PriorSeal treats source asset and amount as signed descriptive context for exact calls. The calldata commitment is authoritative, while Insight remains authoritative for quote quality, fill attribution and slippage.
+The returned `evidenceStatus` is `COMPLETE` only when both independent receipts are present and no PriorSeal observation job is still active. A post-broadcast outage returns the surviving evidence as `PARTIAL` or `PRIORSEAL_PENDING`; it does not relabel one issuer's receipt as the other's. If `priorSealEvidence.observationJob` is present, resume it with `PriorSealClient.waitForObservationJob()` or use `observeExecutionUntilFinal()` in a background worker.
+
+Insight adds a namespaced context commitment to the signed PriorSeal intent. Its digest covers the source and destination pre-trade attestation UIDs, their request hashes and the signed slippage ceiling. PriorSeal treats source asset and amount as descriptive context and does not reinterpret Insight's economics: calldata remains authoritative for exact-call execution, while Insight remains authoritative for quote quality, fill attribution and slippage.
 
 ## Watch a running strategy
 

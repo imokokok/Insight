@@ -136,6 +136,12 @@ export interface PreparedExactCallTransaction {
   sourceAmount: bigint | number | string;
 }
 
+export interface PriorSealContextCommitment {
+  namespace: string;
+  algorithm: 'keccak256' | 'sha256';
+  digest: `0x${string}`;
+}
+
 export interface PriorSealIntent {
   schema: 'priorseal.intent.v2';
   executionProfile: 'priorseal.execution-profile.exact-call.v1';
@@ -153,6 +159,7 @@ export interface PriorSealIntent {
   calldataHash: `0x${string}`;
   transactionValue: string;
   constraints?: { minConfirmations?: number };
+  contextCommitments?: PriorSealContextCommitment[];
 }
 
 export interface PriorSealAuthorization {
@@ -187,10 +194,21 @@ export interface PriorSealAcceptedAuthorization {
   [key: string]: unknown;
 }
 
+export interface PriorSealObservationJob {
+  jobId: string;
+  state: 'QUEUED' | 'RUNNING' | 'RETRY_WAIT' | 'COMPLETED' | 'UNDETERMINED' | 'FAILED' | string;
+  attempts: number;
+  observation: { txHash?: string; status: string; [key: string]: unknown } | null;
+  result?: PriorSealObservationResult | null;
+  error?: { code: string; message: string } | null;
+  [key: string]: unknown;
+}
+
 export interface PriorSealObservationResult {
   observation: { txHash?: string; status: string; [key: string]: unknown };
   receipt: { receiptId: string; execution?: { txHash?: string }; [key: string]: unknown } | null;
   requestId?: string;
+  observationJob?: PriorSealObservationJob;
 }
 
 export interface PriorSealApi {
@@ -209,6 +227,11 @@ export interface PriorSealApi {
     input: { authorizationId: string; chainId: number; txHash: string; confirmations?: number },
     signal?: AbortSignal
   ): Promise<PriorSealObservationResult>;
+  getObservationJob?(jobId: string, signal?: AbortSignal): Promise<PriorSealObservationJob>;
+  waitForObservationJob?(
+    jobId: string,
+    options?: { signal?: AbortSignal; pollIntervalMs?: number; timeoutMs?: number }
+  ): Promise<PriorSealObservationJob>;
 }
 
 export interface PriorSealFlowOptions {

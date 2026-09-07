@@ -3,7 +3,11 @@ import test from 'node:test';
 
 import { keccak256 } from 'viem';
 
-import { InsightGuard, PriorSealClient } from '../dist/index.js';
+import {
+  buildInsightPriorSealContextCommitment,
+  InsightGuard,
+  PriorSealClient,
+} from '../dist/index.js';
 
 const sourceId = 'eip155:1/erc20:0x0000000000000000000000000000000000000001';
 const destinationId = 'eip155:1/erc20:0x0000000000000000000000000000000000000002';
@@ -255,6 +259,13 @@ test('executeSwapWithPriorSeal authorizes exact calldata before submission and r
   assert.equal(intent.calldataHash, keccak256('0x1234'));
   assert.equal(intent.amount, '1000000');
   assert.equal(intent.nonce, '7');
+  assert.deepEqual(intent.contextCommitments, [
+    buildInsightPriorSealContextCommitment({
+      sourceAttestation: preTrade('ETH').attestation,
+      destinationAttestation: preTrade('USDC').attestation,
+      maxSlippageBps: 50,
+    }),
+  ]);
   assert.deepEqual(insightRequests, [
     '/api/v1/safety/pre-trade',
     '/api/v1/safety/pre-trade',
@@ -357,4 +368,57 @@ test('oracleWatch sends the attestation flag in the API query', async () => {
   assert.equal(result.recommendation, 'proceed');
   assert.equal(requestUrl.pathname, '/api/v1/oracle-watch');
   assert.equal(requestUrl.searchParams.get('attest'), 'true');
+});
+
+test('PriorSealClient resumes a durable observation job until final evidence is available', async () => {
+  let polls = 0;
+  const priorSeal = new PriorSealClient({
+    baseUrl: 'https://priorseal.test',
+    fetch: async (url) => {
+      const path = new URL(url).pathname;
+      if (path === '/v1/executions/observe') {
+        return new Response(
+          JSON.stringify({
+            observation: { txHash, status: 'PENDING' },
+            receipt: null,
+            observationJob: { jobId: 'job_joint', state: 'QUEUED', attempts: 0 },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      assert.equal(path, '/v1/observation-jobs/job_joint');
+      polls += 1;
+      return new Response(
+        JSON.stringify(
+          polls === 1
+            ? {
+                jobId: 'job_joint',
+                state: 'RETRY_WAIT',
+                attempts: 1,
+                observation: { txHash, status: 'PENDING' },
+              }
+            : {
+                jobId: 'job_joint',
+                state: 'COMPLETED',
+                attempts: 2,
+                observation: { txHash, status: 'CONFIRMED' },
+                result: {
+                  observation: { txHash, status: 'CONFIRMED' },
+                  receipt: { receiptId: 'psr_resumed', execution: { txHash } },
+                },
+              }
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+  });
+
+  const result = await priorSeal.observeExecutionUntilFinal(
+    { authorizationId: 'auth_joint', chainId: 1, txHash },
+    { pollIntervalMs: 10, timeoutMs: 100 }
+  );
+
+  assert.equal(result.receipt?.receiptId, 'psr_resumed');
+  assert.equal(result.observationJob?.state, 'COMPLETED');
+  assert.equal(polls, 2);
 });

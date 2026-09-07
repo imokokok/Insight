@@ -2,6 +2,7 @@ export { InsightClient } from './client';
 export { InsightApiError, ReceiptConfigurationError, TradeBlockedError } from './errors';
 export { InsightGuard } from './guard';
 export {
+  buildInsightPriorSealContextCommitment,
   buildPriorSealExactCallIntent,
   generatePriorSealAuthorizationNonce,
   PriorSealBridgeError,
@@ -25,11 +26,13 @@ export type {
   PriorSealAcceptedAuthorization,
   PriorSealApi,
   PriorSealAuthorization,
+  PriorSealContextCommitment,
   PriorSealFlowOptions,
   PriorSealGuardedSwapRequest,
   PriorSealGuardedSwapResult,
   PriorSealIntent,
   PriorSealObservationResult,
+  PriorSealObservationJob,
   PriorSealPreparedAuthorization,
   SignedAttestation,
   SubmittedTransaction,

@@ -1,13 +1,16 @@
-import { keccak256 } from 'viem';
+import { encodeAbiParameters, keccak256 } from 'viem';
 
 import type {
   PreparedExactCallTransaction,
   PriorSealAcceptedAuthorization,
   PriorSealApi,
   PriorSealAuthorization,
+  PriorSealContextCommitment,
   PriorSealIntent,
+  PriorSealObservationJob,
   PriorSealObservationResult,
   PriorSealPreparedAuthorization,
+  SignedAttestation,
 } from './types';
 
 export interface PriorSealClientOptions {
@@ -79,9 +82,58 @@ export class PriorSealClient implements PriorSealApi {
     );
   }
 
+  getObservationJob(jobId: string, signal?: AbortSignal): Promise<PriorSealObservationJob> {
+    return this.request(`/v1/observation-jobs/${encodeURIComponent(jobId)}`, undefined, signal);
+  }
+
+  async waitForObservationJob(
+    jobId: string,
+    options: { signal?: AbortSignal; pollIntervalMs?: number; timeoutMs?: number } = {}
+  ): Promise<PriorSealObservationJob> {
+    const pollIntervalMs = options.pollIntervalMs ?? 1_000;
+    const timeoutMs = options.timeoutMs ?? 120_000;
+    if (!Number.isSafeInteger(pollIntervalMs) || pollIntervalMs < 10) {
+      throw new TypeError('pollIntervalMs must be an integer of at least 10.');
+    }
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1) {
+      throw new TypeError('timeoutMs must be a positive integer.');
+    }
+    const startedAt = Date.now();
+    while (true) {
+      const job = await this.getObservationJob(jobId, options.signal);
+      if (['COMPLETED', 'UNDETERMINED', 'FAILED'].includes(job.state)) return job;
+      if (Date.now() - startedAt >= timeoutMs) {
+        throw new PriorSealBridgeError(
+          `PriorSeal observation job did not finish within ${timeoutMs}ms`,
+          { code: 'OBSERVATION_WAIT_TIMEOUT' }
+        );
+      }
+      await abortableDelay(
+        Math.min(pollIntervalMs, Math.max(1, timeoutMs - (Date.now() - startedAt))),
+        options.signal
+      );
+    }
+  }
+
+  async observeExecutionUntilFinal(
+    input: { authorizationId: string; chainId: number; txHash: string; confirmations?: number },
+    options: { signal?: AbortSignal; pollIntervalMs?: number; timeoutMs?: number } = {}
+  ): Promise<PriorSealObservationResult> {
+    const initial = await this.observeExecution(input, options.signal);
+    if (!initial.observationJob) return initial;
+    const job = await this.waitForObservationJob(initial.observationJob.jobId, options);
+    return job.result
+      ? { ...job.result, observationJob: job }
+      : {
+          ...initial,
+          observation: job.observation ?? initial.observation,
+          observationJob: job,
+        };
+  }
+
   private async request<T>(
     path: string,
-    body: unknown,
+    body: unknown | undefined,
     signal?: AbortSignal,
     idempotencyKey = randomIdempotencyKey()
   ): Promise<T> {
@@ -95,15 +147,16 @@ export class PriorSealClient implements PriorSealApi {
     );
     try {
       const response = await this.fetcher(`${this.baseUrl}${path}`, {
-        method: 'POST',
+        method: body === undefined ? 'GET' : 'POST',
         signal: controller.signal,
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'Idempotency-Key': idempotencyKey,
+          ...(body === undefined
+            ? {}
+            : { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey }),
           ...this.headers,
         },
-        body: JSON.stringify(body),
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
       const payload = (await response.json().catch(() => null)) as {
         error?: { code?: string; message?: string };
@@ -148,6 +201,7 @@ export function buildPriorSealExactCallIntent(input: {
   sourceAssetId: string;
   validUntil: number;
   minConfirmations?: number;
+  contextCommitments?: PriorSealContextCommitment[];
 }): PriorSealIntent {
   const transaction = input.transaction;
   if (!Number.isSafeInteger(transaction.chainId) || transaction.chainId < 1) {
@@ -182,9 +236,42 @@ export function buildPriorSealExactCallIntent(input: {
     callTarget: to,
     calldataHash: keccak256(transaction.data),
     transactionValue: uintString(transaction.value ?? 0, 'value'),
+    ...(input.contextCommitments ? { contextCommitments: input.contextCommitments } : {}),
     ...(input.minConfirmations == null
       ? {}
       : { constraints: { minConfirmations: input.minConfirmations } }),
+  };
+}
+
+export function buildInsightPriorSealContextCommitment(input: {
+  sourceAttestation: SignedAttestation;
+  destinationAttestation: SignedAttestation;
+  maxSlippageBps?: number;
+}): PriorSealContextCommitment {
+  const maxSlippageBps = input.maxSlippageBps ?? 50;
+  if (!Number.isSafeInteger(maxSlippageBps) || maxSlippageBps < 0 || maxSlippageBps > 65_535) {
+    throw new TypeError('maxSlippageBps must fit uint16.');
+  }
+  const encoded = encodeAbiParameters(
+    [
+      { type: 'bytes32', name: 'sourceUid' },
+      { type: 'bytes32', name: 'destinationUid' },
+      { type: 'bytes32', name: 'sourceRequestHash' },
+      { type: 'bytes32', name: 'destinationRequestHash' },
+      { type: 'uint16', name: 'maxSlippageBps' },
+    ],
+    [
+      bytes32(input.sourceAttestation.uid, 'source attestation uid'),
+      bytes32(input.destinationAttestation.uid, 'destination attestation uid'),
+      bytes32(input.sourceAttestation.data.requestHash, 'source requestHash'),
+      bytes32(input.destinationAttestation.data.requestHash, 'destination requestHash'),
+      maxSlippageBps,
+    ]
+  );
+  return {
+    namespace: 'insight.pretrade-pair.v1',
+    algorithm: 'keccak256',
+    digest: keccak256(encoded),
   };
 }
 
@@ -202,6 +289,13 @@ function address(value: string, field: string): string {
   return value.toLowerCase();
 }
 
+function bytes32(value: unknown, field: string): `0x${string}` {
+  if (typeof value !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(value)) {
+    throw new TypeError(`Insight ${field} must be 32-byte hex.`);
+  }
+  return value.toLowerCase() as `0x${string}`;
+}
+
 function uintString(value: bigint | number | string, field: string): string {
   let normalized: string;
   try {
@@ -217,4 +311,28 @@ function uintString(value: bigint | number | string, field: string): string {
 
 function randomIdempotencyKey(): string {
   return globalThis.crypto?.randomUUID?.() ?? `insight:${Date.now()}:${Math.random()}`;
+}
+
+function abortableDelay(milliseconds: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(
+        new PriorSealBridgeError('PriorSeal request was aborted', { code: 'REQUEST_ABORTED' })
+      );
+      return;
+    }
+    const timer = setTimeout(done, milliseconds);
+    function done() {
+      signal?.removeEventListener('abort', aborted);
+      resolve();
+    }
+    function aborted() {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', aborted);
+      reject(
+        new PriorSealBridgeError('PriorSeal request was aborted', { code: 'REQUEST_ABORTED' })
+      );
+    }
+    signal?.addEventListener('abort', aborted, { once: true });
+  });
 }
