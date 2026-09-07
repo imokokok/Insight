@@ -72,6 +72,9 @@ interface SafetyResult {
   mlScore1h: number | null;
   /** Strategic 6h ML score (null when no model is active). */
   mlScore6h: number | null;
+  mlRiskLevel: 'low' | 'medium' | 'high' | null;
+  mlMediumThreshold: number | null;
+  mlHighThreshold: number | null;
   /** Model-free anomaly score [0,1] vs the 24h cross-oracle baseline. */
   anomalyScore: number;
   /** EIP-712 offchain attestation proving this check ran, or null. */
@@ -416,7 +419,11 @@ function VerdictCard({ result, isLending }: { result: SafetyResult; isLending: b
           <Metric
             label="Manipulation Risk"
             value={result.manipulationRiskScore.toFixed(2)}
-            warn={result.manipulationRiskScore >= 0.4}
+            warn={
+              result.mlRiskLevel
+                ? result.mlRiskLevel !== 'low'
+                : result.manipulationRiskScore >= 0.4
+            }
           />
           <Metric
             label="Anomaly (24h)"
@@ -427,7 +434,7 @@ function VerdictCard({ result, isLending }: { result: SafetyResult; isLending: b
             <Metric
               label="ML 1h / 6h"
               value={`${result.mlScore1h?.toFixed(2) ?? '—'} / ${result.mlScore6h?.toFixed(2) ?? '—'}`}
-              warn={(result.mlScore1h ?? 0) >= 0.5 || (result.mlScore6h ?? 0) >= 0.5}
+              warn={result.mlRiskLevel === 'medium' || result.mlRiskLevel === 'high'}
             />
           )}
           <Metric
@@ -468,6 +475,15 @@ function VerdictCard({ result, isLending }: { result: SafetyResult; isLending: b
         <LendingSafetyPanel
           protocolSafety={result.protocolSafety}
           actions={result.recommendedActions}
+          verdict={result.verdict}
+          maxDeviationPct={result.maxDeviationPct}
+          crossProviderAgreement={result.crossProviderAgreement}
+          participantCount={result.participantCount}
+          manipulationRiskScore={result.manipulationRiskScore}
+          mlScore1h={result.mlScore1h}
+          mlScore6h={result.mlScore6h}
+          mlRiskLevel={result.mlRiskLevel}
+          anomalyScore={result.anomalyScore}
         />
       )}
 

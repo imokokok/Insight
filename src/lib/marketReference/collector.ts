@@ -2,9 +2,9 @@
  * Market-reference collector — the external truth layer.
  *
  * Fetches independent CEX spot prices for the Oracle Watch universe
- * (ETH/BTC/USDC/USDT, quote USD) every 15 minutes from GitHub Actions
+ * (the demand-led 12-asset set below, quote USD) every 15 minutes from GitHub Actions
  * (`market-reference-collect.yml`), writing one row per (symbol, exchange,
- * snapshot_ts) into `market_reference_snapshots` (migration 0037).
+ * snapshot_ts) into `market_reference_snapshots` (migration 0038).
  *
  * Why this exists (see the data-strategy analysis):
  *  - Oracle-consensus labels cannot see manipulation when ALL providers move
@@ -30,10 +30,12 @@
  * Gemini note: replaced Binance as the third source. Binance's public API is
  * geo-blocked (HTTP 451) on GitHub US runners, so it contributed zero
  * successful rows in production. Gemini (NY-regulated, public keyless
- * pubticker, verified live for BTC/ETH/USDC/USDT) gives us three dependable,
- * US-runner-safe, high-credibility sources — a 3-source median bounds any
- * single source's influence on the reference. Cross-exchange consistency is
- * computed by the `market_reference_hourly` view, not asserted here.
+ * pubticker) gives us a third source where it lists the asset, while Coinbase
+ * and Kraken retain two-source coverage for the full demand-led universe.
+ * For supported assets, three independent sources provide a stronger median;
+ * unsupported pairs remain explicit failed observations rather than estimates.
+ * Cross-exchange consistency is computed by the `market_reference_hourly`
+ * view, not asserted here.
  */
 
 import { createLogger } from '@/lib/utils/logger';
@@ -41,13 +43,31 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('MarketReference');
 
 /** Bump when the fetch/row semantics change; pinned for reproducibility. */
-export const COLLECTOR_VERSION = '1.1.0'; // 1.1.0: Binance -> Gemini third source
+export const COLLECTOR_VERSION = '1.2.0'; // 1.2.0: demand-led universe + ticker liquidity context
 
 /** Quote currency for all rows. */
 export const MARKET_REFERENCE_QUOTE = 'USD';
 
 /** The Oracle Watch universe symbols (asset-level; CEX prices are not chain-scoped). */
-export const MARKET_REFERENCE_SYMBOLS = ['ETH', 'BTC', 'USDC', 'USDT'] as const;
+export const MARKET_REFERENCE_SYMBOLS = [
+  'ETH',
+  'BTC',
+  'USDC',
+  'USDT',
+  // Highest-volume assets in the real pre_trade_checks distribution that are
+  // available from at least two of our existing free public exchanges.
+  'SOL',
+  'ADA',
+  'XRP',
+  'ICP',
+  'HYPE',
+  'TAO',
+  'VVV',
+  'STG',
+] as const;
+
+/** Core assets retain 15-minute coverage; demand-led additions run hourly. */
+export const MARKET_REFERENCE_CORE_SYMBOLS = ['ETH', 'BTC', 'USDC', 'USDT'] as const;
 
 /** Per-exchange symbol → trading-pair mapping (quote USD). */
 const COINBASE_PRODUCTS: Record<string, string> = {
@@ -55,6 +75,14 @@ const COINBASE_PRODUCTS: Record<string, string> = {
   BTC: 'BTC-USD',
   USDC: 'USDC-USD',
   USDT: 'USDT-USD',
+  SOL: 'SOL-USD',
+  ADA: 'ADA-USD',
+  XRP: 'XRP-USD',
+  ICP: 'ICP-USD',
+  HYPE: 'HYPE-USD',
+  TAO: 'TAO-USD',
+  VVV: 'VVV-USD',
+  STG: 'STG-USD',
 };
 
 const KRAKEN_PAIRS: Record<string, string> = {
@@ -66,6 +94,14 @@ const KRAKEN_PAIRS: Record<string, string> = {
   BTC: 'XXBTZUSD',
   USDC: 'USDCUSD',
   USDT: 'USDTZUSD',
+  SOL: 'SOLUSD',
+  ADA: 'ADAUSD',
+  XRP: 'XRPUSD',
+  ICP: 'ICPUSD',
+  HYPE: 'HYPEUSD',
+  TAO: 'TAOUSD',
+  VVV: 'VVVUSD',
+  STG: 'STGUSD',
 };
 
 // Gemini ticker symbols (lowercase base + usd). VERIFIED against the live
@@ -75,12 +111,18 @@ const GEMINI_TICKERS: Record<string, string> = {
   BTC: 'btcusd',
   USDC: 'usdcusd',
   USDT: 'usdtusd',
+  SOL: 'solusd',
+  XRP: 'xrpusd',
+  HYPE: 'hypeusd',
 };
 
 export interface ExchangeQuote {
   exchange: string;
   symbol: string;
   price: number | null;
+  bid?: number | null;
+  ask?: number | null;
+  volume?: number | null;
   error?: string;
 }
 
@@ -92,6 +134,9 @@ export interface MarketReferenceRow {
   exchange: string;
   ref_price: number | null;
   volume: number | null;
+  bid: number | null;
+  ask: number | null;
+  bid_ask_spread_pct: number | null;
   data_age_seconds: number | null;
   is_success: boolean;
   error_message: string | null;
@@ -113,6 +158,8 @@ export interface MarketReferenceSummary {
 export interface MarketReferenceDeps {
   fetchImpl?: typeof fetch;
   now?: () => number;
+  /** Optional bounded subset used by the free-tier cadence router. */
+  symbols?: readonly string[];
 }
 
 /** Per-request timeout (ms) — abort a stalled exchange call, never hang a run. */
@@ -125,17 +172,43 @@ function parsePrice(value: unknown): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+function requirePair(mapping: Record<string, string>, symbol: string, exchange: string): string {
+  const pair = mapping[symbol];
+  if (!pair) throw new Error(`${exchange} does not list ${symbol}/USD`);
+  return pair;
+}
+
+function spreadPct(bid: number | null | undefined, ask: number | null | undefined): number | null {
+  if (bid == null || ask == null || bid <= 0 || ask <= 0 || ask < bid) return null;
+  const midpoint = (bid + ask) / 2;
+  return midpoint > 0 ? ((ask - bid) / midpoint) * 100 : null;
+}
+
 async function fetchCoinbaseSpot(symbol: string, fetchImpl: typeof fetch): Promise<ExchangeQuote> {
-  const product = COINBASE_PRODUCTS[symbol];
-  const url = `https://api.coinbase.com/v2/prices/${product}/spot`;
+  const product = requirePair(COINBASE_PRODUCTS, symbol, 'coinbase');
+  // Exchange ticker is as public/keyless as the old spot endpoint, and returns
+  // bid/ask + 24h base volume in the same request (no extra free-tier cost).
+  const url = `https://api.exchange.coinbase.com/products/${product}/ticker`;
   const r = await fetchImpl(url);
   if (!r.ok) throw new Error(`coinbase ${r.status}`);
-  const body = (await r.json()) as { data?: { amount?: unknown } };
-  return { exchange: 'coinbase', symbol, price: parsePrice(body.data?.amount) };
+  const body = (await r.json()) as {
+    price?: unknown;
+    bid?: unknown;
+    ask?: unknown;
+    volume?: unknown;
+  };
+  return {
+    exchange: 'coinbase',
+    symbol,
+    price: parsePrice(body.price),
+    bid: parsePrice(body.bid),
+    ask: parsePrice(body.ask),
+    volume: parsePrice(body.volume),
+  };
 }
 
 async function fetchKrakenSpot(symbol: string, fetchImpl: typeof fetch): Promise<ExchangeQuote> {
-  const pair = KRAKEN_PAIRS[symbol];
+  const pair = requirePair(KRAKEN_PAIRS, symbol, 'kraken');
   const url = `https://api.kraken.com/0/public/Ticker?pair=${pair}`;
   const r = await fetchImpl(url);
   if (!r.ok) throw new Error(`kraken ${r.status}`);
@@ -143,34 +216,56 @@ async function fetchKrakenSpot(symbol: string, fetchImpl: typeof fetch): Promise
   // (e.g. rate limits) — surface the real reason instead of a generic miss.
   const body = (await r.json()) as {
     error?: unknown[];
-    result?: Record<string, { c?: unknown[] }>;
+    result?: Record<string, { a?: unknown[]; b?: unknown[]; c?: unknown[]; v?: unknown[] }>;
   };
   if (Array.isArray(body.error) && body.error.length > 0) {
     throw new Error(`kraken ${String(body.error[0])}`);
   }
-  const ticker = body.result?.[pair];
+  // Kraken normalizes aliases in response keys. Use the sole returned ticker
+  // instead of coupling every newly supported asset to its canonical key.
+  const ticker = Object.values(body.result ?? {})[0];
   if (!ticker) {
     throw new Error(`kraken unexpected response shape (pair ${pair} not in result)`);
   }
-  return { exchange: 'kraken', symbol, price: parsePrice(ticker.c?.[0]) };
+  return {
+    exchange: 'kraken',
+    symbol,
+    price: parsePrice(ticker.c?.[0]),
+    ask: parsePrice(ticker.a?.[0]),
+    bid: parsePrice(ticker.b?.[0]),
+    volume: parsePrice(ticker.v?.[1] ?? ticker.v?.[0]),
+  };
 }
 
 async function fetchGeminiSpot(symbol: string, fetchImpl: typeof fetch): Promise<ExchangeQuote> {
-  const ticker = GEMINI_TICKERS[symbol];
+  const ticker = requirePair(GEMINI_TICKERS, symbol, 'gemini');
   const url = `https://api.gemini.com/v1/pubticker/${ticker}`;
   const r = await fetchImpl(url);
   if (!r.ok) throw new Error(`gemini ${r.status}`);
-  const body = (await r.json()) as { last?: unknown };
-  return { exchange: 'gemini', symbol, price: parsePrice(body.last) };
+  const body = (await r.json()) as {
+    last?: unknown;
+    bid?: unknown;
+    ask?: unknown;
+    volume?: Record<string, unknown>;
+  };
+  return {
+    exchange: 'gemini',
+    symbol,
+    price: parsePrice(body.last),
+    bid: parsePrice(body.bid),
+    ask: parsePrice(body.ask),
+    volume: parsePrice(body.volume?.[symbol] ?? body.volume?.[symbol.toUpperCase()]),
+  };
 }
 
 const ADAPTERS: Array<{
   name: string;
   fn: (symbol: string, f: typeof fetch) => Promise<ExchangeQuote>;
+  supports?: (symbol: string) => boolean;
 }> = [
   { name: 'coinbase', fn: fetchCoinbaseSpot },
   { name: 'kraken', fn: fetchKrakenSpot },
-  { name: 'gemini', fn: fetchGeminiSpot },
+  { name: 'gemini', fn: fetchGeminiSpot, supports: (symbol) => Boolean(GEMINI_TICKERS[symbol]) },
 ];
 
 /**
@@ -196,52 +291,65 @@ export async function collectMarketReference(
     }
   };
   const now = deps.now ?? Date.now;
+  const symbols = deps.symbols ? [...deps.symbols] : [...MARKET_REFERENCE_SYMBOLS];
   const snapshotIso = snapshotTs.toISOString();
   const rows: MarketReferenceRow[] = [];
 
-  for (const symbol of MARKET_REFERENCE_SYMBOLS) {
-    let successes = 0;
-    for (const { name, fn } of ADAPTERS) {
-      const started = now();
-      let quote: ExchangeQuote;
-      try {
-        quote = await fn(symbol, fetchImpl);
-        const latency = Math.round((now() - started) / 1000);
-        const ok = quote.price !== null;
-        if (ok) successes++;
-        rows.push({
-          snapshot_ts: snapshotIso,
-          symbol,
-          quote: MARKET_REFERENCE_QUOTE,
-          exchange: quote.exchange,
-          ref_price: quote.price,
-          volume: null,
-          data_age_seconds: latency,
-          is_success: ok,
-          error_message: ok ? null : 'unusable price from exchange',
-          collector_version: COLLECTOR_VERSION,
-        });
-      } catch (error) {
-        const latency = Math.round((now() - started) / 1000);
-        rows.push({
-          snapshot_ts: snapshotIso,
-          symbol,
-          quote: MARKET_REFERENCE_QUOTE,
-          exchange: name,
-          ref_price: null,
-          volume: null,
-          data_age_seconds: latency,
-          is_success: false,
-          error_message: error instanceof Error ? error.message : String(error),
-          collector_version: COLLECTOR_VERSION,
-        });
-        logger.warn('market reference fetch failed', {
-          symbol,
-          exchange: name,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-    }
+  for (const symbol of symbols) {
+    // Three requests per asset run concurrently. Assets remain sequential so a
+    // 12-symbol pass never bursts 36 requests at the free public APIs.
+    const symbolRows = await Promise.all(
+      ADAPTERS.filter(({ supports }) => !supports || supports(symbol)).map(
+        async ({ name, fn }): Promise<MarketReferenceRow> => {
+          const started = now();
+          try {
+            const quote = await fn(symbol, fetchImpl);
+            const latency = Math.round((now() - started) / 1000);
+            const ok = quote.price !== null;
+            return {
+              snapshot_ts: snapshotIso,
+              symbol,
+              quote: MARKET_REFERENCE_QUOTE,
+              exchange: quote.exchange,
+              ref_price: quote.price,
+              volume: quote.volume ?? null,
+              bid: quote.bid ?? null,
+              ask: quote.ask ?? null,
+              bid_ask_spread_pct: spreadPct(quote.bid, quote.ask),
+              data_age_seconds: latency,
+              is_success: ok,
+              error_message: ok ? null : 'unusable price from exchange',
+              collector_version: COLLECTOR_VERSION,
+            };
+          } catch (error) {
+            const latency = Math.round((now() - started) / 1000);
+            const message = error instanceof Error ? error.message : String(error);
+            logger.warn('market reference fetch failed', {
+              symbol,
+              exchange: name,
+              error: message,
+            });
+            return {
+              snapshot_ts: snapshotIso,
+              symbol,
+              quote: MARKET_REFERENCE_QUOTE,
+              exchange: name,
+              ref_price: null,
+              volume: null,
+              bid: null,
+              ask: null,
+              bid_ask_spread_pct: null,
+              data_age_seconds: latency,
+              is_success: false,
+              error_message: message,
+              collector_version: COLLECTOR_VERSION,
+            };
+          }
+        }
+      )
+    );
+    rows.push(...symbolRows);
+    const successes = symbolRows.filter((row) => row.is_success).length;
     if (successes === 0) {
       logger.warn('market reference uncovered symbol (fail-closed, no estimate written)', {
         symbol,
@@ -249,10 +357,8 @@ export async function collectMarketReference(
     }
   }
 
-  const covered = MARKET_REFERENCE_SYMBOLS.filter((s) =>
-    rows.some((r) => r.symbol === s && r.is_success)
-  );
-  const uncovered = MARKET_REFERENCE_SYMBOLS.filter((s) => !covered.includes(s));
+  const covered = symbols.filter((s) => rows.some((r) => r.symbol === s && r.is_success));
+  const uncovered = symbols.filter((s) => !covered.includes(s));
 
   // Cross-exchange consistency: max pairwise deviation over successful quotes.
   let maxCrossExchangeSpreadPct: number | null = null;
@@ -273,7 +379,7 @@ export async function collectMarketReference(
 
   const summary: MarketReferenceSummary = {
     snapshot_ts: snapshotIso,
-    symbols: [...MARKET_REFERENCE_SYMBOLS],
+    symbols,
     rows: rows.length,
     covered,
     uncovered,

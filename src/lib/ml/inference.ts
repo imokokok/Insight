@@ -100,6 +100,8 @@ export interface MlModelV2 {
   active: boolean;
   inactiveReason?: string;
   trainedAt: string | null;
+  featureSchemaVersion?: number;
+  labelSpecVersion?: number;
   labelDefinition?: string;
   featureNames: string[];
   horizons: Record<string, MlHorizon | null>;
@@ -166,7 +168,21 @@ export interface PreTradeFeatures {
    * signal) when the reference layer is absent — matching training's neutral
    * fill, so a retrained 17-feature model scores pre-trade consistently. */
   oracleVsMarketDeviationPct?: number;
+  /** 1 when a fresh independent market reference exists, else 0. */
+  marketReferenceAvailable?: number;
+  /** Number of successful independent exchanges in the reference rollup. */
+  marketExchangeCount?: number;
+  /** Dispersion among the independent exchanges, in percent. */
+  marketCrossExchangeSpreadPct?: number;
+  /** Median public top-of-book bid/ask spread, in percent. */
+  marketBidAskSpreadPct?: number;
+  /** log(1 + median 24h base volume), keeping the tree input bounded. */
+  marketLogVolume?: number;
 }
+
+export const ML_FEATURE_SCHEMA_VERSION = 5;
+export const ML_LABEL_SPEC_VERSION = 2;
+export type MlRiskLevel = 'low' | 'medium' | 'high';
 
 /** Map a feature map onto a horizon's featureNames order. Missing names are
  * filled from the horizon's (or model-level) neutralFill map when present —
@@ -288,7 +304,20 @@ export function featuresFromPreTrade(f: PreTradeFeatures): FeatureMap {
     // --- v4 external-truth feature. Neutral 0 = no divergence signal when the
     // market-reference layer has no row (matches training's neutral fill). ---
     oracle_vs_market_deviation_pct: f.oracleVsMarketDeviationPct ?? 0,
+    market_reference_available: f.marketReferenceAvailable ?? 0,
+    market_exchange_count: f.marketExchangeCount ?? 0,
+    market_cross_exchange_spread_pct: f.marketCrossExchangeSpreadPct ?? 0,
+    market_bid_ask_spread_pct: f.marketBidAskSpreadPct ?? 0,
+    market_log_volume: f.marketLogVolume ?? 0,
   };
+}
+
+export function classifyMlRisk(
+  score: number,
+  mediumThreshold: number,
+  highThreshold: number
+): MlRiskLevel {
+  return score >= highThreshold ? 'high' : score >= mediumThreshold ? 'medium' : 'low';
 }
 
 /**
@@ -457,6 +486,10 @@ export function getModelStatus(): {
   trainedAt: string | null;
   metrics: Record<string, unknown>;
   horizons: string[];
+  featureSchemaVersion?: number | null;
+  labelSpecVersion?: number | null;
+  mediumThreshold?: number | null;
+  highThreshold?: number | null;
   /** Per-horizon verification + out-of-time test metrics (Ops/health surfaces). */
   horizonDetails: Array<{
     name: string;
@@ -465,6 +498,8 @@ export function getModelStatus(): {
     auc: number | null;
     precision: number | null;
     recall: number | null;
+    mediumThreshold?: number | null;
+    highThreshold?: number | null;
   }>;
 } {
   const raw = modelJson as unknown as MlModelV2 | MlModelV1;
@@ -479,20 +514,35 @@ export function getModelStatus(): {
         evalWindowHours: model.evalWindowHours,
         auc: typeof model.metrics.auc === 'number' ? model.metrics.auc : null,
         precision:
-          typeof model.metrics['precision_at_0.5'] === 'number'
-            ? (model.metrics['precision_at_0.5'] as number)
-            : null,
+          typeof model.metrics['precision_at_high_threshold'] === 'number'
+            ? (model.metrics['precision_at_high_threshold'] as number)
+            : typeof model.metrics['precision_at_0.5'] === 'number'
+              ? (model.metrics['precision_at_0.5'] as number)
+              : null,
         recall:
-          typeof model.metrics['recall_at_0.5'] === 'number'
-            ? (model.metrics['recall_at_0.5'] as number)
-            : null,
+          typeof model.metrics['recall_at_high_threshold'] === 'number'
+            ? (model.metrics['recall_at_high_threshold'] as number)
+            : typeof model.metrics['recall_at_0.5'] === 'number'
+              ? (model.metrics['recall_at_0.5'] as number)
+              : null,
+        mediumThreshold: model.riskThresholds?.medium ?? null,
+        highThreshold: model.riskThresholds?.high ?? null,
       }))
     : [];
+  const operating = horizonDetails.filter(
+    (h) => h.verified && h.mediumThreshold != null && h.highThreshold != null
+  );
   return {
     active: activeHorizons.length > 0,
     trainedAt: raw.trainedAt ?? null,
     metrics: raw.metrics ?? {},
     horizons: activeHorizons,
+    featureSchemaVersion: raw.version === 2 ? (raw.featureSchemaVersion ?? null) : null,
+    labelSpecVersion: raw.version === 2 ? (raw.labelSpecVersion ?? null) : null,
+    mediumThreshold:
+      operating.length > 0 ? Math.min(...operating.map((h) => h.mediumThreshold as number)) : null,
+    highThreshold:
+      operating.length > 0 ? Math.min(...operating.map((h) => h.highThreshold as number)) : null,
     horizonDetails,
   };
 }

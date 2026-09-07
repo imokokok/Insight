@@ -4,7 +4,7 @@ import {
   type ConsensusProviderPrice,
 } from '@/lib/api/services/consensusPriceService';
 import { UnsupportedSymbolError } from '@/lib/errors';
-import { computeMarketDivergencePct } from '@/lib/marketReference/client';
+import { computeMarketReferenceContext } from '@/lib/marketReference/client';
 import { scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 
 import { fetchHistoricalOracleState } from '../oracleWatchHistory';
@@ -15,11 +15,12 @@ jest.mock('@/lib/api/services/consensusPriceService', () => ({
 }));
 
 jest.mock('@/lib/ml/inference', () => ({
+  ...jest.requireActual('@/lib/ml/inference'),
   scorePreTradeMultiHorizon: jest.fn(),
 }));
 
 jest.mock('@/lib/marketReference/client', () => ({
-  computeMarketDivergencePct: jest.fn(),
+  computeMarketReferenceContext: jest.fn(),
 }));
 
 jest.mock('../oracleWatchHistory', () => ({
@@ -30,8 +31,8 @@ const mockGetConsensusPrice = getConsensusPrice as jest.MockedFunction<typeof ge
 const mockScoreMl = scorePreTradeMultiHorizon as jest.MockedFunction<
   typeof scorePreTradeMultiHorizon
 >;
-const mockDivergence = computeMarketDivergencePct as jest.MockedFunction<
-  typeof computeMarketDivergencePct
+const mockMarketContext = computeMarketReferenceContext as jest.MockedFunction<
+  typeof computeMarketReferenceContext
 >;
 const mockFetchHistorical = fetchHistoricalOracleState as jest.MockedFunction<
   typeof fetchHistoricalOracleState
@@ -88,9 +89,10 @@ beforeEach(() => {
   mockGetConsensusPrice.mockReset();
   clearOracleWatchCache();
   mockScoreMl.mockReturnValue({ combined: 0.15, score1h: 0.1, score6h: 0.15 });
+  mockMarketContext.mockResolvedValue(null);
   mockFetchHistorical.mockResolvedValue(EMPTY_STATE);
-  mockDivergence.mockReset();
-  mockDivergence.mockResolvedValue(null); // default: no market-truth signal
+  mockMarketContext.mockReset();
+  mockMarketContext.mockResolvedValue(null); // default: no market-truth signal
 });
 
 describe('getOracleWatchSignal', () => {
@@ -398,7 +400,13 @@ describe('getOracleWatchSignal — reputation & ML advisory', () => {
     // Healthy consensus gates + 2.5% oracle-vs-market divergence: the receipt
     // must carry the market-truth reason code while the verdict stays NORMAL
     // (external truth is evidence, never a verdict input).
-    mockDivergence.mockResolvedValue(2.5);
+    mockMarketContext.mockResolvedValue({
+      divergencePct: 2.5,
+      exchangeCount: 3,
+      crossExchangeSpreadPct: 0.1,
+      medianBidAskSpreadPct: 0.02,
+      logVolume: 8,
+    });
     mockGetConsensusPrice.mockResolvedValue(
       makeResponse({
         agreement: 0.99,
@@ -420,11 +428,17 @@ describe('getOracleWatchSignal — reputation & ML advisory', () => {
     expect(signal.reasonCodes).toContain('MARKET_DIVERGENCE');
     // The divergence value fed the decision (asserted, reproducible) — the
     // client received symbol + consensus.
-    expect(mockDivergence).toHaveBeenCalledWith('ETH', 3000);
+    expect(mockMarketContext).toHaveBeenCalledWith('ETH', 3000);
   });
 
   it('omits MARKET_DIVERGENCE when the reference layer reports no divergence', async () => {
-    mockDivergence.mockResolvedValue(0.4); // below the 2% advisory line
+    mockMarketContext.mockResolvedValue({
+      divergencePct: 0.4,
+      exchangeCount: 2,
+      crossExchangeSpreadPct: 0.1,
+      medianBidAskSpreadPct: 0.02,
+      logVolume: 8,
+    }); // below the 2% advisory line
     mockGetConsensusPrice.mockResolvedValue(
       makeResponse({
         agreement: 0.99,

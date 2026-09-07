@@ -38,11 +38,21 @@ import {
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
 import { UnsupportedSymbolError } from '@/lib/errors';
-import { computeMarketDivergencePct } from '@/lib/marketReference/client';
 import {
+  computeMarketReferenceContext,
+  type MarketReferenceContext,
+} from '@/lib/marketReference/client';
+import {
+  classifyMlRisk,
+  featuresFromPreTrade,
   getModelStatus,
+  ML_FEATURE_SCHEMA_VERSION,
+  ML_LABEL_SPEC_VERSION,
   scorePreTradeMultiHorizon,
+  type FeatureMap,
+  type MlRiskLevel,
   type MultiHorizonScore,
+  type PreTradeFeatures,
 } from '@/lib/ml/inference';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import {
@@ -212,6 +222,12 @@ export interface PreTradeSafetyResult {
   mlScore1h: number | null;
   /** ML score for the strategic 6h horizon (null when no model active). */
   mlScore6h: number | null;
+  /** Model-versioned severity; clients must not hardcode probability cutoffs. */
+  mlRiskLevel: MlRiskLevel | null;
+  mlMediumThreshold: number | null;
+  mlHighThreshold: number | null;
+  /** Exact named, present-time-only inputs stored for the training flywheel. */
+  mlFeatureVector: FeatureMap;
   /**
    * Unsupervised anomaly score ∈ [0,1] — model-free statistical outlier
    * detection (z-score + EWMA residual vs the 24h baseline). Catches novel
@@ -401,6 +417,14 @@ async function logAudit(
       warnings: result.warnings,
       contributing_factors: result.contributingFactors,
       ml_score: result.mlScore,
+      ml_score_1h: result.mlScore1h,
+      ml_score_6h: result.mlScore6h,
+      ml_risk_level: result.mlRiskLevel,
+      ml_medium_threshold: result.mlMediumThreshold,
+      ml_high_threshold: result.mlHighThreshold,
+      ml_feature_vector: result.mlFeatureVector,
+      feature_schema_version: ML_FEATURE_SCHEMA_VERSION,
+      label_spec_version: ML_LABEL_SPEC_VERSION,
       ml_model_version: result.mlModelVersion,
       latency_ms: result.latencyMs,
       signed,
@@ -804,6 +828,10 @@ interface ManipulationRiskResult {
   mlModelVersion: string | null;
   mlScore1h: number | null;
   mlScore6h: number | null;
+  mlRiskLevel: MlRiskLevel | null;
+  mlMediumThreshold: number | null;
+  mlHighThreshold: number | null;
+  mlFeatureVector: FeatureMap;
   anomalyScore: number;
   manipulationRiskScore: number;
 }
@@ -821,12 +849,15 @@ function computeManipulationRisk(args: {
   asset: string;
   /** Oracle-vs-market divergence (%) from the external truth layer; null when
    *  unavailable (the feature neutral-fills 0). */
-  marketDivergencePct: number | null;
+  marketContext: MarketReferenceContext | null;
 }): ManipulationRiskResult {
   let mlScore: number | null = null;
   let mlModelVersion: string | null = null;
   let mlScore1h: number | null = null;
   let mlScore6h: number | null = null;
+  let mlRiskLevel: MlRiskLevel | null = null;
+  let mlMediumThreshold: number | null = null;
+  let mlHighThreshold: number | null = null;
   let anomalyScore = 0;
   try {
     const successfulProviders = Object.values(args.providerPrices).filter(
@@ -868,55 +899,96 @@ function computeManipulationRisk(args: {
       args.maxDeviationPct
     );
     anomalyScore = anomaly.anomalyScore;
-    const multi: MultiHorizonScore | null = scorePreTradeMultiHorizon(
-      {
-        maxDeviationPct: args.maxDeviationPct,
-        spreadPct: args.spreadPct,
-        participantCount: args.consensus.participantCount,
-        staleDataRisk: staleCount > 0,
-        meanDeviationPct: roundTo(meanDeviationPct, 4),
-        staleRatio: roundTo(staleRatio, 4),
-        deviationVelocity1h: hist.deviationVelocity1h,
-        rollingVolatility6h: hist.rollingVolatility6h,
-        deviationVelocity3h: hist.deviationVelocity3h,
-        participantCountDelta1h: hist.participantCountDelta1h,
-        maxDeviationZscore24h: hist.maxDeviationZscore24h,
-        // --- v3 governance features: REAL values (neutral defaults only for
-        // reputation when no successful provider reported one) ---
-        agreement: args.agreement,
-        outlierCount,
-        staleCount,
-        avgReputation,
-        minReputation: args.minReputation / 100,
-        // --- v4 external-truth feature: oracle-vs-market divergence. Null
-        // (neutral 0 at featuresFromPreTrade) when the reference layer is
-        // absent — fail-closed, never a fabricated divergence. ---
-        oracleVsMarketDeviationPct: args.marketDivergencePct ?? undefined,
-      },
-      { assetClass: args.asset }
-    );
+    const mlFeatures: PreTradeFeatures = {
+      maxDeviationPct: args.maxDeviationPct,
+      spreadPct: args.spreadPct,
+      participantCount: args.consensus.participantCount,
+      staleDataRisk: staleCount > 0,
+      meanDeviationPct: roundTo(meanDeviationPct, 4),
+      staleRatio: roundTo(staleRatio, 4),
+      deviationVelocity1h: hist.deviationVelocity1h,
+      rollingVolatility6h: hist.rollingVolatility6h,
+      deviationVelocity3h: hist.deviationVelocity3h,
+      participantCountDelta1h: hist.participantCountDelta1h,
+      maxDeviationZscore24h: hist.maxDeviationZscore24h,
+      // --- v3 governance features: REAL values (neutral defaults only for
+      // reputation when no successful provider reported one) ---
+      agreement: args.agreement,
+      outlierCount,
+      staleCount,
+      avgReputation,
+      minReputation: args.minReputation / 100,
+      // --- v4 external-truth feature: oracle-vs-market divergence. Null
+      // (neutral 0 at featuresFromPreTrade) when the reference layer is
+      // absent — fail-closed, never a fabricated divergence. ---
+      oracleVsMarketDeviationPct: args.marketContext?.divergencePct,
+      marketReferenceAvailable: args.marketContext ? 1 : 0,
+      marketExchangeCount: args.marketContext?.exchangeCount,
+      marketCrossExchangeSpreadPct: args.marketContext?.crossExchangeSpreadPct,
+      marketBidAskSpreadPct: args.marketContext?.medianBidAskSpreadPct,
+      marketLogVolume: args.marketContext?.logVolume,
+    };
+    const multi: MultiHorizonScore | null = scorePreTradeMultiHorizon(mlFeatures, {
+      assetClass: args.asset,
+    });
     if (multi !== null) {
       mlScore = multi.combined;
       mlScore1h = multi.score1h;
       mlScore6h = multi.score6h;
+      mlMediumThreshold = multi.mediumThreshold ?? null;
+      mlHighThreshold = multi.highThreshold ?? null;
+      if (mlMediumThreshold !== null && mlHighThreshold !== null) {
+        mlRiskLevel = classifyMlRisk(multi.combined, mlMediumThreshold, mlHighThreshold);
+      }
       mlModelVersion = getModelStatus().trainedAt;
     }
+    const mlFeatureVector = featuresFromPreTrade(mlFeatures);
+    const manipulationRiskScore =
+      mlScore !== null
+        ? mlScore
+        : computeManipulationRiskScore({
+            maxDeviationPct: args.maxDeviationPct,
+            crossProviderAgreement: args.agreement,
+            spreadPct: args.spreadPct,
+            staleRisk: args.staleRisk,
+            minReputation: args.minReputation,
+          });
+    return {
+      mlScore,
+      mlModelVersion,
+      mlScore1h,
+      mlScore6h,
+      mlRiskLevel,
+      mlMediumThreshold,
+      mlHighThreshold,
+      mlFeatureVector,
+      anomalyScore,
+      manipulationRiskScore,
+    };
   } catch (error) {
     logger.warn('ML scoring failed; falling back to rule-based risk score', {
       error: error instanceof Error ? error.message : String(error),
     });
   }
-  const manipulationRiskScore =
-    mlScore !== null
-      ? mlScore
-      : computeManipulationRiskScore({
-          maxDeviationPct: args.maxDeviationPct,
-          crossProviderAgreement: args.agreement,
-          spreadPct: args.spreadPct,
-          staleRisk: args.staleRisk,
-          minReputation: args.minReputation,
-        });
-  return { mlScore, mlModelVersion, mlScore1h, mlScore6h, anomalyScore, manipulationRiskScore };
+  const manipulationRiskScore = computeManipulationRiskScore({
+    maxDeviationPct: args.maxDeviationPct,
+    crossProviderAgreement: args.agreement,
+    spreadPct: args.spreadPct,
+    staleRisk: args.staleRisk,
+    minReputation: args.minReputation,
+  });
+  return {
+    mlScore,
+    mlModelVersion,
+    mlScore1h,
+    mlScore6h,
+    mlRiskLevel,
+    mlMediumThreshold,
+    mlHighThreshold,
+    mlFeatureVector: {},
+    anomalyScore,
+    manipulationRiskScore,
+  };
 }
 
 /**
@@ -1204,6 +1276,10 @@ export async function preTradeSafetyCheck(
       mlModelVersion: null,
       mlScore1h: null,
       mlScore6h: null,
+      mlRiskLevel: null,
+      mlMediumThreshold: null,
+      mlHighThreshold: null,
+      mlFeatureVector: {},
       anomalyScore: 0,
       attestation: null,
       evaluatedAt: new Date().toISOString(),
@@ -1465,14 +1541,14 @@ export async function preTradeSafetyCheck(
   // The v4 oracle-vs-market divergence feature is only fetched when a model is
   // active (bounded rollup read, 60s cache) so the hot path stays unchanged
   // under the rules-only fallback.
-  let marketDivergencePct: number | null = null;
+  let marketContext: MarketReferenceContext | null = null;
   // getModelStatus may return a partial/undefined shape under test mocks;
   // treat anything but an explicit active:true as "no model".
   if (getModelStatus()?.active === true) {
     try {
-      marketDivergencePct = await computeMarketDivergencePct(input.asset, consensus.consensusPrice);
+      marketContext = await computeMarketReferenceContext(input.asset, consensus.consensusPrice);
     } catch {
-      marketDivergencePct = null; // fail-closed: neutral 0 feature
+      marketContext = null; // fail-closed: explicit missing-market features
     }
   }
   const risk = computeManipulationRisk({
@@ -1485,12 +1561,16 @@ export async function preTradeSafetyCheck(
     agreement,
     minReputation,
     asset: input.asset,
-    marketDivergencePct,
+    marketContext,
   });
   const mlScore = risk.mlScore;
   const mlModelVersion = risk.mlModelVersion;
   const mlScore1h = risk.mlScore1h;
   const mlScore6h = risk.mlScore6h;
+  const mlRiskLevel = risk.mlRiskLevel;
+  const mlMediumThreshold = risk.mlMediumThreshold;
+  const mlHighThreshold = risk.mlHighThreshold;
+  const mlFeatureVector = risk.mlFeatureVector;
   const anomalyScore = risk.anomalyScore;
   const manipulationRiskScore = risk.manipulationRiskScore;
 
@@ -1583,6 +1663,10 @@ export async function preTradeSafetyCheck(
     mlModelVersion,
     mlScore1h,
     mlScore6h,
+    mlRiskLevel,
+    mlMediumThreshold,
+    mlHighThreshold,
+    mlFeatureVector,
     anomalyScore,
     // Non-blocking: sign the verdict as an EIP-712 offchain attestation. null
     // when no attester key is configured — never affects the verdict itself.

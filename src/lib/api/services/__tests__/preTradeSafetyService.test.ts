@@ -2,7 +2,7 @@ import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { signAttestationV2 } from '@/lib/attestations/oracleSafetyAttestationV2';
 import { signAttestationV3 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import { UnsupportedSymbolError } from '@/lib/errors';
-import { computeMarketDivergencePct } from '@/lib/marketReference/client';
+import { computeMarketReferenceContext } from '@/lib/marketReference/client';
 import { getModelStatus, scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 import { getFeedStalenessBaselineMap } from '@/lib/oracles/feedCadence';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
@@ -61,6 +61,7 @@ process.env.ENABLE_CADENCE_CAUTION = 'true';
 // The ML math itself is covered by src/lib/ml/__tests__/inference.test.ts. By
 // default scorePreTradeMultiHorizon returns null (no model) -> rule fallback.
 jest.mock('@/lib/ml/inference', () => ({
+  ...jest.requireActual('@/lib/ml/inference'),
   scorePreTradeMultiHorizon: jest.fn(),
   getModelStatus: jest.fn(() => ({ active: false, trainedAt: null, metrics: {} })),
 }));
@@ -69,7 +70,7 @@ jest.mock('@/lib/ml/inference', () => ({
 // active; mock the reference client so a model-active test can assert the
 // feature passes through without hitting Supabase.
 jest.mock('@/lib/marketReference/client', () => ({
-  computeMarketDivergencePct: jest.fn(),
+  computeMarketReferenceContext: jest.fn(),
 }));
 
 // Mock the v2/v3 signers so v2/v3 service tests assert the ROUTING/PLUMBING
@@ -101,8 +102,8 @@ const mockedScorePreTradeMultiHorizon = scorePreTradeMultiHorizon as jest.Mocked
   typeof scorePreTradeMultiHorizon
 >;
 const mockedGetModelStatus = getModelStatus as jest.MockedFunction<typeof getModelStatus>;
-const mockedDivergence = computeMarketDivergencePct as jest.MockedFunction<
-  typeof computeMarketDivergencePct
+const mockedMarketContext = computeMarketReferenceContext as jest.MockedFunction<
+  typeof computeMarketReferenceContext
 >;
 const mockedSignAttestationV2 = signAttestationV2 as jest.MockedFunction<typeof signAttestationV2>;
 const mockedSignAttestationV3 = signAttestationV3 as jest.MockedFunction<typeof signAttestationV3>;
@@ -216,6 +217,7 @@ beforeEach(() => {
   // resetMocks wipes the factory default; re-establish so getModelStatus()
   // returns a valid object (mlModelVersion = null) instead of undefined.
   mockedGetModelStatus.mockReturnValue({ active: false, trainedAt: null, metrics: {} });
+  mockedMarketContext.mockResolvedValue(null);
   // Default: v2 signer returns a stub so result.attestation is non-null when
   // schemaVersion=2 is exercised. The stub echoes the resolved CAIP-19 ids and
   // derives coverageStatus from the quorum participant count (mirroring the real
@@ -768,7 +770,13 @@ describe('preTradeSafetyCheck — ML score plumbing', () => {
       trainedAt: '2026-08-30T00:00:00Z',
       metrics: {},
     });
-    mockedDivergence.mockResolvedValue(2.5);
+    mockedMarketContext.mockResolvedValue({
+      divergencePct: 2.5,
+      exchangeCount: 3,
+      crossExchangeSpreadPct: 0.1,
+      medianBidAskSpreadPct: 0.02,
+      logVolume: 8,
+    });
     mockedScorePreTradeMultiHorizon.mockReturnValue({
       combined: 0.5,
       score1h: 0.4,
@@ -779,7 +787,7 @@ describe('preTradeSafetyCheck — ML score plumbing', () => {
 
     // The external-truth feature is only fetched when the model is active
     // (hot path unchanged under the rules-only fallback) and flows through.
-    expect(mockedDivergence).toHaveBeenCalledWith('ETH', expect.any(Number));
+    expect(mockedMarketContext).toHaveBeenCalledWith('ETH', expect.any(Number));
     const [features] = mockedScorePreTradeMultiHorizon.mock.calls[0];
     expect(features.oracleVsMarketDeviationPct).toBe(2.5);
   });

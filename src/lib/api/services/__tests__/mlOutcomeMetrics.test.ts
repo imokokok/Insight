@@ -1,13 +1,25 @@
 import { getMlOutcomeMetrics } from '@/lib/api/services/mlOutcomeMetrics';
+import { getModelStatus } from '@/lib/ml/inference';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(),
 }));
+jest.mock('@/lib/ml/inference', () => ({
+  ...jest.requireActual('@/lib/ml/inference'),
+  getModelStatus: jest.fn(() => ({
+    active: true,
+    trainedAt: null,
+    labelSpecVersion: 2,
+    mediumThreshold: 0.25,
+    highThreshold: 0.75,
+  })),
+}));
 
 const mockedCreateServiceRoleClient = createServiceRoleClient as jest.MockedFunction<
   typeof createServiceRoleClient
 >;
+const mockedGetModelStatus = getModelStatus as jest.MockedFunction<typeof getModelStatus>;
 
 type Result = { data: unknown; error: unknown };
 
@@ -39,10 +51,22 @@ function row(asset: string, mlScore: number, label: boolean) {
 }
 
 describe('mlOutcomeMetrics', () => {
-  afterEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedGetModelStatus.mockReturnValue({
+      active: true,
+      trainedAt: null,
+      metrics: {},
+      horizons: ['6h'],
+      horizonDetails: [],
+      labelSpecVersion: 2,
+      mediumThreshold: 0.25,
+      highThreshold: 0.75,
+    });
+  });
 
   it('computes realized precision/recall buckets and rank AUC', async () => {
-    // 8 labeled rows: every row with score >= 0.5 is a true positive.
+    // 8 labeled rows evaluated at the model-versioned 0.25 / 0.75 thresholds.
     const data = [
       row('ETH', 0.9, true),
       row('ETH', 0.8, true),
@@ -66,11 +90,11 @@ describe('mlOutcomeMetrics', () => {
     // Perfect separation: every positive outscores every negative.
     expect(m.auc).toBe(1);
 
-    const half = m.buckets.find((b) => b.threshold === 0.5)!;
-    expect(half.n).toBe(4);
-    expect(half.positives).toBe(3);
-    expect(half.precision).toBe(0.75);
-    expect(half.recall).toBe(1);
+    const medium = m.buckets.find((b) => b.threshold === 0.25)!;
+    expect(medium.n).toBe(5);
+    expect(medium.positives).toBe(3);
+    expect(medium.precision).toBe(0.6);
+    expect(medium.recall).toBe(1);
 
     const hi = m.buckets.find((b) => b.threshold === 0.75)!;
     expect(hi.precision).toBe(1);

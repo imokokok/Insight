@@ -37,6 +37,12 @@ const FEATURE_KEY: Record<string, keyof PreTradeFeatures> = {
   avg_reputation: 'avgReputation',
   min_reputation: 'minReputation',
   oracle_vs_market_deviation_pct: 'oracleVsMarketDeviationPct',
+  // --- v5 market-reference availability/liquidity features ---
+  market_reference_available: 'marketReferenceAvailable',
+  market_exchange_count: 'marketExchangeCount',
+  market_cross_exchange_spread_pct: 'marketCrossExchangeSpreadPct',
+  market_bid_ask_spread_pct: 'marketBidAskSpreadPct',
+  market_log_volume: 'marketLogVolume',
 };
 
 const BASE_FEATURES: PreTradeFeatures = {
@@ -144,6 +150,13 @@ describe('ml inference', () => {
     expect(map.min_reputation).toBe(0.5);
     // v4 external-truth feature: absent reference ⇒ neutral 0 divergence.
     expect(map.oracle_vs_market_deviation_pct).toBe(0);
+    // Missing market data is represented explicitly, rather than pretending
+    // that an unavailable reference is a perfectly liquid zero-divergence one.
+    expect(map.market_reference_available).toBe(0);
+    expect(map.market_exchange_count).toBe(0);
+    expect(map.market_cross_exchange_spread_pct).toBe(0);
+    expect(map.market_bid_ask_spread_pct).toBe(0);
+    expect(map.market_log_volume).toBe(0);
   });
 
   it('honors explicitly supplied 30-min governance features', () => {

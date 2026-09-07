@@ -70,13 +70,19 @@ jobs:
               print(f"inactiveReason={m.get('inactiveReason')}")
           PY
 
-      - name: Regression gate (test AUC must not drop vs previous model)
+      - name: Regression gate (discrimination and calibration)
         run: |
           set -u
           python - <<'PY'
           import json, subprocess, sys
 
+          # Absolute tolerances are deliberately small but non-zero: the
+          # forward holdout changes as the window rolls, especially for rare
+          # incidents. AUC alone is insufficient; average precision checks the
+          # rare positive class and Brier checks calibrated probability quality.
           AUC_DROP_TOLERANCE = 0.03
+          AP_DROP_TOLERANCE = 0.03
+          BRIER_RISE_TOLERANCE = 0.02
 
           new = json.load(open("ml/models/oracle_risk_model.json"))
           if not new.get("active"):
@@ -115,18 +121,29 @@ jobs:
           old_h, new_h = horizons(old), horizons(new)
           failed = False
           for name in sorted(set(old_h) & set(new_h)):
-              old_auc, new_auc = old_h[name].get("auc"), new_h[name].get("auc")
-              if old_auc is None or new_auc is None:
-                  continue
-              delta = new_auc - old_auc
-              status = "OK" if delta >= -AUC_DROP_TOLERANCE else "REGRESSION"
-              print(f"{name}: old auc {old_auc:.4f} -> new auc {new_auc:.4f} (delta {delta:+.4f}) {status}")
-              if delta < -AUC_DROP_TOLERANCE:
-                  print(f"::error::Horizon {name} test AUC dropped by more than {AUC_DROP_TOLERANCE}. "
-                        "The retrained model is refused; investigate data drift before force-committing. "
-                        "(NOTE: test-set changes — e.g. the purge split — legitimately move AUC; "
-                        "verify against the training log before overriding.)")
-                  failed = True
+              checks = (
+                  ("AUC", "auc", -AUC_DROP_TOLERANCE, False),
+                  ("average precision", "average_precision", -AP_DROP_TOLERANCE, False),
+                  ("calibrated Brier", "brier_calibrated", BRIER_RISE_TOLERANCE, True),
+              )
+              for label, key, tolerance, lower_is_better in checks:
+                  old_value, new_value = old_h[name].get(key), new_h[name].get(key)
+                  if old_value is None or new_value is None:
+                      print(f"{name}: {label} unavailable; check skipped")
+                      continue
+                  delta = new_value - old_value
+                  regressed = delta > tolerance if lower_is_better else delta < tolerance
+                  status = "REGRESSION" if regressed else "OK"
+                  print(
+                      f"{name}: old {label} {old_value:.4f} -> {new_value:.4f} "
+                      f"(delta {delta:+.4f}) {status}"
+                  )
+                  if regressed:
+                      print(
+                          f"::error::Horizon {name} {label} crossed its regression tolerance. "
+                          "The retrained model is refused; investigate data drift before overriding."
+                      )
+                      failed = True
           sys.exit(1 if failed else 0)
           PY
 

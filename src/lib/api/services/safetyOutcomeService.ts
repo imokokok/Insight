@@ -14,11 +14,9 @@
  * organic labels (this backfill) and historical mining (future training set
  * generation).
  *
- * Resolution note: hourly_price_snapshots is hourly. That is coarse for
- * sub-hour flash attacks, but those resolve faster than an agent can react
- * anyway — the pre-trade product protects against SUSTAINED mispricing, which
- * hourly resolution captures. The check-time FEATURES themselves are real-time
- * (captured at the moment of the check); only the label is hourly.
+ * Resolution note: the near-term 1h label uses the existing 15-minute spine;
+ * the strategic 6h label retains the cheaper hourly spine. Check-time features
+ * remain real-time and are stored with an explicit schema version.
  */
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
@@ -47,6 +45,7 @@ export const OUTCOME_THRESHOLDS = {
 } as const;
 
 export interface SafetyOutcome {
+  labelSpecVersion: number;
   windowHours: number;
   evaluatedAt: string;
   baselinePrice: number | null;
@@ -101,13 +100,15 @@ export async function computeOutcome(
   // Include a couple of preceding hours so we can establish a baseline price.
   const fromMinus = new Date(from.getTime() - 2 * 3600_000);
 
+  const useFineSpine = windowHours <= 1;
+  const timeColumn = useFineSpine ? 'snapshot_ts' : 'snapshot_hour';
   const { data, error } = await supabase
-    .from('hourly_price_snapshots')
-    .select('snapshot_hour, consensus_price, deviation_pct')
+    .from(useFineSpine ? 'price_snapshots' : 'hourly_price_snapshots')
+    .select(`${timeColumn}, consensus_price, deviation_pct`)
     .eq('symbol', asset)
-    .gt('snapshot_hour', fromMinus.toISOString())
-    .lte('snapshot_hour', to.toISOString())
-    .order('snapshot_hour', { ascending: true });
+    .gt(timeColumn, fromMinus.toISOString())
+    .lte(timeColumn, to.toISOString())
+    .order(timeColumn, { ascending: true });
 
   if (error) {
     logger.warn('Failed to fetch outcome snapshots', { asset, error: error.message });
@@ -115,7 +116,11 @@ export async function computeOutcome(
   }
   if (!data || data.length === 0) return null;
 
-  const rows = data as SnapshotRow[];
+  const rows = (data as Array<Record<string, unknown>>).map((row) => ({
+    snapshot_hour: String(row[timeColumn]),
+    consensus_price: row.consensus_price as number | null,
+    deviation_pct: row.deviation_pct as number | null,
+  })) as SnapshotRow[];
 
   // Baseline = the latest consensus price at or before the check (the pre-event
   // "fair value"). Window = everything strictly after the check.
@@ -174,7 +179,9 @@ export async function computeOutcome(
           .map((r) => [new Date(r.ref_hour).getTime(), r.ref_price as number])
       );
       for (const [key, entry] of byHour.entries()) {
-        const ref = refByHour.get(new Date(key).getTime());
+        const eventTime = new Date(key).getTime();
+        const refHour = Math.floor(eventTime / 3600_000) * 3600_000;
+        const ref = refByHour.get(refHour);
         if (ref === undefined || entry.consensus.length === 0) continue;
         const avgConsensus = entry.consensus.reduce((a, b) => a + b, 0) / entry.consensus.length;
         const div = (Math.abs(avgConsensus - ref) / ref) * 100;
@@ -208,6 +215,7 @@ export async function computeOutcome(
   }
 
   return {
+    labelSpecVersion: OUTCOME_THRESHOLDS.labelSpecVersion,
     windowHours,
     evaluatedAt: new Date().toISOString(),
     baselinePrice,
@@ -255,9 +263,12 @@ export async function backfillOutcomes(
 
   for (const row of rows) {
     try {
-      const outcome = await computeOutcome(row.asset, row.created_at);
+      const [outcome1h, outcome6h] = await Promise.all([
+        computeOutcome(row.asset, row.created_at, 1),
+        computeOutcome(row.asset, row.created_at, OUTCOME_THRESHOLDS.evalWindowHours),
+      ]);
 
-      if (!outcome) {
+      if (!outcome1h && !outcome6h) {
         // No snapshot data for this asset/window. Mark evaluated so the index
         // stops re-picking it; outcome_label stays NULL (excluded from training
         // and metrics, distinguishable from a true negative).
@@ -273,8 +284,13 @@ export async function backfillOutcomes(
       const { error: updateError } = await supabase
         .from('pre_trade_checks')
         .update({
-          outcome_label: outcome.label,
-          outcome,
+          outcome_label: outcome6h?.label ?? null,
+          outcome: outcome6h,
+          outcome_label_1h: outcome1h?.label ?? null,
+          outcome_1h: outcome1h,
+          outcome_label_6h: outcome6h?.label ?? null,
+          outcome_6h: outcome6h,
+          label_spec_version: OUTCOME_THRESHOLDS.labelSpecVersion,
           outcome_evaluated_at: new Date().toISOString(),
         })
         .eq('id', row.id);
@@ -283,7 +299,7 @@ export async function backfillOutcomes(
         errors++;
       } else {
         labeled++;
-        if (outcome.label) positive++;
+        if (outcome6h?.label) positive++;
       }
     } catch (err) {
       errors++;

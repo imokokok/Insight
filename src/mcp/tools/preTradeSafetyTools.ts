@@ -81,7 +81,7 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
       `| Consensus Price | $${formatPrice(result.consensusPrice, 2)} |`,
       `| Max Deviation | ${formatPercent(result.maxDeviationPct)} |`,
       `| Cross-Provider Agreement | ${(result.crossProviderAgreement * 100).toFixed(1)}% |`,
-      `| Manipulation Risk Score | ${result.manipulationRiskScore.toFixed(2)} (0=low, 1=high) |`,
+      `| Manipulation Risk Score | ${result.manipulationRiskScore.toFixed(2)}${result.mlRiskLevel ? ` (${result.mlRiskLevel.toUpperCase()}, model thresholds ${result.mlMediumThreshold?.toFixed(2) ?? '—'}/${result.mlHighThreshold?.toFixed(2) ?? '—'})` : ' (rule fallback)'} |`,
       `| Anomaly Score (novel) | ${result.anomalyScore.toFixed(2)} (0=normal, 1=outlier vs 24h) |`,
       `| Data Stale Risk | ${result.staleDataRisk ? 'Yes' : 'No'} |`,
       `| Participant Providers | ${result.participantCount} |`,
@@ -102,13 +102,19 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
     if (result.mlScore6h !== null) {
       lines.push(`- ML 6h (strategic): ${result.mlScore6h.toFixed(2)}`);
     }
+    if (result.mlRiskLevel) {
+      lines.push(`- ML severity: ${result.mlRiskLevel.toUpperCase()} (model-versioned)`);
+    }
     lines.push(...buildMlModelMetadataLines());
     lines.push(
       `- Anomaly (model-free): ${result.anomalyScore.toFixed(2)}${
         result.anomalyScore >= 0.5 ? ' ⚠️ ELEVATED' : ''
       }`
     );
-    if (result.anomalyScore >= 0.5 && (result.mlScore ?? 0) < 0.5) {
+    if (
+      result.anomalyScore >= 0.5 &&
+      (result.mlRiskLevel === null || result.mlRiskLevel === 'low')
+    ) {
       lines.push(
         '- ⚠️ Novel-manipulation signal: anomaly layer flags an outlier the supervised ML does not. Treat oracle data as suspect.'
       );

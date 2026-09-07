@@ -1,8 +1,11 @@
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
 import { watchReasonCodes, type WatchReasonCode } from '@/lib/attestations/watchReasonCodes';
 import { UnsupportedSymbolError } from '@/lib/errors';
-import { computeMarketDivergencePct } from '@/lib/marketReference/client';
-import { scorePreTradeMultiHorizon } from '@/lib/ml/inference';
+import {
+  computeMarketReferenceContext,
+  type MarketReferenceContext,
+} from '@/lib/marketReference/client';
+import { classifyMlRisk, scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 import { TTLCache } from '@/lib/utils/cache';
 import { roundTo } from '@/lib/utils/format';
 
@@ -219,7 +222,7 @@ function cacheKey(symbol: string, chain?: string): string {
 async function computeMlRisk(
   result: ConsensusPriceResponse,
   maxDeviationPct: number,
-  marketDivergencePct: number | null
+  marketContext: MarketReferenceContext | null
 ): Promise<{
   mlRiskScore: number | null;
   mlScore1h: number | null;
@@ -289,7 +292,12 @@ async function computeMlRisk(
       staleCount,
       avgReputation,
       minReputation,
-      oracleVsMarketDeviationPct: marketDivergencePct ?? undefined,
+      oracleVsMarketDeviationPct: marketContext?.divergencePct,
+      marketReferenceAvailable: marketContext ? 1 : 0,
+      marketExchangeCount: marketContext?.exchangeCount,
+      marketCrossExchangeSpreadPct: marketContext?.crossExchangeSpreadPct,
+      marketBidAskSpreadPct: marketContext?.medianBidAskSpreadPct,
+      marketLogVolume: marketContext?.logVolume,
     },
     { assetClass: result.symbol }
   );
@@ -298,8 +306,7 @@ async function computeMlRisk(
 
   const mediumThreshold = multi.mediumThreshold ?? ML_LEVEL_MEDIUM;
   const highThreshold = multi.highThreshold ?? ML_LEVEL_HIGH;
-  const level =
-    multi.combined >= highThreshold ? 'high' : multi.combined >= mediumThreshold ? 'medium' : 'low';
+  const level = classifyMlRisk(multi.combined, mediumThreshold, highThreshold);
 
   return {
     mlRiskScore: multi.combined,
@@ -406,17 +413,18 @@ async function computeOracleWatchSignal(
 
   // Fetch external truth once and feed the same value to both ML and the
   // advisory reason code. A missing reference remains an explicit neutral.
-  let marketDivergencePct: number | null = null;
+  let marketContext: MarketReferenceContext | null = null;
   try {
-    marketDivergencePct = await computeMarketDivergencePct(result.symbol, result.consensusPrice);
+    marketContext = await computeMarketReferenceContext(result.symbol, result.consensusPrice);
   } catch {
-    marketDivergencePct = null;
+    marketContext = null;
   }
+  const marketDivergencePct = marketContext?.divergencePct ?? null;
 
   // Forward-looking ML risk is needed BEFORE the verdict so it can participate
   // in the gate (an advisory score must never be wholly ignored, but also must
   // not override hard rule breaches).
-  const ml = await computeMlRisk(result, maxDeviationPct, marketDivergencePct);
+  const ml = await computeMlRisk(result, maxDeviationPct, marketContext);
 
   const quorumSatisfied = result.participantCount >= QUORUM_MIN;
 

@@ -11,7 +11,12 @@
  *
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
  */
-import { collectMarketReference, type MarketReferenceRow } from '@/lib/marketReference/collector';
+import {
+  collectMarketReference,
+  MARKET_REFERENCE_CORE_SYMBOLS,
+  MARKET_REFERENCE_SYMBOLS,
+  type MarketReferenceRow,
+} from '@/lib/marketReference/collector';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
 async function insertRows(rows: MarketReferenceRow[]): Promise<number> {
@@ -39,7 +44,18 @@ async function main(): Promise<void> {
   console.log('[collect-market-reference] starting…');
   const snapshotTs = new Date();
 
-  const { rows, summary } = await collectMarketReference(snapshotTs);
+  // Preserve 15-minute truth for the four strategic/core assets, while the
+  // eight demand-led additions run hourly. This reuses the same workflow but
+  // roughly halves new rows and exchange requests for the Supabase/GitHub free
+  // tiers. Dispatcher-triggered runs provide the exact scheduled slot; manual
+  // runs intentionally collect the full universe.
+  const scheduledFor = process.env.CRON_SCHEDULED_FOR;
+  const cadenceTime = scheduledFor ? new Date(scheduledFor) : snapshotTs;
+  const manual = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' && !scheduledFor;
+  const fullUniverse = manual || cadenceTime.getUTCMinutes() < 15;
+  const symbols = fullUniverse ? MARKET_REFERENCE_SYMBOLS : MARKET_REFERENCE_CORE_SYMBOLS;
+
+  const { rows, summary } = await collectMarketReference(snapshotTs, { symbols });
   const inserted = await insertRows(rows);
 
   console.log(

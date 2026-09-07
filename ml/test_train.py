@@ -5,7 +5,15 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from ml.train import build_hourly_frame, compute_calibration, label_for_horizon
+from ml.train import (
+    build_fine_event_frame,
+    build_flywheel_frame,
+    build_hourly_frame,
+    compute_calibration,
+    label_for_horizon,
+    label_from_fine_events,
+    merge_flywheel_examples,
+)
 
 
 class LabelSemanticsTest(unittest.TestCase):
@@ -45,6 +53,88 @@ class LabelSemanticsTest(unittest.TestCase):
 
 
 class FeatureSemanticsTest(unittest.TestCase):
+    def test_flywheel_requires_complete_finite_feature_vector(self):
+        from ml.train import FEATURE_NAMES
+
+        complete = {name: 0.0 for name in FEATURE_NAMES}
+        rows = pd.DataFrame(
+            [
+                {
+                    "asset": "ETH",
+                    "created_at": pd.Timestamp("2026-01-01T00:10:00Z"),
+                    "ml_feature_vector": complete,
+                    "outcome_label_1h": False,
+                    "outcome_label_6h": True,
+                    "outcome_1h": {},
+                    "outcome_6h": {"maxDeviationPct": 9.0},
+                },
+                {
+                    "asset": "BTC",
+                    "created_at": pd.Timestamp("2026-01-01T00:20:00Z"),
+                    "ml_feature_vector": {"max_deviation_pct": 1.0},
+                    "outcome_label_1h": False,
+                    "outcome_label_6h": False,
+                },
+            ]
+        )
+        frame = build_flywheel_frame(rows)
+        self.assertEqual(len(frame), 1)
+        self.assertEqual(frame.iloc[0]["symbol"], "ETH")
+        self.assertEqual(frame.iloc[0]["ev_dev_6h"], 1)
+
+    def test_live_example_replaces_same_asset_hour_instead_of_adding_weight(self):
+        from ml.train import FEATURE_NAMES
+
+        start = pd.Timestamp("2026-01-01T00:00:00Z")
+        base = {name: 0.0 for name in FEATURE_NAMES}
+        labels = {
+            **{f"label_{h}h": 0 for h in (1, 6)},
+            **{f"ev_{kind}_{h}h": 0 for kind in ("price", "dev", "div") for h in (1, 6)},
+        }
+        mined = pd.DataFrame([{"symbol": "ETH", "snapshot_hour": start, **base, **labels}])
+        live = pd.DataFrame(
+            [
+                {
+                    "symbol": "ETH",
+                    "snapshot_hour": start + pd.Timedelta(minutes=20),
+                    **{**base, "max_deviation_pct": 2.0},
+                    **labels,
+                }
+            ]
+        )
+        merged = merge_flywheel_examples(mined, live)
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged.iloc[0]["max_deviation_pct"], 2.0)
+
+    def test_fine_spine_adds_between_hour_incident_without_extra_feature_rows(self):
+        start = pd.Timestamp("2026-01-01T00:00:00Z")
+        hourly = pd.DataFrame(
+            {
+                "symbol": ["ETH"],
+                "snapshot_hour": [start],
+                "consensus": [100.0],
+                "max_deviation_pct": [0.1],
+            }
+        )
+        raw = pd.DataFrame(
+            [
+                {
+                    "symbol": "ETH",
+                    "snapshot_ts": start + pd.Timedelta(minutes=30),
+                    "provider": provider,
+                    "price": price,
+                    "deviation_pct": deviation,
+                    "data_age_seconds": 10,
+                }
+                for provider, price, deviation in [("a", 100.0, 9.0), ("b", 100.2, 0.1)]
+            ]
+        )
+        fine = build_fine_event_frame(raw)
+        labels, _, ev_dev = label_from_fine_events(hourly, fine, 1)
+        self.assertEqual(len(hourly), 1)
+        self.assertEqual(labels.iloc[0], 1)
+        self.assertEqual(ev_dev.iloc[0], 1)
+
     def test_gap_does_not_become_one_hour_velocity(self):
         start = pd.Timestamp("2026-01-01T00:00:00Z")
         rows = []

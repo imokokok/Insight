@@ -1,5 +1,6 @@
 import {
   computeMarketDivergencePct,
+  computeMarketReferenceContext,
   getMarketReference,
   MAX_REF_AGE_HOURS,
   resetMarketReferenceCacheForTests,
@@ -34,6 +35,8 @@ function refRow(symbol: string, refHourIso: string, refPrice: number, exchangeCo
     ref_price: refPrice,
     exchange_count: exchangeCount,
     cross_exchange_spread_pct: 0.05,
+    median_bid_ask_spread_pct: 0.02,
+    median_volume: 1000,
   };
 }
 
@@ -56,6 +59,7 @@ describe('marketReference client', () => {
     expect(ref).not.toBeNull();
     expect(ref!.refPrice).toBe(3000);
     expect(ref!.exchangeCount).toBe(2);
+    expect(ref!.medianBidAskSpreadPct).toBe(0.02);
   });
 
   it('fail-closes a stale rollup row (>= MAX_REF_AGE_HOURS old) as absent', async () => {
@@ -95,5 +99,25 @@ describe('marketReference client', () => {
     // unusable consensus → null, never a zero fill
     expect(await computeMarketDivergencePct('ETH', null)).toBeNull();
     expect(await computeMarketDivergencePct('ETH', 0)).toBeNull();
+  });
+
+  it('returns bounded microstructure features from the same cached row', async () => {
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: () =>
+        makeChain({
+          data: [refRow('ETH', new Date().toISOString(), 3000, 3)],
+          error: null,
+        }),
+    } as never);
+
+    const context = await computeMarketReferenceContext('ETH', 3030);
+    expect(context).toEqual({
+      divergencePct: 1,
+      exchangeCount: 3,
+      crossExchangeSpreadPct: 0.05,
+      medianBidAskSpreadPct: 0.02,
+      logVolume: expect.any(Number),
+    });
+    expect(context!.logVolume).toBeCloseTo(Math.log1p(1000), 4);
   });
 });

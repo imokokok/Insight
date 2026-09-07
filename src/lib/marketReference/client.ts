@@ -26,14 +26,27 @@ interface HourlyRefRow {
   ref_price: number | null;
   exchange_count: number | null;
   cross_exchange_spread_pct: number | null;
+  median_bid_ask_spread_pct: number | null;
+  median_volume: number | null;
 }
 
-interface MarketReference {
+export interface MarketReference {
   symbol: string;
   refHour: string;
   refPrice: number;
   exchangeCount: number;
   crossExchangeSpreadPct: number | null;
+  medianBidAskSpreadPct: number | null;
+  medianVolume: number | null;
+}
+
+export interface MarketReferenceContext {
+  divergencePct: number;
+  exchangeCount: number;
+  crossExchangeSpreadPct: number;
+  medianBidAskSpreadPct: number;
+  /** Natural log of 1 + median 24h base volume; bounded scale for trees. */
+  logVolume: number;
 }
 
 const cache = new TTLCache({ maxSize: 64 }); // 60s default TTL
@@ -56,7 +69,9 @@ export async function getMarketReference(symbol: string): Promise<MarketReferenc
     const supabase = createServiceRoleClient();
     const { data, error } = await supabase
       .from('market_reference_hourly')
-      .select('symbol, ref_hour, ref_price, exchange_count, cross_exchange_spread_pct')
+      .select(
+        'symbol, ref_hour, ref_price, exchange_count, cross_exchange_spread_pct, median_bid_ask_spread_pct, median_volume'
+      )
       .eq('symbol', key)
       .order('ref_hour', { ascending: false })
       .limit(1);
@@ -84,6 +99,8 @@ export async function getMarketReference(symbol: string): Promise<MarketReferenc
       refPrice: row.ref_price,
       exchangeCount: row.exchange_count ?? 0,
       crossExchangeSpreadPct: row.cross_exchange_spread_pct,
+      medianBidAskSpreadPct: row.median_bid_ask_spread_pct,
+      medianVolume: row.median_volume,
     };
     cache.set(key, ref, 60_000);
     return ref;
@@ -105,8 +122,25 @@ export async function computeMarketDivergencePct(
   symbol: string,
   consensusPrice: number | null | undefined
 ): Promise<number | null> {
+  return (await computeMarketReferenceContext(symbol, consensusPrice))?.divergencePct ?? null;
+}
+
+/**
+ * Full market context for the ML feature vector, obtained from the same single
+ * cached rollup read as divergence. Null remains explicit missing evidence.
+ */
+export async function computeMarketReferenceContext(
+  symbol: string,
+  consensusPrice: number | null | undefined
+): Promise<MarketReferenceContext | null> {
   if (typeof consensusPrice !== 'number' || !(consensusPrice > 0)) return null;
   const ref = await getMarketReference(symbol);
   if (!ref) return null;
-  return roundTo((Math.abs(consensusPrice - ref.refPrice) / ref.refPrice) * 100, 4);
+  return {
+    divergencePct: roundTo((Math.abs(consensusPrice - ref.refPrice) / ref.refPrice) * 100, 4),
+    exchangeCount: Math.max(0, ref.exchangeCount),
+    crossExchangeSpreadPct: roundTo(Math.max(0, ref.crossExchangeSpreadPct ?? 0), 4),
+    medianBidAskSpreadPct: roundTo(Math.max(0, ref.medianBidAskSpreadPct ?? 0), 4),
+    logVolume: roundTo(Math.log1p(Math.max(0, ref.medianVolume ?? 0)), 4),
+  };
 }

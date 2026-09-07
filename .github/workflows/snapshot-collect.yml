@@ -55,6 +55,7 @@ env:
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
   CRON_WORKFLOW: snapshot-collect.yml
   CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+  CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
   # Alchemy RPC keys (optional — public RPC fallbacks exist, but Alchemy
   # is more reliable for on-chain oracle reads). Same keys as .env.local.
   ALCHEMY_ETHEREUM_RPC: ${{ secrets.ALCHEMY_ETHEREUM_RPC }}

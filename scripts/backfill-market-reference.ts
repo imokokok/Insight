@@ -37,13 +37,21 @@ import {
 } from '@/lib/marketReference/collector';
 
 const BACKFILL_DAYS = Number(process.env.BACKFILL_DAYS) || 90;
-const COLLECTOR_VERSION = 'backfill-1.0.0';
+const COLLECTOR_VERSION = 'backfill-1.1.0';
 
 const COINBASE_PRODUCTS: Record<string, string> = {
   ETH: 'ETH-USD',
   BTC: 'BTC-USD',
   USDC: 'USDC-USD',
   USDT: 'USDT-USD',
+  SOL: 'SOL-USD',
+  ADA: 'ADA-USD',
+  XRP: 'XRP-USD',
+  ICP: 'ICP-USD',
+  HYPE: 'HYPE-USD',
+  TAO: 'TAO-USD',
+  VVV: 'VVV-USD',
+  STG: 'STG-USD',
 };
 
 const KRAKEN_PAIRS: Record<string, string> = {
@@ -54,6 +62,14 @@ const KRAKEN_PAIRS: Record<string, string> = {
   BTC: 'XXBTZUSD',
   USDC: 'USDCUSD',
   USDT: 'USDTZUSD',
+  SOL: 'SOLUSD',
+  ADA: 'ADAUSD',
+  XRP: 'XRPUSD',
+  ICP: 'ICPUSD',
+  HYPE: 'HYPEUSD',
+  TAO: 'TAOUSD',
+  VVV: 'VVVUSD',
+  STG: 'STGUSD',
 };
 
 /** Per-request timeout (ms) — abort a stalled call, never hang the run. */
@@ -104,7 +120,8 @@ async function fetchKrakenOhlc(symbol: string, sinceEpoch: number): Promise<Cand
   if (Array.isArray(body.error) && body.error.length > 0) {
     throw new Error(`kraken ${String(body.error[0])}`);
   }
-  const list = body.result?.[pair] as
+  const resultKey = Object.keys(body.result ?? {}).find((key) => key !== 'last');
+  const list = (resultKey ? body.result?.[resultKey] : undefined) as
     | Array<[number, string, string, string, string, string, string, number]>
     | undefined;
   if (!list) throw new Error(`kraken unexpected response shape (pair ${pair} not in result)`);
@@ -152,6 +169,9 @@ async function backfillSymbol(
         exchange: 'coinbase',
         ref_price: c.close,
         volume: c.volume,
+        bid: null,
+        ask: null,
+        bid_ask_spread_pct: null,
         data_age_seconds: null,
         is_success: true,
         error_message: null,
@@ -190,6 +210,9 @@ async function backfillSymbol(
         exchange: 'kraken',
         ref_price: c.close,
         volume: c.volume,
+        bid: null,
+        ask: null,
+        bid_ask_spread_pct: null,
         data_age_seconds: null,
         is_success: true,
         error_message: null,

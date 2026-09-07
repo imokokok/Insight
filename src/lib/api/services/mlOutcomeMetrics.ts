@@ -14,15 +14,15 @@
  * rather than throwing, so an Ops/dashboard caller always renders.
  */
 
-import { assetClassFor } from '@/lib/ml/inference';
+import { assetClassFor, getModelStatus } from '@/lib/ml/inference';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('MlOutcomeMetrics');
 
-/** Score thresholds at which realized precision is reported. */
-export const ML_METRIC_THRESHOLDS = [0.25, 0.5, 0.75] as const;
+/** Legacy fallback only; active models provide their own calibrated thresholds. */
+export const ML_METRIC_THRESHOLDS = [0.3, 0.6] as const;
 
 export interface MlBucketMetrics {
   threshold: number;
@@ -53,6 +53,7 @@ export interface MlOutcomeMetrics {
     stable: MlClassMetrics | null;
     volatile: MlClassMetrics | null;
   };
+  operatingThresholds: { medium: number; high: number };
   errored?: boolean;
 }
 
@@ -83,9 +84,9 @@ function computeAuc(scores: number[], labels: boolean[]): number | null {
   return u / (positives * negatives);
 }
 
-function computeBuckets(rows: ScoredRow[]): MlBucketMetrics[] {
+function computeBuckets(rows: ScoredRow[], thresholds: readonly number[]): MlBucketMetrics[] {
   const totalPos = rows.filter((r) => r.outcome_label).length;
-  return ML_METRIC_THRESHOLDS.map((threshold) => {
+  return thresholds.map((threshold) => {
     const selected = rows.filter((r) => r.ml_score >= threshold);
     const positives = selected.filter((r) => r.outcome_label).length;
     return {
@@ -98,7 +99,10 @@ function computeBuckets(rows: ScoredRow[]): MlBucketMetrics[] {
   });
 }
 
-function computeClassMetrics(rows: ScoredRow[]): MlClassMetrics | null {
+function computeClassMetrics(
+  rows: ScoredRow[],
+  thresholds: readonly number[]
+): MlClassMetrics | null {
   if (rows.length === 0) return null;
   const positives = rows.filter((r) => r.outcome_label).length;
   return {
@@ -108,7 +112,7 @@ function computeClassMetrics(rows: ScoredRow[]): MlClassMetrics | null {
       rows.map((r) => r.ml_score),
       rows.map((r) => r.outcome_label)
     ),
-    buckets: computeBuckets(rows),
+    buckets: computeBuckets(rows, thresholds),
   };
 }
 
@@ -118,33 +122,49 @@ function computeClassMetrics(rows: ScoredRow[]): MlClassMetrics | null {
  * they are neither positives nor negatives, they are unlabeled.
  */
 export async function getMlOutcomeMetrics(windowHours = 24 * 7): Promise<MlOutcomeMetrics> {
+  const status = getModelStatus();
+  const operatingThresholds = {
+    medium: status.mediumThreshold ?? ML_METRIC_THRESHOLDS[0],
+    high: status.highThreshold ?? ML_METRIC_THRESHOLDS[1],
+  };
+  const thresholds = [operatingThresholds.medium, operatingThresholds.high];
   const empty: MlOutcomeMetrics = {
     windowHours,
     labeled: 0,
     positives: 0,
     baseRate: null,
     auc: null,
-    buckets: computeBuckets([]),
+    buckets: computeBuckets([], thresholds),
     byClass: { stable: null, volatile: null },
+    operatingThresholds,
   };
   try {
     const supabase = createServiceRoleClient();
     const since = new Date(Date.now() - windowHours * 3600_000).toISOString();
-    const { data, error } = await supabase
+    let query = supabase
       .from('pre_trade_checks')
-      .select('asset, ml_score, outcome_label')
+      .select('asset, ml_score, ml_score_6h, outcome_label, outcome_label_6h')
       .not('ml_score', 'is', null)
       .not('outcome_label', 'is', null)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(50_000);
+    if (status.trainedAt) query = query.eq('ml_model_version', status.trainedAt);
+    if (status.labelSpecVersion != null) {
+      query = query.eq('label_spec_version', status.labelSpecVersion);
+    }
+    const { data, error } = await query;
 
     if (error) {
       logger.warn('Failed to fetch labeled ML rows', { error: error.message });
       return { ...empty, errored: true };
     }
 
-    const rows = (data ?? []) as unknown as ScoredRow[];
+    const rows = ((data ?? []) as Array<Record<string, unknown>>).map((row) => ({
+      asset: String(row.asset),
+      ml_score: Number(row.ml_score_6h ?? row.ml_score),
+      outcome_label: Boolean(row.outcome_label_6h ?? row.outcome_label),
+    })) as ScoredRow[];
     if (rows.length === 0) return empty;
 
     const positives = rows.filter((r) => r.outcome_label).length;
@@ -160,11 +180,12 @@ export async function getMlOutcomeMetrics(windowHours = 24 * 7): Promise<MlOutco
         rows.map((r) => r.ml_score),
         rows.map((r) => r.outcome_label)
       ),
-      buckets: computeBuckets(rows),
+      buckets: computeBuckets(rows, thresholds),
       byClass: {
-        stable: computeClassMetrics(stableRows),
-        volatile: computeClassMetrics(volatileRows),
+        stable: computeClassMetrics(stableRows, thresholds),
+        volatile: computeClassMetrics(volatileRows, thresholds),
       },
+      operatingThresholds,
     };
   } catch (err) {
     logger.warn('ML outcome metrics failed', {
