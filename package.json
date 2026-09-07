@@ -56,6 +56,8 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "@walletconnect/ethereum-provider": "^2.23.10",
+    "@x402/evm": "^2.25.0",
+    "@x402/fetch": "^2.25.0",
     "canonicalize": "^4.0.0",
     "clsx": "^2.1.1",
     "dompurify": "^3.4.15",

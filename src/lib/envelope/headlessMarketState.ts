@@ -19,6 +19,8 @@
 
 import { createPublicKey, verify as ed25519Verify } from 'node:crypto';
 
+import { getHeadlessRequestHeaders, getHeadlessStatusFetch } from './headlessX402';
+
 export const HEADLESS_ORACLE_DEFAULT_BASE_URL = 'https://headlessoracle.com';
 
 /** Overridable for tests / staging mirrors. */
@@ -158,9 +160,10 @@ export function verifyHeadlessMarketStateReceipt(
  * the production archive/metering path around it. */
 export async function fetchHeadlessLiveReceipt(mic: string): Promise<HeadlessMarketStateResponse> {
   const url = `${getHeadlessOracleBaseUrl()}/v5/status?mic=${encodeURIComponent(mic)}`;
-  const res = await fetch(url, {
+  const statusFetch = getHeadlessStatusFetch();
+  const res = await statusFetch(url, {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    headers: { accept: 'application/json' },
+    headers: getHeadlessRequestHeaders(),
     cache: 'no-store',
   });
   if (!res.ok) {
