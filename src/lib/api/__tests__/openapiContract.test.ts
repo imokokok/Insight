@@ -46,7 +46,7 @@ describe('OpenAPI contract', () => {
   it('states the same external authentication contract as the v1 middleware', () => {
     expect(spec).toContain('External v1 endpoints accept API keys only');
     expect(spec).not.toContain('Both methods are accepted on most endpoints');
-    expect(spec.match(/^\s+- bearer: \[\]$/gm)).toHaveLength(2);
-    expect(spec).not.toMatch(/- apiKey: \[\]\n\s+- bearer: \[\]/);
+    expect(spec).not.toMatch(/^\s+- bearer: \[\]$/gm);
+    expect(spec).not.toContain('scheme: bearer');
   });
 });

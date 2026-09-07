@@ -83,10 +83,10 @@ being disabled on a table reachable through the Data API.
 2. Confirm internal RPCs and datasets remain service-role-only. Exercise the
    server API that wraps each changed object; never validate by putting a
    service-role key in a browser.
-3. Verify anonymous requests cannot read `price_snapshots`,
-   `market_reference_hourly`, or `active_alerts_with_prices`, while snapshot
-   collection, readiness, market-reference reads, billing, and rate limiting
-   continue to work through the server.
+3. Verify anonymous requests cannot read `price_snapshots` or
+   `market_reference_hourly`, while snapshot collection, readiness,
+   market-reference reads, billing, and rate limiting continue to work through
+   the server.
 4. Treat the advisor's leaked-password-protection warning as an accepted Free
    plan limitation. Keep the application's existing 8–128 character,
    uppercase/lowercase/number/symbol validation on registration and password
