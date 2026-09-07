@@ -26,6 +26,9 @@
   "engines": {
     "node": ">=18"
   },
+  "dependencies": {
+    "viem": "^2.56.3"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",

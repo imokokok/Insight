@@ -8,6 +8,14 @@ two-sided Pre-Trade gates → submit transaction → verified Execution Receipt
           Oracle Watch can halt the agent between trades
 ```
 
+An optional PriorSeal bridge adds principal authorization of the exact EVM call without replacing Insight's price and fill verification:
+
+```text
+Insight gates → construct exact call → PriorSeal authorization → broadcast
+                                                        ├→ Insight fill receipt
+                                                        └→ PriorSeal execution receipt
+```
+
 The SDK is a client-side orchestration layer, not a local risk engine. It sends every risk decision and signing operation to Insight with the supplied API key, so normal API authentication, credit metering, audit rows, and EIP-712 attestations remain intact.
 
 ## Install
@@ -63,6 +71,46 @@ if (result.status === 'blocked') {
   console.log(result.receipt.executionStatus, result.receipt.attestation.uid);
 }
 ```
+
+## Exact-call authorization with PriorSeal
+
+Use `executeSwapWithPriorSeal` when the executor can construct the transaction before broadcasting it. The callback receives PriorSeal's accepted authorization, so the transaction cannot be submitted through this workflow before the principal has approved its target, calldata, value, nonce and validity window.
+
+```ts
+import { InsightGuard, PriorSealClient } from 'oracle-insight-guard';
+
+const guard = new InsightGuard({ apiKey: process.env.INSIGHT_API_KEY! });
+const priorSeal = new PriorSealClient({ baseUrl: process.env.PRIORSEAL_URL! });
+
+const result = await guard.executeSwapWithPriorSeal({
+  source,
+  destination,
+  receipt: { settlementChainId: 8453, maxSlippageBps: 50 },
+  priorSeal: {
+    client: priorSeal,
+    principal: { type: 'user', id: userId, account: authorizer },
+    agentId: 'insight:swap-agent',
+    validUntil: transactionDeadline,
+    confirmations: 12,
+    signAuthorization: ({ typedData }) => wallet.signTypedData(typedData),
+  },
+  prepareTransaction: async () => ({
+    chainId: 8453,
+    from: executor,
+    to: router,
+    data: swapCalldata,
+    value: 0n,
+    nonce: await wallet.getNonce(),
+    sourceAmount: amountIn,
+  }),
+  submitTransaction: async ({ transaction, priorSealAuthorization }) => {
+    audit.info({ authorizationId: priorSealAuthorization.authorization.authorizationId });
+    return { txHash: await wallet.sendTransaction(transaction), taker: executor };
+  },
+});
+```
+
+The returned `evidenceStatus` is `COMPLETE` only when both independent receipts are present. A post-broadcast outage returns the surviving evidence as `PARTIAL` or `PRIORSEAL_PENDING`; it does not relabel one issuer's receipt as the other's. PriorSeal treats source asset and amount as signed descriptive context for exact calls. The calldata commitment is authoritative, while Insight remains authoritative for quote quality, fill attribution and slippage.
 
 ## Watch a running strategy
 

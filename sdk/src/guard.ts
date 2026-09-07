@@ -1,5 +1,10 @@
 import { InsightClient } from './client';
 import { ReceiptConfigurationError, TradeBlockedError } from './errors';
+import {
+  buildPriorSealExactCallIntent,
+  generatePriorSealAuthorizationNonce,
+  PriorSealBridgeError,
+} from './priorseal';
 
 import type {
   ExecutionReceiptRequest,
@@ -11,6 +16,8 @@ import type {
   OracleWatchTarget,
   PreTradeRequest,
   PreTradeResult,
+  PriorSealGuardedSwapRequest,
+  PriorSealGuardedSwapResult,
   SignedAttestation,
   WatchHandle,
   WatchOptions,
@@ -53,8 +60,166 @@ export class InsightGuard {
    * then create a VERIFIED execution receipt from the two signed gate proofs.
    */
   async executeSwap(request: GuardedSwapRequest): Promise<GuardedSwapResult> {
+    const gated = await this.evaluateSwapGates(request);
+    if (!gated.ready) return gated.result;
+
+    const transaction = await request.submitTransaction({
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+    });
+    if (!transaction.txHash)
+      throw new ReceiptConfigurationError('submitTransaction returned no txHash.');
+
+    const receipt = await this.client.issueExecutionReceipt({
+      ...gated.receiptDraft,
+      txHash: transaction.txHash,
+      taker: transaction.taker,
+    });
+
+    return {
+      status: 'executed',
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+      transaction,
+      receipt,
+    };
+  }
+
+  /**
+   * Joint flow: Insight gates the swap, PriorSeal authorizes the exact calldata
+   * before broadcast, then both systems independently issue evidence afterward.
+   */
+  async executeSwapWithPriorSeal(
+    request: PriorSealGuardedSwapRequest
+  ): Promise<PriorSealGuardedSwapResult> {
+    const gated = await this.evaluateSwapGates(request);
+    if (!gated.ready) return gated.result;
+
+    const preparedTransaction = await request.prepareTransaction({
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+    });
+    if (preparedTransaction.chainId !== request.receipt.settlementChainId) {
+      throw new ReceiptConfigurationError(
+        'Prepared transaction and Insight receipt must use the same settlement chain.'
+      );
+    }
+
+    const issuedAt = request.priorSeal.issuedAt ?? Math.floor(Date.now() / 1000);
+    const signedGateValidUntil = number(gated.sourcePreTrade.attestation?.data.validUntil);
+    const validUntil = request.priorSeal.validUntil ?? signedGateValidUntil;
+    if (!Number.isSafeInteger(validUntil) || validUntil <= issuedAt) {
+      throw new ReceiptConfigurationError(
+        'PriorSeal validUntil must be after issuedAt; pass it explicitly when the gate does not expose one.'
+      );
+    }
+    if (signedGateValidUntil > 0 && validUntil > signedGateValidUntil) {
+      throw new ReceiptConfigurationError(
+        'PriorSeal authorization cannot outlive the signed Insight pre-trade gate.'
+      );
+    }
+
+    const authorizationNonce =
+      request.priorSeal.authorizationNonce ?? generatePriorSealAuthorizationNonce();
+    const intent = buildPriorSealExactCallIntent({
+      transaction: preparedTransaction,
+      intentId: request.priorSeal.intentId ?? `insight:${authorizationNonce.slice(2, 34)}`,
+      sourceAssetId: gated.receiptDraft.sourceAssetId,
+      validUntil,
+      minConfirmations: request.priorSeal.confirmations,
+    });
+    const preparedAuthorization = await request.priorSeal.client.prepareAuthorization(
+      {
+        intent,
+        principal: request.priorSeal.principal,
+        authorizer: { type: 'eip712', address: request.priorSeal.principal.account },
+        delegate: { agentId: request.priorSeal.agentId, executor: intent.sender },
+        issuedAt,
+        notBefore: issuedAt,
+        expiresAt: validUntil,
+        authorizationNonce,
+        maxUses: '1',
+        audience: request.priorSeal.audience ?? 'priorseal',
+      },
+      request.priorSeal.signal
+    );
+    const signature = await request.priorSeal.signAuthorization(preparedAuthorization);
+    if (!/^0x[0-9a-fA-F]+$/.test(signature)) {
+      throw new ReceiptConfigurationError('PriorSeal signer returned no hex signature.');
+    }
+    const priorSealAuthorization = await request.priorSeal.client.acceptAuthorization(
+      { ...preparedAuthorization.authorization, signature },
+      request.priorSeal.signal
+    );
+
+    const transaction = await request.submitTransaction({
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+      transaction: preparedTransaction,
+      priorSealAuthorization,
+    });
+    if (!/^0x[0-9a-fA-F]{64}$/.test(transaction.txHash)) {
+      throw new ReceiptConfigurationError('submitTransaction returned no valid transaction hash.');
+    }
+
+    // Once a transaction has been broadcast, evidence services are independent:
+    // preserve either result instead of hiding it when its companion is down.
+    const [insightResult, priorSealResult] = await Promise.allSettled([
+      this.client.issueExecutionReceipt(
+        {
+          ...gated.receiptDraft,
+          txHash: transaction.txHash,
+          taker: transaction.taker,
+        },
+        request.priorSeal.signal
+      ),
+      request.priorSeal.client.observeExecution(
+        {
+          authorizationId: priorSealAuthorization.authorization.authorizationId,
+          chainId: preparedTransaction.chainId,
+          txHash: transaction.txHash,
+          confirmations: request.priorSeal.confirmations,
+        },
+        request.priorSeal.signal
+      ),
+    ]);
+
+    const insightReceipt = insightResult.status === 'fulfilled' ? insightResult.value : null;
+    const priorSealEvidence = priorSealResult.status === 'fulfilled' ? priorSealResult.value : null;
+    const evidenceErrors = {
+      ...(insightResult.status === 'rejected'
+        ? { insight: evidenceError(insightResult.reason) }
+        : {}),
+      ...(priorSealResult.status === 'rejected'
+        ? { priorSeal: evidenceError(priorSealResult.reason) }
+        : {}),
+    };
+    const evidenceStatus =
+      insightReceipt && priorSealEvidence?.receipt
+        ? 'COMPLETE'
+        : priorSealEvidence && !priorSealEvidence.receipt
+          ? 'PRIORSEAL_PENDING'
+          : insightReceipt || priorSealEvidence?.receipt
+            ? 'PARTIAL'
+            : 'UNAVAILABLE';
+
+    return {
+      status: 'executed',
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+      transaction,
+      preparedTransaction,
+      priorSealAuthorization,
+      insightReceipt,
+      priorSealEvidence,
+      evidenceStatus,
+      evidenceErrors,
+    };
+  }
+
+  private async evaluateSwapGates(request: SwapGateRequest): Promise<SwapGateEvaluation> {
     if (this.blockOnWatchHalt && request.watchTarget && this.isHalted(request.watchTarget)) {
-      return { status: 'blocked', stage: 'watch_halt' };
+      return { ready: false, result: { status: 'blocked', stage: 'watch_halt' } };
     }
 
     const sourceDecision = await this.check({
@@ -63,9 +228,12 @@ export class InsightGuard {
     });
     if (!sourceDecision.allowed || !isExecutionAuthorised(sourceDecision.result.verdict)) {
       return {
-        status: 'blocked',
-        stage: 'source_pre_trade',
-        sourcePreTrade: sourceDecision.result,
+        ready: false,
+        result: {
+          status: 'blocked',
+          stage: 'source_pre_trade',
+          sourcePreTrade: sourceDecision.result,
+        },
       };
     }
 
@@ -78,39 +246,26 @@ export class InsightGuard {
       !isExecutionAuthorised(destinationDecision.result.verdict)
     ) {
       return {
-        status: 'blocked',
-        stage: 'destination_pre_trade',
-        sourcePreTrade: sourceDecision.result,
-        destinationPreTrade: destinationDecision.result,
+        ready: false,
+        result: {
+          status: 'blocked',
+          stage: 'destination_pre_trade',
+          sourcePreTrade: sourceDecision.result,
+          destinationPreTrade: destinationDecision.result,
+        },
       };
     }
 
-    // Validate proof material BEFORE the external transaction is submitted.
-    const receiptDraft = buildVerifiedReceiptDraft(
-      sourceDecision.result,
-      destinationDecision.result,
-      request.receipt
-    );
-
-    const transaction = await request.submitTransaction({
-      sourcePreTrade: sourceDecision.result,
-      destinationPreTrade: destinationDecision.result,
-    });
-    if (!transaction.txHash)
-      throw new ReceiptConfigurationError('submitTransaction returned no txHash.');
-
-    const receipt = await this.client.issueExecutionReceipt({
-      ...receiptDraft,
-      txHash: transaction.txHash,
-      taker: transaction.taker,
-    });
-
     return {
-      status: 'executed',
+      ready: true,
       sourcePreTrade: sourceDecision.result,
       destinationPreTrade: destinationDecision.result,
-      transaction,
-      receipt,
+      // Validate proof material before any external transaction is submitted.
+      receiptDraft: buildVerifiedReceiptDraft(
+        sourceDecision.result,
+        destinationDecision.result,
+        request.receipt
+      ),
     };
   }
 
@@ -175,6 +330,28 @@ export class InsightGuard {
   clearHalt(target: OracleWatchTarget): void {
     this.haltedTargets.delete(targetKey(target));
   }
+}
+
+type BlockedSwapResult = Extract<GuardedSwapResult, { status: 'blocked' }>;
+type SwapGateRequest = Pick<
+  GuardedSwapRequest,
+  'source' | 'destination' | 'watchTarget' | 'receipt'
+>;
+type SwapGateEvaluation =
+  | { ready: false; result: BlockedSwapResult }
+  | {
+      ready: true;
+      sourcePreTrade: PreTradeResult;
+      destinationPreTrade: PreTradeResult;
+      receiptDraft: Omit<ExecutionReceiptRequest, 'txHash' | 'taker'>;
+    };
+
+function evidenceError(error: unknown): { code?: string; message: string } {
+  if (error instanceof PriorSealBridgeError) {
+    return { code: error.options.code, message: error.message };
+  }
+  if (error instanceof Error) return { message: error.message };
+  return { message: String(error) };
 }
 
 function buildVerifiedReceiptDraft(

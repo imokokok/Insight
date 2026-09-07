@@ -125,6 +125,107 @@ export interface SubmittedTransaction {
   taker?: string;
 }
 
+export interface PreparedExactCallTransaction {
+  chainId: number;
+  from: string;
+  to: string;
+  data: `0x${string}`;
+  value?: bigint | number | string;
+  nonce: bigint | number | string;
+  /** Atomic source amount. Signed as descriptive context; calldata remains authoritative. */
+  sourceAmount: bigint | number | string;
+}
+
+export interface PriorSealIntent {
+  schema: 'priorseal.intent.v2';
+  executionProfile: 'priorseal.execution-profile.exact-call.v1';
+  intentId: string;
+  intentHash?: string;
+  chainId: number;
+  action: 'CONTRACT_CALL';
+  asset: string;
+  amount: string;
+  sender: string;
+  recipient: string;
+  validUntil: number;
+  nonce: string;
+  callTarget: string;
+  calldataHash: `0x${string}`;
+  transactionValue: string;
+  constraints?: { minConfirmations?: number };
+}
+
+export interface PriorSealAuthorization {
+  schema: 'priorseal.authorization.v2';
+  domain: string;
+  authorizationId: string;
+  intent: PriorSealIntent;
+  intentHash: string;
+  principal: { type: 'user' | 'organization'; id: string; account: string };
+  authorizer: { type: 'eip712'; address: string };
+  delegate: { agentId: string; executor: string };
+  issuedAt: number;
+  notBefore: number;
+  expiresAt: number;
+  authorizationNonce: `0x${string}`;
+  maxUses: '1';
+  audience: string;
+  policyHash: string;
+  signature?: string;
+}
+
+export interface PriorSealPreparedAuthorization {
+  authorization: PriorSealAuthorization;
+  typedData: Record<string, unknown>;
+  requestId?: string;
+}
+
+export interface PriorSealAcceptedAuthorization {
+  authorization: PriorSealAuthorization;
+  acceptance: Record<string, unknown>;
+  requestId?: string;
+  [key: string]: unknown;
+}
+
+export interface PriorSealObservationResult {
+  observation: { txHash?: string; status: string; [key: string]: unknown };
+  receipt: { receiptId: string; execution?: { txHash?: string }; [key: string]: unknown } | null;
+  requestId?: string;
+}
+
+export interface PriorSealApi {
+  prepareAuthorization(
+    input: Omit<
+      PriorSealAuthorization,
+      'schema' | 'domain' | 'authorizationId' | 'intentHash' | 'policyHash' | 'signature'
+    >,
+    signal?: AbortSignal
+  ): Promise<PriorSealPreparedAuthorization>;
+  acceptAuthorization(
+    authorization: PriorSealAuthorization,
+    signal?: AbortSignal
+  ): Promise<PriorSealAcceptedAuthorization>;
+  observeExecution(
+    input: { authorizationId: string; chainId: number; txHash: string; confirmations?: number },
+    signal?: AbortSignal
+  ): Promise<PriorSealObservationResult>;
+}
+
+export interface PriorSealFlowOptions {
+  client: PriorSealApi;
+  principal: { type: 'user' | 'organization'; id: string; account: string };
+  agentId: string;
+  /** Must not exceed the exact transaction's own deadline. */
+  validUntil?: number;
+  intentId?: string;
+  issuedAt?: number;
+  authorizationNonce?: `0x${string}`;
+  confirmations?: number;
+  audience?: string;
+  signal?: AbortSignal;
+  signAuthorization(input: PriorSealPreparedAuthorization): Promise<string>;
+}
+
 export interface SwapReceiptOptions {
   settlementChainId: number;
   maxSlippageBps?: 50;
@@ -153,6 +254,40 @@ export interface GuardedSwapRequest {
     destinationPreTrade: PreTradeResult;
   }): Promise<SubmittedTransaction>;
 }
+
+export interface PriorSealGuardedSwapRequest extends Omit<GuardedSwapRequest, 'submitTransaction'> {
+  priorSeal: PriorSealFlowOptions;
+  prepareTransaction(context: {
+    sourcePreTrade: PreTradeResult;
+    destinationPreTrade: PreTradeResult;
+  }): Promise<PreparedExactCallTransaction>;
+  submitTransaction(context: {
+    sourcePreTrade: PreTradeResult;
+    destinationPreTrade: PreTradeResult;
+    transaction: PreparedExactCallTransaction;
+    priorSealAuthorization: PriorSealAcceptedAuthorization;
+  }): Promise<SubmittedTransaction>;
+}
+
+export interface JointEvidenceError {
+  code?: string;
+  message: string;
+}
+
+export type PriorSealGuardedSwapResult =
+  | Extract<GuardedSwapResult, { status: 'blocked' }>
+  | {
+      status: 'executed';
+      sourcePreTrade: PreTradeResult;
+      destinationPreTrade: PreTradeResult;
+      transaction: SubmittedTransaction;
+      preparedTransaction: PreparedExactCallTransaction;
+      priorSealAuthorization: PriorSealAcceptedAuthorization;
+      insightReceipt: ExecutionReceiptResult | null;
+      priorSealEvidence: PriorSealObservationResult | null;
+      evidenceStatus: 'COMPLETE' | 'PRIORSEAL_PENDING' | 'PARTIAL' | 'UNAVAILABLE';
+      evidenceErrors: { insight?: JointEvidenceError; priorSeal?: JointEvidenceError };
+    };
 
 export type GuardedSwapResult =
   | {
