@@ -282,12 +282,3 @@ export async function collectMarketReference(
   logger.info('market reference collection complete', { ...summary });
   return { rows, summary };
 }
-
-/** Persist rows via an injected writer (Supabase client in the scripts). */
-export async function insertMarketReferenceRows(
-  rows: MarketReferenceRow[],
-  writer: (rows: MarketReferenceRow[]) => Promise<number>
-): Promise<number> {
-  if (rows.length === 0) return 0;
-  return writer(rows);
-}

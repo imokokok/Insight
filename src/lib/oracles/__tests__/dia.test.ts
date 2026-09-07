@@ -29,16 +29,6 @@ describe('DIAClient', () => {
       expect(client.supportedChains).toContain(Blockchain.AVALANCHE);
       expect(client.supportedChains).toContain(Blockchain.BNB_CHAIN);
       expect(client.supportedChains).toContain(Blockchain.BASE);
-      expect(client.defaultUpdateIntervalMinutes).toBe(5);
-    });
-
-    it('should create client with custom config', () => {
-      const customClient = new DIAClient({
-        useDatabase: false,
-        validateData: false,
-        useRealData: false,
-      });
-      expect(customClient).toBeInstanceOf(DIAClient);
     });
 
     it('should have correct supported chains count', () => {

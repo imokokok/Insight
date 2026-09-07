@@ -41,15 +41,12 @@ const serverEnvSchema = z.object({
   CSRF_SECRET: z.string().min(1),
   JWT_SECRET: z.string().min(1),
   USE_REAL_CHAINLINK_DATA: envBoolean.default(true),
-  SESSION_TIMEOUT: z.coerce.number().optional().default(3600),
   MAX_REQUEST_SIZE: z.coerce.number().optional().default(1048576),
-  ALLOWED_ORIGINS: z.string().optional().default('http://localhost:3000'),
 });
 
 // Lenient server variant: only the genuinely required secrets stay required;
-// everything else falls back to safe defaults. STELLAR_RPC_URL and
-// REFLECTOR_*_CONTRACT are intentionally NOT here — they are parsed and
-// consumed by src/lib/config/serverEnv.ts (STELLAR_CONFIG).
+// everything else falls back to safe defaults. Reflector endpoints and
+// contracts are intentionally fixed in reflectorConstants.ts.
 const lenientServerEnvSchema = serverEnvSchema.extend({
   NEXT_PUBLIC_SUPABASE_URL: z.string().optional().default(''),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional().default(''),
@@ -76,9 +73,7 @@ function getRawServerEnv() {
     CSRF_SECRET: process.env.CSRF_SECRET,
     JWT_SECRET: process.env.JWT_SECRET,
     USE_REAL_CHAINLINK_DATA: process.env.USE_REAL_CHAINLINK_DATA,
-    SESSION_TIMEOUT: process.env.SESSION_TIMEOUT,
     MAX_REQUEST_SIZE: process.env.MAX_REQUEST_SIZE,
-    ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
   };
 }
 

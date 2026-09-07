@@ -1,7 +1,6 @@
 import { AppError } from '@/lib/errors/AppError';
 import { PriceDataSchema, validateOracleData } from '@/lib/security/validation';
 import { TTLCache } from '@/lib/utils/cache';
-import { createLogger } from '@/lib/utils/logger';
 import {
   type OracleProvider,
   Blockchain,
@@ -10,13 +9,8 @@ import {
   type OracleErrorCode,
 } from '@/types/oracle';
 
-const logger = createLogger('BaseOracleClient');
-
 export const ORACLE_CACHE_TTL = {
   PRICE: 30000,
-  HISTORICAL: 60000,
-  NETWORK_STATS: 120000,
-  PROVIDERS: 60000,
 } as const;
 
 const MAX_CACHE_SIZE = 1000;
@@ -52,10 +46,6 @@ export class OracleCache {
     return this.impl.has(key);
   }
 
-  size(): number {
-    return this.impl.size;
-  }
-
   getStats(): { size: number; keys: string[] } {
     return {
       size: this.impl.size,
@@ -86,25 +76,7 @@ const OracleErrorCodes = {
   SYMBOL_NOT_SUPPORTED: 'SYMBOL_NOT_SUPPORTED' as OracleErrorCode,
   NO_DATA_AVAILABLE: 'NO_DATA_AVAILABLE' as OracleErrorCode,
   PROVIDER_UNAVAILABLE: 'PROVIDER_UNAVAILABLE' as OracleErrorCode,
-  NETWORK_ERROR: 'NETWORK_ERROR' as OracleErrorCode,
-  TIMEOUT_ERROR: 'TIMEOUT_ERROR' as OracleErrorCode,
-  RATE_LIMIT_ERROR: 'RATE_LIMIT_ERROR' as OracleErrorCode,
-  INVALID_RESPONSE: 'INVALID_RESPONSE' as OracleErrorCode,
-  STALE_DATA: 'STALE_DATA' as OracleErrorCode,
-  INVALID_PRICE: 'INVALID_PRICE' as OracleErrorCode,
-  INSUFFICIENT_DATA: 'INSUFFICIENT_DATA' as OracleErrorCode,
 } as const;
-
-export interface OracleClientConfig {
-  useDatabase?: boolean;
-  validateData?: boolean;
-  useRealData?: boolean;
-}
-
-const DEFAULT_CLIENT_CONFIG: OracleClientConfig = {
-  useDatabase: true,
-  validateData: true,
-};
 
 export abstract class BaseOracleClient {
   abstract name: OracleProvider;
@@ -117,19 +89,10 @@ export abstract class BaseOracleClient {
 
   protected supportedSymbolsList: readonly string[] = [];
 
-  defaultUpdateIntervalMinutes: number = 1;
-  chainUpdateIntervals: Partial<Record<Blockchain, number>> = {};
-
   protected defaultChain: Blockchain = Blockchain.ETHEREUM;
 
   getDefaultChain(): Blockchain {
     return this.defaultChain;
-  }
-
-  protected config: OracleClientConfig;
-
-  constructor(config?: OracleClientConfig) {
-    this.config = { ...DEFAULT_CLIENT_CONFIG, ...config };
   }
 
   destroy(): void {
@@ -170,13 +133,6 @@ export abstract class BaseOracleClient {
       return [];
     }
     return this.supportedChains;
-  }
-
-  getUpdateInterval(chain?: Blockchain): number {
-    if (chain && this.chainUpdateIntervals[chain] !== undefined) {
-      return this.chainUpdateIntervals[chain]!;
-    }
-    return this.defaultUpdateIntervalMinutes;
   }
 
   protected validateGetPriceParams(symbol: string, options?: { signal?: AbortSignal }): void {
@@ -272,18 +228,7 @@ export abstract class BaseOracleClient {
   }
 
   protected validatePriceData(data: unknown, context?: string): PriceData {
-    if (!this.config.validateData) {
-      if (process.env.NODE_ENV === 'development') {
-        logger.warn('Price data validation is disabled - skipping validation', { context });
-      }
-      return data as PriceData;
-    }
     return validateOracleData(PriceDataSchema, data, context) as PriceData;
-  }
-
-  async fetchPriceWithDatabase(symbol: string, chain: Blockchain | undefined): Promise<PriceData> {
-    const { fetchPriceWithDatabase } = await import('./base/databaseOperations');
-    return fetchPriceWithDatabase(this.name, symbol, chain, this.config.useDatabase ?? true);
   }
 
   async fetchHistoricalPricesWithDatabase(
@@ -292,12 +237,6 @@ export abstract class BaseOracleClient {
     period: number
   ): Promise<PriceData[]> {
     const { fetchHistoricalPricesWithDatabase } = await import('./base/databaseOperations');
-    return fetchHistoricalPricesWithDatabase(
-      this.name,
-      symbol,
-      chain,
-      period,
-      this.config.useDatabase ?? true
-    );
+    return fetchHistoricalPricesWithDatabase(this.name, symbol, chain, period, true);
   }
 }

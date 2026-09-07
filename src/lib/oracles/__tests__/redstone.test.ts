@@ -98,15 +98,6 @@ describe('RedStoneClient', () => {
       expect(client.defaultUpdateIntervalMinutes).toBe(10);
     });
 
-    it('should create client with custom config', () => {
-      const customClient = new RedStoneClient({
-        useDatabase: false,
-        validateData: false,
-        useRealData: false,
-      });
-      expect(customClient).toBeInstanceOf(RedStoneClient);
-    });
-
     it('should have correct number of supported chains', () => {
       expect(client.supportedChains.length).toBe(12);
     });

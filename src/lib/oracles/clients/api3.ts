@@ -20,8 +20,6 @@ export class API3Client extends BaseOracleClient {
     Blockchain.OPTIMISM,
   ];
 
-  defaultUpdateIntervalMinutes = 1;
-
   private resolveTargetChain(symbol: string, chain?: Blockchain): Blockchain {
     if (chain) return chain;
     const supportedChains = this.getSupportedChainsForSymbol(symbol);

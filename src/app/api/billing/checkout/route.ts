@@ -213,9 +213,6 @@ export const POST = createApiHandler(
     const { error: insertError } = await serviceClient.from('subscriptions').insert({
       id: orderId,
       user_id: userId,
-      // Legacy stripe_* columns are now nullable — leave NULL for new rows.
-      stripe_customer_id: null,
-      stripe_subscription_id: null,
       nowpayments_invoice_id: invoiceResult.invoiceId,
       plan,
       status: 'incomplete',

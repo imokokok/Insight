@@ -30,8 +30,6 @@ interface SubscriptionData {
     status: string;
     interval: string;
     current_period_end: string;
-    cancel_at_period_end: boolean;
-    stripe_customer_id: string;
   } | null;
   apiKeys: Array<{
     id: string;

@@ -33,7 +33,7 @@ export const GET = createApiHandler(
     const userClient = createUserClient(accessToken);
     const { data: recentSubs, error: subError } = await userClient
       .from('subscriptions')
-      .select('*')
+      .select('id, plan, status, interval, current_period_end, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(5);

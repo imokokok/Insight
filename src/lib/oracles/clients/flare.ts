@@ -1,6 +1,5 @@
 import { OracleProviderError } from '@/lib/errors';
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import {
   flareSymbols,
   FLARE_CACHE_TTL,
@@ -37,12 +36,11 @@ export class FlareClient extends BaseOracleClient {
   supportedSymbolsList = flareSymbols;
   protected defaultChain = Blockchain.FLARE;
 
-  defaultUpdateIntervalMinutes = 1.5;
   private cache = new OracleCache();
   private ftsoService: FtsoDataService;
 
-  constructor(config?: OracleClientConfig) {
-    super(config);
+  constructor() {
+    super();
     this.ftsoService = getFtsoDataService();
     this.cache.startCleanupInterval();
   }

@@ -1,7 +1,7 @@
 import { resolveFeedAddress } from '@/lib/oracles/utils/dynamicFeedResolver';
 
-// Contract addresses with hardcoded defaults.
-// Server-side code should use STELLAR_CONFIG from serverEnv for env-driven values.
+// Reflector's public mainnet contracts and RPC endpoint are fixed here so all
+// clients use the same verified network configuration.
 export const REFLECTOR_CRYPTO_CONTRACT = 'CAFJZQWSED6YAWZU3GWRTOCNPPCGBN32L7QV43XX5LZLFTK6JLN34DLN';
 
 export const REFLECTOR_FOREX_CONTRACT = 'CBKGPWGKSKZF52CFHMTRR23TBWTPMRDIYZ4O2P5VS65BMHYH4DXMCJZC';

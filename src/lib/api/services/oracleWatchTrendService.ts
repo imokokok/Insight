@@ -1,10 +1,7 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { TTLCache } from '@/lib/utils/cache';
-import { createLogger } from '@/lib/utils/logger';
 
 import type { OracleWatchMlRiskLevel, OracleWatchTrustLevel } from './oracleWatchService';
-
-const logger = createLogger('oracle-watch-trend');
 
 /**
  * Retrospective credibility query over the feed_health_snapshots time-series.
@@ -339,7 +336,3 @@ export async function getOracleWatchHistory(args: {
  * this the most recent row is treated as cold and `spineStale` is set.
  */
 const SPINE_STALE_WINDOW_MS = 45 * 60 * 1000;
-
-// Keep logger referenced for future diagnostics while avoiding a no-shadow lint
-// on the unused import in non-node runtimes.
-void logger;

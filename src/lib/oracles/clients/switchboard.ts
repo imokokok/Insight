@@ -1,5 +1,4 @@
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import { SWITCHBOARD_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import {
   SWITCHBOARD_CROSSBAR_URL,
@@ -43,12 +42,10 @@ export class SwitchboardClient extends BaseOracleClient {
 
   supportedSymbolsList = switchboardSymbols;
 
-  defaultUpdateIntervalMinutes = 1;
-
   private cache = new OracleCache();
 
-  constructor(config?: OracleClientConfig) {
-    super(config);
+  constructor() {
+    super();
     this.cache.startCleanupInterval();
   }
 

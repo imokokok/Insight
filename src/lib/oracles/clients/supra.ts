@@ -1,5 +1,4 @@
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import { supraSymbols, SUPRA_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import {
   SUPRA_PAIR_INDEX_MAP,
@@ -46,8 +45,8 @@ export class SupraClient extends BaseOracleClient {
   defaultUpdateIntervalMinutes = 5;
   private cache = new OracleCache();
 
-  constructor(config?: OracleClientConfig) {
-    super(config);
+  constructor() {
+    super();
     this.cache.startCleanupInterval();
   }
 

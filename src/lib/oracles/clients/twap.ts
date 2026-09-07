@@ -20,8 +20,6 @@ export class TWAPClient extends BaseOracleClient {
     Blockchain.BASE,
     Blockchain.BNB_CHAIN,
   ];
-  defaultUpdateIntervalMinutes = 1;
-
   private getChainId(chain?: Blockchain): number {
     return BLOCKCHAIN_TO_CHAIN_ID[chain || Blockchain.ETHEREUM] || 1;
   }

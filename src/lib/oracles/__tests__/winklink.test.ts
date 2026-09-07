@@ -46,16 +46,6 @@ describe('WINkLinkClient', () => {
     it('should create client with default config', () => {
       expect(client.name).toBe(OracleProvider.WINKLINK);
       expect(client.supportedChains).toEqual([Blockchain.TRON]);
-      expect(client.defaultUpdateIntervalMinutes).toBe(60);
-    });
-
-    it('should create client with custom config', () => {
-      const customClient = new WINkLinkClient({
-        useDatabase: false,
-        validateData: false,
-        useRealData: false,
-      });
-      expect(customClient).toBeInstanceOf(WINkLinkClient);
     });
   });
 

@@ -1,6 +1,5 @@
 import { OracleProviderError } from '@/lib/errors';
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import {
   SPREAD_PERCENTAGES,
   REDSTONE_API_BASE,
@@ -73,8 +72,8 @@ export class RedStoneClient extends BaseOracleClient {
   defaultUpdateIntervalMinutes = 10;
   private cache = new OracleCache();
 
-  constructor(config?: OracleClientConfig) {
-    super(config);
+  constructor() {
+    super();
     this.cache.startCleanupInterval();
   }
 

@@ -10,12 +10,8 @@ const alchemyRpcSchema = z.object({
   polygon: z.string().url().optional().default(''),
   base: z.string().url().optional().default(''),
   optimism: z.string().url().optional().default(''),
-  solana: z.string().url().optional().default(''),
   bnb: z.string().url().optional().default(''),
   avalanche: z.string().url().optional().default(''),
-  zksync: z.string().url().optional().default(''),
-  scroll: z.string().url().optional().default(''),
-  mantle: z.string().url().optional().default(''),
   linea: z.string().url().optional().default(''),
 });
 
@@ -53,12 +49,8 @@ function parseAlchemyRpc() {
     polygon: process.env.ALCHEMY_POLYGON_RPC || undefined,
     base: process.env.ALCHEMY_BASE_RPC || undefined,
     optimism: process.env.ALCHEMY_OPTIMISM_RPC || undefined,
-    solana: process.env.ALCHEMY_SOLANA_RPC || undefined,
     bnb: process.env.ALCHEMY_BNB_RPC || undefined,
     avalanche: process.env.ALCHEMY_AVALANCHE_RPC || undefined,
-    zksync: process.env.ALCHEMY_ZKSYNC_RPC || undefined,
-    scroll: process.env.ALCHEMY_SCROLL_RPC || undefined,
-    mantle: process.env.ALCHEMY_MANTLE_RPC || undefined,
     linea: process.env.ALCHEMY_LINEA_RPC || undefined,
   };
   const result = alchemyRpcSchema.safeParse(raw);
@@ -82,16 +74,12 @@ function parseAlchemyRpc() {
 
 const tronConfigSchema = z.object({
   rpcUrl: z.string().url().optional().default('https://api.trongrid.io'),
-  solidityRpc: z.string().url().optional().default('https://api.trongrid.io/walletsolidity'),
-  fullnodeRpc: z.string().url().optional().default('https://api.trongrid.io/wallet'),
   apiKey: z.string().optional().default(''),
 });
 
 function parseTronConfig() {
   const raw = {
     rpcUrl: process.env.TRON_RPC_URL || undefined,
-    solidityRpc: process.env.TRON_SOLIDITY_RPC || undefined,
-    fullnodeRpc: process.env.TRON_FULLNODE_RPC || undefined,
     apiKey: process.env.TRONGRID_API_KEY || undefined,
   };
   const result = tronConfigSchema.safeParse(raw);
@@ -119,16 +107,14 @@ export const TRON_CONFIG = parseTronConfig();
 // clear error, webhook cannot verify) when env is not configured. This lets
 // the app run in dev without NOWPayments credentials.
 //
-// Wallet address is an application-side auditable constant; actual payout
-// wallets are configured in the NOWPayments dashboard per currency/chain.
+// Payout wallets are configured in the NOWPayments dashboard per
+// currency/chain and are not consumed by the application.
 // ---------------------------------------------------------------------------
 
 interface NowPaymentsConfig {
   apiKey: string | null;
   ipnSecret: string | null;
-  walletAddress: string | null;
   testMode: boolean;
-  isConfigured: boolean;
 }
 
 function parseNowPaymentsConfig(): NowPaymentsConfig {
@@ -141,19 +127,12 @@ function parseNowPaymentsConfig(): NowPaymentsConfig {
   const config: NowPaymentsConfig = {
     apiKey: process.env.NOWPAYMENTS_API_KEY || null,
     ipnSecret: process.env.NOWPAYMENTS_IPN_SECRET || null,
-    walletAddress: process.env.NOWPAYMENTS_WALLET_ADDRESS || null,
     testMode,
-    isConfigured: false,
   };
-
-  // NOWPayments is "configured" only if the API key AND IPN secret are present.
-  // Missing IPN secret is fatal for webhook verification. Wallet address is
-  // non-fatal (dashboard-configured), but warning-worthy for audit.
-  config.isConfigured = !!config.apiKey && !!config.ipnSecret;
 
   // Loud guard: if test mode is on but the config looks production-ready,
   // surface it clearly so nobody mistakes a sandbox run for a live one.
-  if (config.testMode && config.isConfigured) {
+  if (config.testMode && config.apiKey && config.ipnSecret) {
     logger.warn(
       'NOWPayments is in SANDBOX (test) mode — invoices go to api-sandbox.nowpayments.io and will NOT receive real payments'
     );

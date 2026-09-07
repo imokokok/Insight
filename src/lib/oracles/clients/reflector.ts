@@ -1,7 +1,7 @@
 import { buildStellarVerification } from '@/lib/oracles/utils/verificationUtils';
 import { Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
 
-import { BaseOracleClient, type OracleClientConfig } from '../base';
+import { BaseOracleClient } from '../base';
 import {
   REFLECTOR_CRYPTO_ASSETS,
   REFLECTOR_FOREX_ASSETS,
@@ -14,13 +14,7 @@ import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 export class ReflectorClient extends BaseOracleClient {
   name = OracleProvider.REFLECTOR;
   supportedChains = [Blockchain.STELLAR];
-  defaultUpdateIntervalMinutes = 5;
-
   private reflectorDataService = getReflectorDataService();
-
-  constructor(config?: OracleClientConfig) {
-    super(config);
-  }
 
   async getPrice(
     symbol: string,
