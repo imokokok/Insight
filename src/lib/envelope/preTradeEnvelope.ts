@@ -36,6 +36,8 @@ export type EnvelopeReasonCode =
   | 'market_state_missing'
   | 'market_state_signature_invalid'
   | 'market_state_expired'
+  | 'market_state_mic_mismatch'
+  | 'market_state_non_live'
   | 'market_state_not_open';
 
 /** Facts about the Insight OracleSafetyCheck v2 receipt, distilled by the
@@ -61,6 +63,13 @@ export interface MarketStateMemberInput {
   expired: boolean;
   /** Signed market status; null when the receipt is absent. */
   status: string | null;
+  /** Signed MIC and the MIC the caller requested. */
+  mic?: string | null;
+  expectedMic?: string | null;
+  /** Production decisions require the signed value `live`. */
+  receiptMode?: string | null;
+  /** Optional signed override reason, surfaced verbatim for HALTED/closed runs. */
+  attestedReason?: string | null;
 }
 
 export interface EnvelopeMemberState {
@@ -185,7 +194,7 @@ export function evaluatePreTradeEnvelope(input: {
     'oracle price integrity verdict within the allowed set (PASS/CAUTION)'
   );
 
-  const marketState = evaluateMember(
+  let marketState = evaluateMember(
     'environment.market_state',
     {
       present: input.marketState.present,
@@ -204,6 +213,35 @@ export function evaluatePreTradeEnvelope(input: {
     },
     'market OPEN per signed market-state receipt'
   );
+
+  // Production binding checks sit after signature/freshness but before the
+  // signed status verdict. Keep their diagnostics distinct from both a bad
+  // signature and an honestly negative CLOSED/HALTED receipt.
+  if (input.marketState.present && input.marketState.signatureValid && !input.marketState.expired) {
+    if (input.marketState.expectedMic && input.marketState.mic !== input.marketState.expectedMic) {
+      marketState = {
+        ...marketState,
+        positive: false,
+        reasonCode: 'market_state_mic_mismatch',
+        detail: `signed MIC ${input.marketState.mic ?? 'missing'} does not match requested MIC ${input.marketState.expectedMic}`,
+      };
+    } else if (input.marketState.receiptMode !== 'live') {
+      marketState = {
+        ...marketState,
+        positive: false,
+        reasonCode: 'market_state_non_live',
+        detail: `signed receipt_mode ${input.marketState.receiptMode ?? 'missing'} is not live`,
+      };
+    } else if (marketState.reasonCode === 'market_state_not_open') {
+      const reasonSuffix = input.marketState.attestedReason
+        ? `; issuer reason: ${input.marketState.attestedReason}`
+        : '';
+      marketState = {
+        ...marketState,
+        detail: `market status ${input.marketState.status ?? 'UNKNOWN'} is not OPEN${reasonSuffix}`,
+      };
+    }
+  }
 
   const reasonCodes = [priceIntegrity, marketState]
     .map((m) => m.reasonCode)

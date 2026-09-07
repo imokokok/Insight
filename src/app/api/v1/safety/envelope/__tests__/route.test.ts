@@ -52,22 +52,25 @@ const HEADLESS_REGISTRY: HeadlessKeyRegistry = {
   issuer: 'headlessoracle.com',
 };
 
-/** Fresh, genuinely signed OPEN receipt for XCOI (60s window). */
-function buildHeadlessReceipt(): HeadlessMarketStateReceipt {
+/** Fresh, genuinely signed production receipt for XNYS (60s window). */
+function buildHeadlessReceipt(
+  overrides: Partial<HeadlessMarketStateReceipt> = {}
+): HeadlessMarketStateReceipt {
   const now = Date.now();
   const receipt: HeadlessMarketStateReceipt = {
     receipt_id: `route-test-${now}`,
     issued_at: new Date(now - 5_000).toISOString(),
     expires_at: new Date(now + 55_000).toISOString(),
     issuer: 'headlessoracle.com',
-    mic: 'XCOI',
+    mic: 'XNYS',
     status: 'OPEN',
     source: 'SCHEDULE',
-    halt_detection: 'schedule_only',
-    receipt_mode: 'demo',
+    halt_detection: 'active',
+    receipt_mode: 'live',
     schema_version: 'v5.0',
     public_key_id: 'key_test_v1',
     signature: '',
+    ...overrides,
   };
   const { signature: _s, ...payload } = receipt;
   receipt.signature = ed25519Sign(
@@ -80,12 +83,14 @@ function buildHeadlessReceipt(): HeadlessMarketStateReceipt {
 
 /** Serve the Headless side: demo receipt + key registry. `breakNetwork`
  * simulates the venue being unreachable (envelope must fail closed). */
-function mockHeadlessFetch(opts: { breakNetwork?: boolean } = {}) {
-  const receipt = buildHeadlessReceipt();
+function mockHeadlessFetch(
+  opts: { breakNetwork?: boolean; receipt?: HeadlessMarketStateReceipt } = {}
+) {
+  const receipt = opts.receipt ?? buildHeadlessReceipt();
   const impl = async (input: RequestInfo | URL) => {
     if (opts.breakNetwork) throw new Error('network unreachable');
     const url = String(input);
-    if (url.includes('/v5/demo')) {
+    if (url.includes('/v5/status')) {
       return new Response(JSON.stringify({ ...receipt, receipt }), { status: 200 });
     }
     if (url.includes('oracle-keys.json')) {
@@ -141,7 +146,46 @@ describe('pre-trade envelope prototype route', () => {
     const market = body.data.marketState;
     expect(market.verification.valid).toBe(true);
     expect(market.verification.status).toBe('OPEN');
+    expect(market.verification.mic).toBe('XNYS');
+    expect(market.verification.receiptMode).toBe('live');
+    expect(market.endpoint).toBe('https://headless.test/v5/status?mic=XNYS');
     expect(market.keyRegistry).toContain('oracle-keys.json');
+    expect(body.data.freshness.limitingMember).toBe('environment.market_state');
+    expect(body.data.freshness.envelopeValidUntil).toBe(body.data.freshness.marketStateValidUntil);
+  });
+
+  it('production Run 2: a signed XNYS CLOSED receipt drives the envelope red', async () => {
+    mockHeadlessFetch({ receipt: buildHeadlessReceipt({ status: 'CLOSED' }) });
+    const response = await callGet();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.envelope.verdict).toBe('BLOCK');
+    expect(body.data.envelope.reasonCodes).toEqual(['market_state_not_open']);
+    expect(body.data.envelope.members.marketState.signatureValid).toBe(true);
+    expect(body.data.envelope.members.marketState.fresh).toBe(true);
+    expect(body.data.marketState.verification.valid).toBe(true);
+    expect(body.data.marketState.verification.status).toBe('CLOSED');
+  });
+
+  it('surfaces the signed reason for a HALTED override', async () => {
+    mockHeadlessFetch({
+      receipt: buildHeadlessReceipt({
+        status: 'HALTED',
+        source: 'OVERRIDE',
+        reason: 'LULD pause — operator override',
+      }),
+    });
+    const response = await callGet();
+    const body = await response.json();
+
+    expect(body.data.envelope.verdict).toBe('BLOCK');
+    expect(body.data.envelope.members.marketState.detail).toContain(
+      'LULD pause — operator override'
+    );
+    expect(body.data.marketState.verification.attestedReason).toBe(
+      'LULD pause — operator override'
+    );
   });
 
   it('demo=expired: BLOCKs with price_integrity_expired although the signature is genuine', async () => {

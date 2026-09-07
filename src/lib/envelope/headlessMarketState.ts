@@ -1,7 +1,7 @@
 /**
  * Headless Oracle market-state receipt: fetch + independent Ed25519 verification.
  *
- * This is the market-state half of the pre-trade safety envelope prototype
+ * This is the market-state half of the pre-trade safety envelope showcase
  * (environment.market_state + environment.price_integrity, per the
  * draft-borthwick-msebenzi-environment-state family). Verification is done
  * LOCALLY against the key published in Headless Oracle's well-known key
@@ -10,8 +10,8 @@
  * collaboration agreement: the gate checks signature-to-key, schema and
  * freshness itself, and the attested values remain the issuer's claims.
  *
- * Signature canonicalization (verified empirically against the live v5.0 demo
- * endpoint on 2026-08-21, two independent receipts): the signed payload is the
+ * Signature canonicalization (verified empirically against Headless Oracle
+ * v5.0 receipts): the signed payload is the
  * receipt object minus its `signature` field, serialized as JSON with object
  * keys sorted lexicographically (JCS-style, RFC 8785 without number
  * reserialization — all observed fields are strings).
@@ -41,6 +41,10 @@ export interface HeadlessMarketStateReceipt {
   receipt_mode: string;
   schema_version: string;
   public_key_id: string;
+  /** Present on v5.0 production receipts; a JSON string signed as-is. */
+  coverage?: string;
+  /** Present on override receipts (for example HALTED); signed as-is. */
+  reason?: string;
   signature: string;
 }
 
@@ -61,9 +65,9 @@ export interface HeadlessKeyRegistry {
   issuer?: string;
 }
 
-/** The v5.0 demo endpoint returns receipt fields at the top level AND a nested
+/** The v5.0 endpoints return receipt fields at the top level AND a nested
  * `receipt` copy (both carry the same signature), plus a discovery pointer. */
-export type HeadlessDemoResponse = HeadlessMarketStateReceipt & {
+export type HeadlessMarketStateResponse = HeadlessMarketStateReceipt & {
   receipt?: HeadlessMarketStateReceipt;
   discovery_url?: string;
 };
@@ -80,6 +84,10 @@ export interface MarketStateVerificationResult {
   issuedAt: string | null;
   expiresAt: string | null;
   keyId: string | null;
+  receiptMode: string | null;
+  source: string | null;
+  attestedReason: string | null;
+  micMatches: boolean;
   reason?: string;
 }
 
@@ -145,19 +153,20 @@ export function verifyHeadlessMarketStateReceipt(
 // Network fetchers
 // ---------------------------------------------------------------------------
 
-/** The demo/sandbox receipt endpoint Michael pointed the prototype at
- * (https://headlessoracle.com/v5/demo?mic=XCOI serves it today). */
-export async function fetchHeadlessDemoReceipt(mic: string): Promise<HeadlessDemoResponse> {
-  const url = `${getHeadlessOracleBaseUrl()}/v5/demo?mic=${encodeURIComponent(mic)}`;
+/** Fetch a production market-state receipt. `/v5/status` returns the same
+ * signed v5.0 wire object as the demo endpoint, with `receipt_mode=live` and
+ * the production archive/metering path around it. */
+export async function fetchHeadlessLiveReceipt(mic: string): Promise<HeadlessMarketStateResponse> {
+  const url = `${getHeadlessOracleBaseUrl()}/v5/status?mic=${encodeURIComponent(mic)}`;
   const res = await fetch(url, {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     headers: { accept: 'application/json' },
     cache: 'no-store',
   });
   if (!res.ok) {
-    throw new Error(`headless demo endpoint returned HTTP ${res.status}`);
+    throw new Error(`headless production endpoint returned HTTP ${res.status}`);
   }
-  return (await res.json()) as HeadlessDemoResponse;
+  return (await res.json()) as HeadlessMarketStateResponse;
 }
 
 /** SMA-convention key registry (same shape as Insight's oracle-keys.json). */
@@ -192,9 +201,11 @@ export function selectHeadlessSigningKey(
 // Combined fetch + verify
 // ---------------------------------------------------------------------------
 
-/** Extract the canonical receipt object from a demo response (nested copy if
+/** Extract the canonical receipt object from a Headless response (nested copy if
  * present, else the flattened top level). */
-export function extractHeadlessReceipt(envelope: HeadlessDemoResponse): HeadlessMarketStateReceipt {
+export function extractHeadlessReceipt(
+  envelope: HeadlessMarketStateResponse
+): HeadlessMarketStateReceipt {
   return envelope.receipt ?? envelope;
 }
 
@@ -207,7 +218,7 @@ export function extractHeadlessReceipt(envelope: HeadlessDemoResponse): Headless
  * our response can never be shown an unsigned convenience copy that differs
  * from the signed object. Returns null when consistent (or when the response
  * is the flattened shape with no duplicate copies). */
-export function headlessTwoCopyMismatch(envelope: HeadlessDemoResponse): string | null {
+export function headlessTwoCopyMismatch(envelope: HeadlessMarketStateResponse): string | null {
   const receipt = envelope.receipt;
   if (!receipt) return null;
   const top = envelope as unknown as Record<string, unknown>;
@@ -237,24 +248,29 @@ export function headlessFetchFailedResult(error: unknown): MarketStateVerificati
     issuedAt: null,
     expiresAt: null,
     keyId: null,
+    receiptMode: null,
+    source: null,
+    attestedReason: null,
+    micMatches: false,
     reason: `fetch_failed: ${error instanceof Error ? error.message : String(error)}`,
   };
 }
 
 export interface HeadlessFetchAndVerify {
-  envelope: HeadlessDemoResponse | null;
+  envelope: HeadlessMarketStateResponse | null;
   result: MarketStateVerificationResult;
 }
 
-/** Fetch a live demo receipt + the key registry, then verify the receipt
- * locally. Never throws: any failure becomes a structured invalid result so
- * the envelope gate can fail closed with a diagnosis instead of a 500. */
+/** Fetch a production receipt + the key registry, then verify the receipt
+ * locally. In addition to signature/freshness, bind the signed MIC to the
+ * requested MIC and require `receipt_mode=live`. Never throws: any failure
+ * becomes a structured invalid result so the envelope gate can fail closed. */
 export async function fetchAndVerifyHeadlessMarketState(
   mic: string
 ): Promise<HeadlessFetchAndVerify> {
   try {
     const [envelope, registry] = await Promise.all([
-      fetchHeadlessDemoReceipt(mic),
+      fetchHeadlessLiveReceipt(mic),
       fetchHeadlessKeyRegistry(),
     ]);
     const receipt = extractHeadlessReceipt(envelope);
@@ -276,11 +292,15 @@ export async function fetchAndVerifyHeadlessMarketState(
           issuedAt: receipt.issued_at,
           expiresAt: receipt.expires_at,
           keyId: receipt.public_key_id,
+          receiptMode: receipt.receipt_mode,
+          source: receipt.source,
+          attestedReason: receipt.reason ?? null,
+          micMatches: receipt.mic === mic,
           reason: twoCopyMismatch,
         },
       };
     }
-    const result = verifyHeadlessMarketStateAgainstRegistry(receipt, registry);
+    const result = verifyHeadlessMarketStateAgainstRegistry(receipt, registry, mic);
     return { envelope, result };
   } catch (error) {
     return { envelope: null, result: headlessFetchFailedResult(error) };
@@ -291,8 +311,10 @@ export async function fetchAndVerifyHeadlessMarketState(
  * selection). Pure apart from Date.now(). */
 export function verifyHeadlessMarketStateAgainstRegistry(
   receipt: HeadlessMarketStateReceipt,
-  registry: HeadlessKeyRegistry
+  registry: HeadlessKeyRegistry,
+  expectedMic: string = receipt.mic
 ): MarketStateVerificationResult {
+  const micMatches = receipt.mic === expectedMic;
   const base = {
     issuer: receipt.issuer,
     receiptId: receipt.receipt_id,
@@ -301,6 +323,10 @@ export function verifyHeadlessMarketStateAgainstRegistry(
     issuedAt: receipt.issued_at,
     expiresAt: receipt.expires_at,
     keyId: receipt.public_key_id,
+    receiptMode: receipt.receipt_mode,
+    source: receipt.source,
+    attestedReason: receipt.reason ?? null,
+    micMatches,
   };
 
   const key = selectHeadlessSigningKey(registry, receipt.public_key_id);
@@ -315,10 +341,19 @@ export function verifyHeadlessMarketStateAgainstRegistry(
   }
 
   const { signatureValid, expired } = verifyHeadlessMarketStateReceipt(receipt, key.public_key);
-  const reason = !signatureValid ? 'signature_invalid' : expired ? 'expired' : undefined;
+  const liveMode = receipt.receipt_mode === 'live';
+  const reason = !signatureValid
+    ? 'signature_invalid'
+    : expired
+      ? 'expired'
+      : !micMatches
+        ? `mic_mismatch: expected ${expectedMic}, received ${receipt.mic}`
+        : !liveMode
+          ? `non_live_receipt: expected receipt_mode=live, received ${receipt.receipt_mode}`
+          : undefined;
   return {
     ...base,
-    valid: signatureValid && !expired,
+    valid: signatureValid && !expired && micMatches && liveMode,
     signatureValid,
     expired,
     reason,

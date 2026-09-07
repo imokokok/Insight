@@ -39,11 +39,11 @@ function buildReceipt(
     issued_at: issued.toISOString(),
     expires_at: expires.toISOString(),
     issuer: 'headlessoracle.com',
-    mic: 'XCOI',
+    mic: 'XNYS',
     status: 'OPEN',
     source: 'SCHEDULE',
-    halt_detection: 'schedule_only',
-    receipt_mode: 'demo',
+    halt_detection: 'active',
+    receipt_mode: 'live',
     schema_version: 'v5.0',
     public_key_id: 'key_test_v1',
     signature: '',
@@ -86,7 +86,7 @@ describe('headlessSignedPayload', () => {
   it('strips the signature field from the signed payload', () => {
     const payload = JSON.parse(headlessSignedPayload(buildReceipt()));
     expect(payload).not.toHaveProperty('signature');
-    expect(payload.mic).toBe('XCOI');
+    expect(payload.mic).toBe('XNYS');
     expect(payload.status).toBe('OPEN');
   });
 });
@@ -107,7 +107,7 @@ describe('verifyHeadlessMarketStateReceipt', () => {
 
   it('rejects a receipt whose mic was tampered after signing', () => {
     const receipt = buildReceipt();
-    receipt.mic = 'XNYS';
+    receipt.mic = 'XNAS';
     expect(verifyHeadlessMarketStateReceipt(receipt, PUBLIC_KEY_HEX).signatureValid).toBe(false);
   });
 
@@ -156,7 +156,7 @@ describe('verifyHeadlessMarketStateAgainstRegistry', () => {
   it('validates a live receipt end to end', () => {
     const result = verifyHeadlessMarketStateAgainstRegistry(buildReceipt(), REGISTRY);
     expect(result.valid).toBe(true);
-    expect(result.mic).toBe('XCOI');
+    expect(result.mic).toBe('XNYS');
     expect(result.status).toBe('OPEN');
     expect(result.keyId).toBe('key_test_v1');
   });
@@ -207,7 +207,7 @@ describe('fetchAndVerifyHeadlessMarketState', () => {
     const receipt = buildReceipt();
     global.fetch = (async (input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.includes('/v5/demo')) {
+      if (url.includes('/v5/status')) {
         return new Response(JSON.stringify({ ...receipt, receipt }), { status: 200 });
       }
       if (url.includes('oracle-keys.json')) {
@@ -216,7 +216,7 @@ describe('fetchAndVerifyHeadlessMarketState', () => {
       throw new Error(`unexpected fetch: ${url}`);
     }) as typeof fetch;
 
-    const side = await fetchAndVerifyHeadlessMarketState('XCOI');
+    const side = await fetchAndVerifyHeadlessMarketState('XNYS');
     expect(side.envelope).not.toBeNull();
     expect(side.result.valid).toBe(true);
     expect(side.result.status).toBe('OPEN');
@@ -228,7 +228,7 @@ describe('fetchAndVerifyHeadlessMarketState', () => {
       throw new Error('network unreachable');
     }) as typeof fetch;
 
-    const side = await fetchAndVerifyHeadlessMarketState('XCOI');
+    const side = await fetchAndVerifyHeadlessMarketState('XNYS');
     expect(side.envelope).toBeNull();
     expect(side.result.valid).toBe(false);
     expect(side.result.reason).toContain('fetch_failed');
@@ -239,7 +239,7 @@ describe('fetchAndVerifyHeadlessMarketState', () => {
     const receipt = buildReceipt();
     global.fetch = (async (input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.includes('/v5/demo')) {
+      if (url.includes('/v5/status')) {
         // Top-level convenience copy flipped; the signed receipt object is untouched.
         return new Response(JSON.stringify({ ...receipt, status: 'CLOSED', receipt }), {
           status: 200,
@@ -251,10 +251,51 @@ describe('fetchAndVerifyHeadlessMarketState', () => {
       throw new Error(`unexpected fetch: ${url}`);
     }) as typeof fetch;
 
-    const side = await fetchAndVerifyHeadlessMarketState('XCOI');
+    const side = await fetchAndVerifyHeadlessMarketState('XNYS');
     expect(side.envelope).not.toBeNull();
     expect(side.result.valid).toBe(false);
     expect(side.result.signatureValid).toBe(false);
     expect(side.result.reason).toMatch(/two_copy_mismatch: field 'status'/);
+  });
+
+  it('rejects a signed demo receipt on the production fetch path', async () => {
+    process.env.HEADLESS_ORACLE_BASE_URL = 'https://headless.test';
+    const receipt = buildReceipt({ receipt_mode: 'demo' });
+    global.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/v5/status')) {
+        return new Response(JSON.stringify({ ...receipt, receipt }), { status: 200 });
+      }
+      if (url.includes('oracle-keys.json')) {
+        return new Response(JSON.stringify(REGISTRY), { status: 200 });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as typeof fetch;
+
+    const side = await fetchAndVerifyHeadlessMarketState('XNYS');
+    expect(side.result.signatureValid).toBe(true);
+    expect(side.result.valid).toBe(false);
+    expect(side.result.reason).toContain('non_live_receipt');
+  });
+
+  it('rejects a signed receipt whose MIC does not match the requested venue', async () => {
+    process.env.HEADLESS_ORACLE_BASE_URL = 'https://headless.test';
+    const receipt = buildReceipt({ mic: 'XNAS' });
+    global.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/v5/status')) {
+        return new Response(JSON.stringify({ ...receipt, receipt }), { status: 200 });
+      }
+      if (url.includes('oracle-keys.json')) {
+        return new Response(JSON.stringify(REGISTRY), { status: 200 });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as typeof fetch;
+
+    const side = await fetchAndVerifyHeadlessMarketState('XNYS');
+    expect(side.result.signatureValid).toBe(true);
+    expect(side.result.micMatches).toBe(false);
+    expect(side.result.valid).toBe(false);
+    expect(side.result.reason).toContain('mic_mismatch');
   });
 });
