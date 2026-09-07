@@ -1,7 +1,6 @@
 import { TrendingUp, Droplets, Percent, Clock, ArrowLeftRight, Shield, Hash } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
-import type { TwapOnChainData } from '@/hooks/oracles/useTwapOnChainData';
 import {
   formatPrice,
   formatOraclePrice,
@@ -9,6 +8,7 @@ import {
   formatConfidenceScore,
 } from '@/lib/utils/format';
 import { getStatRating } from '@/lib/utils/stat-rating';
+import type { TwapOnChainData } from '@/types/oracle';
 
 interface TwapStatsProps {
   data: TwapOnChainData;

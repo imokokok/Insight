@@ -2,6 +2,5 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "project": ["src/**/*.ts", "src/**/*.tsx"],
   "ignoreDependencies": ["postcss", "canonicalize"],
-  "ignoreFiles": ["src/components/risk/index.ts"],
   "exclude": ["exports", "types", "duplicates"]
 }

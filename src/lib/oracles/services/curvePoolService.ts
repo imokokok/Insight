@@ -69,18 +69,6 @@ const CURVE_STABLECOIN_POOLS: CurvePoolConfig[] = [
     ],
     poolType: 'stableswap',
   },
-  {
-    // Curve LUSD/3pool — a valid metapool, but it pairs LUSD with 3CRV (the
-    // 3pool LP token), not USDC, so getStablecoinPrice never matches it.
-    // Kept for completeness; safe to remove if it stays unused.
-    poolAddress: '0xEd279fDD11cA84bEef15AF5D39BB4d4bEE23F0cA',
-    chainId: 1,
-    tokens: [
-      { symbol: 'LUSD', decimals: 18, index: 0 },
-      { symbol: '3POOL', decimals: 18, index: 1 },
-    ],
-    poolType: 'metapool',
-  },
   // NOTE: The FRAX/USDC (0xDcEF968d...) and USDD/3pool (0x42d1...) entries were
   // removed — both are dead addresses (get_virtual_price returns empty), so
   // every get_dy call reverted and logged a misleading ERROR. The catch in

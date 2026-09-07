@@ -18,7 +18,6 @@ import {
   useAuthActions,
   useAuthStore,
 } from '@/stores/authStore';
-import { useRealtimeStore } from '@/stores/realtimeStore';
 
 import UserMenuDropdown from './UserMenuDropdown';
 
@@ -44,7 +43,6 @@ export function AuthNavigation({
 
   useEffect(() => {
     setUser(user);
-    if (!user) useRealtimeStore.getState().reset();
   }, [user]);
 
   useEffect(() => {

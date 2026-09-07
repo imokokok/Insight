@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import { Clock, Info, Shield, Zap, Layers } from 'lucide-react';
+import { Clock, Shield, Zap, Layers } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -32,50 +32,6 @@ function NextUpdateCountdown({ nextRecalcAt }: { nextRecalcAt: string | null | u
       <Clock className="w-3 h-3" />
       Next update in {remaining}
     </span>
-  );
-}
-
-function ComparisonInfo() {
-  return (
-    <div className="border-y border-slate-900/15 bg-white/55 p-5">
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 border border-blue-200 bg-blue-50 p-1.5">
-          <Info className="w-4 h-4 text-blue-500" />
-        </div>
-        <div className="text-sm text-slate-600">
-          <p className="font-bold text-slate-900 mb-1.5">About Oracle Directory</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
-            <div className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0 mt-1.5" />
-              <span>
-                <strong className="text-slate-800">On-chain Oracles:</strong> Deploy smart contracts
-                on blockchains for decentralized price feeds
-              </span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0 mt-1.5" />
-              <span>
-                <strong className="text-slate-800">API Oracles:</strong> Fetch data via off-chain
-                APIs with faster update speeds
-              </span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0 mt-1.5" />
-              <span>
-                <strong className="text-slate-800">Reputation Scores:</strong> Rolling 7-day
-                aggregate across all tracked symbols
-              </span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0 mt-1.5" />
-              <span>
-                Click any provider card to view detailed performance metrics and trend charts
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -129,4 +85,4 @@ function TypeLegend({
   );
 }
 
-export { NextUpdateCountdown, ComparisonInfo, TypeLegend };
+export { NextUpdateCountdown, TypeLegend };

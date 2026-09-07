@@ -1,7 +1,6 @@
 import { Clock, Database, FileDigit, Hash, Server, Timer } from 'lucide-react';
 
 import { StatCard } from '@/components/ui/StatCard';
-import type { ReflectorTokenOnChainData } from '@/hooks/oracles/useReflectorOnChainData';
 import {
   formatDataAge,
   formatDecimals,
@@ -9,6 +8,7 @@ import {
   formatOracleTimestamp,
 } from '@/lib/utils/format';
 import { getStatRating } from '@/lib/utils/stat-rating';
+import type { ReflectorTokenOnChainData } from '@/types/oracle';
 
 interface ReflectorStatsProps {
   data: ReflectorTokenOnChainData;
