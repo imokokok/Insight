@@ -138,6 +138,8 @@ export interface ProviderPriceDetail {
   deviationPct: number | null;
   isOutlier: boolean;
   dataAgeSeconds: number | null;
+  /** Consensus-aware stale definition used by the ML training set. */
+  mlIsStale?: boolean;
   isStale: boolean;
   confidence: number | null;
   reputationScore: number | null;
@@ -439,6 +441,7 @@ function buildProviderPrices(
       deviationPct: p.deviationPct,
       isOutlier: p.isOutlier,
       dataAgeSeconds: age,
+      mlIsStale: p.isStale,
       isStale,
       confidence: p.confidence,
       reputationScore: p.reputationScore,
@@ -835,9 +838,10 @@ function computeManipulationRisk(args: {
       .map((v) => Math.abs(v));
     const meanDeviationPct =
       absDevs.length > 0 ? absDevs.reduce((s, v) => s + v, 0) / absDevs.length : 0;
+    const mlStale = (detail: ProviderPriceDetail) => detail.mlIsStale ?? detail.isStale;
     const staleRatio =
       successfulProviders.length > 0
-        ? successfulProviders.filter((d) => d.isStale).length / successfulProviders.length
+        ? successfulProviders.filter(mlStale).length / successfulProviders.length
         : 0;
     // v3 governance features (the 30-min Oracle Watch model was trained on
     // them). Live pre-trade supplies the same real-time semantics Oracle Watch
@@ -846,7 +850,7 @@ function computeManipulationRisk(args: {
     // neutral defaults instead would be a train/serve skew: the model learned
     // real values for these, so scoring them at the neutral prior degrades it.
     const outlierCount = successfulProviders.filter((d) => d.isOutlier).length;
-    const staleCount = successfulProviders.filter((d) => d.isStale).length;
+    const staleCount = successfulProviders.filter(mlStale).length;
     const reputations = successfulProviders
       .map((d) => d.reputationScore)
       .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
@@ -869,7 +873,7 @@ function computeManipulationRisk(args: {
         maxDeviationPct: args.maxDeviationPct,
         spreadPct: args.spreadPct,
         participantCount: args.consensus.participantCount,
-        staleDataRisk: args.staleRisk,
+        staleDataRisk: staleCount > 0,
         meanDeviationPct: roundTo(meanDeviationPct, 4),
         staleRatio: roundTo(staleRatio, 4),
         deviationVelocity1h: hist.deviationVelocity1h,

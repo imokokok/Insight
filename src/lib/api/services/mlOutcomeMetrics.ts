@@ -62,18 +62,25 @@ interface ScoredRow {
   outcome_label: boolean;
 }
 
-/** Rank-based AUC (Mann-Whitney U) — no dependencies, handles ties. */
+/** Rank-based AUC (Mann-Whitney U), O(n log n), with average ranks for ties. */
 function computeAuc(scores: number[], labels: boolean[]): number | null {
-  const pos = scores.filter((_, i) => labels[i]);
-  const neg = scores.filter((_, i) => !labels[i]);
-  if (pos.length === 0 || neg.length === 0) return null;
-  let wins = 0;
-  for (const p of pos) {
-    for (const n of neg) {
-      wins += p > n ? 1 : p === n ? 0.5 : 0;
+  const ranked = scores.map((score, i) => ({ score, positive: labels[i] }));
+  const positives = ranked.filter((row) => row.positive).length;
+  const negatives = ranked.length - positives;
+  if (positives === 0 || negatives === 0) return null;
+  ranked.sort((a, b) => a.score - b.score);
+  let positiveRankSum = 0;
+  for (let i = 0; i < ranked.length; ) {
+    let end = i + 1;
+    while (end < ranked.length && ranked[end].score === ranked[i].score) end++;
+    const averageRank = (i + 1 + end) / 2;
+    for (let j = i; j < end; j++) {
+      if (ranked[j].positive) positiveRankSum += averageRank;
     }
+    i = end;
   }
-  return wins / (pos.length * neg.length);
+  const u = positiveRankSum - (positives * (positives + 1)) / 2;
+  return u / (positives * negatives);
 }
 
 function computeBuckets(rows: ScoredRow[]): MlBucketMetrics[] {
@@ -129,6 +136,7 @@ export async function getMlOutcomeMetrics(windowHours = 24 * 7): Promise<MlOutco
       .not('ml_score', 'is', null)
       .not('outcome_label', 'is', null)
       .gte('created_at', since)
+      .order('created_at', { ascending: false })
       .limit(50_000);
 
     if (error) {

@@ -188,7 +188,8 @@ const DEV_DANGER_PCT = 3.0;
 const AGREEMENT_CAUTION = 0.95;
 const AGREEMENT_DANGER = 0.85;
 
-// Advisory ML risk-level buckets (low-is-good).
+// Legacy fallback buckets. Current models export calibrated, versioned onset
+// operating points because rare-event probabilities should not use 0.5/0.6.
 const ML_LEVEL_MEDIUM = 0.3;
 const ML_LEVEL_HIGH = 0.6;
 
@@ -217,7 +218,8 @@ function cacheKey(symbol: string, chain?: string): string {
 /** Build the ML advisory fields from a live consensus result + history. */
 async function computeMlRisk(
   result: ConsensusPriceResponse,
-  maxDeviationPct: number
+  maxDeviationPct: number,
+  marketDivergencePct: number | null
 ): Promise<{
   mlRiskScore: number | null;
   mlScore1h: number | null;
@@ -287,14 +289,17 @@ async function computeMlRisk(
       staleCount,
       avgReputation,
       minReputation,
+      oracleVsMarketDeviationPct: marketDivergencePct ?? undefined,
     },
     { assetClass: result.symbol }
   );
 
   if (multi === null) return base;
 
+  const mediumThreshold = multi.mediumThreshold ?? ML_LEVEL_MEDIUM;
+  const highThreshold = multi.highThreshold ?? ML_LEVEL_HIGH;
   const level =
-    multi.combined >= ML_LEVEL_HIGH ? 'high' : multi.combined >= ML_LEVEL_MEDIUM ? 'medium' : 'low';
+    multi.combined >= highThreshold ? 'high' : multi.combined >= mediumThreshold ? 'medium' : 'low';
 
   return {
     mlRiskScore: multi.combined,
@@ -399,10 +404,19 @@ async function computeOracleWatchSignal(
     });
   }
 
+  // Fetch external truth once and feed the same value to both ML and the
+  // advisory reason code. A missing reference remains an explicit neutral.
+  let marketDivergencePct: number | null = null;
+  try {
+    marketDivergencePct = await computeMarketDivergencePct(result.symbol, result.consensusPrice);
+  } catch {
+    marketDivergencePct = null;
+  }
+
   // Forward-looking ML risk is needed BEFORE the verdict so it can participate
   // in the gate (an advisory score must never be wholly ignored, but also must
   // not override hard rule breaches).
-  const ml = await computeMlRisk(result, maxDeviationPct);
+  const ml = await computeMlRisk(result, maxDeviationPct, marketDivergencePct);
 
   const quorumSatisfied = result.participantCount >= QUORUM_MIN;
 
@@ -454,13 +468,8 @@ async function computeOracleWatchSignal(
   // (consensus vs independent CEX reference >= MARKET_DIVERGENCE_ADVISORY_PCT).
   // Evidence, never a verdict input: it surfaces as a reason code and lets
   // agents see the market-truth signal, but cannot by itself escalate.
-  let marketDivergence = false;
-  try {
-    const div = await computeMarketDivergencePct(result.symbol, result.consensusPrice);
-    marketDivergence = div !== null && div >= MARKET_DIVERGENCE_ADVISORY_PCT;
-  } catch {
-    marketDivergence = false; // reference layer down → no signal
-  }
+  const marketDivergence =
+    marketDivergencePct !== null && marketDivergencePct >= MARKET_DIVERGENCE_ADVISORY_PCT;
 
   // ML forward-risk escalation: a healthy-now feed with high predicted
   // manipulation risk must be throttled to caution (never bluntly blocked on

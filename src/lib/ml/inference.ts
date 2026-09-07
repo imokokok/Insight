@@ -64,6 +64,8 @@ export interface MlHorizon {
   evalWindowHours: number;
   featureNames: string[];
   baseScore: number;
+  /** Operating points for calibrated onset probabilities. */
+  riskThresholds?: { medium: number; high: number };
   trees: MlModelNode[][];
   /** Per-feature fill for names missing from the caller's feature map. */
   neutralFill?: Record<string, number>;
@@ -377,6 +379,9 @@ export interface MultiHorizonScore {
   combined: number;
   score1h: number | null;
   score6h: number | null;
+  /** Model-versioned operating points; absent only for legacy callers/mocks. */
+  mediumThreshold?: number;
+  highThreshold?: number;
 }
 
 /**
@@ -404,6 +409,8 @@ export function scorePreTradeMultiHorizon(
   let score1h: number | null = null;
   let score6h: number | null = null;
   let anyScored = false;
+  let mediumThreshold = 0.3;
+  let highThreshold = 0.6;
 
   for (const [name, { model, verified }] of Object.entries(cached.horizons)) {
     if (!verified) continue;
@@ -418,10 +425,20 @@ export function scorePreTradeMultiHorizon(
     if (proba > combined) combined = proba;
     if (name === '1h') score1h = proba;
     if (name === '6h') score6h = proba;
+    if (model.riskThresholds) {
+      mediumThreshold = Math.min(mediumThreshold, model.riskThresholds.medium);
+      highThreshold = Math.min(highThreshold, model.riskThresholds.high);
+    }
   }
 
   if (!anyScored) return null;
-  return { combined: roundTo(combined, 4), score1h, score6h };
+  return {
+    combined: roundTo(combined, 4),
+    score1h,
+    score6h,
+    mediumThreshold,
+    highThreshold,
+  };
 }
 
 /**

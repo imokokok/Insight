@@ -7,14 +7,16 @@ const mockEqSuccess = jest.fn(() => ({ gte: mockGte }));
 const mockEqSymbol = jest.fn(() => ({ eq: mockEqSuccess }));
 const mockSelect = jest.fn(() => ({ eq: mockEqSymbol }));
 const mockFrom = jest.fn(() => ({ select: mockSelect }));
+const mockCreateServiceRoleClient = jest.fn(() => ({ from: mockFrom }));
 
 jest.mock('@/lib/supabase/server', () => ({
-  createServiceRoleClient: jest.fn(() => ({ from: mockFrom })),
+  createServiceRoleClient: mockCreateServiceRoleClient,
 }));
 
-/** Hour keys must be >= 45 min old to count as completed hours. */
+/** Produce the canonical UTC hour keys stored by hourly_price_snapshots. */
 function hoursAgo(n: number): string {
-  return new Date(Date.now() - n * 60 * 60 * 1000).toISOString();
+  const currentHour = Math.floor(Date.now() / 3600_000) * 3600_000;
+  return new Date(currentHour - n * 3600_000).toISOString();
 }
 
 /**
@@ -27,7 +29,7 @@ function seedHistory(hourDeviations: number[][], price = 100): void {
   hourDeviations.forEach((devs, i) => {
     for (const d of devs) {
       rows.push({
-        snapshot_hour: hoursAgo(hourDeviations.length - i + 1),
+        snapshot_hour: hoursAgo(hourDeviations.length - i),
         deviation_pct: d,
         price,
       });
@@ -41,6 +43,7 @@ const live = { maxDeviationPct: 0.3, consensusPrice: 100, participantCount: 6 };
 describe('fetchHistoricalOracleState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCreateServiceRoleClient.mockImplementation(() => ({ from: mockFrom }));
     mockFrom.mockImplementation(() => ({ select: mockSelect }));
     mockSelect.mockImplementation(() => ({ eq: mockEqSymbol }));
     mockEqSymbol.mockImplementation(() => ({ eq: mockEqSuccess }));
@@ -88,6 +91,22 @@ describe('fetchHistoricalOracleState', () => {
     const state = await fetchHistoricalOracleState('LINK', live);
 
     expect(state.maxDeviationZscore24h).toBe(0);
+  });
+
+  it('does not treat a gapped observation as the 1h predecessor', async () => {
+    mockLimit.mockResolvedValue({
+      data: [
+        { snapshot_hour: hoursAgo(3), deviation_pct: 0.2, price: 99 },
+        { snapshot_hour: hoursAgo(2), deviation_pct: 0.4, price: 100 },
+      ],
+      error: null,
+    });
+
+    const state = await fetchHistoricalOracleState('ETH', live);
+
+    expect(state.deviationVelocity1h).toBe(0);
+    expect(state.participantCountDelta1h).toBe(0);
+    expect(state.deviationVelocity3h).toBeCloseTo(0.1, 4);
   });
 
   it('degrades to an empty history when the table has no rows', async () => {

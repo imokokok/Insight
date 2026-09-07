@@ -70,11 +70,12 @@ export function median(values: number[]): number {
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
-function std(values: number[]): number {
+/** Sample standard deviation (ddof=1), matching pandas.Series.std(). */
+function sampleStd(values: number[]): number {
   if (values.length < 2) return 0;
   const mean = values.reduce((s, v) => s + v, 0) / values.length;
   const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
-  return Math.sqrt(variance);
+  return Math.sqrt((variance * values.length) / (values.length - 1));
 }
 
 function round4(x: number): number {
@@ -99,9 +100,8 @@ export interface OracleWatchLiveState {
  * returns EMPTY_HISTORY so the ML score degrades to "no temporal signal"
  * rather than failing the check.
  *
- * A snapshot <45 min old is the still-forming current hour and is excluded from
- * the COMPLETED history used for velocities, matching training's
- * max_dev(T) - max_dev(T-1).
+ * The current wall-clock hour is excluded from completed history. Temporal
+ * deltas use exact T-1h/T-3h keys, matching the trainer even when data has gaps.
  */
 export async function fetchHistoricalOracleState(
   asset: string,
@@ -136,12 +136,13 @@ export async function fetchHistoricalOracleState(
     if (byHour.size === 0) return EMPTY_HISTORY;
 
     const now = Date.now();
+    const currentHour = Math.floor(now / 3600_000) * 3600_000;
     const allHours = Array.from(byHour.keys()).sort(); // ascending ISO hour
-    // Completed hours only (>= 45 min old): exclude the still-forming current hour.
+    // Completed hours only: exclude the entire still-forming wall-clock hour.
     const completed: HourlyPoint[] = [];
     for (const hour of allHours) {
       const t = Date.parse(hour);
-      if (Number.isNaN(t) || now - t < 45 * 60 * 1000) continue;
+      if (Number.isNaN(t) || t >= currentHour) continue;
       const h = byHour.get(hour)!;
       completed.push({
         hour,
@@ -152,38 +153,51 @@ export async function fetchHistoricalOracleState(
     }
     if (completed.length === 0) return { ...EMPTY_HISTORY, history: [] };
 
-    const n = completed.length;
-    const last = completed[n - 1];
-    const lastMinus2 = n >= 3 ? completed[n - 3] : null;
+    const byTimestamp = new Map(completed.map((point) => [Date.parse(point.hour), point]));
+    const oneHourAgo = byTimestamp.get(currentHour - 3600_000) ?? null;
+    const threeHoursAgo = byTimestamp.get(currentHour - 3 * 3600_000) ?? null;
 
-    // Rolling 6h volatility of 1h consensus returns (std of pct-change, %).
-    const series = completed.slice(-6);
+    // Rolling six 1h returns, including the live T/T-1 return. Exact timestamp
+    // lookup means a missing hour never becomes a multi-hour "1h return".
     const returns: number[] = [];
-    for (let i = 1; i < series.length; i++) {
-      const prev = series[i - 1].consensusPrice;
-      if (prev > 0) returns.push((series[i].consensusPrice - prev) / prev);
+    const priceAtOffset = (offsetHours: number): number | null => {
+      if (offsetHours === 0) return live.consensusPrice;
+      return byTimestamp.get(currentHour - offsetHours * 3600_000)?.consensusPrice ?? null;
+    };
+    for (let offset = 5; offset >= 0; offset--) {
+      const current = priceAtOffset(offset);
+      const previous = priceAtOffset(offset + 1);
+      if (current !== null && previous !== null && previous > 0) {
+        returns.push((current - previous) / previous);
+      }
     }
-    const rollingVolatility6h = returns.length >= 2 ? std(returns) * 100 : 0;
+    const rollingVolatility6h = returns.length >= 2 ? sampleStd(returns) * 100 : 0;
 
     // 24h z-score of max deviation: (live - mean24) / std24 over completed history.
     // Requires enough completed hours to be a 24h baseline at all, and is bounded
     // so a single mis-registered feed inside the window cannot push the feature
     // hundreds of standard deviations out of range.
-    const devs = completed.map((p) => p.maxDeviationPct);
+    const devs: number[] = [];
+    for (let offset = 1; offset <= 24; offset++) {
+      const point = byTimestamp.get(currentHour - offset * 3600_000);
+      if (point) devs.push(point.maxDeviationPct);
+    }
     const mean = devs.reduce((s, v) => s + v, 0) / devs.length;
-    const devStd = std(devs);
+    const devStd = sampleStd(devs);
     const maxDeviationZscore24h =
-      n >= MIN_POINTS_FOR_ZSCORE && devStd > 1e-9
+      devs.length >= MIN_POINTS_FOR_ZSCORE && devStd > 1e-9
         ? clamp((live.maxDeviationPct - mean) / devStd, -ZSCORE_CLAMP, ZSCORE_CLAMP)
         : 0;
 
     return {
       history: completed,
-      deviationVelocity1h: round4(live.maxDeviationPct - last.maxDeviationPct),
-      deviationVelocity3h: lastMinus2
-        ? round4(live.maxDeviationPct - lastMinus2.maxDeviationPct)
+      deviationVelocity1h: oneHourAgo
+        ? round4(live.maxDeviationPct - oneHourAgo.maxDeviationPct)
         : 0,
-      participantCountDelta1h: live.participantCount - last.participantCount,
+      deviationVelocity3h: threeHoursAgo
+        ? round4(live.maxDeviationPct - threeHoursAgo.maxDeviationPct)
+        : 0,
+      participantCountDelta1h: oneHourAgo ? live.participantCount - oneHourAgo.participantCount : 0,
       rollingVolatility6h: round4(rollingVolatility6h),
       maxDeviationZscore24h: round4(maxDeviationZscore24h),
     };

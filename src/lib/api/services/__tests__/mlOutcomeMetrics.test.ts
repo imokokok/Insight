@@ -99,6 +99,17 @@ describe('mlOutcomeMetrics', () => {
     expect(m.byClass.volatile!.auc).toBe(0); // the high score was a negative
   });
 
+  it('assigns average ranks to tied positive and negative scores', async () => {
+    const data = [row('ETH', 0.5, true), row('BTC', 0.5, false)];
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: () => makeChain({ data, error: null }),
+    } as never);
+
+    const m = await getMlOutcomeMetrics(24);
+
+    expect(m.auc).toBe(0.5);
+  });
+
   it('returns an empty (non-errored) result when there are no labeled rows', async () => {
     mockedCreateServiceRoleClient.mockReturnValue({
       from: () => makeChain({ data: [], error: null }),

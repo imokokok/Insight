@@ -44,6 +44,9 @@ jobs:
             exit 1
           fi
 
+      - name: Test training data semantics
+        run: python -m unittest ml.test_train
+
       - name: Train model
         run: python ml/train.py
 
@@ -77,8 +80,8 @@ jobs:
 
           new = json.load(open("ml/models/oracle_risk_model.json"))
           if not new.get("active"):
-              print("New model is inactive; regression gate skipped.")
-              sys.exit(0)
+              print("::error::New model is inactive. Keeping the last-known-good deployed model.")
+              sys.exit(1)
 
           old_raw = subprocess.run(
               ["git", "show", "HEAD:ml/models/oracle_risk_model.json"],
@@ -90,6 +93,17 @@ jobs:
           old = json.loads(old_raw.stdout)
           if not old.get("active"):
               print("Previous model was inactive; gate skipped.")
+              sys.exit(0)
+
+          # Metrics are comparable only when the evaluation protocol is the
+          # same. A deliberate split/calibration upgrade establishes a new
+          # baseline instead of being rejected against optimistic old metrics.
+          if old.get("evaluationSpecVersion", 1) != new.get("evaluationSpecVersion", 1):
+              print(
+                  "Evaluation spec changed "
+                  f"{old.get('evaluationSpecVersion', 1)} -> {new.get('evaluationSpecVersion', 1)}; "
+                  "accepting this run as the new regression baseline."
+              )
               sys.exit(0)
 
           def horizons(m):

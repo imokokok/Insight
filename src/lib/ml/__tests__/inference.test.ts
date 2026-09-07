@@ -36,6 +36,7 @@ const FEATURE_KEY: Record<string, keyof PreTradeFeatures> = {
   stale_count: 'staleCount',
   avg_reputation: 'avgReputation',
   min_reputation: 'minReputation',
+  oracle_vs_market_deviation_pct: 'oracleVsMarketDeviationPct',
 };
 
 const BASE_FEATURES: PreTradeFeatures = {
@@ -224,6 +225,13 @@ describe('ml inference', () => {
       expect(d.verified).toBe(true);
       expect(d.evalWindowHours).toBeGreaterThan(0);
     }
+  });
+
+  it('returns model-versioned operating thresholds with calibrated scores', () => {
+    if (!anyActive) return;
+    const result = scorePreTradeMultiHorizon(BASE_FEATURES, { assetClass: 'ETH' });
+    expect(result?.mediumThreshold).toBeGreaterThan(0);
+    expect(result?.highThreshold).toBeGreaterThan(result?.mediumThreshold ?? 1);
   });
 
   describe('neutralFill', () => {
