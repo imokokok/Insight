@@ -51,7 +51,6 @@ export async function withOracleRetry<T>(
     backoffMultiplier: config.backoffMultiplier ?? 2,
     timeout: config.timeout ?? 15000,
     strategy: 'exponential',
-    enableCircuitBreaker: false,
   };
 
   if (signal?.aborted) {

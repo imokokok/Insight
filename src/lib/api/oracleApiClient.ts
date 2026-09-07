@@ -56,7 +56,6 @@ const ORACLE_RETRY_CONFIG: Partial<EnhancedRetryConfig> = {
   strategy: 'exponential',
   retryableStatuses: [408, 429, 500, 502, 503, 504],
   timeout: DEFAULT_REQUEST_TIMEOUT_MS,
-  enableCircuitBreaker: false,
 };
 
 const ORACLE_TIMEOUT_CONFIG: Record<string, number> = {

@@ -24,45 +24,9 @@ jest.mock('@/lib/utils/logger', () => ({
 }));
 
 jest.mock('@/lib/config/env', () => ({
-  env: {
-    supabase: {
-      url: '',
-      anonKey: '',
-    },
-    app: {
-      url: 'http://localhost:3000',
-      environment: 'test',
-      isDevelopment: false,
-      isProduction: false,
-      isTest: true,
-    },
-    features: {
-      enableRealtime: false,
-      enableAnalytics: false,
-      enablePerformanceMonitoring: false,
-      enableCSRFProtection: false,
-      enableRateLimiting: false,
-    },
-    websocket: {
-      url: undefined,
-    },
-  },
   FEATURE_FLAGS: {
-    enableRealtime: false,
-    enableAnalytics: false,
-    enablePerformanceMonitoring: false,
-    enableCSRFProtection: false,
-    enableRateLimiting: false,
     useRealChainlinkData: true,
-    useRealApi3Data: true,
-    useRealWinklinkData: false,
   },
-  isFeatureEnabled: jest.fn(),
-  getEnv: jest.fn(),
-  clientEnvSchema: {},
-  lenientClientEnvSchema: {},
-  serverEnvSchema: {},
-  lenientServerEnvSchema: {},
 }));
 
 jest.mock('@/lib/oracles/base/databaseOperations', () => ({

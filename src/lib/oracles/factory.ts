@@ -182,13 +182,12 @@ export class OracleClientFactory {
 
   private createClient(provider: OracleProvider): BaseOracleClient {
     const useRealChainlinkData = FEATURE_FLAGS.useRealChainlinkData;
-    const useRealAPI3Data = FEATURE_FLAGS.useRealApi3Data;
 
     switch (provider) {
       case OracleProvider.CHAINLINK:
         return new ChainlinkClient({ ...this.config, useRealData: useRealChainlinkData });
       case OracleProvider.API3:
-        return new API3Client({ ...this.config, useRealData: useRealAPI3Data });
+        return new API3Client(this.config);
       case OracleProvider.REDSTONE:
         return new RedStoneClient(this.config);
       case OracleProvider.DIA:
@@ -198,17 +197,11 @@ export class OracleClientFactory {
       case OracleProvider.SUPRA:
         return new SupraClient(this.config);
       case OracleProvider.TWAP:
-        return new TWAPClient({ ...this.config, useRealData: FEATURE_FLAGS.useRealTwapData });
+        return new TWAPClient(this.config);
       case OracleProvider.REFLECTOR:
-        return new ReflectorClient({
-          ...this.config,
-          useRealData: FEATURE_FLAGS.useRealReflectorData,
-        });
+        return new ReflectorClient(this.config);
       case OracleProvider.FLARE:
-        return new FlareClient({
-          ...this.config,
-          useRealData: FEATURE_FLAGS.useRealFlareData,
-        });
+        return new FlareClient(this.config);
       case OracleProvider.SWITCHBOARD:
         return new SwitchboardClient(this.config);
       default:
