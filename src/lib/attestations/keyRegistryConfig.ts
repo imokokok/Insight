@@ -64,13 +64,6 @@ export const DEFAULT_SAMPLE_KEY_ID = 'insight-oracle-safety-sample';
 export const DEFAULT_SAMPLE_KEY_NOTE =
   'SAMPLE ONLY: receipts signed by this key carry synthetic demo facts (clearly-labelled demo inputs, no real settlement). Verify them to exercise the signature loop; never treat them as evidence of a real trade.';
 
-/**
- * Rotation cadence target (key-rotation-procedure.md §2): annual, or
- * immediately on compromise / regeneration. Process-level — the actual
- * schedule lives on an operations calendar, not in code (gap §5.5).
- */
-export const ROTATION_TARGET_CADENCE_DAYS = 365;
-
 function normalizeKey(raw: Partial<KeyEntry> & { public_key: string }): KeyEntry {
   return {
     key_id: raw.key_id ?? DEFAULT_KEY_ID,
