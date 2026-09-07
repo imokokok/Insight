@@ -89,6 +89,32 @@ jobs:
               print("::error::New model is inactive. Keeping the last-known-good deployed model.")
               sys.exit(1)
 
+          # A configured severity tier must be operational, not decorative.
+          # Thresholds are learned on validation; the untouched test window
+          # must still produce at least one true-positive high alert when it
+          # contains a meaningful number of incidents.
+          threshold_failed = False
+          for name, payload in (new.get("horizons") or {}).items():
+              if not payload:
+                  continue
+              metrics = payload.get("metrics", {})
+              thresholds = payload.get("riskThresholds", {})
+              medium, high = thresholds.get("medium"), thresholds.get("high")
+              if medium is None or high is None or not 0 < medium < high < 1:
+                  print(f"::error::Horizon {name} exported invalid operating thresholds: {thresholds}")
+                  threshold_failed = True
+              if metrics.get("validation_recall_at_high_threshold", 0) < 0.10:
+                  print(f"::error::Horizon {name} high tier misses the validation recall floor.")
+                  threshold_failed = True
+              if (
+                  metrics.get("n_positive_test", 0) >= 10
+                  and metrics.get("recall_at_high_threshold", 0) <= 0
+              ):
+                  print(f"::error::Horizon {name} high tier caught no positives on the test window.")
+                  threshold_failed = True
+          if threshold_failed:
+              sys.exit(1)
+
           old_raw = subprocess.run(
               ["git", "show", "HEAD:ml/models/oracle_risk_model.json"],
               capture_output=True, text=True,
