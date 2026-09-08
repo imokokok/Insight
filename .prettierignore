@@ -17,3 +17,7 @@ scripts/vrt1-e2e-prototype/conformance-round2/VRT1-section-8.5-key-registry-snap
 # copy with scripts/vrt1-e2e-prototype/builders/build-scale-declaration-route.mjs
 # and re-run `npm run verify:vrt1` after any deliberate edit.
 scripts/vrt1-e2e-prototype/registration/scale-declaration.json
+
+# Generated EMILIA review fixture. Its exact bytes and SHA-256 are part of the
+# emailed reproducibility packet and must remain stable across restores.
+scripts/emilia-aeb-option2/signed-nonproduction-fixture.json
