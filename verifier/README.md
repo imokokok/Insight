@@ -82,6 +82,7 @@ if (result.keyStatus === 'revoked') throw new Error('signer key is revoked');
 | `expired`                  | Past the receipt's own validity deadline                               |
 | `recheck_binding_mismatch` | A recheck's `requestHash` ≠ its `originalRequestHash`                  |
 | `unsupported_schema`       | `schemaVersion` is not one this library knows                          |
+| `unsupported_profile`      | Signature is sound, but the signed semantic profile is unknown         |
 | `malformed`                | Missing or wrongly-typed field                                         |
 
 ### Two things to know about `valid`
@@ -113,6 +114,12 @@ Branch on `code` / `expired`.
 | 2             | `ExecutionReceipt`    | 32                                              |
 | 3             | `ExecutionReceipt`    | 43                                              |
 | 4             | `ExecutionReceipt`    | 44 (v3 + signed `environment`)                  |
+| 5             | `ExecutionReceipt`    | 45 (v4 + signed semantic `profileId`)           |
+
+For v5, the verifier accepts only a known immutable `profileId`. Pin the profile
+and registry release URLs published by `/.well-known/oracle-keys.json`; do not
+infer commitment rules from mutable prose. A valid signature under an unknown
+profile returns `unsupported_profile` and fails closed.
 
 `originalUid` is typed `string` in the v2 recheck and `bytes32` in the v3
 recheck. That asymmetry is deliberate and preserved: a UID is a 32-byte hash, so

@@ -107,7 +107,7 @@ describe('executionReceipt', () => {
     const receipt = await mod.signExecutionReceipt(baseInput());
     expect(receipt).not.toBeNull();
     expect(receipt!.attester).toBe(TEST_ATTESTER);
-    expect(receipt!.schemaVersion).toBe(4);
+    expect(receipt!.schemaVersion).toBe(5);
     expect(receipt!.data.priceExecutionStatus).toBe('FAITHFUL');
     expect(receipt!.data.bindingMode).toBe('VERIFIED');
     // v4 signs the deployment as the 44th MESSAGE field (Headless H7); the
@@ -115,7 +115,8 @@ describe('executionReceipt', () => {
     // environment never entered v3's signature).
     expect(receipt!.data.environment).toBe('nonproduction');
     expect(receipt!.eip712.domain).toEqual(mod.EXECUTION_DOMAIN);
-    expect(receipt!.eip712.types).toEqual(mod.EXECUTION_TYPES_V4);
+    expect(receipt!.data.profileId).toBe(mod.CURRENT_EXECUTION_PROFILE_ID);
+    expect(receipt!.eip712.types).toEqual(mod.EXECUTION_TYPES_V5);
 
     const result = await mod.verifyExecutionReceipt(receipt!);
     expect(result.valid).toBe(true);
@@ -125,13 +126,33 @@ describe('executionReceipt', () => {
     expect(result.bindingMode).toBe('VERIFIED');
   });
 
-  it('signs against any PUBLISHED layout on request (sample of v1..v4, N1)', async () => {
+  it('rejects a genuinely signed v5 receipt whose semantic profile is unknown', async () => {
+    const mod = await import('../executionReceipt');
+    const original = await mod.signExecutionReceipt(baseInput());
+    const data = {
+      ...original!.data,
+      profileId: `0x${'ff'.repeat(32)}` as `0x${string}`,
+    };
+    const args = mod.executionTypedDataArgs(data);
+    const { privateKeyToAccount } = await import('viem/accounts');
+    const { hashTypedData } = await import('viem');
+    const signature = await privateKeyToAccount(TEST_PRIVATE_KEY).signTypedData(args);
+    const receipt = { ...original!, data, signature, uid: hashTypedData(args) };
+
+    const result = await mod.verifyExecutionReceipt(receipt);
+    expect(result.valid).toBe(false);
+    expect(result.cryptographicValid).toBe(true);
+    expect(result.profileId).toBe(data.profileId);
+    expect(result.reason).toContain('unsupported_profile');
+  });
+
+  it('signs against any PUBLISHED layout on request (sample of v1..v5, N1)', async () => {
     // The published-but-never-exercised layout was the one thing keeping F0
     // open (VERITAS round 2, N1). The sample path can now sign the same facts
-    // against v1..v4 so every published layout has a verifiable sample.
+    // against v1..v5 so every published layout has a verifiable sample.
     const mod = await import('../executionReceipt');
 
-    for (const version of [1, 2, 3, 4] as const) {
+    for (const version of [1, 2, 3, 4, 5] as const) {
       const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: version }));
       expect(receipt).not.toBeNull();
       expect(receipt!.schemaVersion).toBe(version);
@@ -145,7 +166,9 @@ describe('executionReceipt', () => {
             ? mod.EXECUTION_TYPES_V2
             : version === 3
               ? mod.EXECUTION_TYPES_V3
-              : mod.EXECUTION_TYPES_V4;
+              : version === 4
+                ? mod.EXECUTION_TYPES_V4
+                : mod.EXECUTION_TYPES_V5;
       expect(receipt!.eip712.types).toEqual(expectedTypes);
 
       // And it round-trips: the verify path routes on the SIGNED version.
@@ -162,9 +185,23 @@ describe('executionReceipt', () => {
     const mod = await import('../executionReceipt');
     const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: 99 }));
     expect(receipt).not.toBeNull();
-    expect(receipt!.schemaVersion).toBe(4);
+    expect(receipt!.schemaVersion).toBe(5);
     const result = await mod.verifyExecutionReceipt(receipt!);
     expect(result.valid).toBe(true);
+  });
+
+  it('fails closed when verification is asked to route an unsupported signed version', async () => {
+    const mod = await import('../executionReceipt');
+    const receipt = await mod.signExecutionReceipt(baseInput());
+    const unsupported = {
+      ...receipt!,
+      data: { ...receipt!.data, schemaVersion: 99 },
+    };
+    const result = await mod.verifyExecutionReceipt(unsupported);
+    expect(result.valid).toBe(false);
+    expect(result.cryptographicValid).toBe(false);
+    expect(result.schemaVersion).toBe(99);
+    expect(result.reason).toContain('unsupported_schema');
   });
 
   it('rejects a tampered execution status (signature no longer matches)', async () => {
@@ -375,6 +412,7 @@ describe('executionReceipt', () => {
     expect(mod.executionTypesForSchemaVersion(2).ExecutionReceipt).toHaveLength(32);
     expect(mod.executionTypesForSchemaVersion(3).ExecutionReceipt).toHaveLength(43);
     expect(mod.executionTypesForSchemaVersion(4).ExecutionReceipt).toHaveLength(44);
+    expect(mod.executionTypesForSchemaVersion(5).ExecutionReceipt).toHaveLength(45);
     // v1 layout must not declare the v2-only fields.
     const v1Names = mod.executionTypesForSchemaVersion(1).ExecutionReceipt.map((f) => f.name);
     expect(v1Names).not.toContain('bindingMode');
@@ -408,9 +446,13 @@ describe('executionReceipt', () => {
     const v4Names = mod.executionTypesForSchemaVersion(4).ExecutionReceipt.map((f) => f.name);
     expect(v4Names.slice(0, 43)).toEqual(v3Names);
     expect(v4Names[43]).toBe('environment');
+    const v5Names = mod.executionTypesForSchemaVersion(5).ExecutionReceipt.map((f) => f.name);
+    expect(v5Names.slice(0, 44)).toEqual(v4Names);
+    expect(v5Names[44]).toBe('profileId');
     expect(mod.executionTypesForSchemaVersion(3)).not.toBe(mod.EXECUTION_TYPES_V4);
     expect(mod.executionDomainForSchemaVersion(3)).toEqual(mod.EXECUTION_DOMAIN);
     expect(mod.executionDomainForSchemaVersion(4)).toEqual(mod.EXECUTION_DOMAIN);
+    expect(mod.executionDomainForSchemaVersion(5)).toEqual(mod.EXECUTION_DOMAIN);
     expect(mod.executionDomainForSchemaVersion(2)).toEqual(mod.EXECUTION_DOMAIN);
     expect(mod.executionDomainForSchemaVersion(1)).toEqual(mod.EXECUTION_DOMAIN);
     expect('environment' in mod.executionDomainForSchemaVersion(4)).toBe(false);
@@ -785,25 +827,32 @@ describe('executionReceipt frozen layouts and pairing', () => {
     expect(result.executionStatus).toBe('FAITHFUL');
   });
 
-  it('projects v2/v3 to their own key sets and leaves v4 unchanged', async () => {
+  it('projects v2-v4 to their own key sets and leaves current v5 unchanged', async () => {
     const mod = await import('../executionReceipt');
-    for (const version of [2, 3] as const) {
+    for (const version of [2, 3, 4] as const) {
       const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: version }));
       expect(receipt).not.toBeNull();
-      const expectedTypes = version === 2 ? mod.EXECUTION_TYPES_V2 : mod.EXECUTION_TYPES_V3;
+      const expectedTypes =
+        version === 2
+          ? mod.EXECUTION_TYPES_V2
+          : version === 3
+            ? mod.EXECUTION_TYPES_V3
+            : mod.EXECUTION_TYPES_V4;
       const projected = mod.projectExecutionDataForSchemaVersion(receipt!.data, version);
       expect(Object.keys(projected)).toEqual(expectedTypes.ExecutionReceipt.map((f) => f.name));
       const result = await mod.verifyExecutionReceipt({ ...receipt!, data: projected });
       expect(result.valid).toBe(true);
     }
-    // v3 must keep the CURRENT spellings (no executionStatus key) and v4 is
-    // returned untouched (identity, no copy).
+    // v3 keeps the current spellings; v4 projects out profileId; v5 is returned
+    // untouched (identity, no copy).
     const r3 = await mod.signExecutionReceipt(baseInput({ schemaVersion: 3 }));
     const p3 = mod.projectExecutionDataForSchemaVersion(r3!.data, 3);
     expect(p3).not.toHaveProperty('executionStatus');
     expect(p3).not.toHaveProperty('environment');
-    const r4 = await mod.signExecutionReceipt(baseInput());
-    expect(mod.projectExecutionDataForSchemaVersion(r4!.data, 4)).toBe(r4!.data);
+    const r4 = await mod.signExecutionReceipt(baseInput({ schemaVersion: 4 }));
+    expect(mod.projectExecutionDataForSchemaVersion(r4!.data, 4)).not.toHaveProperty('profileId');
+    const r5 = await mod.signExecutionReceipt(baseInput());
+    expect(mod.projectExecutionDataForSchemaVersion(r5!.data, 5)).toBe(r5!.data);
   });
 
   it('fails loudly instead of emitting a hole when a declared field is missing', async () => {

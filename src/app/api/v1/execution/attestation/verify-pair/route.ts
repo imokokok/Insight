@@ -25,6 +25,7 @@ import { z } from 'zod';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { getAttesterAddress, getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
+import { CURRENT_EXECUTION_PROFILE_ID } from '@/lib/attestations/executionProfiles';
 import {
   EXECUTION_ATTESTER_LABEL,
   EXECUTION_DOMAIN,
@@ -34,6 +35,7 @@ import {
   EXECUTION_SCHEMA_VERSION_V2,
   EXECUTION_SCHEMA_VERSION_V3,
   EXECUTION_SCHEMA_VERSION_V4,
+  EXECUTION_SCHEMA_VERSION_V5,
   CURRENT_EXECUTION_SCHEMA_VERSION,
 } from '@/lib/attestations/executionReceipt';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
@@ -68,9 +70,9 @@ const PreTradeAttestationSchema = z
 /** Loose envelope for the Execution Receipt (same philosophy). Accepts all
  *  published schema versions — v1 predates the signed binding fields, v2 adds
  *  bindingMode + preTradeSignedAt, v3 carries the full quote-basis, subject and
- *  scope commitments, and v4 (current) adds the signed `environment` message
- *  field. A literal(1) here would silently reject every real receipt, so we
- *  accept the supported schema set. */
+ *  scope commitments, v4 adds signed `environment`, and current v5 adds signed
+ *  `profileId`. A literal(1) here would silently reject every real receipt, so
+ *  we accept the supported schema set. */
 const ExecutionReceiptSchema = z
   .object({
     uid: z.string(),
@@ -79,6 +81,7 @@ const ExecutionReceiptSchema = z
       z.literal(EXECUTION_SCHEMA_VERSION_V2),
       z.literal(EXECUTION_SCHEMA_VERSION_V3),
       z.literal(EXECUTION_SCHEMA_VERSION_V4),
+      z.literal(EXECUTION_SCHEMA_VERSION_V5),
     ]),
     attester: z.string(),
     signature: z.string(),
@@ -174,6 +177,11 @@ export const GET = createApiHandler<
           attesterLabel: EXECUTION_ATTESTER_LABEL,
           registry: buildKeyRegistryConfig(attester, await getSampleAttesterAddress()),
           schemaVersion: CURRENT_EXECUTION_SCHEMA_VERSION,
+          semanticProfile: {
+            profileId: CURRENT_EXECUTION_PROFILE_ID,
+            registryPath: `/.well-known/oracle-registry/profiles/${CURRENT_EXECUTION_PROFILE_ID}`,
+            signedField: 'profileId',
+          },
           usage:
             'POST { "preTradeAttestation": <attestation>, "executionReceipt": <ExecutionReceipt> } ' +
             'to prove the two receipts describe the same authorized action and the ' +

@@ -63,7 +63,7 @@ import {
   EXECUTION_TYPES_V1,
   EXECUTION_TYPES_V2,
   EXECUTION_TYPES_V3,
-  EXECUTION_TYPES_V4,
+  EXECUTION_TYPES_V5,
   EXECUTION_PRIMARY_TYPE,
 } from '@/lib/attestations/executionReceipt';
 import type { AttestationInputV2 } from '@/lib/attestations/oracleSafetyAttestationV3';
@@ -570,7 +570,7 @@ async function main() {
 
       // The layout the receipt was actually signed with: current = v4 (44
       // fields = v3's 43 + the signed `environment` message field, H7).
-      const currentLayout = EXECUTION_TYPES_V4.ExecutionReceipt.map((f) => f.name);
+      const currentLayout = EXECUTION_TYPES_V5.ExecutionReceipt.map((f) => f.name);
       const receiptDataKeys = Object.keys(issue.receipt.data ?? {});
       const signedKeysMatchLayout =
         receiptDataKeys.length === currentLayout.length &&
@@ -616,10 +616,10 @@ async function main() {
             types: EXECUTION_TYPES_V3,
           },
           v4: {
-            signedFieldCount: EXECUTION_TYPES_V4.ExecutionReceipt.length,
+            signedFieldCount: EXECUTION_TYPES_V5.ExecutionReceipt.length,
             domain: EXECUTION_DOMAIN,
             primaryType: EXECUTION_PRIMARY_TYPE,
-            types: EXECUTION_TYPES_V4,
+            types: EXECUTION_TYPES_V5,
           },
         },
         onchain: {

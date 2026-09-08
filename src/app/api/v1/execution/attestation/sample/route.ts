@@ -12,7 +12,7 @@
  * beside it that strips away).
  *
  * GET /api/v1/execution/attestation/sample
- * GET /api/v1/execution/attestation/sample?schemaVersion=1   (also 2 | 3 | 4)
+ * GET /api/v1/execution/attestation/sample?schemaVersion=1   (also 2 | 3 | 4 | 5)
  *
  * The optional `schemaVersion` query signs the SAME synthetic facts against any
  * PUBLISHED layout, so a layout that has never been exercised by a sample is no
@@ -61,7 +61,7 @@ export const GET = createApiHandler<
   Record<string, string>
 >(
   async (request: NextRequest, context) => {
-    // Optional layout override: ?schemaVersion=1..4 signs the same synthetic
+    // Optional layout override: ?schemaVersion=1..5 signs the same synthetic
     // facts against that PUBLISHED layout (N1). Unknown values fall back to the
     // current layout inside buildExecutionMessage — the response reports what
     // was actually signed, so a caller can never mistake the layout.
@@ -69,7 +69,7 @@ export const GET = createApiHandler<
       request.nextUrl.searchParams.get('schemaVersion')
     );
     // Signed directly from synthetic facts — deliberately NOT routed through
-    // issueExecutionReceipt, whose v3/v4 collector reads the settlement off
+    // issueExecutionReceipt, whose v3+ collector reads the settlement off
     // chain. A fake tx hash would fail RPC lookup (502): the sample's purpose
     // is to demo the signature + verify loop, so the settlement facts are
     // supplied, clearly labelled synthetic, and never claimed as on-chain

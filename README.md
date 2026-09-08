@@ -11,6 +11,7 @@ Insight is an oracle transparency and risk infrastructure platform for DeFi. It 
 - [The Flagship: Pre-Trade Oracle Safety Check](#the-flagship-pre-trade-oracle-safety-check)
 - [Agent Guard SDK](#agent-guard-sdk)
 - [Independent Receipt Verification](#independent-receipt-verification)
+- [Protocol Release Isolation](#protocol-release-isolation)
 - [Oracle Watch: Always-On Cross-Oracle Monitoring](#oracle-watch-always-on-cross-oracle-monitoring)
 - [Key Features](#key-features)
 - [Supported Oracles](#supported-oracles)
@@ -131,6 +132,16 @@ The package supports v1, v2, v3, and v2/v3 recheck receipts. Its schema constant
 - **MCP tool** — `pre_trade_safety_check` (one of 37 tools).
 - **REST** — `GET /api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=100000`.
 - **Web** — interactive demo at `/ai`; the same lending check is embedded live on every position at `/safety-check`.
+
+## Protocol Release Isolation
+
+ExecutionReceipt v5 signs a content-addressed `profileId` alongside the receipt.
+That immutable profile fixes the commitment, sentinel, scale and verdict rules;
+`schemaVersion` continues to identify only the EIP-712 field layout. The public
+registry also exposes `registryRevision`, `effectiveFrom`, a small current
+pointer and immutable release/profile URLs. Partner work can therefore evolve in
+separate branches without silently changing the meaning of another partner's
+already-issued receipts. See [the oracle registry release policy](./docs/oracle-registry-release-policy.md).
 
 ## Oracle Watch: Always-On Cross-Oracle Monitoring
 

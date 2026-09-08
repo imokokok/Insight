@@ -60,6 +60,8 @@ export type VerifyCode =
   | 'recheck_binding_mismatch'
   /** `schemaVersion` is not one this library knows how to hash. */
   | 'unsupported_schema'
+  /** Signature is sound, but the signed semantic profile is not implemented. */
+  | 'unsupported_profile'
   /** Structurally malformed — a required field is missing or of the wrong type. */
   | 'malformed';
 

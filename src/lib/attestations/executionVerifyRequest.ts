@@ -9,9 +9,9 @@
  * All published schema versions are accepted: v1 predates the signed binding
  * fields, v2 (what issueExecutionReceipt emitted before the VERITAS pass) adds
  * bindingMode + preTradeSignedAt, v3 carries the full quote-basis, subject and
- * scope commitments, and v4 (the current emitter) adds the signed
- * `environment` message field. Rejecting any of them would break real receipts
- * before they ever reach the verifier.
+ * scope commitments, v4 adds signed `environment`, and current v5 adds signed
+ * `profileId`. Rejecting any of them would break real receipts before they ever
+ * reach the verifier.
  */
 
 import { z } from 'zod';
@@ -21,6 +21,7 @@ import {
   EXECUTION_SCHEMA_VERSION_V2,
   EXECUTION_SCHEMA_VERSION_V3,
   EXECUTION_SCHEMA_VERSION_V4,
+  EXECUTION_SCHEMA_VERSION_V5,
 } from '@/lib/attestations/executionReceipt';
 
 export const ExecutionVerifyBodySchema = z.object({
@@ -32,6 +33,7 @@ export const ExecutionVerifyBodySchema = z.object({
         z.literal(EXECUTION_SCHEMA_VERSION_V2),
         z.literal(EXECUTION_SCHEMA_VERSION_V3),
         z.literal(EXECUTION_SCHEMA_VERSION_V4),
+        z.literal(EXECUTION_SCHEMA_VERSION_V5),
       ]),
       attester: z.string(),
       signature: z.string(),

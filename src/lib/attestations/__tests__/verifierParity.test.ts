@@ -33,6 +33,7 @@ import {
   EXECUTION_TYPES_V2,
   EXECUTION_TYPES_V3,
   EXECUTION_TYPES_V4,
+  EXECUTION_TYPES_V5,
   executionTypedDataArgs,
   verifyExecutionReceipt as verifyExecutionReceiptInApp,
   type ExecutionReceipt,
@@ -214,6 +215,7 @@ describe('verifier layout parity', () => {
     ['executionV2', EXECUTION_TYPES_V2, verifierExecution.EXECUTION_TYPES_V2],
     ['executionV3', EXECUTION_TYPES_V3, verifierExecution.EXECUTION_TYPES_V3],
     ['executionV4', EXECUTION_TYPES_V4, verifierExecution.EXECUTION_TYPES_V4],
+    ['executionV5', EXECUTION_TYPES_V5, verifierExecution.EXECUTION_TYPES_V5],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ] as Array<[string, any, any]>)('%s types are identical', (_name, prod, ver) => {
     expect(JSON.stringify(ver)).toBe(JSON.stringify(prod));
@@ -259,7 +261,7 @@ describe('verifier layout parity', () => {
 });
 
 describe('offline Execution Receipt parity', () => {
-  it.each([1, 2, 3, 4])(
+  it.each([1, 2, 3, 4, 5])(
     'verifies a genuine v%s receipt with the same cryptographic result',
     async (schemaVersion) => {
       const now = nowSec();

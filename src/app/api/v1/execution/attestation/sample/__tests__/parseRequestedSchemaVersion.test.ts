@@ -39,6 +39,7 @@ describe('parseRequestedSchemaVersion (F14)', () => {
     expect(parseRequestedSchemaVersion('2')).toBe(2);
     expect(parseRequestedSchemaVersion('3')).toBe(3);
     expect(parseRequestedSchemaVersion('4')).toBe(4);
+    expect(parseRequestedSchemaVersion('5')).toBe(5);
     // Whitespace around an explicit version is tolerated (Number semantics).
     expect(parseRequestedSchemaVersion(' 4 ')).toBe(4);
   });

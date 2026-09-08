@@ -22,6 +22,7 @@ import {
   CANONICAL_REQUEST_TYPES,
   CANONICAL_REQUEST_PRIMARY_TYPE,
 } from '@/lib/attestations/canonicalRequestHash';
+import { EXECUTION_PROFILE_V1_ID } from '@/lib/attestations/executionProfiles';
 import {
   EXECUTION_DOMAIN,
   EXECUTION_PRIMARY_TYPE,
@@ -29,16 +30,22 @@ import {
   EXECUTION_SCHEMA_VERSION_V2,
   EXECUTION_SCHEMA_VERSION_V3,
   EXECUTION_SCHEMA_VERSION_V4,
+  EXECUTION_SCHEMA_VERSION_V5,
   EXECUTION_TYPES_V1,
   EXECUTION_TYPES_V2,
   EXECUTION_TYPES_V3,
   EXECUTION_TYPES_V4,
+  EXECUTION_TYPES_V5,
   EXECUTION_VALID_FOR_SECONDS,
   EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
   EXECUTION_REQUIRED_PARTICIPANT_COUNT,
   EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
 } from '@/lib/attestations/executionReceipt';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
+import {
+  CURRENT_ORACLE_REGISTRY_RELEASE,
+  CURRENT_ORACLE_REGISTRY_RELEASE_ID,
+} from '@/lib/attestations/oracleRegistryRelease';
 import {
   ATTESTATION_DOMAIN,
   ATTESTATION_TYPES,
@@ -125,6 +132,17 @@ export async function GET(request: NextRequest) {
   const body = {
     issuer: origin,
     mic: V2_ATTESTER_LABEL,
+    /** Publication metadata changes only during an explicit protocol release.
+     *  Ordinary partner/product deploys keep pointing to the same immutable
+     *  release, so a verifier can distinguish code deployment from protocol
+     *  publication. */
+    registryRevision: CURRENT_ORACLE_REGISTRY_RELEASE.registryRevision,
+    effectiveFrom: CURRENT_ORACLE_REGISTRY_RELEASE.effectiveFrom,
+    registryRelease: {
+      releaseId: CURRENT_ORACLE_REGISTRY_RELEASE_ID,
+      current: `${origin}/.well-known/oracle-registry/current.json`,
+      immutable: `${origin}/.well-known/oracle-registry/releases/${CURRENT_ORACLE_REGISTRY_RELEASE_ID}`,
+    },
     /** The EIP-712 attestation is signed by a secp256k1 key; the recovered
      *  signer address IS the public verification key. Trust a receipt only if
      *  its `attester` field equals one of these addresses AND it verifies
@@ -210,20 +228,14 @@ export async function GET(request: NextRequest) {
        * as with Watch. Its independence gate is the agent's own pre-trade basis,
        * carried forward — not an independent re-proof of oracle independence.
        *
-       * v4 (44 fields) is the current signing layout. `environment` — the
-       * deployment the receipt was signed in — is the 44th SIGNED MESSAGE field
-       * (Headless H7): v3 declared it on the EIP-712 domain, but domain
-       * separators only support the five standard fields, so it never entered
-       * the digest. The domain here is therefore the frozen three-field one,
-       * identical for every version, and the deployment separation lives in the
-       * message bytes. v3 (43 fields), v2 (32) and v1 (30) layouts are published
-       * as separate retired entries, each under the domain it actually signed
-       * with, so a stranger rebuilding a receipt of any version recovers the
-       * signer (Headless H6).
+       * v5 (45 fields) is current. It appends a signed `profileId` to v4. That
+       * content address selects immutable commitment/sentinel/verdict semantics,
+       * so mutable registry prose can no longer reinterpret a signed receipt.
+       * v1-v4 remain published as retired layouts.
        */
       ExecutionReceipt: {
-        schemaVersion: EXECUTION_SCHEMA_VERSION_V4,
-        eip712: descriptor(EXECUTION_DOMAIN, EXECUTION_TYPES_V4 as never, EXECUTION_PRIMARY_TYPE),
+        schemaVersion: EXECUTION_SCHEMA_VERSION_V5,
+        eip712: descriptor(EXECUTION_DOMAIN, EXECUTION_TYPES_V5 as never, EXECUTION_PRIMARY_TYPE),
         validForSeconds: EXECUTION_VALID_FOR_SECONDS,
         gates: {
           requiredParticipantCount: EXECUTION_REQUIRED_PARTICIPANT_COUNT,
@@ -232,41 +244,10 @@ export async function GET(request: NextRequest) {
            *  supplied; the binding value is always the one signed in the receipt. */
           defaultMaxSlippageBps: EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
         },
-        /** Commitment constructions a verifier must be able to OPEN from the
-         *  bytes alone. Written down because the rule was recoverable only by
-         *  trial (VERITAS round 2 found it on the fifth candidate) — one line
-         *  here saves the next verifier the guessing (N2). */
-        commitments: {
-          /** v3+: keccak256(concat(uid_1 ‖ uid_2 ‖ …)) over the ORDERED,
-           *  NON-ZERO gate uids of the quote basis, in route order (source
-           *  first). The zero bytes32 value is a fixed-layout sentinel for
-           *  "no gate", not a set member, and is omitted. Each retained uid
-           *  enters as its 32 raw bytes (0x stripped), NO separator, NO
-           *  sorting. Empty after omission → keccak256(""). */
-          preTradeUidsHash:
-            'keccak256(concat(non-zero uids in route order, 32 raw bytes each, no separator)); zero bytes32 is omitted; empty after omission -> keccak256("")',
-          /** v3+: keccak256(join(",", sorted unique field names)) over the
-           *  measurable notional fields that were genuinely measured. Universe:
-           *  [actualFeeUsd, executedAmountUsd, mevRiskBps, quotedAmountUsd].
-           *  Empty set → keccak256("") (VERITAS F2). */
-          measuredFieldsHash:
-            'keccak256(join(",", sorted unique measured field names)); universe + empty-set rule as for preTradeUidsHash',
-        },
-        /** Reserved VALUES a verifier must be able to INTERPRET from the bytes
-         *  alone (Headless round 3, 2026-09-02). The layout is frozen, so a
-         *  field that is undefined cannot be omitted — it carries a sentinel
-         *  instead of an honest-looking 0. */
-        sentinels: {
-          /** v3/v4: the paired pre-trade attestation did not exist at
-           *  execution (signed after the fill), so its age is undefined. 0
-           *  would read as the freshest possible gate; UINT32_MAX cannot be a
-           *  real age (the receipt's own validity window is 600s), and a
-           *  receipt carrying it is UNDETERMINED by the precedence rule. */
-          attestationAgeAtExecSeconds: {
-            value: 4294967295,
-            meaning:
-              'undefined — the paired pre-trade attestation did not exist at execution (signed after the fill); such a receipt is never FAITHFUL',
-          },
+        semanticProfile: {
+          profileId: EXECUTION_PROFILE_V1_ID,
+          immutable: `${origin}/.well-known/oracle-registry/profiles/${EXECUTION_PROFILE_V1_ID}`,
+          signedField: 'profileId',
         },
         /** Sample receipts are signed by the key below with role "sample" —
          *  a synthetic demo receipt is distinguishable from a real one by its
@@ -275,8 +256,24 @@ export async function GET(request: NextRequest) {
         verify: `${origin}/api/v1/execution/attestation/verify`,
         sample: `${origin}/api/v1/execution/attestation/sample`,
       },
+      /** v4 receipt (44 fields): frozen legacy layout. It signs environment but
+       *  not a semantic profile, so historical verifiers must use a registry
+       *  snapshot pinned alongside the receipt. */
+      ExecutionReceiptV4: {
+        schemaVersion: EXECUTION_SCHEMA_VERSION_V4,
+        retiredForSigning: true,
+        eip712: descriptor(EXECUTION_DOMAIN, EXECUTION_TYPES_V4 as never, EXECUTION_PRIMARY_TYPE),
+        semanticProfile: {
+          profileId: EXECUTION_PROFILE_V1_ID,
+          immutable: `${origin}/.well-known/oracle-registry/profiles/${EXECUTION_PROFILE_V1_ID}`,
+          signedField: null,
+          warning:
+            'profileId was not signed in v4; this describes current issuer behaviour, while historical verification still requires the registry snapshot pinned with the receipt',
+        },
+        verify: `${origin}/api/v1/execution/attestation/verify`,
+      },
       /**
-       * v3 receipt (43 fields): superseded by v4 (whose only change is the
+       * v3 receipt (43 fields): superseded by v4 (whose first change is the
        * signed `environment` message field) but kept published so receipts
        * already handed to counterparties keep verifying. Its declared
        * domain-`environment` never entered the digest, so the descriptor below

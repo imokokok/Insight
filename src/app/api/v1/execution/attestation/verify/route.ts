@@ -21,6 +21,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { getAttesterAddress, getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
+import { CURRENT_EXECUTION_PROFILE_ID } from '@/lib/attestations/executionProfiles';
 import {
   verifyExecutionReceipt,
   EXECUTION_ATTESTER_LABEL,
@@ -30,11 +31,13 @@ import {
   EXECUTION_TYPES_V2,
   EXECUTION_TYPES_V3,
   EXECUTION_TYPES_V4,
+  EXECUTION_TYPES_V5,
   EXECUTION_PRIMARY_TYPE,
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
   EXECUTION_SCHEMA_VERSION_V3,
   EXECUTION_SCHEMA_VERSION_V4,
+  EXECUTION_SCHEMA_VERSION_V5,
   CURRENT_EXECUTION_SCHEMA_VERSION,
   EXECUTION_VALID_FOR_SECONDS,
   EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
@@ -79,8 +82,7 @@ export const POST = createApiHandler<
       await getSampleAttesterAddress()
     );
     const trustedKey = trustedAttesterEntry(result.attester, result.executedAt, registry);
-    const cryptographicValid =
-      result.valid || (result.expired && result.reason === 'receipt_expired');
+    const cryptographicValid = result.cryptographicValid;
     const valid = result.valid && trustedKey !== null;
 
     return NextResponse.json(
@@ -101,6 +103,7 @@ export const POST = createApiHandler<
            *  trade was well-timed (verification != endorsement). */
           executionStatus: result.executionStatus,
           schemaVersion: attestation.schemaVersion,
+          profileId: result.profileId,
           reason:
             cryptographicValid && !trustedKey
               ? 'untrusted_attester: signature is valid but the signer is not an authorised production key'
@@ -132,6 +135,11 @@ export const GET = createApiHandler<
           attesterLabel: EXECUTION_ATTESTER_LABEL,
           registry: buildKeyRegistryConfig(attester, await getSampleAttesterAddress()),
           schemaVersion: CURRENT_EXECUTION_SCHEMA_VERSION,
+          semanticProfile: {
+            profileId: CURRENT_EXECUTION_PROFILE_ID,
+            registryPath: `/.well-known/oracle-registry/profiles/${CURRENT_EXECUTION_PROFILE_ID}`,
+            signedField: 'profileId',
+          },
           validForSeconds: EXECUTION_VALID_FOR_SECONDS,
           /** Default slippage bound, published so a holder knows the fallback a
            *  receipt used when no tighter per-action bound was supplied. The
@@ -178,6 +186,13 @@ export const GET = createApiHandler<
                 primaryType: EXECUTION_PRIMARY_TYPE,
               },
             },
+            [`${EXECUTION_SCHEMA_VERSION_V5}`]: {
+              eip712: {
+                domain: EXECUTION_DOMAIN,
+                types: EXECUTION_TYPES_V5,
+                primaryType: EXECUTION_PRIMARY_TYPE,
+              },
+            },
           },
           /** All published schema versions are accepted by the verifier. */
           supportedSchemaVersions: [
@@ -185,6 +200,7 @@ export const GET = createApiHandler<
             EXECUTION_SCHEMA_VERSION_V2,
             EXECUTION_SCHEMA_VERSION_V3,
             EXECUTION_SCHEMA_VERSION_V4,
+            EXECUTION_SCHEMA_VERSION_V5,
           ],
           /** The layout new receipts are signed with. */
           eip712: {
