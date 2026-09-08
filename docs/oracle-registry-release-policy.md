@@ -1,8 +1,9 @@
 # Oracle registry release policy
 
-This policy separates partner development from public protocol publication.
-Normal work may deploy application code; it must not silently change how an
-already-issued receipt is interpreted.
+This policy separates code presence on `main` from partner activation and public
+protocol publication. Normal work may deploy application code; it must not
+silently change any partner's admitted path or how an already-issued receipt is
+interpreted.
 
 ## The three version markers
 
@@ -20,10 +21,17 @@ promotion creates a new registry revision and release id.
 
 ## Partner isolation
 
-Each collaboration develops and tests its proposal in its own branch/worktree
-and owns its own evidence fixtures. Partner work may add a candidate profile or
-schema, but it must not edit an already-published profile/release or move the
-current release pointer as an incidental part of that work.
+`main` is the only long-lived development line. Every collaboration owns one
+content-addressed policy under `protocol/mainline/policies/`. The small
+`protocol/mainline/activations.json` pointer selects an append-only activation
+set, which maps each partner independently to exactly one immutable policy id. A
+commit, module, route or schema being present on `main` never activates it for a
+partner.
+
+Partner work may append a candidate policy, profile or schema, but it must not
+edit an already-published policy/profile/release or move another partner's
+activation. Updating one partner means appending a new policy version and
+changing only that partner's activation entry in an explicit promotion.
 
 Reusable protocol code is shared by version, never by mutable partner state.
 Integrators pin the signed profile id and immutable release URL, not whichever
@@ -46,6 +54,9 @@ A protocol release is a deliberate reviewable change with all of the following:
 7. Run type checks, the full Jest suite and the standalone verifier build.
 8. After deployment, fetch and archive all three public artifacts: the mutable
    key registry, current pointer and immutable release/profile documents.
+9. For shared protocol or activation changes, append one promotion record under
+   `protocol/mainline/promotions/` with a compatibility outcome for every
+   partner. CI rejects the change if any partner is absent.
 
 ## Compatibility rule
 
@@ -63,6 +74,12 @@ unknown, even if the UID and signature are otherwise genuine.
   release, cached for one year with `immutable`.
 - `/.well-known/oracle-registry/profiles/{profileId}` — immutable semantic
   profile, cached for one year with `immutable`.
+- `/.well-known/oracle-registry/integrations/current.json` — small mutable
+  pointer to the current partner activation set.
+- `/.well-known/oracle-registry/integration-sets/{activationSetId}` — immutable
+  partner-to-policy map.
+- `/.well-known/oracle-registry/integrations/{policyId}` — immutable partner
+  admission policy.
 
 The current pointer may advance. Content-addressed release and profile URLs must
 never change content or disappear.

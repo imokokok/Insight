@@ -143,6 +143,16 @@ export async function GET(request: NextRequest) {
       current: `${origin}/.well-known/oracle-registry/current.json`,
       immutable: `${origin}/.well-known/oracle-registry/releases/${CURRENT_ORACLE_REGISTRY_RELEASE_ID}`,
     },
+    /** Partner code may coexist on main without changing any integration.
+     *  Verifiers select an immutable policy id; only the activation set maps a
+     *  partner to a policy, and each mapping advances independently. */
+    partnerIntegrations: {
+      activationSetId: CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.activationSetId,
+      current: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.currentPath}`,
+      immutableSet: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.immutableSetPath}`,
+      immutablePolicyTemplate: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.immutablePolicyPathTemplate}`,
+      activationRule: CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.activationRule,
+    },
     /** The EIP-712 attestation is signed by a secp256k1 key; the recovered
      *  signer address IS the public verification key. Trust a receipt only if
      *  its `attester` field equals one of these addresses AND it verifies

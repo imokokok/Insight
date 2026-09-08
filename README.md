@@ -139,9 +139,12 @@ ExecutionReceipt v5 signs a content-addressed `profileId` alongside the receipt.
 That immutable profile fixes the commitment, sentinel, scale and verdict rules;
 `schemaVersion` continues to identify only the EIP-712 field layout. The public
 registry also exposes `registryRevision`, `effectiveFrom`, a small current
-pointer and immutable release/profile URLs. Partner work can therefore evolve in
-separate branches without silently changing the meaning of another partner's
-already-issued receipts. See [the oracle registry release policy](./docs/oracle-registry-release-policy.md).
+pointer and immutable release/profile URLs. All partner code can coexist on
+`main`: independently activated, content-addressed partner policies ensure that
+one collaboration cannot silently advance another collaboration's path. See
+[the oracle registry release policy](./docs/oracle-registry-release-policy.md).
+The end-to-end workflow is documented in
+[main-only partner isolation](./docs/mainline-partner-isolation.md).
 
 ## Oracle Watch: Always-On Cross-Oracle Monitoring
 

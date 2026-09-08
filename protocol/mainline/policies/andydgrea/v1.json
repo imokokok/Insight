@@ -1,0 +1,19 @@
+{
+  "policyId": "0xe556b47dbdb4e3d7cab2c4fb882ffe0b65d6c4750ac0ff5ce6ee2f0494d3b787",
+  "kind": "MainlinePartnerPolicy",
+  "policyVersion": 1,
+  "partnerId": "andydgrea",
+  "lifecycle": "verified",
+  "activation": "explicit-policy-id",
+  "surfaces": ["oracle-safety-check", "oracle-watch", "data-snapshot"],
+  "pins": {
+    "oracleRegistryReleaseIds": [
+      "0xd240af8f16adb282cbbbb9feb695f5bfb8cccde074af046fb7d4ca4c2d4c5c2e"
+    ],
+    "executionProfileIds": [],
+    "executionSchemaVersions": [],
+    "externalContracts": ["eth-usd:7-day-snapshot", "methodology-exchange:v1"]
+  },
+  "legacyRule": "Data and methodology comparisons pin registry release, query window and dataset digest; later mainline changes do not rewrite an earlier comparison.",
+  "productionReachability": "disabled"
+}

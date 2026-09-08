@@ -1,0 +1,19 @@
+{
+  "policyId": "0xb7b0ea5686628d8241cd269c45cf6ae462acc6b9f36843608358a00bb71691d6",
+  "kind": "MainlinePartnerPolicy",
+  "policyVersion": 1,
+  "partnerId": "veritas",
+  "lifecycle": "verified",
+  "activation": "explicit-policy-id",
+  "surfaces": ["oracle-safety-check", "execution-receipt", "pre-trade-binding"],
+  "pins": {
+    "oracleRegistryReleaseIds": [
+      "0xd240af8f16adb282cbbbb9feb695f5bfb8cccde074af046fb7d4ca4c2d4c5c2e"
+    ],
+    "executionProfileIds": [],
+    "executionSchemaVersions": [2, 3, 4],
+    "externalContracts": ["vrt1:8.6", "veritas-r6:F15-F16"]
+  },
+  "legacyRule": "The current r6 path remains on v4 and must verify against the receipt-adjacent registry snapshot; v5 is not activated implicitly.",
+  "productionReachability": "disabled"
+}

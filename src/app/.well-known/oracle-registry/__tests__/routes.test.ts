@@ -7,6 +7,11 @@ import {
   CURRENT_ORACLE_REGISTRY_RELEASE_ID,
 } from '@/lib/attestations/oracleRegistryRelease';
 import { computeReasonCodesHash } from '@/lib/attestations/reasonCodesHash';
+import {
+  CURRENT_PARTNER_ACTIVATION_SET,
+  CURRENT_PARTNER_ACTIVATION_SET_ID,
+  activePartnerIntegrationPolicy,
+} from '@/lib/protocol/partnerIntegrationRegistry';
 
 describe('content-addressed oracle registry routes', () => {
   it('serves an immutable semantic profile at the id signed into v5 receipts', async () => {
@@ -50,6 +55,38 @@ describe('content-addressed oracle registry routes', () => {
     const currentBody = await currentResponse.json();
     expect(currentBody.releaseId).toBe(CURRENT_ORACLE_REGISTRY_RELEASE_ID);
     expect(currentBody.registryRevision).toBe(CURRENT_ORACLE_REGISTRY_RELEASE.registryRevision);
+    expect(currentBody.partnerIntegrations.activationSetId).toBe(CURRENT_PARTNER_ACTIVATION_SET_ID);
+  });
+
+  it('serves an immutable activation set and independently addressable partner policy', async () => {
+    const currentRoute = await import('../integrations/current.json/route');
+    const currentResponse = await currentRoute.GET(
+      new Request(
+        'https://www.oracleinsight.xyz/.well-known/oracle-registry/integrations/current.json'
+      ) as never
+    );
+    const currentBody = await currentResponse.json();
+    expect(currentBody.activationSetId).toBe(CURRENT_PARTNER_ACTIVATION_SET_ID);
+
+    const setRoute = await import('../integration-sets/[activationSetId]/route');
+    const setResponse = await setRoute.GET(new Request('https://example.test/set') as never, {
+      params: Promise.resolve({ activationSetId: CURRENT_PARTNER_ACTIVATION_SET_ID }),
+    });
+    const setBody = await setResponse.json();
+    expect(setResponse.headers.get('Cache-Control')).toContain('immutable');
+    expect(setBody.activationSet).toEqual(CURRENT_PARTNER_ACTIVATION_SET);
+
+    const headless = activePartnerIntegrationPolicy('headless')!;
+    const policyRoute = await import('../integrations/[policyId]/route');
+    const policyResponse = await policyRoute.GET(
+      new Request('https://example.test/policy') as never,
+      {
+        params: Promise.resolve({ policyId: headless.policyId }),
+      }
+    );
+    const policyBody = await policyResponse.json();
+    expect(policyResponse.headers.get('Cache-Control')).toContain('immutable');
+    expect(policyBody.policy).toEqual(headless);
   });
 
   it('does not alias an unknown id to current content', async () => {
@@ -60,5 +97,13 @@ describe('content-addressed oracle registry routes', () => {
     });
     expect(response.status).toBe(404);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
+
+    const policyRoute = await import('../integrations/[policyId]/route');
+    const policyResponse = await policyRoute.GET(
+      new Request('https://www.oracleinsight.xyz/policy') as never,
+      { params: Promise.resolve({ policyId: unknown }) }
+    );
+    expect(policyResponse.status).toBe(404);
+    expect(policyResponse.headers.get('Cache-Control')).toBe('no-store');
   });
 });

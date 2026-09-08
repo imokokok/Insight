@@ -50,6 +50,7 @@ import {
   type ExecutionVerifyBody,
 } from '@/lib/attestations/executionVerifyRequest';
 import { buildKeyRegistryConfig, trustedAttesterEntry } from '@/lib/attestations/keyRegistryConfig';
+import { evaluateExecutionPolicy } from '@/lib/protocol/partnerIntegrationRegistry';
 
 const PUBLIC_MIDDLEWARES = {
   logging: true,
@@ -83,7 +84,17 @@ export const POST = createApiHandler<
     );
     const trustedKey = trustedAttesterEntry(result.attester, result.executedAt, registry);
     const cryptographicValid = result.cryptographicValid;
-    const valid = result.valid && trustedKey !== null;
+    const consumerPolicy = body.policyId
+      ? evaluateExecutionPolicy(body.policyId, result.schemaVersion, result.profileId)
+      : null;
+    const valid = result.valid && trustedKey !== null && (consumerPolicy?.valid ?? true);
+    const reason = !result.valid
+      ? result.reason
+      : cryptographicValid && !trustedKey
+        ? 'untrusted_attester: signature is valid but the signer is not an authorised production key'
+        : consumerPolicy && !consumerPolicy.valid
+          ? consumerPolicy.reason
+          : result.reason;
 
     return NextResponse.json(
       ApiResponseBuilder.success(
@@ -104,10 +115,8 @@ export const POST = createApiHandler<
           executionStatus: result.executionStatus,
           schemaVersion: attestation.schemaVersion,
           profileId: result.profileId,
-          reason:
-            cryptographicValid && !trustedKey
-              ? 'untrusted_attester: signature is valid but the signer is not an authorised production key'
-              : result.reason,
+          consumerPolicy,
+          reason,
         },
         { requestId: context.requestId }
       )
@@ -209,7 +218,7 @@ export const GET = createApiHandler<
             primaryType: EXECUTION_PRIMARY_TYPE,
           },
           usage:
-            'POST an ExecutionReceipt as { "attestation": <receipt> } to verify its signature and validity window.',
+            'POST an ExecutionReceipt as { "attestation": <receipt>, "policyId"?: <immutable relying-party policy> } to verify its signature, validity window and optional consumer admission contract.',
         },
         { requestId: context.requestId }
       )

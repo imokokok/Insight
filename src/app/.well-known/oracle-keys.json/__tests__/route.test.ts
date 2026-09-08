@@ -115,10 +115,15 @@ describe('.well-known/oracle-keys.json route', () => {
 
     // Product deployments and protocol publications are separate. A verifier
     // can pin the content-addressed release and see when it became effective.
-    expect(body.registryRevision).toBe('2026-09-08.1');
-    expect(body.effectiveFrom).toBe('2026-09-08');
+    expect(body.registryRevision).toBe('2026-09-09.1');
+    expect(body.effectiveFrom).toBe('2026-09-09');
     expect(body.registryRelease.releaseId).toMatch(/^0x[0-9a-f]{64}$/);
     expect(body.registryRelease.immutable).toContain(body.registryRelease.releaseId);
+    expect(body.partnerIntegrations.activationSetId).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(body.partnerIntegrations.immutableSet).toContain(
+      body.partnerIntegrations.activationSetId
+    );
+    expect(body.partnerIntegrations.activationRule).toContain('never activates');
 
     // Gate thresholds travel with the descriptor so a receipt is self-checking.
     expect(exec.gates.requiredParticipantCount).toBe(3);

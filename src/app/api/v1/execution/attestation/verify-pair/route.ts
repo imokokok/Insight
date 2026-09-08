@@ -43,6 +43,7 @@ import {
   verifyExecutionPair,
   type PreTradeAttestationInput,
 } from '@/lib/execution/verifyExecutionPair';
+import { evaluateExecutionPolicy } from '@/lib/protocol/partnerIntegrationRegistry';
 
 /** Loose envelope for the pre-trade attestation: only the top-level shape is
  *  enforced here; the crypto layer re-derives the hash, so a tampered `data`
@@ -90,6 +91,11 @@ const ExecutionReceiptSchema = z
   .passthrough();
 
 const VerifyPairBodySchema = z.object({
+  /** Optional verifier-selected integration policy. */
+  policyId: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/)
+    .optional(),
   preTradeAttestation: PreTradeAttestationSchema,
   executionReceipt: ExecutionReceiptSchema,
   /** v3 only: the destination pre-trade gate when the Execution Receipt commits
@@ -123,13 +129,29 @@ export const POST = createApiHandler<
       body.executionReceipt as never,
       body.destinationPreTradeAttestation as unknown as PreTradeAttestationInput | undefined
     );
+    const executionData = body.executionReceipt.data as Record<string, unknown>;
+    const consumerPolicy = body.policyId
+      ? evaluateExecutionPolicy(
+          body.policyId,
+          body.executionReceipt.schemaVersion,
+          typeof executionData.profileId === 'string' ? executionData.profileId : null
+        )
+      : null;
+    const pairedValid = result.pairedValid && (consumerPolicy?.valid ?? true);
+    const closedLoopStatus = pairedValid ? result.closedLoopStatus : 'PAIR_INVALID';
+    const reason = !result.pairedValid
+      ? result.reason
+      : consumerPolicy && !consumerPolicy.valid
+        ? consumerPolicy.reason
+        : result.reason;
 
     return NextResponse.json(
       ApiResponseBuilder.success(
         {
-          pairedValid: result.pairedValid,
-          closedLoopStatus: result.closedLoopStatus,
-          reason: result.reason,
+          pairedValid,
+          closedLoopStatus,
+          reason,
+          consumerPolicy,
           binding: result.binding,
           preTrade: {
             valid: result.preTrade.valid,
@@ -183,7 +205,7 @@ export const GET = createApiHandler<
             signedField: 'profileId',
           },
           usage:
-            'POST { "preTradeAttestation": <attestation>, "executionReceipt": <ExecutionReceipt> } ' +
+            'POST { "preTradeAttestation": <attestation>, "executionReceipt": <ExecutionReceipt>, "policyId"?: <immutable relying-party policy> } ' +
             'to prove the two receipts describe the same authorized action and the ' +
             'certify → execute → prove loop closed.',
           pairBinding: {

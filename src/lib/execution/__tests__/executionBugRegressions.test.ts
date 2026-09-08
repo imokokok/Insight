@@ -96,6 +96,19 @@ describe('bug #3 — the verify endpoint must accept both published schema versi
     });
     expect(parsed.success).toBe(false);
   });
+
+  it('accepts an optional immutable consumer policy id and rejects malformed ids', () => {
+    const attestation = { ...base, schemaVersion: EXECUTION_SCHEMA_VERSION_V2 };
+    expect(
+      ExecutionVerifyBodySchema.safeParse({
+        policyId: `0x${'a'.repeat(64)}`,
+        attestation,
+      }).success
+    ).toBe(true);
+    expect(
+      ExecutionVerifyBodySchema.safeParse({ policyId: 'headless-current', attestation }).success
+    ).toBe(false);
+  });
 });
 
 describe('bug #4 — unattributable ERC-20 legs use a real enum member', () => {

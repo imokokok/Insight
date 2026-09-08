@@ -25,6 +25,12 @@ import {
 } from '@/lib/attestations/executionReceipt';
 
 export const ExecutionVerifyBodySchema = z.object({
+  /** Optional relying-party admission contract. It is deliberately selected by
+   *  the verifier, not trusted from receipt data. */
+  policyId: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{64}$/)
+    .optional(),
   attestation: z
     .object({
       uid: z.string(),

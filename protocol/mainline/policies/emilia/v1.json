@@ -1,0 +1,22 @@
+{
+  "policyId": "0x0ce8536c90b23ebcb2952422e5eb67628da65c14b6bf5782849f20c0b137815b",
+  "kind": "MainlinePartnerPolicy",
+  "policyVersion": 1,
+  "partnerId": "emilia",
+  "lifecycle": "verified",
+  "activation": "explicit-policy-id",
+  "surfaces": ["oracle-safety-check", "pre-trade-binding", "aeb-adapter"],
+  "pins": {
+    "oracleRegistryReleaseIds": [
+      "0xd240af8f16adb282cbbbb9feb695f5bfb8cccde074af046fb7d4ca4c2d4c5c2e"
+    ],
+    "executionProfileIds": [],
+    "executionSchemaVersions": [],
+    "externalContracts": [
+      "emilia:aeb-option2:revision2",
+      "emilia-upstream:b03dcde235d19c898d06b02c2544cf4db891765d"
+    ]
+  },
+  "legacyRule": "The pinned AEB bridge remains partner-scoped and does not consume ExecutionReceipt unless a later policy explicitly adds it.",
+  "productionReachability": "disabled"
+}

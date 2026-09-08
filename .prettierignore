@@ -1,5 +1,6 @@
 node_modules
 .next
+.worktrees
 out
 build
 .github/cron-dist

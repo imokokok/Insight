@@ -115,6 +115,7 @@ const eslintConfig = defineConfig([
     'coverage/**',
     'dist/**',
     '**/dist/**',
+    '.worktrees/**',
     '.github/cron-dist/**',
     'ml/.venv/**',
     '*.config.{js,mjs,ts}',

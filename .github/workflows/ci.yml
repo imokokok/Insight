@@ -28,11 +28,17 @@ jobs:
       JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Enforce main-only protocol isolation
+        run: npm run protocol:check -- --base "$PROTOCOL_GOVERNANCE_BASE"
+        env:
+          PROTOCOL_GOVERNANCE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
       - run: npm run validate:ci
 
   smoke:

@@ -1,0 +1,59 @@
+{
+  "promotionId": "0xfc14be5ea0d4a6507dc0efbed6917a1d0f17fb78bd5cba8a70d3eb671cb0460c",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 1,
+  "effectiveFrom": "2026-09-09",
+  "classification": "backward-compatible governance and discovery extension",
+  "registryReleaseId": "0xf45d4c0272300f8132dba75c49b337557cf6fd7975b32fd14a8b4e13f430a8f7",
+  "predecessorReleaseId": "0xd240af8f16adb282cbbbb9feb695f5bfb8cccde074af046fb7d4ca4c2d4c5c2e",
+  "activationSetId": "0xe125edc38c0e89a4368203c0831728116a4430c329204fe4cc5db6144f8f4469",
+  "receiptImpact": "none: ExecutionReceipt v5 layout and profile are byte-for-byte unchanged",
+  "activationRule": "Source may coexist on main, but only an explicit immutable policy id can make it part of a partner verification path.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "compatible-no-repin",
+      "evidence": "The v5 profile and the previously supplied immutable release remain available; the Headless policy continues to pin that release explicitly."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "compatible-legacy-snapshot",
+      "evidence": "The r6 path remains on v4 and continues to require its receipt-adjacent registry snapshot; v5 is not activated for it."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "not-affected",
+      "evidence": "The pinned AEB option 2 bridge does not consume ExecutionReceipt and retains its own dependency and fixture pins."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "not-affected",
+      "evidence": "Frozen external-evidence/v0 rev6 remains an inline OracleSafetyCheck v2 adapter and does not resolve the execution current pointer."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "not-affected",
+      "evidence": "The merged evidence family remains pinned to OracleSafetyCheck v2 and Agent Passport System 6.0.0."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "compatible-explicit-admission",
+      "evidence": "Its trusted head remains operator-controlled at release, key-id, role and validity-window granularity; no raw-registry auto-admission occurs."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "not-affected",
+      "evidence": "The active pre-trade and Oracle Watch contracts are unchanged and have an independent policy id."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "compatible-pinned-record",
+      "evidence": "Existing durable records retain their receipt-adjacent schema, key and registry evidence."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "not-affected",
+      "evidence": "The data exchange remains fixed by registry release, query window and dataset digest."
+    }
+  ]
+}

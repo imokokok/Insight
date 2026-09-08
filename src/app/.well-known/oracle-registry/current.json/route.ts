@@ -20,6 +20,12 @@ export async function GET(request: NextRequest) {
       effectiveFrom: CURRENT_ORACLE_REGISTRY_RELEASE.effectiveFrom,
       release: `${origin}/.well-known/oracle-registry/releases/${CURRENT_ORACLE_REGISTRY_RELEASE_ID}`,
       stableRegistry: `${origin}/.well-known/oracle-keys.json`,
+      partnerIntegrations: {
+        activationSetId:
+          CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.activationSetId,
+        current: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.currentPath}`,
+        immutableSet: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.immutableSetPath}`,
+      },
     },
     {
       headers: {

@@ -10,6 +10,8 @@
 
 import { keccak256, toBytes } from 'viem';
 
+import { CURRENT_PARTNER_ACTIVATION_SET_ID } from '../protocol/partnerIntegrationRegistry';
+
 import {
   CANONICAL_REQUEST_DOMAIN,
   CANONICAL_REQUEST_PRIMARY_TYPE,
@@ -196,6 +198,29 @@ export const ORACLE_REGISTRY_RELEASE_2026_09_08_1 = {
   },
 } as const;
 
+/** First main-only governance release. It changes no receipt layout or semantic
+ * profile. Every existing partner remains pinned to its prior immutable policy;
+ * this release only publishes the independently addressable activation layer. */
+export const ORACLE_REGISTRY_RELEASE_2026_09_09_1 = {
+  ...ORACLE_REGISTRY_RELEASE_2026_09_08_1,
+  registryRevision: '2026-09-09.1',
+  effectiveFrom: '2026-09-09',
+  predecessorReleaseId: '0xd240af8f16adb282cbbbb9feb695f5bfb8cccde074af046fb7d4ca4c2d4c5c2e',
+  changes: [
+    'Partner development may coexist on main but is unreachable until an immutable partner policy is explicitly activated.',
+    'Each partner activation resolves independently; changing one policy pointer cannot advance another partner.',
+    'Shared protocol changes require a standalone promotion record and a complete compatibility matrix.',
+    'ExecutionReceipt v5 layout and semantic profile remain unchanged from the predecessor release.',
+  ],
+  mainlineIntegrationIsolation: {
+    activationSetId: CURRENT_PARTNER_ACTIVATION_SET_ID,
+    currentPath: '/.well-known/oracle-registry/integrations/current.json',
+    immutableSetPath: `/.well-known/oracle-registry/integration-sets/${CURRENT_PARTNER_ACTIVATION_SET_ID}`,
+    immutablePolicyPathTemplate: '/.well-known/oracle-registry/integrations/{policyId}',
+    activationRule: 'repository presence never activates an integration; only its policy id does',
+  },
+} as const;
+
 function canonicalJson(value: unknown): string {
   if (value === null || typeof value === 'boolean' || typeof value === 'number') {
     return JSON.stringify(value);
@@ -225,12 +250,23 @@ if (computedReleaseId !== ORACLE_REGISTRY_RELEASE_2026_09_08_1_ID) {
   );
 }
 
+export const ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID =
+  '0xf45d4c0272300f8132dba75c49b337557cf6fd7975b32fd14a8b4e13f430a8f7' as const;
+
+const computedMainlineReleaseId = releaseDigest(ORACLE_REGISTRY_RELEASE_2026_09_09_1);
+if (computedMainlineReleaseId !== ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID) {
+  throw new Error(
+    `Oracle registry release is immutable: expected ${ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID}, computed ${computedMainlineReleaseId}`
+  );
+}
+
 export const ORACLE_REGISTRY_RELEASES = Object.freeze({
   [ORACLE_REGISTRY_RELEASE_2026_09_08_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_08_1,
+  [ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_09_1,
 });
 
 /** The only pointer edited during an explicit protocol promotion. */
-export const CURRENT_ORACLE_REGISTRY_RELEASE_ID = ORACLE_REGISTRY_RELEASE_2026_09_08_1_ID;
+export const CURRENT_ORACLE_REGISTRY_RELEASE_ID = ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID;
 export const CURRENT_ORACLE_REGISTRY_RELEASE =
   ORACLE_REGISTRY_RELEASES[CURRENT_ORACLE_REGISTRY_RELEASE_ID];
 

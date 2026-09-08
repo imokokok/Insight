@@ -62,6 +62,7 @@ const customJestConfig = {
     '<rootDir>/.next/',
     '<rootDir>/src/mcp/__tests__/',
   ],
+  modulePathIgnorePatterns: ['<rootDir>/.worktrees/'],
 };
 
 module.exports = createJestConfig(customJestConfig);
