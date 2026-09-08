@@ -18,6 +18,43 @@ Insight gates → construct exact call → PriorSeal authorization → broadcast
 
 The SDK is a client-side orchestration layer, not a local risk engine. It sends every risk decision and signing operation to Insight with the supplied API key, so normal API authentication, credit metering, audit rows, and EIP-712 attestations remain intact.
 
+## InterAI external evidence v0
+
+Use the frozen rev6 inline profile to carry a signed Insight
+`OracleSafetyCheck` v2 attestation into InterAI. Inline mode is the default
+integration path because it does not require a new InterAI credential or a
+remote reference resolver.
+
+```ts
+import { buildInterAIExternalEvidenceRequestV0, InsightClient } from 'oracle-insight-guard';
+
+const insight = new InsightClient({ apiKey: process.env.INSIGHT_API_KEY! });
+const preTrade = await insight.preTrade({
+  asset: 'ETH',
+  destinationAsset: 'USDC',
+  chainId: 1,
+  action: 'swap',
+  tradeAmountUsd: 10_000,
+  schemaVersion: 2,
+});
+
+if (!preTrade.attestation) throw new Error('Insight attestation unavailable');
+
+const interAIRequest = await buildInterAIExternalEvidenceRequestV0(preTrade.attestation);
+// Merge interAIRequest.external_evidence into the authenticated InterAI
+// verify, batch, MCP or A2A request you already use.
+```
+
+The builder verifies the attestation UID and EIP-712 signature locally, pins
+the v2 schema and `SOURCE_ASSET_ONLY` scope, and copies only the frozen 26-field
+signed payload. It emits no authority, contribution, policy, score or decision
+fields. Expiry remains InterAI's verification-time result: an expired but
+authentic assertion can still be carried and recorded as `NOT_ALLOWED`.
+
+The helper deliberately does not fetch a URL and does not implement reference
+resolution. If a future deployment genuinely needs live reference mode, define
+its allowlisted origin, credential and trust scope explicitly before using it.
+
 ## Install
 
 ```bash
