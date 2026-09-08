@@ -18,7 +18,10 @@
  * verify round trip, tamper rejection, forged-signer rejection, expiry.
  */
 
-import { EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS } from '../executionReceipt';
+import {
+  EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
+  SUPPORTED_EXECUTION_SCHEMA_VERSIONS,
+} from '../executionReceipt';
 
 import type { ExecutionReceiptInput } from '../executionReceipt';
 
@@ -82,6 +85,11 @@ async function hashTypedDataForTest(args: {
 }
 
 describe('executionReceipt', () => {
+  it('publishes every supported layout through the sample metadata source', () => {
+    expect(SUPPORTED_EXECUTION_SCHEMA_VERSIONS).toEqual([1, 2, 3, 4, 5]);
+    expect(SUPPORTED_EXECUTION_SCHEMA_VERSIONS.join(',')).toBe('1,2,3,4,5');
+  });
+
   beforeEach(() => {
     jest.resetModules();
     process.env.ATTESTATION_SIGNER_PRIVATE_KEY = TEST_PRIVATE_KEY;

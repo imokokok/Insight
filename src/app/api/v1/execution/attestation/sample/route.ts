@@ -30,6 +30,7 @@ import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/li
 import {
   projectExecutionDataForSchemaVersion,
   signExecutionReceipt,
+  SUPPORTED_EXECUTION_SCHEMA_VERSIONS,
 } from '@/lib/attestations/executionReceipt';
 import { recordExecutionReceipt } from '@/lib/execution/executionReceiptAudit';
 
@@ -144,7 +145,7 @@ export const GET = createApiHandler<
 
     // The response carries the message projected onto the layout that was
     // actually signed (VERITAS round 3, closing F0/F8): `signExecutionReceipt`
-    // emits the full current-layout message, but when ?schemaVersion=1..3 was
+    // emits the full current-layout message, but when an older schemaVersion
     // asked for, the signature covered THAT layout. Shipping the full message
     // beside a smaller type declaration would be self-inconsistent for any
     // independent verifier that rebuilds typed data from the payload alone, so
@@ -168,7 +169,7 @@ export const GET = createApiHandler<
           verify: `${base}/api/v1/execution/attestation/verify`,
           note: 'SYNTHETIC sample: signed by the dedicated SAMPLE signer (see .well-known registry, role "sample"), so the synthetic nature is checkable from the signature itself. Settlement facts are demo data; never treat as evidence of a real trade.',
           signedSchemaVersion: receipt.schemaVersion,
-          layoutsAvailable: '1,2,3,4 — pass ?schemaVersion=N to sample any published layout (N1)',
+          layoutsAvailable: `${SUPPORTED_EXECUTION_SCHEMA_VERSIONS.join(',')} — pass ?schemaVersion=N to sample any published layout (N1)`,
         },
         { requestId: context.requestId }
       )
