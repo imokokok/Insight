@@ -12,6 +12,8 @@
  *   - ALL published schema layouts (v1 30 / v2 32 / v3 43 / v4 44) so a receipt
  *     of any version can be re-typed without fetching anything (VERITAS F0)
  *   - the pre-trade gate envelopes (quotedPrice is DERIVED from them)
+ *   - both gates' raw provider-observation preimages, so their signed hashes,
+ *     participant counts and agreement figures are independently recomputable
  *   - the canonical request preimage, so `requestHash` is openable and
  *     recomputable (VERITAS F6)
  *   - the on-chain tx hash / block / pool, so the fill can be re-collected
@@ -34,11 +36,13 @@
  *     `nonproduction`. Structural verification (fields, signature, verdict) is
  *     unaffected; identity verification (did Insight's production key sign) is
  *     NOT claimed.
- *   - the receipt is NOT anchored. Anchoring is the stated next step, not a
- *     claim made here.
+ *   - the receipt is NOT anchored. The demo gates are signed before the
+ *     observed settlement in real wall-clock order, but the issuer still
+ *     controls `checkedAt`; only the planned Bitcoin-first experiment can make
+ *     that ordering independent of the issuer.
  *   - the receipt signs quoteVenueIndependent=false: this demo derives the
- *     quoted price from the execution venue's OWN pre-swap mid (re-expressed as
- *     USD through the two legs). The pre-trade gates in this package are demo
+ *     quoted price from the execution venue's OWN gate-block mid (re-expressed
+ *     as USD through the two legs). The pre-trade gates in this package are demo
  *     records whose "consensus" was set to that same mid — a demo shortcut, not
  *     a production construction (production oracle clients are never the venue).
  *
@@ -50,7 +54,11 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
-import { verifyExecutionReceipt, EXECUTION_DOMAIN } from '@/lib/attestations/executionReceipt';
+import {
+  verifyExecutionReceipt,
+  EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
+  EXECUTION_DOMAIN,
+} from '@/lib/attestations/executionReceipt';
 import {
   EXECUTION_TYPES_V1,
   EXECUTION_TYPES_V2,
@@ -62,6 +70,7 @@ import type { AttestationInputV2 } from '@/lib/attestations/oracleSafetyAttestat
 import { signAttestationV3 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import {
+  computeProviderObservationsHash,
   deriveCrossProviderAgreement,
   deriveParticipantCount,
 } from '@/lib/attestations/providerObservationsHash';
@@ -87,13 +96,17 @@ const USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const WETH = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const SLOT0_SELECTOR = '0x3850c7bd';
 
-const MAX_SLIPPAGE_BPS = 100;
-const GATE_LEAD_SECONDS = 30;
+// VERIFIED receipts must carry the execution policy committed before the fill.
+// Keep the exporter on the same single source of truth as the issuer so a
+// later policy hardening cannot leave this evidence generator silently stale.
+const MAX_SLIPPAGE_BPS = EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS;
 /** Search window / candidate budget. publicnode serves eth_getLogs ~100 blocks
  *  back on the free tier, and qualifying (single-counterparty) fills are
  *  sparse, so both are overridable for a re-run:
- *   SEARCH_BLOCKS=100 MAX_CANDIDATES=150 npx tsx scripts/export-execution-receipt-bytes.ts */
-const SEARCH_BLOCKS = Number(process.env.SEARCH_BLOCKS ?? 40);
+ *   FORWARD_WAIT_BLOCKS=12 MAX_CANDIDATES=150 npx tsx scripts/export-execution-receipt-bytes.ts */
+const FORWARD_WAIT_BLOCKS = Number(process.env.FORWARD_WAIT_BLOCKS ?? 12);
+const FORWARD_MAX_WAIT_MS = Number(process.env.FORWARD_MAX_WAIT_MS ?? 180_000);
+const FORWARD_POLL_MS = Number(process.env.FORWARD_POLL_MS ?? 4_000);
 const MAX_CANDIDATES = Number(process.env.MAX_CANDIDATES ?? 25);
 
 const hex = (n: number) => '0x' + n.toString(16);
@@ -106,15 +119,29 @@ interface LiveReceipt {
 }
 
 async function rpc<T>(method: string, params: unknown[]): Promise<T> {
-  const res = await fetch(RPC, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-  });
-  const json = (await res.json()) as { result?: T; error?: unknown };
-  if (json.error) throw new Error(`${method} -> ${JSON.stringify(json.error)}`);
-  return json.result as T;
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    try {
+      const res = await fetch(RPC, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+      });
+      if (!res.ok) throw new Error(`${method} -> HTTP ${res.status}`);
+      const json = (await res.json()) as { result?: T; error?: unknown };
+      if (json.error) throw new Error(`${method} -> ${JSON.stringify(json.error)}`);
+      return json.result as T;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 4) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 750));
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(`${method} failed`);
 }
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 interface PoolSwap {
   soldToken: string;
@@ -240,15 +267,63 @@ async function main() {
   const outdir = process.argv[2] ?? join(homedir(), '.workbuddy', 'veritas-execution-bytes');
   mkdirSync(outdir, { recursive: true });
 
-  const latest = Number(await rpc<string>('eth_blockNumber', []));
-  const swapLogs = await rpc<Array<{ transactionHash: string; data: string }>>('eth_getLogs', [
-    {
-      address: POOL,
-      topics: [SWAP_TOPIC],
-      fromBlock: hex(latest - SEARCH_BLOCKS),
-      toBlock: hex(latest),
-    },
+  // Sign both directional gates BEFORE looking at any eligible settlement.
+  // The next qualifying swap chooses which gate is source and which is
+  // destination. This makes a FAITHFUL result chronologically honest in this
+  // run (while retaining the standing caveat that checkedAt is issuer time,
+  // not independent Bitcoin time).
+  const gateBlockNumber = Number(await rpc<string>('eth_blockNumber', []));
+  const gateBlock = await rpc<{ timestamp: string }>('eth_getBlockByNumber', [
+    hex(gateBlockNumber),
+    false,
   ]);
+  const gateBlockTs = Number(gateBlock.timestamp);
+  const gateMidWethPerUsdc = await midWethPerUsdcAt(gateBlockNumber);
+  if (!(gateMidWethPerUsdc > 0)) throw new Error('gate quote block has no usable pool mid');
+
+  const wethAssetId = `eip155:1/erc20:${WETH}`;
+  const usdcAssetId = `eip155:1/erc20:${USDC}`;
+  const gateMs = Date.now();
+  const wethToUsdcGateInput = preTradeInput(
+    wethAssetId,
+    usdcAssetId,
+    1 / gateMidWethPerUsdc,
+    gateMs
+  );
+  const usdcToWethGateInput = preTradeInput(usdcAssetId, wethAssetId, 1, gateMs);
+  const wethToUsdcGate = await signAttestationV3(wethToUsdcGateInput);
+  const usdcToWethGate = await signAttestationV3(usdcToWethGateInput);
+  if (!wethToUsdcGate || !usdcToWethGate) throw new Error('forward gate signing failed');
+
+  const swapLogs: Array<{ transactionHash: string; data: string }> = [];
+  const targetBlock = gateBlockNumber + FORWARD_WAIT_BLOCKS;
+  const deadline = Date.now() + FORWARD_MAX_WAIT_MS;
+  let nextBlock = gateBlockNumber + 1;
+  console.log(
+    `forward gates signed at ${Math.floor(gateMs / 1000)}; watching blocks ${nextBlock}..${targetBlock}`
+  );
+  while (Date.now() < deadline && nextBlock <= targetBlock) {
+    const head = Number(await rpc<string>('eth_blockNumber', []));
+    // Public RPC requests can land on replicas a block or two behind the node
+    // that answered eth_blockNumber. Stay two blocks behind the reported head
+    // so eth_getLogs never asks a lagging replica for its future.
+    const stableHead = head - 2;
+    if (stableHead >= nextBlock) {
+      const toBlock = Math.min(stableHead, targetBlock);
+      const batch = await rpc<Array<{ transactionHash: string; data: string }>>('eth_getLogs', [
+        {
+          address: POOL,
+          topics: [SWAP_TOPIC],
+          fromBlock: hex(nextBlock),
+          toBlock: hex(toBlock),
+        },
+      ]);
+      swapLogs.push(...batch);
+      nextBlock = toBlock + 1;
+      console.log(`observed through block ${toBlock}; pool swaps=${swapLogs.length}`);
+    }
+    if (nextBlock <= targetBlock) await wait(FORWARD_POLL_MS);
+  }
   if (swapLogs.length === 0) throw new Error('no swaps in window');
 
   let lastErr: unknown = null;
@@ -331,33 +406,37 @@ async function main() {
         continue;
       }
 
-      const mid = await midWethPerUsdcAt(blockNum - 1);
-      if (!(mid > 0)) continue;
-      // The quote basis is the pool's mid at the close of the previous block.
-      // Record that block's timestamp so the signed price-state age at
-      // execution (F5) is derivable from on-chain data alone.
-      const preSwapBlock = await rpc<{ timestamp: string }>('eth_getBlockByNumber', [
-        hex(blockNum - 1),
-        false,
-      ]);
-      const preSwapBlockTs = Number(preSwapBlock?.timestamp ?? 0);
+      // Reject a block whose timestamp did not advance past the gate's signed
+      // checkedAt. This should be rare, but accepting it would make the pair's
+      // chronology false even though the gate was emitted first in wall time.
+      if (executedAt < Math.floor(gateMs / 1000)) continue;
 
-      const usdWeth = 1 / mid;
+      const usdWeth = 1 / gateMidWethPerUsdc;
       const srcUsd = swap.soldToken === USDC ? 1 : usdWeth;
       const dstUsd = swap.boughtToken === USDC ? 1 : usdWeth;
 
       const sourceAssetId = `eip155:1/erc20:${swap.soldToken}`;
       const destAssetId = `eip155:1/erc20:${swap.boughtToken}`;
 
-      const gateMs = (executedAt - GATE_LEAD_SECONDS) * 1000;
+      // This pool always has one USDC leg. That leg gives us one genuinely
+      // measured notional field without inventing an FX conversion: at the
+      // declared USD scale (1e6), nominal USDC base units are exactly the
+      // signed executedAmountUsd integer. Whether USDC was paid or received is
+      // recorded so an independent verifier can locate the same Transfer log.
+      const usdcWasSold = swap.soldToken === USDC;
+      const executedAmountUsdRaw = usdcWasSold ? picked.sold : picked.bought;
+      const executedAmountUsd = Number(executedAmountUsdRaw) / 1e6;
+
       // Hold the INPUTS, not just the signed gates, so the self-check can
       // assert the signed counts/agreement equal what the presented
       // observations derive to (VERITAS round 3 N6).
-      const srcGateInput = preTradeInput(sourceAssetId, destAssetId, srcUsd, gateMs);
-      const destGateInput = preTradeInput(destAssetId, sourceAssetId, dstUsd, gateMs);
-      const sourceGate = await signAttestationV3(srcGateInput);
-      const destGate = await signAttestationV3(destGateInput);
-      if (!sourceGate || !destGate) throw new Error('gate signing failed');
+      const wethWasSold = swap.soldToken === WETH;
+      const srcGateInput = wethWasSold ? wethToUsdcGateInput : usdcToWethGateInput;
+      const destGateInput = wethWasSold ? usdcToWethGateInput : wethToUsdcGateInput;
+      const sourceGate = wethWasSold ? wethToUsdcGate : usdcToWethGate;
+      const destGate = wethWasSold ? usdcToWethGate : wethToUsdcGate;
+      const sourceObservations = srcGateInput.providerObservations ?? [];
+      const destinationObservations = destGateInput.providerObservations ?? [];
 
       const issue = await issueExecutionReceipt({
         preTradeUid: sourceGate.uid as `0x${string}`,
@@ -371,7 +450,7 @@ async function main() {
         // never a separately-hardcoded figure that can drift from the evidence.
         participantCount: srcGateInput.participantCount,
         sourceGroupCount: 3,
-        preTradeSignedAt: executedAt - GATE_LEAD_SECONDS,
+        preTradeSignedAt: Math.floor(gateMs / 1000),
         quotedPrice: 0, // VERIFIED binding derives it from the gates
         maxSlippageBps: MAX_SLIPPAGE_BPS,
         txHash,
@@ -380,13 +459,16 @@ async function main() {
         // --- v3 honest claims (VERITAS F3/F4/F5/F6/F7) ---
         // Insight observed this settlement; it did not perform it.
         claimRole: 'THIRD_PARTY_OBSERVATION',
-        // The quote is the venue's own pre-swap mid re-expressed as USD; it is
+        // The quote is the venue's own gate-block mid re-expressed as USD; it is
         // NOT independent of the venue where the order filled (F3). Silence
         // must not read as independence.
         quoteVenueIndependent: false,
         quoteBasis: 'PREV_BLOCK_CLOSE',
-        quoteBlockNumber: blockNum - 1,
-        priceStateAgeAtExecSeconds: preSwapBlockTs > 0 ? executedAt - preSwapBlockTs : 0,
+        quoteBlockNumber: gateBlockNumber,
+        priceStateAgeAtExecSeconds: gateBlockTs > 0 ? executedAt - gateBlockTs : 0,
+        // Measured directly from the USDC Transfer leg. Supplying it causes
+        // measuredFieldsHash to commit the non-empty set {executedAmountUsd}.
+        executedAmountUsd,
       });
       if (!issue.ok) throw new Error(`issue failed: ${issue.code} ${issue.message}`);
 
@@ -426,8 +508,22 @@ async function main() {
       const gateObservationHashesDiffer =
         String(sourceGate.data.providerObservationsHash).toLowerCase() !==
         String(destGate.data.providerObservationsHash).toLowerCase();
-      const measuredFieldsOpen =
-        computeMeasuredFieldsHash([]).toLowerCase() ===
+      // F16 (VERITAS round 5): a signed providerObservationsHash is only
+      // independently useful when the package ships the entries that open it.
+      // Keep both preimages beside the gates and recompute every carried
+      // aggregate from them before writing the package.
+      const sourceObservationHashRecomputed = computeProviderObservationsHash(sourceObservations);
+      const destinationObservationHashRecomputed =
+        computeProviderObservationsHash(destinationObservations);
+      const sourceObservationHashMatches =
+        sourceObservationHashRecomputed.toLowerCase() ===
+        String(sourceGate.data.providerObservationsHash).toLowerCase();
+      const destinationObservationHashMatches =
+        destinationObservationHashRecomputed.toLowerCase() ===
+        String(destGate.data.providerObservationsHash).toLowerCase();
+      const measuredFieldNames = ['executedAmountUsd'] as const;
+      const measuredFieldsHashMatches =
+        computeMeasuredFieldsHash(measuredFieldNames).toLowerCase() ===
         String(issue.receipt.data.measuredFieldsHash).toLowerCase();
       // N6 (VERITAS round 3): the signed gate numbers must equal what the
       // presented observations derive to — participantCount = included count,
@@ -442,14 +538,28 @@ async function main() {
       const destAgreementDerives =
         Number(destGate.data.crossProviderAgreementBps) ===
         Math.round(destGateInput.crossProviderAgreement * 1e4);
+      if (
+        !sourceObservationHashMatches ||
+        !destinationObservationHashMatches ||
+        !sourceCountDerives ||
+        !sourceAgreementDerives ||
+        !destCountDerives ||
+        !destAgreementDerives
+      ) {
+        throw new Error('provider-observation preimage self-check failed');
+      }
+      const sourceEnvelopeSignedAt = Math.floor(Date.parse(sourceGate.signedAt) / 1000);
+      const destEnvelopeSignedAt = Math.floor(Date.parse(destGate.signedAt) / 1000);
+      const gateCheckedAtMatchesSigningWallClock =
+        Math.abs(Number(sourceGate.data.checkedAt) - sourceEnvelopeSignedAt) <= 2 &&
+        Math.abs(Number(destGate.data.checkedAt) - destEnvelopeSignedAt) <= 2;
 
       const expectedDeltaBps = ((swap.price - srcUsd / dstUsd) / (srcUsd / dstUsd)) * 10_000;
       // Independent recompute of the verdict, mirroring deriveExecutionStatus:
       // the signed verdict can only be FAITHFUL/DEVIATED when the gate was
-      // signed BEFORE the fill. This demo backfills a historical swap, so the
-      // gates were signed after settlement and the expected verdict is
-      // UNDETERMINED (PRE_TRADE_AFTER_EXECUTION) — Headless H4. Claiming
-      // FAITHFUL here would reproduce exactly the bug the finding named.
+      // signed BEFORE the fill. This exporter now emits the gates first and
+      // watches forward for a settlement inside their signed window. If that
+      // chronology ever fails, UNDETERMINED is the only honest result.
       const precedenceHolds =
         issue.binding.preTradeSignedAt > 0 && issue.binding.preTradeSignedAt <= executedAt;
       const expectedStatus = !precedenceHolds
@@ -475,12 +585,13 @@ async function main() {
           honestyLabels: [
             'signing key is a TEST key (anvil default), NOT the production attester key; the signed `environment` MESSAGE field is nonproduction (v4: v3 declared environment on the EIP-712 domain, which never entered the signature — Headless H7); structural verification is unaffected, identity verification is NOT claimed',
             'receipt is NOT anchored; anchoring remains the stated next step',
-            "the quoted price is the execution venue's OWN pre-swap mid (block before the swap) re-expressed as USD; the receipt signs quoteVenueIndependent=false and quoteBasis=PREV_BLOCK_CLOSE accordingly (VERITAS F3/F4)",
+            "the quoted price is the execution venue's OWN gate-block mid, re-expressed as USD; the receipt signs quoteVenueIndependent=false and quoteBasis=PREV_BLOCK_CLOSE accordingly (VERITAS F3/F4/N12)",
             'the pre-trade gates in this package are DEMO records: their consensus was set to the venue mid (a demo shortcut) and their observations carry demo feed ids derived from the priced asset. Production pre-trade clients are never the execution venue. The two gates over two different assets carry DIFFERENT providerObservationsHash values (the placeholder-gate test from VERITAS round 2 holds here by construction)',
-            'each gate derives participantCount and crossProviderAgreement from the observations it presents (VERITAS round 3 N6): count = its included observations, agreement = 1 - (max-min)/max over the included values — the demo values are identical, so agreement signs at 10000 bps (perfect), not a hand-set figure beside them',
-            'fillStatus grades the EXECUTION OUTCOME of the fill (full/partial/reverted) — it is NOT a size verdict against the request: executedAmountUsd is honestly signed as unmeasured, so no signed field claims what the fill size was relative to the $50,000 request. A scope rename (priceFillStatus) is planned for the next layout revision (F9)',
+            'the package ships every raw provider-observation entry for both gates; each signed providerObservationsHash, participantCount and crossProviderAgreementBps is independently recomputable from those preimages (VERITAS F16/N6). The demo values are identical, so agreement signs at 10000 bps (perfect), not a hand-set figure beside hidden evidence',
+            "executedAmountUsd is genuinely measured from the direct pool's USDC Transfer leg (nominal 1 USDC = 1 USD for this field, scale 1e6). This is a transparent measurement convention, not an independent depeg claim",
+            "fillStatus grades the EXECUTION OUTCOME of the observed pool leg (full/partial/reverted); it is NOT a claim that this third-party swap fulfilled the package's synthetic $50,000 request. The measured executedAmountUsd makes the size visible but does not change that scope (F9)",
             "attribution names the pool's DIRECT COUNTERPARTY as subject/taker: the single party that paid the source token into the pool and received and kept the destination token. executedPrice = that party's realised price (destination received / source paid), which equals the pool leg exactly because no fee path or onward routing exists; aggregator-fee and multi-party routes are SKIPPED, never mis-graded by naming an intermediate as trader or reading the pool leg as the trader's fill (Headless H1/H2/H3)",
-            "this demo backfills a HISTORICAL swap, so the gates were signed after the settlement: the receipt carries the gates' real signature time as preTradeSignedAt, which is later than the fill, and the signed verdict is therefore UNDETERMINED with reason PRE_TRADE_AFTER_EXECUTION. Precedence is NOT claimed for this package; a forward demo (gate signed before execution) is required to sign FAITHFUL (Headless H4)",
+            "the demo gates were signed before the observed settlement in real wall-clock order and the receipt preserves their signed checkedAt values. This supports the package's internal chronology, but checkedAt remains issuer-controlled until a Bitcoin anchor independently fixes the gate's latest possible creation time (F12 standing boundary)",
           ],
         },
         schemas: {
@@ -531,9 +642,15 @@ async function main() {
             'counterparty-side: executedPrice = destination received from the pool / source paid into the pool by the named party — its realised price (H3), which for this archetype equals the pool leg exactly (no fee path, no onward routing, no collection from others); the Transfer-side reconstruction reconciles with the pool Swap event as a consistency check (H2); everything else is skipped, never mis-graded (Headless H1/H2/H3)',
           legs: { soldToken: swap.soldToken, boughtToken: swap.boughtToken },
           poolSwapAmounts: { soldHuman: swap.soldHuman, boughtHuman: swap.boughtHuman },
-          preSwapBlockNumber: blockNum - 1,
-          preSwapBlockTs,
-          preSwapMidWethPerUsdc: mid,
+          counterpartyTransferAmounts: {
+            soldRaw: picked.sold,
+            boughtRaw: picked.bought,
+            soldDecimals: sourceDecimals,
+            boughtDecimals: destDecimals,
+          },
+          quoteBlockNumber: gateBlockNumber,
+          quoteBlockTs: gateBlockTs,
+          quoteMidWethPerUsdc: gateMidWethPerUsdc,
           independentExpectedDeltaBps: expectedDeltaBps,
           independentExpectedStatus: expectedStatus,
         },
@@ -541,6 +658,36 @@ async function main() {
           sourceGate,
           destinationGate: destGate,
           note: 'quotedPrice in the receipt is DERIVED from these gates (VERIFIED binding), not caller-supplied. Gate consensus here was set to the venue mid (demo shortcut, see honestyLabels)',
+        },
+        // F16: raw evidence that opens each gate's providerObservationsHash and
+        // lets a stranger recompute the signed participantCount/agreement.
+        providerObservationPreimages: {
+          canonicalization:
+            'ABI-encode each (provider, feedId, value, timestamp, dataAgeSeconds, included, exclusionReason) tuple; keccak256 each encoding; byte-sort the entry hashes; concat; keccak256. Empty list -> keccak256(empty).',
+          source: {
+            entries: sourceObservations,
+            signedHash: sourceGate.data.providerObservationsHash,
+            recomputedHash: sourceObservationHashRecomputed,
+            hashMatches: sourceObservationHashMatches,
+            signedParticipantCount: sourceGate.data.participantCount,
+            derivedParticipantCount: deriveParticipantCount(sourceObservations),
+            signedCrossProviderAgreementBps: sourceGate.data.crossProviderAgreementBps,
+            derivedCrossProviderAgreementBps: Math.round(
+              deriveCrossProviderAgreement(sourceObservations) * 1e4
+            ),
+          },
+          destination: {
+            entries: destinationObservations,
+            signedHash: destGate.data.providerObservationsHash,
+            recomputedHash: destinationObservationHashRecomputed,
+            hashMatches: destinationObservationHashMatches,
+            signedParticipantCount: destGate.data.participantCount,
+            derivedParticipantCount: deriveParticipantCount(destinationObservations),
+            signedCrossProviderAgreementBps: destGate.data.crossProviderAgreementBps,
+            derivedCrossProviderAgreementBps: Math.round(
+              deriveCrossProviderAgreement(destinationObservations) * 1e4
+            ),
+          },
         },
         // F6: the canonical request preimage. recompute requestHash with
         //   hashTypedData({ domain, types, primaryType, message }) and compare
@@ -563,25 +710,36 @@ async function main() {
             matchesDestinationGate: destinationRequestHashMatches,
           },
         },
-        // F2: which notional fields were measured. This demo measured none of
-        // the four notional fields (price only was derived from Transfer
-        // amounts), so the signed commitment is the empty-set hash
-        // keccak256("") — openable by enumerating the 16 subsets.
+        // F2/F13: which notional fields were measured. executedAmountUsd is
+        // measured exactly from the USDC Transfer leg, so the commitment is a
+        // non-empty set and the comma separator is exercised in shipped bytes.
         measuredFields: {
           signedHash: issue.receipt.data.measuredFieldsHash,
-          measured: [] as string[],
+          measured: [...measuredFieldNames],
           enumerationNote:
             'any of the 16 subsets of [actualFeeUsd, executedAmountUsd, mevRiskBps, quotedAmountUsd] -> keccak256(join(",", sorted unique names)); separator is a comma; empty set = keccak256("")',
-          emptySetHashMatches: measuredFieldsOpen,
+          commitmentMatches: measuredFieldsHashMatches,
+          evidence: {
+            field: 'executedAmountUsd',
+            convention:
+              'nominal USDC amount on the direct counterparty-to-pool or pool-to-counterparty Transfer leg; 1 USDC = 1 USD for this field',
+            usdcToken: USDC,
+            usdcRole: usdcWasSold ? 'source_paid_to_pool' : 'destination_received_from_pool',
+            usdcRawAmount: executedAmountUsdRaw,
+            usdcDecimals: 6,
+            signedUsdScale: 1_000_000,
+            signedValueEqualsUsdcRawAmount:
+              BigInt(issue.receipt.data.executedAmountUsd) === executedAmountUsdRaw,
+          },
         },
         // N2 (VERITAS round 2): the preTradeUidsHash construction, written
         // down so the next verifier does not recover it by trial.
         preTradeUidsHashRule: {
           construction:
-            'keccak256(concat(uid_1, uid_2, ...)) over the ordered gate uids of the quote basis, in route order (source first)',
+            'keccak256(concat(uid_1, uid_2, ...)) over the ordered NON-ZERO gate uids of the quote basis, in route order (source first)',
           encoding:
-            'each uid enters as its 32 raw bytes (0x stripped); NO separator; NO sorting; two-leg route -> [sourceGateUid, destinationGateUid]',
-          emptySet: 'keccak256("") — the SELF_REPORTED case',
+            'zero bytes32 is a fixed-layout sentinel for no gate and is omitted; each retained uid enters as its 32 raw bytes (0x stripped); NO separator; NO sorting; two-leg route -> [sourceGateUid, destinationGateUid]',
+          emptySet: 'empty after zero-sentinel omission -> keccak256("")',
         },
         receipt: issue.receipt,
         facts: {
@@ -603,7 +761,10 @@ async function main() {
             `closed loop closes only when BOTH gates verify: ${pair.closedLoopStatus} with destinationPreTradeUidMatch=${pair.binding.destinationPreTradeUidMatch} and preTradeUidsHashMatch=${pair.binding.preTradeUidsHashMatch} (F1)`,
             `requestHash recomputes from the canonical preimage and matches both the source gate and the receipt: ${requestHashMatches} (F6)`,
             `destination gate requestHash recomputes from its own preimage (destination-leg view of the same request): ${destinationRequestHashMatches} (F11)`,
+            `measuredFieldsHash opens to the non-empty set {executedAmountUsd}: ${measuredFieldsHashMatches}; signed executedAmountUsd ${issue.receipt.data.executedAmountUsd} == USDC Transfer base units ${executedAmountUsdRaw}: ${BigInt(issue.receipt.data.executedAmountUsd) === executedAmountUsdRaw} (F2/F13)`,
+            `gate checkedAt values match their actual signing wall clock within 2 seconds: ${gateCheckedAtMatchesSigningWallClock}; both precede executedAt=${executedAt}: ${Number(sourceGate.data.checkedAt) <= executedAt && Number(destGate.data.checkedAt) <= executedAt} (H4 honesty guard; F12 issuer-time limitation remains disclosed)`,
             `the two gates over two different assets carry DIFFERENT providerObservationsHash values: ${gateObservationHashesDiffer} (placeholder-gate test, VERITAS round 2)`,
+            `both provider observation preimages open their signed hashes: source ${sourceObservationHashMatches}, destination ${destinationObservationHashMatches} (F16)`,
             `gate counts & agreement derive from the presented observations (VERITAS round 3 N6): source participantCount ${sourceGate.data.participantCount} == ${srcGateInput.participantCount} included observations: ${sourceCountDerives}, agreementBps ${sourceGate.data.crossProviderAgreementBps} == ${Math.round(srcGateInput.crossProviderAgreement * 1e4)}: ${sourceAgreementDerives}; destination participantCount ${destGate.data.participantCount} == ${destGateInput.participantCount}: ${destCountDerives}, agreementBps ${destGate.data.crossProviderAgreementBps} == ${Math.round(destGateInput.crossProviderAgreement * 1e4)}: ${destAgreementDerives}`,
             `subject=${issue.receipt.data.subject}, taker=${issue.receipt.data.taker}, claimRole=${issue.receipt.data.claimRole} (F6)`,
             `quoteVenueIndependent=${issue.receipt.data.quoteVenueIndependent}, quoteBasis=${issue.receipt.data.quoteBasis}, quoteBlockNumber=${issue.receipt.data.quoteBlockNumber} (F3/F4)`,

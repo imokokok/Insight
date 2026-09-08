@@ -237,12 +237,14 @@ export async function GET(request: NextRequest) {
          *  trial (VERITAS round 2 found it on the fifth candidate) — one line
          *  here saves the next verifier the guessing (N2). */
         commitments: {
-          /** v3+: keccak256(concat(uid_1 ‖ uid_2 ‖ …)) over the ORDERED gate
-           *  uids of the quote basis, in route order (source first). Each uid
+          /** v3+: keccak256(concat(uid_1 ‖ uid_2 ‖ …)) over the ORDERED,
+           *  NON-ZERO gate uids of the quote basis, in route order (source
+           *  first). The zero bytes32 value is a fixed-layout sentinel for
+           *  "no gate", not a set member, and is omitted. Each retained uid
            *  enters as its 32 raw bytes (0x stripped), NO separator, NO
-           *  sorting. Empty set → keccak256("") (the SELF_REPORTED case). */
+           *  sorting. Empty after omission → keccak256(""). */
           preTradeUidsHash:
-            'keccak256(concat(uids in route order, 32 raw bytes each, no separator)); empty set -> keccak256("")',
+            'keccak256(concat(non-zero uids in route order, 32 raw bytes each, no separator)); zero bytes32 is omitted; empty after omission -> keccak256("")',
           /** v3+: keccak256(join(",", sorted unique field names)) over the
            *  measurable notional fields that were genuinely measured. Universe:
            *  [actualFeeUsd, executedAmountUsd, mevRiskBps, quotedAmountUsd].

@@ -15,7 +15,8 @@
  *   - `executionReceipt.data.requestHash` === `preTradeAttestation.data.requestHash`
  *   - v3: when the receipt commits to a SECOND gate, that gate must be presented
  *     and its uid must equal `executionReceipt.data.destinationPreTradeUid`, and
- *     `preTradeUidsHash` must recompute from the presented gates in order (F1) —
+ *     `preTradeUidsHash` must recompute from the presented non-zero gate uids in
+ *     order; zero bytes32 is a sentinel, not a set member (F1/F15) —
  *     this is what stops the denominator of a two-leg quote being swapped for a
  *     different gate after signing.
  *   - chain + asset ids corroborate (informational; the hashes above are the
@@ -87,7 +88,8 @@ export interface ExecutionPairBinding {
    *  matches `data.destinationPreTradeUid`. True trivially on v1/v2 (which bind
    *  one gate) and on a v3 receipt that commits to no destination gate. */
   destinationPreTradeUidMatch: boolean;
-  /** v3: `data.preTradeUidsHash` recomputes from the presented gates, in order.
+  /** v3: `data.preTradeUidsHash` recomputes from the presented non-zero gate
+   *  uids, in order. The zero bytes32 sentinel is omitted.
    *  True trivially on v1/v2, which do not carry the commitment. */
   preTradeUidsHashMatch: boolean;
   /** Settlement chain in the execution receipt matches the pre-trade's subjectChainId. */

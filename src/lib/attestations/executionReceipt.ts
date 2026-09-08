@@ -631,8 +631,9 @@ export interface ExecutionReceiptData {
    *  source consensus over destination consensus, so this gate supplies the
    *  entire volatile leg; v2 signed one uid and shipped this one unbound. */
   destinationPreTradeUid?: `0x${string}`;
-  /** v3 only: commitment to the ordered set of gates the quote was built from.
-   *  Generalises to multi-leg routes. Empty-set hash when no gate is proven. */
+  /** v3 only: commitment to the ordered set of non-zero gate uids the quote was
+   *  built from. The zero bytes32 sentinel is omitted; empty-set hash when no
+   *  gate is proven. Generalises to multi-leg routes. */
   preTradeUidsHash?: `0x${string}`;
   requestHash: `0x${string}`;
   sourceAssetId: string;
@@ -822,7 +823,8 @@ export interface ExecutionReceiptInput {
    *  that claims a bound quote basis; absent means the hash commitment binds
    *  only the source gate. */
   destinationPreTradeUid?: `0x${string}`;
-  /** v3: the ordered set of gate uids the quote was built from. Defaults to
+  /** v3: the ordered set of non-zero gate uids the quote was built from. Zero
+   *  bytes32 is a fixed-layout sentinel and is omitted by the hash. Defaults to
    *  [preTradeUid, destinationPreTradeUid] when the latter is supplied, and to
    *  [preTradeUid] otherwise — the receipt must never claim an ordered set it
    *  did not use. */
