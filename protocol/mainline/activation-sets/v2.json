@@ -1,0 +1,18 @@
+{
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "kind": "MainlinePartnerActivationSet",
+  "activationVersion": 2,
+  "predecessorActivationSetId": "0xe125edc38c0e89a4368203c0831728116a4430c329204fe4cc5db6144f8f4469",
+  "rule": "Presence on main never activates an integration. Each partner resolves only the immutable policy id named here; changing one entry cannot change another.",
+  "partners": {
+    "agent-passport": "0x11d4736a2c0a2c23f3a2d46f863d3ebb64e2b738f8da4a02bd12a30368578a43",
+    "andydgrea": "0xe556b47dbdb4e3d7cab2c4fb882ffe0b65d6c4750ac0ff5ce6ee2f0494d3b787",
+    "emilia": "0x0ce8536c90b23ebcb2952422e5eb67628da65c14b6bf5782849f20c0b137815b",
+    "frontier-compute": "0xca3bd5acb9d70f9e9755fad44e87cff1122f88986a6c61b33d93a49e3bb15861",
+    "headless": "0xd510bd9f29be0b896aed2e2b95200eab25cb9e03430a456f1bee3df7a17de158",
+    "interai": "0xb539451842dc4e907d6fcea012aa094f4fea3c3acd2fd054aa4106848f602239",
+    "raul": "0x5a80afffbb667b62014c727fae35e9f00edd6ca99555baa1c4cc79d0650768d0",
+    "vaara": "0x248f339e382efefaf20c9caad0ed6ee3db75775b5b5649b3d2421bb28d376341",
+    "veritas": "0xb7b0ea5686628d8241cd269c45cf6ae462acc6b9f36843608358a00bb71691d6"
+  }
+}

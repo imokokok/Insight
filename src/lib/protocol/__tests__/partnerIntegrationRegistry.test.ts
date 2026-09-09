@@ -29,6 +29,8 @@ describe('main-only partner integration isolation', () => {
   it('admits Headless v5 only with the profile its policy pins', () => {
     const policy = activePartnerIntegrationPolicy('headless');
     expect(policy).not.toBeNull();
+    expect(policy!.policyVersion).toBe(2);
+    expect(policy!.pins.executionSchemaVersions).toEqual([5]);
 
     expect(evaluateExecutionPolicy(policy!.policyId, 5, EXECUTION_PROFILE_V1_ID)).toEqual(
       expect.objectContaining({
@@ -39,6 +41,19 @@ describe('main-only partner integration isolation', () => {
     );
     expect(evaluateExecutionPolicy(policy!.policyId, 5, `0x${'f'.repeat(64)}`)).toEqual(
       expect.objectContaining({ valid: false, reason: 'profile_not_admitted_by_policy' })
+    );
+    expect(evaluateExecutionPolicy(policy!.policyId, 4, null)).toEqual(
+      expect.objectContaining({ valid: false, reason: 'schema_not_admitted_by_policy:4' })
+    );
+  });
+
+  it('keeps the prior Headless policy addressable without leaving it active', () => {
+    const priorPolicyId = '0xe9b9f708122b25998d55b7176aaac5e150c54651e36bf85ed947a061434819bb';
+    const prior = partnerIntegrationPolicyById(priorPolicyId);
+    expect(prior).toEqual(expect.objectContaining({ partnerId: 'headless', policyVersion: 1 }));
+    expect(CURRENT_PARTNER_ACTIVATION_SET.partners.headless).not.toBe(priorPolicyId);
+    expect(evaluateExecutionPolicy(priorPolicyId, 4, null)).toEqual(
+      expect.objectContaining({ valid: true, reason: 'legacy_snapshot_required' })
     );
   });
 

@@ -80,21 +80,22 @@ function policyFiles(root) {
 
 const policies = new Map();
 const calculatedPolicyIds = new Map();
-const policyPartnerIds = new Set();
+const policyVersions = new Set();
 for (const path of policyFiles(policyRoot)) {
   const policy = json(path);
   const expected = contentId(withoutId(policy, 'policyId'));
-  calculatedPolicyIds.set(policy.partnerId, expected);
+  calculatedPolicyIds.set(`${policy.partnerId}@${policy.policyVersion}`, expected);
   if (!process.argv.includes('--calculate') && policy.policyId !== expected) {
     throw new Error(`${relative(workspace, path)} policyId must be ${expected}`);
   }
   if (!process.argv.includes('--calculate') && policies.has(policy.policyId)) {
     throw new Error(`Duplicate policyId ${policy.policyId}`);
   }
-  if (!process.argv.includes('--calculate') && policyPartnerIds.has(policy.partnerId)) {
-    throw new Error(`Partner ${policy.partnerId} has more than one active v1 policy file`);
+  const versionKey = `${policy.partnerId}@${policy.policyVersion}`;
+  if (!process.argv.includes('--calculate') && policyVersions.has(versionKey)) {
+    throw new Error(`Partner policy version ${versionKey} is duplicated`);
   }
-  policyPartnerIds.add(policy.partnerId);
+  policyVersions.add(versionKey);
   policies.set(process.argv.includes('--calculate') ? expected : policy.policyId, policy);
 }
 
@@ -118,11 +119,12 @@ for (const [partnerId, policyId] of Object.entries(activations.partners)) {
     throw new Error(`Activation ${partnerId} must resolve to its own immutable policy`);
   }
 }
-if (
-  !process.argv.includes('--calculate') &&
-  policies.size !== Object.keys(activations.partners).length
-) {
-  throw new Error('Every checked-in partner policy must be named exactly once by activations.json');
+if (!process.argv.includes('--calculate')) {
+  for (const partnerId of Object.keys(activations.partners)) {
+    if (![...policies.values()].some((policy) => policy.partnerId === partnerId)) {
+      throw new Error(`Partner ${partnerId} has no immutable policy`);
+    }
+  }
 }
 
 const currentPromotionPointer = json(currentPromotionPath);

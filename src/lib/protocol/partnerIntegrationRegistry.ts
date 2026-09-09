@@ -1,10 +1,12 @@
 import activationSetV1Json from '../../../protocol/mainline/activation-sets/v1.json';
+import activationSetV2Json from '../../../protocol/mainline/activation-sets/v2.json';
 import activationPointerJson from '../../../protocol/mainline/activations.json';
 import agentPassportJson from '../../../protocol/mainline/policies/agent-passport/v1.json';
 import andydgreaJson from '../../../protocol/mainline/policies/andydgrea/v1.json';
 import emiliaJson from '../../../protocol/mainline/policies/emilia/v1.json';
 import frontierComputeJson from '../../../protocol/mainline/policies/frontier-compute/v1.json';
 import headlessJson from '../../../protocol/mainline/policies/headless/v1.json';
+import headlessV2Json from '../../../protocol/mainline/policies/headless/v2.json';
 import interaiJson from '../../../protocol/mainline/policies/interai/v1.json';
 import raulJson from '../../../protocol/mainline/policies/raul/v1.json';
 import vaaraJson from '../../../protocol/mainline/policies/vaara/v1.json';
@@ -49,6 +51,7 @@ export interface PartnerActivationSet {
   activationSetId: `0x${string}`;
   kind: 'MainlinePartnerActivationSet';
   activationVersion: number;
+  predecessorActivationSetId?: `0x${string}`;
   rule: string;
   partners: Record<PartnerId, `0x${string}`>;
 }
@@ -64,6 +67,7 @@ const rawPolicies = [
   emiliaJson,
   frontierComputeJson,
   headlessJson,
+  headlessV2Json,
   interaiJson,
   raulJson,
   vaaraJson,
@@ -92,10 +96,14 @@ export const PARTNER_INTEGRATION_POLICIES = Object.freeze(
 
 const activationPointer = activationPointerJson as PartnerActivationPointer;
 const activationSetV1 = activationSetV1Json as unknown as PartnerActivationSet;
+const activationSetV2 = activationSetV2Json as unknown as PartnerActivationSet;
 
 export const PARTNER_ACTIVATION_SETS = Object.freeze({
   [activationSetV1.activationSetId]: Object.freeze(activationSetV1),
+  [activationSetV2.activationSetId]: Object.freeze(activationSetV2),
 });
+
+export const PARTNER_ACTIVATION_SET_V1_ID = activationSetV1.activationSetId;
 
 export const CURRENT_PARTNER_ACTIVATION_SET =
   PARTNER_ACTIVATION_SETS[

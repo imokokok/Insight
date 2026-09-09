@@ -56,6 +56,19 @@ describe('content-addressed oracle registry routes', () => {
     expect(currentBody.releaseId).toBe(CURRENT_ORACLE_REGISTRY_RELEASE_ID);
     expect(currentBody.registryRevision).toBe(CURRENT_ORACLE_REGISTRY_RELEASE.registryRevision);
     expect(currentBody.partnerIntegrations.activationSetId).toBe(CURRENT_PARTNER_ACTIVATION_SET_ID);
+    expect(releaseBody.release.executionReceipt.legacyProfileResolution).toEqual(
+      expect.objectContaining({
+        signingStatus: 'retired',
+        productionAdmission: 'forbidden',
+        resultScope: 'relative-to-exact-registry-snapshot',
+        globallyCanonicalVerdict: false,
+      })
+    );
+    expect(releaseBody.release.executionReceipt.legacyProfileResolution.requiredEvidence).toEqual([
+      'registrySnapshotUtf8Bytes',
+      'sha256',
+      'byteLength',
+    ]);
   });
 
   it('serves an immutable activation set and independently addressable partner policy', async () => {

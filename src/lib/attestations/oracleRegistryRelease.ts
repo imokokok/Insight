@@ -10,7 +10,10 @@
 
 import { keccak256, toBytes } from 'viem';
 
-import { CURRENT_PARTNER_ACTIVATION_SET_ID } from '../protocol/partnerIntegrationRegistry';
+import {
+  CURRENT_PARTNER_ACTIVATION_SET_ID,
+  PARTNER_ACTIVATION_SET_V1_ID,
+} from '../protocol/partnerIntegrationRegistry';
 
 import {
   CANONICAL_REQUEST_DOMAIN,
@@ -213,11 +216,45 @@ export const ORACLE_REGISTRY_RELEASE_2026_09_09_1 = {
     'ExecutionReceipt v5 layout and semantic profile remain unchanged from the predecessor release.',
   ],
   mainlineIntegrationIsolation: {
-    activationSetId: CURRENT_PARTNER_ACTIVATION_SET_ID,
+    activationSetId: PARTNER_ACTIVATION_SET_V1_ID,
     currentPath: '/.well-known/oracle-registry/integrations/current.json',
-    immutableSetPath: `/.well-known/oracle-registry/integration-sets/${CURRENT_PARTNER_ACTIVATION_SET_ID}`,
+    immutableSetPath: `/.well-known/oracle-registry/integration-sets/${PARTNER_ACTIVATION_SET_V1_ID}`,
     immutablePolicyPathTemplate: '/.well-known/oracle-registry/integrations/{policyId}',
     activationRule: 'repository presence never activates an integration; only its policy id does',
+  },
+} as const;
+
+/** Headless legacy-resolution closure. Production admission is v5-only; old
+ * layouts remain available for historical cryptographic inspection, but their
+ * semantic verdict is explicitly scoped to the exact registry bytes named by
+ * the verifier and is never globally canonical. */
+export const ORACLE_REGISTRY_RELEASE_2026_09_10_1 = {
+  ...ORACLE_REGISTRY_RELEASE_2026_09_09_1,
+  registryRevision: '2026-09-10.1',
+  effectiveFrom: '2026-09-10',
+  predecessorReleaseId: '0xf45d4c0272300f8132dba75c49b337557cf6fd7975b32fd14a8b4e13f430a8f7',
+  changes: [
+    'Headless production admission is v5-only and requires the signed immutable profileId.',
+    'ExecutionReceipt v1-v4 remain available only for historical cryptographic verification and are retired for all new production signing.',
+    'A v1-v4 semantic verdict is snapshot-relative, must name the exact registry bytes by full SHA-256 and byte length, and is never a globally canonical verdict.',
+    'A missing or mismatched legacy snapshot fails closed; a verifier must not substitute the current registry.',
+  ],
+  executionReceipt: {
+    ...ORACLE_REGISTRY_RELEASE_2026_09_09_1.executionReceipt,
+    legacyProfileResolution: {
+      schemaVersions: [1, 2, 3, 4],
+      signingStatus: 'retired',
+      productionAdmission: 'forbidden',
+      resultScope: 'relative-to-exact-registry-snapshot',
+      globallyCanonicalVerdict: false,
+      requiredEvidence: ['registrySnapshotUtf8Bytes', 'sha256', 'byteLength'],
+      rule: 'preserve and verify the exact registry snapshot bytes; report its full SHA-256 and byte length with every verdict; fail closed if absent or mismatched; never substitute current.json or the current registry',
+    },
+  },
+  mainlineIntegrationIsolation: {
+    ...ORACLE_REGISTRY_RELEASE_2026_09_09_1.mainlineIntegrationIsolation,
+    activationSetId: CURRENT_PARTNER_ACTIVATION_SET_ID,
+    immutableSetPath: `/.well-known/oracle-registry/integration-sets/${CURRENT_PARTNER_ACTIVATION_SET_ID}`,
   },
 } as const;
 
@@ -260,13 +297,24 @@ if (computedMainlineReleaseId !== ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID) {
   );
 }
 
+export const ORACLE_REGISTRY_RELEASE_2026_09_10_1_ID =
+  '0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c' as const;
+
+const computedLegacyResolutionReleaseId = releaseDigest(ORACLE_REGISTRY_RELEASE_2026_09_10_1);
+if (computedLegacyResolutionReleaseId !== ORACLE_REGISTRY_RELEASE_2026_09_10_1_ID) {
+  throw new Error(
+    `Oracle registry release is immutable: expected ${ORACLE_REGISTRY_RELEASE_2026_09_10_1_ID}, computed ${computedLegacyResolutionReleaseId}`
+  );
+}
+
 export const ORACLE_REGISTRY_RELEASES = Object.freeze({
   [ORACLE_REGISTRY_RELEASE_2026_09_08_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_08_1,
   [ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_09_1,
+  [ORACLE_REGISTRY_RELEASE_2026_09_10_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_10_1,
 });
 
 /** The only pointer edited during an explicit protocol promotion. */
-export const CURRENT_ORACLE_REGISTRY_RELEASE_ID = ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID;
+export const CURRENT_ORACLE_REGISTRY_RELEASE_ID = ORACLE_REGISTRY_RELEASE_2026_09_10_1_ID;
 export const CURRENT_ORACLE_REGISTRY_RELEASE =
   ORACLE_REGISTRY_RELEASES[CURRENT_ORACLE_REGISTRY_RELEASE_ID];
 

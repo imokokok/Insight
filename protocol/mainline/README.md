@@ -13,8 +13,11 @@ immutable protocol objects and explicit activation, not by partner branches.
    includes activation sets, so old partner mappings stay resolvable.
 4. Shared public semantics move only through a standalone promotion record with
    a complete compatibility matrix.
-5. Historical receipts use their receipt-adjacent snapshot. v5 and later also
-   require the signed semantic profile.
+5. Historical v1-v4 receipts may be inspected only relative to their exact
+   receipt-adjacent registry bytes. The verifier must preserve and report the
+   full SHA-256 and byte length; a missing or mismatched snapshot fails closed,
+   and no legacy verdict is globally canonical. Partner production admission
+   should use v5 or later with a signed semantic profile.
 6. Unknown policy, profile, release, key role or schema fails closed.
 7. A partner production call uses `/api/v1/partners/{partnerId}/...` and must
    carry the exact active immutable `policyId`; generic public verification is
@@ -22,6 +25,8 @@ immutable protocol objects and explicit activation, not by partner branches.
 8. Vercel Git auto-deploy is disabled. Production is queued only by the GitHub
    Actions deploy job after both `validate` and browser `smoke` have passed on
    the same `main` commit.
+9. Production ExecutionReceipt signing is v5-only. Retired v1-v4 layouts may be
+   signed only by the dedicated sample-role key for conformance vectors.
 
 The repository guard in `scripts/check-mainline-governance.mjs` verifies content
 ids and references locally. In CI it also compares against the base revision,

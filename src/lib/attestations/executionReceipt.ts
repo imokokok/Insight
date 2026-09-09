@@ -800,13 +800,11 @@ export interface ExecutionBigIntMessage {
 /** Raw (un-scaled) inputs. Verdict fields are DERIVED inside buildMessage so
  *  the receipt can't disagree with its own signed evidence. */
 export interface ExecutionReceiptInput {
-  /** Optional: sign against a specific PUBLISHED layout (v1..v5) instead of the
-   *  current one. Defaults to the current layout. The sample endpoint exposes
-   *  this so an integrator can fetch a verifiable sample of ANY published
-   *  version — the one layout nobody has exercised is the one nobody can
-   *  integrate against (VERITAS round-2 N1). An unknown version falls back to
-   *  the current layout rather than producing a receipt that claims a layout
-   *  it does not use. */
+  /** Optional conformance layout request. It is honored only when
+   *  signExecutionReceipt is called with `sample: true`; production signing is
+   *  pinned to the current v5 layout. The sample endpoint exposes v1..v5 so an
+   *  integrator can test historical parsers without reopening retired layouts
+   *  for production issuance. An unknown version falls back to current. */
   schemaVersion?: number;
   /** UID of the pre-trade attestation this execution was authorised against. */
   preTradeUid: `0x${string}`;
@@ -1294,7 +1292,9 @@ function getVerifyUrl(): string {
 // Sign
 // ---------------------------------------------------------------------------
 
-/** Sign an execution fact. Returns null when no attester key is configured:
+/** Sign an execution fact. Production signing is always current v5; only the
+ *  dedicated sample-role path may request a retired conformance layout.
+ *  Returns null when no attester key is configured:
  *  the execution data itself remains valid and unchanged; the receipt is
  *  additive and must never become a dependency of the settlement path.
  *
@@ -1313,7 +1313,14 @@ export async function signExecutionReceipt(
 
   try {
     const { hashTypedData } = await import('viem');
-    const message = await buildExecutionMessage(input);
+    // Legacy layouts stay available for sample-role conformance vectors and
+    // historical verification, but production issuance is v5-only. A caller
+    // cannot revive a retired layout by passing schemaVersion to the shared
+    // signer (Headless legacy-profile resolution, 2026-09-10).
+    const signingInput = opts?.sample
+      ? input
+      : { ...input, schemaVersion: CURRENT_EXECUTION_SCHEMA_VERSION };
+    const message = await buildExecutionMessage(signingInput);
     const args = executionTypedDataArgs(message);
 
     const signature = await account.signTypedData(args);

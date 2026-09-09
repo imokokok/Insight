@@ -93,12 +93,14 @@ describe('executionReceipt', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env.ATTESTATION_SIGNER_PRIVATE_KEY = TEST_PRIVATE_KEY;
+    process.env.ATTESTATION_SAMPLE_SIGNER_PRIVATE_KEY = TEST_PRIVATE_KEY;
     jest.spyOn(Date, 'now').mockReturnValue(NOW_MS);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
     delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
+    delete process.env.ATTESTATION_SAMPLE_SIGNER_PRIVATE_KEY;
   });
 
   // ---- family contract ----
@@ -154,14 +156,16 @@ describe('executionReceipt', () => {
     expect(result.reason).toContain('unsupported_profile');
   });
 
-  it('signs against any PUBLISHED layout on request (sample of v1..v5, N1)', async () => {
+  it('signs legacy layouts only with the sample-role conformance path', async () => {
     // The published-but-never-exercised layout was the one thing keeping F0
     // open (VERITAS round 2, N1). The sample path can now sign the same facts
     // against v1..v5 so every published layout has a verifiable sample.
     const mod = await import('../executionReceipt');
 
     for (const version of [1, 2, 3, 4, 5] as const) {
-      const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: version }));
+      const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: version }), {
+        sample: true,
+      });
       expect(receipt).not.toBeNull();
       expect(receipt!.schemaVersion).toBe(version);
 
@@ -815,7 +819,9 @@ describe('executionReceipt frozen layouts and pairing', () => {
     // types declared were missing from the data. Projection ships exactly the
     // field set (and spellings) the signature covered.
     const mod = await import('../executionReceipt');
-    const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: 1 }));
+    const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: 1 }), {
+      sample: true,
+    });
     expect(receipt).not.toBeNull();
 
     const projected = mod.projectExecutionDataForSchemaVersion(receipt!.data, 1);
@@ -838,7 +844,9 @@ describe('executionReceipt frozen layouts and pairing', () => {
   it('projects v2-v4 to their own key sets and leaves current v5 unchanged', async () => {
     const mod = await import('../executionReceipt');
     for (const version of [2, 3, 4] as const) {
-      const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: version }));
+      const receipt = await mod.signExecutionReceipt(baseInput({ schemaVersion: version }), {
+        sample: true,
+      });
       expect(receipt).not.toBeNull();
       const expectedTypes =
         version === 2
@@ -853,11 +861,11 @@ describe('executionReceipt frozen layouts and pairing', () => {
     }
     // v3 keeps the current spellings; v4 projects out profileId; v5 is returned
     // untouched (identity, no copy).
-    const r3 = await mod.signExecutionReceipt(baseInput({ schemaVersion: 3 }));
+    const r3 = await mod.signExecutionReceipt(baseInput({ schemaVersion: 3 }), { sample: true });
     const p3 = mod.projectExecutionDataForSchemaVersion(r3!.data, 3);
     expect(p3).not.toHaveProperty('executionStatus');
     expect(p3).not.toHaveProperty('environment');
-    const r4 = await mod.signExecutionReceipt(baseInput({ schemaVersion: 4 }));
+    const r4 = await mod.signExecutionReceipt(baseInput({ schemaVersion: 4 }), { sample: true });
     expect(mod.projectExecutionDataForSchemaVersion(r4!.data, 4)).not.toHaveProperty('profileId');
     const r5 = await mod.signExecutionReceipt(baseInput());
     expect(mod.projectExecutionDataForSchemaVersion(r5!.data, 5)).toBe(r5!.data);
