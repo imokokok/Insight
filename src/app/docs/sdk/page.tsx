@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, CircleAlert, ShieldCheck } from 'lucide-react';
 
 import { EditorialWorkspaceHeader } from '@/components/editorial';
 import { CodeBlock } from '@/components/shared/CodeBlock';
+import { ORACLE_INSIGHT_GUARD_VERSION } from '@/lib/npmPackageVersions';
 
 import type { Metadata } from 'next';
 
@@ -69,7 +70,7 @@ export default function SdkDocsPage() {
 
       <main className="editorial-frame mx-auto max-w-[1100px] px-5 py-14 sm:px-8 sm:py-20">
         <section className="border-y border-slate-900/15 bg-white/45 p-6 sm:p-8">
-          <p className="editorial-index mb-4">01 — Install</p>
+          <p className="editorial-index mb-4">01 — Install · npm v{ORACLE_INSIGHT_GUARD_VERSION}</p>
           <h2 className="text-2xl font-bold text-slate-900">
             Use a trusted server or agent runtime.
           </h2>

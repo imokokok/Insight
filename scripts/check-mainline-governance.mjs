@@ -49,7 +49,8 @@ if (vercelConfig.git?.deploymentEnabled !== false) {
 const ciWorkflow = readFileSync(ciWorkflowPath, 'utf8');
 const requiredDeploymentGateFragments = [
   'deploy-production:',
-  "if: github.event_name == 'push' && github.ref == 'refs/heads/main'",
+  "github.ref == 'refs/heads/main'",
+  "github.event_name == 'push' || github.event_name == 'workflow_dispatch'",
   'needs: [validate, smoke]',
   'VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}',
 ];

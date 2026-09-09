@@ -16,6 +16,8 @@ import {
   Wrench,
 } from 'lucide-react';
 
+import { VERIFY_INSIGHT_RECEIPT_VERSION } from '@/lib/npmPackageVersions';
+
 interface Resource {
   icon: React.ReactNode;
   title: string;
@@ -44,8 +46,7 @@ const resources: Resource[] = [
   {
     icon: <FileCode className="w-6 h-6" />,
     title: 'Receipt Verifier',
-    description:
-      'Verify pre-trade and execution receipts locally — published on npm as verify-insight-receipt (v0.2.0). No API key, database access, or dependency on Insight being online.',
+    description: `Verify pre-trade and execution receipts locally — published on npm as verify-insight-receipt (v${VERIFY_INSIGHT_RECEIPT_VERSION}). No API key, database access, or dependency on Insight being online.`,
     href: '#verifiable-receipts',
     accent: 'emerald',
   },
@@ -96,8 +97,7 @@ const faqs = [
   },
   {
     question: 'How can I verify an Insight receipt without calling the API?',
-    answer:
-      'The verifier is published on npm as verify-insight-receipt (v0.2.0): run npm install verify-insight-receipt, then call verifyReceipt(), verifyExecutionReceipt(), or verifyExecutionPair(). It recomputes the EIP-712 hashes and recovers signers locally without an API key, database access, or network request. Pass the published oracle-keys.json document separately when you also want key-window status. You can also install directly from the repository verifier/ directory.',
+    answer: `The verifier is published on npm as verify-insight-receipt (v${VERIFY_INSIGHT_RECEIPT_VERSION}): run npm install verify-insight-receipt, then call verifyReceipt(), verifyExecutionReceipt(), or verifyExecutionPair(). It recomputes the EIP-712 hashes and recovers signers locally without an API key, database access, or network request. Pass the published oracle-keys.json document separately when you also want key-window status. You can also install directly from the repository verifier/ directory.`,
   },
 ];
 

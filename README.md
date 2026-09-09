@@ -64,6 +64,8 @@ Anyone can verify a signature against the published attester address via `POST /
 
 ## Agent Guard SDK
 
+[![oracle-insight-guard npm version](https://img.shields.io/npm/v/oracle-insight-guard?label=npm)](https://www.npmjs.com/package/oracle-insight-guard)
+
 The publishable TypeScript package in [`sdk/`](./sdk) turns the three agent-facing services into one explicit execution workflow:
 
 ```text
@@ -111,7 +113,8 @@ For integrations that should not depend on Insight being online, the repository 
 
 **Live in-browser verifier —** the deployed site hosts a zero-trust demo at [`/verify`](https://www.oracleinsight.xyz/verify). It fetches a public sample receipt and the published `/.well-known/oracle-keys.json` registry, then re-verifies the EIP-712 signature entirely in your browser with `verify-insight-receipt`. No server, no API key, no trust in Insight — the verdict is computed on the client and never sent back.
 
-**Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt) **v0.2.0**.
+**Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt)
+[![verify-insight-receipt npm version](https://img.shields.io/npm/v/verify-insight-receipt?label=npm)](https://www.npmjs.com/package/verify-insight-receipt).
 
 ```bash
 # Published package (recommended)

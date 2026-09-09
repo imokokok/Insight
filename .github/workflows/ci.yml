@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -38,7 +39,7 @@ jobs:
       - name: Enforce main-only protocol isolation
         run: npm run protocol:check -- --base "$PROTOCOL_GOVERNANCE_BASE"
         env:
-          PROTOCOL_GOVERNANCE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          PROTOCOL_GOVERNANCE_BASE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
       - run: npm run validate:ci
 
   smoke:
@@ -63,7 +64,9 @@ jobs:
 
   deploy-production:
     name: Deploy production (gated)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: [validate, smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 5

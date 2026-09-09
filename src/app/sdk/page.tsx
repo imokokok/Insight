@@ -13,6 +13,7 @@ import {
 
 import { EditorialWorkspaceHeader } from '@/components/editorial';
 import { CodeBlock } from '@/components/shared/CodeBlock';
+import { ORACLE_INSIGHT_GUARD_VERSION } from '@/lib/npmPackageVersions';
 
 import type { Metadata } from 'next';
 
@@ -122,7 +123,9 @@ export default function SdkPage() {
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="mb-10 grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">01 — One guarded workflow</p>
+            <p className="editorial-index">
+              01 — One guarded workflow · npm v{ORACLE_INSIGHT_GUARD_VERSION}
+            </p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 The API remains composable. The SDK makes the safe path default.

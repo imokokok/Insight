@@ -4,6 +4,7 @@ import { ShieldCheck } from 'lucide-react';
 
 import { VerifyExecutionPairWidget } from '@/components/verifiability/VerifyExecutionPairWidget';
 import { VerifyReceiptWidget } from '@/components/verifiability/VerifyReceiptWidget';
+import { VERIFY_INSIGHT_RECEIPT_VERSION } from '@/lib/npmPackageVersions';
 
 const ANCHORS = [
   {
@@ -80,9 +81,9 @@ export function VerifiableReceiptsSection() {
             >
               verify-insight-receipt
             </a>{' '}
-            (v0.2.0). It verifies pre-trade and execution receipts, including closed-loop pairs, by
-            recomputing the EIP-712 hashes and recovering signers locally; it does not need an API
-            key, database access, or a network request.
+            (v{VERIFY_INSIGHT_RECEIPT_VERSION}). It verifies pre-trade and execution receipts,
+            including closed-loop pairs, by recomputing the EIP-712 hashes and recovering signers
+            locally; it does not need an API key, database access, or a network request.
           </p>
           <pre className="overflow-x-auto whitespace-pre border-y border-blue-100 bg-white p-4 font-mono text-xs leading-relaxed text-slate-700">
             {`# Published package (recommended)

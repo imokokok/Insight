@@ -1,0 +1,73 @@
+name: Sync npm releases
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: sync-npm-releases
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+      INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
+      CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
+      JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Read npm latest tags and update tracked files
+        run: npm run sync:npm-releases
+      - name: Detect an available release
+        id: changes
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "All tracked npm packages are current."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --check
+            git diff --stat
+          fi
+      - name: Run the full validation suite
+        if: steps.changes.outputs.changed == 'true'
+        run: npm run validate:ci
+      - name: Install the browser used by smoke tests
+        if: steps.changes.outputs.changed == 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Run browser smoke tests
+        if: steps.changes.outputs.changed == 'true'
+        run: npm run test:e2e -- --project=chromium
+      - name: Commit the verified release to main
+        if: steps.changes.outputs.changed == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json src/lib/npmPackageVersions.ts
+          git commit -m "chore(deps): sync npm releases"
+          git push origin HEAD:main
+      - name: Start the gated production workflow
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run ci.yml --ref main
