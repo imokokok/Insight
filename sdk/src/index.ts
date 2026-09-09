@@ -20,6 +20,10 @@ export {
 } from './priorseal';
 export type { PriorSealClientOptions } from './priorseal';
 export type {
+  AssessedSwapAuthorizationRequest,
+  AssessedSwapAuthorizationResult,
+  AssessedSwapExecutionVerificationRequest,
+  AssessedSwapExecutionVerificationResult,
   ExecutionReceiptRequest,
   ExecutionReceiptResult,
   GuardDecision,
@@ -28,6 +32,8 @@ export type {
   GuardOptions,
   GuardPolicy,
   InsightClientOptions,
+  JointAssuranceConclusion,
+  JointAssuranceReport,
   OracleWatchResult,
   OracleWatchTarget,
   PreTradeRequest,
@@ -46,7 +52,10 @@ export type {
   PriorSealPreparedAuthorization,
   SignedAttestation,
   SubmittedTransaction,
+  SwapAssessment,
+  SwapAssessmentRequest,
   SwapReceiptOptions,
+  TransactionRecommendation,
   WatchHandle,
   WatchOptions,
 } from './types';

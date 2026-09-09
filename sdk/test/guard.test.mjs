@@ -273,6 +273,138 @@ test('executeSwapWithPriorSeal authorizes exact calldata before submission and r
   ]);
 });
 
+test('non-intervening assessment can be authorized and verified after an external execution', async () => {
+  const insightRequests = [];
+  const priorSealRequests = [];
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async (url) => {
+      const parsed = new URL(url);
+      insightRequests.push(parsed.pathname);
+      if (parsed.pathname.endsWith('/safety/pre-trade')) {
+        const asset = parsed.searchParams.get('asset');
+        return api(preTrade(asset, asset === 'ETH' ? 'BLOCK' : 'PASS'));
+      }
+      return api({
+        attestation: {
+          uid: `0x${'3'.repeat(64)}`,
+          schemaVersion: 4,
+          attester: '0x4',
+          data: { txHash },
+        },
+        executionStatus: 'FAITHFUL',
+        bindingMode: 'VERIFIED',
+        binding: {},
+      });
+    },
+  });
+  const priorSeal = new PriorSealClient({
+    baseUrl: 'https://priorseal.test',
+    fetch: async (url, init) => {
+      const path = new URL(url).pathname;
+      const body = JSON.parse(init.body);
+      priorSealRequests.push({ path, body });
+      if (path === '/v1/authorizations/prepare') {
+        return new Response(
+          JSON.stringify({
+            authorization: {
+              ...body,
+              schema: 'priorseal.authorization.v2',
+              domain: 'priorseal/authorization/v2',
+              authorizationId: 'auth_advisory',
+              intent: { ...body.intent, intentHash: `0x${'c'.repeat(64)}` },
+              intentHash: `0x${'c'.repeat(64)}`,
+              policyHash: `0x${'0'.repeat(64)}`,
+            },
+            typedData: { primaryType: 'PriorSealAuthorization' },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      if (path === '/v1/authorizations') {
+        return new Response(
+          JSON.stringify({ authorization: body, acceptance: { status: 'ACCEPTED' } }),
+          { status: 201, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      return new Response(
+        JSON.stringify({
+          observation: { txHash, status: 'CONFIRMED' },
+          receipt: {
+            receiptId: 'psr_advisory',
+            execution: { txHash },
+            compliance: { status: 'COMPLIANT', reasonCodes: [] },
+            binding: { bound: true, reasonCodes: [] },
+          },
+          verification: { valid: true, code: 'OK', complianceStatus: 'COMPLIANT' },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+  });
+  const transaction = {
+    chainId: 1,
+    from: '0x1111111111111111111111111111111111111111',
+    to: '0x2222222222222222222222222222222222222222',
+    data: '0x1234',
+    value: 0n,
+    nonce: 7n,
+    sourceAmount: 1000000n,
+  };
+
+  const assessment = await guard.assessSwap({
+    source: sourceRequest,
+    destination: destinationRequest,
+    receipt: { settlementChainId: 1, maxSlippageBps: 50 },
+  });
+  assert.equal(assessment.recommendation, 'NOT_RECOMMENDED');
+  assert.equal(assessment.contextCommitment?.namespace, 'insight.pretrade-pair.v1');
+
+  const authorized = await guard.authorizeAssessedSwap({
+    assessment,
+    transaction,
+    priorSeal: {
+      client: priorSeal,
+      principal: {
+        type: 'user',
+        id: 'user-1',
+        account: '0x3333333333333333333333333333333333333333',
+      },
+      agentId: 'insight:swap-agent',
+      issuedAt: 1900000000,
+      validUntil: 1900000600,
+      authorizationNonce: `0x${'9'.repeat(64)}`,
+      confirmations: 12,
+      signAuthorization: async () => '0xabcdef',
+    },
+  });
+
+  // Execution is deliberately external to Insight and PriorSeal.
+  const result = await guard.verifyAssessedSwapExecution({
+    assessment,
+    transaction,
+    priorSealAuthorization: authorized.priorSealAuthorization,
+    txHash,
+    priorSeal: { client: priorSeal, confirmations: 12 },
+  });
+
+  assert.equal(result.report.evidenceStatus, 'COMPLETE');
+  assert.equal(result.report.exactCallMatched, true);
+  assert.equal(result.report.priorSealReceiptValid, true);
+  assert.equal(result.report.constraintsSatisfied, true);
+  assert.equal(result.report.recommendationFollowed, false);
+  assert.equal(result.report.conclusion, 'EXECUTED_AGAINST_RECOMMENDATION');
+  assert.deepEqual(
+    priorSealRequests.map((request) => request.path),
+    ['/v1/authorizations/prepare', '/v1/authorizations', '/v1/executions/observe']
+  );
+  assert.deepEqual(insightRequests, [
+    '/api/v1/safety/pre-trade',
+    '/api/v1/safety/pre-trade',
+    '/api/v1/execution/attestation/issue',
+  ]);
+});
+
 test('executeSwapWithPriorSeal does not broadcast when exact-call authorization fails', async () => {
   let submitted = false;
   const guard = new InsightGuard({

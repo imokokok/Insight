@@ -120,6 +120,46 @@ export interface GuardDecision {
   result: PreTradeResult;
 }
 
+/** Advisory only: callers remain responsible for deciding whether to execute. */
+export type TransactionRecommendation =
+  | 'RECOMMENDED'
+  | 'CONDITIONALLY_RECOMMENDED'
+  | 'REVIEW_REQUIRED'
+  | 'NOT_RECOMMENDED'
+  | 'UNASSESSABLE';
+
+export interface SwapAssessmentRequest {
+  source: PreTradeRequest;
+  destination: PreTradeRequest;
+  watchTarget?: OracleWatchTarget;
+  receipt: SwapReceiptOptions;
+}
+
+/**
+ * A non-intervening assessment. It never submits, signs, or blocks a transaction.
+ * `receiptDraft` is retained so the caller can later request execution evidence.
+ */
+export interface SwapAssessment {
+  schema: 'insight.swap-assessment.v1';
+  recommendation: TransactionRecommendation;
+  reasonCodes: string[];
+  sourcePreTrade: PreTradeResult | null;
+  destinationPreTrade: PreTradeResult | null;
+  watchHalted: boolean;
+  constraints: {
+    maxSlippageBps: number;
+    recommendedMaxPositionUsd: number | null;
+    validUntil: number | null;
+  };
+  contextCommitment: PriorSealContextCommitment | null;
+  receiptDraft: Omit<ExecutionReceiptRequest, 'txHash' | 'taker'> | null;
+  errors: {
+    source?: JointEvidenceError;
+    destination?: JointEvidenceError;
+    binding?: JointEvidenceError;
+  };
+}
+
 export interface SubmittedTransaction {
   txHash: string;
   taker?: string;
@@ -206,7 +246,22 @@ export interface PriorSealObservationJob {
 
 export interface PriorSealObservationResult {
   observation: { txHash?: string; status: string; [key: string]: unknown };
-  receipt: { receiptId: string; execution?: { txHash?: string }; [key: string]: unknown } | null;
+  receipt: {
+    receiptId: string;
+    execution?: { txHash?: string };
+    compliance?: {
+      status: 'COMPLIANT' | 'NON_COMPLIANT' | 'NOT_ASSESSABLE' | string;
+      reasonCodes?: string[];
+    };
+    binding?: { bound?: boolean; reasonCodes?: string[]; [key: string]: unknown };
+    [key: string]: unknown;
+  } | null;
+  verification?: {
+    valid: boolean;
+    code: string;
+    complianceStatus?: string;
+    [key: string]: unknown;
+  };
   requestId?: string;
   observationJob?: PriorSealObservationJob;
 }
@@ -290,6 +345,61 @@ export interface PriorSealGuardedSwapRequest extends Omit<GuardedSwapRequest, 's
     transaction: PreparedExactCallTransaction;
     priorSealAuthorization: PriorSealAcceptedAuthorization;
   }): Promise<SubmittedTransaction>;
+}
+
+export interface AssessedSwapAuthorizationRequest {
+  assessment: SwapAssessment;
+  transaction: PreparedExactCallTransaction;
+  priorSeal: PriorSealFlowOptions;
+}
+
+export interface AssessedSwapAuthorizationResult {
+  assessment: SwapAssessment;
+  transaction: PreparedExactCallTransaction;
+  priorSealAuthorization: PriorSealAcceptedAuthorization;
+}
+
+export interface AssessedSwapExecutionVerificationRequest {
+  assessment: SwapAssessment;
+  transaction: PreparedExactCallTransaction;
+  priorSealAuthorization: PriorSealAcceptedAuthorization;
+  txHash: string;
+  taker?: string;
+  priorSeal: {
+    client: PriorSealApi;
+    confirmations?: number;
+    signal?: AbortSignal;
+  };
+}
+
+export type JointAssuranceConclusion =
+  | 'EXECUTED_AS_ASSESSED_AND_AUTHORIZED'
+  | 'EXECUTED_AGAINST_RECOMMENDATION'
+  | 'EXECUTED_OUTSIDE_ASSESSED_CONSTRAINTS'
+  | 'AUTHORIZATION_MISMATCH'
+  | 'EXECUTION_PENDING'
+  | 'PARTIAL_EVIDENCE'
+  | 'UNASSESSABLE';
+
+export interface JointAssuranceReport {
+  schema: 'insight.priorseal-assurance-report.v1';
+  recommendation: TransactionRecommendation;
+  recommendationFollowed: boolean | null;
+  evidenceStatus: 'COMPLETE' | 'PRIORSEAL_PENDING' | 'PARTIAL' | 'UNAVAILABLE';
+  insightExecutionStatus: string | null;
+  priorSealReceiptValid: boolean | null;
+  priorSealComplianceStatus: string | null;
+  exactCallMatched: boolean | null;
+  constraintsSatisfied: boolean | null;
+  conclusion: JointAssuranceConclusion;
+  reasonCodes: string[];
+}
+
+export interface AssessedSwapExecutionVerificationResult {
+  insightReceipt: ExecutionReceiptResult | null;
+  priorSealEvidence: PriorSealObservationResult | null;
+  evidenceErrors: { insight?: JointEvidenceError; priorSeal?: JointEvidenceError };
+  report: JointAssuranceReport;
 }
 
 export interface JointEvidenceError {

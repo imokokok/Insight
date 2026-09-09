@@ -109,9 +109,60 @@ if (result.status === 'blocked') {
 }
 ```
 
-## Exact-call authorization with PriorSeal
+## Non-intervening assessment and verification
 
-Use `executeSwapWithPriorSeal` when the executor can construct the transaction before broadcasting it. The callback receives PriorSeal's accepted authorization, so the transaction cannot be submitted through this workflow before the principal has approved its target, calldata, value, nonce and validity window.
+Use the three-step API when Insight should advise and verify without owning the
+agent's execution path. An assessment always returns a recommendation; it never
+submits, signs, or prevents a transaction. `NOT_RECOMMENDED` may still be bound
+to a PriorSeal authorization and executed by the caller, and the final report
+will record that the agent acted against the recommendation.
+
+```ts
+const assessment = await guard.assessSwap({
+  source,
+  destination,
+  receipt: { settlementChainId: 8453, maxSlippageBps: 50 },
+});
+
+const authorized = await guard.authorizeAssessedSwap({
+  assessment,
+  transaction: preparedTransaction,
+  priorSeal: {
+    client: priorSeal,
+    principal: { type: 'organization', id: treasuryId, account: treasurySafe },
+    agentId: 'treasury:rebalance-agent',
+    signAuthorization: ({ typedData }) => wallet.signTypedData(typedData),
+  },
+});
+
+// The application, wallet, or agent decides whether and how to execute.
+const txHash = await wallet.sendTransaction(preparedTransaction);
+
+const verified = await guard.verifyAssessedSwapExecution({
+  assessment,
+  transaction: preparedTransaction,
+  priorSealAuthorization: authorized.priorSealAuthorization,
+  txHash,
+  priorSeal: { client: priorSeal, confirmations: 12 },
+});
+
+console.log(verified.report.conclusion);
+```
+
+The deterministic report distinguishes complete evidence, pending observation,
+partial evidence, authorization mismatch, execution outside the assessed price
+constraints, and execution against an advisory recommendation. It is derived
+from the two issuer receipts and is not a third attestation or an execution
+permission.
+
+## Optional gated execution with PriorSeal
+
+Use `executeSwapWithPriorSeal` when an application explicitly wants Insight to
+orchestrate a gated convenience flow. The callback receives PriorSeal's accepted
+authorization, so the transaction cannot be submitted through this workflow
+before the principal has approved its target, calldata, value, nonce and validity
+window. This wrapper is optional and does not make the SDK a wallet-level
+enforcement mechanism.
 
 ```ts
 import { InsightGuard, PriorSealClient } from 'oracle-insight-guard';

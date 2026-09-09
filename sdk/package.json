@@ -1,7 +1,7 @@
 {
   "name": "oracle-insight-guard",
   "version": "0.1.0",
-  "description": "Guard DeFi agent execution with Insight pre-trade checks, Oracle Watch, and signed execution receipts.",
+  "description": "Assess and verify DeFi agent transactions with Insight risk evidence and optional PriorSeal authorization.",
   "license": "MIT",
   "repository": {
     "type": "git",

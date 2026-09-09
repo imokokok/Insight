@@ -74,7 +74,18 @@ two-sided Pre-Trade gate → transaction submission → VERIFIED Execution Recei
 
 `oracle-insight-guard` does not embed a copy of Insight's rules or signing keys. It calls the existing API with the integrator's API key, so risk decisions, EIP-712 attestations, audit logs, and C3/C4 credit metering stay server-side and authoritative. `executeSwap()` does not call the supplied transaction submitter when either pre-trade result is `DANGER` or `BLOCK`; when both signed v2/v3 proofs are available, it sends them with the transaction hash to issue a `VERIFIED` execution receipt.
 
-For agents that also use PriorSeal, `executeSwapWithPriorSeal()` adds an exact-call authorization step before transaction broadcast and collects a companion PriorSeal receipt afterward. The signed PriorSeal intent also commits to both Insight pre-trade attestation UIDs, both request hashes and the slippage ceiling. Insight continues to attest quote/fill/slippage semantics; PriorSeal independently proves that the exact call and those external proof references were principal-authorized.
+For agents that also use PriorSeal, the recommended non-intervening flow is
+`assessSwap()` → external agent decision/execution →
+`verifyAssessedSwapExecution()`. `authorizeAssessedSwap()` optionally binds the
+assessment to a principal-authorized exact call without broadcasting it. The
+derived joint report records complete, partial, pending, mismatched and
+against-recommendation outcomes without becoming a third attestation.
+
+`executeSwapWithPriorSeal()` remains available as an optional gated convenience
+wrapper. The signed PriorSeal intent commits to both Insight pre-trade
+attestation UIDs, both request hashes and the slippage ceiling. Insight continues
+to attest quote/fill/slippage semantics; PriorSeal independently proves that the
+exact call and those external proof references were principal-authorized.
 
 ### Integration surfaces and billing
 
