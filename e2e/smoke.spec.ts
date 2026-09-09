@@ -11,6 +11,37 @@ test('public health endpoint exposes diagnostics', async ({ request }) => {
   });
 });
 
+test('partner execution routes fail closed without an active immutable policy', async ({
+  request,
+}) => {
+  const contract = await request.get('/api/v1/partners/headless/execution/attestation/verify');
+  expect(contract.ok()).toBeTruthy();
+  await expect(contract.json()).resolves.toMatchObject({
+    success: true,
+    data: {
+      partnerId: 'headless',
+      requiredPolicyId: expect.stringMatching(/^0x[0-9a-f]{64}$/),
+      productionReachability: 'enabled',
+    },
+  });
+
+  const missingPolicy = await request.post(
+    '/api/v1/partners/headless/execution/attestation/verify',
+    {
+      data: {
+        attestation: {
+          uid: `0x${'1'.repeat(64)}`,
+          schemaVersion: 5,
+          attester: `0x${'2'.repeat(40)}`,
+          signature: `0x${'3'.repeat(130)}`,
+          data: {},
+        },
+      },
+    }
+  );
+  expect(missingPolicy.status()).toBe(400);
+});
+
 test('protected settings preserve the return destination', async ({ page }) => {
   await page.goto('/settings?tab=billing');
   await expect(page).toHaveURL(/\/login\?redirect=%2Fsettings%3Ftab%3Dbilling/);

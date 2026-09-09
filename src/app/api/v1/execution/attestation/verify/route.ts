@@ -23,7 +23,6 @@ import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/li
 import { getAttesterAddress, getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
 import { CURRENT_EXECUTION_PROFILE_ID } from '@/lib/attestations/executionProfiles';
 import {
-  verifyExecutionReceipt,
   EXECUTION_ATTESTER_LABEL,
   EXECUTION_DOMAIN,
   EXECUTION_TYPES,
@@ -43,14 +42,13 @@ import {
   EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS,
   EXECUTION_REQUIRED_PARTICIPANT_COUNT,
   EXECUTION_REQUIRED_SOURCE_GROUP_COUNT,
-  type ExecutionReceipt,
 } from '@/lib/attestations/executionReceipt';
 import {
   ExecutionVerifyBodySchema,
   type ExecutionVerifyBody,
 } from '@/lib/attestations/executionVerifyRequest';
-import { buildKeyRegistryConfig, trustedAttesterEntry } from '@/lib/attestations/keyRegistryConfig';
-import { evaluateExecutionPolicy } from '@/lib/protocol/partnerIntegrationRegistry';
+import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
+import { verifyExecutionReceiptForApi } from '@/lib/execution/executionVerificationApi';
 
 const PUBLIC_MIDDLEWARES = {
   logging: true,
@@ -77,49 +75,13 @@ export const POST = createApiHandler<
   async (_request: NextRequest, context) => {
     const body = context.validated!.body!;
     const { attestation } = body;
-    const result = await verifyExecutionReceipt(attestation as unknown as ExecutionReceipt);
-    const registry = buildKeyRegistryConfig(
-      await getAttesterAddress(),
-      await getSampleAttesterAddress()
-    );
-    const trustedKey = trustedAttesterEntry(result.attester, result.executedAt, registry);
-    const cryptographicValid = result.cryptographicValid;
-    const consumerPolicy = body.policyId
-      ? evaluateExecutionPolicy(body.policyId, result.schemaVersion, result.profileId)
-      : null;
-    const valid = result.valid && trustedKey !== null && (consumerPolicy?.valid ?? true);
-    const reason = !result.valid
-      ? result.reason
-      : cryptographicValid && !trustedKey
-        ? 'untrusted_attester: signature is valid but the signer is not an authorised production key'
-        : consumerPolicy && !consumerPolicy.valid
-          ? consumerPolicy.reason
-          : result.reason;
+    const verification = await verifyExecutionReceiptForApi(attestation, {
+      mode: 'public',
+      policyId: body.policyId,
+    });
 
     return NextResponse.json(
-      ApiResponseBuilder.success(
-        {
-          valid,
-          cryptographicValid,
-          trustedAttester: trustedKey !== null,
-          keyId: trustedKey?.key_id ?? null,
-          attester: result.attester,
-          uid: result.uid,
-          executedAt: result.executedAt,
-          validUntil: result.validUntil,
-          expired: result.expired,
-          /** The receipt's verdict: FAITHFUL / DEVIATED / NOT_EXECUTED. This is
-           *  Insight's statement about whether the execution matched the
-           *  certified price — never a claim that the price was correct or the
-           *  trade was well-timed (verification != endorsement). */
-          executionStatus: result.executionStatus,
-          schemaVersion: attestation.schemaVersion,
-          profileId: result.profileId,
-          consumerPolicy,
-          reason,
-        },
-        { requestId: context.requestId }
-      )
+      ApiResponseBuilder.success(verification, { requestId: context.requestId })
     );
   },
   {
@@ -218,7 +180,7 @@ export const GET = createApiHandler<
             primaryType: EXECUTION_PRIMARY_TYPE,
           },
           usage:
-            'POST an ExecutionReceipt as { "attestation": <receipt>, "policyId"?: <immutable relying-party policy> } to verify its signature, validity window and optional consumer admission contract.',
+            'This is the public/historical verification surface. POST { "attestation": <receipt>, "policyId"?: <immutable historical policy> }. Partner production integrations must use /api/v1/partners/{partnerId}/execution/attestation/verify, where policyId is required and must be the active policy for that partner.',
         },
         { requestId: context.requestId }
       )

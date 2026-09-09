@@ -67,6 +67,10 @@ describe('content-addressed oracle registry routes', () => {
     );
     const currentBody = await currentResponse.json();
     expect(currentBody.activationSetId).toBe(CURRENT_PARTNER_ACTIVATION_SET_ID);
+    expect(currentBody.runtime.requiredBodyField).toBe('policyId');
+    expect(currentBody.runtime.executionVerifyTemplate).toContain(
+      '/api/v1/partners/{partnerId}/execution/attestation/verify'
+    );
 
     const setRoute = await import('../integration-sets/[activationSetId]/route');
     const setResponse = await setRoute.GET(new Request('https://example.test/set') as never, {

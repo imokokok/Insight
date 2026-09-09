@@ -37,6 +37,13 @@ Reusable protocol code is shared by version, never by mutable partner state.
 Integrators pin the signed profile id and immutable release URL, not whichever
 prose happens to be at the mutable `/.well-known/oracle-keys.json` URL today.
 
+Partner production traffic must use the partner-scoped runtime URL and send the
+immutable `policyId` selected by the current activation set. The service checks
+partner/policy equality, production reachability and surface/schema/profile
+admission on every request. The generic verification URL is deliberately kept
+for open and historical verification; omitting partner scope there cannot
+activate a collaboration.
+
 ## Explicit promotion
 
 A protocol release is a deliberate reviewable change with all of the following:
@@ -57,6 +64,9 @@ A protocol release is a deliberate reviewable change with all of the following:
 9. For shared protocol or activation changes, append one promotion record under
    `protocol/mainline/promotions/` with a compatibility outcome for every
    partner. CI rejects the change if any partner is absent.
+10. Production deployment may be triggered only after the same `main` commit
+    passes both the full validation job and browser smoke tests. Direct Vercel
+    Git auto-deploy remains disabled.
 
 ## Compatibility rule
 

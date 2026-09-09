@@ -273,6 +273,9 @@ paths:
               type: object
               required: [attestation]
               properties:
+                policyId:
+                  $ref: '#/components/schemas/ImmutablePartnerPolicyId'
+                  description: Optional only for generic or historical verification. Partner production integrations must use the partner-scoped route below.
                 attestation:
                   $ref: '#/components/schemas/ExecutionReceipt'
       responses:
@@ -294,6 +297,9 @@ paths:
               type: object
               required: [preTradeAttestation, executionReceipt]
               properties:
+                policyId:
+                  $ref: '#/components/schemas/ImmutablePartnerPolicyId'
+                  description: Optional only for generic or historical verification. Partner production integrations must use the partner-scoped route below.
                 preTradeAttestation:
                   type: object
                   additionalProperties: true
@@ -305,6 +311,88 @@ paths:
       responses:
         '200':
           description: Cryptographic closed-loop verification result
+
+  /partners/{partnerId}/execution/attestation/verify:
+    parameters:
+      - $ref: '#/components/parameters/PartnerId'
+    get:
+      operationId: getPartnerExecutionVerificationContract
+      tags: [Execution Evidence]
+      summary: Resolve the policy-mandatory partner verification contract
+      description: Returns the exact active policy id and production reachability for this partner path.
+      security: []
+      responses:
+        '200':
+          description: Current partner runtime contract
+        '400':
+          description: Unknown partner id
+    post:
+      operationId: verifyPartnerExecutionReceipt
+      tags: [Execution Evidence]
+      summary: Verify one Execution Receipt under the active partner policy
+      description: Fails closed unless policyId is the exact immutable policy currently activated for partnerId, production reachability is enabled, and the receipt schema/profile is admitted. The policy is selected by the verifier and is never trusted from receipt data.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [policyId, attestation]
+              properties:
+                policyId:
+                  $ref: '#/components/schemas/ImmutablePartnerPolicyId'
+                attestation:
+                  $ref: '#/components/schemas/ExecutionReceipt'
+      responses:
+        '200':
+          description: Policy-bound verification result; valid is false for stale, cross-partner, disabled, or unadmitted policy input
+        '400':
+          description: Missing/malformed policy id, partner id, or receipt envelope
+
+  /partners/{partnerId}/execution/attestation/verify-pair:
+    parameters:
+      - $ref: '#/components/parameters/PartnerId'
+    get:
+      operationId: getPartnerExecutionPairVerificationContract
+      tags: [Execution Evidence]
+      summary: Resolve the policy-mandatory partner pair contract
+      description: Returns the exact active policy id and production reachability for this partner path.
+      security: []
+      responses:
+        '200':
+          description: Current partner runtime contract
+        '400':
+          description: Unknown partner id
+    post:
+      operationId: verifyPartnerExecutionPair
+      tags: [Execution Evidence]
+      summary: Verify the closed loop under the active partner policy
+      description: Applies exact partner/policy activation, production reachability, and receipt schema/profile admission in addition to the cryptographic pair checks.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [policyId, preTradeAttestation, executionReceipt]
+              properties:
+                policyId:
+                  $ref: '#/components/schemas/ImmutablePartnerPolicyId'
+                preTradeAttestation:
+                  type: object
+                  additionalProperties: true
+                destinationPreTradeAttestation:
+                  type: object
+                  additionalProperties: true
+                executionReceipt:
+                  $ref: '#/components/schemas/ExecutionReceipt'
+      responses:
+        '200':
+          description: Policy-bound cryptographic closed-loop verification result
+        '400':
+          description: Missing/malformed policy id, partner id, or receipt envelope
 
   /execution/attestation/{uid}:
     get:
@@ -1685,6 +1773,12 @@ components:
       description: 'API key with `ins_` prefix (e.g. ins_a3f1...)'
   # ── Reusable Parameters ─────────────────────────────────
   parameters:
+    PartnerId:
+      name: partnerId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/PartnerId'
     provider:
       name: provider
       in: query
@@ -1821,6 +1915,24 @@ components:
 
   # ── Schemas ─────────────────────────────────────────────
   schemas:
+    PartnerId:
+      type: string
+      enum:
+        - agent-passport
+        - andydgrea
+        - emilia
+        - frontier-compute
+        - headless
+        - interai
+        - raul
+        - vaara
+        - veritas
+
+    ImmutablePartnerPolicyId:
+      type: string
+      pattern: '^0x[0-9a-fA-F]{64}$'
+      description: Content-addressed immutable partner admission policy selected by the current activation set.
+
     ExecutionReceipt:
       type: object
       required: [uid, schemaVersion, attester, signature, data]
@@ -1830,7 +1942,7 @@ components:
           pattern: '^0x[0-9a-fA-F]{64}$'
         schemaVersion:
           type: integer
-          enum: [1, 2, 3, 4]
+          enum: [1, 2, 3, 4, 5]
         attester:
           type: string
           pattern: '^0x[0-9a-fA-F]{40}$'

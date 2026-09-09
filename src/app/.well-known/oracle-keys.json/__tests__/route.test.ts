@@ -124,6 +124,10 @@ describe('.well-known/oracle-keys.json route', () => {
       body.partnerIntegrations.activationSetId
     );
     expect(body.partnerIntegrations.activationRule).toContain('never activates');
+    expect(body.partnerIntegrations.runtime.requiredBodyField).toBe('policyId');
+    expect(body.partnerIntegrations.runtime.executionVerifyTemplate).toContain(
+      '/api/v1/partners/{partnerId}/execution/attestation/verify'
+    );
 
     // Gate thresholds travel with the descriptor so a receipt is self-checking.
     expect(exec.gates.requiredParticipantCount).toBe(3);

@@ -24,13 +24,9 @@ import {
   EXECUTION_SCHEMA_VERSION_V5,
 } from '@/lib/attestations/executionReceipt';
 
-export const ExecutionVerifyBodySchema = z.object({
-  /** Optional relying-party admission contract. It is deliberately selected by
-   *  the verifier, not trusted from receipt data. */
-  policyId: z
-    .string()
-    .regex(/^0x[0-9a-fA-F]{64}$/)
-    .optional(),
+const PolicyIdSchema = z.string().regex(/^0x[0-9a-fA-F]{64}$/);
+
+const ExecutionVerifyPayloadSchema = z.object({
   attestation: z
     .object({
       uid: z.string(),
@@ -50,4 +46,15 @@ export const ExecutionVerifyBodySchema = z.object({
     .passthrough(),
 });
 
+export const ExecutionVerifyBodySchema = ExecutionVerifyPayloadSchema.extend({
+  /** Optional only on the public, non-partner verification surface. */
+  policyId: PolicyIdSchema.optional(),
+});
+
+/** A partner runtime path never falls back to policy-free verification. */
+export const PartnerExecutionVerifyBodySchema = ExecutionVerifyPayloadSchema.extend({
+  policyId: PolicyIdSchema,
+});
+
 export type ExecutionVerifyBody = z.infer<typeof ExecutionVerifyBodySchema>;
+export type PartnerExecutionVerifyBody = z.infer<typeof PartnerExecutionVerifyBodySchema>;

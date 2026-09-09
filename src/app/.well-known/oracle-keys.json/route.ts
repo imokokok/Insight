@@ -152,6 +152,12 @@ export async function GET(request: NextRequest) {
       immutableSet: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.immutableSetPath}`,
       immutablePolicyTemplate: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.immutablePolicyPathTemplate}`,
       activationRule: CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.activationRule,
+      runtime: {
+        executionVerifyTemplate: `${origin}/api/v1/partners/{partnerId}/execution/attestation/verify`,
+        executionVerifyPairTemplate: `${origin}/api/v1/partners/{partnerId}/execution/attestation/verify-pair`,
+        requiredBodyField: 'policyId',
+        rule: 'partner runtime requests must use the partner path and exact active immutable policy; the public verifier remains policy-optional only for generic and historical verification',
+      },
     },
     /** The EIP-712 attestation is signed by a secp256k1 key; the recovered
      *  signer address IS the public verification key. Trust a receipt only if

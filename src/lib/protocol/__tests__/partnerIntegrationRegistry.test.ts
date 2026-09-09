@@ -5,6 +5,7 @@ import {
   CURRENT_PARTNER_ACTIVATION_SET_ID,
   PARTNER_IDS,
   activePartnerIntegrationPolicy,
+  evaluateActivePartnerExecutionPolicy,
   evaluateExecutionPolicy,
   partnerActivationSetById,
   partnerIntegrationPolicyById,
@@ -63,5 +64,39 @@ describe('main-only partner integration isolation', () => {
         reason: 'policy_does_not_admit_execution_receipts',
       })
     );
+  });
+
+  it('requires the active partner mapping and production reachability at runtime', () => {
+    const headless = activePartnerIntegrationPolicy('headless')!;
+    const veritas = activePartnerIntegrationPolicy('veritas')!;
+
+    expect(
+      evaluateActivePartnerExecutionPolicy(
+        'headless',
+        headless.policyId,
+        5,
+        EXECUTION_PROFILE_V1_ID
+      )
+    ).toEqual(expect.objectContaining({ valid: true, partnerId: 'headless' }));
+
+    expect(
+      evaluateActivePartnerExecutionPolicy('headless', veritas.policyId, 4, EXECUTION_PROFILE_V1_ID)
+    ).toEqual(expect.objectContaining({ valid: false, reason: 'policy_not_active_for_partner' }));
+
+    expect(evaluateActivePartnerExecutionPolicy('veritas', veritas.policyId, 4, null)).toEqual(
+      expect.objectContaining({
+        valid: false,
+        reason: 'partner_policy_not_production_reachable',
+      })
+    );
+
+    expect(
+      evaluateActivePartnerExecutionPolicy(
+        'not-a-partner',
+        headless.policyId,
+        5,
+        EXECUTION_PROFILE_V1_ID
+      )
+    ).toEqual(expect.objectContaining({ valid: false, reason: 'unknown_partner' }));
   });
 });

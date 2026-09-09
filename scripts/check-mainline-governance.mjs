@@ -8,6 +8,9 @@ const workspace = resolve(import.meta.dirname, '..');
 const policyRoot = join(workspace, 'protocol/mainline/policies');
 const activationPath = join(workspace, 'protocol/mainline/activations.json');
 const currentPromotionPath = join(workspace, 'protocol/mainline/current-promotion.json');
+const ciWorkflowPath = join(workspace, '.github/workflows/ci.yml');
+const workflowsRoot = join(workspace, '.github/workflows');
+const vercelConfigPath = join(workspace, 'vercel.json');
 
 function canonicalJson(value) {
   if (value === null || typeof value === 'boolean' || typeof value === 'number') {
@@ -36,6 +39,34 @@ function contentId(value) {
 
 function json(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+const vercelConfig = json(vercelConfigPath);
+if (vercelConfig.git?.deploymentEnabled !== false) {
+  throw new Error('vercel.json must disable Git auto-deployment; CI owns production release');
+}
+
+const ciWorkflow = readFileSync(ciWorkflowPath, 'utf8');
+const requiredDeploymentGateFragments = [
+  'deploy-production:',
+  "if: github.event_name == 'push' && github.ref == 'refs/heads/main'",
+  'needs: [validate, smoke]',
+  'VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}',
+];
+for (const fragment of requiredDeploymentGateFragments) {
+  if (!ciWorkflow.includes(fragment)) {
+    throw new Error(`CI production deployment gate is missing: ${fragment}`);
+  }
+}
+
+for (const workflowFile of readdirSync(workflowsRoot)) {
+  if (!workflowFile.match(/\.ya?ml$/) || workflowFile === 'ci.yml') continue;
+  const workflow = readFileSync(join(workflowsRoot, workflowFile), 'utf8');
+  if (workflow.includes('VERCEL_DEPLOY_HOOK_URL')) {
+    throw new Error(
+      `${workflowFile} must not access VERCEL_DEPLOY_HOOK_URL; only the gated CI deploy job may deploy production`
+    );
+  }
 }
 
 function policyFiles(root) {

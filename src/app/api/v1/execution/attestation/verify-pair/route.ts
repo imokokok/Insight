@@ -21,90 +21,22 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { z } from 'zod';
-
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { getAttesterAddress, getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
+import {
+  ExecutionPairVerifyBodySchema,
+  type ExecutionPairVerifyBody,
+} from '@/lib/attestations/executionPairVerifyRequest';
 import { CURRENT_EXECUTION_PROFILE_ID } from '@/lib/attestations/executionProfiles';
 import {
   EXECUTION_ATTESTER_LABEL,
   EXECUTION_DOMAIN,
   EXECUTION_TYPES,
   EXECUTION_PRIMARY_TYPE,
-  EXECUTION_SCHEMA_VERSION,
-  EXECUTION_SCHEMA_VERSION_V2,
-  EXECUTION_SCHEMA_VERSION_V3,
-  EXECUTION_SCHEMA_VERSION_V4,
-  EXECUTION_SCHEMA_VERSION_V5,
   CURRENT_EXECUTION_SCHEMA_VERSION,
 } from '@/lib/attestations/executionReceipt';
 import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
-import {
-  verifyExecutionPair,
-  type PreTradeAttestationInput,
-} from '@/lib/execution/verifyExecutionPair';
-import { evaluateExecutionPolicy } from '@/lib/protocol/partnerIntegrationRegistry';
-
-/** Loose envelope for the pre-trade attestation: only the top-level shape is
- *  enforced here; the crypto layer re-derives the hash, so a tampered `data`
- *  fails signature recovery rather than being trusted. */
-const PreTradeAttestationSchema = z
-  .object({
-    uid: z.string(),
-    schemaVersion: z.number(),
-    attester: z.string(),
-    data: z.record(z.string(), z.any()),
-    eip712: z
-      .object({
-        domain: z.record(z.string(), z.any()),
-        types: z.record(z.string(), z.any()),
-        primaryType: z.string(),
-      })
-      .passthrough()
-      .optional(),
-    type: z.string().optional(),
-    signature: z.string(),
-    verifyUrl: z.string().optional(),
-  })
-  .passthrough();
-
-/** Loose envelope for the Execution Receipt (same philosophy). Accepts all
- *  published schema versions — v1 predates the signed binding fields, v2 adds
- *  bindingMode + preTradeSignedAt, v3 carries the full quote-basis, subject and
- *  scope commitments, v4 adds signed `environment`, and current v5 adds signed
- *  `profileId`. A literal(1) here would silently reject every real receipt, so
- *  we accept the supported schema set. */
-const ExecutionReceiptSchema = z
-  .object({
-    uid: z.string(),
-    schemaVersion: z.union([
-      z.literal(EXECUTION_SCHEMA_VERSION),
-      z.literal(EXECUTION_SCHEMA_VERSION_V2),
-      z.literal(EXECUTION_SCHEMA_VERSION_V3),
-      z.literal(EXECUTION_SCHEMA_VERSION_V4),
-      z.literal(EXECUTION_SCHEMA_VERSION_V5),
-    ]),
-    attester: z.string(),
-    signature: z.string(),
-    data: z.record(z.string(), z.any()),
-  })
-  .passthrough();
-
-const VerifyPairBodySchema = z.object({
-  /** Optional verifier-selected integration policy. */
-  policyId: z
-    .string()
-    .regex(/^0x[0-9a-fA-F]{64}$/)
-    .optional(),
-  preTradeAttestation: PreTradeAttestationSchema,
-  executionReceipt: ExecutionReceiptSchema,
-  /** v3 only: the destination pre-trade gate when the Execution Receipt commits
-   *  to one via data.destinationPreTradeUid. Required for v3 receipts signed
-   *  with a two-gate VERIFIED binding. */
-  destinationPreTradeAttestation: PreTradeAttestationSchema.optional(),
-});
-
-type VerifyPairBody = z.infer<typeof VerifyPairBodySchema>;
+import { verifyExecutionPairForApi } from '@/lib/execution/executionVerificationApi';
 
 const PUBLIC_MIDDLEWARES = {
   logging: true,
@@ -118,68 +50,24 @@ export const OPTIONS = createOptionsHandler();
 
 export const POST = createApiHandler<
   unknown,
-  VerifyPairBody,
+  ExecutionPairVerifyBody,
   Record<string, unknown>,
   Record<string, string>
 >(
   async (_request: NextRequest, context) => {
     const body = context.validated!.body!;
-    const result = await verifyExecutionPair(
-      body.preTradeAttestation as unknown as PreTradeAttestationInput,
-      body.executionReceipt as never,
-      body.destinationPreTradeAttestation as unknown as PreTradeAttestationInput | undefined
-    );
-    const executionData = body.executionReceipt.data as Record<string, unknown>;
-    const consumerPolicy = body.policyId
-      ? evaluateExecutionPolicy(
-          body.policyId,
-          body.executionReceipt.schemaVersion,
-          typeof executionData.profileId === 'string' ? executionData.profileId : null
-        )
-      : null;
-    const pairedValid = result.pairedValid && (consumerPolicy?.valid ?? true);
-    const closedLoopStatus = pairedValid ? result.closedLoopStatus : 'PAIR_INVALID';
-    const reason = !result.pairedValid
-      ? result.reason
-      : consumerPolicy && !consumerPolicy.valid
-        ? consumerPolicy.reason
-        : result.reason;
+    const verification = await verifyExecutionPairForApi(body, {
+      mode: 'public',
+      policyId: body.policyId,
+    });
 
     return NextResponse.json(
-      ApiResponseBuilder.success(
-        {
-          pairedValid,
-          closedLoopStatus,
-          reason,
-          consumerPolicy,
-          binding: result.binding,
-          preTrade: {
-            valid: result.preTrade.valid,
-            expired: result.preTrade.expired,
-            uid: result.preTrade.uid,
-            schemaVersion: result.preTrade.schemaVersion,
-            attester: result.preTrade.attester,
-            reason: result.preTrade.reason,
-          },
-          execution: result.execution,
-          destinationPreTrade: result.destinationPreTrade
-            ? {
-                valid: result.destinationPreTrade.valid,
-                expired: result.destinationPreTrade.expired,
-                uid: result.destinationPreTrade.uid,
-                schemaVersion: result.destinationPreTrade.schemaVersion,
-                attester: result.destinationPreTrade.attester,
-                reason: result.destinationPreTrade.reason,
-              }
-            : null,
-        },
-        { requestId: context.requestId }
-      )
+      ApiResponseBuilder.success(verification, { requestId: context.requestId })
     );
   },
   {
     middlewares: PUBLIC_MIDDLEWARES,
-    validation: { body: VerifyPairBodySchema },
+    validation: { body: ExecutionPairVerifyBodySchema },
   }
 );
 
@@ -205,9 +93,7 @@ export const GET = createApiHandler<
             signedField: 'profileId',
           },
           usage:
-            'POST { "preTradeAttestation": <attestation>, "executionReceipt": <ExecutionReceipt>, "policyId"?: <immutable relying-party policy> } ' +
-            'to prove the two receipts describe the same authorized action and the ' +
-            'certify → execute → prove loop closed.',
+            'This is the public/historical pairing surface. POST { "preTradeAttestation": <attestation>, "executionReceipt": <ExecutionReceipt>, "policyId"?: <immutable historical policy> }. Partner production integrations must use /api/v1/partners/{partnerId}/execution/attestation/verify-pair, where policyId is required and must be active for that partner.',
           pairBinding: {
             preTradeUid: 'executionReceipt.data.preTradeUid must equal preTradeAttestation.uid',
             requestHash:

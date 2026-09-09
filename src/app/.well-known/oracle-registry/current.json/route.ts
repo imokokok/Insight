@@ -25,6 +25,11 @@ export async function GET(request: NextRequest) {
           CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.activationSetId,
         current: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.currentPath}`,
         immutableSet: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.immutableSetPath}`,
+        runtime: {
+          executionVerifyTemplate: `${origin}/api/v1/partners/{partnerId}/execution/attestation/verify`,
+          executionVerifyPairTemplate: `${origin}/api/v1/partners/{partnerId}/execution/attestation/verify-pair`,
+          requiredBodyField: 'policyId',
+        },
       },
     },
     {

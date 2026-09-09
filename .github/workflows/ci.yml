@@ -60,3 +60,32 @@ jobs:
           INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
           CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
           JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
+
+  deploy-production:
+    name: Deploy production (gated)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [validate, smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger the production deploy hook after both gates pass
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
+            echo "VERCEL_DEPLOY_HOOK_URL is required for gated production deployment" >&2
+            exit 1
+          fi
+
+          response_path="$RUNNER_TEMP/vercel-deploy-response.json"
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --output "$response_path" \
+            "$VERCEL_DEPLOY_HOOK_URL"
+          node -e '
+            const response = require(process.argv[1]);
+            if (!response.job?.id) {
+              throw new Error("Vercel deploy hook did not return a deployment job id");
+            }
+            console.log(`Vercel production deployment queued: ${response.job.id}`);
+          ' "$response_path"

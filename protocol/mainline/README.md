@@ -16,6 +16,12 @@ immutable protocol objects and explicit activation, not by partner branches.
 5. Historical receipts use their receipt-adjacent snapshot. v5 and later also
    require the signed semantic profile.
 6. Unknown policy, profile, release, key role or schema fails closed.
+7. A partner production call uses `/api/v1/partners/{partnerId}/...` and must
+   carry the exact active immutable `policyId`; generic public verification is
+   not a partner activation path.
+8. Vercel Git auto-deploy is disabled. Production is queued only by the GitHub
+   Actions deploy job after both `validate` and browser `smoke` have passed on
+   the same `main` commit.
 
 The repository guard in `scripts/check-mainline-governance.mjs` verifies content
 ids and references locally. In CI it also compares against the base revision,

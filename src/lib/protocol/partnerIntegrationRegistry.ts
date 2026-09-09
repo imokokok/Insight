@@ -145,6 +145,10 @@ export function activePartnerIntegrationPolicy(partnerId: PartnerId) {
   return partnerIntegrationPolicyById(CURRENT_PARTNER_ACTIVATION_SET.partners[partnerId]);
 }
 
+export function isPartnerId(value: string): value is PartnerId {
+  return (PARTNER_IDS as readonly string[]).includes(value);
+}
+
 export interface ExecutionPolicyResult {
   valid: boolean;
   policyId: string;
@@ -195,4 +199,42 @@ export function evaluateExecutionPolicy(
     partnerId: policy.partnerId,
     reason: schemaVersion >= 5 ? 'policy_profile_match' : 'legacy_snapshot_required',
   };
+}
+
+/** Enforce the live partner route, not merely the historical policy contents.
+ * The caller must identify both the partner and the exact immutable policy id
+ * currently selected for it. Production reachability is checked before schema
+ * or profile admission, so a verified/draft collaboration cannot accidentally
+ * become live just because its code is present on main. */
+export function evaluateActivePartnerExecutionPolicy(
+  partnerId: string,
+  policyId: string,
+  schemaVersion: number,
+  profileId: string | null
+): ExecutionPolicyResult {
+  if (!isPartnerId(partnerId)) {
+    return { valid: false, policyId, partnerId: null, reason: 'unknown_partner' };
+  }
+
+  const activePolicyId = CURRENT_PARTNER_ACTIVATION_SET.partners[partnerId];
+  if (policyId.toLowerCase() !== activePolicyId) {
+    return {
+      valid: false,
+      policyId,
+      partnerId,
+      reason: 'policy_not_active_for_partner',
+    };
+  }
+
+  const policy = activePartnerIntegrationPolicy(partnerId);
+  if (!policy || policy.productionReachability !== 'enabled') {
+    return {
+      valid: false,
+      policyId: activePolicyId,
+      partnerId,
+      reason: 'partner_policy_not_production_reachable',
+    };
+  }
+
+  return evaluateExecutionPolicy(activePolicyId, schemaVersion, profileId);
 }

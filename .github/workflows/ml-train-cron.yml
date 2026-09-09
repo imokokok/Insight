@@ -200,14 +200,7 @@ jobs:
         if: steps.model-diff.outputs.changed == 'true'
         run: npm run build:cron
 
-      - name: Commit model if changed and trigger redeploy
-        env:
-          # Optional: Vercel deploy hook URL. Create one in Vercel → Project →
-          # Settings → Git → Deploy Hooks, then add it as a repo secret with the
-          # same name. When set, a new model auto-redeploys the app so the
-          # build-time-baked model JSON is picked up. When unset, the new model
-          # only takes effect on the next manual deploy.
-          DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+      - name: Commit model if changed; Quality Gate owns redeployment
         run: |
           set -u
           git config user.name "github-actions[bot]"
@@ -217,16 +210,8 @@ jobs:
             exit 0
           fi
           git add ml/models/oracle_risk_model.json .github/cron-dist
-          git commit -m "chore(ml): retrain oracle risk model [skip ci]" || true
+          git commit -m "chore(ml): retrain oracle risk model" || true
           git push
 
-          # The model is statically imported (baked at build time), so a repo
-          # commit alone doesn't update the running app. Trigger a Vercel rebuild
-          # so the new model takes effect automatically.
-          if [ -n "${DEPLOY_HOOK_URL:-}" ]; then
-            echo "Triggering Vercel deploy hook..."
-            curl -s -o /dev/null -w "deploy hook HTTP: %{http_code}\n" --max-time 60 \
-              -X POST "$DEPLOY_HOOK_URL" || true
-          else
-            echo "::warning::VERCEL_DEPLOY_HOOK_URL is not set. The new model will only take effect on the next manual deploy."
-          fi
+          # Do not trigger Vercel here. This normal main push starts Quality
+          # Gate, whose deployment job waits for validate + browser smoke.

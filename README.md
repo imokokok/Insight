@@ -141,7 +141,12 @@ That immutable profile fixes the commitment, sentinel, scale and verdict rules;
 registry also exposes `registryRevision`, `effectiveFrom`, a small current
 pointer and immutable release/profile URLs. All partner code can coexist on
 `main`: independently activated, content-addressed partner policies ensure that
-one collaboration cannot silently advance another collaboration's path. See
+one collaboration cannot silently advance another collaboration's path.
+Partner production verification uses `/api/v1/partners/{partnerId}/...` and
+requires the exact active immutable `policyId` on every request; the generic
+verification URLs remain public/historical surfaces. Production deployment is
+also gated: Vercel Git auto-deploy is disabled and the deploy hook runs only
+after the same `main` commit passes full validation and browser smoke. See
 [the oracle registry release policy](./docs/oracle-registry-release-policy.md).
 The end-to-end workflow is documented in
 [main-only partner isolation](./docs/mainline-partner-isolation.md).

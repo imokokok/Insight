@@ -19,6 +19,12 @@ export async function GET(request: NextRequest) {
       activationVersion: CURRENT_PARTNER_ACTIVATION_SET.activationVersion,
       immutable: `${origin}/.well-known/oracle-registry/integration-sets/${CURRENT_PARTNER_ACTIVATION_SET_ID}`,
       policyTemplate: `${origin}/.well-known/oracle-registry/integrations/{policyId}`,
+      runtime: {
+        executionVerifyTemplate: `${origin}/api/v1/partners/{partnerId}/execution/attestation/verify`,
+        executionVerifyPairTemplate: `${origin}/api/v1/partners/{partnerId}/execution/attestation/verify-pair`,
+        requiredBodyField: 'policyId',
+        rule: 'partner runtime requests must name the partner in the path and carry the exact active immutable policy id; public verification routes are not partner activation paths',
+      },
     },
     {
       headers: {

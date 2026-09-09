@@ -58,6 +58,24 @@ receipts sign a semantic `profileId`. A relying party may also supply its
 immutable `policyId` to the execution verify endpoints; unknown or unadmitted
 schema/profile combinations fail closed.
 
+Partner production verification is stricter than public verification. It must
+use `/api/v1/partners/{partnerId}/execution/attestation/verify` (or
+`verify-pair`) and include `policyId` in the JSON body. Runtime admission checks
+that the id is the exact policy selected for that partner by the current
+activation set, that `productionReachability` is enabled, and that the policy
+admits the receipt schema/profile. Missing, stale, cross-partner, disabled or
+unadmitted policy input fails closed. The generic `/api/v1/execution/...`
+routes remain available only for open cryptographic and historical verification
+and must not be recorded as a partner production path.
+
+## Production deployment gate
+
+Vercel Git auto-deployment is disabled in `vercel.json`. A push to `main` first
+runs the full `validate` job and the browser `smoke` job. Only the
+`deploy-production` job, which depends on both, may invoke the protected Vercel
+deploy hook. A failure or cancellation in either gate leaves production on its
+previous deployment.
+
 ## Public discovery
 
 - `/.well-known/oracle-registry/integrations/current.json` points to the current
@@ -66,6 +84,8 @@ schema/profile combinations fail closed.
   immutable partner-to-policy map.
 - `/.well-known/oracle-registry/integrations/{policyId}` returns one immutable
   partner policy.
+- `/api/v1/partners/{partnerId}/execution/attestation/verify` and
+  `/verify-pair` are the policy-mandatory partner runtime paths.
 
 The mutable pointers are for discovery only. Verification and coordination
 records must store the immutable ids they actually used.

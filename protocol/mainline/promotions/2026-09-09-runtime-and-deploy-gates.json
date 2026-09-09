@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x5dfbc2a5b5326b519e432a1a3c608ed9224facee48b4a483c9f3ff5743bf2eef",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 2,
+  "effectiveFrom": "2026-09-09",
+  "classification": "backward-compatible partner runtime and production deployment hardening",
+  "registryReleaseId": "0xf45d4c0272300f8132dba75c49b337557cf6fd7975b32fd14a8b4e13f430a8f7",
+  "predecessorReleaseId": "0xd240af8f16adb282cbbbb9feb695f5bfb8cccde074af046fb7d4ca4c2d4c5c2e",
+  "predecessorPromotionId": "0xfc14be5ea0d4a6507dc0efbed6917a1d0f17fb78bd5cba8a70d3eb671cb0460c",
+  "activationSetId": "0xe125edc38c0e89a4368203c0831728116a4430c329204fe4cc5db6144f8f4469",
+  "receiptImpact": "none: all receipt layouts, signed profiles and existing public verification URLs remain available",
+  "activationRule": "A partner production request must name its partner path and exact currently active immutable policy id; Vercel production deploy is triggered only after validate and smoke pass.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "compatible-policy-bound-runtime",
+      "evidence": "The active promoted Headless policy is production-enabled and admits ExecutionReceipt v4/v5 plus the signed v5 profile; its partner runtime route now rejects missing, stale or cross-partner policy ids."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "compatible-offline-path-unchanged",
+      "evidence": "The active VERITAS policy remains production-disabled and pinned to v2/v3/v4. Public and offline historical verification remains available; the new partner production route correctly stays unreachable."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "not-affected",
+      "evidence": "The pinned AEB option 2 adapter does not consume the ExecutionReceipt partner runtime route, and its verified policy remains production-disabled."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "not-affected",
+      "evidence": "The frozen external-evidence/v0 rev6 OracleSafetyCheck adapter and its production reachability are unchanged."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "not-affected",
+      "evidence": "The merged OracleSafetyCheck evidence family remains pinned to Agent Passport System 6.0.0 and does not use the ExecutionReceipt partner route."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "not-affected",
+      "evidence": "Registry/key-role admission remains production-disabled and no active execution runtime surface is added."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "not-affected",
+      "evidence": "The active pre-trade and Oracle Watch contracts, policy id and polling path are unchanged."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "not-affected",
+      "evidence": "Existing durable records retain their receipt-adjacent schema/key/registry evidence and do not resolve the new execution partner route."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "not-affected",
+      "evidence": "The read-only data and methodology exchange remains production-disabled and fixed by its existing registry, window and dataset pins."
+    }
+  ]
+}
