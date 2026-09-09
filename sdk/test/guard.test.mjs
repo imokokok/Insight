@@ -39,6 +39,7 @@ function preTrade(asset, verdict = 'PASS') {
       attester: '0x0000000000000000000000000000000000000003',
       signedAt: '2026-09-05T00:00:00.000Z',
       data: {
+        verdict,
         sourceAssetId: source ? sourceId : destinationId,
         destinationAssetId: source ? destinationId : sourceId,
         subjectChainId: 1,
@@ -90,6 +91,81 @@ test('executeSwap never submits a trade when the source pre-trade gate blocks', 
   assert.equal(result.status, 'blocked');
   assert.equal(result.stage, 'source_pre_trade');
   assert.equal(submitted, false);
+});
+
+test('executeSwap rejects a top-level verdict that disagrees with the signed verdict', async () => {
+  let submitted = false;
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async (url) => {
+      const asset = new URL(url).searchParams.get('asset');
+      const result = preTrade(asset);
+      if (asset === 'ETH') result.attestation.data.verdict = 'BLOCK';
+      return api(result);
+    },
+  });
+
+  await assert.rejects(
+    () =>
+      guard.executeSwap({
+        source: sourceRequest,
+        destination: destinationRequest,
+        receipt: { settlementChainId: 1 },
+        submitTransaction: async () => {
+          submitted = true;
+          return { txHash };
+        },
+      }),
+    /verdict does not match its signed attestation/
+  );
+  assert.equal(submitted, false);
+});
+
+test('executeSwap rejects expired signed evidence before broadcast', async () => {
+  let submitted = false;
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async (url) => {
+      const result = preTrade(new URL(url).searchParams.get('asset'));
+      result.attestation.data.validUntil = 1757030401;
+      return api(result);
+    },
+  });
+
+  await assert.rejects(
+    () =>
+      guard.executeSwap({
+        source: sourceRequest,
+        destination: destinationRequest,
+        receipt: { settlementChainId: 1 },
+        submitTransaction: async () => {
+          submitted = true;
+          return { txHash };
+        },
+      }),
+    /signed evidence has expired/
+  );
+  assert.equal(submitted, false);
+});
+
+test('assessment preserves a zero recommended position limit', async () => {
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async (url) => {
+      const asset = new URL(url).searchParams.get('asset');
+      const result = preTrade(asset);
+      if (asset === 'ETH') result.recommendedMaxPositionUsd = 0;
+      return api(result);
+    },
+  });
+
+  const assessment = await guard.assessSwap({
+    source: sourceRequest,
+    destination: destinationRequest,
+    receipt: { settlementChainId: 1 },
+  });
+
+  assert.equal(assessment.constraints.recommendedMaxPositionUsd, 0);
 });
 
 test('executeSwap submits only after two gates and issues a verified receipt', async () => {
@@ -199,6 +275,7 @@ test('executeSwapWithPriorSeal authorizes exact calldata before submission and r
         JSON.stringify({
           observation: { txHash, status: 'CONFIRMED' },
           receipt: { receiptId: 'psr_joint', execution: { txHash } },
+          verification: { valid: true, code: 'OK' },
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
@@ -212,9 +289,13 @@ test('executeSwapWithPriorSeal authorizes exact calldata before submission and r
     priorSeal: {
       client: priorSeal,
       principal: {
-        type: 'user',
-        id: 'user-1',
+        type: 'organization',
+        id: 'treasury-1',
         account: '0x3333333333333333333333333333333333333333',
+      },
+      authorizer: {
+        type: 'eip1271',
+        address: '0x4444444444444444444444444444444444444444',
       },
       agentId: 'insight:swap-agent',
       issuedAt: 1900000000,
@@ -253,6 +334,10 @@ test('executeSwapWithPriorSeal authorizes exact calldata before submission and r
     ['/v1/authorizations/prepare', '/v1/authorizations', '/v1/executions/observe']
   );
   const intent = priorSealRequests[0].body.intent;
+  assert.deepEqual(priorSealRequests[0].body.authorizer, {
+    type: 'eip1271',
+    address: '0x4444444444444444444444444444444444444444',
+  });
   assert.equal(intent.schema, 'priorseal.intent.v2');
   assert.equal(intent.executionProfile, 'priorseal.execution-profile.exact-call.v1');
   assert.equal(intent.action, 'CONTRACT_CALL');
@@ -276,6 +361,7 @@ test('executeSwapWithPriorSeal authorizes exact calldata before submission and r
 test('non-intervening assessment can be authorized and verified after an external execution', async () => {
   const insightRequests = [];
   const priorSealRequests = [];
+  let observedTxHash = txHash;
   const guard = new InsightGuard({
     apiKey: 'ins_test',
     fetch: async (url) => {
@@ -329,10 +415,10 @@ test('non-intervening assessment can be authorized and verified after an externa
       }
       return new Response(
         JSON.stringify({
-          observation: { txHash, status: 'CONFIRMED' },
+          observation: { txHash: observedTxHash, status: 'CONFIRMED' },
           receipt: {
             receiptId: 'psr_advisory',
-            execution: { txHash },
+            execution: { txHash: observedTxHash },
             compliance: { status: 'COMPLIANT', reasonCodes: [] },
             binding: { bound: true, reasonCodes: [] },
           },
@@ -403,6 +489,45 @@ test('non-intervening assessment can be authorized and verified after an externa
     '/api/v1/safety/pre-trade',
     '/api/v1/execution/attestation/issue',
   ]);
+
+  observedTxHash = `0x${'d'.repeat(64)}`;
+  const mismatched = await guard.verifyAssessedSwapExecution({
+    assessment,
+    transaction,
+    priorSealAuthorization: authorized.priorSealAuthorization,
+    txHash,
+    priorSeal: { client: priorSeal, confirmations: 12 },
+  });
+  assert.equal(mismatched.report.evidenceAvailability, 'COMPLETE');
+  assert.equal(mismatched.report.evidenceStatus, 'PARTIAL');
+  assert.equal(mismatched.report.transactionCorrelation, false);
+  assert.equal(mismatched.report.assuranceValid, false);
+  assert.equal(mismatched.report.conclusion, 'EVIDENCE_TRANSACTION_MISMATCH');
+
+  observedTxHash = txHash;
+  const danger = preTrade('ETH', 'DANGER');
+  const reviewAssessment = {
+    ...assessment,
+    recommendation: 'REVIEW_REQUIRED',
+    reasonCodes: ['SOURCE_DANGER'],
+    sourcePreTrade: danger,
+    receiptDraft: {
+      ...assessment.receiptDraft,
+      preTradeAttestations: {
+        ...assessment.receiptDraft.preTradeAttestations,
+        source: danger.attestation,
+      },
+    },
+  };
+  const reviewed = await guard.verifyAssessedSwapExecution({
+    assessment: reviewAssessment,
+    transaction,
+    priorSealAuthorization: authorized.priorSealAuthorization,
+    txHash,
+    priorSeal: { client: priorSeal, confirmations: 12 },
+  });
+  assert.equal(reviewed.report.recommendationFollowed, null);
+  assert.equal(reviewed.report.conclusion, 'EXECUTED_WITHOUT_REQUIRED_REVIEW_EVIDENCE');
 });
 
 test('executeSwapWithPriorSeal does not broadcast when exact-call authorization fails', async () => {
@@ -457,6 +582,81 @@ test('executeSwapWithPriorSeal does not broadcast when exact-call authorization 
   assert.equal(submitted, false);
 });
 
+test('executeSwapWithPriorSeal rejects an accepted authorization that differs from the signed draft', async () => {
+  let submitted = false;
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async (url) => api(preTrade(new URL(url).searchParams.get('asset'))),
+  });
+  const priorSeal = {
+    async prepareAuthorization(input) {
+      return {
+        authorization: {
+          ...input,
+          schema: 'priorseal.authorization.v2',
+          domain: 'priorseal/authorization/v2',
+          authorizationId: 'auth_mutated',
+          intent: { ...input.intent, intentHash: `0x${'c'.repeat(64)}` },
+          intentHash: `0x${'c'.repeat(64)}`,
+          policyHash: `0x${'0'.repeat(64)}`,
+        },
+        typedData: { primaryType: 'PriorSealAuthorization' },
+      };
+    },
+    async acceptAuthorization(authorization) {
+      return {
+        authorization: {
+          ...authorization,
+          delegate: {
+            ...authorization.delegate,
+            executor: '0x5555555555555555555555555555555555555555',
+          },
+        },
+        acceptance: { status: 'ACCEPTED' },
+      };
+    },
+    async observeExecution() {
+      throw new Error('must not observe an unsubmitted transaction');
+    },
+  };
+
+  await assert.rejects(
+    () =>
+      guard.executeSwapWithPriorSeal({
+        source: sourceRequest,
+        destination: destinationRequest,
+        receipt: { settlementChainId: 1 },
+        priorSeal: {
+          client: priorSeal,
+          principal: {
+            type: 'user',
+            id: 'user-1',
+            account: '0x3333333333333333333333333333333333333333',
+          },
+          agentId: 'insight:swap-agent',
+          issuedAt: 1900000000,
+          validUntil: 1900000600,
+          authorizationNonce: `0x${'9'.repeat(64)}`,
+          signAuthorization: async () => '0xabcdef',
+        },
+        prepareTransaction: async () => ({
+          chainId: 1,
+          from: '0x1111111111111111111111111111111111111111',
+          to: '0x2222222222222222222222222222222222222222',
+          data: '0x1234',
+          nonce: 7,
+          sourceAmount: 1000000,
+        }),
+        submitTransaction: async () => {
+          submitted = true;
+          return { txHash };
+        },
+      }),
+    /differs from the authorization presented for signing/
+  );
+  assert.equal(submitted, false);
+});
+
 test('executeSwap cannot be configured to submit a BLOCK verdict', async () => {
   let submitted = false;
   const guard = new InsightGuard({
@@ -500,6 +700,22 @@ test('oracleWatch sends the attestation flag in the API query', async () => {
   assert.equal(result.recommendation, 'proceed');
   assert.equal(requestUrl.pathname, '/api/v1/oracle-watch');
   assert.equal(requestUrl.searchParams.get('attest'), 'true');
+});
+
+test('InsightClient bounds requests with a defaultable timeout', async () => {
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    timeoutMs: 5,
+    fetch: async (_url, init) =>
+      new Promise((_resolve, reject) => {
+        init.signal.addEventListener('abort', () => reject(init.signal.reason), { once: true });
+      }),
+  });
+
+  await assert.rejects(
+    () => guard.client.preTrade(sourceRequest),
+    (error) => error.options?.code === 'REQUEST_TIMEOUT' && error.options?.retryable === true
+  );
 });
 
 test('PriorSealClient resumes a durable observation job until final evidence is available', async () => {

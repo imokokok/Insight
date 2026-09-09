@@ -141,9 +141,9 @@ export class InsightGuard {
       watchHalted,
       constraints: {
         maxSlippageBps: request.receipt.maxSlippageBps ?? 50,
-        recommendedMaxPositionUsd: minimumPositive([
-          sourcePreTrade?.recommendedMaxPositionUsd ?? 0,
-          destinationPreTrade?.recommendedMaxPositionUsd ?? 0,
+        recommendedMaxPositionUsd: minimumKnownNonNegative([
+          sourcePreTrade?.recommendedMaxPositionUsd,
+          destinationPreTrade?.recommendedMaxPositionUsd,
         ]),
         validUntil,
       },
@@ -195,7 +195,10 @@ export class InsightGuard {
       {
         intent,
         principal: priorSeal.principal,
-        authorizer: { type: 'eip712', address: priorSeal.principal.account },
+        authorizer: {
+          type: priorSeal.authorizer?.type ?? 'eip712',
+          address: priorSeal.authorizer?.address ?? priorSeal.principal.account,
+        },
         delegate: { agentId: priorSeal.agentId, executor: intent.sender },
         issuedAt,
         notBefore: issuedAt,
@@ -210,10 +213,12 @@ export class InsightGuard {
     if (!/^0x[0-9a-fA-F]+$/.test(signature)) {
       throw new ReceiptConfigurationError('PriorSeal signer returned no hex signature.');
     }
+    const signedAuthorization = { ...preparedAuthorization.authorization, signature };
     const priorSealAuthorization = await priorSeal.client.acceptAuthorization(
-      { ...preparedAuthorization.authorization, signature },
+      signedAuthorization,
       priorSeal.signal
     );
+    assertAcceptedAuthorizationMatchesPresented(priorSealAuthorization, signedAuthorization);
     assertAuthorizationMatchesAssessment(priorSealAuthorization, assessment, transaction);
     return { assessment, transaction, priorSealAuthorization };
   }
@@ -261,7 +266,12 @@ export class InsightGuard {
       insightReceipt,
       priorSealEvidence,
       evidenceErrors,
-      report: buildJointAssuranceReport(request.assessment, insightReceipt, priorSealEvidence),
+      report: buildJointAssuranceReport(
+        request.assessment,
+        request.txHash,
+        insightReceipt,
+        priorSealEvidence
+      ),
     };
   }
 
@@ -348,7 +358,10 @@ export class InsightGuard {
       {
         intent,
         principal: request.priorSeal.principal,
-        authorizer: { type: 'eip712', address: request.priorSeal.principal.account },
+        authorizer: {
+          type: request.priorSeal.authorizer?.type ?? 'eip712',
+          address: request.priorSeal.authorizer?.address ?? request.priorSeal.principal.account,
+        },
         delegate: { agentId: request.priorSeal.agentId, executor: intent.sender },
         issuedAt,
         notBefore: issuedAt,
@@ -363,10 +376,12 @@ export class InsightGuard {
     if (!/^0x[0-9a-fA-F]+$/.test(signature)) {
       throw new ReceiptConfigurationError('PriorSeal signer returned no hex signature.');
     }
+    const signedAuthorization = { ...preparedAuthorization.authorization, signature };
     const priorSealAuthorization = await request.priorSeal.client.acceptAuthorization(
-      { ...preparedAuthorization.authorization, signature },
+      signedAuthorization,
       request.priorSeal.signal
     );
+    assertAcceptedAuthorizationMatchesPresented(priorSealAuthorization, signedAuthorization);
 
     const transaction = await request.submitTransaction({
       sourcePreTrade: gated.sourcePreTrade,
@@ -420,14 +435,25 @@ export class InsightGuard {
             priorSealEvidence.observationJob.state
           )))
     );
-    const evidenceStatus =
-      insightReceipt && priorSealEvidence?.receipt && !priorSealPending
+    const evidenceAvailability = evidenceAvailabilityFor(insightReceipt, priorSealEvidence);
+    const transactionCorrelation = correlateTransactionHashes(
+      transaction.txHash,
+      insightReceipt,
+      priorSealEvidence
+    );
+    const assuranceValid =
+      insightReceipt && priorSealEvidence?.receipt
+        ? insightReceipt.bindingMode === 'VERIFIED' &&
+          priorSealEvidence.verification?.valid === true &&
+          transactionCorrelation === true
+        : null;
+    const evidenceStatus = priorSealPending
+      ? 'PRIORSEAL_PENDING'
+      : assuranceValid === true
         ? 'COMPLETE'
-        : priorSealPending
-          ? 'PRIORSEAL_PENDING'
-          : insightReceipt || priorSealEvidence?.receipt
-            ? 'PARTIAL'
-            : 'UNAVAILABLE';
+        : evidenceAvailability === 'UNAVAILABLE'
+          ? 'UNAVAILABLE'
+          : 'PARTIAL';
 
     return {
       status: 'executed',
@@ -439,6 +465,9 @@ export class InsightGuard {
       insightReceipt,
       priorSealEvidence,
       evidenceStatus,
+      evidenceAvailability,
+      transactionCorrelation,
+      assuranceValid,
       evidenceErrors,
     };
   }
@@ -612,9 +641,21 @@ function assessmentReasonCodes(
   return [...new Set(codes)];
 }
 
-function minimumPositive(values: number[]): number | null {
-  const positive = values.filter((value) => Number.isFinite(value) && value > 0);
-  return positive.length ? Math.min(...positive) : null;
+function minimumPositive(values: Array<number | null | undefined>): number | null {
+  if (
+    values.length === 0 ||
+    values.some((value) => value == null || !Number.isFinite(value) || value <= 0)
+  ) {
+    return null;
+  }
+  return Math.min(...(values as number[]));
+}
+
+function minimumKnownNonNegative(values: Array<number | null | undefined>): number | null {
+  const known = values.filter(
+    (value): value is number => value != null && Number.isFinite(value) && value >= 0
+  );
+  return known.length ? Math.min(...known) : null;
 }
 
 function requireAssessmentEvidence(
@@ -692,6 +733,14 @@ function assertAuthorizationMatchesAssessment(
   const evidence = requireAssessmentEvidence(assessment);
   const actual = accepted.authorization?.intent;
   if (!actual) throw new ReceiptConfigurationError('PriorSeal returned no authorized intent.');
+  if (
+    assessment.constraints.validUntil == null ||
+    actual.validUntil > assessment.constraints.validUntil
+  ) {
+    throw new ReceiptConfigurationError(
+      'PriorSeal authorization outlives the signed Insight assessment.'
+    );
+  }
   const expected = buildPriorSealExactCallIntent({
     transaction,
     intentId: actual.intentId,
@@ -721,13 +770,16 @@ function assertAuthorizationMatchesAssessment(
       ? String(expected[field]).toLowerCase() !== String(actual[field]).toLowerCase()
       : expected[field] !== actual[field]
   );
-  const commitmentMatched = actual.contextCommitments?.some(
+  const insightCommitments =
+    actual.contextCommitments?.filter(
+      (entry) => entry.namespace === assessment.contextCommitment!.namespace
+    ) ?? [];
+  const commitmentMatched = insightCommitments.some(
     (entry) =>
-      entry.namespace === assessment.contextCommitment!.namespace &&
       entry.algorithm === assessment.contextCommitment!.algorithm &&
       entry.digest.toLowerCase() === assessment.contextCommitment!.digest.toLowerCase()
   );
-  if (mismatch || !commitmentMatched) {
+  if (mismatch || insightCommitments.length !== 1 || !commitmentMatched) {
     throw new ReceiptConfigurationError(
       mismatch
         ? `PriorSeal authorization does not match the assessed transaction field: ${mismatch}.`
@@ -736,13 +788,50 @@ function assertAuthorizationMatchesAssessment(
   }
 }
 
+function assertAcceptedAuthorizationMatchesPresented(
+  accepted: PriorSealAcceptedAuthorization,
+  presented: PriorSealAcceptedAuthorization['authorization']
+): void {
+  if (accepted.acceptance?.status !== 'ACCEPTED') {
+    throw new ReceiptConfigurationError('PriorSeal returned no accepted authorization evidence.');
+  }
+  if (canonicalJson(accepted.authorization) !== canonicalJson(presented)) {
+    throw new ReceiptConfigurationError(
+      'PriorSeal accepted authorization differs from the authorization presented for signing.'
+    );
+  }
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${canonicalJson(entry)}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
 function buildJointAssuranceReport(
   assessment: SwapAssessment,
+  expectedTxHash: string,
   insightReceipt: ExecutionReceiptResult | null,
   priorSealEvidence: PriorSealObservationResult | null
 ): AssessedSwapExecutionVerificationResult['report'] {
   const pending = isPriorSealPending(priorSealEvidence);
-  const evidenceStatus = jointEvidenceStatus(insightReceipt, priorSealEvidence, pending);
+  const evidenceAvailability = evidenceAvailabilityFor(insightReceipt, priorSealEvidence);
+  const transactionCorrelation = correlateTransactionHashes(
+    expectedTxHash,
+    insightReceipt,
+    priorSealEvidence
+  );
+  const evidenceStatus = jointEvidenceStatus(
+    insightReceipt,
+    priorSealEvidence,
+    pending,
+    transactionCorrelation
+  );
   const compliance = priorSealEvidence?.receipt?.compliance?.status ?? null;
   const priorSealReceiptValid = priorSealEvidence?.receipt
     ? (priorSealEvidence.verification?.valid ?? null)
@@ -757,16 +846,25 @@ function buildJointAssuranceReport(
   if (priorSealReceiptValid === false) reasonCodes.push('PRIORSEAL_RECEIPT_INVALID');
   if (compliance === 'NON_COMPLIANT') reasonCodes.push('PRIORSEAL_NON_COMPLIANT');
   if (constraintsSatisfied === false) reasonCodes.push('INSIGHT_CONSTRAINTS_NOT_SATISFIED');
+  if (transactionCorrelation === false) reasonCodes.push('EVIDENCE_TRANSACTION_MISMATCH');
   if (evidenceStatus === 'PARTIAL') reasonCodes.push('EVIDENCE_PARTIAL');
   if (evidenceStatus === 'UNAVAILABLE') reasonCodes.push('EVIDENCE_UNAVAILABLE');
+  const assuranceValid =
+    evidenceAvailability === 'COMPLETE'
+      ? insightReceipt?.bindingMode === 'VERIFIED' &&
+        priorSealReceiptValid === true &&
+        transactionCorrelation === true
+      : null;
 
   const conclusion = jointConclusion({
+    recommendation: assessment.recommendation,
     pending,
     evidenceStatus,
     priorSealReceiptValid,
     exactCallMatched,
     constraintsSatisfied,
     recommendationFollowed,
+    transactionCorrelation,
   });
 
   return {
@@ -774,6 +872,10 @@ function buildJointAssuranceReport(
     recommendation: assessment.recommendation,
     recommendationFollowed,
     evidenceStatus,
+    evidenceAvailability,
+    expectedTxHash: normalizeTxHash(expectedTxHash) ?? expectedTxHash,
+    transactionCorrelation,
+    assuranceValid,
     insightExecutionStatus: insightReceipt?.executionStatus ?? null,
     priorSealReceiptValid,
     priorSealComplianceStatus: compliance,
@@ -798,13 +900,15 @@ function isPriorSealPending(evidence: PriorSealObservationResult | null): boolea
 function jointEvidenceStatus(
   insightReceipt: ExecutionReceiptResult | null,
   priorSealEvidence: PriorSealObservationResult | null,
-  pending: boolean
+  pending: boolean,
+  transactionCorrelation: boolean | null
 ): AssessedSwapExecutionVerificationResult['report']['evidenceStatus'] {
   if (pending) return 'PRIORSEAL_PENDING';
   if (
     insightReceipt?.bindingMode === 'VERIFIED' &&
     priorSealEvidence?.receipt &&
-    priorSealEvidence.verification?.valid === true
+    priorSealEvidence.verification?.valid === true &&
+    transactionCorrelation === true
   ) {
     return 'COMPLETE';
   }
@@ -840,25 +944,68 @@ function followedRecommendation(
 }
 
 function jointConclusion(input: {
+  recommendation: TransactionRecommendation;
   pending: boolean;
   evidenceStatus: AssessedSwapExecutionVerificationResult['report']['evidenceStatus'];
   priorSealReceiptValid: boolean | null;
   exactCallMatched: boolean | null;
   constraintsSatisfied: boolean | null;
   recommendationFollowed: boolean | null;
+  transactionCorrelation: boolean | null;
 }): AssessedSwapExecutionVerificationResult['report']['conclusion'] {
+  if (input.transactionCorrelation === false) return 'EVIDENCE_TRANSACTION_MISMATCH';
   if (input.pending) return 'EXECUTION_PENDING';
-  if (input.evidenceStatus === 'PARTIAL') return 'PARTIAL_EVIDENCE';
-  if (input.evidenceStatus === 'UNAVAILABLE') return 'UNASSESSABLE';
   if (input.priorSealReceiptValid === false || input.exactCallMatched === false) {
     return 'AUTHORIZATION_MISMATCH';
   }
-  if (input.constraintsSatisfied === false) return 'EXECUTED_OUTSIDE_ASSESSED_CONSTRAINTS';
   if (input.recommendationFollowed === false) return 'EXECUTED_AGAINST_RECOMMENDATION';
-  if (input.exactCallMatched === true && input.constraintsSatisfied === true) {
+  if (input.recommendation === 'REVIEW_REQUIRED' && input.exactCallMatched === true) {
+    return 'EXECUTED_WITHOUT_REQUIRED_REVIEW_EVIDENCE';
+  }
+  if (input.evidenceStatus === 'PARTIAL') return 'PARTIAL_EVIDENCE';
+  if (input.evidenceStatus === 'UNAVAILABLE') return 'UNASSESSABLE';
+  if (input.constraintsSatisfied === false) return 'EXECUTED_OUTSIDE_ASSESSED_CONSTRAINTS';
+  if (
+    input.exactCallMatched === true &&
+    input.constraintsSatisfied === true &&
+    input.recommendationFollowed === true
+  ) {
     return 'EXECUTED_AS_ASSESSED_AND_AUTHORIZED';
   }
   return 'UNASSESSABLE';
+}
+
+function evidenceAvailabilityFor(
+  insightReceipt: ExecutionReceiptResult | null,
+  priorSealEvidence: PriorSealObservationResult | null
+): 'COMPLETE' | 'PARTIAL' | 'UNAVAILABLE' {
+  const insightPresent = insightReceipt !== null;
+  const priorSealPresent = priorSealEvidence?.receipt != null;
+  if (insightPresent && priorSealPresent) return 'COMPLETE';
+  return insightPresent || priorSealPresent ? 'PARTIAL' : 'UNAVAILABLE';
+}
+
+function correlateTransactionHashes(
+  expectedTxHash: string,
+  insightReceipt: ExecutionReceiptResult | null,
+  priorSealEvidence: PriorSealObservationResult | null
+): boolean | null {
+  const expected = normalizeTxHash(expectedTxHash);
+  if (!expected) return false;
+  const hashes: Array<string | undefined> = [];
+  if (insightReceipt) hashes.push(text(insightReceipt.attestation?.data?.txHash));
+  if (priorSealEvidence) {
+    hashes.push(text(priorSealEvidence.observation?.txHash));
+    if (priorSealEvidence.receipt) hashes.push(text(priorSealEvidence.receipt.execution?.txHash));
+  }
+  if (hashes.length === 0) return null;
+  return hashes.every((hash) => normalizeTxHash(hash) === expected);
+}
+
+function normalizeTxHash(value: unknown): string | null {
+  return typeof value === 'string' && /^0x[0-9a-fA-F]{64}$/.test(value)
+    ? value.toLowerCase()
+    : null;
 }
 
 function evidenceError(error: unknown): { code?: string; message: string } {
@@ -961,10 +1108,24 @@ function buildVerifiedReceiptDraft(
 
 function requireV2Proof(result: PreTradeResult, label: string): SignedAttestation {
   const attestation = result.attestation;
-  if (!attestation || attestation.schemaVersion < 2) {
+  if (!attestation || ![2, 3].includes(attestation.schemaVersion)) {
     throw new ReceiptConfigurationError(
       `${label} pre-trade needs a signed v2/v3 attestation for a VERIFIED execution receipt.`
     );
+  }
+  const signedVerdict = text(attestation.data.verdict).toUpperCase();
+  if (signedVerdict !== result.verdict) {
+    throw new ReceiptConfigurationError(
+      `${label} pre-trade verdict does not match its signed attestation.`
+    );
+  }
+  const checkedAt = number(attestation.data.checkedAt);
+  const validUntil = number(attestation.data.validUntil);
+  if (checkedAt <= 0 || validUntil < checkedAt) {
+    throw new ReceiptConfigurationError(`${label} pre-trade has an invalid signed time window.`);
+  }
+  if (validUntil <= Math.floor(Date.now() / 1000)) {
+    throw new ReceiptConfigurationError(`${label} pre-trade signed evidence has expired.`);
   }
   return attestation;
 }

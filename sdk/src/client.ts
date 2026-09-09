@@ -25,6 +25,7 @@ export class InsightClient {
   private readonly baseUrl: string;
   private readonly fetcher: typeof globalThis.fetch;
   private readonly extraHeaders: Record<string, string>;
+  private readonly timeoutMs: number;
 
   constructor(options: InsightClientOptions) {
     if (!options.apiKey.trim()) throw new Error('InsightClient requires an API key.');
@@ -34,6 +35,10 @@ export class InsightClient {
     if (!this.fetcher)
       throw new Error('No fetch implementation is available. Node 18+ is required.');
     this.extraHeaders = options.headers ?? {};
+    this.timeoutMs = options.timeoutMs ?? 15_000;
+    if (!Number.isSafeInteger(this.timeoutMs) || this.timeoutMs < 1) {
+      throw new TypeError('timeoutMs must be a positive integer.');
+    }
   }
 
   async preTrade(request: PreTradeRequest, signal?: AbortSignal): Promise<PreTradeResult> {
@@ -78,23 +83,52 @@ export class InsightClient {
       if (value !== undefined) url.searchParams.set(key, String(value));
     }
 
-    const response = await this.fetcher(url, {
-      method,
-      signal: options.signal,
-      headers: {
-        Accept: 'application/json',
-        'X-API-Key': this.apiKey,
-        ...this.extraHeaders,
-        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-      },
-      body: options.body ? JSON.stringify(options.body) : undefined,
-    });
+    const controller = new AbortController();
+    const onAbort = () => controller.abort(options.signal?.reason);
+    if (options.signal?.aborted) controller.abort(options.signal.reason);
+    else options.signal?.addEventListener('abort', onAbort, { once: true });
+    const timeout = setTimeout(
+      () => controller.abort(new Error('Insight request timed out')),
+      this.timeoutMs
+    );
 
+    let response: Response;
     let payload: ApiEnvelope<T> | null = null;
     try {
-      payload = (await response.json()) as ApiEnvelope<T>;
-    } catch {
-      // Keep the error below structured even if an intermediary returned HTML.
+      response = await this.fetcher(url, {
+        method,
+        signal: controller.signal,
+        headers: {
+          Accept: 'application/json',
+          'X-API-Key': this.apiKey,
+          ...this.extraHeaders,
+          ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        },
+        body: options.body ? JSON.stringify(options.body) : undefined,
+      });
+      try {
+        payload = (await response.json()) as ApiEnvelope<T>;
+      } catch {
+        // Keep the error below structured even if an intermediary returned HTML.
+      }
+    } catch (error) {
+      if (controller.signal.aborted) {
+        const externallyAborted = options.signal?.aborted;
+        throw new InsightApiError(
+          externallyAborted
+            ? 'Insight request was aborted'
+            : `Insight did not respond within ${this.timeoutMs}ms`,
+          {
+            status: 0,
+            code: externallyAborted ? 'REQUEST_ABORTED' : 'REQUEST_TIMEOUT',
+            retryable: !externallyAborted,
+          }
+        );
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+      options.signal?.removeEventListener('abort', onAbort);
     }
 
     if (!response.ok || !payload?.success || payload.data === undefined) {

@@ -130,6 +130,7 @@ const authorized = await guard.authorizeAssessedSwap({
   priorSeal: {
     client: priorSeal,
     principal: { type: 'organization', id: treasuryId, account: treasurySafe },
+    authorizer: { type: 'eip1271', address: treasurySafe },
     agentId: 'treasury:rebalance-agent',
     signAuthorization: ({ typedData }) => wallet.signTypedData(typedData),
   },
@@ -150,10 +151,11 @@ console.log(verified.report.conclusion);
 ```
 
 The deterministic report distinguishes complete evidence, pending observation,
-partial evidence, authorization mismatch, execution outside the assessed price
-constraints, and execution against an advisory recommendation. It is derived
-from the two issuer receipts and is not a third attestation or an execution
-permission.
+partial evidence, transaction-hash mismatch, authorization mismatch, execution
+outside the assessed price constraints, execution against an advisory
+recommendation, and execution with no recorded review despite a
+`REVIEW_REQUIRED` assessment. It is derived from the two issuer receipts and
+is not a third attestation or an execution permission.
 
 ## Optional gated execution with PriorSeal
 
@@ -198,7 +200,16 @@ const result = await guard.executeSwapWithPriorSeal({
 });
 ```
 
-The returned `evidenceStatus` is `COMPLETE` only when both independent receipts are present and no PriorSeal observation job is still active. A post-broadcast outage returns the surviving evidence as `PARTIAL` or `PRIORSEAL_PENDING`; it does not relabel one issuer's receipt as the other's. If `priorSealEvidence.observationJob` is present, resume it with `PriorSealClient.waitForObservationJob()` or use `observeExecutionUntilFinal()` in a background worker.
+The returned `evidenceStatus` is `COMPLETE` only when Insight binding is
+verified, PriorSeal verification is valid, both artifacts refer to the submitted
+transaction hash, and no PriorSeal observation job is still active.
+`evidenceAvailability` separately reports whether both artifacts are present,
+without confusing presence with validity. A post-broadcast outage returns the
+surviving evidence as `PARTIAL` or `PRIORSEAL_PENDING`; it does not relabel
+one issuer's receipt as the other's. If
+`priorSealEvidence.observationJob` is present, resume it with
+`PriorSealClient.waitForObservationJob()` or use
+`observeExecutionUntilFinal()` in a background worker.
 
 Insight adds a namespaced context commitment to the signed PriorSeal intent. Its digest covers the source and destination pre-trade attestation UIDs, their request hashes and the signed slippage ceiling. PriorSeal treats source asset and amount as descriptive context and does not reinterpret Insight's economics: calldata remains authoritative for exact-call execution, while Insight remains authoritative for quote quality, fill attribution and slippage.
 

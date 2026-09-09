@@ -102,6 +102,8 @@ export interface InsightClientOptions {
   baseUrl?: string;
   fetch?: typeof globalThis.fetch;
   headers?: Record<string, string>;
+  /** Defaults to 15 seconds. */
+  timeoutMs?: number;
 }
 
 export interface GuardPolicy {
@@ -209,7 +211,7 @@ export interface PriorSealAuthorization {
   intent: PriorSealIntent;
   intentHash: string;
   principal: { type: 'user' | 'organization'; id: string; account: string };
-  authorizer: { type: 'eip712'; address: string };
+  authorizer: { type: 'eip712' | 'eip1271'; address: string };
   delegate: { agentId: string; executor: string };
   issuedAt: number;
   notBefore: number;
@@ -292,6 +294,8 @@ export interface PriorSealApi {
 export interface PriorSealFlowOptions {
   client: PriorSealApi;
   principal: { type: 'user' | 'organization'; id: string; account: string };
+  /** Defaults to an EOA authorizer at principal.account. Use eip1271 for a Safe or contract account. */
+  authorizer?: { type: 'eip712' | 'eip1271'; address?: string };
   agentId: string;
   /** Must not exceed the exact transaction's own deadline. */
   validUntil?: number;
@@ -375,8 +379,10 @@ export interface AssessedSwapExecutionVerificationRequest {
 export type JointAssuranceConclusion =
   | 'EXECUTED_AS_ASSESSED_AND_AUTHORIZED'
   | 'EXECUTED_AGAINST_RECOMMENDATION'
+  | 'EXECUTED_WITHOUT_REQUIRED_REVIEW_EVIDENCE'
   | 'EXECUTED_OUTSIDE_ASSESSED_CONSTRAINTS'
   | 'AUTHORIZATION_MISMATCH'
+  | 'EVIDENCE_TRANSACTION_MISMATCH'
   | 'EXECUTION_PENDING'
   | 'PARTIAL_EVIDENCE'
   | 'UNASSESSABLE';
@@ -386,6 +392,11 @@ export interface JointAssuranceReport {
   recommendation: TransactionRecommendation;
   recommendationFollowed: boolean | null;
   evidenceStatus: 'COMPLETE' | 'PRIORSEAL_PENDING' | 'PARTIAL' | 'UNAVAILABLE';
+  /** Presence is separate from validity: two present but invalid artifacts are still available. */
+  evidenceAvailability: 'COMPLETE' | 'PARTIAL' | 'UNAVAILABLE';
+  expectedTxHash: string;
+  transactionCorrelation: boolean | null;
+  assuranceValid: boolean | null;
   insightExecutionStatus: string | null;
   priorSealReceiptValid: boolean | null;
   priorSealComplianceStatus: string | null;
@@ -419,6 +430,9 @@ export type PriorSealGuardedSwapResult =
       insightReceipt: ExecutionReceiptResult | null;
       priorSealEvidence: PriorSealObservationResult | null;
       evidenceStatus: 'COMPLETE' | 'PRIORSEAL_PENDING' | 'PARTIAL' | 'UNAVAILABLE';
+      evidenceAvailability: 'COMPLETE' | 'PARTIAL' | 'UNAVAILABLE';
+      transactionCorrelation: boolean | null;
+      assuranceValid: boolean | null;
       evidenceErrors: { insight?: JointEvidenceError; priorSeal?: JointEvidenceError };
     };
 
