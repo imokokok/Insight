@@ -85,6 +85,29 @@ describe('.well-known/oracle-keys.json route', () => {
     expect(body.verify).toContain('/api/v1/safety/attestation/verify');
   });
 
+  it('publishes the complete provider-observation ABI and a literal vector (VERITAS N15)', async () => {
+    const { GET } = await import('../route');
+    const response = await GET(
+      new Request('https://www.oracleinsight.xyz/.well-known/oracle-keys.json')
+    );
+    const body = await response.json();
+    const commitment = body.commitments.providerObservationsHash;
+
+    expect(commitment.entryAbi).toEqual([
+      { name: 'provider', type: 'string' },
+      { name: 'feedId', type: 'string' },
+      { name: 'value', type: 'uint256' },
+      { name: 'timestamp', type: 'uint256' },
+      { name: 'dataAgeSeconds', type: 'uint256' },
+      { name: 'included', type: 'bool' },
+      { name: 'exclusionReason', type: 'string' },
+    ]);
+    expect(commitment.valueSemantics).toContain('negative values reject');
+    expect(commitment.vector).toBe(
+      'https://www.oracleinsight.xyz/.well-known/provider-observations-hash-vector-v1.json'
+    );
+  });
+
   it('publishes the Execution Receipt schema (the "did it fill faithfully" half)', async () => {
     const { GET } = await import('../route');
     const response = await GET(

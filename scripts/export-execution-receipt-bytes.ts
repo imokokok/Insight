@@ -73,6 +73,7 @@ import {
   computeProviderObservationsHash,
   deriveCrossProviderAgreement,
   deriveParticipantCount,
+  PROVIDER_OBSERVATIONS_HASH_CANONICALIZATION,
 } from '@/lib/attestations/providerObservationsHash';
 import {
   CANONICAL_REQUEST_DOMAIN,
@@ -662,8 +663,11 @@ async function main() {
         // F16: raw evidence that opens each gate's providerObservationsHash and
         // lets a stranger recompute the signed participantCount/agreement.
         providerObservationPreimages: {
-          canonicalization:
-            'ABI-encode each (provider, feedId, value, timestamp, dataAgeSeconds, included, exclusionReason) tuple; keccak256 each encoding; byte-sort the entry hashes; concat; keccak256. Empty list -> keccak256(empty).',
+          // N15: publish the complete ABI types, not only the seven field
+          // names. value is uint256 in the canonical issuer implementation;
+          // a negative-value rejection vector pins the distinction because
+          // non-negative int256/uint256 values encode identically.
+          canonicalization: PROVIDER_OBSERVATIONS_HASH_CANONICALIZATION,
           source: {
             entries: sourceObservations,
             signedHash: sourceGate.data.providerObservationsHash,

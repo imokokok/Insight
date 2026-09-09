@@ -81,6 +81,7 @@ import {
   WATCH_REQUIRED_PARTICIPANT_COUNT,
   WATCH_REQUIRED_SOURCE_GROUP_COUNT,
 } from '@/lib/attestations/oracleWatchAttestation';
+import { PROVIDER_OBSERVATIONS_HASH_CANONICALIZATION } from '@/lib/attestations/providerObservationsHash';
 
 /** Loose EIP-712 descriptor shape for JSON (domain version widened to string;
  *  `environment` appears on domains that structurally separate deployments). */
@@ -167,6 +168,15 @@ export async function GET(request: NextRequest) {
     public_keys: registry.keys,
     revoked_keys: registry.revoked,
     attestation_enabled: attester !== null,
+    /** Commitment rules shared by OracleSafetyCheck and OracleWatchCheck.
+     *  N15: list every ABI type explicitly so an independent verifier never
+     *  has to infer uint256/int256 from positive example bytes. */
+    commitments: {
+      providerObservationsHash: {
+        ...PROVIDER_OBSERVATIONS_HASH_CANONICALIZATION,
+        vector: `${origin}/.well-known/provider-observations-hash-vector-v1.json`,
+      },
+    },
     schemas: {
       /**
        * Pre-trade Oracle Safety Check. v3 is the current signing layout: 27

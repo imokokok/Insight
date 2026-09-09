@@ -1,0 +1,114 @@
+{
+  "schema": "insight-veritas-anchored-settlement-selection/v2",
+  "purpose": "Precommit the settlement choice and prove Bitcoin confirmation before Ethereum settlement without comparing cross-chain timestamps",
+  "gateWindowSeconds": 600,
+  "settlementChain": {
+    "chainId": 1,
+    "name": "Ethereum mainnet"
+  },
+  "venue": {
+    "protocol": "Uniswap V3",
+    "pool": "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
+    "feeTierBps": 5,
+    "event": "Swap(address,address,int256,int256,uint160,uint128,int24)",
+    "eventTopic0": "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67"
+  },
+  "direction": {
+    "sourceToken": "WETH",
+    "sourceTokenAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "sourceDecimals": 18,
+    "destinationToken": "USDC",
+    "destinationTokenAddress": "0xA0b86991c6218b36c1d19d4a2e9eb0cE3606eB48",
+    "destinationDecimals": 6,
+    "eventPredicate": "amount0 < 0 AND amount1 > 0"
+  },
+  "minimumSourceLeg": {
+    "raw": "100000000000000000",
+    "human": "0.1 WETH",
+    "predicate": "amount1 >= 100000000000000000"
+  },
+  "bitcoinAnchorCommitment": {
+    "canonicalization": "RFC 8785 JSON Canonicalization Scheme (JCS), UTF-8 bytes",
+    "selectionRuleHash": "keccak256(UTF8(JCS(this complete v2 selection-rule object)))",
+    "requiredPrecommittedValues": [
+      "sourceGateUid",
+      "destinationGateUid",
+      "preTradeUidsHash",
+      "selectionRuleHash"
+    ],
+    "broadcastRule": "Both parties byte-compare the complete Bitcoin anchor preimage before broadcast",
+    "confirmationRule": "The anchor transaction must have at least one Bitcoin confirmation"
+  },
+  "ethereumOrderingCommitment": {
+    "preimageSchema": "insight-veritas-ethereum-ordering-commitment/v1",
+    "canonicalization": "RFC 8785 JSON Canonicalization Scheme (JCS), UTF-8 bytes",
+    "requiredPreimageFields": [
+      { "name": "schema", "type": "string" },
+      { "name": "sourceGateUid", "type": "bytes32 hex string with 0x prefix" },
+      { "name": "destinationGateUid", "type": "bytes32 hex string with 0x prefix" },
+      { "name": "preTradeUidsHash", "type": "bytes32 hex string with 0x prefix" },
+      { "name": "selectionRuleHash", "type": "bytes32 hex string with 0x prefix" },
+      { "name": "bitcoinAnchorTxid", "type": "32-byte transaction id hex string" },
+      { "name": "bitcoinConfirmingBlockHeight", "type": "JSON integer" },
+      { "name": "bitcoinConfirmingBlockHash", "type": "32-byte block hash hex string" }
+    ],
+    "hash": "orderingCommitmentHash = keccak256(UTF8(JCS(preimage)))",
+    "ethereumTransaction": {
+      "chainId": 1,
+      "from": "either party",
+      "to": "same address as from",
+      "valueWei": "0",
+      "inputData": "exactly orderingCommitmentHash as 32 calldata bytes",
+      "receiptStatus": 1,
+      "commitmentBlockVariable": "E"
+    },
+    "broadcastRule": "After the Bitcoin confirmation is known, both parties byte-compare the complete Ethereum ordering preimage and orderingCommitmentHash before broadcast",
+    "orderingProof": "The preimage binds the unpredictable Bitcoin confirming block hash; Ethereum inclusion at block E therefore follows that Bitcoin block, and candidate blockNumber > E proves settlement follows both commitments without a cross-chain clock"
+  },
+  "candidateWindow": {
+    "opensOnlyAfter": "The Ethereum ordering commitment transaction succeeds in block E",
+    "sameChainOrderPredicate": "Ethereum candidate blockNumber must be strictly greater than E",
+    "crossChainTimestampPredicate": null,
+    "closesAt": "The signed pre-trade gate validUntil; never widen the registered 600-second window",
+    "expiryCheck": "candidate block.timestamp must be less than or equal to the signed gate validUntil; this checks gate validity only and is not used to order Bitcoin against Ethereum"
+  },
+  "canonicalOrder": ["blockNumber ascending", "transactionIndex ascending", "logIndex ascending"],
+  "selection": "Select and attest the first event satisfying every venue, direction, minimum-source-leg, candidate-window and canonical-order predicate",
+  "outcomeIndependence": {
+    "mustPublishSelectedReceipt": true,
+    "publishIfNotFaithful": true,
+    "forbiddenSelectionInputs": [
+      "priceDeltaBps",
+      "slippageSatisfied",
+      "priceExecutionStatus",
+      "executedPrice",
+      "any later candidate"
+    ]
+  },
+  "abortAndRetry": {
+    "abortIfBitcoinAnchorUnconfirmedBeforeGateExpiry": true,
+    "abortIfEthereumCommitmentNotIncludedBeforeGateExpiry": true,
+    "abortIfNoEligibleEventBeforeGateExpiry": true,
+    "retryRequiresNewGateNewBitcoinAnchorAndNewEthereumCommitment": true,
+    "publishEveryBitcoinAnchorTxidIncludingAbortedAttempts": true,
+    "publishEveryEthereumCommitmentTxidIncludingAbortedAttempts": true
+  },
+  "finalPackageMustPublish": [
+    "source and destination gate envelopes",
+    "preTradeUidsHash",
+    "complete v2 selection-rule object and selectionRuleHash",
+    "Bitcoin anchor preimage, txid, confirming block height and confirming block hash",
+    "Ethereum ordering preimage, orderingCommitmentHash, transaction hash and block E",
+    "selected receipt or explicit abort reason",
+    "every Bitcoin anchor and Ethereum commitment txid from aborted attempts"
+  ],
+  "proofScope": {
+    "ethereumOrderingCommitment": "short-horizon public ordering: Bitcoin confirmation and gate/rule commitment precede settlement",
+    "bitcoinAnchor": "durable censorship-resistant evidence that the committed record existed",
+    "notClaimed": [
+      "VERITAS proves the Insight verdict correct",
+      "an anchor makes an expired gate fresh",
+      "listing or verification is endorsement"
+    ]
+  }
+}

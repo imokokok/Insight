@@ -5,10 +5,16 @@
  * keccak each, sort the 32-byte hashes lexicographically, concat, keccak.
  */
 
+import { keccak256 } from 'viem';
+
+import publishedVector from '@/../scripts/veritas-joint-run/provider-observation-hash-vector-v1.json';
+
 import {
   computeProviderObservationsHash,
   deriveCrossProviderAgreement,
   deriveParticipantCount,
+  encodeProviderObservationEntry,
+  PROVIDER_OBSERVATION_ENTRY_ABI,
 } from '../providerObservationsHash';
 
 import type { ProviderObservationEntry } from '../providerObservationsHash';
@@ -53,6 +59,39 @@ describe('computeProviderObservationsHash', () => {
     expect(computeProviderObservationsHash(entries)).toBe(
       '0x1b122f7bcabfe29dc37c2698dcfe3d8f59a9bd9a81455036abe2b9fe2ba3bf3a'
     );
+  });
+
+  it('publishes the complete seven-field ABI and a literal non-empty vector (VERITAS N15)', () => {
+    expect(PROVIDER_OBSERVATION_ENTRY_ABI).toEqual(publishedVector.entryAbi);
+
+    const literalEntries: ProviderObservationEntry[] = publishedVector.positive.entries.map(
+      (entry) => ({
+        ...entry,
+        value: BigInt(entry.value),
+        timestamp: BigInt(entry.timestamp),
+        dataAgeSeconds: BigInt(entry.dataAgeSeconds),
+      })
+    );
+    const encodedEntries = literalEntries.map(encodeProviderObservationEntry);
+    expect(encodedEntries).toEqual(publishedVector.positive.encodedEntries);
+    expect(encodedEntries.map(keccak256).sort()).toEqual(
+      publishedVector.positive.entryHashesSorted
+    );
+    expect(computeProviderObservationsHash(literalEntries)).toBe(
+      publishedVector.positive.providerObservationsHash
+    );
+  });
+
+  it('rejects the literal negative value vector, pinning value as uint256', () => {
+    const negative = publishedVector.negative.entry;
+    expect(() =>
+      encodeProviderObservationEntry({
+        ...negative,
+        value: BigInt(negative.value),
+        timestamp: BigInt(negative.timestamp),
+        dataAgeSeconds: BigInt(negative.dataAgeSeconds),
+      })
+    ).toThrow(/unsigned integer range/i);
   });
 
   it('is order-independent (canonical sort)', () => {

@@ -44,7 +44,17 @@ export interface ProviderObservationEntry {
   exclusionReason: string; // '' when included
 }
 
-const ENTRY_ABI = [
+/**
+ * Public ABI contract for one provider observation. Keep this exported beside
+ * the hash implementation so descriptors, evidence exporters and independent
+ * verifiers cannot drift into guessing the tuple types (VERITAS N15).
+ *
+ * `value` is deliberately uint256: an oracle price is non-negative. For
+ * non-negative inputs ABI encodes int256 and uint256 identically, so a positive
+ * vector alone cannot distinguish the two. The published vector therefore also
+ * carries a negative-value rejection case.
+ */
+export const PROVIDER_OBSERVATION_ENTRY_ABI = [
   { name: 'provider', type: 'string' },
   { name: 'feedId', type: 'string' },
   { name: 'value', type: 'uint256' },
@@ -54,8 +64,23 @@ const ENTRY_ABI = [
   { name: 'exclusionReason', type: 'string' },
 ] as const;
 
-function encodeEntry(e: ProviderObservationEntry): `0x${string}` {
-  return encodeAbiParameters(ENTRY_ABI, [
+export const PROVIDER_OBSERVATIONS_HASH_CANONICALIZATION = {
+  schema: 'insight-provider-observations-hash/v1',
+  entryAbi: PROVIDER_OBSERVATION_ENTRY_ABI,
+  valueSemantics: 'non-negative observed price scaled by 1e8; uint256; negative values reject',
+  pipeline: [
+    'ABI encode each entry with entryAbi in the listed field order',
+    'keccak256 each encoded entry',
+    'sort the 32-byte entry hashes lexicographically by byte value',
+    'concatenate the sorted entry hashes without separators',
+    'keccak256 the concatenation',
+  ],
+  emptyInput:
+    'keccak256 of empty bytes = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470',
+} as const;
+
+export function encodeProviderObservationEntry(e: ProviderObservationEntry): `0x${string}` {
+  return encodeAbiParameters(PROVIDER_OBSERVATION_ENTRY_ABI, [
     e.provider,
     e.feedId,
     e.value,
@@ -116,7 +141,7 @@ export function computeProviderObservationsHash(
   if (entries.length === 0) return keccak256('0x');
 
   const entryHashes = entries
-    .map(encodeEntry)
+    .map(encodeProviderObservationEntry)
     .map((encoded) => keccak256(encoded))
     .sort(compareHex);
 
