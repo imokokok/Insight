@@ -1,0 +1,50 @@
+{
+  "schema": "insight-veritas-joint-run-final-package-requirements/v1",
+  "purpose": "Pin the reorg handling and public claim boundaries for every selected or aborted joint-run attempt",
+  "appliesToSelectionRule": "insight-veritas-anchored-settlement-selection/v2",
+  "selectionRuleHash": "0x235412e8e128956b716eb6fb0a256dae0acfc8504527c217cb45b780a6dc3b29",
+  "publicationTiming": "Apply immediately before publishing the final package for an attempt",
+  "ethereumOrderingEvidence": {
+    "requiredFields": [
+      "ethereumOrderingPreimage",
+      "orderingCommitmentHash",
+      "ethereumCommitmentTransactionHash",
+      "ethereumCommitmentBlockNumber",
+      "ethereumCommitmentBlockHash"
+    ],
+    "prePublicationCanonicalityCheck": "Fetch ethereumCommitmentBlockNumber from the canonical Ethereum chain and require its block hash to equal ethereumCommitmentBlockHash",
+    "onMissingOrMismatchedBlock": {
+      "attemptOutcome": "ABORT",
+      "reasonCode": "ETHEREUM_ORDERING_COMMITMENT_REORGED_OUT",
+      "mustPublishAbort": true,
+      "mustPublishEveryBitcoinAnchorTxid": true,
+      "mustPublishEveryEthereumCommitmentTxid": true
+    },
+    "postPublicationRecheck": "A later block-hash mismatch is reported as REORG_DETECTED; the original package must not be silently rewritten"
+  },
+  "publicClaims": {
+    "ordering": {
+      "classification": "PROVEN_BY_INCLUSION",
+      "textTemplate": "The published inclusion evidence proves that the gate commitment existed before the selected settlement.",
+      "requiredEvidence": [
+        "Bitcoin anchor inclusion in confirming block B",
+        "Bitcoin confirming block hash committed by Ethereum ordering preimage",
+        "Ethereum ordering commitment inclusion in block E",
+        "selected settlement inclusion in Ethereum block M with M greater than E"
+      ]
+    },
+    "attestationAge": {
+      "classification": "ISSUER_ASSERTED",
+      "textTemplate": "The Insight issuer states an attestation age of {attestationAgeAtExecSeconds} seconds, derived from its signed checkedAt value; cross-chain inclusion does not prove that checkedAt is accurate.",
+      "sourceFields": ["checkedAt", "attestationAgeAtExecSeconds"]
+    },
+    "claimsMustRemainSeparate": true,
+    "forbiddenCombinedClaim": "Do not state or imply that the inclusion proof establishes the accuracy of checkedAt or attestationAgeAtExecSeconds"
+  },
+  "standing": [
+    "Not anchored until a real attempt is broadcast and included",
+    "Not a VERITAS integration",
+    "Verification is not endorsement",
+    "The ordering proof does not prove the Insight verdict correct or extend gate freshness"
+  ]
+}

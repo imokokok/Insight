@@ -60,7 +60,8 @@
       "valueWei": "0",
       "inputData": "exactly orderingCommitmentHash as 32 calldata bytes",
       "receiptStatus": 1,
-      "commitmentBlockVariable": "E"
+      "commitmentBlockVariable": "E",
+      "finalPackageBlockFields": ["ethereumCommitmentBlockNumber", "ethereumCommitmentBlockHash"]
     },
     "broadcastRule": "After the Bitcoin confirmation is known, both parties byte-compare the complete Ethereum ordering preimage and orderingCommitmentHash before broadcast",
     "orderingProof": "The preimage binds the unpredictable Bitcoin confirming block hash; Ethereum inclusion at block E therefore follows that Bitcoin block, and candidate blockNumber > E proves settlement follows both commitments without a cross-chain clock"
@@ -88,17 +89,20 @@
   "abortAndRetry": {
     "abortIfBitcoinAnchorUnconfirmedBeforeGateExpiry": true,
     "abortIfEthereumCommitmentNotIncludedBeforeGateExpiry": true,
+    "abortIfEthereumCommitmentReorgedOutBeforePublication": true,
     "abortIfNoEligibleEventBeforeGateExpiry": true,
     "retryRequiresNewGateNewBitcoinAnchorAndNewEthereumCommitment": true,
     "publishEveryBitcoinAnchorTxidIncludingAbortedAttempts": true,
-    "publishEveryEthereumCommitmentTxidIncludingAbortedAttempts": true
+    "publishEveryEthereumCommitmentTxidIncludingAbortedAttempts": true,
+    "ethereumReorgCheck": "Immediately before final-package publication, fetch block E by number and require its canonical block hash to equal ethereumCommitmentBlockHash; if the block is absent or the hash differs, abort the attempt and publish it as an abort with every Bitcoin anchor and Ethereum commitment transaction id",
+    "postPublicationRecheck": "A later rechecker compares block E's canonical hash to the published ethereumCommitmentBlockHash; any mismatch is reported as REORG_DETECTED and the published record is never silently rewritten"
   },
   "finalPackageMustPublish": [
     "source and destination gate envelopes",
     "preTradeUidsHash",
     "complete v2 selection-rule object and selectionRuleHash",
     "Bitcoin anchor preimage, txid, confirming block height and confirming block hash",
-    "Ethereum ordering preimage, orderingCommitmentHash, transaction hash and block E",
+    "Ethereum ordering preimage, orderingCommitmentHash, transaction hash, ethereumCommitmentBlockNumber E and ethereumCommitmentBlockHash",
     "selected receipt or explicit abort reason",
     "every Bitcoin anchor and Ethereum commitment txid from aborted attempts"
   ],
