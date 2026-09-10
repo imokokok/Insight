@@ -32,6 +32,7 @@
     "verify:vrt1": "node scripts/vrt1-e2e-prototype/verify/verify-round2.mjs && node scripts/vrt1-e2e-prototype/verify/verify-round3.mjs && node scripts/vrt1-e2e-prototype/verify/verify-scale-pin.mjs",
     "clean:dev": "rm -rf .next && next dev",
     "clean:start": "rm -rf .next && next build && next start",
+    "brand:icons": "node scripts/generate-brand-icons.mjs",
     "mcp:stdio": "tsx src/mcp/index.ts",
     "mcp:http": "tsx src/mcp/http-server.ts",
     "sync:chainlink-catalog": "tsx scripts/sync-chainlink-catalog.ts",

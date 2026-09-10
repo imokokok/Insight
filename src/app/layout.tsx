@@ -32,9 +32,6 @@ export const metadata: Metadata = {
   title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
   description:
     'Independent oracle transparency and risk infrastructure for DeFi. Cross-oracle price verification, deviation analytics, and liquidation risk signals across Chainlink, RedStone, API3 and more.',
-  icons: {
-    icon: '/logos/insight-glacier-cut.svg',
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
