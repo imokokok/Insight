@@ -87,7 +87,7 @@ function LoginForm() {
 
   return (
     <AuthPageLayout>
-      <div className="text-center mb-8">
+      <div className="auth-record-heading text-center mb-8">
         <AuthBrandLogo />
         <h2 className="mt-4 text-xl font-semibold text-slate-900">Login</h2>
         <p className="mt-2 text-sm text-slate-500">Welcome back! Please log in to your account.</p>
@@ -116,7 +116,7 @@ function LoginForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="auth-form-ledger space-y-5">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
             Email Address

@@ -15,10 +15,10 @@ export function AuthPageLayout({
   cardClassName?: string;
 }) {
   return (
-    <div className="editorial-workspace flex min-h-screen">
+    <div className="editorial-workspace auth-workbench flex min-h-screen">
       {/* Brand side — hidden on mobile */}
-      <div className="relative hidden overflow-hidden border-r border-slate-900/15 lg:flex lg:w-1/2 xl:w-5/12">
-        <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
+      <div className="auth-brand-panel relative hidden overflow-hidden border-r border-slate-900/15 lg:flex lg:w-1/2 xl:w-5/12">
+        <div className="auth-brand-content relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
           <Link href="/" className="inline-flex items-center gap-2 group">
             <Image
               src="/logos/insight-glacier-cut.svg"
@@ -32,14 +32,14 @@ export function AuthPageLayout({
 
           <div className="space-y-8">
             <p className="editorial-index">Access — Identity</p>
-            <blockquote className="max-w-md text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-slate-950 xl:text-5xl">
+            <blockquote className="auth-statement max-w-md text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-slate-950 xl:text-5xl">
               Evidence should remain inspectable, even after you sign in.
             </blockquote>
             <p className="max-w-sm leading-relaxed text-slate-600">
               One account connects your saved preferences, API keys, credit wallet, signed receipts,
               and agent integrations.
             </p>
-            <ol className="grid max-w-md border-y border-slate-900/15 text-xs font-semibold uppercase tracking-[0.1em] text-slate-600">
+            <ol className="auth-proof-sequence grid max-w-md border-y border-slate-900/15 text-xs font-semibold uppercase tracking-[0.1em] text-slate-600">
               <li className="flex gap-4 border-b border-slate-900/10 py-3">
                 <span className="font-mono text-blue-700">01</span> Protect credentials
               </li>
@@ -59,9 +59,15 @@ export function AuthPageLayout({
       </div>
 
       {/* Form side */}
-      <div className="flex flex-1 items-center justify-center px-5 py-12 sm:px-8 lg:px-12">
+      <div className="auth-form-panel flex flex-1 items-center justify-center px-5 py-12 sm:px-8 lg:px-12">
         <div className="w-full max-w-md">
-          <div className={`border-y border-slate-900/15 bg-white/55 p-7 sm:p-8 ${cardClassName}`}>
+          <div className="auth-route-marker" aria-hidden="true">
+            <span>Identity record</span>
+            <span>Secure session</span>
+          </div>
+          <div
+            className={`auth-record-card border-y border-slate-900/15 bg-white/55 p-7 sm:p-8 ${cardClassName}`}
+          >
             {children}
           </div>
         </div>
@@ -72,7 +78,7 @@ export function AuthPageLayout({
 
 export function AuthBrandLogo() {
   return (
-    <Link href="/" className="inline-flex items-center justify-center gap-2 group">
+    <Link href="/" className="auth-brand-logo inline-flex items-center justify-center gap-2 group">
       <Image
         src="/logos/insight-glacier-cut.svg"
         alt="Insight Logo"
@@ -104,7 +110,7 @@ export function AuthResultCard({
   return (
     <>
       <div
-        className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center border border-slate-900/10 ${iconBgClass}`}
+        className={`auth-result-mark mx-auto mb-6 flex h-16 w-16 items-center justify-center border border-slate-900/10 ${iconBgClass}`}
       >
         <Icon className={`w-8 h-8 ${iconTextClass}`} />
       </div>

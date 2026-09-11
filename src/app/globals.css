@@ -2341,6 +2341,486 @@ h3,
   background-size: 4rem 100%;
 }
 
+/* Commercial and trust surfaces turn conversion into an inspectable decision path. */
+.commercial-workbench {
+  background:
+    radial-gradient(circle at 86% 5%, rgb(219 234 254 / 62%), transparent 29rem),
+    linear-gradient(180deg, #f8f7f4 0%, #fff 34%, #f7f7f3 100%);
+}
+
+.pricing-workbench {
+  background:
+    radial-gradient(circle at 82% 3%, rgb(224 231 255 / 66%), transparent 30rem),
+    linear-gradient(180deg, #f8f7f4 0%, #fff 32%, #f7f7f3 100%);
+}
+
+.pricing-fact-ledger {
+  position: relative;
+  background: linear-gradient(90deg, rgb(255 255 255 / 44%), transparent);
+}
+
+.pricing-fact-ledger::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 2px;
+  background: linear-gradient(#2558c8, transparent);
+  content: '';
+}
+
+.pricing-fact-record {
+  position: relative;
+  min-height: 10.5rem;
+}
+
+.pricing-fact-record::after {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  width: 1.5rem;
+  height: 1px;
+  background: rgb(37 88 200 / 35%);
+  content: '';
+}
+
+.pricing-plan-section {
+  background: linear-gradient(90deg, transparent, rgb(239 246 255 / 44%) 52%, transparent);
+}
+
+.pricing-cycle-switch {
+  position: relative;
+  box-shadow: 0 0 0 0.25rem rgb(255 255 255 / 40%);
+}
+
+.pricing-cycle-switch::after {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 1rem);
+  width: min(22vw, 12rem);
+  height: 1px;
+  background: linear-gradient(90deg, rgb(37 88 200 / 38%), transparent);
+  content: '';
+}
+
+.pricing-plan-grid {
+  background: rgb(255 255 255 / 34%);
+}
+
+.pricing-plan-card {
+  min-height: 34rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.pricing-plan-card::before {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  width: 7rem;
+  height: 7rem;
+  background:
+    linear-gradient(135deg, transparent 48%, rgb(37 88 200 / 8%) 49%, transparent 50%),
+    linear-gradient(90deg, rgb(37 88 200 / 4%) 1px, transparent 1px);
+  background-size:
+    auto,
+    1rem 100%;
+  content: '';
+}
+
+.pricing-plan-card:nth-child(2) {
+  background: linear-gradient(180deg, rgb(239 246 255 / 90%), rgb(255 255 255 / 62%));
+}
+
+.pricing-plan-index {
+  display: block;
+  margin-bottom: 2.2rem;
+  color: #1d4ed8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.pricing-metering-split {
+  position: relative;
+  background: rgb(255 255 255 / 35%);
+}
+
+.pricing-metering-split::before {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 34%;
+  height: 2px;
+  background: #2558c8;
+  content: '';
+}
+
+.pricing-metering-ledger,
+.pricing-credit-vault {
+  position: relative;
+}
+
+.pricing-metering-record,
+.pricing-credit-record {
+  min-height: 4.6rem;
+}
+
+.pricing-credit-vault {
+  background: linear-gradient(135deg, rgb(255 255 255 / 74%), rgb(239 246 255 / 54%));
+}
+
+.pricing-access-matrix {
+  background:
+    linear-gradient(90deg, rgb(37 88 200 / 2.5%) 1px, transparent 1px), rgb(255 255 255 / 36%);
+  background-size: 4rem 100%;
+}
+
+.pricing-access-table,
+.pricing-metering-legend {
+  position: relative;
+}
+
+.pricing-access-table::before,
+.pricing-metering-legend::before {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(#2558c8, rgb(37 88 200 / 8%));
+  content: '';
+}
+
+.pricing-access-record {
+  position: relative;
+  padding-left: 0.5rem;
+}
+
+.trust-workbench {
+  background:
+    radial-gradient(circle at 84% 4%, rgb(209 250 229 / 58%), transparent 28rem),
+    linear-gradient(180deg, #f8f7f4 0%, #fff 38%, #f7f7f3 100%);
+}
+
+.verify-console-grid {
+  position: relative;
+}
+
+.verify-input-docket {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgb(37 88 200 / 3.5%) 1px, transparent 1px), rgb(255 255 255 / 46%);
+  background-size: 2.5rem 100%;
+}
+
+.verify-input-docket::after {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-right: 1px solid rgb(37 88 200 / 26%);
+  border-bottom: 1px solid rgb(37 88 200 / 26%);
+  content: '';
+  pointer-events: none;
+}
+
+.verify-result-ledger {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.verify-result-ledger::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(#2558c8, rgb(37 88 200 / 4%) 78%, transparent);
+  content: '';
+}
+
+.verify-state-panel {
+  min-height: 27rem;
+}
+
+.verify-verdict-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.verify-verdict-panel::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10rem;
+  height: 100%;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 9px,
+    rgb(15 23 42 / 3%) 10px,
+    rgb(15 23 42 / 3%) 11px
+  );
+  content: '';
+  pointer-events: none;
+}
+
+.verify-receipt-ledger {
+  background: rgb(255 255 255 / 58%);
+}
+
+.verify-trust-note {
+  position: relative;
+  background: linear-gradient(90deg, rgb(239 246 255 / 92%), rgb(255 255 255 / 50%));
+}
+
+.verify-trust-note::after {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: rgb(37 88 200 / 45%);
+  content: 'LOCAL / ZERO-TRUST';
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.verify-raw-record {
+  background: rgb(255 255 255 / 64%);
+}
+
+/* Identity routes read as a secure record instead of a generic centered form. */
+.auth-workbench {
+  position: relative;
+  background: #f8f7f4;
+}
+
+.auth-brand-panel {
+  background:
+    linear-gradient(rgb(37 88 200 / 5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(37 88 200 / 5%) 1px, transparent 1px),
+    linear-gradient(145deg, #eff6ff, #f8f7f4 56%, #fff);
+  background-size:
+    3rem 3rem,
+    3rem 3rem,
+    auto;
+}
+
+.auth-brand-panel::before {
+  position: absolute;
+  top: 16%;
+  right: -8rem;
+  width: 24rem;
+  height: 24rem;
+  border: 1px solid rgb(37 88 200 / 14%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 3rem rgb(37 88 200 / 3%),
+    0 0 0 6rem rgb(37 88 200 / 2%);
+  content: '';
+}
+
+.auth-brand-panel::after {
+  position: absolute;
+  top: 7rem;
+  right: 1.5rem;
+  color: rgb(37 88 200 / 32%);
+  content: 'IDENTITY / 01';
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  writing-mode: vertical-rl;
+}
+
+.auth-brand-content {
+  min-height: 44rem;
+}
+
+.auth-statement {
+  position: relative;
+}
+
+.auth-statement::before {
+  display: block;
+  width: 3rem;
+  height: 2px;
+  margin-bottom: 1.5rem;
+  background: #2558c8;
+  content: '';
+}
+
+.auth-proof-sequence {
+  counter-reset: auth-proof;
+}
+
+.auth-proof-sequence li {
+  position: relative;
+  min-height: 3.2rem;
+  align-items: center;
+  padding-right: 2rem;
+  counter-increment: auth-proof;
+}
+
+.auth-proof-sequence li::after {
+  position: absolute;
+  right: 0.25rem;
+  color: rgb(37 88 200 / 28%);
+  content: '0' counter(auth-proof);
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+}
+
+.auth-form-panel {
+  position: relative;
+  background:
+    linear-gradient(90deg, rgb(37 88 200 / 2.8%) 1px, transparent 1px),
+    linear-gradient(180deg, rgb(255 255 255 / 70%), rgb(248 247 244 / 88%));
+  background-size:
+    4rem 100%,
+    auto;
+}
+
+.auth-form-panel::before {
+  position: absolute;
+  top: 0;
+  right: 12%;
+  width: 1px;
+  height: 18%;
+  background: linear-gradient(#2558c8, transparent);
+  content: '';
+}
+
+.auth-route-marker {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.25rem 0.75rem;
+  color: #64748b;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.auth-record-card {
+  position: relative;
+  overflow: hidden;
+  background: rgb(255 255 255 / 74%);
+  box-shadow: 0 1.4rem 4rem rgb(15 23 42 / 7%);
+}
+
+.auth-record-card::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5.5rem;
+  height: 2px;
+  background: #2558c8;
+  content: '';
+}
+
+.auth-record-heading {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgb(15 23 42 / 10%);
+}
+
+.auth-brand-logo {
+  position: relative;
+}
+
+.auth-brand-logo::after {
+  position: absolute;
+  right: -1.25rem;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: #2563eb;
+  content: '';
+  box-shadow: 0 0 0 0.25rem rgb(37 99 235 / 9%);
+}
+
+.auth-form-ledger label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.auth-form-ledger input:not([type='checkbox']) {
+  background: rgb(255 255 255 / 82%);
+}
+
+.auth-result-mark {
+  position: relative;
+}
+
+.auth-result-mark::after {
+  position: absolute;
+  right: -0.45rem;
+  bottom: -0.45rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-right: 1px solid rgb(37 88 200 / 32%);
+  border-bottom: 1px solid rgb(37 88 200 / 32%);
+  content: '';
+}
+
+/* Account settings become a durable control ledger. */
+.settings-control-workbench {
+  background:
+    radial-gradient(circle at 85% 4%, rgb(219 234 254 / 58%), transparent 27rem),
+    linear-gradient(180deg, #f8f7f4 0%, #fff 42%, #f7f7f3 100%);
+}
+
+.settings-control-grid,
+.settings-control-nav {
+  position: relative;
+}
+
+.settings-tab-record {
+  position: relative;
+  min-height: 4.5rem;
+}
+
+.settings-tab-index {
+  width: 2.4rem;
+  flex: 0 0 auto;
+}
+
+.settings-tab-record[aria-current='page']::after {
+  position: absolute;
+  top: 0.65rem;
+  right: -1px;
+  bottom: 0.65rem;
+  width: 2px;
+  background: #bfdbfe;
+  content: '';
+}
+
+.settings-account-ledger {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.settings-account-ledger::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(#2558c8, rgb(37 88 200 / 4%) 72%, transparent);
+  content: '';
+}
+
 .editorial-index {
   color: #1d4ed8;
   font-size: 0.6875rem;
@@ -2563,6 +3043,51 @@ body:has(.ops-workspace) .public-chrome {
 
   .api-reference-header::after {
     width: 8rem;
+  }
+
+  .pricing-fact-record,
+  .pricing-plan-card,
+  .verify-state-panel,
+  .settings-tab-record {
+    min-height: 0;
+  }
+
+  .pricing-plan-index {
+    margin-bottom: 1.25rem;
+  }
+
+  .pricing-cycle-switch::after,
+  .verify-trust-note::after {
+    display: none;
+  }
+
+  .verify-result-ledger,
+  .settings-account-ledger {
+    padding-left: 0;
+  }
+
+  .verify-result-ledger::before,
+  .settings-account-ledger::before {
+    display: none;
+  }
+
+  .auth-form-panel {
+    min-height: calc(100vh - 4rem);
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+
+  .auth-record-card {
+    padding: 1.5rem;
+  }
+
+  .auth-route-marker {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .settings-tab-index {
+    width: 2rem;
   }
 }
 

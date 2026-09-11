@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { ArrowRight, BookOpen } from 'lucide-react';
 
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { DataAccessTierMatrix, PricingSection } from '@/components/pricing';
 
 import type { Metadata } from 'next';
@@ -38,10 +38,10 @@ const BILLING_FACTS = [
 
 export default function PricingPage() {
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench commercial-workbench pricing-workbench min-h-screen">
       <section className="editorial-frame mx-auto max-w-[1440px] px-5 pt-4 sm:px-8 lg:px-12">
         <EditorialWorkspaceHeader
-          index="12"
+          index="13"
           stage="Choose"
           eyebrow="Capacity, not feature gates · Website access stays public; REST API, AI/MCP, and Guard SDK calls draw from one credit wallet"
           title="Pay for the evidence your system actually uses."
@@ -67,11 +67,20 @@ export default function PricingPage() {
           }
         />
 
-        <div className="grid border-b border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
+        <EvidenceProcessRail
+          label="Capacity decision"
+          items={[
+            { label: 'Estimate demand', detail: 'Calls · class · cadence' },
+            { label: 'Choose capacity', detail: 'Monthly · annual · prepaid' },
+            { label: 'Expand safely', detail: 'One wallet · no feature gates' },
+          ]}
+        />
+
+        <div className="pricing-fact-ledger grid border-b border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
           {BILLING_FACTS.map((fact, index) => (
             <div
               key={fact.label}
-              className="border-b border-r border-slate-900/10 bg-white/30 px-0 py-6 sm:px-5 first:sm:pl-0"
+              className="pricing-fact-record border-b border-r border-slate-900/10 bg-white/30 px-0 py-6 sm:px-5 first:sm:pl-0"
             >
               <span className="font-mono text-[10px] text-blue-700">
                 {String(index + 1).padStart(2, '0')}
@@ -88,7 +97,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="py-14 sm:py-20">
+      <section className="pricing-plan-section py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
             <p className="editorial-index">01 — Select capacity</p>

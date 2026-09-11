@@ -134,7 +134,7 @@ function AccessCell({ value }: { value: boolean }) {
 
 export function DataAccessTierMatrix({ className = '' }: { className?: string }) {
   return (
-    <section className={`bg-white/35 py-16 sm:py-20 ${className}`}>
+    <section className={`pricing-access-matrix bg-white/35 py-16 sm:py-20 ${className}`}>
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         {/* Section header */}
         <div className="mb-12 grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
@@ -152,7 +152,7 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
         </div>
 
         {/* Desktop table (hidden on mobile) */}
-        <div className="hidden overflow-x-auto border-y border-slate-900/15 bg-white/50 md:block">
+        <div className="pricing-access-table hidden overflow-x-auto border-y border-slate-900/15 bg-white/50 md:block">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/70">
@@ -208,7 +208,7 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
           {accessRows.map((row) => (
             <div
               key={row.label}
-              className="overflow-hidden border-y border-slate-900/15 bg-white/50"
+              className="pricing-access-record overflow-hidden border-y border-slate-900/15 bg-white/50"
             >
               <div className="p-4 bg-white">
                 <div className="flex items-start justify-between gap-3 mb-2">
@@ -233,7 +233,7 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
         </div>
 
         {/* Metering classes legend */}
-        <div className="mt-12 max-w-3xl overflow-hidden border-y border-slate-900/15 bg-white/50">
+        <div className="pricing-metering-legend mt-12 max-w-3xl overflow-hidden border-y border-slate-900/15 bg-white/50">
           <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/70">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
               <Coins className="w-4 h-4 text-amber-500" />
