@@ -109,14 +109,16 @@ export class SwitchboardClient extends BaseOracleClient {
   }
 
   async getHistoricalPrices(
-    symbol: string,
-    chain?: Blockchain,
-    period: number = 24,
+    _symbol: string,
+    _chain?: Blockchain,
+    _period: number = 24,
     _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
-    // Crossbar's public gateway exposes only the latest signed update; historical
-    // series are sourced from Insight's own hourly_price_snapshots table.
-    return this.fetchHistoricalPricesWithDatabase(symbol, chain, period);
+    // The outer databaseOperations layer already queried Insight's stored
+    // history before calling this provider method. Crossbar exposes latest-only,
+    // so returning [] is the terminal fallback; calling the shared DB helper
+    // again would recurse indefinitely when the database has no rows.
+    return [];
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {

@@ -154,6 +154,28 @@ describe('savePriceRecord', () => {
 
     expect(result).toBeNull();
   });
+
+  it('persists decimals and preserves valid zero/false metadata values', async () => {
+    mockQuery.single.mockResolvedValueOnce({ data: { id: 'test-id' }, error: null });
+
+    await queries.savePriceRecord({
+      provider: 'redstone',
+      symbol: 'ETH',
+      price: 123.45,
+      timestamp: Date.now(),
+      confidence: 0,
+      decimals: 6,
+      metadata_fallback: false,
+    });
+
+    expect(mockQuery.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        confidence: 0,
+        decimals: 6,
+        metadata_fallback: false,
+      })
+    );
+  });
 });
 
 describe('getLatestPrice', () => {

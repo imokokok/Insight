@@ -35,7 +35,7 @@ const VERIFY_TIMEOUT_MS = 10_000;
 // Require the on-chain update timestamp to be within 48h (2× the typical
 // 24h heartbeat) so expired dAPIs — e.g. a BSC feed still serving a price
 // from months ago — are rejected during verification.
-const API3_PROBE_MAX_DATA_AGE_MS = 48 * 60 * 60 * 1000;
+const API3_PROBE_MAX_DATA_AGE_SECONDS = 48 * 60 * 60;
 
 // Graceful pruning: a feed missing from a discovery run is only deactivated
 // after it fails re-verification ABSENT_PRUNE_THRESHOLD consecutive times.
@@ -121,9 +121,12 @@ async function probeFeed(feed: OracleFeed | OracleFeedInsert): Promise<boolean> 
       ) {
         return false;
       }
-      // Drop stale dAPIs whose proxy still serves an expired last-written
-      // price (see API3_PROBE_MAX_DATA_AGE_MS).
-      if (typeof reading.dataAge === 'number' && reading.dataAge > API3_PROBE_MAX_DATA_AGE_MS) {
+      // API3NetworkService reports dataAge in seconds. Drop stale dAPIs whose
+      // proxy still serves an expired last-written price.
+      if (
+        typeof reading.dataAge === 'number' &&
+        reading.dataAge > API3_PROBE_MAX_DATA_AGE_SECONDS
+      ) {
         return false;
       }
       return true;
@@ -246,7 +249,10 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
       ) {
         return false;
       }
-      if (typeof reading.dataAge === 'number' && reading.dataAge > API3_PROBE_MAX_DATA_AGE_MS) {
+      if (
+        typeof reading.dataAge === 'number' &&
+        reading.dataAge > API3_PROBE_MAX_DATA_AGE_SECONDS
+      ) {
         return false;
       }
       return true;

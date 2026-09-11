@@ -129,4 +129,20 @@ describe('discoverRedStoneFeeds', () => {
     expect(result.feeds.map((f) => f.symbol)).toEqual(['OK']);
     expect(result.feeds[0].metadata).toMatchObject({ preverified: true });
   });
+
+  it('drops non-USD cross-rates from the USD price registry', async () => {
+    mockFetch.mockResolvedValueOnce(
+      createMockResponse({
+        ETH: { symbol: 'ETH', value: 3500 },
+        ETH_USD: { symbol: 'ETH/USD', value: 3500 },
+        ETH_USDC: { symbol: 'ETH/USDC', value: 3499 },
+        WBTC_BTC: { symbol: 'WBTC/BTC', value: 0.999 },
+        USDC_BRL: { symbol: 'USDC/BRL', value: 5.2 },
+      })
+    );
+
+    const result = await discoverRedStoneFeeds();
+
+    expect(result.feeds.map((f) => f.symbol).sort()).toEqual(['ETH', 'ETH/USD', 'ETH/USDC']);
+  });
 });

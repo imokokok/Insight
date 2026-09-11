@@ -413,7 +413,7 @@ export class RedStoneClient extends BaseOracleClient {
    */
   override isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
     if (isSymbolActiveInCacheSync('redstone', symbol)) {
-      return true;
+      return chain === undefined || this.supportedChains.includes(chain);
     }
     return super.isSymbolSupported(symbol, chain);
   }

@@ -8,7 +8,7 @@ import { type Blockchain, type PriceData } from '@/types/oracle';
 
 import { BLOCKCHAIN_TO_CHAIN_ID } from '../constants/chainMapping';
 import { getActiveFeedsMap, matchesChainId } from '../utils/dynamicFeedResolver';
-import { extractBaseSymbol } from '../utils/oracleDataUtils';
+import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '../utils/oracleDataUtils';
 import {
   shouldUseDatabase,
   getPriceFromDatabase,
@@ -91,8 +91,6 @@ function getTargetChainId(chain: Blockchain | undefined, defaultChain: Blockchai
 // quoted in DAI/FRAX is itself a depeg-sensitive asset, and serving its price
 // as USD would smuggle that depeg risk into a "USD" consensus feed. Keep the
 // feed-matching set to the two near-frictionless USD stablecoins.
-const USD_EQUIVALENT_QUOTES = new Set(['USD', 'USDT', 'USDC']);
-
 /**
  * Find the feed that prices `baseSymbol` in USD, or null when the provider
  * has no USD-denominated feed for it.
@@ -143,7 +141,7 @@ function findUsdDenominatedFeed(
     if (!upper.startsWith(pairPrefix) || !matchesChainId(feed, chainId)) {
       continue;
     }
-    if (!USD_EQUIVALENT_QUOTES.has(upper.slice(pairPrefix.length))) {
+    if (!isUsdDenominatedFeedSymbol(feed.symbol)) {
       continue;
     }
     if (feed.symbol !== feed.symbol.toUpperCase()) {
@@ -158,7 +156,9 @@ function findUsdDenominatedFeed(
 async function checkSymbolActive(
   provider: OracleProvider,
   baseSymbol: string,
-  chainId: number
+  chainId: number,
+  targetChain: Blockchain,
+  exactFeedSymbol?: string
 ): Promise<{ supported: boolean; activeFeeds: OracleFeed[]; matchedSymbol: string | null }> {
   const feedsMap = await getActiveFeedsMap(provider).catch(() => new Map<string, OracleFeed>());
 
@@ -169,11 +169,35 @@ async function checkSymbolActive(
     // hardcoded list.  This keeps the system usable when the DB is empty
     // while still rejecting clearly unsupported symbols.
     const client = getOracleClient(provider);
+    const supported = exactFeedSymbol
+      ? extractBaseSymbol(exactFeedSymbol).toUpperCase() === baseSymbol &&
+        isUsdDenominatedFeedSymbol(exactFeedSymbol)
+      : client.isSymbolSupported(baseSymbol, targetChain);
     return {
-      supported: client.isSymbolSupported(baseSymbol, undefined),
+      supported,
       activeFeeds: [],
-      matchedSymbol: null,
+      matchedSymbol: supported && exactFeedSymbol ? exactFeedSymbol : null,
     };
+  }
+
+  const activeFeeds = Array.from(feedsMap.values());
+
+  // Snapshot collection already resolved a concrete registry row. Preserve
+  // that identity instead of selecting another feed with the same base symbol;
+  // otherwise one successful canonical feed can incorrectly mark sibling feeds
+  // healthy and be counted more than once in the snapshot consensus.
+  if (exactFeedSymbol) {
+    const exactMatch = activeFeeds.find(
+      (feed) =>
+        feed.symbol === exactFeedSymbol &&
+        matchesChainId(feed, chainId) &&
+        extractBaseSymbol(feed.symbol).toUpperCase() === baseSymbol &&
+        isUsdDenominatedFeedSymbol(feed.symbol)
+    );
+    if (!exactMatch) {
+      return { supported: false, activeFeeds, matchedSymbol: null };
+    }
+    return { supported: true, activeFeeds: [], matchedSymbol: exactMatch.symbol };
   }
 
   // Preserve the DB-stored (possibly mixed-case) symbol so providers whose
@@ -183,18 +207,14 @@ async function checkSymbolActive(
 
   if (!matchedSymbol) {
     // No matching DB feed, but the client may still serve this symbol. The
-    // active-feed table is populated by a periodic discovery job and can lag
-    // behind (or temporarily exclude) symbols the oracle actually supports —
-    // e.g. Reflector's DB feeds currently list only a subset of its on-chain
-    // assets (EURC/AVAX/DOT/ATOM/XLM), so BTC/ETH were wrongly rejected
-    // before any RPC was even attempted. Use the client's curated symbol list
-    // as the authoritative source of symbol support rather than blocking a
-    // query the provider explicitly supports.
+    // active-feed table can be incomplete while discovery catches up (some
+    // providers intentionally expose a wider curated list), so retain the
+    // established fallback for normal API calls. Snapshot callers pass an
+    // exactFeedSymbol above and therefore cannot bypass registry identity.
     const client = await getOracleClient(provider);
-    if (client.isSymbolSupported(baseSymbol, undefined)) {
+    if (client.isSymbolSupported(baseSymbol, targetChain)) {
       return { supported: true, activeFeeds: [], matchedSymbol: null };
     }
-    const activeFeeds = Array.from(feedsMap.values());
     return { supported: false, activeFeeds, matchedSymbol: null };
   }
 
@@ -272,7 +292,8 @@ export async function fetchPriceWithDatabase(
   chain: Blockchain | undefined,
   useDatabase: boolean,
   forceRefresh: boolean = false,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  exactFeedSymbol?: string
 ): Promise<PriceData> {
   // Oracle services expect the base asset symbol (e.g. "BTC"), while some UI
   // and API callers pass the full pair (e.g. "btc/usd"). Normalize once: derive
@@ -286,7 +307,8 @@ export async function fetchPriceWithDatabase(
 
   try {
     const client = await getOracleClient(provider);
-    const chainId = getTargetChainId(chain, client.getDefaultChain());
+    const targetChain = chain ?? client.getDefaultChain();
+    const chainId = getTargetChainId(targetChain, client.getDefaultChain());
 
     // Reject unsupported symbols before serving stale database entries or
     // attempting a live fetch. The active feed list comes from the weekly
@@ -296,7 +318,9 @@ export async function fetchPriceWithDatabase(
     const { supported, activeFeeds, matchedSymbol } = await checkSymbolActive(
       provider,
       baseSymbol,
-      chainId
+      chainId,
+      targetChain,
+      exactFeedSymbol
     );
     if (!supported) {
       const supportedSymbols = getSupportedSymbolsForError(activeFeeds, chainId, () =>
@@ -326,7 +350,7 @@ export async function fetchPriceWithDatabase(
     // to the live fetch below unchanged.
     let staleDbPrice: PriceData | null = null;
     if (!forceRefresh && useDatabase && shouldUseDatabase()) {
-      const dbPrice = await getPriceFromDatabase(provider, fetchSymbol, chain);
+      const dbPrice = await getPriceFromDatabase(provider, fetchSymbol, targetChain);
       if (dbPrice) {
         if (!isDbPriceStale(dbPrice, provider)) {
           return dbPrice;
@@ -345,11 +369,31 @@ export async function fetchPriceWithDatabase(
     }
 
     try {
-      const livePrice = await client.getPrice(fetchSymbol, chain, { signal });
+      const livePrice = await client.getPrice(fetchSymbol, targetChain, { signal });
       if (!PROVIDERS_SKIPPING_DB_SAVE.has(provider)) {
         savePriceToDatabase(livePrice)
-          .then(() => {
-            consecutiveSaveFailures = 0;
+          .then((saved) => {
+            if (saved) {
+              consecutiveSaveFailures = 0;
+              return;
+            }
+            consecutiveSaveFailures += 1;
+            logger.warn('Price database save returned no row', {
+              provider,
+              symbol: fetchSymbol,
+              consecutiveFailures: consecutiveSaveFailures,
+            });
+            if (consecutiveSaveFailures >= SAVE_FAILURE_THRESHOLD) {
+              logger.warn(
+                'Price database save has failed consecutively; check database connectivity',
+                {
+                  provider,
+                  symbol: fetchSymbol,
+                  consecutiveFailures: consecutiveSaveFailures,
+                  threshold: SAVE_FAILURE_THRESHOLD,
+                }
+              );
+            }
           })
           .catch((err) => {
             consecutiveSaveFailures += 1;
@@ -402,7 +446,11 @@ export async function fetchPriceWithDatabase(
     if (!(error instanceof UnsupportedSymbolError) && !forceRefresh) {
       recordFeedHealthFailure(provider, baseSymbol, chain);
     }
-    if (error instanceof PriceFetchError || error instanceof OracleClientError) {
+    if (
+      error instanceof PriceFetchError ||
+      error instanceof OracleClientError ||
+      error instanceof UnsupportedSymbolError
+    ) {
       throw error;
     }
     throw new PriceFetchError(
@@ -433,12 +481,14 @@ export async function fetchHistoricalPricesWithDatabase(
 
   try {
     const client = await getOracleClient(provider);
-    const chainId = getTargetChainId(chain, client.getDefaultChain());
+    const targetChain = chain ?? client.getDefaultChain();
+    const chainId = getTargetChainId(targetChain, client.getDefaultChain());
 
     const { supported, activeFeeds, matchedSymbol } = await checkSymbolActive(
       provider,
       baseSymbol,
-      chainId
+      chainId,
+      targetChain
     );
     if (!supported) {
       const supportedSymbols = getSupportedSymbolsForError(activeFeeds, chainId, () =>
@@ -456,16 +506,25 @@ export async function fetchHistoricalPricesWithDatabase(
     }
 
     if (useDatabase && shouldUseDatabase()) {
-      const dbPrices = await getHistoricalPricesFromDatabase(provider, fetchSymbol, chain, period);
+      const dbPrices = await getHistoricalPricesFromDatabase(
+        provider,
+        fetchSymbol,
+        targetChain,
+        period
+      );
       if (dbPrices && dbPrices.length > 0) {
         return dbPrices;
       }
     }
 
-    const livePrices = await client.getHistoricalPrices(fetchSymbol, chain, period);
+    const livePrices = await client.getHistoricalPrices(fetchSymbol, targetChain, period);
     return livePrices;
   } catch (error) {
-    if (error instanceof PriceFetchError || error instanceof OracleClientError) {
+    if (
+      error instanceof PriceFetchError ||
+      error instanceof OracleClientError ||
+      error instanceof UnsupportedSymbolError
+    ) {
       throw error;
     }
     throw new PriceFetchError(

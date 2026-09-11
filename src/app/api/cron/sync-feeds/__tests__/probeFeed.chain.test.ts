@@ -209,7 +209,7 @@ describe('probeFeed — chain resolution (bug fix)', () => {
       confidence: 0.98,
       dapiName: 'BTC/USD',
       proxyAddress: '0x0',
-      dataAge: 7 * 24 * 60 * 60 * 1000, // 7 days — well past the 48h threshold
+      dataAge: 7 * 24 * 60 * 60, // seconds; 7 days is well past the 48h threshold
     } as never);
     mockDiscovery(OracleProvider.API3, [makeFeed('api3', 'BTC', 56, 'BTC/USD')]);
 
@@ -231,7 +231,7 @@ describe('probeFeed — chain resolution (bug fix)', () => {
       confidence: 0.98,
       dapiName: 'BTC/USD',
       proxyAddress: '0x0',
-      dataAge: 16 * 60 * 60 * 1000, // 16h — within the 48h threshold
+      dataAge: 16 * 60 * 60, // seconds; 16h is within the 48h threshold
     } as never);
     mockDiscovery(OracleProvider.API3, [makeFeed('api3', 'BTC', 1, 'BTC/USD')]);
 
