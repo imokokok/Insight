@@ -246,12 +246,13 @@ describe('/api/auth/callback', () => {
       mockUpsert.mockResolvedValue({ error: null });
 
       const request = createMockRequest(
-        'http://localhost/api/auth/callback?code=valid-code&state=/settings',
-        { oauthState: '/settings' }
+        'http://localhost/api/auth/callback?code=valid-code&state=/settings%3Ftab%3Dbilling',
+        { oauthState: '/settings?tab=billing' }
       );
       const response = await GET(request);
 
       expect(response).toBeInstanceOf(NextResponse);
+      expect(response.headers.get('location')).toBe('http://localhost/settings?tab=billing');
     });
 
     it('should reject invalid state redirect path (external URL)', async () => {
@@ -279,6 +280,7 @@ describe('/api/auth/callback', () => {
       const response = await GET(request);
 
       expect(response).toBeInstanceOf(NextResponse);
+      expect(response.headers.get('location')).toBe('http://localhost/');
     });
 
     it('should handle missing Supabase configuration', async () => {

@@ -47,6 +47,15 @@ test('protected settings preserve the return destination', async ({ page }) => {
   await expect(page).toHaveURL(/\/login\?redirect=%2Fsettings%3Ftab%3Dbilling/);
 });
 
+test('protected ops preserve the return destination', async ({ page }) => {
+  await page.goto('/ops');
+  await expect(page).toHaveURL(/\/login\?redirect=%2Fops/);
+  await expect(page.getByRole('link', { name: /register now/i })).toHaveAttribute(
+    'href',
+    '/register?redirect=%2Fops'
+  );
+});
+
 test('login and API documentation render', async ({ page }) => {
   await page.goto('/login');
   await expect(page).toHaveTitle(/Login|Sign in/i);
@@ -54,4 +63,13 @@ test('login and API documentation render', async ({ page }) => {
   const openapi = await page.request.get('/openapi.yaml');
   expect(openapi.ok()).toBeTruthy();
   expect(await openapi.text()).toContain('Insight Oracle Risk & Transparency API');
+
+  await page.goto('/docs/api#examples');
+  await expect(page.locator('#examples')).toHaveCount(1);
+});
+
+test('unknown oracle providers render the not-found route', async ({ page }) => {
+  await page.goto('/reputation/not-a-provider');
+  await expect(page.getByText('This path does not resolve to an Insight record.')).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
 });

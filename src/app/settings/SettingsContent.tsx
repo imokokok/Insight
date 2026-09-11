@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import type { SettingsTab } from '@/components/settings';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
 
 const SettingsLayout = dynamic(
@@ -90,7 +91,8 @@ export default function SettingsContent() {
           ? window.location.pathname + window.location.search
           : '/settings';
       const redirectPath = `/login?redirect=${encodeURIComponent(currentPath)}`;
-      router.push(redirectPath);
+      announceNavigationStart();
+      router.replace(redirectPath);
     }
   }, [user, loading, initialized, router]);
 

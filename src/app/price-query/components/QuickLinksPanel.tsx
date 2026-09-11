@@ -2,6 +2,8 @@
 
 import { memo } from 'react';
 
+import Link from 'next/link';
+
 import { ShieldCheck, BarChart3, Activity, ArrowUpRight } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -56,7 +58,7 @@ export const QuickLinksPanel = memo(function QuickLinksPanel({
         {links.map((link) => {
           const Icon = link.icon;
           return (
-            <a
+            <Link
               key={link.label}
               href={link.href}
               className="group flex items-start gap-3 border-b border-slate-900/10 p-3 transition-colors last:border-b-0 hover:bg-white"
@@ -76,7 +78,7 @@ export const QuickLinksPanel = memo(function QuickLinksPanel({
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{link.description}</p>
               </div>
-            </a>
+            </Link>
           );
         })}
       </div>

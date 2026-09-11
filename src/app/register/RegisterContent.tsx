@@ -13,8 +13,9 @@ import {
   AuthResultCard,
   GoToLoginButton,
 } from '@/app/auth/shared/AuthComponents';
-import { isValidRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
+import { getSafeRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
 import { PasswordInput } from '@/components/ui/PasswordInput';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { validatePassword, getPasswordStrength } from '@/lib/security/passwordValidation';
 import { useUser, useSession, useAuthActions, useAuthError } from '@/stores/authStore';
 
@@ -24,7 +25,7 @@ export default function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawRedirect = searchParams.get('redirect') || '/';
-  const redirectPath = isValidRedirectPath(rawRedirect) ? rawRedirect : '/';
+  const redirectPath = getSafeRedirectPath(rawRedirect);
 
   const user = useUser();
   const session = useSession();
@@ -41,7 +42,8 @@ export default function RegisterContent() {
 
   useEffect(() => {
     if (user && session && !isSuccess) {
-      router.push(redirectPath);
+      announceNavigationStart();
+      router.replace(redirectPath);
     }
   }, [user, session, isSuccess, router, redirectPath]);
 

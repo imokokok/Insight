@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -11,27 +11,22 @@ import { useRouter } from 'next/navigation';
  */
 export default function RefreshControl({ intervalMs = 30000 }: { intervalMs?: number }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [auto, setAuto] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!auto) return undefined;
     timer.current = setInterval(() => {
-      router.refresh();
+      startTransition(() => router.refresh());
     }, intervalMs);
     return () => {
       if (timer.current) clearInterval(timer.current);
     };
-  }, [auto, intervalMs, router]);
+  }, [auto, intervalMs, router, startTransition]);
 
-  const onRefresh = async () => {
-    setLoading(true);
-    try {
-      await router.refresh();
-    } finally {
-      setLoading(false);
-    }
+  const onRefresh = () => {
+    startTransition(() => router.refresh());
   };
 
   return (
@@ -48,10 +43,10 @@ export default function RefreshControl({ intervalMs = 30000 }: { intervalMs?: nu
       <button
         type="button"
         onClick={onRefresh}
-        disabled={loading}
+        disabled={isPending}
         className="border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-600 transition-colors hover:border-primary-400 hover:text-primary-700 disabled:opacity-60"
       >
-        {loading ? '刷新中…' : '刷新'}
+        {isPending ? '刷新中…' : '刷新'}
       </button>
     </div>
   );

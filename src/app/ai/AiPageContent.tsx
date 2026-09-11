@@ -23,6 +23,7 @@ import { ApiKeyManager } from '@/components/api-keys';
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { PricingCtaSection } from '@/components/pricing';
 import { Button } from '@/components/ui/Button';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { createLogger } from '@/lib/utils/logger';
 import { useSession, useUser } from '@/stores/authStore';
 
@@ -510,7 +511,12 @@ when the verdict turns DANGER.`}
                   Sign in to create an API Key and have it auto-filled in the config generator and
                   safety check demo.
                 </p>
-                <Button onClick={() => router.push('/login?redirect=/ai')}>
+                <Button
+                  onClick={() => {
+                    announceNavigationStart();
+                    router.push('/login?redirect=/ai');
+                  }}
+                >
                   Sign in / Sign up
                 </Button>
               </div>

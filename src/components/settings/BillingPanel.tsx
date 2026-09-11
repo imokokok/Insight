@@ -17,6 +17,7 @@ import {
 
 import { Button } from '@/components/ui/Button';
 import { PLANS, normalizePlan, type Plan } from '@/lib/billing/plans';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useSession } from '@/stores/authStore';
 
 import { CreditWalletCard } from './CreditWalletCard';
@@ -316,7 +317,10 @@ export function BillingPanel() {
 
             {!hasActiveSubscription && !isPendingSubscription && (
               <Button
-                onClick={() => router.push('/pricing')}
+                onClick={() => {
+                  announceNavigationStart();
+                  router.push('/pricing');
+                }}
                 variant="secondary"
                 leftIcon={<Zap className="w-4 h-4" />}
                 className="rounded-sm border-blue-200 text-blue-700 hover:bg-blue-50"

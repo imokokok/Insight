@@ -6,7 +6,6 @@ import Link from 'next/link';
 
 import { Shield, ArrowUpRight, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
 
-import { Button } from '@/components/ui';
 import { chainNames } from '@/lib/constants';
 import type { AffectedProtocol, RiskLevel } from '@/lib/risk/types';
 import { cn } from '@/lib/utils';
@@ -152,14 +151,12 @@ export function AffectedProtocolCard({
           )}
         </div>
 
-        <Link href={safetyCheckUrl} passHref>
-          <Button
-            variant="secondary"
-            size="sm"
-            rightIcon={<ArrowUpRight className="w-3.5 h-3.5" />}
-          >
-            Check Position
-          </Button>
+        <Link
+          href={safetyCheckUrl}
+          className="inline-flex items-center justify-center gap-2 rounded-sm border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50/40 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+        >
+          Check Position
+          <ArrowUpRight className="w-3.5 h-3.5" />
         </Link>
       </div>
     </div>

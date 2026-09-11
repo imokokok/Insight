@@ -28,17 +28,26 @@ function HeaderButton({
     secondary: 'border-slate-300 bg-white text-slate-700 hover:border-blue-400 hover:text-blue-700',
   };
   const linkProps = external ? { target: '_blank', rel: 'noopener noreferrer' } : {};
-
-  return (
-    <a
-      href={href}
-      download={download}
-      className={`${baseStyles} ${variants[variant]}`}
-      {...linkProps}
-    >
+  const className = `${baseStyles} ${variants[variant]}`;
+  const content = (
+    <>
       {leftIcon}
       {children}
       {external && <ExternalLink className="w-3 h-3" />}
+    </>
+  );
+
+  if (!download && !external && href.startsWith('/')) {
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={href} download={download} className={className} {...linkProps}>
+      {content}
     </a>
   );
 }

@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import { usePathname, useSearchParams } from 'next/navigation';
 
+import { NAVIGATION_START_EVENT } from '@/lib/navigation/progress';
+
 function isInternalNavigation(event: MouseEvent): boolean {
   if (
     event.defaultPrevented ||
@@ -40,9 +42,11 @@ export function NavigationProgress() {
     };
     document.addEventListener('click', handleClick, true);
     window.addEventListener('popstate', start);
+    window.addEventListener(NAVIGATION_START_EVENT, start);
     return () => {
       document.removeEventListener('click', handleClick, true);
       window.removeEventListener('popstate', start);
+      window.removeEventListener(NAVIGATION_START_EVENT, start);
       if (timerRef.current) window.clearTimeout(timerRef.current);
       if (safetyTimerRef.current) window.clearTimeout(safetyTimerRef.current);
     };

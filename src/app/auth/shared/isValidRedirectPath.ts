@@ -1,12 +1,25 @@
 const ALLOWED_REDIRECT_PATHS = [
   '/',
   '/settings',
+  '/ops',
   '/price-query',
   '/price-insight',
+  '/safety-check',
+  '/stablecoin-depeg',
+  '/wrapped-assets',
+  '/reputation',
+  '/reports',
   '/api',
   '/pricing',
   '/mcp',
   '/ai',
+  '/sdk',
+  '/verify',
+  '/docs',
+  '/contact',
+  '/privacy',
+  '/terms',
+  '/refund',
 ];
 
 /**
@@ -15,7 +28,7 @@ const ALLOWED_REDIRECT_PATHS = [
  * Only allows same-origin relative paths that are known app routes. Query
  * strings and hash fragments are ignored when checking the path root, so
  * `/settings?tab=billing` and `/pricing` are accepted because `/settings`
- * and `/api` are in the allowlist.
+ * and `/pricing` are in the allowlist.
  */
 export function isValidRedirectPath(path: string | null | undefined): boolean {
   if (!path || typeof path !== 'string') {
@@ -30,4 +43,8 @@ export function isValidRedirectPath(path: string | null | undefined): boolean {
   return ALLOWED_REDIRECT_PATHS.some(
     (allowed) => pathWithoutQuery === allowed || pathWithoutQuery.startsWith(allowed + '/')
   );
+}
+
+export function getSafeRedirectPath(path: string | null | undefined, fallback = '/'): string {
+  return isValidRedirectPath(path) ? path! : fallback;
 }

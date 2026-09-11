@@ -114,14 +114,17 @@ export default function Footer() {
             <ul>
               {RESOURCE_LINKS.map(([label, href, Icon]) => (
                 <li key={label}>
-                  <a
-                    href={href}
-                    target={href.startsWith('http') ? '_blank' : undefined}
-                    rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  >
-                    <Icon aria-hidden="true" />
-                    {label}
-                  </a>
+                  {href.startsWith('http') ? (
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      <Icon aria-hidden="true" />
+                      {label}
+                    </a>
+                  ) : (
+                    <Link href={href}>
+                      <Icon aria-hidden="true" />
+                      {label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

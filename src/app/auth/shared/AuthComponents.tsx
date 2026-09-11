@@ -7,6 +7,8 @@ import Link from 'next/link';
 
 import { Loader2 } from 'lucide-react';
 
+import { getSafeRedirectPath } from './isValidRedirectPath';
+
 export function AuthPageLayout({
   children,
   cardClassName = '',
@@ -147,7 +149,8 @@ export function AuthPageSuspense({ children }: { children: React.ReactNode }) {
 }
 
 export function GoToLoginButton({ redirect }: { redirect?: string }) {
-  const href = redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login';
+  const safeRedirect = getSafeRedirectPath(redirect);
+  const href = `/login?redirect=${encodeURIComponent(safeRedirect)}`;
   return (
     <Link
       href={href}

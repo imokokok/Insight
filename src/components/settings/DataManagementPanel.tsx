@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { useDataExport, useDeleteAccount } from '@/hooks/useProfileUpdate';
 import { apiClient } from '@/lib/api/client/ApiClient';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { downloadBlob } from '@/lib/utils/download';
 import { useUser, useAuthActions } from '@/stores/authStore';
 
@@ -159,7 +160,8 @@ export function DataManagementPanel() {
       await deleteAccountApi(confirmation);
 
       await signOut();
-      router.push('/');
+      announceNavigationStart();
+      router.replace('/');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete account';
       setError(errorMessage);

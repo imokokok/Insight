@@ -8,9 +8,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, LogIn, AlertCircle, MailWarning } from 'lucide-react';
 
 import { AuthPageLayout, AuthBrandLogo, AuthPageSuspense } from '@/app/auth/shared/AuthComponents';
-import { isValidRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
+import { getSafeRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
 import { Button } from '@/components/ui';
 import { PasswordInput } from '@/components/ui/PasswordInput';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useUser, useAuthError, useAuthActions, useSession } from '@/stores/authStore';
 
 interface ErrorInfo {
@@ -22,7 +23,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawRedirect = searchParams.get('redirect') || '/';
-  const redirectPath = isValidRedirectPath(rawRedirect) ? rawRedirect : '/';
+  const redirectPath = getSafeRedirectPath(rawRedirect);
   const user = useUser();
   const session = useSession();
   const error = useAuthError();
@@ -39,7 +40,8 @@ function LoginForm() {
   useEffect(() => {
     if (user && session) {
       clearError();
-      router.push(redirectPath);
+      announceNavigationStart();
+      router.replace(redirectPath);
     }
   }, [user, session, router, redirectPath, clearError]);
 

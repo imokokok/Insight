@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Check, Coins, Loader2, Zap } from 'lucide-react';
 
 import { CREDIT_PACKS, CREDIT_PACK_ORDER, PLANS, PLAN_ORDER, type Plan } from '@/lib/billing/plans';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useSession } from '@/stores/authStore';
 
 interface PricingCardsProps {
@@ -52,6 +53,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
     // If not logged in, send to register first — they can subscribe after auth.
     if (!accessToken) {
       const redirect = encodeURIComponent(`/pricing`);
+      announceNavigationStart();
       router.push(`/register?redirect=${redirect}`);
       return;
     }
@@ -87,6 +89,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
 
     if (!accessToken) {
       const redirect = encodeURIComponent(`/pricing`);
+      announceNavigationStart();
       router.push(`/register?redirect=${redirect}`);
       return;
     }

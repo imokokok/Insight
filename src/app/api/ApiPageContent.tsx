@@ -27,6 +27,7 @@ import { DataAccessTierMatrix, PricingSection } from '@/components/pricing';
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { Button } from '@/components/ui/Button';
 import { useAppUrl } from '@/hooks/useAppUrl';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useSession, useUser } from '@/stores/authStore';
 
 const FEATURES = [
@@ -214,7 +215,10 @@ function HeroSection() {
             ) : (
               <button
                 type="button"
-                onClick={() => router.push('/register?redirect=/api')}
+                onClick={() => {
+                  announceNavigationStart();
+                  router.push('/register?redirect=/api');
+                }}
                 className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
               >
                 <Play className="w-4 h-4" />
@@ -379,8 +383,21 @@ function KeyManagerSection() {
               Create an account to generate your API key and start building.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={() => router.push('/register?redirect=/api')}>Create account</Button>
-              <Button variant="secondary" onClick={() => router.push('/login?redirect=/api')}>
+              <Button
+                onClick={() => {
+                  announceNavigationStart();
+                  router.push('/register?redirect=/api');
+                }}
+              >
+                Create account
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  announceNavigationStart();
+                  router.push('/login?redirect=/api');
+                }}
+              >
                 Sign in
               </Button>
             </div>

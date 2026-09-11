@@ -15,8 +15,10 @@ import {
   AuthPageSuspense,
   GoToLoginButton,
 } from '@/app/auth/shared/AuthComponents';
+import { getSafeRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
 import { useAuthFormSubmit } from '@/app/auth/shared/useAuthFormSubmit';
 import { PasswordInput } from '@/components/ui/PasswordInput';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { validatePassword } from '@/lib/security/passwordValidation';
 import { useAuthActions } from '@/stores/authStore';
 
@@ -29,7 +31,8 @@ function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const { isLoading, isSuccess, error, submit, clearError, setError } = useAuthFormSubmit();
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
-  const redirectParam = searchParams.get('redirect') || undefined;
+  const rawRedirect = searchParams.get('redirect') || undefined;
+  const redirectPath = getSafeRedirectPath(rawRedirect);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -47,13 +50,12 @@ function ResetPasswordForm() {
   useEffect(() => {
     if (isSuccess) {
       const timer = setTimeout(() => {
-        router.push(
-          redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login'
-        );
+        announceNavigationStart();
+        router.replace(`/login?redirect=${encodeURIComponent(redirectPath)}`);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [isSuccess, router, redirectParam]);
+  }, [isSuccess, router, redirectPath]);
 
   const validateForm = () => {
     const passwordError = validatePassword(password);
@@ -119,7 +121,7 @@ function ResetPasswordForm() {
           title="Password Reset Successful"
           description="Your password has been reset successfully. Redirecting to login..."
         >
-          <GoToLoginButton redirect={redirectParam} />
+          <GoToLoginButton redirect={redirectPath} />
         </AuthResultCard>
       </AuthPageLayout>
     );

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { createServerClient } from '@supabase/ssr';
 
+import { isValidRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
 import { sanitizeString } from '@/lib/security/inputSanitizer';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -40,22 +41,6 @@ function checkCallbackRateLimit(ip: string): boolean {
 
   entry.count++;
   return true;
-}
-
-const ALLOWED_REDIRECT_PATHS = ['/', '/settings', '/price-query', '/price-insight'];
-
-function isValidRedirectPath(path: string): boolean {
-  if (!path || typeof path !== 'string') {
-    return false;
-  }
-
-  if (path.startsWith('//') || path.startsWith('http://') || path.startsWith('https://')) {
-    return false;
-  }
-
-  return ALLOWED_REDIRECT_PATHS.some(
-    (allowed) => path === allowed || path.startsWith(allowed + '/')
-  );
 }
 
 async function handleCallback(request: NextRequest) {

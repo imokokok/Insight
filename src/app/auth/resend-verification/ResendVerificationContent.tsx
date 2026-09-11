@@ -15,7 +15,7 @@ import {
   AuthPageSuspense,
   GoToLoginButton,
 } from '@/app/auth/shared/AuthComponents';
-import { isValidRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
+import { getSafeRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
 import { useAuthFormSubmit } from '@/app/auth/shared/useAuthFormSubmit';
 import { useAuthActions } from '@/stores/authStore';
 
@@ -25,7 +25,7 @@ function ResendVerificationForm() {
   const searchParams = useSearchParams();
   const defaultEmail = searchParams.get('email') || '';
   const rawRedirect = searchParams.get('redirect') || '/';
-  const redirectPath = isValidRedirectPath(rawRedirect) ? rawRedirect : '/';
+  const redirectPath = getSafeRedirectPath(rawRedirect);
   const { resendVerification } = useAuthActions();
 
   const [email, setEmail] = useState(defaultEmail);
