@@ -1,4 +1,5 @@
 import { InsightApiError } from './errors';
+import { stripTrailingSlashes } from './url';
 
 import type {
   ExecutionReceiptRequest,
@@ -30,7 +31,7 @@ export class InsightClient {
   constructor(options: InsightClientOptions) {
     if (!options.apiKey.trim()) throw new Error('InsightClient requires an API key.');
     this.apiKey = options.apiKey;
-    this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
+    this.baseUrl = stripTrailingSlashes(options.baseUrl ?? DEFAULT_BASE_URL);
     this.fetcher = options.fetch ?? globalThis.fetch;
     if (!this.fetcher)
       throw new Error('No fetch implementation is available. Node 18+ is required.');

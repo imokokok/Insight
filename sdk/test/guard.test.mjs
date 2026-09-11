@@ -702,6 +702,44 @@ test('oracleWatch sends the attestation flag in the API query', async () => {
   assert.equal(requestUrl.searchParams.get('attest'), 'true');
 });
 
+test('SDK clients normalize trailing base URL slashes before joining request paths', async () => {
+  let insightRequestUrl;
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    baseUrl: 'https://insight.test////',
+    fetch: async (url) => {
+      insightRequestUrl = String(url);
+      return api({
+        symbol: 'ETH',
+        chain: 'ethereum',
+        verdict: 'normal',
+        recommendation: 'proceed',
+        reason: 'healthy',
+        reasonCodes: [],
+        evaluatedAt: '2026-09-05T00:00:00.000Z',
+      });
+    },
+  });
+
+  await guard.client.oracleWatch({ symbol: 'ETH', chain: 'ethereum' });
+  assert.match(insightRequestUrl, /^https:\/\/insight\.test\/api\/v1\/oracle-watch\?/);
+
+  let priorSealRequestUrl;
+  const priorSeal = new PriorSealClient({
+    baseUrl: 'https://priorseal.test////',
+    fetch: async (url) => {
+      priorSealRequestUrl = String(url);
+      return new Response(JSON.stringify({ jobId: 'job_1', state: 'QUEUED', attempts: 0 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+  });
+
+  await priorSeal.getObservationJob('job_1');
+  assert.equal(priorSealRequestUrl, 'https://priorseal.test/v1/observation-jobs/job_1');
+});
+
 test('InsightClient bounds requests with a defaultable timeout', async () => {
   const guard = new InsightGuard({
     apiKey: 'ins_test',
