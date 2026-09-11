@@ -14,10 +14,10 @@ import {
 
 export default function DocsContent() {
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench developer-workbench docs-workbench min-h-screen">
       <DocsHero />
 
-      <div className="editorial-frame mx-auto max-w-[1400px] px-5 py-8 sm:px-8 lg:px-12">
+      <div className="docs-content-ledger editorial-frame mx-auto max-w-[1400px] px-5 py-8 sm:px-8 lg:px-12">
         <QuickStartSection />
         <FeaturesGuideSection />
         <VerifiableReceiptsSection />

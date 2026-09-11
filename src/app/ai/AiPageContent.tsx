@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 import { ApiKeyManager } from '@/components/api-keys';
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { PricingCtaSection } from '@/components/pricing';
 import { Button } from '@/components/ui/Button';
 import { createLogger } from '@/lib/utils/logger';
@@ -158,7 +158,7 @@ export function AiPageContent() {
   }, [keys]);
 
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench developer-workbench agent-workbench min-h-screen">
       {/* ============================ HERO ============================ */}
       <section className="editorial-frame mx-auto max-w-[1440px] px-5 pt-4 sm:px-8 lg:px-12">
         <EditorialWorkspaceHeader
@@ -188,7 +188,16 @@ export function AiPageContent() {
           }
         />
 
-        <div className="flex flex-wrap gap-x-6 gap-y-2 border-b border-slate-900/15 py-4 text-xs text-slate-500">
+        <EvidenceProcessRail
+          label="Agent decision loop"
+          items={[
+            { label: 'Declare intent', detail: 'Asset · chain · action' },
+            { label: 'Evaluate evidence', detail: 'Consensus · freshness · risk' },
+            { label: 'Act or halt', detail: 'Verdict · explanation · proof' },
+          ]}
+        />
+
+        <div className="agent-transport-strip flex flex-wrap gap-x-6 gap-y-2 border-b border-slate-900/15 py-4 text-xs text-slate-500">
           <span>MCP shares the API credit meter</span>
           <Link href="/pricing" className="text-blue-700 hover:underline">
             See pricing
@@ -221,12 +230,15 @@ export function AiPageContent() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
-            {CAPABILITIES.map((cap) => (
+          <div className="agent-capability-ledger grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
+            {CAPABILITIES.map((cap, capIndex) => (
               <div
                 key={cap.title}
-                className="border-b border-r border-slate-900/10 bg-white/35 p-6 transition-colors hover:bg-blue-50/35"
+                className="agent-capability-card border-b border-r border-slate-900/10 bg-white/35 p-6 transition-colors hover:bg-blue-50/35"
               >
+                <span className="developer-record-index">
+                  A—{String(capIndex + 1).padStart(2, '0')}
+                </span>
                 <div
                   className={`mb-4 flex h-9 w-9 items-center justify-center border border-blue-200 ${cap.accent}`}
                 >
@@ -284,7 +296,7 @@ export function AiPageContent() {
             </p>
           </div>
 
-          <div className="border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
+          <div className="agent-demo-instrument border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
             <PreTradeSafetyDemo apiKey={defaultApiKey} />
           </div>
 
@@ -319,7 +331,7 @@ export function AiPageContent() {
             </p>
           </div>
 
-          <div className="border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
+          <div className="agent-demo-instrument border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
             <OracleWatchDemo apiKey={defaultApiKey} />
           </div>
 
@@ -362,9 +374,12 @@ export function AiPageContent() {
             </div>
           </div>
 
-          <div className="mb-12 grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-3">
+          <div className="agent-integration-sequence mb-12 grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-3">
             {INTEGRATION_STEPS.map((s) => (
-              <div key={s.step} className="border-b border-r border-slate-900/10 bg-white/35 p-6">
+              <div
+                key={s.step}
+                className="agent-integration-step border-b border-r border-slate-900/10 bg-white/35 p-6"
+              >
                 <div className="mb-4 flex h-9 w-9 items-center justify-center bg-blue-700 text-sm font-bold text-white">
                   {s.step}
                 </div>
@@ -453,7 +468,7 @@ when the verdict turns DANGER.`}
             </div>
           </div>
 
-          <div className="border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
+          <div className="agent-demo-instrument border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
             <CodeSnippetGenerator defaultApiKey={defaultApiKey} />
           </div>
         </div>
@@ -472,7 +487,7 @@ when the verdict turns DANGER.`}
                 </p>
               </div>
             </div>
-            <div className="border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
+            <div className="developer-access-vault border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
               <ApiKeyManager accessToken={session.access_token} />
             </div>
           </div>
@@ -480,7 +495,7 @@ when the verdict turns DANGER.`}
       ) : (
         <section id="keys" className="py-16 sm:py-20 bg-white">
           <div className="editorial-frame mx-auto max-w-[1240px] px-5 sm:px-8">
-            <div className="grid gap-6 border-y border-slate-900/15 bg-white/50 p-8 md:grid-cols-[0.8fr_1.7fr]">
+            <div className="developer-access-vault grid gap-6 border-y border-slate-900/15 bg-white/50 p-8 md:grid-cols-[0.8fr_1.7fr]">
               <div>
                 <p className="editorial-index mb-4">08 — Control access</p>
                 <div className="flex h-12 w-12 items-center justify-center bg-blue-50 text-blue-700">
@@ -525,7 +540,7 @@ when the verdict turns DANGER.`}
             </div>
           </div>
 
-          <div className="border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
+          <div className="agent-demo-instrument border-y border-slate-900/15 bg-white/50 p-6 md:p-8">
             <McpPlayground apiKey={configuredApiKey.trim() || defaultApiKey} />
           </div>
         </div>
@@ -555,12 +570,15 @@ function UseCasesSection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-2 lg:grid-cols-4">
-          {AGENT_USE_CASES.map((useCase) => (
+        <div className="agent-question-ledger grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-2 lg:grid-cols-4">
+          {AGENT_USE_CASES.map((useCase, useCaseIndex) => (
             <div
               key={useCase.title}
-              className="border-b border-r border-slate-900/10 bg-white/35 p-6 transition-colors hover:bg-blue-50/35"
+              className="agent-question-card border-b border-r border-slate-900/10 bg-white/35 p-6 transition-colors hover:bg-blue-50/35"
             >
+              <span className="developer-record-index">
+                Q—{String(useCaseIndex + 1).padStart(2, '0')}
+              </span>
               <div className="mb-4 flex h-10 w-10 items-center justify-center border border-blue-200 bg-blue-50 text-blue-700">
                 <useCase.icon className="w-5 h-5" />
               </div>
@@ -586,7 +604,7 @@ function ConfigSnippetCard({
   snippet: string;
 }) {
   return (
-    <div className="overflow-hidden border border-slate-800 bg-slate-900">
+    <div className="agent-config-card overflow-hidden border border-slate-800 bg-slate-900">
       <div className="px-4 py-2.5 border-b border-slate-800 flex items-center gap-2">
         <Code2 className="w-4 h-4 text-slate-400" />
         <span className="text-sm font-medium text-slate-200">{title}</span>

@@ -45,7 +45,7 @@ function HeaderButton({
 
 export function ApiDocsHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-900/15 bg-[#f8f7f4]/95 backdrop-blur">
+    <header className="api-reference-header sticky top-0 z-30 border-b border-slate-900/15 bg-[#f8f7f4]/95 backdrop-blur">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
         <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           {/* Left: title & meta */}
