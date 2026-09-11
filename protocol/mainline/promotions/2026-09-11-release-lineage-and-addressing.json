@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x6148f4273e60fa702bbac5a5f0abd3461d8e46e532675aeaec6d991ef93a5217",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 4,
+  "effectiveFrom": "2026-09-11",
+  "classification": "Executable registry release lineage floors and immutable promotion addressing",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c",
+  "predecessorPromotionId": "0x338a53e57055bf01820ef3880b2668bee6907307fc6e682704f868e366518220",
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "receiptImpact": "no receipt wire-format, profile, signer or active partner policy change",
+  "activationRule": "A candidate registry release satisfies a partner policy when it equals any oracleRegistryReleaseIds pin or reaches one through predecessorReleaseId. Unknown releases, cycles and releases outside every pinned lineage fail closed.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "clarified-and-runtime-enforced",
+      "evidence": "The active v5-only policy remains unchanged; current and future descendant releases satisfy its 2026-09-09.1 lineage floor, while releases outside that lineage fail closed."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "compatible-lineage-clarified",
+      "evidence": "The production-disabled policy and exact-snapshot legacy receipt rule remain unchanged; the registry release pin now has an explicit lineage-floor interpretation."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "not-affected",
+      "evidence": "The pinned AEB option 2 adapter does not consume ExecutionReceipt; its existing registry release lineage remains valid."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "not-affected",
+      "evidence": "The frozen external-evidence/v0 rev6 adapter does not consume ExecutionReceipt; its existing registry release lineage remains valid."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "not-affected",
+      "evidence": "The evidence family and OracleSafetyCheck v2 pins are unchanged; only registry release-pin interpretation and promotion discovery are clarified."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "not-affected",
+      "evidence": "Production reachability remains disabled and key-role admission is unchanged."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "not-affected",
+      "evidence": "The active pre-trade and Oracle Watch contracts and policy id are unchanged."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "compatible-lineage-clarified",
+      "evidence": "Durable receipt-adjacent evidence and the non-global legacy verdict boundary are unchanged; registry release lineage is now explicit."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "not-affected",
+      "evidence": "The read-only data and methodology exchange remains fixed by its existing pins."
+    }
+  ]
+}

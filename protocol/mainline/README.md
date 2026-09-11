@@ -27,6 +27,15 @@ immutable protocol objects and explicit activation, not by partner branches.
    the same `main` commit.
 9. Production ExecutionReceipt signing is v5-only. Retired v1-v4 layouts may be
    signed only by the dedicated sample-role key for conformance vectors.
+10. `oracleRegistryReleaseIds` are lineage floors, not exact-current matches. A
+    candidate release is admitted only when it equals at least one pin or can
+    reach one through its `predecessorReleaseId` chain. Unknown releases,
+    cycles and releases outside every pinned lineage fail closed.
+11. Every promotion is addressable at
+    `/.well-known/oracle-registry/promotions/{promotionId}`. The id is
+    `keccak256` over the RFC 8785 canonical promotion object excluding its
+    `promotionId`; the route is immutable while current discovery stays small
+    and mutable.
 
 The repository guard in `scripts/check-mainline-governance.mjs` verifies content
 ids and references locally. In CI it also compares against the base revision,

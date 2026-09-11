@@ -64,7 +64,13 @@ describe('policy-bound execution verification API service', () => {
       expect.objectContaining({
         valid: true,
         policyEnforcement: 'active-partner-policy-required',
-        consumerPolicy: expect.objectContaining({ valid: true, partnerId: 'headless' }),
+        consumerPolicy: expect.objectContaining({
+          valid: true,
+          partnerId: 'headless',
+          registryReleasePinRule: 'lineage-floor-any',
+          registryReleaseMatchedFloor:
+            '0xf45d4c0272300f8132dba75c49b337557cf6fd7975b32fd14a8b4e13f430a8f7',
+        }),
       })
     );
 

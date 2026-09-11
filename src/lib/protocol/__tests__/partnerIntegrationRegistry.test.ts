@@ -1,4 +1,10 @@
 import { EXECUTION_PROFILE_V1_ID } from '@/lib/attestations/executionProfiles';
+import {
+  ORACLE_REGISTRY_RELEASE_2026_09_08_1_ID,
+  ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID,
+  ORACLE_REGISTRY_RELEASE_2026_09_10_1_ID,
+  ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID,
+} from '@/lib/attestations/oracleRegistryRelease';
 
 import {
   CURRENT_PARTNER_ACTIVATION_SET,
@@ -10,6 +16,10 @@ import {
   partnerActivationSetById,
   partnerIntegrationPolicyById,
 } from '../partnerIntegrationRegistry';
+import {
+  evaluateActivePartnerExecutionPolicyForRegistryRelease,
+  evaluateExecutionPolicyForRegistryRelease,
+} from '../registryReleasePolicy';
 
 describe('main-only partner integration isolation', () => {
   it('resolves every partner through an independent immutable policy id', () => {
@@ -44,6 +54,73 @@ describe('main-only partner integration isolation', () => {
     );
     expect(evaluateExecutionPolicy(policy!.policyId, 4, null)).toEqual(
       expect.objectContaining({ valid: false, reason: 'schema_not_admitted_by_policy:4' })
+    );
+  });
+
+  it('treats registry release pins as lineage floors and fails closed off lineage', () => {
+    const policy = activePartnerIntegrationPolicy('headless')!;
+
+    for (const releaseId of [
+      ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID,
+      ORACLE_REGISTRY_RELEASE_2026_09_10_1_ID,
+      ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID,
+    ]) {
+      expect(
+        evaluateExecutionPolicyForRegistryRelease(
+          policy.policyId,
+          5,
+          EXECUTION_PROFILE_V1_ID,
+          releaseId
+        )
+      ).toEqual(
+        expect.objectContaining({
+          valid: true,
+          registryReleaseId: releaseId,
+          registryReleasePinRule: 'lineage-floor-any',
+          registryReleaseMatchedFloor: ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID,
+        })
+      );
+    }
+
+    expect(
+      evaluateExecutionPolicyForRegistryRelease(
+        policy.policyId,
+        5,
+        EXECUTION_PROFILE_V1_ID,
+        ORACLE_REGISTRY_RELEASE_2026_09_08_1_ID
+      )
+    ).toEqual(
+      expect.objectContaining({
+        valid: false,
+        reason: 'registry_release_not_admitted_by_policy',
+      })
+    );
+
+    expect(
+      evaluateExecutionPolicyForRegistryRelease(
+        policy.policyId,
+        5,
+        EXECUTION_PROFILE_V1_ID,
+        `0x${'f'.repeat(64)}`
+      )
+    ).toEqual(expect.objectContaining({ valid: false, reason: 'unknown_oracle_registry_release' }));
+  });
+
+  it('enforces the current release lineage on the active partner path', () => {
+    const policy = activePartnerIntegrationPolicy('headless')!;
+    expect(
+      evaluateActivePartnerExecutionPolicyForRegistryRelease(
+        'headless',
+        policy.policyId,
+        5,
+        EXECUTION_PROFILE_V1_ID,
+        ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID
+      )
+    ).toEqual(
+      expect.objectContaining({
+        valid: true,
+        registryReleaseMatchedFloor: ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID,
+      })
     );
   });
 

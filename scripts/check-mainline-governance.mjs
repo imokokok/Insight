@@ -8,6 +8,7 @@ const workspace = resolve(import.meta.dirname, '..');
 const policyRoot = join(workspace, 'protocol/mainline/policies');
 const activationPath = join(workspace, 'protocol/mainline/activations.json');
 const currentPromotionPath = join(workspace, 'protocol/mainline/current-promotion.json');
+const promotionRoot = join(workspace, 'protocol/mainline/promotions');
 const ciWorkflowPath = join(workspace, '.github/workflows/ci.yml');
 const workflowsRoot = join(workspace, '.github/workflows');
 const vercelConfigPath = join(workspace, 'vercel.json');
@@ -132,6 +133,30 @@ const currentPromotionPointer = json(currentPromotionPath);
 const currentPromotionFile = join(workspace, currentPromotionPointer.path);
 const currentPromotion = json(currentPromotionFile);
 const expectedPromotionId = contentId(withoutId(currentPromotion, 'promotionId'));
+
+const promotions = new Map();
+const promotionVersions = new Set();
+for (const entry of readdirSync(promotionRoot, { withFileTypes: true })) {
+  if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
+  const path = join(promotionRoot, entry.name);
+  const promotion = json(path);
+  const expected = contentId(withoutId(promotion, 'promotionId'));
+  if (!process.argv.includes('--calculate') && promotion.promotionId !== expected) {
+    throw new Error(`${relative(workspace, path)} promotionId must be ${expected}`);
+  }
+  if (!process.argv.includes('--calculate') && promotions.has(promotion.promotionId)) {
+    throw new Error(`Duplicate promotionId ${promotion.promotionId}`);
+  }
+  if (!process.argv.includes('--calculate') && promotionVersions.has(promotion.promotionVersion)) {
+    throw new Error(`Mainline promotion version ${promotion.promotionVersion} is duplicated`);
+  }
+  promotionVersions.add(promotion.promotionVersion);
+  promotions.set(
+    process.argv.includes('--calculate') ? expected : promotion.promotionId,
+    promotion
+  );
+}
+
 if (!process.argv.includes('--calculate') && currentPromotion.promotionId !== expectedPromotionId) {
   throw new Error(`${currentPromotionPointer.path} promotionId must be ${expectedPromotionId}`);
 }
@@ -154,6 +179,28 @@ if (
     currentMatrixPartners?.length !== Object.keys(activations.partners).length)
 ) {
   throw new Error('The current promotion must contain each active partner exactly once');
+}
+if (!process.argv.includes('--calculate')) {
+  for (const promotion of promotions.values()) {
+    if (
+      promotion.predecessorPromotionId != null &&
+      !promotions.has(promotion.predecessorPromotionId)
+    ) {
+      throw new Error(
+        `Promotion ${promotion.promotionId} has unknown predecessor ${promotion.predecessorPromotionId}`
+      );
+    }
+  }
+
+  const visitedPromotionIds = new Set();
+  let cursor = currentPromotion;
+  while (cursor) {
+    if (visitedPromotionIds.has(cursor.promotionId)) {
+      throw new Error(`Promotion predecessor cycle detected at ${cursor.promotionId}`);
+    }
+    visitedPromotionIds.add(cursor.promotionId);
+    cursor = cursor.predecessorPromotionId ? promotions.get(cursor.predecessorPromotionId) : null;
+  }
 }
 
 const printIds = process.argv.includes('--print-ids') || process.argv.includes('--calculate');

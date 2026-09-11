@@ -82,6 +82,10 @@ import {
   WATCH_REQUIRED_SOURCE_GROUP_COUNT,
 } from '@/lib/attestations/oracleWatchAttestation';
 import { PROVIDER_OBSERVATIONS_HASH_CANONICALIZATION } from '@/lib/attestations/providerObservationsHash';
+import {
+  CURRENT_MAINLINE_PROTOCOL_PROMOTION,
+  CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID,
+} from '@/lib/protocol/mainlinePromotionRegistry';
 
 /** Loose EIP-712 descriptor shape for JSON (domain version widened to string;
  *  `environment` appears on domains that structurally separate deployments). */
@@ -144,6 +148,11 @@ export async function GET(request: NextRequest) {
       current: `${origin}/.well-known/oracle-registry/current.json`,
       immutable: `${origin}/.well-known/oracle-registry/releases/${CURRENT_ORACLE_REGISTRY_RELEASE_ID}`,
     },
+    protocolPromotion: {
+      promotionId: CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID,
+      promotionVersion: CURRENT_MAINLINE_PROTOCOL_PROMOTION.promotionVersion,
+      immutable: `${origin}/.well-known/oracle-registry/promotions/${CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID}`,
+    },
     /** Partner code may coexist on main without changing any integration.
      *  Verifiers select an immutable policy id; only the activation set maps a
      *  partner to a policy, and each mapping advances independently. */
@@ -153,6 +162,12 @@ export async function GET(request: NextRequest) {
       immutableSet: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.immutableSetPath}`,
       immutablePolicyTemplate: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.immutablePolicyPathTemplate}`,
       activationRule: CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.activationRule,
+      registryReleasePolicy: {
+        rule: CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.registryReleasePinRule,
+        description:
+          CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation
+            .registryReleasePinRuleDescription,
+      },
       runtime: {
         executionVerifyTemplate: `${origin}/api/v1/partners/{partnerId}/execution/attestation/verify`,
         executionVerifyPairTemplate: `${origin}/api/v1/partners/{partnerId}/execution/attestation/verify-pair`,

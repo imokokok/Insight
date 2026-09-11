@@ -138,15 +138,18 @@ describe('.well-known/oracle-keys.json route', () => {
 
     // Product deployments and protocol publications are separate. A verifier
     // can pin the content-addressed release and see when it became effective.
-    expect(body.registryRevision).toBe('2026-09-10.1');
-    expect(body.effectiveFrom).toBe('2026-09-10');
+    expect(body.registryRevision).toBe('2026-09-11.1');
+    expect(body.effectiveFrom).toBe('2026-09-11');
     expect(body.registryRelease.releaseId).toMatch(/^0x[0-9a-f]{64}$/);
     expect(body.registryRelease.immutable).toContain(body.registryRelease.releaseId);
+    expect(body.protocolPromotion.promotionId).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(body.protocolPromotion.immutable).toContain(body.protocolPromotion.promotionId);
     expect(body.partnerIntegrations.activationSetId).toMatch(/^0x[0-9a-f]{64}$/);
     expect(body.partnerIntegrations.immutableSet).toContain(
       body.partnerIntegrations.activationSetId
     );
     expect(body.partnerIntegrations.activationRule).toContain('never activates');
+    expect(body.partnerIntegrations.registryReleasePolicy.rule).toBe('lineage-floor-any');
     expect(body.partnerIntegrations.runtime.requiredBodyField).toBe('policyId');
     expect(body.partnerIntegrations.runtime.executionVerifyTemplate).toContain(
       '/api/v1/partners/{partnerId}/execution/attestation/verify'

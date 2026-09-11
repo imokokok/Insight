@@ -12,6 +12,8 @@ import { keccak256, toBytes } from 'viem';
 
 import {
   CURRENT_PARTNER_ACTIVATION_SET_ID,
+  ORACLE_REGISTRY_RELEASE_PIN_RULE,
+  ORACLE_REGISTRY_RELEASE_PIN_RULE_DESCRIPTION,
   PARTNER_ACTIVATION_SET_V1_ID,
 } from '../protocol/partnerIntegrationRegistry';
 
@@ -258,6 +260,34 @@ export const ORACLE_REGISTRY_RELEASE_2026_09_10_1 = {
   },
 } as const;
 
+/** Makes the policy release pin semantics executable and exposes immutable
+ * promotion records without changing receipt wire data or partner activation. */
+export const ORACLE_REGISTRY_RELEASE_2026_09_11_1 = {
+  ...ORACLE_REGISTRY_RELEASE_2026_09_10_1,
+  registryRevision: '2026-09-11.1',
+  effectiveFrom: '2026-09-11',
+  predecessorReleaseId: '0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c',
+  changes: [
+    'Partner policy oracleRegistryReleaseIds are lineage floors: a candidate release must equal a pin or descend from one through predecessorReleaseId.',
+    'Unknown releases, predecessor cycles and releases outside every policy-pinned lineage fail closed.',
+    'Mainline promotion records are available from an immutable content-addressed HTTP path whose promotionId is keccak256 over RFC 8785 canonical bytes excluding promotionId.',
+    'Receipt layout, ExecutionReceipt semantic profile and active partner policy ids remain unchanged.',
+  ],
+  mainlineIntegrationIsolation: {
+    ...ORACLE_REGISTRY_RELEASE_2026_09_10_1.mainlineIntegrationIsolation,
+    registryReleasePinRule: ORACLE_REGISTRY_RELEASE_PIN_RULE,
+    registryReleasePinRuleDescription: ORACLE_REGISTRY_RELEASE_PIN_RULE_DESCRIPTION,
+  },
+  promotionAddressing: {
+    immutablePathTemplate: '/.well-known/oracle-registry/promotions/{promotionId}',
+    contentId: {
+      algorithm: 'keccak256',
+      canonicalization: 'RFC 8785 JSON Canonicalization Scheme',
+      scope: 'promotion object excluding promotionId',
+    },
+  },
+} as const;
+
 function canonicalJson(value: unknown): string {
   if (value === null || typeof value === 'boolean' || typeof value === 'number') {
     return JSON.stringify(value);
@@ -307,14 +337,25 @@ if (computedLegacyResolutionReleaseId !== ORACLE_REGISTRY_RELEASE_2026_09_10_1_I
   );
 }
 
+export const ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID =
+  '0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b' as const;
+
+const computedReleaseLineageId = releaseDigest(ORACLE_REGISTRY_RELEASE_2026_09_11_1);
+if (computedReleaseLineageId !== ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID) {
+  throw new Error(
+    `Oracle registry release is immutable: expected ${ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID}, computed ${computedReleaseLineageId}`
+  );
+}
+
 export const ORACLE_REGISTRY_RELEASES = Object.freeze({
   [ORACLE_REGISTRY_RELEASE_2026_09_08_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_08_1,
   [ORACLE_REGISTRY_RELEASE_2026_09_09_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_09_1,
   [ORACLE_REGISTRY_RELEASE_2026_09_10_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_10_1,
+  [ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID]: ORACLE_REGISTRY_RELEASE_2026_09_11_1,
 });
 
 /** The only pointer edited during an explicit protocol promotion. */
-export const CURRENT_ORACLE_REGISTRY_RELEASE_ID = ORACLE_REGISTRY_RELEASE_2026_09_10_1_ID;
+export const CURRENT_ORACLE_REGISTRY_RELEASE_ID = ORACLE_REGISTRY_RELEASE_2026_09_11_1_ID;
 export const CURRENT_ORACLE_REGISTRY_RELEASE =
   ORACLE_REGISTRY_RELEASES[CURRENT_ORACLE_REGISTRY_RELEASE_ID];
 
