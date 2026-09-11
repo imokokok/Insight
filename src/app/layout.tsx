@@ -2,7 +2,7 @@ import './globals.css';
 
 import { Suspense } from 'react';
 
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Inter, JetBrains_Mono, Manrope } from 'next/font/google';
 
 import { AppInitializer } from '@/components/AppInitializer';
 import { ClientUtilities } from '@/components/ClientUtilities';
@@ -27,6 +27,12 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 });
 
+const manrope = Manrope({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.oracleinsight.xyz'),
   title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
@@ -36,7 +42,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} ${manrope.variable}`}>
       <body className="antialiased min-h-screen flex flex-col">
         <ErrorBoundary>
           <AppInitializer>

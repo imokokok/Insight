@@ -10,6 +10,7 @@ import { roundTo } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
 
 import { AssetTable } from './AssetTable';
+import { ConsensusCore } from './ConsensusCore';
 import { LiveStatusStrip } from './LiveStatusStrip';
 import { OracleHealthGrid } from './OracleHealthGrid';
 
@@ -154,7 +155,7 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
     <>
       <section className="py-16 sm:py-20 lg:py-28">
         <div className="mb-8 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-          <p className="home-kicker">03 — The evidence</p>
+          <p className="home-kicker">Evidence plate A — Consensus</p>
           <div>
             <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
               Look at the sources, not only the result.
@@ -174,13 +175,16 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
           updateInterval="60s"
         />
         <div className="mt-6">
+          <ConsensusCore assets={assetData} />
+        </div>
+        <div className="mt-6">
           <AssetTable assets={assetData} isLoading={isLoading} now={now} />
         </div>
       </section>
 
       <section className="py-16 sm:py-20 lg:py-28">
         <div className="mb-8 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-          <p className="home-kicker">05 — Live signals</p>
+          <p className="home-kicker">Evidence plate B — Network behaviour</p>
           <div>
             <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
               The network should be as observable as the price.
@@ -195,6 +199,7 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
           now={now}
           reputations={currentData.reputations}
           isLoading={isLoading && currentData.reputations.length === 0}
+          displayLimit={5}
         />
       </section>
     </>

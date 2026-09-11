@@ -33,7 +33,7 @@ function StatCard({ icon: Icon, label, value, tone = 'slate' }: StatCardProps) {
 
   return (
     <div
-      className={`flex min-w-0 items-center gap-3 px-4 py-3 ${toneStyles[tone]} transition-colors`}
+      className={`live-evidence-stat flex min-w-0 items-center gap-3 px-4 py-3 ${toneStyles[tone]} transition-colors`}
     >
       <Icon className={`w-4 h-4 flex-shrink-0 ${iconToneStyles[tone]}`} />
       <div>
@@ -59,7 +59,7 @@ export function LiveStatusStrip({
   const spreadTone = avgSpread > 1 ? 'amber' : avgSpread > 0 ? 'emerald' : 'slate';
 
   return (
-    <section className="border-y border-slate-900/15 bg-white/30 py-4 backdrop-blur-sm sm:py-5">
+    <section className="live-evidence-strip border-y border-slate-900/15 bg-white/30 py-4 backdrop-blur-sm sm:py-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-4 px-4 lg:pr-7">
           <div className="relative flex h-3 w-3">

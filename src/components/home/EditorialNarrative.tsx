@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { ArrowRight, CheckCircle2, CircleDot, ScanSearch, ShieldCheck } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CircleDot, ScanSearch, ShieldCheck } from 'lucide-react';
 
 const steps = [
   {
@@ -37,7 +37,7 @@ export function OracleQuestionSection() {
     <section className="border-y border-slate-900/10 py-16 sm:py-20 lg:py-28">
       <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
         <div>
-          <p className="home-kicker">02 — The question</p>
+          <p className="home-kicker">02 — Inspect the evidence</p>
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-slate-600">
             A displayed price looks final. In reality, it is a chain of assumptions: sources,
             timestamps, thresholds, and execution rules.
@@ -72,7 +72,7 @@ export function OracleProcessSection() {
       <div className="relative grid gap-12 lg:grid-cols-[0.9fr_1.7fr] lg:gap-20">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-300">
-            04 — A repeatable process
+            03 — Model the consequence
           </p>
           <h2 className="mt-5 text-3xl font-semibold leading-tight tracking-[-0.045em] sm:text-4xl">
             From a signal to a decision you can defend.
@@ -109,38 +109,34 @@ export function OracleProcessSection() {
 
 export function OracleClosingSection() {
   return (
-    <section className="home-view-reveal relative overflow-hidden border border-slate-900/15 bg-[#edf3fc] px-6 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-20">
-      <div className="absolute -right-24 -top-28 h-80 w-80 rounded-full border-[34px] border-blue-600/15" />
-      <div className="absolute bottom-0 right-16 h-44 w-px bg-blue-700/20" />
-      <div className="relative grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
+    <section className="final-evidence home-view-reveal">
+      <div className="final-evidence-index" aria-hidden="true">
+        <span>Source</span>
+        <i />
+        <span>Consensus</span>
+        <i />
+        <span>Decision</span>
+        <i />
+        <span>Proof</span>
+      </div>
+      <div className="final-evidence-copy">
+        <p className="instrument-label">Final checkpoint</p>
+        <h2>Let every price come with a way to question it.</h2>
+      </div>
+      <div className="final-evidence-actions">
+        <ol>
+          {proofPoints.map((point, index) => (
+            <li key={point}>
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              {point}
+            </li>
+          ))}
+        </ol>
         <div>
-          <p className="home-kicker">08 — A clearer starting point</p>
-          <h2 className="mt-5 max-w-3xl text-4xl font-semibold leading-[1.02] tracking-[-0.055em] text-slate-950 sm:text-5xl lg:text-6xl">
-            Let every price come with a way to question it.
-          </h2>
-        </div>
-        <div>
-          <ul className="space-y-3 text-sm text-slate-700">
-            {proofPoints.map((point) => (
-              <li key={point} className="flex items-center gap-2.5">
-                <CheckCircle2 className="h-4 w-4 text-blue-700" /> {point}
-              </li>
-            ))}
-          </ul>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-            >
-              Start building <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/docs"
-              className="inline-flex items-center gap-2 border border-slate-900/15 bg-white/60 px-5 py-3 text-sm font-semibold text-slate-800 transition-colors hover:border-blue-600 hover:text-blue-700"
-            >
-              Read the docs
-            </Link>
-          </div>
+          <Link href="/register" className="is-primary">
+            Start building <ArrowUpRight aria-hidden="true" />
+          </Link>
+          <Link href="/docs">Read the docs</Link>
         </div>
       </div>
     </section>

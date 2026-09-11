@@ -14,7 +14,7 @@ export function HeroSection() {
         fill
         priority
         sizes="100vw"
-        className="object-cover object-[67%_center]"
+        className="ice-hero-object object-cover object-[67%_center]"
       />
       <div className="ice-hero-wash absolute inset-0" />
       <div className="ice-hero-grain absolute inset-0" />
@@ -28,7 +28,7 @@ export function HeroSection() {
             </div>
           </div>
 
-          <h1 className="home-hero-reveal home-hero-reveal-2 mt-7 text-[2.65rem] font-semibold leading-[0.96] tracking-[-0.065em] text-slate-950 sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
+          <h1 className="font-display home-hero-reveal home-hero-reveal-2 mt-7 text-[2.65rem] font-semibold leading-[0.94] tracking-[-0.07em] text-slate-950 sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
             See the price
             <br />
             <span className="text-blue-700">before it becomes risk.</span>
@@ -76,6 +76,24 @@ export function HeroSection() {
             <span className="flex items-center gap-1.5">
               <Check className="h-3.5 w-3.5 text-blue-700" /> Pre-trade safety
             </span>
+          </div>
+        </div>
+
+        <div
+          className="ice-hero-index absolute right-8 top-1/2 hidden w-48 -translate-y-1/2 xl:block"
+          aria-hidden="true"
+        >
+          <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.24em] text-slate-600">
+            Evidence depth
+          </p>
+          <div className="mt-4 space-y-3">
+            {['Source layer', 'Consensus layer', 'Decision layer'].map((label, index) => (
+              <div key={label} className="ice-index-row">
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <i />
+                <b>{label}</b>
+              </div>
+            ))}
           </div>
         </div>
 

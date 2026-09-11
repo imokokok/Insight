@@ -4,39 +4,17 @@ import { useState } from 'react';
 
 import Link from 'next/link';
 
-import {
-  ArrowRight,
-  BookOpen,
-  Check,
-  Copy,
-  CreditCard,
-  Key,
-  Layers,
-  ShieldCheck,
-  Zap,
-} from 'lucide-react';
+import { ArrowUpRight, Check, Copy } from 'lucide-react';
 
 import { useAppUrl } from '@/hooks/useAppUrl';
 
 type Language = 'curl' | 'python' | 'javascript';
 
-const SELLING_POINTS = [
-  {
-    icon: Layers,
-    label: '10+ Providers',
-    description: 'Chainlink, RedStone, API3, DIA, Supra and more',
-  },
-  {
-    icon: ShieldCheck,
-    label: 'Verified Data',
-    description: 'Every response includes on-chain or API verification metadata',
-  },
-  {
-    icon: Zap,
-    label: 'Credit Metered',
-    description: 'Pay per call by data class (C1–C4) — subscribe or top up credits',
-  },
-];
+const INTERFACE_LAYERS = [
+  ['01', 'Request', 'Ask for a price, risk signal, or reliability record.'],
+  ['02', 'Resolve', 'Compare providers and retain source-level verification metadata.'],
+  ['03', 'Return', 'Deliver a response your protocol or agent can inspect and preserve.'],
+] as const;
 
 const getExamples = (baseUrl: string): Record<Language, string> => ({
   curl: `curl -H "X-API-Key: ins_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \\
@@ -69,7 +47,7 @@ const LANGUAGE_LABELS: Record<Language, string> = {
 };
 
 export function HomeApiTeaser() {
-  const [language, setLanguage] = useState<Language>('curl');
+  const [language, setLanguage] = useState<Language>('javascript');
   const [copied, setCopied] = useState(false);
   const examples = getExamples(useAppUrl());
 
@@ -79,113 +57,82 @@ export function HomeApiTeaser() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      // ignore
+      // Clipboard access can be unavailable in embedded previews.
     }
   };
 
   return (
-    <section className="home-view-reveal border border-slate-900/12 bg-white/80 shadow-[0_18px_40px_rgba(15,23,42,0.05)] overflow-hidden">
-      <div className="p-6 sm:p-8 lg:p-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 border border-blue-200 bg-blue-50 px-3 py-1.5 text-blue-700 text-xs font-semibold mb-4">
-              <Key className="w-3.5 h-3.5" />
-              <span>REST API v1</span>
-            </div>
+    <section className="execution-interface home-view-reveal" aria-labelledby="execution-title">
+      <div className="execution-interface-intro">
+        <p className="instrument-label">Evidence instrument 06 / execution interface</p>
+        <h3 id="execution-title">Transparent data, shaped for execution.</h3>
+        <p>
+          Query verified prices, reliability snapshots, depeg alerts, and liquidation risk signals
+          through one interface.
+        </p>
 
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-3">
-              Build on transparent oracle infrastructure
-            </h2>
-
-            <p className="text-base text-slate-600 leading-relaxed mb-8">
-              One API for verified prices, 15-minute reliability snapshots, depeg alerts and
-              liquidation risk signals. Designed for DeFi protocols, indexers, and trading bots.
-            </p>
-
-            <div className="space-y-5 mb-8">
-              {SELLING_POINTS.map((point) => {
-                const Icon = point.icon;
-                return (
-                  <div key={point.label} className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center border border-slate-200 bg-slate-50">
-                      <Icon className="w-4 h-4 text-slate-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-slate-900">{point.label}</div>
-                      <div className="text-sm text-slate-500 mt-0.5">{point.description}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href="/api"
-                className="inline-flex items-center gap-2 bg-slate-950 px-5 py-2.5 font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
-              >
-                <Key className="w-4 h-4" />
-                Get API Key
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 hover:text-blue-700 hover:border-blue-200 hover:bg-blue-50/50 font-semibold transition-all duration-200"
-              >
-                <CreditCard className="w-4 h-4" />
-                See pricing
-              </Link>
-              <Link
-                href="/docs/api"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-50 border border-slate-200 text-slate-700 hover:text-blue-700 hover:border-blue-200 hover:bg-blue-50/50 font-semibold transition-all duration-200"
-              >
-                <BookOpen className="w-4 h-4" />
-                Read Docs
-              </Link>
-            </div>
-          </div>
-
-          <div className="overflow-hidden bg-slate-950 border border-slate-800 shadow-[0_18px_38px_rgba(15,23,42,0.14)]">
-            <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-rose-500" />
-                <div className="w-3 h-3 rounded-full bg-amber-500" />
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+        <ol className="execution-layers">
+          {INTERFACE_LAYERS.map(([index, title, description]) => (
+            <li key={index}>
+              <span>{index}</span>
+              <div>
+                <strong>{title}</strong>
+                <p>{description}</p>
               </div>
-              <div className="flex items-center gap-1">
-                {(Object.keys(LANGUAGE_LABELS) as Language[]).map((lang) => (
-                  <button
-                    key={lang}
-                    type="button"
-                    onClick={() => setLanguage(lang)}
-                    className={`border px-3 py-1 text-xs font-medium transition-colors ${
-                      language === lang
-                        ? 'border-slate-600 bg-slate-700 text-white'
-                        : 'border-transparent text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-                    }`}
-                  >
-                    {LANGUAGE_LABELS[lang]}
-                  </button>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="inline-flex items-center gap-1.5 border border-transparent px-2.5 py-1.5 text-xs font-medium text-slate-400 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-slate-200"
-              >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-            <div className="p-4 sm:p-5 overflow-x-auto">
-              <pre
-                key={language}
-                className="home-code-swap text-sm text-slate-200 font-mono leading-relaxed whitespace-pre"
-              >
-                <code>{examples[language]}</code>
-              </pre>
-            </div>
+            </li>
+          ))}
+        </ol>
+
+        <div className="execution-actions">
+          <Link href="/api" className="is-primary">
+            Get API Key <ArrowUpRight aria-hidden="true" />
+          </Link>
+          <Link href="/docs/api">Read API reference</Link>
+          <Link href="/pricing">View pricing</Link>
+        </div>
+      </div>
+
+      <div className="request-specimen">
+        <div className="request-specimen-meta">
+          <span>Request specimen</span>
+          <span>REST / v1</span>
+          <span>Auth required</span>
+        </div>
+
+        <div className="request-specimen-tabs" aria-label="Code language">
+          {(Object.keys(LANGUAGE_LABELS) as Language[]).map((lang) => (
+            <button
+              key={lang}
+              type="button"
+              aria-pressed={language === lang}
+              onClick={() => setLanguage(lang)}
+            >
+              {LANGUAGE_LABELS[lang]}
+            </button>
+          ))}
+          <button type="button" className="request-copy" onClick={handleCopy}>
+            {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+
+        <div className="request-specimen-code">
+          <div className="request-line-ruler" aria-hidden="true">
+            {Array.from({ length: Math.max(examples[language].split('\n').length, 4) }).map(
+              (_, index) => (
+                <span key={index}>{String(index + 1).padStart(2, '0')}</span>
+              )
+            )}
           </div>
+          <pre key={language} className="home-code-swap">
+            <code>{examples[language]}</code>
+          </pre>
+        </div>
+
+        <div className="request-specimen-foot">
+          <span>Source verification included</span>
+          <span>Credit class C1–C4</span>
+          <span>Machine-readable response</span>
         </div>
       </div>
     </section>
