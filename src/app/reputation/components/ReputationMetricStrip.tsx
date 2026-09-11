@@ -52,18 +52,19 @@ export function ReputationMetricStrip({
 
   return (
     <section className="mb-7" aria-label="Reputation summary">
-      <div className="mb-3 flex items-center justify-between border-b border-slate-900/15 pb-3">
+      <div className="workbench-section-heading mb-3 flex items-center justify-between border-b border-slate-900/15 pb-3">
         <p className="editorial-index">01 — Read the field</p>
         <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
           Rolling 7 days
         </span>
       </div>
-      <div className="grid grid-cols-2 border-y border-slate-900/15 sm:grid-cols-3 lg:grid-cols-5">
-        {metrics.map((m) => (
+      <div className="reputation-metric-board grid grid-cols-2 border-y border-slate-900/15 sm:grid-cols-3 lg:grid-cols-5">
+        {metrics.map((m, metricIndex) => (
           <div
             key={m.label}
-            className="border-b border-r border-slate-900/10 bg-white/35 p-4 last:border-r-0 sm:p-5 lg:border-b-0"
+            className="reputation-metric-cell border-b border-r border-slate-900/10 bg-white/35 p-4 last:border-r-0 sm:p-5 lg:border-b-0"
           >
+            <span aria-hidden="true">{String(metricIndex + 1).padStart(2, '0')}</span>
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
               {m.label}
             </p>

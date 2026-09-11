@@ -78,7 +78,7 @@ export function WalletGate({
   })();
 
   return (
-    <div className="border-y border-slate-900/15 bg-white/55 p-5">
+    <div className="safety-input-instrument border-y border-slate-900/15 bg-white/55 p-5">
       <div className="flex items-center gap-2 mb-4">
         <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
         <h3 className="text-sm font-semibold text-slate-900">Connect Wallet</h3>

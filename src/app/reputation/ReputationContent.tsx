@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { AlertTriangle, BarChart3, Loader2 } from 'lucide-react';
 
+import { EvidenceProcessRail } from '@/components/editorial';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import {
@@ -147,7 +148,7 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
   };
 
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench research-workbench reputation-workbench min-h-screen">
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
         <ReputationHero
           isCalculating={isCalculating}
@@ -156,6 +157,17 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
           onRefresh={() => recalculate.mutate()}
           refreshPending={recalculate.isPending}
           canRefresh={Boolean(user)}
+        />
+
+        <EvidenceProcessRail
+          label="Assessment protocol"
+          className="mb-7"
+          activeIndex={reputations.length > 0 ? 1 : 0}
+          items={[
+            { label: 'Define the cohort', detail: 'Type · provider · window' },
+            { label: 'Compare the record', detail: 'Accuracy · uptime · latency' },
+            { label: 'Open the dossier', detail: 'History · coverage · evidence' },
+          ]}
         />
 
         {/* Loading state — single render path */}
@@ -229,7 +241,7 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
               hybridCount={typeCounts.hybrid}
             />
 
-            <div className="mb-4 flex flex-col gap-3 border-b border-slate-900/15 pb-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="workbench-section-heading mb-4 flex flex-col gap-3 border-b border-slate-900/15 pb-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="editorial-index mb-2">02 — Compare the record</p>
                 <TypeLegend

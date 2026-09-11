@@ -26,12 +26,15 @@ export function PegSiblingNav({ page }: { page: 'stablecoin' | 'wrapped' }) {
       <Link
         href={sibling.href}
         className={cn(
-          'group flex items-center justify-between gap-4 border-y border-slate-900/15 bg-white/35 px-4 py-3 transition-colors hover:border-blue-300 hover:bg-blue-50/40'
+          'peg-sibling-channel group flex items-center justify-between gap-4 border-y border-slate-900/15 bg-white/35 px-4 py-3 transition-colors hover:border-blue-300 hover:bg-blue-50/40'
         )}
       >
+        <span className="peg-sibling-index" aria-hidden="true">
+          S—02
+        </span>
         <div className="min-w-0">
           <div className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
-            Also available
+            Related surveillance channel
           </div>
           <div className="truncate text-sm font-semibold text-slate-800">{sibling.label}</div>
           <div className="truncate text-xs text-slate-500">{sibling.desc}</div>

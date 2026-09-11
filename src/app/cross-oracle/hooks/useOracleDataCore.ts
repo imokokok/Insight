@@ -468,10 +468,16 @@ export function useOracleDataCore(
     const prevKey = `${prevDepsRef.current.selectedOracles.slice().sort().join(',')}_${prevDepsRef.current.selectedSymbol}`;
 
     const depsChanged = currentKey !== prevKey;
+    // React Strict Mode intentionally runs an effect setup/cleanup cycle twice
+    // in development. The first cleanup aborts the request after we have
+    // recorded the selection key, so treat an aborted controller as an
+    // unfinished query and issue the default request again on the real mount.
+    const previousRequestWasAborted = abortControllerRef.current?.signal.aborted === true;
 
     if (
       depsChanged ||
-      (isInitialMountRef.current && selectedOracles.length > 0 && selectedSymbol)
+      (isInitialMountRef.current && selectedOracles.length > 0 && selectedSymbol) ||
+      previousRequestWasAborted
     ) {
       if (isInitialMountRef.current) {
         isInitialMountRef.current = false;

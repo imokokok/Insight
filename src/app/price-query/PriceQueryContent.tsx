@@ -2,6 +2,7 @@
 
 import { useRef, useCallback } from 'react';
 
+import { EvidenceProcessRail } from '@/components/editorial';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { LiveStatusBar } from '@/components/ui';
 import { useAllOnChainData } from '@/hooks/oracles/useAllOnChainData';
@@ -53,14 +54,26 @@ function PriceQueryContentInner() {
     onSearch: debouncedSearchFocus,
   });
 
+  const processIndex = queryResults.length > 0 ? 2 : selectedOracle || selectedSymbol ? 1 : 0;
+
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench price-query-workbench min-h-screen">
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
         <div aria-live="polite" className="sr-only">
           {isLoading ? 'Loading data...' : `${queryResults.length} results`}
         </div>
 
         <QueryHeader />
+
+        <EvidenceProcessRail
+          label="Observation route"
+          activeIndex={processIndex}
+          items={[
+            { label: 'Specify input', detail: 'Provider · chain · asset' },
+            { label: 'Resolve observation', detail: 'Freshness · latency · status' },
+            { label: 'Preserve evidence', detail: 'Source · timestamp · record' },
+          ]}
+        />
 
         <div className="editorial-status-rail my-7 flex flex-col gap-3 border-y border-slate-900/15 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="editorial-index">Live query status</p>
@@ -78,9 +91,9 @@ function PriceQueryContentInner() {
           />
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
+        <div className="editorial-workbench-grid grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
           <aside>
-            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+            <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
               <p className="editorial-index">01 — Define the query</p>
               <span className="font-mono text-[10px] text-slate-400">INPUT</span>
             </div>
@@ -91,7 +104,7 @@ function PriceQueryContentInner() {
           </aside>
 
           <section className="min-w-0" aria-label="Price query evidence">
-            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+            <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
               <p className="editorial-index">02 — Inspect the evidence</p>
               <span className="font-mono text-[10px] text-slate-400">OUTPUT</span>
             </div>

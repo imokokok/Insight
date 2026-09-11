@@ -59,7 +59,7 @@ export function ReputationComparisonTable({
   );
 
   return (
-    <div className="overflow-hidden border-y border-slate-900/15 bg-white/45">
+    <div className="reputation-comparison-ledger overflow-hidden border-y border-slate-900/15 bg-white/45">
       <div className="overflow-x-auto">
         {/* min-w kept at 820px (tightened from 900px) to reduce horizontal
             scroll distance on small screens while preserving column density. */}
@@ -100,7 +100,7 @@ export function ReputationComparisonTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {providers.map((provider) => {
+            {providers.map((provider, providerIndex) => {
               const rep = reputationMap.get(provider);
               const providerType = (PROVIDER_TYPE_CONFIG[provider]?.type || 'api') as ProviderType;
               const typeConf = TYPE_CONFIG[providerType];
@@ -115,8 +115,14 @@ export function ReputationComparisonTable({
 
               return (
                 <tr key={provider} className="group hover:bg-slate-50/60 transition-colors">
-                  <td className="px-4 py-4">
-                    <Link href={`/reputation/${encodeURIComponent(provider)}`} className="block">
+                  <td className="reputation-provider-cell px-4 py-4">
+                    <span className="reputation-record-index" aria-hidden="true">
+                      R—{String(providerIndex + 1).padStart(2, '0')}
+                    </span>
+                    <Link
+                      href={`/reputation/${encodeURIComponent(provider)}`}
+                      className="reputation-provider-link block"
+                    >
                       <ProviderIdentity
                         provider={provider}
                         size={38}

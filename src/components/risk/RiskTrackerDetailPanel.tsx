@@ -84,9 +84,9 @@ export function RiskTrackerDetailPanel<T extends RiskSnapshotBase>({
   ];
 
   return (
-    <div className="overflow-hidden border-y border-slate-900/15 bg-white/45">
+    <div className="risk-detail-instrument overflow-hidden border-y border-slate-900/15 bg-white/45">
       {/* Panel header */}
-      <div className="flex flex-col gap-3 border-b border-slate-900/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="risk-detail-header flex flex-col gap-3 border-b border-slate-900/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold text-slate-900">
