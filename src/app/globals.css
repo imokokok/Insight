@@ -2747,7 +2747,7 @@ h3,
   box-shadow: 0 0 0 0.25rem rgb(37 99 235 / 9%);
 }
 
-.auth-form-ledger label {
+.auth-record-card form label {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -2755,7 +2755,7 @@ h3,
   text-transform: uppercase;
 }
 
-.auth-form-ledger input:not([type='checkbox']) {
+.auth-record-card form input:not([type='checkbox']) {
   background: rgb(255 255 255 / 82%);
 }
 
@@ -2819,6 +2819,359 @@ h3,
   width: 1px;
   background: linear-gradient(#2558c8, rgb(37 88 200 / 4%) 72%, transparent);
   content: '';
+}
+
+/* Contact channels become a routed correspondence ledger. */
+.community-workbench {
+  background:
+    radial-gradient(circle at 85% 4%, rgb(224 231 255 / 62%), transparent 28rem),
+    linear-gradient(180deg, #f8f7f4 0%, #fff 44%, #f7f7f3 100%);
+}
+
+.contact-channel-ledger {
+  position: relative;
+  background: rgb(255 255 255 / 34%);
+}
+
+.contact-channel-ledger::before {
+  position: absolute;
+  z-index: 2;
+  top: -1px;
+  left: 0;
+  width: 33.333%;
+  height: 2px;
+  background: #2558c8;
+  content: '';
+}
+
+.contact-channel-record {
+  min-height: 19rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.contact-channel-record::after {
+  position: absolute;
+  z-index: -1;
+  right: -4rem;
+  bottom: -4rem;
+  width: 9rem;
+  height: 9rem;
+  border: 1px solid rgb(37 88 200 / 12%);
+  border-radius: 50%;
+  content: '';
+}
+
+.contact-channel-index {
+  display: block;
+  margin-bottom: 2.5rem;
+  color: #1d4ed8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.contact-context-record {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgb(37 88 200 / 3%) 1px, transparent 1px), rgb(255 255 255 / 54%);
+  background-size: 3rem 100%;
+}
+
+.contact-context-record::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8rem;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #2558c8);
+  content: '';
+}
+
+/* Governance pages are public records: calm, numbered, and deliberately readable. */
+.governance-workbench {
+  background:
+    linear-gradient(90deg, rgb(37 88 200 / 2.5%) 1px, transparent 1px),
+    linear-gradient(180deg, #f8f7f4, #fff 22%, #f7f7f3);
+  background-size:
+    4rem 100%,
+    auto;
+}
+
+.legal-document {
+  position: relative;
+}
+
+.legal-document::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1.5rem;
+  width: 1px;
+  background: linear-gradient(#2558c8, rgb(37 88 200 / 7%) 24%, transparent 82%);
+  content: '';
+}
+
+.legal-document-header {
+  position: relative;
+  padding-top: 1.25rem;
+}
+
+.legal-document-header::after {
+  position: absolute;
+  top: 1.25rem;
+  right: 0;
+  color: rgb(37 88 200 / 42%);
+  content: 'PUBLIC RECORD / GOVERNANCE';
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.legal-document-body {
+  counter-reset: legal-clause;
+  background: rgb(255 255 255 / 56%);
+}
+
+.legal-document-body > section {
+  position: relative;
+  margin-bottom: 0;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  border-top: 1px solid rgb(15 23 42 / 10%);
+  counter-increment: legal-clause;
+}
+
+.legal-document-body > section:first-child {
+  border-top: 0;
+}
+
+.legal-document-body > section::after {
+  position: absolute;
+  top: 2.25rem;
+  right: 0;
+  color: rgb(37 88 200 / 36%);
+  content: 'CLAUSE / ' counter(legal-clause, decimal-leading-zero);
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.legal-document-body h2 {
+  padding-right: 6rem;
+}
+
+.legal-document-return {
+  position: relative;
+}
+
+.legal-document-return::after {
+  position: absolute;
+  top: -1px;
+  right: 0;
+  width: 8rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #2558c8);
+  content: '';
+}
+
+/* Individual oracle records retain the directory language and add audit depth. */
+.provider-record-workbench {
+  background:
+    radial-gradient(circle at 84% 4%, rgb(219 234 254 / 58%), transparent 28rem),
+    linear-gradient(180deg, #f8f7f4 0%, #fff 38%, #f7f7f3 100%);
+}
+
+.provider-record-grid,
+.provider-score-dossier,
+.provider-detail-record,
+.provider-method-record {
+  position: relative;
+}
+
+.provider-score-dossier {
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgb(37 88 200 / 3.5%) 1px, transparent 1px), rgb(255 255 255 / 54%);
+  background-size: 2.75rem 100%;
+}
+
+.provider-score-dossier::after {
+  position: absolute;
+  right: 0.8rem;
+  bottom: 0.8rem;
+  width: 2rem;
+  height: 2rem;
+  border-right: 1px solid rgb(37 88 200 / 25%);
+  border-bottom: 1px solid rgb(37 88 200 / 25%);
+  content: '';
+}
+
+.provider-evidence-ledger {
+  position: relative;
+  padding-left: 1rem;
+  counter-reset: provider-evidence;
+}
+
+.provider-evidence-ledger::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(#2558c8, rgb(37 88 200 / 4%) 72%, transparent);
+  content: '';
+}
+
+.provider-detail-record {
+  overflow: hidden;
+  counter-increment: provider-evidence;
+}
+
+.provider-detail-record::after {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: rgb(37 88 200 / 38%);
+  content: 'EVIDENCE / ' counter(provider-evidence, decimal-leading-zero);
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.provider-method-record {
+  background: linear-gradient(90deg, rgb(239 246 255 / 88%), rgb(255 255 255 / 46%));
+}
+
+/* The private console uses the same evidence grammar at operations density. */
+.ops-command-center {
+  background:
+    linear-gradient(rgb(15 23 42 / 3%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(15 23 42 / 3%) 1px, transparent 1px), #f8f7f4;
+  background-size: 3rem 3rem;
+}
+
+.ops-sidebar {
+  background:
+    linear-gradient(rgb(96 165 250 / 5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(96 165 250 / 5%) 1px, transparent 1px), #08111f;
+  background-size: 2rem 2rem;
+  border-color: rgb(148 163 184 / 18%);
+}
+
+.ops-sidebar .text-gray-900,
+.ops-sidebar .text-gray-800 {
+  color: #f8fafc;
+}
+
+.ops-sidebar .text-gray-600,
+.ops-sidebar .text-gray-500,
+.ops-sidebar .text-gray-400 {
+  color: #94a3b8;
+}
+
+.ops-sidebar .border-gray-100,
+.ops-sidebar .border-slate-900\/10 {
+  border-color: rgb(148 163 184 / 16%);
+}
+
+.ops-sidebar .ops-nav-record {
+  border-left: 1px solid transparent;
+}
+
+.ops-sidebar .ops-nav-record:hover {
+  background: rgb(37 99 235 / 10%);
+  color: #dbeafe;
+}
+
+.ops-sidebar .ops-nav-record[aria-current='page'] {
+  border-color: #60a5fa;
+  background: rgb(37 99 235 / 18%);
+  color: #dbeafe;
+}
+
+.ops-main {
+  background: linear-gradient(180deg, rgb(255 255 255 / 42%), transparent 30rem);
+}
+
+.ops-health-strip {
+  position: relative;
+  padding-top: 3.25rem;
+}
+
+.ops-health-strip::before {
+  position: absolute;
+  top: 1.75rem;
+  left: 1.5rem;
+  color: #1d4ed8;
+  content: 'LIVE SYSTEM STRIP / 24H';
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.ops-health-record {
+  position: relative;
+  min-height: 5rem;
+}
+
+.ops-health-record::after {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  width: 1.1rem;
+  height: 1px;
+  background: rgb(37 88 200 / 28%);
+  content: '';
+}
+
+.ops-page-header {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.ops-page-header::before {
+  position: absolute;
+  top: 0;
+  bottom: 1.25rem;
+  left: 0;
+  width: 2px;
+  background: #2558c8;
+  content: '';
+}
+
+.ops-card,
+.ops-stat-record {
+  position: relative;
+  overflow: hidden;
+  background: rgb(255 255 255 / 68%);
+}
+
+.ops-card::after,
+.ops-stat-record::after {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.55rem;
+  width: 1rem;
+  height: 1rem;
+  border-right: 1px solid rgb(37 88 200 / 20%);
+  border-bottom: 1px solid rgb(37 88 200 / 20%);
+  content: '';
+  pointer-events: none;
+}
+
+.ops-stat-record {
+  min-height: 8rem;
+}
+
+.ops-table {
+  background: rgb(255 255 255 / 64%);
 }
 
 .editorial-index {
@@ -3088,6 +3441,45 @@ body:has(.ops-workspace) .public-chrome {
 
   .settings-tab-index {
     width: 2rem;
+  }
+
+  .contact-channel-record,
+  .ops-health-record,
+  .ops-stat-record {
+    min-height: 0;
+  }
+
+  .contact-channel-index {
+    margin-bottom: 1.25rem;
+  }
+
+  .legal-document::before,
+  .legal-document-header::after,
+  .legal-document-body > section::after,
+  .provider-evidence-ledger::before {
+    display: none;
+  }
+
+  .legal-document-body h2 {
+    padding-right: 0;
+  }
+
+  .legal-document-body > section {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .provider-evidence-ledger {
+    padding-left: 0;
+  }
+
+  .provider-detail-record::after {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .ops-health-strip {
+    padding-top: 3rem;
   }
 }
 

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowUpRight, Mail, MessageCircle } from 'lucide-react';
 import { type Metadata } from 'next';
 
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { GitHubIcon, TwitterIcon } from '@/components/icons/SocialIcons';
 
 export const metadata: Metadata = {
@@ -37,11 +37,11 @@ const contactMethods = [
 
 export default function ContactPage() {
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench community-workbench min-h-screen">
       {/* Hero */}
       <section className="editorial-frame mx-auto max-w-[1440px] px-5 pt-4 sm:px-8 lg:px-12">
         <EditorialWorkspaceHeader
-          index="14"
+          index="15"
           stage="Contact"
           eyebrow="Product questions, integration support, research discussion, and responsible issue reporting"
           title="Bring us the question behind the signal."
@@ -57,6 +57,14 @@ export default function ContactPage() {
             </a>
           }
         />
+        <EvidenceProcessRail
+          label="Response path"
+          items={[
+            { label: 'Name the context', detail: 'Product · account · research' },
+            { label: 'Choose a channel', detail: 'Email · GitHub · public feed' },
+            { label: 'Preserve the trail', detail: 'Reply · issue · resolution' },
+          ]}
+        />
       </section>
 
       {/* Contact cards */}
@@ -69,15 +77,18 @@ export default function ContactPage() {
               benefits from a public, reproducible technical record.
             </p>
           </div>
-          <div className="grid border-y border-slate-900/15 md:grid-cols-3">
-            {contactMethods.map((method) => (
+          <div className="contact-channel-ledger grid border-y border-slate-900/15 md:grid-cols-3">
+            {contactMethods.map((method, methodIndex) => (
               <a
                 key={method.title}
                 href={method.href}
                 target={method.href.startsWith('http') ? '_blank' : undefined}
                 rel={method.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                className="group relative flex flex-col border-b border-r border-slate-900/10 bg-white/35 p-6 transition-colors hover:bg-blue-50/45"
+                className="contact-channel-record group relative flex flex-col border-b border-r border-slate-900/10 bg-white/35 p-6 transition-colors hover:bg-blue-50/45"
               >
+                <span className="contact-channel-index">
+                  C—{String(methodIndex + 1).padStart(2, '0')}
+                </span>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex h-11 w-11 items-center justify-center border border-slate-900/10 bg-slate-50 transition-colors group-hover:border-blue-200 group-hover:bg-blue-50">
                     <method.icon className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" />
@@ -92,7 +103,7 @@ export default function ContactPage() {
           </div>
 
           {/* FAQ / context card */}
-          <div className="mt-10 border-y border-slate-900/15 bg-white/45 p-6 sm:p-8">
+          <div className="contact-context-record mt-10 border-y border-slate-900/15 bg-white/45 p-6 sm:p-8">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center border border-blue-200 bg-blue-50">
                 <MessageCircle className="w-5 h-5 text-blue-600" />

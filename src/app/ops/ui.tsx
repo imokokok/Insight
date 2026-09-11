@@ -26,7 +26,7 @@ export function relativeTime(iso?: string): string {
 }
 
 /** Shared, consistent table styling: bordered, sticky header, hover rows (token-driven). */
-export const tableCls = 'w-full text-sm border-collapse';
+export const tableCls = 'ops-table w-full text-sm border-collapse';
 export const thCls =
   'py-2 pr-3 text-left font-medium text-gray-500 border-b border-gray-200 sticky top-0 bg-gray-50 z-10';
 export const trCls = 'border-b border-gray-100 hover:bg-gray-50';
@@ -70,7 +70,7 @@ export function PageHeader({
   const abs = updatedAt ? new Date(updatedAt).toLocaleTimeString('zh-CN', { hour12: false }) : '';
   const rel = relativeTime(updatedAt);
   return (
-    <header className="mb-7 flex flex-col justify-between gap-4 border-b border-slate-900/15 pb-5 sm:flex-row sm:items-end">
+    <header className="ops-page-header mb-7 flex flex-col justify-between gap-4 border-b border-slate-900/15 pb-5 sm:flex-row sm:items-end">
       <div>
         <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700">
           Operations record
@@ -100,7 +100,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div className={`border-y border-slate-900/15 bg-white/55 p-5 ${className ?? ''}`}>
+    <div className={`ops-card border-y border-slate-900/15 bg-white/55 p-5 ${className ?? ''}`}>
       {title && <h2 className="text-sm font-semibold text-gray-700 mb-3">{title}</h2>}
       {children}
     </div>
@@ -137,7 +137,7 @@ export function Stat({
       <span className="text-gray-400">▬ 0</span>
     );
   return (
-    <div className="border-y border-slate-900/15 bg-white/55 p-4">
+    <div className="ops-stat-record border-y border-slate-900/15 bg-white/55 p-4">
       <div className="flex items-center justify-between">
         <div className="text-xs text-gray-500">{label}</div>
         {tone && tone !== 'default' && (
