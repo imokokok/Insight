@@ -33,15 +33,17 @@ function targetReportDate(now = new Date()): string {
   return yesterday.toISOString().split('T')[0];
 }
 
-/** True if a daily report for `reportDate` already exists in the DB. */
+/** True only when a non-empty daily report for `reportDate` already exists. */
 async function reportExists(reportDate: string): Promise<boolean> {
   const supabase = createServiceRoleClient();
   const { data } = await supabase
     .from('daily_reports')
-    .select('id')
+    .select('id, metrics')
     .eq('report_date', reportDate)
     .limit(1);
-  return Boolean(data && data.length > 0);
+  if (!data || data.length === 0) return false;
+  const metrics = data[0]?.metrics as { totalSnapshots?: unknown } | null | undefined;
+  return typeof metrics?.totalSnapshots === 'number' && metrics.totalSnapshots > 0;
 }
 
 async function main(): Promise<void> {

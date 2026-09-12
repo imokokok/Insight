@@ -48,7 +48,9 @@ async function fetchHistoricalFromOracle(params: OracleQueryParams): Promise<Pri
     baseSymbol,
     params.chain,
     params.period,
-    true
+    !params.forceRefresh,
+    params.forceRefresh,
+    params.signal
   );
 }
 
@@ -109,6 +111,7 @@ export async function handleGetHistoricalPrices(params: OracleQueryParams, reque
       symbol: params.symbol,
       chain: params.chain,
       period: params.period,
+      forceRefresh: params.forceRefresh,
     });
     const data = await fetchHistoricalFromOracle(params);
     logger.info('Historical prices fetched successfully', {
@@ -117,6 +120,11 @@ export async function handleGetHistoricalPrices(params: OracleQueryParams, reque
       chain: params.chain,
       dataPoints: data.length,
     });
+    if (params.forceRefresh) {
+      return NextResponse.json(ApiResponseBuilder.success(data, { requestId }), {
+        headers: { 'Cache-Control': 'no-store, max-age=0' },
+      });
+    }
     return createHistoryResponse(data, requestId);
   } catch (error) {
     logger.error(

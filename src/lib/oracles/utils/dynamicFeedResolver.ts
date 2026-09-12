@@ -34,6 +34,7 @@ interface AllFeedsCacheEntry {
 
 let allFeedsCache: AllFeedsCacheEntry | null = null;
 let allFeedsFetchPromise: Promise<AllFeedsCacheEntry | null> | null = null;
+let cacheGeneration = 0;
 
 function isAllFeedsCacheStale(): boolean {
   if (!allFeedsCache) return true;
@@ -49,7 +50,8 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
   // both request this in the same tick.
   if (allFeedsFetchPromise) return allFeedsFetchPromise;
 
-  allFeedsFetchPromise = (async () => {
+  const generation = cacheGeneration;
+  const fetchPromise: Promise<AllFeedsCacheEntry | null> = (async () => {
     try {
       const queries = getAdminQueries();
       // Empty provider string returns all active feeds (see getOracleFeeds).
@@ -83,7 +85,7 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
         timestamp: Date.now(),
       };
 
-      allFeedsCache = entry;
+      if (generation === cacheGeneration) allFeedsCache = entry;
       logger.debug(
         `Loaded ${feeds.length} active feeds across ${entry.providers.length} providers`
       );
@@ -96,11 +98,13 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
       // Don't cache null on error so the next call can retry.
       return null;
     } finally {
-      allFeedsFetchPromise = null;
+      if (generation === cacheGeneration) allFeedsFetchPromise = null;
     }
   })();
 
-  return allFeedsFetchPromise;
+  allFeedsFetchPromise = fetchPromise;
+
+  return fetchPromise;
 }
 
 /**
@@ -144,6 +148,7 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
 
   const map = new Map<string, OracleFeed>();
   const lookup = new Map<string, OracleFeed>();
+  const generation = cacheGeneration;
 
   try {
     const queries = getAdminQueries();
@@ -159,7 +164,9 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
       }
     }
 
-    providerCaches.set(provider, { feeds: map, lookup, timestamp: Date.now() });
+    if (generation === cacheGeneration) {
+      providerCaches.set(provider, { feeds: map, lookup, timestamp: Date.now() });
+    }
     logger.debug(`Loaded ${map.size} feeds for ${provider} from database`);
   } catch (error) {
     logger.warn(
@@ -320,10 +327,12 @@ export async function getAllActiveFeedsByProvider(): Promise<Map<string, OracleF
 }
 
 /**
- * Invalidate the cross-provider aggregate cache. Useful when a feed sync
- * cron run completes and callers want the next read to reflect the new
- * DB state without waiting for the 5-minute TTL.
+ * Invalidate every feed-registry cache. The generation guard also prevents an
+ * older in-flight DB read from repopulating a stale entry after invalidation.
  */
 export function invalidateAllFeedsCache(): void {
+  cacheGeneration++;
   allFeedsCache = null;
+  allFeedsFetchPromise = null;
+  providerCaches.clear();
 }

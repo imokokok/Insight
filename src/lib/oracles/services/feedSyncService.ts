@@ -35,9 +35,13 @@ interface SyncResult {
 async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
   if (feeds.length === 0) return 0;
   const supabase = createServiceRoleClient();
+  // Seed/catalog refreshes must not silently revive a row that health checks
+  // deliberately deactivated. New rows use the database default (active),
+  // while conflicts update metadata/address without touching is_active.
+  const rows = feeds.map(({ is_active: _isActive, ...feed }) => feed);
   const { data, error } = await supabase
     .from('oracle_feeds')
-    .upsert(feeds, { onConflict: 'provider,symbol,chain_id' })
+    .upsert(rows, { onConflict: 'provider,symbol,chain_id' })
     .select();
   if (error) {
     logger.error('Failed to upsert feeds', normalizeError(error));

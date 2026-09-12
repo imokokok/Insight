@@ -2,6 +2,7 @@ import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
+import { chainlinkOnChainService } from '@/lib/oracles/services/chainlinkOnChainService';
 import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscovery';
 import { getAdminQueries, createServiceRoleClient } from '@/lib/supabase/server';
 import { Blockchain, OracleProvider } from '@/types/oracle';
@@ -12,6 +13,7 @@ jest.mock('@/lib/api/cronAuth');
 jest.mock('@/lib/oracles/base/databaseOperations');
 jest.mock('@/lib/oracles/factory');
 jest.mock('@/lib/oracles/services/api3NetworkService');
+jest.mock('@/lib/oracles/services/chainlinkOnChainService');
 jest.mock('@/lib/oracles/services/feedDiscovery');
 jest.mock('@/lib/supabase/server');
 jest.mock('@/lib/oracles/utils/dynamicFeedResolver');
@@ -24,6 +26,9 @@ const mockedGetDefaultFactory = getDefaultFactory as jest.MockedFunction<typeof 
 const mockedRedstoneGetPrice = jest.fn();
 const mockedApi3GetPrice = api3NetworkService.getPrice as jest.MockedFunction<
   typeof api3NetworkService.getPrice
+>;
+const mockedChainlinkGetPrice = chainlinkOnChainService.getPrice as jest.MockedFunction<
+  typeof chainlinkOnChainService.getPrice
 >;
 const mockedDiscoverAll = feedDiscoveryService.discoverAll as jest.MockedFunction<
   typeof feedDiscoveryService.discoverAll
@@ -66,6 +71,11 @@ function setupDefaultMocks() {
     proxyAddress: '0x0',
     dataAge: 0,
   } as never);
+  mockedChainlinkGetPrice.mockResolvedValue({
+    symbol: 'ETH',
+    price: 3000,
+    timestamp: Date.now(),
+  } as never);
   mockedRedstoneGetPrice.mockResolvedValue({ price: 1, timestamp: Date.now() });
   mockedGetDefaultFactory.mockReturnValue({
     getClient: jest.fn(() => ({ getPrice: mockedRedstoneGetPrice })),
@@ -102,7 +112,7 @@ describe('probeFeed — chain resolution (bug fix)', () => {
     expect(mockedApi3GetPrice).toHaveBeenCalledWith(
       'USDC',
       Blockchain.BNB_CHAIN,
-      undefined,
+      expect.any(AbortSignal),
       'USDC/USD'
     );
     // API3 probes must bypass the DB-gated fetchPriceWithDatabase path.
@@ -117,7 +127,7 @@ describe('probeFeed — chain resolution (bug fix)', () => {
     expect(mockedApi3GetPrice).toHaveBeenCalledWith(
       'ETH',
       Blockchain.ARBITRUM,
-      undefined,
+      expect.any(AbortSignal),
       'ETH/USD'
     );
   });
@@ -130,7 +140,7 @@ describe('probeFeed — chain resolution (bug fix)', () => {
     expect(mockedApi3GetPrice).toHaveBeenCalledWith(
       'USDT',
       Blockchain.POLYGON,
-      undefined,
+      expect.any(AbortSignal),
       'USDT/USD'
     );
   });
@@ -140,7 +150,9 @@ describe('probeFeed — chain resolution (bug fix)', () => {
 
     await GET(new Request('http://localhost/api/cron/sync-feeds?mode=discover&provider=redstone'));
 
-    expect(mockedRedstoneGetPrice).toHaveBeenCalledWith('ETH', undefined);
+    expect(mockedRedstoneGetPrice).toHaveBeenCalledWith('ETH', undefined, {
+      signal: expect.any(AbortSignal),
+    });
     expect(mockedFetchPrice).not.toHaveBeenCalled();
   });
 
@@ -167,19 +179,19 @@ describe('probeFeed — chain resolution (bug fix)', () => {
     expect(mockedApi3GetPrice).toHaveBeenCalledWith(
       'USDC',
       Blockchain.ETHEREUM,
-      undefined,
+      expect.any(AbortSignal),
       'USDC/USD'
     );
     expect(mockedApi3GetPrice).toHaveBeenCalledWith(
       'USDC',
       Blockchain.BNB_CHAIN,
-      undefined,
+      expect.any(AbortSignal),
       'USDC/USD'
     );
     expect(mockedApi3GetPrice).toHaveBeenCalledWith(
       'USDC',
       Blockchain.POLYGON,
-      undefined,
+      expect.any(AbortSignal),
       'USDC/USD'
     );
   });
@@ -242,5 +254,84 @@ describe('probeFeed — chain resolution (bug fix)', () => {
 
     expect(json.results[0].verified).toBe(1);
     expect(json.results[0].verifiedFailed).toBe(0);
+  });
+});
+
+describe('inactive-feed reactivation identity', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    setupDefaultMocks();
+  });
+
+  it('probes the exact case-sensitive RedStone symbol before reactivation', async () => {
+    const inactive = {
+      ...makeFeed('redstone', 'ETH/USDC', 0, 'ETH/USDC'),
+      is_active: false,
+      source: 'redstone-api',
+    };
+    const reactivateOracleFeed = jest.fn().mockResolvedValue(true);
+    mockedGetAdminQueries.mockReturnValue({
+      getInactiveFeeds: jest.fn().mockResolvedValue([inactive]),
+      reactivateOracleFeed,
+    } as never);
+
+    const response = await GET(
+      new Request('http://localhost/api/cron/sync-feeds?mode=reactivate&provider=redstone')
+    );
+    const json = await response.json();
+
+    expect(mockedRedstoneGetPrice).toHaveBeenCalledWith('ETH/USDC', undefined, {
+      signal: expect.any(AbortSignal),
+    });
+    expect(reactivateOracleFeed).toHaveBeenCalledWith('redstone', 'ETH/USDC', 0);
+    expect(json.results[0].reactivated).toBe(1);
+  });
+
+  it('fails closed for a dynamic feed whose generic client cannot bind its address', async () => {
+    const inactive = {
+      ...makeFeed('dia', 'ETH', 0, 'dynamic-address'),
+      is_active: false,
+      source: 'dia-api',
+    };
+    const reactivateOracleFeed = jest.fn().mockResolvedValue(true);
+    mockedGetAdminQueries.mockReturnValue({
+      getInactiveFeeds: jest.fn().mockResolvedValue([inactive]),
+      reactivateOracleFeed,
+    } as never);
+
+    const response = await GET(
+      new Request('http://localhost/api/cron/sync-feeds?mode=reactivate&provider=dia')
+    );
+    const json = await response.json();
+
+    expect(mockedRedstoneGetPrice).not.toHaveBeenCalled();
+    expect(reactivateOracleFeed).not.toHaveBeenCalled();
+    expect(json.results[0].reactivated).toBe(0);
+  });
+
+  it('reads the exact Chainlink aggregator address and requires a fresh round', async () => {
+    const address = '0x1111111111111111111111111111111111111111';
+    const inactive = {
+      ...makeFeed('chainlink', 'ETH', 1, address),
+      is_active: false,
+      source: 'catalog',
+    };
+    const reactivateOracleFeed = jest.fn().mockResolvedValue(true);
+    mockedGetAdminQueries.mockReturnValue({
+      getInactiveFeeds: jest.fn().mockResolvedValue([inactive]),
+      reactivateOracleFeed,
+    } as never);
+
+    await GET(
+      new Request('http://localhost/api/cron/sync-feeds?mode=reactivate&provider=chainlink')
+    );
+
+    expect(mockedChainlinkGetPrice).toHaveBeenCalledWith(
+      'ETH',
+      1,
+      expect.any(AbortSignal),
+      address
+    );
+    expect(reactivateOracleFeed).toHaveBeenCalledWith('chainlink', 'ETH', 1);
   });
 });

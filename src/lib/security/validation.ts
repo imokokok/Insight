@@ -140,11 +140,21 @@ export const OracleProviderPathParamSchema = z
     `Invalid provider. Valid providers: ${ORACLE_PROVIDER_VALUES.join(', ')}`
   );
 
+/** Parse HTTP query booleans without JavaScript truthiness (`"false"` != true). */
+export const SafeBooleanQuerySchema = z.preprocess((value) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value !== 'string') return value;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'true' || normalized === '1') return true;
+  if (normalized === 'false' || normalized === '0') return false;
+  return value;
+}, z.boolean());
+
 export const OracleProviderQuerySchema = z.object({
   symbol: SafeSymbolSchema,
   chain: SafeChainSchema.optional(),
   period: SafePeriodSchema.optional(),
-  forceRefresh: z.coerce.boolean().optional(),
+  forceRefresh: SafeBooleanQuerySchema.optional(),
 });
 
 export function validateOracleData<T>(schema: ZodSchema<T>, data: unknown, context?: string): T {

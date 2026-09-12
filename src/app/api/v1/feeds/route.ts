@@ -9,7 +9,11 @@ import {
   V1_READ_ONLY_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { createCachedJsonResponse } from '@/lib/api/utils';
-import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
+import {
+  SafeBooleanQuerySchema,
+  SafeProviderSchema,
+  SafeSymbolSchema,
+} from '@/lib/security/validation';
 import { getAdminQueries } from '@/lib/supabase/server';
 
 const FeedsQuerySchema = z.object({
@@ -17,7 +21,7 @@ const FeedsQuerySchema = z.object({
   symbol: SafeSymbolSchema.optional(),
   category: z.enum(['crypto', 'stablecoin', 'forex', 'commodity', 'wrapped', 'lst']).optional(),
   chain_id: z.coerce.number().int().optional(),
-  is_active: z.coerce.boolean().optional().default(true),
+  is_active: SafeBooleanQuerySchema.optional().default(true),
   limit: z.coerce.number().int().min(1).max(500).optional().default(100),
   offset: z.coerce.number().int().min(0).optional().default(0),
 });

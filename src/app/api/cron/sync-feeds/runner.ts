@@ -5,6 +5,7 @@ import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
+import { chainlinkOnChainService } from '@/lib/oracles/services/chainlinkOnChainService';
 import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscovery';
 import { feedSyncService } from '@/lib/oracles/services/feedSyncService';
 import { invalidateAllFeedsCache } from '@/lib/oracles/utils/dynamicFeedResolver';
@@ -29,6 +30,21 @@ const SUPPORTED_PROVIDERS: readonly string[] = [
 
 const VERIFY_CONCURRENCY = 8;
 const VERIFY_TIMEOUT_MS = 10_000;
+
+async function runProbeWithTimeout<T>(
+  execute: (signal: AbortSignal) => Promise<T>,
+  timeoutMs: number
+): Promise<T | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await execute(controller.signal);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 // API3 communal proxies return the last-written price even after a dAPI's
 // subscription expires, so a non-zero price is not proof of live data.
@@ -67,15 +83,15 @@ export interface FeedSyncResult {
  * verifyDiscoveredFeeds' `preverified` short-circuit). This branch only runs for
  * feeds that still need a live probe (e.g. reactivation / reconciliation).
  */
-async function probeRedStoneFeed(feed: OracleFeed | OracleFeedInsert): Promise<boolean> {
+async function probeRedStoneFeed(
+  feed: OracleFeed | OracleFeedInsert,
+  signal?: AbortSignal
+): Promise<boolean> {
   try {
     const provider = OracleProvider.REDSTONE;
     const chain = getBlockchainByChainId(feed.chain_id);
     const client = getDefaultFactory().getClient(provider);
-    const price = await Promise.race([
-      client.getPrice(feed.symbol, chain),
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), VERIFY_TIMEOUT_MS)),
-    ]);
+    const price = await client.getPrice(feed.symbol, chain, { signal });
     return (
       !!price && typeof price.price === 'number' && Number.isFinite(price.price) && price.price > 0
     );
@@ -88,7 +104,10 @@ async function probeRedStoneFeed(feed: OracleFeed | OracleFeedInsert): Promise<b
  * Probe-fetch a single feed to verify it can actually return a price.
  * Returns true if the feed successfully returns a valid price.
  */
-async function probeFeed(feed: OracleFeed | OracleFeedInsert): Promise<boolean> {
+async function probeFeed(
+  feed: OracleFeed | OracleFeedInsert,
+  signal?: AbortSignal
+): Promise<boolean> {
   try {
     const provider = feed.provider as OracleProvider;
     // Resolve the feed's own chain so multi-chain providers (e.g. API3 on
@@ -98,7 +117,7 @@ async function probeFeed(feed: OracleFeed | OracleFeedInsert): Promise<boolean> 
     const chain = getBlockchainByChainId(feed.chain_id);
 
     if (provider === OracleProvider.REDSTONE) {
-      return probeRedStoneFeed(feed);
+      return probeRedStoneFeed(feed, signal);
     }
 
     // API3 dAPIs are cross-chain and their per-chain activation can only be
@@ -111,7 +130,7 @@ async function probeFeed(feed: OracleFeed | OracleFeedInsert): Promise<boolean> 
       const reading = await api3NetworkService.getPrice(
         feed.symbol,
         chain ?? Blockchain.ETHEREUM,
-        undefined,
+        signal,
         feed.address
       );
       if (
@@ -132,7 +151,7 @@ async function probeFeed(feed: OracleFeed | OracleFeedInsert): Promise<boolean> 
       return true;
     }
 
-    const price = await fetchPriceWithDatabase(provider, feed.symbol, chain, false, true);
+    const price = await fetchPriceWithDatabase(provider, feed.symbol, chain, false, true, signal);
     return typeof price?.price === 'number' && Number.isFinite(price.price) && price.price > 0;
   } catch {
     return false;
@@ -162,10 +181,8 @@ async function verifyDiscoveredFeeds(
     if (meta?.preverified === true) {
       return { feed, ok: true };
     }
-    const ok = await Promise.race([
-      probeFeed(feed),
-      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), VERIFY_TIMEOUT_MS)),
-    ]);
+    const ok =
+      (await runProbeWithTimeout((signal) => probeFeed(feed, signal), VERIFY_TIMEOUT_MS)) ?? false;
     return { feed, ok };
   });
 
@@ -236,11 +253,15 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
     // using the dAPI name stored in `address`. Probe through the network
     // service (mirroring probeFeed) so the stale-dataAge guard still applies.
     if (provider === OracleProvider.API3 && feed.address) {
-      const reading = await api3NetworkService.getPrice(
-        feed.symbol,
-        chain ?? Blockchain.ETHEREUM,
-        undefined,
-        feed.address
+      const reading = await runProbeWithTimeout(
+        (signal) =>
+          api3NetworkService.getPrice(
+            feed.symbol,
+            chain ?? Blockchain.ETHEREUM,
+            signal,
+            feed.address
+          ),
+        REACTIVATE_TIMEOUT_MS
       );
       if (
         typeof reading?.price !== 'number' ||
@@ -258,15 +279,51 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
       return true;
     }
 
-    // Other providers: clients expect the BASE symbol (e.g. "BTC"), while DB
-    // rows may store the quoted pair (e.g. redstone "BTC/USD"). Extract the base
-    // so the client resolves the feed correctly.
+    // RedStone's symbol is the feed identity and is case-sensitive. Probe the
+    // exact stored symbol rather than collapsing ETH/USDC and ETH/USD to ETH.
+    if (provider === OracleProvider.REDSTONE) {
+      return (
+        (await runProbeWithTimeout(
+          (signal) => probeRedStoneFeed(feed, signal),
+          REACTIVATE_TIMEOUT_MS
+        )) ?? false
+      );
+    }
+
+    // Chainlink rows have an address-level identity, so verify that exact
+    // aggregator instead of asking the default client for another feed with
+    // the same base symbol.
+    if (provider === OracleProvider.CHAINLINK && /^0x[0-9a-fA-F]{40}$/.test(feed.address)) {
+      const price = await runProbeWithTimeout(
+        (signal) =>
+          chainlinkOnChainService.getPrice(
+            feed.symbol,
+            feed.chain_id,
+            signal,
+            feed.address as `0x${string}`
+          ),
+        REACTIVATE_TIMEOUT_MS
+      );
+      return (
+        price !== null &&
+        Number.isFinite(price.price) &&
+        price.price > 0 &&
+        Date.now() - price.timestamp <= 60 * 60 * 1000
+      );
+    }
+
+    // A dynamic/API-discovered row cannot be identity-bound through the generic
+    // client API. Fail closed and let the provider's discovery pass reactivate
+    // it after verifying the newly discovered candidate. Hardcoded rows are
+    // safe because the client and DB row share the same committed mapping.
+    if (feed.source !== 'hardcoded') return false;
+
     const baseSymbol = extractBaseSymbol(feed.symbol);
     const client = getDefaultFactory().getClient(provider);
-    const price = await Promise.race([
-      client.getPrice(baseSymbol, chain),
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), REACTIVATE_TIMEOUT_MS)),
-    ]);
+    const price = await runProbeWithTimeout(
+      (signal) => client.getPrice(baseSymbol, chain, { signal }),
+      REACTIVATE_TIMEOUT_MS
+    );
     return (
       !!price && typeof price.price === 'number' && Number.isFinite(price.price) && price.price > 0
     );
@@ -416,12 +473,11 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
               feedsToReconcile,
               VERIFY_CONCURRENCY,
               async (feed) => {
-                const ok = await Promise.race([
-                  probeFeed(feed),
-                  new Promise<boolean>((resolve) =>
-                    setTimeout(() => resolve(false), VERIFY_TIMEOUT_MS)
-                  ),
-                ]);
+                const ok =
+                  (await runProbeWithTimeout(
+                    (signal) => probeFeed(feed, signal),
+                    VERIFY_TIMEOUT_MS
+                  )) ?? false;
                 return { feed, ok };
               }
             );

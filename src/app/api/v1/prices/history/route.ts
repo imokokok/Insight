@@ -4,7 +4,12 @@ import { z } from 'zod';
 
 import { createApiHandler, createOptionsHandler, V1_STANDARD_MIDDLEWARES } from '@/lib/api/handler';
 import { handleGetHistoricalPrices } from '@/lib/api/oracleHandlers';
-import { SafeProviderSchema, SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
+import {
+  SafeBooleanQuerySchema,
+  SafeProviderSchema,
+  SafeSymbolSchema,
+  SafeChainSchema,
+} from '@/lib/security/validation';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
 const SafePeriodSchema = z
@@ -20,7 +25,7 @@ const V1HistoryQuerySchema = z.object({
   symbol: SafeSymbolSchema,
   chain: SafeChainSchema.optional(),
   period: SafePeriodSchema,
-  forceRefresh: z.coerce.boolean().optional(),
+  forceRefresh: SafeBooleanQuerySchema.optional(),
 });
 
 export const OPTIONS = createOptionsHandler();

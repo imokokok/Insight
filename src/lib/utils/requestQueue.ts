@@ -15,7 +15,7 @@ const PRIORITY_VALUES: Record<RequestPriority, number> = {
 
 interface QueuedRequest {
   id: string;
-  execute: () => Promise<unknown>;
+  execute: (signal: AbortSignal) => Promise<unknown>;
   priority: RequestPriority;
   timestamp: number;
   timeout: number;
@@ -24,6 +24,7 @@ interface QueuedRequest {
   abortSignal?: AbortSignal;
   onAbort?: (() => void) | null;
   timeoutId?: NodeJS.Timeout;
+  controller: AbortController;
   // Set once this request has been finalized (settled) by either the normal
   // completion path or the timeout path, so the other path can no-op instead
   // of double-counting stats or double-settling the promise.
@@ -95,7 +96,7 @@ export class RequestQueue {
   }
 
   async add<T>(
-    execute: () => Promise<T>,
+    execute: (signal: AbortSignal) => Promise<T>,
     options: {
       priority?: RequestPriority;
       timeout?: number;
@@ -111,13 +112,14 @@ export class RequestQueue {
     return new Promise<T>((resolve, reject) => {
       const request: QueuedRequest = {
         id: this.generateId(),
-        execute: execute as () => Promise<unknown>,
+        execute: execute as (signal: AbortSignal) => Promise<unknown>,
         priority,
         timestamp: Date.now(),
         timeout,
         resolve: resolve as (value: unknown) => void,
         reject,
         abortSignal,
+        controller: new AbortController(),
       };
 
       this.insertSorted(request);
@@ -126,8 +128,20 @@ export class RequestQueue {
         const onAbort = () => {
           const index = this.queue.findIndex((r) => r.id === request.id);
           if (index !== -1) {
+            request.finalized = true;
             this.queue.splice(index, 1);
-            reject(new DOMException('Request aborted', 'AbortError'));
+            this.failed++;
+            this.cleanupAbortListener(request);
+            request.reject(new DOMException('Request aborted', 'AbortError'));
+            return;
+          }
+
+          if (this.runningRequests.has(request.id) && !request.finalized) {
+            request.finalized = true;
+            this.failed++;
+            request.controller.abort();
+            this.cleanupAbortListener(request);
+            request.reject(new DOMException('Request aborted', 'AbortError'));
           }
         };
         request.onAbort = onAbort;
@@ -175,19 +189,14 @@ export class RequestQueue {
         queueLength: this.queue.length,
       });
 
-      const result = await request.execute();
+      const result = await request.execute(request.controller.signal);
 
       // A timeout may have finalized (rejected) this request while it was
       // still running. If so, skip the success bookkeeping — the timeout path
       // already adjusted `running`/`failed` and settled the promise.
       if (request.finalized) return;
 
-      clearTimeout(timeoutId);
-      this.runningRequests.delete(request.id);
       this.completed++;
-      this.running--;
-
-      this.cleanupAbortListener(request);
       request.resolve(result);
 
       logger.debug('Request completed', {
@@ -199,12 +208,7 @@ export class RequestQueue {
       // failure path below would double-count.
       if (request.finalized) return;
 
-      clearTimeout(timeoutId);
-      this.runningRequests.delete(request.id);
       this.failed++;
-      this.running--;
-
-      this.cleanupAbortListener(request);
 
       const err = normalizeError(error);
       request.reject(err);
@@ -214,6 +218,11 @@ export class RequestQueue {
         running: this.running,
       });
     } finally {
+      clearTimeout(timeoutId);
+      if (this.runningRequests.delete(request.id)) {
+        this.running--;
+      }
+      this.cleanupAbortListener(request);
       this.processQueue();
     }
   }
@@ -238,9 +247,8 @@ export class RequestQueue {
 
     if (this.runningRequests.has(request.id)) {
       request.finalized = true;
-      this.runningRequests.delete(request.id);
       this.failed++;
-      this.running--;
+      request.controller.abort();
 
       this.cleanupAbortListener(request);
       const error = new DOMException('Request timeout', 'TimeoutError');
@@ -251,7 +259,10 @@ export class RequestQueue {
         timeout: request.timeout,
       });
 
-      this.processQueue();
+      // Keep the concurrency slot occupied until the underlying operation
+      // settles. Abort-aware work should finish immediately; work that ignores
+      // cancellation must still count as in-flight so the queue cannot exceed
+      // maxConcurrency during an outage.
     }
   }
 

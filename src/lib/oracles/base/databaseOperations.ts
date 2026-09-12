@@ -471,7 +471,9 @@ export async function fetchHistoricalPricesWithDatabase(
   symbol: string,
   chain: Blockchain | undefined,
   period: number,
-  useDatabase: boolean
+  useDatabase: boolean,
+  forceRefresh: boolean = false,
+  signal?: AbortSignal
 ): Promise<PriceData[]> {
   // Normalize once: derive the base symbol and uppercase it so all downstream
   // consumers use a single canonical form. Callers forward the raw user-supplied
@@ -497,6 +499,14 @@ export async function fetchHistoricalPricesWithDatabase(
       throw UnsupportedSymbolError.create(baseSymbol, supportedSymbols, provider);
     }
 
+    if (
+      forceRefresh &&
+      'clearCache' in client &&
+      typeof (client as { clearCache: () => void }).clearCache === 'function'
+    ) {
+      (client as { clearCache: () => void }).clearCache();
+    }
+
     // RedStone's API is case-sensitive; use the DB-stored canonical casing for
     // the historical fetch so mixed-case symbols (e.g. `etrUSD_FUNDAMENTAL`)
     // are not uppercased into a 500. Other providers keep the uppercased base.
@@ -517,7 +527,9 @@ export async function fetchHistoricalPricesWithDatabase(
       }
     }
 
-    const livePrices = await client.getHistoricalPrices(fetchSymbol, targetChain, period);
+    const livePrices = await client.getHistoricalPrices(fetchSymbol, targetChain, period, {
+      signal,
+    });
     return livePrices;
   } catch (error) {
     if (

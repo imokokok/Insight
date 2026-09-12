@@ -447,6 +447,21 @@ export interface SnapshotCollectionResult {
   deactivated: number;
 }
 
+const FINE_SNAPSHOT_INTERVAL_MS = 15 * 60 * 1000;
+
+/**
+ * Return the stable 15-minute collection slot used as the fine-grained
+ * snapshot natural key. Dispatcher-provided schedule times survive retries;
+ * manual/fallback runs are deterministically bucketed by their start time.
+ */
+export function resolveSnapshotSlot(scheduledFor?: string, now: Date = new Date()): Date {
+  const scheduled = scheduledFor ? new Date(scheduledFor) : null;
+  const base = scheduled && Number.isFinite(scheduled.getTime()) ? scheduled : now;
+  return new Date(
+    Math.floor(base.getTime() / FINE_SNAPSHOT_INTERVAL_MS) * FINE_SNAPSHOT_INTERVAL_MS
+  );
+}
+
 /**
  * Run the full snapshot collection pipeline:
  *   fetch all active feeds → consensus → build inputs → upsert hourly
@@ -461,8 +476,10 @@ export interface SnapshotCollectionResult {
  * route's previous 500-on-upsert-failure behaviour); feed-health/deactivate
  * are skipped in that case, exactly as before.
  */
-export async function collectSnapshot(): Promise<SnapshotCollectionResult> {
-  const now = new Date();
+export async function collectSnapshot(
+  snapshotTs: Date = resolveSnapshotSlot()
+): Promise<SnapshotCollectionResult> {
+  const now = snapshotTs;
   const snapshotDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
     .toISOString()
     .split('T')[0];
@@ -545,7 +562,7 @@ export async function collectSnapshot(): Promise<SnapshotCollectionResult> {
   return {
     snapshotDate,
     snapshotHour,
-    snapshotTs: now,
+    snapshotTs,
     results,
     inputs: hourlyInputs,
     insertedHourly,

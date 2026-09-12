@@ -1,6 +1,10 @@
 import type { OracleProvider } from '@/types/oracle';
 
-import { buildProviderConsensusInputs, dedupeHourlySnapshotInputs } from '../snapshotCollector';
+import {
+  buildProviderConsensusInputs,
+  dedupeHourlySnapshotInputs,
+  resolveSnapshotSlot,
+} from '../snapshotCollector';
 
 import type { HourlySnapshotInput } from '../types';
 
@@ -115,6 +119,20 @@ describe('dedupeHourlySnapshotInputs', () => {
     const out = dedupeHourlySnapshotInputs(inputs);
     expect(out).toHaveLength(1);
     expect(out[0].price).toBe(3000);
+  });
+});
+
+describe('resolveSnapshotSlot', () => {
+  it('uses the dispatcher slot as a stable 15-minute natural key', () => {
+    expect(resolveSnapshotSlot('2026-09-13T12:29:59.999Z')).toEqual(
+      new Date('2026-09-13T12:15:00.000Z')
+    );
+  });
+
+  it('falls back to a bucketed local start time when no valid schedule exists', () => {
+    expect(resolveSnapshotSlot('', new Date('2026-09-13T12:44:00.000Z'))).toEqual(
+      new Date('2026-09-13T12:30:00.000Z')
+    );
   });
 });
 

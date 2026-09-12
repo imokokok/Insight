@@ -21,7 +21,11 @@
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (service-role, bypasses
  * RLS — same credentials the ml-train workflow already uses).
  */
-import { collectSnapshot, SnapshotCollectionError } from '@/lib/reports/snapshotCollector';
+import {
+  collectSnapshot,
+  resolveSnapshotSlot,
+  SnapshotCollectionError,
+} from '@/lib/reports/snapshotCollector';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { type HourlySnapshotInput } from '@/lib/reports/reportService';
 
@@ -71,7 +75,7 @@ async function main(): Promise<void> {
 
   let result;
   try {
-    result = await collectSnapshot();
+    result = await collectSnapshot(resolveSnapshotSlot(process.env.CRON_SCHEDULED_FOR));
   } catch (error) {
     if (error instanceof SnapshotCollectionError) {
       console.error(
