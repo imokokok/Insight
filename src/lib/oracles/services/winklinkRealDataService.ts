@@ -1,4 +1,5 @@
 import { TRON_CONFIG } from '@/lib/config/serverEnv';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { stringToPrice } from '@/lib/oracles/utils/oracleDataUtils';
 import { buildTronVerification } from '@/lib/oracles/utils/verificationUtils';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
@@ -434,9 +435,7 @@ class WINkLinkRealDataService {
 
       const feedContractAddress = await getWinklinkFeedAddressAsync(symbol);
 
-      const now = Date.now();
-      const refTime = priceData.ingestionTimestamp ?? priceData.timestamp;
-      const priceAge = refTime ? Math.round((now - refTime) / 1000) : null;
+      const priceAge = resolveOracleAgeSeconds(priceData);
 
       let nodeUptime: number;
       if (priceAge === null) {

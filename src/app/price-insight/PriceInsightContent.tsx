@@ -192,7 +192,7 @@ function OracleDimension({
     <>
       <div className="editorial-status-rail flex items-center justify-between border-y border-slate-900/15 px-1 py-3 mb-6">
         <LiveStatusBar
-          isConnected={!isLoading}
+          isConnected={!isLoading && priceData.length > 0 && !oracleDataError.globalError}
           latency={undefined}
           lastUpdate={lastUpdated || undefined}
         />
@@ -303,12 +303,13 @@ function ChainDimension({
 }) {
   const loading = useCrossChainDataStore((s) => s.loading);
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
+  const priceHistories = useCrossChainDataStore((s) => s.priceHistories);
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
   const refreshStatus = useCrossChainDataStore((s) => s.refreshStatus);
   const refreshInterval = useCrossChainConfigStore((s) => s.refreshInterval);
   const setRefreshInterval = useCrossChainConfigStore((s) => s.setRefreshInterval);
 
-  const analytics = useCrossChainAnalytics(currentPrices);
+  const analytics = useCrossChainAnalytics(currentPrices, priceHistories);
 
   const hasData = currentPrices.length > 0;
   const isInitialLoading = loading && !hasData;

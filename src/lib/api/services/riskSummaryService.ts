@@ -5,6 +5,7 @@
 
 import { calculateRiskMetrics, type RiskMetrics } from '@/lib/analytics/riskMetrics';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { createServiceRoleClient } from '@/lib/supabase/server';
@@ -29,6 +30,7 @@ interface SuccessfulPriceResult {
   provider: OracleProvider;
   price: number;
   timestamp: number;
+  dataAgeSeconds: number | null;
   chain?: Blockchain;
 }
 
@@ -137,6 +139,7 @@ export async function getRiskSummary(
         provider: result.provider,
         price: result.priceData.price,
         timestamp: result.priceData.timestamp,
+        dataAgeSeconds: resolveOracleAgeSeconds(result.priceData),
         chain: result.priceData.chain,
       });
     } else {
@@ -187,6 +190,7 @@ export async function getRiskSummary(
   const oracleTimestamps = successfulPrices.map((p) => ({
     name: p.provider,
     timestamp: p.timestamp ?? Date.now(),
+    dataAgeSeconds: p.dataAgeSeconds,
   }));
 
   const manipulationResistanceData = successfulPrices.map((p) => {

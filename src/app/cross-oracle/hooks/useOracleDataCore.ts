@@ -236,7 +236,6 @@ export function useOracleDataCore(
       setIsLoading(true);
       setError(null);
       resetErrors();
-      clearHistoryData();
 
       const baseSymbol = extractBaseSymbol(selectedSymbol);
 
@@ -390,12 +389,14 @@ export function useOracleDataCore(
         }));
 
         setPriceData(prices);
-        setLastUpdated(new Date());
-        priceSnapshotCache.set(
-          snapshotCacheKey(selectedOracles, selectedSymbol),
-          prices,
-          SNAPSHOT_TTL_MS
-        );
+        if (prices.length > 0) {
+          setLastUpdated(new Date());
+          priceSnapshotCache.set(
+            snapshotCacheKey(selectedOracles, selectedSymbol),
+            prices,
+            SNAPSHOT_TTL_MS
+          );
+        }
         setOracleDataError({
           hasError,
           isPartialSuccess,
@@ -444,7 +445,6 @@ export function useOracleDataCore(
       resetErrors,
       setOracleDataError,
       priceHistoryMapRef,
-      clearHistoryData,
       recordSuccessfulFetch,
       recordFailedFetch,
     ]
@@ -484,6 +484,7 @@ export function useOracleDataCore(
         isInitialMountRef.current = false;
       }
       prevDepsRef.current = { selectedOracles, selectedSymbol };
+      clearHistoryData();
 
       // Restore the last snapshot for this oracle/symbol combo so the UI
       // shows stale data immediately instead of an empty loading state.
@@ -506,7 +507,7 @@ export function useOracleDataCore(
         abortControllerRef.current.abort();
       }
     };
-  }, [selectedOracles, selectedSymbol, oracleSymbolsReady, resetErrors]);
+  }, [selectedOracles, selectedSymbol, oracleSymbolsReady, resetErrors, clearHistoryData]);
 
   const { lastRefreshedAt, nextRefreshAt } = useOracleAutoRefresh({
     refreshInterval,

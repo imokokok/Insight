@@ -1,6 +1,7 @@
 import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
 import type { BaseOracleClient } from '@/lib/oracles/base';
 import { getDefaultFactory } from '@/lib/oracles/factory';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { type OracleFeed } from '@/lib/supabase/queries';
@@ -446,8 +447,7 @@ class ReputationService {
       const rawLatencyMs = Date.now() - startTime;
 
       if (price && Number.isFinite(price.price) && price.price > 0) {
-        const refTime = price.ingestionTimestamp ?? price.timestamp;
-        const dataAgeSeconds = refTime ? Math.floor((Date.now() - refTime) / 1000) : 0;
+        const dataAgeSeconds = resolveOracleAgeSeconds(price) ?? 2_147_483_647;
 
         const adjustedConfidence = price.metadataFallback
           ? Math.min(price.confidence ?? 0, 0.5)

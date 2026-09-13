@@ -1,6 +1,6 @@
 import { OracleProvider } from '@/types/oracle';
 
-import { getMultiOracleBatchTimeoutMs } from '../oracleApiClient';
+import { getCrossChainBatchTimeoutMs, getMultiOracleBatchTimeoutMs } from '../oracleApiClient';
 
 describe('getMultiOracleBatchTimeoutMs', () => {
   it('uses the slowest provider rather than the first provider', () => {
@@ -22,5 +22,15 @@ describe('getMultiOracleBatchTimeoutMs', () => {
     ];
 
     expect(getMultiOracleBatchTimeoutMs(providers)).toBe(55_000);
+  });
+});
+
+describe('getCrossChainBatchTimeoutMs', () => {
+  it('accounts for every bounded-concurrency chain wave', () => {
+    expect(getCrossChainBatchTimeoutMs(OracleProvider.SWITCHBOARD, 16)).toBe(53_000);
+  });
+
+  it('keeps a buffer for a single chain request', () => {
+    expect(getCrossChainBatchTimeoutMs(OracleProvider.CHAINLINK, 1)).toBe(15_000);
   });
 });

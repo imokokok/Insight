@@ -6,6 +6,7 @@ import {
   isRedStoneSymbolSupportedAsync,
 } from '@/lib/oracles/constants/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
@@ -439,9 +440,7 @@ export class RedStoneClient extends BaseOracleClient {
         return null;
       }
 
-      const now = Date.now();
-      const refTime = priceData.ingestionTimestamp ?? priceData.timestamp;
-      const dataAge = refTime ? Math.round((now - refTime) / 1000) : null;
+      const dataAge = resolveOracleAgeSeconds(priceData);
 
       const onChainData: RedStoneTokenOnChainData = {
         symbol,

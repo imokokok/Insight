@@ -18,6 +18,7 @@ export interface ChainPriceInfo {
   chain: Blockchain;
   price: number;
   timestamp: number;
+  dataAgeSeconds?: number | null;
 }
 
 interface StatusThresholds {
@@ -122,8 +123,12 @@ export function buildCrossChainComparisonFromPrices(
     }
 
     const deviation = calculateDeviationFromMedian(chainPrice.price, median);
-    const dataAgeSeconds =
+    const timestampAge =
       chainPrice.timestamp > 0 ? nowSeconds - chainPrice.timestamp / 1000 : Infinity;
+    const dataAgeSeconds =
+      chainPrice.dataAgeSeconds !== undefined && chainPrice.dataAgeSeconds !== null
+        ? Math.max(0, chainPrice.dataAgeSeconds)
+        : Math.max(0, timestampAge);
 
     return {
       chain: chainPrice.chain,
