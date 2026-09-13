@@ -146,10 +146,10 @@ function timingSafeEqualString(a: string, b: string): boolean {
 }
 
 /**
- * Verify the request carries a valid internal-token cookie (issued to the
- * app's own UI on page load). Used to distinguish website-playground requests
- * (free) from external agents trying to use a stolen/self-issued session JWT
- * (must pay via an API key).
+ * Verify the request carries the UI cookie issued on page load. This is an
+ * additional CSRF/eligibility check for the session-authenticated playground;
+ * it is never sufficient authentication by itself and is never accepted by
+ * paid v1 developer routes.
  */
 async function hasValidInternalCookie(request: Request): Promise<boolean> {
   const token = getInternalTokenFromCookieHeader(request.headers.get('cookie'));

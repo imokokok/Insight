@@ -256,15 +256,21 @@ function pickRecommendedProvider(
 export async function getConsensusPrice(
   symbol: string,
   chain?: string,
-  method?: ConsensusMethod
+  method?: ConsensusMethod,
+  targetProviders?: readonly OracleProvider[]
 ): Promise<ConsensusPriceResponse> {
   const baseSymbol = normalizeSymbol(symbol);
   const resolvedChain = resolveChain(chain);
 
-  const [providers, reputationsList] = await Promise.all([
+  const [resolvedProviders, reputationsList] = await Promise.all([
     resolveProvidersForSymbol(baseSymbol, resolvedChain),
     reputationService.getReputations(),
   ]);
+  const requestedProviders =
+    targetProviders && targetProviders.length > 0 ? new Set(targetProviders) : null;
+  const providers = requestedProviders
+    ? resolvedProviders.filter((provider) => requestedProviders.has(provider))
+    : resolvedProviders;
 
   const reputationScoreMap = new Map<OracleProvider, number>();
   for (const rep of reputationsList) {

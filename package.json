@@ -40,7 +40,7 @@
     "cron:reputation": "tsx scripts/reputation.ts",
     "cron:feed-cadence": "tsx scripts/feed-cadence.ts",
     "build:cron": "node scripts/build-cron-bundles.mjs",
-    "test:mcp:e2e": "node --env-file=.env.local ./node_modules/.bin/jest src/mcp/__tests__/e2e.test.ts --testTimeout=120000 --runInBand",
+    "test:mcp:e2e": "node --env-file=.env.local ./node_modules/.bin/jest src/mcp/__tests__/client.test.ts src/mcp/__tests__/e2e.test.ts --testTimeout=120000 --runInBand --testPathIgnorePatterns='/node_modules/' '/.next/'",
     "prepare": "husky"
   },
   "dependencies": {

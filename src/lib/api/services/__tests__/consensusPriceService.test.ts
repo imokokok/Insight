@@ -109,3 +109,38 @@ describe('getConsensusPrice failure semantics', () => {
     );
   });
 });
+
+describe('getConsensusPrice provider scoping', () => {
+  it('fetches and computes consensus only from explicitly targeted providers', async () => {
+    getAllActiveFeedsByProvider.mockResolvedValue(
+      new Map<string, unknown[]>([
+        [OracleProvider.API3, [{ symbol: 'ETH/USD', chain_id: 1 }]],
+        [OracleProvider.CHAINLINK, [{ symbol: 'ETH/USD', chain_id: 1 }]],
+      ])
+    );
+    mockFetchPriceWithDatabase.mockImplementation(async (provider: OracleProvider) => ({
+      provider,
+      symbol: 'ETH',
+      chain: Blockchain.ETHEREUM,
+      price: provider === OracleProvider.API3 ? 2000 : 5000,
+      timestamp: Date.now(),
+      confidence: 0.9,
+    }));
+
+    const result = await getConsensusPrice('ETH', Blockchain.ETHEREUM, undefined, [
+      OracleProvider.API3,
+    ]);
+
+    expect(mockFetchPriceWithDatabase).toHaveBeenCalledTimes(1);
+    expect(mockFetchPriceWithDatabase).toHaveBeenCalledWith(
+      OracleProvider.API3,
+      'ETH',
+      Blockchain.ETHEREUM,
+      true,
+      false
+    );
+    expect(result.consensusPrice).toBe(2000);
+    expect(result.participantCount).toBe(1);
+    expect(result.providers.map((provider) => provider.provider)).toEqual([OracleProvider.API3]);
+  });
+});

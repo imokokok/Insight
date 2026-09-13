@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x9c87d2eface78336b901c8e8b7d2a1a0fcbe745cc6d9aa172cc36ecf453480d5",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 5,
+  "effectiveFrom": "2026-09-13",
+  "classification": "Backward-compatible agent and developer API fail-closed security hardening",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c",
+  "predecessorPromotionId": "0x6148f4273e60fa702bbac5a5f0abd3461d8e46e532675aeaec6d991ef93a5217",
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "receiptImpact": "No signed receipt layout, semantic profile, registry release, signer role or active partner policy changes",
+  "activationRule": "Paid v1 developer routes always require API-key admission and metering; agent execution gates fail closed on unknown or unsafe evidence from either trade leg. Existing partner policy ids and activation mappings remain unchanged.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "compatible-no-repin",
+      "evidence": "The v5-only production policy, execution profile, receipt schema and partner verification routes are unchanged; SDK receipt recovery only prevents duplicate transaction retries after broadcast."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "compatible-legacy-snapshot-unchanged",
+      "evidence": "The production-disabled v2-v4 snapshot-relative verification contract is unchanged and no historical receipt bytes or admission rules are modified."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "compatible-binding-fail-closed",
+      "evidence": "The pinned AEB option 2 contract and pre-trade binding format are unchanged; unsafe destination evidence can no longer produce an execution handle."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "not-affected",
+      "evidence": "The frozen external-evidence/v0 rev6 adapter and its pinned OracleSafetyCheck v2 carrier are unchanged."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "compatible-fail-closed-input-validation",
+      "evidence": "The OracleSafetyCheck v2 and pre-trade envelope wire formats are unchanged; provider selection now validates and evaluates one consistent evidence universe."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "compatible-no-key-or-schema-change",
+      "evidence": "Attester key roles, registry admission and OracleSafetyCheck v3 layout are unchanged; unknown response verdicts now fail closed in the public SDK."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "compatible-safety-correction",
+      "evidence": "ThoughtProof pre-trade v2.1 and Oracle Watch signed layouts are unchanged; targetProviders now scopes freshness, agreement, quorum, independence and observations consistently, preserving the locked no-single-provider gate."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "compatible-durable-records-unchanged",
+      "evidence": "Existing receipt-adjacent durable records, schema bytes, key evidence and registry references remain unchanged."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "compatible-data-contract-unchanged",
+      "evidence": "The read-only methodology exchange, query window, dataset digest and production-disabled policy are unchanged."
+    }
+  ]
+}

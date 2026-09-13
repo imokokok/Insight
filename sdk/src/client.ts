@@ -53,14 +53,19 @@ export class InsightClient {
       schemaVersion: request.schemaVersion ?? 3,
       destinationAsset: request.destinationAsset,
     };
-    return this.request('GET', '/api/v1/safety/pre-trade', { query, signal });
+    const result = await this.request<unknown>('GET', '/api/v1/safety/pre-trade', {
+      query,
+      signal,
+    });
+    return validatePreTradeResult(result);
   }
 
   async oracleWatch(target: OracleWatchTarget, signal?: AbortSignal): Promise<OracleWatchResult> {
-    return this.request('GET', '/api/v1/oracle-watch', {
+    const result = await this.request<unknown>('GET', '/api/v1/oracle-watch', {
       query: { symbol: target.symbol, chain: target.chain, attest: 'true' },
       signal,
     });
+    return validateOracleWatchResult(result);
   }
 
   async issueExecutionReceipt(
@@ -149,6 +154,78 @@ export class InsightClient {
     }
     return payload.data;
   }
+}
+
+function invalidApiResponse(message: string): never {
+  throw new InsightApiError(`Insight API returned an invalid response: ${message}`, {
+    status: 502,
+    code: 'INVALID_API_RESPONSE',
+    retryable: true,
+  });
+}
+
+function record(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return invalidApiResponse('expected an object');
+  }
+  return value as Record<string, unknown>;
+}
+
+function finiteNumber(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return invalidApiResponse(`${field} must be a finite number`);
+  }
+  return value;
+}
+
+function stringArray(value: unknown, field: string): string[] {
+  if (!Array.isArray(value) || value.some((entry) => typeof entry !== 'string')) {
+    return invalidApiResponse(`${field} must be a string array`);
+  }
+  return value;
+}
+
+function validatePreTradeResult(value: unknown): PreTradeResult {
+  const data = record(value);
+  if (!['PASS', 'CAUTION', 'DANGER', 'BLOCK'].includes(String(data.verdict))) {
+    return invalidApiResponse('unknown pre-trade verdict');
+  }
+  for (const field of [
+    'consensusPrice',
+    'maxDeviationPct',
+    'crossProviderAgreement',
+    'recommendedMaxPositionUsd',
+    'participantCount',
+  ]) {
+    finiteNumber(data[field], field);
+  }
+  stringArray(data.warnings, 'warnings');
+  if (!Array.isArray(data.contributingFactors)) {
+    return invalidApiResponse('contributingFactors must be an array');
+  }
+  if (typeof data.evaluatedAt !== 'string' || !Number.isFinite(Date.parse(data.evaluatedAt))) {
+    return invalidApiResponse('evaluatedAt must be an ISO timestamp');
+  }
+  if (data.attestation !== null && data.attestation !== undefined) record(data.attestation);
+  return data as unknown as PreTradeResult;
+}
+
+function validateOracleWatchResult(value: unknown): OracleWatchResult {
+  const data = record(value);
+  if (!['normal', 'caution', 'danger'].includes(String(data.verdict))) {
+    return invalidApiResponse('unknown Oracle Watch verdict');
+  }
+  if (!['proceed', 'proceed_with_caution', 'halt'].includes(String(data.recommendation))) {
+    return invalidApiResponse('unknown Oracle Watch recommendation');
+  }
+  if (typeof data.symbol !== 'string' || typeof data.reason !== 'string') {
+    return invalidApiResponse('Oracle Watch symbol and reason must be strings');
+  }
+  stringArray(data.reasonCodes, 'reasonCodes');
+  if (typeof data.evaluatedAt !== 'string' || !Number.isFinite(Date.parse(data.evaluatedAt))) {
+    return invalidApiResponse('evaluatedAt must be an ISO timestamp');
+  }
+  return data as unknown as OracleWatchResult;
 }
 
 function readNumberHeader(response: Response, name: string): number | undefined {
