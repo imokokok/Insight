@@ -53,7 +53,10 @@ export const GET = createApiHandler(
       .order('created_at', { ascending: false });
 
     if (subError) {
-      // Subscription query error is non-fatal — we just return null
+      return NextResponse.json(
+        ApiResponseBuilder.error('INTERNAL_ERROR', 'Failed to fetch subscription'),
+        { status: 500 }
+      );
     }
     if (keysError) {
       return NextResponse.json(

@@ -23,7 +23,10 @@ import { z } from 'zod';
 
 import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/lib/api/handler';
 import { getAttesterAddress, getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
-import { buildKeyRegistryConfig } from '@/lib/attestations/keyRegistryConfig';
+import {
+  buildKeyRegistryConfig,
+  enforceAttestationKeyTrust,
+} from '@/lib/attestations/keyRegistryConfig';
 import {
   verifyWatchAttestation,
   WATCH_DOMAIN,
@@ -75,6 +78,13 @@ export const POST = createApiHandler<
     const body = context.validated!.body!;
     const { attestation } = body;
     const result = await verifyWatchAttestation(attestation as unknown as OracleWatchAttestation);
+    if (result.valid && result.attester) {
+      const registry = buildKeyRegistryConfig(
+        await getAttesterAddress(),
+        await getSampleAttesterAddress()
+      );
+      enforceAttestationKeyTrust(result, registry, 'evaluatedAt');
+    }
 
     return NextResponse.json(
       ApiResponseBuilder.success(

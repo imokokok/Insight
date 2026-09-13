@@ -312,9 +312,18 @@ export async function getAllActiveSymbols(fallback: readonly string[]): Promise<
  * Returns an empty Map when the DB is unreachable.
  */
 export async function getAllActiveFeedsByProvider(): Promise<Map<string, OracleFeed[]>> {
+  return (await getAllActiveFeedsByProviderWithStatus()).feeds;
+}
+
+/** Same aggregate view with an explicit failure bit for observability callers.
+ * An empty database is a successful empty Map; a database failure is not. */
+export async function getAllActiveFeedsByProviderWithStatus(): Promise<{
+  feeds: Map<string, OracleFeed[]>;
+  errored: boolean;
+}> {
   const entry = await loadAllActiveFeeds();
   const result = new Map<string, OracleFeed[]>();
-  if (!entry) return result;
+  if (!entry) return { feeds: result, errored: true };
   for (const feed of entry.feeds) {
     let list = result.get(feed.provider);
     if (!list) {
@@ -323,7 +332,7 @@ export async function getAllActiveFeedsByProvider(): Promise<Map<string, OracleF
     }
     list.push(feed);
   }
-  return result;
+  return { feeds: result, errored: false };
 }
 
 /**
