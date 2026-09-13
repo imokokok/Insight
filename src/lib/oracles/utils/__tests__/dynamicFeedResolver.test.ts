@@ -1,6 +1,10 @@
 import { getAdminQueries } from '@/lib/supabase/server';
 
-import { getActiveFeedsMap, invalidateAllFeedsCache } from '../dynamicFeedResolver';
+import {
+  getActiveFeedsMap,
+  getAllActiveFeedsByProviderWithStatus,
+  invalidateAllFeedsCache,
+} from '../dynamicFeedResolver';
 
 jest.mock('@/lib/supabase/server');
 
@@ -25,5 +29,23 @@ describe('dynamicFeedResolver cache invalidation', () => {
     invalidateAllFeedsCache();
     expect(Array.from((await getActiveFeedsMap('redstone')).values())[0].symbol).toBe('BTC');
     expect(getOracleFeeds).toHaveBeenCalledTimes(2);
+  });
+
+  it('distinguishes a successful empty registry from a database failure', async () => {
+    const getOracleFeeds = jest
+      .fn()
+      .mockResolvedValueOnce([])
+      .mockRejectedValueOnce(new Error('db'));
+    mockedGetAdminQueries.mockReturnValue({ getOracleFeeds } as never);
+
+    await expect(getAllActiveFeedsByProviderWithStatus()).resolves.toEqual({
+      feeds: new Map(),
+      errored: false,
+    });
+    invalidateAllFeedsCache();
+    await expect(getAllActiveFeedsByProviderWithStatus()).resolves.toEqual({
+      feeds: new Map(),
+      errored: true,
+    });
   });
 });

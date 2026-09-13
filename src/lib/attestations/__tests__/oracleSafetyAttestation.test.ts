@@ -85,4 +85,19 @@ describe('oracleSafetyAttestation', () => {
     const addr2 = await mod.getAttesterAddress();
     expect(addr2).toBe(addr);
   });
+
+  it('does not let the unsigned v1 validity field extend an expired receipt', async () => {
+    const mod = await loadModule();
+    const att = await mod.signAttestation(baseInput);
+    expect(att).not.toBeNull();
+    if (!att) return;
+
+    jest.spyOn(Date, 'now').mockReturnValue((att.data.checkedAt + 601) * 1000);
+    const result = await mod.verifyAttestation({
+      ...att,
+      validForSeconds: 365 * 24 * 60 * 60,
+    });
+    expect(result.expired).toBe(true);
+    expect(result.valid).toBe(false);
+  });
 });

@@ -74,12 +74,9 @@ export interface VerifyResult {
    * `keyStatus`, because a receipt can be cryptographically sound while the
    * key that signed it is no longer trustworthy.
    *
-   * v1 QUIRK (mirrored from the production endpoint, NOT fixed here):
-   * an EXPIRED v1 receipt returns `valid: true` with `expired: true` and
-   * `code: 'expired'`. v2/v3 return `valid: false`. This asymmetry exists in
-   * Insight's verifier today; this library reproduces it rather than silently
-   * disagreeing with the API. Branch on `code` / `expired`, never on `valid`
-   * on its own.
+   * Expired receipts return `valid: false` with `code: 'expired'` for every
+   * supported schema version. v1 uses its fixed 600-second schema window
+   * because the legacy envelope's validForSeconds field was not signed.
    */
   valid: boolean;
   /** Terminal outcome. Branch on this. */
