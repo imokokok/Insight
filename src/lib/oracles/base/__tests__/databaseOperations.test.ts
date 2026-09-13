@@ -1,4 +1,4 @@
-import { PriceFetchError, OracleClientError } from '@/lib/errors';
+import { PriceFetchError, OracleClientError, UnsupportedSymbolError } from '@/lib/errors';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { type Blockchain, type PriceData, type OracleProvider } from '@/types/oracle';
 
@@ -17,12 +17,21 @@ jest.mock('@/lib/utils/logger', () => ({
 const mockShouldUseDatabase = jest.fn();
 const mockGetPriceFromDatabase = jest.fn();
 const mockGetHistoricalPricesFromDatabase = jest.fn();
+const mockSavePriceToDatabase = jest.fn();
+const mockGetActiveFeedsMap = jest.fn();
+
+jest.mock('../../utils/dynamicFeedResolver', () => ({
+  getActiveFeedsMap: (...args: unknown[]) => mockGetActiveFeedsMap(...args),
+  matchesChainId: (feed: { chain_id: number }, targetChainId: number) =>
+    feed.chain_id === 0 || feed.chain_id === targetChainId,
+}));
 
 jest.mock('../../utils/storage', () => ({
   shouldUseDatabase: () => mockShouldUseDatabase(),
   getPriceFromDatabase: (...args: unknown[]) => mockGetPriceFromDatabase(...args),
   getHistoricalPricesFromDatabase: (...args: unknown[]) =>
     mockGetHistoricalPricesFromDatabase(...args),
+  savePriceToDatabase: (...args: unknown[]) => mockSavePriceToDatabase(...args),
 }));
 
 const mockClientGetPrice = jest.fn();
@@ -75,6 +84,8 @@ describe('databaseOperations', () => {
     mockClientIsSymbolSupported.mockReset().mockReturnValue(true);
     mockClientGetSupportedSymbols.mockReset().mockReturnValue([mockSymbol]);
     mockClientGetDefaultChain.mockReset().mockReturnValue(mockChain);
+    mockSavePriceToDatabase.mockReset().mockResolvedValue(true);
+    mockGetActiveFeedsMap.mockReset().mockResolvedValue(new Map());
     mockGetClient.mockReset().mockReturnValue({
       getPrice: mockClientGetPrice,
       getHistoricalPrices: mockClientGetHistoricalPrices,
@@ -84,6 +95,72 @@ describe('databaseOperations', () => {
       getDefaultChain: mockClientGetDefaultChain,
     });
     (getDefaultFactory as jest.Mock).mockReset().mockReturnValue({ getClient: mockGetClient });
+  });
+
+  describe('feed identity and error semantics', () => {
+    it('uses the client default chain when the caller omits a chain', async () => {
+      const cacheableProvider: OracleProvider = 'redstone';
+      mockGetPriceFromDatabase.mockResolvedValue(
+        createMockPriceData({ provider: cacheableProvider })
+      );
+
+      await fetchPriceWithDatabase(cacheableProvider, mockSymbol, undefined, true);
+
+      expect(mockGetPriceFromDatabase).toHaveBeenCalledWith(
+        cacheableProvider,
+        mockSymbol,
+        mockChain
+      );
+    });
+
+    it('preserves UnsupportedSymbolError instead of wrapping it', async () => {
+      mockClientIsSymbolSupported.mockReturnValue(false);
+
+      await expect(fetchPriceWithDatabase(mockProvider, 'NOT_SUPPORTED')).rejects.toBeInstanceOf(
+        UnsupportedSymbolError
+      );
+    });
+
+    it('fetches the exact discovered RedStone feed instead of a sibling pair', async () => {
+      mockGetActiveFeedsMap.mockResolvedValue(
+        new Map([
+          [
+            'ETH/USDC-0',
+            {
+              id: 1,
+              provider: 'redstone',
+              symbol: 'ETH/USDC',
+              base_symbol: 'ETH',
+              quote_symbol: 'USDC',
+              chain_id: 0,
+              chain_name: 'all',
+              feed_address: null,
+              price_decimals: 8,
+              heartbeat_seconds: null,
+              deviation_threshold_bps: null,
+              is_active: true,
+            },
+          ],
+        ])
+      );
+      mockClientGetPrice.mockResolvedValue(
+        createMockPriceData({ provider: 'redstone', symbol: 'ETH/USDC' })
+      );
+
+      await fetchPriceWithDatabase(
+        'redstone',
+        'ETH',
+        undefined,
+        false,
+        true,
+        undefined,
+        'ETH/USDC'
+      );
+
+      expect(mockClientGetPrice).toHaveBeenCalledWith('ETH/USDC', mockChain, {
+        signal: undefined,
+      });
+    });
   });
 
   describe('Transaction Tests', () => {

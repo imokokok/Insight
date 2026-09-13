@@ -1,0 +1,19 @@
+{
+  "policyId": "0xd510bd9f29be0b896aed2e2b95200eab25cb9e03430a456f1bee3df7a17de158",
+  "kind": "MainlinePartnerPolicy",
+  "policyVersion": 2,
+  "partnerId": "headless",
+  "lifecycle": "promoted",
+  "activation": "explicit-policy-id",
+  "surfaces": ["execution-receipt", "pre-trade-envelope", "attester-key-role"],
+  "pins": {
+    "oracleRegistryReleaseIds": [
+      "0xf45d4c0272300f8132dba75c49b337557cf6fd7975b32fd14a8b4e13f430a8f7"
+    ],
+    "executionProfileIds": ["0xe7513b059e9f8291bfa21250e0234661d74112a491efc6b40fbb56692013cb8e"],
+    "executionSchemaVersions": [5],
+    "externalContracts": ["headless-market-state:v5"]
+  },
+  "legacyRule": "Production admits only ExecutionReceipt v5 with its signed profileId. v1-v4 are retired for new signing and historical verdicts are valid only relative to exact preserved registry bytes identified by full SHA-256 and byte length; missing or mismatched snapshot evidence fails closed and no legacy verdict is globally canonical.",
+  "productionReachability": "enabled"
+}

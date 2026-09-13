@@ -5,10 +5,26 @@ if (typeof Request === 'undefined') {
     url: string;
     method: string;
     headers: Headers;
+    body: BodyInit | null;
     constructor(input: string | URL, init?: RequestInit) {
       this.url = input.toString();
       this.method = init?.method || 'GET';
       this.headers = new Headers(init?.headers as Record<string, string>);
+      this.body = init?.body ?? null;
+    }
+    clone() {
+      return new Request(this.url, {
+        method: this.method,
+        headers: this.headers,
+        body: this.body,
+      });
+    }
+    json() {
+      const body = typeof this.body === 'string' ? this.body : JSON.stringify(this.body);
+      return Promise.resolve(body ? JSON.parse(body) : null);
+    }
+    text() {
+      return Promise.resolve(typeof this.body === 'string' ? this.body : JSON.stringify(this.body));
     }
   } as unknown as typeof Request;
 }

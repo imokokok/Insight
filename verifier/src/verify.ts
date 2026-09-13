@@ -52,6 +52,7 @@ import type { KeyRegistry, RoutableAttestation, VerifyCode, VerifyResult } from 
 const V1_SCHEMA_VERSION = 1;
 const V2_SCHEMA_VERSION = 2;
 const V3_SCHEMA_VERSION = 3;
+const V1_VALID_FOR_SECONDS = 600;
 
 export interface VerifyOptions {
   /**
@@ -148,23 +149,23 @@ async function verifyV1(attestation: RoutableAttestation): Promise<CoreResult> {
 
   const checkedAt = typeof data.checkedAt === 'number' ? data.checkedAt : null;
   const ageSeconds = checkedAt ? nowSeconds() - checkedAt : null;
-  const validForSeconds = Number(attestation.validForSeconds ?? 0);
-  const expired = ageSeconds !== null && ageSeconds > validForSeconds;
+  // The v1 envelope's validForSeconds field is unsigned. The production
+  // schema has always issued a 600-second window, so enforce that constant
+  // without changing the frozen EIP-712 layout.
+  const expired = ageSeconds !== null && ageSeconds > V1_VALID_FOR_SECONDS;
 
   return {
-    valid: true,
-    // Mirrors production: an expired v1 receipt is still `valid: true`.
-    // Consumers must branch on `code` / `expired`, not `valid`.
+    valid: !expired,
     code: expired ? 'expired' : 'ok',
     kind: 'check',
     uid: recomputedUid,
     checkedAt,
-    validUntil: checkedAt !== null ? checkedAt + validForSeconds : null,
+    validUntil: checkedAt !== null ? checkedAt + V1_VALID_FOR_SECONDS : null,
     ageSeconds,
     expired,
     schemaVersion: V1_SCHEMA_VERSION,
     reason: expired
-      ? `Attestation is stale (age ${ageSeconds}s > validFor ${validForSeconds}s).`
+      ? `Attestation is stale (age ${ageSeconds}s > validFor ${V1_VALID_FOR_SECONDS}s).`
       : undefined,
   };
 }

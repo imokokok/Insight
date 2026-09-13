@@ -1,5 +1,5 @@
 /**
- * Pre-trade safety envelope prototype (environment.market_state +
+ * Pre-trade safety envelope production showcase (environment.market_state +
  * environment.price_integrity conjunction).
  *
  * GET /api/v1/safety/envelope
@@ -12,12 +12,13 @@
  *   ?demo=tampered-market  deliberate failure: market status mutated after
  *                           fetch → Ed25519 signature no longer covers the
  *                           payload → BLOCK
- *   &mic=XCOI              (default XCOI) Headless Oracle demo venue
+ *   &mic=XNYS              (default XNYS) Headless Oracle production venue
  *
- * This is the two-receipt prototype Michael Msebenzi specified: an ETH/USDC
+ * This is the two-receipt showcase Michael Msebenzi specified: an ETH/USDC
  * gate requiring BOTH the Insight OracleSafetyCheck v2 receipt and the
  * Headless Oracle market-state receipt, missing/expired/negative failing
- * closed, and driven red on purpose with an expired and a tampered receipt
+ * closed, and driven red by a real production-signed CLOSED/HALTED receipt or
+ * on purpose with an expired and a tampered receipt
  * ("a gate that has never gone red hasn't been shown able to").
  *
  * The endpoint always answers 200 with a verdict — an unreachable upstream is
@@ -43,13 +44,13 @@ import {
 import { buildSampleAttestationInput } from '@/lib/attestations/sampleOracleSafetyInput';
 import {
   fetchAndVerifyHeadlessMarketState,
-  fetchHeadlessDemoReceipt,
+  fetchHeadlessLiveReceipt,
   fetchHeadlessKeyRegistry,
   extractHeadlessReceipt,
   verifyHeadlessMarketStateAgainstRegistry,
   headlessFetchFailedResult,
   getHeadlessOracleBaseUrl,
-  type HeadlessDemoResponse,
+  type HeadlessMarketStateResponse,
   type MarketStateVerificationResult,
 } from '@/lib/envelope/headlessMarketState';
 import {
@@ -87,10 +88,16 @@ interface EnvelopeResponse {
     verify: string;
   };
   marketState: {
-    receipt: HeadlessDemoResponse | null;
+    receipt: HeadlessMarketStateResponse | null;
     verification: MarketStateVerificationResult;
     keyRegistry: string;
-    demoEndpoint: string;
+    endpoint: string;
+  };
+  freshness: {
+    priceIntegrityValidUntil: string | null;
+    marketStateValidUntil: string | null;
+    envelopeValidUntil: string | null;
+    limitingMember: 'environment.price_integrity' | 'environment.market_state' | null;
   };
   note: string;
 }
@@ -115,13 +122,53 @@ function priceIntegrityMember(
 }
 
 function marketStateMember(
-  side: Awaited<ReturnType<typeof fetchAndVerifyHeadlessMarketState>>
+  side: Awaited<ReturnType<typeof fetchAndVerifyHeadlessMarketState>>,
+  expectedMic: string
 ): MarketStateMemberInput {
   return {
     present: side.envelope !== null,
     signatureValid: side.result.signatureValid,
     expired: side.result.expired,
     status: side.result.status,
+    mic: side.result.mic,
+    expectedMic,
+    receiptMode: side.result.receiptMode,
+    attestedReason: side.result.attestedReason,
+  };
+}
+
+function freshnessSummary(
+  priceReceipt: OracleSafetyAttestationV2 | null,
+  marketResult: MarketStateVerificationResult
+): EnvelopeResponse['freshness'] {
+  const priceMs = priceReceipt ? priceReceipt.validUntil * 1_000 : Number.NaN;
+  const marketMs = marketResult.expiresAt ? Date.parse(marketResult.expiresAt) : Number.NaN;
+  const priceValid = Number.isFinite(priceMs);
+  const marketValid = Number.isFinite(marketMs);
+  const envelopeMs =
+    priceValid && marketValid
+      ? Math.min(priceMs, marketMs)
+      : priceValid
+        ? priceMs
+        : marketValid
+          ? marketMs
+          : Number.NaN;
+  const limitingMember =
+    priceValid && marketValid
+      ? marketMs <= priceMs
+        ? 'environment.market_state'
+        : 'environment.price_integrity'
+      : marketValid
+        ? 'environment.market_state'
+        : priceValid
+          ? 'environment.price_integrity'
+          : null;
+
+  return {
+    priceIntegrityValidUntil: priceValid ? new Date(priceMs).toISOString() : null,
+    marketStateValidUntil: marketValid ? new Date(marketMs).toISOString() : null,
+    envelopeValidUntil: Number.isFinite(envelopeMs) ? new Date(envelopeMs).toISOString() : null,
+    limitingMember,
   };
 }
 
@@ -135,7 +182,7 @@ async function headlessSide(mic: string, demo: DemoMode) {
   }
   try {
     const [envelope, registry] = await Promise.all([
-      fetchHeadlessDemoReceipt(mic),
+      fetchHeadlessLiveReceipt(mic),
       fetchHeadlessKeyRegistry(),
     ]);
     const receipt = extractHeadlessReceipt(envelope);
@@ -171,7 +218,7 @@ export const GET = createApiHandler<
   async (request: NextRequest, context: ApiHandlerContext<Record<string, unknown>>) => {
     const params = new URL(request.url).searchParams;
     const demo = (params.get('demo') ?? 'live') as DemoMode;
-    const mic = (params.get('mic') ?? 'XCOI').toUpperCase();
+    const mic = (params.get('mic') ?? 'XNYS').toUpperCase();
 
     if (!DEMO_MODES.includes(demo)) {
       return NextResponse.json(
@@ -217,7 +264,7 @@ export const GET = createApiHandler<
     // --- conjunction ---
     const envelope = evaluatePreTradeEnvelope({
       priceIntegrity: priceIntegrityMember(insightReceipt, insightVerification),
-      marketState: marketStateMember(market),
+      marketState: marketStateMember(market, mic),
     });
 
     const base =
@@ -243,8 +290,9 @@ export const GET = createApiHandler<
             receipt: market.envelope,
             verification: market.result,
             keyRegistry: `${headlessBase}/.well-known/oracle-keys.json`,
-            demoEndpoint: `${headlessBase}/v5/demo?mic=${mic}`,
+            endpoint: `${headlessBase}/v5/status?mic=${mic}`,
           },
+          freshness: freshnessSummary(insightReceipt, market.result),
           note: DEMO_NOTES[demo],
         },
         { requestId: context.requestId }

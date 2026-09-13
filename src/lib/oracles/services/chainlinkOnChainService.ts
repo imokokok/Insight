@@ -195,9 +195,10 @@ class ChainlinkOnChainService {
   async getPrice(
     symbol: string,
     chainId: number = 1,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    feedAddressOverride?: `0x${string}`
   ): Promise<ChainlinkPriceData | null> {
-    const cacheKey = `price-${symbol}-${chainId}`;
+    const cacheKey = `price-${symbol}-${chainId}-${feedAddressOverride ?? 'resolved'}`;
     const cached = this.cache.get<ChainlinkPriceData>(cacheKey);
     if (cached && this.isValidChainlinkPriceData(cached)) {
       logger.debug('Returning cached Chainlink price data', {
@@ -214,7 +215,10 @@ class ChainlinkOnChainService {
       this.cache.delete(cacheKey);
     }
 
-    const feed = await getChainlinkPriceFeedAsync(symbol, chainId);
+    const resolvedFeed = feedAddressOverride
+      ? null
+      : await getChainlinkPriceFeedAsync(symbol, chainId);
+    const feed = feedAddressOverride ? { symbol, address: feedAddressOverride } : resolvedFeed;
     if (!feed) {
       throw new Error(`Price feed not found for ${symbol} on chain ${chainId}`);
     }

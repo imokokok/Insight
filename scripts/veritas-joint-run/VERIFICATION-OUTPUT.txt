@@ -1,0 +1,32 @@
+== Selection rule v2: no cross-chain clock ==
+PASS  rule schema is v2  (insight-veritas-anchored-settlement-selection/v2)
+PASS  registered gate window remains 600 seconds
+PASS  minimum source leg remains 0.1 WETH
+PASS  Bitcoin header timestamp is not an ordering predicate
+PASS  candidate ordering is same-chain blockNumber > E
+PASS  ordering preimage declares sourceGateUid
+PASS  ordering preimage declares destinationGateUid
+PASS  ordering preimage declares preTradeUidsHash
+PASS  ordering preimage declares selectionRuleHash
+PASS  ordering preimage declares bitcoinAnchorTxid
+PASS  ordering preimage declares bitcoinConfirmingBlockHeight
+PASS  ordering preimage declares bitcoinConfirmingBlockHash
+PASS  retry requires new gate, Bitcoin anchor and Ethereum commitment
+PASS  aborted Bitcoin and Ethereum txids are both published
+
+== Ethereum ordering commitment literal vector ==
+PASS  selectionRuleHash recomputes from RFC 8785 bytes
+PASS  selectionRuleHash is bound inside the ordering preimage
+PASS  canonical preimage string is literal
+PASS  canonical preimage hex is literal
+PASS  orderingCommitmentHash recomputes
+PASS  Ethereum transaction carries exactly the 32-byte commitment hash
+
+== Provider observation ABI and literal vectors ==
+PASS  all seven ABI types are explicit
+PASS  literal encoded entry reproduces
+PASS  literal entry hash reproduces
+PASS  literal providerObservationsHash reproduces
+PASS  negative value rejects under uint256
+
+SUMMARY  PASS 25  FAIL 0

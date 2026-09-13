@@ -1,6 +1,5 @@
 import { OracleProviderError } from '@/lib/errors';
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import {
   flareSymbols,
   FLARE_CACHE_TTL,
@@ -31,18 +30,23 @@ const logger = createLogger('FlareClient');
 
 export type { FlareTokenOnChainData };
 
+export function calculateFlareDynamicConfidence(dataAgeSeconds: number): number {
+  const normalizedAge = Number.isFinite(dataAgeSeconds) ? Math.max(0, dataAgeSeconds) : Infinity;
+  const freshnessScore = Math.max(0, 1 - normalizedAge / 180);
+  return Math.min(0.99, 0.9 + freshnessScore * 0.09);
+}
+
 export class FlareClient extends BaseOracleClient {
   name = OracleProvider.FLARE;
   supportedChains = [Blockchain.FLARE];
   supportedSymbolsList = flareSymbols;
   protected defaultChain = Blockchain.FLARE;
 
-  defaultUpdateIntervalMinutes = 1.5;
   private cache = new OracleCache();
   private ftsoService: FtsoDataService;
 
-  constructor(config?: OracleClientConfig) {
-    super(config);
+  constructor() {
+    super();
     this.ftsoService = getFtsoDataService();
     this.cache.startCleanupInterval();
   }
@@ -161,9 +165,13 @@ export class FlareClient extends BaseOracleClient {
     const timestamp = toMilliseconds(ftsoData.timestamp);
     const confidenceInterval = this.generateConfidenceInterval(price, ftsoData.symbol);
 
-    const dataAgeSeconds = nowInSeconds() - ftsoData.timestamp;
-    const freshnessScore = Math.max(0, 1 - dataAgeSeconds / 180);
-    const dynamicConfidence = Math.min(0.99, 0.9 + freshnessScore * 0.09);
+    // FtsoDataService exposes timestamp in milliseconds and dataAge in seconds.
+    // Use the already-normalized age so confidence cannot be inflated by
+    // subtracting a millisecond timestamp from epoch seconds.
+    const dataAgeSeconds = Number.isFinite(ftsoData.dataAge)
+      ? Math.max(0, ftsoData.dataAge)
+      : Math.max(0, nowInSeconds() - timestamp / 1000);
+    const dynamicConfidence = calculateFlareDynamicConfidence(dataAgeSeconds);
 
     return {
       provider: this.name,

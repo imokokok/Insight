@@ -287,17 +287,20 @@ export async function verifyAttestation(
 
     const now = nowInSeconds();
     const ageSeconds = message.checkedAt ? now - message.checkedAt : null;
-    const expired = ageSeconds !== null && ageSeconds > attestation.validForSeconds;
+    // v1's top-level validForSeconds was never included in the signed EIP-712
+    // message. Trust the schema constant, not an attacker-editable envelope
+    // field, while keeping the legacy signed layout unchanged.
+    const expired = ageSeconds !== null && ageSeconds > ATTESTATION_VALID_FOR_SECONDS;
 
     return {
-      valid: true,
+      valid: !expired,
       attester: attestation.attester,
       uid: recomputedUid,
       checkedAt: message.checkedAt,
       ageSeconds,
       expired,
       reason: expired
-        ? `Attestation is stale (age ${ageSeconds}s > validFor ${attestation.validForSeconds}s).`
+        ? `Attestation is stale (age ${ageSeconds}s > validFor ${ATTESTATION_VALID_FOR_SECONDS}s).`
         : undefined,
     };
   } catch (error) {

@@ -1,8 +1,9 @@
 import { Suspense } from 'react';
 
-import { HeroSkeleton } from '@/components/ui/ChartSkeleton';
+import { HomeLiveDashboardFallback } from '@/components/home/DashboardContent';
 
 import { DashboardDataFetcher } from './DashboardDataFetcher';
+import HomeContent from './HomeContent';
 
 import type { Metadata } from 'next';
 
@@ -45,8 +46,10 @@ export const revalidate = 60;
 
 export default function HomePage() {
   return (
-    <Suspense fallback={<HeroSkeleton />}>
-      <DashboardDataFetcher />
-    </Suspense>
+    <HomeContent>
+      <Suspense fallback={<HomeLiveDashboardFallback />}>
+        <DashboardDataFetcher />
+      </Suspense>
+    </HomeContent>
   );
 }

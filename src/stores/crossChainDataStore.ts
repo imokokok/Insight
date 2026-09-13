@@ -6,6 +6,7 @@ import { type Blockchain, type PriceData } from '@/types/oracle';
 
 interface DataState {
   currentPrices: PriceData[];
+  priceHistories: Map<Blockchain, PriceData[]>;
   crossChainComparison: CrossChainComparisonResult[];
   loading: boolean;
   refreshStatus: 'idle' | 'refreshing' | 'success' | 'error';
@@ -17,6 +18,7 @@ interface DataState {
 
 interface DataActions {
   setCurrentPrices: (prices: PriceData[]) => void;
+  setPriceHistories: (histories: Map<Blockchain, PriceData[]>) => void;
   setRefreshStatus: (status: 'idle' | 'refreshing' | 'success' | 'error') => void;
   setLastUpdated: (date: Date | null) => void;
   setCrossChainComparison: (results: CrossChainComparisonResult[]) => void;
@@ -25,6 +27,7 @@ interface DataActions {
 
 const initialState: DataState = {
   currentPrices: [],
+  priceHistories: new Map(),
   crossChainComparison: [],
   loading: true,
   refreshStatus: 'idle',
@@ -40,6 +43,7 @@ export const useCrossChainDataStore = create<DataState & DataActions>()(
       ...initialState,
 
       setCurrentPrices: (prices) => set({ currentPrices: prices }),
+      setPriceHistories: (histories) => set({ priceHistories: histories }),
       setRefreshStatus: (status) => set({ refreshStatus: status }),
       setLastUpdated: (date) => set({ lastUpdated: date }),
       setCrossChainComparison: (results) => set({ crossChainComparison: results }),

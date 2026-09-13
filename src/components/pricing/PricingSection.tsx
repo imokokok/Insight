@@ -8,11 +8,11 @@ export function PricingSection() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   return (
-    <section className="py-8 sm:py-12">
+    <section className="pricing-cycle-control py-8 sm:py-12">
       <div className="max-w-6xl mx-auto">
         {/* Billing toggle */}
         <div className="mb-10 flex justify-start">
-          <div className="inline-flex items-center border border-slate-900/15 bg-white">
+          <div className="pricing-cycle-switch inline-flex items-center border border-slate-900/15 bg-white">
             <button
               onClick={() => setBillingCycle('monthly')}
               className={`px-4 py-2 text-sm font-semibold transition-all ${

@@ -12,7 +12,7 @@
  * beside it that strips away).
  *
  * GET /api/v1/execution/attestation/sample
- * GET /api/v1/execution/attestation/sample?schemaVersion=1   (also 2 | 3 | 4)
+ * GET /api/v1/execution/attestation/sample?schemaVersion=1   (also 2 | 3 | 4 | 5)
  *
  * The optional `schemaVersion` query signs the SAME synthetic facts against any
  * PUBLISHED layout, so a layout that has never been exercised by a sample is no
@@ -30,8 +30,11 @@ import { createApiHandler, createOptionsHandler, ApiResponseBuilder } from '@/li
 import {
   projectExecutionDataForSchemaVersion,
   signExecutionReceipt,
+  SUPPORTED_EXECUTION_SCHEMA_VERSIONS,
 } from '@/lib/attestations/executionReceipt';
 import { recordExecutionReceipt } from '@/lib/execution/executionReceiptAudit';
+
+import { parseRequestedSchemaVersion } from './schemaVersion';
 
 const PUBLIC_MIDDLEWARES = {
   logging: true,
@@ -50,29 +53,6 @@ const SAMPLE_REQUEST_HASH =
 const SAMPLE_TX_HASH =
   '0x0000000000000000000000000000000000000000000000000000000000000003' as const;
 
-/**
- * Parse the optional ?schemaVersion= override.
- *
- * Absent or blank → undefined (sign the CURRENT layout). An unknown integer is
- * returned as-is: buildExecutionMessage falls back to the current layout for a
- * version it does not know, and the response reports what was actually signed,
- * so a caller can never mistake the layout.
- *
- * VERITAS round 3 F14: the default must never reach the signer as 0. The old
- * code coerced `get(...) ?? ''` through Number(), and Number('') is 0, which
- * passed Number.isInteger and put the plain /sample call on the unknown-value
- * fallback branch instead of the no-override branch. If that fallback is ever
- * tightened to reject unknown versions, the default sample would silently
- * break — this keeps "no version asked" distinguishable from "version 0".
- */
-export function parseRequestedSchemaVersion(raw: string | null): number | undefined {
-  if (raw === null) return undefined;
-  const trimmed = raw.trim();
-  if (trimmed === '') return undefined;
-  const n = Number(trimmed);
-  return Number.isInteger(n) ? n : undefined;
-}
-
 export const OPTIONS = createOptionsHandler();
 
 export const GET = createApiHandler<
@@ -82,7 +62,7 @@ export const GET = createApiHandler<
   Record<string, string>
 >(
   async (request: NextRequest, context) => {
-    // Optional layout override: ?schemaVersion=1..4 signs the same synthetic
+    // Optional layout override: ?schemaVersion=1..5 signs the same synthetic
     // facts against that PUBLISHED layout (N1). Unknown values fall back to the
     // current layout inside buildExecutionMessage — the response reports what
     // was actually signed, so a caller can never mistake the layout.
@@ -90,7 +70,7 @@ export const GET = createApiHandler<
       request.nextUrl.searchParams.get('schemaVersion')
     );
     // Signed directly from synthetic facts — deliberately NOT routed through
-    // issueExecutionReceipt, whose v3/v4 collector reads the settlement off
+    // issueExecutionReceipt, whose v3+ collector reads the settlement off
     // chain. A fake tx hash would fail RPC lookup (502): the sample's purpose
     // is to demo the signature + verify loop, so the settlement facts are
     // supplied, clearly labelled synthetic, and never claimed as on-chain
@@ -165,7 +145,7 @@ export const GET = createApiHandler<
 
     // The response carries the message projected onto the layout that was
     // actually signed (VERITAS round 3, closing F0/F8): `signExecutionReceipt`
-    // emits the full current-layout message, but when ?schemaVersion=1..3 was
+    // emits the full current-layout message, but when an older schemaVersion
     // asked for, the signature covered THAT layout. Shipping the full message
     // beside a smaller type declaration would be self-inconsistent for any
     // independent verifier that rebuilds typed data from the payload alone, so
@@ -189,7 +169,7 @@ export const GET = createApiHandler<
           verify: `${base}/api/v1/execution/attestation/verify`,
           note: 'SYNTHETIC sample: signed by the dedicated SAMPLE signer (see .well-known registry, role "sample"), so the synthetic nature is checkable from the signature itself. Settlement facts are demo data; never treat as evidence of a real trade.',
           signedSchemaVersion: receipt.schemaVersion,
-          layoutsAvailable: '1,2,3,4 — pass ?schemaVersion=N to sample any published layout (N1)',
+          layoutsAvailable: `${SUPPORTED_EXECUTION_SCHEMA_VERSIONS.join(',')} — pass ?schemaVersion=N to sample any published layout (N1)`,
         },
         { requestId: context.requestId }
       )

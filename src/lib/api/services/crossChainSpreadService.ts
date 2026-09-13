@@ -7,6 +7,7 @@ import { chainNames } from '@/lib/constants';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { getActiveFeedsMap } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
@@ -191,11 +192,7 @@ export async function getCrossChainSpreads(
   const successfulPrices: ChainPrice[] = [];
   for (const result of fetchResults) {
     if (result.priceData) {
-      const now = Date.now();
-      const dataAgeSeconds =
-        result.priceData.ingestionTimestamp != null
-          ? Math.max(0, Math.floor((now - result.priceData.ingestionTimestamp) / 1000))
-          : null;
+      const dataAgeSeconds = resolveOracleAgeSeconds(result.priceData);
 
       successfulPrices.push({
         chain: result.chain,
@@ -215,6 +212,9 @@ export async function getCrossChainSpreads(
   successfulPrices.sort((a, b) => a.chain.localeCompare(b.chain));
 
   const resolvedBaseChain = baseChain ?? successfulPrices[0].chain;
+  if (!successfulPrices.some((price) => price.chain === resolvedBaseChain)) {
+    throw new Error('BASE_CHAIN_UNAVAILABLE');
+  }
   const spreads = buildSpreadMatrix(successfulPrices);
   const priceDifferences = buildPriceDifferences(successfulPrices, resolvedBaseChain);
   const maxSpreadPercent = spreads.length > 0 ? Math.max(...spreads.map((s) => s.percent)) : 0;

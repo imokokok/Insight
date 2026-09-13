@@ -9,9 +9,9 @@
  * All published schema versions are accepted: v1 predates the signed binding
  * fields, v2 (what issueExecutionReceipt emitted before the VERITAS pass) adds
  * bindingMode + preTradeSignedAt, v3 carries the full quote-basis, subject and
- * scope commitments, and v4 (the current emitter) adds the signed
- * `environment` message field. Rejecting any of them would break real receipts
- * before they ever reach the verifier.
+ * scope commitments, v4 adds signed `environment`, and current v5 adds signed
+ * `profileId`. Rejecting any of them would break real receipts before they ever
+ * reach the verifier.
  */
 
 import { z } from 'zod';
@@ -21,9 +21,12 @@ import {
   EXECUTION_SCHEMA_VERSION_V2,
   EXECUTION_SCHEMA_VERSION_V3,
   EXECUTION_SCHEMA_VERSION_V4,
+  EXECUTION_SCHEMA_VERSION_V5,
 } from '@/lib/attestations/executionReceipt';
 
-export const ExecutionVerifyBodySchema = z.object({
+const PolicyIdSchema = z.string().regex(/^0x[0-9a-fA-F]{64}$/);
+
+const ExecutionVerifyPayloadSchema = z.object({
   attestation: z
     .object({
       uid: z.string(),
@@ -32,6 +35,7 @@ export const ExecutionVerifyBodySchema = z.object({
         z.literal(EXECUTION_SCHEMA_VERSION_V2),
         z.literal(EXECUTION_SCHEMA_VERSION_V3),
         z.literal(EXECUTION_SCHEMA_VERSION_V4),
+        z.literal(EXECUTION_SCHEMA_VERSION_V5),
       ]),
       attester: z.string(),
       signature: z.string(),
@@ -42,4 +46,15 @@ export const ExecutionVerifyBodySchema = z.object({
     .passthrough(),
 });
 
+export const ExecutionVerifyBodySchema = ExecutionVerifyPayloadSchema.extend({
+  /** Optional only on the public, non-partner verification surface. */
+  policyId: PolicyIdSchema.optional(),
+});
+
+/** A partner runtime path never falls back to policy-free verification. */
+export const PartnerExecutionVerifyBodySchema = ExecutionVerifyPayloadSchema.extend({
+  policyId: PolicyIdSchema,
+});
+
 export type ExecutionVerifyBody = z.infer<typeof ExecutionVerifyBodySchema>;
+export type PartnerExecutionVerifyBody = z.infer<typeof PartnerExecutionVerifyBodySchema>;

@@ -44,7 +44,14 @@ interface BatchPriceResponse {
   data: BatchPriceResult[];
 }
 
+export interface CrossChainBatchResult {
+  prices: Map<Blockchain, PriceData>;
+  errors: Array<{ chain: Blockchain; error: string }>;
+}
+
 const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
+const MULTI_ORACLE_BATCH_CONCURRENCY = 5;
+const MULTI_ORACLE_BATCH_TIMEOUT_BUFFER_MS = 5_000;
 
 const ORACLE_RETRY_CONFIG: Partial<EnhancedRetryConfig> = {
   // Oracle routes already perform provider-aware retries server-side. Retrying
@@ -56,7 +63,6 @@ const ORACLE_RETRY_CONFIG: Partial<EnhancedRetryConfig> = {
   strategy: 'exponential',
   retryableStatuses: [408, 429, 500, 502, 503, 504],
   timeout: DEFAULT_REQUEST_TIMEOUT_MS,
-  enableCircuitBreaker: false,
 };
 
 const ORACLE_TIMEOUT_CONFIG: Record<string, number> = {
@@ -77,6 +83,21 @@ function getRequestTimeout(provider?: string): number {
     return ORACLE_TIMEOUT_CONFIG[provider];
   }
   return DEFAULT_REQUEST_TIMEOUT_MS;
+}
+
+export function getMultiOracleBatchTimeoutMs(providers: OracleProvider[]): number {
+  if (providers.length === 0) return DEFAULT_REQUEST_TIMEOUT_MS;
+
+  const slowestProviderTimeout = Math.max(
+    ...providers.map((provider) => getRequestTimeout(provider))
+  );
+  const executionWaves = Math.ceil(providers.length / MULTI_ORACLE_BATCH_CONCURRENCY);
+  return slowestProviderTimeout * executionWaves + MULTI_ORACLE_BATCH_TIMEOUT_BUFFER_MS;
+}
+
+export function getCrossChainBatchTimeoutMs(provider: OracleProvider, chainCount: number): number {
+  const executionWaves = Math.max(1, Math.ceil(chainCount / MULTI_ORACLE_BATCH_CONCURRENCY));
+  return getRequestTimeout(provider) * executionWaves + MULTI_ORACLE_BATCH_TIMEOUT_BUFFER_MS;
 }
 
 interface PendingRequest<T> {
@@ -473,26 +494,27 @@ async function fetchBatchPricesFromApi({
   chains,
   signal: externalSignal,
   forceRefresh = false,
-}: FetchBatchPricesParams): Promise<Map<Blockchain, PriceData>> {
+}: FetchBatchPricesParams): Promise<CrossChainBatchResult> {
   const result = new Map<Blockchain, PriceData>();
+  const errors: Array<{ chain: Blockchain; error: string }> = [];
 
-  if (chains.length === 0) return result;
+  if (chains.length === 0) return { prices: result, errors };
 
   // Batch responses were previously fetched without any caching or request
   // deduplication, unlike the single-price path. Reuse the shared response
   // cache so repeated batch calls within the TTL reuse the same result.
   const cacheKey = `batch:${provider}:${symbol.toUpperCase()}:${[...chains].sort().join(',')}`;
   if (!forceRefresh) {
-    const cached = getCachedResponse<Map<Blockchain, PriceData>>(cacheKey);
+    const cached = getCachedResponse<CrossChainBatchResult>(cacheKey);
     if (cached) {
-      return new Map(cached);
+      return { prices: new Map(cached.prices), errors: [...cached.errors] };
     }
   }
 
   const url = new URL('/api/oracles/batch', getBaseUrl());
 
   const controller = new AbortController();
-  const timeoutMs = getRequestTimeout(provider) * 2;
+  const timeoutMs = getCrossChainBatchTimeoutMs(provider, chains.length);
 
   const timeoutId = setTimeout(() => {
     controller.abort(new Error(`Batch request timed out after ${timeoutMs}ms`));
@@ -539,15 +561,31 @@ async function fetchBatchPricesFromApi({
             logger.warn('Invalid price data in batch response for chain', {
               chain: item.chain,
             });
+            errors.push({
+              chain: item.chain as Blockchain,
+              error: 'Invalid price data',
+            });
           }
+        } else if (item.chain && item.error) {
+          errors.push({ chain: item.chain as Blockchain, error: item.error });
         }
       }
     }
 
-    if (!forceRefresh && result.size > 0) {
-      setCachedResponse(cacheKey, new Map(result));
+    const accountedChains = new Set<Blockchain>([
+      ...result.keys(),
+      ...errors.map((item) => item.chain),
+    ]);
+    for (const chain of chains) {
+      if (!accountedChains.has(chain)) {
+        errors.push({ chain, error: 'No batch result returned for chain' });
+      }
     }
-    return result;
+
+    if (!forceRefresh && result.size > 0) {
+      setCachedResponse(cacheKey, { prices: new Map(result), errors: [...errors] });
+    }
+    return { prices: result, errors };
   } finally {
     clearTimeout(timeoutId);
     if (externalSignal && onExternalAbort) {
@@ -582,7 +620,10 @@ async function fetchMultiOraclePrices({
 
   const url = new URL('/api/oracles/batch', getBaseUrl());
   const controller = new AbortController();
-  const timeoutMs = getRequestTimeout(providers[0]) * 2;
+  // The server deliberately executes at most five upstream fetches at once.
+  // Bound the client timeout by the slowest selected provider and the number
+  // of execution waves, rather than whichever provider happens to be first.
+  const timeoutMs = getMultiOracleBatchTimeoutMs(providers);
 
   const timeoutId = setTimeout(() => {
     controller.abort(new Error(`Multi-oracle batch request timed out after ${timeoutMs}ms`));
@@ -629,6 +670,16 @@ async function fetchMultiOraclePrices({
         } else if (item.error) {
           errors.push({ provider: item.provider, error: item.error });
         }
+      }
+    }
+
+    const accountedProviders = new Set([
+      ...prices.map((price) => price.provider),
+      ...errors.map((item) => item.provider),
+    ]);
+    for (const provider of providers) {
+      if (!accountedProviders.has(provider)) {
+        errors.push({ provider, error: 'No batch result returned for provider' });
       }
     }
 

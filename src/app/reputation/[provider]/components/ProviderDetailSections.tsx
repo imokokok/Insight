@@ -132,7 +132,7 @@ export function ProviderProfile({ provider }: { provider: string }) {
   if (!profile) return null;
 
   return (
-    <section className="border-y border-slate-900/15 bg-white/45 p-5">
+    <section className="provider-detail-record border-y border-slate-900/15 bg-white/45 p-5">
       <div className="flex items-center gap-2 mb-3">
         <div className="border border-blue-200 bg-blue-50 p-1.5">
           <Sparkles className="w-4 h-4 text-blue-600" />
@@ -185,7 +185,7 @@ export function ScoreBreakdown({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <section className="border-y border-slate-900/15 bg-white/45 p-5">
+    <section className="provider-detail-record border-y border-slate-900/15 bg-white/45 p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="border border-blue-200 bg-blue-50 p-1.5">
@@ -302,7 +302,7 @@ export function ScoreBreakdown({
 
 export function HowItWorks() {
   return (
-    <section className="border-l-2 border-blue-600 bg-blue-50/35 p-5">
+    <section className="provider-method-record border-l-2 border-blue-600 bg-blue-50/35 p-5">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 border border-blue-200 bg-blue-50 p-1.5">
           <Info className="w-4 h-4 text-blue-500" />
@@ -371,7 +371,7 @@ export function Sidebar({
 }) {
   return (
     <aside>
-      <div className="border-y border-slate-900/15 bg-white/45 p-5 lg:sticky lg:top-24">
+      <div className="provider-score-dossier border-y border-slate-900/15 bg-white/45 p-5 lg:sticky lg:top-24">
         <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
           <p className="editorial-index">01 — Read the score</p>
           <span className="font-mono text-[10px] text-slate-400">7 DAYS</span>

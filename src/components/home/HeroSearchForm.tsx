@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 
 import { ArrowRight, Search } from 'lucide-react';
 
+import { announceNavigationStart } from '@/lib/navigation/progress';
+
 import { useSearch } from './hooks/useSearch';
 
 export function HeroSearchForm() {
@@ -17,10 +19,13 @@ export function HeroSearchForm() {
       const directMatch = searchResults.find(
         (r) => r.item.symbol === trimmed || r.item.symbol === trimmed.replace(/USD$/i, '')
       );
+      announceNavigationStart();
       if (directMatch) {
-        router.push(`/price-query?symbol=${directMatch.item.symbol}`);
+        router.push(
+          `/price-query?symbol=${encodeURIComponent(directMatch.item.symbol ?? trimmed)}`
+        );
       } else {
-        router.push(`/price-insight?symbol=${trimmed}`);
+        router.push(`/price-insight?symbol=${encodeURIComponent(trimmed)}`);
       }
       setSearchQuery('');
     }

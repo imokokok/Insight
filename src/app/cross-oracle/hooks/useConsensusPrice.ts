@@ -8,6 +8,7 @@ import {
   type ConsensusResult,
   type ConsensusPriceInput,
 } from '@/lib/analytics/consensusPrice';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { type PriceData } from '@/types/oracle';
 
 interface UseConsensusPriceOptions {
@@ -26,6 +27,8 @@ function toConsensusInputs(priceData: PriceData[]): ConsensusPriceInput[] {
       provider: p.provider,
       price: p.price,
       timestamp: p.timestamp,
+      ingestionTimestamp: p.ingestionTimestamp,
+      dataAgeSeconds: resolveOracleAgeSeconds(p) ?? undefined,
       confidence: p.confidence,
       confidenceInterval: p.confidenceInterval,
     }));

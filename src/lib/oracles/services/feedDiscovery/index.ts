@@ -51,25 +51,29 @@ class FeedDiscoveryService {
   async discoverAll(provider?: string): Promise<DiscoveryResult[]> {
     const results: DiscoveryResult[] = [];
 
-    const discoverers: Record<string, () => Promise<DiscoveryResult>> = {
-      chainlink: () => discoverChainlinkFeeds(),
-      supra: () => discoverSupraFeeds(),
-      dia: () => discoverDIAFeeds(),
-      redstone: () => discoverRedStoneFeeds(),
-      api3: () => discoverAPI3Feeds(),
-      flare: () => discoverFlareFeeds(),
-      switchboard: () => discoverSwitchboardFeeds(),
+    const discoverers = new Map<string, () => Promise<DiscoveryResult>>([
+      ['chainlink', () => discoverChainlinkFeeds()],
+      ['supra', () => discoverSupraFeeds()],
+      ['dia', () => discoverDIAFeeds()],
+      ['redstone', () => discoverRedStoneFeeds()],
+      ['api3', () => discoverAPI3Feeds()],
+      ['flare', () => discoverFlareFeeds()],
+      ['switchboard', () => discoverSwitchboardFeeds()],
       // No public API — verify existing
-      winklink: () => verifyExistingFeeds('winklink'),
-      twap: () => verifyExistingFeeds('twap'),
-      'twap-token': () => verifyExistingFeeds('twap-token'),
-      reflector: () => verifyExistingFeeds('reflector'),
-    };
+      ['winklink', () => verifyExistingFeeds('winklink')],
+      ['twap', () => verifyExistingFeeds('twap')],
+      ['twap-token', () => verifyExistingFeeds('twap-token')],
+      ['reflector', () => verifyExistingFeeds('reflector')],
+    ]);
 
-    if (provider && discoverers[provider]) {
-      results.push(await discoverers[provider]());
-    } else if (!provider) {
-      for (const [name, discoverer] of Object.entries(discoverers)) {
+    if (provider) {
+      const discoverer = discoverers.get(provider);
+      if (!discoverer) {
+        throw new Error(`Unsupported discovery provider: ${provider}`);
+      }
+      results.push(await discoverer());
+    } else {
+      for (const [name, discoverer] of discoverers) {
         try {
           results.push(await discoverer());
         } catch (error) {

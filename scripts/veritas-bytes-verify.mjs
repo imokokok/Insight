@@ -5,7 +5,14 @@
 // v3 or newer.
 // Usage: node veritas-bytes-verify.mjs <bytes-package.json>
 import fs from 'node:fs';
-import { hashTypedData, verifyTypedData, keccak256 } from 'viem';
+import {
+  concat,
+  encodeAbiParameters,
+  hashTypedData,
+  verifyTypedData,
+  keccak256,
+  toBytes,
+} from 'viem';
 
 const file = process.argv[2];
 if (!file) {
@@ -18,15 +25,54 @@ const version = Number(r.data.schemaVersion) || 0;
 const modern = version >= 3;
 
 let failures = 0;
+let passes = 0;
 const check = (name, ok, extra = '') => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra ? '  (' + extra + ')' : ''}`);
-  if (!ok) failures += 1;
+  if (ok) passes += 1;
+  else failures += 1;
 };
 const field = (d, ...names) => {
   for (const n of names) {
     if (d[n] !== undefined && d[n] !== null) return d[n];
   }
   return undefined;
+};
+
+const OBSERVATION_ABI = [
+  { name: 'provider', type: 'string' },
+  { name: 'feedId', type: 'string' },
+  { name: 'value', type: 'uint256' },
+  { name: 'timestamp', type: 'uint256' },
+  { name: 'dataAgeSeconds', type: 'uint256' },
+  { name: 'included', type: 'bool' },
+  { name: 'exclusionReason', type: 'string' },
+];
+const providerObservationsHash = (entries) => {
+  if (!Array.isArray(entries) || entries.length === 0) return keccak256('0x');
+  const entryHashes = entries
+    .map((entry) =>
+      encodeAbiParameters(OBSERVATION_ABI, [
+        entry.provider,
+        entry.feedId,
+        BigInt(entry.value),
+        BigInt(entry.timestamp),
+        BigInt(entry.dataAgeSeconds),
+        entry.included,
+        entry.exclusionReason,
+      ])
+    )
+    .map((encoded) => keccak256(encoded))
+    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  return keccak256(concat(entryHashes));
+};
+const includedObservations = (entries) =>
+  Array.isArray(entries) ? entries.filter((entry) => entry.included) : [];
+const derivedAgreementBps = (entries) => {
+  const values = includedObservations(entries).map((entry) => Number(entry.value));
+  if (values.length === 0) return 0;
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  return Math.round((max > 0 ? 1 - (max - min) / max : 1) * 1e4);
 };
 
 console.log(
@@ -82,10 +128,10 @@ const verdict = r.data.priceExecutionStatus ?? r.data.executionStatus;
 // Independent recompute mirroring the receipt's own deriveExecutionStatus
 // semantics (no Insight code imported here). A receipt may only claim FAITHFUL
 // when slippage is satisfied; UNDETERMINED has three legitimate exits:
-// unreadable price, a gate signed AFTER the fill (backfilled demo packages —
-// Headless H4), or a binding that is not VERIFIED. Both shipped demo packages
-// (v3 repaired, v4) are backfilled, so their preTradeSignedAt > executedAt and
-// the honest verdict is UNDETERMINED — this recompute must accept that.
+// unreadable price, a gate signed AFTER the fill (Headless H4), or a binding
+// that is not VERIFIED. The current exporter signs first and watches forward;
+// this verifier still keeps the UNDETERMINED branch explicit so a regression
+// cannot manufacture a FAITHFUL result by backdating the gate.
 const exAt = Number(r.data.executedAt);
 const pts = Number(r.data.preTradeSignedAt);
 const precedenceHolds = Number.isFinite(pts) && pts > 0 && pts <= exAt;
@@ -130,6 +176,45 @@ for (const [name, gate] of Object.entries(pkg.preTrade)) {
     gDigest === gate.uid && gOk,
     `uid ${gDigest.slice(0, 12)}…`
   );
+  const envelopeSignedAt = Math.floor(Date.parse(gate.signedAt) / 1000);
+  check(
+    `gate ${name}: checkedAt matches actual signing wall clock (no backdating)`,
+    Number.isFinite(envelopeSignedAt) &&
+      Math.abs(Number(gate.data.checkedAt) - envelopeSignedAt) <= 2,
+    `checkedAt=${gate.data.checkedAt} signedAt=${envelopeSignedAt}`
+  );
+}
+
+console.log('== 5b. Provider-observation preimages open both gates (F16) ==');
+for (const [role, gate] of [
+  ['source', pkg.preTrade.sourceGate],
+  ['destination', pkg.preTrade.destinationGate],
+]) {
+  const disclosed = pkg.providerObservationPreimages?.[role];
+  const entries = disclosed?.entries;
+  const recomputed = providerObservationsHash(entries);
+  check(
+    `${role} observations: raw entries open signed providerObservationsHash`,
+    Array.isArray(entries) &&
+      entries.length > 0 &&
+      recomputed.toLowerCase() === String(gate.data.providerObservationsHash).toLowerCase() &&
+      recomputed.toLowerCase() === String(disclosed.signedHash).toLowerCase() &&
+      recomputed.toLowerCase() === String(disclosed.recomputedHash).toLowerCase() &&
+      disclosed.hashMatches === true,
+    `entries=${entries?.length ?? 0} recomputed=${recomputed.slice(0, 12)}…`
+  );
+  const derivedCount = includedObservations(entries).length;
+  const agreementBps = derivedAgreementBps(entries);
+  check(
+    `${role} observations: count and agreement derive from shipped entries`,
+    derivedCount === Number(gate.data.participantCount) &&
+      derivedCount === Number(disclosed.derivedParticipantCount) &&
+      derivedCount === Number(disclosed.signedParticipantCount) &&
+      agreementBps === Number(gate.data.crossProviderAgreementBps) &&
+      agreementBps === Number(disclosed.derivedCrossProviderAgreementBps) &&
+      agreementBps === Number(disclosed.signedCrossProviderAgreementBps),
+    `count=${derivedCount} agreementBps=${agreementBps}`
+  );
 }
 
 console.log('== 6. Binding: receipt quotedPrice derived from gates (VERIFIED) ==');
@@ -150,11 +235,14 @@ if (modern) {
     destCommitted,
     `dest=${String(destUid).slice(0, 12)}…`
   );
-  const presentedUids = [r.data.preTradeUid.toLowerCase(), destUid.toLowerCase()];
-  const joined = presentedUids.map((u) => u.slice(2)).join('');
-  const expectedHash = keccak256('0x' + joined);
+  const zeroBytes32 = '0x' + '0'.repeat(64);
+  const presentedUids = [r.data.preTradeUid, destUid]
+    .filter((uid) => typeof uid === 'string' && uid.toLowerCase() !== zeroBytes32)
+    .map((uid) => uid.toLowerCase());
+  const expectedHash =
+    presentedUids.length === 0 ? keccak256('0x') : keccak256(concat(presentedUids));
   check(
-    'preTradeUidsHash == keccak256(concat(sourceUid, destUid))',
+    'preTradeUidsHash == keccak256(concat(ordered non-zero gate uids)); zero sentinel omitted',
     String(r.data.preTradeUidsHash).toLowerCase() === expectedHash.toLowerCase(),
     `pkg=${String(r.data.preTradeUidsHash).slice(0, 12)}… recomputed=${expectedHash.slice(0, 12)}…`
   );
@@ -190,19 +278,38 @@ if (modern) {
   );
 
   console.log('== 9. v3 F2/F3/F4/F5/F7 disclosures are signed ==');
+  const measuredNames = Array.isArray(pkg.measuredFields?.measured)
+    ? [...new Set(pkg.measuredFields.measured)].sort()
+    : [];
+  const measuredPreimage = measuredNames.join(',');
+  const measuredHash = keccak256(toBytes(measuredPreimage));
   check(
-    'measuredFieldsHash is the empty-set hash (keccak256 of "")',
-    String(r.data.measuredFieldsHash).toLowerCase() === keccak256('0x').toLowerCase(),
-    `pkg=${String(r.data.measuredFieldsHash).slice(0, 12)}…`
+    'measuredFieldsHash opens from the shipped comma-joined field-name set',
+    measuredNames.length > 0 &&
+      String(r.data.measuredFieldsHash).toLowerCase() === measuredHash.toLowerCase() &&
+      pkg.measuredFields.commitmentMatches === true,
+    `fields={${measuredPreimage}} pkg=${String(r.data.measuredFieldsHash).slice(0, 12)}… recomputed=${measuredHash.slice(0, 12)}…`
+  );
+  check(
+    'the promised measured field is exactly executedAmountUsd',
+    measuredNames.length === 1 && measuredNames[0] === 'executedAmountUsd'
+  );
+  check(
+    'signed executedAmountUsd equals the exact USDC Transfer base units',
+    pkg.measuredFields?.evidence?.usdcDecimals === 6 &&
+      Number(pkg.measuredFields?.evidence?.signedUsdScale) === 1_000_000 &&
+      BigInt(r.data.executedAmountUsd) === BigInt(pkg.measuredFields.evidence.usdcRawAmount) &&
+      pkg.measuredFields.evidence.signedValueEqualsUsdcRawAmount === true,
+    `signed=${r.data.executedAmountUsd} rawUSDC=${pkg.measuredFields?.evidence?.usdcRawAmount}`
   );
   check(
     "quoteVenueIndependent == false (quote is the venue's own mid)",
     r.data.quoteVenueIndependent === false
   );
   check(
-    'quoteBasis == PREV_BLOCK_CLOSE and quoteBlockNumber == pre-swap block',
+    'quoteBasis == PREV_BLOCK_CLOSE and quoteBlockNumber == gate quote block',
     r.data.quoteBasis === 'PREV_BLOCK_CLOSE' &&
-      Number(r.data.quoteBlockNumber) === pkg.onchain.preSwapBlockNumber
+      Number(r.data.quoteBlockNumber) === pkg.onchain.quoteBlockNumber
   );
   check('priceScale == 8 (x1e8)', Number(r.data.priceScale) === 8);
   if (version >= 4) {
@@ -226,21 +333,22 @@ if (modern) {
   }
   // F5: two DISTINCT clocks must be readable as distinct. priceStateAge is
   // always on-chain derivable (>0 here) and checked against the block
-  // timestamps below; attestationAge may legitimately be 0 when the gate was
-  // signed after the fill (backfilled demo packages — Headless H4), because
-  // then there is no "attestation age at execution" to report. The check is
-  // therefore: both present, different from each other, priceState positive.
+  // timestamps below. The check keeps the two clocks distinct and requires the
+  // gate age to be a real non-negative interval in this forward run.
   const attAge = Number(r.data.attestationAgeAtExecSeconds);
   const stateAge = Number(r.data.priceStateAgeAtExecSeconds);
   check(
     'two distinct age fields (attestation vs price state)',
-    Number.isFinite(attAge) && Number.isFinite(stateAge) && attAge !== stateAge && stateAge > 0,
+    Number.isFinite(attAge) &&
+      Number.isFinite(stateAge) &&
+      attAge >= 0 &&
+      attAge !== stateAge &&
+      stateAge > 0,
     `attestationAge=${attAge}s priceStateAge=${stateAge}s`
   );
   check(
-    'priceStateAgeAtExecSeconds == executedAt - preSwapBlockTs (on-chain derivable)',
-    Number(r.data.priceStateAgeAtExecSeconds) ===
-      pkg.onchain.executedAt - pkg.onchain.preSwapBlockTs
+    'priceStateAgeAtExecSeconds == executedAt - quoteBlockTs (on-chain derivable)',
+    Number(r.data.priceStateAgeAtExecSeconds) === pkg.onchain.executedAt - pkg.onchain.quoteBlockTs
   );
 
   console.log('== 10. v3 closed loop closes only with BOTH gates ==');
@@ -258,15 +366,16 @@ console.log('== 11. On-chain existence check (publicnode, chain 1) ==');
 try {
   const reqs = [
     { jsonrpc: '2.0', id: 1, method: 'eth_getTransactionByHash', params: [pkg.onchain.txHash] },
-    { jsonrpc: '2.0', id: 2, method: 'eth_getBlockByNumber', params: [null, false] },
+    { jsonrpc: '2.0', id: 2, method: 'eth_blockNumber', params: [] },
     { jsonrpc: '2.0', id: 3, method: 'eth_chainId', params: [] },
+    { jsonrpc: '2.0', id: 4, method: 'eth_getTransactionReceipt', params: [pkg.onchain.txHash] },
   ];
-  if (modern && Number.isInteger(pkg.onchain.preSwapBlockNumber)) {
+  if (modern && Number.isInteger(pkg.onchain.quoteBlockNumber)) {
     reqs.push({
       jsonrpc: '2.0',
-      id: 4,
+      id: 5,
       method: 'eth_getBlockByNumber',
-      params: ['0x' + pkg.onchain.preSwapBlockNumber.toString(16), false],
+      params: ['0x' + pkg.onchain.quoteBlockNumber.toString(16), false],
     });
   }
   const res = await fetch(pkg.onchain.rpc, {
@@ -274,7 +383,7 @@ try {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(reqs),
   });
-  const [txRes, headRes, chainRes, preSwapRes] = await res.json();
+  const [txRes, headRes, chainRes, receiptRes, quoteBlockRes] = await res.json();
   const tx = txRes.result;
   check(
     'tx exists on chain 1',
@@ -287,24 +396,54 @@ try {
     `pkg=${pkg.onchain.blockNumber}`
   );
   check('chainId == 1', chainRes.result === '0x1', `rpc chainId=${chainRes.result}`);
-  if (headRes.result) {
+  if (modern && receiptRes?.result && pkg.measuredFields?.evidence) {
+    const transferTopic = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+    const topicAddress = (address) => `0x${address.toLowerCase().slice(2).padStart(64, '0')}`;
+    const usdc = String(pkg.measuredFields.evidence.usdcToken).toLowerCase();
+    const taker = String(pkg.onchain.taker).toLowerCase();
+    const pool = String(pkg.onchain.pool).toLowerCase();
+    const role = pkg.measuredFields.evidence.usdcRole;
+    const from = role === 'source_paid_to_pool' ? taker : pool;
+    const to = role === 'source_paid_to_pool' ? pool : taker;
+    const matchingTransfers = receiptRes.result.logs.filter(
+      (log) =>
+        String(log.address).toLowerCase() === usdc &&
+        String(log.topics?.[0]).toLowerCase() === transferTopic &&
+        String(log.topics?.[1]).toLowerCase() === topicAddress(from) &&
+        String(log.topics?.[2]).toLowerCase() === topicAddress(to)
+    );
+    const chainUsdcRaw = matchingTransfers.reduce((sum, log) => sum + BigInt(log.data), 0n);
     check(
-      'block is within last 8 blocks (fresh)',
-      pkg.onchain.blockNumber >= parseInt(headRes.result.number, 16) - 8,
-      `head=${parseInt(headRes.result.number, 16)}`
+      'USDC Transfer log independently reproduces executedAmountUsd',
+      matchingTransfers.length === 1 &&
+        chainUsdcRaw === BigInt(pkg.measuredFields.evidence.usdcRawAmount) &&
+        chainUsdcRaw === BigInt(r.data.executedAmountUsd),
+      `logs=${matchingTransfers.length} chainRaw=${chainUsdcRaw}`
     );
   }
-  if (modern && preSwapRes && preSwapRes.result) {
-    const ts = parseInt(preSwapRes.result.timestamp, 16);
+  if (headRes.result) {
+    const head = parseInt(headRes.result, 16);
     check(
-      'preSwapBlock timestamp matches package (age is on-chain derivable)',
-      ts === pkg.onchain.preSwapBlockTs,
-      `pkg=${pkg.onchain.preSwapBlockTs} chain=${ts}`
+      'chain head is at or after the settlement block',
+      head >= pkg.onchain.blockNumber,
+      `head=${head}`
+    );
+  }
+  if (modern && quoteBlockRes && quoteBlockRes.result) {
+    const ts = parseInt(quoteBlockRes.result.timestamp, 16);
+    check(
+      'quote block timestamp matches package (price-state age is on-chain derivable)',
+      ts === pkg.onchain.quoteBlockTs,
+      `pkg=${pkg.onchain.quoteBlockTs} chain=${ts}`
     );
   }
 } catch (e) {
   check('on-chain check', false, `fetch failed: ${e.message}`);
 }
 
-console.log(failures === 0 ? '\nALL CHECKS PASSED' : `\n${failures} CHECK(S) FAILED`);
+console.log(
+  failures === 0
+    ? `\nALL ${passes} CHECKS PASSED`
+    : `\n${passes} PASS / ${failures} CHECK(S) FAILED`
+);
 process.exit(failures === 0 ? 0 : 1);

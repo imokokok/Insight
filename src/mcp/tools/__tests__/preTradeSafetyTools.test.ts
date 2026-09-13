@@ -219,6 +219,10 @@ describe('pre_trade_safety_check MCP tool', () => {
       mlModelVersion: '2026-08-01T00:00:00.000Z',
       mlScore1h: 0.18,
       mlScore6h: 0.2,
+      mlRiskLevel: 'low',
+      mlMediumThreshold: 0.3,
+      mlHighThreshold: 0.6,
+      mlFeatureVector: {},
       anomalyScore: 0.82,
       attestation: null,
       protocolSafety: null,
@@ -233,7 +237,8 @@ describe('pre_trade_safety_check MCP tool', () => {
     expect(output).toContain('ML 6h (strategic): 0.20');
     // Anomaly is flagged elevated...
     expect(output).toContain('Anomaly (model-free): 0.82 ⚠️ ELEVATED');
-    // ...and the novel-manipulation warning fires because ML is calm (< 0.5).
+    // ...and the novel-manipulation warning fires because the model-versioned
+    // level is calm (no hardcoded 0.5 assumption).
     expect(output).toContain('Novel-manipulation signal');
   });
 });

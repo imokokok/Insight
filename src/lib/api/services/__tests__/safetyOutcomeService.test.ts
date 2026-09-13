@@ -49,6 +49,15 @@ function snap(
   };
 }
 
+function fineSnap(minutes: number, price: number | null, deviation = 0.5) {
+  const t = new Date(CHECK_AT).getTime() + minutes * 60_000;
+  return {
+    snapshot_ts: new Date(t).toISOString(),
+    consensus_price: price,
+    deviation_pct: deviation,
+  };
+}
+
 const CHECK_AT = '2026-01-01T00:00:00Z';
 
 describe('safetyOutcomeService — computeOutcome', () => {
@@ -149,6 +158,23 @@ describe('safetyOutcomeService — computeOutcome', () => {
     expect(outcome!.maxPriceMovePct).toBeLessThan(OUTCOME_THRESHOLDS.priceMovePct);
     expect(outcome!.maxDeviationPct).toBeLessThan(OUTCOME_THRESHOLDS.deviationPct);
     expect(outcome!.evidence.some((e) => e.includes('Oracle-vs-market divergence'))).toBe(true);
+    expect(outcome!.labelSpecVersion).toBe(OUTCOME_THRESHOLDS.labelSpecVersion);
+  });
+
+  it('uses the 15-minute spine for the 1h outcome', async () => {
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: (table: string) =>
+        table === 'price_snapshots'
+          ? makeChain({
+              data: [fineSnap(-15, 100), fineSnap(30, 100, 9), fineSnap(60, 100)],
+              error: null,
+            })
+          : makeChain({ data: [], error: null }),
+    } as never);
+
+    const outcome = await computeOutcome('ETH', CHECK_AT, 1);
+    expect(outcome?.label).toBe(true);
+    expect(outcome?.maxDeviationPct).toBe(9);
   });
 
   it('excludes Track-B (null, not zero) when the reference layer has no coverage', async () => {
@@ -174,6 +200,12 @@ describe('safetyOutcomeService — backfillOutcomes', () => {
     let preTradeCall = 0;
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) => {
+        if (table === 'price_snapshots') {
+          return makeChain({
+            data: [fineSnap(-15, 1860), fineSnap(30, 1960), fineSnap(60, 1960)],
+            error: null,
+          });
+        }
         if (table === 'hourly_price_snapshots') {
           return makeChain({
             data: [snap(-1, 1860), snap(1, 1900), snap(2, 1960, 1.0)],
@@ -204,7 +236,9 @@ describe('safetyOutcomeService — backfillOutcomes', () => {
     let preTradeCall = 0;
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) => {
-        if (table === 'hourly_price_snapshots') return makeChain({ data: [], error: null });
+        if (table === 'hourly_price_snapshots' || table === 'price_snapshots') {
+          return makeChain({ data: [], error: null });
+        }
         preTradeCall += 1;
         const result: Result =
           preTradeCall === 1

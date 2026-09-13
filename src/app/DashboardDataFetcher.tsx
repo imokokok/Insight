@@ -1,9 +1,8 @@
+import { HomeLiveDashboard } from '@/components/home/HomeLiveDashboard';
 import {
   createEmptyDashboardData,
   fetchDashboardInitialDataCached,
 } from '@/lib/home/dashboardData';
-
-import HomeContent from './HomeContent';
 
 /**
  * Server Component responsible for fetching the cached dashboard initial data
@@ -19,8 +18,8 @@ export async function DashboardDataFetcher() {
   // cached dashboard endpoint; ISR requests after deployment still receive a
   // fully populated server snapshot.
   if (process.env.NEXT_PHASE === 'phase-production-build') {
-    return <HomeContent initialData={createEmptyDashboardData()} />;
+    return <HomeLiveDashboard initialData={createEmptyDashboardData()} />;
   }
   const initialData = await fetchDashboardInitialDataCached();
-  return <HomeContent initialData={initialData} />;
+  return <HomeLiveDashboard initialData={initialData} />;
 }

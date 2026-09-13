@@ -1,0 +1,43 @@
+# Main-only protocol isolation
+
+`main` is the only long-lived development line. Isolation is enforced by
+immutable protocol objects and explicit activation, not by partner branches.
+
+## Invariants
+
+1. Adding code to `main` does not activate it for any partner.
+2. Every partner resolves one content-addressed policy from the immutable set
+   referenced by the small `activations.json` pointer.
+3. Existing policy files, profiles and releases are append-only. A change creates
+   a new version and content id; it never edits an old object in place. This
+   includes activation sets, so old partner mappings stay resolvable.
+4. Shared public semantics move only through a standalone promotion record with
+   a complete compatibility matrix.
+5. Historical v1-v4 receipts may be inspected only relative to their exact
+   receipt-adjacent registry bytes. The verifier must preserve and report the
+   full SHA-256 and byte length; a missing or mismatched snapshot fails closed,
+   and no legacy verdict is globally canonical. Partner production admission
+   should use v5 or later with a signed semantic profile.
+6. Unknown policy, profile, release, key role or schema fails closed.
+7. A partner production call uses `/api/v1/partners/{partnerId}/...` and must
+   carry the exact active immutable `policyId`; generic public verification is
+   not a partner activation path.
+8. Vercel Git auto-deploy is disabled. Production is queued only by the GitHub
+   Actions deploy job after both `validate` and browser `smoke` have passed on
+   the same `main` commit.
+9. Production ExecutionReceipt signing is v5-only. Retired v1-v4 layouts may be
+   signed only by the dedicated sample-role key for conformance vectors.
+10. `oracleRegistryReleaseIds` are lineage floors, not exact-current matches. A
+    candidate release is admitted only when it equals at least one pin or can
+    reach one through its `predecessorReleaseId` chain. Unknown releases,
+    cycles and releases outside every pinned lineage fail closed.
+11. Every promotion is addressable at
+    `/.well-known/oracle-registry/promotions/{promotionId}`. The id is
+    `keccak256` over the RFC 8785 canonical promotion object excluding its
+    `promotionId`; the route is immutable while current discovery stays small
+    and mutable.
+
+The repository guard in `scripts/check-mainline-governance.mjs` verifies content
+ids and references locally. In CI it also compares against the base revision,
+rejects edits/deletions of immutable objects and requires a promotion record for
+changes to shared protocol paths or activation pointers.

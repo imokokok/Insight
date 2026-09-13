@@ -1,12 +1,12 @@
 import { OracleProviderError } from '@/lib/errors';
 import { BaseOracleClient, OracleCache } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import {
   SPREAD_PERCENTAGES,
   REDSTONE_API_BASE,
   isRedStoneSymbolSupportedAsync,
 } from '@/lib/oracles/constants/redstoneConstants';
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
@@ -73,8 +73,8 @@ export class RedStoneClient extends BaseOracleClient {
   defaultUpdateIntervalMinutes = 10;
   private cache = new OracleCache();
 
-  constructor(config?: OracleClientConfig) {
-    super(config);
+  constructor() {
+    super();
     this.cache.startCleanupInterval();
   }
 
@@ -414,7 +414,7 @@ export class RedStoneClient extends BaseOracleClient {
    */
   override isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
     if (isSymbolActiveInCacheSync('redstone', symbol)) {
-      return true;
+      return chain === undefined || this.supportedChains.includes(chain);
     }
     return super.isSymbolSupported(symbol, chain);
   }
@@ -440,9 +440,7 @@ export class RedStoneClient extends BaseOracleClient {
         return null;
       }
 
-      const now = Date.now();
-      const refTime = priceData.ingestionTimestamp ?? priceData.timestamp;
-      const dataAge = refTime ? Math.round((now - refTime) / 1000) : null;
+      const dataAge = resolveOracleAgeSeconds(priceData);
 
       const onChainData: RedStoneTokenOnChainData = {
         symbol,

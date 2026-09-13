@@ -1,5 +1,4 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import {
   winklinkSymbols,
   WINKLINK_SYMBOL_ALIASES,
@@ -15,12 +14,7 @@ export class WINkLinkClient extends BaseOracleClient {
 
   supportedSymbolsList = winklinkSymbols;
 
-  defaultUpdateIntervalMinutes = 60;
   protected defaultChain = Blockchain.TRON;
-
-  constructor(config?: OracleClientConfig) {
-    super(config);
-  }
 
   async getPrice(
     symbol: string,

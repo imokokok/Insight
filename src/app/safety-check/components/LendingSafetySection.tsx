@@ -38,6 +38,7 @@ interface PreTradePayload {
   manipulationRiskScore?: number;
   mlScore1h?: number | null;
   mlScore6h?: number | null;
+  mlRiskLevel?: 'low' | 'medium' | 'high' | null;
   anomalyScore?: number;
 }
 
@@ -89,7 +90,7 @@ export function LendingSafetySection({
       headers.Authorization = `Bearer ${session.access_token}`;
     }
 
-    fetch(`/api/v1/safety/pre-trade?${params.toString()}`, { headers })
+    fetch(`/api/demo/pre-trade?${params.toString()}`, { headers })
       .then(async (res) => {
         if (!res.ok) {
           const text = await res.text().catch(() => '');
@@ -111,6 +112,7 @@ export function LendingSafetySection({
             manipulationRiskScore: payload.manipulationRiskScore,
             mlScore1h: payload.mlScore1h ?? null,
             mlScore6h: payload.mlScore6h ?? null,
+            mlRiskLevel: payload.mlRiskLevel ?? null,
             anomalyScore: payload.anomalyScore,
           });
         } else {
@@ -124,6 +126,7 @@ export function LendingSafetySection({
             manipulationRiskScore: undefined,
             mlScore1h: null,
             mlScore6h: null,
+            mlRiskLevel: null,
             anomalyScore: undefined,
           });
         }
@@ -180,6 +183,7 @@ export function LendingSafetySection({
           manipulationRiskScore={data.manipulationRiskScore}
           mlScore1h={data.mlScore1h}
           mlScore6h={data.mlScore6h}
+          mlRiskLevel={data.mlRiskLevel}
           anomalyScore={data.anomalyScore}
         />
       )}

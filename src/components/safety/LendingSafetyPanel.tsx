@@ -40,7 +40,10 @@ const VERDICT_STYLE: Record<PreTradeVerdict, { label: string; cls: string; summa
 };
 
 /** Risk-score color helper shared by the forward-looking ML risk lines. */
-function riskColor(score: number): string {
+function riskColor(score: number, level?: 'low' | 'medium' | 'high' | null): string {
+  if (level === 'high') return 'text-red-600';
+  if (level === 'medium') return 'text-amber-600';
+  if (level === 'low') return 'text-emerald-600';
   if (score >= 0.5) return 'text-red-600';
   if (score >= 0.3) return 'text-amber-600';
   return 'text-emerald-600';
@@ -68,6 +71,7 @@ export function LendingSafetyPanel({
   manipulationRiskScore,
   mlScore1h,
   mlScore6h,
+  mlRiskLevel,
   anomalyScore,
 }: {
   protocolSafety: ProtocolSafetyContext | null;
@@ -85,6 +89,8 @@ export function LendingSafetyPanel({
   mlScore1h?: number | null;
   /** Predictive ML risk, strategic 6h horizon (null when the model is inactive). */
   mlScore6h?: number | null;
+  /** Model-versioned severity; avoids hardcoded probability cutoffs. */
+  mlRiskLevel?: 'low' | 'medium' | 'high' | null;
   /** Model-free 24h baseline anomaly score [0,1]. */
   anomalyScore?: number;
 }) {
@@ -209,7 +215,8 @@ export function LendingSafetyPanel({
                 <span className="text-slate-500">ML 1h / 6h</span>
                 <span
                   className={`font-mono font-semibold ${riskColor(
-                    Math.max(mlScore1h ?? 0, mlScore6h ?? 0)
+                    Math.max(mlScore1h ?? 0, mlScore6h ?? 0),
+                    mlRiskLevel
                   )}`}
                 >
                   {mlScore1h?.toFixed(2) ?? '—'} / {mlScore6h?.toFixed(2) ?? '—'}
@@ -228,7 +235,9 @@ export function LendingSafetyPanel({
           {manipulationRiskScore !== undefined && (
             <p className="mt-1.5 text-[11px] text-slate-500">
               Manipulation risk{' '}
-              <span className={`font-mono font-semibold ${riskColor(manipulationRiskScore)}`}>
+              <span
+                className={`font-mono font-semibold ${riskColor(manipulationRiskScore, mlRiskLevel)}`}
+              >
                 {manipulationRiskScore.toFixed(2)}
               </span>
             </p>

@@ -502,3 +502,38 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     });
   });
 });
+
+describe('consensusPrice - fail-closed regression cases', () => {
+  beforeEach(() => {
+    resetConsensusHistory();
+  });
+
+  it('still excludes a gross contaminant when exact agreement makes MAD zero', () => {
+    const inputs = [
+      makeInput({ provider: 'chainlink', price: 100, confidence: 0.1 }),
+      makeInput({ provider: 'redstone', price: 100, confidence: 0.1 }),
+      makeInput({ provider: 'bad_oracle', price: 1000, confidence: 1 }),
+    ];
+    const result = calculateConsensusPrice(inputs, 'weighted_median', 'BTC');
+
+    expect(result.excludedProviders).toEqual(['bad_oracle']);
+    expect(result.participantCount).toBe(2);
+    expect(result.price).toBe(100);
+  });
+
+  it('counts only the fresh inputs that actually enter the aggregate', () => {
+    const inputs = [
+      makeInput({ provider: 'chainlink', price: 100, dataAgeSeconds: 10 }),
+      makeInput({ provider: 'redstone', price: 100.5, dataAgeSeconds: 20 }),
+      // Materially stale/divergent, but below the MAD z-score threshold so
+      // this specifically exercises the freshness exclusion path.
+      makeInput({ provider: 'dia', price: 102.6, dataAgeSeconds: 7200 }),
+    ];
+    const result = calculateConsensusPrice(inputs, 'median', 'BTC');
+
+    expect(result.excludedProviders).toEqual(['dia']);
+    expect(result.participantCount).toBe(2);
+    expect(result.price).toBeCloseTo(100.25, 2);
+    expect(result.confidence).toBeLessThanOrEqual(0.39);
+  });
+});

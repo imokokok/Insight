@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { searchAll, getTokenSymbol, type SearchResult } from '@/lib/constants/searchConfig';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import {
   getSearchHistory,
   saveSearchHistory,
@@ -44,6 +45,7 @@ export function useSearch() {
         setSearchHistory(getSearchHistory());
       }
 
+      announceNavigationStart();
       router.push(path);
     },
     [router]

@@ -11,6 +11,7 @@ Insight is an oracle transparency and risk infrastructure platform for DeFi. It 
 - [The Flagship: Pre-Trade Oracle Safety Check](#the-flagship-pre-trade-oracle-safety-check)
 - [Agent Guard SDK](#agent-guard-sdk)
 - [Independent Receipt Verification](#independent-receipt-verification)
+- [Protocol Release Isolation](#protocol-release-isolation)
 - [Oracle Watch: Always-On Cross-Oracle Monitoring](#oracle-watch-always-on-cross-oracle-monitoring)
 - [Key Features](#key-features)
 - [Supported Oracles](#supported-oracles)
@@ -63,6 +64,8 @@ Anyone can verify a signature against the published attester address via `POST /
 
 ## Agent Guard SDK
 
+[![oracle-insight-guard npm version](https://img.shields.io/npm/v/oracle-insight-guard?label=npm)](https://www.npmjs.com/package/oracle-insight-guard)
+
 The publishable TypeScript package in [`sdk/`](./sdk) turns the three agent-facing services into one explicit execution workflow:
 
 ```text
@@ -72,6 +75,19 @@ two-sided Pre-Trade gate → transaction submission → VERIFIED Execution Recei
 ```
 
 `oracle-insight-guard` does not embed a copy of Insight's rules or signing keys. It calls the existing API with the integrator's API key, so risk decisions, EIP-712 attestations, audit logs, and C3/C4 credit metering stay server-side and authoritative. `executeSwap()` does not call the supplied transaction submitter when either pre-trade result is `DANGER` or `BLOCK`; when both signed v2/v3 proofs are available, it sends them with the transaction hash to issue a `VERIFIED` execution receipt.
+
+For agents that also use PriorSeal, the recommended non-intervening flow is
+`assessSwap()` → external agent decision/execution →
+`verifyAssessedSwapExecution()`. `authorizeAssessedSwap()` optionally binds the
+assessment to a principal-authorized exact call without broadcasting it. The
+derived joint report records complete, partial, pending, mismatched and
+against-recommendation outcomes without becoming a third attestation.
+
+`executeSwapWithPriorSeal()` remains available as an optional gated convenience
+wrapper. The signed PriorSeal intent commits to both Insight pre-trade
+attestation UIDs, both request hashes and the slippage ceiling. Insight continues
+to attest quote/fill/slippage semantics; PriorSeal independently proves that the
+exact call and those external proof references were principal-authorized.
 
 ### Integration surfaces and billing
 
@@ -97,7 +113,8 @@ For integrations that should not depend on Insight being online, the repository 
 
 **Live in-browser verifier —** the deployed site hosts a zero-trust demo at [`/verify`](https://www.oracleinsight.xyz/verify). It fetches a public sample receipt and the published `/.well-known/oracle-keys.json` registry, then re-verifies the EIP-712 signature entirely in your browser with `verify-insight-receipt`. No server, no API key, no trust in Insight — the verdict is computed on the client and never sent back.
 
-**Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt) **v0.2.0**.
+**Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt)
+[![verify-insight-receipt npm version](https://img.shields.io/npm/v/verify-insight-receipt?label=npm)](https://www.npmjs.com/package/verify-insight-receipt).
 
 ```bash
 # Published package (recommended)
@@ -129,6 +146,24 @@ The package supports v1, v2, v3, and v2/v3 recheck receipts. Its schema constant
 - **MCP tool** — `pre_trade_safety_check` (one of 37 tools).
 - **REST** — `GET /api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=100000`.
 - **Web** — interactive demo at `/ai`; the same lending check is embedded live on every position at `/safety-check`.
+
+## Protocol Release Isolation
+
+ExecutionReceipt v5 signs a content-addressed `profileId` alongside the receipt.
+That immutable profile fixes the commitment, sentinel, scale and verdict rules;
+`schemaVersion` continues to identify only the EIP-712 field layout. The public
+registry also exposes `registryRevision`, `effectiveFrom`, a small current
+pointer and immutable release/profile URLs. All partner code can coexist on
+`main`: independently activated, content-addressed partner policies ensure that
+one collaboration cannot silently advance another collaboration's path.
+Partner production verification uses `/api/v1/partners/{partnerId}/...` and
+requires the exact active immutable `policyId` on every request; the generic
+verification URLs remain public/historical surfaces. Production deployment is
+also gated: Vercel Git auto-deploy is disabled and the deploy hook runs only
+after the same `main` commit passes full validation and browser smoke. See
+[the oracle registry release policy](./docs/oracle-registry-release-policy.md).
+The end-to-end workflow is documented in
+[main-only partner isolation](./docs/mainline-partner-isolation.md).
 
 ## Oracle Watch: Always-On Cross-Oracle Monitoring
 

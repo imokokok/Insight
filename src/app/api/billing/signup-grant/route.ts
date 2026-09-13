@@ -25,7 +25,7 @@ const logger = createLogger('billing-signup-grant');
 
 /** Trial credits granted once per user. Enough for five complete Guard
  *  workflows (2x C3 + 1x C4), while remaining a bounded one-time grant. */
-export const TRIAL_CREDITS = 100;
+const TRIAL_CREDITS = 100;
 
 export const POST = createApiHandler(
   async (_request, context) => {

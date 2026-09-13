@@ -9,6 +9,7 @@ import { Search, X, Command, ArrowUp, ArrowDown, CornerDownLeft } from 'lucide-r
 
 import { useKeyboardShortcuts } from '@/hooks/ui/useKeyboardShortcuts';
 import { useDebounce } from '@/hooks/utils/useDebounce';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 
 import { SearchGroupSection, EmptyState, InitialState } from './SearchResultItems';
 import { type SearchResult } from './types';
@@ -99,6 +100,7 @@ function GlobalSearchComponent({ isOpen, onClose }: GlobalSearchProps) {
 
   const handleSelect = useCallback(
     (result: SearchResult) => {
+      announceNavigationStart();
       router.push(result.href);
       onClose();
     },

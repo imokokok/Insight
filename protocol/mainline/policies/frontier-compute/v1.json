@@ -1,0 +1,19 @@
+{
+  "policyId": "0xca3bd5acb9d70f9e9755fad44e87cff1122f88986a6c61b33d93a49e3bb15861",
+  "kind": "MainlinePartnerPolicy",
+  "policyVersion": 1,
+  "partnerId": "frontier-compute",
+  "lifecycle": "verified",
+  "activation": "explicit-policy-id",
+  "surfaces": ["oracle-safety-check", "attester-key-role", "registry-admission"],
+  "pins": {
+    "oracleRegistryReleaseIds": [
+      "0xd240af8f16adb282cbbbb9feb695f5bfb8cccde074af046fb7d4ca4c2d4c5c2e"
+    ],
+    "executionProfileIds": [],
+    "executionSchemaVersions": [],
+    "externalContracts": ["oracle-safety-check:v3", "registry-admission:operator-controlled"]
+  },
+  "legacyRule": "Trust is pinned at release, key id, role and validity-window granularity; raw mutable registry bytes never auto-advance the trusted head.",
+  "productionReachability": "disabled"
+}

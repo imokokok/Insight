@@ -66,11 +66,6 @@ describe('SupraClient', () => {
     it('should have defaultUpdateIntervalMinutes set to 5', () => {
       expect(client.defaultUpdateIntervalMinutes).toBe(5);
     });
-
-    it('should create client with custom config', () => {
-      const customClient = new SupraClient({ useDatabase: false, validateData: false });
-      expect(customClient).toBeInstanceOf(SupraClient);
-    });
   });
 
   describe('getSupportedSymbols', () => {

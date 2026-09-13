@@ -328,8 +328,9 @@ export default async function OpsSafetyPage({
                   <th className={thCls}>Horizon</th>
                   <th className={thCls}>Verified</th>
                   <th className={thCls}>Test AUC</th>
-                  <th className={thCls}>Precision @0.5</th>
-                  <th className={thCls}>Recall @0.5</th>
+                  <th className={thCls}>High threshold</th>
+                  <th className={thCls}>Precision @high</th>
+                  <th className={thCls}>Recall @high</th>
                 </tr>
               </thead>
               <tbody>
@@ -341,6 +342,9 @@ export default async function OpsSafetyPage({
                     </td>
                     <td className="py-2 pr-3 tabular-nums text-gray-600">
                       {h.auc !== null ? h.auc.toFixed(4) : '—'}
+                    </td>
+                    <td className="py-2 pr-3 tabular-nums text-gray-600">
+                      {h.highThreshold != null ? h.highThreshold.toFixed(3) : '—'}
                     </td>
                     <td className="py-2 pr-3 tabular-nums text-gray-600">
                       {h.precision !== null ? h.precision.toFixed(4) : '—'}

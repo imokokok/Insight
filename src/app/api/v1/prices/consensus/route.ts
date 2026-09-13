@@ -17,7 +17,7 @@ const ConsensusQuerySchema = z.object({
   symbol: SafeSymbolSchema,
   chain: SafeChainSchema.optional(),
   method: z
-    .enum(['median', 'trimmed_mean', 'weighted_median', 'iqr_filtered'])
+    .enum(['auto', 'median', 'trimmed_mean', 'weighted_median', 'iqr_filtered'])
     .optional()
     .default('weighted_median'),
 });
@@ -32,7 +32,7 @@ export const GET = createApiHandler(
       const result: ConsensusPriceResponse = await getConsensusPrice(
         symbol,
         chain,
-        method as ConsensusMethod
+        method === 'auto' ? undefined : (method as ConsensusMethod)
       );
 
       const response = NextResponse.json(

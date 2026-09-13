@@ -34,6 +34,8 @@ export {
   EXECUTION_TYPES_V2,
   EXECUTION_TYPES_V3,
   EXECUTION_TYPES_V4,
+  EXECUTION_TYPES_V5,
+  EXECUTION_PROFILE_V1_ID,
   type ExecutionReceipt,
   type ExecutionVerificationResult,
   type ExecutionPairResult,

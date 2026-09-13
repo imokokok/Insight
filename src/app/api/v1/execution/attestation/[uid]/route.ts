@@ -23,7 +23,9 @@ export const OPTIONS = createOptionsHandler();
 
 export const GET = createApiHandler(
   async (_request: NextRequest, context) => {
-    const uid = context.validated!.params!.uid;
+    // hashTypedData emits lowercase hex; normalize the case-insensitive input
+    // before the exact text lookup used by PostgREST.
+    const uid = context.validated!.params!.uid.toLowerCase();
     const { data, error } = await createServiceRoleClient()
       .from('execution_receipts')
       .select('receipt_payload')

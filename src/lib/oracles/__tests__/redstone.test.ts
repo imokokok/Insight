@@ -98,15 +98,6 @@ describe('RedStoneClient', () => {
       expect(client.defaultUpdateIntervalMinutes).toBe(10);
     });
 
-    it('should create client with custom config', () => {
-      const customClient = new RedStoneClient({
-        useDatabase: false,
-        validateData: false,
-        useRealData: false,
-      });
-      expect(customClient).toBeInstanceOf(RedStoneClient);
-    });
-
     it('should have correct number of supported chains', () => {
       expect(client.supportedChains.length).toBe(12);
     });
@@ -727,15 +718,14 @@ describe('RedStoneClient', () => {
       expect(result?.spreadPercentage).toBeDefined();
     });
 
-    it('should calculate data age from ingestionTimestamp', async () => {
-      // The implementation uses ingestionTimestamp ?? timestamp, and ingestionTimestamp
-      // is set to Date.now() when the price response is parsed, so fresh data has age 0.
+    it('should calculate data age from the oracle timestamp', async () => {
       const timestamp = Date.now() - 30000;
       mockFetch.mockResolvedValueOnce(createMockResponse([{ ...mockPriceData, timestamp }]));
 
       const result = await client.getTokenOnChainData('BTC');
 
-      expect(result?.dataAge).toBe(0);
+      expect(result?.dataAge).toBeGreaterThanOrEqual(29);
+      expect(result?.dataAge).toBeLessThanOrEqual(31);
     });
 
     it('should cache on-chain data', async () => {

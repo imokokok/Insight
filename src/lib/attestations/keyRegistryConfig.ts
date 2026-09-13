@@ -64,22 +64,33 @@ export const DEFAULT_SAMPLE_KEY_ID = 'insight-oracle-safety-sample';
 export const DEFAULT_SAMPLE_KEY_NOTE =
   'SAMPLE ONLY: receipts signed by this key carry synthetic demo facts (clearly-labelled demo inputs, no real settlement). Verify them to exercise the signature loop; never treat them as evidence of a real trade.';
 
-/**
- * Rotation cadence target (key-rotation-procedure.md §2): annual, or
- * immediately on compromise / regeneration. Process-level — the actual
- * schedule lives on an operations calendar, not in code (gap §5.5).
- */
-export const ROTATION_TARGET_CADENCE_DAYS = 365;
-
 function normalizeKey(raw: Partial<KeyEntry> & { public_key: string }): KeyEntry {
+  if (!/^0x[0-9a-fA-F]{40}$/.test(raw.public_key)) {
+    throw new Error('attestation public_key must be a 20-byte hex address');
+  }
+  if (raw.role !== undefined && raw.role !== 'attester' && raw.role !== 'sample') {
+    throw new Error('attestation key role must be attester or sample');
+  }
+  const validFrom = raw.validFrom ?? process.env.ATTESTATION_KEY_VALID_FROM ?? DEFAULT_VALID_FROM;
+  if (Number.isNaN(Date.parse(validFrom))) {
+    throw new Error('attestation key validFrom must be an ISO date');
+  }
+  if (
+    raw.validUntil !== undefined &&
+    raw.validUntil !== null &&
+    Number.isNaN(Date.parse(raw.validUntil))
+  ) {
+    throw new Error('attestation key validUntil must be an ISO date or null');
+  }
   return {
     key_id: raw.key_id ?? DEFAULT_KEY_ID,
     public_key: raw.public_key,
     algorithm: 'EIP-712/secp256k1',
-    validFrom: raw.validFrom ?? process.env.ATTESTATION_KEY_VALID_FROM ?? DEFAULT_VALID_FROM,
+    validFrom,
     validUntil: raw.validUntil ?? null,
     revoked: raw.revoked ?? false,
     note: raw.note,
+    role: raw.role,
   };
 }
 
@@ -111,33 +122,50 @@ export function buildKeyRegistryConfig(
       }
     : null;
 
+  let revoked: RevokedKey[] = [];
+  const revokedConfig = process.env.ATTESTATION_REVOKED_KEYS_CONFIG;
+  if (revokedConfig) {
+    try {
+      const parsedRevoked = JSON.parse(revokedConfig) as unknown;
+      if (!Array.isArray(parsedRevoked)) {
+        throw new Error('ATTESTATION_REVOKED_KEYS_CONFIG must be a JSON array');
+      }
+      revoked = parsedRevoked as RevokedKey[];
+    } catch (error) {
+      throw new Error(
+        `Invalid attestation key registry configuration: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+
   if (keysConfig) {
     try {
       const parsed = JSON.parse(keysConfig) as Array<Partial<KeyEntry> & { public_key: string }>;
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const revokedConfig = process.env.ATTESTATION_REVOKED_KEYS_CONFIG;
-        let revoked: RevokedKey[] = [];
-        if (revokedConfig) {
-          try {
-            const parsedRevoked = JSON.parse(revokedConfig);
-            if (Array.isArray(parsedRevoked)) revoked = parsedRevoked as RevokedKey[];
-          } catch {
-            /* ignore malformed revoked config */
-          }
-        }
-        const keys = parsed.map(normalizeKey);
-        // Append the sample signer unless the explicit config already lists
-        // its address (deduped by address, the verification identity).
-        if (
-          sampleEntry &&
-          !keys.some((k) => k.public_key.toLowerCase() === sampleEntry.public_key.toLowerCase())
-        ) {
-          keys.push(sampleEntry);
-        }
-        return { keys, revoked };
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        throw new Error('ATTESTATION_KEYS_CONFIG must be a non-empty JSON array');
       }
-    } catch {
-      /* fall through to single-key */
+      if (parsed.some((key) => typeof key.public_key !== 'string' || key.public_key.length === 0)) {
+        throw new Error('ATTESTATION_KEYS_CONFIG contains a key without public_key');
+      }
+
+      const keys = parsed.map(normalizeKey);
+      // Append the sample signer unless the explicit config already lists
+      // its address (deduped by address, the verification identity).
+      if (
+        sampleEntry &&
+        !keys.some((k) => k.public_key.toLowerCase() === sampleEntry.public_key.toLowerCase())
+      ) {
+        keys.push(sampleEntry);
+      }
+      return { keys, revoked };
+    } catch (error) {
+      throw new Error(
+        `Invalid attestation key registry configuration: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     }
   }
 
@@ -156,15 +184,14 @@ export function buildKeyRegistryConfig(
 
   return {
     keys,
-    revoked: [],
+    revoked,
   };
 }
 
 /**
  * Whether an attestation signed by `attester` at `checkedAt` is within the
- * published trust window. Used ONLY when server-side window enforcement is
- * enabled (ATTESTATION_ENFORCE_KEY_WINDOW). When enforcement is off this is
- * never called.
+ * published trust window. Server verification endpoints always enforce this
+ * boundary; independent/offline verifiers can report it separately.
  *
  * Returns false if: key unknown, revoked, `checkedAt` before `validFrom`, or
  * `checkedAt` after `validUntil` (when set).
@@ -187,9 +214,28 @@ export function isAttestationKeyValid(
 
   if (entry.validUntil) {
     const until = Date.parse(entry.validUntil);
-    if (!Number.isNaN(until) && checkedAtMs > until) return false;
+    if (!Number.isNaN(until) && checkedAtMs >= until) return false;
   }
   return true;
+}
+
+/** Apply Insight issuer trust to a cryptographically valid verification
+ * result. Mutates the result so API handlers cannot accidentally return a
+ * self-signed receipt as valid merely because its signature is consistent. */
+export function enforceAttestationKeyTrust(
+  result: {
+    valid: boolean;
+    attester: string;
+    checkedAt: number | null;
+    reason?: string;
+  },
+  config: KeyRegistryConfig,
+  timestampLabel: 'checkedAt' | 'evaluatedAt' = 'checkedAt'
+): void {
+  if (!result.valid || !result.attester) return;
+  if (isAttestationKeyValid(result.attester, result.checkedAt, config)) return;
+  result.valid = false;
+  result.reason = `attester key is unknown, revoked, or its ${timestampLabel} is outside the published validity window`;
 }
 
 /** Resolve the registry entry that authorises a production attestation.

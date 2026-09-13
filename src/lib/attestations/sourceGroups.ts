@@ -77,13 +77,3 @@ export function nonDerivedGroupCount(providers: ReadonlyArray<string>): number {
   }
   return groups.size;
 }
-
-/** Distinct source groups (derived + non-derived) — informational symmetry with
- *  {@link nonDerivedGroupCount}; not used for the gate or the signed count. */
-export function distinctSourceGroups(providers: ReadonlyArray<string>): number {
-  const groups = new Set<string>();
-  for (const p of providers) {
-    groups.add(resolveSourceGroup(p));
-  }
-  return groups.size;
-}

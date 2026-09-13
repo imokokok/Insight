@@ -1,8 +1,19 @@
 import { InsightClient } from './client';
-import { ReceiptConfigurationError, TradeBlockedError } from './errors';
+import { InsightApiError, ReceiptConfigurationError, TradeBlockedError } from './errors';
+import {
+  buildInsightPriorSealContextCommitment,
+  buildPriorSealExactCallIntent,
+  generatePriorSealAuthorizationNonce,
+  PriorSealBridgeError,
+} from './priorseal';
 
 import type {
+  AssessedSwapAuthorizationRequest,
+  AssessedSwapAuthorizationResult,
+  AssessedSwapExecutionVerificationRequest,
+  AssessedSwapExecutionVerificationResult,
   ExecutionReceiptRequest,
+  ExecutionReceiptResult,
   GuardDecision,
   GuardedSwapRequest,
   GuardedSwapResult,
@@ -11,7 +22,15 @@ import type {
   OracleWatchTarget,
   PreTradeRequest,
   PreTradeResult,
+  PreparedExactCallTransaction,
+  PriorSealAcceptedAuthorization,
+  PriorSealGuardedSwapRequest,
+  PriorSealGuardedSwapResult,
+  PriorSealObservationResult,
   SignedAttestation,
+  SwapAssessment,
+  SwapAssessmentRequest,
+  TransactionRecommendation,
   WatchHandle,
   WatchOptions,
 } from './types';
@@ -37,7 +56,10 @@ export class InsightGuard {
 
   async check(request: PreTradeRequest, signal?: AbortSignal): Promise<GuardDecision> {
     const result = await this.client.preTrade(request, signal);
-    return { allowed: !this.blockedVerdicts.has(result.verdict), result };
+    return {
+      allowed: isExecutionAuthorised(result.verdict) && !this.blockedVerdicts.has(result.verdict),
+      result,
+    };
   }
 
   /** Exception-style helper for agents whose executor aborts on thrown errors. */
@@ -49,12 +71,439 @@ export class InsightGuard {
   }
 
   /**
+   * Evaluate both sides of a swap without submitting, signing, or preventing a transaction.
+   * Operational and evidence failures are represented as UNASSESSABLE rather than thrown.
+   */
+  async assessSwap(request: SwapAssessmentRequest, signal?: AbortSignal): Promise<SwapAssessment> {
+    const [sourceResult, destinationResult] = await Promise.allSettled([
+      this.client.preTrade(
+        { ...request.source, schemaVersion: request.source.schemaVersion ?? 3 },
+        signal
+      ),
+      this.client.preTrade(
+        { ...request.destination, schemaVersion: request.destination.schemaVersion ?? 3 },
+        signal
+      ),
+    ]);
+    const sourcePreTrade = sourceResult.status === 'fulfilled' ? sourceResult.value : null;
+    const destinationPreTrade =
+      destinationResult.status === 'fulfilled' ? destinationResult.value : null;
+    const watchHalted = Boolean(request.watchTarget && this.isHalted(request.watchTarget));
+    const errors = {
+      ...(sourceResult.status === 'rejected' ? { source: evidenceError(sourceResult.reason) } : {}),
+      ...(destinationResult.status === 'rejected'
+        ? { destination: evidenceError(destinationResult.reason) }
+        : {}),
+    };
+
+    let receiptDraft: Omit<ExecutionReceiptRequest, 'txHash' | 'taker'> | null = null;
+    let bindingError: { message: string } | undefined;
+    if (sourcePreTrade && destinationPreTrade) {
+      try {
+        receiptDraft = buildVerifiedReceiptDraft(
+          sourcePreTrade,
+          destinationPreTrade,
+          request.receipt
+        );
+      } catch (error) {
+        bindingError = evidenceError(error);
+      }
+    }
+
+    const recommendation = recommendationFor(
+      sourcePreTrade,
+      destinationPreTrade,
+      watchHalted,
+      Boolean(bindingError)
+    );
+    const reasonCodes = assessmentReasonCodes(
+      sourcePreTrade,
+      destinationPreTrade,
+      watchHalted,
+      errors,
+      bindingError
+    );
+    const validUntil = minimumPositive([
+      number(sourcePreTrade?.attestation?.data.validUntil),
+      number(destinationPreTrade?.attestation?.data.validUntil),
+    ]);
+    const contextCommitment = receiptDraft?.preTradeAttestations
+      ? buildInsightPriorSealContextCommitment({
+          sourceAttestation: receiptDraft.preTradeAttestations.source,
+          destinationAttestation: receiptDraft.preTradeAttestations.destination,
+          maxSlippageBps: receiptDraft.maxSlippageBps,
+        })
+      : null;
+
+    return {
+      schema: 'insight.swap-assessment.v1',
+      recommendation,
+      reasonCodes,
+      sourcePreTrade,
+      destinationPreTrade,
+      watchHalted,
+      constraints: {
+        maxSlippageBps: request.receipt.maxSlippageBps ?? 50,
+        recommendedMaxPositionUsd: minimumKnownNonNegative([
+          sourcePreTrade?.recommendedMaxPositionUsd,
+          destinationPreTrade?.recommendedMaxPositionUsd,
+        ]),
+        validUntil,
+      },
+      contextCommitment,
+      receiptDraft,
+      errors: { ...errors, ...(bindingError ? { binding: bindingError } : {}) },
+    };
+  }
+
+  /** Bind an advisory assessment to an exact call. This method never broadcasts a transaction. */
+  async authorizeAssessedSwap(
+    request: AssessedSwapAuthorizationRequest
+  ): Promise<AssessedSwapAuthorizationResult> {
+    const { assessment, transaction, priorSeal } = request;
+    const evidence = requireAssessmentEvidence(assessment);
+    if (transaction.chainId !== evidence.settlementChainId) {
+      throw new ReceiptConfigurationError(
+        'Prepared transaction and Insight assessment must use the same settlement chain.'
+      );
+    }
+
+    const issuedAt = priorSeal.issuedAt ?? Math.floor(Date.now() / 1000);
+    const validUntil = priorSeal.validUntil ?? assessment.constraints.validUntil;
+    if (!Number.isSafeInteger(validUntil) || (validUntil ?? 0) <= issuedAt) {
+      throw new ReceiptConfigurationError(
+        'PriorSeal validUntil must be after issuedAt and covered by the Insight assessment.'
+      );
+    }
+    if (
+      assessment.constraints.validUntil != null &&
+      validUntil! > assessment.constraints.validUntil
+    ) {
+      throw new ReceiptConfigurationError(
+        'PriorSeal authorization cannot outlive the signed Insight assessment.'
+      );
+    }
+
+    const authorizationNonce =
+      priorSeal.authorizationNonce ?? generatePriorSealAuthorizationNonce();
+    const intent = buildPriorSealExactCallIntent({
+      transaction,
+      intentId: priorSeal.intentId ?? `insight:${authorizationNonce.slice(2, 34)}`,
+      sourceAssetId: evidence.sourceAssetId,
+      validUntil: validUntil!,
+      minConfirmations: priorSeal.confirmations,
+      contextCommitments: [assessment.contextCommitment!],
+    });
+    const preparedAuthorization = await priorSeal.client.prepareAuthorization(
+      {
+        intent,
+        principal: priorSeal.principal,
+        authorizer: {
+          type: priorSeal.authorizer?.type ?? 'eip712',
+          address: priorSeal.authorizer?.address ?? priorSeal.principal.account,
+        },
+        delegate: { agentId: priorSeal.agentId, executor: intent.sender },
+        issuedAt,
+        notBefore: issuedAt,
+        expiresAt: validUntil!,
+        authorizationNonce,
+        maxUses: '1',
+        audience: priorSeal.audience ?? 'priorseal',
+      },
+      priorSeal.signal
+    );
+    const signature = await priorSeal.signAuthorization(preparedAuthorization);
+    if (!/^0x[0-9a-fA-F]+$/.test(signature)) {
+      throw new ReceiptConfigurationError('PriorSeal signer returned no hex signature.');
+    }
+    const signedAuthorization = { ...preparedAuthorization.authorization, signature };
+    const priorSealAuthorization = await priorSeal.client.acceptAuthorization(
+      signedAuthorization,
+      priorSeal.signal
+    );
+    assertAcceptedAuthorizationMatchesPresented(priorSealAuthorization, signedAuthorization);
+    assertAuthorizationMatchesAssessment(priorSealAuthorization, assessment, transaction);
+    return { assessment, transaction, priorSealAuthorization };
+  }
+
+  /** Observe an externally submitted transaction and derive a joint, non-authoritative report. */
+  async verifyAssessedSwapExecution(
+    request: AssessedSwapExecutionVerificationRequest
+  ): Promise<AssessedSwapExecutionVerificationResult> {
+    const evidence = requireAssessmentEvidence(request.assessment);
+    if (!/^0x[0-9a-fA-F]{64}$/.test(request.txHash)) {
+      throw new ReceiptConfigurationError('txHash must be 32-byte hex.');
+    }
+    assertAuthorizationMatchesAssessment(
+      request.priorSealAuthorization,
+      request.assessment,
+      request.transaction
+    );
+
+    const [insightResult, priorSealResult] = await Promise.allSettled([
+      this.client.issueExecutionReceipt(
+        { ...evidence, txHash: request.txHash, taker: request.taker },
+        request.priorSeal.signal
+      ),
+      request.priorSeal.client.observeExecution(
+        {
+          authorizationId: request.priorSealAuthorization.authorization.authorizationId,
+          chainId: request.transaction.chainId,
+          txHash: request.txHash,
+          confirmations: request.priorSeal.confirmations,
+        },
+        request.priorSeal.signal
+      ),
+    ]);
+    const insightReceipt = insightResult.status === 'fulfilled' ? insightResult.value : null;
+    const priorSealEvidence = priorSealResult.status === 'fulfilled' ? priorSealResult.value : null;
+    const evidenceErrors = {
+      ...(insightResult.status === 'rejected'
+        ? { insight: evidenceError(insightResult.reason) }
+        : {}),
+      ...(priorSealResult.status === 'rejected'
+        ? { priorSeal: evidenceError(priorSealResult.reason) }
+        : {}),
+    };
+    return {
+      insightReceipt,
+      priorSealEvidence,
+      evidenceErrors,
+      report: buildJointAssuranceReport(
+        request.assessment,
+        request.txHash,
+        insightReceipt,
+        priorSealEvidence
+      ),
+    };
+  }
+
+  /**
    * Full two-sided swap workflow: pre-trade gates, submit only when both pass,
    * then create a VERIFIED execution receipt from the two signed gate proofs.
    */
   async executeSwap(request: GuardedSwapRequest): Promise<GuardedSwapResult> {
+    const gated = await this.evaluateSwapGates(request);
+    if (!gated.ready) return gated.result;
+
+    const transaction = await request.submitTransaction({
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+    });
+    if (!transaction.txHash)
+      throw new ReceiptConfigurationError('submitTransaction returned no txHash.');
+
+    const receiptRequest: ExecutionReceiptRequest = {
+      ...gated.receiptDraft,
+      txHash: transaction.txHash,
+      taker: transaction.taker,
+    };
+
+    let receipt: ExecutionReceiptResult;
+    try {
+      receipt = await this.client.issueExecutionReceipt(receiptRequest);
+    } catch (error) {
+      // The transaction is already broadcast. Never reject the whole workflow:
+      // callers commonly retry rejected operations, which could submit a
+      // duplicate trade. Return the exact receipt request for evidence-only
+      // recovery instead.
+      return {
+        status: 'executed_receipt_pending',
+        sourcePreTrade: gated.sourcePreTrade,
+        destinationPreTrade: gated.destinationPreTrade,
+        transaction,
+        receiptRequest,
+        evidenceError: evidenceError(error),
+      };
+    }
+
+    return {
+      status: 'executed',
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+      transaction,
+      receipt,
+    };
+  }
+
+  /** Retry evidence issuance for an already-broadcast swap without resubmitting it. */
+  async retryExecutionReceipt(
+    receiptRequest: ExecutionReceiptRequest,
+    signal?: AbortSignal
+  ): Promise<ExecutionReceiptResult> {
+    return this.client.issueExecutionReceipt(receiptRequest, signal);
+  }
+
+  /**
+   * Joint flow: Insight gates the swap, PriorSeal authorizes the exact calldata
+   * before broadcast, then both systems independently issue evidence afterward.
+   */
+  async executeSwapWithPriorSeal(
+    request: PriorSealGuardedSwapRequest
+  ): Promise<PriorSealGuardedSwapResult> {
+    const gated = await this.evaluateSwapGates(request);
+    if (!gated.ready) return gated.result;
+
+    const preparedTransaction = await request.prepareTransaction({
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+    });
+    if (preparedTransaction.chainId !== request.receipt.settlementChainId) {
+      throw new ReceiptConfigurationError(
+        'Prepared transaction and Insight receipt must use the same settlement chain.'
+      );
+    }
+
+    const issuedAt = request.priorSeal.issuedAt ?? Math.floor(Date.now() / 1000);
+    const signedGateValidUntil = number(gated.sourcePreTrade.attestation?.data.validUntil);
+    const validUntil = request.priorSeal.validUntil ?? signedGateValidUntil;
+    if (!Number.isSafeInteger(validUntil) || validUntil <= issuedAt) {
+      throw new ReceiptConfigurationError(
+        'PriorSeal validUntil must be after issuedAt; pass it explicitly when the gate does not expose one.'
+      );
+    }
+    if (signedGateValidUntil > 0 && validUntil > signedGateValidUntil) {
+      throw new ReceiptConfigurationError(
+        'PriorSeal authorization cannot outlive the signed Insight pre-trade gate.'
+      );
+    }
+
+    const authorizationNonce =
+      request.priorSeal.authorizationNonce ?? generatePriorSealAuthorizationNonce();
+    const insightContextCommitment = buildInsightPriorSealContextCommitment({
+      sourceAttestation: gated.receiptDraft.preTradeAttestations!.source,
+      destinationAttestation: gated.receiptDraft.preTradeAttestations!.destination,
+      maxSlippageBps: gated.receiptDraft.maxSlippageBps,
+    });
+    const intent = buildPriorSealExactCallIntent({
+      transaction: preparedTransaction,
+      intentId: request.priorSeal.intentId ?? `insight:${authorizationNonce.slice(2, 34)}`,
+      sourceAssetId: gated.receiptDraft.sourceAssetId,
+      validUntil,
+      minConfirmations: request.priorSeal.confirmations,
+      contextCommitments: [insightContextCommitment],
+    });
+    const preparedAuthorization = await request.priorSeal.client.prepareAuthorization(
+      {
+        intent,
+        principal: request.priorSeal.principal,
+        authorizer: {
+          type: request.priorSeal.authorizer?.type ?? 'eip712',
+          address: request.priorSeal.authorizer?.address ?? request.priorSeal.principal.account,
+        },
+        delegate: { agentId: request.priorSeal.agentId, executor: intent.sender },
+        issuedAt,
+        notBefore: issuedAt,
+        expiresAt: validUntil,
+        authorizationNonce,
+        maxUses: '1',
+        audience: request.priorSeal.audience ?? 'priorseal',
+      },
+      request.priorSeal.signal
+    );
+    const signature = await request.priorSeal.signAuthorization(preparedAuthorization);
+    if (!/^0x[0-9a-fA-F]+$/.test(signature)) {
+      throw new ReceiptConfigurationError('PriorSeal signer returned no hex signature.');
+    }
+    const signedAuthorization = { ...preparedAuthorization.authorization, signature };
+    const priorSealAuthorization = await request.priorSeal.client.acceptAuthorization(
+      signedAuthorization,
+      request.priorSeal.signal
+    );
+    assertAcceptedAuthorizationMatchesPresented(priorSealAuthorization, signedAuthorization);
+
+    const transaction = await request.submitTransaction({
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+      transaction: preparedTransaction,
+      priorSealAuthorization,
+    });
+    if (!/^0x[0-9a-fA-F]{64}$/.test(transaction.txHash)) {
+      throw new ReceiptConfigurationError('submitTransaction returned no valid transaction hash.');
+    }
+
+    // Once a transaction has been broadcast, evidence services are independent:
+    // preserve either result instead of hiding it when its companion is down.
+    const [insightResult, priorSealResult] = await Promise.allSettled([
+      this.client.issueExecutionReceipt(
+        {
+          ...gated.receiptDraft,
+          txHash: transaction.txHash,
+          taker: transaction.taker,
+        },
+        request.priorSeal.signal
+      ),
+      request.priorSeal.client.observeExecution(
+        {
+          authorizationId: priorSealAuthorization.authorization.authorizationId,
+          chainId: preparedTransaction.chainId,
+          txHash: transaction.txHash,
+          confirmations: request.priorSeal.confirmations,
+        },
+        request.priorSeal.signal
+      ),
+    ]);
+
+    const insightReceipt = insightResult.status === 'fulfilled' ? insightResult.value : null;
+    const priorSealEvidence = priorSealResult.status === 'fulfilled' ? priorSealResult.value : null;
+    const evidenceErrors = {
+      ...(insightResult.status === 'rejected'
+        ? { insight: evidenceError(insightResult.reason) }
+        : {}),
+      ...(priorSealResult.status === 'rejected'
+        ? { priorSeal: evidenceError(priorSealResult.reason) }
+        : {}),
+    };
+    const priorSealPending = Boolean(
+      priorSealEvidence &&
+      (['PENDING', 'NOT_FOUND', 'RPC_ERROR', 'RPC_TIMEOUT'].includes(
+        priorSealEvidence.observation.status
+      ) ||
+        (priorSealEvidence.observationJob &&
+          !['COMPLETED', 'UNDETERMINED', 'FAILED'].includes(
+            priorSealEvidence.observationJob.state
+          )))
+    );
+    const evidenceAvailability = evidenceAvailabilityFor(insightReceipt, priorSealEvidence);
+    const transactionCorrelation = correlateTransactionHashes(
+      transaction.txHash,
+      insightReceipt,
+      priorSealEvidence
+    );
+    const assuranceValid =
+      insightReceipt && priorSealEvidence?.receipt
+        ? insightReceipt.bindingMode === 'VERIFIED' &&
+          priorSealEvidence.verification?.valid === true &&
+          transactionCorrelation === true
+        : null;
+    const evidenceStatus = priorSealPending
+      ? 'PRIORSEAL_PENDING'
+      : assuranceValid === true
+        ? 'COMPLETE'
+        : evidenceAvailability === 'UNAVAILABLE'
+          ? 'UNAVAILABLE'
+          : 'PARTIAL';
+
+    return {
+      status: 'executed',
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+      transaction,
+      preparedTransaction,
+      priorSealAuthorization,
+      insightReceipt,
+      priorSealEvidence,
+      evidenceStatus,
+      evidenceAvailability,
+      transactionCorrelation,
+      assuranceValid,
+      evidenceErrors,
+    };
+  }
+
+  private async evaluateSwapGates(request: SwapGateRequest): Promise<SwapGateEvaluation> {
     if (this.blockOnWatchHalt && request.watchTarget && this.isHalted(request.watchTarget)) {
-      return { status: 'blocked', stage: 'watch_halt' };
+      return { ready: false, result: { status: 'blocked', stage: 'watch_halt' } };
     }
 
     const sourceDecision = await this.check({
@@ -63,9 +512,12 @@ export class InsightGuard {
     });
     if (!sourceDecision.allowed || !isExecutionAuthorised(sourceDecision.result.verdict)) {
       return {
-        status: 'blocked',
-        stage: 'source_pre_trade',
-        sourcePreTrade: sourceDecision.result,
+        ready: false,
+        result: {
+          status: 'blocked',
+          stage: 'source_pre_trade',
+          sourcePreTrade: sourceDecision.result,
+        },
       };
     }
 
@@ -78,39 +530,26 @@ export class InsightGuard {
       !isExecutionAuthorised(destinationDecision.result.verdict)
     ) {
       return {
-        status: 'blocked',
-        stage: 'destination_pre_trade',
-        sourcePreTrade: sourceDecision.result,
-        destinationPreTrade: destinationDecision.result,
+        ready: false,
+        result: {
+          status: 'blocked',
+          stage: 'destination_pre_trade',
+          sourcePreTrade: sourceDecision.result,
+          destinationPreTrade: destinationDecision.result,
+        },
       };
     }
 
-    // Validate proof material BEFORE the external transaction is submitted.
-    const receiptDraft = buildVerifiedReceiptDraft(
-      sourceDecision.result,
-      destinationDecision.result,
-      request.receipt
-    );
-
-    const transaction = await request.submitTransaction({
-      sourcePreTrade: sourceDecision.result,
-      destinationPreTrade: destinationDecision.result,
-    });
-    if (!transaction.txHash)
-      throw new ReceiptConfigurationError('submitTransaction returned no txHash.');
-
-    const receipt = await this.client.issueExecutionReceipt({
-      ...receiptDraft,
-      txHash: transaction.txHash,
-      taker: transaction.taker,
-    });
-
     return {
-      status: 'executed',
+      ready: true,
       sourcePreTrade: sourceDecision.result,
       destinationPreTrade: destinationDecision.result,
-      transaction,
-      receipt,
+      // Validate proof material before any external transaction is submitted.
+      receiptDraft: buildVerifiedReceiptDraft(
+        sourceDecision.result,
+        destinationDecision.result,
+        request.receipt
+      ),
     };
   }
 
@@ -118,6 +557,9 @@ export class InsightGuard {
   watch(target: OracleWatchTarget, options: WatchOptions = {}): WatchHandle {
     const key = targetKey(target);
     const intervalMs = options.intervalMs ?? DEFAULT_WATCH_INTERVAL_MS;
+    if (!Number.isSafeInteger(intervalMs) || intervalMs <= 0) {
+      throw new RangeError('Watch intervalMs must be a positive integer.');
+    }
     if (intervalMs < DEFAULT_WATCH_INTERVAL_MS && !options.allowFasterPolling) {
       throw new RangeError(
         `Watch intervals below ${DEFAULT_WATCH_INTERVAL_MS}ms require allowFasterPolling: true.`
@@ -126,40 +568,59 @@ export class InsightGuard {
 
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let resolveDelay: (() => void) | undefined;
+    const loopController = new AbortController();
+    const wakeDelay = () => {
+      if (timer !== undefined) clearTimeout(timer);
+      timer = undefined;
+      const resolve = resolveDelay;
+      resolveDelay = undefined;
+      resolve?.();
+    };
     const stop = () => {
       active = false;
-      if (timer !== undefined) clearTimeout(timer);
+      if (!loopController.signal.aborted) loopController.abort(new Error('Watch stopped'));
+      wakeDelay();
     };
+    options.signal?.addEventListener('abort', stop, { once: true });
 
-    const refresh = async (): Promise<OracleWatchResult> => {
-      const result = await this.client.oracleWatch(target, options.signal);
+    const refreshWithSignal = async (signal?: AbortSignal): Promise<OracleWatchResult> => {
+      const result = await this.client.oracleWatch(target, signal);
       await options.onSignal?.(result);
       if (result.recommendation === 'halt') {
-        if (this.blockOnWatchHalt) this.haltedTargets.add(key);
+        this.haltedTargets.add(key);
         await options.onHalt?.(result);
       } else {
         this.haltedTargets.delete(key);
       }
       return result;
     };
+    const refresh = () => refreshWithSignal(options.signal);
 
     const done = new Promise<void>((resolve) => {
       const run = async (): Promise<void> => {
         while (active && !options.signal?.aborted) {
           try {
-            const result = await refresh();
+            const result = await refreshWithSignal(loopController.signal);
             if (result.recommendation === 'halt' && (options.stopOnHalt ?? true)) {
               stop();
               break;
             }
           } catch (error) {
+            if (!active || loopController.signal.aborted || options.signal?.aborted) break;
             await options.onError?.(error);
           }
           if (!active || options.signal?.aborted) break;
           await new Promise<void>((next) => {
-            timer = setTimeout(next, intervalMs);
+            resolveDelay = next;
+            timer = setTimeout(() => {
+              timer = undefined;
+              resolveDelay = undefined;
+              next();
+            }, intervalMs);
           });
         }
+        options.signal?.removeEventListener('abort', stop);
         resolve();
       };
       void run();
@@ -175,6 +636,438 @@ export class InsightGuard {
   clearHalt(target: OracleWatchTarget): void {
     this.haltedTargets.delete(targetKey(target));
   }
+}
+
+type BlockedSwapResult = Extract<GuardedSwapResult, { status: 'blocked' }>;
+type SwapGateRequest = Pick<
+  GuardedSwapRequest,
+  'source' | 'destination' | 'watchTarget' | 'receipt'
+>;
+type SwapGateEvaluation =
+  | { ready: false; result: BlockedSwapResult }
+  | {
+      ready: true;
+      sourcePreTrade: PreTradeResult;
+      destinationPreTrade: PreTradeResult;
+      receiptDraft: Omit<ExecutionReceiptRequest, 'txHash' | 'taker'>;
+    };
+
+function recommendationFor(
+  source: PreTradeResult | null,
+  destination: PreTradeResult | null,
+  watchHalted: boolean,
+  bindingInvalid: boolean
+): TransactionRecommendation {
+  if (!source || !destination || bindingInvalid) return 'UNASSESSABLE';
+  if (watchHalted || source.verdict === 'BLOCK' || destination.verdict === 'BLOCK') {
+    return 'NOT_RECOMMENDED';
+  }
+  if (source.verdict === 'DANGER' || destination.verdict === 'DANGER') {
+    return 'REVIEW_REQUIRED';
+  }
+  if (source.verdict === 'CAUTION' || destination.verdict === 'CAUTION') {
+    return 'CONDITIONALLY_RECOMMENDED';
+  }
+  return source.verdict === 'PASS' && destination.verdict === 'PASS'
+    ? 'RECOMMENDED'
+    : 'UNASSESSABLE';
+}
+
+function assessmentReasonCodes(
+  source: PreTradeResult | null,
+  destination: PreTradeResult | null,
+  watchHalted: boolean,
+  errors: { source?: unknown; destination?: unknown },
+  bindingError?: unknown
+): string[] {
+  const codes: string[] = [];
+  if (watchHalted) codes.push('WATCH_HALT');
+  if (source && source.verdict !== 'PASS') codes.push(`SOURCE_${source.verdict}`);
+  if (destination && destination.verdict !== 'PASS') {
+    codes.push(`DESTINATION_${destination.verdict}`);
+  }
+  if (errors.source) codes.push('SOURCE_ASSESSMENT_UNAVAILABLE');
+  if (errors.destination) codes.push('DESTINATION_ASSESSMENT_UNAVAILABLE');
+  if (bindingError) codes.push('EVIDENCE_BINDING_INVALID');
+  return [...new Set(codes)];
+}
+
+function minimumPositive(values: Array<number | null | undefined>): number | null {
+  if (
+    values.length === 0 ||
+    values.some((value) => value == null || !Number.isFinite(value) || value <= 0)
+  ) {
+    return null;
+  }
+  return Math.min(...(values as number[]));
+}
+
+function minimumKnownNonNegative(values: Array<number | null | undefined>): number | null {
+  const known = values.filter(
+    (value): value is number => value != null && Number.isFinite(value) && value >= 0
+  );
+  return known.length ? Math.min(...known) : null;
+}
+
+function requireAssessmentEvidence(
+  assessment: SwapAssessment
+): Omit<ExecutionReceiptRequest, 'txHash' | 'taker'> {
+  if (
+    assessment.schema !== 'insight.swap-assessment.v1' ||
+    !assessment.receiptDraft ||
+    !assessment.contextCommitment
+  ) {
+    throw new ReceiptConfigurationError(
+      'The assessment has no complete signed evidence to bind or verify.'
+    );
+  }
+  if (!assessment.sourcePreTrade || !assessment.destinationPreTrade) {
+    throw new ReceiptConfigurationError(
+      'The assessment is missing its source or destination result.'
+    );
+  }
+  const sourceAttestation = requireV2Proof(assessment.sourcePreTrade, 'source');
+  const destinationAttestation = requireV2Proof(assessment.destinationPreTrade, 'destination');
+  const expectedValidUntil = minimumPositive([
+    number(sourceAttestation.data.validUntil),
+    number(destinationAttestation.data.validUntil),
+  ]);
+  if (assessment.constraints.validUntil !== expectedValidUntil) {
+    throw new ReceiptConfigurationError(
+      'The assessment validity is inconsistent with its signed evidence.'
+    );
+  }
+  if (
+    assessment.receiptDraft.preTradeUid !== sourceAttestation.uid ||
+    assessment.receiptDraft.destinationPreTradeUid !== destinationAttestation.uid ||
+    assessment.receiptDraft.requestHash !== text(sourceAttestation.data.requestHash) ||
+    assessment.receiptDraft.sourceAssetId !== text(sourceAttestation.data.sourceAssetId) ||
+    assessment.receiptDraft.destinationAssetId !== text(sourceAttestation.data.destinationAssetId)
+  ) {
+    throw new ReceiptConfigurationError(
+      'The assessment receipt draft is inconsistent with its signed evidence.'
+    );
+  }
+  const expectedRecommendation = recommendationFor(
+    assessment.sourcePreTrade,
+    assessment.destinationPreTrade,
+    assessment.watchHalted,
+    false
+  );
+  if (assessment.recommendation !== expectedRecommendation) {
+    throw new ReceiptConfigurationError(
+      'The assessment recommendation is inconsistent with its underlying evidence.'
+    );
+  }
+  const expectedCommitment = buildInsightPriorSealContextCommitment({
+    sourceAttestation,
+    destinationAttestation,
+    maxSlippageBps: assessment.receiptDraft.maxSlippageBps,
+  });
+  if (
+    expectedCommitment.namespace !== assessment.contextCommitment.namespace ||
+    expectedCommitment.algorithm !== assessment.contextCommitment.algorithm ||
+    expectedCommitment.digest.toLowerCase() !== assessment.contextCommitment.digest.toLowerCase()
+  ) {
+    throw new ReceiptConfigurationError(
+      'The assessment context commitment is inconsistent with its signed evidence.'
+    );
+  }
+  return assessment.receiptDraft;
+}
+
+function assertAuthorizationMatchesAssessment(
+  accepted: PriorSealAcceptedAuthorization,
+  assessment: SwapAssessment,
+  transaction: PreparedExactCallTransaction
+): void {
+  const evidence = requireAssessmentEvidence(assessment);
+  const actual = accepted.authorization?.intent;
+  if (!actual) throw new ReceiptConfigurationError('PriorSeal returned no authorized intent.');
+  if (
+    assessment.constraints.validUntil == null ||
+    actual.validUntil > assessment.constraints.validUntil
+  ) {
+    throw new ReceiptConfigurationError(
+      'PriorSeal authorization outlives the signed Insight assessment.'
+    );
+  }
+  const expected = buildPriorSealExactCallIntent({
+    transaction,
+    intentId: actual.intentId,
+    sourceAssetId: evidence.sourceAssetId,
+    validUntil: actual.validUntil,
+    minConfirmations: actual.constraints?.minConfirmations,
+    contextCommitments: [assessment.contextCommitment!],
+  });
+  const fields: Array<keyof typeof expected> = [
+    'schema',
+    'executionProfile',
+    'intentId',
+    'chainId',
+    'action',
+    'asset',
+    'amount',
+    'sender',
+    'recipient',
+    'validUntil',
+    'nonce',
+    'callTarget',
+    'calldataHash',
+    'transactionValue',
+  ];
+  const mismatch = fields.find((field) =>
+    typeof expected[field] === 'string'
+      ? String(expected[field]).toLowerCase() !== String(actual[field]).toLowerCase()
+      : expected[field] !== actual[field]
+  );
+  const insightCommitments =
+    actual.contextCommitments?.filter(
+      (entry) => entry.namespace === assessment.contextCommitment!.namespace
+    ) ?? [];
+  const commitmentMatched = insightCommitments.some(
+    (entry) =>
+      entry.algorithm === assessment.contextCommitment!.algorithm &&
+      entry.digest.toLowerCase() === assessment.contextCommitment!.digest.toLowerCase()
+  );
+  if (mismatch || insightCommitments.length !== 1 || !commitmentMatched) {
+    throw new ReceiptConfigurationError(
+      mismatch
+        ? `PriorSeal authorization does not match the assessed transaction field: ${mismatch}.`
+        : 'PriorSeal authorization does not contain the Insight assessment commitment.'
+    );
+  }
+}
+
+function assertAcceptedAuthorizationMatchesPresented(
+  accepted: PriorSealAcceptedAuthorization,
+  presented: PriorSealAcceptedAuthorization['authorization']
+): void {
+  if (accepted.acceptance?.status !== 'ACCEPTED') {
+    throw new ReceiptConfigurationError('PriorSeal returned no accepted authorization evidence.');
+  }
+  if (canonicalJson(accepted.authorization) !== canonicalJson(presented)) {
+    throw new ReceiptConfigurationError(
+      'PriorSeal accepted authorization differs from the authorization presented for signing.'
+    );
+  }
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => `${JSON.stringify(key)}:${canonicalJson(entry)}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
+function buildJointAssuranceReport(
+  assessment: SwapAssessment,
+  expectedTxHash: string,
+  insightReceipt: ExecutionReceiptResult | null,
+  priorSealEvidence: PriorSealObservationResult | null
+): AssessedSwapExecutionVerificationResult['report'] {
+  const pending = isPriorSealPending(priorSealEvidence);
+  const evidenceAvailability = evidenceAvailabilityFor(insightReceipt, priorSealEvidence);
+  const transactionCorrelation = correlateTransactionHashes(
+    expectedTxHash,
+    insightReceipt,
+    priorSealEvidence
+  );
+  const evidenceStatus = jointEvidenceStatus(
+    insightReceipt,
+    priorSealEvidence,
+    pending,
+    transactionCorrelation
+  );
+  const compliance = priorSealEvidence?.receipt?.compliance?.status ?? null;
+  const priorSealReceiptValid = priorSealEvidence?.receipt
+    ? (priorSealEvidence.verification?.valid ?? null)
+    : null;
+  const exactCallMatched = exactCallMatch(priorSealEvidence, priorSealReceiptValid, compliance);
+  const constraintsSatisfied = insightConstraintsSatisfied(insightReceipt);
+  const executionFinal = ['CONFIRMED', 'REVERTED'].includes(
+    priorSealEvidence?.observation.status ?? ''
+  );
+  const recommendationFollowed = followedRecommendation(assessment.recommendation, executionFinal);
+  const reasonCodes = [...assessment.reasonCodes];
+  if (priorSealReceiptValid === false) reasonCodes.push('PRIORSEAL_RECEIPT_INVALID');
+  if (compliance === 'NON_COMPLIANT') reasonCodes.push('PRIORSEAL_NON_COMPLIANT');
+  if (constraintsSatisfied === false) reasonCodes.push('INSIGHT_CONSTRAINTS_NOT_SATISFIED');
+  if (transactionCorrelation === false) reasonCodes.push('EVIDENCE_TRANSACTION_MISMATCH');
+  if (evidenceStatus === 'PARTIAL') reasonCodes.push('EVIDENCE_PARTIAL');
+  if (evidenceStatus === 'UNAVAILABLE') reasonCodes.push('EVIDENCE_UNAVAILABLE');
+  const assuranceValid =
+    evidenceAvailability === 'COMPLETE'
+      ? insightReceipt?.bindingMode === 'VERIFIED' &&
+        priorSealReceiptValid === true &&
+        transactionCorrelation === true
+      : null;
+
+  const conclusion = jointConclusion({
+    recommendation: assessment.recommendation,
+    pending,
+    evidenceStatus,
+    priorSealReceiptValid,
+    exactCallMatched,
+    constraintsSatisfied,
+    recommendationFollowed,
+    transactionCorrelation,
+  });
+
+  return {
+    schema: 'insight.priorseal-assurance-report.v1',
+    recommendation: assessment.recommendation,
+    recommendationFollowed,
+    evidenceStatus,
+    evidenceAvailability,
+    expectedTxHash: normalizeTxHash(expectedTxHash) ?? expectedTxHash,
+    transactionCorrelation,
+    assuranceValid,
+    insightExecutionStatus: insightReceipt?.executionStatus ?? null,
+    priorSealReceiptValid,
+    priorSealComplianceStatus: compliance,
+    exactCallMatched,
+    constraintsSatisfied,
+    conclusion,
+    reasonCodes: [...new Set(reasonCodes)],
+  };
+}
+
+function isPriorSealPending(evidence: PriorSealObservationResult | null): boolean {
+  if (!evidence) return false;
+  if (['PENDING', 'NOT_FOUND', 'RPC_ERROR', 'RPC_TIMEOUT'].includes(evidence.observation.status)) {
+    return true;
+  }
+  return Boolean(
+    evidence.observationJob &&
+    !['COMPLETED', 'UNDETERMINED', 'FAILED'].includes(evidence.observationJob.state)
+  );
+}
+
+function jointEvidenceStatus(
+  insightReceipt: ExecutionReceiptResult | null,
+  priorSealEvidence: PriorSealObservationResult | null,
+  pending: boolean,
+  transactionCorrelation: boolean | null
+): AssessedSwapExecutionVerificationResult['report']['evidenceStatus'] {
+  if (pending) return 'PRIORSEAL_PENDING';
+  if (
+    insightReceipt?.bindingMode === 'VERIFIED' &&
+    priorSealEvidence?.receipt &&
+    priorSealEvidence.verification?.valid === true &&
+    transactionCorrelation === true
+  ) {
+    return 'COMPLETE';
+  }
+  return insightReceipt || priorSealEvidence?.receipt ? 'PARTIAL' : 'UNAVAILABLE';
+}
+
+function exactCallMatch(
+  evidence: PriorSealObservationResult | null,
+  receiptValid: boolean | null,
+  compliance: string | null
+): boolean | null {
+  if (receiptValid === false || compliance === 'NON_COMPLIANT') return false;
+  if (compliance === 'COMPLIANT') return true;
+  return typeof evidence?.receipt?.binding?.bound === 'boolean'
+    ? evidence.receipt.binding.bound
+    : null;
+}
+
+function insightConstraintsSatisfied(receipt: ExecutionReceiptResult | null): boolean | null {
+  if (receipt?.executionStatus === 'FAITHFUL') return true;
+  if (receipt?.executionStatus === 'DEVIATED') return false;
+  return null;
+}
+
+function followedRecommendation(
+  recommendation: TransactionRecommendation,
+  executionFinal: boolean
+): boolean | null {
+  if (!executionFinal) return null;
+  if (recommendation === 'NOT_RECOMMENDED') return false;
+  if (['RECOMMENDED', 'CONDITIONALLY_RECOMMENDED'].includes(recommendation)) return true;
+  return null;
+}
+
+function jointConclusion(input: {
+  recommendation: TransactionRecommendation;
+  pending: boolean;
+  evidenceStatus: AssessedSwapExecutionVerificationResult['report']['evidenceStatus'];
+  priorSealReceiptValid: boolean | null;
+  exactCallMatched: boolean | null;
+  constraintsSatisfied: boolean | null;
+  recommendationFollowed: boolean | null;
+  transactionCorrelation: boolean | null;
+}): AssessedSwapExecutionVerificationResult['report']['conclusion'] {
+  if (input.transactionCorrelation === false) return 'EVIDENCE_TRANSACTION_MISMATCH';
+  if (input.pending) return 'EXECUTION_PENDING';
+  if (input.priorSealReceiptValid === false || input.exactCallMatched === false) {
+    return 'AUTHORIZATION_MISMATCH';
+  }
+  if (input.recommendationFollowed === false) return 'EXECUTED_AGAINST_RECOMMENDATION';
+  if (input.recommendation === 'REVIEW_REQUIRED' && input.exactCallMatched === true) {
+    return 'EXECUTED_WITHOUT_REQUIRED_REVIEW_EVIDENCE';
+  }
+  if (input.evidenceStatus === 'PARTIAL') return 'PARTIAL_EVIDENCE';
+  if (input.evidenceStatus === 'UNAVAILABLE') return 'UNASSESSABLE';
+  if (input.constraintsSatisfied === false) return 'EXECUTED_OUTSIDE_ASSESSED_CONSTRAINTS';
+  if (
+    input.exactCallMatched === true &&
+    input.constraintsSatisfied === true &&
+    input.recommendationFollowed === true
+  ) {
+    return 'EXECUTED_AS_ASSESSED_AND_AUTHORIZED';
+  }
+  return 'UNASSESSABLE';
+}
+
+function evidenceAvailabilityFor(
+  insightReceipt: ExecutionReceiptResult | null,
+  priorSealEvidence: PriorSealObservationResult | null
+): 'COMPLETE' | 'PARTIAL' | 'UNAVAILABLE' {
+  const insightPresent = insightReceipt !== null;
+  const priorSealPresent = priorSealEvidence?.receipt != null;
+  if (insightPresent && priorSealPresent) return 'COMPLETE';
+  return insightPresent || priorSealPresent ? 'PARTIAL' : 'UNAVAILABLE';
+}
+
+function correlateTransactionHashes(
+  expectedTxHash: string,
+  insightReceipt: ExecutionReceiptResult | null,
+  priorSealEvidence: PriorSealObservationResult | null
+): boolean | null {
+  const expected = normalizeTxHash(expectedTxHash);
+  if (!expected) return false;
+  const hashes: Array<string | undefined> = [];
+  if (insightReceipt) hashes.push(text(insightReceipt.attestation?.data?.txHash));
+  if (priorSealEvidence) {
+    hashes.push(text(priorSealEvidence.observation?.txHash));
+    if (priorSealEvidence.receipt) hashes.push(text(priorSealEvidence.receipt.execution?.txHash));
+  }
+  if (hashes.length === 0) return null;
+  return hashes.every((hash) => normalizeTxHash(hash) === expected);
+}
+
+function normalizeTxHash(value: unknown): string | null {
+  return typeof value === 'string' && /^0x[0-9a-fA-F]{64}$/.test(value)
+    ? value.toLowerCase()
+    : null;
+}
+
+function evidenceError(error: unknown): { code?: string; message: string } {
+  if (error instanceof PriorSealBridgeError) {
+    return { code: error.options.code, message: error.message };
+  }
+  if (error instanceof InsightApiError) {
+    return { code: error.options.code, message: error.message };
+  }
+  if (error instanceof Error) return { message: error.message };
+  return { message: String(error) };
 }
 
 function buildVerifiedReceiptDraft(
@@ -269,10 +1162,24 @@ function buildVerifiedReceiptDraft(
 
 function requireV2Proof(result: PreTradeResult, label: string): SignedAttestation {
   const attestation = result.attestation;
-  if (!attestation || attestation.schemaVersion < 2) {
+  if (!attestation || ![2, 3].includes(attestation.schemaVersion)) {
     throw new ReceiptConfigurationError(
       `${label} pre-trade needs a signed v2/v3 attestation for a VERIFIED execution receipt.`
     );
+  }
+  const signedVerdict = text(attestation.data.verdict).toUpperCase();
+  if (signedVerdict !== result.verdict) {
+    throw new ReceiptConfigurationError(
+      `${label} pre-trade verdict does not match its signed attestation.`
+    );
+  }
+  const checkedAt = number(attestation.data.checkedAt);
+  const validUntil = number(attestation.data.validUntil);
+  if (checkedAt <= 0 || validUntil < checkedAt) {
+    throw new ReceiptConfigurationError(`${label} pre-trade has an invalid signed time window.`);
+  }
+  if (validUntil <= Math.floor(Date.now() / 1000)) {
+    throw new ReceiptConfigurationError(`${label} pre-trade signed evidence has expired.`);
   }
   return attestation;
 }

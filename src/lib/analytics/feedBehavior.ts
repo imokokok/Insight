@@ -575,7 +575,8 @@ export function calculateFeedBehavior(
       confidenceInterval?: { bid: number; ask: number; widthPercentage: number };
     }>
   >,
-  currentTime?: number
+  currentTime?: number,
+  expectedIntervals?: ReadonlyMap<string, number>
 ): FeedBehaviorResult {
   const now = currentTime ?? Date.now();
   try {
@@ -588,7 +589,10 @@ export function calculateFeedBehavior(
 
     for (const provider of providers) {
       const history = priceHistoryMap.get(provider) ?? [];
-      const expectedInterval = ORACLE_EXPECTED_INTERVALS[provider.toLowerCase()] ?? 3600;
+      const expectedInterval =
+        expectedIntervals?.get(provider) ??
+        ORACLE_EXPECTED_INTERVALS[provider.toLowerCase()] ??
+        3600;
 
       const timestamps = history.map((h) => h.timestamp);
 

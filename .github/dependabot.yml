@@ -8,6 +8,9 @@ updates:
       time: '03:00'
       timezone: Asia/Shanghai
     open-pull-requests-limit: 5
+    ignore:
+      # Updated, tested, committed, and deployed by sync-npm-releases.yml.
+      - dependency-name: verify-insight-receipt
     groups:
       production-dependencies:
         dependency-type: production

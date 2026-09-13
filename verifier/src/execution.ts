@@ -1,4 +1,4 @@
-/** Offline verification for ExecutionReceipt v1-v4 and its pre-trade pairing. */
+/** Offline verification for ExecutionReceipt v1-v5 and its pre-trade pairing. */
 
 import { concat, hashTypedData, keccak256, toBytes, verifyTypedData } from 'viem';
 
@@ -9,6 +9,8 @@ import type { KeyEntry, KeyRegistry, RoutableAttestation } from './types';
 
 export const EXECUTION_DOMAIN = { name: 'Insight Execution', version: '1', chainId: 1 } as const;
 export const EXECUTION_PRIMARY_TYPE = 'ExecutionReceipt';
+export const EXECUTION_PROFILE_V1_ID =
+  '0xe7513b059e9f8291bfa21250e0234661d74112a491efc6b40fbb56692013cb8e' as const;
 
 const V1_FIELDS = [
   ['preTradeUid', 'bytes32'],
@@ -104,12 +106,18 @@ export const EXECUTION_TYPES_V1 = descriptors(V1_FIELDS);
 export const EXECUTION_TYPES_V2 = descriptors(V2_FIELDS);
 export const EXECUTION_TYPES_V3 = descriptors(V3_FIELDS);
 export const EXECUTION_TYPES_V4 = descriptors([...V3_FIELDS, ['environment', 'string']]);
+export const EXECUTION_TYPES_V5 = descriptors([
+  ...V3_FIELDS,
+  ['environment', 'string'],
+  ['profileId', 'bytes32'],
+]);
 
 export function executionTypesForSchemaVersion(version: number) {
   if (version === 1) return EXECUTION_TYPES_V1;
   if (version === 2) return EXECUTION_TYPES_V2;
   if (version === 3) return EXECUTION_TYPES_V3;
   if (version === 4) return EXECUTION_TYPES_V4;
+  if (version === 5) return EXECUTION_TYPES_V5;
   return null;
 }
 
@@ -127,6 +135,7 @@ export interface ExecutionVerificationResult {
     | 'signature_invalid'
     | 'signature_missing'
     | 'unsupported_schema'
+    | 'unsupported_profile'
     | 'malformed';
   kind: 'execution';
   attester: string;
@@ -139,6 +148,7 @@ export interface ExecutionVerificationResult {
   trustedAttester: boolean;
   executionStatus: string | null;
   bindingMode: string | null;
+  profileId: string | null;
   reason?: string;
 }
 
@@ -168,6 +178,7 @@ function fieldValue(name: string, data: Record<string, unknown>): unknown {
     attestationAgeAtExecSeconds: age,
     priceStateAgeAtExecSeconds: 0,
     environment: '',
+    profileId: ZERO_BYTES32,
   };
   return data[name] ?? defaults[name];
 }
@@ -219,6 +230,7 @@ export async function verifyExecutionReceipt(
         ? String(data.priceExecutionStatus ?? data.executionStatus)
         : null,
     bindingMode: typeof data.bindingMode === 'string' ? data.bindingMode : null,
+    profileId: typeof data.profileId === 'string' ? data.profileId : null,
   };
   try {
     if (typeof receipt?.signature !== 'string' || receipt.signature.length === 0) {
@@ -264,6 +276,18 @@ export async function verifyExecutionReceipt(
         code: 'signature_invalid',
         expired: false,
         reason: 'signature_invalid',
+      };
+    if (
+      version === 5 &&
+      String(data.profileId).toLowerCase() !== EXECUTION_PROFILE_V1_ID.toLowerCase()
+    )
+      return {
+        ...base,
+        valid: false,
+        cryptographicValid: true,
+        code: 'unsupported_profile',
+        expired: false,
+        reason: 'unsupported_profile: signed semantic profile is unknown',
       };
     const expired = validUntil !== null && Math.floor(Date.now() / 1000) >= validUntil;
     return {
@@ -344,6 +368,7 @@ export async function verifyExecutionPair(
     pre.keyStatus === 'valid' &&
     keyIsProduction(pre.attester) &&
     exec.cryptographicValid &&
+    (exec.code === 'ok' || exec.code === 'expired') &&
     exec.trustedAttester &&
     e.bindingMode === 'VERIFIED' &&
     pre.uid === text(e.preTradeUid) &&

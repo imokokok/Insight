@@ -88,6 +88,20 @@ export const GET = createApiHandler(
         );
       }
 
+      if (message === 'BASE_CHAIN_UNAVAILABLE') {
+        return NextResponse.json(
+          ApiResponseBuilder.error(
+            'BASE_CHAIN_UNAVAILABLE',
+            `The requested base chain ${baseChain} did not return a usable price for ${symbol} from ${provider}.`,
+            {
+              retryable: true,
+              details: { symbol, provider, baseChain },
+            }
+          ),
+          { status: 422 }
+        );
+      }
+
       throw error;
     }
   },

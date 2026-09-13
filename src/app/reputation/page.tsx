@@ -1,3 +1,5 @@
+import { unstable_cache } from 'next/cache';
+
 import type { ReputationListData } from '@/hooks/data/useReputations';
 import { reputationService, type OracleReputation } from '@/lib/oracles/services/reputationService';
 import { QueryProvider } from '@/providers/QueryProvider';
@@ -12,16 +14,21 @@ export const metadata: Metadata = {
     'Explore oracle providers, their unique capabilities, and historical performance tracking',
 };
 
-// Re-generate the server-rendered HTML at most once per minute. The client
-// still refetches from the API for live `calculating`/`nextRecalcAt` state,
-// but ISR lets us ship a fully populated directory on first paint instead of
-// a loading spinner.
-export const revalidate = 60;
+// Keep deployment independent of Supabase availability while preserving a
+// warm, server-rendered first paint. The client still refetches live
+// `calculating`/`nextRecalcAt` state after hydration.
+export const dynamic = 'force-dynamic';
+
+const getReputationsCached = unstable_cache(
+  () => reputationService.getReputations(),
+  ['reputation-directory'],
+  { revalidate: 60, tags: ['oracle-reputations'] }
+);
 
 export default async function ReputationPage() {
   let initialData: ReputationListData | undefined;
   try {
-    const data: OracleReputation[] = await reputationService.getReputations();
+    const data: OracleReputation[] = await getReputationsCached();
     initialData = { data, calculating: false, nextRecalcAt: null };
   } catch {
     // If Supabase is unavailable at request time, fall back to client-side

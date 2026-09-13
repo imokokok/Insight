@@ -82,6 +82,7 @@ if (result.keyStatus === 'revoked') throw new Error('signer key is revoked');
 | `expired`                  | Past the receipt's own validity deadline                               |
 | `recheck_binding_mismatch` | A recheck's `requestHash` ≠ its `originalRequestHash`                  |
 | `unsupported_schema`       | `schemaVersion` is not one this library knows                          |
+| `unsupported_profile`      | Signature is sound, but the signed semantic profile is unknown         |
 | `malformed`                | Missing or wrongly-typed field                                         |
 
 ### Two things to know about `valid`
@@ -91,12 +92,10 @@ signed, not that the key was trustworthy at the time. Collapsing them would
 make a receipt flip from valid to invalid the moment a key is rotated —
 retroactively rewriting a statement that was true when it was made.
 
-**`valid` is not the field to branch on.** For v1 receipts, Insight's production
-verifier returns `valid: true` even when the receipt is expired (`expired: true`,
-`code: 'expired'`); v2 and v3 return `valid: false`. This library reproduces that
-asymmetry rather than silently disagreeing with the API, because an independent
-verifier that "fixes" production's semantics stops being a check on production.
-Branch on `code` / `expired`.
+**Branch on `code` as the stable machine outcome.** Expired receipts return
+`valid: false`, `expired: true`, and `code: 'expired'` for every schema version.
+For legacy v1 receipts, the verifier enforces the schema's fixed 600-second
+window because the envelope's `validForSeconds` metadata was not signed.
 
 ---
 
@@ -113,6 +112,21 @@ Branch on `code` / `expired`.
 | 2             | `ExecutionReceipt`    | 32                                              |
 | 3             | `ExecutionReceipt`    | 43                                              |
 | 4             | `ExecutionReceipt`    | 44 (v3 + signed `environment`)                  |
+| 5             | `ExecutionReceipt`    | 45 (v4 + signed semantic `profileId`)           |
+
+For v5, the verifier accepts only a known immutable `profileId`. Pin the profile
+and registry release URLs published by `/.well-known/oracle-keys.json`; do not
+infer commitment rules from mutable prose. A valid signature under an unknown
+profile returns `unsupported_profile` and fails closed.
+
+ExecutionReceipt v1-v4 are legacy layouts. Their cryptographic bytes remain
+verifiable, but a semantic verdict is valid only relative to the exact registry
+snapshot used by the verifier. Preserve and report that snapshot's UTF-8 bytes,
+full SHA-256 and byte length. If the snapshot is absent or mismatched, fail
+closed; never substitute the current registry, and never present a legacy
+verdict as globally canonical. Insight production issuance and the active
+Headless production policy accept v5 only; sample-role conformance endpoints
+may still emit retired layouts so historical parsers can be tested.
 
 `originalUid` is typed `string` in the v2 recheck and `bytes32` in the v3
 recheck. That asymmetry is deliberate and preserved: a UID is a 32-byte hash, so

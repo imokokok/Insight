@@ -1,0 +1,53 @@
+{
+  "schema": "insight-provider-observations-hash-vector/v1",
+  "purpose": "Literal positive and negative vectors that pin the full provider observation ABI for VERITAS N15",
+  "entryAbi": [
+    { "name": "provider", "type": "string" },
+    { "name": "feedId", "type": "string" },
+    { "name": "value", "type": "uint256" },
+    { "name": "timestamp", "type": "uint256" },
+    { "name": "dataAgeSeconds", "type": "uint256" },
+    { "name": "included", "type": "bool" },
+    { "name": "exclusionReason", "type": "string" }
+  ],
+  "pipeline": [
+    "ABI encode each entry with entryAbi in the listed field order",
+    "keccak256 each encoded entry",
+    "sort the 32-byte entry hashes lexicographically by byte value",
+    "concatenate the sorted entry hashes without separators",
+    "keccak256 the concatenation"
+  ],
+  "positive": {
+    "entries": [
+      {
+        "provider": "chainlink",
+        "feedId": "demo-feed:eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48:1",
+        "value": "100000000",
+        "timestamp": "1788860293",
+        "dataAgeSeconds": "4",
+        "included": true,
+        "exclusionReason": ""
+      }
+    ],
+    "encodedEntries": [
+      "0x00000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000005f5e100000000000000000000000000000000000000000000000000000000006a9fd7850000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000001a00000000000000000000000000000000000000000000000000000000000000009636861696e6c696e6b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004564656d6f2d666565643a6569703135353a312f65726332303a3078613062383639393163363231386233366331643139643461326539656230636533363036656234383a310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    ],
+    "entryHashesSorted": ["0xd71915a1e6b547c609476476ca40b6f4001f1365aaa822467b2fab6c2f1f4558"],
+    "providerObservationsHash": "0x1d9d9c97a63a7b4db960146413afe2284b006b6bd56681db4398a083dd12fa7f"
+  },
+  "negative": {
+    "case": "value-minus-one-is-not-a-canonical-observation",
+    "entry": {
+      "provider": "chainlink",
+      "feedId": "demo-feed:eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48:1",
+      "value": "-1",
+      "timestamp": "1788860293",
+      "dataAgeSeconds": "4",
+      "included": true,
+      "exclusionReason": ""
+    },
+    "expected": "REJECT_UINT256_OUT_OF_RANGE",
+    "why": "For non-negative values int256 and uint256 ABI bytes are identical. This rejection vector makes the signed domain unambiguously uint256."
+  },
+  "emptyInputHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+}

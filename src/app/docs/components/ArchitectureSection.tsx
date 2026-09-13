@@ -33,7 +33,7 @@ const layers = [
     title: 'Backend & Database',
     subtitle: 'Supabase PostgreSQL',
     description:
-      'PostgreSQL stores price records, oracle feeds, alerts, API keys, reputation history, and daily reports. Row Level Security, database functions, and cron jobs run inside the database.',
+      'PostgreSQL stores price records, oracle feeds, API keys, reputation history, and daily reports. Row Level Security, database functions, and cron jobs run inside the database.',
   },
   {
     icon: Workflow,
@@ -71,8 +71,6 @@ const tables = [
   },
   { name: 'reputation_history', purpose: 'Per-fetch samples for scoring' },
   { name: 'oracle_reputation', purpose: 'Aggregated 7-day provider scores' },
-  { name: 'price_alerts', purpose: 'User alert configurations' },
-  { name: 'alert_events', purpose: 'Triggered alert history' },
   { name: 'api_keys', purpose: 'Key-based API authentication' },
   { name: 'daily_reports', purpose: 'Generated market snapshots' },
 ];
@@ -160,7 +158,7 @@ const securityItems = [
   {
     title: 'Row Level Security',
     description:
-      'Supabase RLS policies ensure users can only read their own alerts, API keys, and profile data.',
+      'Supabase RLS policies ensure users can only read their own API keys and profile data.',
   },
 ];
 
