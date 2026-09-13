@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { ArrowLeft, Activity } from 'lucide-react';
 
 import { getProviderColor } from '@/app/reputation/components/ReputationShared';
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import { useReputationDetail } from '@/hooks/data/useReputations';
@@ -64,7 +64,7 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
 
   if (isLoading) {
     return (
-      <div className="editorial-workspace min-h-screen">
+      <div className="editorial-workspace evidence-workbench provider-record-workbench min-h-screen">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12">
           <div className="flex items-center justify-center py-20">
             <div className="flex items-center gap-2">
@@ -79,7 +79,7 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
 
   if (error || !reputation) {
     return (
-      <div className="editorial-workspace min-h-screen">
+      <div className="editorial-workspace evidence-workbench provider-record-workbench min-h-screen">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12">
           <Link
             href="/reputation"
@@ -101,7 +101,7 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
   }
 
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench research-workbench provider-record-workbench min-h-screen">
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
         <EditorialWorkspaceHeader
           index="04.1"
@@ -121,7 +121,16 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
           }
         />
 
-        <div className="grid gap-8 pt-7 lg:grid-cols-[360px_minmax(0,1fr)] lg:gap-12">
+        <EvidenceProcessRail
+          label="Provider audit"
+          items={[
+            { label: 'Read the score', detail: 'Accuracy · uptime · reliability' },
+            { label: 'Decompose the signal', detail: 'Weights · latency · deviation' },
+            { label: 'Inspect the history', detail: 'Trend · coverage · samples' },
+          ]}
+        />
+
+        <div className="provider-record-grid grid gap-8 pt-7 lg:grid-cols-[360px_minmax(0,1fr)] lg:gap-12">
           <Sidebar
             reputation={reputation}
             provider={provider}
@@ -130,7 +139,10 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
             timeAgo={timeAgo}
           />
 
-          <section className="min-w-0 space-y-5" aria-label={`${providerName} reputation evidence`}>
+          <section
+            className="provider-evidence-ledger min-w-0 space-y-5"
+            aria-label={`${providerName} reputation evidence`}
+          >
             <div className="flex items-center justify-between border-b border-slate-900/15 pb-3">
               <p className="editorial-index">02 — Inspect the evidence</p>
               <span className="font-mono text-[10px] text-slate-400">30 DAY VIEW</span>

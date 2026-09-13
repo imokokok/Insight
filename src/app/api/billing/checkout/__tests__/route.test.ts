@@ -15,7 +15,11 @@ jest.mock('@/lib/billing/nowpayments', () => ({
 }));
 
 const mockInsert = jest.fn();
-const mockFrom = jest.fn(() => ({ insert: mockInsert }));
+const mockUpdate = jest.fn();
+const updateChain: Record<string, unknown> = {};
+updateChain.eq = () => updateChain;
+updateChain.then = (resolve: (value: unknown) => unknown) => resolve({ error: null });
+const mockFrom = jest.fn(() => ({ insert: mockInsert, update: mockUpdate }));
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: () => ({ from: mockFrom }),
 }));
@@ -44,7 +48,8 @@ async function callPost(body: unknown): Promise<Response> {
 describe('POST /api/billing/checkout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFrom.mockImplementation(() => ({ insert: mockInsert }));
+    mockFrom.mockImplementation(() => ({ insert: mockInsert, update: mockUpdate }));
+    mockUpdate.mockReturnValue(updateChain);
     mockCreateInvoice.mockResolvedValue({
       invoiceId: 'invoice_1',
       invoiceUrl: 'https://nowpayments.io/payment?iid=invoice_1',
@@ -87,9 +92,11 @@ describe('POST /api/billing/checkout', () => {
         user_id: USER_ID,
         credits: 25_000,
         price_usd: 39,
-        nowpayments_invoice_id: 'invoice_1',
         status: 'incomplete',
       })
+    );
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ nowpayments_invoice_id: 'invoice_1' })
     );
     expect(body.data.url).toContain('nowpayments.io/payment');
   });
@@ -109,19 +116,22 @@ describe('POST /api/billing/checkout', () => {
         plan: 'developer',
         interval: 'month',
         payment_provider: 'nowpayments',
-        nowpayments_invoice_id: 'invoice_1',
         status: 'incomplete',
       })
     );
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ nowpayments_invoice_id: 'invoice_1' })
+    );
   });
 
-  it('does not write a pending order when invoice creation fails', async () => {
+  it('cancels the durable pending order when invoice creation fails', async () => {
     mockCreateInvoice.mockResolvedValue({ error: 'provider unavailable' });
 
     const response = await callPost({ type: 'topup', pack: 'starter' });
 
     expect(response.status).toBe(502);
-    expect(mockInsert).not.toHaveBeenCalled();
+    expect(mockInsert).toHaveBeenCalled();
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ status: 'canceled' }));
   });
 
   it('returns a recoverable server error when the invoice cannot be recorded', async () => {

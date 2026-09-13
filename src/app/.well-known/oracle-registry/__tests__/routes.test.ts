@@ -8,6 +8,10 @@ import {
 } from '@/lib/attestations/oracleRegistryRelease';
 import { computeReasonCodesHash } from '@/lib/attestations/reasonCodesHash';
 import {
+  CURRENT_MAINLINE_PROTOCOL_PROMOTION,
+  CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID,
+} from '@/lib/protocol/mainlinePromotionRegistry';
+import {
   CURRENT_PARTNER_ACTIVATION_SET,
   CURRENT_PARTNER_ACTIVATION_SET_ID,
   activePartnerIntegrationPolicy,
@@ -56,6 +60,15 @@ describe('content-addressed oracle registry routes', () => {
     expect(currentBody.releaseId).toBe(CURRENT_ORACLE_REGISTRY_RELEASE_ID);
     expect(currentBody.registryRevision).toBe(CURRENT_ORACLE_REGISTRY_RELEASE.registryRevision);
     expect(currentBody.partnerIntegrations.activationSetId).toBe(CURRENT_PARTNER_ACTIVATION_SET_ID);
+    expect(currentBody.partnerIntegrations.runtime.registryReleasePinRule).toBe(
+      'lineage-floor-any'
+    );
+    expect(currentBody.promotion).toEqual(
+      expect.objectContaining({
+        promotionId: CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID,
+        promotionVersion: CURRENT_MAINLINE_PROTOCOL_PROMOTION.promotionVersion,
+      })
+    );
     expect(releaseBody.release.executionReceipt.legacyProfileResolution).toEqual(
       expect.objectContaining({
         signingStatus: 'retired',
@@ -81,6 +94,7 @@ describe('content-addressed oracle registry routes', () => {
     const currentBody = await currentResponse.json();
     expect(currentBody.activationSetId).toBe(CURRENT_PARTNER_ACTIVATION_SET_ID);
     expect(currentBody.runtime.requiredBodyField).toBe('policyId');
+    expect(currentBody.registryReleasePolicy.rule).toBe('lineage-floor-any');
     expect(currentBody.runtime.executionVerifyTemplate).toContain(
       '/api/v1/partners/{partnerId}/execution/attestation/verify'
     );
@@ -104,6 +118,29 @@ describe('content-addressed oracle registry routes', () => {
     const policyBody = await policyResponse.json();
     expect(policyResponse.headers.get('Cache-Control')).toContain('immutable');
     expect(policyBody.policy).toEqual(headless);
+  });
+
+  it('serves immutable content-addressed promotion records', async () => {
+    const promotionRoute = await import('../promotions/[promotionId]/route');
+    const response = await promotionRoute.GET(
+      new Request('https://example.test/promotion') as never,
+      {
+        params: Promise.resolve({ promotionId: CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID }),
+      }
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toContain('immutable');
+    expect(body.promotionId).toBe(CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID);
+    expect(body.promotion).toEqual(CURRENT_MAINLINE_PROTOCOL_PROMOTION);
+
+    const unknown = await promotionRoute.GET(
+      new Request('https://example.test/promotion') as never,
+      { params: Promise.resolve({ promotionId: `0x${'f'.repeat(64)}` }) }
+    );
+    expect(unknown.status).toBe(404);
+    expect(unknown.headers.get('Cache-Control')).toBe('no-store');
   });
 
   it('does not alias an unknown id to current content', async () => {

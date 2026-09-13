@@ -5,8 +5,8 @@
  * Extracted from the public safety verify route so it can be reused by the
  * execution trust layer (verify-pair) without importing a Next.js route module.
  * The function is pure crypto routing — no request/response or attester-key
- * policy lives here; the route applies key-window enforcement on top if
- * configured.
+ * policy lives here; public routes always apply the published key registry on
+ * top, while internal callers can compose their own trust policy.
  */
 
 import {
@@ -15,6 +15,7 @@ import {
   ATTESTATION_TYPES,
   ATTESTATION_PRIMARY_TYPE,
   ATTESTATION_SCHEMA_VERSION,
+  ATTESTATION_VALID_FOR_SECONDS,
   type OracleSafetyAttestation,
 } from '@/lib/attestations/oracleSafetyAttestation';
 import {
@@ -159,9 +160,8 @@ export async function verifyAttestationBySchema(
 
   if (schemaVersion === ATTESTATION_SCHEMA_VERSION) {
     const v1 = await verifyAttestation(attestation as unknown as OracleSafetyAttestation);
-    const validForSeconds = Number(attestation.validForSeconds ?? 0);
     return toUnified(v1, ATTESTATION_SCHEMA_VERSION, {
-      validUntil: v1.checkedAt !== null ? v1.checkedAt + validForSeconds : null,
+      validUntil: v1.checkedAt !== null ? v1.checkedAt + ATTESTATION_VALID_FOR_SECONDS : null,
       ageSeconds: v1.ageSeconds,
     });
   }

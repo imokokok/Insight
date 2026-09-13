@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { User } from 'lucide-react';
 
 import { TrialGrantNotice } from '@/components/billing/TrialGrantNotice';
-import { Button } from '@/components/ui/Button';
 import { apiClient } from '@/lib/api/client/ApiClient';
 import { setUser } from '@/lib/monitoring';
 import {
@@ -123,15 +122,17 @@ export function AuthNavigation({
         </div>
       ) : !loading ? (
         <div className="hidden lg:flex items-center gap-1">
-          <Link href="/login">
-            <Button variant="ghost" size="sm">
-              Login
-            </Button>
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center rounded-sm border border-transparent bg-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors duration-200 hover:border-gray-200 hover:bg-white/70 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+          >
+            Login
           </Link>
-          <Link href="/register">
-            <Button variant="primary" size="sm">
-              Register
-            </Button>
+          <Link
+            href="/register"
+            className="inline-flex items-center justify-center rounded-sm border border-primary-700 bg-primary-700 px-3 py-1.5 text-sm font-medium text-white transition-colors duration-200 hover:border-slate-950 hover:bg-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+          >
+            Register
           </Link>
         </div>
       ) : null}

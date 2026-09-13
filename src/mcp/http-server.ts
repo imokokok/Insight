@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage } from 'node:http';
 
+import { getMaxRequestBytes } from '@/lib/api/requestLimits';
 import { createLogger } from '@/lib/utils/logger';
 
 import { handleMcpHttpRequest } from './transports/http';
@@ -8,6 +9,9 @@ const logger = createLogger('mcp-http-server');
 
 const PORT = process.env.MCP_HTTP_PORT ? parseInt(process.env.MCP_HTTP_PORT, 10) : 3001;
 const HOST = process.env.MCP_HTTP_HOST ?? '127.0.0.1';
+const MAX_BODY_BYTES = getMaxRequestBytes();
+
+class PayloadTooLargeError extends Error {}
 
 const server = createServer(async (req, res) => {
   try {
@@ -50,8 +54,15 @@ const server = createServer(async (req, res) => {
     // Guard against the headers having already been sent (e.g. if the throw
     // happened after res.end() above) — writing again would crash Node.
     if (!res.headersSent) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Internal server error' }));
+      const tooLarge = error instanceof PayloadTooLargeError;
+      res.writeHead(tooLarge ? 413 : 500, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          error: tooLarge
+            ? `Request body exceeds ${MAX_BODY_BYTES} bytes`
+            : 'Internal server error',
+        })
+      );
     }
   }
 });
@@ -59,7 +70,16 @@ const server = createServer(async (req, res) => {
 function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on('data', (chunk) => chunks.push(chunk));
+    let totalBytes = 0;
+    req.on('data', (chunk: Buffer) => {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_BODY_BYTES) {
+        req.pause();
+        reject(new PayloadTooLargeError());
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
     req.on('error', reject);
   });

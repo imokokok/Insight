@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { ArrowRight, BookOpen, CircleAlert, ShieldCheck } from 'lucide-react';
 
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { ORACLE_INSIGHT_GUARD_VERSION } from '@/lib/npmPackageVersions';
 
@@ -47,7 +47,7 @@ if (result.status === 'executed') {
 
 export default function SdkDocsPage() {
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench developer-workbench sdk-docs-workbench min-h-screen">
       <section className="editorial-frame mx-auto max-w-[1440px] px-5 pt-4 sm:px-8 lg:px-12">
         <EditorialWorkspaceHeader
           index="12"
@@ -66,10 +66,18 @@ export default function SdkDocsPage() {
             </Link>
           }
         />
+        <EvidenceProcessRail
+          label="Reference path"
+          items={[
+            { label: 'Install securely', detail: 'Server runtime · key boundary' },
+            { label: 'Gate execution', detail: 'Check · assert · watch' },
+            { label: 'Retain proof', detail: 'Pair · settle · verify' },
+          ]}
+        />
       </section>
 
-      <main className="editorial-frame mx-auto max-w-[1100px] px-5 py-14 sm:px-8 sm:py-20">
-        <section className="border-y border-slate-900/15 bg-white/45 p-6 sm:p-8">
+      <main className="technical-manual-ledger editorial-frame mx-auto max-w-[1100px] px-5 py-14 sm:px-8 sm:py-20">
+        <section className="manual-chapter border-y border-slate-900/15 bg-white/45 p-6 sm:p-8">
           <p className="editorial-index mb-4">01 — Install · npm v{ORACLE_INSIGHT_GUARD_VERSION}</p>
           <h2 className="text-2xl font-bold text-slate-900">
             Use a trusted server or agent runtime.
@@ -83,7 +91,7 @@ export default function SdkDocsPage() {
           </div>
         </section>
 
-        <section className="py-14">
+        <section className="manual-chapter py-14">
           <p className="editorial-index mb-4">02 — Pre-trade gate</p>
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">
             Check before creating a transaction.
@@ -98,7 +106,7 @@ export default function SdkDocsPage() {
           </div>
         </section>
 
-        <section className="border-y border-slate-900/15 bg-white/45 py-14">
+        <section className="manual-chapter border-y border-slate-900/15 bg-white/45 py-14">
           <div className="px-6 sm:px-8">
             <p className="editorial-index mb-4">03 — Verified receipt workflow</p>
             <h2 className="text-3xl font-bold tracking-tight text-slate-900">
@@ -115,7 +123,7 @@ export default function SdkDocsPage() {
           </div>
         </section>
 
-        <section className="py-14">
+        <section className="manual-chapter py-14">
           <p className="editorial-index mb-4">04 — Oracle Watch</p>
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">
             Wire halt to a real pause action.
@@ -141,7 +149,7 @@ export default function SdkDocsPage() {
           </div>
         </section>
 
-        <section className="border-t border-slate-900/15 pt-10">
+        <section className="manual-chapter border-t border-slate-900/15 pt-10">
           <h2 className="text-2xl font-bold text-slate-900">Billing and verification boundary</h2>
           <p className="mt-3 max-w-3xl leading-relaxed text-slate-600">
             Guard uses the same API key and credit wallet as direct API calls. Pre-Trade and Oracle

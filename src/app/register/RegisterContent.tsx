@@ -13,8 +13,9 @@ import {
   AuthResultCard,
   GoToLoginButton,
 } from '@/app/auth/shared/AuthComponents';
-import { isValidRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
+import { getSafeRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
 import { PasswordInput } from '@/components/ui/PasswordInput';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { validatePassword, getPasswordStrength } from '@/lib/security/passwordValidation';
 import { useUser, useSession, useAuthActions, useAuthError } from '@/stores/authStore';
 
@@ -24,7 +25,7 @@ export default function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawRedirect = searchParams.get('redirect') || '/';
-  const redirectPath = isValidRedirectPath(rawRedirect) ? rawRedirect : '/';
+  const redirectPath = getSafeRedirectPath(rawRedirect);
 
   const user = useUser();
   const session = useSession();
@@ -41,7 +42,8 @@ export default function RegisterContent() {
 
   useEffect(() => {
     if (user && session && !isSuccess) {
-      router.push(redirectPath);
+      announceNavigationStart();
+      router.replace(redirectPath);
     }
   }, [user, session, isSuccess, router, redirectPath]);
 
@@ -159,7 +161,7 @@ export default function RegisterContent() {
 
   return (
     <AuthPageLayout>
-      <div className="text-center mb-8">
+      <div className="auth-record-heading text-center mb-8">
         <AuthBrandLogo />
         <h2 className="mt-4 text-xl font-semibold text-slate-900">Create Account</h2>
         <p className="mt-2 text-sm text-slate-500">Sign up for a new account</p>
@@ -174,7 +176,7 @@ export default function RegisterContent() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="auth-form-ledger space-y-5">
         <div>
           <label htmlFor="displayName" className="block text-sm font-medium text-slate-700 mb-2">
             Display Name <span className="text-slate-400">(optional)</span>

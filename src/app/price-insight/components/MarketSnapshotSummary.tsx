@@ -299,7 +299,7 @@ function MarketSnapshotSummaryComponent({
   const spreadTrend = getTrend(summary.spread);
 
   return (
-    <div className="editorial-panel grid grid-cols-1 border-y border-slate-900/15 bg-white/35 mb-8 lg:grid-cols-12">
+    <div className="comparison-signal-board editorial-panel mb-8 grid grid-cols-1 border-y border-slate-900/15 bg-white/35 lg:grid-cols-12">
       {/* Summary panel */}
       <div className="border-b border-slate-900/10 p-5 lg:col-span-5 lg:border-b-0 lg:border-r">
         <div className="flex items-center gap-2 mb-3">

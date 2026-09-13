@@ -115,6 +115,29 @@ export const POST = createApiHandler(
       const orderId = crypto.randomUUID();
       const description = `Insight ${packConfig.name} — ${packConfig.credits.toLocaleString()} credits`;
 
+      // Persist the order before creating anything externally. NOWPayments
+      // includes order_id in its IPN, so the webhook can still settle this row
+      // even if attaching the provider invoice id fails afterwards.
+      const { error: insertError } = await serviceClient.from('credit_purchases').insert({
+        id: orderId,
+        user_id: userId,
+        credits: packConfig.credits,
+        price_usd: packConfig.priceUsd,
+        status: 'incomplete',
+      });
+
+      if (insertError) {
+        logger.error('Failed to pre-create credit purchase row', new Error(insertError.message), {
+          userId,
+          pack,
+          orderId,
+        });
+        return NextResponse.json(
+          ApiResponseBuilder.error('INTERNAL_ERROR', 'Failed to record credit purchase'),
+          { status: 500 }
+        );
+      }
+
       const invoiceResult = await createInvoice({
         priceAmount: packConfig.priceUsd,
         priceCurrency: 'usd',
@@ -126,34 +149,30 @@ export const POST = createApiHandler(
       });
 
       if ('error' in invoiceResult) {
+        await serviceClient
+          .from('credit_purchases')
+          .update({ status: 'canceled', updated_at: new Date().toISOString() })
+          .eq('id', orderId)
+          .eq('status', 'incomplete');
         return NextResponse.json(
           ApiResponseBuilder.error('PAYMENT_ERROR', invoiceResult.error, { retryable: false }),
           { status: 502 }
         );
       }
 
-      // Record a pending credit purchase so the IPN can credit the wallet.
-      const { error: insertError } = await serviceClient.from('credit_purchases').insert({
-        id: orderId,
-        user_id: userId,
-        credits: packConfig.credits,
-        price_usd: packConfig.priceUsd,
-        nowpayments_invoice_id: invoiceResult.invoiceId,
-        status: 'incomplete',
-      });
+      const { error: linkError } = await serviceClient
+        .from('credit_purchases')
+        .update({
+          nowpayments_invoice_id: invoiceResult.invoiceId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', orderId);
 
-      if (insertError) {
+      if (linkError) {
         logger.error(
-          'Failed to pre-create credit purchase row after invoice creation',
-          new Error(insertError.message),
+          'Failed to attach invoice id to credit purchase; IPN order_id fallback remains usable',
+          new Error(linkError.message),
           { userId, pack, invoiceId: invoiceResult.invoiceId }
-        );
-        return NextResponse.json(
-          ApiResponseBuilder.error(
-            'INTERNAL_ERROR',
-            'Created invoice but failed to record credit purchase — please contact support'
-          ),
-          { status: 500 }
         );
       }
 
@@ -182,7 +201,40 @@ export const POST = createApiHandler(
     const orderId = crypto.randomUUID();
     const description = `Insight ${planConfig.name} plan — ${interval}ly subscription`;
 
-    // 2. Create the NOWPayments invoice.
+    // Pre-create the local source of truth before the external invoice. This
+    // removes the paid-but-untracked window; order_id remains a stable IPN
+    // fallback until nowpayments_invoice_id is attached below.
+    const now = new Date();
+    const placeholderPeriodEnd = new Date(
+      now.getTime() + PERIOD_DAYS[interval as BillingInterval] * 24 * 60 * 60 * 1000
+    );
+    const serviceClient = createServiceRoleClient();
+    const { error: insertError } = await serviceClient.from('subscriptions').insert({
+      id: orderId,
+      user_id: userId,
+      plan,
+      status: 'incomplete',
+      interval,
+      current_period_start: now.toISOString(),
+      current_period_end: placeholderPeriodEnd.toISOString(),
+      cancel_at_period_end: false,
+      payment_provider: 'nowpayments',
+    });
+
+    if (insertError) {
+      logger.error('Failed to pre-create subscription row', new Error(insertError.message), {
+        userId,
+        plan,
+        interval,
+        orderId,
+      });
+      return NextResponse.json(
+        ApiResponseBuilder.error('INTERNAL_ERROR', 'Failed to record subscription'),
+        { status: 500 }
+      );
+    }
+
+    // Create the NOWPayments invoice only after the order is durable.
     const invoiceResult = await createInvoice({
       priceAmount,
       priceCurrency: 'usd',
@@ -194,51 +246,30 @@ export const POST = createApiHandler(
     });
 
     if ('error' in invoiceResult) {
+      await serviceClient
+        .from('subscriptions')
+        .update({ status: 'canceled', updated_at: new Date().toISOString() })
+        .eq('id', orderId)
+        .eq('status', 'incomplete');
       return NextResponse.json(
         ApiResponseBuilder.error('PAYMENT_ERROR', invoiceResult.error, { retryable: false }),
         { status: 502 }
       );
     }
 
-    // 3. Pre-create the subscriptions row with status='incomplete'.
-    //    current_period_end is a placeholder — the webhook will overwrite it
-    //    with `now + period` when the `finished` IPN arrives (so the cycle
-    //    starts from payment confirmation, not from checkout initiation).
-    const now = new Date();
-    const placeholderPeriodEnd = new Date(
-      now.getTime() + PERIOD_DAYS[interval as BillingInterval] * 24 * 60 * 60 * 1000
-    );
+    const { error: linkError } = await serviceClient
+      .from('subscriptions')
+      .update({
+        nowpayments_invoice_id: invoiceResult.invoiceId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', orderId);
 
-    const serviceClient = createServiceRoleClient();
-    const { error: insertError } = await serviceClient.from('subscriptions').insert({
-      id: orderId,
-      user_id: userId,
-      nowpayments_invoice_id: invoiceResult.invoiceId,
-      plan,
-      status: 'incomplete',
-      interval,
-      current_period_start: now.toISOString(),
-      current_period_end: placeholderPeriodEnd.toISOString(),
-      cancel_at_period_end: false,
-      payment_provider: 'nowpayments',
-    });
-
-    if (insertError) {
+    if (linkError) {
       logger.error(
-        'Failed to pre-create subscription row after invoice creation',
-        new Error(insertError.message),
+        'Failed to attach invoice id to subscription; IPN order_id fallback remains usable',
+        new Error(linkError.message),
         { userId, plan, interval, invoiceId: invoiceResult.invoiceId }
-      );
-      // The invoice exists on NOWPayments but we have no local record. The
-      // user will still be able to pay, but the IPN won't find a row to
-      // upgrade. Return an error so the user retries; the zombie invoice
-      // will expire on NOWPayments' side.
-      return NextResponse.json(
-        ApiResponseBuilder.error(
-          'INTERNAL_ERROR',
-          'Created invoice but failed to record subscription — please contact support'
-        ),
-        { status: 500 }
       );
     }
 

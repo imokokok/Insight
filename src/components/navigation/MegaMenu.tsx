@@ -19,7 +19,6 @@ interface MegaMenuProps {
 export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenuProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +31,6 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    setIsHovered(true);
     prefetchGroup();
     timeoutRef.current = setTimeout(() => {
       setIsOpen(true);
@@ -43,7 +41,6 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    setIsHovered(false);
     timeoutRef.current = setTimeout(() => {
       setIsOpen(false);
     }, 250);
@@ -102,43 +99,11 @@ export function MegaMenu({ group, isActive, currentPath, onItemClick }: MegaMenu
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        {GroupIcon && <GroupIcon className="w-4 h-4" />}
         <span>{group.label}</span>
-        <span
-          className={`inline-flex h-[18px] min-w-[18px] items-center justify-center border-l px-1 font-mono text-[10px] font-bold leading-none transition-colors duration-200 ${
-            isActive || isGroupActive
-              ? 'bg-primary-200 text-primary-700'
-              : isOpen || isHovered
-                ? 'bg-primary-100 text-primary-600'
-                : 'bg-gray-200 text-gray-500'
-          }`}
-        >
-          {group.items.length}
-        </span>
         <ChevronDown
           className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
-
-      {!isOpen && isHovered && (
-        <div className="absolute left-1/2 top-full z-50 mt-1.5 flex -translate-x-1/2 items-center gap-1 border border-slate-900/15 bg-[#f8f7f4] px-2.5 py-1.5 animate-fade-in">
-          {group.items.slice(0, 5).map((item) => {
-            const ItemIcon = item.icon;
-            return (
-              <div
-                key={item.href}
-                className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] text-gray-500"
-              >
-                {ItemIcon && <ItemIcon className="w-3 h-3" />}
-                <span>{item.label}</span>
-              </div>
-            );
-          })}
-          {group.items.length > 5 && (
-            <span className="text-[10px] text-gray-400 px-1">+{group.items.length - 5}</span>
-          )}
-        </div>
-      )}
 
       {isOpen && (
         <div

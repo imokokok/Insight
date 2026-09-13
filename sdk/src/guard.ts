@@ -1,5 +1,5 @@
 import { InsightClient } from './client';
-import { ReceiptConfigurationError, TradeBlockedError } from './errors';
+import { InsightApiError, ReceiptConfigurationError, TradeBlockedError } from './errors';
 import {
   buildInsightPriorSealContextCommitment,
   buildPriorSealExactCallIntent,
@@ -56,7 +56,10 @@ export class InsightGuard {
 
   async check(request: PreTradeRequest, signal?: AbortSignal): Promise<GuardDecision> {
     const result = await this.client.preTrade(request, signal);
-    return { allowed: !this.blockedVerdicts.has(result.verdict), result };
+    return {
+      allowed: isExecutionAuthorised(result.verdict) && !this.blockedVerdicts.has(result.verdict),
+      result,
+    };
   }
 
   /** Exception-style helper for agents whose executor aborts on thrown errors. */
@@ -290,11 +293,29 @@ export class InsightGuard {
     if (!transaction.txHash)
       throw new ReceiptConfigurationError('submitTransaction returned no txHash.');
 
-    const receipt = await this.client.issueExecutionReceipt({
+    const receiptRequest: ExecutionReceiptRequest = {
       ...gated.receiptDraft,
       txHash: transaction.txHash,
       taker: transaction.taker,
-    });
+    };
+
+    let receipt: ExecutionReceiptResult;
+    try {
+      receipt = await this.client.issueExecutionReceipt(receiptRequest);
+    } catch (error) {
+      // The transaction is already broadcast. Never reject the whole workflow:
+      // callers commonly retry rejected operations, which could submit a
+      // duplicate trade. Return the exact receipt request for evidence-only
+      // recovery instead.
+      return {
+        status: 'executed_receipt_pending',
+        sourcePreTrade: gated.sourcePreTrade,
+        destinationPreTrade: gated.destinationPreTrade,
+        transaction,
+        receiptRequest,
+        evidenceError: evidenceError(error),
+      };
+    }
 
     return {
       status: 'executed',
@@ -303,6 +324,14 @@ export class InsightGuard {
       transaction,
       receipt,
     };
+  }
+
+  /** Retry evidence issuance for an already-broadcast swap without resubmitting it. */
+  async retryExecutionReceipt(
+    receiptRequest: ExecutionReceiptRequest,
+    signal?: AbortSignal
+  ): Promise<ExecutionReceiptResult> {
+    return this.client.issueExecutionReceipt(receiptRequest, signal);
   }
 
   /**
@@ -528,6 +557,9 @@ export class InsightGuard {
   watch(target: OracleWatchTarget, options: WatchOptions = {}): WatchHandle {
     const key = targetKey(target);
     const intervalMs = options.intervalMs ?? DEFAULT_WATCH_INTERVAL_MS;
+    if (!Number.isSafeInteger(intervalMs) || intervalMs <= 0) {
+      throw new RangeError('Watch intervalMs must be a positive integer.');
+    }
     if (intervalMs < DEFAULT_WATCH_INTERVAL_MS && !options.allowFasterPolling) {
       throw new RangeError(
         `Watch intervals below ${DEFAULT_WATCH_INTERVAL_MS}ms require allowFasterPolling: true.`
@@ -536,13 +568,24 @@ export class InsightGuard {
 
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let resolveDelay: (() => void) | undefined;
+    const loopController = new AbortController();
+    const wakeDelay = () => {
+      if (timer !== undefined) clearTimeout(timer);
+      timer = undefined;
+      const resolve = resolveDelay;
+      resolveDelay = undefined;
+      resolve?.();
+    };
     const stop = () => {
       active = false;
-      if (timer !== undefined) clearTimeout(timer);
+      if (!loopController.signal.aborted) loopController.abort(new Error('Watch stopped'));
+      wakeDelay();
     };
+    options.signal?.addEventListener('abort', stop, { once: true });
 
-    const refresh = async (): Promise<OracleWatchResult> => {
-      const result = await this.client.oracleWatch(target, options.signal);
+    const refreshWithSignal = async (signal?: AbortSignal): Promise<OracleWatchResult> => {
+      const result = await this.client.oracleWatch(target, signal);
       await options.onSignal?.(result);
       if (result.recommendation === 'halt') {
         this.haltedTargets.add(key);
@@ -552,24 +595,32 @@ export class InsightGuard {
       }
       return result;
     };
+    const refresh = () => refreshWithSignal(options.signal);
 
     const done = new Promise<void>((resolve) => {
       const run = async (): Promise<void> => {
         while (active && !options.signal?.aborted) {
           try {
-            const result = await refresh();
+            const result = await refreshWithSignal(loopController.signal);
             if (result.recommendation === 'halt' && (options.stopOnHalt ?? true)) {
               stop();
               break;
             }
           } catch (error) {
+            if (!active || loopController.signal.aborted || options.signal?.aborted) break;
             await options.onError?.(error);
           }
           if (!active || options.signal?.aborted) break;
           await new Promise<void>((next) => {
-            timer = setTimeout(next, intervalMs);
+            resolveDelay = next;
+            timer = setTimeout(() => {
+              timer = undefined;
+              resolveDelay = undefined;
+              next();
+            }, intervalMs);
           });
         }
+        options.signal?.removeEventListener('abort', stop);
         resolve();
       };
       void run();
@@ -1010,6 +1061,9 @@ function normalizeTxHash(value: unknown): string | null {
 
 function evidenceError(error: unknown): { code?: string; message: string } {
   if (error instanceof PriorSealBridgeError) {
+    return { code: error.options.code, message: error.message };
+  }
+  if (error instanceof InsightApiError) {
     return { code: error.options.code, message: error.message };
   }
   if (error instanceof Error) return { message: error.message };

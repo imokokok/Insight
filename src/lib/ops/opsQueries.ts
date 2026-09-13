@@ -1,5 +1,5 @@
 import { getIncidentAggregation } from '@/lib/api/services/incidentService';
-import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { ORACLE_WATCH_HISTORY_UNIVERSE } from '@/lib/reports/oracleWatchUniverse';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { get7dAgoUtc, getTodayUtc } from '@/lib/utils/date';
@@ -540,7 +540,9 @@ export async function getCronHealth(): Promise<CronHealth> {
       lastRunAt: last,
       ageMinutes: age,
       staleThresholdMinutes: threshold,
-      stale: age != null && age > threshold,
+      // No output is unknown/unhealthy, never "fresh". Query failures are
+      // additionally surfaced through CronHealth.errored.
+      stale: age == null || age > threshold,
     };
   };
 
@@ -636,6 +638,10 @@ export async function getCreditUsage(windowHours = 24): Promise<CreditUsage> {
     if (row.kind === 'usage' && delta < 0) {
       spent += -delta;
       billedCalls++;
+    } else if (row.kind === 'refund' && delta < 0) {
+      // Refund clawbacks reverse previously credited funds; include them in
+      // net issuance without counting them as billed API calls.
+      credited += delta;
     } else if (delta > 0) {
       credited += delta;
     }
@@ -659,6 +665,8 @@ export interface BillingSummary {
   activeKeys: number;
   byPlan: Record<string, number>;
   byRateLimit: Record<string, number>;
+  /** True when the database query failed; zero counts are then placeholders. */
+  errored?: boolean;
 }
 
 export async function getBillingSummary(): Promise<BillingSummary> {
@@ -666,7 +674,7 @@ export async function getBillingSummary(): Promise<BillingSummary> {
   const { data, error } = await supabase.from('api_keys').select('plan, rate_limit, is_active');
 
   if (error || !data) {
-    return { totalKeys: 0, activeKeys: 0, byPlan: {}, byRateLimit: {} };
+    return { totalKeys: 0, activeKeys: 0, byPlan: {}, byRateLimit: {}, errored: true };
   }
 
   const byPlan: Record<string, number> = {};
@@ -700,10 +708,12 @@ export interface OverviewStats {
 
 export async function getOverviewStats(windowHours = 24): Promise<OverviewStats> {
   const supabase = createServiceRoleClient();
-  const [feeds, signing, incidents, cron, inactiveResult] = await Promise.all([
-    getAllActiveFeedsByProvider(),
+  const [feedResult, signing, incidentResult, cron, inactiveResult] = await Promise.all([
+    getAllActiveFeedsByProviderWithStatus(),
     getSigningIntegrity(windowHours),
-    getIncidentAggregation({ from: get7dAgoUtc(), to: getTodayUtc(), limit: 1, offset: 0 }),
+    getIncidentAggregation({ from: get7dAgoUtc(), to: getTodayUtc(), limit: 1, offset: 0 })
+      .then((value) => ({ value, errored: false }))
+      .catch(() => ({ value: null, errored: true })),
     getCronHealth(),
     supabase
       .from('oracle_feeds')
@@ -711,11 +721,18 @@ export async function getOverviewStats(windowHours = 24): Promise<OverviewStats>
       .eq('is_active', false),
   ]);
 
+  const feeds = feedResult.feeds;
   const all = Array.from(feeds.values()).flat();
   const symbols = new Set(all.map((f) => f.symbol)).size;
   const chains = new Set(all.map((f) => f.chain_id)).size;
 
-  const partial = Boolean(signing.summary.errored || cron.errored);
+  const partial = Boolean(
+    feedResult.errored ||
+    signing.summary.errored ||
+    incidentResult.errored ||
+    cron.errored ||
+    inactiveResult.error
+  );
 
   return {
     feedsActive: all.length,
@@ -725,7 +742,7 @@ export async function getOverviewStats(windowHours = 24): Promise<OverviewStats>
     chains,
     signedRatePct: signing.summary.signedRatePct,
     unsignedBlocks: signing.summary.unsignedBlocks,
-    incidents7d: incidents.total,
+    incidents7d: incidentResult.value?.total ?? 0,
     cronStale: cron.jobs.filter((j) => j.stale).length,
     partial,
   };

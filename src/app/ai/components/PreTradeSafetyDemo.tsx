@@ -195,13 +195,14 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
       });
       if (isLending) params.set('protocolId', protocolId);
       const headers: Record<string, string> = {};
-      if (session?.access_token) {
-        headers.Authorization = `Bearer ${session.access_token}`;
-      } else if (apiKey) {
+      if (apiKey) {
         headers['X-API-Key'] = apiKey;
+      } else if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
       }
 
-      const res = await fetch(`/api/v1/safety/pre-trade?${params.toString()}`, { headers });
+      const endpoint = apiKey ? '/api/v1/safety/pre-trade' : '/api/demo/pre-trade';
+      const res = await fetch(`${endpoint}?${params.toString()}`, { headers });
       const json = await res.json();
 
       if (!res.ok || !json.success) {

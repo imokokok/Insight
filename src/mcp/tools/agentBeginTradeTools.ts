@@ -23,6 +23,7 @@
  */
 
 import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
+import type { PreTradeSafetyResult } from '@/lib/api/services/preTradeSafetyService';
 import { resolveCaip19 } from '@/lib/attestations/caip19';
 
 import { AgentBeginTradeInputSchema } from './schemas';
@@ -85,6 +86,7 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
     // execution_receipt for a VERIFIED binding, and agent_begin_trade is the
     // only moment that holds both at once.
     let destinationConsensus: number;
+    let destinationVerdict: PreTradeSafetyResult['verdict'];
     let destinationAttestation = undefined as typeof sourceCheck.attestation | undefined;
     try {
       const destCheck = await preTradeSafetyCheck({
@@ -98,6 +100,7 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
         destinationAsset: args.asset,
       });
       destinationConsensus = destCheck.consensusPrice;
+      destinationVerdict = destCheck.verdict;
       destinationAttestation = destCheck.attestation;
     } catch {
       return `agent_begin_trade failed: could not resolve a consensus price for destination asset "${args.destinationAsset}".`;
@@ -107,9 +110,19 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
       return 'agent_begin_trade failed: destination pre-trade attestation was not signed (attester key misconfigured?).';
     }
 
+    if (destinationVerdict === 'DANGER' || destinationVerdict === 'BLOCK') {
+      return [
+        `**Execution certification REFUSED — destination oracle risk too high (verdict: ${destinationVerdict}).**`,
+        'Do NOT execute this trade. Both swap legs must pass the pre-trade gate before a certification handle can be issued.',
+      ].join('\n');
+    }
+
     const sourceConsensus = sourceCheck.consensusPrice;
     if (!(sourceConsensus > 0)) {
       return `agent_begin_trade failed: source asset "${args.asset}" has no usable consensus price.`;
+    }
+    if (!(destinationConsensus > 0) || !Number.isFinite(destinationConsensus)) {
+      return `agent_begin_trade failed: destination asset "${args.destinationAsset}" has no usable consensus price.`;
     }
     // Destination-per-source (e.g. WETH/USDC) so it matches the on-chain
     // executedPrice convention and the execution receipt's slippage math. With
@@ -150,6 +163,7 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
       maxSlippageBps: 50,
       action: args.action.toUpperCase(),
       verdict: sourceCheck.verdict,
+      destinationVerdict,
       preTradeVerifyUrl: attestation.verifyUrl,
       // The two signed pre-trade originals. Passing these to execution_receipt
       // upgrades the Execution Receipt to a VERIFIED binding: every bound field

@@ -14,7 +14,10 @@ export interface ThresholdConfig {
 }
 
 export const defaultThresholdConfig: ThresholdConfig = {
-  type: 'dynamic',
+  // The comparison table currently has snapshot-only data and therefore
+  // cannot calculate a defensible ATR or rolling-volatility threshold.
+  // Keep the declared mode aligned with the actual fixed 0.5% behaviour.
+  type: 'fixed',
   fixedThreshold: 0.5,
   atrMultiplier: 2.0,
   volatilityWindow: 20,

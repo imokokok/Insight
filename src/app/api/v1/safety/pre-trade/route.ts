@@ -1,7 +1,5 @@
 import { type NextResponse } from 'next/server';
 
-import { z } from 'zod';
-
 import {
   createApiHandler,
   createOptionsHandler,
@@ -10,37 +8,10 @@ import {
 } from '@/lib/api/handler';
 import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
-import { SafeSymbolSchema } from '@/lib/security/validation';
 
-const PreTradeQuerySchema = z.object({
-  asset: SafeSymbolSchema.describe('Asset symbol, e.g. ETH, BTC, USDC'),
-  chainId: z.coerce.number().int().describe('Chain ID, e.g. 1=Ethereum, 0=chain-agnostic'),
-  action: z
-    .enum(['swap', 'borrow', 'lend', 'liquidate', 'repay'])
-    .describe('Type of DeFi operation'),
-  tradeAmountUsd: z.coerce.number().positive().describe('Trade size in USD'),
-  targetProviders: z
-    .string()
-    .optional()
-    .describe('Comma-separated list of oracle providers to restrict the check to'),
-  protocolId: z
-    .string()
-    .optional()
-    .describe('Optional lending protocol id to evaluate against (e.g. aave-v3-ethereum)'),
-  schemaVersion: z
-    .union([z.literal(1), z.literal(2), z.literal(3)])
-    .optional()
-    .describe(
-      'Attestation schema version: 1 (default, 11-field), 2 (26-field, CAIP-19 + quorum gate), ' +
-        'or 3 (27-field: v2 + the signed independence threshold, so the gate is self-verifying)'
-    ),
-  destinationAsset: z
-    .string()
-    .optional()
-    .describe(
-      'Optional destination asset symbol (v2 binds it as destinationAssetId; not evaluated in v2.0)'
-    ),
-});
+import { PreTradeQuerySchema } from './querySchema';
+
+import type { z } from 'zod';
 
 export const OPTIONS = createOptionsHandler();
 
@@ -57,12 +28,7 @@ export const GET = createApiHandler(
         chainId: query.chainId,
         action: query.action,
         tradeAmountUsd: query.tradeAmountUsd,
-        targetProviders: query.targetProviders
-          ? query.targetProviders
-              .split(',')
-              .map((p) => p.trim())
-              .filter(Boolean)
-          : undefined,
+        targetProviders: query.targetProviders,
         protocolId: query.protocolId,
         schemaVersion: query.schemaVersion,
         destinationAsset: query.destinationAsset,
@@ -91,10 +57,5 @@ export const GET = createApiHandler(
   {
     middlewares: V1_STANDARD_MIDDLEWARES,
     validation: { query: PreTradeQuerySchema },
-    // Powers the free website's pre-trade safety demos (/ai, /safety-check).
-    // UI requests are identified by the internal cookie and skip
-    // auth/rate-limit/quota; external callers still need an API key and are
-    // metered.
-    skipInternalAuthAndRateLimit: true,
   }
 );

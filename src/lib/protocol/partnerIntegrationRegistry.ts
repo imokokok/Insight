@@ -29,6 +29,10 @@ export const PARTNER_IDS = [
 export type PartnerId = (typeof PARTNER_IDS)[number];
 export type PartnerPolicyLifecycle = 'draft' | 'verified' | 'promoted' | 'retired';
 
+export const ORACLE_REGISTRY_RELEASE_PIN_RULE = 'lineage-floor-any' as const;
+export const ORACLE_REGISTRY_RELEASE_PIN_RULE_DESCRIPTION =
+  'A candidate release is admitted when it equals any policy-pinned release or reaches one through predecessorReleaseId; unknown releases, cycles, and releases outside every pinned lineage fail closed.';
+
 export interface PartnerIntegrationPolicy {
   policyId: `0x${string}`;
   kind: 'MainlinePartnerPolicy';
@@ -162,6 +166,9 @@ export interface ExecutionPolicyResult {
   policyId: string;
   partnerId: PartnerId | null;
   reason: string;
+  registryReleaseId?: string;
+  registryReleasePinRule?: typeof ORACLE_REGISTRY_RELEASE_PIN_RULE;
+  registryReleaseMatchedFloor?: string | null;
 }
 
 /** Apply a verifier-selected consumer policy. The policy is not receipt data;
