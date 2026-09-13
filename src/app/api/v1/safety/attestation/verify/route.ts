@@ -42,7 +42,7 @@ import {
 } from '@/lib/attestations/canonicalRequestHash';
 import {
   buildKeyRegistryConfig,
-  isAttestationKeyValid,
+  enforceAttestationKeyTrust,
 } from '@/lib/attestations/keyRegistryConfig';
 import {
   getAttesterAddress,
@@ -195,30 +195,16 @@ export const POST = createApiHandler<
     // attestation — it just returns valid:false.
     const verification = await verifyAttestationBySchema(body.attestation);
 
-    // Optional server-side key-window enforcement (key-rotation-procedure.md
-    // §5 gap 4). OFF by default: the registry validity window is primarily a
-    // verifier-side rule, and enabling it is a registration-time decision.
-    // When ATTESTATION_ENFORCE_KEY_WINDOW=true we additionally reject
-    // attestations whose attester key is revoked or whose `checkedAt` falls
-    // outside the published [validFrom, validUntil) window. The crypto check
-    // above already proved the signature is genuine; this adds the trust-window
-    // gate on top.
-    if (
-      process.env.ATTESTATION_ENFORCE_KEY_WINDOW === 'true' &&
-      verification.valid &&
-      verification.attester
-    ) {
+    // Cryptographic self-consistency is not issuer authenticity: anybody can
+    // create a key and self-sign a well-formed EIP-712 payload. Always require
+    // the recovered signer to be in Insight's published trust registry.
+    if (verification.valid && verification.attester) {
       const attester = await getAttesterAddress();
       // H8: the sample signer participates in the published trust window too,
       // so a sample receipt verifies (and is labeled via the registry) under
       // window enforcement.
       const config = buildKeyRegistryConfig(attester, await getSampleAttesterAddress());
-      if (!isAttestationKeyValid(verification.attester, verification.checkedAt, config)) {
-        verification.valid = false;
-        verification.expired = true;
-        verification.reason =
-          'attester key is revoked or its checkedAt is outside the published validity window';
-      }
+      enforceAttestationKeyTrust(verification, config);
     }
 
     return NextResponse.json(

@@ -1,5 +1,7 @@
 import { encodeAbiParameters, keccak256 } from 'viem';
 
+import { stripTrailingSlashes } from './url';
+
 import type {
   PreparedExactCallTransaction,
   PriorSealAcceptedAuthorization,
@@ -42,7 +44,7 @@ export class PriorSealClient implements PriorSealApi {
     if (!options.baseUrl.trim()) throw new TypeError('PriorSealClient requires baseUrl.');
     const fetcher = options.fetch ?? globalThis.fetch;
     if (!fetcher) throw new TypeError('No fetch implementation is available.');
-    this.baseUrl = options.baseUrl.replace(/\/+$/, '');
+    this.baseUrl = stripTrailingSlashes(options.baseUrl);
     this.fetcher = fetcher;
     this.headers = options.headers ?? {};
     this.timeoutMs = options.timeoutMs ?? 15_000;

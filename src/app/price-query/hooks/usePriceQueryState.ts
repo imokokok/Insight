@@ -9,6 +9,7 @@ import {
   isOracleSymbolSupported,
   type OracleMetadata,
 } from '@/lib/oracles/metadata';
+import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { parseQueryParams, updateUrlParams, type QueryConfig } from '@/lib/utils/urlParams';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 
@@ -49,6 +50,24 @@ function getFirstSupportedSymbol(
   }
 
   return symbols[0];
+}
+
+function getPreferredOrFirstSupportedSymbol(
+  oracle: OracleProvider,
+  chain: Blockchain,
+  preferredSymbol: string,
+  oracleSymbols: Record<string, string[]>,
+  metadata: OracleMetadata
+): string {
+  const normalizedPreferred = extractBaseSymbol(preferredSymbol).toUpperCase();
+  if (
+    normalizedPreferred &&
+    isOracleSymbolSupported(metadata, oracle, normalizedPreferred, chain)
+  ) {
+    return normalizedPreferred;
+  }
+
+  return getFirstSupportedSymbol(oracle, chain, oracleSymbols, metadata);
 }
 
 export function usePriceQueryState(): UsePriceQueryStateReturn {
@@ -128,10 +147,22 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
       const defaultOracle = oracleMapping[preferences.defaultOracle] || OracleProvider.CHAINLINK;
       const defaultTimeRange = timeRangeMapping[preferences.defaultTimeRange] || 24;
 
-      // Auto-select first supported chain and symbol for the default oracle
-      const defaultChain = getFirstSupportedChain(defaultOracle, metadata);
+      // Honor the saved symbol when it is available on the selected provider
+      // on any of its chains; otherwise fall back to the provider's first
+      // chain and first valid symbol.
+      const preferredSymbol = extractBaseSymbol(preferences.defaultSymbol).toUpperCase();
+      const preferredChain = getOracleChains(metadata, defaultOracle).find((chain) =>
+        isOracleSymbolSupported(metadata, defaultOracle, preferredSymbol, chain)
+      );
+      const defaultChain = preferredChain ?? getFirstSupportedChain(defaultOracle, metadata);
       const defaultSymbol = defaultChain
-        ? getFirstSupportedSymbol(defaultOracle, defaultChain, oracleSymbols, metadata)
+        ? getPreferredOrFirstSupportedSymbol(
+            defaultOracle,
+            defaultChain,
+            preferences.defaultSymbol,
+            oracleSymbols,
+            metadata
+          )
         : 'BTC';
 
       selectedOracleRef.current = defaultOracle;

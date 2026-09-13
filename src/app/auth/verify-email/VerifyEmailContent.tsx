@@ -13,6 +13,8 @@ import {
   AuthPageSuspense,
   GoToLoginButton,
 } from '@/app/auth/shared/AuthComponents';
+import { getSafeRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useUser, useSession } from '@/stores/authStore';
 
 function getErrorMessage(error: string): string {
@@ -45,6 +47,7 @@ function VerifyEmailForm() {
   const errorParam = searchParams.get('error');
   const codeParam = searchParams.get('code');
   const redirectParam = searchParams.get('redirect') || undefined;
+  const redirectPath = getSafeRedirectPath(redirectParam);
 
   const initialState = useMemo(() => {
     if (errorParam) return { verifying: false, result: 'error' as const };
@@ -68,9 +71,10 @@ function VerifyEmailForm() {
 
   useEffect(() => {
     if (user && session) {
-      router.push(redirectParam || '/');
+      announceNavigationStart();
+      router.replace(redirectPath);
     }
-  }, [user, session, router, redirectParam]);
+  }, [user, session, router, redirectPath]);
 
   const isSuccess = verifyResult === 'success';
   const errorMessage = errorParam
@@ -101,7 +105,7 @@ function VerifyEmailForm() {
           description="Your email has been verified. You can now log in to your account."
         >
           <div className="space-y-3">
-            <GoToLoginButton redirect={redirectParam} />
+            <GoToLoginButton redirect={redirectPath} />
           </div>
         </AuthResultCard>
       </AuthPageLayout>

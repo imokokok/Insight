@@ -155,6 +155,40 @@ async function main() {
   } else {
     console.log('  (no checks in window)');
   }
+
+  // 4. Oracle Watch issuance audit. Unlike api_key_usage, these rows prove a
+  // response made it through judgment construction and archival.
+  const { data: watchChecks, error: wErr } = await supabase
+    .from('oracle_watch_checks')
+    .select('symbol, chain, verdict, recommendation, attested, uid, created_at')
+    .eq('api_key_id', chosen.id)
+    .gte('created_at', since)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (wErr) {
+    console.error('Oracle Watch checks query failed:', wErr.message);
+    process.exit(1);
+  }
+
+  console.log(`\n=== oracle_watch_checks (last ${days}d) ===`);
+  console.log(`Total checks: ${watchChecks.length}`);
+  if (watchChecks.length > 0) {
+    console.log('\nBy feed:');
+    for (const [feed, n] of aggregateBy(
+      watchChecks,
+      (row) => `${row.symbol}@${row.chain ?? 'unscoped'}`
+    )) {
+      console.log(`  ${n.toString().padStart(5)}  ${feed}`);
+    }
+    console.log('\nMost recent 10:');
+    for (const check of watchChecks.slice(0, 10)) {
+      console.log(
+        `  ${check.created_at} | ${check.symbol}@${check.chain ?? 'unscoped'} | ${check.verdict}/${check.recommendation} | attested=${check.attested} | uid=${check.uid ?? 'n/a'}`
+      );
+    }
+  } else {
+    console.log('  (no checks in window)');
+  }
 }
 
 main().catch((e) => {

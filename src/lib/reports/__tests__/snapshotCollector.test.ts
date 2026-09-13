@@ -1,6 +1,10 @@
 import type { OracleProvider } from '@/types/oracle';
 
-import { dedupeHourlySnapshotInputs } from '../snapshotCollector';
+import {
+  buildProviderConsensusInputs,
+  dedupeHourlySnapshotInputs,
+  resolveSnapshotSlot,
+} from '../snapshotCollector';
 
 import type { HourlySnapshotInput } from '../types';
 
@@ -115,5 +119,99 @@ describe('dedupeHourlySnapshotInputs', () => {
     const out = dedupeHourlySnapshotInputs(inputs);
     expect(out).toHaveLength(1);
     expect(out[0].price).toBe(3000);
+  });
+});
+
+describe('resolveSnapshotSlot', () => {
+  it('uses the dispatcher slot as a stable 15-minute natural key', () => {
+    expect(resolveSnapshotSlot('2026-09-13T12:29:59.999Z')).toEqual(
+      new Date('2026-09-13T12:15:00.000Z')
+    );
+  });
+
+  it('falls back to a bucketed local start time when no valid schedule exists', () => {
+    expect(resolveSnapshotSlot('', new Date('2026-09-13T12:44:00.000Z'))).toEqual(
+      new Date('2026-09-13T12:30:00.000Z')
+    );
+  });
+});
+
+describe('buildProviderConsensusInputs', () => {
+  it('collapses multiple chains from the same provider into one consensus vote', () => {
+    const now = Date.now();
+    const result = buildProviderConsensusInputs([
+      {
+        provider: 'chainlink',
+        symbol: 'ETH',
+        feedChainId: 1,
+        price: {
+          provider: 'chainlink',
+          symbol: 'ETH',
+          chain: 'ethereum',
+          price: 99,
+          timestamp: now - 1_000,
+          confidence: 0.9,
+        },
+        error: null,
+        skipped: false,
+      },
+      {
+        provider: 'chainlink',
+        symbol: 'ETH',
+        feedChainId: 42161,
+        price: {
+          provider: 'chainlink',
+          symbol: 'ETH',
+          chain: 'arbitrum',
+          price: 101,
+          timestamp: now - 2_000,
+          confidence: 0.7,
+        },
+        error: null,
+        skipped: false,
+      },
+      {
+        provider: 'chainlink',
+        symbol: 'ETH',
+        feedChainId: 8453,
+        price: {
+          provider: 'chainlink',
+          symbol: 'ETH',
+          chain: 'base',
+          price: 100,
+          timestamp: now - 3_000,
+          confidence: 0.8,
+        },
+        error: null,
+        skipped: false,
+      },
+      {
+        provider: 'redstone',
+        symbol: 'ETH',
+        feedChainId: 0,
+        price: {
+          provider: 'redstone',
+          symbol: 'ETH',
+          chain: 'ethereum',
+          price: 102,
+          timestamp: now - 500,
+          confidence: 0.95,
+        },
+        error: null,
+        skipped: false,
+      },
+    ]);
+
+    expect(result).toHaveLength(2);
+    expect(result.find((input) => input.provider === 'chainlink')).toEqual(
+      expect.objectContaining({
+        price: 100,
+        confidence: 0.7,
+        timestamp: now - 3_000,
+      })
+    );
+    expect(result.find((input) => input.provider === 'redstone')).toEqual(
+      expect.objectContaining({ price: 102, confidence: 0.95 })
+    );
   });
 });

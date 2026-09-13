@@ -8,7 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Shield, Calculator, Loader2 } from 'lucide-react';
 
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { isImportableProtocol } from '@/lib/protocols/detection';
 import type { ProtocolDetection } from '@/lib/protocols/detection';
 import type { EnrichedProtocolConfig } from '@/lib/protocols/dynamicData';
@@ -35,6 +35,43 @@ interface AssetRow {
   id: string;
   symbol: string;
   amount: string;
+}
+
+const SAFETY_PROCESS_ITEMS = [
+  { label: 'Import position', detail: 'Wallet or manual context' },
+  { label: 'Stress the oracle', detail: 'Bidirectional deviation' },
+  { label: 'Read the outcome', detail: 'Threshold · health · receipt' },
+] as const;
+
+function SafetyDecisionRail({ activeIndex }: { activeIndex: number }) {
+  return (
+    <EvidenceProcessRail
+      label="Decision sequence"
+      activeIndex={activeIndex}
+      items={SAFETY_PROCESS_ITEMS}
+    />
+  );
+}
+
+function SafetyWorkspaceHeader() {
+  return (
+    <EditorialWorkspaceHeader
+      index="03"
+      stage="Decide"
+      eyebrow="Liquidation-risk stress testing. Import a live lending position or describe it manually before testing the consequence of an oracle move."
+      title="Model the consequence before the market does."
+      description="Connect a wallet to scan supported lending positions, or enter one manually. Insight calculates critical deviation, health-factor pressure, and concrete adjustments."
+      evidence={['Position context', 'Deviation threshold', 'Signed outcome']}
+      action={
+        <Link
+          href="/verify"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800"
+        >
+          Verify a receipt <ArrowRight className="h-4 w-4" />
+        </Link>
+      }
+    />
+  );
 }
 
 function getProtocolDefaults(protocol: ProtocolConfig): {
@@ -385,31 +422,25 @@ export default function SafetyCheckContent() {
                 : 'empty'
               : 'idle';
 
+  const decisionStageIndex =
+    view === 'result' || view === 'portfolio'
+      ? 2
+      : view === 'detecting' || view === 'single-pending' || view === 'calculating'
+        ? 1
+        : 0;
+
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench safety-workbench min-h-screen">
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
-        <EditorialWorkspaceHeader
-          index="03"
-          stage="Decide"
-          eyebrow="Liquidation-risk stress testing. Import a live lending position or describe it manually before testing the consequence of an oracle move."
-          title="Model the consequence before the market does."
-          description="Connect a wallet to scan supported lending positions, or enter one manually. Insight calculates critical deviation, health-factor pressure, and concrete adjustments."
-          evidence={['Position context', 'Deviation threshold', 'Signed outcome']}
-          action={
-            <Link
-              href="/verify"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800"
-            >
-              Verify a receipt <ArrowRight className="h-4 w-4" />
-            </Link>
-          }
-        />
+        <SafetyWorkspaceHeader />
+
+        <SafetyDecisionRail activeIndex={decisionStageIndex} />
 
         {/* Main layout */}
-        <div className="grid gap-8 pt-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
+        <div className="editorial-workbench-grid grid gap-8 pt-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
           {/* Left sidebar */}
           <aside>
-            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+            <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
               <p className="editorial-index">01 — Define the position</p>
               <span className="font-mono text-[10px] text-slate-400">INPUT</span>
             </div>
@@ -503,7 +534,7 @@ export default function SafetyCheckContent() {
 
           {/* Right content */}
           <section className="min-w-0" aria-label="Safety check result">
-            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+            <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
               <p className="editorial-index">02 — Read the outcome</p>
               <span className="font-mono text-[10px] text-slate-400">DECISION</span>
             </div>

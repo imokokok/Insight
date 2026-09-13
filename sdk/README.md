@@ -104,6 +104,10 @@ const result = await guard.executeSwap({
 if (result.status === 'blocked') {
   // No transaction was submitted.
   console.log(result.stage, result.sourcePreTrade?.verdict);
+} else if (result.status === 'executed_receipt_pending') {
+  // The transaction is already on-chain. Retry evidence only; never resubmit.
+  const receipt = await guard.retryExecutionReceipt(result.receiptRequest);
+  console.log(receipt.executionStatus, receipt.attestation.uid);
 } else {
   console.log(result.receipt.executionStatus, result.receipt.attestation.uid);
 }

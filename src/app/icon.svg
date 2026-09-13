@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 220" role="img" aria-labelledby="title desc">
+  <title id="title">Insight logo</title>
+  <desc id="desc">An asymmetric glacier cut with visible data layers and a deeper risk layer.</desc>
+  <g stroke-linejoin="round">
+    <path d="M48 20L88 14C110 29 128 53 140 80L162 144C171 171 154 198 125 206L57 198C31 193 19 172 25 147L36 77C39 51 42 31 48 20Z" fill="#1E40AF"/>
+    <path d="M48 20L88 14C110 29 128 53 140 80C103 65 71 64 36 77C39 51 42 31 48 20Z" fill="#DBEAFE"/>
+    <path d="M36 77C71 64 103 65 140 80L150 110C109 97 68 99 31 115Z" fill="#93C5FD"/>
+    <path d="M31 115C68 99 109 97 150 110L162 144C171 171 154 198 125 206L57 198C31 193 19 172 25 147Z" fill="#2563EB"/>
+    <path d="M32 118C70 104 109 103 151 116" fill="none" stroke="#F8F7F4" stroke-opacity=".88" stroke-width="4" stroke-linecap="round"/>
+    <path d="M31 145C68 131 109 130 157 143" fill="none" stroke="#1E3A8A" stroke-opacity=".65" stroke-width="5" stroke-linecap="round"/>
+  </g>
+</svg>

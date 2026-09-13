@@ -541,6 +541,10 @@ describe('preTradeSafetyCheck — targetProviders filter', () => {
 
     const result = await preTradeSafetyCheck(makeInput({ targetProviders: ['chainlink', 'api3'] }));
 
+    expect(mockedGetConsensusPrice).toHaveBeenCalledWith('ETH', 'ethereum', undefined, [
+      'chainlink',
+      'api3',
+    ]);
     expect(result.maxDeviationPct).toBeCloseTo(0.1, 1);
     expect(result.verdict).toBe('PASS');
   });

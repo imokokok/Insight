@@ -7,6 +7,7 @@ import {
   type CrossChainComparisonResult,
   type ChainPriceInfo,
 } from '@/lib/oracles/crossChainComparison';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { crossChainKeys } from '@/lib/queryKeys';
 import { createLogger } from '@/lib/utils/logger';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
@@ -38,13 +39,14 @@ export function useDataFetching(
   const queryClient = useQueryClient();
   const refreshSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { chainResults, isLoading, isFetching, errors, triggerForceRefresh } = useCrossChainQueries(
-    provider,
-    params.selectedSymbol,
-    supportedChains,
-    params.selectedTimeRange,
-    refetchInterval
-  );
+  const { chainResults, priceHistories, isLoading, isFetching, errors, triggerForceRefresh } =
+    useCrossChainQueries(
+      provider,
+      params.selectedSymbol,
+      supportedChains,
+      params.selectedTimeRange,
+      refetchInterval
+    );
 
   const currentPrices = useMemo(() => {
     const prices = supportedChains
@@ -56,24 +58,16 @@ export function useDataFetching(
   const derivedData = useMemo(() => {
     let recommendedBaseChain: Blockchain | null = null;
     if (supportedChains.length > 0) {
-      if (currentPrices.length === 0) {
-        recommendedBaseChain = supportedChains[0];
-      } else {
-        const maxTimestamp = Math.max(
-          ...currentPrices.map((p) => p.ingestionTimestamp ?? p.timestamp).filter((t) => t > 0),
-          0
-        );
-
+      if (currentPrices.length > 0) {
         const chainScores = supportedChains.map((chain) => {
           const priceData = currentPrices.find((p) => p.chain === chain);
           if (!priceData || priceData.price <= 0) {
             return { chain, score: -Infinity };
           }
 
-          const priceRefTime = priceData.ingestionTimestamp ?? priceData.timestamp;
-          const stalenessMs =
-            maxTimestamp > 0 && priceRefTime > 0 ? maxTimestamp - priceRefTime : Infinity;
-          const freshnessScore = stalenessMs < 60000 ? 100 : stalenessMs < 300000 ? 50 : 0;
+          const dataAgeSeconds = resolveOracleAgeSeconds(priceData);
+          const freshnessScore =
+            dataAgeSeconds === null ? 0 : dataAgeSeconds < 60 ? 100 : dataAgeSeconds < 300 ? 50 : 0;
 
           const priceValues = currentPrices.filter((p) => p.price > 0).map((p) => p.price);
           const medianPrice =
@@ -101,27 +95,20 @@ export function useDataFetching(
           chain: p.chain!,
           price: p.price,
           timestamp: p.timestamp,
+          dataAgeSeconds: resolveOracleAgeSeconds(p),
         }));
-      crossChainComparison = buildCrossChainComparisonFromPrices(chainPrices);
+      crossChainComparison = buildCrossChainComparisonFromPrices(
+        chainPrices,
+        params.selectedSymbol
+      );
     }
 
     return { recommendedBaseChain, crossChainComparison };
-  }, [currentPrices, supportedChains]);
+  }, [currentPrices, supportedChains, params.selectedSymbol]);
 
-  const prevDataSignatureRef = useRef('');
   const lastUpdateTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    const signature = currentPrices.map((p) => `${p.chain}:${p.price}:${p.timestamp}`).join('|');
-    const dataChanged = signature !== prevDataSignatureRef.current;
-    const loadingChanged = isLoading !== useCrossChainDataStore.getState().loading;
-
-    if (!dataChanged && !loadingChanged && isFetching === isLoading) return;
-
-    if (dataChanged) {
-      prevDataSignatureRef.current = signature;
-    }
-
     let refreshStatus: 'idle' | 'refreshing' | 'success' | 'error' = 'idle';
     let showRefreshSuccess = false;
     let lastUpdated: Date | null = useCrossChainDataStore.getState().lastUpdated;
@@ -131,7 +118,7 @@ export function useDataFetching(
     } else if (errors.length > 0) {
       refreshStatus = 'error';
       logger.warn('Cross-chain data fetching encountered errors', { errorCount: errors.length });
-    } else if (!isLoading && !isFetching && supportedChains.length > 0) {
+    } else if (!isLoading && !isFetching && currentPrices.length > 0) {
       const now = Date.now();
       refreshStatus = 'success';
       showRefreshSuccess = true;
@@ -148,18 +135,16 @@ export function useDataFetching(
     }
 
     useCrossChainDataStore.setState({
-      ...(dataChanged
-        ? {
-            currentPrices,
-            recommendedBaseChain: derivedData.recommendedBaseChain,
-            crossChainComparison: derivedData.crossChainComparison,
-          }
-        : {}),
+      currentPrices,
+      priceHistories,
+      recommendedBaseChain: derivedData.recommendedBaseChain,
+      crossChainComparison: derivedData.crossChainComparison,
       loading: isLoading,
       refreshStatus,
-      ...(showRefreshSuccess ? { showRefreshSuccess, lastUpdated } : {}),
+      showRefreshSuccess,
+      ...(showRefreshSuccess ? { lastUpdated } : {}),
     });
-  }, [currentPrices, derivedData, isLoading, isFetching, errors, supportedChains.length]);
+  }, [currentPrices, priceHistories, derivedData, isLoading, isFetching, errors]);
 
   useEffect(() => {
     return () => {

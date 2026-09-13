@@ -43,7 +43,7 @@ describe('DeviationTrendChart', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/deviation?symbol=USDC')
+        expect.stringContaining('/api/demo/deviation?symbol=USDC')
       );
     });
 

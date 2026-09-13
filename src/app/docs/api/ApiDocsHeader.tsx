@@ -28,24 +28,33 @@ function HeaderButton({
     secondary: 'border-slate-300 bg-white text-slate-700 hover:border-blue-400 hover:text-blue-700',
   };
   const linkProps = external ? { target: '_blank', rel: 'noopener noreferrer' } : {};
-
-  return (
-    <a
-      href={href}
-      download={download}
-      className={`${baseStyles} ${variants[variant]}`}
-      {...linkProps}
-    >
+  const className = `${baseStyles} ${variants[variant]}`;
+  const content = (
+    <>
       {leftIcon}
       {children}
       {external && <ExternalLink className="w-3 h-3" />}
+    </>
+  );
+
+  if (!download && !external && href.startsWith('/')) {
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={href} download={download} className={className} {...linkProps}>
+      {content}
     </a>
   );
 }
 
 export function ApiDocsHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-900/15 bg-[#f8f7f4]/95 backdrop-blur">
+    <header className="api-reference-header sticky top-0 z-30 border-b border-slate-900/15 bg-[#f8f7f4]/95 backdrop-blur">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
         <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           {/* Left: title & meta */}

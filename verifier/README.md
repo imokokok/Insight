@@ -92,12 +92,10 @@ signed, not that the key was trustworthy at the time. Collapsing them would
 make a receipt flip from valid to invalid the moment a key is rotated —
 retroactively rewriting a statement that was true when it was made.
 
-**`valid` is not the field to branch on.** For v1 receipts, Insight's production
-verifier returns `valid: true` even when the receipt is expired (`expired: true`,
-`code: 'expired'`); v2 and v3 return `valid: false`. This library reproduces that
-asymmetry rather than silently disagreeing with the API, because an independent
-verifier that "fixes" production's semantics stops being a check on production.
-Branch on `code` / `expired`.
+**Branch on `code` as the stable machine outcome.** Expired receipts return
+`valid: false`, `expired: true`, and `code: 'expired'` for every schema version.
+For legacy v1 receipts, the verifier enforces the schema's fixed 600-second
+window because the envelope's `validForSeconds` metadata was not signed.
 
 ---
 

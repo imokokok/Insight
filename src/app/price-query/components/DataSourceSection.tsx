@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 
 import { DataSourceList, type DataSourceGroup } from '@/components/data-transparency';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { getCredibilityLevel, useReputationMap } from '@/lib/oracles/utils/dataSourceUtils';
 
 import { type QueryResult } from '../constants';
@@ -19,7 +20,8 @@ interface DataSourceSectionProps {
 function calculateConfidence(result: QueryResult): number {
   let confidence = result.priceData.confidence ?? 0.7;
 
-  const age = Date.now() - (result.priceData.ingestionTimestamp ?? result.priceData.timestamp);
+  const ageSeconds = resolveOracleAgeSeconds(result.priceData);
+  const age = ageSeconds === null ? Number.POSITIVE_INFINITY : ageSeconds * 1000;
   if (age < 60000) {
     confidence = Math.min(1, confidence + 0.1);
   } else if (age > 300000) {

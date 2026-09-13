@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function RefundPage() {
   return (
-    <div className="editorial-workspace min-h-screen px-5 py-10 sm:px-8 sm:py-14">
-      <article className="editorial-frame mx-auto max-w-5xl">
-        <header className="mb-12 grid gap-6 border-b border-slate-900/15 pb-10 lg:grid-cols-[0.7fr_1.3fr]">
+    <div className="editorial-workspace governance-workbench min-h-screen px-5 py-10 sm:px-8 sm:py-14">
+      <article className="legal-document editorial-frame mx-auto max-w-5xl">
+        <header className="legal-document-header mb-12 grid gap-6 border-b border-slate-900/15 pb-10 lg:grid-cols-[0.7fr_1.3fr]">
           <div>
-            <p className="editorial-index">17 — Governance</p>
+            <p className="editorial-index">18 — Governance</p>
             <p className="mt-5 text-sm text-slate-500">Last updated: July 2026</p>
           </div>
           <div>
@@ -27,7 +27,7 @@ export default function RefundPage() {
           </div>
         </header>
 
-        <div className="prose prose-slate max-w-none bg-white/35 px-0 py-2 sm:px-8">
+        <div className="legal-document-body prose prose-slate max-w-none bg-white/35 px-0 py-2 sm:px-8">
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-slate-900 mb-3">1. Overview</h2>
             <p className="text-slate-700 leading-relaxed">
@@ -111,7 +111,7 @@ export default function RefundPage() {
           </section>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-slate-200">
+        <div className="legal-document-return mt-12 pt-8 border-t border-slate-200">
           <Link
             href="/"
             className="text-blue-600 hover:text-blue-700 font-medium transition-colors"

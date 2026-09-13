@@ -1,5 +1,6 @@
 import { CHAINLINK_RPC_CONFIG } from '@/lib/oracles/services/chainlinkDataSources/rpcConfig';
 import { RpcClientWithFallback } from '@/lib/oracles/utils/rpcClientWithFallback';
+import { isDomainOrSubdomain } from '@/lib/utils/urlHost';
 
 const rpcClient = new RpcClientWithFallback({ contextLabel: 'position-import' });
 
@@ -50,7 +51,9 @@ export async function getLogs(
   // Alchemy, so we (a) drop Alchemy from the log-endpoint list and (b) use a
   // distinct health key (`<chain>-logs`) so a log-range failure can never poison
   // the Alchemy endpoint that the view-call path depends on.
-  const logEndpoints = config.endpoints.filter((e) => !e.includes('alchemy.com'));
+  const logEndpoints = config.endpoints.filter(
+    (endpoint) => !isDomainOrSubdomain(endpoint, 'alchemy.com')
+  );
   return rpcClient.getLogs(String(chainId) + '-logs', logEndpoints, normalized);
 }
 

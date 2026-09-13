@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { createLogger } from '@/lib/utils/logger';
+import { isDomainOrSubdomain } from '@/lib/utils/urlHost';
 
 const logger = createLogger('ServerEnv');
 
@@ -30,7 +31,7 @@ const ALCHEMY_KEY_MIN_LENGTH = 16;
 function sanitizeAlchemyUrl(network: string, url: string): string {
   if (!url) return '';
   // Allow non-Alchemy URLs (e.g. a custom RPC) through untouched.
-  if (!url.includes('alchemy.com')) return url;
+  if (!isDomainOrSubdomain(url, 'alchemy.com')) return url;
   const segments = url.replace(/\/+$/, '').split('/');
   const key = segments[segments.length - 1] ?? '';
   if (key.length < ALCHEMY_KEY_MIN_LENGTH) {

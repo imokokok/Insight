@@ -9,9 +9,11 @@ import {
   PartnerExecutionPairVerifyBodySchema,
   type PartnerExecutionPairVerifyBody,
 } from '@/lib/attestations/executionPairVerifyRequest';
+import { CURRENT_ORACLE_REGISTRY_RELEASE_ID } from '@/lib/attestations/oracleRegistryRelease';
 import { verifyExecutionPairForApi } from '@/lib/execution/executionVerificationApi';
 import {
   PARTNER_IDS,
+  ORACLE_REGISTRY_RELEASE_PIN_RULE,
   activePartnerIntegrationPolicy,
   type PartnerId,
 } from '@/lib/protocol/partnerIntegrationRegistry';
@@ -69,9 +71,11 @@ export const GET = createApiHandler<
         {
           partnerId,
           requiredPolicyId: policy.policyId,
+          registryReleaseId: CURRENT_ORACLE_REGISTRY_RELEASE_ID,
+          registryReleasePinRule: ORACLE_REGISTRY_RELEASE_PIN_RULE,
           productionReachability: policy.productionReachability,
           requiredBodyFields: ['preTradeAttestation', 'executionReceipt', 'policyId'],
-          rule: 'policyId must equal the active immutable policy for partnerId; productionReachability and execution schema/profile admission are enforced at runtime',
+          rule: 'policyId must equal the active immutable policy for partnerId; the current registry release must equal or descend through predecessorReleaseId from at least one policy-pinned release; productionReachability and execution schema/profile admission are enforced at runtime',
         },
         { requestId: context.requestId }
       )

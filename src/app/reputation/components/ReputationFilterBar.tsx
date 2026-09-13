@@ -42,7 +42,7 @@ export function ReputationFilterBar({
   ];
 
   return (
-    <div className="mb-6 flex flex-col gap-3 border-y border-slate-900/15 bg-white/25 py-3 lg:flex-row lg:items-center lg:justify-between">
+    <div className="reputation-filter-instrument mb-6 flex flex-col gap-3 border-y border-slate-900/15 bg-white/25 py-3 lg:flex-row lg:items-center lg:justify-between">
       <div className="relative w-full max-w-lg">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input

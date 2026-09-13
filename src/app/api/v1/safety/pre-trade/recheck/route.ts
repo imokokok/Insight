@@ -30,7 +30,7 @@ import {
 } from '@/lib/api/handler';
 import { preTradeRecheck } from '@/lib/api/services/preTradeRecheckService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
-import { SafeSymbolSchema } from '@/lib/security/validation';
+import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
 
 const Bytes32Schema = z
   .string()
@@ -46,6 +46,8 @@ const RecheckBodySchema = z.object({
   tradeAmountUsd: z.coerce.number().positive().describe('Trade size in USD (must match original)'),
   targetProviders: z
     .string()
+    .transform((value) => value.split(',').map((provider) => provider.trim()))
+    .pipe(z.array(SafeProviderSchema).min(1))
     .optional()
     .describe('Comma-separated oracle providers to restrict the check to'),
   protocolId: z.string().optional().describe('Optional lending protocol id to evaluate against'),
@@ -95,12 +97,7 @@ export const POST = createApiHandler(
         chainId: body.chainId,
         action: body.action,
         tradeAmountUsd: body.tradeAmountUsd,
-        targetProviders: body.targetProviders
-          ? body.targetProviders
-              .split(',')
-              .map((p) => p.trim())
-              .filter(Boolean)
-          : undefined,
+        targetProviders: body.targetProviders,
         protocolId: body.protocolId,
         destinationAsset: body.destinationAsset,
         originalUid: body.originalUid,

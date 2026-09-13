@@ -1,15 +1,16 @@
 import { getAttesterAddress, getSampleAttesterAddress } from '@/lib/attestations/attesterAccount';
 import { verifyExecutionReceipt, type ExecutionReceipt } from '@/lib/attestations/executionReceipt';
 import { buildKeyRegistryConfig, trustedAttesterEntry } from '@/lib/attestations/keyRegistryConfig';
+import { CURRENT_ORACLE_REGISTRY_RELEASE_ID } from '@/lib/attestations/oracleRegistryRelease';
 import {
   verifyExecutionPair,
   type PreTradeAttestationInput,
 } from '@/lib/execution/verifyExecutionPair';
+import type { PartnerId } from '@/lib/protocol/partnerIntegrationRegistry';
 import {
-  evaluateActivePartnerExecutionPolicy,
-  evaluateExecutionPolicy,
-  type PartnerId,
-} from '@/lib/protocol/partnerIntegrationRegistry';
+  evaluateActivePartnerExecutionPolicyForRegistryRelease,
+  evaluateExecutionPolicyForRegistryRelease,
+} from '@/lib/protocol/registryReleasePolicy';
 
 export type ExecutionPolicySelection =
   | { mode: 'public'; policyId?: string }
@@ -21,15 +22,21 @@ function evaluateSelectedPolicy(
   profileId: string | null
 ) {
   if (selection.mode === 'partner') {
-    return evaluateActivePartnerExecutionPolicy(
+    return evaluateActivePartnerExecutionPolicyForRegistryRelease(
       selection.partnerId,
       selection.policyId,
       schemaVersion,
-      profileId
+      profileId,
+      CURRENT_ORACLE_REGISTRY_RELEASE_ID
     );
   }
   return selection.policyId
-    ? evaluateExecutionPolicy(selection.policyId, schemaVersion, profileId)
+    ? evaluateExecutionPolicyForRegistryRelease(
+        selection.policyId,
+        schemaVersion,
+        profileId,
+        CURRENT_ORACLE_REGISTRY_RELEASE_ID
+      )
     : null;
 }
 

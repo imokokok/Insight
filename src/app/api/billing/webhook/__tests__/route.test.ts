@@ -49,15 +49,31 @@ function createSupabaseMock(stores: {
   writeError?: Record<string, { code: string; message: string } | null>;
 }) {
   const { selectData = {}, writeError = {} } = stores;
+  const selectCounts: Record<string, number> = {};
 
   function makeChain(table: string) {
-    const data = selectData[table] ?? null;
+    const configured = selectData[table];
+    const index = selectCounts[table] ?? 0;
+    selectCounts[table] = index + 1;
+    const data = Array.isArray(configured) ? (configured[index] ?? null) : (configured ?? null);
     const error = writeError[table] ?? null;
     const terminal = { error };
     const calls: Record<string, unknown[]> = {};
 
     const chain: Record<string, unknown> = {};
-    for (const fn of ['select', 'update', 'insert', 'upsert', 'eq', 'order', 'limit', 'is', 'in']) {
+    for (const fn of [
+      'select',
+      'update',
+      'insert',
+      'upsert',
+      'eq',
+      'neq',
+      'gte',
+      'order',
+      'limit',
+      'is',
+      'in',
+    ]) {
       chain[fn] = jest.fn((...args: unknown[]) => {
         calls[fn] = calls[fn] ?? [];
         calls[fn].push(args);
@@ -331,13 +347,16 @@ describe('POST /api/billing/webhook', () => {
     mockCreateServiceRoleClient.mockReturnValue(
       createSupabaseMock({
         selectData: {
-          subscriptions: {
-            id: 'sub_7',
-            user_id: 'user_refund',
-            plan: 'team',
-            interval: 'month',
-            status: 'active',
-          },
+          subscriptions: [
+            {
+              id: 'sub_7',
+              user_id: 'user_refund',
+              plan: 'team',
+              interval: 'month',
+              status: 'active',
+            },
+            null,
+          ],
         },
       })
     );
@@ -350,11 +369,68 @@ describe('POST /api/billing/webhook', () => {
     expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_refund', 'developer');
   });
 
+  it('preserves a newer active plan when an older subscription is refunded', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_old_refund',
+      type: 'refunded',
+      data: { invoice_id: 'inv_old' },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(
+      createSupabaseMock({
+        selectData: {
+          subscriptions: [
+            {
+              id: 'sub_old',
+              user_id: 'user_renewed',
+              plan: 'team',
+              interval: 'month',
+              status: 'active',
+            },
+            null,
+            { plan: 'scale' },
+          ],
+        },
+      })
+    );
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(200);
+    expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_renewed', 'scale');
+  });
+
+  it('does not upgrade keys for a late confirmation on a canceled subscription', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_late_confirm',
+      type: 'confirmed',
+      data: { invoice_id: 'inv_canceled' },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(
+      createSupabaseMock({
+        selectData: {
+          subscriptions: {
+            id: 'sub_canceled',
+            user_id: 'user_canceled',
+            plan: 'scale',
+            interval: 'month',
+            status: 'canceled',
+          },
+        },
+      })
+    );
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(200);
+    expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalled();
+    expect(mockTopUpCredits).not.toHaveBeenCalled();
+  });
+
   it('does NOT reset the billing period or re-grant on a duplicate confirmed IPN', async () => {
     // The row is already 'active' (a first confirmed/finished already ran), so a
-    // duplicate confirmed/finished must NOT reset current_period_*, must NOT
-    // cancel-other-subs again, and must NOT grant a second allowance — but it
-    // still re-applies the plan (idempotent).
+    // duplicate confirmed/finished must NOT reset current_period_*. The
+    // supersession cleanup and grant RPC are safe to retry because both are
+    // idempotent.
     mockParseIpnEvent.mockReturnValue({
       id: 'pay_dup',
       type: 'confirmed',
@@ -379,9 +455,10 @@ describe('POST /api/billing/webhook', () => {
     expect(response.status).toBe(200);
     // Plan still (re)applied — idempotent.
     expect(mockUpdateApiKeyPlanForUser).toHaveBeenCalledWith('user_dup', 'developer');
-    // No second allowance grant.
-    expect(mockTopUpCredits).not.toHaveBeenCalled();
-    // No period-reset update (status stays active; no row update at all).
+    expect(mockTopUpCredits).toHaveBeenCalledWith(
+      expect.objectContaining({ meteringKey: 'grant:user_dup:sub:sub_dup' })
+    );
+    // No period-reset update (the only update is superseded-row cleanup).
     const updateCalls = supabase.from.mock.calls
       .map((call, i) =>
         call[0] === 'subscriptions'
@@ -393,7 +470,9 @@ describe('POST /api/billing/webhook', () => {
           : []
       )
       .flat();
-    expect(updateCalls).toHaveLength(0);
+    expect(
+      updateCalls.some((args) => (args[0] as Record<string, unknown>).status === 'active')
+    ).toBe(false);
   });
 
   it('logs and skips waiting/confirming IPN without action', async () => {
@@ -435,6 +514,55 @@ describe('POST /api/billing/webhook', () => {
     const response = await POST(createPostRequest('payload'));
 
     expect(response.status).toBe(500);
+  });
+
+  it('returns 500 before side effects when the idempotency ledger cannot be acquired', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_ledger_down',
+      type: 'finished',
+      data: { invoice_id: 'inv_ledger_down' },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(
+      createSupabaseMock({
+        writeError: {
+          processed_webhook_events: { code: '08006', message: 'ledger unavailable' },
+        },
+      })
+    );
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(500);
+    expect(mockTopUpCredits).not.toHaveBeenCalled();
+    expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalled();
+  });
+
+  it('keeps the webhook retryable when subscription activation cannot be persisted', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_activation_down',
+      type: 'finished',
+      data: { invoice_id: 'inv_activation_down' },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(
+      createSupabaseMock({
+        selectData: {
+          subscriptions: {
+            id: 'sub_activation_down',
+            user_id: 'user_activation_down',
+            plan: 'team',
+            interval: 'month',
+            status: 'incomplete',
+          },
+        },
+        writeError: { subscriptions: { code: '08006', message: 'write unavailable' } },
+      })
+    );
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(500);
+    expect(mockTopUpCredits).not.toHaveBeenCalled();
+    expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalled();
   });
 
   it('uses different idempotency keys for different statuses of same payment', async () => {
@@ -526,9 +654,9 @@ describe('top-up & pending-state IPN edge cases', () => {
 
     const response = await POST(createPostRequest('payload'));
 
-    expect(response.status).toBe(200);
-    // Purchase must remain 'incomplete' (no status:'paid' update) so a retry /
-    // the "I've paid" reconcile can still credit the wallet.
+    expect(response.status).toBe(500);
+    // Purchase must remain 'incomplete' (no status:'paid' update) and the
+    // webhook event must remain retryable.
     const purchaseUpdates = supabase.from.mock.calls
       .map((call, i) =>
         call[0] === 'credit_purchases'

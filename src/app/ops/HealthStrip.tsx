@@ -26,10 +26,13 @@ export default async function HealthStrip() {
   ];
 
   return (
-    <div className="mx-auto mb-6 max-w-6xl px-6 pt-8">
+    <div className="ops-health-strip mx-auto mb-6 max-w-6xl px-6 pt-8">
       <div className="grid border-y border-slate-900/15 bg-white/45 sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-slate-900/10">
         {items.map((it, index) => (
-          <div key={it.label} className="border-b border-slate-900/10 px-4 py-3 lg:border-b-0">
+          <div
+            key={it.label}
+            className="ops-health-record border-b border-slate-900/10 px-4 py-3 lg:border-b-0"
+          >
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-gray-500">
               <span className={`h-1.5 w-1.5 rounded-full ${TONE_DOT[it.tone]}`} />
               <span className="font-mono text-[9px] text-blue-700">0{index + 1}</span>
