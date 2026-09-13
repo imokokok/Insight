@@ -95,9 +95,10 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "esbuild": "^0.28.2",
-    "eslint": "^10",
+    "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^3.10.1",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.6",
     "husky": "^9.1.7",
@@ -106,10 +107,10 @@
     "knip": "^6.35.1",
     "lint-staged": "^17.5.0",
     "playwright": "^1.58.2",
-    "prettier": "^3.9.6",
+    "prettier": "3.8.1",
     "sharp": "^0.35.4",
     "tsx": "^4.23.13",
-    "typescript": "^7"
+    "typescript": "^5"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs}": [
@@ -139,6 +140,7 @@
     "flatted": "^3.4.0",
     "hono": "^4.13.7",
     "ip-address": "^10.7.0",
+    "eslint-plugin-react-hooks": "7.0.1",
     "postcss": "^8.5.28",
     "axios": "^1.20.0",
     "qs": "^6.16.0"
