@@ -334,7 +334,7 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
   }
 
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench risk-workbench min-h-screen">
       <RiskTrackerHero
         page={page}
         title={title}
@@ -347,9 +347,9 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
       <PegSiblingNav page={page} />
 
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-7 sm:px-8 lg:px-12 lg:pb-28">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-12">
+        <div className="editorial-workbench-grid grid grid-cols-1 gap-8 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-12">
           <aside>
-            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+            <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
               <p className="editorial-index">02 — Select the asset</p>
               <span className="font-mono text-[10px] text-slate-400">INPUT</span>
             </div>
@@ -366,7 +366,7 @@ export function RiskTrackerLayout<T extends RiskSnapshotBase>({
           </aside>
 
           <section className="min-w-0" aria-label={`${title} evidence`}>
-            <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+            <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
               <p className="editorial-index">03 — Inspect the evidence</p>
               <span className="font-mono text-[10px] text-slate-400">ANALYSIS</span>
             </div>

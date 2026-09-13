@@ -22,10 +22,11 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
     exact ? pathname === href : pathname.startsWith(href);
 
   const navList = (
-    <nav className="space-y-1 border-t border-slate-900/10 pt-4">
-      {OPS_NAV.map((group) => (
-        <div key={group.title} className="mb-3">
+    <nav className="ops-navigation space-y-1 border-t border-slate-900/10 pt-4">
+      {OPS_NAV.map((group, groupIndex) => (
+        <div key={group.title} className="ops-nav-group mb-3">
           <div className="px-3 mb-1 text-[11px] font-medium uppercase tracking-wider text-gray-400">
+            <span className="mr-2 font-mono text-[9px] text-blue-600">0{groupIndex + 1}</span>
             {group.title}
           </div>
           {group.items.map((item) => {
@@ -39,8 +40,8 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
                 onClick={() => setOpen(false)}
                 className={
                   active
-                    ? 'relative flex items-center gap-2.5 border-r-2 border-primary-700 bg-primary-50 px-3 py-2 text-sm font-medium text-primary-700'
-                    : 'flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100'
+                    ? 'ops-nav-record relative flex items-center gap-2.5 border-r-2 border-primary-700 bg-primary-50 px-3 py-2 text-sm font-medium text-primary-700'
+                    : 'ops-nav-record flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100'
                 }
               >
                 {active && (
@@ -67,7 +68,7 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden min-h-screen w-60 shrink-0 flex-col border-r border-slate-900/15 bg-white/70 p-4 lg:flex">
+      <aside className="ops-sidebar hidden min-h-screen w-60 shrink-0 flex-col border-r border-slate-900/15 bg-white/70 p-4 lg:flex">
         <Link
           href="/"
           className="group mb-4 flex items-center gap-2 px-3 py-2 hover:bg-gray-50"
@@ -98,7 +99,7 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
 
       {/* Mobile top bar + drawer */}
       <div className="lg:hidden">
-        <div className="fixed top-0 inset-x-0 h-12 z-40 flex items-center gap-2 px-3 bg-white border-b border-gray-200">
+        <div className="ops-mobile-bar fixed top-0 inset-x-0 h-12 z-40 flex items-center gap-2 px-3 bg-white border-b border-gray-200">
           <button
             type="button"
             aria-label="打开菜单"
@@ -132,7 +133,7 @@ export default function OpsSidebar({ env = 'PROD' }: { env?: string }) {
         {open && (
           <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
             <div className="absolute inset-0 bg-gray-900/40" onClick={() => setOpen(false)} />
-            <aside className="absolute inset-y-0 left-0 w-60 max-w-[80%] overflow-y-auto border-r border-gray-200 bg-[#f8f7f4] p-4">
+            <aside className="ops-sidebar absolute inset-y-0 left-0 w-60 max-w-[80%] overflow-y-auto border-r border-gray-200 bg-[#f8f7f4] p-4">
               <div className="mb-4 flex items-center justify-between">
                 <Link
                   href="/"

@@ -14,13 +14,13 @@
  * insert is intentionally left to the script caller so the route's writes stay
  * identical to before.
  */
-import { calculateConsensusPrice } from '@/lib/analytics/consensusPrice';
+import { calculateConsensusPrice, type ConsensusPriceInput } from '@/lib/analytics/consensusPrice';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
-import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
+import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import {
   reportService,
   REPORT_ASSETS,
@@ -30,6 +30,7 @@ import {
 import { getAdminQueries } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
+import { calculateMedian } from '@/lib/utils/statistics';
 import { type Blockchain, type OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('DailyReportSnapshot');
@@ -121,7 +122,10 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
       // aren't yet reflected in the constants file, and filtering them
       // out would block legitimate, verified feeds from being sampled.
       const matchedFeeds = activeFeeds.filter((feed) => {
-        return extractBaseSymbol(feed.symbol).toUpperCase() === upperSymbol;
+        return (
+          extractBaseSymbol(feed.symbol).toUpperCase() === upperSymbol &&
+          isUsdDenominatedFeedSymbol(feed.symbol)
+        );
       });
 
       if (matchedFeeds.length > 0) {
@@ -175,7 +179,15 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
     REPORT_FETCH_CONCURRENCY,
     async ({ provider, symbol, chain, feedChainId, feedSymbol }): Promise<BatchResultItem> => {
       try {
-        const price = await fetchPriceWithDatabase(provider, symbol, chain, true, true);
+        const price = await fetchPriceWithDatabase(
+          provider,
+          symbol,
+          chain,
+          true,
+          true,
+          undefined,
+          feedSymbol
+        );
         const check = sanitizePriceForSnapshot(price.price);
         if (!check.valid) {
           logger.warn(`Price validation failed for ${provider}/${symbol}: ${check.reason}`);
@@ -209,6 +221,44 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
   return [...fetched, ...skipped];
 }
 
+/**
+ * Collapse multiple chains/feeds from one provider to one independent provider
+ * vote. The provider price is the median of its successful feeds; freshness and
+ * confidence metadata are combined conservatively.
+ */
+export function buildProviderConsensusInputs(items: BatchResultItem[]): ConsensusPriceInput[] {
+  const byProvider = new Map<string, PriceData[]>();
+
+  for (const item of items) {
+    if (!item.price || item.price.price <= 0 || !Number.isFinite(item.price.price)) continue;
+    const prices = byProvider.get(item.provider) ?? [];
+    prices.push(item.price);
+    byProvider.set(item.provider, prices);
+  }
+
+  return Array.from(byProvider, ([provider, prices]) => {
+    const ingestionTimestamps = prices
+      .map((price) => price.ingestionTimestamp)
+      .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+    const confidences = prices
+      .map((price) => price.confidence)
+      .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+    const dataAges = prices
+      .map((price) => resolveOracleAgeSeconds(price))
+      .filter((value): value is number => value !== null);
+
+    return {
+      provider,
+      price: calculateMedian(prices.map((price) => price.price)),
+      timestamp: Math.min(...prices.map((price) => price.timestamp)),
+      ingestionTimestamp:
+        ingestionTimestamps.length > 0 ? Math.min(...ingestionTimestamps) : undefined,
+      dataAgeSeconds: dataAges.length > 0 ? Math.max(...dataAges) : undefined,
+      confidence: confidences.length > 0 ? Math.min(...confidences) : undefined,
+    };
+  });
+}
+
 function calculateConsensusBySymbol(results: BatchResultItem[]): Record<string, { price: number }> {
   const bySymbol = new Map<string, BatchResultItem[]>();
 
@@ -222,13 +272,7 @@ function calculateConsensusBySymbol(results: BatchResultItem[]): Record<string, 
   const consensusBySymbol: Record<string, { price: number }> = {};
 
   for (const [symbol, items] of bySymbol) {
-    const inputs = items.map((item) => ({
-      provider: item.provider,
-      price: item.price!.price,
-      timestamp: item.price!.timestamp,
-      ingestionTimestamp: item.price!.ingestionTimestamp,
-      confidence: item.price!.confidence,
-    }));
+    const inputs = buildProviderConsensusInputs(items);
 
     try {
       const consensus = calculateConsensusPrice(inputs, 'weighted_median', `${symbol}/USD`);
@@ -330,10 +374,10 @@ export function buildSnapshotInputs(
  * failed row is still kept when no success exists, so the hourly table still
  * records the failure signal for that (provider, asset, chain).
  *
- * Feed health (`buildFeedHealthUpdates`) and consensus
- * (`calculateConsensusBySymbol`) are computed from the RAW `results` array, so
- * they are completely unaffected — every matched feed is still sampled, its
- * health updated, and its price counted toward consensus.
+ * Feed health (`buildFeedHealthUpdates`) is computed from the RAW `results`
+ * array, so every sampled feed is still updated. Consensus first collapses the
+ * raw rows to one median vote per provider, preventing multi-chain providers
+ * from receiving extra weight.
  *
  * Pure + deterministic → unit-testable without DB or network.
  */
@@ -403,6 +447,21 @@ export interface SnapshotCollectionResult {
   deactivated: number;
 }
 
+const FINE_SNAPSHOT_INTERVAL_MS = 15 * 60 * 1000;
+
+/**
+ * Return the stable 15-minute collection slot used as the fine-grained
+ * snapshot natural key. Dispatcher-provided schedule times survive retries;
+ * manual/fallback runs are deterministically bucketed by their start time.
+ */
+export function resolveSnapshotSlot(scheduledFor?: string, now: Date = new Date()): Date {
+  const scheduled = scheduledFor ? new Date(scheduledFor) : null;
+  const base = scheduled && Number.isFinite(scheduled.getTime()) ? scheduled : now;
+  return new Date(
+    Math.floor(base.getTime() / FINE_SNAPSHOT_INTERVAL_MS) * FINE_SNAPSHOT_INTERVAL_MS
+  );
+}
+
 /**
  * Run the full snapshot collection pipeline:
  *   fetch all active feeds → consensus → build inputs → upsert hourly
@@ -417,8 +476,10 @@ export interface SnapshotCollectionResult {
  * route's previous 500-on-upsert-failure behaviour); feed-health/deactivate
  * are skipped in that case, exactly as before.
  */
-export async function collectSnapshot(): Promise<SnapshotCollectionResult> {
-  const now = new Date();
+export async function collectSnapshot(
+  snapshotTs: Date = resolveSnapshotSlot()
+): Promise<SnapshotCollectionResult> {
+  const now = snapshotTs;
   const snapshotDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
     .toISOString()
     .split('T')[0];
@@ -501,7 +562,7 @@ export async function collectSnapshot(): Promise<SnapshotCollectionResult> {
   return {
     snapshotDate,
     snapshotHour,
-    snapshotTs: now,
+    snapshotTs,
     results,
     inputs: hourlyInputs,
     insertedHourly,

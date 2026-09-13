@@ -11,7 +11,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { ORACLE_INSIGHT_GUARD_VERSION } from '@/lib/npmPackageVersions';
 
@@ -90,10 +90,10 @@ const watchCode = `const watch = guard.watch(
 
 export default function SdkPage() {
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench developer-workbench sdk-workbench min-h-screen">
       <section className="editorial-frame mx-auto max-w-[1440px] px-5 pt-4 sm:px-8 lg:px-12">
         <EditorialWorkspaceHeader
-          index="10"
+          index="11"
           stage="Guard"
           eyebrow="Insight Guard SDK · The execution workflow for DeFi agents"
           title="Make risk signals change the transaction."
@@ -118,6 +118,14 @@ export default function SdkPage() {
             </div>
           }
         />
+        <EvidenceProcessRail
+          label="Guarded execution"
+          items={[
+            { label: 'Gate the intent', detail: 'Two-sided pre-trade proof' },
+            { label: 'Observe the run', detail: 'Watch · pause · resume' },
+            { label: 'Prove settlement', detail: 'Transaction · signed receipt' },
+          ]}
+        />
       </section>
 
       <section className="py-14 sm:py-20">
@@ -137,13 +145,13 @@ export default function SdkPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-3">
+          <div className="sdk-execution-sequence grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-3">
             {workflow.map((item) => {
               const Icon = item.icon;
               return (
                 <article
                   key={item.index}
-                  className="border-b border-r border-slate-900/10 bg-white/35 p-6 last:border-b-0 md:last:border-b-0"
+                  className="sdk-execution-step border-b border-r border-slate-900/10 bg-white/35 p-6 last:border-b-0 md:last:border-b-0"
                 >
                   <div className="mb-8 flex items-center justify-between">
                     <span className="font-mono text-xs text-blue-700">{item.index}</span>
@@ -160,7 +168,10 @@ export default function SdkPage() {
         </div>
       </section>
 
-      <section id="quickstart" className="border-y border-slate-900/10 bg-white/45 py-14 sm:py-20">
+      <section
+        id="quickstart"
+        className="developer-console sdk-quickstart border-y border-slate-900/10 bg-white/45 py-14 sm:py-20"
+      >
         <div className="editorial-frame mx-auto grid max-w-[1440px] gap-12 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:px-12">
           <div>
             <p className="editorial-index mb-5">02 — Quickstart</p>
@@ -184,14 +195,14 @@ export default function SdkPage() {
               ))}
             </div>
           </div>
-          <div className="space-y-5">
+          <div className="developer-terminal space-y-5">
             <CodeBlock code={installCode} label="Install" />
             <CodeBlock code={workflowCode} label="Guarded swap" />
           </div>
         </div>
       </section>
 
-      <section className="py-14 sm:py-20">
+      <section className="sdk-watch-section py-14 sm:py-20">
         <div className="editorial-frame mx-auto grid max-w-[1440px] gap-12 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:px-12">
           <div>
             <p className="editorial-index mb-5">03 — Between trades</p>
@@ -204,11 +215,13 @@ export default function SdkPage() {
               halt is active.
             </p>
           </div>
-          <CodeBlock code={watchCode} label="Oracle Watch" />
+          <div className="developer-terminal">
+            <CodeBlock code={watchCode} label="Oracle Watch" />
+          </div>
         </div>
       </section>
 
-      <section className="border-y border-slate-900/15 bg-blue-50/55 py-14 sm:py-20">
+      <section className="developer-cta-record border-y border-slate-900/15 bg-blue-50/55 py-14 sm:py-20">
         <div className="mx-auto max-w-4xl px-5 text-center sm:px-8">
           <BadgeCheck className="mx-auto mb-5 h-8 w-8 text-blue-700" />
           <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">

@@ -526,10 +526,10 @@ paths:
         - $ref: '#/components/parameters/chain'
         - name: method
           in: query
-          description: Consensus aggregation method
+          description: Consensus aggregation method. Use auto for the asset-category recommendation; omission preserves the weighted_median default.
           schema:
             type: string
-            enum: [median, trimmed_mean, weighted_median, iqr_filtered]
+            enum: [auto, median, trimmed_mean, weighted_median, iqr_filtered]
             default: weighted_median
       responses:
         '200':
@@ -558,11 +558,11 @@ paths:
         - name: period
           in: query
           required: true
-          description: Number of hours to look back (1–8760, i.e. up to 1 year)
+          description: Number of hours to look back (1–2160, i.e. up to 90 days)
           schema:
             type: integer
             minimum: 1
-            maximum: 8760
+            maximum: 2160
         - $ref: '#/components/parameters/forceRefresh'
       responses:
         '200':
@@ -2308,7 +2308,20 @@ components:
             timestamp:
               type: integer
             partialErrors:
-              type: integer
+              type: array
+              items:
+                type: object
+                required: [provider, symbol, error]
+                properties:
+                  provider:
+                    $ref: '#/components/schemas/OracleProvider'
+                  symbol:
+                    type: string
+                  chain:
+                    $ref: '#/components/schemas/Blockchain'
+                    nullable: true
+                  error:
+                    type: string
             queryCount:
               type: integer
 
@@ -2413,25 +2426,9 @@ components:
         success:
           type: boolean
         data:
-          type: object
-          properties:
-            symbol:
-              type: string
-            chain:
-              $ref: '#/components/schemas/Blockchain'
-            provider:
-              $ref: '#/components/schemas/OracleProvider'
-            period:
-              type: integer
-            prices:
-              type: array
-              items:
-                type: object
-                properties:
-                  timestamp:
-                    type: integer
-                  price:
-                    type: number
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceData'
         meta:
           $ref: '#/components/schemas/ApiMeta'
 

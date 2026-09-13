@@ -15,6 +15,7 @@ import {
   AuthPageSuspense,
   GoToLoginButton,
 } from '@/app/auth/shared/AuthComponents';
+import { getSafeRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
 import { useAuthFormSubmit } from '@/app/auth/shared/useAuthFormSubmit';
 import { useAuthActions } from '@/stores/authStore';
 
@@ -24,13 +25,14 @@ function ForgotPasswordForm() {
 
   const [email, setEmail] = useState('');
   const { isLoading, isSuccess, error, submit, reset } = useAuthFormSubmit();
-  const redirectParam = searchParams.get('redirect') || undefined;
+  const rawRedirect = searchParams.get('redirect') || undefined;
+  const redirectPath = getSafeRedirectPath(rawRedirect);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
-    await submit(() => resetPassword(email, redirectParam));
+    await submit(() => resetPassword(email, redirectPath));
   };
 
   if (isSuccess) {
@@ -44,7 +46,7 @@ function ForgotPasswordForm() {
           description={`Password reset instructions have been sent to ${email}. Please check your inbox.`}
         >
           <div className="space-y-3">
-            <GoToLoginButton redirect={redirectParam} />
+            <GoToLoginButton redirect={redirectPath} />
             <button
               onClick={reset}
               className="w-full border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700"
@@ -105,7 +107,7 @@ function ForgotPasswordForm() {
 
       <div className="mt-6 text-center">
         <Link
-          href={redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login'}
+          href={`/login?redirect=${encodeURIComponent(redirectPath)}`}
           className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-semibold"
         >
           <ArrowLeft className="w-4 h-4" />

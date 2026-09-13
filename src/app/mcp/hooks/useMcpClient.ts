@@ -48,8 +48,8 @@ interface UseMcpClientResult {
  * Browser-side MCP client for the project's Next.js /api/mcp endpoint.
  *
  * Authentication precedence:
- *   1. Supabase session JWT from the auth store (logged-in users).
- *   2. Explicit `apiKey` option passed to the hook.
+ *   1. Explicit `apiKey` option passed to the hook.
+ *   2. Supabase session JWT from the auth store (logged-in users).
  *
  * The hook parses rate-limit and credit-balance headers so the UI can show
  * usage. `quota.remaining` is the remaining credit balance for API-key calls.
@@ -73,10 +73,10 @@ export function useMcpClient(options: UseMcpClientOptions = {}): UseMcpClientRes
         Accept: 'application/json, text/event-stream',
       };
 
-      if (session?.access_token) {
-        headers.Authorization = `Bearer ${session.access_token}`;
-      } else if (options.apiKey) {
+      if (options.apiKey) {
         headers['X-API-Key'] = options.apiKey;
+      } else if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
       }
 
       const body: McpRequest = {

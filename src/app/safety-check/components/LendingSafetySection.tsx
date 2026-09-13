@@ -90,7 +90,7 @@ export function LendingSafetySection({
       headers.Authorization = `Bearer ${session.access_token}`;
     }
 
-    fetch(`/api/v1/safety/pre-trade?${params.toString()}`, { headers })
+    fetch(`/api/demo/pre-trade?${params.toString()}`, { headers })
       .then(async (res) => {
         if (!res.ok) {
           const text = await res.text().catch(() => '');

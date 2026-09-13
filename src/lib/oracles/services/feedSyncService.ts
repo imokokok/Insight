@@ -35,9 +35,13 @@ interface SyncResult {
 async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
   if (feeds.length === 0) return 0;
   const supabase = createServiceRoleClient();
+  // Seed/catalog refreshes must not silently revive a row that health checks
+  // deliberately deactivated. New rows use the database default (active),
+  // while conflicts update metadata/address without touching is_active.
+  const rows = feeds.map(({ is_active: _isActive, ...feed }) => feed);
   const { data, error } = await supabase
     .from('oracle_feeds')
-    .upsert(feeds, { onConflict: 'provider,symbol,chain_id' })
+    .upsert(rows, { onConflict: 'provider,symbol,chain_id' })
     .select();
   if (error) {
     logger.error('Failed to upsert feeds', normalizeError(error));
@@ -607,23 +611,27 @@ class FeedSyncService {
   async fullSync(provider?: string): Promise<SyncResult[]> {
     const results: SyncResult[] = [];
 
-    const seeders: Record<string, () => Promise<SyncResult>> = {
-      chainlink: () => this.syncChainlinkFeedsFromCatalog(),
-      supra: () => this.seedSupraFeedsFromHardcoded(),
-      dia: () => this.seedDIAFeedsFromHardcoded(),
-      redstone: () => this.seedRedStoneFeedsFromHardcoded(),
-      api3: () => this.seedAPI3FeedsFromHardcoded(),
-      winklink: () => this.seedWinklinkFeedsFromHardcoded(),
-      twap: () => this.seedTwapFeedsFromHardcoded(),
-      'twap-token': () => this.seedTwapFeedsFromHardcoded(),
-      reflector: () => this.seedReflectorFeedsFromHardcoded(),
-      flare: () => this.seedFlareFeedsFromHardcoded(),
-      switchboard: () => this.seedSwitchboardFeedsFromHardcoded(),
-    };
+    const seeders = new Map<string, () => Promise<SyncResult>>([
+      ['chainlink', () => this.syncChainlinkFeedsFromCatalog()],
+      ['supra', () => this.seedSupraFeedsFromHardcoded()],
+      ['dia', () => this.seedDIAFeedsFromHardcoded()],
+      ['redstone', () => this.seedRedStoneFeedsFromHardcoded()],
+      ['api3', () => this.seedAPI3FeedsFromHardcoded()],
+      ['winklink', () => this.seedWinklinkFeedsFromHardcoded()],
+      ['twap', () => this.seedTwapFeedsFromHardcoded()],
+      ['twap-token', () => this.seedTwapFeedsFromHardcoded()],
+      ['reflector', () => this.seedReflectorFeedsFromHardcoded()],
+      ['flare', () => this.seedFlareFeedsFromHardcoded()],
+      ['switchboard', () => this.seedSwitchboardFeedsFromHardcoded()],
+    ]);
 
-    if (provider && seeders[provider]) {
-      results.push(await seeders[provider]());
-    } else if (provider === 'chainlink' || !provider) {
+    if (provider) {
+      const seeder = seeders.get(provider);
+      if (!seeder) {
+        throw new Error(`Unsupported feed sync provider: ${provider}`);
+      }
+      results.push(await seeder());
+    } else {
       // Primary: seed the committed catalog directory (official universe, no RPC).
       // Then run the on-chain Feed Registry as a best-effort mainnet freshness
       // supplement (it updates proxy addresses / discovers any mainnet feeds the
@@ -631,13 +639,11 @@ class FeedSyncService {
       results.push(await this.syncChainlinkFeedsFromCatalog());
       results.push(await this.syncChainlinkFeedsFromRegistry());
       // Seed other providers
-      for (const [name, seeder] of Object.entries(seeders)) {
+      for (const [name, seeder] of seeders) {
         if (name !== 'chainlink') {
           results.push(await seeder());
         }
       }
-    } else {
-      results.push(await seeders[provider]());
     }
 
     return results;

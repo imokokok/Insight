@@ -260,6 +260,29 @@ const MAD_CONSISTENCY_CONSTANT = 0.6745;
  */
 const MAX_OUTLIER_EXCLUSION_RATIO = 1 / 3;
 
+function excludeOutlierCandidates(
+  inputs: ConsensusPriceInput[],
+  candidates: ConsensusPriceInput[]
+): { valid: ConsensusPriceInput[]; outliers: ConsensusPriceInput[] } {
+  if (candidates.length === 0) {
+    return { valid: inputs, outliers: [] };
+  }
+
+  const maxExclusions = Math.min(
+    Math.floor(inputs.length * MAX_OUTLIER_EXCLUSION_RATIO),
+    inputs.length - 2
+  );
+  const outliers = candidates.slice(0, Math.max(0, maxExclusions));
+
+  if (outliers.length === 0) {
+    return { valid: inputs, outliers: [] };
+  }
+
+  const excludedSet = new Set(outliers);
+  const valid = inputs.filter((input) => !excludedSet.has(input));
+  return valid.length > 0 ? { valid, outliers } : { valid: inputs, outliers: [] };
+}
+
 function detectOutliers(
   inputs: ConsensusPriceInput[],
   context?: DetectOutliersContext
@@ -286,7 +309,22 @@ function detectOutliers(
   const mad = calculateMedian(prices.map((p) => Math.abs(p - medianPrice)));
 
   if (mad === 0) {
-    return { valid: inputs, outliers: [] };
+    // Exact agreement among a majority makes MAD zero, but that must not turn
+    // off anomaly detection for a remaining contaminant. This shape is common
+    // after oracle prices are normalized to the same decimals, e.g.
+    // [100, 100, 1000]. Keep the same material-deviation floor and collusion
+    // cap used by the normal MAD path.
+    const candidates = inputs
+      .map((input) => ({
+        input,
+        absDeviationPct:
+          medianPrice > 0 ? (Math.abs(input.price - medianPrice) / medianPrice) * 100 : 0,
+      }))
+      .filter((candidate) => candidate.absDeviationPct > OUTLIER_MIN_ABS_DEVIATION_PCT)
+      .sort((a, b) => b.absDeviationPct - a.absDeviationPct)
+      .map((candidate) => candidate.input);
+
+    return excludeOutlierCandidates(inputs, candidates);
   }
 
   const scored = inputs.map((input) => ({
@@ -302,29 +340,10 @@ function detectOutliers(
     )
     .sort((a, b) => b.zScore - a.zScore);
 
-  if (candidates.length === 0) {
-    return { valid: inputs, outliers: [] };
-  }
-
-  const maxExclusions = Math.min(
-    Math.floor(inputs.length * MAX_OUTLIER_EXCLUSION_RATIO),
-    inputs.length - 2
+  return excludeOutlierCandidates(
+    inputs,
+    candidates.map((candidate) => candidate.input)
   );
-  const excluded = candidates.slice(0, Math.max(0, maxExclusions));
-
-  if (excluded.length === 0) {
-    return { valid: inputs, outliers: [] };
-  }
-
-  const excludedSet = new Set(excluded.map((c) => c.input));
-  const outliers = excluded.map((c) => c.input);
-  const valid = inputs.filter((i) => !excludedSet.has(i));
-
-  if (valid.length === 0) {
-    return { valid: inputs, outliers: [] };
-  }
-
-  return { valid, outliers };
 }
 
 function checkSingleSourceOutlier(
@@ -545,8 +564,9 @@ export function calculateConsensusPrice(
     // A stale timestamp whose price still agrees (API3-style timestamp anomaly)
     // is NOT excluded, so we never drop a provider's fresh price over a lying
     // timestamp. When excluding would leave < 2 fresh participants we fall back
-    // to `valid` (can't safely drop sources), so participantCount (coverage)
-    // is always preserved.
+    // to `valid` (can't safely drop sources). participantCount below reports
+    // only the sources that actually entered the aggregate, as required by the
+    // signed quorum contract.
     const refMedian = calculateMedian(valid.map((i) => i.price));
     const stale = valid.filter((i) => isEffectivelyStale(i, refMedian));
     const fresh = valid.filter((i) => !stale.includes(i));
@@ -559,14 +579,14 @@ export function calculateConsensusPrice(
     const validPrices = priceInputs.map((i) => i.price);
     const agreement = calculateAgreement(validPrices);
     let confidence = calculateConsensusConfidence(
-      valid.length,
+      priceInputs.length,
       agreement,
       outliers.length + freshnessExcluded.length
     );
 
-    if (validInputs.length <= 2 && valid.length < validInputs.length) {
+    if (priceInputs.length <= 2 && priceInputs.length < validInputs.length) {
       confidence = Math.min(confidence, 0.39);
-    } else if (validInputs.length <= 2) {
+    } else if (priceInputs.length <= 2) {
       confidence = Math.min(confidence, 0.59);
     }
 
@@ -588,7 +608,7 @@ export function calculateConsensusPrice(
       confidenceLevel,
       confidence,
       agreement,
-      participantCount: valid.length,
+      participantCount: priceInputs.length,
       excludedCount: excludedProviders.length,
       excludedProviders,
       priceRange,

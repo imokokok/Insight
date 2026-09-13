@@ -4,7 +4,7 @@ import {
   FRESHNESS_STALE_DIVERGENCE_PCT,
   type ConsensusMethod,
 } from '@/lib/analytics/consensusPrice';
-import { UnsupportedSymbolError } from '@/lib/errors';
+import { InternalError, UnsupportedSymbolError } from '@/lib/errors';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
@@ -256,15 +256,21 @@ function pickRecommendedProvider(
 export async function getConsensusPrice(
   symbol: string,
   chain?: string,
-  method?: ConsensusMethod
+  method?: ConsensusMethod,
+  targetProviders?: readonly OracleProvider[]
 ): Promise<ConsensusPriceResponse> {
   const baseSymbol = normalizeSymbol(symbol);
   const resolvedChain = resolveChain(chain);
 
-  const [providers, reputationsList] = await Promise.all([
+  const [resolvedProviders, reputationsList] = await Promise.all([
     resolveProvidersForSymbol(baseSymbol, resolvedChain),
     reputationService.getReputations(),
   ]);
+  const requestedProviders =
+    targetProviders && targetProviders.length > 0 ? new Set(targetProviders) : null;
+  const providers = requestedProviders
+    ? resolvedProviders.filter((provider) => requestedProviders.has(provider))
+    : resolvedProviders;
 
   const reputationScoreMap = new Map<OracleProvider, number>();
   for (const rep of reputationsList) {
@@ -294,6 +300,21 @@ export async function getConsensusPrice(
       confidence: r.priceData.confidence ?? 0.8,
       confidenceInterval: r.priceData.confidenceInterval,
     }));
+
+  if (successfulInputs.length === 0) {
+    if (fetchResults.every((result) => result.status === 'unsupported')) {
+      throw UnsupportedSymbolError.create(baseSymbol, [], undefined);
+    }
+
+    const failures = fetchResults
+      .filter((result) => result.status === 'error')
+      .map((result) => `${result.provider}: ${result.errorMessage ?? 'unknown error'}`);
+    throw new InternalError(`All configured oracle price fetches failed for ${baseSymbol}`, {
+      operation: 'getConsensusPrice',
+      component: 'consensus-price-service',
+      originalError: failures.join('; ') || 'No provider returned a valid positive price',
+    });
+  }
 
   const consensus = calculateConsensusPrice(
     successfulInputs,

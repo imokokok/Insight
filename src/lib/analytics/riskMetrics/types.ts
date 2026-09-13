@@ -113,7 +113,7 @@ export interface RiskMetricsInput {
   oracleData: OracleMarketData[];
   priceHistoriesByProvider: Map<string, number[]>;
   priceHistoryTimestampsByProvider?: Map<string, number[]>;
-  oracleTimestamps: Array<{ name: string; timestamp: number }>;
+  oracleTimestamps: Array<{ name: string; timestamp: number; dataAgeSeconds?: number | null }>;
   manipulationResistanceData: Array<{
     name: string;
     dataSources: number;

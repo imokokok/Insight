@@ -449,6 +449,15 @@ export type GuardedSwapResult =
       destinationPreTrade: PreTradeResult;
       transaction: SubmittedTransaction;
       receipt: ExecutionReceiptResult;
+    }
+  | {
+      /** The transaction is already on-chain; retry only receipt issuance. */
+      status: 'executed_receipt_pending';
+      sourcePreTrade: PreTradeResult;
+      destinationPreTrade: PreTradeResult;
+      transaction: SubmittedTransaction;
+      receiptRequest: ExecutionReceiptRequest;
+      evidenceError: JointEvidenceError;
     };
 
 export interface WatchOptions {

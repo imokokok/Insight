@@ -211,6 +211,119 @@ test('executeSwap submits only after two gates and issues a verified receipt', a
   );
 });
 
+test('check fails closed when the API returns an unknown verdict', async () => {
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async () => api({ ...preTrade('ETH'), verdict: 'NEW_UNKNOWN_VERDICT' }),
+  });
+
+  await assert.rejects(
+    () => guard.check(sourceRequest),
+    (error) => error.options?.code === 'INVALID_API_RESPONSE'
+  );
+});
+
+test('executeSwap reports receipt recovery without rejecting after broadcast', async () => {
+  let submissions = 0;
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async (url) => {
+      const parsed = new URL(url);
+      if (parsed.pathname.endsWith('/safety/pre-trade')) {
+        return api(preTrade(parsed.searchParams.get('asset')));
+      }
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: { code: 'RECEIPT_UNAVAILABLE', message: 'signer unavailable', retryable: true },
+        }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+  });
+
+  const result = await guard.executeSwap({
+    source: sourceRequest,
+    destination: destinationRequest,
+    receipt: { settlementChainId: 1 },
+    submitTransaction: async () => {
+      submissions += 1;
+      return { txHash };
+    },
+  });
+
+  assert.equal(submissions, 1);
+  assert.equal(result.status, 'executed_receipt_pending');
+  assert.equal(result.transaction.txHash, txHash);
+  assert.equal(result.receiptRequest.txHash, txHash);
+  assert.equal(result.evidenceError.code, 'RECEIPT_UNAVAILABLE');
+});
+
+test('watch stop wakes a pending polling delay and settles done', async () => {
+  let firstSignal;
+  const signalled = new Promise((resolve) => {
+    firstSignal = resolve;
+  });
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async () =>
+      api({
+        symbol: 'ETH',
+        chain: 'ethereum',
+        verdict: 'normal',
+        recommendation: 'proceed',
+        reason: 'healthy',
+        reasonCodes: [],
+        evaluatedAt: '2026-09-05T00:00:00.000Z',
+      }),
+  });
+  const handle = guard.watch(
+    { symbol: 'ETH', chain: 'ethereum' },
+    { intervalMs: 10_000, allowFasterPolling: true, onSignal: () => firstSignal() }
+  );
+
+  await signalled;
+  handle.stop();
+  const outcome = await Promise.race([
+    handle.done.then(() => 'settled'),
+    new Promise((resolve) => setTimeout(() => resolve('pending'), 100)),
+  ]);
+
+  assert.equal(outcome, 'settled');
+});
+
+test('watch stop aborts an in-flight poll and settles done', async () => {
+  let polling;
+  const pollStarted = new Promise((resolve) => {
+    polling = resolve;
+  });
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async (_url, init) => {
+      polling();
+      return new Promise((_resolve, reject) => {
+        init.signal.addEventListener('abort', () => reject(init.signal.reason), { once: true });
+      });
+    },
+  });
+  const handle = guard.watch({ symbol: 'ETH' }, { intervalMs: 10_000, allowFasterPolling: true });
+
+  await pollStarted;
+  handle.stop();
+
+  await handle.done;
+});
+
+test('watch rejects zero, negative, non-integer and non-finite intervals', () => {
+  const guard = new InsightGuard({ apiKey: 'ins_test', fetch: async () => api({}) });
+  for (const intervalMs of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+    assert.throws(
+      () => guard.watch({ symbol: 'ETH' }, { intervalMs, allowFasterPolling: true }),
+      /positive integer/
+    );
+  }
+});
+
 test('executeSwapWithPriorSeal authorizes exact calldata before submission and returns both receipts', async () => {
   const insightRequests = [];
   const priorSealRequests = [];
@@ -700,6 +813,44 @@ test('oracleWatch sends the attestation flag in the API query', async () => {
   assert.equal(result.recommendation, 'proceed');
   assert.equal(requestUrl.pathname, '/api/v1/oracle-watch');
   assert.equal(requestUrl.searchParams.get('attest'), 'true');
+});
+
+test('SDK clients normalize trailing base URL slashes before joining request paths', async () => {
+  let insightRequestUrl;
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    baseUrl: 'https://insight.test////',
+    fetch: async (url) => {
+      insightRequestUrl = String(url);
+      return api({
+        symbol: 'ETH',
+        chain: 'ethereum',
+        verdict: 'normal',
+        recommendation: 'proceed',
+        reason: 'healthy',
+        reasonCodes: [],
+        evaluatedAt: '2026-09-05T00:00:00.000Z',
+      });
+    },
+  });
+
+  await guard.client.oracleWatch({ symbol: 'ETH', chain: 'ethereum' });
+  assert.match(insightRequestUrl, /^https:\/\/insight\.test\/api\/v1\/oracle-watch\?/);
+
+  let priorSealRequestUrl;
+  const priorSeal = new PriorSealClient({
+    baseUrl: 'https://priorseal.test////',
+    fetch: async (url) => {
+      priorSealRequestUrl = String(url);
+      return new Response(JSON.stringify({ jobId: 'job_1', state: 'QUEUED', attempts: 0 }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+  });
+
+  await priorSeal.getObservationJob('job_1');
+  assert.equal(priorSealRequestUrl, 'https://priorseal.test/v1/observation-jobs/job_1');
 });
 
 test('InsightClient bounds requests with a defaultable timeout', async () => {

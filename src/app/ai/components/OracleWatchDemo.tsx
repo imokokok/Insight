@@ -151,13 +151,14 @@ export function OracleWatchDemo({ apiKey }: { apiKey?: string }) {
       const params = new URLSearchParams({ symbol: asset });
       if (chain) params.set('chain', chain);
       const headers: Record<string, string> = {};
-      if (session?.access_token) {
-        headers.Authorization = `Bearer ${session.access_token}`;
-      } else if (apiKey) {
+      if (apiKey) {
         headers['X-API-Key'] = apiKey;
+      } else if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
       }
 
-      const res = await fetch(`/api/v1/oracle-watch?${params.toString()}`, { headers });
+      const endpoint = apiKey ? '/api/v1/oracle-watch' : '/api/demo/oracle-watch';
+      const res = await fetch(`${endpoint}?${params.toString()}`, { headers });
       const json = await res.json();
 
       if (!res.ok || !json.success) {

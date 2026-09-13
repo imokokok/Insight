@@ -57,9 +57,9 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-40 border-b border-slate-900/15 bg-[#f8f7f4]">
+      <nav className="site-navbar sticky top-0 z-40 border-b border-slate-900/10">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-8 lg:px-10">
-          <div className="flex h-[68px] justify-between">
+          <div className="flex h-16 justify-between">
             <div className="flex items-center">
               <Link href="/" className="group flex flex-shrink-0 items-center gap-2.5">
                 <Image
@@ -68,12 +68,13 @@ export default function Navbar() {
                   width={28}
                   height={34}
                   priority
+                  className="h-[34px] w-auto"
                 />
-                <div>
-                  <div className="text-xl font-bold tracking-tight text-slate-950 transition-colors group-hover:text-primary-700">
+                <div className="leading-none">
+                  <div className="font-display text-xl font-bold tracking-[-0.04em] text-slate-950 transition-colors group-hover:text-primary-700">
                     Insight
                   </div>
-                  <div className="hidden font-mono text-[8px] uppercase tracking-[0.2em] text-slate-400 xl:block">
+                  <div className="mt-1 hidden font-mono text-[8px] uppercase tracking-[0.24em] text-slate-400 xl:block">
                     Oracle evidence
                   </div>
                 </div>
@@ -109,19 +110,16 @@ export default function Navbar() {
 
                 const item = navItem;
                 const active = isActive(item.href);
-                const ItemIcon = item.icon;
-
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`relative flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                    className={`relative flex items-center border-b-2 px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                       active
                         ? 'border-primary-600 text-primary-700'
                         : 'border-transparent text-gray-600 hover:border-slate-300 hover:text-primary-700'
                     }`}
                   >
-                    {ItemIcon && <ItemIcon className="w-4 h-4" />}
                     <span>{item.label}</span>
                   </Link>
                 );

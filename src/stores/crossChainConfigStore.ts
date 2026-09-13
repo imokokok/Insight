@@ -4,7 +4,7 @@ import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { type RefreshInterval } from '@/types/common';
 import { type ThresholdConfig, defaultThresholdConfig } from '@/types/crossChain';
 
-const CONFIG_STORE_VERSION = 1;
+const CONFIG_STORE_VERSION = 2;
 
 interface ConfigState {
   refreshInterval: RefreshInterval;

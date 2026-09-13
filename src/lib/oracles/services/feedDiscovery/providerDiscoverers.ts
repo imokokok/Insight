@@ -6,6 +6,7 @@ import { getAllCatalogFeeds } from '../../constants/chainlinkCatalogLoader';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '../../constants/chainMapping';
 import { getAllSupportedSymbols } from '../../constants/supportedSymbols';
 import { SWITCHBOARD_SURGE_FEEDS_URL } from '../../constants/switchboardConstants';
+import { isUsdDenominatedFeedSymbol } from '../../utils/oracleDataUtils';
 
 import { decodeFlareFeedId, inferCategory } from './discoveryHelpers';
 
@@ -244,6 +245,12 @@ export async function discoverRedStoneFeeds(): Promise<DiscoveryResult> {
 
     for (const item of prices) {
       if (!item.symbol) continue;
+
+      // Insight's price and consensus APIs expose BASE/USD prices. The full
+      // RedStone catalogue also contains ratios such as WBTC/BTC and USDC/BRL;
+      // admitting those rows lets a base-symbol query accidentally treat a
+      // cross-rate as USD and causes duplicate votes for one provider.
+      if (!isUsdDenominatedFeedSymbol(item.symbol)) continue;
 
       // RedStone's `provider=redstone` (full) prices endpoint returns each
       // feed WITH its current `value` + `timestamp`. That IS a live price, so we

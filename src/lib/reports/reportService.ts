@@ -119,7 +119,9 @@ class ReportService {
     const snapshots: SnapshotRow[] = (rawSnapshots ?? []) as SnapshotRow[];
 
     if (snapshots.length === 0) {
-      logger.warn(`No hourly snapshots found for ${dateStr}, generating empty report`);
+      throw new Error(
+        `Cannot generate daily report for ${dateStr}: no hourly price snapshots are available`
+      );
     }
 
     const metrics = calculateMetrics(snapshots);

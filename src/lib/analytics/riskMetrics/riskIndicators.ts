@@ -9,8 +9,29 @@ import {
   type SharedDependencyResult,
 } from './types';
 
+function resolveStalenessSeconds(
+  oracle: { timestamp: number; dataAgeSeconds?: number | null },
+  now: number
+): number {
+  if (
+    typeof oracle.dataAgeSeconds === 'number' &&
+    Number.isFinite(oracle.dataAgeSeconds) &&
+    oracle.dataAgeSeconds >= 0
+  ) {
+    return Math.floor(oracle.dataAgeSeconds);
+  }
+
+  const timestamp =
+    Number.isFinite(oracle.timestamp) && oracle.timestamp >= 0 ? oracle.timestamp : 0;
+  return Math.max(0, Math.floor((now - timestamp) / 1000));
+}
+
 export function calculateFreshnessRisk(params: {
-  oracleTimestamps: Array<{ name: string; timestamp: number }>;
+  oracleTimestamps: Array<{
+    name: string;
+    timestamp: number;
+    dataAgeSeconds?: number | null;
+  }>;
   currentTime?: number;
 }): FreshnessRiskResult {
   try {
@@ -30,7 +51,7 @@ export function calculateFreshnessRisk(params: {
     const SEVERELY_DELAYED = 300;
 
     for (const oracle of oracleTimestamps) {
-      const stalenessSeconds = Math.max(0, Math.floor((now - oracle.timestamp) / 1000));
+      const stalenessSeconds = resolveStalenessSeconds(oracle, now);
 
       let oracleStalenessScore = 0;
       if (stalenessSeconds <= FRESH) {
@@ -74,9 +95,7 @@ export function calculateFreshnessRisk(params: {
 
     const maxStalenessSeconds =
       oracleTimestamps.length > 0
-        ? Math.max(
-            ...oracleTimestamps.map((o) => Math.max(0, Math.floor((now - o.timestamp) / 1000)))
-          )
+        ? Math.max(...oracleTimestamps.map((oracle) => resolveStalenessSeconds(oracle, now)))
         : 0;
 
     logger.debug(`Freshness risk score: ${score}, Stale oracles: ${staleOracles.length}`);

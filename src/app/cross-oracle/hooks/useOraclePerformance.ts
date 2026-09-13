@@ -112,18 +112,21 @@ export function useOraclePerformance({
         priceHistoryMapRef.current.set(oracle, []);
       }
       const historyData = priceHistoryMapRef.current.get(oracle)!;
-      historyData.push({
-        price: price.price,
-        timestamp: price.timestamp,
-        responseTime,
-        success: true,
-        source: price.source,
-        liquidity: price.liquidity ? Number(BigInt(price.liquidity)) : undefined,
-        sqrtPriceX96: price.sqrtPriceX96,
-        tick: price.tick,
-        spotPrice: price.spotPrice,
-        twapPrice: price.twapPrice,
-      });
+      const lastSuccessfulEntry = [...historyData].reverse().find((entry) => entry.success);
+      if (!lastSuccessfulEntry || price.timestamp > lastSuccessfulEntry.timestamp) {
+        historyData.push({
+          price: price.price,
+          timestamp: price.timestamp,
+          responseTime,
+          success: true,
+          source: price.source,
+          liquidity: price.liquidity ? Number(BigInt(price.liquidity)) : undefined,
+          sqrtPriceX96: price.sqrtPriceX96,
+          tick: price.tick,
+          spotPrice: price.spotPrice,
+          twapPrice: price.twapPrice,
+        });
+      }
 
       const memConfig = getPerformanceMetricsConfig().memoryManagement;
       if (memConfig.enabled) {

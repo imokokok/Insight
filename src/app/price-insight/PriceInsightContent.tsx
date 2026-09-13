@@ -5,7 +5,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useCrossChainAnalytics } from '@/app/cross-chain/hooks/useCrossChainAnalytics';
 import { useCrossChainDataState } from '@/app/cross-chain/hooks/useCrossChainDataState';
 import { useCrossOraclePage } from '@/app/cross-oracle/hooks/useCrossOraclePage';
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { LiveStatusBar, SegmentedControl } from '@/components/ui';
 import { chartColors } from '@/lib/config/colors';
@@ -88,7 +88,7 @@ export default function PriceInsightContent() {
 
   return (
     <ErrorBoundary level="page" componentName="PriceInsightContent">
-      <div className="editorial-workspace min-h-screen">
+      <div className="editorial-workspace evidence-workbench research-workbench comparison-workbench min-h-screen">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
           <EditorialWorkspaceHeader
             index="02"
@@ -100,6 +100,16 @@ export default function PriceInsightContent() {
             action={
               <DimensionSwitcher dimension={dimension} onDimensionChange={handleDimensionChange} />
             }
+          />
+
+          <EvidenceProcessRail
+            label="Comparison protocol"
+            activeIndex={activeTab === 'comparison' ? 1 : 2}
+            items={[
+              { label: 'Select the field', detail: 'Oracle or chain dimension' },
+              { label: 'Establish consensus', detail: 'Median · spread · agreement' },
+              { label: 'Inspect divergence', detail: 'Anomaly · behaviour · risk' },
+            ]}
           />
 
           <div className="pt-7">
@@ -182,7 +192,7 @@ function OracleDimension({
     <>
       <div className="editorial-status-rail flex items-center justify-between border-y border-slate-900/15 px-1 py-3 mb-6">
         <LiveStatusBar
-          isConnected={!isLoading}
+          isConnected={!isLoading && priceData.length > 0 && !oracleDataError.globalError}
           latency={undefined}
           lastUpdate={lastUpdated || undefined}
         />
@@ -214,9 +224,9 @@ function OracleDimension({
         }
       />
 
-      <div className="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
+      <div className="editorial-workbench-grid grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
         <aside>
-          <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+          <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
             <p className="editorial-index">01 — Set comparison</p>
             <span className="font-mono text-[10px] text-slate-400">INPUT</span>
           </div>
@@ -240,7 +250,7 @@ function OracleDimension({
         </aside>
 
         <section className="min-w-0" aria-label="Oracle comparison evidence">
-          <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+          <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
             <p className="editorial-index">02 — Read the evidence</p>
             <span className="font-mono text-[10px] text-slate-400">ANALYSIS</span>
           </div>
@@ -293,12 +303,13 @@ function ChainDimension({
 }) {
   const loading = useCrossChainDataStore((s) => s.loading);
   const currentPrices = useCrossChainDataStore((s) => s.currentPrices);
+  const priceHistories = useCrossChainDataStore((s) => s.priceHistories);
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
   const refreshStatus = useCrossChainDataStore((s) => s.refreshStatus);
   const refreshInterval = useCrossChainConfigStore((s) => s.refreshInterval);
   const setRefreshInterval = useCrossChainConfigStore((s) => s.setRefreshInterval);
 
-  const analytics = useCrossChainAnalytics(currentPrices);
+  const analytics = useCrossChainAnalytics(currentPrices, priceHistories);
 
   const hasData = currentPrices.length > 0;
   const isInitialLoading = loading && !hasData;
@@ -346,9 +357,9 @@ function ChainDimension({
         }
       />
 
-      <div className="grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
+      <div className="editorial-workbench-grid grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
         <aside>
-          <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+          <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
             <p className="editorial-index">01 — Set comparison</p>
             <span className="font-mono text-[10px] text-slate-400">INPUT</span>
           </div>
@@ -373,7 +384,7 @@ function ChainDimension({
         </aside>
 
         <section className="min-w-0" aria-label="Cross-chain comparison evidence">
-          <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
+          <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
             <p className="editorial-index">02 — Read the evidence</p>
             <span className="font-mono text-[10px] text-slate-400">ANALYSIS</span>
           </div>

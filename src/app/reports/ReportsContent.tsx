@@ -15,7 +15,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import { providerNames } from '@/lib/constants';
@@ -62,7 +62,7 @@ function MetricCard({
   subvalue?: React.ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 items-start gap-3 border-b border-r border-slate-900/10 bg-white/35 p-4 last:border-r-0 lg:border-b-0 lg:p-5">
+    <div className="report-archive-metric flex min-w-0 items-start gap-3 border-b border-r border-slate-900/10 bg-white/35 p-4 last:border-r-0 lg:border-b-0 lg:p-5">
       <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center border border-blue-200 bg-blue-50">
         <Icon className="h-3.5 w-3.5 text-blue-600" />
       </div>
@@ -117,7 +117,17 @@ function Header({
         }
       />
 
-      <div className="mb-3 flex items-center justify-between border-b border-slate-900/15 pb-3">
+      <EvidenceProcessRail
+        label="Publication cycle"
+        activeIndex={reportCount > 0 ? 2 : 0}
+        items={[
+          { label: 'Collect snapshots', detail: '15 minute observations' },
+          { label: 'Publish the record', detail: 'UTC · signed chronology' },
+          { label: 'Review the trail', detail: 'Events · reliability · coverage' },
+        ]}
+      />
+
+      <div className="workbench-section-heading mb-3 mt-7 flex items-center justify-between border-b border-slate-900/15 pb-3">
         <p className="editorial-index">01 — Archive coverage</p>
         <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
           UTC record
@@ -155,16 +165,19 @@ function NextReportLabel() {
   return <span className="text-base font-semibold text-slate-900 tabular-nums">{label}</span>;
 }
 
-function ReportRow({ report }: { report: ReportSummary }) {
+function ReportRow({ report, recordNumber }: { report: ReportSummary; recordNumber: number }) {
   const date = new Date(report.reportDate);
   const topEvent = report.topDeviationEvent;
 
   return (
     <Link
       href={`/reports/${report.reportDate}`}
-      className="group grid grid-cols-12 gap-4 px-5 py-4 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0 items-center"
+      className="report-archive-record group grid grid-cols-12 items-center gap-4 border-b border-slate-100 px-5 py-4 transition-colors last:border-0 hover:bg-slate-50"
     >
       <div className="col-span-12 sm:col-span-3 lg:col-span-2">
+        <span className="report-record-index" aria-hidden="true">
+          D—{String(recordNumber).padStart(3, '0')}
+        </span>
         <p className="text-sm font-semibold text-slate-950">
           {date.toLocaleDateString('en-US', {
             timeZone: 'UTC',
@@ -268,12 +281,12 @@ function ReportsContentInner({ initialReports }: { initialReports: ReportSummary
   const assetCount = latestReport?.metrics.activeAssets ?? 0;
 
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench research-workbench report-archive-workbench min-h-screen">
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
         <Header reportCount={reportCount} providerCount={providerCount} assetCount={assetCount} />
 
         <section>
-          <div className="mb-4 flex items-end justify-between border-b border-slate-900/15 pb-3">
+          <div className="workbench-section-heading mb-4 flex items-end justify-between border-b border-slate-900/15 pb-3">
             <div>
               <p className="editorial-index mb-1">02 — Open the record</p>
               <h2 className="text-xl font-bold tracking-tight text-slate-950">Daily reports</h2>
@@ -295,8 +308,8 @@ function ReportsContentInner({ initialReports }: { initialReports: ReportSummary
             />
           ) : (
             <>
-              <div className="overflow-hidden border-y border-slate-900/15 bg-white/45">
-                <div className="hidden lg:grid grid-cols-12 gap-4 px-5 py-3 bg-slate-100/60 border-b border-slate-900/15 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <div className="report-archive-ledger overflow-hidden border-y border-slate-900/15 bg-white/45">
+                <div className="report-archive-ruler hidden grid-cols-12 gap-4 border-b border-slate-900/15 bg-slate-100/60 px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 lg:grid">
                   <div className="col-span-2">Date</div>
                   <div className="col-span-1">Status</div>
                   <div className="col-span-7">Summary</div>
@@ -304,8 +317,12 @@ function ReportsContentInner({ initialReports }: { initialReports: ReportSummary
                   <div className="col-span-1 text-right">Avg deviation</div>
                 </div>
                 <div>
-                  {paginatedReports.map((report) => (
-                    <ReportRow key={report.reportDate} report={report} />
+                  {paginatedReports.map((report, reportIndex) => (
+                    <ReportRow
+                      key={report.reportDate}
+                      report={report}
+                      recordNumber={(currentPage - 1) * ITEMS_PER_PAGE + reportIndex + 1}
+                    />
                   ))}
                 </div>
               </div>

@@ -52,15 +52,15 @@ const customJestConfig = {
     },
   },
   coverageReporters: ['text', 'text-summary', 'lcov'],
-  // MCP integration tests under src/mcp/__tests__ spawn a real MCP server
-  // (stdio + http) and require SUPABASE_SERVICE_ROLE_KEY + live oracle/RPC
-  // data. They are not unit tests and must not run as part of the default
-  // `npm test` / CI gate. Run them explicitly via `npm run test:mcp:e2e`
-  // (which loads .env.local and runs them in band).
+  // Only MCP suites that spawn a real stdio/http server are excluded from the
+  // default gate. Tool and middleware unit tests in the same directory keep
+  // running in CI. Run process/live suites via `npm run test:mcp:e2e`.
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
     '<rootDir>/.next/',
-    '<rootDir>/src/mcp/__tests__/',
+    '<rootDir>/src/mcp/__tests__/client.test.ts',
+    '<rootDir>/src/mcp/__tests__/e2e.test.ts',
+    '<rootDir>/src/mcp/__tests__/http-e2e.test.ts',
   ],
   modulePathIgnorePatterns: ['<rootDir>/.worktrees/'],
 };

@@ -63,7 +63,7 @@ describe('agent_begin_trade', () => {
   });
 
   it('issues a machine-readable certification handle on PASS', async () => {
-    // source ETH = 2000, destination USDC = 1  → quotedPrice = 0.0005 dest/source
+    // source ETH = $2000, destination USDC = $1 → quotedPrice = 2000 USDC/ETH
     mockPreTrade.mockImplementation(async (input) =>
       fakeCheck(input.asset, input.asset === 'USDC' ? 1 : 2000)
     );
@@ -74,7 +74,7 @@ describe('agent_begin_trade', () => {
     const handle = extractHandle(out);
     expect(handle.preTradeUid).toBe(UID);
     expect(handle.requestHash).toBe(REQ_HASH);
-    expect(handle.quotedPrice).toBeCloseTo(1 / 2000, 12);
+    expect(handle.quotedPrice).toBeCloseTo(2000, 12);
     expect(handle.maxSlippageBps).toBe(50);
     expect(handle.participantCount).toBe(3);
     expect(handle.sourceAssetId).toBe('eip155:1/erc20:0xETH');
@@ -99,6 +99,33 @@ describe('agent_begin_trade', () => {
 
     expect(out).toContain('REFUSED');
     expect(out).toContain('no pre-trade attestation');
+  });
+
+  it('refuses when the destination oracle verdict blocks execution', async () => {
+    mockPreTrade.mockImplementation(async (input) =>
+      fakeCheck(
+        input.asset,
+        input.asset === 'USDC' ? 1 : 2000,
+        input.asset === 'USDC' ? 'BLOCK' : 'PASS'
+      )
+    );
+
+    const out = await agentBeginTradeTool.handler(BASE_ARGS);
+
+    expect(out).toContain('REFUSED');
+    expect(out).toContain('destination oracle risk');
+    expect(out).not.toContain('```json');
+  });
+
+  it('refuses a non-positive destination consensus price', async () => {
+    mockPreTrade.mockImplementation(async (input) =>
+      fakeCheck(input.asset, input.asset === 'USDC' ? 0 : 2000)
+    );
+
+    const out = await agentBeginTradeTool.handler(BASE_ARGS);
+
+    expect(out).toContain('destination asset "USDC" has no usable consensus price');
+    expect(out).not.toContain('```json');
   });
 
   it('defaults sourceGroupCount to participantCount', async () => {

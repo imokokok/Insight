@@ -1,7 +1,7 @@
 import { getBillingSummary } from '@/lib/ops/opsQueries';
 
 import RefreshControl from '../RefreshControl';
-import { PageHeader, Stat, Card, Badge, EmptyState } from '../ui';
+import { PageHeader, Stat, Card, Badge, EmptyState, ErrorBanner } from '../ui';
 
 export const metadata = {
   title: 'Billing - Insight Ops',
@@ -20,6 +20,8 @@ export default async function OpsBillingPage() {
         updatedAt={new Date().toISOString()}
         actions={<RefreshControl />}
       />
+
+      {billing.errored && <ErrorBanner message="Billing 数据查询失败，下列零值不代表真实状态。" />}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Stat label="Total keys" value={billing.totalKeys} />

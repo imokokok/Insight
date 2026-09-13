@@ -66,6 +66,7 @@ import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
+import type { OracleProvider } from '@/types/oracle';
 
 import { getConsensusPrice, type ConsensusPriceResponse } from './consensusPriceService';
 import {
@@ -1229,7 +1230,12 @@ export async function preTradeSafetyCheck(
   let consensus: ConsensusPriceResponse | undefined;
   let consensusFailed = false;
   try {
-    consensus = await getConsensusPrice(input.asset, chain);
+    consensus = await getConsensusPrice(
+      input.asset,
+      chain,
+      undefined,
+      input.targetProviders as OracleProvider[] | undefined
+    );
   } catch (error) {
     if (error instanceof UnsupportedSymbolError) {
       // No oracle coverage for this asset/chain — cannot verify, treat as BLOCK.

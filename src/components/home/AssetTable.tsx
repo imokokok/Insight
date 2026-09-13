@@ -1,11 +1,11 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { memo, useState, type CSSProperties } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { ArrowRight, Clock, Minus, TrendingDown, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, Clock } from 'lucide-react';
 
 import { providerNames } from '@/lib/constants';
 
@@ -19,9 +19,7 @@ interface AssetTableProps {
 
 function formatPrice(price: number, symbol: string): string {
   if (price === 0) return '—';
-  if (symbol === 'USDT' || symbol === 'USDC') {
-    return `$${price.toFixed(4)}`;
-  }
+  if (symbol === 'USDT' || symbol === 'USDC') return `$${price.toFixed(4)}`;
   if (price >= 1000) {
     return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
@@ -46,227 +44,149 @@ function formatRelativeTime(timestamp: number, now: number): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-function getSpreadTrend(spread: number): 'low' | 'medium' | 'high' {
-  if (spread <= 0.1) return 'low';
-  if (spread <= 0.5) return 'medium';
-  return 'high';
-}
-
 function CryptoIcon({ symbol }: { symbol: string }) {
   const [hasError, setHasError] = useState(false);
-  const src = `/logos/cryptos/${symbol.toLowerCase()}.svg`;
-
-  if (hasError) {
-    return (
-      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
-        {symbol.slice(0, 2)}
-      </div>
-    );
-  }
+  if (hasError) return <span className="asset-ledger-fallback">{symbol.slice(0, 2)}</span>;
 
   return (
-    <div className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center overflow-hidden">
+    <span className="asset-ledger-coin">
       <Image
-        src={src}
-        alt={symbol}
+        src={`/logos/cryptos/${symbol.toLowerCase()}.svg`}
+        alt=""
         width={28}
         height={28}
-        className="w-6 h-6 object-contain"
         onError={() => setHasError(true)}
       />
-    </div>
-  );
-}
-
-function SpreadIndicator({ spread }: { spread: number }) {
-  const trend = getSpreadTrend(spread);
-  const Icon = spread === 0 ? Minus : spread <= 0.1 ? TrendingDown : TrendingUp;
-  const colors = {
-    low: 'text-emerald-700',
-    medium: 'text-amber-700',
-    high: 'text-rose-700',
-  };
-
-  return (
-    <span className={`inline-flex items-center gap-1 text-xs font-semibold ${colors[trend]}`}>
-      <span className="h-1.5 w-1.5 rounded-full bg-current" />
-      <Icon className="w-3 h-3" />
-      {formatSpread(spread)}
     </span>
   );
 }
 
-function AssetRowSkeleton() {
+function getPosition(asset: AssetConsensusData, price: number): number {
+  const span = asset.priceRange.max - asset.priceRange.min;
+  if (span <= 0) return 50;
+  return 6 + ((price - asset.priceRange.min) / span) * 88;
+}
+
+function AssetLedgerSkeleton() {
   return (
-    <tr className="animate-pulse">
-      <td className="px-4 py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-slate-200" />
-          <div className="space-y-1.5">
-            <div className="h-4 w-16 bg-slate-200 rounded" />
-            <div className="h-3 w-10 bg-slate-200 rounded" />
-          </div>
-        </div>
-      </td>
-      <td className="px-4 py-4">
-        <div className="h-5 w-28 bg-slate-200 rounded" />
-      </td>
-      <td className="px-4 py-4">
-        <div className="h-5 w-20 bg-slate-200 rounded" />
-      </td>
-      <td className="px-4 py-4">
-        <div className="h-5 w-32 bg-slate-200 rounded" />
-      </td>
-      <td className="px-4 py-4">
-        <div className="h-4 w-24 bg-slate-200 rounded" />
-      </td>
-      <td className="px-4 py-4">
-        <div className="h-4 w-20 bg-slate-200 rounded" />
-      </td>
-      <td className="px-4 py-4 text-right">
-        <div className="h-4 w-16 bg-slate-200 rounded ml-auto" />
-      </td>
-    </tr>
+    <div className="asset-ledger-record is-loading" aria-hidden="true">
+      <span />
+      <span />
+      <span />
+      <span />
+    </div>
   );
 }
 
 function AssetTableComponent({ assets, isLoading, now }: AssetTableProps) {
-  const showSkeleton = isLoading && assets.every((a) => a.consensusPrice === 0);
+  const showSkeleton = isLoading && assets.every((asset) => asset.consensusPrice === 0);
 
   return (
-    <section className="home-view-reveal">
-      <div className="flex items-end justify-between gap-5 mb-5">
+    <section className="asset-ledger home-view-reveal" aria-labelledby="asset-ledger-title">
+      <header className="asset-ledger-header">
         <div>
-          <div className="flex items-center gap-3">
-            <span className="h-px w-8 bg-blue-600" />
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-700">
-              Live consensus ledger
-            </p>
-          </div>
-          <h2 className="mt-3 text-2xl font-semibold text-slate-900 tracking-[-0.035em]">
-            Cross-oracle price evidence
-          </h2>
-          <p className="text-sm text-slate-500 mt-2">
-            Transparent median, provider coverage, and source-level range in one record.
-          </p>
+          <p className="instrument-label">Evidence instrument 02 / live ledger</p>
+          <h3 id="asset-ledger-title">Cross-oracle price evidence</h3>
         </div>
-        <Link
-          href="/price-insight"
-          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-        >
-          View all assets
-          <ArrowRight className="w-4 h-4" />
+        <p>
+          Four market records. Each line preserves the median, observed bounds, source positions,
+          and sampling time.
+        </p>
+        <Link href="/price-insight">
+          Open full ledger <ArrowUpRight aria-hidden="true" />
         </Link>
-      </div>
+      </header>
 
-      <div className="border-y border-slate-900/15 bg-white/25 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-900/10">
-                <th className="px-5 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-                  Asset
-                </th>
-                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-                  Consensus Price
-                </th>
-                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-                  Spread
-                </th>
-                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-                  Range
-                </th>
-                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-                  Providers
-                </th>
-                <th className="px-4 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-                  Last Update
-                </th>
-                <th className="px-5 py-4 text-right text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-900/10">
-              {showSkeleton
-                ? Array.from({ length: 4 }).map((_, i) => <AssetRowSkeleton key={i} />)
-                : assets.map((asset) => (
-                    <tr key={asset.symbol} className="group transition-colors hover:bg-blue-50/35">
-                      <td className="px-5 py-5">
-                        <div className="flex items-center gap-3">
-                          <CryptoIcon symbol={asset.symbol} />
-                          <div>
-                            <div className="font-semibold text-slate-900">{asset.symbol}</div>
-                            <div className="text-xs text-slate-500">/ USD</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-5">
-                        <div className="font-mono tabular-nums text-base font-semibold tracking-[-0.02em] text-slate-900">
-                          {formatPrice(asset.consensusPrice, asset.symbol)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-5">
-                        <SpreadIndicator spread={asset.priceRange.spreadPercent} />
-                      </td>
-                      <td className="px-4 py-5">
-                        <div className="font-mono tabular-nums text-slate-700">
-                          {asset.priceRange.min > 0
-                            ? `${formatPrice(asset.priceRange.min, asset.symbol)} - ${formatPrice(asset.priceRange.max, asset.symbol)}`
-                            : '—'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-5">
-                        <div className="flex items-center gap-2">
-                          <div className="flex -space-x-2">
-                            {asset.sources.slice(0, 4).map((source) => (
-                              <div
-                                key={source.provider}
-                                className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center shadow-sm"
-                                style={{ backgroundColor: source.color }}
-                                title={`${providerNames[source.provider]}: ${formatPrice(source.price, asset.symbol)}`}
-                              >
-                                <span className="text-[9px] font-bold text-white/90">
-                                  {providerNames[source.provider]?.[0]}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                          <span className="text-xs text-slate-500 font-medium">
-                            {asset.providerCount}/{asset.totalProviders}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-5">
-                        <div className="inline-flex items-center gap-1.5 text-xs text-slate-500">
-                          <Clock className="w-3.5 h-3.5" />
-                          {formatRelativeTime(asset.lastUpdatedAt, now)}
-                        </div>
-                      </td>
-                      <td className="px-5 py-5 text-right">
-                        <Link
-                          href={`/price-insight?symbol=${asset.symbol}`}
-                          className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          Compare
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-            </tbody>
-          </table>
+      <div className="asset-ledger-sheet">
+        <div className="asset-ledger-ruler" aria-hidden="true">
+          <span>Record</span>
+          <span>Consensus</span>
+          <span>Source field / observed range</span>
+          <span>Coverage</span>
         </div>
-      </div>
 
-      <div className="mt-3 sm:hidden text-center">
-        <Link
-          href="/price-insight"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
-        >
-          View all assets
-          <ArrowRight className="w-4 h-4" />
-        </Link>
+        {showSkeleton
+          ? Array.from({ length: 4 }).map((_, index) => <AssetLedgerSkeleton key={index} />)
+          : assets.map((asset, index) => {
+              const consensusPosition = getPosition(asset, asset.consensusPrice);
+              return (
+                <article className="asset-ledger-record" key={asset.symbol}>
+                  <div className="asset-ledger-identity">
+                    <span className="asset-ledger-index">{String(index + 1).padStart(2, '0')}</span>
+                    <CryptoIcon symbol={asset.symbol} />
+                    <div>
+                      <strong>{asset.symbol}</strong>
+                      <span>USD reference</span>
+                    </div>
+                  </div>
+
+                  <div className="asset-ledger-price">
+                    <span>Consensus</span>
+                    <strong>{formatPrice(asset.consensusPrice, asset.symbol)}</strong>
+                    <small
+                      className={`spread-${asset.priceRange.spreadPercent > 0.5 ? 'high' : 'low'}`}
+                    >
+                      {formatSpread(asset.priceRange.spreadPercent)} spread
+                    </small>
+                  </div>
+
+                  <div className="asset-ledger-observation">
+                    <div
+                      className="asset-ledger-track"
+                      role="img"
+                      aria-label={`${asset.symbol} provider observations from ${formatPrice(asset.priceRange.min, asset.symbol)} to ${formatPrice(asset.priceRange.max, asset.symbol)}`}
+                    >
+                      <i
+                        className="asset-ledger-consensus-mark"
+                        style={{ '--mark-position': `${consensusPosition}%` } as CSSProperties}
+                      />
+                      {asset.sources.map((source) => (
+                        <i
+                          key={source.provider}
+                          className="asset-ledger-source-mark"
+                          title={`${providerNames[source.provider]}: ${formatPrice(source.price, asset.symbol)}`}
+                          style={
+                            {
+                              '--mark-position': `${getPosition(asset, source.price)}%`,
+                              '--mark-color': source.color,
+                            } as CSSProperties
+                          }
+                        />
+                      ))}
+                    </div>
+                    <div className="asset-ledger-bounds">
+                      <span>{formatPrice(asset.priceRange.min, asset.symbol)}</span>
+                      <span>{formatPrice(asset.priceRange.max, asset.symbol)}</span>
+                    </div>
+                  </div>
+
+                  <div className="asset-ledger-coverage">
+                    <div className="asset-ledger-sources" aria-label="Resolved providers">
+                      {asset.sources.map((source) => (
+                        <span key={source.provider} style={{ backgroundColor: source.color }}>
+                          {providerNames[source.provider]?.[0]}
+                        </span>
+                      ))}
+                    </div>
+                    <strong>
+                      {asset.providerCount}/{asset.totalProviders}
+                    </strong>
+                    <small>
+                      <Clock aria-hidden="true" />
+                      {formatRelativeTime(asset.lastUpdatedAt, now)}
+                    </small>
+                  </div>
+
+                  <Link
+                    className="asset-ledger-action"
+                    href={`/price-insight?symbol=${asset.symbol}`}
+                    aria-label={`Inspect ${asset.symbol} evidence`}
+                  >
+                    Inspect <ArrowUpRight aria-hidden="true" />
+                  </Link>
+                </article>
+              );
+            })}
       </div>
     </section>
   );

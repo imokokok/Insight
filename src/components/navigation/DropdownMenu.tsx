@@ -61,8 +61,6 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
   const isGroupActive = group.items.some(
     (item) => currentPath === item.href || currentPath.startsWith(item.href + '/')
   );
-  const GroupIcon = group.icon;
-
   return (
     <div
       ref={containerRef}
@@ -81,7 +79,6 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        {GroupIcon && <GroupIcon className="w-4 h-4" />}
         <span>{group.label}</span>
         <ChevronDown
           className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}

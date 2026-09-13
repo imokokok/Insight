@@ -66,7 +66,19 @@ export function createMcpServer(auth?: McpAuthContext): Server {
         // failures are NOT metered — mirroring the REST API which only
         // charges successful data requests.
         if (!result.isError) {
-          consumeMcpQuota(auth, name);
+          const charge = await consumeMcpQuota(auth, name);
+          if (!charge.allowed) {
+            recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `Insufficient credits: ${charge.reason ?? 'authoritative charge rejected'}`,
+                },
+              ],
+              isError: true,
+            };
+          }
         }
         recordMcpToolUsage(auth, name, result.isError ? 500 : 200, Date.now() - startTime);
       }

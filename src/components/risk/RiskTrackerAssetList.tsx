@@ -42,7 +42,7 @@ export function RiskTrackerAssetList<T extends RiskSnapshotBase>({
   onSelect,
 }: RiskTrackerAssetListProps<T>) {
   return (
-    <div className="overflow-hidden border-y border-slate-900/15 bg-white/45 lg:sticky lg:top-24">
+    <div className="risk-asset-ledger overflow-hidden border-y border-slate-900/15 bg-white/45 lg:sticky lg:top-24">
       <div className="space-y-2 border-b border-slate-900/10 bg-slate-50/50 px-4 py-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-slate-900">Tracked Assets</h2>
@@ -70,7 +70,7 @@ export function RiskTrackerAssetList<T extends RiskSnapshotBase>({
             No assets match your search.
           </div>
         ) : (
-          snapshots.map((snapshot) => {
+          snapshots.map((snapshot, snapshotIndex) => {
             const deviation = getDeviationValue(snapshot);
             const isSelected = selectedSymbol === snapshot.symbol;
             return (
@@ -86,6 +86,9 @@ export function RiskTrackerAssetList<T extends RiskSnapshotBase>({
                     : 'border-l-4 border-transparent'
                 )}
               >
+                <span className="risk-asset-index" aria-hidden="true">
+                  {String(snapshotIndex + 1).padStart(2, '0')}
+                </span>
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-semibold text-slate-900">{snapshot.symbol}</span>
                   <RiskBadge level={snapshot.riskLevel} />

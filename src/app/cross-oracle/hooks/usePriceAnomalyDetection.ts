@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { safeMax } from '@/lib/utils';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
 
@@ -133,7 +134,7 @@ export function usePriceAnomalyDetection(
       const deviationPercent = ((data.price - medianPrice) / medianPrice) * 100;
 
       if (Math.abs(deviationPercent) >= anomalyThreshold) {
-        const freshnessSeconds = Math.max(0, Math.floor((now - data.timestamp) / 1000));
+        const freshnessSeconds = resolveOracleAgeSeconds(data, now) ?? 0;
         const severity = getSeverity(deviationPercent, symbol);
         const reasonKeys = analyzeReason(
           deviationPercent,

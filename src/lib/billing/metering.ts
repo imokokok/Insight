@@ -65,7 +65,7 @@ const ENDPOINT_RULES: Array<[RegExp, MeteringClass]> = [
  */
 const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   // C4 — receipts / verification.
-  [/execution|receipt|verify_execution|verify_pair/, 'C4'],
+  [/agent_begin_trade|execution|receipt|verify_execution|verify_pair/, 'C4'],
 
   // C3 — agent gates.
   [/pre_trade|oracle_watch|position_safety|liquidation/, 'C3'],
