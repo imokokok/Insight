@@ -41,15 +41,22 @@ jest.mock('@/lib/supabase/server', () => ({
  * configure per-table behavior:
  *   - selectData[table]  → returned by `.maybeSingle()` / `.single()`
  *   - writeError[table]  → returned as `{ error }` by write operations
+ *   - rpcResults[name]    → explicit atomic claim/finish RPC responses
  *
  * The mock records calls so tests can assert on `.eq()` arguments.
  */
 function createSupabaseMock(stores: {
   selectData?: Record<string, unknown>;
   writeError?: Record<string, { code: string; message: string } | null>;
+  rpcResults?: Record<
+    string,
+    | { data: unknown; error: { code?: string; message: string } | null }
+    | Array<{ data: unknown; error: { code?: string; message: string } | null }>
+  >;
 }) {
-  const { selectData = {}, writeError = {} } = stores;
+  const { selectData = {}, writeError = {}, rpcResults = {} } = stores;
   const selectCounts: Record<string, number> = {};
+  const rpcCounts: Record<string, number> = {};
 
   function makeChain(table: string) {
     const configured = selectData[table];
@@ -90,7 +97,27 @@ function createSupabaseMock(stores: {
     return chain;
   }
 
-  const client = { from: jest.fn((table: string) => makeChain(table)) };
+  const client = {
+    from: jest.fn((table: string) => makeChain(table)),
+    rpc: jest.fn((name: string) => {
+      const configured = rpcResults[name];
+      if (configured) {
+        const index = rpcCounts[name] ?? 0;
+        rpcCounts[name] = index + 1;
+        return Promise.resolve(Array.isArray(configured) ? configured[index] : configured);
+      }
+      if (name === 'claim_webhook_event') {
+        return Promise.resolve({
+          data: { outcome: 'acquired', leaseId: '11111111-1111-4111-8111-111111111111' },
+          error: null,
+        });
+      }
+      if (name === 'finish_webhook_event') {
+        return Promise.resolve({ data: true, error: null });
+      }
+      return Promise.resolve({ data: null, error: null });
+    }),
+  };
   return client;
 }
 
@@ -155,7 +182,12 @@ describe('POST /api/billing/webhook', () => {
     });
     mockCreateServiceRoleClient.mockReturnValue(
       createSupabaseMock({
-        selectData: { processed_webhook_events: { status: 'completed', attempts: 1 } },
+        rpcResults: {
+          claim_webhook_event: {
+            data: { outcome: 'completed', leaseId: null },
+            error: null,
+          },
+        },
       })
     );
 
@@ -165,6 +197,31 @@ describe('POST /api/billing/webhook', () => {
     expect(response.status).toBe(200);
     expect(body).toEqual({ received: true });
     expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalled();
+  });
+
+  it('returns retryable 503 without side effects when another worker owns the lease', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_busy',
+      type: 'finished',
+      data: { invoice_id: 'inv_busy' },
+    });
+    const supabase = createSupabaseMock({
+      rpcResults: {
+        claim_webhook_event: {
+          data: { outcome: 'busy', leaseId: null },
+          error: null,
+        },
+      },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(supabase);
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get('Retry-After')).toBe('5');
+    expect(mockTopUpCredits).not.toHaveBeenCalled();
+    expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalled();
+    expect(supabase.rpc).toHaveBeenCalledTimes(1);
   });
 
   it('upgrades the user on `finished` IPN with fresh period_end and first-cycle grant', async () => {
@@ -425,6 +482,14 @@ describe('POST /api/billing/webhook', () => {
     expect(mockUpdateApiKeyPlanForUser).not.toHaveBeenCalled();
     expect(mockTopUpCredits).not.toHaveBeenCalled();
   });
+});
+
+describe('POST /api/billing/webhook lease and failure handling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUpdateApiKeyPlanForUser.mockResolvedValue(undefined);
+    mockTopUpCredits.mockResolvedValue(60000);
+  });
 
   it('does NOT reset the billing period or re-grant on a duplicate confirmed IPN', async () => {
     // The row is already 'active' (a first confirmed/finished already ran), so a
@@ -495,25 +560,32 @@ describe('POST /api/billing/webhook', () => {
       type: 'finished',
       data: { invoice_id: 'inv_9' },
     });
-    mockCreateServiceRoleClient.mockReturnValue(
-      createSupabaseMock({
-        selectData: {
-          credit_purchases: null,
-          subscriptions: {
-            id: 'sub_9',
-            user_id: 'user_throw',
-            plan: 'developer',
-            interval: 'month',
-            status: 'incomplete',
-          },
+    const supabase = createSupabaseMock({
+      selectData: {
+        credit_purchases: null,
+        subscriptions: {
+          id: 'sub_9',
+          user_id: 'user_throw',
+          plan: 'developer',
+          interval: 'month',
+          status: 'incomplete',
         },
-      })
-    );
+      },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(supabase);
     mockUpdateApiKeyPlanForUser.mockRejectedValue(new Error('DB down'));
 
     const response = await POST(createPostRequest('payload'));
 
     expect(response.status).toBe(500);
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'finish_webhook_event',
+      expect.objectContaining({
+        p_event_id: 'pay_9:finished',
+        p_lease_id: '11111111-1111-4111-8111-111111111111',
+        p_succeeded: false,
+      })
+    );
   });
 
   it('returns 500 before side effects when the idempotency ledger cannot be acquired', async () => {
@@ -524,8 +596,11 @@ describe('POST /api/billing/webhook', () => {
     });
     mockCreateServiceRoleClient.mockReturnValue(
       createSupabaseMock({
-        writeError: {
-          processed_webhook_events: { code: '08006', message: 'ledger unavailable' },
+        rpcResults: {
+          claim_webhook_event: {
+            data: null,
+            error: { code: '08006', message: 'ledger unavailable' },
+          },
         },
       })
     );
@@ -590,9 +665,20 @@ describe('POST /api/billing/webhook', () => {
     const response = await POST(createPostRequest('payload'));
 
     expect(response.status).toBe(200);
-    // Verify the event_id inserted/queried uses payment_id:status format.
-    const fromCalls = supabase.from.mock.calls;
-    expect(fromCalls.length).toBeGreaterThan(0);
+    // Verify the atomic claim uses payment_id:status and completion is bound
+    // to the lease returned by the database.
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'claim_webhook_event',
+      expect.objectContaining({ p_event_id: 'pay_10:confirmed' })
+    );
+    expect(supabase.rpc).toHaveBeenCalledWith(
+      'finish_webhook_event',
+      expect.objectContaining({
+        p_event_id: 'pay_10:confirmed',
+        p_lease_id: '11111111-1111-4111-8111-111111111111',
+        p_succeeded: true,
+      })
+    );
   });
 });
 

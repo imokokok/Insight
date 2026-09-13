@@ -33,8 +33,9 @@
  * (this is NOWPayments' signing convention, different from Stripe/Creem).
  *
  * Idempotency: event_id = `${payment_id}:${payment_status}`. The same
- * payment sends multiple IPNs as status transitions; each (payment, status)
- * pair is processed exactly once. The lifecycle handlers themselves are also
+ * payment sends multiple IPNs as status transitions. A database lease ensures
+ * only one worker processes a given (payment, status) pair at a time; expired
+ * leases and failed attempts remain retryable. The lifecycle handlers are also
  * idempotent (top-up/grant metering keys, updateApiKeyPlanForUser).
  *
  * Auth: NOWPayments IPN signature verification (not Bearer/CRON_SECRET).
@@ -59,54 +60,23 @@ import { createLogger, normalizeError } from '@/lib/utils/logger';
 const logger = createLogger('nowpayments-webhook');
 
 const WEBHOOK_PROVIDER = 'nowpayments';
+const WEBHOOK_LEASE_SECONDS = 5 * 60;
+
+type WebhookClaim =
+  | { outcome: 'acquired'; leaseId: string }
+  | { outcome: 'completed' | 'busy'; leaseId: null };
 
 /**
- * Ensure the event is tracked for idempotency.
- * Returns:
- *   - 'completed' if already successfully processed (caller should skip).
- *   - 'retry'     if pending/failed or newly inserted (caller should process).
+ * Atomically claim this event in Postgres. A plain SELECT followed by UPDATE
+ * is not sufficient: two deliveries can observe the same pending row and both
+ * continue. The RPC inserts or conditionally replaces an expired/failed lease
+ * in one transaction and returns a unique lease id to the winning worker.
  */
 async function acquireWebhookEvent(
   client: ReturnType<typeof createServiceRoleClient>,
   event: { id: string; type: string },
   payload: string
-): Promise<'completed' | 'retry'> {
-  const { data: existing, error: lookupError } = await client
-    .from('processed_webhook_events')
-    .select('status, attempts')
-    .eq('provider', WEBHOOK_PROVIDER)
-    .eq('event_id', event.id)
-    .maybeSingle();
-  if (lookupError) {
-    throw new Error(`Failed to read webhook idempotency ledger: ${lookupError.message}`);
-  }
-
-  if (existing?.status === 'completed') {
-    logger.debug('Webhook event already processed, skipping', {
-      eventId: event.id,
-      eventType: event.type,
-    });
-    return 'completed';
-  }
-
-  if (existing) {
-    // Pending or failed: increment attempts and allow retry.
-    const { error: updateError } = await client
-      .from('processed_webhook_events')
-      .update({
-        status: 'pending',
-        attempts: existing.attempts + 1,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('provider', WEBHOOK_PROVIDER)
-      .eq('event_id', event.id);
-
-    if (updateError) {
-      throw new Error(`Failed to acquire webhook retry lease: ${updateError.message}`);
-    }
-    return 'retry';
-  }
-
+): Promise<WebhookClaim> {
   // payload is the raw IPN body (a JSON string). The column is jsonb, so parse
   // it into an object before insert — storing the raw string would save it as
   // a JSON string literal, making it impossible to query with `payload->>'...'`
@@ -121,65 +91,69 @@ async function acquireWebhookEvent(
     logger.warn('Failed to parse IPN payload for storage', { eventId: event.id });
   }
 
-  const { error: insertError } = await client.from('processed_webhook_events').insert({
-    provider: WEBHOOK_PROVIDER,
-    event_id: event.id,
-    event_type: event.type,
-    status: 'pending',
-    attempts: 1,
-    payload: parsedPayload,
+  const { data, error } = await client.rpc('claim_webhook_event', {
+    p_provider: WEBHOOK_PROVIDER,
+    p_event_id: event.id,
+    p_event_type: event.type,
+    p_payload: parsedPayload,
+    p_lease_seconds: WEBHOOK_LEASE_SECONDS,
   });
 
-  if (insertError) {
-    // Race condition: another worker inserted it. Re-check status.
-    if (insertError.code === '23505') {
-      const { data: raceExisting, error: raceError } = await client
-        .from('processed_webhook_events')
-        .select('status')
-        .eq('provider', WEBHOOK_PROVIDER)
-        .eq('event_id', event.id)
-        .single();
-      if (raceError) {
-        throw new Error(`Failed to resolve concurrent webhook event: ${raceError.message}`);
-      }
-      return raceExisting?.status === 'completed' ? 'completed' : 'retry';
-    }
-
-    throw new Error(`Failed to record webhook event: ${insertError.message}`);
+  if (error) {
+    throw new Error(`Failed to claim webhook event: ${error.message}`);
   }
 
-  return 'retry';
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Webhook claim RPC returned an invalid response');
+  }
+
+  const result = data as { outcome?: unknown; leaseId?: unknown };
+  if (result.outcome === 'acquired' && typeof result.leaseId === 'string') {
+    return { outcome: 'acquired', leaseId: result.leaseId };
+  }
+  if (result.outcome === 'completed' || result.outcome === 'busy') {
+    return { outcome: result.outcome, leaseId: null };
+  }
+
+  throw new Error('Webhook claim RPC returned an unknown outcome');
 }
 
 async function completeWebhookEvent(
   client: ReturnType<typeof createServiceRoleClient>,
-  eventId: string
+  eventId: string,
+  leaseId: string
 ): Promise<void> {
-  const { error } = await client
-    .from('processed_webhook_events')
-    .update({ status: 'completed', updated_at: new Date().toISOString() })
-    .eq('provider', WEBHOOK_PROVIDER)
-    .eq('event_id', eventId);
+  const { data, error } = await client.rpc('finish_webhook_event', {
+    p_provider: WEBHOOK_PROVIDER,
+    p_event_id: eventId,
+    p_lease_id: leaseId,
+    p_succeeded: true,
+  });
 
   if (error) {
     throw new Error(`Failed to mark webhook event completed: ${error.message}`);
+  }
+  if (data !== true) {
+    throw new Error('Webhook lease was lost before completion');
   }
 }
 
 async function failWebhookEvent(
   client: ReturnType<typeof createServiceRoleClient>,
-  eventId: string
+  eventId: string,
+  leaseId: string
 ): Promise<void> {
-  const { error } = await client
-    .from('processed_webhook_events')
-    .update({ status: 'failed', updated_at: new Date().toISOString() })
-    .eq('provider', WEBHOOK_PROVIDER)
-    .eq('event_id', eventId);
+  const { data, error } = await client.rpc('finish_webhook_event', {
+    p_provider: WEBHOOK_PROVIDER,
+    p_event_id: eventId,
+    p_lease_id: leaseId,
+    p_succeeded: false,
+  });
 
-  if (error) {
+  if (error || data !== true) {
     logger.warn('Failed to mark webhook event as failed', {
       eventId,
-      error: error.message,
+      error: error?.message ?? 'lease no longer owned by this worker',
     });
   }
 }
@@ -205,9 +179,9 @@ export async function POST(request: NextRequest) {
   const client = createServiceRoleClient();
   const data = event.data as IpnData;
 
-  let acquireResult: 'completed' | 'retry';
+  let claim: WebhookClaim;
   try {
-    acquireResult = await acquireWebhookEvent(client, { id: eventId, type: event.type }, payload);
+    claim = await acquireWebhookEvent(client, { id: eventId, type: event.type }, payload);
   } catch (error) {
     logger.error('Webhook idempotency ledger unavailable', normalizeError(error), {
       eventType: event.type,
@@ -215,9 +189,24 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ error: 'Webhook ledger unavailable' }, { status: 500 });
   }
-  if (acquireResult === 'completed') {
+  if (claim.outcome === 'completed') {
+    logger.debug('Webhook event already processed, skipping', {
+      eventId,
+      eventType: event.type,
+    });
     return NextResponse.json({ received: true });
   }
+  if (claim.outcome === 'busy') {
+    return NextResponse.json(
+      { error: 'Webhook event is already processing' },
+      { status: 503, headers: { 'Retry-After': '5' } }
+    );
+  }
+  if (claim.outcome !== 'acquired') {
+    throw new Error('Unhandled webhook claim outcome');
+  }
+
+  const leaseId = claim.leaseId;
 
   try {
     switch (event.type) {
@@ -249,14 +238,14 @@ export async function POST(request: NextRequest) {
         logger.debug('Unhandled IPN event type', { type: event.type });
     }
 
-    await completeWebhookEvent(client, eventId);
+    await completeWebhookEvent(client, eventId, leaseId);
     return NextResponse.json({ received: true });
   } catch (error) {
     logger.error('Webhook handler failed', normalizeError(error), {
       eventType: event.type,
       eventId,
     });
-    await failWebhookEvent(client, eventId);
+    await failWebhookEvent(client, eventId, leaseId);
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 }
