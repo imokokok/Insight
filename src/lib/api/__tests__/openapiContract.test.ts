@@ -49,4 +49,20 @@ describe('OpenAPI contract', () => {
     expect(spec).not.toMatch(/^\s+- bearer: \[\]$/gm);
     expect(spec).not.toContain('scheme: bearer');
   });
+
+  it('documents the runtime price-history and batch-error response shapes', () => {
+    const historySchema = spec.slice(
+      spec.indexOf('    HistoryPriceResponse:'),
+      spec.indexOf('    # ── Feeds', spec.indexOf('    HistoryPriceResponse:'))
+    );
+    const batchSchema = spec.slice(
+      spec.indexOf('    BatchPriceResponse:'),
+      spec.indexOf('    # ── Consensus', spec.indexOf('    BatchPriceResponse:'))
+    );
+
+    expect(historySchema).toContain('data:\n          type: array');
+    expect(historySchema).toContain("$ref: '#/components/schemas/PriceData'");
+    expect(batchSchema).toContain('partialErrors:\n              type: array');
+    expect(batchSchema).toContain('required: [provider, symbol, error]');
+  });
 });

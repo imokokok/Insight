@@ -129,10 +129,11 @@ export function useOracleDataCore(
 
       try {
         const price = await requestQueue.add(
-          () =>
+          (requestSignal) =>
             oracleApiClient.fetchPrice({
               provider: oracle,
               symbol: baseSymbol,
+              signal: requestSignal,
               forceRefresh,
             }),
           {

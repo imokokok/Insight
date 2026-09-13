@@ -16,8 +16,8 @@ const SafePeriodSchema = z
   .union([z.string(), z.number()])
   .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
   .refine(
-    (val) => !isNaN(val) && val >= 1 && val <= 8760,
-    'Period must be between 1 and 8760 hours (1 year)'
+    (val) => !isNaN(val) && val >= 1 && val <= 2160,
+    'Period must be between 1 and 2160 hours (90 days)'
   );
 
 const V1HistoryQuerySchema = z.object({

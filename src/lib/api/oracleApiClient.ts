@@ -45,6 +45,8 @@ interface BatchPriceResponse {
 }
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
+const MULTI_ORACLE_BATCH_CONCURRENCY = 5;
+const MULTI_ORACLE_BATCH_TIMEOUT_BUFFER_MS = 5_000;
 
 const ORACLE_RETRY_CONFIG: Partial<EnhancedRetryConfig> = {
   // Oracle routes already perform provider-aware retries server-side. Retrying
@@ -76,6 +78,16 @@ function getRequestTimeout(provider?: string): number {
     return ORACLE_TIMEOUT_CONFIG[provider];
   }
   return DEFAULT_REQUEST_TIMEOUT_MS;
+}
+
+export function getMultiOracleBatchTimeoutMs(providers: OracleProvider[]): number {
+  if (providers.length === 0) return DEFAULT_REQUEST_TIMEOUT_MS;
+
+  const slowestProviderTimeout = Math.max(
+    ...providers.map((provider) => getRequestTimeout(provider))
+  );
+  const executionWaves = Math.ceil(providers.length / MULTI_ORACLE_BATCH_CONCURRENCY);
+  return slowestProviderTimeout * executionWaves + MULTI_ORACLE_BATCH_TIMEOUT_BUFFER_MS;
 }
 
 interface PendingRequest<T> {
@@ -581,7 +593,10 @@ async function fetchMultiOraclePrices({
 
   const url = new URL('/api/oracles/batch', getBaseUrl());
   const controller = new AbortController();
-  const timeoutMs = getRequestTimeout(providers[0]) * 2;
+  // The server deliberately executes at most five upstream fetches at once.
+  // Bound the client timeout by the slowest selected provider and the number
+  // of execution waves, rather than whichever provider happens to be first.
+  const timeoutMs = getMultiOracleBatchTimeoutMs(providers);
 
   const timeoutId = setTimeout(() => {
     controller.abort(new Error(`Multi-oracle batch request timed out after ${timeoutMs}ms`));

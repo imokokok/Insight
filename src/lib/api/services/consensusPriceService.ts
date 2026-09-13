@@ -4,7 +4,7 @@ import {
   FRESHNESS_STALE_DIVERGENCE_PCT,
   type ConsensusMethod,
 } from '@/lib/analytics/consensusPrice';
-import { UnsupportedSymbolError } from '@/lib/errors';
+import { InternalError, UnsupportedSymbolError } from '@/lib/errors';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
@@ -294,6 +294,21 @@ export async function getConsensusPrice(
       confidence: r.priceData.confidence ?? 0.8,
       confidenceInterval: r.priceData.confidenceInterval,
     }));
+
+  if (successfulInputs.length === 0) {
+    if (fetchResults.every((result) => result.status === 'unsupported')) {
+      throw UnsupportedSymbolError.create(baseSymbol, [], undefined);
+    }
+
+    const failures = fetchResults
+      .filter((result) => result.status === 'error')
+      .map((result) => `${result.provider}: ${result.errorMessage ?? 'unknown error'}`);
+    throw new InternalError(`All configured oracle price fetches failed for ${baseSymbol}`, {
+      operation: 'getConsensusPrice',
+      component: 'consensus-price-service',
+      originalError: failures.join('; ') || 'No provider returned a valid positive price',
+    });
+  }
 
   const consensus = calculateConsensusPrice(
     successfulInputs,
