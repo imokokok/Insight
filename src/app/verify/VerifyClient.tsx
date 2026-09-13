@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { CheckCircle2, Loader2, RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
 import { verifyReceipt } from 'verify-insight-receipt';
 
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { shortAddress } from '@/components/verifiability/verifyReceipt';
 
 import type { KeyRegistry, RoutableAttestation, VerifyResult } from 'verify-insight-receipt';
@@ -138,7 +138,7 @@ export default function VerifyClient() {
   const runCurrent = mode === 'sample' ? runSample : runPaste;
 
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench trust-workbench verify-workbench min-h-screen">
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
         <EditorialWorkspaceHeader
           index="06"
@@ -171,14 +171,23 @@ export default function VerifyClient() {
           }
         />
 
-        <div className="grid gap-8 pt-7 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
+        <EvidenceProcessRail
+          label="Independent verification"
+          items={[
+            { label: 'Load the receipt', detail: 'Sample · pasted JSON' },
+            { label: 'Recover the signer', detail: 'Typed data · public key' },
+            { label: 'Read the verdict', detail: 'Validity · role · payload' },
+          ]}
+        />
+
+        <div className="verify-console-grid grid gap-8 pt-7 xl:grid-cols-[360px_minmax(0,1fr)] xl:gap-12">
           <aside>
             <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
               <p className="editorial-index">01 — Choose the evidence</p>
               <span className="font-mono text-[10px] text-slate-400">INPUT</span>
             </div>
 
-            <div className="border-y border-slate-900/15 bg-white/35 p-4 xl:sticky xl:top-24">
+            <div className="verify-input-docket border-y border-slate-900/15 bg-white/35 p-4 xl:sticky xl:top-24">
               <div className="mb-4 inline-flex border border-slate-200 bg-white p-1">
                 <button
                   type="button"
@@ -227,14 +236,17 @@ export default function VerifyClient() {
             </div>
           </aside>
 
-          <section className="min-w-0" aria-label="Receipt verification result">
+          <section
+            className="verify-result-ledger min-w-0"
+            aria-label="Receipt verification result"
+          >
             <div className="mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
               <p className="editorial-index">02 — Read the verdict</p>
               <span className="font-mono text-[10px] text-slate-400">EVIDENCE</span>
             </div>
 
             {state.status === 'loading' && (
-              <div className="flex flex-col items-center justify-center border-y border-slate-900/15 bg-white/35 py-20 text-center">
+              <div className="verify-state-panel flex flex-col items-center justify-center border-y border-slate-900/15 bg-white/35 py-20 text-center">
                 <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
                 <h3 className="text-base font-semibold text-slate-900 mb-1">
                   {mode === 'sample'
@@ -249,7 +261,7 @@ export default function VerifyClient() {
             )}
 
             {state.status === 'error' && (
-              <div className="border-y border-red-200 bg-white/45 p-6">
+              <div className="verify-state-panel border-y border-red-200 bg-white/45 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="flex h-10 w-10 items-center justify-center border border-red-200 bg-red-50">
                     <XCircle className="w-5 h-5 text-red-500" />
@@ -297,10 +309,10 @@ node node_modules/verify-insight-receipt/examples/quickstart.mjs`}</code>
             )}
 
             {result && (
-              <div className="space-y-6">
+              <div className="verify-result-stack space-y-6">
                 {/* Verdict */}
                 <div
-                  className={`border-y p-6 ${
+                  className={`verify-verdict-panel border-y p-6 ${
                     verified ? 'border-emerald-300 bg-emerald-50/60' : 'border-red-300 bg-red-50/60'
                   }`}
                 >
@@ -346,7 +358,7 @@ node node_modules/verify-insight-receipt/examples/quickstart.mjs`}</code>
                 </div>
 
                 {/* Details */}
-                <div className="divide-y divide-slate-900/10 border-y border-slate-900/15 bg-white/45">
+                <div className="verify-receipt-ledger divide-y divide-slate-900/10 border-y border-slate-900/15 bg-white/45">
                   <div className="px-5 py-3 flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-blue-600" />
                     <span className="text-sm font-semibold text-slate-900">Receipt details</span>
@@ -383,7 +395,7 @@ node node_modules/verify-insight-receipt/examples/quickstart.mjs`}</code>
                 </div>
 
                 {/* Zero-trust note */}
-                <div className="border-l-2 border-blue-600 bg-blue-50/45 px-5 py-4 text-sm text-slate-600">
+                <div className="verify-trust-note border-l-2 border-blue-600 bg-blue-50/45 px-5 py-4 text-sm text-slate-600">
                   <p className="leading-relaxed">
                     <strong className="text-slate-900">Zero trust:</strong> the signature was
                     recovered in your browser with viem’s{' '}
@@ -405,7 +417,7 @@ node node_modules/verify-insight-receipt/examples/quickstart.mjs`}</code>
                 </div>
 
                 {/* Raw */}
-                <details className="border-y border-slate-900/15 bg-white/45">
+                <details className="verify-raw-record border-y border-slate-900/15 bg-white/45">
                   <summary className="cursor-pointer px-5 py-3 text-sm font-semibold text-slate-900 select-none">
                     Show raw receipt &amp; verification result
                   </summary>

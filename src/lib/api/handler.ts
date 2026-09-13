@@ -32,6 +32,26 @@ import type { ApiResponse, ApiSuccessResponse } from './response/ApiResponse';
 
 const logger = createLogger('api-handler');
 
+const PROTECTED_CACHE_CONTROL = 'private, no-store, max-age=0';
+
+/**
+ * Authenticated responses must never be stored by a browser or shared CDN.
+ *
+ * Several read endpoints intentionally cache their underlying public market
+ * data, but their HTTP response also proves API-key validity and triggers
+ * metering. Allowing that response into a shared cache lets later requests
+ * reuse it without running authentication, revocation, rate-limit, or credit
+ * checks. Apply this policy at the handler boundary so an endpoint cannot
+ * accidentally override it with a public cache preset.
+ */
+export function applyProtectedCachePolicy(response: NextResponse): void {
+  response.headers.set('Cache-Control', PROTECTED_CACHE_CONTROL);
+  response.headers.set('Vercel-CDN-Cache-Control', 'no-store');
+  response.headers.set('CDN-Cache-Control', 'no-store');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+}
+
 /** Standard v1 middleware stack: API-key authenticated, API-rate-limited,
  *  credit-quota-enforced, and CORS-enabled. Used by the majority of v1
  *  endpoints.
@@ -39,10 +59,8 @@ const logger = createLogger('api-handler');
  *  NOTE: auth requires an API key (requireApiKey) — Bearer session tokens are
  *  NOT accepted on the external v1 API surface. Session users carry no API key,
  *  so the quota middleware would skip credit metering entirely, letting a
- *  registered user call the paid API for free. The app's own UI either uses the
- *  non-v1 internal routes or (for interactive widgets) opts into
- *  skipInternalAuthAndRateLimit, which identifies it via the HMAC-signed
- *  internal cookie. */
+ *  registered user call the paid API for free. The app's own interactive UI
+ *  uses separate session-authenticated, rate-limited non-v1 demo routes. */
 export const V1_STANDARD_MIDDLEWARES: MiddlewareConfig = {
   logging: true,
   auth: { required: true, allowApiKey: true, requireApiKey: true },
@@ -141,12 +159,10 @@ interface CreateApiHandlerOptions<
     error: unknown,
     context: ApiHandlerContext<TBody, TQuery, TParams>
   ) => Promise<NextResponse> | NextResponse;
-  /** When true, requests that carry a valid internal-token cookie will skip
-   *  auth and rate-limit middleware.  This avoids costly Supabase RPC calls
-   *  (rate-limit increments, token validation) for requests originating from
-   *  the app's own UI, which don't need external-API-style protections.
-   *  The cookie is HttpOnly + SameSite=Strict, making it unforgeable by
-   *  external API consumers. */
+  /** When true, non-v1 requests that carry a valid internal-token cookie may
+   *  skip auth and rate-limit middleware. Paid `/api/v1/*` routes never honor
+   *  this browser cookie: cookies are bearer credentials and can be replayed
+   *  by arbitrary HTTP clients after visiting a public page. */
   skipInternalAuthAndRateLimit?: boolean;
   /** Per-instance burst shield applied before validation/auth. Set < 0 to disable. */
   preAuthBurstLimit?: number;
@@ -333,13 +349,12 @@ export function createApiHandler<
   async function isInternalRequest(request: NextRequest): Promise<boolean> {
     if (!skipInternalAuthAndRateLimit) return false;
 
-    // Verify the HttpOnly + SameSite=Strict cookie set by middleware
-    // when the user visits the website.  This cookie:
-    //   - Cannot be read or forged by JavaScript (HttpOnly)
-    //   - Is only sent for same-site requests (SameSite=Strict)
-    //   - Contains an HMAC-signed timestamp that we verify server-side
-    // External API callers (curl, Postman, third-party services) never
-    // possess this cookie, so they always go through auth + rate-limit.
+    // The public v1 surface is the paid developer API. A cookie minted by a
+    // website visit is not a server-to-server trust boundary and must never
+    // bypass API-key authentication, rate limits, or credit charging.
+    if (request.nextUrl.pathname.startsWith('/api/v1/')) return false;
+
+    // Verify the signed UI cookie for legacy non-v1 application routes only.
     const token = request.cookies.get(INTERNAL_COOKIE_NAME)?.value;
     if (token && (await verifyInternalToken(token))) {
       return true;
@@ -507,6 +522,16 @@ export function createApiHandler<
       }
 
       const response = await handler(request, apiContext);
+
+      // Route-level response helpers may opt into public caching for market
+      // data. On an authenticated route the HTTP response itself is never
+      // public: serving it from a CDN would bypass auth, revocation, rate
+      // limits, usage logging, and credit metering entirely. This also covers
+      // signed internal-cookie requests so they cannot prime a public cache
+      // that an external caller could later hit.
+      if (authMiddleware) {
+        applyProtectedCachePolicy(response);
+      }
 
       // Commit the credit charge only when the request SUCCEEDED (2xx).
       // The quota middleware sets pendingCharge but deliberately defers the

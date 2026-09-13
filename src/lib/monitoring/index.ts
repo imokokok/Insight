@@ -26,12 +26,20 @@ function loadSentry(): ReturnType<typeof importSentry> | null {
   return sentryPromise;
 }
 
+function withSentry(action: (sentry: Awaited<ReturnType<typeof importSentry>>) => void): void {
+  const promise = loadSentry();
+  if (!promise) return;
+  // Optional telemetry must never create an unhandled rejection in the app
+  // when its client chunk fails to load.
+  void promise.then(action).catch(() => undefined);
+}
+
 export const captureException = (error: Error, context?: Record<string, unknown>) => {
-  void loadSentry()?.then((Sentry) => Sentry.captureException(error, { extra: context }));
+  withSentry((Sentry) => Sentry.captureException(error, { extra: context }));
 };
 
 export const setUser = (user: SentryUser | User | null) => {
-  void loadSentry()?.then((Sentry) => {
+  withSentry((Sentry) => {
     if (user) {
       Sentry.setUser({
         id: user.id,
@@ -45,5 +53,5 @@ export const setUser = (user: SentryUser | User | null) => {
 };
 
 export const addBreadcrumb = (breadcrumb: Breadcrumb) => {
-  void loadSentry()?.then((Sentry) => Sentry.addBreadcrumb(breadcrumb));
+  withSentry((Sentry) => Sentry.addBreadcrumb(breadcrumb));
 };

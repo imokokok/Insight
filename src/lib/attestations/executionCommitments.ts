@@ -20,8 +20,9 @@
  * asking us for anything. That is why {@link computeMeasuredFieldsHash} hashes a
  * name list drawn from a small published universe (16 subsets — a verifier
  * enumerates them and matches) rather than an opaque bitmask, and why
- * {@link computePreTradeUidsHash} takes the uids themselves, which already ship
- * in the receipt for the two-gate case.
+ * {@link computePreTradeUidsHash} takes the non-zero uids themselves, which
+ * already ship in the receipt for the two-gate case. The zero bytes32 value is
+ * a fixed-layout sentinel, not a gate and therefore not a set member.
  */
 
 import { concat, keccak256, toBytes } from 'viem';
@@ -42,6 +43,7 @@ export type MeasurableExecutionField = (typeof MEASURABLE_EXECUTION_FIELDS)[numb
 
 /** Field-name separator. Part of the commitment: changing it changes every hash. */
 const FIELD_SEPARATOR = ',';
+const ZERO_BYTES32 = `0x${'0'.repeat(64)}`;
 
 /**
  * Commit to WHICH notional fields carry a measured value.
@@ -62,21 +64,23 @@ export function computeMeasuredFieldsHash(
 }
 
 /**
- * Commit to the ORDERED set of pre-trade gates the quote was built from.
+ * Commit to the ORDERED set of non-zero pre-trade gate uids the quote was built
+ * from. A zero bytes32 value is a fixed-layout sentinel for "no gate" and is
+ * omitted before hashing; it is never a member of the set.
  *
  * Order is part of the commitment on purpose. quotedPrice for a two-leg swap is
  * source consensus over destination consensus, so the same pair of gates in the
  * opposite order is a different quote with a different meaning.
  *
- * Empty input hashes the empty byte string, which is what a receipt with no
- * proven gates (SELF_REPORTED) must commit to.
+ * Empty input, or an input containing only zero sentinels, hashes the empty byte
+ * string, which is what a receipt with no proven gates must commit to.
  */
 export function computePreTradeUidsHash(
   uids: ReadonlyArray<`0x${string}` | string>
 ): `0x${string}` {
-  if (uids.length === 0) return keccak256(toBytes(''));
-  const normalized = uids.map((uid) =>
-    uid.startsWith('0x') ? (uid as `0x${string}`) : (`0x${uid}` as `0x${string}`)
-  );
+  const normalized = uids
+    .map((uid) => (uid.startsWith('0x') ? (uid as `0x${string}`) : (`0x${uid}` as `0x${string}`)))
+    .filter((uid) => uid.toLowerCase() !== ZERO_BYTES32);
+  if (normalized.length === 0) return keccak256(toBytes(''));
   return keccak256(concat(normalized));
 }

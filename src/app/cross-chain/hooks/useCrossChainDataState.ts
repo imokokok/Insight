@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 
 import { useDynamicSymbols } from '@/hooks/data/useDynamicSymbols';
-import { getOracleChains } from '@/lib/oracles/metadata';
+import { getOracleChains, getOracleSymbolsForChain } from '@/lib/oracles/metadata';
+import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { useCrossChainConfigStore } from '@/stores/crossChainConfigStore';
 import { useCrossChainDataStore } from '@/stores/crossChainDataStore';
 import { useCrossChainSelectorStore } from '@/stores/crossChainSelectorStore';
@@ -40,15 +41,20 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
   const lastUpdated = useCrossChainDataStore((s) => s.lastUpdated);
   const recommendedBaseChain = useCrossChainDataStore((s) => s.recommendedBaseChain);
   const setCurrentPrices = useCrossChainDataStore((s) => s.setCurrentPrices);
+  const setPriceHistories = useCrossChainDataStore((s) => s.setPriceHistories);
   const setLastUpdated = useCrossChainDataStore((s) => s.setLastUpdated);
   const setRefreshStatus = useCrossChainDataStore((s) => s.setRefreshStatus);
   const setCrossChainComparison = useCrossChainDataStore((s) => s.setCrossChainComparison);
   const setFetchData = useCrossChainDataStore((s) => s.setFetchData);
 
-  const supportedChains = useMemo(
-    () => getOracleChains(metadata, selectedProvider),
-    [metadata, selectedProvider]
-  );
+  const supportedChains = useMemo(() => {
+    const normalizedSymbol = extractBaseSymbol(selectedSymbol).toUpperCase();
+    return getOracleChains(metadata, selectedProvider).filter((chain) =>
+      getOracleSymbolsForChain(metadata, selectedProvider, chain).some(
+        (candidate) => extractBaseSymbol(candidate).toUpperCase() === normalizedSymbol
+      )
+    );
+  }, [metadata, selectedProvider, selectedSymbol]);
 
   const { fetchData: fetchDataInternal } = useDataFetching(
     selectedProvider,
@@ -85,6 +91,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
       };
 
       setCurrentPrices([]);
+      setPriceHistories(new Map());
       setLastUpdated(null);
       setRefreshStatus('idle');
       setCrossChainComparison([]);
@@ -94,6 +101,7 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
     selectedSymbol,
     selectedTimeRange,
     setCurrentPrices,
+    setPriceHistories,
     setLastUpdated,
     setRefreshStatus,
     setCrossChainComparison,
@@ -125,6 +133,16 @@ export function useCrossChainDataState(): UseCrossChainDataStateReturn {
       setSelectedBaseChain(recommendedBaseChain || supportedChains[0]);
     }
   }, [supportedChains, selectedBaseChain, recommendedBaseChain, setSelectedBaseChain]);
+
+  useEffect(() => {
+    if (currentPrices.length === 0 || !selectedBaseChain) return;
+    const availableChains = new Set(
+      currentPrices.map((price) => price.chain).filter((chain): chain is Blockchain => !!chain)
+    );
+    if (!availableChains.has(selectedBaseChain) && recommendedBaseChain) {
+      setSelectedBaseChain(recommendedBaseChain);
+    }
+  }, [currentPrices, selectedBaseChain, recommendedBaseChain, setSelectedBaseChain]);
 
   return {
     currentPrices,

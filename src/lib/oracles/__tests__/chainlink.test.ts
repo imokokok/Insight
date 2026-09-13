@@ -21,11 +21,6 @@ jest.mock('@/lib/utils/logger', () => ({
   }),
 }));
 
-jest.mock('@/lib/oracles/base/databaseOperations', () => ({
-  fetchPriceWithDatabase: jest.fn(),
-  fetchHistoricalPricesWithDatabase: jest.fn(),
-}));
-
 // eslint-disable-next-line max-lines-per-function
 describe('ChainlinkClient', () => {
   let client: ChainlinkClient;
@@ -51,16 +46,6 @@ describe('ChainlinkClient', () => {
       expect(client.supportedChains).toContain(Blockchain.ETHEREUM);
       expect(client.supportedChains).toContain(Blockchain.ARBITRUM);
       expect(client.supportedChains).toContain(Blockchain.POLYGON);
-      expect(client.defaultUpdateIntervalMinutes).toBe(60);
-    });
-
-    it('should create client with custom config', () => {
-      const customClient = new ChainlinkClient({
-        useDatabase: false,
-        validateData: false,
-        useRealData: false,
-      });
-      expect(customClient).toBeInstanceOf(ChainlinkClient);
     });
 
     it('should use real data by default', () => {
@@ -935,173 +920,6 @@ describe('ChainlinkClient', () => {
 
         expect(results.every((r) => r.symbol === 'ETH')).toBe(true);
         expect(results.every((r) => r.price >= 3500)).toBe(true);
-      });
-    });
-  });
-
-  describe('Database Integration Tests', () => {
-    const {
-      fetchPriceWithDatabase,
-      fetchHistoricalPricesWithDatabase,
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-    } = require('@/lib/oracles/base/databaseOperations');
-
-    describe('Successful database save and retrieval', () => {
-      it('should fetch price from database successfully', async () => {
-        const mockDbPrice = {
-          provider: OracleProvider.CHAINLINK,
-          symbol: 'ETH',
-          price: 3500,
-          timestamp: Date.now(),
-          chain: Blockchain.ETHEREUM,
-        };
-
-        (fetchPriceWithDatabase as jest.Mock).mockResolvedValue(mockDbPrice);
-
-        const result = await client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM);
-
-        expect(fetchPriceWithDatabase).toHaveBeenCalledWith(
-          OracleProvider.CHAINLINK,
-          'ETH',
-          Blockchain.ETHEREUM,
-          true
-        );
-        expect(result).toEqual(mockDbPrice);
-      });
-
-      it('should fetch historical prices from database successfully', async () => {
-        const mockHistoricalData = [
-          {
-            provider: OracleProvider.CHAINLINK,
-            symbol: 'ETH',
-            price: 3400,
-            timestamp: Date.now() - 3600000,
-          },
-          {
-            provider: OracleProvider.CHAINLINK,
-            symbol: 'ETH',
-            price: 3450,
-            timestamp: Date.now() - 1800000,
-          },
-          { provider: OracleProvider.CHAINLINK, symbol: 'ETH', price: 3500, timestamp: Date.now() },
-        ];
-
-        (fetchHistoricalPricesWithDatabase as jest.Mock).mockResolvedValue(mockHistoricalData);
-
-        const result = await client.fetchHistoricalPricesWithDatabase(
-          'ETH',
-          Blockchain.ETHEREUM,
-          24
-        );
-
-        expect(fetchHistoricalPricesWithDatabase).toHaveBeenCalledWith(
-          OracleProvider.CHAINLINK,
-          'ETH',
-          Blockchain.ETHEREUM,
-          24,
-          true
-        );
-        expect(result).toEqual(mockHistoricalData);
-      });
-    });
-
-    describe('Database connection failure handling', () => {
-      it('should handle database connection failure gracefully', async () => {
-        (fetchPriceWithDatabase as jest.Mock).mockRejectedValue(new Error('Connection refused'));
-
-        await expect(client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM)).rejects.toThrow(
-          'Connection refused'
-        );
-      });
-
-      it('should handle database timeout', async () => {
-        (fetchPriceWithDatabase as jest.Mock).mockRejectedValue(new Error('Query timeout'));
-
-        await expect(client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM)).rejects.toThrow(
-          'Query timeout'
-        );
-      });
-
-      it('should handle database unavailable error', async () => {
-        (fetchHistoricalPricesWithDatabase as jest.Mock).mockRejectedValue(
-          new Error('Database unavailable')
-        );
-
-        await expect(
-          client.fetchHistoricalPricesWithDatabase('ETH', Blockchain.ETHEREUM, 24)
-        ).rejects.toThrow('Database unavailable');
-      });
-    });
-
-    describe('Database timeout handling', () => {
-      it('should handle slow database response', async () => {
-        (fetchPriceWithDatabase as jest.Mock).mockImplementation(
-          () =>
-            new Promise((resolve) => {
-              setTimeout(() => {
-                resolve({
-                  provider: OracleProvider.CHAINLINK,
-                  symbol: 'ETH',
-                  price: 3500,
-                  timestamp: Date.now(),
-                });
-              }, 100);
-            })
-        );
-
-        const result = await client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM);
-
-        expect(result).toBeDefined();
-        expect(result.symbol).toBe('ETH');
-      }, 5000);
-    });
-
-    describe('Invalid data rejection by database', () => {
-      it('should handle invalid data format from database', async () => {
-        (fetchPriceWithDatabase as jest.Mock).mockResolvedValue(null);
-
-        const result = await client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM);
-
-        expect(result).toBeNull();
-      });
-
-      it('should handle malformed data from database', async () => {
-        (fetchPriceWithDatabase as jest.Mock).mockResolvedValue({
-          provider: OracleProvider.CHAINLINK,
-        });
-
-        const result = await client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM);
-
-        expect(result).toBeDefined();
-        expect(result.provider).toBe(OracleProvider.CHAINLINK);
-      });
-    });
-
-    describe('Cache invalidation after database update', () => {
-      it('should handle cache invalidation scenario', async () => {
-        const firstPrice = {
-          provider: OracleProvider.CHAINLINK,
-          symbol: 'ETH',
-          price: 3500,
-          timestamp: Date.now(),
-        };
-
-        const secondPrice = {
-          provider: OracleProvider.CHAINLINK,
-          symbol: 'ETH',
-          price: 3550,
-          timestamp: Date.now(),
-        };
-
-        (fetchPriceWithDatabase as jest.Mock)
-          .mockResolvedValueOnce(firstPrice)
-          .mockResolvedValueOnce(secondPrice);
-
-        const result1 = await client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM);
-        const result2 = await client.fetchPriceWithDatabase('ETH', Blockchain.ETHEREUM);
-
-        expect(result1.price).toBe(3500);
-        expect(result2.price).toBe(3550);
       });
     });
   });

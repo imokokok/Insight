@@ -1,15 +1,15 @@
 /**
  * @fileoverview Internal API request token
- * @description Generates and verifies HMAC-signed tokens used to identify
- * requests originating from the app's own UI.  The token is stored in an
- * HttpOnly + SameSite=Strict cookie so that:
+ * @description Generates and verifies HMAC-signed UI cookies. The token is
+ * stored in an HttpOnly + SameSite=Strict cookie so that:
  *
  *   1. JavaScript cannot read or forge the token (HttpOnly).
  *   2. The browser only sends the cookie for same-site requests (SameSite).
- *   3. External API callers (curl, Postman) never possess the cookie.
+ *   3. Cross-site browser requests do not carry it by default.
  *
- * This replaces the previous X-Internal-Request header check which could
- * be trivially spoofed by adding the header to any HTTP request.
+ * This is a UI/CSRF eligibility marker, not a privileged authorization
+ * credential. Any client can visit a page and replay its cookies, so paid v1
+ * routes must always enforce API-key auth and metering independently.
  */
 
 import { createLogger } from '@/lib/utils/logger';

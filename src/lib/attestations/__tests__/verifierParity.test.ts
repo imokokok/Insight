@@ -33,6 +33,7 @@ import {
   EXECUTION_TYPES_V2,
   EXECUTION_TYPES_V3,
   EXECUTION_TYPES_V4,
+  EXECUTION_TYPES_V5,
   executionTypedDataArgs,
   verifyExecutionReceipt as verifyExecutionReceiptInApp,
   type ExecutionReceipt,
@@ -214,6 +215,7 @@ describe('verifier layout parity', () => {
     ['executionV2', EXECUTION_TYPES_V2, verifierExecution.EXECUTION_TYPES_V2],
     ['executionV3', EXECUTION_TYPES_V3, verifierExecution.EXECUTION_TYPES_V3],
     ['executionV4', EXECUTION_TYPES_V4, verifierExecution.EXECUTION_TYPES_V4],
+    ['executionV5', EXECUTION_TYPES_V5, verifierExecution.EXECUTION_TYPES_V5],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ] as Array<[string, any, any]>)('%s types are identical', (_name, prod, ver) => {
     expect(JSON.stringify(ver)).toBe(JSON.stringify(prod));
@@ -259,7 +261,7 @@ describe('verifier layout parity', () => {
 });
 
 describe('offline Execution Receipt parity', () => {
-  it.each([1, 2, 3, 4])(
+  it.each([1, 2, 3, 4, 5])(
     'verifies a genuine v%s receipt with the same cryptographic result',
     async (schemaVersion) => {
       const now = nowSec();
@@ -494,11 +496,7 @@ describe('verifier verdict parity', () => {
     expect(ver.code).toBe('expired');
   });
 
-  it('reproduces the v1 expired quirk rather than silently diverging', async () => {
-    // KNOWN ASYMMETRY: v1 returns valid:true with expired:true; v2/v3 return
-    // valid:false. This test pins the divergence so that fixing it in one place
-    // without the other fails loudly. If you fix v1 in production, fix it in
-    // verifier/src/verify.ts and update this test in the same commit.
+  it('rejects expired v1 receipts consistently without trusting unsigned validity metadata', async () => {
     const stale = nowSec() - 7200;
     const envelope = await signEnvelope({
       domain: ATTESTATION_DOMAIN as unknown as Record<string, unknown>,
@@ -510,6 +508,7 @@ describe('verifier verdict parity', () => {
 
     const { prod, ver } = await expectSameVerdict(envelope);
     expect(prod.expired).toBe(true);
+    expect(prod.valid).toBe(false);
     expect(ver.code).toBe('expired');
     expect(ver.valid).toBe(prod.valid);
   });

@@ -182,32 +182,42 @@ export async function precheckMcpToolQuota(
 }
 
 /**
- * Consume credits for a successful MCP tool call. Fire-and-forget, mirroring
- * the REST quota middleware. No-op for session, shared-bearer and unlimited
- * (enterprise) callers.
+ * Authoritatively consume credits for a successful MCP tool call before its
+ * data is returned. No-op for session, shared-bearer and unlimited callers.
  */
-export function consumeMcpQuota(auth: McpAuthContext, toolName: string): void {
+export async function consumeMcpQuota(
+  auth: McpAuthContext,
+  toolName: string
+): Promise<{ allowed: boolean; reason?: string }> {
   if (auth.type !== 'apikey') {
-    return;
+    return { allowed: true };
   }
 
   const plan = normalizePlan(auth.apiKey.plan);
 
   if (PLANS[plan].monthlyQuota < 0) {
     // Unlimited (enterprise) — not metered.
-    return;
+    return { allowed: true };
   }
 
   const cost = getToolCreditCost(toolName);
   const meteringKey = makeMeteringKey(`mcp:${auth.apiKey.keyId}:${toolName}`);
-  consumeCredits(auth.apiKey.keyId, cost, meteringKey, `/mcp/tools/${toolName}`).catch((err) => {
-    logger.warn('MCP async credit consume failed', {
+  const charge = await consumeCredits(
+    auth.apiKey.keyId,
+    cost,
+    meteringKey,
+    `/mcp/tools/${toolName}`
+  );
+  if (!charge.ok) {
+    logger.warn('MCP authoritative credit consume rejected', {
       apiKeyId: auth.apiKey.keyId,
       cost,
       toolName,
-      error: err instanceof Error ? err.message : String(err),
+      reason: charge.reason,
     });
-  });
+    return { allowed: false, reason: charge.reason ?? 'Insufficient credits' };
+  }
+  return { allowed: true };
 }
 
 /**

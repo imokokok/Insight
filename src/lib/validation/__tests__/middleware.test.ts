@@ -2,7 +2,7 @@ import { type NextRequest } from 'next/server';
 
 import { z } from 'zod';
 
-import { validateBodySchema, validateParamsSchema, validateQuerySchema } from '../middleware';
+import { validateBodySchema, validateQuerySchema } from '../middleware';
 
 function createMockRequest(
   options: { body?: unknown; query?: Record<string, string> } = {}
@@ -79,36 +79,6 @@ describe('validation middleware', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.response.status).toBe(405);
-      }
-    });
-  });
-
-  describe('validateParamsSchema', () => {
-    const ParamsSchema = z.object({
-      id: z.string().uuid(),
-    });
-
-    it('should return success with parsed params', async () => {
-      const params = { id: '550e8400-e29b-41d4-a716-446655440000' };
-      const result = await validateParamsSchema(ParamsSchema)({} as NextRequest, params);
-
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.params).toEqual(params);
-      }
-    });
-
-    it('should return error response for invalid params', async () => {
-      const result = await validateParamsSchema(ParamsSchema)({} as NextRequest, {
-        id: 'not-a-uuid',
-      });
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.response.status).toBe(400);
-        const body = JSON.parse(await result.response.text());
-        expect(body.success).toBe(false);
-        expect(body.error.code).toBe('VALIDATION_ERROR');
       }
     });
   });

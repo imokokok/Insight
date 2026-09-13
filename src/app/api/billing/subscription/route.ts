@@ -33,7 +33,7 @@ export const GET = createApiHandler(
     const userClient = createUserClient(accessToken);
     const { data: recentSubs, error: subError } = await userClient
       .from('subscriptions')
-      .select('*')
+      .select('id, plan, status, interval, current_period_end, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(5);
@@ -53,7 +53,10 @@ export const GET = createApiHandler(
       .order('created_at', { ascending: false });
 
     if (subError) {
-      // Subscription query error is non-fatal — we just return null
+      return NextResponse.json(
+        ApiResponseBuilder.error('INTERNAL_ERROR', 'Failed to fetch subscription'),
+        { status: 500 }
+      );
     }
     if (keysError) {
       return NextResponse.json(

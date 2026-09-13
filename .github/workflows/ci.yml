@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -16,13 +17,29 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Next builds in production mode and validates required configuration while
+    # collecting route metadata. Use inert CI-only values: the build has no
+    # reason to contact Supabase, and production secrets must never enter CI.
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+      INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
+      CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
+      JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Enforce main-only protocol isolation
+        run: npm run protocol:check -- --base "$PROTOCOL_GOVERNANCE_BASE"
+        env:
+          PROTOCOL_GOVERNANCE_BASE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
       - run: npm run validate:ci
 
   smoke:
@@ -44,3 +61,34 @@ jobs:
           INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
           CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
           JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
+
+  deploy-production:
+    name: Deploy production (gated)
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: [validate, smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger the production deploy hook after both gates pass
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
+            echo "VERCEL_DEPLOY_HOOK_URL is required for gated production deployment" >&2
+            exit 1
+          fi
+
+          response_path="$RUNNER_TEMP/vercel-deploy-response.json"
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --output "$response_path" \
+            "$VERCEL_DEPLOY_HOOK_URL"
+          node -e '
+            const response = require(process.argv[1]);
+            if (!response.job?.id) {
+              throw new Error("Vercel deploy hook did not return a deployment job id");
+            }
+            console.log(`Vercel production deployment queued: ${response.job.id}`);
+          ' "$response_path"

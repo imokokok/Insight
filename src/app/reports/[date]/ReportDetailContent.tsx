@@ -21,7 +21,7 @@ import {
   XCircle,
 } from 'lucide-react';
 
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { ErrorBoundary } from '@/components/error-boundary';
 import type { DailyReportData } from '@/lib/reports/reportService';
 
@@ -96,7 +96,7 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
 
   return (
     <ErrorBoundary level="page" componentName="ReportDetailContent">
-      <div className="editorial-workspace min-h-screen">
+      <div className="editorial-workspace evidence-workbench research-workbench daily-report-workbench min-h-screen">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
           <EditorialWorkspaceHeader
             index="05.1"
@@ -126,7 +126,16 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
             }
           />
 
-          <div className="mb-3 mt-7 flex flex-col gap-3 border-b border-slate-900/15 pb-3 sm:flex-row sm:items-end sm:justify-between">
+          <EvidenceProcessRail
+            label="Reading path"
+            items={[
+              { label: 'Read the condition', detail: 'Health · success · coverage' },
+              { label: 'Inspect the events', detail: 'Deviation · anomaly · impact' },
+              { label: 'Trace the evidence', detail: 'Provider · asset · failure' },
+            ]}
+          />
+
+          <div className="workbench-section-heading mb-3 mt-7 flex flex-col gap-3 border-b border-slate-900/15 pb-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="editorial-index mb-1">01 — Daily position</p>
               <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -141,7 +150,7 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
           </div>
 
           {/* KPIs */}
-          <div className="mb-7 grid grid-cols-2 border-y border-slate-900/15 lg:grid-cols-4">
+          <div className="report-daily-metrics mb-7 grid grid-cols-2 border-y border-slate-900/15 lg:grid-cols-4">
             <MetricCard
               label="Success rate"
               value={`${report.metrics.overallSuccessRate.toFixed(1)}%`}
@@ -192,14 +201,14 @@ export default function ReportDetailContent({ initialReport }: ReportDetailConte
 
           {/* Key takeaways */}
           <div className="mb-10">
-            <p className="editorial-index mb-3 border-b border-slate-900/15 pb-3">
+            <p className="report-section-heading editorial-index mb-3 border-b border-slate-900/15 pb-3">
               02 — Read the conclusions
             </p>
             <KeyTakeaways report={report} />
           </div>
 
           {/* Feedback overview */}
-          <p className="editorial-index mb-3 border-b border-slate-900/15 pb-3">
+          <p className="report-section-heading editorial-index mb-3 border-b border-slate-900/15 pb-3">
             03 — Inspect the evidence
           </p>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

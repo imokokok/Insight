@@ -8,14 +8,19 @@ import {
   V1_READ_ONLY_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { handleGetPrice } from '@/lib/api/oracleHandlers';
-import { SafeProviderSchema, SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
+import {
+  SafeBooleanQuerySchema,
+  SafeProviderSchema,
+  SafeSymbolSchema,
+  SafeChainSchema,
+} from '@/lib/security/validation';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
 const V1PriceQuerySchema = z.object({
   provider: SafeProviderSchema,
   symbol: SafeSymbolSchema,
   chain: SafeChainSchema.optional(),
-  forceRefresh: z.coerce.boolean().optional(),
+  forceRefresh: SafeBooleanQuerySchema.optional(),
 });
 
 export const OPTIONS = createOptionsHandler();

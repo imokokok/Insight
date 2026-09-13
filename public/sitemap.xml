@@ -61,11 +61,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.oracleinsight.xyz/docs/api-reference</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://www.oracleinsight.xyz/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

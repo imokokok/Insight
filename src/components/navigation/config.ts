@@ -15,8 +15,6 @@ import {
   BadgeCheck,
 } from 'lucide-react';
 
-import { oracleColors } from '@/lib/constants';
-
 import { type NavStructure } from './types';
 
 // Home is intentionally omitted: the logo links to "/" (see Navbar), so a
@@ -132,5 +130,3 @@ export const navigationConfig: NavStructure = [
     icon: CircleDollarSign,
   },
 ];
-
-export { oracleColors };

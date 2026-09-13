@@ -85,6 +85,29 @@ describe('.well-known/oracle-keys.json route', () => {
     expect(body.verify).toContain('/api/v1/safety/attestation/verify');
   });
 
+  it('publishes the complete provider-observation ABI and a literal vector (VERITAS N15)', async () => {
+    const { GET } = await import('../route');
+    const response = await GET(
+      new Request('https://www.oracleinsight.xyz/.well-known/oracle-keys.json')
+    );
+    const body = await response.json();
+    const commitment = body.commitments.providerObservationsHash;
+
+    expect(commitment.entryAbi).toEqual([
+      { name: 'provider', type: 'string' },
+      { name: 'feedId', type: 'string' },
+      { name: 'value', type: 'uint256' },
+      { name: 'timestamp', type: 'uint256' },
+      { name: 'dataAgeSeconds', type: 'uint256' },
+      { name: 'included', type: 'bool' },
+      { name: 'exclusionReason', type: 'string' },
+    ]);
+    expect(commitment.valueSemantics).toContain('negative values reject');
+    expect(commitment.vector).toBe(
+      'https://www.oracleinsight.xyz/.well-known/provider-observations-hash-vector-v1.json'
+    );
+  });
+
   it('publishes the Execution Receipt schema (the "did it fill faithfully" half)', async () => {
     const { GET } = await import('../route');
     const response = await GET(
@@ -96,26 +119,55 @@ describe('.well-known/oracle-keys.json route', () => {
     // Execution Receipt has the types + gates to verify it without our source.
     const exec = body.schemas.ExecutionReceipt;
     expect(exec).toBeDefined();
-    // v4 is the current signing layout (44 fields: v3's 43 + environment).
-    expect(exec.schemaVersion).toBe(4);
+    // v5 is the current layout: v4's 44 fields plus a signed semantic profile.
+    expect(exec.schemaVersion).toBe(5);
     expect(exec.eip712.primaryType).toBe('ExecutionReceipt');
     expect(exec.eip712.domain.name).toBe('Insight Execution');
     expect(exec.eip712.domain.chainId).toBe(1);
-    // H7: the domain is the frozen three-field one — v3's declared
-    // domain-environment never entered the signature, so v4 signs the
-    // deployment as the 44th message field instead.
+    // H7: the domain remains frozen; environment/profile bindings are message fields.
     expect(exec.eip712.domain.environment).toBeUndefined();
     const execFields = exec.eip712.types.ExecutionReceipt.map((f: { name: string }) => f.name);
-    expect(execFields).toHaveLength(44);
+    expect(execFields).toHaveLength(45);
     expect(execFields[43]).toBe('environment');
+    expect(execFields[44]).toBe('profileId');
+    expect(exec.semanticProfile.signedField).toBe('profileId');
+    expect(exec.semanticProfile.profileId).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(exec.semanticProfile.immutable).toContain(
+      `/.well-known/oracle-registry/profiles/${exec.semanticProfile.profileId}`
+    );
+
+    // Product deployments and protocol publications are separate. A verifier
+    // can pin the content-addressed release and see when it became effective.
+    expect(body.registryRevision).toBe('2026-09-11.1');
+    expect(body.effectiveFrom).toBe('2026-09-11');
+    expect(body.registryRelease.releaseId).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(body.registryRelease.immutable).toContain(body.registryRelease.releaseId);
+    expect(body.protocolPromotion.promotionId).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(body.protocolPromotion.immutable).toContain(body.protocolPromotion.promotionId);
+    expect(body.partnerIntegrations.activationSetId).toMatch(/^0x[0-9a-f]{64}$/);
+    expect(body.partnerIntegrations.immutableSet).toContain(
+      body.partnerIntegrations.activationSetId
+    );
+    expect(body.partnerIntegrations.activationRule).toContain('never activates');
+    expect(body.partnerIntegrations.registryReleasePolicy.rule).toBe('lineage-floor-any');
+    expect(body.partnerIntegrations.runtime.requiredBodyField).toBe('policyId');
+    expect(body.partnerIntegrations.runtime.executionVerifyTemplate).toContain(
+      '/api/v1/partners/{partnerId}/execution/attestation/verify'
+    );
 
     // Gate thresholds travel with the descriptor so a receipt is self-checking.
     expect(exec.gates.requiredParticipantCount).toBe(3);
     expect(exec.gates.requiredSourceGroupCount).toBe(2);
     expect(exec.gates.defaultMaxSlippageBps).toBe(50);
 
-    // v3 stays published (frozen, retired for signing) under the three-field
-    // domain its bytes really commit to; older layouts remain too.
+    // v4 and v3 stay published (frozen, retired for signing); older layouts remain too.
+    expect(body.schemas.ExecutionReceiptV4.schemaVersion).toBe(4);
+    expect(body.schemas.ExecutionReceiptV4.retiredForSigning).toBe(true);
+    expect(body.schemas.ExecutionReceiptV4.semanticProfile.profileId).toBe(
+      exec.semanticProfile.profileId
+    );
+    expect(body.schemas.ExecutionReceiptV4.semanticProfile.signedField).toBeNull();
+    expect(body.schemas.ExecutionReceiptV4.semanticProfile.warning).toContain('registry snapshot');
     expect(body.schemas.ExecutionReceiptV3.schemaVersion).toBe(3);
     expect(body.schemas.ExecutionReceiptV3.retiredForSigning).toBe(true);
     expect(body.schemas.ExecutionReceiptV3.eip712.domain.environment).toBeUndefined();

@@ -232,9 +232,16 @@ export class PerformanceMetricsCalculator {
 
     const now = Date.now();
     const windowStart = now - this.config.updateFrequencyWindowMs;
-    const recentHistory = history
+    const successfulUpdates = history
       .filter((h) => h.timestamp >= windowStart && h.success)
       .sort((a, b) => a.timestamp - b.timestamp);
+
+    // Polling the same oracle round multiple times is not a feed update. Count
+    // each source timestamp once so client refresh cadence cannot make the
+    // reported oracle update frequency look artificially fast.
+    const recentHistory = successfulUpdates.filter(
+      (entry, index) => index === 0 || entry.timestamp !== successfulUpdates[index - 1].timestamp
+    );
 
     if (recentHistory.length < 2) {
       return this.getDefaultUpdateFrequency(provider);

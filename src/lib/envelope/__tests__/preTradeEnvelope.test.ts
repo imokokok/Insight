@@ -26,6 +26,10 @@ const goodMarket: MarketStateMemberInput = {
   signatureValid: true,
   expired: false,
   status: 'OPEN',
+  mic: 'XNYS',
+  expectedMic: 'XNYS',
+  receiptMode: 'live',
+  attestedReason: null,
 };
 
 function evaluate(price: PriceIntegrityMemberInput, market: MarketStateMemberInput) {
@@ -114,10 +118,30 @@ describe('pre-trade envelope gate', () => {
     }
   );
 
+  it('surfaces the signed HALTED override reason verbatim', () => {
+    const result = evaluate(goodPrice, {
+      ...goodMarket,
+      status: 'HALTED',
+      attestedReason: 'LULD pause — operator override',
+    });
+    expect(result.reasonCodes).toEqual(['market_state_not_open']);
+    expect(result.members.marketState.detail).toContain('LULD pause — operator override');
+  });
+
+  it('BLOCKs a correctly signed demo receipt on the production path', () => {
+    const result = evaluate(goodPrice, { ...goodMarket, receiptMode: 'demo' });
+    expect(result.reasonCodes).toEqual(['market_state_non_live']);
+  });
+
+  it('BLOCKs a correctly signed receipt for the wrong MIC', () => {
+    const result = evaluate(goodPrice, { ...goodMarket, mic: 'XNAS' });
+    expect(result.reasonCodes).toEqual(['market_state_mic_mismatch']);
+  });
+
   it('reports both members when both fail, price first', () => {
     const result = evaluate(
       { present: false, signatureValid: false, expired: false, verdict: null },
-      { present: true, signatureValid: true, expired: false, status: 'CLOSED' }
+      { ...goodMarket, status: 'CLOSED' }
     );
     expect(result.verdict).toBe('BLOCK');
     expect(result.reasonCodes).toEqual(['price_integrity_missing', 'market_state_not_open']);

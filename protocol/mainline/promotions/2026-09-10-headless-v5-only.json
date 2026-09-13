@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x338a53e57055bf01820ef3880b2668bee6907307fc6e682704f868e366518220",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 3,
+  "effectiveFrom": "2026-09-10",
+  "classification": "Headless v5-only production admission and explicit legacy snapshot scope",
+  "registryReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c",
+  "predecessorReleaseId": "0xf45d4c0272300f8132dba75c49b337557cf6fd7975b32fd14a8b4e13f430a8f7",
+  "predecessorPromotionId": "0x5dfbc2a5b5326b519e432a1a3c608ed9224facee48b4a483c9f3ff5743bf2eef",
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "receiptImpact": "no wire-format change: v5 remains current; v1-v4 remain historically verifiable but are no longer admitted by the Headless production policy",
+  "activationRule": "Headless production accepts only ExecutionReceipt v5 with the policy-pinned signed profileId. A v1-v4 verdict is historical and snapshot-relative, must report full SHA-256 and byte length for the exact preserved registry bytes, and is never globally canonical.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "promoted-v5-only",
+      "evidence": "Headless policy v2 admits schema 5 only and pins the existing immutable profile; v4 is removed from the production admission set while public historical verification remains available."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "compatible-legacy-snapshot-unchanged",
+      "evidence": "The production-disabled VERITAS policy retains its existing v2/v3/v4 receipt-adjacent snapshot workflow; no active runtime admission changes."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "not-affected",
+      "evidence": "The pinned AEB option 2 adapter does not consume ExecutionReceipt."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "not-affected",
+      "evidence": "The frozen external-evidence/v0 rev6 OracleSafetyCheck adapter does not consume ExecutionReceipt."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "not-affected",
+      "evidence": "The merged evidence family remains pinned to OracleSafetyCheck v2 and Agent Passport System 6.0.0."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "not-affected",
+      "evidence": "Its registry and key-role admission remains production-disabled and does not use the Headless runtime policy."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "not-affected",
+      "evidence": "The active pre-trade and Oracle Watch contracts and policy id are unchanged."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "compatible-historical-scope-clarified",
+      "evidence": "Existing durable records retain their exact receipt-adjacent evidence; the clarification forbids presenting a private-snapshot legacy verdict as globally canonical."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "not-affected",
+      "evidence": "The read-only data and methodology exchange remains fixed by its existing pins."
+    }
+  ]
+}

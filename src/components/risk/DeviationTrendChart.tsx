@@ -70,7 +70,7 @@ export function DeviationTrendChart({ symbol, className }: DeviationTrendChartPr
         const from = getDaysAgoUtc(days);
         const to = getTodayUtc();
         const response = await fetch(
-          `/api/v1/deviation?symbol=${encodeURIComponent(symbol)}&from=${from}&to=${to}&interval=24h`
+          `/api/demo/deviation?symbol=${encodeURIComponent(symbol)}&from=${from}&to=${to}&interval=24h`
         );
         if (response.status === 401 || response.status === 403) {
           // Hide the chart entirely when the user is not authenticated for this endpoint.

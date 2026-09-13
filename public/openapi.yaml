@@ -30,10 +30,7 @@ info:
     | Method | Header | Use Case |
     |--------|--------|----------|
     | **API Key** | `X-API-Key: ins_...` | External integrations, scripts, bots |
-    | **Bearer Token** | `Authorization: Bearer <jwt>` | Account/alert endpoints explicitly marked as session-authenticated |
-
     - Credit-metered `/api/v1` endpoints require an API key. Bearer tokens cannot bypass metering.
-    - The `alerts` endpoints are the documented exception and require a Bearer session token.
     - Public endpoints (`/health`, `/symbols`) require no authentication.
 
     ⚠️ **Keep your key safe** — API keys are shown only once when created. Rotate them immediately if leaked.
@@ -229,8 +226,6 @@ tags:
     description: Signed oracle monitoring signals and history
   - name: Data
     description: Snapshots, exports, and daily reports
-  - name: Alerts
-    description: User price alerts (session auth only)
   - name: Execution Evidence
     description: Issue, retrieve, and independently verify signed execution receipts
 
@@ -278,6 +273,9 @@ paths:
               type: object
               required: [attestation]
               properties:
+                policyId:
+                  $ref: '#/components/schemas/ImmutablePartnerPolicyId'
+                  description: Optional only for generic or historical verification. Partner production integrations must use the partner-scoped route below.
                 attestation:
                   $ref: '#/components/schemas/ExecutionReceipt'
       responses:
@@ -299,6 +297,9 @@ paths:
               type: object
               required: [preTradeAttestation, executionReceipt]
               properties:
+                policyId:
+                  $ref: '#/components/schemas/ImmutablePartnerPolicyId'
+                  description: Optional only for generic or historical verification. Partner production integrations must use the partner-scoped route below.
                 preTradeAttestation:
                   type: object
                   additionalProperties: true
@@ -310,6 +311,88 @@ paths:
       responses:
         '200':
           description: Cryptographic closed-loop verification result
+
+  /partners/{partnerId}/execution/attestation/verify:
+    parameters:
+      - $ref: '#/components/parameters/PartnerId'
+    get:
+      operationId: getPartnerExecutionVerificationContract
+      tags: [Execution Evidence]
+      summary: Resolve the policy-mandatory partner verification contract
+      description: Returns the exact active policy id and production reachability for this partner path.
+      security: []
+      responses:
+        '200':
+          description: Current partner runtime contract
+        '400':
+          description: Unknown partner id
+    post:
+      operationId: verifyPartnerExecutionReceipt
+      tags: [Execution Evidence]
+      summary: Verify one Execution Receipt under the active partner policy
+      description: Fails closed unless policyId is the exact immutable policy currently activated for partnerId, production reachability is enabled, and the receipt schema/profile is admitted. The policy is selected by the verifier and is never trusted from receipt data.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [policyId, attestation]
+              properties:
+                policyId:
+                  $ref: '#/components/schemas/ImmutablePartnerPolicyId'
+                attestation:
+                  $ref: '#/components/schemas/ExecutionReceipt'
+      responses:
+        '200':
+          description: Policy-bound verification result; valid is false for stale, cross-partner, disabled, or unadmitted policy input
+        '400':
+          description: Missing/malformed policy id, partner id, or receipt envelope
+
+  /partners/{partnerId}/execution/attestation/verify-pair:
+    parameters:
+      - $ref: '#/components/parameters/PartnerId'
+    get:
+      operationId: getPartnerExecutionPairVerificationContract
+      tags: [Execution Evidence]
+      summary: Resolve the policy-mandatory partner pair contract
+      description: Returns the exact active policy id and production reachability for this partner path.
+      security: []
+      responses:
+        '200':
+          description: Current partner runtime contract
+        '400':
+          description: Unknown partner id
+    post:
+      operationId: verifyPartnerExecutionPair
+      tags: [Execution Evidence]
+      summary: Verify the closed loop under the active partner policy
+      description: Applies exact partner/policy activation, production reachability, and receipt schema/profile admission in addition to the cryptographic pair checks.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [policyId, preTradeAttestation, executionReceipt]
+              properties:
+                policyId:
+                  $ref: '#/components/schemas/ImmutablePartnerPolicyId'
+                preTradeAttestation:
+                  type: object
+                  additionalProperties: true
+                destinationPreTradeAttestation:
+                  type: object
+                  additionalProperties: true
+                executionReceipt:
+                  $ref: '#/components/schemas/ExecutionReceipt'
+      responses:
+        '200':
+          description: Policy-bound cryptographic closed-loop verification result
+        '400':
+          description: Missing/malformed policy id, partner id, or receipt envelope
 
   /execution/attestation/{uid}:
     get:
@@ -443,10 +526,10 @@ paths:
         - $ref: '#/components/parameters/chain'
         - name: method
           in: query
-          description: Consensus aggregation method
+          description: Consensus aggregation method. Use auto for the asset-category recommendation; omission preserves the weighted_median default.
           schema:
             type: string
-            enum: [median, trimmed_mean, weighted_median, iqr_filtered]
+            enum: [auto, median, trimmed_mean, weighted_median, iqr_filtered]
             default: weighted_median
       responses:
         '200':
@@ -475,11 +558,11 @@ paths:
         - name: period
           in: query
           required: true
-          description: Number of hours to look back (1–8760, i.e. up to 1 year)
+          description: Number of hours to look back (1–2160, i.e. up to 90 days)
           schema:
             type: integer
             minimum: 1
-            maximum: 8760
+            maximum: 2160
         - $ref: '#/components/parameters/forceRefresh'
       responses:
         '200':
@@ -1562,70 +1645,6 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  # ── Alerts ──────────────────────────────────────────────
-  /alerts:
-    get:
-      operationId: listAlerts
-      tags: [Alerts]
-      summary: List price alerts
-      description: List the authenticated user's price alerts. Requires session auth (Bearer token), not API key.
-      security:
-        - bearer: []
-      parameters:
-        - name: is_active
-          in: query
-          schema:
-            type: boolean
-        - name: symbol
-          in: query
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 50
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-      responses:
-        '200':
-          description: Alert list
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AlertsListResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-    post:
-      operationId: createAlert
-      tags: [Alerts]
-      summary: Create price alert
-      description: Create a new price alert. Requires session auth (Bearer token), not API key.
-      security:
-        - bearer: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateAlertRequest'
-      responses:
-        '201':
-          description: Alert created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AlertResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
   /health/ready:
     get:
       operationId: getHealthReadiness
@@ -1752,13 +1771,14 @@ components:
       in: header
       name: X-API-Key
       description: 'API key with `ins_` prefix (e.g. ins_a3f1...)'
-    bearer:
-      type: http
-      scheme: bearer
-      description: 'Supabase Auth JWT session token'
-
   # ── Reusable Parameters ─────────────────────────────────
   parameters:
+    PartnerId:
+      name: partnerId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/PartnerId'
     provider:
       name: provider
       in: query
@@ -1895,6 +1915,24 @@ components:
 
   # ── Schemas ─────────────────────────────────────────────
   schemas:
+    PartnerId:
+      type: string
+      enum:
+        - agent-passport
+        - andydgrea
+        - emilia
+        - frontier-compute
+        - headless
+        - interai
+        - raul
+        - vaara
+        - veritas
+
+    ImmutablePartnerPolicyId:
+      type: string
+      pattern: '^0x[0-9a-fA-F]{64}$'
+      description: Content-addressed immutable partner admission policy selected by the current activation set.
+
     ExecutionReceipt:
       type: object
       required: [uid, schemaVersion, attester, signature, data]
@@ -1904,7 +1942,7 @@ components:
           pattern: '^0x[0-9a-fA-F]{64}$'
         schemaVersion:
           type: integer
-          enum: [1, 2, 3, 4]
+          enum: [1, 2, 3, 4, 5]
         attester:
           type: string
           pattern: '^0x[0-9a-fA-F]{40}$'
@@ -2270,7 +2308,20 @@ components:
             timestamp:
               type: integer
             partialErrors:
-              type: integer
+              type: array
+              items:
+                type: object
+                required: [provider, symbol, error]
+                properties:
+                  provider:
+                    $ref: '#/components/schemas/OracleProvider'
+                  symbol:
+                    type: string
+                  chain:
+                    $ref: '#/components/schemas/Blockchain'
+                    nullable: true
+                  error:
+                    type: string
             queryCount:
               type: integer
 
@@ -2375,25 +2426,9 @@ components:
         success:
           type: boolean
         data:
-          type: object
-          properties:
-            symbol:
-              type: string
-            chain:
-              $ref: '#/components/schemas/Blockchain'
-            provider:
-              $ref: '#/components/schemas/OracleProvider'
-            period:
-              type: integer
-            prices:
-              type: array
-              items:
-                type: object
-                properties:
-                  timestamp:
-                    type: integer
-                  price:
-                    type: number
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceData'
         meta:
           $ref: '#/components/schemas/ApiMeta'
 
@@ -4958,87 +4993,5 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/RiskImpact'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-
-    # ── Alerts ────────────────────────────────────────
-    CreateAlertRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          maxLength: 100
-        symbol:
-          type: string
-          minLength: 1
-          maxLength: 20
-        provider:
-          $ref: '#/components/schemas/OracleProvider'
-        chain:
-          $ref: '#/components/schemas/Blockchain'
-        conditionType:
-          type: string
-          enum: [above, below, change_percent]
-        targetValue:
-          type: number
-      required: [symbol, conditionType, targetValue]
-
-    PriceAlertRow:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        user_id:
-          type: string
-        name:
-          type: string
-        symbol:
-          type: string
-        provider:
-          type: string
-          nullable: true
-        chain:
-          type: string
-          nullable: true
-        condition_type:
-          type: string
-          enum: [above, below, change_percent]
-        target_value:
-          type: number
-        is_active:
-          type: boolean
-        is_triggered:
-          type: boolean
-        last_triggered_at:
-          type: string
-          nullable: true
-        created_at:
-          type: string
-
-    AlertResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          $ref: '#/components/schemas/PriceAlertRow'
-        meta:
-          $ref: '#/components/schemas/ApiMeta'
-
-    AlertsListResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        data:
-          type: object
-          properties:
-            alerts:
-              type: array
-              items:
-                $ref: '#/components/schemas/PriceAlertRow'
-            count:
-              type: integer
         meta:
           $ref: '#/components/schemas/ApiMeta'

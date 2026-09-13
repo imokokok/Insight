@@ -15,7 +15,7 @@ import {
   Terminal,
 } from 'lucide-react';
 
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 
 interface QuickLink {
   href: string;
@@ -39,7 +39,7 @@ const quickLinks: QuickLink[] = [
 function QuickLinkButton({ link, index }: { link: QuickLink; index: number }) {
   const Icon = link.icon;
   const className =
-    'group grid min-h-28 grid-cols-[auto_1fr_auto] items-start gap-3 border-b border-r border-slate-900/10 bg-white/35 p-5 transition-colors hover:bg-blue-50/45 focus-visible:z-10';
+    'docs-index-record group grid min-h-28 grid-cols-[auto_1fr_auto] items-start gap-3 border-b border-r border-slate-900/10 bg-white/35 p-5 transition-colors hover:bg-blue-50/45 focus-visible:z-10';
   const content = (
     <>
       <span className="font-mono text-[10px] text-blue-700">
@@ -72,7 +72,7 @@ export default function DocsHero() {
   return (
     <section className="editorial-frame mx-auto max-w-[1440px] px-5 pt-4 sm:px-8 lg:px-12">
       <EditorialWorkspaceHeader
-        index="11"
+        index="12"
         stage="Learn"
         eyebrow="Insight documentation · Product logic, risk methodology, architecture, data sources, and integration references"
         title="Understand the evidence before you depend on it."
@@ -97,7 +97,16 @@ export default function DocsHero() {
         }
       />
 
-      <div className="py-10 sm:py-12">
+      <EvidenceProcessRail
+        label="Documentation route"
+        items={[
+          { label: 'Orient by task', detail: 'Workflow · feature · surface' },
+          { label: 'Inspect the method', detail: 'Evidence · score · boundary' },
+          { label: 'Implement safely', detail: 'API · SDK · agent' },
+        ]}
+      />
+
+      <div className="docs-index-map py-10 sm:py-12">
         <div className="mb-5 grid gap-3 border-b border-slate-900/15 pb-4 sm:grid-cols-[0.68fr_1.32fr]">
           <p className="editorial-index">Index — Documentation map</p>
           <p className="max-w-xl text-sm leading-relaxed text-slate-600">
@@ -107,7 +116,7 @@ export default function DocsHero() {
         </div>
         <nav
           aria-label="Documentation sections"
-          className="grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4"
+          className="docs-index-ledger grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4"
         >
           {quickLinks.map((link, index) => (
             <QuickLinkButton key={link.href} link={link} index={index} />

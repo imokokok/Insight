@@ -13,11 +13,15 @@
  *       chain vs receipt subject chain, never vs settlementChainId)
  */
 
+import { PartnerExecutionPairVerifyBodySchema } from '@/lib/attestations/executionPairVerifyRequest';
 import {
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
 } from '@/lib/attestations/executionReceipt';
-import { ExecutionVerifyBodySchema } from '@/lib/attestations/executionVerifyRequest';
+import {
+  ExecutionVerifyBodySchema,
+  PartnerExecutionVerifyBodySchema,
+} from '@/lib/attestations/executionVerifyRequest';
 import type {
   RpcClientWithFallback,
   RpcTransactionReceipt,
@@ -95,6 +99,51 @@ describe('bug #3 — the verify endpoint must accept both published schema versi
       attestation: { ...base, schemaVersion: 99 },
     });
     expect(parsed.success).toBe(false);
+  });
+
+  it('accepts an optional immutable consumer policy id and rejects malformed ids', () => {
+    const attestation = { ...base, schemaVersion: EXECUTION_SCHEMA_VERSION_V2 };
+    expect(
+      ExecutionVerifyBodySchema.safeParse({
+        policyId: `0x${'a'.repeat(64)}`,
+        attestation,
+      }).success
+    ).toBe(true);
+    expect(
+      ExecutionVerifyBodySchema.safeParse({ policyId: 'headless-current', attestation }).success
+    ).toBe(false);
+  });
+
+  it('requires an immutable policy id on the partner runtime schema', () => {
+    const attestation = { ...base, schemaVersion: EXECUTION_SCHEMA_VERSION_V2 };
+    expect(PartnerExecutionVerifyBodySchema.safeParse({ attestation }).success).toBe(false);
+    expect(
+      PartnerExecutionVerifyBodySchema.safeParse({
+        policyId: `0x${'a'.repeat(64)}`,
+        attestation,
+      }).success
+    ).toBe(true);
+  });
+
+  it('also requires the policy id on the partner pair-verification schema', () => {
+    const pair = {
+      preTradeAttestation: {
+        uid: `0x${'3'.repeat(64)}`,
+        schemaVersion: 3,
+        attester: base.attester,
+        signature: base.signature,
+        data: {},
+      },
+      executionReceipt: { ...base, schemaVersion: EXECUTION_SCHEMA_VERSION_V2 },
+    };
+
+    expect(PartnerExecutionPairVerifyBodySchema.safeParse(pair).success).toBe(false);
+    expect(
+      PartnerExecutionPairVerifyBodySchema.safeParse({
+        ...pair,
+        policyId: `0x${'a'.repeat(64)}`,
+      }).success
+    ).toBe(true);
   });
 });
 

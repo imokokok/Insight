@@ -9,6 +9,7 @@ import {
   DEFAULT_RISK_WEIGHTS,
 } from '@/lib/analytics/riskMetrics';
 import { chartColors } from '@/lib/config/colors';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type PriceData, type OracleProvider } from '@/types/oracle';
@@ -140,6 +141,7 @@ export function useRiskMetrics(
       const oracleTimestamps = priceData.map((p) => ({
         name: p.provider,
         timestamp: p.timestamp,
+        dataAgeSeconds: resolveOracleAgeSeconds(p),
       }));
 
       const manipulationResistanceData = priceData.map((p) => {

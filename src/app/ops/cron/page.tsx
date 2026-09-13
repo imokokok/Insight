@@ -53,7 +53,11 @@ export default async function OpsCronPage() {
           tone={errored ? 'bad' : staleCount > 0 ? 'bad' : 'good'}
           hint={errored ? 'query failed' : 'past freshness window'}
         />
-        <Stat label="Fresh" value={jobs.length - staleCount} tone="good" />
+        <Stat
+          label="Fresh"
+          value={errored ? '—' : jobs.length - staleCount}
+          tone={errored ? 'default' : 'good'}
+        />
         <Stat
           label="Oldest age"
           value={oldestAge != null ? fmtAge(oldestAge) : '—'}

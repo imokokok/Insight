@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import type { SettingsTab } from '@/components/settings';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
 
 const SettingsLayout = dynamic(
@@ -90,7 +91,8 @@ export default function SettingsContent() {
           ? window.location.pathname + window.location.search
           : '/settings';
       const redirectPath = `/login?redirect=${encodeURIComponent(currentPath)}`;
-      router.push(redirectPath);
+      announceNavigationStart();
+      router.replace(redirectPath);
     }
   }, [user, loading, initialized, router]);
 
@@ -141,7 +143,7 @@ export default function SettingsContent() {
 
   return (
     <motion.div
-      className="editorial-workspace min-h-screen"
+      className="editorial-workspace settings-page-shell min-h-screen"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as const }}

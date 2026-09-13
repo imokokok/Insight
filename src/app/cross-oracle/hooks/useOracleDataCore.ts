@@ -129,10 +129,11 @@ export function useOracleDataCore(
 
       try {
         const price = await requestQueue.add(
-          () =>
+          (requestSignal) =>
             oracleApiClient.fetchPrice({
               provider: oracle,
               symbol: baseSymbol,
+              signal: requestSignal,
               forceRefresh,
             }),
           {
@@ -235,7 +236,6 @@ export function useOracleDataCore(
       setIsLoading(true);
       setError(null);
       resetErrors();
-      clearHistoryData();
 
       const baseSymbol = extractBaseSymbol(selectedSymbol);
 
@@ -389,12 +389,14 @@ export function useOracleDataCore(
         }));
 
         setPriceData(prices);
-        setLastUpdated(new Date());
-        priceSnapshotCache.set(
-          snapshotCacheKey(selectedOracles, selectedSymbol),
-          prices,
-          SNAPSHOT_TTL_MS
-        );
+        if (prices.length > 0) {
+          setLastUpdated(new Date());
+          priceSnapshotCache.set(
+            snapshotCacheKey(selectedOracles, selectedSymbol),
+            prices,
+            SNAPSHOT_TTL_MS
+          );
+        }
         setOracleDataError({
           hasError,
           isPartialSuccess,
@@ -443,7 +445,6 @@ export function useOracleDataCore(
       resetErrors,
       setOracleDataError,
       priceHistoryMapRef,
-      clearHistoryData,
       recordSuccessfulFetch,
       recordFailedFetch,
     ]
@@ -468,15 +469,22 @@ export function useOracleDataCore(
     const prevKey = `${prevDepsRef.current.selectedOracles.slice().sort().join(',')}_${prevDepsRef.current.selectedSymbol}`;
 
     const depsChanged = currentKey !== prevKey;
+    // React Strict Mode intentionally runs an effect setup/cleanup cycle twice
+    // in development. The first cleanup aborts the request after we have
+    // recorded the selection key, so treat an aborted controller as an
+    // unfinished query and issue the default request again on the real mount.
+    const previousRequestWasAborted = abortControllerRef.current?.signal.aborted === true;
 
     if (
       depsChanged ||
-      (isInitialMountRef.current && selectedOracles.length > 0 && selectedSymbol)
+      (isInitialMountRef.current && selectedOracles.length > 0 && selectedSymbol) ||
+      previousRequestWasAborted
     ) {
       if (isInitialMountRef.current) {
         isInitialMountRef.current = false;
       }
       prevDepsRef.current = { selectedOracles, selectedSymbol };
+      clearHistoryData();
 
       // Restore the last snapshot for this oracle/symbol combo so the UI
       // shows stale data immediately instead of an empty loading state.
@@ -499,7 +507,7 @@ export function useOracleDataCore(
         abortControllerRef.current.abort();
       }
     };
-  }, [selectedOracles, selectedSymbol, oracleSymbolsReady, resetErrors]);
+  }, [selectedOracles, selectedSymbol, oracleSymbolsReady, resetErrors, clearHistoryData]);
 
   const { lastRefreshedAt, nextRefreshAt } = useOracleAutoRefresh({
     refreshInterval,

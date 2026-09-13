@@ -33,7 +33,7 @@ jobs:
         run: |
           set -u
           if [ -z "${CRON_SECRET}" ]; then
-            echo "::error::CRON_SECRET secret is not configured. Add it under Settings → Secrets and variables → Actions (must match the cron_secret stored in cron_config)."
+            echo "::error::CRON_SECRET is not configured. It must match the application's CRON_SECRET environment variable."
             exit 1
           fi
 

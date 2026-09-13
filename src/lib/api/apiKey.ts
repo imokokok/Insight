@@ -374,8 +374,7 @@ export async function cleanupIncompleteSubscriptions(): Promise<{ cleanedUp: num
  */
 export async function updateApiKeyPlanForUser(
   userId: string,
-  plan: Plan,
-  options: { stripeCustomerId?: string; stripeSubscriptionId?: string } = {}
+  plan: Plan
 ): Promise<{ updated: number }> {
   const client = createServiceRoleClient();
   const planConfig = PLANS[plan];
@@ -385,12 +384,6 @@ export async function updateApiKeyPlanForUser(
     plan,
     rate_limit: rateLimit,
   };
-  if (options.stripeCustomerId !== undefined) {
-    updatePayload.stripe_customer_id = options.stripeCustomerId;
-  }
-  if (options.stripeSubscriptionId !== undefined) {
-    updatePayload.stripe_subscription_id = options.stripeSubscriptionId;
-  }
 
   const { data, error } = await client
     .from('api_keys')

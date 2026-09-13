@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Check, Coins, Loader2, Zap } from 'lucide-react';
 
 import { CREDIT_PACKS, CREDIT_PACK_ORDER, PLANS, PLAN_ORDER, type Plan } from '@/lib/billing/plans';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useSession } from '@/stores/authStore';
 
 interface PricingCardsProps {
@@ -52,6 +53,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
     // If not logged in, send to register first — they can subscribe after auth.
     if (!accessToken) {
       const redirect = encodeURIComponent(`/pricing`);
+      announceNavigationStart();
       router.push(`/register?redirect=${redirect}`);
       return;
     }
@@ -87,6 +89,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
 
     if (!accessToken) {
       const redirect = encodeURIComponent(`/pricing`);
+      announceNavigationStart();
       router.push(`/register?redirect=${redirect}`);
       return;
     }
@@ -121,8 +124,8 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
           {error}
         </div>
       )}
-      <div className="grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-2 xl:grid-cols-4">
-        {PLAN_ORDER.map((planId) => {
+      <div className="pricing-plan-grid grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-2 xl:grid-cols-4">
+        {PLAN_ORDER.map((planId, planIndex) => {
           const plan = PLANS[planId];
           const isTeam = planId === 'team';
           const isEnterprise = planId === 'enterprise';
@@ -132,12 +135,13 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
           return (
             <div
               key={planId}
-              className={`relative flex flex-col border-slate-900/15 bg-white/55 p-6 transition-colors hover:bg-white md:border-r md:last:border-r-0 ${
+              className={`pricing-plan-card relative flex flex-col border-slate-900/15 bg-white/55 p-6 transition-colors hover:bg-white md:border-r md:last:border-r-0 ${
                 isTeam
                   ? 'border-l-2 border-l-blue-600 md:border-l-0 md:border-t-2 md:border-t-blue-600'
                   : 'border-l-0 border-t-0'
               }`}
             >
+              <span className="pricing-plan-index">P—{String(planIndex + 1).padStart(2, '0')}</span>
               {isTeam && (
                 <div className="absolute right-5 top-0">
                   <span className="inline-flex items-center bg-blue-600 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white">
@@ -216,9 +220,9 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
       </div>
 
       {/* Per-call metering + credit packs */}
-      <div className="mt-10 grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-2">
+      <div className="pricing-metering-split mt-10 grid grid-cols-1 border-y border-slate-900/15 md:grid-cols-2">
         {/* Metering classes */}
-        <div className="border-b border-slate-900/15 bg-white/55 p-6 md:border-b-0 md:border-r">
+        <div className="pricing-metering-ledger border-b border-slate-900/15 bg-white/55 p-6 md:border-b-0 md:border-r">
           <div className="flex items-center gap-2 mb-4">
             <Coins className="w-5 h-5 text-emerald-600" />
             <h3 className="text-base font-bold text-slate-900">Per-call credit pricing</h3>
@@ -231,7 +235,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
             {METERING_ROWS.map((row) => (
               <div
                 key={row.cls}
-                className="flex items-center justify-between gap-3 border-b border-slate-900/10 px-4 py-3 last:border-b-0"
+                className="pricing-metering-record flex items-center justify-between gap-3 border-b border-slate-900/10 px-4 py-3 last:border-b-0"
               >
                 <div className="flex items-center gap-3">
                   <span className="flex h-9 w-9 items-center justify-center border border-emerald-200 bg-emerald-50 font-mono text-sm font-bold text-emerald-700">
@@ -251,7 +255,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
         </div>
 
         {/* Credit packs */}
-        <div className="bg-white/55 p-6">
+        <div className="pricing-credit-vault bg-white/55 p-6">
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-5 h-5 text-blue-600" />
             <h3 className="text-base font-bold text-slate-900">Prepaid credit packs</h3>
@@ -270,7 +274,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                   type="button"
                   onClick={() => handleTopUp(pack)}
                   disabled={isLoading}
-                  className="flex w-full items-center justify-between gap-3 border-b border-slate-900/10 bg-white/35 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-blue-50/45 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="pricing-credit-record flex w-full items-center justify-between gap-3 border-b border-slate-900/10 bg-white/35 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-blue-50/45 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <div>
                     <div className="text-sm font-semibold text-slate-900">

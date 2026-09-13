@@ -56,17 +56,17 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
   ];
 
   return (
-    <div className="editorial-workspace settings-surface min-h-screen">
+    <div className="editorial-workspace evidence-workbench commercial-workbench settings-surface settings-control-workbench min-h-screen">
       <SettingsHero />
 
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
-        <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
-          <nav className="flex-shrink-0 lg:w-72" aria-label="Settings">
+        <div className="settings-control-grid flex flex-col gap-8 lg:flex-row lg:gap-12">
+          <nav className="settings-control-nav flex-shrink-0 lg:w-72" aria-label="Settings">
             <p className="editorial-index mb-4 border-b border-slate-900/15 pb-3">
               01 — Select workspace
             </p>
             <div className="border-y border-slate-900/15 bg-white/35">
-              {tabs.map((tab) => {
+              {tabs.map((tab, tabIndex) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
 
@@ -75,12 +75,17 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
                     key={tab.id}
                     onClick={() => onTabChange(tab.id)}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`flex w-full items-center gap-3 border-b border-slate-900/10 px-3 py-3 text-left transition-colors last:border-b-0 ${
+                    className={`settings-tab-record flex w-full items-center gap-3 border-b border-slate-900/10 px-3 py-3 text-left transition-colors last:border-b-0 ${
                       isActive
                         ? 'bg-blue-700 text-white'
                         : 'text-slate-600 hover:bg-blue-50/60 hover:text-slate-900'
                     }`}
                   >
+                    <span
+                      className={`settings-tab-index font-mono text-[9px] ${isActive ? 'text-blue-100' : 'text-blue-700'}`}
+                    >
+                      S—{String(tabIndex + 1).padStart(2, '0')}
+                    </span>
                     <Icon
                       className={`w-5 h-5 transition-colors ${
                         isActive ? 'text-blue-100' : 'text-slate-400'
@@ -102,7 +107,7 @@ export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLay
             </div>
           </nav>
 
-          <main className="min-w-0 flex-1" role="main">
+          <main className="settings-account-ledger min-w-0 flex-1" role="main">
             <p className="editorial-index mb-4 border-b border-slate-900/15 pb-3">
               02 — Manage account state
             </p>

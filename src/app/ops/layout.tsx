@@ -17,6 +17,10 @@ export const metadata = {
   },
 };
 
+// Authentication and every child page depend on request cookies/live
+// operational data. Never execute or freeze this private console at build time.
+export const dynamic = 'force-dynamic';
+
 const ENV =
   process.env.NEXT_PUBLIC_ENV ??
   process.env.VERCEL_ENV ??
@@ -26,9 +30,9 @@ export default async function OpsLayout({ children }: { children: ReactNode }) {
   await requireOpsOwner();
 
   return (
-    <div className="ops-workspace flex min-h-screen bg-[#f8f7f4]">
+    <div className="ops-workspace ops-command-center flex min-h-screen bg-[#f8f7f4]">
       <OpsSidebar env={ENV} />
-      <main className="min-w-0 flex-1 overflow-y-auto pt-12 lg:pt-0">
+      <main className="ops-main min-w-0 flex-1 overflow-y-auto pt-12 lg:pt-0">
         <HealthStrip />
         {children}
       </main>

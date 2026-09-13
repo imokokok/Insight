@@ -1,10 +1,16 @@
+import {
+  AuthError,
+  type User,
+  type Session,
+  type Provider,
+  type AuthChangeEvent,
+} from '@supabase/supabase-js';
+
 import { sanitizeString, sanitizeUuid } from '@/lib/security/inputSanitizer';
 import { validatePassword } from '@/lib/security/passwordValidation';
 import { type UserProfile } from '@/types/analytics';
 
 import { supabase } from './client';
-
-import type { User, Session, AuthError, Provider, AuthChangeEvent } from '@supabase/supabase-js';
 
 const AVATAR_BUCKET = 'avatars';
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
@@ -62,8 +68,32 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
 }
 
 export async function signInWithOAuth(provider: Provider): Promise<{ error: AuthError | null }> {
-  const state = crypto.randomUUID();
-  document.cookie = `oauth_state=${state}; path=/; max-age=600; SameSite=Strict; Secure; HttpOnly`;
+  let state: string;
+  try {
+    const stateResponse = await fetch('/api/auth/oauth-state', {
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+    });
+    const payload = (await stateResponse.json().catch(() => null)) as { state?: unknown } | null;
+    if (!stateResponse.ok || typeof payload?.state !== 'string') {
+      return {
+        error: new AuthError(
+          'Unable to initialize the OAuth security check.',
+          stateResponse.status,
+          'oauth_state_init_failed'
+        ),
+      };
+    }
+    state = payload.state;
+  } catch {
+    return {
+      error: new AuthError(
+        'Unable to initialize the OAuth security check.',
+        0,
+        'oauth_state_init_failed'
+      ),
+    };
+  }
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
@@ -74,10 +104,6 @@ export async function signInWithOAuth(provider: Provider): Promise<{ error: Auth
       },
     },
   });
-
-  if (error) {
-    document.cookie = 'oauth_state=; path=/; max-age=0';
-  }
 
   return { error };
 }

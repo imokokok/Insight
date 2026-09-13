@@ -53,7 +53,10 @@ import {
   computePreTradeUidsHash,
   type MeasurableExecutionField,
 } from './executionCommitments';
+import { CURRENT_EXECUTION_PROFILE_ID, isSupportedExecutionProfileId } from './executionProfiles';
 import { computeReasonCodesHash } from './reasonCodesHash';
+
+export { CURRENT_EXECUTION_PROFILE_ID } from './executionProfiles';
 
 const logger = createLogger('ExecutionReceipt');
 
@@ -145,19 +148,33 @@ export const EXECUTION_SCHEMA_VERSION_V3 = 3;
  *
  * v4 moves `environment` into the signed message as the 44th field. The domain
  * is the same frozen three-field {@link EXECUTION_DOMAIN} for every version
- * (v1..v4), because that is the domain v1..v3 actually signed over. v3 stays
+ * (v1..v5), because that is the domain v1..v3 actually signed over. v3 stays
  * frozen and verifiable; the registry describes it with the three-field domain
  * its bytes really commit to.
  */
 export const EXECUTION_SCHEMA_VERSION_V4 = 4;
+
+/**
+ * v5 separates byte layout versioning from semantic-rule versioning.
+ *
+ * v3/v4 signed commitment outputs such as `preTradeUidsHash`, but the rule for
+ * opening that commitment lived only in mutable registry prose. On 2026-09-08
+ * that prose was corrected without a schemaVersion move, so the same v4 marker
+ * described two verifier behaviours. v5 appends `profileId` as a signed
+ * bytes32. It resolves to an immutable, content-addressed semantic profile;
+ * changing a commitment or sentinel rule therefore requires a new profile id
+ * and cannot silently reinterpret an already-issued receipt.
+ */
+export const EXECUTION_SCHEMA_VERSION_V5 = 5;
 /** Schema version new receipts are signed with. */
-export const CURRENT_EXECUTION_SCHEMA_VERSION = EXECUTION_SCHEMA_VERSION_V4;
+export const CURRENT_EXECUTION_SCHEMA_VERSION = EXECUTION_SCHEMA_VERSION_V5;
 /** Every schema version this module can verify. */
 export const SUPPORTED_EXECUTION_SCHEMA_VERSIONS = [
   EXECUTION_SCHEMA_VERSION,
   EXECUTION_SCHEMA_VERSION_V2,
   EXECUTION_SCHEMA_VERSION_V3,
   EXECUTION_SCHEMA_VERSION_V4,
+  EXECUTION_SCHEMA_VERSION_V5,
 ] as const;
 
 /**
@@ -176,7 +193,7 @@ export const EXECUTION_DEFAULT_MAX_SLIPPAGE_BPS = 50;
  * attestation DID NOT EXIST at execution (the gate was signed after the fill,
  * so its age is undefined — Headless round-3, 2026-09-02).
  *
- * The layout is frozen (v1..v4 all carry this field as uint256), so the age
+ * The layout is frozen (v1..v5 all carry this field as uint256), so the age
  * cannot be omitted; and a signed 0 was dishonest — 0 reads as "the freshest
  * possible gate", when the truth is "there was no gate yet". UINT32_MAX
  * (4294967295) is the sentinel: no real attestation age approaches it (the
@@ -235,12 +252,12 @@ export function executionEnvironment(): 'production' | 'nonproduction' {
 
 /** Resolve the EIP-712 domain for a signed schema version.
  *
- *  Every version (v1..v4) signs over the same frozen three-field domain. v3
+ *  Every version (v1..v5) signs over the same frozen three-field domain. v3
  *  tried to vary the domain by deployment (`environment`, VERITAS F7), but
  *  EIP-712 domains cannot carry non-standard fields — signers drop them before
  *  hashing, so the variation never entered the signature (Headless H7). v4
  *  binds the deployment as a signed message field instead (the 44th); the
- *  domain itself stays constant so v1..v4 all re-derive from
+ *  domain itself stays constant so v1..v5 all re-derive from
  *  {@link EXECUTION_DOMAIN}. The parameter is kept for call-site clarity. */
 export function executionDomainForSchemaVersion(_schemaVersion: number) {
   return EXECUTION_DOMAIN;
@@ -425,8 +442,16 @@ export const EXECUTION_TYPES_V4 = {
   ],
 } as const;
 
+/** The v5 signed fields (45) = v4's 44 plus the immutable semantic profile. */
+export const EXECUTION_TYPES_V5 = {
+  ExecutionReceipt: [
+    ...EXECUTION_TYPES_V4.ExecutionReceipt,
+    { name: 'profileId', type: 'bytes32' },
+  ],
+} as const;
+
 /** Layout new receipts are signed with. */
-export const EXECUTION_TYPES = EXECUTION_TYPES_V4;
+export const EXECUTION_TYPES = EXECUTION_TYPES_V5;
 
 /** Resolve the EIP-712 type layout for a signed schema version. Unknown
  *  versions fall back to the current layout, which fails UID recovery (a
@@ -435,7 +460,8 @@ export function executionTypesForSchemaVersion(schemaVersion: number) {
   if (schemaVersion === EXECUTION_SCHEMA_VERSION) return EXECUTION_TYPES_V1;
   if (schemaVersion === EXECUTION_SCHEMA_VERSION_V2) return EXECUTION_TYPES_V2;
   if (schemaVersion === EXECUTION_SCHEMA_VERSION_V3) return EXECUTION_TYPES_V3;
-  return EXECUTION_TYPES_V4;
+  if (schemaVersion === EXECUTION_SCHEMA_VERSION_V4) return EXECUTION_TYPES_V4;
+  return EXECUTION_TYPES_V5;
 }
 
 // ---------------------------------------------------------------------------
@@ -631,8 +657,9 @@ export interface ExecutionReceiptData {
    *  source consensus over destination consensus, so this gate supplies the
    *  entire volatile leg; v2 signed one uid and shipped this one unbound. */
   destinationPreTradeUid?: `0x${string}`;
-  /** v3 only: commitment to the ordered set of gates the quote was built from.
-   *  Generalises to multi-leg routes. Empty-set hash when no gate is proven. */
+  /** v3 only: commitment to the ordered set of non-zero gate uids the quote was
+   *  built from. The zero bytes32 sentinel is omitted; empty-set hash when no
+   *  gate is proven. Generalises to multi-leg routes. */
   preTradeUidsHash?: `0x${string}`;
   requestHash: `0x${string}`;
   sourceAssetId: string;
@@ -702,6 +729,9 @@ export interface ExecutionReceiptData {
    *  on the EIP-712 domain, which never entered the signature (H7). Absent on
    *  v1..v3, whose layouts do not declare it. */
   environment?: 'production' | 'nonproduction';
+  /** v5 only: content address of the immutable semantic rules used to build
+   *  and interpret commitments in this receipt. */
+  profileId?: `0x${string}`;
 }
 
 /** BigInt twin of {@link ExecutionReceiptData}, fed to viem's EIP-712 ops.
@@ -763,18 +793,18 @@ export interface ExecutionBigIntMessage {
    *  used; on v1..v3 layouts the key is inert (viem encodes strictly from the
    *  type layout). */
   environment?: string;
+  /** v5. Unknown ids are rejected even when the signature itself is valid. */
+  profileId?: `0x${string}`;
 }
 
 /** Raw (un-scaled) inputs. Verdict fields are DERIVED inside buildMessage so
  *  the receipt can't disagree with its own signed evidence. */
 export interface ExecutionReceiptInput {
-  /** Optional: sign against a specific PUBLISHED layout (v1..v4) instead of the
-   *  current one. Defaults to the current layout. The sample endpoint exposes
-   *  this so an integrator can fetch a verifiable sample of ANY published
-   *  version — the one layout nobody has exercised is the one nobody can
-   *  integrate against (VERITAS round-2 N1). An unknown version falls back to
-   *  the current layout rather than producing a receipt that claims a layout
-   *  it does not use. */
+  /** Optional conformance layout request. It is honored only when
+   *  signExecutionReceipt is called with `sample: true`; production signing is
+   *  pinned to the current v5 layout. The sample endpoint exposes v1..v5 so an
+   *  integrator can test historical parsers without reopening retired layouts
+   *  for production issuance. An unknown version falls back to current. */
   schemaVersion?: number;
   /** UID of the pre-trade attestation this execution was authorised against. */
   preTradeUid: `0x${string}`;
@@ -822,7 +852,8 @@ export interface ExecutionReceiptInput {
    *  that claims a bound quote basis; absent means the hash commitment binds
    *  only the source gate. */
   destinationPreTradeUid?: `0x${string}`;
-  /** v3: the ordered set of gate uids the quote was built from. Defaults to
+  /** v3: the ordered set of non-zero gate uids the quote was built from. Zero
+   *  bytes32 is a fixed-layout sentinel and is omitted by the hash. Defaults to
    *  [preTradeUid, destinationPreTradeUid] when the latter is supplied, and to
    *  [preTradeUid] otherwise — the receipt must never claim an ordered set it
    *  did not use. */
@@ -1017,6 +1048,9 @@ export async function buildExecutionMessage(
   // which signers drop before hashing, so the deployment separation was never
   // cryptographic (Headless H7). As a signed field it is.
   const environment = executionEnvironment();
+  // --- v5: which immutable semantic rules apply ---
+  // This is signed rather than inferred from the mutable registry document.
+  const profileId = CURRENT_EXECUTION_PROFILE_ID;
 
   return {
     bindingMode,
@@ -1078,6 +1112,7 @@ export async function buildExecutionMessage(
       ? (input.schemaVersion as (typeof SUPPORTED_EXECUTION_SCHEMA_VERSIONS)[number])
       : CURRENT_EXECUTION_SCHEMA_VERSION,
     environment,
+    profileId,
   };
 }
 
@@ -1142,6 +1177,9 @@ export function toBigIntMessage(data: ExecutionReceiptData): ExecutionBigIntMess
     // must break recovery. An absent value encodes as '' — never a default
     // guess — so a v4 receipt missing `environment` cannot verify.
     environment: data.environment ?? '',
+    // Same fail-closed rule for v5: absence encodes as zero bytes32, which can
+    // never equal a registered profile and therefore cannot verify as valid.
+    profileId: data.profileId ?? ZERO_BYTES32,
   };
 }
 
@@ -1173,7 +1211,7 @@ const EXECUTION_LEGACY_FIELD_ALIASES = {
 
 /**
  * Project a fully-populated current-layout message onto the field set and the
- * spellings that a PUBLISHED layout (v1..v4) declares, for payloads handed to
+ * spellings that a PUBLISHED layout (v1..v5) declares, for payloads handed to
  * a reader (the sample endpoint). The signature is untouched: it covered the
  * requested layout all along, so projecting only decides which keys travel
  * beside it. A holder can then rebuild the typed data from the projected data
@@ -1185,7 +1223,7 @@ const EXECUTION_LEGACY_FIELD_ALIASES = {
  * closing VERITAS round-3 F0/F8: the v1 sample must be independently
  * verifiable, not just verifiable by our own endpoint).
  *
- * v4 (current) is returned unchanged. Unknown versions fall back to v4 the
+ * v5 (current) is returned unchanged. Unknown versions fall back to v5 the
  * same way the signer does. A field the message cannot supply fails loudly:
  * a projected payload must never carry a hole.
  */
@@ -1254,7 +1292,9 @@ function getVerifyUrl(): string {
 // Sign
 // ---------------------------------------------------------------------------
 
-/** Sign an execution fact. Returns null when no attester key is configured:
+/** Sign an execution fact. Production signing is always current v5; only the
+ *  dedicated sample-role path may request a retired conformance layout.
+ *  Returns null when no attester key is configured:
  *  the execution data itself remains valid and unchanged; the receipt is
  *  additive and must never become a dependency of the settlement path.
  *
@@ -1273,7 +1313,14 @@ export async function signExecutionReceipt(
 
   try {
     const { hashTypedData } = await import('viem');
-    const message = await buildExecutionMessage(input);
+    // Legacy layouts stay available for sample-role conformance vectors and
+    // historical verification, but production issuance is v5-only. A caller
+    // cannot revive a retired layout by passing schemaVersion to the shared
+    // signer (Headless legacy-profile resolution, 2026-09-10).
+    const signingInput = opts?.sample
+      ? input
+      : { ...input, schemaVersion: CURRENT_EXECUTION_SCHEMA_VERSION };
+    const message = await buildExecutionMessage(signingInput);
     const args = executionTypedDataArgs(message);
 
     const signature = await account.signTypedData(args);
@@ -1310,6 +1357,9 @@ export async function signExecutionReceipt(
 
 export interface ExecutionVerificationResult {
   valid: boolean;
+  /** UID and signature are sound even when semantic profile support or the
+   *  validity window makes the receipt unusable. */
+  cryptographicValid: boolean;
   attester: string;
   uid: string;
   executedAt: number | null;
@@ -1321,6 +1371,7 @@ export interface ExecutionVerificationResult {
    *  declared", not as VERIFIED. */
   bindingMode: ExecutionBindingMode | null;
   schemaVersion: number;
+  profileId: string | null;
   reason: string;
 }
 
@@ -1332,14 +1383,16 @@ export async function verifyExecutionReceipt(
   try {
     const { verifyTypedData, hashTypedData } = await import('viem');
     const message = receipt.data;
-    const args = executionTypedDataArgs(message);
     const bindingMode = message.bindingMode ?? null;
     const schemaVersion = Number(message.schemaVersion) || 0;
-
-    const expectedUid = hashTypedData(args);
-    if (expectedUid !== receipt.uid) {
+    if (
+      !SUPPORTED_EXECUTION_SCHEMA_VERSIONS.includes(
+        schemaVersion as (typeof SUPPORTED_EXECUTION_SCHEMA_VERSIONS)[number]
+      )
+    ) {
       return {
         valid: false,
+        cryptographicValid: false,
         attester: receipt.attester,
         uid: receipt.uid,
         executedAt: Number(message.executedAt) || null,
@@ -1348,6 +1401,26 @@ export async function verifyExecutionReceipt(
         executionStatus: message.priceExecutionStatus ?? message.executionStatus ?? null,
         bindingMode,
         schemaVersion,
+        profileId: typeof message.profileId === 'string' ? message.profileId : null,
+        reason: `unsupported_schema: ExecutionReceipt schemaVersion ${schemaVersion}`,
+      };
+    }
+    const args = executionTypedDataArgs(message);
+
+    const expectedUid = hashTypedData(args);
+    if (expectedUid !== receipt.uid) {
+      return {
+        valid: false,
+        cryptographicValid: false,
+        attester: receipt.attester,
+        uid: receipt.uid,
+        executedAt: Number(message.executedAt) || null,
+        validUntil: Number(message.validUntil) || null,
+        expired: false,
+        executionStatus: message.priceExecutionStatus ?? message.executionStatus ?? null,
+        bindingMode,
+        schemaVersion,
+        profileId: typeof message.profileId === 'string' ? message.profileId : null,
         reason: 'uid_mismatch: data was modified after signing',
       };
     }
@@ -1364,6 +1437,7 @@ export async function verifyExecutionReceipt(
     if (!signatureValid) {
       return {
         valid: false,
+        cryptographicValid: false,
         attester: receipt.attester,
         uid: receipt.uid,
         executedAt: Number(message.executedAt) || null,
@@ -1372,12 +1446,34 @@ export async function verifyExecutionReceipt(
         executionStatus: message.priceExecutionStatus ?? message.executionStatus ?? null,
         bindingMode,
         schemaVersion,
+        profileId: typeof message.profileId === 'string' ? message.profileId : null,
         reason: 'signature_invalid: not signed by the claimed attester',
+      };
+    }
+
+    if (
+      schemaVersion === EXECUTION_SCHEMA_VERSION_V5 &&
+      !isSupportedExecutionProfileId(message.profileId)
+    ) {
+      return {
+        valid: false,
+        cryptographicValid: true,
+        attester: receipt.attester,
+        uid: receipt.uid,
+        executedAt: Number(message.executedAt) || null,
+        validUntil: Number(message.validUntil) || null,
+        expired,
+        executionStatus: message.priceExecutionStatus ?? message.executionStatus ?? null,
+        bindingMode,
+        schemaVersion,
+        profileId: typeof message.profileId === 'string' ? message.profileId : null,
+        reason: 'unsupported_profile: signed semantic profile is unknown',
       };
     }
 
     return {
       valid: !expired,
+      cryptographicValid: true,
       attester: receipt.attester,
       uid: receipt.uid,
       executedAt: Number(message.executedAt) || null,
@@ -1386,11 +1482,13 @@ export async function verifyExecutionReceipt(
       executionStatus: message.priceExecutionStatus ?? message.executionStatus ?? null,
       bindingMode,
       schemaVersion,
+      profileId: typeof message.profileId === 'string' ? message.profileId : null,
       reason: expired ? 'receipt_expired' : 'verified',
     };
   } catch (error) {
     return {
       valid: false,
+      cryptographicValid: false,
       attester: receipt.attester ?? '',
       uid: receipt.uid ?? '',
       executedAt: null,
@@ -1399,6 +1497,7 @@ export async function verifyExecutionReceipt(
       executionStatus: null,
       bindingMode: null,
       schemaVersion: 0,
+      profileId: null,
       reason: `verification_error: ${error instanceof Error ? error.message : String(error)}`,
     };
   }

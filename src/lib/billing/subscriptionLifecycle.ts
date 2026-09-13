@@ -19,7 +19,7 @@
 
 import { updateApiKeyPlanForUser } from '@/lib/api/apiKey';
 import { topUpCredits } from '@/lib/billing/creditWallet';
-import { planCreditGrant, type Plan } from '@/lib/billing/plans';
+import { normalizePlan, planCreditGrant, type Plan } from '@/lib/billing/plans';
 import { type createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -70,21 +70,23 @@ export async function findSubscriptionByInvoice(
   const orderId = getStringField(data, 'order_id', 'orderId');
 
   if (invoiceId) {
-    const { data: row } = await client
+    const { data: row, error } = await client
       .from('subscriptions')
       .select('id, user_id, plan, interval, status')
       .eq('nowpayments_invoice_id', invoiceId)
       .maybeSingle();
+    if (error) throw new Error(`Failed to look up subscription invoice: ${error.message}`);
     if (row) return row;
   }
 
   if (orderId) {
     // order_id was set to subscriptions.id at checkout time.
-    const { data: row } = await client
+    const { data: row, error } = await client
       .from('subscriptions')
       .select('id, user_id, plan, interval, status')
       .eq('id', orderId)
       .maybeSingle();
+    if (error) throw new Error(`Failed to look up subscription order: ${error.message}`);
     if (row) return row;
   }
 
@@ -108,20 +110,22 @@ export async function findCreditPurchaseByInvoice(
   const orderId = getStringField(data, 'order_id', 'orderId');
 
   if (invoiceId) {
-    const { data: row } = await client
+    const { data: row, error } = await client
       .from('credit_purchases')
       .select('id, user_id, credits, status')
       .eq('nowpayments_invoice_id', invoiceId)
       .maybeSingle();
+    if (error) throw new Error(`Failed to look up credit purchase invoice: ${error.message}`);
     if (row) return row;
   }
 
   if (orderId) {
-    const { data: row } = await client
+    const { data: row, error } = await client
       .from('credit_purchases')
       .select('id, user_id, credits, status')
       .eq('id', orderId)
       .maybeSingle();
+    if (error) throw new Error(`Failed to look up credit purchase order: ${error.message}`);
     if (row) return row;
   }
 
@@ -161,27 +165,23 @@ export async function handlePaymentConfirmed(
         // second confirmed/finished IPN, or the user's "I've paid" reconcile —
         // re-attempts the credit. Marking it 'paid' here would permanently
         // lose the credits with no recovery path.
-        logger.error(
-          'Top-up confirmed but credit failed — purchase left incomplete for retry',
-          new Error('top_up_credits returned null'),
-          {
-            userId: purchase.user_id,
-            credits: purchase.credits,
-            purchaseId: purchase.id,
-            paymentId,
-          }
+        throw new Error(
+          `Top-up confirmed but wallet credit failed for purchase ${purchase.id}; retry required`
         );
-        return;
       }
 
-      await client
+      const { error: purchaseUpdateError } = await client
         .from('credit_purchases')
         .update({
           status: 'paid',
           nowpayments_payment_id: paymentId,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', purchase.id);
+        .eq('id', purchase.id)
+        .eq('status', 'incomplete');
+      if (purchaseUpdateError) {
+        throw new Error(`Failed to mark credit purchase paid: ${purchaseUpdateError.message}`);
+      }
 
       logger.info('Credit top-up confirmed — wallet credited', {
         userId: purchase.user_id,
@@ -208,34 +208,30 @@ export async function handlePaymentConfirmed(
   const plan = sub.plan as Plan;
   const now = new Date();
 
+  // A canceled row is terminal (expired/failed/refunded). In particular, a
+  // late duplicate confirmation must never upgrade keys while the local
+  // subscription remains canceled.
+  if (sub.status === 'canceled') {
+    logger.warn('confirmed/finished ignored — subscription is canceled', {
+      subscriptionId: sub.id,
+      paymentId,
+    });
+    return;
+  }
+
   // A payment only (re)activates a row that is not yet active. Guarding on this
   // prevents a duplicate confirmed/finished IPN (or a reconcile re-run) from
   // silently resetting the billing period — period dates are set exactly once.
   const needsActivation = sub.status === 'incomplete' || sub.status === 'past_due';
+  if (!needsActivation && sub.status !== 'active') {
+    logger.warn('confirmed/finished ignored — subscription is not payable', {
+      subscriptionId: sub.id,
+      currentStatus: sub.status,
+    });
+    return;
+  }
 
   if (needsActivation) {
-    // Cancel any OTHER active subscription for this user. Each checkout creates
-    // a fresh subscriptions row (renewal / upgrade), so without this a user
-    // could end up with two active rows and receive the monthly allowance
-    // twice (add_monthly_credits grants per active row). The newly-paid row
-    // supersedes all others.
-    const { error: cancelError } = await client
-      .from('subscriptions')
-      .update({ status: 'canceled', updated_at: now.toISOString() })
-      .eq('user_id', sub.user_id)
-      .eq('status', 'active');
-    if (cancelError) {
-      logger.warn('Failed to cancel superseded active subscriptions', {
-        userId: sub.user_id,
-        error: cancelError.message,
-      });
-    } else {
-      logger.info('Canceled superseded active subscriptions', {
-        userId: sub.user_id,
-        activeSubscriptionId: sub.id,
-      });
-    }
-
     const periodEnd = new Date(now.getTime() + PERIOD_DAYS[interval] * 24 * 60 * 60 * 1000);
 
     // Activate the row with fresh period dates.
@@ -249,42 +245,53 @@ export async function handlePaymentConfirmed(
         cancel_at_period_end: false,
         updated_at: now.toISOString(),
       })
-      .eq('id', sub.id);
+      .eq('id', sub.id)
+      .in('status', ['incomplete', 'past_due']);
 
     if (updateError) {
-      logger.error('Failed to activate subscription row', new Error(updateError.message), {
-        subscriptionId: sub.id,
-        paymentId,
-      });
-      // Continue to upgrade API keys anyway — the user paid.
+      throw new Error(`Failed to activate subscription row: ${updateError.message}`);
     }
+  }
 
-    // First cycle: credit the plan's monthly credit allowance so the user is
-    // immediately spendable. The key matches add_monthly_credits (migration
-    // 0041), so the cron's per-cycle / per-month grants are idempotent:
-    //   - monthly: one allowance per billing cycle  -> grant:<user>:sub:<subId>
-    //   - yearly:  one allowance per calendar month -> grant:<user>:sub:<subId>:<YYYY-MM>
-    const grant = planCreditGrant(plan);
-    if (grant > 0) {
-      const grantKey =
-        interval === 'year'
-          ? `grant:${sub.user_id}:sub:${sub.id}:${now.toISOString().slice(0, 7)}`
-          : `grant:${sub.user_id}:sub:${sub.id}`;
-      await topUpCredits({
-        userId: sub.user_id,
-        amount: grant,
-        meteringKey: grantKey,
-        kind: 'grant',
-        ref: `${sub.plan} first-cycle allowance`,
-      });
-      logger.info('Granted first-cycle credit allowance', {
-        userId: sub.user_id,
-        plan: sub.plan,
-        grant,
-        subscriptionId: sub.id,
-        interval,
-      });
+  // Repeat this idempotent cleanup even for an already-active row. If the
+  // first attempt activated the new row and then failed here, the webhook retry
+  // must still remove the superseded active subscription.
+  const { error: cancelError } = await client
+    .from('subscriptions')
+    .update({ status: 'canceled', updated_at: now.toISOString() })
+    .eq('user_id', sub.user_id)
+    .eq('status', 'active')
+    .neq('id', sub.id);
+  if (cancelError) {
+    throw new Error(`Failed to cancel superseded subscriptions: ${cancelError.message}`);
+  }
+
+  // Retry the idempotent first-cycle grant for active confirmations as well.
+  // This repairs a prior attempt that activated the row but failed before the
+  // wallet RPC completed.
+  const grant = planCreditGrant(plan);
+  if (grant > 0) {
+    const grantKey =
+      interval === 'year'
+        ? `grant:${sub.user_id}:sub:${sub.id}:${now.toISOString().slice(0, 7)}`
+        : `grant:${sub.user_id}:sub:${sub.id}`;
+    const newBalance = await topUpCredits({
+      userId: sub.user_id,
+      amount: grant,
+      meteringKey: grantKey,
+      kind: 'grant',
+      ref: `${sub.plan} first-cycle allowance`,
+    });
+    if (newBalance === null) {
+      throw new Error(`Failed to grant first-cycle credits for subscription ${sub.id}`);
     }
+    logger.info('Ensured first-cycle credit allowance', {
+      userId: sub.user_id,
+      plan: sub.plan,
+      grant,
+      subscriptionId: sub.id,
+      interval,
+    });
   }
 
   // Always ensure the user's keys are on the subscribed plan (idempotent).
@@ -331,13 +338,11 @@ export async function handlePartiallyPaid(client: ServiceClient, data: IpnData) 
   const { error } = await client
     .from('subscriptions')
     .update({ status: 'past_due', updated_at: new Date().toISOString() })
-    .eq('id', sub.id);
+    .eq('id', sub.id)
+    .eq('status', 'incomplete');
 
   if (error) {
-    logger.warn('Failed to mark subscription past_due', {
-      subscriptionId: sub.id,
-      error: error.message,
-    });
+    throw new Error(`Failed to mark subscription past_due: ${error.message}`);
   } else {
     logger.info('Subscription marked past_due (partial payment)', {
       subscriptionId: sub.id,
@@ -361,12 +366,10 @@ export async function handlePaymentExpiredOrFailed(client: ServiceClient, data: 
       const { error } = await client
         .from('credit_purchases')
         .update({ status: 'canceled', updated_at: new Date().toISOString() })
-        .eq('id', purchase.id);
+        .eq('id', purchase.id)
+        .eq('status', 'incomplete');
       if (error) {
-        logger.warn('Failed to cancel expired/failed credit purchase', {
-          purchaseId: purchase.id,
-          error: error.message,
-        });
+        throw new Error(`Failed to cancel credit purchase: ${error.message}`);
       } else {
         logger.info('Credit purchase marked canceled (invoice expired/failed)', {
           purchaseId: purchase.id,
@@ -402,17 +405,16 @@ export async function handlePaymentExpiredOrFailed(client: ServiceClient, data: 
     return;
   }
 
+  const now = new Date();
+
   const { error } = await client
     .from('subscriptions')
-    .update({ status: 'canceled', updated_at: new Date().toISOString() })
+    .update({ status: 'canceled', updated_at: now.toISOString() })
     .eq('id', sub.id)
     .in('status', ['incomplete', 'past_due']); // belt-and-suspenders: only update if still pending
 
   if (error) {
-    logger.warn('Failed to mark subscription canceled', {
-      subscriptionId: sub.id,
-      error: error.message,
-    });
+    throw new Error(`Failed to cancel subscription: ${error.message}`);
   } else {
     logger.info('Subscription marked canceled (invoice expired/failed)', {
       subscriptionId: sub.id,
@@ -421,8 +423,9 @@ export async function handlePaymentExpiredOrFailed(client: ServiceClient, data: 
 }
 
 /**
- * Handle refunded: downgrade the user's API keys to the base (developer) tier
- * and mark the subscription canceled. The refund overrides any remaining period.
+ * Handle refunded: cancel the refunded row and recalculate the user's API-key
+ * plan from any newer active subscription. The refund overrides only its own
+ * remaining period.
  */
 export async function handlePaymentRefunded(client: ServiceClient, data: IpnData) {
   // Credit-purchase refund: claw back the granted credits. Spent credits
@@ -438,17 +441,18 @@ export async function handlePaymentRefunded(client: ServiceClient, data: IpnData
         kind: 'refund',
         ref: `refund of ${purchase.credits} credit top-up`,
       });
+      if (newBalance === null) {
+        throw new Error(`Failed to debit refunded credit purchase ${purchase.id}`);
+      }
 
       const { error } = await client
         .from('credit_purchases')
         .update({ status: 'canceled', updated_at: new Date().toISOString() })
-        .eq('id', purchase.id);
+        .eq('id', purchase.id)
+        .eq('status', 'paid');
 
       if (error) {
-        logger.warn('Failed to mark refunded credit purchase canceled', {
-          purchaseId: purchase.id,
-          error: error.message,
-        });
+        throw new Error(`Failed to mark refunded credit purchase canceled: ${error.message}`);
       }
       logger.info('Credit purchase refunded — wallet debited', {
         userId: purchase.user_id,
@@ -473,25 +477,38 @@ export async function handlePaymentRefunded(client: ServiceClient, data: IpnData
     return;
   }
 
-  // Downgrade all of the user's active API keys to the base (developer) tier.
-  // Any remaining credit-wallet balance is untouched, so the user can keep
-  // consuming on a pay-as-you-go basis.
-  await updateApiKeyPlanForUser(sub.user_id, 'developer');
-
+  const now = new Date();
   const { error } = await client
     .from('subscriptions')
-    .update({ status: 'canceled', updated_at: new Date().toISOString() })
+    .update({ status: 'canceled', updated_at: now.toISOString() })
     .eq('id', sub.id);
 
   if (error) {
-    logger.warn('Failed to mark refunded subscription canceled', {
-      subscriptionId: sub.id,
-      error: error.message,
-    });
-  } else {
-    logger.info('Refund processed — user downgraded to developer', {
-      userId: sub.user_id,
-      subscriptionId: sub.id,
-    });
+    throw new Error(`Failed to mark refunded subscription canceled: ${error.message}`);
   }
+
+  // A refund for an older invoice must not erase a newer paid subscription.
+  // Re-apply the newest remaining active plan, falling back to Developer only
+  // when no paid subscription remains.
+  const { data: remaining, error: remainingError } = await client
+    .from('subscriptions')
+    .select('plan')
+    .eq('user_id', sub.user_id)
+    .eq('status', 'active')
+    .gte('current_period_end', now.toISOString())
+    .neq('id', sub.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (remainingError) {
+    throw new Error(`Failed to resolve remaining active subscription: ${remainingError.message}`);
+  }
+
+  const effectivePlan = normalizePlan(remaining?.plan);
+  await updateApiKeyPlanForUser(sub.user_id, effectivePlan);
+  logger.info('Refund processed — effective user plan recalculated', {
+    userId: sub.user_id,
+    subscriptionId: sub.id,
+    effectivePlan,
+  });
 }

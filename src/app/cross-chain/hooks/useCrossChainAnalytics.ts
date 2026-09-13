@@ -25,6 +25,8 @@ import {
 } from '@/lib/analytics/riskMetrics';
 import { calculateStability } from '@/lib/analytics/stabilityScore';
 import { chainColors } from '@/lib/constants';
+import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
+import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type Blockchain, type PriceData } from '@/types/oracle';
 
@@ -218,7 +220,44 @@ function buildHistorySnapshot(
   return snapshot;
 }
 
-export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAnalyticsResult {
+function mergeHistorySnapshots(
+  historicalPrices: Map<Blockchain, PriceData[]>,
+  sessionHistory: Map<string, ChainPriceHistoryEntry[]>
+): Map<string, ChainPriceHistoryEntry[]> {
+  const merged = new Map<string, ChainPriceHistoryEntry[]>();
+
+  for (const [chain, prices] of historicalPrices) {
+    const entries = prices
+      .filter((price) => Number.isFinite(price.price) && price.price > 0 && price.timestamp > 0)
+      .map((price) => ({
+        price: price.price,
+        timestamp: price.timestamp,
+        success: true,
+        confidence: price.confidence,
+        confidenceInterval: price.confidenceInterval,
+      }));
+    if (entries.length > 0) merged.set(chain, entries);
+  }
+
+  for (const [chain, entries] of sessionHistory) {
+    const combined = [...(merged.get(chain) ?? []), ...entries];
+    const unique = new Map<number, ChainPriceHistoryEntry>();
+    for (const entry of combined) {
+      unique.set(entry.timestamp, entry);
+    }
+    merged.set(
+      chain,
+      [...unique.values()].sort((a, b) => a.timestamp - b.timestamp).slice(-MAX_HISTORY_PER_CHAIN)
+    );
+  }
+
+  return merged;
+}
+
+export function useCrossChainAnalytics(
+  currentPrices: PriceData[],
+  historicalPrices: Map<Blockchain, PriceData[]> = new Map()
+): CrossChainAnalyticsResult {
   const priceHistoryRef = useRef<Map<string, ChainPriceHistoryEntry[]>>(new Map());
   const prevPricesKeyRef = useRef<string>('');
 
@@ -281,29 +320,33 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
     }
 
     try {
+      const analysisHistory = mergeHistorySnapshots(historicalPrices, historySnapshot);
       const chainNameList = chainPrices.map((p) => p.chain!);
       const totalChains = chainNameList.length;
       const equalShare = 100 / totalChains;
 
-      const oracleData = chainPrices.map((p) => ({
-        name: p.chain!,
-        share: equalShare,
-        color: (chainColors as Record<string, string>)[p.chain!] || '#888888',
-        tvs: 'N/A',
-        tvsValue: 0,
-        chains: 1,
-        protocols: 1,
-        avgLatency: 0,
-        accuracy: 95,
-        updateFrequency: getChainExpectedInterval(p.chain!),
-        change24h: p.change24h ?? 0,
-        change7d: 0,
-        change30d: 0,
-      }));
+      const oracleData = chainPrices.map((p) => {
+        const defaults = getProviderDefaults(p.provider);
+        return {
+          name: p.chain!,
+          share: equalShare,
+          color: (chainColors as Record<string, string>)[p.chain!] || '#888888',
+          tvs: defaults.tvs,
+          tvsValue: defaults.tvsValue,
+          chains: 1,
+          protocols: defaults.protocols,
+          avgLatency: defaults.responseTime,
+          accuracy: defaults.accuracy,
+          updateFrequency: getChainExpectedInterval(p.chain!),
+          change24h: p.change24h ?? 0,
+          change7d: 0,
+          change30d: 0,
+        };
+      });
 
       const priceHistoriesByProvider = new Map<string, number[]>();
       const priceHistoryTimestampsByProvider = new Map<string, number[]>();
-      for (const [chain, entries] of historySnapshot) {
+      for (const [chain, entries] of analysisHistory) {
         const validEntries = entries.filter((e) => e.success && e.price > 0);
         const prices = validEntries.map((e) => e.price);
         const timestamps = validEntries.map((e) => e.timestamp);
@@ -322,23 +365,27 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
       const oracleTimestamps = chainPrices.map((p) => ({
         name: p.chain!,
         timestamp: p.timestamp,
+        dataAgeSeconds: resolveOracleAgeSeconds(p),
       }));
 
       const manipulationResistanceData = chainPrices.map((p) => {
-        const expectedInterval = getChainExpectedInterval(p.chain!);
+        const defaults = getProviderDefaults(p.provider);
         return {
           name: p.chain!,
-          dataSources: 3,
-          updateFrequencySeconds: expectedInterval,
-          hasOnChainVerification: true,
-          aggregationMethod: 'median' as const,
+          dataSources: p.numOracles ?? defaults.dataSources,
+          updateFrequencySeconds: getChainExpectedInterval(p.chain!),
+          hasOnChainVerification: p.verification?.type === 'on-chain',
+          aggregationMethod: defaults.aggregationMethod,
         };
       });
 
-      const sharedDependencyData = chainPrices.map((p) => ({
-        name: p.chain!,
-        primaryDataSources: [p.provider],
-      }));
+      const sharedDependencyData = chainPrices.map((p) => {
+        const defaults = getProviderDefaults(p.provider);
+        return {
+          name: p.chain!,
+          primaryDataSources: [`provider:${p.provider}`, ...defaults.primaryDataSources],
+        };
+      });
 
       const riskMetrics = calculateRiskMetrics({
         oracleData,
@@ -358,7 +405,7 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
       const sharedScore = riskMetrics.sharedDependency.score;
 
       const historyMapForDivergence = buildHistoryMap(
-        historySnapshot,
+        analysisHistory,
         chainPrices,
         (entries) =>
           entries.map((e) => ({ price: e.price, timestamp: e.timestamp, success: e.success })),
@@ -392,7 +439,7 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
               : 'critical';
 
       const historyMapForFeed = buildHistoryMap(
-        historySnapshot,
+        analysisHistory,
         chainPrices,
         (entries) => [...entries],
         (p) => ({
@@ -413,7 +460,15 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         confidenceInterval: p.confidenceInterval,
       }));
 
-      const feedBehaviorResult = calculateFeedBehavior(feedPriceData, historyMapForFeed);
+      const expectedIntervals = new Map(
+        chainPrices.map((price) => [price.chain!, getChainExpectedInterval(price.chain!)])
+      );
+      const feedBehaviorResult = calculateFeedBehavior(
+        feedPriceData,
+        historyMapForFeed,
+        undefined,
+        expectedIntervals
+      );
 
       const feedHealthRiskScore = 100 - feedBehaviorResult.overallHealthAvg;
       const feedHealthRiskLevel: RiskLevel =
@@ -426,7 +481,7 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
               : 'critical';
 
       const historyMapForStability = buildHistoryMap(
-        historySnapshot,
+        analysisHistory,
         chainPrices,
         (entries) =>
           entries.map((e) => ({
@@ -646,5 +701,5 @@ export function useCrossChainAnalytics(currentPrices: PriceData[]): CrossChainAn
         chainCount: chainPrices.length,
       };
     }
-  }, [currentPrices, historySnapshot]);
+  }, [currentPrices, historicalPrices, historySnapshot]);
 }

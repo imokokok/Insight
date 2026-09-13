@@ -62,7 +62,7 @@ export const executionReceiptTool: McpToolDefinition<typeof ExecutionReceiptInpu
     });
 
     if (!result.ok) {
-      return `execution_receipt failed (${result.code}): ${result.message}`;
+      throw new Error(`execution_receipt failed (${result.code}): ${result.message}`);
     }
 
     // MCP is the surface agents actually gate on, so without the audit row we
@@ -75,7 +75,9 @@ export const executionReceiptTool: McpToolDefinition<typeof ExecutionReceiptInpu
         settlementChainId: args.settlementChainId,
       });
     } catch {
-      return 'execution_receipt failed (AUDIT_PERSISTENCE_FAILED): the signed receipt could not be durably stored; retry the request.';
+      throw new Error(
+        'execution_receipt failed (AUDIT_PERSISTENCE_FAILED): the signed receipt could not be durably stored; retry the request.'
+      );
     }
 
     const d = result.receipt.data;

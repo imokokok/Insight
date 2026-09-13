@@ -22,11 +22,12 @@ import {
 } from 'lucide-react';
 
 import { ApiKeyManager } from '@/components/api-keys';
-import { EditorialWorkspaceHeader } from '@/components/editorial';
+import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { DataAccessTierMatrix, PricingSection } from '@/components/pricing';
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { Button } from '@/components/ui/Button';
 import { useAppUrl } from '@/hooks/useAppUrl';
+import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useSession, useUser } from '@/stores/authStore';
 
 const FEATURES = [
@@ -214,7 +215,10 @@ function HeroSection() {
             ) : (
               <button
                 type="button"
-                onClick={() => router.push('/register?redirect=/api')}
+                onClick={() => {
+                  announceNavigationStart();
+                  router.push('/register?redirect=/api');
+                }}
                 className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
               >
                 <Play className="w-4 h-4" />
@@ -238,6 +242,14 @@ function HeroSection() {
           </div>
         }
       />
+      <EvidenceProcessRail
+        label="Request lifecycle"
+        items={[
+          { label: 'Authenticate', detail: 'Key · quota · scope' },
+          { label: 'Request evidence', detail: 'Endpoint · parameters' },
+          { label: 'Verify response', detail: 'Freshness · source · receipt' },
+        ]}
+      />
     </section>
   );
 }
@@ -258,12 +270,15 @@ function FeaturesSection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((feature) => (
+        <div className="developer-capability-ledger grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map((feature, featureIndex) => (
             <div
               key={feature.title}
-              className="border-b border-r border-slate-900/10 bg-white/35 p-6 transition-colors hover:bg-blue-50/35"
+              className="developer-capability-card border-b border-r border-slate-900/10 bg-white/35 p-6 transition-colors hover:bg-blue-50/35"
             >
+              <span className="developer-record-index">
+                E—{String(featureIndex + 1).padStart(2, '0')}
+              </span>
               <div className="mb-4 flex h-9 w-9 items-center justify-center border border-blue-200 bg-blue-50 text-blue-600">
                 <feature.icon className="w-5 h-5" />
               </div>
@@ -282,7 +297,7 @@ function QuickStartSection() {
   const codeExamples = getCodeExamples(useAppUrl());
 
   return (
-    <section className="border-y border-slate-900/10 bg-white/45 py-14 sm:py-20">
+    <section className="developer-console border-y border-slate-900/10 bg-white/45 py-14 sm:py-20">
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div>
@@ -296,7 +311,7 @@ function QuickStartSection() {
 
             <div className="space-y-6">
               {STEPS.map((item) => (
-                <div key={item.step} className="flex gap-4">
+                <div key={item.step} className="developer-sequence-step flex gap-4">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-blue-200 bg-blue-50 font-mono text-sm font-bold text-blue-700">
                     {item.step}
                   </div>
@@ -309,7 +324,7 @@ function QuickStartSection() {
             </div>
           </div>
 
-          <div>
+          <div className="developer-terminal">
             <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
               {(['curl', 'js', 'ts', 'python'] as const).map((lang) => (
                 <button
@@ -355,11 +370,11 @@ function KeyManagerSection() {
         </div>
 
         {user && session?.access_token ? (
-          <div className="mx-auto max-w-4xl border-y border-slate-900/15 bg-white/45 p-6 md:p-8">
+          <div className="developer-access-vault mx-auto max-w-4xl border-y border-slate-900/15 bg-white/45 p-6 md:p-8">
             <ApiKeyManager accessToken={session.access_token} />
           </div>
         ) : (
-          <div className="mx-auto max-w-xl border-y border-slate-900/15 bg-white/45 p-8 text-center">
+          <div className="developer-access-vault mx-auto max-w-xl border-y border-slate-900/15 bg-white/45 p-8 text-center">
             <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 mx-auto mb-4">
               <Lock className="w-6 h-6" />
             </div>
@@ -368,8 +383,21 @@ function KeyManagerSection() {
               Create an account to generate your API key and start building.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={() => router.push('/register?redirect=/api')}>Create account</Button>
-              <Button variant="secondary" onClick={() => router.push('/login?redirect=/api')}>
+              <Button
+                onClick={() => {
+                  announceNavigationStart();
+                  router.push('/register?redirect=/api');
+                }}
+              >
+                Create account
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  announceNavigationStart();
+                  router.push('/login?redirect=/api');
+                }}
+              >
                 Sign in
               </Button>
             </div>
@@ -388,11 +416,11 @@ function FaqSection() {
         <h2 className="mb-10 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
           Frequently asked questions
         </h2>
-        <div className="space-y-4">
+        <div className="developer-faq-ledger space-y-0 border-y border-slate-900/15">
           {FAQ_ITEMS.map((item, idx) => (
             <div
               key={idx}
-              className="border-b border-slate-900/10 bg-transparent p-6 transition-colors hover:bg-slate-50"
+              className="developer-faq-record border-b border-slate-900/10 bg-transparent p-6 transition-colors last:border-b-0 hover:bg-slate-50"
             >
               <h3 className="font-bold text-slate-900 mb-2">{item.q}</h3>
               <p className="text-sm text-slate-600 leading-relaxed">{item.a}</p>
@@ -406,7 +434,7 @@ function FaqSection() {
 
 function DocsCtaSection() {
   return (
-    <section className="border-t border-slate-900/15 bg-blue-50/55 py-14 sm:py-20">
+    <section className="developer-cta-record border-t border-slate-900/15 bg-blue-50/55 py-14 sm:py-20">
       <div className="mx-auto max-w-4xl px-5 text-center sm:px-8">
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Ready to integrate?</h2>
         <p className="mx-auto mb-8 max-w-2xl text-lg text-slate-600">
@@ -455,7 +483,7 @@ function PricingSectionBlock() {
 
 export function ApiPageContent() {
   return (
-    <div className="editorial-workspace min-h-screen">
+    <div className="editorial-workspace evidence-workbench developer-workbench api-workbench min-h-screen">
       <HeroSection />
       <FeaturesSection />
       <QuickStartSection />

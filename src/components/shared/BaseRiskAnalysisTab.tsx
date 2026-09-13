@@ -111,15 +111,15 @@ const LABELS: Record<'oracle' | 'chain', Record<string, string>> = {
   chain: {
     headerTitle: 'Cross-Chain Risk Analysis',
     countLabel: 'Chain Count',
-    hhiTitle: 'Chain Concentration (HHI)',
+    hhiTitle: 'Chain Coverage Concentration (HHI)',
     hhiDescription:
-      'Herfindahl-Hirschman Index measuring price concentration across chains. Lower is more balanced.',
+      'Herfindahl-Hirschman Index over equally weighted successful chain observations. Lower means broader observed coverage.',
     hhiThresholdLow: 'Balanced',
     diversificationTitle: 'Concentration Risk',
     diversificationDescription:
       'Risk from insufficient chain diversity. Low diversification means single-chain failures have greater impact.',
     diversificationComposition:
-      'Chain Diversity (30%) · Protocol Diversity (40%) · Asset Diversity (30%)',
+      'Observed chain coverage plus configured provider-level protocol and asset baselines',
     volatilityTitle: 'Cross-Chain Volatility Index',
     volatilityDescription:
       'Price volatility across chains based on log returns. Higher values indicate greater inter-chain price instability.',
@@ -210,7 +210,8 @@ function BaseRiskAnalysisTabComponent({ mode, riskMetrics }: BaseRiskAnalysisTab
             Comprehensive risk assessment: 7 weighted dimensions (market concentration,
             diversification, volatility, correlation, data freshness, manipulation resistance,
             shared dependency) + 3 tracked dimensions (divergence acceleration, feed behavior,
-            stability decay). Based on accumulated polled data (up to 24h window).
+            stability decay). Temporal dimensions use available historical samples; structural
+            dimensions use configured provider baselines.
           </p>
         </div>
         <div className="text-right">

@@ -44,7 +44,9 @@ export function SectionCard({
   className?: string;
 }) {
   return (
-    <section className={cn('border-y border-slate-900/15 bg-white/45', className)}>
+    <section
+      className={cn('report-section-card border-y border-slate-900/15 bg-white/45', className)}
+    >
       <div className="flex items-center gap-2 border-b border-slate-900/10 px-5 py-4">
         <Icon className="w-4 h-4 text-blue-600" />
         <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
@@ -71,7 +73,9 @@ export function CollapsibleSummarySection({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className={cn('border-y border-slate-900/15 bg-white/45', className)}>
+    <section
+      className={cn('report-collapsible border-y border-slate-900/15 bg-white/45', className)}
+    >
       <div className="flex items-center gap-2 border-b border-slate-900/10 px-5 py-4">
         <Icon className="w-4 h-4 text-blue-600" />
         <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
@@ -122,7 +126,7 @@ export function MetricCard({
   }[tone];
 
   return (
-    <div className="border-b border-r border-slate-900/10 bg-white/35 p-5 last:border-r-0 lg:border-b-0">
+    <div className="report-daily-metric border-b border-r border-slate-900/10 bg-white/35 p-5 last:border-r-0 lg:border-b-0">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs text-gray-500 mb-1">{label}</p>
@@ -178,7 +182,7 @@ export function KeyTakeaways({ report }: { report: DailyReportData }) {
   const maxItems = report.metrics.criticalEvents > 0 || report.metrics.highEvents > 0 ? 5 : 3;
 
   return (
-    <div className="border-y border-slate-900/15 bg-white/45 p-5">
+    <div className="report-takeaways border-y border-slate-900/15 bg-white/45 p-5">
       <div className="flex items-center gap-2 mb-4">
         <Lightbulb className="w-4 h-4 text-amber-500" />
         <h2 className="text-sm font-semibold text-gray-900">Key takeaways</h2>

@@ -1,5 +1,4 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { DIA_API_BASE_URL } from '@/lib/oracles/diaUtils';
 import { diaPriceService } from '@/lib/oracles/services/diaPriceService';
@@ -19,12 +18,6 @@ export class DIAClient extends BaseOracleClient {
   ];
 
   supportedSymbolsList = diaSymbols;
-
-  defaultUpdateIntervalMinutes = 5;
-
-  constructor(config?: OracleClientConfig) {
-    super(config);
-  }
 
   async getPrice(
     symbol: string,

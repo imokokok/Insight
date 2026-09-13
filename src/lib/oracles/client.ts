@@ -15,5 +15,3 @@
  */
 
 export { extractBaseSymbol } from './utils/oracleDataUtils';
-export type { IOracleClient, IOracleClientFactory } from './interfaces';
-export type { BaseOracleClient } from './base';

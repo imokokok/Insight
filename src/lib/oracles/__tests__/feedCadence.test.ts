@@ -1,39 +1,10 @@
 import {
-  percentile,
   isCadenceStale,
   isCadenceCautionEnabled,
   CAUTION_STALE_MULTIPLIER,
   STALE_FLOOR_SECONDS,
   HARD_STALE_BLOCK_SECONDS,
 } from '@/lib/oracles/feedCadence';
-
-describe('percentile', () => {
-  it('returns 0 for empty input', () => {
-    expect(percentile([], 0.9)).toBe(0);
-  });
-
-  it('returns the only element for a single value', () => {
-    expect(percentile([42], 0.9)).toBe(42);
-  });
-
-  it('computes p90 on sorted ranks (no interpolation)', () => {
-    // 11 elements -> rank 9 (0-indexed) = the 10th element
-    const vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-    expect(percentile(vals, 0.9)).toBe(10);
-  });
-
-  it('linearly interpolates between ranks', () => {
-    // 10 elements -> rank 8.1 -> between sorted[8]=9 and sorted[9]=10 => 9.1
-    const vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    expect(percentile(vals, 0.9)).toBeCloseTo(9.1, 5);
-  });
-
-  it('does not mutate the input array', () => {
-    const vals = [3, 1, 2];
-    percentile(vals, 0.5);
-    expect(vals).toEqual([3, 1, 2]);
-  });
-});
 
 describe('isCadenceCautionEnabled', () => {
   const prev = process.env.ENABLE_CADENCE_CAUTION;

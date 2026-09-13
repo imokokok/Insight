@@ -4,15 +4,20 @@ import { z } from 'zod';
 
 import { createApiHandler, createOptionsHandler, V1_STANDARD_MIDDLEWARES } from '@/lib/api/handler';
 import { handleGetHistoricalPrices } from '@/lib/api/oracleHandlers';
-import { SafeProviderSchema, SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
+import {
+  SafeBooleanQuerySchema,
+  SafeProviderSchema,
+  SafeSymbolSchema,
+  SafeChainSchema,
+} from '@/lib/security/validation';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
 const SafePeriodSchema = z
   .union([z.string(), z.number()])
   .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
   .refine(
-    (val) => !isNaN(val) && val >= 1 && val <= 8760,
-    'Period must be between 1 and 8760 hours (1 year)'
+    (val) => !isNaN(val) && val >= 1 && val <= 2160,
+    'Period must be between 1 and 2160 hours (90 days)'
   );
 
 const V1HistoryQuerySchema = z.object({
@@ -20,7 +25,7 @@ const V1HistoryQuerySchema = z.object({
   symbol: SafeSymbolSchema,
   chain: SafeChainSchema.optional(),
   period: SafePeriodSchema,
-  forceRefresh: z.coerce.boolean().optional(),
+  forceRefresh: SafeBooleanQuerySchema.optional(),
 });
 
 export const OPTIONS = createOptionsHandler();

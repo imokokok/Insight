@@ -19,7 +19,8 @@
  *   expired / failed            → mark canceled (only if still incomplete —
  *                                 guards against out-of-order expired arriving
  *                                 after a confirmed/finished)
- *   refunded                    → downgrade to developer + mark canceled
+ *   refunded                    → cancel that row + recalculate the user's
+ *                                 effective plan from remaining subscriptions
  *
  * The per-status handlers live in src/lib/billing/subscriptionLifecycle.ts so
  * the reconciliation endpoint (/api/billing/reconcile) can re-run the exact
@@ -46,8 +47,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getMaxRequestBytes, rejectOversizedRequest } from '@/lib/api/requestLimits';
 import { parseIpnEvent } from '@/lib/billing/nowpayments';
 import {
-  getString,
-  getStringField,
   handlePartiallyPaid,
   handlePaymentConfirmed,
   handlePaymentExpiredOrFailed,
@@ -58,8 +57,6 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('nowpayments-webhook');
-
-export { getString, getStringField };
 
 const WEBHOOK_PROVIDER = 'nowpayments';
 
@@ -74,12 +71,15 @@ async function acquireWebhookEvent(
   event: { id: string; type: string },
   payload: string
 ): Promise<'completed' | 'retry'> {
-  const { data: existing } = await client
+  const { data: existing, error: lookupError } = await client
     .from('processed_webhook_events')
     .select('status, attempts')
     .eq('provider', WEBHOOK_PROVIDER)
     .eq('event_id', event.id)
     .maybeSingle();
+  if (lookupError) {
+    throw new Error(`Failed to read webhook idempotency ledger: ${lookupError.message}`);
+  }
 
   if (existing?.status === 'completed') {
     logger.debug('Webhook event already processed, skipping', {
@@ -102,10 +102,7 @@ async function acquireWebhookEvent(
       .eq('event_id', event.id);
 
     if (updateError) {
-      logger.warn('Failed to update webhook event attempts', {
-        eventId: event.id,
-        error: updateError.message,
-      });
+      throw new Error(`Failed to acquire webhook retry lease: ${updateError.message}`);
     }
     return 'retry';
   }
@@ -136,19 +133,19 @@ async function acquireWebhookEvent(
   if (insertError) {
     // Race condition: another worker inserted it. Re-check status.
     if (insertError.code === '23505') {
-      const { data: raceExisting } = await client
+      const { data: raceExisting, error: raceError } = await client
         .from('processed_webhook_events')
         .select('status')
         .eq('provider', WEBHOOK_PROVIDER)
         .eq('event_id', event.id)
         .single();
+      if (raceError) {
+        throw new Error(`Failed to resolve concurrent webhook event: ${raceError.message}`);
+      }
       return raceExisting?.status === 'completed' ? 'completed' : 'retry';
     }
 
-    logger.warn('Failed to record webhook event, proceeding without idempotency', {
-      eventId: event.id,
-      error: insertError.message,
-    });
+    throw new Error(`Failed to record webhook event: ${insertError.message}`);
   }
 
   return 'retry';
@@ -165,10 +162,7 @@ async function completeWebhookEvent(
     .eq('event_id', eventId);
 
   if (error) {
-    logger.warn('Failed to mark webhook event as completed', {
-      eventId,
-      error: error.message,
-    });
+    throw new Error(`Failed to mark webhook event completed: ${error.message}`);
   }
 }
 
@@ -211,11 +205,16 @@ export async function POST(request: NextRequest) {
   const client = createServiceRoleClient();
   const data = event.data as IpnData;
 
-  const acquireResult = await acquireWebhookEvent(
-    client,
-    { id: eventId, type: event.type },
-    payload
-  );
+  let acquireResult: 'completed' | 'retry';
+  try {
+    acquireResult = await acquireWebhookEvent(client, { id: eventId, type: event.type }, payload);
+  } catch (error) {
+    logger.error('Webhook idempotency ledger unavailable', normalizeError(error), {
+      eventType: event.type,
+      eventId,
+    });
+    return NextResponse.json({ error: 'Webhook ledger unavailable' }, { status: 500 });
+  }
   if (acquireResult === 'completed') {
     return NextResponse.json({ received: true });
   }

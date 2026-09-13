@@ -1,5 +1,4 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
-import type { OracleClientConfig } from '@/lib/oracles/base';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import {
   isPriceFeedSupported as isPriceFeedSupportedSync,
@@ -88,11 +87,10 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.BASE,
   ];
 
-  defaultUpdateIntervalMinutes = 60;
   private useRealData: boolean;
 
-  constructor(config?: OracleClientConfig & { useRealData?: boolean }) {
-    super(config);
+  constructor(config?: { useRealData?: boolean }) {
+    super();
     this.useRealData = config?.useRealData ?? true;
   }
 

@@ -1,0 +1,34 @@
+VERITAS round-7 closure acceptance, 2026-09-09
+
+1. Closure verifier
+   command: node scripts/veritas-joint-run/verify-veritas-round7-closure.mjs
+   result: PASS 25 / FAIL 0
+
+2. Focused Jest
+   command: npm test -- --runInBand src/lib/attestations/__tests__/providerObservationsHash.test.ts src/app/.well-known/oracle-keys.json/__tests__/route.test.ts src/app/.well-known/provider-observations-hash-vector-v1.json/__tests__/route.test.ts
+   result: 3 suites passed / 22 tests passed / 0 failed
+
+3. Full Jest
+   command: npm test -- --runInBand
+   result: 164 suites passed / 1 skipped; 1840 tests passed / 1 skipped / 0 failed
+
+4. TypeScript
+   command: npm run typecheck
+   result: exit 0
+   command: npm run typecheck:scripts
+   result: exit 0
+
+5. Lint
+   command: npm run lint
+   result: exit 0
+
+6. Mainline protocol governance
+   command: npm run protocol:check
+   result: exit 0; 9 immutable partner policies; activation id 0xe125edc38c0e89a4368203c0831728116a4430c329204fe4cc5db6144f8f4469
+
+7. Diff hygiene
+   command: git diff --check
+   result: exit 0
+
+No Ethereum commitment transaction was broadcast. The ordering vector uses obvious placeholder
+Bitcoin values and is for byte-level agreement before the funded joint run.
