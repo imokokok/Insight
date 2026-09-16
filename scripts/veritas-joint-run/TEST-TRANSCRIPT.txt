@@ -1,34 +1,35 @@
-VERITAS round-7 closure acceptance, 2026-09-09
+Insight / VERITAS round-9 run-readiness acceptance
+2026-09-16
 
-1. Closure verifier
-   command: node scripts/veritas-joint-run/verify-veritas-round7-closure.mjs
-   result: PASS 25 / FAIL 0
+Focused artifacts
+  node --check build-joint-run-commitments.mjs                 exit 0
+  node --check verify-veritas-round9-run-readiness.mjs        exit 0
+  round-9 readiness verifier                                  74 PASS / 0 FAIL
+  round-8 publication-closure regression                      37 PASS / 0 FAIL
+  round-7 closure regression                                  25 PASS / 0 FAIL
+  deterministic builder                                       exit 0
+    selectionRuleHash 0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a
+    Bitcoin preimage 409 bytes
+    Bitcoin anchor leaf a9035d310ff0345d2f7e8906544b972eba7438e128407b09f774a227ecc88f21
+    Ethereum fixture preimage 633 bytes
+    orderingCommitmentHash 0xa9ae993af4ea7733eb3d6f524c9b8eb90cb382e56c886b3361df16b5b7a72c2e
 
-2. Focused Jest
-   command: npm test -- --runInBand src/lib/attestations/__tests__/providerObservationsHash.test.ts src/app/.well-known/oracle-keys.json/__tests__/route.test.ts src/app/.well-known/provider-observations-hash-vector-v1.json/__tests__/route.test.ts
-   result: 3 suites passed / 22 tests passed / 0 failed
+Repository acceptance
+  npm run validate                                            exit 0
+    protocol governance                                       OK
+      10 immutable partner policies
+      activation 0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190
+    lint                                                      exit 0
+    main typecheck                                            exit 0
+    scripts typecheck                                         exit 0
+    Jest                                                      191 passed / 1 skipped suites
+                                                              1944 passed / 1 skipped tests
+                                                              0 failed
+    knip                                                      exit 0
+      three existing configuration hints only
+  npm run format:check                                        exit 0
+  git diff --check                                            exit 0
 
-3. Full Jest
-   command: npm test -- --runInBand
-   result: 164 suites passed / 1 skipped; 1840 tests passed / 1 skipped / 0 failed
-
-4. TypeScript
-   command: npm run typecheck
-   result: exit 0
-   command: npm run typecheck:scripts
-   result: exit 0
-
-5. Lint
-   command: npm run lint
-   result: exit 0
-
-6. Mainline protocol governance
-   command: npm run protocol:check
-   result: exit 0; 9 immutable partner policies; activation id 0xe125edc38c0e89a4368203c0831728116a4430c329204fe4cc5db6144f8f4469
-
-7. Diff hygiene
-   command: git diff --check
-   result: exit 0
-
-No Ethereum commitment transaction was broadcast. The ordering vector uses obvious placeholder
-Bitcoin values and is for byte-level agreement before the funded joint run.
+State
+  No Bitcoin or Ethereum transaction was broadcast.
+  Source changes remain local: not committed, pushed or deployed.

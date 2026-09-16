@@ -2,8 +2,29 @@
   "schema": "insight-veritas-joint-run-final-package-requirements/v1",
   "purpose": "Pin the reorg handling and public claim boundaries for every selected or aborted joint-run attempt",
   "appliesToSelectionRule": "insight-veritas-anchored-settlement-selection/v2",
-  "selectionRuleHash": "0x235412e8e128956b716eb6fb0a256dae0acfc8504527c217cb45b780a6dc3b29",
+  "selectionRuleHash": "0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a",
   "publicationTiming": "Apply immediately before publishing the final package for an attempt",
+  "bitcoinAnchorEvidence": {
+    "requiredFields": [
+      "bitcoinAnchorPreimage",
+      "bitcoinAnchorLeafTag",
+      "bitcoinAnchorLeafHash",
+      "bitcoinAnchorTransactionId",
+      "bitcoinConfirmingBlockHeight",
+      "bitcoinConfirmingBlockHash"
+    ],
+    "prePublicationCanonicalityCheck": "Fetch bitcoinAnchorTransactionId from the canonical Bitcoin chain and require it to remain confirmed at bitcoinConfirmingBlockHeight with bitcoinConfirmingBlockHash",
+    "onMissingUnconfirmedOrMismatchedBlock": {
+      "attemptOutcome": "ABORT",
+      "reasonCode": "BITCOIN_CONFIRMING_BLOCK_REORGED_OUT",
+      "mustPublishAbort": true,
+      "mustPublishOriginalConfirmationFields": true,
+      "mustPublishCurrentCanonicalOrReMinedLocationWhenAvailable": true,
+      "mustPublishEveryBitcoinAnchorTxid": true,
+      "mustPublishEveryEthereumCommitmentTxid": true
+    },
+    "postPublicationRecheck": "A later Bitcoin confirmation height/hash mismatch is reported as REORG_DETECTED; the original package must not be silently rewritten"
+  },
   "ethereumOrderingEvidence": {
     "requiredFields": [
       "ethereumOrderingPreimage",

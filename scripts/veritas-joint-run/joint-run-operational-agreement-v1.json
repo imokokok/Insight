@@ -1,0 +1,47 @@
+{
+  "schema": "insight-veritas-joint-run-operational-agreement/v1",
+  "agreedAt": "2026-09-16",
+  "selectionRuleFile": "anchored-settlement-selection-rule-v2.json",
+  "selectionRuleHash": "0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a",
+  "scheduledWindow": {
+    "startsAt": "2026-09-18T12:00:00Z",
+    "durationSeconds": 3600,
+    "insightLocalTime": "2026-09-18T20:00:00+08:00",
+    "veritasLocalTimeAsProposed": "2026-09-18T08:00:00-04:00",
+    "plannedAttempts": "two to three"
+  },
+  "submissionRoles": {
+    "bitcoinAnchorSender": "VERITAS",
+    "ethereumOrderingSender": "VERITAS",
+    "ethereumOrderingSenderAddress": "0xBdaC9fe3E7c610665b5DdB09041A7DEA1241C2C0",
+    "proofScopeNote": "The sender identity does not change what the committed bytes and inclusion evidence prove.",
+    "insightResponsibilities": [
+      "Provide the signed source and destination gates and their shared commitment fields",
+      "Run the pinned deterministic builder before the window against the literal vectors",
+      "Independently verify every published preimage, hash, transaction and inclusion fact after submission",
+      "Require any byte mismatch or canonicality failure to be published as an abort"
+    ]
+  },
+  "runtimeCoordination": {
+    "humanRoundTripInsideGateWindow": false,
+    "senderMaySubmitImmediatelyAfterBitcoinConfirmation": true,
+    "otherPartyVerificationMode": "POST_SUBMISSION_INDEPENDENT_RECOMPUTATION",
+    "mismatchOutcome": "PUBLISHED_ABORT"
+  },
+  "preBroadcastGates": [
+    "F17 canonical EIP-55 address fix and complete dependent-byte repin",
+    "N19 symmetric Bitcoin and Ethereum pre-publication canonicality checks",
+    "N20 explicit Bitcoin prefix, case and display-order types plus asymmetric literals",
+    "N22 byte agreement on the five-field Bitcoin preimage and VRT1/anchored-settlement-commitment leaf tag",
+    "Both pinned deterministic builders reproduce the shipped Bitcoin and Ethereum vectors",
+    "Live Bitcoin UTXO, Ethereum balance, nonce and fee conditions are rechecked",
+    "After the real gate fields exist, both parties independently recompute the same preimages before the first broadcast, without an in-window human round trip"
+  ],
+  "standing": [
+    "No transaction is authorized before every preBroadcastGate is satisfied",
+    "Not anchored until a real attempt is broadcast and included",
+    "Not a VERITAS integration",
+    "Verification is not endorsement",
+    "The ordering proof does not prove the Insight verdict correct, checkedAt accurate or extend gate freshness"
+  ]
+}

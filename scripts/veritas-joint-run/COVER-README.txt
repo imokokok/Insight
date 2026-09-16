@@ -1,51 +1,77 @@
-Insight / VERITAS round-7 closure package
-2026-09-09
+Insight / VERITAS round-9 joint-run readiness package
+2026-09-16
 
 PURPOSE
-  Close N15 and replace the invalid Bitcoin-header-time comparison before the joint run.
-  No signed receipt layout and no registered 600-second gate window changed.
+  Close F17 and N19 through N22 before the funded joint run. No signed receipt layout,
+  registered 600-second window, venue, direction, 0.1 WETH threshold, first-match rule
+  or outcome-independent publication rule changed. Nothing in this package broadcasts.
 
 DECISIONS
-  1. provider observation value remains uint256, as it has been in the canonical issuer
-     implementation and Insight's round-6 verifier. VERITAS's int256 verifier reproduced the
-     positive round-6 entries because non-negative int256 and uint256 ABI encodings are identical.
-     The full seven-field ABI is now public, and the negative-value rejection vector makes the
-     distinction testable.
-  2. Use the preferred on-Ethereum ordering commitment, not the no-gas fallback. After the Bitcoin
-     anchor confirms, the Ethereum commitment preimage binds the confirming Bitcoin block hash,
-     both gate UIDs, preTradeUidsHash and selectionRuleHash. Its hash is posted in a successful
-     zero-value Ethereum self-transaction at block E. The selected candidate must have
-     blockNumber > E. No cross-chain timestamp comparison remains.
-  3. Keep the 0.1 WETH threshold and plan for two to three attempts.
+  1. F17: destinationTokenAddress now uses canonical EIP-55. The complete rule and all
+     dependent bytes were repinned. Strict validation rejects the round-8 spelling.
+  2. N22: accept the proposed five-field Bitcoin preimage under schema
+     insight-veritas-bitcoin-anchor-commitment/v1 and leaf tag
+     VRT1/anchored-settlement-commitment. The literal preimage is 409 UTF-8 bytes.
+  3. N20: Bitcoin txids and block hashes are lowercase 32-byte hex, without 0x, in
+     Bitcoin display order. The ordering vector now uses asymmetric published historical
+     facts whose case and byte order are observable.
+  4. N19: immediately before final-package publication, re-fetch the Bitcoin anchor by
+     txid and require its canonical confirming height/hash to match. A missing,
+     unconfirmed or mismatched anchor aborts as BITCOIN_CONFIRMING_BLOCK_REORGED_OUT and
+     publishes the original fields, the current location when available and all txids.
+  5. N21: accept VERITAS as sender of both commitment legs. Both parties pin deterministic
+     builders before the window; VERITAS submits immediately after confirmation without a
+     human round trip, and Insight independently recomputes afterwards. A mismatch is a
+     published abort.
+  6. Select the one-hour window beginning 2026-09-18 12:00 UTC (20:00 in China).
+
+PINNED BYTES
+  selectionRuleHash
+    0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a
+  Bitcoin anchor leaf
+    a9035d310ff0345d2f7e8906544b972eba7438e128407b09f774a227ecc88f21
+  fixture orderingCommitmentHash
+    0xa9ae993af4ea7733eb3d6f524c9b8eb90cb382e56c886b3361df16b5b7a72c2e
 
 FILES
+  README-JOINT-RUN.txt
+    Repository-facing documentation, current pins and builder usage.
   anchored-settlement-selection-rule-v2.json
-    Complete replacement selection rule.
+    F17 correction plus N19/N20/N21/N22 protocol text.
+  bitcoin-anchor-commitment-vector-v1.json
+    Accepted five-field Bitcoin preimage and tagged-hash leaf.
   ethereum-ordering-commitment-vector-v1.json
-    RFC 8785 byte-exact example with obvious placeholder Bitcoin fields; not for broadcast.
+    Encoding-discriminating Bitcoin fields and repinned Ethereum commitment.
+  build-joint-run-commitments.mjs.txt
+    Insight deterministic builder. Restore .mjs before running.
+  joint-run-final-package-requirements-v1.json
+    Symmetric Bitcoin/Ethereum canonicality and N18 claim boundaries.
+  joint-run-operational-agreement-v1.json
+    Selected date, sender roles, mechanical coordination and pre-broadcast gates.
   provider-observation-hash-vector-v1.json
-    Complete ABI, literal positive encoding/hash and negative uint256 rejection vector.
+    N15 regression dependency.
+  verify-veritas-round9-run-readiness.mjs.txt
+    Standalone readiness verifier. Restore .mjs before running.
+  verify-veritas-round8-publication-closure.mjs.txt
   verify-veritas-round7-closure.mjs.txt
-    Independent verifier; restore the final extension to .mjs before running.
+    Historical closure verifiers retained as 37/37 and 25/25 regression paths.
+  BUILDER-OUTPUT.txt
+    Deterministic builder output for the shipped vectors.
   VERIFICATION-OUTPUT.txt
-    Shipped verifier transcript, 25/25.
+    Shipped round-9 verifier transcript.
   TEST-TRANSCRIPT.txt
-    Focused and full repository acceptance results.
-  SOURCE-CHANGES.patch.txt
-    Tracked implementation and public-descriptor changes.
-  PUBLIC-VECTOR-ROUTE.patch.txt
-    New public vector route and route test.
-  ROUND6-REVIEW-NOTES.txt
-    The two record-level discrepancies found while independently reviewing the received r6 zip.
+    Regression and repository acceptance results.
   SHA256SUMS.txt
-    Hash of every other file in this package.
+    SHA-256 of every other file in this package.
 
 RUN
   npm install canonicalize@4 viem@2
-  cp verify-veritas-round7-closure.mjs.txt verify-veritas-round7-closure.mjs
-  node verify-veritas-round7-closure.mjs
+  cp build-joint-run-commitments.mjs.txt build-joint-run-commitments.mjs
+  cp verify-veritas-round9-run-readiness.mjs.txt verify-veritas-round9-run-readiness.mjs
+  node verify-veritas-round9-run-readiness.mjs
+  node build-joint-run-commitments.mjs
 
 STANDING
-  This package is not anchored, is not a VERITAS integration and is not an endorsement in either
-  direction. Bitcoin supplies durable existence evidence; the Ethereum commitment supplies the
-  short-horizon ordering proof. Neither proves the Insight verdict correct or extends freshness.
+  Not anchored until a real attempt is broadcast and included. Not a VERITAS
+  integration. Not an endorsement in either direction. These artifacts do not prove
+  the Insight verdict correct, prove checkedAt accurate or extend gate freshness.

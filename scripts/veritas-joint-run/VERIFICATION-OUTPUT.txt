@@ -1,32 +1,93 @@
-== Selection rule v2: no cross-chain clock ==
-PASS  rule schema is v2  (insight-veritas-anchored-settlement-selection/v2)
+== F17: canonical committed addresses ==
+PASS  pool address is valid
+PASS  pool address uses canonical EIP-55 casing  (0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640)
+PASS  WETH address is valid
+PASS  WETH address uses canonical EIP-55 casing  (0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2)
+PASS  USDC address is valid
+PASS  USDC address uses canonical EIP-55 casing  (0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48)
+PASS  USDC is the corrected canonical string
+PASS  rule validator rejects the round-8 USDC spelling  (direction.destinationTokenAddress must be a valid EVM address)
+
+== Selection rule invariants and repin ==
+PASS  rule schema remains v2  (insight-veritas-anchored-settlement-selection/v2)
 PASS  registered gate window remains 600 seconds
 PASS  minimum source leg remains 0.1 WETH
-PASS  Bitcoin header timestamp is not an ordering predicate
-PASS  candidate ordering is same-chain blockNumber > E
-PASS  ordering preimage declares sourceGateUid
-PASS  ordering preimage declares destinationGateUid
-PASS  ordering preimage declares preTradeUidsHash
-PASS  ordering preimage declares selectionRuleHash
-PASS  ordering preimage declares bitcoinAnchorTxid
-PASS  ordering preimage declares bitcoinConfirmingBlockHeight
-PASS  ordering preimage declares bitcoinConfirmingBlockHash
-PASS  retry requires new gate, Bitcoin anchor and Ethereum commitment
-PASS  aborted Bitcoin and Ethereum txids are both published
+PASS  cross-chain timestamp predicate remains null
+PASS  candidate ordering remains blockNumber > E
+PASS  Bitcoin vector pins the recomputed rule hash  (0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a)
+PASS  ordering vector pins the recomputed rule hash
+PASS  final-package requirements pin the recomputed rule hash
+PASS  operational agreement pins the recomputed rule hash
 
-== Ethereum ordering commitment literal vector ==
-PASS  selectionRuleHash recomputes from RFC 8785 bytes
-PASS  selectionRuleHash is bound inside the ordering preimage
-PASS  canonical preimage string is literal
-PASS  canonical preimage hex is literal
-PASS  orderingCommitmentHash recomputes
-PASS  Ethereum transaction carries exactly the 32-byte commitment hash
+== N22: five-field Bitcoin anchor preimage and tagged leaf ==
+PASS  Bitcoin preimage field list is exact
+PASS  Bitcoin schema is agreed v1
+PASS  Bitcoin leaf tag is protocol-distinct
+PASS  builder reproduces the literal Bitcoin preimage
+PASS  builder reproduces the literal Bitcoin canonical string
+PASS  builder reproduces the literal Bitcoin canonical hex
+PASS  Bitcoin preimage is 409 UTF-8 bytes
+PASS  tagged SHA-256 anchor leaf reproduces
+PASS  Bitcoin preimage excludes sequential-handshake fields
+PASS  pre-confirmation builder does not invent Ethereum facts
 
-== Provider observation ABI and literal vectors ==
-PASS  all seven ABI types are explicit
-PASS  literal encoded entry reproduces
-PASS  literal entry hash reproduces
-PASS  literal providerObservationsHash reproduces
-PASS  negative value rejects under uint256
+== N20: explicit and encoding-discriminating Bitcoin fields ==
+PASS  bitcoinAnchorTxid type requires lowercase
+PASS  bitcoinAnchorTxid type forbids 0x
+PASS  bitcoinAnchorTxid type fixes Bitcoin display order
+PASS  bitcoinAnchorTxid fixture is bare lowercase 32-byte hex
+PASS  bitcoinAnchorTxid fixture contains letters
+PASS  bitcoinAnchorTxid fixture changes under byte reversal
+PASS  bitcoinConfirmingBlockHash type requires lowercase
+PASS  bitcoinConfirmingBlockHash type forbids 0x
+PASS  bitcoinConfirmingBlockHash type fixes Bitcoin display order
+PASS  bitcoinConfirmingBlockHash fixture is bare lowercase 32-byte hex
+PASS  bitcoinConfirmingBlockHash fixture contains letters
+PASS  bitcoinConfirmingBlockHash fixture changes under byte reversal
+PASS  reversing both Bitcoin fields moves orderingCommitmentHash
+PASS  builder rejects a Bitcoin txid with 0x  (bitcoinAnchorTxid must be 32-byte lowercase hex without 0x in Bitcoin display order)
+PASS  builder rejects uppercase Bitcoin hex  (bitcoinConfirmingBlockHash must be 32-byte lowercase hex without 0x in Bitcoin display order)
 
-SUMMARY  PASS 25  FAIL 0
+== Ethereum ordering vector and deterministic builder ==
+PASS  builder reproduces the literal Ethereum preimage
+PASS  builder reproduces Ethereum canonical string  (633 bytes)
+PASS  builder reproduces Ethereum canonical hex
+PASS  builder reproduces orderingCommitmentHash  (0xa9ae993af4ea7733eb3d6f524c9b8eb90cb382e56c886b3361df16b5b7a72c2e)
+PASS  transaction template carries exactly the commitment hash
+PASS  Ethereum preimage extends Bitcoin value sourceGateUid unchanged
+PASS  Ethereum preimage extends Bitcoin value destinationGateUid unchanged
+PASS  Ethereum preimage extends Bitcoin value preTradeUidsHash unchanged
+PASS  Ethereum preimage extends Bitcoin value selectionRuleHash unchanged
+PASS  builder rejects a stale supplied selectionRuleHash  (selectionRuleHash mismatch: supplied 0x0000000000000000000000000000000000000000000000000000000000000000, recomputed 0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a)
+
+== N19 and N17: symmetric canonicality and abort publication ==
+PASS  rule requires Bitcoin pre-publication canonicality
+PASS  Bitcoin mismatch has a fixed abort reason
+PASS  Bitcoin abort publishes original and current locations
+PASS  Bitcoin abort publishes both chains transaction ids
+PASS  rule retains Ethereum pre-publication canonicality
+PASS  Ethereum mismatch retains its fixed abort reason
+PASS  post-publication recheck covers both chains and forbids rewriting
+
+== N21: mechanical runtime and selected operating window ==
+PASS  human round trip is removed from the gate window
+PASS  sender may submit immediately after Bitcoin confirmation
+PASS  mismatch outcome is a published abort
+PASS  VERITAS is selected to submit both commitment legs
+PASS  dedicated Ethereum sender is canonical EIP-55
+PASS  selected window is 2026-09-18 12:00 UTC for one hour
+PASS  pre-broadcast gates include F17, N19, N20 and N22
+
+== N18 and standing claim boundaries ==
+PASS  ordering remains proven by inclusion
+PASS  attestation age remains issuer asserted
+PASS  proven ordering and asserted age remain separate
+PASS  operational agreement does not authorize premature broadcast
+
+== N15 provider observation regression ==
+PASS  all seven ABI types remain explicit
+PASS  positive literal encoded entry reproduces
+PASS  providerObservationsHash reproduces
+PASS  negative value remains rejected under uint256
+
+SUMMARY  PASS 74  FAIL 0
