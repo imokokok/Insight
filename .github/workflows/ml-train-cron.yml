@@ -45,7 +45,7 @@ jobs:
           fi
 
       - name: Test training data semantics
-        run: python -m unittest ml.test_train
+        run: python -m unittest discover -s ml -p 'test_*.py'
 
       - name: Train model
         run: python ml/train.py
@@ -71,107 +71,7 @@ jobs:
           PY
 
       - name: Regression gate (discrimination and calibration)
-        run: |
-          set -u
-          python - <<'PY'
-          import json, subprocess, sys
-
-          # Absolute tolerances are deliberately small but non-zero: the
-          # forward holdout changes as the window rolls, especially for rare
-          # incidents. AUC alone is insufficient; average precision checks the
-          # rare positive class and Brier checks calibrated probability quality.
-          AUC_DROP_TOLERANCE = 0.03
-          AP_DROP_TOLERANCE = 0.03
-          BRIER_RISE_TOLERANCE = 0.02
-
-          new = json.load(open("ml/models/oracle_risk_model.json"))
-          if not new.get("active"):
-              print("::error::New model is inactive. Keeping the last-known-good deployed model.")
-              sys.exit(1)
-
-          # A configured severity tier must be operational, not decorative.
-          # Thresholds are learned on validation; the untouched test window
-          # must still produce at least one true-positive high alert when it
-          # contains a meaningful number of incidents.
-          threshold_failed = False
-          for name, payload in (new.get("horizons") or {}).items():
-              if not payload:
-                  continue
-              metrics = payload.get("metrics", {})
-              thresholds = payload.get("riskThresholds", {})
-              medium, high = thresholds.get("medium"), thresholds.get("high")
-              if medium is None or high is None or not 0 < medium < high < 1:
-                  print(f"::error::Horizon {name} exported invalid operating thresholds: {thresholds}")
-                  threshold_failed = True
-              if metrics.get("validation_recall_at_high_threshold", 0) < 0.10:
-                  print(f"::error::Horizon {name} high tier misses the validation recall floor.")
-                  threshold_failed = True
-              if (
-                  metrics.get("n_positive_test", 0) >= 10
-                  and metrics.get("recall_at_high_threshold", 0) <= 0
-              ):
-                  print(f"::error::Horizon {name} high tier caught no positives on the test window.")
-                  threshold_failed = True
-          if threshold_failed:
-              sys.exit(1)
-
-          old_raw = subprocess.run(
-              ["git", "show", "HEAD:ml/models/oracle_risk_model.json"],
-              capture_output=True, text=True,
-          )
-          if old_raw.returncode != 0:
-              print("No previous model on HEAD; gate skipped.")
-              sys.exit(0)
-          old = json.loads(old_raw.stdout)
-          if not old.get("active"):
-              print("Previous model was inactive; gate skipped.")
-              sys.exit(0)
-
-          # Metrics are comparable only when the evaluation protocol is the
-          # same. A deliberate split/calibration upgrade establishes a new
-          # baseline instead of being rejected against optimistic old metrics.
-          if old.get("evaluationSpecVersion", 1) != new.get("evaluationSpecVersion", 1):
-              print(
-                  "Evaluation spec changed "
-                  f"{old.get('evaluationSpecVersion', 1)} -> {new.get('evaluationSpecVersion', 1)}; "
-                  "accepting this run as the new regression baseline."
-              )
-              sys.exit(0)
-
-          def horizons(m):
-              # v2: metrics live under horizons[name]["metrics"]; v1: top level.
-              if m.get("version") == 2 and m.get("horizons"):
-                  return {k: v.get("metrics", {}) for k, v in m["horizons"].items() if v}
-              return {"6h": m.get("metrics", {})} if m.get("metrics") else {}
-
-          old_h, new_h = horizons(old), horizons(new)
-          failed = False
-          for name in sorted(set(old_h) & set(new_h)):
-              checks = (
-                  ("AUC", "auc", -AUC_DROP_TOLERANCE, False),
-                  ("average precision", "average_precision", -AP_DROP_TOLERANCE, False),
-                  ("calibrated Brier", "brier_calibrated", BRIER_RISE_TOLERANCE, True),
-              )
-              for label, key, tolerance, lower_is_better in checks:
-                  old_value, new_value = old_h[name].get(key), new_h[name].get(key)
-                  if old_value is None or new_value is None:
-                      print(f"{name}: {label} unavailable; check skipped")
-                      continue
-                  delta = new_value - old_value
-                  regressed = delta > tolerance if lower_is_better else delta < tolerance
-                  status = "REGRESSION" if regressed else "OK"
-                  print(
-                      f"{name}: old {label} {old_value:.4f} -> {new_value:.4f} "
-                      f"(delta {delta:+.4f}) {status}"
-                  )
-                  if regressed:
-                      print(
-                          f"::error::Horizon {name} {label} crossed its regression tolerance. "
-                          "The retrained model is refused; investigate data drift before overriding."
-                      )
-                      failed = True
-          sys.exit(1 if failed else 0)
-          PY
+        run: python -m ml.regression_gate
 
       # Oracle Watch's dependency-free runner contains the statically imported
       # model. Rebuild it only when training changed the model so scheduled

@@ -1,6 +1,8 @@
 """Contract tests for the trainer's statistically sensitive data semantics."""
 
+import json
 import unittest
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -13,6 +15,7 @@ from ml.train import (
     label_for_horizon,
     label_from_fine_events,
     merge_flywheel_examples,
+    score_exported_horizon,
     select_operating_thresholds,
 )
 
@@ -170,6 +173,29 @@ class FeatureSemanticsTest(unittest.TestCase):
         self.assertLess(thresholds["medium"], thresholds["high"])
         self.assertEqual(thresholds["high"], 0.14)
         self.assertEqual(thresholds["medium"], 0.08)
+
+    def test_operating_threshold_never_exports_exactly_one(self):
+        labels = np.array([0] * 90 + [1] * 10)
+        scores = np.array([0.01] * 90 + [1.0] * 10)
+        thresholds = select_operating_thresholds(labels, scores)
+        self.assertEqual(thresholds["high"], 0.999999)
+        self.assertLess(thresholds["medium"], thresholds["high"])
+
+    def test_python_incumbent_scorer_matches_exported_verification_samples(self):
+        model_path = Path(__file__).parent / "models" / "oracle_risk_model.json"
+        model = json.loads(model_path.read_text())
+        for horizon in (model.get("horizons") or {}).values():
+            if not horizon:
+                continue
+            samples = horizon.get("verificationSamples") or []
+            frame = pd.DataFrame(
+                [sample for sample, _ in samples],
+                columns=horizon["featureNames"],
+            )
+            actual = score_exported_horizon(horizon, frame)
+            expected = np.array([expected for _, expected in samples])
+            tolerance = horizon.get("verificationTolerance", 0.01)
+            self.assertTrue(np.all(np.abs(actual - expected) <= tolerance))
 
 
 if __name__ == "__main__":

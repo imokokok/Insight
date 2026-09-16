@@ -90,6 +90,11 @@ FEATURE_SCHEMA_VERSION = 5  # mirrors ML_FEATURE_SCHEMA_VERSION in inference.ts
 
 MIN_TOTAL = 500
 MIN_POSITIVES = 15  # per horizon; below this the horizon is skipped
+# Evaluation metrics from only a handful of incidents are too unstable to
+# become a deployment baseline. Require support in every temporal split before
+# training/exporting a horizon.
+MIN_EVALUATION_POSITIVES = 10
+MIN_EVALUATION_NEGATIVES = 10
 
 # Assets treated as the "stable" class for per-class calibration. Everything
 # else (ETH, BTC, ...) trains into the "volatile" class. Mirrors the live
@@ -442,10 +447,21 @@ def select_operating_thresholds(y_true: np.ndarray, calibrated: np.ndarray) -> d
         medium = max(lower, key=lambda candidate: candidate["threshold"])["threshold"]
     else:
         medium = max(0.01, high["threshold"] / 2)
-    return {
-        "medium": round(float(medium), 6),
-        "high": round(float(high["threshold"]), 6),
+    # A calibration table may legitimately contain 1.0, but an alert threshold
+    # of exactly 1.0 is operationally brittle and is rejected by the deployment
+    # gate. Keep the trainer and gate contract consistent.
+    high_value = min(float(high["threshold"]), 0.999999)
+    if high_value <= 0:
+        return {"medium": RISK_MEDIUM_THRESHOLD, "high": RISK_HIGH_THRESHOLD}
+    medium_value = min(float(medium), high_value - 0.000001)
+    medium_value = max(0.000001, medium_value)
+    thresholds = {
+        "medium": round(medium_value, 6),
+        "high": round(high_value, 6),
     }
+    if not 0 < thresholds["medium"] < thresholds["high"] < 1:
+        return {"medium": RISK_MEDIUM_THRESHOLD, "high": RISK_HIGH_THRESHOLD}
+    return thresholds
 
 
 def fetch_health_rows(base_url: str, service_key: str) -> pd.DataFrame:
@@ -1016,7 +1032,75 @@ def write_null_model(reason: str) -> int:
     return 0
 
 
-def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
+def score_exported_horizon(horizon: dict, frame: pd.DataFrame) -> np.ndarray:
+    """Score a committed JSON horizon on a current evaluation frame.
+
+    This mirrors the dependency-free TypeScript tree walker, including its
+    float32 split comparisons. Feature vectors are aligned by name so an older
+    incumbent can be evaluated fairly after a feature-schema expansion.
+    """
+    feature_names = horizon.get("featureNames") or FEATURE_NAMES
+    neutral_fill = horizon.get("neutralFill") or {}
+    columns = []
+    for name in feature_names:
+        fill = float(neutral_fill.get(name, 0.0))
+        if name in frame.columns:
+            values = pd.to_numeric(frame[name], errors="coerce").fillna(fill).to_numpy(dtype=float)
+        else:
+            values = np.full(len(frame), fill, dtype=float)
+        columns.append(values)
+    matrix = np.column_stack(columns) if columns else np.empty((len(frame), 0), dtype=float)
+
+    raw = np.zeros(len(frame), dtype=float)
+    for tree in horizon.get("trees") or []:
+        by_id = {int(node["nodeid"]): node for node in tree}
+        for row_index, features in enumerate(matrix):
+            node = by_id.get(0)
+            while node is not None and "leaf" not in node:
+                split = int(node["split"])
+                value = np.float32(features[split] if split < len(features) else 0.0)
+                threshold = np.float32(node["threshold"])
+                node = by_id.get(int(node["yes"] if value < threshold else node["no"]))
+            if node is not None:
+                raw[row_index] += float(node.get("leaf", 0.0))
+
+    base_score = float(horizon.get("baseScore", 0.5))
+    base_score = min(max(base_score, 1e-12), 1 - 1e-12)
+    logits = raw + np.log(base_score / (1.0 - base_score))
+    probabilities = np.empty_like(logits)
+    positive = logits >= 0
+    probabilities[positive] = 1.0 / (1.0 + np.exp(-logits[positive]))
+    exp_logits = np.exp(logits[~positive])
+    probabilities[~positive] = exp_logits / (1.0 + exp_logits)
+    return probabilities
+
+
+def evaluate_exported_horizon(horizon: dict, test: pd.DataFrame, label_col: str) -> dict:
+    """Evaluate an incumbent exported model on the candidate's current test set."""
+    y_true = test[label_col].to_numpy(dtype=int)
+    raw = score_exported_horizon(horizon, test)
+    calibrated = raw.copy()
+    calibration = horizon.get("calibration") or {}
+    classes = test["symbol"].map(asset_class).to_numpy()
+    for name in ("stable", "volatile"):
+        mask = classes == name
+        if not np.any(mask):
+            continue
+        table = calibration.get(name) or calibration.get("default")
+        if table:
+            calibrated[mask] = apply_calibration_table(raw[mask], table)
+    return {
+        "auc": float(roc_auc_score(y_true, raw)),
+        "average_precision": float(average_precision_score(y_true, raw)),
+        "brier_calibrated": float(brier_score_loss(y_true, calibrated)),
+    }
+
+
+def train_horizon(
+    data: pd.DataFrame,
+    hours: int,
+    incumbent_horizon: dict | None = None,
+) -> dict | None:
     """Train one XGBoost model for a single prediction horizon.
 
     Returns the horizon's JSON payload (trees, metrics, verification samples),
@@ -1054,6 +1138,16 @@ def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
     if any(len(np.unique(y)) < 2 for y in (y_tr, y_val, y_te)):
         log(f"[{hours}h] skipped — train/validation/test must each contain both classes.")
         return None
+    for split_name, labels in (("train", y_tr), ("validation", y_val), ("test", y_te)):
+        positives = int(labels.sum())
+        negatives = int(len(labels) - positives)
+        if positives < MIN_EVALUATION_POSITIVES or negatives < MIN_EVALUATION_NEGATIVES:
+            log(
+                f"[{hours}h] skipped — {split_name} support is too small "
+                f"(positive={positives}, negative={negatives}; require at least "
+                f"{MIN_EVALUATION_POSITIVES}/{MIN_EVALUATION_NEGATIVES})."
+            )
+            return None
     log(
         f"[{hours}h] Train: {len(train)} ({int(y_tr.sum())} pos) | "
         f"Validation: {len(validation)} ({int(y_val.sum())} pos) | "
@@ -1194,6 +1288,30 @@ def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
     trees = [flatten_tree(json.loads(d)) for d in used_dumps]
     log(f"[{hours}h] Exported {len(trees)} trees (best_iteration={metrics['best_iteration']}).")
 
+    regression_comparison = None
+    if incumbent_horizon:
+        try:
+            incumbent_metrics = evaluate_exported_horizon(incumbent_horizon, test, label_col)
+            candidate_metrics = {
+                key: metrics[key]
+                for key in ("auc", "average_precision", "brier_calibrated")
+            }
+            regression_comparison = {
+                "population": "current_test_window",
+                "testStart": test["snapshot_hour"].min().isoformat(),
+                "testEnd": test["snapshot_hour"].max().isoformat(),
+                "nTest": int(len(test)),
+                "nPositiveTest": int(y_te.sum()),
+                "candidate": candidate_metrics,
+                "incumbent": incumbent_metrics,
+            }
+            log(
+                f"[{hours}h] Same-window incumbent comparison: "
+                f"candidate={candidate_metrics}, incumbent={incumbent_metrics}"
+            )
+        except Exception as exc:  # noqa: BLE001 - gate will fail closed when comparison is absent
+            log(f"[{hours}h] Could not score incumbent on current test window: {exc}")
+
     return {
         "evalWindowHours": hours,
         "featureNames": FEATURE_NAMES,
@@ -1203,6 +1321,7 @@ def train_horizon(data: pd.DataFrame, hours: int) -> dict | None:
         "trees": trees,
         "calibration": calibration,
         "metrics": metrics,
+        "regressionComparison": regression_comparison,
         "verificationSamples": verification,
         "verificationTolerance": VERIFICATION_TOLERANCE,
     }
@@ -1214,6 +1333,28 @@ def main() -> int:
     if not base_url or not service_key:
         log("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set.")
         return 1
+
+    incumbent_horizons = {}
+    try:
+        with open(MODEL_PATH) as incumbent_file:
+            incumbent = json.load(incumbent_file)
+        comparable = (
+            incumbent.get("active")
+            and incumbent.get("labelSpecVersion") == LABEL_SPEC_VERSION
+            and incumbent.get("evaluationSpecVersion") == EVALUATION_SPEC_VERSION
+        )
+        if comparable:
+            if incumbent.get("version") == 2:
+                incumbent_horizons = incumbent.get("horizons") or {}
+            elif incumbent.get("trees"):
+                incumbent_horizons = {"6h": incumbent}
+        else:
+            log(
+                "Incumbent model uses a different label/evaluation specification; "
+                "comparison skipped."
+            )
+    except (OSError, ValueError) as exc:
+        log(f"Incumbent model unavailable for same-window comparison ({exc}).")
 
     df = fetch_rows(base_url, service_key)
     log(f"Fetched {len(df)} rows, {df['symbol'].nunique() if not df.empty else 0} symbols.")
@@ -1262,7 +1403,8 @@ def main() -> int:
 
     horizons = {}
     for h in HORIZONS:
-        horizons[f"{h}h"] = train_horizon(data, h)
+        name = f"{h}h"
+        horizons[name] = train_horizon(data, h, incumbent_horizons.get(name))
 
     # Must have at least the 6h model, else the whole model is inactive.
     if not horizons.get("6h"):
