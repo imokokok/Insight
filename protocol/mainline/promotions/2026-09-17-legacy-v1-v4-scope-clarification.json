@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x2eeda0f89eddad88c20f69680a150754e12266396eb79d503a59c9f14b98e26c",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 7,
+  "effectiveFrom": "2026-09-17",
+  "classification": "Backward-compatible clarification of the general legacy v1-v4 snapshot scope",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c",
+  "predecessorPromotionId": "0x4396f761c00eee4f37aad37e9a703bd3896ace1fee8a3bde2a5ff8ebb9dc9119",
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "receiptImpact": "No signed receipt, attestation, semantic profile, registry release, partner policy or historical promotion bytes change. The general legacy snapshot-relative verification contract covers v1-v4. The narrower v2-v4 wording in promotions v5 and v6 described the VERITAS workflow only and did not supersede the repository-wide v1-v4 rule.",
+  "activationRule": "Historical v1-v4 receipts remain verification-only and must be evaluated against their exact receipt-adjacent registry bytes, with the full SHA-256 and byte length preserved and checked. A missing or mismatched snapshot fails closed, no legacy verdict is globally canonical, and production signing remains v5-only. Existing partner policy ids and activation mappings remain unchanged.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "compatible-no-repin",
+      "evidence": "The v5-only production policy, receipt schema, semantic profile, registry release floor and activation mapping are unchanged."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "compatible-legacy-scope-clarified",
+      "evidence": "The VERITAS workflow remains production-disabled and snapshot-relative; this promotion clarifies that the repository-wide legacy contract includes v1 as well as v2-v4, without changing historical bytes or admission rules."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "compatible-binding-unchanged",
+      "evidence": "The pinned AEB option 2 contract, pre-trade binding format and active policy are unchanged."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "not-affected",
+      "evidence": "The frozen external-evidence/v0 rev6 adapter, pinned OracleSafetyCheck v2 carrier and production-disabled policy are unchanged."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "compatible-data-contract-unchanged",
+      "evidence": "OracleSafetyCheck v2, pre-trade envelope bytes, signer trust rules and activation mapping are unchanged."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "compatible-no-key-or-schema-change",
+      "evidence": "OracleSafetyCheck v3 layout, registry key material, signer roles and activation mapping are unchanged."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "compatible-safety-contract-unchanged",
+      "evidence": "ThoughtProof pre-trade v2.1, Oracle Watch signed layouts and the locked no-single-provider gate are unchanged."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "compatible-durable-records-unchanged",
+      "evidence": "Receipt-adjacent durable record formats, schema bytes, key evidence and registry references are unchanged."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "compatible-data-contract-unchanged",
+      "evidence": "The read-only methodology exchange, query window, dataset digest and production-disabled policy are unchanged."
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import promotionV3Json from '../../../protocol/mainline/promotions/2026-09-10-he
 import promotionV4Json from '../../../protocol/mainline/promotions/2026-09-11-release-lineage-and-addressing.json';
 import promotionV5Json from '../../../protocol/mainline/promotions/2026-09-13-agent-api-fail-closed-hardening.json';
 import promotionV6Json from '../../../protocol/mainline/promotions/2026-09-13-credential-billing-ops-hardening.json';
+import promotionV7Json from '../../../protocol/mainline/promotions/2026-09-17-legacy-v1-v4-scope-clarification.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -41,6 +42,7 @@ const rawPromotions = [
   promotionV4Json,
   promotionV5Json,
   promotionV6Json,
+  promotionV7Json,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {
