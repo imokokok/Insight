@@ -5,7 +5,8 @@ info:
   version: v1
   description: |
     Hourly oracle price data, cross-oracle consensus, deviation signals, feed health tracking,
-    risk metrics, protocol liquidation analysis, stablecoin depeg detection, and daily risk reports.
+    risk metrics, protocol liquidation analysis, unified Peg Risk analysis for stablecoins and
+    wrapped/LST assets, and daily risk reports.
 
     ---
 
@@ -221,7 +222,7 @@ tags:
   - name: Analytics
     description: Deviation, correlation, signals, latency, anomalies 🔒
   - name: Risk Signals
-    description: Stablecoin depeg, wrapped asset peg, incidents
+    description: Peg Risk for stablecoins and wrapped/LST assets, plus incidents
   - name: Oracle Watch
     description: Signed oracle monitoring signals and history
   - name: Data
@@ -1415,8 +1416,8 @@ paths:
     get:
       operationId: getStablecoinDepeg
       tags: [Risk Signals]
-      summary: Stablecoin depeg tracking
-      description: Detect depeg events for stablecoins by comparing oracle prices with DEX market prices.
+      summary: Peg Risk — stablecoins
+      description: Analyze the stablecoin category of Peg Risk by comparing oracle prices with DEX market prices.
       security:
         - apiKey: []
       parameters:
@@ -1438,9 +1439,9 @@ paths:
     get:
       operationId: getWrappedAssetPeg
       tags: [Risk Signals]
-      summary: Wrapped asset peg tracking 🔒
+      summary: Peg Risk — wrapped and LST assets 🔒
       description: |
-        Check peg risk for wrapped assets (WBTC, cbBTC, tBTC, wstETH, cbETH, etc.).
+        Analyze the wrapped/LST category of Peg Risk (WBTC, cbBTC, tBTC, wstETH, cbETH, etc.).
         Compares market price against the underlying reference price.
 
         **Credit-metered** — any API key with sufficient credit balance.

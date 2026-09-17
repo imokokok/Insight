@@ -570,7 +570,7 @@ export function UnifiedRiskPanelInsight({ report }: { report: DailyReportData })
     )[0];
     return (
       <PanelInsight tone="warning">
-        Peg tracking flagged {pegCount} asset(s). Largest signal: {top.symbol} at{' '}
+        Peg Risk flagged {pegCount} asset(s). Largest signal: {top.symbol} at{' '}
         {top.maxDeviationPercent.toFixed(2)}% ({top.riskLevel} level).
       </PanelInsight>
     );

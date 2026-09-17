@@ -1488,37 +1488,6 @@ h3,
   min-width: 0;
 }
 
-.peg-sibling-channel {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  overflow: hidden;
-}
-
-.peg-sibling-channel::before {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 0.25rem;
-  background: repeating-linear-gradient(
-    to bottom,
-    #2558c8 0,
-    #2558c8 2px,
-    transparent 2px,
-    transparent 4px
-  );
-  content: '';
-}
-
-.peg-sibling-index {
-  color: #2558c8;
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
 .risk-asset-ledger {
   position: relative;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 55%);
@@ -3330,15 +3299,6 @@ body:has(.ops-workspace) .public-chrome {
 
   .evidence-process-rail small {
     font-size: 0.5rem;
-  }
-
-  .peg-sibling-channel {
-    grid-template-columns: 1fr auto;
-    padding-left: 1rem;
-  }
-
-  .peg-sibling-index {
-    display: none;
   }
 
   .reputation-metric-cell {

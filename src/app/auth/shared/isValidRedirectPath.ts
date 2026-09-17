@@ -5,6 +5,7 @@ const ALLOWED_REDIRECT_PATHS = [
   '/price-query',
   '/price-insight',
   '/safety-check',
+  '/peg-risk',
   '/stablecoin-depeg',
   '/wrapped-assets',
   '/reputation',

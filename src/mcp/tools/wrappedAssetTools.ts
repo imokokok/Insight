@@ -44,7 +44,7 @@ export const getWrappedAssetPegTool: McpToolDefinition<typeof WrappedAssetInputS
 
     const snapshots = await calculateAllWrappedAssetSnapshots();
 
-    const lines = ['**Wrapped asset peg tracker**', ''];
+    const lines = ['**Peg Risk · Wrapped & LST assets**', ''];
 
     for (const snapshot of snapshots) {
       lines.push(

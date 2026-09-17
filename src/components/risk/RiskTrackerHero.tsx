@@ -17,7 +17,6 @@ interface RiskSummaryStat {
 }
 
 interface RiskTrackerHeroProps {
-  page: 'stablecoin' | 'wrapped';
   title: string;
   description: string;
   eyebrow?: string;
@@ -44,7 +43,6 @@ function getLevelStyles(level?: RiskLevel) {
 }
 
 export function RiskTrackerHero({
-  page,
   title,
   description,
   eyebrow = 'Risk Surveillance',
@@ -57,8 +55,8 @@ export function RiskTrackerHero({
       className={cn('editorial-frame mx-auto max-w-[1440px] px-5 pt-4 sm:px-8 lg:px-12', className)}
     >
       <EditorialWorkspaceHeader
-        index={page === 'stablecoin' ? '07' : '08'}
-        stage="Monitor"
+        index="07"
+        stage="Assess"
         eyebrow={`${eyebrow} · Live peg evidence across sources and protocols`}
         title={title}
         description={description}
@@ -66,13 +64,13 @@ export function RiskTrackerHero({
         action={
           <div className="inline-flex items-center gap-2 border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
             {icon}
-            Live surveillance
+            Live risk signal
           </div>
         }
       />
 
       <EvidenceProcessRail
-        label="Surveillance cycle"
+        label="Risk review"
         items={[
           { label: 'Observe the peg', detail: 'Reference vs market' },
           { label: 'Measure persistence', detail: 'Threshold · duration' },

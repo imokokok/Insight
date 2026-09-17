@@ -1,14 +1,22 @@
+import type { ReactNode } from 'react';
+
 import { Activity, Anchor, ShieldAlert, TrendingDown } from 'lucide-react';
 
-import { STABLECOIN_RISK_THRESHOLDS, WRAPPED_ASSET_RISK_THRESHOLDS } from '@/lib/risk/constants';
 import { formatDuration } from '@/lib/risk/utils';
 import type { StablecoinDepegSnapshot } from '@/lib/stablecoins/monitor';
 import { formatPrice } from '@/lib/utils/format';
 import type { WrappedAssetSnapshot } from '@/lib/wrapped-assets/monitor';
 
-import { ImpactCard, MetricCard } from './RiskTrackerLayout';
+import { ImpactCard } from './ImpactCard';
+import { MetricCard } from './MetricCard';
 
-import type { PegMonitorConfig } from './PegMonitorContent';
+interface PegRiskViewConfig<T> {
+  typeLabels?: Record<string, string>;
+  getAssetSubtext?: (snapshot: T) => ReactNode;
+  getDeviationValue: (snapshot: T) => number;
+  getReferencePrice: (snapshot: T) => number;
+  renderOverview: (snapshot: T) => ReactNode;
+}
 
 const WRAPPED_TYPE_LABELS: Record<string, string> = {
   'wrapped-btc': 'Wrapped BTC',
@@ -18,14 +26,6 @@ const WRAPPED_TYPE_LABELS: Record<string, string> = {
 
 export const pegMonitorConfigs = {
   stablecoin: {
-    page: 'stablecoin',
-    title: 'See the peg before the protocol feels it.',
-    description:
-      '15-minute tracking of USDC, USDT, DAI and other major stablecoins across oracle providers and chains, mapped to DeFi protocols that accept them as collateral or borrow assets.',
-    apiEndpoint: '/api/stablecoin-depeg',
-    thresholds: STABLECOIN_RISK_THRESHOLDS,
-    heroIcon: <ShieldAlert className="w-7 h-7" />,
-    heroEyebrow: 'Risk Surveillance',
     getDeviationValue: (s: StablecoinDepegSnapshot) => s.maxDeviationPercent,
     getReferencePrice: (s: StablecoinDepegSnapshot) => s.referencePrice,
     getAssetSubtext: (s: StablecoinDepegSnapshot) => `Ref ${formatPrice(s.referencePrice)}`,
@@ -44,7 +44,6 @@ export const pegMonitorConfigs = {
             <MetricCard
               label="Max Deviation"
               value={`${snapshot.maxDeviationPercent > 0 ? '+' : ''}${snapshot.maxDeviationPercent.toFixed(3)}%`}
-              trend={snapshot.maxDeviationPercent > 0 ? 'up' : 'down'}
             />
             <MetricCard label="Source Spread" value={`${snapshot.spreadPercent.toFixed(3)}%`} />
             <MetricCard label="Duration" value={formatDuration(snapshot.durationSeconds)} />
@@ -108,17 +107,9 @@ export const pegMonitorConfigs = {
         </div>
       );
     },
-  } as PegMonitorConfig<StablecoinDepegSnapshot>,
+  } as PegRiskViewConfig<StablecoinDepegSnapshot>,
 
   wrapped: {
-    page: 'wrapped',
-    title: 'Measure what the wrapper is really worth.',
-    description:
-      'Tracking WBTC, wstETH, cbETH and other wrapped or liquid-staking tokens for peg deviations against their underlying assets, with protocol impact analysis.',
-    apiEndpoint: '/api/wrapped-assets',
-    thresholds: WRAPPED_ASSET_RISK_THRESHOLDS,
-    heroIcon: <Anchor className="w-7 h-7" />,
-    heroEyebrow: 'Risk Surveillance',
     typeLabels: WRAPPED_TYPE_LABELS,
     getDeviationValue: (s: WrappedAssetSnapshot) => s.deviationPercent,
     getReferencePrice: (s: WrappedAssetSnapshot) => s.underlyingReferencePrice,
@@ -156,5 +147,5 @@ export const pegMonitorConfigs = {
         />
       </div>
     ),
-  } as PegMonitorConfig<WrappedAssetSnapshot>,
+  } as PegRiskViewConfig<WrappedAssetSnapshot>,
 };

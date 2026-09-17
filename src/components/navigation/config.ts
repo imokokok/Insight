@@ -6,8 +6,7 @@ import {
   ShieldCheck,
   Eye,
   FileText,
-  AlertTriangle,
-  Anchor,
+  Gauge,
   Key,
   Bot,
   Code,
@@ -39,18 +38,11 @@ export const navigationConfig: NavStructure = [
           'Calculate your personal position critical deviation and liquidation risk across protocols',
       },
       {
-        href: '/stablecoin-depeg',
-        label: 'Stablecoin Depeg',
-        icon: AlertTriangle,
+        href: '/peg-risk',
+        label: 'Peg Risk',
+        icon: Gauge,
         description:
-          '15-minute stablecoin depeg tracking with multi-oracle price deviation and protocol impact',
-      },
-      {
-        href: '/wrapped-assets',
-        label: 'Wrapped Asset Peg',
-        icon: Anchor,
-        description:
-          'Track WBTC, LSTs and wrapped assets peg risks against their underlying collateral',
+          'Assess stablecoins, wrapped assets and LSTs across source deviation and protocol impact',
       },
     ],
   },

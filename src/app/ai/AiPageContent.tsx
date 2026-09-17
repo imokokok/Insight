@@ -62,7 +62,7 @@ const CAPABILITIES = [
     icon: Terminal,
     title: '34 MCP Tools',
     description:
-      'Prices, consensus, risk summaries, position stress tests, stablecoin depeg, reputation rankings, feed health — all callable by any MCP-compatible client.',
+      'Prices, consensus, risk summaries, position stress tests, Peg Risk across stablecoins and wrapped/LST assets, reputation rankings, feed health — all callable by any MCP-compatible client.',
     accent: 'text-blue-600 bg-blue-50',
   },
   {

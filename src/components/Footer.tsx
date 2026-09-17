@@ -28,8 +28,7 @@ const SAFETY_LINKS = [
   ['Safety Check', '/safety-check'],
   ['Pre-Trade Safety Check', '/ai#safety-check'],
   ['Oracle Watch', '/ai#oracle-watch'],
-  ['Stablecoin Depeg', '/stablecoin-depeg'],
-  ['Wrapped Asset Peg', '/wrapped-assets'],
+  ['Peg Risk', '/peg-risk'],
 ] as const;
 
 const RESOURCE_LINKS = [

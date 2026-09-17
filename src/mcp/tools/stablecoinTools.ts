@@ -62,7 +62,7 @@ export const getStablecoinPegTool: McpToolDefinition<typeof StablecoinInputSchem
 
     const snapshots = await calculateAllStablecoinSnapshots();
 
-    const lines = ['**Stablecoin peg tracker**', ''];
+    const lines = ['**Peg Risk · Stablecoins**', ''];
 
     for (const snapshot of snapshots) {
       lines.push(

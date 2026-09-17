@@ -31,12 +31,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.oracleinsight.xyz/stablecoin-depeg</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.oracleinsight.xyz/wrapped-assets</loc>
+    <loc>https://www.oracleinsight.xyz/peg-risk</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>

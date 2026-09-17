@@ -110,6 +110,7 @@ export const config = {
     '/ops/:path*',
     '/price-insight/:path*',
     '/safety-check/:path*',
+    '/peg-risk/:path*',
     '/stablecoin-depeg/:path*',
     '/ai/:path*',
   ],

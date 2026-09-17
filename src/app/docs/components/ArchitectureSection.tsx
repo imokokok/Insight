@@ -47,7 +47,7 @@ const layers = [
     title: 'API Layer',
     subtitle: 'REST + API Key Auth',
     description:
-      'Public v1 endpoints expose prices, batch queries, history, and reports. Internal endpoints power stablecoin depeg, wrapped-asset tracking, and protocol-health features.',
+      'Public v1 endpoints expose prices, batch queries, history, and reports. Internal endpoints power the unified Peg Risk experience across stablecoins and wrapped/LST assets, plus protocol-health features.',
   },
   {
     icon: Timer,

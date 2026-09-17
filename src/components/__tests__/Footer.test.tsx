@@ -107,8 +107,7 @@ describe('Footer', () => {
     it.each([
       ['Safety Check', '/safety-check'],
       ['Pre-Trade Safety Check', '/ai#safety-check'],
-      ['Stablecoin Depeg', '/stablecoin-depeg'],
-      ['Wrapped Asset Peg', '/wrapped-assets'],
+      ['Peg Risk', '/peg-risk'],
     ])('should render %s link', (label, href) => {
       renderFooter();
 

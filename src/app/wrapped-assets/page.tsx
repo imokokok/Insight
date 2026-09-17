@@ -1,22 +1,20 @@
-import { PegMonitorContent } from '@/components/risk/PegMonitorContent';
-import { calculateAllWrappedAssetSnapshots } from '@/lib/wrapped-assets/monitor';
+import { permanentRedirect } from 'next/navigation';
 
-import type { Metadata } from 'next';
+type LegacySearchParams = Record<string, string | string[] | undefined>;
 
-export const metadata: Metadata = {
-  title: 'Wrapped Asset Peg Tracker - Insight',
-  description:
-    'Track wrapped and liquid staking token peg risks against their underlying assets with protocol impact analysis',
-};
+export default async function WrappedAssetsPage({
+  searchParams,
+}: {
+  searchParams: Promise<LegacySearchParams>;
+}) {
+  const legacyParams = await searchParams;
+  const params = new URLSearchParams();
 
-export default async function WrappedAssetsPage() {
-  // Keep deployments independent from live RPC/oracle availability. The
-  // client immediately fetches the same API when this build-time shell is
-  // empty, while runtime rendering can still provide an initial snapshot.
-  const initialSnapshots =
-    process.env.NEXT_PHASE === 'phase-production-build'
-      ? []
-      : await calculateAllWrappedAssetSnapshots();
+  for (const [key, value] of Object.entries(legacyParams)) {
+    if (typeof value === 'string') params.set(key, value);
+    else value?.forEach((item) => params.append(key, item));
+  }
+  params.set('category', 'wrapped');
 
-  return <PegMonitorContent kind="wrapped" initialSnapshots={initialSnapshots} />;
+  permanentRedirect(`/peg-risk?${params.toString()}`);
 }

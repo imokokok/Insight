@@ -1,22 +1,20 @@
-import { PegMonitorContent } from '@/components/risk/PegMonitorContent';
-import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
+import { permanentRedirect } from 'next/navigation';
 
-import type { Metadata } from 'next';
+type LegacySearchParams = Record<string, string | string[] | undefined>;
 
-export const metadata: Metadata = {
-  title: 'Stablecoin Depeg Tracker - Insight',
-  description:
-    '15-minute stablecoin depeg risk tracking across oracle providers and chains with protocol impact analysis',
-};
+export default async function StablecoinDepegPage({
+  searchParams,
+}: {
+  searchParams: Promise<LegacySearchParams>;
+}) {
+  const legacyParams = await searchParams;
+  const params = new URLSearchParams();
 
-export default async function StablecoinDepegPage() {
-  // Keep deployments independent from live RPC/oracle availability. The
-  // client immediately fetches the same API when this build-time shell is
-  // empty, while runtime rendering can still provide an initial snapshot.
-  const initialSnapshots =
-    process.env.NEXT_PHASE === 'phase-production-build'
-      ? []
-      : await calculateAllStablecoinSnapshots();
+  for (const [key, value] of Object.entries(legacyParams)) {
+    if (typeof value === 'string') params.set(key, value);
+    else value?.forEach((item) => params.append(key, item));
+  }
+  params.set('category', 'stablecoins');
 
-  return <PegMonitorContent kind="stablecoin" initialSnapshots={initialSnapshots} />;
+  permanentRedirect(`/peg-risk?${params.toString()}`);
 }

@@ -813,7 +813,7 @@ export function generateSummary(
     if (wrappedCount > 0)
       parts2.push(`${wrappedCount} wrapped/LST asset${wrappedCount > 1 ? 's' : ''}`);
     parts.push(
-      `Peg tracking flagged ${parts2.join(' and ')}: ${topPeg.symbol} recorded the largest divergence at ${topPeg.maxDeviationPercent.toFixed(2)}%.`
+      `Peg Risk flagged ${parts2.join(' and ')}: ${topPeg.symbol} recorded the largest divergence at ${topPeg.maxDeviationPercent.toFixed(2)}%.`
     );
   }
 

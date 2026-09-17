@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import {
   Activity,
   AlertTriangle,
-  Anchor,
   ArrowRight,
   BarChart3,
   BookOpen,
@@ -51,15 +50,9 @@ const FEATURES = [
   },
   {
     icon: AlertTriangle,
-    title: 'Stablecoin Depeg Risk',
+    title: 'Peg Risk',
     description:
-      'Detect oracle-market divergence for USDC, USDT, DAI and other stablecoins with protocol impact.',
-  },
-  {
-    icon: Anchor,
-    title: 'Wrapped Asset Peg',
-    description:
-      'Track WBTC, cbBTC, tBTC, wstETH and other wrapped assets against underlying collateral.',
+      'Analyze stablecoins, wrapped assets and LSTs through one risk surface, with oracle-market divergence, underlying references and protocol impact.',
   },
   {
     icon: Shield,

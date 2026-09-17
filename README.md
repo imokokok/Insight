@@ -276,20 +276,19 @@ signal itself is unchanged.
 ### For DeFi Users
 
 - **Safety Check** — enter a lending position to get the exact oracle price deviation that would trigger liquidation, health factor gauge, safety buffer analysis, and per-asset bidirectional deviation — now with the pre-trade lending check (buffer-consumption bar + recommended actions) right on the position page.
-- **Stablecoin Depeg Tracker** — 15-minute tracking of USDC, USDT, DAI and others across providers and chains, with depeg duration, affected lending protocols, and impact explanation.
-- **Wrapped Asset Peg Tracker** — WBTC, wstETH, cbETH and other wrapped / liquid-staking tokens vs their underlying, including on-chain LST exchange rates and protocol impact mapping.
+- **Peg Risk** — one shared view at `/peg-risk` for stablecoins, wrapped assets, and liquid-staking tokens. Switch between all assets, stablecoins, and wrapped/LST categories; compare oracle and market-source deviation, depeg duration, on-chain LST exchange rates, and affected protocol exposure without leaving the page. The former `/stablecoin-depeg` and `/wrapped-assets` URLs redirect here with the matching category selected.
 - **Price Query** — query any provider with on-chain data, confidence intervals, and freshness at a glance.
 
 ### For Researchers & Analysts
 
 - **Price Insight** — unified cross-oracle / cross-chain analysis with 4 consensus algorithms, risk analysis, divergence signal detection, and feed health tracking.
 - **Oracle Reputation System** — persistent 7-day rolling scores (accuracy, uptime, reliability, latency, freshness) with provider profiles and trend charts.
-- **Daily Reports** — aggregated oracle market snapshots with consensus prices, provider rankings, depeg / peg summaries, and risk highlights.
+- **Daily Reports** — aggregated oracle market snapshots with consensus prices, provider rankings, unified Peg Risk summaries, and risk highlights.
 
 ### For AI Agents
 
 - **Pre-Trade Oracle Safety Check** — the flagship checkpoint described above.
-- **37-tool MCP server** — prices, consensus, risk, reputation, stablecoin pegs, protocol parameters, position safety, pre-trade checks — callable by Claude, Cursor, Windsurf, and any MCP-compatible client.
+- **37-tool MCP server** — prices, consensus, risk, reputation, Peg Risk across stablecoins and wrapped/LST assets, protocol parameters, position safety, pre-trade checks — callable by Claude, Cursor, Windsurf, and any MCP-compatible client.
 - **Verifiable attestations** — signed EIP-712 proof agents can relay to users and protocols, with a standalone local verifier for consumers that need independent verification.
 
 ### Shared
@@ -413,11 +412,11 @@ The monthly allowance is credited on subscription activation and at each cycle
 
 See `src/lib/billing/plans.ts` for the single source of truth.
 
-Key endpoint groups (all under `/api/v1/`): `prices*`, `reputation*`, `feeds*`, `deviation`, `correlation`, `latency`, `anomalies`, `signals`, `safety/*` (position, liquidation, pre-trade, attestation/verify), `oracle-watch`, `stablecoins/depeg`, `wrapped-assets/peg`, `protocols*`, `cross-chain/spreads`, `incidents`, `coverage`, `reports/daily/[date]`, `hourly-snapshots`, `price-snapshots`, `symbols`, `oracles/health`, `metrics`, `health`.
+Key endpoint groups (all under `/api/v1/`): `prices*`, `reputation*`, `feeds*`, `deviation`, `correlation`, `latency`, `anomalies`, `signals`, `safety/*` (position, liquidation, pre-trade, attestation/verify), `oracle-watch`, `stablecoins/depeg`, `wrapped-assets/peg`, `protocols*`, `cross-chain/spreads`, `incidents`, `coverage`, `reports/daily/[date]`, `hourly-snapshots`, `price-snapshots`, `symbols`, `oracles/health`, `metrics`, `health`. Peg Risk combines the two peg endpoint families in the web product while keeping their API contracts separate and backward compatible.
 
 ## AI Agent Integration (MCP Server)
 
-Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — **37 tools** covering prices, consensus, risk summaries, liquidation stress tests, stablecoin pegs, reputation, feed health, and protocol parameters, with the flagship `pre_trade_safety_check` and the always-on `oracle_watch` signal on top. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
+Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — **37 tools** covering prices, consensus, risk summaries, liquidation stress tests, Peg Risk across stablecoins and wrapped/LST assets, reputation, feed health, and protocol parameters, with the flagship `pre_trade_safety_check` and the always-on `oracle_watch` signal on top. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
 
 Quick start:
 

@@ -19,7 +19,7 @@ const features = [
       'Stress-test a live or manual position against oracle deviation before a liquidation engine has to react.',
     href: '/safety-check',
     glyph: 'fault' as const,
-    tags: ['Safety Check', 'Depeg monitors', 'What-if'],
+    tags: ['Safety Check', 'Peg Risk', 'What-if'],
   },
   {
     title: 'Prove the decision',

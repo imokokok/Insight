@@ -1,14 +1,13 @@
 import Link from 'next/link';
 
 import {
-  AlertTriangle,
-  Anchor,
   ArrowRight,
   Award,
   BarChart3,
   Clock,
   FileText,
   GitCompare,
+  Gauge,
   Layers,
   Radar,
   Search,
@@ -55,30 +54,19 @@ const features: Feature[] = [
     accent: 'blue',
   },
   {
-    icon: <AlertTriangle className="w-6 h-6" />,
-    title: 'Stablecoin Depeg Tracker',
+    icon: <Gauge className="w-6 h-6" />,
+    title: 'Peg Risk',
     description:
-      '15-minute stablecoin depeg tracking across oracle providers and chains with protocol impact analysis.',
-    href: '/stablecoin-depeg',
+      'Assess stablecoins, wrapped assets, and liquid-staking tokens in one shared risk view.',
+    href: '/peg-risk',
     highlights: [
-      'Multi-oracle consensus price and deviation tracking',
+      'All-assets, stablecoin, and wrapped/LST risk channels',
+      'Multi-oracle and market-source deviation evidence',
+      'On-chain LST exchange-rate integration',
       'Affected protocol mapping for collateral and borrow roles',
       'Risk level classification with duration tracking',
     ],
     accent: 'amber',
-  },
-  {
-    icon: <Anchor className="w-6 h-6" />,
-    title: 'Wrapped Asset Peg Tracker',
-    description:
-      'Track WBTC, wstETH, cbETH, and other wrapped or liquid-staking tokens for deviations against their underlying assets.',
-    href: '/wrapped-assets',
-    highlights: [
-      'On-chain LST exchange rate integration',
-      'Cross-source deviation heatmap',
-      'Collateral impact mapping across lending protocols',
-    ],
-    accent: 'cyan',
   },
   {
     icon: <Search className="w-6 h-6" />,
@@ -123,11 +111,11 @@ const features: Feature[] = [
     icon: <FileText className="w-6 h-6" />,
     title: 'Daily Reports',
     description:
-      'Daily aggregated oracle market snapshots with consensus prices, provider rankings, and stablecoin or wrapped-asset peg risk highlights.',
+      'Daily aggregated oracle market snapshots with consensus prices, provider rankings, and unified Peg Risk highlights.',
     href: '/reports',
     highlights: [
       'Daily consensus price and deviation summaries',
-      'Stablecoin depeg and wrapped asset peg summaries',
+      'Unified Peg Risk summaries across stablecoins and wrapped/LST assets',
       'Provider rankings and risk highlights',
     ],
     accent: 'blue',

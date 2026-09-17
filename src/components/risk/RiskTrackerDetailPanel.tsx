@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui';
+import { RISK_LEVELS } from '@/lib/risk/constants';
 import type { AffectedProtocol, RiskLevel, SourcePriceSnapshot } from '@/lib/risk/types';
 import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils/format';
@@ -100,16 +101,13 @@ export function RiskTrackerDetailPanel<T extends RiskSnapshotBase>({
           </div>
           <p className="text-xs text-slate-500">
             Reference {formatPrice(referencePrice)} · Updated{' '}
-            {new Date(snapshot.lastUpdated).toLocaleTimeString()}
+            {new Date(snapshot.lastUpdated).toISOString().slice(11, 19)} UTC
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
             <div
-              className={cn(
-                'text-xl font-bold font-mono',
-                deviation > 0 ? 'text-red-600' : 'text-emerald-600'
-              )}
+              className={cn('text-xl font-bold font-mono', RISK_LEVELS[snapshot.riskLevel].color)}
             >
               {deviation > 0 ? '+' : ''}
               {deviation.toFixed(3)}%

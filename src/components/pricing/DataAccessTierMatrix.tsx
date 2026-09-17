@@ -87,7 +87,7 @@ const accessRows: AccessRow[] = [
     api: true,
   },
   {
-    label: 'Stablecoin depeg & wrapped-asset peg tracking',
+    label: 'Unified Peg Risk for stablecoins, wrapped assets & LSTs',
     web: false,
     api: true,
   },

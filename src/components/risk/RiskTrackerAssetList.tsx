@@ -3,6 +3,7 @@
 import { Clock, Search } from 'lucide-react';
 
 import { RiskBadge } from '@/components/risk/RiskBadge';
+import { RISK_LEVELS } from '@/lib/risk/constants';
 import type { RiskLevel, SourcePriceSnapshot } from '@/lib/risk/types';
 import { formatDuration } from '@/lib/risk/utils';
 import { cn } from '@/lib/utils';
@@ -28,7 +29,7 @@ interface RiskTrackerAssetListProps<T extends RiskSnapshotBase> {
 }
 
 function formatTimestamp(ts: number): string {
-  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return `${new Date(ts).toISOString().slice(11, 16)} UTC`;
 }
 
 export function RiskTrackerAssetList<T extends RiskSnapshotBase>({
@@ -98,10 +99,7 @@ export function RiskTrackerAssetList<T extends RiskSnapshotBase>({
                     {getAssetSubtext ? getAssetSubtext(snapshot) : snapshot.displayName}
                   </span>
                   <span
-                    className={cn(
-                      'font-mono font-medium',
-                      deviation > 0 ? 'text-red-600' : 'text-emerald-600'
-                    )}
+                    className={cn('font-mono font-medium', RISK_LEVELS[snapshot.riskLevel].color)}
                   >
                     {deviation > 0 ? '+' : ''}
                     {deviation.toFixed(2)}%

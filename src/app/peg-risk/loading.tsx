@@ -1,5 +1,5 @@
 import { PegMonitorLoading } from '@/components/risk/PegMonitorLoading';
 
-export default function StablecoinDepegLoading() {
+export default function PegRiskLoading() {
   return <PegMonitorLoading />;
 }
