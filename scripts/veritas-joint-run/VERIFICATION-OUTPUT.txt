@@ -77,6 +77,13 @@ PASS  VERITAS is selected to submit both commitment legs
 PASS  dedicated Ethereum sender is canonical EIP-55
 PASS  selected window is 2026-09-18 12:00 UTC for one hour
 PASS  pre-broadcast gates include F17, N19, N20 and N22
+PASS  gate signing starts the registered 600-second clock
+PASS  pre-signing and cross-attempt gate reuse are forbidden
+PASS  Insight remains available to sign two or three attempts during the full window
+PASS  only live gate identifiers and their ordered hash remain substitutions
+PASS  the five run-day steps are pinned in order
+PASS  mismatch, expiry and missing candidate all publish aborts with every transaction id
+PASS  stale selection rules refuse to run before broadcast
 
 == N18 and standing claim boundaries ==
 PASS  ordering remains proven by inclusion
@@ -90,4 +97,4 @@ PASS  positive literal encoded entry reproduces
 PASS  providerObservationsHash reproduces
 PASS  negative value remains rejected under uint256
 
-SUMMARY  PASS 74  FAIL 0
+SUMMARY  PASS 81  FAIL 0

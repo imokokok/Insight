@@ -1,10 +1,10 @@
-Insight / VERITAS round-9 run-readiness acceptance
-2026-09-16
+Insight / VERITAS run-day operational closure acceptance
+2026-09-17
 
 Focused artifacts
   node --check build-joint-run-commitments.mjs                 exit 0
   node --check verify-veritas-round9-run-readiness.mjs        exit 0
-  round-9 readiness verifier                                  74 PASS / 0 FAIL
+  run-day readiness verifier                                 81 PASS / 0 FAIL
   round-8 publication-closure regression                      37 PASS / 0 FAIL
   round-7 closure regression                                  25 PASS / 0 FAIL
   deterministic builder                                       exit 0
@@ -13,6 +13,11 @@ Focused artifacts
     Bitcoin anchor leaf a9035d310ff0345d2f7e8906544b972eba7438e128407b09f774a227ecc88f21
     Ethereum fixture preimage 633 bytes
     orderingCommitmentHash 0xa9ae993af4ea7733eb3d6f524c9b8eb90cb382e56c886b3361df16b5b7a72c2e
+  operational agreement                                      CONFIRMED
+    no pre-signing or gate reuse
+    fresh gate pair required per attempt
+    Insight signing capacity planned for two to three attempts
+    stale selectionRuleHash refuses to run
 
 Repository acceptance
   npm run validate                                            exit 0
@@ -32,4 +37,3 @@ Repository acceptance
 
 State
   No Bitcoin or Ethereum transaction was broadcast.
-  Source changes remain local: not committed, pushed or deployed.

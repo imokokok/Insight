@@ -1,5 +1,5 @@
-Insight / VERITAS round-9 joint-run readiness package
-2026-09-16
+Insight / VERITAS run-day operational closure package
+2026-09-17
 
 PURPOSE
   Close F17 and N19 through N22 before the funded joint run. No signed receipt layout,
@@ -24,6 +24,12 @@ DECISIONS
      human round trip, and Insight independently recomputes afterwards. A mismatch is a
      published abort.
   6. Select the one-hour window beginning 2026-09-18 12:00 UTC (20:00 in China).
+  7. The window is confirmed by both parties. Gate signing starts the 600-second clock,
+     so gates are never pre-signed or reused. Every attempt begins with a fresh source and
+     destination gate pair, and Insight remains available to sign two or three attempts.
+  8. The only live substitutions are sourceGateUid, destinationGateUid and
+     preTradeUidsHash. The builder recomputes selectionRuleHash from the rule file and
+     refuses to run if the configured hash is stale.
 
 PINNED BYTES
   selectionRuleHash
@@ -47,7 +53,8 @@ FILES
   joint-run-final-package-requirements-v1.json
     Symmetric Bitcoin/Ethereum canonicality and N18 claim boundaries.
   joint-run-operational-agreement-v1.json
-    Selected date, sender roles, mechanical coordination and pre-broadcast gates.
+    Confirmed date, sender roles, fresh-gate retry policy, five-step attempt order,
+    mechanical coordination and pre-broadcast gates.
   provider-observation-hash-vector-v1.json
     N15 regression dependency.
   verify-veritas-round9-run-readiness.mjs.txt

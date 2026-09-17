@@ -1,8 +1,8 @@
 # VERITAS joint-run readiness artifacts
 
-This directory closes F17 and N19 through N22 before the funded joint run without changing any
-signed receipt layout, the registered 600-second gate window, venue, direction, threshold,
-first-match rule or outcome-independent publication rule.
+This directory closes F17 and N19 through N22 and pins the confirmed run-day procedure before the
+funded joint run without changing any signed receipt layout, the registered 600-second gate
+window, venue, direction, threshold, first-match rule or outcome-independent publication rule.
 
 - `anchored-settlement-selection-rule-v2.json` fixes the USDC EIP-55 spelling, defines the
   five-field Bitcoin preimage and its distinct tagged-hash leaf, pins Bitcoin hash display
@@ -20,7 +20,8 @@ first-match rule or outcome-independent publication rule.
   both chains and keeps inclusion-proven ordering separate from issuer-asserted age.
 - `joint-run-operational-agreement-v1.json` records the selected one-hour window beginning
   2026-09-18 12:00 UTC, VERITAS as sender of both commitment legs, post-submission independent
-  verification by Insight, and every pre-broadcast gate.
+  verification by Insight, every pre-broadcast gate, the five-step attempt order, and the rule
+  that each retry starts with a newly signed gate pair rather than a pre-signed or reused gate.
 - `provider-observation-hash-vector-v1.json` retains the N15 `uint256` positive/negative
   regression.
 - `verify-veritas-round9-run-readiness.mjs` independently checks F17, N19, N20, N21, N22, both
@@ -54,6 +55,13 @@ confirmation it contains only `sourceGateUid`, `destinationGateUid` and `preTrad
 facts together: `bitcoinAnchorTxid`, `bitcoinConfirmingBlockHeight` and
 `bitcoinConfirmingBlockHash`. The two Bitcoin hashes are lowercase, have no `0x` prefix and use
 Bitcoin display order.
+
+Gate signing starts the registered 600-second clock. Do not pre-sign gates. Each attempt, including
+each retry, begins with a fresh source and destination gate pair. Insight remains available for the
+whole one-hour window and plans signing capacity for two to three attempts. The only live values
+substituted into the pinned commitment flow are `sourceGateUid`, `destinationGateUid` and
+`preTradeUidsHash`; the builder recomputes `selectionRuleHash` from the rule file and refuses a stale
+configured value.
 
 The Bitcoin anchor remains the durable, censorship-resistant evidence layer. The Ethereum
 commitment supplies the short-horizon ordering proof. Neither proves the Insight verdict correct,

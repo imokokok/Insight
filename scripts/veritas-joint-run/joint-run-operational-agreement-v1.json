@@ -1,6 +1,6 @@
 {
   "schema": "insight-veritas-joint-run-operational-agreement/v1",
-  "agreedAt": "2026-09-16",
+  "agreedAt": "2026-09-17",
   "selectionRuleFile": "anchored-settlement-selection-rule-v2.json",
   "selectionRuleHash": "0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a",
   "scheduledWindow": {
@@ -8,6 +8,7 @@
     "durationSeconds": 3600,
     "insightLocalTime": "2026-09-18T20:00:00+08:00",
     "veritasLocalTimeAsProposed": "2026-09-18T08:00:00-04:00",
+    "status": "CONFIRMED_BY_BOTH_PARTIES",
     "plannedAttempts": "two to three"
   },
   "submissionRoles": {
@@ -16,17 +17,48 @@
     "ethereumOrderingSenderAddress": "0xBdaC9fe3E7c610665b5DdB09041A7DEA1241C2C0",
     "proofScopeNote": "The sender identity does not change what the committed bytes and inclusion evidence prove.",
     "insightResponsibilities": [
-      "Provide the signed source and destination gates and their shared commitment fields",
+      "Issue fresh signed source and destination gates only when each attempt begins",
       "Run the pinned deterministic builder before the window against the literal vectors",
       "Independently verify every published preimage, hash, transaction and inclusion fact after submission",
       "Require any byte mismatch or canonicality failure to be published as an abort"
     ]
   },
+  "attemptGatePolicy": {
+    "gateValiditySeconds": 600,
+    "clockStartsAt": "GATE_SIGNATURE",
+    "preSigningAllowed": false,
+    "freshSignedGatePairRequiredPerAttempt": true,
+    "gateReuseAcrossAttemptsAllowed": false,
+    "operatorAvailabilityRequiredForEntireWindow": true,
+    "plannedSigningCapacity": {
+      "minimumAttempts": 2,
+      "maximumAttempts": 3
+    },
+    "retryStartCondition": "YuTao signs a fresh source and destination gate pair when the retry begins"
+  },
+  "liveSubstitutions": ["sourceGateUid", "destinationGateUid", "preTradeUidsHash"],
+  "perAttemptSequence": [
+    "SIGN_FRESH_GATE_PAIR",
+    "BUILD_PUBLISH_AND_BROADCAST_BITCOIN_COMMITMENT",
+    "AFTER_FIRST_BITCOIN_CONFIRMATION_BUILD_AND_SUBMIT_ETHEREUM_COMMITMENT",
+    "SELECT_FIRST_QUALIFYING_EVENT_AFTER_BLOCK_E_IN_CANONICAL_ORDER",
+    "PUBLISH_GRADED_OUTCOME_OR_ABORT_WITH_ALL_TRANSACTION_IDS"
+  ],
+  "abortPublication": {
+    "conditions": ["BYTE_MISMATCH", "GATE_EXPIRY", "MISSING_QUALIFYING_CANDIDATE"],
+    "publishEveryBitcoinAnchorTxid": true,
+    "publishEveryEthereumCommitmentTxid": true
+  },
   "runtimeCoordination": {
     "humanRoundTripInsideGateWindow": false,
     "senderMaySubmitImmediatelyAfterBitcoinConfirmation": true,
     "otherPartyVerificationMode": "POST_SUBMISSION_INDEPENDENT_RECOMPUTATION",
-    "mismatchOutcome": "PUBLISHED_ABORT"
+    "mismatchOutcome": "PUBLISHED_ABORT",
+    "ruleHashPreflight": {
+      "recomputeFromRuleFile": true,
+      "mustEqualConfiguredSelectionRuleHash": true,
+      "mismatchOutcome": "REFUSE_TO_RUN"
+    }
   },
   "preBroadcastGates": [
     "F17 canonical EIP-55 address fix and complete dependent-byte repin",
@@ -35,6 +67,8 @@
     "N22 byte agreement on the five-field Bitcoin preimage and VRT1/anchored-settlement-commitment leaf tag",
     "Both pinned deterministic builders reproduce the shipped Bitcoin and Ethereum vectors",
     "Live Bitcoin UTXO, Ethereum balance, nonce and fee conditions are rechecked",
+    "The configured selectionRuleHash equals the value recomputed from the rule file",
+    "A fresh source and destination gate pair is signed only when the attempt begins",
     "After the real gate fields exist, both parties independently recompute the same preimages before the first broadcast, without an in-window human round trip"
   ],
   "standing": [

@@ -316,13 +316,61 @@ check(
 check(
   'selected window is 2026-09-18 12:00 UTC for one hour',
   operationalAgreement.scheduledWindow.startsAt === '2026-09-18T12:00:00Z' &&
-    operationalAgreement.scheduledWindow.durationSeconds === 3600
+    operationalAgreement.scheduledWindow.durationSeconds === 3600 &&
+    operationalAgreement.scheduledWindow.status === 'CONFIRMED_BY_BOTH_PARTIES'
 );
 check(
   'pre-broadcast gates include F17, N19, N20 and N22',
   ['F17', 'N19', 'N20', 'N22'].every((id) =>
     operationalAgreement.preBroadcastGates.some((gate) => gate.startsWith(id))
   )
+);
+check(
+  'gate signing starts the registered 600-second clock',
+  operationalAgreement.attemptGatePolicy.gateValiditySeconds === 600 &&
+    operationalAgreement.attemptGatePolicy.clockStartsAt === 'GATE_SIGNATURE'
+);
+check(
+  'pre-signing and cross-attempt gate reuse are forbidden',
+  operationalAgreement.attemptGatePolicy.preSigningAllowed === false &&
+    operationalAgreement.attemptGatePolicy.freshSignedGatePairRequiredPerAttempt === true &&
+    operationalAgreement.attemptGatePolicy.gateReuseAcrossAttemptsAllowed === false
+);
+check(
+  'Insight remains available to sign two or three attempts during the full window',
+  operationalAgreement.attemptGatePolicy.operatorAvailabilityRequiredForEntireWindow === true &&
+    operationalAgreement.attemptGatePolicy.plannedSigningCapacity.minimumAttempts === 2 &&
+    operationalAgreement.attemptGatePolicy.plannedSigningCapacity.maximumAttempts === 3
+);
+check(
+  'only live gate identifiers and their ordered hash remain substitutions',
+  JSON.stringify(operationalAgreement.liveSubstitutions) ===
+    JSON.stringify(['sourceGateUid', 'destinationGateUid', 'preTradeUidsHash'])
+);
+check(
+  'the five run-day steps are pinned in order',
+  JSON.stringify(operationalAgreement.perAttemptSequence) ===
+    JSON.stringify([
+      'SIGN_FRESH_GATE_PAIR',
+      'BUILD_PUBLISH_AND_BROADCAST_BITCOIN_COMMITMENT',
+      'AFTER_FIRST_BITCOIN_CONFIRMATION_BUILD_AND_SUBMIT_ETHEREUM_COMMITMENT',
+      'SELECT_FIRST_QUALIFYING_EVENT_AFTER_BLOCK_E_IN_CANONICAL_ORDER',
+      'PUBLISH_GRADED_OUTCOME_OR_ABORT_WITH_ALL_TRANSACTION_IDS',
+    ])
+);
+check(
+  'mismatch, expiry and missing candidate all publish aborts with every transaction id',
+  JSON.stringify(operationalAgreement.abortPublication.conditions) ===
+    JSON.stringify(['BYTE_MISMATCH', 'GATE_EXPIRY', 'MISSING_QUALIFYING_CANDIDATE']) &&
+    operationalAgreement.abortPublication.publishEveryBitcoinAnchorTxid === true &&
+    operationalAgreement.abortPublication.publishEveryEthereumCommitmentTxid === true
+);
+check(
+  'stale selection rules refuse to run before broadcast',
+  operationalAgreement.runtimeCoordination.ruleHashPreflight.recomputeFromRuleFile === true &&
+    operationalAgreement.runtimeCoordination.ruleHashPreflight
+      .mustEqualConfiguredSelectionRuleHash === true &&
+    operationalAgreement.runtimeCoordination.ruleHashPreflight.mismatchOutcome === 'REFUSE_TO_RUN'
 );
 
 console.log('\n== N18 and standing claim boundaries ==');
