@@ -72,6 +72,8 @@ export class InsightGuard {
 
   /**
    * Evaluate both sides of a swap without submitting, signing, or preventing a transaction.
+   * This performs two C3 Pre-Trade calls and does not issue a C4 Execution Receipt.
+   * receiptDraft is an unsigned request template, not an issued receipt.
    * Operational and evidence failures are represented as UNASSESSABLE rather than thrown.
    */
   async assessSwap(request: SwapAssessmentRequest, signal?: AbortSignal): Promise<SwapAssessment> {

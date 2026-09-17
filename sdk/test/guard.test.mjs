@@ -168,6 +168,30 @@ test('assessment preserves a zero recommended position limit', async () => {
   assert.equal(assessment.constraints.recommendedMaxPositionUsd, 0);
 });
 
+test('assessSwap makes only two C3 calls and does not issue a C4 receipt', async () => {
+  const requests = [];
+  const guard = new InsightGuard({
+    apiKey: 'ins_test',
+    fetch: async (url) => {
+      const parsed = new URL(url);
+      requests.push(parsed.pathname);
+      assert.equal(parsed.pathname, '/api/v1/safety/pre-trade');
+      return api(preTrade(parsed.searchParams.get('asset')));
+    },
+  });
+
+  const assessment = await guard.assessSwap({
+    source: sourceRequest,
+    destination: destinationRequest,
+    receipt: { settlementChainId: 1, maxSlippageBps: 50 },
+  });
+
+  assert.deepEqual(requests, ['/api/v1/safety/pre-trade', '/api/v1/safety/pre-trade']);
+  assert.equal(assessment.recommendation, 'RECOMMENDED');
+  assert.ok(assessment.receiptDraft);
+  assert.ok(assessment.contextCommitment);
+});
+
 test('executeSwap submits only after two gates and issues a verified receipt', async () => {
   const requests = [];
   const guard = new InsightGuard({
@@ -558,6 +582,8 @@ test('non-intervening assessment can be authorized and verified after an externa
   });
   assert.equal(assessment.recommendation, 'NOT_RECOMMENDED');
   assert.equal(assessment.contextCommitment?.namespace, 'insight.pretrade-pair.v1');
+  assert.deepEqual(insightRequests, ['/api/v1/safety/pre-trade', '/api/v1/safety/pre-trade']);
+  assert.deepEqual(priorSealRequests, []);
 
   const authorized = await guard.authorizeAssessedSwap({
     assessment,

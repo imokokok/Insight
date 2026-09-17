@@ -83,6 +83,14 @@ assessment to a principal-authorized exact call without broadcasting it. The
 derived joint report records complete, partial, pending, mismatched and
 against-recommendation outcomes without becoming a third attestation.
 
+`assessSwap()` is also the cost-controlled assessment-only mode: it makes two C3
+Pre-Trade calls (**10 credits** at the current 5-credit C3 price) and makes no C4
+call. Its `receiptDraft` is an unsigned template, not an issued receipt. A C4
+charge occurs only if the caller later requests execution evidence through
+`verifyAssessedSwapExecution()` or uses the one-shot `executeSwap()` workflow.
+Skipping C4 does not skip the separate principal exact-call authorization that
+should gate any signing path.
+
 `executeSwapWithPriorSeal()` remains available as an optional gated convenience
 wrapper. The signed PriorSeal intent commits to both Insight pre-trade
 attestation UIDs, both request hashes and the slippage ceiling. Insight continues
@@ -93,11 +101,11 @@ exact call and those external proof references were principal-authorized.
 
 These are distinct ways to integrate Insight, not separate wallets or feature tiers:
 
-| Surface       | Best for                                                                    | Credit behavior                                                                                                                                                                                                           |
-| ------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **REST API**  | Custom applications that need individual data, analysis, or risk endpoints  | Each successful endpoint call draws its C1–C4 cost from the API key's wallet.                                                                                                                                             |
-| **AI / MCP**  | Claude, Cursor, Windsurf, and other MCP-compatible agents                   | Each successful tool call draws the equivalent C1–C4 cost from the same wallet.                                                                                                                                           |
-| **Guard SDK** | Agents that should gate, execute, monitor, and retain proof as one workflow | No separate SDK fee. It calls the underlying endpoints: a successful two-sided `executeSwap()` uses two C3 pre-trade calls plus one C4 receipt call (**20 credits** at current prices), excluding optional Watch polling. |
+| Surface       | Best for                                                                   | Credit behavior                                                                                                                                                                                                                           |
+| ------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **REST API**  | Custom applications that need individual data, analysis, or risk endpoints | Each successful endpoint call draws its C1–C4 cost from the API key's wallet.                                                                                                                                                             |
+| **AI / MCP**  | Claude, Cursor, Windsurf, and other MCP-compatible agents                  | Each successful tool call draws the equivalent C1–C4 cost from the same wallet.                                                                                                                                                           |
+| **Guard SDK** | Agents that should assess, gate, execute, monitor, and retain proof        | No separate SDK fee. `assessSwap()` uses two C3 calls and no C4 (**10 credits** at current prices). A successful two-sided `executeSwap()` uses two C3 calls plus one C4 receipt call (**20 credits**), excluding optional Watch polling. |
 
 Oracle Watch polling is a C3 call per signal. Plans and prepaid top-ups only add credit capacity; every paying user can use every surface. See [Pricing](https://www.oracleinsight.xyz/pricing) for the current wallet and plan details.
 

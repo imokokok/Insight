@@ -121,6 +121,14 @@ submits, signs, or prevents a transaction. `NOT_RECOMMENDED` may still be bound
 to a PriorSeal authorization and executed by the caller, and the final report
 will record that the agent acted against the recommendation.
 
+`assessSwap()` performs exactly two C3 Pre-Trade requests and does not call the
+C4 Execution Receipt endpoint. Its `receiptDraft` is an unsigned request
+template and its context commitment can be bound into a separate exact-call
+authorization. At the current C3 price, assessment-only costs 10 credits. C4 is
+requested only when `verifyAssessedSwapExecution()` is called after execution,
+or as part of `executeSwap()`. Omitting C4 is an evidence-retention choice; it
+must not be treated as permission to bypass principal authorization.
+
 ```ts
 const assessment = await guard.assessSwap({
   source,
@@ -247,5 +255,10 @@ This package does not add a second billing model. It uses the current API endpoi
 - Execution Receipt issuance is a C4 credit-metered call.
 
 A successful `executeSwap()` makes two Pre-Trade checks and one receipt request, so its minimum API cost is **20 credits** at the current C3/C4 prices (2 × 5 + 10), excluding any optional Oracle Watch polling. A source-side block costs one C3 check; a destination-side block costs two C3 checks. The SDK has no separate fee or wallet: REST API, AI/MCP, and SDK activity all draw from the same API-key credit wallet.
+
+A successful assessment-only `assessSwap()` makes two C3 checks and no C4
+request, so its API cost is **10 credits** at the current prices (2 × 5).
+Calling `verifyAssessedSwapExecution()` later adds one C4 request (**10
+credits**) when execution evidence is needed.
 
 The SDK never embeds signing keys or reimplements the risk rules. A signed receipt proves that Insight issued the signed bytes; it is not a guarantee that a trade or market price was correct.
