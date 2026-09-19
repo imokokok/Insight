@@ -238,51 +238,22 @@ function getSupportedSymbolsForError(
   return clientFallback();
 }
 
-/**
- * Fire-and-forget: record a feed health failure for the given provider/symbol.
- * Resolves the actual chain_id from the database feed row (chain-agnostic
- * providers store chain_id=0) so the UPDATE matches the DB row.
- *
- * Called from the realtime fetch path so that feeds which only fail under
- * live traffic (but succeed in the hourly cron via DB cache) are still
- * tracked and eventually auto-deactivated.
- */
-function recordFeedHealthFailure(
+/** Record live outcomes before returning; cached responses are not new probes. */
+async function recordFeedHealthResult(
   provider: OracleProvider,
   baseSymbol: string,
-  chain: Blockchain | undefined
-): void {
+  chain: Blockchain | undefined,
+  isSuccess: boolean
+): Promise<void> {
   try {
     const queries = getAdminQueries();
-    const client = getOracleClient(provider);
-    const chainId = getTargetChainId(chain, client.getDefaultChain());
-    // Resolve actual feed chain_id (chain-agnostic providers store 0) and
-    // the feed's actual DB symbol. The DB symbol must be used for the health
-    // update because some providers store the quote-suffixed pair
-    // ("BTC/USD") while callers pass the base symbol ("BTC"); matching on the
-    // base symbol would silently no-op, leaving consecutive_failures stuck at
-    // 0 so the feed can never auto-deactivate.
-    getActiveFeedsMap(provider)
-      .then((feedsMap) => {
-        let feedChainId = chainId;
-        let feedSymbol = baseSymbol;
-        // Resolve with the same rule the price fetch uses, so a failure is
-        // recorded against the feed that actually served the symbol. Matching
-        // on the bare base symbol picked an arbitrary feed when several share
-        // it — a USDC failure could be charged to `USDC/EUR`, leaving the real
-        // `USDC` feed at consecutive_failures = 0 and never auto-deactivating.
-        const matchedFeed = findUsdDenominatedFeed(feedsMap, baseSymbol, chainId);
-        if (matchedFeed) {
-          feedChainId = matchedFeed.chain_id;
-          feedSymbol = matchedFeed.symbol;
-        }
-        return queries.updateFeedHealth(provider, feedSymbol, feedChainId, false);
-      })
-      .catch((err) => {
-        logger.warn('Failed to record feed health failure', err instanceof Error ? err : undefined);
-      });
+    const chainId = getTargetChainId(chain, getOracleClient(provider).getDefaultChain());
+    const feedsMap = await getActiveFeedsMap(provider);
+    const matchedFeed = findUsdDenominatedFeed(feedsMap, baseSymbol, chainId);
+    if (!matchedFeed) return;
+    await queries.updateFeedHealth(provider, matchedFeed.symbol, matchedFeed.chain_id, isSuccess);
   } catch (err) {
-    logger.warn('Failed to record feed health failure', err instanceof Error ? err : undefined);
+    logger.warn('Failed to record feed health result', err instanceof Error ? err : undefined);
   }
 }
 
@@ -415,6 +386,7 @@ export async function fetchPriceWithDatabase(
             }
           });
       }
+      if (!forceRefresh) await recordFeedHealthResult(provider, baseSymbol, chain, true);
       return livePrice;
     } catch (liveError) {
       // Live refresh failed. If we have a stale DB fallback, serve it rather
@@ -423,7 +395,7 @@ export async function fetchPriceWithDatabase(
       // failure so feeds that only fail under live traffic are still tracked
       // (matches the outer-catcher's behavior for the no-fallback path).
       if (staleDbPrice) {
-        recordFeedHealthFailure(provider, baseSymbol, chain);
+        await recordFeedHealthResult(provider, baseSymbol, chain, false);
         logger.warn('Live price refresh failed; serving stale DB cache', {
           provider,
           symbol: baseSymbol,
@@ -444,7 +416,7 @@ export async function fetchPriceWithDatabase(
     // double-increment consecutive_failures, causing feeds to hit the
     // deactivation threshold (3) in only 2 cycles instead of 3.
     if (!(error instanceof UnsupportedSymbolError) && !forceRefresh) {
-      recordFeedHealthFailure(provider, baseSymbol, chain);
+      await recordFeedHealthResult(provider, baseSymbol, chain, false);
     }
     if (
       error instanceof PriceFetchError ||

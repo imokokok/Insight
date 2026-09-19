@@ -22,7 +22,9 @@ export async function GET(request: Request) {
   if (authResponse) return authResponse;
 
   try {
-    const result = await collectSnapshot();
+    // The scheduled GH runner rotates non-report health checks. Keep the HTTP
+    // fallback within its existing sampling budget and serverless deadline.
+    const result = await collectSnapshot(undefined, { includeAdditionalHealthChecks: false });
     return NextResponse.json({
       success: true,
       snapshotDate: result.snapshotDate,

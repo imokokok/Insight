@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { API3_MAX_DATA_AGE_SECONDS } from '@/lib/oracles/constants/api3Health';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
@@ -45,13 +46,6 @@ async function runProbeWithTimeout<T>(
     clearTimeout(timer);
   }
 }
-
-// API3 communal proxies return the last-written price even after a dAPI's
-// subscription expires, so a non-zero price is not proof of live data.
-// Require the on-chain update timestamp to be within 48h (2× the typical
-// 24h heartbeat) so expired dAPIs — e.g. a BSC feed still serving a price
-// from months ago — are rejected during verification.
-const API3_PROBE_MAX_DATA_AGE_SECONDS = 48 * 60 * 60;
 
 // Graceful pruning: a feed missing from a discovery run is only deactivated
 // after it fails re-verification ABSENT_PRUNE_THRESHOLD consecutive times.
@@ -142,10 +136,7 @@ async function probeFeed(
       }
       // API3NetworkService reports dataAge in seconds. Drop stale dAPIs whose
       // proxy still serves an expired last-written price.
-      if (
-        typeof reading.dataAge === 'number' &&
-        reading.dataAge > API3_PROBE_MAX_DATA_AGE_SECONDS
-      ) {
+      if (typeof reading.dataAge === 'number' && reading.dataAge > API3_MAX_DATA_AGE_SECONDS) {
         return false;
       }
       return true;
@@ -204,12 +195,17 @@ async function upsertDiscoveredFeeds(feeds: OracleFeedInsert[]): Promise<number>
   const supabase = createServiceRoleClient();
   const now = new Date().toISOString();
   // Rediscovered feeds are confirmed present: reset the absent counter and
-  // stamp last_discovery_at so they don't accumulate toward the prune
-  // threshold and are never re-pruned while they keep showing up.
+  // stamp last_discovery_at. The successful live probe also starts a new
+  // health streak, otherwise the following deactivation pass immediately
+  // disables a recovered row using its old failure count.
   const rows = feeds.map((f) => ({
     ...f,
     absent_discovery_runs: 0,
     last_discovery_at: now,
+    consecutive_failures: 0,
+    last_success_at: now,
+    deactivated_reason: null,
+    deactivated_at: null,
   }));
   const { data, error } = await supabase
     .from('oracle_feeds')
@@ -233,8 +229,8 @@ async function upsertDiscoveredFeeds(feeds: OracleFeedInsert[]): Promise<number>
 // longer applies. REACTIVATE_LIMIT was raised 40 → 200 so a large batch of
 // feeds deactivated by a transient incident (e.g. the 233-API3 bulk event)
 // recovers in a single 12h pass instead of trickling in over many days.
-// Feeds are ordered by most-recent failure first; older / permanently-dead
-// feeds are re-checked by the weekly discovery pass.
+// Oldest-touched inactive rows are checked first; each attempt moves its row
+// to the back of the queue, including failed and unsupported probes.
 const REACTIVATE_TIMEOUT_MS = 6_000;
 const REACTIVATE_LIMIT = 200;
 
@@ -270,10 +266,7 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
       ) {
         return false;
       }
-      if (
-        typeof reading.dataAge === 'number' &&
-        reading.dataAge > API3_PROBE_MAX_DATA_AGE_SECONDS
-      ) {
+      if (typeof reading.dataAge === 'number' && reading.dataAge > API3_MAX_DATA_AGE_SECONDS) {
         return false;
       }
       return true;
@@ -334,8 +327,8 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
 
 /**
  * Re-probe currently-deactivated feeds and reactivate those that now return a
- * valid price. Bounded by REACTIVATE_LIMIT per run (ordered by most-recent
- * failure first) so permanently-dead feeds don't starve the pass.
+ * valid price. Bounded by REACTIVATE_LIMIT per run, rotating every attempted
+ * row so permanently-dead feeds cannot starve the pass.
  */
 async function reactivateRecoveredFeeds(
   provider?: string
@@ -346,18 +339,26 @@ async function reactivateRecoveredFeeds(
     return { probed: 0, reactivated: 0, recovered: [] };
   }
 
+  // Persist the rotation before probing so even interrupted runs make progress.
+  await queries.markFeedReactivationAttempts(
+    inactiveFeeds.flatMap((feed) => (feed.id ? [feed.id] : []))
+  );
+
   const results = await mapWithConcurrency(inactiveFeeds, VERIFY_CONCURRENCY, async (feed) => {
     const ok = await probeInactiveFeed(feed);
     return { feed, ok };
   });
 
-  const recovered = results.filter((r) => r.ok);
-  const recoveredLabels = recovered.map((r) => `${r.feed.provider}/${r.feed.symbol}`);
-  await Promise.all(
-    recovered.map((r) =>
-      queries.reactivateOracleFeed(r.feed.provider, r.feed.symbol, r.feed.chain_id)
-    )
+  const activated = await Promise.all(
+    results
+      .filter((r) => r.ok)
+      .map(async (r) => ({
+        ...r,
+        saved: await queries.reactivateOracleFeed(r.feed.provider, r.feed.symbol, r.feed.chain_id),
+      }))
   );
+  const recovered = activated.filter((r) => r.saved);
+  const recoveredLabels = recovered.map((r) => `${r.feed.provider}/${r.feed.symbol}`);
 
   if (recovered.length > 0) {
     logger.info(
@@ -606,8 +607,8 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
       case 'reactivate': {
         // Re-probe deactivated feeds and revive those that have recovered.
         // Optional --provider scopes the pass to one provider; omit it to run
-        // across all providers (bounded by REACTIVATE_LIMIT, most-recent
-        // failures first). Safe to run frequently — each probe is bounded and
+        // across all providers (bounded by REACTIVATE_LIMIT, oldest-touched
+        // inactive rows first). Safe to run frequently — each probe is bounded and
         // only feeds returning a valid price are reactivated.
         const result = await reactivateRecoveredFeeds(provider || undefined);
         invalidateAllFeedsCache();

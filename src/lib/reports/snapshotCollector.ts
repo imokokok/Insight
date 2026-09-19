@@ -27,6 +27,7 @@ import {
   REPORT_PROVIDERS,
   type HourlySnapshotInput,
 } from '@/lib/reports/reportService';
+import { type OracleFeed } from '@/lib/supabase/queries';
 import { getAdminQueries } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
@@ -39,6 +40,17 @@ const logger = createLogger('DailyReportSnapshot');
 // hundreds of simultaneous HTTP/RPC requests + DB writes, which previously
 // saturated the event loop and tripped upstream rate limits.
 const REPORT_FETCH_CONCURRENCY = 8;
+// Rotate non-report feeds instead of issuing thousands of extra calls per tick.
+const ADDITIONAL_HEALTH_LIMIT = 100;
+const ADDITIONAL_HEALTH_TIMEOUT_MS = 10_000;
+const reportSymbols = new Set<string>(REPORT_ASSETS);
+
+function lastHealthCheck(feed: OracleFeed): number {
+  return Math.max(
+    Date.parse(feed.last_success_at ?? '') || 0,
+    Date.parse(feed.last_failure_at ?? '') || 0
+  );
+}
 
 // DECIMAL(24, 8) max absolute value
 const MAX_SNAPSHOT_PRICE = 9_999_999_999_999_999.99999999;
@@ -84,9 +96,13 @@ export interface BatchResultItem {
   price: PriceData | null;
   error: string | null;
   skipped: boolean;
+  /** Non-report feed sampled only for lifecycle health. */
+  healthOnly?: boolean;
 }
 
-async function fetchBatchPrices(): Promise<BatchResultItem[]> {
+async function fetchBatchPrices(
+  includeAdditionalHealthChecks: boolean
+): Promise<BatchResultItem[]> {
   const factory = getDefaultFactory();
   const queries: {
     provider: OracleProvider;
@@ -94,6 +110,7 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
     chain?: Blockchain;
     feedChainId?: number;
     feedSymbol?: string;
+    healthOnly?: boolean;
   }[] = [];
   const skipped: BatchResultItem[] = [];
 
@@ -170,6 +187,33 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
     }
   }
 
+  const healthFeeds = Array.from(activeFeedsByProvider.values())
+    .flat()
+    .filter(
+      (feed) =>
+        REPORT_PROVIDERS.includes(feed.provider as OracleProvider) &&
+        isUsdDenominatedFeedSymbol(feed.symbol) &&
+        !reportSymbols.has(extractBaseSymbol(feed.symbol).toUpperCase())
+    )
+    .sort(
+      (a, b) =>
+        lastHealthCheck(a) - lastHealthCheck(b) ||
+        `${a.provider}:${a.symbol}:${a.chain_id}`.localeCompare(
+          `${b.provider}:${b.symbol}:${b.chain_id}`
+        )
+    )
+    .slice(0, includeAdditionalHealthChecks ? ADDITIONAL_HEALTH_LIMIT : 0);
+  for (const feed of healthFeeds) {
+    queries.push({
+      provider: feed.provider as OracleProvider,
+      symbol: extractBaseSymbol(feed.symbol).toUpperCase(),
+      chain: getBlockchainByChainId(feed.chain_id),
+      feedChainId: feed.chain_id,
+      feedSymbol: feed.symbol,
+      healthOnly: true,
+    });
+  }
+
   logger.info(
     `Price batch: ${queries.length} queries, ${skipped.length} unsupported pairs skipped`
   );
@@ -177,7 +221,14 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
   const fetched = await mapWithConcurrency(
     queries,
     REPORT_FETCH_CONCURRENCY,
-    async ({ provider, symbol, chain, feedChainId, feedSymbol }): Promise<BatchResultItem> => {
+    async ({
+      provider,
+      symbol,
+      chain,
+      feedChainId,
+      feedSymbol,
+      healthOnly,
+    }): Promise<BatchResultItem> => {
       try {
         const price = await fetchPriceWithDatabase(
           provider,
@@ -185,7 +236,7 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
           chain,
           true,
           true,
-          undefined,
+          healthOnly ? AbortSignal.timeout(ADDITIONAL_HEALTH_TIMEOUT_MS) : undefined,
           feedSymbol
         );
         const check = sanitizePriceForSnapshot(price.price);
@@ -196,12 +247,22 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
             symbol,
             feedChainId,
             feedSymbol,
+            healthOnly,
             price: null,
             error: `Price validation failed: ${check.reason}`,
             skipped: false,
           };
         }
-        return { provider, symbol, feedChainId, feedSymbol, price, error: null, skipped: false };
+        return {
+          provider,
+          symbol,
+          feedChainId,
+          feedSymbol,
+          healthOnly,
+          price,
+          error: null,
+          skipped: false,
+        };
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         logger.warn(`Price fetch failed for ${provider}/${symbol}: ${message}`);
@@ -210,6 +271,7 @@ async function fetchBatchPrices(): Promise<BatchResultItem[]> {
           symbol,
           feedChainId,
           feedSymbol,
+          healthOnly,
           price: null,
           error: message,
           skipped: false,
@@ -263,7 +325,7 @@ function calculateConsensusBySymbol(results: BatchResultItem[]): Record<string, 
   const bySymbol = new Map<string, BatchResultItem[]>();
 
   for (const item of results) {
-    if (!item.price || item.price.price <= 0) continue;
+    if (item.healthOnly || !item.price || item.price.price <= 0) continue;
     const list = bySymbol.get(item.symbol) ?? [];
     list.push(item);
     bySymbol.set(item.symbol, list);
@@ -304,7 +366,7 @@ export function buildSnapshotInputs(
   now: number = Date.now()
 ): HourlySnapshotInput[] {
   return results
-    .filter((item) => !item.skipped)
+    .filter((item) => !item.skipped && !item.healthOnly)
     .map((item): HourlySnapshotInput => {
       const rawConsensus = item.symbol ? consensusBySymbol[item.symbol] : undefined;
       const consensusPrice =
@@ -477,7 +539,8 @@ export function resolveSnapshotSlot(scheduledFor?: string, now: Date = new Date(
  * are skipped in that case, exactly as before.
  */
 export async function collectSnapshot(
-  snapshotTs: Date = resolveSnapshotSlot()
+  snapshotTs: Date = resolveSnapshotSlot(),
+  options: { includeAdditionalHealthChecks?: boolean } = {}
 ): Promise<SnapshotCollectionResult> {
   const now = snapshotTs;
   const snapshotDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
@@ -487,7 +550,7 @@ export async function collectSnapshot(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours())
   );
 
-  const results = await fetchBatchPrices();
+  const results = await fetchBatchPrices(options.includeAdditionalHealthChecks ?? true);
   const consensusBySymbol = calculateConsensusBySymbol(results);
 
   const inputs = buildSnapshotInputs(results, consensusBySymbol, snapshotHour);

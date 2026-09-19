@@ -1,4 +1,5 @@
 import { BaseOracleClient } from '@/lib/oracles/base';
+import { API3_MAX_DATA_AGE_SECONDS } from '@/lib/oracles/constants/api3Health';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { API3_AVAILABLE_PAIRS } from '@/lib/oracles/constants/supportedSymbols';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
@@ -63,6 +64,13 @@ export class API3Client extends BaseOracleClient {
       if (!api3Data.price || api3Data.price <= 0) {
         throw this.createError(
           `Invalid price (0) for symbol: ${symbol} on ${targetChain}. The dAPI may not be activated or the proxy address is incorrect.`,
+          'API3_PRICE_NOT_AVAILABLE'
+        );
+      }
+
+      if (api3Data.dataAge > API3_MAX_DATA_AGE_SECONDS) {
+        throw this.createError(
+          `Stale API3 price for ${symbol} on ${targetChain}: ${api3Data.dataAge}s old`,
           'API3_PRICE_NOT_AVAILABLE'
         );
       }

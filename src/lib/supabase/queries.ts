@@ -684,9 +684,9 @@ export class DatabaseQueries {
   /**
    * Return feeds that are currently deactivated (is_active=false), optionally
    * limited to a single provider. Used by the reactivation pass to re-probe
-   * feeds whose upstream may have recovered. Ordered by last_failure_at DESC
-   * (nulls last) so feeds that failed most recently — most likely to be
-   * transient outages that just resolved — are re-probed first.
+   * feeds whose upstream may have recovered. Order by oldest row activity;
+   * markFeedReactivationAttempts touches updated_at before probing, rotating
+   * failed attempts without overwriting the actual last_failure_at evidence.
    */
   async getInactiveFeeds(provider?: string, limit: number = 200): Promise<OracleFeed[]> {
     return queryQueue.add(async () => {
@@ -694,7 +694,8 @@ export class DatabaseQueries {
         .from('oracle_feeds')
         .select('*')
         .eq('is_active', false)
-        .order('last_failure_at', { ascending: false, nullsFirst: false })
+        .order('updated_at', { ascending: true })
+        .order('id', { ascending: true })
         .limit(limit);
 
       if (provider) {
@@ -707,6 +708,18 @@ export class DatabaseQueries {
         return [];
       }
       return (data as OracleFeed[]) ?? [];
+    });
+  }
+
+  async markFeedReactivationAttempts(ids: string[]): Promise<void> {
+    if (ids.length === 0) return;
+    await queryQueue.add(async () => {
+      const { error } = await this.client
+        .from('oracle_feeds')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('is_active', false)
+        .in('id', ids);
+      if (error) throw new Error(`Failed to rotate inactive feeds: ${error.message}`);
     });
   }
 

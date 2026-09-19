@@ -271,6 +271,7 @@ describe('inactive-feed reactivation identity', () => {
     };
     const reactivateOracleFeed = jest.fn().mockResolvedValue(true);
     mockedGetAdminQueries.mockReturnValue({
+      markFeedReactivationAttempts: jest.fn().mockResolvedValue(undefined),
       getInactiveFeeds: jest.fn().mockResolvedValue([inactive]),
       reactivateOracleFeed,
     } as never);
@@ -295,6 +296,7 @@ describe('inactive-feed reactivation identity', () => {
     };
     const reactivateOracleFeed = jest.fn().mockResolvedValue(true);
     mockedGetAdminQueries.mockReturnValue({
+      markFeedReactivationAttempts: jest.fn().mockResolvedValue(undefined),
       getInactiveFeeds: jest.fn().mockResolvedValue([inactive]),
       reactivateOracleFeed,
     } as never);
@@ -318,6 +320,7 @@ describe('inactive-feed reactivation identity', () => {
     };
     const reactivateOracleFeed = jest.fn().mockResolvedValue(true);
     mockedGetAdminQueries.mockReturnValue({
+      markFeedReactivationAttempts: jest.fn().mockResolvedValue(undefined),
       getInactiveFeeds: jest.fn().mockResolvedValue([inactive]),
       reactivateOracleFeed,
     } as never);
