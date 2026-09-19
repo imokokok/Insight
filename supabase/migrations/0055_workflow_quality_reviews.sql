@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS public.pre_trade_workflow_reviews (
 CREATE INDEX IF NOT EXISTS idx_pre_trade_workflow_reviews_check
   ON public.pre_trade_workflow_reviews(check_id, created_at DESC);
 ALTER TABLE public.pre_trade_workflow_reviews ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.pre_trade_workflow_reviews FROM PUBLIC, anon, authenticated;
+-- Supabase may grant ALL to service_role through creator default privileges.
+-- Reset those grants too before establishing the append-only application role.
+REVOKE ALL ON public.pre_trade_workflow_reviews FROM PUBLIC, anon, authenticated, service_role;
 GRANT SELECT, INSERT ON public.pre_trade_workflow_reviews TO service_role;
 COMMENT ON TABLE public.pre_trade_workflow_reviews IS 'Append-only Ops-owner human review history. Proxy outcome labels remain separate.';
 COMMIT;
