@@ -189,7 +189,7 @@ export async function getWorkflowQualityReport(input: WorkflowFilterInput) {
   if (filters.modelVersion) query = query.eq('ml_model_version', filters.modelVersion);
   const { data, error, count } = await query;
   if (error)
-    throw new Error('Workflow report unavailable. Check migration 0053 and database availability.');
+    throw new Error('Workflow report unavailable. Check migration 0055 and database availability.');
   const all = (data ?? []) as WorkflowCheck[];
   const rows = all.slice(0, 1000);
   let reviews: WorkflowReview[] = [];
@@ -237,6 +237,6 @@ export async function appendWorkflowReview(input: unknown) {
   });
   if (error)
     throw new Error(
-      'Review was not saved. Confirm the check exists and migration 0053 is installed.'
+      'Review was not saved. Confirm the check exists and migration 0055 is installed.'
     );
 }

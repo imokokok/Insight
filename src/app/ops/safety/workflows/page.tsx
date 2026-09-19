@@ -27,7 +27,7 @@ export default async function WorkflowQualityPage({
     report = await getWorkflowQualityReport(parsed.data);
   } catch {
     return (
-      <ErrorBanner message="Workflow report unavailable. Check migration 0053 and database availability. No zero-value report has been substituted." />
+      <ErrorBanner message="Workflow report unavailable. Check migration 0055 and database availability. No zero-value report has been substituted." />
     );
   }
   const s = report.summary;
