@@ -58,8 +58,10 @@ its allowlisted origin, credential and trust scope explicitly before using it.
 ## Install
 
 ```bash
-npm install oracle-insight-guard
+npm install https://github.com/imokokok/Insight/releases/download/sdk-v0.3.0/oracle-insight-guard-0.3.0.tgz
 ```
+
+This documentation targets **0.3.0**. Use the official GitHub Release artifact above while npm registry synchronization is pending. The unversioned `npm install oracle-insight-guard` command still resolves to the older registry release and does not include all diagnostics, freshness, durable Watch and recovery APIs described here. The release includes compiled JavaScript and TypeScript declarations.
 
 Use it from a trusted server or agent runtime only. Do not expose an Insight API key in a browser bundle.
 
@@ -130,6 +132,11 @@ or as part of `executeSwap()`. Omitting C4 is an evidence-retention choice; it
 must not be treated as permission to bypass principal authorization.
 
 ```ts
+// Set from the intended deployment's GET /v1/capabilities response and confirm
+// it against your deployment configuration. Hosted PriorSeal uses priorseal.xyz.
+const priorSealAudience = process.env.PRIORSEAL_AUDIENCE;
+if (!priorSealAudience) throw new Error('Configure the PriorSeal deployment audience first.');
+
 const assessment = await guard.assessSwap({
   source,
   destination,
@@ -141,6 +148,7 @@ const authorized = await guard.authorizeAssessedSwap({
   transaction: preparedTransaction,
   priorSeal: {
     client: priorSeal,
+    audience: priorSealAudience,
     principal: { type: 'organization', id: treasuryId, account: treasurySafe },
     authorizer: { type: 'eip1271', address: treasurySafe },
     agentId: 'treasury:rebalance-agent',
@@ -183,6 +191,9 @@ import { InsightGuard, PriorSealClient } from 'oracle-insight-guard';
 
 const guard = new InsightGuard({ apiKey: process.env.INSIGHT_API_KEY! });
 const priorSeal = new PriorSealClient({ baseUrl: process.env.PRIORSEAL_URL! });
+// Obtain this from GET /v1/capabilities on PRIORSEAL_URL and confirm the deployment.
+const priorSealAudience = process.env.PRIORSEAL_AUDIENCE;
+if (!priorSealAudience) throw new Error('Configure the PriorSeal deployment audience first.');
 
 const result = await guard.executeSwapWithPriorSeal({
   source,
@@ -190,6 +201,7 @@ const result = await guard.executeSwapWithPriorSeal({
   receipt: { settlementChainId: 8453, maxSlippageBps: 50 },
   priorSeal: {
     client: priorSeal,
+    audience: priorSealAudience,
     principal: { type: 'user', id: userId, account: authorizer },
     agentId: 'insight:swap-agent',
     validUntil: transactionDeadline,
