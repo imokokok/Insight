@@ -131,6 +131,39 @@ describe('getConsensusPrice failure semantics', () => {
   });
 });
 
+describe('concurrent public source reads', () => {
+  it('starts price reads before slow reputation lookup and shares only in-flight reads', async () => {
+    getAllActiveFeedsByProvider.mockResolvedValue(
+      new Map([[OracleProvider.API3, [{ symbol: 'AERO/USD', chain_id: 8453 }]]])
+    );
+    let releasePrice!: (value: unknown) => void;
+    let releaseReputation!: (value: unknown[]) => void;
+    const price = new Promise((resolve) => {
+      releasePrice = resolve;
+    });
+    const reputations = new Promise<unknown[]>((resolve) => {
+      releaseReputation = resolve;
+    });
+    mockFetchPriceWithDatabase.mockReturnValue(price);
+    mockGetReputations.mockReturnValue(reputations);
+    const first = getConsensusPrice('AERO', Blockchain.BASE);
+    const second = getConsensusPrice('aero', Blockchain.BASE);
+    for (let i = 0; i < 8; i++) await Promise.resolve();
+    expect(mockFetchPriceWithDatabase).toHaveBeenCalledTimes(1);
+    releasePrice({
+      provider: OracleProvider.API3,
+      symbol: 'AERO',
+      price: 1,
+      timestamp: Date.now(),
+    });
+    releaseReputation([]);
+    const results = await Promise.all([first, second]);
+    expect(results[0].providers[0].fetchDurationMs).toEqual(expect.any(Number));
+    await getConsensusPrice('AERO', Blockchain.BASE);
+    expect(mockFetchPriceWithDatabase).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('getConsensusPrice provider scoping', () => {
   it('fetches and computes consensus only from explicitly targeted providers', async () => {
     getAllActiveFeedsByProvider.mockResolvedValue(

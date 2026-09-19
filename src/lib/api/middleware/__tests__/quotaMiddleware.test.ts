@@ -22,6 +22,20 @@ jest.mock('@/lib/utils/logger', () => ({
 const mockedPrecheck = precheckCredits as jest.MockedFunction<typeof precheckCredits>;
 
 describe('quota middleware credit exhaustion', () => {
+  it('links the ledger metering identifier to the server-generated request id', async () => {
+    mockedPrecheck.mockResolvedValue({ ok: true, balance: 50 });
+    const middleware = createQuotaMiddleware(
+      {},
+      { apiKeyId: 'key-1', plan: 'developer', requestId: 'req_server_generated' }
+    );
+    const result = await middleware({
+      nextUrl: new URL('https://www.oracleinsight.xyz/api/v1/coverage'),
+      headers: new Headers(),
+    } as NextRequest);
+    expect(result.success).toBe(true);
+    if (result.success)
+      expect(result.quotaInfo.pendingCharge?.meteringKey).toBe('rest:key-1:req_server_generated');
+  });
   it('marks a 402 as non-retryable and tells polling clients when to retry', async () => {
     mockedPrecheck.mockResolvedValue({
       ok: false,

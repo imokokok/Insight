@@ -455,3 +455,7 @@ Deployment and rollback instructions live in
 service objectives, monitoring, backups, release checks, load testing, incident
 response, and application rollback process are in
 [`docs/operations/production-readiness.md`](docs/operations/production-readiness.md).
+
+## Integration reliability
+
+See the [integration and recovery runbook](docs/operations/integration-reliability.md) for the integration doctor, durable Watch state, billing reconciliation and source-latency diagnostics.

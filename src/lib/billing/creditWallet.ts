@@ -7,10 +7,10 @@
  *     monthly budget). The quota middleware calls this to reject a request
  *     early with a 402 before doing any work.
  *   - consumeCredits: the authoritative, atomic, idempotent charge. It is
- *     fire-and-forget from the request path (a missed charge only means the
- *     user gets a marginally cheaper call), but unlike a plain counter the
- *     underlying RPC re-checks balance/budget atomically and a metering_key
- *     guarantees no double-charge on a retry.
+ *     awaited after a successful result. RPC failures preserve availability
+ *     with confirmed:false; callers must not treat that as a confirmed debit.
+ *     The RPC re-checks balance/budget atomically; reusing its metering_key
+ *     prevents duplicate charges. A new HTTP request receives a new key.
  *   - topUpCredits: credits a wallet (subscription grant, manual top-up,
  *     refund). Idempotent on metering_key.
  *   - getWalletBalance: read a user's current balance (settings UI).
@@ -32,6 +32,9 @@ export interface CreditPrecheck {
 
 export interface CreditCharge {
   ok: boolean;
+  /** False when the RPC outcome is unknown; ok:true is the availability policy,
+   * not evidence that a debit was durably recorded. */
+  confirmed?: boolean;
   reason?: 'KEY_NOT_FOUND' | 'BUDGET_EXCEEDED' | 'INSUFFICIENT_CREDITS';
   idempotent?: boolean;
   balance?: number;
@@ -42,7 +45,7 @@ export interface CreditCharge {
  *  never collide, while the DB UNIQUE constraint makes a duplicate retry a
  *  no-op rather than a double-charge. */
 export function makeMeteringKey(prefix: string): string {
-  return `${prefix}:${crypto.getRandomValues(new Uint8Array(16)).join('')}`;
+  return `${prefix}:${crypto.randomUUID()}`;
 }
 
 /**
@@ -94,12 +97,13 @@ export async function consumeCredits(
     });
     if (error) {
       logger.warn('consume_credits RPC error', { keyId, cost, error: error.message });
-      return { ok: true };
+      return { ok: true, confirmed: false };
     }
-    return (data ?? { ok: true }) as CreditCharge;
+    if (!data || typeof data.ok !== 'boolean') return { ok: true, confirmed: false };
+    return { ...data, confirmed: true } as CreditCharge;
   } catch (error) {
     logger.warn('consume_credits failed', { keyId, cost, error: normalizeError(error) });
-    return { ok: true };
+    return { ok: true, confirmed: false };
   }
 }
 

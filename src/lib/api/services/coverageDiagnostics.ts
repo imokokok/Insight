@@ -59,6 +59,7 @@ export async function getCoverageDiagnostic(
       dataAgeSeconds: age,
       sourceTimestamp: responding ? (observation?.timestamp ?? null) : null,
       retrievedAt: observation?.retrievedAt ?? null,
+      fetchDurationMs: observation?.fetchDurationMs ?? null,
       timestampProvenance: observation?.timestampProvenance ?? 'unknown',
       status: observation?.status ?? 'not_probed',
       reason: !observation
@@ -84,6 +85,8 @@ export async function getCoverageDiagnostic(
     included.length >= V2_REQUIRED_PARTICIPANT_COUNT && groups >= V2_REQUIRED_NON_DERIVED_GROUPS;
   const freshSufficient =
     fresh.length >= V2_REQUIRED_PARTICIPANT_COUNT && freshGroups >= V2_REQUIRED_NON_DERIVED_GROUPS;
+  const freshParticipantShortfall = Math.max(0, V2_REQUIRED_PARTICIPANT_COUNT - fresh.length);
+  const freshGroupShortfall = Math.max(0, V2_REQUIRED_NON_DERIVED_GROUPS - freshGroups);
   return {
     asset: input.asset,
     evidenceChainId: input.chainId,
@@ -109,6 +112,10 @@ export async function getCoverageDiagnostic(
     freshCount: input.probe && input.maxSourceAgeSeconds !== undefined ? fresh.length : null,
     freshNonDerivedGroupCount:
       input.probe && input.maxSourceAgeSeconds !== undefined ? freshGroups : null,
+    freshnessShortfall:
+      input.probe && input.maxSourceAgeSeconds !== undefined
+        ? { participants: freshParticipantShortfall, nonDerivedGroups: freshGroupShortfall }
+        : null,
     providers,
     nextAction: !input.probe
       ? 'Run an explicit live probe to evaluate availability.'

@@ -26,6 +26,9 @@ export interface LatencyServiceResult {
   from: string;
   to: string;
   latencyDataAvailable: boolean;
+  sampleSize: number;
+  rowsExamined: number;
+  truncated: boolean;
   overall: {
     p50: number | null;
     p90: number | null;
@@ -53,32 +56,48 @@ export async function getLatencyStatistics(
 
   const supabase = createServiceRoleClient();
 
-  let query = supabase
-    .from('hourly_price_snapshots')
-    .select('provider, symbol, latency_ms, is_success, snapshot_hour')
-    .gte('snapshot_hour', from)
-    .lt('snapshot_hour', addDay(to));
-
-  if (provider) {
-    query = query.eq('provider', provider);
-  }
-  if (symbol) {
-    query = query.eq('symbol', symbol);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(`Failed to fetch latency data: ${error.message}`);
-  }
-
-  const rows = (data ?? []) as Array<{
+  const rows: Array<{
     provider: string;
     symbol: string;
     latency_ms: number | null;
     is_success: boolean;
     snapshot_hour: string;
-  }>;
+  }> = [];
+  const pageSize = 1000;
+  const rowLimit = 10_000;
+  let truncated = false;
+  for (let offset = 0; offset <= rowLimit; offset += pageSize) {
+    let query = supabase
+      .from('hourly_price_snapshots')
+      .select('provider, symbol, latency_ms, is_success, snapshot_hour')
+      .gte('snapshot_hour', from)
+      .lt('snapshot_hour', addDay(to))
+      .order('snapshot_hour')
+      .order('id');
+
+    if (provider) {
+      query = query.eq('provider', provider);
+    }
+    if (symbol) {
+      query = query.eq('symbol', symbol);
+    }
+
+    const { data, error } = await query.range(
+      offset,
+      offset === rowLimit ? offset : offset + pageSize - 1
+    );
+
+    if (error) {
+      throw new Error(`Failed to fetch latency data: ${error.message}`);
+    }
+
+    if (offset === rowLimit) {
+      truncated = (data?.length ?? 0) > 0;
+      break;
+    }
+    rows.push(...(data ?? []));
+    if ((data?.length ?? 0) < pageSize) break;
+  }
 
   const groupMap = new Map<
     string,
@@ -106,7 +125,7 @@ export async function getLatencyStatistics(
     }
     group.total++;
     if (row.is_success) group.successes++;
-    if (row.latency_ms != null) {
+    if (row.latency_ms != null && Number.isFinite(row.latency_ms) && row.latency_ms >= 0) {
       group.latencies.push(row.latency_ms);
     }
   }
@@ -129,7 +148,8 @@ export async function getLatencyStatistics(
     };
   });
 
-  const allLatencies = entries.flatMap((e) => (e.mean != null ? [e.mean] : []));
+  // Percentiles are over observations, not equally weighted group means.
+  const allLatencies = Array.from(groupMap.values()).flatMap((group) => group.latencies);
   const overallSorted = allLatencies.sort((a, b) => a - b);
   const hasLatencyData = entries.some((e) => e.sampleSize > 0);
 
@@ -137,6 +157,9 @@ export async function getLatencyStatistics(
     from,
     to,
     latencyDataAvailable: hasLatencyData,
+    sampleSize: allLatencies.length,
+    rowsExamined: rows.length,
+    truncated,
     overall: hasLatencyData
       ? {
           p50: percentile(overallSorted, 50),

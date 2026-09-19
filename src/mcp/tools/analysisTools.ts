@@ -17,12 +17,6 @@ import {
 
 import type { McpToolDefinition } from './types';
 
-function percentile(sorted: number[], p: number): number | null {
-  if (sorted.length === 0) return null;
-  const idx = Math.ceil((p / 100) * sorted.length) - 1;
-  return sorted[Math.max(0, idx)];
-}
-
 export const getLatencyTool: McpToolDefinition<typeof LatencyInputSchema> = {
   name: 'get_latency',
   description:
@@ -43,15 +37,15 @@ export const getLatencyTool: McpToolDefinition<typeof LatencyInputSchema> = {
       return `No latency data available for the requested filters between ${fromOrDefault} and ${toOrDefault}.`;
     }
 
-    const overallSorted = result.entries
-      .flatMap((e) => (e.mean != null ? [e.mean] : []))
-      .sort((a, b) => a - b);
-
     const lines = [
       `**Oracle latency report (${fromOrDefault} to ${toOrDefault})**`,
       `- Entries: ${result.entries.length}`,
-      overallSorted.length > 0
-        ? `- Overall mean latency: p50 ${percentile(overallSorted, 50)}ms, p90 ${percentile(overallSorted, 90)}ms, p95 ${percentile(overallSorted, 95)}ms, p99 ${percentile(overallSorted, 99)}ms`
+      `- Valid latency samples: ${result.sampleSize}; rows examined: ${result.rowsExamined}`,
+      result.overall
+        ? `- Source-observation latency: p50 ${result.overall.p50}ms, p90 ${result.overall.p90}ms, p95 ${result.overall.p95}ms, p99 ${result.overall.p99}ms`
+        : '',
+      result.truncated
+        ? 'Warning: results are truncated at 10,000 rows. Narrow the date range or filters before interpreting percentiles.'
         : '',
       '',
       '**Provider-symbol breakdown:**',

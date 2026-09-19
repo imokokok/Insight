@@ -19,6 +19,9 @@ import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
 const logger = createLogger('consensus-price-service');
 
 const CONSENSUS_FETCH_CONCURRENCY = 6;
+// Share only in-flight public oracle reads, never completed prices or signed
+// assessments. Each subsequent request still re-evaluates source freshness.
+const pendingPrices = new Map<string, Promise<FetchProviderPriceResult>>();
 
 export interface ConsensusProviderPrice {
   provider: OracleProvider;
@@ -30,6 +33,7 @@ export interface ConsensusProviderPrice {
   confidence: number | null;
   timestamp: number;
   retrievedAt?: number;
+  fetchDurationMs?: number;
   timestampProvenance?: 'provider_age' | 'provider_timestamp' | 'unknown';
   dataAgeSeconds: number | null;
   source?: string;
@@ -153,28 +157,48 @@ export async function resolveProvidersForSymbol(
 
 interface FetchProviderPriceResult {
   retrievedAt?: number;
+  fetchDurationMs?: number;
   provider: OracleProvider;
   priceData?: PriceData;
   status: 'success' | 'unsupported' | 'error';
   errorMessage?: string;
 }
 
-async function fetchProviderPrice(
+async function readProviderPrice(
   provider: OracleProvider,
   symbol: string,
   chain?: Blockchain
 ): Promise<FetchProviderPriceResult> {
+  const startedAt = performance.now();
+  const duration = () => Math.round(performance.now() - startedAt);
   try {
     const priceData = await fetchPriceWithDatabase(provider, symbol, chain, true, false);
-    return { provider, priceData, retrievedAt: Date.now(), status: 'success' };
+    return {
+      provider,
+      priceData,
+      retrievedAt: Date.now(),
+      fetchDurationMs: duration(),
+      status: 'success',
+    };
   } catch (error) {
     if (error instanceof UnsupportedSymbolError) {
-      return { provider, status: 'unsupported' };
+      return { provider, status: 'unsupported', fetchDurationMs: duration() };
     }
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.warn(`Consensus fetch failed for ${provider}/${symbol}`, { errorMessage });
-    return { provider, status: 'error', errorMessage };
+    return { provider, status: 'error', errorMessage, fetchDurationMs: duration() };
   }
+}
+
+function fetchProviderPrice(provider: OracleProvider, symbol: string, chain?: Blockchain) {
+  const key = JSON.stringify([provider, symbol, chain ?? null]);
+  const existing = pendingPrices.get(key);
+  if (existing) return existing;
+  const pending = readProviderPrice(provider, symbol, chain).finally(() => {
+    pendingPrices.delete(key);
+  });
+  pendingPrices.set(key, pending);
+  return pending;
 }
 
 function calculateDataAgeSeconds(priceData: PriceData): number | null {
@@ -228,6 +252,7 @@ function buildProviderPrice(
     confidence: priceData?.confidence ?? null,
     timestamp: priceData?.timestamp ?? Date.now(),
     retrievedAt: result.retrievedAt,
+    fetchDurationMs: result.fetchDurationMs,
     timestampProvenance:
       !priceData || dataAgeSeconds === null
         ? 'unknown'
@@ -281,15 +306,24 @@ export async function getConsensusPrice(
   const baseSymbol = normalizeSymbol(symbol);
   const resolvedChain = resolveChain(chain);
 
-  const [resolvedProviders, reputationsList] = await Promise.all([
-    resolveProvidersForSymbol(baseSymbol, resolvedChain),
+  const [prices, reputationsList] = await Promise.all([
+    (async () => {
+      const resolvedProviders = await resolveProvidersForSymbol(baseSymbol, resolvedChain);
+      const requestedProviders =
+        targetProviders && targetProviders.length > 0 ? new Set(targetProviders) : null;
+      const providers = requestedProviders
+        ? resolvedProviders.filter((provider) => requestedProviders.has(provider))
+        : resolvedProviders;
+      const fetchResults = await mapWithConcurrency(
+        providers,
+        CONSENSUS_FETCH_CONCURRENCY,
+        (provider) => fetchProviderPrice(provider, baseSymbol, resolvedChain)
+      );
+      return { providers, fetchResults };
+    })(),
     reputationService.getReputations(),
   ]);
-  const requestedProviders =
-    targetProviders && targetProviders.length > 0 ? new Set(targetProviders) : null;
-  const providers = requestedProviders
-    ? resolvedProviders.filter((provider) => requestedProviders.has(provider))
-    : resolvedProviders;
+  const { providers, fetchResults } = prices;
 
   const reputationScoreMap = new Map<OracleProvider, number>();
   for (const rep of reputationsList) {
@@ -299,12 +333,6 @@ export async function getConsensusPrice(
   if (providers.length === 0 && !options.allowUnavailable) {
     throw UnsupportedSymbolError.create(baseSymbol, [], undefined);
   }
-
-  const fetchResults = await mapWithConcurrency(
-    providers,
-    CONSENSUS_FETCH_CONCURRENCY,
-    (provider) => fetchProviderPrice(provider, baseSymbol, resolvedChain)
-  );
 
   const successfulInputs = fetchResults
     .filter((r): r is FetchProviderPriceResult & { priceData: PriceData } =>

@@ -190,6 +190,8 @@ export function getCorsHeaders(options: CorsOptions): Record<string, string> {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': methods.join(', '),
     'Access-Control-Allow-Headers': headers.join(', '),
+    'Access-Control-Expose-Headers':
+      'X-Request-Id, Server-Timing, X-Credit-Cost, X-Credit-Balance, X-Credit-Balance-After, X-Credit-Status, X-Credit-Receipt, Retry-After',
     'Access-Control-Max-Age': String(maxAge),
   };
 }
@@ -504,6 +506,7 @@ export function createApiHandler<
               apiKeyId: apiKey.keyId,
               userId: apiKey.userId,
               plan: apiKey.plan,
+              requestId: apiContext.requestId,
             }
           : undefined;
 
@@ -547,6 +550,20 @@ export function createApiHandler<
           pendingCharge.meteringKey,
           request.nextUrl.pathname
         );
+        response.headers.set('X-Credit-Receipt', pendingCharge.meteringKey);
+        response.headers.set(
+          'X-Credit-Status',
+          charge.confirmed === false
+            ? 'unconfirmed'
+            : !charge.ok
+              ? 'not_charged'
+              : charge.idempotent
+                ? 'replayed'
+                : 'charged'
+        );
+        if (charge.confirmed !== false && charge.ok && charge.balance !== undefined) {
+          response.headers.set('X-Credit-Balance-After', String(charge.balance));
+        }
 
         if (!charge.ok) {
           // The authoritative charge was rejected (INSUFFICIENT_CREDITS /
@@ -571,6 +588,8 @@ export function createApiHandler<
             { status: 402 }
           );
           deniedResponse.headers.set('X-Credit-Cost', String(pendingCharge.cost));
+          deniedResponse.headers.set('X-Credit-Receipt', pendingCharge.meteringKey);
+          deniedResponse.headers.set('X-Credit-Status', 'not_charged');
           deniedResponse.headers.set('Retry-After', String(CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS));
           applyDiagnosticHeaders(deniedResponse, apiContext.requestId, startTime);
           if (corsHeaders) applyCorsHeaders(deniedResponse, corsHeaders);

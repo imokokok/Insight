@@ -15,6 +15,7 @@ export interface QuotaMiddlewareOptions {
 }
 
 interface QuotaContext {
+  requestId?: string;
   apiKeyId?: string;
   userId?: string;
   plan?: string;
@@ -150,7 +151,9 @@ export function createQuotaMiddleware(
         creditCost: cost,
         pendingCharge: {
           apiKeyId: context.apiKeyId,
-          meteringKey: makeMeteringKey(`rest:${context.apiKeyId}`),
+          meteringKey: context.requestId
+            ? `rest:${context.apiKeyId}:${context.requestId}`
+            : makeMeteringKey(`rest:${context.apiKeyId}`),
           cost,
         },
       },

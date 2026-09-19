@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit",
     "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json",
     "validate": "npm run protocol:check && npm run lint && npm run typecheck && npm run typecheck:scripts && npm run test && npm run knip",
-    "validate:ci": "npm run protocol:check && npm run lint && npm run format:check && npm run typecheck && npm run typecheck:scripts && npm run test:coverage && npm run knip && npm run sdk:build && npm run sdk:test && npm run build",
+    "validate:ci": "npm run protocol:check && npm run lint && npm run format:check && npm run typecheck && npm run typecheck:scripts && npm run test:coverage && npm run knip && npm run test:reliability && npm run sdk:build && npm run sdk:test && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -41,7 +41,9 @@
     "cron:feed-cadence": "tsx scripts/feed-cadence.ts",
     "build:cron": "node scripts/build-cron-bundles.mjs",
     "test:mcp:e2e": "node --env-file=.env.local ./node_modules/.bin/jest src/mcp/__tests__/client.test.ts src/mcp/__tests__/e2e.test.ts --testTimeout=120000 --runInBand --testPathIgnorePatterns='/node_modules/' '/.next/'",
-    "prepare": "husky"
+    "prepare": "husky",
+    "integration:doctor": "node scripts/integration-doctor.mjs",
+    "test:reliability": "node --test scripts/tests/*.test.mjs"
   },
   "dependencies": {
     "@api3/contracts": "^27.0.0",
@@ -84,6 +86,7 @@
   },
   "devDependencies": {
     "@aave-dao/aave-address-book": "^4.57.0",
+    "@electric-sql/pglite": "0.5.8",
     "@next/bundle-analyzer": "^16.3.4",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
