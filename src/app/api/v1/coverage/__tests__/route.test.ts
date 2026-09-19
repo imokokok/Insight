@@ -7,7 +7,17 @@ import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynam
 import { GET } from '../route';
 
 jest.mock('@/lib/api/handler', () => ({
-  createApiHandler: (handler: unknown) => handler,
+  createApiHandler:
+    (handler: (request: NextRequest, context: unknown) => unknown, options: unknown) =>
+    async (request: NextRequest, context: unknown) => {
+      const { createZodValidationMiddleware } = jest.requireActual('@/lib/validation/middleware');
+      const validation = createZodValidationMiddleware(
+        (options as { validation: unknown }).validation
+      );
+      const result = await validation(request);
+      if (!result.success) return result.response;
+      return handler(request, { ...(context as object), validated: result.data });
+    },
   createOptionsHandler: () => jest.fn(),
   ApiResponseBuilder: {
     success: (data: unknown) => ({ success: true, data }),
@@ -19,6 +29,38 @@ jest.mock('@/lib/oracles/utils/dynamicFeedResolver', () => ({
   getAllActiveFeedsByProviderWithStatus: jest.fn(),
 }));
 jest.mock('@/lib/api/services/coverageDiagnostics', () => ({ getCoverageDiagnostic: jest.fn() }));
+
+beforeEach(() => jest.clearAllMocks());
+
+it.each([
+  ['true', true],
+  ['false', false],
+  ['', false],
+])('accepts HTTP probe=%s through the actual query middleware', async (value, probe) => {
+  jest
+    .mocked(getAllActiveFeedsByProviderWithStatus)
+    .mockResolvedValue({ feeds: new Map(), errored: false });
+  const query = new URLSearchParams({ asset: 'USDC', chainId: '1' });
+  if (value) query.set('probe', value);
+  const response = await (
+    GET as unknown as (request: NextRequest, context: unknown) => Promise<Response>
+  )(new NextRequest(`https://test/api/v1/coverage?${query}`), { requestId: 'test' });
+  expect(response.status).toBe(200);
+  expect(getCoverageDiagnostic).toHaveBeenCalledWith(
+    expect.objectContaining({ asset: 'USDC', chainId: 1, probe }),
+    expect.any(Map)
+  );
+});
+
+it('rejects an invalid HTTP probe before reading the registry', async () => {
+  const response = await (
+    GET as unknown as (request: NextRequest, context: unknown) => Promise<Response>
+  )(new NextRequest('https://test/api/v1/coverage?asset=USDC&chainId=1&probe=yes'), {
+    requestId: 'test',
+  });
+  expect(response.status).toBe(400);
+  expect(getAllActiveFeedsByProviderWithStatus).not.toHaveBeenCalled();
+});
 
 it('makes a registry outage explicit, uncached, and does not claim zero supported feeds', async () => {
   jest

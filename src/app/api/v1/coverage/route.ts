@@ -17,10 +17,8 @@ const CoverageQuerySchema = z
   .object({
     asset: SafeSymbolSchema.optional(),
     chainId: z.coerce.number().int().positive().optional(),
-    probe: z
-      .enum(['true', 'false'])
-      .default('false')
-      .transform((v) => v === 'true'),
+    // The shared HTTP query middleware converts "true"/"false" to booleans.
+    probe: z.boolean().default(false),
     maxSourceAgeSeconds: z.coerce.number().int().positive().max(604800).optional(),
   })
   .refine((v) => Boolean(v.asset) === Boolean(v.chainId), {
