@@ -11,11 +11,16 @@ For one workflow use:
 ```text
 /api/v1/coverage?asset=USDC&chainId=1
 /api/v1/coverage?asset=USDC&chainId=1&probe=true&maxSourceAgeSeconds=300
+/api/v1/coverage?asset=USDC&chainId=8453&probe=true&maxSourceAgeSeconds=300&includeCrossChainCandidate=true
 ```
 
 The first form reports candidate/registered providers without price fetches (`NOT_PROBED`). The explicit probe uses the same exact-chain provider resolver and bounded provider fetches as consensus. Each provider reports registration scope, response status, source group, derived status, consensus inclusion, original source timestamp, retrieval time and known source age. A successful response is distinct from fresh evidence. A missing timestamp does not meet a freshness budget; price agreement does not make an old timestamp fresh.
 
 `status` reports evidence sufficiency; `freshnessStatus` separately reports the optional maximum-source-age condition. The required count remains 3 providers and 2 non-derived groups. Unknown positive chain IDs are rejected instead of falling back to cross-chain prices. Evidence-chain coverage does not claim settlement-chain coverage.
+
+The third form explicitly requests a separate, unsigned cross-chain price-evidence candidate. It uses DIA, TWAP, and Flare FTSOv2, with Flare replacing the abandoned authenticated RedStone gateway proposal. It never merges those observations into the exact-chain `diagnostic`, never claims that Flare observes Base, and does not change the signed pre-trade path. The candidate retains the same 3-participant, 2-non-derived-group, 300-second rules: an unknown or old source timestamp is not fresh, and TWAP remains derived. Even `CANDIDATE_SUFFICIENT` is non-authorizing; the response states `activationStatus: NOT_PROMOTED`, `partnerPathsAffected: false`, and `mayAuthorizeExecution: false`.
+
+Activating this evidence mode for a partner requires the existing immutable partner policy, activation-set, compatibility-matrix, verification/deployment evidence, and promotion-record process. Until that process is completed, a signed same-chain `BLOCK` result remains a block.
 
 A registry failure returns HTTP 503 `REGISTRY_UNAVAILABLE`, without zero-coverage claims. Diagnostic probes are uncached and use the existing C2 metering; completed insufficient probes are still successful diagnostic calls. They may use the existing provider/database cache and retain the original age. “Live probe” means a current invocation of the price retrieval path, not a guarantee that every provider made a new upstream request.
 

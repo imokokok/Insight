@@ -9,6 +9,7 @@ import {
   V1_PROTOCOL_TIER_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { getCoverageDiagnostic } from '@/lib/api/services/coverageDiagnostics';
+import { getCrossChainPriceEvidenceCandidate } from '@/lib/api/services/crossChainPriceEvidenceCandidate';
 import { createCachedJsonResponse } from '@/lib/api/utils';
 import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { SafeSymbolSchema } from '@/lib/security/validation';
@@ -19,6 +20,7 @@ const CoverageQuerySchema = z
     chainId: z.coerce.number().int().positive().optional(),
     // The shared HTTP query middleware converts "true"/"false" to booleans.
     probe: z.boolean().default(false),
+    includeCrossChainCandidate: z.boolean().default(false),
     maxSourceAgeSeconds: z.coerce.number().int().positive().max(604800).optional(),
   })
   .refine((v) => Boolean(v.asset) === Boolean(v.chainId), {
@@ -26,6 +28,9 @@ const CoverageQuerySchema = z
   })
   .refine((v) => !v.probe || Boolean(v.asset), {
     message: 'A live probe requires asset and chainId',
+  })
+  .refine((v) => !v.includeCrossChainCandidate || (v.probe && Boolean(v.asset)), {
+    message: 'Cross-chain candidate evidence requires an explicit live probe, asset, and chainId',
   });
 
 export const OPTIONS = createOptionsHandler();
@@ -45,13 +50,22 @@ export const GET = createApiHandler(
       );
     }
     const feedsByProvider = registry.feeds;
-    const diagnostic =
+    const [diagnostic, crossChainCandidate] =
       query.asset && query.chainId
-        ? await getCoverageDiagnostic(
-            { ...query, asset: query.asset, chainId: query.chainId },
-            feedsByProvider
-          )
-        : undefined;
+        ? await Promise.all([
+            getCoverageDiagnostic(
+              { ...query, asset: query.asset, chainId: query.chainId },
+              feedsByProvider
+            ),
+            query.includeCrossChainCandidate
+              ? getCrossChainPriceEvidenceCandidate({
+                  asset: query.asset,
+                  subjectChainId: query.chainId,
+                  maxSourceAgeSeconds: query.maxSourceAgeSeconds,
+                })
+              : undefined,
+          ])
+        : [undefined, undefined];
 
     // Build per-chain coverage
     const chainMap = new Map<
@@ -194,6 +208,7 @@ export const GET = createApiHandler(
     const payload = {
       registryStatus: 'available',
       ...(diagnostic ? { diagnostic } : {}),
+      ...(crossChainCandidate ? { crossChainCandidate } : {}),
       summary: {
         totalFeeds,
         totalProviders,

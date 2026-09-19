@@ -7,6 +7,7 @@ import {
   SWITCHBOARD_CACHE_TTL,
   SWITCHBOARD_DECIMALS,
   getSwitchboardFeedIdAsync,
+  normalizeSwitchboardFeedId,
 } from '../constants/switchboardConstants';
 import { bigIntToPrice } from '../utils/oracleDataUtils';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
@@ -71,14 +72,16 @@ class SwitchboardDataService {
     signal?: AbortSignal
   ): Promise<SwitchboardLatestPriceData> {
     const upperSymbol = symbol.toUpperCase();
-    const feedId = await getSwitchboardFeedIdAsync(upperSymbol);
+    const resolvedFeedId = await getSwitchboardFeedIdAsync(upperSymbol);
 
-    if (!feedId) {
+    if (!resolvedFeedId) {
       throw new SwitchboardApiError(
         `Symbol '${upperSymbol}' has no Switchboard Surge feed`,
         'SYMBOL_NOT_FOUND'
       );
     }
+
+    const feedId = normalizeSwitchboardFeedId(resolvedFeedId);
 
     const cacheKey = `crossbar:latest:${feedId}`;
     const cached = this.cache.get<SwitchboardLatestPriceData>(cacheKey);

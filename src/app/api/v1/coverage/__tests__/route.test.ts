@@ -2,6 +2,7 @@
 import { NextRequest } from 'next/server';
 
 import { getCoverageDiagnostic } from '@/lib/api/services/coverageDiagnostics';
+import { getCrossChainPriceEvidenceCandidate } from '@/lib/api/services/crossChainPriceEvidenceCandidate';
 import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 
 import { GET } from '../route';
@@ -29,6 +30,9 @@ jest.mock('@/lib/oracles/utils/dynamicFeedResolver', () => ({
   getAllActiveFeedsByProviderWithStatus: jest.fn(),
 }));
 jest.mock('@/lib/api/services/coverageDiagnostics', () => ({ getCoverageDiagnostic: jest.fn() }));
+jest.mock('@/lib/api/services/crossChainPriceEvidenceCandidate', () => ({
+  getCrossChainPriceEvidenceCandidate: jest.fn(),
+}));
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -60,6 +64,65 @@ it('rejects an invalid HTTP probe before reading the registry', async () => {
   });
   expect(response.status).toBe(400);
   expect(getAllActiveFeedsByProviderWithStatus).not.toHaveBeenCalled();
+});
+
+it('keeps cross-chain evidence default-off', async () => {
+  jest
+    .mocked(getAllActiveFeedsByProviderWithStatus)
+    .mockResolvedValue({ feeds: new Map(), errored: false });
+  const response = await (
+    GET as unknown as (request: NextRequest, context: unknown) => Promise<Response>
+  )(new NextRequest('https://test/api/v1/coverage?asset=USDC&chainId=8453&probe=true'), {
+    requestId: 'test',
+  });
+
+  expect(response.status).toBe(200);
+  expect(getCrossChainPriceEvidenceCandidate).not.toHaveBeenCalled();
+  expect((await response.json()).data.crossChainCandidate).toBeUndefined();
+});
+
+it('returns cross-chain evidence only after an explicit live-probe opt-in', async () => {
+  jest
+    .mocked(getAllActiveFeedsByProviderWithStatus)
+    .mockResolvedValue({ feeds: new Map(), errored: false });
+  jest.mocked(getCrossChainPriceEvidenceCandidate).mockResolvedValue({
+    activationStatus: 'NOT_PROMOTED',
+    mayAuthorizeExecution: false,
+  } as never);
+  const response = await (
+    GET as unknown as (request: NextRequest, context: unknown) => Promise<Response>
+  )(
+    new NextRequest(
+      'https://test/api/v1/coverage?asset=USDC&chainId=8453&probe=true&maxSourceAgeSeconds=300&includeCrossChainCandidate=true'
+    ),
+    { requestId: 'test' }
+  );
+
+  expect(response.status).toBe(200);
+  expect(getCrossChainPriceEvidenceCandidate).toHaveBeenCalledWith({
+    asset: 'USDC',
+    subjectChainId: 8453,
+    maxSourceAgeSeconds: 300,
+  });
+  expect((await response.json()).data.crossChainCandidate).toEqual({
+    activationStatus: 'NOT_PROMOTED',
+    mayAuthorizeExecution: false,
+  });
+});
+
+it('rejects cross-chain evidence unless the caller also opts into a live probe', async () => {
+  const response = await (
+    GET as unknown as (request: NextRequest, context: unknown) => Promise<Response>
+  )(
+    new NextRequest(
+      'https://test/api/v1/coverage?asset=USDC&chainId=8453&includeCrossChainCandidate=true'
+    ),
+    { requestId: 'test' }
+  );
+
+  expect(response.status).toBe(400);
+  expect(getAllActiveFeedsByProviderWithStatus).not.toHaveBeenCalled();
+  expect(getCrossChainPriceEvidenceCandidate).not.toHaveBeenCalled();
 });
 
 it('makes a registry outage explicit, uncached, and does not claim zero supported feeds', async () => {

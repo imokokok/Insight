@@ -18,6 +18,11 @@ import { resolveFeed } from '@/lib/oracles/utils/dynamicFeedResolver';
 
 export const SWITCHBOARD_CROSSBAR_URL = 'https://crossbar.switchboard.xyz';
 
+/** Crossbar v2 expects the canonical 0x-prefixed 32-byte feed hash. */
+export function normalizeSwitchboardFeedId(feedId: string): string {
+  return feedId.startsWith('0x') ? feedId : `0x${feedId}`;
+}
+
 /** Lists every managed Surge feed with its deterministic feed hash. */
 export const SWITCHBOARD_SURGE_FEEDS_URL = `${SWITCHBOARD_CROSSBAR_URL}/stream/surge_feeds`;
 

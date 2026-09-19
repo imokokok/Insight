@@ -93,7 +93,7 @@ export class SwitchboardClient extends BaseOracleClient {
           numOracles: latest.numOracles,
           ingestionTimestamp: Date.now(),
           verification: buildApiVerification(
-            `${SWITCHBOARD_CROSSBAR_URL}/v2/update/${feedId}`,
+            `${SWITCHBOARD_CROSSBAR_URL}/v2/update/${latest.feedId}`,
             'fetchV2Update',
             'Switchboard Crossbar'
           ),
