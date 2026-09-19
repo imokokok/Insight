@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x67c087a3529785688afb63c9d5f58811365afeb599bba156e359c1e16af8fc1e",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 8,
+  "effectiveFrom": "2026-09-19",
+  "classification": "Wire-compatible workflow diagnostics with explicit consumer-safety and action-direction corrections; local contract review, not new partner acceptance",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c",
+  "predecessorPromotionId": "0x2eeda0f89eddad88c20f69680a150754e12266396eb79d503a59c9f14b98e26c",
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "receiptImpact": "Signed layouts, keys, ExecutionReceipt semantic profile, immutable registry releases and historical verification bytes are unchanged. Generic pre-trade evaluation intentionally corrects USD-quote source selection, rejects unsupported positive chain ids, excludes mismatched protocol chains and applies the new-debt buffer gate only to borrow. Unsigned scope and sizing diagnostics explicitly retain missing evidence. SDK 0.3.0 defaults new client requests to schema 3, rejects known expired or unavailable requested evidence, and adds durable Watch incident acknowledgement and evidence-only resume; these are explicit consumer upgrade behaviors, not claims that live assessment semantics are unchanged.",
+  "activationRule": "All existing partner policy ids, activation mappings, signed schemas and profiles remain pinned. No partner is newly activated and no running consumer is automatically upgraded to SDK 0.3.0. A change to an existing pinned integration or poller contract still requires that partner's own new policy and explicit promotion. This matrix records local code, fixture and contract checks only; it is not a partner sign-off or new live partner acceptance.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "compatible-signed-contract-and-recovery",
+      "evidence": "Local code and contract review leaves the active v5-only policy, signed execution profile, receipt layout and verifier unchanged. The v2-v4 joint fixtures reviewed for this promotion do not establish Headless v5 combination support; a combination path must fail closed for schemas or profiles outside its explicitly validated support manifest. SDK recovery does not repeat a transaction or broaden the Headless policy."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "compatible-legacy-verification-unchanged",
+      "evidence": "Local contract review confirms the production-disabled policy and frozen snapshot-relative legacy verification path remain unchanged. No receipt-adjacent registry bytes or historical verifier logic were edited."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "compatible-binding-consumer-upgrade-explicit",
+      "evidence": "Local binding fixtures retain the pinned AEB option 2 evidence formats and production-disabled policy. New SDK requested-scope and freshness refusal is a consumer upgrade choice; it does not modify the frozen adapter or activate an execution path."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "compatible-frozen-carrier-unchanged",
+      "evidence": "Local contract review preserves the enabled policy, frozen external-evidence/v0 rev6 adapter and pinned OracleSafetyCheck v2 carrier. New explanatory fields are outside the signed carrier and do not expand the pinned evidence family."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "compatible-signed-envelope-unchanged",
+      "evidence": "Local contract review preserves OracleSafetyCheck v2, canonical pre-trade envelope bytes, signer admission and the enabled policy. New scope diagnostics are unsigned; explicit SDK 0.3.0 schema-3 defaults do not change an existing consumer's pinned schema selection."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "compatible-quorum-and-key-contract",
+      "evidence": "Local quorum and provider-diagnostic regressions retain the OracleSafetyCheck v3 layout, required three participants and two non-derived groups, key roles and production-disabled policy. Registry errors, unknown chains and unknown freshness are reported without manufacturing support."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "compatible-pinned-poller-with-explicit-generic-corrections",
+      "evidence": "Local regression review retains the ThoughtProof pre-trade v2.1 and Oracle Watch signed wire layouts and the locked no-single-provider/independence gates. Generic API source/action corrections are disclosed in receiptImpact; new SDK Watch persistence, acknowledgement and recovery apply only to consumers choosing that upgrade. The active pinned poller contract is not repinned or automatically upgraded, and changing it still requires a new Raul policy id."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "compatible-historical-records-and-explicit-diagnostics",
+      "evidence": "Local durable-record and resume fixtures preserve existing signed receipt bytes, key evidence, registry references and the enabled policy. Checkpoints, scope explanations and joint reports remain explicitly unsigned application diagnostics rather than new verified proof claims."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "compatible-pinned-read-only-exchange",
+      "evidence": "Local contract review leaves the production-disabled read-only methodology exchange, historical window and dataset digest pins unchanged. New Ops baseline and human-review labels are application observations and are not inserted into historical partner datasets."
+    }
+  ]
+}
