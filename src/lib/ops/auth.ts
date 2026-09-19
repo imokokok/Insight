@@ -43,7 +43,7 @@ export function isOpsOwner(userId?: string | null): boolean {
  * (fail-closed) so the internal console is never world-readable to any logged-in
  * user. See `isOpsOwner` for the full rationale.
  */
-export async function requireOpsOwner(): Promise<void> {
+export async function requireOpsOwner(): Promise<{ userId: string }> {
   const cookieStore = await cookies();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -86,4 +86,5 @@ export async function requireOpsOwner(): Promise<void> {
     email: user.email,
     ownerLockEnabled: (process.env.OPS_OWNER_USER_IDS ?? '').trim().length > 0,
   });
+  return { userId: user.id };
 }

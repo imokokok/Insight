@@ -2,6 +2,8 @@ import { InsightApiError } from './errors';
 import { stripTrailingSlashes } from './url';
 
 import type {
+  CoverageRequest,
+  CoverageResult,
   ExecutionReceiptRequest,
   ExecutionReceiptResult,
   InsightClientOptions,
@@ -9,6 +11,9 @@ import type {
   OracleWatchTarget,
   PreTradeRequest,
   PreTradeResult,
+  PreTradeRecheckRequest,
+  PreTradeRecheckResult,
+  ResponseMeta,
 } from './types';
 
 interface ApiEnvelope<T> {
@@ -27,10 +32,12 @@ export class InsightClient {
   private readonly fetcher: typeof globalThis.fetch;
   private readonly extraHeaders: Record<string, string>;
   private readonly timeoutMs: number;
+  private readonly onResponseMeta?: InsightClientOptions['onResponseMeta'];
 
   constructor(options: InsightClientOptions) {
     if (!options.apiKey.trim()) throw new Error('InsightClient requires an API key.');
     this.apiKey = options.apiKey;
+    this.onResponseMeta = options.onResponseMeta;
     this.baseUrl = stripTrailingSlashes(options.baseUrl ?? DEFAULT_BASE_URL);
     this.fetcher = options.fetch ?? globalThis.fetch;
     if (!this.fetcher)
@@ -52,12 +59,64 @@ export class InsightClient {
       protocolId: request.protocolId,
       schemaVersion: request.schemaVersion ?? 3,
       destinationAsset: request.destinationAsset,
+      workflowTag: request.workflowTag,
+      baselineVerdict: request.baselineVerdict,
+      baselineVersion: request.baselineVersion,
     };
     const result = await this.request<unknown>('GET', '/api/v1/safety/pre-trade', {
       query,
       signal,
     });
     return validatePreTradeResult(result);
+  }
+
+  /** Coverage is diagnostic metadata, never a signed safety decision. */
+  async coverage(request: CoverageRequest = {}, signal?: AbortSignal): Promise<CoverageResult> {
+    return this.request('GET', '/api/v1/coverage', {
+      query: { ...request, probe: request.probe === undefined ? undefined : String(request.probe) },
+      signal,
+    });
+  }
+
+  async recheck(
+    request: PreTradeRecheckRequest,
+    signal?: AbortSignal
+  ): Promise<PreTradeRecheckResult> {
+    const value = await this.request<unknown>('POST', '/api/v1/safety/pre-trade/recheck', {
+      body: {
+        ...request,
+        targetProviders: request.targetProviders?.join(','),
+        schemaVersion: request.schemaVersion ?? 3,
+      },
+      signal,
+    });
+    const data = validatePreTradeResult(value) as PreTradeRecheckResult;
+    if (
+      typeof data.stillValid !== 'boolean' ||
+      typeof data.stillValidReason !== 'string' ||
+      data.originalUid !== request.originalUid ||
+      typeof data.originalRequestHash !== 'string' ||
+      data.originalRequestHash.toLowerCase() !== request.originalRequestHash.toLowerCase()
+    )
+      return invalidApiResponse('invalid recheck continuity response');
+    if (data.recheck != null) {
+      const proof = record(data.recheck);
+      const proofData = record(proof.data);
+      if (
+        typeof proof.signature !== 'string' ||
+        !/^0x[0-9a-fA-F]+$/.test(proof.signature) ||
+        ![2, 3].includes(Number(proof.schemaVersion))
+      )
+        return invalidApiResponse('recheck is not a signed v2/v3 proof');
+      if (
+        proofData.originalUid !== request.originalUid ||
+        String(proofData.originalRequestHash).toLowerCase() !==
+          request.originalRequestHash.toLowerCase() ||
+        String(proofData.requestHash).toLowerCase() !== request.originalRequestHash.toLowerCase()
+      )
+        return invalidApiResponse('recheck proof references do not match the original');
+    }
+    return data;
   }
 
   async oracleWatch(target: OracleWatchTarget, signal?: AbortSignal): Promise<OracleWatchResult> {
@@ -137,6 +196,22 @@ export class InsightClient {
       options.signal?.removeEventListener('abort', onAbort);
     }
 
+    const meta: ResponseMeta = {
+      path,
+      status: response.status,
+      success: response.ok && payload?.success === true && payload.data !== undefined,
+      requestId: payload?.meta?.requestId ?? response.headers.get('x-request-id') ?? undefined,
+      creditCost: readNumberHeader(response, 'x-credit-cost'),
+      creditBalance: readNumberHeader(response, 'x-credit-balance'),
+      balanceBasis: 'before_request_snapshot',
+      retryAfterSeconds: readRetryAfter(response.headers.get('retry-after')),
+    };
+    // Metrics hooks must not cause clients to repeat an already charged request.
+    try {
+      await this.onResponseMeta?.(meta);
+    } catch {
+      /* Observational callback only. */
+    }
     if (!response.ok || !payload?.success || payload.data === undefined) {
       const retryAfter = response.headers.get('retry-after');
       throw new InsightApiError(
@@ -146,7 +221,7 @@ export class InsightClient {
           code: payload?.error?.code ?? 'API_REQUEST_FAILED',
           retryable: payload?.error?.retryable ?? response.status >= 500,
           requestId: payload?.meta?.requestId,
-          retryAfterSeconds: retryAfter ? Number(retryAfter) || undefined : undefined,
+          retryAfterSeconds: readRetryAfter(retryAfter),
           creditCost: readNumberHeader(response, 'x-credit-cost'),
           creditBalance: readNumberHeader(response, 'x-credit-balance'),
         }
@@ -233,4 +308,12 @@ function readNumberHeader(response: Response, name: string): number | undefined 
   if (value === null) return undefined;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function readRetryAfter(value: string | null): number | undefined {
+  if (value == null) return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds;
+  const at = Date.parse(value);
+  return Number.isFinite(at) ? Math.max(0, Math.ceil((at - Date.now()) / 1000)) : undefined;
 }

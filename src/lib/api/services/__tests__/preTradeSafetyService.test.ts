@@ -210,8 +210,10 @@ const flushAudit = () => new Promise((resolve) => setTimeout(resolve, 0));
 beforeEach(() => {
   jest.clearAllMocks();
   stubAuditClient();
-  // By default no stablecoin depeg.
-  mockedSnapshots.mockResolvedValue([]);
+  // By default the monitor returned a healthy snapshot, not missing evidence.
+  mockedSnapshots.mockResolvedValue([
+    { symbol: 'USDC', maxDeviationPercent: 0, riskLevel: 'normal' } as never,
+  ]);
   // By default no ML model -> rule-based fallback for manipulationRiskScore.
   mockedScorePreTradeMultiHorizon.mockReturnValue(null);
   // resetMocks wipes the factory default; re-establish so getModelStatus()
@@ -421,9 +423,34 @@ describe('preTradeSafetyCheck — staleness rule (cadence-relative)', () => {
 
     expect(result.verdict).not.toBe('BLOCK');
     expect(result.verdict).toBe('CAUTION');
+    expect(result.providerPrices.api3.timestampAnomaly).toBe(true);
+    expect(result.providerPrices.chainlink.timestampAnomaly).toBe(false);
     expect(
       result.contributingFactors.find((f) => f.rule === 'data_stale_timestamp_anomaly')
     ).toBeDefined();
+  });
+
+  it('does not call a total source outage a corroborated timestamp anomaly', async () => {
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus(
+        ['chainlink', 'api3', 'redstone'].map((provider) =>
+          makeProvider({
+            provider: provider as OracleProvider,
+            dataAgeSeconds: 8 * 86_400,
+            price: 1860,
+            isStale: false,
+          })
+        )
+      )
+    );
+    const result = await preTradeSafetyCheck(makeInput());
+    expect(result.verdict).toBe('BLOCK');
+    expect(Object.values(result.providerPrices).every((p) => p.timestampAnomaly === false)).toBe(
+      true
+    );
+    expect(result.contributingFactors.some((f) => f.rule === 'data_stale_timestamp_anomaly')).toBe(
+      false
+    );
   });
 });
 
@@ -1130,5 +1157,134 @@ describe('preTradeSafetyCheck — attestation provenance audit (0026)', () => {
     expect(payload.schema_version).toBe(1);
     expect(payload.coverage_status).toBeNull();
     expect(payload.unresolved_asset).toBeNull();
+  });
+});
+
+describe('workflow assessment scope and action semantics', () => {
+  beforeEach(() => mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()])));
+  it('rejects an unknown explicit chain without querying cross-chain consensus', async () => {
+    await expect(preTradeSafetyCheck(makeInput({ chainId: 84532 }))).rejects.toThrow(
+      'cross-chain fallback'
+    );
+    expect(mockedGetConsensusPrice).not.toHaveBeenCalled();
+  });
+
+  it('reports an unavailable requested protocol and an honest sizing basis', async () => {
+    mockedGetProtocolByIdWithDynamicData.mockResolvedValue(null);
+    const result = await preTradeSafetyCheck(makeInput({ protocolId: 'missing' }));
+    expect(result.assessmentScope?.unavailableDimensions).toContainEqual({
+      dimension: 'protocol_parameters',
+      reason: 'UNKNOWN_PROTOCOL',
+    });
+    expect(result.assessmentScope?.evaluatedDimensions).not.toContain('protocol_parameters');
+    expect(result.sizingBasis?.executionCapacityVerified).toBe(false);
+    expect(result.sizingBasis?.inputsMissing).toContain('venue_liquidity');
+  });
+
+  it('does not evaluate a protocol on a different chain', async () => {
+    mockedGetProtocolByIdWithDynamicData.mockResolvedValue(makeMockProtocol({ chain: 'base' }));
+    const result = await preTradeSafetyCheck(makeInput({ protocolId: 'aave-v3-base' }));
+    expect(result.assessmentScope?.unavailableDimensions).toContainEqual({
+      dimension: 'protocol_parameters',
+      reason: 'PROTOCOL_CHAIN_MISMATCH',
+    });
+    expect(result.protocolSafety).toBeNull();
+  });
+
+  it.each(['repay', 'lend', 'liquidate'] as const)(
+    '%s keeps oracle gates but never applies a new-borrow buffer freeze',
+    async (action) => {
+      mockedGetProtocolByIdWithDynamicData.mockResolvedValue(makeMockProtocol());
+      mockedGetConsensusPrice.mockResolvedValue(
+        makeConsensus([
+          makeProvider({ provider: 'chainlink' as OracleProvider, deviationPct: 2.9 }),
+          makeProvider({ provider: 'api3' as OracleProvider, deviationPct: 0 }),
+        ])
+      );
+      const result = await preTradeSafetyCheck(
+        makeInput({ action, protocolId: 'aave-v3-ethereum', schemaVersion: 3 })
+      );
+      expect(result.protocolSafety?.bufferConsumedPct).toBeGreaterThanOrEqual(80);
+      expect(result.recommendedActions.some((a) => a.type === 'freeze_borrow')).toBe(false);
+      expect(result.contributingFactors.some((f) => f.rule.startsWith('protocol_buffer'))).toBe(
+        false
+      );
+      expect(result.verdict).toBe('BLOCK'); // unchanged 3-provider evidence gate
+      expect(result.contributingFactors.some((f) => f.rule === 'oracle_coverage')).toBe(true);
+    }
+  );
+
+  it('preserves source timestamps and marks monitor failure as unavailable', async () => {
+    mockedSnapshots.mockRejectedValue(new Error('monitor unavailable'));
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus([makeProvider({ timestamp: 1000, dataAgeSeconds: null })])
+    );
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'USDC' }));
+    expect(result.providerPrices.chainlink.timestamp).toBe(1000);
+    expect(result.providerPrices.chainlink.freshnessKnown).toBe(false);
+    expect(result.assessmentScope?.unavailableDimensions).toContainEqual({
+      dimension: 'stablecoin_peg',
+      reason: 'PEG_MONITOR_UNAVAILABLE',
+    });
+  });
+
+  it.each([
+    { name: 'empty results', snapshots: [] },
+    {
+      name: 'only another coin',
+      snapshots: [{ symbol: 'USDT', maxDeviationPercent: 0, riskLevel: 'normal' }],
+    },
+    {
+      name: 'invalid deviation',
+      snapshots: [{ symbol: 'USDC', maxDeviationPercent: Number.NaN, riskLevel: 'normal' }],
+    },
+  ])(
+    'does not treat missing or invalid target peg evidence as evaluated: $name',
+    async ({ snapshots }) => {
+      mockedSnapshots.mockResolvedValue(snapshots as never);
+      const result = await preTradeSafetyCheck(makeInput({ asset: 'USDC' }));
+      expect(result.assessmentScope?.requestedDimensions).toContain('stablecoin_peg');
+      expect(result.assessmentScope?.evaluatedDimensions).not.toContain('stablecoin_peg');
+      expect(result.assessmentScope?.unavailableDimensions).toContainEqual({
+        dimension: 'stablecoin_peg',
+        reason: 'PEG_MONITOR_UNAVAILABLE',
+      });
+    }
+  );
+
+  it('evaluates a healthy target peg even when it produces no depeg warnings', async () => {
+    mockedSnapshots.mockResolvedValue([
+      { symbol: 'USDC', maxDeviationPercent: 0, riskLevel: 'normal' } as never,
+    ]);
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'USDC' }));
+    expect(result.depegWarnings).toEqual([]);
+    expect(result.assessmentScope?.evaluatedDimensions).toContain('stablecoin_peg');
+    expect(result.assessmentScope?.unavailableDimensions).not.toContainEqual({
+      dimension: 'stablecoin_peg',
+      reason: 'PEG_MONITOR_UNAVAILABLE',
+    });
+  });
+
+  it('does not claim target peg evaluation for an asset outside the stablecoin monitor', async () => {
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'ETH' }));
+    expect(result.assessmentScope?.requestedDimensions).not.toContain('stablecoin_peg');
+    expect(result.assessmentScope?.evaluatedDimensions).not.toContain('stablecoin_peg');
+  });
+
+  it('records baseline and workflow metadata without adding it to signed trade input', async () => {
+    const { insert } = stubAuditClient();
+    await preTradeSafetyCheck(makeInput(), {
+      requestId: 'req_example',
+      workflowTag: 'treasury.swap',
+      baselineVerdict: 'allow',
+      baselineVersion: 'policy-v7',
+    });
+    await flushAudit();
+    expect(insert.mock.calls[0][0]).toMatchObject({
+      request_id: 'req_example',
+      workflow_tag: 'treasury.swap',
+      baseline_verdict: 'allow',
+      baseline_version: 'policy-v7',
+    });
   });
 });

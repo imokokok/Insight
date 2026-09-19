@@ -24,6 +24,10 @@ export interface PreTradeRequest {
   /** SDK defaults to v3 so the quorum and independence thresholds are signed. */
   schemaVersion?: 1 | 2 | 3;
   destinationAsset?: string;
+  /** Audit-only workflow and baseline labels; not part of the signed request hash. */
+  workflowTag?: string;
+  baselineVerdict?: 'allow' | 'alert' | 'block' | 'unknown';
+  baselineVersion?: string;
 }
 
 export interface PreTradeResult {
@@ -37,6 +41,26 @@ export interface PreTradeResult {
   contributingFactors: Array<{ message: string; [key: string]: unknown }>;
   evaluatedAt: string;
   attestation: SignedAttestation | null;
+  assessmentScope?: {
+    requestedDimensions: string[];
+    evaluatedDimensions: string[];
+    unavailableDimensions: { dimension: string; reason: string }[];
+    actionRiskDirection:
+      | 'increase_debt'
+      | 'reduce_debt'
+      | 'supply_assets'
+      | 'liquidation'
+      | 'exchange';
+    [key: string]: unknown;
+  };
+  sizingBasis?: {
+    kind: 'oracle_condition_advisory_cap';
+    baselineUsd: number;
+    inputsUsed: string[];
+    inputsMissing: string[];
+    executionCapacityVerified: false;
+    assumptions?: string[];
+  };
   [key: string]: unknown;
 }
 
@@ -96,6 +120,79 @@ export interface ExecutionReceiptResult {
   [key: string]: unknown;
 }
 
+export interface ResponseMeta {
+  path: string;
+  status: number;
+  success: boolean;
+  requestId?: string;
+  creditCost?: number;
+  /** Snapshot before this request; concurrent requests can change the balance. */
+  creditBalance?: number;
+  balanceBasis: 'before_request_snapshot';
+  retryAfterSeconds?: number;
+}
+
+export interface FreshnessProfile {
+  maxSourceAgeSeconds?: number;
+  maxAssessmentAgeSeconds?: number;
+  minimumRemainingValiditySeconds?: number;
+}
+
+export interface FreshnessCheck {
+  satisfied: boolean;
+  checkedAt: number;
+  reasons: string[];
+  assessmentAgeSeconds: number | null;
+  sourceAgeSeconds: number | null;
+  remainingValiditySeconds: number | null;
+}
+
+export interface AssessmentDiagnostic {
+  side: 'source' | 'destination' | 'workflow';
+  category:
+    | 'market_risk'
+    | 'evidence_insufficient'
+    | 'freshness'
+    | 'scope_unavailable'
+    | 'budget'
+    | 'service'
+    | 'binding'
+    | 'unknown';
+  code: string;
+  action: 'review' | 'refresh' | 'retry' | 'check_configuration' | 'restore_budget';
+  /** Hash binding is not a verification of the signer's signature or trust root. */
+  origin: 'reason_codes_hash_bound' | 'response_metadata' | 'local_policy' | 'service_error';
+  message?: string;
+}
+
+export interface PreTradeRecheckRequest extends Omit<PreTradeRequest, 'schemaVersion'> {
+  schemaVersion?: 2 | 3;
+  originalUid: string;
+  originalRequestHash: `0x${string}`;
+  originalConsensusPrice?: number;
+  maxDriftPct?: number;
+}
+
+export interface PreTradeRecheckResult extends PreTradeResult {
+  recheck: SignedAttestation | null;
+  originalUid: string;
+  originalRequestHash: `0x${string}`;
+  driftSinceOriginalPct: number | null;
+  stillValid: boolean;
+  stillValidReason: string;
+}
+
+export interface RefreshedSwapAssessment {
+  assessment: SwapAssessment;
+  sourceRecheck: PreTradeRecheckResult | null;
+  destinationRecheck: PreTradeRecheckResult | null;
+  signalValidity: boolean;
+  proofAvailability: 'COMPLETE' | 'PARTIAL' | 'UNAVAILABLE';
+  changedFields: string[];
+  /** A refreshed pair is a new commitment. Existing authorization is never migrated. */
+  requiresReauthorization: boolean;
+}
+
 export interface InsightClientOptions {
   apiKey: string;
   /** Defaults to https://www.oracleinsight.xyz. */
@@ -104,6 +201,8 @@ export interface InsightClientOptions {
   headers?: Record<string, string>;
   /** Defaults to 15 seconds. */
   timeoutMs?: number;
+  /** Observational only: callback errors cannot turn a completed request into a retry. */
+  onResponseMeta?(meta: ResponseMeta): void | Promise<void>;
 }
 
 export interface GuardPolicy {
@@ -115,6 +214,7 @@ export interface GuardPolicy {
 
 export interface GuardOptions extends InsightClientOptions {
   policy?: GuardPolicy;
+  freshness?: FreshnessProfile;
 }
 
 export interface GuardDecision {
@@ -135,6 +235,7 @@ export interface SwapAssessmentRequest {
   destination: PreTradeRequest;
   watchTarget?: OracleWatchTarget;
   receipt: SwapReceiptOptions;
+  freshness?: FreshnessProfile;
 }
 
 /**
@@ -143,6 +244,9 @@ export interface SwapAssessmentRequest {
  */
 export interface SwapAssessment {
   schema: 'insight.swap-assessment.v1';
+  diagnostics?: AssessmentDiagnostic[];
+  freshness?: { source: FreshnessCheck | null; destination: FreshnessCheck | null };
+  freshnessProfile?: FreshnessProfile;
   recommendation: TransactionRecommendation;
   reasonCodes: string[];
   sourcePreTrade: PreTradeResult | null;
@@ -331,6 +435,7 @@ export interface GuardedSwapRequest {
   /** Optional Watch target. When this Guard has recorded a `halt` for it, no transaction is submitted. */
   watchTarget?: OracleWatchTarget;
   receipt: SwapReceiptOptions;
+  freshness?: FreshnessProfile;
   submitTransaction(context: {
     sourcePreTrade: PreTradeResult;
     destinationPreTrade: PreTradeResult;
@@ -389,6 +494,9 @@ export type JointAssuranceConclusion =
 
 export interface JointAssuranceReport {
   schema: 'insight.priorseal-assurance-report.v1';
+  verificationOrigin: 'service_response';
+  independentVerificationPerformed: false;
+  limitations: string[];
   recommendation: TransactionRecommendation;
   recommendationFollowed: boolean | null;
   evidenceStatus: 'COMPLETE' | 'PRIORSEAL_PENDING' | 'PARTIAL' | 'UNAVAILABLE';
@@ -411,10 +519,12 @@ export interface AssessedSwapExecutionVerificationResult {
   priorSealEvidence: PriorSealObservationResult | null;
   evidenceErrors: { insight?: JointEvidenceError; priorSeal?: JointEvidenceError };
   report: JointAssuranceReport;
+  checkpoint: JointEvidenceCheckpoint;
 }
 
 export interface JointEvidenceError {
   code?: string;
+  status?: number;
   message: string;
 }
 
@@ -422,6 +532,9 @@ export type PriorSealGuardedSwapResult =
   | Extract<GuardedSwapResult, { status: 'blocked' }>
   | {
       status: 'executed';
+      checkpoint: JointEvidenceCheckpoint;
+      verificationOrigin: 'service_response';
+      independentVerificationPerformed: false;
       sourcePreTrade: PreTradeResult;
       destinationPreTrade: PreTradeResult;
       transaction: SubmittedTransaction;
@@ -472,11 +585,93 @@ export interface WatchOptions {
   /** Bind this to the agent's pause/cancel operation. */
   onHalt?(signal: OracleWatchResult): void | Promise<void>;
   onError?(error: unknown): void | Promise<void>;
+  stateAdapter?: WatchStateAdapter;
+  /** Defaults to 2 healthy observations. Recovery never clears an execution halt. */
+  recoveryHealthySamples?: number;
+  /** Defaults to twice intervalMs; a stale last-good sample becomes unavailable. */
+  unavailableAfterMs?: number;
+  onStateChange?(state: WatchState): void | Promise<void>;
+  onIncident?(state: WatchState): void | Promise<void>;
+  onRecoveryReady?(state: WatchState): void | Promise<void>;
 }
 
 export interface WatchHandle {
   readonly target: OracleWatchTarget;
   readonly done: Promise<void>;
   refresh(): Promise<OracleWatchResult>;
+  getState(): WatchState;
+  /** Explicit acknowledgement; never calls a wallet or resumes a transaction. */
+  acknowledgeRecovery(): Promise<void>;
   stop(): void;
+}
+
+/** JSON-safe evidence-only recovery input; never contains API keys or a submit callback. */
+export interface JointEvidenceCheckpoint {
+  schema: 'insight.joint-evidence-checkpoint.v1';
+  assessment: SwapAssessment;
+  transaction: PreparedExactCallTransaction;
+  priorSealAuthorization: PriorSealAcceptedAuthorization;
+  txHash: string;
+  taker?: string;
+  confirmations?: number;
+  insightReceipt: ExecutionReceiptResult | null;
+  priorSealEvidence: PriorSealObservationResult | null;
+}
+
+export interface WatchState {
+  schema: 'insight.watch-state.v1';
+  targetKey: string;
+  status: 'running' | 'degraded' | 'halted' | 'recovering' | 'monitor_unavailable';
+  halted: boolean;
+  incidentId: string | null;
+  incidentKind: 'market' | 'evidence' | 'budget' | 'service' | null;
+  consecutiveHealthy: number;
+  lastSuccessAt: number | null;
+  nextCheckAt: number | null;
+  lastSignalValidUntil: number | null;
+  updatedAt: number;
+}
+
+export interface WatchStateAdapter {
+  load(key: string): Promise<WatchState | null>;
+  save(key: string, state: WatchState): Promise<void>;
+}
+
+export interface CoverageRequest {
+  asset?: string;
+  chainId?: number;
+  /** Explicit opt-in live probe; default is registry-only. */
+  probe?: boolean;
+  maxSourceAgeSeconds?: number;
+}
+export interface CoverageResult {
+  diagnostic?: {
+    asset: string;
+    evidenceChainId: number;
+    evidenceChain: string;
+    settlementChainEvaluated: false;
+    sampledAt: string;
+    mode: 'live_probe' | 'registry';
+    signed: false;
+    status: 'NOT_PROBED' | 'SUFFICIENT' | 'INSUFFICIENT_EVIDENCE';
+    freshnessStatus: 'NOT_EVALUATED' | 'SUFFICIENT' | 'INSUFFICIENT_FRESH_EVIDENCE';
+    requiredParticipantCount: number;
+    requiredNonDerivedGroupCount: number;
+    includedCount: number | null;
+    freshCount: number | null;
+    providers: Array<{
+      provider: string;
+      sourceGroup: string;
+      registered: boolean;
+      responding: boolean | null;
+      fresh: boolean | null;
+      included: boolean | null;
+      dataAgeSeconds: number | null;
+      reason: string | null;
+      [key: string]: unknown;
+    }>;
+    nextAction: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
 }

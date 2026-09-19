@@ -37,6 +37,7 @@ function preTrade(asset, verdict = 'PASS') {
       uid: `0x${(source ? '1' : '2').repeat(64)}`,
       schemaVersion: 3,
       attester: '0x0000000000000000000000000000000000000003',
+      signature: '0xabcd',
       signedAt: '2026-09-05T00:00:00.000Z',
       data: {
         verdict,
@@ -121,7 +122,7 @@ test('executeSwap rejects a top-level verdict that disagrees with the signed ver
   assert.equal(submitted, false);
 });
 
-test('executeSwap rejects expired signed evidence before broadcast', async () => {
+test('executeSwap blocks expired signed evidence before broadcast', async () => {
   let submitted = false;
   const guard = new InsightGuard({
     apiKey: 'ins_test',
@@ -132,19 +133,17 @@ test('executeSwap rejects expired signed evidence before broadcast', async () =>
     },
   });
 
-  await assert.rejects(
-    () =>
-      guard.executeSwap({
-        source: sourceRequest,
-        destination: destinationRequest,
-        receipt: { settlementChainId: 1 },
-        submitTransaction: async () => {
-          submitted = true;
-          return { txHash };
-        },
-      }),
-    /signed evidence has expired/
-  );
+  const decision = await guard.executeSwap({
+    source: sourceRequest,
+    destination: destinationRequest,
+    receipt: { settlementChainId: 1 },
+    submitTransaction: async () => {
+      submitted = true;
+      return { txHash };
+    },
+  });
+  assert.equal(decision.status, 'blocked');
+  assert.equal(decision.stage, 'source_pre_trade');
   assert.equal(submitted, false);
 });
 
@@ -435,8 +434,8 @@ test('executeSwapWithPriorSeal authorizes exact calldata before submission and r
         address: '0x4444444444444444444444444444444444444444',
       },
       agentId: 'insight:swap-agent',
-      issuedAt: 1900000000,
-      validUntil: 1900000600,
+      issuedAt: Math.floor(Date.now() / 1000),
+      validUntil: Math.floor(Date.now() / 1000) + 600,
       authorizationNonce: `0x${'9'.repeat(64)}`,
       confirmations: 12,
       signAuthorization: async ({ typedData }) => {
@@ -596,8 +595,8 @@ test('non-intervening assessment can be authorized and verified after an externa
         account: '0x3333333333333333333333333333333333333333',
       },
       agentId: 'insight:swap-agent',
-      issuedAt: 1900000000,
-      validUntil: 1900000600,
+      issuedAt: Math.floor(Date.now() / 1000),
+      validUntil: Math.floor(Date.now() / 1000) + 600,
       authorizationNonce: `0x${'9'.repeat(64)}`,
       confirmations: 12,
       signAuthorization: async () => '0xabcdef',
@@ -698,8 +697,8 @@ test('executeSwapWithPriorSeal does not broadcast when exact-call authorization 
             account: '0x3333333333333333333333333333333333333333',
           },
           agentId: 'insight:swap-agent',
-          issuedAt: 1900000000,
-          validUntil: 1900000600,
+          issuedAt: Math.floor(Date.now() / 1000),
+          validUntil: Math.floor(Date.now() / 1000) + 600,
           authorizationNonce: `0x${'9'.repeat(64)}`,
           signAuthorization: async () => '0xabcdef',
         },
@@ -773,8 +772,8 @@ test('executeSwapWithPriorSeal rejects an accepted authorization that differs fr
             account: '0x3333333333333333333333333333333333333333',
           },
           agentId: 'insight:swap-agent',
-          issuedAt: 1900000000,
-          validUntil: 1900000600,
+          issuedAt: Math.floor(Date.now() / 1000),
+          validUntil: Math.floor(Date.now() / 1000) + 600,
           authorizationNonce: `0x${'9'.repeat(64)}`,
           signAuthorization: async () => '0xabcdef',
         },

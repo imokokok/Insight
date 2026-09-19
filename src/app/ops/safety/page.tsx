@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { getMlOutcomeMetrics } from '@/lib/api/services/mlOutcomeMetrics';
 import { getModelStatus } from '@/lib/ml/inference';
 import { getOracleWatchIntegrity, getSigningIntegrity } from '@/lib/ops/opsQueries';
@@ -48,6 +50,9 @@ export default async function OpsSafetyPage({
           <div className="flex items-center gap-3">
             <TimeRangePicker current={range ?? '24h'} />
             <RefreshControl />
+            <Link href="/ops/safety/workflows" className="text-sm text-blue-700 underline">
+              Workflow quality & reviews
+            </Link>
           </div>
         }
       />

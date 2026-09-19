@@ -27,7 +27,13 @@ export class PriorSealBridgeError extends Error {
 
   constructor(
     message: string,
-    readonly options: { code?: string; status?: number; cause?: unknown } = {}
+    readonly options: {
+      code?: string;
+      status?: number;
+      cause?: unknown;
+      jobId?: string;
+      lastJob?: PriorSealObservationJob;
+    } = {}
   ) {
     super(message, { cause: options.cause });
   }
@@ -107,7 +113,7 @@ export class PriorSealClient implements PriorSealApi {
       if (Date.now() - startedAt >= timeoutMs) {
         throw new PriorSealBridgeError(
           `PriorSeal observation job did not finish within ${timeoutMs}ms`,
-          { code: 'OBSERVATION_WAIT_TIMEOUT' }
+          { code: 'OBSERVATION_WAIT_TIMEOUT', jobId, lastJob: job }
         );
       }
       await abortableDelay(

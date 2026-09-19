@@ -1,6 +1,6 @@
 export { InsightClient } from './client';
 export { InsightApiError, ReceiptConfigurationError, TradeBlockedError } from './errors';
-export { InsightGuard } from './guard';
+export { InsightGuard, exportReviewAttachments } from './guard';
 export {
   buildInterAIExternalEvidenceRequestV0,
   buildInterAIExternalEvidenceV0,
@@ -65,3 +65,20 @@ export type {
   InterAIOracleSafetyCheckV2,
   InterAIUint256,
 } from './interai';
+
+export { diagnosePreTrade, evaluateFreshness } from './diagnostics';
+export { estimateWorkflowBudget, DEFAULT_WORKFLOW_CREDITS } from './budget';
+export type {
+  AssessmentDiagnostic,
+  FreshnessCheck,
+  FreshnessProfile,
+  ResponseMeta,
+  PreTradeRecheckRequest,
+  PreTradeRecheckResult,
+  RefreshedSwapAssessment,
+  JointEvidenceCheckpoint,
+  WatchState,
+  WatchStateAdapter,
+} from './types';
+
+export type { CoverageRequest, CoverageResult } from './types';

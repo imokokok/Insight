@@ -33,7 +33,13 @@ export const GET = createApiHandler(
         schemaVersion: query.schemaVersion,
         destinationAsset: query.destinationAsset,
       },
-      { apiKeyId: context.auth?.apiKey?.keyId }
+      {
+        apiKeyId: context.auth?.apiKey?.keyId,
+        requestId: context.requestId,
+        workflowTag: query.workflowTag,
+        baselineVerdict: query.baselineVerdict,
+        baselineVersion: query.baselineVersion,
+      }
     );
 
     const response: NextResponse = new Response(

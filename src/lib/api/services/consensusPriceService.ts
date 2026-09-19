@@ -11,7 +11,7 @@ import { getDefaultFactory } from '@/lib/oracles/factory';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { reputationService } from '@/lib/oracles/services/reputationService';
 import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
-import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
+import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
@@ -29,6 +29,8 @@ export interface ConsensusProviderPrice {
   isOutlier: boolean;
   confidence: number | null;
   timestamp: number;
+  retrievedAt?: number;
+  timestampProvenance?: 'provider_age' | 'provider_timestamp' | 'unknown';
   dataAgeSeconds: number | null;
   source?: string;
   verification?: PriceData['verification'];
@@ -95,7 +97,11 @@ export async function resolveProvidersForSymbol(
     if (feeds && feeds.length > 0) {
       hasActiveFeed = feeds.some((feed) => {
         const feedSymbol = extractBaseSymbol((feed as { symbol: string }).symbol).toUpperCase();
-        if (feedSymbol !== baseSymbol) return false;
+        if (
+          feedSymbol !== baseSymbol ||
+          !isUsdDenominatedFeedSymbol((feed as { symbol: string }).symbol)
+        )
+          return false;
         if (!chain) return true;
         const chainId = (feed as { chain_id?: number }).chain_id ?? 0;
         if (chainId === 0) return true;
@@ -111,7 +117,11 @@ export async function resolveProvidersForSymbol(
       // lists" policy already applied in snapshotCollector.ts:117-120.
       hasSpecificChainFeed = feeds.some((feed) => {
         const feedSymbol = extractBaseSymbol((feed as { symbol: string }).symbol).toUpperCase();
-        if (feedSymbol !== baseSymbol) return false;
+        if (
+          feedSymbol !== baseSymbol ||
+          !isUsdDenominatedFeedSymbol((feed as { symbol: string }).symbol)
+        )
+          return false;
         const chainId = (feed as { chain_id?: number }).chain_id ?? 0;
         if (chainId === 0) return false;
         if (!chain) return true;
@@ -142,6 +152,7 @@ export async function resolveProvidersForSymbol(
 }
 
 interface FetchProviderPriceResult {
+  retrievedAt?: number;
   provider: OracleProvider;
   priceData?: PriceData;
   status: 'success' | 'unsupported' | 'error';
@@ -155,7 +166,7 @@ async function fetchProviderPrice(
 ): Promise<FetchProviderPriceResult> {
   try {
     const priceData = await fetchPriceWithDatabase(provider, symbol, chain, true, false);
-    return { provider, priceData, status: 'success' };
+    return { provider, priceData, retrievedAt: Date.now(), status: 'success' };
   } catch (error) {
     if (error instanceof UnsupportedSymbolError) {
       return { provider, status: 'unsupported' };
@@ -216,6 +227,13 @@ function buildProviderPrice(
     isOutlier: excludedProviders.includes(result.provider),
     confidence: priceData?.confidence ?? null,
     timestamp: priceData?.timestamp ?? Date.now(),
+    retrievedAt: result.retrievedAt,
+    timestampProvenance:
+      !priceData || dataAgeSeconds === null
+        ? 'unknown'
+        : typeof priceData.dataAge === 'number' && priceData.dataAge >= 0
+          ? 'provider_age'
+          : 'provider_timestamp',
     dataAgeSeconds,
     source: priceData?.source,
     verification: priceData?.verification,
@@ -257,7 +275,8 @@ export async function getConsensusPrice(
   symbol: string,
   chain?: string,
   method?: ConsensusMethod,
-  targetProviders?: readonly OracleProvider[]
+  targetProviders?: readonly OracleProvider[],
+  options: { allowUnavailable?: boolean } = {}
 ): Promise<ConsensusPriceResponse> {
   const baseSymbol = normalizeSymbol(symbol);
   const resolvedChain = resolveChain(chain);
@@ -277,7 +296,7 @@ export async function getConsensusPrice(
     reputationScoreMap.set(rep.provider, rep.overall_score);
   }
 
-  if (providers.length === 0) {
+  if (providers.length === 0 && !options.allowUnavailable) {
     throw UnsupportedSymbolError.create(baseSymbol, [], undefined);
   }
 
@@ -300,6 +319,28 @@ export async function getConsensusPrice(
       confidence: r.priceData.confidence ?? 0.8,
       confidenceInterval: r.priceData.confidenceInterval,
     }));
+
+  if (successfulInputs.length === 0 && options.allowUnavailable) {
+    return {
+      symbol: baseSymbol,
+      chain: resolvedChain,
+      consensusPrice: 0,
+      method: method ?? 'weighted_median',
+      recommendedMethod: 'weighted_median',
+      confidence: 0,
+      confidenceLevel: 'very_low',
+      agreement: 0,
+      participantCount: 0,
+      excludedCount: providers.length,
+      excludedProviders: [...providers],
+      priceRange: { min: 0, max: 0 },
+      methodResults: { median: 0, trimmed_mean: 0, weighted_median: 0, iqr_filtered: 0 },
+      providers: fetchResults.map((result) =>
+        buildProviderPrice(result, 0, providers, reputationScoreMap)
+      ),
+      recommendedProvider: null,
+    };
+  }
 
   if (successfulInputs.length === 0) {
     if (fetchResults.every((result) => result.status === 'unsupported')) {

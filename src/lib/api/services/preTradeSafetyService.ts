@@ -37,7 +37,7 @@ import {
 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
-import { UnsupportedSymbolError } from '@/lib/errors';
+import { UnsupportedSymbolError, ValidationError } from '@/lib/errors';
 import {
   computeMarketReferenceContext,
   type MarketReferenceContext,
@@ -63,6 +63,7 @@ import {
   HARD_STALE_BLOCK_SECONDS,
 } from '@/lib/oracles/feedCadence';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
+import { getStablecoinConfig } from '@/lib/stablecoins/config';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
@@ -75,6 +76,7 @@ import {
   median,
   type HistoricalOracleState,
 } from './oracleWatchHistory';
+import { buildAssessmentScope, buildSizingBasis } from './preTradeDiagnostics';
 
 const logger = createLogger('pre-trade-safety');
 
@@ -142,9 +144,18 @@ export interface ProtocolSafetyContext {
   bufferConsumedPct: number;
   liquidationThreshold: number;
   maxLtv: number;
+  parameterSource?: 'scheduled_dynamic' | 'static_config';
+  parametersFetchedAt?: string | null;
 }
 
 export interface ProviderPriceDetail {
+  timestamp?: number | null;
+  retrievedAt?: number;
+  timestampProvenance?: 'provider_age' | 'provider_timestamp' | 'unknown';
+  source?: string;
+  errorMessage?: string;
+  freshnessKnown?: boolean;
+  timestampAnomaly?: boolean;
   price: number;
   deviationPct: number | null;
   isOutlier: boolean;
@@ -183,6 +194,9 @@ export interface LendingSafetyAction {
 }
 
 export interface PreTradeSafetyResult {
+  /** Unsigned explanatory scope; does not expand the signed attestation. */
+  assessmentScope?: ReturnType<typeof buildAssessmentScope>;
+  sizingBasis?: ReturnType<typeof buildSizingBasis>;
   verdict: SafetyVerdict;
   consensusPrice: number;
   maxDeviationPct: number;
@@ -190,7 +204,7 @@ export interface PreTradeSafetyResult {
    * Effective manipulation risk score [0,1]. ML-driven (equals the model's
    * predicted probability of an abnormal oracle event in the next 6h) when a
    * verified model is active; falls back to the rule-based weighted formula
-   * otherwise. Feeds the displayed risk level and recommended position sizing —
+   * otherwise. Feeds the displayed risk level only —
    * the verdict itself is still produced by the rule engine.
    */
   manipulationRiskScore: number;
@@ -212,7 +226,7 @@ export interface PreTradeSafetyResult {
   /**
    * Raw ML output: predicted probability [0,1] of an abnormal oracle event in
    * the next 6h. When non-null, `manipulationRiskScore` equals this value (the
-   * model drives the risk score and position sizing). null when no verified
+   * model drives the displayed risk score, not sizing). null when no verified
    * model is active — then manipulationRiskScore falls back to the rule-based
    * formula. The verdict is still produced by the rule engine either way.
    */
@@ -313,7 +327,9 @@ const LENDING_FREEZE_BUFFER_PCT = 95;
  * volatility is NOT frozen — this is the anti-false-positive guard.
  */
 const LENDING_FREEZE_ZSCORE_MIN = 1.0;
-const LENDING_ACTIONS: readonly TradeAction[] = ['borrow', 'lend', 'repay', 'liquidate'];
+// Only borrow opens new debt. Repay/supply/liquidate retain every common
+// oracle gate, but a max-LTV new-borrow heuristic must not freeze these actions.
+const LENDING_ACTIONS: readonly TradeAction[] = ['borrow'];
 
 const VERDICT_RANK: Record<SafetyVerdict, number> = {
   PASS: 0,
@@ -362,6 +378,10 @@ function normalize(value: number, max: number): number {
 
 export interface AuditMeta {
   apiKeyId?: string;
+  requestId?: string;
+  workflowTag?: string;
+  baselineVerdict?: 'allow' | 'alert' | 'block' | 'unknown';
+  baselineVersion?: string;
 }
 
 async function logAudit(
@@ -396,7 +416,13 @@ async function logAudit(
       }
     }
 
-    await client.from('pre_trade_checks').insert({
+    const { error } = await client.from('pre_trade_checks').insert({
+      request_id: meta.requestId ?? null,
+      workflow_tag: meta.workflowTag ?? null,
+      baseline_verdict: meta.baselineVerdict ?? null,
+      baseline_version: meta.baselineVersion ?? null,
+      assessment_scope: result.assessmentScope ?? null,
+      sizing_basis: result.sizingBasis ?? null,
       asset: input.asset,
       chain_id: input.chainId,
       action: input.action,
@@ -435,6 +461,7 @@ async function logAudit(
       coverage_status: coverageStatus,
       unresolved_asset: unresolvedAsset,
     });
+    if (error) throw error;
   } catch (error) {
     // Non-blocking: audit failure must never fail the safety check itself.
     logger.warn('Failed to write pre_trade_checks audit row', {
@@ -471,6 +498,18 @@ function buildProviderPrices(
       confidence: p.confidence,
       reputationScore: p.reputationScore,
       status: p.status,
+      timestamp: p.status === 'success' ? p.timestamp : null,
+      source: p.source,
+      retrievedAt: p.retrievedAt,
+      timestampProvenance: p.timestampProvenance,
+      errorMessage:
+        p.status === 'error'
+          ? 'Provider fetch failed; retry or inspect the provider health with the request ID.'
+          : p.status === 'unsupported'
+            ? 'Asset is unsupported by this provider.'
+            : undefined,
+      freshnessKnown: age !== null,
+      timestampAnomaly: false, // Assigned from the final hard-staleness classification below.
     };
   }
   return out;
@@ -615,19 +654,29 @@ function classifyStalenessHardBlock(providerPrices: Record<string, ProviderPrice
   };
 }
 
-async function fetchDepegWarnings(): Promise<DepegWarning[]> {
+async function fetchDepegWarnings(
+  asset: string
+): Promise<{ warnings: DepegWarning[]; available: boolean }> {
   try {
     const snapshots = await calculateAllStablecoinSnapshots();
-    return snapshots
-      .filter((s) => Math.abs(s.maxDeviationPercent) >= THRESHOLDS.stablecoinDepegPct.caution)
-      .map((s) => ({
-        stablecoin: s.symbol,
-        deviationPct: s.maxDeviationPercent,
-        riskLevel: s.riskLevel,
-      }));
+    // The monitor deliberately resolves partial results after per-coin failures.
+    // An unrelated coin's snapshot cannot establish this asset's peg evidence.
+    const validSnapshots = snapshots.filter((s) => Number.isFinite(s.maxDeviationPercent));
+    return {
+      available: getStablecoinConfig(asset)
+        ? validSnapshots.some((s) => s.symbol === asset)
+        : validSnapshots.length > 0,
+      warnings: validSnapshots
+        .filter((s) => Math.abs(s.maxDeviationPercent) >= THRESHOLDS.stablecoinDepegPct.caution)
+        .map((s) => ({
+          stablecoin: s.symbol,
+          deviationPct: s.maxDeviationPercent,
+          riskLevel: s.riskLevel,
+        })),
+    };
   } catch {
     // Non-blocking: depeg data unavailable should not fail the safety check.
-    return [];
+    return { warnings: [], available: false };
   }
 }
 
@@ -1006,24 +1055,35 @@ function computeManipulationRisk(args: {
 async function computeProtocolSafety(
   protocolId: string,
   asset: string,
-  maxDeviationPct: number
-): Promise<ProtocolSafetyContext | null> {
+  maxDeviationPct: number,
+  chainId: number
+): Promise<{ context: ProtocolSafetyContext | null; unavailableReason: string | null }> {
   try {
     const protocol = await getProtocolByIdWithDynamicData(protocolId);
-    if (!protocol) return null;
+    if (!protocol) return { context: null, unavailableReason: 'UNKNOWN_PROTOCOL' };
+
+    if (getBlockchainByChainId(chainId) !== protocol.chain)
+      return { context: null, unavailableReason: 'PROTOCOL_CHAIN_MISMATCH' };
 
     // Match by symbol or priceSymbol (derivative tokens track an underlying).
     const assetConfig = protocol.assets.find((a) => a.symbol === asset || a.priceSymbol === asset);
-    if (!assetConfig) return null;
+    if (!assetConfig) return { context: null, unavailableReason: 'ASSET_NOT_IN_PROTOCOL' };
 
     const { liquidationThreshold, maxLtv } = assetConfig;
-    if (liquidationThreshold <= 0 || maxLtv <= 0) return null;
+    if (
+      !Number.isFinite(liquidationThreshold) ||
+      !Number.isFinite(maxLtv) ||
+      liquidationThreshold <= 0 ||
+      maxLtv <= 0
+    )
+      return { context: null, unavailableReason: 'INVALID_PROTOCOL_PARAMETERS' };
 
     // At max LTV, collateral ratio = 1/maxLtv. Liquidation triggers when the
     // ratio falls to liquidationThreshold. The collateral-drop deviation that
     // bridges the two is: 1 − liquidationThreshold × maxLtv.
     const criticalDeviationPct = Math.max(0, (1 - liquidationThreshold * maxLtv) * 100);
-    if (criticalDeviationPct <= 0) return null;
+    if (criticalDeviationPct <= 0)
+      return { context: null, unavailableReason: 'INVALID_PROTOCOL_BUFFER' };
 
     const bufferConsumedPct = Math.min(
       100,
@@ -1031,12 +1091,19 @@ async function computeProtocolSafety(
     );
 
     return {
-      protocolId: protocol.id,
-      protocolName: protocol.name,
-      criticalDeviationPct: roundTo(criticalDeviationPct, 2),
-      bufferConsumedPct: roundTo(bufferConsumedPct, 2),
-      liquidationThreshold,
-      maxLtv,
+      unavailableReason: null,
+      context: {
+        protocolId: protocol.id,
+        protocolName: protocol.name,
+        criticalDeviationPct: roundTo(criticalDeviationPct, 2),
+        bufferConsumedPct: roundTo(bufferConsumedPct, 2),
+        liquidationThreshold,
+        maxLtv,
+        parameterSource: protocol.dynamicData?.riskParamsFetchedAt
+          ? 'scheduled_dynamic'
+          : 'static_config',
+        parametersFetchedAt: protocol.dynamicData?.riskParamsFetchedAt ?? null,
+      },
     };
   } catch (error) {
     // Non-blocking: protocol context unavailable must never fail the check.
@@ -1045,7 +1112,7 @@ async function computeProtocolSafety(
       asset,
       error: error instanceof Error ? error.message : String(error),
     });
-    return null;
+    return { context: null, unavailableReason: 'PROTOCOL_PARAMETERS_UNAVAILABLE' };
   }
 }
 
@@ -1209,6 +1276,46 @@ function applyV2IndependenceGate(
   return 'BLOCK';
 }
 
+function buildUnavailableSafetyResult(
+  input: PreTradeSafetyInput,
+  depegWarnings: DepegWarning[],
+  depegAvailable: boolean,
+  warnings: string[],
+  contributingFactors: ContributingFactor[],
+  startedAt: number
+): PreTradeSafetyResult {
+  return {
+    assessmentScope: buildAssessmentScope(input, {}, null, null, depegAvailable),
+    sizingBasis: buildSizingBasis(null),
+    verdict: 'BLOCK',
+    consensusPrice: 0,
+    maxDeviationPct: 0,
+    manipulationRiskScore: 1,
+    staleDataRisk: false,
+    crossProviderAgreement: 0,
+    recommendedMaxPositionUsd: 0,
+    participantCount: 0,
+    providerPrices: {},
+    depegWarnings,
+    warnings,
+    contributingFactors,
+    protocolSafety: null,
+    recommendedActions: [],
+    mlScore: null,
+    mlModelVersion: null,
+    mlScore1h: null,
+    mlScore6h: null,
+    mlRiskLevel: null,
+    mlMediumThreshold: null,
+    mlHighThreshold: null,
+    mlFeatureVector: {},
+    anomalyScore: 0,
+    attestation: null,
+    evaluatedAt: new Date().toISOString(),
+    latencyMs: Date.now() - startedAt,
+  };
+}
+
 /**
  * Run a pre-trade oracle safety check.
  *
@@ -1225,6 +1332,12 @@ export async function preTradeSafetyCheck(
 
   // Resolve chain name (Blockchain string) from numeric chainId.
   const chain = getBlockchainByChainId(input.chainId);
+  if (!Number.isInteger(input.chainId) || input.chainId < 0 || (input.chainId > 0 && !chain)) {
+    throw new ValidationError(
+      'Unsupported evidence chainId; cross-chain fallback is not permitted.',
+      { field: 'chainId' }
+    );
+  }
 
   // 1. Cross-oracle consensus price (also embeds reputation + agreement).
   let consensus: ConsensusPriceResponse | undefined;
@@ -1257,40 +1370,25 @@ export async function preTradeSafetyCheck(
   }
 
   // 2. Stablecoin depeg warnings (non-blocking).
-  const depegWarnings = await fetchDepegWarnings();
+  const depeg = await fetchDepegWarnings(input.asset);
+  const depegWarnings = depeg.warnings;
+  if (!depeg.available)
+    warnings.push(
+      'Stablecoin peg monitor unavailable; absence of a depeg warning is not a verified healthy peg.'
+    );
 
   const startedAtMs = Date.now();
 
   // If consensus failed, short-circuit to BLOCK.
   if (consensusFailed || !consensus) {
-    const result: PreTradeSafetyResult = {
-      verdict: 'BLOCK',
-      consensusPrice: 0,
-      maxDeviationPct: 0,
-      manipulationRiskScore: 1,
-      staleDataRisk: false,
-      crossProviderAgreement: 0,
-      recommendedMaxPositionUsd: 0,
-      participantCount: 0,
-      providerPrices: {},
+    const result = buildUnavailableSafetyResult(
+      input,
       depegWarnings,
+      depeg.available,
       warnings,
       contributingFactors,
-      protocolSafety: null,
-      recommendedActions: [],
-      mlScore: null,
-      mlModelVersion: null,
-      mlScore1h: null,
-      mlScore6h: null,
-      mlRiskLevel: null,
-      mlMediumThreshold: null,
-      mlHighThreshold: null,
-      mlFeatureVector: {},
-      anomalyScore: 0,
-      attestation: null,
-      evaluatedAt: new Date().toISOString(),
-      latencyMs: Date.now() - startedAt,
-    };
+      startedAt
+    );
 
     // Even for zero-coverage BLOCKs, sign the attestation. The signed
     // attestation proves Insight issued the BLOCK, making it provable
@@ -1364,9 +1462,18 @@ export async function preTradeSafetyCheck(
   // 4b. Protocol safety context (optional — only when protocolId is provided).
   // Derives a position-free safety buffer from the protocol's own published,
   // scheduled-fetched risk params. Non-blocking: null when unavailable.
-  const protocolSafety = input.protocolId
-    ? await computeProtocolSafety(input.protocolId, input.asset, maxDeviationPct)
-    : null;
+  const protocolAssessment = input.protocolId
+    ? await computeProtocolSafety(input.protocolId, input.asset, maxDeviationPct, input.chainId)
+    : { context: null, unavailableReason: null };
+  const protocolSafety = protocolAssessment.context;
+  if (protocolAssessment.unavailableReason)
+    warnings.push(
+      `Requested protocol dimension was not evaluated: ${protocolAssessment.unavailableReason}.`
+    );
+  if (protocolSafety && input.action !== 'borrow')
+    warnings.push(
+      `Protocol max-LTV buffer is informational for ${input.action}; only new borrowing uses the borrow-buffer gate. Position, recipient and execution authorization require separate checks.`
+    );
 
   // 4c. One bounded historical fetch — also reused by the ML/anomaly layer below
   // (step 6) so we pay a single DB round-trip. The lending freeze rule uses it to
@@ -1460,6 +1567,9 @@ export async function preTradeSafetyCheck(
   // surfaces as a soft CAUTION instead. When NO provider is fresh (total oracle
   // outage) we cannot corroborate and fall back to the absolute age -> BLOCK.
   const hardStale = classifyStalenessHardBlock(providerPrices);
+  for (const [provider, detail] of Object.entries(providerPrices)) {
+    detail.timestampAnomaly = hardStale.timestampAnomalyProviders.includes(provider);
+  }
   if (hardStale.hardBlock) {
     verdict = pickWorst(verdict, 'BLOCK');
     contributingFactors.push({
@@ -1591,10 +1701,10 @@ export async function preTradeSafetyCheck(
       value: input.tradeAmountUsd,
       threshold: recommendedMaxPositionUsd * 3,
       triggeredVerdict: 'DANGER',
-      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} far exceeds recommended max $${recommendedMaxPositionUsd.toLocaleString()}.`,
+      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} far exceeds oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}.`,
     });
     warnings.push(
-      `Trade size far exceeds recommended maximum ($${recommendedMaxPositionUsd.toLocaleString()}).`
+      `Trade size far exceeds oracle-condition advisory cap; venue liquidity was not assessed ($${recommendedMaxPositionUsd.toLocaleString()}).`
     );
   } else if (input.tradeAmountUsd > recommendedMaxPositionUsd * 1.5) {
     verdict = pickWorst(verdict, 'CAUTION');
@@ -1603,10 +1713,10 @@ export async function preTradeSafetyCheck(
       value: input.tradeAmountUsd,
       threshold: recommendedMaxPositionUsd * 1.5,
       triggeredVerdict: 'CAUTION',
-      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} exceeds recommended max $${recommendedMaxPositionUsd.toLocaleString()}.`,
+      message: `Trade size $${input.tradeAmountUsd.toLocaleString()} exceeds oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}.`,
     });
     warnings.push(
-      `Trade size exceeds recommended maximum ($${recommendedMaxPositionUsd.toLocaleString()}).`
+      `Trade size exceeds oracle-condition advisory cap; venue liquidity was not assessed ($${recommendedMaxPositionUsd.toLocaleString()}).`
     );
   }
 
@@ -1651,6 +1761,14 @@ export async function preTradeSafetyCheck(
   void startedAtMs; // marker for future per-phase timing
 
   const result: PreTradeSafetyResult = {
+    assessmentScope: buildAssessmentScope(
+      input,
+      providerPrices,
+      protocolSafety,
+      protocolAssessment.unavailableReason,
+      depeg.available
+    ),
+    sizingBasis: buildSizingBasis(protocolSafety),
     verdict,
     consensusPrice: consensus.consensusPrice,
     maxDeviationPct: roundTo(maxDeviationPct, 4),

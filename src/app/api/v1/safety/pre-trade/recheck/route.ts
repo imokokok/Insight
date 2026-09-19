@@ -56,6 +56,16 @@ const RecheckBodySchema = z.object({
     .optional()
     .describe('Destination asset symbol (must match original)'),
 
+  workflowTag: z
+    .string()
+    .trim()
+    .min(1)
+    .max(80)
+    .regex(/^[a-zA-Z0-9_.:-]+$/)
+    .optional(),
+  baselineVerdict: z.enum(['allow', 'alert', 'block', 'unknown']).optional(),
+  baselineVersion: z.string().trim().min(1).max(100).optional(),
+
   // Original references.
   originalUid: z.string().min(1).describe('UID of the original v2 attestation being re-verified'),
   originalRequestHash: Bytes32Schema.describe(
@@ -106,7 +116,13 @@ export const POST = createApiHandler(
         maxDriftPct: body.maxDriftPct,
         schemaVersion: body.schemaVersion,
       },
-      { apiKeyId: context.auth?.apiKey?.keyId }
+      {
+        apiKeyId: context.auth?.apiKey?.keyId,
+        requestId: context.requestId,
+        workflowTag: body.workflowTag,
+        baselineVerdict: body.baselineVerdict,
+        baselineVersion: body.baselineVersion,
+      }
     );
 
     // Manual JSON.stringify (mirrors the pre-trade route) so the response is

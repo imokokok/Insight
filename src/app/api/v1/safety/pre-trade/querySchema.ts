@@ -15,12 +15,22 @@ export const PreTradeQuerySchema = z.object({
     .pipe(z.array(SafeProviderSchema).min(1))
     .optional()
     .describe('Comma-separated list of oracle providers to restrict the check to'),
+  workflowTag: z
+    .string()
+    .trim()
+    .min(1)
+    .max(80)
+    .regex(/^[a-zA-Z0-9_.:-]+$/)
+    .optional(),
+  baselineVerdict: z.enum(['allow', 'alert', 'block', 'unknown']).optional(),
+  baselineVersion: z.string().trim().min(1).max(100).optional(),
   protocolId: z
     .string()
     .optional()
     .describe('Optional lending protocol id to evaluate against (e.g. aave-v3-ethereum)'),
-  schemaVersion: z
-    .union([z.literal(1), z.literal(2), z.literal(3)])
+  schemaVersion: z.coerce
+    .number()
+    .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
     .optional()
     .describe(
       'Attestation schema version: 1 (default, 11-field), 2 (26-field, CAIP-19 + quorum gate), ' +

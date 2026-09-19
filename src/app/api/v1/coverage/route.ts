@@ -1,4 +1,6 @@
-import { type NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+
+import { z } from 'zod';
 
 import {
   createApiHandler,
@@ -6,14 +8,52 @@ import {
   ApiResponseBuilder,
   V1_PROTOCOL_TIER_MIDDLEWARES,
 } from '@/lib/api/handler';
+import { getCoverageDiagnostic } from '@/lib/api/services/coverageDiagnostics';
 import { createCachedJsonResponse } from '@/lib/api/utils';
-import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { SafeSymbolSchema } from '@/lib/security/validation';
+
+const CoverageQuerySchema = z
+  .object({
+    asset: SafeSymbolSchema.optional(),
+    chainId: z.coerce.number().int().positive().optional(),
+    probe: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
+    maxSourceAgeSeconds: z.coerce.number().int().positive().max(604800).optional(),
+  })
+  .refine((v) => Boolean(v.asset) === Boolean(v.chainId), {
+    message: 'asset and chainId must be supplied together',
+  })
+  .refine((v) => !v.probe || Boolean(v.asset), {
+    message: 'A live probe requires asset and chainId',
+  });
 
 export const OPTIONS = createOptionsHandler();
 
 export const GET = createApiHandler(
   async (_request: NextRequest, context) => {
-    const feedsByProvider = await getAllActiveFeedsByProvider();
+    const query = context.validated!.query as z.infer<typeof CoverageQuerySchema>;
+    const registry = await getAllActiveFeedsByProviderWithStatus();
+    if (registry.errored) {
+      return NextResponse.json(
+        ApiResponseBuilder.error(
+          'REGISTRY_UNAVAILABLE',
+          'Coverage registry is unavailable; support is unknown, not zero.',
+          { requestId: context.requestId }
+        ),
+        { status: 503, headers: { 'Cache-Control': 'no-store' } }
+      );
+    }
+    const feedsByProvider = registry.feeds;
+    const diagnostic =
+      query.asset && query.chainId
+        ? await getCoverageDiagnostic(
+            { ...query, asset: query.asset, chainId: query.chainId },
+            feedsByProvider
+          )
+        : undefined;
 
     // Build per-chain coverage
     const chainMap = new Map<
@@ -154,6 +194,8 @@ export const GET = createApiHandler(
       .map((s) => ({ symbol: s.symbol, provider: s.providers[0] }));
 
     const payload = {
+      registryStatus: 'available',
+      ...(diagnostic ? { diagnostic } : {}),
       summary: {
         totalFeeds,
         totalProviders,
@@ -169,11 +211,12 @@ export const GET = createApiHandler(
 
     return createCachedJsonResponse(
       ApiResponseBuilder.success(payload, { requestId: context.requestId }),
-      { preset: 'semiStatic' }
+      { preset: diagnostic ? 'noStore' : 'semiStatic' }
     );
   },
   {
     // C2 deep-analysis endpoint (credit-metered)
     middlewares: V1_PROTOCOL_TIER_MIDDLEWARES,
+    validation: { query: CoverageQuerySchema },
   }
 );

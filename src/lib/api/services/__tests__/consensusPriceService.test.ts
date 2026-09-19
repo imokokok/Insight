@@ -40,6 +40,16 @@ beforeEach(() => {
 });
 
 describe('resolveProvidersForSymbol', () => {
+  it('does not treat another quote currency or another chain as registered USD coverage', async () => {
+    getAllActiveFeedsByProvider.mockResolvedValue(
+      new Map<string, unknown[]>([
+        [OracleProvider.API3, [{ symbol: 'ETH/EUR', chain_id: 1 }]],
+        [OracleProvider.CHAINLINK, [{ symbol: 'ETH/USD', chain_id: 8453 }]],
+      ])
+    );
+    expect(await resolveProvidersForSymbol('ETH', Blockchain.ETHEREUM)).toEqual([]);
+  });
+
   it('includes a provider that has a DB-verified active feed on the specific chain even when the static list lags', async () => {
     // API3 AERO is sponsored on Base (chain_id 8453) and live in oracle_feeds,
     // but the static API3_AVAILABLE_PAIRS table has not been synced yet.
@@ -107,6 +117,17 @@ describe('getConsensusPrice failure semantics', () => {
     await expect(getConsensusPrice('AERO', Blockchain.BASE)).rejects.toBeInstanceOf(
       UnsupportedSymbolError
     );
+  });
+
+  it('retains per-provider failures for an explicit diagnostic probe, while ordinary checks still fail', async () => {
+    mockFetchPriceWithDatabase.mockRejectedValue(new Error('upstream unavailable'));
+    const probe = await getConsensusPrice('AERO', Blockchain.BASE, undefined, undefined, {
+      allowUnavailable: true,
+    });
+    expect(probe.participantCount).toBe(0);
+    expect(probe.providers).toHaveLength(1);
+    expect(probe.providers[0].status).toBe('error');
+    await expect(getConsensusPrice('AERO', Blockchain.BASE)).rejects.toBeInstanceOf(InternalError);
   });
 });
 

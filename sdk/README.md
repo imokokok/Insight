@@ -245,7 +245,7 @@ watch.stop();
 await watch.done;
 ```
 
-When Watch returns `halt`, the Guard remembers the target as halted. Pass the same `watchTarget` to `executeSwap` to prevent a submission while that halt is active. A later normal/caution Watch response clears that state; callers can also use `guard.isHalted(target)` and `guard.clearHalt(target)` in their own executor policy.
+When Watch returns `halt`, the Guard remembers the target as halted. Pass the same `watchTarget` to `executeSwap` to prevent a submission while that halt is active. Recovery requires consecutive fresh healthy samples and explicit `watch.acknowledgeRecovery()`; callers can inspect `guard.isHalted(target)` in their own executor policy.
 
 ## Billing and trust boundary
 
@@ -262,3 +262,128 @@ Calling `verifyAssessedSwapExecution()` later adds one C4 request (**10
 credits**) when execution evidence is needed.
 
 The SDK never embeds signing keys or reimplements the risk rules. A signed receipt proves that Insight issued the signed bytes; it is not a guarantee that a trade or market price was correct.
+
+## Workflow diagnostics and freshness
+
+`assessSwap()` keeps both original verdicts and proofs, and adds `diagnostics`.
+Each item distinguishes missing evidence, market findings, freshness, unavailable
+assessment scope, budget, and service failures. `reason_codes_hash_bound` means
+the displayed reason set matches the hash in the supplied proof; **it does not
+mean the signature or the issuer trust root has been independently verified**.
+An unsigned diagnostic never upgrades a BLOCK or authorizes execution.
+
+```ts
+const guard = new InsightGuard({
+  apiKey: process.env.INSIGHT_API_KEY!,
+  freshness: {
+    maxSourceAgeSeconds: 300,
+    maxAssessmentAgeSeconds: 60,
+    minimumRemainingValiditySeconds: 15,
+  },
+  onResponseMeta(meta) {
+    // Metadata is available on both successful and failed HTTP responses.
+    // creditBalance is a pre-request snapshot, not a real-time ledger.
+    console.log(meta.requestId, meta.creditCost, meta.creditBalance);
+  },
+});
+
+const availability = await guard.client.coverage({
+  asset: 'USDC',
+  chainId: 1,
+  probe: true,
+  maxSourceAgeSeconds: 300,
+});
+// Registry/live-probe diagnostics are unsigned and do not replace preTrade.
+const assessment = await guard.assessSwap(swapRequest);
+console.log(assessment.diagnostics, assessment.freshness);
+const refreshed = await guard.refreshAssessment(assessment, swapRequest);
+// signalValidity and proofAvailability are separate. A refreshed commitment
+// needs a new authorization; the old authorization is never migrated.
+```
+
+The freshness policy uses signed source age plus elapsed time since `checkedAt`.
+Unknown source age fails a configured source-age requirement. Source and
+destination deadlines are combined using the earlier deadline. The SDK checks
+again after transaction preparation, before and after wallet signing, and just
+before the submit callback. Your executor must also check at actual dispatch:
+the SDK cannot control delays inside your callback. `client.recheck()` provides
+the typed same-trade continuity endpoint; missing recheck signatures remain
+unavailable proof even if the fresh signal is healthy.
+
+Optional `workflowTag`, `baselineVerdict` (`allow`, `alert`, `block`, `unknown`),
+and `baselineVersion` on pre-trade requests attach audit labels to the service's
+workflow report. They are not added to the signed request hash.
+
+## Evidence recovery and review handoff
+
+Both `executeSwapWithPriorSeal()` and `verifyAssessedSwapExecution()` return a
+JSON-safe `checkpoint` once a transaction hash is known. Save it in storage you
+control; it contains evidence and authorization material, not API credentials.
+
+```ts
+await saveCheckpoint(JSON.stringify(result.checkpoint));
+const recovered = await guard.resumeAssessedSwapExecution(JSON.parse(await loadCheckpoint()), {
+  client: priorSealClient,
+});
+await saveCheckpoint(JSON.stringify(recovered.checkpoint));
+const attachments = exportReviewAttachments(recovered.checkpoint);
+// attachments can be passed to PriorSeal buildReviewManifest({bundle, attachments}).
+```
+
+Recovery has no submit or signing callback. It retains an existing Insight
+receipt, queries an existing PriorSeal observation job, and only requests a
+missing artifact. Terminal undetermined/failed jobs stay terminal for explicit
+operator review. A timeout includes `error.options.jobId` and `lastJob`; it does
+not establish that the transaction failed. Historical evidence can be collected
+after its decision window expires; that never renews authorization to execute.
+A missing response may still require retrying a paid issuance; the checkpoint
+cannot determine whether a response lost in transit was charged.
+
+Joint reports declare `verificationOrigin: 'service_response'` and
+`independentVerificationPerformed: false`. They correlate the supplied artifacts
+and service results. Use native offline verifiers and independently obtained
+trust roots for independent verification. Review attachments serialize the
+original proof fields without re-signing; if byte-for-byte transport identity
+matters, retain the original response bytes separately.
+
+## Durable Watch incidents and budget planning
+
+```ts
+const watch = guard.watch(
+  { symbol: 'ETH', chain: 'ethereum' },
+  {
+    stopOnHalt: false,
+    recoveryHealthySamples: 2,
+    stateAdapter: {
+      load: async (key) => readWatchState(key),
+      save: async (key, state) => writeWatchState(key, state),
+    },
+    onIncident: (state) => notifyOperator(state.incidentKind, state.incidentId),
+    onRecoveryReady: (state) => notifyOperator('Fresh healthy samples are ready for review', state),
+  }
+);
+// After independent operator review; this never calls a wallet or resumes funds.
+await watch.acknowledgeRecovery();
+```
+
+State distinguishes `running`, `degraded`, `halted`, `recovering`, and
+`monitor_unavailable`. Incidents are deduplicated; saved halts survive restart.
+A healthy sample does not clear a halt. Acknowledgement requires consecutive
+fresh healthy samples (default 2); only an explicit acknowledgement or the
+legacy explicit `clearHalt()` operation clears the execution latch. Use the
+handle acknowledgement with a state adapter so the decision is persisted.
+Storage failures leave monitoring unavailable and the local gate halted.
+Default `stopOnHalt: true` remains compatible: use `refresh()` to collect recovery
+samples or set it to false for continued observation. Budget failures are
+separate from market signals and respect the server's `Retry-After`.
+Replacing a target's Watch retires its previous handle: late loads and responses
+cannot change the new execution gate or emit old incidents. Writes already in
+progress finish before the replacement restores durable state. Use the current
+handle for manual refresh and recovery; replaced handles reject those operations.
+
+`estimateWorkflowBudget({balance, feedCount, intervalMs, reserveCredits})`
+returns credits per cycle/day/week, estimated remaining cycles and exhaustion
+time. The default Watch feed cost is 5 credits; callers may override their
+contract's cost. Successful BLOCK assessments can be charged. Concurrent usage,
+response loss, and retries affect estimates. Use `onResponseMeta` to refresh your
+budget view and warn before depletion; no recharge or fund execution is automatic.
