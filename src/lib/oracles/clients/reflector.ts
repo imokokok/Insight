@@ -14,6 +14,7 @@ import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 export class ReflectorClient extends BaseOracleClient {
   name = OracleProvider.REFLECTOR;
   supportedChains = [Blockchain.STELLAR];
+  protected defaultChain = Blockchain.STELLAR;
   private reflectorDataService = getReflectorDataService();
 
   async getPrice(
