@@ -91,7 +91,9 @@ assessments are never cached by this mechanism and fresh quorum is unchanged.
 The historical latency endpoint computes overall percentiles over all valid
 observations, pages past the default database row limit, and reports `sampleSize`,
 `rowsExamined`, and `truncated` when the 10,000-row bound is exceeded. Narrow the
-query when truncated. These are hourly source observations, not whole-request
+query when truncated. New collector runs persist measured adapter duration for
+successful and failed reads; older rows with missing timings stay unknown and
+are not backfilled with invented values. These are hourly source observations, not whole-request
 production API latency or a 30-day service-level measurement.
 
 ## Production health

@@ -1,8 +1,14 @@
+import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
+import { getDefaultFactory } from '@/lib/oracles/factory';
+import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { reportService } from '@/lib/reports/reportService';
 import {
   buildSnapshotInputs,
+  collectSnapshot,
   buildFeedHealthUpdates,
   type BatchResultItem,
 } from '@/lib/reports/snapshotCollector';
+import { mapWithConcurrency } from '@/lib/utils/concurrency';
 
 // --- Mocks: snapshotCollector pulls in the full oracle/DB stack at import
 // time. `buildSnapshotInputs` itself is pure, but we must stub these so the
@@ -304,4 +310,44 @@ describe('buildFeedHealthUpdates', () => {
     expect(updates[0].chainId).toBe(42161);
     expect(updates[0].symbol).toBe('AAVE/USD');
   });
+});
+
+it('records measured adapter durations in hourly inputs for success, invalid price and failure', async () => {
+  (getAllActiveFeedsByProvider as jest.Mock).mockResolvedValue(new Map());
+  (getDefaultFactory as jest.Mock).mockReturnValue({
+    getClient: () => ({ isSymbolSupported: () => true }),
+  });
+  (mapWithConcurrency as jest.Mock).mockImplementation(async (items, _limit, run) => {
+    const results = [];
+    for (const item of items) results.push(await run(item));
+    return results;
+  });
+  (fetchPriceWithDatabase as jest.Mock)
+    .mockResolvedValueOnce(priceItem().price)
+    .mockResolvedValueOnce({ ...priceItem().price, price: -1 })
+    .mockRejectedValueOnce(new Error('upstream unavailable'))
+    .mockResolvedValueOnce(priceItem().price);
+  (reportService.upsertHourlySnapshots as jest.Mock).mockResolvedValue(4);
+  let clock = 0;
+  const timer = jest.spyOn(performance, 'now').mockImplementation(() => (clock += 37));
+  try {
+    const result = await collectSnapshot(SNAPSHOT_HOUR, { includeAdditionalHealthChecks: false });
+    expect(result.inputs).toHaveLength(4);
+    expect(result.inputs.map((input) => input.latencyMs)).toEqual([37, 37, 37, 37]);
+    expect(result.inputs.map((input) => input.isSuccess)).toEqual([true, false, false, true]);
+    expect(reportService.upsertHourlySnapshots).toHaveBeenCalledWith(result.inputs);
+  } finally {
+    timer.mockRestore();
+  }
+});
+
+it('keeps absent or invalid historical timing unknown instead of fabricating zero latency', () => {
+  for (const latencyMs of [undefined, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+    expect(
+      buildSnapshotInputs([priceItem({ latencyMs })], {}, SNAPSHOT_HOUR, NOW)[0].latencyMs
+    ).toBeNull();
+  }
+  expect(
+    buildSnapshotInputs([priceItem({ latencyMs: 0 })], {}, SNAPSHOT_HOUR, NOW)[0].latencyMs
+  ).toBe(0);
 });

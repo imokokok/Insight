@@ -93,6 +93,8 @@ export interface BatchResultItem {
   // auto-deactivate. Falls back to `symbol` when the result did not come
   // from a matched DB feed (unseeded-provider fallback path).
   feedSymbol?: string;
+  /** Adapter read duration, including cache and feed-health bookkeeping. */
+  latencyMs?: number;
   price: PriceData | null;
   error: string | null;
   skipped: boolean;
@@ -229,6 +231,8 @@ async function fetchBatchPrices(
       feedSymbol,
       healthOnly,
     }): Promise<BatchResultItem> => {
+      const startedAt = performance.now();
+      const latencyMs = () => Math.round(performance.now() - startedAt);
       try {
         const price = await fetchPriceWithDatabase(
           provider,
@@ -251,6 +255,7 @@ async function fetchBatchPrices(
             price: null,
             error: `Price validation failed: ${check.reason}`,
             skipped: false,
+            latencyMs: latencyMs(),
           };
         }
         return {
@@ -262,6 +267,7 @@ async function fetchBatchPrices(
           price,
           error: null,
           skipped: false,
+          latencyMs: latencyMs(),
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
@@ -275,6 +281,7 @@ async function fetchBatchPrices(
           price: null,
           error: message,
           skipped: false,
+          latencyMs: latencyMs(),
         };
       }
     }
@@ -404,7 +411,10 @@ export function buildSnapshotInputs(
         price: priceCheck?.valid ? priceCheck.price : 0,
         consensusPrice,
         deviationPct,
-        latencyMs: null,
+        latencyMs:
+          item.latencyMs !== undefined && Number.isFinite(item.latencyMs) && item.latencyMs >= 0
+            ? item.latencyMs
+            : null,
         dataAgeSeconds,
         confidence: item.price?.confidence ?? null,
         isSuccess,
