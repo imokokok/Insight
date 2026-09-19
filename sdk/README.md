@@ -58,10 +58,10 @@ its allowlisted origin, credential and trust scope explicitly before using it.
 ## Install
 
 ```bash
-npm install https://github.com/imokokok/Insight/releases/download/sdk-v0.3.0/oracle-insight-guard-0.3.0.tgz
+npm install oracle-insight-guard@0.3.0
 ```
 
-This documentation targets **0.3.0**. Use the official GitHub Release artifact above while npm registry synchronization is pending. The unversioned `npm install oracle-insight-guard` command still resolves to the older registry release and does not include all diagnostics, freshness, durable Watch and recovery APIs described here. The release includes compiled JavaScript and TypeScript declarations.
+This documentation targets **0.3.0**, available from npm. The identical package is also available in the [official GitHub Release](https://github.com/imokokok/Insight/releases/tag/sdk-v0.3.0). The release includes compiled JavaScript and TypeScript declarations, with diagnostics, freshness, durable Watch and recovery APIs.
 
 Use it from a trusted server or agent runtime only. Do not expose an Insight API key in a browser bundle.
 
