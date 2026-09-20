@@ -30,6 +30,7 @@ beforeEach(() => {
         retrievedAt: now * 1000,
         dataAgeSeconds: 10,
         timestampProvenance: 'provider_timestamp',
+        countsTowardOracleQuorum: true,
         isOutlier: false,
       })
     ),
@@ -69,6 +70,22 @@ it('keeps signer failures separate from data readiness', async () => {
   const proof = await assessCoverage({ asset: 'USDC', chainId: 1, policyId: COVERAGE_POLICY_ID });
   expect(proof.signature).toBeNull();
   expect(proof.report.evaluation.status).toBe('PASS');
+});
+
+it('does not count an unsigned simulation toward coverage quorum', async () => {
+  const value = await consensus();
+  value.providers[0].countsTowardOracleQuorum = false;
+  consensus.mockResolvedValue(value);
+
+  const proof = await assessCoverage({ asset: 'USDC', chainId: 1, policyId: COVERAGE_POLICY_ID });
+
+  expect(proof.report.evaluation.status).toBe('INSUFFICIENT_COVERAGE');
+  expect(proof.report.evaluation.eligibleProviders).toBe(2);
+  expect(
+    proof.report.evaluation.providers.find(
+      (provider) => provider.provider === OracleProvider.CHAINLINK
+    )?.reasons
+  ).toContain('PROVIDER_UNAVAILABLE');
 });
 
 it.each(['wrong-chain', 'unknown-chain', 'wrong-symbol', 'wrong-quote', 'future-time'])(

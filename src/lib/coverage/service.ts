@@ -52,6 +52,7 @@ export async function assessCoverage(input: {
       // Missing or mismatched actual chain is not proof of the requested chain.
       evidenceChainId: p.chain === chain ? input.chainId : 0,
       status:
+        p.countsTowardOracleQuorum !== false &&
         p.symbol &&
         extractBaseSymbol(p.symbol).toUpperCase() === input.asset &&
         isUsdDenominatedFeedSymbol(p.symbol)

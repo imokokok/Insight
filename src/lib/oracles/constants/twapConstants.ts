@@ -476,6 +476,14 @@ export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>>
       token0: 'WETH',
       token1: 'USDC',
     },
+    // Verified 2026-09-21 against the Base Uniswap V3 factory: this is the
+    // deepest USDC/WETH fee-tier pool and observe([1800, 0]) succeeds.
+    8453: {
+      address: '0x6c561B446416E1A00E8E93E221854d6eA4171372',
+      feeTier: 3000,
+      token0: 'WETH',
+      token1: 'USDC',
+    },
   },
   USDT: {
     1: {
