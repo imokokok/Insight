@@ -20,11 +20,17 @@ it('requires actual cron authentication before sampling', async () => {
   expect(response.status).toBe(401);
   expect(collectCoverageSlo).not.toHaveBeenCalled();
 });
-it('returns durable-sample and measurement-gap alerts to the scheduler', async () => {
+it('keeps historical SLO alerts separate from a healthy latest sample', async () => {
   jest.mocked(collectCoverageSlo).mockResolvedValue([]);
   jest.mocked(getCoverageSlo).mockResolvedValue({
     targets: [
-      { asset: 'USDC', chain_id: 1, status: 'MEASUREMENT_GAP', signedStatus: 'BELOW_OBJECTIVE' },
+      {
+        asset: 'USDC',
+        chain_id: 1,
+        status: 'MEASUREMENT_GAP',
+        signedStatus: 'BELOW_OBJECTIVE',
+        latest: { status: 'PASS', signedReady: true, reasons: [] },
+      },
     ],
   } as Awaited<ReturnType<typeof getCoverageSlo>>);
   const response = await GET(
@@ -33,7 +39,44 @@ it('returns durable-sample and measurement-gap alerts to the scheduler', async (
     })
   );
   expect(response.status).toBe(200);
-  expect((await response.json()).alerts).toHaveLength(1);
+  const body = await response.json();
+  expect(body.alerts).toHaveLength(1);
+  expect(body.latestAlerts).toEqual([]);
+});
+it('reports an unhealthy latest sample independently of the rolling SLO', async () => {
+  jest.mocked(collectCoverageSlo).mockResolvedValue([]);
+  jest.mocked(getCoverageSlo).mockResolvedValue({
+    targets: [
+      {
+        asset: 'USDC',
+        chain_id: 8453,
+        status: 'HEALTHY',
+        signedStatus: 'HEALTHY',
+        latest: {
+          status: 'INSUFFICIENT_COVERAGE',
+          signedReady: false,
+          reasons: ['INSUFFICIENT_COVERAGE'],
+        },
+      },
+    ],
+  } as Awaited<ReturnType<typeof getCoverageSlo>>);
+  const response = await GET(
+    new Request('https://test/api/cron/coverage-slo', {
+      headers: { Authorization: 'Bearer test-coverage-cron' },
+    })
+  );
+
+  const body = await response.json();
+  expect(body.alerts).toEqual([]);
+  expect(body.latestAlerts).toEqual([
+    {
+      asset: 'USDC',
+      chainId: 8453,
+      status: 'INSUFFICIENT_COVERAGE',
+      signedReady: false,
+      reasons: ['INSUFFICIENT_COVERAGE'],
+    },
+  ]);
 });
 it('fails the run on persistence failure', async () => {
   jest.mocked(collectCoverageSlo).mockRejectedValue(new Error('storage unavailable'));

@@ -22,8 +22,17 @@ export async function GET(request: Request) {
         status: t.status,
         signedStatus: t.signedStatus,
       }));
+    const latestAlerts = summary.targets
+      .filter((t) => !t.latest || t.latest.status !== 'PASS' || !t.latest.signedReady)
+      .map((t) => ({
+        asset: t.asset,
+        chainId: t.chain_id,
+        status: t.latest?.status ?? 'MISSING',
+        signedReady: t.latest?.signedReady ?? false,
+        reasons: t.latest?.reasons ?? ['LATEST_SAMPLE_MISSING'],
+      }));
     return NextResponse.json(
-      { success: true, targets, alerts },
+      { success: true, targets, alerts, latestAlerts },
       { headers: { 'Cache-Control': 'no-store' } }
     );
   } catch {

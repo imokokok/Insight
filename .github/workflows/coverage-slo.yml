@@ -58,7 +58,7 @@ jobs:
           curl --fail-with-body --silent --show-error --max-time 280 \
             -H "Authorization: Bearer $CRON_SECRET" \
             -o coverage-result.json https://www.oracleinsight.xyz/api/cron/coverage-slo
-          node -e 'const r=require("./coverage-result.json"); if(r.success!==true || !Array.isArray(r.alerts)) process.exit(1);'
+          node -e 'const r=require("./coverage-result.json"); if(r.success!==true || !Array.isArray(r.alerts) || !Array.isArray(r.latestAlerts)) process.exit(1);'
 
       # A completed sample is a successful dispatch even when the rolling SLO is
       # unhealthy. Record collection success before the final alert step so the
@@ -69,7 +69,7 @@ jobs:
           CRON_CONCLUSION: ${{ steps.collect.outcome }}
         run: node scripts/cron-control.mjs finish
 
-      - name: Report coverage readiness alert
+      - name: Report latest-sample failure or rolling SLO warning
         if: steps.guard.outputs.should_run == 'true' && steps.collect.outcome == 'success'
         run: |
-          node -e 'const r=require("./coverage-result.json"); if(r.alerts.length) { console.error("::error::Coverage readiness needs attention; see /ops/coverage", JSON.stringify(r.alerts)); process.exit(1); }'
+          node -e 'const r=require("./coverage-result.json"); if(r.alerts.length) console.warn("::warning::Rolling coverage SLO needs attention; see /ops/coverage", JSON.stringify(r.alerts)); if(r.latestAlerts.length) { console.error("::error::Latest coverage sample failed", JSON.stringify(r.latestAlerts)); process.exit(1); }'
