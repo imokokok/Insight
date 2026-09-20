@@ -28,15 +28,15 @@ unchanged. Consumers explicitly opt in to the new coverage domain and policy.
 - The two SDK coverage verifier source files are byte-identical. No runtime
   dependency on the other checkout is required.
 
-## Production activation is a separate, pending step
+## Production activation status
 
-No production schema migration, secret provisioning, npm publication, funded
-transaction or partner activation was performed during this acceptance run.
-The local environment does not contain `COVERAGE_SIGNER_PRIVATE_KEY`; cloud
-signer configuration has not been verified. Follow `coverage-slo-runbook.md` to
-apply migration 0056, provision the signer, distribute trusted key/policy pins,
-deploy through CI and enable the collector/consumer. An unsigned report can be
-inspected but cannot satisfy the SDK execution gate.
+Production migration 0056 is applied and the dedicated coverage signer is
+provisioned in the Vercel production environment. Its public address, validity
+interval and policy pin are published in the reviewed trust reference described
+by `coverage-slo-runbook.md`. No funded transaction or partner activation is
+required or implied. Deployment, first production sampling and online
+verification remain release operations rather than claims established by local
+tests.
 
 Real-world availability and the internal 99% objective must be measured after
 enrollment. Deterministic fixtures and a local build establish implementation

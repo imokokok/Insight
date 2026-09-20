@@ -1,0 +1,15 @@
+{
+  "schema": "insight.coverage-trust.v1",
+  "environment": "production",
+  "origin": "https://www.oracleinsight.xyz",
+  "policyId": "0xc903c9477d323311d02efd3d32f2595621502feb2f6da3a1aa34b138bf25e202",
+  "keys": [
+    {
+      "address": "0xc68181D91942e26725186519A41951AC3135F086",
+      "validFrom": 1789888800,
+      "validUntil": 1821398400,
+      "revoked": false
+    }
+  ],
+  "notice": "Reference distribution only. Consumers must pin these bytes or the signer address through an independently authenticated deployment configuration; this hosted document is not its own trust root."
+}

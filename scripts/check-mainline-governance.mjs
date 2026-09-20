@@ -18,6 +18,34 @@ for (const name of readdirSync(coveragePoliciesRoot)) {
   if (profile.policyId !== contentId(profile.policy))
     throw new Error(`Invalid coverage policy hash: ${name}`);
 }
+const coverageTrustPath = join(workspace, 'protocol/coverage/trust/production-v1.json');
+const publishedCoverageTrustPath = join(
+  workspace,
+  'public/.well-known/insight-coverage-trust.v1.json'
+);
+const coverageTrust = json(coverageTrustPath);
+const publishedCoverageTrust = json(publishedCoverageTrustPath);
+if (canonicalJson(coverageTrust) !== canonicalJson(publishedCoverageTrust)) {
+  throw new Error('Published coverage trust reference must match the reviewed protocol copy');
+}
+if (
+  coverageTrust.schema !== 'insight.coverage-trust.v1' ||
+  coverageTrust.environment !== 'production' ||
+  coverageTrust.origin !== 'https://www.oracleinsight.xyz' ||
+  !/^0x[0-9a-fA-F]{64}$/.test(coverageTrust.policyId) ||
+  !Array.isArray(coverageTrust.keys) ||
+  coverageTrust.keys.length === 0 ||
+  coverageTrust.keys.some(
+    (key) =>
+      !/^0x[0-9a-fA-F]{40}$/.test(key.address) ||
+      !Number.isSafeInteger(key.validFrom) ||
+      !Number.isSafeInteger(key.validUntil) ||
+      key.validUntil <= key.validFrom ||
+      typeof key.revoked !== 'boolean'
+  )
+) {
+  throw new Error('Invalid production coverage trust reference');
+}
 const vercelConfigPath = join(workspace, 'vercel.json');
 
 function canonicalJson(value) {
@@ -243,6 +271,7 @@ if (base && !/^0+$/.test(base)) {
   const immutableObjectMutation = diff.find(
     (entry) =>
       (entry.path?.startsWith('protocol/coverage/policies/') ||
+        entry.path?.startsWith('protocol/coverage/trust/') ||
         entry.path?.startsWith('protocol/mainline/policies/') ||
         entry.path?.startsWith('protocol/mainline/activation-sets/') ||
         entry.path?.startsWith('protocol/mainline/promotions/')) &&
@@ -269,6 +298,7 @@ if (base && !/^0+$/.test(base)) {
     'sdk/src/index.ts',
     'sdk/src/coverage.ts',
     'protocol/coverage/policies/',
+    'protocol/coverage/trust/',
   ];
   const sharedChanged = diff.some((entry) =>
     sharedPrefixes.some((prefix) => entry.path?.startsWith(prefix))

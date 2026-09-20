@@ -1,14 +1,14 @@
 {
-  "promotionId": "0xbe446f634916115874aee6f3d359ea0e26e61ca8b6ffd77e311d762a923fb6a6",
+  "promotionId": "0x980b28695a705c65185803c8d113b73085125e29804eb4c857a5e02f4092d7cd",
   "kind": "MainlineProtocolPromotion",
   "promotionVersion": 9,
   "effectiveFrom": "2026-09-20",
-  "classification": "Additive opt-in coverage readiness and sampled SLO; local acceptance only",
+  "classification": "Additive opt-in coverage readiness and sampled SLO; production infrastructure enabled without partner activation",
   "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
   "predecessorPromotionId": "0x67c087a3529785688afb63c9d5f58811365afeb599bba156e359c1e16af8fc1e",
   "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
   "receiptImpact": "Adds a separate Insight Coverage v1 EIP-712 domain, immutable content-addressed policy, source observations, offline verification and optional exact-call context commitments. Existing OracleSafetyCheck and ExecutionReceipt layouts, source-group mapping, verdict rules, keys and historical bytes are unchanged. New coverage uses a dedicated consumer-pinned signer and explicit SDK opt-in. SLO statistics are unsigned operational measurements, never permission to execute.",
-  "activationRule": "No partner policy or activation mapping changes. New runtime coverage requires consumer opt-in and independently pinned policy and key validity. No local fixture establishes partner acceptance, production adoption or SLA compliance.",
+  "activationRule": "No partner policy or activation mapping changes. Production reporting uses a dedicated signer and reviewed public reference, but every consumer must still opt in and pin the policy and key validity independently. Deployment and collection establish measurement infrastructure, not partner acceptance, production adoption or achieved SLA compliance.",
   "compatibilityMatrix": [
     {
       "partnerId": "headless",

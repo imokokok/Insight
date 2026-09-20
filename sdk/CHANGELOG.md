@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 — 2026-09-20
+
+- Add deterministic coverage policy evaluation, canonical report hashing, EIP-712 verification and independently supplied signer/policy trust pins.
+- Add authenticated coverage assessment and SLO clients plus an opt-in guard that revalidates coverage immediately before provider entry.
+- Add source/destination coverage checks to guarded swaps and preserve signed reports for downstream evidence workflows.
+- Keep coverage readiness separate from trade safety, principal authorization and settlement verification; unsigned, stale, untrusted or insufficient reports fail closed only when the caller explicitly opts in.
+
 ## 0.3.0 — 2026-09-19
 
 - Add assessment diagnostics that distinguish market findings, missing evidence, unavailable scope, freshness, budget, and service failures while preserving the original verdict and proof.

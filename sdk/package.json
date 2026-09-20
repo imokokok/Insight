@@ -1,6 +1,6 @@
 {
   "name": "oracle-insight-guard",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Assess and verify DeFi agent transactions with Insight risk evidence and optional PriorSeal authorization.",
   "license": "MIT",
   "repository": {
