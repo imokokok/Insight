@@ -19,7 +19,7 @@ import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
-import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import {
   reportService,
@@ -119,7 +119,8 @@ async function fetchBatchPrices(
   // Load ALL active feeds in a single DB query (cached 5 minutes) instead
   // of issuing one `getActiveFeeds(provider)` call per provider. The
   // previous loop fanned out to N parallel DB queries on every cron tick.
-  const activeFeedsByProvider = await getAllActiveFeedsByProvider();
+  const feedRegistry = await getAllActiveFeedsByProviderWithStatus();
+  const activeFeedsByProvider = feedRegistry.feeds;
 
   for (const symbol of REPORT_ASSETS) {
     for (const provider of REPORT_PROVIDERS) {
@@ -157,10 +158,13 @@ async function fetchBatchPrices(
             feedSymbol: feed.symbol,
           });
         }
-      } else if (activeFeeds.length === 0) {
-        // DB has no feeds at all for this provider (unseeded / DB down) —
-        // fall back to the client-level curated hardcoded list to decide
-        // support so the cron remains usable.
+      } else if (feedRegistry.errored) {
+        // The registry could not be read at all. Only in that degraded state
+        // may the collector fall back to the client-level curated list. A
+        // successful registry read with zero active feeds is authoritative:
+        // it can mean discovery deliberately failed closed for that provider
+        // (for example an unavailable official endpoint), and querying a
+        // stale static list would create false report failures.
         if (client.isSymbolSupported(symbol)) {
           queries.push({ provider, symbol });
         } else {
@@ -173,11 +177,10 @@ async function fetchBatchPrices(
           });
         }
       } else {
-        // DB has active feeds for this provider but none match this symbol.
-        // The feed was either never discovered or was auto-deactivated due
-        // to persistent failures. Skip it instead of adding a query that
-        // fetchPriceWithDatabase → checkSymbolActive will reject anyway,
-        // which would record a false "fail" instead of a clean "skip".
+        // The registry loaded successfully, but this provider has no active
+        // matching feed. It was either never discovered, deliberately left
+        // inactive, or auto-deactivated after persistent failures. Skip it
+        // instead of recording a false fetch failure.
         skipped.push({
           provider,
           symbol,

@@ -10,7 +10,7 @@ import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { reputationService } from '@/lib/oracles/services/reputationService';
-import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
@@ -87,9 +87,11 @@ export async function resolveProvidersForSymbol(
   chain?: Blockchain
 ): Promise<OracleProvider[]> {
   const baseSymbol = normalizeSymbol(symbol);
-  const feedsByProvider = await getAllActiveFeedsByProvider().catch(
-    () => new Map<string, unknown[]>()
-  );
+  const feedRegistry = await getAllActiveFeedsByProviderWithStatus().catch(() => ({
+    feeds: new Map<string, unknown[]>(),
+    errored: true,
+  }));
+  const feedsByProvider = feedRegistry.feeds;
 
   const providers: OracleProvider[] = [];
 
@@ -134,15 +136,20 @@ export async function resolveProvidersForSymbol(
       });
     }
 
-    // The curated static list remains authoritative for chain-agnostic
-    // (chain_id=0) feeds. A concrete, DB-verified active feed on the queried
-    // chain overrides a stale static list so legitimately sponsored feeds are
-    // not silently dropped from consensus / pre-trade quorum.
+    // The curated static list is only a degraded-mode fallback when the
+    // registry could not be read. A successful registry read with no active
+    // feed is authoritative: discovery may have deliberately deactivated or
+    // excluded that provider (for example, Switchboard after its public
+    // mainnet endpoint returned no verifiable data). Falling back merely
+    // because a provider has an empty list would silently undo fail-closed
+    // discovery and reintroduce an unverified source into live evaluation.
+    // A concrete, DB-verified active feed on the queried chain may still
+    // override a stale static list so legitimately sponsored feeds are not
+    // silently dropped from consensus / pre-trade quorum.
     try {
       const client = getDefaultFactory().getClient(provider);
       if (
-        (client.isSymbolSupported(baseSymbol, chain) &&
-          (hasActiveFeed || !feeds || feeds.length === 0)) ||
+        (client.isSymbolSupported(baseSymbol, chain) && (hasActiveFeed || feedRegistry.errored)) ||
         hasSpecificChainFeed
       ) {
         providers.push(provider);

@@ -7,7 +7,7 @@ import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscovery';
 import {
   getActiveFeedsMap,
-  getAllActiveFeedsByProvider,
+  getAllActiveFeedsByProviderWithStatus,
 } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { type OracleFeed, DatabaseQueries } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
@@ -20,7 +20,7 @@ jest.mock('@/lib/oracles/services/feedDiscovery');
 jest.mock('@/lib/supabase/server');
 jest.mock('@/lib/oracles/utils/dynamicFeedResolver', () => ({
   getActiveFeedsMap: jest.fn(),
-  getAllActiveFeedsByProvider: jest.fn(),
+  getAllActiveFeedsByProviderWithStatus: jest.fn(),
   invalidateAllFeedsCache: jest.fn(),
   matchesChainId: (feed: { chain_id: number }, chainId: number) =>
     feed.chain_id === 0 || feed.chain_id === chainId,
@@ -66,7 +66,10 @@ function setup(feeds = [feed('ETH')]) {
     }),
   });
   (getActiveFeedsMap as jest.Mock).mockResolvedValue(new Map(feeds.map((f) => [f.symbol, f])));
-  (getAllActiveFeedsByProvider as jest.Mock).mockResolvedValue(new Map([['redstone', feeds]]));
+  (getAllActiveFeedsByProviderWithStatus as jest.Mock).mockResolvedValue({
+    feeds: new Map([['redstone', feeds]]),
+    errored: false,
+  });
   const admin = {
     updateFeedHealth: jest.fn().mockResolvedValue(undefined),
     batchUpdateFeedHealth: jest.fn().mockResolvedValue({ updated: 1 }),
@@ -169,7 +172,10 @@ it('records an expired API3 price as failed, consistently with discovery', async
   const { admin } = setup();
   const api3Feed = { ...feed('ETH/USD'), provider: 'api3', chain_id: 1, address: 'ETH/USD' };
   (getActiveFeedsMap as jest.Mock).mockResolvedValue(new Map([['ETH/USD', api3Feed]]));
-  (getAllActiveFeedsByProvider as jest.Mock).mockResolvedValue(new Map([['api3', [api3Feed]]]));
+  (getAllActiveFeedsByProviderWithStatus as jest.Mock).mockResolvedValue({
+    feeds: new Map([['api3', [api3Feed]]]),
+    errored: false,
+  });
   (api3NetworkService.getPrice as jest.Mock).mockResolvedValue({
     price: 100,
     timestamp: Date.now() - 90 * 86400000,

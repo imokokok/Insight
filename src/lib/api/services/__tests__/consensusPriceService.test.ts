@@ -6,7 +6,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 import { getConsensusPrice, resolveProvidersForSymbol } from '../consensusPriceService';
 
 jest.mock('@/lib/oracles/utils/dynamicFeedResolver', () => ({
-  getAllActiveFeedsByProvider: jest.fn(),
+  getAllActiveFeedsByProviderWithStatus: jest.fn(),
 }));
 jest.mock('@/lib/oracles/factory', () => ({
   getDefaultFactory: jest.fn(),
@@ -23,7 +23,8 @@ const mockFetchPriceWithDatabase = jest.requireMock('@/lib/oracles/base/database
 const mockGetReputations = jest.requireMock('@/lib/oracles/services/reputationService')
   .reputationService.getReputations as jest.Mock;
 
-const getAllActiveFeedsByProvider = dynamicFeedResolver.getAllActiveFeedsByProvider as jest.Mock;
+const getAllActiveFeedsByProviderWithStatus =
+  dynamicFeedResolver.getAllActiveFeedsByProviderWithStatus as jest.Mock;
 const getDefaultFactory = factory.getDefaultFactory as jest.Mock;
 
 const getClient = jest.fn();
@@ -41,21 +42,25 @@ beforeEach(() => {
 
 describe('resolveProvidersForSymbol', () => {
   it('does not treat another quote currency or another chain as registered USD coverage', async () => {
-    getAllActiveFeedsByProvider.mockResolvedValue(
-      new Map<string, unknown[]>([
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map<string, unknown[]>([
         [OracleProvider.API3, [{ symbol: 'ETH/EUR', chain_id: 1 }]],
         [OracleProvider.CHAINLINK, [{ symbol: 'ETH/USD', chain_id: 8453 }]],
-      ])
-    );
+      ]),
+      errored: false,
+    });
     expect(await resolveProvidersForSymbol('ETH', Blockchain.ETHEREUM)).toEqual([]);
   });
 
   it('includes a provider that has a DB-verified active feed on the specific chain even when the static list lags', async () => {
     // API3 AERO is sponsored on Base (chain_id 8453) and live in oracle_feeds,
     // but the static API3_AVAILABLE_PAIRS table has not been synced yet.
-    getAllActiveFeedsByProvider.mockResolvedValue(
-      new Map<string, unknown[]>([[OracleProvider.API3, [{ symbol: 'AERO/USD', chain_id: 8453 }]]])
-    );
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map<string, unknown[]>([
+        [OracleProvider.API3, [{ symbol: 'AERO/USD', chain_id: 8453 }]],
+      ]),
+      errored: false,
+    });
 
     const providers = await resolveProvidersForSymbol('AERO', Blockchain.BASE);
 
@@ -65,9 +70,12 @@ describe('resolveProvidersForSymbol', () => {
   it('still excludes a chain-specific provider served only via a chain-agnostic (chain_id=0) feed', async () => {
     // Reflector only serves Stellar; a chain_id=0 feed must NOT let it be
     // activated on Ethereum. This preserves the guard the original gate relied on.
-    getAllActiveFeedsByProvider.mockResolvedValue(
-      new Map<string, unknown[]>([[OracleProvider.REFLECTOR, [{ symbol: 'XLM/USD', chain_id: 0 }]]])
-    );
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map<string, unknown[]>([
+        [OracleProvider.REFLECTOR, [{ symbol: 'XLM/USD', chain_id: 0 }]],
+      ]),
+      errored: false,
+    });
 
     const providers = await resolveProvidersForSymbol('XLM', Blockchain.ETHEREUM);
 
@@ -75,7 +83,7 @@ describe('resolveProvidersForSymbol', () => {
   });
 
   it('does not admit a provider with no DB feed and no static support', async () => {
-    getAllActiveFeedsByProvider.mockResolvedValue(new Map());
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({ feeds: new Map(), errored: false });
 
     const providers = await resolveProvidersForSymbol('GHOST', Blockchain.ETHEREUM);
 
@@ -83,9 +91,12 @@ describe('resolveProvidersForSymbol', () => {
   });
 
   it('keeps including a provider when both DB feed and static list agree', async () => {
-    getAllActiveFeedsByProvider.mockResolvedValue(
-      new Map<string, unknown[]>([[OracleProvider.API3, [{ symbol: 'AERO/USD', chain_id: 8453 }]]])
-    );
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map<string, unknown[]>([
+        [OracleProvider.API3, [{ symbol: 'AERO/USD', chain_id: 8453 }]],
+      ]),
+      errored: false,
+    });
     isSymbolSupported.mockImplementation(
       (symbol: string, chain?: Blockchain) => symbol === 'AERO' && chain === Blockchain.BASE
     );
@@ -94,13 +105,36 @@ describe('resolveProvidersForSymbol', () => {
 
     expect(providers).toContain(OracleProvider.API3);
   });
+
+  it('does not revive a statically supported provider after a successful empty registry read', async () => {
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({ feeds: new Map(), errored: false });
+    isSymbolSupported.mockReturnValue(true);
+
+    const providers = await resolveProvidersForSymbol('ETH', Blockchain.ETHEREUM);
+
+    expect(providers).toEqual([]);
+  });
+
+  it('uses the curated static list only when the registry read failed', async () => {
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({ feeds: new Map(), errored: true });
+    isSymbolSupported.mockImplementation(
+      (symbol: string, chain?: Blockchain) => symbol === 'ETH' && chain === Blockchain.ETHEREUM
+    );
+
+    const providers = await resolveProvidersForSymbol('ETH', Blockchain.ETHEREUM);
+
+    expect(providers).toContain(OracleProvider.API3);
+  });
 });
 
 describe('getConsensusPrice failure semantics', () => {
   beforeEach(() => {
-    getAllActiveFeedsByProvider.mockResolvedValue(
-      new Map<string, unknown[]>([[OracleProvider.API3, [{ symbol: 'AERO/USD', chain_id: 8453 }]]])
-    );
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map<string, unknown[]>([
+        [OracleProvider.API3, [{ symbol: 'AERO/USD', chain_id: 8453 }]],
+      ]),
+      errored: false,
+    });
   });
 
   it('fails explicitly when every configured provider fetch fails', async () => {
@@ -133,9 +167,10 @@ describe('getConsensusPrice failure semantics', () => {
 
 describe('concurrent public source reads', () => {
   it('starts price reads before slow reputation lookup and shares only in-flight reads', async () => {
-    getAllActiveFeedsByProvider.mockResolvedValue(
-      new Map([[OracleProvider.API3, [{ symbol: 'AERO/USD', chain_id: 8453 }]]])
-    );
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map([[OracleProvider.API3, [{ symbol: 'AERO/USD', chain_id: 8453 }]]]),
+      errored: false,
+    });
     let releasePrice!: (value: unknown) => void;
     let releaseReputation!: (value: unknown[]) => void;
     const price = new Promise((resolve) => {
@@ -166,12 +201,13 @@ describe('concurrent public source reads', () => {
 
 describe('getConsensusPrice provider scoping', () => {
   it('fetches and computes consensus only from explicitly targeted providers', async () => {
-    getAllActiveFeedsByProvider.mockResolvedValue(
-      new Map<string, unknown[]>([
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map<string, unknown[]>([
         [OracleProvider.API3, [{ symbol: 'ETH/USD', chain_id: 1 }]],
         [OracleProvider.CHAINLINK, [{ symbol: 'ETH/USD', chain_id: 1 }]],
-      ])
-    );
+      ]),
+      errored: false,
+    });
     mockFetchPriceWithDatabase.mockImplementation(async (provider: OracleProvider) => ({
       provider,
       symbol: 'ETH',

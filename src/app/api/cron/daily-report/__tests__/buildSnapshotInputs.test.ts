@@ -1,6 +1,6 @@
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { getDefaultFactory } from '@/lib/oracles/factory';
-import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { reportService } from '@/lib/reports/reportService';
 import {
   buildSnapshotInputs,
@@ -35,7 +35,7 @@ jest.mock('@/lib/oracles/base/databaseOperations', () => ({
 jest.mock('@/lib/oracles/factory', () => ({ getDefaultFactory: jest.fn() }));
 
 jest.mock('@/lib/oracles/utils/dynamicFeedResolver', () => ({
-  getAllActiveFeedsByProvider: jest.fn(),
+  getAllActiveFeedsByProviderWithStatus: jest.fn(),
   matchesChainId: jest.fn(),
 }));
 
@@ -313,7 +313,10 @@ describe('buildFeedHealthUpdates', () => {
 });
 
 it('records measured adapter durations in hourly inputs for success, invalid price and failure', async () => {
-  (getAllActiveFeedsByProvider as jest.Mock).mockResolvedValue(new Map());
+  (getAllActiveFeedsByProviderWithStatus as jest.Mock).mockResolvedValue({
+    feeds: new Map(),
+    errored: true,
+  });
   (getDefaultFactory as jest.Mock).mockReturnValue({
     getClient: () => ({ isSymbolSupported: () => true }),
   });
@@ -339,6 +342,23 @@ it('records measured adapter durations in hourly inputs for success, invalid pri
   } finally {
     timer.mockRestore();
   }
+});
+
+it('fails closed when the registry loads successfully with no active feeds', async () => {
+  (getAllActiveFeedsByProviderWithStatus as jest.Mock).mockResolvedValue({
+    feeds: new Map(),
+    errored: false,
+  });
+  (getDefaultFactory as jest.Mock).mockReturnValue({
+    getClient: () => ({ isSymbolSupported: () => true }),
+  });
+  (mapWithConcurrency as jest.Mock).mockResolvedValue([]);
+  (reportService.upsertHourlySnapshots as jest.Mock).mockResolvedValue(0);
+
+  const result = await collectSnapshot(SNAPSHOT_HOUR, { includeAdditionalHealthChecks: false });
+
+  expect(result.inputs).toEqual([]);
+  expect(fetchPriceWithDatabase).not.toHaveBeenCalled();
 });
 
 it('keeps absent or invalid historical timing unknown instead of fabricating zero latency', () => {
