@@ -30,7 +30,10 @@ export const GET = createApiHandler(
         },
       });
 
-      response.headers.set('Cache-Control', CACHE_PRESETS.static);
+      // The archive changes when the external GitHub publisher writes a new
+      // report. Do not let a browser or CDN retain yesterday's list; the page
+      // itself already has a tagged server-side cache with explicit invalidation.
+      response.headers.set('Cache-Control', CACHE_PRESETS.noStore);
       return response;
     } catch (error) {
       logger.error('Failed to list reports', normalizeError(error));

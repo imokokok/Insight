@@ -36,6 +36,8 @@ permissions:
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+  SITE_URL: ${{ vars.SITE_URL || 'https://www.oracleinsight.xyz' }}
   CRON_WORKFLOW: daily-report-publish-cron.yml
   CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
 
@@ -73,6 +75,30 @@ jobs:
           echo "::error::All 3 publish attempts failed"
           exit 1
 
+      - name: Expire the production report cache
+        run: |
+          set -u
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "::error::CRON_SECRET is required to invalidate the production report cache"
+            exit 1
+          fi
+
+          BASE_URL="${SITE_URL%/}"
+          for attempt in 1 2 3; do
+            HTTP_CODE=$(curl --silent --show-error --output "$RUNNER_TEMP/report-revalidate.json" \
+              --write-out '%{http_code}' --max-time 30 --request POST \
+              --header "Authorization: Bearer ${CRON_SECRET}" \
+              "${BASE_URL}/api/cron/daily-report/revalidate" || true)
+            if [ "${HTTP_CODE}" = "200" ]; then
+              echo "[daily-report-publish] production report cache expired"
+              exit 0
+            fi
+            echo "[daily-report-publish] cache invalidation attempt ${attempt}/3 failed (HTTP ${HTTP_CODE})"
+            if [ "$attempt" -lt 3 ]; then sleep "$((attempt * 10))"; fi
+          done
+          echo "::error::Daily report was persisted, but production cache invalidation failed"
+          exit 1
+
       - name: Finish run ledger
         if: always()
         env:
@@ -97,6 +123,30 @@ jobs:
 
       - name: Publish previous day's report only if missing
         run: node .github/cron-dist/daily-report-publish.mjs --if-missing
+
+      - name: Expire the production report cache
+        run: |
+          set -u
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "::error::CRON_SECRET is required to invalidate the production report cache"
+            exit 1
+          fi
+
+          BASE_URL="${SITE_URL%/}"
+          for attempt in 1 2 3; do
+            HTTP_CODE=$(curl --silent --show-error --output "$RUNNER_TEMP/report-revalidate.json" \
+              --write-out '%{http_code}' --max-time 30 --request POST \
+              --header "Authorization: Bearer ${CRON_SECRET}" \
+              "${BASE_URL}/api/cron/daily-report/revalidate" || true)
+            if [ "${HTTP_CODE}" = "200" ]; then
+              echo "[daily-report-publish] production report cache expired"
+              exit 0
+            fi
+            echo "[daily-report-publish] cache invalidation attempt ${attempt}/3 failed (HTTP ${HTTP_CODE})"
+            if [ "$attempt" -lt 3 ]; then sleep "$((attempt * 10))"; fi
+          done
+          echo "::error::Daily report was persisted, but production cache invalidation failed"
+          exit 1
 
       - name: Finish fallback ledger
         if: always()
