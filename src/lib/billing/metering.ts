@@ -36,6 +36,8 @@ export const CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS = 30 * 60;
  * The default (no match) is C1 — cheap foundational data.
  */
 const ENDPOINT_RULES: Array<[RegExp, MeteringClass]> = [
+  // Pure caller-supplied diagnostic: no feed RPC or signing.
+  [/^\/api\/v1\/rwa\/assessment$/, 'C1'],
   // C4 — attested proofs / execution receipts: on-chain RPC + KMS signing.
   [/execution\/attestation/, 'C4'],
 
@@ -64,6 +66,7 @@ const ENDPOINT_RULES: Array<[RegExp, MeteringClass]> = [
  * names like `pre_trade_safety_check` and `get_risk_summary`. Default is C1.
  */
 const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
+  [/^assess_rwa_evidence$/, 'C1'],
   // C4 — receipts / verification.
   [/agent_begin_trade|execution|receipt|verify_execution|verify_pair/, 'C4'],
 

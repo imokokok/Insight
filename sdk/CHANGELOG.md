@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Add independent RWA v2 signing domain with sequence/predecessor binding, explicit
+  admitted Uniswap V3 calldata semantics and receiver eligibility; preserve v1 bytes.
+- Add detailed verification axes and a shared exact uint256 bound for SDK/HTTP/schema.
+- Pin shared RWA source and frozen signing vectors in CI.
+
+- Add independent RWA v1 instrument/policy/report hashes, fixed-point evaluation,
+  action/session/issuer-evidence rules and consumer-pinned EIP-712 verification.
+- Add on-chain Chainlink round and decoded v11 mid adapters, strict diagnostic
+  HTTP/MCP schemas and an unsigned diagnostic SDK client.
+- Preserve all existing guard, Watch, coverage, receipt and partner semantics.
+
 ## 0.4.0 — 2026-09-20
 
 - Add deterministic coverage policy evaluation, canonical report hashing, EIP-712 verification and independently supplied signer/policy trust pins.

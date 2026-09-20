@@ -1,5 +1,12 @@
 # `oracle-insight-guard`
 
+Workspace-only, unreleased: [opt-in RWA/tokenized-equity protocol](../docs/rwa-v1.md)
+adds instrument-aware assessment and unsigned diagnostics without changing existing
+Agent/DeFi flows. These additions are not yet in the published 0.4.0 package.
+The [RWA v2 additions](../docs/rwa-v2.md) export `buildRwaReportV2`,
+`rwaV2SigningData`, `inspectRwaReportV2`, `decodeRwaCall` and
+`assessRwaCallOutcome`; source and frozen signing vectors are pinned in CI.
+
 The execution workflow SDK for Insight. It connects the existing paid API surfaces into one agent-safe flow:
 
 ```text

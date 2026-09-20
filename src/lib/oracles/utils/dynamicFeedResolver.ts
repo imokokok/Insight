@@ -62,7 +62,9 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
       const chainCountByProvider = new Map<string, Set<number>>();
 
       for (const feed of feeds) {
-        providerSet.add(feed.provider);
+        // twap-token rows are address metadata consumed by the TWAP resolver,
+        // not an oracle that can cast an independent price vote.
+        if (feed.provider !== 'twap-token') providerSet.add(feed.provider);
         symbolSet.add(extractBaseSymbol(feed.symbol).toUpperCase());
 
         let chainSet = chainCountByProvider.get(feed.provider);
@@ -325,6 +327,7 @@ export async function getAllActiveFeedsByProviderWithStatus(): Promise<{
   const result = new Map<string, OracleFeed[]>();
   if (!entry) return { feeds: result, errored: true };
   for (const feed of entry.feeds) {
+    if (feed.provider === 'twap-token') continue;
     let list = result.get(feed.provider);
     if (!list) {
       list = [];

@@ -6,6 +6,7 @@ import {
   getSupraPairIndexAsync,
 } from '@/lib/oracles/constants/supraConstants';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
+import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
@@ -227,6 +228,9 @@ export class SupraClient extends BaseOracleClient {
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
     const upperSymbol = symbol.toUpperCase();
+    if (isSymbolActiveInCacheSync('supra', upperSymbol)) {
+      return chain === undefined || this.supportedChains.includes(chain);
+    }
     const isSymbolInList = supraSymbols.includes(upperSymbol as (typeof supraSymbols)[number]);
     if (!isSymbolInList) {
       return false;

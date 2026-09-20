@@ -1,5 +1,10 @@
 # Insight — Oracle Transparency & Risk Infrastructure
 
+[Unreleased, opt-in RWA/tokenized-equity adaptation](docs/rwa-v1.md) supplements
+the existing Agent/DeFi capabilities; production RWA data and signing are not activated.
+The [RWA v2 hardening](docs/rwa-v2.md) adds linked semantic assessments and receiver
+eligibility while preserving the v1 signing contract.
+
 Insight is an oracle transparency and risk infrastructure platform for DeFi. It tracks prices across **10 oracle providers and 40+ blockchain networks** — and turns that cross-oracle data into a **decision-grade safety check** that AI agents run before touching on-chain money, plus an **always-on cross-oracle trust signal (Oracle Watch)** that keeps running strategies safe between trades.
 
 **See through every oracle. Trust with clarity.**

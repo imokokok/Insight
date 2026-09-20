@@ -5,6 +5,7 @@ import {
   WINKLINK_AVAILABLE_PAIRS,
 } from '@/lib/oracles/constants/supportedSymbols';
 import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
+import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
 
@@ -57,7 +58,7 @@ export class WINkLinkClient extends BaseOracleClient {
     const isSymbolInList = winklinkSymbols.includes(
       resolvedSymbol as (typeof winklinkSymbols)[number]
     );
-    if (!isSymbolInList) {
+    if (!isSymbolInList && !isSymbolActiveInCacheSync('winklink', resolvedSymbol)) {
       return false;
     }
     if (chain !== undefined) {

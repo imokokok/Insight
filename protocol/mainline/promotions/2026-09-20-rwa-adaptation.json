@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x05dfe2fcaa4c108df804768fc80609fb456968263cef2601d879f333b89b4f5d",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 10,
+  "effectiveFrom": "2026-09-20",
+  "classification": "Additive opt-in RWA assessment and exact-call evidence binding; no production activation",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x980b28695a705c65185803c8d113b73085125e29804eb4c857a5e02f4092d7cd",
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "receiptImpact": "Adds a separate Insight RWA v1 EIP-712 domain, strict instrument identity, action-scoped freshness and market-state policy, unsigned diagnostic HTTP/MCP entry points and SDK verifier. Existing safety, coverage, receipt layouts, policies, source groups and historical bytes are unchanged.",
+  "activationRule": "No partner activation changes. RWA is explicit opt-in with consumer-pinned policy and keys. Caller-supplied diagnostics cannot authorize execution. Fixtures are simulation-only; production requires independently authenticated licensed feeds, instrument halt/corporate-action and issuer evidence plus reviewed signer operations.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged-pinned-contract-opt-in-rwa",
+      "evidence": "Existing policy, activation, signed layout and fixture unchanged. RWA schemas and SDK helpers are additive and not automatically invoked. No new partner sign-off or production data coverage is claimed."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged-pinned-contract-opt-in-rwa",
+      "evidence": "Existing policy, activation, signed layout and fixture unchanged. RWA schemas and SDK helpers are additive and not automatically invoked. No new partner sign-off or production data coverage is claimed."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged-pinned-contract-opt-in-rwa",
+      "evidence": "Existing policy, activation, signed layout and fixture unchanged. RWA schemas and SDK helpers are additive and not automatically invoked. No new partner sign-off or production data coverage is claimed."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged-pinned-contract-opt-in-rwa",
+      "evidence": "Existing policy, activation, signed layout and fixture unchanged. RWA schemas and SDK helpers are additive and not automatically invoked. No new partner sign-off or production data coverage is claimed."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged-pinned-contract-opt-in-rwa",
+      "evidence": "Existing policy, activation, signed layout and fixture unchanged. RWA schemas and SDK helpers are additive and not automatically invoked. No new partner sign-off or production data coverage is claimed."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged-pinned-contract-opt-in-rwa",
+      "evidence": "Existing policy, activation, signed layout and fixture unchanged. RWA schemas and SDK helpers are additive and not automatically invoked. No new partner sign-off or production data coverage is claimed."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged-pinned-contract-opt-in-rwa",
+      "evidence": "Existing policy, activation, signed layout and fixture unchanged. RWA schemas and SDK helpers are additive and not automatically invoked. No new partner sign-off or production data coverage is claimed."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged-pinned-contract-opt-in-rwa",
+      "evidence": "Existing policy, activation, signed layout and fixture unchanged. RWA schemas and SDK helpers are additive and not automatically invoked. No new partner sign-off or production data coverage is claimed."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged-pinned-contract-opt-in-rwa",
+      "evidence": "Existing policy, activation, signed layout and fixture unchanged. RWA schemas and SDK helpers are additive and not automatically invoked. No new partner sign-off or production data coverage is claimed."
+    }
+  ],
+  "predecessorReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c"
+}

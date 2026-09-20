@@ -6,8 +6,10 @@ import {
   discoverDIAFeeds,
   discoverFlareFeeds,
   discoverRedStoneFeeds,
+  discoverReflectorFeeds,
   discoverSupraFeeds,
   discoverSwitchboardFeeds,
+  discoverWINkLinkFeeds,
   verifyExistingFeeds,
 } from './providerDiscoverers';
 
@@ -60,10 +62,10 @@ class FeedDiscoveryService {
       ['flare', () => discoverFlareFeeds()],
       ['switchboard', () => discoverSwitchboardFeeds()],
       // No public API — verify existing
-      ['winklink', () => verifyExistingFeeds('winklink')],
+      ['winklink', () => discoverWINkLinkFeeds()],
       ['twap', () => verifyExistingFeeds('twap')],
       ['twap-token', () => verifyExistingFeeds('twap-token')],
-      ['reflector', () => verifyExistingFeeds('reflector')],
+      ['reflector', () => discoverReflectorFeeds()],
     ]);
 
     if (provider) {

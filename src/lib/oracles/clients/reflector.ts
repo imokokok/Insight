@@ -1,3 +1,4 @@
+import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { buildStellarVerification } from '@/lib/oracles/utils/verificationUtils';
 import { Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
 
@@ -7,6 +8,7 @@ import {
   REFLECTOR_FOREX_ASSETS,
   REFLECTOR_CRYPTO_CONTRACT,
   REFLECTOR_FOREX_CONTRACT,
+  getReflectorContractIdAsync,
 } from '../constants/reflectorConstants';
 import { getReflectorDataService } from '../services/reflectorDataService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
@@ -50,7 +52,9 @@ export class ReflectorClient extends BaseOracleClient {
       }
 
       const isCrypto = (REFLECTOR_CRYPTO_ASSETS as readonly string[]).includes(upperSymbol);
-      const contractId = isCrypto ? REFLECTOR_CRYPTO_CONTRACT : REFLECTOR_FOREX_CONTRACT;
+      const contractId =
+        (await getReflectorContractIdAsync(upperSymbol)) ||
+        (isCrypto ? REFLECTOR_CRYPTO_CONTRACT : REFLECTOR_FOREX_CONTRACT);
 
       // Central schema validation: Reflector's Stellar contract data is
       // untrusted; reject bad prices/timestamps before caching.
@@ -74,5 +78,12 @@ export class ReflectorClient extends BaseOracleClient {
 
   getSupportedSymbols(): string[] {
     return [...REFLECTOR_CRYPTO_ASSETS, ...REFLECTOR_FOREX_ASSETS];
+  }
+
+  override isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    if (isSymbolActiveInCacheSync('reflector', symbol)) {
+      return chain === undefined || chain === Blockchain.STELLAR;
+    }
+    return super.isSymbolSupported(symbol, chain);
   }
 }

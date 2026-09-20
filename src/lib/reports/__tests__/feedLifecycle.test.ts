@@ -137,7 +137,7 @@ it('keeps rediscovered recovered feeds active and clears prior health failures',
       provider: 'redstone',
       discovered: 1,
       errors: [],
-      feeds: [{ ...feed('ETH'), metadata: { preverified: true } }],
+      feeds: [{ ...feed('ETH'), metadata: { preverified: true, discoveredTimestamp: Date.now() } }],
     },
   ]);
   (createServiceRoleClient as jest.Mock).mockReturnValue({

@@ -24,6 +24,7 @@ import {
   REFLECTOR_CRYPTO_ASSETS,
   REFLECTOR_FOREX_ASSETS,
   REFLECTOR_CRYPTO_CONTRACT,
+  REFLECTOR_FOREX_CONTRACT,
   getReflectorContractIdAsync,
 } from '../constants/reflectorConstants';
 import { bigIntToPrice } from '../utils/oracleDataUtils';
@@ -46,7 +47,7 @@ class ReflectorDataService {
 
   private versionCache = new Map<string, number>();
 
-  private assetsCache: string[] | null = null;
+  private assetsCache = new Map<string, string[]>();
 
   private assetScValCache: Map<string, xdr.ScVal> = new Map();
 
@@ -137,22 +138,34 @@ class ReflectorDataService {
     return getReflectorContractIdAsync(symbol);
   }
 
-  private async ensureAssetScVal(symbol: string, signal?: AbortSignal): Promise<xdr.ScVal> {
+  private assetKey(contractId: string, symbol: string): string {
+    return `${contractId}:${symbol.toUpperCase()}`;
+  }
+
+  private async ensureAssetScVal(
+    symbol: string,
+    contractId: string,
+    signal?: AbortSignal
+  ): Promise<xdr.ScVal> {
     const upper = symbol.toUpperCase();
-    const cached = this.assetScValCache.get(upper);
+    const key = this.assetKey(contractId, upper);
+    const cached = this.assetScValCache.get(key);
     if (cached) return cached;
 
-    await this.fetchAssetScVals(signal);
-    const scVal = this.assetScValCache.get(upper);
+    const fallbackAssets =
+      contractId === REFLECTOR_FOREX_CONTRACT ? REFLECTOR_FOREX_ASSETS : REFLECTOR_CRYPTO_ASSETS;
+    await this.fetchAssetScVals(contractId, fallbackAssets, signal);
+    const scVal = this.assetScValCache.get(key);
     if (!scVal) {
       throw new Error(`Asset ${upper} not found in Reflector contract`);
     }
     return scVal;
   }
 
-  private buildManualScVals(assets: readonly string[]): void {
+  private buildManualScVals(contractId: string, assets: readonly string[]): void {
     for (const symbol of assets) {
-      if (this.assetScValCache.has(symbol)) continue;
+      const key = this.assetKey(contractId, symbol);
+      if (this.assetScValCache.has(key)) continue;
       // The Asset ScVal the contract expects is `scvVec([scvSymbol("Other"),
       // scvSymbol(<symbol>)])` — i.e. the SEP-40 `Asset::Other(<symbol>)` enum
       // variant serialized with the variant name as a *symbol* (NOT the numeric
@@ -163,12 +176,17 @@ class ReflectorDataService {
         xdr.ScVal.scvSymbol('Other'),
         nativeToScVal(symbol, { type: 'symbol' }),
       ]);
-      this.assetScValCache.set(symbol, assetScVal);
+      this.assetScValCache.set(key, assetScVal);
     }
   }
 
-  private async fetchAssetScVals(_signal?: AbortSignal): Promise<void> {
-    if (this.assetScValCache.size > 0) return;
+  private async fetchAssetScVals(
+    contractId: string,
+    fallbackAssets: readonly string[],
+    signal?: AbortSignal
+  ): Promise<string[]> {
+    const cachedAssets = this.assetsCache.get(contractId);
+    if (cachedAssets) return cachedAssets;
 
     // The ScVal passed to `lastprice` must be byte-identical to what the
     // contract itself returns from `assets()`. A hand-built
@@ -181,11 +199,13 @@ class ReflectorDataService {
     // manual build only if the contract call fails or returns nothing.
     try {
       const result = await this.simulateContractCall(
-        REFLECTOR_CRYPTO_CONTRACT,
+        contractId,
         REFLECTOR_CONTRACT_METHODS.ASSETS,
-        []
+        [],
+        signal
       );
       let loaded = 0;
+      const assets: string[] = [];
       // The SEP-40 `assets()` retval is an ScVal vec. In @stellar/stellar-sdk
       // the discriminant is `scvVec` (NOT `vec`) — comparing against `'vec'`
       // was always false, so the real assets were never loaded and we always
@@ -193,9 +213,9 @@ class ReflectorDataService {
       // `lastprice` trap on-chain for every symbol. `vec` contains the array
       // of Asset ScVals directly (no `.value` wrapper).
       if (result.type === 'scvVec') {
-        const assets = result.vec;
-        if (assets) {
-          for (const el of assets) {
+        const contractAssets = result.vec;
+        if (contractAssets) {
+          for (const el of contractAssets) {
             let symbol: string | undefined;
             try {
               const native = scValToNative(el) as unknown[];
@@ -211,24 +231,30 @@ class ReflectorDataService {
               // nested child via contract.call() can otherwise pull in the parent
               // frame and make lastprice trap on-chain.
               const detached = xdr.ScVal.fromXDR(el.toXDR());
-              this.assetScValCache.set(symbol.toUpperCase(), detached);
+              const upper = symbol.toUpperCase();
+              this.assetScValCache.set(this.assetKey(contractId, upper), detached);
+              assets.push(upper);
               loaded++;
             }
           }
         }
       }
       if (loaded === 0) {
-        this.buildManualScVals(REFLECTOR_CRYPTO_ASSETS);
-        this.buildManualScVals(REFLECTOR_FOREX_ASSETS);
+        this.buildManualScVals(contractId, fallbackAssets);
+        assets.push(...fallbackAssets);
       }
-      logger.info(`Loaded ${this.assetScValCache.size} Reflector asset ScVals from contract`);
+      this.assetsCache.set(contractId, assets);
+      logger.info(`Loaded ${assets.length} Reflector asset ScVals from contract`, { contractId });
+      return assets;
     } catch (error) {
       logger.warn(
         'Failed to load Reflector asset ScVals from contract, using manual fallback',
         error instanceof Error ? error : undefined
       );
-      this.buildManualScVals(REFLECTOR_CRYPTO_ASSETS);
-      this.buildManualScVals(REFLECTOR_FOREX_ASSETS);
+      this.buildManualScVals(contractId, fallbackAssets);
+      const assets = [...fallbackAssets];
+      this.assetsCache.set(contractId, assets);
+      return assets;
     }
   }
 
@@ -343,14 +369,18 @@ class ReflectorDataService {
     }
   }
 
-  async fetchLatestPrice(symbol: string, signal?: AbortSignal): Promise<PriceData | null> {
+  async fetchLatestPrice(
+    symbol: string,
+    signal?: AbortSignal,
+    contractIdOverride?: string
+  ): Promise<PriceData | null> {
     const upper = symbol.toUpperCase();
     const cacheKey = `price:${upper}`;
     const cached = this.getFromCache<PriceData>(cacheKey);
     if (cached) return cached;
 
     try {
-      const contractId = await this.getContractIdForSymbolAsync(upper);
+      const contractId = contractIdOverride || (await this.getContractIdForSymbolAsync(upper));
       if (!contractId) {
         logger.warn(`No contract mapping for symbol: ${upper}`);
         return null;
@@ -358,7 +388,7 @@ class ReflectorDataService {
 
       const decimalsResult = await this.fetchDecimals(contractId, signal);
       const decimals = decimalsResult.decimals;
-      const assetArg = await this.ensureAssetScVal(upper, signal);
+      const assetArg = await this.ensureAssetScVal(upper, contractId, signal);
       const result = await this.simulateContractCall(
         contractId,
         REFLECTOR_CONTRACT_METHODS.LAST_PRICE,
@@ -523,25 +553,21 @@ class ReflectorDataService {
   }
 
   async fetchAssets(signal?: AbortSignal): Promise<string[]> {
-    if (this.assetsCache !== null) return this.assetsCache;
+    const entries = await this.fetchSupportedAssets(signal);
+    return entries.map((entry) => entry.symbol);
+  }
 
-    const cacheKey = 'metadata:assets';
-    const cached = this.getFromCache<string[]>(cacheKey);
-    if (cached !== null) {
-      this.assetsCache = cached;
-      return cached;
-    }
-
-    try {
-      await this.fetchAssetScVals(signal);
-      const assets = Array.from(this.assetScValCache.keys());
-      this.assetsCache = assets;
-      this.setCache(cacheKey, assets, REFLECTOR_CACHE_TTL.ASSETS);
-      return assets;
-    } catch (error) {
-      logger.warn('Failed to fetch assets, using default list', normalizeError(error));
-      return [...REFLECTOR_CRYPTO_ASSETS, ...REFLECTOR_FOREX_ASSETS];
-    }
+  async fetchSupportedAssets(
+    signal?: AbortSignal
+  ): Promise<Array<{ symbol: string; contractId: string }>> {
+    const [crypto, forex] = await Promise.all([
+      this.fetchAssetScVals(REFLECTOR_CRYPTO_CONTRACT, REFLECTOR_CRYPTO_ASSETS, signal),
+      this.fetchAssetScVals(REFLECTOR_FOREX_CONTRACT, REFLECTOR_FOREX_ASSETS, signal),
+    ]);
+    return [
+      ...crypto.map((symbol) => ({ symbol, contractId: REFLECTOR_CRYPTO_CONTRACT })),
+      ...forex.map((symbol) => ({ symbol, contractId: REFLECTOR_FOREX_CONTRACT })),
+    ];
   }
 
   async fetchLastTimestamp(contractId?: string, signal?: AbortSignal): Promise<number> {
@@ -586,7 +612,7 @@ class ReflectorDataService {
     this.decimalsCache.clear();
     this.resolutionCache.clear();
     this.versionCache.clear();
-    this.assetsCache = null;
+    this.assetsCache.clear();
     this.assetScValCache.clear();
     this.lastTimestampCache.clear();
   }

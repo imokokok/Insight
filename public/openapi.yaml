@@ -233,6 +233,27 @@ tags:
 security: []
 
 paths:
+  /rwa/assessment:
+    post:
+      operationId: assessRwaEvidence
+      tags: [Safety]
+      summary: Unsigned RWA evidence diagnostic
+      description: Evaluates caller-supplied instrument, exact-call scope, quotes, market state and issuer evidence against an explicit policy. Does not authenticate inputs or authorize execution. Uses the separate insight.rwa-report.v1 family; existing pre-trade receipts are unchanged.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './rwa-assessment.schema.json'
+      responses:
+        '200':
+          description: Diagnostic envelope; data.mode is diagnostic, data.mayAuthorizeExecution is false, data.evidenceProvenance is caller-supplied-unverified, and data.report contains recomputable evaluation.
+        '400':
+          description: Invalid input or unsupported policy semantics
+        '401':
+          description: API key required
   /execution/attestation/issue:
     post:
       operationId: issueExecutionReceipt

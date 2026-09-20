@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
 import { keccak256, toBytes } from 'viem';
+import { verifyPromotionLineage } from './lib/promotion-lineage.mjs';
 
 const workspace = resolve(import.meta.dirname, '..');
 const policyRoot = join(workspace, 'protocol/mainline/policies');
@@ -297,6 +298,10 @@ if (base && !/^0+$/.test(base)) {
     'verifier/src/',
     'sdk/src/index.ts',
     'sdk/src/coverage.ts',
+    'sdk/src/rwa',
+    'protocol/rwa-source-lock.json',
+    'src/lib/rwa/',
+    'src/app/api/v1/rwa/',
     'protocol/coverage/policies/',
     'protocol/coverage/trust/',
   ];
@@ -317,16 +322,30 @@ if (base && !/^0+$/.test(base)) {
     const currentChanged = diff.some(
       (entry) => entry.path === 'protocol/mainline/current-promotion.json'
     );
-    if (!currentChanged || promotionAdds.length !== 1) {
+    if (!currentChanged || promotionAdds.length === 0) {
       throw new Error(
-        'Shared protocol or activation changes require one new immutable promotion and an updated current-promotion.json pointer'
+        'Shared protocol or activation changes require a new immutable promotion chain and an updated current-promotion.json pointer'
       );
     }
     const current = json(currentPromotionPath);
-    const promotion = json(join(workspace, promotionAdds[0].path));
-    if (current.promotionId !== promotion.promotionId) {
-      throw new Error('current-promotion.json must point at the newly added promotion');
-    }
+    // A single change may contain sequential, still-unpublished improvements. Require
+    // one complete append-only chain from the merge-base pointer, with no orphan adds.
+    const mergeBase = execFileSync('git', ['merge-base', base, 'HEAD'], {
+      cwd: workspace,
+      encoding: 'utf8',
+    }).trim();
+    const previous = JSON.parse(
+      execFileSync('git', ['show', `${mergeBase}:protocol/mainline/current-promotion.json`], {
+        cwd: workspace,
+        encoding: 'utf8',
+      })
+    );
+    const promotion = verifyPromotionLineage(
+      previous.promotionId,
+      current.promotionId,
+      promotionAdds.map((entry) => json(join(workspace, entry.path))),
+      promotions
+    );
     const expectedPromotionId = contentId(withoutId(promotion, 'promotionId'));
     if (promotion.promotionId !== expectedPromotionId) {
       throw new Error(`Promotion id must be ${expectedPromotionId}`);

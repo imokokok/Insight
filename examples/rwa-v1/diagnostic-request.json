@@ -1,0 +1,161 @@
+{
+  "input": {
+    "instrument": {
+      "schema": "insight.rwa-instrument.v1",
+      "underlyingId": "SIM:ACME",
+      "issuer": "simulation-issuer",
+      "tokenChainId": 8453,
+      "tokenAddress": "0x3333333333333333333333333333333333333333",
+      "venueMic": "XNAS",
+      "kind": "equity",
+      "currency": "USD",
+      "priceBasis": "underlying-spot",
+      "corporateActionVersion": "sim-v1"
+    },
+    "request": {
+      "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+      "action": "buy",
+      "amount": "1000000",
+      "call": {
+        "chainId": 8453,
+        "from": "0x1111111111111111111111111111111111111111",
+        "to": "0x2222222222222222222222222222222222222222",
+        "calldataHash": "0x56570de287d73cd1cb6092bb8fdee6173974955fdef345ae579ee9f475ea7432",
+        "value": "0",
+        "nonce": "7"
+      }
+    },
+    "prices": [
+      {
+        "feedId": "sim-feed-a",
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "evidenceChainId": 1,
+        "currency": "USD",
+        "priceBasis": "underlying-spot",
+        "corporateActionVersion": "sim-v1",
+        "session": "REGULAR",
+        "priceE8": "10000000000",
+        "observedAt": 1799999998,
+        "retrievedAt": 1800000000
+      },
+      {
+        "feedId": "sim-feed-b",
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "evidenceChainId": 56,
+        "currency": "USD",
+        "priceBasis": "underlying-spot",
+        "corporateActionVersion": "sim-v1",
+        "session": "REGULAR",
+        "priceE8": "10010000000",
+        "observedAt": 1799999998,
+        "retrievedAt": 1800000000
+      }
+    ],
+    "market": {
+      "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+      "mic": "XNAS",
+      "source": "sim-market",
+      "session": "REGULAR",
+      "halt": "CLEAR",
+      "corporateAction": "CLEAR",
+      "observedAt": 1799999998,
+      "validUntil": 1800000045
+    },
+    "evidence": [
+      {
+        "kind": "reserve",
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "subject": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "source": "sim-issuer",
+        "status": "OK",
+        "observedAt": 1799999998,
+        "validUntil": 1800000045
+      },
+      {
+        "kind": "eligibility",
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "subject": "0x1111111111111111111111111111111111111111",
+        "source": "sim-eligibility",
+        "status": "OK",
+        "observedAt": 1799999998,
+        "validUntil": 1800000045
+      },
+      {
+        "kind": "redemption",
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "subject": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "source": "sim-issuer",
+        "status": "OK",
+        "observedAt": 1799999998,
+        "validUntil": 1800000045
+      }
+    ]
+  },
+  "policy": {
+    "schema": "insight.rwa-policy.v1",
+    "name": "simulation-equity-strict-v1",
+    "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+    "environment": "simulation",
+    "minProviders": 2,
+    "minIndependentGroups": 2,
+    "maxPriceAgeSeconds": 60,
+    "maxStateAgeSeconds": 60,
+    "maxSpreadBps": 100,
+    "reportTtlSeconds": 30,
+    "feeds": {
+      "sim-feed-a": {
+        "group": "sim-origin-a",
+        "derived": false,
+        "evidenceChainId": 1
+      },
+      "sim-feed-b": {
+        "group": "sim-origin-b",
+        "derived": false,
+        "evidenceChainId": 56
+      }
+    },
+    "stateSources": ["sim-market"],
+    "evidenceSources": {
+      "reserve": ["sim-issuer"],
+      "eligibility": ["sim-eligibility"],
+      "redemption": ["sim-issuer"]
+    },
+    "actions": {
+      "buy": {
+        "priceRequired": true,
+        "allowedSessions": ["REGULAR"],
+        "requiredEvidence": ["reserve", "eligibility"]
+      },
+      "sell": {
+        "priceRequired": true,
+        "allowedSessions": ["REGULAR"],
+        "requiredEvidence": ["reserve", "eligibility"]
+      },
+      "borrow": {
+        "priceRequired": true,
+        "allowedSessions": ["REGULAR"],
+        "requiredEvidence": ["reserve", "eligibility"]
+      },
+      "collateralize": {
+        "priceRequired": true,
+        "allowedSessions": ["REGULAR"],
+        "requiredEvidence": ["reserve", "eligibility"]
+      },
+      "liquidate": {
+        "priceRequired": true,
+        "allowedSessions": ["REGULAR"],
+        "requiredEvidence": ["reserve", "eligibility"]
+      },
+      "redeem": {
+        "priceRequired": true,
+        "allowedSessions": ["REGULAR"],
+        "requiredEvidence": ["reserve", "eligibility", "redemption"]
+      },
+      "repay": {
+        "priceRequired": false,
+        "allowedSessions": [],
+        "requiredEvidence": ["eligibility"]
+      }
+    }
+  }
+}

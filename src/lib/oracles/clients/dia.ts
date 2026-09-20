@@ -2,6 +2,7 @@ import { BaseOracleClient } from '@/lib/oracles/base';
 import { diaSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { DIA_API_BASE_URL } from '@/lib/oracles/diaUtils';
 import { diaPriceService } from '@/lib/oracles/services/diaPriceService';
+import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { OracleProvider, Blockchain } from '@/types/oracle';
 import type { PriceData } from '@/types/oracle';
@@ -62,5 +63,12 @@ export class DIAClient extends BaseOracleClient {
     _options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     return [];
+  }
+
+  override isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
+    if (isSymbolActiveInCacheSync('dia', symbol)) {
+      return chain === undefined || this.supportedChains.includes(chain);
+    }
+    return super.isSymbolSupported(symbol, chain);
   }
 }

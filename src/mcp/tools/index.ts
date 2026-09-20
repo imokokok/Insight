@@ -69,6 +69,7 @@ import {
   getProtocolRiskParamsTool,
   getRiskSummaryTool,
 } from './riskTools';
+import { rwaAssessmentTool } from './rwaTools';
 import { checkPositionSafetyTool } from './safetyTools';
 import { getStablecoinPegTool } from './stablecoinTools';
 import { getStablecoinListTool, getSymbolsTool, recommendOracleSetupTool } from './utilityTools';
@@ -80,6 +81,7 @@ import type { McpToolCallResult, McpToolDefinition } from './types';
 const logger = createLogger('mcp-tools');
 
 const MCP_TOOLS: McpToolDefinition[] = [
+  rwaAssessmentTool,
   getOraclePriceTool,
   getConsensusPriceTool,
   getRiskSummaryTool,
@@ -123,6 +125,11 @@ const JSON_SCHEMA_MAP: Record<
   string,
   { type: 'object'; properties?: Record<string, unknown>; required?: string[] }
 > = {
+  assess_rwa_evidence: rwaAssessmentTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
   get_oracle_price: OraclePriceJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;

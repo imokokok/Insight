@@ -30,6 +30,10 @@ export interface CatalogFeed {
   proxyAddress: string;
   decimals: number;
   category: ChainlinkPriceFeed['category'];
+  heartbeat?: number;
+  path?: string;
+  feedCategory?: string;
+  feedType?: string;
 }
 
 interface ChainlinkCatalogFile {

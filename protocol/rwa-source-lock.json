@@ -1,0 +1,10 @@
+{
+  "schema": "insight-priorseal.rwa-source-lock.v1",
+  "version": "rwa-hardening-v2",
+  "sha256": {
+    "sdk/src/rwa.ts": "f1ec7f67f5598a823cec4783dfa105b80e4190e9fa1125f2aa5d26fbfdf160fe",
+    "sdk/src/rwa-call.ts": "16de060ae0f07fb37678cb54525e184441c2e3c04430b3907918a1c67d584e1a",
+    "sdk/src/rwa-v2.ts": "66839d24ba9932ea8408a95bed75d51c0839db0db6e03ca28e5e36d53008b613",
+    "examples/rwa-v2/golden.json": "d376bbddf01fea2a0e0c7f35db4e0d5727e821d28b363adf181a77ec655ae18f"
+  }
+}

@@ -165,7 +165,7 @@ export class RedStoneClient extends BaseOracleClient {
             // they serve a valid price. `redstone` (full) serves the entire
             // catalog; timestamps in the discovery payload were current.
             const response = await fetch(
-              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol)}&provider=redstone`,
+              `${REDSTONE_API_BASE}/prices?symbol=${encodeURIComponent(symbol)}&provider=redstone-primary-prod`,
               {
                 method: 'GET',
                 headers: {

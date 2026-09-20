@@ -2,6 +2,7 @@ import { type SignedCoverageReport } from './coverage';
 import { InsightApiError } from './errors';
 import { stripTrailingSlashes } from './url';
 
+import type { RwaInput, RwaPolicy, RwaReport } from './rwa';
 import type {
   CoverageRequest,
   CoverageResult,
@@ -69,6 +70,20 @@ export class InsightClient {
       signal,
     });
     return validatePreTradeResult(result);
+  }
+
+  /** Unsigned evaluation of caller-supplied data; never sufficient to authorize execution. */
+  async rwaAssessment(
+    input: RwaInput,
+    policy: RwaPolicy,
+    signal?: AbortSignal
+  ): Promise<{
+    mode: 'diagnostic';
+    mayAuthorizeExecution: false;
+    evidenceProvenance: 'caller-supplied-unverified';
+    report: RwaReport;
+  }> {
+    return this.request('POST', '/api/v1/rwa/assessment', { body: { input, policy }, signal });
   }
 
   /** Coverage is diagnostic metadata, never a signed safety decision. */

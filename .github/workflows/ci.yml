@@ -36,6 +36,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Enforce pinned RWA source and frozen-vector integrity
+        run: npm run rwa:parity
       - name: Enforce main-only protocol isolation
         run: npm run protocol:check -- --base "$PROTOCOL_GOVERNANCE_BASE"
         env:

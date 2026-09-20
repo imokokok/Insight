@@ -6,6 +6,7 @@ import {
   getSwitchboardFeedIdAsync,
 } from '@/lib/oracles/constants/switchboardConstants';
 import { getSwitchboardDataService } from '@/lib/oracles/services/switchboardDataService';
+import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
 import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
 
@@ -126,7 +127,7 @@ export class SwitchboardClient extends BaseOracleClient {
     const isSymbolInList = switchboardSymbols.includes(
       upperSymbol as (typeof switchboardSymbols)[number]
     );
-    if (!isSymbolInList) {
+    if (!isSymbolInList && !isSymbolActiveInCacheSync('switchboard', upperSymbol)) {
       return false;
     }
     if (chain !== undefined) {

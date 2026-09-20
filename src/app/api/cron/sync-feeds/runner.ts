@@ -9,6 +9,9 @@ import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { chainlinkOnChainService } from '@/lib/oracles/services/chainlinkOnChainService';
 import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscovery';
 import { feedSyncService } from '@/lib/oracles/services/feedSyncService';
+import { getReflectorDataService } from '@/lib/oracles/services/reflectorDataService';
+import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
+import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
 import { invalidateAllFeedsCache } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { type OracleFeed, type OracleFeedInsert } from '@/lib/supabase/queries';
@@ -31,19 +34,60 @@ const SUPPORTED_PROVIDERS: readonly string[] = [
 
 const VERIFY_CONCURRENCY = 8;
 const VERIFY_TIMEOUT_MS = 10_000;
+const CHAINLINK_VERIFY_CONCURRENCY = 4;
+const CHAINLINK_VERIFY_TIMEOUT_MS = 4_000;
+
+function maxFeedAgeMs(feed: OracleFeed | OracleFeedInsert): number {
+  const metadata = (feed.metadata || {}) as Record<string, unknown>;
+  if (feed.provider === OracleProvider.CHAINLINK) {
+    const heartbeat = Number(metadata.heartbeat);
+    return Number.isFinite(heartbeat) && heartbeat > 0
+      ? Math.max(60 * 60 * 1000, heartbeat * 2 * 1000)
+      : 2 * 60 * 60 * 1000;
+  }
+  if (feed.provider === OracleProvider.API3) return API3_MAX_DATA_AGE_SECONDS * 1000;
+  if (feed.provider === OracleProvider.DIA) return 72 * 60 * 60 * 1000;
+  if (feed.provider === OracleProvider.SUPRA) {
+    return feed.category === 'equity' || feed.category === 'commodity'
+      ? 72 * 60 * 60 * 1000
+      : 60 * 60 * 1000;
+  }
+  if (feed.provider === OracleProvider.REDSTONE) return 30 * 60 * 1000;
+  if (feed.provider === OracleProvider.REFLECTOR) return 60 * 60 * 1000;
+  if (feed.provider === OracleProvider.WINKLINK) return 24 * 60 * 60 * 1000;
+  if (feed.provider === OracleProvider.FLARE) return 30 * 60 * 1000;
+  if (feed.provider === OracleProvider.SWITCHBOARD) return 30 * 60 * 1000;
+  return 24 * 60 * 60 * 1000;
+}
+
+function isFreshTimestamp(feed: OracleFeed | OracleFeedInsert, timestamp: unknown): boolean {
+  if (typeof timestamp !== 'number' || !Number.isFinite(timestamp) || timestamp <= 0) return false;
+  const timestampMs = timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
+  const age = Date.now() - timestampMs;
+  return age >= -5 * 60 * 1000 && age <= maxFeedAgeMs(feed);
+}
 
 async function runProbeWithTimeout<T>(
   execute: (signal: AbortSignal) => Promise<T>,
   timeoutMs: number
 ): Promise<T | null> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    return await execute(controller.signal);
+    const timeout = new Promise<null>((resolve) => {
+      timer = setTimeout(() => {
+        controller.abort();
+        resolve(null);
+      }, timeoutMs);
+    });
+    // Some third-party SDKs do not honour AbortSignal. The race enforces the
+    // wall-clock deadline even in that case, so one hung feed cannot stall the
+    // entire discovery/recovery pass indefinitely.
+    return await Promise.race([execute(controller.signal), timeout]);
   } catch {
     return null;
   } finally {
-    clearTimeout(timer);
+    if (timer) clearTimeout(timer);
   }
 }
 
@@ -114,6 +158,44 @@ async function probeFeed(
       return probeRedStoneFeed(feed, signal);
     }
 
+    if (provider === OracleProvider.CHAINLINK && /^0x[0-9a-fA-F]{40}$/.test(feed.address)) {
+      const price = await chainlinkOnChainService.getPrice(
+        feed.symbol,
+        feed.chain_id,
+        signal,
+        feed.address as `0x${string}`
+      );
+      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
+    }
+
+    if (provider === OracleProvider.SUPRA && /^\d+$/.test(feed.address)) {
+      const price = await getSupraDataService().fetchLatestPriceByIndex(
+        Number(feed.address),
+        feed.symbol,
+        signal
+      );
+      return price.price > 0 && isFreshTimestamp(feed, price.timestamp);
+    }
+
+    if (provider === OracleProvider.REFLECTOR && feed.address) {
+      const price = await getReflectorDataService().fetchLatestPrice(
+        feed.symbol,
+        signal,
+        feed.address
+      );
+      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
+    }
+
+    if (provider === OracleProvider.WINKLINK && feed.address) {
+      const price = await getWINkLinkRealDataService().getPriceFromContract(
+        feed.symbol,
+        undefined,
+        signal,
+        feed.address
+      );
+      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
+    }
+
     // API3 dAPIs are cross-chain and their per-chain activation can only be
     // confirmed by reading the communal proxy contract. The candidate feed
     // carries the dAPI name in `address`; read it directly via the network
@@ -143,7 +225,12 @@ async function probeFeed(
     }
 
     const price = await fetchPriceWithDatabase(provider, feed.symbol, chain, false, true, signal);
-    return typeof price?.price === 'number' && Number.isFinite(price.price) && price.price > 0;
+    return (
+      typeof price?.price === 'number' &&
+      Number.isFinite(price.price) &&
+      price.price > 0 &&
+      isFreshTimestamp(feed, price.timestamp)
+    );
   } catch {
     return false;
   }
@@ -162,7 +249,21 @@ async function verifyDiscoveredFeeds(
 ): Promise<{ verified: OracleFeedInsert[]; failedCount: number }> {
   if (feeds.length === 0) return { verified: [], failedCount: 0 };
 
-  const results = await mapWithConcurrency(feeds, VERIFY_CONCURRENCY, async (feed) => {
+  // A WINkLink probe performs three TRON RPC calls. TronGrid's free tier allows
+  // 15 requests in the burst window, so provider-wide concurrency must be one
+  // here (the generic concurrency of eight creates 24 simultaneous calls and
+  // turns valid feeds into false negatives via HTTP 429).
+  const concurrency = feeds.every((feed) => feed.provider === OracleProvider.WINKLINK)
+    ? 1
+    : feeds.every((feed) => feed.provider === OracleProvider.CHAINLINK)
+      ? CHAINLINK_VERIFY_CONCURRENCY
+      : VERIFY_CONCURRENCY;
+  const results = await mapWithConcurrency(feeds, concurrency, async (feed, index) => {
+    if (feed.provider === OracleProvider.WINKLINK && index > 0) {
+      // Public TronGrid permits 15 calls per 30-second window. Each feed needs
+      // three calls, so space starts by 6.5s to stay below the free-tier cap.
+      await new Promise((resolve) => setTimeout(resolve, 6_500));
+    }
     // RedStone discovery self-verifies from the live price the `provider=redstone`
     // catalog already returns (see discoverRedStoneFeeds). Skip the per-symbol
     // price probe for those feeds so we don't fire 1000+ rate-limited requests
@@ -170,14 +271,28 @@ async function verifyDiscoveredFeeds(
     // nothing" (HTTP 500 -> 403 under bulk load, plus the 15-min timeout).
     const meta = feed.metadata as Record<string, unknown> | undefined;
     if (meta?.preverified === true) {
-      return { feed, ok: true };
+      return { feed, ok: isFreshTimestamp(feed, meta.discoveredTimestamp) };
     }
-    const ok =
-      (await runProbeWithTimeout((signal) => probeFeed(feed, signal), VERIFY_TIMEOUT_MS)) ?? false;
+    const timeoutMs =
+      feed.provider === OracleProvider.CHAINLINK ? CHAINLINK_VERIFY_TIMEOUT_MS : VERIFY_TIMEOUT_MS;
+    const ok = (await runProbeWithTimeout((signal) => probeFeed(feed, signal), timeoutMs)) ?? false;
     return { feed, ok };
   });
 
-  const verified = results.filter((r) => r.ok).map((r) => r.feed);
+  const verifiedByIdentity = new Map<string, OracleFeedInsert>();
+  for (const { feed, ok } of results) {
+    if (!ok) continue;
+    const key = `${feed.provider}:${feed.symbol.toUpperCase()}:${feed.chain_id}`;
+    const current = verifiedByIdentity.get(key);
+    const priority = Number(
+      (feed.metadata as Record<string, unknown> | undefined)?.candidatePriority ?? 50
+    );
+    const currentPriority = Number(
+      (current?.metadata as Record<string, unknown> | undefined)?.candidatePriority ?? 50
+    );
+    if (!current || priority < currentPriority) verifiedByIdentity.set(key, feed);
+  }
+  const verified = Array.from(verifiedByIdentity.values());
   const failed = results.filter((r) => !r.ok);
 
   if (failed.length > 0) {
@@ -200,6 +315,7 @@ async function upsertDiscoveredFeeds(feeds: OracleFeedInsert[]): Promise<number>
   // disables a recovered row using its old failure count.
   const rows = feeds.map((f) => ({
     ...f,
+    is_active: true,
     absent_discovery_runs: 0,
     last_discovery_at: now,
     consecutive_failures: 0,
@@ -283,6 +399,37 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
       );
     }
 
+    if (provider === OracleProvider.SUPRA && /^\d+$/.test(feed.address)) {
+      const price = await runProbeWithTimeout(
+        (signal) =>
+          getSupraDataService().fetchLatestPriceByIndex(Number(feed.address), feed.symbol, signal),
+        REACTIVATE_TIMEOUT_MS
+      );
+      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
+    }
+
+    if (provider === OracleProvider.REFLECTOR && feed.address) {
+      const price = await runProbeWithTimeout(
+        (signal) => getReflectorDataService().fetchLatestPrice(feed.symbol, signal, feed.address),
+        REACTIVATE_TIMEOUT_MS
+      );
+      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
+    }
+
+    if (provider === OracleProvider.WINKLINK && feed.address) {
+      const price = await runProbeWithTimeout(
+        (signal) =>
+          getWINkLinkRealDataService().getPriceFromContract(
+            feed.symbol,
+            undefined,
+            signal,
+            feed.address
+          ),
+        REACTIVATE_TIMEOUT_MS
+      );
+      return !!price && price.price > 0 && isFreshTimestamp(feed, price.timestamp);
+    }
+
     // Chainlink rows have an address-level identity, so verify that exact
     // aggregator instead of asking the default client for another feed with
     // the same base symbol.
@@ -301,7 +448,7 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
         price !== null &&
         Number.isFinite(price.price) &&
         price.price > 0 &&
-        Date.now() - price.timestamp <= 60 * 60 * 1000
+        isFreshTimestamp(feed, price.timestamp)
       );
     }
 

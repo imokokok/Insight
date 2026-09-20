@@ -1,0 +1,709 @@
+{
+  "schema": "insight-priorseal.rwa-golden.v1",
+  "environment": "simulation",
+  "now": 1800000000,
+  "v1": {
+    "proof": {
+      "report": {
+        "schema": "insight.rwa-report.v1",
+        "environment": "simulation",
+        "policyId": "0xd08b365f7708657b7965a2890c2fb24ae60ef083adff3dcd7e84114b594d9b58",
+        "evaluatedAt": 1800000000,
+        "validUntil": 1800000030,
+        "input": {
+          "evidence": [
+            {
+              "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+              "kind": "reserve",
+              "observedAt": 1799999998,
+              "source": "sim-issuer",
+              "status": "OK",
+              "subject": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+              "validUntil": 1800000045
+            },
+            {
+              "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+              "kind": "eligibility",
+              "observedAt": 1799999998,
+              "source": "sim-eligibility",
+              "status": "OK",
+              "subject": "0x1111111111111111111111111111111111111111",
+              "validUntil": 1800000045
+            },
+            {
+              "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+              "kind": "redemption",
+              "observedAt": 1799999998,
+              "source": "sim-issuer",
+              "status": "OK",
+              "subject": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+              "validUntil": 1800000045
+            }
+          ],
+          "instrument": {
+            "corporateActionVersion": "sim-v1",
+            "currency": "USD",
+            "issuer": "simulation-issuer",
+            "kind": "equity",
+            "priceBasis": "underlying-spot",
+            "schema": "insight.rwa-instrument.v1",
+            "tokenAddress": "0x3333333333333333333333333333333333333333",
+            "tokenChainId": 8453,
+            "underlyingId": "SIM:ACME",
+            "venueMic": "XNAS"
+          },
+          "market": {
+            "corporateAction": "CLEAR",
+            "halt": "CLEAR",
+            "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+            "mic": "XNAS",
+            "observedAt": 1799999998,
+            "session": "REGULAR",
+            "source": "sim-market",
+            "validUntil": 1800000045
+          },
+          "prices": [
+            {
+              "corporateActionVersion": "sim-v1",
+              "currency": "USD",
+              "evidenceChainId": 1,
+              "feedId": "sim-feed-a",
+              "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+              "observedAt": 1799999998,
+              "priceBasis": "underlying-spot",
+              "priceE8": "10000000000",
+              "retrievedAt": 1800000000,
+              "session": "REGULAR"
+            },
+            {
+              "corporateActionVersion": "sim-v1",
+              "currency": "USD",
+              "evidenceChainId": 56,
+              "feedId": "sim-feed-b",
+              "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+              "observedAt": 1799999998,
+              "priceBasis": "underlying-spot",
+              "priceE8": "10010000000",
+              "retrievedAt": 1800000000,
+              "session": "REGULAR"
+            }
+          ],
+          "request": {
+            "action": "buy",
+            "amount": "1000000",
+            "call": {
+              "calldataHash": "0x56570de287d73cd1cb6092bb8fdee6173974955fdef345ae579ee9f475ea7432",
+              "chainId": 8453,
+              "from": "0x1111111111111111111111111111111111111111",
+              "nonce": "7",
+              "to": "0x2222222222222222222222222222222222222222",
+              "value": "0"
+            },
+            "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249"
+          }
+        },
+        "evaluation": {
+          "verdict": "ALLOW",
+          "reasons": [],
+          "eligibleFeeds": ["sim-feed-a", "sim-feed-b"],
+          "independentGroups": 2,
+          "consensusPriceE8": "10010000000",
+          "excluded": []
+        }
+      },
+      "digest": "0x8ac9c7abc84a518fd78f260fc719b587651b3c33b667c9b736154851c94619e8",
+      "signer": "0x1C5A77d9FA7eF466951B2F01F724BCa3A5820b63",
+      "signature": "0x5b1c9bf9a7340960a33466e2ccb24a3cb64fa2f7cea38e01692903588b50840265111b1a8d73f52580c2d82c61873d66400419a7b571c5e3b7c1298ce43a4ca51c"
+    },
+    "trust": {
+      "policy": {
+        "schema": "insight.rwa-policy.v1",
+        "name": "simulation-equity-strict-v1",
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "environment": "simulation",
+        "minProviders": 2,
+        "minIndependentGroups": 2,
+        "maxPriceAgeSeconds": 60,
+        "maxStateAgeSeconds": 60,
+        "maxSpreadBps": 100,
+        "reportTtlSeconds": 30,
+        "feeds": {
+          "sim-feed-a": {
+            "group": "sim-origin-a",
+            "derived": false,
+            "evidenceChainId": 1
+          },
+          "sim-feed-b": {
+            "group": "sim-origin-b",
+            "derived": false,
+            "evidenceChainId": 56
+          }
+        },
+        "stateSources": ["sim-market"],
+        "evidenceSources": {
+          "reserve": ["sim-issuer"],
+          "eligibility": ["sim-eligibility"],
+          "redemption": ["sim-issuer"]
+        },
+        "actions": {
+          "buy": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "sell": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "borrow": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "collateralize": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "liquidate": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "redeem": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility", "redemption"]
+          },
+          "repay": {
+            "priceRequired": false,
+            "allowedSessions": [],
+            "requiredEvidence": ["eligibility"]
+          }
+        }
+      },
+      "policyId": "0xd08b365f7708657b7965a2890c2fb24ae60ef083adff3dcd7e84114b594d9b58",
+      "request": {
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "action": "buy",
+        "amount": "1000000",
+        "call": {
+          "chainId": 8453,
+          "from": "0x1111111111111111111111111111111111111111",
+          "to": "0x2222222222222222222222222222222222222222",
+          "calldataHash": "0x56570de287d73cd1cb6092bb8fdee6173974955fdef345ae579ee9f475ea7432",
+          "value": "0",
+          "nonce": "7"
+        }
+      },
+      "environment": "simulation",
+      "keys": [
+        {
+          "address": "0x1C5A77d9FA7eF466951B2F01F724BCa3A5820b63",
+          "validFrom": 1799996400,
+          "validUntil": 1800003600,
+          "revoked": false
+        }
+      ]
+    }
+  },
+  "v2": {
+    "proof": {
+      "report": {
+        "schema": "insight.rwa-report.v2",
+        "assessment": {
+          "schema": "insight.rwa-report.v1",
+          "environment": "simulation",
+          "policyId": "0xd08b365f7708657b7965a2890c2fb24ae60ef083adff3dcd7e84114b594d9b58",
+          "evaluatedAt": 1800000000,
+          "validUntil": 1800000030,
+          "input": {
+            "evidence": [
+              {
+                "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "kind": "reserve",
+                "observedAt": 1799999998,
+                "source": "sim-issuer",
+                "status": "OK",
+                "subject": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "validUntil": 1800000045
+              },
+              {
+                "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "kind": "eligibility",
+                "observedAt": 1799999998,
+                "source": "sim-eligibility",
+                "status": "OK",
+                "subject": "0x1111111111111111111111111111111111111111",
+                "validUntil": 1800000045
+              },
+              {
+                "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "kind": "redemption",
+                "observedAt": 1799999998,
+                "source": "sim-issuer",
+                "status": "OK",
+                "subject": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "validUntil": 1800000045
+              }
+            ],
+            "instrument": {
+              "corporateActionVersion": "sim-v1",
+              "currency": "USD",
+              "issuer": "simulation-issuer",
+              "kind": "equity",
+              "priceBasis": "underlying-spot",
+              "schema": "insight.rwa-instrument.v1",
+              "tokenAddress": "0x3333333333333333333333333333333333333333",
+              "tokenChainId": 8453,
+              "underlyingId": "SIM:ACME",
+              "venueMic": "XNAS"
+            },
+            "market": {
+              "corporateAction": "CLEAR",
+              "halt": "CLEAR",
+              "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+              "mic": "XNAS",
+              "observedAt": 1799999998,
+              "session": "REGULAR",
+              "source": "sim-market",
+              "validUntil": 1800000045
+            },
+            "prices": [
+              {
+                "corporateActionVersion": "sim-v1",
+                "currency": "USD",
+                "evidenceChainId": 1,
+                "feedId": "sim-feed-a",
+                "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "observedAt": 1799999998,
+                "priceBasis": "underlying-spot",
+                "priceE8": "10000000000",
+                "retrievedAt": 1800000000,
+                "session": "REGULAR"
+              },
+              {
+                "corporateActionVersion": "sim-v1",
+                "currency": "USD",
+                "evidenceChainId": 56,
+                "feedId": "sim-feed-b",
+                "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "observedAt": 1799999998,
+                "priceBasis": "underlying-spot",
+                "priceE8": "10010000000",
+                "retrievedAt": 1800000000,
+                "session": "REGULAR"
+              }
+            ],
+            "request": {
+              "action": "buy",
+              "amount": "1000000",
+              "call": {
+                "calldataHash": "0xfd9d8e475779d74a64f3b2fc1c15b6c471c55683ebf535f4ae076e42b4ef7852",
+                "chainId": 8453,
+                "from": "0x1111111111111111111111111111111111111111",
+                "nonce": "7",
+                "to": "0x2222222222222222222222222222222222222222",
+                "value": "0"
+              },
+              "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249"
+            }
+          },
+          "evaluation": {
+            "verdict": "ALLOW",
+            "reasons": [],
+            "eligibleFeeds": ["sim-feed-a", "sim-feed-b"],
+            "independentGroups": 2,
+            "consensusPriceE8": "10010000000",
+            "excluded": []
+          }
+        },
+        "sequence": "0",
+        "previousDigest": null,
+        "transaction": {
+          "chainId": 8453,
+          "data": "0x414bf389000000000000000000000000444444444444444444444444444444444444444400000000000000000000000033333333333333333333333333333333333333330000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000005555555555555555555555555555555555555555000000000000000000000000000000000000000000000000000000006b49d27800000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000dbba00000000000000000000000000000000000000000000000000000000000000000",
+          "from": "0x1111111111111111111111111111111111111111",
+          "nonce": "7",
+          "to": "0x2222222222222222222222222222222222222222",
+          "value": "0"
+        },
+        "semantics": {
+          "profileId": "0xb511da380a13a951bd92b8b13b195f1cc1eae48aabc8818bb97cfbf200d17ad3",
+          "action": "buy",
+          "inputToken": "0x4444444444444444444444444444444444444444",
+          "outputToken": "0x3333333333333333333333333333333333333333",
+          "inputAmount": "1000000",
+          "minimumOutput": "900000",
+          "receiver": "0x5555555555555555555555555555555555555555",
+          "deadline": 1800000120,
+          "sqrtPriceLimitX96": "0"
+        },
+        "receiverEvidence": {
+          "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+          "kind": "eligibility",
+          "observedAt": 1799999998,
+          "source": "sim-eligibility",
+          "status": "OK",
+          "subject": "0x5555555555555555555555555555555555555555",
+          "validUntil": 1800000045
+        },
+        "validUntil": 1800000030
+      },
+      "digest": "0xe002b9f8f6b2e11b5b5201a6086d725c89c16fdf4b2d3cbb80410722eedcdb7b",
+      "signer": "0x1C5A77d9FA7eF466951B2F01F724BCa3A5820b63",
+      "signature": "0xc272fff6dbd987881bf77267d6086a94c600741a793ca9926ac00f7007d7266438e64a9debd5024c14b6395f199ebc964ba8364378605f625dfecdc2c2a283301b"
+    },
+    "trust": {
+      "policy": {
+        "schema": "insight.rwa-policy.v1",
+        "name": "simulation-equity-strict-v1",
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "environment": "simulation",
+        "minProviders": 2,
+        "minIndependentGroups": 2,
+        "maxPriceAgeSeconds": 60,
+        "maxStateAgeSeconds": 60,
+        "maxSpreadBps": 100,
+        "reportTtlSeconds": 30,
+        "feeds": {
+          "sim-feed-a": {
+            "group": "sim-origin-a",
+            "derived": false,
+            "evidenceChainId": 1
+          },
+          "sim-feed-b": {
+            "group": "sim-origin-b",
+            "derived": false,
+            "evidenceChainId": 56
+          }
+        },
+        "stateSources": ["sim-market"],
+        "evidenceSources": {
+          "reserve": ["sim-issuer"],
+          "eligibility": ["sim-eligibility"],
+          "redemption": ["sim-issuer"]
+        },
+        "actions": {
+          "buy": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "sell": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "borrow": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "collateralize": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "liquidate": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "redeem": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility", "redemption"]
+          },
+          "repay": {
+            "priceRequired": false,
+            "allowedSessions": [],
+            "requiredEvidence": ["eligibility"]
+          }
+        }
+      },
+      "policyId": "0xd08b365f7708657b7965a2890c2fb24ae60ef083adff3dcd7e84114b594d9b58",
+      "request": {
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "action": "buy",
+        "amount": "1000000",
+        "call": {
+          "chainId": 8453,
+          "from": "0x1111111111111111111111111111111111111111",
+          "to": "0x2222222222222222222222222222222222222222",
+          "calldataHash": "0xfd9d8e475779d74a64f3b2fc1c15b6c471c55683ebf535f4ae076e42b4ef7852",
+          "value": "0",
+          "nonce": "7"
+        }
+      },
+      "environment": "simulation",
+      "keys": [
+        {
+          "address": "0x1C5A77d9FA7eF466951B2F01F724BCa3A5820b63",
+          "validFrom": 1799996400,
+          "validUntil": 1800003600,
+          "revoked": false
+        }
+      ],
+      "callProfile": {
+        "schema": "insight.rwa-call-profile.v1",
+        "adapter": "uniswap-v3-exact-input-single",
+        "chainId": 8453,
+        "target": "0x2222222222222222222222222222222222222222",
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "quoteToken": "0x4444444444444444444444444444444444444444",
+        "allowedFees": [3000]
+      }
+    }
+  },
+  "execution": {
+    "proof": {
+      "report": {
+        "schema": "insight.rwa-report.v2",
+        "assessment": {
+          "schema": "insight.rwa-report.v1",
+          "environment": "simulation",
+          "policyId": "0xd08b365f7708657b7965a2890c2fb24ae60ef083adff3dcd7e84114b594d9b58",
+          "evaluatedAt": 1800000000,
+          "validUntil": 1800000030,
+          "input": {
+            "evidence": [
+              {
+                "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "kind": "reserve",
+                "observedAt": 1799999998,
+                "source": "sim-issuer",
+                "status": "OK",
+                "subject": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "validUntil": 1800000045
+              },
+              {
+                "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "kind": "eligibility",
+                "observedAt": 1799999998,
+                "source": "sim-eligibility",
+                "status": "OK",
+                "subject": "0x1111111111111111111111111111111111111111",
+                "validUntil": 1800000045
+              },
+              {
+                "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "kind": "redemption",
+                "observedAt": 1799999998,
+                "source": "sim-issuer",
+                "status": "OK",
+                "subject": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "validUntil": 1800000045
+              }
+            ],
+            "instrument": {
+              "corporateActionVersion": "sim-v1",
+              "currency": "USD",
+              "issuer": "simulation-issuer",
+              "kind": "equity",
+              "priceBasis": "underlying-spot",
+              "schema": "insight.rwa-instrument.v1",
+              "tokenAddress": "0x3333333333333333333333333333333333333333",
+              "tokenChainId": 8453,
+              "underlyingId": "SIM:ACME",
+              "venueMic": "XNAS"
+            },
+            "market": {
+              "corporateAction": "CLEAR",
+              "halt": "CLEAR",
+              "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+              "mic": "XNAS",
+              "observedAt": 1799999998,
+              "session": "REGULAR",
+              "source": "sim-market",
+              "validUntil": 1800000045
+            },
+            "prices": [
+              {
+                "corporateActionVersion": "sim-v1",
+                "currency": "USD",
+                "evidenceChainId": 1,
+                "feedId": "sim-feed-a",
+                "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "observedAt": 1799999998,
+                "priceBasis": "underlying-spot",
+                "priceE8": "10000000000",
+                "retrievedAt": 1800000000,
+                "session": "REGULAR"
+              },
+              {
+                "corporateActionVersion": "sim-v1",
+                "currency": "USD",
+                "evidenceChainId": 56,
+                "feedId": "sim-feed-b",
+                "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+                "observedAt": 1799999998,
+                "priceBasis": "underlying-spot",
+                "priceE8": "10010000000",
+                "retrievedAt": 1800000000,
+                "session": "REGULAR"
+              }
+            ],
+            "request": {
+              "action": "buy",
+              "amount": "1000000",
+              "call": {
+                "calldataHash": "0xfd9d8e475779d74a64f3b2fc1c15b6c471c55683ebf535f4ae076e42b4ef7852",
+                "chainId": 8453,
+                "from": "0x1111111111111111111111111111111111111111",
+                "nonce": "7",
+                "to": "0x2222222222222222222222222222222222222222",
+                "value": "0"
+              },
+              "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249"
+            }
+          },
+          "evaluation": {
+            "verdict": "ALLOW",
+            "reasons": [],
+            "eligibleFeeds": ["sim-feed-a", "sim-feed-b"],
+            "independentGroups": 2,
+            "consensusPriceE8": "10010000000",
+            "excluded": []
+          }
+        },
+        "sequence": "1",
+        "previousDigest": "0xe002b9f8f6b2e11b5b5201a6086d725c89c16fdf4b2d3cbb80410722eedcdb7b",
+        "transaction": {
+          "chainId": 8453,
+          "data": "0x414bf389000000000000000000000000444444444444444444444444444444444444444400000000000000000000000033333333333333333333333333333333333333330000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000005555555555555555555555555555555555555555000000000000000000000000000000000000000000000000000000006b49d27800000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000000dbba00000000000000000000000000000000000000000000000000000000000000000",
+          "from": "0x1111111111111111111111111111111111111111",
+          "nonce": "7",
+          "to": "0x2222222222222222222222222222222222222222",
+          "value": "0"
+        },
+        "semantics": {
+          "profileId": "0xb511da380a13a951bd92b8b13b195f1cc1eae48aabc8818bb97cfbf200d17ad3",
+          "action": "buy",
+          "inputToken": "0x4444444444444444444444444444444444444444",
+          "outputToken": "0x3333333333333333333333333333333333333333",
+          "inputAmount": "1000000",
+          "minimumOutput": "900000",
+          "receiver": "0x5555555555555555555555555555555555555555",
+          "deadline": 1800000120,
+          "sqrtPriceLimitX96": "0"
+        },
+        "receiverEvidence": {
+          "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+          "kind": "eligibility",
+          "observedAt": 1799999998,
+          "source": "sim-eligibility",
+          "status": "OK",
+          "subject": "0x5555555555555555555555555555555555555555",
+          "validUntil": 1800000045
+        },
+        "validUntil": 1800000030
+      },
+      "digest": "0x9ea9ec241240257ad9a21a1eccd64b5baf7e102da0981908fa5f348e826bdb3a",
+      "signer": "0x1C5A77d9FA7eF466951B2F01F724BCa3A5820b63",
+      "signature": "0x5c29f344301ca173747316434acaf60bf3aac596139a481a8abcb5cd9dd379812b7341d2650c198e0c004123b8788333e8f86c55a17a885880dc648f7aacd0f41c"
+    },
+    "trust": {
+      "policy": {
+        "schema": "insight.rwa-policy.v1",
+        "name": "simulation-equity-strict-v1",
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "environment": "simulation",
+        "minProviders": 2,
+        "minIndependentGroups": 2,
+        "maxPriceAgeSeconds": 60,
+        "maxStateAgeSeconds": 60,
+        "maxSpreadBps": 100,
+        "reportTtlSeconds": 30,
+        "feeds": {
+          "sim-feed-a": {
+            "group": "sim-origin-a",
+            "derived": false,
+            "evidenceChainId": 1
+          },
+          "sim-feed-b": {
+            "group": "sim-origin-b",
+            "derived": false,
+            "evidenceChainId": 56
+          }
+        },
+        "stateSources": ["sim-market"],
+        "evidenceSources": {
+          "reserve": ["sim-issuer"],
+          "eligibility": ["sim-eligibility"],
+          "redemption": ["sim-issuer"]
+        },
+        "actions": {
+          "buy": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "sell": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "borrow": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "collateralize": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "liquidate": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility"]
+          },
+          "redeem": {
+            "priceRequired": true,
+            "allowedSessions": ["REGULAR"],
+            "requiredEvidence": ["reserve", "eligibility", "redemption"]
+          },
+          "repay": {
+            "priceRequired": false,
+            "allowedSessions": [],
+            "requiredEvidence": ["eligibility"]
+          }
+        }
+      },
+      "policyId": "0xd08b365f7708657b7965a2890c2fb24ae60ef083adff3dcd7e84114b594d9b58",
+      "request": {
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "action": "buy",
+        "amount": "1000000",
+        "call": {
+          "chainId": 8453,
+          "from": "0x1111111111111111111111111111111111111111",
+          "to": "0x2222222222222222222222222222222222222222",
+          "calldataHash": "0xfd9d8e475779d74a64f3b2fc1c15b6c471c55683ebf535f4ae076e42b4ef7852",
+          "value": "0",
+          "nonce": "7"
+        }
+      },
+      "environment": "simulation",
+      "keys": [
+        {
+          "address": "0x1C5A77d9FA7eF466951B2F01F724BCa3A5820b63",
+          "validFrom": 1799996400,
+          "validUntil": 1800003600,
+          "revoked": false
+        }
+      ],
+      "callProfile": {
+        "schema": "insight.rwa-call-profile.v1",
+        "adapter": "uniswap-v3-exact-input-single",
+        "chainId": 8453,
+        "target": "0x2222222222222222222222222222222222222222",
+        "instrumentId": "0x11e573b338e4300b66d86c9014735fc50d0b63c2c4308c080f9b75266ad6f249",
+        "quoteToken": "0x4444444444444444444444444444444444444444",
+        "allowedFees": [3000]
+      }
+    }
+  }
+}

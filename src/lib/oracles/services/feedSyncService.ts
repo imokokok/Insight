@@ -21,6 +21,7 @@ import {
   type ChainlinkPriceFeed,
 } from './chainlinkDataSources';
 import { feedRegistryService } from './feedRegistryService';
+import { WINKLINK_PRICE_FEEDS } from './winklinkRealDataService';
 
 const logger = createLogger('FeedSyncService');
 
@@ -401,28 +402,6 @@ class FeedSyncService {
       errors: 0,
     };
     const feeds: OracleFeedInsert[] = [];
-
-    const WINKLINK_PRICE_FEEDS: Record<string, string> = {
-      'BTC-USD': 'TQoijQ1iZKRgJsAAWNPMu6amgtCJ3WMUV7',
-      'ETH-USD': 'TR2yWYWovJaSM7TfZq7L7sT7ZRugdJJQmL',
-      'TRX-USD': 'TR5HtpPK4gX4RFC4DCBUHfFgsGkGFEzSAb',
-      'USDT-USD': 'TKePc46n5CiUCR8LL788TFeKA4kjvNnuem',
-      'USDC-USD': 'TNu3zS55MP4KnBBP6Maw1nHSzRpc3CXAxm',
-      'USDD-USD': 'TJ7jEgoYVaeymVfYZ3bS57dYArwVDS1mhW',
-      'WIN-USD': 'TSCef3LT3jpLwwXCWhZe3hZoMsYk1ZLif2',
-      'BTT-USD': 'TBAAW545oJ6iTxqzezGvagrSUzCpz1S8eR',
-      'JST-USD': 'TE5rKoDzKmpVAQp1sn7x6V8biivR3d5r47',
-      'SUN-USD': 'TRMgzSPsuWEcVpd5hv19XtLeCk8Z799sZa',
-      'LTC-USD': 'TGxGL85kN3W5sGdBiobgWabWFcMEtoqRJJ',
-      'NFT-USD': 'TEC8b2oL6sAQFMiea73tTgjtTLwyV1GuZU',
-      'TUSD-USD': 'TBc3yBP8xcyQ1E3hDTUhRxToMrgekLH2kh',
-      'USDJ-USD': 'TB1MyT7pDCNg8w7cSW1QvYKs4WPzErzP5k',
-      'WBTC-USD': 'TCYS6aj9shB6rZNpTCqSkN1aTwkSnz1wHq',
-      // Added 2026-08-16: additional official mainnet USD feeds verified live on TRON mainnet.
-      'U-USD': 'TX6DsYNoMurRqnY9tRHuj4MnBoW76jVKa3',
-      'BTTOLD-USD': 'TEEnwU47Fgx4Ehii7Xs9bLWK3XKo4fs6sV', // legacy BTT (pre-swap)
-      'SUNOLD-USD': 'TEEuSdqyv2NFREtNoUXMTDSmJVK3KCuLac', // legacy SUN (pre-migration)
-    };
 
     for (const [pair, address] of Object.entries(WINKLINK_PRICE_FEEDS)) {
       const symbol = pair.replace('-USD', '');

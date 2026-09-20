@@ -50,12 +50,15 @@ function createErrorResponse(
   );
 }
 
-function formatZodError(error: ZodError): Array<{ field: string; message: string }> {
+function formatZodError(
+  error: ZodError
+): Array<{ field: string; message: string; code?: string; retryable?: boolean }> {
   return error.issues.map((issue: ZodIssue) => {
     const field = issue.path.join('.');
     return {
       field: field || 'root',
       message: issue.message,
+      ...(/^RWA_[A-Z0-9_]+$/.test(issue.message) ? { code: issue.message, retryable: false } : {}),
     };
   });
 }

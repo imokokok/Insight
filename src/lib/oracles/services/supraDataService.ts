@@ -6,6 +6,7 @@ import {
   SUPRA_CACHE_TTL,
   SUPRA_PAIR_INDEX_MAP,
   SUPRA_INDEX_TO_SYMBOL,
+  getSupraPairIndexAsync,
 } from '../constants/supraConstants';
 import { bigIntToPrice } from '../utils/oracleDataUtils';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
@@ -183,7 +184,7 @@ class SupraDataService {
   }
 
   async fetchLatestPrice(symbol: string, signal?: AbortSignal): Promise<SupraLatestPriceData> {
-    const pairIndex = this.getPairIndex(symbol);
+    const pairIndex = await getSupraPairIndexAsync(symbol);
     if (pairIndex === null) {
       throw new SupraApiError(
         `Symbol '${symbol}' not found in Supra pair index map`,
@@ -191,6 +192,14 @@ class SupraDataService {
       );
     }
 
+    return this.fetchLatestPriceByIndex(pairIndex, symbol, signal);
+  }
+
+  async fetchLatestPriceByIndex(
+    pairIndex: number,
+    symbol: string,
+    signal?: AbortSignal
+  ): Promise<SupraLatestPriceData> {
     const results = await this.fetchLatestPrices([pairIndex], signal);
     const result = results.find((r) => r.pairIndex === pairIndex);
 
@@ -198,7 +207,7 @@ class SupraDataService {
       throw new SupraApiError(`No price data for ${symbol} (index ${pairIndex})`, 'NO_DATA');
     }
 
-    return result;
+    return { ...result, symbol };
   }
 
   async fetchHistoricalPrices(

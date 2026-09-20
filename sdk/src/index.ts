@@ -1,4 +1,7 @@
 export { InsightClient } from './client';
+export * from './rwa';
+export * from './rwa-call';
+export * from './rwa-v2';
 export { InsightApiError, ReceiptConfigurationError, TradeBlockedError } from './errors';
 export { InsightGuard, exportReviewAttachments } from './guard';
 export {

@@ -16,6 +16,7 @@ jest.mock('../factory', () => ({
 }));
 
 jest.mock('../utils/dynamicFeedResolver', () => ({
+  isSymbolActiveInCacheSync: () => false,
   getActiveFeedsMap: async () =>
     new Map([['BTC', { provider: 'reflector', symbol: 'BTC', chain_id: 0 }]]),
   matchesChainId: (feed: { chain_id: number }, chainId: number) =>

@@ -1,0 +1,72 @@
+{
+  "observedAt": 1789892893,
+  "observedAtIso": "2026-09-20T08:28:13.000Z",
+  "rpc": "https://bsc-dataseed.bnbchain.org",
+  "method": "eth_call latestRoundData",
+  "evidenceChainId": 56,
+  "provider": "chainlink",
+  "mayAuthorizeExecution": false,
+  "results": [
+    {
+      "symbol": "AAPL",
+      "address": "0xb7Ed5bE7977d61E83534230f3256C021e0fae0B6",
+      "status": "ROUND_RETURNED",
+      "answer": "33581500000",
+      "updatedAt": "1789831502",
+      "ageSeconds": 61391,
+      "roundComplete": true
+    },
+    {
+      "symbol": "AMZN",
+      "address": "0x51d08ca89d3E8c12535bA8AED33cdf2557AB5b2a",
+      "status": "ROUND_RETURNED",
+      "answer": "25410500000",
+      "updatedAt": "1789830886",
+      "ageSeconds": 62007,
+      "roundComplete": true
+    },
+    {
+      "symbol": "TSLA",
+      "address": "0xEEA2ae9c074E87596A85ABE698B2Afebc9B57893",
+      "status": "ROUND_RETURNED",
+      "answer": "36430000000",
+      "updatedAt": "1789847428",
+      "ageSeconds": 45465,
+      "roundComplete": true
+    },
+    {
+      "symbol": "GOOGL",
+      "address": "0xeDA73F8acb669274B15A977Cb0cdA57a84F18c2a",
+      "status": "ROUND_RETURNED",
+      "answer": "34979000000",
+      "updatedAt": "1789847420",
+      "ageSeconds": 45473,
+      "roundComplete": true
+    },
+    {
+      "symbol": "NVDA",
+      "address": "0xea5c2Cbb5cD57daC24E26180b19a929F3E9699B8",
+      "status": "ROUND_RETURNED",
+      "answer": "22210500000",
+      "updatedAt": "1789847724",
+      "ageSeconds": 45169,
+      "roundComplete": true
+    },
+    {
+      "symbol": "COIN",
+      "address": "0x2d1AB79D059e21aE519d88F978cAF39d74E31AEB",
+      "status": "ROUND_RETURNED",
+      "answer": "19403500000",
+      "updatedAt": "1789847870",
+      "ageSeconds": 45023,
+      "roundComplete": true
+    }
+  ],
+  "limitations": [
+    "One public RPC snapshot; not an SLA, independently verified chain state, or production coverage.",
+    "Six assets from one provider, not six independent price sources for one asset.",
+    "Raw answers only; this probe does not verify feed decimals, description, official deployment identity, or corporate-action semantics.",
+    "Round ages exceed the simulation trading policy; do not relax freshness merely because it is a weekend.",
+    "No instrument halt, issuer reserve, holder eligibility, redemption status, or stock-token identity is established."
+  ]
+}

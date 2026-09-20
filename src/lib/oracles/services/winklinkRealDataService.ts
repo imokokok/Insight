@@ -41,7 +41,7 @@ const TRONGRID_API_KEY = TRON_CONFIG.apiKey;
 // Source: https://crypto.news/tron-blockchain-is-switching-oracles-from-winklink-to-chainlink/
 // These feeds are still active and used as hardcoded fallback when database is unavailable
 
-const WINKLINK_PRICE_FEEDS: Record<string, string> = {
+export const WINKLINK_PRICE_FEEDS: Readonly<Record<string, string>> = {
   // Major Cryptocurrencies
   'BTC-USD': 'TQoijQ1iZKRgJsAAWNPMu6amgtCJ3WMUV7',
   'ETH-USD': 'TR2yWYWovJaSM7TfZq7L7sT7ZRugdJJQmL',
@@ -120,7 +120,8 @@ class WINkLinkRealDataService {
   async getPriceFromContract(
     symbol: string,
     chain?: string,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    contractAddressOverride?: string
   ): Promise<PriceData | null> {
     const cacheKey = `real-price:${symbol}${chain ? `:${chain}` : ''}`;
     const cached = this.cache.get<PriceData>(cacheKey);
@@ -133,7 +134,8 @@ class WINkLinkRealDataService {
     }
 
     try {
-      const contractAddress = await getWinklinkFeedAddressAsync(symbol);
+      const contractAddress =
+        contractAddressOverride || (await getWinklinkFeedAddressAsync(symbol));
 
       if (!contractAddress) {
         logger.warn('No WINkLink price feed found for symbol', {

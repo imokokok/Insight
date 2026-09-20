@@ -162,12 +162,14 @@ class ChainlinkOnChainService {
   }
 
   private async getOrFetchMetadata(
-    symbol: string,
     chainId: number,
     feedAddress: `0x${string}`,
     signal?: AbortSignal
   ): Promise<FeedMetadata> {
-    const metaKey = `meta-${symbol}-${chainId}`;
+    // Multiple official products can share a base symbol on one chain (standard,
+    // SVR, calculated, tokenized variants) while exposing different decimals.
+    // Metadata is therefore address-scoped, not symbol-scoped.
+    const metaKey = `meta-${chainId}-${feedAddress.toLowerCase()}`;
     const cached = this.metadataCache.get(metaKey);
     if (cached) return cached;
 
@@ -226,14 +228,14 @@ class ChainlinkOnChainService {
     try {
       const [roundData, metadata] = await Promise.all([
         this.ethCall(chainId, feed.address, encodeAggregatorCall('latestRoundData'), signal),
-        this.getOrFetchMetadata(symbol, chainId, feed.address, signal),
+        this.getOrFetchMetadata(chainId, feed.address, signal),
       ]);
 
       logger.debug('Raw RPC responses received', {
         symbol,
         chainId,
         roundDataLength: roundData?.length || 0,
-        metadataCached: this.metadataCache.has(`meta-${symbol}-${chainId}`),
+        metadataCached: this.metadataCache.has(`meta-${chainId}-${feed.address.toLowerCase()}`),
       });
 
       const decoded = decodeLatestRoundData(roundData);
