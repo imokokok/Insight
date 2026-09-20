@@ -13,11 +13,10 @@ import { OracleProvider, Blockchain, type PriceData } from '@/types/oracle';
 /**
  * Switchboard oracle client.
  *
- * Pulls signed Surge price updates from the public Crossbar gateway (free,
- * unauthenticated, no SWTCH required). Surge feeds are chain-agnostic — the
- * consensus value is produced by the Solana oracle network and served via
- * Crossbar regardless of the querying chain — so every project chain is
- * supported for off-chain reads and feeds are stored with chain_id=0.
+ * Signed BTC/ETH Surge Plug updates are written to the database by the
+ * persistent stream worker. When no fresh signed row exists, this client can
+ * fetch a free Crossbar simulation result; that fallback is explicitly
+ * unsigned and excluded from oracle quorum.
  */
 export class SwitchboardClient extends BaseOracleClient {
   name = OracleProvider.SWITCHBOARD;
@@ -87,16 +86,18 @@ export class SwitchboardClient extends BaseOracleClient {
           price: latest.price,
           timestamp: latest.timestamp,
           decimals: latest.decimals,
-          confidence: 0.95,
+          confidence: 0.5,
           chain: chain || Blockchain.ETHEREUM,
-          source: 'switchboard-crossbar',
+          source: 'switchboard-simulation',
           feedId: latest.feedId,
           numOracles: latest.numOracles,
+          verificationLevel: 'unsigned',
+          countsTowardOracleQuorum: false,
           ingestionTimestamp: Date.now(),
           verification: buildApiVerification(
-            `${SWITCHBOARD_CROSSBAR_URL}/v2/update/${latest.feedId}`,
-            'fetchV2Update',
-            'Switchboard Crossbar'
+            `${SWITCHBOARD_CROSSBAR_URL}/v2/simulate/${latest.feedId}`,
+            'simulateV2Feed',
+            'Switchboard Crossbar simulation (unsigned)'
           ),
         },
         'getPrice'
@@ -124,13 +125,18 @@ export class SwitchboardClient extends BaseOracleClient {
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
     const upperSymbol = symbol.toUpperCase();
+    const isDynamicallyActive = isSymbolActiveInCacheSync('switchboard', upperSymbol);
     const isSymbolInList = switchboardSymbols.includes(
       upperSymbol as (typeof switchboardSymbols)[number]
     );
-    if (!isSymbolInList && !isSymbolActiveInCacheSync('switchboard', upperSymbol)) {
+    if (!isSymbolInList && !isDynamicallyActive) {
       return false;
     }
     if (chain !== undefined) {
+      if (!this.supportedChains.includes(chain)) return false;
+      // Discovery can add project symbols without requiring a redeploy of the
+      // curated static list. Switchboard feeds are chain-agnostic.
+      if (isDynamicallyActive) return true;
       const chainKey = chain.toLowerCase();
       const chainSymbols = SWITCHBOARD_AVAILABLE_PAIRS[chainKey];
       return chainSymbols ? chainSymbols.includes(upperSymbol) : false;

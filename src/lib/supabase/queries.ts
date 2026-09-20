@@ -201,7 +201,9 @@ export class DatabaseQueries {
         .order('timestamp', { ascending: false })
         .limit(1);
 
-      if (chain) {
+      if (chain === null) {
+        query = query.is('chain', null);
+      } else if (chain) {
         query = query.eq('chain', chain);
       }
 

@@ -3,12 +3,10 @@ import { resolveFeed } from '@/lib/oracles/utils/dynamicFeedResolver';
 /**
  * Switchboard On-Demand integration constants.
  *
- * Switchboard serves signed price updates through its public Crossbar gateway
- * (`https://crossbar.switchboard.xyz`). Reading the latest consensus value for
- * a feed via `GET /v2/update/{feedHash}` is free, unauthenticated, and requires
- * no SWTCH tokens — the SWTCH subscription only gates the low-latency Surge
- * WebSocket *stream* and on-chain `updateFeeds` fee submission, neither of which
- * Insight uses (it only reads the signed `medianResponses` payload off-chain).
+ * Switchboard's free Crossbar `/v2/simulate` endpoint returns unsigned values.
+ * Verifiable realtime prices require the Surge Plug stream and a Solana wallet
+ * with an active subscription. Insight uses the free Plug allowance for exactly
+ * BTC/USD and ETH/USD; other project feeds remain explicitly unsigned.
  *
  * The feed hashes below are the deterministic IDs of Switchboard's managed
  * Surge feeds (WEIGHTED source, USD quote) — multi-source aggregated prices
@@ -36,9 +34,74 @@ export const SWITCHBOARD_CACHE_TTL = {
 export const SWITCHBOARD_DECIMALS = 18;
 
 /**
+ * Project-tracked symbols that are missing from the legacy static map but have
+ * been verified through the free Crossbar simulation endpoint. Discovery
+ * resolves their current feed hashes by symbol, so hash rotations do not
+ * require a redeploy.
+ */
+export const SWITCHBOARD_PROJECT_SIMULATION_SYMBOLS = [
+  'ANKR',
+  'BAND',
+  'BAT',
+  'BLUR',
+  'BOME',
+  'BTT',
+  'CELO',
+  'CELR',
+  'CHZ',
+  'CRO',
+  'DASH',
+  'DCR',
+  'DGB',
+  'EIGEN',
+  'ENA',
+  'ENJ',
+  'EUR',
+  'EURC',
+  'FLOKI',
+  'HNT',
+  'ICX',
+  'IO',
+  'IOTA',
+  'IOTX',
+  'JST',
+  'KNC',
+  'LRC',
+  'LSK',
+  'MANTA',
+  'MEME',
+  'METH',
+  'NEO',
+  'NFT',
+  'NOT',
+  'ONDO',
+  'ONT',
+  'PAXG',
+  'RVN',
+  'SC',
+  'STEEM',
+  'STORJ',
+  'SUN',
+  'SUPRA',
+  'TUSD',
+  'U',
+  'UMA',
+  'WAVES',
+  'WIN',
+  'WLD',
+  'XAUT',
+  'XDC',
+  'XVG',
+  'ZIL',
+  'ZK',
+  'ZRO',
+  'ZRX',
+] as const;
+
+/**
  * Switchboard supported symbols. Keep this list in sync with the keys of
  * `SWITCHBOARD_FEED_IDS` below — both are curated from the public Surge feed
- * catalogue and verified against live Crossbar responses.
+ * catalogue. Availability is re-verified by discovery.
  */
 export const switchboardSymbols = [
   '1INCH',

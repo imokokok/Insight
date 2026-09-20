@@ -575,8 +575,18 @@ class FeedSyncService {
         decimals: 18,
         category: this.inferCategory(symbol),
         is_active: true,
-        source: 'hardcoded',
-        metadata: { feedHash, quote: 'USD', source_type: 'surge-weighted' },
+        source:
+          symbol === 'BTC' || symbol === 'ETH'
+            ? 'switchboard-surge-plug'
+            : 'switchboard-simulation',
+        metadata: {
+          feedHash,
+          quote: 'USD',
+          source_type: 'surge-weighted',
+          access_mode:
+            symbol === 'BTC' || symbol === 'ETH' ? 'signed-surge-plug' : 'unsigned-simulation',
+          counts_toward_quorum: symbol === 'BTC' || symbol === 'ETH',
+        },
       });
       result.discovered++;
     }

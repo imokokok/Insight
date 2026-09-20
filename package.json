@@ -41,6 +41,7 @@
     "sync:npm-releases": "node scripts/sync-npm-releases.mjs",
     "cron:reputation": "tsx scripts/reputation.ts",
     "cron:feed-cadence": "tsx scripts/feed-cadence.ts",
+    "stream:switchboard": "tsx scripts/switchboard-surge-stream.ts",
     "build:cron": "node scripts/build-cron-bundles.mjs",
     "test:mcp:e2e": "node --env-file=.env.local ./node_modules/.bin/jest src/mcp/__tests__/client.test.ts src/mcp/__tests__/e2e.test.ts --testTimeout=120000 --runInBand --testPathIgnorePatterns='/node_modules/' '/.next/'",
     "prepare": "husky",
@@ -83,6 +84,7 @@
     "tailwind-merge": "^3.5.0",
     "verify-insight-receipt": "0.2.0",
     "viem": "^2.56.3",
+    "ws": "8.21.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },
@@ -99,6 +101,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "8.18.1",
     "esbuild": "^0.28.1",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",

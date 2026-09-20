@@ -7,9 +7,9 @@ import { getAllCatalogFeeds } from '../../constants/chainlinkCatalogLoader';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '../../constants/chainMapping';
 import { getAllSupportedSymbols } from '../../constants/supportedSymbols';
 import {
-  SWITCHBOARD_CROSSBAR_URL,
+  SWITCHBOARD_FEED_IDS,
+  SWITCHBOARD_PROJECT_SIMULATION_SYMBOLS,
   SWITCHBOARD_SURGE_FEEDS_URL,
-  normalizeSwitchboardFeedId,
 } from '../../constants/switchboardConstants';
 import { isUsdDenominatedFeedSymbol } from '../../utils/oracleDataUtils';
 import { getReflectorDataService } from '../reflectorDataService';
@@ -796,32 +796,46 @@ export async function discoverSwitchboardFeeds(): Promise<DiscoveryResult> {
   const result: DiscoveryResult = { provider: 'switchboard', discovered: 0, feeds: [], errors: [] };
 
   try {
-    const response = await fetch(SWITCHBOARD_SURGE_FEEDS_URL, {
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(30000),
+    // The unfiltered catalogue is currently ~3 MB / 9k feeds and can take more
+    // than 90 seconds to return. Start with committed hashes, then use the
+    // official symbol-filtered endpoint only for the verified project expansion.
+    const projectSymbols = new Set(getAllSupportedSymbols().map((symbol) => symbol.toUpperCase()));
+    projectSymbols.add('BTC');
+    projectSymbols.add('ETH');
+
+    const feedList: SurgeFeedEntry[] = Object.entries(SWITCHBOARD_FEED_IDS)
+      .filter(([symbol]) => projectSymbols.has(symbol))
+      .map(([symbol, feedId]) => ({
+        symbol: { base: symbol, quote: 'USD' },
+        feeds: [{ source: 'WEIGHTED', feed_id: feedId }],
+      }));
+
+    const expansionSymbols = SWITCHBOARD_PROJECT_SIMULATION_SYMBOLS.filter(
+      (symbol) => projectSymbols.has(symbol) && !(symbol in SWITCHBOARD_FEED_IDS)
+    );
+    const expansionEntries = await mapWithConcurrency(expansionSymbols, 12, async (symbol) => {
+      try {
+        const url = `${SWITCHBOARD_SURGE_FEEDS_URL}?symbol=${encodeURIComponent(`${symbol}/USD`)}`;
+        const response = await fetch(url, {
+          headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(12_000),
+        });
+        if (!response.ok) return null;
+        const body = (await response.json()) as { data?: SurgeFeedEntry[] };
+        return (
+          body.data?.find((entry) => {
+            if (!entry.symbol || typeof entry.symbol !== 'object') return false;
+            return (
+              entry.symbol.base?.toUpperCase() === symbol &&
+              entry.symbol.quote?.toUpperCase() === 'USD'
+            );
+          }) ?? null
+        );
+      } catch {
+        return null;
+      }
     });
-
-    if (!response.ok) {
-      throw new Error(`Switchboard Crossbar returned ${response.status}`);
-    }
-
-    const json = await response.json();
-    // Normalise to an array of feed entries. Confirmed shape is
-    // `{ total, data: [...] }`, but tolerate a top-level array or other
-    // wrapping keys (feeds/rows) for forward-compatibility.
-    let feedList: SurgeFeedEntry[];
-    if (Array.isArray(json)) {
-      feedList = json as SurgeFeedEntry[];
-    } else if (json && typeof json === 'object') {
-      const obj = json as Record<string, unknown>;
-      feedList = Array.isArray(obj.data)
-        ? (obj.data as SurgeFeedEntry[])
-        : Array.isArray(obj.feeds)
-          ? (obj.feeds as SurgeFeedEntry[])
-          : [];
-    } else {
-      feedList = [];
-    }
+    feedList.push(...expansionEntries.filter((entry): entry is SurgeFeedEntry => entry !== null));
 
     for (const entry of feedList) {
       // Resolve base/quote — `symbol` is `{ base, quote }` in the confirmed
@@ -845,6 +859,7 @@ export async function discoverSwitchboardFeeds(): Promise<DiscoveryResult> {
       if (!base) continue;
       // Only keep USD-quoted pairs.
       if (quote && quote !== 'USD') continue;
+      if (!projectSymbols.has(base)) continue;
 
       // Resolve the feed hash: prefer WEIGHTED source from the nested
       // `feeds` array; fall back to a flat feed id field.
@@ -862,25 +877,17 @@ export async function discoverSwitchboardFeeds(): Promise<DiscoveryResult> {
         decimals: 18,
         category: inferCategory(base),
         is_active: true,
-        source: 'switchboard-crossbar',
-        metadata: { feedHash, quote: 'USD', source_type: 'surge-weighted' },
+        source:
+          base === 'BTC' || base === 'ETH' ? 'switchboard-surge-plug' : 'switchboard-simulation',
+        metadata: {
+          feedHash,
+          quote: 'USD',
+          source_type: 'surge-weighted',
+          access_mode:
+            base === 'BTC' || base === 'ETH' ? 'signed-surge-plug' : 'unsigned-simulation',
+          counts_toward_quorum: base === 'BTC' || base === 'ETH',
+        },
       });
-    }
-
-    // Catalogue availability does not imply price-read availability. Crossbar
-    // has previously kept /stream/surge_feeds up while /v2/update returned 404
-    // for every feed. Fail the whole discovery closed in that state so no rows
-    // become active merely because a dead catalogue is enumerable.
-    const sentinel = result.feeds[0];
-    if (sentinel?.address) {
-      const probe = await fetch(
-        `${SWITCHBOARD_CROSSBAR_URL}/v2/update/${normalizeSwitchboardFeedId(sentinel.address)}?chain=evm&network=mainnet&use_timestamp=true`,
-        { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10_000) }
-      );
-      if (!probe.ok) {
-        result.feeds = [];
-        throw new Error(`Switchboard price endpoint unavailable (${probe.status})`);
-      }
     }
 
     result.discovered = result.feeds.length;

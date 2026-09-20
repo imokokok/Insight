@@ -36,6 +36,7 @@ const VERIFY_CONCURRENCY = 8;
 const VERIFY_TIMEOUT_MS = 10_000;
 const CHAINLINK_VERIFY_CONCURRENCY = 4;
 const CHAINLINK_VERIFY_TIMEOUT_MS = 4_000;
+const SWITCHBOARD_VERIFY_CONCURRENCY = 2;
 
 function maxFeedAgeMs(feed: OracleFeed | OracleFeedInsert): number {
   const metadata = (feed.metadata || {}) as Record<string, unknown>;
@@ -257,12 +258,20 @@ async function verifyDiscoveredFeeds(
     ? 1
     : feeds.every((feed) => feed.provider === OracleProvider.CHAINLINK)
       ? CHAINLINK_VERIFY_CONCURRENCY
-      : VERIFY_CONCURRENCY;
+      : feeds.every((feed) => feed.provider === OracleProvider.SWITCHBOARD)
+        ? SWITCHBOARD_VERIFY_CONCURRENCY
+        : VERIFY_CONCURRENCY;
   const results = await mapWithConcurrency(feeds, concurrency, async (feed, index) => {
     if (feed.provider === OracleProvider.WINKLINK && index > 0) {
       // Public TronGrid permits 15 calls per 30-second window. Each feed needs
       // three calls, so space starts by 6.5s to stay below the free-tier cap.
       await new Promise((resolve) => setTimeout(resolve, 6_500));
+    }
+    if (feed.provider === OracleProvider.SWITCHBOARD && index > 0) {
+      // Crossbar's free simulation endpoint rate-limits provider-wide bursts.
+      // Stagger starts so a weekly discovery does not turn healthy feeds into
+      // false negatives through HTTP 429 responses.
+      await new Promise((resolve) => setTimeout(resolve, index * 250));
     }
     // RedStone discovery self-verifies from the live price the `provider=redstone`
     // catalog already returns (see discoverRedStoneFeeds). Skip the per-symbol

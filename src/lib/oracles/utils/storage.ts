@@ -51,6 +51,8 @@ function priceDataToRecord(priceData: PriceData): PriceRecordInsert {
 }
 
 function recordToPriceData(record: PriceRecord): PriceData {
+  const isSwitchboardSimulation = record.source === 'switchboard-simulation';
+  const isSwitchboardSigned = record.source === 'switchboard-surge-signed';
   return {
     provider: record.provider as OracleProvider,
     symbol: record.symbol,
@@ -60,6 +62,16 @@ function recordToPriceData(record: PriceRecord): PriceData {
     decimals: record.decimals ?? undefined,
     confidence: record.confidence ?? undefined,
     source: record.source ?? undefined,
+    verificationLevel: isSwitchboardSimulation
+      ? 'unsigned'
+      : isSwitchboardSigned
+        ? 'signed'
+        : undefined,
+    countsTowardOracleQuorum: isSwitchboardSimulation
+      ? false
+      : isSwitchboardSigned
+        ? true
+        : undefined,
     verification: record.verification ?? undefined,
     ingestionTimestamp: record.ingestion_timestamp
       ? new Date(record.ingestion_timestamp).getTime()
@@ -184,7 +196,13 @@ export async function getPriceFromDatabase(
 
   try {
     const queries = getAdminQueries();
-    const record = await queries.getLatestPrice(provider, symbol, chain);
+    // Signed Switchboard Surge updates are chain-agnostic and are persisted
+    // once with chain=NULL. Prefer that global signed row over any older
+    // chain-specific simulation fallback.
+    const globalSwitchboardRecord =
+      provider === 'switchboard' ? await queries.getLatestPrice(provider, symbol, null) : null;
+    const record =
+      globalSwitchboardRecord ?? (await queries.getLatestPrice(provider, symbol, chain));
 
     if (!record) {
       return null;

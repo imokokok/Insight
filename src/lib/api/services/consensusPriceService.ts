@@ -38,6 +38,8 @@ export interface ConsensusProviderPrice {
   dataAgeSeconds: number | null;
   source?: string;
   verification?: PriceData['verification'];
+  verificationLevel?: PriceData['verificationLevel'];
+  countsTowardOracleQuorum: boolean;
   reputationScore: number | null;
   status: 'success' | 'unsupported' | 'error';
   /** Effectively stale: oracle-true age is old AND price diverges from the
@@ -269,6 +271,8 @@ function buildProviderPrice(
     dataAgeSeconds,
     source: priceData?.source,
     verification: priceData?.verification,
+    verificationLevel: priceData?.verificationLevel,
+    countsTowardOracleQuorum: priceData?.countsTowardOracleQuorum !== false,
     reputationScore: reputations.get(result.provider) ?? null,
     status: result.status,
     isStale,
@@ -282,7 +286,9 @@ function pickRecommendedProvider(
   if (successfulPrices.length === 0) return null;
 
   const scored = successfulPrices
-    .filter((p) => p.status === 'success' && p.price > 0 && !p.isOutlier)
+    .filter(
+      (p) => p.status === 'success' && p.price > 0 && !p.isOutlier && p.countsTowardOracleQuorum
+    )
     .map((p) => {
       const deviationScore =
         p.deviationPct === null ? 0 : Math.max(0, 1 - Math.abs(p.deviationPct) / 1); // 1% deviation = 0
@@ -343,7 +349,12 @@ export async function getConsensusPrice(
 
   const successfulInputs = fetchResults
     .filter((r): r is FetchProviderPriceResult & { priceData: PriceData } =>
-      Boolean(r.status === 'success' && r.priceData && r.priceData.price > 0)
+      Boolean(
+        r.status === 'success' &&
+        r.priceData &&
+        r.priceData.price > 0 &&
+        r.priceData.countsTowardOracleQuorum !== false
+      )
     )
     .map((r) => ({
       provider: r.provider,
@@ -399,8 +410,18 @@ export async function getConsensusPrice(
     Date.now()
   );
 
+  const quorumExcludedProviders = fetchResults
+    .filter(
+      (result) =>
+        result.status === 'success' && result.priceData?.countsTowardOracleQuorum === false
+    )
+    .map((result) => result.provider);
+  const excludedProviders = [
+    ...new Set([...consensus.excludedProviders, ...quorumExcludedProviders]),
+  ];
+
   const providerPrices = fetchResults.map((result) =>
-    buildProviderPrice(result, consensus.price, consensus.excludedProviders, reputationScoreMap)
+    buildProviderPrice(result, consensus.price, excludedProviders, reputationScoreMap)
   );
 
   const recommendedProvider = pickRecommendedProvider(providerPrices);
@@ -415,8 +436,8 @@ export async function getConsensusPrice(
     confidenceLevel: consensus.confidenceLevel,
     agreement: consensus.agreement,
     participantCount: consensus.participantCount,
-    excludedCount: consensus.excludedCount,
-    excludedProviders: consensus.excludedProviders,
+    excludedCount: excludedProviders.length,
+    excludedProviders,
     priceRange: consensus.priceRange,
     methodResults: consensus.methodResults,
     providers: providerPrices,

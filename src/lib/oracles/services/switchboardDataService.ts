@@ -1,5 +1,4 @@
 import { createLogger } from '@/lib/utils/logger';
-import { nowInSeconds } from '@/lib/utils/time';
 
 import { OracleCache, createSingleton } from '../base';
 import {
@@ -9,26 +8,25 @@ import {
   getSwitchboardFeedIdAsync,
   normalizeSwitchboardFeedId,
 } from '../constants/switchboardConstants';
-import { bigIntToPrice } from '../utils/oracleDataUtils';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '../utils/retry';
 
 const logger = createLogger('SwitchboardDataService');
 
 const REQUEST_TIMEOUT = 15000;
 
-interface SwitchboardMedianResponse {
-  value: string;
+interface SwitchboardSimulationFeed {
   feedHash: string;
-  numOracles: number;
+  feedName: string;
+  results: string[];
+  receipts: unknown;
+  network: string;
 }
 
-interface SwitchboardUpdateResponse {
-  medianResponses: SwitchboardMedianResponse[];
-  oracleResponses: unknown[];
-  timestamp: number;
-  slot: number;
-  recentHash: string;
-  encoded: string;
+interface SwitchboardSimulationResponse {
+  feeds: SwitchboardSimulationFeed[];
+  totalFeeds: number;
+  successfulFeeds: number;
+  failedFeeds: number;
 }
 
 export interface SwitchboardLatestPriceData {
@@ -39,6 +37,8 @@ export interface SwitchboardLatestPriceData {
   timestamp: number;
   numOracles: number;
   symbol: string;
+  transport: 'simulation';
+  signed: false;
 }
 
 class SwitchboardApiError extends Error {
@@ -54,11 +54,11 @@ class SwitchboardApiError extends Error {
 }
 
 /**
- * Reads the latest signed Switchboard Surge price for a symbol via the public
- * Crossbar gateway (`GET /v2/update/{feedHash}`). The call is free and
- * unauthenticated — Insight only consumes the off-chain `medianResponses`
- * consensus value, never submitting the `encoded` payload on-chain (which is
- * the only path that can incur a fee on some networks).
+ * Reads a free, unsigned Switchboard simulation result from Crossbar.
+ *
+ * Signed realtime BTC/ETH values are ingested separately by the persistent
+ * Surge Plug worker. This HTTP fallback is deliberately labelled unsigned and
+ * is never allowed to count toward Insight's oracle quorum.
  */
 class SwitchboardDataService {
   private cache = new OracleCache();
@@ -83,7 +83,7 @@ class SwitchboardDataService {
 
     const feedId = normalizeSwitchboardFeedId(resolvedFeedId);
 
-    const cacheKey = `crossbar:latest:${feedId}`;
+    const cacheKey = `crossbar:simulate:${feedId}`;
     const cached = this.cache.get<SwitchboardLatestPriceData>(cacheKey);
     if (cached) {
       return cached;
@@ -100,7 +100,7 @@ class SwitchboardDataService {
             throw new SwitchboardApiError('Request was aborted', 'ABORT_ERROR');
           }
 
-          const url = `${SWITCHBOARD_CROSSBAR_URL}/v2/update/${feedId}?chain=evm&network=mainnet&use_timestamp=true`;
+          const url = `${SWITCHBOARD_CROSSBAR_URL}/v2/simulate/${feedId}`;
           const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT);
           const combinedSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
 
@@ -125,37 +125,37 @@ class SwitchboardDataService {
             );
           }
 
-          const data = (await response.json()) as SwitchboardUpdateResponse;
-          const median = data.medianResponses?.[0];
+          const data = (await response.json()) as SwitchboardSimulationResponse;
+          const simulated = data.feeds?.[0]?.results?.[0];
 
-          if (!median || !median.value) {
+          if (!simulated || data.successfulFeeds < 1) {
             throw new SwitchboardApiError(
-              `No median response for ${upperSymbol} from Crossbar`,
+              `No simulation result for ${upperSymbol} from Crossbar`,
               'NO_DATA'
             );
           }
 
-          const rawPrice = BigInt(median.value);
-          const price = bigIntToPrice(rawPrice, SWITCHBOARD_DECIMALS);
+          const price = Number(simulated);
 
           if (!isFinite(price) || price <= 0) {
             throw new SwitchboardApiError(
-              `Invalid price for ${upperSymbol}: ${median.value}`,
+              `Invalid price for ${upperSymbol}: ${simulated}`,
               'INVALID_DATA'
             );
           }
-
-          // Crossbar `timestamp` is unix seconds when use_timestamp=true.
-          const timestampMs = (data.timestamp ?? nowInSeconds()) * 1000;
 
           return {
             price,
             feedId,
             decimals: SWITCHBOARD_DECIMALS,
-            timestamp: timestampMs,
-            numOracles: median.numOracles ?? 1,
+            // /v2/simulate has no source timestamp. This is an ingestion time,
+            // another reason it cannot satisfy signed quorum requirements.
+            timestamp: Date.now(),
+            numOracles: 0,
             symbol: upperSymbol,
-          };
+            transport: 'simulation',
+            signed: false,
+          } satisfies SwitchboardLatestPriceData;
         },
         'switchboard:fetchLatestPrice',
         ORACLE_RETRY_PRESETS.standard
