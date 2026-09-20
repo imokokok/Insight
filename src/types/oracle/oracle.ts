@@ -24,7 +24,6 @@ export type OracleErrorCode =
   | 'REDSTONE_ERROR'
   | 'WINKLINK_ERROR'
   | 'SUPRA_ERROR'
-  | 'SWITCHBOARD_ERROR'
   | 'TWAP_ERROR';
 
 export class OracleServiceError extends AppError {

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add typed Robinhood Stock Token issuer context with multiplier-normalized
+  reference pricing, explicit oracle-quorum exclusion, REST/deployment consistency
+  checks and optional ERC-8056 UID/multiplier on-chain verification.
+
 - Add independent RWA v2 signing domain with sequence/predecessor binding, explicit
   admitted Uniswap V3 calldata semantics and receiver eligibility; preserve v1 bytes.
 - Add detailed verification axes and a shared exact uint256 bound for SDK/HTTP/schema.

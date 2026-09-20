@@ -8,7 +8,6 @@ import {
   discoverRedStoneFeeds,
   discoverReflectorFeeds,
   discoverSupraFeeds,
-  discoverSwitchboardFeeds,
   discoverWINkLinkFeeds,
   verifyExistingFeeds,
 } from './providerDiscoverers';
@@ -42,10 +41,6 @@ class FeedDiscoveryService {
     return discoverFlareFeeds();
   }
 
-  async discoverSwitchboardFeeds(): Promise<DiscoveryResult> {
-    return discoverSwitchboardFeeds();
-  }
-
   async verifyExistingFeeds(provider: string): Promise<DiscoveryResult> {
     return verifyExistingFeeds(provider);
   }
@@ -60,7 +55,6 @@ class FeedDiscoveryService {
       ['redstone', () => discoverRedStoneFeeds()],
       ['api3', () => discoverAPI3Feeds()],
       ['flare', () => discoverFlareFeeds()],
-      ['switchboard', () => discoverSwitchboardFeeds()],
       // No public API — verify existing
       ['winklink', () => discoverWINkLinkFeeds()],
       ['twap', () => verifyExistingFeeds('twap')],

@@ -8,7 +8,6 @@ export enum OracleProvider {
   TWAP = 'twap',
   REFLECTOR = 'reflector',
   FLARE = 'flare',
-  SWITCHBOARD = 'switchboard',
 }
 
 export enum Blockchain {

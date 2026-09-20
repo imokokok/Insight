@@ -55,8 +55,8 @@ describe('sample receipt route', () => {
     expect(att.eip712.domain.version).toBe('3');
     expect(att.attester).toBe(TEST_ATTESTER);
     expect(att.data.verdict).toBe('PASS');
-    // Seven distinct non-derived providers → independence gate clears.
-    expect(att.data.participantCount).toBe(7);
+    // Six distinct non-derived providers → independence gate clears.
+    expect(att.data.participantCount).toBe(6);
     expect(att.data.independenceStatus).toBe('ASSESSED');
     expect(att.data.coverageStatus).toBe('SUFFICIENT');
     // v3's added field: the independence threshold is SIGNED, not implied.

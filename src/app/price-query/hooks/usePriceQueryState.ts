@@ -134,7 +134,6 @@ export function usePriceQueryState(): UsePriceQueryStateReturn {
         dia: OracleProvider.DIA,
         winklink: OracleProvider.WINKLINK,
         supra: OracleProvider.SUPRA,
-        switchboard: OracleProvider.SWITCHBOARD,
       };
 
       const timeRangeMapping: Record<string, number> = {

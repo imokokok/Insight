@@ -24,7 +24,6 @@ export const SAMPLE_PROVIDERS: Array<{ provider: string; feedId: string }> = [
   { provider: 'dia', feedId: 'ETH/USD' },
   { provider: 'supra', feedId: 'eth_usd' },
   { provider: 'winklink', feedId: 'ETH/USD' },
-  { provider: 'switchboard', feedId: 'ETH/USD' },
 ];
 
 /** Representative ETH/USDC swap observation set (price ~3000 USD). */

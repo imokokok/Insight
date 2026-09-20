@@ -31,7 +31,6 @@ export const PROVIDER_SOURCE_GROUP: Readonly<Record<string, string>> = {
   twap: 'twap',
   reflector: 'reflector',
   flare: 'flare',
-  switchboard: 'switchboard',
 } as const;
 
 /** Groups that are DERIVED (on-chain, not externally attested). Excluded from

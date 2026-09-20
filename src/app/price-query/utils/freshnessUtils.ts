@@ -48,7 +48,6 @@ const HEALTH_WEIGHTS = {
 
 export const ORACLE_UPDATE_FREQUENCIES: Record<OracleProvider, number> = {
   redstone: 1,
-  switchboard: 1,
   supra: 60,
   flare: 90,
   reflector: 300,

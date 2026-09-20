@@ -7,6 +7,7 @@ import {
   Code,
   Database,
   ExternalLink,
+  Landmark,
   Layers,
   Server,
   ShieldCheck,
@@ -47,7 +48,7 @@ const docs: DocCard[] = [
     icon: <Layers className="w-6 h-6" />,
     title: 'Architecture',
     description:
-      'Next.js App Router with Supabase, React Query, Zustand, and 10 oracle client implementations.',
+      'Next.js App Router with Supabase, React Query, Zustand, and 9 oracle client implementations.',
     href: '#architecture',
     tags: ['Next.js', 'Supabase', 'TypeScript'],
     accent: 'blue',
@@ -57,11 +58,20 @@ const docs: DocCard[] = [
     icon: <Database className="w-6 h-6" />,
     title: 'Data Sources',
     description:
-      '10 oracle providers including Chainlink, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare, and Switchboard.',
+      '9 oracle providers including Chainlink, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, and Flare.',
     href: '#data-sources',
-    tags: ['10 Oracles', '40+ Chains', 'On-chain Data'],
+    tags: ['9 Oracles', '40+ Chains', 'On-chain Data'],
     accent: 'amber',
     anchor: true,
+  },
+  {
+    icon: <Landmark className="w-6 h-6" />,
+    title: 'RWA issuer context',
+    description:
+      'Use Robinhood Stock Token status, corporate actions, and multiplier verification without treating the issuer as an independent oracle.',
+    href: '/docs/api',
+    tags: ['Robinhood', 'Issuer Context', 'Non-Quorum'],
+    accent: 'amber',
   },
   {
     icon: <Bot className="w-6 h-6" />,
@@ -69,7 +79,7 @@ const docs: DocCard[] = [
     description:
       'Connect Claude, Cursor, and other MCP clients to oracle prices, risk summaries, pre-trade safety checks, Oracle Watch monitoring, liquidation stress tests, and more.',
     href: '/ai',
-    tags: ['AI Agents', '34 Tools', 'MCP', 'Pre-Trade Safety'],
+    tags: ['AI Agents', '39 Tools', 'MCP', 'Pre-Trade Safety'],
     accent: 'blue',
   },
   {

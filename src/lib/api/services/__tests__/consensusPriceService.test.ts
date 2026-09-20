@@ -163,41 +163,6 @@ describe('getConsensusPrice failure semantics', () => {
     expect(probe.providers[0].status).toBe('error');
     await expect(getConsensusPrice('AERO', Blockchain.BASE)).rejects.toBeInstanceOf(InternalError);
   });
-
-  it('exposes unsigned Switchboard simulation without counting it toward quorum', async () => {
-    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
-      feeds: new Map<string, unknown[]>([
-        [OracleProvider.SWITCHBOARD, [{ symbol: 'AERO/USD', chain_id: 0 }]],
-      ]),
-      errored: false,
-    });
-    isSymbolSupported.mockImplementation(
-      (_symbol: string, chain?: Blockchain) => chain === Blockchain.BASE
-    );
-    mockFetchPriceWithDatabase.mockResolvedValue({
-      provider: OracleProvider.SWITCHBOARD,
-      symbol: 'AERO',
-      chain: Blockchain.BASE,
-      price: 0.75,
-      timestamp: Date.now(),
-      source: 'switchboard-simulation',
-      verificationLevel: 'unsigned',
-      countsTowardOracleQuorum: false,
-    });
-
-    const result = await getConsensusPrice('AERO', Blockchain.BASE, undefined, undefined, {
-      allowUnavailable: true,
-    });
-
-    expect(result.participantCount).toBe(0);
-    expect(result.excludedProviders).toContain(OracleProvider.SWITCHBOARD);
-    expect(result.providers[0]).toMatchObject({
-      status: 'success',
-      verificationLevel: 'unsigned',
-      countsTowardOracleQuorum: false,
-      isOutlier: true,
-    });
-  });
 });
 
 describe('concurrent public source reads', () => {

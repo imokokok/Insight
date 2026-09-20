@@ -13,11 +13,10 @@ const providers = [
   { name: 'TWAP', type: 'On-chain', chains: 'DEX TWAP oracles' },
   { name: 'Reflector', type: 'On-chain', chains: 'Stellar / Soroban' },
   { name: 'Flare', type: 'On-chain', chains: 'Flare Network' },
-  { name: 'Switchboard', type: 'API / On-chain', chains: 'EVM, Solana, Sui, Aptos (Crossbar)' },
 ];
 
 const highlights = [
-  { label: 'Oracle Providers', value: '10+' },
+  { label: 'Oracle Providers', value: '9' },
   { label: 'Supported Chains', value: '40+' },
   { label: 'Data Type', value: 'On-chain & API' },
 ];
@@ -156,6 +155,18 @@ export default function DataSourcesSection() {
                 </p>
               </div>
             </div>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="border-l-2 border-amber-600 bg-amber-50/70 p-6"
+          >
+            <h4 className="font-semibold text-slate-900 mb-1">Issuer context is not an oracle</h4>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Robinhood Stock Token metadata, trading state, corporate actions, and multiplier data
+              are exposed separately as first-party issuer context. Robinhood is not added to the
+              provider count, consensus quorum, independence groups, or provider reputation.
+            </p>
           </motion.div>
         </motion.div>
       </div>

@@ -47,7 +47,6 @@ jobs:
           - twap-token
           - reflector
           - flare
-          - switchboard
     steps:
       - uses: actions/checkout@v5
 

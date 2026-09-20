@@ -92,11 +92,20 @@ authenticate Data Streams reports or reuse mid timestamps for bid/ask data.
 Neither adapter fabricates instrument-halt, corporate-action or issuer evidence.
 Scaling rejects precision loss/overflow rather than silently rounding.
 
+For Robinhood Stock Tokens, the optional
+[Robinhood issuer-context integration](rwa-robinhood.md) supplies first-party halt,
+corporate-action and multiplier facts plus an on-chain ERC-8056 cross-check. It is
+explicitly excluded from oracle quorum and remains non-authorizing.
+
 ## HTTP and MCP
 
 - `POST /api/v1/rwa/assessment`, JSON body `{input, policy}`.
+- `GET /api/v1/rwa/robinhood/context?symbol=AAPL` retrieves non-authorizing
+  first-party issuer context; it is not an oracle observation.
 - Typed client: `InsightClient.rwaAssessment(input, policy)`.
+- Typed issuer-context client: `InsightClient.robinhoodRwaContext(symbol)`.
 - MCP tool: `assess_rwa_evidence`.
+- MCP issuer-context tool: `get_robinhood_rwa_context`.
 - [Machine-readable strict request schema](../public/rwa-assessment.schema.json).
 - Authentication/credits use existing middleware. HTTP and MCP cost C1 (0.5 credit);
   no paid feed retrieval or production signing occurs in this endpoint.

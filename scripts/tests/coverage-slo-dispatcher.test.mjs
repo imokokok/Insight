@@ -118,7 +118,7 @@ test('Coverage SLO workflow records dispatched runs and guards its delayed nativ
   assert.match(workflow, /node scripts\/cron-control\.mjs finish/);
   assert.ok(
     workflow.indexOf('node scripts/cron-control.mjs finish') <
-      workflow.indexOf('Coverage readiness needs attention'),
-    'collection must be marked successful before a rolling SLO alert fails the job'
+      workflow.indexOf('Report latest-sample failure or rolling SLO warning'),
+    'collection must be marked successful before the latest-sample alert can fail the job'
   );
 });

@@ -3,6 +3,7 @@ import { InsightApiError } from './errors';
 import { stripTrailingSlashes } from './url';
 
 import type { RwaInput, RwaPolicy, RwaReport } from './rwa';
+import type { RobinhoodRwaContext } from './rwa-robinhood';
 import type {
   CoverageRequest,
   CoverageResult,
@@ -84,6 +85,25 @@ export class InsightClient {
     report: RwaReport;
   }> {
     return this.request('POST', '/api/v1/rwa/assessment', { body: { input, policy }, signal });
+  }
+
+  /**
+   * First-party issuer context for one Robinhood Stock Token. This is not an
+   * independent oracle observation and never counts toward oracle quorum.
+   */
+  async robinhoodRwaContext(
+    symbol: string,
+    options: { verifyOnchain?: boolean } = {},
+    signal?: AbortSignal
+  ): Promise<RobinhoodRwaContext> {
+    return this.request('GET', '/api/v1/rwa/robinhood/context', {
+      query: {
+        symbol,
+        verifyOnchain:
+          options.verifyOnchain === undefined ? undefined : String(options.verifyOnchain),
+      },
+      signal,
+    });
   }
 
   /** Coverage is diagnostic metadata, never a signed safety decision. */

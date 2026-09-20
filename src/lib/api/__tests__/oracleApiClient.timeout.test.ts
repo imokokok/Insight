@@ -27,7 +27,7 @@ describe('getMultiOracleBatchTimeoutMs', () => {
 
 describe('getCrossChainBatchTimeoutMs', () => {
   it('accounts for every bounded-concurrency chain wave', () => {
-    expect(getCrossChainBatchTimeoutMs(OracleProvider.SWITCHBOARD, 16)).toBe(53_000);
+    expect(getCrossChainBatchTimeoutMs(OracleProvider.FLARE, 16)).toBe(53_000);
   });
 
   it('keeps a buffer for a single chain request', () => {

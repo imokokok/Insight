@@ -35,7 +35,7 @@ Design and rationale: [coverage-slo-design.md](./coverage-slo-design.md).
    report; the SDK refuses it for execution.
 3. Distribute the signer address, key validity interval, revocation status and
    policy ID to consumers independently. The reviewed reference is checked in at
-   `protocol/coverage/trust/production-v1.json` and mirrored for discovery at
+   `protocol/coverage/trust/production-v2.json` and mirrored for discovery at
    `/.well-known/insight-coverage-trust.v1.json`. The proof, hosted mirror and
    policy discovery endpoint are not themselves a trust root: consumers must pin
    the reviewed bytes or signer address through their own authenticated deployment

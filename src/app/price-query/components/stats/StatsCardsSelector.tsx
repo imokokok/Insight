@@ -20,7 +20,6 @@ import { FlareStats } from './FlareStats';
 import { RedStoneStats } from './RedStoneStats';
 import { ReflectorStats } from './ReflectorStats';
 import { SupraStats } from './SupraStats';
-import { SwitchboardStats } from './SwitchboardStats';
 import { TwapStats } from './TwapStats';
 import { VerificationStatCard } from './VerificationStatCard';
 import { WINkLinkStats } from './WINkLinkStats';
@@ -135,19 +134,6 @@ export function StatsCardsSelector({
           return <FlareStats data={flareOnChainData as FlareTokenOnChainData} />;
         }
         return null;
-
-      case OracleProviderEnum.SWITCHBOARD:
-        if (!priceData) return null;
-        return (
-          <SwitchboardStats
-            feedId={priceData.feedId}
-            numOracles={priceData.numOracles}
-            decimals={priceData.decimals}
-            confidence={priceData.confidence}
-            source={priceData.source}
-            ingestionTimestamp={priceData.ingestionTimestamp}
-          />
-        );
 
       default:
         return null;

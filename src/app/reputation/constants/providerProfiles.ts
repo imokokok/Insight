@@ -191,23 +191,6 @@ export const PROVIDER_PROFILES: Record<OracleProvider, ProviderProfile> = {
       { icon: Activity, label: 'Update', value: '~90s' },
     ],
   },
-  switchboard: {
-    tagline: 'On-Demand Multichain Oracle',
-    description:
-      'Switchboard On-Demand oracle aggregating multi-source prices into signed Surge feeds, served via the public Crossbar gateway with deterministic feed hashes and free off-chain reads.',
-    highlights: [
-      'Free off-chain reads via Crossbar',
-      'Multi-source aggregated Surge feeds',
-      'Deterministic feed hashes',
-      'Cross-chain signed updates',
-    ],
-    features: [
-      { icon: Globe, label: 'Chains', value: '16+' },
-      { icon: Layers, label: 'Feeds', value: '80+' },
-      { icon: Shield, label: 'TVS', value: '$300M+' },
-      { icon: Zap, label: 'Update', value: '~1s' },
-    ],
-  },
 };
 
 // ------------------------------------------------------------------

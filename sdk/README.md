@@ -6,6 +6,10 @@ Agent/DeFi flows. These additions are not yet in the published 0.4.0 package.
 The [RWA v2 additions](../docs/rwa-v2.md) export `buildRwaReportV2`,
 `rwaV2SigningData`, `inspectRwaReportV2`, `decodeRwaCall` and
 `assessRwaCallOutcome`; source and frozen signing vectors are pinned in CI.
+The optional [Robinhood issuer-context integration](../docs/rwa-robinhood.md) is
+available through `InsightClient.robinhoodRwaContext(symbol)`. It verifies
+first-party trading, corporate-action and multiplier facts without counting
+Robinhood as an independent oracle or authorizing execution.
 
 The execution workflow SDK for Insight. It connects the existing paid API surfaces into one agent-safe flow:
 

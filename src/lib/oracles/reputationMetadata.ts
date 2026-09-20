@@ -24,5 +24,4 @@ export const PROVIDER_TYPE_CONFIG: Record<OracleProvider, ProviderTypeConfig> = 
   [OracleProvider.DIA]: { type: 'api', latencyBaseline: 500 },
   [OracleProvider.REDSTONE]: { type: 'api', latencyBaseline: 350 },
   [OracleProvider.SUPRA]: { type: 'api', latencyBaseline: 500 },
-  [OracleProvider.SWITCHBOARD]: { type: 'api', latencyBaseline: 450 },
 };

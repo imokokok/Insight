@@ -95,7 +95,7 @@ export function McpConfigGenerator({ defaultApiKey, onApiKeyChange }: McpConfigG
         </p>
         <p className="mt-1 text-xs text-slate-500">
           MCP tool calls are credit-metered per call (C1–C4) — subscribe or top up credits. Every
-          paying user gets all 37 tools.{' '}
+          paying user gets all 39 tools.{' '}
           <Link href="/pricing" className="text-blue-600 hover:underline">
             See pricing →
           </Link>

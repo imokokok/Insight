@@ -19,6 +19,7 @@ export async function integrationDoctor(options = {}) {
     probe = false,
     samples = 1,
     asset = 'USDC',
+    robinhoodSymbol = null,
     chainId = 1,
     maxSourceAgeSeconds = 300,
     fetcher = fetch,
@@ -38,6 +39,10 @@ export async function integrationDoctor(options = {}) {
   )
     throw new Error('chain and freshness must be positive integers');
   if (!/^[A-Za-z0-9._-]{1,40}$/.test(asset)) throw new Error('Invalid asset symbol');
+  if (robinhoodSymbol !== null && !/^[A-Za-z][A-Za-z0-9.-]{0,15}$/.test(robinhoodSymbol))
+    throw new Error('Invalid Robinhood Stock Token symbol');
+  if (robinhoodSymbol !== null && !probe)
+    throw new Error('robinhoodSymbol requires the explicit billable probe option');
   if (probe && (offer === 'priorseal' || !apiKey))
     throw new Error(
       'An Insight offer and INSIGHT_API_KEY are required for the explicit, billable probe'
@@ -116,6 +121,45 @@ export async function integrationDoctor(options = {}) {
             }
           : null;
       }
+    if (probe && robinhoodSymbol) {
+      const query = new URLSearchParams({
+        symbol: robinhoodSymbol.toUpperCase(),
+        verifyOnchain: 'true',
+      });
+      const { body, check } = await read(base, `/api/v1/rwa/robinhood/context?${query}`, true);
+      const context = body?.data;
+      check.ok &&=
+        context?.source?.type === 'issuer-first-party' &&
+        context?.source?.independent === false &&
+        context?.source?.countsTowardOracleQuorum === false &&
+        context?.integrity?.mayAuthorizeExecution === false &&
+        context?.verification?.assetIdMatchesOnchain === true &&
+        context?.verification?.assetDeploymentRegistered === true &&
+        context?.verification?.quoteSymbolMatchesAsset === true &&
+        context?.verification?.quoteDeploymentMatchesAsset === true &&
+        context?.verification?.corporateActionSymbolsMatchAsset === true &&
+        context?.verification?.corporateActionDeploymentsMatchAsset === true &&
+        context?.multiplier?.onchain?.complete === true &&
+        context?.multiplier?.currentMatchesOnchain === true;
+      check.diagnostic = context
+        ? {
+            symbol: context.asset?.tokenSymbol,
+            integrityStatus: context.integrity?.status,
+            reasonCodes: context.integrity?.reasonCodes,
+            rpcMode: context.multiplier?.onchain?.rpcMode,
+            onchainComplete: context.multiplier?.onchain?.complete,
+            assetIdMatchesOnchain: context.verification?.assetIdMatchesOnchain,
+            assetDeploymentRegistered: context.verification?.assetDeploymentRegistered,
+            quoteSymbolMatchesAsset: context.verification?.quoteSymbolMatchesAsset,
+            quoteDeploymentMatchesAsset: context.verification?.quoteDeploymentMatchesAsset,
+            corporateActionSymbolsMatchAsset:
+              context.verification?.corporateActionSymbolsMatchAsset,
+            corporateActionDeploymentsMatchAsset:
+              context.verification?.corporateActionDeploymentsMatchAsset,
+            currentMultiplierMatchesOnchain: context.multiplier?.currentMatchesOnchain,
+          }
+        : null;
+    }
   }
   if (offer !== 'insight') {
     const base = origin(priorsealUrl);
@@ -134,7 +178,9 @@ export async function integrationDoctor(options = {}) {
     offer,
     ok: checks.every((c) => c.ok),
     scope: probe
-      ? 'PUBLIC_HEALTH_AND_BILLABLE_COVERAGE_NOT_SIGNED_ASSESSMENT'
+      ? robinhoodSymbol
+        ? 'PUBLIC_HEALTH_BILLABLE_COVERAGE_AND_ROBINHOOD_ISSUER_CONTEXT'
+        : 'PUBLIC_HEALTH_AND_BILLABLE_COVERAGE_NOT_SIGNED_ASSESSMENT'
       : 'PUBLIC_HEALTH_AND_CONFIGURATION_ONLY',
     checks,
   };
@@ -148,6 +194,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         probe: { type: 'boolean' },
         samples: { type: 'string' },
         asset: { type: 'string' },
+        'robinhood-symbol': { type: 'string' },
         chain: { type: 'string' },
         freshness: { type: 'string' },
       },
@@ -157,6 +204,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       probe: values.probe,
       samples: Number(values.samples ?? 1),
       asset: values.asset,
+      robinhoodSymbol: values['robinhood-symbol'],
       chainId: Number(values.chain ?? 1),
       maxSourceAgeSeconds: Number(values.freshness ?? 300),
     });

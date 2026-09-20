@@ -37,7 +37,7 @@ not proof of independent upstream data.
 
 ## Initial profile
 
-`strict-300s.v1`: at least 3 eligible providers, 2 known non-derived operator
+`strict-300s.v2`: at least 3 eligible providers, 2 known non-derived operator
 groups, source age <=300 seconds, spread <=100 bps relative to median, report
 TTL <=60 seconds and bounded by the earliest included source expiry. These are
 explicit profile settings, not a universal claim that all assets support them.

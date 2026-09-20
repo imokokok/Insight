@@ -83,7 +83,7 @@ export function ApiDocsHeader() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 hidden sm:block">
-                OpenAPI 3.1 · 40 endpoints ·{' '}
+                OpenAPI 3.1 · 55 endpoints ·{' '}
                 <code className="text-blue-600 bg-blue-50 px-1 py-0.5 rounded">
                   www.oracleinsight.xyz/api/v1
                 </code>

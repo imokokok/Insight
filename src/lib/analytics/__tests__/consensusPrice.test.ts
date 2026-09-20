@@ -254,7 +254,7 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     it('should not cap confidence for 3+ sources', () => {
       const inputs = [
         makeInput({ provider: 'chainlink', price: 50000, confidence: 0.95 }),
-        makeInput({ provider: 'switchboard', price: 50100, confidence: 0.95 }),
+        makeInput({ provider: 'supra', price: 50100, confidence: 0.95 }),
         makeInput({ provider: 'redstone', price: 49900, confidence: 0.95 }),
         makeInput({ provider: 'api3', price: 50050, confidence: 0.95 }),
         makeInput({ provider: 'dia', price: 50020, confidence: 0.95 }),
@@ -302,7 +302,6 @@ describe('consensusPrice - dual-source anomaly detection', () => {
     it('should use Z-score detection for 3+ sources', () => {
       const inputs = [
         makeInput({ provider: 'chainlink', price: 50000, confidence: 0.95 }),
-        makeInput({ provider: 'switchboard', price: 50100, confidence: 0.95 }),
         makeInput({ provider: 'redstone', price: 49900, confidence: 0.95 }),
         makeInput({ provider: 'api3', price: 50050, confidence: 0.95 }),
         makeInput({ provider: 'dia', price: 50020, confidence: 0.95 }),
@@ -315,13 +314,13 @@ describe('consensusPrice - dual-source anomaly detection', () => {
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');
 
       expect(result.excludedProviders).toContain('bad_oracle');
-      expect(result.participantCount).toBe(9);
+      expect(result.participantCount).toBe(8);
     });
 
     it('should not cap confidence for 3+ sources', () => {
       const inputs = [
         makeInput({ provider: 'chainlink', price: 50000, confidence: 0.95 }),
-        makeInput({ provider: 'switchboard', price: 50100, confidence: 0.95 }),
+        makeInput({ provider: 'supra', price: 50100, confidence: 0.95 }),
         makeInput({ provider: 'redstone', price: 49900, confidence: 0.95 }),
       ];
       const result = calculateConsensusPrice(inputs, 'median', 'BTC');

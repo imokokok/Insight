@@ -111,7 +111,12 @@ being disabled on a table reachable through the Data API.
 6. Deploy to preview, check `/`, `/login`, `/settings`, `/docs/api`, liveness,
    readiness, and a real authenticated API request. Confirm that data timestamps
    advance and that wallet/payment integrations are still reachable.
-7. Promote the already-tested artifact. Watch 5xx rate, p95 latency, Sentry, CSP
+7. When the Robinhood issuer-context surface is included, configure a dedicated
+   `ROBINHOOD_RPC_URL` and call
+   `/api/v1/rwa/robinhood/context?symbol=AAPL&verifyOnchain=true`. Require matching
+   REST/on-chain UID, deployment and multiplier fields; never treat this check as
+   independent oracle quorum or execution authorization.
+8. Promote the already-tested artifact. Watch 5xx rate, p95 latency, Sentry, CSP
    reports, and snapshot freshness for at least 30 minutes.
 
 ## Load and failure testing

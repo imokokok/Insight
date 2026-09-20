@@ -172,7 +172,6 @@ const providers = [
   'TWAP',
   'Reflector',
   'Flare',
-  'Switchboard',
 ];
 
 const containerVariants = {

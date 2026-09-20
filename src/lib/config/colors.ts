@@ -130,7 +130,6 @@ export const chartColors = {
     chainlink: '#2563EB',
     api3: '#DB2777',
     redstone: '#FF6B6B',
-    switchboard: '#4ECDC4',
     dia: '#6366F1',
     flux: '#F38181',
     winklink: '#FF4D4D',

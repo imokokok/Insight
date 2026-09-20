@@ -16,7 +16,7 @@ export interface OnChainVerification {
   explorerUrl: string;
   method: string;
   blockNumber?: number;
-  /** Switchboard Surge signed-stream evidence (JSONB-compatible). */
+  /** Optional provider signature evidence (JSONB-compatible). */
   signature?: string;
   checksum?: string;
   signer?: string;
@@ -66,12 +66,12 @@ export interface PriceData extends PriceDataBase {
   dataAge?: number;
   // Supra metadata
   pairIndex?: number;
-  // Switchboard metadata
+  // Provider feed metadata
   feedId?: string;
   numOracles?: number;
   /** Whether the provider payload was cryptographically signed. */
   verificationLevel?: 'signed' | 'unsigned';
-  /** Explicit quorum gate. Unsigned simulation prices are display-only. */
+  /** Explicit quorum gate for auxiliary or informational sources. */
   countsTowardOracleQuorum?: boolean;
   // TWAP metadata
   poolAddress?: string;

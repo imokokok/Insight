@@ -165,7 +165,7 @@ describe('oracleSafetyAttestationV3', () => {
     // two signed numbers and reproduce independenceStatus.
     const msg = await buildMessageV3(
       baseInput({
-        // chainlink + api3 + switchboard → 3 distinct non-derived groups
+        // chainlink + api3 + flare → 3 distinct non-derived groups
         providerObservations: [
           {
             provider: 'chainlink',
@@ -186,7 +186,7 @@ describe('oracleSafetyAttestationV3', () => {
             exclusionReason: '',
           },
           {
-            provider: 'switchboard',
+            provider: 'flare',
             feedId: 'c',
             value: 300010000000n,
             timestamp: 1700000002n,

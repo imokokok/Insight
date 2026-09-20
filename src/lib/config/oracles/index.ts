@@ -7,7 +7,6 @@ import { flareConfig } from './flare';
 import { redstoneConfig } from './redstone';
 import { reflectorConfig } from './reflector';
 import { supraConfig } from './supra';
-import { switchboardConfig } from './switchboard';
 import { twapConfig } from './twap';
 import { winklinkConfig } from './winklink';
 
@@ -23,7 +22,6 @@ const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.TWAP]: twapConfig,
   [OracleProvider.REFLECTOR]: reflectorConfig,
   [OracleProvider.FLARE]: flareConfig,
-  [OracleProvider.SWITCHBOARD]: switchboardConfig,
 };
 
 export function getOracleConfig(provider: OracleProvider): OracleConfig {

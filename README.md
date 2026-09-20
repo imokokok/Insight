@@ -1,7 +1,9 @@
 # Insight — Oracle Transparency & Risk Infrastructure
 
 [Unreleased, opt-in RWA/tokenized-equity adaptation](docs/rwa-v1.md) supplements
-the existing Agent/DeFi capabilities; production RWA data and signing are not activated.
+the existing Agent/DeFi capabilities; no production RWA signer or authorization policy is
+activated. The optional [Robinhood Stock Token issuer context](docs/rwa-robinhood.md) is a live,
+read-only first-party data surface and is explicitly excluded from independent oracle quorum.
 The [RWA v2 hardening](docs/rwa-v2.md) adds linked semantic assessments and receiver
 eligibility while preserving the v1 signing contract.
 
@@ -156,7 +158,7 @@ The package supports v1, v2, v3, and v2/v3 recheck receipts. Its schema constant
 
 ### Access
 
-- **MCP tool** — `pre_trade_safety_check` (one of 37 tools).
+- **MCP tool** — `pre_trade_safety_check` (one of 39 tools).
 - **REST** — `GET /api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=100000`.
 - **Web** — interactive demo at `/ai`; the same lending check is embedded live on every position at `/safety-check`.
 
@@ -221,7 +223,7 @@ the proof instead of living only in a log.
 ### Access
 
 - **MCP tools** — `oracle_watch` (live point signal) and `oracle_watch_history`
-  (retrospective trend), two of 37. Pair them with `pre_trade_safety_check` for
+  (retrospective trend), two of 39. Pair them with `pre_trade_safety_check` for
   the decision moment.
 - **REST** — `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` and
   `GET /api/v1/oracle-watch/history?symbol=ETH&chain=arbitrum&days=7`. Every
@@ -301,7 +303,7 @@ signal itself is unchanged.
 ### For AI Agents
 
 - **Pre-Trade Oracle Safety Check** — the flagship checkpoint described above.
-- **37-tool MCP server** — prices, consensus, risk, reputation, Peg Risk across stablecoins and wrapped/LST assets, protocol parameters, position safety, pre-trade checks — callable by Claude, Cursor, Windsurf, and any MCP-compatible client.
+- **39-tool MCP server** — prices, consensus, risk, reputation, Peg Risk across stablecoins and wrapped/LST assets, RWA diagnostics and issuer context, protocol parameters, position safety, pre-trade checks — callable by Claude, Cursor, Windsurf, and any MCP-compatible client.
 - **Verifiable attestations** — signed EIP-712 proof agents can relay to users and protocols, with a standalone local verifier for consumers that need independent verification.
 
 ### Shared
@@ -313,18 +315,17 @@ signal itself is unchanged.
 
 ## Supported Oracles
 
-| Provider    | Type           | Supported Chains                                                                                                                         |
-| ----------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Chainlink   | On-chain       | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, BNB Chain, Base                                                                        |
-| API3        | On-chain dAPIs | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism                                                                        |
-| RedStone    | API / On-chain | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync                                 |
-| DIA         | API / On-chain | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base                                                                                  |
-| WINkLink    | On-chain       | TRON                                                                                                                                     |
-| Supra       | API / On-chain | Ethereum, Arbitrum, Optimism, Polygon, Base, Solana, BNB Chain, Avalanche, zkSync, Scroll, Mantle, Linea, Supra Chain, Aptos, Sui        |
-| TWAP        | On-chain (DEX) | Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain (Uniswap V3 TWAP)                                                                 |
-| Reflector   | On-chain       | Stellar (Soroban)                                                                                                                        |
-| Flare       | On-chain       | Flare (FTSO)                                                                                                                             |
-| Switchboard | API (Crossbar) | Ethereum, Arbitrum, Optimism, Polygon, Solana, Avalanche, BNB Chain, Base, Scroll, zkSync, Aptos, Sui, Mantle, Linea, Flare, Supra Chain |
+| Provider  | Type           | Supported Chains                                                                                                                  |
+| --------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Chainlink | On-chain       | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, BNB Chain, Base                                                                 |
+| API3      | On-chain dAPIs | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism                                                                 |
+| RedStone  | API / On-chain | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync                          |
+| DIA       | API / On-chain | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base                                                                           |
+| WINkLink  | On-chain       | TRON                                                                                                                              |
+| Supra     | API / On-chain | Ethereum, Arbitrum, Optimism, Polygon, Base, Solana, BNB Chain, Avalanche, zkSync, Scroll, Mantle, Linea, Supra Chain, Aptos, Sui |
+| TWAP      | On-chain (DEX) | Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain (Uniswap V3 TWAP)                                                          |
+| Reflector | On-chain       | Stellar (Soroban)                                                                                                                 |
+| Flare     | On-chain       | Flare (FTSO)                                                                                                                      |
 
 ## Supported Protocols (Safety Check)
 
@@ -377,7 +378,7 @@ src/
 ├── hooks/        # React hooks
 ├── lib/          # Core logic — analytics, api, attestations, billing, ml, oracles,
 │                 #   protocols, risk, stablecoins, supabase, ...
-├── mcp/          # MCP server implementation (stdio + http transports, 37 tools)
+├── mcp/          # MCP server implementation (stdio + http transports, 39 tools)
 ├── providers/    # React context providers
 ├── stores/       # Zustand state stores
 ├── types/        # TypeScript type definitions
@@ -425,11 +426,11 @@ The monthly allowance is credited on subscription activation and at each cycle
 
 See `src/lib/billing/plans.ts` for the single source of truth.
 
-Key endpoint groups (all under `/api/v1/`): `prices*`, `reputation*`, `feeds*`, `deviation`, `correlation`, `latency`, `anomalies`, `signals`, `safety/*` (position, liquidation, pre-trade, attestation/verify), `oracle-watch`, `stablecoins/depeg`, `wrapped-assets/peg`, `protocols*`, `cross-chain/spreads`, `incidents`, `coverage`, `reports/daily/[date]`, `hourly-snapshots`, `price-snapshots`, `symbols`, `oracles/health`, `metrics`, `health`. Peg Risk combines the two peg endpoint families in the web product while keeping their API contracts separate and backward compatible.
+Key endpoint groups (all under `/api/v1/`): `prices*`, `reputation*`, `feeds*`, `deviation`, `correlation`, `latency`, `anomalies`, `signals`, `safety/*` (position, liquidation, pre-trade, attestation/verify), `oracle-watch`, `rwa/assessment`, `rwa/robinhood/context`, `stablecoins/depeg`, `wrapped-assets/peg`, `protocols*`, `cross-chain/spreads`, `incidents`, `coverage`, `reports/daily/[date]`, `hourly-snapshots`, `price-snapshots`, `symbols`, `oracles/health`, `metrics`, `health`. Peg Risk combines the two peg endpoint families in the web product while keeping their API contracts separate and backward compatible.
 
 ## AI Agent Integration (MCP Server)
 
-Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — **37 tools** covering prices, consensus, risk summaries, liquidation stress tests, Peg Risk across stablecoins and wrapped/LST assets, reputation, feed health, and protocol parameters, with the flagship `pre_trade_safety_check` and the always-on `oracle_watch` signal on top. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
+Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — **39 tools** covering prices, consensus, risk summaries, liquidation stress tests, Peg Risk across stablecoins and wrapped/LST assets, RWA diagnostics and issuer context, reputation, feed health, and protocol parameters, with the flagship `pre_trade_safety_check` and the always-on `oracle_watch` signal on top. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
 
 Quick start:
 
@@ -440,7 +441,7 @@ npm run mcp:http    # HTTP transport on http://127.0.0.1:3001/mcp
 
 When the Next.js app is running, the endpoint is also available at `/api/mcp` with the same authentication, rate limiting, and quota enforcement as the REST API.
 
-**Web hub — visit `/ai`** in the app to run the interactive pre-trade safety demo and the Oracle Watch demo, copy one-click MCP configs for Cursor / Windsurf / Claude Desktop, manage API keys, and test all 37 tools in the browser-based MCP Playground.
+**Web hub — visit `/ai`** in the app to run the interactive pre-trade safety demo and the Oracle Watch demo, copy one-click MCP configs for Cursor / Windsurf / Claude Desktop, manage API keys, and test all 39 tools in the browser-based MCP Playground.
 
 ## Data Pipeline
 

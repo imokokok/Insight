@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -63,6 +64,8 @@ describe('MCP Server end-to-end', () => {
     expect(names).toContain('get_coverage');
     expect(names).toContain('get_metrics');
     expect(names).toContain('check_position_safety');
+    expect(names).toContain('assess_rwa_evidence');
+    expect(names).toContain('get_robinhood_rwa_context');
 
     for (const tool of tools.tools) {
       expect(tool.inputSchema).toBeDefined();
@@ -182,8 +185,13 @@ describe('MCP Server end-to-end', () => {
       /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i
     );
     const sampleFeedId = feedIdMatch ? feedIdMatch[0] : '00000000-0000-0000-0000-000000000000';
+    const rwaDiagnostic = JSON.parse(
+      readFileSync(path.resolve(process.cwd(), 'examples/rwa-v1/diagnostic-request.json'), 'utf8')
+    ) as Record<string, unknown>;
 
     const calls: Record<string, Record<string, unknown>> = {
+      assess_rwa_evidence: rwaDiagnostic,
+      get_robinhood_rwa_context: { symbol: 'AAPL', verifyOnchain: false },
       get_oracle_price: { provider: 'chainlink', symbol: 'BTC' },
       get_consensus_price: { symbol: 'BTC' },
       get_risk_summary: { symbol: 'BTC', providers: ['chainlink', 'redstone', 'api3'], period: 24 },

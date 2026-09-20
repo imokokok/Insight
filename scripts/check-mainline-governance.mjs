@@ -19,7 +19,7 @@ for (const name of readdirSync(coveragePoliciesRoot)) {
   if (profile.policyId !== contentId(profile.policy))
     throw new Error(`Invalid coverage policy hash: ${name}`);
 }
-const coverageTrustPath = join(workspace, 'protocol/coverage/trust/production-v1.json');
+const coverageTrustPath = join(workspace, 'protocol/coverage/trust/production-v2.json');
 const publishedCoverageTrustPath = join(
   workspace,
   'public/.well-known/insight-coverage-trust.v1.json'

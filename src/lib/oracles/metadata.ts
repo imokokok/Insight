@@ -2,7 +2,6 @@ import {
   API3_AVAILABLE_PAIRS,
   oracleSupportedSymbols,
   SUPRA_AVAILABLE_PAIRS,
-  SWITCHBOARD_AVAILABLE_PAIRS,
   WINKLINK_AVAILABLE_PAIRS,
 } from '@/lib/oracles/constants/supportedSymbols';
 import { BLOCKCHAIN_TO_CHAIN_ID, TWAP_POOL_ADDRESSES } from '@/lib/oracles/constants/twapConstants';
@@ -28,7 +27,6 @@ export const PRICE_ORACLE_ORDER: readonly OracleProvider[] = [
   OracleProvider.TWAP,
   OracleProvider.REFLECTOR,
   OracleProvider.FLARE,
-  OracleProvider.SWITCHBOARD,
 ];
 
 export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain[]> = {
@@ -100,31 +98,12 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
   ],
   [OracleProvider.REFLECTOR]: [Blockchain.STELLAR],
   [OracleProvider.FLARE]: [Blockchain.FLARE],
-  [OracleProvider.SWITCHBOARD]: [
-    Blockchain.ETHEREUM,
-    Blockchain.ARBITRUM,
-    Blockchain.OPTIMISM,
-    Blockchain.POLYGON,
-    Blockchain.SOLANA,
-    Blockchain.AVALANCHE,
-    Blockchain.BNB_CHAIN,
-    Blockchain.BASE,
-    Blockchain.SCROLL,
-    Blockchain.ZKSYNC,
-    Blockchain.APTOS,
-    Blockchain.SUI,
-    Blockchain.MANTLE,
-    Blockchain.LINEA,
-    Blockchain.FLARE,
-    Blockchain.SUPRA_CHAIN,
-  ],
 };
 
 const PAIRS_BY_PROVIDER: Partial<Record<OracleProvider, Record<string, string[]>>> = {
   [OracleProvider.API3]: API3_AVAILABLE_PAIRS,
   [OracleProvider.WINKLINK]: WINKLINK_AVAILABLE_PAIRS,
   [OracleProvider.SUPRA]: SUPRA_AVAILABLE_PAIRS,
-  [OracleProvider.SWITCHBOARD]: SWITCHBOARD_AVAILABLE_PAIRS,
 };
 
 function getStaticSymbolsForChain(provider: OracleProvider, chain: Blockchain): string[] {

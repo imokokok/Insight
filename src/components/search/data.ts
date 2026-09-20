@@ -12,7 +12,6 @@ import {
   GitCompare,
   Settings,
   FileText,
-  Cable,
 } from 'lucide-react';
 
 import { providerNames, chainNames, symbols } from '@/lib/constants';
@@ -38,7 +37,6 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.TWAP]: LayoutDashboard,
   [OracleProvider.REFLECTOR]: BarChart3,
   [OracleProvider.FLARE]: Sun,
-  [OracleProvider.SWITCHBOARD]: Cable,
 };
 
 // Oracle descriptions mapping
@@ -52,8 +50,6 @@ const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.TWAP]: 'Time-weighted average price oracle for DeFi',
   [OracleProvider.REFLECTOR]: 'Stellar-based oracle with multi-signature consensus',
   [OracleProvider.FLARE]: 'Native FTSO oracle on Flare Network with decentralized price feeds',
-  [OracleProvider.SWITCHBOARD]:
-    'On-demand multichain oracle with signed Surge feeds served via Crossbar',
 };
 
 // Generate oracle search results

@@ -17,7 +17,6 @@ const ORACLE_LOGO_MAP: Record<string, string> = {
   twap: '/logos/oracles/twap.svg',
   reflector: '/logos/oracles/reflector.svg',
   flare: '/logos/oracles/flare.svg',
-  switchboard: '/logos/oracles/switchboard.svg',
 };
 
 export function OracleLogo({

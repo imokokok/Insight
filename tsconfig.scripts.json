@@ -16,7 +16,6 @@
     "scripts/protocol-metrics.ts",
     "scripts/reputation.ts",
     "scripts/safety-outcome.ts",
-    "scripts/switchboard-surge-stream.ts",
     "scripts/sync-feeds.ts"
   ],
   "include": [],

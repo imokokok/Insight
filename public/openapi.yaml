@@ -254,6 +254,242 @@ paths:
           description: Invalid input or unsupported policy semantics
         '401':
           description: API key required
+  /rwa/robinhood/context:
+    get:
+      operationId: getRobinhoodRwaContext
+      tags: [Safety]
+      summary: Robinhood Stock Token issuer context
+      description: >-
+        Returns first-party Robinhood Assets (Jersey) Limited metadata, trading
+        capabilities, halt state, corporate actions, multiplier-normalized
+        reference price, and an optional on-chain ERC-8056 cross-check. This is
+        issuer context, not an independent oracle observation: it never counts
+        toward oracle quorum and never authorizes execution.
+      security:
+        - apiKey: []
+      parameters:
+        - in: query
+          name: symbol
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Za-z][A-Za-z0-9.-]{0,15}$'
+          example: AAPL
+        - in: query
+          name: verifyOnchain
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: Cross-check uiMultiplier, pending multiplier, effective time, and oraclePaused on Robinhood Chain.
+      responses:
+        '200':
+          description: Non-authorizing first-party issuer context with explicit provenance and quorum exclusion.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required:
+                      [
+                        schema,
+                        source,
+                        asset,
+                        quote,
+                        multiplier,
+                        priceNormalization,
+                        verification,
+                        corporateActions,
+                        marketEvidence,
+                        integrity,
+                      ]
+                    properties:
+                      schema:
+                        type: string
+                        const: insight.robinhood-rwa-context.v1
+                      source:
+                        type: object
+                        description: First-party issuer provenance; independent and countsTowardOracleQuorum are always false.
+                        required: [id, type, independent, countsTowardOracleQuorum, issuer]
+                        properties:
+                          id:
+                            type: string
+                            const: robinhood-rhj
+                          type:
+                            type: string
+                            const: issuer-first-party
+                          independent:
+                            type: boolean
+                            const: false
+                          countsTowardOracleQuorum:
+                            type: boolean
+                            const: false
+                          issuer:
+                            type: string
+                            const: Robinhood Assets (Jersey) Limited
+                      asset:
+                        type: object
+                        required:
+                          [id, tokenSymbol, tokenName, status, currentMultiplier, deployment]
+                        properties:
+                          id:
+                            type: string
+                            pattern: '^0x[0-9a-fA-F]{64}$'
+                          tokenSymbol:
+                            type: string
+                          tokenName:
+                            type: string
+                          status:
+                            type: string
+                          currentMultiplier:
+                            type: string
+                          pendingMultiplier:
+                            type: [string, 'null']
+                          deployment:
+                            type: object
+                      quote:
+                        type: object
+                        required:
+                          [tokenSymbol, bid, ask, currency, generatedAt, midpointUsd, ageSeconds]
+                        properties:
+                          tokenSymbol:
+                            type: string
+                          bid:
+                            type: string
+                          ask:
+                            type: string
+                          currency:
+                            type: string
+                            const: USD
+                          generatedAt:
+                            type: string
+                            format: date-time
+                          midpointUsd:
+                            type: string
+                          ageSeconds:
+                            type: [integer, 'null']
+                      multiplier:
+                        type: object
+                        required:
+                          [decimals, apiCurrent, apiCurrentAtomic, onchain, currentMatchesOnchain]
+                        properties:
+                          decimals:
+                            type: integer
+                            const: 18
+                          apiCurrent:
+                            type: string
+                          apiCurrentAtomic:
+                            type: string
+                          currentMatchesOnchain:
+                            type: [boolean, 'null']
+                          onchain:
+                            type: object
+                            required: [attempted, available, complete, rpcMode, tokenUid]
+                            properties:
+                              attempted:
+                                type: boolean
+                              available:
+                                type: boolean
+                              complete:
+                                type: boolean
+                              rpcMode:
+                                type: string
+                                enum: [configured, public-rate-limited, not-requested]
+                              tokenUid:
+                                type: [string, 'null']
+                      priceNormalization:
+                        type: object
+                        required:
+                          [
+                            rawUnderlyingMidUsd,
+                            tokenReferencePriceUsd,
+                            formula,
+                            countsTowardOracleQuorum,
+                          ]
+                        properties:
+                          rawUnderlyingMidUsd:
+                            type: string
+                          tokenReferencePriceUsd:
+                            type: string
+                          formula:
+                            type: string
+                            const: underlying-midpoint * currentMultiplier
+                          countsTowardOracleQuorum:
+                            type: boolean
+                            const: false
+                      verification:
+                        type: object
+                        description: REST/on-chain asset UID and deployment consistency checks.
+                        required:
+                          [
+                            assetIdMatchesOnchain,
+                            assetDeploymentRegistered,
+                            quoteSymbolMatchesAsset,
+                            quoteDeploymentMatchesAsset,
+                            corporateActionSymbolsMatchAsset,
+                            corporateActionDeploymentsMatchAsset,
+                          ]
+                        properties:
+                          assetIdMatchesOnchain:
+                            type: [boolean, 'null']
+                          assetDeploymentRegistered:
+                            type: boolean
+                          quoteSymbolMatchesAsset:
+                            type: boolean
+                          quoteDeploymentMatchesAsset:
+                            type: boolean
+                          corporateActionSymbolsMatchAsset:
+                            type: boolean
+                          corporateActionDeploymentsMatchAsset:
+                            type: boolean
+                      corporateActions:
+                        type: array
+                        items:
+                          type: object
+                      marketEvidence:
+                        type: object
+                        required: [halt, corporateAction, quoteObservedAt, quoteValidUntil, session]
+                        properties:
+                          halt:
+                            type: string
+                            enum: [CLEAR, HALTED, UNKNOWN]
+                          corporateAction:
+                            type: string
+                            enum: [CLEAR, PENDING, UNKNOWN]
+                          quoteObservedAt:
+                            type: [integer, 'null']
+                          quoteValidUntil:
+                            type: [integer, 'null']
+                          session:
+                            type: string
+                            const: UNKNOWN
+                      integrity:
+                        type: object
+                        description: CLEAR, CAUTION, or BLOCK consistency status; mayAuthorizeExecution is always false.
+                        required: [status, reasonCodes, mayAuthorizeExecution]
+                        properties:
+                          status:
+                            type: string
+                            enum: [CLEAR, CAUTION, BLOCK]
+                          reasonCodes:
+                            type: array
+                            items:
+                              type: string
+                          mayAuthorizeExecution:
+                            type: boolean
+                            const: false
+        '400':
+          description: Invalid or unsupported Stock Token symbol
+        '401':
+          description: API key required
+        '502':
+          description: Robinhood issuer-context service unavailable or returned invalid data
   /execution/attestation/issue:
     post:
       operationId: issueExecutionReceipt

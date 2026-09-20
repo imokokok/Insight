@@ -338,16 +338,6 @@ const searchableItems: SearchableItem[] = [
     category: 'oracle',
     path: '/reputation/winklink',
   },
-  {
-    id: 'oracle-switchboard',
-    type: 'oracle',
-    name: 'Switchboard',
-    symbol: 'SWTCH',
-    aliases: ['switchboard', 'switchboard on-demand', 'surge feeds'],
-    category: 'oracle',
-    path: '/reputation/switchboard',
-  },
-
   // Blockchains
   {
     id: 'chain-ethereum',

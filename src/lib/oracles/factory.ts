@@ -10,7 +10,6 @@ import { FlareClient } from './clients/flare';
 import { RedStoneClient } from './clients/redstone';
 import { ReflectorClient } from './clients/reflector';
 import { SupraClient } from './clients/supra';
-import { SwitchboardClient } from './clients/switchboard';
 import { TWAPClient } from './clients/twap';
 import { WINkLinkClient } from './clients/winklink';
 
@@ -67,8 +66,6 @@ class OracleClientFactory {
         return new ReflectorClient();
       case OracleProvider.FLARE:
         return new FlareClient();
-      case OracleProvider.SWITCHBOARD:
-        return new SwitchboardClient();
       default:
         throw new ValidationError(`Unknown oracle provider: ${provider}`, { value: provider });
     }

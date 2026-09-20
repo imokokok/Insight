@@ -75,7 +75,6 @@ const ORACLE_TIMEOUT_CONFIG: Record<string, number> = {
   twap: 15_000,
   reflector: 20_000,
   flare: 12_000,
-  switchboard: 12_000,
 };
 
 function getRequestTimeout(provider?: string): number {

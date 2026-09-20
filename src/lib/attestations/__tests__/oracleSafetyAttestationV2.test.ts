@@ -203,7 +203,7 @@ describe('oracleSafetyAttestationV2', () => {
   });
 
   it('excludes derived (TWAP) from the independence group count', async () => {
-    // chainlink + TWAP + switchboard → 2 distinct NON-derived groups (TWAP
+    // chainlink + TWAP + flare → 2 distinct NON-derived groups (TWAP
     // excluded), so ASSESSED and sourceGroupCount = 2.
     const msg = await buildMessage(
       baseInput({
@@ -228,7 +228,7 @@ describe('oracleSafetyAttestationV2', () => {
             exclusionReason: '',
           },
           {
-            provider: 'switchboard',
+            provider: 'flare',
             feedId: 'c',
             value: 300010000000n,
             timestamp: 1700000002n,

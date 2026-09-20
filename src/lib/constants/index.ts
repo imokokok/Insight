@@ -14,7 +14,6 @@ export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.TWAP]: 'TWAP',
   [OracleProvider.REFLECTOR]: 'Reflector',
   [OracleProvider.FLARE]: 'Flare',
-  [OracleProvider.SWITCHBOARD]: 'Switchboard',
 };
 
 export const chainNames: Record<Blockchain, string> = {
@@ -113,12 +112,10 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.TWAP]: configChartColors.oracle.twap,
   [OracleProvider.REFLECTOR]: configChartColors.oracle.reflector,
   [OracleProvider.FLARE]: configChartColors.oracle.flare,
-  [OracleProvider.SWITCHBOARD]: configChartColors.oracle.switchboard,
 };
 
 export const ORACLE_EXPECTED_INTERVALS: Record<string, number> = {
   redstone: 1,
-  switchboard: 1,
   supra: 60,
   flare: 90,
   reflector: 300,

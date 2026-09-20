@@ -36,7 +36,7 @@ let consecutiveSaveFailures = 0;
  * Chainlink & API3 skip DB save entirely (PROVIDERS_SKIPPING_DB_SAVE), so they
  * always go live and are not listed here. The providers explicitly listed are
  * the ones previously serving stale data in the pre-trade safety check
- * (DIA/Supra/TWAP/Switchboard) because their cached rows were returned
+ * (DIA/Supra/TWAP) because their cached rows were returned
  * unconditionally with no freshness gate.
  *
  * 30s matches the in-memory price cache TTL (ORACLE_CACHE_TTL.PRICE) so the
@@ -48,7 +48,6 @@ const DB_CACHE_TTL_MS: Partial<Record<OracleProvider, number>> = {
   [OracleProvider.DIA]: 30_000,
   [OracleProvider.SUPRA]: 30_000,
   [OracleProvider.TWAP]: 30_000,
-  [OracleProvider.SWITCHBOARD]: 30_000,
 };
 const DEFAULT_DB_CACHE_TTL_MS = 30_000;
 
@@ -315,7 +314,7 @@ export async function fetchPriceWithDatabase(
     // retained as a fallback while we attempt a live refresh, so the pre-trade
     // safety check sees near-realtime data instead of a row last written by the
     // hourly cron. Without this freshness gate, every DB-cached provider
-    // (DIA/Supra/TWAP/Switchboard/...) served whatever the cron last wrote,
+    // (DIA/Supra/TWAP/...) served whatever the cron last wrote,
     // producing 265s+ staleness while Chainlink/API3 (which skip DB save) stayed
     // fresh. Chainlink/API3 have no DB row here, so they fall straight through
     // to the live fetch below unchanged.

@@ -1,7 +1,6 @@
 import { flareSymbols } from './flareConstants';
 import { reflectorSymbols } from './reflectorConstants';
 import { supraSymbols } from './supraConstants';
-import { switchboardSymbols } from './switchboardConstants';
 import { twapSymbols } from './twapConstants';
 
 // Note: These symbols have available Chainlink price feeds on at least one chain
@@ -675,27 +674,6 @@ export const SUPRA_AVAILABLE_PAIRS: Record<string, string[]> = {
   'supra-chain': [...supraSymbols],
 };
 
-// Switchboard Surge feeds are chain-agnostic (served via Crossbar from the
-// Solana oracle network), so the same symbol set is available on every chain.
-export const SWITCHBOARD_AVAILABLE_PAIRS: Record<string, string[]> = {
-  ethereum: [...switchboardSymbols],
-  arbitrum: [...switchboardSymbols],
-  optimism: [...switchboardSymbols],
-  polygon: [...switchboardSymbols],
-  solana: [...switchboardSymbols],
-  avalanche: [...switchboardSymbols],
-  'bnb-chain': [...switchboardSymbols],
-  base: [...switchboardSymbols],
-  scroll: [...switchboardSymbols],
-  zksync: [...switchboardSymbols],
-  aptos: [...switchboardSymbols],
-  sui: [...switchboardSymbols],
-  mantle: [...switchboardSymbols],
-  linea: [...switchboardSymbols],
-  flare: [...switchboardSymbols],
-  'supra-chain': [...switchboardSymbols],
-};
-
 export const oracleSupportedSymbols = {
   chainlink: chainlinkSymbols,
   redstone: redstoneSymbols,
@@ -706,7 +684,6 @@ export const oracleSupportedSymbols = {
   twap: twapSymbols,
   reflector: reflectorSymbols,
   flare: flareSymbols,
-  switchboard: switchboardSymbols,
 } as const;
 
 export function getAllSupportedSymbols(): string[] {

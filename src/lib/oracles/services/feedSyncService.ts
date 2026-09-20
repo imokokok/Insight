@@ -12,7 +12,6 @@ import { FLARE_SYMBOL_TO_FEED_ID } from '../constants/flareConstants';
 import { REFLECTOR_ASSET_CONTRACT_MAP } from '../constants/reflectorConstants';
 import { getAssetClass, redstoneSymbols } from '../constants/supportedSymbols';
 import { SUPRA_PAIR_INDEX_MAP } from '../constants/supraConstants';
-import { SWITCHBOARD_FEED_IDS } from '../constants/switchboardConstants';
 import { TWAP_POOL_ADDRESSES, TWAP_TOKEN_ADDRESSES } from '../constants/twapConstants';
 
 import {
@@ -550,51 +549,6 @@ class FeedSyncService {
     return result;
   }
 
-  // ─── Switchboard ──────────────────────────────────────────────────
-
-  async seedSwitchboardFeedsFromHardcoded(): Promise<SyncResult> {
-    const result: SyncResult = {
-      provider: 'switchboard',
-      discovered: 0,
-      upserted: 0,
-      deactivated: 0,
-      errors: 0,
-    };
-    const feeds: OracleFeedInsert[] = [];
-
-    // Switchboard Surge feeds are chain-agnostic (served via Crossbar from the
-    // Solana oracle network), so every feed is stored with chain_id=0 — the
-    // same convention used by Supra/DIA/RedStone.
-    for (const [symbol, feedHash] of Object.entries(SWITCHBOARD_FEED_IDS)) {
-      feeds.push({
-        provider: 'switchboard',
-        symbol,
-        chain_id: 0,
-        address: feedHash,
-        name: `${symbol}/USD`,
-        decimals: 18,
-        category: this.inferCategory(symbol),
-        is_active: true,
-        source:
-          symbol === 'BTC' || symbol === 'ETH'
-            ? 'switchboard-surge-plug'
-            : 'switchboard-simulation',
-        metadata: {
-          feedHash,
-          quote: 'USD',
-          source_type: 'surge-weighted',
-          access_mode:
-            symbol === 'BTC' || symbol === 'ETH' ? 'signed-surge-plug' : 'unsigned-simulation',
-          counts_toward_quorum: symbol === 'BTC' || symbol === 'ETH',
-        },
-      });
-      result.discovered++;
-    }
-
-    result.upserted = await upsertFeeds(feeds);
-    return result;
-  }
-
   // ─── Full Sync ────────────────────────────────────────────────────
 
   async fullSync(provider?: string): Promise<SyncResult[]> {
@@ -611,7 +565,6 @@ class FeedSyncService {
       ['twap-token', () => this.seedTwapFeedsFromHardcoded()],
       ['reflector', () => this.seedReflectorFeedsFromHardcoded()],
       ['flare', () => this.seedFlareFeedsFromHardcoded()],
-      ['switchboard', () => this.seedSwitchboardFeedsFromHardcoded()],
     ]);
 
     if (provider) {

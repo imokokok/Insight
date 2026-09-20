@@ -961,12 +961,12 @@ describe('preTradeSafetyCheck — v2 schema', () => {
   });
 
   it('v2 independence gate: a derived source (TWAP) does NOT satisfy the group count', async () => {
-    // chainlink + TWAP + switchboard → 2 non-derived groups → ASSESSED (passes).
+    // chainlink + TWAP + flare → 2 non-derived groups → ASSESSED (passes).
     // Proves TWAP is excluded from the independence count (Raul 16:09).
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider }),
       makeProvider({ provider: 'twap' as OracleProvider }),
-      makeProvider({ provider: 'switchboard' as OracleProvider }),
+      makeProvider({ provider: 'flare' as OracleProvider }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
 
@@ -979,12 +979,12 @@ describe('preTradeSafetyCheck — v2 schema', () => {
   });
 
   it('v2: a 2-group asset (VVV-like) is stopped by the quorum gate, NOT independence', async () => {
-    // 2 distinct non-derived groups (dia + switchboard) clear independence, but
+    // 2 distinct non-derived groups (dia + flare) clear independence, but
     // the participant count (2) fails the quorum → BLOCK via INSUFFICIENT_COVERAGE.
     // Independence must NOT fire (it would be a false INSUFFICIENT_INDEPENDENCE).
     const providers = [
       makeProvider({ provider: 'dia' as OracleProvider }),
-      makeProvider({ provider: 'switchboard' as OracleProvider }),
+      makeProvider({ provider: 'flare' as OracleProvider }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
 
@@ -1020,12 +1020,12 @@ describe('preTradeSafetyCheck — v2 schema', () => {
   });
 
   it('v3 applies both gates exactly as v2 does', async () => {
-    // 2 distinct groups (dia + switchboard) clear independence; 2 participants
+    // 2 distinct groups (dia + flare) clear independence; 2 participants
     // fail the quorum → BLOCK via INSUFFICIENT_COVERAGE, independence silent.
     // This is the same shape as the VVV production record.
     const providers = [
       makeProvider({ provider: 'dia' as OracleProvider }),
-      makeProvider({ provider: 'switchboard' as OracleProvider }),
+      makeProvider({ provider: 'flare' as OracleProvider }),
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
 

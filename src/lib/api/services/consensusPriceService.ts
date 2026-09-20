@@ -141,8 +141,7 @@ export async function resolveProvidersForSymbol(
     // The curated static list is only a degraded-mode fallback when the
     // registry could not be read. A successful registry read with no active
     // feed is authoritative: discovery may have deliberately deactivated or
-    // excluded that provider (for example, Switchboard after its public
-    // mainnet endpoint returned no verifiable data). Falling back merely
+    // excluded that provider. Falling back merely
     // because a provider has an empty list would silently undo fail-closed
     // discovery and reintroduce an unverified source into live evaluation.
     // A concrete, DB-verified active feed on the queried chain may still
