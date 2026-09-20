@@ -444,7 +444,7 @@ When the Next.js app is running, the endpoint is also available at `/api/mcp` wi
 
 ## Data Pipeline
 
-Supabase `pg_cron` is the reliable clock for the six product-critical jobs. It
+Supabase `pg_cron` is the reliable clock for the seven product-critical jobs. It
 uses `pg_net` plus a repository-scoped token in Vault to dispatch dependency-free
 GitHub Actions runners; GitHub performs the network/compute-heavy work and writes
 results directly to Supabase, so Vercel spends no background Active CPU. Guarded

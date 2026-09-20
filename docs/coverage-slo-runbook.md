@@ -13,12 +13,16 @@ Design and rationale: [coverage-slo-design.md](./coverage-slo-design.md).
   error, never an empty healthy result.
 - `/ops/coverage`: Ops-owner-only asset/chain matrix, 1/7/28-day windows,
   measured/expected slots, missing slots, signed availability and error budget.
-- `GET /api/cron/coverage-slo`: CRON_SECRET-authenticated collection. The checked-in
-  GitHub workflow invokes it at minutes 7/22/37/52. Infrastructure failure or a
-  24h readiness/measurement alert marks the workflow failed. GitHub notification
-  delivery depends on the owner's existing Actions settings; no external contact
-  is sent a message by the code. Persistent below-target assets need coverage
-  work or a separately reviewed profile, not a lower quorum.
+- `GET /api/cron/coverage-slo`: CRON_SECRET-authenticated collection. Supabase
+  dispatches the checked-in GitHub workflow at minutes 7/22/37/52; a guarded
+  native GitHub schedule checks again five minutes later when the dispatch ledger
+  is stale. Infrastructure failure or a 24h readiness/measurement alert marks the
+  workflow failed. GitHub notification delivery depends on the owner's existing
+  Actions settings; no external contact is sent a message by the code. Persistent
+  below-target assets need coverage work or a separately reviewed profile, not a
+  lower quorum. The dispatch ledger records collection success before evaluating
+  the rolling alert, so an unhealthy historical window does not make the delayed
+  fallback repeat an already-recorded immutable slot.
 
 ## Enable production
 
@@ -37,11 +41,12 @@ Design and rationale: [coverage-slo-design.md](./coverage-slo-design.md).
    the reviewed bytes or signer address through their own authenticated deployment
    configuration. Key rotation needs an updated consumer trust list; revoked and
    ambiguous keys fail closed.
-4. Deploy through the repository's normal validated mainline CI gate. Set the
-   GitHub Actions `CRON_SECRET` to the deployed server's existing cron credential.
-   Run Coverage SLO manually once and check `/ops/coverage`. Enrollment begins
-   on first collection; previous history is never fabricated. First full slot
-   starts after enrollment and only completed slots enter the denominator.
+4. Deploy through the repository's normal validated mainline CI gate and apply
+   migration `0057_coverage_slo_dispatcher.sql`. Set the GitHub Actions
+   `CRON_SECRET` to the deployed server's existing cron credential. Run Coverage
+   SLO manually once and check `/ops/coverage`. Enrollment begins on first
+   collection; previous history is never fabricated. First full slot starts
+   after enrollment and only completed slots enter the denominator.
 5. Opt execution consumers in with pinned coverage options. An API upgrade alone
    does not activate the gate for existing integrations. No partner acceptance
    or activation is implied.

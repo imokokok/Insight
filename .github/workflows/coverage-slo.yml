@@ -1,24 +1,75 @@
 name: Coverage SLO
 on:
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    # Supabase dispatches the primary run at minutes 7/22/37/52. This native
+    # schedule is the delayed fallback and skips when the primary ledger is fresh.
+    - cron: '12,27,42,57 * * * *'
   workflow_dispatch:
+    inputs:
+      dispatch_id:
+        description: 'Supabase cron_dispatch_runs id (empty for manual/fallback runs)'
+        required: false
+        type: string
+      scheduled_for:
+        description: 'Supabase scheduled slot (audit only)'
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
   group: coverage-slo
   cancel-in-progress: false
+env:
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  CRON_WORKFLOW: coverage-slo.yml
+  CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+  CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
 jobs:
   collect:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - name: Collect fixed-slot coverage samples
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check whether native fallback is needed
+        id: guard
         env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          FALLBACK_MAX_AGE_MINUTES: '10'
+        run: node scripts/cron-control.mjs guard
+
+      - name: Start run ledger
+        if: steps.guard.outputs.should_run == 'true'
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/cron-control.mjs start
+
+      - name: Collect fixed-slot coverage samples
+        id: collect
+        if: steps.guard.outputs.should_run == 'true'
         run: |
           test -n "$CRON_SECRET" || { echo '::error::CRON_SECRET is required'; exit 1; }
           curl --fail-with-body --silent --show-error --max-time 280 \
             -H "Authorization: Bearer $CRON_SECRET" \
             -o coverage-result.json https://www.oracleinsight.xyz/api/cron/coverage-slo
-          node -e 'const r=require("./coverage-result.json"); if(r.success!==true || !Array.isArray(r.alerts)) process.exit(1); if(r.alerts.length) { console.error("::error::Coverage readiness needs attention; see /ops/coverage", JSON.stringify(r.alerts)); process.exit(1); }'
+          node -e 'const r=require("./coverage-result.json"); if(r.success!==true || !Array.isArray(r.alerts)) process.exit(1);'
+
+      # A completed sample is a successful dispatch even when the rolling SLO is
+      # unhealthy. Record collection success before the final alert step so the
+      # delayed fallback does not retry an immutable slot just to repeat an alert.
+      - name: Finish collection ledger
+        if: always() && steps.guard.outputs.should_run == 'true'
+        env:
+          CRON_CONCLUSION: ${{ steps.collect.outcome }}
+        run: node scripts/cron-control.mjs finish
+
+      - name: Report coverage readiness alert
+        if: steps.guard.outputs.should_run == 'true' && steps.collect.outcome == 'success'
+        run: |
+          node -e 'const r=require("./coverage-result.json"); if(r.alerts.length) { console.error("::error::Coverage readiness needs attention; see /ops/coverage", JSON.stringify(r.alerts)); process.exit(1); }'

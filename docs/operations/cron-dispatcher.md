@@ -11,16 +11,17 @@ Supabase pg_cron → pg_net → GitHub workflow_dispatch → GitHub runner → S
 Vercel is not in this path. The public API routes remain available as manual
 recovery paths; their response contracts are unchanged.
 
-The dispatcher covers the six product-critical jobs:
+The dispatcher covers the seven product-critical jobs:
 
-| Workflow                        | Primary cadence  | Native GitHub fallback                    |
-| ------------------------------- | ---------------- | ----------------------------------------- |
-| `snapshot-collect.yml`          | every 15 minutes | same cadence, skips while ledger is fresh |
-| `oracle-watch-collect.yml`      | every 30 minutes | same cadence, skips while ledger is fresh |
-| `reputation-cron.yml`           | hourly           | same cadence, skips while ledger is fresh |
-| `safety-outcome-cron.yml`       | every 2 hours    | same cadence, skips while ledger is fresh |
-| `feed-cadence-cron.yml`         | daily            | one hour later, only when ledger is stale |
-| `daily-report-publish-cron.yml` | daily            | 05:30 UTC `--if-missing` backfill         |
+| Workflow                        | Primary cadence  | Native GitHub fallback                          |
+| ------------------------------- | ---------------- | ----------------------------------------------- |
+| `snapshot-collect.yml`          | every 15 minutes | same cadence, skips while ledger is fresh       |
+| `oracle-watch-collect.yml`      | every 30 minutes | same cadence, skips while ledger is fresh       |
+| `reputation-cron.yml`           | hourly           | same cadence, skips while ledger is fresh       |
+| `safety-outcome-cron.yml`       | every 2 hours    | same cadence, skips while ledger is fresh       |
+| `feed-cadence-cron.yml`         | daily            | one hour later, only when ledger is stale       |
+| `daily-report-publish-cron.yml` | daily            | 05:30 UTC `--if-missing` backfill               |
+| `coverage-slo.yml`              | every 15 minutes | five minutes later, skips while ledger is fresh |
 
 ## One-time activation
 
