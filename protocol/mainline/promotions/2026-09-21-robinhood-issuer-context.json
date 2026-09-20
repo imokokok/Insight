@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x10f336f3a9e8eaf69b3f02f36eb54f5eccef6727bdecb6efcbccf94d2fcccea6",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 12,
+  "effectiveFrom": "2026-09-21",
+  "classification": "Additive Robinhood Stock Token issuer context, append-only coverage policy v2 and Switchboard retirement; no partner activation",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x0d212af2df7715ccaa2d59f0e6694171a952bab7f871acd7c1aa855b16c6c20a",
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "receiptImpact": "Adds separate read-only Robinhood issuer context over REST and Robinhood Chain with explicit non-independent, non-quorum and non-authorizing provenance. Adds strict-300s.v2 and production-v2 append-only coverage artifacts after retiring Switchboard, while preserving v1 policy and trust bytes. Existing signed layouts, registry release, partner policies, activation mappings and historical receipts are unchanged.",
+  "activationRule": "No partner activation changes. Robinhood issuer context is optional first-party instrument evidence and cannot authorize execution or satisfy independent oracle quorum. Existing consumers remain pinned to their current partner policies; coverage v2 and the issuer-context endpoint require explicit consumer adoption.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged-pinned-contract-additive-issuer-context",
+      "evidence": "Existing policy, activation, signed layout and fixture remain unchanged. Robinhood issuer context and coverage v2 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged-pinned-contract-additive-issuer-context",
+      "evidence": "Existing policy, activation, signed layout and fixture remain unchanged. Robinhood issuer context and coverage v2 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged-pinned-contract-additive-issuer-context",
+      "evidence": "Existing policy, activation, signed layout and fixture remain unchanged. Robinhood issuer context and coverage v2 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged-pinned-contract-additive-issuer-context",
+      "evidence": "Existing policy, activation, signed layout and fixture remain unchanged. Robinhood issuer context and coverage v2 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged-pinned-contract-additive-issuer-context",
+      "evidence": "Existing policy, activation, signed layout and fixture remain unchanged. Robinhood issuer context and coverage v2 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged-pinned-contract-additive-issuer-context",
+      "evidence": "Existing policy, activation, signed layout and fixture remain unchanged. Robinhood issuer context and coverage v2 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged-pinned-contract-additive-issuer-context",
+      "evidence": "Existing policy, activation, signed layout and fixture remain unchanged. Robinhood issuer context and coverage v2 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged-pinned-contract-additive-issuer-context",
+      "evidence": "Existing policy, activation, signed layout and fixture remain unchanged. Robinhood issuer context and coverage v2 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged-pinned-contract-additive-issuer-context",
+      "evidence": "Existing policy, activation, signed layout and fixture remain unchanged. Robinhood issuer context and coverage v2 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    }
+  ],
+  "predecessorReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c"
+}
