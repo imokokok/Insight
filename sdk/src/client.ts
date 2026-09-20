@@ -1,3 +1,4 @@
+import { type SignedCoverageReport } from './coverage';
 import { InsightApiError } from './errors';
 import { stripTrailingSlashes } from './url';
 
@@ -76,6 +77,14 @@ export class InsightClient {
       query: { ...request, probe: request.probe === undefined ? undefined : String(request.probe) },
       signal,
     });
+  }
+
+  /** Must be verified against independently configured policy and signer trust before use. */
+  async coverageAssessment(
+    request: { asset: string; chainId: number; policyId: string },
+    signal?: AbortSignal
+  ): Promise<SignedCoverageReport> {
+    return this.request('GET', '/api/v1/coverage/assessment', { query: request, signal });
   }
 
   async recheck(

@@ -11,6 +11,13 @@ const currentPromotionPath = join(workspace, 'protocol/mainline/current-promotio
 const promotionRoot = join(workspace, 'protocol/mainline/promotions');
 const ciWorkflowPath = join(workspace, '.github/workflows/ci.yml');
 const workflowsRoot = join(workspace, '.github/workflows');
+const coveragePoliciesRoot = join(workspace, 'protocol/coverage/policies');
+for (const name of readdirSync(coveragePoliciesRoot)) {
+  if (!name.endsWith('.json')) continue;
+  const profile = json(join(coveragePoliciesRoot, name));
+  if (profile.policyId !== contentId(profile.policy))
+    throw new Error(`Invalid coverage policy hash: ${name}`);
+}
 const vercelConfigPath = join(workspace, 'vercel.json');
 
 function canonicalJson(value) {
@@ -235,7 +242,8 @@ if (base && !/^0+$/.test(base)) {
 
   const immutableObjectMutation = diff.find(
     (entry) =>
-      (entry.path?.startsWith('protocol/mainline/policies/') ||
+      (entry.path?.startsWith('protocol/coverage/policies/') ||
+        entry.path?.startsWith('protocol/mainline/policies/') ||
         entry.path?.startsWith('protocol/mainline/activation-sets/') ||
         entry.path?.startsWith('protocol/mainline/promotions/')) &&
       entry.path.endsWith('.json') &&
@@ -259,6 +267,8 @@ if (base && !/^0+$/.test(base)) {
     'src/app/api/v1/safety/attestation/',
     'verifier/src/',
     'sdk/src/index.ts',
+    'sdk/src/coverage.ts',
+    'protocol/coverage/policies/',
   ];
   const sharedChanged = diff.some((entry) =>
     sharedPrefixes.some((prefix) => entry.path?.startsWith(prefix))

@@ -82,3 +82,21 @@ export type {
 } from './types';
 
 export type { CoverageRequest, CoverageResult } from './types';
+export {
+  STRICT_COVERAGE_POLICY,
+  coveragePolicyId,
+  coverageReportDigest,
+  coverageSigningData,
+  buildCoverageReport,
+  evaluateCoverage,
+  verifyCoverageReport,
+  withVerifiedCoverage,
+} from './coverage';
+export type {
+  CoveragePolicy,
+  CoverageObservation,
+  CoverageEvaluation,
+  CoverageReport,
+  SignedCoverageReport,
+  CoverageTrust,
+} from './coverage';

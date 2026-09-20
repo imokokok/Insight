@@ -1,3 +1,5 @@
+import type { CoverageTrust, SignedCoverageReport } from './coverage';
+
 export type SafetyVerdict = 'PASS' | 'CAUTION' | 'DANGER' | 'BLOCK';
 export type OracleWatchVerdict = 'normal' | 'caution' | 'danger';
 export type OracleWatchRecommendation = 'proceed' | 'proceed_with_caution' | 'halt';
@@ -215,6 +217,11 @@ export interface GuardPolicy {
 export interface GuardOptions extends InsightClientOptions {
   policy?: GuardPolicy;
   freshness?: FreshnessProfile;
+  /** Opt-in live coverage on executeSwap / executeSwapWithPriorSeal. Both legs must be pinned. */
+  coverage?: {
+    source: CoverageTrust;
+    destination: CoverageTrust;
+  };
 }
 
 export interface GuardDecision {
@@ -533,6 +540,7 @@ export type PriorSealGuardedSwapResult =
   | {
       status: 'executed';
       checkpoint: JointEvidenceCheckpoint;
+      coverageReports?: SignedCoverageReport[];
       verificationOrigin: 'service_response';
       independentVerificationPerformed: false;
       sourcePreTrade: PreTradeResult;
@@ -558,6 +566,7 @@ export type GuardedSwapResult =
     }
   | {
       status: 'executed';
+      coverageReports?: SignedCoverageReport[];
       sourcePreTrade: PreTradeResult;
       destinationPreTrade: PreTradeResult;
       transaction: SubmittedTransaction;
@@ -566,6 +575,7 @@ export type GuardedSwapResult =
   | {
       /** The transaction is already on-chain; retry only receipt issuance. */
       status: 'executed_receipt_pending';
+      coverageReports?: SignedCoverageReport[];
       sourcePreTrade: PreTradeResult;
       destinationPreTrade: PreTradeResult;
       transaction: SubmittedTransaction;
@@ -608,6 +618,8 @@ export interface WatchHandle {
 /** JSON-safe evidence-only recovery input; never contains API keys or a submit callback. */
 export interface JointEvidenceCheckpoint {
   schema: 'insight.joint-evidence-checkpoint.v1';
+  /** Retained for independent coverage verification; recovery never reauthorizes execution. */
+  coverageReports?: SignedCoverageReport[];
   assessment: SwapAssessment;
   transaction: PreparedExactCallTransaction;
   priorSealAuthorization: PriorSealAcceptedAuthorization;

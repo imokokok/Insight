@@ -73,3 +73,20 @@ test('unknown oracle providers render the not-found route', async ({ page }) => 
   await expect(page.getByText('This path does not resolve to an Insight record.')).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
 });
+
+test('coverage readiness endpoints and private console require authentication', async ({
+  request,
+  page,
+}) => {
+  for (const path of [
+    '/api/v1/coverage/policy',
+    `/api/v1/coverage/assessment?asset=USDC&chainId=1&policyId=0x${'11'.repeat(32)}`,
+    '/api/v1/coverage/slo',
+    '/api/cron/coverage-slo',
+  ]) {
+    const response = await request.get(path);
+    expect(response.status()).toBe(401);
+  }
+  await page.goto('/ops/coverage');
+  await expect(page).toHaveURL(/\/login\?redirect=%2Fops%2Fcoverage/);
+});

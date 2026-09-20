@@ -1,4 +1,5 @@
 import { InsightClient } from './client';
+import { verifyCoverageReport, type SignedCoverageReport } from './coverage';
 import { diagnosePreTrade, evaluateFreshness, validateFreshnessProfile } from './diagnostics';
 import { InsightApiError, ReceiptConfigurationError, TradeBlockedError } from './errors';
 import {
@@ -51,6 +52,7 @@ export class InsightGuard {
   private readonly blockedVerdicts: ReadonlySet<string>;
   private readonly blockOnWatchHalt: boolean;
   private readonly freshness: FreshnessProfile;
+  private readonly coverage: GuardOptions['coverage'];
   private readonly haltedTargets = new Set<string>();
   private readonly watchHandles = new Map<string, WatchHandle>();
   private readonly watchGenerations = new Map<string, symbol>();
@@ -58,6 +60,7 @@ export class InsightGuard {
 
   constructor(options: GuardOptions) {
     this.client = new InsightClient(options);
+    this.coverage = options.coverage ? JSON.parse(JSON.stringify(options.coverage)) : undefined;
     this.freshness = options.freshness ?? {};
     validateFreshnessProfile(this.freshness);
     this.blockedVerdicts = new Set(options.policy?.blockedPreTradeVerdicts ?? BLOCKED_BY_DEFAULT);
@@ -515,6 +518,9 @@ export class InsightGuard {
     const gated = await this.evaluateSwapGates(request);
     if (!gated.ready) return gated.result;
 
+    const coverage = await this.collectSwapCoverage(request);
+    await this.checkSwapCoverage(coverage);
+
     assertPairFreshness(gated.sourcePreTrade, gated.destinationPreTrade, {
       ...this.freshness,
       ...request.freshness,
@@ -549,6 +555,7 @@ export class InsightGuard {
       // recovery instead.
       return {
         status: 'executed_receipt_pending',
+        ...(coverage.length ? { coverageReports: coverage } : {}),
         sourcePreTrade: gated.sourcePreTrade,
         destinationPreTrade: gated.destinationPreTrade,
         transaction,
@@ -560,6 +567,7 @@ export class InsightGuard {
     return {
       status: 'executed',
       sourcePreTrade: gated.sourcePreTrade,
+      ...(coverage.length ? { coverageReports: coverage } : {}),
       destinationPreTrade: gated.destinationPreTrade,
       transaction,
       receipt,
@@ -584,10 +592,13 @@ export class InsightGuard {
     const gated = await this.evaluateSwapGates(request);
     if (!gated.ready) return gated.result;
 
+    const coverage = await this.collectSwapCoverage(request);
+
     const preparedTransaction = await request.prepareTransaction({
       sourcePreTrade: gated.sourcePreTrade,
       destinationPreTrade: gated.destinationPreTrade,
     });
+    await this.checkSwapCoverage(coverage);
     if (preparedTransaction.chainId !== request.receipt.settlementChainId) {
       throw new ReceiptConfigurationError(
         'Prepared transaction and Insight receipt must use the same settlement chain.'
@@ -599,7 +610,10 @@ export class InsightGuard {
       number(gated.sourcePreTrade.attestation?.data.validUntil),
       number(gated.destinationPreTrade.attestation?.data.validUntil)
     );
-    const validUntil = request.priorSeal.validUntil ?? signedGateValidUntil;
+    const validUntil = Math.min(
+      request.priorSeal.validUntil ?? signedGateValidUntil,
+      ...coverage.map((p) => p.report.validUntil)
+    );
     if (!Number.isSafeInteger(validUntil) || validUntil <= issuedAt) {
       throw new ReceiptConfigurationError(
         'PriorSeal validUntil must be after issuedAt; pass it explicitly when the gate does not expose one.'
@@ -624,7 +638,14 @@ export class InsightGuard {
       sourceAssetId: gated.receiptDraft.sourceAssetId,
       validUntil,
       minConfirmations: request.priorSeal.confirmations,
-      contextCommitments: [insightContextCommitment],
+      contextCommitments: [
+        insightContextCommitment,
+        ...coverage.map((p, index) => ({
+          namespace: `insight.coverage.${index === 0 ? 'source' : 'destination'}.v1`,
+          algorithm: 'keccak256' as const,
+          digest: p.digest as `0x${string}`,
+        })),
+      ],
     });
     const preparedAuthorization = await request.priorSeal.client.prepareAuthorization(
       {
@@ -648,6 +669,7 @@ export class InsightGuard {
       ...this.freshness,
       ...request.freshness,
     });
+    await this.checkSwapCoverage(coverage, preparedAuthorization.authorization.intent);
     const signature = await request.priorSeal.signAuthorization(preparedAuthorization);
     if (!/^0x[0-9a-fA-F]+$/.test(signature)) {
       throw new ReceiptConfigurationError('PriorSeal signer returned no hex signature.');
@@ -684,6 +706,7 @@ export class InsightGuard {
         sourcePreTrade: gated.sourcePreTrade,
         destinationPreTrade: gated.destinationPreTrade,
       };
+    await this.checkSwapCoverage(coverage, priorSealAuthorization.authorization.intent);
     const transaction = await request.submitTransaction({
       sourcePreTrade: gated.sourcePreTrade,
       destinationPreTrade: gated.destinationPreTrade,
@@ -751,6 +774,7 @@ export class InsightGuard {
       status: 'executed',
       checkpoint: jsonSafe({
         schema: 'insight.joint-evidence-checkpoint.v1' as const,
+        ...(coverage.length ? { coverageReports: coverage } : {}),
         assessment,
         transaction: preparedTransaction,
         priorSealAuthorization,
@@ -760,6 +784,7 @@ export class InsightGuard {
         insightReceipt,
         priorSealEvidence,
       }),
+      ...(coverage.length ? { coverageReports: coverage } : {}),
       verificationOrigin: 'service_response',
       independentVerificationPerformed: false,
       sourcePreTrade: gated.sourcePreTrade,
@@ -775,6 +800,63 @@ export class InsightGuard {
       assuranceValid,
       evidenceErrors,
     };
+  }
+
+  private async collectSwapCoverage(
+    request: GuardedSwapRequest | PriorSealGuardedSwapRequest
+  ): Promise<SignedCoverageReport[]> {
+    if (!this.coverage) return [];
+    return Promise.all(
+      (['source', 'destination'] as const).map(async (side) => {
+        const trust = this.coverage![side];
+        const leg = request[side];
+        if (!trust || trust.asset !== leg.asset || trust.evidenceChainId !== leg.chainId)
+          throw new ReceiptConfigurationError(
+            `Coverage ${side} trust does not match the requested scope.`
+          );
+        return this.client.coverageAssessment({
+          asset: leg.asset,
+          chainId: leg.chainId,
+          policyId: trust.policyId,
+        });
+      })
+    );
+  }
+
+  private async checkSwapCoverage(
+    proofs: SignedCoverageReport[],
+    intent?: {
+      validUntil: number;
+      contextCommitments?: { namespace: string; algorithm: string; digest: string }[];
+    }
+  ): Promise<void> {
+    if (!this.coverage) return;
+    if (proofs.length !== 2)
+      throw new ReceiptConfigurationError('Both coverage legs are required.');
+    for (const [index, side] of (['source', 'destination'] as const).entries()) {
+      const proof = proofs[index];
+      const verified = await verifyCoverageReport(proof, this.coverage[side]);
+      if (!verified.valid)
+        throw new ReceiptConfigurationError(
+          `Coverage ${side} blocked: ${verified.reasons.join(',')}`
+        );
+      if (intent) {
+        const matching =
+          intent.contextCommitments?.filter((c) => c.namespace === `insight.coverage.${side}.v1`) ??
+          [];
+        if (
+          matching.length !== 1 ||
+          matching[0].algorithm !== 'keccak256' ||
+          matching[0].digest !== proof.digest ||
+          intent.validUntil > proof.report.validUntil
+        )
+          throw new ReceiptConfigurationError(
+            'Authorization does not bind the verified coverage report.'
+          );
+      }
+    }
+    if (proofs.some((p) => Math.floor(Date.now() / 1000) >= p.report.validUntil))
+      throw new ReceiptConfigurationError('Coverage expired before provider entry.');
   }
 
   private async evaluateSwapGates(request: SwapGateRequest): Promise<SwapGateEvaluation> {

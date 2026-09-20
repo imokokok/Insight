@@ -1485,6 +1485,129 @@ paths:
         '402':
           $ref: '#/components/responses/CreditExhausted'
 
+  /coverage/policy:
+    get:
+      operationId: getCoveragePolicy
+      tags: [Data]
+      summary: Discover the versioned coverage readiness policy
+      description: Returns policy bytes and their keccak256 canonical JSON content ID. Consumers must pin policy and signer trust independently. Does not activate a partner or execution gate. Uses coverage C2 metering.
+      security:
+        - apiKey: []
+      parameters:
+        - name: policyId
+          in: query
+          schema: { type: string }
+          description: Optional exact policy ID; unknown IDs return 404.
+      responses:
+        '200':
+          description: Standard success envelope containing policyId and policy
+        '404':
+          description: Unknown policy ID
+        '402':
+          $ref: '#/components/responses/CreditExhausted'
+
+  /coverage/assessment:
+    get:
+      operationId: getCoverageAssessment
+      tags: [Data]
+      summary: Issue a live, scope-bound data-readiness report
+      description: |
+        Opt-in coverage v1. Checks classified providers, explicit evidence chain,
+        oracle timestamp provenance, freshness, quorum, independent groups and spread.
+        A PASS is not trade safety or execution permission. Separate Insight Coverage
+        EIP-712 domain commits every observation and the policy ID. Consumers verify
+        signature, policy, scope, key validity/revocation and current expiry locally.
+        Missing signing configuration returns null signer/signature, which cannot
+        authorize execution. Uses coverage C2 metering; Cache-Control is no-store.
+      security:
+        - apiKey: []
+      parameters:
+        - name: asset
+          in: query
+          required: true
+          schema: { type: string, example: USDC }
+        - name: chainId
+          in: query
+          required: true
+          schema: { type: integer, minimum: 1, example: 1 }
+        - name: policyId
+          in: query
+          required: true
+          schema: { type: string, pattern: '^0x[0-9a-f]{64}$' }
+      responses:
+        '200':
+          description: Coverage result; insufficient coverage is a signed result, not an HTTP error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    required: [report, digest, signer, signature]
+                    properties:
+                      digest: { type: string, description: EIP-712 typed-data digest }
+                      signer: { type: string, nullable: true }
+                      signature: { type: string, nullable: true }
+                      report:
+                        type: object
+                        required:
+                          [
+                            schema,
+                            policyId,
+                            asset,
+                            evidenceChainId,
+                            evaluatedAt,
+                            validUntil,
+                            observations,
+                            evaluation,
+                          ]
+                        properties:
+                          schema: { type: string, enum: [insight.coverage-report.v1] }
+                          policyId: { type: string }
+                          asset: { type: string }
+                          evidenceChainId: { type: integer }
+                          evaluatedAt: { type: integer, description: Unix seconds }
+                          validUntil:
+                            { type: integer, description: Exclusive Unix seconds deadline }
+                          observations: { type: array, maxItems: 32, items: { type: object } }
+                          evaluation:
+                            type: object
+                            properties:
+                              status: { type: string, enum: [PASS, INSUFFICIENT_COVERAGE] }
+                              eligibleProviders: { type: integer }
+                              independentGroups: { type: integer }
+                              spreadBps: { type: number, nullable: true }
+                              reasons: { type: array, items: { type: string } }
+                              providers: { type: array, items: { type: object } }
+        '400':
+          description: Invalid scope or unknown policy
+        '402':
+          $ref: '#/components/responses/CreditExhausted'
+        '500':
+          description: Registry, source service or signer unavailable; no authorization-grade proof
+
+  /coverage/slo:
+    get:
+      operationId: getCoverageSlo
+      tags: [Data]
+      summary: Sampled data and signed-report readiness by asset, chain and policy
+      description: Complete 15-minute slots from enrollment onward. Missing and failed samples remain in the denominator. Current partial slots are excluded. Empty history is WARMING_UP, never 100 percent. Internal objective, not a continuous-uptime SLA or execution verdict. Uses coverage C2 metering.
+      security:
+        - apiKey: []
+      parameters:
+        - name: hours
+          in: query
+          schema: { type: integer, enum: [24, 168, 672], default: 24 }
+      responses:
+        '200':
+          description: Standard success envelope containing windowHours, cadenceSeconds, measuredAt and per-target counts, readiness rates, missing slots, error budget, burn rate and latest reasons
+        '402':
+          $ref: '#/components/responses/CreditExhausted'
+        '500':
+          description: Measurement store unavailable; must not be interpreted as healthy
+
   /hourly-snapshots:
     get:
       operationId: getHourlySnapshots

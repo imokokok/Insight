@@ -2,12 +2,158 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { keccak256 } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 
 import {
   buildInsightPriorSealContextCommitment,
   InsightGuard,
   PriorSealClient,
+  buildCoverageReport,
+  coveragePolicyId,
+  coverageReportDigest,
+  coverageSigningData,
+  STRICT_COVERAGE_POLICY,
 } from '../dist/index.js';
+
+for (const scenario of [
+  'pass',
+  'insufficient',
+  'expired-during-sign',
+  'removed-binding',
+  'scope-mismatch',
+]) {
+  test(`opt-in joint coverage guard: ${scenario}`, async () => {
+    const signer = privateKeyToAccount(`0x${'12'.repeat(32)}`);
+    const originalClock = Date.now;
+    let now = 1800000000,
+      submitted = 0,
+      signed = 0;
+    Date.now = () => now * 1000;
+    try {
+      const policy = STRICT_COVERAGE_POLICY;
+      const pin = (asset) => ({
+        asset,
+        evidenceChainId: 1,
+        policy,
+        policyId: coveragePolicyId(policy),
+        keys: [
+          { address: signer.address, validFrom: now - 100, validUntil: now + 1000, revoked: false },
+        ],
+      });
+      const guard = new InsightGuard({
+        apiKey: 'test',
+        coverage: {
+          source: pin('ETH'),
+          destination: pin(scenario === 'scope-mismatch' ? 'BTC' : 'USDC'),
+        },
+        fetch: async (url) => {
+          const parsed = new URL(url),
+            asset = parsed.searchParams.get('asset');
+          if (parsed.pathname.endsWith('/pre-trade')) return api(preTrade(asset));
+          if (parsed.pathname.endsWith('/coverage/assessment')) {
+            const report = buildCoverageReport(
+              {
+                asset,
+                evidenceChainId: 1,
+                evaluatedAt: now,
+                observations: (scenario === 'insufficient' && asset === 'USDC'
+                  ? ['chainlink', 'api3']
+                  : ['chainlink', 'api3', 'twap']
+                ).map((provider) => ({
+                  provider,
+                  evidenceChainId: 1,
+                  price: 1,
+                  status: 'success',
+                  observedAt: now - 10,
+                  retrievedAt: now,
+                  timestampProvenance: 'provider_timestamp',
+                  excluded: false,
+                })),
+              },
+              policy
+            );
+            return api({
+              report,
+              digest: coverageReportDigest(report),
+              signer: signer.address,
+              signature: await signer.signTypedData(coverageSigningData(report)),
+            });
+          }
+          throw new Error('Simulated receipt outage after broadcast');
+        },
+      });
+      const priorSeal = {
+        async prepareAuthorization(body) {
+          const authorization = {
+            ...body,
+            schema: 'priorseal.authorization.v2',
+            domain: 'priorseal/authorization/v2',
+            authorizationId: 'coverage',
+            intentHash: hash,
+            policyHash: hash,
+          };
+          if (scenario === 'removed-binding')
+            authorization.intent.contextCommitments =
+              authorization.intent.contextCommitments.filter(
+                (c) => !c.namespace.startsWith('insight.coverage.')
+              );
+          return { authorization, typedData: {} };
+        },
+        async acceptAuthorization(authorization) {
+          return { authorization, acceptance: { status: 'ACCEPTED' } };
+        },
+        async observeExecution() {
+          throw new Error('Simulated evidence outage');
+        },
+      };
+      const run = () =>
+        guard.executeSwapWithPriorSeal({
+          source: sourceRequest,
+          destination: destinationRequest,
+          receipt: { settlementChainId: 1, maxSlippageBps: 50 },
+          prepareTransaction: async () => ({
+            chainId: 1,
+            from: signer.address,
+            to: `0x${'22'.repeat(20)}`,
+            data: '0x1234',
+            nonce: 1n,
+            sourceAmount: 1n,
+          }),
+          priorSeal: {
+            client: priorSeal,
+            principal: { type: 'user', id: 'test', account: signer.address },
+            agentId: 'test',
+            authorizationNonce: `0x${'99'.repeat(32)}`,
+            signAuthorization: async () => {
+              signed++;
+              if (scenario === 'expired-during-sign') now += 60;
+              return '0xabcd';
+            },
+          },
+          submitTransaction: async ({ priorSealAuthorization }) => {
+            submitted++;
+            const intent = priorSealAuthorization.authorization.intent;
+            assert.equal(intent.contextCommitments.length, 3);
+            assert.equal(intent.validUntil, 1800000060);
+            return { txHash };
+          },
+        });
+      if (scenario === 'pass') {
+        const result = await run();
+        assert.equal(submitted, 1);
+        assert.equal(result.status, 'executed');
+        assert.equal(result.coverageReports.length, 2);
+        assert.deepEqual(result.checkpoint.coverageReports, result.coverageReports);
+      } else {
+        await assert.rejects(run);
+        assert.equal(submitted, 0);
+        if (scenario !== 'expired-during-sign') assert.equal(signed, 0);
+      }
+    } finally {
+      Date.now = originalClock;
+    }
+  });
+}
 
 const sourceId = 'eip155:1/erc20:0x0000000000000000000000000000000000000001';
 const destinationId = 'eip155:1/erc20:0x0000000000000000000000000000000000000002';

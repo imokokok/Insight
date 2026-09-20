@@ -1,0 +1,24 @@
+name: Coverage SLO
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: coverage-slo
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Collect fixed-slot coverage samples
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          test -n "$CRON_SECRET" || { echo '::error::CRON_SECRET is required'; exit 1; }
+          curl --fail-with-body --silent --show-error --max-time 280 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -o coverage-result.json https://www.oracleinsight.xyz/api/cron/coverage-slo
+          node -e 'const r=require("./coverage-result.json"); if(r.success!==true || !Array.isArray(r.alerts)) process.exit(1); if(r.alerts.length) { console.error("::error::Coverage readiness needs attention; see /ops/coverage", JSON.stringify(r.alerts)); process.exit(1); }'

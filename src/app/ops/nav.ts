@@ -31,6 +31,7 @@ export const OPS_NAV: OpNavGroup[] = [
       { href: '/ops', label: 'Overview', exact: true, icon: LayoutDashboard },
       { href: '/ops/health', label: 'Provider Reputation', icon: Activity },
       { href: '/ops/safety', label: 'Safety & Attestation', icon: ShieldCheck },
+      { href: '/ops/coverage', label: 'Coverage readiness', icon: Activity },
     ],
   },
   {
