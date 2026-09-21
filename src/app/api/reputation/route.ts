@@ -185,6 +185,5 @@ export const POST = createApiHandler(
       rateLimit: { preset: 'strict' },
       auth: { required: true, allowApiKey: true },
     },
-    skipInternalAuthAndRateLimit: true,
   }
 );

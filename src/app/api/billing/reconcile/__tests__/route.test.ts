@@ -84,7 +84,13 @@ async function callPost(
 describe('POST /api/billing/reconcile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetInvoice.mockResolvedValue({ id: 1001, status: 'finished' });
+    mockGetInvoice.mockResolvedValue({
+      id: 1001,
+      status: 'finished',
+      priceAmount: 49,
+      priceCurrency: 'usd',
+      orderId: 'sub_1',
+    });
     mockCreateServiceRoleClient.mockReturnValue(createSupabaseMock({}));
   });
 
@@ -138,7 +144,13 @@ describe('POST /api/billing/reconcile', () => {
         },
       })
     );
-    mockGetInvoice.mockResolvedValue({ id: 1001, status: 'finished' });
+    mockGetInvoice.mockResolvedValue({
+      id: 1001,
+      status: 'finished',
+      priceAmount: 49,
+      priceCurrency: 'usd',
+      orderId: 'sub_1',
+    });
 
     const response = await callPost({ type: 'subscription', id: 'sub_1' });
     const body = await response.json();
@@ -150,6 +162,8 @@ describe('POST /api/billing/reconcile', () => {
         invoice_id: 'inv_1',
         order_id: 'sub_1',
         payment_status: 'finished',
+        price_amount: 49,
+        price_currency: 'usd',
       })
     );
     expect(body.data).toEqual(

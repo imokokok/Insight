@@ -19,7 +19,13 @@
 
 import { updateApiKeyPlanForUser } from '@/lib/api/apiKey';
 import { topUpCredits } from '@/lib/billing/creditWallet';
-import { normalizePlan, planCreditGrant, type Plan } from '@/lib/billing/plans';
+import {
+  CREDIT_PACK_ORDER,
+  CREDIT_PACKS,
+  normalizePlan,
+  planCreditGrant,
+  type Plan,
+} from '@/lib/billing/plans';
 import { type createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -43,6 +49,73 @@ export function getStringField(
   camelKey: string
 ): string | undefined {
   return getString(data, snakeKey) ?? getString(data, camelKey);
+}
+
+/** Safely extract a finite numeric field, accepting provider JSON number strings. */
+function getNumberField(data: IpnData, snakeKey: string, camelKey: string): number | undefined {
+  const value = data[snakeKey] ?? data[camelKey];
+  if (typeof value !== 'number' && typeof value !== 'string') return undefined;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : undefined;
+}
+
+type CreditPurchase = {
+  id: string;
+  user_id: string;
+  credits: number;
+  price_usd: number;
+  status: string;
+};
+
+/**
+ * Derive a top-up amount from the server-owned pack catalogue and verify that
+ * the signed provider payload settled that exact USD price. The database row
+ * alone is deliberately not trusted for wallet credits.
+ */
+export function getVerifiedTopUpCredits(purchase: CreditPurchase, data: IpnData): number {
+  const storedCredits = Number(purchase.credits);
+  const storedPrice = Number(purchase.price_usd);
+  const pack = CREDIT_PACK_ORDER.find((candidate) => {
+    const configured = CREDIT_PACKS[candidate];
+    return configured.credits === storedCredits && configured.priceUsd === storedPrice;
+  });
+
+  if (!pack) {
+    throw new Error(`Credit purchase ${purchase.id} does not match a configured credit pack`);
+  }
+
+  const providerPrice = getNumberField(data, 'price_amount', 'priceAmount');
+  const providerCurrency = getStringField(data, 'price_currency', 'priceCurrency')?.toLowerCase();
+  if (providerPrice === undefined || providerCurrency !== 'usd') {
+    throw new Error(`Credit purchase ${purchase.id} is missing a valid USD settlement price`);
+  }
+
+  // Prices currently have two decimal places. Half a cent tolerates provider
+  // JSON representation noise without accepting a materially different bill.
+  if (Math.abs(providerPrice - storedPrice) > 0.005) {
+    throw new Error(`Credit purchase ${purchase.id} settlement price does not match its invoice`);
+  }
+
+  const providerOrderId = getStringField(data, 'order_id', 'orderId');
+  if (providerOrderId && providerOrderId !== purchase.id) {
+    throw new Error(`Credit purchase ${purchase.id} does not match the provider order`);
+  }
+
+  return CREDIT_PACKS[pack].credits;
+}
+
+/** Resolve only the immutable configured amount for non-settlement flows (refunds). */
+function getConfiguredTopUpCredits(purchase: CreditPurchase): number {
+  const storedCredits = Number(purchase.credits);
+  const storedPrice = Number(purchase.price_usd);
+  const pack = CREDIT_PACK_ORDER.find((candidate) => {
+    const configured = CREDIT_PACKS[candidate];
+    return configured.credits === storedCredits && configured.priceUsd === storedPrice;
+  });
+  if (!pack) {
+    throw new Error(`Credit purchase ${purchase.id} does not match a configured credit pack`);
+  }
+  return CREDIT_PACKS[pack].credits;
 }
 
 /** Billing cycle length in days per interval. */
@@ -100,19 +173,14 @@ export async function findSubscriptionByInvoice(
 export async function findCreditPurchaseByInvoice(
   client: ServiceClient,
   data: IpnData
-): Promise<{
-  id: string;
-  user_id: string;
-  credits: number;
-  status: string;
-} | null> {
+): Promise<CreditPurchase | null> {
   const invoiceId = getStringField(data, 'invoice_id', 'invoiceId');
   const orderId = getStringField(data, 'order_id', 'orderId');
 
   if (invoiceId) {
     const { data: row, error } = await client
       .from('credit_purchases')
-      .select('id, user_id, credits, status')
+      .select('id, user_id, credits, price_usd, status')
       .eq('nowpayments_invoice_id', invoiceId)
       .maybeSingle();
     if (error) throw new Error(`Failed to look up credit purchase invoice: ${error.message}`);
@@ -122,7 +190,7 @@ export async function findCreditPurchaseByInvoice(
   if (orderId) {
     const { data: row, error } = await client
       .from('credit_purchases')
-      .select('id, user_id, credits, status')
+      .select('id, user_id, credits, price_usd, status')
       .eq('id', orderId)
       .maybeSingle();
     if (error) throw new Error(`Failed to look up credit purchase order: ${error.message}`);
@@ -148,9 +216,10 @@ export async function handlePaymentConfirmed(
   const purchase = await findCreditPurchaseByInvoice(client, data);
   if (purchase) {
     if (purchase.status === 'incomplete') {
+      const verifiedCredits = getVerifiedTopUpCredits(purchase, data);
       const newBalance = await topUpCredits({
         userId: purchase.user_id,
-        amount: purchase.credits,
+        amount: verifiedCredits,
         // Key on the invoice id (fallback: payment id). The invoice id is
         // stable across confirmed/finished IPNs AND across the reconcile path,
         // so a payment can never be credited twice even if both paths run.
@@ -185,7 +254,7 @@ export async function handlePaymentConfirmed(
 
       logger.info('Credit top-up confirmed — wallet credited', {
         userId: purchase.user_id,
-        credits: purchase.credits,
+        credits: verifiedCredits,
         newBalance,
         paymentId,
         purchaseId: purchase.id,
@@ -434,12 +503,13 @@ export async function handlePaymentRefunded(client: ServiceClient, data: IpnData
   const purchase = await findCreditPurchaseByInvoice(client, data);
   if (purchase) {
     if (purchase.status === 'paid') {
+      const configuredCredits = getConfiguredTopUpCredits(purchase);
       const newBalance = await topUpCredits({
         userId: purchase.user_id,
-        amount: -purchase.credits,
+        amount: -configuredCredits,
         meteringKey: `refund:${purchase.id}:${purchase.user_id}`,
         kind: 'refund',
-        ref: `refund of ${purchase.credits} credit top-up`,
+        ref: `refund of ${configuredCredits} credit top-up`,
       });
       if (newBalance === null) {
         throw new Error(`Failed to debit refunded credit purchase ${purchase.id}`);
@@ -456,7 +526,7 @@ export async function handlePaymentRefunded(client: ServiceClient, data: IpnData
       }
       logger.info('Credit purchase refunded — wallet debited', {
         userId: purchase.user_id,
-        credits: purchase.credits,
+        credits: configuredCredits,
         newBalance,
         purchaseId: purchase.id,
       });

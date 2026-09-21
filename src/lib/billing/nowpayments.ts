@@ -253,12 +253,17 @@ export async function getInvoice(invoiceId: string): Promise<{
     }
 
     const data = (await response.json()) as Record<string, unknown>;
+    const finiteNumber = (value: unknown): number | undefined => {
+      if (typeof value !== 'number' && typeof value !== 'string') return undefined;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : undefined;
+    };
     return {
       id: String(data.id ?? invoiceId),
       status: String(data.status ?? 'unknown'),
-      priceAmount: typeof data.price_amount === 'number' ? data.price_amount : undefined,
+      priceAmount: finiteNumber(data.price_amount),
       priceCurrency: typeof data.price_currency === 'string' ? data.price_currency : undefined,
-      payAmount: typeof data.pay_amount === 'number' ? data.pay_amount : undefined,
+      payAmount: finiteNumber(data.pay_amount),
       payCurrency: typeof data.pay_currency === 'string' ? data.pay_currency : undefined,
       orderId: typeof data.order_id === 'string' ? data.order_id : undefined,
     };

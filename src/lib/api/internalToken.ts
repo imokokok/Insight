@@ -8,8 +8,8 @@
  *   3. Cross-site browser requests do not carry it by default.
  *
  * This is a UI/CSRF eligibility marker, not a privileged authorization
- * credential. Any client can visit a page and replay its cookies, so paid v1
- * routes must always enforce API-key auth and metering independently.
+ * credential. Any client can visit a page and replay its cookies, so mutation
+ * routes and paid v1 routes must always enforce real auth independently.
  */
 
 import { createLogger } from '@/lib/utils/logger';

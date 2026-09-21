@@ -351,12 +351,17 @@ export function createApiHandler<
   async function isInternalRequest(request: NextRequest): Promise<boolean> {
     if (!skipInternalAuthAndRateLimit) return false;
 
+    // This cookie is only a UI read-eligibility marker. A page visit can mint
+    // it, so treating it as authorization for POST/PATCH/PUT/DELETE would let
+    // an unauthenticated visitor invoke state-changing application routes.
+    if (request.method !== 'GET' && request.method !== 'HEAD') return false;
+
     // The public v1 surface is the paid developer API. A cookie minted by a
     // website visit is not a server-to-server trust boundary and must never
     // bypass API-key authentication, rate limits, or credit charging.
     if (request.nextUrl.pathname.startsWith('/api/v1/')) return false;
 
-    // Verify the signed UI cookie for legacy non-v1 application routes only.
+    // Verify the signed UI cookie for legacy non-v1 read routes only.
     const token = request.cookies.get(INTERNAL_COOKIE_NAME)?.value;
     if (token && (await verifyInternalToken(token))) {
       return true;

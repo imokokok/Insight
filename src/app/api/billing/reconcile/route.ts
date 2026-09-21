@@ -96,8 +96,12 @@ export const POST = createApiHandler(
     // Synthetic IPN payload mirroring the fields the webhook would carry.
     const data: IpnData = {
       invoice_id: row.nowpayments_invoice_id,
-      order_id: row.id,
+      // Preserve the provider's order id when available so settlement can
+      // detect an invoice/order mismatch instead of overwriting the evidence.
+      order_id: invoice.orderId ?? row.id,
       payment_status: invoice.status,
+      price_amount: invoice.priceAmount,
+      price_currency: invoice.priceCurrency,
     };
 
     const serviceClient = createServiceRoleClient();

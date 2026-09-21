@@ -55,7 +55,7 @@ describe('paid v1 internal-cookie isolation', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it('retains the legacy cookie bypass only for non-v1 UI routes', async () => {
+  it('retains the legacy cookie bypass only for non-v1 UI read routes', async () => {
     const handler = jest.fn(async () => NextResponse.json({ ok: true }));
     const route = createApiHandler(handler, {
       middlewares: { auth: { required: true } },
@@ -73,5 +73,25 @@ describe('paid v1 internal-cookie isolation', () => {
     expect(response.status).toBe(200);
     expect(authMiddleware).not.toHaveBeenCalled();
     expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not let a replayed website cookie authorize a non-v1 mutation', async () => {
+    const handler = jest.fn(async () => NextResponse.json({ ok: true }));
+    const route = createApiHandler(handler, {
+      middlewares: { auth: { required: true } },
+      skipInternalAuthAndRateLimit: true,
+    });
+    const request = {
+      method: 'POST',
+      nextUrl: new URL('https://www.oracleinsight.xyz/api/reputation'),
+      headers: new Headers({ cookie: '__internal=valid-signed-token' }),
+      cookies: { get: () => ({ value: 'valid-signed-token' }) },
+    } as never;
+
+    const response = await route(request, { params: Promise.resolve({}) });
+
+    expect(response.status).toBe(401);
+    expect(authMiddleware).toHaveBeenCalledTimes(1);
+    expect(handler).not.toHaveBeenCalled();
   });
 });

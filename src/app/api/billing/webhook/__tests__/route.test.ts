@@ -687,7 +687,12 @@ describe('top-up & pending-state IPN edge cases', () => {
     mockParseIpnEvent.mockReturnValue({
       id: 'pay_topup1',
       type: 'finished',
-      data: { invoice_id: 'inv_topup1', order_id: 'purchase_1' },
+      data: {
+        invoice_id: 'inv_topup1',
+        order_id: 'purchase_1',
+        price_amount: 39,
+        price_currency: 'usd',
+      },
     });
     mockCreateServiceRoleClient.mockReturnValue(
       createSupabaseMock({
@@ -696,6 +701,7 @@ describe('top-up & pending-state IPN edge cases', () => {
             id: 'purchase_1',
             user_id: 'user_topup',
             credits: 25000,
+            price_usd: 39,
             status: 'incomplete',
           },
           subscriptions: null,
@@ -722,7 +728,12 @@ describe('top-up & pending-state IPN edge cases', () => {
     mockParseIpnEvent.mockReturnValue({
       id: 'pay_topup2',
       type: 'finished',
-      data: { invoice_id: 'inv_topup2', order_id: 'purchase_2' },
+      data: {
+        invoice_id: 'inv_topup2',
+        order_id: 'purchase_2',
+        price_amount: 129,
+        price_currency: 'usd',
+      },
     });
     const supabase = createSupabaseMock({
       selectData: {
@@ -730,6 +741,7 @@ describe('top-up & pending-state IPN edge cases', () => {
           id: 'purchase_2',
           user_id: 'user_topup2',
           credits: 100000,
+          price_usd: 129,
           status: 'incomplete',
         },
         subscriptions: null,
@@ -755,6 +767,68 @@ describe('top-up & pending-state IPN edge cases', () => {
       )
       .flat();
     expect(purchaseUpdates).toHaveLength(0);
+  });
+
+  it('rejects a top-up whose stored credits do not match a configured pack', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_tampered_credits',
+      type: 'finished',
+      data: {
+        invoice_id: 'inv_tampered_credits',
+        order_id: 'purchase_tampered_credits',
+        price_amount: 39,
+        price_currency: 'usd',
+      },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(
+      createSupabaseMock({
+        selectData: {
+          credit_purchases: {
+            id: 'purchase_tampered_credits',
+            user_id: 'user_attacker',
+            credits: 500000,
+            price_usd: 39,
+            status: 'incomplete',
+          },
+        },
+      })
+    );
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(500);
+    expect(mockTopUpCredits).not.toHaveBeenCalled();
+  });
+
+  it('rejects a top-up when the signed provider price differs from the stored pack', async () => {
+    mockParseIpnEvent.mockReturnValue({
+      id: 'pay_wrong_price',
+      type: 'finished',
+      data: {
+        invoice_id: 'inv_wrong_price',
+        order_id: 'purchase_wrong_price',
+        price_amount: 1,
+        price_currency: 'usd',
+      },
+    });
+    mockCreateServiceRoleClient.mockReturnValue(
+      createSupabaseMock({
+        selectData: {
+          credit_purchases: {
+            id: 'purchase_wrong_price',
+            user_id: 'user_attacker',
+            credits: 500000,
+            price_usd: 499,
+            status: 'incomplete',
+          },
+        },
+      })
+    );
+
+    const response = await POST(createPostRequest('payload'));
+
+    expect(response.status).toBe(500);
+    expect(mockTopUpCredits).not.toHaveBeenCalled();
   });
 
   it('ignores partially_paid when the subscription is already active (out-of-order guard)', async () => {
