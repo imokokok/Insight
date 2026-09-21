@@ -1,0 +1,79 @@
+{
+  "schema": "insight-veritas-joint-run-window-plan/v1",
+  "decidedAt": "2026-09-21",
+  "sourceEvent": "VERITAS-20260921-IN-01",
+  "selectionRuleFile": "anchored-settlement-selection-rule-v2.json",
+  "selectionRuleHash": "0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a",
+  "selectedWindow": {
+    "candidate": "B",
+    "startsAt": "2026-09-23T12:00:00Z",
+    "endsAt": "2026-09-23T13:00:00Z",
+    "durationSeconds": 3600,
+    "insightLocalTime": "2026-09-23T20:00:00+08:00",
+    "status": "SELECTED_BY_INSIGHT_AWAITING_VERITAS_ACK_AND_READY"
+  },
+  "attemptCapacity": {
+    "maximumFreshGatePairs": 5,
+    "targetCycleSeconds": 660,
+    "operatorAvailabilityRequiredForEntireWindow": true,
+    "freshSignedGatePairRequiredPerAttempt": true,
+    "explicitVeritasRetryRequestRequiredAfterAttemptOne": true,
+    "preSigningAllowed": false,
+    "gateReuseAcrossAttemptsAllowed": false
+  },
+  "gateMessagePreparation": {
+    "messageType": "INSIGHT_GATE_PAIR",
+    "plainTextEmailBody": true,
+    "precomposeUnsignedScaffold": true,
+    "signatureIsFinalManualActionBeforeAutomatedRenderingAndSend": true,
+    "renderer": "render-insight-gate-pair.mjs",
+    "requiredLiveFields": [
+      "sourceEnvelope",
+      "destinationEnvelope",
+      "sourceGateUid",
+      "destinationGateUid",
+      "preTradeUidsHash"
+    ],
+    "outerJsonWrapperAllowed": false,
+    "duplicateValidUntilFieldsOutsideEnvelopesRequired": false
+  },
+  "windowCutoffs": {
+    "lastGateRequestMinute": 44,
+    "noBitcoinBroadcastAfterMinute": 47,
+    "attemptsConcludedByMinute": 55,
+    "recordsPublishedByMinute": 60
+  },
+  "activationGates": {
+    "windowSpecificVeritasReadyRequired": true,
+    "readyMustArriveBeforeFirstGateSignature": true,
+    "freshBitcoinOutputCheckRequired": true,
+    "freshEthereumBalanceNonceAndFeeCheckRequired": true,
+    "freshSettlementReadEndpointsCheckRequired": true,
+    "freshTransactionSendEndpointsCheckRequired": true,
+    "freshChainStateCheckRequired": true,
+    "noUsableDataSourceOutcome": "FAIL_CLOSED",
+    "endpointDisagreementOutcome": "FAIL_CLOSED"
+  },
+  "carryForwardFromFirstWindow": {
+    "ready": false,
+    "gate": false,
+    "retryRequest": false,
+    "cutoff": false,
+    "attemptAuthorization": false
+  },
+  "unchanged": [
+    "selection rule",
+    "Bitcoin commitment preimage",
+    "Ethereum commitment preimage",
+    "VRT1/anchored-settlement-commitment leaf tag",
+    "VRT1 OP_RETURN layout",
+    "600-second gate validity",
+    "submission roles",
+    "proof scope"
+  ],
+  "standing": [
+    "F12 remains open until a run reaches Bitcoin confirmation, Ethereum ordering, settlement selection and an Execution Receipt",
+    "Not a VERITAS integration",
+    "Verification is not endorsement"
+  ]
+}

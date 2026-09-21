@@ -22,6 +22,13 @@ window, venue, direction, threshold, first-match rule or outcome-independent pub
   2026-09-18 12:00 UTC, VERITAS as sender of both commitment legs, post-submission independent
   verification by Insight, every pre-broadcast gate, the five-step attempt order, and the rule
   that each retry starts with a newly signed gate pair rather than a pre-signed or reused gate.
+- `joint-run-window-2-plan-v1.json` preserves that first-window agreement as history while recording
+  Insight's selection of 2026-09-23 12:00–13:00 UTC for the second window, capacity for up to five
+  fresh gate pairs, the minute 44/47/55/60 cutoffs, and the new READY and fresh-check gates.
+- `render-insight-gate-pair.mjs` turns a freshly signed pair JSON into the agreed plain-text email
+  body after validating both envelope UIDs, the ordered UID hash, v3/600-second fields and the
+  absence of any need for duplicate outer `validUntil` fields. It contacts no network and signs
+  nothing, so the signature remains the final manual action before automated rendering and send.
 - `provider-observation-hash-vector-v1.json` retains the N15 `uint256` positive/negative
   regression.
 - `verify-veritas-round9-run-readiness.mjs` independently checks F17, N19, N20, N21, N22, both
@@ -46,6 +53,7 @@ Run:
 node scripts/veritas-joint-run/verify-veritas-round9-run-readiness.mjs
 node scripts/veritas-joint-run/verify-veritas-round8-publication-closure.mjs
 node scripts/veritas-joint-run/verify-veritas-round7-closure.mjs
+node scripts/veritas-joint-run/verify-veritas-window-2-plan.mjs
 node scripts/veritas-joint-run/build-joint-run-commitments.mjs
 ```
 
@@ -57,11 +65,13 @@ facts together: `bitcoinAnchorTxid`, `bitcoinConfirmingBlockHeight` and
 Bitcoin display order.
 
 Gate signing starts the registered 600-second clock. Do not pre-sign gates. Each attempt, including
-each retry, begins with a fresh source and destination gate pair. Insight remains available for the
-whole one-hour window and plans signing capacity for two to three attempts. The only live values
-substituted into the pinned commitment flow are `sourceGateUid`, `destinationGateUid` and
-`preTradeUidsHash`; the builder recomputes `selectionRuleHash` from the rule file and refuses a stale
-configured value.
+each retry, begins with a fresh source and destination gate pair. The first-window agreement remains
+the historical record of its two-to-three-attempt plan. For the selected second window, Insight
+remains available for the full hour and plans capacity for up to five fresh pairs on an approximately
+eleven-minute cycle. The unsigned message scaffold is prepared first; after a fresh pair is signed,
+the renderer validates and formats it immediately. The only live values substituted into the pinned
+commitment flow are `sourceGateUid`, `destinationGateUid` and `preTradeUidsHash`; the builder
+recomputes `selectionRuleHash` from the rule file and refuses a stale configured value.
 
 The Bitcoin anchor remains the durable, censorship-resistant evidence layer. The Ethereum
 commitment supplies the short-horizon ordering proof. Neither proves the Insight verdict correct,
