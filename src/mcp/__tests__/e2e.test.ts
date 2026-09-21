@@ -66,6 +66,7 @@ describe('MCP Server end-to-end', () => {
     expect(names).toContain('check_position_safety');
     expect(names).toContain('assess_rwa_evidence');
     expect(names).toContain('get_robinhood_rwa_context');
+    expect(names).toContain('get_robinhood_rwa_instrument');
 
     for (const tool of tools.tools) {
       expect(tool.inputSchema).toBeDefined();
@@ -192,6 +193,7 @@ describe('MCP Server end-to-end', () => {
     const calls: Record<string, Record<string, unknown>> = {
       assess_rwa_evidence: rwaDiagnostic,
       get_robinhood_rwa_context: { symbol: 'AAPL', verifyOnchain: false },
+      get_robinhood_rwa_instrument: { symbol: 'AAPL', verifyOnchain: false },
       get_oracle_price: { provider: 'chainlink', symbol: 'BTC' },
       get_consensus_price: { symbol: 'BTC' },
       get_risk_summary: { symbol: 'BTC', providers: ['chainlink', 'redstone', 'api3'], period: 24 },

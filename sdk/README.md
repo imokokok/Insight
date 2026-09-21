@@ -10,6 +10,11 @@ The optional [Robinhood issuer-context integration](../docs/rwa-robinhood.md) is
 available through `InsightClient.robinhoodRwaContext(symbol)`. It verifies
 first-party trading, corporate-action and multiplier facts without counting
 Robinhood as an independent oracle or authorizing execution.
+The versioned [MIC/FIGI instrument registry](../docs/rwa-instrument-registry.md) is available through
+`InsightClient.robinhoodRwaInstrument(symbol)` and the portable
+`validateRwaInstrumentRegistry`, `evaluateRobinhoodInstrumentAdmission`,
+`buildAdmittedRwaReport`, and `buildAdmittedRwaReportV2` helpers. Registry admission is a separate
+identity gate and never counts toward price quorum or authorizes execution.
 
 The execution workflow SDK for Insight. It connects the existing paid API surfaces into one agent-safe flow:
 

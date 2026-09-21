@@ -22,6 +22,11 @@ Ticker alone is not identity. Different issuers' tokens are different instrument
 Underlying spot, token-market and token-NAV prices are distinct descriptors.
 EVM addresses use canonical lowercase hex; normalize them before constructing IDs.
 
+The versioned [RWA instrument registry](rwa-instrument-registry.md) now maps share-class FIGI to
+`underlyingId`, validates primary/segment MIC metadata, and binds the result to issuer UID, ISIN,
+chain and token contract. It is an additional fail-closed admission layer; it does not change the
+signed v1 shape or enter price quorum.
+
 Prices are positive **integer strings scaled to 1e8**. No floating point median or
 spread calculation is used. The upper median is selected for even counts; spread
 is (maximum - minimum) / median. Report serialization is canonical sorted JSON.
@@ -102,10 +107,14 @@ explicitly excluded from oracle quorum and remains non-authorizing.
 - `POST /api/v1/rwa/assessment`, JSON body `{input, policy}`.
 - `GET /api/v1/rwa/robinhood/context?symbol=AAPL` retrieves non-authorizing
   first-party issuer context; it is not an oracle observation.
+- `GET /api/v1/rwa/robinhood/instrument?symbol=AAPL` resolves committed MIC/FIGI identity and
+  cross-checks issuer UID, ISIN and deployment; it remains non-authorizing master data.
 - Typed client: `InsightClient.rwaAssessment(input, policy)`.
 - Typed issuer-context client: `InsightClient.robinhoodRwaContext(symbol)`.
+- Typed master-data client: `InsightClient.robinhoodRwaInstrument(symbol)`.
 - MCP tool: `assess_rwa_evidence`.
 - MCP issuer-context tool: `get_robinhood_rwa_context`.
+- MCP instrument tool: `get_robinhood_rwa_instrument`.
 - [Machine-readable strict request schema](../public/rwa-assessment.schema.json).
 - Authentication/credits use existing middleware. HTTP and MCP cost C1 (0.5 credit);
   no paid feed retrieval or production signing occurs in this endpoint.
@@ -123,6 +132,9 @@ freshness checks. Never rewrite real source timestamps to make such a test pass.
 
 `npm run sdk:test` covers the portable protocol. Root Jest tests cover HTTP
 validation, MCP diagnostics and published schema parity.
+`npm run rwa:registry:check` validates the pinned registry offline, while
+`npm run rwa:reference:verify` performs an explicit read-only drift check against ISO MIC,
+OpenFIGI and Robinhood.
 `node examples/rwa-v1/probe-public-feeds.mjs` performs optional public read-only
 stock-feed probes without secrets, signing or admission.
 

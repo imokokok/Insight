@@ -490,6 +490,103 @@ paths:
           description: API key required
         '502':
           description: Robinhood issuer-context service unavailable or returned invalid data
+  /rwa/robinhood/instrument:
+    get:
+      operationId: getRobinhoodRwaInstrument
+      tags: [Safety]
+      summary: Resolve and cross-check an RWA instrument identity
+      description: >-
+        Resolves the committed FIGI/MIC instrument record for a Robinhood Stock
+        Token and cross-checks it against current issuer UID, ISIN, chain and
+        contract data. Registry entries remain in shadow mode until explicitly
+        promoted. This endpoint returns reference master data only: it never
+        counts toward oracle quorum and never authorizes execution.
+      security:
+        - apiKey: []
+      parameters:
+        - in: query
+          name: symbol
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Za-z][A-Za-z0-9.-]{0,15}$'
+          example: AAPL
+        - in: query
+          name: verifyOnchain
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: Also cross-check the issuer UID and deployment against Robinhood Chain.
+      responses:
+        '200':
+          description: Non-authorizing FIGI/MIC registry record and issuer identity cross-check.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required:
+                      [
+                        schema,
+                        registryVersion,
+                        evaluatedAt,
+                        entry,
+                        observedIssuerBinding,
+                        evaluation,
+                      ]
+                    properties:
+                      schema:
+                        type: string
+                        const: insight.rwa-instrument-admission.v1
+                      registryVersion:
+                        type: string
+                      evaluatedAt:
+                        type: integer
+                      entry:
+                        type: [object, 'null']
+                        description: Committed instrument, FIGI, MIC and issuer binding record.
+                      observedIssuerBinding:
+                        type: object
+                        description: Current issuer UID, ISIN, chain and token contract observation.
+                      evaluation:
+                        type: object
+                        required:
+                          [
+                            identityStatus,
+                            reasonCodes,
+                            productionIdentityAdmitted,
+                            countsTowardOracleQuorum,
+                            mayAuthorizeExecution,
+                          ]
+                        properties:
+                          identityStatus:
+                            type: string
+                            enum: [MATCH, MISMATCH, NOT_FOUND]
+                          reasonCodes:
+                            type: array
+                            items:
+                              type: string
+                          productionIdentityAdmitted:
+                            type: boolean
+                          countsTowardOracleQuorum:
+                            type: boolean
+                            const: false
+                          mayAuthorizeExecution:
+                            type: boolean
+                            const: false
+        '400':
+          description: Invalid or unsupported Stock Token symbol
+        '401':
+          description: API key required
+        '502':
+          description: Robinhood issuer-context service unavailable or returned invalid data
   /execution/attestation/issue:
     post:
       operationId: issueExecutionReceipt

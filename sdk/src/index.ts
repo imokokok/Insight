@@ -1,6 +1,7 @@
 export { InsightClient } from './client';
 export * from './rwa';
 export * from './rwa-call';
+export * from './rwa-instrument-registry';
 export * from './rwa-robinhood';
 export * from './rwa-v2';
 export { InsightApiError, ReceiptConfigurationError, TradeBlockedError } from './errors';

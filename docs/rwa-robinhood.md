@@ -11,6 +11,11 @@ Chainlink, Stork and market-price evidence.
 - SDK: `InsightClient.robinhoodRwaContext("AAPL")`
 - MCP: `get_robinhood_rwa_context`
 
+The companion [MIC/FIGI instrument registry](rwa-instrument-registry.md) adds a separate identity
+surface at `GET /api/v1/rwa/robinhood/instrument?symbol=AAPL`. It cross-checks this issuer context's
+UID, ISIN and deployment against committed master data without turning either source into a price
+vote.
+
 The response is `insight.robinhood-rwa-context.v1` and is always non-authorizing:
 
 - `source.type` is `issuer-first-party`;
@@ -98,5 +103,7 @@ INSIGHT_API_KEY=... npm run integration:doctor -- \
   --offer insight --probe --asset USDC --robinhood-symbol AAPL
 ```
 
-This is an explicit billable probe. It checks availability and binding integrity, but does not fail
-merely because a legitimate halt or corporate action produces an issuer-context `BLOCK`.
+This is an explicit billable probe. It checks availability, issuer/on-chain binding and the committed
+MIC/FIGI identity response, but does not fail merely because a legitimate halt or corporate action
+produces an issuer-context `BLOCK`. A matching `SHADOW` registry entry is reported as such and is not
+mistaken for production admission.

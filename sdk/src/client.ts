@@ -3,6 +3,7 @@ import { InsightApiError } from './errors';
 import { stripTrailingSlashes } from './url';
 
 import type { RwaInput, RwaPolicy, RwaReport } from './rwa';
+import type { RwaInstrumentAdmission } from './rwa-instrument-registry';
 import type { RobinhoodRwaContext } from './rwa-robinhood';
 import type {
   CoverageRequest,
@@ -97,6 +98,25 @@ export class InsightClient {
     signal?: AbortSignal
   ): Promise<RobinhoodRwaContext> {
     return this.request('GET', '/api/v1/rwa/robinhood/context', {
+      query: {
+        symbol,
+        verifyOnchain:
+          options.verifyOnchain === undefined ? undefined : String(options.verifyOnchain),
+      },
+      signal,
+    });
+  }
+
+  /**
+   * Pinned MIC/FIGI identity cross-checked against the current issuer UID,
+   * ISIN and token deployment. This is admission evidence, not a price vote.
+   */
+  async robinhoodRwaInstrument(
+    symbol: string,
+    options: { verifyOnchain?: boolean } = {},
+    signal?: AbortSignal
+  ): Promise<RwaInstrumentAdmission> {
+    return this.request('GET', '/api/v1/rwa/robinhood/instrument', {
       query: {
         symbol,
         verifyOnchain:

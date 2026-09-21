@@ -1,0 +1,17 @@
+{
+  "schema": "insight.rwa-reference-shadow-pilot.v1",
+  "pilotId": "mic-figi-robinhood-2026-09",
+  "registryVersion": "2026-09-21.shadow.1",
+  "timeZone": "Asia/Shanghai",
+  "startedAt": "2026-09-21T00:00:00Z",
+  "qualifyingStartDate": "2026-09-28",
+  "requiredCheckpoints": ["2026-09-28", "2026-10-05", "2026-10-12"],
+  "instruments": ["AAPL", "NVDA", "SPY"],
+  "criteria": {
+    "requireLiveIsoMic": true,
+    "requireLiveOpenFigi": true,
+    "requireLiveRobinhoodBinding": true,
+    "allowIdentityDrift": false,
+    "autoPromote": false
+  }
+}

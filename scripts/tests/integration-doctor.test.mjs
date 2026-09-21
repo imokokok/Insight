@@ -78,12 +78,34 @@ test('explicit Robinhood probe verifies issuer/quorum boundaries and on-chain bi
           },
         });
       }
+      if (url.includes('/rwa/robinhood/instrument')) {
+        return Response.json({
+          data: {
+            schema: 'insight.rwa-instrument-admission.v1',
+            registryVersion: 'fixture',
+            entry: {
+              status: 'SHADOW',
+              issuerBinding: { symbol: 'AAPL' },
+              figi: { shareClassFigi: 'BBG001S5N8V8' },
+              mic: { mic: 'XNAS' },
+            },
+            evaluation: {
+              identityStatus: 'MATCH',
+              reasonCodes: ['REGISTRY_ENTRY_NOT_ACTIVE'],
+              productionIdentityAdmitted: false,
+              countsTowardOracleQuorum: false,
+              mayAuthorizeExecution: false,
+            },
+          },
+        });
+      }
       return Response.json({ data: { status: url.includes('ready') ? 'ready' : 'ok' } });
     },
   });
 
   assert.equal(result.ok, true);
-  assert.equal(result.checks.length, 4);
+  assert.equal(result.checks.length, 5);
   assert.equal(result.checks[3].diagnostic.assetIdMatchesOnchain, true);
-  assert.equal(result.scope, 'PUBLIC_HEALTH_BILLABLE_COVERAGE_AND_ROBINHOOD_ISSUER_CONTEXT');
+  assert.equal(result.checks[4].diagnostic.identityStatus, 'MATCH');
+  assert.equal(result.scope, 'PUBLIC_HEALTH_BILLABLE_COVERAGE_AND_ROBINHOOD_CONTEXT_AND_IDENTITY');
 });

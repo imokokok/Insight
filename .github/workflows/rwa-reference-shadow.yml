@@ -1,0 +1,93 @@
+name: RWA Reference Shadow Check
+
+on:
+  schedule:
+    # GitHub cron is UTC. These are 10:00 Asia/Shanghai on the MIC effective
+    # date, the one-week midpoint and the two-week close. The date guard below
+    # prevents these annual cron expressions from running after the 2026 pilot.
+    - cron: '0 2 28 9 *'
+    - cron: '0 2 5,12 10 *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rwa-reference-shadow
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check pilot date
+        id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          local_date="$(TZ=Asia/Shanghai date +%F)"
+          should_run=false
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            should_run=true
+          elif [ "$local_date" = 2026-09-28 ] || [ "$local_date" = 2026-10-05 ] || [ "$local_date" = 2026-10-12 ]; then
+            should_run=true
+          fi
+          echo "local_date=$local_date" >> "$GITHUB_OUTPUT"
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        if: steps.gate.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install pinned dependencies
+        if: steps.gate.outputs.should_run == 'true'
+        run: npm ci
+
+      - name: Restore prior hash-chain state
+        if: steps.gate.outputs.should_run == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: .local/rwa-shadow-pilot
+          key: rwa-shadow-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            rwa-shadow-${{ runner.os }}-
+
+      - name: Sample ISO MIC, OpenFIGI and Robinhood
+        id: sample
+        if: steps.gate.outputs.should_run == 'true'
+        env:
+          OPENFIGI_API_KEY: ${{ secrets.OPENFIGI_API_KEY }}
+        run: npm run rwa:pilot:sample
+
+      - name: Save updated hash-chain state
+        if: always() && steps.gate.outputs.should_run == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .local/rwa-shadow-pilot
+          key: rwa-shadow-${{ runner.os }}-${{ github.run_id }}
+
+      - name: Upload auditable pilot evidence
+        if: always() && steps.gate.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rwa-shadow-${{ steps.gate.outputs.local_date }}-${{ github.run_attempt }}
+          path: .local/rwa-shadow-pilot
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish summary
+        if: always() && steps.gate.outputs.should_run == 'true'
+        run: |
+          if [ -f .local/rwa-shadow-pilot/summary.json ]; then
+            echo '## RWA reference shadow pilot' >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            node -e 'const s=require("./.local/rwa-shadow-pilot/summary.json"); console.log(JSON.stringify(s,null,2))' >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi

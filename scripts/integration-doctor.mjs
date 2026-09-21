@@ -159,6 +159,30 @@ export async function integrationDoctor(options = {}) {
             currentMultiplierMatchesOnchain: context.multiplier?.currentMatchesOnchain,
           }
         : null;
+
+      const instrumentResult = await read(base, `/api/v1/rwa/robinhood/instrument?${query}`, true);
+      const admission = instrumentResult.body?.data;
+      const entryStatus = admission?.entry?.status;
+      instrumentResult.check.ok &&=
+        admission?.schema === 'insight.rwa-instrument-admission.v1' &&
+        admission?.entry?.issuerBinding?.symbol === robinhoodSymbol.toUpperCase() &&
+        admission?.evaluation?.identityStatus === 'MATCH' &&
+        admission?.evaluation?.countsTowardOracleQuorum === false &&
+        admission?.evaluation?.mayAuthorizeExecution === false &&
+        admission?.evaluation?.productionIdentityAdmitted === (entryStatus === 'ACTIVE') &&
+        ['SHADOW', 'ACTIVE'].includes(entryStatus);
+      instrumentResult.check.diagnostic = admission
+        ? {
+            registryVersion: admission.registryVersion,
+            symbol: admission.entry?.issuerBinding?.symbol,
+            status: entryStatus,
+            shareClassFigi: admission.entry?.figi?.shareClassFigi,
+            mic: admission.entry?.mic?.mic,
+            identityStatus: admission.evaluation?.identityStatus,
+            reasonCodes: admission.evaluation?.reasonCodes,
+            productionIdentityAdmitted: admission.evaluation?.productionIdentityAdmitted,
+          }
+        : null;
     }
   }
   if (offer !== 'insight') {
@@ -179,7 +203,7 @@ export async function integrationDoctor(options = {}) {
     ok: checks.every((c) => c.ok),
     scope: probe
       ? robinhoodSymbol
-        ? 'PUBLIC_HEALTH_BILLABLE_COVERAGE_AND_ROBINHOOD_ISSUER_CONTEXT'
+        ? 'PUBLIC_HEALTH_BILLABLE_COVERAGE_AND_ROBINHOOD_CONTEXT_AND_IDENTITY'
         : 'PUBLIC_HEALTH_AND_BILLABLE_COVERAGE_NOT_SIGNED_ASSESSMENT'
       : 'PUBLIC_HEALTH_AND_CONFIGURATION_ONLY',
     checks,

@@ -533,7 +533,7 @@ when the verdict turns DANGER.`}
             <div>
               <h2 className="text-3xl font-bold text-slate-900 mb-4">MCP Tool Playground</h2>
               <p className="max-w-2xl text-lg text-slate-600">
-                Test any of the 39 tools — including{' '}
+                Test any of the 40 tools — including{' '}
                 <code className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-mono text-sm text-slate-700">
                   pre_trade_safety_check
                 </code>{' '}

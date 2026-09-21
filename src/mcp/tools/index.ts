@@ -69,7 +69,7 @@ import {
   getProtocolRiskParamsTool,
   getRiskSummaryTool,
 } from './riskTools';
-import { robinhoodRwaContextTool, rwaAssessmentTool } from './rwaTools';
+import { robinhoodRwaContextTool, robinhoodRwaInstrumentTool, rwaAssessmentTool } from './rwaTools';
 import { checkPositionSafetyTool } from './safetyTools';
 import { getStablecoinPegTool } from './stablecoinTools';
 import { getStablecoinListTool, getSymbolsTool, recommendOracleSetupTool } from './utilityTools';
@@ -82,6 +82,7 @@ const logger = createLogger('mcp-tools');
 
 const MCP_TOOLS: McpToolDefinition[] = [
   rwaAssessmentTool,
+  robinhoodRwaInstrumentTool,
   robinhoodRwaContextTool,
   getOraclePriceTool,
   getConsensusPriceTool,
@@ -143,6 +144,22 @@ const JSON_SCHEMA_MAP: Record<
         type: 'boolean',
         default: true,
         description: 'Cross-check the REST multiplier and pause state on Robinhood Chain',
+      },
+    },
+    required: ['symbol'],
+  },
+  get_robinhood_rwa_instrument: {
+    type: 'object',
+    properties: {
+      symbol: {
+        type: 'string',
+        pattern: '^[A-Za-z][A-Za-z0-9.-]{0,15}$',
+        description: 'Robinhood Stock Token symbol, e.g. AAPL, NVDA, SPY',
+      },
+      verifyOnchain: {
+        type: 'boolean',
+        default: true,
+        description: 'Also collect the existing on-chain issuer-context integrity checks',
       },
     },
     required: ['symbol'],

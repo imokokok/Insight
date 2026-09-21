@@ -1,0 +1,141 @@
+{
+  "schema": "insight.rwa-instrument-registry.v1",
+  "version": "2026-09-21.shadow.1",
+  "publishedAt": "2026-09-21T00:00:00Z",
+  "sources": {
+    "isoMic": {
+      "url": "https://www.iso20022.org/sites/default/files/ISO10383_MIC/ISO10383_MIC.csv",
+      "publicationDate": "2026-09-14",
+      "effectiveDate": "2026-09-28"
+    },
+    "openFigi": {
+      "url": "https://api.openfigi.com/v3/mapping",
+      "mappingIdType": "ID_ISIN"
+    },
+    "robinhood": {
+      "url": "https://api.robinhood.com/rhj/assets"
+    }
+  },
+  "entries": [
+    {
+      "status": "SHADOW",
+      "instrumentId": "0x8b259407e98c1f57a1879d05fbbd5fbd11197553779646f2394fbae1567e487b",
+      "instrument": {
+        "schema": "insight.rwa-instrument.v1",
+        "underlyingId": "figi-share-class:BBG001S5N8V8",
+        "issuer": "robinhood-rhj",
+        "tokenChainId": 4663,
+        "tokenAddress": "0xaf3d76f1834a1d425780943c99ea8a608f8a93f9",
+        "venueMic": "XNAS",
+        "kind": "equity",
+        "currency": "USD",
+        "priceBasis": "underlying-spot",
+        "corporateActionVersion": "rhj-registry-20260921"
+      },
+      "figi": {
+        "shareClassFigi": "BBG001S5N8V8",
+        "compositeFigi": "BBG000B9XRY4"
+      },
+      "mic": {
+        "mic": "XNAS",
+        "operatingMic": "XNAS",
+        "type": "OPRT",
+        "marketName": "NASDAQ - ALL MARKETS",
+        "legalEntityName": "NASDAQ, INC.",
+        "lei": "549300L8X1Q78ERXFD06",
+        "countryCode": "US",
+        "status": "ACTIVE",
+        "lastValidationDate": "2026-04-27"
+      },
+      "issuerBinding": {
+        "source": "robinhood-rhj",
+        "nativeAssetId": "0x00000000000000000000000000000000c2425be3658540dd8e2424cbf3c5c649",
+        "symbol": "AAPL",
+        "isin": "US0378331005",
+        "chainId": 4663,
+        "tokenAddress": "0xaf3d76f1834a1d425780943c99ea8a608f8a93f9"
+      },
+      "reviewedAt": "2026-09-21T00:00:00Z"
+    },
+    {
+      "status": "SHADOW",
+      "instrumentId": "0x8734e5b9478add59d7ac72b22fca779e0a8a6781a3bc6a3fae818f657278334a",
+      "instrument": {
+        "schema": "insight.rwa-instrument.v1",
+        "underlyingId": "figi-share-class:BBG001S5TZJ6",
+        "issuer": "robinhood-rhj",
+        "tokenChainId": 4663,
+        "tokenAddress": "0xd0601ce157db5bdc3162bbac2a2c8af5320d9eec",
+        "venueMic": "XNAS",
+        "kind": "equity",
+        "currency": "USD",
+        "priceBasis": "underlying-spot",
+        "corporateActionVersion": "rhj-registry-20260921"
+      },
+      "figi": {
+        "shareClassFigi": "BBG001S5TZJ6",
+        "compositeFigi": "BBG000BBJQV0"
+      },
+      "mic": {
+        "mic": "XNAS",
+        "operatingMic": "XNAS",
+        "type": "OPRT",
+        "marketName": "NASDAQ - ALL MARKETS",
+        "legalEntityName": "NASDAQ, INC.",
+        "lei": "549300L8X1Q78ERXFD06",
+        "countryCode": "US",
+        "status": "ACTIVE",
+        "lastValidationDate": "2026-04-27"
+      },
+      "issuerBinding": {
+        "source": "robinhood-rhj",
+        "nativeAssetId": "0x00000000000000000000000000000000915f477416294f5099a5e0e09f327ce5",
+        "symbol": "NVDA",
+        "isin": "US67066G1040",
+        "chainId": 4663,
+        "tokenAddress": "0xd0601ce157db5bdc3162bbac2a2c8af5320d9eec"
+      },
+      "reviewedAt": "2026-09-21T00:00:00Z"
+    },
+    {
+      "status": "SHADOW",
+      "instrumentId": "0x21245403f626470073f88cbc0824411b4e4dcfbfbdc12b021a9fc59e5338048a",
+      "instrument": {
+        "schema": "insight.rwa-instrument.v1",
+        "underlyingId": "figi-share-class:BBG001S72SM3",
+        "issuer": "robinhood-rhj",
+        "tokenChainId": 4663,
+        "tokenAddress": "0x117cc2133c37b721f49de2a7a74833232b3b4c0c",
+        "venueMic": "ARCX",
+        "kind": "etf",
+        "currency": "USD",
+        "priceBasis": "underlying-spot",
+        "corporateActionVersion": "rhj-registry-20260921"
+      },
+      "figi": {
+        "shareClassFigi": "BBG001S72SM3",
+        "compositeFigi": "BBG000BDTBL9"
+      },
+      "mic": {
+        "mic": "ARCX",
+        "operatingMic": "XNYS",
+        "type": "SGMT",
+        "marketName": "NYSE ARCA",
+        "legalEntityName": "INTERCONTINENTAL EXCHANGE, INC.",
+        "lei": "5493000F4ZO33MV32P92",
+        "countryCode": "US",
+        "status": "ACTIVE",
+        "lastValidationDate": "2025-04-28"
+      },
+      "issuerBinding": {
+        "source": "robinhood-rhj",
+        "nativeAssetId": "0x000000000000000000000000000000001c6f27a62789417d8ed359ed3c2d3da1",
+        "symbol": "SPY",
+        "isin": "US78462F1030",
+        "chainId": 4663,
+        "tokenAddress": "0x117cc2133c37b721f49de2a7a74833232b3b4c0c"
+      },
+      "reviewedAt": "2026-09-21T00:00:00Z"
+    }
+  ]
+}

@@ -15,6 +15,7 @@
     "scripts/feed-cadence.ts",
     "scripts/protocol-metrics.ts",
     "scripts/reputation.ts",
+    "scripts/verify-rwa-reference-data.ts",
     "scripts/safety-outcome.ts",
     "scripts/sync-feeds.ts"
   ],

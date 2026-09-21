@@ -79,7 +79,7 @@ const docs: DocCard[] = [
     description:
       'Connect Claude, Cursor, and other MCP clients to oracle prices, risk summaries, pre-trade safety checks, Oracle Watch monitoring, liquidation stress tests, and more.',
     href: '/ai',
-    tags: ['AI Agents', '39 Tools', 'MCP', 'Pre-Trade Safety'],
+    tags: ['AI Agents', '40 Tools', 'MCP', 'Pre-Trade Safety'],
     accent: 'blue',
   },
   {
