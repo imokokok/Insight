@@ -39,6 +39,26 @@ check(
   'Insight local time is 20:00 +08:00',
   plan.selectedWindow.insightLocalTime === '2026-09-23T20:00:00+08:00'
 );
+check(
+  'window B is locked by both parties and awaits only its READY',
+  plan.selectedWindow.status === 'LOCKED_BY_BOTH_PARTIES_AWAITING_WINDOW_SPECIFIC_READY'
+);
+check(
+  'the same runId continues byte for byte',
+  plan.runIdentity.runId === 'insight-veritas-2026-09-18' &&
+    plan.runIdentity.runIdComparison === 'BYTE_FOR_BYTE'
+);
+check(
+  'attempt numbering continues as 3 through 7 without reset',
+  JSON.stringify(plan.runIdentity.attempts) === JSON.stringify([3, 4, 5, 6, 7]) &&
+    plan.runIdentity.attemptNumberingContinuesFromFirstWindow === true &&
+    plan.runIdentity.attemptNumberingResetAllowed === false
+);
+check(
+  'a wrong runId maps to the agreed abort reason',
+  plan.runIdentity.wrongRunIdOutcome.status === 'ATTEMPT_ABORT' &&
+    plan.runIdentity.wrongRunIdOutcome.reasonCode === 'BYTE_MISMATCH'
+);
 check('five fresh gate pairs are planned', plan.attemptCapacity.maximumFreshGatePairs === 5);
 check('target cycle is eleven minutes', plan.attemptCapacity.targetCycleSeconds === 660);
 check(
@@ -70,17 +90,27 @@ check(
 check(
   'new READY is required before the first signature',
   plan.activationGates.windowSpecificVeritasReadyRequired === true &&
-    plan.activationGates.readyMustArriveBeforeFirstGateSignature === true
+    plan.activationGates.readyMustArriveBeforeFirstGateSignature === true &&
+    plan.activationGates.windowMustOpenBeforeFirstGateSignature === true
 );
 check(
   'all requested fresh checks are required',
   [
     'freshBitcoinOutputCheckRequired',
+    'freshBitcoinOutputConfirmationCheckRequired',
+    'freshBitcoinFeeLevelCheckRequired',
     'freshEthereumBalanceNonceAndFeeCheckRequired',
+    'freshEthereumBaseFeeCheckRequired',
     'freshSettlementReadEndpointsCheckRequired',
+    'freshSettlementReadEndpointsMustAgree',
     'freshTransactionSendEndpointsCheckRequired',
     'freshChainStateCheckRequired',
   ].every((name) => plan.activationGates[name] === true)
+);
+check(
+  'READY excludes 2026-09-20 values',
+  plan.activationGates.readyContainsOnlyRunDayValuesAndWindowCutoffs === true &&
+    plan.activationGates.valuesFrom20260920AllowedInReady === false
 );
 check(
   'unusable or disagreeing endpoints fail closed',
@@ -92,6 +122,32 @@ check(
   Object.values(plan.carryForwardFromFirstWindow).every((value) => value === false)
 );
 check('selection rule pin is unchanged', plan.selectionRuleHash === agreementV1.selectionRuleHash);
+
+console.log('\n== Run-day schedule and authorization boundaries ==');
+check(
+  'fresh checks and rehearsal run from 11:00 to 11:45 UTC',
+  plan.runDaySchedule.freshChecksAndFullRehearsal.startsAt === '2026-09-23T11:00:00Z' &&
+    plan.runDaySchedule.freshChecksAndFullRehearsal.endsAt === '2026-09-23T11:45:00Z'
+);
+check(
+  'READY is targeted for 11:55 UTC and attempt 3 for 12:00 UTC',
+  plan.runDaySchedule.veritasReadyTargetAt === '2026-09-23T11:55:00Z' &&
+    plan.runDaySchedule.windowOpensAndAttempt3At === '2026-09-23T12:00:00Z'
+);
+check(
+  'retry targets are 12:11, 12:22, 12:33 and 12:44 UTC',
+  JSON.stringify(plan.runDaySchedule.retryRequestTargetTimes) ===
+    JSON.stringify([
+      '2026-09-23T12:11:00Z',
+      '2026-09-23T12:22:00Z',
+      '2026-09-23T12:33:00Z',
+      '2026-09-23T12:44:00Z',
+    ])
+);
+check(
+  'retry target times are not signature authorization',
+  plan.runDaySchedule.retryRequestTargetTimesAreAuthorization === false
+);
 
 console.log('\n== Pre-composed gate message ==');
 const sourceGateUid = `0x${'11'.repeat(32)}`;
@@ -110,8 +166,8 @@ const envelope = (uid, signatureByte) => ({
 });
 const fixture = {
   messageType: 'INSIGHT_GATE_PAIR',
-  runId: 'fixture-not-for-broadcast',
-  attempt: 1,
+  runId: 'insight-veritas-2026-09-18',
+  attempt: 3,
   sourceEnvelope: envelope(sourceGateUid, '33'),
   destinationEnvelope: envelope(destinationGateUid, '44'),
   sourceGateUid,
@@ -143,6 +199,23 @@ rejects('renderer rejects pre-v3 envelopes', () =>
     ...fixture,
     sourceEnvelope: { ...fixture.sourceEnvelope, schemaVersion: 2 },
   })
+);
+rejects('renderer rejects the window date as a replacement runId', () =>
+  renderGatePairMessage({ ...fixture, runId: 'insight-veritas-2026-09-23' })
+);
+rejects('renderer rejects an empty runId', () => renderGatePairMessage({ ...fixture, runId: '' }));
+rejects('renderer rejects restarted attempt 1', () =>
+  renderGatePairMessage({ ...fixture, attempt: 1 })
+);
+rejects('renderer rejects restarted attempt 2', () =>
+  renderGatePairMessage({ ...fixture, attempt: 2 })
+);
+rejects('renderer rejects out-of-window attempt 8', () =>
+  renderGatePairMessage({ ...fixture, attempt: 8 })
+);
+check(
+  'renderer accepts the last scheduled attempt 7',
+  renderGatePairMessage({ ...fixture, attempt: 7 }).includes('attempt: 7')
 );
 
 console.log('\n== Standing boundaries ==');

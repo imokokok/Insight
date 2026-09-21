@@ -1,7 +1,7 @@
 {
   "schema": "insight-veritas-joint-run-window-plan/v1",
   "decidedAt": "2026-09-21",
-  "sourceEvent": "VERITAS-20260921-IN-01",
+  "sourceEvent": "VERITAS-20260921-IN-02",
   "selectionRuleFile": "anchored-settlement-selection-rule-v2.json",
   "selectionRuleHash": "0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a",
   "selectedWindow": {
@@ -10,7 +10,18 @@
     "endsAt": "2026-09-23T13:00:00Z",
     "durationSeconds": 3600,
     "insightLocalTime": "2026-09-23T20:00:00+08:00",
-    "status": "SELECTED_BY_INSIGHT_AWAITING_VERITAS_ACK_AND_READY"
+    "status": "LOCKED_BY_BOTH_PARTIES_AWAITING_WINDOW_SPECIFIC_READY"
+  },
+  "runIdentity": {
+    "runId": "insight-veritas-2026-09-18",
+    "runIdComparison": "BYTE_FOR_BYTE",
+    "attempts": [3, 4, 5, 6, 7],
+    "attemptNumberingContinuesFromFirstWindow": true,
+    "attemptNumberingResetAllowed": false,
+    "wrongRunIdOutcome": {
+      "status": "ATTEMPT_ABORT",
+      "reasonCode": "BYTE_MISMATCH"
+    }
   },
   "attemptCapacity": {
     "maximumFreshGatePairs": 5,
@@ -43,14 +54,36 @@
     "attemptsConcludedByMinute": 55,
     "recordsPublishedByMinute": 60
   },
+  "runDaySchedule": {
+    "freshChecksAndFullRehearsal": {
+      "startsAt": "2026-09-23T11:00:00Z",
+      "endsAt": "2026-09-23T11:45:00Z"
+    },
+    "veritasReadyTargetAt": "2026-09-23T11:55:00Z",
+    "windowOpensAndAttempt3At": "2026-09-23T12:00:00Z",
+    "retryRequestTargetTimes": [
+      "2026-09-23T12:11:00Z",
+      "2026-09-23T12:22:00Z",
+      "2026-09-23T12:33:00Z",
+      "2026-09-23T12:44:00Z"
+    ],
+    "retryRequestTargetTimesAreAuthorization": false
+  },
   "activationGates": {
     "windowSpecificVeritasReadyRequired": true,
     "readyMustArriveBeforeFirstGateSignature": true,
+    "windowMustOpenBeforeFirstGateSignature": true,
     "freshBitcoinOutputCheckRequired": true,
+    "freshBitcoinOutputConfirmationCheckRequired": true,
+    "freshBitcoinFeeLevelCheckRequired": true,
     "freshEthereumBalanceNonceAndFeeCheckRequired": true,
+    "freshEthereumBaseFeeCheckRequired": true,
     "freshSettlementReadEndpointsCheckRequired": true,
+    "freshSettlementReadEndpointsMustAgree": true,
     "freshTransactionSendEndpointsCheckRequired": true,
     "freshChainStateCheckRequired": true,
+    "readyContainsOnlyRunDayValuesAndWindowCutoffs": true,
+    "valuesFrom20260920AllowedInReady": false,
     "noUsableDataSourceOutcome": "FAIL_CLOSED",
     "endpointDisagreementOutcome": "FAIL_CLOSED"
   },

@@ -11,6 +11,23 @@ const assert = (condition, message) => {
   if (!condition) throw new Error(message);
 };
 
+const window2Plan = JSON.parse(
+  fs.readFileSync(new URL('joint-run-window-2-plan-v1.json', import.meta.url), 'utf8')
+);
+const expectedRunId = window2Plan.runIdentity?.runId;
+const allowedAttempts = window2Plan.runIdentity?.attempts;
+
+assert(
+  typeof expectedRunId === 'string' && expectedRunId.length > 0,
+  'window-2 plan must define a non-empty runIdentity.runId'
+);
+assert(
+  Array.isArray(allowedAttempts) &&
+    allowedAttempts.length > 0 &&
+    allowedAttempts.every((attempt) => Number.isSafeInteger(attempt) && attempt >= 1),
+  'window-2 plan must define positive integer runIdentity.attempts'
+);
+
 const validateEnvelope = (name, envelope) => {
   assert(
     envelope && typeof envelope === 'object' && !Array.isArray(envelope),
@@ -39,10 +56,10 @@ const validateEnvelope = (name, envelope) => {
 
 export const renderGatePairMessage = (input) => {
   assert(input?.messageType === 'INSIGHT_GATE_PAIR', 'messageType must be INSIGHT_GATE_PAIR');
-  assert(typeof input.runId === 'string' && input.runId.length > 0, 'runId must be non-empty');
+  assert(input.runId === expectedRunId, `runId must equal ${expectedRunId} byte for byte`);
   assert(
-    Number.isSafeInteger(input.attempt) && input.attempt >= 1,
-    'attempt must be a positive integer'
+    Number.isSafeInteger(input.attempt) && allowedAttempts.includes(input.attempt),
+    `attempt must be one of ${allowedAttempts.join(', ')}`
   );
   validateEnvelope('sourceEnvelope', input.sourceEnvelope);
   validateEnvelope('destinationEnvelope', input.destinationEnvelope);
