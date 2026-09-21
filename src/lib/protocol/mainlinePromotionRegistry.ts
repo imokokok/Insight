@@ -10,6 +10,8 @@ import promotionV8Json from '../../../protocol/mainline/promotions/2026-09-19-wo
 import promotionV9Json from '../../../protocol/mainline/promotions/2026-09-20-coverage-readiness.json';
 import promotionV10Json from '../../../protocol/mainline/promotions/2026-09-20-rwa-adaptation.json';
 import promotionV11Json from '../../../protocol/mainline/promotions/2026-09-20-rwa-hardening.json';
+import promotionV13Json from '../../../protocol/mainline/promotions/2026-09-21-band-v3-oracle.json';
+import promotionV14Json from '../../../protocol/mainline/promotions/2026-09-21-band-v3-runtime-publication.json';
 import promotionV12Json from '../../../protocol/mainline/promotions/2026-09-21-robinhood-issuer-context.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
@@ -53,6 +55,8 @@ const rawPromotions = [
   promotionV10Json,
   promotionV11Json,
   promotionV12Json,
+  promotionV13Json,
+  promotionV14Json,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {

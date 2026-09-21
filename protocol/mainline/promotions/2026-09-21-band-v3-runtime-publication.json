@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x65a36fe59e92068e55ba075e0d6f4d3ba5915fc6d559c523922e94076a18c3cb",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 14,
+  "effectiveFrom": "2026-09-21",
+  "classification": "Runtime publication of immutable Band Protocol v3 promotion metadata; no semantic or partner activation change",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x728ae48bca4e010866ec775f204fb816d56044afc768fc16379a4d3db7e48103",
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "receiptImpact": "Publishes the immutable Band Protocol v3 promotion and this corrective publication record through the runtime mainline promotion registry. It does not alter Band price semantics, coverage policy bytes, signed layouts, registry release, partner policies, activation mappings or historical receipts.",
+  "activationRule": "No partner policy or activation mapping changes. This record only restores runtime addressability of the already-reviewed Band promotion metadata. Existing consumers remain pinned to their current policies; Band and coverage v3 still require explicit consumer adoption.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged-pinned-contract-runtime-publication-only",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Runtime promotion discovery is additive metadata only; no partner behavior, sign-off or production data coverage changes."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged-pinned-contract-runtime-publication-only",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Runtime promotion discovery is additive metadata only; no partner behavior, sign-off or production data coverage changes."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged-pinned-contract-runtime-publication-only",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Runtime promotion discovery is additive metadata only; no partner behavior, sign-off or production data coverage changes."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged-pinned-contract-runtime-publication-only",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Runtime promotion discovery is additive metadata only; no partner behavior, sign-off or production data coverage changes."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged-pinned-contract-runtime-publication-only",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Runtime promotion discovery is additive metadata only; no partner behavior, sign-off or production data coverage changes."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged-pinned-contract-runtime-publication-only",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Runtime promotion discovery is additive metadata only; no partner behavior, sign-off or production data coverage changes."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged-pinned-contract-runtime-publication-only",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Runtime promotion discovery is additive metadata only; no partner behavior, sign-off or production data coverage changes."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged-pinned-contract-runtime-publication-only",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Runtime promotion discovery is additive metadata only; no partner behavior, sign-off or production data coverage changes."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged-pinned-contract-runtime-publication-only",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Runtime promotion discovery is additive metadata only; no partner behavior, sign-off or production data coverage changes."
+    }
+  ],
+  "predecessorReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c"
+}
