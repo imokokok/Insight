@@ -1,10 +1,11 @@
 {
   "schema": "insight-priorseal.rwa-source-lock.v1",
-  "version": "rwa-hardening-v2",
+  "version": "rwa-production-gates-v3",
   "sha256": {
     "sdk/src/rwa.ts": "f1ec7f67f5598a823cec4783dfa105b80e4190e9fa1125f2aa5d26fbfdf160fe",
-    "sdk/src/rwa-call.ts": "16de060ae0f07fb37678cb54525e184441c2e3c04430b3907918a1c67d584e1a",
-    "sdk/src/rwa-v2.ts": "66839d24ba9932ea8408a95bed75d51c0839db0db6e03ca28e5e36d53008b613",
-    "examples/rwa-v2/golden.json": "d376bbddf01fea2a0e0c7f35db4e0d5727e821d28b363adf181a77ec655ae18f"
+    "sdk/src/rwa-call.ts": "26f5c972b28e1373bbcc5ada4eb4f231db405c07ad954be9dd67c3952e3ecf16",
+    "sdk/src/rwa-v2.ts": "febbea7ab30c5d6202ea40d72ff84a1a399d75ff50e5885eb5729f6ab6ed1d16",
+    "examples/rwa-v2/golden.json": "d376bbddf01fea2a0e0c7f35db4e0d5727e821d28b363adf181a77ec655ae18f",
+    "protocol/rwa-execution-profiles.v1.json": "7d90a770530ab0a2151e6b6e857a08b155f2dfe81662edb6d8205d590c4bcc56"
   }
 }

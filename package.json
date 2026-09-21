@@ -24,6 +24,8 @@
     "test:e2e:ui": "playwright test --ui",
     "rwa:parity": "node scripts/check-rwa-parity.mjs",
     "rwa:registry:check": "node --import tsx scripts/verify-rwa-reference-data.ts --offline",
+    "rwa:execution:check": "npm run sdk:build && node scripts/verify-rwa-execution-profiles.mjs",
+    "rwa:execution:check:online": "npm run sdk:build && node scripts/verify-rwa-execution-profiles.mjs --online",
     "rwa:reference:verify": "node --import tsx scripts/verify-rwa-reference-data.ts",
     "rwa:pilot:sample": "node scripts/rwa-shadow-pilot.mjs sample",
     "rwa:pilot:status": "node scripts/rwa-shadow-pilot.mjs status",

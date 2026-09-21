@@ -1,13 +1,88 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { encodeFunctionData, keccak256 } from 'viem';
+import { decodeFunctionData, encodeFunctionData, keccak256 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
 import { rwaV2Fixture, signRwaV2Fixture } from '../../examples/rwa-v2/fixture.mjs';
 import * as sdk from '../dist/index.js';
 
 const key = privateKeyToAccount('0x' + '12'.repeat(32));
+const instrumentRegistry = JSON.parse(
+  readFileSync(new URL('../../protocol/rwa-instrument-registry.v1.json', import.meta.url), 'utf8')
+);
+const executionRegistry = JSON.parse(
+  readFileSync(new URL('../../protocol/rwa-execution-profiles.v1.json', import.meta.url), 'utf8')
+);
+function robinhoodFixture() {
+  const f = rwaV2Fixture(sdk),
+    entry = instrumentRegistry.entries[0],
+    profile = executionRegistry.profiles[0].profile,
+    id = entry.instrumentId;
+  f.input.instrument = structuredClone(entry.instrument);
+  f.input.request.instrumentId = id;
+  f.policy.instrumentId = id;
+  for (const price of f.input.prices) {
+    price.instrumentId = id;
+    price.currency = entry.instrument.currency;
+    price.priceBasis = entry.instrument.priceBasis;
+    price.corporateActionVersion = entry.instrument.corporateActionVersion;
+  }
+  f.input.market.instrumentId = id;
+  f.input.market.mic = entry.instrument.venueMic;
+  for (const evidence of f.input.evidence) {
+    evidence.instrumentId = id;
+    if (evidence.kind !== 'eligibility') evidence.subject = id;
+  }
+  f.receiverEvidence.instrumentId = id;
+  f.callProfile = structuredClone(profile);
+  f.transaction = sdk.buildRwaSwapRouter02Transaction(profile, {
+    from: f.transaction.from,
+    nonce: f.transaction.nonce,
+    instrument: entry.instrument,
+    action: 'buy',
+    fee: 500,
+    amountIn: f.input.request.amount,
+    minimumOutput: '1',
+    receiver: f.receiverEvidence.subject,
+    deadline: f.now + 120,
+  });
+  f.input.request.call = {
+    chainId: f.transaction.chainId,
+    from: f.transaction.from,
+    to: f.transaction.to,
+    calldataHash: keccak256(f.transaction.data),
+    value: f.transaction.value,
+    nonce: f.transaction.nonce,
+  };
+  return f;
+}
+test('Robinhood SwapRouter02 adapter builds one deadline-protected admitted pool call', () => {
+  const f = robinhoodFixture(),
+    semantics = sdk.decodeRwaCall(
+      f.transaction,
+      f.input.request,
+      f.input.instrument,
+      f.callProfile,
+      f.now
+    );
+  assert.equal(semantics.pool, f.callProfile.pools[0].address);
+  assert.equal(semantics.deadline, f.now + 120);
+  assert.equal(semantics.inputToken, f.callProfile.quoteToken);
+  const outer = decodeFunctionData({ abi: sdk.RWA_SWAP_ROUTER02_ABI, data: f.transaction.data });
+  f.transaction.data = encodeFunctionData({
+    abi: sdk.RWA_SWAP_ROUTER02_ABI,
+    functionName: 'multicall',
+    args: [outer.args[0], [outer.args[1][0], outer.args[1][0]]],
+  });
+  f.input.request.call.calldataHash = keccak256(f.transaction.data);
+  assert.throws(
+    () =>
+      sdk.decodeRwaCall(f.transaction, f.input.request, f.input.instrument, f.callProfile, f.now),
+    /RWA_CALL_NON_CANONICAL/
+  );
+});
 test('v2 signed ALLOW, sequence and trusted call profile', async () => {
   const f = rwaV2Fixture(sdk),
     a = await signRwaV2Fixture(sdk, key, f);

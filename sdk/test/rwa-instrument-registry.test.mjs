@@ -2,10 +2,17 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
+import { keccak256 } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+
+import { rwaV2Fixture } from '../../examples/rwa-v2/fixture.mjs';
 import * as sdk from '../dist/index.js';
 
 const registry = JSON.parse(
   readFileSync(new URL('../../protocol/rwa-instrument-registry.v1.json', import.meta.url), 'utf8')
+);
+const executionRegistry = JSON.parse(
+  readFileSync(new URL('../../protocol/rwa-execution-profiles.v1.json', import.meta.url), 'utf8')
 );
 
 function contextFor(entry) {
@@ -99,6 +106,101 @@ test('requires an explicit ACTIVE promotion before production identity admission
   assert.equal(admission.evaluation.productionIdentityAdmitted, true);
   assert.deepEqual(admission.evaluation.reasonCodes, []);
   assert.equal(admission.evaluation.mayAuthorizeExecution, false);
+});
+
+test('production v2 report signs and independently pins the exact ACTIVE admission snapshot', async () => {
+  const activeRegistry = structuredClone(registry);
+  activeRegistry.publishedAt = '2026-09-29T00:00:00Z';
+  activeRegistry.entries[0].status = 'ACTIVE';
+  const entry = activeRegistry.entries[0],
+    profile = executionRegistry.profiles[0].profile,
+    f = rwaV2Fixture(sdk),
+    signer = privateKeyToAccount('0x' + '12'.repeat(32));
+  f.input.instrument = structuredClone(entry.instrument);
+  f.input.request.instrumentId = entry.instrumentId;
+  f.policy.instrumentId = entry.instrumentId;
+  f.policy.environment = 'production';
+  for (const price of f.input.prices) {
+    price.instrumentId = entry.instrumentId;
+    price.currency = entry.instrument.currency;
+    price.priceBasis = entry.instrument.priceBasis;
+    price.corporateActionVersion = entry.instrument.corporateActionVersion;
+  }
+  f.input.market.instrumentId = entry.instrumentId;
+  f.input.market.mic = entry.instrument.venueMic;
+  for (const evidence of f.input.evidence) {
+    evidence.instrumentId = entry.instrumentId;
+    if (evidence.kind !== 'eligibility') evidence.subject = entry.instrumentId;
+  }
+  f.receiverEvidence.instrumentId = entry.instrumentId;
+  f.callProfile = structuredClone(profile);
+  f.transaction = sdk.buildRwaSwapRouter02Transaction(profile, {
+    from: f.transaction.from,
+    nonce: f.transaction.nonce,
+    instrument: entry.instrument,
+    action: 'buy',
+    fee: 500,
+    amountIn: f.input.request.amount,
+    minimumOutput: '1',
+    receiver: f.receiverEvidence.subject,
+    deadline: f.now + 120,
+  });
+  f.input.request.call = {
+    chainId: f.transaction.chainId,
+    from: f.transaction.from,
+    to: f.transaction.to,
+    calldataHash: keccak256(f.transaction.data),
+    value: f.transaction.value,
+    nonce: f.transaction.nonce,
+  };
+  const report = sdk.buildAdmittedRwaReportV2(activeRegistry, f.input, f.policy, f.now, {
+      sequence: '0',
+      previousDigest: null,
+      transaction: f.transaction,
+      callProfile: profile,
+      receiverEvidence: f.receiverEvidence,
+    }),
+    proof = {
+      report,
+      digest: sdk.rwaV2ReportDigest(report),
+      signer: signer.address,
+      signature: await signer.signTypedData(sdk.rwaV2SigningData(report)),
+    },
+    trust = {
+      policy: structuredClone(f.policy),
+      policyId: sdk.rwaPolicyId(f.policy),
+      request: structuredClone(f.input.request),
+      environment: f.policy.environment,
+      keys: [
+        {
+          address: signer.address,
+          validFrom: f.now - 60,
+          validUntil: f.now + 3600,
+          revoked: false,
+        },
+      ],
+      callProfile: structuredClone(profile),
+      instrumentAdmission: structuredClone(report.instrumentAdmission),
+    };
+  assert.equal((await sdk.verifyRwaReportV2(proof, trust, f.now)).valid, true);
+  const wrongTrust = structuredClone(trust);
+  wrongTrust.instrumentAdmission.registryDigest = '0x' + '00'.repeat(32);
+  assert.equal((await sdk.verifyRwaReportV2(proof, wrongTrust, f.now)).valid, false);
+  assert.throws(
+    () =>
+      sdk.buildRwaReportV2(f.input, f.policy, f.now, {
+        sequence: '0',
+        previousDigest: null,
+        transaction: f.transaction,
+        callProfile: profile,
+        receiverEvidence: f.receiverEvidence,
+      }),
+    /RWA_INSTRUMENT_ADMISSION_REQUIRED/
+  );
+  assert.throws(
+    () => sdk.buildAdmittedRwaReport(activeRegistry, f.input, f.policy, f.now),
+    /RWA_ADMISSION_COMMITMENT_REQUIRES_V2/
+  );
 });
 
 test('admitted report builders stop at the registry gate before evaluating untrusted input', () => {

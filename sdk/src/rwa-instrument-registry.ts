@@ -1,5 +1,7 @@
+import { keccak256, toBytes } from 'viem';
+
 import {
-  buildRwaReport,
+  rwaCanonicalJson,
   rwaInstrumentId,
   type RwaInput,
   type RwaInstrument,
@@ -7,10 +9,17 @@ import {
   type RwaReport,
 } from './rwa';
 import { ROBINHOOD_RWA_SOURCE_ID, type RobinhoodRwaContext } from './rwa-robinhood';
-import { buildRwaReportV2, type RwaReportV2, type RwaV2Context } from './rwa-v2';
+import {
+  buildRwaReportV2,
+  type RwaInstrumentAdmissionCommitment,
+  type RwaReportV2,
+  type RwaV2Context,
+} from './rwa-v2';
 
 export const RWA_INSTRUMENT_REGISTRY_SCHEMA = 'insight.rwa-instrument-registry.v1' as const;
 export const RWA_INSTRUMENT_ADMISSION_SCHEMA = 'insight.rwa-instrument-admission.v1' as const;
+export const RWA_INSTRUMENT_ADMISSION_COMMITMENT_SCHEMA =
+  'insight.rwa-instrument-admission-commitment.v1' as const;
 
 export type RwaInstrumentRegistryStatus = 'SHADOW' | 'ACTIVE' | 'RETIRED';
 
@@ -351,15 +360,46 @@ export function assertRwaInstrumentAdmitted(
   return entry;
 }
 
+export function rwaInstrumentRegistryDigest(registryValue: unknown): `0x${string}` {
+  const registry = validateRwaInstrumentRegistry(registryValue);
+  return keccak256(toBytes(rwaCanonicalJson(registry)));
+}
+
+/** Portable commitment to the exact ACTIVE entry and complete registry snapshot
+ * used by the signer. Verifiers independently pin this value in RwaTrustV2.
+ */
+export function buildRwaInstrumentAdmissionCommitment(
+  registryValue: unknown,
+  instrument: RwaInstrument
+): RwaInstrumentAdmissionCommitment {
+  const registry = validateRwaInstrumentRegistry(registryValue),
+    entry = assertRwaInstrumentAdmitted(registry, instrument),
+    registryDigest = rwaInstrumentRegistryDigest(registry),
+    basis = {
+      registryId: RWA_INSTRUMENT_REGISTRY_SCHEMA,
+      registryVersion: registry.version,
+      registryDigest,
+      entry,
+    };
+  return {
+    schema: RWA_INSTRUMENT_ADMISSION_COMMITMENT_SCHEMA,
+    registryId: RWA_INSTRUMENT_REGISTRY_SCHEMA,
+    registryVersion: registry.version,
+    registryDigest,
+    instrumentId: entry.instrumentId,
+    admissionDigest: keccak256(toBytes(rwaCanonicalJson(basis))),
+  };
+}
+
 /** Build v1 only after the exact instrument hash has active registry admission. */
 export function buildAdmittedRwaReport(
   registryValue: unknown,
   input: RwaInput,
-  policy: RwaPolicy,
-  now: number
+  _policy: RwaPolicy,
+  _now: number
 ): RwaReport {
   assertRwaInstrumentAdmitted(registryValue, input.instrument);
-  return buildRwaReport(input, policy, now);
+  throw new RwaInstrumentRegistryError('RWA_ADMISSION_COMMITMENT_REQUIRES_V2', 'report.schema');
 }
 
 /** Build v2 only after the same identity gate; semantic exact-call checks still run in v2. */
@@ -370,8 +410,11 @@ export function buildAdmittedRwaReportV2(
   now: number,
   context: RwaV2Context
 ): RwaReportV2 {
-  assertRwaInstrumentAdmitted(registryValue, input.instrument);
-  return buildRwaReportV2(input, policy, now, context);
+  const instrumentAdmission = buildRwaInstrumentAdmissionCommitment(
+    registryValue,
+    input.instrument
+  );
+  return buildRwaReportV2(input, policy, now, { ...context, instrumentAdmission });
 }
 
 export function evaluateRobinhoodInstrumentAdmission(

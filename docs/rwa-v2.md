@@ -13,6 +13,8 @@ partner activation and core receipt formats remain unchanged.
   time and policy decision. An authentic BLOCK is not a forged signature.
 - `verifyRwaReportV2`: strict ALLOW gate.
 - `decodeRwaCall`: admit only a consumer-pinned semantic profile and canonical ABI.
+- `buildRwaSwapRouter02Transaction`: construct the pinned Robinhood Chain call with an
+  on-chain deadline and exactly one swap.
 - `assessRwaCallOutcome`: grade independently authenticated observation transfers.
 - `rwaIsUint256` / `RWA_UINT256_PATTERN`: one exact decimal uint256 bound,
   also used by HTTP Zod validation and the public JSON Schema.
@@ -28,15 +30,17 @@ the trusted signer; it is not a replacement for timestamp/witness infrastructure
 
 ## Precisely bounded adapter
 
-Only original Uniswap V3 SwapRouter `exactInputSingle` **with deadline**, ERC-20 to
-ERC-20, buy/sell, native value zero, and positive amountOutMinimum is admitted.
-The request amount is the input token's base-unit amount, not necessarily the number
-of shares received. SwapRouter02, multicall, permits, ERC-4626 and arbitrary issuer
-mint/redeem calls are unsupported and rejected.
+The legacy simulation profile still admits only the original Uniswap V3 SwapRouter
+`exactInputSingle` with deadline. The production-candidate Robinhood profile admits the
+official chain-4663 SwapRouter02 only as a deadline-protected multicall containing exactly
+one canonical `exactInputSingle`. ERC-20 to ERC-20, buy/sell, native value zero and positive
+amountOutMinimum are required. Arbitrary multicall contents, permits, multi-hop routes,
+ERC-4626 and issuer mint/redeem calls are rejected.
 
-Consumer pins include chain, target, instrument ID, quote token and admitted fees.
-Deployment identity, upgrades, data licensing and truth of issuer eligibility remain
-out-of-band responsibilities. A decoder does not authenticate contract bytecode.
+Consumer pins include chain, target and target code hash, factory and factory code hash,
+instrument ID, quote token and quote-token code hash, and the exact pool address/code hash.
+The online readiness check authenticates current bytecode and factory-derived pool identity;
+the pure decoder intentionally makes no network call.
 The ABI follows the [original ISwapRouter interface](https://docs.uniswap.org/contracts/v3/reference/periphery/interfaces/ISwapRouter).
 
 A strict receipt fill requires exact net input spent and minimum net output received
@@ -63,6 +67,9 @@ npm run rwa:parity -- --peer ../PriorSeal
 Build both SDKs, then from PriorSeal run:
 `node examples/rwa-v2/verify.mjs ../insight`.
 The fixture and `golden.json` use only public simulation keys and synthetic data.
+
+Production reports additionally require a signed instrument-admission commitment and an
+independently pinned identical commitment in trust. Legacy simulation vectors remain valid.
 
 The source lock checks three shared modules and frozen v1/v2 vectors in each repository;
 `--peer` additionally compares the two checked-out locks. No automatic upstream sync,

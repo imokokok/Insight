@@ -61,13 +61,24 @@ registry publication time precedes that effective date:
 - MCP: `get_robinhood_rwa_instrument`
 - Portable validation: `validateRwaInstrumentRegistry(registry)`
 - Production identity gate: `assertRwaInstrumentAdmitted(registry, instrument)`
-- Gated builders: `buildAdmittedRwaReport(...)` and `buildAdmittedRwaReportV2(...)`
+- Portable commitment: `buildRwaInstrumentAdmissionCommitment(...)`
+- Production builder: `buildAdmittedRwaReportV2(...)`
 - Issuer cross-check: `evaluateRobinhoodInstrumentAdmission(registry, context)`
 
 The Robinhood admission service fetches the existing issuer context and compares the committed entry
 with the current issuer UID, symbol, ISIN, chain and token contract. It exposes both expected and
 observed bindings. Missing registry entries, ISIN absence, UID drift or deployment drift fail closed.
 On-chain verification remains separately visible through the issuer-context integrity status.
+
+Production v2 reports sign `registryId`, `registryVersion`, the digest of the complete registry,
+the exact `instrumentId`, and an admission digest over the ACTIVE entry and registry snapshot.
+Verifiers must independently pin the same commitment in `RwaTrustV2`; changing or retiring the
+registry after signing cannot silently change what the report proves. Production v2 construction
+without a commitment fails closed. The legacy v1 admitted builder also fails closed because v1 has
+no portable admission field.
+
+Execution deployment and pool identity are a separate commitment. See
+[Robinhood RWA execution profiles](rwa-execution-profiles.md).
 
 ## Verification and update process
 

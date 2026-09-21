@@ -30,6 +30,15 @@ export type RwaReportV2 = {
   semantics: RwaCallSemantics;
   receiverEvidence: RwaEvidence;
   validUntil: number;
+  instrumentAdmission?: RwaInstrumentAdmissionCommitment;
+};
+export type RwaInstrumentAdmissionCommitment = {
+  schema: 'insight.rwa-instrument-admission-commitment.v1';
+  registryId: 'insight.rwa-instrument-registry.v1';
+  registryVersion: string;
+  registryDigest: string;
+  instrumentId: string;
+  admissionDigest: string;
 };
 export type SignedRwaReportV2 = {
   report: RwaReportV2;
@@ -37,13 +46,33 @@ export type SignedRwaReportV2 = {
   signer: string;
   signature: string;
 };
-export type RwaTrustV2 = RwaTrust & { callProfile: RwaCallProfile };
+export type RwaTrustV2 = RwaTrust & {
+  callProfile: RwaCallProfile;
+  instrumentAdmission?: RwaInstrumentAdmissionCommitment;
+};
 export type RwaV2Context = Pick<
   RwaReportV2,
   'sequence' | 'previousDigest' | 'transaction' | 'receiverEvidence'
-> & { callProfile: RwaCallProfile };
+> & { callProfile: RwaCallProfile; instrumentAdmission?: RwaInstrumentAdmissionCommitment };
 function need(value: unknown, code: string): asserts value {
   if (!value) throw new TypeError(code);
+}
+function validAdmission(
+  value: RwaInstrumentAdmissionCommitment | undefined,
+  instrumentId: string
+): value is RwaInstrumentAdmissionCommitment {
+  return Boolean(
+    value &&
+    Object.keys(value).sort().join(',') ===
+      'admissionDigest,instrumentId,registryDigest,registryId,registryVersion,schema' &&
+    value.schema === 'insight.rwa-instrument-admission-commitment.v1' &&
+    value.registryId === 'insight.rwa-instrument-registry.v1' &&
+    typeof value.registryVersion === 'string' &&
+    value.registryVersion.length > 0 &&
+    /^0x[0-9a-f]{64}$/.test(value.registryDigest) &&
+    value.instrumentId === instrumentId &&
+    /^0x[0-9a-f]{64}$/.test(value.admissionDigest)
+  );
 }
 export function buildRwaReportV2(
   input: RwaInput,
@@ -52,9 +81,11 @@ export function buildRwaReportV2(
   context: RwaV2Context
 ): RwaReportV2 {
   const c = JSON.parse(rwaCanonicalJson(context)) as RwaV2Context;
+  const contextShape = Object.keys(c).sort().join(',');
   need(
-    Object.keys(c).sort().join(',') ===
-      'callProfile,previousDigest,receiverEvidence,sequence,transaction',
+    contextShape === 'callProfile,previousDigest,receiverEvidence,sequence,transaction' ||
+      contextShape ===
+        'callProfile,instrumentAdmission,previousDigest,receiverEvidence,sequence,transaction',
     'RWA_V2_CONTEXT_SHAPE'
   );
   need(
@@ -64,6 +95,15 @@ export function buildRwaReportV2(
     'RWA_SEQUENCE_INVALID'
   );
   const assessment = buildRwaReport(input, policy, now);
+  need(
+    assessment.environment !== 'production' || c.instrumentAdmission,
+    'RWA_INSTRUMENT_ADMISSION_REQUIRED'
+  );
+  if (c.instrumentAdmission)
+    need(
+      validAdmission(c.instrumentAdmission, input.request.instrumentId),
+      'RWA_INSTRUMENT_ADMISSION_INVALID'
+    );
   const semantics = decodeRwaCall(
     c.transaction,
     input.request,
@@ -90,7 +130,7 @@ export function buildRwaReportV2(
       e.validUntil > 0,
     'RWA_RECEIVER_EVIDENCE_INVALID'
   );
-  return {
+  const report: RwaReportV2 = {
     schema: 'insight.rwa-report.v2',
     assessment,
     sequence: c.sequence,
@@ -105,6 +145,8 @@ export function buildRwaReportV2(
       e.observedAt + policy.maxStateAgeSeconds
     ),
   };
+  if (c.instrumentAdmission) report.instrumentAdmission = c.instrumentAdmission;
+  return report;
 }
 export function rwaV2SigningData(report: RwaReportV2) {
   return {
@@ -159,7 +201,11 @@ export async function inspectRwaReportV2(
         a.environment === trust.environment &&
         trust.environment === trust.policy.environment &&
         rwaRequestHash(a.input.request) === rwaRequestHash(trust.request) &&
-        rwaCallProfileId(trust.callProfile) === r.semantics.profileId,
+        rwaCallProfileId(trust.callProfile) === r.semantics.profileId &&
+        rwaCanonicalJson(trust.instrumentAdmission ?? null) ===
+          rwaCanonicalJson(r.instrumentAdmission ?? null) &&
+        (!r.instrumentAdmission ||
+          validAdmission(r.instrumentAdmission, a.input.request.instrumentId)),
       'RWA_SCOPE_MISMATCH'
     );
     const keys = trust.keys.filter((k) => k.address.toLowerCase() === proof.signer.toLowerCase()),
@@ -175,13 +221,15 @@ export async function inspectRwaReportV2(
         key.validUntil >= r.validUntil,
       'RWA_SIGNER_UNTRUSTED'
     );
-    const expected = buildRwaReportV2(a.input, trust.policy, a.evaluatedAt, {
+    const expectedContext: RwaV2Context = {
       sequence: r.sequence,
       previousDigest: r.previousDigest,
       transaction: r.transaction,
       receiverEvidence: r.receiverEvidence,
       callProfile: trust.callProfile,
-    });
+    };
+    if (r.instrumentAdmission) expectedContext.instrumentAdmission = r.instrumentAdmission;
+    const expected = buildRwaReportV2(a.input, trust.policy, a.evaluatedAt, expectedContext);
     need(rwaCanonicalJson(expected) === rwaCanonicalJson(r), 'RWA_EVALUATION_MISMATCH');
     result.trust = 'PASS';
     result.time = 'FAIL';

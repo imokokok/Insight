@@ -1,0 +1,84 @@
+{
+  "schema": "insight.rwa-execution-profile-registry.v1",
+  "version": "2026-09-21.shadow.1",
+  "chainId": 4663,
+  "verifiedAtBlock": "68497521",
+  "sources": {
+    "robinhood": "https://docs.robinhood.com/chain/contracts/",
+    "uniswap": "https://github.com/Uniswap/contracts/blob/main/deployments/4663.md"
+  },
+  "profiles": [
+    {
+      "symbol": "AAPL",
+      "status": "SHADOW",
+      "tokenAddress": "0xaf3d76f1834a1d425780943c99ea8a608f8a93f9",
+      "profile": {
+        "schema": "insight.rwa-call-profile.v2",
+        "adapter": "robinhood-uniswap-swap-router02-deadline-exact-input-single",
+        "chainId": 4663,
+        "target": "0xcaf681a66d020601342297493863e78c959e5cb2",
+        "targetCodeHash": "0x6f36c378e272c6324c48f045182bcb54bd8ad654cf9ebd42e8893d52c4cb25dc",
+        "factory": "0x1f7d7550b1b028f7571e69a784071f0205fd2efa",
+        "factoryCodeHash": "0xec72b1abd1f2faee020cfea9c646bd8994f9fb389054f6e574f103a895091739",
+        "instrumentId": "0x8b259407e98c1f57a1879d05fbbd5fbd11197553779646f2394fbae1567e487b",
+        "quoteToken": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+        "quoteTokenCodeHash": "0x864cc9ad53b338b82da1f7cab85ab0b3d5c8861acb422b6fec63cf36234f36a6",
+        "pools": [
+          {
+            "fee": 500,
+            "address": "0xaae0d815ee56e4092a5e5c2911e676fea50b2d6d",
+            "codeHash": "0xa488ede24eef95af56b0e7c171832ce207f070212584786d40acbfcecbe9b1d0"
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "NVDA",
+      "status": "SHADOW",
+      "tokenAddress": "0xd0601ce157db5bdc3162bbac2a2c8af5320d9eec",
+      "profile": {
+        "schema": "insight.rwa-call-profile.v2",
+        "adapter": "robinhood-uniswap-swap-router02-deadline-exact-input-single",
+        "chainId": 4663,
+        "target": "0xcaf681a66d020601342297493863e78c959e5cb2",
+        "targetCodeHash": "0x6f36c378e272c6324c48f045182bcb54bd8ad654cf9ebd42e8893d52c4cb25dc",
+        "factory": "0x1f7d7550b1b028f7571e69a784071f0205fd2efa",
+        "factoryCodeHash": "0xec72b1abd1f2faee020cfea9c646bd8994f9fb389054f6e574f103a895091739",
+        "instrumentId": "0x8734e5b9478add59d7ac72b22fca779e0a8a6781a3bc6a3fae818f657278334a",
+        "quoteToken": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+        "quoteTokenCodeHash": "0x864cc9ad53b338b82da1f7cab85ab0b3d5c8861acb422b6fec63cf36234f36a6",
+        "pools": [
+          {
+            "fee": 500,
+            "address": "0xd4eb21209c4d6093f80b5b84f5c45cc093ea14a3",
+            "codeHash": "0x20fbed0e49e9ac176e3220dc3c96a9b47d33c5f2b468f180afd7ff5ae00d4a8e"
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "SPY",
+      "status": "SHADOW",
+      "tokenAddress": "0x117cc2133c37b721f49de2a7a74833232b3b4c0c",
+      "profile": {
+        "schema": "insight.rwa-call-profile.v2",
+        "adapter": "robinhood-uniswap-swap-router02-deadline-exact-input-single",
+        "chainId": 4663,
+        "target": "0xcaf681a66d020601342297493863e78c959e5cb2",
+        "targetCodeHash": "0x6f36c378e272c6324c48f045182bcb54bd8ad654cf9ebd42e8893d52c4cb25dc",
+        "factory": "0x1f7d7550b1b028f7571e69a784071f0205fd2efa",
+        "factoryCodeHash": "0xec72b1abd1f2faee020cfea9c646bd8994f9fb389054f6e574f103a895091739",
+        "instrumentId": "0x21245403f626470073f88cbc0824411b4e4dcfbfbdc12b021a9fc59e5338048a",
+        "quoteToken": "0x5fc5360d0400a0fd4f2af552add042d716f1d168",
+        "quoteTokenCodeHash": "0x864cc9ad53b338b82da1f7cab85ab0b3d5c8861acb422b6fec63cf36234f36a6",
+        "pools": [
+          {
+            "fee": 500,
+            "address": "0xa7bb1ac63bbab0c44316e6c8c455213441689167",
+            "codeHash": "0xaed14af326e94c7e4f2e8a267c0a93346c5d66c5aec0772a6b1a0ecdf5b9f7c5"
+          }
+        ]
+      }
+    }
+  ]
+}
