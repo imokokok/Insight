@@ -10,19 +10,19 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: write
-
-env:
-  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
 jobs:
   train:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,6 +37,9 @@ jobs:
           pip install -r ml/requirements.txt
 
       - name: Verify required secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           set -u
           if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
@@ -48,6 +51,9 @@ jobs:
         run: python -m unittest discover -s ml -p 'test_*.py'
 
       - name: Train model
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python ml/train.py
 
       - name: Inspect model output
@@ -94,24 +100,56 @@ jobs:
 
       - name: Install bundler dependencies
         if: steps.model-diff.outputs.changed == 'true'
-        run: npm ci --ignore-scripts --prefer-offline --no-audit --no-fund
+        run: npm ci
 
       - name: Refresh dependency-free cron bundles
         if: steps.model-diff.outputs.changed == 'true'
         run: npm run build:cron
 
+      - name: Validate the model and generated bundles before publishing
+        if: steps.model-diff.outputs.changed == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+          INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
+          CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
+          JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
+        run: npm run validate:ci
+
+      - name: Install browser for smoke tests
+        if: steps.model-diff.outputs.changed == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser smoke tests before publishing
+        if: steps.model-diff.outputs.changed == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+          INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
+          CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
+          JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
+        run: npm run test:e2e -- --project=chromium
+
       - name: Commit model if changed; Quality Gate owns redeployment
+        if: steps.model-diff.outputs.changed == 'true'
         run: |
-          set -u
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- ml/models/oracle_risk_model.json .github/cron-dist; then
-            echo "Model unchanged; nothing to commit."
-            exit 0
-          fi
           git add ml/models/oracle_risk_model.json .github/cron-dist
-          git commit -m "chore(ml): retrain oracle risk model" || true
-          git push
+          git commit -m "chore(ml): retrain oracle risk model"
+          git push origin HEAD:main
 
-          # Do not trigger Vercel here. This normal main push starts Quality
-          # Gate, whose deployment job waits for validate + browser smoke.
+      - name: Start the gated production workflow for the verified model commit
+        if: steps.model-diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          expected_sha="$(git rev-parse HEAD)"
+          remote_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$remote_sha" != "$expected_sha" ]; then
+            echo "::error::main advanced after the verified model update"
+            exit 1
+          fi
+          gh workflow run ci.yml --ref main -f expected_sha="$expected_sha"

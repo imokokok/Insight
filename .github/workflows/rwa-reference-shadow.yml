@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
@@ -18,6 +19,7 @@ concurrency:
 
 jobs:
   verify:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -55,9 +57,38 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: .local/rwa-shadow-pilot
-          key: rwa-shadow-${{ runner.os }}-${{ github.run_id }}
+          key: rwa-shadow-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             rwa-shadow-${{ runner.os }}-
+
+      - name: Recover the newest pilot evidence from cache or workflow artifact
+        if: steps.gate.outputs.should_run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LOCAL_DATE: ${{ steps.gate.outputs.local_date }}
+        run: |
+          mkdir -p .local/rwa-shadow-pilot
+          cached_events=".local/rwa-shadow-pilot/events.ndjson"
+          cached_count="$(test -f "$cached_events" && wc -l < "$cached_events" || echo 0)"
+          for run_id in $(gh run list --workflow rwa-reference-shadow.yml --branch main --limit 100 --json databaseId --jq '.[].databaseId'); do
+            restore_dir="$RUNNER_TEMP/rwa-shadow-restore-$run_id"
+            if gh run download "$run_id" --pattern 'rwa-shadow-*' --dir "$restore_dir" >/dev/null 2>&1; then
+              events_file="$(find "$restore_dir" -type f -name events.ndjson -print -quit)"
+              if [ -n "$events_file" ]; then
+                artifact_count="$(wc -l < "$events_file")"
+                if [ "$artifact_count" -gt "$cached_count" ]; then
+                  cp -a "$(dirname "$events_file")/." .local/rwa-shadow-pilot/
+                  echo "Recovered RWA pilot evidence from run $run_id"
+                fi
+                break
+              fi
+            fi
+          done
+          if [[ "$LOCAL_DATE" > 2026-09-28 ]] && [ ! -s "$cached_events" ]; then
+            echo '::error::Prior RWA pilot evidence is missing; refusing to start a new hash chain'
+            exit 1
+          fi
+          npm run rwa:pilot:status
 
       - name: Sample ISO MIC, OpenFIGI and Robinhood
         id: sample
@@ -71,7 +102,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: .local/rwa-shadow-pilot
-          key: rwa-shadow-${{ runner.os }}-${{ github.run_id }}
+          key: rwa-shadow-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Upload auditable pilot evidence
         if: always() && steps.gate.outputs.should_run == 'true'

@@ -7,11 +7,15 @@
  * minutes. These checked-in bundles share common chunks and run immediately
  * after checkout, while the TypeScript sources remain the source of truth.
  */
-import { rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, relative } from 'node:path';
 
 import { build } from 'esbuild';
 
-const outdir = '.github/cron-dist';
+const committedOutdir = '.github/cron-dist';
+const check = process.argv.includes('--check');
+const outdir = check ? await mkdtemp(join(tmpdir(), 'insight-cron-bundles-')) : committedOutdir;
 
 const entryPoints = {
   'backfill-market-reference': 'scripts/backfill-market-reference.ts',
@@ -36,7 +40,7 @@ const esmCompatibilityBanner = [
   'const __dirname = __pathDirname(__filename);',
 ].join(' ');
 
-await rm(outdir, { recursive: true, force: true });
+if (!check) await rm(outdir, { recursive: true, force: true });
 
 const result = await build({
   entryPoints,
@@ -72,3 +76,44 @@ console.log(
     1024
   ).toFixed(1)} MiB total`
 );
+
+if (check) {
+  async function files(root, directory = root) {
+    const entries = await readdir(directory, { withFileTypes: true });
+    const nested = await Promise.all(
+      entries.map(async (entry) => {
+        const path = join(directory, entry.name);
+        return entry.isDirectory() ? files(root, path) : [relative(root, path)];
+      })
+    );
+    return nested.flat().sort();
+  }
+
+  try {
+    const generated = await files(outdir);
+    const committed = await files(committedOutdir);
+    const missing = generated.filter((path) => !committed.includes(path));
+    const obsolete = committed.filter((path) => !generated.includes(path));
+    const changed = [];
+    for (const path of generated.filter((entry) => committed.includes(entry))) {
+      const [actual, expected] = await Promise.all([
+        readFile(join(outdir, path)),
+        readFile(join(committedOutdir, path)),
+      ]);
+      if (!actual.equals(expected)) changed.push(path);
+    }
+    if (missing.length || obsolete.length || changed.length) {
+      throw new Error(
+        `Committed cron bundles are stale. Run npm run build:cron.\n` +
+          [
+            ...missing.map((path) => `missing: ${path}`),
+            ...obsolete.map((path) => `obsolete: ${path}`),
+            ...changed.map((path) => `changed: ${path}`),
+          ].join('\n')
+      );
+    }
+    console.log('[build-cron-bundles] committed bundles match source');
+  } finally {
+    await rm(outdir, { recursive: true, force: true });
+  }
+}

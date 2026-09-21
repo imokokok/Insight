@@ -120,8 +120,10 @@ npm run rwa:pilot:status
 
 The [GitHub Actions workflow](../.github/workflows/rwa-reference-shadow.yml) runs at 10:00
 Asia/Shanghai on those three dates and can also be started manually. It restores the latest evidence
-chain from Actions cache, saves the updated chain under a unique cache key, and uploads the complete
-local evidence directory as a 90-day workflow artifact. No repository write permission or Insight
+chain from Actions cache or the latest available workflow artifact, saves the updated chain under a
+unique cache key, and uploads the complete local evidence directory as a 90-day workflow artifact.
+Later checkpoints fail if earlier evidence cannot be recovered, rather than silently restarting the
+hash chain. No repository write permission or Insight
 API key is used; an optional `OPENFIGI_API_KEY` secret only raises OpenFIGI rate limits.
 
 Each sample reruns the three-source live verification and is appended to

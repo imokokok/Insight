@@ -118,7 +118,7 @@ jobs:
       # (0 scheduled runs after hours). This workflow's schedule demonstrably
       # fires (728+ runs). Idempotent per-snapshot_ts upsert.
       - name: Collect market reference
-        if: steps.guard.outputs.should_run == 'true'
+        if: (success() || failure()) && steps.guard.outputs.should_run == 'true'
         run: node .github/cron-dist/collect-market-reference.mjs
 
       - name: Finish run ledger

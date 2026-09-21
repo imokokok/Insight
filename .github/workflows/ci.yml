@@ -5,6 +5,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: 'Commit expected by an automated publisher (empty for manual runs)'
+        required: false
+        type: string
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
@@ -31,6 +36,15 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+      - name: Verify the dispatched commit
+        if: github.event_name == 'workflow_dispatch' && inputs.expected_sha != ''
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          if [ "$EXPECTED_SHA" != "$GITHUB_SHA" ]; then
+            echo "::error::Dispatch resolved to $GITHUB_SHA instead of $EXPECTED_SHA"
+            exit 1
+          fi
       - name: Fetch force-push governance base
         if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
         env:
@@ -54,7 +68,14 @@ jobs:
 
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+      INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
+      CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
+      JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
@@ -62,43 +83,46 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e -- --project=chromium
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
-          SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
-          INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
-          CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
-          JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
 
   deploy-production:
-    name: Deploy production (gated)
+    name: Deploy production (gated and verified)
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: [validate, smoke]
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
+      - uses: actions/checkout@v5
+      - name: Refuse to release an outdated commit
+        run: |
+          current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$current_sha" != "$GITHUB_SHA" ]; then
+            echo "::error::main advanced to $current_sha; this run validated $GITHUB_SHA"
+            exit 1
+          fi
       - name: Trigger the production deploy hook after both gates pass
         env:
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
         run: |
           if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
             echo "VERCEL_DEPLOY_HOOK_URL is required for gated production deployment" >&2
+            exit 1
+          fi
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN is required to verify the production deployment" >&2
             exit 1
           fi
 
           response_path="$RUNNER_TEMP/vercel-deploy-response.json"
           curl --fail-with-body --silent --show-error \
             --request POST \
+            --max-time 30 \
             --output "$response_path" \
             "$VERCEL_DEPLOY_HOOK_URL"
-          node -e '
-            const response = require(process.argv[1]);
-            if (!response.job?.id) {
-              throw new Error("Vercel deploy hook did not return a deployment job id");
-            }
-            console.log(`Vercel production deployment queued: ${response.job.id}`);
-          ' "$response_path"
+          node scripts/verify-vercel-deploy.mjs "$response_path"

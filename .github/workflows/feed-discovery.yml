@@ -21,10 +21,13 @@ on:
         description: 'Sync mode (seed or discover)'
         required: false
         default: 'discover'
+        type: choice
+        options: [discover, seed]
       provider:
         description: 'Single provider to sync (empty = all in matrix)'
         required: false
         default: ''
+        type: string
 
 permissions:
   contents: read
@@ -71,11 +74,19 @@ jobs:
           TRON_SOLIDITY_RPC: ${{ secrets.TRON_SOLIDITY_RPC }}
           TRON_FULLNODE_RPC: ${{ secrets.TRON_FULLNODE_RPC }}
           TRONGRID_API_KEY: ${{ secrets.TRONGRID_API_KEY }}
+          MODE: ${{ inputs.mode || 'discover' }}
+          PINNED: ${{ inputs.provider || '' }}
+          PROVIDER: ${{ matrix.provider }}
         run: |
-          MODE="${{ github.event.inputs.mode || 'discover' }}"
-          PROVIDER="${{ matrix.provider }}"
+          case "$MODE" in
+            discover|seed) ;;
+            *) echo "::error::Invalid sync mode"; exit 1 ;;
+          esac
+          case "$PINNED" in
+            ''|chainlink|supra|dia|redstone|api3|winklink|twap|twap-token|reflector|flare) ;;
+            *) echo "::error::Invalid provider"; exit 1 ;;
+          esac
           # If the dispatcher pinned a single provider, skip the others.
-          PINNED="${{ github.event.inputs.provider }}"
           if [ -n "$PINNED" ] && [ "$PINNED" != "$PROVIDER" ]; then
             echo "Skipping $PROVIDER (dispatcher pinned $PINNED)"
             exit 0

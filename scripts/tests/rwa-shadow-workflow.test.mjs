@@ -6,7 +6,7 @@ const workflowUrl = new URL('../../.github/workflows/rwa-reference-shadow.yml', 
 
 test('RWA shadow workflow is read-only, checkpoint-scoped and preserves evidence', async () => {
   const workflow = await readFile(workflowUrl, 'utf8');
-  assert.match(workflow, /permissions:\n  contents: read/);
+  assert.match(workflow, /permissions:\n  actions: read\n  contents: read/);
   assert.doesNotMatch(workflow, /contents: write/);
   assert.match(workflow, /cron: '0 2 28 9 \*'/);
   assert.match(workflow, /cron: '0 2 5,12 10 \*'/);

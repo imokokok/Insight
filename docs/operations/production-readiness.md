@@ -100,8 +100,9 @@ being disabled on a table reachable through the Data API.
 
 1. Use Node.js 22 or newer and run `npm ci`.
 2. Run `npm run validate:ci`; it checks linting, formatting, types, unit and
-   contract coverage, unused code, SDK compatibility, production build, and the
-   homepage JavaScript budget.
+   contract coverage, unused code, SDK compatibility, RWA registry and execution
+   profiles, committed cron bundles, production build, and the homepage
+   JavaScript budget.
 3. Run `npm run test:e2e -- --project=chromium` locally when auth, routing, or
    API middleware changes. CI repeats the smoke suite on every pull request.
 4. Apply pending Supabase migrations before code that relies on them. Confirm
@@ -118,6 +119,13 @@ being disabled on a table reachable through the Data API.
    independent oracle quorum or execution authorization.
 8. Promote the already-tested artifact. Watch 5xx rate, p95 latency, Sentry, CSP
    reports, and snapshot freshness for at least 30 minutes.
+
+The gated GitHub production job requires `VERCEL_DEPLOY_HOOK_URL` and a
+`VERCEL_TOKEN` repository secret with read access to the Vercel project. Set
+`VERCEL_TEAM_ID` as a repository variable when the project belongs to a team.
+After the hook queues a deployment, CI queries Vercel for the exact commit and
+waits until the production deployment is ready and promoted. A missing token,
+failed build, wrong commit, or timeout fails the GitHub release job.
 
 ## Load and failure testing
 

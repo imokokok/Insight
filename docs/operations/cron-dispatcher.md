@@ -86,6 +86,7 @@ Vault UI; there is no reason to modify a migration or repository secret.
   days. This preserves the current 90-day public product window and 8-week ML
   lookback; shortening fine-grained history to 30 days would be a capability
   regression.
-- Checked-in cron bundles remove `npm ci` from these six recurring execution
-  paths. Rebuild them after changing a bundled runner or its dependencies with
-  `npm run build:cron`.
+- Checked-in cron bundles remove `npm ci` from recurring execution paths.
+  Rebuild them after changing a bundled runner or its dependencies with
+  `npm run build:cron`. `npm run validate:ci` now compares the committed
+  bundles with a fresh build and fails if they differ.

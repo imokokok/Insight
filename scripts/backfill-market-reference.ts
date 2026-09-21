@@ -26,7 +26,7 @@
  *
  * Run locally:
  *   npx tsx --env-file=.env.local scripts/backfill-market-reference.ts
- *   npx tsx --env-file=.env.local scripts/backfill-market-reference.ts --days 30
+ *   npx tsx --env-file=.env.local scripts/backfill-market-reference.ts --days=30
  */
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
@@ -36,7 +36,6 @@ import {
   type MarketReferenceRow,
 } from '@/lib/marketReference/collector';
 
-const BACKFILL_DAYS = Number(process.env.BACKFILL_DAYS) || 90;
 const COLLECTOR_VERSION = 'backfill-1.1.0';
 
 const COINBASE_PRODUCTS: Record<string, string> = {
@@ -252,8 +251,14 @@ async function flushRows(rows: MarketReferenceRow[]): Promise<number> {
 }
 
 async function main(): Promise<void> {
-  const days =
-    Number(process.argv.find((a) => a.startsWith('--days='))?.split('=')[1]) || BACKFILL_DAYS;
+  const requestedDays =
+    process.argv.find((a) => a.startsWith('--days='))?.split('=')[1] ??
+    process.env.BACKFILL_DAYS ??
+    '90';
+  const days = Number(requestedDays);
+  if (!Number.isSafeInteger(days) || days < 1 || days > 150) {
+    throw new RangeError('Backfill days must be an integer from 1 to 150');
+  }
   console.log(`[backfill] backfilling ${days} days of market reference…`);
   let rows: MarketReferenceRow[] = [];
   let inserted = 0;
