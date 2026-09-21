@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x728ae48bca4e010866ec775f204fb816d56044afc768fc16379a4d3db7e48103",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 13,
+  "effectiveFrom": "2026-09-21",
+  "classification": "Additive Band Protocol v3 oracle integration and append-only coverage policy v3; no partner activation",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x10f336f3a9e8eaf69b3f02f36eb54f5eccef6727bdecb6efcbccf94d2fcccea6",
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "receiptImpact": "Adds BandChain v3 Concurrent Price Stream observations as an explicit BandChain-scoped, unsigned REST source and adds strict-300s.v3 with Band as its own reviewed non-derived source group. Existing signed layouts, registry release, partner policies, activation mappings, coverage v1/v2 policy bytes and historical receipts are unchanged. Band REST observations cannot be relabelled as EVM-chain evidence and remain subject to exact evidence-chain matching.",
+  "activationRule": "No partner policy or activation mapping changes. Band price retrieval is an additive public oracle source. Coverage v3 requires explicit consumer adoption and independent pinning; existing consumers remain on their current policies. This promotion does not claim partner acceptance, EVM-native Band verification, continuous upstream availability or achieved production SLOs.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged-pinned-contract-additive-band-coverage-v3",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Band and coverage v3 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged-pinned-contract-additive-band-coverage-v3",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Band and coverage v3 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged-pinned-contract-additive-band-coverage-v3",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Band and coverage v3 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged-pinned-contract-additive-band-coverage-v3",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Band and coverage v3 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged-pinned-contract-additive-band-coverage-v3",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Band and coverage v3 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged-pinned-contract-additive-band-coverage-v3",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Band and coverage v3 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged-pinned-contract-additive-band-coverage-v3",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Band and coverage v3 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged-pinned-contract-additive-band-coverage-v3",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Band and coverage v3 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged-pinned-contract-additive-band-coverage-v3",
+      "evidence": "Existing immutable policy, activation, signed layouts and fixtures remain unchanged. Band and coverage v3 are additive opt-in surfaces and are not invoked automatically. No partner sign-off or new production data coverage is claimed."
+    }
+  ],
+  "predecessorReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c"
+}
