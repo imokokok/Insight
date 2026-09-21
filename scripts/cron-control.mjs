@@ -12,10 +12,16 @@
  * never prevent the actual data pipeline from running.
  */
 import { appendFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 
 const baseUrl = process.env.SUPABASE_URL?.replace(/\/$/, '');
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const workflow = process.env.CRON_WORKFLOW;
+
+// Ledger telemetry must not consume the time reserved for the scheduled job.
+export function requestLedger(url, options = {}, fetcher = fetch, timeoutMs = 5_000) {
+  return fetcher(url, { ...options, signal: AbortSignal.timeout(timeoutMs) });
+}
 
 function headers(extra = {}) {
   return {
@@ -62,7 +68,7 @@ async function guard() {
   query.searchParams.set('limit', '1');
 
   try {
-    const response = await fetch(query, { headers: headers() });
+    const response = await requestLedger(query, { headers: headers() });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const rows = await response.json();
     const shouldRun = rows.length === 0;
@@ -88,7 +94,7 @@ async function start() {
 
   try {
     if (dispatchId) {
-      const response = await fetch(
+      const response = await requestLedger(
         `${baseUrl}/rest/v1/cron_dispatch_runs?id=eq.${encodeURIComponent(dispatchId)}`,
         {
           method: 'PATCH',
@@ -103,7 +109,7 @@ async function start() {
       );
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
     } else {
-      const response = await fetch(`${baseUrl}/rest/v1/cron_dispatch_runs`, {
+      const response = await requestLedger(`${baseUrl}/rest/v1/cron_dispatch_runs`, {
         method: 'POST',
         headers: headers({ Prefer: 'return=representation' }),
         body: JSON.stringify({
@@ -141,7 +147,7 @@ async function finish() {
   const status =
     conclusion === 'success' ? 'succeeded' : conclusion === 'cancelled' ? 'cancelled' : 'failed';
   try {
-    const response = await fetch(
+    const response = await requestLedger(
       `${baseUrl}/rest/v1/cron_dispatch_runs?id=eq.${encodeURIComponent(dispatchId)}`,
       {
         method: 'PATCH',
@@ -156,11 +162,13 @@ async function finish() {
   }
 }
 
-const command = process.argv[2];
-if (command === 'guard') await guard();
-else if (command === 'start') await start();
-else if (command === 'finish') await finish();
-else {
-  console.error('Usage: node scripts/cron-control.mjs <guard|start|finish>');
-  process.exitCode = 2;
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const command = process.argv[2];
+  if (command === 'guard') await guard();
+  else if (command === 'start') await start();
+  else if (command === 'finish') await finish();
+  else {
+    console.error('Usage: node scripts/cron-control.mjs <guard|start|finish>');
+    process.exitCode = 2;
+  }
 }
