@@ -3,13 +3,13 @@
  *
  * These tests pin the parts that make it trustworthy: every gate input lands on
  * the row, a missing receipt is recorded as a failure rather than silently
- * dropped, and none of it can break the signal path.
+ * dropped, and a failed write prevents issuance.
  */
 
 import type { OracleWatchAttestation } from '@/lib/attestations/oracleWatchAttestation';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
-import { recordOracleWatchCheck, recordOracleWatchCheckAsync } from '../oracleWatchAudit';
+import { recordOracleWatchCheck } from '../oracleWatchAudit';
 
 import type { OracleWatchResult } from '../oracleWatchService';
 
@@ -156,22 +156,22 @@ describe('recordOracleWatchCheck', () => {
     expect(insert.mock.calls[0][0].valid_until).toBe(new Date(1_755_000_000 * 1000).toISOString());
   });
 
-  it('never throws when the write fails', async () => {
+  it('rejects when the write fails', async () => {
     mockInsert({ error: { message: 'relation does not exist' } });
 
-    await expect(
-      recordOracleWatchCheck(signal(), receipt(), { source: 'rest' })
-    ).resolves.toBeUndefined();
+    await expect(recordOracleWatchCheck(signal(), receipt(), { source: 'rest' })).rejects.toThrow(
+      'Oracle Watch audit persistence failed'
+    );
   });
 
-  it('never throws when the supabase client cannot be constructed', async () => {
+  it('rejects when the supabase client cannot be constructed', async () => {
     mockCreateClient.mockImplementation(() => {
       throw new Error('missing env');
     });
 
-    await expect(
-      recordOracleWatchCheck(signal(), receipt(), { source: 'mcp' })
-    ).resolves.toBeUndefined();
+    await expect(recordOracleWatchCheck(signal(), receipt(), { source: 'mcp' })).rejects.toThrow(
+      'Oracle Watch audit persistence failed'
+    );
   });
 
   it('records a v1 receipt under its own schema version', async () => {
@@ -181,33 +181,15 @@ describe('recordOracleWatchCheck', () => {
 
     expect(insert.mock.calls[0][0].schema_version).toBe(1);
   });
-});
-
-describe('recordOracleWatchCheckAsync', () => {
-  it('returns immediately and still performs the write', async () => {
-    const insert = mockInsert({ error: null });
-
-    // Returns void — nothing for the caller to await, so a slow or failing DB
-    // can never add latency to the signal an agent is gating on.
-    expect(recordOracleWatchCheckAsync(signal(), receipt(), { source: 'rest' })).toBeUndefined();
-    expect(insert).not.toHaveBeenCalled();
-
-    // ...and the write is still issued once the microtask queue drains.
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(insert).toHaveBeenCalledTimes(1);
-  });
-
-  it('swallows a rejected write instead of surfacing an unhandled rejection', async () => {
+  it('rejects when an insert throws', async () => {
     const insert = jest.fn().mockRejectedValue(new Error('boom'));
     mockCreateClient.mockReturnValue({
       from: jest.fn().mockReturnValue({ insert }),
     } as unknown as ReturnType<typeof createServiceRoleClient>);
 
-    expect(() =>
-      recordOracleWatchCheckAsync(signal(), receipt(), { source: 'rest' })
-    ).not.toThrow();
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await expect(recordOracleWatchCheck(signal(), receipt(), { source: 'rest' })).rejects.toThrow(
+      'Oracle Watch audit persistence failed'
+    );
     expect(insert).toHaveBeenCalledTimes(1);
   });
 });

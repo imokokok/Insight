@@ -1,5 +1,5 @@
 /**
- * @fileoverview Oracle Watch per-issuance audit log (fire-and-forget).
+ * @fileoverview Oracle Watch per-issuance audit log.
  *
  * `feed_health_snapshots` is the periodic time-series spine: a collector writes
  * one row per (symbol, chain) every 30 minutes for a fixed universe. It answers
@@ -15,8 +15,8 @@
  * and not complete signed blobs, which would turn a hot path into a storage
  * problem.
  *
- * Non-blocking by construction. Audit failure must never fail, slow, or change
- * the signal itself; the caller awaits nothing on the critical path.
+ * Issuance is conditional on this row being committed. A failed write must
+ * prevent a signal or attestation from being returned as a successful check.
  */
 
 import type { OracleWatchAttestation } from '@/lib/attestations/oracleWatchAttestation';
@@ -40,8 +40,7 @@ export interface WatchAuditMeta {
 }
 
 /**
- * Record one Oracle Watch judgment. Fire-and-forget: never throws, never
- * blocks. Call it without awaiting on anything a user is waiting for.
+ * Persist one Oracle Watch judgment before issuing it to a caller.
  */
 export async function recordOracleWatchCheck(
   signal: OracleWatchResult,
@@ -90,39 +89,12 @@ export async function recordOracleWatchCheck(
       latency_ms: meta.latencyMs ?? null,
     });
 
-    if (error) {
-      logger.warn('Failed to record oracle watch check', {
-        symbol: signal.symbol,
-        chain: signal.chain,
-        source: meta.source,
-        error: error.message,
-      });
-    }
+    if (error) throw error;
   } catch (error) {
-    // Audit logging is strictly additive — a DB outage must never surface to
-    // an agent that is mid-trade on the signal.
     logger.warn('Oracle watch audit threw', {
       symbol: signal.symbol,
       error: normalizeError(error),
     });
+    throw new Error('Oracle Watch audit persistence failed', { cause: error });
   }
-}
-
-/**
- * Non-blocking wrapper: kicks the write off without making the caller wait.
- *
- * `void` + `.catch()` rather than a bare floating promise, so an unhandled
- * rejection can never take the process down. In serverless the runtime may
- * freeze before the write lands; the collector's own rows and the signed
- * receipt remain the durable record, so a dropped audit row is a reporting gap,
- * not a correctness gap.
- */
-export function recordOracleWatchCheckAsync(
-  signal: OracleWatchResult,
-  attestation: OracleWatchAttestation | null,
-  meta: WatchAuditMeta
-): void {
-  void recordOracleWatchCheck(signal, attestation, meta).catch(() => {
-    /* already logged inside */
-  });
 }

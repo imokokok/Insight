@@ -8,8 +8,8 @@
  * BLOCK.
  *
  * Phase 1: pure rule-based (no ML). Thresholds are constants below so the hot
- * path has zero DB reads. The audit row is written fire-and-forget via the
- * service-role client to build the data flywheel for a future ML model.
+ * path has zero DB reads. The audit row is committed before the verdict is
+ * returned, so every issued judgment can be accounted for later.
  *
  * This orchestrates existing services rather than re-fetching data:
  *   - consensusPriceService.getConsensusPrice  (cross-provider prices + agreement)
@@ -373,7 +373,7 @@ function normalize(value: number, max: number): number {
 }
 
 // ---------------------------------------------------------------------------
-// Audit logging (fire-and-forget, non-blocking)
+// Audit logging (required before issuance)
 // ---------------------------------------------------------------------------
 
 export interface AuditMeta {
@@ -463,10 +463,10 @@ async function logAudit(
     });
     if (error) throw error;
   } catch (error) {
-    // Non-blocking: audit failure must never fail the safety check itself.
     logger.warn('Failed to write pre_trade_checks audit row', {
       error: error instanceof Error ? error.message : String(error),
     });
+    throw new Error('Pre-trade audit persistence failed', { cause: error });
   }
 }
 
@@ -1423,7 +1423,7 @@ export async function preTradeSafetyCheck(
       });
     }
 
-    void logAudit(input, result, meta);
+    await logAudit(input, result, meta);
     return result;
   }
 
@@ -1810,8 +1810,8 @@ export async function preTradeSafetyCheck(
     });
   }
 
-  // Fire-and-forget audit log (builds the data flywheel for future ML).
-  void logAudit(input, result, meta);
+  // Do not issue a safety verdict that cannot be accounted for later.
+  await logAudit(input, result, meta);
 
   return result;
 }

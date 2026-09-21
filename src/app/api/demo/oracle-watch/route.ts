@@ -4,7 +4,7 @@ import { type z } from 'zod';
 
 import { OracleWatchQuerySchema } from '@/app/api/v1/oracle-watch/querySchema';
 import { ApiResponseBuilder, createApiHandler } from '@/lib/api/handler';
-import { recordOracleWatchCheckAsync } from '@/lib/api/services/oracleWatchAudit';
+import { recordOracleWatchCheck } from '@/lib/api/services/oracleWatchAudit';
 import { getOracleWatchSignal } from '@/lib/api/services/oracleWatchService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { signWatchAttestation } from '@/lib/attestations/oracleWatchAttestation';
@@ -29,7 +29,7 @@ export const GET = createApiHandler(
             subjectChainId,
           });
 
-    recordOracleWatchCheckAsync(result, attestation, {
+    await recordOracleWatchCheck(result, attestation, {
       source: 'rest',
       apiKeyId: null,
       latencyMs: Date.now() - startedAt,

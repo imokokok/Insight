@@ -203,8 +203,7 @@ function stubAuditClient() {
   return { insert, from };
 }
 
-/** Flush microtasks so the fire-and-forget audit log (dynamic import + insert)
- *  has a chance to settle before we assert on it. */
+/** Allow any unrelated background work to settle before assertions. */
 const flushAudit = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 beforeEach(() => {
@@ -578,7 +577,7 @@ describe('preTradeSafetyCheck — targetProviders filter', () => {
 });
 
 describe('preTradeSafetyCheck — resilience (non-blocking paths)', () => {
-  it('does not fail the check when the audit log write rejects', async () => {
+  it('does not return a verdict when the audit log write rejects', async () => {
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()]));
     // Audit insert rejects.
     const insert = jest.fn().mockRejectedValue(new Error('DB down'));
@@ -586,11 +585,22 @@ describe('preTradeSafetyCheck — resilience (non-blocking paths)', () => {
       from: jest.fn().mockReturnValue({ insert }),
     } as never);
 
-    const result = await preTradeSafetyCheck(makeInput());
+    await expect(preTradeSafetyCheck(makeInput())).rejects.toThrow(
+      'Pre-trade audit persistence failed'
+    );
+    expect(insert).toHaveBeenCalledTimes(1);
+  });
 
-    // Check still returns normally.
-    expect(result.verdict).toBe('PASS');
-    await flushAudit();
+  it('does not return a zero-coverage BLOCK when its audit write fails', async () => {
+    mockedGetConsensusPrice.mockRejectedValue(new UnsupportedSymbolError('unavailable'));
+    const insert = jest.fn().mockResolvedValue({ error: { message: 'DB down' } });
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: jest.fn().mockReturnValue({ insert }),
+    } as never);
+
+    await expect(preTradeSafetyCheck(makeInput())).rejects.toThrow(
+      'Pre-trade audit persistence failed'
+    );
     expect(insert).toHaveBeenCalledTimes(1);
   });
 

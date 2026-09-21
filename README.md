@@ -38,7 +38,7 @@ The "AI agent immune system." Before an agent (or human) executes any on-chain *
 
 > **PASS · CAUTION · DANGER · BLOCK** + a recommended maximum position size
 
-Agents must not execute when the verdict is DANGER or BLOCK. Every call is audit-logged, building the data flywheel for the ML risk model.
+Agents must not execute when the verdict is DANGER or BLOCK. Every successfully returned judgment is audit-logged before issuance, building the data flywheel for the ML risk model; an audit-storage failure prevents a successful response.
 
 ### How it decides — deterministic rule engine
 
@@ -61,7 +61,7 @@ Agents must not execute when the verdict is DANGER or BLOCK. Every call is audit
 
 ### Verifiable attestations
 
-Every check is signed, and every receipt can be verified by anyone, without trusting Insight. The public verify endpoint checks the signature against the published attester key, routes by the attestation's own schemaVersion, and at schema v3 both safety gates are recomputable from the bytes alone because both policy constants are inside the signed struct.
+When an attester key is configured, a check can carry a signed receipt that anyone can verify without trusting Insight. The public verify endpoint checks the signature against the published attester key, routes by the attestation's own schemaVersion, and at schema v3 both safety gates are recomputable from the bytes alone because both policy constants are inside the signed struct.
 
 Every check can be signed as an **EIP-712 offchain attestation** — a portable, gasless, tamper-evident proof that "Insight verified oracle state for this trade at time T". Agents relay it in tx memo / calldata / logs so users and protocols can recognize the agent ran the oracle immune-system check.
 
@@ -253,7 +253,8 @@ Every judgment actually returned to a caller — receipt or not — is recorded 
 `oracle_watch_checks` (uid, symbol, chain, verdict, recommendation, reason codes,
 both gate counts with their thresholds, validity window, issuing surface). That
 is what lets us answer "which receipt did this agent gate on" after the fact.
-The write is fire-and-forget: it can never fail, slow, or change a signal.
+The write is confirmed before a successful response. If audit storage is
+unavailable, the check fails closed rather than issuing an unaccounted signal.
 
 ### Signed Watch attestations (EIP-712)
 

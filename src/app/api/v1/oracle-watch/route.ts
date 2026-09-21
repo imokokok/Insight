@@ -6,7 +6,7 @@ import {
   ApiResponseBuilder,
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
-import { recordOracleWatchCheckAsync } from '@/lib/api/services/oracleWatchAudit';
+import { recordOracleWatchCheck } from '@/lib/api/services/oracleWatchAudit';
 import { getOracleWatchSignal } from '@/lib/api/services/oracleWatchService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { signWatchAttestation } from '@/lib/attestations/oracleWatchAttestation';
@@ -45,9 +45,8 @@ export const GET = createApiHandler(
             subjectChainId,
           });
 
-    // Per-issuance audit row: without it, "this agent gated on a receipt" is
-    // unanswerable after the fact. Fire-and-forget — never blocks the response.
-    recordOracleWatchCheckAsync(result, attestation, {
+    // Return a judgment only after its per-issuance audit row is committed.
+    await recordOracleWatchCheck(result, attestation, {
       source: 'rest',
       apiKeyId: context.auth?.apiKey?.keyId ?? null,
       latencyMs: Date.now() - startedAt,

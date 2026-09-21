@@ -1,4 +1,4 @@
-import { recordOracleWatchCheckAsync } from '@/lib/api/services/oracleWatchAudit';
+import { recordOracleWatchCheck } from '@/lib/api/services/oracleWatchAudit';
 import { getOracleWatchSignal } from '@/lib/api/services/oracleWatchService';
 import { signWatchAttestation } from '@/lib/attestations/oracleWatchAttestation';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '@/lib/oracles/constants/chainMapping';
@@ -81,7 +81,7 @@ export const oracleWatchTool: McpToolDefinition<typeof OracleWatchInputSchema> =
     // Per-issuance audit row. MCP is the surface agents actually gate on, so
     // without it we have no evidence Watch is being used at all — and no way to
     // answer "which receipt did this agent gate on" after the fact.
-    recordOracleWatchCheckAsync(signal, attestation, { source: 'mcp', subjectChainId });
+    await recordOracleWatchCheck(signal, attestation, { source: 'mcp', subjectChainId });
 
     if (attestation) {
       lines.push('', '**Oracle Watch attestation (verifiable proof):**');

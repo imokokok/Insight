@@ -6,10 +6,9 @@ jest.mock('@/lib/api/services/oracleWatchService', () => ({
   getOracleWatchSignal: jest.fn(),
 }));
 
-// Audit is fire-and-forget and hits Supabase; stub it so the tool's formatting
-// contract is what's under test, not the DB round trip.
+// Audit is required before issuance; stub the database for formatting tests.
 jest.mock('@/lib/api/services/oracleWatchAudit', () => ({
-  recordOracleWatchCheckAsync: jest.fn(),
+  recordOracleWatchCheck: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockGetOracleWatchSignal = getOracleWatchSignal as jest.MockedFunction<

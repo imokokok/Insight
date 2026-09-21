@@ -58,6 +58,17 @@ Store only checkpoints and Watch state, never wallet keys or API credentials.
 For authorization checkpoints and the local EVM recovery drill, see the
 [PriorSeal recovery runbook](https://github.com/imokokok/PriorSeal/blob/main/docs/runbooks/reliability.md).
 
+## Audit availability
+
+Pre-Trade and Oracle Watch now commit their per-issuance audit rows before
+returning a successful REST or MCP judgment. If `pre_trade_checks` or
+`oracle_watch_checks` cannot be written, the call fails closed; no verdict or
+receipt is issued and the REST success-only credit charge is not attempted.
+Treat audit-storage availability as part of these services' readiness and
+investigate write failures rather than interpreting missing rows as a healthy
+period with no usage. This deliberately favors evidence completeness over
+availability during a database incident.
+
 ## Billing validation and reconciliation
 
 Run `npm run test:reliability` to exercise the actual credit-wallet migrations in
