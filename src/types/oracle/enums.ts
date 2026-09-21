@@ -8,6 +8,7 @@ export enum OracleProvider {
   TWAP = 'twap',
   REFLECTOR = 'reflector',
   FLARE = 'flare',
+  BAND = 'band',
 }
 
 export enum Blockchain {
@@ -51,6 +52,7 @@ export enum Blockchain {
   STELLAR = 'stellar',
   FLARE = 'flare',
   SUPRA_CHAIN = 'supra-chain',
+  BANDCHAIN = 'bandchain',
 }
 
 export const ORACLE_PROVIDER_VALUES: readonly OracleProvider[] = Object.values(OracleProvider);

@@ -34,7 +34,7 @@ const FEATURES = [
     icon: Globe,
     title: 'Current Prices',
     description:
-      'On-demand prices from Chainlink, API3, RedStone, DIA, Supra and more across 40+ chains.',
+      'On-demand prices from Chainlink, API3, RedStone, DIA, Supra, Band Protocol and more across 40+ chains.',
   },
   {
     icon: Database,

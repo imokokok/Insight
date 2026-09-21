@@ -129,7 +129,7 @@ export default function PrivacyPage() {
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>
                   <strong>Oracle Providers:</strong> Chainlink, API3, RedStone, DIA, WINkLink,
-                  Supra, TWAP, Reflector, and Flare - to fetch price data
+                  Supra, TWAP, Reflector, Flare, and Band Protocol - to fetch price data
                 </li>
                 <li>
                   <strong>Supabase:</strong> For database storage, authentication, and real-time

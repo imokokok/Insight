@@ -1,0 +1,54 @@
+{
+  "policyId": "0x24f55890dd6d838137060663ccd4f8c69c305d8bb4d2de723709dbfd034c3b41",
+  "policy": {
+    "schema": "insight.coverage-policy.v1",
+    "name": "strict-300s.v3",
+    "minProviders": 3,
+    "minIndependentGroups": 2,
+    "maxSourceAgeSeconds": 300,
+    "maxSpreadBps": 100,
+    "reportTtlSeconds": 60,
+    "sources": {
+      "chainlink": {
+        "group": "chainlink",
+        "derived": false
+      },
+      "api3": {
+        "group": "api3",
+        "derived": false
+      },
+      "redstone": {
+        "group": "redstone",
+        "derived": false
+      },
+      "dia": {
+        "group": "dia",
+        "derived": false
+      },
+      "winklink": {
+        "group": "winklink",
+        "derived": false
+      },
+      "supra": {
+        "group": "supra",
+        "derived": false
+      },
+      "twap": {
+        "group": "twap",
+        "derived": true
+      },
+      "reflector": {
+        "group": "reflector",
+        "derived": false
+      },
+      "flare": {
+        "group": "flare",
+        "derived": false
+      },
+      "band": {
+        "group": "band",
+        "derived": false
+      }
+    }
+  }
+}

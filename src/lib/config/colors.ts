@@ -123,6 +123,7 @@ export const chainColors = {
   flare: '#8B0FE5',
   stellar: '#14B8A6',
   supra: '#3B82F6',
+  bandchain: '#4520E6',
 } as const;
 
 export const chartColors = {
@@ -137,6 +138,7 @@ export const chartColors = {
     twap: '#FF007A',
     reflector: '#F59E0B',
     flare: '#8B0FE5',
+    band: '#4520E6',
   } as const,
 
   sequence: [

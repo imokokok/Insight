@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   BarChart3,
   Sun,
+  Waves,
   Search,
   GitCompare,
   Settings,
@@ -37,6 +38,7 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.TWAP]: LayoutDashboard,
   [OracleProvider.REFLECTOR]: BarChart3,
   [OracleProvider.FLARE]: Sun,
+  [OracleProvider.BAND]: Waves,
 };
 
 // Oracle descriptions mapping
@@ -50,6 +52,7 @@ const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.TWAP]: 'Time-weighted average price oracle for DeFi',
   [OracleProvider.REFLECTOR]: 'Stellar-based oracle with multi-signature consensus',
   [OracleProvider.FLARE]: 'Native FTSO oracle on Flare Network with decentralized price feeds',
+  [OracleProvider.BAND]: 'BandChain v3 weighted-median price streams with source timestamps',
 };
 
 // Generate oracle search results
@@ -109,6 +112,7 @@ const blockchainIcons: Record<Blockchain, string> = {
   [Blockchain.STELLAR]: '',
   [Blockchain.FLARE]: '',
   [Blockchain.SUPRA_CHAIN]: '',
+  [Blockchain.BANDCHAIN]: '/logos/oracles/band.svg',
 };
 
 // Generate blockchain search results

@@ -41,6 +41,8 @@ export const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.STELLAR]: 0,
   [Blockchain.FLARE]: 14,
   [Blockchain.SUPRA_CHAIN]: 8,
+  // BandChain is Cosmos-SDK based and has no EVM numeric chain id.
+  [Blockchain.BANDCHAIN]: 0,
 };
 
 // Reverse mapping: chain_id → Blockchain.

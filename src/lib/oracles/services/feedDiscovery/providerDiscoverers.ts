@@ -3,6 +3,12 @@ import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain } from '@/types/oracle';
 
+import {
+  BAND_MAX_FUTURE_SKEW_SECONDS,
+  BAND_PRICE_DECIMALS,
+  BAND_V3_API_BASE_URL,
+  parseBandSignalId,
+} from '../../constants/bandConstants';
 import { getAllCatalogFeeds } from '../../constants/chainlinkCatalogLoader';
 import { BLOCKCHAIN_TO_CHAIN_ID } from '../../constants/chainMapping';
 import { getAllSupportedSymbols } from '../../constants/supportedSymbols';
@@ -93,6 +99,102 @@ export async function discoverChainlinkFeeds(): Promise<DiscoveryResult> {
       'Chainlink catalog discovery failed',
       error instanceof Error ? error : new Error(msg)
     );
+  }
+
+  return result;
+}
+
+// ─── Band Protocol v3 ─────────────────────────────────────────────
+
+interface BandFeedConfig {
+  signal_id?: string;
+  interval?: string;
+  deviation_basis_point?: string;
+}
+
+interface BandDiscoveredPrice {
+  status?: string;
+  signal_id?: string;
+  price?: string;
+  timestamp?: string;
+}
+
+export async function discoverBandFeeds(): Promise<DiscoveryResult> {
+  const result: DiscoveryResult = { provider: 'band', discovered: 0, feeds: [], errors: [] };
+
+  try {
+    const [feedResponse, priceResponse] = await Promise.all([
+      fetch(`${BAND_V3_API_BASE_URL}/feeds/v1beta1/current_feeds`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(20_000),
+      }),
+      fetch(`${BAND_V3_API_BASE_URL}/feeds/v1beta1/all_prices?pagination.limit=500`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(20_000),
+      }),
+    ]);
+    if (!feedResponse.ok || !priceResponse.ok) {
+      throw new Error(
+        `Band API returned feeds=${feedResponse.status}, prices=${priceResponse.status}`
+      );
+    }
+
+    const feedPayload = (await feedResponse.json()) as {
+      current_feeds?: { feeds?: BandFeedConfig[] };
+    };
+    const pricePayload = (await priceResponse.json()) as { prices?: BandDiscoveredPrice[] };
+    const prices = new Map(
+      (pricePayload.prices ?? [])
+        .filter((price) => typeof price.signal_id === 'string')
+        .map((price) => [price.signal_id!, price])
+    );
+    const nowSeconds = Math.floor(Date.now() / 1000);
+
+    for (const feed of feedPayload.current_feeds?.feeds ?? []) {
+      if (typeof feed.signal_id !== 'string') continue;
+      const pair = parseBandSignalId(feed.signal_id);
+      const reading = prices.get(feed.signal_id);
+      if (!pair || pair.quote !== 'USD' || reading?.status !== 'PRICE_STATUS_AVAILABLE') continue;
+      if (!/^\d+$/.test(reading.price ?? '') || !/^\d+$/.test(reading.timestamp ?? '')) continue;
+      const rawPrice = Number(reading.price);
+      const timestamp = Number(reading.timestamp);
+      const age = nowSeconds - timestamp;
+      if (
+        !Number.isFinite(rawPrice) ||
+        rawPrice <= 0 ||
+        !Number.isSafeInteger(timestamp) ||
+        age < -BAND_MAX_FUTURE_SKEW_SECONDS
+      ) {
+        continue;
+      }
+
+      result.feeds.push({
+        provider: 'band',
+        symbol: `${pair.symbol}/USD`,
+        chain_id: 0,
+        address: feed.signal_id,
+        name: `${pair.symbol} / USD`,
+        decimals: BAND_PRICE_DECIMALS,
+        category: inferCategory(pair.symbol),
+        is_active: true,
+        source: 'bandchain-v3-current-feeds',
+        metadata: {
+          signalId: feed.signal_id,
+          intervalSeconds: Number(feed.interval),
+          deviationBasisPoints: Number(feed.deviation_basis_point),
+          preverified: true,
+          discoveredValue: rawPrice / 10 ** BAND_PRICE_DECIMALS,
+          discoveredTimestamp: timestamp,
+        },
+      });
+    }
+
+    result.discovered = result.feeds.length;
+    logger.info(`Band: discovered ${result.discovered} fresh v3 feeds`);
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    result.errors.push(msg);
+    logger.error('Band discovery failed', error instanceof Error ? error : new Error(msg));
   }
 
   return result;

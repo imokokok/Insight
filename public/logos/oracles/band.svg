@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>Band Protocol</title>
+  <rect width="64" height="64" rx="14" fill="#4520E6"/>
+  <path fill="#fff" d="M17 14h19c9 0 14 4 14 11 0 4-2 7-6 9 5 2 7 5 7 10 0 8-6 12-16 12H17V14Zm11 9v8h7c3 0 5-1 5-4s-2-4-5-4h-7Zm0 16v8h8c3 0 5-1 5-4s-2-4-5-4h-8Z"/>
+</svg>

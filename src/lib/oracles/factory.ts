@@ -4,6 +4,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { OracleProvider } from '@/types/oracle';
 
 import { API3Client } from './clients/api3';
+import { BandClient } from './clients/band';
 import { ChainlinkClient } from './clients/chainlink';
 import { DIAClient } from './clients/dia';
 import { FlareClient } from './clients/flare';
@@ -66,6 +67,8 @@ class OracleClientFactory {
         return new ReflectorClient();
       case OracleProvider.FLARE:
         return new FlareClient();
+      case OracleProvider.BAND:
+        return new BandClient();
       default:
         throw new ValidationError(`Unknown oracle provider: ${provider}`, { value: provider });
     }

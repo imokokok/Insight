@@ -98,6 +98,7 @@ const providerDisplayNames: Record<OracleProvider, string> = {
   [OracleProvider.TWAP]: 'TWAP',
   [OracleProvider.REFLECTOR]: 'Reflector',
   [OracleProvider.FLARE]: 'Flare',
+  [OracleProvider.BAND]: 'Band Protocol',
 };
 
 const sizeConfig = {

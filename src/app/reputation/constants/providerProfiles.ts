@@ -191,6 +191,23 @@ export const PROVIDER_PROFILES: Record<OracleProvider, ProviderProfile> = {
       { icon: Activity, label: 'Update', value: '~90s' },
     ],
   },
+  band: {
+    tagline: 'BandChain Concurrent Price Stream',
+    description:
+      'Band Protocol v3 publishes validator-aggregated weighted-median prices to BandChain. Insight reads the public BandChain REST representation and enforces the original source timestamp.',
+    highlights: [
+      'BandChain v3 Concurrent Price Stream',
+      'Validator-weighted median aggregation',
+      'No API key required for the public endpoint',
+      'Source age evaluated by Insight freshness policy',
+    ],
+    features: [
+      { icon: Globe, label: 'Evidence chain', value: 'BandChain' },
+      { icon: Database, label: 'Feed set', value: 'Live registry' },
+      { icon: Shield, label: 'Transport', value: 'Public REST' },
+      { icon: Activity, label: 'Update', value: '60–360s' },
+    ],
+  },
 };
 
 // ------------------------------------------------------------------

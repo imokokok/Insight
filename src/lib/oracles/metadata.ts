@@ -27,6 +27,7 @@ export const PRICE_ORACLE_ORDER: readonly OracleProvider[] = [
   OracleProvider.TWAP,
   OracleProvider.REFLECTOR,
   OracleProvider.FLARE,
+  OracleProvider.BAND,
 ];
 
 export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain[]> = {
@@ -98,6 +99,7 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
   ],
   [OracleProvider.REFLECTOR]: [Blockchain.STELLAR],
   [OracleProvider.FLARE]: [Blockchain.FLARE],
+  [OracleProvider.BAND]: [Blockchain.BANDCHAIN],
 };
 
 const PAIRS_BY_PROVIDER: Partial<Record<OracleProvider, Record<string, string[]>>> = {

@@ -315,17 +315,24 @@ signal itself is unchanged.
 
 ## Supported Oracles
 
-| Provider  | Type           | Supported Chains                                                                                                                  |
-| --------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Chainlink | On-chain       | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, BNB Chain, Base                                                                 |
-| API3      | On-chain dAPIs | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism                                                                 |
-| RedStone  | API / On-chain | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync                          |
-| DIA       | API / On-chain | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base                                                                           |
-| WINkLink  | On-chain       | TRON                                                                                                                              |
-| Supra     | API / On-chain | Ethereum, Arbitrum, Optimism, Polygon, Base, Solana, BNB Chain, Avalanche, zkSync, Scroll, Mantle, Linea, Supra Chain, Aptos, Sui |
-| TWAP      | On-chain (DEX) | Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain (Uniswap V3 TWAP)                                                          |
-| Reflector | On-chain       | Stellar (Soroban)                                                                                                                 |
-| Flare     | On-chain       | Flare (FTSO)                                                                                                                      |
+| Provider  | Type            | Supported Chains                                                                                                                  |
+| --------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Chainlink | On-chain        | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, BNB Chain, Base                                                                 |
+| API3      | On-chain dAPIs  | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism                                                                 |
+| RedStone  | API / On-chain  | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync                          |
+| DIA       | API / On-chain  | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base                                                                           |
+| WINkLink  | On-chain        | TRON                                                                                                                              |
+| Supra     | API / On-chain  | Ethereum, Arbitrum, Optimism, Polygon, Base, Solana, BNB Chain, Avalanche, zkSync, Scroll, Mantle, Linea, Supra Chain, Aptos, Sui |
+| TWAP      | On-chain (DEX)  | Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain (Uniswap V3 TWAP)                                                          |
+| Reflector | On-chain        | Stellar (Soroban)                                                                                                                 |
+| Flare     | On-chain        | Flare (FTSO)                                                                                                                      |
+| Band      | BandChain / API | BandChain v3 Concurrent Price Stream                                                                                              |
+
+Band reads use the public v3 `feeds/v1beta1` endpoints, preserve BandChain's
+source timestamp, and fail closed when the status is unavailable or the value or
+timestamp is invalid. Source age flows through Insight's existing freshness,
+consensus and coverage checks; signed strict coverage remains capped at 300
+seconds.
 
 ## Supported Protocols (Safety Check)
 

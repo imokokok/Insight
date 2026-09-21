@@ -24,7 +24,8 @@ export type OracleErrorCode =
   | 'REDSTONE_ERROR'
   | 'WINKLINK_ERROR'
   | 'SUPRA_ERROR'
-  | 'TWAP_ERROR';
+  | 'TWAP_ERROR'
+  | 'BAND_ERROR';
 
 export class OracleServiceError extends AppError {
   public readonly provider: OracleProvider;

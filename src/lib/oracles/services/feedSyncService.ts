@@ -2,6 +2,7 @@ import { type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
+import { bandSymbols, getBandSignalId } from '../constants/bandConstants';
 import {
   CHAINLINK_CATALOG_SOURCE,
   CHAINLINK_CATALOG_VERSION,
@@ -549,6 +550,36 @@ class FeedSyncService {
     return result;
   }
 
+  async seedBandFeedsFromHardcoded(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'band',
+      discovered: 0,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+    const feeds: OracleFeedInsert[] = [];
+    for (const symbol of bandSymbols) {
+      const signalId = getBandSignalId(symbol);
+      if (!signalId) continue;
+      feeds.push({
+        provider: 'band',
+        symbol: `${symbol}/USD`,
+        chain_id: 0,
+        address: signalId,
+        name: `${symbol} / USD`,
+        decimals: 9,
+        category: this.inferCategory(symbol),
+        is_active: true,
+        source: 'bandchain-v3-static-fallback',
+        metadata: { signalId },
+      });
+      result.discovered++;
+    }
+    result.upserted = await upsertFeeds(feeds);
+    return result;
+  }
+
   // ─── Full Sync ────────────────────────────────────────────────────
 
   async fullSync(provider?: string): Promise<SyncResult[]> {
@@ -565,6 +596,7 @@ class FeedSyncService {
       ['twap-token', () => this.seedTwapFeedsFromHardcoded()],
       ['reflector', () => this.seedReflectorFeedsFromHardcoded()],
       ['flare', () => this.seedFlareFeedsFromHardcoded()],
+      ['band', () => this.seedBandFeedsFromHardcoded()],
     ]);
 
     if (provider) {

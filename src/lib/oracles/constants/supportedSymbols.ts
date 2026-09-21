@@ -1,3 +1,4 @@
+import { bandSymbols } from './bandConstants';
 import { flareSymbols } from './flareConstants';
 import { reflectorSymbols } from './reflectorConstants';
 import { supraSymbols } from './supraConstants';
@@ -684,6 +685,7 @@ export const oracleSupportedSymbols = {
   twap: twapSymbols,
   reflector: reflectorSymbols,
   flare: flareSymbols,
+  band: bandSymbols,
 } as const;
 
 export function getAllSupportedSymbols(): string[] {

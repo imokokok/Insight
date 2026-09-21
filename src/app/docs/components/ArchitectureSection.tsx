@@ -172,6 +172,7 @@ const providers = [
   'TWAP',
   'Reflector',
   'Flare',
+  'Band Protocol',
 ];
 
 const containerVariants = {

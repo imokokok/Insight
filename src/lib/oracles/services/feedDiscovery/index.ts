@@ -2,6 +2,7 @@ import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 import {
   discoverAPI3Feeds,
+  discoverBandFeeds,
   discoverChainlinkFeeds,
   discoverDIAFeeds,
   discoverFlareFeeds,
@@ -41,6 +42,10 @@ class FeedDiscoveryService {
     return discoverFlareFeeds();
   }
 
+  async discoverBandFeeds(): Promise<DiscoveryResult> {
+    return discoverBandFeeds();
+  }
+
   async verifyExistingFeeds(provider: string): Promise<DiscoveryResult> {
     return verifyExistingFeeds(provider);
   }
@@ -55,6 +60,7 @@ class FeedDiscoveryService {
       ['redstone', () => discoverRedStoneFeeds()],
       ['api3', () => discoverAPI3Feeds()],
       ['flare', () => discoverFlareFeeds()],
+      ['band', () => discoverBandFeeds()],
       // No public API — verify existing
       ['winklink', () => discoverWINkLinkFeeds()],
       ['twap', () => verifyExistingFeeds('twap')],

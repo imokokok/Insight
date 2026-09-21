@@ -108,7 +108,7 @@ export function coveragePolicyId(policy: CoveragePolicy): string {
 /** Policy classification, not a claim of cryptographically proven upstream independence. */
 export const STRICT_COVERAGE_POLICY: CoveragePolicy = {
   schema: 'insight.coverage-policy.v1',
-  name: 'strict-300s.v2',
+  name: 'strict-300s.v3',
   minProviders: 3,
   minIndependentGroups: 2,
   maxSourceAgeSeconds: 300,
@@ -124,6 +124,7 @@ export const STRICT_COVERAGE_POLICY: CoveragePolicy = {
     twap: { group: 'twap', derived: true },
     reflector: { group: 'reflector', derived: false },
     flare: { group: 'flare', derived: false },
+    band: { group: 'band', derived: false },
   },
 };
 for (const source of Object.values(STRICT_COVERAGE_POLICY.sources)) Object.freeze(source);

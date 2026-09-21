@@ -5,7 +5,7 @@ import { STRICT_COVERAGE_POLICY, coveragePolicyId } from '../../../../sdk/src/co
 
 it('published immutable policy bytes match the server and SDK default', () => {
   const artifact = JSON.parse(
-    readFileSync(join(process.cwd(), 'protocol/coverage/policies/strict-300s.v2.json'), 'utf8')
+    readFileSync(join(process.cwd(), 'protocol/coverage/policies/strict-300s.v3.json'), 'utf8')
   );
   expect(artifact.policy).toEqual(STRICT_COVERAGE_POLICY);
   expect(artifact.policyId).toBe(coveragePolicyId(STRICT_COVERAGE_POLICY));

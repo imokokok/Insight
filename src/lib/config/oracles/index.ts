@@ -1,6 +1,7 @@
 import { OracleProvider } from '@/types/oracle';
 
 import { api3Config } from './api3';
+import { bandConfig } from './band';
 import { chainlinkConfig } from './chainlink';
 import { diaConfig } from './dia';
 import { flareConfig } from './flare';
@@ -22,6 +23,7 @@ const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.TWAP]: twapConfig,
   [OracleProvider.REFLECTOR]: reflectorConfig,
   [OracleProvider.FLARE]: flareConfig,
+  [OracleProvider.BAND]: bandConfig,
 };
 
 export function getOracleConfig(provider: OracleProvider): OracleConfig {

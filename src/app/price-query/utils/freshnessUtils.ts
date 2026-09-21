@@ -56,6 +56,7 @@ export const ORACLE_UPDATE_FREQUENCIES: Record<OracleProvider, number> = {
   chainlink: 3600,
   api3: 3600,
   dia: 3600,
+  band: 120,
 };
 
 export const REALTIME_ORACLES: OracleProvider[] = [OracleProviderEnum.REDSTONE];

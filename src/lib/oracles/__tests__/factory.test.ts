@@ -1,5 +1,6 @@
 import { ValidationError } from '@/lib/errors';
 import { API3Client } from '@/lib/oracles/clients/api3';
+import { BandClient } from '@/lib/oracles/clients/band';
 import { OracleProvider } from '@/types/oracle';
 
 import { getDefaultFactory } from '../factory';
@@ -39,5 +40,14 @@ describe('OracleClientFactory', () => {
     expect(() => getDefaultFactory().getClient('unknown' as OracleProvider)).toThrow(
       ValidationError
     );
+  });
+
+  it('creates and caches the Band Protocol client', () => {
+    const factory = getDefaultFactory();
+    const first = factory.getClient(OracleProvider.BAND);
+    const second = factory.getClient(OracleProvider.BAND);
+
+    expect(first).toBeInstanceOf(BandClient);
+    expect(second).toBe(first);
   });
 });

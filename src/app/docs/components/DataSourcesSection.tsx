@@ -13,10 +13,11 @@ const providers = [
   { name: 'TWAP', type: 'On-chain', chains: 'DEX TWAP oracles' },
   { name: 'Reflector', type: 'On-chain', chains: 'Stellar / Soroban' },
   { name: 'Flare', type: 'On-chain', chains: 'Flare Network' },
+  { name: 'Band Protocol', type: 'BandChain / API', chains: 'BandChain v3' },
 ];
 
 const highlights = [
-  { label: 'Oracle Providers', value: '9' },
+  { label: 'Oracle Providers', value: '10' },
   { label: 'Supported Chains', value: '40+' },
   { label: 'Data Type', value: 'On-chain & API' },
 ];

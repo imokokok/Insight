@@ -14,6 +14,7 @@ export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.TWAP]: 'TWAP',
   [OracleProvider.REFLECTOR]: 'Reflector',
   [OracleProvider.FLARE]: 'Flare',
+  [OracleProvider.BAND]: 'Band Protocol',
 };
 
 export const chainNames: Record<Blockchain, string> = {
@@ -57,6 +58,7 @@ export const chainNames: Record<Blockchain, string> = {
   [Blockchain.STELLAR]: 'Stellar',
   [Blockchain.FLARE]: 'Flare',
   [Blockchain.SUPRA_CHAIN]: 'Supra',
+  [Blockchain.BANDCHAIN]: 'BandChain',
 };
 
 export const chainColors: Record<Blockchain, string> = {
@@ -100,6 +102,7 @@ export const chainColors: Record<Blockchain, string> = {
   [Blockchain.STELLAR]: configChainColors.stellar,
   [Blockchain.FLARE]: configChainColors.flare,
   [Blockchain.SUPRA_CHAIN]: configChainColors.supra,
+  [Blockchain.BANDCHAIN]: configChainColors.bandchain,
 };
 
 export const oracleColors: Record<OracleProvider, string> = {
@@ -112,6 +115,7 @@ export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.TWAP]: configChartColors.oracle.twap,
   [OracleProvider.REFLECTOR]: configChartColors.oracle.reflector,
   [OracleProvider.FLARE]: configChartColors.oracle.flare,
+  [OracleProvider.BAND]: configChartColors.oracle.band,
 };
 
 export const ORACLE_EXPECTED_INTERVALS: Record<string, number> = {
@@ -124,6 +128,7 @@ export const ORACLE_EXPECTED_INTERVALS: Record<string, number> = {
   chainlink: 3600,
   api3: 3600,
   dia: 3600,
+  band: 120,
 };
 
 type SymbolVolatilityCategory = 'stablecoin' | 'major' | 'alt' | 'micro';

@@ -78,7 +78,7 @@ const faqs = [
   {
     question: 'What oracle providers are supported?',
     answer:
-      'We support 9 oracle providers: chainlink, api3, redstone, dia, winklink, supra, twap, reflector, and flare. Each provider supports different blockchains and trading pairs.',
+      'We support 10 oracle providers: chainlink, api3, redstone, dia, winklink, supra, twap, reflector, flare, and band. Band uses the v3 Concurrent Price Stream and exposes its source timestamp to the same freshness and coverage checks used across Insight.',
   },
   {
     question: 'What consensus algorithms are available?',

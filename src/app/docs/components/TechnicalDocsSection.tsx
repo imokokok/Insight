@@ -48,7 +48,7 @@ const docs: DocCard[] = [
     icon: <Layers className="w-6 h-6" />,
     title: 'Architecture',
     description:
-      'Next.js App Router with Supabase, React Query, Zustand, and 9 oracle client implementations.',
+      'Next.js App Router with Supabase, React Query, Zustand, and 10 oracle client implementations.',
     href: '#architecture',
     tags: ['Next.js', 'Supabase', 'TypeScript'],
     accent: 'blue',
@@ -58,9 +58,9 @@ const docs: DocCard[] = [
     icon: <Database className="w-6 h-6" />,
     title: 'Data Sources',
     description:
-      '9 oracle providers including Chainlink, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, and Flare.',
+      '10 oracle providers including Chainlink, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare, and Band Protocol.',
     href: '#data-sources',
-    tags: ['9 Oracles', '40+ Chains', 'On-chain Data'],
+    tags: ['10 Oracles', '40+ Chains', 'On-chain Data'],
     accent: 'amber',
     anchor: true,
   },
