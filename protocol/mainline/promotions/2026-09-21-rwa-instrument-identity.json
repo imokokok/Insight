@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x3fe23a35d97acbb4a3d0f87c1ff5c3d8b29210656e1cd3cbf73c3e05e129b00c",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 15,
+  "effectiveFrom": "2026-09-21",
+  "classification": "Additive FIGI/MIC RWA instrument identity registry and shadow verification workflow; no partner activation",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x65a36fe59e92068e55ba075e0d6f4d3ba5915fc6d559c523922e94076a18c3cb",
+  "activationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+  "receiptImpact": "Adds a committed FIGI/MIC instrument identity registry, issuer UID/ISIN/deployment cross-check, read-only REST and MCP discovery surfaces, typed SDK helpers, and a checkpoint-scoped shadow evidence workflow. All entries are SHADOW, reference data never enters oracle quorum, and production identity admission remains false. Existing signed layouts, registry release, partner policies, activation mappings and historical receipts are unchanged.",
+  "activationRule": "No partner activation changes. Instrument identity is additive reference master data and cannot authorize execution or satisfy price quorum. Promotion from SHADOW to ACTIVE requires separate reviewed evidence and an explicit append-only registry update; existing consumers are not changed automatically.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged-pinned-contract-additive-rwa-identity",
+      "evidence": "Existing immutable policy, activation, signed layout and fixture remain unchanged. FIGI/MIC identity and shadow checks are additive opt-in reference surfaces; no partner sign-off, production admission or price coverage is claimed."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged-pinned-contract-additive-rwa-identity",
+      "evidence": "Existing immutable policy, activation, signed layout and fixture remain unchanged. FIGI/MIC identity and shadow checks are additive opt-in reference surfaces; no partner sign-off, production admission or price coverage is claimed."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged-pinned-contract-additive-rwa-identity",
+      "evidence": "Existing immutable policy, activation, signed layout and fixture remain unchanged. FIGI/MIC identity and shadow checks are additive opt-in reference surfaces; no partner sign-off, production admission or price coverage is claimed."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged-pinned-contract-additive-rwa-identity",
+      "evidence": "Existing immutable policy, activation, signed layout and fixture remain unchanged. FIGI/MIC identity and shadow checks are additive opt-in reference surfaces; no partner sign-off, production admission or price coverage is claimed."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged-pinned-contract-additive-rwa-identity",
+      "evidence": "Existing immutable policy, activation, signed layout and fixture remain unchanged. FIGI/MIC identity and shadow checks are additive opt-in reference surfaces; no partner sign-off, production admission or price coverage is claimed."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged-pinned-contract-additive-rwa-identity",
+      "evidence": "Existing immutable policy, activation, signed layout and fixture remain unchanged. FIGI/MIC identity and shadow checks are additive opt-in reference surfaces; no partner sign-off, production admission or price coverage is claimed."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged-pinned-contract-additive-rwa-identity",
+      "evidence": "Existing immutable policy, activation, signed layout and fixture remain unchanged. FIGI/MIC identity and shadow checks are additive opt-in reference surfaces; no partner sign-off, production admission or price coverage is claimed."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged-pinned-contract-additive-rwa-identity",
+      "evidence": "Existing immutable policy, activation, signed layout and fixture remain unchanged. FIGI/MIC identity and shadow checks are additive opt-in reference surfaces; no partner sign-off, production admission or price coverage is claimed."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged-pinned-contract-additive-rwa-identity",
+      "evidence": "Existing immutable policy, activation, signed layout and fixture remain unchanged. FIGI/MIC identity and shadow checks are additive opt-in reference surfaces; no partner sign-off, production admission or price coverage is claimed."
+    }
+  ],
+  "predecessorReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c"
+}
