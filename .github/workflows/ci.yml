@@ -53,7 +53,7 @@ jobs:
           if ! git cat-file -e "${PROTOCOL_GOVERNANCE_BASE}^{commit}" 2>/dev/null; then
             git fetch --no-tags --depth=1 origin "$PROTOCOL_GOVERNANCE_BASE"
           fi
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -78,7 +78,7 @@ jobs:
       JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
