@@ -1,15 +1,21 @@
 /** @jest-environment node */
-import { collectCoverageSlo, getCoverageSlo } from '@/lib/coverage/collector';
+import {
+  collectCoverageSlo,
+  getCoverageAlertChanges,
+  getCoverageSlo,
+} from '@/lib/coverage/collector';
 
 import { GET } from '../route';
 
 jest.mock('@/lib/coverage/collector', () => ({
   collectCoverageSlo: jest.fn(),
   getCoverageSlo: jest.fn(),
+  getCoverageAlertChanges: jest.fn(),
 }));
 const prior = process.env.CRON_SECRET;
 beforeEach(() => {
   process.env.CRON_SECRET = 'test-coverage-cron';
+  jest.mocked(getCoverageAlertChanges).mockResolvedValue({ newFailures: [], recoveries: [] });
 });
 afterEach(() => {
   if (prior === undefined) delete process.env.CRON_SECRET;
@@ -42,6 +48,7 @@ it('keeps historical SLO alerts separate from a healthy latest sample', async ()
   const body = await response.json();
   expect(body.alerts).toHaveLength(1);
   expect(body.latestAlerts).toEqual([]);
+  expect(body.newFailures).toEqual([]);
 });
 it('reports an unhealthy latest sample independently of the rolling SLO', async () => {
   jest.mocked(collectCoverageSlo).mockResolvedValue([]);
@@ -76,6 +83,24 @@ it('reports an unhealthy latest sample independently of the rolling SLO', async 
       signedReady: false,
       reasons: ['INSUFFICIENT_COVERAGE'],
     },
+  ]);
+});
+it('surfaces only a new incident as a workflow failure signal', async () => {
+  jest.mocked(collectCoverageSlo).mockResolvedValue([]);
+  jest
+    .mocked(getCoverageSlo)
+    .mockResolvedValue({ targets: [] } as Awaited<ReturnType<typeof getCoverageSlo>>);
+  jest.mocked(getCoverageAlertChanges).mockResolvedValue({
+    newFailures: [{ asset: 'ETH', chainId: 8453, status: 'INSUFFICIENT_COVERAGE', reasons: [] }],
+    recoveries: [],
+  });
+  const response = await GET(
+    new Request('https://test/api/cron/coverage-slo', {
+      headers: { Authorization: 'Bearer test-coverage-cron' },
+    })
+  );
+  expect((await response.json()).newFailures).toEqual([
+    { asset: 'ETH', chainId: 8453, status: 'INSUFFICIENT_COVERAGE', reasons: [] },
   ]);
 });
 it('fails the run on persistence failure', async () => {

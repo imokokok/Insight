@@ -117,11 +117,11 @@ test('Coverage SLO workflow records dispatched runs and guards its delayed nativ
   assert.match(workflow, /CRON_CONCLUSION: \$\{\{ steps\.collect\.outcome \}\}/);
   assert.match(workflow, /node scripts\/cron-control\.mjs finish/);
   assert.match(workflow, /Rolling coverage SLO needs attention/);
-  assert.match(workflow, /r\.targets\.filter/);
-  assert.match(workflow, /"PASS","ALREADY_RECORDED"/);
+  assert.match(workflow, /r\.newFailures\.length/);
+  assert.match(workflow, /Coverage recovered/);
   assert.ok(
     workflow.indexOf('node scripts/cron-control.mjs finish') <
-      workflow.indexOf('Report latest-sample failure or rolling SLO warning'),
-    'collection must be marked successful before the latest-sample alert can fail the job'
+      workflow.indexOf('Report new coverage incidents and recoveries'),
+    'collection must be marked successful before a new incident can fail the job'
   );
 });

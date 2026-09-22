@@ -16,13 +16,18 @@ Design and rationale: [coverage-slo-design.md](./coverage-slo-design.md).
 - `GET /api/cron/coverage-slo`: CRON_SECRET-authenticated collection. Supabase
   dispatches the checked-in GitHub workflow at minutes 7/22/37/52; a guarded
   native GitHub schedule checks again five minutes later when the dispatch ledger
-  is stale. Infrastructure failure or a 24h readiness/measurement alert marks the
-  workflow failed. GitHub notification delivery depends on the owner's existing
+  is stale. Infrastructure and storage failures fail immediately. A target that
+  remains unhealthy for two consecutive slots opens one failed workflow run;
+  later unhealthy slots remain visible as warnings without repeating the failure
+  email. Two consecutive healthy slots record a recovery notice. A one-slot
+  healthy blip cannot reopen the same incident. The 24h rolling SLO remains
+  visible as a warning and on the Ops page. Only the current policy contributes
+  to current statistics; previous policy targets and immutable samples remain
+  stored for audit. GitHub notification delivery depends on the owner's existing
   Actions settings; no external contact is sent a message by the code. Persistent
   below-target assets need coverage work or a separately reviewed profile, not a
   lower quorum. The dispatch ledger records collection success before evaluating
-  the rolling alert, so an unhealthy historical window does not make the delayed
-  fallback repeat an already-recorded immutable slot.
+  incidents, so the delayed fallback does not repeat an already-recorded slot.
 
 ## Enable production
 
