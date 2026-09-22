@@ -10,14 +10,16 @@ const mockedCreateServiceRoleClient = createServiceRoleClient as jest.MockedFunc
 
 describe('reportService.generateDailyReport', () => {
   it('refuses to persist a successful-looking report when the day has no snapshots', async () => {
-    const order = jest.fn().mockResolvedValue({ data: [], error: null });
+    const range = jest.fn().mockResolvedValue({ data: [], count: 0, error: null });
     const query = {
       gte: jest.fn(),
       lt: jest.fn(),
-      order,
+      order: jest.fn(),
+      range,
     };
     query.gte.mockReturnValue(query);
     query.lt.mockReturnValue(query);
+    query.order.mockReturnValue(query);
     const from = jest.fn().mockReturnValue({ select: jest.fn().mockReturnValue(query) });
     mockedCreateServiceRoleClient.mockReturnValue({ from } as never);
 

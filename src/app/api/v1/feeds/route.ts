@@ -9,12 +9,12 @@ import {
   V1_READ_ONLY_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { createCachedJsonResponse } from '@/lib/api/utils';
+import { listOracleFeeds } from '@/lib/oracles/services/feedListingService';
 import {
   SafeBooleanQuerySchema,
   SafeProviderSchema,
   SafeSymbolSchema,
 } from '@/lib/security/validation';
-import { getAdminQueries } from '@/lib/supabase/server';
 
 const FeedsQuerySchema = z.object({
   provider: SafeProviderSchema.optional(),
@@ -33,44 +33,15 @@ export const GET = createApiHandler(
     const { provider, symbol, category, chain_id, is_active, limit, offset } =
       context.validated!.query!;
 
-    const queries = getAdminQueries();
-    const allFeeds = await queries.getOracleFeeds('');
-
-    let filtered = allFeeds;
-
-    if (provider) {
-      filtered = filtered.filter((f) => f.provider === provider);
-    }
-    if (symbol) {
-      filtered = filtered.filter((f) => f.symbol === symbol);
-    }
-    if (category) {
-      filtered = filtered.filter((f) => f.category === category);
-    }
-    if (chain_id !== undefined) {
-      filtered = filtered.filter((f) => f.chain_id === chain_id);
-    }
-    if (is_active !== undefined) {
-      filtered = filtered.filter((f) => f.is_active === is_active);
-    }
-
-    const total = filtered.length;
-    const paged = filtered.slice(offset, offset + limit);
-
-    const feeds = paged.map((f) => ({
-      id: f.id,
-      provider: f.provider,
-      symbol: f.symbol,
-      chain_id: f.chain_id,
-      address: f.address,
-      name: f.name,
-      decimals: f.decimals,
-      category: f.category,
-      is_active: f.is_active,
-      consecutive_failures: f.consecutive_failures,
-      last_success_at: f.last_success_at,
-      last_failure_at: f.last_failure_at,
-    }));
+    const { feeds, total } = await listOracleFeeds({
+      provider,
+      symbol,
+      category,
+      chainId: chain_id,
+      isActive: is_active,
+      limit,
+      offset,
+    });
 
     return createCachedJsonResponse(
       ApiResponseBuilder.success({ feeds, meta: { total } }, { requestId: context.requestId }),

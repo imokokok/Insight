@@ -1,3 +1,4 @@
+import { listOracleFeeds } from '@/lib/oracles/services/feedListingService';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { get7dAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
 import { roundTo } from '@/lib/utils/format';
@@ -118,38 +119,15 @@ export const getFeedsTool: McpToolDefinition<typeof FeedsInputSchema> = {
     'List oracle feeds from the registry with optional filters (provider, symbol, category, chain, active status). Useful for discovering available feeds and their metadata.',
   parameters: FeedsInputSchema,
   handler: async (args) => {
-    const { getAdminQueries } = await import('@/lib/supabase/server');
-    const queries = getAdminQueries();
-    const allFeeds = await queries.getOracleFeeds('');
-
-    let filtered = allFeeds;
-
-    if (args.provider) {
-      filtered = filtered.filter((f) => f.provider === args.provider);
-    }
-    if (args.symbol) {
-      filtered = filtered.filter((f) => f.symbol === args.symbol);
-    }
-    if (args.category) {
-      filtered = filtered.filter((f) => f.category === args.category);
-    }
-    if (args.chainId !== undefined) {
-      filtered = filtered.filter((f) => f.chain_id === args.chainId);
-    }
-    if (args.isActive !== undefined) {
-      filtered = filtered.filter((f) => f.is_active === args.isActive);
-    }
-
-    const total = filtered.length;
-    const paged = filtered.slice(args.offset, args.offset + args.limit);
+    const { feeds, total } = await listOracleFeeds(args);
 
     if (total === 0) {
       return 'No feeds match the requested filters.';
     }
 
-    const lines = [`**Oracle feeds (${total} total, showing ${paged.length})**`, ''];
+    const lines = [`**Oracle feeds (${total} total, showing ${feeds.length})**`, ''];
 
-    for (const f of paged) {
+    for (const f of feeds) {
       lines.push(
         `- ${f.provider.toUpperCase()} ${f.symbol} (chain ${f.chain_id}, ${f.category}): ${f.name} [${f.id}]${f.is_active ? '' : ' [inactive]'}`
       );

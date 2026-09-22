@@ -4,6 +4,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
 import { calculatePercentageChange, sanitizeJsonValue } from './helpers';
+import { loadHourlySnapshotsForRange } from './loadHourlySnapshots';
 import {
   calculateAnomalySummary,
   calculateAssetStats,
@@ -33,7 +34,6 @@ import type {
   ProviderRanking,
   ReportSummary,
   RiskImpact,
-  SnapshotRow,
   StablecoinDepegSummary,
   WrappedAssetPegSummary,
 } from './types';
@@ -104,19 +104,7 @@ class ReportService {
     const startAt = reportDate.toISOString();
     const endAt = nextDay.toISOString();
 
-    const { data: rawSnapshots, error } = await supabase
-      .from('hourly_price_snapshots')
-      .select('*')
-      .gte('snapshot_hour', startAt)
-      .lt('snapshot_hour', endAt)
-      .order('snapshot_hour', { ascending: true });
-
-    if (error) {
-      logger.error(`Failed to load snapshots for ${dateStr}`, error);
-      throw error;
-    }
-
-    const snapshots: SnapshotRow[] = (rawSnapshots ?? []) as SnapshotRow[];
+    const snapshots = await loadHourlySnapshotsForRange(supabase, startAt, endAt);
 
     if (snapshots.length === 0) {
       throw new Error(

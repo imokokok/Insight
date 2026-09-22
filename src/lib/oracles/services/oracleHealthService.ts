@@ -8,6 +8,7 @@ import {
   type RiskLevel as DependencyRiskLevel,
 } from '@/lib/analytics/riskMetrics';
 import { providerNames } from '@/lib/constants';
+import { loadHourlySnapshotsForRange } from '@/lib/reports/loadHourlySnapshots';
 import {
   calculateAnomalySummary,
   calculateAssetStats,
@@ -20,7 +21,6 @@ import { type SnapshotRow } from '@/lib/reports/types';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { getTodayUtc } from '@/lib/utils/date';
 import { roundTo } from '@/lib/utils/format';
-import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider } from '@/types/oracle';
 
 import { getProviderDefaults } from '../utils/performanceMetricsConfig';
@@ -129,8 +129,6 @@ interface OracleHealthApiResponse {
   deviationEvents: ReturnType<typeof extractDeviationEvents>;
   riskImpacts: ReturnType<typeof generateRiskImpacts>;
 }
-
-const logger = createLogger('oracle-health-service');
 
 const ISSUE_PRIORITY: Record<ProviderIssueCode, number> = {
   heartbeat_missing: 0,
@@ -390,19 +388,9 @@ export async function getOracleHealthReport(
   const { startAt, endAt, evaluationTime } = getDateRange(reportDate);
   const supabase = createServiceRoleClient();
 
-  const { data, error } = await supabase
-    .from('hourly_price_snapshots')
-    .select('*')
-    .gte('snapshot_hour', startAt)
-    .lt('snapshot_hour', endAt)
-    .order('snapshot_hour', { ascending: true });
-
-  if (error) {
-    logger.error(`Failed to load oracle health snapshots for ${reportDate}`, error);
-    throw error;
-  }
-
-  const snapshots = ((data ?? []) as SnapshotRow[]).filter((row) => row.provider) as SnapshotRow[];
+  const snapshots = (await loadHourlySnapshotsForRange(supabase, startAt, endAt)).filter(
+    (row) => row.provider
+  );
   if (snapshots.length === 0) {
     return null;
   }
