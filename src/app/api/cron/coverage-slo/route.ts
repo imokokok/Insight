@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 
 import { verifyCronSecret } from '@/lib/api/cronAuth';
-import { collectCoverageSlo, getCoverageSlo } from '@/lib/coverage/collector';
+import {
+  collectCoverageSlo,
+  getCoverageAlertChanges,
+  getCoverageSlo,
+} from '@/lib/coverage/collector';
 
 export const maxDuration = 300;
 export async function GET(request: Request) {
@@ -10,6 +14,7 @@ export async function GET(request: Request) {
   try {
     const targets = await collectCoverageSlo();
     const summary = await getCoverageSlo(24);
+    const { newFailures, recoveries } = await getCoverageAlertChanges(targets, summary);
     const alerts = summary.targets
       .filter(
         (t) =>
@@ -32,7 +37,7 @@ export async function GET(request: Request) {
         reasons: t.latest?.reasons ?? ['LATEST_SAMPLE_MISSING'],
       }));
     return NextResponse.json(
-      { success: true, targets, alerts, latestAlerts },
+      { success: true, targets, alerts, latestAlerts, newFailures, recoveries },
       { headers: { 'Cache-Control': 'no-store' } }
     );
   } catch {

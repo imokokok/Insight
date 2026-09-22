@@ -27,7 +27,7 @@ env:
 jobs:
   billing-cron:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
 
@@ -40,7 +40,18 @@ jobs:
         run: node scripts/cron-control.mjs start
 
       - name: Run billing cron
-        run: node .github/cron-dist/billing.mjs
+        run: |
+          for attempt in 1 2 3; do
+            if node .github/cron-dist/billing.mjs; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "[billing] attempt ${attempt}/3 failed; retrying in $((attempt * 60))s"
+              sleep "$((attempt * 60))"
+            fi
+          done
+          echo "::error::Billing failed after three attempts"
+          exit 1
 
       - name: Finish run ledger
         if: always()

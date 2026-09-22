@@ -75,7 +75,8 @@ export async function runBilling(): Promise<BillingResult> {
     //    subscribers whose allowance was missed at activation.
     logger.info('Billing cron: starting addMonthlyCredits');
     const creditCount = await addMonthlyCredits();
-    results.creditsGranted = creditCount ?? 0;
+    if (creditCount === null) throw new Error('MONTHLY_CREDIT_GRANT_UNCONFIRMED');
+    results.creditsGranted = creditCount;
     logger.info('Billing cron: addMonthlyCredits complete', {
       creditsGranted: results.creditsGranted,
     });
