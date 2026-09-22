@@ -3,6 +3,7 @@
 import contextlib
 import io
 import json
+import math
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -71,6 +72,26 @@ class RegressionGateTest(unittest.TestCase):
         errors, _ = evaluate_gate(model(horizon(positives=3)), model(horizon()))
         self.assertTrue(any("too few positives" in error for error in errors))
 
+        assessment = assess_candidate(model(horizon(positives=12)), model(horizon()))
+        self.assertEqual(assessment.invalid, [])
+        self.assertTrue(any("12 < 20" in reason for reason in assessment.rejected))
+
+    def test_v4_requires_independent_positive_episodes(self):
+        candidate = model(horizon())
+        candidate["evaluationSpecVersion"] = 4
+        candidate["horizons"]["6h"]["metrics"]["n_positive_episodes_test"] = 10
+        self.assertEqual(assess_candidate(candidate, model(horizon())).invalid, [])
+        self.assertEqual(assess_candidate(candidate, model(horizon())).rejected, [])
+
+        candidate["horizons"]["6h"]["metrics"]["n_positive_episodes_test"] = 3
+        assessment = assess_candidate(candidate, model(horizon()))
+        self.assertEqual(assessment.invalid, [])
+        self.assertTrue(any("too few positive episodes" in reason for reason in assessment.rejected))
+
+        del candidate["horizons"]["6h"]["metrics"]["n_positive_episodes_test"]
+        assessment = assess_candidate(candidate, model(horizon()))
+        self.assertTrue(any("invalid n_positive_episodes_test" in reason for reason in assessment.invalid))
+
     def test_rejects_exactly_one_high_threshold(self):
         errors, _ = evaluate_gate(model(horizon(high=1.0)), model(horizon()))
         self.assertTrue(any("invalid operating thresholds" in error for error in errors))
@@ -96,6 +117,12 @@ class RegressionGateTest(unittest.TestCase):
         self.assertTrue(any("no same-window" in reason for reason in assessment.invalid))
         self.assertEqual(assessment.rejected, [])
 
+    def test_new_evaluation_method_still_requires_same_window_comparison(self):
+        candidate = model(horizon(comparison=False))
+        candidate["evaluationSpecVersion"] = 4
+        assessment = assess_candidate(candidate, model(horizon()))
+        self.assertTrue(any("no same-window" in reason for reason in assessment.invalid))
+
     def test_invalid_export_remains_failure_even_when_quality_regresses(self):
         payload = horizon(high=1.0)
         payload["metrics"]["auc"] = 0.60
@@ -109,6 +136,35 @@ class RegressionGateTest(unittest.TestCase):
         candidate["horizons"] = {"1h": horizon()}
         assessment = assess_candidate(candidate, model(horizon()))
         self.assertEqual(assessment.invalid, ["Active model has no 6h horizon."])
+
+    def test_missing_optional_incumbent_horizon_rejects_combined_update(self):
+        incumbent = model(horizon())
+        incumbent["horizons"]["1h"] = horizon()
+        candidate = model(horizon())
+        candidate["horizons"]["1h"] = None
+        assessment = assess_candidate(candidate, incumbent)
+        self.assertEqual(assessment.invalid, [])
+        self.assertTrue(any("1h disappeared" in reason for reason in assessment.rejected))
+
+    def test_missing_or_nonfinite_metrics_are_invalid(self):
+        for value in (None, math.nan, math.inf, True):
+            with self.subTest(value=value):
+                candidate = model(horizon())
+                candidate["horizons"]["6h"]["metrics"]["auc"] = value
+                assessment = assess_candidate(candidate, model(horizon()))
+                self.assertTrue(any("invalid auc" in reason for reason in assessment.invalid))
+        candidate = model(horizon())
+        del candidate["horizons"]["6h"]["metrics"]["auc"]
+        self.assertTrue(assess_candidate(candidate, model(horizon())).invalid)
+
+    def test_nonfinite_comparison_and_mismatched_support_are_invalid(self):
+        candidate = model(horizon())
+        candidate["horizons"]["6h"]["regressionComparison"]["incumbent"]["auc"] = math.nan
+        self.assertTrue(any("same-window metric" in reason for reason in assess_candidate(candidate, model(horizon())).invalid))
+
+        candidate = model(horizon())
+        candidate["horizons"]["6h"]["regressionComparison"]["nPositiveTest"] = 21
+        self.assertTrue(any("positive count" in reason for reason in assess_candidate(candidate, model(horizon())).invalid))
 
     def test_inactive_candidate_requires_an_active_incumbent(self):
         candidate = model(horizon())

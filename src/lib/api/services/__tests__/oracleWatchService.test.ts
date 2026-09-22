@@ -349,7 +349,14 @@ describe('getOracleWatchSignal — reputation & ML advisory', () => {
   });
 
   it('returns ML advisory fields derived from the scorer', async () => {
-    mockScoreMl.mockReturnValue({ combined: 0.72, score1h: 0.9, score6h: 0.72 });
+    mockScoreMl.mockReturnValue({
+      combined: 0.72,
+      score1h: 0.005,
+      score6h: 0.72,
+      riskLevel: 'high',
+      mediumThreshold: 0.3,
+      highThreshold: 0.8,
+    });
     mockGetConsensusPrice.mockResolvedValue(
       makeResponse({
         agreement: 0.98,
@@ -365,7 +372,7 @@ describe('getOracleWatchSignal — reputation & ML advisory', () => {
     const signal = await getOracleWatchSignal('ETH');
 
     expect(signal.mlRiskScore).toBe(0.72);
-    expect(signal.mlScore1h).toBe(0.9);
+    expect(signal.mlScore1h).toBe(0.005);
     expect(signal.mlScore6h).toBe(0.72);
     expect(signal.mlRiskLevel).toBe('high');
 

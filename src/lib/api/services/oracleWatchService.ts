@@ -306,7 +306,7 @@ async function computeMlRisk(
 
   const mediumThreshold = multi.mediumThreshold ?? ML_LEVEL_MEDIUM;
   const highThreshold = multi.highThreshold ?? ML_LEVEL_HIGH;
-  const level = classifyMlRisk(multi.combined, mediumThreshold, highThreshold);
+  const level = multi.riskLevel ?? classifyMlRisk(multi.combined, mediumThreshold, highThreshold);
 
   return {
     mlRiskScore: multi.combined,

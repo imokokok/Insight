@@ -4,6 +4,7 @@ import {
   applyCalibration,
   assetClassFor,
   buildFeatureVector,
+  classifyMultiHorizonRisk,
   featuresFromPreTrade,
   getModelStatus,
   scorePreTrade,
@@ -109,6 +110,21 @@ const horizons = getHorizons();
 const anyActive = horizons.length > 0;
 
 describe('ml inference', () => {
+  it('classifies each horizon against its own thresholds', () => {
+    expect(
+      classifyMultiHorizonRisk([
+        { score: 0.005, mediumThreshold: 0.01, highThreshold: 0.02 },
+        { score: 0.1, mediumThreshold: 0.3, highThreshold: 0.6 },
+      ])
+    ).toBe('low');
+    expect(
+      classifyMultiHorizonRisk([
+        { score: 0.025, mediumThreshold: 0.01, highThreshold: 0.02 },
+        { score: 0.1, mediumThreshold: 0.3, highThreshold: 0.6 },
+      ])
+    ).toBe('high');
+  });
+
   it('maps pre-trade metrics to a feature map keyed by the trainer feature names', () => {
     const f: PreTradeFeatures = {
       ...BASE_FEATURES,

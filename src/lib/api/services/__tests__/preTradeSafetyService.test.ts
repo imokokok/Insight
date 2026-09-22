@@ -767,15 +767,19 @@ describe('preTradeSafetyCheck — ML score plumbing', () => {
     );
     mockedScorePreTradeMultiHorizon.mockReturnValue({
       combined: 0.42,
-      score1h: 0.31,
+      score1h: 0.005,
       score6h: 0.42,
+      riskLevel: 'high',
+      mediumThreshold: 0.5,
+      highThreshold: 0.6,
     });
 
     const result = await preTradeSafetyCheck(makeInput());
 
     expect(result.mlScore).toBe(0.42);
-    expect(result.mlScore1h).toBe(0.31);
+    expect(result.mlScore1h).toBe(0.005);
     expect(result.mlScore6h).toBe(0.42);
+    expect(result.mlRiskLevel).toBe('high');
     expect(result.manipulationRiskScore).toBe(0.42);
     // getModelStatus is mocked to return trainedAt: null.
     expect(result.mlModelVersion).toBeNull();

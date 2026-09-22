@@ -28,11 +28,12 @@ ENRICHED FEATURES (22): the original 7 plus
                              Watch spine (neutral-filled when unavailable)
 
 EVALUATION: time-based train/validation/test split with PURGE + EMBARGO.
-Validation is used for early stopping and calibration; the final test period is
-untouched until reporting, so metrics measure true out-of-time skill.
+Forward folds inside train select the model and tree count. The later
+validation period is divided into calibration and operating-threshold windows
+with a label-horizon gap. The final test period is untouched until reporting.
 
 CALIBRATION: each horizon exports a monotonic reliability table per asset class
-(stable/volatile/default), fitted on the validation split. The TS scorer routes
+(stable/volatile/default), fitted on the earlier validation segment. The TS scorer routes
 scores through it so the Watch "high"
 bucket means the same thing across asset classes.
 
@@ -85,7 +86,7 @@ STALE_DIVERGENCE_PCT = 2.0
 # time the label definition changes so mined and flywheel labels stay
 # comparable — the version is exported with the model.
 LABEL_SPEC_VERSION = 2  # v2 = Track A (price/dev) OR Track B (market divergence)
-EVALUATION_SPEC_VERSION = 3  # v3 = purged split + fine-grained future-event labels
+EVALUATION_SPEC_VERSION = 4  # v4 = walk-forward selection + separate calibration/threshold windows
 FEATURE_SCHEMA_VERSION = 5  # mirrors ML_FEATURE_SCHEMA_VERSION in inference.ts
 
 MIN_TOTAL = 500
@@ -95,6 +96,8 @@ MIN_POSITIVES = 15  # per horizon; below this the horizon is skipped
 # training/exporting a horizon.
 MIN_EVALUATION_POSITIVES = 10
 MIN_EVALUATION_NEGATIVES = 10
+MIN_SELECTION_FOLDS = 2
+SELECTION_FOLD_WINDOWS = ((0.40, 0.55), (0.60, 0.75), (0.80, 1.00))
 
 # Assets treated as the "stable" class for per-class calibration. Everything
 # else (ETH, BTC, ...) trains into the "volatile" class. Mirrors the live
@@ -211,50 +214,77 @@ def log(msg: str) -> None:
     print(f"[train] {msg}", flush=True)
 
 
+def fetch_snapshot_pages(
+    base_url: str,
+    service_key: str,
+    table: str,
+    timestamp_column: str,
+    select: str,
+) -> list[dict]:
+    """Read a bounded snapshot window without exact counts or deep offsets.
+
+    The timestamp index supports the time filter, while the primary key breaks
+    ties between providers sampled at the same time. Keeping the upper bound
+    fixed prevents newly collected future snapshots from extending the scan.
+    """
+    read_until = datetime.now(timezone.utc)
+    cutoff = read_until - timedelta(weeks=LOOKBACK_WEEKS)
+    url = base_url.rstrip("/") + f"/rest/v1/{table}"
+    params = {
+        "select": f"id,{select}",
+        "is_success": "eq.true",
+        "and": (
+            f"({timestamp_column}.gte.{cutoff.isoformat()},"
+            f"{timestamp_column}.lte.{read_until.isoformat()})"
+        ),
+        "order": f"{timestamp_column}.asc,id.asc",
+    }
+    headers = {
+        "apikey": service_key,
+        "Authorization": f"Bearer {service_key}",
+        "Range": f"0-{PAGE_SIZE - 1}",
+    }
+    rows = []
+    cursor = None
+    while True:
+        page_params = params.copy()
+        if cursor is not None:
+            last_time, last_id = cursor
+            page_params["or"] = (
+                f"({timestamp_column}.gt.{last_time},"
+                f"and({timestamp_column}.eq.{last_time},id.gt.{last_id}))"
+            )
+        response = HTTP.get(url, headers=headers, params=page_params, timeout=60)
+        response.raise_for_status()
+        chunk = response.json()
+        if not chunk:
+            break
+        next_cursor = (chunk[-1][timestamp_column], chunk[-1]["id"])
+        if cursor is not None and (
+            pd.Timestamp(next_cursor[0]), next_cursor[1]
+        ) <= (pd.Timestamp(cursor[0]), cursor[1]):
+            raise RuntimeError(f"{table} pagination did not advance")
+        rows.extend(chunk)
+        cursor = next_cursor
+        if len(chunk) < PAGE_SIZE:
+            break
+    return rows
+
+
 def fetch_rows(base_url: str, service_key: str) -> pd.DataFrame:
     """Page through hourly_price_snapshots via the PostgREST API.
 
     Reads only the last LOOKBACK_WEEKS of rows (see LOOKBACK_WEEKS) to keep the
     Supabase read flat over time.
     """
-    cutoff = (datetime.now(timezone.utc) - timedelta(weeks=LOOKBACK_WEEKS)).isoformat()
-    log(f"Fetching hourly_price_snapshots since {cutoff} (last {LOOKBACK_WEEKS} weeks)...")
-    url = base_url.rstrip("/") + "/rest/v1/hourly_price_snapshots"
+    log(f"Fetching hourly_price_snapshots (last {LOOKBACK_WEEKS} weeks)...")
     select = "symbol,snapshot_hour,provider,chain_id,price,deviation_pct,data_age_seconds,is_success"
-    params = {
-        "select": select,
-        "is_success": "eq.true",
-        "snapshot_hour": f"gte.{cutoff}",
-        "order": "symbol,snapshot_hour,provider",
-    }
-    headers = {
-        "apikey": service_key,
-        "Authorization": f"Bearer {service_key}",
-    }
-    rows = []
-    offset = 0
-    while True:
-        headers["Range"] = f"{offset}-{offset + PAGE_SIZE - 1}"
-        headers["Prefer"] = "count=exact"
-        r = HTTP.get(url, headers=headers, params=params, timeout=60)
-        r.raise_for_status()
-        chunk = r.json()
-        rows.extend(chunk)
-        total = None
-        cr = r.headers.get("Content-Range", "")
-        if "/" in cr:
-            try:
-                total = int(cr.rsplit("/", 1)[-1])
-            except ValueError:
-                total = None
-        offset += PAGE_SIZE
-        if len(chunk) < PAGE_SIZE:
-            break
-        if total is not None and offset >= total:
-            break
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(fetch_snapshot_pages(
+        base_url, service_key, "hourly_price_snapshots", "snapshot_hour", select
+    ))
     if df.empty:
         return df
+    df = df.drop(columns=["id"])
     df["snapshot_hour"] = pd.to_datetime(df["snapshot_hour"], utc=True, format="mixed")
     for c in ("price", "deviation_pct", "data_age_seconds"):
         df[c] = pd.to_numeric(df[c], errors="coerce")
@@ -271,29 +301,13 @@ def fetch_fine_rows(base_url: str, service_key: str) -> pd.DataFrame:
     feature snapshots, preserving the live hourly feature contract and the
     effective number of independent prediction times.
     """
-    cutoff = (datetime.now(timezone.utc) - timedelta(weeks=LOOKBACK_WEEKS)).isoformat()
-    url = base_url.rstrip("/") + "/rest/v1/price_snapshots"
-    params = {
-        "select": "symbol,snapshot_ts,provider,chain_id,price,deviation_pct,data_age_seconds,is_success",
-        "is_success": "eq.true",
-        "snapshot_ts": f"gte.{cutoff}",
-        "order": "symbol,snapshot_ts,provider",
-    }
-    headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
-    rows = []
-    offset = 0
-    while True:
-        headers["Range"] = f"{offset}-{offset + PAGE_SIZE - 1}"
-        r = HTTP.get(url, headers=headers, params=params, timeout=60)
-        r.raise_for_status()
-        chunk = r.json()
-        rows.extend(chunk)
-        offset += PAGE_SIZE
-        if len(chunk) < PAGE_SIZE:
-            break
-    fine = pd.DataFrame(rows)
+    select = "symbol,snapshot_ts,provider,chain_id,price,deviation_pct,data_age_seconds,is_success"
+    fine = pd.DataFrame(fetch_snapshot_pages(
+        base_url, service_key, "price_snapshots", "snapshot_ts", select
+    ))
     if fine.empty:
         return fine
+    fine = fine.drop(columns=["id"])
     fine["snapshot_ts"] = pd.to_datetime(fine["snapshot_ts"], utc=True, format="mixed")
     for c in ("price", "deviation_pct", "data_age_seconds"):
         fine[c] = pd.to_numeric(fine[c], errors="coerce")
@@ -665,7 +679,10 @@ def label_from_fine_events(hourly: pd.DataFrame, fine: pd.DataFrame, hours: int)
         for idx, row in base_group.iterrows():
             # The hourly feature builder already applies the onset-state gate;
             # mirror it here for the fine label source.
-            if float(row["max_deviation_pct"]) >= DEVIATION_PCT:
+            if (
+                float(row["max_deviation_pct"]) >= DEVIATION_PCT
+                or float(row.get("oracle_vs_market_deviation_pct", 0.0)) >= MARKET_DIVERGENCE_PCT
+            ):
                 continue
             start = row["snapshot_hour"]
             end = start + pd.Timedelta(hours=hours)
@@ -757,10 +774,9 @@ def label_for_horizon(hourly: pd.DataFrame, hours: int):
 def fetch_market_reference_rows(base_url: str, service_key: str) -> pd.DataFrame:
     """Page through the market_reference_hourly rollup view (external truth layer).
 
-    Returns per-(symbol, hour) median CEX reference price, or an empty
-    DataFrame when the table/view is empty or unreachable so training degrades
-    to the neutral divergence fill (0 = no signal). Fail-closed by design:
-    absent reference data never fabricates a divergence.
+    Returns per-(symbol, hour) median CEX reference price. An empty view is
+    valid, but an unreadable view must stop the run: treating a fetch failure
+    as zero market divergence would change the label population silently.
     """
     try:
         cutoff = (datetime.now(timezone.utc) - timedelta(weeks=LOOKBACK_WEEKS)).isoformat()
@@ -812,9 +828,8 @@ def fetch_market_reference_rows(base_url: str, service_key: str) -> pd.DataFrame
                 "median_volume",
             ]
         ]
-    except Exception as exc:  # noqa: BLE001 - graceful degradation
-        log(f"market_reference_hourly unavailable ({exc}); using neutral divergence feature.")
-        return pd.DataFrame()
+    except Exception as exc:
+        raise RuntimeError("market_reference_hourly unavailable; cannot train comparable labels") from exc
 
 
 def build_dataset(
@@ -971,6 +986,15 @@ def merge_flywheel_examples(mined: pd.DataFrame, flywheel: pd.DataFrame) -> pd.D
     return pd.concat([mined_rows, live_rows], ignore_index=True).sort_values("snapshot_hour")
 
 
+def lost_market_reference_coverage(data: pd.DataFrame, incumbent_horizons: dict) -> bool:
+    """Detect a total reference outage relative to a deployed Track-B model."""
+    incumbent_used_reference = any(
+        horizon and horizon.get("metrics", {}).get("n_pos_divergence", 0) > 0
+        for horizon in incumbent_horizons.values()
+    )
+    return bool(incumbent_used_reference and not data["market_reference_available"].eq(1).any())
+
+
 def _split_index(split) -> int:
     """XGBoost JSON dump emits feature names like 'f0' (or column names). Coerce to index."""
     if isinstance(split, int):
@@ -1096,6 +1120,66 @@ def evaluate_exported_horizon(horizon: dict, test: pd.DataFrame, label_col: str)
     }
 
 
+def has_evaluation_support(frame: pd.DataFrame, label_col: str) -> bool:
+    positives = int(frame[label_col].sum())
+    return (
+        positives >= MIN_EVALUATION_POSITIVES
+        and len(frame) - positives >= MIN_EVALUATION_NEGATIVES
+    )
+
+
+def count_positive_episodes(frame: pd.DataFrame, label_col: str, hours: int) -> int:
+    """Count separate asset incidents rather than overlapping positive rows."""
+    positive = frame.loc[frame[label_col].eq(1), ["symbol", "snapshot_hour"]]
+    episodes = 0
+    for _, group in positive.groupby("symbol"):
+        gaps = group["snapshot_hour"].sort_values().diff()
+        episodes += int(gaps.isna().sum() + gaps.gt(pd.Timedelta(hours=hours)).sum())
+    return episodes
+
+
+def walk_forward_folds(
+    train: pd.DataFrame, label_col: str, hours: int
+) -> list[tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]]:
+    """Keep early stopping and candidate scoring in separate forward windows."""
+    gap = pd.Timedelta(hours=hours)
+    folds = []
+    for start_fraction, end_fraction in SELECTION_FOLD_WINDOWS:
+        start = train["snapshot_hour"].quantile(start_fraction)
+        earlier = train[train["snapshot_hour"] < start - gap]
+        stop_start = earlier["snapshot_hour"].quantile(0.8)
+        fold_train = earlier[earlier["snapshot_hour"] < stop_start - gap]
+        fold_stop = earlier[earlier["snapshot_hour"] >= stop_start]
+        fold_evaluation = train[train["snapshot_hour"] >= start]
+        if end_fraction < 1:
+            end = train["snapshot_hour"].quantile(end_fraction)
+            fold_evaluation = fold_evaluation[fold_evaluation["snapshot_hour"] < end]
+        if all(
+            has_evaluation_support(window, label_col)
+            for window in (fold_train, fold_stop, fold_evaluation)
+        ):
+            folds.append((fold_train, fold_stop, fold_evaluation))
+    return folds
+
+
+def split_validation_windows(
+    validation: pd.DataFrame, hours: int
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Fit calibration before learning alert thresholds, with a label-horizon gap."""
+    start = validation["snapshot_hour"].quantile(0.5)
+    gap = pd.Timedelta(hours=hours)
+    calibration = validation[validation["snapshot_hour"] < start - gap]
+    operating = validation[validation["snapshot_hour"] >= start]
+    return calibration, operating
+
+
+def average_precision_skill(labels: np.ndarray, probabilities: np.ndarray) -> float:
+    """Score a fold above its own positive-prevalence baseline."""
+    prevalence = float(np.mean(labels))
+    ap = float(average_precision_score(labels, probabilities))
+    return (ap - prevalence) / (1.0 - prevalence)
+
+
 def train_horizon(
     data: pd.DataFrame,
     hours: int,
@@ -1112,8 +1196,9 @@ def train_horizon(
         log(f"[{hours}h] skipped — only {n_pos} positives (< {MIN_POSITIVES}).")
         return None
 
-    # Three-way time split with purge gaps. Validation owns early stopping and
-    # calibration; test is untouched until the final metric computation.
+    # The outer test window is untouched until final reporting and promotion.
+    # Inner forward folds select the candidate inside train; the later
+    # validation window is reserved for calibration and alert thresholds.
     sub = data[data[label_col].notna()].sort_values("snapshot_hour").reset_index(drop=True)
     val_time = sub["snapshot_hour"].quantile(0.70)
     test_time = sub["snapshot_hour"].quantile(0.85)
@@ -1148,42 +1233,132 @@ def train_horizon(
                 f"{MIN_EVALUATION_POSITIVES}/{MIN_EVALUATION_NEGATIVES})."
             )
             return None
+    calibration_window, operating_window = split_validation_windows(validation, hours)
+    if not has_evaluation_support(calibration_window, label_col) or not has_evaluation_support(
+        operating_window, label_col
+    ):
+        log(
+            f"[{hours}h] skipped — calibration/threshold windows have too few examples "
+            f"(positive={int(calibration_window[label_col].sum())}/"
+            f"{int(operating_window[label_col].sum())}; require at least "
+            f"{MIN_EVALUATION_POSITIVES} positives each)."
+        )
+        return None
+    folds = walk_forward_folds(train, label_col, hours)
+    if len(folds) < MIN_SELECTION_FOLDS:
+        log(
+            f"[{hours}h] skipped — only {len(folds)} supported walk-forward folds "
+            f"(< {MIN_SELECTION_FOLDS})."
+        )
+        return None
+    fold_support = []
+    for number, (fold_train, fold_stop, fold_evaluation) in enumerate(folds, start=1):
+        support = {
+            "fitPositive": int(fold_train[label_col].sum()),
+            "stopPositive": int(fold_stop[label_col].sum()),
+            "scorePositive": int(fold_evaluation[label_col].sum()),
+            "scoreEpisodes": count_positive_episodes(fold_evaluation, label_col, hours),
+            "scoreRows": int(len(fold_evaluation)),
+        }
+        fold_support.append(support)
+        log(f"[{hours}h] forward fold {number} support: {support}")
     log(
         f"[{hours}h] Train: {len(train)} ({int(y_tr.sum())} pos) | "
         f"Validation: {len(validation)} ({int(y_val.sum())} pos) | "
         f"Test: {len(test)} ({int(y_te.sum())} pos) | purged {hours}h at boundaries"
     )
+    for split_name, split in (("train", train), ("validation", validation), ("test", test)):
+        positive = int(split[label_col].sum())
+        reference = int(split["market_reference_available"].sum())
+        log(
+            f"[{hours}h] {split_name} prevalence={positive / len(split):.4%}, "
+            f"positive episodes={count_positive_episodes(split, label_col, hours)}, "
+            f"market reference={reference / len(split):.2%}, "
+            f"price/deviation/divergence events="
+            f"{int(split[f'ev_price_{hours}h'].sum())}/"
+            f"{int(split[f'ev_dev_{hours}h'].sum())}/"
+            f"{int(split[f'ev_div_{hours}h'].sum())}"
+        )
+        for class_name in ("stable", "volatile"):
+            subset = split[split["symbol"].map(asset_class) == class_name]
+            if not subset.empty:
+                log(
+                    f"[{hours}h] {split_name}/{class_name}: "
+                    f"positive={int(subset[label_col].sum())}/{len(subset)}, "
+                    f"market reference={int(subset['market_reference_available'].sum())}/{len(subset)}"
+                )
 
     pos_tr = int(y_tr.sum())
     neg_tr = len(y_tr) - pos_tr
     common_params = dict(XGB_PARAMS)
-    if pos_tr > 0:
-        common_params["scale_pos_weight"] = neg_tr / pos_tr
+    common_params["scale_pos_weight"] = neg_tr / pos_tr
     log(
         f"[{hours}h] scale_pos_weight = {common_params.get('scale_pos_weight'):.3f} "
         f"(neg={neg_tr}, pos={pos_tr})"
     )
 
-    model = None
     best_candidate = None
-    best_validation_ap = -1.0
+    best_selection_skill = float("-inf")
+    best_iterations = []
+    best_fold_scores = []
+    selection_scores = {}
     for candidate in XGB_CANDIDATES:
-        params = {**common_params, **{k: v for k, v in candidate.items() if k != "name"}}
-        fitted = xgb.XGBClassifier(**params)
-        fitted.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], verbose=False)
-        validation_proba = fitted.predict_proba(X_val)[:, 1]
-        validation_ap = float(average_precision_score(y_val, validation_proba))
+        fold_scores = []
+        fold_iterations = []
+        for fold_train, fold_stop, fold_evaluation in folds:
+            fold_y_train = fold_train[label_col].to_numpy(dtype=int)
+            fold_y_stop = fold_stop[label_col].to_numpy(dtype=int)
+            fold_y_evaluation = fold_evaluation[label_col].to_numpy(dtype=int)
+            fold_params = {
+                **common_params,
+                **{key: value for key, value in candidate.items() if key != "name"},
+                "scale_pos_weight": (len(fold_y_train) - int(fold_y_train.sum()))
+                / int(fold_y_train.sum()),
+            }
+            fitted = xgb.XGBClassifier(**fold_params)
+            fitted.fit(
+                fold_train[FEATURE_NAMES].to_numpy(dtype=float),
+                fold_y_train,
+                eval_set=[(fold_stop[FEATURE_NAMES].to_numpy(dtype=float), fold_y_stop)],
+                verbose=False,
+            )
+            probabilities = fitted.predict_proba(
+                fold_evaluation[FEATURE_NAMES].to_numpy(dtype=float)
+            )[:, 1]
+            fold_scores.append(average_precision_skill(fold_y_evaluation, probabilities))
+            fold_iterations.append(int(fitted.best_iteration) + 1)
+        selection_skill = float(np.mean(fold_scores))
+        selection_scores[candidate["name"]] = [round(score, 6) for score in fold_scores]
         log(
-            f"[{hours}h] candidate={candidate['name']} validation PR-AUC={validation_ap:.4f} "
-            f"best_iteration={fitted.best_iteration}"
+            f"[{hours}h] candidate={candidate['name']} forward AP skill={selection_skill:.4f} "
+            f"folds={selection_scores[candidate['name']]} trees={fold_iterations}"
         )
-        if validation_ap > best_validation_ap:
-            model = fitted
+        if selection_skill > best_selection_skill:
             best_candidate = candidate["name"]
-            best_validation_ap = validation_ap
+            best_selection_skill = selection_skill
+            best_iterations = fold_iterations
+            best_fold_scores = fold_scores
 
-    assert model is not None
+    assert best_candidate is not None
+    if sum(score > 0 for score in best_fold_scores) < MIN_SELECTION_FOLDS:
+        log(
+            f"[{hours}h] skipped — selected model does not beat the prevalence "
+            f"baseline in at least {MIN_SELECTION_FOLDS} forward folds."
+        )
+        return None
+    selected = next(candidate for candidate in XGB_CANDIDATES if candidate["name"] == best_candidate)
+    selected_trees = int(np.median(best_iterations))
+    final_params = {
+        **common_params,
+        **{key: value for key, value in selected.items() if key != "name"},
+        "n_estimators": selected_trees,
+        "early_stopping_rounds": None,
+    }
+    model = xgb.XGBClassifier(**final_params)
+    model.fit(X_tr, y_tr, verbose=False)
     booster = model.get_booster()
+    proba_val = model.predict_proba(X_val)[:, 1]
+    validation_ap = float(average_precision_score(y_val, proba_val))
     proba_te = model.predict_proba(X_te)[:, 1]
 
     metrics = {
@@ -1193,16 +1368,38 @@ def train_horizon(
         "n_positive_train": int(y_tr.sum()),
         "n_positive_validation": int(y_val.sum()),
         "n_positive_test": int(y_te.sum()),
+        "n_positive_episodes_train": count_positive_episodes(train, label_col, hours),
+        "n_positive_episodes_validation": count_positive_episodes(validation, label_col, hours),
+        "n_positive_episodes_test": count_positive_episodes(test, label_col, hours),
+        "n_calibration": int(len(calibration_window)),
+        "n_threshold": int(len(operating_window)),
+        "n_positive_calibration": int(calibration_window[label_col].sum()),
+        "n_positive_threshold": int(operating_window[label_col].sum()),
+        "n_positive_episodes_calibration": count_positive_episodes(
+            calibration_window, label_col, hours
+        ),
+        "n_positive_episodes_threshold": count_positive_episodes(
+            operating_window, label_col, hours
+        ),
+        "n_market_reference_train": int(train["market_reference_available"].sum()),
+        "n_market_reference_validation": int(validation["market_reference_available"].sum()),
+        "n_market_reference_test": int(test["market_reference_available"].sum()),
         # Label-spec-v2 event-type breakdown (train split): how many positives
         # each track contributed. A row may trigger several — buckets overlap.
         "n_pos_price": int(train[f"ev_price_{hours}h"].sum()),
         "n_pos_deviation": int(train[f"ev_dev_{hours}h"].sum()),
         "n_pos_divergence": int(train[f"ev_div_{hours}h"].sum()),
+        "n_pos_divergence_validation": int(validation[f"ev_div_{hours}h"].sum()),
+        "n_pos_divergence_test": int(test[f"ev_div_{hours}h"].sum()),
         "selected_candidate": best_candidate,
-        "validation_average_precision": best_validation_ap,
-        "best_iteration": int(model.best_iteration)
-        if model.best_iteration is not None
-        else int(common_params["n_estimators"]),
+        "selection_mean_ap_skill": best_selection_skill,
+        "selection_fold_ap_skills": selection_scores,
+        "selection_fold_support": fold_support,
+        # Descriptive only: this later period never selects the model family.
+        "validation_average_precision": validation_ap,
+        "selected_tree_count": selected_trees,
+        # Kept for consumers that expect a zero-based exported last-tree index.
+        "best_iteration": selected_trees - 1,
     }
     try:
         metrics["auc"] = float(roc_auc_score(y_te, proba_te)) if len(set(y_te)) > 1 else None
@@ -1216,16 +1413,19 @@ def train_horizon(
     metrics["precision_raw_at_0.5"] = float(precision_score(y_te, pred50_raw, zero_division=0))
     metrics["recall_raw_at_0.5"] = float(recall_score(y_te, pred50_raw, zero_division=0))
 
-    # Reliability calibration per asset class, computed on validation only.
+    # Reliability calibration per asset class, fitted on the earlier validation
+    # window. The later window alone determines operating thresholds.
     # Raw XGBoost probabilities with scale_pos_weight are systematically
     # inflated; the exported tables let the TS scorer map raw proba -> realized
     # positive rate so the Watch "high" bucket means the same thing across
     # stable and volatile assets. Class tables need enough data; otherwise the
     # scorer falls back to the default table, then to the raw probability.
-    proba_val = model.predict_proba(X_val)[:, 1]
-    y_all = np.asarray(y_val)
-    p_all = np.asarray(proba_val)
-    is_stable = validation["symbol"].map(asset_class).eq("stable").values
+    X_cal = calibration_window[FEATURE_NAMES].to_numpy(dtype=float)
+    y_cal = calibration_window[label_col].to_numpy(dtype=int)
+    proba_cal = model.predict_proba(X_cal)[:, 1]
+    y_all = np.asarray(y_cal)
+    p_all = np.asarray(proba_cal)
+    is_stable = calibration_window["symbol"].map(asset_class).eq("stable").values
     calibration = {
         "default": compute_calibration(y_all, p_all),
         "stable": compute_calibration(y_all[is_stable], p_all[is_stable]),
@@ -1235,17 +1435,21 @@ def train_horizon(
         log(f"[{hours}h] skipped — validation data cannot support probability calibration.")
         return None
 
-    calibrated_val = np.empty_like(proba_val)
-    for mask, name in ((is_stable, "stable"), (~is_stable, "volatile")):
+    X_operating = operating_window[FEATURE_NAMES].to_numpy(dtype=float)
+    y_operating = operating_window[label_col].to_numpy(dtype=int)
+    proba_operating = model.predict_proba(X_operating)[:, 1]
+    operating_stable = operating_window["symbol"].map(asset_class).eq("stable").values
+    calibrated_operating = np.empty_like(proba_operating)
+    for mask, name in ((operating_stable, "stable"), (~operating_stable, "volatile")):
         table = calibration[name] or calibration["default"]
-        calibrated_val[mask] = apply_calibration_table(proba_val[mask], table)
-    risk_thresholds = select_operating_thresholds(y_val, calibrated_val)
-    validation_high = (calibrated_val >= risk_thresholds["high"]).astype(int)
+        calibrated_operating[mask] = apply_calibration_table(proba_operating[mask], table)
+    risk_thresholds = select_operating_thresholds(y_operating, calibrated_operating)
+    validation_high = (calibrated_operating >= risk_thresholds["high"]).astype(int)
     metrics["validation_precision_at_high_threshold"] = float(
-        precision_score(y_val, validation_high, zero_division=0)
+        precision_score(y_operating, validation_high, zero_division=0)
     )
     metrics["validation_recall_at_high_threshold"] = float(
-        recall_score(y_val, validation_high, zero_division=0)
+        recall_score(y_operating, validation_high, zero_division=0)
     )
 
     stable_test = test["symbol"].map(asset_class).eq("stable").values
@@ -1281,12 +1485,12 @@ def train_horizon(
     sample_idx = np.linspace(0, len(test) - 1, num=min(VERIFICATION_SAMPLE_COUNT, len(test))).astype(int)
     verification = [[X_te[i].tolist(), float(proba_te[i])] for i in sample_idx]
 
-    # With early stopping, predict_proba uses only the first (best_iteration+1)
-    # trees; export ONLY the used ones so the pure-TS scorer reproduces predict_proba.
+    # The final fit uses the median tree count selected by forward folds.
+    # Export exactly those trees so the TS scorer reproduces predict_proba.
     all_dumps = booster.get_dump(dump_format="json")
     used_dumps = all_dumps[: metrics["best_iteration"] + 1]
     trees = [flatten_tree(json.loads(d)) for d in used_dumps]
-    log(f"[{hours}h] Exported {len(trees)} trees (best_iteration={metrics['best_iteration']}).")
+    log(f"[{hours}h] Exported {len(trees)} trees (selected by forward folds).")
 
     regression_comparison = None
     if incumbent_horizon:
@@ -1341,7 +1545,6 @@ def main() -> int:
         comparable = (
             incumbent.get("active")
             and incumbent.get("labelSpecVersion") == LABEL_SPEC_VERSION
-            and incumbent.get("evaluationSpecVersion") == EVALUATION_SPEC_VERSION
         )
         if comparable:
             if incumbent.get("version") == 2:
@@ -1350,7 +1553,7 @@ def main() -> int:
                 incumbent_horizons = {"6h": incumbent}
         else:
             log(
-                "Incumbent model uses a different label/evaluation specification; "
+                "Incumbent model uses a different label specification; "
                 "comparison skipped."
             )
     except (OSError, ValueError) as exc:
@@ -1365,17 +1568,21 @@ def main() -> int:
     log("Building labeled dataset (mining 1h + 6h-ahead outcomes)...")
     health_df = fetch_health_rows(base_url, service_key)
     ref_df = fetch_market_reference_rows(base_url, service_key)
-    try:
-        fine_rows = fetch_fine_rows(base_url, service_key)
-        fine_event_df = build_fine_event_frame(fine_rows)
-        log(
-            f"Fetched {len(fine_rows)} fine rows -> {len(fine_event_df)} "
-            "15-minute future-event observations."
-        )
-    except Exception as exc:  # noqa: BLE001 - preserve hourly fallback
-        log(f"price_snapshots unavailable ({exc}); using hourly-only labels.")
-        fine_event_df = pd.DataFrame()
+    # The 15-minute spine is part of the label definition. Falling back to
+    # hourly-only labels would silently change the target while keeping the
+    # same labelSpecVersion, so a missing source must stop this retrain.
+    fine_rows = fetch_fine_rows(base_url, service_key)
+    if fine_rows.empty:
+        raise RuntimeError("price_snapshots returned no rows; cannot train comparable labels")
+    fine_event_df = build_fine_event_frame(fine_rows)
+    log(
+        f"Fetched {len(fine_rows)} fine rows -> {len(fine_event_df)} "
+        "15-minute future-event observations."
+    )
     data = build_dataset(df, health_df, ref_df, fine_event_df)
+    if lost_market_reference_coverage(data, incumbent_horizons):
+        log("Market-reference coverage disappeared despite a deployed Track-B model; retaining incumbent.")
+        return 1
     try:
         flywheel_rows = fetch_flywheel_rows(base_url, service_key)
         flywheel = build_flywheel_frame(flywheel_rows)

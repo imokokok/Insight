@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -17,7 +18,11 @@ from dataclasses import dataclass, field
 AUC_DROP_TOLERANCE = 0.03
 AP_DROP_TOLERANCE = 0.03
 BRIER_RISE_TOLERANCE = 0.02
-MIN_COMPARISON_POSITIVES = 10
+# Fewer than 20 positive rows made recent 1h test AP swing sharply with only a
+# few incidents. Keep the incumbent until the current window has more support.
+MIN_COMPARISON_POSITIVES = 20
+MIN_COMPARISON_EPISODES = 10
+COMPARISON_METRICS = ("auc", "average_precision", "brier_calibrated")
 
 
 @dataclass
@@ -28,9 +33,13 @@ class GateAssessment:
 
 
 def horizons(model: dict) -> dict:
-    if model.get("version") == 2 and model.get("horizons"):
-        return {name: payload for name, payload in model["horizons"].items() if payload}
+    if model.get("version") == 2:
+        return {name: payload for name, payload in (model.get("horizons") or {}).items() if payload}
     return {"6h": model} if model.get("trees") else {}
+
+
+def finite_number(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
 def assess_candidate(candidate: dict, incumbent: dict | None) -> GateAssessment:
@@ -47,21 +56,66 @@ def assess_candidate(candidate: dict, incumbent: dict | None) -> GateAssessment:
     if "6h" not in candidate_horizons:
         result.invalid.append("Active model has no 6h horizon.")
         return result
+    evaluation_version = candidate.get("evaluationSpecVersion", 0)
+    if (
+        not isinstance(evaluation_version, int)
+        or isinstance(evaluation_version, bool)
+        or evaluation_version < 0
+    ):
+        result.invalid.append(f"Active model has invalid evaluationSpecVersion: {evaluation_version}")
+        return result
     for name, payload in candidate_horizons.items():
         metrics = payload.get("metrics") or {}
         thresholds = payload.get("riskThresholds") or {}
         medium, high = thresholds.get("medium"), thresholds.get("high")
+        if not payload.get("trees"):
+            result.invalid.append(f"Horizon {name} has no exported trees.")
         if (
-            not isinstance(medium, (int, float))
-            or not isinstance(high, (int, float))
+            not finite_number(medium)
+            or not finite_number(high)
             or not 0 < medium < high < 1
         ):
             result.invalid.append(f"Horizon {name} exported invalid operating thresholds: {thresholds}")
-        if metrics.get("validation_recall_at_high_threshold", 0) < 0.10:
-            result.rejected.append(f"Horizon {name} high tier misses the validation recall floor.")
+        for key in COMPARISON_METRICS + (
+            "validation_recall_at_high_threshold", "recall_at_high_threshold"
+        ):
+            value = metrics.get(key)
+            if not finite_number(value) or not 0 <= value <= 1:
+                result.invalid.append(f"Horizon {name} exported invalid {key}: {value}")
+        positives = metrics.get("n_positive_test")
+        if not isinstance(positives, int) or isinstance(positives, bool) or positives < 0:
+            result.invalid.append(f"Horizon {name} exported invalid n_positive_test: {positives}")
+        if evaluation_version >= 4:
+            episodes = metrics.get("n_positive_episodes_test")
+            if (
+                not isinstance(episodes, int)
+                or isinstance(episodes, bool)
+                or episodes < 0
+                or (isinstance(positives, int) and episodes > positives)
+            ):
+                result.invalid.append(
+                    f"Horizon {name} exported invalid n_positive_episodes_test: {episodes}"
+                )
+            elif episodes < MIN_COMPARISON_EPISODES:
+                result.rejected.append(
+                    f"Horizon {name} test window has too few positive episodes "
+                    f"({episodes} < {MIN_COMPARISON_EPISODES})."
+                )
         if (
-            metrics.get("n_positive_test", 0) >= MIN_COMPARISON_POSITIVES
-            and metrics.get("recall_at_high_threshold", 0) <= 0
+            finite_number(metrics.get("validation_recall_at_high_threshold"))
+            and metrics["validation_recall_at_high_threshold"] < 0.10
+        ):
+            result.rejected.append(f"Horizon {name} high tier misses the validation recall floor.")
+        if isinstance(positives, int) and positives < MIN_COMPARISON_POSITIVES:
+            result.rejected.append(
+                f"Horizon {name} test window has too few positives "
+                f"({positives} < {MIN_COMPARISON_POSITIVES})."
+            )
+        if (
+            isinstance(positives, int)
+            and positives >= MIN_COMPARISON_POSITIVES
+            and finite_number(metrics.get("recall_at_high_threshold"))
+            and metrics["recall_at_high_threshold"] <= 0
         ):
             result.rejected.append(f"Horizon {name} high tier caught no positives on the test window.")
 
@@ -69,14 +123,13 @@ def assess_candidate(candidate: dict, incumbent: dict | None) -> GateAssessment:
         result.info.append("No active incumbent model; regression comparison skipped.")
         return result
 
-    if (
-        incumbent.get("labelSpecVersion") != candidate.get("labelSpecVersion")
-        or incumbent.get("evaluationSpecVersion") != candidate.get("evaluationSpecVersion")
-    ):
-        result.info.append("Label/evaluation specification changed; accepting a new comparison baseline.")
+    if incumbent.get("labelSpecVersion") != candidate.get("labelSpecVersion"):
+        result.info.append("Label specification changed; accepting a new comparison baseline.")
         return result
 
     incumbent_horizons = horizons(incumbent)
+    for name in sorted(set(incumbent_horizons) - set(candidate_horizons)):
+        result.rejected.append(f"Horizon {name} disappeared from the active candidate model.")
     checks = (
         ("AUC", "auc", -AUC_DROP_TOLERANCE, False),
         ("average precision", "average_precision", -AP_DROP_TOLERANCE, False),
@@ -91,11 +144,15 @@ def assess_candidate(candidate: dict, incumbent: dict | None) -> GateAssessment:
                 "apples-to-oranges historical metric comparison."
             )
             continue
-        if comparison.get("nPositiveTest", 0) < MIN_COMPARISON_POSITIVES:
-            result.rejected.append(
-                f"Horizon {name} current test window has too few positives "
-                f"({comparison.get('nPositiveTest', 0)} < {MIN_COMPARISON_POSITIVES})."
-            )
+        comparison_positives = comparison.get("nPositiveTest")
+        if (
+            not isinstance(comparison_positives, int)
+            or isinstance(comparison_positives, bool)
+            or comparison_positives != payload.get("metrics", {}).get("n_positive_test")
+        ):
+            result.invalid.append(f"Horizon {name} current test positive count is inconsistent.")
+            continue
+        if comparison_positives < MIN_COMPARISON_POSITIVES:
             continue
 
         candidate_metrics = comparison.get("candidate") or {}
@@ -105,10 +162,10 @@ def assess_candidate(candidate: dict, incumbent: dict | None) -> GateAssessment:
             new_value = candidate_metrics.get(key)
             old_value = incumbent_metrics.get(key)
             exported_value = exported_metrics.get(key)
-            if not all(isinstance(value, (int, float)) for value in (new_value, old_value)):
+            if not all(finite_number(value) and 0 <= value <= 1 for value in (new_value, old_value, exported_value)):
                 result.invalid.append(f"Horizon {name} {label} same-window metric is unavailable.")
                 continue
-            if isinstance(exported_value, (int, float)) and abs(new_value - exported_value) > 1e-12:
+            if abs(new_value - exported_value) > 1e-12:
                 result.invalid.append(f"Horizon {name} {label} comparison is stale or inconsistent.")
                 continue
             delta = new_value - old_value

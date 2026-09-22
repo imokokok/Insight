@@ -988,7 +988,8 @@ function computeManipulationRisk(args: {
       mlMediumThreshold = multi.mediumThreshold ?? null;
       mlHighThreshold = multi.highThreshold ?? null;
       if (mlMediumThreshold !== null && mlHighThreshold !== null) {
-        mlRiskLevel = classifyMlRisk(multi.combined, mlMediumThreshold, mlHighThreshold);
+        mlRiskLevel =
+          multi.riskLevel ?? classifyMlRisk(multi.combined, mlMediumThreshold, mlHighThreshold);
       }
       mlModelVersion = getModelStatus().trainedAt;
     }

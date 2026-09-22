@@ -3,20 +3,29 @@
 import json
 import unittest
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pandas as pd
 
 from ml.train import (
+    average_precision_skill,
     build_fine_event_frame,
     build_flywheel_frame,
     build_hourly_frame,
     compute_calibration,
+    count_positive_episodes,
     label_for_horizon,
     label_from_fine_events,
+    fetch_market_reference_rows,
+    fetch_snapshot_pages,
+    lost_market_reference_coverage,
     merge_flywheel_examples,
     score_exported_horizon,
     select_operating_thresholds,
+    split_validation_windows,
+    train_horizon,
+    walk_forward_folds,
 )
 
 
@@ -55,8 +64,154 @@ class LabelSemanticsTest(unittest.TestCase):
         labels, *_ = label_for_horizon(hourly, 1)
         self.assertTrue(pd.isna(labels.iloc[0]))
 
+    def test_fine_events_do_not_resurrect_existing_market_divergence(self):
+        start = pd.Timestamp("2026-01-01T00:00:00Z")
+        hourly = pd.DataFrame({
+            "symbol": ["ETH"], "snapshot_hour": [start], "consensus": [100.0],
+            "max_deviation_pct": [0.1], "oracle_vs_market_deviation_pct": [3.0],
+        })
+        fine = pd.DataFrame({
+            "symbol": ["ETH"], "snapshot_hour": [start + pd.Timedelta(minutes=30)],
+            "consensus": [106.0], "max_deviation_pct": [9.0],
+        })
+        hourly_label, *_ = label_for_horizon(hourly, 1)
+        fine_label, *_ = label_from_fine_events(hourly, fine, 1)
+        self.assertTrue(pd.isna(hourly_label.iloc[0]))
+        self.assertTrue(pd.isna(fine_label.iloc[0]))
+
 
 class FeatureSemanticsTest(unittest.TestCase):
+    def test_missing_fine_source_stops_retrain_before_export(self):
+        from ml import train
+
+        hourly = pd.DataFrame({"symbol": ["ETH"] * 500})
+        with patch.dict("os.environ", {
+            "SUPABASE_URL": "https://example.invalid",
+            "SUPABASE_SERVICE_ROLE_KEY": "key",
+        }), patch.object(train, "MODEL_PATH", "/tmp/nonexistent-insight-model.json"), patch(
+            "ml.train.fetch_rows", return_value=hourly
+        ), patch("ml.train.fetch_health_rows", return_value=pd.DataFrame()), patch(
+            "ml.train.fetch_market_reference_rows", return_value=pd.DataFrame()
+        ), patch("ml.train.fetch_fine_rows", side_effect=RuntimeError("source unavailable")), patch(
+            "ml.train.write_null_model"
+        ) as write_null, patch("ml.train.log"):
+            with self.assertRaisesRegex(RuntimeError, "source unavailable"):
+                train.main()
+        write_null.assert_not_called()
+
+    def test_snapshot_cursor_pages_through_equal_timestamps_without_exact_count(self):
+        first_time = "2026-09-20T00:00:00+00:00"
+        next_time = "2026-09-20T01:00:00+00:00"
+        pages = [
+            [{"id": 1, "snapshot_hour": first_time}, {"id": 2, "snapshot_hour": first_time}],
+            [{"id": 3, "snapshot_hour": first_time}, {"id": 4, "snapshot_hour": next_time}],
+            [{"id": 5, "snapshot_hour": next_time}],
+        ]
+        responses = []
+        for page in pages:
+            response = Mock()
+            response.json.return_value = page
+            responses.append(response)
+        with patch("ml.train.PAGE_SIZE", 2), patch("ml.train.HTTP.get", side_effect=responses) as get:
+            rows = fetch_snapshot_pages(
+                "https://example.invalid", "key", "hourly_price_snapshots",
+                "snapshot_hour", "snapshot_hour",
+            )
+        self.assertEqual([row["id"] for row in rows], [1, 2, 3, 4, 5])
+        self.assertEqual([call.kwargs["headers"]["Range"] for call in get.call_args_list], ["0-1"] * 3)
+        self.assertTrue(all("Prefer" not in call.kwargs["headers"] for call in get.call_args_list))
+        self.assertNotIn("or", get.call_args_list[0].kwargs["params"])
+        self.assertIn("id.gt.2", get.call_args_list[1].kwargs["params"]["or"])
+        self.assertIn("id.gt.4", get.call_args_list[2].kwargs["params"]["or"])
+        self.assertEqual(
+            [call.kwargs["params"]["and"] for call in get.call_args_list],
+            [get.call_args_list[0].kwargs["params"]["and"]] * 3,
+        )
+
+    def test_positive_episode_count_collapses_overlapping_horizon_labels(self):
+        start = pd.Timestamp("2026-01-01T00:00:00Z")
+        frame = pd.DataFrame({
+            "symbol": ["ETH"] * 5 + ["BTC"],
+            "snapshot_hour": [start + pd.Timedelta(hours=h) for h in (0, 1, 2, 10, 11, 1)],
+            "label_1h": [1] * 6,
+        })
+        self.assertEqual(count_positive_episodes(frame, "label_1h", 1), 3)
+
+    def test_final_test_labels_do_not_change_selected_model_or_thresholds(self):
+        from ml.train import FEATURE_NAMES
+
+        rng = np.random.default_rng(42)
+        count = 3000
+        frame = pd.DataFrame({name: rng.normal(size=count) for name in FEATURE_NAMES})
+        signal = rng.normal(size=count)
+        frame["max_deviation_pct"] = signal
+        frame["symbol"] = np.where(np.arange(count) % 3 == 0, "USDC", "ETH")
+        frame["snapshot_hour"] = pd.date_range("2025-01-01", periods=count, freq="h", tz="UTC")
+        frame["label_1h"] = ((signal > 0.8) | (rng.random(count) < 0.1)).astype(int)
+        frame["market_reference_available"] = 1
+        for kind in ("price", "dev", "div"):
+            frame[f"ev_{kind}_1h"] = 0
+
+        changed = frame.copy()
+        test_start = frame["snapshot_hour"].quantile(0.85)
+        mask = changed["snapshot_hour"] >= test_start
+        changed.loc[mask, "label_1h"] = 1 - changed.loc[mask, "label_1h"]
+        with patch("ml.train.log"):
+            original_model = train_horizon(frame, 1)
+            changed_model = train_horizon(changed, 1)
+        self.assertIsNotNone(original_model)
+        self.assertIsNotNone(changed_model)
+        self.assertEqual(original_model["trees"], changed_model["trees"])
+        self.assertEqual(original_model["calibration"], changed_model["calibration"])
+        self.assertEqual(original_model["riskThresholds"], changed_model["riskThresholds"])
+        self.assertNotEqual(
+            original_model["metrics"]["n_positive_test"],
+            changed_model["metrics"]["n_positive_test"],
+        )
+
+    def test_forward_folds_and_operating_window_respect_label_horizon(self):
+        start = pd.Timestamp("2026-01-01T00:00:00Z")
+        frame = pd.DataFrame({
+            "snapshot_hour": [start + pd.Timedelta(hours=hour) for hour in range(800)],
+            "label_6h": [int(hour % 5 == 0) for hour in range(800)],
+        })
+        folds = walk_forward_folds(frame, "label_6h", 6)
+        self.assertEqual(len(folds), 3)
+        for fold_train, fold_stop, fold_validation in folds:
+            self.assertLess(
+                fold_train["snapshot_hour"].max() + pd.Timedelta(hours=6),
+                fold_stop["snapshot_hour"].min(),
+            )
+            self.assertLess(
+                fold_stop["snapshot_hour"].max() + pd.Timedelta(hours=6),
+                fold_validation["snapshot_hour"].min(),
+            )
+        calibration, operating = split_validation_windows(frame, 6)
+        self.assertLess(
+            calibration["snapshot_hour"].max() + pd.Timedelta(hours=6),
+            operating["snapshot_hour"].min(),
+        )
+
+    def test_forward_skill_uses_each_windows_positive_baseline(self):
+        labels = np.array([0] * 90 + [1] * 10)
+        constant = np.full(100, 0.1)
+        ranked = np.array([0.1] * 90 + [0.9] * 10)
+        self.assertAlmostEqual(average_precision_skill(labels, constant), 0.0)
+        self.assertAlmostEqual(average_precision_skill(labels, ranked), 1.0)
+
+    def test_total_market_reference_loss_retains_track_b_incumbent(self):
+        data = pd.DataFrame({"market_reference_available": [0, 0]})
+        incumbent = {"6h": {"metrics": {"n_pos_divergence": 2}}}
+        self.assertTrue(lost_market_reference_coverage(data, incumbent))
+        self.assertFalse(lost_market_reference_coverage(data, {}))
+        data.loc[1, "market_reference_available"] = 1
+        self.assertFalse(lost_market_reference_coverage(data, incumbent))
+
+    def test_market_reference_failure_is_not_treated_as_zero_divergence(self):
+        with patch("ml.train.HTTP.get", side_effect=ConnectionError("unavailable")):
+            with self.assertRaisesRegex(RuntimeError, "cannot train comparable labels"):
+                fetch_market_reference_rows("https://example.invalid", "key")
+
     def test_flywheel_requires_complete_finite_feature_vector(self):
         from ml.train import FEATURE_NAMES
 
