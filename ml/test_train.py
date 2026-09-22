@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 
 from ml.train import (
+    DEVIATION_PCT,
+    MARKET_DIVERGENCE_PCT,
     average_precision_skill,
     build_fine_event_frame,
     build_flywheel_frame,
@@ -224,8 +226,8 @@ class FeatureSemanticsTest(unittest.TestCase):
                     "ml_feature_vector": complete,
                     "outcome_label_1h": False,
                     "outcome_label_6h": True,
-                    "outcome_1h": {},
-                    "outcome_6h": {"maxDeviationPct": 9.0},
+                    "outcome_1h": {"methodVersion": 2},
+                    "outcome_6h": {"methodVersion": 2, "maxDeviationPct": 9.0},
                 },
                 {
                     "asset": "BTC",
@@ -240,6 +242,49 @@ class FeatureSemanticsTest(unittest.TestCase):
         self.assertEqual(len(frame), 1)
         self.assertEqual(frame.iloc[0]["symbol"], "ETH")
         self.assertEqual(frame.iloc[0]["ev_dev_6h"], 1)
+
+    def test_flywheel_excludes_incident_already_active_at_check_time(self):
+        from ml.train import FEATURE_NAMES
+
+        neutral = {name: 0.0 for name in FEATURE_NAMES}
+        rows = pd.DataFrame([
+            {
+                "asset": "ETH", "created_at": pd.Timestamp("2026-01-01T00:10:00Z"),
+                "ml_feature_vector": {**neutral, "max_deviation_pct": DEVIATION_PCT},
+                "outcome_label_1h": True, "outcome_label_6h": True,
+                "outcome_1h": {"methodVersion": 2}, "outcome_6h": {"methodVersion": 2},
+            },
+            {
+                "asset": "BTC", "created_at": pd.Timestamp("2026-01-01T00:20:00Z"),
+                "ml_feature_vector": {
+                    **neutral, "oracle_vs_market_deviation_pct": MARKET_DIVERGENCE_PCT
+                },
+                "outcome_label_1h": True, "outcome_label_6h": True,
+                "outcome_1h": {"methodVersion": 2}, "outcome_6h": {"methodVersion": 2},
+            },
+            {
+                "asset": "SOL", "created_at": pd.Timestamp("2026-01-01T00:30:00Z"),
+                "ml_feature_vector": neutral,
+                "outcome_label_1h": False, "outcome_label_6h": False,
+                "outcome_1h": {"methodVersion": 2}, "outcome_6h": {"methodVersion": 2},
+            },
+        ])
+
+        frame = build_flywheel_frame(rows)
+        self.assertEqual(frame["symbol"].tolist(), ["SOL"])
+
+    def test_flywheel_rejects_legacy_outcome_method(self):
+        from ml.train import FEATURE_NAMES
+
+        neutral = {name: 0.0 for name in FEATURE_NAMES}
+        rows = pd.DataFrame([{
+            "asset": "ETH", "created_at": pd.Timestamp("2026-01-01T00:10:00Z"),
+            "ml_feature_vector": neutral,
+            "outcome_label_1h": False, "outcome_label_6h": False,
+            "outcome_1h": {}, "outcome_6h": {},
+        }])
+
+        self.assertTrue(build_flywheel_frame(rows).empty)
 
     def test_live_example_replaces_same_asset_hour_instead_of_adding_weight(self):
         from ml.train import FEATURE_NAMES

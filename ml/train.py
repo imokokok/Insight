@@ -86,6 +86,7 @@ STALE_DIVERGENCE_PCT = 2.0
 # time the label definition changes so mined and flywheel labels stay
 # comparable — the version is exported with the model.
 LABEL_SPEC_VERSION = 2  # v2 = Track A (price/dev) OR Track B (market divergence)
+OUTCOME_METHOD_VERSION = 2  # corrected dual-spine, quorum, and complete-negative backfill
 EVALUATION_SPEC_VERSION = 4  # v4 = walk-forward selection + separate calibration/threshold windows
 FEATURE_SCHEMA_VERSION = 5  # mirrors ML_FEATURE_SCHEMA_VERSION in inference.ts
 
@@ -921,6 +922,13 @@ def build_flywheel_frame(rows: pd.DataFrame) -> pd.DataFrame:
             continue
         if not all(np.isfinite(value) for value in features.values()):
             continue
+        # Mined examples predict incident onset from a currently-normal state.
+        # Apply the same gate to live checks before they can replace a mined row.
+        if (
+            features["max_deviation_pct"] >= DEVIATION_PCT
+            or features["oracle_vs_market_deviation_pct"] >= MARKET_DIVERGENCE_PCT
+        ):
+            continue
         created_at = row.get("created_at")
         if pd.isna(created_at):
             continue
@@ -932,10 +940,12 @@ def build_flywheel_frame(rows: pd.DataFrame) -> pd.DataFrame:
         if not shaped["symbol"]:
             continue
         for hours in HORIZONS:
-            label = row.get(f"outcome_label_{hours}h")
-            shaped[f"label_{hours}h"] = pd.NA if pd.isna(label) else int(bool(label))
             outcome = row.get(f"outcome_{hours}h")
             outcome = outcome if isinstance(outcome, dict) else {}
+            label = row.get(f"outcome_label_{hours}h")
+            if outcome.get("methodVersion") != OUTCOME_METHOD_VERSION:
+                label = pd.NA
+            shaped[f"label_{hours}h"] = pd.NA if pd.isna(label) else int(bool(label))
             shaped[f"ev_price_{hours}h"] = int(
                 float(outcome.get("maxPriceMovePct") or 0) >= PRICE_MOVE_PCT
             )

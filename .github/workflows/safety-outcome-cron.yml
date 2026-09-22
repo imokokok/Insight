@@ -2,8 +2,8 @@ name: Safety Outcome Backfill
 
 # Backfills outcome labels for pre-trade safety checks whose evaluation window
 # has elapsed. Each run labels a bounded batch of the oldest unlabeled checks
-# against hourly_price_snapshots, turning flywheel rows into labeled training
-# examples.
+# against hourly and 15-minute price snapshots, turning flywheel rows into
+# labeled training examples.
 #
 # Runs the `scripts/safety-outcome.ts` runner directly on GH Actions (no
 # Vercel curl) so the job escapes Vercel's 60s serverless timeout — the

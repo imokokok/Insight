@@ -15,8 +15,8 @@ export interface SafetyOutcomeResult {
 /**
  * Backfills outcome labels for pre-trade safety checks whose evaluation window
  * has elapsed. Each run labels a bounded batch of the oldest unlabeled checks
- * against hourly_price_snapshots, turning flywheel rows into labeled training
- * examples.
+ * against hourly and 15-minute price snapshots, turning flywheel rows into
+ * labeled training examples.
  *
  * Extracted from the GET handler so the same logic runs from both the Vercel
  * route AND the GitHub Actions `scripts/safety-outcome.ts` job. The GH Actions

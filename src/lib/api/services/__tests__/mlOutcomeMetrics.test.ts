@@ -23,31 +23,33 @@ const mockedGetModelStatus = getModelStatus as jest.MockedFunction<typeof getMod
 
 type Result = { data: unknown; error: unknown };
 
-function makeChain(result: Result) {
+function makeChain(result: Result | ((start: number, end: number) => Result)) {
   const api: Record<string, (...args: unknown[]) => unknown> = {};
-  const thenable = Promise.resolve(result);
-  for (const m of [
-    'select',
-    'eq',
-    'gt',
-    'lt',
-    'lte',
-    'is',
-    'not',
-    'gte',
-    'order',
-    'limit',
-    'update',
-  ]) {
+  let start = 0;
+  let end = 999;
+  for (const m of ['select', 'eq', 'gt', 'lt', 'lte', 'is', 'not', 'gte', 'order', 'update']) {
     api[m] = () => api;
   }
+  api.range = (from: unknown, to: unknown) => {
+    start = Number(from);
+    end = Number(to);
+    return api;
+  };
   api.then = (resolve: (v: Result) => void, reject?: (e: unknown) => void) =>
-    thenable.then(resolve, reject);
+    Promise.resolve(typeof result === 'function' ? result(start, end) : result).then(
+      resolve,
+      reject
+    );
   return api;
 }
 
 function row(asset: string, mlScore: number, label: boolean) {
-  return { asset, ml_score: mlScore, outcome_label: label };
+  return {
+    asset,
+    ml_score: mlScore,
+    outcome_label: label,
+    outcome: { methodVersion: 2 },
+  };
 }
 
 describe('mlOutcomeMetrics', () => {
@@ -134,6 +136,78 @@ describe('mlOutcomeMetrics', () => {
     expect(m.auc).toBe(0.5);
   });
 
+  it('uses each horizon score, label, and operating threshold separately', async () => {
+    mockedGetModelStatus.mockReturnValue({
+      active: true,
+      trainedAt: null,
+      metrics: {},
+      horizons: ['1h', '6h'],
+      labelSpecVersion: 2,
+      mediumThreshold: 0.01,
+      highThreshold: 0.02,
+      horizonDetails: [
+        {
+          name: '1h',
+          verified: true,
+          evalWindowHours: 1,
+          auc: null,
+          precision: null,
+          recall: null,
+          mediumThreshold: 0.01,
+          highThreshold: 0.02,
+        },
+        {
+          name: '6h',
+          verified: true,
+          evalWindowHours: 6,
+          auc: null,
+          precision: null,
+          recall: null,
+          mediumThreshold: 0.2,
+          highThreshold: 0.8,
+        },
+      ],
+    });
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: () =>
+        makeChain({
+          data: [
+            {
+              asset: 'ETH',
+              ml_score: 0.9,
+              ml_score_1h: 0.03,
+              ml_score_6h: 0.9,
+              outcome_label: true,
+              outcome_label_1h: true,
+              outcome_label_6h: true,
+              outcome_1h: { methodVersion: 2 },
+              outcome_6h: { methodVersion: 2 },
+            },
+            {
+              asset: 'ETH',
+              ml_score: 0.4,
+              ml_score_1h: 0.015,
+              ml_score_6h: 0.4,
+              outcome_label: false,
+              outcome_label_1h: false,
+              outcome_label_6h: false,
+              outcome_1h: { methodVersion: 2 },
+              outcome_6h: { methodVersion: 2 },
+            },
+          ],
+          error: null,
+        }),
+    } as never);
+
+    const m = await getMlOutcomeMetrics(24);
+
+    expect(m.operatingThresholds.high).toBe(0.8);
+    expect(m.buckets.find((bucket) => bucket.threshold === 0.8)?.n).toBe(1);
+    expect(m.byHorizon['1h']?.operatingThresholds.high).toBe(0.02);
+    expect(m.byHorizon['1h']?.buckets.find((bucket) => bucket.threshold === 0.02)?.n).toBe(1);
+    expect(m.byHorizon['6h']?.labeled).toBe(2);
+  });
+
   it('returns an empty (non-errored) result when there are no labeled rows', async () => {
     mockedCreateServiceRoleClient.mockReturnValue({
       from: () => makeChain({ data: [], error: null }),
@@ -145,6 +219,54 @@ describe('mlOutcomeMetrics', () => {
     expect(m.auc).toBeNull();
     expect(m.byClass.stable).toBeNull();
     expect(m.byClass.volatile).toBeNull();
+  });
+
+  it('excludes labels produced by the old incomplete-window method', async () => {
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: () =>
+        makeChain({
+          data: [{ asset: 'ETH', ml_score: 0.9, outcome_label: true, outcome: {} }],
+          error: null,
+        }),
+    } as never);
+
+    const m = await getMlOutcomeMetrics(24);
+
+    expect(m.labeled).toBe(0);
+    expect(m.byHorizon['6h']).toBeNull();
+  });
+
+  it('includes labeled checks after the first PostgREST page', async () => {
+    const firstPage = Array.from({ length: 1_000 }, () => row('ETH', 0.2, false));
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: () =>
+        makeChain((start) => ({
+          data: start === 0 ? firstPage : [row('ETH', 0.9, true)],
+          error: null,
+        })),
+    } as never);
+
+    const m = await getMlOutcomeMetrics(24);
+
+    expect(m.errored).toBeUndefined();
+    expect(m.labeled).toBe(1_001);
+    expect(m.positives).toBe(1);
+  });
+
+  it('does not report partial metrics when a later page fails', async () => {
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: () =>
+        makeChain((start) =>
+          start === 0
+            ? { data: Array.from({ length: 1_000 }, () => row('ETH', 0.9, true)), error: null }
+            : { data: null, error: { message: 'page unavailable' } }
+        ),
+    } as never);
+
+    const m = await getMlOutcomeMetrics(24);
+
+    expect(m.errored).toBe(true);
+    expect(m.labeled).toBe(0);
   });
 
   it('degrades to errored:true when the query fails', async () => {

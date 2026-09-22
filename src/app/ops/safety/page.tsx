@@ -285,7 +285,7 @@ export default async function OpsSafetyPage({
         <h2 className="text-lg font-semibold text-gray-800">ML model health</h2>
         <p className="text-sm text-gray-500">
           Manipulation-risk model status, out-of-time test metrics, and realized accuracy on labeled
-          pre-trade checks (<code>ml_score</code> × <code>outcome_label</code> closed loop)
+          pre-trade checks (1h and 6h scores matched to their own outcomes)
         </p>
       </div>
 
@@ -310,15 +310,15 @@ export default async function OpsSafetyPage({
           hint="self-verification vs XGBoost"
         />
         <Stat
-          label="Labeled checks (7d)"
+          label={`6h labeled checks (${mlOutcome.windowHours}h)`}
           value={mlOutcome.labeled}
           hint={`${mlOutcome.positives} positive outcomes`}
         />
         <Stat
-          label="Realized AUC (7d)"
+          label={`6h realized AUC (${mlOutcome.windowHours}h)`}
           value={mlOutcome.auc !== null ? mlOutcome.auc.toFixed(3) : '—'}
           tone={mlOutcome.auc !== null && mlOutcome.auc < 0.6 ? 'warn' : 'default'}
-          hint="live ml_score vs outcome_label"
+          hint="live 6h score vs 6h outcome"
         />
       </div>
 
@@ -365,9 +365,54 @@ export default async function OpsSafetyPage({
         )}
       </Card>
 
-      <Card title="Realized precision by score bucket (labeled checks)" className="mt-6">
+      <Card title="Realized ML outcomes by horizon (labeled checks)" className="mt-6">
+        <div className="overflow-x-auto">
+          <table className={tableCls}>
+            <thead>
+              <tr>
+                <th className={thCls}>Horizon</th>
+                <th className={thCls}>Labeled</th>
+                <th className={thCls}>Positives</th>
+                <th className={thCls}>AUC</th>
+                <th className={thCls}>High threshold</th>
+                <th className={thCls}>High alerts</th>
+                <th className={thCls}>Precision @high</th>
+                <th className={thCls}>Recall @high</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(['1h', '6h'] as const).map((name) => {
+                const horizon = mlOutcome.byHorizon[name];
+                const high = horizon?.buckets.find(
+                  (bucket) => bucket.threshold === horizon.operatingThresholds.high
+                );
+                return (
+                  <tr key={name} className={trCls}>
+                    <td className="py-2 pr-3 font-medium text-gray-800">{name}</td>
+                    <td className="py-2 pr-3">{horizon?.labeled ?? '—'}</td>
+                    <td className="py-2 pr-3">{horizon?.positives ?? '—'}</td>
+                    <td className="py-2 pr-3">{horizon?.auc?.toFixed(3) ?? '—'}</td>
+                    <td className="py-2 pr-3">
+                      {horizon?.operatingThresholds.high.toFixed(3) ?? '—'}
+                    </td>
+                    <td className="py-2 pr-3">{high?.n ?? '—'}</td>
+                    <td className="py-2 pr-3">
+                      {high?.precision != null ? `${(high.precision * 100).toFixed(1)}%` : '—'}
+                    </td>
+                    <td className="py-2 pr-3">
+                      {high?.recall != null ? `${(high.recall * 100).toFixed(1)}%` : '—'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Card title="6h realized precision by score bucket" className="mt-6">
         {mlOutcome.labeled === 0 ? (
-          <EmptyState message="no labeled checks yet — the outcome backfill labels them 6h after each check" />
+          <EmptyState message="no corrected 6h labels yet — backfill needs a completed observation window" />
         ) : (
           <div className="overflow-x-auto">
             <table className={tableCls}>

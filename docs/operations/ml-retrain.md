@@ -79,3 +79,29 @@ week time window. This avoids asking PostgREST for an exact table count on
 every page and avoids deep offset scans on the larger 15-minute source.
 If the 15-minute source is unavailable or empty, retraining fails before
 export because hourly-only labels would change the target definition.
+
+## Live outcome compatibility
+
+The live backfill now writes `methodVersion: 2` into each non-null 1h/6h
+outcome. It inspects both hourly and 15-minute snapshots for Track A, requires
+two successful providers per observation, derives consensus from their raw
+price median, and leaves an incomplete benign window unlabeled rather than
+calling it a negative. Track B still uses hourly market-reference
+observations. A live check's recorded consensus price is its baseline, so an
+hourly row overwritten after the check cannot leak a future price into it.
+Live-check examples also need to be in a currently normal state before
+joining the onset training set.
+Snapshot reads are paged under the database's 1,000-row response limit; a
+failed page or a window exceeding the bounded read cap stays unlabeled.
+
+The retrainer and realized-accuracy dashboard ignore older live outcomes that
+have no `methodVersion: 2` marker. Existing evaluated rows are **not**
+automatically relabeled by the scheduled backfill; they must not be treated as
+evidence that the corrected method has been validated in production. If
+historical live checks are needed, re-evaluate them in a controlled, bounded
+backfill after verifying snapshot retention and database capacity. Until enough
+new labeled checks and independent positive episodes accumulate, retain the
+current model and keep live accuracy figures explicitly sample-size qualified.
+The dashboard reads evaluated checks in 1,000-row pages and fails closed if its
+50,000-row safety cap is reached, rather than silently reporting a partial
+sample.
