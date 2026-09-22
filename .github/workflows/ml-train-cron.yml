@@ -76,14 +76,32 @@ jobs:
               print(f"inactiveReason={m.get('inactiveReason')}")
           PY
 
+      # A sound but worse candidate is an expected no-update outcome. An invalid
+      # comparison/export remains a workflow failure; neither may be published.
       - name: Regression gate (discrimination and calibration)
-        run: python -m ml.regression_gate
+        id: gate
+        run: |
+          set +e
+          python -m ml.regression_gate
+          gate_status=$?
+          set -e
+          if [ "$gate_status" -eq 0 ]; then
+            echo "promote=true" >> "$GITHUB_OUTPUT"
+          elif [ "$gate_status" -eq 2 ]; then
+            echo "promote=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Candidate did not meet promotion criteria; deployed model remains unchanged."
+            echo "### Model retained" >> "$GITHUB_STEP_SUMMARY"
+            echo "The candidate did not meet the regression gate. The deployed model remains unchanged; review the same-window metrics above before the next training cycle." >> "$GITHUB_STEP_SUMMARY"
+          else
+            exit "$gate_status"
+          fi
 
       # Oracle Watch's dependency-free runner contains the statically imported
       # model. Rebuild it only when training changed the model so scheduled
       # inference never lags behind the deployed application model.
       - name: Check whether model changed
         id: model-diff
+        if: steps.gate.outputs.promote == 'true'
         run: |
           if git diff --quiet -- ml/models/oracle_risk_model.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
