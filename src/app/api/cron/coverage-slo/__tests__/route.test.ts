@@ -112,3 +112,13 @@ it('fails the run on persistence failure', async () => {
   );
   expect(response.status).toBe(503);
 });
+it('returns a safe stage code for an unavailable coverage database read', async () => {
+  jest.mocked(collectCoverageSlo).mockRejectedValue(new Error('COVERAGE_SLO_READ_FAILED'));
+  const response = await GET(
+    new Request('https://test/api/cron/coverage-slo', {
+      headers: { Authorization: 'Bearer test-coverage-cron' },
+    })
+  );
+  expect(response.status).toBe(503);
+  expect(await response.json()).toEqual({ success: false, error: 'COVERAGE_SLO_READ_FAILED' });
+});

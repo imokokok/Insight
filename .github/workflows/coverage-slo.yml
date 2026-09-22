@@ -55,9 +55,12 @@ jobs:
         if: steps.guard.outputs.should_run == 'true'
         run: |
           test -n "$CRON_SECRET" || { echo '::error::CRON_SECRET is required'; exit 1; }
-          curl --fail-with-body --silent --show-error --max-time 280 \
+          if ! curl --fail-with-body --silent --show-error --max-time 280 \
             -H "Authorization: Bearer $CRON_SECRET" \
-            -o coverage-result.json https://www.oracleinsight.xyz/api/cron/coverage-slo
+            -o coverage-result.json https://www.oracleinsight.xyz/api/cron/coverage-slo; then
+            node -e 'try { const r=require("./coverage-result.json"); if(typeof r.error==="string" && /^COVERAGE_[A-Z_]+$/.test(r.error)) console.error("::error::Coverage API failed at",r.error); } catch {}'
+            exit 1
+          fi
           node -e 'const r=require("./coverage-result.json"); if(r.success!==true || !Array.isArray(r.targets) || !Array.isArray(r.alerts) || !Array.isArray(r.latestAlerts) || !Array.isArray(r.newFailures) || !Array.isArray(r.recoveries)) process.exit(1);'
 
       # A completed sample is a successful dispatch even when the rolling SLO is

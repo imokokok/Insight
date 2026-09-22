@@ -12,42 +12,59 @@ const upsert = jest.fn();
 const maybeSingle = jest.fn();
 const rpc = jest.fn();
 const history = jest.fn();
+const upsertResult = jest.fn();
+const readResult = jest.fn();
+const summaryResult = jest.fn();
+const historyResult = jest.fn();
 beforeEach(() => {
   jest.clearAllMocks();
-  const chain = { select: jest.fn(), eq: jest.fn(), in: jest.fn(), maybeSingle, upsert };
+  upsert.mockImplementation(() => ({ abortSignal: upsertResult }));
+  maybeSingle.mockImplementation(() => readResult());
+  rpc.mockImplementation(() => ({ abortSignal: summaryResult }));
+  history.mockImplementation(() => ({ abortSignal: historyResult }));
+  const chain = {
+    select: jest.fn(),
+    eq: jest.fn(),
+    in: jest.fn(),
+    abortSignal: jest.fn(),
+    maybeSingle,
+    upsert,
+  };
   chain.select.mockReturnValue(chain);
   chain.eq.mockReturnValue(chain);
+  chain.abortSignal.mockReturnValue(chain);
   chain.in.mockReturnValue({ gte: () => ({ lt: history }) });
   jest
     .mocked(createServiceRoleClient)
     .mockReturnValue({ from: () => chain, rpc } as unknown as ReturnType<
       typeof createServiceRoleClient
     >);
-  upsert.mockResolvedValue({ error: null });
-  maybeSingle.mockResolvedValue({ error: null, data: null });
-  history.mockResolvedValue({ error: null, data: [] });
+  upsertResult.mockResolvedValue({ error: null });
+  readResult.mockResolvedValue({ error: null, data: null });
+  historyResult.mockResolvedValue({ error: null, data: [] });
 });
 it('awaits durable failure recording for every target instead of dropping failed probes', async () => {
   jest.mocked(assessCoverage).mockRejectedValue(new Error('provider failure'));
   const results = await collectCoverageSlo();
   expect(results).toHaveLength(4);
   expect(results.every((r) => r.status === 'UNAVAILABLE')).toBe(true);
+  expect(upsertResult.mock.calls[0][0]).toBeInstanceOf(AbortSignal);
   const samples = upsert.mock.calls.filter(([row]) => row.target_id);
   expect(samples).toHaveLength(4);
   expect(samples[0][0]).toMatchObject({ status: 'UNAVAILABLE', signed_ready: false, proof: null });
   expect(samples[0][1]).toEqual({ onConflict: 'target_id,slot', ignoreDuplicates: true });
 });
 it('does not re-probe an already recorded first-attempt slot', async () => {
-  maybeSingle.mockResolvedValue({ error: null, data: { slot: 123 } });
+  readResult.mockResolvedValue({ error: null, data: { slot: 123 } });
   expect((await collectCoverageSlo()).every((r) => r.status === 'ALREADY_RECORDED')).toBe(true);
   expect(assessCoverage).not.toHaveBeenCalled();
 });
 it('fails the run if enrollment/persistence is unavailable', async () => {
-  upsert.mockResolvedValue({ error: { message: 'db error' } });
+  upsertResult.mockResolvedValue({ error: { message: 'db error' } });
   await expect(collectCoverageSlo()).rejects.toThrow('ENROLLMENT_FAILED');
 });
 it('does not turn storage outages into empty healthy statistics', async () => {
-  rpc.mockResolvedValue({ data: null, error: { message: 'db error' } });
+  summaryResult.mockResolvedValue({ data: null, error: { message: 'db error' } });
   await expect(getCoverageSlo()).rejects.toThrow('STORAGE_UNAVAILABLE');
 });
 it('keeps old policy evidence without counting its stopped targets as current gaps', async () => {
@@ -60,7 +77,7 @@ it('keeps old policy evidence without counting its stopped targets as current ga
     missing: 0,
     objective_bps: 9900,
   };
-  rpc.mockResolvedValue({
+  summaryResult.mockResolvedValue({
     error: null,
     data: [
       { ...counts, id: 'old', policy_id: `0x${'22'.repeat(32)}` },
@@ -89,19 +106,19 @@ it('opens one incident after two bad slots and records recovery after two good s
     status,
     signed_ready: status === 'PASS',
   });
-  history.mockResolvedValue({ error: null, data: [record(slot - 900, 'PASS')] });
+  historyResult.mockResolvedValue({ error: null, data: [record(slot - 900, 'PASS')] });
   expect(
     (await getCoverageAlertChanges(sample, summary('INSUFFICIENT_COVERAGE', false))).newFailures
   ).toEqual([]);
 
-  history.mockResolvedValue({
+  historyResult.mockResolvedValue({
     error: null,
     data: [record(slot - 900, 'INSUFFICIENT_COVERAGE'), record(slot - 1800, 'PASS')],
   });
   expect(
     (await getCoverageAlertChanges(sample, summary('INSUFFICIENT_COVERAGE', false))).newFailures
   ).toHaveLength(1);
-  history.mockResolvedValue({
+  historyResult.mockResolvedValue({
     error: null,
     data: [
       record(slot - 900, 'INSUFFICIENT_COVERAGE'),
@@ -111,7 +128,7 @@ it('opens one incident after two bad slots and records recovery after two good s
   expect(
     (await getCoverageAlertChanges(sample, summary('INSUFFICIENT_COVERAGE', false))).newFailures
   ).toEqual([]);
-  history.mockResolvedValue({
+  historyResult.mockResolvedValue({
     error: null,
     data: [
       record(slot - 900, 'INSUFFICIENT_COVERAGE'),
@@ -126,7 +143,7 @@ it('opens one incident after two bad slots and records recovery after two good s
     (await getCoverageAlertChanges([{ ...sample[0], status: 'PASS' }], summary('PASS', true)))
       .recoveries
   ).toEqual([]);
-  history.mockResolvedValue({
+  historyResult.mockResolvedValue({
     error: null,
     data: [
       record(slot - 900, 'PASS'),
@@ -146,7 +163,7 @@ it('opens one incident after two bad slots and records recovery after two good s
   ).toEqual({ newFailures: [], recoveries: [] });
 });
 it('fails closed when prior incident history is unavailable', async () => {
-  history.mockResolvedValue({ error: { message: 'offline' }, data: null });
+  historyResult.mockResolvedValue({ error: { message: 'offline' }, data: null });
   const sample = [{ asset: 'ETH', chainId: 8453, slot: 9000, status: 'PASS' }];
   await expect(
     getCoverageAlertChanges(sample, { targets: [] } as Awaited<ReturnType<typeof getCoverageSlo>>)

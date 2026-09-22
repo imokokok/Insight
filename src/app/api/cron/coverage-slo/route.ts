@@ -40,9 +40,13 @@ export async function GET(request: Request) {
       { success: true, targets, alerts, latestAlerts, newFailures, recoveries },
       { headers: { 'Cache-Control': 'no-store' } }
     );
-  } catch {
+  } catch (error) {
+    const code =
+      error instanceof Error && /^COVERAGE_[A-Z_]+$/.test(error.message)
+        ? error.message
+        : 'COVERAGE_COLLECTION_FAILED';
     return NextResponse.json(
-      { success: false, error: 'COVERAGE_COLLECTION_FAILED' },
+      { success: false, error: code },
       { status: 503, headers: { 'Cache-Control': 'no-store' } }
     );
   }

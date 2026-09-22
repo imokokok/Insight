@@ -109,6 +109,12 @@ does not establish settlement-chain execution health.
   does not establish price correctness.
 - `MEASUREMENT_GAP`: inspect scheduler, cron authentication, deploy and database.
   Missing slots remain unavailable; a later successful request cannot fill them.
+- `COVERAGE_SLO_ENROLLMENT_FAILED`, `COVERAGE_SLO_READ_FAILED`,
+  `COVERAGE_SLO_PERSISTENCE_FAILED`, `COVERAGE_SLO_STORAGE_UNAVAILABLE`, or
+  `COVERAGE_ALERT_HISTORY_UNAVAILABLE`: a coverage database request failed or
+  exceeded its 20-second deadline. The cron response and GitHub job report the
+  stage without exposing Supabase credentials. Check the project's API/database
+  health and retry the current slot only; a completed slot is immutable.
 - Data ready but signed readiness low: inspect signer configuration and expiry.
 
 The first result in a slot is retained across retries; the database stamps its

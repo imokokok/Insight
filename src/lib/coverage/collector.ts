@@ -3,6 +3,11 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { assessCoverage, COVERAGE_POLICY_ID } from './service';
 import { summarizeCoverageSlo, type CoverageSloCounts } from './slo';
 
+// The route has a 300s ceiling. A stalled PostgREST request must fail with a
+// useful stage code while the immutable slot can still be retried.
+const COVERAGE_DB_TIMEOUT_MS = 20_000;
+const dbDeadline = () => AbortSignal.timeout(COVERAGE_DB_TIMEOUT_MS);
+
 // Bounded production baseline; adding a new scope enrolls it from the current time.
 export const COVERAGE_TARGETS = [
   { asset: 'ETH', chainId: 1 },
@@ -16,16 +21,19 @@ export async function collectCoverageSlo() {
   const results: { asset: string; chainId: number; slot: number; status: string }[] = [];
   for (const target of COVERAGE_TARGETS) {
     const id = `${target.asset}:${target.chainId}:${COVERAGE_POLICY_ID}`;
-    const enrollment = await db.from('coverage_slo_targets').upsert(
-      {
-        id,
-        asset: target.asset,
-        chain_id: target.chainId,
-        policy_id: COVERAGE_POLICY_ID,
-        objective_bps: 9900,
-      },
-      { onConflict: 'id', ignoreDuplicates: true }
-    );
+    const enrollment = await db
+      .from('coverage_slo_targets')
+      .upsert(
+        {
+          id,
+          asset: target.asset,
+          chain_id: target.chainId,
+          policy_id: COVERAGE_POLICY_ID,
+          objective_bps: 9900,
+        },
+        { onConflict: 'id', ignoreDuplicates: true }
+      )
+      .abortSignal(dbDeadline());
     if (enrollment.error) throw new Error('COVERAGE_SLO_ENROLLMENT_FAILED');
     const slot = Math.floor(Date.now() / 900000) * 900;
     const existing = await db
@@ -33,6 +41,7 @@ export async function collectCoverageSlo() {
       .select('slot')
       .eq('target_id', id)
       .eq('slot', slot)
+      .abortSignal(dbDeadline())
       .maybeSingle();
     if (existing.error) throw new Error('COVERAGE_SLO_READ_FAILED');
     if (existing.data) {
@@ -62,7 +71,8 @@ export async function collectCoverageSlo() {
       .upsert(
         { target_id: id, slot, status, signed_ready: signedReady, reasons, proof },
         { onConflict: 'target_id,slot', ignoreDuplicates: true }
-      );
+      )
+      .abortSignal(dbDeadline());
     if (saved.error) throw new Error('COVERAGE_SLO_PERSISTENCE_FAILED');
     results.push({ ...target, slot, status });
   }
@@ -78,7 +88,9 @@ interface SummaryRow extends CoverageSloCounts {
 }
 export async function getCoverageSlo(hours: 24 | 168 | 672 = 24) {
   const db = createServiceRoleClient();
-  const { data, error } = await db.rpc('coverage_slo_summary', { window_hours: hours });
+  const { data, error } = await db
+    .rpc('coverage_slo_summary', { window_hours: hours })
+    .abortSignal(dbDeadline());
   if (error || !Array.isArray(data)) throw new Error('COVERAGE_SLO_STORAGE_UNAVAILABLE');
   return {
     windowHours: hours,
@@ -110,7 +122,8 @@ export async function getCoverageAlertChanges(samples: CoverageSamples, summary:
     .select('target_id,slot,status,signed_ready')
     .in('target_id', ids)
     .gte('slot', slot - 2700)
-    .lt('slot', slot);
+    .lt('slot', slot)
+    .abortSignal(dbDeadline());
   if (error || !Array.isArray(data)) throw new Error('COVERAGE_ALERT_HISTORY_UNAVAILABLE');
   const previous = new Map(data.map((row) => [`${row.target_id}:${row.slot}`, row]));
   const current = new Map(summary.targets.map((target) => [target.id, target]));
