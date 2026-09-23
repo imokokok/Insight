@@ -12,10 +12,11 @@ concurrency:
 permissions:
   actions: write
   contents: write
+  pull-requests: write
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
@@ -25,13 +26,13 @@ jobs:
       CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
       JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
           ref: main
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
-          node-version: 22
+          node-version: 22.23.2
           cache: npm
       - run: npm ci
       - name: Read npm latest tags and update tracked files
@@ -59,24 +60,8 @@ jobs:
       - name: Run browser smoke tests
         if: steps.changes.outputs.changed == 'true'
         run: npm run test:e2e -- --project=chromium
-      - name: Commit the verified release to main
-        if: steps.changes.outputs.changed == 'true'
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json src/lib/npmPackageVersions.ts .github/cron-dist
-          git commit -m "chore(deps): sync npm releases"
-          git push origin HEAD:main
-      - name: Start the gated production workflow
+      - name: Publish the verified release as a pull request
         if: steps.changes.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          expected_sha="$(git rev-parse HEAD)"
-          remote_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
-          if [ "$remote_sha" != "$expected_sha" ]; then
-            echo "::error::main advanced after the verified npm update"
-            exit 1
-          fi
-          gh workflow run ci.yml --ref main -f expected_sha="$expected_sha"
+        run: npm run publish:automation-pr -- npm-release

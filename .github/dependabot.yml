@@ -11,11 +11,22 @@ updates:
     ignore:
       # Updated, tested, committed, and deployed by sync-npm-releases.yml.
       - dependency-name: verify-insight-receipt
+      # Major upgrades need focused compatibility work instead of blocking every
+      # safe update in a large grouped pull request.
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
     groups:
       production-dependencies:
         dependency-type: production
+        update-types:
+          - minor
+          - patch
       development-dependencies:
         dependency-type: development
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: github-actions
     directory: /
     schedule:

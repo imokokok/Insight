@@ -34,7 +34,7 @@ permissions:
 
 jobs:
   discover-feeds:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
       fail-fast: false
@@ -51,7 +51,7 @@ jobs:
           - reflector
           - flare
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Discover ${{ matrix.provider }} feeds
         env:
