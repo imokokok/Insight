@@ -109,8 +109,16 @@ optional-peer lockfile bug can make Dependabot emit an inconsistent lockfile.
 Only after that exact failure, the trusted `Repair Dependabot npm lockfile`
 workflow verifies the bot identity, repository, branch, immutable head SHA, and
 the two allowed manifest files; it then rebuilds the lockfile with package
-scripts disabled, refreshes the committed cron bundles, and re-dispatches both
-required checks. It never handles a human-authored PR or a workflow-file change.
+scripts disabled and refreshes the committed cron bundles. GitHub marks the
+native pull-request runs for that repaired commit as `action_required`; the
+repair approves those exact-SHA runs so branch protection sees the real PR
+checks, without launching duplicate dispatch runs. It never handles a
+human-authored PR or a workflow-file change.
+
+Prettier minor updates are intentionally excluded from the grouped development
+dependency update because 3.9 changes the formatting of existing sources. Treat
+that upgrade as a dedicated formatting migration rather than mixing it into an
+otherwise mechanical dependency PR.
 
 1. Use the Node.js version pinned in `.node-version` and run `npm ci`.
 2. Run `npm run validate:ci`; it checks linting, formatting, types, unit and

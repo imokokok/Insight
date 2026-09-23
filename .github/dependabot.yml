@@ -16,6 +16,12 @@ updates:
       - dependency-name: '*'
         update-types:
           - version-update:semver-major
+      # Prettier 3.9 changes the repository's formatting output and needs a
+      # dedicated source-format migration instead of blocking the dev group.
+      - dependency-name: prettier
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-patch
     groups:
       production-dependencies:
         dependency-type: production

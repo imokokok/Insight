@@ -8,6 +8,7 @@
     "src/types/supra-oracle-sdk.d.ts",
     "scripts/backfill-market-reference.ts",
     "scripts/billing.ts",
+    "scripts/approve-dependabot-workflow-runs.mts",
     "scripts/check-rwa-parity.ts",
     "scripts/check-workflow-security.ts",
     "scripts/collect-market-reference.ts",
