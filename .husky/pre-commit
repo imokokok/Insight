@@ -1,3 +1,4 @@
+npm run validate:generated
 npm run protocol:check
 npm run typecheck
 npx lint-staged

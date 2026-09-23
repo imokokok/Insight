@@ -88,5 +88,8 @@ Vault UI; there is no reason to modify a migration or repository secret.
   regression.
 - Checked-in cron bundles remove `npm ci` from recurring execution paths.
   Rebuild them after changing a bundled runner or its dependencies with
-  `npm run build:cron`. `npm run validate:ci` now compares the committed
-  bundles with a fresh build and fails if they differ.
+  `npm run build:cron`. The pre-commit hook, `npm run validate`, and the first
+  CI validation step all compare the committed bundles with a fresh build and
+  fail if they differ. CI performs this check before linting, type checks, or
+  test suites so a stale bundle fails quickly instead of consuming the full
+  validation budget.

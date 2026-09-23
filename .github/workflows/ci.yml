@@ -32,6 +32,7 @@ jobs:
       INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
       CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
       JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
+      PROTOCOL_GOVERNANCE_BASE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -47,8 +48,6 @@ jobs:
           fi
       - name: Fetch force-push governance base
         if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
-        env:
-          PROTOCOL_GOVERNANCE_BASE: ${{ github.event.before }}
         run: |
           if ! git cat-file -e "${PROTOCOL_GOVERNANCE_BASE}^{commit}" 2>/dev/null; then
             git fetch --no-tags --depth=1 origin "$PROTOCOL_GOVERNANCE_BASE"
@@ -58,13 +57,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Reject stale generated cron bundles
+        run: npm run validate:generated
       - name: Enforce pinned RWA source and frozen-vector integrity
         run: npm run rwa:parity
       - name: Enforce main-only protocol isolation
-        run: npm run protocol:check -- --base "$PROTOCOL_GOVERNANCE_BASE"
-        env:
-          PROTOCOL_GOVERNANCE_BASE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
-      - run: npm run validate:ci
+        run: npm run protocol:check
+      - name: Run remaining validation checks
+        run: npm run validate:ci:checks
 
   smoke:
     runs-on: ubuntu-latest

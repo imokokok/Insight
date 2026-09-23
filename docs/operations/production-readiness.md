@@ -102,7 +102,9 @@ being disabled on a table reachable through the Data API.
 2. Run `npm run validate:ci`; it checks linting, formatting, types, unit and
    contract coverage, unused code, SDK compatibility, RWA registry and execution
    profiles, committed cron bundles, production build, and the homepage
-   JavaScript budget.
+   JavaScript budget. The main Quality Gate avoids rebuilding the application in
+   its `validate` job because the parallel `smoke` job already performs that same
+   production build before Playwright; deployment still requires both jobs.
 3. Run `npm run test:e2e -- --project=chromium` locally when auth, routing, or
    API middleware changes. CI repeats the smoke suite on every pull request.
 4. Apply pending Supabase migrations before code that relies on them. Confirm
