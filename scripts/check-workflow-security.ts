@@ -55,10 +55,11 @@ async function main(): Promise<void> {
   const dependabotRepair = workflows.get('dependabot-lock-repair.yml');
   if (
     !dependabotRepair?.includes('scripts/inspect-dependabot-lock-repair.mts') ||
-    !dependabotRepair.includes('npm install --ignore-scripts')
+    !dependabotRepair.includes('npm install --ignore-scripts') ||
+    !dependabotRepair.includes('npm run build:cron')
   ) {
     failures.push(
-      'dependabot-lock-repair.yml: lock repair must validate the PR and disable package scripts'
+      'dependabot-lock-repair.yml: repair must validate the PR, disable package scripts, and rebuild cron bundles'
     );
   }
 

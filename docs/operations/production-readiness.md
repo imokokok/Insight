@@ -109,8 +109,8 @@ optional-peer lockfile bug can make Dependabot emit an inconsistent lockfile.
 Only after that exact failure, the trusted `Repair Dependabot npm lockfile`
 workflow verifies the bot identity, repository, branch, immutable head SHA, and
 the two allowed manifest files; it then rebuilds the lockfile with package
-scripts disabled and re-dispatches both required checks. It never handles a
-human-authored PR or a workflow-file change.
+scripts disabled, refreshes the committed cron bundles, and re-dispatches both
+required checks. It never handles a human-authored PR or a workflow-file change.
 
 1. Use the Node.js version pinned in `.node-version` and run `npm ci`.
 2. Run `npm run validate:ci`; it checks linting, formatting, types, unit and
