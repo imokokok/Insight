@@ -31,3 +31,9 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # Major action runtime upgrades require focused review; immutable SHAs are
+      # still refreshed for safe releases within the currently selected major.
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
