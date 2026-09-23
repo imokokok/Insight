@@ -1,5 +1,6 @@
 import activationSetV1Json from '../../../protocol/mainline/activation-sets/v1.json';
 import activationSetV2Json from '../../../protocol/mainline/activation-sets/v2.json';
+import activationSetV3Json from '../../../protocol/mainline/activation-sets/v3.json';
 import activationPointerJson from '../../../protocol/mainline/activations.json';
 import agentPassportJson from '../../../protocol/mainline/policies/agent-passport/v1.json';
 import andydgreaJson from '../../../protocol/mainline/policies/andydgrea/v1.json';
@@ -11,6 +12,7 @@ import interaiJson from '../../../protocol/mainline/policies/interai/v1.json';
 import raulJson from '../../../protocol/mainline/policies/raul/v1.json';
 import vaaraJson from '../../../protocol/mainline/policies/vaara/v1.json';
 import veritasJson from '../../../protocol/mainline/policies/veritas/v1.json';
+import veritasV2Json from '../../../protocol/mainline/policies/veritas/v2.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -76,6 +78,7 @@ const rawPolicies = [
   raulJson,
   vaaraJson,
   veritasJson,
+  veritasV2Json,
 ] as unknown as PartnerIntegrationPolicy[];
 
 function assertPolicy(policy: PartnerIntegrationPolicy): void {
@@ -101,11 +104,17 @@ export const PARTNER_INTEGRATION_POLICIES = Object.freeze(
 const activationPointer = activationPointerJson as PartnerActivationPointer;
 const activationSetV1 = activationSetV1Json as unknown as PartnerActivationSet;
 const activationSetV2 = activationSetV2Json as unknown as PartnerActivationSet;
+const activationSetV3 = activationSetV3Json as unknown as PartnerActivationSet;
+const rawActivationSets = [activationSetV1, activationSetV2, activationSetV3];
 
-export const PARTNER_ACTIVATION_SETS = Object.freeze({
-  [activationSetV1.activationSetId]: Object.freeze(activationSetV1),
-  [activationSetV2.activationSetId]: Object.freeze(activationSetV2),
-});
+export const PARTNER_ACTIVATION_SETS = Object.freeze(
+  Object.fromEntries(
+    rawActivationSets.map((activationSet) => [
+      activationSet.activationSetId,
+      Object.freeze(activationSet),
+    ])
+  ) as Record<`0x${string}`, Readonly<PartnerActivationSet>>
+);
 
 export const PARTNER_ACTIVATION_SET_V1_ID = activationSetV1.activationSetId;
 
@@ -117,25 +126,27 @@ if (!CURRENT_PARTNER_ACTIVATION_SET) {
   throw new Error(`Unknown current partner activation set ${activationPointer.activationSetId}`);
 }
 
-const expectedActivationSetId = keccakContentId(
-  bodyWithoutId(CURRENT_PARTNER_ACTIVATION_SET, 'activationSetId')
-);
-if (CURRENT_PARTNER_ACTIVATION_SET.activationSetId !== expectedActivationSetId) {
-  throw new Error(
-    `Partner activation set is immutable: expected ${CURRENT_PARTNER_ACTIVATION_SET.activationSetId}, computed ${expectedActivationSetId}`
-  );
-}
+for (const activationSet of rawActivationSets) {
+  const expectedActivationSetId = keccakContentId(bodyWithoutId(activationSet, 'activationSetId'));
+  if (activationSet.activationSetId !== expectedActivationSetId) {
+    throw new Error(
+      `Partner activation set is immutable: expected ${activationSet.activationSetId}, computed ${expectedActivationSetId}`
+    );
+  }
 
-const activationPartnerIds = Object.keys(CURRENT_PARTNER_ACTIVATION_SET.partners).sort();
-if (activationPartnerIds.join(',') !== [...PARTNER_IDS].sort().join(',')) {
-  throw new Error('Partner activation set must name every mainline integration exactly once');
-}
+  const activationPartnerIds = Object.keys(activationSet.partners).sort();
+  if (activationPartnerIds.join(',') !== [...PARTNER_IDS].sort().join(',')) {
+    throw new Error('Partner activation set must name every mainline integration exactly once');
+  }
 
-for (const partnerId of PARTNER_IDS) {
-  const policyId = CURRENT_PARTNER_ACTIVATION_SET.partners[partnerId];
-  const policy = PARTNER_INTEGRATION_POLICIES[policyId];
-  if (!policy || policy.partnerId !== partnerId) {
-    throw new Error(`Partner activation ${partnerId} does not resolve to its own immutable policy`);
+  for (const partnerId of PARTNER_IDS) {
+    const policyId = activationSet.partners[partnerId];
+    const policy = PARTNER_INTEGRATION_POLICIES[policyId];
+    if (!policy || policy.partnerId !== partnerId) {
+      throw new Error(
+        `Partner activation ${partnerId} does not resolve to its own immutable policy`
+      );
+    }
   }
 }
 
