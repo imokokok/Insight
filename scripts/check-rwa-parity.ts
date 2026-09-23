@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const canonical = (text) =>
+const canonical = (text: string) =>
   text
     .replaceAll("from './insight-rwa.js';", "from './rwa';")
     .replaceAll("from './insight-rwa-call.js';", "from './rwa-call';");
@@ -15,9 +15,13 @@ const requiredPaths = [
   'examples/rwa-v2/golden.json',
   'protocol/rwa-execution-profiles.v1.json',
 ].sort();
-function check(at) {
+type SourceLock = { schema: string; version: string; sha256: Record<string, string> };
+
+function check(at: string): SourceLock {
   const prior = JSON.parse(readFileSync(resolve(at, 'package.json'), 'utf8')).name === 'priorseal';
-  const lock = JSON.parse(readFileSync(resolve(at, 'protocol/rwa-source-lock.json'), 'utf8'));
+  const lock = JSON.parse(
+    readFileSync(resolve(at, 'protocol/rwa-source-lock.json'), 'utf8')
+  ) as SourceLock;
   assert.equal(lock.schema, 'insight-priorseal.rwa-source-lock.v1');
   assert.deepEqual(Object.keys(lock.sha256 ?? {}).sort(), requiredPaths, 'RWA_LOCK_PATHS_INVALID');
   for (const [name, expected] of Object.entries(lock.sha256)) {
