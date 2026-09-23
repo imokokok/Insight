@@ -66,6 +66,7 @@ jobs:
           echo 'changed=true' >> "$GITHUB_OUTPUT"
 
       - name: Publish the repaired lockfile to the existing pull request
+        id: publish
         if: steps.repair.outputs.changed == 'true'
         env:
           HEAD_BRANCH: ${{ steps.inspect.outputs.branch }}
@@ -81,13 +82,11 @@ jobs:
             exit 1
           fi
           git push origin "HEAD:refs/heads/$HEAD_BRANCH"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch required checks for the repaired commit
+      - name: Approve native required checks for the repaired commit
         if: steps.repair.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          HEAD_BRANCH: ${{ steps.inspect.outputs.branch }}
-        run: |
-          expected_sha="$(git rev-parse HEAD)"
-          gh workflow run ci.yml --ref "$HEAD_BRANCH" -f "expected_sha=$expected_sha"
-          gh workflow run codeql.yml --ref "$HEAD_BRANCH"
+          EXPECTED_SHA: ${{ steps.publish.outputs.sha }}
+        run: node scripts/approve-dependabot-workflow-runs.mts
