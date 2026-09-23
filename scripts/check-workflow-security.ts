@@ -19,6 +19,9 @@ async function main(): Promise<void> {
     if (source.includes('ubuntu-latest')) {
       failures.push(`${name}: runner image must be explicit, not ubuntu-latest`);
     }
+    if (source.includes('pull_request_target')) {
+      failures.push(`${name}: pull_request_target is prohibited for untrusted changes`);
+    }
     if (/git config user\.(?:name|email)\s+["']?github-actions\[bot\]/.test(source)) {
       failures.push(`${name}: automation commits must preserve the repository owner identity`);
     }
@@ -47,6 +50,16 @@ async function main(): Promise<void> {
     if (!workflows.get(name)?.includes(`npm run publish:automation-pr -- ${kind}`)) {
       failures.push(`${name}: verified updates must use the protected pull-request publisher`);
     }
+  }
+
+  const dependabotRepair = workflows.get('dependabot-lock-repair.yml');
+  if (
+    !dependabotRepair?.includes('scripts/inspect-dependabot-lock-repair.mts') ||
+    !dependabotRepair.includes('npm install --ignore-scripts')
+  ) {
+    failures.push(
+      'dependabot-lock-repair.yml: lock repair must validate the PR and disable package scripts'
+    );
   }
 
   if (failures.length > 0) {
