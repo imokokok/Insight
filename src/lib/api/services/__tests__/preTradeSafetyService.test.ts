@@ -8,7 +8,7 @@ import { getFeedStalenessBaselineMap } from '@/lib/oracles/feedCadence';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import type { Blockchain, OracleProvider } from '@/types/oracle';
+import { Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { preTradeSafetyCheck, type PreTradeSafetyInput } from '../preTradeSafetyService';
 
@@ -1177,10 +1177,47 @@ describe('preTradeSafetyCheck — attestation provenance audit (0026)', () => {
 describe('workflow assessment scope and action semantics', () => {
   beforeEach(() => mockedGetConsensusPrice.mockResolvedValue(makeConsensus([makeProvider()])));
   it('rejects an unknown explicit chain without querying cross-chain consensus', async () => {
-    await expect(preTradeSafetyCheck(makeInput({ chainId: 84532 }))).rejects.toThrow(
+    await expect(preTradeSafetyCheck(makeInput({ chainId: 999999 }))).rejects.toThrow(
       'cross-chain fallback'
     );
     expect(mockedGetConsensusPrice).not.toHaveBeenCalled();
+  });
+
+  it('uses reviewed Base price evidence for Base Sepolia while preserving v3 subject identity', async () => {
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus(
+        [
+          makeProvider({ provider: 'chainlink' as OracleProvider }),
+          makeProvider({ provider: 'redstone' as OracleProvider }),
+          makeProvider({ provider: 'api3' as OracleProvider }),
+        ],
+        { chain: Blockchain.BASE, symbol: 'WETH' }
+      )
+    );
+
+    await preTradeSafetyCheck(
+      makeInput({
+        asset: 'WETH',
+        destinationAsset: 'USDC',
+        chainId: 84532,
+        schemaVersion: 3,
+      })
+    );
+
+    expect(mockedGetConsensusPrice).toHaveBeenCalledWith(
+      'WETH',
+      Blockchain.BASE,
+      undefined,
+      undefined
+    );
+    const signedInput = mockedSignAttestationV3.mock.calls[0][0];
+    expect(signedInput.subjectChainId).toBe(84532);
+    expect(signedInput.sourceAssetId).toBe(
+      'eip155:84532/erc20:0x4200000000000000000000000000000000000006'
+    );
+    expect(signedInput.destinationAssetId).toBe(
+      'eip155:84532/erc20:0x036CbD53842c5426634e7929541eC2318f3dCF7e'
+    );
   });
 
   it('reports an unavailable requested protocol and an honest sizing basis', async () => {

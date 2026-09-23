@@ -32,6 +32,8 @@ export const TWAP_TOKEN_ADDRESSES: Record<string, Record<number, `0x${string}`>>
     10: '0x4200000000000000000000000000000000000006',
     137: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
     8453: '0x4200000000000000000000000000000000000006',
+    // Base Sepolia — canonical predeploy used by the reviewed InterAI pilot.
+    84532: '0x4200000000000000000000000000000000000006',
     56: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8',
   },
   USDC: {
@@ -40,6 +42,8 @@ export const TWAP_TOKEN_ADDRESSES: Record<string, Record<number, `0x${string}`>>
     10: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
     137: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
     8453: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    // Base Sepolia — Circle's official testnet USDC deployment.
+    84532: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
     56: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
   },
   USDT: {

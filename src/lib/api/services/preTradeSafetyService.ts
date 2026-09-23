@@ -67,7 +67,7 @@ import { getStablecoinConfig } from '@/lib/stablecoins/config';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
-import type { OracleProvider } from '@/types/oracle';
+import { Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { getConsensusPrice, type ConsensusPriceResponse } from './consensusPriceService';
 import {
@@ -79,6 +79,22 @@ import {
 import { buildAssessmentScope, buildSizingBasis } from './preTradeDiagnostics';
 
 const logger = createLogger('pre-trade-safety');
+
+/**
+ * Evidence-only chain aliases.
+ *
+ * Base Sepolia assertions retain their real subjectChainId (84532) and
+ * CAIP-19 token addresses, while price evidence is sourced from the reviewed
+ * Base provider set. This is deliberately local to pre-trade evidence: it does
+ * not redefine BASE's canonical production chain (8453) for other services.
+ */
+const EVIDENCE_CHAIN_ALIASES: Readonly<Record<number, Blockchain>> = {
+  84532: Blockchain.BASE,
+};
+
+function resolveEvidenceBlockchain(chainId: number): Blockchain | undefined {
+  return EVIDENCE_CHAIN_ALIASES[chainId] ?? getBlockchainByChainId(chainId);
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -1332,7 +1348,7 @@ export async function preTradeSafetyCheck(
   const contributingFactors: ContributingFactor[] = [];
 
   // Resolve chain name (Blockchain string) from numeric chainId.
-  const chain = getBlockchainByChainId(input.chainId);
+  const chain = resolveEvidenceBlockchain(input.chainId);
   if (!Number.isInteger(input.chainId) || input.chainId < 0 || (input.chainId > 0 && !chain)) {
     throw new ValidationError(
       'Unsupported evidence chainId; cross-chain fallback is not permitted.',

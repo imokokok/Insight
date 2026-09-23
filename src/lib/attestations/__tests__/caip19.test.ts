@@ -105,6 +105,9 @@ describe('resolveCaip19 — ERC-20 tokens (checksummed)', () => {
     ['WETH', 10, '0x4200000000000000000000000000000000000006'],
     // Base
     ['USDC', 8453, '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'],
+    // Base Sepolia (reviewed InterAI pilot pair)
+    ['WETH', 84532, '0x4200000000000000000000000000000000000006'],
+    ['USDC', 84532, '0x036CbD53842c5426634e7929541eC2318f3dCF7e'],
     // BNB Chain
     ['USDC', 56, '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d'],
   ])('resolveCaip19(%s, %i) → erc20:%s', (symbol, chainId, address) => {
