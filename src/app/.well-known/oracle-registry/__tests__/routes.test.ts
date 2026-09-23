@@ -17,6 +17,10 @@ import {
   activePartnerIntegrationPolicy,
 } from '@/lib/protocol/partnerIntegrationRegistry';
 
+const VERITAS_V2_POLICY_ID = '0x162d3fe744acc2041a959daf40dc3fe9242b654aef58acbb991acbf605885085';
+const VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID =
+  '0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db';
+
 describe('content-addressed oracle registry routes', () => {
   it('serves an immutable semantic profile at the id signed into v5 receipts', async () => {
     const { GET } = await import('../profiles/[profileId]/route');
@@ -118,6 +122,29 @@ describe('content-addressed oracle registry routes', () => {
     const policyBody = await policyResponse.json();
     expect(policyResponse.headers.get('Cache-Control')).toContain('immutable');
     expect(policyBody.policy).toEqual(headless);
+
+    const candidateSetResponse = await setRoute.GET(
+      new Request('https://example.test/candidate-set') as never,
+      { params: Promise.resolve({ activationSetId: VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID }) }
+    );
+    const candidateSetBody = await candidateSetResponse.json();
+    expect(candidateSetResponse.headers.get('Cache-Control')).toContain('immutable');
+    expect(candidateSetBody.activationSet.partners.veritas).toBe(VERITAS_V2_POLICY_ID);
+    expect(candidateSetBody.activationSetId).not.toBe(CURRENT_PARTNER_ACTIVATION_SET_ID);
+
+    const candidatePolicyResponse = await policyRoute.GET(
+      new Request('https://example.test/candidate-policy') as never,
+      { params: Promise.resolve({ policyId: VERITAS_V2_POLICY_ID }) }
+    );
+    const candidatePolicyBody = await candidatePolicyResponse.json();
+    expect(candidatePolicyResponse.headers.get('Cache-Control')).toContain('immutable');
+    expect(candidatePolicyBody.policy).toEqual(
+      expect.objectContaining({
+        partnerId: 'veritas',
+        policyVersion: 2,
+        pins: expect.objectContaining({ executionSchemaVersions: [5] }),
+      })
+    );
   });
 
   it('serves immutable content-addressed promotion records', async () => {

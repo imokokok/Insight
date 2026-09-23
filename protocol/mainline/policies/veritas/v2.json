@@ -1,0 +1,24 @@
+{
+  "policyId": "0x162d3fe744acc2041a959daf40dc3fe9242b654aef58acbb991acbf605885085",
+  "kind": "MainlinePartnerPolicy",
+  "policyVersion": 2,
+  "partnerId": "veritas",
+  "lifecycle": "verified",
+  "activation": "explicit-policy-id",
+  "surfaces": [
+    "oracle-safety-check",
+    "execution-receipt",
+    "pre-trade-binding",
+    "attester-key-role"
+  ],
+  "pins": {
+    "oracleRegistryReleaseIds": [
+      "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b"
+    ],
+    "executionProfileIds": ["0xe7513b059e9f8291bfa21250e0234661d74112a491efc6b40fbb56692013cb8e"],
+    "executionSchemaVersions": [5],
+    "externalContracts": ["vrt1:8.6", "veritas-r6:F15-F16"]
+  },
+  "legacyRule": "The r6 v4 policy remains immutable historical evidence. If this v2 policy is activated after written bilateral acceptance, new production issuance admits only ExecutionReceipt v5 with its signed profileId; v1-v4 remain snapshot-relative historical verification only and are never a production signing path.",
+  "productionReachability": "enabled"
+}

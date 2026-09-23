@@ -1,0 +1,96 @@
+{
+  "schema": "insight-veritas-v5-remediation-plan/v1",
+  "createdAt": "2026-09-23",
+  "status": "CANDIDATE_PUBLISHED_FOR_BILATERAL_REVIEW_NOT_ACTIVE",
+  "decisionBoundary": "No production activation and no new joint-run window until both parties verify the evidence and accept the candidate policy in writing.",
+  "historicalPolicy": {
+    "policyId": "0xb7b0ea5686628d8241cd269c45cf6ae462acc6b9f36843608358a00bb71691d6",
+    "policyVersion": 1,
+    "schemaVersions": [2, 3, 4],
+    "productionReachability": "disabled",
+    "disposition": "immutable r6 historical evidence; unchanged"
+  },
+  "candidatePolicy": {
+    "policyId": "0x162d3fe744acc2041a959daf40dc3fe9242b654aef58acbb991acbf605885085",
+    "policyVersion": 2,
+    "schemaVersions": [5],
+    "profileIds": ["0xe7513b059e9f8291bfa21250e0234661d74112a491efc6b40fbb56692013cb8e"],
+    "registryReleaseFloors": ["0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b"],
+    "productionReachabilityIfActivated": "enabled",
+    "currentActivation": false
+  },
+  "governance": {
+    "publicationPromotionId": "0x935a282ed5ac931b81bd825ef81199d3b5b441b2fb7b26b06793e29360296aca",
+    "currentActivationSetId": "0xe9512f0bf2b94c9a846877187b70fd29007fa196c8bd67f7c17eb58eebc24190",
+    "candidateActivationSetId": "0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db",
+    "activationChangeCount": 1,
+    "onlyProposedPartnerChange": "veritas",
+    "activationRequiresLaterPromotion": true
+  },
+  "productionEndpoints": {
+    "origin": "https://www.oracleinsight.xyz",
+    "issuance": "https://www.oracleinsight.xyz/api/v1/execution/attestation/issue",
+    "publicVerification": "https://www.oracleinsight.xyz/api/v1/execution/attestation/verify",
+    "publicPairVerification": "https://www.oracleinsight.xyz/api/v1/execution/attestation/verify-pair",
+    "partnerVerification": "https://www.oracleinsight.xyz/api/v1/partners/veritas/execution/attestation/verify",
+    "partnerPairVerification": "https://www.oracleinsight.xyz/api/v1/partners/veritas/execution/attestation/verify-pair",
+    "keyRegistry": "https://www.oracleinsight.xyz/.well-known/oracle-keys.json",
+    "profile": "https://www.oracleinsight.xyz/.well-known/oracle-registry/profiles/0xe7513b059e9f8291bfa21250e0234661d74112a491efc6b40fbb56692013cb8e",
+    "release": "https://www.oracleinsight.xyz/.well-known/oracle-registry/releases/0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+    "candidatePolicy": "https://www.oracleinsight.xyz/.well-known/oracle-registry/integrations/0x162d3fe744acc2041a959daf40dc3fe9242b654aef58acbb991acbf605885085",
+    "candidateActivationSet": "https://www.oracleinsight.xyz/.well-known/oracle-registry/integration-sets/0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db",
+    "publicationPromotion": "https://www.oracleinsight.xyz/.well-known/oracle-registry/promotions/0x935a282ed5ac931b81bd825ef81199d3b5b441b2fb7b26b06793e29360296aca"
+  },
+  "evidenceGates": [
+    {
+      "id": "G1",
+      "requirement": "candidate immutable policy canonical bytes and policyId",
+      "evidence": ["candidate-policy.json", "canonical-digests.json"]
+    },
+    {
+      "id": "G2",
+      "requirement": "ExecutionReceipt v5 and exact signed profileId",
+      "evidence": ["production-receipt.json", "semantic-profile.json"]
+    },
+    {
+      "id": "G3",
+      "requirement": "registry release and signer role, validity and revocation",
+      "evidence": ["oracle-registry-release.json", "oracle-keys.json"]
+    },
+    {
+      "id": "G4",
+      "requirement": "exact production issuance and verification endpoints",
+      "evidence": ["endpoint-inventory.json", "production-issuer-metadata.json"]
+    },
+    {
+      "id": "G5",
+      "requirement": "fresh receipt signed by a currently authorised production-role key",
+      "evidence": ["production-receipt.json", "production-issue-response.json"]
+    },
+    {
+      "id": "G6",
+      "requirement": "independent signature recovery and candidate-policy admission",
+      "evidence": ["verification-results.json", "verification-transcript.txt"]
+    },
+    {
+      "id": "G7",
+      "requirement": "content-addressed signed profile and registry evidence",
+      "evidence": ["semantic-profile.json", "oracle-registry-release.json"]
+    },
+    {
+      "id": "G8",
+      "requirement": "negative controls for schema, policy, signer, profile and endpoint",
+      "evidence": ["negative-controls.json", "verification-transcript.txt"]
+    },
+    {
+      "id": "G9",
+      "requirement": "fresh-gate to final-package terminal-path rehearsal",
+      "evidence": ["terminal-rehearsal.json", "verification-transcript.txt"]
+    },
+    {
+      "id": "G10",
+      "requirement": "operator authentication and gated deployment proof",
+      "evidence": ["operator-and-deployment-proof.json"]
+    }
+  ]
+}

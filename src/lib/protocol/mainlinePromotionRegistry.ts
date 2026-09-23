@@ -14,6 +14,7 @@ import promotionV13Json from '../../../protocol/mainline/promotions/2026-09-21-b
 import promotionV14Json from '../../../protocol/mainline/promotions/2026-09-21-band-v3-runtime-publication.json';
 import promotionV12Json from '../../../protocol/mainline/promotions/2026-09-21-robinhood-issuer-context.json';
 import promotionV15Json from '../../../protocol/mainline/promotions/2026-09-21-rwa-instrument-identity.json';
+import promotionV16Json from '../../../protocol/mainline/promotions/2026-09-23-veritas-v5-remediation-candidate.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -59,6 +60,7 @@ const rawPromotions = [
   promotionV13Json,
   promotionV14Json,
   promotionV15Json,
+  promotionV16Json,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {
