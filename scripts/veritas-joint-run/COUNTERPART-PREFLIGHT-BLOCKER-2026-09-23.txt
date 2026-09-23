@@ -1,0 +1,27 @@
+Subject: VERITAS window B — fail-closed Execution Receipt preflight
+
+Tutankhamun,
+
+I completed the final Insight-side preflight for today's 12:00–13:00 UTC window. The gate-pair
+path and the previously agreed Bitcoin/Ethereum checks are ready, but I found one terminal-path
+mismatch that must remain fail-closed:
+
+- the immutable VERITAS r6 policy accepts ExecutionReceipt v2/v3/v4 and does not implicitly adopt
+  v5;
+- Insight's current production Execution Receipt issuer publishes and issues v5 only;
+- the historical v4 deployment is not an operator-usable endpoint, and I do not have a currently
+  authorised v4 signer path that can be independently preflighted.
+
+I will therefore not treat a v5 receipt, a sample signature, the expired historical production
+key, or a protected/unreachable deployment as satisfying r6. Please do not send VERITAS_READY for
+a funded attempt unless we first agree on a reachable v4 issuer whose signer is currently
+authorised and whose receipt-adjacent registry snapshot can be preserved. Otherwise the correct
+outcome for this window is NO_START. If useful, we can separately agree in writing to an abort-only
+operator rehearsal, but it cannot close F12 and must not be described as a completed joint run.
+
+This does not change the agreed run id, selection rule, commitment bytes, cutoffs, gate validity,
+submission roles, or proof/endorsement boundaries.
+
+Best,
+YuTao
+Insight
