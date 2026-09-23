@@ -98,7 +98,13 @@ being disabled on a table reachable through the Data API.
 
 ## Release checklist
 
-1. Use Node.js 22 or newer and run `npm ci`.
+`main` is protected: updates must arrive through a pull request with current
+`validate`, `smoke`, and `analyze` checks. Force pushes, branch deletion, and
+non-linear history are disabled. Scheduled npm synchronization and ML promotion
+therefore publish reviewable branches and explicitly dispatch the required
+checks instead of writing to `main`.
+
+1. Use the Node.js version pinned in `.node-version` and run `npm ci`.
 2. Run `npm run validate:ci`; it checks linting, formatting, types, unit and
    contract coverage, unused code, SDK compatibility, RWA registry and execution
    profiles, committed cron bundles, production build, and the homepage

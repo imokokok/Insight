@@ -24,14 +24,14 @@ permissions:
 
 jobs:
   reactivate-feeds:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Raised 5 → 15 min: REACTIVATE_LIMIT is now 200 (was 40), so a large batch
     # of feeds deactivated by a transient incident recovers in a single 12h
     # pass. 200 × 6s worst case ≈ 20 min, but probes run with concurrency and
     # most skip fast, so 15 min is a safe ceiling with headroom.
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Run feed reactivation
         env:

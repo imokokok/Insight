@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     # Next builds in production mode and validates required configuration while
     # collecting route metadata. Use inert CI-only values: the build has no
@@ -34,7 +34,7 @@ jobs:
       JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
       PROTOCOL_GOVERNANCE_BASE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
       - name: Verify the dispatched commit
@@ -52,13 +52,15 @@ jobs:
           if ! git cat-file -e "${PROTOCOL_GOVERNANCE_BASE}^{commit}" 2>/dev/null; then
             git fetch --no-tags --depth=1 origin "$PROTOCOL_GOVERNANCE_BASE"
           fi
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
-          node-version: 22
+          node-version: 22.23.2
           cache: npm
       - run: npm ci
       - name: Reject stale generated cron bundles
         run: npm run validate:generated
+      - name: Reject mutable or bypassing workflow configuration
+        run: npm run workflow:check
       - name: Enforce pinned RWA source and frozen-vector integrity
         run: npm run rwa:parity
       - name: Enforce main-only protocol isolation
@@ -67,7 +69,7 @@ jobs:
         run: npm run validate:ci:checks
 
   smoke:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
@@ -77,10 +79,10 @@ jobs:
       CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
       JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
-          node-version: 22
+          node-version: 22.23.2
           cache: npm
       - run: npm ci
       - run: npm run build
@@ -93,10 +95,10 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: [validate, smoke]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - name: Refuse to release an outdated commit
         run: |
           current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
@@ -119,6 +121,12 @@ jobs:
             exit 1
           fi
 
+          current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$current_sha" != "$GITHUB_SHA" ]; then
+            echo "::error::main advanced to $current_sha immediately before deployment; this run validated $GITHUB_SHA"
+            exit 1
+          fi
+
           response_path="$RUNNER_TEMP/vercel-deploy-response.json"
           curl --fail-with-body --silent --show-error \
             --request POST \
@@ -126,3 +134,9 @@ jobs:
             --output "$response_path" \
             "$VERCEL_DEPLOY_HOOK_URL"
           node scripts/verify-vercel-deploy.mjs "$response_path"
+
+          current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$current_sha" != "$GITHUB_SHA" ]; then
+            echo "::error::main advanced to $current_sha while deployment $GITHUB_SHA was being verified"
+            exit 1
+          fi

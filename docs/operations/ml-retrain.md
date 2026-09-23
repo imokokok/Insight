@@ -6,8 +6,10 @@ the regression gate. A trained candidate is not automatically a better model.
 
 ## Run outcomes
 
-- **Promoted:** the candidate passes all quality and export checks; the workflow
-  validates the model and cron bundles before committing and deploying them.
+- **Ready for promotion:** the candidate passes all quality and export checks;
+  the workflow validates the model and cron bundles, then opens a pull request
+  with the required Quality Gate and CodeQL checks. Merging that reviewed PR is
+  the only path to `main` and production deployment.
 - **Model retained:** the candidate is valid but fails a quality floor, has too
   few positive test examples, or regresses against the incumbent. The job
   succeeds with a notice and summary. The deployed model stays in place.

@@ -13,9 +13,9 @@ test('RWA shadow workflow is read-only, checkpoint-scoped and preserves evidence
   for (const date of ['2026-09-28', '2026-10-05', '2026-10-12']) {
     assert.match(workflow, new RegExp(date));
   }
-  assert.match(workflow, /actions\/cache\/restore@v4/);
-  assert.match(workflow, /actions\/cache\/save@v4/);
-  assert.match(workflow, /actions\/upload-artifact@v4/);
+  assert.match(workflow, /actions\/cache\/restore@[0-9a-f]{40} # v4/);
+  assert.match(workflow, /actions\/cache\/save@[0-9a-f]{40} # v4/);
+  assert.match(workflow, /actions\/upload-artifact@[0-9a-f]{40} # v4/);
   assert.match(workflow, /npm run rwa:pilot:sample/);
   assert.doesNotMatch(workflow, /INSIGHT_API_KEY|SUPABASE_SERVICE_ROLE_KEY|CRON_SECRET/);
 });

@@ -45,10 +45,10 @@ jobs:
   publish-report:
     name: Publish (Supabase primary)
     if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Start run ledger
         env:
@@ -108,10 +108,10 @@ jobs:
   backfill-report:
     name: Backfill (05:30 UTC, if missing)
     if: github.event.schedule == '30 5 * * *'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Start fallback ledger
         env:
