@@ -46,22 +46,23 @@ jobs:
           fetch-depth: 0
           ref: ${{ steps.inspect.outputs.sha }}
 
-      - name: Rebuild and verify the npm lockfile without package scripts
+      - name: Rebuild the lockfile and generated cron bundles safely
         id: repair
         run: |
           npm install --ignore-scripts --no-audit --no-fund
           npm ci --ignore-scripts --no-audit --no-fund
-          if git diff --quiet -- package-lock.json; then
+          npm run build:cron
+          if git diff --quiet -- package-lock.json .github/cron-dist; then
             echo 'changed=false' >> "$GITHUB_OUTPUT"
-            echo 'The lockfile is already self-consistent; the failure needs normal review.'
+            echo 'The lockfile and cron bundles are already current; the failure needs normal review.'
             exit 0
           fi
-          unexpected="$(git diff --name-only -- . ':(exclude)package-lock.json')"
+          unexpected="$(git diff --name-only -- . ':(exclude)package-lock.json' ':(exclude).github/cron-dist')"
           if [ -n "$unexpected" ]; then
-            echo "::error::npm changed files other than package-lock.json: $unexpected"
+            echo "::error::repair changed files outside the lockfile and cron bundles: $unexpected"
             exit 1
           fi
-          git diff --check -- package-lock.json
+          git diff --check -- package-lock.json .github/cron-dist
           echo 'changed=true' >> "$GITHUB_OUTPUT"
 
       - name: Publish the repaired lockfile to the existing pull request
@@ -71,8 +72,8 @@ jobs:
         run: |
           git config user.name 'imokokok'
           git config user.email '145034722+imokokok@users.noreply.github.com'
-          git add package-lock.json
-          git commit --no-verify -m 'chore(deps): repair Dependabot lockfile'
+          git add package-lock.json .github/cron-dist
+          git commit --no-verify -m 'chore(deps): repair generated dependency artifacts'
           identity="$(git show -s --format='%an <%ae>%n%cn <%ce>' HEAD)"
           expected="$(printf '%s\n%s' 'imokokok <145034722+imokokok@users.noreply.github.com>' 'imokokok <145034722+imokokok@users.noreply.github.com>')"
           if [ "$identity" != "$expected" ]; then
