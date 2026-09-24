@@ -1,0 +1,60 @@
+{
+  "promotionId": "0x223802e18732d390954f0dcb67eaf6e2122b9849342465399cb232d70e50a33b",
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 17,
+  "effectiveFrom": "2026-09-25",
+  "classification": "Explicitly activate the reviewed VERITAS v5 policy after the WETH/USDC correction and price-gradeable production rehearsal",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x96d1f62460d53e68b34cb7812e8ef736cce8332754dc1284cfb7df1b2b575e2c",
+  "predecessorPromotionId": "0x935a282ed5ac931b81bd825ef81199d3b5b441b2fb7b26b06793e29360296aca",
+  "activationSetId": "0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db",
+  "receiptImpact": "Moves only the current VERITAS mapping to immutable policy v2, which admits ExecutionReceipt v5 under signed semantic profile 0xe7513b059e9f8291bfa21250e0234661d74112a491efc6b40fbb56692013cb8e. Receipt wire bytes, the current registry release and every other partner mapping remain unchanged.",
+  "activationRule": "This is the later explicit promotion contemplated by the candidate publication. VERITAS gave its written position on the candidate objects on 2026-09-25 at 03:11 Asia/Shanghai; PR #33 and the WETH coverage repair were merged and protected-deployed; a fresh production WETH/USDC gate pair and price-gradeable FAITHFUL v5 receipt were captured and independently verified before this pointer move. This promotion does not create a new window-specific READY, sign future-window gates, broadcast chain commitments or close F12.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged-v5-production-policy",
+      "evidence": "Headless remains mapped to its existing immutable v2 policy. The shared v5 layout and profile bytes do not change."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "activated-v5-production-policy",
+      "evidence": "The current activation pointer moves from set v2 to previously published immutable set v3, changing only VERITAS from production-disabled policy v1 to v5 policy v2. Written candidate position and the fresh WETH/USDC price-gradeable production rehearsal preceded this explicit promotion. New-window READY and fresh gates remain separate prerequisites."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "The active AEB option 2 policy and all signed authorization bytes are unchanged."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged",
+      "evidence": "The frozen external-evidence/v0 rev6 policy and OracleSafetyCheck adapter are unchanged."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "The active Agent Passport policy and OracleSafetyCheck pins are unchanged."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "The production-disabled Frontier Compute policy and key-role admission remain unchanged."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "The active pre-trade and Oracle Watch policy remains unchanged."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "The existing durable-record and snapshot-relative verification policy remains unchanged."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "The read-only methodology and evidence-exchange policy remains unchanged."
+    }
+  ]
+}
