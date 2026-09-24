@@ -64,15 +64,20 @@ jest.mock('../preTradeBinding', () => {
     ...actual,
     resolvePreTradeBinding: async (params: {
       selfReported: Record<string, unknown>;
-    }): Promise<unknown> => ({
-      ok: true,
-      binding: {
-        ...params.selfReported,
-        action: params.selfReported.action ?? 'SWAP',
-        bindingMode: 'VERIFIED',
-        preTradeExpired: false,
-      },
-    }),
+    }): Promise<unknown> => {
+      const preTradeSignedAt = Number(params.selfReported.preTradeSignedAt);
+      const preTradeValidUntil = preTradeSignedAt + 600;
+      return {
+        ok: true,
+        binding: {
+          ...params.selfReported,
+          action: params.selfReported.action ?? 'SWAP',
+          bindingMode: 'VERIFIED',
+          preTradeValidUntil,
+          preTradeExpired: preTradeValidUntil < Math.floor(Date.now() / 1000),
+        },
+      };
+    },
   };
 });
 
@@ -200,6 +205,34 @@ describe('issueExecutionReceipt', () => {
     expect(result.receipt.data.priceExecutionStatus).toBe('FAITHFUL');
     expect(result.receipt.data.preTradeUid).toBe(baseArgs.preTradeUid);
     expect(result.receipt.data.slippageSatisfied).toBe(true);
+  });
+
+  it('issues historical evidence after gate expiry when the settlement block was inside the window', async () => {
+    const result = await issueExecutionReceipt({
+      ...baseArgs,
+      // The fixture gate expired years before this test runs, but the selected
+      // block timestamp is 300 seconds after signing and therefore inside its
+      // signed 600-second execution window.
+      preTradeSignedAt: 1_699_999_700,
+      client: fakeClient(swapReceipt(1000n * 10n ** 6n, 4n * 10n ** 17n)),
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.binding.preTradeExpired).toBe(true);
+    expect(result.receipt.data.executedAt).toBe(1_700_000_000);
+    expect(result.receipt.data.priceExecutionStatus).toBe('FAITHFUL');
+  });
+
+  it('does not grade a settlement after the signed gate window as FAITHFUL', async () => {
+    const result = await issueExecutionReceipt({
+      ...baseArgs,
+      preTradeSignedAt: 1_699_999_000,
+      client: fakeClient(swapReceipt(1000n * 10n ** 6n, 4n * 10n ** 17n)),
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.receipt.data.executedAt).toBe(1_700_000_000);
+    expect(result.receipt.data.priceExecutionStatus).toBe('UNDETERMINED');
   });
 
   it('signs DEVIATED when the fill drifts past the quoted price', async () => {
