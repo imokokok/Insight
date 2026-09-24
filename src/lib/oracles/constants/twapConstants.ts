@@ -323,6 +323,19 @@ export interface TwapPoolConfig {
 }
 
 export const TWAP_POOL_ADDRESSES: Record<string, Record<number, TwapPoolConfig>> = {
+  // WETH is a distinct ERC-20 asset in signed pre-trade gates. Its USD TWAP
+  // comes directly from the WETH/USDC pool; the existing ETH entry below uses
+  // the same venue but must not be substituted for WETH asset identity. This
+  // venue-derived read may count toward quorum, never as another independent
+  // source group or as a venue-independent quote.
+  WETH: {
+    1: {
+      address: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640',
+      feeTier: 500,
+      token0: 'USDC',
+      token1: 'WETH',
+    },
+  },
   ETH: {
     1: {
       address: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640',
@@ -760,6 +773,7 @@ export const twapSymbols = [
   // Major cryptocurrencies with deep liquidity
   'BTC',
   'ETH',
+  'WETH',
   'WBTC',
 
   // Stablecoins (highest volume pairs)
