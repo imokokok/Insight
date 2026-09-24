@@ -16,6 +16,13 @@ The evidence bundle separates three facts:
 3. The VERITAS partner route remains fail-closed until the candidate activation
    set is explicitly promoted.
 
+For the fresh WETH/USDC rehearsal, capture and offline verification also require
+both signed gates to say `PASS`, the settlement block time to fall inside both
+gate windows, and the production receipt to sign `FAITHFUL` with a positive
+executed price within 1 bps of the selected pool event. A `BLOCK` gate or an
+`UNDETERMINED` receipt is retained as a failed attempt, never packaged as a
+successful rehearsal.
+
 Generate the final online evidence only after the publication commit has passed
 CI and the production endpoints expose the candidate content-addressed objects.
 The generator creates a temporary Enterprise API key for the configured ops

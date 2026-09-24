@@ -425,9 +425,25 @@ async function main(): Promise<void> {
 
   const sourceGate = record(readJson(directory, 'source-gate.json'), 'source gate');
   const destinationGate = record(readJson(directory, 'destination-gate.json'), 'destination gate');
+  const sourceGateData = record(sourceGate.data, 'source gate signed data');
+  const destinationGateData = record(destinationGate.data, 'destination gate signed data');
   const commitments = record(terminal.commitments, 'terminal commitments');
   const selected = record(terminal.selectedSettlement, 'selected settlement');
   const orderingBoundary = record(terminal.orderingBoundary, 'ordering boundary');
+  const wethAssetId = 'eip155:1/erc20:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
+  const usdcAssetId = 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+  makeCheck(
+    checks,
+    'G9',
+    'fresh PASS gates bind the exact WETH and USDC token legs',
+    sourceGateData.verdict === 'PASS' &&
+      destinationGateData.verdict === 'PASS' &&
+      String(sourceGateData.sourceAssetId).toLowerCase() === wethAssetId &&
+      String(sourceGateData.destinationAssetId).toLowerCase() === usdcAssetId &&
+      String(destinationGateData.sourceAssetId).toLowerCase() === usdcAssetId &&
+      String(destinationGateData.destinationAssetId).toLowerCase() === wethAssetId,
+    'neither signed gate may bind native ETH or carry a BLOCK verdict'
+  );
   makeCheck(
     checks,
     'G9',
@@ -448,9 +464,33 @@ async function main(): Promise<void> {
     'G9',
     'settlement follows rehearsal boundary inside gate window',
     Number(selected.blockNumber) > Number(orderingBoundary.blockNumber) &&
+      Number(selected.blockTimestamp) >= Number(sourceGateData.checkedAt) &&
+      Number(selected.blockTimestamp) >= Number(destinationGateData.checkedAt) &&
+      Number(selected.blockTimestamp) <= Number(sourceGateData.validUntil) &&
+      Number(selected.blockTimestamp) <= Number(destinationGateData.validUntil) &&
       Number(selected.blockTimestamp) <= Number(terminal.attemptExpiry) &&
+      Number(receiptData.executedAt) === Number(selected.blockTimestamp) &&
       receiptData.txHash === selected.transactionHash,
     `boundary=${String(orderingBoundary.blockNumber)} settlement=${String(selected.blockNumber)}`
+  );
+  const usdcRaw = -BigInt(String(selected.amount0));
+  const wethRaw = BigInt(String(selected.amount1));
+  assert(usdcRaw > 0n && wethRaw > 0n, 'selected event is not WETH -> USDC');
+  const selectedPoolPrice = Number(usdcRaw) / 1e6 / (Number(wethRaw) / 1e18);
+  const priceScale = Number(receiptData.priceScale);
+  const executedPrice = Number(receiptData.executedPrice) / 10 ** priceScale;
+  const priceDifferenceBps = (executedPrice / selectedPoolPrice - 1) * 10_000;
+  makeCheck(
+    checks,
+    'G9',
+    'production receipt grades the selected pool event price',
+    Number.isInteger(priceScale) &&
+      Number.isFinite(executedPrice) &&
+      executedPrice > 0 &&
+      receiptData.priceExecutionStatus === 'FAITHFUL' &&
+      Number.isFinite(priceDifferenceBps) &&
+      Math.abs(priceDifferenceBps) <= 1,
+    `receipt=${executedPrice} USDC/WETH pool=${selectedPoolPrice} USDC/WETH delta=${priceDifferenceBps} bps`
   );
   makeCheck(
     checks,

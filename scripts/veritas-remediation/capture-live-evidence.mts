@@ -531,6 +531,10 @@ async function main(): Promise<void> {
     writeJson(join(options.output, 'destination-gate-response.json'), destinationIssued.response);
     writeJson(join(options.output, 'source-gate.json'), sourceGate);
     writeJson(join(options.output, 'destination-gate.json'), destinationGate);
+    assert(
+      sourceGate.data.verdict === 'PASS' && destinationGate.data.verdict === 'PASS',
+      `rehearsal gates did not authorise execution: source=${String(sourceGate.data.verdict)} destination=${String(destinationGate.data.verdict)}`
+    );
 
     const orderingBoundaryBlock = Number(BigInt(await rpc<string>('eth_blockNumber', [])));
     const attemptExpiry = Math.min(sourceGate.validUntil, destinationGate.validUntil);
