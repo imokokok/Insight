@@ -216,8 +216,8 @@ async function fetchJson(url: string, init?: RequestInit): Promise<unknown> {
 
 async function issueGate(
   apiKey: string,
-  asset: 'ETH' | 'USDC',
-  destinationAsset: 'ETH' | 'USDC'
+  asset: 'WETH' | 'USDC',
+  destinationAsset: 'WETH' | 'USDC'
 ): Promise<Envelope> {
   const url = new URL(PRE_TRADE_URL);
   url.search = new URLSearchParams({
@@ -339,9 +339,12 @@ async function main(): Promise<void> {
   );
 
   // Both HTTP calls begin together so the two 600-second clocks are as close as possible.
+  // The selection rule is explicitly WETH -> USDC in the Uniswap V3 ERC-20
+  // pool. Native ETH is a different CAIP-19 asset and cannot be substituted:
+  // the execution collector must be able to attribute the same signed legs.
   const [sourceEnvelope, destinationEnvelope] = await Promise.all([
-    issueGate(apiKey, 'ETH', 'USDC'),
-    issueGate(apiKey, 'USDC', 'ETH'),
+    issueGate(apiKey, 'WETH', 'USDC'),
+    issueGate(apiKey, 'USDC', 'WETH'),
   ]);
 
   const WETH = 'eip155:1/erc20:0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';

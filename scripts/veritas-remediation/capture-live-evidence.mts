@@ -182,7 +182,11 @@ async function rpc<T>(method: string, params: unknown[]): Promise<T> {
   throw new Error(`${method} failed on every RPC: ${errors.join(' | ')}`);
 }
 
-async function issueGate(apiKey: string, asset: 'ETH' | 'USDC', destinationAsset: 'ETH' | 'USDC') {
+async function issueGate(
+  apiKey: string,
+  asset: 'WETH' | 'USDC',
+  destinationAsset: 'WETH' | 'USDC'
+) {
   const url = new URL(`${ORIGIN}/api/v1/safety/pre-trade`);
   url.search = new URLSearchParams({
     asset,
@@ -213,6 +217,13 @@ function decodeSwap(log: RpcLog): { amount0: bigint; amount1: bigint } {
     log.data
   );
   return { amount0: values[0], amount1: values[1] };
+}
+
+function selectedSwapPriceUsdcPerWeth(amount0: string, amount1: string): number {
+  const usdcRaw = -BigInt(amount0);
+  const wethRaw = BigInt(amount1);
+  assert(usdcRaw > 0n && wethRaw > 0n, 'selected settlement is not WETH -> USDC');
+  return Number(usdcRaw) / 1e6 / (Number(wethRaw) / 1e18);
 }
 
 async function blockTimestamp(blockNumber: number): Promise<number> {
@@ -496,12 +507,26 @@ async function main(): Promise<void> {
       'publication promotion endpoint returned the wrong id'
     );
 
+    // The immutable selection rule observes the ERC-20 WETH/USDC pool. The
+    // signed gates must bind that exact asset pair: native ETH (slip44:60) is
+    // economically related to WETH but is not the same on-chain asset and must
+    // never be inferred from WETH Transfer logs.
     const [sourceIssued, destinationIssued] = await Promise.all([
-      issueGate(temporary.plainKey, 'ETH', 'USDC'),
-      issueGate(temporary.plainKey, 'USDC', 'ETH'),
+      issueGate(temporary.plainKey, 'WETH', 'USDC'),
+      issueGate(temporary.plainKey, 'USDC', 'WETH'),
     ]);
     const sourceGate = sourceIssued.gate;
     const destinationGate = destinationIssued.gate;
+    assert(
+      sourceGate.data.sourceAssetId.toLowerCase() === `eip155:1/erc20:${WETH}` &&
+        sourceGate.data.destinationAssetId.toLowerCase() === `eip155:1/erc20:${USDC}`,
+      'source gate does not bind the selected WETH -> USDC pool direction'
+    );
+    assert(
+      destinationGate.data.sourceAssetId.toLowerCase() === `eip155:1/erc20:${USDC}` &&
+        destinationGate.data.destinationAssetId.toLowerCase() === `eip155:1/erc20:${WETH}`,
+      'destination gate is not the exact opposite USDC -> WETH leg'
+    );
     writeJson(join(options.output, 'source-gate-response.json'), sourceIssued.response);
     writeJson(join(options.output, 'destination-gate-response.json'), destinationIssued.response);
     writeJson(join(options.output, 'source-gate.json'), sourceGate);
@@ -554,6 +579,25 @@ async function main(): Promise<void> {
     writeJson(join(options.output, 'production-issue-response.json'), issueResponse.body);
     writeJson(join(options.output, 'production-receipt.json'), productionReceipt);
 
+    const receiptRecord = record(productionReceipt, 'production receipt');
+    const receiptData = record(receiptRecord.data, 'production receipt data');
+    const priceScale = Number(receiptData.priceScale);
+    const executedPrice = Number(receiptData.executedPrice) / 10 ** priceScale;
+    const selectedPoolPrice = selectedSwapPriceUsdcPerWeth(candidate.amount0, candidate.amount1);
+    const collectorVsPoolBps = (executedPrice / selectedPoolPrice - 1) * 10_000;
+    assert(
+      Number.isFinite(executedPrice) && executedPrice > 0,
+      'collector did not measure a fill price'
+    );
+    assert(
+      Math.abs(collectorVsPoolBps) <= 1,
+      `collector price differs from the selected pool event by ${collectorVsPoolBps} bps`
+    );
+    assert(
+      receiptData.priceExecutionStatus === 'FAITHFUL',
+      `expected a gradeable in-band receipt, got ${String(receiptData.priceExecutionStatus)}`
+    );
+
     const verifyBody = { attestation: productionReceipt, policyId: CANDIDATE_POLICY_ID };
     const pairBody = {
       preTradeAttestation: sourceGate,
@@ -575,8 +619,6 @@ async function main(): Promise<void> {
     writeJson(join(options.output, 'partner-candidate-before-activation.json'), partnerCandidate);
     writeJson(join(options.output, 'partner-current-before-activation.json'), partnerCurrent);
 
-    const receiptRecord = record(productionReceipt, 'production receipt');
-    const receiptData = record(receiptRecord.data, 'production receipt data');
     const missingProfile = structuredClone(receiptRecord);
     delete record(missingProfile.data, 'missing-profile data').profileId;
     const wrongSchema = structuredClone(receiptRecord);
