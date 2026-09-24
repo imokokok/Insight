@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { createHash, randomBytes } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { createHash, randomBytes } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -119,7 +119,10 @@ function parseArgs(argv: string[]): Options {
   assert(output, '--output is required');
   assert(trustRootDir, '--trust-root-dir is required');
   assert(profile === 'interai' || profile === 'wak-p1', 'unsupported profile');
-  assert(values.size === 2 || (values.size === 3 && values.has('--profile')), 'unsupported arguments');
+  assert(
+    values.size === 2 || (values.size === 3 && values.has('--profile')),
+    'unsupported arguments'
+  );
   return { output: path.resolve(output), trustRootDir: path.resolve(trustRootDir), profile };
 }
 
@@ -223,7 +226,11 @@ function supabaseRestJson(
   return JSON.parse(text) as unknown;
 }
 
-function createTemporaryApiKey(ownerId: string, expiresAt: string, profile: Options['profile']): TemporaryApiKey {
+function createTemporaryApiKey(
+  ownerId: string,
+  expiresAt: string,
+  profile: Options['profile']
+): TemporaryApiKey {
   const plainKey = `ins_${randomBytes(32).toString('hex')}`;
   const keyHash = createHash('sha256').update(plainKey).digest('hex');
   const rows = z.array(z.object({ id: z.string() })).parse(
@@ -346,6 +353,13 @@ async function main(): Promise<void> {
   const { output, trustRootDir, profile } = parseArgs(process.argv.slice(2));
   mkdirSync(output, { recursive: false, mode: 0o700 });
 
+  // InterAI's live candidate must use the current registry head. The WAK P1
+  // profile retains its existing local trust-root fallback for offline runs.
+  const readTrustRoot =
+    profile === 'interai'
+      ? (url: string, _fallbackPath: string) => fetchJson(url)
+      : fetchOrReadJson;
+
   const ownerId = (process.env.OPS_OWNER_USER_IDS ?? '')
     .split(',')
     .map((value) => value.trim())
@@ -353,12 +367,16 @@ async function main(): Promise<void> {
   assert(ownerId, 'OPS_OWNER_USER_IDS must contain the owner id');
 
   const [registryRaw, currentRaw] = await Promise.all([
-    fetchOrReadJson(REGISTRY_URL, path.join(trustRootDir, 'oracle-keys.json')),
-    fetchOrReadJson(CURRENT_REGISTRY_URL, path.join(trustRootDir, 'oracle-registry-current.json')),
+    readTrustRoot(REGISTRY_URL, path.join(trustRootDir, 'oracle-keys.json')),
+    readTrustRoot(CURRENT_REGISTRY_URL, path.join(trustRootDir, 'oracle-registry-current.json')),
   ]);
   const registry = RegistrySchema.parse(registryRaw);
   const current = CurrentRegistrySchema.parse(currentRaw);
   assert(registry.registryRelease.releaseId === current.releaseId, 'registry release ids differ');
+  assert(
+    current.release === `${ORIGIN}/.well-known/oracle-registry/releases/${current.releaseId}`,
+    'registry release URL is not the pinned Insight origin/path'
+  );
 
   const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
   const temporary = createTemporaryApiKey(ownerId, expiresAt, profile);
@@ -413,7 +431,10 @@ async function main(): Promise<void> {
       `expected two persisted audit rows, received ${audits?.length ?? 0}`
     );
     for (const audit of audits) {
-      assert(audit.workflow_tag === (profile === 'wak-p1' ? WAK_WORKFLOW_TAG : WORKFLOW_TAG), `audit ${audit.id} workflow mismatch`);
+      assert(
+        audit.workflow_tag === (profile === 'wak-p1' ? WAK_WORKFLOW_TAG : WORKFLOW_TAG),
+        `audit ${audit.id} workflow mismatch`
+      );
       assert(audit.api_key_id === temporary.id, `audit ${audit.id} API key mismatch`);
       assert(audit.signed === true, `audit ${audit.id} is not marked signed`);
       assert(audit.verdict === 'PASS', `audit ${audit.id} verdict is not PASS`);
@@ -426,9 +447,14 @@ async function main(): Promise<void> {
     }
 
     const releaseFilename = `oracle-registry-release-${current.releaseId}.json`;
-    const releaseRaw = await fetchOrReadJson(
+    const releaseRaw = await readTrustRoot(
       current.release,
       path.join(trustRootDir, releaseFilename)
+    );
+    assert(
+      z.object({ releaseId: z.string().regex(BYTES32) }).parse(releaseRaw).releaseId ===
+        current.releaseId,
+      'registry release body does not match current pointer'
     );
     const capturedAt = new Date().toISOString();
     writeJson(path.join(output, 'source-oracle-safety-check-v3.json'), source.envelope);
@@ -437,7 +463,10 @@ async function main(): Promise<void> {
     writeJson(path.join(output, 'oracle-registry-current.json'), currentRaw);
     writeJson(path.join(output, releaseFilename), releaseRaw);
     writeJson(path.join(output, 'audit-persistence-proof.json'), {
-      schema: profile === 'wak-p1' ? 'insight.wak-p1.audit-persistence-proof.v1' : 'insight.interai-track1.audit-persistence-proof.v1',
+      schema:
+        profile === 'wak-p1'
+          ? 'insight.wak-p1.audit-persistence-proof.v1'
+          : 'insight.interai-track1.audit-persistence-proof.v1',
       capturedAt,
       workflowTag: profile === 'wak-p1' ? WAK_WORKFLOW_TAG : WORKFLOW_TAG,
       expectedProductionSigner: source.envelope.attester,
@@ -451,9 +480,10 @@ async function main(): Promise<void> {
         expiresAt,
         secretIncluded: false,
       },
-      note: profile === 'wak-p1'
-        ? 'The temporary Insight API key was revoked after this bounded WAK P1 capture.'
-        : 'This temporary Insight API key is unrelated to the unexchanged InterAI pilot credential.',
+      note:
+        profile === 'wak-p1'
+          ? 'The temporary Insight API key was revoked after this bounded WAK P1 capture.'
+          : 'This temporary Insight API key is unrelated to the unexchanged InterAI pilot credential.',
     });
   } finally {
     revokeTemporaryApiKey(temporary.id, ownerId);
