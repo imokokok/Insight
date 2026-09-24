@@ -11,10 +11,10 @@
 import { keccak256, toBytes } from 'viem';
 
 import {
-  CURRENT_PARTNER_ACTIVATION_SET_ID,
   ORACLE_REGISTRY_RELEASE_PIN_RULE,
   ORACLE_REGISTRY_RELEASE_PIN_RULE_DESCRIPTION,
   PARTNER_ACTIVATION_SET_V1_ID,
+  PARTNER_ACTIVATION_SET_V2_ID,
 } from '../protocol/partnerIntegrationRegistry';
 
 import {
@@ -255,8 +255,9 @@ export const ORACLE_REGISTRY_RELEASE_2026_09_10_1 = {
   },
   mainlineIntegrationIsolation: {
     ...ORACLE_REGISTRY_RELEASE_2026_09_09_1.mainlineIntegrationIsolation,
-    activationSetId: CURRENT_PARTNER_ACTIVATION_SET_ID,
-    immutableSetPath: `/.well-known/oracle-registry/integration-sets/${CURRENT_PARTNER_ACTIVATION_SET_ID}`,
+    // Historical release bytes must not follow a later mutable activation pointer.
+    activationSetId: PARTNER_ACTIVATION_SET_V2_ID,
+    immutableSetPath: `/.well-known/oracle-registry/integration-sets/${PARTNER_ACTIVATION_SET_V2_ID}`,
   },
 } as const;
 
