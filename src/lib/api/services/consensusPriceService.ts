@@ -23,6 +23,14 @@ const CONSENSUS_FETCH_CONCURRENCY = 6;
 // assessments. Each subsequent request still re-evaluates source freshness.
 const pendingPrices = new Map<string, Promise<FetchProviderPriceResult>>();
 
+// Canonical WETH is exactly redeemable 1:1 for ETH, so its USD reference price
+// should use the broader ETH oracle set. This alias is deliberately confined to
+// price discovery: attestation identity remains the chain-specific WETH CAIP-19
+// asset produced from the original request.
+const PRICE_REFERENCE_ALIASES: Readonly<Record<string, string>> = {
+  WETH: 'ETH',
+};
+
 export interface ConsensusProviderPrice {
   provider: OracleProvider;
   symbol: string;
@@ -68,7 +76,8 @@ export interface ConsensusPriceResponse {
 }
 
 function normalizeSymbol(symbol: string): string {
-  return extractBaseSymbol(symbol).toUpperCase();
+  const normalized = extractBaseSymbol(symbol).toUpperCase();
+  return PRICE_REFERENCE_ALIASES[normalized] ?? normalized;
 }
 
 function resolveChain(blockchain: string | undefined): Blockchain | undefined {

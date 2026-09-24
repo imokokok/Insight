@@ -248,8 +248,8 @@ function revokeTemporaryApiKey(keyId: string, ownerId: string): void {
 
 async function issueGate(
   apiKey: string,
-  asset: 'ETH' | 'USDC',
-  destinationAsset: 'ETH' | 'USDC'
+  asset: 'WETH' | 'USDC',
+  destinationAsset: 'WETH' | 'USDC'
 ): Promise<{ envelope: Envelope; requestId: string }> {
   const url = new URL(PRE_TRADE_URL);
   url.search = new URLSearchParams({
@@ -360,8 +360,8 @@ async function main(): Promise<void> {
   let revokedAt: string | null = null;
   try {
     const [source, destination] = await Promise.all([
-      issueGate(temporary.plainKey, 'ETH', 'USDC'),
-      issueGate(temporary.plainKey, 'USDC', 'ETH'),
+      issueGate(temporary.plainKey, 'WETH', 'USDC'),
+      issueGate(temporary.plainKey, 'USDC', 'WETH'),
     ]);
     await Promise.all([
       validateGate('source', source.envelope, WETH_ID, USDC_ID, registry),
