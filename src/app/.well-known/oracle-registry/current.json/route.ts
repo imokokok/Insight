@@ -10,6 +10,7 @@ import {
   CURRENT_MAINLINE_PROTOCOL_PROMOTION,
   CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID,
 } from '@/lib/protocol/mainlinePromotionRegistry';
+import { CURRENT_PARTNER_ACTIVATION_SET_ID } from '@/lib/protocol/partnerIntegrationRegistry';
 
 function originOf(request: NextRequest): string {
   return process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
@@ -30,10 +31,9 @@ export async function GET(request: NextRequest) {
         immutable: `${origin}/.well-known/oracle-registry/promotions/${CURRENT_MAINLINE_PROTOCOL_PROMOTION_ID}`,
       },
       partnerIntegrations: {
-        activationSetId:
-          CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.activationSetId,
+        activationSetId: CURRENT_PARTNER_ACTIVATION_SET_ID,
         current: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.currentPath}`,
-        immutableSet: `${origin}${CURRENT_ORACLE_REGISTRY_RELEASE.mainlineIntegrationIsolation.immutableSetPath}`,
+        immutableSet: `${origin}/.well-known/oracle-registry/integration-sets/${CURRENT_PARTNER_ACTIVATION_SET_ID}`,
         runtime: {
           executionVerifyTemplate: `${origin}/api/v1/partners/{partnerId}/execution/attestation/verify`,
           executionVerifyPairTemplate: `${origin}/api/v1/partners/{partnerId}/execution/attestation/verify-pair`,

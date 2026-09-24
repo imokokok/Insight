@@ -14,6 +14,7 @@ import {
 import {
   CURRENT_PARTNER_ACTIVATION_SET,
   CURRENT_PARTNER_ACTIVATION_SET_ID,
+  PARTNER_ACTIVATION_SET_V2_ID,
   activePartnerIntegrationPolicy,
 } from '@/lib/protocol/partnerIntegrationRegistry';
 
@@ -55,6 +56,9 @@ describe('content-addressed oracle registry routes', () => {
     expect(releaseResponse.headers.get('Cache-Control')).toContain('immutable');
     expect(releaseBody.releaseId).toBe(CURRENT_ORACLE_REGISTRY_RELEASE_ID);
     expect(releaseBody.release).toEqual(CURRENT_ORACLE_REGISTRY_RELEASE);
+    expect(releaseBody.release.mainlineIntegrationIsolation.activationSetId).toBe(
+      PARTNER_ACTIVATION_SET_V2_ID
+    );
 
     const currentRoute = await import('../current.json/route');
     const currentResponse = await currentRoute.GET(
@@ -130,7 +134,15 @@ describe('content-addressed oracle registry routes', () => {
     const candidateSetBody = await candidateSetResponse.json();
     expect(candidateSetResponse.headers.get('Cache-Control')).toContain('immutable');
     expect(candidateSetBody.activationSet.partners.veritas).toBe(VERITAS_V2_POLICY_ID);
-    expect(candidateSetBody.activationSetId).not.toBe(CURRENT_PARTNER_ACTIVATION_SET_ID);
+    expect(candidateSetBody.activationSetId).toBe(CURRENT_PARTNER_ACTIVATION_SET_ID);
+
+    const priorSetResponse = await setRoute.GET(
+      new Request('https://example.test/prior-set') as never,
+      { params: Promise.resolve({ activationSetId: PARTNER_ACTIVATION_SET_V2_ID }) }
+    );
+    const priorSetBody = await priorSetResponse.json();
+    expect(priorSetResponse.headers.get('Cache-Control')).toContain('immutable');
+    expect(priorSetBody.activationSet.partners.veritas).not.toBe(VERITAS_V2_POLICY_ID);
 
     const candidatePolicyResponse = await policyRoute.GET(
       new Request('https://example.test/candidate-policy') as never,
