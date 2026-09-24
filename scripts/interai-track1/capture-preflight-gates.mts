@@ -22,6 +22,7 @@ const USDC = '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 const WETH_ID = `eip155:${CHAIN_ID}/erc20:${WETH}`;
 const USDC_ID = `eip155:${CHAIN_ID}/erc20:${USDC}`;
 const WORKFLOW_TAG = 'interai.track1.executable-candidate.v1';
+const WAK_WORKFLOW_TAG = 'wak.insight-priorseal.p1.v1';
 const BYTES32 = /^0x[0-9a-fA-F]{64}$/;
 const SIGNATURE = /^0x[0-9a-fA-F]{130}$/;
 
@@ -94,6 +95,7 @@ const CurrentRegistrySchema = z.object({
 interface Options {
   output: string;
   trustRootDir: string;
+  profile: 'interai' | 'wak-p1';
 }
 
 interface TemporaryApiKey {
@@ -113,10 +115,12 @@ function parseArgs(argv: string[]): Options {
   }
   const output = values.get('--output');
   const trustRootDir = values.get('--trust-root-dir');
+  const profile = values.get('--profile') ?? 'interai';
   assert(output, '--output is required');
   assert(trustRootDir, '--trust-root-dir is required');
-  assert(values.size === 2, 'only --output and --trust-root-dir are supported');
-  return { output: path.resolve(output), trustRootDir: path.resolve(trustRootDir) };
+  assert(profile === 'interai' || profile === 'wak-p1', 'unsupported profile');
+  assert(values.size === 2 || (values.size === 3 && values.has('--profile')), 'unsupported arguments');
+  return { output: path.resolve(output), trustRootDir: path.resolve(trustRootDir), profile };
 }
 
 async function fetchJson(url: string, init?: RequestInit): Promise<unknown> {
@@ -219,13 +223,13 @@ function supabaseRestJson(
   return JSON.parse(text) as unknown;
 }
 
-function createTemporaryApiKey(ownerId: string, expiresAt: string): TemporaryApiKey {
+function createTemporaryApiKey(ownerId: string, expiresAt: string, profile: Options['profile']): TemporaryApiKey {
   const plainKey = `ins_${randomBytes(32).toString('hex')}`;
   const keyHash = createHash('sha256').update(plainKey).digest('hex');
   const rows = z.array(z.object({ id: z.string() })).parse(
     supabaseRestJson('POST', 'api_keys', {
       user_id: ownerId,
-      name: 'InterAI Track 1 gate capture',
+      name: profile === 'wak-p1' ? 'WAK P1 gate capture' : 'InterAI Track 1 gate capture',
       key_hash: keyHash,
       key_prefix: plainKey.slice(0, 8),
       plan: 'enterprise',
@@ -249,7 +253,8 @@ function revokeTemporaryApiKey(keyId: string, ownerId: string): void {
 async function issueGate(
   apiKey: string,
   asset: 'WETH' | 'USDC',
-  destinationAsset: 'WETH' | 'USDC'
+  destinationAsset: 'WETH' | 'USDC',
+  profile: Options['profile']
 ): Promise<{ envelope: Envelope; requestId: string }> {
   const url = new URL(PRE_TRADE_URL);
   url.search = new URLSearchParams({
@@ -259,9 +264,9 @@ async function issueGate(
     tradeAmountUsd: String(DECLARED_AMOUNT_USD),
     schemaVersion: '3',
     destinationAsset,
-    workflowTag: WORKFLOW_TAG,
+    workflowTag: profile === 'wak-p1' ? WAK_WORKFLOW_TAG : WORKFLOW_TAG,
     baselineVerdict: 'allow',
-    baselineVersion: 'interai-track1-v2.1',
+    baselineVersion: profile === 'wak-p1' ? 'wak-insight-priorseal-p1' : 'interai-track1-v2.1',
   }).toString();
   const response = ApiResponseSchema.parse(
     await fetchJson(url.toString(), { headers: { 'X-API-Key': apiKey } })
@@ -338,7 +343,7 @@ async function fetchOrReadJson(url: string, fallbackPath: string): Promise<unkno
 }
 
 async function main(): Promise<void> {
-  const { output, trustRootDir } = parseArgs(process.argv.slice(2));
+  const { output, trustRootDir, profile } = parseArgs(process.argv.slice(2));
   mkdirSync(output, { recursive: false, mode: 0o700 });
 
   const ownerId = (process.env.OPS_OWNER_USER_IDS ?? '')
@@ -356,12 +361,12 @@ async function main(): Promise<void> {
   assert(registry.registryRelease.releaseId === current.releaseId, 'registry release ids differ');
 
   const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
-  const temporary = createTemporaryApiKey(ownerId, expiresAt);
+  const temporary = createTemporaryApiKey(ownerId, expiresAt, profile);
   let revokedAt: string | null = null;
   try {
     const [source, destination] = await Promise.all([
-      issueGate(temporary.plainKey, 'WETH', 'USDC'),
-      issueGate(temporary.plainKey, 'USDC', 'WETH'),
+      issueGate(temporary.plainKey, 'WETH', 'USDC', profile),
+      issueGate(temporary.plainKey, 'USDC', 'WETH', profile),
     ]);
     await Promise.all([
       validateGate('source', source.envelope, WETH_ID, USDC_ID, registry),
@@ -408,6 +413,8 @@ async function main(): Promise<void> {
       `expected two persisted audit rows, received ${audits?.length ?? 0}`
     );
     for (const audit of audits) {
+      assert(audit.workflow_tag === (profile === 'wak-p1' ? WAK_WORKFLOW_TAG : WORKFLOW_TAG), `audit ${audit.id} workflow mismatch`);
+      assert(audit.api_key_id === temporary.id, `audit ${audit.id} API key mismatch`);
       assert(audit.signed === true, `audit ${audit.id} is not marked signed`);
       assert(audit.verdict === 'PASS', `audit ${audit.id} verdict is not PASS`);
       assert(audit.schema_version === 3, `audit ${audit.id} schema is not v3`);
@@ -430,9 +437,9 @@ async function main(): Promise<void> {
     writeJson(path.join(output, 'oracle-registry-current.json'), currentRaw);
     writeJson(path.join(output, releaseFilename), releaseRaw);
     writeJson(path.join(output, 'audit-persistence-proof.json'), {
-      schema: 'insight.interai-track1.audit-persistence-proof.v1',
+      schema: profile === 'wak-p1' ? 'insight.wak-p1.audit-persistence-proof.v1' : 'insight.interai-track1.audit-persistence-proof.v1',
       capturedAt,
-      workflowTag: WORKFLOW_TAG,
+      workflowTag: profile === 'wak-p1' ? WAK_WORKFLOW_TAG : WORKFLOW_TAG,
       expectedProductionSigner: source.envelope.attester,
       sourceRequestId: source.requestId,
       destinationRequestId: destination.requestId,
@@ -444,7 +451,9 @@ async function main(): Promise<void> {
         expiresAt,
         secretIncluded: false,
       },
-      note: 'This temporary Insight API key is unrelated to the unexchanged InterAI pilot credential.',
+      note: profile === 'wak-p1'
+        ? 'The temporary Insight API key was revoked after this bounded WAK P1 capture.'
+        : 'This temporary Insight API key is unrelated to the unexchanged InterAI pilot credential.',
     });
   } finally {
     revokeTemporaryApiKey(temporary.id, ownerId);
@@ -469,6 +478,7 @@ async function main(): Promise<void> {
   });
   writeJson(path.join(output, 'capture-summary.json'), {
     status: 'PASS',
+    profile,
     chainId: CHAIN_ID,
     declaredAmountUsd: DECLARED_AMOUNT_USD,
     sourceAssetId: WETH_ID,
