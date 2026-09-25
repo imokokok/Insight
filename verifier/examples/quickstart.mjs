@@ -17,9 +17,9 @@
 
 /* eslint-disable no-console -- this executable example reports results to stdout */
 
+import { V1_DOMAIN, V1_PRIMARY_TYPE, V1_TYPES, verifyReceipt } from 'verify-insight-receipt';
 import { hashTypedData } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { V1_DOMAIN, V1_PRIMARY_TYPE, V1_TYPES, verifyReceipt } from 'verify-insight-receipt';
 
 const BASE = process.env.INSIGHT_BASE || 'https://www.oracleinsight.xyz';
 const WELL_KNOWN = `${BASE}/.well-known/oracle-keys.json`;
