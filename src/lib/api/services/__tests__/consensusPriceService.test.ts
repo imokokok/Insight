@@ -41,6 +41,20 @@ beforeEach(() => {
 });
 
 describe('resolveProvidersForSymbol', () => {
+  it('uses ETH oracle coverage as the price reference for canonical WETH', async () => {
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map<string, unknown[]>([
+        [OracleProvider.CHAINLINK, [{ symbol: 'ETH/USD', chain_id: 8453 }]],
+      ]),
+      errored: false,
+    });
+
+    const providers = await resolveProvidersForSymbol('WETH', Blockchain.BASE);
+
+    expect(providers).toContain(OracleProvider.CHAINLINK);
+    expect(isSymbolSupported).toHaveBeenCalledWith('ETH', Blockchain.BASE);
+  });
+
   it('does not treat another quote currency or another chain as registered USD coverage', async () => {
     getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
       feeds: new Map<string, unknown[]>([
