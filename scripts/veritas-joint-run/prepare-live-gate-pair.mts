@@ -11,16 +11,18 @@ import { z } from 'zod';
 import { verifyAttestationBySchema } from '@/lib/attestations/verifyAttestationBySchema';
 
 const RUN_ID = 'insight-veritas-2026-09-18';
-const WINDOW_START_MS = Date.parse('2026-09-23T12:00:00Z');
-const LAST_GATE_REQUEST_MS = Date.parse('2026-09-23T12:45:00Z');
-const WINDOW_END_MS = Date.parse('2026-09-23T13:00:00Z');
+const WINDOW_START_MS = Date.parse('2026-09-26T02:00:00Z');
+const LAST_GATE_REQUEST_MS = Date.parse('2026-09-26T02:44:00Z');
+const WINDOW_END_MS = Date.parse('2026-09-26T03:00:00Z');
 const EXPECTED_SELECTION_RULE_HASH =
   '0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a';
 const API_BASE_URL = 'https://www.oracleinsight.xyz';
+const ACTIVE_VERITAS_SET_ID = '0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db';
 const REGISTRY_URL = `${API_BASE_URL}/.well-known/oracle-keys.json`;
+const INTEGRATIONS_URL = `${API_BASE_URL}/.well-known/oracle-registry/integrations/current.json`;
 const PRE_TRADE_URL = `${API_BASE_URL}/api/v1/safety/pre-trade`;
 const EXECUTION_ISSUER_METADATA_PATH = '/api/v1/execution/attestation/verify';
-const DEFAULT_OUTPUT_ROOT = '/private/tmp/insight-veritas-2026-09-23';
+const DEFAULT_OUTPUT_ROOT = '/private/tmp/insight-veritas-2026-09-26-window-a';
 
 const BYTES32 = /^0x[0-9a-f]{64}$/;
 const SIGNATURE = /^0x[0-9a-f]{130}$/;
@@ -101,6 +103,11 @@ const ExecutionIssuerSchema = z.object({
     .passthrough(),
 });
 
+const CurrentIntegrationsSchema = z.object({
+  activationSetId: z.literal(ACTIVE_VERITAS_SET_ID),
+  activationVersion: z.literal(3),
+});
+
 interface Options {
   attempt: number;
   authorization: (typeof AUTHORIZATIONS)[number];
@@ -136,6 +143,10 @@ function parseArgs(argv: string[]): Options {
   const confirmRunId = values.get('--confirm-run-id');
   const executionReceiptBaseUrl = normalizeHttpsOrigin(
     values.get('--execution-receipt-base-url') ?? API_BASE_URL
+  );
+  assert(
+    executionReceiptBaseUrl === API_BASE_URL,
+    'this window requires the active Insight production v5 issuer'
   );
   const outputRoot = values.get('--output-root') ?? DEFAULT_OUTPUT_ROOT;
   const allowed = new Set([
@@ -180,13 +191,13 @@ function parseArgs(argv: string[]): Options {
 }
 
 function validateActivation(options: Options, nowMs: number): void {
-  assert(nowMs >= WINDOW_START_MS, 'REFUSE TO SIGN: the 12:00 UTC window has not opened');
+  assert(nowMs >= WINDOW_START_MS, 'REFUSE TO SIGN: the 02:00 UTC window has not opened');
   assert(nowMs < LAST_GATE_REQUEST_MS, 'REFUSE TO SIGN: the minute-44 last-gate cutoff has passed');
   assert(nowMs < WINDOW_END_MS, 'REFUSE TO SIGN: the joint-run window has ended');
 
   const receivedAtMs = Date.parse(options.authorizationReceivedAt);
   assert(
-    receivedAtMs >= Date.parse('2026-09-23T11:00:00Z'),
+    receivedAtMs >= Date.parse('2026-09-26T01:00:00Z'),
     'authorization predates run-day fresh checks'
   );
   assert(receivedAtMs <= nowMs + 5_000, 'authorization receipt time is in the future');
@@ -309,14 +320,21 @@ async function main(): Promise<void> {
     'INSIGHT_API_KEY must be set in the environment, never in arguments'
   );
 
-  const registry = RegistrySchema.parse(
-    await fetchJson(REGISTRY_URL, { headers: { Accept: 'application/json' } })
+  const [registry, currentIntegrations] = await Promise.all([
+    fetchJson(REGISTRY_URL, { headers: { Accept: 'application/json' } }).then((value) =>
+      RegistrySchema.parse(value)
+    ),
+    fetchJson(INTEGRATIONS_URL, {
+      headers: { Accept: 'application/json', 'Cache-Control': 'no-store' },
+    }).then((value) => CurrentIntegrationsSchema.parse(value)),
+  ]);
+  assert(
+    currentIntegrations.activationSetId === ACTIVE_VERITAS_SET_ID,
+    'REFUSE TO SIGN: VERITAS activation set changed'
   );
 
-  // The byte-agreed VERITAS r6 completion path is ExecutionReceipt v4. The
-  // current Insight production issuer is v5-only, so gate issuance must stop
-  // before creating live authorisation bytes unless an independently checked
-  // v4 issuer with a currently authorised production signer is reachable.
+  // Window A uses the explicitly activated v5 policy. Check the production
+  // issuer and the current registry before creating any live authorisation.
   const executionIssuer = ExecutionIssuerSchema.parse(
     await fetchJson(
       new URL(EXECUTION_ISSUER_METADATA_PATH, options.executionReceiptBaseUrl).toString(),
@@ -324,12 +342,12 @@ async function main(): Promise<void> {
     )
   ).data;
   assert(
-    executionIssuer.schemaVersion === 4,
-    `REFUSE TO SIGN: VERITAS r6 requires ExecutionReceipt v4, but ${options.executionReceiptBaseUrl} currently issues v${executionIssuer.schemaVersion}`
+    executionIssuer.schemaVersion === 5,
+    `REFUSE TO SIGN: the active VERITAS policy requires ExecutionReceipt v5, but ${options.executionReceiptBaseUrl} currently issues v${executionIssuer.schemaVersion}`
   );
   assert(
-    executionIssuer.supportedSchemaVersions.includes(4),
-    'REFUSE TO SIGN: the configured Execution Receipt issuer does not publish v4 support'
+    executionIssuer.supportedSchemaVersions.includes(5),
+    'REFUSE TO SIGN: the production Execution Receipt issuer does not publish v5 support'
   );
   assertRegistryAddressAuthorization(
     executionIssuer.attester,

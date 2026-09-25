@@ -1,0 +1,48 @@
+{
+  "schema": "insight-veritas-joint-run-window-plan/v1",
+  "sourceMessageId": "1a0d9e4838aa2ec1",
+  "selection": "A",
+  "selectionStatus": "SELECTED_BY_INSIGHT_AWAITING_EMAIL_DELIVERY_VERITAS_CONFIRMATION_AND_READY",
+  "windowStart": "2026-09-26T02:00:00Z",
+  "windowEnd": "2026-09-26T03:00:00Z",
+  "beijingStart": "2026-09-26T10:00:00+08:00",
+  "beijingEnd": "2026-09-26T11:00:00+08:00",
+  "runId": "insight-veritas-2026-09-18",
+  "attempts": [3, 4, 5, 6, 7],
+  "maximumFreshGatePairs": 5,
+  "targetCycleSeconds": 660,
+  "cutoffMinutes": {
+    "lastGateRequest": 44,
+    "noBitcoinBroadcastAfter": 47,
+    "attemptsConcludedBy": 55,
+    "recordsPublishedBy": 60
+  },
+  "cutoffsRequireWindowSpecificReadyReissue": true,
+  "productionPreflight": {
+    "requiredOnServingCommit": true,
+    "sourceAsset": "WETH",
+    "destinationAsset": "USDC",
+    "freshSignedGatePairRequired": true,
+    "selectedEventReceiptRequired": true,
+    "preflightReceiptDoesNotStartJointRun": true
+  },
+  "activationGates": {
+    "windowSpecificVeritasReadyRequired": true,
+    "windowMustBeOpenBeforeAttempt3": true,
+    "freshFundsRpcAndChainStateRequired": true,
+    "freshGatePairRequiredPerAttempt": true,
+    "explicitRetryRequestRequiredForAttempts4To7": true,
+    "previousReadyGateRetryOrCutoffReusable": false,
+    "noUsableSourceOrEndpointDisagreement": "FAIL_CLOSED"
+  },
+  "unchanged": [
+    "selection rule and first-match event",
+    "Bitcoin and Ethereum commitment preimages",
+    "600-second signed gate validity",
+    "Bitcoin confirmation before Ethereum ordering before settlement",
+    "outcome-independent publication",
+    "VERITAS submits both commitment legs",
+    "F12 remains open until a completed joint run",
+    "not a VERITAS integration or endorsement"
+  ]
+}
