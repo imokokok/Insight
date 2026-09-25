@@ -17,6 +17,10 @@
   HTTP/MCP schemas and an unsigned diagnostic SDK client.
 - Preserve all existing guard, Watch, coverage, receipt and partner semantics.
 
+## 0.4.1 — 2026-09-25
+
+- Move installation and API-key guidance to the top of the npm README and identify application-owned transaction submission. Published runtime files are unchanged from 0.4.0.
+
 ## 0.4.0 — 2026-09-20
 
 - Add deterministic coverage policy evaluation, canonical report hashing, EIP-712 verification and independently supplied signer/policy trust pins.

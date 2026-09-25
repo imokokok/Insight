@@ -6,12 +6,12 @@ Insight is an oracle transparency and risk infrastructure platform for DeFi. It 
 
 | Goal                                                                            | Guide                                                                                                              |
 | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Assess a proposed trade without handing Insight transaction control             | [Agent Guard SDK](sdk/README.md#non-intervening-assessment-and-verification) (`oracle-insight-guard` 0.4.0 on npm) |
-| Verify an existing receipt with your own trusted key configuration              | [Independent verifier](verifier/README.md) (`verify-insight-receipt` 0.2.0 on npm)                                 |
+| Assess a proposed trade without handing Insight transaction control             | [Agent Guard SDK](sdk/README.md#non-intervening-assessment-and-verification) (`oracle-insight-guard` 0.4.1 on npm) |
+| Verify an existing receipt with your own trusted key configuration              | [Independent verifier](verifier/README.md) (`verify-insight-receipt` 0.2.1 on npm)                                 |
 | Pair an Insight assessment with exact-call authorization and execution evidence | [PriorSeal example](https://github.com/imokokok/PriorSeal/tree/main/examples/web3-agent-kit-base-swap-v2)          |
 | Run the website and API locally                                                 | [Getting Started](#getting-started)                                                                                |
 
-The repository's verifier source is at **0.3.0**, while the latest npm release is **0.2.0**. ExecutionReceipt v5 support documented in the source README is not yet available through npm; use the published version's README for npm integrations. Insight assessment and PriorSeal authorization are also usable independently.
+The repository's verifier source is at **0.3.0**, while the latest npm release is **0.2.1**. ExecutionReceipt v5 support documented in the source README is not yet available through npm; use the published version's README for npm integrations. Insight assessment and PriorSeal authorization are also usable independently.
 
 **See through every oracle. Trust with clarity.**
 
@@ -158,7 +158,7 @@ if (result.code !== 'ok') {
 
 If a consumer explicitly wants to share anonymous verification outcomes, `reportVerification()` is a separate opt-in API. Insight does not use client-side verification calls as its primary usage metric. The reliable product metric is **evidence utilization**: the share of issued attestation UIDs that later appear as `execution_receipts.pre_trade_uid`. The read-only report script is [`verifier/scripts/evidence-utilization.mjs`](./verifier/scripts/evidence-utilization.mjs).
 
-The published 0.2.0 package supports pre-trade v1–v3 and ExecutionReceipt v1–v4. This checkout's unreleased 0.3.0 source also handles ExecutionReceipt v5 with an independently pinned semantic profile. Check the [verifier README](verifier/README.md#supported-schemas) and the version you actually install. Schema constants are guarded against production drift by `src/lib/attestations/__tests__/verifierParity.test.ts`.
+The published 0.2.1 package supports pre-trade v1–v3 and ExecutionReceipt v1–v4. This checkout's unreleased 0.3.0 source also handles ExecutionReceipt v5 with an independently pinned semantic profile. Check the [verifier README](verifier/README.md#supported-schemas) and the version you actually install. Schema constants are guarded against production drift by `src/lib/attestations/__tests__/verifierParity.test.ts`.
 
 **VRT1 (§8.6)** — Insight's OracleSafetyCheck is listed as a vendor action type in the VRT1 specification, as a pointer to our machine-readable scale declaration: https://github.com/Ifasola34/vrt1-spec/blob/main/registry/vendor-action-types.json. The declaration pins the per-field integer scale and both policy constants (`requiredParticipantCount`, `requiredSourceGroupCount`); at schema v3 both constants are also inside the signed struct, so the gates are checkable from the bytes alone. Listing records that the type exists, where its declaration is, and what those bytes hashed to. It is not an endorsement of Insight's verdicts, and it does not describe Insight's default traffic: schema v1 (11 fields, no gates) remains the service default and v3 is opt-in.
 

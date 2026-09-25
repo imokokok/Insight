@@ -21,10 +21,10 @@ The SDK is a client-side orchestration layer, not a local risk engine. It sends 
 ## Install
 
 ```bash
-npm install oracle-insight-guard@0.4.0
+npm install oracle-insight-guard@0.4.1
 ```
 
-This documentation targets the **published 0.4.0** package. The identical package is also available in the [official GitHub Release](https://github.com/imokokok/Insight/releases/tag/sdk-v0.4.0). Use the SDK from a trusted server or agent runtime; do not put an Insight API key in a browser bundle. The API-backed examples below require an API key and your own transaction builder or wallet. For a no-key verification path, start with the [standalone verifier](https://github.com/imokokok/Insight/tree/main/verifier).
+The latest npm release is **0.4.1**, a documentation-only patch with the same runtime files as the [0.4.0 GitHub Release](https://github.com/imokokok/Insight/releases/tag/sdk-v0.4.0). This repository workspace still declares 0.4.0 while its unreleased RWA additions are under development. Use the published SDK from a trusted server or agent runtime; do not put an Insight API key in a browser bundle. The API-backed examples below require an API key and your own transaction builder or wallet. For a no-key verification path, start with the [standalone verifier](https://github.com/imokokok/Insight/tree/main/verifier).
 
 The 0.4.0 release adds independently verified coverage readiness, execution-time rechecks, and PriorSeal coverage binding while retaining the diagnostics, freshness, and durable Watch APIs from 0.3.0.
 
@@ -404,4 +404,4 @@ budget view and warn before depletion; no recharge or fund execution is automati
 
 ## Workspace-only RWA additions
 
-The [opt-in RWA/tokenized-equity protocol](https://github.com/imokokok/Insight/blob/main/docs/rwa-v1.md) adds instrument-aware assessment and unsigned diagnostics without changing existing Agent/DeFi flows. These additions are **not in the published 0.4.0 package**. [RWA v2](https://github.com/imokokok/Insight/blob/main/docs/rwa-v2.md) adds `buildRwaReportV2`, `rwaV2SigningData`, `inspectRwaReportV2`, `decodeRwaCall`, and `assessRwaCallOutcome`; source and frozen signing vectors are pinned in CI. The optional [Robinhood issuer context](https://github.com/imokokok/Insight/blob/main/docs/rwa-robinhood.md) supplies first-party trading, corporate-action, and multiplier facts but does not count toward independent oracle quorum or authorize execution. The [MIC/FIGI instrument registry](https://github.com/imokokok/Insight/blob/main/docs/rwa-instrument-registry.md) is a separate identity gate and never counts as a price source.
+The [opt-in RWA/tokenized-equity protocol](https://github.com/imokokok/Insight/blob/main/docs/rwa-v1.md) adds instrument-aware assessment and unsigned diagnostics without changing existing Agent/DeFi flows. These additions are **not in the published 0.4.1 package**. [RWA v2](https://github.com/imokokok/Insight/blob/main/docs/rwa-v2.md) adds `buildRwaReportV2`, `rwaV2SigningData`, `inspectRwaReportV2`, `decodeRwaCall`, and `assessRwaCallOutcome`; source and frozen signing vectors are pinned in CI. The optional [Robinhood issuer context](https://github.com/imokokok/Insight/blob/main/docs/rwa-robinhood.md) supplies first-party trading, corporate-action, and multiplier facts but does not count toward independent oracle quorum or authorize execution. The [MIC/FIGI instrument registry](https://github.com/imokokok/Insight/blob/main/docs/rwa-instrument-registry.md) is a separate identity gate and never counts as a price source.
