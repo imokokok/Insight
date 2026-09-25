@@ -13,6 +13,7 @@ import type {
 
 import { TRANSFER_TOPIC } from '../events';
 import { collectExecutionFacts } from '../executionCollector';
+import { UNISWAP_V3_SWAP_TOPIC, VERITAS_POOL } from '../veritasSelectedSwap';
 
 const TAKER = '0x1111111111111111111111111111111111111111' as const;
 const SRC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const; // USDC-like (6dp)
@@ -54,6 +55,70 @@ function fakeClient(handlers: {
 const endpoints = ['https://example.invalid'];
 
 describe('collectExecutionFacts', () => {
+  it("prices the selected log instead of the taker's other swaps in the same transaction", async () => {
+    // Literal log 14 and gross taker transfers from rehearsal Attempt 1.
+    const txHash = '0x9da7b60ba897650547226d345427228c0cf982a15bdfd56263ad071e3637b537' as const;
+    const taker = '0xbdb3ba9ffe392549e1f8658dd2630c141fdf47b6' as const;
+    const receipt = {
+      transactionHash: txHash,
+      transactionIndex: '0x0',
+      blockHash: '0xblock',
+      blockNumber: '0x18d7c1c',
+      from: SENDER,
+      to: taker,
+      cumulativeGasUsed: '0x1',
+      gasUsed: '0x5208',
+      effectiveGasPrice: '0x3b9aca00',
+      status: '0x1',
+      contractAddress: null,
+      logs: [
+        transferLog(DST, taker, ROUTER, 28_929_014_650_879_988_864n),
+        transferLog(SRC, ROUTER, taker, 74_155_865_856n),
+        {
+          address: VERITAS_POOL,
+          topics: [
+            UNISWAP_V3_SWAP_TOPIC,
+            `0x${'0'.repeat(24)}${taker.slice(2)}`,
+            `0x${'0'.repeat(24)}${taker.slice(2)}`,
+          ],
+          data: '0xfffffffffffffffffffffffffffffffffffffffffffffffffffffff66e7a66de000000000000000000000000000000000000000000000000d3c7a277481470000000000000000000000000000000000000004b43c4ecad6e3418d8c1125917fb00000000000000000000000000000000000000000000000028cd275c49b42b4900000000000000000000000000000000000000000000000000000000000302d5',
+          blockNumber: '0x18d7c1c',
+          transactionHash: txHash,
+          logIndex: '0xe',
+        },
+      ],
+    } as RpcTransactionReceipt;
+    const client = fakeClient({ receipt, block: { timestamp: '0x6ab1a000' } });
+    (client.ethCall as jest.Mock).mockImplementation(
+      async (_key, _endpoints, token) =>
+        `0x${(token.toLowerCase() === SRC ? 6 : 18).toString(16).padStart(64, '0')}`
+    );
+    const common = {
+      txHash,
+      chainId: 1,
+      endpoints,
+      sourceAssetId: `eip155:1/erc20:${DST}`,
+      destinationAssetId: `eip155:1/erc20:${SRC}`,
+      taker,
+      client,
+    };
+    const aggregate = await collectExecutionFacts(common);
+    const selected = await collectExecutionFacts({ ...common, selectedSwapLogIndex: 14 });
+    expect(aggregate.ok && aggregate.facts.executedPrice).toBeCloseTo(2563.37337275, 8);
+    expect(selected.ok && selected.facts.executedPrice).toBeCloseTo(2693.00325992, 8);
+    if (!selected.ok) return;
+    expect(selected.facts.selectedEvent).toEqual({
+      logIndex: 14,
+      pool: VERITAS_POOL,
+      sourceRaw: '15260344495562321920',
+      destinationRaw: '41096157474',
+    });
+    for (const invalid of [13, 15, -1]) {
+      const result = await collectExecutionFacts({ ...common, selectedSwapLogIndex: invalid });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.code).toBe('SELECTED_EVENT_INVALID');
+    }
+  });
   it('attributes a two-leg ERC-20 swap and computes the executed price', async () => {
     const receipt: RpcTransactionReceipt = {
       transactionHash: '0xabc',

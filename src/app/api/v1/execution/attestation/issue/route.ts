@@ -68,6 +68,12 @@ const IssueBodySchema = z.object({
     .string()
     .regex(HEX32, 'txHash must be a 0x-prefixed 32-byte hex')
     .describe('Settlement transaction hash'),
+  selectedSwapLogIndex: z
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe('VERITAS pinned WETH/USDC rule: exact Uniswap V3 Swap logIndex in txHash'),
   taker: z
     .string()
     .regex(HEX_ADDRESS)
@@ -163,6 +169,7 @@ export const POST = createApiHandler<
       claimRole: body.claimRole,
       destinationPreTradeUid: (body.destinationPreTradeUid ?? null) as `0x${string}` | null,
       txHash: body.txHash as `0x${string}`,
+      selectedSwapLogIndex: body.selectedSwapLogIndex,
       taker: body.taker as `0x${string}` | undefined,
       preTradeAttestations: body.preTradeAttestations
         ? {
@@ -183,7 +190,9 @@ export const POST = createApiHandler<
               : result.code === 'PRE_TRADE_VERIFICATION_FAILED'
                 ? 400
                 : result.code === 'UNSUPPORTED_CROSS_CHAIN' ||
-                    result.code === 'UNCOMMITTED_EXECUTION_POLICY'
+                    result.code === 'UNCOMMITTED_EXECUTION_POLICY' ||
+                    result.code === 'INVALID_QUOTE_BASIS' ||
+                    result.code === 'SELECTED_EVENT_INVALID'
                   ? 400
                   : 502;
       return NextResponse.json(
@@ -227,6 +236,7 @@ export const POST = createApiHandler<
             result.receipt.data.priceExecutionStatus ?? result.receipt.data.executionStatus,
           bindingMode: result.receipt.data.bindingMode,
           binding: result.binding,
+          selectedEvent: result.facts.selectedEvent ?? null,
           note: `Freshly signed ExecutionReceipt v${result.receipt.schemaVersion}. Its verdict (signed as ${
             result.receipt.schemaVersion >= 3 ? 'priceExecutionStatus' : 'executionStatus'
           }) is Insight's statement on whether the fill matched the certified price within the signed band — never a claim the price was correct.`,

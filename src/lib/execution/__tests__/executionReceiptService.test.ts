@@ -205,6 +205,19 @@ describe('issueExecutionReceipt', () => {
     expect(result.receipt.data.priceExecutionStatus).toBe('FAITHFUL');
     expect(result.receipt.data.preTradeUid).toBe(baseArgs.preTradeUid);
     expect(result.receipt.data.slippageSatisfied).toBe(true);
+    expect(result.receipt.data.quoteBasis).toBe('ORACLE_CONSENSUS');
+    expect(result.receipt.data.quoteBlockNumber).toBe(0);
+  });
+
+  it('rejects a pool-close label and block number on a verified gate cross-rate', async () => {
+    const result = await issueExecutionReceipt({
+      ...baseArgs,
+      quoteBasis: 'PREV_BLOCK_CLOSE',
+      quoteBlockNumber: 26_049_577,
+      client: fakeClient(swapReceipt(1000n * 10n ** 6n, 4n * 10n ** 17n)),
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe('INVALID_QUOTE_BASIS');
   });
 
   it('issues historical evidence after gate expiry when the settlement block was inside the window', async () => {
