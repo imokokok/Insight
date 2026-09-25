@@ -14,6 +14,7 @@ import type {
 
 import { TRANSFER_TOPIC } from '../events';
 import { issueExecutionReceipt } from '../executionReceiptService';
+import { UNISWAP_V3_SWAP_TOPIC, VERITAS_POOL } from '../veritasSelectedSwap';
 
 // Isolate signing from the ambient attester key. The receipt unit tests delete
 // ATTESTATION_SIGNER_PRIVATE_KEY in a shared jest worker, which poisons the
@@ -205,13 +206,54 @@ describe('issueExecutionReceipt', () => {
     expect(result.receipt.data.priceExecutionStatus).toBe('FAITHFUL');
     expect(result.receipt.data.preTradeUid).toBe(baseArgs.preTradeUid);
     expect(result.receipt.data.slippageSatisfied).toBe(true);
-    expect(result.receipt.data.quoteBasis).toBe('ORACLE_CONSENSUS');
-    expect(result.receipt.data.quoteBlockNumber).toBe(0);
+    expect(result.receipt.data.quoteBasis).toBe('UNSPECIFIED');
   });
 
-  it('rejects a pool-close label and block number on a verified gate cross-rate', async () => {
+  it('prices selected log 14 and signs the two-gate cross-rate label', async () => {
+    const txHash = '0x9da7b60ba897650547226d345427228c0cf982a15bdfd56263ad071e3637b537' as const;
+    const eventSender = '0xbdb3ba9ffe392549e1f8658dd2630c141fdf47b6' as const;
+    const receipt = swapReceipt(0n, 0n);
+    receipt.transactionHash = txHash;
+    receipt.blockNumber = '0x18d7c1c';
+    receipt.to = eventSender;
+    receipt.logs = [
+      {
+        address: VERITAS_POOL,
+        topics: [
+          UNISWAP_V3_SWAP_TOPIC,
+          `0x${'0'.repeat(24)}${eventSender.slice(2)}`,
+          `0x${'0'.repeat(24)}${eventSender.slice(2)}`,
+        ],
+        data: '0xfffffffffffffffffffffffffffffffffffffffffffffffffffffff66e7a66de000000000000000000000000000000000000000000000000d3c7a277481470000000000000000000000000000000000000004b43c4ecad6e3418d8c1125917fb00000000000000000000000000000000000000000000000028cd275c49b42b4900000000000000000000000000000000000000000000000000000000000302d5',
+        blockNumber: '0x18d7c1c',
+        transactionHash: txHash,
+        logIndex: '0xe',
+      },
+    ];
     const result = await issueExecutionReceipt({
       ...baseArgs,
+      sourceAssetId: `eip155:1/erc20:${DST}`,
+      destinationAssetId: `eip155:1/erc20:${SRC}`,
+      quotedPrice: 2695.80162136,
+      txHash,
+      taker: eventSender,
+      selectedSwapLogIndex: 14,
+      claimRole: 'THIRD_PARTY_OBSERVATION',
+      client: fakeClient(receipt),
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.receipt.data.executedPrice).toBe(269300325992);
+    expect(result.receipt.data.priceExecutionStatus).toBe('FAITHFUL');
+    expect(result.receipt.data.quoteBasis).toBe('ORACLE_CONSENSUS');
+    expect(result.receipt.data.quoteBlockNumber).toBe(0);
+    expect(result.facts.selectedEvent?.logIndex).toBe(14);
+  });
+
+  it('rejects a pool-close label and block number on the selected-event cross-rate', async () => {
+    const result = await issueExecutionReceipt({
+      ...baseArgs,
+      selectedSwapLogIndex: 14,
       quoteBasis: 'PREV_BLOCK_CLOSE',
       quoteBlockNumber: 26_049_577,
       client: fakeClient(swapReceipt(1000n * 10n ** 6n, 4n * 10n ** 17n)),
