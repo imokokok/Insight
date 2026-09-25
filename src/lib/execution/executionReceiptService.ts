@@ -60,6 +60,8 @@ export type IssueExecutionReceiptErrorCode =
   | 'SIGNING_UNAVAILABLE'
   | 'UNSUPPORTED_CROSS_CHAIN'
   | 'UNCOMMITTED_EXECUTION_POLICY'
+  | 'INVALID_QUOTE_BASIS'
+  | 'SELECTED_EVENT_INVALID'
   /** A pre-trade attestation was presented but did not verify. Never downgraded
    *  to a weaker receipt: claiming a provenance you cannot prove is a rejection,
    *  not a lesser product. */
@@ -139,6 +141,8 @@ export interface IssueExecutionReceiptParams {
   txHash: `0x${string}`;
   /** Address whose balances define the trade. Defaults to the tx sender. */
   taker?: `0x${string}`;
+  /** Exact logIndex chosen by the precommitted VERITAS WETH/USDC rule. */
+  selectedSwapLogIndex?: number;
 
   signal?: AbortSignal;
   /** Injectable for tests. Defaults to a fresh client. */
@@ -277,6 +281,37 @@ export async function issueExecutionReceipt(
   }
   const binding = bindingResult.binding;
 
+  // A VERIFIED quote is always the source gate consensus divided by the
+  // destination gate consensus. Neither gate quote is a pool-block close, so
+  // there is no single quote block number or known pool-state age to sign.
+  if (
+    binding.bindingMode === 'VERIFIED' &&
+    ((params.quoteBasis !== undefined && params.quoteBasis !== 'ORACLE_CONSENSUS') ||
+      (params.quoteBlockNumber ?? 0) !== 0 ||
+      (params.priceStateAgeAtExecSeconds ?? 0) !== 0)
+  ) {
+    return {
+      ok: false,
+      code: 'INVALID_QUOTE_BASIS',
+      message:
+        'VERIFIED gate cross-rate quotes require quoteBasis=ORACLE_CONSENSUS, quoteBlockNumber=0 and priceStateAgeAtExecSeconds=0 (not a pool-block close).',
+    };
+  }
+  if (params.selectedSwapLogIndex !== undefined && binding.bindingMode !== 'VERIFIED') {
+    return {
+      ok: false,
+      code: 'PRE_TRADE_VERIFICATION_FAILED',
+      message: 'Rule-selected event pricing requires both verified pre-trade gate originals.',
+    };
+  }
+  if (params.selectedSwapLogIndex !== undefined && params.claimRole === 'FIRST_PARTY_EXECUTION') {
+    return {
+      ok: false,
+      code: 'SELECTED_EVENT_INVALID',
+      message: 'A public rule-selected pool event must use THIRD_PARTY_OBSERVATION.',
+    };
+  }
+
   // A VERIFIED receipt may only use the system policy that existed before the
   // fill. A caller-selected post-settlement band is not evidence of compliance.
   if (
@@ -302,6 +337,7 @@ export async function issueExecutionReceipt(
     sourceAssetId: binding.sourceAssetId,
     destinationAssetId: binding.destinationAssetId,
     taker: params.taker,
+    selectedSwapLogIndex: params.selectedSwapLogIndex,
     signal: params.signal,
     client: params.client,
   });
@@ -370,9 +406,10 @@ export async function issueExecutionReceipt(
     executedPrice: facts.executedPrice ?? 0,
     maxSlippageBps,
     quoteVenueIndependent: params.quoteVenueIndependent,
-    quoteBasis: params.quoteBasis,
-    quoteBlockNumber: params.quoteBlockNumber,
-    priceStateAgeAtExecSeconds: params.priceStateAgeAtExecSeconds,
+    quoteBasis: binding.bindingMode === 'VERIFIED' ? 'ORACLE_CONSENSUS' : params.quoteBasis,
+    quoteBlockNumber: binding.bindingMode === 'VERIFIED' ? 0 : params.quoteBlockNumber,
+    priceStateAgeAtExecSeconds:
+      binding.bindingMode === 'VERIFIED' ? 0 : params.priceStateAgeAtExecSeconds,
     quotedAmountUsd: params.quotedAmountUsd ?? 0,
     executedAmountUsd: params.executedAmountUsd ?? 0,
     actualFeeUsd: params.actualFeeUsd ?? 0,
