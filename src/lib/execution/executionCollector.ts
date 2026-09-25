@@ -62,10 +62,10 @@ export interface ExecutionFacts {
   /** Block timestamp, unix seconds. Null when the block could not be read;
    *  `blockNumber` remains the authoritative anchor in that case. */
   executedAt: number | null;
-  /** The address whose balance changes define this settlement: the
-   *  caller-supplied taker when given, else the transaction sender — read from
-   *  chain, never guessed. Null only when the receipt carried no sender.
-   *  Signed as v3's `taker` (and the default `subject`). */
+  /** For aggregate attribution, the address whose token transfers define the
+   *  fill. For selected-event pricing, the indexed Swap sender that called the
+   *  pinned pool; the signed price measures that pool event, not the sender's
+   *  whole transaction. Signed as v3's `taker` and default `subject`. */
   taker: `0x${string}` | null;
   /** Machine-readable reason the price is unavailable, when it is. */
   unavailableReason: 'FILL_PRICE_UNAVAILABLE' | 'NATIVE_ASSET_LEG' | 'PRICE_NOT_ATTRIBUTED' | null;

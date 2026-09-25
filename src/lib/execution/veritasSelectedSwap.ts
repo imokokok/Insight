@@ -71,7 +71,11 @@ export function priceVeritasSelectedSwap(
       log.data
     );
     if (amount0 >= 0n || amount1 < MIN_WETH_RAW) return null;
-    if (!/^0x[0-9a-fA-F]{64}$/.test(log.topics[1] ?? '')) return null;
+    if (
+      !/^0x[0-9a-fA-F]{64}$/.test(log.topics[1] ?? '') ||
+      !/^0x[0-9a-fA-F]{64}$/.test(log.topics[2] ?? '')
+    )
+      return null;
     const sender = `0x${log.topics[1]!.slice(-40).toLowerCase()}` as `0x${string}`;
     const sourceRaw = amount1;
     const destinationRaw = -amount0;

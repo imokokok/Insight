@@ -393,9 +393,8 @@ export async function issueExecutionReceipt(
     preTradeValidUntil: binding.preTradeValidUntil,
     bindingMode: binding.bindingMode,
     claimRole: params.claimRole,
-    // The signed taker is whoever the chain says moved the balances. The
-    // collector prefers a caller-supplied taker for attribution but falls back
-    // to the transaction sender; null only when the receipt had no sender.
+    // In selected-event mode the collector uses the indexed pool Swap sender;
+    // otherwise it uses the address whose transfers were attributed.
     taker: facts.taker ?? undefined,
     sourceAssetId: binding.sourceAssetId,
     destinationAssetId: binding.destinationAssetId,

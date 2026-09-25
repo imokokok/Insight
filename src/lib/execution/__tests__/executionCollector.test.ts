@@ -118,6 +118,17 @@ describe('collectExecutionFacts', () => {
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.code).toBe('SELECTED_EVENT_INVALID');
     }
+    const wrongPoolReceipt = {
+      ...receipt,
+      logs: receipt.logs.map((log) => (log.logIndex === '0xe' ? { ...log, address: ROUTER } : log)),
+    };
+    const wrongPool = await collectExecutionFacts({
+      ...common,
+      selectedSwapLogIndex: 14,
+      client: fakeClient({ receipt: wrongPoolReceipt }),
+    });
+    expect(wrongPool.ok).toBe(false);
+    if (!wrongPool.ok) expect(wrongPool.code).toBe('SELECTED_EVENT_INVALID');
   });
   it('attributes a two-leg ERC-20 swap and computes the executed price', async () => {
     const receipt: RpcTransactionReceipt = {
