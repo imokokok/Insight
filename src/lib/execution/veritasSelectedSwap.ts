@@ -82,6 +82,7 @@ export function priceVeritasSelectedSwap(
     // (USDC / 1e6) / (WETH / 1e18), then round half-up at scale 1e8.
     const numerator = destinationRaw * 10n ** 20n;
     const scaled = (numerator + sourceRaw / 2n) / sourceRaw;
+    if (scaled > BigInt(Number.MAX_SAFE_INTEGER)) return null;
     const executedPrice = Number(scaled) / 1e8;
     if (!Number.isFinite(executedPrice) || executedPrice <= 0) return null;
     return {
