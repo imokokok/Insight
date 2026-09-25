@@ -6,6 +6,9 @@ WETH/USDC gate-to-selected-event-receipt check is
 `preflight-v5-selected-event.mts`. `prepare-live-gate-pair.mts` is now pinned to
 the proposed 02:00–03:00 UTC window and the explicitly activated v5 issuer.
 It still requires a fresh window-specific READY and does not pre-sign gates.
+The live operator can create and revoke a temporary production API key from
+`.env.local` if no existing `INSIGHT_API_KEY` is supplied, and refuses any
+gate whose verdict is not `PASS`.
 The older window-2 plan and operator card remain historical records.
 
 This directory closes F17 and N19 through N22 and pins the confirmed run-day procedure before the

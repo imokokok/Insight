@@ -9,6 +9,8 @@ import { concat, getAddress, isAddress, keccak256 } from 'viem';
 import { z } from 'zod';
 
 import { verifyAttestationBySchema } from '@/lib/attestations/verifyAttestationBySchema';
+import { createApiKeyForUser, revokeApiKey } from '@/lib/api/apiKey';
+import { createServiceRoleClient } from '@/lib/supabase/server';
 
 const RUN_ID = 'insight-veritas-2026-09-18';
 const WINDOW_START_MS = Date.parse('2026-09-26T02:00:00Z');
@@ -255,6 +257,15 @@ function validateRole(
   expectedSource: string,
   expectedDestination: string
 ): void {
+  assert(envelope.data.verdict === 'PASS', `${name} gate verdict is ${envelope.data.verdict}`);
+  assert(
+    envelope.data.participantCount >= envelope.data.requiredParticipantCount,
+    `${name} gate lacks required participants`
+  );
+  assert(
+    envelope.data.sourceGroupCount >= envelope.data.requiredSourceGroupCount,
+    `${name} gate lacks required source groups`
+  );
   assert(envelope.data.sourceAssetId === expectedSource, `${name} sourceAssetId mismatch`);
   assert(
     envelope.data.destinationAssetId === expectedDestination,
@@ -265,6 +276,44 @@ function validateRole(
     envelope.validUntil === envelope.data.checkedAt + envelope.validForSeconds,
     `${name} validity interval is not exactly 600 seconds`
   );
+}
+
+async function issueFreshGatePair(options: Options): Promise<[Envelope, Envelope]> {
+  const configuredKey = process.env.INSIGHT_API_KEY;
+  if (configuredKey !== undefined) {
+    assert(configuredKey.startsWith('ins_'), 'INSIGHT_API_KEY has the wrong format');
+    validateActivation(options, Date.now());
+    return Promise.all([
+      issueGate(configuredKey, 'WETH', 'USDC'),
+      issueGate(configuredKey, 'USDC', 'WETH'),
+    ]);
+  }
+
+  const ownerId = (process.env.OPS_OWNER_USER_IDS ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .find(Boolean);
+  assert(ownerId, 'OPS_OWNER_USER_IDS is required for a temporary live gate API key');
+  const temporary = await createApiKeyForUser(ownerId, 'VERITAS window A live gate pair', {
+    plan: 'enterprise',
+    expiresAt: new Date(Date.now() + 30 * 60_000).toISOString(),
+  });
+  try {
+    validateActivation(options, Date.now());
+    return await Promise.all([
+      issueGate(temporary.plainKey, 'WETH', 'USDC'),
+      issueGate(temporary.plainKey, 'USDC', 'WETH'),
+    ]);
+  } finally {
+    await revokeApiKey(temporary.record.id, ownerId);
+    const client = createServiceRoleClient();
+    const { data, error } = await client
+      .from('api_keys')
+      .select('is_active')
+      .eq('id', temporary.record.id)
+      .single();
+    assert(!error && data?.is_active === false, 'temporary live gate API key revocation failed');
+  }
 }
 
 function assertRegistryAddressAuthorization(
@@ -314,12 +363,6 @@ async function main(): Promise<void> {
   const startedAtMs = Date.now();
   validateActivation(options, startedAtMs);
 
-  const apiKey = process.env.INSIGHT_API_KEY;
-  assert(
-    apiKey?.startsWith('ins_'),
-    'INSIGHT_API_KEY must be set in the environment, never in arguments'
-  );
-
   const [registry, currentIntegrations] = await Promise.all([
     fetchJson(REGISTRY_URL, { headers: { Accept: 'application/json' } }).then((value) =>
       RegistrySchema.parse(value)
@@ -360,10 +403,7 @@ async function main(): Promise<void> {
   // The selection rule is explicitly WETH -> USDC in the Uniswap V3 ERC-20
   // pool. Native ETH is a different CAIP-19 asset and cannot be substituted:
   // the execution collector must be able to attribute the same signed legs.
-  const [sourceEnvelope, destinationEnvelope] = await Promise.all([
-    issueGate(apiKey, 'WETH', 'USDC'),
-    issueGate(apiKey, 'USDC', 'WETH'),
-  ]);
+  const [sourceEnvelope, destinationEnvelope] = await issueFreshGatePair(options);
 
   const WETH = 'eip155:1/erc20:0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
   const USDC = 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
