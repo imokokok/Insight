@@ -1,23 +1,31 @@
 # verify-insight-receipt
 
-Verify Insight oracle-safety receipts on your own machine.
+Verify Insight oracle-safety receipts on your own machine. The verification functions make no network call and need no API key. They check signed bytes and report key status only relative to a registry you supply; you must establish the issuer key and any semantic policy trust independently.
 
-No network call. No API key. No dependency on Insight being online, reachable,
-or still in business. Given a receipt JSON, this library tells you whether it
-is genuine using nothing but public-key cryptography.
+This checkout contains **0.3.0 source**. The latest npm release is **0.2.0**, which does not include the v5 execution profile support described below. Check the version you install before integrating v5 receipts.
 
 ```bash
 npm install verify-insight-receipt
 ```
 
-**Try it now.** See the whole chain run in one command — fetch a live signed
-receipt from Insight's public endpoint, then verify it on your own machine with
-no API key and no trust in Insight:
+**Offline smoke test.** This command creates a synthetic v1 receipt with a throwaway key and verifies its signature without network access, a wallet, or an API key. It proves the verifier runs; it does not prove that a production Insight key is trusted:
+
+```bash
+git clone https://github.com/imokokok/Insight.git
+cd Insight
+npm install --prefix verifier
+npm run build --prefix verifier
+node verifier/examples/quickstart.mjs --offline
+```
+
+The `--offline` option is in this checkout's 0.3.0 example; it is not in the published 0.2.0 package.
+
+**Live demo.** With network access, the default command fetches a signed sample receipt and the registry from Insight, then verifies the bytes locally. The sample key is distinct from the production attester. Fetching both inputs from Insight does not independently authenticate the registry:
 
 ```bash
 node node_modules/verify-insight-receipt/examples/quickstart.mjs
 # or from this repo, after npm install:
-node examples/quickstart.mjs
+node verifier/examples/quickstart.mjs
 ```
 
 ```ts
@@ -38,6 +46,8 @@ const loop = await verifyExecutionPair(sourcePreTrade, executionReceipt, destina
 if (!loop.pairedValid) throw new Error(loop.reason);
 ```
 
+The TypeScript snippet assumes that your application has already obtained `receipt`, `executionReceipt`, `sourcePreTrade`, `destinationPreTrade`, and an independently confirmed `keyRegistry`. It is an integration outline, not a standalone program.
+
 ---
 
 ## What this does and does not do
@@ -49,9 +59,7 @@ the receipt's own validity deadline. For execution pairs it additionally checks
 production-key roles, PASS/CAUTION authorisation, exact gate/asset/action/chain
 bindings, and whether settlement happened inside both signed gate windows.
 
-**Does not:** hold a signing key, read an environment variable, or make an
-outbound request. This is not a configuration default — it is a property of the
-code. There is no signing path in this package at all.
+**Verification functions do not:** hold a signing key, read an environment variable, or make an outbound request. The optional live example fetches inputs, and the explicit `reportVerification()` function sends a report if called. The offline example signs a synthetic receipt with a throwaway test key.
 
 **Does not mean:** that Insight endorsed the trade. A receipt attests to what
 Insight's oracle checks observed at a moment in time. It is evidence, not
@@ -142,8 +150,7 @@ recheck would fail UID recovery.
 
 ## Key registry
 
-Pass the document published at `/.well-known/oracle-keys.json` to have the
-signer's trust window evaluated:
+Pass a registry whose origin and contents you have independently confirmed to have the signer's trust window evaluated. The following fetch is useful for discovery, but on its own does not establish issuer trust:
 
 ```ts
 const registry = await fetch('https://www.oracleinsight.xyz/.well-known/oracle-keys.json').then(
@@ -154,8 +161,7 @@ const result = await verifyReceipt(receipt, { keyRegistry: registry });
 // result.keyStatus: 'valid' | 'unknown_key' | 'revoked' | 'outside_window' | 'not_checked'
 ```
 
-Omit it and `keyStatus` is `not_checked`. The library never fetches anything on
-its own.
+Omit it and `keyStatus` is `not_checked`. Verification functions never fetch it for you. `keyStatus: 'valid'` is relative to the registry you supplied; it is not proof that the registry itself is authentic.
 
 ---
 

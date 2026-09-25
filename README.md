@@ -1,15 +1,17 @@
 # Insight — Oracle Transparency & Risk Infrastructure
 
-[Unreleased, opt-in RWA/tokenized-equity adaptation](docs/rwa-v1.md) supplements
-the existing Agent/DeFi capabilities; no production RWA signer or authorization policy is
-activated. The optional [Robinhood Stock Token issuer context](docs/rwa-robinhood.md) is a live,
-read-only first-party data surface and is explicitly excluded from independent oracle quorum.
-The [MIC/FIGI instrument registry](docs/rwa-instrument-registry.md) adds pinned, fail-closed RWA
-identity admission without changing the signed protocol or treating master data as a price source.
-The [RWA v2 hardening](docs/rwa-v2.md) adds linked semantic assessments and receiver
-eligibility while preserving the v1 signing contract.
-
 Insight is an oracle transparency and risk infrastructure platform for DeFi. It tracks prices across **10 oracle providers and 40+ blockchain networks** — and turns that cross-oracle data into a **decision-grade safety check** that AI agents run before touching on-chain money, plus an **always-on cross-oracle trust signal (Oracle Watch)** that keeps running strategies safe between trades.
+
+## Start here
+
+| Goal                                                                            | Guide                                                                                                              |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Assess a proposed trade without handing Insight transaction control             | [Agent Guard SDK](sdk/README.md#non-intervening-assessment-and-verification) (`oracle-insight-guard` 0.4.0 on npm) |
+| Verify an existing receipt with your own trusted key configuration              | [Independent verifier](verifier/README.md) (`verify-insight-receipt` 0.2.0 on npm)                                 |
+| Pair an Insight assessment with exact-call authorization and execution evidence | [PriorSeal example](https://github.com/imokokok/PriorSeal/tree/main/examples/web3-agent-kit-base-swap-v2)          |
+| Run the website and API locally                                                 | [Getting Started](#getting-started)                                                                                |
+
+The repository's verifier source is at **0.3.0**, while the latest npm release is **0.2.0**. ExecutionReceipt v5 support documented in the source README is not yet available through npm; use the published version's README for npm integrations. Insight assessment and PriorSeal authorization are also usable independently.
 
 **See through every oracle. Trust with clarity.**
 
@@ -17,6 +19,7 @@ Insight is an oracle transparency and risk infrastructure platform for DeFi. It 
 
 ## Table of Contents
 
+- [Start here](#start-here)
 - [The Flagship: Pre-Trade Oracle Safety Check](#the-flagship-pre-trade-oracle-safety-check)
 - [Agent Guard SDK](#agent-guard-sdk)
 - [Independent Receipt Verification](#independent-receipt-verification)
@@ -31,6 +34,7 @@ Insight is an oracle transparency and risk infrastructure platform for DeFi. It 
 - [API Access](#api-access)
 - [AI Agent Integration (MCP Server)](#ai-agent-integration-mcp-server)
 - [Data Pipeline](#data-pipeline)
+- [Workspace-only RWA research](#workspace-only-rwa-research)
 
 ## The Flagship: Pre-Trade Oracle Safety Check
 
@@ -61,7 +65,7 @@ Agents must not execute when the verdict is DANGER or BLOCK. Every successfully 
 
 ### Verifiable attestations
 
-When an attester key is configured, a check can carry a signed receipt that anyone can verify without trusting Insight. The public verify endpoint checks the signature against the published attester key, routes by the attestation's own schemaVersion, and at schema v3 both safety gates are recomputable from the bytes alone because both policy constants are inside the signed struct.
+When an attester key is configured, a check can carry a signed receipt. A reviewer can recompute the signature and signed fields locally, but must establish trust in the attester key independently. The public verify endpoint checks the signature against the published attester key, routes by the attestation's own schemaVersion, and at schema v3 both safety gates are recomputable from the bytes alone because both policy constants are inside the signed struct.
 
 Every check can be signed as an **EIP-712 offchain attestation** — a portable, gasless, tamper-evident proof that "Insight verified oracle state for this trade at time T". Agents relay it in tx memo / calldata / logs so users and protocols can recognize the agent ran the oracle immune-system check.
 
@@ -128,7 +132,7 @@ See [`sdk/README.md`](./sdk/README.md) for the package API, or visit [`/sdk`](ht
 
 For integrations that should not depend on Insight being online, the repository also ships a standalone verifier package in [`verifier/`](./verifier/). It can be published or copied into a separate consumer repository without importing the Next.js app.
 
-**Live in-browser verifier —** the deployed site hosts a zero-trust demo at [`/verify`](https://www.oracleinsight.xyz/verify). It fetches a public sample receipt and the published `/.well-known/oracle-keys.json` registry, then re-verifies the EIP-712 signature entirely in your browser with `verify-insight-receipt`. No server, no API key, no trust in Insight — the verdict is computed on the client and never sent back.
+**Live in-browser verifier —** the deployed site hosts a demo at [`/verify`](https://www.oracleinsight.xyz/verify). It fetches a public sample receipt and the published `/.well-known/oracle-keys.json` registry, then recomputes the EIP-712 signature in your browser with `verify-insight-receipt`. The demo needs network access to obtain those inputs. For an independent trust decision, confirm the key registry through a source you trust; fetching a registry from the same site as the receipt alone does not establish key provenance.
 
 **Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt)
 [![verify-insight-receipt npm version](https://img.shields.io/npm/v/verify-insight-receipt?label=npm)](https://www.npmjs.com/package/verify-insight-receipt).
@@ -150,11 +154,11 @@ if (result.code !== 'ok') {
 }
 ```
 
-`verifyReceipt()` performs EIP-712 verification locally with no API key, database, environment variable, or default network call. Pass the published `/.well-known/oracle-keys.json` document when the consumer also wants attester key-window status. Verification is not endorsement: a valid receipt proves that the signed bytes were issued by the listed signer and were not modified; it does not prove that the underlying trade or verdict was correct.
+`verifyReceipt()` performs EIP-712 verification locally with no API key, database, environment variable, or default network call. Pass an independently confirmed key registry when the consumer also wants attester key-window status. Verification is not endorsement: a valid receipt proves that the signed bytes were issued by the listed signer and were not modified; it does not prove that the signer is trustworthy or that the underlying trade or verdict was correct.
 
 If a consumer explicitly wants to share anonymous verification outcomes, `reportVerification()` is a separate opt-in API. Insight does not use client-side verification calls as its primary usage metric. The reliable product metric is **evidence utilization**: the share of issued attestation UIDs that later appear as `execution_receipts.pre_trade_uid`. The read-only report script is [`verifier/scripts/evidence-utilization.mjs`](./verifier/scripts/evidence-utilization.mjs).
 
-The package supports v1, v2, v3, and v2/v3 recheck receipts. Its schema constants are guarded against production drift by `src/lib/attestations/__tests__/verifierParity.test.ts`.
+The published 0.2.0 package supports pre-trade v1–v3 and ExecutionReceipt v1–v4. This checkout's unreleased 0.3.0 source also handles ExecutionReceipt v5 with an independently pinned semantic profile. Check the [verifier README](verifier/README.md#supported-schemas) and the version you actually install. Schema constants are guarded against production drift by `src/lib/attestations/__tests__/verifierParity.test.ts`.
 
 **VRT1 (§8.6)** — Insight's OracleSafetyCheck is listed as a vendor action type in the VRT1 specification, as a pointer to our machine-readable scale declaration: https://github.com/Ifasola34/vrt1-spec/blob/main/registry/vendor-action-types.json. The declaration pins the per-field integer scale and both policy constants (`requiredParticipantCount`, `requiredSourceGroupCount`); at schema v3 both constants are also inside the signed struct, so the gates are checkable from the bytes alone. Listing records that the type exists, where its declaration is, and what those bytes hashed to. It is not an endorsement of Insight's verdicts, and it does not describe Insight's default traffic: schema v1 (11 fields, no gates) remains the service default and v3 is opt-in.
 
@@ -475,3 +479,14 @@ response, and application rollback process are in
 ## Integration reliability
 
 See the [integration and recovery runbook](docs/operations/integration-reliability.md) for the integration doctor, durable Watch state, billing reconciliation and source-latency diagnostics.
+
+## Workspace-only RWA research
+
+[Unreleased, opt-in RWA/tokenized-equity adaptation](docs/rwa-v1.md) supplements
+the existing Agent/DeFi capabilities; no production RWA signer or authorization policy is
+activated. The optional [Robinhood Stock Token issuer context](docs/rwa-robinhood.md) is a live,
+read-only first-party data surface and is explicitly excluded from independent oracle quorum.
+The [MIC/FIGI instrument registry](docs/rwa-instrument-registry.md) adds pinned, fail-closed RWA
+identity admission without changing the signed protocol or treating master data as a price source.
+The [RWA v2 hardening](docs/rwa-v2.md) adds linked semantic assessments and receiver
+eligibility while preserving the v1 signing contract.
