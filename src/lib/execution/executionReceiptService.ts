@@ -281,10 +281,12 @@ export async function issueExecutionReceipt(
   }
   const binding = bindingResult.binding;
 
-  // A VERIFIED quote is always the source gate consensus divided by the
-  // destination gate consensus. Neither gate quote is a pool-block close, so
-  // there is no single quote block number or known pool-state age to sign.
+  // On the VERITAS selected-event path, a VERIFIED quote is the source gate
+  // consensus divided by the destination gate consensus. Neither gate quote
+  // is a pool-block close, so there is no single quote block or known pool age.
+  // Keep other execution consumers' existing quote claims unchanged.
   if (
+    params.selectedSwapLogIndex !== undefined &&
     binding.bindingMode === 'VERIFIED' &&
     ((params.quoteBasis !== undefined && params.quoteBasis !== 'ORACLE_CONSENSUS') ||
       (params.quoteBlockNumber ?? 0) !== 0 ||
@@ -405,10 +407,10 @@ export async function issueExecutionReceipt(
     executedPrice: facts.executedPrice ?? 0,
     maxSlippageBps,
     quoteVenueIndependent: params.quoteVenueIndependent,
-    quoteBasis: binding.bindingMode === 'VERIFIED' ? 'ORACLE_CONSENSUS' : params.quoteBasis,
-    quoteBlockNumber: binding.bindingMode === 'VERIFIED' ? 0 : params.quoteBlockNumber,
+    quoteBasis: params.selectedSwapLogIndex !== undefined ? 'ORACLE_CONSENSUS' : params.quoteBasis,
+    quoteBlockNumber: params.selectedSwapLogIndex !== undefined ? 0 : params.quoteBlockNumber,
     priceStateAgeAtExecSeconds:
-      binding.bindingMode === 'VERIFIED' ? 0 : params.priceStateAgeAtExecSeconds,
+      params.selectedSwapLogIndex !== undefined ? 0 : params.priceStateAgeAtExecSeconds,
     quotedAmountUsd: params.quotedAmountUsd ?? 0,
     executedAmountUsd: params.executedAmountUsd ?? 0,
     actualFeeUsd: params.actualFeeUsd ?? 0,
