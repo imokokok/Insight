@@ -50,7 +50,8 @@ HTTPS_PROXY='http://[::1]:7890' HTTP_PROXY='http://[::1]:7890' \
   --attempt 3 \
   --authorization VERITAS_READY \
   --authorization-received-at ACTUAL_ISO_8601_TIME \
-  --confirm-run-id insight-veritas-2026-09-18
+  --confirm-run-id insight-veritas-2026-09-18 \
+  --output-root /Users/imokokok/Documents/partnerships/veritas-collaboration/file/2026-09-26-live-run
 ```
 
 Run from the Insight repository root. The command-scoped proxy above is the
@@ -65,6 +66,8 @@ gate or insufficient participant/source-group counts. It then validates both
 signed WETH/USDC envelopes and renders the agreed plain-text handoff. It
 refuses before 02:00 UTC, at or after 02:44 UTC, or with the wrong runId,
 attempt, authorization type or stale retry request.
+The command saves signed pairs, deterministic commitments, handoff text and
+audit data under the durable `file/` archive; keep every attempted outcome.
 Paste only the generated full message into the authoritative thread. For a
 retry, change `--attempt` to the requested number, use
 `VERITAS_RETRY_REQUEST`, and record that request's actual receipt time.
