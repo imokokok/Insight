@@ -1,8 +1,9 @@
 # VERITAS window A operator card — 2026-09-26
 
-Insight sent its window A selection on 2026-09-26 at 03:33:02 Asia/Shanghai.
-It is not a confirmed live window until VERITAS responds with this window's
-fresh checks, cutoffs and `VERITAS_READY`.
+Insight sent its window A selection on 2026-09-26 at 03:33:02 Asia/Shanghai;
+VERITAS confirmed A at 03:45:03. Its window-specific `VERITAS_READY` with
+fresh checks and reissued cutoffs is expected at 09:55–10:00 Beijing time.
+The confirmation email is not READY and does not authorize gate signing.
 
 ## Before the window
 

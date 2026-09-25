@@ -4,7 +4,7 @@
 and `RUNBOOK-2026-09-26-WINDOW-A.md`. The production-role, no-broadcast
 WETH/USDC gate-to-selected-event-receipt check is
 `preflight-v5-selected-event.mts`. `prepare-live-gate-pair.mts` is now pinned to
-the proposed 02:00–03:00 UTC window and the explicitly activated v5 issuer.
+the bilaterally confirmed 02:00–03:00 UTC window and the explicitly activated v5 issuer.
 It still requires a fresh window-specific READY and does not pre-sign gates.
 The live operator can create and revoke a temporary production API key from
 `.env.local` if no existing `INSIGHT_API_KEY` is supplied, and refuses any
