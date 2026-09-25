@@ -2,13 +2,20 @@
 
 Verify Insight oracle-safety receipts on your own machine. The verification functions make no network call and need no API key. They check signed bytes and report key status only relative to a registry you supply; you must establish the issuer key and any semantic policy trust independently.
 
-This checkout contains **0.3.0 source**. The latest npm release is **0.2.0**, which does not include the v5 execution profile support described below. Check the version you install before integrating v5 receipts.
+This checkout contains **0.3.0 source**. The latest npm release is **0.2.1**, a documentation-and-example patch with the same runtime files as 0.2.0. It does not include the v5 execution profile support described below. Check the version you install before integrating v5 receipts.
 
 ```bash
 npm install verify-insight-receipt
 ```
 
 **Offline smoke test.** This command creates a synthetic v1 receipt with a throwaway key and verifies its signature without network access, a wallet, or an API key. It proves the verifier runs; it does not prove that a production Insight key is trusted:
+
+```bash
+npm install verify-insight-receipt@0.2.1
+node node_modules/verify-insight-receipt/examples/quickstart.mjs --offline
+```
+
+From this repository's source checkout:
 
 ```bash
 git clone https://github.com/imokokok/Insight.git
@@ -18,7 +25,7 @@ npm run build --prefix verifier
 node verifier/examples/quickstart.mjs --offline
 ```
 
-The `--offline` option is in this checkout's 0.3.0 example; it is not in the published 0.2.0 package.
+The `--offline` option is available in the published 0.2.1 example and in this checkout's 0.3.0 source example.
 
 **Live demo.** With network access, the default command fetches a signed sample receipt and the registry from Insight, then verifies the bytes locally. The sample key is distinct from the production attester. Fetching both inputs from Insight does not independently authenticate the registry:
 
