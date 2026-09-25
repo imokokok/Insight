@@ -1,9 +1,11 @@
 // verify-insight-receipt — quickstart
 //
-// Proves the full Insight trust chain on YOUR machine, offline, with no API key.
+// Demonstrates local signature checking. The offline fixture uses a throwaway
+// key and does not establish trust in an Insight production attester.
 //
 //   node quickstart.mjs
 //
+// --offline: generates and checks a synthetic OracleSafetyCheck v1 without network.
 // Default (zero signup): fetches a live sample OracleSafetyCheck v3 from
 // Insight's public endpoint, then verifies it locally with this package.
 // The sample is signed by Insight's dedicated SAMPLE key (never the production
@@ -15,7 +17,9 @@
 
 /* eslint-disable no-console -- this executable example reports results to stdout */
 
-import { verifyReceipt } from 'verify-insight-receipt';
+import { hashTypedData } from 'viem';
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
+import { V1_DOMAIN, V1_PRIMARY_TYPE, V1_TYPES, verifyReceipt } from 'verify-insight-receipt';
 
 const BASE = process.env.INSIGHT_BASE || 'https://www.oracleinsight.xyz';
 const WELL_KNOWN = `${BASE}/.well-known/oracle-keys.json`;
@@ -52,8 +56,46 @@ function normalizeKeyRegistry(reg) {
   return { keys: reg.public_keys ?? [], revoked: reg.revoked_keys ?? [] };
 }
 
+async function runOfflineFixture() {
+  const account = privateKeyToAccount(generatePrivateKey());
+  const checkedAt = Math.floor(Date.now() / 1000);
+  const data = {
+    verdict: 'PASS',
+    asset: 'ETH',
+    chainId: 1,
+    action: 'swap',
+    tradeAmountUsd: 100,
+    consensusPrice: 2000,
+    maxDeviationBps: 0,
+    manipulationRiskBps: 0,
+    participantCount: 3,
+    checkedAt,
+    schemaVersion: 1,
+  };
+  const message = Object.fromEntries(
+    Object.entries(data).map(([key, value]) => [
+      key,
+      ['verdict', 'asset', 'action'].includes(key) ? value : BigInt(value),
+    ])
+  );
+  const typedData = { domain: V1_DOMAIN, types: V1_TYPES, primaryType: V1_PRIMARY_TYPE, message };
+  const attestation = {
+    uid: hashTypedData(typedData),
+    schemaVersion: 1,
+    attester: account.address,
+    signature: await account.signTypedData(typedData),
+    validForSeconds: 600,
+    data,
+  };
+  const result = await verifyReceipt(attestation);
+  console.log(`offline synthetic receipt: code=${result.code}, keyStatus=${result.keyStatus}`);
+  console.log('The signature matches the throwaway signer; no issuer trust was established.');
+  if (result.code !== 'ok' || result.keyStatus !== 'not_checked') process.exitCode = 1;
+}
+
 async function main() {
   const args = process.argv.slice(2);
+  if (args[0] === '--offline') return runOfflineFixture();
   const isReal = args.length >= 4;
   if (isReal && !process.env.INSIGHT_API_KEY) {
     throw new Error('INSIGHT_API_KEY is required for a real pre-trade verdict');
@@ -76,8 +118,8 @@ async function main() {
   console.log(`  expired    : ${result.expired}`);
 
   if (result.code === 'ok' && result.keyStatus === 'valid') {
-    console.log('\nVERIFIED — genuine signature from a key in Insight’s published registry.');
-    console.log('No network, no API key, no trust in Insight needed to confirm this.');
+    console.log('\nVERIFIED against the registry fetched from Insight.');
+    console.log('Confirm that registry independently before treating the signer as trusted.');
   } else {
     console.log(`\nNOT VERIFIED (${result.code}/${result.keyStatus}).`);
     if (result.reason) console.log(`reason: ${result.reason}`);

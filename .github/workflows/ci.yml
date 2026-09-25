@@ -57,6 +57,10 @@ jobs:
           node-version: 22.23.2
           cache: npm
       - run: npm ci
+      - name: Check the documented offline verifier example
+        run: |
+          npm run build --prefix verifier
+          node verifier/examples/quickstart.mjs --offline
       - name: Reject stale generated cron bundles
         run: npm run validate:generated
       - name: Reject mutable or bypassing workflow configuration
