@@ -123,10 +123,10 @@ export interface AttestationDataV3 extends AttestationDataV2 {
  *  so the two versions cannot disagree about the evidence they commit to. */
 export async function buildMessageV3(
   input: AttestationInputV2,
-  opts?: { validForSeconds?: 600 | 900 }
+  opts?: { validForSeconds?: 600 | 900 | 1800 }
 ): Promise<AttestationDataV3> {
   const validForSeconds = opts?.validForSeconds ?? V3_VALID_FOR_SECONDS;
-  if (validForSeconds !== 600 && validForSeconds !== 900) {
+  if (validForSeconds !== 600 && validForSeconds !== 900 && validForSeconds !== 1800) {
     throw new Error('Unsupported v3 signed validity policy');
   }
   const v2Message = await buildMessage(input);
@@ -191,7 +191,7 @@ function getVerifyUrl(): string {
 
 export async function signAttestationV3(
   input: AttestationInputV2,
-  opts?: { sample?: boolean; validForSeconds?: 600 | 900 }
+  opts?: { sample?: boolean; validForSeconds?: 600 | 900 | 1800 }
 ): Promise<OracleSafetyAttestationV3 | null> {
   // opts.sample (Headless H8, 2026-09-02): dedicated sample signer, published
   // with role "sample" in the .well-known registry; null (fail-closed) when the
@@ -202,7 +202,7 @@ export async function signAttestationV3(
 
   try {
     const { hashTypedData } = await import('viem');
-    if (opts?.sample && opts.validForSeconds === 900) {
+    if (opts?.sample && (opts.validForSeconds ?? V3_VALID_FOR_SECONDS) !== 600) {
       throw new Error('Sample attestations cannot use the WAK validity exception');
     }
     const message = await buildMessageV3(input, opts);

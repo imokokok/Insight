@@ -40,6 +40,35 @@ it.each([
   expect(selectPreTradeValidity({ ...fixture, ...change }, '900')).toBe(600);
 });
 
-it.each(['780', '901', 'NaN', '0'])('rejects unapproved server settings: %s', (setting) => {
-  expect(selectPreTradeValidity(fixture, setting)).toBe(600);
+it.each(['780', '901', '1200', '1801', 'NaN', '0'])(
+  'rejects unapproved server settings: %s',
+  (setting) => {
+    expect(selectPreTradeValidity(fixture, setting)).toBe(600);
+  }
+);
+
+it('requires an unexpired issuance cutoff for the one-time 1800-second exception', () => {
+  const now = Math.floor(Date.now() / 1000);
+  expect(selectPreTradeValidity(fixture, '1800', String(now + 3600))).toBe(1800);
+  for (const until of [undefined, '', 'NaN', String(now), String(now - 1)]) {
+    expect(selectPreTradeValidity(fixture, '1800', until)).toBe(600);
+  }
+});
+
+it.each([
+  { schemaVersion: 2 },
+  { subjectChainId: 8453 },
+  { workflowTag: 'other' },
+  { apiKeyId: '' },
+  { action: 'borrow' },
+  { tradeAmountUsd: 5 },
+  { destinationAssetId: fixture.sourceAssetId },
+])('keeps other requests at 600 with the 1800 switch: %j', (change) => {
+  expect(
+    selectPreTradeValidity(
+      { ...fixture, ...change },
+      '1800',
+      String(Math.floor(Date.now() / 1000) + 3600)
+    )
+  ).toBe(600);
 });

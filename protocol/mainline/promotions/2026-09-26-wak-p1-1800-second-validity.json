@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 20,
+  "effectiveFrom": "2026-09-26",
+  "classification": "Operator-enabled 1800-second signed OracleSafetyCheck v3 validity for the bounded WAK Base Sepolia P1 handoff",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0xcd2ded27f64a1d17183796b3ce54faab1320c4c31453fe2d0b73cee2f5b853ea",
+  "activationSetId": "0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db",
+  "receiptImpact": "A new 1800-second checkedAt/validUntil interval may be signed only when the operator enables WAK_P1_SIGNED_TTL_SECONDS=1800 with an unexpired 10-digit Unix WAK_P1_EXTENDED_VALIDITY_UNTIL issuance cutoff and authenticated audit metadata identifies workflow wak.insight-priorseal.p1.v1, schema 3, chain 84532, a WETH/USDC swap in either direction and declared tradeAmountUsd=4. Missing, invalid or reached issuance cutoff selects the default 600-second policy. The validity interval is inside the existing EIP-712 signed message. Default v3 and all v1/v2, sample, Oracle Watch and execution receipt paths retain their current rules; the previously approved 900-second opt-in remains available. Previously signed evidence is never extended or edited. No schema layout, attester key, registry release or partner activation mapping changes.",
+  "activationRule": "This promotion releases the opt-in implementation on main. The WAK-specific server configuration remains required for 1800-second issuance; this bounded testnet workflow does not enable a new partner production verification route. Every active partner remains on its current immutable policy and the default signing path. WAK transaction signing/broadcast remains subject to a separately reviewed fresh bundle and explicit GO.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged",
+      "evidence": "The active immutable partner policy, registry/key admission, schema layouts and execution verification paths are unchanged. The 1800-second exception requires the distinct WAK workflow tag, authenticated audit attribution, exact 4 USD WETH/USDC swap on chain 84532 and the operator switch; this partner retains the default 600-second pre-trade signing policy."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged",
+      "evidence": "The active immutable partner policy, registry/key admission, schema layouts and execution verification paths are unchanged. The 1800-second exception requires the distinct WAK workflow tag, authenticated audit attribution, exact 4 USD WETH/USDC swap on chain 84532 and the operator switch; this partner retains the default 600-second pre-trade signing policy."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "The active immutable partner policy, registry/key admission, schema layouts and execution verification paths are unchanged. The 1800-second exception requires the distinct WAK workflow tag, authenticated audit attribution, exact 4 USD WETH/USDC swap on chain 84532 and the operator switch; this partner retains the default 600-second pre-trade signing policy."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged",
+      "evidence": "The active immutable partner policy, registry/key admission, schema layouts and execution verification paths are unchanged. The 1800-second exception requires the distinct WAK workflow tag, authenticated audit attribution, exact 4 USD WETH/USDC swap on chain 84532 and the operator switch; this partner retains the default 600-second pre-trade signing policy."
+    },
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "The active immutable partner policy, registry/key admission, schema layouts and execution verification paths are unchanged. The 1800-second exception requires the distinct WAK workflow tag, authenticated audit attribution, exact 4 USD WETH/USDC swap on chain 84532 and the operator switch; this partner retains the default 600-second pre-trade signing policy."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "The active immutable partner policy, registry/key admission, schema layouts and execution verification paths are unchanged. The 1800-second exception requires the distinct WAK workflow tag, authenticated audit attribution, exact 4 USD WETH/USDC swap on chain 84532 and the operator switch; this partner retains the default 600-second pre-trade signing policy."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "The active immutable partner policy, registry/key admission, schema layouts and execution verification paths are unchanged. The 1800-second exception requires the distinct WAK workflow tag, authenticated audit attribution, exact 4 USD WETH/USDC swap on chain 84532 and the operator switch; this partner retains the default 600-second pre-trade signing policy."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "The active immutable partner policy, registry/key admission, schema layouts and execution verification paths are unchanged. The 1800-second exception requires the distinct WAK workflow tag, authenticated audit attribution, exact 4 USD WETH/USDC swap on chain 84532 and the operator switch; this partner retains the default 600-second pre-trade signing policy."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "The active immutable partner policy, registry/key admission, schema layouts and execution verification paths are unchanged. The 1800-second exception requires the distinct WAK workflow tag, authenticated audit attribution, exact 4 USD WETH/USDC swap on chain 84532 and the operator switch; this partner retains the default 600-second pre-trade signing policy."
+    }
+  ],
+  "promotionId": "0xe34d90394139365403a61488a521758ae6a96041480b75e3f9174c224dd4995f"
+}
