@@ -5,6 +5,21 @@ validity interval. Enable `WAK_P1_SIGNED_TTL_SECONDS=900` in the production
 server environment only after the reviewed main commit passes validation and
 browser smoke and the partner confirms the new verifier.
 
+For the user-approved one-time longer handoff, use
+`WAK_P1_SIGNED_TTL_SECONDS=1800` together with
+`WAK_P1_EXTENDED_VALIDITY_UNTIL=<10-digit Unix seconds>` in the production
+server environment. The latter is an issuance cutoff, not an extension of a
+signed artifact. The operator sets it to one hour after configuration and
+restores the normal setting when this bounded run closes. If the cutoff is
+missing, malformed or reached, the 1800 setting selects the default 600-second
+path automatically. Every WAK scope condition below still applies.
+
+The 1800-second signed interval gives a nominal 1620-second window to broadcast
+cutoff and 1380 seconds from signed checkedAt to the local review floor. It
+allows more age in the signed evidence, so this exception is limited to the
+approved Base Sepolia fixture and this handoff. It does not change quote,
+nonce, call-binding, fee, signature, floor or finality checks.
+
 The exception requires all of: authenticated API key audit attribution,
 workflow tag `wak.insight-priorseal.p1.v1`, schema 3, chain 84532, swap, declared
 trade amount USD 4, and the standard Base Sepolia WETH/USDC CAIP-19 pair in either

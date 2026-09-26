@@ -89,31 +89,37 @@ describe('oracleSafetyAttestationV3', () => {
     delete process.env.ATTESTATION_SIGNER_PRIVATE_KEY;
   });
 
-  it('signs the selected 900-second deadline and expires at that signed deadline', async () => {
-    const mod = await import('../oracleSafetyAttestationV3');
-    const att = await mod.signAttestationV3(baseInput(), { validForSeconds: 900 });
-    expect(att).not.toBeNull();
-    expect(att!.validForSeconds).toBe(900);
-    expect(att!.data.validUntil).toBe(att!.data.checkedAt + 900);
-    expect(att!.validUntil).toBe(att!.data.validUntil);
-    jest.spyOn(Date, 'now').mockReturnValue(NOW_MS + 601_000);
-    expect((await mod.verifyAttestationV3(att!)).valid).toBe(true);
-    jest.spyOn(Date, 'now').mockReturnValue(NOW_MS + 901_000);
-    expect((await mod.verifyAttestationV3(att!)).expired).toBe(true);
-  });
+  it.each([900, 1800] as const)(
+    'signs the selected %i-second deadline and expires at that signed deadline',
+    async (seconds) => {
+      const mod = await import('../oracleSafetyAttestationV3');
+      const att = await mod.signAttestationV3(baseInput(), { validForSeconds: seconds });
+      expect(att).not.toBeNull();
+      expect(att!.validForSeconds).toBe(seconds);
+      expect(att!.data.validUntil).toBe(att!.data.checkedAt + seconds);
+      expect(att!.validUntil).toBe(att!.data.validUntil);
+      jest.spyOn(Date, 'now').mockReturnValue(NOW_MS + 601_000);
+      expect((await mod.verifyAttestationV3(att!)).valid).toBe(true);
+      jest.spyOn(Date, 'now').mockReturnValue(NOW_MS + (seconds + 1) * 1000);
+      expect((await mod.verifyAttestationV3(att!)).expired).toBe(true);
+    }
+  );
 
-  it('rejects extending a 600-second signed message by editing its deadline', async () => {
-    const mod = await import('../oracleSafetyAttestationV3');
-    const att = await mod.signAttestationV3(baseInput());
-    expect(att!.validForSeconds).toBe(600);
-    const edited = {
-      ...att!,
-      validForSeconds: 900,
-      validUntil: att!.validUntil + 300,
-      data: { ...att!.data, validUntil: att!.data.validUntil + 300 },
-    };
-    expect((await mod.verifyAttestationV3(edited)).valid).toBe(false);
-  });
+  it.each([900, 1800] as const)(
+    'rejects extending a 600-second signed message to %i by editing its deadline',
+    async (seconds) => {
+      const mod = await import('../oracleSafetyAttestationV3');
+      const att = await mod.signAttestationV3(baseInput());
+      expect(att!.validForSeconds).toBe(600);
+      const edited = {
+        ...att!,
+        validForSeconds: seconds,
+        validUntil: att!.validUntil + seconds - 600,
+        data: { ...att!.data, validUntil: att!.data.validUntil + seconds - 600 },
+      };
+      expect((await mod.verifyAttestationV3(edited)).valid).toBe(false);
+    }
+  );
 
   it('rejects unsupported runtime validity values', async () => {
     await expect(buildMessageV3(baseInput(), { validForSeconds: 901 as 900 })).rejects.toThrow(
