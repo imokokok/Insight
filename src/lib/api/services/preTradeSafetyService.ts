@@ -35,6 +35,7 @@ import {
   signAttestationV3,
   type OracleSafetyAttestationV3,
 } from '@/lib/attestations/oracleSafetyAttestationV3';
+import { selectPreTradeValidity } from '@/lib/attestations/preTradeValidityPolicy';
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
 import { UnsupportedSymbolError, ValidationError } from '@/lib/errors';
@@ -1187,7 +1188,7 @@ async function issueAttestation(
   input: PreTradeSafetyInput,
   result: PreTradeSafetyResult,
   consensus: ConsensusPriceResponse,
-  aggregates: { maxAge: number; worstDepegPct: number }
+  aggregates: { maxAge: number; worstDepegPct: number; meta?: AuditMeta }
 ): Promise<OracleSafetyAttestation | OracleSafetyAttestationV2 | OracleSafetyAttestationV3 | null> {
   // v1 path (default) — unchanged behavior.
   if (input.schemaVersion !== 2 && input.schemaVersion !== 3) {
@@ -1251,9 +1252,20 @@ async function issueAttestation(
   // v2 and v3 take the same evidence and the same gates. v3 additionally signs
   // the independence threshold, so a holder of the receipt can check the gate
   // without access to this codebase.
-  return input.schemaVersion === 3
-    ? signAttestationV3(attestationInput)
-    : signAttestationV2(attestationInput);
+  if (input.schemaVersion !== 3) return signAttestationV2(attestationInput);
+  const validity = selectPreTradeValidity({
+    schemaVersion: input.schemaVersion,
+    subjectChainId: input.chainId,
+    sourceAssetId,
+    destinationAssetId,
+    action: input.action,
+    tradeAmountUsd: input.tradeAmountUsd,
+    workflowTag: aggregates.meta?.workflowTag,
+    apiKeyId: aggregates.meta?.apiKeyId,
+  });
+  return validity === 900
+    ? signAttestationV3(attestationInput, { validForSeconds: 900 })
+    : signAttestationV3(attestationInput);
 }
 
 /**
@@ -1433,6 +1445,7 @@ export async function preTradeSafetyCheck(
       result.attestation = await issueAttestation(input, result, emptyConsensus, {
         maxAge: 0,
         worstDepegPct: 0,
+        meta,
       });
     } catch (error) {
       logger.warn('Failed to issue attestation for zero-coverage BLOCK', {
@@ -1820,6 +1833,7 @@ export async function preTradeSafetyCheck(
     result.attestation = await issueAttestation(input, result, consensus, {
       maxAge,
       worstDepegPct,
+      meta,
     });
   } catch (error) {
     logger.warn('Failed to issue attestation', {
