@@ -1343,31 +1343,44 @@ describe('workflow assessment scope and action semantics', () => {
 describe('operator-enabled WAK signed validity', () => {
   afterEach(() => {
     delete process.env.WAK_P1_SIGNED_TTL_SECONDS;
+    delete process.env.WAK_P1_EXTENDED_VALIDITY_UNTIL;
   });
   it.each([
-    ['WETH', 'USDC'],
-    ['USDC', 'WETH'],
-  ])('passes the 900-second policy to the signer for %s/%s', async (asset, destinationAsset) => {
-    process.env.WAK_P1_SIGNED_TTL_SECONDS = '900';
-    mockedSignAttestationV3.mockResolvedValue(null);
-    mockedGetConsensusPrice.mockResolvedValue(
-      makeConsensus([
-        makeProvider({ provider: 'chainlink' as OracleProvider }),
-        makeProvider({ provider: 'api3' as OracleProvider }),
-        makeProvider({ provider: 'redstone' as OracleProvider }),
-      ])
-    );
-    await preTradeSafetyCheck(
-      makeInput({ asset, destinationAsset, chainId: 84532, schemaVersion: 3, tradeAmountUsd: 4 }),
-      {
-        apiKeyId: 'test-key-id',
-        workflowTag: 'wak.insight-priorseal.p1.v1',
-      }
-    );
-    expect(mockedSignAttestationV3).toHaveBeenCalledWith(expect.any(Object), {
-      validForSeconds: 900,
-    });
-  });
+    [900, 'WETH', 'USDC'],
+    [900, 'USDC', 'WETH'],
+    [1800, 'WETH', 'USDC'],
+    [1800, 'USDC', 'WETH'],
+  ])(
+    'passes the %s-second policy to the signer for %s/%s',
+    async (ttl, asset, destinationAsset) => {
+      process.env.WAK_P1_SIGNED_TTL_SECONDS = String(ttl);
+      process.env.WAK_P1_EXTENDED_VALIDITY_UNTIL = String(Math.floor(Date.now() / 1000) + 3600);
+      mockedSignAttestationV3.mockResolvedValue(null);
+      mockedGetConsensusPrice.mockResolvedValue(
+        makeConsensus([
+          makeProvider({ provider: 'chainlink' as OracleProvider }),
+          makeProvider({ provider: 'api3' as OracleProvider }),
+          makeProvider({ provider: 'redstone' as OracleProvider }),
+        ])
+      );
+      await preTradeSafetyCheck(
+        makeInput({
+          asset: String(asset),
+          destinationAsset: String(destinationAsset),
+          chainId: 84532,
+          schemaVersion: 3,
+          tradeAmountUsd: 4,
+        }),
+        {
+          apiKeyId: 'test-key-id',
+          workflowTag: 'wak.insight-priorseal.p1.v1',
+        }
+      );
+      expect(mockedSignAttestationV3).toHaveBeenCalledWith(expect.any(Object), {
+        validForSeconds: ttl,
+      });
+    }
+  );
   it('keeps default signing without authenticated audit attribution', async () => {
     process.env.WAK_P1_SIGNED_TTL_SECONDS = '900';
     mockedSignAttestationV3.mockResolvedValue(null);
