@@ -9,18 +9,22 @@ import { concat, getAddress, isAddress, keccak256 } from 'viem';
 import { z } from 'zod';
 
 import { verifyAttestationBySchema } from '@/lib/attestations/verifyAttestationBySchema';
+import { createApiKeyForUser, revokeApiKey } from '@/lib/api/apiKey';
+import { createServiceRoleClient } from '@/lib/supabase/server';
 
 const RUN_ID = 'insight-veritas-2026-09-18';
-const WINDOW_START_MS = Date.parse('2026-09-23T12:00:00Z');
-const LAST_GATE_REQUEST_MS = Date.parse('2026-09-23T12:45:00Z');
-const WINDOW_END_MS = Date.parse('2026-09-23T13:00:00Z');
+const WINDOW_START_MS = Date.parse('2026-09-26T02:00:00Z');
+const LAST_GATE_REQUEST_MS = Date.parse('2026-09-26T02:44:00Z');
+const WINDOW_END_MS = Date.parse('2026-09-26T03:00:00Z');
 const EXPECTED_SELECTION_RULE_HASH =
   '0x545ede509529b6d8716be4f74e3e6715d92d821d18493dbc7f32e15156d2fc7a';
 const API_BASE_URL = 'https://www.oracleinsight.xyz';
+const ACTIVE_VERITAS_SET_ID = '0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db';
 const REGISTRY_URL = `${API_BASE_URL}/.well-known/oracle-keys.json`;
+const INTEGRATIONS_URL = `${API_BASE_URL}/.well-known/oracle-registry/integrations/current.json`;
 const PRE_TRADE_URL = `${API_BASE_URL}/api/v1/safety/pre-trade`;
 const EXECUTION_ISSUER_METADATA_PATH = '/api/v1/execution/attestation/verify';
-const DEFAULT_OUTPUT_ROOT = '/private/tmp/insight-veritas-2026-09-23';
+const DEFAULT_OUTPUT_ROOT = '/private/tmp/insight-veritas-2026-09-26-window-a';
 
 const BYTES32 = /^0x[0-9a-f]{64}$/;
 const SIGNATURE = /^0x[0-9a-f]{130}$/;
@@ -101,6 +105,11 @@ const ExecutionIssuerSchema = z.object({
     .passthrough(),
 });
 
+const CurrentIntegrationsSchema = z.object({
+  activationSetId: z.literal(ACTIVE_VERITAS_SET_ID),
+  activationVersion: z.literal(3),
+});
+
 interface Options {
   attempt: number;
   authorization: (typeof AUTHORIZATIONS)[number];
@@ -136,6 +145,10 @@ function parseArgs(argv: string[]): Options {
   const confirmRunId = values.get('--confirm-run-id');
   const executionReceiptBaseUrl = normalizeHttpsOrigin(
     values.get('--execution-receipt-base-url') ?? API_BASE_URL
+  );
+  assert(
+    executionReceiptBaseUrl === API_BASE_URL,
+    'this window requires the active Insight production v5 issuer'
   );
   const outputRoot = values.get('--output-root') ?? DEFAULT_OUTPUT_ROOT;
   const allowed = new Set([
@@ -180,13 +193,13 @@ function parseArgs(argv: string[]): Options {
 }
 
 function validateActivation(options: Options, nowMs: number): void {
-  assert(nowMs >= WINDOW_START_MS, 'REFUSE TO SIGN: the 12:00 UTC window has not opened');
+  assert(nowMs >= WINDOW_START_MS, 'REFUSE TO SIGN: the 02:00 UTC window has not opened');
   assert(nowMs < LAST_GATE_REQUEST_MS, 'REFUSE TO SIGN: the minute-44 last-gate cutoff has passed');
   assert(nowMs < WINDOW_END_MS, 'REFUSE TO SIGN: the joint-run window has ended');
 
   const receivedAtMs = Date.parse(options.authorizationReceivedAt);
   assert(
-    receivedAtMs >= Date.parse('2026-09-23T11:00:00Z'),
+    receivedAtMs >= Date.parse('2026-09-26T01:00:00Z'),
     'authorization predates run-day fresh checks'
   );
   assert(receivedAtMs <= nowMs + 5_000, 'authorization receipt time is in the future');
@@ -244,6 +257,15 @@ function validateRole(
   expectedSource: string,
   expectedDestination: string
 ): void {
+  assert(envelope.data.verdict === 'PASS', `${name} gate verdict is ${envelope.data.verdict}`);
+  assert(
+    envelope.data.participantCount >= envelope.data.requiredParticipantCount,
+    `${name} gate lacks required participants`
+  );
+  assert(
+    envelope.data.sourceGroupCount >= envelope.data.requiredSourceGroupCount,
+    `${name} gate lacks required source groups`
+  );
   assert(envelope.data.sourceAssetId === expectedSource, `${name} sourceAssetId mismatch`);
   assert(
     envelope.data.destinationAssetId === expectedDestination,
@@ -254,6 +276,44 @@ function validateRole(
     envelope.validUntil === envelope.data.checkedAt + envelope.validForSeconds,
     `${name} validity interval is not exactly 600 seconds`
   );
+}
+
+async function issueFreshGatePair(options: Options): Promise<[Envelope, Envelope]> {
+  const configuredKey = process.env.INSIGHT_API_KEY;
+  if (configuredKey !== undefined) {
+    assert(configuredKey.startsWith('ins_'), 'INSIGHT_API_KEY has the wrong format');
+    validateActivation(options, Date.now());
+    return Promise.all([
+      issueGate(configuredKey, 'WETH', 'USDC'),
+      issueGate(configuredKey, 'USDC', 'WETH'),
+    ]);
+  }
+
+  const ownerId = (process.env.OPS_OWNER_USER_IDS ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .find(Boolean);
+  assert(ownerId, 'OPS_OWNER_USER_IDS is required for a temporary live gate API key');
+  const temporary = await createApiKeyForUser(ownerId, 'VERITAS window A live gate pair', {
+    plan: 'enterprise',
+    expiresAt: new Date(Date.now() + 30 * 60_000).toISOString(),
+  });
+  try {
+    validateActivation(options, Date.now());
+    return await Promise.all([
+      issueGate(temporary.plainKey, 'WETH', 'USDC'),
+      issueGate(temporary.plainKey, 'USDC', 'WETH'),
+    ]);
+  } finally {
+    await revokeApiKey(temporary.record.id, ownerId);
+    const client = createServiceRoleClient();
+    const { data, error } = await client
+      .from('api_keys')
+      .select('is_active')
+      .eq('id', temporary.record.id)
+      .single();
+    assert(!error && data?.is_active === false, 'temporary live gate API key revocation failed');
+  }
 }
 
 function assertRegistryAddressAuthorization(
@@ -303,20 +363,21 @@ async function main(): Promise<void> {
   const startedAtMs = Date.now();
   validateActivation(options, startedAtMs);
 
-  const apiKey = process.env.INSIGHT_API_KEY;
+  const [registry, currentIntegrations] = await Promise.all([
+    fetchJson(REGISTRY_URL, { headers: { Accept: 'application/json' } }).then((value) =>
+      RegistrySchema.parse(value)
+    ),
+    fetchJson(INTEGRATIONS_URL, {
+      headers: { Accept: 'application/json', 'Cache-Control': 'no-store' },
+    }).then((value) => CurrentIntegrationsSchema.parse(value)),
+  ]);
   assert(
-    apiKey?.startsWith('ins_'),
-    'INSIGHT_API_KEY must be set in the environment, never in arguments'
+    currentIntegrations.activationSetId === ACTIVE_VERITAS_SET_ID,
+    'REFUSE TO SIGN: VERITAS activation set changed'
   );
 
-  const registry = RegistrySchema.parse(
-    await fetchJson(REGISTRY_URL, { headers: { Accept: 'application/json' } })
-  );
-
-  // The byte-agreed VERITAS r6 completion path is ExecutionReceipt v4. The
-  // current Insight production issuer is v5-only, so gate issuance must stop
-  // before creating live authorisation bytes unless an independently checked
-  // v4 issuer with a currently authorised production signer is reachable.
+  // Window A uses the explicitly activated v5 policy. Check the production
+  // issuer and the current registry before creating any live authorisation.
   const executionIssuer = ExecutionIssuerSchema.parse(
     await fetchJson(
       new URL(EXECUTION_ISSUER_METADATA_PATH, options.executionReceiptBaseUrl).toString(),
@@ -324,12 +385,12 @@ async function main(): Promise<void> {
     )
   ).data;
   assert(
-    executionIssuer.schemaVersion === 4,
-    `REFUSE TO SIGN: VERITAS r6 requires ExecutionReceipt v4, but ${options.executionReceiptBaseUrl} currently issues v${executionIssuer.schemaVersion}`
+    executionIssuer.schemaVersion === 5,
+    `REFUSE TO SIGN: the active VERITAS policy requires ExecutionReceipt v5, but ${options.executionReceiptBaseUrl} currently issues v${executionIssuer.schemaVersion}`
   );
   assert(
-    executionIssuer.supportedSchemaVersions.includes(4),
-    'REFUSE TO SIGN: the configured Execution Receipt issuer does not publish v4 support'
+    executionIssuer.supportedSchemaVersions.includes(5),
+    'REFUSE TO SIGN: the production Execution Receipt issuer does not publish v5 support'
   );
   assertRegistryAddressAuthorization(
     executionIssuer.attester,
@@ -342,10 +403,7 @@ async function main(): Promise<void> {
   // The selection rule is explicitly WETH -> USDC in the Uniswap V3 ERC-20
   // pool. Native ETH is a different CAIP-19 asset and cannot be substituted:
   // the execution collector must be able to attribute the same signed legs.
-  const [sourceEnvelope, destinationEnvelope] = await Promise.all([
-    issueGate(apiKey, 'WETH', 'USDC'),
-    issueGate(apiKey, 'USDC', 'WETH'),
-  ]);
+  const [sourceEnvelope, destinationEnvelope] = await issueFreshGatePair(options);
 
   const WETH = 'eip155:1/erc20:0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
   const USDC = 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';

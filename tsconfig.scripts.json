@@ -18,6 +18,7 @@
     "scripts/daily-report-publish.ts",
     "scripts/feed-cadence.ts",
     "scripts/inspect-dependabot-lock-repair.mts",
+    "scripts/interai-track1/capture-preflight-gates.mts",
     "scripts/protocol-metrics.ts",
     "scripts/reputation.ts",
     "scripts/verify-rwa-reference-data.ts",
