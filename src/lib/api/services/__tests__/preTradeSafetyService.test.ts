@@ -1339,3 +1339,57 @@ describe('workflow assessment scope and action semantics', () => {
     });
   });
 });
+
+describe('operator-enabled WAK signed validity', () => {
+  afterEach(() => {
+    delete process.env.WAK_P1_SIGNED_TTL_SECONDS;
+  });
+  it.each([
+    ['WETH', 'USDC'],
+    ['USDC', 'WETH'],
+  ])('passes the 900-second policy to the signer for %s/%s', async (asset, destinationAsset) => {
+    process.env.WAK_P1_SIGNED_TTL_SECONDS = '900';
+    mockedSignAttestationV3.mockResolvedValue(null);
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus([
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+        makeProvider({ provider: 'api3' as OracleProvider }),
+        makeProvider({ provider: 'redstone' as OracleProvider }),
+      ])
+    );
+    await preTradeSafetyCheck(
+      makeInput({ asset, destinationAsset, chainId: 84532, schemaVersion: 3, tradeAmountUsd: 4 }),
+      {
+        apiKeyId: 'test-key-id',
+        workflowTag: 'wak.insight-priorseal.p1.v1',
+      }
+    );
+    expect(mockedSignAttestationV3).toHaveBeenCalledWith(expect.any(Object), {
+      validForSeconds: 900,
+    });
+  });
+  it('keeps default signing without authenticated audit attribution', async () => {
+    process.env.WAK_P1_SIGNED_TTL_SECONDS = '900';
+    mockedSignAttestationV3.mockResolvedValue(null);
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus([
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+        makeProvider({ provider: 'api3' as OracleProvider }),
+        makeProvider({ provider: 'redstone' as OracleProvider }),
+      ])
+    );
+    await preTradeSafetyCheck(
+      makeInput({
+        asset: 'WETH',
+        destinationAsset: 'USDC',
+        chainId: 84532,
+        schemaVersion: 3,
+        tradeAmountUsd: 4,
+      }),
+      {
+        workflowTag: 'wak.insight-priorseal.p1.v1',
+      }
+    );
+    expect(mockedSignAttestationV3.mock.calls[0]).toHaveLength(1);
+  });
+});

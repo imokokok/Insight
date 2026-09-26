@@ -121,10 +121,18 @@ export interface AttestationDataV3 extends AttestationDataV2 {
 /** Build the v3 message from the same raw inputs as v2. Everything except
  *  `schemaVersion` and the new threshold comes from v2's {@link buildMessage},
  *  so the two versions cannot disagree about the evidence they commit to. */
-export async function buildMessageV3(input: AttestationInputV2): Promise<AttestationDataV3> {
+export async function buildMessageV3(
+  input: AttestationInputV2,
+  opts?: { validForSeconds?: 600 | 900 }
+): Promise<AttestationDataV3> {
+  const validForSeconds = opts?.validForSeconds ?? V3_VALID_FOR_SECONDS;
+  if (validForSeconds !== 600 && validForSeconds !== 900) {
+    throw new Error('Unsupported v3 signed validity policy');
+  }
   const v2Message = await buildMessage(input);
   return {
     ...v2Message,
+    validUntil: v2Message.checkedAt + validForSeconds,
     requiredSourceGroupCount: V3_REQUIRED_SOURCE_GROUP_COUNT,
     schemaVersion: V3_SCHEMA_VERSION,
   };
@@ -183,7 +191,7 @@ function getVerifyUrl(): string {
 
 export async function signAttestationV3(
   input: AttestationInputV2,
-  opts?: { sample?: boolean }
+  opts?: { sample?: boolean; validForSeconds?: 600 | 900 }
 ): Promise<OracleSafetyAttestationV3 | null> {
   // opts.sample (Headless H8, 2026-09-02): dedicated sample signer, published
   // with role "sample" in the .well-known registry; null (fail-closed) when the
@@ -194,7 +202,10 @@ export async function signAttestationV3(
 
   try {
     const { hashTypedData } = await import('viem');
-    const message = await buildMessageV3(input);
+    if (opts?.sample && opts.validForSeconds === 900) {
+      throw new Error('Sample attestations cannot use the WAK validity exception');
+    }
+    const message = await buildMessageV3(input, opts);
     const args = v3TypedDataArgs(message);
 
     const signature = await account.signTypedData(args);
@@ -206,7 +217,7 @@ export async function signAttestationV3(
       attester: account.address,
       attesterLabel: V3_ATTESTER_LABEL,
       signedAt: new Date().toISOString(),
-      validForSeconds: V3_VALID_FOR_SECONDS,
+      validForSeconds: message.validUntil - message.checkedAt,
       validUntil: Number(message.validUntil),
       signature,
       verifyUrl: getVerifyUrl(),
