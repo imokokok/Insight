@@ -126,7 +126,7 @@ function parseArgs(argv: string[]): Options {
   return { output: path.resolve(output), trustRootDir: path.resolve(trustRootDir), profile };
 }
 
-async function fetchJson(url: string, init?: RequestInit): Promise<unknown> {
+async function fetchJson(url: string, init?: RequestInit, evidencePath?: string): Promise<unknown> {
   const normalizedHeaders = new Headers(init?.headers);
   normalizedHeaders.set('Accept', 'application/json');
   normalizedHeaders.set('Cache-Control', 'no-store');
@@ -148,6 +148,15 @@ async function fetchJson(url: string, init?: RequestInit): Promise<unknown> {
       throw new Error(`${url} was unreachable through fetch and curl`);
     }
   }
+  // Retain the received response before schema/PASS checks can reject it.
+  // Known header secrets are redacted if a service ever echoes them.
+  let retainedText = text;
+  for (const [name, value] of Object.entries(headers)) {
+    if (/authorization|api-key/i.test(name))
+      retainedText = retainedText.split(value.replace(/^Bearer /, '')).join('[REDACTED]');
+  }
+  if (evidencePath)
+    writeFileSync(evidencePath, retainedText, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
   let body: unknown;
   try {
     body = JSON.parse(text);
@@ -155,7 +164,7 @@ async function fetchJson(url: string, init?: RequestInit): Promise<unknown> {
     throw new Error(`${url} returned non-JSON HTTP ${status}`);
   }
   if (status < 200 || status >= 300)
-    throw new Error(`${url} returned HTTP ${status}: ${text.slice(0, 500)}`);
+    throw new Error(`${url} returned HTTP ${status}: ${retainedText.slice(0, 500)}`);
   return body;
 }
 
@@ -261,7 +270,8 @@ async function issueGate(
   apiKey: string,
   asset: 'WETH' | 'USDC',
   destinationAsset: 'WETH' | 'USDC',
-  profile: Options['profile']
+  profile: Options['profile'],
+  evidencePath: string
 ): Promise<{ envelope: Envelope; requestId: string }> {
   const url = new URL(PRE_TRADE_URL);
   url.search = new URLSearchParams({
@@ -276,7 +286,7 @@ async function issueGate(
     baselineVersion: profile === 'wak-p1' ? 'wak-insight-priorseal-p1' : 'interai-track1-v2.1',
   }).toString();
   const response = ApiResponseSchema.parse(
-    await fetchJson(url.toString(), { headers: { 'X-API-Key': apiKey } })
+    await fetchJson(url.toString(), { headers: { 'X-API-Key': apiKey } }, evidencePath)
   );
   return { envelope: response.data.attestation, requestId: response.meta.requestId };
 }
@@ -338,7 +348,11 @@ async function validateGate(
 }
 
 function writeJson(filePath: string, value: unknown): void {
-  writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
+  writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, {
+    encoding: 'utf8',
+    flag: 'wx',
+    mode: 0o600,
+  });
 }
 
 async function fetchOrReadJson(url: string, fallbackPath: string): Promise<unknown> {
@@ -350,6 +364,7 @@ async function fetchOrReadJson(url: string, fallbackPath: string): Promise<unkno
 }
 
 async function main(): Promise<void> {
+  process.umask(0o077);
   const { output, trustRootDir, profile } = parseArgs(process.argv.slice(2));
   mkdirSync(output, { recursive: false, mode: 0o700 });
 
@@ -370,6 +385,8 @@ async function main(): Promise<void> {
     readTrustRoot(REGISTRY_URL, path.join(trustRootDir, 'oracle-keys.json')),
     readTrustRoot(CURRENT_REGISTRY_URL, path.join(trustRootDir, 'oracle-registry-current.json')),
   ]);
+  writeJson(path.join(output, 'received-oracle-keys.json'), registryRaw);
+  writeJson(path.join(output, 'received-registry-current.json'), currentRaw);
   const registry = RegistrySchema.parse(registryRaw);
   const current = CurrentRegistrySchema.parse(currentRaw);
   assert(registry.registryRelease.releaseId === current.releaseId, 'registry release ids differ');
@@ -382,10 +399,35 @@ async function main(): Promise<void> {
   const temporary = createTemporaryApiKey(ownerId, expiresAt, profile);
   let revokedAt: string | null = null;
   try {
-    const [source, destination] = await Promise.all([
-      issueGate(temporary.plainKey, 'WETH', 'USDC', profile),
-      issueGate(temporary.plainKey, 'USDC', 'WETH', profile),
+    writeJson(path.join(output, 'temporary-key-created.json'), {
+      keyId: temporary.id,
+      expiresAt,
+      createdAt: new Date().toISOString(),
+      secretIncluded: false,
+    });
+    const responses = await Promise.allSettled([
+      issueGate(
+        temporary.plainKey,
+        'WETH',
+        'USDC',
+        profile,
+        path.join(output, 'source-pre-trade-response.json')
+      ),
+      issueGate(
+        temporary.plainKey,
+        'USDC',
+        'WETH',
+        profile,
+        path.join(output, 'destination-pre-trade-response.json')
+      ),
     ]);
+    for (const response of responses) if (response.status === 'rejected') throw response.reason;
+    const source = (
+      responses[0] as PromiseFulfilledResult<{ envelope: Envelope; requestId: string }>
+    ).value;
+    const destination = (
+      responses[1] as PromiseFulfilledResult<{ envelope: Envelope; requestId: string }>
+    ).value;
     await Promise.all([
       validateGate('source', source.envelope, WETH_ID, USDC_ID, registry),
       validateGate('destination', destination.envelope, USDC_ID, WETH_ID, registry),
@@ -486,8 +528,39 @@ async function main(): Promise<void> {
           : 'This temporary Insight API key is unrelated to the unexchanged InterAI pilot credential.',
     });
   } finally {
-    revokeTemporaryApiKey(temporary.id, ownerId);
-    revokedAt = new Date().toISOString();
+    try {
+      revokeTemporaryApiKey(temporary.id, ownerId);
+      const rows = z
+        .array(z.object({ id: z.string(), is_active: z.boolean() }))
+        .parse(
+          supabaseRestJson(
+            'GET',
+            `api_keys?select=id,is_active&id=eq.${encodeURIComponent(temporary.id)}&user_id=eq.${encodeURIComponent(ownerId)}`
+          )
+        );
+      assert(
+        rows.length === 1 && rows[0].id === temporary.id && rows[0].is_active === false,
+        'temporary key revocation was not verified inactive'
+      );
+      revokedAt = new Date().toISOString();
+      writeJson(path.join(output, 'temporary-key-revocation.json'), {
+        keyId: temporary.id,
+        revokedAt,
+        verifiedInactive: true,
+        rows,
+        secretIncluded: false,
+      });
+    } catch {
+      writeJson(path.join(output, 'temporary-key-revocation.json'), {
+        keyId: temporary.id,
+        checkedAt: new Date().toISOString(),
+        verifiedInactive: false,
+        secretIncluded: false,
+      });
+      throw new Error(
+        'Temporary Insight key cleanup was not verified; inspect private lifecycle evidence'
+      );
+    }
   }
 
   const files = [
