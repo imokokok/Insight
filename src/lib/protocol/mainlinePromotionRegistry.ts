@@ -17,6 +17,7 @@ import promotionV15Json from '../../../protocol/mainline/promotions/2026-09-21-r
 import promotionV16Json from '../../../protocol/mainline/promotions/2026-09-23-veritas-v5-remediation-candidate.json';
 import promotionV18Json from '../../../protocol/mainline/promotions/2026-09-25-veritas-selected-event-receipt-correction.json';
 import promotionV17Json from '../../../protocol/mainline/promotions/2026-09-25-veritas-v5-activation.json';
+import promotionWak1800RoutingJson from '../../../protocol/mainline/promotions/2026-09-26-wak-p1-1800-issuance-routing-fix.json';
 import promotionWak1800Json from '../../../protocol/mainline/promotions/2026-09-26-wak-p1-1800-second-validity.json';
 import promotionWak900Json from '../../../protocol/mainline/promotions/2026-09-26-wak-p1-900-second-validity.json';
 
@@ -69,6 +70,7 @@ const rawPromotions = [
   promotionV18Json,
   promotionWak900Json,
   promotionWak1800Json,
+  promotionWak1800RoutingJson,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {

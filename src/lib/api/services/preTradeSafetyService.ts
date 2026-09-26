@@ -1263,8 +1263,8 @@ async function issueAttestation(
     workflowTag: aggregates.meta?.workflowTag,
     apiKeyId: aggregates.meta?.apiKeyId,
   });
-  return validity === 900
-    ? signAttestationV3(attestationInput, { validForSeconds: 900 })
+  return validity !== 600
+    ? signAttestationV3(attestationInput, { validForSeconds: validity })
     : signAttestationV3(attestationInput);
 }
 
