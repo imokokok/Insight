@@ -14,7 +14,7 @@ import { basename, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import canonicalize from 'canonicalize';
-import { concat, decodeAbiParameters, getAddress, isAddress, keccak256, toBytes } from 'viem';
+import { concat, decodeAbiParameters, keccak256, toBytes } from 'viem';
 
 import { createApiKeyForUser, revokeApiKey } from '@/lib/api/apiKey';
 import {
@@ -38,7 +38,6 @@ const POOL = '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640';
 const WETH = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const SWAP_TOPIC = '0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67';
-const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 const MIN_WETH_RAW = 100_000_000_000_000_000n;
 const RPC_ENDPOINTS = ['https://ethereum-rpc.publicnode.com', 'https://eth.drpc.org'];
 const USER_AGENT = 'Insight-VERITAS-remediation/1.0';
@@ -182,7 +181,11 @@ async function rpc<T>(method: string, params: unknown[]): Promise<T> {
   throw new Error(`${method} failed on every RPC: ${errors.join(' | ')}`);
 }
 
-async function issueGate(apiKey: string, asset: 'ETH' | 'USDC', destinationAsset: 'ETH' | 'USDC') {
+async function issueGate(
+  apiKey: string,
+  asset: 'WETH' | 'USDC',
+  destinationAsset: 'WETH' | 'USDC'
+) {
   const url = new URL(`${ORIGIN}/api/v1/safety/pre-trade`);
   url.search = new URLSearchParams({
     asset,
@@ -213,6 +216,13 @@ function decodeSwap(log: RpcLog): { amount0: bigint; amount1: bigint } {
     log.data
   );
   return { amount0: values[0], amount1: values[1] };
+}
+
+function selectedSwapPriceUsdcPerWeth(amount0: string, amount1: string): number {
+  const usdcRaw = -BigInt(amount0);
+  const wethRaw = BigInt(amount1);
+  assert(usdcRaw > 0n && wethRaw > 0n, 'selected settlement is not WETH -> USDC');
+  return Number(usdcRaw) / 1e6 / (Number(wethRaw) / 1e18);
 }
 
 async function blockTimestamp(blockNumber: number): Promise<number> {
@@ -266,32 +276,6 @@ async function pollFirstQualifyingSwap(
     await new Promise((resolvePromise) => setTimeout(resolvePromise, 4_000));
   }
   throw new Error(`no qualifying WETH->USDC swap observed within ${pollSeconds}s`);
-}
-
-function topicAddress(topic: string): string {
-  return `0x${topic.slice(-40)}`.toLowerCase();
-}
-
-async function findAttributionTaker(txHash: string): Promise<string | null> {
-  const receipt = await rpc<{ from?: string; logs?: RpcLog[] } | null>(
-    'eth_getTransactionReceipt',
-    [txHash]
-  );
-  assert(receipt, `candidate receipt unavailable: ${txHash}`);
-  const wethOut = new Set<string>();
-  const usdcIn = new Set<string>();
-  for (const log of receipt.logs ?? []) {
-    if (log.topics[0]?.toLowerCase() !== TRANSFER_TOPIC || log.topics.length < 3) continue;
-    const token = log.address.toLowerCase();
-    if (token === WETH) wethOut.add(topicAddress(log.topics[1]!));
-    if (token === USDC) usdcIn.add(topicAddress(log.topics[2]!));
-  }
-  const intersection = [...wethOut].find(
-    (address) => usdcIn.has(address) && address !== POOL && address !== `0x${'0'.repeat(40)}`
-  );
-  if (intersection && isAddress(intersection)) return getAddress(intersection);
-  const sender = receipt.from;
-  return sender && isAddress(sender) ? getAddress(sender) : null;
 }
 
 function sha256Hex(value: Buffer | string): string {
@@ -496,16 +480,34 @@ async function main(): Promise<void> {
       'publication promotion endpoint returned the wrong id'
     );
 
+    // The immutable selection rule observes the ERC-20 WETH/USDC pool. The
+    // signed gates must bind that exact asset pair: native ETH (slip44:60) is
+    // economically related to WETH but is not the same on-chain asset and must
+    // never be inferred from WETH Transfer logs.
     const [sourceIssued, destinationIssued] = await Promise.all([
-      issueGate(temporary.plainKey, 'ETH', 'USDC'),
-      issueGate(temporary.plainKey, 'USDC', 'ETH'),
+      issueGate(temporary.plainKey, 'WETH', 'USDC'),
+      issueGate(temporary.plainKey, 'USDC', 'WETH'),
     ]);
     const sourceGate = sourceIssued.gate;
     const destinationGate = destinationIssued.gate;
+    assert(
+      sourceGate.data.sourceAssetId.toLowerCase() === `eip155:1/erc20:${WETH}` &&
+        sourceGate.data.destinationAssetId.toLowerCase() === `eip155:1/erc20:${USDC}`,
+      'source gate does not bind the selected WETH -> USDC pool direction'
+    );
+    assert(
+      destinationGate.data.sourceAssetId.toLowerCase() === `eip155:1/erc20:${USDC}` &&
+        destinationGate.data.destinationAssetId.toLowerCase() === `eip155:1/erc20:${WETH}`,
+      'destination gate is not the exact opposite USDC -> WETH leg'
+    );
     writeJson(join(options.output, 'source-gate-response.json'), sourceIssued.response);
     writeJson(join(options.output, 'destination-gate-response.json'), destinationIssued.response);
     writeJson(join(options.output, 'source-gate.json'), sourceGate);
     writeJson(join(options.output, 'destination-gate.json'), destinationGate);
+    assert(
+      sourceGate.data.verdict === 'PASS' && destinationGate.data.verdict === 'PASS',
+      `rehearsal gates did not authorise execution: source=${String(sourceGate.data.verdict)} destination=${String(destinationGate.data.verdict)}`
+    );
 
     const orderingBoundaryBlock = Number(BigInt(await rpc<string>('eth_blockNumber', [])));
     const attemptExpiry = Math.min(sourceGate.validUntil, destinationGate.validUntil);
@@ -515,7 +517,6 @@ async function main(): Promise<void> {
       options.pollSeconds
     );
     const candidateBlock = Number(BigInt(candidate.log.blockNumber));
-    const taker = await findAttributionTaker(candidate.log.transactionHash);
     const issueBody: Record<string, unknown> = {
       preTradeUid: sourceGate.uid,
       requestHash: sourceGate.data.requestHash,
@@ -529,16 +530,15 @@ async function main(): Promise<void> {
       quotedPrice: 0,
       action: 'swap',
       txHash: candidate.log.transactionHash,
+      selectedSwapLogIndex: Number(BigInt(candidate.log.logIndex)),
       destinationPreTradeUid: destinationGate.uid,
       quoteVenueIndependent: false,
-      quoteBasis: 'PREV_BLOCK_CLOSE',
-      quoteBlockNumber: orderingBoundaryBlock,
-      priceStateAgeAtExecSeconds: Math.max(0, candidate.blockTimestamp - sourceGate.data.checkedAt),
+      quoteBasis: 'ORACLE_CONSENSUS',
+      quoteBlockNumber: 0,
+      priceStateAgeAtExecSeconds: 0,
       claimRole: 'THIRD_PARTY_OBSERVATION',
       preTradeAttestations: { source: sourceGate, destination: destinationGate },
     };
-    if (taker) issueBody.taker = taker;
-
     const issueResponse = await postJson(endpointInventory.issuance, issueBody, {
       'X-API-Key': temporary.plainKey,
     });
@@ -551,8 +551,42 @@ async function main(): Promise<void> {
       ['data', 'attestation'],
       'production issue response'
     );
+    const selectedEvent = record(
+      nested(issueResponse.body, ['data', 'selectedEvent'], 'selected event response'),
+      'selected event response'
+    );
+    assert(
+      selectedEvent.logIndex === Number(BigInt(candidate.log.logIndex)) &&
+        String(selectedEvent.pool).toLowerCase() === POOL &&
+        selectedEvent.sourceRaw === candidate.amount1 &&
+        selectedEvent.destinationRaw === (-BigInt(candidate.amount0)).toString(),
+      'production receipt was not priced from the exact selected Swap event'
+    );
     writeJson(join(options.output, 'production-issue-response.json'), issueResponse.body);
     writeJson(join(options.output, 'production-receipt.json'), productionReceipt);
+
+    const receiptRecord = record(productionReceipt, 'production receipt');
+    const receiptData = record(receiptRecord.data, 'production receipt data');
+    assert(
+      receiptData.quoteBasis === 'ORACLE_CONSENSUS' && receiptData.quoteBlockNumber === 0,
+      'gate cross-rate quote must not claim a pool-block close'
+    );
+    const priceScale = Number(receiptData.priceScale);
+    const executedPrice = Number(receiptData.executedPrice) / 10 ** priceScale;
+    const selectedPoolPrice = selectedSwapPriceUsdcPerWeth(candidate.amount0, candidate.amount1);
+    const collectorVsPoolBps = (executedPrice / selectedPoolPrice - 1) * 10_000;
+    assert(
+      Number.isFinite(executedPrice) && executedPrice > 0,
+      'collector did not measure a fill price'
+    );
+    assert(
+      Math.abs(collectorVsPoolBps) <= 1,
+      `collector price differs from the selected pool event by ${collectorVsPoolBps} bps`
+    );
+    assert(
+      receiptData.priceExecutionStatus === 'FAITHFUL',
+      `expected a gradeable in-band receipt, got ${String(receiptData.priceExecutionStatus)}`
+    );
 
     const verifyBody = { attestation: productionReceipt, policyId: CANDIDATE_POLICY_ID };
     const pairBody = {
@@ -575,8 +609,6 @@ async function main(): Promise<void> {
     writeJson(join(options.output, 'partner-candidate-before-activation.json'), partnerCandidate);
     writeJson(join(options.output, 'partner-current-before-activation.json'), partnerCurrent);
 
-    const receiptRecord = record(productionReceipt, 'production receipt');
-    const receiptData = record(receiptRecord.data, 'production receipt data');
     const missingProfile = structuredClone(receiptRecord);
     delete record(missingProfile.data, 'missing-profile data').profileId;
     const wrongSchema = structuredClone(receiptRecord);
@@ -666,7 +698,7 @@ async function main(): Promise<void> {
         amount0: candidate.amount0,
         amount1: candidate.amount1,
         blockTimestamp: candidate.blockTimestamp,
-        attributedTaker: taker,
+        eventSender: receiptData.taker,
       },
       receipt: {
         uid: receiptRecord.uid,

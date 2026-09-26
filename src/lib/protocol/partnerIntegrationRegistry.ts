@@ -117,6 +117,7 @@ export const PARTNER_ACTIVATION_SETS = Object.freeze(
 );
 
 export const PARTNER_ACTIVATION_SET_V1_ID = activationSetV1.activationSetId;
+export const PARTNER_ACTIVATION_SET_V2_ID = activationSetV2.activationSetId;
 
 export const CURRENT_PARTNER_ACTIVATION_SET =
   PARTNER_ACTIVATION_SETS[

@@ -33,8 +33,13 @@ import {
   parseDecimalsResult,
   type DecodedTransfer,
 } from './events';
+import { priceVeritasSelectedSwap, VERITAS_USDC, VERITAS_WETH } from './veritasSelectedSwap';
 
-export type ExecutionCollectionCode = 'NOT_FOUND' | 'RPC_ERROR' | 'UNSUPPORTED_CHAIN';
+export type ExecutionCollectionCode =
+  | 'NOT_FOUND'
+  | 'RPC_ERROR'
+  | 'UNSUPPORTED_CHAIN'
+  | 'SELECTED_EVENT_INVALID';
 
 export interface ExecutionFacts {
   txHash: `0x${string}`;
@@ -57,13 +62,20 @@ export interface ExecutionFacts {
   /** Block timestamp, unix seconds. Null when the block could not be read;
    *  `blockNumber` remains the authoritative anchor in that case. */
   executedAt: number | null;
-  /** The address whose balance changes define this settlement: the
-   *  caller-supplied taker when given, else the transaction sender — read from
-   *  chain, never guessed. Null only when the receipt carried no sender.
-   *  Signed as v3's `taker` (and the default `subject`). */
+  /** For aggregate attribution, the address whose token transfers define the
+   *  fill. For selected-event pricing, the indexed Swap sender that called the
+   *  pinned pool; the signed price measures that pool event, not the sender's
+   *  whole transaction. Signed as v3's `taker` and default `subject`. */
   taker: `0x${string}` | null;
   /** Machine-readable reason the price is unavailable, when it is. */
   unavailableReason: 'FILL_PRICE_UNAVAILABLE' | 'NATIVE_ASSET_LEG' | 'PRICE_NOT_ATTRIBUTED' | null;
+  /** Present only when the price comes from a rule-selected pool event. */
+  selectedEvent?: {
+    logIndex: number;
+    pool: `0x${string}`;
+    sourceRaw: string;
+    destinationRaw: string;
+  };
 }
 
 export type ExecutionCollectionResult =
@@ -81,6 +93,8 @@ export interface CollectExecutionParams {
   destinationAssetId: string;
   /** Address whose balances define the trade. Defaults to the tx sender. */
   taker?: `0x${string}`;
+  /** VERITAS pinned rule: exact Uniswap V3 Swap log in this transaction. */
+  selectedSwapLogIndex?: number;
   signal?: AbortSignal;
   /** Injectable for tests. Defaults to a fresh client. */
   client?: RpcClientWithFallback;
@@ -182,6 +196,13 @@ export async function collectExecutionFacts(
 
   const blockNumber = receipt.blockNumber ? BigInt(receipt.blockNumber) : null;
   const reverted = receipt.status === '0x0';
+  if (reverted && params.selectedSwapLogIndex !== undefined) {
+    return {
+      ok: false,
+      code: 'SELECTED_EVENT_INVALID',
+      message: 'A reverted transaction cannot contain a selected Swap event.',
+    };
+  }
 
   let feeNative: bigint | null = null;
   try {
@@ -227,6 +248,52 @@ export async function collectExecutionFacts(
 
   const sourceSpec = assetSpecFor(sourceAssetId, chainId);
   const destinationSpec = assetSpecFor(destinationAssetId, chainId);
+  if (params.selectedSwapLogIndex !== undefined) {
+    if (
+      chainId !== 1 ||
+      sourceSpec.kind !== 'erc20' ||
+      sourceSpec.address !== VERITAS_WETH ||
+      destinationSpec.kind !== 'erc20' ||
+      destinationSpec.address !== VERITAS_USDC
+    ) {
+      return {
+        ok: false,
+        code: 'SELECTED_EVENT_INVALID',
+        message: 'Selected Swap pricing requires the pinned Ethereum WETH/USDC asset pair.',
+      };
+    }
+    const selected = priceVeritasSelectedSwap(receipt, txHash, params.selectedSwapLogIndex);
+    if (!selected || (params.taker && params.taker.toLowerCase() !== selected.sender)) {
+      return {
+        ok: false,
+        code: 'SELECTED_EVENT_INVALID',
+        message:
+          'Selected log is absent, does not satisfy the pinned Swap rule, or conflicts with taker.',
+      };
+    }
+    return {
+      ok: true,
+      facts: {
+        txHash,
+        chainId,
+        blockNumber,
+        fillStatus: 'FULL',
+        sourceAmount: selected.sourceAmount,
+        destinationAmount: selected.destinationAmount,
+        executedPrice: selected.executedPrice,
+        feeNative,
+        executedAt,
+        taker: selected.sender,
+        unavailableReason: null,
+        selectedEvent: {
+          logIndex: selected.logIndex,
+          pool: selected.pool as `0x${string}`,
+          sourceRaw: selected.sourceRaw.toString(),
+          destinationRaw: selected.destinationRaw.toString(),
+        },
+      },
+    };
+  }
   if (sourceSpec.kind === 'unsupported' || destinationSpec.kind === 'unsupported') {
     // Non-EVM asset, or an id we cannot parse: no Transfer event and no value
     // semantics we understand, so there is nothing to attribute. Report it as

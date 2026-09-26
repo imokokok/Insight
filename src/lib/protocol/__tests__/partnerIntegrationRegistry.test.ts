@@ -9,6 +9,7 @@ import {
 import {
   CURRENT_PARTNER_ACTIVATION_SET,
   CURRENT_PARTNER_ACTIVATION_SET_ID,
+  PARTNER_ACTIVATION_SET_V2_ID,
   PARTNER_IDS,
   activePartnerIntegrationPolicy,
   evaluateActivePartnerExecutionPolicy,
@@ -138,23 +139,30 @@ describe('main-only partner integration isolation', () => {
     );
   });
 
-  it('keeps VERITAS on its legacy snapshot instead of implicitly adopting v5', () => {
-    const policy = activePartnerIntegrationPolicy('veritas');
-    expect(evaluateExecutionPolicy(policy!.policyId, 4, null)).toEqual(
+  it('keeps the prior VERITAS policy addressable for historical snapshots', () => {
+    const priorSet = partnerActivationSetById(PARTNER_ACTIVATION_SET_V2_ID)!;
+    const priorPolicy = partnerIntegrationPolicyById(priorSet.partners.veritas)!;
+    const activePolicy = activePartnerIntegrationPolicy('veritas')!;
+    expect(priorPolicy).toEqual(
+      expect.objectContaining({ policyVersion: 1, productionReachability: 'disabled' })
+    );
+    expect(evaluateExecutionPolicy(priorPolicy.policyId, 4, null)).toEqual(
       expect.objectContaining({ valid: true, reason: 'legacy_snapshot_required' })
     );
-    expect(evaluateExecutionPolicy(policy!.policyId, 5, EXECUTION_PROFILE_V1_ID)).toEqual(
+    expect(evaluateExecutionPolicy(priorPolicy.policyId, 5, EXECUTION_PROFILE_V1_ID)).toEqual(
       expect.objectContaining({ valid: false, reason: 'schema_not_admitted_by_policy:5' })
     );
+    expect(activePolicy.policyId).toBe(VERITAS_V2_POLICY_ID);
+    expect(activePolicy.productionReachability).toBe('enabled');
   });
 
-  it('publishes the VERITAS v5 policy and activation candidate without activating them', () => {
+  it('explicitly promotes the previously published VERITAS v5 activation set', () => {
     const activePolicy = activePartnerIntegrationPolicy('veritas')!;
     const candidatePolicy = partnerIntegrationPolicyById(VERITAS_V2_POLICY_ID);
     const candidateSet = partnerActivationSetById(VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID);
 
     expect(activePolicy).toEqual(
-      expect.objectContaining({ policyVersion: 1, productionReachability: 'disabled' })
+      expect.objectContaining({ policyVersion: 2, productionReachability: 'enabled' })
     );
     expect(candidatePolicy).toEqual(
       expect.objectContaining({
@@ -172,11 +180,11 @@ describe('main-only partner integration isolation', () => {
     expect(candidateSet).toEqual(
       expect.objectContaining({
         activationVersion: 3,
-        predecessorActivationSetId: CURRENT_PARTNER_ACTIVATION_SET_ID,
+        predecessorActivationSetId: PARTNER_ACTIVATION_SET_V2_ID,
         partners: expect.objectContaining({ veritas: VERITAS_V2_POLICY_ID }),
       })
     );
-    expect(CURRENT_PARTNER_ACTIVATION_SET_ID).not.toBe(VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID);
+    expect(CURRENT_PARTNER_ACTIVATION_SET_ID).toBe(VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID);
     expect(CURRENT_PARTNER_ACTIVATION_SET.partners.veritas).toBe(activePolicy.policyId);
 
     expect(evaluateExecutionPolicy(VERITAS_V2_POLICY_ID, 5, EXECUTION_PROFILE_V1_ID)).toEqual(
@@ -209,7 +217,7 @@ describe('main-only partner integration isolation', () => {
         5,
         EXECUTION_PROFILE_V1_ID
       )
-    ).toEqual(expect.objectContaining({ valid: false, reason: 'policy_not_active_for_partner' }));
+    ).toEqual(expect.objectContaining({ valid: true, partnerId: 'veritas' }));
   });
 
   it('fails closed for unknown or non-execution policies', () => {
@@ -246,9 +254,12 @@ describe('main-only partner integration isolation', () => {
     expect(evaluateActivePartnerExecutionPolicy('veritas', veritas.policyId, 4, null)).toEqual(
       expect.objectContaining({
         valid: false,
-        reason: 'partner_policy_not_production_reachable',
+        reason: 'schema_not_admitted_by_policy:4',
       })
     );
+    expect(
+      evaluateActivePartnerExecutionPolicy('veritas', veritas.policyId, 5, EXECUTION_PROFILE_V1_ID)
+    ).toEqual(expect.objectContaining({ valid: true, partnerId: 'veritas' }));
 
     expect(
       evaluateActivePartnerExecutionPolicy(

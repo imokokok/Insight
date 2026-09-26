@@ -3,6 +3,18 @@ import { TWAP_POOL_ADDRESSES } from '@/lib/oracles/constants/twapConstants';
 import { Blockchain } from '@/types/oracle';
 
 describe('TWAPClient', () => {
+  it('supports Ethereum WETH through its own USDC/WETH pool identity', () => {
+    const client = new TWAPClient();
+
+    expect(client.isSymbolSupported('WETH', Blockchain.ETHEREUM)).toBe(true);
+    expect(TWAP_POOL_ADDRESSES.WETH[1]).toEqual({
+      address: '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640',
+      feeTier: 500,
+      token0: 'USDC',
+      token1: 'WETH',
+    });
+  });
+
   it('supports USDC on Base through the verified WETH/USDC pool', () => {
     const client = new TWAPClient();
 
