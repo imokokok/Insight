@@ -20,6 +20,7 @@ import promotionV17Json from '../../../protocol/mainline/promotions/2026-09-25-v
 import promotionWak1800RoutingJson from '../../../protocol/mainline/promotions/2026-09-26-wak-p1-1800-issuance-routing-fix.json';
 import promotionWak1800Json from '../../../protocol/mainline/promotions/2026-09-26-wak-p1-1800-second-validity.json';
 import promotionWak900Json from '../../../protocol/mainline/promotions/2026-09-26-wak-p1-900-second-validity.json';
+import promotionPriorityHardeningJson from '../../../protocol/mainline/promotions/2026-09-27-priority-hardening.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -71,6 +72,7 @@ const rawPromotions = [
   promotionWak900Json,
   promotionWak1800Json,
   promotionWak1800RoutingJson,
+  promotionPriorityHardeningJson,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {

@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 22,
+  "effectiveFrom": "2026-09-27",
+  "classification": "Additive independently pinned verifier snapshot and offline CLI; strict unsigned coverage diagnostic v2 and provider metadata validation",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0xa82da43c7dbc82d9520b11047b9f483b3ef51d92f1aa6d4e72a869ea58a117ae",
+  "activationSetId": "0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db",
+  "receiptImpact": "No signed schema, EIP-712 field order, profile, key, registry release, historical source-group map or coverage policy ID is rewritten. verify-insight-receipt 0.3.0 adds an optional exact-byte SHA-256 pinned registry parser and offline CLI, preserves v1-v5 cryptographic layouts and rejects malformed pair UIDs without throwing. Signed strict coverage input conversion requires explicit quorum provenance and rejects invalid provider ages. Unsigned coverage diagnostics identify schema insight.coverage-diagnostic.v2, count only classified exact-scope nonduplicate observations, and compute freshness from declared source time provenance and retrieval time. Unknown groups are null and cannot count toward independent groups. Diagnostics remain unsigned and are not a safety or SLA claim.",
+  "activationRule": "The new snapshot API and CLI require explicit consumer opt-in and an independently reviewed hash pin. This code release does not change any partner activation, API issuance exception, production attester or partner trust pin. Unsigned diagnostic consumers must branch on schema v2 and handle null unclassified groups. npm publication, mainline CI deployment and any partner live run are separate verified operations; this record does not claim they occurred.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x11d4736a2c0a2c23f3a2d46f863d3ebb64e2b738f8da4a02bd12a30368578a43, registry release 0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b, signed layouts and semantic profile admission are retained. The new pinned snapshot API is opt-in. Unsigned diagnostics now carry an explicit v2 marker and stricter availability/freshness counts; no partner run or adoption has been inferred from local conformance."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xe556b47dbdb4e3d7cab2c4fb882ffe0b65d6c4750ac0ff5ce6ee2f0494d3b787, registry release 0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b, signed layouts and semantic profile admission are retained. The new pinned snapshot API is opt-in. Unsigned diagnostics now carry an explicit v2 marker and stricter availability/freshness counts; no partner run or adoption has been inferred from local conformance."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x0ce8536c90b23ebcb2952422e5eb67628da65c14b6bf5782849f20c0b137815b, registry release 0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b, signed layouts and semantic profile admission are retained. The new pinned snapshot API is opt-in. Unsigned diagnostics now carry an explicit v2 marker and stricter availability/freshness counts; no partner run or adoption has been inferred from local conformance."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xca3bd5acb9d70f9e9755fad44e87cff1122f88986a6c61b33d93a49e3bb15861, registry release 0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b, signed layouts and semantic profile admission are retained. The new pinned snapshot API is opt-in. Unsigned diagnostics now carry an explicit v2 marker and stricter availability/freshness counts; no partner run or adoption has been inferred from local conformance."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xd510bd9f29be0b896aed2e2b95200eab25cb9e03430a456f1bee3df7a17de158, registry release 0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b, signed layouts and semantic profile admission are retained. The new pinned snapshot API is opt-in. Unsigned diagnostics now carry an explicit v2 marker and stricter availability/freshness counts; no partner run or adoption has been inferred from local conformance."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xb539451842dc4e907d6fcea012aa094f4fea3c3acd2fd054aa4106848f602239, registry release 0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b, signed layouts and semantic profile admission are retained. The new pinned snapshot API is opt-in. Unsigned diagnostics now carry an explicit v2 marker and stricter availability/freshness counts; no partner run or adoption has been inferred from local conformance."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x5a80afffbb667b62014c727fae35e9f00edd6ca99555baa1c4cc79d0650768d0, registry release 0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b, signed layouts and semantic profile admission are retained. The new pinned snapshot API is opt-in. Unsigned diagnostics now carry an explicit v2 marker and stricter availability/freshness counts; no partner run or adoption has been inferred from local conformance."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x248f339e382efefaf20c9caad0ed6ee3db75775b5b5649b3d2421bb28d376341, registry release 0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b, signed layouts and semantic profile admission are retained. The new pinned snapshot API is opt-in. Unsigned diagnostics now carry an explicit v2 marker and stricter availability/freshness counts; no partner run or adoption has been inferred from local conformance."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x162d3fe744acc2041a959daf40dc3fe9242b654aef58acbb991acbf605885085, registry release 0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b, signed layouts and semantic profile admission are retained. The new pinned snapshot API is opt-in. Unsigned diagnostics now carry an explicit v2 marker and stricter availability/freshness counts; no partner run or adoption has been inferred from local conformance."
+    }
+  ],
+  "promotionId": "0x53a3cf97f62ed4b14af2407f66e5f2dce5c42e52919f4031045f737887c2dcac"
+}

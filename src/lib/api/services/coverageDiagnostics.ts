@@ -2,15 +2,17 @@ import {
   V2_REQUIRED_NON_DERIVED_GROUPS,
   V2_REQUIRED_PARTICIPANT_COUNT,
 } from '@/lib/attestations/oracleSafetyAttestationV2';
-import {
-  DERIVED_SOURCE_GROUPS,
-  nonDerivedGroupCount,
-  resolveSourceGroup,
-} from '@/lib/attestations/sourceGroups';
+import { toCoverageObservation } from '@/lib/coverage/observations';
 import { ValidationError } from '@/lib/errors';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import type { OracleFeed } from '@/lib/supabase/queries';
+
+import {
+  coveragePolicyId,
+  evaluateCoverage,
+  STRICT_COVERAGE_POLICY,
+} from '../../../../sdk/src/coverage';
 
 import { getConsensusPrice, resolveProvidersForSymbol } from './consensusPriceService';
 
@@ -20,8 +22,18 @@ export async function getCoverageDiagnostic(
   input: { asset: string; chainId: number; probe: boolean; maxSourceAgeSeconds?: number },
   feeds: Map<string, OracleFeed[]>
 ) {
+  if (
+    !/^[A-Z0-9][A-Z0-9._-]{0,31}$/.test(input.asset) ||
+    typeof input.probe !== 'boolean' ||
+    (input.maxSourceAgeSeconds !== undefined &&
+      (!Number.isSafeInteger(input.maxSourceAgeSeconds) ||
+        input.maxSourceAgeSeconds < 1 ||
+        input.maxSourceAgeSeconds > 604800))
+  ) {
+    throw new ValidationError('Invalid coverage diagnostic input.');
+  }
   const chain = getBlockchainByChainId(input.chainId);
-  if (!chain || input.chainId <= 0) {
+  if (!chain || !Number.isSafeInteger(input.chainId) || input.chainId <= 0) {
     throw new ValidationError(
       'A supported, explicit evidence chainId is required for coverage diagnostics.'
     );
@@ -30,8 +42,26 @@ export async function getCoverageDiagnostic(
   const consensus = input.probe
     ? await getConsensusPrice(input.asset, chain, undefined, candidates, { allowUnavailable: true })
     : null;
+  const now = Math.floor(Date.now() / 1000);
+  const policy = {
+    ...STRICT_COVERAGE_POLICY,
+    name: 'diagnostic-freshness.v1',
+    maxSourceAgeSeconds: input.maxSourceAgeSeconds ?? STRICT_COVERAGE_POLICY.maxSourceAgeSeconds,
+  };
+  const observations = consensus?.providers.map((p) => toCoverageObservation(p, input, chain));
+  const evaluation = observations
+    ? evaluateCoverage(observations, policy, input.chainId, now)
+    : null;
+  const candidateCounts = new Map<string, number>();
+  for (const provider of candidates)
+    candidateCounts.set(provider, (candidateCounts.get(provider) ?? 0) + 1);
   const providers = candidates.map((provider) => {
     const observation = consensus?.providers.find((p) => p.provider === provider);
+    const classified = Object.hasOwn(STRICT_COVERAGE_POLICY.sources, provider)
+      ? STRICT_COVERAGE_POLICY.sources[provider]
+      : null;
+    const assessed = evaluation?.providers.find((p) => p.provider === provider);
+    const normalized = observations?.find((p) => p.provider === provider);
     const registered = (feeds.get(provider) ?? []).some(
       (feed) =>
         feed.chain_id === input.chainId &&
@@ -39,48 +69,71 @@ export async function getCoverageDiagnostic(
         isUsdDenominatedFeedSymbol(feed.symbol)
     );
     const responding = observation
-      ? observation.status === 'success' && observation.price > 0
+      ? observation.status === 'success' &&
+        Number.isFinite(observation.price) &&
+        observation.price > 0
       : null;
-    const age = observation?.dataAgeSeconds ?? null;
+    const age = assessed?.ageSeconds ?? null;
+    const eligibilityReasons =
+      assessed?.reasons.filter(
+        (r) => !['SOURCE_AGE_UNKNOWN', 'SOURCE_TIME_INVALID', 'SOURCE_TOO_OLD'].includes(r)
+      ) ?? [];
+    if (candidateCounts.get(provider)! > 1 && !eligibilityReasons.includes('DUPLICATE_PROVIDER'))
+      eligibilityReasons.push('DUPLICATE_PROVIDER');
+    const included = observation
+      ? classified !== null &&
+        assessed !== undefined &&
+        responding === true &&
+        eligibilityReasons.length === 0
+      : null;
     const fresh =
-      responding && input.maxSourceAgeSeconds !== undefined && age !== null
-        ? age <= input.maxSourceAgeSeconds
+      observation && input.maxSourceAgeSeconds !== undefined
+        ? included === true && assessed !== undefined && assessed.reasons.length === 0
         : null;
-    const included = observation ? responding === true && !observation.isOutlier : null;
     return {
       provider,
-      sourceGroup: resolveSourceGroup(provider),
-      derived: DERIVED_SOURCE_GROUPS.has(resolveSourceGroup(provider)),
+      sourceGroup: classified?.group ?? null,
+      classified: classified !== null,
+      derived: classified?.derived ?? null,
       registered,
       registrationScope: registered ? 'exact_chain' : 'adapter_or_chain_agnostic',
       responding,
       fresh,
       included,
       dataAgeSeconds: age,
-      sourceTimestamp: responding ? (observation?.timestamp ?? null) : null,
+      sourceTimestamp:
+        responding && normalized?.observedAt != null ? normalized.observedAt * 1000 : null,
       retrievedAt: observation?.retrievedAt ?? null,
       fetchDurationMs: observation?.fetchDurationMs ?? null,
       timestampProvenance: observation?.timestampProvenance ?? 'unknown',
       status: observation?.status ?? 'not_probed',
       reason: !observation
         ? 'LIVE_PROBE_REQUIRED'
-        : observation.status === 'unsupported'
-          ? 'UNSUPPORTED'
-          : !responding
-            ? 'FETCH_FAILED'
-            : observation.isOutlier
-              ? 'CONSENSUS_EXCLUDED'
-              : age === null
-                ? 'SOURCE_AGE_UNKNOWN'
-                : fresh === false
-                  ? 'SOURCE_TOO_OLD'
-                  : null,
+        : !classified
+          ? 'UNCLASSIFIED_PROVIDER'
+          : observation.status === 'unsupported'
+            ? 'UNSUPPORTED'
+            : !responding
+              ? 'FETCH_FAILED'
+              : observation.isOutlier
+                ? 'CONSENSUS_EXCLUDED'
+                : eligibilityReasons.length > 0
+                  ? eligibilityReasons[0]
+                  : assessed?.reasons.includes('SOURCE_TIME_INVALID')
+                    ? 'SOURCE_TIME_INVALID'
+                    : age === null
+                      ? 'SOURCE_AGE_UNKNOWN'
+                      : assessed?.reasons.includes('SOURCE_TOO_OLD')
+                        ? 'SOURCE_TOO_OLD'
+                        : null,
     };
   });
   const included = providers.filter((p) => p.included);
   const fresh = included.filter((p) => p.fresh);
-  const groups = nonDerivedGroupCount(included.map((p) => p.provider));
-  const freshGroups = nonDerivedGroupCount(fresh.map((p) => p.provider));
+  const groupCount = (rows: typeof providers) =>
+    new Set(rows.filter((p) => p.derived === false).map((p) => p.sourceGroup)).size;
+  const groups = groupCount(included);
+  const freshGroups = groupCount(fresh);
   const sufficient =
     included.length >= V2_REQUIRED_PARTICIPANT_COUNT && groups >= V2_REQUIRED_NON_DERIVED_GROUPS;
   const freshSufficient =
@@ -88,11 +141,14 @@ export async function getCoverageDiagnostic(
   const freshParticipantShortfall = Math.max(0, V2_REQUIRED_PARTICIPANT_COUNT - fresh.length);
   const freshGroupShortfall = Math.max(0, V2_REQUIRED_NON_DERIVED_GROUPS - freshGroups);
   return {
+    schema: 'insight.coverage-diagnostic.v2',
+    classificationPolicyId: coveragePolicyId(STRICT_COVERAGE_POLICY),
+    freshnessPolicyId: input.maxSourceAgeSeconds !== undefined ? coveragePolicyId(policy) : null,
     asset: input.asset,
     evidenceChainId: input.chainId,
     evidenceChain: chain,
     settlementChainEvaluated: false,
-    sampledAt: new Date().toISOString(),
+    sampledAt: new Date(now * 1000).toISOString(),
     mode: input.probe ? 'live_probe' : 'registry',
     signed: false,
     status: !input.probe ? 'NOT_PROBED' : sufficient ? 'SUFFICIENT' : 'INSUFFICIENT_EVIDENCE',

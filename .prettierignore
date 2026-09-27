@@ -6,6 +6,7 @@ build
 .github/cron-dist
 sdk/dist
 verifier/dist
+.local
 ml/models
 
 # Generated/pinned VRT1 conformance artifacts. Formatting changes their exact

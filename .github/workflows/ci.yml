@@ -61,6 +61,8 @@ jobs:
         run: |
           npm run build --prefix verifier
           node verifier/examples/quickstart.mjs --offline
+      - name: Verify the packed standalone verifier and pinned offline CLI
+        run: npm run verifier:release:check
       - name: Reject stale generated cron bundles
         run: npm run validate:generated
       - name: Reject mutable or bypassing workflow configuration
@@ -91,6 +93,8 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps chromium
+      - name: Verify the published package shape in Chromium without network
+        run: npm run verifier:release:check -- --browser
       - run: npm run test:e2e -- --project=chromium
 
   deploy-production:

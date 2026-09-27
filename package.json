@@ -21,6 +21,7 @@
     "validate:ci:checks": "npm run lint && npm run format:check && npm run typecheck && npm run typecheck:scripts && npm run test:coverage && npm run knip && npm run test:reliability && npm run sdk:test && npm run rwa:registry:check && node scripts/verify-rwa-execution-profiles.mjs",
     "test": "jest",
     "test:watch": "jest --watch",
+    "verifier:release:check": "node --import tsx scripts/check-verifier-release.mts",
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -93,7 +94,7 @@
     "recharts": "^3.10.1",
     "supra-oracle-sdk": "^1.0.4",
     "tailwind-merge": "^3.7.0",
-    "verify-insight-receipt": "0.2.1",
+    "verify-insight-receipt": "0.3.0",
     "viem": "^2.56.8",
     "zod": "^4.6.5",
     "zustand": "^5.0.15"

@@ -325,6 +325,10 @@ export interface ExecutionPairResult {
 
 const text = (value: unknown) => (value == null ? '' : String(value));
 const cryptoOk = (code: string) => code === 'ok' || code === 'expired';
+const orderedUidHash = (uids: string[]) =>
+  uids.every((uid) => /^0x[0-9a-fA-F]{64}$/.test(uid))
+    ? keccak256(concat(uids.map((uid) => uid as `0x${string}`)))
+    : null;
 
 export async function verifyExecutionPair(
   preTrade: RoutableAttestation,
@@ -337,14 +341,14 @@ export async function verifyExecutionPair(
     verifyExecutionReceipt(execution, opts),
     destinationPreTrade ? verifyReceipt(destinationPreTrade, opts) : Promise.resolve(null),
   ]);
-  const p = preTrade.data ?? {};
-  const e = execution.data ?? {};
+  const p = preTrade?.data ?? {};
+  const e = execution?.data ?? {};
   const version = Number(e.schemaVersion);
   const destinationUid = text(e.destinationPreTradeUid);
   const commitsDestination =
     version >= 3 && destinationUid !== '' && destinationUid !== ZERO_BYTES32;
   const orderedUids = [text(e.preTradeUid), ...(commitsDestination ? [destinationUid] : [])];
-  const uidHash = keccak256(concat(orderedUids.map((uid) => uid as `0x${string}`)));
+  const uidHash = orderedUidHash(orderedUids);
   const executedAt = Number(e.executedAt);
   const inWindow = (result: typeof pre | null) =>
     result?.checkedAt != null &&
@@ -389,7 +393,8 @@ export async function verifyExecutionPair(
         authorised(destinationPreTrade) &&
         inWindow(dest))) &&
     destinationScopeMatches &&
-    (version < 3 || text(e.preTradeUidsHash).toLowerCase() === uidHash.toLowerCase());
+    (version < 3 ||
+      (uidHash !== null && text(e.preTradeUidsHash).toLowerCase() === uidHash.toLowerCase()));
   const status = text(e.priceExecutionStatus ?? e.executionStatus);
   return {
     pairedValid: valid,
