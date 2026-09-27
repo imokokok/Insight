@@ -1,0 +1,49 @@
+{
+  "scope": "Explicitly authorized registration of the already-applied Insight metadata-cache migration; no existing migration overwritten.",
+  "project_ref": "naevwrexybqodxinkrug",
+  "ledger": {
+    "name": "verified_rpc_metadata_cache",
+    "source_md5": "d94b061bc6f9bb8d5f2c8794f5c9d3c2",
+    "stored_statements": 1,
+    "version": "0070"
+  },
+  "independent_database_verification": {
+    "latest_snapshot": "2026-09-27T11:45:00+00:00",
+    "latest_snapshot_runs": [
+      {
+        "github_run_url": "https://github.com/imokokok/Insight/actions/runs/36316735528",
+        "scheduled_for": "2026-09-27T11:45:00+00:00",
+        "status": "succeeded"
+      },
+      {
+        "github_run_url": "https://github.com/imokokok/Insight/actions/runs/36315923918",
+        "scheduled_for": "2026-09-27T11:30:00+00:00",
+        "status": "succeeded"
+      },
+      {
+        "github_run_url": "https://github.com/imokokok/Insight/actions/runs/36315119605",
+        "scheduled_for": "2026-09-27T11:15:00+00:00",
+        "status": "succeeded"
+      }
+    ],
+    "measured_at": "2026-09-27T11:59:39.536097+00:00",
+    "metadata_bytes": 106496,
+    "metadata_rows": 143,
+    "migration_0070_registered": true,
+    "providers": [
+      {
+        "cached_feeds": 19,
+        "last_refresh": "2026-09-27T11:45:28.016+00:00",
+        "provider": "api3"
+      },
+      {
+        "cached_feeds": 124,
+        "last_refresh": "2026-09-27T11:45:28.362+00:00",
+        "provider": "chainlink"
+      }
+    ]
+  },
+  "production_code_sha": "ea22dfaa3dabfc2f72ac9f97232447551bd711e8",
+  "production_release_run": "https://github.com/imokokok/Insight/actions/runs/36316295417",
+  "first_regular_collection_run": "https://github.com/imokokok/Insight/actions/runs/36316735528"
+}
