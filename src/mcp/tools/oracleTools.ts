@@ -2,6 +2,7 @@ import type { ConsensusMethod } from '@/lib/analytics/consensusPrice';
 import { handleGetPrice } from '@/lib/api/oracleHandlers';
 import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
 import { getDaysAgoUtc, getTodayUtc, startOfDayUtc, endOfDayExclusiveUtc } from '@/lib/utils/date';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
@@ -110,23 +111,22 @@ export const compareOracleDeviationTool: McpToolDefinition<typeof DeviationInput
     const toEndAtIso = endOfDayExclusiveUtc(resolvedTo);
 
     const supabase = createServiceRoleClient();
-    const { data, error } = await supabase
-      .from('hourly_snapshot_history')
-      .select(
-        'snapshot_hour, provider, price, consensus_price, deviation_pct, latency_ms, is_success'
-      )
-      .eq('symbol', args.symbol)
-      .gte('snapshot_hour', fromAt)
-      .gte('archive_day', fromAt.slice(0, 10))
-      .lt('snapshot_hour', toEndAtIso)
-      .lte('archive_day', toEndAtIso.slice(0, 10))
-      .order('snapshot_hour', { ascending: true });
-
-    if (error) {
-      throw new Error(`Failed to load deviation data: ${error.message}`);
-    }
-
-    const rows = data ?? [];
+    const rows = await loadSnapshotHistoryRange(
+      supabase,
+      'hourly',
+      fromAt,
+      toEndAtIso,
+      [
+        'snapshot_hour',
+        'provider',
+        'price',
+        'consensus_price',
+        'deviation_pct',
+        'latency_ms',
+        'is_success',
+      ],
+      { symbol: args.symbol, ascending: true }
+    );
 
     if (rows.length === 0) {
       return `No deviation data available for ${args.symbol} between ${resolvedFrom} and ${resolvedTo}.`;

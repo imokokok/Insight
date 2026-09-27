@@ -1,5 +1,6 @@
 import { type PriceRecordInsert, type PriceRecord } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
+import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type PriceData, type OracleProvider, type Blockchain } from '@/types/oracle';
 import { type FailureMode, type OracleSignalVector } from '@/types/oracle/signals';
@@ -132,41 +133,22 @@ async function getHistoricalPricesFromSnapshots(
   limit: number
 ): Promise<PriceData[] | null> {
   try {
-    const rows: HistoricalSnapshotRow[] = [];
-    let expected: number | null = null;
-    for (
-      let offset = 0;
-      offset < limit && (expected === null || offset < expected);
-      offset += 1000
-    ) {
-      let query = createServiceRoleClient()
-        .from('price_snapshot_history')
-        .select(
-          'snapshot_ts, provider, symbol, chain_id, price, confidence',
-          offset === 0 ? { count: 'exact' } : undefined
-        )
-        .eq('provider', provider)
-        .eq('symbol', symbol.toUpperCase())
-        .eq('is_success', true)
-        .gte('snapshot_ts', new Date(startTime).toISOString())
-        .gte('archive_day', new Date(startTime).toISOString().slice(0, 10))
-        .lte('snapshot_ts', new Date(endTime).toISOString())
-        .lte('archive_day', new Date(endTime).toISOString().slice(0, 10))
-        .order('snapshot_ts', { ascending: true })
-        .order('id', { ascending: true });
-      if (chain) query = query.eq('chain_id', BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0);
-      const { data, error, count } = await query.range(offset, Math.min(offset + 999, limit - 1));
-      if (error) throw new Error(`Failed to get historical price snapshots: ${error.message}`);
-      if (offset === 0) {
-        if (count === null || !Number.isSafeInteger(count) || count! < 0)
-          throw new Error('Missing snapshot history count');
-        expected = Math.min(count!, limit);
+    const rows = await loadSnapshotHistoryRange(
+      createServiceRoleClient(),
+      'price',
+      new Date(startTime).toISOString(),
+      new Date(endTime).toISOString(),
+      ['snapshot_ts', 'provider', 'symbol', 'chain_id', 'price', 'confidence'],
+      {
+        providers: [provider],
+        symbol: symbol.toUpperCase(),
+        chainId: chain ? (BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0) : undefined,
+        successOnly: true,
+        ascending: true,
+        inclusiveBefore: true,
+        limit,
       }
-      rows.push(...((data ?? []) as HistoricalSnapshotRow[]));
-      if (rows.length < expected! && (data?.length ?? 0) < Math.min(1000, limit - offset)) {
-        throw new Error('Incomplete snapshot history page');
-      }
-    }
+    );
 
     const prices = rows
       .map((row) => snapshotToPriceData(row, chain))

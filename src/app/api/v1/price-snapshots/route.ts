@@ -11,6 +11,7 @@ import {
 import { createCachedJsonResponse } from '@/lib/api/utils';
 import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
 import { get7dAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
 
 /**
@@ -51,31 +52,30 @@ export const GET = createApiHandler(
 
     const supabase = createServiceRoleClient();
 
-    let query = supabase
-      .from('price_snapshot_history')
-      .select(
-        'snapshot_ts, snapshot_hour, provider, symbol, chain_id, price, consensus_price, deviation_pct, latency_ms, data_age_seconds, confidence, is_success'
-      )
-      .gte('snapshot_ts', fromOrDefault)
-      .gte('archive_day', fromOrDefault.slice(0, 10))
-      .lt('snapshot_ts', addDay(toOrDefault))
-      .lte('archive_day', toOrDefault)
-      .order('snapshot_ts', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (symbol) {
-      query = query.eq('symbol', symbol);
-    }
-    if (provider) {
-      query = query.eq('provider', provider);
-    }
-    if (chainId !== undefined) {
-      query = query.eq('chain_id', chainId);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
+    let data;
+    try {
+      data = await loadSnapshotHistoryPage(
+        supabase,
+        'price',
+        fromOrDefault,
+        addDay(toOrDefault),
+        [
+          'snapshot_ts',
+          'snapshot_hour',
+          'provider',
+          'symbol',
+          'chain_id',
+          'price',
+          'consensus_price',
+          'deviation_pct',
+          'latency_ms',
+          'data_age_seconds',
+          'confidence',
+          'is_success',
+        ],
+        { providers: provider ? [provider] : undefined, symbol, chainId, limit, offset }
+      );
+    } catch {
       return ApiResponseBuilder.serverError('Failed to fetch price snapshots', context.requestId);
     }
 

@@ -1,4 +1,5 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
 import { addDay } from '@/lib/utils/date';
 
 export interface CorrelationServiceInput {
@@ -70,25 +71,14 @@ export async function getCorrelationAnalysis(
   const { symbol, from, to } = input;
 
   const supabase = createServiceRoleClient();
-  const { data, error } = await supabase
-    .from('hourly_snapshot_history')
-    .select('snapshot_hour, provider, deviation_pct')
-    .eq('symbol', symbol)
-    .gte('snapshot_hour', from)
-    .gte('archive_day', from.slice(0, 10))
-    .lt('snapshot_hour', addDay(to))
-    .lte('archive_day', to)
-    .order('snapshot_hour', { ascending: true });
-
-  if (error) {
-    throw new Error(`Failed to fetch correlation data: ${error.message}`);
-  }
-
-  const rows = (data ?? []) as Array<{
-    snapshot_hour: string;
-    provider: string;
-    deviation_pct: number | null;
-  }>;
+  const rows = await loadSnapshotHistoryRange(
+    supabase,
+    'hourly',
+    from,
+    addDay(to),
+    ['snapshot_hour', 'provider', 'deviation_pct'],
+    { symbol, ascending: true }
+  );
 
   const providerSeries = new Map<string, Map<string, number>>();
 

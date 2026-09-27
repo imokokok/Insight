@@ -1,25 +1,12 @@
-import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
 
 import { getLatencyStatistics } from '../latencyService';
 
 jest.mock('@/lib/supabase/server', () => ({ createServiceRoleClient: jest.fn() }));
+jest.mock('@/lib/supabase/snapshotHistory', () => ({ loadSnapshotHistoryPage: jest.fn() }));
 
 function database(rows: Array<Record<string, unknown>>) {
-  const ranges: number[][] = [];
-  const query = {
-    select: jest.fn().mockReturnThis(),
-    gte: jest.fn().mockReturnThis(),
-    lt: jest.fn().mockReturnThis(),
-    lte: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    order: jest.fn().mockReturnThis(),
-    range: jest.fn((start: number, end: number) => {
-      ranges.push([start, end]);
-      return Promise.resolve({ data: rows.slice(start, end + 1), error: null });
-    }),
-  };
-  jest.mocked(createServiceRoleClient).mockReturnValue({ from: () => query } as never);
-  return ranges;
+  jest.mocked(loadSnapshotHistoryPage).mockResolvedValue(rows as never);
 }
 
 const row = (latency: number | null, provider = 'chainlink') => ({
@@ -40,15 +27,19 @@ it('weights each observation rather than each provider mean and reports real sam
 });
 
 it('reads past the default database page and includes slow observations in later pages', async () => {
-  const ranges = database([
+  database([
     ...Array.from({ length: 1000 }, () => row(10)),
     ...Array.from({ length: 100 }, () => row(9000)),
   ]);
   const result = await getLatencyStatistics({ from: '2026-09-18', to: '2026-09-19' });
-  expect(ranges).toEqual([
-    [0, 999],
-    [1000, 1999],
-  ]);
+  expect(loadSnapshotHistoryPage).toHaveBeenLastCalledWith(
+    undefined,
+    'hourly',
+    '2026-09-18',
+    '2026-09-20',
+    expect.any(Array),
+    expect.objectContaining({ limit: 10001, ascending: true })
+  );
   expect(result.overall?.p95).toBe(9000);
   expect(result.sampleSize).toBe(1100);
 });

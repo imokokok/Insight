@@ -1,4 +1,5 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
 import { startOfDayUtc, endOfDayExclusiveUtc } from '@/lib/utils/date';
 
 export type DeviationInterval = '1h' | '6h' | '24h';
@@ -35,16 +36,6 @@ export interface DeviationServiceResult {
   timeline: DeviationTimelineBucket[];
 }
 
-interface SnapshotRow {
-  snapshot_hour: string;
-  provider: string;
-  price: number;
-  consensus_price: number | null;
-  deviation_pct: number | null;
-  latency_ms: number | null;
-  is_success: boolean;
-}
-
 /**
  * Fetch hourly price snapshots and aggregate per-provider deviation statistics
  * plus a bucketed timeline for charting.
@@ -60,23 +51,22 @@ export async function getDeviationTimeline(
   const toEndAtIso = endOfDayExclusiveUtc(to);
 
   const supabase = createServiceRoleClient();
-  const { data, error } = await supabase
-    .from('hourly_snapshot_history')
-    .select(
-      'snapshot_hour, provider, price, consensus_price, deviation_pct, latency_ms, is_success'
-    )
-    .eq('symbol', symbol)
-    .gte('snapshot_hour', fromAt)
-    .gte('archive_day', fromAt.slice(0, 10))
-    .lt('snapshot_hour', toEndAtIso)
-    .lte('archive_day', toEndAtIso.slice(0, 10))
-    .order('snapshot_hour', { ascending: true });
-
-  if (error) {
-    throw new Error(`Failed to load deviation data: ${error.message}`);
-  }
-
-  const rows = (data ?? []) as SnapshotRow[];
+  const rows = await loadSnapshotHistoryRange(
+    supabase,
+    'hourly',
+    fromAt,
+    toEndAtIso,
+    [
+      'snapshot_hour',
+      'provider',
+      'price',
+      'consensus_price',
+      'deviation_pct',
+      'latency_ms',
+      'is_success',
+    ],
+    { symbol, ascending: true }
+  );
 
   const providerAggMap = new Map<
     string,

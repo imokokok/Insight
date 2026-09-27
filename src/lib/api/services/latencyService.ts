@@ -1,4 +1,5 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
 import { addDay } from '@/lib/utils/date';
 
 export interface LatencyServiceInput {
@@ -56,50 +57,16 @@ export async function getLatencyStatistics(
 
   const supabase = createServiceRoleClient();
 
-  const rows: Array<{
-    provider: string;
-    symbol: string;
-    latency_ms: number | null;
-    is_success: boolean;
-    snapshot_hour: string;
-  }> = [];
-  const pageSize = 1000;
-  const rowLimit = 10_000;
-  let truncated = false;
-  for (let offset = 0; offset <= rowLimit; offset += pageSize) {
-    let query = supabase
-      .from('hourly_snapshot_history')
-      .select('provider, symbol, latency_ms, is_success, snapshot_hour')
-      .gte('snapshot_hour', from)
-      .gte('archive_day', from.slice(0, 10))
-      .lt('snapshot_hour', addDay(to))
-      .lte('archive_day', to)
-      .order('snapshot_hour')
-      .order('id');
-
-    if (provider) {
-      query = query.eq('provider', provider);
-    }
-    if (symbol) {
-      query = query.eq('symbol', symbol);
-    }
-
-    const { data, error } = await query.range(
-      offset,
-      offset === rowLimit ? offset : offset + pageSize - 1
-    );
-
-    if (error) {
-      throw new Error(`Failed to fetch latency data: ${error.message}`);
-    }
-
-    if (offset === rowLimit) {
-      truncated = (data?.length ?? 0) > 0;
-      break;
-    }
-    rows.push(...(data ?? []));
-    if ((data?.length ?? 0) < pageSize) break;
-  }
+  const page = await loadSnapshotHistoryPage(
+    supabase,
+    'hourly',
+    from,
+    addDay(to),
+    ['provider', 'symbol', 'latency_ms', 'is_success', 'snapshot_hour'],
+    { providers: provider ? [provider] : undefined, symbol, ascending: true, limit: 10001 }
+  );
+  const rows = page.slice(0, 10000);
+  const truncated = page.length > 10000;
 
   const groupMap = new Map<
     string,

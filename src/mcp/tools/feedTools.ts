@@ -1,5 +1,6 @@
 import { listOracleFeeds } from '@/lib/oracles/services/feedListingService';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotUptime } from '@/lib/supabase/snapshotHistory';
 import { get7dAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
 import { roundTo } from '@/lib/utils/format';
 
@@ -193,69 +194,20 @@ export const getFeedUptimeTool: McpToolDefinition<typeof LatencyInputSchema> = {
     const toOrDefault = args.to ?? getTodayUtc();
 
     const supabase = createServiceRoleClient();
-    let query = supabase
-      .from('hourly_snapshot_history')
-      .select('snapshot_hour, provider, symbol, is_success')
-      .gte('snapshot_hour', fromOrDefault)
-      .gte('archive_day', fromOrDefault.slice(0, 10))
-      .lt('snapshot_hour', addDay(toOrDefault))
-      .lte('archive_day', toOrDefault);
-
-    if (args.provider) {
-      query = query.eq('provider', args.provider);
-    }
-    if (args.symbol) {
-      query = query.eq('symbol', args.symbol);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      throw new Error(`Failed to fetch uptime data: ${error.message}`);
-    }
-
-    const rows = (data ?? []) as Array<{
-      snapshot_hour: string;
-      provider: string;
-      symbol: string;
-      is_success: boolean;
-    }>;
-
-    const groupMap = new Map<
-      string,
-      {
-        provider: string;
-        symbol: string;
-        snapshots: number;
-        successes: number;
-        hours: Set<string>;
-      }
-    >();
-
-    for (const row of rows) {
-      const key = `${row.provider}|${row.symbol}`;
-      let group = groupMap.get(key);
-      if (!group) {
-        group = {
-          provider: row.provider,
-          symbol: row.symbol,
-          snapshots: 0,
-          successes: 0,
-          hours: new Set(),
-        };
-        groupMap.set(key, group);
-      }
-      group.snapshots++;
-      if (row.is_success) group.successes++;
-      group.hours.add(row.snapshot_hour.slice(0, 13)); // Hour-level granularity
-    }
+    const groups = await loadSnapshotUptime(
+      supabase,
+      fromOrDefault,
+      addDay(toOrDefault),
+      args.provider,
+      args.symbol
+    );
 
     const fromTime = new Date(fromOrDefault).getTime();
     const toTime = new Date(addDay(toOrDefault)).getTime();
     const totalHours = Math.max(1, Math.round((toTime - fromTime) / (60 * 60 * 1000)));
 
-    const entries = Array.from(groupMap.values()).map((group) => {
-      const coveragePct = (group.hours.size / totalHours) * 100;
+    const entries = groups.map((group) => {
+      const coveragePct = (group.hours / totalHours) * 100;
       const successRate = group.snapshots > 0 ? (group.successes / group.snapshots) * 100 : 0;
       const avgPerDay = group.snapshots / Math.max(1, totalHours / 24);
 
@@ -265,7 +217,7 @@ export const getFeedUptimeTool: McpToolDefinition<typeof LatencyInputSchema> = {
         totalSnapshots: group.snapshots,
         successfulSnapshots: group.successes,
         successRate: roundTo(successRate, 1),
-        hoursWithData: group.hours.size,
+        hoursWithData: group.hours,
         totalHours,
         coveragePct: roundTo(Math.min(coveragePct, 100), 1),
         avgSnapshotsPerDay: roundTo(avgPerDay, 1),

@@ -43,6 +43,24 @@ test('compressed snapshot history is lossless, transactional, replay-safe and pr
     );
     await db.exec(migration);
     await db.exec(migration);
+    const writeGuard = await readFile(
+      new URL(
+        '../../supabase/migrations/0066_preserve_archived_snapshot_writes.sql',
+        import.meta.url
+      ),
+      'utf8'
+    );
+    await db.exec(writeGuard);
+    await db.exec(writeGuard);
+    const cleanup = await readFile(
+      new URL(
+        '../../supabase/migrations/0067_set_based_snapshot_archive_cleanup.sql',
+        import.meta.url
+      ),
+      'utf8'
+    );
+    await db.exec(cleanup);
+    await db.exec(cleanup);
     const fine = (await db.query('SELECT to_jsonb(s) AS row FROM price_snapshots s ORDER BY id'))
       .rows;
     const hourly = (
@@ -71,12 +89,32 @@ test('compressed snapshot history is lossless, transactional, replay-safe and pr
         .rows[0],
       { moved_price: 0, moved_hourly: 0, archive_rows: 2125 }
     );
+    // Fine snapshots preserve the first observation, including failed probes.
+    const fineReplay =
+      await db.query(`INSERT INTO price_snapshots(snapshot_ts,snapshot_hour,provider,symbol,chain_id,price,is_success)
+      SELECT snapshot_ts,snapshot_hour,provider,symbol,chain_id,999,true FROM price_snapshot_history ORDER BY id LIMIT 1
+      ON CONFLICT(snapshot_ts,provider,symbol,chain_id) DO NOTHING RETURNING id`);
+    assert.equal(fineReplay.rows.length, 0);
+    assert.deepEqual(await history('price_snapshot_history'), fine);
+    const hourlyIdentity = (
+      await db.query(
+        'SELECT id,created_at FROM hourly_snapshot_history ORDER BY snapshot_hour LIMIT 1'
+      )
+    ).rows[0];
     // A corrected hourly replay overrides one natural key and survives re-archiving.
     await db.exec(`INSERT INTO hourly_price_snapshots(snapshot_hour,provider,symbol,chain_id,price,is_success)
       SELECT min(snapshot_hour),'dia','ETH',1,777,true FROM hourly_snapshot_history`);
     assert.equal(
       (await db.query('SELECT count(*)::int AS n FROM hourly_snapshot_history')).rows[0].n,
       24
+    );
+    assert.deepEqual(
+      (
+        await db.query(
+          'SELECT id,created_at FROM hourly_snapshot_history ORDER BY snapshot_hour LIMIT 1'
+        )
+      ).rows[0],
+      hourlyIdentity
     );
     await db.query("SELECT * FROM archive_snapshot_day((now() AT TIME ZONE 'UTC')::date-9)");
     assert.equal(

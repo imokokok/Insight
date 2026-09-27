@@ -11,6 +11,7 @@ import {
 import { createCachedJsonResponse } from '@/lib/api/utils';
 import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotUptime } from '@/lib/supabase/snapshotHistory';
 import { get7dAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
 import { roundTo } from '@/lib/utils/format';
 
@@ -37,71 +38,26 @@ export const GET = createApiHandler(
 
     const supabase = createServiceRoleClient();
 
-    let query = supabase
-      .from('hourly_snapshot_history')
-      .select('snapshot_hour, provider, symbol, is_success')
-      .gte('snapshot_hour', fromOrDefault)
-      .gte('archive_day', fromOrDefault.slice(0, 10))
-      .lt('snapshot_hour', addDay(toOrDefault))
-      .lte('archive_day', toOrDefault);
-
-    if (provider) {
-      query = query.eq('provider', provider);
-    }
-    if (symbol) {
-      query = query.eq('symbol', symbol);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
+    let groups;
+    try {
+      groups = await loadSnapshotUptime(
+        supabase,
+        fromOrDefault,
+        addDay(toOrDefault),
+        provider,
+        symbol
+      );
+    } catch {
       return ApiResponseBuilder.serverError('Failed to fetch heartbeat stats', context.requestId);
-    }
-
-    const rows = (data ?? []) as Array<{
-      snapshot_hour: string;
-      provider: string;
-      symbol: string;
-      is_success: boolean;
-    }>;
-
-    // Group by provider+symbol
-    const groupMap = new Map<
-      string,
-      {
-        provider: string;
-        symbol: string;
-        snapshots: number;
-        successes: number;
-        hours: Set<string>;
-      }
-    >();
-
-    for (const row of rows) {
-      const key = `${row.provider}|${row.symbol}`;
-      let group = groupMap.get(key);
-      if (!group) {
-        group = {
-          provider: row.provider,
-          symbol: row.symbol,
-          snapshots: 0,
-          successes: 0,
-          hours: new Set(),
-        };
-        groupMap.set(key, group);
-      }
-      group.snapshots++;
-      if (row.is_success) group.successes++;
-      group.hours.add(row.snapshot_hour.slice(0, 13)); // Hour-level granularity
     }
 
     const fromTime = new Date(fromOrDefault).getTime();
     const toTime = new Date(addDay(toOrDefault)).getTime();
     const totalHours = Math.max(1, Math.round((toTime - fromTime) / (60 * 60 * 1000)));
 
-    const entries = Array.from(groupMap.values()).map((group) => {
+    const entries = groups.map((group) => {
       const expectedSnapshots = totalHours; // One snapshot per hour
-      const coveragePct = (group.hours.size / expectedSnapshots) * 100;
+      const coveragePct = (group.hours / expectedSnapshots) * 100;
       const successRate = group.snapshots > 0 ? (group.successes / group.snapshots) * 100 : 0;
       const avgPerDay = group.snapshots / Math.max(1, totalHours / 24);
 
@@ -111,7 +67,7 @@ export const GET = createApiHandler(
         totalSnapshots: group.snapshots,
         successfulSnapshots: group.successes,
         successRate: roundTo(successRate, 1),
-        hoursWithData: group.hours.size,
+        hoursWithData: group.hours,
         totalHours,
         coveragePct: roundTo(Math.min(coveragePct, 100), 1),
         avgSnapshotsPerDay: roundTo(avgPerDay, 1),

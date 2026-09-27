@@ -9,6 +9,7 @@ import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { getProviderDefaults } from '@/lib/oracles/utils/performanceMetricsConfig';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
@@ -86,20 +87,14 @@ async function fetchHourlyHistories(
 
   try {
     const supabase = createServiceRoleClient();
-    const { data, error } = await supabase
-      .from('hourly_snapshot_history')
-      .select('provider, snapshot_hour, price')
-      .eq('symbol', baseSymbol)
-      .in('provider', providers)
-      .eq('is_success', true)
-      .gte('snapshot_hour', cutoff)
-      .gte('archive_day', cutoff.slice(0, 10))
-      .order('snapshot_hour', { ascending: true });
-
-    if (error) {
-      logger.error('Failed to fetch hourly price snapshots for risk summary', error);
-      return { priceHistoriesByProvider, priceHistoryTimestampsByProvider };
-    }
+    const data = await loadSnapshotHistoryRange(
+      supabase,
+      'hourly',
+      cutoff,
+      new Date().toISOString(),
+      ['provider', 'snapshot_hour', 'price'],
+      { symbol: baseSymbol, providers, successOnly: true, ascending: true }
+    );
 
     for (const row of data ?? []) {
       const list = priceHistoriesByProvider.get(row.provider) ?? [];
