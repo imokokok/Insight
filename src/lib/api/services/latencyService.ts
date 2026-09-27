@@ -68,10 +68,12 @@ export async function getLatencyStatistics(
   let truncated = false;
   for (let offset = 0; offset <= rowLimit; offset += pageSize) {
     let query = supabase
-      .from('hourly_price_snapshots')
+      .from('hourly_snapshot_history')
       .select('provider, symbol, latency_ms, is_success, snapshot_hour')
       .gte('snapshot_hour', from)
+      .gte('archive_day', from.slice(0, 10))
       .lt('snapshot_hour', addDay(to))
+      .lte('archive_day', to)
       .order('snapshot_hour')
       .order('id');
 

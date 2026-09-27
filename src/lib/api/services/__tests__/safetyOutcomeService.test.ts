@@ -34,7 +34,7 @@ function makeChain(result: Result, expandSnapshots = true, extraPages: Result[] 
             : [row]
         )
       : result.data;
-  for (const m of ['select', 'eq', 'gt', 'lt', 'lte', 'is', 'order', 'limit', 'update']) {
+  for (const m of ['select', 'eq', 'gt', 'gte', 'lt', 'lte', 'is', 'order', 'limit', 'update']) {
     api[m] = () => api;
   }
   api.range = (from: unknown) => {
@@ -115,7 +115,7 @@ describe('safetyOutcomeService — computeOutcome', () => {
     );
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) =>
-        makeChain({ data: table === 'price_snapshots' ? fine : [], error: null }, false),
+        makeChain({ data: table === 'price_snapshot_history' ? fine : [], error: null }, false),
     } as never);
 
     const outcome = await computeOutcome('ETH', CHECK_AT, 1);
@@ -134,7 +134,7 @@ describe('safetyOutcomeService — computeOutcome', () => {
     );
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) =>
-        makeChain({ data: table === 'price_snapshots' ? fine : [], error: null }, false),
+        makeChain({ data: table === 'price_snapshot_history' ? fine : [], error: null }, false),
     } as never);
 
     const outcome = await computeOutcome('ETH', CHECK_AT, 1);
@@ -150,9 +150,9 @@ describe('safetyOutcomeService — computeOutcome', () => {
       from: (table: string) =>
         makeChain({
           data:
-            table === 'price_snapshots'
+            table === 'price_snapshot_history'
               ? futureFine
-              : table === 'hourly_price_snapshots'
+              : table === 'hourly_snapshot_history'
                 ? [snap(0, 130), snap(1, 100)]
                 : [],
           error: null,
@@ -186,9 +186,9 @@ describe('safetyOutcomeService — computeOutcome', () => {
       from: (table: string) =>
         makeChain({
           data:
-            table === 'price_snapshots'
+            table === 'price_snapshot_history'
               ? completeFineWindow(6)
-              : table === 'hourly_price_snapshots'
+              : table === 'hourly_snapshot_history'
                 ? [snap(-1, 1860), snap(1, 1862, 0.4), snap(2, 1861, 0.3), snap(6, 1860)]
                 : [],
           error: null,
@@ -207,9 +207,9 @@ describe('safetyOutcomeService — computeOutcome', () => {
       from: (table: string) =>
         makeChain({
           data:
-            table === 'price_snapshots'
+            table === 'price_snapshot_history'
               ? [fineSnap(-15, 1860), fineSnap(15, 1860), fineSnap(30, 1860)]
-              : table === 'hourly_price_snapshots'
+              : table === 'hourly_snapshot_history'
                 ? [snap(-1, 1860), snap(1, 1860)]
                 : [],
           error: null,
@@ -226,7 +226,7 @@ describe('safetyOutcomeService — computeOutcome', () => {
     );
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) =>
-        makeChain({ data: table === 'price_snapshots' ? fine : [], error: null }),
+        makeChain({ data: table === 'price_snapshot_history' ? fine : [], error: null }),
     } as never);
 
     expect(await computeOutcome('ETH', CHECK_AT, 1)).toBeNull();
@@ -236,7 +236,7 @@ describe('safetyOutcomeService — computeOutcome', () => {
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) =>
         makeChain({
-          data: table === 'price_snapshots' ? completeFineWindow(1).slice(2) : [],
+          data: table === 'price_snapshot_history' ? completeFineWindow(1).slice(2) : [],
           error: null,
         }),
     } as never);
@@ -250,7 +250,7 @@ describe('safetyOutcomeService — computeOutcome', () => {
         makeChain(
           {
             data:
-              table === 'price_snapshots'
+              table === 'price_snapshot_history'
                 ? completeFineWindow(1).map((row) => ({ ...row, provider: 'oracle-a' }))
                 : [],
             error: null,
@@ -274,7 +274,7 @@ describe('safetyOutcomeService — computeOutcome', () => {
     });
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) =>
-        makeChain({ data: table === 'price_snapshots' ? fine : [], error: null }, false),
+        makeChain({ data: table === 'price_snapshot_history' ? fine : [], error: null }, false),
     } as never);
 
     expect((await computeOutcome('ETH', CHECK_AT, 1))?.label).toBe(false);
@@ -287,9 +287,9 @@ describe('safetyOutcomeService — computeOutcome', () => {
       from: (table: string) =>
         makeChain({
           data:
-            table === 'price_snapshots'
+            table === 'price_snapshot_history'
               ? fine
-              : table === 'hourly_price_snapshots'
+              : table === 'hourly_snapshot_history'
                 ? [snap(-1, 1860), snap(1, 1860), snap(2, 1860), snap(6, 1860)]
                 : [],
           error: null,
@@ -310,7 +310,7 @@ describe('safetyOutcomeService — computeOutcome', () => {
     }));
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) =>
-        table === 'price_snapshots'
+        table === 'price_snapshot_history'
           ? makeChain({ data: firstPage, error: null }, false, [{ data: secondPage, error: null }])
           : makeChain({ data: [], error: null }),
     } as never);
@@ -327,7 +327,7 @@ describe('safetyOutcomeService — computeOutcome', () => {
     }));
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) =>
-        table === 'price_snapshots'
+        table === 'price_snapshot_history'
           ? makeChain({ data: firstPage, error: null }, false, [
               { data: null, error: { message: 'second page unavailable' } },
             ])
@@ -395,7 +395,7 @@ describe('safetyOutcomeService — computeOutcome', () => {
   it('uses the 15-minute spine for the 1h outcome', async () => {
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) =>
-        table === 'price_snapshots'
+        table === 'price_snapshot_history'
           ? makeChain({
               data: [fineSnap(-15, 100), fineSnap(30, 100, 9), fineSnap(60, 100)],
               error: null,
@@ -412,7 +412,7 @@ describe('safetyOutcomeService — computeOutcome', () => {
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) =>
         makeChain({
-          data: table === 'price_snapshots' ? completeFineWindow(6) : [],
+          data: table === 'price_snapshot_history' ? completeFineWindow(6) : [],
           error: null,
         }),
     } as never);
@@ -435,13 +435,13 @@ describe('safetyOutcomeService — backfillOutcomes', () => {
     let preTradeCall = 0;
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) => {
-        if (table === 'price_snapshots') {
+        if (table === 'price_snapshot_history') {
           return makeChain({
             data: [fineSnap(-15, 1860), fineSnap(30, 1960), fineSnap(60, 1960)],
             error: null,
           });
         }
-        if (table === 'hourly_price_snapshots') {
+        if (table === 'hourly_snapshot_history') {
           return makeChain({
             data: [snap(-1, 1860), snap(1, 1900), snap(2, 1960, 1.0)],
             error: null,
@@ -471,7 +471,7 @@ describe('safetyOutcomeService — backfillOutcomes', () => {
     let preTradeCall = 0;
     mockedCreateServiceRoleClient.mockReturnValue({
       from: (table: string) => {
-        if (table === 'hourly_price_snapshots' || table === 'price_snapshots') {
+        if (table === 'hourly_snapshot_history' || table === 'price_snapshot_history') {
           return makeChain({ data: [], error: null });
         }
         preTradeCall += 1;

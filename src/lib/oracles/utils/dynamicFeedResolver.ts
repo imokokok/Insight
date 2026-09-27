@@ -87,7 +87,21 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
         timestamp: Date.now(),
       };
 
-      if (generation === cacheGeneration) allFeedsCache = entry;
+      if (generation === cacheGeneration) {
+        allFeedsCache = entry;
+        providerCaches.clear();
+        // The complete registry already contains each provider's rows. Reuse
+        // it for exact-feed validation instead of loading every provider again.
+        const grouped = new Map<string, OracleFeed[]>();
+        for (const feed of feeds) {
+          const group = grouped.get(feed.provider) ?? [];
+          group.push(feed);
+          grouped.set(feed.provider, group);
+        }
+        for (const [provider, providerFeeds] of grouped) {
+          providerCaches.set(provider, buildProviderCache(providerFeeds, entry.timestamp));
+        }
+      }
       logger.debug(
         `Loaded ${feeds.length} active feeds across ${entry.providers.length} providers`
       );
@@ -136,6 +150,20 @@ function hasCanonicalCasing(symbol: string): boolean {
   return symbol !== symbol.toUpperCase();
 }
 
+function buildProviderCache(feeds: OracleFeed[], timestamp: number): FeedCacheEntry {
+  const map = new Map<string, OracleFeed>();
+  const lookup = new Map<string, OracleFeed>();
+  for (const feed of feeds) {
+    map.set(feedKey(feed.symbol, feed.chain_id), feed);
+    const key = lookupKey(feed.symbol, feed.chain_id);
+    const existing = lookup.get(key);
+    if (!existing || (hasCanonicalCasing(feed.symbol) && !hasCanonicalCasing(existing.symbol))) {
+      lookup.set(key, feed);
+    }
+  }
+  return { feeds: map, lookup, timestamp };
+}
+
 function isCacheStale(provider: string): boolean {
   const cache = providerCaches.get(provider);
   if (!cache) return true;
@@ -143,6 +171,18 @@ function isCacheStale(provider: string): boolean {
 }
 
 async function loadFeedsForProvider(provider: string): Promise<Map<string, OracleFeed>> {
+  if (allFeedsCache && !isAllFeedsCacheStale()) {
+    // Also replace a removed provider's older cache with an authoritative empty
+    // registry. A stale positive entry must not re-enable a deactivated feed.
+    const cached = providerCaches.get(provider);
+    if (cached?.timestamp === allFeedsCache.timestamp) return cached.feeds;
+    const entry = buildProviderCache(
+      allFeedsCache.feeds.filter((feed) => feed.provider === provider),
+      allFeedsCache.timestamp
+    );
+    providerCaches.set(provider, entry);
+    return entry.feeds;
+  }
   const cache = providerCaches.get(provider);
   if (cache && !isCacheStale(provider)) {
     return cache.feeds;
@@ -151,6 +191,7 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
   const map = new Map<string, OracleFeed>();
   const lookup = new Map<string, OracleFeed>();
   const generation = cacheGeneration;
+  const aggregateAtStart = allFeedsCache;
 
   try {
     const queries = getAdminQueries();
@@ -166,8 +207,10 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
       }
     }
 
-    if (generation === cacheGeneration) {
+    if (generation === cacheGeneration && allFeedsCache === aggregateAtStart) {
       providerCaches.set(provider, { feeds: map, lookup, timestamp: Date.now() });
+    } else if (allFeedsCache && !isAllFeedsCacheStale()) {
+      return loadFeedsForProvider(provider);
     }
     logger.debug(`Loaded ${map.size} feeds for ${provider} from database`);
   } catch (error) {

@@ -1,3 +1,5 @@
+import { loadArchivedSnapshots } from '@/lib/supabase/snapshotArchives';
+
 import type { SnapshotRow } from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -65,5 +67,19 @@ export async function loadHourlySnapshotsForRange(
       `Incomplete hourly snapshots: expected ${expectedCount}, received ${snapshots.length}`
     );
   }
-  return snapshots;
+  // Hot-first reads cover rows moved into cold chunks while this request runs.
+  const archived = await loadArchivedSnapshots(supabase, 'hourly', startAt, endAt);
+  const merged = new Map<string, SnapshotRow>();
+  for (const row of [...archived, ...snapshots]) {
+    const key = JSON.stringify([
+      Date.parse(row.snapshot_hour),
+      row.provider,
+      row.symbol,
+      row.chain_id,
+    ]);
+    merged.set(key, row);
+  }
+  return [...merged.values()].sort(
+    (a, b) => Date.parse(a.snapshot_hour) - Date.parse(b.snapshot_hour)
+  );
 }

@@ -23,6 +23,8 @@ const mockGetPriceFromDatabase = jest.fn();
 const mockGetHistoricalPricesFromDatabase = jest.fn();
 
 jest.mock('../../utils/storage', () => ({
+  supportsPricePersistence: (provider: string) => !['chainlink', 'api3'].includes(provider),
+  savePricesToDatabase: async () => 0,
   shouldUseDatabase: () => mockShouldUseDatabase(),
   getPriceFromDatabase: (...args: unknown[]) => mockGetPriceFromDatabase(...args),
   getHistoricalPricesFromDatabase: (...args: unknown[]) =>
@@ -58,7 +60,7 @@ jest.mock('@/lib/supabase/server', () => ({
 }));
 
 describe('databaseOperations symbol case normalization', () => {
-  const provider: OracleProvider = 'chainlink';
+  const provider: OracleProvider = 'dia';
   const chain: Blockchain = 'ethereum';
 
   beforeEach(() => {

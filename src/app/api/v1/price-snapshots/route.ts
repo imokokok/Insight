@@ -52,12 +52,14 @@ export const GET = createApiHandler(
     const supabase = createServiceRoleClient();
 
     let query = supabase
-      .from('price_snapshots')
+      .from('price_snapshot_history')
       .select(
         'snapshot_ts, snapshot_hour, provider, symbol, chain_id, price, consensus_price, deviation_pct, latency_ms, data_age_seconds, confidence, is_success'
       )
       .gte('snapshot_ts', fromOrDefault)
+      .gte('archive_day', fromOrDefault.slice(0, 10))
       .lt('snapshot_ts', addDay(toOrDefault))
+      .lte('archive_day', toOrDefault)
       .order('snapshot_ts', { ascending: false })
       .range(offset, offset + limit - 1);
 

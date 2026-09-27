@@ -1,5 +1,6 @@
 """Contract tests for the trainer's statistically sensitive data semantics."""
 
+import hashlib
 import json
 import unittest
 from pathlib import Path
@@ -21,6 +22,7 @@ from ml.train import (
     label_from_fine_events,
     fetch_market_reference_rows,
     fetch_snapshot_pages,
+    fetch_complete_snapshot_pages,
     lost_market_reference_coverage,
     merge_flywheel_examples,
     score_exported_horizon,
@@ -136,6 +138,36 @@ class FeatureSemanticsTest(unittest.TestCase):
             [call.kwargs["params"]["and"] for call in get.call_args_list],
             [get.call_args_list[0].kwargs["params"]["and"]] * 3,
         )
+
+    def test_compressed_history_is_verified_and_hot_replay_wins(self):
+        now = pd.Timestamp.now(tz="UTC").floor("h")
+        old = (now - pd.Timedelta(days=10)).isoformat()
+        row = {"id": 1, "snapshot_hour": old, "provider": "dia", "symbol": "ETH", "chain_id": 1,
+               "price": 100, "is_success": True}
+        payload = json.dumps([row])
+        chunk = {"archive_id": 7, "kind": "hourly", "archive_day": old[:10], "provider": "dia",
+                 "symbol": "ETH", "chain_id": 1, "row_count": 1, "payload": payload,
+                 "checksum": hashlib.sha256(payload.encode()).hexdigest()}
+        responses = []
+        for page in [[chunk], []]:
+            response = Mock()
+            response.json.return_value = page
+            responses.append(response)
+        select = "snapshot_hour,provider,symbol,chain_id,price,is_success"
+        with patch("ml.train.fetch_snapshot_pages", return_value=[{**row, "price": 101}]), patch(
+            "ml.train.HTTP.get", side_effect=responses
+        ) as get:
+            rows = fetch_complete_snapshot_pages("https://example.invalid", "key", "hourly_price_snapshots", "snapshot_hour", select)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["price"], 101)
+        self.assertEqual(get.call_args_list[1].kwargs["params"]["archive_id"], "gt.7")
+        # Even a one-chunk page is followed by an empty page, avoiding silent server caps.
+        self.assertEqual(get.call_count, 2)
+        bad = Mock()
+        bad.json.return_value = [{**chunk, "checksum": "0" * 64}]
+        with patch("ml.train.fetch_snapshot_pages", return_value=[]), patch("ml.train.HTTP.get", return_value=bad):
+            with self.assertRaisesRegex(RuntimeError, "checksum mismatch"):
+                fetch_complete_snapshot_pages("https://example.invalid", "key", "hourly_price_snapshots", "snapshot_hour", select)
 
     def test_positive_episode_count_collapses_overlapping_horizon_labels(self):
         start = pd.Timestamp("2026-01-01T00:00:00Z")

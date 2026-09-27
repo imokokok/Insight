@@ -10,6 +10,7 @@ function database(rows: Array<Record<string, unknown>>) {
     select: jest.fn().mockReturnThis(),
     gte: jest.fn().mockReturnThis(),
     lt: jest.fn().mockReturnThis(),
+    lte: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
     order: jest.fn().mockReturnThis(),
     range: jest.fn((start: number, end: number) => {

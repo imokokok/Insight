@@ -26,6 +26,8 @@ jest.mock('@/lib/oracles/utils/dynamicFeedResolver', () => ({
     feed.chain_id === 0 || feed.chain_id === chainId,
 }));
 jest.mock('@/lib/oracles/utils/storage', () => ({
+  supportsPricePersistence: (provider: string) => !['chainlink', 'api3'].includes(provider),
+  savePricesToDatabase: async () => 0,
   shouldUseDatabase: () => false,
   savePriceToDatabase: () => Promise.resolve(true),
 }));

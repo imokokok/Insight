@@ -25,6 +25,7 @@ function makeSnapshotQuery(data: unknown[]) {
     lte: jest.fn(),
     order: jest.fn(),
     limit: jest.fn(),
+    range: jest.fn(),
   };
   query.select.mockReturnValue(query);
   query.eq.mockReturnValue(query);
@@ -32,6 +33,7 @@ function makeSnapshotQuery(data: unknown[]) {
   query.lte.mockReturnValue(query);
   query.order.mockReturnValue(query);
   query.limit.mockResolvedValue({ data, error: null });
+  query.range.mockResolvedValue({ data, count: data.length, error: null });
   return query;
 }
 

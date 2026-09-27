@@ -1,13 +1,8 @@
-import { fetchHistoricalOracleState } from '../oracleWatchHistory';
+import { fetchHistoricalOracleState, clearOracleHistoryCache } from '../oracleWatchHistory';
 
 const mockLimit = jest.fn();
-const mockOrder = jest.fn(() => ({ limit: mockLimit }));
-const mockGte = jest.fn(() => ({ order: mockOrder }));
-const mockEqSuccess = jest.fn(() => ({ gte: mockGte }));
-const mockEqSymbol = jest.fn(() => ({ eq: mockEqSuccess }));
-const mockSelect = jest.fn(() => ({ eq: mockEqSymbol }));
-const mockFrom = jest.fn(() => ({ select: mockSelect }));
-const mockCreateServiceRoleClient = jest.fn(() => ({ from: mockFrom }));
+const mockRpc = jest.fn(() => ({ abortSignal: mockLimit }));
+const mockCreateServiceRoleClient = jest.fn(() => ({ rpc: mockRpc }));
 
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: mockCreateServiceRoleClient,
@@ -25,16 +20,12 @@ function hoursAgo(n: number): string {
  * cross-rate registered as a USD quote, parked at a fixed huge deviation.
  */
 function seedHistory(hourDeviations: number[][], price = 100): void {
-  const rows: Array<{ snapshot_hour: string; deviation_pct: number; price: number }> = [];
-  hourDeviations.forEach((devs, i) => {
-    for (const d of devs) {
-      rows.push({
-        snapshot_hour: hoursAgo(hourDeviations.length - i),
-        deviation_pct: d,
-        price,
-      });
-    }
-  });
+  const rows = hourDeviations.map((devs, i) => ({
+    hour: hoursAgo(hourDeviations.length - i),
+    max_deviation_pct: Math.max(...devs.map(Math.abs)),
+    consensus_price: price,
+    participant_count: devs.length,
+  }));
   mockLimit.mockResolvedValue({ data: rows, error: null });
 }
 
@@ -43,13 +34,9 @@ const live = { maxDeviationPct: 0.3, consensusPrice: 100, participantCount: 6 };
 describe('fetchHistoricalOracleState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreateServiceRoleClient.mockImplementation(() => ({ from: mockFrom }));
-    mockFrom.mockImplementation(() => ({ select: mockSelect }));
-    mockSelect.mockImplementation(() => ({ eq: mockEqSymbol }));
-    mockEqSymbol.mockImplementation(() => ({ eq: mockEqSuccess }));
-    mockEqSuccess.mockImplementation(() => ({ gte: mockGte }));
-    mockGte.mockImplementation(() => ({ order: mockOrder }));
-    mockOrder.mockImplementation(() => ({ limit: mockLimit }));
+    clearOracleHistoryCache();
+    mockCreateServiceRoleClient.mockImplementation(() => ({ rpc: mockRpc }));
+    mockRpc.mockImplementation(() => ({ abortSignal: mockLimit }));
   });
 
   it('computes a normal z-score without clamping it', async () => {
@@ -96,8 +83,8 @@ describe('fetchHistoricalOracleState', () => {
   it('does not treat a gapped observation as the 1h predecessor', async () => {
     mockLimit.mockResolvedValue({
       data: [
-        { snapshot_hour: hoursAgo(3), deviation_pct: 0.2, price: 99 },
-        { snapshot_hour: hoursAgo(2), deviation_pct: 0.4, price: 100 },
+        { hour: hoursAgo(3), max_deviation_pct: 0.2, consensus_price: 99, participant_count: 1 },
+        { hour: hoursAgo(2), max_deviation_pct: 0.4, consensus_price: 100, participant_count: 1 },
       ],
       error: null,
     });
@@ -126,5 +113,54 @@ describe('fetchHistoricalOracleState', () => {
 
     expect(state.history).toEqual([]);
     expect(state.maxDeviationZscore24h).toBe(0);
+  });
+  it('shares parallel historical reads while computing fresh live features', async () => {
+    seedHistory([[0.2], [0.3], [0.4]]);
+    const states = await Promise.all(
+      Array.from({ length: 40 }, (_, i) =>
+        fetchHistoricalOracleState('ETH', { ...live, maxDeviationPct: i + 1 })
+      )
+    );
+    expect(mockRpc).toHaveBeenCalledTimes(1);
+    expect(states[0].deviationVelocity1h).not.toBe(states[1].deviationVelocity1h);
+    states[0].history[0].consensusPrice = 999;
+    expect((await fetchHistoricalOracleState('ETH', live)).history[0].consensusPrice).toBe(100);
+  });
+
+  it('retries a failed query without caching it', async () => {
+    mockLimit.mockResolvedValueOnce({ data: null, error: { message: 'temporary' } });
+    expect((await fetchHistoricalOracleState('ETH', live)).history).toEqual([]);
+    seedHistory([[0.2]]);
+    expect((await fetchHistoricalOracleState('ETH', live)).history).toHaveLength(1);
+    expect(mockRpc).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([0, -1, 1.5, NaN])('rejects invalid participant count %s', async (count) => {
+    mockLimit.mockResolvedValue({
+      data: [
+        {
+          hour: hoursAgo(1),
+          max_deviation_pct: 0.2,
+          consensus_price: 100,
+          participant_count: count,
+        },
+      ],
+      error: null,
+    });
+    expect((await fetchHistoricalOracleState('ETH', live)).history).toEqual([]);
+  });
+
+  it('does not reuse a baseline across an hour boundary', async () => {
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-27T05:59:59Z'));
+    try {
+      seedHistory([[0.2], [0.3], [0.4]]);
+      await fetchHistoricalOracleState('ETH', live);
+      clock.mockReturnValue(Date.parse('2026-09-27T06:00:01Z'));
+      seedHistory([[0.2], [0.3], [0.4]]);
+      await fetchHistoricalOracleState('ETH', live);
+      expect(mockRpc).toHaveBeenCalledTimes(2);
+    } finally {
+      clock.mockRestore();
+    }
   });
 });

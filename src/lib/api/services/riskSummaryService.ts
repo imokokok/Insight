@@ -87,12 +87,13 @@ async function fetchHourlyHistories(
   try {
     const supabase = createServiceRoleClient();
     const { data, error } = await supabase
-      .from('hourly_price_snapshots')
+      .from('hourly_snapshot_history')
       .select('provider, snapshot_hour, price')
       .eq('symbol', baseSymbol)
       .in('provider', providers)
       .eq('is_success', true)
       .gte('snapshot_hour', cutoff)
+      .gte('archive_day', cutoff.slice(0, 10))
       .order('snapshot_hour', { ascending: true });
 
     if (error) {

@@ -26,6 +26,7 @@ import { computeOracleWatchTrust } from '@/lib/api/services/oracleWatchTrust';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { roundTo } from '@/lib/utils/format';
 
+import { loadHourlySnapshotsForRange } from './loadHourlySnapshots';
 import { type FeedHealthSnapshotRow } from './oracleWatchCollector';
 
 // Mirrors the verdict thresholds in src/lib/api/services/oracleWatchService.ts
@@ -183,21 +184,10 @@ export async function backfillOracleWatchHistory(
 
   const supabase = createServiceRoleClient();
 
-  let sourceQuery = supabase
-    .from('hourly_price_snapshots')
-    .select('symbol,snapshot_hour,price,deviation_pct,data_age_seconds,is_success')
-    .eq('is_success', true)
-    .gt('price', 0)
-    .gte('snapshot_hour', cutoff);
-  if (symbols && symbols.length > 0) {
-    sourceQuery = sourceQuery.in('symbol', symbols);
-  }
-  const { data: source, error: sourceError } = await sourceQuery;
-  if (sourceError) {
-    throw new Error(`Failed to read hourly_price_snapshots for backfill: ${sourceError.message}`);
-  }
-
-  const rows = (source ?? []) as unknown as BackfillSourceRow[];
+  const source = await loadHourlySnapshotsForRange(supabase, cutoff, new Date().toISOString());
+  const rows: BackfillSourceRow[] = source.filter(
+    (row) => row.is_success && row.price > 0 && (!symbols?.length || symbols.includes(row.symbol))
+  );
   if (rows.length === 0) return { built: 0, inserted: 0, skippedExisting: 0 };
 
   const built = buildBackfillRows(rows);

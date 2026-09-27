@@ -2,6 +2,8 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 
 import { reportService } from '../reportService';
 
+jest.mock('@/lib/supabase/snapshotArchives', () => ({ loadArchivedSnapshots: async () => [] }));
+
 jest.mock('@/lib/supabase/server');
 
 const mockedCreateServiceRoleClient = createServiceRoleClient as jest.MockedFunction<

@@ -21,6 +21,7 @@ import { getDefaultFactory } from '@/lib/oracles/factory';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
+import { savePricesToDatabase } from '@/lib/oracles/utils/storage';
 import {
   reportService,
   REPORT_ASSETS,
@@ -30,7 +31,7 @@ import {
 import { type OracleFeed } from '@/lib/supabase/queries';
 import { getAdminQueries } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
-import { createLogger } from '@/lib/utils/logger';
+import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { calculateMedian } from '@/lib/utils/statistics';
 import { type Blockchain, type OracleProvider, type PriceData } from '@/types/oracle';
 
@@ -244,7 +245,8 @@ async function fetchBatchPrices(
           true,
           true,
           healthOnly ? AbortSignal.timeout(ADDITIONAL_HEALTH_TIMEOUT_MS) : undefined,
-          feedSymbol
+          feedSymbol,
+          { persist: false }
         );
         const check = sanitizePriceForSnapshot(price.price);
         if (!check.valid) {
@@ -564,6 +566,16 @@ export async function collectSnapshot(
   );
 
   const results = await fetchBatchPrices(options.includeAdditionalHealthChecks ?? true);
+  // Finish cache persistence before returning. Individual adapters must not
+  // append one row/HTTP request per feed while the batch is still running.
+  try {
+    const prices = results.flatMap((result) => (result.price ? [result.price] : []));
+    const saved = await savePricesToDatabase(prices);
+    logger.info('Persisted price cache batch', { observations: prices.length, saved });
+  } catch (error) {
+    // Durable snapshots and feed failure evidence still need to be recorded.
+    logger.warn('Price cache batch persistence failed', normalizeError(error));
+  }
   const consensusBySymbol = calculateConsensusBySymbol(results);
 
   const inputs = buildSnapshotInputs(results, consensusBySymbol, snapshotHour);

@@ -71,11 +71,13 @@ export async function getCorrelationAnalysis(
 
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
-    .from('hourly_price_snapshots')
+    .from('hourly_snapshot_history')
     .select('snapshot_hour, provider, deviation_pct')
     .eq('symbol', symbol)
     .gte('snapshot_hour', from)
+    .gte('archive_day', from.slice(0, 10))
     .lt('snapshot_hour', addDay(to))
+    .lte('archive_day', to)
     .order('snapshot_hour', { ascending: true });
 
   if (error) {

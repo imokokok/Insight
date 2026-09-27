@@ -41,6 +41,7 @@ function PriceQueryContentInner() {
     selectedSymbol,
     selectedChain,
     queryResults,
+    enabled: !isLoading,
   });
 
   const debouncedSearchFocus = useCallback(() => {

@@ -1,14 +1,19 @@
 import { loadHourlySnapshotsForRange } from '../loadHourlySnapshots';
 
+jest.mock('@/lib/supabase/snapshotArchives', () => ({ loadArchivedSnapshots: async () => [] }));
+
 function makeClient(total: number) {
   const rows = Array.from({ length: total }, (_, index) => ({
     id: index + 1,
     snapshot_hour: '2026-09-21T00:00:00Z',
     provider: 'chainlink',
+    symbol: `ASSET${index}`,
+    chain_id: 1,
   }));
   const query = {
     gte: jest.fn(),
     lt: jest.fn(),
+    lte: jest.fn(),
     order: jest.fn(),
     range: jest.fn(async (start: number, end: number) => ({
       data: rows.slice(start, end + 1),
@@ -18,6 +23,7 @@ function makeClient(total: number) {
   };
   query.gte.mockReturnValue(query);
   query.lt.mockReturnValue(query);
+  query.lte.mockReturnValue(query);
   query.order.mockReturnValue(query);
   const select = jest.fn().mockReturnValue(query);
   const from = jest.fn().mockReturnValue({ select });
@@ -62,6 +68,8 @@ describe('loadHourlySnapshotsForRange', () => {
         id: index,
         snapshot_hour: startAt,
         provider: 'chainlink',
+        symbol: `ASSET${index}`,
+        chain_id: 1,
       })),
       count: 2000,
       error: null,
@@ -74,10 +82,12 @@ describe('loadHourlySnapshotsForRange', () => {
   it('rejects duplicate rows caused by a moving page boundary', async () => {
     const { client, query } = makeClient(1001);
     query.range.mockResolvedValueOnce({
-      data: Array.from({ length: 1000 }, () => ({
+      data: Array.from({ length: 1000 }, (_, index) => ({
         id: 1,
         snapshot_hour: startAt,
         provider: 'chainlink',
+        symbol: `ASSET${index}`,
+        chain_id: 1,
       })),
       count: 1001,
       error: null,

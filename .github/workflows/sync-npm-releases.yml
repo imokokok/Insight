@@ -34,12 +34,19 @@ jobs:
         with:
           node-version: 22.23.2
           cache: npm
+      - name: Check whether tracked releases changed
+        id: release-check
+        run: node scripts/check-npm-releases.mts
       - run: npm ci
+        if: steps.release-check.outputs.needed == 'true'
       - name: Read npm latest tags and update tracked files
+        if: steps.release-check.outputs.needed == 'true'
         run: npm run sync:npm-releases
       - name: Refresh cron bundles for any dependency change
+        if: steps.release-check.outputs.needed == 'true'
         run: npm run build:cron
       - name: Detect an available release
+        if: steps.release-check.outputs.needed == 'true'
         id: changes
         shell: bash
         run: |

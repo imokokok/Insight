@@ -54,6 +54,7 @@ Env:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sys
@@ -221,6 +222,7 @@ def fetch_snapshot_pages(
     table: str,
     timestamp_column: str,
     select: str,
+    read_until: datetime | None = None,
 ) -> list[dict]:
     """Read a bounded snapshot window without exact counts or deep offsets.
 
@@ -228,7 +230,7 @@ def fetch_snapshot_pages(
     ties between providers sampled at the same time. Keeping the upper bound
     fixed prevents newly collected future snapshots from extending the scan.
     """
-    read_until = datetime.now(timezone.utc)
+    read_until = read_until or datetime.now(timezone.utc)
     cutoff = read_until - timedelta(weeks=LOOKBACK_WEEKS)
     url = base_url.rstrip("/") + f"/rest/v1/{table}"
     params = {
@@ -240,6 +242,11 @@ def fetch_snapshot_pages(
         ),
         "order": f"{timestamp_column}.asc,id.asc",
     }
+    if table in ("hourly_snapshot_history", "price_snapshot_history"):
+        params["and"] = params["and"][:-1] + (
+            f",archive_day.gte.{cutoff.date().isoformat()},"
+            f"archive_day.lte.{read_until.date().isoformat()})"
+        )
     headers = {
         "apikey": service_key,
         "Authorization": f"Bearer {service_key}",
@@ -276,6 +283,67 @@ def fetch_snapshot_pages(
     return rows
 
 
+def fetch_complete_snapshot_pages(
+    base_url: str, service_key: str, table: str, timestamp_column: str, select: str,
+) -> list[dict]:
+    """Read indexed hot rows once, then each compressed cold chunk once.
+
+    Expanding and sorting an eight-week union view for every 1,000-row page
+    would repeatedly decompress the same history. Chunk keysets avoid that.
+    Hot-first ordering also covers source rows moved atomically during this read.
+    """
+    read_until = datetime.now(timezone.utc)
+    cutoff = read_until - timedelta(weeks=LOOKBACK_WEEKS)
+    hot = fetch_snapshot_pages(base_url, service_key, table, timestamp_column, select, read_until)
+    kind = "price" if table == "price_snapshots" else "hourly"
+    params = {
+        "select": "archive_id,kind,archive_day,provider,symbol,chain_id,row_count,checksum,payload",
+        "kind": f"eq.{kind}",
+        "and": f"(archive_day.gte.{cutoff.date().isoformat()},archive_day.lte.{read_until.date().isoformat()})",
+        "order": "archive_id.asc",
+    }
+    url = base_url.rstrip("/") + "/rest/v1/snapshot_archive_exports"
+    headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}", "Range": "0-99"}
+    cold = []
+    last_id = 0
+    while True:
+        page_params = {**params, "archive_id": f"gt.{last_id}"}
+        response = HTTP.get(url, headers=headers, params=page_params, timeout=60)
+        response.raise_for_status()
+        chunks = response.json()
+        if not isinstance(chunks, list):
+            raise RuntimeError("Invalid snapshot archive response")
+        for chunk in chunks:
+            archive_id = chunk.get("archive_id")
+            if type(archive_id) is not int or archive_id <= last_id or chunk.get("kind") != kind:
+                raise RuntimeError("Invalid snapshot archive cursor or kind")
+            payload = chunk.get("payload")
+            if not isinstance(payload, str) or hashlib.sha256(payload.encode("utf-8")).hexdigest() != chunk.get("checksum"):
+                raise RuntimeError("Snapshot archive checksum mismatch")
+            entries = json.loads(payload)
+            if not isinstance(entries, list) or type(chunk.get("row_count")) is not int or len(entries) != chunk["row_count"]:
+                raise RuntimeError("Snapshot archive row count mismatch")
+            for row in entries:
+                timestamp = pd.Timestamp(row[timestamp_column])
+                if timestamp.tzinfo is None or timestamp.tz_convert("UTC").date().isoformat() != chunk["archive_day"]:
+                    raise RuntimeError("Snapshot archive timestamp mismatch")
+                if any(row[name] != chunk[name] for name in ("provider", "symbol", "chain_id")):
+                    raise RuntimeError("Snapshot archive feed identity mismatch")
+                if type(row.get("id")) is not int or row["id"] <= 0 or type(row.get("is_success")) is not bool:
+                    raise RuntimeError("Invalid archived snapshot identity or success flag")
+                if row["is_success"] and cutoff <= timestamp.to_pydatetime() <= read_until:
+                    cold.append({name: row[name] for name in ("id," + select).split(",")})
+            last_id = archive_id
+        # Always advance to an empty page: a server cap must not truncate history.
+        if not chunks:
+            break
+    merged = {}
+    for row in cold + hot:
+        key = (pd.Timestamp(row[timestamp_column]), row["provider"], row["symbol"], row["chain_id"])
+        merged[key] = row  # Hot replay overrides its archived natural key, as in SQL.
+    return sorted(merged.values(), key=lambda row: (pd.Timestamp(row[timestamp_column]), row["id"]))
+
+
 def fetch_rows(base_url: str, service_key: str) -> pd.DataFrame:
     """Page through hourly_price_snapshots via the PostgREST API.
 
@@ -284,7 +352,7 @@ def fetch_rows(base_url: str, service_key: str) -> pd.DataFrame:
     """
     log(f"Fetching hourly_price_snapshots (last {LOOKBACK_WEEKS} weeks)...")
     select = "symbol,snapshot_hour,provider,chain_id,price,deviation_pct,data_age_seconds,is_success"
-    df = pd.DataFrame(fetch_snapshot_pages(
+    df = pd.DataFrame(fetch_complete_snapshot_pages(
         base_url, service_key, "hourly_price_snapshots", "snapshot_hour", select
     ))
     if df.empty:
@@ -307,7 +375,7 @@ def fetch_fine_rows(base_url: str, service_key: str) -> pd.DataFrame:
     effective number of independent prediction times.
     """
     select = "symbol,snapshot_ts,provider,chain_id,price,deviation_pct,data_age_seconds,is_success"
-    fine = pd.DataFrame(fetch_snapshot_pages(
+    fine = pd.DataFrame(fetch_complete_snapshot_pages(
         base_url, service_key, "price_snapshots", "snapshot_ts", select
     ))
     if fine.empty:

@@ -24,6 +24,8 @@ jest.mock('../utils/dynamicFeedResolver', () => ({
 }));
 
 jest.mock('../utils/storage', () => ({
+  supportsPricePersistence: (provider: string) => !['chainlink', 'api3'].includes(provider),
+  savePricesToDatabase: async () => 0,
   savePriceToDatabase: (...args: unknown[]) => mockSavePriceToDatabase(...args),
 }));
 

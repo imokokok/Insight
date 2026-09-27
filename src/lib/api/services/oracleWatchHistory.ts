@@ -1,3 +1,6 @@
+import { z } from 'zod';
+
+import { TTLCache } from '@/lib/utils/cache';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
@@ -93,6 +96,69 @@ export interface OracleWatchLiveState {
   participantCount: number;
 }
 
+const historyCache = new TTLCache({ maxSize: 128, cleanupIntervalMs: 0 });
+const historyReads = new Map<string, Promise<HourlyPoint[]>>();
+const baselineSchema = z
+  .array(
+    z.object({
+      hour: z.string().refine((value) => Number.isFinite(Date.parse(value))),
+      max_deviation_pct: z.number().finite().nonnegative(),
+      consensus_price: z.number().finite().positive(),
+      participant_count: z.number().int().positive().safe(),
+    })
+  )
+  .max(30);
+
+export function clearOracleHistoryCache(): void {
+  historyCache.clear();
+  historyReads.clear();
+}
+
+async function loadCompletedHistory(asset: string, now: number): Promise<HourlyPoint[]> {
+  const hour = Math.floor(now / 3600_000) * 3600_000;
+  // Preserve the old rolling 30h cutoff exactly for hour-grained records.
+  const since = Math.ceil((now - 30 * 3600_000) / 3600_000) * 3600_000;
+  const symbol = asset.toUpperCase();
+  const key = JSON.stringify([symbol, since, hour]);
+  const cached = historyCache.get<HourlyPoint[]>(key);
+  if (cached) return cached;
+  const pending = historyReads.get(key);
+  if (pending) return pending;
+  const read = (async () => {
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const { data, error } = await createServiceRoleClient()
+      .rpc('get_oracle_history_baseline', {
+        p_symbol: symbol,
+        p_since: new Date(since).toISOString(),
+        p_before: new Date(hour).toISOString(),
+      })
+      .abortSignal(AbortSignal.timeout(10_000));
+    if (error) throw error;
+    const rows = baselineSchema.parse(data);
+    const seen = new Set<number>();
+    const points = rows
+      .map((row) => {
+        const time = Date.parse(row.hour);
+        if (time < since || time >= hour || time % 3600_000 !== 0 || seen.has(time)) {
+          throw new Error('Invalid completed-hour baseline');
+        }
+        seen.add(time);
+        return {
+          hour: row.hour,
+          maxDeviationPct: row.max_deviation_pct,
+          consensusPrice: row.consensus_price,
+          participantCount: row.participant_count,
+        };
+      })
+      .sort((a, b) => Date.parse(a.hour) - Date.parse(b.hour));
+    // Cache historical evidence only. Live features are evaluated per call.
+    historyCache.set(key, points, 60_000);
+    return points;
+  })().finally(() => historyReads.delete(key));
+  historyReads.set(key, read);
+  return read;
+}
+
 /**
  * Fetch the last ~30h of hourly snapshots for `asset` and compute the 5 temporal
  * ML features (deviation_velocity_1h/3h, participant_count_delta_1h,
@@ -108,49 +174,14 @@ export async function fetchHistoricalOracleState(
   live: OracleWatchLiveState
 ): Promise<HistoricalOracleState> {
   try {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const client = createServiceRoleClient();
-    const cutoff = new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString();
-    const { data, error } = await client
-      .from('hourly_price_snapshots')
-      .select('snapshot_hour,deviation_pct,price')
-      .eq('symbol', asset)
-      .eq('is_success', true)
-      .gte('snapshot_hour', cutoff)
-      .order('snapshot_hour', { ascending: true })
-      .limit(2000);
-    if (error || !data || data.length === 0) return EMPTY_HISTORY;
-
-    // Group by hour -> max |deviation|, median price (consensus), participant count.
-    const byHour = new Map<string, { devs: number[]; prices: number[]; count: number }>();
-    for (const row of data) {
-      const dev = Math.abs(Number(row.deviation_pct));
-      const price = Number(row.price);
-      if (!Number.isFinite(dev) || !Number.isFinite(price) || price <= 0) continue;
-      const h = byHour.get(row.snapshot_hour) ?? { devs: [], prices: [], count: 0 };
-      h.devs.push(dev);
-      h.prices.push(price);
-      h.count += 1;
-      byHour.set(row.snapshot_hour, h);
+    let now = Date.now();
+    let completed = await loadCompletedHistory(asset, now);
+    // Do not reuse a baseline from the previous hour across a slow read.
+    if (Math.floor(Date.now() / 3600_000) !== Math.floor(now / 3600_000)) {
+      now = Date.now();
+      completed = await loadCompletedHistory(asset, now);
     }
-    if (byHour.size === 0) return EMPTY_HISTORY;
-
-    const now = Date.now();
     const currentHour = Math.floor(now / 3600_000) * 3600_000;
-    const allHours = Array.from(byHour.keys()).sort(); // ascending ISO hour
-    // Completed hours only: exclude the entire still-forming wall-clock hour.
-    const completed: HourlyPoint[] = [];
-    for (const hour of allHours) {
-      const t = Date.parse(hour);
-      if (Number.isNaN(t) || t >= currentHour) continue;
-      const h = byHour.get(hour)!;
-      completed.push({
-        hour,
-        maxDeviationPct: Math.max(...h.devs),
-        consensusPrice: median(h.prices),
-        participantCount: h.count,
-      });
-    }
     if (completed.length === 0) return { ...EMPTY_HISTORY, history: [] };
 
     const byTimestamp = new Map(completed.map((point) => [Date.parse(point.hour), point]));
@@ -190,7 +221,7 @@ export async function fetchHistoricalOracleState(
         : 0;
 
     return {
-      history: completed,
+      history: completed.map((point) => ({ ...point })),
       deviationVelocity1h: oneHourAgo
         ? round4(live.maxDeviationPct - oneHourAgo.maxDeviationPct)
         : 0,

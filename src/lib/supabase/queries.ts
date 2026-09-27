@@ -126,6 +126,61 @@ export interface UserProfileUpdate {
 export class DatabaseQueries {
   constructor(private client: SupabaseClient) {}
 
+  /** Bounded cache/history writes; callers only need completion, not row JSON. */
+  async savePriceRecords(records: PriceRecordInsert[]): Promise<number> {
+    const seen = new Set<string>();
+    const rows = records.flatMap((record) => {
+      if (
+        !Number.isFinite(record.price) ||
+        record.price <= 0 ||
+        record.price > 999_999_999_999.99999999
+      ) {
+        logger.warn('Skipping out-of-range price cache observation', {
+          provider: record.provider,
+          symbol: record.symbol,
+        });
+        return [];
+      }
+      const row = {
+        provider: record.provider,
+        symbol: record.symbol,
+        chain: record.chain || null,
+        price: record.price,
+        timestamp: new Date(normalizeTimestamp(record.timestamp)).toISOString(),
+        decimals: record.decimals ?? null,
+        confidence: record.confidence ?? null,
+        source: record.source ?? null,
+        verification: record.verification ?? null,
+        ingestion_timestamp: record.ingestion_timestamp
+          ? new Date(normalizeTimestamp(record.ingestion_timestamp)).toISOString()
+          : null,
+        metadata_fallback: record.metadata_fallback ?? null,
+        failure_mode: record.failure_mode ?? null,
+        signal_vector: record.signal_vector ?? null,
+        ttl: this.calculateTtlTimestamp(record.ttl || '1h'),
+      };
+      // Ignore only storage expiration when comparing complete observations.
+      // Different ingestion times, prices or evidence must still be retained.
+      const fingerprint = JSON.stringify({ ...row, ttl: undefined });
+      if (seen.has(fingerprint)) return [];
+      seen.add(fingerprint);
+      return [row];
+    });
+    let saved = 0;
+    for (let offset = 0; offset < rows.length; offset += 100) {
+      const batch = rows.slice(offset, offset + 100);
+      await queryQueue.add(async () => {
+        const { error } = await this.client
+          .from('price_records')
+          .insert(batch)
+          .abortSignal(AbortSignal.timeout(15_000));
+        if (error) throw new Error(`Price cache batch persistence failed: ${error.message}`);
+      });
+      saved += batch.length;
+    }
+    return saved;
+  }
+
   async savePriceRecord(record: PriceRecordInsert): Promise<PriceRecord | null> {
     return queryQueue.add(async () => {
       const timestamp = new Date(normalizeTimestamp(record.timestamp)).toISOString();
@@ -322,7 +377,7 @@ export class DatabaseQueries {
       for (;;) {
         let query = this.client
           .from('oracle_feeds')
-          .select('*', { count: 'exact' })
+          .select('*', offset === 0 ? { count: 'exact' } : undefined)
           .eq('is_active', true)
           .order('symbol', { ascending: true })
           .order('chain_id', { ascending: true })

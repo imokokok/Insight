@@ -61,13 +61,15 @@ export async function getDeviationTimeline(
 
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
-    .from('hourly_price_snapshots')
+    .from('hourly_snapshot_history')
     .select(
       'snapshot_hour, provider, price, consensus_price, deviation_pct, latency_ms, is_success'
     )
     .eq('symbol', symbol)
     .gte('snapshot_hour', fromAt)
+    .gte('archive_day', fromAt.slice(0, 10))
     .lt('snapshot_hour', toEndAtIso)
+    .lte('archive_day', toEndAtIso.slice(0, 10))
     .order('snapshot_hour', { ascending: true });
 
   if (error) {

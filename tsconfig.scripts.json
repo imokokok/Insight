@@ -11,6 +11,7 @@
     "scripts/approve-dependabot-workflow-runs.mts",
     "scripts/check-rwa-parity.ts",
     "scripts/check-workflow-security.ts",
+    "scripts/check-npm-releases.mts",
     "scripts/collect-market-reference.ts",
     "scripts/collect-oracle-watch.ts",
     "scripts/collect-snapshot.ts",

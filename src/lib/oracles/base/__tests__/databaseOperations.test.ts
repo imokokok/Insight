@@ -27,6 +27,7 @@ jest.mock('../../utils/dynamicFeedResolver', () => ({
 }));
 
 jest.mock('../../utils/storage', () => ({
+  supportsPricePersistence: (provider: string) => !['chainlink', 'api3'].includes(provider),
   shouldUseDatabase: () => mockShouldUseDatabase(),
   getPriceFromDatabase: (...args: unknown[]) => mockGetPriceFromDatabase(...args),
   getHistoricalPricesFromDatabase: (...args: unknown[]) =>
@@ -57,7 +58,7 @@ jest.mock('@/lib/oracles/factory', () => ({
 
 // eslint-disable-next-line max-lines-per-function
 describe('databaseOperations', () => {
-  const mockProvider: OracleProvider = 'chainlink';
+  const mockProvider: OracleProvider = 'dia';
   const mockSymbol = 'BTC';
   const mockChain: Blockchain = 'ethereum';
 
@@ -1266,7 +1267,7 @@ describe('databaseOperations', () => {
     describe('Provider-specific tests', () => {
       it('should handle chainlink provider', async () => {
         const mockPriceData = createMockPriceData({ provider: 'chainlink' });
-        mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
+        mockClientGetPrice.mockResolvedValueOnce(mockPriceData);
 
         const result = await fetchPriceWithDatabase('chainlink', mockSymbol, mockChain, true);
 
@@ -1284,7 +1285,7 @@ describe('databaseOperations', () => {
 
       it('should handle api3 provider', async () => {
         const mockPriceData = createMockPriceData({ provider: 'api3' });
-        mockGetPriceFromDatabase.mockResolvedValueOnce(mockPriceData);
+        mockClientGetPrice.mockResolvedValueOnce(mockPriceData);
 
         const result = await fetchPriceWithDatabase('api3', mockSymbol, mockChain, true);
 

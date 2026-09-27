@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, type Query } from '@tanstack/react-query';
 
 import { OracleProvider, type Blockchain } from '@/types/oracle';
 import type { AnyOnChainData, OnChainData } from '@/types/oracle/onChainData';
@@ -12,10 +12,14 @@ interface UseAllOnChainDataParams {
   selectedSymbol: string;
   selectedChain: Blockchain | null;
   queryResults: Array<{ provider: OracleProvider }>;
+  enabled?: boolean;
 }
 
 export function useAllOnChainData(params: UseAllOnChainDataParams): OnChainData {
-  const { selectedOracle, selectedSymbol, selectedChain, queryResults } = params;
+  const { selectedSymbol, selectedChain, queryResults, enabled = true } = params;
+  // StatsCardsSelector renders only queryResults[0]. Other providers' details
+  // were polled without ever being displayed, including before prices arrived.
+  const displayedProvider = queryResults[0]?.provider;
 
   const providers = useMemo(
     () => [
@@ -41,14 +45,10 @@ export function useAllOnChainData(params: UseAllOnChainDataParams): OnChainData 
         const body = (await response.json()) as { data?: AnyOnChainData | null };
         return body.data ?? null;
       },
-      enabled:
-        !!selectedSymbol &&
-        (!selectedOracle ||
-          selectedOracle === provider ||
-          queryResults.some((result) => result.provider === provider)),
+      enabled: enabled && !!selectedSymbol && displayedProvider === provider,
       staleTime: 60_000,
       gcTime: 5 * 60_000,
-      refetchInterval: 60_000,
+      refetchInterval: (query: Query) => (query.state.status === 'error' ? 300_000 : 60_000),
       refetchIntervalInBackground: false,
       refetchOnWindowFocus: false,
       retry: false,

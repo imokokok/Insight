@@ -30,6 +30,7 @@ jest.mock('@/lib/utils/requestQueue', () => ({
 }));
 
 type MockQuery = {
+  abortSignal: jest.Mock;
   select: jest.Mock;
   insert: jest.Mock;
   update: jest.Mock;
@@ -53,6 +54,7 @@ const createMockQuery = (): MockQuery => {
   });
 
   const query: MockQuery = {
+    abortSignal: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     insert: jest.fn().mockReturnThis(),
     update: jest.fn().mockReturnThis(),
@@ -384,5 +386,56 @@ describe('getOracleFeeds paging', () => {
     const result = await queries.getOracleFeeds('redstone');
 
     expect(result).toEqual([]);
+  });
+});
+
+describe('bounded bulk price persistence', () => {
+  it('writes 250 observations in three batches without selecting full rows', async () => {
+    mockQuery._resolveWith({ error: null });
+    const observations = Array.from({ length: 250 }, (_, i) => ({
+      provider: 'dia',
+      symbol: 'ETH',
+      price: 100 + i,
+      timestamp: 1780000000000 + i,
+      chain: 'ethereum',
+      ttl: '24h',
+      signal_vector: { i },
+    }));
+    expect(await queries.savePriceRecords(observations)).toBe(250);
+    expect(mockQuery.insert.mock.calls.map(([rows]) => rows.length)).toEqual([100, 100, 50]);
+    expect(mockQuery.select).not.toHaveBeenCalled();
+    expect(mockQuery.insert.mock.calls[0][0][0]).toMatchObject({
+      ttl: expect.any(String),
+      signal_vector: { i: 0 },
+    });
+  });
+
+  it('removes identical batch duplicates while retaining different evidence', async () => {
+    mockQuery._resolveWith({ error: null });
+    const record = {
+      provider: 'dia',
+      symbol: 'ETH',
+      price: 100,
+      timestamp: 1780000000000,
+      ttl: '24h',
+      verification: { valid: true },
+    };
+    expect(
+      await queries.savePriceRecords([
+        record,
+        record,
+        { ...record, verification: { valid: false } },
+      ])
+    ).toBe(2);
+    expect(mockQuery.insert.mock.calls[0][0]).toHaveLength(2);
+  });
+
+  it('rejects failed writes instead of reporting successful persistence', async () => {
+    mockQuery._resolveWith({ error: { message: 'unavailable' } });
+    await expect(
+      queries.savePriceRecords([
+        { provider: 'dia', symbol: 'ETH', price: 100, timestamp: 1780000000000 },
+      ])
+    ).rejects.toThrow('unavailable');
   });
 });

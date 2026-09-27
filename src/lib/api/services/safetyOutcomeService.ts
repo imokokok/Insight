@@ -117,7 +117,7 @@ export async function computeOutcome(
   // found in the 15-minute spine for BOTH horizons. Backfill must use the same
   // sources, or the same event can be positive in training and negative live.
   const fetchRows = async (
-    table: 'price_snapshots' | 'hourly_price_snapshots',
+    table: 'price_snapshot_history' | 'hourly_snapshot_history',
     timeColumn: 'snapshot_ts' | 'snapshot_hour'
   ) => {
     const rows: Array<Record<string, unknown>> = [];
@@ -129,7 +129,9 @@ export async function computeOutcome(
         .eq('is_success', true)
         .gt('price', 0)
         .gt(timeColumn, fromMinus.toISOString())
+        .gte('archive_day', fromMinus.toISOString().slice(0, 10))
         .lte(timeColumn, to.toISOString())
+        .lte('archive_day', to.toISOString().slice(0, 10))
         .order(timeColumn, { ascending: true })
         .order('id', { ascending: true })
         .range(offset, offset + SNAPSHOT_PAGE_SIZE - 1);
@@ -144,8 +146,8 @@ export async function computeOutcome(
     };
   };
   const [fineResult, hourlyResult] = await Promise.all([
-    fetchRows('price_snapshots', 'snapshot_ts'),
-    fetchRows('hourly_price_snapshots', 'snapshot_hour'),
+    fetchRows('price_snapshot_history', 'snapshot_ts'),
+    fetchRows('hourly_snapshot_history', 'snapshot_hour'),
   ]);
 
   if (fineResult.error || hourlyResult.error) {

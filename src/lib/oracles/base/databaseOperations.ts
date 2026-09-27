@@ -14,13 +14,13 @@ import {
   getPriceFromDatabase,
   savePriceToDatabase,
   getHistoricalPricesFromDatabase,
+  supportsPricePersistence,
 } from '../utils/storage';
 
 const logger = createLogger('databaseOperations');
 
 // Providers whose enriched on-chain/API metadata should not be persisted
 // to the price database because the stored row cannot represent all fields.
-const PROVIDERS_SKIPPING_DB_SAVE = new Set([OracleProvider.CHAINLINK, OracleProvider.API3]);
 
 // Track consecutive fire-and-forget save failures so that a persistent
 // database connectivity problem is surfaced instead of being silently logged
@@ -33,7 +33,7 @@ let consecutiveSaveFailures = 0;
  * record is older than this, we attempt a live fetch and only fall back to the
  * stale record if the live fetch fails.
  *
- * Chainlink & API3 skip DB save entirely (PROVIDERS_SKIPPING_DB_SAVE), so they
+ * Chainlink & API3 skip DB cache lookup and persistence entirely, so they
  * always go live and are not listed here. The providers explicitly listed are
  * the ones previously serving stale data in the pre-trade safety check
  * (DIA/Supra/TWAP) because their cached rows were returned
@@ -263,7 +263,8 @@ export async function fetchPriceWithDatabase(
   useDatabase: boolean,
   forceRefresh: boolean = false,
   signal?: AbortSignal,
-  exactFeedSymbol?: string
+  exactFeedSymbol?: string,
+  storageOptions: { persist?: boolean } = {}
 ): Promise<PriceData> {
   // Oracle services expect the base asset symbol (e.g. "BTC"), while some UI
   // and API callers pass the full pair (e.g. "btc/usd"). Normalize once: derive
@@ -319,7 +320,7 @@ export async function fetchPriceWithDatabase(
     // fresh. Chainlink/API3 have no DB row here, so they fall straight through
     // to the live fetch below unchanged.
     let staleDbPrice: PriceData | null = null;
-    if (!forceRefresh && useDatabase && shouldUseDatabase()) {
+    if (!forceRefresh && useDatabase && shouldUseDatabase() && supportsPricePersistence(provider)) {
       const dbPrice = await getPriceFromDatabase(provider, fetchSymbol, targetChain);
       if (dbPrice) {
         if (!isDbPriceStale(dbPrice, provider)) {
@@ -340,8 +341,8 @@ export async function fetchPriceWithDatabase(
 
     try {
       const livePrice = await client.getPrice(fetchSymbol, targetChain, { signal });
-      if (!PROVIDERS_SKIPPING_DB_SAVE.has(provider)) {
-        savePriceToDatabase(livePrice)
+      if (storageOptions.persist !== false && supportsPricePersistence(provider)) {
+        await savePriceToDatabase(livePrice)
           .then((saved) => {
             if (saved) {
               consecutiveSaveFailures = 0;
