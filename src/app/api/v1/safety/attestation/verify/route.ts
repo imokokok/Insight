@@ -6,7 +6,7 @@
  * attestation is still within its validity window. This is intentionally
  * UNAUTHENTICATED (Tier 0) — verification must be open so third parties
  * (protocols, explorers, users, other agents) can independently confirm an
- * agent's "I ran the oracle risk assessment" claim.
+ * agent's "I ran the oracle immune-system check" claim.
  *
  * POST /api/v1/safety/attestation/verify
  * body: { "attestation": OracleSafetyAttestation | OracleSafetyAttestationV2 }

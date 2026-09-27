@@ -1,5 +1,5 @@
 /**
- * @fileoverview Portable signed evidence of an oracle risk assessment.
+ * @fileoverview Oracle safety attestation — the "Agent economy positioning" layer.
  *
  * When a pre-trade oracle safety check produces a verdict, this module issues an
  * EAS-style OFFCHAIN attestation: an EIP-712 typed-data signature over the
@@ -10,7 +10,7 @@
  *
  * Why offchain (not onchain EAS): gasless, instant, cross-chain agnostic. The
  * attestation travels in the agent's transaction memo / calldata / log so users
- * and protocols can recognize "Insight issued this oracle risk assessment".
+ * and protocols can recognize "this agent ran the oracle immune-system check".
  *
  * Graceful degradation: when ATTESTATION_SIGNER_PRIVATE_KEY is unset or invalid,
  * `signAttestation` returns null and the pre-trade check is unaffected. This is a
