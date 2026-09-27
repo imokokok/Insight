@@ -8,9 +8,9 @@ import HomeContent from './HomeContent';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
+  title: 'Insight — Oracle Transparency & Risk Intelligence for DeFi',
   description:
-    'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, RedStone, API3 and more. Give DeFi agents a pre-trade gate, Oracle Watch halt signal, and signed execution record via Guard SDK or MCP.',
+    'Oracle transparency and risk intelligence for DeFi. Compare sources, assess deviation, freshness and independence, and preserve signed assessment evidence for protocols and AI agents.',
   keywords: [
     'oracle',
     'chainlink',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     'risk',
     'liquidation',
     'transparency',
-    'infrastructure',
+    'oracle risk intelligence',
     'AI agents',
     'MCP',
     'DeFi agent SDK',
@@ -29,16 +29,16 @@ export const metadata: Metadata = {
     'uni',
   ],
   openGraph: {
-    title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
+    title: 'Insight — Oracle Transparency & Risk Intelligence for DeFi',
     description:
-      'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, RedStone, API3 and more.',
+      'See the oracles behind the price. Compare sources, understand oracle risk, and retain verifiable assessment evidence for DeFi.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
+    title: 'Insight — Oracle Transparency & Risk Intelligence for DeFi',
     description:
-      'Independent oracle transparency and risk infrastructure for DeFi. Verify, compare, and stress-test oracle prices across Chainlink, RedStone, API3 and more.',
+      'See the oracles behind the price. Compare sources, understand oracle risk, and retain verifiable assessment evidence for DeFi.',
   },
 };
 

@@ -35,9 +35,9 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.oracleinsight.xyz'),
-  title: 'Insight — Oracle Transparency & Risk Infrastructure for DeFi',
+  title: 'Insight — Oracle Transparency & Risk Intelligence for DeFi',
   description:
-    'Independent oracle transparency and risk infrastructure for DeFi. Cross-oracle price verification, deviation analytics, and liquidation risk signals across Chainlink, RedStone, API3 and more.',
+    'Oracle transparency and risk intelligence for DeFi. Cross-source price comparison, freshness, source independence, protocol risk analysis, and verifiable assessment evidence.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,9 +1,10 @@
 /**
  * MCP tool: issue an Execution Receipt for a settled agent transaction.
  *
- * This is the agent-facing surface for the product's core promise — "the agent
- * filled at the price Insight certified, and any downstream machine can verify
- * it". An agent that gated on a pre_trade_safety_check hands back the pre-trade
+ * This connects oracle assessment evidence to observed execution-price fidelity.
+ * It is a signed issuer claim about the supported fill and price band, not
+ * principal authorization or a guarantee that the price was correct. An agent
+ * that gated on a pre_trade_safety_check hands back the pre-trade
  * fields plus the settlement txHash; Insight collects the on-chain facts, signs
  * a receipt paired to the pre-trade via `preTradeUid` + `requestHash`, and
  * returns it.
@@ -25,7 +26,7 @@ import type { McpToolDefinition } from './types';
 export const executionReceiptTool: McpToolDefinition<typeof ExecutionReceiptInputSchema> = {
   name: 'execution_receipt',
   description:
-    'Issue a signed, independently verifiable Execution Receipt proving an agent filled a transaction at the price its pre-trade check certified. Provide the pre-trade fields (preTradeUid, requestHash, asset ids, chain, oracle gate counts) plus the settlement txHash. Insight collects the on-chain fill, signs a receipt paired to the pre-trade via preTradeUid + requestHash, and returns a FAITHFUL / DEVIATED / NOT_EXECUTED / UNDETERMINED verdict. This is the "did it actually execute as promised" half of the trust layer — pair it with pre_trade_safety_check and oracle_watch.',
+    'Issue signed execution-price evidence comparing an observed fill with the oracle-assessed quote and signed slippage band. Provide the pre-trade fields (preTradeUid, requestHash, asset ids, chain, oracle gate counts) plus the settlement txHash. Insight collects the on-chain fill, signs a receipt paired to the pre-trade via preTradeUid + requestHash, and returns a FAITHFUL / DEVIATED / NOT_EXECUTED / UNDETERMINED verdict. This reports supported price/fill fidelity, not principal authorization or overall transaction safety. Pair it with pre_trade_safety_check and oracle_watch.',
   parameters: ExecutionReceiptInputSchema,
   handler: async (args) => {
     const result = await issueExecutionReceipt({

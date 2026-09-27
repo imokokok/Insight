@@ -106,7 +106,8 @@ const VERDICT_CONFIG: Record<
     bg: 'bg-emerald-50',
     border: 'border-emerald-200',
     icon: CheckCircle2,
-    summary: 'Cross-oracle data is healthy and consistent. Safe to keep depending on the feed.',
+    summary:
+      'Observed oracle signals are within normal thresholds. Continue monitoring freshness and source risk.',
   },
   caution: {
     label: 'CAUTION',

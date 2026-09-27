@@ -24,19 +24,19 @@ export function HeroSection() {
           <div className="home-hero-reveal home-hero-reveal-1">
             <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-700">
               <span className="h-px w-10 bg-blue-600" />
-              01 — Observe the signal
+              01 — Oracle transparency
             </div>
           </div>
 
           <h1 className="font-display home-hero-reveal home-hero-reveal-2 mt-7 text-[2.65rem] font-semibold leading-[0.94] tracking-[-0.07em] text-slate-950 sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
-            See the price
+            See the oracles
             <br />
-            <span className="text-blue-700">before it becomes risk.</span>
+            <span className="text-blue-700">behind the price.</span>
           </h1>
 
           <p className="home-hero-reveal home-hero-reveal-3 mt-7 max-w-lg text-base leading-relaxed text-slate-700 sm:text-lg">
-            Insight makes the price data beneath your protocol inspectable: compare independent
-            oracle feeds, test deviation before execution, and retain a receipt anyone can verify.
+            Oracle transparency and risk intelligence for DeFi. Compare feeds, assess freshness and
+            source independence, and understand the risk of relying on a price.
           </p>
 
           <div className="home-hero-reveal home-hero-reveal-4 mt-8">
@@ -68,13 +68,13 @@ export function HeroSection() {
 
           <div className="home-hero-reveal home-hero-reveal-6 mt-9 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-900/15 pt-5 text-xs text-slate-600">
             <span className="flex items-center gap-1.5">
-              <Check className="h-3.5 w-3.5 text-blue-700" /> Cross-source consensus
+              <Check className="h-3.5 w-3.5 text-blue-700" /> Cross-oracle comparison
             </span>
             <span className="flex items-center gap-1.5">
               <Check className="h-3.5 w-3.5 text-blue-700" /> Signed receipts
             </span>
             <span className="flex items-center gap-1.5">
-              <Check className="h-3.5 w-3.5 text-blue-700" /> Pre-trade safety
+              <Check className="h-3.5 w-3.5 text-blue-700" /> Oracle risk assessment
             </span>
           </div>
         </div>

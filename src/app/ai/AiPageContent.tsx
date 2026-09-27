@@ -48,19 +48,19 @@ const CAPABILITIES = [
     icon: ShieldCheck,
     title: 'Pre-Trade Safety Check',
     description:
-      'Before any swap/borrow/lend, agents call one tool to verify cross-oracle consensus, deviation, freshness and depeg — getting a PASS / CAUTION / DANGER / BLOCK verdict.',
+      'Before any swap/borrow/lend, agents call one tool to assess cross-oracle consensus, deviation, freshness and depeg — getting a PASS / CAUTION / DANGER / BLOCK verdict.',
     accent: 'text-emerald-600 bg-emerald-50',
   },
   {
     icon: Brain,
     title: 'Manipulation Risk Score',
     description:
-      'A 0–1 score blending per-provider deviation, cross-provider agreement, staleness and reputation — the single number an agent needs to decide if a price is trustworthy.',
+      'A 0–1 risk indicator based on oracle signals. Read it alongside deviation, freshness, source independence, and reason codes; it is not a guarantee of price correctness.',
     accent: 'text-blue-700 bg-blue-50',
   },
   {
     icon: Terminal,
-    title: '39 MCP Tools',
+    title: '40 MCP Tools',
     description:
       'Prices, consensus, risk summaries, position stress tests, Peg Risk, RWA diagnostics and issuer context, reputation rankings, feed health — all callable by any MCP-compatible client.',
     accent: 'text-blue-600 bg-blue-50',
@@ -79,7 +79,7 @@ const AGENT_USE_CASES = [
     icon: ShieldCheck,
     title: 'Pre-trade gating',
     prompt:
-      '"I want to borrow 500k USDC against ETH on Aave — check the oracle is safe first, and abort if the verdict is DANGER or BLOCK."',
+      '"I want to borrow 500k USDC against ETH on Aave — assess oracle risk first, and abort if the verdict is DANGER or BLOCK."',
   },
   {
     icon: TrendingUp,
@@ -97,7 +97,7 @@ const AGENT_USE_CASES = [
     icon: Radar,
     title: 'Always-on monitoring',
     prompt:
-      '"I run a yield strategy on ETH. Poll oracle_watch every 5 minutes and pause withdrawals if the verdict ever turns DANGER."',
+      '"I run a yield strategy on ETH. Poll oracle_watch every 15 minutes and pause the strategy if the verdict ever turns DANGER."',
   },
 ];
 
@@ -114,8 +114,8 @@ const INTEGRATION_STEPS = [
   },
   {
     step: '3',
-    title: 'Gate every action and every running strategy',
-    body: 'Agents auto-discover the pre_trade_safety_check tool for one-off trades and the oracle_watch tool to keep running strategies safe between actions.',
+    title: 'Connect oracle assessments to your strategy',
+    body: 'Use pre_trade_safety_check for proposed trades and oracle_watch to monitor changing oracle risk. Your application decides how to enforce the returned signals.',
   },
 ];
 
@@ -165,8 +165,8 @@ export function AiPageContent() {
         <EditorialWorkspaceHeader
           index="10"
           stage="Automate"
-          eyebrow="AI × Crypto · An Oracle safety layer designed for machine execution"
-          title="Give every agent a reason before it acts."
+          eyebrow="AI agents · Oracle transparency and risk intelligence"
+          title="Give agents oracle evidence before they act."
           description="Insight turns cross-oracle consensus, manipulation risk, freshness, and depeg exposure into machine-readable verdicts an agent can use to gate execution and explain its decision."
           evidence={['Pre-trade verdict', 'Continuous watch', 'Signed receipt']}
           action={
@@ -225,8 +225,8 @@ export function AiPageContent() {
             <div>
               <h2 className="text-3xl font-bold text-slate-900 mb-4">Built for the AI agent era</h2>
               <p className="max-w-2xl text-lg text-slate-600">
-                One platform that turns cross-oracle data into verifiable, agent-callable safety
-                signals — the missing layer between AI agents and on-chain execution.
+                Cross-oracle observations become explainable assessments, monitoring signals, and
+                signed evidence that an agent can incorporate into its own decision policy.
               </p>
             </div>
           </div>
@@ -262,9 +262,9 @@ export function AiPageContent() {
                   Oracle Watch — the always-on companion
                 </h3>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Pre-trade checks a single moment; Oracle Watch keeps watching. A live cross-oracle
-                  trust signal (NORMAL / CAUTION / DANGER) that agents can poll to keep running
-                  strategies — yield, keepers, portfolios — safe between trades.
+                  Pre-trade checks a single moment; Oracle Watch keeps watching. A cross-oracle risk
+                  signal (NORMAL / CAUTION / DANGER) that agents can poll to monitor oracle
+                  conditions and pause strategies when their policy requires it.
                 </p>
               </div>
               <span className="whitespace-nowrap text-sm font-medium text-blue-700">
@@ -463,7 +463,7 @@ when the verdict turns DANGER.`}
               <h2 className="text-3xl font-bold text-slate-900 mb-4">Generate integration code</h2>
               <p className="max-w-2xl text-lg text-slate-600">
                 Building a bot or script without MCP? Pick your language, fill in the trade intent,
-                and copy a runnable snippet. Each one already embeds the immune-system gate — the
+                and copy a runnable snippet. Each one already embeds the oracle risk gate — the
                 trade aborts when the verdict is DANGER or BLOCK.
               </p>
             </div>
