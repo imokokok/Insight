@@ -13,7 +13,7 @@ beforeEach(() => {
 });
 const fetchMock = () => global.fetch as jest.Mock;
 
-test.each([-32700, -32600, -32601, -32602, 3])(
+test.each([-32700, -32600, 3])(
   'deterministic RPC error %s stops fallback and leaves the endpoint healthy',
   async (code) => {
     const client = new RpcClientWithFallback({ contextLabel: 'deterministic' });
@@ -41,6 +41,8 @@ test.each([
   { code: -32005, message: 'rate limit exceeded' },
   { code: -32000, message: 'missing trie node' },
   { code: -32603, message: 'internal error' },
+  { code: -32601, message: 'method not supported by this node' },
+  { code: -32602, message: 'requested log range exceeds provider limit' },
 ])('transient node error preserves fallback: $message', async (error) => {
   const client = new RpcClientWithFallback();
   fetchMock()

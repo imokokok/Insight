@@ -5,8 +5,8 @@ const logger = createLogger('RpcClientWithFallback');
 /**
  * A JSON-RPC error returned in the node's response body (e.g. `execution
  * reverted`, `method not found`). The node is alive and reachable — this is a
- * deterministic, on-chain result, NOT an outage. It must NOT poison endpoint
- * health and (being deterministic) does not benefit from retrying other nodes.
+ * It must NOT poison endpoint health. Reverts and malformed requests can stop
+ * fallback; method/parameter support can vary between nodes and still retries.
  */
 export class RpcApplicationError extends Error {
   constructor(
@@ -56,10 +56,10 @@ export function rpcUsageSince(before: RpcUsage[]): RpcUsage[] {
 }
 
 function deterministicRpcError(error: RpcApplicationError): boolean {
-  // Only well-defined request errors and EVM reverts stop endpoint fallback.
-  // Node-specific "unavailable", rate-limit and server errors may recover.
+  // Only malformed requests and EVM reverts stop endpoint fallback. A node may
+  // reject a method, block tag or range that another provider supports.
   return (
-    [-32700, -32600, -32601, -32602, 3].includes(error.rpcCode ?? 0) ||
+    [-32700, -32600, 3].includes(error.rpcCode ?? 0) ||
     /\bexecution reverted\b/i.test(error.message)
   );
 }

@@ -11,7 +11,7 @@
 - Chainlink 使用实时 roundId 的 phase 校验缓存。phase 改变时，立即重读 decimals、description 和 version，再解析价格。此行为依据 [Chainlink 官方代理 roundId 定义](https://docs.chain.link/data-feeds/historical-data)，并有 decimals 从 8 变为 18 的升级回归测试。
 - 只保存刷新过的元数据，每批最多 100 条；数据库拒绝过期或未来时间的记录，较旧刷新不能覆盖较新记录。缓存数据在实际刷新时清理七天前的旧地址，不增加新的调度任务。
 - 私有表和保存函数只授权 service_role。普通 API 请求不做逐 feed 缓存查询或追加数据库写入；现有进程内元数据也有一小时期限。
-- 无效请求、参数、方法和确定性 EVM revert 不再逐端点重试。节点内部错误、限流、缺少状态等仍允许 fallback；不会把合约 revert 当作端点故障。
+- 格式无效的请求和确定性 EVM revert 不再逐端点重试。方法支持、参数/范围限制、节点内部错误、限流和缺少状态等仍允许 fallback，因为不同供应商能力可能不同；不会把合约 revert 当作端点故障。
 - RPC 超时现在覆盖响应体读取。超时与调用者取消以控制器状态区分，超时仍可以切换备用节点。
 - 每轮采集汇总 provider/chain/method、metadata/read、实际 attempts、successes、failures、timeouts 和累计调用耗时。日志没有 RPC URL、密钥、calldata 或响应正文；计数维度和缓存内存有上限。
 
@@ -37,7 +37,7 @@
 
 ## 观测和复现
 
-只读数据库观测文件为 `scripts/resource-baseline.sql`。通过已登录的 Supabase CLI 执行：
+只读数据库观测文件为 `scripts/resource-baseline.sql`。发布前北京时间 19:29 的[原始统计基线](evidence/resource-before-release-2026-09-27.json)已保存；它是累计值，不能当作完整业务周期的前后收益。通过已登录的 Supabase CLI 执行：
 
 ```sh
 supabase db query --linked --file scripts/resource-baseline.sql --output json > /private/tmp/insight-resource-window.json
@@ -55,6 +55,7 @@ supabase db query --linked --file scripts/resource-baseline.sql --output json > 
 - 本机生产 webpack 构建和首页 JavaScript 预算通过。默认 Turbopack 本机 worker 端口受限；远程 CI 仍使用原有默认构建流程。
 - 七项 Chromium 端到端烟测通过。
 - 0070 是兼容性新增迁移；未应用时，采集仅记录一次可选缓存不可用并回退原始合约读取。
+- 生产缓存结构已执行并验证。迁移账本登记暂未完成：自动审批拒绝直接写迁移历史；标准 `db push` 的 PostgreSQL 连接失败。本次没有绕过拒绝补写账本，后续迁移前需完成该项登记。
 
 ## 本次不实施的方案
 
