@@ -1,0 +1,163 @@
+{
+  "scope": "Four production feed reads in separate Node processes; only verified metadata is persisted. No price snapshots or feed health writes.",
+  "cold": {
+    "mode": "cold",
+    "measuredAt": "2026-09-27T11:10:14.039Z",
+    "elapsedMs": 6961,
+    "preloaded": 0,
+    "persisted": 4,
+    "observations": [
+      {
+        "provider": "chainlink",
+        "symbol": "BTC",
+        "chainId": 1,
+        "price": 84853.021346,
+        "decimals": 8,
+        "timestamp": 1790506931000,
+        "roundId": "129127208515966885966"
+      },
+      {
+        "provider": "chainlink",
+        "symbol": "ETH",
+        "chainId": 1,
+        "price": 2709.18,
+        "decimals": 8,
+        "timestamp": 1790506859000,
+        "roundId": "129127208515966895408"
+      },
+      {
+        "provider": "api3",
+        "symbol": "BTC",
+        "chainId": 1,
+        "price": 83932.4,
+        "decimals": 18,
+        "timestamp": 1790431461000,
+        "confidence": 0.98
+      },
+      {
+        "provider": "api3",
+        "symbol": "ETH",
+        "chainId": 1,
+        "price": 2709.416114846966,
+        "decimals": 18,
+        "timestamp": 1790506779000,
+        "confidence": 0.98
+      }
+    ],
+    "rpc": [
+      {
+        "context": "chainlink",
+        "chain": "1",
+        "method": "eth_call",
+        "kind": "read",
+        "attempts": 2,
+        "successes": 2,
+        "failures": 0,
+        "timeouts": 0,
+        "durationMs": 1571
+      },
+      {
+        "context": "chainlink",
+        "chain": "1",
+        "method": "eth_call",
+        "kind": "metadata",
+        "attempts": 6,
+        "successes": 6,
+        "failures": 0,
+        "timeouts": 0,
+        "durationMs": 4843
+      },
+      {
+        "context": "api3",
+        "chain": "1",
+        "method": "eth_call",
+        "kind": "metadata",
+        "attempts": 2,
+        "successes": 2,
+        "failures": 0,
+        "timeouts": 0,
+        "durationMs": 685
+      },
+      {
+        "context": "api3",
+        "chain": "1",
+        "method": "eth_call",
+        "kind": "read",
+        "attempts": 2,
+        "successes": 2,
+        "failures": 0,
+        "timeouts": 0,
+        "durationMs": 727
+      }
+    ]
+  },
+  "warm": {
+    "mode": "warm",
+    "measuredAt": "2026-09-27T11:12:22.477Z",
+    "elapsedMs": 7268,
+    "preloaded": 4,
+    "persisted": 0,
+    "observations": [
+      {
+        "provider": "chainlink",
+        "symbol": "BTC",
+        "chainId": 1,
+        "price": 84853.021346,
+        "decimals": 8,
+        "timestamp": 1790506931000,
+        "roundId": "129127208515966885966"
+      },
+      {
+        "provider": "chainlink",
+        "symbol": "ETH",
+        "chainId": 1,
+        "price": 2709.18,
+        "decimals": 8,
+        "timestamp": 1790506859000,
+        "roundId": "129127208515966895408"
+      },
+      {
+        "provider": "api3",
+        "symbol": "BTC",
+        "chainId": 1,
+        "price": 83932.4,
+        "decimals": 18,
+        "timestamp": 1790431461000,
+        "confidence": 0.98
+      },
+      {
+        "provider": "api3",
+        "symbol": "ETH",
+        "chainId": 1,
+        "price": 2709.416114846966,
+        "decimals": 18,
+        "timestamp": 1790506779000,
+        "confidence": 0.98
+      }
+    ],
+    "rpc": [
+      {
+        "context": "chainlink",
+        "chain": "1",
+        "method": "eth_call",
+        "kind": "read",
+        "attempts": 2,
+        "successes": 2,
+        "failures": 0,
+        "timeouts": 0,
+        "durationMs": 1468
+      },
+      {
+        "context": "api3",
+        "chain": "1",
+        "method": "eth_call",
+        "kind": "read",
+        "attempts": 2,
+        "successes": 2,
+        "failures": 0,
+        "timeouts": 0,
+        "durationMs": 743
+      }
+    ]
+  }
+}

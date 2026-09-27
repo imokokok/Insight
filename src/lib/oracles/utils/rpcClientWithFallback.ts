@@ -9,10 +9,59 @@ const logger = createLogger('RpcClientWithFallback');
  * health and (being deterministic) does not benefit from retrying other nodes.
  */
 export class RpcApplicationError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    readonly rpcCode?: number
+  ) {
     super(message);
     this.name = 'RpcApplicationError';
   }
+}
+
+interface RpcUsage {
+  context: string;
+  chain: string;
+  method: string;
+  kind: 'metadata' | 'read';
+  attempts: number;
+  successes: number;
+  failures: number;
+  timeouts: number;
+  durationMs: number;
+}
+const usage = new Map<string, RpcUsage>();
+
+/** Aggregate counters only: no endpoints, credentials, calldata or response bodies. */
+export function getRpcUsage(): RpcUsage[] {
+  return [...usage.values()].map((row) => ({ ...row }));
+}
+
+export function rpcUsageSince(before: RpcUsage[]): RpcUsage[] {
+  const previous = new Map(
+    before.map((row) => [JSON.stringify([row.context, row.chain, row.method, row.kind]), row])
+  );
+  return getRpcUsage()
+    .map((row) => {
+      const old = previous.get(JSON.stringify([row.context, row.chain, row.method, row.kind]));
+      return {
+        ...row,
+        attempts: row.attempts - (old?.attempts ?? 0),
+        successes: row.successes - (old?.successes ?? 0),
+        failures: row.failures - (old?.failures ?? 0),
+        timeouts: row.timeouts - (old?.timeouts ?? 0),
+        durationMs: row.durationMs - (old?.durationMs ?? 0),
+      };
+    })
+    .filter((row) => row.attempts > 0);
+}
+
+function deterministicRpcError(error: RpcApplicationError): boolean {
+  // Only well-defined request errors and EVM reverts stop endpoint fallback.
+  // Node-specific "unavailable", rate-limit and server errors may recover.
+  return (
+    [-32700, -32600, -32601, -32602, 3].includes(error.rpcCode ?? 0) ||
+    /\bexecution reverted\b/i.test(error.message)
+  );
 }
 
 interface RPCResponse<T> {
@@ -165,42 +214,76 @@ export class RpcClientWithFallback {
       }
 
       try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: ++this.requestId,
+        const call = params[0];
+        const selector =
+          call && typeof call === 'object' && 'data' in call && typeof call.data === 'string'
+            ? call.data.slice(0, 10).toLowerCase()
+            : '';
+        const kind =
+          method === 'eth_call' && ['0x313ce567', '0x7284e416', '0x54fd4d50'].includes(selector)
+            ? 'metadata'
+            : 'read';
+        const usageKey = JSON.stringify([this.contextLabel, key, method, kind]);
+        if (!usage.has(usageKey) && usage.size < 256)
+          usage.set(usageKey, {
+            context: this.contextLabel,
+            chain: key,
             method,
-            params,
-          }),
-          signal: controller.signal,
-        });
+            kind,
+            attempts: 0,
+            successes: 0,
+            failures: 0,
+            timeouts: 0,
+            durationMs: 0,
+          });
+        const counter = usage.get(usageKey);
+        const startedAt = performance.now();
+        if (counter) counter.attempts++;
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              id: ++this.requestId,
+              method,
+              params,
+            }),
+            signal: controller.signal,
+          });
 
-        clearTimeout(timeoutId);
-        if (signal) {
-          signal.removeEventListener('abort', onExternalAbort);
+          if (!response.ok) {
+            throw new Error(`RPC call failed: ${response.status}`);
+          }
+
+          const result: RPCResponse<T> = await response.json();
+
+          clearTimeout(timeoutId);
+          if (signal) signal.removeEventListener('abort', onExternalAbort);
+
+          if (result.error) {
+            // The node responded with a JSON-RPC error. It is alive, so we must
+            // NOT mark it unhealthy (that would wrongly poison the shared pool
+            // for every other caller on this chain). Surface it as an
+            // application error so the caller can decide how to handle it.
+            throw new RpcApplicationError(`RPC error: ${result.error.message}`, result.error.code);
+          }
+
+          this.currentEndpointIndex[key] = endpointIndex;
+          this.endpointHealth[`${key}-${endpointIndex}`] = true;
+          delete this.endpointFailureTime[`${key}-${endpointIndex}`];
+
+          if (counter) counter.successes++;
+          return result.result as T;
+        } catch (error) {
+          if (counter) {
+            counter.failures++;
+            if (controller.signal.aborted && !signal?.aborted) counter.timeouts++;
+          }
+          throw error;
+        } finally {
+          if (counter) counter.durationMs += Math.round(performance.now() - startedAt);
         }
-
-        if (!response.ok) {
-          throw new Error(`RPC call failed: ${response.status}`);
-        }
-
-        const result: RPCResponse<T> = await response.json();
-
-        if (result.error) {
-          // The node responded with a JSON-RPC error. It is alive, so we must
-          // NOT mark it unhealthy (that would wrongly poison the shared pool
-          // for every other caller on this chain). Surface it as an
-          // application error so the caller can decide how to handle it.
-          throw new RpcApplicationError(`RPC error: ${result.error.message}`);
-        }
-
-        this.currentEndpointIndex[key] = endpointIndex;
-        this.endpointHealth[`${key}-${endpointIndex}`] = true;
-        delete this.endpointFailureTime[`${key}-${endpointIndex}`];
-
-        return result.result as T;
       } catch (error) {
         clearTimeout(timeoutId);
         if (signal) {
@@ -209,12 +292,13 @@ export class RpcClientWithFallback {
         lastError = normalizeError(error);
 
         const isUserAbort = signal?.aborted;
-        const isTimeout = error instanceof Error && error.name === 'AbortError' && !isUserAbort;
+        const isTimeout = controller.signal.aborted && !isUserAbort;
         const isApplicationError = error instanceof RpcApplicationError;
 
         if (isUserAbort) {
           throw new Error(`Request aborted for ${this.contextLabel}/${key}`);
         }
+        if (isApplicationError && deterministicRpcError(error)) throw error;
 
         // A contract revert / JSON-RPC application error means the node answered
         // and is healthy — do NOT mark it down. (Timeouts are also transient and
@@ -228,18 +312,17 @@ export class RpcClientWithFallback {
         }
 
         if (isTimeout) {
-          logger.warn(`RPC endpoint ${endpoint} timed out after ${this.requestTimeout}ms`, {
+          logger.warn(`RPC endpoint timed out after ${this.requestTimeout}ms`, {
             context: this.contextLabel,
             key,
-            endpoint,
+            endpointIndex,
             method,
           });
         } else if (!isApplicationError) {
-          logger.warn(`RPC endpoint ${endpoint} failed, trying next`, {
+          logger.warn('RPC endpoint failed, trying next', {
             context: this.contextLabel,
             key,
-            endpoint,
-            error: lastError.message,
+            endpointIndex,
           });
         }
       }

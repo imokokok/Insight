@@ -1,4 +1,4 @@
-import { encodeFunctionData as viemEncodeFunctionData } from 'viem';
+import { decodeFunctionResult, encodeFunctionData as viemEncodeFunctionData } from 'viem';
 
 import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
@@ -7,6 +7,11 @@ import { OracleCache } from '../base';
 import { getCatalogSupportedChainIds } from '../constants/chainlinkCatalogLoader';
 import { stringToPrice } from '../utils/oracleDataUtils';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
+import {
+  clearRpcMetadataCache,
+  getRpcMetadata,
+  rememberRpcMetadata,
+} from '../utils/rpcMetadataCache';
 
 import {
   CHAINLINK_AGGREGATOR_ABI,
@@ -126,13 +131,14 @@ interface FeedMetadata {
   decimalsIsFallback: boolean;
   description: string;
   version: bigint;
+  phase?: number;
+  verifiedAt?: number;
 }
 
 class ChainlinkOnChainService {
   private rpcClient = new RpcClientWithFallback({ contextLabel: 'chainlink' });
   private cache = new OracleCache();
   private cacheTTL = 30000;
-  private metadataCache: Map<string, FeedMetadata> = new Map();
 
   private async ethCall(
     chainId: number,
@@ -164,14 +170,15 @@ class ChainlinkOnChainService {
   private async getOrFetchMetadata(
     chainId: number,
     feedAddress: `0x${string}`,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    forceRefresh: boolean = false
   ): Promise<FeedMetadata> {
     // Multiple official products can share a base symbol on one chain (standard,
     // SVR, calculated, tokenized variants) while exposing different decimals.
     // Metadata is therefore address-scoped, not symbol-scoped.
-    const metaKey = `meta-${chainId}-${feedAddress.toLowerCase()}`;
-    const cached = this.metadataCache.get(metaKey);
-    if (cached) return cached;
+    const cached = forceRefresh ? null : getRpcMetadata('chainlink', chainId, feedAddress);
+    if (cached) return { ...cached, version: BigInt(cached.version), decimalsIsFallback: false };
+    const checkedAt = Date.now();
 
     const [decimalsData, descriptionData, versionData] = await Promise.all([
       this.ethCall(chainId, feedAddress, encodeAggregatorCall('decimals'), signal),
@@ -188,7 +195,33 @@ class ChainlinkOnChainService {
     };
 
     if (!decimalsResult.isFallback) {
-      this.metadataCache.set(metaKey, metadata);
+      try {
+        // Legacy decoders preserve fallback output, but only well-formed ABI
+        // values may be promoted into a cross-process verified cache.
+        const decimals = decodeFunctionResult({
+          abi: CHAINLINK_AGGREGATOR_ABI,
+          functionName: 'decimals',
+          data: decimalsData as `0x${string}`,
+        });
+        const description = decodeFunctionResult({
+          abi: CHAINLINK_AGGREGATOR_ABI,
+          functionName: 'description',
+          data: descriptionData as `0x${string}`,
+        });
+        const version = decodeFunctionResult({
+          abi: CHAINLINK_AGGREGATOR_ABI,
+          functionName: 'version',
+          data: versionData as `0x${string}`,
+        });
+        if (
+          decimals === metadata.decimals &&
+          description === metadata.description &&
+          version === metadata.version
+        )
+          metadata.verifiedAt = checkedAt;
+      } catch {
+        // Malformed/default values remain uncached; the next read probes again.
+      }
     }
 
     return metadata;
@@ -226,7 +259,7 @@ class ChainlinkOnChainService {
     }
 
     try {
-      const [roundData, metadata] = await Promise.all([
+      const [roundData, initialMetadata] = await Promise.all([
         this.ethCall(chainId, feed.address, encodeAggregatorCall('latestRoundData'), signal),
         this.getOrFetchMetadata(chainId, feed.address, signal),
       ]);
@@ -235,10 +268,17 @@ class ChainlinkOnChainService {
         symbol,
         chainId,
         roundDataLength: roundData?.length || 0,
-        metadataCached: this.metadataCache.has(`meta-${chainId}-${feed.address.toLowerCase()}`),
+        metadataCached: getRpcMetadata('chainlink', chainId, feed.address) !== null,
       });
 
       const decoded = decodeLatestRoundData(roundData);
+      const phase = Number(decoded.roundId >> 64n);
+      // Aggregator upgrades change the proxy's phase in roundId. A cached
+      // decimals value from another phase must never scale the new price.
+      const metadata =
+        initialMetadata.phase !== undefined && initialMetadata.phase !== phase
+          ? await this.getOrFetchMetadata(chainId, feed.address, signal, true)
+          : initialMetadata;
 
       logger.debug('Decoded round data', {
         symbol,
@@ -279,6 +319,20 @@ class ChainlinkOnChainService {
         });
         return null;
       }
+
+      if (metadata.verifiedAt !== undefined)
+        rememberRpcMetadata(
+          'chainlink',
+          chainId,
+          feed.address,
+          {
+            decimals: metadata.decimals,
+            description: metadata.description,
+            version: metadata.version.toString(),
+            phase,
+          },
+          metadata.verifiedAt
+        );
 
       const STALE_PRICE_THRESHOLD_SECONDS = 3600;
       const priceAge = nowInSeconds() - Number(decoded.updatedAt);
@@ -366,7 +420,7 @@ class ChainlinkOnChainService {
 
   clearCache(): void {
     this.cache.clear();
-    this.metadataCache.clear();
+    clearRpcMetadataCache();
   }
 
   resetEndpointHealth(): void {

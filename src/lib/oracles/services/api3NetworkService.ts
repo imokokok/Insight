@@ -9,6 +9,7 @@ import { Blockchain } from '@/types/oracle';
 import { resolveFeedAddress } from '../utils/dynamicFeedResolver';
 import { bigIntToPrice } from '../utils/oracleDataUtils';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
+import { getRpcMetadata, rememberRpcMetadata } from '../utils/rpcMetadataCache';
 
 const logger = createLogger('API3NetworkService');
 
@@ -166,18 +167,16 @@ async function rpcCall(
   return api3RpcClient.rpcCallWithFallback(String(chainId), endpoints, method, params, signal);
 }
 
-const decimalsCache = new Map<string, number>();
-
 async function readDecimalsFromContract(
   proxyAddress: string,
   chainId: number,
   signal?: AbortSignal
 ): Promise<{ decimals: number; isFallback: boolean }> {
-  const cacheKey = `${chainId}:${proxyAddress}`;
-  const cached = decimalsCache.get(cacheKey);
-  if (cached !== undefined) {
-    return { decimals: cached, isFallback: false };
+  const cached = getRpcMetadata('api3', chainId, proxyAddress);
+  if (cached) {
+    return { decimals: cached.decimals, isFallback: false };
   }
+  const checkedAt = Date.now();
 
   try {
     const data = viemEncodeFunctionData({
@@ -190,15 +189,15 @@ async function readDecimalsFromContract(
       [{ to: proxyAddress, data }, 'latest'],
       signal
     );
-    if (typeof result !== 'string' || !result || result === '0x') {
+    if (typeof result !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(result)) {
       return { decimals: 8, isFallback: true };
     }
     const cleanData = result.startsWith('0x') ? result.slice(2) : result;
     const parsed = parseInt(cleanData, 16);
-    if (isNaN(parsed)) {
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > 255) {
       return { decimals: 8, isFallback: true };
     }
-    decimalsCache.set(cacheKey, parsed);
+    rememberRpcMetadata('api3', chainId, proxyAddress, { decimals: parsed }, checkedAt);
     return { decimals: parsed, isFallback: false };
   } catch {
     return { decimals: 8, isFallback: true };

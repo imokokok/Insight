@@ -75,7 +75,9 @@ async function main(): Promise<void> {
 
   let result;
   try {
-    result = await collectSnapshot(resolveSnapshotSlot(process.env.CRON_SCHEDULED_FOR));
+    result = await collectSnapshot(resolveSnapshotSlot(process.env.CRON_SCHEDULED_FOR), {
+      reuseRpcMetadata: true,
+    });
   } catch (error) {
     if (error instanceof SnapshotCollectionError) {
       console.error(

@@ -21,6 +21,8 @@ import { getDefaultFactory } from '@/lib/oracles/factory';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
+import { getRpcUsage, rpcUsageSince } from '@/lib/oracles/utils/rpcClientWithFallback';
+import { flushRpcMetadataCache, primeRpcMetadataCache } from '@/lib/oracles/utils/rpcMetadataCache';
 import { savePricesToDatabase } from '@/lib/oracles/utils/storage';
 import {
   reportService,
@@ -104,7 +106,8 @@ export interface BatchResultItem {
 }
 
 async function fetchBatchPrices(
-  includeAdditionalHealthChecks: boolean
+  includeAdditionalHealthChecks: boolean,
+  reuseRpcMetadata: boolean
 ): Promise<BatchResultItem[]> {
   const factory = getDefaultFactory();
   const queries: {
@@ -224,6 +227,9 @@ async function fetchBatchPrices(
     `Price batch: ${queries.length} queries, ${skipped.length} unsupported pairs skipped`
   );
 
+  const rpcBefore = getRpcUsage();
+  const preloaded = reuseRpcMetadata ? await primeRpcMetadataCache() : 0;
+
   const fetched = await mapWithConcurrency(
     queries,
     REPORT_FETCH_CONCURRENCY,
@@ -292,6 +298,12 @@ async function fetchBatchPrices(
     }
   );
 
+  const persisted = reuseRpcMetadata ? await flushRpcMetadataCache() : 0;
+  logger.info('Snapshot RPC resource usage', {
+    metadataPreloaded: preloaded,
+    metadataPersisted: persisted,
+    rpc: rpcUsageSince(rpcBefore),
+  });
   return [...fetched, ...skipped];
 }
 
@@ -555,7 +567,7 @@ export function resolveSnapshotSlot(scheduledFor?: string, now: Date = new Date(
  */
 export async function collectSnapshot(
   snapshotTs: Date = resolveSnapshotSlot(),
-  options: { includeAdditionalHealthChecks?: boolean } = {}
+  options: { includeAdditionalHealthChecks?: boolean; reuseRpcMetadata?: boolean } = {}
 ): Promise<SnapshotCollectionResult> {
   const now = snapshotTs;
   const snapshotDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
@@ -565,7 +577,10 @@ export async function collectSnapshot(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours())
   );
 
-  const results = await fetchBatchPrices(options.includeAdditionalHealthChecks ?? true);
+  const results = await fetchBatchPrices(
+    options.includeAdditionalHealthChecks ?? true,
+    options.reuseRpcMetadata ?? false
+  );
   // Finish cache persistence before returning. Individual adapters must not
   // append one row/HTTP request per feed while the batch is still running.
   try {
