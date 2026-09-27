@@ -59,7 +59,8 @@ export function parsePinnedKeyRegistry(
       (k.validUntil !== null && !date(k.validUntil)) ||
       (date(k.validUntil) && Date.parse(k.validUntil) < Date.parse(k.validFrom)) ||
       typeof k.revoked !== 'boolean' ||
-      (k.role !== undefined && !['sample', 'attester'].includes(String(k.role))) ||
+      (k.role !== undefined &&
+        (typeof k.role !== 'string' || !['sample', 'attester'].includes(k.role))) ||
       (k.algorithm !== undefined && k.algorithm !== 'EIP-712/secp256k1') ||
       addresses.has(k.public_key.toLowerCase()) ||
       ids.has(k.key_id)
