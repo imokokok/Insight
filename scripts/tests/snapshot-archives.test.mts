@@ -61,6 +61,15 @@ test('compressed snapshot history is lossless, transactional, replay-safe and pr
     );
     await db.exec(cleanup);
     await db.exec(cleanup);
+    const normalized = await readFile(
+      new URL(
+        '../../supabase/migrations/0069_normalize_archive_replay_timestamps.sql',
+        import.meta.url
+      ),
+      'utf8'
+    );
+    await db.exec(normalized);
+    await db.exec(normalized);
     const fine = (await db.query('SELECT to_jsonb(s) AS row FROM price_snapshots s ORDER BY id'))
       .rows;
     const hourly = (
@@ -102,8 +111,10 @@ test('compressed snapshot history is lossless, transactional, replay-safe and pr
       )
     ).rows[0];
     // A corrected hourly replay overrides one natural key and survives re-archiving.
+    await db.exec("SET TIME ZONE 'Pacific/Honolulu'");
     await db.exec(`INSERT INTO hourly_price_snapshots(snapshot_hour,provider,symbol,chain_id,price,is_success)
       SELECT min(snapshot_hour),'dia','ETH',1,777,true FROM hourly_snapshot_history`);
+    await db.exec("SET TIME ZONE 'Asia/Shanghai'");
     assert.equal(
       (await db.query('SELECT count(*)::int AS n FROM hourly_snapshot_history')).rows[0].n,
       24
@@ -116,7 +127,13 @@ test('compressed snapshot history is lossless, transactional, replay-safe and pr
       ).rows[0],
       hourlyIdentity
     );
+    await db.exec("SET TIME ZONE 'Pacific/Honolulu'");
     await db.query("SELECT * FROM archive_snapshot_day((now() AT TIME ZONE 'UTC')::date-9)");
+    await db.exec("SET TIME ZONE 'Asia/Shanghai'");
+    assert.equal(
+      (await db.query('SELECT count(*)::int AS n FROM hourly_snapshot_history')).rows[0].n,
+      24
+    );
     assert.equal(
       (await db.query('SELECT price FROM hourly_snapshot_history ORDER BY snapshot_hour LIMIT 1'))
         .rows[0].price,

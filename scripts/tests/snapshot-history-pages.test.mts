@@ -33,6 +33,7 @@ test('bounded history pages match the complete SQL history across hot/cold bound
       '0066_preserve_archived_snapshot_writes',
       '0067_set_based_snapshot_archive_cleanup',
       '0068_bounded_snapshot_history_pages',
+      '0069_normalize_archive_replay_timestamps',
     ]) {
       const sql = await readFile(
         new URL(`../../supabase/migrations/${migration}.sql`, import.meta.url),
