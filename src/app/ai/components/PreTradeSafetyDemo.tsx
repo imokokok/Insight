@@ -130,7 +130,8 @@ const VERDICT_CONFIG: Record<
     bg: 'bg-emerald-50',
     border: 'border-emerald-200',
     icon: CheckCircle2,
-    summary: 'Oracle data is healthy. Safe to proceed.',
+    summary:
+      'Observed oracle signals pass the configured checks. Review your execution policy and authorization.',
   },
   CAUTION: {
     label: 'CAUTION',

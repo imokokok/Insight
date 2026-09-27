@@ -5,7 +5,7 @@
  * TWO receipts from an agent: the pre-trade oracle-safety attestation it gated
  * on, and the Execution Receipt proving how it filled. Each is independently
  * verifiable, but this endpoint answers the one question a single receipt cannot:
- * "do these two describe the SAME authorized action, and did the certify →
+ * "do these two describe the same assessed trade, and did the certify →
  * execute → prove loop actually close?"
  *
  * POST /api/v1/execution/attestation/verify-pair

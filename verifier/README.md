@@ -1,6 +1,6 @@
 # verify-insight-receipt
 
-Verify Insight oracle-safety receipts on your own machine. The verification functions make no network call and need no API key. They check signed bytes and report key status only relative to a registry you supply; you must establish the issuer key and any semantic policy trust independently.
+Verify Insight’s signed oracle-assessment and execution-price evidence on your own machine. The verification functions make no network call and need no API key. They check signed bytes and report key status only relative to a registry you supply; you must establish the issuer key and any semantic policy trust independently.
 
 This source/package version is **0.3.1**. Version **0.3.1** rejects non-string registry roles, including one-element arrays; consumers using exact-byte snapshot parsing should use this patch or later. Versions **0.2.0 and 0.2.1** do not include v5 execution profile support. Check the registry release before installing; a source checkout or local tarball does not establish npm publication.
 

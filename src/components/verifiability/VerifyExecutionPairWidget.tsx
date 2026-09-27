@@ -104,10 +104,10 @@ export function VerifyExecutionPairWidget() {
       <div className="px-5 py-4 border-b border-slate-100">
         <div className="text-sm font-semibold text-slate-900">Verify a closed execution loop</div>
         <div className="text-xs text-slate-500 mt-0.5">
-          Paste the pre-trade attestation(s) and the Execution Receipt. Proves the certify → execute
-          → prove loop actually closed — and that the receipt is bound to THIS gate, not a forged
-          one. A v3 receipt that commits to a destination gate needs that gate pasted too. Public,
-          no API key.
+          Paste the pre-trade attestation(s) and the Execution Receipt. Checks the binding between
+          the oracle assessment and execution-price evidence. It does not establish principal
+          authorization or guarantee that the assessed price was correct. A v3 receipt that commits
+          to a destination gate needs that gate pasted too. Public, no API key.
         </div>
       </div>
 

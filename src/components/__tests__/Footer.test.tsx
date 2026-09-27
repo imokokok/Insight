@@ -74,7 +74,7 @@ describe('Footer', () => {
       renderFooter();
 
       expect(
-        screen.getByText(/Oracle transparency and risk infrastructure for DeFi/i)
+        screen.getByText(/Oracle transparency and risk intelligence for DeFi/i)
       ).toBeInTheDocument();
     });
 

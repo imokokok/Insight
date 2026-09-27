@@ -1,7 +1,7 @@
 /**
  * @fileoverview Pre-trade oracle safety check service.
  *
- * The "AI agent immune system" core. Before an AI agent (or human) executes an
+ * The oracle risk assessment engine. Before an AI agent (or human) executes an
  * on-chain swap/borrow/lend, this service aggregates cross-oracle consensus
  * prices, data freshness, stablecoin peg status, and reputation signals, then
  * applies a rule engine to produce a single verdict: PASS / CAUTION / DANGER /

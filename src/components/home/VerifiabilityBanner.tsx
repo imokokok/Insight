@@ -5,18 +5,18 @@ import { ArrowUpRight } from 'lucide-react';
 const POINTS = [
   {
     index: '01',
-    title: 'Signed every time',
-    text: 'Every pre-trade check is signed as an EIP-712 receipt against a published attester key.',
+    title: 'Signed assessments',
+    text: 'When attestation signing is available, a pre-trade check can carry an EIP-712 receipt over the issued assessment.',
   },
   {
     index: '02',
     title: 'Verifiable by anyone',
-    text: 'The gates are recomputable from the bytes alone at v3, and the policy constants live in a public declaration.',
+    text: 'Check signed bytes locally using independently confirmed keys. At v3, quorum and independence gates can be recomputed from signed counts and thresholds.',
   },
   {
     index: '03',
-    title: 'Anchored to Bitcoin',
-    text: 'Key records are anchored on-chain, so a check can be proven to have existed in that form before a given block.',
+    title: 'Separate trust checks',
+    text: 'Key provenance and any registry anchoring require their own checks. A signed assessment alone does not establish independent timestamp evidence.',
   },
 ] as const;
 
@@ -25,15 +25,14 @@ export function VerifiabilityBanner() {
     <section className="receipt-instrument home-view-reveal" aria-labelledby="receipt-title">
       <div className="receipt-instrument-copy">
         <p className="instrument-label">Evidence instrument 05 / portable proof</p>
-        <h3 id="receipt-title">
-          Every check is signed. Every receipt can be verified without trusting us.
-        </h3>
+        <h3 id="receipt-title">Preserve the assessment. Verify its signed evidence locally.</h3>
         <p>
-          Verification proves a record is authentic and unaltered. It is not an endorsement of a
-          verdict; schema v1 remains the service default while v3 is opt-in.
+          A valid signature establishes the issuer and integrity of the signed fields using keys you
+          independently trust. It does not establish price correctness or economic safety. Schema v1
+          remains the service default; v3 is opt-in.
         </p>
         <Link href="/verify">
-          Verify a real receipt <ArrowUpRight aria-hidden="true" />
+          Try local receipt verification <ArrowUpRight aria-hidden="true" />
         </Link>
       </div>
 

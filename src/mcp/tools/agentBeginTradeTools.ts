@@ -33,14 +33,14 @@ import type { McpToolDefinition } from './types';
 export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputSchema> = {
   name: 'agent_begin_trade',
   description: [
-    'Begin a verifiable execution. Call this with a swap/DeFi intent BEFORE trading.',
+    'Obtain oracle assessment evidence for a swap/DeFi intent BEFORE trading.',
     'Insight runs the oracle safety check and, if the verdict is PASS/CAUTION, returns a',
     'machine-readable "execution certification handle": preTradeUid, requestHash, CAIP-19',
     'asset ids, the certified price (destination per source) and maxSlippageBps, plus',
     'participant/source-group counts and the pre-trade signing time. Execute the trade with',
     'YOUR wallet, then call execution_receipt with this handle + txHash to obtain the signed,',
     'verifiable Execution Receipt. If the verdict is DANGER or BLOCK this tool refuses (do not',
-    "trade). This is the pre-trade half of Insight's verifiable execution trust layer — pair it",
+    'trade). This is oracle assessment evidence, not principal authorization — pair it',
     'with execution_receipt.',
   ].join(' '),
   parameters: AgentBeginTradeInputSchema,

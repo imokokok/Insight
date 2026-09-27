@@ -4,7 +4,7 @@ import { type Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy - Insight',
-  description: 'Privacy Policy for Insight Oracle Data Analytics Platform',
+  description: 'Privacy Policy for Insight Oracle Transparency & Risk Intelligence',
 };
 
 export default function PrivacyPage() {
@@ -33,7 +33,8 @@ export default function PrivacyPage() {
             <p className="text-slate-700 leading-relaxed">
               Insight (&quot;we,&quot; &quot;our,&quot; or &quot;the Platform&quot;) is committed to
               protecting your privacy. This Privacy Policy explains how we collect, use, disclose,
-              and safeguard your information when you use our oracle data analytics platform.
+              and safeguard your information when you use our oracle transparency and risk
+              intelligence platform.
             </p>
           </section>
 

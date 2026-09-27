@@ -51,9 +51,11 @@ describe('HomePage', () => {
     it('should render the hero headline and value proposition', () => {
       renderDashboard();
 
-      expect(screen.getByText('See the price')).toBeInTheDocument();
-      expect(screen.getByText('before it becomes risk.')).toBeInTheDocument();
-      expect(screen.getByText(/price data beneath your protocol inspectable/i)).toBeInTheDocument();
+      expect(screen.getByText('See the oracles')).toBeInTheDocument();
+      expect(screen.getByText('behind the price.')).toBeInTheDocument();
+      expect(
+        screen.getByText(/Oracle transparency and risk intelligence for DeFi/i)
+      ).toBeInTheDocument();
     });
 
     it('should render search bar', () => {
@@ -87,13 +89,13 @@ describe('HomePage', () => {
     it('should have correct static metadata', async () => {
       const { metadata } = await import('../page');
 
-      expect(metadata.title).toBe('Insight — Oracle Transparency & Risk Infrastructure for DeFi');
-      expect(metadata.description).toContain('Verify, compare, and stress-test');
+      expect(metadata.title).toBe('Insight — Oracle Transparency & Risk Intelligence for DeFi');
+      expect(metadata.description).toContain('Oracle transparency and risk intelligence for DeFi');
       expect(metadata.keywords).toEqual(
         expect.arrayContaining(['oracle', 'chainlink', 'uni', 'price data'])
       );
       expect(metadata.openGraph?.title).toBe(
-        'Insight — Oracle Transparency & Risk Infrastructure for DeFi'
+        'Insight — Oracle Transparency & Risk Intelligence for DeFi'
       );
       expect(metadata.twitter?.card).toBe('summary_large_image');
     });
@@ -109,7 +111,7 @@ describe('HomePage', () => {
 
       expect(metadata.twitter?.card).toBe('summary_large_image');
       expect(metadata.twitter?.title).toBe(
-        'Insight — Oracle Transparency & Risk Infrastructure for DeFi'
+        'Insight — Oracle Transparency & Risk Intelligence for DeFi'
       );
     });
   });
