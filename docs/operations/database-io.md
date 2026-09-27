@@ -11,7 +11,9 @@ Historical training queries sorted by symbol and used offset pagination;
 the hourly variant also requested exact counts repeatedly. Their retained
 query statistics reported 416,696 and 42,952 temporary blocks written.
 The current trainer already uses a fixed eight-week window and a
-`(timestamp,id)` cursor. Migration `0062` supplies matching partial indexes for
+`(timestamp,id)` cursor. Each later page now also supplies an explicit timestamp
+seek bound so the planner can use the ordered index without a BitmapOr and
+sort or revisiting earlier pages. Migration `0062` supplies matching partial indexes for
 successful fine-grained and hourly samples, plus a covering symbol/hour index
 for the live temporal-feature query. No collection schedule or retention period
 changes. The additional indexes consume storage and maintenance writes in

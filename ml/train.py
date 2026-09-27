@@ -251,6 +251,10 @@ def fetch_snapshot_pages(
         page_params = params.copy()
         if cursor is not None:
             last_time, last_id = cursor
+            # Give the ordered timestamp/id index a simple seek bound. The OR
+            # still breaks timestamp ties, but alone can choose BitmapOr plus
+            # a sort or revisit older pages before applying the cursor filter.
+            page_params[timestamp_column] = f"gte.{last_time}"
             page_params["or"] = (
                 f"({timestamp_column}.gt.{last_time},"
                 f"and({timestamp_column}.eq.{last_time},id.gt.{last_id}))"

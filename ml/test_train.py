@@ -123,6 +123,13 @@ class FeatureSemanticsTest(unittest.TestCase):
         self.assertEqual([call.kwargs["headers"]["Range"] for call in get.call_args_list], ["0-1"] * 3)
         self.assertTrue(all("Prefer" not in call.kwargs["headers"] for call in get.call_args_list))
         self.assertNotIn("or", get.call_args_list[0].kwargs["params"])
+        self.assertNotIn("snapshot_hour", get.call_args_list[0].kwargs["params"])
+        self.assertEqual(
+            get.call_args_list[1].kwargs["params"]["snapshot_hour"], f"gte.{first_time}"
+        )
+        self.assertEqual(
+            get.call_args_list[2].kwargs["params"]["snapshot_hour"], f"gte.{next_time}"
+        )
         self.assertIn("id.gt.2", get.call_args_list[1].kwargs["params"]["or"])
         self.assertIn("id.gt.4", get.call_args_list[2].kwargs["params"]["or"])
         self.assertEqual(
