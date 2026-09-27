@@ -21,7 +21,7 @@ test('compressed snapshot history is lossless, transactional, replay-safe and pr
       CREATE UNIQUE INDEX hourly_unique ON hourly_price_snapshots(snapshot_hour,provider,symbol,chain_id);
       CREATE TABLE oracle_feeds(provider text,symbol text,chain_id integer,is_active boolean,
         observed_data_age_p90_s integer,observed_cadence_updated_at timestamptz);
-      GRANT SELECT,DELETE ON price_snapshots,hourly_price_snapshots TO service_role;
+      GRANT SELECT,UPDATE,DELETE ON price_snapshots,hourly_price_snapshots TO service_role;
       INSERT INTO price_snapshots(snapshot_ts,snapshot_hour,provider,symbol,chain_id,price,
         consensus_price,deviation_pct,data_age_seconds,confidence,is_success,error_message)
       SELECT ((now() AT TIME ZONE 'UTC')::date-9)::timestamp AT TIME ZONE 'UTC' +
