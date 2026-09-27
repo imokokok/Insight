@@ -2,13 +2,15 @@
  * Market-reference client — reads the external truth layer for consumers.
  *
  * Consumption rules (from the collaboration standards):
- *  - Read-only from the `market_reference_hourly` rollup view with a bounded
+ *  - Read-only from the latest-hour rollup RPC with a bounded
  *    query; NEVER fetch CEX APIs in a request hot path.
  *  - Fail-closed freshness: a rollup row older than `MAX_REF_AGE_HOURS` is
  *    treated as absent — stale market truth is worse than no truth.
  *  - The returned value is EVIDENCE: consumers (pre-trade ML feature, Watch
  *    advisory) must treat null as "no signal", never as zero divergence.
  */
+
+import { z } from 'zod';
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { TTLCache } from '@/lib/utils/cache';
@@ -20,15 +22,15 @@ const logger = createLogger('MarketReferenceClient');
 /** Rollup rows older than this are fail-closed absent (hours). */
 export const MAX_REF_AGE_HOURS = 3;
 
-interface HourlyRefRow {
-  symbol: string;
-  ref_hour: string;
-  ref_price: number | null;
-  exchange_count: number | null;
-  cross_exchange_spread_pct: number | null;
-  median_bid_ask_spread_pct: number | null;
-  median_volume: number | null;
-}
+const hourlyRefSchema = z.object({
+  symbol: z.string(),
+  ref_hour: z.string().refine((value) => Number.isFinite(Date.parse(value))),
+  ref_price: z.number().finite().positive(),
+  exchange_count: z.number().int().nonnegative().nullable(),
+  cross_exchange_spread_pct: z.number().finite().nonnegative().nullable(),
+  median_bid_ask_spread_pct: z.number().finite().nonnegative().nullable(),
+  median_volume: z.number().finite().nonnegative().nullable(),
+});
 
 export interface MarketReference {
   symbol: string;
@@ -49,11 +51,18 @@ export interface MarketReferenceContext {
   logVolume: number;
 }
 
-const cache = new TTLCache({ maxSize: 64 }); // 60s default TTL
+const cache = new TTLCache({ maxSize: 64, cleanupIntervalMs: 0 });
+const inFlight = new Map<string, Promise<MarketReference | null>>();
+
+function isFresh(ref: MarketReference): boolean {
+  const ageHours = (Date.now() - Date.parse(ref.refHour)) / 3600_000;
+  return ageHours >= 0 && ageHours < MAX_REF_AGE_HOURS;
+}
 
 /** Test hook — clears the module-level cache between tests. */
 export function resetMarketReferenceCacheForTests(): void {
   cache.clear();
+  inFlight.clear();
 }
 
 /**
@@ -62,36 +71,37 @@ export function resetMarketReferenceCacheForTests(): void {
  */
 export async function getMarketReference(symbol: string): Promise<MarketReference | null> {
   const key = symbol.toUpperCase();
-  const cached = cache.get<MarketReference>(key);
-  if (cached !== null) return cached;
+  const cached = cache.get<{ ref: MarketReference | null }>(key);
+  if (cached !== null) return cached.ref && isFresh(cached.ref) ? cached.ref : null;
+  const pending = inFlight.get(key);
+  if (pending) return pending;
 
+  const request = loadMarketReference(key);
+  inFlight.set(key, request);
+  try {
+    const ref = await request;
+    // Brief negative caching absorbs unsupported-symbol polling and outages.
+    cache.set(key, { ref }, ref ? 60_000 : 15_000);
+    return ref;
+  } finally {
+    inFlight.delete(key);
+  }
+}
+
+async function loadMarketReference(key: string): Promise<MarketReference | null> {
   try {
     const supabase = createServiceRoleClient();
     const { data, error } = await supabase
-      .from('market_reference_hourly')
-      .select(
-        'symbol, ref_hour, ref_price, exchange_count, cross_exchange_spread_pct, median_bid_ask_spread_pct, median_volume'
-      )
-      .eq('symbol', key)
-      .order('ref_hour', { ascending: false })
-      .limit(1);
+      .rpc('get_latest_market_reference', { p_symbol: key })
+      .abortSignal(AbortSignal.timeout(10_000));
 
     if (error) {
       logger.warn('failed to read market reference rollup', { symbol: key, error: error.message });
       return null;
     }
-    const row = (data?.[0] ?? null) as HourlyRefRow | null;
-    if (!row || typeof row.ref_price !== 'number' || !(row.ref_price > 0)) return null;
-
-    const ageHours = (Date.now() - new Date(row.ref_hour).getTime()) / 3600_000;
-    if (ageHours > MAX_REF_AGE_HOURS) {
-      logger.warn('market reference stale — treating as absent', {
-        symbol: key,
-        refHour: row.ref_hour,
-        ageHours: roundTo(ageHours, 2),
-      });
-      return null;
-    }
+    const parsed = hourlyRefSchema.safeParse(Array.isArray(data) ? data[0] : null);
+    if (!parsed.success || parsed.data.symbol !== key) return null;
+    const row = parsed.data;
 
     const ref: MarketReference = {
       symbol: key,
@@ -102,8 +112,7 @@ export async function getMarketReference(symbol: string): Promise<MarketReferenc
       medianBidAskSpreadPct: row.median_bid_ask_spread_pct,
       medianVolume: row.median_volume,
     };
-    cache.set(key, ref, 60_000);
-    return ref;
+    return isFresh(ref) ? ref : null;
   } catch (error) {
     logger.warn('market reference client failed', {
       symbol: key,

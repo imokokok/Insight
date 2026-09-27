@@ -57,7 +57,7 @@
     "test:mcp:e2e": "node --env-file=.env.local ./node_modules/.bin/jest src/mcp/__tests__/client.test.ts src/mcp/__tests__/e2e.test.ts --testTimeout=120000 --runInBand --testPathIgnorePatterns='/node_modules/' '/.next/'",
     "prepare": "husky",
     "integration:doctor": "node scripts/integration-doctor.mjs",
-    "test:reliability": "node --test scripts/tests/*.test.mjs"
+    "test:reliability": "node --import tsx --test scripts/tests/*.test.mjs scripts/tests/*.test.ts"
   },
   "dependencies": {
     "@api3/contracts": "^27.4.0",

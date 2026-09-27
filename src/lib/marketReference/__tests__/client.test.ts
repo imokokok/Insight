@@ -20,7 +20,7 @@ type Result = { data: unknown; error: unknown };
 function makeChain(result: Result) {
   const api: Record<string, (...args: unknown[]) => unknown> = {};
   const thenable = Promise.resolve(result);
-  for (const m of ['select', 'eq', 'gt', 'lt', 'lte', 'is', 'not', 'gte', 'order', 'limit']) {
+  for (const m of ['abortSignal']) {
     api[m] = () => api;
   }
   api.then = (resolve: (v: Result) => void, reject?: (e: unknown) => void) =>
@@ -48,7 +48,7 @@ describe('marketReference client', () => {
 
   it('returns the latest reference when fresh', async () => {
     mockedCreateServiceRoleClient.mockReturnValue({
-      from: () =>
+      rpc: () =>
         makeChain({
           data: [refRow('ETH', new Date().toISOString(), 3000)],
           error: null,
@@ -65,7 +65,7 @@ describe('marketReference client', () => {
   it('fail-closes a stale rollup row (>= MAX_REF_AGE_HOURS old) as absent', async () => {
     const staleHour = new Date(Date.now() - (MAX_REF_AGE_HOURS + 1) * 3600_000).toISOString();
     mockedCreateServiceRoleClient.mockReturnValue({
-      from: () => makeChain({ data: [refRow('ETH', staleHour, 3000)], error: null }),
+      rpc: () => makeChain({ data: [refRow('ETH', staleHour, 3000)], error: null }),
     } as never);
 
     expect(await getMarketReference('ETH')).toBeNull();
@@ -73,19 +73,20 @@ describe('marketReference client', () => {
 
   it('returns null when the rollup is empty, errored, or has no usable price', async () => {
     mockedCreateServiceRoleClient.mockReturnValue({
-      from: () => makeChain({ data: [], error: null }),
+      rpc: () => makeChain({ data: [], error: null }),
     } as never);
     expect(await getMarketReference('BTC')).toBeNull();
+    resetMarketReferenceCacheForTests();
 
     mockedCreateServiceRoleClient.mockReturnValue({
-      from: () => makeChain({ data: null, error: { message: 'boom' } }),
+      rpc: () => makeChain({ data: null, error: { message: 'boom' } }),
     } as never);
     expect(await getMarketReference('BTC')).toBeNull();
   });
 
   it('computes oracle-vs-market divergence in percent, null without a reference', async () => {
     mockedCreateServiceRoleClient.mockReturnValue({
-      from: () =>
+      rpc: () =>
         makeChain({
           data: [refRow('ETH', new Date().toISOString(), 3000)],
           error: null,
@@ -103,7 +104,7 @@ describe('marketReference client', () => {
 
   it('returns bounded microstructure features from the same cached row', async () => {
     mockedCreateServiceRoleClient.mockReturnValue({
-      from: () =>
+      rpc: () =>
         makeChain({
           data: [refRow('ETH', new Date().toISOString(), 3000, 3)],
           error: null,
@@ -119,5 +120,61 @@ describe('marketReference client', () => {
       logVolume: expect.any(Number),
     });
     expect(context!.logVolume).toBeCloseTo(Math.log1p(1000), 4);
+  });
+
+  it('coalesces concurrent requests and briefly caches absent symbols', async () => {
+    const rpc = jest.fn(() => makeChain({ data: [], error: null }));
+    mockedCreateServiceRoleClient.mockReturnValue({ rpc } as never);
+    expect(await Promise.all([getMarketReference('SOL'), getMarketReference('sol')])).toEqual([
+      null,
+      null,
+    ]);
+    expect(await getMarketReference('SOL')).toBeNull();
+    expect(rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it('rechecks freshness on cache hits and retries negative results after expiry', async () => {
+    const now = Date.parse('2026-09-27T06:00:00Z');
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(now);
+    try {
+      const rpc = jest.fn(() =>
+        makeChain({
+          data: [
+            refRow('ETH', new Date(now - MAX_REF_AGE_HOURS * 3600_000 + 1000).toISOString(), 3000),
+          ],
+          error: null,
+        })
+      );
+      mockedCreateServiceRoleClient.mockReturnValue({ rpc } as never);
+      expect(await getMarketReference('ETH')).not.toBeNull();
+      clock.mockReturnValue(now + 1000);
+      expect(await getMarketReference('ETH')).toBeNull();
+      expect(rpc).toHaveBeenCalledTimes(1);
+      resetMarketReferenceCacheForTests();
+      rpc.mockImplementation(() => makeChain({ data: [], error: null }));
+      expect(await getMarketReference('ETH')).toBeNull();
+      clock.mockReturnValue(now + 17000);
+      rpc.mockImplementation(() =>
+        makeChain({ data: [refRow('ETH', new Date(now).toISOString(), 3000)], error: null })
+      );
+      expect(await getMarketReference('ETH')).not.toBeNull();
+      expect(rpc).toHaveBeenCalledTimes(3);
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
+  it('rejects invalid timestamps, wrong symbols and malformed values', async () => {
+    for (const row of [
+      { ...refRow('ETH', new Date().toISOString(), 3000), ref_hour: 'bad' },
+      refRow('BTC', new Date().toISOString(), 3000),
+      refRow('ETH', new Date().toISOString(), Infinity),
+    ]) {
+      resetMarketReferenceCacheForTests();
+      mockedCreateServiceRoleClient.mockReturnValue({
+        rpc: () => makeChain({ data: [row], error: null }),
+      } as never);
+      expect(await getMarketReference('ETH')).toBeNull();
+    }
   });
 });
