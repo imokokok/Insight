@@ -2,13 +2,13 @@
 
 Verify Insight oracle-safety receipts on your own machine. The verification functions make no network call and need no API key. They check signed bytes and report key status only relative to a registry you supply; you must establish the issuer key and any semantic policy trust independently.
 
-This source/package version is **0.3.0**. Versions **0.2.0 and 0.2.1** do not include v5 execution profile support. Check the registry release before installing; a source checkout or local tarball does not establish npm publication.
+This source/package version is **0.3.1**. Version **0.3.1** rejects non-string registry roles, including one-element arrays; consumers using exact-byte snapshot parsing should use this patch or later. Versions **0.2.0 and 0.2.1** do not include v5 execution profile support. Check the registry release before installing; a source checkout or local tarball does not establish npm publication.
 
 ```bash
 npm install verify-insight-receipt
 ```
 
-## Independent offline verification (0.3.0)
+## Independent offline verification (0.3.1)
 
 The CLI reads local files only and requires the SHA-256 of an independently reviewed registry snapshot. Hash the **exact UTF-8 file bytes**, including whitespace. Keep the expected hash in your own trust configuration; accepting a hash from the same untrusted bundle does not authenticate the issuer.
 
@@ -42,7 +42,7 @@ npm run build --prefix verifier
 node verifier/examples/quickstart.mjs --offline
 ```
 
-The `--offline` option is available in the published 0.2.1 example and in this checkout's 0.3.0 source example.
+The `--offline` option is available in the published 0.2.1 example and in this checkout's 0.3.1 source example.
 
 **Live demo.** With network access, the default command fetches a signed sample receipt and the registry from Insight, then verifies the bytes locally. The sample key is distinct from the production attester. Fetching both inputs from Insight does not independently authenticate the registry:
 

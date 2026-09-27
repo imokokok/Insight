@@ -43,12 +43,20 @@ assert.throws(
   () => api.parsePinnedKeyRegistry(Buffer.concat([bytes, Buffer.from(' ')]), pin),
   /HASH_MISMATCH/
 );
-for (const change of ['invalid-date', 'duplicate-key', 'invalid-role']) {
+for (const change of [
+  'invalid-date',
+  'duplicate-key',
+  'invalid-role',
+  'sample-role-array',
+  'attester-role-array',
+]) {
   const bad = structuredClone(registry);
   if (change === 'invalid-date') bad.keys![0].validFrom = 'invalid';
   if (change === 'duplicate-key') bad.keys!.push({ ...bad.keys![0] });
   if (change === 'invalid-role')
     (bad.keys![0] as unknown as Record<string, unknown>).role = 'anything';
+  if (change.endsWith('-role-array'))
+    (bad.keys![0] as unknown as Record<string, unknown>).role = [change.split('-')[0]];
   const data = Buffer.from(JSON.stringify(bad));
   assert.throws(
     () => api.parsePinnedKeyRegistry(data, createHash('sha256').update(data).digest('hex')),
@@ -279,7 +287,7 @@ const bad = spawnSync(
 assert.equal(bad.status, 1);
 assert.match(bad.stderr, /HASH_MISMATCH/);
 const pkg = JSON.parse(await readFile('node_modules/verify-insight-receipt/package.json', 'utf8'));
-assert.equal(pkg.version, '0.3.0');
+assert.equal(pkg.version, '0.3.1');
 process.stdout.write(
   JSON.stringify({
     version: pkg.version,
@@ -290,6 +298,7 @@ process.stdout.write(
       recheckSchemas: [2, 3],
       executionSchemas: [1, 2, 3, 4, 5],
       pinnedSnapshot: true,
+      typedRolesRejected: true,
       unknownProfileRejected: true,
       tamperRejected: true,
       trustFailuresRejected: true,

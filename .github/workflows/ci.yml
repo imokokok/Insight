@@ -93,7 +93,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - name: Verify the published package shape in Chromium without network
+      - name: Verify the packed package shape in Chromium without network
         run: npm run verifier:release:check -- --browser
       - run: npm run test:e2e -- --project=chromium
 
