@@ -3,14 +3,14 @@ import { ApiPageContent } from './ApiPageContent';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Insight API — Oracle Reliability for DeFi',
+  title: 'Insight API — Oracle Transparency & Risk Intelligence',
   description:
-    '15-minute oracle reliability assessment: cross-provider reputation, deviation, unified Peg Risk, liquidation stress tests and anomaly detection via REST API. Credit-metered per call — subscribe or top up.',
+    'Oracle prices, cross-source comparison, freshness, reputation, Peg Risk, and protocol stress tests through one credit-metered REST API.',
   keywords: ['oracle API', 'DeFi API', 'Chainlink API', 'oracle reliability API', 'peg risk API'],
   openGraph: {
-    title: 'Insight API — Oracle Reliability for DeFi',
+    title: 'Insight API — Oracle Transparency & Risk Intelligence',
     description:
-      '15-minute reliability assessment across 11+ oracle providers and 40+ chains — reputation, deviation, Peg Risk and liquidation risk.',
+      'Oracle transparency and risk intelligence across 10 providers and 40+ chains: source comparison, freshness, Peg Risk, and protocol exposure.',
     type: 'website',
   },
 };

@@ -40,7 +40,7 @@ const INPUT_CLASS =
  *
  * The "lightweight SDK" — instead of publishing an npm package, lets bot/script
  * developers pick a language, fill in their trade intent, and copy a runnable
- * snippet that already embeds the immune-system gate (abort on DANGER/BLOCK).
+ * snippet that already embeds the oracle risk gate (abort on DANGER/BLOCK).
  * Serves the same "reduce integration friction" goal as an SDK at ~1/10th the
  * maintenance cost for a solo developer.
  */
@@ -68,7 +68,7 @@ export function CodeSnippetGenerator({ defaultApiKey }: CodeSnippetGeneratorProp
           `  -H "Accept: application/json"`,
           ``,
           `# Response: { "data": { "verdict": "PASS|CAUTION|DANGER|BLOCK", ... } }`,
-          `# Immune-system gate — abort the trade on DANGER or BLOCK.`,
+          `# Oracle risk gate — abort the trade on DANGER or BLOCK.`,
         ].join('\n');
 
       case 'javascript':
@@ -84,7 +84,7 @@ export function CodeSnippetGenerator({ defaultApiKey }: CodeSnippetGeneratorProp
           `});`,
           `const { data } = await res.json();`,
           ``,
-          `// Immune-system gate: abort on DANGER or BLOCK.`,
+          `// Oracle risk gate: abort on DANGER or BLOCK.`,
           `if (data.verdict === "DANGER" || data.verdict === "BLOCK") {`,
           `  throw new Error("Aborting trade: oracle verdict " + data.verdict);`,
           `}`,
@@ -106,7 +106,7 @@ export function CodeSnippetGenerator({ defaultApiKey }: CodeSnippetGeneratorProp
           `)`,
           `data = resp.json()["data"]`,
           ``,
-          `# Immune-system gate: abort on DANGER or BLOCK.`,
+          `# Oracle risk gate: abort on DANGER or BLOCK.`,
           `if data["verdict"] in ("DANGER", "BLOCK"):`,
           `    raise RuntimeError("Aborting trade: oracle verdict " + data["verdict"])`,
         ].join('\n');
@@ -138,7 +138,7 @@ export function CodeSnippetGenerator({ defaultApiKey }: CodeSnippetGeneratorProp
           `	data := out["data"].(map[string]any)`,
           `	verdict := data["verdict"].(string)`,
           ``,
-          `	// Immune-system gate: abort on DANGER or BLOCK.`,
+          `	// Oracle risk gate: abort on DANGER or BLOCK.`,
           `	if verdict == "DANGER" || verdict == "BLOCK" {`,
           `		panic(fmt.Sprintf("Aborting trade: oracle verdict %s", verdict))`,
           `	}`,
@@ -249,7 +249,7 @@ export function CodeSnippetGenerator({ defaultApiKey }: CodeSnippetGeneratorProp
       </div>
 
       <p className="text-xs text-slate-500">
-        Every snippet embeds the immune-system gate: the trade is aborted when the verdict is DANGER
+        Every snippet embeds the oracle risk gate: the trade is aborted when the verdict is DANGER
         or BLOCK. Same logic as the{' '}
         <code className="px-1.5 py-0.5 bg-slate-100 rounded font-mono text-slate-700">
           pre_trade_safety_check

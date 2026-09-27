@@ -4,7 +4,7 @@ import { type Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Terms of Service - Insight',
-  description: 'Terms of Service for Insight Oracle Data Analytics Platform',
+  description: 'Terms of Service for Insight Oracle Transparency & Risk Intelligence',
 };
 
 export default function TermsPage() {
@@ -40,7 +40,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-slate-900 mb-3">2. Description of Service</h2>
             <p className="text-slate-700 leading-relaxed mb-3">
-              Insight is an oracle data analytics platform that provides:
+              Insight is an oracle transparency and risk intelligence platform that provides:
             </p>
             <ul className="list-disc list-inside text-slate-700 space-y-2 ml-4">
               <li>15-minute price tracking from multiple oracle providers</li>

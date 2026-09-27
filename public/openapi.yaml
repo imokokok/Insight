@@ -4,9 +4,13 @@ info:
   title: Insight Oracle Risk & Transparency API
   version: v1
   description: |
-    Hourly oracle price data, cross-oracle consensus, deviation signals, feed health tracking,
-    risk metrics, protocol liquidation analysis, unified Peg Risk analysis for stablecoins and
-    wrapped/LST assets, and daily risk reports.
+    Oracle transparency and risk intelligence for DeFi: prices with source metadata,
+    cross-oracle consensus, deviation, freshness, source independence, feed health,
+    protocol liquidation analysis, unified Peg Risk, and daily reports. Price snapshots
+    are collected every 15 minutes. Pre-trade assessments, Oracle Watch, and signed
+    assessment/execution-price evidence expose these capabilities to applications and agents.
+    Insight does not authorize or submit transactions; PriorSeal is an optional, separate
+    authorization and execution-evidence integration.
 
     ---
 
@@ -1651,8 +1655,8 @@ paths:
         Always-on companion to the pre-trade safety check. Condenses live cross-oracle
         consensus deviation, agreement, quorum, outliers and staleness into a single
         `NORMAL` / `CAUTION` / `DANGER` verdict with a `proceed` / `proceed_with_caution` /
-        `halt` recommendation. Agents should poll this signal to keep long-running strategies
-        (yield, keepers, portfolios) safe between trades and pause when the verdict turns
+        `halt` recommendation. Agents should poll this signal to monitor oracle risk for long-running strategies
+        (yield, keepers, portfolios) between trades and pause when the verdict turns
         `DANGER`. When an asset has no cross-oracle coverage, the endpoint degrades to a
         `DANGER` / `halt` verdict instead of erroring. Verdict thresholds reuse the pre-trade
         rule set (deviation 1% / 3%, agreement 0.95 / 0.85) so both surfaces speak the same

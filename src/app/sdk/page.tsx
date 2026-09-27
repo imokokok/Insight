@@ -18,9 +18,9 @@ import { ORACLE_INSIGHT_GUARD_VERSION } from '@/lib/npmPackageVersions';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Insight Guard SDK — Safe DeFi Agent Execution',
+  title: 'Insight Guard SDK — Oracle Assessment & Evidence',
   description:
-    'Run two-sided pre-trade gates, pause on Oracle Watch halts, and issue verified execution receipts through one TypeScript SDK for DeFi agents.',
+    'Assess oracle risk, monitor changing conditions, and retain signed price/fill evidence with a TypeScript SDK. Use assessment-only APIs or optional gated execution.',
   keywords: [
     'DeFi agent SDK',
     'pre-trade risk SDK',
@@ -29,9 +29,9 @@ export const metadata: Metadata = {
     'AI agent safety',
   ],
   openGraph: {
-    title: 'Insight Guard SDK — Safe DeFi Agent Execution',
+    title: 'Insight Guard SDK — Oracle Assessment & Evidence',
     description:
-      'Pre-trade gates, Oracle Watch halts, and verified execution receipts for DeFi agents.',
+      'Oracle risk assessments, monitoring, and signed price/fill evidence for DeFi agents.',
     type: 'website',
   },
 };
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 const workflow = [
   {
     index: '01',
-    title: 'Gate before submitting',
+    title: 'Assess before submitting',
     body: 'Run source and destination Pre-Trade checks. DANGER and BLOCK stop the workflow before your transaction function is called.',
     icon: ShieldCheck,
   },
@@ -51,8 +51,8 @@ const workflow = [
   },
   {
     index: '03',
-    title: 'Prove what settled',
-    body: 'Pair the two signed pre-trade proofs with the transaction hash to issue a VERIFIED execution receipt.',
+    title: 'Retain price/fill evidence',
+    body: 'Bind signed source and destination assessments to observed settlement and report price/fill fidelity in a signed execution receipt.',
     icon: FileSignature,
   },
 ];
@@ -95,10 +95,10 @@ export default function SdkPage() {
         <EditorialWorkspaceHeader
           index="11"
           stage="Guard"
-          eyebrow="Insight Guard SDK · The execution workflow for DeFi agents"
-          title="Make risk signals change the transaction."
-          description="One server-side TypeScript workflow for two-sided pre-trade gates, Oracle Watch halts, and signed execution receipts. It orchestrates Insight’s API; the risk engine, attestation keys, and credit meter remain on Insight."
-          evidence={['Gate before submit', 'Halt between trades', 'Verified execution proof']}
+          eyebrow="Insight Guard SDK · Oracle intelligence for DeFi agents"
+          title="Bring oracle evidence into agent decisions."
+          description="Assess oracle risk without submitting a transaction, monitor conditions with Oracle Watch, or use the optional gated swap workflow. Insight supplies assessments and price/fill evidence; your application owns its decisions, signer, and execution."
+          evidence={['Oracle assessment', 'Ongoing monitoring', 'Signed price/fill evidence']}
           action={
             <div className="flex flex-wrap items-center gap-2">
               <a
@@ -136,11 +136,11 @@ export default function SdkPage() {
             </p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                The API remains composable. The SDK makes the safe path default.
+                Start with an assessment. Choose how to act on it.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-                Use individual REST or MCP calls when you need them. Use Guard when an agent should
-                check, decide, execute, and retain proof as one explicit workflow.
+                Use REST, MCP, or assessSwap() for oracle assessments. Use executeSwap() when you
+                want the SDK to gate your transaction callback and request execution evidence.
               </p>
             </div>
           </div>
@@ -176,7 +176,7 @@ export default function SdkPage() {
           <div>
             <p className="editorial-index mb-5">02 — Quickstart</p>
             <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              Integrate the workflow, not three disconnected calls.
+              Choose the optional gated swap workflow.
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-slate-600">
               Install the package in a trusted agent runtime. Never expose an Insight API key in a

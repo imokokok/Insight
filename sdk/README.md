@@ -1,6 +1,6 @@
 # `oracle-insight-guard`
 
-The execution workflow SDK for Insight. It connects the existing paid API surfaces into one agent-safe flow:
+The TypeScript SDK for Insight’s oracle risk assessments, monitoring, and signed price/fill evidence. Use assessment-only APIs to inform your own decisions, or choose the optional gated execution helper:
 
 ```text
 two-sided Pre-Trade gates → submit transaction → verified Execution Receipt
@@ -8,7 +8,7 @@ two-sided Pre-Trade gates → submit transaction → verified Execution Receipt
           Oracle Watch can halt the agent between trades
 ```
 
-An optional PriorSeal bridge adds principal authorization of the exact EVM call without replacing Insight's price and fill verification:
+Insight works independently of PriorSeal. The optional PriorSeal bridge connects principal authorization of the exact EVM call to observed execution, while Insight retains its separate oracle assessment and price/fill verification scope:
 
 ```text
 Insight gates → construct exact call → PriorSeal authorization → broadcast

@@ -36,8 +36,8 @@ export function DashboardShell({ liveDashboard }: DashboardShellProps) {
                 Different questions. One clear audit trail.
               </h2>
               <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
-                Move from price discovery to execution safety with tools designed for protocols,
-                operators, developers, and AI agents.
+                Move from oracle observations to explainable risk assessments with tools for
+                protocols, operators, developers, and AI agents.
               </p>
             </div>
           </div>
@@ -64,11 +64,11 @@ export function DashboardShell({ liveDashboard }: DashboardShellProps) {
             <p className="home-kicker">05 — Build on evidence</p>
             <div>
               <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
-                Bring the evidence into the execution path.
+                Bring oracle intelligence into your workflow.
               </h2>
               <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
-                Query the same source context through the API, or enforce it before submission with
-                Guard SDK.
+                Use REST or MCP for source data and risk analysis. Use Guard SDK for assessment,
+                monitoring, and optional checks before transaction submission.
               </p>
             </div>
           </div>

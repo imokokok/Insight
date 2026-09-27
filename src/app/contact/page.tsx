@@ -8,7 +8,8 @@ import { GitHubIcon, TwitterIcon } from '@/components/icons/SocialIcons';
 
 export const metadata: Metadata = {
   title: 'Contact - Insight',
-  description: 'Get in touch with the Insight Oracle Data Analytics Platform team',
+  description:
+    'Contact Insight about oracle transparency, risk intelligence, and application or agent integrations.',
 };
 
 const contactMethods = [
@@ -113,10 +114,9 @@ export default function ContactPage() {
                   What can we help you with?
                 </h2>
                 <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                  Insight provides independent oracle transparency and risk infrastructure for DeFi.
-                  Whether you need help interpreting deviation signals, integrating the API, or
-                  understanding protocol-level exposure, reach out and we&apos;ll get back to you
-                  within 48 hours.
+                  Insight provides oracle transparency and risk intelligence for DeFi. Whether you
+                  need help interpreting deviation signals, integrating the API, or understanding
+                  protocol-level exposure, reach out and we&apos;ll get back to you within 48 hours.
                 </p>
                 <Link
                   href="/docs"

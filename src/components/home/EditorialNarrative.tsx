@@ -19,8 +19,8 @@ const steps = [
   },
   {
     number: '03',
-    title: 'Act',
-    text: 'Stress-test the consequence before a trade or liquidation can execute.',
+    title: 'Assess',
+    text: 'Assess how oracle deviation could affect a trade, loan, or liquidation.',
     href: '/safety-check',
     label: 'Safety Check',
   },
@@ -78,8 +78,8 @@ export function OracleProcessSection() {
             From a signal to a decision you can defend.
           </h2>
           <p className="mt-5 max-w-md text-sm leading-relaxed text-slate-300 sm:text-base">
-            Insight separates observation from action, so a risk decision is grounded in source
-            context rather than one opaque number.
+            Insight connects oracle observations, source independence, and protocol exposure to an
+            explainable assessment your application can use before taking action.
           </p>
         </div>
         <ol className="grid gap-0 border-l border-white/15 sm:grid-cols-3 sm:border-l-0 sm:border-t sm:pt-7">
@@ -122,6 +122,14 @@ export function OracleClosingSection() {
       <div className="final-evidence-copy">
         <p className="instrument-label">Final checkpoint</p>
         <h2>Let every price come with a way to question it.</h2>
+        <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-600">
+          Use Insight independently for oracle transparency and risk assessments. Pair its evidence
+          with{' '}
+          <a href="https://priorseal.xyz/" className="underline underline-offset-4">
+            PriorSeal
+          </a>{' '}
+          when you also need explicit authorization linked to observed EVM execution.
+        </p>
       </div>
       <div className="final-evidence-actions">
         <ol>

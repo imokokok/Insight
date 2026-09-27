@@ -191,9 +191,9 @@ function HeroSection() {
       <EditorialWorkspaceHeader
         index="09"
         stage="Integrate"
-        eyebrow="REST API v1 · Oracle evidence and risk infrastructure for production systems"
-        title="Move verified market evidence into your system."
-        description="Query prices, consensus, reputation, depeg risk, protocol exposure, and execution safety through one typed interface with explicit freshness and verification metadata."
+        eyebrow="REST API v1 · Oracle transparency and risk intelligence"
+        title="Bring oracle evidence into your system."
+        description="Query prices, consensus, reputation, depeg risk, protocol exposure, and pre-trade risk through one typed interface with explicit freshness and verification metadata."
         evidence={['Authenticated access', 'Typed evidence', 'Metered usage']}
         action={
           <div className="flex flex-wrap items-center gap-2">
@@ -299,7 +299,8 @@ function QuickStartSection() {
               Start building in minutes
             </h2>
             <p className="text-lg text-slate-600 mb-8">
-              Copy a snippet, plug in your API key, and start pulling verified oracle data.
+              Copy a snippet, plug in your API key, and start querying oracle data with source
+              metadata.
             </p>
 
             <div className="space-y-6">
