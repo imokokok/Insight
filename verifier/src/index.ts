@@ -24,6 +24,7 @@ export {
   type VerificationReport,
 } from './report';
 export { resolveKeyStatus } from './keyRegistry';
+export { parsePinnedKeyRegistry, type PinnedKeyRegistry } from './snapshot';
 export {
   verifyExecutionReceipt,
   verifyExecutionPair,

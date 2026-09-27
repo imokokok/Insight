@@ -88,20 +88,32 @@ it('does not count an unsigned simulation toward coverage quorum', async () => {
   ).toContain('PROVIDER_UNAVAILABLE');
 });
 
-it.each(['wrong-chain', 'unknown-chain', 'wrong-symbol', 'wrong-quote', 'future-time'])(
-  'rejects actual provider scope/provenance: %s',
-  async (mode) => {
-    const value = await consensus();
-    if (mode === 'wrong-chain') value.providers[0].chain = Blockchain.BASE;
-    if (mode === 'unknown-chain') value.providers[0].chain = undefined;
-    if (mode === 'wrong-symbol') value.providers[0].symbol = 'ETH/USD';
-    if (mode === 'wrong-quote') value.providers[0].symbol = 'USDC/ETH';
-    if (mode === 'future-time') value.providers[0].timestamp = (now + 10) * 1000;
-    consensus.mockResolvedValue(value);
-    const proof = await assessCoverage({ asset: 'USDC', chainId: 1, policyId: COVERAGE_POLICY_ID });
-    expect(proof.report.evaluation.status).toBe('INSUFFICIENT_COVERAGE');
-  }
-);
+it.each([
+  'wrong-chain',
+  'unknown-chain',
+  'wrong-symbol',
+  'wrong-quote',
+  'future-time',
+  'negative-age',
+  'nan-age',
+  'missing-quorum-metadata',
+  'contradictory-stale-age',
+])('rejects actual provider scope/provenance: %s', async (mode) => {
+  const value = await consensus();
+  if (mode === 'wrong-chain') value.providers[0].chain = Blockchain.BASE;
+  if (mode === 'unknown-chain') value.providers[0].chain = undefined;
+  if (mode === 'wrong-symbol') value.providers[0].symbol = 'ETH/USD';
+  if (mode === 'wrong-quote') value.providers[0].symbol = 'USDC/ETH';
+  if (mode === 'future-time') value.providers[0].timestamp = (now + 10) * 1000;
+  if (mode === 'negative-age') value.providers[0].dataAgeSeconds = -1;
+  if (mode === 'nan-age') value.providers[0].dataAgeSeconds = NaN;
+  if (mode === 'contradictory-stale-age') value.providers[0].dataAgeSeconds = 400;
+  if (mode === 'missing-quorum-metadata')
+    delete (value.providers[0] as Partial<(typeof value.providers)[0]>).countsTowardOracleQuorum;
+  consensus.mockResolvedValue(value);
+  const proof = await assessCoverage({ asset: 'USDC', chainId: 1, policyId: COVERAGE_POLICY_ID });
+  expect(proof.report.evaluation.status).toBe('INSUFFICIENT_COVERAGE');
+});
 it('rejects an unavailable registry instead of reporting zero support', async () => {
   jest
     .mocked(getAllActiveFeedsByProviderWithStatus)

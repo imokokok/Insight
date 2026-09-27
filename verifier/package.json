@@ -5,6 +5,9 @@
   "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "verify-insight-offline": "./dist/offline.mjs"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -14,6 +17,7 @@
   "files": [
     "dist",
     "examples",
+    "CHANGELOG.md",
     "README.md"
   ],
   "engines": {
@@ -29,12 +33,14 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run build && npm --prefix .. run verifier:release:check"
   },
   "dependencies": {
     "viem": "^2.47.6"
   },
   "devDependencies": {
+    "@types/node": "^18.19.0",
     "typescript": "^5"
   }
 }

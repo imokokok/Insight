@@ -2,11 +2,28 @@
 
 Verify Insight oracle-safety receipts on your own machine. The verification functions make no network call and need no API key. They check signed bytes and report key status only relative to a registry you supply; you must establish the issuer key and any semantic policy trust independently.
 
-This checkout contains **0.3.0 source**. The latest npm release is **0.2.1**, a documentation-and-example patch with the same runtime files as 0.2.0. It does not include the v5 execution profile support described below. Check the version you install before integrating v5 receipts.
+This source/package version is **0.3.0**. Versions **0.2.0 and 0.2.1** do not include v5 execution profile support. Check the registry release before installing; a source checkout or local tarball does not establish npm publication.
 
 ```bash
 npm install verify-insight-receipt
 ```
+
+## Independent offline verification (0.3.0)
+
+The CLI reads local files only and requires the SHA-256 of an independently reviewed registry snapshot. Hash the **exact UTF-8 file bytes**, including whitespace. Keep the expected hash in your own trust configuration; accepting a hash from the same untrusted bundle does not authenticate the issuer.
+
+```bash
+verify-insight-offline --registry reviewed-registry.json --registry-sha256 YOUR_64_HEX_PIN \
+  --pre-trade source.json --execution execution.json
+# Add --destination destination.json when the execution commits a destination gate.
+# A single check or execution receipt can use --receipt receipt.json instead.
+```
+
+Exit 0 means the selected check passed against the pinned registry; exit 1 means verification or input validation failed. JSON output includes the exact snapshot hash and byte length. Pair verification establishes a historical execution-time relationship and can accept a now-expired pair whose execution occurred inside its signed gates; it does not authorize a new trade. Sample keys, unknown v5 profiles, malformed UIDs, revoked keys, mismatched snapshots and modified signed bytes fail closed.
+
+Browser/Node applications can use `parsePinnedKeyRegistry(bytes, expectedSha256)` and pass its `registry` to the existing verification functions. The parser rejects malformed dates, ambiguous registry shapes and duplicate key identities. Old verification APIs remain available.
+
+From the full source repository, `npm run verifier:release:check` packs the actual artifact, installs it into a temporary consumer, and tests CommonJS, ESM, all supported layouts and the offline CLI. Add `-- --browser` for Chromium conformance. Installation may fetch public npm dependencies; verification itself is offline. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` only when using an existing local Chromium binary. Artifacts and exact package hashes are written to `.local/verifier-release/`.
 
 **Offline smoke test.** This command creates a synthetic v1 receipt with a throwaway key and verifies its signature without network access, a wallet, or an API key. It proves the verifier runs; it does not prove that a production Insight key is trusted:
 
