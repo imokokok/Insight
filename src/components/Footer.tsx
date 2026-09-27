@@ -94,9 +94,9 @@ export default function Footer() {
           </Link>
           <div>
             <p className="instrument-label">The record continues</p>
-            <h2>Evidence before execution.</h2>
+            <h2>Oracle insight. Verifiable evidence.</h2>
             <p>
-              Oracle transparency and risk infrastructure for DeFi protocols, operators, developers,
+              Oracle transparency and risk intelligence for DeFi protocols, operators, developers,
               and autonomous agents.
             </p>
           </div>

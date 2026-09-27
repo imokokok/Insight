@@ -33,10 +33,8 @@ jest.mock('@/providers/QueryProvider', () => ({
 describe('RootLayout', () => {
   describe('Metadata', () => {
     it('should export correct metadata', () => {
-      expect(metadata.title).toBe('Insight — Oracle Transparency & Risk Infrastructure for DeFi');
-      expect(metadata.description).toContain(
-        'Independent oracle transparency and risk infrastructure for DeFi'
-      );
+      expect(metadata.title).toBe('Insight — Oracle Transparency & Risk Intelligence for DeFi');
+      expect(metadata.description).toContain('Oracle transparency and risk intelligence for DeFi');
     });
   });
 });

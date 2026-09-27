@@ -30,14 +30,15 @@ export function VerifiableReceiptsSection() {
             Verifiable receipts
           </div>
           <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-4">
-            Every receipt can be verified by anyone, without trusting Insight
+            Verify signed oracle evidence locally with independently confirmed keys
           </h2>
           <p className="text-slate-600 leading-relaxed">
-            Each pre-trade check is signed as an EIP-712 attestation (v1 11 fields, v2 26, v3 27).
-            The public verify endpoint checks the signature against the published attester key and
-            routes by the attestation&apos;s own schemaVersion. At v3 both safety gates are
-            recomputable from the bytes alone, because both policy constants are inside the signed
-            struct; the constants are also pinned in a machine-readable declaration.
+            When signing is available, a pre-trade check can carry an EIP-712 attestation (v1 11
+            fields, v2 26, v3 27). The public verify endpoint checks the signature against the
+            published attester key and routes by the attestation&apos;s own schemaVersion. At v3
+            both safety gates are recomputable from the bytes alone, because both policy constants
+            are inside the signed struct; the constants are also pinned in a machine-readable
+            declaration.
           </p>
         </div>
 

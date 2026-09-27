@@ -3,9 +3,9 @@ import { AiPageContent } from './AiPageContent';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Insight AI — Oracle Safety for AI Agents',
+  title: 'Insight AI — Oracle Risk Intelligence for Agents',
   description:
-    'Give your AI agents an oracle immune system. Pre-trade safety checks, always-on Oracle Watch, 39 MCP tools, and cross-oracle manipulation detection for Claude, Cursor, Windsurf, Eliza and any MCP-compatible client.',
+    'Bring oracle transparency and risk intelligence to AI agents: cross-source comparison, pre-trade assessments, Oracle Watch, and signed evidence through 40 MCP tools.',
   keywords: [
     'AI agent oracle',
     'AI crypto',
@@ -20,9 +20,9 @@ export const metadata: Metadata = {
     'Eliza oracle',
   ],
   openGraph: {
-    title: 'Insight AI — Oracle Safety for AI Agents',
+    title: 'Insight AI — Oracle Risk Intelligence for Agents',
     description:
-      'Pre-trade oracle safety checks + always-on Oracle Watch + 39 MCP tools. Let AI agents verify on-chain price integrity before executing trades.',
+      'Cross-oracle risk assessments, Oracle Watch, and 40 MCP tools. Give agents inspectable oracle evidence before they act.',
     type: 'website',
   },
 };

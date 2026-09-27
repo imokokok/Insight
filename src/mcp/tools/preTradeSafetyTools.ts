@@ -1,10 +1,10 @@
 /**
  * pre_trade_safety_check MCP tool.
  *
- * The AI agent "oracle immune system" entry point. AI agents SHOULD call this
- * tool BEFORE executing any on-chain swap/borrow/lend/liquidation to verify
- * that oracle data is not currently being manipulated. The verdict
- * (PASS/CAUTION/DANGER/BLOCK) tells the agent whether it is safe to proceed.
+ * The oracle risk assessment entry point. Applications and agents SHOULD call
+ * this tool before a swap/borrow/lend/liquidation to assess cross-oracle
+ * deviation, freshness, and other risk signals. PASS/CAUTION/DANGER/BLOCK is
+ * a policy assessment, not a guarantee of price correctness or economic safety.
  *
  * Agents MUST NOT execute trades when the verdict is DANGER or BLOCK.
  */
@@ -53,10 +53,11 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
   name: 'pre_trade_safety_check',
   description: [
     'Pre-trade oracle safety checkpoint for AI agents. Call this BEFORE executing any on-chain',
-    'swap/borrow/lend/liquidation/repay to verify oracle data integrity. Aggregates cross-oracle',
+    'swap/borrow/lend/liquidation/repay to assess oracle risk. Aggregates cross-oracle',
     'consensus prices, per-provider deviation, data freshness, stablecoin peg status, and reputation',
     'into a single verdict: PASS / CAUTION / DANGER / BLOCK. AI agents MUST NOT execute trades when',
-    'the verdict is DANGER or BLOCK. Also returns a recommended maximum position size.',
+    'the verdict is DANGER or BLOCK. Also returns a recommended maximum position size. A PASS',
+    'is not principal authorization or a guarantee of price correctness or economic safety.',
   ].join(' '),
   parameters: PreTradeSafetyInputSchema,
   handler: async (args) => {
@@ -168,7 +169,7 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
 
     // Oracle safety attestation — a portable, verifiable proof that this check
     // ran. Agents can relay `attestation` in tx memo/calldata/logs so users and
-    // protocols recognize the agent consulted Insight's oracle immune system.
+    // protocols recognize the agent consulted Insight's oracle risk assessment.
     if (result.attestation) {
       const a = result.attestation;
       lines.push('', '**Oracle safety attestation (verifiable proof):**');

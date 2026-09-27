@@ -64,11 +64,11 @@ export function HomeApiTeaser() {
   return (
     <section className="execution-interface home-view-reveal" aria-labelledby="execution-title">
       <div className="execution-interface-intro">
-        <p className="instrument-label">Evidence instrument 06 / execution interface</p>
-        <h3 id="execution-title">Transparent data, shaped for execution.</h3>
+        <p className="instrument-label">Evidence instrument 06 / oracle intelligence API</p>
+        <h3 id="execution-title">Oracle evidence, ready for your application.</h3>
         <p>
-          Query verified prices, reliability snapshots, depeg alerts, and liquidation risk signals
-          through one interface.
+          Query oracle prices with source metadata, reliability snapshots, depeg alerts, and risk
+          signals through one interface.
         </p>
 
         <ol className="execution-layers">
@@ -130,7 +130,7 @@ export function HomeApiTeaser() {
         </div>
 
         <div className="request-specimen-foot">
-          <span>Source verification included</span>
+          <span>Source metadata included</span>
           <span>Credit class C1–C4</span>
           <span>Machine-readable response</span>
         </div>

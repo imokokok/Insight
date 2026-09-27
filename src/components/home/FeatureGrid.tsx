@@ -22,9 +22,9 @@ const features = [
     tags: ['Safety Check', 'Peg Risk', 'What-if'],
   },
   {
-    title: 'Prove the decision',
+    title: 'Preserve the assessment',
     description:
-      'Put signed receipts, Oracle Watch halt signals, and pre-trade gates directly into an agent or protocol workflow.',
+      'Carry oracle assessments, signed receipts, and Oracle Watch risk signals into an application or agent workflow.',
     href: '/sdk',
     glyph: 'seal' as const,
     tags: ['Guard SDK', 'REST API', 'Signed receipt'],
@@ -42,7 +42,7 @@ const referenceLinks = [
 const highlights = [
   {
     icon: Zap,
-    label: '10+ Providers',
+    label: '10 Providers',
     description: 'Chainlink, RedStone, API3, DIA & more',
   },
   {

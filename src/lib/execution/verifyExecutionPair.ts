@@ -145,7 +145,7 @@ function fieldToString(value: unknown): string {
 
 /**
  * Verify that pre-trade attestation(s) and an Execution Receipt describe the
- * same authorized action and that all are genuinely signed by Insight. Pure: it
+ * same assessed trade and that all are genuinely signed by Insight. Pure: it
  * only calls the existing verifiers and compares the binding fields.
  *
  * v3 receipts commit to up to TWO gates (source + destination, see F1). Pass the

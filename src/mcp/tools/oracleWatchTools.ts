@@ -12,7 +12,7 @@ import type { McpToolDefinition } from './types';
 export const oracleWatchTool: McpToolDefinition<typeof OracleWatchInputSchema> = {
   name: 'oracle_watch',
   description:
-    'Always-on cross-oracle trust signal for an asset: live consensus deviation, agreement, quorum, outliers and staleness condensed into a NORMAL / CAUTION / DANGER verdict with a proceed / proceed_with_caution / halt recommendation. Agents should gate long-running strategies (yield, keeper, portfolio) on this signal, not just one-off trades. Pair it with pre_trade_safety_check for the decision moment.',
+    'Ongoing cross-oracle risk signal for an asset: current consensus deviation, agreement, quorum, outliers and staleness condensed into a NORMAL / CAUTION / DANGER verdict with a proceed / proceed_with_caution / halt recommendation. Agents should gate long-running strategies (yield, keeper, portfolio) on this signal, not just one-off trades. Pair it with pre_trade_safety_check for the decision moment.',
   parameters: OracleWatchInputSchema,
   handler: async (args) => {
     const signal = await getOracleWatchSignal(args.symbol, args.chain);

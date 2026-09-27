@@ -145,7 +145,7 @@ export default function VerifyClient() {
           stage="Verify"
           eyebrow="Independent receipt verification. The signature, signer key, validity window, and payload are checked locally in your browser."
           title="Trust the proof you can verify yourself."
-          description="Inspect an Insight OracleSafetyCheck without sending the receipt back to Insight. The public registry supplies the key; the browser reaches the verdict."
+          description="Inspect signed oracle-assessment fields without sending the receipt back to Insight. The browser checks the signature against the fetched registry; independently confirm its keys before relying on production evidence."
           evidence={['Signed payload', 'Published key', 'Local verdict']}
           action={
             <button

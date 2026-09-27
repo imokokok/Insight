@@ -11,7 +11,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Guard SDK Documentation — Insight',
   description:
-    'Integrate Insight Guard: two-sided pre-trade gates, Oracle Watch halt handling, and verified execution receipts for DeFi agents.',
+    'Integrate oracle risk assessments, Oracle Watch monitoring, and signed price/fill evidence. Choose assessment-only APIs or an optional gated execution helper.',
 };
 
 const installCode = `npm install oracle-insight-guard`;
@@ -53,8 +53,8 @@ export default function SdkDocsPage() {
           index="12"
           stage="Integrate"
           eyebrow="Guard SDK reference · Server-side workflow orchestration"
-          title="Build the safe execution path into your agent."
-          description="Guard is a TypeScript client over Insight’s existing API. It does not carry local risk rules or signing keys: API-side verdicts, attestations, audit records, and credits remain authoritative."
+          title="Build oracle assessment into your agent."
+          description="Guard is a TypeScript client for Insight’s oracle assessments, monitoring, and price/fill evidence. Use assessSwap() without a transaction callback, or the optional executeSwap() helper to gate your own submitter. Risk rules, attestation signing, and credit metering remain on Insight."
           evidence={['Typed workflow', 'Server-side key use', 'Verifiable receipts']}
           action={
             <Link

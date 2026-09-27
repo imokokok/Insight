@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Verify a Receipt - Insight',
   description:
-    'Verify an Insight OracleSafetyCheck receipt entirely in your browser — no server, no API key, no trust in Insight. Powered by verify-insight-receipt.',
+    'Check an Insight oracle-assessment receipt locally in your browser with no API key. Independently establish issuer-key trust; the demo fetches its sample and public registry.',
 };
 
 export default function VerifyPage() {

@@ -1,19 +1,27 @@
-# Insight — Oracle Transparency & Risk Infrastructure
+# Insight — Oracle Transparency & Risk Intelligence
 
-Insight is an oracle transparency and risk infrastructure platform for DeFi. It tracks prices across **10 oracle providers and 40+ blockchain networks** — and turns that cross-oracle data into a **decision-grade safety check** that AI agents run before touching on-chain money, plus an **always-on cross-oracle trust signal (Oracle Watch)** that keeps running strategies safe between trades.
+Insight makes **oracle data, its reliability, and the risks of relying on it** inspectable for DeFi protocols, operators, developers, and AI agents. It compares prices across **10 oracle providers and 40+ blockchain networks**, exposes deviation, freshness, source independence, and protocol impact, and turns those observations into explainable risk assessments and portable signed evidence when attestation signing is available.
+
+```text
+Oracle observations → Cross-source comparison → Risk assessment → Verifiable evidence
+```
+
+Pre-Trade Safety Check applies that oracle intelligence to a proposed action. Oracle Watch monitors changing oracle conditions between actions. The API, MCP tools, Guard SDK, and local verifier make the same capabilities available to applications and agents. Insight works independently; it does not need PriorSeal to provide oracle transparency or risk assessment.
+
+For a combined workflow, Insight supplies the oracle assessment and supported price/fill evidence; [PriorSeal](https://github.com/imokokok/PriorSeal) connects a principal-signed authorization to observed EVM execution. Together they link **assessment → authorization → execution → independent review**, while retaining separate trust checks. See the [product positioning guide](docs/product-positioning.md).
 
 ## Start here
 
 | Goal                                                                            | Guide                                                                                                              |
 | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Assess a proposed trade without handing Insight transaction control             | [Agent Guard SDK](sdk/README.md#non-intervening-assessment-and-verification) (`oracle-insight-guard` 0.4.1 on npm) |
-| Verify an existing receipt with your own trusted key configuration              | [Independent verifier](verifier/README.md) (`verify-insight-receipt` 0.2.1 on npm)                                 |
+| Verify an existing receipt with your own trusted key configuration              | [Independent verifier](verifier/README.md) (`verify-insight-receipt`)                                              |
 | Pair an Insight assessment with exact-call authorization and execution evidence | [PriorSeal example](https://github.com/imokokok/PriorSeal/tree/main/examples/web3-agent-kit-base-swap-v2)          |
 | Run the website and API locally                                                 | [Getting Started](#getting-started)                                                                                |
 
-The repository's verifier source is at **0.3.0**, while the latest npm release is **0.2.1**. ExecutionReceipt v5 support documented in the source README is not yet available through npm; use the published version's README for npm integrations. Insight assessment and PriorSeal authorization are also usable independently.
+The repository's verifier source is at **0.3.1** and includes ExecutionReceipt v5 verification with an independently pinned semantic profile. Use the [verifier README](verifier/README.md) and the version you actually install to determine supported schemas. Insight assessment and PriorSeal authorization are usable independently.
 
-**See through every oracle. Trust with clarity.**
+**See the oracles behind the price. Understand the risk before relying on it.**
 
 > Insight is **not** a real-time oracle tracker. Price snapshots and feed health are collected every 15 minutes; reputation scores are recalculated hourly. All data is aggregated into daily reports. The API quotas are sized to this cadence.
 
@@ -38,7 +46,7 @@ The repository's verifier source is at **0.3.0**, while the latest npm release i
 
 ## The Flagship: Pre-Trade Oracle Safety Check
 
-The "AI agent immune system." Before an agent (or human) executes any on-chain **swap / borrow / lend / liquidate / repay**, it calls one checkpoint that aggregates cross-oracle consensus prices, per-provider deviation, data freshness, stablecoin peg status, and reputation — and returns a single, machine-readable verdict:
+An application of Insight’s oracle transparency and risk intelligence. Before an agent (or human) executes an on-chain **swap / borrow / lend / liquidate / repay**, it calls one checkpoint that aggregates cross-oracle consensus prices, per-provider deviation, data freshness, stablecoin peg status, and reputation — and returns a single, machine-readable verdict:
 
 > **PASS · CAUTION · DANGER · BLOCK** + a recommended maximum position size
 
@@ -67,10 +75,10 @@ Agents must not execute when the verdict is DANGER or BLOCK. Every successfully 
 
 When an attester key is configured, a check can carry a signed receipt. A reviewer can recompute the signature and signed fields locally, but must establish trust in the attester key independently. The public verify endpoint checks the signature against the published attester key, routes by the attestation's own schemaVersion, and at schema v3 both safety gates are recomputable from the bytes alone because both policy constants are inside the signed struct.
 
-Every check can be signed as an **EIP-712 offchain attestation** — a portable, gasless, tamper-evident proof that "Insight verified oracle state for this trade at time T". Agents relay it in tx memo / calldata / logs so users and protocols can recognize the agent ran the oracle immune-system check.
+When signing is configured, a check can carry an **EIP-712 offchain attestation** — portable, gasless, tamper-evident evidence of the oracle assessment Insight issued at time T. An application can preserve or reference that evidence in its execution workflow. A signature establishes the issuer and integrity of the signed fields; it does not prove that the underlying oracle prices were correct or that an agent enforced the assessment.
 
 - **v1** — 11-field attestation (default, backward compatible).
-- **v2** — 26-field attestation: CAIP-19 asset-pair binding, request hash, provider-observations hash, reason-codes hash, plus a **quorum gate** (≥3 independent providers) and an **independence gate** (≥2 distinct non-derived operator groups) that escalate to BLOCK. Unresolvable assets are signed with an explicit `unresolved:` marker rather than silently dropped.
+- **v2** — 26-field attestation: CAIP-19 asset-pair binding, request hash, provider-observations hash, reason-codes hash, plus a **quorum gate** (≥3 participating providers) and an **independence gate** (≥2 distinct non-derived operator groups) that escalate to BLOCK. Unresolvable assets are signed with an explicit `unresolved:` marker rather than silently dropped.
 - **v3** — 27-field attestation: identical evidence to v2 plus **the independence threshold itself** (`requiredSourceGroupCount`). v2 signs `sourceGroupCount` without the number it is compared against, so a third party cannot tell whether the gate passed without reading this codebase. v3 puts both operands inside the signature, which makes the gate checkable from the bytes alone. Same gates, same verdict policy as v2.
 
 Anyone can verify a signature against the published attester address via `POST /api/v1/safety/attestation/verify` (public, no API key). The feature is disabled (non-breaking) when no signer key is configured. v1/v2/v3 coexist; the endpoint routes by the attestation's own `schemaVersion` and publishes all three type layouts from `GET` (`latestSchemaVersion` is 3).
@@ -79,7 +87,7 @@ Anyone can verify a signature against the published attester address via `POST /
 
 [![oracle-insight-guard npm version](https://img.shields.io/npm/v/oracle-insight-guard?label=npm)](https://www.npmjs.com/package/oracle-insight-guard)
 
-The publishable TypeScript package in [`sdk/`](./sdk) turns the three agent-facing services into one explicit execution workflow:
+The publishable TypeScript package in [`sdk/`](./sdk) brings oracle assessment, monitoring, and supported execution-price evidence into an application’s workflow. It offers assessment-only APIs and an optional gated execution helper:
 
 ```text
 two-sided Pre-Trade gate → transaction submission → VERIFIED Execution Receipt
@@ -158,7 +166,7 @@ if (result.code !== 'ok') {
 
 If a consumer explicitly wants to share anonymous verification outcomes, `reportVerification()` is a separate opt-in API. Insight does not use client-side verification calls as its primary usage metric. The reliable product metric is **evidence utilization**: the share of issued attestation UIDs that later appear as `execution_receipts.pre_trade_uid`. The read-only report script is [`verifier/scripts/evidence-utilization.mjs`](./verifier/scripts/evidence-utilization.mjs).
 
-The published 0.2.1 package supports pre-trade v1–v3 and ExecutionReceipt v1–v4. This checkout's unreleased 0.3.0 source also handles ExecutionReceipt v5 with an independently pinned semantic profile. Check the [verifier README](verifier/README.md#supported-schemas) and the version you actually install. Schema constants are guarded against production drift by `src/lib/attestations/__tests__/verifierParity.test.ts`.
+The 0.3.1 verifier source supports pre-trade v1–v3 and ExecutionReceipt v1–v5; v5 requires an independently pinned semantic profile. Earlier 0.2.x packages support ExecutionReceipt v1–v4. Check the [verifier README](verifier/README.md#supported-schemas) and the version you actually install. Schema constants are guarded against production drift by `src/lib/attestations/__tests__/verifierParity.test.ts`.
 
 **VRT1 (§8.6)** — Insight's OracleSafetyCheck is listed as a vendor action type in the VRT1 specification, as a pointer to our machine-readable scale declaration: https://github.com/Ifasola34/vrt1-spec/blob/main/registry/vendor-action-types.json. The declaration pins the per-field integer scale and both policy constants (`requiredParticipantCount`, `requiredSourceGroupCount`); at schema v3 both constants are also inside the signed struct, so the gates are checkable from the bytes alone. Listing records that the type exists, where its declaration is, and what those bytes hashed to. It is not an endorsement of Insight's verdicts, and it does not describe Insight's default traffic: schema v1 (11 fields, no gates) remains the service default and v3 is opt-in.
 
@@ -188,7 +196,7 @@ The end-to-end workflow is documented in
 
 ## Oracle Watch: Always-On Cross-Oracle Monitoring
 
-The always-on companion to Pre-Trade. Pre-trade answers "can I trade this price right now?" for a single moment; Oracle Watch answers "can my strategy keep depending on this feed?" with a consolidated, live cross-oracle trust signal any agent can poll and gate on — no trade required.
+The always-on companion to Pre-Trade. Pre-trade answers "can I trade this price right now?" for a single moment; Oracle Watch answers "can my strategy keep depending on this feed?" with a consolidated cross-oracle risk signal any application or agent can poll and gate on — no trade required.
 
 > **NORMAL · CAUTION · DANGER** + a `proceed` / `proceed_with_caution` / `halt` recommendation
 
@@ -228,8 +236,8 @@ the proof instead of living only in a log.
 
 ### Access
 
-- **MCP tools** — `oracle_watch` (live point signal) and `oracle_watch_history`
-  (retrospective trend), two of 39. Pair them with `pre_trade_safety_check` for
+- **MCP tools** — `oracle_watch` (current point signal) and `oracle_watch_history`
+  (retrospective trend), two of 40. Pair them with `pre_trade_safety_check` for
   the decision moment.
 - **REST** — `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` and
   `GET /api/v1/oracle-watch/history?symbol=ETH&chain=arbitrum&days=7`. Every
