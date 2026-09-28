@@ -1,4 +1,10 @@
 export { InsightClient } from './client';
+export {
+  V3_SINGLE_SWAP_ABI,
+  assessV3SwapTransaction,
+  v3SwapRiskCommitment,
+} from './swap-transaction-risk';
+export type { SwapRiskReader, V3SwapRiskRequest, V3SwapRiskReport } from './swap-transaction-risk';
 export * from './rwa';
 export * from './rwa-call';
 export * from './rwa-instrument-registry';
