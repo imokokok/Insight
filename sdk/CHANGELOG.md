@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 — 2026-09-28
+
+- Add a pinned-block risk review for the exact original Uniswap V3 single-pool ERC-20 swap call, checking router code, route simulation, cross-oracle price deviation, signed trade size, minimum output, slippage and freshness.
+- Require an acceptable fresh review before optional PriorSeal authorization and bind the unsigned review commitment to the exact call. This does not sign or broadcast a transaction.
+- Keep opt-in RWA diagnostics separate from production signing and partner activation.
 
 - Add typed Robinhood Stock Token issuer context with multiplier-normalized
   reference pricing, explicit oracle-quorum exclusion, REST/deployment consistency
