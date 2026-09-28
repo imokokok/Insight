@@ -10,13 +10,13 @@ import {
   type Hex,
 } from 'viem';
 
-import { InsightGuard } from '../dist/guard.js';
+import { InsightGuard } from '../src/guard';
 import {
   V3_SINGLE_SWAP_ABI,
   assessV3SwapTransaction,
   v3SwapRiskCommitment,
   type SwapRiskReader,
-} from '../dist/swap-transaction-risk.js';
+} from '../src/swap-transaction-risk';
 
 import type { PriorSealFlowOptions, SwapAssessment } from '../src/types.ts';
 

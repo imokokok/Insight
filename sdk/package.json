@@ -33,7 +33,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test test/*.test.mjs test/*.test.mts",
+    "test": "npm run build && node --test test/*.test.mjs && node --import tsx --test test/*.test.mts",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
