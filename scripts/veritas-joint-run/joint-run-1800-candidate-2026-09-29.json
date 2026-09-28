@@ -1,0 +1,47 @@
+{
+  "schema": "insight-veritas-joint-run-1800-candidate/v1",
+  "status": "PREPARED_NOT_AGREED_NOT_READY",
+  "runId": "insight-veritas-2026-09-18",
+  "exceptionScope": "one-time VERITAS joint run only",
+  "registeredGateWindowSeconds": 600,
+  "candidateGateWindowSeconds": 1800,
+  "registeredConfigurationEvidence": false,
+  "selectionRuleFile": "anchored-settlement-selection-rule-v3.json",
+  "selectionRuleHash": "0xb1071d6929d1dc13812d9aa19bf28a74dca4d90c07d47e9b2052f9f9c3c52465",
+  "candidatePartnerPolicyId": "0x022050775106ce8cd9a9fd57904a3a9ca2c9b491f5073871ab17ed2dcb1d054a",
+  "windowB": {
+    "dateUtc": "2026-09-29",
+    "startUtc": "2026-09-29T02:00:00Z",
+    "endUtc": "2026-09-29T03:30:00Z",
+    "lastGateRequestBeforeUtc": "2026-09-29T02:50:00Z",
+    "pairSignedAtOrAfterUnusedUtc": "2026-09-29T02:55:00Z",
+    "noBitcoinBroadcastAtOrAfterUtc": "2026-09-29T03:00:00Z",
+    "attemptsConcludeByUtc": "2026-09-29T03:25:00Z",
+    "recordPublicationByUtc": "2026-09-29T03:30:00Z",
+    "plannedAttempts": [6, 7],
+    "thirdAttemptCondition": "Only after an explicit VERITAS_RETRY_REQUEST and a fresh gate request before 02:50 UTC, if earlier attempts finish early"
+  },
+  "fallbackIfIncompleteByUtc": {
+    "deadlineUtc": "2026-09-29T00:00:00Z",
+    "windowBDisposition": "review/readiness only, no live run",
+    "proposedLiveWindowUtc": ["2026-09-30T02:00:00Z", "2026-09-30T03:30:00Z"],
+    "requiresSeparateWrittenAgreementAndFreshReady": true
+  },
+  "perAttemptHardExpiry": "earlier signed validUntil of the two fresh gates",
+  "gatesAfterWindowOpenOnly": true,
+  "laterAttemptsRequire": "VERITAS_RETRY_REQUEST and two fresh gates, new Bitcoin anchor and new Ethereum ordering commitment",
+  "minimumSourceLegRaw": "100000000000000000",
+  "selection": "first eligible WETH-to-USDC Uniswap V3 swap in canonical block/transaction/log order after Ethereum commitment block E",
+  "publication": "publish selected receipt or explicit abort, all attempted Bitcoin and Ethereum txids, regardless of price outcome",
+  "readinessConditions": [
+    "Insight independently reviews v5 fixes and actual operator path",
+    "both sides byte-pin the v3 rule, vectors, 1800-second TTL and cutoffs in writing",
+    "both sides verify each other's updated tools with a fresh signed non-live 1800-second gate pair",
+    "partner-scoped Insight issuance policy is separately promoted and production-read-back",
+    "fresh VERITAS_READY on the existing thread within five minutes before the agreed live window",
+    "per-attempt fresh gates, balance, nonce, gas, RPC, signer and clock preflights"
+  ],
+  "currentAuthorization": "NO_LIVE_READY_NO_SIGN_NO_BROADCAST",
+  "openFinding": "F12_OPEN",
+  "commercialScope": "joint technical run only; no integration or endorsement"
+}

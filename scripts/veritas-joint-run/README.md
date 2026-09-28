@@ -1,5 +1,31 @@
 # VERITAS joint-run readiness artifacts
 
+## 2026-09-28 one-time 1800-second candidate (not activated)
+
+`anchored-settlement-selection-rule-v3.json` preserves v2 and makes only the five
+text changes proposed for a single VERITAS joint run. Its JCS is 7,754 bytes and
+its hash is `0xb1071d6929d1dc13812d9aa19bf28a74dca4d90c07d47e9b2052f9f9c3c52465`.
+The v2 Bitcoin and Ethereum fixture UIDs with that new rule produce
+`bitcoin-anchor-commitment-vector-v2.json` and
+`ethereum-ordering-commitment-vector-v2.json`; the preimage schemas stay v1.
+Run `node --import tsx scripts/veritas-joint-run/verify-v3-candidate.mts` to
+check the exact change, byte lengths, hashes and negative mutations.
+
+`joint-run-1800-candidate-2026-09-29.json` records the proposed B cutoffs and
+review-only fallback. It is not READY or a live authorization. The candidate
+partner policy in `protocol/mainline/policies/veritas/v3.json` is registered
+for review but is not selected by the current activation set. The new
+`/api/v1/partners/veritas/safety/pre-trade` path requires that exact active
+policy, a dedicated API-key ID and an explicitly selected one-time UTC window;
+it currently fails closed. The generic pre-trade path and registered v2 rule
+remain at 600 seconds. The historical 2026-09-26 operator below must not be
+used for the proposed B window. A new live operator, bilateral tool checks,
+promotion and production read-back are still required before any live READY.
+
+`v5-additional-negative-vector-2026-09-28.json` records a synthetic RPC
+inconsistency found during independent review of the counterparty v5 guard;
+it is not an observation from a real Ethereum endpoint.
+
 2026-09-26 window A preparation is in `joint-run-window-a-2026-09-26-plan.json`
 and `RUNBOOK-2026-09-26-WINDOW-A.md`. The production-role, no-broadcast
 WETH/USDC gate-to-selected-event-receipt check is
