@@ -16,7 +16,7 @@ Insight gates → construct exact call → PriorSeal authorization → broadcast
                                                         └→ PriorSeal execution receipt
 ```
 
-The SDK is a client-side orchestration layer, not a local risk engine. It sends every risk decision and signing operation to Insight with the supplied API key, so normal API authentication, credit metering, audit rows, and EIP-712 attestations remain intact.
+The SDK sends oracle risk decisions and attestation signing to Insight with the supplied API key, so normal API authentication, credit metering, audit rows, and EIP-712 attestations remain intact. The optional `assessV3Swap()` adapter adds an unsigned local review of a concrete swap call using pinned-block RPC simulation; `authorizeAssessedV3Swap()` requires a fresh acceptable review before PriorSeal authorization. See [transaction-specific swap risk](../docs/swap-transaction-risk.md) for its exact scope and trust limits.
 
 ## Install
 

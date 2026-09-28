@@ -1,3 +1,5 @@
+import { keccak256 } from 'viem';
+
 import { InsightClient } from './client';
 import { verifyCoverageReport, type SignedCoverageReport } from './coverage';
 import { diagnosePreTrade, evaluateFreshness, validateFreshnessProfile } from './diagnostics';
@@ -8,6 +10,12 @@ import {
   generatePriorSealAuthorizationNonce,
   PriorSealBridgeError,
 } from './priorseal';
+import {
+  assessV3SwapTransaction,
+  v3SwapRiskCommitment,
+  type V3SwapRiskRequest,
+  type V3SwapRiskReport,
+} from './swap-transaction-risk';
 import { createWatch } from './watch';
 
 import type {
@@ -116,6 +124,71 @@ export class InsightGuard {
     };
 
     return this.assessmentFromResults(request, sourcePreTrade, destinationPreTrade, errors);
+  }
+
+  /** Fetch both oracle legs and assess the exact V3 call at one RPC block. The
+   * route/simulation report is unsigned and must be refreshed before execution.
+   */
+  async assessV3Swap(
+    request: SwapAssessmentRequest & {
+      transaction: V3SwapRiskRequest['transaction'];
+      routerCodeHash: V3SwapRiskRequest['routerCodeHash'];
+      reader: V3SwapRiskRequest['reader'];
+      maxOracleDeviationBps?: number;
+      maxTradeAmountDeviationBps?: number;
+      maxSlippageBps?: number;
+      maxBlockAgeSeconds?: number;
+      now?: () => number;
+    },
+    signal?: AbortSignal
+  ): Promise<{ assessment: SwapAssessment; transactionRisk: V3SwapRiskReport }> {
+    const assessment = await this.assessSwap(request, signal);
+    const transactionRisk = await assessV3SwapTransaction({
+      assessment,
+      transaction: request.transaction,
+      routerCodeHash: request.routerCodeHash,
+      reader: request.reader,
+      maxOracleDeviationBps: request.maxOracleDeviationBps,
+      maxTradeAmountDeviationBps: request.maxTradeAmountDeviationBps,
+      maxSlippageBps: request.maxSlippageBps,
+      maxBlockAgeSeconds: request.maxBlockAgeSeconds,
+      now: request.now,
+    });
+    return { assessment, transactionRisk };
+  }
+
+  /** Reassess the prepared call and require an acceptable route review before
+   * asking PriorSeal for a signature. No transaction is submitted here.
+   */
+  async authorizeAssessedV3Swap(
+    request: SwapAssessmentRequest & {
+      transaction: V3SwapRiskRequest['transaction'];
+      routerCodeHash: V3SwapRiskRequest['routerCodeHash'];
+      reader: V3SwapRiskRequest['reader'];
+      priorSeal: AssessedSwapAuthorizationRequest['priorSeal'];
+      maxOracleDeviationBps?: number;
+      maxTradeAmountDeviationBps?: number;
+      maxSlippageBps?: number;
+      maxBlockAgeSeconds?: number;
+    },
+    signal?: AbortSignal
+  ): Promise<AssessedSwapAuthorizationResult & { transactionRisk: V3SwapRiskReport }> {
+    const { assessment, transactionRisk } = await this.assessV3Swap(
+      { ...request, maxBlockAgeSeconds: Math.min(request.maxBlockAgeSeconds ?? 30, 30) },
+      signal
+    );
+    if (transactionRisk.status !== 'ACCEPTABLE') {
+      throw new ReceiptConfigurationError(
+        `V3 swap risk: ${transactionRisk.reasonCodes.join(', ')}`
+      );
+    }
+    const result = await this.authorizeAssessedSwap({
+      assessment,
+      transaction: request.transaction,
+      priorSeal: request.priorSeal,
+      transactionRisk,
+    });
+    return { ...result, transactionRisk };
   }
 
   private assessmentFromResults(
@@ -311,7 +384,7 @@ export class InsightGuard {
   async authorizeAssessedSwap(
     request: AssessedSwapAuthorizationRequest
   ): Promise<AssessedSwapAuthorizationResult> {
-    const { assessment, transaction, priorSeal } = request;
+    const { assessment, transaction, priorSeal, transactionRisk } = request;
     const evidence = requireAssessmentEvidence(assessment);
     assertPairFreshness(assessment.sourcePreTrade!, assessment.destinationPreTrade!, {
       ...this.freshness,
@@ -325,6 +398,8 @@ export class InsightGuard {
 
     const issuedAt = priorSeal.issuedAt ?? Math.floor(Date.now() / 1000);
     const validUntil = priorSeal.validUntil ?? assessment.constraints.validUntil;
+    if (transactionRisk)
+      assertCurrentV3Risk(transactionRisk, assessment, transaction, issuedAt, validUntil);
     if (!Number.isSafeInteger(validUntil) || (validUntil ?? 0) <= issuedAt) {
       throw new ReceiptConfigurationError(
         'PriorSeal validUntil must be after issuedAt and covered by the Insight assessment.'
@@ -347,7 +422,10 @@ export class InsightGuard {
       sourceAssetId: evidence.sourceAssetId,
       validUntil: validUntil!,
       minConfirmations: priorSeal.confirmations,
-      contextCommitments: [assessment.contextCommitment!],
+      contextCommitments: [
+        assessment.contextCommitment!,
+        ...(transactionRisk ? [v3SwapRiskCommitment(transactionRisk)] : []),
+      ],
     });
     const preparedAuthorization = await priorSeal.client.prepareAuthorization(
       {
@@ -371,6 +449,14 @@ export class InsightGuard {
       ...this.freshness,
       ...assessment.freshnessProfile,
     });
+    if (transactionRisk)
+      assertCurrentV3Risk(
+        transactionRisk,
+        assessment,
+        transaction,
+        Math.floor(Date.now() / 1000),
+        validUntil
+      );
     const signature = await priorSeal.signAuthorization(preparedAuthorization);
     if (!/^0x[0-9a-fA-F]+$/.test(signature)) {
       throw new ReceiptConfigurationError('PriorSeal signer returned no hex signature.');
@@ -381,13 +467,27 @@ export class InsightGuard {
       { ...this.freshness, ...assessment.freshnessProfile },
       preparedAuthorization.authorization
     );
+    if (transactionRisk)
+      assertCurrentV3Risk(
+        transactionRisk,
+        assessment,
+        transaction,
+        Math.floor(Date.now() / 1000),
+        validUntil
+      );
     const signedAuthorization = { ...preparedAuthorization.authorization, signature };
     const priorSealAuthorization = await priorSeal.client.acceptAuthorization(
       signedAuthorization,
       priorSeal.signal
     );
     assertAcceptedAuthorizationMatchesPresented(priorSealAuthorization, signedAuthorization);
-    assertAuthorizationMatchesAssessment(priorSealAuthorization, assessment, transaction);
+    assertAuthorizationMatchesAssessment(
+      priorSealAuthorization,
+      assessment,
+      transaction,
+      false,
+      transactionRisk
+    );
     assertPairFreshness(
       assessment.sourcePreTrade!,
       assessment.destinationPreTrade!,
@@ -1119,7 +1219,8 @@ function assertAuthorizationMatchesAssessment(
   accepted: PriorSealAcceptedAuthorization,
   assessment: SwapAssessment,
   transaction: PreparedExactCallTransaction,
-  allowExpired = false
+  allowExpired = false,
+  transactionRisk?: V3SwapRiskReport
 ): void {
   const evidence = requireAssessmentEvidence(assessment, allowExpired);
   const actual = accepted.authorization?.intent;
@@ -1138,7 +1239,10 @@ function assertAuthorizationMatchesAssessment(
     sourceAssetId: evidence.sourceAssetId,
     validUntil: actual.validUntil,
     minConfirmations: actual.constraints?.minConfirmations,
-    contextCommitments: [assessment.contextCommitment!],
+    contextCommitments: [
+      assessment.contextCommitment!,
+      ...(transactionRisk ? [v3SwapRiskCommitment(transactionRisk)] : []),
+    ],
   });
   const fields: Array<keyof typeof expected> = [
     'schema',
@@ -1175,6 +1279,51 @@ function assertAuthorizationMatchesAssessment(
       mismatch
         ? `PriorSeal authorization does not match the assessed transaction field: ${mismatch}.`
         : 'PriorSeal authorization does not contain the Insight assessment commitment.'
+    );
+  }
+  if (transactionRisk) {
+    const commitment = v3SwapRiskCommitment(transactionRisk);
+    const matches =
+      actual.contextCommitments?.filter((entry) => entry.namespace === commitment.namespace) ?? [];
+    if (
+      matches.length !== 1 ||
+      matches[0].algorithm !== commitment.algorithm ||
+      matches[0].digest.toLowerCase() !== commitment.digest.toLowerCase()
+    ) {
+      throw new ReceiptConfigurationError(
+        'PriorSeal authorization does not bind the V3 transaction risk review.'
+      );
+    }
+  }
+}
+
+function assertCurrentV3Risk(
+  report: V3SwapRiskReport,
+  assessment: SwapAssessment,
+  transaction: PreparedExactCallTransaction,
+  now: number,
+  validUntil: number | null
+): void {
+  v3SwapRiskCommitment(report);
+  const tx = report.transaction!,
+    evidence = report.evidence!;
+  if (
+    !Number.isSafeInteger(now) ||
+    !Number.isSafeInteger(validUntil) ||
+    validUntil! <= now ||
+    report.validUntil! < validUntil! ||
+    evidence.blockTimestamp > now + 5 ||
+    now - evidence.blockTimestamp > 30 ||
+    tx.chainId !== transaction.chainId ||
+    tx.from !== transaction.from.toLowerCase() ||
+    tx.router !== transaction.to.toLowerCase() ||
+    tx.calldataHash.toLowerCase() !== keccak256(transaction.data).toLowerCase() ||
+    tx.amountIn !== String(transaction.sourceAmount) ||
+    evidence.sourceAttestationUid !== assessment.sourcePreTrade?.attestation?.uid ||
+    evidence.destinationAttestationUid !== assessment.destinationPreTrade?.attestation?.uid
+  ) {
+    throw new ReceiptConfigurationError(
+      'V3 transaction risk review is stale or does not match the prepared call.'
     );
   }
 }
