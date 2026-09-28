@@ -3,7 +3,6 @@ import { activePartnerIntegrationPolicy } from '@/lib/protocol/partnerIntegratio
 import {
   assertVeritasJointRun1800Admission,
   VERITAS_JOINT_RUN_POLICY_ID,
-  VERITAS_JOINT_RUN_RULE_HASH,
 } from '../veritasJointRunValidity';
 
 jest.mock('@/lib/protocol/partnerIntegrationRegistry', () => ({
@@ -31,13 +30,6 @@ beforeEach(() => {
     partnerId: 'veritas',
     policyId: VERITAS_JOINT_RUN_POLICY_ID,
     productionReachability: 'enabled',
-    jointRunValidity: {
-      runId: 'insight-veritas-2026-09-18',
-      selectionRuleHash: VERITAS_JOINT_RUN_RULE_HASH,
-      gateWindowSeconds: 1800,
-      exceptionScope: 'one-time-veritas-joint-run-only',
-      latestWindowEndUtc: '2026-09-30T03:30:00Z',
-    },
   } as ReturnType<typeof activePartnerIntegrationPolicy>);
 });
 
@@ -61,17 +53,6 @@ test.each([
       activePolicy.mockReturnValue({
         ...activePolicy(),
         productionReachability: 'disabled',
-      } as ReturnType<typeof activePartnerIntegrationPolicy>),
-  ],
-  [
-    'wrong rule',
-    () =>
-      activePolicy.mockReturnValue({
-        ...activePolicy(),
-        jointRunValidity: {
-          ...activePolicy()!.jointRunValidity!,
-          selectionRuleHash: `0x${'0'.repeat(64)}` as `0x${string}`,
-        },
       } as ReturnType<typeof activePartnerIntegrationPolicy>),
   ],
 ])('fails closed for %s', (_name, alterPolicy) => {

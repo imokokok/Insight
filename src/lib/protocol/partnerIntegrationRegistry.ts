@@ -13,7 +13,6 @@ import raulJson from '../../../protocol/mainline/policies/raul/v1.json';
 import vaaraJson from '../../../protocol/mainline/policies/vaara/v1.json';
 import veritasJson from '../../../protocol/mainline/policies/veritas/v1.json';
 import veritasV2Json from '../../../protocol/mainline/policies/veritas/v2.json';
-import veritasV3Json from '../../../protocol/mainline/policies/veritas/v3.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -52,13 +51,6 @@ export interface PartnerIntegrationPolicy {
   };
   legacyRule: string;
   productionReachability: 'enabled' | 'disabled';
-  jointRunValidity?: {
-    runId: string;
-    selectionRuleHash: `0x${string}`;
-    gateWindowSeconds: number;
-    exceptionScope: string;
-    latestWindowEndUtc: string;
-  };
 }
 
 export interface PartnerActivationSet {
@@ -87,7 +79,6 @@ const rawPolicies = [
   vaaraJson,
   veritasJson,
   veritasV2Json,
-  veritasV3Json,
 ] as unknown as PartnerIntegrationPolicy[];
 
 function assertPolicy(policy: PartnerIntegrationPolicy): void {

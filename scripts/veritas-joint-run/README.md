@@ -13,8 +13,8 @@ check the exact change, byte lengths, hashes and negative mutations.
 
 `joint-run-1800-candidate-2026-09-29.json` records the proposed B cutoffs and
 review-only fallback. It is not READY or a live authorization. The candidate
-partner policy in `protocol/mainline/policies/veritas/v3.json` is registered
-for review but is not selected by the current activation set. The new
+partner policy in `protocol/mainline/policies/veritas/v3.json` is stored
+for review but is not registered or selected by the current activation set. The new
 `/api/v1/partners/veritas/safety/pre-trade` path requires that exact active
 policy, a dedicated API-key ID and an explicitly selected one-time UTC window;
 it currently fails closed. The generic pre-trade path and registered v2 rule

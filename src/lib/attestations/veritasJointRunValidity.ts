@@ -1,10 +1,19 @@
 import { ValidationError } from '@/lib/errors';
+import { bodyWithoutId, keccakContentId } from '@/lib/protocol/contentAddress';
 import { activePartnerIntegrationPolicy } from '@/lib/protocol/partnerIntegrationRegistry';
+
+import candidatePolicy from '../../../protocol/mainline/policies/veritas/v3.json';
 
 export const VERITAS_JOINT_RUN_RULE_HASH =
   '0xb1071d6929d1dc13812d9aa19bf28a74dca4d90c07d47e9b2052f9f9c3c52465';
 export const VERITAS_JOINT_RUN_POLICY_ID =
   '0x022050775106ce8cd9a9fd57904a3a9ca2c9b491f5073871ab17ed2dcb1d054a';
+const candidatePolicyMatches =
+  candidatePolicy.policyId === VERITAS_JOINT_RUN_POLICY_ID &&
+  keccakContentId(bodyWithoutId(candidatePolicy, 'policyId')) === VERITAS_JOINT_RUN_POLICY_ID &&
+  candidatePolicy.jointRunValidity.selectionRuleHash === VERITAS_JOINT_RUN_RULE_HASH &&
+  candidatePolicy.jointRunValidity.gateWindowSeconds === 1800 &&
+  candidatePolicy.jointRunValidity.runId === 'insight-veritas-2026-09-18';
 
 interface IssuanceContext {
   partnerId: string;
@@ -29,14 +38,10 @@ export function assertVeritasJointRun1800Admission(
   const activePolicy = activePartnerIntegrationPolicy('veritas');
   if (
     context.partnerId !== 'veritas' ||
+    !candidatePolicyMatches ||
     context.policyId !== VERITAS_JOINT_RUN_POLICY_ID ||
     activePolicy?.policyId !== context.policyId ||
-    activePolicy.productionReachability !== 'enabled' ||
-    activePolicy.jointRunValidity?.selectionRuleHash !== VERITAS_JOINT_RUN_RULE_HASH ||
-    activePolicy.jointRunValidity?.gateWindowSeconds !== 1800 ||
-    activePolicy.jointRunValidity?.runId !== 'insight-veritas-2026-09-18' ||
-    activePolicy.jointRunValidity?.exceptionScope !== 'one-time-veritas-joint-run-only' ||
-    activePolicy.jointRunValidity?.latestWindowEndUtc !== '2026-09-30T03:30:00Z'
+    activePolicy.productionReachability !== 'enabled'
   ) {
     throw new ValidationError('VERITAS 1800-second policy is not active for this partner.');
   }
