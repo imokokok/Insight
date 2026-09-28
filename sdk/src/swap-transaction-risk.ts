@@ -42,6 +42,7 @@ export interface V3SwapRiskRequest {
   routerCodeHash: Hex;
   reader: SwapRiskReader;
   maxOracleDeviationBps?: number;
+  maxTradeAmountDeviationBps?: number;
   maxSlippageBps?: number;
   maxBlockAgeSeconds?: number;
   now?: () => number;
@@ -71,6 +72,9 @@ export interface V3SwapRiskReport {
     simulatedAmountOut: string;
     oracleExpectedAmountOut: string;
     oracleDeviationBps: number;
+    actualTradeAmountUsdMicros: string;
+    assessedTradeAmountUsdMicros: string;
+    tradeAmountDeviationBps: number;
     allowedSlippageBps: number;
     routerCodeHash: Hex;
     sourceAttestationUid: string;
@@ -138,6 +142,11 @@ function uint(value: unknown): bigint | null {
   }
 }
 
+function differenceBps(actual: bigint, expected: bigint): number {
+  const value = ((actual > expected ? actual - expected : expected - actual) * 10_000n) / expected;
+  return Number(value > 1_000_000n ? 1_000_000n : value);
+}
+
 function reject(
   status: V3SwapRiskReport['status'],
   reasonCodes: string[],
@@ -198,6 +207,10 @@ export async function assessV3SwapTransaction(input: V3SwapRiskRequest): Promise
   if (
     p.amountIn < 1n ||
     p.amountOutMinimum < 1n ||
+    p.fee < 1 ||
+    p.recipient.toLowerCase() === `0x${'0'.repeat(40)}` ||
+    p.tokenIn.toLowerCase() === `0x${'0'.repeat(40)}` ||
+    p.tokenOut.toLowerCase() === `0x${'0'.repeat(40)}` ||
     p.sqrtPriceLimitX96 !== 0n ||
     p.deadline > BigInt(Number.MAX_SAFE_INTEGER) ||
     p.deadline < 1n ||
@@ -251,13 +264,16 @@ export async function assessV3SwapTransaction(input: V3SwapRiskRequest): Promise
 
   const now = input.now?.() ?? Math.floor(Date.now() / 1000);
   const maxDeviation = input.maxOracleDeviationBps ?? 100;
+  const maxAmountDeviation = input.maxTradeAmountDeviationBps ?? 100;
   const maxSlippage = input.maxSlippageBps ?? assessment.constraints.maxSlippageBps;
   const maxAge = input.maxBlockAgeSeconds ?? 30;
   if (
-    ![now, maxDeviation, maxSlippage, maxAge].every(Number.isSafeInteger) ||
+    ![now, maxDeviation, maxAmountDeviation, maxSlippage, maxAge].every(Number.isSafeInteger) ||
     now < 1 ||
     maxDeviation < 0 ||
     maxDeviation > 10_000 ||
+    maxAmountDeviation < 0 ||
+    maxAmountDeviation > 10_000 ||
     maxSlippage < 0 ||
     maxSlippage > 10_000 ||
     maxAge < 1 ||
@@ -271,6 +287,9 @@ export async function assessV3SwapTransaction(input: V3SwapRiskRequest): Promise
     destinationPrice = uint(destinationData.consensusPrice);
   if (!sourcePrice || !destinationPrice)
     return reject('UNASSESSABLE', ['ORACLE_PRICE_UNAVAILABLE'], details);
+  const assessedAmount = uint(sourceData.tradeAmountUsd);
+  if (!assessedAmount || assessedAmount !== uint(destinationData.tradeAmountUsd))
+    return reject('UNASSESSABLE', ['ASSESSED_TRADE_AMOUNT_UNAVAILABLE'], details);
 
   try {
     const block = await reader.getBlock({ blockTag: 'latest' });
@@ -326,13 +345,16 @@ export async function assessV3SwapTransaction(input: V3SwapRiskRequest): Promise
       data: simulation.data,
     });
     if (simulated < 1n) return reject('RISK_REJECTED', ['SIMULATED_OUTPUT_ZERO'], details);
+    const actualAmount =
+      (p.amountIn * sourcePrice * 1_000_000n) /
+      (10n ** BigInt(sourceDecimals as number) * 100_000_000n);
+    if (actualAmount < 1n) return reject('UNASSESSABLE', ['TRADE_AMOUNT_TOO_SMALL'], details);
+    const amountDeviation = differenceBps(actualAmount, assessedAmount);
     const expected =
       (p.amountIn * sourcePrice * 10n ** BigInt(destinationDecimals as number)) /
       (destinationPrice * 10n ** BigInt(sourceDecimals as number));
     if (expected < 1n) return reject('UNASSESSABLE', ['ORACLE_REFERENCE_TOO_SMALL'], details);
-    const deviation = Number(
-      ((simulated > expected ? simulated - expected : expected - simulated) * 10_000n) / expected
-    );
+    const deviation = differenceBps(simulated, expected);
     const slippage =
       simulated > p.amountOutMinimum
         ? Number(((simulated - p.amountOutMinimum) * 10_000n) / simulated)
@@ -340,6 +362,7 @@ export async function assessV3SwapTransaction(input: V3SwapRiskRequest): Promise
     const reasonCodes: string[] = [];
     if (simulated < p.amountOutMinimum) reasonCodes.push('SIMULATED_OUTPUT_BELOW_MINIMUM');
     if (deviation > maxDeviation) reasonCodes.push('QUOTE_ORACLE_DEVIATION_EXCEEDED');
+    if (amountDeviation > maxAmountDeviation) reasonCodes.push('TRADE_AMOUNT_SCOPE_MISMATCH');
     if (slippage > maxSlippage) reasonCodes.push('MINIMUM_OUTPUT_TOO_LOW');
     if (blockTimestamp > details.deadline) reasonCodes.push('SWAP_DEADLINE_PASSED');
     return {
@@ -354,6 +377,9 @@ export async function assessV3SwapTransaction(input: V3SwapRiskRequest): Promise
         simulatedAmountOut: simulated.toString(),
         oracleExpectedAmountOut: expected.toString(),
         oracleDeviationBps: deviation,
+        actualTradeAmountUsdMicros: actualAmount.toString(),
+        assessedTradeAmountUsdMicros: assessedAmount.toString(),
+        tradeAmountDeviationBps: amountDeviation,
         allowedSlippageBps: slippage,
         routerCodeHash: input.routerCodeHash.toLowerCase() as Hex,
         sourceAttestationUid: source.uid,

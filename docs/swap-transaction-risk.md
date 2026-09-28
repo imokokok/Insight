@@ -11,9 +11,11 @@ The caller prepares the exact transaction and supplies a viem `PublicClient`
 code hash. The adapter decodes calldata, checks token addresses against the two
 oracle legs, reads router code and token decimals at one block, and simulates
 the exact call from the intended sender at that block. The simulated output is
-the block-specific route quote. It checks deviation from the cross-oracle
-reference, minimum output, allowed slippage, block age, and swap and oracle
-evidence expiry.
+the block-specific route quote. It converts the actual input amount to USD with
+the signed source reference price and token decimals, then checks it against
+the amount in both signed pre-trade proofs. It also checks quote deviation from
+the cross-oracle reference, minimum output, allowed slippage, block age, and
+swap and oracle evidence expiry.
 
 - `ACCEPTABLE`: this exact call met the configured policy at the observed block.
 - `RISK_REJECTED`: usable evidence shows a policy or minimum-output failure.
@@ -74,5 +76,6 @@ if (transactionRisk.status !== 'ACCEPTABLE') {
 ```
 
 Policy defaults are 100 bps maximum quote deviation from the oracle reference,
-the assessment's maximum slippage (normally 50 bps), and a 30-second maximum
-block age. Display all limits and the exact token atomic amounts to the signer.
+100 bps maximum difference between actual and assessed USD amount, the
+assessment's maximum slippage (normally 50 bps), and a 30-second maximum block
+age. Display all limits and the exact token atomic amounts to the signer.

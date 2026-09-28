@@ -135,6 +135,7 @@ export class InsightGuard {
       routerCodeHash: V3SwapRiskRequest['routerCodeHash'];
       reader: V3SwapRiskRequest['reader'];
       maxOracleDeviationBps?: number;
+      maxTradeAmountDeviationBps?: number;
       maxSlippageBps?: number;
       maxBlockAgeSeconds?: number;
       now?: () => number;
@@ -148,6 +149,7 @@ export class InsightGuard {
       routerCodeHash: request.routerCodeHash,
       reader: request.reader,
       maxOracleDeviationBps: request.maxOracleDeviationBps,
+      maxTradeAmountDeviationBps: request.maxTradeAmountDeviationBps,
       maxSlippageBps: request.maxSlippageBps,
       maxBlockAgeSeconds: request.maxBlockAgeSeconds,
       now: request.now,
@@ -165,6 +167,7 @@ export class InsightGuard {
       reader: V3SwapRiskRequest['reader'];
       priorSeal: AssessedSwapAuthorizationRequest['priorSeal'];
       maxOracleDeviationBps?: number;
+      maxTradeAmountDeviationBps?: number;
       maxSlippageBps?: number;
       maxBlockAgeSeconds?: number;
     },

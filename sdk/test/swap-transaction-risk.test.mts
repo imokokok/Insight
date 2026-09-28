@@ -67,6 +67,7 @@ const assessment = {
         sourceAssetId: `eip155:1/erc20:${tokenIn}`,
         destinationAssetId: `eip155:1/erc20:${tokenOut}`,
         consensusPrice: 100_000_000,
+        tradeAmountUsd: 1_000_000,
       },
     },
   },
@@ -79,6 +80,7 @@ const assessment = {
         sourceAssetId: `eip155:1/erc20:${tokenOut}`,
         destinationAssetId: `eip155:1/erc20:${tokenIn}`,
         consensusPrice: 100_000_000,
+        tradeAmountUsd: 1_000_000,
       },
     },
   },
@@ -130,6 +132,8 @@ test('assesses exact swap amount, route, oracle price and simulated output at a 
   assert.equal(result.status, 'ACCEPTABLE');
   assert.equal(result.evidence?.oracleExpectedAmountOut, '1000000');
   assert.equal(result.evidence?.simulatedAmountOut, '997000');
+  assert.equal(result.evidence?.actualTradeAmountUsdMicros, '1000000');
+  assert.equal(result.evidence?.tradeAmountDeviationBps, 0);
   assert.equal(result.transaction?.recipient, recipient);
   assert.equal(result.validUntil, now + 90);
   assert.match(v3SwapRiskCommitment(result).digest, /^0x[0-9a-f]{64}$/);
@@ -196,6 +200,16 @@ test('requires both oracle legs to bind the actual on-chain assets', async () =>
   assert.deepEqual(report.reasonCodes, ['ORACLE_PAIR_SCOPE_UNAVAILABLE']);
 });
 
+test('rejects a large actual input when the signed pre-trade amount was small', async () => {
+  const smallAssessment = structuredClone(assessment);
+  smallAssessment.sourcePreTrade!.attestation!.data.tradeAmountUsd = 100_000;
+  smallAssessment.destinationPreTrade!.attestation!.data.tradeAmountUsd = 100_000;
+  const report = await assessV3SwapTransaction(request({ assessment: smallAssessment }));
+  assert.equal(report.status, 'RISK_REJECTED');
+  assert.ok(report.reasonCodes.includes('TRADE_AMOUNT_SCOPE_MISMATCH'));
+  assert.equal(report.evidence?.assessedTradeAmountUsdMicros, '100000');
+});
+
 test('Guard fetches both oracle legs, simulates the call and binds risk review into PriorSeal authorization', async (t) => {
   t.mock.method(Date, 'now', () => now * 1000);
   const apiCalls: string[] = [];
@@ -210,7 +224,7 @@ test('Guard fetches both oracle legs, simulates the call and binds risk review i
       destinationAssetId: `eip155:1/erc20:${source ? tokenOut : tokenIn}`,
       subjectChainId: 1,
       action: 'swap',
-      tradeAmountUsd: 100_000_000,
+      tradeAmountUsd: 1_000_000,
       participantCount: 3,
       sourceGroupCount: 2,
       requestHash: `0x${'a'.repeat(64)}`,
