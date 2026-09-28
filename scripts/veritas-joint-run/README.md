@@ -11,8 +11,8 @@ The v2 Bitcoin and Ethereum fixture UIDs with that new rule produce
 Run `node --import tsx scripts/veritas-joint-run/verify-v3-candidate.mts` to
 check the exact change, byte lengths, hashes and negative mutations.
 
-`joint-run-1800-candidate-2026-09-29.json` records the proposed B cutoffs and
-review-only fallback. It is not READY or a live authorization. The candidate
+`joint-run-1800-candidate-2026-09-30.json` records the confirmed September 29
+review window and conditional September 30 live cutoffs. It is not READY or a live authorization. The candidate
 partner policy in `protocol/mainline/policies/veritas/v3.json` is stored
 for review but is not registered or selected by the current activation set. The new
 `/api/v1/partners/veritas/safety/pre-trade` path requires that exact active

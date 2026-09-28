@@ -60,8 +60,8 @@ export function assertVeritasJointRun1800Admission(
   ) {
     throw new ValidationError('VERITAS 1800-second issuance requires the fixed v3 WETH/USDC pair.');
   }
-  if (configuredWindow !== '2026-09-29' && configuredWindow !== '2026-09-30') {
-    throw new ValidationError('VERITAS 1800-second window is not selected.');
+  if (configuredWindow !== '2026-09-30') {
+    throw new ValidationError('VERITAS 1800-second live candidate date is not selected.');
   }
   const start = Date.parse(`${configuredWindow}T02:00:00Z`);
   const cutoff = Date.parse(
