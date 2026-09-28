@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { encodeFunctionData, encodeFunctionResult, keccak256, type Hex } from 'viem';
+import {
+  createPublicClient,
+  encodeFunctionData,
+  encodeFunctionResult,
+  http,
+  keccak256,
+  type Hex,
+} from 'viem';
 
 import { InsightGuard } from '../dist/guard.js';
 import {
@@ -109,6 +116,13 @@ const request = (overrides: Record<string, unknown> = {}) => ({
   reader: reader(),
   now: () => now,
   ...overrides,
+});
+
+test('the reader contract accepts a regular viem PublicClient', () => {
+  const publicClient: SwapRiskReader = createPublicClient({
+    transport: http('http://127.0.0.1:8545'),
+  });
+  assert.equal(typeof publicClient.call, 'function');
 });
 
 test('assesses exact swap amount, route, oracle price and simulated output at a pinned block', async () => {
