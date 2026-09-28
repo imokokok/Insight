@@ -1,6 +1,6 @@
 {
   "name": "oracle-insight-guard",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Oracle risk assessments, monitoring, and signed price/fill evidence for DeFi agents, with optional PriorSeal authorization.",
   "license": "MIT",
   "repository": {
