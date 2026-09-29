@@ -29,7 +29,10 @@ import type {
 
 const logger = createLogger('ReportService');
 
-export function calculateMetrics(snapshots: SnapshotRow[]): DailyReportMetrics {
+export function calculateMetrics(
+  snapshots: SnapshotRow[],
+  deviationEvents?: readonly DeviationEvent[]
+): DailyReportMetrics {
   const total = snapshots.length;
   const successful = snapshots.filter((s) => s.is_success).length;
   const failed = total - successful;
@@ -58,7 +61,7 @@ export function calculateMetrics(snapshots: SnapshotRow[]): DailyReportMetrics {
   const activeAssets = new Set(snapshots.map((s) => s.symbol)).size;
   const activeHours = new Set(snapshots.map((s) => s.snapshot_hour.slice(0, 13))).size;
 
-  const anomalies = extractDeviationEvents(snapshots);
+  const anomalies = deviationEvents ?? extractDeviationEvents(snapshots);
   const criticalEvents = anomalies.filter((a) => a.severity === 'critical').length;
   const highEvents = anomalies.filter((a) => a.severity === 'high').length;
 

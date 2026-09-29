@@ -107,6 +107,34 @@ it('health-checks non-report feeds on each selected round without adding report 
   ).toBe(true);
 });
 
+it('samples every USD-denominated report feed in registry order across chains', async () => {
+  const feeds = [
+    { ...feed('ETH/USD'), chain_id: 1 },
+    { ...feed('eth/USDC'), chain_id: 10 },
+    { ...feed('ETH/EUR'), chain_id: 42161 },
+    feed('ETH'),
+    feed('HYPE'),
+  ];
+  const { getPrice, admin } = setup(feeds);
+  getPrice.mockRejectedValue(new Error('upstream unavailable'));
+
+  const result = await collectSnapshot(undefined, { includeAdditionalHealthChecks: false });
+  expect(
+    result.results
+      .filter((item) => !item.skipped)
+      .map((item) => [item.symbol, item.feedSymbol, item.feedChainId])
+  ).toEqual([
+    ['ETH', 'ETH/USD', 1],
+    ['ETH', 'eth/USDC', 10],
+    ['ETH', 'ETH', 0],
+  ]);
+  expect(admin.batchUpdateFeedHealth.mock.calls[0][0]).toEqual([
+    { provider: 'redstone', symbol: 'ETH/USD', chainId: 1, isSuccess: false },
+    { provider: 'redstone', symbol: 'eth/USDC', chainId: 10, isSuccess: false },
+    { provider: 'redstone', symbol: 'ETH', chainId: 0, isSuccess: false },
+  ]);
+});
+
 it('resets live failure streaks on successful upstream reads', async () => {
   const { getPrice, admin } = setup([feed('HYPE')]);
   let failures = 0;
