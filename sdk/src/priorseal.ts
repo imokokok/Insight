@@ -59,39 +59,84 @@ export class PriorSealClient implements PriorSealApi {
     }
   }
 
-  prepareAuthorization(
+  async prepareAuthorization(
     input: Parameters<PriorSealApi['prepareAuthorization']>[0],
     signal?: AbortSignal
   ): Promise<PriorSealPreparedAuthorization> {
-    return this.request('/v1/authorizations/prepare', input, signal);
+    const response = responseRecord(
+      await this.request('/v1/authorizations/prepare', input, signal),
+      'prepared authorization'
+    );
+    const authorization = responseRecord(response.authorization, 'prepared authorization');
+    if (typeof authorization.authorizationId !== 'string' || !authorization.authorizationId) {
+      return invalidResponse('prepared authorization has no authorizationId');
+    }
+    responseRecord(response.typedData, 'prepared typed data');
+    return response as unknown as PriorSealPreparedAuthorization;
   }
 
-  acceptAuthorization(
+  async acceptAuthorization(
     authorization: PriorSealAuthorization,
     signal?: AbortSignal
   ): Promise<PriorSealAcceptedAuthorization> {
-    return this.request(
-      '/v1/authorizations',
-      authorization,
-      signal,
-      `insight:${authorization.authorizationId}`
+    const response = responseRecord(
+      await this.request(
+        '/v1/authorizations',
+        authorization,
+        signal,
+        `insight:${authorization.authorizationId}`
+      ),
+      'accepted authorization'
     );
+    const acceptedAuthorization = responseRecord(response.authorization, 'accepted authorization');
+    if (acceptedAuthorization.authorizationId !== authorization.authorizationId) {
+      return invalidResponse('accepted authorizationId does not match request');
+    }
+    const acceptance = responseRecord(response.acceptance, 'authorization acceptance');
+    if (acceptance.status !== 'ACCEPTED') {
+      return invalidResponse('authorization acceptance is not ACCEPTED');
+    }
+    return response as unknown as PriorSealAcceptedAuthorization;
   }
 
-  observeExecution(
+  async observeExecution(
     input: { authorizationId: string; chainId: number; txHash: string; confirmations?: number },
     signal?: AbortSignal
   ): Promise<PriorSealObservationResult> {
-    return this.request(
-      '/v1/executions/observe',
-      input,
-      signal,
-      `insight:${input.authorizationId}:${input.txHash.slice(2, 18)}`
+    const response = responseRecord(
+      await this.request(
+        '/v1/executions/observe',
+        input,
+        signal,
+        `insight:${input.authorizationId}:${input.txHash.slice(2, 18)}`
+      ),
+      'execution observation'
     );
+    const observation = responseRecord(response.observation, 'execution observation');
+    if (typeof observation.status !== 'string' || !observation.status) {
+      return invalidResponse('execution observation has no status');
+    }
+    if (response.receipt != null) {
+      const receipt = responseRecord(response.receipt, 'execution receipt');
+      if (typeof receipt.receiptId !== 'string' || !receipt.receiptId) {
+        return invalidResponse('execution receipt has no receiptId');
+      }
+    }
+    if (response.observationJob != null) {
+      validateObservationJob(response.observationJob);
+    }
+    return response as unknown as PriorSealObservationResult;
   }
 
-  getObservationJob(jobId: string, signal?: AbortSignal): Promise<PriorSealObservationJob> {
-    return this.request(`/v1/observation-jobs/${encodeURIComponent(jobId)}`, undefined, signal);
+  async getObservationJob(jobId: string, signal?: AbortSignal): Promise<PriorSealObservationJob> {
+    const response = await this.request(
+      `/v1/observation-jobs/${encodeURIComponent(jobId)}`,
+      undefined,
+      signal
+    );
+    const job = validateObservationJob(response);
+    if (job.jobId !== jobId) return invalidResponse('observation jobId does not match request');
+    return job;
   }
 
   async waitForObservationJob(
@@ -143,7 +188,7 @@ export class PriorSealClient implements PriorSealApi {
     path: string,
     body: unknown | undefined,
     signal?: AbortSignal,
-    idempotencyKey = randomIdempotencyKey()
+    idempotencyKey?: string
   ): Promise<T> {
     const controller = new AbortController();
     const abort = () => controller.abort(signal?.reason);
@@ -161,20 +206,28 @@ export class PriorSealClient implements PriorSealApi {
           Accept: 'application/json',
           ...(body === undefined
             ? {}
-            : { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey }),
+            : {
+                'Content-Type': 'application/json',
+                'Idempotency-Key': idempotencyKey ?? randomIdempotencyKey(),
+              }),
           ...this.headers,
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
-      const payload = (await response.json().catch(() => null)) as {
-        error?: { code?: string; message?: string };
-      } | null;
+      const payload: unknown = await response.json().catch(() => null);
       if (!response.ok || !payload) {
+        const error = isRecord(payload) && isRecord(payload.error) ? payload.error : null;
         throw new PriorSealBridgeError(
-          payload?.error?.message ?? `PriorSeal request failed (${response.status})`,
-          { code: payload?.error?.code, status: response.status }
+          typeof error?.message === 'string'
+            ? error.message
+            : `PriorSeal request failed (${response.status})`,
+          {
+            code: typeof error?.code === 'string' ? error.code : undefined,
+            status: response.status,
+          }
         );
       }
+      if (!isRecord(payload)) return invalidResponse('expected a JSON object');
       return payload as T;
     } catch (error) {
       if (error instanceof PriorSealBridgeError) throw error;
@@ -201,6 +254,64 @@ export class PriorSealClient implements PriorSealApi {
       signal?.removeEventListener('abort', abort);
     }
   }
+}
+
+const observationStates = new Set([
+  'QUEUED',
+  'RUNNING',
+  'RETRY_WAIT',
+  'COMPLETED',
+  'UNDETERMINED',
+  'FAILED',
+]);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function invalidResponse(message: string): never {
+  throw new PriorSealBridgeError(`PriorSeal API returned an invalid response: ${message}`, {
+    code: 'INVALID_API_RESPONSE',
+  });
+}
+
+function responseRecord(value: unknown, field: string): Record<string, unknown> {
+  return isRecord(value) ? value : invalidResponse(`${field} must be an object`);
+}
+
+/** A known state prevents an unrecognized wire value from extending the polling loop. */
+function validateObservationJob(value: unknown): PriorSealObservationJob {
+  const job = responseRecord(value, 'observation job');
+  if (
+    typeof job.jobId !== 'string' ||
+    !job.jobId ||
+    typeof job.state !== 'string' ||
+    !observationStates.has(job.state) ||
+    !Number.isSafeInteger(job.attempts) ||
+    (job.attempts as number) < 0
+  ) {
+    return invalidResponse('observation job identity, state or attempts is invalid');
+  }
+  if (job.observation != null) {
+    const observation = responseRecord(job.observation, 'job observation');
+    if (typeof observation.status !== 'string' || !observation.status) {
+      return invalidResponse('job observation has no status');
+    }
+  }
+  if (job.result != null) {
+    const result = responseRecord(job.result, 'job result');
+    const observation = responseRecord(result.observation, 'job result observation');
+    if (typeof observation.status !== 'string' || !observation.status) {
+      return invalidResponse('job result observation has no status');
+    }
+    if (result.receipt != null) {
+      const receipt = responseRecord(result.receipt, 'job result receipt');
+      if (typeof receipt.receiptId !== 'string' || !receipt.receiptId) {
+        return invalidResponse('job result receipt has no receiptId');
+      }
+    }
+  }
+  return job as unknown as PriorSealObservationJob;
 }
 
 export function buildPriorSealExactCallIntent(input: {

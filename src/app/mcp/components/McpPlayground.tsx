@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { AlertCircle, FileJson, Loader2, Play, Terminal, Wrench } from 'lucide-react';
 
@@ -11,12 +11,7 @@ import { useSession } from '@/stores/authStore';
 import { useMcpClient } from '../hooks/useMcpClient';
 
 import { McpToolParamsForm, type ToolInputSchema } from './McpToolParamsForm';
-
-interface Tool {
-  name: string;
-  description?: string;
-  inputSchema?: ToolInputSchema;
-}
+import { parseToolsList, type McpTool } from './mcpToolValidation';
 
 interface McpPlaygroundProps {
   apiKey?: string;
@@ -33,85 +28,130 @@ function getSchemaDefaults(schema?: ToolInputSchema): Record<string, unknown> {
   return defaults;
 }
 
+function parseToolParams(value: string): Record<string, unknown> | null {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    // The editor keeps invalid JSON while the user is still typing.
+  }
+  return null;
+}
+
 export function McpPlayground({ apiKey }: McpPlaygroundProps) {
   const session = useSession();
-  const { call, loading, error, rateLimit, quota, clearError } = useMcpClient({ apiKey });
-  const [tools, setTools] = useState<Tool[]>([]);
+  const normalizedApiKey = apiKey?.trim() || undefined;
+  const { call, loading, error, rateLimit, quota, clearError } = useMcpClient({
+    apiKey: normalizedApiKey,
+  });
+  const [tools, setTools] = useState<McpTool[]>([]);
+  const [toolsCredential, setToolsCredential] = useState('');
   const [selectedTool, setSelectedTool] = useState<string>('');
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
   const [jsonValues, setJsonValues] = useState<string>('{}');
   const [useJsonMode, setUseJsonMode] = useState(false);
   const [result, setResult] = useState<unknown>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const isAuthenticated = Boolean(session?.access_token || apiKey?.trim());
+  const toolCallIdRef = useRef(0);
+  const [loadError, setLoadError] = useState<{ credential: string; message: string } | null>(null);
+  const [paramError, setParamError] = useState<string | null>(null);
+  const credential = normalizedApiKey || session?.access_token || '';
+  const isAuthenticated = Boolean(credential);
+  const visibleTools = isAuthenticated && toolsCredential === credential ? tools : [];
+  const visibleSelectedTool = visibleTools.some((tool) => tool.name === selectedTool)
+    ? selectedTool
+    : '';
+  const visibleLoadError = loadError?.credential === credential ? loadError.message : null;
+  const visibleParamError = visibleSelectedTool ? paramError : null;
+  const visibleRequestError = isAuthenticated && toolsCredential === credential ? error : null;
 
-  const applyTool = (toolName: string, toolList: Tool[] = tools) => {
-    const tool = toolList.find((t) => t.name === toolName);
-    const defaults = getSchemaDefaults(tool?.inputSchema);
-    setSelectedTool(toolName);
-    setFormValues(defaults);
-    setJsonValues(JSON.stringify(defaults, null, 2));
-    setResult(null);
-    clearError();
-  };
+  const applyTool = useCallback(
+    (toolName: string, toolList: McpTool[]) => {
+      const tool = toolList.find((t) => t.name === toolName);
+      const defaults = getSchemaDefaults(tool?.inputSchema);
+      setSelectedTool(toolName);
+      setFormValues(defaults);
+      setJsonValues(JSON.stringify(defaults, null, 2));
+      setResult(null);
+      toolCallIdRef.current += 1;
+      setParamError(null);
+      clearError();
+    },
+    [clearError]
+  );
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      setTools([]);
-      setSelectedTool('');
-      setLoadError(null);
-      return;
-    }
+    if (!isAuthenticated) return;
 
     let cancelled = false;
-    setLoadError(null);
     call('tools/list')
       .then((res) => {
         if (cancelled) return;
-        const list = (res as { tools: Tool[] }).tools ?? [];
+        const list = parseToolsList(res);
         setTools(list);
+        setToolsCredential(credential);
+        setLoadError(null);
         if (list.length > 0) {
           applyTool(list[0].name, list);
+        } else {
+          setSelectedTool('');
         }
       })
       .catch((err) => {
         if (cancelled) return;
-        setLoadError(err instanceof Error ? err.message : 'Failed to load tool list');
+        setLoadError({
+          credential,
+          message: err instanceof Error ? err.message : 'Failed to load tool list',
+        });
       });
     return () => {
       cancelled = true;
+      toolCallIdRef.current += 1;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call, isAuthenticated]);
+  }, [call, credential, isAuthenticated, applyTool]);
 
-  const selectedToolDef = useMemo(
-    () => tools.find((t) => t.name === selectedTool),
-    [tools, selectedTool]
-  );
+  const selectedToolDef = visibleTools.find((tool) => tool.name === visibleSelectedTool);
 
   const handleCall = async () => {
-    let params: Record<string, unknown>;
-    if (useJsonMode) {
-      try {
-        params = JSON.parse(jsonValues) as Record<string, unknown>;
-      } catch {
-        alert('Invalid JSON parameters, please check');
-        return;
-      }
-    } else {
-      params = formValues;
+    const params = useJsonMode ? parseToolParams(jsonValues) : formValues;
+    if (!params) {
+      setParamError('Parameters must be a JSON object.');
+      return;
     }
+    setParamError(null);
+    setResult(null);
+    const callId = ++toolCallIdRef.current;
 
     // Strip undefined values to keep the request clean.
     const cleanedParams = Object.fromEntries(
       Object.entries(params).filter(([, v]) => v !== undefined)
     );
 
-    const res = await call('tools/call', {
-      name: selectedTool,
-      arguments: cleanedParams,
-    });
-    setResult(res);
+    try {
+      const res = await call('tools/call', {
+        name: visibleSelectedTool,
+        arguments: cleanedParams,
+      });
+      if (toolCallIdRef.current === callId) setResult(res);
+    } catch {
+      // useMcpClient exposes the failure through its error state.
+    }
+  };
+
+  const toggleInputMode = () => {
+    if (useJsonMode) {
+      const parsed = parseToolParams(jsonValues);
+      if (!parsed) {
+        setParamError('Parameters must be a JSON object before switching to form mode.');
+        return;
+      }
+      setFormValues(parsed);
+    } else {
+      setJsonValues(JSON.stringify(formValues, null, 2));
+    }
+    setParamError(null);
+    setUseJsonMode((current) => !current);
   };
 
   return (
@@ -123,12 +163,12 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
           </label>
           <select
             id="tool-select"
-            value={selectedTool}
-            onChange={(e) => applyTool(e.target.value)}
+            value={visibleSelectedTool}
+            onChange={(e) => applyTool(e.target.value, visibleTools)}
             className="w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             disabled={!isAuthenticated}
           >
-            {tools.map((tool) => (
+            {visibleTools.map((tool) => (
               <option key={tool.name} value={tool.name}>
                 {tool.name}
               </option>
@@ -151,10 +191,10 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
         </div>
       )}
 
-      {(error || loadError) && (
+      {(visibleRequestError || visibleLoadError || visibleParamError) && (
         <div className="flex items-start gap-2 border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-          {error || loadError}
+          {visibleParamError || visibleRequestError || visibleLoadError}
         </div>
       )}
 
@@ -167,7 +207,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
             </h4>
             <button
               type="button"
-              onClick={() => setUseJsonMode((v) => !v)}
+              onClick={toggleInputMode}
               className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700"
             >
               <FileJson className="w-3.5 h-3.5" />
@@ -179,7 +219,10 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
             <textarea
               aria-label="Tool parameters as JSON"
               value={jsonValues}
-              onChange={(e) => setJsonValues(e.target.value)}
+              onChange={(e) => {
+                setJsonValues(e.target.value);
+                setParamError(null);
+              }}
               rows={14}
               className="w-full border border-slate-900/20 bg-white px-3 py-2 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
@@ -194,7 +237,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
           <Button
             onClick={handleCall}
             isLoading={loading}
-            disabled={!isAuthenticated || !selectedTool}
+            disabled={!isAuthenticated || !visibleSelectedTool}
             leftIcon={loading ? <Loader2 className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           >
             Call Tool
@@ -206,7 +249,7 @@ export function McpPlayground({ apiKey }: McpPlaygroundProps) {
             <Terminal className="w-4 h-4" />
             Response
           </h4>
-          {result ? (
+          {result && visibleSelectedTool ? (
             <CodeBlock code={JSON.stringify(result, null, 2)} label="JSON response" />
           ) : (
             <div className="flex h-64 items-center justify-center border-y border-dashed border-slate-300 text-sm text-slate-400">

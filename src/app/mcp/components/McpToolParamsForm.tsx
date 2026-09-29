@@ -1,7 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
-
 import { Plus, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
@@ -73,11 +71,14 @@ interface FormFieldProps {
   depth?: number;
 }
 
+function parseNumericInput(raw: string, integer: boolean): number | string {
+  if (!raw.trim()) return raw;
+  const number = Number(raw);
+  return Number.isFinite(number) && (!integer || Number.isInteger(number)) ? number : raw;
+}
+
 function FormField({ name, property, required, value, onChange, depth = 0 }: FormFieldProps) {
-  const types = useMemo(() => {
-    if (Array.isArray(property.type)) return property.type;
-    return property.type ? [property.type] : [];
-  }, [property.type]);
+  const types = Array.isArray(property.type) ? property.type : property.type ? [property.type] : [];
 
   const isEnum = property.enum && property.enum.length > 0;
   const isArray = types.includes('array');
@@ -103,13 +104,18 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
         {label}
         {description}
         <select
-          value={String(value ?? '')}
-          onChange={(e) => onChange(e.target.value || undefined)}
+          aria-label={name}
+          value={String(property.enum?.findIndex((option) => Object.is(option, value)) ?? -1)}
+          onChange={(e) =>
+            onChange(e.target.value === '-1' ? undefined : property.enum?.[Number(e.target.value)])
+          }
           className="mt-1.5 w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         >
-          {!required && <option value="">-- Select --</option>}
-          {property.enum?.map((option) => (
-            <option key={String(option)} value={String(option)}>
+          <option value="-1" disabled={required}>
+            -- Select --
+          </option>
+          {property.enum?.map((option, index) => (
+            <option key={index} value={index}>
               {String(option)}
             </option>
           ))}
@@ -146,6 +152,7 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
         {label}
         {description}
         <input
+          aria-label={name}
           type="number"
           value={value === undefined || value === null ? '' : String(value)}
           onChange={(e) => {
@@ -154,9 +161,9 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
               onChange(undefined);
               return;
             }
-            const num = types.includes('integer') ? parseInt(raw, 10) : parseFloat(raw);
-            onChange(Number.isNaN(num) ? raw : num);
+            onChange(parseNumericInput(raw, types.includes('integer')));
           }}
+          step={types.includes('integer') ? 1 : 'any'}
           min={property.minimum}
           max={property.maximum}
           className="mt-1.5 w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -175,7 +182,6 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
           {label}
           {description}
           <ArrayOfObjectsField
-            name={name}
             itemSchema={property.items}
             value={itemsValue as Record<string, unknown>[]}
             onChange={onChange}
@@ -192,16 +198,21 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
           {label}
           {description}
           <select
+            aria-label={name}
             multiple
-            value={(itemsValue as string[]).map(String)}
+            value={itemEnum.flatMap((option, index) =>
+              itemsValue.some((item) => Object.is(item, option)) ? [String(index)] : []
+            )}
             onChange={(e) => {
-              const selected = Array.from(e.target.selectedOptions).map((o) => o.value);
+              const selected = Array.from(e.target.selectedOptions).map(
+                (option) => itemEnum[Number(option.value)]
+              );
               onChange(selected.length > 0 ? selected : undefined);
             }}
             className="mt-1.5 min-h-[120px] w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
-            {itemEnum.map((option) => (
-              <option key={String(option)} value={String(option)}>
+            {itemEnum.map((option, index) => (
+              <option key={index} value={index}>
                 {String(option)}
               </option>
             ))}
@@ -216,11 +227,22 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
         {label}
         {description}
         <input
+          aria-label={name}
           type="text"
           value={Array.isArray(value) ? value.join(', ') : ''}
           onChange={(e) => {
             const trimmed = e.target.value.trim();
-            onChange(trimmed ? trimmed.split(',').map((s) => s.trim()) : undefined);
+            onChange(
+              trimmed
+                ? trimmed.split(',').map((item) => {
+                    const entry = item.trim();
+                    const itemType = property.items?.type;
+                    return itemType === 'number' || itemType === 'integer'
+                      ? parseNumericInput(entry, itemType === 'integer')
+                      : entry;
+                  })
+                : undefined
+            );
           }}
           placeholder="Separate multiple values with commas"
           className="mt-1.5 w-full border border-slate-900/20 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -259,6 +281,7 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
       {label}
       {description}
       <input
+        aria-label={name}
         type="text"
         value={value === undefined || value === null ? '' : String(value)}
         onChange={(e) => onChange(e.target.value || undefined)}
@@ -270,7 +293,6 @@ function FormField({ name, property, required, value, onChange, depth = 0 }: For
 }
 
 interface ArrayOfObjectsFieldProps {
-  name: string;
   itemSchema: JsonSchemaProperty;
   value: Record<string, unknown>[];
   onChange: (value: unknown) => void;
@@ -325,23 +347,44 @@ function ArrayOfObjectsField({ itemSchema, value, onChange }: ArrayOfObjectsFiel
                 </label>
                 {fieldProp.enum ? (
                   <select
-                    value={String(row[fieldName] ?? '')}
-                    onChange={(e) => updateRow(index, fieldName, e.target.value || undefined)}
+                    aria-label={`${fieldName} in item ${index + 1}`}
+                    value={String(
+                      fieldProp.enum.findIndex((option) => Object.is(option, row[fieldName]))
+                    )}
+                    onChange={(e) =>
+                      updateRow(
+                        index,
+                        fieldName,
+                        e.target.value === '-1'
+                          ? undefined
+                          : fieldProp.enum?.[Number(e.target.value)]
+                      )
+                    }
                     className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {!required.includes(fieldName) && <option value="">--</option>}
-                    {fieldProp.enum.map((option) => (
-                      <option key={String(option)} value={String(option)}>
+                    <option value="-1" disabled={required.includes(fieldName)}>
+                      --
+                    </option>
+                    {fieldProp.enum.map((option, optionIndex) => (
+                      <option key={optionIndex} value={optionIndex}>
                         {String(option)}
                       </option>
                     ))}
                   </select>
                 ) : (
                   <input
+                    aria-label={`${fieldName} in item ${index + 1}`}
                     type={
                       fieldProp.type === 'number' || fieldProp.type === 'integer'
                         ? 'number'
                         : 'text'
+                    }
+                    step={
+                      fieldProp.type === 'number'
+                        ? 'any'
+                        : fieldProp.type === 'integer'
+                          ? 1
+                          : undefined
                     }
                     value={row[fieldName] === undefined ? '' : String(row[fieldName])}
                     onChange={(e) => {
@@ -351,9 +394,11 @@ function ArrayOfObjectsField({ itemSchema, value, onChange }: ArrayOfObjectsFiel
                         return;
                       }
                       if (fieldProp.type === 'number' || fieldProp.type === 'integer') {
-                        const num =
-                          fieldProp.type === 'integer' ? parseInt(raw, 10) : parseFloat(raw);
-                        updateRow(index, fieldName, Number.isNaN(num) ? raw : num);
+                        updateRow(
+                          index,
+                          fieldName,
+                          parseNumericInput(raw, fieldProp.type === 'integer')
+                        );
                       } else {
                         updateRow(index, fieldName, raw);
                       }

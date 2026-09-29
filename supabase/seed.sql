@@ -1,0 +1,3 @@
+-- Local database resets intentionally have no additional seed data.
+-- Baseline feed registrations are applied by migrations; production data is
+-- never imported through this file.

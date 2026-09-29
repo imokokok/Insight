@@ -518,10 +518,12 @@ async function latestTimestamp(
 export async function getCronHealth(): Promise<CronHealth> {
   const jobs: CronJob[] = [];
 
-  const snapshot = await latestTimestamp('hourly_price_snapshots', 'snapshot_hour');
-  const report = await latestTimestamp('daily_reports', 'report_date');
-  const reputation = await latestTimestamp('oracle_reputation', 'last_calculated_at');
-  const checks = await latestTimestamp('pre_trade_checks', 'created_at');
+  const [snapshot, report, reputation, checks] = await Promise.all([
+    latestTimestamp('hourly_price_snapshots', 'snapshot_hour'),
+    latestTimestamp('daily_reports', 'report_date'),
+    latestTimestamp('oracle_reputation', 'last_calculated_at'),
+    latestTimestamp('pre_trade_checks', 'created_at'),
+  ]);
 
   const errored = [snapshot, report, reputation, checks].some((r) => r.errored);
 

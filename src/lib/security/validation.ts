@@ -6,6 +6,7 @@ import { ORACLE_PROVIDER_VALUES, BLOCKCHAIN_VALUES } from '@/types/oracle/enums'
 import type { OracleProvider } from '@/types/oracle/enums';
 import { FAILURE_MODE_VALUES } from '@/types/oracle/signals';
 
+import { boundedIntegerInput } from './boundedIntegerInput';
 import { sanitizeSymbol, sanitizeProvider, sanitizeChain } from './inputSanitizer';
 
 const validationLogger = createLogger('oracle-validation');
@@ -27,13 +28,11 @@ export const SafeChainSchema = z
   .transform((val) => sanitizeChain(val))
   .pipe(z.enum(BLOCKCHAIN_VALUES as [string, ...string[]]));
 
-const SafePeriodSchema = z
-  .union([z.string(), z.number()])
-  .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
-  .refine(
-    (val) => !isNaN(val) && val >= 1 && val <= 8760,
-    'Period must be between 1 and 8760 hours (1 year)'
-  );
+const SafePeriodSchema = boundedIntegerInput(
+  1,
+  8760,
+  'Period must be between 1 and 8760 hours (1 year)'
+);
 
 const PriceDataBaseSchema = z.object({
   symbol: z.string().min(1, 'Symbol is required'),

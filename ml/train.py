@@ -14,9 +14,9 @@ raises the manipulationRiskScore. If the 1h split has too few positives, only
 the 6h model is exported (the 1h horizon is set to null — graceful degradation).
 
 Prediction task: given the cross-oracle state for an asset at hour T, will an
-abnormal event follow in the next H hours? (abnormal = consensus price moves
->=5% OR cross-oracle deviation spikes >=8% — the SAME label definition as the
-safetyOutcomeService backfill, so mined and flywheel labels are consistent.)
+abnormal event follow in the next H hours? The label includes a consensus
+price move >=5%, cross-oracle deviation >=8%, or oracle-versus-market
+divergence >=2%, matching the safetyOutcomeService backfill.
 
 ENRICHED FEATURES (22): the original 7 plus
   rolling_volatility_6h       rolling std of 1h consensus returns, 6h window
@@ -43,9 +43,9 @@ so models with any subset of these features all score correctly (missing names
 are filled from the exported neutralFill map, then 0).
 
 Runs offline (GitHub Actions runner every 3 days, or locally). Not in the app
-hot path. Gracefully writes a null model when there is too little data — or
-when the 30-min spine is empty/unreachable (v3 features fall back to their
-neutral values and training proceeds).
+hot path. Writes a null model when there is too little data. An empty or
+unreachable 30-min spine instead neutral-fills v3 features and training
+continues.
 
 Env:
   SUPABASE_URL            e.g. https://<ref>.supabase.co
@@ -57,6 +57,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -106,10 +107,10 @@ SELECTION_FOLD_WINDOWS = ((0.40, 0.55), (0.60, 0.75), (0.80, 1.00))
 # classifier in src/lib/ml/inference.ts assetClassFor() — keep both in sync.
 STABLE_ASSETS = {"USDC", "USDT", "DAI", "USDS", "FDUSD", "TUSD", "PYUSD", "USD1"}
 
-# Calibration bins: equal-width on the RAW probability, calibrated value =
-# realized positive rate within the bin (reliability table). A class with too
-# few test rows/positives exports no table for that class (falls back to
-# default at inference).
+# Calibration bins are equal-width on the raw probability. Values are fitted
+# by isotonic regression at bin centres, and counts describe validation data.
+# A class with too few calibration rows/positives exports no class table and
+# falls back to the default table at inference.
 CALIBRATION_BINS = 10
 CALIBRATION_MIN_ROWS = 200
 CALIBRATION_MIN_POS = 10
@@ -216,6 +217,35 @@ def log(msg: str) -> None:
     print(f"[train] {msg}", flush=True)
 
 
+def fetch_offset_pages(url: str, service_key: str, params: dict, source: str) -> list[dict]:
+    """Read a PostgREST result to its terminal page, including server-capped pages.
+
+    Some installations cap each response below PAGE_SIZE. Advancing by the
+    actual row count avoids treating a short capped page as end-of-results.
+    PostgREST can return 416 at EOF when the next Range starts past the last row.
+    """
+    auth_headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
+    rows = []
+    offset = 0
+    while True:
+        headers = {**auth_headers, "Range": f"{offset}-{offset + PAGE_SIZE - 1}"}
+        response = HTTP.get(url, headers=headers, params=params, timeout=60)
+        if response.status_code == 416:
+            content_range = re.fullmatch(
+                r"\s*\*/(\d+)\s*", response.headers.get("Content-Range", "")
+            )
+            if content_range and offset >= int(content_range.group(1)):
+                return rows
+        response.raise_for_status()
+        chunk = response.json()
+        if not isinstance(chunk, list) or any(not isinstance(row, dict) for row in chunk):
+            raise RuntimeError(f"Invalid {source} response")
+        if not chunk:
+            return rows
+        rows.extend(chunk)
+        offset += len(chunk)
+
+
 def fetch_snapshot_pages(
     base_url: str,
     service_key: str,
@@ -269,8 +299,17 @@ def fetch_snapshot_pages(
         response = HTTP.get(url, headers=headers, params=page_params, timeout=60)
         response.raise_for_status()
         chunk = response.json()
+        if not isinstance(chunk, list) or any(not isinstance(row, dict) for row in chunk):
+            raise RuntimeError(f"Invalid {table} response")
         if not chunk:
             break
+        if any(
+            type(row.get("id")) is not int
+            or row["id"] <= 0
+            or not isinstance(row.get(timestamp_column), str)
+            for row in chunk
+        ):
+            raise RuntimeError(f"Invalid {table} snapshot cursor")
         next_cursor = (chunk[-1][timestamp_column], chunk[-1]["id"])
         if cursor is not None and (
             pd.Timestamp(next_cursor[0]), next_cursor[1]
@@ -278,8 +317,8 @@ def fetch_snapshot_pages(
             raise RuntimeError(f"{table} pagination did not advance")
         rows.extend(chunk)
         cursor = next_cursor
-        if len(chunk) < PAGE_SIZE:
-            break
+        # A short page can mean a server-side response cap, not end-of-data.
+        # The seek cursor makes an empty page the unambiguous stop condition.
     return rows
 
 
@@ -314,6 +353,8 @@ def fetch_complete_snapshot_pages(
         if not isinstance(chunks, list):
             raise RuntimeError("Invalid snapshot archive response")
         for chunk in chunks:
+            if not isinstance(chunk, dict):
+                raise RuntimeError("Invalid snapshot archive chunk")
             archive_id = chunk.get("archive_id")
             if type(archive_id) is not int or archive_id <= last_id or chunk.get("kind") != kind:
                 raise RuntimeError("Invalid snapshot archive cursor or kind")
@@ -324,6 +365,8 @@ def fetch_complete_snapshot_pages(
             if not isinstance(entries, list) or type(chunk.get("row_count")) is not int or len(entries) != chunk["row_count"]:
                 raise RuntimeError("Snapshot archive row count mismatch")
             for row in entries:
+                if not isinstance(row, dict):
+                    raise RuntimeError("Invalid archived snapshot row")
                 timestamp = pd.Timestamp(row[timestamp_column])
                 if timestamp.tzinfo is None or timestamp.tz_convert("UTC").date().isoformat() != chunk["archive_day"]:
                     raise RuntimeError("Snapshot archive timestamp mismatch")
@@ -394,27 +437,17 @@ def fetch_flywheel_rows(base_url: str, service_key: str) -> pd.DataFrame:
     url = base_url.rstrip("/") + "/rest/v1/pre_trade_checks"
     params = {
         "select": (
-            "asset,created_at,ml_feature_vector,outcome_label_1h,outcome_label_6h,"
+            "id,asset,created_at,ml_feature_vector,outcome_label_1h,outcome_label_6h,"
             "outcome_1h,outcome_6h"
         ),
         "created_at": f"gte.{cutoff}",
         "feature_schema_version": f"eq.{FEATURE_SCHEMA_VERSION}",
         "label_spec_version": f"eq.{LABEL_SPEC_VERSION}",
         "ml_feature_vector": "not.is.null",
-        "order": "created_at",
+        # UUID breaks ties when multiple checks share a creation timestamp.
+        "order": "created_at,id",
     }
-    headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
-    rows = []
-    offset = 0
-    while True:
-        headers["Range"] = f"{offset}-{offset + PAGE_SIZE - 1}"
-        response = HTTP.get(url, headers=headers, params=params, timeout=60)
-        response.raise_for_status()
-        chunk = response.json()
-        rows.extend(chunk)
-        offset += PAGE_SIZE
-        if len(chunk) < PAGE_SIZE:
-            break
+    rows = fetch_offset_pages(url, service_key, params, "pre_trade_checks")
     frame = pd.DataFrame(rows)
     if not frame.empty:
         frame["created_at"] = pd.to_datetime(frame["created_at"], utc=True, format="mixed")
@@ -480,6 +513,22 @@ def apply_calibration_table(proba: np.ndarray, table: dict) -> np.ndarray:
     return calibrated[idx]
 
 
+def calibrate_by_asset_class(
+    proba: np.ndarray, symbols: pd.Series, calibration: dict
+) -> np.ndarray:
+    """Use the class table, default table, or raw score as the TS scorer does."""
+    calibrated = np.asarray(proba, dtype=float).copy()
+    classes = symbols.map(asset_class).to_numpy()
+    for name in ("stable", "volatile"):
+        mask = classes == name
+        if not np.any(mask):
+            continue
+        table = calibration.get(name) or calibration.get("default")
+        if table:
+            calibrated[mask] = apply_calibration_table(proba[mask], table)
+    return calibrated
+
+
 def select_operating_thresholds(y_true: np.ndarray, calibrated: np.ndarray) -> dict:
     """Select useful medium/high cutoffs from validation data only.
 
@@ -491,19 +540,28 @@ def select_operating_thresholds(y_true: np.ndarray, calibrated: np.ndarray) -> d
     scores = np.asarray(calibrated, dtype=float)
     valid = np.isfinite(scores)
     y, scores = y[valid], scores[valid]
-    if len(y) == 0 or int(y.sum()) == 0:
+    positives = int(y.sum())
+    if len(y) == 0 or positives == 0:
         return {"medium": RISK_MEDIUM_THRESHOLD, "high": RISK_HIGH_THRESHOLD}
 
     min_alerts = max(10, int(np.ceil(len(y) * 0.01)))
+    order = np.argsort(scores)
+    sorted_scores = scores[order]
+    # Each threshold admits a suffix of the sorted scores. Count positives
+    # once so selecting a cutoff stays O(n log n) for uncalibrated scores.
+    positive_suffix = np.cumsum(y[order][::-1])[::-1]
+    threshold_starts = np.flatnonzero(
+        np.r_[True, sorted_scores[1:] != sorted_scores[:-1]]
+    )
     candidates = []
-    for threshold in sorted(set(float(value) for value in scores)):
-        pred = scores >= threshold
-        predicted = int(pred.sum())
-        true_positive = int(y[pred].sum()) if predicted else 0
+    for first in threshold_starts:
+        threshold = float(sorted_scores[first])
+        predicted = len(y) - first
+        true_positive = int(positive_suffix[first])
         if predicted < min_alerts or true_positive == 0:
             continue
         precision = true_positive / predicted
-        recall = true_positive / int(y.sum())
+        recall = true_positive / positives
         beta_sq = 0.25
         f05 = (
             (1 + beta_sq) * precision * recall / (beta_sq * precision + recall)
@@ -561,20 +619,13 @@ def fetch_health_rows(base_url: str, service_key: str) -> pd.DataFrame:
     try:
         cutoff = (datetime.now(timezone.utc) - timedelta(weeks=LOOKBACK_WEEKS)).isoformat()
         url = base_url.rstrip("/") + "/rest/v1/feed_health_snapshots"
-        select = "symbol,chain,evaluated_at,agreement,outlier_count,stale_count,avg_reputation,min_reputation"
-        params = {"select": select, "evaluated_at": f"gte.{cutoff}", "order": "symbol,evaluated_at"}
-        headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
-        rows = []
-        offset = 0
-        while True:
-            headers["Range"] = f"{offset}-{offset + PAGE_SIZE - 1}"
-            r = HTTP.get(url, headers=headers, params=params, timeout=60)
-            r.raise_for_status()
-            chunk = r.json()
-            rows.extend(chunk)
-            offset += PAGE_SIZE
-            if len(chunk) < PAGE_SIZE:
-                break
+        select = "id,symbol,chain,evaluated_at,agreement,outlier_count,stale_count,avg_reputation,min_reputation"
+        params = {
+            "select": select,
+            "evaluated_at": f"gte.{cutoff}",
+            "order": "symbol,evaluated_at,id",
+        }
+        rows = fetch_offset_pages(url, service_key, params, "feed_health_snapshots")
         if not rows:
             return pd.DataFrame()
         health = pd.DataFrame(rows)
@@ -739,6 +790,7 @@ def label_from_fine_events(hourly: pd.DataFrame, fine: pd.DataFrame, hours: int)
     if fine.empty:
         return labels, ev_price, ev_dev
 
+    horizon = pd.Timedelta(hours=hours)
     fine_by_symbol = {
         symbol: grp.sort_values("snapshot_hour") for symbol, grp in fine.groupby("symbol")
     }
@@ -758,22 +810,25 @@ def label_from_fine_events(hourly: pd.DataFrame, fine: pd.DataFrame, hours: int)
             ):
                 continue
             start = row["snapshot_hour"]
-            end = start + pd.Timedelta(hours=hours)
-            positions = np.flatnonzero((future_times > start) & (future_times <= end))
-            if len(positions) == 0 or float(row["consensus"]) <= 0:
+            end = start + horizon
+            # The index is sorted above; binary bounds preserve (start, end]
+            # without scanning every fine observation for each hourly row.
+            left = future_times.searchsorted(start, side="right")
+            right = future_times.searchsorted(end, side="right")
+            if left >= right or float(row["consensus"]) <= 0:
                 continue
             move = (
-                np.abs(future_consensus[positions] - float(row["consensus"]))
+                np.abs(future_consensus[left:right] - float(row["consensus"]))
                 / float(row["consensus"])
                 * 100.0
             )
             is_price = bool(np.max(move) >= PRICE_MOVE_PCT)
-            is_dev = bool(np.max(future_deviation[positions]) >= DEVIATION_PCT)
+            is_dev = bool(np.max(future_deviation[left:right]) >= DEVIATION_PCT)
             if is_price or is_dev:
                 labels.loc[idx] = 1
                 ev_price.loc[idx] = int(is_price)
                 ev_dev.loc[idx] = int(is_dev)
-            elif future_times[positions[-1]] >= end:
+            elif future_times[right - 1] >= end:
                 labels.loc[idx] = 0
     return labels, ev_price, ev_dev
 
@@ -799,6 +854,7 @@ def label_for_horizon(hourly: pd.DataFrame, hours: int):
     ev_dev = pd.Series(0, index=hourly.index, dtype=int)
     ev_div = pd.Series(0, index=hourly.index, dtype=int)
     has_div = "oracle_vs_market_deviation_pct" in hourly.columns
+    horizon = pd.Timedelta(hours=hours)
     for _, grp in hourly.groupby("symbol", sort=False):
         grp = grp.sort_values("snapshot_hour")
         idx = grp.index
@@ -818,17 +874,18 @@ def label_for_horizon(hourly: pd.DataFrame, hours: int):
             # persistence. Learn onset risk from currently-normal states only.
             if max_dev[i] >= DEVIATION_PCT or div[i] >= MARKET_DIVERGENCE_PCT:
                 continue
-            window_end = times[i] + pd.Timedelta(hours=hours)
-            future_positions = np.flatnonzero((times > times[i]) & (times <= window_end))
-            if len(future_positions) == 0:
+            window_end = times[i] + horizon
+            left = times.searchsorted(times[i], side="right")
+            right = times.searchsorted(window_end, side="right")
+            if left >= right:
                 continue
             baseline = consensus[i]
             if baseline <= 0:
                 continue
-            future_cons = consensus[future_positions]
+            future_cons = consensus[left:right]
             max_move = np.abs(future_cons - baseline).max() / baseline * 100.0
-            max_dev_future = float(np.max(max_dev[future_positions]))
-            max_div_future = float(np.max(div[future_positions]))
+            max_dev_future = float(np.max(max_dev[left:right]))
+            max_div_future = float(np.max(div[left:right]))
             is_price = max_move >= PRICE_MOVE_PCT
             is_dev = max_dev_future >= DEVIATION_PCT
             is_div = max_div_future >= MARKET_DIVERGENCE_PCT
@@ -837,7 +894,7 @@ def label_for_horizon(hourly: pd.DataFrame, hours: int):
                 ev_price.loc[idx[i]] = int(is_price)
                 ev_dev.loc[idx[i]] = int(is_dev)
                 ev_div.loc[idx[i]] = int(is_div)
-            elif times[future_positions[-1]] >= window_end:
+            elif times[right - 1] >= window_end:
                 # A negative is valid only when the observation reaches the end
                 # of the requested wall-clock horizon. Partial windows remain NA.
                 labels.loc[idx[i]] = 0
@@ -863,18 +920,7 @@ def fetch_market_reference_rows(base_url: str, service_key: str) -> pd.DataFrame
             "ref_hour": f"gte.{cutoff}",
             "order": "symbol,ref_hour",
         }
-        headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
-        rows = []
-        offset = 0
-        while True:
-            headers["Range"] = f"{offset}-{offset + PAGE_SIZE - 1}"
-            r = HTTP.get(url, headers=headers, params=params, timeout=60)
-            r.raise_for_status()
-            chunk = r.json()
-            rows.extend(chunk)
-            offset += PAGE_SIZE
-            if len(chunk) < PAGE_SIZE:
-                break
+        rows = fetch_offset_pages(url, service_key, params, "market_reference_hourly")
         if not rows:
             return pd.DataFrame()
         ref = pd.DataFrame(rows)
@@ -1185,16 +1231,7 @@ def evaluate_exported_horizon(horizon: dict, test: pd.DataFrame, label_col: str)
     """Evaluate an incumbent exported model on the candidate's current test set."""
     y_true = test[label_col].to_numpy(dtype=int)
     raw = score_exported_horizon(horizon, test)
-    calibrated = raw.copy()
-    calibration = horizon.get("calibration") or {}
-    classes = test["symbol"].map(asset_class).to_numpy()
-    for name in ("stable", "volatile"):
-        mask = classes == name
-        if not np.any(mask):
-            continue
-        table = calibration.get(name) or calibration.get("default")
-        if table:
-            calibrated[mask] = apply_calibration_table(raw[mask], table)
+    calibrated = calibrate_by_asset_class(raw, test["symbol"], horizon.get("calibration") or {})
     return {
         "auc": float(roc_auc_score(y_true, raw)),
         "average_precision": float(average_precision_score(y_true, raw)),
@@ -1520,11 +1557,9 @@ def train_horizon(
     X_operating = operating_window[FEATURE_NAMES].to_numpy(dtype=float)
     y_operating = operating_window[label_col].to_numpy(dtype=int)
     proba_operating = model.predict_proba(X_operating)[:, 1]
-    operating_stable = operating_window["symbol"].map(asset_class).eq("stable").values
-    calibrated_operating = np.empty_like(proba_operating)
-    for mask, name in ((operating_stable, "stable"), (~operating_stable, "volatile")):
-        table = calibration[name] or calibration["default"]
-        calibrated_operating[mask] = apply_calibration_table(proba_operating[mask], table)
+    calibrated_operating = calibrate_by_asset_class(
+        proba_operating, operating_window["symbol"], calibration
+    )
     risk_thresholds = select_operating_thresholds(y_operating, calibrated_operating)
     validation_high = (calibrated_operating >= risk_thresholds["high"]).astype(int)
     metrics["validation_precision_at_high_threshold"] = float(
@@ -1534,11 +1569,7 @@ def train_horizon(
         recall_score(y_operating, validation_high, zero_division=0)
     )
 
-    stable_test = test["symbol"].map(asset_class).eq("stable").values
-    calibrated_te = np.empty_like(proba_te)
-    for mask, name in ((stable_test, "stable"), (~stable_test, "volatile")):
-        table = calibration[name] or calibration["default"]
-        calibrated_te[mask] = apply_calibration_table(proba_te[mask], table)
+    calibrated_te = calibrate_by_asset_class(proba_te, test["symbol"], calibration)
     pred50 = (calibrated_te >= 0.5).astype(int)
     pred_medium = (calibrated_te >= risk_thresholds["medium"]).astype(int)
     pred_high = (calibrated_te >= risk_thresholds["high"]).astype(int)
