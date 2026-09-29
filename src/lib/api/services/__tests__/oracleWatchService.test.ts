@@ -89,10 +89,10 @@ beforeEach(() => {
   mockGetConsensusPrice.mockReset();
   clearOracleWatchCache();
   mockScoreMl.mockReturnValue({ combined: 0.15, score1h: 0.1, score6h: 0.15 });
-  mockMarketContext.mockResolvedValue(null);
-  mockFetchHistorical.mockResolvedValue(EMPTY_STATE);
   mockMarketContext.mockReset();
   mockMarketContext.mockResolvedValue(null); // default: no market-truth signal
+  mockFetchHistorical.mockReset();
+  mockFetchHistorical.mockResolvedValue(EMPTY_STATE);
 });
 
 describe('getOracleWatchSignal', () => {
@@ -306,6 +306,8 @@ describe('getOracleWatchSignal', () => {
 
     expect(signal.verdict).toBe('danger');
     expect(signal.reason).toBe('no_cross_oracle_coverage');
+    expect(mockMarketContext).not.toHaveBeenCalled();
+    expect(mockFetchHistorical).not.toHaveBeenCalled();
   });
 
   it('rethrows unexpected errors', async () => {
@@ -505,6 +507,81 @@ describe('getOracleWatchSignal — caching', () => {
     await getOracleWatchSignal('ETH', 'arbitrum');
 
     expect(mockGetConsensusPrice).toHaveBeenCalledTimes(2);
+  });
+
+  it('shares an in-flight signal read for the same symbol and chain', async () => {
+    let resolveConsensus!: (result: ConsensusPriceResponse) => void;
+    mockGetConsensusPrice.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveConsensus = resolve;
+      })
+    );
+
+    const first = getOracleWatchSignal('ETH', 'ethereum');
+    const second = getOracleWatchSignal('ETH', 'ethereum');
+    expect(mockGetConsensusPrice).toHaveBeenCalledTimes(1);
+
+    resolveConsensus(makeResponse());
+    const [firstSignal, secondSignal] = await Promise.all([first, second]);
+    expect(secondSignal).toBe(firstSignal);
+  });
+
+  it('retries a failed in-flight read instead of caching the failure', async () => {
+    mockGetConsensusPrice
+      .mockRejectedValueOnce(new Error('temporary outage'))
+      .mockResolvedValueOnce(makeResponse());
+
+    const first = getOracleWatchSignal('ETH');
+    const second = getOracleWatchSignal('ETH');
+    await expect(Promise.all([first, second])).rejects.toThrow('temporary outage');
+    await expect(getOracleWatchSignal('ETH')).resolves.toBeDefined();
+    expect(mockGetConsensusPrice).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not let a cleared in-flight read replace a newer cache entry', async () => {
+    let resolveOld!: (result: ConsensusPriceResponse) => void;
+    let resolveNew!: (result: ConsensusPriceResponse) => void;
+    mockGetConsensusPrice
+      .mockReturnValueOnce(new Promise((resolve) => (resolveOld = resolve)))
+      .mockReturnValueOnce(new Promise((resolve) => (resolveNew = resolve)));
+
+    const oldRead = getOracleWatchSignal('ETH');
+    clearOracleWatchCache();
+    const newRead = getOracleWatchSignal('ETH');
+    expect(mockGetConsensusPrice).toHaveBeenCalledTimes(2);
+
+    resolveNew(makeResponse({ consensusPrice: 3100 }));
+    await newRead;
+    resolveOld(makeResponse({ consensusPrice: 3000 }));
+    await oldRead;
+
+    expect((await getOracleWatchSignal('ETH')).consensusPrice).toBe(3100);
+    expect(mockGetConsensusPrice).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts historical and market reads together', async () => {
+    let resolveMarket!: (value: null) => void;
+    mockGetConsensusPrice.mockResolvedValueOnce(makeResponse());
+    mockMarketContext.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveMarket = resolve;
+      })
+    );
+
+    const signal = getOracleWatchSignal('ETH');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockMarketContext).toHaveBeenCalledTimes(1);
+    expect(mockFetchHistorical).toHaveBeenCalledTimes(1);
+
+    resolveMarket(null);
+    await signal;
+  });
+
+  it('still propagates a historical read failure', async () => {
+    mockGetConsensusPrice.mockResolvedValueOnce(makeResponse());
+    mockFetchHistorical.mockRejectedValueOnce(new Error('history unavailable'));
+
+    await expect(getOracleWatchSignal('ETH')).rejects.toThrow('history unavailable');
   });
 });
 

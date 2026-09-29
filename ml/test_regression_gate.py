@@ -54,6 +54,28 @@ def model(payload):
 
 
 class RegressionGateTest(unittest.TestCase):
+    def test_malformed_model_objects_fail_closed(self):
+        incumbent = model(horizon())
+        self.assertTrue(assess_candidate([], incumbent).invalid)
+        for field, value in (("active", "true"), ("horizons", [])):
+            with self.subTest(field=field):
+                candidate = model(horizon())
+                candidate[field] = value
+                self.assertTrue(assess_candidate(candidate, incumbent).invalid)
+        for field, value in (
+            ("trees", "not-a-tree"),
+            ("metrics", []),
+            ("riskThresholds", []),
+            ("regressionComparison", []),
+        ):
+            with self.subTest(field=field):
+                candidate = model(horizon())
+                candidate["horizons"]["6h"][field] = value
+                self.assertTrue(assess_candidate(candidate, incumbent).invalid)
+        bad_incumbent = model(horizon())
+        bad_incumbent["horizons"] = []
+        self.assertTrue(assess_candidate(model(horizon()), bad_incumbent).invalid)
+
     def test_uses_same_window_comparison_not_incumbent_historical_metrics(self):
         candidate = model(horizon())
         incumbent_payload = horizon()
@@ -188,6 +210,16 @@ class RegressionGateTest(unittest.TestCase):
                     "ml.regression_gate.load_incumbent_from_git", return_value=incumbent
                 ), contextlib.redirect_stdout(io.StringIO()):
                     self.assertEqual(main(), expected)
+
+    def test_cli_reports_invalid_json_without_traceback(self):
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".json") as candidate_file:
+            candidate_file.write("{invalid")
+            candidate_file.flush()
+            output = io.StringIO()
+            with patch("sys.argv", ["regression_gate", "--model", candidate_file.name]):
+                with contextlib.redirect_stdout(output):
+                    self.assertEqual(main(), 1)
+            self.assertIn("::error::Could not load model JSON", output.getvalue())
 
 
 if __name__ == "__main__":

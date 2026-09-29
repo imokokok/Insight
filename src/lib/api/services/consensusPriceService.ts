@@ -105,6 +105,7 @@ export async function resolveProvidersForSymbol(
   const feedsByProvider = feedRegistry.feeds;
 
   const providers: OracleProvider[] = [];
+  const targetChainId = chain ? (BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0) : 0;
 
   for (const provider of Object.values(OracleProvider)) {
     let hasActiveFeed = false;
@@ -112,19 +113,6 @@ export async function resolveProvidersForSymbol(
 
     const feeds = feedsByProvider.get(provider);
     if (feeds && feeds.length > 0) {
-      hasActiveFeed = feeds.some((feed) => {
-        const feedSymbol = extractBaseSymbol((feed as { symbol: string }).symbol).toUpperCase();
-        if (
-          feedSymbol !== baseSymbol ||
-          !isUsdDenominatedFeedSymbol((feed as { symbol: string }).symbol)
-        )
-          return false;
-        if (!chain) return true;
-        const chainId = (feed as { chain_id?: number }).chain_id ?? 0;
-        if (chainId === 0) return true;
-        const targetChainId = BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0;
-        return chainId === targetChainId;
-      });
       // A DB-verified active feed bound to a concrete (non-zero) chain that
       // matches the queried chain is sufficient proof of support, even when the
       // provider's curated static list lags the DB. Chain-agnostic feeds
@@ -132,19 +120,15 @@ export async function resolveProvidersForSymbol(
       // provider (e.g. Reflector on Stellar) is never activated on a chain it
       // does not serve. This mirrors the "trust the DB, don't gate on static
       // lists" policy already applied in snapshotCollector.ts:117-120.
-      hasSpecificChainFeed = feeds.some((feed) => {
-        const feedSymbol = extractBaseSymbol((feed as { symbol: string }).symbol).toUpperCase();
-        if (
-          feedSymbol !== baseSymbol ||
-          !isUsdDenominatedFeedSymbol((feed as { symbol: string }).symbol)
-        )
-          return false;
-        const chainId = (feed as { chain_id?: number }).chain_id ?? 0;
-        if (chainId === 0) return false;
-        if (!chain) return true;
-        const targetChainId = BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0;
-        return chainId === targetChainId;
-      });
+      for (const feed of feeds) {
+        const typedFeed = feed as { symbol: string; chain_id?: number };
+        const feedSymbol = extractBaseSymbol(typedFeed.symbol).toUpperCase();
+        if (feedSymbol !== baseSymbol || !isUsdDenominatedFeedSymbol(typedFeed.symbol)) continue;
+        const chainId = typedFeed.chain_id ?? 0;
+        if (!chain || chainId === 0 || chainId === targetChainId) hasActiveFeed = true;
+        if (chainId !== 0 && (!chain || chainId === targetChainId)) hasSpecificChainFeed = true;
+        if (hasActiveFeed && hasSpecificChainFeed) break;
+      }
     }
 
     // The curated static list is only a degraded-mode fallback when the

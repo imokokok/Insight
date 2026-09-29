@@ -41,6 +41,7 @@ import { ConfidenceBar } from './price-comparison/ConfidenceBar';
 import type { PriceAnomaly } from '../hooks/usePriceAnomalyDetection';
 
 type AnomalyDetectionMode = 'deviation' | 'zscore';
+const EMPTY_ANOMALIES: PriceAnomaly[] = [];
 
 interface SimplePriceTableProps {
   priceData: PriceData[];
@@ -58,7 +59,7 @@ interface SimplePriceTableProps {
 
 function SimplePriceTableComponent({
   priceData,
-  anomalies = [],
+  anomalies = EMPTY_ANOMALIES,
   medianPrice,
   isLoading = false,
   statusFilter = 'all',
@@ -87,18 +88,28 @@ function SimplePriceTableComponent({
   const tableRows: TableRow[] = useMemo(() => {
     if (!priceData.length || medianPrice === 0) return [];
 
+    // Keep the first match per provider, as the previous Array.find lookup did.
+    const anomalyByProvider = new Map<PriceAnomaly['provider'], PriceAnomaly>();
+    for (const anomaly of anomalies) {
+      if (!anomalyByProvider.has(anomaly.provider))
+        anomalyByProvider.set(anomaly.provider, anomaly);
+    }
+
     return priceData.map((data) => {
       const deviation = data.price - medianPrice;
       const deviationPercent = (deviation / medianPrice) * 100;
       const absDeviation = Math.abs(deviationPercent);
 
-      const anomaly = anomalies.find((a) => a.provider === data.provider);
+      const anomaly = anomalyByProvider.get(data.provider);
+      const zScore =
+        anomalyDetectionMode === 'zscore' && standardDeviation > 0 && avgPrice > 0
+          ? calculateZScore(data.price, avgPrice, standardDeviation)
+          : null;
 
       let isAnomaly: boolean;
       let severity: 'low' | 'medium' | 'high' | null;
 
       if (anomalyDetectionMode === 'zscore' && standardDeviation > 0 && avgPrice > 0) {
-        const zScore = calculateZScore(data.price, avgPrice, standardDeviation);
         const absZScore = zScore !== null ? Math.abs(zScore) : 0;
         isAnomaly = absZScore >= ANOMALY_ZSCORE_THRESHOLD;
         severity = isAnomaly
@@ -140,11 +151,6 @@ function SimplePriceTableComponent({
       // freshnessSeconds is computed in rowsWithFreshness to avoid
       // recomputing tableRows when `now` updates every 10s.
       const freshnessSeconds = -1;
-
-      const zScore =
-        anomalyDetectionMode === 'zscore' && standardDeviation > 0 && avgPrice > 0
-          ? calculateZScore(data.price, avgPrice, standardDeviation)
-          : null;
 
       const priceDiff = deviation;
 
