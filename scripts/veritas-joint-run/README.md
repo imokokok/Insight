@@ -1,6 +1,6 @@
 # VERITAS joint-run readiness artifacts
 
-## 2026-09-28 one-time 1800-second candidate (not activated)
+## 2026-09-30 one-time 1800-second joint-run path
 
 `anchored-settlement-selection-rule-v3.json` preserves v2 and makes only the five
 text changes proposed for a single VERITAS joint run. Its JCS is 7,754 bytes and
@@ -11,15 +11,15 @@ The v2 Bitcoin and Ethereum fixture UIDs with that new rule produce
 Run `node --import tsx scripts/veritas-joint-run/verify-v3-candidate.mts` to
 check the exact change, byte lengths, hashes and negative mutations.
 
-`joint-run-1800-candidate-2026-09-30.json` records the confirmed September 29
-review window and conditional September 30 live cutoffs. It is not READY or a live authorization. The candidate
-partner policy in `protocol/mainline/policies/veritas/v3.json` is stored
-for review but is not registered or selected by the current activation set. The new
+`joint-run-1800-candidate-2026-09-30.json` records the September 29 review
+window and conditional September 30 live cutoffs. The separate promotion in
+`protocol/mainline/promotions/2026-09-29-veritas-one-time-1800-activation.json`
+selects VERITAS policy v3 through activation set v4; production must still be
+deployed and read back before it counts as active there. The
 `/api/v1/partners/veritas/safety/pre-trade` path requires that exact active
-policy, a dedicated API-key ID and an explicitly selected one-time UTC window;
-it currently fails closed. The generic pre-trade path and registered v2 rule
-remain at 600 seconds. The historical 2026-09-26 operator below must not be
-used for the proposed B window.
+policy, a dedicated API-key ID and an explicitly selected one-time UTC window.
+The generic pre-trade path and registered v2 rule remain at 600 seconds. The
+historical 2026-09-26 operator below must not be used for this window.
 
 `prepare-live-gate-pair-1800.mts` and `render-insight-gate-pair-1800.mts` are
 the September 30 window operator and plain-text handoff renderer. The operator
@@ -42,10 +42,9 @@ with `--attempt`, `--authorization`, `--authorization-received-at`,
 `--agreement-message-id`, `--agreement-evidence-path`,
 `--expected-activation-set-id`, and
 `--confirm-run-id insight-veritas-2026-09-18`. Retries also require
-`--previous-abort-path` and `--retry-request-path`. The production policy must
-be promoted separately, with CI, issuer/key/clock preflight and production
-read-back complete before READY. No partner proposal or this code alone grants
-permission to sign or broadcast.
+`--previous-abort-path` and `--retry-request-path`. The separate promotion
+must pass CI and production read-back, followed by issuer/key/clock preflight,
+before READY. Policy activation alone grants no permission to sign or broadcast.
 
 `v5-additional-negative-vector-2026-09-28.json` records a synthetic RPC
 inconsistency found during independent review of the counterparty v5 guard;

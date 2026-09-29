@@ -1,0 +1,18 @@
+{
+  "activationSetId": "0xdf95620c31f265a3cba6f0f55d5d731982c0a58eb879651d2c872c3f6c53b6a9",
+  "kind": "MainlinePartnerActivationSet",
+  "activationVersion": 4,
+  "predecessorActivationSetId": "0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db",
+  "rule": "One-time VERITAS joint-run activation for 2026-09-30 only. Only VERITAS changes from policy v2 to the pre-published v3 policy. The partner-scoped 1800-second issuer remains closed without the dedicated API-key ID and exact server-side date switch; the bilateral agreement, fresh preflights and READY are separate execution gates. Historical and all other partner mappings remain unchanged.",
+  "partners": {
+    "agent-passport": "0x11d4736a2c0a2c23f3a2d46f863d3ebb64e2b738f8da4a02bd12a30368578a43",
+    "andydgrea": "0xe556b47dbdb4e3d7cab2c4fb882ffe0b65d6c4750ac0ff5ce6ee2f0494d3b787",
+    "emilia": "0x0ce8536c90b23ebcb2952422e5eb67628da65c14b6bf5782849f20c0b137815b",
+    "frontier-compute": "0xca3bd5acb9d70f9e9755fad44e87cff1122f88986a6c61b33d93a49e3bb15861",
+    "headless": "0xd510bd9f29be0b896aed2e2b95200eab25cb9e03430a456f1bee3df7a17de158",
+    "interai": "0xb539451842dc4e907d6fcea012aa094f4fea3c3acd2fd054aa4106848f602239",
+    "raul": "0x5a80afffbb667b62014c727fae35e9f00edd6ca99555baa1c4cc79d0650768d0",
+    "vaara": "0x248f339e382efefaf20c9caad0ed6ee3db75775b5b5649b3d2421bb28d376341",
+    "veritas": "0x022050775106ce8cd9a9fd57904a3a9ca2c9b491f5073871ab17ed2dcb1d054a"
+  }
+}
