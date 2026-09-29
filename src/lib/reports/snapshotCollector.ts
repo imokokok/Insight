@@ -126,10 +126,24 @@ async function fetchBatchPrices(
   const feedRegistry = await getAllActiveFeedsByProviderWithStatus();
   const activeFeedsByProvider = feedRegistry.feeds;
 
+  // Preserve each provider's registry order while matching report assets in
+  // constant time instead of scanning its feeds once per asset.
+  const reportFeedsByProvider = new Map<OracleProvider, Map<string, OracleFeed[]>>();
+  for (const provider of REPORT_PROVIDERS) {
+    const feedsBySymbol = new Map<string, OracleFeed[]>();
+    for (const feed of activeFeedsByProvider.get(provider) ?? []) {
+      const baseSymbol = extractBaseSymbol(feed.symbol).toUpperCase();
+      if (!reportSymbols.has(baseSymbol) || !isUsdDenominatedFeedSymbol(feed.symbol)) continue;
+      const matches = feedsBySymbol.get(baseSymbol) ?? [];
+      matches.push(feed);
+      feedsBySymbol.set(baseSymbol, matches);
+    }
+    reportFeedsByProvider.set(provider, feedsBySymbol);
+  }
+
   for (const symbol of REPORT_ASSETS) {
     for (const provider of REPORT_PROVIDERS) {
       const upperSymbol = symbol.toUpperCase();
-      const activeFeeds = activeFeedsByProvider.get(provider) ?? [];
       const client = factory.getClient(provider);
 
       // Match every active feed for this symbol across ALL chains so
@@ -145,12 +159,7 @@ async function fetchBatchPrices(
       // lag behind the DB — the discovery cron may find new feeds that
       // aren't yet reflected in the constants file, and filtering them
       // out would block legitimate, verified feeds from being sampled.
-      const matchedFeeds = activeFeeds.filter((feed) => {
-        return (
-          extractBaseSymbol(feed.symbol).toUpperCase() === upperSymbol &&
-          isUsdDenominatedFeedSymbol(feed.symbol)
-        );
-      });
+      const matchedFeeds = reportFeedsByProvider.get(provider)?.get(upperSymbol) ?? [];
 
       if (matchedFeeds.length > 0) {
         for (const feed of matchedFeeds) {

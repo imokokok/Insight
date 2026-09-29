@@ -112,14 +112,14 @@ class ReportService {
       );
     }
 
-    const metrics = calculateMetrics(snapshots);
+    const deviationEvents = extractDeviationEvents(snapshots);
+    const metrics = calculateMetrics(snapshots, deviationEvents);
     // ML model health: which model is deployed, its out-of-time test metrics,
     // and the realized closed-loop accuracy on labeled pre-trade checks. A
     // failure here must never fail the report — degrade to absent/errored.
     metrics.mlModelHealth = await buildMlModelHealth();
     const topAssets = calculateAssetStats(snapshots);
     const providerRankings = calculateProviderRankings(snapshots);
-    const deviationEvents = extractDeviationEvents(snapshots);
     const anomalySummary = calculateAnomalySummary(snapshots, deviationEvents);
     const coverageMatrix = calculateCoverageMatrix(snapshots);
     const failureBreakdown = calculateFailureBreakdown(snapshots);
