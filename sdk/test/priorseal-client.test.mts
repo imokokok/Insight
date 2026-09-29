@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { PriorSealBridgeError, PriorSealClient } from '../src/priorseal';
+import {
+  PriorSealBridgeError,
+  PriorSealClient,
+  buildPriorSealExactCallIntent,
+} from '../src/priorseal';
 
 const observationInput = {
   authorizationId: 'auth_test',
@@ -72,5 +76,75 @@ test('PriorSeal client rejects a malformed completed observation result', async 
       result: { observation: { status: 'CONFIRMED' }, receipt: {} },
     }).waitForObservationJob('job_1'),
     invalidResponse
+  );
+});
+
+test('PriorSeal bridge follows a retry-wait job schedule', async () => {
+  let calls = 0;
+  const dueAt = Date.now() + 90;
+  const client = new PriorSealClient({
+    baseUrl: 'https://priorseal.test',
+    fetch: async () => {
+      calls++;
+      return new Response(
+        JSON.stringify(
+          calls === 1
+            ? { jobId: 'job_1', state: 'RETRY_WAIT', attempts: 1, nextAttemptAt: dueAt }
+            : { jobId: 'job_1', state: 'COMPLETED', attempts: 2 }
+        ),
+        { status: 200 }
+      );
+    },
+  });
+  const startedAt = Date.now();
+  const result = await client.waitForObservationJob('job_1', {
+    pollIntervalMs: 10,
+    timeoutMs: 500,
+  });
+  assert.equal(result.state, 'COMPLETED');
+  assert.equal(calls, 2);
+  assert.ok(Date.now() - startedAt >= 60, 'must not poll immediately during retry wait');
+});
+
+test('PriorSeal exact-call bridge normalizes commitments like the canonical SDK', () => {
+  // Fixture semantics follow PriorSeal sdk/src/exact-call.ts at c0372ad41a0d.
+  const transaction = {
+    chainId: 8453,
+    from: `0x${'A'.repeat(40)}`,
+    to: `0x${'B'.repeat(40)}`,
+    data: '0x1234' as const,
+    nonce: '7',
+    sourceAmount: '1000000',
+  };
+  const commitments = [
+    {
+      namespace: 'z.test',
+      algorithm: 'keccak256' as const,
+      digest: `0x${'A'.repeat(64)}` as const,
+    },
+    { namespace: 'a.test', algorithm: 'sha256' as const, digest: `0x${'b'.repeat(64)}` as const },
+  ];
+  const intent = buildPriorSealExactCallIntent({
+    transaction,
+    intentId: 'test-intent',
+    sourceAssetId: 'eip155:8453/native',
+    validUntil: 1_900_000_000,
+    contextCommitments: commitments,
+  });
+  assert.deepEqual(intent.contextCommitments, [
+    { namespace: 'a.test', algorithm: 'sha256', digest: `0x${'b'.repeat(64)}` },
+    { namespace: 'z.test', algorithm: 'keccak256', digest: `0x${'a'.repeat(64)}` },
+  ]);
+  assert.equal(commitments[0].digest, `0x${'A'.repeat(64)}`, 'input must remain unchanged');
+  assert.throws(
+    () =>
+      buildPriorSealExactCallIntent({
+        transaction,
+        intentId: 'test-intent',
+        sourceAssetId: 'eip155:8453/native',
+        validUntil: 1_900_000_000,
+        contextCommitments: [commitments[0], commitments[0]],
+      }),
+    /must not contain duplicates/
   );
 });

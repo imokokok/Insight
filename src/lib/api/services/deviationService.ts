@@ -36,38 +36,33 @@ export interface DeviationServiceResult {
   timeline: DeviationTimelineBucket[];
 }
 
-/**
- * Fetch hourly price snapshots and aggregate per-provider deviation statistics
- * plus a bucketed timeline for charting.
- * Currently consumed by the v1/deviation API route; extracted so the heavy
- * aggregation logic can be reused or unit-tested independently of HTTP.
- */
-export async function getDeviationTimeline(
-  input: DeviationServiceInput
-): Promise<DeviationServiceResult> {
-  const { symbol, from, to, interval } = input;
+const DEVIATION_COLUMNS = [
+  'snapshot_hour',
+  'provider',
+  'price',
+  'consensus_price',
+  'deviation_pct',
+  'latency_ms',
+  'is_success',
+] as const;
 
-  const fromAt = startOfDayUtc(from);
-  const toEndAtIso = endOfDayExclusiveUtc(to);
-
+export async function loadDeviationHistory(symbol: string, from: string, to: string) {
   const supabase = createServiceRoleClient();
-  const rows = await loadSnapshotHistoryRange(
+  return loadSnapshotHistoryRange(
     supabase,
     'hourly',
-    fromAt,
-    toEndAtIso,
-    [
-      'snapshot_hour',
-      'provider',
-      'price',
-      'consensus_price',
-      'deviation_pct',
-      'latency_ms',
-      'is_success',
-    ],
+    startOfDayUtc(from),
+    endOfDayExclusiveUtc(to),
+    DEVIATION_COLUMNS,
     { symbol, ascending: true }
   );
+}
 
+type DeviationRow = Awaited<ReturnType<typeof loadDeviationHistory>>[number];
+
+export function aggregateDeviationProviders(
+  rows: readonly DeviationRow[]
+): DeviationProviderAggregate[] {
   const providerAggMap = new Map<
     string,
     {
@@ -91,15 +86,11 @@ export async function getDeviationTimeline(
       agg.deviations.push(absDev);
       agg.maxDeviation = Math.max(agg.maxDeviation, absDev);
     }
-    if (row.latency_ms != null) {
-      agg.latencies.push(row.latency_ms);
-    }
-    if (row.is_success) {
-      agg.successes++;
-    }
+    if (row.latency_ms != null) agg.latencies.push(row.latency_ms);
+    if (row.is_success) agg.successes++;
   }
 
-  const providers = Array.from(providerAggMap.entries()).map(([provider, agg]) => ({
+  return Array.from(providerAggMap.entries()).map(([provider, agg]) => ({
     provider,
     snapshots: agg.snapshots,
     avgDeviationPct:
@@ -113,6 +104,21 @@ export async function getDeviationTimeline(
         : 0,
     successRate: agg.snapshots > 0 ? (agg.successes / agg.snapshots) * 100 : 0,
   }));
+}
+
+/**
+ * Fetch hourly price snapshots and aggregate per-provider deviation statistics
+ * plus a bucketed timeline for charting.
+ * Currently consumed by the v1/deviation API route; extracted so the heavy
+ * aggregation logic can be reused or unit-tested independently of HTTP.
+ */
+export async function getDeviationTimeline(
+  input: DeviationServiceInput
+): Promise<DeviationServiceResult> {
+  const { symbol, from, to, interval } = input;
+
+  const rows = await loadDeviationHistory(symbol, from, to);
+  const providers = aggregateDeviationProviders(rows);
 
   const intervalMs =
     interval === '1h' ? 3_600_000 : interval === '6h' ? 6 * 3_600_000 : 24 * 3_600_000;

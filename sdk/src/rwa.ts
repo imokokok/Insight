@@ -519,53 +519,83 @@ export function rwaSigningData(report: RwaReport) {
 export function rwaReportDigest(report: RwaReport): string {
   return hashTypedData(rwaSigningData(report));
 }
+
+function snapshotRwaVerificationInput(
+  proof: SignedRwaReport,
+  trust: RwaTrust
+): [SignedRwaReport, RwaTrust] {
+  // Do not allow caller mutation while signature verification is awaiting.
+  return [JSON.parse(rwaCanonicalJson(proof)), JSON.parse(rwaCanonicalJson(trust))];
+}
+
+function rwaScopeMatches(report: RwaReport, trust: RwaTrust): boolean {
+  return (
+    report.policyId === trust.policyId &&
+    report.environment === trust.environment &&
+    trust.environment === trust.policy.environment &&
+    rwaRequestHash(report.input.request) === rwaRequestHash(trust.request)
+  );
+}
+
+function rwaEvaluationMatches(report: RwaReport, policy: RwaPolicy): boolean {
+  return (
+    rwaCanonicalJson(report) ===
+    rwaCanonicalJson(buildRwaReport(report.input, policy, report.evaluatedAt))
+  );
+}
+
+function rwaMatchingSignerKeys(proof: SignedRwaReport, trust: RwaTrust) {
+  return trust.keys.filter((key) => key.address.toLowerCase() === proof.signer?.toLowerCase());
+}
+
+function rwaSignerWindowMatches(key: RwaTrust['keys'][number], report: RwaReport): boolean {
+  return (
+    key.revoked === false &&
+    integer(key.validFrom) &&
+    integer(key.validUntil, 1) &&
+    key.validFrom <= report.evaluatedAt &&
+    report.validUntil <= key.validUntil
+  );
+}
+
+function rwaSignatureMatches(
+  report: RwaReport,
+  signature: string,
+  signer: string
+): Promise<boolean> {
+  return verifyTypedData({
+    ...rwaSigningData(report),
+    address: signer as `0x${string}`,
+    signature: signature as `0x${string}`,
+  });
+}
+
 export async function verifyRwaReport(
   proof: SignedRwaReport,
   trust: RwaTrust,
   now = Math.floor(Date.now() / 1000)
 ): Promise<{ valid: boolean; reasons: string[] }> {
   try {
-    // Do not allow caller mutation while signature verification is awaiting.
-    proof = JSON.parse(rwaCanonicalJson(proof)) as SignedRwaReport;
-    trust = JSON.parse(rwaCanonicalJson(trust)) as RwaTrust;
+    [proof, trust] = snapshotRwaVerificationInput(proof, trust);
     assert(integer(now, 1) && rwaPolicyId(trust.policy) === trust.policyId, 'RWA_INVALID_TRUST');
     const r = proof.report;
-    assert(
-      r.schema === 'insight.rwa-report.v1' &&
-        r.policyId === trust.policyId &&
-        r.environment === trust.environment &&
-        trust.environment === trust.policy.environment &&
-        rwaRequestHash(r.input.request) === rwaRequestHash(trust.request),
-      'RWA_SCOPE_MISMATCH'
-    );
-    assert(
-      rwaCanonicalJson(r) ===
-        rwaCanonicalJson(buildRwaReport(r.input, trust.policy, r.evaluatedAt)),
-      'RWA_EVALUATION_MISMATCH'
-    );
+    assert(r.schema === 'insight.rwa-report.v1' && rwaScopeMatches(r, trust), 'RWA_SCOPE_MISMATCH');
+    assert(rwaEvaluationMatches(r, trust.policy), 'RWA_EVALUATION_MISMATCH');
     assert(r.evaluatedAt <= now && now < r.validUntil, 'RWA_EXPIRED_OR_FUTURE');
     assert(rwaReportDigest(r) === proof.digest, 'RWA_DIGEST_MISMATCH');
-    const keys = trust.keys.filter((k) => k.address.toLowerCase() === proof.signer?.toLowerCase()),
+    const keys = rwaMatchingSignerKeys(proof, trust),
       key = keys[0];
     assert(
       keys.length === 1 &&
         key &&
         address(key.address.toLowerCase()) &&
-        key.revoked === false &&
-        integer(key.validFrom) &&
-        integer(key.validUntil, 1) &&
-        key.validFrom <= r.evaluatedAt &&
-        r.validUntil <= key.validUntil &&
+        rwaSignerWindowMatches(key, r) &&
         now < key.validUntil,
       'RWA_SIGNER_UNTRUSTED'
     );
     assert(
       /^0x[0-9a-fA-F]{130}$/.test(proof.signature) &&
-        (await verifyTypedData({
-          ...rwaSigningData(r),
-          address: key.address as `0x${string}`,
-          signature: proof.signature as `0x${string}`,
-        })),
+        (await rwaSignatureMatches(r, proof.signature, key.address)),
       'RWA_SIGNATURE_INVALID'
     );
     const current = buildRwaReport(r.input, trust.policy, now);
@@ -613,8 +643,7 @@ export async function inspectRwaReport(
     reasons: [],
   };
   try {
-    proof = JSON.parse(rwaCanonicalJson(proof));
-    trust = JSON.parse(rwaCanonicalJson(trust));
+    [proof, trust] = snapshotRwaVerificationInput(proof, trust);
     const r = proof.report;
     result.integrity = 'FAIL';
     assert(
@@ -624,40 +653,17 @@ export async function inspectRwaReport(
         /^0x[0-9a-fA-F]{130}$/.test(proof.signature),
       'RWA_INTEGRITY_INVALID'
     );
-    assert(
-      await verifyTypedData({
-        ...rwaSigningData(r),
-        address: proof.signer as `0x${string}`,
-        signature: proof.signature as `0x${string}`,
-      }),
-      'RWA_SIGNATURE_INVALID'
-    );
+    assert(await rwaSignatureMatches(r, proof.signature, proof.signer), 'RWA_SIGNATURE_INVALID');
     result.integrity = 'PASS';
     result.trust = 'FAIL';
     assert(
-      rwaPolicyId(trust.policy) === trust.policyId &&
-        r.policyId === trust.policyId &&
-        r.environment === trust.environment &&
-        trust.environment === trust.policy.environment &&
-        rwaRequestHash(r.input.request) === rwaRequestHash(trust.request),
+      rwaPolicyId(trust.policy) === trust.policyId && rwaScopeMatches(r, trust),
       'RWA_SCOPE_MISMATCH'
     );
-    const keys = trust.keys.filter((k) => k.address.toLowerCase() === proof.signer.toLowerCase()),
+    const keys = rwaMatchingSignerKeys(proof, trust),
       key = keys[0];
-    assert(
-      keys.length === 1 &&
-        key.revoked === false &&
-        integer(key.validFrom) &&
-        integer(key.validUntil, 1) &&
-        key.validFrom <= r.evaluatedAt &&
-        key.validUntil >= r.validUntil,
-      'RWA_SIGNER_UNTRUSTED'
-    );
-    assert(
-      rwaCanonicalJson(r) ===
-        rwaCanonicalJson(buildRwaReport(r.input, trust.policy, r.evaluatedAt)),
-      'RWA_EVALUATION_MISMATCH'
-    );
+    assert(keys.length === 1 && rwaSignerWindowMatches(key, r), 'RWA_SIGNER_UNTRUSTED');
+    assert(rwaEvaluationMatches(r, trust.policy), 'RWA_EVALUATION_MISMATCH');
     result.trust = 'PASS';
     result.decision = r.evaluation.verdict;
     result.time = 'FAIL';

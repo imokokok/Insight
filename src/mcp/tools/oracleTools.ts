@@ -1,9 +1,11 @@
 import type { ConsensusMethod } from '@/lib/analytics/consensusPrice';
 import { handleGetPrice } from '@/lib/api/oracleHandlers';
 import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
-import { createServiceRoleClient } from '@/lib/supabase/server';
-import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
-import { getDaysAgoUtc, getTodayUtc, startOfDayUtc, endOfDayExclusiveUtc } from '@/lib/utils/date';
+import {
+  aggregateDeviationProviders,
+  loadDeviationHistory,
+} from '@/lib/api/services/deviationService';
+import { getDaysAgoUtc, getTodayUtc } from '@/lib/utils/date';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { formatAsText, formatPercent, formatPrice, formatTimestamp } from './formatters';
@@ -107,76 +109,13 @@ export const compareOracleDeviationTool: McpToolDefinition<typeof DeviationInput
     const resolvedFrom = args.from ?? getDaysAgoUtc(7);
     const resolvedTo = args.to ?? getTodayUtc();
 
-    const fromAt = startOfDayUtc(resolvedFrom);
-    const toEndAtIso = endOfDayExclusiveUtc(resolvedTo);
-
-    const supabase = createServiceRoleClient();
-    const rows = await loadSnapshotHistoryRange(
-      supabase,
-      'hourly',
-      fromAt,
-      toEndAtIso,
-      [
-        'snapshot_hour',
-        'provider',
-        'price',
-        'consensus_price',
-        'deviation_pct',
-        'latency_ms',
-        'is_success',
-      ],
-      { symbol: args.symbol, ascending: true }
-    );
+    const rows = await loadDeviationHistory(args.symbol, resolvedFrom, resolvedTo);
 
     if (rows.length === 0) {
       return `No deviation data available for ${args.symbol} between ${resolvedFrom} and ${resolvedTo}.`;
     }
 
-    const providerAggMap = new Map<
-      string,
-      {
-        snapshots: number;
-        successes: number;
-        deviations: number[];
-        maxDeviation: number;
-        latencies: number[];
-      }
-    >();
-
-    for (const row of rows) {
-      let agg = providerAggMap.get(row.provider);
-      if (!agg) {
-        agg = { snapshots: 0, successes: 0, deviations: [], maxDeviation: 0, latencies: [] };
-        providerAggMap.set(row.provider, agg);
-      }
-      agg.snapshots++;
-      if (row.deviation_pct != null) {
-        const absDev = Math.abs(row.deviation_pct);
-        agg.deviations.push(absDev);
-        agg.maxDeviation = Math.max(agg.maxDeviation, absDev);
-      }
-      if (row.latency_ms != null) {
-        agg.latencies.push(row.latency_ms);
-      }
-      if (row.is_success) {
-        agg.successes++;
-      }
-    }
-
-    const providers = Array.from(providerAggMap.entries()).map(([provider, agg]) => ({
-      provider,
-      snapshots: agg.snapshots,
-      avgDeviationPct:
-        agg.deviations.length > 0
-          ? agg.deviations.reduce((a, b) => a + b, 0) / agg.deviations.length
-          : 0,
-      maxDeviationPct: agg.maxDeviation,
-      avgLatencyMs:
-        agg.latencies.length > 0
-          ? Math.round(agg.latencies.reduce((a, b) => a + b, 0) / agg.latencies.length)
-          : 0,
-      successRate: agg.snapshots > 0 ? (agg.successes / agg.snapshots) * 100 : 0,
-    }));
+    const providers = aggregateDeviationProviders(rows);
 
     providers.sort((a, b) => a.avgDeviationPct - b.avgDeviationPct);
 

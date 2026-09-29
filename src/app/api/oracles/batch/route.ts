@@ -1,43 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { z } from 'zod';
-
 import { createApiHandler } from '@/lib/api/handler';
+import { BatchPriceRequestSchema, fetchBatchPrices } from '@/lib/api/services/batchPriceService';
 import { createCachedJsonResponse } from '@/lib/api/utils';
-import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
-import { SafeSymbolSchema, SafeProviderSchema, SafeChainSchema } from '@/lib/security/validation';
-import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
-import { type Blockchain, type OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('batch-oracle-price');
-
-// Bound concurrent upstream oracle fetches per batch request so a single
-// 20-query batch does not fan out 20 simultaneous RPC/HTTP calls (which,
-// compounded by parallel clients, can trip upstream rate limits).
-const BATCH_FETCH_CONCURRENCY = 5;
-
-const BatchPriceQuerySchema = z.object({
-  provider: SafeProviderSchema,
-  symbol: SafeSymbolSchema,
-  chain: SafeChainSchema.optional(),
-});
-
-const BatchPriceRequestSchema = z.object({
-  queries: z
-    .array(BatchPriceQuerySchema)
-    .min(1, 'At least one query is required')
-    .max(20, 'Maximum 20 queries per batch request'),
-  forceRefresh: z.boolean().optional().default(false),
-});
-
-interface BatchPriceResult {
-  provider: string;
-  symbol: string;
-  chain?: string;
-  price: PriceData | null;
-  error: string | null;
-}
 
 export const POST = createApiHandler(
   async (request: NextRequest) => {
@@ -66,66 +34,14 @@ export const POST = createApiHandler(
       );
     }
 
-    const { queries, forceRefresh } = validation.data;
-
-    // A single browser request fans out into multiple provider calls. Passing
-    // request.signal directly to every fetch adds many listeners to the same
-    // EventTarget and triggers Node's MaxListenersExceededWarning. One parent
-    // listener fans cancellation out to per-query signals without weakening
-    // the leave-page cancellation behavior.
-    const queryControllers = queries.map(() => new AbortController());
-    const abortQueries = () => {
-      for (const controller of queryControllers) {
-        if (!controller.signal.aborted) controller.abort(request.signal.reason);
-      }
-    };
-
-    if (request.signal.aborted) {
-      abortQueries();
-    } else {
-      request.signal.addEventListener('abort', abortQueries, { once: true });
-    }
-
-    let data: BatchPriceResult[];
-    try {
-      data = await mapWithConcurrency(
-        queries,
-        BATCH_FETCH_CONCURRENCY,
-        async (query, index): Promise<BatchPriceResult> => {
-          try {
-            const price = await fetchPriceWithDatabase(
-              query.provider as OracleProvider,
-              query.symbol,
-              query.chain as Blockchain | undefined,
-              true,
-              forceRefresh,
-              queryControllers[index].signal
-            );
-            return {
-              provider: query.provider,
-              symbol: query.symbol,
-              chain: query.chain,
-              price,
-              error: null,
-            };
-          } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            logger.error(
-              `Batch query failed for ${query.provider}/${query.symbol}/${query.chain}: ${message}`
-            );
-            return {
-              provider: query.provider,
-              symbol: query.symbol,
-              chain: query.chain,
-              price: null,
-              error: message,
-            };
-          }
-        }
-      );
-    } finally {
-      request.signal.removeEventListener('abort', abortQueries);
-    }
+    const data = await fetchBatchPrices(validation.data, {
+      signal: request.signal,
+      onQueryError: (query, message) => {
+        logger.error(
+          `Batch query failed for ${query.provider}/${query.symbol}/${query.chain}: ${message}`
+        );
+      },
+    });
 
     const hasErrors = data.some((item) => item.error !== null);
 
