@@ -19,8 +19,33 @@ for review but is not registered or selected by the current activation set. The 
 policy, a dedicated API-key ID and an explicitly selected one-time UTC window;
 it currently fails closed. The generic pre-trade path and registered v2 rule
 remain at 600 seconds. The historical 2026-09-26 operator below must not be
-used for the proposed B window. A new live operator, bilateral tool checks,
-promotion and production read-back are still required before any live READY.
+used for the proposed B window.
+
+`prepare-live-gate-pair-1800.mts` and `render-insight-gate-pair-1800.mts` are
+the September 30 window operator and plain-text handoff renderer. The operator
+requires the exact 02:00–03:30 UTC window, a local copy of the bilateral written
+agreement, the fresh 01:55–02:00 UTC READY and 31/31 host report, an exact
+production activation-set ID, production policy and signer read-back, and a
+dedicated `INSIGHT_API_KEY` whose ID matches the production one-time admission
+configuration. It refuses early or late signing, a missing control file, an
+invalid signed gate, a non-PASS verdict, a stale pair, a wrong route or rule, and
+a reused attempt lock. Attempt 7 or 8 additionally requires the preceding
+`ATTEMPT_ABORT` and a fresh `VERITAS_RETRY_REQUEST`. The lock remains after a
+network timeout because an uncertain signing outcome is not permission to
+sign again. The operator emits the complete two-envelope plain-text message,
+v3 Bitcoin commitment input and an audit record in a private output directory;
+it does not send email or broadcast transactions.
+
+Run `node --import tsx scripts/veritas-joint-run/prepare-live-gate-pair-1800.mts`
+with `--attempt`, `--authorization`, `--authorization-received-at`,
+`--ready-received-at`, `--ready-message-path`, `--host-report-path`,
+`--agreement-message-id`, `--agreement-evidence-path`,
+`--expected-activation-set-id`, and
+`--confirm-run-id insight-veritas-2026-09-18`. Retries also require
+`--previous-abort-path` and `--retry-request-path`. The production policy must
+be promoted separately, with CI, issuer/key/clock preflight and production
+read-back complete before READY. No partner proposal or this code alone grants
+permission to sign or broadcast.
 
 `v5-additional-negative-vector-2026-09-28.json` records a synthetic RPC
 inconsistency found during independent review of the counterparty v5 guard;
