@@ -38,6 +38,7 @@ import {
 import { selectPreTradeValidity } from '@/lib/attestations/preTradeValidityPolicy';
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
+import { assertVeritasJointRun1800Admission } from '@/lib/attestations/veritasJointRunValidity';
 import { UnsupportedSymbolError, ValidationError } from '@/lib/errors';
 import {
   computeMarketReferenceContext,
@@ -399,6 +400,8 @@ export interface AuditMeta {
   workflowTag?: string;
   baselineVerdict?: 'allow' | 'alert' | 'block' | 'unknown';
   baselineVersion?: string;
+  /** Set only by the policy-bound VERITAS partner route, never from public query input. */
+  veritasJointRunPolicyId?: string;
 }
 
 async function logAudit(
@@ -1253,6 +1256,23 @@ async function issueAttestation(
   // the independence threshold, so a holder of the receipt can check the gate
   // without access to this codebase.
   if (input.schemaVersion !== 3) return signAttestationV2(attestationInput);
+  if (aggregates.meta?.veritasJointRunPolicyId) {
+    assertVeritasJointRun1800Admission(
+      {
+        partnerId: 'veritas',
+        policyId: aggregates.meta.veritasJointRunPolicyId,
+        apiKeyId: aggregates.meta.apiKeyId,
+        asset: input.asset,
+        destinationAsset: input.destinationAsset,
+        chainId: input.chainId,
+        action: input.action,
+        tradeAmountUsd: input.tradeAmountUsd,
+        schemaVersion: input.schemaVersion,
+      },
+      'sign'
+    );
+    return signAttestationV3(attestationInput, { validForSeconds: 1800 });
+  }
   const validity = selectPreTradeValidity({
     schemaVersion: input.schemaVersion,
     subjectChainId: input.chainId,

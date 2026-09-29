@@ -1,5 +1,56 @@
 # VERITAS joint-run readiness artifacts
 
+## 2026-09-28 one-time 1800-second candidate (not activated)
+
+`anchored-settlement-selection-rule-v3.json` preserves v2 and makes only the five
+text changes proposed for a single VERITAS joint run. Its JCS is 7,754 bytes and
+its hash is `0xb1071d6929d1dc13812d9aa19bf28a74dca4d90c07d47e9b2052f9f9c3c52465`.
+The v2 Bitcoin and Ethereum fixture UIDs with that new rule produce
+`bitcoin-anchor-commitment-vector-v2.json` and
+`ethereum-ordering-commitment-vector-v2.json`; the preimage schemas stay v1.
+Run `node --import tsx scripts/veritas-joint-run/verify-v3-candidate.mts` to
+check the exact change, byte lengths, hashes and negative mutations.
+
+`joint-run-1800-candidate-2026-09-30.json` records the confirmed September 29
+review window and conditional September 30 live cutoffs. It is not READY or a live authorization. The candidate
+partner policy in `protocol/mainline/policies/veritas/v3.json` is stored
+for review but is not registered or selected by the current activation set. The new
+`/api/v1/partners/veritas/safety/pre-trade` path requires that exact active
+policy, a dedicated API-key ID and an explicitly selected one-time UTC window;
+it currently fails closed. The generic pre-trade path and registered v2 rule
+remain at 600 seconds. The historical 2026-09-26 operator below must not be
+used for the proposed B window.
+
+`prepare-live-gate-pair-1800.mts` and `render-insight-gate-pair-1800.mts` are
+the September 30 window operator and plain-text handoff renderer. The operator
+requires the exact 02:00–03:30 UTC window, a local copy of the bilateral written
+agreement, the fresh 01:55–02:00 UTC READY and 31/31 host report, an exact
+production activation-set ID, production policy and signer read-back, and a
+dedicated `INSIGHT_API_KEY` whose ID matches the production one-time admission
+configuration. It refuses early or late signing, a missing control file, an
+invalid signed gate, a non-PASS verdict, a stale pair, a wrong route or rule, and
+a reused attempt lock. Attempt 7 or 8 additionally requires the preceding
+`ATTEMPT_ABORT` and a fresh `VERITAS_RETRY_REQUEST`. The lock remains after a
+network timeout because an uncertain signing outcome is not permission to
+sign again. The operator emits the complete two-envelope plain-text message,
+v3 Bitcoin commitment input and an audit record in a private output directory;
+it does not send email or broadcast transactions.
+
+Run `node --import tsx scripts/veritas-joint-run/prepare-live-gate-pair-1800.mts`
+with `--attempt`, `--authorization`, `--authorization-received-at`,
+`--ready-received-at`, `--ready-message-path`, `--host-report-path`,
+`--agreement-message-id`, `--agreement-evidence-path`,
+`--expected-activation-set-id`, and
+`--confirm-run-id insight-veritas-2026-09-18`. Retries also require
+`--previous-abort-path` and `--retry-request-path`. The production policy must
+be promoted separately, with CI, issuer/key/clock preflight and production
+read-back complete before READY. No partner proposal or this code alone grants
+permission to sign or broadcast.
+
+`v5-additional-negative-vector-2026-09-28.json` records a synthetic RPC
+inconsistency found during independent review of the counterparty v5 guard;
+it is not an observation from a real Ethereum endpoint.
+
 2026-09-26 window A preparation is in `joint-run-window-a-2026-09-26-plan.json`
 and `RUNBOOK-2026-09-26-WINDOW-A.md`. The production-role, no-broadcast
 WETH/USDC gate-to-selected-event-receipt check is
