@@ -1,3 +1,4 @@
+import { getReputationRankings } from '@/lib/oracles/services/reputationRankings';
 import { reputationService } from '@/lib/oracles/services/reputationService';
 import { type OracleProvider } from '@/types/oracle';
 
@@ -10,84 +11,20 @@ export const getReputationRankingsTool: McpToolDefinition<typeof ReputationRanki
   description: 'Get oracle provider reputation rankings with trend over a period (1-90 days).',
   parameters: ReputationRankingsInputSchema,
   handler: async (args) => {
-    const currentReputations = await reputationService.getReputations();
+    const rankings = await getReputationRankings(args.days);
 
-    if (currentReputations.length === 0) {
-      await reputationService.seedInitialReputations();
-    }
-
-    const currentRanking = currentReputations
-      .sort((a, b) => b.overall_score - a.overall_score)
-      .map((rep, index) => ({
-        rank: index + 1,
-        provider: rep.provider,
-        overallScore: rep.overall_score,
-        accuracyScore: rep.accuracy_score,
-        uptimePercentage: rep.uptime_percentage,
-        reliabilityScore: rep.reliability_score,
-        freshnessScore: rep.freshness_score,
-        avgLatencyMs: rep.avg_latency_ms,
-        avgDeviationPct: rep.avg_deviation_pct,
-      }));
-
-    const rankChanges = await Promise.all(
-      currentRanking.map(async (entry) => {
-        let previousRank: number | null = null;
-        let change: number | null = null;
-
-        try {
-          const trend = await reputationService.getReputationTrend(
-            entry.provider as Parameters<typeof reputationService.getReputationTrend>[0],
-            args.days
-          );
-
-          if (trend.length >= 2) {
-            const allEarliestScores = await Promise.all(
-              currentReputations.map(async (rep) => {
-                const t = await reputationService.getReputationTrend(
-                  rep.provider as Parameters<typeof reputationService.getReputationTrend>[0],
-                  args.days
-                );
-                return {
-                  provider: rep.provider,
-                  score: t.length > 0 ? t[t.length - 1].success_rate * 100 : rep.overall_score,
-                };
-              })
-            );
-
-            allEarliestScores.sort((a, b) => b.score - a.score);
-            previousRank = allEarliestScores.findIndex((e) => e.provider === entry.provider) + 1;
-
-            if (previousRank > 0) {
-              change = previousRank - entry.rank;
-            }
-          }
-        } catch {
-          // ignore
-        }
-
-        return {
-          ...entry,
-          previousRank,
-          rankChange: change,
-          trend:
-            change !== null ? (change > 0 ? 'up' : change < 0 ? 'down' : 'unchanged') : 'no_data',
-        };
-      })
-    );
-
-    const scores = currentRanking.map((r) => r.overallScore);
+    const scores = rankings.map((r) => r.overallScore);
     const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
 
     const lines = [
       `**Oracle provider reputation rankings (${args.days}d trend)**`,
-      `- Total providers: ${currentRanking.length}`,
+      `- Total providers: ${rankings.length}`,
       `- Average score: ${avgScore.toFixed(1)}`,
       '',
       '**Rankings:**',
     ];
 
-    for (const r of rankChanges) {
+    for (const r of rankings) {
       const changeText =
         r.rankChange !== null
           ? ` (${r.rankChange > 0 ? '+' : ''}${r.rankChange} rank, ${r.trend})`
