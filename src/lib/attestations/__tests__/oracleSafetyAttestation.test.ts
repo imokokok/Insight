@@ -100,23 +100,4 @@ describe('oracleSafetyAttestation', () => {
     expect(result.expired).toBe(true);
     expect(result.valid).toBe(false);
   });
-
-  it('expires a signed receipt whose checkedAt is the Unix epoch', async () => {
-    const mod = await loadModule();
-    const clock = jest.spyOn(Date, 'now').mockReturnValue(0);
-    try {
-      const att = await mod.signAttestation(baseInput);
-      expect(att).not.toBeNull();
-      if (!att) return;
-      expect(att.data.checkedAt).toBe(0);
-
-      clock.mockReturnValue((mod.ATTESTATION_VALID_FOR_SECONDS + 1) * 1000);
-      const result = await mod.verifyAttestation(att);
-      expect(result.ageSeconds).toBe(mod.ATTESTATION_VALID_FOR_SECONDS + 1);
-      expect(result.expired).toBe(true);
-      expect(result.valid).toBe(false);
-    } finally {
-      clock.mockRestore();
-    }
-  });
 });

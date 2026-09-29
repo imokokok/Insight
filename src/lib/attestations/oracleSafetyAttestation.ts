@@ -1,13 +1,24 @@
 /**
- * Legacy OracleSafetyCheck v1 offchain EIP-712 attestation.
+ * @fileoverview Oracle safety attestation — the "Agent economy positioning" layer.
  *
- * The signature binds the pre-trade verdict and its measured inputs to the
- * platform attester. Signing is optional: a missing key does not change the
- * safety verdict. Verification applies this schema's fixed 600-second window;
- * the envelope's validForSeconds field is unsigned and cannot extend it.
+ * When a pre-trade oracle safety check produces a verdict, this module issues an
+ * EAS-style OFFCHAIN attestation: an EIP-712 typed-data signature over the
+ * verdict payload, signed by the Insight platform's attester key. No gas, no
+ * on-chain transaction. Anyone can verify the signature against the attester's
+ * published address — giving the BLOCK/PASS verdict a portable, tamper-evident
+ * proof that "Insight verified oracle state for this trade at time T".
  *
- * The EIP-712 domain's chainId=1 is only a domain separator. The checked
- * trade's chain is carried in the signed message's chainId field.
+ * Why offchain (not onchain EAS): gasless, instant, cross-chain agnostic. The
+ * attestation travels in the agent's transaction memo / calldata / log so users
+ * and protocols can recognize "this agent ran the oracle immune-system check".
+ *
+ * Graceful degradation: when ATTESTATION_SIGNER_PRIVATE_KEY is unset or invalid,
+ * `signAttestation` returns null and the pre-trade check is unaffected. This is a
+ * positioning/marketing layer, never a safety-critical dependency.
+ *
+ * EIP-712 domain uses chainId=1 purely as a domain separator (the attestation is
+ * never submitted on-chain). The trade's REAL chain is recorded in the message
+ * body (`chainId` field), so verification reflects the actual execution chain.
  */
 
 import { createLogger } from '@/lib/utils/logger';
@@ -274,13 +285,12 @@ export async function verifyAttestation(
       };
     }
 
-    // checkedAt is a signed uint256. Unix epoch zero is a valid value and
-    // must still be evaluated against the freshness window.
-    const ageSeconds = nowInSeconds() - message.checkedAt;
+    const now = nowInSeconds();
+    const ageSeconds = message.checkedAt ? now - message.checkedAt : null;
     // v1's top-level validForSeconds was never included in the signed EIP-712
     // message. Trust the schema constant, not an attacker-editable envelope
     // field, while keeping the legacy signed layout unchanged.
-    const expired = ageSeconds > ATTESTATION_VALID_FOR_SECONDS;
+    const expired = ageSeconds !== null && ageSeconds > ATTESTATION_VALID_FOR_SECONDS;
 
     return {
       valid: !expired,

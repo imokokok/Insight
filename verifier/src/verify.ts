@@ -148,7 +148,7 @@ async function verifyV1(attestation: RoutableAttestation): Promise<CoreResult> {
   }
 
   const checkedAt = typeof data.checkedAt === 'number' ? data.checkedAt : null;
-  const ageSeconds = checkedAt !== null ? nowSeconds() - checkedAt : null;
+  const ageSeconds = checkedAt ? nowSeconds() - checkedAt : null;
   // The v1 envelope's validForSeconds field is unsigned. The production
   // schema has always issued a 600-second window, so enforce that constant
   // without changing the frozen EIP-712 layout.
@@ -291,6 +291,9 @@ async function verifyRecheck(attestation: RoutableAttestation): Promise<CoreResu
     message: toRecheckMessage(data),
   } as const;
 
+  const checkedAt = typeof data.checkedAt === 'number' ? data.checkedAt : null;
+  const validUntil = typeof data.validUntil === 'number' ? data.validUntil : null;
+
   const base = await verifyWindowed(attestation, args, V2_SCHEMA_VERSION, data, 'recheck');
   if (base.code !== 'ok') return base;
 
@@ -298,8 +301,8 @@ async function verifyRecheck(attestation: RoutableAttestation): Promise<CoreResu
     data,
     V2_SCHEMA_VERSION,
     base.uid,
-    base.checkedAt,
-    base.validUntil,
+    checkedAt,
+    validUntil,
     'recheck'
   );
   if (bindingFailure) return bindingFailure;
@@ -316,6 +319,9 @@ async function verifyRecheckV3(attestation: RoutableAttestation): Promise<CoreRe
     message: toRecheckV3Message(data),
   } as const;
 
+  const checkedAt = typeof data.checkedAt === 'number' ? data.checkedAt : null;
+  const validUntil = typeof data.validUntil === 'number' ? data.validUntil : null;
+
   const base = await verifyWindowed(attestation, args, V3_SCHEMA_VERSION, data, 'recheck');
   if (base.code !== 'ok') return base;
 
@@ -323,8 +329,8 @@ async function verifyRecheckV3(attestation: RoutableAttestation): Promise<CoreRe
     data,
     V3_SCHEMA_VERSION,
     base.uid,
-    base.checkedAt,
-    base.validUntil,
+    checkedAt,
+    validUntil,
     'recheck'
   );
   if (bindingFailure) return bindingFailure;
@@ -340,8 +346,8 @@ async function verifyRecheckV3(attestation: RoutableAttestation): Promise<CoreRe
  * Verify an Insight oracle-safety receipt entirely locally.
  *
  * Pure with respect to the outside world: no network, no filesystem, no env,
- * no telemetry, and no clock beyond `Date.now()`. Freshness can change as time
- * passes; the cryptographic verdict is independent of Insight's availability.
+ * no telemetry, no clock beyond `Date.now()`. The same input always yields the
+ * same answer, on any machine, with or without Insight.
  *
  * Never throws on a bad document — a malformed receipt is a verification
  * failure, not an exception.

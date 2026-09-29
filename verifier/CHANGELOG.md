@@ -1,10 +1,5 @@
 # Changelog
 
-## Unreleased
-
-- Expire genuinely signed v1 receipts whose `checkedAt` is the Unix epoch, and make the key validity end exclusive in line with the application verifier.
-- Fail closed on malformed or ambiguous directly supplied key registries. Add standalone verifier regression tests and reject invalid optional telemetry timeouts.
-
 ## 0.3.1 — 2026-09-28
 
 - Require registry roles to be strings. Reject one-element arrays such as `["sample"]` instead of coercing them during validation, preserving the exact role used by downstream trust checks.

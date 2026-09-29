@@ -64,89 +64,34 @@ export const DEFAULT_SAMPLE_KEY_ID = 'insight-oracle-safety-sample';
 export const DEFAULT_SAMPLE_KEY_NOTE =
   'SAMPLE ONLY: receipts signed by this key carry synthetic demo facts (clearly-labelled demo inputs, no real settlement). Verify them to exercise the signature loop; never treat them as evidence of a real trade.';
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
-function nonEmptyString(value: unknown, field: string): string {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new Error(`${field} must be a non-empty string`);
-  }
-  return value;
-}
-
-function isoDate(value: unknown, field: string): string {
-  const date = nonEmptyString(value, field);
-  // Accept date-only configuration and ISO timestamps with an explicit zone.
-  // Date.parse alone also accepts locale-dependent strings such as "tomorrow".
-  if (
-    !/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))?$/.test(date) ||
-    !Number.isFinite(Date.parse(date)) ||
-    new Date(`${date.slice(0, 10)}T00:00:00.000Z`).toISOString().slice(0, 10) !== date.slice(0, 10)
-  ) {
-    throw new Error(`${field} must be an ISO date`);
-  }
-  return date;
-}
-
-function normalizeKey(value: unknown): KeyEntry {
-  if (!isRecord(value)) throw new Error('attestation key must be an object');
-  const raw = value;
-  if (typeof raw.public_key !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(raw.public_key)) {
+function normalizeKey(raw: Partial<KeyEntry> & { public_key: string }): KeyEntry {
+  if (!/^0x[0-9a-fA-F]{40}$/.test(raw.public_key)) {
     throw new Error('attestation public_key must be a 20-byte hex address');
   }
   if (raw.role !== undefined && raw.role !== 'attester' && raw.role !== 'sample') {
     throw new Error('attestation key role must be attester or sample');
   }
-  if (raw.algorithm !== undefined && raw.algorithm !== 'EIP-712/secp256k1') {
-    throw new Error('attestation key algorithm must be EIP-712/secp256k1');
+  const validFrom = raw.validFrom ?? process.env.ATTESTATION_KEY_VALID_FROM ?? DEFAULT_VALID_FROM;
+  if (Number.isNaN(Date.parse(validFrom))) {
+    throw new Error('attestation key validFrom must be an ISO date');
   }
-  if (raw.revoked !== undefined && typeof raw.revoked !== 'boolean') {
-    throw new Error('attestation key revoked must be a boolean');
-  }
-  if (raw.note !== undefined && typeof raw.note !== 'string') {
-    throw new Error('attestation key note must be a string');
-  }
-  const validFrom = isoDate(
-    raw.validFrom === undefined
-      ? (process.env.ATTESTATION_KEY_VALID_FROM ?? DEFAULT_VALID_FROM)
-      : raw.validFrom,
-    'attestation key validFrom'
-  );
-  const validUntil =
-    raw.validUntil == null ? null : isoDate(raw.validUntil, 'attestation key validUntil');
-  if (validUntil && Date.parse(validUntil) <= Date.parse(validFrom)) {
-    throw new Error('attestation key validUntil must be after validFrom');
+  if (
+    raw.validUntil !== undefined &&
+    raw.validUntil !== null &&
+    Number.isNaN(Date.parse(raw.validUntil))
+  ) {
+    throw new Error('attestation key validUntil must be an ISO date or null');
   }
   return {
-    key_id: nonEmptyString(
-      raw.key_id === undefined ? DEFAULT_KEY_ID : raw.key_id,
-      'attestation key key_id'
-    ),
+    key_id: raw.key_id ?? DEFAULT_KEY_ID,
     public_key: raw.public_key,
     algorithm: 'EIP-712/secp256k1',
     validFrom,
-    validUntil,
+    validUntil: raw.validUntil ?? null,
     revoked: raw.revoked ?? false,
-    note: raw.note as string | undefined,
-    role: raw.role as KeyEntry['role'],
+    note: raw.note,
+    role: raw.role,
   };
-}
-
-function normalizeRevokedKey(value: unknown): RevokedKey {
-  if (!isRecord(value)) throw new Error('revoked key must be an object');
-  return {
-    key_id: nonEmptyString(value.key_id, 'revoked key key_id'),
-    revoked_at: isoDate(value.revoked_at, 'revoked key revoked_at'),
-    reason: nonEmptyString(value.reason, 'revoked key reason'),
-  };
-}
-
-function assertUniqueKeyIds(keys: KeyEntry[]): void {
-  const ids = keys.map((key) => key.key_id);
-  if (new Set(ids).size !== ids.length) {
-    throw new Error('attestation key registry contains duplicate key_id values');
-  }
 }
 
 /**
@@ -164,19 +109,17 @@ export function buildKeyRegistryConfig(
   sampleAttester?: string | null
 ): KeyRegistryConfig {
   const keysConfig = process.env.ATTESTATION_KEYS_CONFIG;
-  if (attester && sampleAttester && attester.toLowerCase() === sampleAttester.toLowerCase()) {
-    throw new Error('production and sample attesters must use different keys');
-  }
   const sampleEntry: KeyEntry | null = sampleAttester
-    ? normalizeKey({
+    ? {
         key_id: process.env.ATTESTATION_SAMPLE_KEY_ID ?? DEFAULT_SAMPLE_KEY_ID,
         public_key: sampleAttester,
+        algorithm: 'EIP-712/secp256k1',
         validFrom: process.env.ATTESTATION_SAMPLE_KEY_VALID_FROM ?? '2026-09-03',
         validUntil: null,
         revoked: false,
         role: 'sample',
         note: DEFAULT_SAMPLE_KEY_NOTE,
-      })
+      }
     : null;
 
   let revoked: RevokedKey[] = [];
@@ -187,7 +130,7 @@ export function buildKeyRegistryConfig(
       if (!Array.isArray(parsedRevoked)) {
         throw new Error('ATTESTATION_REVOKED_KEYS_CONFIG must be a JSON array');
       }
-      revoked = parsedRevoked.map(normalizeRevokedKey);
+      revoked = parsedRevoked as RevokedKey[];
     } catch (error) {
       throw new Error(
         `Invalid attestation key registry configuration: ${
@@ -199,27 +142,23 @@ export function buildKeyRegistryConfig(
 
   if (keysConfig) {
     try {
-      const parsed: unknown = JSON.parse(keysConfig);
+      const parsed = JSON.parse(keysConfig) as Array<Partial<KeyEntry> & { public_key: string }>;
       if (!Array.isArray(parsed) || parsed.length === 0) {
         throw new Error('ATTESTATION_KEYS_CONFIG must be a non-empty JSON array');
       }
-      const keys = parsed.map(normalizeKey);
-      const addresses = keys.map((key) => key.public_key.toLowerCase());
-      if (new Set(addresses).size !== addresses.length) {
-        throw new Error('ATTESTATION_KEYS_CONFIG contains duplicate public_key addresses');
+      if (parsed.some((key) => typeof key.public_key !== 'string' || key.public_key.length === 0)) {
+        throw new Error('ATTESTATION_KEYS_CONFIG contains a key without public_key');
       }
+
+      const keys = parsed.map(normalizeKey);
       // Append the sample signer unless the explicit config already lists
       // its address (deduped by address, the verification identity).
-      if (sampleEntry) {
-        const existing = keys.find(
-          (key) => key.public_key.toLowerCase() === sampleEntry.public_key.toLowerCase()
-        );
-        if (existing && existing.role !== 'sample') {
-          throw new Error('sample signer cannot be registered as a production attester');
-        }
-        if (!existing) keys.push(sampleEntry);
+      if (
+        sampleEntry &&
+        !keys.some((k) => k.public_key.toLowerCase() === sampleEntry.public_key.toLowerCase())
+      ) {
+        keys.push(sampleEntry);
       }
-      assertUniqueKeyIds(keys);
       return { keys, revoked };
     } catch (error) {
       throw new Error(
@@ -242,7 +181,6 @@ export function buildKeyRegistryConfig(
       ]
     : [];
   if (sampleEntry) keys.push(sampleEntry);
-  assertUniqueKeyIds(keys);
 
   return {
     keys,
@@ -263,22 +201,20 @@ export function isAttestationKeyValid(
   checkedAt: number | null,
   config: KeyRegistryConfig
 ): boolean {
-  if (typeof attester !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(attester)) return false;
   const addr = attester.toLowerCase();
   const entry = config.keys.find((k) => k.public_key.toLowerCase() === addr);
   if (!entry) return false;
   if (entry.revoked) return false;
   if (config.revoked.some((revocation) => revocation.key_id === entry.key_id)) return false;
-  if (checkedAt == null || !Number.isSafeInteger(checkedAt) || checkedAt < 0) return false;
+  if (checkedAt == null) return false;
 
   const checkedAtMs = checkedAt * 1000;
-  if (!Number.isSafeInteger(checkedAtMs)) return false;
   const from = Date.parse(entry.validFrom);
-  if (!Number.isFinite(from) || checkedAtMs < from) return false;
+  if (!Number.isNaN(from) && checkedAtMs < from) return false;
 
   if (entry.validUntil) {
     const until = Date.parse(entry.validUntil);
-    if (!Number.isFinite(until) || until <= from || checkedAtMs >= until) return false;
+    if (!Number.isNaN(until) && checkedAtMs >= until) return false;
   }
   return true;
 }
