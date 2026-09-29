@@ -1,6 +1,7 @@
 import activationSetV1Json from '../../../protocol/mainline/activation-sets/v1.json';
 import activationSetV2Json from '../../../protocol/mainline/activation-sets/v2.json';
 import activationSetV3Json from '../../../protocol/mainline/activation-sets/v3.json';
+import activationSetV4Json from '../../../protocol/mainline/activation-sets/v4.json';
 import activationPointerJson from '../../../protocol/mainline/activations.json';
 import agentPassportJson from '../../../protocol/mainline/policies/agent-passport/v1.json';
 import andydgreaJson from '../../../protocol/mainline/policies/andydgrea/v1.json';
@@ -13,6 +14,7 @@ import raulJson from '../../../protocol/mainline/policies/raul/v1.json';
 import vaaraJson from '../../../protocol/mainline/policies/vaara/v1.json';
 import veritasJson from '../../../protocol/mainline/policies/veritas/v1.json';
 import veritasV2Json from '../../../protocol/mainline/policies/veritas/v2.json';
+import veritasV3Json from '../../../protocol/mainline/policies/veritas/v3.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -79,6 +81,7 @@ const rawPolicies = [
   vaaraJson,
   veritasJson,
   veritasV2Json,
+  veritasV3Json,
 ] as unknown as PartnerIntegrationPolicy[];
 
 function assertPolicy(policy: PartnerIntegrationPolicy): void {
@@ -105,7 +108,8 @@ const activationPointer = activationPointerJson as PartnerActivationPointer;
 const activationSetV1 = activationSetV1Json as unknown as PartnerActivationSet;
 const activationSetV2 = activationSetV2Json as unknown as PartnerActivationSet;
 const activationSetV3 = activationSetV3Json as unknown as PartnerActivationSet;
-const rawActivationSets = [activationSetV1, activationSetV2, activationSetV3];
+const activationSetV4 = activationSetV4Json as unknown as PartnerActivationSet;
+const rawActivationSets = [activationSetV1, activationSetV2, activationSetV3, activationSetV4];
 
 export const PARTNER_ACTIVATION_SETS = Object.freeze(
   Object.fromEntries(

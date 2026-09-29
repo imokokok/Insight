@@ -27,7 +27,7 @@ interface IssuanceContext {
   schemaVersion?: number;
 }
 
-/** A candidate issuance path: inactive until a separate partner-policy promotion. */
+/** A one-time partner issuance path; activation, key ID and date are independent gates. */
 export function assertVeritasJointRun1800Admission(
   context: IssuanceContext,
   phase: 'request' | 'sign',

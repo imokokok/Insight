@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 24,
+  "effectiveFrom": "2026-09-29",
+  "classification": "Explicit one-time VERITAS partner-policy activation for the bilaterally agreed 2026-09-30 joint-run window",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0xa90078ab2fa1ac5faa9233eee7e1da5e9fa158d0e01f70b059523483b50ced03",
+  "activationSetId": "0xdf95620c31f265a3cba6f0f55d5d731982c0a58eb879651d2c872c3f6c53b6a9",
+  "receiptImpact": "Signed OracleSafetyCheck v3 and ExecutionReceipt v5 layouts, semantic profile, registry release, attester key and historical evidence are unchanged. The VERITAS-only policy v3 adds an 1800-second gate-validity exception, fixed WETH/USDC terms, the v3 selection-rule hash and a 2026-09-30 03:30 UTC end. Its partner-scoped issuance route also requires an exact dedicated API-key ID and an exact server-side window date; the generic issuer and every other partner retain existing behavior.",
+  "activationRule": "Only VERITAS moves from policy v2 to immutable policy v3 after its conditional written agreement. This makes the partner policy resolvable in production after protected deployment, but does not itself enable live signing: the dedicated API-key ID and exact date must be configured, our issuer and clock must pass fresh preflight, VERITAS must pass balances/nonce/gas/RPC/clock checks and send fresh READY with an operator-host hash report during 01:55-02:00 UTC. Attempt 6 starts only at 02:00 UTC; retries require published abort and explicit VERITAS_RETRY_REQUEST. The partner route rejects requests at or after 02:50 UTC and signing at or after 02:55 UTC. The written 03:00 Bitcoin-broadcast, 03:25 attempt-end and 03:30 publication cutoffs remain external execution constraints. If any gate fails, no live run starts and a new window must be agreed in writing. The registered 600-second configuration and F12 OPEN are unchanged.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves agent-passport policy ID byte for byte from v3. Its schema/profile/release pins and production reachability are unchanged. The new 1800-second issuer requires partnerId veritas, policy v3, a dedicated API-key ID and the exact one-time date; agent-passport cannot activate that issuer."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves andydgrea policy ID byte for byte from v3. Its schema/profile/release pins and production reachability are unchanged. The new 1800-second issuer requires partnerId veritas, policy v3, a dedicated API-key ID and the exact one-time date; andydgrea cannot activate that issuer."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves emilia policy ID byte for byte from v3. Its schema/profile/release pins and production reachability are unchanged. The new 1800-second issuer requires partnerId veritas, policy v3, a dedicated API-key ID and the exact one-time date; emilia cannot activate that issuer."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves frontier-compute policy ID byte for byte from v3. Its schema/profile/release pins and production reachability are unchanged. The new 1800-second issuer requires partnerId veritas, policy v3, a dedicated API-key ID and the exact one-time date; frontier-compute cannot activate that issuer."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves headless policy ID byte for byte from v3. Its schema/profile/release pins and production reachability are unchanged. The new 1800-second issuer requires partnerId veritas, policy v3, a dedicated API-key ID and the exact one-time date; headless cannot activate that issuer."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves interai policy ID byte for byte from v3. Its schema/profile/release pins and production reachability are unchanged. The new 1800-second issuer requires partnerId veritas, policy v3, a dedicated API-key ID and the exact one-time date; interai cannot activate that issuer."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves raul policy ID byte for byte from v3. Its schema/profile/release pins and production reachability are unchanged. The new 1800-second issuer requires partnerId veritas, policy v3, a dedicated API-key ID and the exact one-time date; raul cannot activate that issuer."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves vaara policy ID byte for byte from v3. Its schema/profile/release pins and production reachability are unchanged. The new 1800-second issuer requires partnerId veritas, policy v3, a dedicated API-key ID and the exact one-time date; vaara cannot activate that issuer."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "one-time-partner-policy-activated",
+      "evidence": "Written conditional agreement was sent in the original thread on 2026-09-29. The corrected v8 package passed independent offline 122/0 plus 40/0 checks. Activation set v4 changes only VERITAS to the pinned immutable policy v3. Production deployment/read-back and fresh bilateral preflights/READY remain separate gates; activation does not imply a live transaction or F12 closure."
+    }
+  ],
+  "promotionId": "0x2387d30468f1cb75de4e205a509d2605479c1dc5c46455704aa9f252f04f2c3a"
+}
