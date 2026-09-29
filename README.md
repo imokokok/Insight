@@ -14,7 +14,7 @@ For a combined workflow, Insight supplies the oracle assessment and supported pr
 
 | Goal                                                                            | Guide                                                                                                              |
 | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Assess a proposed trade without handing Insight transaction control             | [Agent Guard SDK](sdk/README.md#non-intervening-assessment-and-verification) (`oracle-insight-guard` 0.4.1 on npm) |
+| Assess a proposed trade without handing Insight transaction control             | [Agent Guard SDK](sdk/README.md#non-intervening-assessment-and-verification) (`oracle-insight-guard` 0.5.0 on npm) |
 | Verify an existing receipt with your own trusted key configuration              | [Independent verifier](verifier/README.md) (`verify-insight-receipt`)                                              |
 | Pair an Insight assessment with exact-call authorization and execution evidence | [PriorSeal example](https://github.com/imokokok/PriorSeal/tree/main/examples/web3-agent-kit-base-swap-v2)          |
 | Run the website and API locally                                                 | [Getting Started](#getting-started)                                                                                |

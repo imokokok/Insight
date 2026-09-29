@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 23,
+  "effectiveFrom": "2026-09-29",
+  "classification": "RWA v1 verifier helper extraction with equivalent gates; no signed protocol or partner activation change",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x53a3cf97f62ed4b14af2407f66e5f2dce5c42e52919f4031045f737887c2dcac",
+  "activationSetId": "0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db",
+  "receiptImpact": "No signed report schema, EIP-712 field order, digest, signature, registry release, key, partner policy or activation is changed. sdk/src/rwa.ts reuses shared internal v1 verification helpers while retaining strict verification and inspection error gates. The RWA source lock now pins the refactored source. Frozen v1 and v2 digest and signature vectors remain byte-exact; additional regression cases cover distinct v1 error gates.",
+  "activationRule": "Existing partner policies and the current activation set remain unchanged. This promotion records implementation-equivalent SDK source changes only; it does not activate RWA for any partner, authorize a live run, claim partner acceptance or publish a new npm package. Production deployment remains subject to CI.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x11d4736a2c0a2c23f3a2d46f863d3ebb64e2b738f8da4a02bd12a30368578a43 remains selected. RWA v1 verification and inspection retain signed layout and error-gate semantics; frozen digest/signature vectors and new error-gate regressions pass. No partner runtime, trust pin or activation changes are introduced."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xe556b47dbdb4e3d7cab2c4fb882ffe0b65d6c4750ac0ff5ce6ee2f0494d3b787 remains selected. RWA v1 verification and inspection retain signed layout and error-gate semantics; frozen digest/signature vectors and new error-gate regressions pass. No partner runtime, trust pin or activation changes are introduced."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x0ce8536c90b23ebcb2952422e5eb67628da65c14b6bf5782849f20c0b137815b remains selected. RWA v1 verification and inspection retain signed layout and error-gate semantics; frozen digest/signature vectors and new error-gate regressions pass. No partner runtime, trust pin or activation changes are introduced."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xca3bd5acb9d70f9e9755fad44e87cff1122f88986a6c61b33d93a49e3bb15861 remains selected. RWA v1 verification and inspection retain signed layout and error-gate semantics; frozen digest/signature vectors and new error-gate regressions pass. No partner runtime, trust pin or activation changes are introduced."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xd510bd9f29be0b896aed2e2b95200eab25cb9e03430a456f1bee3df7a17de158 remains selected. RWA v1 verification and inspection retain signed layout and error-gate semantics; frozen digest/signature vectors and new error-gate regressions pass. No partner runtime, trust pin or activation changes are introduced."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xb539451842dc4e907d6fcea012aa094f4fea3c3acd2fd054aa4106848f602239 remains selected. RWA v1 verification and inspection retain signed layout and error-gate semantics; frozen digest/signature vectors and new error-gate regressions pass. No partner runtime, trust pin or activation changes are introduced."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x5a80afffbb667b62014c727fae35e9f00edd6ca99555baa1c4cc79d0650768d0 remains selected. RWA v1 verification and inspection retain signed layout and error-gate semantics; frozen digest/signature vectors and new error-gate regressions pass. No partner runtime, trust pin or activation changes are introduced."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x248f339e382efefaf20c9caad0ed6ee3db75775b5b5649b3d2421bb28d376341 remains selected. RWA v1 verification and inspection retain signed layout and error-gate semantics; frozen digest/signature vectors and new error-gate regressions pass. No partner runtime, trust pin or activation changes are introduced."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x162d3fe744acc2041a959daf40dc3fe9242b654aef58acbb991acbf605885085 remains selected. RWA v1 verification and inspection retain signed layout and error-gate semantics; frozen digest/signature vectors and new error-gate regressions pass. No partner runtime, trust pin or activation changes are introduced."
+    }
+  ],
+  "promotionId": "0xa90078ab2fa1ac5faa9233eee7e1da5e9fa158d0e01f70b059523483b50ced03"
+}

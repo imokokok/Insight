@@ -352,6 +352,7 @@ export interface PriorSealObservationJob {
   jobId: string;
   state: 'QUEUED' | 'RUNNING' | 'RETRY_WAIT' | 'COMPLETED' | 'UNDETERMINED' | 'FAILED' | string;
   attempts: number;
+  nextAttemptAt?: number;
   observation: { txHash?: string; status: string; [key: string]: unknown } | null;
   result?: PriorSealObservationResult | null;
   error?: { code: string; message: string } | null;

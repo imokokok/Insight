@@ -2,7 +2,7 @@
   "schema": "insight-priorseal.rwa-source-lock.v1",
   "version": "rwa-production-gates-v3",
   "sha256": {
-    "sdk/src/rwa.ts": "f1ec7f67f5598a823cec4783dfa105b80e4190e9fa1125f2aa5d26fbfdf160fe",
+    "sdk/src/rwa.ts": "8c13eb47c5d40a1bb6585fc9aec82e988b226eca75e7925b5d1b89020fc1e508",
     "sdk/src/rwa-call.ts": "26f5c972b28e1373bbcc5ada4eb4f231db405c07ad954be9dd67c3952e3ecf16",
     "sdk/src/rwa-v2.ts": "febbea7ab30c5d6202ea40d72ff84a1a399d75ff50e5885eb5729f6ab6ed1d16",
     "examples/rwa-v2/golden.json": "d376bbddf01fea2a0e0c7f35db4e0d5727e821d28b363adf181a77ec655ae18f",
