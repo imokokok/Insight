@@ -204,13 +204,13 @@ export class PriorSealClient implements PriorSealApi {
         signal: controller.signal,
         headers: {
           Accept: 'application/json',
-          ...this.headers,
           ...(body === undefined
             ? {}
             : {
                 'Content-Type': 'application/json',
                 'Idempotency-Key': idempotencyKey ?? randomIdempotencyKey(),
               }),
+          ...this.headers,
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });

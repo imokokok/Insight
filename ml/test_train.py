@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch
 
 import numpy as np
 import pandas as pd
+import requests
 
 from ml.train import (
     DEVIATION_PCT,
@@ -131,6 +132,29 @@ class FeatureSemanticsTest(unittest.TestCase):
         malformed.json.return_value = [{"id": 1}, None]
         with patch("ml.train.HTTP.get", return_value=malformed):
             with self.assertRaisesRegex(RuntimeError, "Invalid test response"):
+                fetch_offset_pages("https://example.invalid/rest/v1/test", "key", {}, "test")
+
+    def test_offset_pages_accept_only_postgrest_end_of_range_416(self):
+        def response(status, body, content_range=None):
+            result = requests.Response()
+            result.status_code = status
+            result._content = json.dumps(body).encode()
+            if content_range is not None:
+                result.headers["Content-Range"] = content_range
+            return result
+
+        pages = [
+            response(200, [{"id": 1}, {"id": 2}]),
+            response(200, [{"id": 3}]),
+            response(416, [], "*/3"),
+        ]
+        with patch("ml.train.HTTP.get", side_effect=pages) as get:
+            rows = fetch_offset_pages("https://example.invalid/rest/v1/test", "key", {}, "test")
+        self.assertEqual([row["id"] for row in rows], [1, 2, 3])
+        self.assertEqual(get.call_args_list[-1].kwargs["headers"]["Range"], "3-1002")
+
+        with patch("ml.train.HTTP.get", return_value=response(416, [], "*/10")):
+            with self.assertRaises(requests.HTTPError):
                 fetch_offset_pages("https://example.invalid/rest/v1/test", "key", {}, "test")
 
     def test_asset_class_calibration_uses_class_default_and_raw_fallback(self):

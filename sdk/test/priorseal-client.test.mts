@@ -28,6 +28,22 @@ test('PriorSeal client rejects a successful non-object response', async () => {
   await assert.rejects(clientReturning([]).observeExecution(observationInput), invalidResponse);
 });
 
+test('PriorSeal client preserves caller-provided request headers', async () => {
+  let sentHeaders: Headers | undefined;
+  const client = new PriorSealClient({
+    baseUrl: 'https://priorseal.test',
+    headers: { 'Idempotency-Key': 'caller-key', 'Content-Type': 'application/vnd.example+json' },
+    fetch: async (_url, init) => {
+      sentHeaders = new Headers(init?.headers);
+      return new Response(JSON.stringify({ observation: { status: 'PENDING' } }), { status: 200 });
+    },
+  });
+
+  await client.observeExecution(observationInput);
+  assert.equal(sentHeaders?.get('Idempotency-Key'), 'caller-key');
+  assert.equal(sentHeaders?.get('Content-Type'), 'application/vnd.example+json');
+});
+
 test('PriorSeal client rejects unknown observation states before polling', async () => {
   await assert.rejects(
     clientReturning({ jobId: 'job_1', state: 'WAIT_FOREVER', attempts: 0 }).waitForObservationJob(

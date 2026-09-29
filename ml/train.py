@@ -57,6 +57,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -217,10 +218,11 @@ def log(msg: str) -> None:
 
 
 def fetch_offset_pages(url: str, service_key: str, params: dict, source: str) -> list[dict]:
-    """Read a PostgREST result to an empty page, including server-capped pages.
+    """Read a PostgREST result to its terminal page, including server-capped pages.
 
     Some installations cap each response below PAGE_SIZE. Advancing by the
     actual row count avoids treating a short capped page as end-of-results.
+    PostgREST can return 416 at EOF when the next Range starts past the last row.
     """
     auth_headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
     rows = []
@@ -228,6 +230,12 @@ def fetch_offset_pages(url: str, service_key: str, params: dict, source: str) ->
     while True:
         headers = {**auth_headers, "Range": f"{offset}-{offset + PAGE_SIZE - 1}"}
         response = HTTP.get(url, headers=headers, params=params, timeout=60)
+        if response.status_code == 416:
+            content_range = re.fullmatch(
+                r"\s*\*/(\d+)\s*", response.headers.get("Content-Range", "")
+            )
+            if content_range and offset >= int(content_range.group(1)):
+                return rows
         response.raise_for_status()
         chunk = response.json()
         if not isinstance(chunk, list) or any(not isinstance(row, dict) for row in chunk):
