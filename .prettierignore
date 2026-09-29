@@ -23,3 +23,7 @@ scripts/vrt1-e2e-prototype/registration/scale-declaration.json
 # Generated EMILIA review fixture. Its exact bytes and SHA-256 are part of the
 # emailed reproducibility packet and must remain stable across restores.
 scripts/emilia-aeb-option2/signed-nonproduction-fixture.json
+
+# RAT Score source fixture and golden output are byte-exact cross-repository pins.
+scripts/rat-score-conformance/v1_score_NVDA.fixture.json
+scripts/rat-score-conformance/nvda_consumer_conformance.simulation.json
