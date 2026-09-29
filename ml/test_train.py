@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch
 
 import numpy as np
 import pandas as pd
+import requests
 
 from ml.train import (
     DEVIATION_PCT,
@@ -16,11 +17,13 @@ from ml.train import (
     build_fine_event_frame,
     build_flywheel_frame,
     build_hourly_frame,
+    calibrate_by_asset_class,
     compute_calibration,
     count_positive_episodes,
     label_for_horizon,
     label_from_fine_events,
     fetch_market_reference_rows,
+    fetch_offset_pages,
     fetch_snapshot_pages,
     fetch_complete_snapshot_pages,
     lost_market_reference_coverage,
@@ -83,8 +86,89 @@ class LabelSemanticsTest(unittest.TestCase):
         self.assertTrue(pd.isna(hourly_label.iloc[0]))
         self.assertTrue(pd.isna(fine_label.iloc[0]))
 
+    def test_label_window_excludes_equal_timestamp_and_includes_horizon_end(self):
+        start = pd.Timestamp("2026-01-01T00:00:00Z")
+        hourly = pd.DataFrame({
+            "symbol": ["ETH"] * 3,
+            "snapshot_hour": [start, start, start + pd.Timedelta(hours=1)],
+            "consensus": [100.0] * 3,
+            "max_deviation_pct": [0.1, 9.0, 0.1],
+            "oracle_vs_market_deviation_pct": [0.0] * 3,
+        })
+        hourly_labels, *_ = label_for_horizon(hourly, 1)
+        self.assertEqual(hourly_labels.iloc[0], 0)  # Same-time spike is not future.
+        self.assertTrue(pd.isna(hourly_labels.iloc[1]))  # Already abnormal at T.
+
+        fine = pd.DataFrame({
+            "symbol": ["ETH", "ETH"],
+            "snapshot_hour": [start, start + pd.Timedelta(hours=1)],
+            "consensus": [100.0, 100.0],
+            "max_deviation_pct": [9.0, 0.1],
+        })
+        fine_labels, *_ = label_from_fine_events(hourly.iloc[[0]], fine, 1)
+        self.assertEqual(fine_labels.iloc[0], 0)
+        fine.loc[1, "max_deviation_pct"] = 9.0
+        fine_labels, _, fine_deviation = label_from_fine_events(hourly.iloc[[0]], fine, 1)
+        self.assertEqual(fine_labels.iloc[0], 1)
+        self.assertEqual(fine_deviation.iloc[0], 1)
+
 
 class FeatureSemanticsTest(unittest.TestCase):
+    def test_offset_pages_follow_server_capped_pages_and_validate_json_shape(self):
+        responses = []
+        for page in ([{"id": 1}, {"id": 2}], [{"id": 3}], []):
+            response = Mock()
+            response.json.return_value = page
+            responses.append(response)
+        with patch("ml.train.HTTP.get", side_effect=responses) as get:
+            rows = fetch_offset_pages("https://example.invalid/rest/v1/test", "key", {}, "test")
+        self.assertEqual([row["id"] for row in rows], [1, 2, 3])
+        self.assertEqual(
+            [call.kwargs["headers"]["Range"] for call in get.call_args_list],
+            ["0-999", "2-1001", "3-1002"],
+        )
+
+        malformed = Mock()
+        malformed.json.return_value = [{"id": 1}, None]
+        with patch("ml.train.HTTP.get", return_value=malformed):
+            with self.assertRaisesRegex(RuntimeError, "Invalid test response"):
+                fetch_offset_pages("https://example.invalid/rest/v1/test", "key", {}, "test")
+
+    def test_offset_pages_accept_only_postgrest_end_of_range_416(self):
+        def response(status, body, content_range=None):
+            result = requests.Response()
+            result.status_code = status
+            result._content = json.dumps(body).encode()
+            if content_range is not None:
+                result.headers["Content-Range"] = content_range
+            return result
+
+        pages = [
+            response(200, [{"id": 1}, {"id": 2}]),
+            response(200, [{"id": 3}]),
+            response(416, [], "*/3"),
+        ]
+        with patch("ml.train.HTTP.get", side_effect=pages) as get:
+            rows = fetch_offset_pages("https://example.invalid/rest/v1/test", "key", {}, "test")
+        self.assertEqual([row["id"] for row in rows], [1, 2, 3])
+        self.assertEqual(get.call_args_list[-1].kwargs["headers"]["Range"], "3-1002")
+
+        with patch("ml.train.HTTP.get", return_value=response(416, [], "*/10")):
+            with self.assertRaises(requests.HTTPError):
+                fetch_offset_pages("https://example.invalid/rest/v1/test", "key", {}, "test")
+
+    def test_asset_class_calibration_uses_class_default_and_raw_fallback(self):
+        scores = np.array([0.25, 0.75])
+        symbols = pd.Series(["USDC", "ETH"])
+        calibration = {
+            "stable": {"calibrated": [0.2, 0.8]},
+            "default": {"calibrated": [0.3, 0.7]},
+        }
+        np.testing.assert_array_equal(
+            calibrate_by_asset_class(scores, symbols, calibration), [0.2, 0.7]
+        )
+        np.testing.assert_array_equal(calibrate_by_asset_class(scores, symbols, {}), scores)
+
     def test_missing_fine_source_stops_retrain_before_export(self):
         from ml import train
 
@@ -110,19 +194,22 @@ class FeatureSemanticsTest(unittest.TestCase):
             [{"id": 1, "snapshot_hour": first_time}, {"id": 2, "snapshot_hour": first_time}],
             [{"id": 3, "snapshot_hour": first_time}, {"id": 4, "snapshot_hour": next_time}],
             [{"id": 5, "snapshot_hour": next_time}],
+            [],
         ]
         responses = []
         for page in pages:
             response = Mock()
             response.json.return_value = page
             responses.append(response)
-        with patch("ml.train.PAGE_SIZE", 2), patch("ml.train.HTTP.get", side_effect=responses) as get:
+        # The server returns at most two rows even though the client requests
+        # 1,000, so only an empty page proves that history is complete.
+        with patch("ml.train.HTTP.get", side_effect=responses) as get:
             rows = fetch_snapshot_pages(
                 "https://example.invalid", "key", "hourly_price_snapshots",
                 "snapshot_hour", "snapshot_hour",
             )
         self.assertEqual([row["id"] for row in rows], [1, 2, 3, 4, 5])
-        self.assertEqual([call.kwargs["headers"]["Range"] for call in get.call_args_list], ["0-1"] * 3)
+        self.assertEqual([call.kwargs["headers"]["Range"] for call in get.call_args_list], ["0-999"] * 4)
         self.assertTrue(all("Prefer" not in call.kwargs["headers"] for call in get.call_args_list))
         self.assertNotIn("or", get.call_args_list[0].kwargs["params"])
         self.assertNotIn("snapshot_hour", get.call_args_list[0].kwargs["params"])
@@ -132,12 +219,23 @@ class FeatureSemanticsTest(unittest.TestCase):
         self.assertEqual(
             get.call_args_list[2].kwargs["params"]["snapshot_hour"], f"gte.{next_time}"
         )
+        self.assertEqual(
+            get.call_args_list[3].kwargs["params"]["snapshot_hour"], f"gte.{next_time}"
+        )
         self.assertIn("id.gt.2", get.call_args_list[1].kwargs["params"]["or"])
         self.assertIn("id.gt.4", get.call_args_list[2].kwargs["params"]["or"])
         self.assertEqual(
             [call.kwargs["params"]["and"] for call in get.call_args_list],
-            [get.call_args_list[0].kwargs["params"]["and"]] * 3,
+            [get.call_args_list[0].kwargs["params"]["and"]] * 4,
         )
+        invalid_cursor = Mock()
+        invalid_cursor.json.return_value = [{"id": True, "snapshot_hour": first_time}]
+        with patch("ml.train.HTTP.get", return_value=invalid_cursor):
+            with self.assertRaisesRegex(RuntimeError, "Invalid hourly_price_snapshots snapshot cursor"):
+                fetch_snapshot_pages(
+                    "https://example.invalid", "key", "hourly_price_snapshots",
+                    "snapshot_hour", "snapshot_hour",
+                )
 
     def test_compressed_history_is_verified_and_hot_replay_wins(self):
         now = pd.Timestamp.now(tz="UTC").floor("h")

@@ -68,6 +68,24 @@ describe('calculateMetrics', () => {
     ];
     expect(calculateMetrics(rows).activeHours).toBe(2);
   });
+
+  it('uses precomputed deviation events without changing standalone metrics', () => {
+    const rows = [
+      snap({ symbol: 'BTC', deviation_pct: 2, consensus_price: 100 }),
+      snap({ symbol: 'ETH', deviation_pct: -1, consensus_price: 100 }),
+      snap({ symbol: 'SOL', deviation_pct: 0.5, consensus_price: 100 }),
+      snap({ symbol: 'ADA', deviation_pct: 4, consensus_price: null }),
+      snap({ symbol: 'LINK', deviation_pct: 7, is_success: false }),
+    ];
+    const events = extractDeviationEvents(rows);
+
+    expect(calculateMetrics(rows, events)).toEqual(calculateMetrics(rows));
+    expect(calculateMetrics(rows, events)).toMatchObject({
+      totalAnomalies: 3,
+      criticalEvents: 1,
+      highEvents: 1,
+    });
+  });
 });
 
 describe('calculateAssetStats', () => {

@@ -374,9 +374,7 @@ export class InsightGuard {
       signalValidity,
       proofAvailability: proofs === 2 ? 'COMPLETE' : proofs === 1 ? 'PARTIAL' : 'UNAVAILABLE',
       changedFields,
-      requiresReauthorization:
-        canonicalJson(assessment.contextCommitment) !== canonicalJson(next.contextCommitment) ||
-        changedFields.length > 0,
+      requiresReauthorization: changedFields.length > 0,
     };
   }
 

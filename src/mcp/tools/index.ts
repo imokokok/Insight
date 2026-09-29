@@ -351,20 +351,15 @@ const JSON_SCHEMA_MAP: Record<
   },
 };
 
-// Dev-only sanity check: every registered tool MUST have an explicit JSON
-// schema entry. Without this, a newly added tool that forgets to register a
-// JSON schema would silently fall back to `parameters.toJSONSchema()`, which
-// breaks for schemas containing transforms/pipes (zod v4 limitation) and is
-// exactly how the runtime/advertised schema drift this map exists to prevent
-// would creep back in.
-if (process.env.NODE_ENV !== 'production') {
-  for (const tool of MCP_TOOLS) {
-    if (!JSON_SCHEMA_MAP[tool.name]) {
-      throw new Error(
-        `MCP tool "${tool.name}" is missing a JSON schema entry in JSON_SCHEMA_MAP. ` +
-          'Add a corresponding schema in ./jsonSchemas and register it in the map.'
-      );
-    }
+// Wire schemas are separate from runtime validators because Zod transforms
+// cannot always be represented in JSON Schema. Check completeness in every
+// environment so a missing entry cannot silently change an advertised tool.
+for (const tool of MCP_TOOLS) {
+  if (!JSON_SCHEMA_MAP[tool.name]) {
+    throw new Error(
+      `MCP tool "${tool.name}" is missing a JSON schema entry in JSON_SCHEMA_MAP. ` +
+        'Add a corresponding schema in ./jsonSchemas and register it in the map.'
+    );
   }
 }
 
@@ -372,7 +367,7 @@ export function getToolDefinitions() {
   return MCP_TOOLS.map((tool) => ({
     name: tool.name,
     description: tool.description,
-    inputSchema: JSON_SCHEMA_MAP[tool.name] ?? tool.parameters.toJSONSchema(),
+    inputSchema: JSON_SCHEMA_MAP[tool.name],
   }));
 }
 
@@ -394,8 +389,11 @@ export async function executeTool(name: string, args: unknown): Promise<McpToolC
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error(`Tool ${name} execution failed`, error instanceof Error ? error : undefined, {
-      args,
+    // Tool inputs can contain transaction details and signed evidence. Keep
+    // them, and validation error text that may echo them, out of Sentry.
+    logger.error('MCP tool execution failed', undefined, {
+      tool: name,
+      category: error instanceof Error && error.name === 'ZodError' ? 'validation' : 'execution',
     });
 
     return {

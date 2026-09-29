@@ -34,7 +34,13 @@ class GateAssessment:
 
 def horizons(model: dict) -> dict:
     if model.get("version") == 2:
-        return {name: payload for name, payload in (model.get("horizons") or {}).items() if payload}
+        payloads = model.get("horizons")
+        if not isinstance(payloads, dict) or any(
+            payload is not None and not isinstance(payload, dict)
+            for payload in payloads.values()
+        ):
+            raise ValueError("Model horizons must be an object of horizon objects or nulls.")
+        return {name: payload for name, payload in payloads.items() if payload}
     return {"6h": model} if model.get("trees") else {}
 
 
@@ -45,6 +51,14 @@ def finite_number(value: object) -> bool:
 def assess_candidate(candidate: dict, incumbent: dict | None) -> GateAssessment:
     """Separate an unsafe export from a valid candidate that did not improve."""
     result = GateAssessment()
+    if not isinstance(candidate, dict) or type(candidate.get("active")) is not bool:
+        result.invalid.append("Candidate model must be an object with a boolean active field.")
+        return result
+    if incumbent is not None and (
+        not isinstance(incumbent, dict) or type(incumbent.get("active")) is not bool
+    ):
+        result.invalid.append("Incumbent model must be an object with a boolean active field.")
+        return result
     if not candidate.get("active"):
         if incumbent and incumbent.get("active"):
             result.rejected.append("New model is inactive. Keeping the last-known-good deployed model.")
@@ -52,7 +66,11 @@ def assess_candidate(candidate: dict, incumbent: dict | None) -> GateAssessment:
             result.invalid.append("No active candidate or incumbent model is available.")
         return result
 
-    candidate_horizons = horizons(candidate)
+    try:
+        candidate_horizons = horizons(candidate)
+    except ValueError as exc:
+        result.invalid.append(f"Active candidate has invalid horizons: {exc}")
+        return result
     if "6h" not in candidate_horizons:
         result.invalid.append("Active model has no 6h horizon.")
         return result
@@ -65,10 +83,16 @@ def assess_candidate(candidate: dict, incumbent: dict | None) -> GateAssessment:
         result.invalid.append(f"Active model has invalid evaluationSpecVersion: {evaluation_version}")
         return result
     for name, payload in candidate_horizons.items():
-        metrics = payload.get("metrics") or {}
-        thresholds = payload.get("riskThresholds") or {}
+        metrics = payload.get("metrics")
+        thresholds = payload.get("riskThresholds")
+        if not isinstance(metrics, dict):
+            result.invalid.append(f"Horizon {name} metrics must be an object.")
+            metrics = {}
+        if not isinstance(thresholds, dict):
+            result.invalid.append(f"Horizon {name} riskThresholds must be an object.")
+            thresholds = {}
         medium, high = thresholds.get("medium"), thresholds.get("high")
-        if not payload.get("trees"):
+        if not isinstance(payload.get("trees"), list) or not payload["trees"]:
             result.invalid.append(f"Horizon {name} has no exported trees.")
         if (
             not finite_number(medium)
@@ -127,7 +151,11 @@ def assess_candidate(candidate: dict, incumbent: dict | None) -> GateAssessment:
         result.info.append("Label specification changed; accepting a new comparison baseline.")
         return result
 
-    incumbent_horizons = horizons(incumbent)
+    try:
+        incumbent_horizons = horizons(incumbent)
+    except ValueError as exc:
+        result.invalid.append(f"Active incumbent has invalid horizons: {exc}")
+        return result
     for name in sorted(set(incumbent_horizons) - set(candidate_horizons)):
         result.rejected.append(f"Horizon {name} disappeared from the active candidate model.")
     checks = (
@@ -138,26 +166,31 @@ def assess_candidate(candidate: dict, incumbent: dict | None) -> GateAssessment:
     for name in sorted(set(candidate_horizons) & set(incumbent_horizons)):
         payload = candidate_horizons[name]
         comparison = payload.get("regressionComparison")
-        if not comparison or comparison.get("population") != "current_test_window":
+        if not isinstance(comparison, dict) or comparison.get("population") != "current_test_window":
             result.invalid.append(
                 f"Horizon {name} has no same-window incumbent comparison; refusing an "
                 "apples-to-oranges historical metric comparison."
             )
             continue
+        exported_metrics = payload.get("metrics")
+        if not isinstance(exported_metrics, dict):
+            result.invalid.append(f"Horizon {name} metrics must be an object.")
+            continue
         comparison_positives = comparison.get("nPositiveTest")
         if (
             not isinstance(comparison_positives, int)
             or isinstance(comparison_positives, bool)
-            or comparison_positives != payload.get("metrics", {}).get("n_positive_test")
+            or comparison_positives != exported_metrics.get("n_positive_test")
         ):
             result.invalid.append(f"Horizon {name} current test positive count is inconsistent.")
             continue
+        candidate_metrics = comparison.get("candidate")
+        incumbent_metrics = comparison.get("incumbent")
+        if not isinstance(candidate_metrics, dict) or not isinstance(incumbent_metrics, dict):
+            result.invalid.append(f"Horizon {name} same-window metrics must be objects.")
+            continue
         if comparison_positives < MIN_COMPARISON_POSITIVES:
             continue
-
-        candidate_metrics = comparison.get("candidate") or {}
-        incumbent_metrics = comparison.get("incumbent") or {}
-        exported_metrics = payload.get("metrics") or {}
         for label, key, tolerance, lower_is_better in checks:
             new_value = candidate_metrics.get(key)
             old_value = incumbent_metrics.get(key)
@@ -205,9 +238,13 @@ def main() -> int:
     parser.add_argument("--model", default="ml/models/oracle_risk_model.json")
     args = parser.parse_args()
 
-    with open(args.model) as candidate_file:
-        candidate = json.load(candidate_file)
-    incumbent = load_incumbent_from_git(args.model)
+    try:
+        with open(args.model) as candidate_file:
+            candidate = json.load(candidate_file)
+        incumbent = load_incumbent_from_git(args.model)
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"::error::Could not load model JSON: {exc}")
+        return 1
     result = assess_candidate(candidate, incumbent)
     for line in result.info:
         print(line)

@@ -59,8 +59,19 @@ export function useDataFetching(
     let recommendedBaseChain: Blockchain | null = null;
     if (supportedChains.length > 0) {
       if (currentPrices.length > 0) {
+        const firstPriceByChain = new Map<Blockchain, (typeof currentPrices)[number]>();
+        const positivePrices: number[] = [];
+        for (const price of currentPrices) {
+          if (price.chain && !firstPriceByChain.has(price.chain)) {
+            firstPriceByChain.set(price.chain, price);
+          }
+          if (price.price > 0) positivePrices.push(price.price);
+        }
+        positivePrices.sort((a, b) => a - b);
+        const medianPrice = positivePrices[Math.floor(positivePrices.length / 2)];
+
         const chainScores = supportedChains.map((chain) => {
-          const priceData = currentPrices.find((p) => p.chain === chain);
+          const priceData = firstPriceByChain.get(chain);
           if (!priceData || priceData.price <= 0) {
             return { chain, score: -Infinity };
           }
@@ -69,13 +80,10 @@ export function useDataFetching(
           const freshnessScore =
             dataAgeSeconds === null ? 0 : dataAgeSeconds < 60 ? 100 : dataAgeSeconds < 300 ? 50 : 0;
 
-          const priceValues = currentPrices.filter((p) => p.price > 0).map((p) => p.price);
-          const medianPrice =
-            priceValues.length > 0
-              ? [...priceValues].sort((a, b) => a - b)[Math.floor(priceValues.length / 2)]
-              : priceData.price;
           const deviation =
-            medianPrice > 0 ? Math.abs((priceData.price - medianPrice) / medianPrice) * 100 : 0;
+            medianPrice !== undefined && medianPrice > 0
+              ? Math.abs((priceData.price - medianPrice) / medianPrice) * 100
+              : 0;
           const consistencyScore = Math.max(0, 100 - deviation * 10);
 
           const score = freshnessScore * 0.6 + consistencyScore * 0.4;
