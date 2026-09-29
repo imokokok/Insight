@@ -16,17 +16,17 @@ Insight gates → construct exact call → PriorSeal authorization → broadcast
                                                         └→ PriorSeal execution receipt
 ```
 
-The SDK is a client-side orchestration layer, not a local risk engine. It sends every risk decision and signing operation to Insight with the supplied API key, so normal API authentication, credit metering, audit rows, and EIP-712 attestations remain intact.
+The SDK sends oracle risk decisions and attestation signing to Insight with the supplied API key, so normal API authentication, credit metering, audit rows, and EIP-712 attestations remain intact. The optional `assessV3Swap()` adapter adds an unsigned local review of a concrete swap call using pinned-block RPC simulation; `authorizeAssessedV3Swap()` requires a fresh acceptable review before PriorSeal authorization. See [transaction-specific swap risk](https://github.com/imokokok/Insight/blob/main/docs/swap-transaction-risk.md) for its exact scope and trust limits.
 
 ## Install
 
 ```bash
-npm install oracle-insight-guard@0.4.1
+npm install oracle-insight-guard@0.5.0
 ```
 
-The latest npm release is **0.4.1**, a documentation-only patch with the same runtime files as the [0.4.0 GitHub Release](https://github.com/imokokok/Insight/releases/tag/sdk-v0.4.0). This repository workspace still declares 0.4.0 while its unreleased RWA additions are under development. Use the published SDK from a trusted server or agent runtime; do not put an Insight API key in a browser bundle. The API-backed examples below require an API key and your own transaction builder or wallet. For a no-key verification path, start with the [standalone verifier](https://github.com/imokokok/Insight/tree/main/verifier).
+Version **0.5.0** adds transaction-specific swap risk review and optional PriorSeal authorization binding. The SDK includes opt-in RWA diagnostics; it does not activate an RWA production signer. Use the published SDK from a trusted server or agent runtime; do not put an Insight API key in a browser bundle. The API-backed examples below require an API key and your own transaction builder or wallet. For a no-key verification path, start with the [standalone verifier](https://github.com/imokokok/Insight/tree/main/verifier).
 
-The 0.4.0 release adds independently verified coverage readiness, execution-time rechecks, and PriorSeal coverage binding while retaining the diagnostics, freshness, and durable Watch APIs from 0.3.0.
+The 0.4.0 release added independently verified coverage readiness, execution-time rechecks, and PriorSeal coverage binding while retaining the diagnostics, freshness, and durable Watch APIs from 0.3.0.
 
 ## InterAI external evidence v0
 

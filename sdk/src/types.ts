@@ -1,4 +1,5 @@
 import type { CoverageTrust, SignedCoverageReport } from './coverage';
+import type { V3SwapRiskReport } from './swap-transaction-risk';
 
 export type SafetyVerdict = 'PASS' | 'CAUTION' | 'DANGER' | 'BLOCK';
 export type OracleWatchVerdict = 'normal' | 'caution' | 'danger';
@@ -467,6 +468,8 @@ export interface AssessedSwapAuthorizationRequest {
   assessment: SwapAssessment;
   transaction: PreparedExactCallTransaction;
   priorSeal: PriorSealFlowOptions;
+  /** Optional unsigned local route review, bound as an additional context commitment. */
+  transactionRisk?: V3SwapRiskReport;
 }
 
 export interface AssessedSwapAuthorizationResult {
