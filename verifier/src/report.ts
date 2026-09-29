@@ -14,9 +14,9 @@
  *   - A caller can read this file and see there is nothing else outbound. That
  *     is a much stronger claim than "trust our defaults".
  *
- * What is sent is deliberately minimal and non-identifying: the schema version,
- * the outcome code, the key standing, and (only on explicit request) the UID.
- * No attester address, no amounts, no asset, no timestamps, no IP retained.
+ * The JSON body contains only the schema version, outcome code, key standing,
+ * and (only on explicit request) the UID. The receiving server can still see
+ * ordinary network metadata such as the caller's IP address.
  *
  * Honest caveat: an unauthenticated public counter is trivially gameable by
  * anyone who can send HTTP. Treat numbers collected this way as a directional
@@ -60,8 +60,9 @@ export interface ReportOptions {
 }
 
 /**
- * Report that a verification happened. Fire-and-forget: never throws, never
- * rejects, and a failure here says nothing about the receipt.
+ * Best-effort report of a verification. It never rejects, and a failure here
+ * says nothing about the receipt. Callers can await the result or deliberately
+ * discard the returned promise when telemetry is outside their critical path.
  *
  * @returns true if the report was accepted, false otherwise. There is no retry.
  *
@@ -91,6 +92,7 @@ export async function reportVerification(
     if (typeof fetchImpl !== 'function') return false;
 
     const timeoutMs = opts.timeoutMs ?? 1500;
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1) return false;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -100,8 +102,7 @@ export async function reportVerification(
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(payload),
         signal: controller.signal,
-        // Verification telemetry must never block a caller's critical path,
-        // and must never be retried by the runtime into a partial write.
+        // Do not ask the runtime to keep this optional request alive on unload.
         keepalive: false,
       } as RequestInit);
       return response.ok;

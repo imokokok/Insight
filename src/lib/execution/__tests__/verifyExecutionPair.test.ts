@@ -30,7 +30,7 @@ const registry: KeyRegistryConfig = {
   keys: [
     {
       key_id: 'test',
-      public_key: '0xattester',
+      public_key: '0x1111111111111111111111111111111111111111',
       algorithm: 'EIP-712/secp256k1',
       validFrom: '2020-01-01',
       validUntil: null,
@@ -45,7 +45,7 @@ function fakeExecReceipt(over: Partial<ExecutionReceipt['data']> = {}): Executio
   return {
     uid: '0xexec',
     schemaVersion: 2,
-    attester: '0xattester',
+    attester: '0x1111111111111111111111111111111111111111',
     attesterLabel: 'Execution',
     signedAt: '',
     validForSeconds: 600,
@@ -94,7 +94,7 @@ function fakePreTrade(over: Record<string, unknown> = {}) {
   return {
     uid: '0xpt',
     schemaVersion: 3,
-    attester: '0xattester',
+    attester: '0x1111111111111111111111111111111111111111',
     signature: '0x',
     data: {
       requestHash: '0xrh',
@@ -120,7 +120,7 @@ function mockBoth(
     valid: opts.preTradeValid ?? true,
     expired: false,
     uid: '0xpt',
-    attester: '0xattester',
+    attester: '0x1111111111111111111111111111111111111111',
     reason: '',
     schemaVersion: 3,
     checkedAt: CHECKED_AT,
@@ -133,7 +133,7 @@ function mockBoth(
     executionStatus: opts.execStatus ?? 'FAITHFUL',
     reason: '',
     uid: '0xexec',
-    attester: '0xattester',
+    attester: '0x1111111111111111111111111111111111111111',
     bindingMode: 'VERIFIED',
     executedAt: EXECUTED_AT,
     validUntil: EXECUTED_AT + 600,
@@ -183,7 +183,7 @@ describe('verifyExecutionPair', () => {
       valid: true,
       expired: false,
       uid: '0xother',
-      attester: '0xattester',
+      attester: '0x1111111111111111111111111111111111111111',
       reason: '',
       schemaVersion: 3,
       checkedAt: CHECKED_AT,
@@ -258,7 +258,7 @@ describe('verifyExecutionPair', () => {
       valid: false,
       expired: true,
       uid: '0xpt',
-      attester: '0xattester',
+      attester: '0x1111111111111111111111111111111111111111',
       reason: 'expired',
       schemaVersion: 3,
       checkedAt: CHECKED_AT,
@@ -272,7 +272,7 @@ describe('verifyExecutionPair', () => {
       bindingMode: 'VERIFIED',
       reason: 'receipt_expired',
       uid: '0xexec',
-      attester: '0xattester',
+      attester: '0x1111111111111111111111111111111111111111',
       executedAt: EXECUTED_AT,
       validUntil: EXECUTED_AT + 600,
     });

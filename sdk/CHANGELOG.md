@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Validate successful PriorSeal bridge responses before using authorization and observation data. Reject mismatched authorization and job IDs, malformed receipts, and unknown observation states instead of continuing a joint workflow with untrusted response fields.
+
 ## 0.5.0 — 2026-09-28
 
 - Add a pinned-block risk review for the exact original Uniswap V3 single-pool ERC-20 swap call, checking router code, route simulation, cross-oracle price deviation, signed trade size, minimum output, slippage and freshness.

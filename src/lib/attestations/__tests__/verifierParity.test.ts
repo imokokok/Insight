@@ -513,6 +513,22 @@ describe('verifier verdict parity', () => {
     expect(ver.valid).toBe(prod.valid);
   });
 
+  it('agrees that a v1 receipt signed at Unix epoch zero has expired', async () => {
+    const envelope = await signEnvelope({
+      domain: ATTESTATION_DOMAIN as unknown as Record<string, unknown>,
+      types: ATTESTATION_TYPES as unknown as Record<string, unknown>,
+      primaryType: ATTESTATION_PRIMARY_TYPE,
+      data: v1Data(0),
+      schemaVersion: 1,
+    });
+
+    const { prod, ver } = await expectSameVerdict(envelope);
+    expect(prod.checkedAt).toBe(0);
+    expect(prod.expired).toBe(true);
+    expect(prod.valid).toBe(false);
+    expect(ver.code).toBe('expired');
+  });
+
   it('agrees on a recheck that does not bind its own requestHash', async () => {
     const now = nowSec();
     const data = { ...recheckV3Data(now), originalRequestHash: H3 };

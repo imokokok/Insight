@@ -156,9 +156,13 @@ const ZERO_ADDRESS = `0x${'0'.repeat(40)}`;
 const ZERO_BYTES32 = `0x${'0'.repeat(64)}`;
 const EMPTY_HASH = keccak256(toBytes(''));
 
-function fieldValue(name: string, data: Record<string, unknown>): unknown {
+function typedArgs(data: Record<string, unknown>) {
+  const version = Number(data.schemaVersion);
+  const types = executionTypesForSchemaVersion(version);
+  if (!types) return null;
   const verdict = data.priceExecutionStatus ?? data.executionStatus ?? 'UNDETERMINED';
   const age = data.attestationAgeAtExecSeconds ?? data.oracleDataAgeAtExecSeconds ?? 0;
+  // Build dynamic fallbacks once per receipt rather than once per signed field.
   const defaults: Record<string, unknown> = {
     bindingMode: 'SELF_REPORTED',
     claimRole: 'THIRD_PARTY_OBSERVATION',
@@ -180,16 +184,9 @@ function fieldValue(name: string, data: Record<string, unknown>): unknown {
     environment: '',
     profileId: ZERO_BYTES32,
   };
-  return data[name] ?? defaults[name];
-}
-
-function typedArgs(data: Record<string, unknown>) {
-  const version = Number(data.schemaVersion);
-  const types = executionTypesForSchemaVersion(version);
-  if (!types) return null;
   const message: Record<string, unknown> = {};
   for (const field of types.ExecutionReceipt) {
-    const value = fieldValue(field.name, data);
+    const value = data[field.name] ?? defaults[field.name];
     if (value === undefined) throw new Error(`missing field ${field.name}`);
     message[field.name] =
       field.type.startsWith('uint') || field.type.startsWith('int')
@@ -200,8 +197,15 @@ function typedArgs(data: Record<string, unknown>) {
 }
 
 function productionKey(attester: string, registry?: KeyRegistry): KeyEntry | null {
-  const keys = registry?.public_keys ?? registry?.keys ?? [];
-  return keys.find((key) => key.public_key.toLowerCase() === attester.toLowerCase()) ?? null;
+  const keys = registry?.public_keys ?? registry?.keys;
+  if (!Array.isArray(keys)) return null;
+  return (
+    keys.find(
+      (key) =>
+        typeof key?.public_key === 'string' &&
+        key.public_key.toLowerCase() === attester.toLowerCase()
+    ) ?? null
+  );
 }
 
 export async function verifyExecutionReceipt(
@@ -357,8 +361,10 @@ export async function verifyExecutionPair(
     executedAt <= result.validUntil;
   const authorised = (attestation: RoutableAttestation | null) =>
     ['PASS', 'CAUTION'].includes(text(attestation?.data?.verdict).toUpperCase());
-  const keyIsProduction = (attester: string) =>
-    productionKey(attester, opts.keyRegistry)?.role !== 'sample';
+  const keyIsProduction = (attester: string) => {
+    const key = productionKey(attester, opts.keyRegistry);
+    return key !== null && key.role !== 'sample';
+  };
   const d = destinationPreTrade?.data ?? {};
   const destinationScopeMatches =
     !commitsDestination ||
