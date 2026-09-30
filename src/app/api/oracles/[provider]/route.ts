@@ -60,5 +60,6 @@ export const GET = createApiHandler(
       cors: true,
     },
     skipInternalAuthAndRateLimit: true,
+    preAuthBurstLimit: 60,
   }
 );

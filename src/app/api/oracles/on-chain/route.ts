@@ -138,6 +138,6 @@ export const GET = createApiHandler(
       rateLimit: { preset: 'moderate' },
       auth: { required: false },
     },
-    skipInternalAuthAndRateLimit: true,
+    preAuthBurstLimit: 60,
   }
 );
