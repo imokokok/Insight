@@ -153,13 +153,11 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
 
   return (
     <>
-      <section className="py-16 sm:py-20 lg:py-28">
+      <section id="live-evidence" className="home-chapter scroll-mt-20 py-16 sm:py-20 lg:py-28">
         <div className="mb-8 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-          <p className="home-kicker">Evidence plate A — Consensus</p>
+          <p className="home-kicker">Live evidence / 01</p>
           <div>
-            <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
-              Look at the sources, not only the result.
-            </h2>
+            <h2 className="home-section-title">Look at the sources, not only the result.</h2>
             <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
               Live consensus is more useful when its spread, provider coverage, and update time are
               visible at the same moment.
@@ -182,11 +180,11 @@ function HomeLiveDashboardContent({ initialData }: { initialData: ServerDashboar
         </div>
       </section>
 
-      <section className="py-16 sm:py-20 lg:py-28">
+      <section className="home-chapter border-t border-slate-900/10 py-16 sm:py-20 lg:py-28">
         <div className="mb-8 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-          <p className="home-kicker">Evidence plate B — Network behaviour</p>
+          <p className="home-kicker">Network behaviour / 02</p>
           <div>
-            <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
+            <h2 className="home-section-title">
               The network should be as observable as the price.
             </h2>
             <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
