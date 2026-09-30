@@ -34,29 +34,31 @@ const proofPoints = [
 
 export function OracleQuestionSection() {
   return (
-    <section className="border-y border-slate-900/10 py-16 sm:py-20 lg:py-28">
+    <section className="home-chapter home-question border-y border-slate-900/10 py-16 sm:py-20 lg:py-28">
       <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
         <div>
-          <p className="home-kicker">02 — Inspect the evidence</p>
+          <p className="home-kicker">The question beneath / 03</p>
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-slate-600">
-            A displayed price looks final. In reality, it is a chain of assumptions: sources,
-            timestamps, thresholds, and execution rules.
+            Every number is a chain of decisions: who reported it, when it arrived, where it
+            diverged, and what happens when it moves.
           </p>
         </div>
         <div>
-          <h2 className="max-w-3xl text-4xl font-semibold leading-[1.02] tracking-[-0.05em] text-slate-950 sm:text-5xl lg:text-6xl">
-            A price is only useful when you can inspect what stands behind it.
+          <h2 className="home-section-title max-w-3xl">
+            A trustworthy price should answer more than “how much?”
           </h2>
-          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+          <div className="home-question-grid mt-10 grid gap-3 sm:grid-cols-3">
             {[
-              { icon: ScanSearch, label: 'Where did it come from?' },
-              { icon: CircleDot, label: 'Does it agree elsewhere?' },
-              { icon: ShieldCheck, label: 'What happens if it moves?' },
-            ].map(({ icon: Icon, label }) => (
-              <div key={label} className="border-t border-slate-900/15 pt-4">
-                <Icon className="h-4 w-4 text-blue-700" />
-                <p className="mt-4 text-sm font-medium leading-relaxed text-slate-800">{label}</p>
-              </div>
+              { icon: ScanSearch, label: 'Where did it come from?', href: '/price-query' },
+              { icon: CircleDot, label: 'Does it agree elsewhere?', href: '/price-insight' },
+              { icon: ShieldCheck, label: 'What happens if it moves?', href: '/safety-check' },
+            ].map(({ icon: Icon, label, href }, index) => (
+              <Link key={label} href={href} className="home-question-card">
+                <span className="home-question-number">0{index + 1}</span>
+                <Icon className="h-5 w-5 text-blue-700" aria-hidden="true" />
+                <span className="home-question-label">{label}</span>
+                <ArrowUpRight className="home-question-arrow" aria-hidden="true" />
+              </Link>
             ))}
           </div>
         </div>
@@ -72,7 +74,7 @@ export function OracleProcessSection() {
       <div className="relative grid gap-12 lg:grid-cols-[0.9fr_1.7fr] lg:gap-20">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-300">
-            03 — Model the consequence
+            From observation to action / 04
           </p>
           <h2 className="mt-5 text-3xl font-semibold leading-tight tracking-[-0.045em] sm:text-4xl">
             From a signal to a decision you can defend.

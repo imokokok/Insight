@@ -24,17 +24,15 @@ export function DashboardShell({ liveDashboard }: DashboardShellProps) {
       <HeroSection />
 
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
-        <OracleQuestionSection />
         {liveDashboard}
+        <OracleQuestionSection />
         <OracleProcessSection />
 
-        <section className="border-t border-slate-900/10 py-16 sm:py-20 lg:py-24">
+        <section className="home-chapter border-t border-slate-900/10 py-16 sm:py-20 lg:py-24">
           <div className="mb-10 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-            <p className="home-kicker">Decision instruments</p>
+            <p className="home-kicker">The instruments / 05</p>
             <div>
-              <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
-                Different questions. One clear audit trail.
-              </h2>
+              <h2 className="home-section-title">Different questions. One clear audit trail.</h2>
               <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
                 Move from oracle observations to explainable risk assessments with tools for
                 protocols, operators, developers, and AI agents.
@@ -47,25 +45,21 @@ export function DashboardShell({ liveDashboard }: DashboardShellProps) {
           </div>
         </section>
 
-        <section className="border-t border-slate-900/10 py-16 sm:py-20 lg:py-24">
+        <section className="home-chapter border-t border-slate-900/10 py-16 sm:py-20 lg:py-24">
           <div className="mb-10 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-            <p className="home-kicker">04 — Preserve the proof</p>
+            <p className="home-kicker">Portable proof / 06</p>
             <div>
-              <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
-                Evidence that travels with the decision.
-              </h2>
+              <h2 className="home-section-title">Evidence that travels with the decision.</h2>
             </div>
           </div>
           <VerifiabilityBanner />
         </section>
 
-        <section className="border-t border-slate-900/10 pt-16 sm:pt-20 lg:pt-24">
+        <section className="home-chapter border-t border-slate-900/10 pt-16 sm:pt-20 lg:pt-24">
           <div className="mb-10 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-            <p className="home-kicker">05 — Build on evidence</p>
+            <p className="home-kicker">For builders / 07</p>
             <div>
-              <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
-                Bring oracle intelligence into your workflow.
-              </h2>
+              <h2 className="home-section-title">Bring oracle intelligence into your workflow.</h2>
               <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
                 Use REST or MCP for source data and risk analysis. Use Guard SDK for assessment,
                 monitoring, and optional checks before transaction submission.
@@ -85,13 +79,11 @@ export function DashboardShell({ liveDashboard }: DashboardShellProps) {
 export function HomeLiveDashboardFallback() {
   return (
     <div className="home-data-loading" aria-busy="true" aria-label="Sampling live oracle data">
-      <section className="py-16 sm:py-20 lg:py-28">
+      <section id="live-evidence" className="home-chapter scroll-mt-20 py-16 sm:py-20 lg:py-28">
         <div className="mb-8 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-          <p className="home-kicker">Evidence plate A — Consensus</p>
+          <p className="home-kicker">Live evidence / 01</p>
           <div>
-            <h2 className="text-3xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-4xl">
-              Sampling the market beneath the price.
-            </h2>
+            <h2 className="home-section-title">Sampling the market beneath the price.</h2>
             <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">
               Independent feeds are resolving into one inspectable consensus record.
             </p>
