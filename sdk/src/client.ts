@@ -27,6 +27,13 @@ interface ApiEnvelope<T> {
   meta?: { requestId?: string };
 }
 
+type RwaDiagnosticResult = {
+  mode: 'diagnostic';
+  mayAuthorizeExecution: false;
+  evidenceProvenance: 'caller-supplied-unverified';
+  report: RwaReport;
+};
+
 const DEFAULT_BASE_URL = 'https://www.oracleinsight.xyz';
 
 /** A small typed client. All calls remain server-side, authenticated and credit-metered. */
@@ -79,13 +86,24 @@ export class InsightClient {
     input: RwaInput,
     policy: RwaPolicy,
     signal?: AbortSignal
-  ): Promise<{
-    mode: 'diagnostic';
-    mayAuthorizeExecution: false;
-    evidenceProvenance: 'caller-supplied-unverified';
-    report: RwaReport;
-  }> {
-    return this.request('POST', '/api/v1/rwa/assessment', { body: { input, policy }, signal });
+  ): Promise<RwaDiagnosticResult> {
+    const result = await this.request<unknown>('POST', '/api/v1/rwa/assessment', {
+      body: { input, policy },
+      signal,
+    });
+    const diagnostic = record(result);
+    if (
+      diagnostic.mode !== 'diagnostic' ||
+      diagnostic.mayAuthorizeExecution !== false ||
+      diagnostic.evidenceProvenance !== 'caller-supplied-unverified'
+    ) {
+      return invalidApiResponse('RWA assessment is not an unsigned diagnostic');
+    }
+    const report = record(diagnostic.report);
+    if (report.schema !== 'insight.rwa-report.v1') {
+      return invalidApiResponse('RWA assessment report is malformed');
+    }
+    return diagnostic as RwaDiagnosticResult;
   }
 
   /**
