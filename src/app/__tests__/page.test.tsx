@@ -51,19 +51,21 @@ describe('HomePage', () => {
     it('should render the hero headline and value proposition', () => {
       renderDashboard();
 
-      expect(screen.getByText('See the oracles')).toBeInTheDocument();
-      expect(screen.getByText('behind the price.')).toBeInTheDocument();
+      expect(screen.getByText('Go beneath')).toBeInTheDocument();
+      expect(screen.getByText('the price.')).toBeInTheDocument();
       expect(
-        screen.getByText(/Oracle transparency and risk intelligence for DeFi/i)
+        screen.getByText(/A price is a surface. Insight reveals the oracle sources/i)
       ).toBeInTheDocument();
     });
 
-    it('should render search bar', () => {
+    it('should lead into live evidence without a duplicate hero search', () => {
       renderDashboard();
 
-      expect(
-        screen.getByPlaceholderText('Search BTC, ETH, LINK, UNI, or an oracle provider...')
-      ).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /Explore live evidence/i })).toHaveAttribute(
+        'href',
+        '#live-evidence'
+      );
+      expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
     });
 
     it('should render feature entry points', () => {
@@ -78,7 +80,7 @@ describe('HomePage', () => {
       renderDashboard();
 
       expect(
-        screen.getByText('A price is only useful when you can inspect what stands behind it.')
+        screen.getByText('A trustworthy price should answer more than “how much?”')
       ).toBeInTheDocument();
       expect(screen.getByText('Different questions. One clear audit trail.')).toBeInTheDocument();
       expect(screen.getAllByText('Price Insight').length).toBeGreaterThanOrEqual(1);
