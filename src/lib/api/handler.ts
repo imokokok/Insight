@@ -160,7 +160,8 @@ interface CreateApiHandlerOptions<
     context: ApiHandlerContext<TBody, TQuery, TParams>
   ) => Promise<NextResponse> | NextResponse;
   /** When true, non-v1 requests that carry a valid internal-token cookie may
-   *  skip auth and rate-limit middleware. Paid `/api/v1/*` routes never honor
+   *  skip auth and the database-backed rate limiter. The cheap per-instance
+   *  burst shield still applies. Paid `/api/v1/*` routes never honor
    *  this browser cookie: cookies are bearer credentials and can be replayed
    *  by arbitrary HTTP clients after visiting a public page. */
   skipInternalAuthAndRateLimit?: boolean;
@@ -410,9 +411,11 @@ export function createApiHandler<
         return oversizedResponse;
       }
 
-      // A local burst shield must run before parsing or DB-backed auth. The
-      // normal distributed/API-key limiter below remains authoritative.
-      if (baseRateLimitOptions && !internal) {
+      // A local burst shield applies even to requests with a UI cookie. That
+      // cookie can be obtained by visiting a public page, so it must not turn
+      // costly read routes into unlimited per-instance work. Keep the normal
+      // distributed/API-key limiter below for requests without the UI cookie.
+      if (baseRateLimitOptions) {
         const burstResponse = checkPreAuthBurstLimit(request, preAuthBurstLimit);
         if (burstResponse) {
           applyDiagnosticHeaders(burstResponse, apiContext.requestId, startTime);
@@ -456,10 +459,10 @@ export function createApiHandler<
         apiContext.auth = authResult.context;
       }
 
-      // Skip rate-limit for internal requests — each page load triggers
-      // many oracle fetches in parallel and the per-request DB write
-      // (SupabaseRateLimitStore) adds significant latency.  The internal UI
-      // doesn't need rate-limiting protection.
+      // Skip only the database-backed limiter for UI-cookie requests: each
+      // page load can trigger many parallel oracle reads, and a DB round-trip
+      // for every read adds latency. The local burst shield above still caps
+      // requests on each application instance.
       if (baseRateLimitOptions && !internal) {
         const rateLimitContext = apiContext.auth?.apiKey
           ? { apiKeyId: apiContext.auth.apiKey.keyId }
