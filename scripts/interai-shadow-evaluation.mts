@@ -97,8 +97,15 @@ export function evaluateFixedCase(raw: unknown): ShadowResult {
   const minimumOutput = BigInt(value.intent.minimumOutputBaseUnits);
   const driftNumerator =
     quoteOutput > adjustedOutput ? quoteOutput - adjustedOutput : adjustedOutput - quoteOutput;
-  const quoteDriftBps = Number((driftNumerator * 10_000n) / quoteOutput);
-  if (!Number.isSafeInteger(quoteDriftBps)) throw new TypeError('QUOTE_DRIFT_OUT_OF_RANGE');
+  const scaledDrift = driftNumerator * 10_000n;
+  const quoteDriftBps = Number(scaledDrift) / Number(quoteOutput);
+  if (!Number.isFinite(quoteDriftBps)) throw new TypeError('QUOTE_DRIFT_OUT_OF_RANGE');
+  const quoteDriftBand =
+    scaledDrift <= quoteOutput * 25n
+      ? 'CLEAN'
+      : scaledDrift <= quoteOutput * 50n
+        ? 'NEAR_THRESHOLD'
+        : 'MATERIAL';
 
   let shadowOutcome: Outcome = 'ALLOW';
   let shadowReason: string | null = null;
@@ -142,7 +149,7 @@ export function evaluateFixedCase(raw: unknown): ShadowResult {
     quoteAgeSeconds,
     spreadBand: band(value.evidence.crossProviderSpreadBps, false),
     quoteDriftBps,
-    quoteDriftBand: band(quoteDriftBps, true),
+    quoteDriftBand,
     expectedEscalation: value.expectedEscalation,
     deliberatelyUnsafe: value.deliberatelyUnsafe,
     expectedReason: value.expectedReason,

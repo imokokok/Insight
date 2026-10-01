@@ -1385,7 +1385,7 @@
       "evidenceAgeSeconds": 5,
       "quoteAgeSeconds": 60,
       "spreadBand": "CLEAN",
-      "quoteDriftBps": 333,
+      "quoteDriftBps": 333.3333333333333,
       "quoteDriftBand": "MATERIAL",
       "expectedEscalation": true,
       "deliberatelyUnsafe": true,

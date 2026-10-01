@@ -73,6 +73,12 @@ test('spread and drift endpoint rules remain separate from minimum-output safety
     evidence: { ...base.evidence, adjustedOutputBaseUnits: '2992200' },
   });
   assert.equal(drift26.quoteDriftBand, 'NEAR_THRESHOLD');
+  const driftFractional = evaluateFixedCase({
+    ...base,
+    evidence: { ...base.evidence, adjustedOutputBaseUnits: '2992470' },
+  });
+  assert.equal(driftFractional.quoteDriftBps, 25.1);
+  assert.equal(driftFractional.quoteDriftBand, 'NEAR_THRESHOLD');
   const driftAbove50 = evaluateFixedCase({
     ...base,
     evidence: { ...base.evidence, adjustedOutputBaseUnits: '2984700' },
