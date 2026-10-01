@@ -18,14 +18,16 @@ import {
   Lock,
   Play,
   Shield,
+  ArrowUpRight,
 } from 'lucide-react';
 
 import { ApiKeyManager } from '@/components/api-keys';
+import { DeveloperPathSwitch } from '@/components/developer/DeveloperPathSwitch';
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
-import { DataAccessTierMatrix, PricingSection } from '@/components/pricing';
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { Button } from '@/components/ui/Button';
 import { useAppUrl } from '@/hooks/useAppUrl';
+import { CREDIT_PACKS, PLANS } from '@/lib/billing/plans';
 import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useSession, useUser } from '@/stores/authStore';
 
@@ -225,13 +227,13 @@ function HeroSection() {
               <BookOpen className="w-4 h-4" />
               Read Docs
             </Link>
-            <Link
-              href="/sdk"
+            <a
+              href="#first-request"
               className="inline-flex items-center gap-2 border border-slate-900/20 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-500 hover:text-blue-700"
             >
-              <Shield className="w-4 h-4" />
-              Guard SDK
-            </Link>
+              <ArrowRight className="w-4 h-4" />
+              See first request
+            </a>
           </div>
         }
       />
@@ -243,6 +245,7 @@ function HeroSection() {
           { label: 'Verify response', detail: 'Freshness · source · receipt' },
         ]}
       />
+      <DeveloperPathSwitch current="api" />
     </section>
   );
 }
@@ -252,7 +255,7 @@ function FeaturesSection() {
     <section className="py-14 sm:py-20">
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="mb-10 grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-          <p className="editorial-index">01 — Capability surface</p>
+          <p className="editorial-index">02 — Capability surface</p>
           <div>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
               One interface. The evidence remains visible.
@@ -290,11 +293,14 @@ function QuickStartSection() {
   const codeExamples = getCodeExamples(useAppUrl());
 
   return (
-    <section className="developer-console border-y border-slate-900/10 bg-white/45 py-14 sm:py-20">
+    <section
+      id="first-request"
+      className="developer-console api-first-request border-y border-slate-900/10 bg-white/45 py-14 sm:py-20"
+    >
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div>
-            <p className="editorial-index mb-5">02 — First request</p>
+            <p className="editorial-index mb-5">01 — First request</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
               Start building in minutes
             </h2>
@@ -316,15 +322,39 @@ function QuickStartSection() {
                 </div>
               ))}
             </div>
+            <div className="api-response-anatomy">
+              <span>Every response carries</span>
+              <div>
+                <strong>01</strong>
+                <p>Source provenance</p>
+              </div>
+              <div>
+                <strong>02</strong>
+                <p>Observation time</p>
+              </div>
+              <div>
+                <strong>03</strong>
+                <p>Verification context</p>
+              </div>
+            </div>
           </div>
 
-          <div className="developer-terminal">
-            <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+          <div className="developer-terminal api-request-terminal">
+            <div className="api-terminal-heading">
+              <span>GET /api/v1/prices</span>
+              <span>First request / 01</span>
+            </div>
+            <div
+              className="flex gap-1 mb-4 overflow-x-auto pb-1"
+              role="group"
+              aria-label="Code example language"
+            >
               {(['curl', 'js', 'ts', 'python'] as const).map((lang) => (
                 <button
                   key={lang}
                   type="button"
                   onClick={() => setActiveLang(lang)}
+                  aria-pressed={activeLang === lang}
                   className={`px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
                     activeLang === lang
                       ? 'bg-slate-900 text-white'
@@ -450,28 +480,40 @@ function DocsCtaSection() {
 
 function PricingSectionBlock() {
   return (
-    <>
-      <section id="pricing" className="py-14 sm:py-20">
-        <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
-          <div className="mb-8 grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+    <section id="pricing" className="api-capacity-section py-14 sm:py-20">
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="api-capacity-panel">
+          <div className="api-capacity-intro">
             <p className="editorial-index">03 — Select capacity</p>
+            <h2>One wallet. Every endpoint.</h2>
+            <p>
+              Start with 100 trial credits after email verification. Add a monthly allowance or top
+              up when your workload grows; every paid path uses the same C1–C4 meter.
+            </p>
+            <Link href="/pricing" className="api-capacity-link">
+              Compare all plans <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="api-capacity-facts">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-                Pay for what your agents use
-              </h2>
-              <p className="max-w-2xl text-lg text-slate-600">
-                New users get 100 free trial credits after email verification, and every paying user
-                gets all endpoints. Developer, Team, and Scale subscriptions include a monthly
-                credit allowance spent per call (C1–C4); top up prepaid credit packs for
-                high-frequency and bursty agent workloads. Crypto payments via NOWPayments.
-              </p>
+              <span>Developer subscription</span>
+              <strong>{PLANS.developer.priceMonthly} USDC</strong>
+              <small>/ month · {PLANS.developer.monthlyQuota.toLocaleString()} credits</small>
+            </div>
+            <div>
+              <span>Prepaid entry</span>
+              <strong>{CREDIT_PACKS.starter.priceUsd} USDC</strong>
+              <small>/ pack · {CREDIT_PACKS.starter.credits.toLocaleString()} credits</small>
+            </div>
+            <div>
+              <span>Access model</span>
+              <strong>All endpoints</strong>
+              <small>REST · MCP · Guard share a wallet</small>
             </div>
           </div>
-          <PricingSection />
         </div>
-      </section>
-      <DataAccessTierMatrix />
-    </>
+      </div>
+    </section>
   );
 }
 
@@ -479,8 +521,8 @@ export function ApiPageContent() {
   return (
     <div className="editorial-workspace evidence-workbench developer-workbench api-workbench min-h-screen">
       <HeroSection />
-      <FeaturesSection />
       <QuickStartSection />
+      <FeaturesSection />
       <PricingSectionBlock />
       <KeyManagerSection />
       <FaqSection />
