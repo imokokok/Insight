@@ -29,33 +29,39 @@ export function QueryResultsEmpty() {
   const emptyStateContent = getEmptyStateContent();
 
   return (
-    <EmptyStateEnhanced
-      type={emptyStateContent.type}
-      title={emptyStateContent.title}
-      description={emptyStateContent.description}
-      size="lg"
-      variant="page"
-      icon={emptyStateContent.icon}
-    >
-      {!selectedOracle && (
-        <div className="mt-8 pt-6 border-t border-slate-100 w-full max-w-md">
-          <p className="text-xs text-slate-400 mb-4 flex items-center justify-center gap-1">
-            <TrendingUp className="w-3 h-3" aria-hidden="true" />
-            Popular tokens
-          </p>
-          <div className="flex items-center justify-center">
-            <SegmentedControl
-              options={['BTC', 'ETH', 'BNB', 'AVAX', 'MATIC', 'USDT', 'USDC'].map((token) => ({
-                value: token,
-                label: token,
-              }))}
-              value={selectedSymbol}
-              onChange={(value) => setSelectedSymbol(value as string)}
-              size="sm"
-            />
+    <div className="query-empty-stage editorial-panel">
+      <div className="query-loading-topline">
+        <span className="workbench-kicker">02 / Observation record</span>
+        <span className="font-mono text-xs text-slate-500">AWAITING A VALID SOURCE</span>
+      </div>
+      <EmptyStateEnhanced
+        type={emptyStateContent.type}
+        title={emptyStateContent.title}
+        description={emptyStateContent.description}
+        size="lg"
+        variant="page"
+        icon={emptyStateContent.icon}
+      >
+        {!selectedOracle && (
+          <div className="mt-8 w-full max-w-md border-t border-slate-100 pt-6">
+            <p className="mb-4 flex items-center justify-center gap-1 text-xs text-slate-500">
+              <TrendingUp className="h-3 w-3" aria-hidden="true" />
+              Popular tokens
+            </p>
+            <div className="flex items-center justify-center overflow-x-auto">
+              <SegmentedControl
+                options={['BTC', 'ETH', 'BNB', 'AVAX', 'MATIC', 'USDT', 'USDC'].map((token) => ({
+                  value: token,
+                  label: token,
+                }))}
+                value={selectedSymbol}
+                onChange={(value) => setSelectedSymbol(value as string)}
+                size="sm"
+              />
+            </div>
           </div>
-        </div>
-      )}
-    </EmptyStateEnhanced>
+        )}
+      </EmptyStateEnhanced>
+    </div>
   );
 }

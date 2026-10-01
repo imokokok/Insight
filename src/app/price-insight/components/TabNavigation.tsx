@@ -53,7 +53,7 @@ export function TabNavigation({
 }: TabNavigationProps) {
   return (
     <div
-      className="inline-flex border border-slate-900/15 bg-white"
+      className="comparison-tab-list flex w-full overflow-x-auto border border-slate-900/15 bg-white"
       role="tablist"
       aria-label="Analysis tabs"
     >
@@ -63,18 +63,19 @@ export function TabNavigation({
         return (
           <button
             key={tab.id}
+            type="button"
             onClick={() => onTabChange(tab.id)}
             role="tab"
             aria-selected={isActive}
             title={tab.description}
-            className={`flex items-center gap-1.5 border-r border-slate-900/15 px-3.5 py-2 text-sm font-semibold transition-colors last:border-r-0 ${
+            className={`flex min-h-12 min-w-max flex-1 items-center justify-center gap-2 border-r border-slate-900/15 px-4 py-2.5 text-sm font-semibold transition-colors last:border-r-0 ${
               isActive
                 ? 'bg-blue-600 text-white'
                 : 'text-slate-500 hover:bg-blue-50 hover:text-blue-700'
             }`}
           >
-            <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-            <span className="hidden sm:inline">{tab.label}</span>
+            <Icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+            <span>{tab.label}</span>
           </button>
         );
       })}

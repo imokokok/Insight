@@ -74,6 +74,51 @@ function SafetyWorkspaceHeader() {
   );
 }
 
+function SafetyIdlePreview({ onExplore, disabled }: { onExplore: () => void; disabled: boolean }) {
+  return (
+    <div className="safety-state-stage safety-state-idle editorial-panel border-y border-slate-900/15 bg-white/35">
+      <div className="safety-idle-copy">
+        <span className="workbench-kicker">02 / Stress test preview</span>
+        <h3 className="font-display mt-5 text-3xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-4xl">
+          Know your distance to liquidation.
+        </h3>
+        <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-600">
+          A position becomes a decision record: current health, the price move it can withstand, and
+          the changes that restore a safer buffer.
+        </p>
+        <button
+          type="button"
+          onClick={onExplore}
+          disabled={disabled}
+          className="safety-sample-action mt-7 inline-flex min-h-12 items-center gap-3 bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Explore a sample position <ArrowRight className="h-4 w-4" />
+        </button>
+        <p className="mt-4 text-xs text-slate-500">
+          Or connect a wallet to scan your supported lending positions.
+        </p>
+      </div>
+      <div className="safety-idle-visual" aria-hidden="true">
+        <div className="safety-idle-visual-header">
+          <Shield className="h-5 w-5" />
+          <span>Risk distance model</span>
+        </div>
+        <div className="safety-idle-axis">
+          <i />
+          <i />
+          <i />
+          <span className="safety-idle-marker" />
+        </div>
+        <div className="safety-idle-visual-footer">
+          <span>Current position</span>
+          <span>Liquidation threshold</span>
+        </div>
+        <p>Illustrative model · live values appear after calculation</p>
+      </div>
+    </div>
+  );
+}
+
 function getProtocolDefaults(protocol: ProtocolConfig): {
   collateralRows: AssetRow[];
   borrowRows: AssetRow[];
@@ -589,15 +634,18 @@ export default function SafetyCheckContent() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="editorial-panel border-y border-slate-900/15 bg-white/35 py-20 flex flex-col items-center justify-center text-center"
+                  className="safety-state-stage safety-state-loading editorial-panel flex flex-col items-center justify-center border-y border-slate-900/15 bg-white/35 px-6 py-16 text-center"
                 >
-                  <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
-                  <h3 className="text-base font-semibold text-slate-900 mb-1">
+                  <div className="safety-state-orbit mb-7 flex items-center justify-center">
+                    <Loader2 className="h-7 w-7 animate-spin text-blue-500" />
+                  </div>
+                  <span className="workbench-kicker">Decision model / running</span>
+                  <h3 className="font-display mb-2 mt-4 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
                     {view === 'detecting'
                       ? 'Scanning lending protocols…'
                       : 'Calculating critical deviation…'}
                   </h3>
-                  <p className="text-sm text-slate-500 max-w-sm">
+                  <p className="max-w-sm text-sm leading-relaxed text-slate-600">
                     {view === 'detecting'
                       ? `Reading on-chain positions across ${supportedCount} supported protocols in parallel.`
                       : 'Reading market prices and calculating the critical deviation.'}
@@ -609,18 +657,12 @@ export default function SafetyCheckContent() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="editorial-panel border-y border-slate-900/15 bg-white/35 py-20 flex flex-col items-center justify-center text-center"
+                  className="safety-state-transition"
                 >
-                  <div className="mb-4 flex h-14 w-14 items-center justify-center border border-blue-200 bg-blue-50">
-                    <Shield className="w-7 h-7 text-blue-500" />
-                  </div>
-                  <h3 className="text-base font-semibold text-slate-900 mb-1">
-                    Connect a wallet to begin
-                  </h3>
-                  <p className="text-sm text-slate-500 max-w-sm">
-                    Connect a wallet or paste an address to scan lending positions automatically, or
-                    choose a protocol on the left for manual entry.
-                  </p>
+                  <SafetyIdlePreview
+                    onExplore={handleManualEntry}
+                    disabled={protocols.length === 0}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
