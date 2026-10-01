@@ -11,6 +11,7 @@ export function DropdownSelect<T = string>({
   value,
   onChange,
   placeholder,
+  ariaLabel,
   disabled = false,
   searchable = false,
   searchPlaceholder,
@@ -171,6 +172,7 @@ export function DropdownSelect<T = string>({
         `}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        aria-label={ariaLabel}
       >
         {renderValue ? renderValue(selectedOption!) : defaultRenderValue(selectedOption)}
         <ChevronDown

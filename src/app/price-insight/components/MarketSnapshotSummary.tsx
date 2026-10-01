@@ -290,7 +290,31 @@ function MarketSnapshotSummaryComponent({
     return null;
   }, [dimension, oracleData, chainData]);
 
-  if (isLoading || !summary) return null;
+  if (isLoading || !summary) {
+    return (
+      <div
+        className="comparison-signal-board comparison-signal-board-loading editorial-panel mb-8"
+        aria-busy="true"
+      >
+        <div className="comparison-signal-copy">
+          <span className="workbench-kicker">Market snapshot / in progress</span>
+          <h2 className="font-display mt-4 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+            Establishing the reference field.
+          </h2>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-slate-600">
+            Gathering comparable observations before calculating consensus, spread and risk signals.
+          </p>
+        </div>
+        <div className="comparison-signal-visual" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+    );
+  }
 
   const riskBadge = getRiskBadge(summary.riskLevel);
   const healthBadge = getHealthBadge(summary.feedHealthLevel);
