@@ -350,20 +350,26 @@ export async function downgradeExpiredSubscriptions(): Promise<{ downgraded: num
 }
 
 /**
- * Cancel subscription rows stuck in "incomplete" status for more than 24 hours
- * (abandoned checkouts or lost IPNs). Called daily by the billing cron to
- * prevent zombie rows from accumulating. Returns the number of rows cleaned up.
+ * Cancel only abandoned pre-invoice rows. NOWPayments invoices remain payable
+ * indefinitely, so an invoice-backed order must never be canceled by age.
  */
 export async function cleanupIncompleteSubscriptions(): Promise<{ cleanedUp: number }> {
   const client = createServiceRoleClient();
-  const { data, error } = await client.rpc('cleanup_incomplete_subscriptions');
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await client
+    .from('subscriptions')
+    .update({ status: 'canceled', updated_at: new Date().toISOString() })
+    .eq('status', 'incomplete')
+    .is('nowpayments_invoice_id', null)
+    .lt('created_at', cutoff)
+    .select('id');
 
   if (error) {
     logger.error('Failed to cleanup incomplete subscriptions', error);
     throw new Error('Failed to cleanup incomplete subscriptions');
   }
 
-  return { cleanedUp: typeof data === 'number' ? data : 0 };
+  return { cleanedUp: data?.length ?? 0 };
 }
 
 /**

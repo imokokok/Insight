@@ -8,8 +8,8 @@
  *   1. Every day: downgrade API keys for users whose NOWPayments subscription
  *      has expired (current_period_end < now() AND status = 'active') — but
  *      only if the user has no remaining active, unexpired subscription.
- *   2. Every day: cancel subscription rows stuck in 'incomplete' status for
- *      more than 24 hours (abandoned checkouts / lost IPNs).
+ *   2. Every day: cancel old incomplete rows only when invoice creation never
+ *      succeeded. Invoice-backed orders remain payable.
  *   3. Every day: credit each active subscriber's monthly credit allowance to
  *      their credit wallet (idempotent per user+month — new subscribers are
  *      also immediately granted their first-cycle allowance at the webhook).
