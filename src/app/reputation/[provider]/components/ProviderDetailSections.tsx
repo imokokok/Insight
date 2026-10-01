@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 
+import Link from 'next/link';
+
 import {
+  ArrowUpRight,
   Target,
   Clock,
   TrendingUp,
@@ -302,56 +305,36 @@ export function ScoreBreakdown({
 
 export function HowItWorks() {
   return (
-    <section className="provider-method-record border-l-2 border-blue-600 bg-blue-50/35 p-5">
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 border border-blue-200 bg-blue-50 p-1.5">
-          <Info className="w-4 h-4 text-blue-500" />
+    <section className="provider-method-record border-l-2 border-blue-600 bg-blue-50/35 p-6">
+      <div className="provider-method-heading">
+        <Info className="h-4 w-4" aria-hidden="true" />
+        <span>Reading the record</span>
+      </div>
+      <h2>What the score can tell you.</h2>
+      <p>
+        The score summarizes a rolling seven-day sample. Read it with the observations and coverage
+        above: a small sample receives lower confidence, while broader symbol coverage adds context.
+      </p>
+      <div className="provider-method-facts">
+        <div>
+          <span>01 / Consistency</span>
+          <strong>One deviation curve</strong>
+          <small>Providers share the same deviation penalty formula.</small>
         </div>
-        <div className="text-sm text-gray-600">
-          <p className="font-black text-gray-900 mb-2">How scores are calculated (V4)</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
-            {[
-              {
-                color: 'bg-blue-400',
-                title: 'Accuracy (30%)',
-                desc: 'Proximity to consensus price with consistency bonus',
-              },
-              { color: 'bg-emerald-400', title: 'Uptime (20%)', desc: 'Successful response rate' },
-              {
-                color: 'bg-blue-700',
-                title: 'Reliability (20%)',
-                desc: 'Consistency of performance with stability bonus',
-              },
-              { color: 'bg-amber-400', title: 'Freshness (15%)', desc: 'Data update frequency' },
-              {
-                color: 'bg-slate-500',
-                title: 'Latency (10%)',
-                desc: 'Response speed (baseline-normalized per provider)',
-              },
-              {
-                color: 'bg-red-500',
-                title: 'Deviation (5%)',
-                desc: 'Price deviation from consensus (unified curve)',
-              },
-            ].map((item) => (
-              <div key={item.title} className="flex items-start gap-2">
-                <span className={cn('w-2 h-2 rounded-full flex-shrink-0 mt-1.5', item.color)} />
-                <span className="text-xs">
-                  <strong className="text-gray-800">{item.title}:</strong> {item.desc}
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="text-[11px] text-gray-500 mt-3 pt-3 border-t border-gray-100">
-            <strong className="text-gray-700">Fair scoring principles:</strong> All providers are
-            evaluated with unified deviation and latency penalty formulas. Each provider has a
-            baseline latency reflecting its architecture (onchain: 1000-1500ms, API: 350-500ms), but
-            the scoring curve is identical. A sample size confidence factor reduces scores when data
-            points are insufficient, and coverage bonus rewards providers tested across more
-            symbols.
-          </p>
+        <div>
+          <span>02 / Architecture</span>
+          <strong>Latency in context</strong>
+          <small>Response time is normalized to each provider’s baseline.</small>
+        </div>
+        <div>
+          <span>03 / Confidence</span>
+          <strong>Sample size matters</strong>
+          <small>Limited observations reduce confidence in the score.</small>
         </div>
       </div>
+      <Link href="/docs#methodology" className="provider-method-link">
+        Read the full methodology <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+      </Link>
     </section>
   );
 }
