@@ -15,6 +15,7 @@ import vaaraJson from '../../../protocol/mainline/policies/vaara/v1.json';
 import veritasJson from '../../../protocol/mainline/policies/veritas/v1.json';
 import veritasV2Json from '../../../protocol/mainline/policies/veritas/v2.json';
 import veritasV3Json from '../../../protocol/mainline/policies/veritas/v3.json';
+import veritasV4Json from '../../../protocol/mainline/policies/veritas/v4.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -82,6 +83,7 @@ const rawPolicies = [
   veritasJson,
   veritasV2Json,
   veritasV3Json,
+  veritasV4Json,
 ] as unknown as PartnerIntegrationPolicy[];
 
 function assertPolicy(policy: PartnerIntegrationPolicy): void {

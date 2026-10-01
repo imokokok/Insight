@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 25,
+  "effectiveFrom": "2026-10-01",
+  "classification": "Guarded VERITAS 2026-10-02 window-five candidate publication without activation",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x2387d30468f1cb75de4e205a509d2605479c1dc5c46455704aa9f252f04f2c3a",
+  "activationSetId": "0xdf95620c31f265a3cba6f0f55d5d731982c0a58eb879651d2c872c3f6c53b6a9",
+  "receiptImpact": "OracleSafetyCheck v3 and ExecutionReceipt v5 signed layouts, semantic profile, registry release, attester key and historical evidence are unchanged. New immutable VERITAS policy v4 pins the 2026-10-02 15:30 UTC one-time end; current activation set v4 continues to select the expired September policy v3. The partner-scoped 1800-second issuer code is retargeted to October 2 but remains closed until a separate explicit activation promotion and the exact dedicated API-key ID and server-side date are configured.",
+  "activationRule": "This promotion only publishes the candidate policy and fail-closed October 2 admission code; it does not move activations.json or grant live signing. After YuTao sends written AGREED for October 2, a separate append-only activation promotion may select VERITAS policy v4 without changing any other partner. Even then, the dedicated key/date, fresh signer and clock, VERITAS preflights and fresh 13:55-14:00 UTC READY remain necessary. Requests before 14:00 or at/after 14:50 UTC and signatures at/after 14:55 UTC fail closed. The registered 600-second configuration and F12 OPEN are unchanged.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves this partner policy ID byte for byte; no schema, profile, registry release, signer or production-reachability change. The new one-time VERITAS route requires partnerId veritas, policy v4, a dedicated API-key ID and exact date, so this partner cannot reach it."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves this partner policy ID byte for byte; no schema, profile, registry release, signer or production-reachability change. The new one-time VERITAS route requires partnerId veritas, policy v4, a dedicated API-key ID and exact date, so this partner cannot reach it."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves this partner policy ID byte for byte; no schema, profile, registry release, signer or production-reachability change. The new one-time VERITAS route requires partnerId veritas, policy v4, a dedicated API-key ID and exact date, so this partner cannot reach it."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves this partner policy ID byte for byte; no schema, profile, registry release, signer or production-reachability change. The new one-time VERITAS route requires partnerId veritas, policy v4, a dedicated API-key ID and exact date, so this partner cannot reach it."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves this partner policy ID byte for byte; no schema, profile, registry release, signer or production-reachability change. The new one-time VERITAS route requires partnerId veritas, policy v4, a dedicated API-key ID and exact date, so this partner cannot reach it."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves this partner policy ID byte for byte; no schema, profile, registry release, signer or production-reachability change. The new one-time VERITAS route requires partnerId veritas, policy v4, a dedicated API-key ID and exact date, so this partner cannot reach it."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves this partner policy ID byte for byte; no schema, profile, registry release, signer or production-reachability change. The new one-time VERITAS route requires partnerId veritas, policy v4, a dedicated API-key ID and exact date, so this partner cannot reach it."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "Activation set v4 preserves this partner policy ID byte for byte; no schema, profile, registry release, signer or production-reachability change. The new one-time VERITAS route requires partnerId veritas, policy v4, a dedicated API-key ID and exact date, so this partner cannot reach it."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "candidate-not-activated",
+      "evidence": "New immutable policy v4 is published for October 2, but current activation set v4 still selects expired September policy v3. Runtime requires v4, its exact one-time date and dedicated API-key ID, so no live route becomes reachable on this promotion alone. Signed layouts and existing evidence remain unchanged."
+    }
+  ],
+  "promotionId": "0x926b5880207ac853c825b93eb39d8f71c7bf4aae81ffe679291b1543ff944adc"
+}
