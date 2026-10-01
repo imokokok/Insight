@@ -161,7 +161,7 @@ const base = {
   provenance: 'SYNTHETIC_FIXED_CASE' as const,
   asOfMs,
   intent: {
-    chainId: 8453,
+    chainId: 84532,
     venue: 'synthetic-uniswap-v3',
     pool: 'synthetic-weth-usdc-3000',
     tokenIn: 'WETH',
@@ -172,7 +172,7 @@ const base = {
     quoteObservedAtMs: asOfMs - 5_000,
   },
   evidence: {
-    chainId: 8453,
+    chainId: 84532,
     venue: 'synthetic-uniswap-v3',
     pool: 'synthetic-weth-usdc-3000',
     tokenIn: 'WETH',

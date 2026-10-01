@@ -26,6 +26,8 @@ test('30 fixed cases cover seven labels and at least 20 clean or benign controls
   assert.equal(report.wrongReasons, 0);
   assert.equal(report.candidateChecksPass, true);
   assert.ok(report.results.every((row) => row.currentInterAIOutcome === null));
+  assert.ok(report.cases.every((row) => row.intent.chainId === 84532));
+  assert.ok(report.cases.every((row) => row.evidence.chainId === 84532));
 });
 
 test('reviewable JSON report matches the executable fixed-case evaluation', async () => {
