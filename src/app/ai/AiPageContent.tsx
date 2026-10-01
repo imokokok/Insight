@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 import { ApiKeyManager } from '@/components/api-keys';
+import { DeveloperPathSwitch } from '@/components/developer/DeveloperPathSwitch';
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { PricingCtaSection } from '@/components/pricing';
 import { Button } from '@/components/ui/Button';
@@ -119,6 +120,44 @@ const INTEGRATION_STEPS = [
   },
 ];
 
+function AgentDecisionCanvas() {
+  return (
+    <div className="agent-decision-canvas" aria-label="Illustrative agent decision path">
+      <div className="agent-decision-topline">
+        <span>Decision architecture / illustrative</span>
+        <span>Before an on-chain action</span>
+      </div>
+      <div className="agent-decision-flow">
+        <div className="agent-decision-cell">
+          <span>01 / Agent intent</span>
+          <strong>What is about to happen?</strong>
+          <p>Declare the asset, chain, action, and trade size.</p>
+        </div>
+        <div className="agent-decision-cell agent-decision-core">
+          <span>02 / Insight evidence</span>
+          <strong>Inspect the oracle record.</strong>
+          <div className="agent-decision-signals">
+            <i>Consensus</i>
+            <i>Freshness</i>
+            <i>Deviation</i>
+            <i>Peg risk</i>
+          </div>
+        </div>
+        <div className="agent-decision-cell">
+          <span>03 / Your policy</span>
+          <strong>Act, ask, or halt.</strong>
+          <p>Use the returned verdict and reason codes in your own execution policy.</p>
+        </div>
+      </div>
+      <div className="agent-decision-footer">
+        <span>Machine-readable factors</span>
+        <span>Human-readable explanation</span>
+        <span>Verifiable receipt path</span>
+      </div>
+    </div>
+  );
+}
+
 export function AiPageContent() {
   const router = useRouter();
   const user = useUser();
@@ -198,14 +237,21 @@ export function AiPageContent() {
           ]}
         />
 
-        <div className="agent-transport-strip flex flex-wrap gap-x-6 gap-y-2 border-b border-slate-900/15 py-4 text-xs text-slate-500">
-          <span>MCP shares the API credit meter</span>
-          <Link href="/pricing" className="text-blue-700 hover:underline">
-            See pricing
-          </Link>
-          <Link href="/verify" className="text-blue-700 hover:underline">
-            Verify a receipt
-          </Link>
+        <DeveloperPathSwitch current="ai" />
+
+        <AgentDecisionCanvas />
+
+        <nav
+          className="agent-transport-strip flex flex-wrap gap-x-6 gap-y-2 border-b border-slate-900/15 py-4 text-xs text-slate-500"
+          aria-label="On this page"
+        >
+          <span>Jump to</span>
+          <a href="#safety-check">Safety Check</a>
+          <a href="#oracle-watch">Oracle Watch</a>
+          <a href="#config">MCP config</a>
+          <a href="#playground">Playground</a>
+          <Link href="/pricing">Pricing</Link>
+          <Link href="/verify">Verify a receipt</Link>
           <a
             href="https://modelcontextprotocol.io"
             target="_blank"
@@ -214,7 +260,7 @@ export function AiPageContent() {
           >
             MCP specification <ExternalLink className="h-3 w-3" />
           </a>
-        </div>
+        </nav>
       </section>
 
       {/* ======================= CAPABILITIES ======================= */}

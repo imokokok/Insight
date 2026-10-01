@@ -11,6 +11,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
+import { DeveloperPathSwitch } from '@/components/developer/DeveloperPathSwitch';
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { CodeBlock } from '@/components/shared/CodeBlock';
 import { ORACLE_INSIGHT_GUARD_VERSION } from '@/lib/npmPackageVersions';
@@ -126,6 +127,24 @@ export default function SdkPage() {
             { label: 'Prove settlement', detail: 'Transaction · signed receipt' },
           ]}
         />
+        <DeveloperPathSwitch current="sdk" />
+
+        <div className="sdk-boundary-panel" aria-labelledby="sdk-boundary-title">
+          <div className="sdk-boundary-heading">
+            <span>Responsibility boundary / 01</span>
+            <h2 id="sdk-boundary-title">Evidence in. Your policy out.</h2>
+          </div>
+          <div className="sdk-boundary-column sdk-boundary-insight">
+            <span>Insight Guard provides</span>
+            <strong>Assessments, watch signals, and signed receipts.</strong>
+            <p>Observe oracle conditions before and during an execution workflow.</p>
+          </div>
+          <div className="sdk-boundary-column sdk-boundary-app">
+            <span>Your application controls</span>
+            <strong>Policy, signer, and transaction submission.</strong>
+            <p>Decide which verdicts halt the strategy and what to submit on-chain.</p>
+          </div>
+        </div>
       </section>
 
       <section className="py-14 sm:py-20">
