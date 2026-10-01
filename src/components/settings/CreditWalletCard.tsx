@@ -25,7 +25,13 @@ interface CreditWalletCardProps {
 interface WalletData {
   balance: number;
   frozen: number;
-  pending: Array<{ id: string; credits: number; invoiceId: string | null; createdAt: string }>;
+  pending: Array<{
+    id: string;
+    credits: number;
+    invoiceId: string | null;
+    paymentId: string | null;
+    createdAt: string;
+  }>;
   recent: Array<{ delta: number; kind: string; ref: string | null; createdAt: string }>;
 }
 
@@ -33,6 +39,7 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [topUpLoading, setTopUpLoading] = useState<string | null>(null);
   const [reconcileLoading, setReconcileLoading] = useState<string | null>(null);
+  const [paymentIds, setPaymentIds] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -93,7 +100,11 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ type: 'topup', id }),
+        body: JSON.stringify({
+          type: 'topup',
+          id,
+          ...(paymentIds[id]?.trim() ? { paymentId: paymentIds[id].trim() } : {}),
+        }),
       });
       const result = await response.json();
 
@@ -197,8 +208,20 @@ export function CreditWalletCard({ accessToken, onError }: CreditWalletCardProps
                     · created {new Date(p.createdAt).toLocaleDateString()}
                   </span>
                   <span className="block text-xs text-slate-400">
-                    Payment sent but not yet confirmed — paid? Click to verify.
+                    Payment pending — enter the Payment ID from your NOWPayments receipt if needed.
                   </span>
+                  <label className="block text-xs text-slate-600 mt-1">
+                    Payment ID
+                    <input
+                      value={paymentIds[p.id] ?? ''}
+                      onChange={(event) =>
+                        setPaymentIds((current) => ({ ...current, [p.id]: event.target.value }))
+                      }
+                      inputMode="numeric"
+                      placeholder={p.paymentId ?? 'From NOWPayments receipt'}
+                      className="ml-2 rounded-sm border border-slate-300 bg-white px-2 py-1 text-sm"
+                    />
+                  </label>
                 </div>
                 <Button
                   variant="secondary"

@@ -222,66 +222,17 @@ export function parseIpnEvent(
 }
 
 /**
- * Retrieve an invoice from NOWPayments by ID. Used for the "I've paid" button
- * fallback when an IPN is lost/delayed — the frontend polls this via a
- * billing endpoint to confirm payment status.
+ * Retrieve an actual payment by payment ID. An invoice can contain multiple
+ * payments and does not itself have a final payment_status.
  */
-export async function getInvoice(invoiceId: string): Promise<{
+export async function getPaymentStatus(paymentId: string): Promise<{
   id: string;
   status: string;
+  invoiceId?: string;
+  orderId?: string;
   priceAmount?: number;
   priceCurrency?: string;
-  payAmount?: number;
-  payCurrency?: string;
-  orderId?: string;
 } | null> {
-  if (!NOWPAYMENTS_CONFIG.apiKey) return null;
-
-  try {
-    const response = await fetch(`${getBaseUrl()}/invoice/${encodeURIComponent(invoiceId)}`, {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      logger.error(
-        'Failed to retrieve invoice from NOWPayments',
-        new Error(`HTTP ${response.status}`),
-        { invoiceId }
-      );
-      return null;
-    }
-
-    const data = (await response.json()) as Record<string, unknown>;
-    const finiteNumber = (value: unknown): number | undefined => {
-      if (typeof value !== 'number' && typeof value !== 'string') return undefined;
-      const number = Number(value);
-      return Number.isFinite(number) ? number : undefined;
-    };
-    return {
-      id: String(data.id ?? invoiceId),
-      status: String(data.status ?? 'unknown'),
-      priceAmount: finiteNumber(data.price_amount),
-      priceCurrency: typeof data.price_currency === 'string' ? data.price_currency : undefined,
-      payAmount: finiteNumber(data.pay_amount),
-      payCurrency: typeof data.pay_currency === 'string' ? data.pay_currency : undefined,
-      orderId: typeof data.order_id === 'string' ? data.order_id : undefined,
-    };
-  } catch (error) {
-    logger.error('Failed to retrieve invoice from NOWPayments', normalizeError(error), {
-      invoiceId,
-    });
-    return null;
-  }
-}
-
-/**
- * Retrieve a payment's status from NOWPayments by payment ID. Used alongside
- * getInvoice for the IPN-loss fallback path.
- */
-export async function getPaymentStatus(
-  paymentId: string
-): Promise<{ id: string; status: string } | null> {
   if (!NOWPAYMENTS_CONFIG.apiKey) return null;
 
   try {
@@ -300,9 +251,19 @@ export async function getPaymentStatus(
     }
 
     const data = (await response.json()) as Record<string, unknown>;
+    const returnedId = data.payment_id ?? data.id;
+    if (returnedId == null || String(returnedId) !== paymentId) {
+      logger.warn('NOWPayments returned a different payment ID', { paymentId });
+      return null;
+    }
+    const priceAmount = Number(data.price_amount);
     return {
-      id: String(data.id ?? paymentId),
+      id: paymentId,
       status: String(data.payment_status ?? 'unknown'),
+      invoiceId: data.invoice_id != null ? String(data.invoice_id) : undefined,
+      orderId: typeof data.order_id === 'string' ? data.order_id : undefined,
+      priceAmount: Number.isFinite(priceAmount) ? priceAmount : undefined,
+      priceCurrency: typeof data.price_currency === 'string' ? data.price_currency : undefined,
     };
   } catch (error) {
     logger.error('Failed to retrieve payment from NOWPayments', normalizeError(error), {

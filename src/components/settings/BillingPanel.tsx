@@ -31,6 +31,7 @@ interface SubscriptionData {
     status: string;
     interval: string;
     current_period_end: string;
+    nowpayments_payment_id: string | null;
   } | null;
   apiKeys: Array<{
     id: string;
@@ -62,6 +63,7 @@ export function BillingPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [paymentIdInput, setPaymentIdInput] = useState('');
 
   const accessToken = session?.access_token;
 
@@ -144,7 +146,11 @@ export function BillingPanel() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ type: 'subscription', id: subscription.id }),
+        body: JSON.stringify({
+          type: 'subscription',
+          id: subscription.id,
+          ...(paymentIdInput.trim() ? { paymentId: paymentIdInput.trim() } : {}),
+        }),
       });
       const result = await response.json();
 
@@ -290,9 +296,23 @@ export function BillingPanel() {
             {isPendingSubscription && (
               <p className="text-sm text-amber-700">
                 Your {subscription.interval === 'year' ? 'annual' : 'monthly'} payment is pending
-                confirmation. Already paid? Click “I&apos;ve paid” to verify with the payment
-                provider.
+                confirmation. Enter the Payment ID from your NOWPayments receipt if the payment has
+                not appeared here yet.
               </p>
+            )}
+            {isPendingSubscription && (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <label className="text-xs text-slate-600">
+                  Payment ID
+                  <input
+                    value={paymentIdInput}
+                    onChange={(event) => setPaymentIdInput(event.target.value)}
+                    inputMode="numeric"
+                    placeholder={subscription.nowpayments_payment_id ?? 'From NOWPayments receipt'}
+                    className="ml-2 rounded-sm border border-slate-300 bg-white px-2 py-1 text-sm"
+                  />
+                </label>
+              </div>
             )}
           </div>
 
