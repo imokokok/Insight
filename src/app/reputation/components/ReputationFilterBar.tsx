@@ -20,10 +20,8 @@ interface ReputationFilterBarProps {
 /**
  * Search + provider-type filter bar for the reputation directory.
  *
- * Sorting is intentionally NOT exposed here — column-header click sorting
- * in ReputationComparisonTable is the single source of truth for sort
- * order. The previous `Sort by` `<select>` duplicated that control and
- * caused user confusion.
+ * Desktop sorting lives in the comparison table headers. On narrow screens,
+ * ReputationContent exposes the same sort state through a select above the cards.
  */
 export function ReputationFilterBar({
   search,
@@ -47,6 +45,7 @@ export function ReputationFilterBar({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input
           type="text"
+          aria-label="Search providers"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search providers..."
