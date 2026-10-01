@@ -76,105 +76,167 @@ export default function SdkDocsPage() {
         />
       </section>
 
-      <main className="technical-manual-ledger editorial-frame mx-auto max-w-[1100px] px-5 py-14 sm:px-8 sm:py-20">
-        <section className="manual-chapter border-y border-slate-900/15 bg-white/45 p-6 sm:p-8">
-          <p className="editorial-index mb-4">01 — Install · npm v{ORACLE_INSIGHT_GUARD_VERSION}</p>
-          <h2 className="text-2xl font-bold text-slate-900">
-            Use a trusted server or agent runtime.
-          </h2>
-          <p className="mt-3 max-w-2xl leading-relaxed text-slate-600">
-            The API key unlocks paid endpoints, so keep it in a server environment variable. Do not
-            ship it to a browser or client wallet application.
+      <section className="sdk-docs-mode-map editorial-frame mx-auto max-w-[1440px] px-5 pt-10 sm:px-8 lg:px-12">
+        <div className="sdk-docs-mode-intro">
+          <span className="editorial-index">Choose the boundary</span>
+          <h2>Two ways to put a decision to work.</h2>
+          <p>
+            Start with an assessment. Add guarded submission only when your executor is ready to act
+            on the result.
           </p>
-          <div className="mt-6 max-w-xl">
-            <CodeBlock code={installCode} label="Install" />
-          </div>
-        </section>
+        </div>
+        <div className="sdk-docs-mode-options">
+          <a href="#gate" className="sdk-docs-mode-option">
+            <span>01 / Assessment</span>
+            <strong>Check, then decide</strong>
+            <small>
+              <code>check()</code> returns a decision for your application to handle.
+            </small>
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </a>
+          <a href="#receipt" className="sdk-docs-mode-option">
+            <span>02 / Optional helper</span>
+            <strong>Gate your submitter</strong>
+            <small>
+              <code>executeSwap()</code> checks proof before calling your transaction callback.
+            </small>
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </a>
+        </div>
+      </section>
 
-        <section className="manual-chapter py-14">
-          <p className="editorial-index mb-4">02 — Pre-trade gate</p>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-            Check before creating a transaction.
-          </h2>
-          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-            <code>check()</code> returns an explicit decision. <code>assertSafe()</code> is
-            available for executors that prefer an exception on <code>DANGER</code> or{' '}
-            <code>BLOCK</code>. Guard defaults new checks to signed schema v3.
-          </p>
-          <div className="mt-7">
-            <CodeBlock code={gateCode} label="Pre-trade gate" />
-          </div>
-        </section>
+      <main className="sdk-docs-layout editorial-frame mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
+        <aside className="sdk-docs-toc" aria-label="Guard SDK chapters">
+          <p className="editorial-index">On this page</p>
+          <nav>
+            <a href="#install">
+              <span>01</span> Install securely
+            </a>
+            <a href="#gate">
+              <span>02</span> Pre-trade gate
+            </a>
+            <a href="#receipt">
+              <span>03</span> Verified receipt
+            </a>
+            <a href="#watch">
+              <span>04</span> Oracle Watch
+            </a>
+            <a href="#billing">
+              <span>05</span> Billing & verification
+            </a>
+          </nav>
+          <Link href="/docs/api" className="sdk-docs-toc-next">
+            Open API reference <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </aside>
+        <div className="technical-manual-ledger sdk-docs-chapters">
+          <section
+            id="install"
+            className="manual-chapter border-y border-slate-900/15 bg-white/45 p-6 sm:p-8"
+          >
+            <p className="editorial-index mb-4">
+              01 — Install · npm v{ORACLE_INSIGHT_GUARD_VERSION}
+            </p>
+            <h2 className="text-2xl font-bold text-slate-900">
+              Use a trusted server or agent runtime.
+            </h2>
+            <p className="mt-3 max-w-2xl leading-relaxed text-slate-600">
+              The API key unlocks paid endpoints, so keep it in a server environment variable. Do
+              not ship it to a browser or client wallet application.
+            </p>
+            <div className="mt-6 max-w-xl">
+              <CodeBlock code={installCode} label="Install" />
+            </div>
+          </section>
 
-        <section className="manual-chapter border-y border-slate-900/15 bg-white/45 py-14">
-          <div className="px-6 sm:px-8">
-            <p className="editorial-index mb-4">03 — Verified receipt workflow</p>
+          <section id="gate" className="manual-chapter py-14">
+            <p className="editorial-index mb-4">02 — Pre-trade gate</p>
             <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-              Supply both sides of a swap before submitting it.
+              Check before creating a transaction.
             </h2>
             <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-              A destination-per-source fill price needs two independent pre-trade proofs. Guard
-              validates that the pair is reciprocal before calling your transaction submitter, then
-              sends both originals with the settled transaction hash to the receipt issuer.
+              <code>check()</code> returns an explicit decision. <code>assertSafe()</code> is
+              available for executors that prefer an exception on <code>DANGER</code> or{' '}
+              <code>BLOCK</code>. Guard defaults new checks to signed schema v3.
             </p>
             <div className="mt-7">
-              <CodeBlock code={receiptCode} label="executeSwap" />
+              <CodeBlock code={gateCode} label="Pre-trade gate" />
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="manual-chapter py-14">
-          <p className="editorial-index mb-4">04 — Oracle Watch</p>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-            Wire halt to a real pause action.
-          </h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <div className="border-b border-slate-900/10 bg-white/55 p-6">
-              <ShieldCheck className="mb-4 h-6 w-6 text-emerald-600" />
-              <h3 className="font-bold text-slate-900">Normal cadence</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                <code>watch()</code> defaults to 15 minutes. Faster polling needs an explicit opt-in
-                because it consumes more C3 calls and usually yields no fresher data.
+          <section
+            id="receipt"
+            className="manual-chapter border-y border-slate-900/15 bg-white/45 py-14"
+          >
+            <div className="px-6 sm:px-8">
+              <p className="editorial-index mb-4">03 — Verified receipt workflow</p>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+                Supply both sides of a swap before submitting it.
+              </h2>
+              <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
+                A destination-per-source fill price needs two independent pre-trade proofs. Guard
+                validates that the pair is reciprocal before calling your transaction submitter,
+                then sends both originals with the settled transaction hash to the receipt issuer.
               </p>
+              <div className="mt-7">
+                <CodeBlock code={receiptCode} label="executeSwap" />
+              </div>
             </div>
-            <div className="border-b border-slate-900/10 bg-white/55 p-6">
-              <CircleAlert className="mb-4 h-6 w-6 text-amber-600" />
-              <h3 className="font-bold text-slate-900">Halt semantics</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                Bind <code>onHalt</code> to pause your executor. Pass the same{' '}
-                <code>watchTarget</code>
-                to <code>executeSwap</code> to prevent a new submission while that halt is active.
-              </p>
-            </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="manual-chapter border-t border-slate-900/15 pt-10">
-          <h2 className="text-2xl font-bold text-slate-900">Billing and verification boundary</h2>
-          <p className="mt-3 max-w-3xl leading-relaxed text-slate-600">
-            Guard uses the same API key and credit wallet as direct API calls. Pre-Trade and Oracle
-            Watch are C3 calls; execution receipt issuance is C4. A successful two-sided
-            <code>executeSwap()</code> uses two C3 calls and one C4 call (20 credits at current
-            prices), before optional Watch polling. REST API, AI/MCP, and Guard are distinct
-            integration surfaces that draw from the same wallet. A valid signed receipt proves the
-            issuer and integrity of its bytes; it is not a guarantee that the market price or trade
-            was correct.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link
-              href="/api"
-              className="inline-flex items-center gap-2 border border-slate-900/20 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-blue-500 hover:text-blue-700"
-            >
-              API access and keys
-            </Link>
-            <Link
-              href="/docs/api"
-              className="inline-flex items-center gap-2 border border-blue-700 bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-950"
-            >
-              API reference <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </section>
+          <section id="watch" className="manual-chapter py-14">
+            <p className="editorial-index mb-4">04 — Oracle Watch</p>
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+              Wire halt to a real pause action.
+            </h2>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="border-b border-slate-900/10 bg-white/55 p-6">
+                <ShieldCheck className="mb-4 h-6 w-6 text-emerald-600" />
+                <h3 className="font-bold text-slate-900">Normal cadence</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                  <code>watch()</code> defaults to 15 minutes. Faster polling needs an explicit
+                  opt-in because it consumes more C3 calls and usually yields no fresher data.
+                </p>
+              </div>
+              <div className="border-b border-slate-900/10 bg-white/55 p-6">
+                <CircleAlert className="mb-4 h-6 w-6 text-amber-600" />
+                <h3 className="font-bold text-slate-900">Halt semantics</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                  Bind <code>onHalt</code> to pause your executor. Pass the same{' '}
+                  <code>watchTarget</code>
+                  to <code>executeSwap</code> to prevent a new submission while that halt is active.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section id="billing" className="manual-chapter border-t border-slate-900/15 pt-10">
+            <h2 className="text-2xl font-bold text-slate-900">Billing and verification boundary</h2>
+            <p className="mt-3 max-w-3xl leading-relaxed text-slate-600">
+              Guard uses the same API key and credit wallet as direct API calls. Pre-Trade and
+              Oracle Watch are C3 calls; execution receipt issuance is C4. A successful two-sided
+              <code>executeSwap()</code> uses two C3 calls and one C4 call (20 credits at current
+              prices), before optional Watch polling. REST API, AI/MCP, and Guard are distinct
+              integration surfaces that draw from the same wallet. A valid signed receipt proves the
+              issuer and integrity of its bytes; it is not a guarantee that the market price or
+              trade was correct.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                href="/api"
+                className="inline-flex items-center gap-2 border border-slate-900/20 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-blue-500 hover:text-blue-700"
+              >
+                API access and keys
+              </Link>
+              <Link
+                href="/docs/api"
+                className="inline-flex items-center gap-2 border border-blue-700 bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-950"
+              >
+                API reference <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   );
