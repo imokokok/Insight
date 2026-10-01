@@ -26,6 +26,7 @@ export interface DropdownSelectProps<T = string> {
   value: T;
   onChange: (value: T) => void;
   placeholder?: string;
+  ariaLabel?: string;
   disabled?: boolean;
   searchable?: boolean;
   searchPlaceholder?: string;

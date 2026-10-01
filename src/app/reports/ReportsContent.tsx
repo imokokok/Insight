@@ -13,6 +13,7 @@ import {
   Globe,
   Share2,
   ShieldCheck,
+  ArrowUpRight,
 } from 'lucide-react';
 
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
@@ -224,6 +225,69 @@ function ReportRow({ report, recordNumber }: { report: ReportSummary; recordNumb
   );
 }
 
+function LatestReport({ report }: { report: ReportSummary }) {
+  const date = new Date(report.reportDate);
+  const dateLabel = date.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  return (
+    <section className="report-feature mb-12" aria-labelledby="latest-report-heading">
+      <div className="report-feature-topline">
+        <span className="editorial-index">02 — Latest edition</span>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500">
+          Published record / UTC
+        </span>
+      </div>
+      <div className="report-feature-body">
+        <div className="report-feature-date">
+          <span className="report-feature-day">
+            {date.toLocaleDateString('en-US', { timeZone: 'UTC', day: '2-digit' })}
+          </span>
+          <span className="report-feature-month">
+            {date.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', year: 'numeric' })}
+          </span>
+          <span className="report-feature-sequence">ISSUE / LATEST</span>
+        </div>
+        <div className="report-feature-story">
+          <div className="mb-5 flex flex-wrap items-center gap-3">
+            <StatusBadge metrics={report.metrics} />
+            <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500">
+              {dateLabel}
+            </span>
+          </div>
+          <h2 id="latest-report-heading">The most recent network record.</h2>
+          <p>{report.summary}</p>
+          <Link href={`/reports/${report.reportDate}`} className="report-feature-link">
+            Read the full report <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="report-feature-readout" aria-label="Latest report metrics">
+          <div>
+            <span>Success rate</span>
+            <strong>{report.metrics.overallSuccessRate.toFixed(1)}%</strong>
+          </div>
+          <div>
+            <span>Average deviation</span>
+            <strong>{report.metrics.avgDeviationPct.toFixed(3)}%</strong>
+          </div>
+          <div>
+            <span>Providers observed</span>
+            <strong>{report.metrics.activeProviders}</strong>
+          </div>
+          <div>
+            <span>Assets tracked</span>
+            <strong>{report.metrics.activeAssets}</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Pagination({
   currentPage,
   totalPages,
@@ -264,19 +328,13 @@ function Pagination({
 
 function ReportsContentInner({ initialReports }: { initialReports: ReportSummary[] }) {
   const [currentPage, setCurrentPage] = useState(1);
-
-  const paginatedReports = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return initialReports.slice(start, start + ITEMS_PER_PAGE);
-  }, [initialReports, currentPage]);
-
-  const totalPages = useMemo(
-    () => Math.ceil(initialReports.length / ITEMS_PER_PAGE),
-    [initialReports.length]
-  );
+  const latestReport = initialReports[0];
+  const archiveReports = initialReports.slice(1);
+  const start = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedReports = archiveReports.slice(start, start + ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(archiveReports.length / ITEMS_PER_PAGE);
 
   const reportCount = initialReports.length;
-  const latestReport = initialReports[0];
   const providerCount = latestReport?.metrics.activeProviders ?? 0;
   const assetCount = latestReport?.metrics.activeAssets ?? 0;
 
@@ -285,24 +343,30 @@ function ReportsContentInner({ initialReports }: { initialReports: ReportSummary
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12 lg:pb-28">
         <Header reportCount={reportCount} providerCount={providerCount} assetCount={assetCount} />
 
+        {latestReport && <LatestReport report={latestReport} />}
+
         <section>
           <div className="workbench-section-heading mb-4 flex items-end justify-between border-b border-slate-900/15 pb-3">
             <div>
-              <p className="editorial-index mb-1">02 — Open the record</p>
-              <h2 className="text-xl font-bold tracking-tight text-slate-950">Daily reports</h2>
+              <p className="editorial-index mb-1">03 — Browse the archive</p>
+              <h2 className="text-xl font-bold tracking-tight text-slate-950">Earlier editions</h2>
             </div>
-            {initialReports.length > 0 && (
+            {archiveReports.length > 0 && (
               <span className="text-xs font-semibold text-slate-500">
-                {paginatedReports.length} of {initialReports.length}
+                {paginatedReports.length} of {archiveReports.length}
               </span>
             )}
           </div>
 
-          {initialReports.length === 0 ? (
+          {archiveReports.length === 0 ? (
             <EmptyStateEnhanced
               type="new"
-              title="No reports yet"
-              description="Daily reports will appear here once the scheduled snapshot collection begins."
+              title={latestReport ? 'The archive starts here' : 'No reports yet'}
+              description={
+                latestReport
+                  ? 'Earlier editions will appear here as new daily reports are published.'
+                  : 'Daily reports will appear here once the scheduled snapshot collection begins.'
+              }
               size="md"
               variant="card"
             />
@@ -321,7 +385,7 @@ function ReportsContentInner({ initialReports }: { initialReports: ReportSummary
                     <ReportRow
                       key={report.reportDate}
                       report={report}
-                      recordNumber={(currentPage - 1) * ITEMS_PER_PAGE + reportIndex + 1}
+                      recordNumber={(currentPage - 1) * ITEMS_PER_PAGE + reportIndex + 2}
                     />
                   ))}
                 </div>

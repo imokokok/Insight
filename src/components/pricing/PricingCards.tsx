@@ -135,7 +135,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
           return (
             <div
               key={planId}
-              className={`pricing-plan-card relative flex flex-col border-slate-900/15 bg-white/55 p-6 transition-colors hover:bg-white md:border-r md:last:border-r-0 ${
+              className={`pricing-plan-card relative flex flex-col border-slate-900/15 bg-white/55 p-6 transition-colors hover:bg-white md:border-r md:last:border-r-0 ${isTeam ? 'pricing-plan-featured' : ''} ${
                 isTeam
                   ? 'border-l-2 border-l-blue-600 md:border-l-0 md:border-t-2 md:border-t-blue-600'
                   : 'border-l-0 border-t-0'
@@ -150,7 +150,7 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                 </div>
               )}
 
-              <div className="mb-5">
+              <div className="pricing-plan-intro mb-5">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
                   {isEnterprise && (
@@ -164,27 +164,42 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                 </p>
               </div>
 
-              <div className="mb-5">
+              <div className="pricing-plan-price mb-5">
                 {isEnterprise ? (
                   <div className="text-3xl font-bold tracking-tight text-slate-900">Custom</div>
                 ) : (
                   <>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold tracking-tight text-slate-900">
-                        {billingCycle === 'yearly' && price ? Math.round(price / 12) : (price ?? 0)}
+                      <span className="pricing-price-currency">$</span>
+                      <span className="pricing-price-number">
+                        {billingCycle === 'yearly' && price
+                          ? (price / 12).toFixed(2)
+                          : (price ?? 0)}
                       </span>
-                      <span className="text-sm text-slate-500">USDC/mo</span>
+                      <span className="text-sm text-slate-500">/ month</span>
                     </div>
-                    {billingCycle === 'yearly' && price && price > 0 && (
-                      <p className="text-xs text-slate-400 mt-1">{price} USDC billed annually</p>
-                    )}
-                    <p className="text-xs text-slate-400 mt-1">Crypto payment · no auto-renew</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {billingCycle === 'yearly' && price
+                        ? `${price} USDC billed annually · effective monthly price`
+                        : 'USDC billed monthly'}
+                    </p>
                   </>
                 )}
               </div>
 
-              <ul className="space-y-3 mb-7 flex-1">
-                {plan.features.map((feature) => (
+              <div className="pricing-capacity-readout">
+                <span>Included capacity</span>
+                <strong>{isEnterprise ? 'Unlimited' : plan.monthlyQuota.toLocaleString()}</strong>
+                <span>{isEnterprise ? 'API calls' : 'credits / month'}</span>
+                <small>
+                  {isEnterprise
+                    ? 'Dedicated limits'
+                    : `${plan.rateLimit.toLocaleString()} requests / minute`}
+                </small>
+              </div>
+
+              <ul className="pricing-feature-list space-y-3 mb-7 flex-1">
+                {plan.features.slice(isEnterprise ? 1 : 2).map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm text-slate-600">
                     <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
                     <span>{feature}</span>
@@ -214,6 +229,11 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                   {isLoading ? 'Redirecting…' : 'Subscribe with crypto'}
                 </button>
               )}
+              <p className="pricing-payment-note">
+                {isEnterprise
+                  ? 'A tailored agreement for your operating needs.'
+                  : 'Crypto checkout · manual renewal · same platform access'}
+              </p>
             </div>
           );
         })}
