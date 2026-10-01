@@ -23,7 +23,7 @@ const context = {
   tradeAmountUsd: 50_000,
   schemaVersion: 3,
 };
-const requestTime = new Date('2026-09-30T02:20:00Z');
+const requestTime = new Date('2026-10-02T14:20:00Z');
 
 beforeEach(() => {
   activePolicy.mockReturnValue({
@@ -39,7 +39,7 @@ test('admits the exact partner, policy, key, trade, and selected window', () => 
       context,
       'request',
       requestTime,
-      '2026-09-30',
+      '2026-10-02',
       'veritas-temporary-key'
     )
   ).not.toThrow();
@@ -62,40 +62,53 @@ test.each([
       context,
       'request',
       requestTime,
-      '2026-09-30',
+      '2026-10-02',
       'veritas-temporary-key'
     )
   ).toThrow();
 });
 
 test.each([
-  ['cross-partner', { partnerId: 'headless' }, requestTime, '2026-09-30', 'veritas-temporary-key'],
+  ['cross-partner', { partnerId: 'headless' }, requestTime, '2026-10-02', 'veritas-temporary-key'],
   [
     'stale policy',
     { policyId: `0x${'0'.repeat(64)}` },
     requestTime,
+    '2026-10-02',
+    'veritas-temporary-key',
+  ],
+  [
+    'September policy',
+    { policyId: '0x022050775106ce8cd9a9fd57904a3a9ca2c9b491f5073871ab17ed2dcb1d054a' },
+    requestTime,
+    '2026-10-02',
+    'veritas-temporary-key',
+  ],
+  ['wrong pair', { destinationAsset: 'WETH' }, requestTime, '2026-10-02', 'veritas-temporary-key'],
+  ['missing key', {}, requestTime, '2026-10-02', ''],
+  ['missing window', {}, requestTime, undefined, 'veritas-temporary-key'],
+  [
+    'expired prior window',
+    {},
+    new Date('2026-09-30T02:20:00Z'),
     '2026-09-30',
     'veritas-temporary-key',
   ],
-  ['wrong pair', { destinationAsset: 'WETH' }, requestTime, '2026-09-30', 'veritas-temporary-key'],
-  ['missing key', {}, requestTime, '2026-09-30', ''],
-  ['missing window', {}, requestTime, undefined, 'veritas-temporary-key'],
-  ['review-only date', {}, new Date('2026-09-29T02:20:00Z'), '2026-09-29', 'veritas-temporary-key'],
-  ['early request', {}, new Date('2026-09-30T01:59:59Z'), '2026-09-30', 'veritas-temporary-key'],
-  ['late request', {}, new Date('2026-09-30T02:50:00Z'), '2026-09-30', 'veritas-temporary-key'],
+  ['early request', {}, new Date('2026-10-02T13:59:59Z'), '2026-10-02', 'veritas-temporary-key'],
+  ['late request', {}, new Date('2026-10-02T14:50:00Z'), '2026-10-02', 'veritas-temporary-key'],
 ])('fails closed for %s', (_name, override, now, window, key) => {
   expect(() =>
     assertVeritasJointRun1800Admission({ ...context, ...override }, 'request', now, window, key)
   ).toThrow();
 });
 
-test('rejects a signature at 02:55 UTC even if its request began earlier', () => {
+test('rejects a signature at 14:55 UTC even if its request began earlier', () => {
   expect(() =>
     assertVeritasJointRun1800Admission(
       context,
       'sign',
-      new Date('2026-09-30T02:55:00Z'),
-      '2026-09-30',
+      new Date('2026-10-02T14:55:00Z'),
+      '2026-10-02',
       'veritas-temporary-key'
     )
   ).toThrow();

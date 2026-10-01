@@ -2,18 +2,19 @@ import { ValidationError } from '@/lib/errors';
 import { bodyWithoutId, keccakContentId } from '@/lib/protocol/contentAddress';
 import { activePartnerIntegrationPolicy } from '@/lib/protocol/partnerIntegrationRegistry';
 
-import candidatePolicy from '../../../protocol/mainline/policies/veritas/v3.json';
+import candidatePolicy from '../../../protocol/mainline/policies/veritas/v4.json';
 
 export const VERITAS_JOINT_RUN_RULE_HASH =
   '0xb1071d6929d1dc13812d9aa19bf28a74dca4d90c07d47e9b2052f9f9c3c52465';
 export const VERITAS_JOINT_RUN_POLICY_ID =
-  '0x022050775106ce8cd9a9fd57904a3a9ca2c9b491f5073871ab17ed2dcb1d054a';
+  '0xad711736aa60459299c94f0b6cdc7fd51d5ace20024f9fbd23344e4e03de47da';
 const candidatePolicyMatches =
   candidatePolicy.policyId === VERITAS_JOINT_RUN_POLICY_ID &&
   keccakContentId(bodyWithoutId(candidatePolicy, 'policyId')) === VERITAS_JOINT_RUN_POLICY_ID &&
   candidatePolicy.jointRunValidity.selectionRuleHash === VERITAS_JOINT_RUN_RULE_HASH &&
   candidatePolicy.jointRunValidity.gateWindowSeconds === 1800 &&
-  candidatePolicy.jointRunValidity.runId === 'insight-veritas-2026-09-18';
+  candidatePolicy.jointRunValidity.runId === 'insight-veritas-2026-09-18' &&
+  candidatePolicy.jointRunValidity.latestWindowEndUtc === '2026-10-02T15:30:00Z';
 
 interface IssuanceContext {
   partnerId: string;
@@ -60,12 +61,12 @@ export function assertVeritasJointRun1800Admission(
   ) {
     throw new ValidationError('VERITAS 1800-second issuance requires the fixed v3 WETH/USDC pair.');
   }
-  if (configuredWindow !== '2026-09-30') {
+  if (configuredWindow !== '2026-10-02') {
     throw new ValidationError('VERITAS 1800-second live candidate date is not selected.');
   }
-  const start = Date.parse(`${configuredWindow}T02:00:00Z`);
+  const start = Date.parse(`${configuredWindow}T14:00:00Z`);
   const cutoff = Date.parse(
-    `${configuredWindow}T${phase === 'request' ? '02:50:00' : '02:55:00'}Z`
+    `${configuredWindow}T${phase === 'request' ? '14:50:00' : '14:55:00'}Z`
   );
   if (now.getTime() < start || now.getTime() >= cutoff) {
     throw new ValidationError(`VERITAS 1800-second ${phase} is outside its one-time cutoff.`);
