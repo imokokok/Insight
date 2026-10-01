@@ -935,6 +935,7 @@ h3,
 }
 
 .consensus-core-tabs button {
+  min-height: 2.75rem;
   min-width: 3.75rem;
   border-right: 1px solid rgb(15 23 42 / 10%);
   padding: 0.6rem 0.85rem;
@@ -955,6 +956,15 @@ h3,
 .consensus-core-tabs button.is-active {
   background: #0a1020;
   color: white;
+}
+
+.consensus-core-tabs button:focus-visible,
+.request-specimen-tabs button:focus-visible,
+.request-copy:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid #4d7bd8;
+  outline-offset: 2px;
 }
 
 .consensus-core-body {
@@ -1164,6 +1174,10 @@ h3,
   font-size: 0.5625rem;
 }
 
+.consensus-core-mobile-price {
+  display: none;
+}
+
 .consensus-core-depth {
   position: absolute;
   right: 1.5rem;
@@ -1232,6 +1246,25 @@ h3,
 
   .consensus-core-source > b em {
     display: none;
+  }
+
+  .consensus-core-source > small {
+    display: none;
+  }
+
+  .consensus-core-source > span,
+  .consensus-core-mobile-price {
+    font-size: 0.6875rem;
+  }
+
+  .consensus-core-mobile-price {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: block;
+    color: #263a5b;
+    font-family: var(--font-mono);
+    font-weight: 600;
   }
 
   .consensus-core-depth span:nth-child(2) {
@@ -5130,6 +5163,15 @@ body:has(.ops-workspace) .public-chrome {
   color: white;
 }
 
+.final-evidence-actions a:focus-visible,
+.final-evidence-copy a:focus-visible,
+.module-reference-index a:focus-visible,
+.network-field a:focus-visible,
+.asset-ledger a:focus-visible {
+  outline: 2px solid #2558c8;
+  outline-offset: 3px;
+}
+
 .final-evidence-actions svg {
   width: 1rem;
   height: 1rem;
@@ -5425,6 +5467,20 @@ body:has(.ops-workspace) .public-chrome {
 }
 
 @media (max-width: 760px) {
+  .final-evidence > .final-evidence-index {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 1.1rem 1.25rem;
+  }
+
+  .final-evidence-index i {
+    width: auto;
+    height: 1px;
+    min-height: 0;
+    flex: 1 1 0;
+  }
+
   .asset-ledger-header,
   .network-field-header {
     display: flex;
