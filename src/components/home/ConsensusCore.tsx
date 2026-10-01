@@ -127,6 +127,9 @@ export function ConsensusCore({ assets }: { assets: AssetConsensusData[] }) {
                 {plot.sources.map((source, index) => (
                   <div key={source.provider} className="consensus-core-source">
                     <span>{providerNames[source.provider] ?? source.provider}</span>
+                    <strong className="consensus-core-mobile-price">
+                      {formatPrice(source.price, selected.symbol)}
+                    </strong>
                     <i />
                     <b
                       style={{ left: `${source.position}%`, backgroundColor: source.color }}
