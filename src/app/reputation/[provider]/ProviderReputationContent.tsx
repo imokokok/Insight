@@ -65,11 +65,32 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
   if (isLoading) {
     return (
       <div className="editorial-workspace evidence-workbench provider-record-workbench min-h-screen">
-        <div className="editorial-frame mx-auto max-w-[1440px] px-5 py-20 sm:px-8 lg:px-12">
-          <div className="flex items-center justify-center py-20">
-            <div className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-primary-500 animate-pulse" />
-              <span className="text-sm text-gray-500 font-black">Loading reputation data...</span>
+        <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-20 pt-4 sm:px-8 lg:px-12">
+          <EditorialWorkspaceHeader
+            index="04.1"
+            stage="Provider record"
+            eyebrow={`${providerName} · loading the latest observed record`}
+            title={`${providerName}, examined as a record.`}
+            description="Gathering score composition, coverage, and historical observations for this provider."
+            evidence={['Score composition', 'Observed trend', 'Coverage context']}
+          />
+          <div className="provider-loading-ledger mt-8" role="status" aria-live="polite">
+            <div className="provider-loading-heading">
+              <Activity className="h-5 w-5 animate-pulse" aria-hidden="true" />
+              <span>Loading the evidence record…</span>
+            </div>
+            <div className="provider-loading-grid" aria-hidden="true">
+              <div>
+                <i />
+                <i />
+                <i />
+              </div>
+              <div>
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
             </div>
           </div>
         </div>
@@ -129,6 +150,27 @@ function ProviderReputationContentInner({ provider }: { provider: string }) {
             { label: 'Inspect the history', detail: 'Trend · coverage · samples' },
           ]}
         />
+
+        <div className="provider-record-readings" aria-label="Provider key readings">
+          <div className="provider-record-reading is-score">
+            <span>01 / Seven-day score</span>
+            <strong>
+              {reputation.overall_score.toFixed(1)}
+              <small> / 100</small>
+            </strong>
+            <p>Composite of six observed measures</p>
+          </div>
+          <div className="provider-record-reading">
+            <span>02 / Historical queries</span>
+            <strong>{reputation.total_queries.toLocaleString()}</strong>
+            <p>Evidence behind this record</p>
+          </div>
+          <div className="provider-record-reading">
+            <span>03 / Symbol coverage</span>
+            <strong>{reputation.supported_symbols_count.toLocaleString()}</strong>
+            <p>Assets included in observation</p>
+          </div>
+        </div>
 
         <div className="provider-record-grid grid gap-8 pt-7 lg:grid-cols-[360px_minmax(0,1fr)] lg:gap-12">
           <Sidebar

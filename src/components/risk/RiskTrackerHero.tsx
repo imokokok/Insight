@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertCircle, ShieldAlert, TrendingUp } from 'lucide-react';
+import { AlertCircle, ArrowDownRight, ShieldAlert, TrendingUp } from 'lucide-react';
 
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { RISK_LEVELS } from '@/lib/risk/constants';
@@ -62,10 +62,14 @@ export function RiskTrackerHero({
         description={description}
         evidence={['Source agreement', 'Deviation duration', 'Protocol impact']}
         action={
-          <div className="inline-flex items-center gap-2 border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
+          <a
+            href="#risk-assets"
+            className="risk-hero-action inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-xs font-bold text-white"
+          >
             {icon}
-            Live risk signal
-          </div>
+            Inspect the live signals
+            <ArrowDownRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </a>
         }
       />
 
@@ -88,8 +92,10 @@ export function RiskTrackerHero({
         {stats.map((stat, statIndex) => (
           <div
             key={stat.id}
+            data-risk={stat.level}
             className={cn(
               'risk-signal-cell border-b border-r border-slate-900/10 bg-white/35 px-4 py-4 last:border-r-0 sm:border-b-0',
+              stat.id === 'alerts' && 'risk-signal-primary',
               stat.id === 'alerts' && stat.level && getLevelStyles(stat.level)
             )}
           >
