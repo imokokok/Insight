@@ -585,6 +585,12 @@ h3,
   transform: translateY(-3px);
 }
 
+.home-hero-actions a:focus-visible,
+.home-hero-scroll:focus-visible {
+  outline: 2px solid #2459ba;
+  outline-offset: 4px;
+}
+
 .home-hero-actions svg {
   width: 1rem;
   height: 1rem;
@@ -3874,7 +3880,72 @@ body:has(.ops-workspace) .public-chrome {
 }
 
 .live-evidence-stat {
-  min-width: 9.5rem;
+  min-width: 0;
+}
+
+.live-evidence-strip {
+  padding: 1rem 0 0;
+}
+
+.live-evidence-strip.is-delayed::before {
+  background: #c67b39;
+}
+
+.live-evidence-strip.is-awaiting::before {
+  background: #94a3b8;
+}
+
+.live-evidence-intro {
+  display: flex;
+  min-width: 14rem;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.25rem 1.5rem 1.1rem;
+}
+
+.live-evidence-pulse {
+  width: 0.65rem;
+  height: 0.65rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #278d6b;
+  box-shadow: 0 0 0 5px rgb(39 141 107 / 12%);
+}
+
+.is-delayed .live-evidence-pulse {
+  background: #bd762d;
+  box-shadow: 0 0 0 5px rgb(189 118 45 / 13%);
+}
+
+.is-awaiting .live-evidence-pulse {
+  background: #94a3b8;
+  box-shadow: 0 0 0 5px rgb(148 163 184 / 12%);
+}
+
+.live-evidence-state {
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.live-evidence-caption {
+  margin-top: 0.15rem;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.live-evidence-stats {
+  width: 100%;
+}
+
+.live-evidence-caution {
+  margin-top: 0.9rem;
+  padding: 0.8rem 1.5rem;
+  border-top: 1px solid rgb(175 109 46 / 17%);
+  background: rgb(255 245 230 / 55%);
+  color: #81512a;
+  font-size: 0.75rem;
+  line-height: 1.5;
 }
 
 /* Price evidence ledger */
@@ -3975,6 +4046,10 @@ body:has(.ops-workspace) .public-chrome {
   background: rgb(232 240 253 / 62%);
 }
 
+.asset-ledger-record:focus-within {
+  background: rgb(232 240 253 / 62%);
+}
+
 .asset-ledger-record.is-loading span {
   height: 0.75rem;
   background: rgb(148 163 184 / 18%);
@@ -4053,6 +4128,10 @@ body:has(.ops-workspace) .public-chrome {
   margin-top: 0.35rem;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
+}
+
+.asset-ledger-coverage small.is-delayed {
+  color: #a86432;
 }
 
 .asset-ledger-price .spread-high {
@@ -4199,6 +4278,12 @@ body:has(.ops-workspace) .public-chrome {
   font-weight: 700;
 }
 
+.asset-ledger-action:focus-visible,
+.network-provider > a:focus-visible {
+  outline: 2px solid #4f83ed;
+  outline-offset: 3px;
+}
+
 /* Oracle network spectrum */
 .network-field {
   overflow: hidden;
@@ -4340,6 +4425,10 @@ body:has(.ops-workspace) .public-chrome {
 }
 
 .network-provider:hover {
+  background-color: rgb(35 73 139 / 18%);
+}
+
+.network-provider:focus-within {
   background-color: rgb(35 73 139 / 18%);
 }
 
@@ -5551,6 +5640,192 @@ body:has(.ops-workspace) .public-chrome {
 
   .evidence-footer-legal > p:last-child {
     text-align: left;
+  }
+}
+
+/* Data instruments resolve into readable records before the desktop ledger
+   reaches its minimum column width. */
+@media (max-width: 1180px) {
+  .asset-ledger-ruler,
+  .network-spectrum-ruler {
+    display: none;
+  }
+
+  .asset-ledger-record {
+    grid-template-areas:
+      'identity price action'
+      'observation observation coverage';
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(7.5rem, auto);
+    gap: 1.25rem 1.5rem;
+    min-height: 0;
+    padding: 1.4rem 1.5rem;
+  }
+
+  .asset-ledger-identity {
+    grid-area: identity;
+  }
+
+  .asset-ledger-price {
+    grid-area: price;
+  }
+
+  .asset-ledger-observation {
+    grid-area: observation;
+    min-width: 0;
+  }
+
+  .asset-ledger-coverage {
+    grid-area: coverage;
+    align-self: center;
+    justify-self: end;
+  }
+
+  .asset-ledger-action {
+    grid-area: action;
+    justify-self: end;
+    padding: 0.45rem 0;
+    white-space: nowrap;
+  }
+
+  .network-provider {
+    grid-template-areas:
+      'identity score action'
+      'metrics metrics time';
+    grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.7fr) auto;
+    gap: 1rem 1.5rem;
+    min-height: 0;
+    padding: 1.4rem 1.5rem;
+  }
+
+  .network-provider-identity {
+    grid-area: identity;
+  }
+
+  .network-provider-score {
+    grid-area: score;
+  }
+
+  .network-provider-metrics {
+    grid-area: metrics;
+    padding-top: 1rem;
+    border-top: 1px solid rgb(148 184 247 / 13%);
+  }
+
+  .network-provider-time {
+    grid-area: time;
+    align-self: end;
+    white-space: nowrap;
+  }
+
+  .network-provider > a {
+    display: grid;
+    width: 2.1rem;
+    height: 2.1rem;
+    grid-area: action;
+    place-items: center;
+    justify-self: end;
+    border: 1px solid rgb(142 181 255 / 32%);
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .network-provider > a:hover {
+    border-color: #8eb5ff;
+    background: rgb(142 181 255 / 12%);
+  }
+
+  .network-provider-metrics dt {
+    font-size: 0.6875rem;
+  }
+
+  .network-provider-metrics dd {
+    font-size: 0.875rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .home-hero-copy {
+    max-width: min(29rem, 55vw);
+  }
+
+  .home-hero-description {
+    max-width: 27rem;
+  }
+
+  .home-hero .ice-hero-wash {
+    background:
+      linear-gradient(
+        90deg,
+        #f8f7f4 0%,
+        rgb(248 247 244 / 96%) 39%,
+        rgb(248 247 244 / 68%) 58%,
+        rgb(248 247 244 / 5%) 88%
+      ),
+      linear-gradient(0deg, rgb(248 247 244 / 78%) 0%, transparent 23%);
+  }
+}
+
+@media (max-width: 760px) {
+  .asset-ledger-record {
+    grid-template-areas:
+      'identity price'
+      'observation observation'
+      'coverage action';
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.15rem 0.8rem;
+  }
+
+  .asset-ledger-coverage {
+    justify-self: start;
+  }
+
+  .asset-ledger-action {
+    align-self: end;
+  }
+
+  .network-provider {
+    grid-template-areas:
+      'identity action'
+      'score score'
+      'metrics metrics'
+      'time time';
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .network-provider-metrics {
+    min-width: 0;
+  }
+
+  .network-provider-time {
+    justify-self: start;
+  }
+
+  .network-field-status > div {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .network-field-status i,
+  .network-field-status small {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 420px) {
+  .network-provider-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .network-provider-metrics > div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .asset-ledger-identity {
+    gap: 0.45rem;
+  }
+
+  .asset-ledger-index {
+    display: none;
   }
 }
 

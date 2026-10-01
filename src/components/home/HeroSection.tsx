@@ -42,7 +42,7 @@ export function HeroSection() {
             </p>
             <div className="home-hero-actions home-hero-reveal home-hero-reveal-4">
               <Link href="#live-evidence" className="home-hero-primary">
-                Explore live evidence <ArrowRight aria-hidden="true" />
+                Explore the evidence <ArrowRight aria-hidden="true" />
               </Link>
               <Link href="/safety-check" className="home-hero-secondary">
                 Run a safety check <ArrowUpRight aria-hidden="true" />

@@ -6,6 +6,8 @@ interface LiveStatusStripProps {
   avgSpread: number;
   healthyCount: number;
   totalAssets: number;
+  lastObservedAt: number;
+  now: number;
   updateInterval?: string;
 }
 
@@ -48,54 +50,80 @@ function StatCard({ icon: Icon, label, value, tone = 'slate' }: StatCardProps) {
   );
 }
 
+function formatObservationAge(timestamp: number, now: number): string {
+  if (!timestamp) return 'Unavailable';
+  const minutes = Math.max(0, Math.floor((now - timestamp) / 60_000));
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 export function LiveStatusStrip({
   activeProviders,
   totalProviders,
   avgSpread,
   healthyCount,
   totalAssets,
+  lastObservedAt,
+  now,
   updateInterval = '30s',
 }: LiveStatusStripProps) {
   const spreadTone = avgSpread > 1 ? 'amber' : avgSpread > 0 ? 'emerald' : 'slate';
+  const isCurrent = lastObservedAt > 0 && now - lastObservedAt <= 20 * 60_000;
+  const state = lastObservedAt === 0 ? 'awaiting' : isCurrent ? 'current' : 'delayed';
 
   return (
-    <section className="live-evidence-strip border-y border-slate-900/15 bg-white/30 py-4 backdrop-blur-sm sm:py-5">
+    <section className={`live-evidence-strip is-${state}`} aria-label="Source observation status">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-4 px-4 lg:pr-7">
-          <div className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 [animation-duration:2s]" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
-          </div>
+        <div className="live-evidence-intro">
+          <span className="live-evidence-pulse" aria-hidden="true" />
           <div>
-            <div className="text-sm font-semibold text-slate-950">Network live</div>
-            <div className="text-xs text-slate-500">
-              Independent feed comparison refreshed every {updateInterval}
+            <div className="live-evidence-state">
+              {state === 'current'
+                ? 'Recent observation'
+                : state === 'delayed'
+                  ? 'Older observations'
+                  : 'Awaiting observations'}
             </div>
+            <div className="live-evidence-caption">Rechecks every {updateInterval}</div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 divide-x divide-y divide-slate-900/10 border-y border-slate-900/10 sm:grid-cols-4 sm:divide-y-0 lg:border-y-0">
+        <div className="live-evidence-stats grid grid-cols-2 divide-x divide-y divide-slate-900/10 border-y border-slate-900/10 sm:grid-cols-4 sm:divide-y-0 lg:border-y-0">
           <StatCard
             icon={Layers}
-            label="Active Oracles"
+            label="Providers sampled"
             value={`${activeProviders}/${totalProviders}`}
             tone="blue"
           />
           <StatCard
             icon={BarChart3}
-            label="Avg Spread"
+            label="Average spread"
             value={avgSpread > 0 ? `${avgSpread.toFixed(3)}%` : '—'}
             tone={spreadTone}
           />
           <StatCard
             icon={ShieldCheck}
-            label="Healthy Assets"
+            label="Tight spread"
             value={`${healthyCount}/${totalAssets}`}
             tone="emerald"
           />
-          <StatCard icon={Clock} label="Update Interval" value={updateInterval} tone="slate" />
+          <StatCard
+            icon={Clock}
+            label="Newest observation"
+            value={formatObservationAge(lastObservedAt, now)}
+            tone={state === 'delayed' ? 'amber' : 'slate'}
+          />
         </div>
       </div>
+      {state === 'delayed' && (
+        <p className="live-evidence-caution">
+          Source timestamps are older than 20 minutes. Check the observation time before using a
+          price.
+        </p>
+      )}
     </section>
   );
 }
