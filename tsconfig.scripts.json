@@ -22,6 +22,7 @@
     "scripts/feed-cadence.ts",
     "scripts/inspect-dependabot-lock-repair.mts",
     "scripts/interai-track1/capture-preflight-gates.mts",
+    "scripts/interai-shadow-evaluation.mts",
     "scripts/protocol-metrics.ts",
     "scripts/profile-rpc-metadata.mts",
     "scripts/reputation.ts",
