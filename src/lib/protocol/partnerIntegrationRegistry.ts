@@ -2,6 +2,7 @@ import activationSetV1Json from '../../../protocol/mainline/activation-sets/v1.j
 import activationSetV2Json from '../../../protocol/mainline/activation-sets/v2.json';
 import activationSetV3Json from '../../../protocol/mainline/activation-sets/v3.json';
 import activationSetV4Json from '../../../protocol/mainline/activation-sets/v4.json';
+import activationSetV5Json from '../../../protocol/mainline/activation-sets/v5.json';
 import activationPointerJson from '../../../protocol/mainline/activations.json';
 import agentPassportJson from '../../../protocol/mainline/policies/agent-passport/v1.json';
 import andydgreaJson from '../../../protocol/mainline/policies/andydgrea/v1.json';
@@ -111,7 +112,14 @@ const activationSetV1 = activationSetV1Json as unknown as PartnerActivationSet;
 const activationSetV2 = activationSetV2Json as unknown as PartnerActivationSet;
 const activationSetV3 = activationSetV3Json as unknown as PartnerActivationSet;
 const activationSetV4 = activationSetV4Json as unknown as PartnerActivationSet;
-const rawActivationSets = [activationSetV1, activationSetV2, activationSetV3, activationSetV4];
+const activationSetV5 = activationSetV5Json as unknown as PartnerActivationSet;
+const rawActivationSets = [
+  activationSetV1,
+  activationSetV2,
+  activationSetV3,
+  activationSetV4,
+  activationSetV5,
+];
 
 export const PARTNER_ACTIVATION_SETS = Object.freeze(
   Object.fromEntries(

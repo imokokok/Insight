@@ -19,7 +19,7 @@ import {
 } from '@/lib/protocol/partnerIntegrationRegistry';
 
 const VERITAS_V2_POLICY_ID = '0x162d3fe744acc2041a959daf40dc3fe9242b654aef58acbb991acbf605885085';
-const VERITAS_V3_POLICY_ID = '0x022050775106ce8cd9a9fd57904a3a9ca2c9b491f5073871ab17ed2dcb1d054a';
+const VERITAS_V4_POLICY_ID = '0xad711736aa60459299c94f0b6cdc7fd51d5ace20024f9fbd23344e4e03de47da';
 const VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID =
   '0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db';
 
@@ -161,11 +161,11 @@ describe('content-addressed oracle registry routes', () => {
 
     const activeVeritas = await policyRoute.GET(
       new Request('https://example.test/active-veritas-policy') as never,
-      { params: Promise.resolve({ policyId: VERITAS_V3_POLICY_ID }) }
+      { params: Promise.resolve({ policyId: VERITAS_V4_POLICY_ID }) }
     );
     expect(activeVeritas.status).toBe(200);
     expect((await activeVeritas.json()).policy).toEqual(
-      expect.objectContaining({ partnerId: 'veritas', policyVersion: 3 })
+      expect.objectContaining({ partnerId: 'veritas', policyVersion: 4 })
     );
   });
 
