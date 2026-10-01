@@ -81,7 +81,7 @@ export function HomeLiveDashboardFallback() {
     <div className="home-data-loading" aria-busy="true" aria-label="Sampling live oracle data">
       <section id="live-evidence" className="home-chapter scroll-mt-20 py-16 sm:py-20 lg:py-28">
         <div className="mb-8 grid gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-          <p className="home-kicker">Live evidence / 01</p>
+          <p className="home-kicker">Source evidence / 01</p>
           <div>
             <h2 className="home-section-title">Sampling the market beneath the price.</h2>
             <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">

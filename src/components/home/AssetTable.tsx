@@ -85,7 +85,7 @@ function AssetTableComponent({ assets, isLoading, now }: AssetTableProps) {
     <section className="asset-ledger home-view-reveal" aria-labelledby="asset-ledger-title">
       <header className="asset-ledger-header">
         <div>
-          <p className="instrument-label">Evidence instrument 02 / live ledger</p>
+          <p className="instrument-label">Evidence instrument 02 / source ledger</p>
           <h3 id="asset-ledger-title">Cross-oracle price evidence</h3>
         </div>
         <p>
@@ -171,9 +171,15 @@ function AssetTableComponent({ assets, isLoading, now }: AssetTableProps) {
                     <strong>
                       {asset.providerCount}/{asset.totalProviders}
                     </strong>
-                    <small>
+                    <small
+                      className={
+                        asset.lastUpdatedAt > 0 && now - asset.lastUpdatedAt >= 20 * 60_000
+                          ? 'is-delayed'
+                          : undefined
+                      }
+                    >
                       <Clock aria-hidden="true" />
-                      {formatRelativeTime(asset.lastUpdatedAt, now)}
+                      Observed {formatRelativeTime(asset.lastUpdatedAt, now)}
                     </small>
                   </div>
 

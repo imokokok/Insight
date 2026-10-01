@@ -208,7 +208,7 @@ export function OracleHealthGrid({
 
                 <div className="network-provider-time">
                   <Clock aria-hidden="true" />
-                  <span>{formatRelativeTime(details?.last_calculated_at, now)}</span>
+                  <span>Scored {formatRelativeTime(details?.last_calculated_at, now)}</span>
                 </div>
 
                 <Link
