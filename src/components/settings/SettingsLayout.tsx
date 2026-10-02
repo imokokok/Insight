@@ -1,12 +1,13 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import { type KeyboardEvent, type ReactNode } from 'react';
 
-import { User, Database, Palette, Key, CreditCard } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 import { SettingsHero } from './SettingsHero';
+import { getSettingsSection, settingsSections, type SettingsTab } from './settingsSections';
 
-export type SettingsTab = 'profile' | 'preferences' | 'data' | 'api-keys' | 'billing';
+export type { SettingsTab } from './settingsSections';
 
 interface SettingsLayoutProps {
   children: ReactNode;
@@ -14,104 +15,105 @@ interface SettingsLayoutProps {
   onTabChange: (tab: SettingsTab) => void;
 }
 
-interface TabItem {
-  id: SettingsTab;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  description: string;
-}
-
 export function SettingsLayout({ children, activeTab, onTabChange }: SettingsLayoutProps) {
-  const tabs: TabItem[] = [
-    {
-      id: 'profile',
-      label: 'Profile',
-      icon: User,
-      description: 'Manage your account profile',
-    },
-    {
-      id: 'preferences',
-      label: 'Preferences',
-      icon: Palette,
-      description: 'Customize your preferences',
-    },
-    {
-      id: 'data',
-      label: 'Data',
-      icon: Database,
-      description: 'Manage your data',
-    },
-    {
-      id: 'api-keys',
-      label: 'API Keys',
-      icon: Key,
-      description: 'Manage API access',
-    },
-    {
-      id: 'billing',
-      label: 'Billing',
-      icon: CreditCard,
-      description: 'Manage your subscription',
-    },
-  ];
+  const activeSection = getSettingsSection(activeTab);
+  const activeIndex = settingsSections.indexOf(activeSection);
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let nextIndex: number;
+
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        nextIndex = (index + 1) % settingsSections.length;
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        nextIndex = (index - 1 + settingsSections.length) % settingsSections.length;
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = settingsSections.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    const nextTab = settingsSections[nextIndex];
+    onTabChange(nextTab.id);
+    document.getElementById(`settings-tab-${nextTab.id}`)?.focus();
+  };
 
   return (
     <div className="editorial-workspace evidence-workbench commercial-workbench settings-surface settings-control-workbench min-h-screen">
-      <SettingsHero />
+      <SettingsHero activeTab={activeTab} />
 
-      <div className="editorial-frame mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
-        <div className="settings-control-grid flex flex-col gap-8 lg:flex-row lg:gap-12">
-          <nav className="settings-control-nav flex-shrink-0 lg:w-72" aria-label="Settings">
-            <p className="editorial-index mb-4 border-b border-slate-900/15 pb-3">
-              01 — Select workspace
-            </p>
-            <div className="border-y border-slate-900/15 bg-white/35">
-              {tabs.map((tab, tabIndex) => {
+      <div className="editorial-frame mx-auto max-w-[1440px] px-5 pb-16 pt-8 sm:px-8 lg:px-12 lg:pb-24 lg:pt-12">
+        <div className="settings-control-grid">
+          <nav className="settings-control-nav" aria-label="Account settings">
+            <div className="settings-nav-heading">
+              <span>Control index</span>
+              <span>01 — 05</span>
+            </div>
+            <div
+              className="settings-tab-list"
+              role="tablist"
+              aria-label="Account settings sections"
+            >
+              {settingsSections.map((tab, index) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
 
                 return (
                   <button
                     key={tab.id}
+                    id={`settings-tab-${tab.id}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls="settings-panel"
+                    tabIndex={isActive ? 0 : -1}
                     onClick={() => onTabChange(tab.id)}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`settings-tab-record flex w-full items-center gap-3 border-b border-slate-900/10 px-3 py-3 text-left transition-colors last:border-b-0 ${
-                      isActive
-                        ? 'bg-blue-700 text-white'
-                        : 'text-slate-600 hover:bg-blue-50/60 hover:text-slate-900'
-                    }`}
+                    onKeyDown={(event) => handleTabKeyDown(event, index)}
+                    className={`settings-tab-record ${isActive ? 'is-active' : ''}`}
                   >
-                    <span
-                      className={`settings-tab-index font-mono text-[9px] ${isActive ? 'text-blue-100' : 'text-blue-700'}`}
-                    >
-                      S—{String(tabIndex + 1).padStart(2, '0')}
+                    <span className="settings-tab-index">{String(index + 1).padStart(2, '0')}</span>
+                    <Icon className="settings-tab-icon" aria-hidden="true" />
+                    <span className="settings-tab-copy">
+                      <strong>{tab.label}</strong>
+                      <small>{tab.navDescription}</small>
                     </span>
-                    <Icon
-                      className={`w-5 h-5 transition-colors ${
-                        isActive ? 'text-blue-100' : 'text-slate-400'
-                      }`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm">{tab.label}</div>
-                      <div
-                        className={`text-xs truncate ${
-                          isActive ? 'text-blue-100' : 'text-slate-400'
-                        }`}
-                      >
-                        {tab.description}
-                      </div>
-                    </div>
+                    <ArrowUpRight className="settings-tab-arrow" aria-hidden="true" />
                   </button>
                 );
               })}
             </div>
+            <p className="settings-nav-note">
+              Five clear controls. One place to manage your account.
+            </p>
           </nav>
 
-          <main className="settings-account-ledger min-w-0 flex-1" role="main">
-            <p className="editorial-index mb-4 border-b border-slate-900/15 pb-3">
-              02 — Manage account state
-            </p>
-            {children}
+          <main className="settings-account-ledger" role="main">
+            <div className="settings-panel-intro">
+              <div>
+                <p className="settings-panel-kicker">
+                  Account state / {String(activeIndex + 1).padStart(2, '0')}
+                </p>
+                <h2>{activeSection.navDescription}</h2>
+              </div>
+              <span>{activeSection.detail}</span>
+            </div>
+            <div
+              id="settings-panel"
+              role="tabpanel"
+              aria-labelledby={`settings-tab-${activeTab}`}
+              tabIndex={0}
+            >
+              {children}
+            </div>
           </main>
         </div>
       </div>
