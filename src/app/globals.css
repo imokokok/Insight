@@ -6244,6 +6244,216 @@ h3,
   letter-spacing: 0.16em;
 }
 
+.governance-record-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 1.25rem;
+  border-top: 1px solid rgb(15 23 42 / 16%);
+  border-bottom: 1px solid rgb(15 23 42 / 16%);
+}
+
+.governance-record-link {
+  display: flex;
+  min-height: 4.25rem;
+  align-items: center;
+  gap: 0.6rem;
+  border-right: 1px solid rgb(15 23 42 / 12%);
+  padding: 0.8rem 1.2rem;
+  color: #596b82;
+  font-size: 0.875rem;
+  transition:
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.governance-record-link:last-child {
+  border-right: 0;
+}
+
+.governance-record-link span {
+  color: #2558c8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.governance-record-link strong {
+  font-weight: 700;
+}
+
+.governance-record-link:hover {
+  background: rgb(37 88 200 / 7%);
+  color: #143b79;
+}
+
+.governance-record-link[aria-current='page'] {
+  background: #11233f;
+  color: #fff;
+}
+
+.governance-record-link[aria-current='page'] span {
+  color: #93b5ff;
+}
+
+.governance-reading-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 1.5rem;
+}
+
+.governance-section-rail {
+  min-width: 0;
+}
+
+.governance-desktop-index {
+  display: none;
+}
+
+.governance-index-label {
+  color: #2558c8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.governance-section-rail ol {
+  margin: 1.1rem 0 0;
+  list-style: none;
+}
+
+.governance-section-rail li a {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.5rem;
+  border-top: 1px solid rgb(15 23 42 / 9%);
+  padding: 0.55rem 0.25rem;
+  color: #596b82;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  transition:
+    padding-left 180ms ease,
+    color 180ms ease;
+}
+
+.governance-section-rail li a span {
+  color: #2558c8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.governance-section-rail li a:hover {
+  padding-left: 0.55rem;
+  color: #143b79;
+}
+
+.governance-index-top {
+  display: inline-flex;
+  margin-top: 1.25rem;
+  color: #2558c8;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.governance-mobile-index {
+  border: 1px solid rgb(15 23 42 / 15%);
+  background: rgb(255 255 255 / 65%);
+}
+
+.governance-mobile-index summary {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  color: #11233f;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 700;
+  list-style: none;
+}
+
+.governance-mobile-index summary::-webkit-details-marker {
+  display: none;
+}
+
+.governance-mobile-index summary span:last-child {
+  color: #2558c8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.governance-mobile-index summary span:last-child::after {
+  content: ' +';
+}
+
+.governance-mobile-index[open] summary span:last-child::after {
+  content: ' −';
+}
+
+.governance-mobile-index[open] summary {
+  border-bottom: 1px solid rgb(15 23 42 / 12%);
+}
+
+.governance-mobile-index nav {
+  padding: 0.25rem 1rem 1rem;
+}
+
+.governance-record-link:focus-visible,
+.governance-section-rail a:focus-visible,
+.governance-mobile-index summary:focus-visible {
+  outline: 2px solid #2558c8;
+  outline-offset: 3px;
+}
+
+@media (min-width: 1024px) {
+  .governance-reading-layout {
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+    gap: 2.75rem;
+  }
+
+  .governance-desktop-index {
+    position: sticky;
+    top: 6rem;
+    display: block;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+    padding: 1.4rem 0.75rem 1.4rem 0;
+    scrollbar-width: thin;
+  }
+
+  .governance-mobile-index {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .governance-record-link {
+    min-height: 3.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .governance-record-link,
+  .governance-section-rail li a {
+    transition: none;
+  }
+}
+
 .legal-document-body {
   counter-reset: legal-clause;
   background: rgb(255 255 255 / 56%);
@@ -6251,9 +6461,10 @@ h3,
 
 .legal-document-body > section {
   position: relative;
+  scroll-margin-top: 6rem;
   margin-bottom: 0;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+  padding-top: 2.25rem;
+  padding-bottom: 2.4rem;
   border-top: 1px solid rgb(15 23 42 / 10%);
   counter-increment: legal-clause;
 }
@@ -6276,6 +6487,13 @@ h3,
 
 .legal-document-body h2 {
   padding-right: 6rem;
+  letter-spacing: -0.03em;
+}
+
+.legal-document-body p,
+.legal-document-body li {
+  max-width: 72ch;
+  line-height: 1.72;
 }
 
 .legal-document-return {
@@ -6290,6 +6508,95 @@ h3,
   height: 1px;
   background: linear-gradient(90deg, transparent, #2558c8);
   content: '';
+}
+
+.governance-document-footer {
+  display: grid;
+  grid-template-columns: 1fr minmax(14rem, 0.72fr);
+  align-items: stretch;
+}
+
+.governance-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 2rem 1.25rem 2rem 0;
+  color: #2558c8;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.governance-home-link span {
+  font-size: 1.15rem;
+  transition: transform 180ms ease;
+}
+
+.governance-home-link:hover span {
+  transform: translateX(-0.25rem);
+}
+
+.governance-next-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  border-left: 1px solid rgb(15 23 42 / 12%);
+  padding: 1.4rem 1.75rem;
+  color: #11233f;
+  transition:
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.governance-next-link > span {
+  color: #2558c8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.governance-next-link strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.governance-next-link:hover {
+  background: rgb(37 88 200 / 7%);
+  color: #2558c8;
+}
+
+.governance-document-footer a:focus-visible {
+  outline: 2px solid #2558c8;
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .governance-document-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .governance-home-link {
+    padding: 1.5rem 0;
+  }
+
+  .governance-next-link {
+    border-top: 1px solid rgb(15 23 42 / 12%);
+    border-left: 0;
+    padding: 1.2rem 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .governance-home-link span,
+  .governance-next-link {
+    transition: none;
+  }
 }
 
 /* Individual oracle records retain the directory language and add audit depth. */
