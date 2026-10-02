@@ -20,7 +20,7 @@ import type { McpToolDefinition } from './types';
 export const getLatencyTool: McpToolDefinition<typeof LatencyInputSchema> = {
   name: 'get_latency',
   description:
-    'Analyze oracle latency statistics (min, mean, p50, p90, p95, p99) over a date range, optionally filtered by provider or symbol.',
+    'Analyze 15-minute oracle collector latency statistics (min, mean, p50, p90, p95, p99) over a date range, optionally filtered by provider or symbol.',
   parameters: LatencyInputSchema,
   handler: async (args) => {
     const fromOrDefault = args.from ?? get7dAgoUtc();
@@ -39,6 +39,9 @@ export const getLatencyTool: McpToolDefinition<typeof LatencyInputSchema> = {
 
     const lines = [
       `**Oracle latency report (${fromOrDefault} to ${toOrDefault})**`,
+      result.observationSource === 'hourly_price_snapshots'
+        ? '- Source: hourly fallback; within-hour probes may be missing.'
+        : '- Source: 15-minute collector observations.',
       `- Entries: ${result.entries.length}`,
       `- Valid latency samples: ${result.sampleSize}; rows examined: ${result.rowsExamined}`,
       result.overall

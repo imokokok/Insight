@@ -99,13 +99,19 @@ not pure network latency. Reputation lookup now overlaps source reads, and only
 in-flight reads of the same public provider/asset/chain are shared. Completed
 assessments are never cached by this mechanism and fresh quorum is unchanged.
 
-The historical latency endpoint computes overall percentiles over all valid
-observations, pages past the default database row limit, and reports `sampleSize`,
-`rowsExamined`, and `truncated` when the 10,000-row bound is exceeded. Narrow the
-query when truncated. New collector runs persist measured adapter duration for
-successful and failed reads; older rows with missing timings stay unknown and
-are not backfilled with invented values. These are hourly source observations, not whole-request
-production API latency or a 30-day service-level measurement.
+The historical latency endpoint computes exact observation-weighted percentiles
+inside Postgres from the 15-minute `price_snapshot_history` view, including
+archived days. It returns `sampleSize` (valid measured durations),
+`rowsExamined` (all matching collector observations), and `observationSource`.
+After migration 0074, `truncated` remains in the response for compatibility and
+is always `false`. If that migration is absent, the endpoint temporarily falls
+back to its former bounded hourly read, reports `observationSource` as
+`hourly_price_snapshots`, and can still return `truncated: true`. The repeatedly
+overwritten hourly table and recovery-only probes are excluded from the new
+15-minute percentiles so sampling cadences are not mixed. New collector runs persist measured adapter duration for successful and
+failed reads; older rows with missing timings stay unknown and are not
+backfilled with invented values. These are source-adapter observations, not
+whole-request production API latency or a 30-day service-level measurement.
 
 ## Production health
 

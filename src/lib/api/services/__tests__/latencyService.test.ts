@@ -1,3 +1,4 @@
+import { createServiceRoleClient } from '@/lib/supabase/server';
 import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
 
 import { getLatencyStatistics } from '../latencyService';
@@ -5,52 +6,109 @@ import { getLatencyStatistics } from '../latencyService';
 jest.mock('@/lib/supabase/server', () => ({ createServiceRoleClient: jest.fn() }));
 jest.mock('@/lib/supabase/snapshotHistory', () => ({ loadSnapshotHistoryPage: jest.fn() }));
 
-function database(rows: Array<Record<string, unknown>>) {
-  jest.mocked(loadSnapshotHistoryPage).mockResolvedValue(rows as never);
-}
+const abortSignal = jest.fn();
+const rpc = jest.fn(() => ({ abortSignal }));
 
-const row = (latency: number | null, provider = 'chainlink') => ({
-  provider,
-  symbol: 'ETH',
-  latency_ms: latency,
-  is_success: true,
-  snapshot_hour: '2026-09-19',
+beforeEach(() => {
+  jest.clearAllMocks();
+  rpc.mockImplementation(() => ({ abortSignal }));
+  jest.mocked(createServiceRoleClient).mockReturnValue({ rpc } as never);
 });
 
-it('weights each observation rather than each provider mean and reports real sample counts', async () => {
-  database([...Array.from({ length: 99 }, () => row(10)), row(10000, 'api3'), row(null)]);
-  const result = await getLatencyStatistics({ from: '2026-09-18', to: '2026-09-19' });
-  expect(result.overall).toEqual({ p50: 10, p90: 10, p95: 10, p99: 10 });
-  expect(result.sampleSize).toBe(100);
-  expect(result.rowsExamined).toBe(101);
-  expect(result.truncated).toBe(false);
+it('requests one complete database aggregate with UTC-inclusive calendar dates', async () => {
+  abortSignal.mockResolvedValue({
+    data: {
+      rowsExamined: 5,
+      sampleSize: 4,
+      overall: { p50: 10, p90: 900, p95: 900, p99: 900 },
+      entries: [
+        {
+          provider: 'chainlink',
+          symbol: 'ETH',
+          sampleSize: 4,
+          successRate: 80,
+          min: 10,
+          max: 900,
+          mean: 233,
+          p50: 10,
+          p90: 900,
+          p95: 900,
+          p99: 900,
+        },
+      ],
+    },
+    error: null,
+  });
+
+  const result = await getLatencyStatistics({
+    from: '2026-09-18',
+    to: '2026-09-19',
+    provider: 'chainlink',
+    symbol: 'ETH',
+  });
+  expect(rpc).toHaveBeenCalledWith('get_oracle_latency_statistics', {
+    p_from: '2026-09-18T00:00:00.000Z',
+    p_before: '2026-09-20T00:00:00.000Z',
+    p_provider: 'chainlink',
+    p_symbol: 'ETH',
+  });
+  expect(result).toMatchObject({
+    sampleSize: 4,
+    rowsExamined: 5,
+    observationSource: 'price_snapshots',
+    truncated: false,
+    latencyDataAvailable: true,
+    overall: { p95: 900 },
+    entries: [{ successRate: 80 }],
+  });
 });
 
-it('reads past the default database page and includes slow observations in later pages', async () => {
-  database([
-    ...Array.from({ length: 1000 }, () => row(10)),
-    ...Array.from({ length: 100 }, () => row(9000)),
-  ]);
-  const result = await getLatencyStatistics({ from: '2026-09-18', to: '2026-09-19' });
-  expect(loadSnapshotHistoryPage).toHaveBeenLastCalledWith(
-    undefined,
+it('preserves an empty aggregate and rejects storage errors', async () => {
+  abortSignal.mockResolvedValueOnce({
+    data: { rowsExamined: 0, sampleSize: 0, overall: null, entries: [] },
+    error: null,
+  });
+  expect(await getLatencyStatistics({ from: '2026-09-18', to: '2026-09-18' })).toMatchObject({
+    latencyDataAvailable: false,
+    truncated: false,
+    overall: null,
+  });
+
+  abortSignal.mockResolvedValueOnce({ data: null, error: { message: 'unavailable' } });
+  await expect(getLatencyStatistics({ from: '2026-09-18', to: '2026-09-18' })).rejects.toThrow(
+    'Latency statistics read failed: unavailable'
+  );
+});
+
+it('rejects a malformed aggregate instead of reporting incomplete statistics', async () => {
+  abortSignal.mockResolvedValue({
+    data: { rowsExamined: 10001, sampleSize: 10000, overall: null, entries: [] },
+    error: null,
+  });
+  await expect(getLatencyStatistics({ from: '2026-09-18', to: '2026-09-18' })).rejects.toThrow();
+});
+
+it('keeps the old bounded hourly response when the new SQL function is not installed', async () => {
+  abortSignal.mockResolvedValue({ data: null, error: { code: 'PGRST202' } });
+  jest.mocked(loadSnapshotHistoryPage).mockResolvedValue([
+    { provider: 'chainlink', symbol: 'ETH', latency_ms: 10, is_success: true },
+    { provider: 'chainlink', symbol: 'ETH', latency_ms: 900, is_success: false },
+  ] as never);
+  const result = await getLatencyStatistics({ from: '2026-09-18', to: '2026-09-18' });
+  expect(result).toMatchObject({
+    observationSource: 'hourly_price_snapshots',
+    sampleSize: 2,
+    rowsExamined: 2,
+    truncated: false,
+    overall: { p50: 10, p95: 900 },
+    entries: [{ successRate: 50 }],
+  });
+  expect(loadSnapshotHistoryPage).toHaveBeenCalledWith(
+    expect.anything(),
     'hourly',
     '2026-09-18',
-    '2026-09-20',
+    '2026-09-19',
     expect.any(Array),
-    expect.objectContaining({ limit: 10001, ascending: true })
+    expect.objectContaining({ limit: 10001 })
   );
-  expect(result.overall?.p95).toBe(9000);
-  expect(result.sampleSize).toBe(1100);
-});
-
-it('marks capped results as incomplete and ignores invalid latency values', async () => {
-  database(Array.from({ length: 10001 }, () => row(10)));
-  expect((await getLatencyStatistics({ from: '2026-09-18', to: '2026-09-19' })).truncated).toBe(
-    true
-  );
-  database([row(-1), row(Number.NaN), row(null)]);
-  const result = await getLatencyStatistics({ from: '2026-09-18', to: '2026-09-19' });
-  expect(result.overall).toBeNull();
-  expect(result.sampleSize).toBe(0);
 });
