@@ -8,6 +8,8 @@ import {
   Badge,
   EmptyState,
   ErrorBanner,
+  OpsSectionHeading,
+  OpsScopeNote,
   tableCls,
   thCls,
   trCls,
@@ -35,95 +37,128 @@ export default async function OpsCronPage() {
   const oldestAge = hasAge ? Math.max(...jobs.map((j) => j.ageMinutes ?? 0)) : null;
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
+    <div className="ops-view ops-reliability-view ops-cron-view mx-auto max-w-[1280px] px-5 pb-14 pt-2 sm:px-8">
       <PageHeader
+        index="05"
+        context="Pipeline freshness"
         title="Cron & Pipelines"
-        subtitle="Freshness of each background pipeline, derived from output-table latest rows · 基于最新一行，无固定时间窗"
+        subtitle="See which background pipelines are current, which have stalled, and when the scheduler last dispatched."
         updatedAt={new Date().toISOString()}
         actions={<RefreshControl />}
       />
 
+      <OpsScopeNote label="Reading freshness">
+        Pipeline age comes from the latest output row for each source, with no fixed time window.
+        Scheduler history covers the last 30 days and is reported separately below.
+      </OpsScopeNote>
+
       {errored && <ErrorBanner message="管道新鲜度查询失败，下列 Stale / Fresh 状态不可信。" />}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Stat label="Pipelines" value={jobs.length} />
+      <OpsSectionHeading
+        index="01"
+        title="Freshness signal"
+        detail="A current count of tracked pipelines and their oldest observed output."
+      />
+      <div className="ops-signal-grid grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat label="Pipelines" value={jobs.length} index="01" />
         <Stat
           label="Stale"
           value={errored ? '—' : staleCount}
           tone={errored ? 'bad' : staleCount > 0 ? 'bad' : 'good'}
           hint={errored ? 'query failed' : 'past freshness window'}
+          index="02"
         />
         <Stat
           label="Fresh"
           value={errored ? '—' : jobs.length - staleCount}
           tone={errored ? 'default' : 'good'}
+          index="03"
         />
         <Stat
           label="Oldest age"
           value={oldestAge != null ? fmtAge(oldestAge) : '—'}
-          tone={oldestAge != null && oldestAge > 0 ? 'warn' : 'good'}
+          tone={errored || oldestAge == null ? 'default' : staleCount > 0 ? 'warn' : 'good'}
+          index="04"
         />
       </div>
 
-      <Card title="Pipeline freshness">
+      <OpsSectionHeading
+        index="02"
+        title="Pipeline register"
+        detail="Source, latest output, age, threshold, and current state for every tracked pipeline."
+      />
+      <Card>
         {jobs.length === 0 ? (
           <EmptyState message="no pipelines tracked" />
         ) : (
-          <div className="overflow-x-auto">
-            <table className={tableCls}>
-              <thead>
-                <tr className="text-left text-gray-500 border-b border-gray-100">
-                  <th className={thCls}>Pipeline</th>
-                  <th className={thCls}>Source</th>
-                  <th className={thCls}>Last run</th>
-                  <th className={`${thCls} text-right`}>Age</th>
-                  <th className={`${thCls} text-right`}>Threshold</th>
-                  <th className={thCls}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobs.map((j) => (
-                  <tr key={j.name} className={trCls}>
-                    <td className="py-2 pr-3 font-medium text-gray-800">{j.name}</td>
-                    <td className="py-2 pr-3 font-mono text-xs text-gray-500">
-                      {j.table}.{j.column}
-                    </td>
-                    <td className="py-2 pr-3 tabular-nums text-gray-500">
-                      {j.lastRunAt
-                        ? new Date(j.lastRunAt).toISOString().slice(0, 16).replace('T', ' ')
-                        : 'never'}
-                    </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-gray-700">
-                      {fmtAge(j.ageMinutes)}
-                    </td>
-                    <td className="py-2 pr-3 text-right tabular-nums text-gray-400">
-                      {fmtAge(j.staleThresholdMinutes)}
-                    </td>
-                    <td className="py-2 pr-3">
-                      {j.lastRunAt == null ? (
-                        <Badge tone="warn">no data</Badge>
-                      ) : j.stale ? (
-                        <Badge tone="bad">stale</Badge>
-                      ) : (
-                        <Badge tone="good">fresh</Badge>
-                      )}
-                    </td>
+          <div>
+            <p className="ops-table-scroll-hint md:hidden">
+              Scroll sideways to inspect every column →
+            </p>
+            <div className="ops-table-scroll overflow-x-auto">
+              <table className={tableCls}>
+                <thead>
+                  <tr className="text-left text-gray-500 border-b border-gray-100">
+                    <th className={thCls}>Pipeline</th>
+                    <th className={thCls}>Source</th>
+                    <th className={thCls}>Last run</th>
+                    <th className={`${thCls} text-right`}>Age</th>
+                    <th className={`${thCls} text-right`}>Threshold</th>
+                    <th className={thCls}>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {jobs.map((j) => (
+                    <tr key={j.name} className={trCls}>
+                      <td className="py-2 pr-3 font-medium text-gray-800">{j.name}</td>
+                      <td className="py-2 pr-3 font-mono text-xs text-gray-500">
+                        {j.table}.{j.column}
+                      </td>
+                      <td className="py-2 pr-3 tabular-nums text-gray-500">
+                        {j.lastRunAt
+                          ? new Date(j.lastRunAt).toISOString().slice(0, 16).replace('T', ' ')
+                          : 'never'}
+                      </td>
+                      <td className="py-2 pr-3 text-right tabular-nums text-gray-700">
+                        {fmtAge(j.ageMinutes)}
+                      </td>
+                      <td className="py-2 pr-3 text-right tabular-nums text-gray-400">
+                        {fmtAge(j.staleThresholdMinutes)}
+                      </td>
+                      <td className="py-2 pr-3">
+                        {j.lastRunAt == null ? (
+                          <Badge tone="warn">no data</Badge>
+                        ) : j.stale ? (
+                          <Badge tone="bad">stale</Badge>
+                        ) : (
+                          <Badge tone="good">fresh</Badge>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </Card>
 
-      <div className="mt-6">
-        <Card title="Scheduler dispatch ledger (30 days)">
-          {dispatch.errored ? (
-            <EmptyState message="dispatcher ledger unavailable — apply migration 0045 to activate it" />
-          ) : dispatch.runs.length === 0 ? (
-            <EmptyState message="dispatcher is installed; no runs recorded yet" />
-          ) : (
-            <div className="overflow-x-auto">
+      <OpsSectionHeading
+        index="03"
+        title="Dispatch ledger"
+        detail="Scheduled and completed runs over the last 30 days."
+      />
+      <Card>
+        {dispatch.errored ? (
+          <EmptyState message="dispatcher ledger unavailable — apply migration 0045 to activate it" />
+        ) : dispatch.runs.length === 0 ? (
+          <EmptyState message="dispatcher is installed; no runs recorded yet" />
+        ) : (
+          <div>
+            <p className="ops-table-scroll-hint md:hidden">
+              Scroll sideways to inspect every column →
+            </p>
+            <div className="ops-table-scroll overflow-x-auto">
               <table className={tableCls}>
                 <thead>
                   <tr className="text-left text-gray-500 border-b border-gray-100">
@@ -178,9 +213,9 @@ export default async function OpsCronPage() {
                 </tbody>
               </table>
             </div>
-          )}
-        </Card>
-      </div>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
