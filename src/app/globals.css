@@ -5831,6 +5831,33 @@ h3,
   }
 }
 
+@media (min-width: 720px) and (max-width: 1023px) {
+  .settings-hero-grid {
+    grid-template-columns: minmax(0, 1.6fr) minmax(13.5rem, 0.72fr);
+  }
+
+  .settings-hero-copy {
+    padding-right: 1.75rem;
+  }
+
+  .settings-hero-aside {
+    display: flex;
+  }
+
+  .settings-hero-aside-meta span:last-child {
+    display: none;
+  }
+
+  .settings-hero-number {
+    margin-top: auto;
+  }
+
+  .settings-hero-aside-detail,
+  .settings-hero-meter {
+    margin-top: 1.4rem;
+  }
+}
+
 @media (max-width: 640px) {
   .settings-hero-copy {
     min-height: 0;
