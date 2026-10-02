@@ -24,15 +24,17 @@ jest.mock('@/lib/api/handler', () => {
 const mockHandlePaymentConfirmed = jest.fn();
 const mockHandlePartiallyPaid = jest.fn();
 const mockHandlePaymentExpiredOrFailed = jest.fn();
+const mockRecordPaymentReference = jest.fn();
 jest.mock('@/lib/billing/subscriptionLifecycle', () => ({
   handlePaymentConfirmed: (...args: unknown[]) => mockHandlePaymentConfirmed(...args),
   handlePartiallyPaid: (...args: unknown[]) => mockHandlePartiallyPaid(...args),
   handlePaymentExpiredOrFailed: (...args: unknown[]) => mockHandlePaymentExpiredOrFailed(...args),
+  recordPaymentReference: (...args: unknown[]) => mockRecordPaymentReference(...args),
 }));
 
-const mockGetInvoice = jest.fn();
+const mockGetPaymentStatus = jest.fn();
 jest.mock('@/lib/billing/nowpayments', () => ({
-  getInvoice: (...args: unknown[]) => mockGetInvoice(...args),
+  getPaymentStatus: (...args: unknown[]) => mockGetPaymentStatus(...args),
 }));
 
 const mockCreateUserClient = jest.fn();
@@ -84,12 +86,13 @@ async function callPost(
 describe('POST /api/billing/reconcile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetInvoice.mockResolvedValue({
-      id: 1001,
+    mockGetPaymentStatus.mockResolvedValue({
+      id: '1001',
       status: 'finished',
       priceAmount: 49,
       priceCurrency: 'usd',
       orderId: 'sub_1',
+      invoiceId: 'inv_1',
     });
     mockCreateServiceRoleClient.mockReturnValue(createSupabaseMock({}));
   });
@@ -121,7 +124,7 @@ describe('POST /api/billing/reconcile', () => {
 
     expect(response.status).toBe(200);
     expect(body.data).toEqual({ status: 'active', reconciled: false });
-    expect(mockGetInvoice).not.toHaveBeenCalled();
+    expect(mockGetPaymentStatus).not.toHaveBeenCalled();
     expect(mockHandlePaymentConfirmed).not.toHaveBeenCalled();
   });
 
@@ -133,7 +136,7 @@ describe('POST /api/billing/reconcile', () => {
     expect(response.status).toBe(409);
   });
 
-  it('runs handlePaymentConfirmed on a confirmed/finished invoice', async () => {
+  it('requires a payment ID when no signed IPN has supplied one', async () => {
     mockCreateUserClient.mockReturnValue(
       createSupabaseMock({
         subscriptions: {
@@ -144,15 +147,75 @@ describe('POST /api/billing/reconcile', () => {
         },
       })
     );
-    mockGetInvoice.mockResolvedValue({
-      id: 1001,
+    const response = await callPost({ type: 'subscription', id: 'sub_1' });
+    expect(response.status).toBe(409);
+    expect(mockGetPaymentStatus).not.toHaveBeenCalled();
+  });
+
+  it('uses a payment ID already recorded by an earlier IPN', async () => {
+    mockCreateUserClient.mockReturnValue(
+      createSupabaseMock({
+        subscriptions: {
+          id: 'sub_1',
+          user_id: USER_ID,
+          status: 'incomplete',
+          nowpayments_invoice_id: 'inv_1',
+          nowpayments_payment_id: '1001',
+        },
+      })
+    );
+    const response = await callPost({ type: 'subscription', id: 'sub_1' });
+    expect(response.status).toBe(200);
+    expect(mockGetPaymentStatus).toHaveBeenCalledWith('1001');
+    expect(mockHandlePaymentConfirmed).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects a payment belonging to another invoice before any credits are granted', async () => {
+    mockCreateUserClient.mockReturnValue(
+      createSupabaseMock({
+        credit_purchases: {
+          id: 'top_1',
+          user_id: USER_ID,
+          status: 'incomplete',
+          nowpayments_invoice_id: 'inv_1',
+        },
+      })
+    );
+    mockGetPaymentStatus.mockResolvedValue({
+      id: '1001',
+      status: 'finished',
+      invoiceId: 'other_invoice',
+      orderId: 'other_order',
+      priceAmount: 39,
+      priceCurrency: 'usd',
+    });
+    const response = await callPost({ type: 'topup', id: 'top_1', paymentId: '1001' });
+    expect(response.status).toBe(409);
+    expect(mockHandlePaymentConfirmed).not.toHaveBeenCalled();
+    expect(mockRecordPaymentReference).not.toHaveBeenCalled();
+  });
+
+  it('runs handlePaymentConfirmed on a finished payment bound to the invoice', async () => {
+    mockCreateUserClient.mockReturnValue(
+      createSupabaseMock({
+        subscriptions: {
+          id: 'sub_1',
+          user_id: USER_ID,
+          status: 'incomplete',
+          nowpayments_invoice_id: 'inv_1',
+        },
+      })
+    );
+    mockGetPaymentStatus.mockResolvedValue({
+      id: '1001',
       status: 'finished',
       priceAmount: 49,
       priceCurrency: 'usd',
       orderId: 'sub_1',
+      invoiceId: 'inv_1',
     });
 
-    const response = await callPost({ type: 'subscription', id: 'sub_1' });
+    const response = await callPost({ type: 'subscription', id: 'sub_1', paymentId: '1001' });
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -182,9 +245,14 @@ describe('POST /api/billing/reconcile', () => {
         },
       })
     );
-    mockGetInvoice.mockResolvedValue({ id: 1002, status: 'partially_paid' });
+    mockGetPaymentStatus.mockResolvedValue({
+      id: '1002',
+      status: 'partially_paid',
+      invoiceId: 'inv_2',
+      orderId: 'top_1',
+    });
 
-    await callPost({ type: 'topup', id: 'top_1' });
+    await callPost({ type: 'topup', id: 'top_1', paymentId: '1002' });
 
     expect(mockHandlePartiallyPaid).toHaveBeenCalledTimes(1);
     expect(mockHandlePaymentConfirmed).not.toHaveBeenCalled();
@@ -201,9 +269,14 @@ describe('POST /api/billing/reconcile', () => {
         },
       })
     );
-    mockGetInvoice.mockResolvedValue({ id: 1003, status: 'expired' });
+    mockGetPaymentStatus.mockResolvedValue({
+      id: '1003',
+      status: 'expired',
+      invoiceId: 'inv_3',
+      orderId: 'sub_1',
+    });
 
-    await callPost({ type: 'subscription', id: 'sub_1' });
+    await callPost({ type: 'subscription', id: 'sub_1', paymentId: '1003' });
 
     expect(mockHandlePaymentExpiredOrFailed).toHaveBeenCalledTimes(1);
   });
@@ -219,9 +292,14 @@ describe('POST /api/billing/reconcile', () => {
         },
       })
     );
-    mockGetInvoice.mockResolvedValue({ id: 1004, status: 'waiting' });
+    mockGetPaymentStatus.mockResolvedValue({
+      id: '1004',
+      status: 'waiting',
+      invoiceId: 'inv_4',
+      orderId: 'sub_1',
+    });
 
-    const response = await callPost({ type: 'subscription', id: 'sub_1' });
+    const response = await callPost({ type: 'subscription', id: 'sub_1', paymentId: '1004' });
     const body = await response.json();
 
     expect(mockHandlePaymentConfirmed).not.toHaveBeenCalled();
@@ -243,9 +321,9 @@ describe('POST /api/billing/reconcile', () => {
         },
       })
     );
-    mockGetInvoice.mockResolvedValue(null);
+    mockGetPaymentStatus.mockResolvedValue(null);
 
-    const response = await callPost({ type: 'subscription', id: 'sub_1' });
+    const response = await callPost({ type: 'subscription', id: 'sub_1', paymentId: '1005' });
     expect(response.status).toBe(502);
   });
 });

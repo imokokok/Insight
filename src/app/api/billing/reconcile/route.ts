@@ -7,10 +7,10 @@
  * NOWPayments IPNs are not guaranteed to be delivered. If a user paid but the
  * IPN was lost/delayed, their subscription / top-up stays 'incomplete' forever
  * with no way to reconcile. This endpoint lets the billing UI poll the real
- * invoice status and re-run the (idempotent) activation logic when the payment
+ * payment status and re-run the (idempotent) activation logic when the payment
  * has actually settled — closing that gap without a manual support ticket.
  *
- * Body:   { type: 'subscription' | 'topup', id: <uuid> }
+ * Body:   { type: 'subscription' | 'topup', id: <uuid>, paymentId?: <provider ID> }
  * Auth:   Bearer session (the user reconciles their own order).
  *
  * The lifecycle handlers are idempotent (metering-keyed wallet credits, grants
@@ -23,11 +23,12 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createApiHandler, ApiResponseBuilder } from '@/lib/api/handler';
-import { getInvoice } from '@/lib/billing/nowpayments';
+import { getPaymentStatus } from '@/lib/billing/nowpayments';
 import {
   handlePartiallyPaid,
   handlePaymentConfirmed,
   handlePaymentExpiredOrFailed,
+  recordPaymentReference,
   type IpnData,
 } from '@/lib/billing/subscriptionLifecycle';
 import { createServiceRoleClient, createUserClient } from '@/lib/supabase/server';
@@ -35,6 +36,10 @@ import { createServiceRoleClient, createUserClient } from '@/lib/supabase/server
 const ReconcileBodySchema = z.object({
   type: z.enum(['subscription', 'topup']),
   id: z.string().uuid(),
+  paymentId: z
+    .string()
+    .regex(/^\d{1,30}$/)
+    .optional(),
 });
 
 const TERMINAL_STATUSES: Record<'subscription' | 'topup', string[]> = {
@@ -52,7 +57,7 @@ export const POST = createApiHandler(
       });
     }
 
-    const { type, id } = context.validated!.body!;
+    const { type, id, paymentId: suppliedPaymentId } = context.validated!.body!;
 
     // Look up the row scoped to the caller (user-scoped client → RLS).
     const userClient = createUserClient(accessToken);
@@ -85,30 +90,52 @@ export const POST = createApiHandler(
       );
     }
 
-    const invoice = await getInvoice(row.nowpayments_invoice_id);
-    if (!invoice) {
+    const paymentId = suppliedPaymentId ?? row.nowpayments_payment_id;
+    if (!paymentId) {
+      return NextResponse.json(
+        ApiResponseBuilder.error(
+          'PAYMENT_ID_REQUIRED',
+          'Enter the Payment ID shown on your NOWPayments receipt'
+        ),
+        { status: 409 }
+      );
+    }
+
+    const payment = await getPaymentStatus(paymentId);
+    if (!payment) {
       return NextResponse.json(
         ApiResponseBuilder.error('PROVIDER_ERROR', 'Unable to reach the payment provider'),
         { status: 502 }
       );
     }
 
+    // A user may supply any payment ID. Bind the provider response to this
+    // specific order before applying any state change or credit.
+    if (
+      (payment.invoiceId && payment.invoiceId !== row.nowpayments_invoice_id) ||
+      (payment.orderId && payment.orderId !== row.id) ||
+      (!payment.invoiceId && !payment.orderId)
+    ) {
+      return NextResponse.json(
+        ApiResponseBuilder.error('PAYMENT_MISMATCH', 'Payment does not belong to this order'),
+        { status: 409 }
+      );
+    }
+
     // Synthetic IPN payload mirroring the fields the webhook would carry.
     const data: IpnData = {
       invoice_id: row.nowpayments_invoice_id,
-      // Preserve the provider's order id when available so settlement can
-      // detect an invoice/order mismatch instead of overwriting the evidence.
-      order_id: invoice.orderId ?? row.id,
-      payment_status: invoice.status,
-      price_amount: invoice.priceAmount,
-      price_currency: invoice.priceCurrency,
+      order_id: payment.orderId ?? row.id,
+      payment_status: payment.status,
+      price_amount: payment.priceAmount,
+      price_currency: payment.priceCurrency,
     };
 
     const serviceClient = createServiceRoleClient();
-    switch (invoice.status) {
-      case 'confirmed':
+    await recordPaymentReference(serviceClient, data, paymentId);
+    switch (payment.status) {
       case 'finished': {
-        await handlePaymentConfirmed(serviceClient, data, String(invoice.id));
+        await handlePaymentConfirmed(serviceClient, data, paymentId);
         break;
       }
       case 'partially_paid': {
@@ -139,7 +166,7 @@ export const POST = createApiHandler(
       ApiResponseBuilder.success({
         status: (updated?.status as string | undefined) ?? status,
         reconciled: true,
-        providerStatus: invoice.status,
+        providerStatus: payment.status,
       })
     );
   },

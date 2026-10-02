@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Mail, LogIn, AlertCircle, MailWarning } from 'lucide-react';
 
-import { AuthPageLayout, AuthBrandLogo, AuthPageSuspense } from '@/app/auth/shared/AuthComponents';
+import { AuthPageLayout, AuthPageSuspense } from '@/app/auth/shared/AuthComponents';
 import { getSafeRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
 import { Button } from '@/components/ui';
 import { PasswordInput } from '@/components/ui/PasswordInput';
@@ -88,11 +88,11 @@ function LoginForm() {
   const displayError = errorInfo?.message || error?.message;
 
   return (
-    <AuthPageLayout>
-      <div className="auth-record-heading text-center mb-8">
-        <AuthBrandLogo />
-        <h2 className="mt-4 text-xl font-semibold text-slate-900">Login</h2>
-        <p className="mt-2 text-sm text-slate-500">Welcome back! Please log in to your account.</p>
+    <AuthPageLayout journey="login">
+      <div className="auth-record-heading mb-8">
+        <span className="auth-form-kicker">01 / Account access</span>
+        <h1>Welcome back.</h1>
+        <p>Sign in to return to your Insight workspace.</p>
       </div>
 
       {displayError && (
@@ -129,7 +129,9 @@ function LoginForm() {
             </div>
             <input
               id="email"
+              name="email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -147,6 +149,8 @@ function LoginForm() {
           </label>
           <PasswordInput
             id="password"
+            name="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -172,17 +176,17 @@ function LoginForm() {
           leftIcon={<LogIn className="w-5 h-5" />}
           className="w-full"
         >
-          {isLoading ? 'Logging in...' : 'Login'}
+          {isLoading ? 'Signing in...' : 'Sign in'}
         </Button>
       </form>
 
       <p className="mt-6 text-center text-sm text-slate-500">
-        Don&apos;t have an account?{' '}
+        New to Insight?{' '}
         <Link
           href={`/register?redirect=${encodeURIComponent(redirectPath)}`}
           className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
         >
-          Register now
+          Create an account
         </Link>
       </p>
     </AuthPageLayout>

@@ -1,5 +1,22 @@
 # VERITAS joint-run readiness artifacts
 
+## 2026-10-02 window-five candidate
+
+`prepare-live-gate-pair-window5.mts` is the fail-closed operator for the proposed
+2026-10-02 14:00–15:30 UTC window. Its matching immutable VERITAS policy v4 is
+published as a candidate. This candidate publication does not change the current
+activation set v4, which still selects the expired September policy v3; the
+partner issuer therefore remains closed. Only a later separate activation
+promotion after the bilateral written agreement may select v4. The dedicated
+one-time API-key ID and exact UTC date switch, production read-back, fresh signer
+and clock, VERITAS preflights and its 13:55–14:00 UTC READY with a fresh 31/31
+host report remain independent gates. The operator refuses issuance before
+14:00 UTC, at or after the 14:50 UTC last-request cutoff, and signing at or
+after 14:55 UTC. It requires the sent October 2 `AGREED` message as evidence,
+the new activation-set ID and the unchanged runId; it preserves per-attempt
+locks and never sends mail or broadcasts. The September 30 operator below is
+historical and cannot be used for window five.
+
 ## 2026-09-30 one-time 1800-second joint-run path
 
 `anchored-settlement-selection-rule-v3.json` preserves v2 and makes only the five

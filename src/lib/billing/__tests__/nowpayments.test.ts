@@ -209,4 +209,51 @@ describe('NOWPayments nowpayments.ts', () => {
       }
     });
   });
+
+  describe('getPaymentStatus', () => {
+    const originalFetch = global.fetch;
+    afterEach(() => {
+      global.fetch = originalFetch;
+    });
+
+    it('queries the payment endpoint and preserves invoice/order binding fields', async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          payment_id: 12345,
+          payment_status: 'finished',
+          invoice_id: 67890,
+          order_id: 'order-1',
+          price_amount: 49,
+          price_currency: 'usd',
+        }),
+      });
+      global.fetch = fetchMock;
+      const { getPaymentStatus } = loadNowpayments();
+      const payment = await getPaymentStatus('12345');
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://api.nowpayments.io/v1/payment/12345',
+        expect.objectContaining({ method: 'GET' })
+      );
+      expect(payment).toEqual(
+        expect.objectContaining({
+          id: '12345',
+          status: 'finished',
+          invoiceId: '67890',
+          orderId: 'order-1',
+          priceAmount: 49,
+          priceCurrency: 'usd',
+        })
+      );
+    });
+
+    it('rejects a provider response for another payment ID', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ payment_id: 999, payment_status: 'finished' }),
+      });
+      const { getPaymentStatus } = loadNowpayments();
+      expect(await getPaymentStatus('12345')).toBeNull();
+    });
+  });
 });

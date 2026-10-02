@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import Link from 'next/link';
 
-import { CheckCircle2, Loader2, RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Loader2, RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
 import { verifyReceipt } from 'verify-insight-receipt';
 
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
@@ -12,7 +12,7 @@ import { shortAddress } from '@/components/verifiability/verifyReceipt';
 
 import type { KeyRegistry, RoutableAttestation, VerifyResult } from 'verify-insight-receipt';
 
-type Status = 'loading' | 'done' | 'error';
+type Status = 'idle' | 'loading' | 'done' | 'error';
 type Mode = 'sample' | 'paste';
 
 interface DemoState {
@@ -46,19 +46,34 @@ export default function VerifyClient() {
   const [mode, setMode] = useState<Mode>('sample');
   const [pastedInput, setPastedInput] = useState('');
   const [state, setState] = useState<DemoState>({ status: 'loading' });
+  const activeRequest = useRef(0);
+
+  const selectMode = (nextMode: Mode) => {
+    if (nextMode === mode) return;
+    activeRequest.current += 1;
+    setMode(nextMode);
+    setState({ status: nextMode === 'sample' ? 'loading' : 'idle' });
+  };
 
   // All verification goes through the library — this component never
   // re-implements any crypto. It only supplies the receipt + the public
   // key registry and renders whatever the library decides.
   const verifyAttestation = useCallback(
-    async (attestation: RoutableAttestation, registry: KeyRegistry | undefined) => {
+    async (
+      attestation: RoutableAttestation,
+      registry: KeyRegistry | undefined,
+      requestId: number
+    ) => {
       const result = await verifyReceipt(attestation, registry ? { keyRegistry: registry } : {});
-      setState({ status: 'done', result, attestation, registry });
+      if (activeRequest.current === requestId) {
+        setState({ status: 'done', result, attestation, registry });
+      }
     },
     []
   );
 
   const runSample = useCallback(async () => {
+    const requestId = ++activeRequest.current;
     try {
       const [sampleRes, registry] = await Promise.all([
         fetch('/api/v1/safety/attestation/sample'),
@@ -73,42 +88,51 @@ export default function VerifyClient() {
         } catch {
           /* ignore parse errors, keep the status message */
         }
-        setState({ status: 'error', error: msg });
+        if (activeRequest.current === requestId) setState({ status: 'error', error: msg });
         return;
       }
 
       const sampleBody = await sampleRes.json();
       const attestation = sampleBody?.data?.attestation;
       if (!attestation) {
-        setState({ status: 'error', error: 'Sample endpoint returned no attestation.' });
+        if (activeRequest.current === requestId) {
+          setState({ status: 'error', error: 'Sample endpoint returned no attestation.' });
+        }
         return;
       }
 
-      await verifyAttestation(attestation, registry);
+      await verifyAttestation(attestation, registry, requestId);
     } catch (err) {
-      setState({
-        status: 'error',
-        error: err instanceof Error ? err.message : 'Network error while verifying.',
-      });
+      if (activeRequest.current === requestId) {
+        setState({
+          status: 'error',
+          error: err instanceof Error ? err.message : 'Network error while verifying.',
+        });
+      }
     }
   }, [verifyAttestation]);
 
   const runPaste = useCallback(async () => {
+    const requestId = ++activeRequest.current;
     let attestation: RoutableAttestation;
     try {
       attestation = JSON.parse(pastedInput) as RoutableAttestation;
     } catch {
-      setState({ status: 'error', error: 'Receipt is not valid JSON.' });
+      if (activeRequest.current === requestId) {
+        setState({ status: 'error', error: 'Receipt is not valid JSON.' });
+      }
       return;
     }
     try {
       const registry = await fetchRegistry();
-      await verifyAttestation(attestation, registry);
+      await verifyAttestation(attestation, registry, requestId);
     } catch (err) {
-      setState({
-        status: 'error',
-        error: err instanceof Error ? err.message : 'Network error while verifying.',
-      });
+      if (activeRequest.current === requestId) {
+        setState({
+          status: 'error',
+          error: err instanceof Error ? err.message : 'Network error while verifying.',
+        });
+      }
     }
   }, [pastedInput, verifyAttestation]);
 
@@ -188,43 +212,51 @@ export default function VerifyClient() {
             </div>
 
             <div className="verify-input-docket border-y border-slate-900/15 bg-white/35 p-4 xl:sticky xl:top-24">
-              <div className="mb-4 inline-flex border border-slate-200 bg-white p-1">
+              <div
+                className="verify-mode-switch"
+                role="group"
+                aria-label="Choose verification input"
+              >
                 <button
                   type="button"
-                  onClick={() => setMode('sample')}
-                  className={`px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                    mode === 'sample'
-                      ? 'bg-slate-950 text-white'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
+                  onClick={() => selectMode('sample')}
+                  aria-pressed={mode === 'sample'}
+                  className={`verify-mode-option ${mode === 'sample' ? 'is-active' : ''}`}
                 >
-                  Live sample
+                  <span>01 / Explore</span>
+                  <strong>Live sample</strong>
+                  <small>Fetch a public example</small>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setMode('paste')}
-                  className={`px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                    mode === 'paste'
-                      ? 'bg-slate-950 text-white'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
+                  onClick={() => selectMode('paste')}
+                  aria-pressed={mode === 'paste'}
+                  className={`verify-mode-option ${mode === 'paste' ? 'is-active' : ''}`}
                 >
-                  Paste a receipt
+                  <span>02 / Your evidence</span>
+                  <strong>Paste a receipt</strong>
+                  <small>Inspect your own JSON</small>
                 </button>
               </div>
 
-              <p className="text-sm leading-relaxed text-slate-500">
-                Verification runs in your browser via{' '}
-                <code className="text-slate-700">verify-insight-receipt</code>. Nothing leaves this
-                page.
-              </p>
+              <div className="verify-input-boundary">
+                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                <p>
+                  Your pasted receipt stays in this browser. The live sample and public key registry
+                  are fetched from Insight; the verification decision runs locally.
+                </p>
+              </div>
 
               {mode === 'paste' && (
                 <div className="mt-5 border-t border-slate-900/10 pt-5">
-                  <label className="mb-2 block text-sm font-semibold text-slate-900">
+                  <label
+                    htmlFor="verify-receipt-json"
+                    className="mb-2 block text-sm font-semibold text-slate-900"
+                  >
                     Receipt JSON
                   </label>
                   <textarea
+                    id="verify-receipt-json"
                     value={pastedInput}
                     onChange={(e) => setPastedInput(e.target.value)}
                     placeholder="Paste an OracleSafetyCheck or OracleSafetyRecheck receipt JSON here…"
@@ -245,6 +277,18 @@ export default function VerifyClient() {
               <span className="font-mono text-[10px] text-slate-400">EVIDENCE</span>
             </div>
 
+            {state.status === 'idle' && (
+              <div className="verify-idle-panel" role="status">
+                <span>Awaiting / Receipt JSON</span>
+                <ShieldCheck className="h-10 w-10" aria-hidden="true" />
+                <h3>Your evidence is ready for a local check.</h3>
+                <p>
+                  Paste a signed receipt on the left, then choose “Verify receipt” above. Its
+                  contents stay in this browser.
+                </p>
+              </div>
+            )}
+
             {state.status === 'loading' && (
               <div className="verify-state-panel flex flex-col items-center justify-center border-y border-slate-900/15 bg-white/35 py-20 text-center">
                 <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
@@ -261,7 +305,7 @@ export default function VerifyClient() {
             )}
 
             {state.status === 'error' && (
-              <div className="verify-state-panel border-y border-red-200 bg-white/45 p-6">
+              <div className="verify-state-panel verify-error-panel border-y border-red-200 bg-white/45 p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="flex h-10 w-10 items-center justify-center border border-red-200 bg-red-50">
                     <XCircle className="w-5 h-5 text-red-500" />
@@ -281,9 +325,20 @@ export default function VerifyClient() {
                   {state.error}
                 </p>
                 <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                  The production sample signer may be unconfigured on this instance. You can still
-                  verify any receipt locally — install the package and run the quickstart:
+                  {mode === 'sample'
+                    ? 'The sample signer may be unavailable on this instance. You can still paste a signed receipt or use the local verifier.'
+                    : 'Check that the receipt is complete JSON and try again. You can also run the local verifier:'}
                 </p>
+                {mode === 'sample' && (
+                  <button
+                    type="button"
+                    onClick={() => selectMode('paste')}
+                    className="verify-error-route"
+                  >
+                    Verify your own receipt instead{' '}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                )}
                 <pre className="overflow-x-auto bg-slate-900 p-4 text-xs text-slate-100">
                   <code>{`npm i verify-insight-receipt
 node node_modules/verify-insight-receipt/examples/quickstart.mjs`}</code>
@@ -354,6 +409,20 @@ node node_modules/verify-insight-receipt/examples/quickstart.mjs`}</code>
                         key: {result.keyStatus}
                       </span>
                     </div>
+                  </div>
+                  <div className="verify-verdict-checks" aria-label="Verification checks">
+                    <span>
+                      <small>Signature</small>
+                      <strong>{result.code === 'ok' ? 'Accepted' : result.code}</strong>
+                    </span>
+                    <span>
+                      <small>Registry key</small>
+                      <strong>{result.keyStatus.replaceAll('_', ' ')}</strong>
+                    </span>
+                    <span>
+                      <small>Validity window</small>
+                      <strong>{result.expired ? 'Expired' : 'Current'}</strong>
+                    </span>
                   </div>
                 </div>
 

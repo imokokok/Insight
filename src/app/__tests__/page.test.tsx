@@ -58,10 +58,10 @@ describe('HomePage', () => {
       ).toBeInTheDocument();
     });
 
-    it('should lead into live evidence without a duplicate hero search', () => {
+    it('should lead into source evidence without a duplicate hero search', () => {
       renderDashboard();
 
-      expect(screen.getByRole('link', { name: /Explore live evidence/i })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: /Explore the evidence/i })).toHaveAttribute(
         'href',
         '#live-evidence'
       );

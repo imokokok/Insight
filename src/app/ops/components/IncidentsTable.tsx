@@ -93,22 +93,30 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="搜索 provider / symbol / 类型 / 严重度"
-          className="min-w-[200px] max-w-sm flex-1 border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-        />
+      <div className="ops-table-toolbar mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-[200px] max-w-sm flex-1">
+          <label htmlFor="ops-incident-search" className="ops-table-filter-label">
+            Filter the ledger
+          </label>
+          <input
+            id="ops-incident-search"
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Provider, symbol, type, or severity"
+            className="w-full border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+          />
+        </div>
         <button
           type="button"
           onClick={exportCsv}
-          className="inline-flex shrink-0 items-center gap-1.5 border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:border-primary-400 hover:text-primary-700"
+          className="ops-table-export inline-flex shrink-0 items-center gap-1.5 border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors hover:border-primary-400 hover:text-primary-700"
         >
-          导出 CSV
+          Export CSV ↗
         </button>
       </div>
-      <div className="max-h-[60vh] overflow-x-auto border-y border-slate-900/10">
+      <p className="ops-table-scroll-hint md:hidden">Scroll sideways to inspect every column →</p>
+      <div className="ops-table-scroll max-h-[60vh] overflow-auto border-y border-slate-900/10">
         <table className={tableCls}>
           <thead>
             <tr>

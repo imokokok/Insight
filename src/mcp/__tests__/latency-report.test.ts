@@ -12,6 +12,7 @@ jest.mock('@/lib/reports/anomalyAggregation', () => ({ aggregateAnomalies: jest.
 
 it('renders observation percentiles and warns about incomplete history instead of recomputing group means', async () => {
   (getLatencyStatistics as jest.Mock).mockResolvedValue({
+    observationSource: 'hourly_price_snapshots',
     entries: [
       {
         provider: 'chainlink',
@@ -33,5 +34,6 @@ it('renders observation percentiles and warns about incomplete history instead o
   expect(report).toContain('p95 80ms');
   expect(report).toContain('Valid latency samples: 10000');
   expect(report).toContain('truncated at 10,000 rows');
+  expect(report).toContain('hourly fallback');
   expect(report).not.toContain('p50 700ms');
 });

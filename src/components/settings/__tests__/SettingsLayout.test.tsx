@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 
 import { SettingsLayout, type SettingsTab } from '../SettingsLayout';
 
@@ -18,19 +18,19 @@ describe('SettingsLayout', () => {
     render(<SettingsLayout {...defaultProps} />);
 
     expect(
-      screen.getByText('Keep access, usage, and preferences under your control.')
+      screen.getByRole('heading', { level: 1, name: 'Make this space yours.' })
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Manage the account state that follows you across Insight/)
+      screen.getByText('Keep your identity, verified email, and password in clear view.')
     ).toBeInTheDocument();
   });
 
   it('should render all tabs', () => {
     render(<SettingsLayout {...defaultProps} />);
 
-    expect(screen.getByText('Profile')).toBeInTheDocument();
-    expect(screen.getByText('Preferences')).toBeInTheDocument();
-    expect(screen.getByText('Data')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /profile/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /preferences/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /data/i })).toBeInTheDocument();
   });
 
   it('should render children content', () => {
@@ -43,14 +43,15 @@ describe('SettingsLayout', () => {
   it('should highlight active tab', () => {
     render(<SettingsLayout {...defaultProps} activeTab="profile" />);
 
-    const profileTab = screen.getByRole('button', { name: /profile/i });
-    expect(profileTab).toHaveClass('bg-blue-700');
+    const profileTab = screen.getByRole('tab', { name: /profile/i });
+    expect(profileTab).toHaveAttribute('aria-selected', 'true');
+    expect(profileTab).toHaveClass('is-active');
   });
 
   it('should call onTabChange when tab is clicked', () => {
     render(<SettingsLayout {...defaultProps} />);
 
-    const preferencesTab = screen.getByRole('button', { name: /preferences/i });
+    const preferencesTab = screen.getByRole('tab', { name: /preferences/i });
     fireEvent.click(preferencesTab);
 
     expect(mockOnTabChange).toHaveBeenCalledWith('preferences');
@@ -59,8 +60,9 @@ describe('SettingsLayout', () => {
   it('should render tab descriptions', () => {
     render(<SettingsLayout {...defaultProps} />);
 
-    expect(screen.getByText('Manage your account profile')).toBeInTheDocument();
-    expect(screen.getByText('Customize your preferences')).toBeInTheDocument();
+    const navigation = within(screen.getByRole('navigation'));
+    expect(navigation.getByText('Identity & security')).toBeInTheDocument();
+    expect(navigation.getByText('Your default view')).toBeInTheDocument();
   });
 
   it('should render settings icon', () => {
@@ -82,5 +84,18 @@ describe('SettingsLayout', () => {
 
     const main = screen.getByRole('main');
     expect(main).toBeInTheDocument();
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'settings-tab-profile');
+  });
+
+  it('supports keyboard navigation between controls', () => {
+    render(<SettingsLayout {...defaultProps} />);
+
+    const profileTab = screen.getByRole('tab', { name: /profile/i });
+    const preferencesTab = screen.getByRole('tab', { name: /preferences/i });
+    profileTab.focus();
+    fireEvent.keyDown(profileTab, { key: 'ArrowDown' });
+
+    expect(mockOnTabChange).toHaveBeenCalledWith('preferences');
+    expect(preferencesTab).toHaveFocus();
   });
 });

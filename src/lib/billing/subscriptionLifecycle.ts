@@ -2,7 +2,7 @@
  * @fileoverview Shared subscription / credit-purchase lifecycle handlers.
  *
  * These were extracted from the NOWPayments webhook route so the same
- * "payment became confirmed / partially paid / expired / refunded" logic can
+ * "payment finished / partially paid / expired / refunded" logic can
  * also be driven by the reconciliation endpoint (/api/billing/reconcile) — the
  * "I've paid" fallback for when an IPN is lost or delayed. Keeping a single
  * implementation guarantees the webhook and the manual-recheck path can never
@@ -10,7 +10,7 @@
  *
  * Idempotency:
  *   - Wallet top-ups key on the invoice id (`topup:<invoiceId>`), which is
- *     stable across confirmed/finished IPNs and across the reconcile path, so
+ *     stable across finished IPNs and across the reconcile path, so
  *     a payment is never credited twice.
  *   - Subscription grants key on the subscription row id (matching
  *     add_monthly_credits), so re-running activation is a no-op for the grant.
@@ -24,6 +24,7 @@ import {
   CREDIT_PACKS,
   normalizePlan,
   planCreditGrant,
+  PLANS,
   type Plan,
 } from '@/lib/billing/plans';
 import { type createServiceRoleClient } from '@/lib/supabase/server';
@@ -51,6 +52,13 @@ export function getStringField(
   return getString(data, snakeKey) ?? getString(data, camelKey);
 }
 
+function getInvoiceId(data: IpnData): string | undefined {
+  const value = data.invoice_id ?? data.invoiceId;
+  return typeof value === 'string' || (typeof value === 'number' && Number.isSafeInteger(value))
+    ? String(value)
+    : undefined;
+}
+
 /** Safely extract a finite numeric field, accepting provider JSON number strings. */
 function getNumberField(data: IpnData, snakeKey: string, camelKey: string): number | undefined {
   const value = data[snakeKey] ?? data[camelKey];
@@ -65,6 +73,7 @@ type CreditPurchase = {
   credits: number;
   price_usd: number;
   status: string;
+  nowpayments_payment_id?: string | null;
 };
 
 /**
@@ -138,25 +147,29 @@ export async function findSubscriptionByInvoice(
   plan: string;
   interval: string;
   status: string;
+  nowpayments_payment_id?: string | null;
 } | null> {
-  const invoiceId = getStringField(data, 'invoice_id', 'invoiceId');
+  const invoiceId = getInvoiceId(data);
   const orderId = getStringField(data, 'order_id', 'orderId');
 
   if (invoiceId) {
     const { data: row, error } = await client
       .from('subscriptions')
-      .select('id, user_id, plan, interval, status')
+      .select('id, user_id, plan, interval, status, nowpayments_payment_id')
       .eq('nowpayments_invoice_id', invoiceId)
       .maybeSingle();
     if (error) throw new Error(`Failed to look up subscription invoice: ${error.message}`);
-    if (row) return row;
+    if (row) {
+      if (orderId && orderId !== row.id) throw new Error('Subscription invoice/order mismatch');
+      return row;
+    }
   }
 
   if (orderId) {
     // order_id was set to subscriptions.id at checkout time.
     const { data: row, error } = await client
       .from('subscriptions')
-      .select('id, user_id, plan, interval, status')
+      .select('id, user_id, plan, interval, status, nowpayments_payment_id')
       .eq('id', orderId)
       .maybeSingle();
     if (error) throw new Error(`Failed to look up subscription order: ${error.message}`);
@@ -174,23 +187,26 @@ export async function findCreditPurchaseByInvoice(
   client: ServiceClient,
   data: IpnData
 ): Promise<CreditPurchase | null> {
-  const invoiceId = getStringField(data, 'invoice_id', 'invoiceId');
+  const invoiceId = getInvoiceId(data);
   const orderId = getStringField(data, 'order_id', 'orderId');
 
   if (invoiceId) {
     const { data: row, error } = await client
       .from('credit_purchases')
-      .select('id, user_id, credits, price_usd, status')
+      .select('id, user_id, credits, price_usd, status, nowpayments_payment_id')
       .eq('nowpayments_invoice_id', invoiceId)
       .maybeSingle();
     if (error) throw new Error(`Failed to look up credit purchase invoice: ${error.message}`);
-    if (row) return row;
+    if (row) {
+      if (orderId && orderId !== row.id) throw new Error('Credit invoice/order mismatch');
+      return row;
+    }
   }
 
   if (orderId) {
     const { data: row, error } = await client
       .from('credit_purchases')
-      .select('id, user_id, credits, price_usd, status')
+      .select('id, user_id, credits, price_usd, status, nowpayments_payment_id')
       .eq('id', orderId)
       .maybeSingle();
     if (error) throw new Error(`Failed to look up credit purchase order: ${error.message}`);
@@ -200,8 +216,28 @@ export async function findCreditPurchaseByInvoice(
   return null;
 }
 
+/** Save a payment ID as soon as any signed IPN arrives, so a missing final
+ * IPN can be reconciled through the documented GET /payment/{payment_id}. */
+export async function recordPaymentReference(
+  client: ServiceClient,
+  data: IpnData,
+  paymentId: string
+) {
+  const purchase = await findCreditPurchaseByInvoice(client, data);
+  const sub = purchase ? null : await findSubscriptionByInvoice(client, data);
+  const row = purchase ?? sub;
+  if (!row || (row.status !== 'incomplete' && row.status !== 'past_due')) return;
+  const table = purchase ? 'credit_purchases' : 'subscriptions';
+  const { error } = await client
+    .from(table)
+    .update({ nowpayments_payment_id: paymentId, updated_at: new Date().toISOString() })
+    .eq('id', row.id)
+    .in('status', ['incomplete', 'past_due']);
+  if (error) throw new Error(`Failed to record payment reference: ${error.message}`);
+}
+
 /**
- * Handle confirmed/finished: credit the wallet for a top-up invoice, OR
+ * Handle finished: credit the wallet for a top-up invoice, OR
  * upgrade the user's API keys to the subscribed plan (and grant the first
  * cycle's credit allowance) for a subscription invoice.
  */
@@ -210,7 +246,7 @@ export async function handlePaymentConfirmed(
   data: IpnData,
   paymentId: string
 ) {
-  const invoiceId = getStringField(data, 'invoice_id', 'invoiceId');
+  const invoiceId = getInvoiceId(data);
 
   // --- Top-up invoice: credit the wallet (idempotent on metering key). -----
   const purchase = await findCreditPurchaseByInvoice(client, data);
@@ -221,7 +257,7 @@ export async function handlePaymentConfirmed(
         userId: purchase.user_id,
         amount: verifiedCredits,
         // Key on the invoice id (fallback: payment id). The invoice id is
-        // stable across confirmed/finished IPNs AND across the reconcile path,
+        // stable across finished IPNs AND across the reconcile path,
         // so a payment can never be credited twice even if both paths run.
         meteringKey: `topup:${invoiceId ?? paymentId}`,
         kind: 'topup',
@@ -275,6 +311,17 @@ export async function handlePaymentConfirmed(
 
   const interval = sub.interval === 'year' ? 'year' : 'month';
   const plan = sub.plan as Plan;
+  const providerPrice = getNumberField(data, 'price_amount', 'priceAmount');
+  const providerCurrency = getStringField(data, 'price_currency', 'priceCurrency')?.toLowerCase();
+  const expectedPrice = interval === 'year' ? PLANS[plan]?.priceYearly : PLANS[plan]?.priceMonthly;
+  if (
+    !expectedPrice ||
+    providerCurrency !== 'usd' ||
+    providerPrice === undefined ||
+    Math.abs(providerPrice - expectedPrice) > 0.005
+  ) {
+    throw new Error(`Subscription ${sub.id} payment price does not match the ordered plan`);
+  }
   const now = new Date();
 
   // A canceled row is terminal (expired/failed/refunded). In particular, a
@@ -301,14 +348,35 @@ export async function handlePaymentConfirmed(
   }
 
   if (needsActivation) {
-    const periodEnd = new Date(now.getTime() + PERIOD_DAYS[interval] * 24 * 60 * 60 * 1000);
+    // A same-plan renewal starts when the paid current period ends. Upgrades
+    // take effect immediately; they do not silently extend a higher tier.
+    const { data: previous, error: previousError } = await client
+      .from('subscriptions')
+      .select('current_period_end')
+      .eq('user_id', sub.user_id)
+      .eq('status', 'active')
+      .eq('plan', sub.plan)
+      .eq('interval', interval)
+      .gte('current_period_end', now.toISOString())
+      .neq('id', sub.id)
+      .order('current_period_end', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (previousError)
+      throw new Error(`Failed to resolve renewal period: ${previousError.message}`);
+    const previousEnd = previous?.current_period_end
+      ? Date.parse(previous.current_period_end)
+      : NaN;
+    const periodStart =
+      Number.isFinite(previousEnd) && previousEnd > now.getTime() ? new Date(previousEnd) : now;
+    const periodEnd = new Date(periodStart.getTime() + PERIOD_DAYS[interval] * 24 * 60 * 60 * 1000);
 
     // Activate the row with fresh period dates.
     const { error: updateError } = await client
       .from('subscriptions')
       .update({
         status: 'active',
-        current_period_start: now.toISOString(),
+        current_period_start: periodStart.toISOString(),
         current_period_end: periodEnd.toISOString(),
         nowpayments_payment_id: paymentId,
         cancel_at_period_end: false,
@@ -419,76 +487,11 @@ export async function handlePartiallyPaid(client: ServiceClient, data: IpnData) 
   }
 }
 
-/**
- * Handle expired/failed: mark the subscription canceled — BUT only if it is
- * still in 'incomplete' status. This is the critical out-of-order guard:
- * if a confirmed/finished IPN arrived first and activated the row, a late
- * expired IPN must NOT cancel it (the user already paid).
- */
-export async function handlePaymentExpiredOrFailed(client: ServiceClient, data: IpnData) {
-  // Credit-purchase invoice: mark canceled (no wallet change — it was never
-  // credited). Guard on 'incomplete' so a late expired IPN can't touch a
-  // purchase that was already paid.
-  const purchase = await findCreditPurchaseByInvoice(client, data);
-  if (purchase) {
-    if (purchase.status === 'incomplete') {
-      const { error } = await client
-        .from('credit_purchases')
-        .update({ status: 'canceled', updated_at: new Date().toISOString() })
-        .eq('id', purchase.id)
-        .eq('status', 'incomplete');
-      if (error) {
-        throw new Error(`Failed to cancel credit purchase: ${error.message}`);
-      } else {
-        logger.info('Credit purchase marked canceled (invoice expired/failed)', {
-          purchaseId: purchase.id,
-        });
-      }
-    } else {
-      logger.info('expired/failed ignored — credit purchase not incomplete', {
-        purchaseId: purchase.id,
-        currentStatus: purchase.status,
-      });
-    }
-    return;
-  }
-
-  const sub = await findSubscriptionByInvoice(client, data);
-  if (!sub) {
-    logger.warn('expired/failed: no subscription row found', {
-      invoiceId: getStringField(data, 'invoice_id', 'invoiceId'),
-    });
-    return;
-  }
-
-  // Cancel rows that were never activated: 'incomplete' (never paid) and
-  // 'past_due' (partially paid then expired — payment never completed, so no
-  // credits were granted and no upgrade happened). Never touch 'active' rows —
-  // a late expired IPN must not cancel a payment that already settled.
-  if (sub.status !== 'incomplete' && sub.status !== 'past_due') {
-    // Already active (or already canceled) — do not touch.
-    logger.info('expired/failed ignored — subscription not in incomplete/past_due state', {
-      subscriptionId: sub.id,
-      currentStatus: sub.status,
-    });
-    return;
-  }
-
-  const now = new Date();
-
-  const { error } = await client
-    .from('subscriptions')
-    .update({ status: 'canceled', updated_at: now.toISOString() })
-    .eq('id', sub.id)
-    .in('status', ['incomplete', 'past_due']); // belt-and-suspenders: only update if still pending
-
-  if (error) {
-    throw new Error(`Failed to cancel subscription: ${error.message}`);
-  } else {
-    logger.info('Subscription marked canceled (invoice expired/failed)', {
-      subscriptionId: sub.id,
-    });
-  }
+/** A failed/expired payment does not close its reusable hosted invoice. */
+export async function handlePaymentExpiredOrFailed(_client: ServiceClient, data: IpnData) {
+  logger.info('Payment expired/failed; invoice remains payable', {
+    invoiceId: getInvoiceId(data),
+  });
 }
 
 /**
@@ -496,12 +499,17 @@ export async function handlePaymentExpiredOrFailed(client: ServiceClient, data: 
  * plan from any newer active subscription. The refund overrides only its own
  * remaining period.
  */
-export async function handlePaymentRefunded(client: ServiceClient, data: IpnData) {
+export async function handlePaymentRefunded(
+  client: ServiceClient,
+  data: IpnData,
+  paymentId: string
+) {
   // Credit-purchase refund: claw back the granted credits. Spent credits
   // leave a negative balance, which is correct — the user owes them and must
   // top up before spending again. Idempotent on the refund metering key.
   const purchase = await findCreditPurchaseByInvoice(client, data);
   if (purchase) {
+    if (purchase.nowpayments_payment_id && purchase.nowpayments_payment_id !== paymentId) return;
     if (purchase.status === 'paid') {
       const configuredCredits = getConfiguredTopUpCredits(purchase);
       const newBalance = await topUpCredits({
@@ -546,6 +554,9 @@ export async function handlePaymentRefunded(client: ServiceClient, data: IpnData
     });
     return;
   }
+
+  if (sub.nowpayments_payment_id && sub.nowpayments_payment_id !== paymentId) return;
+  if (sub.status !== 'active') return;
 
   const now = new Date();
   const { error } = await client

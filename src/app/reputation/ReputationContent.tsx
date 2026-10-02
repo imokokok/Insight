@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from 'react';
 
-import { AlertTriangle, BarChart3, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+
+import { AlertTriangle, ArrowUpRight, BarChart3, Loader2 } from 'lucide-react';
 
 import { EvidenceProcessRail } from '@/components/editorial';
 import { ErrorBoundary } from '@/components/error-boundary';
-import { EmptyStateEnhanced } from '@/components/ui/EmptyStateEnhanced';
 import {
   useReputations,
   useRecalculateReputation,
@@ -182,12 +183,17 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
 
         {/* Error state — single render path */}
         {error && (
-          <div className="flex items-center gap-3 border-y border-amber-300 bg-amber-50/70 p-4">
+          <div
+            className="flex items-center gap-3 border-y border-amber-300 bg-amber-50/70 p-4"
+            role="status"
+          >
             <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
             <div>
-              <p className="text-sm font-bold text-amber-800">No reputation data available</p>
+              <p className="text-sm font-bold text-amber-800">
+                The reputation record is temporarily unavailable
+              </p>
               <p className="text-xs text-amber-600 mt-0.5">
-                Make sure the database migration has been applied in Supabase SQL Editor.
+                Please try again shortly. Other public evidence is still available below.
               </p>
             </div>
           </div>
@@ -196,13 +202,28 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
         {/* Empty state — single render path. There are no provider rows at
             all, so the MetricStrip/FilterBar/Table are NOT rendered here. */}
         {!isLoading && !error && reputations.length === 0 && (
-          <EmptyStateEnhanced
-            type="new"
-            title="No Oracle Providers"
-            description="Oracle provider profiles will appear here once reputation data is calculated."
-            size="lg"
-            variant="page"
-          />
+          <div className="reputation-empty-panel">
+            <div className="reputation-empty-symbol" aria-hidden="true">
+              <span>∅</span>
+              <i />
+            </div>
+            <div>
+              <p className="editorial-index mb-4">Directory state / awaiting observations</p>
+              <h2>No provider record yet.</h2>
+              <p>
+                Reputation scores appear once enough observed provider data has been processed. You
+                can still inspect the latest price evidence and dated network reports.
+              </p>
+              <div className="reputation-empty-actions">
+                <Link href="/price-query">
+                  Explore prices <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <Link href="/reports">
+                  Read daily reports <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Data state — only render the directory when there is data to show. */}
@@ -254,6 +275,28 @@ function ReputationContentInner({ initialData }: { initialData?: ReputationListD
                 Showing {filteredProviders.length} / {reputations.length} providers
               </span>
             </div>
+
+            <label className="mb-4 block text-xs font-semibold text-slate-600 md:hidden">
+              Sort providers
+              <select
+                value={sort.key}
+                onChange={(event) => {
+                  const key = event.target.value as SortKey;
+                  setSort({
+                    key,
+                    direction: key === 'latency' || key === 'deviation' ? 'asc' : 'desc',
+                  });
+                }}
+                className="mt-2 block w-full border border-slate-900/20 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="score">Reputation score</option>
+                <option value="accuracy">Accuracy</option>
+                <option value="uptime">Uptime</option>
+                <option value="latency">Latency (fastest first)</option>
+                <option value="deviation">Deviation (lowest first)</option>
+                <option value="coverage">Coverage</option>
+              </select>
+            </label>
 
             <ReputationComparisonTable
               providers={filteredProviders}

@@ -61,32 +61,71 @@ export function PageHeader({
   subtitle,
   actions,
   updatedAt,
+  index,
+  context,
 }: {
   title: string;
   subtitle?: string;
   actions?: ReactNode;
   updatedAt?: string;
+  index?: string;
+  context?: string;
 }) {
-  const abs = updatedAt ? new Date(updatedAt).toLocaleTimeString('zh-CN', { hour12: false }) : '';
-  const rel = relativeTime(updatedAt);
+  const abs = updatedAt
+    ? new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Shanghai',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).format(new Date(updatedAt))
+    : '';
   return (
-    <header className="ops-page-header mb-7 flex flex-col justify-between gap-4 border-b border-slate-900/15 pb-5 sm:flex-row sm:items-end">
-      <div>
-        <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700">
-          Operations record
+    <header className="ops-page-header mb-7 flex flex-col justify-between gap-6 border-b border-slate-900/15 pb-6 lg:flex-row lg:items-end">
+      <div className="min-w-0">
+        <p className="ops-page-kicker">
+          <span>{index ? `Ops / ${index}` : 'Operations record'}</span>
+          {context && <span>{context}</span>}
         </p>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
-          {title}
-        </h1>
-        {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+        <h1 className="ops-page-title">{title}</h1>
+        {subtitle && <p className="ops-page-subtitle">{subtitle}</p>}
         {updatedAt && (
-          <p className="text-xs text-gray-400 mt-1" title={abs}>
-            最后更新于 {rel}
-          </p>
+          <time className="ops-page-updated" dateTime={updatedAt} title={updatedAt}>
+            Snapshot / {abs} Beijing
+          </time>
         )}
       </div>
-      {actions}
+      {actions && <div className="ops-page-actions">{actions}</div>}
     </header>
+  );
+}
+
+export function OpsSectionHeading({
+  index,
+  title,
+  detail,
+}: {
+  index: string;
+  title: string;
+  detail?: string;
+}) {
+  return (
+    <div className="ops-section-heading">
+      <div>
+        <span>{index} / Operational record</span>
+        <h2>{title}</h2>
+      </div>
+      {detail && <p>{detail}</p>}
+    </div>
+  );
+}
+
+export function OpsScopeNote({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="ops-scope-note">
+      <span>{label}</span>
+      <p>{children}</p>
+    </div>
   );
 }
 
@@ -101,7 +140,7 @@ export function Card({
 }) {
   return (
     <div className={`ops-card border-y border-slate-900/15 bg-white/55 p-5 ${className ?? ''}`}>
-      {title && <h2 className="text-sm font-semibold text-gray-700 mb-3">{title}</h2>}
+      {title && <h2 className="ops-card-heading">{title}</h2>}
       {children}
     </div>
   );
@@ -115,6 +154,7 @@ export function Stat({
   delta,
   spark,
   href,
+  index,
 }: {
   label: string;
   value: ReactNode;
@@ -126,6 +166,7 @@ export function Stat({
   spark?: number[];
   /** Optional drill-down target; renders the value as an internal link. */
   href?: string;
+  index?: string;
 }) {
   const t = tone ?? 'default';
   const deltaNode =
@@ -137,17 +178,20 @@ export function Stat({
       <span className="text-gray-400">▬ 0</span>
     );
   return (
-    <div className="ops-stat-record border-y border-slate-900/15 bg-white/55 p-4">
-      <div className="flex items-center justify-between">
+    <div
+      className={`ops-stat-record border-y border-slate-900/15 bg-white/55 p-4 ${href ? 'ops-stat-linked' : ''}`}
+    >
+      <div className="ops-stat-topline flex items-center justify-between gap-2">
         <div className="text-xs text-gray-500">{label}</div>
+        {index && <span className="ops-stat-index">{index}</span>}
         {tone && tone !== 'default' && (
-          <span className={`inline-block w-2 h-2 rounded-full ${TONE_DOT[t]}`} />
+          <span className={`ops-stat-dot inline-block w-2 h-2 rounded-full ${TONE_DOT[t]}`} />
         )}
       </div>
-      <div className={`text-2xl font-semibold mt-1 font-mono tabular-nums ${TONE_TEXT[t]}`}>
+      <div className={`ops-stat-value mt-1 font-mono tabular-nums ${TONE_TEXT[t]}`}>
         {href ? (
-          <Link href={href} className="hover:underline focus:underline" title={`打开 ${label}`}>
-            {value}
+          <Link href={href} className="ops-stat-link" title={`打开 ${label}`}>
+            {value} <span aria-hidden="true">↗</span>
           </Link>
         ) : (
           value

@@ -58,14 +58,16 @@ export function RiskTrackerAssetList<T extends RiskSnapshotBase>({
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
           <input
             type="text"
+            aria-label="Search tracked assets"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search assets..."
             className="w-full border-0 border-b border-slate-300 bg-transparent py-1.5 pl-8 pr-3 text-xs focus:border-blue-600 focus:outline-none focus:ring-0"
           />
         </div>
+        <p className="risk-asset-swipe-hint">Swipe the asset cards to compare signals</p>
       </div>
-      <div className="divide-y divide-slate-100 max-h-[calc(100vh-260px)] overflow-y-auto">
+      <div className="risk-asset-scroll max-h-[calc(100vh-260px)] overflow-y-auto">
         {snapshots.length === 0 ? (
           <div className="px-4 py-6 text-center text-sm text-slate-500">
             No assets match your search.
@@ -81,7 +83,7 @@ export function RiskTrackerAssetList<T extends RiskSnapshotBase>({
                 onClick={() => onSelect(snapshot.symbol)}
                 aria-pressed={isSelected}
                 className={cn(
-                  'w-full px-4 py-3.5 text-left transition-colors hover:bg-slate-50',
+                  'risk-asset-option w-full px-4 py-3.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600',
                   isSelected
                     ? 'bg-blue-50/60 border-l-4 border-blue-500'
                     : 'border-l-4 border-transparent'
