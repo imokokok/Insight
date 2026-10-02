@@ -52,27 +52,36 @@ export default function UsageEndpointsTable({ rows }: { rows: UsageByEndpoint[] 
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+      <div className="ops-table-toolbar mb-4 flex flex-wrap items-center justify-between gap-3">
         <input
+          aria-label="Search endpoints"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="搜索 endpoint"
-          className="min-w-[200px] max-w-sm flex-1 border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+          placeholder="Search endpoint"
+          className="min-w-0 max-w-sm flex-1 border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
         />
         <button
           type="button"
           onClick={exportCsv}
-          className="inline-flex shrink-0 items-center gap-1.5 border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:border-primary-400 hover:text-primary-700"
+          className="ops-table-export inline-flex shrink-0 items-center gap-1.5 border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:border-primary-400 hover:text-primary-700"
         >
-          导出 CSV
+          Export CSV
         </button>
       </div>
-      <div className="max-h-[60vh] overflow-x-auto border-y border-slate-900/10">
+      <p className="ops-table-scroll-hint lg:hidden">Scroll sideways to inspect every column →</p>
+      <div className="ops-table-scroll max-h-[60vh] overflow-x-auto">
         <table className={tableCls}>
           <thead>
             <tr>
               {COLS.map((c) => (
-                <th key={c.key} className={`${thCls} ${c.align === 'right' ? 'text-right' : ''}`}>
+                <th
+                  key={c.key}
+                  scope="col"
+                  aria-sort={
+                    sort?.key === c.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'
+                  }
+                  className={`${thCls} ${c.align === 'right' ? 'text-right' : ''}`}
+                >
                   <button
                     type="button"
                     onClick={() => setSort((prev) => nextSort(prev, c.key))}
@@ -117,8 +126,8 @@ export default function UsageEndpointsTable({ rows }: { rows: UsageByEndpoint[] 
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-400 mt-2">
-        显示 {sorted.length} / {rows.length}
+      <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-slate-500">
+        Showing {sorted.length} / {rows.length} endpoints
       </p>
     </div>
   );
