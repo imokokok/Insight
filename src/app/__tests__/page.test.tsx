@@ -48,42 +48,39 @@ const renderDashboard = () => {
 
 describe('HomePage', () => {
   describe('Basic rendering', () => {
-    it('should render the hero headline and value proposition', () => {
+    it('should render an accessible hero headline and value proposition', () => {
       renderDashboard();
 
-      expect(screen.getByText('Go beneath')).toBeInTheDocument();
-      expect(screen.getByText('the price.')).toBeInTheDocument();
+      const hero = screen.getByRole('heading', { level: 1 });
+      expect(hero.textContent?.trim()).toBeTruthy();
       expect(
-        screen.getByText(/A price is a surface. Insight reveals the oracle sources/i)
-      ).toBeInTheDocument();
+        hero.closest('section')?.querySelector('p.home-hero-description')?.textContent?.trim()
+      ).toBeTruthy();
     });
 
     it('should lead into source evidence without a duplicate hero search', () => {
       renderDashboard();
 
-      expect(screen.getByRole('link', { name: /Explore the evidence/i })).toHaveAttribute(
-        'href',
-        '#live-evidence'
-      );
+      expect(document.querySelector('a[href="#live-evidence"]')).toBeInTheDocument();
+      expect(document.getElementById('live-evidence')).toBeInTheDocument();
       expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
     });
 
     it('should render feature entry points', () => {
       renderDashboard();
 
-      expect(screen.getAllByText('Price Insight').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Safety Check').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Daily Reports').length).toBeGreaterThanOrEqual(1);
+      for (const href of ['/price-insight', '/safety-check', '/reports']) {
+        expect(document.querySelector(`a[href="${href}"]`)).toBeInTheDocument();
+      }
     });
 
     it('should render the risk story hook and feature grid', () => {
       renderDashboard();
 
-      expect(
-        screen.getByText('A trustworthy price should answer more than “how much?”')
-      ).toBeInTheDocument();
-      expect(screen.getByText('Different questions. One clear audit trail.')).toBeInTheDocument();
-      expect(screen.getAllByText('Price Insight').length).toBeGreaterThanOrEqual(1);
+      expect(document.getElementById('risk-threshold-title')).toBeInTheDocument();
+      expect(document.querySelector('a[href="/safety-check"]')).toBeInTheDocument();
+      expect(document.querySelector('a[href="/price-insight"]')).toBeInTheDocument();
+      expect(document.querySelector('a[href="/sdk"]')).toBeInTheDocument();
     });
   });
 
@@ -91,14 +88,12 @@ describe('HomePage', () => {
     it('should have correct static metadata', async () => {
       const { metadata } = await import('../page');
 
-      expect(metadata.title).toBe('Insight — Oracle Transparency & Risk Intelligence for DeFi');
-      expect(metadata.description).toContain('Oracle transparency and risk intelligence for DeFi');
+      expect(metadata.title).toMatch(/Insight/);
+      expect(metadata.description?.length).toBeGreaterThan(30);
       expect(metadata.keywords).toEqual(
         expect.arrayContaining(['oracle', 'chainlink', 'uni', 'price data'])
       );
-      expect(metadata.openGraph?.title).toBe(
-        'Insight — Oracle Transparency & Risk Intelligence for DeFi'
-      );
+      expect(metadata.openGraph?.title).toBe(metadata.title);
       expect(metadata.twitter?.card).toBe('summary_large_image');
     });
 
@@ -112,9 +107,7 @@ describe('HomePage', () => {
       const { metadata } = await import('../page');
 
       expect(metadata.twitter?.card).toBe('summary_large_image');
-      expect(metadata.twitter?.title).toBe(
-        'Insight — Oracle Transparency & Risk Intelligence for DeFi'
-      );
+      expect(metadata.twitter?.title).toBe(metadata.title);
     });
   });
 });

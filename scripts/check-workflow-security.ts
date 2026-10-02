@@ -52,12 +52,18 @@ async function main(): Promise<void> {
     }
   }
 
+  const npmSync = workflows.get('sync-npm-releases.yml');
+  if (!npmSync?.includes('gh pr list') || !npmSync.includes('automation/npm-release-')) {
+    failures.push('sync-npm-releases.yml: an existing release PR must block duplicates');
+  }
+
   const dependabotRepair = workflows.get('dependabot-lock-repair.yml');
   if (
     !dependabotRepair?.includes('scripts/inspect-dependabot-lock-repair.mts') ||
     !dependabotRepair?.includes('scripts/approve-dependabot-workflow-runs.mts') ||
     !dependabotRepair.includes('npm install --ignore-scripts') ||
     !dependabotRepair.includes('npm run build:cron') ||
+    !dependabotRepair.includes('npm run validate:generated') ||
     dependabotRepair.includes('gh workflow run')
   ) {
     failures.push(

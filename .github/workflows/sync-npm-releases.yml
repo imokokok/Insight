@@ -36,7 +36,16 @@ jobs:
           cache: npm
       - name: Check whether tracked releases changed
         id: release-check
-        run: node scripts/check-npm-releases.mts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --json headRefName,url --jq 'first(.[] | select(.headRefName | startswith("automation/npm-release-")) | .url)')"
+          if [ -n "$existing" ]; then
+            echo 'needed=false' >> "$GITHUB_OUTPUT"
+            echo "::notice::An npm release PR is already open: $existing"
+          else
+            node scripts/check-npm-releases.mts
+          fi
       - run: npm ci
         if: steps.release-check.outputs.needed == 'true'
       - name: Read npm latest tags and update tracked files
@@ -55,7 +64,9 @@ jobs:
             echo "All tracked npm packages are current."
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            git diff --check
+            # Generated chunks may contain whitespace from upstream literals;
+            # validate:ci verifies their exact bytes against a fresh build.
+            git diff --check -- package.json package-lock.json src/lib/npmPackageVersions.ts
             git diff --stat
           fi
       - name: Run the full validation suite
