@@ -407,7 +407,7 @@ src/
 └── __mocks__/    # Jest mocks
 ```
 
-Database migrations and Supabase config live under `supabase/`. The ML training pipeline lives under `ml/` (`ml/train.py`, models output to `ml/models/`). Standalone TypeScript runners for scheduled jobs live under `scripts/`.
+Database migrations and Supabase config live under `supabase/`; the [SQL inventory and execution order](docs/operations/sql-inventory.md) lists every maintained SQL file. The ML training pipeline lives under `ml/` (`ml/train.py`, models output to `ml/models/`). Standalone TypeScript runners for scheduled jobs live under `scripts/`.
 
 ## API Access
 
