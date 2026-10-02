@@ -55,7 +55,9 @@ jobs:
             echo "All tracked npm packages are current."
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            git diff --check
+            # Generated chunks may contain whitespace from upstream literals;
+            # validate:ci verifies their exact bytes against a fresh build.
+            git diff --check -- package.json package-lock.json src/lib/npmPackageVersions.ts
             git diff --stat
           fi
       - name: Run the full validation suite

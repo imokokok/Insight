@@ -58,6 +58,7 @@ async function main(): Promise<void> {
     !dependabotRepair?.includes('scripts/approve-dependabot-workflow-runs.mts') ||
     !dependabotRepair.includes('npm install --ignore-scripts') ||
     !dependabotRepair.includes('npm run build:cron') ||
+    !dependabotRepair.includes('npm run validate:generated') ||
     dependabotRepair.includes('gh workflow run')
   ) {
     failures.push(
