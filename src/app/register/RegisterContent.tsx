@@ -7,12 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Mail, User, UserPlus, Loader2, CheckCircle, AlertCircle, Coins } from 'lucide-react';
 
-import {
-  AuthPageLayout,
-  AuthBrandLogo,
-  AuthResultCard,
-  GoToLoginButton,
-} from '@/app/auth/shared/AuthComponents';
+import { AuthPageLayout, AuthResultCard, GoToLoginButton } from '@/app/auth/shared/AuthComponents';
 import { getSafeRedirectPath } from '@/app/auth/shared/isValidRedirectPath';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { announceNavigationStart } from '@/lib/navigation/progress';
@@ -104,7 +99,7 @@ export default function RegisterContent() {
 
   if (isSuccess) {
     return (
-      <AuthPageLayout cardClassName="text-center">
+      <AuthPageLayout journey="register" cardClassName="text-center">
         <AuthResultCard
           icon={CheckCircle}
           iconBgClass="bg-success-100"
@@ -160,11 +155,11 @@ export default function RegisterContent() {
   }
 
   return (
-    <AuthPageLayout>
-      <div className="auth-record-heading text-center mb-8">
-        <AuthBrandLogo />
-        <h2 className="mt-4 text-xl font-semibold text-slate-900">Create Account</h2>
-        <p className="mt-2 text-sm text-slate-500">Sign up for a new account</p>
+    <AuthPageLayout journey="register">
+      <div className="auth-record-heading mb-8">
+        <span className="auth-form-kicker">02 / New account</span>
+        <h1>Create your account.</h1>
+        <p>Set up access to API keys, credits, and your Insight workspace.</p>
       </div>
 
       {displayError && (
@@ -187,7 +182,9 @@ export default function RegisterContent() {
             </div>
             <input
               id="displayName"
+              name="displayName"
               type="text"
+              autoComplete="nickname"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Enter your display name"
@@ -207,7 +204,9 @@ export default function RegisterContent() {
             </div>
             <input
               id="email"
+              name="email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -225,6 +224,8 @@ export default function RegisterContent() {
           </label>
           <PasswordInput
             id="password"
+            name="password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -292,6 +293,8 @@ export default function RegisterContent() {
           </label>
           <PasswordInput
             id="confirmPassword"
+            name="confirmPassword"
+            autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
@@ -343,7 +346,7 @@ export default function RegisterContent() {
           href={`/login?redirect=${encodeURIComponent(redirectPath)}`}
           className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
         >
-          Login now
+          Sign in
         </Link>
       </p>
     </AuthPageLayout>

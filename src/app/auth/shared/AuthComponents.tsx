@@ -9,48 +9,90 @@ import { Loader2 } from 'lucide-react';
 
 import { getSafeRedirectPath } from './isValidRedirectPath';
 
+const authJourneys = {
+  default: {
+    index: '00',
+    label: 'Account access',
+    title: 'Evidence should remain inspectable, even after you sign in.',
+    description:
+      'One account connects your saved preferences, API keys, credit wallet, signed receipts, and agent integrations.',
+    steps: ['Protect credentials', 'Control access', 'Preserve provenance'],
+    record: 'Identity record',
+    status: 'Secure session',
+  },
+  login: {
+    index: '01',
+    label: 'Return to Insight',
+    title: 'Your evidence, exactly where you left it.',
+    description:
+      'Sign in to return to your preferences, API access, credit wallet, and saved account controls.',
+    steps: ['Enter your credentials', 'Resume your workspace', 'Inspect your evidence'],
+    record: 'Sign in',
+    status: 'Existing account',
+  },
+  register: {
+    index: '02',
+    label: 'Start with Insight',
+    title: 'Build your account around verifiable signals.',
+    description:
+      'Create an identity, confirm your email, then manage API keys, credits, and preferences in one place.',
+    steps: ['Create an account', 'Confirm your email', 'Set up your workspace'],
+    record: 'Create account',
+    status: 'New access',
+  },
+  recover: {
+    index: '03',
+    label: 'Recover access',
+    title: 'A clear path back to your account.',
+    description:
+      'Request a reset link, follow the instructions in your email, and return to your Insight workspace.',
+    steps: ['Request a reset link', 'Check your email', 'Choose a new password'],
+    record: 'Recover access',
+    status: 'Account recovery',
+  },
+} as const;
+
 export function AuthPageLayout({
   children,
   cardClassName = '',
+  journey = 'default',
 }: {
   children: React.ReactNode;
   cardClassName?: string;
+  journey?: keyof typeof authJourneys;
 }) {
-  return (
-    <div className="editorial-workspace auth-workbench flex min-h-screen">
-      {/* Brand side — hidden on mobile */}
-      <div className="auth-brand-panel relative hidden overflow-hidden border-r border-slate-900/15 lg:flex lg:w-1/2 xl:w-5/12">
-        <div className="auth-brand-content relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
-          <Link href="/" className="inline-flex items-center gap-2 group">
-            <Image
-              src="/logos/insight-glacier-cut.svg"
-              alt="Insight Logo"
-              width={29}
-              height={36}
-              priority
-            />
-            <span className="text-xl font-bold tracking-tight text-slate-950">Insight</span>
-          </Link>
+  const content = authJourneys[journey];
 
-          <div className="space-y-8">
-            <p className="editorial-index">Access — Identity</p>
-            <blockquote className="auth-statement max-w-md text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-slate-950 xl:text-5xl">
-              Evidence should remain inspectable, even after you sign in.
-            </blockquote>
-            <p className="max-w-sm leading-relaxed text-slate-600">
-              One account connects your saved preferences, API keys, credit wallet, signed receipts,
-              and agent integrations.
+  return (
+    <div className="editorial-workspace auth-workbench flex min-h-screen" data-journey={journey}>
+      {/* Brand side — hidden on mobile */}
+      <div
+        className="auth-brand-panel relative hidden overflow-hidden border-r border-slate-900/15 lg:flex lg:w-1/2 xl:w-5/12"
+        data-journey-index={content.index}
+      >
+        <div className="auth-brand-content relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
+          <div className="auth-brand-header" aria-hidden="true">
+            <span>Insight</span>
+            <span>Identity workspace / {content.index}</span>
+          </div>
+
+          <div className="auth-brand-story space-y-8">
+            <p className="editorial-index">
+              Access / {content.index} — {content.label}
             </p>
+            <blockquote className="auth-statement max-w-md text-4xl font-semibold leading-[1.02] tracking-[-0.045em] text-slate-950 xl:text-5xl">
+              {content.title}
+            </blockquote>
+            <p className="max-w-sm leading-relaxed text-slate-600">{content.description}</p>
             <ol className="auth-proof-sequence grid max-w-md border-y border-slate-900/15 text-xs font-semibold uppercase tracking-[0.1em] text-slate-600">
-              <li className="flex gap-4 border-b border-slate-900/10 py-3">
-                <span className="font-mono text-blue-700">01</span> Protect credentials
-              </li>
-              <li className="flex gap-4 border-b border-slate-900/10 py-3">
-                <span className="font-mono text-blue-700">02</span> Control access
-              </li>
-              <li className="flex gap-4 py-3">
-                <span className="font-mono text-blue-700">03</span> Preserve provenance
-              </li>
+              {content.steps.map((step, index) => (
+                <li
+                  key={step}
+                  className="flex gap-4 border-b border-slate-900/10 py-3 last:border-b-0"
+                >
+                  <span className="font-mono text-blue-700">0{index + 1}</span> {step}
+                </li>
+              ))}
             </ol>
           </div>
 
@@ -63,9 +105,13 @@ export function AuthPageLayout({
       {/* Form side */}
       <div className="auth-form-panel flex flex-1 items-center justify-center px-5 py-12 sm:px-8 lg:px-12">
         <div className="w-full max-w-md">
+          <div className="auth-mobile-context lg:hidden">
+            <span>Access / {content.index}</span>
+            <p>{content.label}</p>
+          </div>
           <div className="auth-route-marker" aria-hidden="true">
-            <span>Identity record</span>
-            <span>Secure session</span>
+            <span>{content.record}</span>
+            <span>{content.status}</span>
           </div>
           <div
             className={`auth-record-card border-y border-slate-900/15 bg-white/55 p-7 sm:p-8 ${cardClassName}`}
@@ -116,7 +162,7 @@ export function AuthResultCard({
       >
         <Icon className={`w-8 h-8 ${iconTextClass}`} />
       </div>
-      <h2 className="text-xl font-bold text-slate-900 mb-2">{title}</h2>
+      <h1 className="text-xl font-bold text-slate-900 mb-2">{title}</h1>
       <p className="text-slate-500 mb-6">{description}</p>
       {children}
     </>
