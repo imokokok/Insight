@@ -5,11 +5,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { Lock, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Check, CheckCircle, KeyRound, Loader2, Lock, XCircle } from 'lucide-react';
 
 import {
   AuthPageLayout,
-  AuthBrandLogo,
   AuthResultCard,
   AuthErrorAlert,
   AuthPageSuspense,
@@ -33,6 +32,12 @@ function ResetPasswordForm() {
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
   const rawRedirect = searchParams.get('redirect') || undefined;
   const redirectPath = getSafeRedirectPath(rawRedirect);
+  const passwordChecks = [
+    { label: '8–128 characters', met: password.length >= 8 && password.length <= 128 },
+    { label: 'Uppercase and lowercase', met: /[A-Z]/.test(password) && /[a-z]/.test(password) },
+    { label: 'A number', met: /\d/.test(password) },
+    { label: 'A special character', met: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) },
+  ];
 
   useEffect(() => {
     const checkSession = async () => {
@@ -81,10 +86,14 @@ function ResetPasswordForm() {
 
   if (isValidSession === null) {
     return (
-      <AuthPageLayout cardClassName="text-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-slate-600">Validating session...</p>
+      <AuthPageLayout journey="reset" cardClassName="text-center">
+        <div className="auth-pending-state" role="status">
+          <Loader2 className="mx-auto mb-6 h-12 w-12 animate-spin text-blue-700" />
+          <p className="auth-result-eyebrow">Recovery / link check</p>
+          <h1 className="auth-result-title">Checking your reset link.</h1>
+          <p className="auth-result-description">
+            Confirming that this request belongs to your account.
+          </p>
         </div>
       </AuthPageLayout>
     );
@@ -92,18 +101,16 @@ function ResetPasswordForm() {
 
   if (isValidSession === false) {
     return (
-      <AuthPageLayout cardClassName="text-center">
+      <AuthPageLayout journey="reset" cardClassName="text-center">
         <AuthResultCard
           icon={XCircle}
           iconBgClass="bg-red-100"
           iconTextClass="text-red-600"
+          eyebrow="Recovery / action needed"
           title="Invalid or Expired Link"
           description="This password reset link has expired or is invalid. Please request a new one."
         >
-          <Link
-            href="/auth/forgot-password"
-            className="block w-full bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
-          >
+          <Link href="/auth/forgot-password" className="auth-primary-link">
             Request New Link
           </Link>
         </AuthResultCard>
@@ -113,11 +120,12 @@ function ResetPasswordForm() {
 
   if (isSuccess) {
     return (
-      <AuthPageLayout cardClassName="text-center">
+      <AuthPageLayout journey="reset" cardClassName="text-center">
         <AuthResultCard
           icon={CheckCircle}
           iconBgClass="bg-emerald-100"
           iconTextClass="text-emerald-600"
+          eyebrow="Recovery / complete"
           title="Password Reset Successful"
           description="Your password has been reset successfully. Redirecting to login..."
         >
@@ -128,11 +136,13 @@ function ResetPasswordForm() {
   }
 
   return (
-    <AuthPageLayout>
-      <div className="text-center mb-8">
-        <AuthBrandLogo />
-        <h2 className="mt-4 text-xl font-semibold text-slate-900">Reset Password</h2>
-        <p className="mt-2 text-sm text-slate-500">Enter your new password below</p>
+    <AuthPageLayout journey="reset">
+      <div className="auth-record-heading mb-8">
+        <span className="auth-form-kicker">
+          <KeyRound className="h-4 w-4" aria-hidden="true" /> 04 / New credentials
+        </span>
+        <h1>Choose your new password.</h1>
+        <p>Make it strong and unique. You’ll sign in again once it’s saved.</p>
       </div>
 
       {error && <AuthErrorAlert message={error} id="reset-password-error" />}
@@ -144,6 +154,8 @@ function ResetPasswordForm() {
           </label>
           <PasswordInput
             id="password"
+            name="password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -152,6 +164,17 @@ function ResetPasswordForm() {
             aria-describedby={error ? 'reset-password-error' : undefined}
             className="w-full border border-slate-300 py-3 pl-12 pr-12 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           />
+        </div>
+
+        <div className="auth-password-guide" aria-label="Password requirements">
+          <span className="auth-password-guide-title">Password checklist</span>
+          <ul>
+            {passwordChecks.map(({ label, met }) => (
+              <li key={label} className={met ? 'is-met' : ''}>
+                <Check className="h-3.5 w-3.5" aria-hidden="true" /> {label}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div>
@@ -163,6 +186,8 @@ function ResetPasswordForm() {
           </label>
           <PasswordInput
             id="confirmPassword"
+            name="confirmPassword"
+            autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
@@ -182,6 +207,14 @@ function ResetPasswordForm() {
           <span>{isLoading ? 'Resetting...' : 'Reset Password'}</span>
         </button>
       </form>
+      <div className="mt-6 text-center">
+        <Link
+          href={`/login?redirect=${encodeURIComponent(redirectPath)}`}
+          className="auth-back-link"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to sign in
+        </Link>
+      </div>
     </AuthPageLayout>
   );
 }
