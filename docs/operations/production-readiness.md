@@ -107,6 +107,9 @@ requests are created with `GITHUB_TOKEN`, GitHub leaves their native PR runs in
 verify the branch but do not fill the required PR check slots. Approve the
 native runs on the pull request before merging; a green dispatch alone is not
 merge readiness.
+The scheduled npm sync checks for an existing open release PR before doing
+another update, so one unresolved release does not create duplicate PRs every
+six hours.
 
 Dependabot npm updates are also checked with `npm ci`. A known upstream npm
 optional-peer lockfile bug can make Dependabot emit an inconsistent lockfile.
