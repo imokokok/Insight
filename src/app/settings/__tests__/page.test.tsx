@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 import { useUser, useAuthLoading, useAuthInitialized } from '@/stores/authStore';
 
@@ -45,6 +45,7 @@ const mockUseAuthInitialized = useAuthInitialized as jest.Mock;
 describe('SettingsPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    window.history.replaceState(null, '', '/settings');
   });
 
   it('should show loading state when auth is loading', () => {
@@ -100,6 +101,32 @@ describe('SettingsPage', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('active-tab')).toHaveTextContent('profile');
+    });
+  });
+
+  it('keeps the selected tab in the URL', async () => {
+    mockUseAuthLoading.mockReturnValue(false);
+    mockUseAuthInitialized.mockReturnValue(true);
+    mockUseUser.mockReturnValue({ id: 'user-1' });
+
+    render(<SettingsPage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Change Tab' }));
+
+    expect(screen.getByTestId('active-tab')).toHaveTextContent('preferences');
+    expect(window.location.search).toBe('?tab=preferences');
+  });
+
+  it('opens the tab requested by a deep link', async () => {
+    window.history.replaceState(null, '', '/settings?tab=preferences');
+    mockUseAuthLoading.mockReturnValue(false);
+    mockUseAuthInitialized.mockReturnValue(true);
+    mockUseUser.mockReturnValue({ id: 'user-1' });
+
+    render(<SettingsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('active-tab')).toHaveTextContent('preferences');
+      expect(screen.getByTestId('preferences-panel')).toBeInTheDocument();
     });
   });
 });
