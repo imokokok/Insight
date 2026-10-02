@@ -50,7 +50,7 @@ test('protected settings preserve the return destination', async ({ page }) => {
 test('protected ops preserve the return destination', async ({ page }) => {
   await page.goto('/ops');
   await expect(page).toHaveURL(/\/login\?redirect=%2Fops/);
-  await expect(page.getByRole('link', { name: /register now/i })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Create an account' })).toHaveAttribute(
     'href',
     '/register?redirect=%2Fops'
   );

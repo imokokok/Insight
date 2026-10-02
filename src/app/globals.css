@@ -5061,7 +5061,7 @@ h3,
   top: 7rem;
   right: 1.5rem;
   color: rgb(37 88 200 / 32%);
-  content: 'IDENTITY / 01';
+  content: 'IDENTITY / ' attr(data-journey-index);
   font-family: var(--font-mono);
   font-size: 0.55rem;
   font-weight: 700;
@@ -5201,6 +5201,191 @@ h3,
   border-right: 1px solid rgb(37 88 200 / 32%);
   border-bottom: 1px solid rgb(37 88 200 / 32%);
   content: '';
+}
+
+.auth-record-card a:focus-visible,
+.auth-record-card button:focus-visible {
+  outline: 2px solid #2558c8;
+  outline-offset: 3px;
+}
+
+.auth-brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgb(15 23 42 / 10%);
+  padding-bottom: 1rem;
+  color: #2558c8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.auth-brand-header span:first-child {
+  color: #162944;
+  letter-spacing: 0.2em;
+}
+
+.auth-brand-story {
+  position: relative;
+}
+
+.auth-brand-story .editorial-index {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.auth-brand-story .editorial-index::before {
+  display: block;
+  width: 1.4rem;
+  height: 1px;
+  background: #2558c8;
+  content: '';
+}
+
+.auth-brand-story .auth-statement {
+  max-width: 31rem;
+  font-size: clamp(2.6rem, 3.5vw, 4.5rem);
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+}
+
+.auth-proof-sequence li {
+  position: relative;
+  transition:
+    padding-left 200ms ease,
+    color 200ms ease;
+}
+
+.auth-proof-sequence li:hover {
+  padding-left: 0.4rem;
+  color: #1d4c9b;
+}
+
+.auth-proof-sequence li::after {
+  top: 50%;
+  right: 0.25rem;
+  width: 1.4rem;
+  height: 1px;
+  transform: translateY(-50%);
+  background: rgb(37 88 200 / 35%);
+  content: '';
+}
+
+.auth-record-card {
+  border-color: rgb(15 23 42 / 17%);
+  background: rgb(255 255 255 / 84%);
+}
+
+.auth-form-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #2558c8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.auth-record-heading h1 {
+  margin-top: 1.15rem;
+  color: #0f172a;
+  font-size: clamp(1.8rem, 2.7vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1.05;
+}
+
+.auth-record-heading p {
+  max-width: 22rem;
+  margin-top: 0.7rem;
+  color: #596b82;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.auth-record-card form input:not([type='checkbox']) {
+  min-height: 3.1rem;
+  border-color: #c7d2e1;
+}
+
+.auth-record-card form input:not([type='checkbox']):hover {
+  border-color: #94a9c7;
+}
+
+.auth-record-card form input:not([type='checkbox']):focus {
+  border-color: #2558c8;
+  box-shadow: 0 0 0 3px rgb(37 88 200 / 10%);
+}
+
+.auth-record-card form button[type='submit'] {
+  min-height: 3.2rem;
+  background: #11233f;
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.auth-record-card form button[type='submit']:not(:disabled):hover {
+  transform: translateY(-2px);
+  background: #2558c8;
+}
+
+.auth-record-card form button[type='submit']:disabled {
+  background: #8aaaf0;
+}
+
+.auth-mobile-context {
+  margin-bottom: 1.75rem;
+  border-left: 2px solid #2558c8;
+  padding-left: 0.85rem;
+}
+
+.auth-mobile-context span {
+  color: #2558c8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.auth-mobile-context p {
+  margin-top: 0.3rem;
+  color: #1d2f4b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+@media (max-width: 640px) {
+  .auth-workbench .auth-form-panel {
+    min-height: 0;
+    align-items: flex-start;
+    padding-top: 2.25rem;
+    padding-bottom: 3rem;
+  }
+
+  .auth-record-card {
+    padding: 1.5rem;
+  }
+
+  .auth-route-marker {
+    margin-bottom: 0.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-proof-sequence li,
+  .auth-record-card form button[type='submit'] {
+    transition: none;
+  }
 }
 
 /* Account settings become a durable control ledger. */
