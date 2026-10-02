@@ -50,6 +50,36 @@ const authJourneys = {
     record: 'Recover access',
     status: 'Account recovery',
   },
+  reset: {
+    index: '04',
+    label: 'Secure a new password',
+    title: 'One final step to reclaim your workspace.',
+    description:
+      'Choose a strong password for your account. Once saved, return to sign in and continue your work.',
+    steps: ['Reset link confirmed', 'Choose a new password', 'Return to your workspace'],
+    record: 'New credentials',
+    status: 'Recovery / final step',
+  },
+  verify: {
+    index: '05',
+    label: 'Confirm your identity',
+    title: 'Your account begins with a verified address.',
+    description:
+      'Email verification connects your account to a trusted address before you enter the Insight workspace.',
+    steps: ['Open your email', 'Confirm the link', 'Continue to Insight'],
+    record: 'Email verification',
+    status: 'Identity check',
+  },
+  resend: {
+    index: '06',
+    label: 'Request a new link',
+    title: 'Pick up where your verification left off.',
+    description:
+      'A new verification link gives you a fresh path to confirm your address and activate your account.',
+    steps: ['Confirm your address', 'Open the new email', 'Finish verification'],
+    record: 'Verification link',
+    status: 'Email delivery',
+  },
 } as const;
 
 export function AuthPageLayout({
@@ -146,6 +176,7 @@ export function AuthResultCard({
   iconTextClass,
   title,
   description,
+  eyebrow,
   children,
 }: {
   icon: React.ComponentType<{ className?: string }>;
@@ -153,6 +184,7 @@ export function AuthResultCard({
   iconTextClass: string;
   title: string;
   description: string;
+  eyebrow?: string;
   children?: React.ReactNode;
 }) {
   return (
@@ -162,8 +194,9 @@ export function AuthResultCard({
       >
         <Icon className={`w-8 h-8 ${iconTextClass}`} />
       </div>
-      <h1 className="text-xl font-bold text-slate-900 mb-2">{title}</h1>
-      <p className="text-slate-500 mb-6">{description}</p>
+      {eyebrow && <p className="auth-result-eyebrow">{eyebrow}</p>}
+      <h1 className="auth-result-title">{title}</h1>
+      <p className="auth-result-description">{description}</p>
       {children}
     </>
   );

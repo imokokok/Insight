@@ -5,11 +5,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-import { Mail, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Loader2, Mail, Send } from 'lucide-react';
 
 import {
   AuthPageLayout,
-  AuthBrandLogo,
   AuthResultCard,
   AuthErrorAlert,
   AuthPageSuspense,
@@ -50,20 +49,18 @@ function ResendVerificationForm() {
 
   if (isSuccess) {
     return (
-      <AuthPageLayout cardClassName="text-center">
+      <AuthPageLayout journey="resend" cardClassName="text-center">
         <AuthResultCard
           icon={CheckCircle}
           iconBgClass="bg-emerald-100"
           iconTextClass="text-emerald-600"
+          eyebrow="Identity / link sent"
           title="Verification Email Sent"
           description={`Verification email has been sent to ${email}. Please check your inbox.`}
         >
           <div className="space-y-3">
             <GoToLoginButton redirect={redirectPath} />
-            <button
-              onClick={reset}
-              className="w-full border border-slate-300 px-6 py-3 font-medium text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700"
-            >
+            <button onClick={reset} className="auth-secondary-link">
               Send Again
             </button>
           </div>
@@ -73,12 +70,14 @@ function ResendVerificationForm() {
   }
 
   return (
-    <AuthPageLayout>
-      <div className="text-center mb-8">
-        <AuthBrandLogo />
-        <h2 className="mt-4 text-xl font-semibold text-slate-900">Resend Verification Email</h2>
-        <p className="mt-2 text-sm text-slate-500">
-          Enter your email address to receive a new verification link
+    <AuthPageLayout journey="resend">
+      <div className="auth-record-heading mb-8">
+        <span className="auth-form-kicker">
+          <Send className="h-4 w-4" aria-hidden="true" /> 06 / Email verification
+        </span>
+        <h1>Get a fresh link.</h1>
+        <p>
+          Enter the address you used to create your account. We’ll send a new verification email.
         </p>
       </div>
 
@@ -95,10 +94,13 @@ function ResendVerificationForm() {
             </div>
             <input
               id="email"
+              name="email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              aria-invalid={!!error}
               placeholder="Enter your email"
               className="w-full border border-slate-300 py-3 pl-12 pr-4 text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
             />
@@ -111,15 +113,16 @@ function ResendVerificationForm() {
           className="flex w-full items-center justify-center gap-2 bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
-          <span>{isLoading ? 'Sending...' : 'Send Verification Email'}</span>
+          <span>{isLoading ? 'Sending...' : 'Send new link'}</span>
         </button>
       </form>
 
+      <p className="auth-inline-note">
+        Check your inbox and spam folder. Only the newest link may work.
+      </p>
+
       <div className="mt-6 text-center">
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
-        >
+        <Link href="/login" className="auth-back-link">
           <ArrowLeft className="w-4 h-4" />
           Back to Login
         </Link>

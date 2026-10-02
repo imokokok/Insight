@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { ArrowRight, CheckCircle, Loader2, XCircle } from 'lucide-react';
 
 import {
   AuthPageLayout,
@@ -85,10 +85,14 @@ function VerifyEmailForm() {
 
   if (isVerifying) {
     return (
-      <AuthPageLayout cardClassName="text-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-slate-600">Verifying your email...</p>
+      <AuthPageLayout journey="verify" cardClassName="text-center">
+        <div className="auth-pending-state" role="status">
+          <Loader2 className="mx-auto mb-6 h-12 w-12 animate-spin text-blue-700" />
+          <p className="auth-result-eyebrow">Identity / in progress</p>
+          <h1 className="auth-result-title">Confirming your address.</h1>
+          <p className="auth-result-description">
+            We’re checking the verification link from your email.
+          </p>
         </div>
       </AuthPageLayout>
     );
@@ -96,11 +100,12 @@ function VerifyEmailForm() {
 
   if (isSuccess) {
     return (
-      <AuthPageLayout cardClassName="text-center">
+      <AuthPageLayout journey="verify" cardClassName="text-center">
         <AuthResultCard
           icon={CheckCircle}
           iconBgClass="bg-emerald-100"
           iconTextClass="text-emerald-600"
+          eyebrow="Identity / confirmed"
           title="Email Verified Successfully"
           description="Your email has been verified. You can now log in to your account."
         >
@@ -113,26 +118,21 @@ function VerifyEmailForm() {
   }
 
   return (
-    <AuthPageLayout cardClassName="text-center">
+    <AuthPageLayout journey="verify" cardClassName="text-center">
       <AuthResultCard
         icon={XCircle}
         iconBgClass="bg-red-100"
         iconTextClass="text-red-600"
+        eyebrow="Identity / action needed"
         title="Verification Failed"
         description={errorMessage}
       >
         <div className="space-y-3">
-          <Link
-            href="/auth/resend-verification"
-            className="block w-full bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
-          >
-            Resend Verification Email
+          <Link href="/auth/resend-verification" className="auth-primary-link">
+            Request a new link <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
-          <Link
-            href="/register"
-            className="block w-full border border-slate-300 px-6 py-3 font-medium text-slate-700 transition-colors hover:border-blue-600 hover:text-blue-700"
-          >
-            Register Again
+          <Link href="/register" className="auth-secondary-link">
+            Create a new account
           </Link>
         </div>
       </AuthResultCard>
