@@ -21,6 +21,10 @@ import promotionWak1800RoutingJson from '../../../protocol/mainline/promotions/2
 import promotionWak1800Json from '../../../protocol/mainline/promotions/2026-09-26-wak-p1-1800-second-validity.json';
 import promotionWak900Json from '../../../protocol/mainline/promotions/2026-09-26-wak-p1-900-second-validity.json';
 import promotionPriorityHardeningJson from '../../../protocol/mainline/promotions/2026-09-27-priority-hardening.json';
+import promotionRwaVerifierRefactorJson from '../../../protocol/mainline/promotions/2026-09-29-rwa-verifier-refactor.json';
+import promotionVeritas1800Json from '../../../protocol/mainline/promotions/2026-09-29-veritas-one-time-1800-activation.json';
+import promotionVeritasWindow5ActivationJson from '../../../protocol/mainline/promotions/2026-10-01-veritas-window-five-activation.json';
+import promotionVeritasWindow5CandidateJson from '../../../protocol/mainline/promotions/2026-10-01-veritas-window-five-candidate.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -73,6 +77,10 @@ const rawPromotions = [
   promotionWak1800Json,
   promotionWak1800RoutingJson,
   promotionPriorityHardeningJson,
+  promotionRwaVerifierRefactorJson,
+  promotionVeritas1800Json,
+  promotionVeritasWindow5CandidateJson,
+  promotionVeritasWindow5ActivationJson,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {

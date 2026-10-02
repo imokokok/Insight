@@ -19,15 +19,29 @@ export const DEFAULT_PREFERENCES: CookiePreferences = {
   functional: false,
 };
 
+function isConsentRecord(value: unknown): value is CookieConsentRecord {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  if (record.version !== CONSENT_VERSION || typeof record.timestamp !== 'string') return false;
+  if (!Number.isFinite(Date.parse(record.timestamp))) return false;
+  const preferences = record.preferences;
+  if (!preferences || typeof preferences !== 'object' || Array.isArray(preferences)) return false;
+  const flags = preferences as Record<string, unknown>;
+  // An incomplete stored decision must not silently enable optional tracking.
+  return (
+    flags.essential === true &&
+    typeof flags.analytics === 'boolean' &&
+    typeof flags.functional === 'boolean'
+  );
+}
+
 export function loadConsent(): CookieConsentRecord | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(CONSENT_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as CookieConsentRecord;
-    if (parsed.version !== CONSENT_VERSION) return null;
-    if (!parsed.preferences || typeof parsed.preferences !== 'object') return null;
-    return parsed;
+    const parsed: unknown = JSON.parse(raw);
+    return isConsentRecord(parsed) ? parsed : null;
   } catch {
     return null;
   }

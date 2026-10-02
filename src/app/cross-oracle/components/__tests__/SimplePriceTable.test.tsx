@@ -1,8 +1,14 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 
+import * as statistics from '@/lib/utils/statistics';
 import { type OracleProvider, type PriceData } from '@/types/oracle';
 
 import { SimplePriceTable } from '../SimplePriceTable';
+
+jest.mock('@/lib/utils/statistics', () => ({
+  ...jest.requireActual('@/lib/utils/statistics'),
+  calculateZScore: jest.fn(),
+}));
 
 jest.mock('@/lib/config/colors', () => ({
   chartColors: {
@@ -145,5 +151,29 @@ describe('SimplePriceTable', () => {
     expect(screen.getByText('RedStone')).toBeInTheDocument();
 
     rerender(<SimplePriceTable {...mockProps} statusFilter="normal" />);
+  });
+
+  it('does not recalculate row z-scores on a clock-only refresh', () => {
+    jest.useFakeTimers();
+    const zScore = jest.mocked(statistics.calculateZScore);
+    zScore.mockImplementation((value, mean, standardDeviation) =>
+      standardDeviation > 0 ? (value - mean) / standardDeviation : null
+    );
+    try {
+      render(
+        <SimplePriceTable
+          {...mockProps}
+          anomalyDetectionMode="zscore"
+          avgPrice={50050}
+          standardDeviation={50}
+        />
+      );
+      expect(zScore).toHaveBeenCalledTimes(mockPriceData.length);
+
+      act(() => jest.advanceTimersByTime(10_000));
+      expect(zScore).toHaveBeenCalledTimes(mockPriceData.length);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

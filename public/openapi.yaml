@@ -753,6 +753,72 @@ paths:
         '400':
           description: Missing/malformed policy id, partner id, or receipt envelope
 
+  /partners/{partnerId}/safety/pre-trade:
+    parameters:
+      - $ref: '#/components/parameters/PartnerId'
+    get:
+      operationId: issuePartnerPreTradeSafetyGate
+      tags: [Safety]
+      summary: Issue a policy-bound one-time VERITAS pre-trade gate (inactive candidate)
+      description: |
+        This candidate route fails closed until the exact immutable VERITAS 1800-second
+        policy is separately activated. It also requires the dedicated API-key ID,
+        a selected one-time UTC window, the fixed v3 WETH/USDC trade and the
+        request/signature cutoffs. The public pre-trade endpoint and registered
+        selection rule remain at 600 seconds. A successful call does not authorize
+        any Bitcoin or Ethereum broadcast.
+      security:
+        - apiKey: []
+      parameters:
+        - name: policyId
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/ImmutablePartnerPolicyId'
+        - name: asset
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [WETH, USDC]
+        - name: destinationAsset
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [WETH, USDC]
+        - name: chainId
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [1]
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [swap]
+        - name: tradeAmountUsd
+          in: query
+          required: true
+          schema:
+            type: number
+            enum: [50000]
+        - name: schemaVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [3]
+      responses:
+        '200':
+          description: Signed 1800-second v3 gate if every policy and window condition holds
+        '400':
+          description: Partner, policy, trade, key, or window condition failed
+        '402':
+          $ref: '#/components/responses/CreditExhausted'
+
   /execution/attestation/{uid}:
     get:
       operationId: getExecutionReceipt

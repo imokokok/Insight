@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import Link from 'next/link';
 
@@ -53,13 +53,21 @@ export function ApiKeyManager({
   const [creating, setCreating] = useState(false);
   const [createdKey, setCreatedKey] = useState<CreatedKey | null>(null);
   const [copied, setCopied] = useState(false);
+  const keysRequestRef = useRef<AbortController | null>(null);
+  const activeTokenRef = useRef(accessToken);
 
-  const fetchKeys = async () => {
+  const fetchKeys = useCallback(async () => {
+    if (activeTokenRef.current !== accessToken) return;
+    // A refresh or credential change must supersede an earlier list response.
+    keysRequestRef.current?.abort();
+    const controller = new AbortController();
+    keysRequestRef.current = controller;
     setLoading(true);
     setError(null);
 
     try {
       const response = await fetch('/api/user/api-keys', {
+        signal: controller.signal,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -71,18 +79,27 @@ export function ApiKeyManager({
         throw new Error(result.error?.message || 'Failed to load API keys');
       }
 
-      setKeys(result.data.keys);
+      if (!controller.signal.aborted) setKeys(result.data.keys);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load API keys');
+      if (!controller.signal.aborted) {
+        setError(err instanceof Error ? err.message : 'Failed to load API keys');
+      }
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+        keysRequestRef.current = null;
+      }
     }
-  };
+  }, [accessToken]);
 
   useEffect(() => {
-    fetchKeys();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken]);
+    // Keys and the one-time plaintext key belong to the current credential.
+    activeTokenRef.current = accessToken;
+    setKeys([]);
+    setCreatedKey(null);
+    void fetchKeys();
+    return () => keysRequestRef.current?.abort();
+  }, [fetchKeys, accessToken]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,6 +124,8 @@ export function ApiKeyManager({
         throw new Error(result.error?.message || 'Failed to create API key');
       }
 
+      if (activeTokenRef.current !== accessToken) return;
+
       setCreatedKey({
         id: result.data.key.id,
         name: result.data.key.name,
@@ -116,7 +135,7 @@ export function ApiKeyManager({
         createdAt: result.data.key.createdAt,
       });
       setNewKeyName('');
-      fetchKeys();
+      void fetchKeys();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create API key');
     } finally {
@@ -144,7 +163,8 @@ export function ApiKeyManager({
         throw new Error(result.error?.message || 'Failed to revoke API key');
       }
 
-      fetchKeys();
+      if (activeTokenRef.current !== accessToken) return;
+      void fetchKeys();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to revoke API key');
     }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import {
   ArrowRight,
+  ArrowUpRight,
   Bot,
   Database,
   FileCode,
@@ -24,17 +25,63 @@ interface QuickLink {
   external?: boolean;
 }
 
+const featuredLinks = [
+  {
+    href: '#quickstart',
+    label: 'Explore the product',
+    detail: 'Follow a price from query to comparison and risk action.',
+    icon: Rocket,
+    stage: 'Start here',
+  },
+  {
+    href: '#methodology',
+    label: 'Understand the method',
+    detail: 'Inspect collection, consensus, scoring, and verification.',
+    icon: Scale,
+    stage: 'Go deeper',
+  },
+  {
+    href: '/docs/api',
+    label: 'Build with evidence',
+    detail: 'Open the endpoint reference and connect your application.',
+    icon: Terminal,
+    stage: 'Implement',
+  },
+] as const;
+
 const quickLinks: QuickLink[] = [
-  { href: '#quickstart', label: 'Quick Start', icon: Rocket },
   { href: '#features', label: 'Features', icon: Sparkles },
   { href: '#technical', label: 'Technical Docs', icon: FileCode },
-  { href: '#methodology', label: 'Methodology', icon: Scale },
   { href: '#architecture', label: 'Architecture', icon: Layers },
   { href: '#data-sources', label: 'Data Sources', icon: Database },
-  { href: '/docs/api', label: 'API Reference', icon: Terminal, external: true },
   { href: '/docs/sdk', label: 'Guard SDK', icon: ShieldCheck, external: true },
   { href: '/ai', label: 'AI / MCP Server', icon: Bot, external: true },
 ];
+
+function FeaturedLink({ link, index }: { link: (typeof featuredLinks)[number]; index: number }) {
+  const Icon = link.icon;
+  const content = (
+    <>
+      <span className="docs-featured-index">
+        0{index + 1} / {link.stage}
+      </span>
+      <Icon className="docs-featured-icon" aria-hidden="true" />
+      <span className="docs-featured-title">{link.label}</span>
+      <span className="docs-featured-detail">{link.detail}</span>
+      <ArrowUpRight className="docs-featured-arrow" aria-hidden="true" />
+    </>
+  );
+  const className = `docs-featured-link ${index === 0 ? 'is-primary' : ''}`;
+  return link.href.startsWith('#') ? (
+    <a href={link.href} className={className}>
+      {content}
+    </a>
+  ) : (
+    <Link href={link.href} className={className}>
+      {content}
+    </Link>
+  );
+}
 
 function QuickLinkButton({ link, index }: { link: QuickLink; index: number }) {
   const Icon = link.icon;
@@ -114,12 +161,21 @@ export default function DocsHero() {
             reference when you are ready to integrate.
           </p>
         </div>
+        <nav aria-label="Documentation reading routes" className="docs-featured-routes">
+          {featuredLinks.map((link, index) => (
+            <FeaturedLink key={link.href} link={link} index={index} />
+          ))}
+        </nav>
+        <div className="docs-index-subhead">
+          <span>Or jump directly to a chapter</span>
+          <span>06 references</span>
+        </div>
         <nav
           aria-label="Documentation sections"
-          className="docs-index-ledger grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4"
+          className="docs-index-ledger grid grid-cols-1 border-y border-slate-900/15 sm:grid-cols-2 lg:grid-cols-3"
         >
           {quickLinks.map((link, index) => (
-            <QuickLinkButton key={link.href} link={link} index={index} />
+            <QuickLinkButton key={link.href} link={link} index={index + 3} />
           ))}
         </nav>
       </div>

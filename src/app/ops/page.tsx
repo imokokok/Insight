@@ -5,7 +5,7 @@ import { getOverviewStats } from '@/lib/ops/opsQueries';
 import { rangeLabel, rangeToHours } from './range';
 import RefreshControl from './RefreshControl';
 import TimeRangePicker from './TimeRangePicker';
-import { PageHeader, Stat, Card, Badge, ErrorBanner } from './ui';
+import { PageHeader, Stat, Card, Badge, ErrorBanner, OpsSectionHeading, OpsScopeNote } from './ui';
 
 export const metadata = {
   title: 'Ops Overview - Insight',
@@ -25,13 +25,15 @@ export default async function OpsOverviewPage({
     stats.signedRatePct == null ? 'default' : stats.signedRatePct < 100 ? 'warn' : 'good';
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
+    <div className="ops-view ops-overview-view mx-auto max-w-[1280px] px-5 pb-14 pt-2 sm:px-8">
       <PageHeader
-        title="Ops Overview"
-        subtitle="One-glance health of the Insight API & safety pipeline"
+        index="01"
+        context="System overview"
+        title="Operations overview"
+        subtitle="One clear view of feed coverage, signing integrity, and pipeline freshness."
         updatedAt={new Date().toISOString()}
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <TimeRangePicker current={range ?? '24h'} />
             <RefreshControl />
           </div>
@@ -40,25 +42,24 @@ export default async function OpsOverviewPage({
 
       {stats.partial && <ErrorBanner message="部分概览数据查询失败，至少有一项指标不可信。" />}
 
-      <p className="text-xs text-gray-400 mb-6">
-        时间范围选择器仅影响 <span className="text-gray-600">Signing rate</span> 与{' '}
-        <span className="text-gray-600">Unsigned BLOCKs</span>；
-        <span className="text-gray-600">Incidents (7d)</span> 与{' '}
-        <span className="text-gray-600">Cron stale</span> 为固定窗口（近 7 天 /
-        新鲜度阈值），不受选择器影响。可点击指标下钻到对应页面。
-      </p>
+      <OpsScopeNote label="Reading the window">
+        The selected range applies to signing rate and unsigned BLOCKs. Incidents use a fixed
+        seven-day window; cron freshness uses its own threshold. Select a linked metric to inspect
+        the underlying record.
+      </OpsScopeNote>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+      <OpsSectionHeading
+        index="01"
+        title="Signals at a glance"
+        detail="Coverage and safeguards across the current operating window."
+      />
+      <div className="ops-signal-grid grid gap-3 md:grid-cols-3">
         <Stat
           label="Active feeds"
           value={stats.feedsActive}
           href="/ops/feeds"
           hint={`${stats.feedsInactive} inactive · ${stats.providers} providers`}
-        />
-        <Stat
-          label="Symbols / chains"
-          value={`${stats.symbols} / ${stats.chains}`}
-          hint="covered by active feeds"
+          index="01"
         />
         <Stat
           label={`Signing rate (${label})`}
@@ -66,6 +67,7 @@ export default async function OpsOverviewPage({
           tone={signingTone}
           href="/ops/safety"
           hint="signed / total pre-trade checks"
+          index="02"
         />
         <Stat
           label={`Unsigned BLOCKs (${label})`}
@@ -73,12 +75,23 @@ export default async function OpsOverviewPage({
           tone={stats.unsignedBlocks > 0 ? 'bad' : 'good'}
           href="/ops/safety"
           hint="Raul canary failure quadrant"
+          index="03"
+        />
+      </div>
+
+      <div className="ops-secondary-grid mt-3 grid gap-3 md:grid-cols-3">
+        <Stat
+          label="Symbols / chains"
+          value={`${stats.symbols} / ${stats.chains}`}
+          hint="covered by active feeds"
+          index="04"
         />
         <Stat
           label="Incidents (7d)"
           value={stats.incidents7d}
           href="/ops/incidents"
           hint="from incident aggregation"
+          index="05"
         />
         <Stat
           label="Cron stale"
@@ -86,10 +99,16 @@ export default async function OpsOverviewPage({
           tone={stats.cronStale > 0 ? 'warn' : 'good'}
           href="/ops/cron"
           hint="pipelines past freshness"
+          index="06"
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <OpsSectionHeading
+        index="02"
+        title="Follow the signal"
+        detail="Move from a headline condition to the source that explains it."
+      />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card title="Signing integrity">
           <p className="text-sm text-gray-600 mb-3">
             Every BLOCK must be signed for Raul&apos;s canary to treat it as an enforceable stop.

@@ -1,3 +1,9 @@
+import {
+  classifyOracleReputation,
+  fetchLiveAssetDeviations,
+  getPositionSymbols,
+  mapPositionProviders,
+} from '@/lib/api/services/positionSafetyShared';
 import { fetchPricesForPosition } from '@/lib/api/services/priceQueries';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import {
@@ -5,46 +11,11 @@ import {
   type PositionInput,
   type OracleWarning,
 } from '@/lib/protocols/protocolHealth';
-import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
-import { calculateAllWrappedAssetSnapshots } from '@/lib/wrapped-assets/monitor';
-import { type OracleProvider } from '@/types/oracle';
 
 import { formatAsText, formatPercent } from './formatters';
 import { PositionSafetyInputSchema } from './schemas';
 
 import type { McpToolDefinition } from './types';
-
-async function fetchLiveAssetDeviations(symbols: string[]): Promise<Record<string, number>> {
-  const deviations: Record<string, number> = {};
-  if (symbols.length === 0) return deviations;
-
-  try {
-    const [stablecoinSnapshots, wrappedSnapshots] = await Promise.allSettled([
-      calculateAllStablecoinSnapshots(),
-      calculateAllWrappedAssetSnapshots(),
-    ]);
-
-    if (stablecoinSnapshots.status === 'fulfilled') {
-      for (const snapshot of stablecoinSnapshots.value) {
-        if (symbols.includes(snapshot.symbol) && Math.abs(snapshot.maxDeviationPercent) > 0) {
-          deviations[snapshot.symbol] = snapshot.maxDeviationPercent;
-        }
-      }
-    }
-
-    if (wrappedSnapshots.status === 'fulfilled') {
-      for (const snapshot of wrappedSnapshots.value) {
-        if (symbols.includes(snapshot.symbol) && Math.abs(snapshot.deviationPercent) > 0) {
-          deviations[snapshot.symbol] = snapshot.deviationPercent;
-        }
-      }
-    }
-  } catch {
-    // non-blocking
-  }
-
-  return deviations;
-}
 
 async function buildOracleWarnings(
   protocolId: string,
@@ -54,17 +25,10 @@ async function buildOracleWarnings(
   const protocol = await getProtocolByIdWithDynamicData(protocolId);
   if (!protocol) return [];
 
-  const providerSymbols = new Map<OracleProvider, Set<string>>();
-  for (const symbol of symbols) {
-    const asset = protocol.assets.find((a) => a.symbol === symbol);
-    if (!asset) continue;
-    const existing = providerSymbols.get(asset.oracleProvider) ?? new Set<string>();
-    existing.add(symbol);
-    providerSymbols.set(asset.oracleProvider, existing);
-  }
+  const providerMappings = mapPositionProviders(symbols, protocol.assets);
 
   const warnings: OracleWarning[] = [];
-  for (const [provider, symbolsSet] of providerSymbols.entries()) {
+  for (const { provider, symbols: affectedSymbols } of providerMappings) {
     let rep: Awaited<ReturnType<typeof reputationService.getReputation>> = null;
     try {
       rep = await reputationService.getReputation(provider);
@@ -72,7 +36,6 @@ async function buildOracleWarnings(
       // ignore
     }
 
-    const affectedSymbols = Array.from(symbolsSet);
     if (!rep) {
       warnings.push({
         provider,
@@ -88,14 +51,7 @@ async function buildOracleWarnings(
       continue;
     }
 
-    const level: OracleWarning['level'] =
-      rep.overall_score >= 80
-        ? 'healthy'
-        : rep.overall_score >= 60
-          ? 'fair'
-          : rep.overall_score >= 40
-            ? 'degraded'
-            : 'critical';
+    const level = classifyOracleReputation(rep.overall_score);
 
     const issues: string[] = [];
     if (rep.freshness_score < 60) issues.push('freshness low');
@@ -131,15 +87,11 @@ export const checkPositionSafetyTool: McpToolDefinition<typeof PositionSafetyInp
   handler: async (args) => {
     const input: PositionInput = args as PositionInput;
 
-    const allSymbols = new Set<string>();
-    (input.collaterals || []).forEach((c) => allSymbols.add(c.symbol));
-    (input.borrows || []).forEach((b) => allSymbols.add(b.symbol));
-    if (input.collateralSymbol) allSymbols.add(input.collateralSymbol);
-    if (input.borrowSymbol) allSymbols.add(input.borrowSymbol);
+    const allSymbols = getPositionSymbols(input);
 
     const [oracleWarnings, liveAssetDeviations] = await Promise.all([
-      buildOracleWarnings(input.protocolId, Array.from(allSymbols)),
-      fetchLiveAssetDeviations(Array.from(allSymbols)),
+      buildOracleWarnings(input.protocolId, allSymbols),
+      fetchLiveAssetDeviations(allSymbols),
     ]);
 
     const result = await calculatePositionCriticalDeviation(

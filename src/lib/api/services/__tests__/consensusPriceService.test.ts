@@ -96,6 +96,22 @@ describe('resolveProvidersForSymbol', () => {
     expect(providers).not.toContain(OracleProvider.REFLECTOR);
   });
 
+  it('uses a chain-agnostic DB feed when the provider confirms chain support', async () => {
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map<string, unknown[]>([
+        [OracleProvider.CHAINLINK, [{ symbol: 'ETH/USD', chain_id: 0 }]],
+      ]),
+      errored: false,
+    });
+    isSymbolSupported.mockImplementation(
+      (symbol: string, chain?: Blockchain) => symbol === 'ETH' && chain === Blockchain.ETHEREUM
+    );
+
+    const providers = await resolveProvidersForSymbol('ETH', Blockchain.ETHEREUM);
+
+    expect(providers).toContain(OracleProvider.CHAINLINK);
+  });
+
   it('does not admit a provider with no DB feed and no static support', async () => {
     getAllActiveFeedsByProviderWithStatus.mockResolvedValue({ feeds: new Map(), errored: false });
 

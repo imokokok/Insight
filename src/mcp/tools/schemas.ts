@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { boundedIntegerInput } from '@/lib/security/boundedIntegerInput';
 import { SafeProviderSchema, SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
 import { STABLECOINS, type StablecoinSymbol } from '@/lib/stablecoins/config';
 import { WRAPPED_ASSETS } from '@/lib/wrapped-assets/config';
@@ -129,14 +130,9 @@ export const PriceHistoryInputSchema = z.object({
   provider: SafeProviderSchema.describe('Oracle provider name'),
   symbol: SafeSymbolSchema.describe('Asset symbol'),
   chain: SafeChainSchema.optional().describe('Optional blockchain'),
-  period: z
-    .union([z.string(), z.number()])
-    .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
-    .refine(
-      (val) => !isNaN(val) && val >= 1 && val <= 8760,
-      'Period must be between 1 and 8760 hours'
-    )
-    .describe('Historical period in hours'),
+  period: boundedIntegerInput(1, 8760, 'Period must be between 1 and 8760 hours').describe(
+    'Historical period in hours'
+  ),
   forceRefresh: z.boolean().optional().describe('Force refresh from upstream instead of cache'),
 });
 
@@ -173,10 +169,7 @@ export const FeedFreshnessInputSchema = z.object({
 });
 
 export const ReputationRankingsInputSchema = z.object({
-  days: z
-    .union([z.string(), z.number()])
-    .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
-    .refine((val) => !isNaN(val) && val >= 1 && val <= 90, 'days must be between 1 and 90')
+  days: boundedIntegerInput(1, 90, 'days must be between 1 and 90')
     .optional()
     .default(7)
     .describe('Trend period in days, default 7'),
@@ -242,10 +235,7 @@ export const LatencyInputSchema = z.object({
 });
 
 export const AnomaliesInputSchema = z.object({
-  days: z
-    .union([z.string(), z.number()])
-    .transform((val) => (typeof val === 'string' ? parseInt(val, 10) : val))
-    .refine((val) => !isNaN(val) && val >= 1 && val <= 30, 'days must be between 1 and 30')
+  days: boundedIntegerInput(1, 30, 'days must be between 1 and 30')
     .optional()
     .default(7)
     .describe('Lookback period in days, default 7'),

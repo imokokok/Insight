@@ -9,7 +9,6 @@ import { Mail, Loader2, CheckCircle, ArrowLeft, KeyRound } from 'lucide-react';
 
 import {
   AuthPageLayout,
-  AuthBrandLogo,
   AuthResultCard,
   AuthErrorAlert,
   AuthPageSuspense,
@@ -37,7 +36,7 @@ function ForgotPasswordForm() {
 
   if (isSuccess) {
     return (
-      <AuthPageLayout cardClassName="text-center">
+      <AuthPageLayout journey="recover" cardClassName="text-center">
         <AuthResultCard
           icon={CheckCircle}
           iconBgClass="bg-emerald-100"
@@ -60,14 +59,13 @@ function ForgotPasswordForm() {
   }
 
   return (
-    <AuthPageLayout>
-      <div className="text-center mb-8">
-        <AuthBrandLogo />
-        <div className="mx-auto mb-4 mt-4 flex h-16 w-16 items-center justify-center border border-blue-200 bg-blue-50">
-          <KeyRound className="w-8 h-8 text-blue-600" />
-        </div>
-        <h2 className="text-xl font-bold text-slate-900">Forgot Password</h2>
-        <p className="mt-2 text-sm text-slate-500">Enter your email to reset your password</p>
+    <AuthPageLayout journey="recover">
+      <div className="auth-record-heading mb-8">
+        <span className="auth-form-kicker">
+          <KeyRound className="h-4 w-4" aria-hidden="true" /> 03 / Account recovery
+        </span>
+        <h1>Reset your password.</h1>
+        <p>We’ll send a reset link to your account email.</p>
       </div>
 
       {error && <AuthErrorAlert message={error} id="forgot-password-error" />}
@@ -83,7 +81,9 @@ function ForgotPasswordForm() {
             </div>
             <input
               id="email"
+              name="email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

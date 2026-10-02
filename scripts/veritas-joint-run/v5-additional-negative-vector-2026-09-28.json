@@ -1,0 +1,24 @@
+{
+  "schema": "insight-veritas-v5-rebuild-guard-negative-vector/v1",
+  "scope": "offline-only synthetic RPC answers; no transaction sent",
+  "source": "VERITAS v5 attachment eth_rebuild_guard.py.txt, chain_state",
+  "sender": "0x1111111111111111111111111111111111111111",
+  "preservedTransaction": {
+    "hash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+    "nonce": 2
+  },
+  "endpoints": ["a", "b", "c"],
+  "eachEndpointAnswers": {
+    "eth_getTransactionCount_latest": "0x2",
+    "eth_getTransactionCount_pending": "0x1",
+    "eth_getTransactionByHash": null,
+    "eth_getTransactionReceipt": null
+  },
+  "observedV5Result": {
+    "state": "CLEAR",
+    "nonce": 2
+  },
+  "expectedFailClosedResult": "UNRESOLVED",
+  "reason": "pending nonce lower than latest is an internally inconsistent answer; it must not be accepted as proof that no earlier submission remains unresolved",
+  "realNetworkObservation": false
+}

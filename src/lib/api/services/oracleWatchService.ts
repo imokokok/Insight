@@ -10,7 +10,7 @@ import { TTLCache } from '@/lib/utils/cache';
 import { roundTo } from '@/lib/utils/format';
 
 import { getConsensusPrice, type ConsensusPriceResponse } from './consensusPriceService';
-import { fetchHistoricalOracleState } from './oracleWatchHistory';
+import { fetchHistoricalOracleState, type HistoricalOracleState } from './oracleWatchHistory';
 import {
   computeOracleWatchTrust,
   type OracleWatchTrust,
@@ -208,10 +208,14 @@ const MARKET_DIVERGENCE_ADVISORY_PCT = 2.0;
 // the safety-check live-consensus cache.
 const ORACLE_WATCH_CACHE_TTL_MS = 15_000;
 const oracleWatchCache = new TTLCache({ maxSize: 500 });
+const pendingSignals = new Map<string, Promise<OracleWatchResult>>();
+let cacheGeneration = 0;
 
 /** Reset the Oracle Watch cache (used by tests). */
 export function clearOracleWatchCache(): void {
+  cacheGeneration++;
   oracleWatchCache.clear();
+  pendingSignals.clear();
 }
 
 function cacheKey(symbol: string, chain?: string): string {
@@ -219,18 +223,19 @@ function cacheKey(symbol: string, chain?: string): string {
 }
 
 /** Build the ML advisory fields from a live consensus result + history. */
-async function computeMlRisk(
+function computeMlRisk(
   result: ConsensusPriceResponse,
   maxDeviationPct: number,
-  marketContext: MarketReferenceContext | null
-): Promise<{
+  marketContext: MarketReferenceContext | null,
+  historical: HistoricalOracleState | null
+): {
   mlRiskScore: number | null;
   mlScore1h: number | null;
   mlScore6h: number | null;
   mlRiskLevel: OracleWatchMlRiskLevel | null;
-}> {
+} {
   const base = { mlRiskScore: null, mlScore1h: null, mlScore6h: null, mlRiskLevel: null };
-  if (result.participantCount === 0 || result.consensusPrice === null) return base;
+  if (result.participantCount === 0 || result.consensusPrice === null || !historical) return base;
 
   const successProviders = result.providers.filter((p) => p.status === 'success');
   const absDevs = successProviders
@@ -266,12 +271,6 @@ async function computeMlRisk(
     const ref = (min + max) / 2;
     spreadPct = ref > 0 ? ((max - min) / ref) * 100 : 0;
   }
-
-  const historical = await fetchHistoricalOracleState(result.symbol, {
-    maxDeviationPct,
-    consensusPrice: result.consensusPrice,
-    participantCount: result.participantCount,
-  });
 
   const multi = scorePreTradeMultiHorizon(
     {
@@ -323,10 +322,22 @@ export async function getOracleWatchSignal(
   const key = cacheKey(symbol, chain);
   const cached = oracleWatchCache.get<OracleWatchResult>(key);
   if (cached) return cached;
+  const pending = pendingSignals.get(key);
+  if (pending) return pending;
 
-  const result = await computeOracleWatchSignal(symbol, chain);
-  oracleWatchCache.set(key, result, ORACLE_WATCH_CACHE_TTL_MS);
-  return result;
+  const generation = cacheGeneration;
+  const read = computeOracleWatchSignal(symbol, chain)
+    .then((result) => {
+      if (generation === cacheGeneration) {
+        oracleWatchCache.set(key, result, ORACLE_WATCH_CACHE_TTL_MS);
+      }
+      return result;
+    })
+    .finally(() => {
+      if (pendingSignals.get(key) === read) pendingSignals.delete(key);
+    });
+  pendingSignals.set(key, read);
+  return read;
 }
 
 async function computeOracleWatchSignal(
@@ -411,20 +422,25 @@ async function computeOracleWatchSignal(
     });
   }
 
-  // Fetch external truth once and feed the same value to both ML and the
-  // advisory reason code. A missing reference remains an explicit neutral.
-  let marketContext: MarketReferenceContext | null = null;
-  try {
-    marketContext = await computeMarketReferenceContext(result.symbol, result.consensusPrice);
-  } catch {
-    marketContext = null;
-  }
+  // Independent external truth and history reads can overlap. A missing
+  // market reference remains neutral; a history failure retains its existing
+  // error handling inside fetchHistoricalOracleState.
+  const [marketContext, historical] = await Promise.all([
+    computeMarketReferenceContext(result.symbol, result.consensusPrice).catch(() => null),
+    result.participantCount === 0 || result.consensusPrice === null
+      ? Promise.resolve(null)
+      : fetchHistoricalOracleState(result.symbol, {
+          maxDeviationPct,
+          consensusPrice: result.consensusPrice,
+          participantCount: result.participantCount,
+        }),
+  ]);
   const marketDivergencePct = marketContext?.divergencePct ?? null;
 
   // Forward-looking ML risk is needed BEFORE the verdict so it can participate
   // in the gate (an advisory score must never be wholly ignored, but also must
   // not override hard rule breaches).
-  const ml = await computeMlRisk(result, maxDeviationPct, marketContext);
+  const ml = computeMlRisk(result, maxDeviationPct, marketContext, historical);
 
   const quorumSatisfied = result.participantCount >= QUORUM_MIN;
 

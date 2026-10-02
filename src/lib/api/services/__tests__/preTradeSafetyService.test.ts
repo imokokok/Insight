@@ -1,6 +1,7 @@
 import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import { signAttestationV2 } from '@/lib/attestations/oracleSafetyAttestationV2';
 import { signAttestationV3 } from '@/lib/attestations/oracleSafetyAttestationV3';
+import { assertVeritasJointRun1800Admission } from '@/lib/attestations/veritasJointRunValidity';
 import { UnsupportedSymbolError } from '@/lib/errors';
 import { computeMarketReferenceContext } from '@/lib/marketReference/client';
 import { getModelStatus, scorePreTradeMultiHorizon } from '@/lib/ml/inference';
@@ -87,6 +88,9 @@ jest.mock('@/lib/attestations/oracleSafetyAttestationV3', () => ({
   ...jest.requireActual('@/lib/attestations/oracleSafetyAttestationV3'),
   signAttestationV3: jest.fn(),
 }));
+jest.mock('@/lib/attestations/veritasJointRunValidity', () => ({
+  assertVeritasJointRun1800Admission: jest.fn(),
+}));
 
 const mockedGetConsensusPrice = getConsensusPrice as jest.MockedFunction<typeof getConsensusPrice>;
 const mockedSnapshots = calculateAllStablecoinSnapshots as jest.MockedFunction<
@@ -107,6 +111,9 @@ const mockedMarketContext = computeMarketReferenceContext as jest.MockedFunction
 >;
 const mockedSignAttestationV2 = signAttestationV2 as jest.MockedFunction<typeof signAttestationV2>;
 const mockedSignAttestationV3 = signAttestationV3 as jest.MockedFunction<typeof signAttestationV3>;
+const mockedVeritasAdmission = assertVeritasJointRun1800Admission as jest.MockedFunction<
+  typeof assertVeritasJointRun1800Admission
+>;
 const mockedGetFeedStalenessBaselineMap = getFeedStalenessBaselineMap as jest.MockedFunction<
   typeof getFeedStalenessBaselineMap
 >;
@@ -1031,6 +1038,41 @@ describe('preTradeSafetyCheck — v2 schema', () => {
     const input = mockedSignAttestationV3.mock.calls[0][0];
     expect(input.verdict).toBe(result.verdict);
     expect(input.participantCount).toBe(3);
+  });
+
+  it('routes only a policy-admitted VERITAS gate to 1800-second signing', async () => {
+    mockedSignAttestationV3.mockResolvedValue(null);
+    mockedGetConsensusPrice.mockResolvedValue(
+      makeConsensus([
+        makeProvider({ provider: 'chainlink' as OracleProvider }),
+        makeProvider({ provider: 'api3' as OracleProvider }),
+        makeProvider({ provider: 'redstone' as OracleProvider }),
+      ])
+    );
+    await preTradeSafetyCheck(
+      makeInput({
+        asset: 'WETH',
+        destinationAsset: 'USDC',
+        chainId: 1,
+        tradeAmountUsd: 50_000,
+        schemaVersion: 3,
+      }),
+      {
+        apiKeyId: 'veritas-temporary-key',
+        veritasJointRunPolicyId: 'candidate-policy',
+      }
+    );
+    expect(mockedVeritasAdmission).toHaveBeenCalledWith(
+      expect.objectContaining({
+        partnerId: 'veritas',
+        policyId: 'candidate-policy',
+        apiKeyId: 'veritas-temporary-key',
+      }),
+      'sign'
+    );
+    expect(mockedSignAttestationV3).toHaveBeenCalledWith(expect.any(Object), {
+      validForSeconds: 1800,
+    });
   });
 
   it('v3 applies both gates exactly as v2 does', async () => {

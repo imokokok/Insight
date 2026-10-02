@@ -23,8 +23,14 @@ import {
 } from '../registryReleasePolicy';
 
 const VERITAS_V2_POLICY_ID = '0x162d3fe744acc2041a959daf40dc3fe9242b654aef58acbb991acbf605885085';
+const VERITAS_V3_POLICY_ID = '0x022050775106ce8cd9a9fd57904a3a9ca2c9b491f5073871ab17ed2dcb1d054a';
+const VERITAS_V4_POLICY_ID = '0xad711736aa60459299c94f0b6cdc7fd51d5ace20024f9fbd23344e4e03de47da';
 const VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID =
   '0xc83feebc5fe8722129a27c015192e6583cd166e0cd149dd6a7d99564474728db';
+const VERITAS_V3_ACTIVATION_SET_ID =
+  '0xdf95620c31f265a3cba6f0f55d5d731982c0a58eb879651d2c872c3f6c53b6a9';
+const VERITAS_V4_ACTIVATION_SET_ID =
+  '0x0965f5dcd6a30513fe95894208e5147f6fa62de5789e201ed99c87e8cc791af8';
 
 describe('main-only partner integration isolation', () => {
   it('resolves every partner through an independent immutable policy id', () => {
@@ -152,17 +158,17 @@ describe('main-only partner integration isolation', () => {
     expect(evaluateExecutionPolicy(priorPolicy.policyId, 5, EXECUTION_PROFILE_V1_ID)).toEqual(
       expect.objectContaining({ valid: false, reason: 'schema_not_admitted_by_policy:5' })
     );
-    expect(activePolicy.policyId).toBe(VERITAS_V2_POLICY_ID);
+    expect(activePolicy.policyId).toBe(VERITAS_V4_POLICY_ID);
     expect(activePolicy.productionReachability).toBe('enabled');
   });
 
-  it('explicitly promotes the previously published VERITAS v5 activation set', () => {
+  it('preserves the previously published VERITAS v5 activation set', () => {
     const activePolicy = activePartnerIntegrationPolicy('veritas')!;
     const candidatePolicy = partnerIntegrationPolicyById(VERITAS_V2_POLICY_ID);
     const candidateSet = partnerActivationSetById(VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID);
 
     expect(activePolicy).toEqual(
-      expect.objectContaining({ policyVersion: 2, productionReachability: 'enabled' })
+      expect.objectContaining({ policyVersion: 4, productionReachability: 'enabled' })
     );
     expect(candidatePolicy).toEqual(
       expect.objectContaining({
@@ -184,7 +190,7 @@ describe('main-only partner integration isolation', () => {
         partners: expect.objectContaining({ veritas: VERITAS_V2_POLICY_ID }),
       })
     );
-    expect(CURRENT_PARTNER_ACTIVATION_SET_ID).toBe(VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID);
+    expect(CURRENT_PARTNER_ACTIVATION_SET_ID).toBe(VERITAS_V4_ACTIVATION_SET_ID);
     expect(CURRENT_PARTNER_ACTIVATION_SET.partners.veritas).toBe(activePolicy.policyId);
 
     expect(evaluateExecutionPolicy(VERITAS_V2_POLICY_ID, 5, EXECUTION_PROFILE_V1_ID)).toEqual(
@@ -217,7 +223,38 @@ describe('main-only partner integration isolation', () => {
         5,
         EXECUTION_PROFILE_V1_ID
       )
-    ).toEqual(expect.objectContaining({ valid: true, partnerId: 'veritas' }));
+    ).toEqual(expect.objectContaining({ valid: false, reason: 'policy_not_active_for_partner' }));
+  });
+
+  it('preserves the September 1800-second activation and advances only VERITAS for October', () => {
+    const priorSet = partnerActivationSetById(VERITAS_V2_CANDIDATE_ACTIVATION_SET_ID)!;
+    const septemberSet = partnerActivationSetById(VERITAS_V3_ACTIVATION_SET_ID)!;
+    const currentSet = CURRENT_PARTNER_ACTIVATION_SET;
+    expect(septemberSet.predecessorActivationSetId).toBe(priorSet.activationSetId);
+    expect(septemberSet.activationVersion).toBe(4);
+    expect(septemberSet.partners.veritas).toBe(VERITAS_V3_POLICY_ID);
+    expect(currentSet.predecessorActivationSetId).toBe(septemberSet.activationSetId);
+    expect(currentSet.activationVersion).toBe(5);
+    expect(currentSet.partners.veritas).toBe(VERITAS_V4_POLICY_ID);
+    expect(partnerIntegrationPolicyById(VERITAS_V3_POLICY_ID)).toEqual(
+      expect.objectContaining({
+        partnerId: 'veritas',
+        policyVersion: 3,
+        productionReachability: 'enabled',
+      })
+    );
+    for (const partnerId of PARTNER_IDS) {
+      if (partnerId === 'veritas') continue;
+      expect(currentSet.partners[partnerId]).toBe(septemberSet.partners[partnerId]);
+    }
+    expect(
+      evaluateActivePartnerExecutionPolicy(
+        'veritas',
+        VERITAS_V3_POLICY_ID,
+        5,
+        EXECUTION_PROFILE_V1_ID
+      )
+    ).toEqual(expect.objectContaining({ valid: false, reason: 'policy_not_active_for_partner' }));
   });
 
   it('fails closed for unknown or non-execution policies', () => {

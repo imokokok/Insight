@@ -1,105 +1,69 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { ArrowDown, ArrowRight, Check } from 'lucide-react';
-
-import { HeroSearchForm } from './HeroSearchForm';
+import { ArrowDown, ArrowRight, ArrowUpRight } from 'lucide-react';
 
 export function HeroSection() {
   return (
-    <section className="ice-hero relative isolate overflow-hidden bg-[#f8f7f4]">
+    <section
+      className="ice-hero home-hero relative isolate overflow-hidden"
+      aria-labelledby="home-title"
+    >
       <Image
         src="/design-concepts/insight-blue-glacier-home-sample-v5.png"
-        alt="A cobalt-blue glacier cross-section in a sunlit gallery"
+        alt="A translucent blue glacier sculpture revealing deep layers beneath its surface"
         fill
         priority
         sizes="100vw"
-        className="ice-hero-object object-cover object-[67%_center]"
+        className="ice-hero-object object-cover"
       />
       <div className="ice-hero-wash absolute inset-0" />
       <div className="ice-hero-grain absolute inset-0" />
 
-      <div className="relative mx-auto max-w-[1440px] px-5 pb-20 pt-20 sm:px-8 sm:pb-28 sm:pt-28 lg:px-12 lg:pb-36 lg:pt-36">
-        <div className="max-w-xl">
-          <div className="home-hero-reveal home-hero-reveal-1">
-            <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-700">
-              <span className="h-px w-10 bg-blue-600" />
-              01 — Oracle transparency
+      <div className="home-hero-inner relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="home-hero-topline home-hero-reveal home-hero-reveal-1">
+          <span>INSIGHT / ORACLE INTELLIGENCE</span>
+          <span>FIELD NOTE 001 — BENEATH THE PRICE</span>
+        </div>
+
+        <div className="home-hero-main">
+          <div className="home-hero-copy">
+            <p className="home-hero-overline home-hero-reveal home-hero-reveal-1">
+              Transparency for decisions that matter
+            </p>
+            <h1 id="home-title" className="home-hero-reveal home-hero-reveal-2">
+              Go beneath
+              <br />
+              <span>the price.</span>
+            </h1>
+            <p className="home-hero-description home-hero-reveal home-hero-reveal-3">
+              A price is a surface. Insight reveals the oracle sources, their agreement, their
+              freshness, and the risk of acting on them.
+            </p>
+            <div className="home-hero-actions home-hero-reveal home-hero-reveal-4">
+              <Link href="#live-evidence" className="home-hero-primary">
+                Explore the evidence <ArrowRight aria-hidden="true" />
+              </Link>
+              <Link href="/safety-check" className="home-hero-secondary">
+                Run a safety check <ArrowUpRight aria-hidden="true" />
+              </Link>
             </div>
           </div>
 
-          <h1 className="font-display home-hero-reveal home-hero-reveal-2 mt-7 text-[2.65rem] font-semibold leading-[0.94] tracking-[-0.07em] text-slate-950 sm:text-6xl lg:text-7xl xl:text-[5.4rem]">
-            See the oracles
-            <br />
-            <span className="text-blue-700">behind the price.</span>
-          </h1>
-
-          <p className="home-hero-reveal home-hero-reveal-3 mt-7 max-w-lg text-base leading-relaxed text-slate-700 sm:text-lg">
-            Oracle transparency and risk intelligence for DeFi. Compare feeds, assess freshness and
-            source independence, and understand the risk of relying on a price.
-          </p>
-
-          <div className="home-hero-reveal home-hero-reveal-4 mt-8">
-            <HeroSearchForm />
-          </div>
-
-          <div className="home-hero-reveal home-hero-reveal-5 flex flex-wrap items-center gap-3">
-            <Link
-              href="/price-query"
-              className="inline-flex items-center gap-2 bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(15,23,42,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-700"
-            >
-              Inspect a price
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              href="/safety-check"
-              className="inline-flex items-center gap-2 border border-slate-900/20 bg-white/45 px-5 py-3 text-sm font-semibold text-slate-800 backdrop-blur-sm transition-all duration-200 hover:border-blue-600 hover:bg-white/80"
-            >
-              Run a safety check
-            </Link>
-            <Link
-              href="/sdk"
-              className="hidden items-center gap-2 px-2 py-3 text-sm font-semibold text-slate-700 transition-colors hover:text-blue-700 sm:inline-flex"
-            >
-              Build with Guard SDK
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="home-hero-reveal home-hero-reveal-6 mt-9 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-900/15 pt-5 text-xs text-slate-600">
-            <span className="flex items-center gap-1.5">
-              <Check className="h-3.5 w-3.5 text-blue-700" /> Cross-oracle comparison
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check className="h-3.5 w-3.5 text-blue-700" /> Signed receipts
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Check className="h-3.5 w-3.5 text-blue-700" /> Oracle risk assessment
-            </span>
+          <div className="home-hero-artnote home-hero-reveal home-hero-reveal-4" aria-hidden="true">
+            <span>FIG. 01 / PRICE ANATOMY</span>
+            <i />
+            <strong>
+              What lies below
+              <br />
+              is what matters.
+            </strong>
           </div>
         </div>
 
-        <div
-          className="ice-hero-index absolute right-8 top-1/2 hidden w-48 -translate-y-1/2 xl:block"
-          aria-hidden="true"
-        >
-          <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.24em] text-slate-600">
-            Evidence depth
-          </p>
-          <div className="mt-4 space-y-3">
-            {['Source layer', 'Consensus layer', 'Decision layer'].map((label, index) => (
-              <div key={label} className="ice-index-row">
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                <i />
-                <b>{label}</b>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="absolute bottom-7 right-5 hidden items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600 sm:flex sm:right-8 lg:right-12">
-          Scroll to examine <ArrowDown className="h-3.5 w-3.5" />
-        </div>
+        <a className="home-hero-scroll" href="#live-evidence">
+          SCROLL TO EXAMINE <ArrowDown aria-hidden="true" />
+        </a>
       </div>
     </section>
   );

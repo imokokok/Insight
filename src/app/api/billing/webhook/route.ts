@@ -14,11 +14,10 @@
  *
  * Event mapping:
  *   waiting / confirming        → log only (stay incomplete)
- *   confirmed / finished        → upgrade plan + set active + compute period_end
+ *   confirmed                   → record payment ID; wait for settlement
+ *   finished                    → upgrade plan + set active + compute period_end
  *   partially_paid              → mark past_due (awaiting top-up, no upgrade)
- *   expired / failed            → mark canceled (only if still incomplete —
- *                                 guards against out-of-order expired arriving
- *                                 after a confirmed/finished)
+ *   expired / failed            → leave the hosted invoice payable
  *   refunded                    → cancel that row + recalculate the user's
  *                                 effective plan from remaining subscriptions
  *
@@ -52,6 +51,7 @@ import {
   handlePaymentConfirmed,
   handlePaymentExpiredOrFailed,
   handlePaymentRefunded,
+  recordPaymentReference,
   type IpnData,
 } from '@/lib/billing/subscriptionLifecycle';
 import { createServiceRoleClient } from '@/lib/supabase/server';
@@ -211,17 +211,19 @@ export async function POST(request: NextRequest) {
   try {
     switch (event.type) {
       case 'waiting':
-      case 'confirming': {
+      case 'confirming':
+      case 'confirmed': {
         // Payment initiated / awaiting block confirmations — no action yet.
+        await recordPaymentReference(client, data, event.id);
         logger.debug('IPN: payment in progress', { paymentId: event.id, status: event.type });
         break;
       }
-      case 'confirmed':
       case 'finished': {
         await handlePaymentConfirmed(client, data, event.id);
         break;
       }
       case 'partially_paid': {
+        await recordPaymentReference(client, data, event.id);
         await handlePartiallyPaid(client, data);
         break;
       }
@@ -231,7 +233,7 @@ export async function POST(request: NextRequest) {
         break;
       }
       case 'refunded': {
-        await handlePaymentRefunded(client, data);
+        await handlePaymentRefunded(client, data, event.id);
         break;
       }
       default:

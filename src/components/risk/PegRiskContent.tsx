@@ -440,7 +440,7 @@ export function PegRiskContent({
         )}
 
         <div className="editorial-workbench-grid grid grid-cols-1 gap-8 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-12">
-          <aside>
+          <aside id="risk-assets" className="scroll-mt-24">
             <div className="workbench-section-heading mb-4 flex items-center justify-between border-b border-slate-900/15 pb-3">
               <p className="editorial-index">03 — Select the asset</p>
               <span className="font-mono text-[10px] text-slate-400">INPUT</span>

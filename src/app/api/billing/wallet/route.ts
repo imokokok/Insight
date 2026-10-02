@@ -36,7 +36,7 @@ export const GET = createApiHandler(
     // top-up stuck forever.
     const { data: pending } = await serviceClient
       .from('credit_purchases')
-      .select('id, credits, nowpayments_invoice_id, created_at')
+      .select('id, credits, nowpayments_invoice_id, nowpayments_payment_id, created_at')
       .eq('user_id', userId)
       .eq('status', 'incomplete')
       .order('created_at', { ascending: false })
@@ -57,6 +57,7 @@ export const GET = createApiHandler(
           id: row.id,
           credits: Number(row.credits),
           invoiceId: row.nowpayments_invoice_id,
+          paymentId: row.nowpayments_payment_id,
           createdAt: row.created_at,
         })),
         recent: (recent ?? []).map((row) => ({

@@ -1,4 +1,5 @@
 import type { CoverageTrust, SignedCoverageReport } from './coverage';
+import type { V3SwapRiskReport } from './swap-transaction-risk';
 
 export type SafetyVerdict = 'PASS' | 'CAUTION' | 'DANGER' | 'BLOCK';
 export type OracleWatchVerdict = 'normal' | 'caution' | 'danger';
@@ -351,6 +352,7 @@ export interface PriorSealObservationJob {
   jobId: string;
   state: 'QUEUED' | 'RUNNING' | 'RETRY_WAIT' | 'COMPLETED' | 'UNDETERMINED' | 'FAILED' | string;
   attempts: number;
+  nextAttemptAt?: number;
   observation: { txHash?: string; status: string; [key: string]: unknown } | null;
   result?: PriorSealObservationResult | null;
   error?: { code: string; message: string } | null;
@@ -467,6 +469,8 @@ export interface AssessedSwapAuthorizationRequest {
   assessment: SwapAssessment;
   transaction: PreparedExactCallTransaction;
   priorSeal: PriorSealFlowOptions;
+  /** Optional unsigned local route review, bound as an additional context commitment. */
+  transactionRisk?: V3SwapRiskReport;
 }
 
 export interface AssessedSwapAuthorizationResult {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
 
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
@@ -96,16 +96,28 @@ export default function SettingsContent() {
     }
   }, [user, loading, initialized, router]);
 
-  // Read `tab` query param to support deep-linking (e.g. NOWPayments checkout
-  // success_url redirects to /settings?tab=billing&status=success).
+  // Keep the active control in sync with deep links and browser history.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get('tab');
-    if (tab && ['profile', 'preferences', 'data', 'api-keys', 'billing'].includes(tab)) {
-      // This is intentional one-way hydration from the URL on initial client mount;
-      // it does not cause cascading renders because it runs once.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setActiveTab(tab as SettingsTab);
+    const syncTabFromUrl = () => {
+      const tab = new URLSearchParams(window.location.search).get('tab');
+      if (tab && ['profile', 'preferences', 'data', 'api-keys', 'billing'].includes(tab)) {
+        setActiveTab(tab as SettingsTab);
+      } else {
+        setActiveTab('profile');
+      }
+    };
+
+    syncTabFromUrl();
+    window.addEventListener('popstate', syncTabFromUrl);
+    return () => window.removeEventListener('popstate', syncTabFromUrl);
+  }, []);
+
+  const handleTabChange = useCallback((tab: SettingsTab) => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('tab') !== tab) {
+      url.searchParams.set('tab', tab);
+      window.history.pushState(null, '', `${url.pathname}${url.search}${url.hash}`);
     }
   }, []);
 
@@ -148,7 +160,7 @@ export default function SettingsContent() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] as const }}
     >
-      <SettingsLayout activeTab={activeTab} onTabChange={setActiveTab}>
+      <SettingsLayout activeTab={activeTab} onTabChange={handleTabChange}>
         <SectionErrorBoundary componentName="SettingsPanel">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div key={activeTab} {...pageTransition}>

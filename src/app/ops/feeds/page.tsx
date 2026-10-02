@@ -4,7 +4,16 @@ import { getFeedHealth } from '@/lib/ops/opsQueries';
 
 import FeedsTable from '../components/FeedsTable';
 import RefreshControl from '../RefreshControl';
-import { PageHeader, Stat, Card, Badge, EmptyState, ErrorBanner } from '../ui';
+import {
+  PageHeader,
+  Stat,
+  Card,
+  Badge,
+  EmptyState,
+  ErrorBanner,
+  OpsSectionHeading,
+  OpsScopeNote,
+} from '../ui';
 
 export const metadata = {
   title: 'Feed Health - Insight Ops',
@@ -30,13 +39,20 @@ export default async function OpsFeedsPage({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
+    <div className="ops-view ops-feeds-view mx-auto max-w-[1280px] px-5 pb-14 pt-2 sm:px-8">
       <PageHeader
+        index="03"
+        context="Feed lifecycle"
         title="Feed Health"
-        subtitle="Oracle feed lifecycle & deactivation observability (oracle_feeds + 0025) · 当前全量快照"
+        subtitle="Inspect the current feed inventory, failures, and deactivation trail."
         updatedAt={new Date().toISOString()}
         actions={<RefreshControl />}
       />
+
+      <OpsScopeNote label="Snapshot scope">
+        Counts reflect the current feed inventory. The problem feed ledger can be searched, sorted,
+        and exported for follow-up.
+      </OpsScopeNote>
 
       {provider && (
         <div className="mb-4 flex items-center gap-2 text-sm">
@@ -56,33 +72,47 @@ export default async function OpsFeedsPage({
         <ErrorBanner message="Feed 健康数据查询失败，以下计数可能不完整或不可用。" />
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <OpsSectionHeading
+        index="01"
+        title="Feed signal"
+        detail="Availability and failure pressure across the current snapshot."
+      />
+      <div className="ops-signal-grid grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat
           label="Active"
           value={summary.active}
           hint={`of ${summary.total} feeds`}
           tone="good"
+          index="01"
         />
         <Stat
           label="Inactive"
           value={summary.inactive}
           tone={summary.inactive > 0 ? 'warn' : 'good'}
+          index="02"
         />
         <Stat
           label="Failing"
           value={summary.failingFeeds}
           tone={summary.failingFeeds > 0 ? 'bad' : 'good'}
           hint="consecutive_failures > 0"
+          index="03"
         />
         <Stat
           label="Stale"
           value={summary.staleFeeds}
           tone={summary.staleFeeds > 0 ? 'warn' : 'default'}
           hint="> 2h since success"
+          index="04"
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <OpsSectionHeading
+        index="02"
+        title="Lifecycle diagnosis"
+        detail="Why feeds leave service and which sources may need rediscovery."
+      />
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card title="Deactivation reasons">
           {Object.keys(summary.byReason).length === 0 ? (
             <EmptyState message="no deactivated feeds" />
@@ -112,7 +142,12 @@ export default async function OpsFeedsPage({
         </Card>
       </div>
 
-      <Card title={`Problem feeds (${filteredFeeds.length})`}>
+      <OpsSectionHeading
+        index="03"
+        title="Problem feed ledger"
+        detail={`${filteredFeeds.length} records in the current provider scope.`}
+      />
+      <Card>
         <FeedsTable feeds={filteredFeeds} />
       </Card>
     </div>

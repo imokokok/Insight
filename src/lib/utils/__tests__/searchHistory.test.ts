@@ -99,6 +99,26 @@ describe('searchHistory', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('rejects malformed storage entries and caps restored history', () => {
+      localStorageStore[STORAGE_KEY] = JSON.stringify([
+        { symbol: 'BAD', timestamp: '1000' },
+        { symbol: '', timestamp: 3000 },
+        { symbol: 'ALSO_BAD', timestamp: null },
+        ...Array.from({ length: 12 }, (_, index) => ({
+          symbol: `COIN${index}`,
+          timestamp: index,
+        })),
+      ]);
+
+      const result = getSearchHistory();
+      expect(result).toHaveLength(10);
+      expect(result[0]).toEqual({ symbol: 'COIN11', timestamp: 11 });
+      expect(result.some((item) => item.symbol === 'BAD')).toBe(false);
+
+      localStorageStore[STORAGE_KEY] = JSON.stringify({ symbol: 'BTC', timestamp: 1000 });
+      expect(getSearchHistory()).toEqual([]);
+    });
   });
 
   describe('saveSearchHistory', () => {

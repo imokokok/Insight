@@ -89,8 +89,11 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
         />
       )}
 
-      <div className="editorial-panel border-y border-slate-900/15 bg-white/35 overflow-hidden">
-        <div className="px-5 py-6 sm:px-6 sm:py-7 border-b border-slate-900/10">
+      <div className="query-result-record editorial-panel overflow-hidden border-y border-slate-900/15 bg-white/35">
+        <div className="query-result-hero border-b border-slate-900/10 px-5 py-7 sm:px-7 sm:py-9">
+          <span className="workbench-kicker mb-5 block">
+            Verified price observation / latest record
+          </span>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               <TokenIcon symbol={selectedSymbol} />
@@ -106,7 +109,7 @@ export function QueryResults({ onChainData }: QueryResultsProps) {
             </div>
 
             <div className="text-left sm:text-right">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 mb-1">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                 Observed consensus
               </p>
               <div className="flex items-baseline gap-3 sm:justify-end">

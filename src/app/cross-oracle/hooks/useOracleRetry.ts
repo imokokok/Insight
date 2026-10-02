@@ -94,7 +94,7 @@ export function useOracleRetry({
         return;
       }
 
-      setRetryingOracles((prev) => [...prev, provider]);
+      setRetryingOracles((prev) => (prev.includes(provider) ? prev : [...prev, provider]));
 
       const existingController = abortControllersRef.current.get(provider);
       if (existingController) {
@@ -150,8 +150,12 @@ export function useOracleRetry({
         };
         onErrorUpdate(provider, errorInfo);
       } finally {
-        abortControllersRef.current.delete(provider);
-        setRetryingOracles((prev) => prev.filter((o) => o !== provider));
+        // A newer retry may have replaced this controller while the aborted
+        // request was still settling. Only its owner may clear active state.
+        if (abortControllersRef.current.get(provider) === abortController) {
+          abortControllersRef.current.delete(provider);
+          setRetryingOracles((prev) => prev.filter((oracle) => oracle !== provider));
+        }
       }
     },
     [

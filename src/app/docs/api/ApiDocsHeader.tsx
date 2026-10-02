@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import { ArrowLeft, Download, ExternalLink, FileJson, Terminal } from 'lucide-react';
+import { ArrowLeft, BookOpen, Download, ExternalLink, Terminal } from 'lucide-react';
 
 interface HeaderButtonProps {
   href: string;
@@ -83,7 +83,7 @@ export function ApiDocsHeader() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 hidden sm:block">
-                OpenAPI 3.1 · 55 endpoints ·{' '}
+                OpenAPI 3.1 · Version 1 ·{' '}
                 <code className="text-blue-600 bg-blue-50 px-1 py-0.5 rounded">
                   www.oracleinsight.xyz/api/v1
                 </code>
@@ -98,14 +98,10 @@ export function ApiDocsHeader() {
               download="openapi.yaml"
               leftIcon={<Download className="w-3.5 h-3.5" />}
             >
-              YAML
+              Download YAML
             </HeaderButton>
-            <HeaderButton
-              href="/openapi.yaml"
-              download="openapi.json"
-              leftIcon={<FileJson className="w-3.5 h-3.5" />}
-            >
-              JSON
+            <HeaderButton href="/docs/sdk" leftIcon={<BookOpen className="w-3.5 h-3.5" />}>
+              Guard guide
             </HeaderButton>
             <HeaderButton
               href="/api"

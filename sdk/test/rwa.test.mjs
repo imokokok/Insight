@@ -50,6 +50,32 @@ test('typed client sends explicit input and policy to unsigned diagnostic endpoi
   });
   assert.deepEqual(await client.rwaAssessment(f.input, f.policy), diagnostic);
 });
+test('typed client rejects misleading or malformed RWA diagnostics', async () => {
+  const f = rwaFixture(sdk);
+  for (const data of [
+    {
+      mode: 'diagnostic',
+      mayAuthorizeExecution: true,
+      evidenceProvenance: 'caller-supplied-unverified',
+      report: {},
+    },
+    {
+      mode: 'diagnostic',
+      mayAuthorizeExecution: false,
+      evidenceProvenance: 'caller-supplied-unverified',
+      report: {},
+    },
+  ]) {
+    const client = new sdk.InsightClient({
+      apiKey: 'test',
+      fetch: async () => new Response(JSON.stringify({ success: true, data })),
+    });
+    await assert.rejects(
+      client.rwaAssessment(f.input, f.policy),
+      (error) => error.options?.code === 'INVALID_API_RESPONSE'
+    );
+  }
+});
 test('simulation signs and verifies, preserving independent evidence chains', async () => {
   const f = rwaFixture(sdk),
     r = await signRwaFixture(sdk, key, f);
