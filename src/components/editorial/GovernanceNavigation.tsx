@@ -102,3 +102,22 @@ export function GovernanceSectionNavigation({ current }: { current: GovernancePa
     </aside>
   );
 }
+
+export function GovernanceDocumentFooter({ current }: { current: GovernancePage }) {
+  const next =
+    records[(records.findIndex((record) => record.key === current) + 1) % records.length];
+
+  return (
+    <div className="legal-document-return governance-document-footer mt-12 border-t border-slate-200">
+      <Link href="/" className="governance-home-link">
+        <span>←</span> Back to home
+      </Link>
+      <Link href={next.href} className="governance-next-link">
+        <span>Continue reading / {next.number}</span>
+        <strong>
+          {next.label} <span aria-hidden="true">↗</span>
+        </strong>
+      </Link>
+    </div>
+  );
+}

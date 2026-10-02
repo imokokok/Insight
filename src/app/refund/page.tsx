@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { type Metadata } from 'next';
 
 import {
+  GovernanceDocumentFooter,
   GovernanceRecordNavigation,
   GovernanceSectionNavigation,
 } from '@/components/editorial/GovernanceNavigation';
@@ -124,14 +125,7 @@ export default function RefundPage() {
           </div>
         </div>
 
-        <div className="legal-document-return mt-12 pt-8 border-t border-slate-200">
-          <Link
-            href="/"
-            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-          >
-            ← Back to Home
-          </Link>
-        </div>
+        <GovernanceDocumentFooter current="refund" />
       </article>
     </div>
   );

@@ -6510,6 +6510,95 @@ h3,
   content: '';
 }
 
+.governance-document-footer {
+  display: grid;
+  grid-template-columns: 1fr minmax(14rem, 0.72fr);
+  align-items: stretch;
+}
+
+.governance-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 2rem 1.25rem 2rem 0;
+  color: #2558c8;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.governance-home-link span {
+  font-size: 1.15rem;
+  transition: transform 180ms ease;
+}
+
+.governance-home-link:hover span {
+  transform: translateX(-0.25rem);
+}
+
+.governance-next-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  border-left: 1px solid rgb(15 23 42 / 12%);
+  padding: 1.4rem 1.75rem;
+  color: #11233f;
+  transition:
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.governance-next-link > span {
+  color: #2558c8;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.governance-next-link strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.governance-next-link:hover {
+  background: rgb(37 88 200 / 7%);
+  color: #2558c8;
+}
+
+.governance-document-footer a:focus-visible {
+  outline: 2px solid #2558c8;
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .governance-document-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .governance-home-link {
+    padding: 1.5rem 0;
+  }
+
+  .governance-next-link {
+    border-top: 1px solid rgb(15 23 42 / 12%);
+    border-left: 0;
+    padding: 1.2rem 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .governance-home-link span,
+  .governance-next-link {
+    transition: none;
+  }
+}
+
 /* Individual oracle records retain the directory language and add audit depth. */
 .provider-record-workbench {
   background:
