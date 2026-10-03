@@ -1,500 +1,88 @@
 # Insight — Oracle Transparency & Risk Intelligence
 
-Insight makes **oracle data, its reliability, and the risks of relying on it** inspectable for DeFi protocols, operators, developers, and AI agents. It compares prices across **10 oracle providers and 40+ blockchain networks**, exposes deviation, freshness, source independence, and protocol impact, and turns those observations into explainable risk assessments and portable signed evidence when attestation signing is available.
+Insight helps DeFi applications, operators, developers, and AI agents inspect oracle prices and the risks of relying on them. It compares data from **10 oracle providers across 40+ blockchain networks**, evaluates deviation, freshness, source independence, and protocol impact, and can issue signed evidence of its assessments.
 
 ```text
 Oracle observations → Cross-source comparison → Risk assessment → Verifiable evidence
 ```
 
-Pre-Trade Safety Check applies that oracle intelligence to a proposed action. Oracle Watch monitors changing oracle conditions between actions. The API, MCP tools, Guard SDK, and local verifier make the same capabilities available to applications and agents. Insight works independently; it does not need PriorSeal to provide oracle transparency or risk assessment.
+**Pre-Trade Safety Check** assesses a proposed action. **Oracle Watch** monitors changing conditions between actions. The REST API, MCP server, [Guard SDK](sdk/README.md), and [independent verifier](verifier/README.md) make these capabilities available to applications and agents. Insight also works independently of [PriorSeal](https://github.com/imokokok/PriorSeal); see the [product positioning guide](docs/product-positioning.md) for the combined assessment, authorization, execution, and review workflow.
 
-For a combined workflow, Insight supplies the oracle assessment and supported price/fill evidence; [PriorSeal](https://github.com/imokokok/PriorSeal) connects a principal-signed authorization to observed EVM execution. Together they link **assessment → authorization → execution → independent review**, while retaining separate trust checks. See the [product positioning guide](docs/product-positioning.md).
+> Insight is **not a real-time oracle tracker**. Price snapshots and feed health are collected every 15 minutes, reputation scores are recalculated hourly, and data is aggregated into daily reports. Check each assessment's freshness and validity window before using it.
 
 ## Start here
 
-| Goal                                                                            | Guide                                                                                                              |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Assess a proposed trade without handing Insight transaction control             | [Agent Guard SDK](sdk/README.md#non-intervening-assessment-and-verification) (`oracle-insight-guard` 0.5.0 on npm) |
-| Verify an existing receipt with your own trusted key configuration              | [Independent verifier](verifier/README.md) (`verify-insight-receipt`)                                              |
-| Pair an Insight assessment with exact-call authorization and execution evidence | [PriorSeal example](https://github.com/imokokok/PriorSeal/tree/main/examples/web3-agent-kit-base-swap-v2)          |
-| Run the website and API locally                                                 | [Getting Started](#getting-started)                                                                                |
+| Goal                                               | Where to go                                                                                                                       |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Assess a trade from an application or agent        | [Guard SDK](sdk/README.md#non-intervening-assessment-and-verification) or [API reference](https://www.oracleinsight.xyz/docs/api) |
+| Verify a signed receipt with your own trusted keys | [Independent verifier](verifier/README.md) or [browser demo](https://www.oracleinsight.xyz/verify)                                |
+| Explore the product                                | [Website](https://www.oracleinsight.xyz) or [AI/MCP hub](https://www.oracleinsight.xyz/ai)                                        |
+| Run the website and API locally                    | [Local development](#local-development)                                                                                           |
 
-The repository's verifier source is at **0.3.1** and includes ExecutionReceipt v5 verification with an independently pinned semantic profile. Use the [verifier README](verifier/README.md) and the version you actually install to determine supported schemas. Insight assessment and PriorSeal authorization are usable independently.
+## What Insight provides
 
-**See the oracles behind the price. Understand the risk before relying on it.**
+### Pre-Trade Safety Check
 
-> Insight is **not** a real-time oracle tracker. Price snapshots and feed health are collected every 15 minutes; reputation scores are recalculated hourly. All data is aggregated into daily reports. The API quotas are sized to this cadence.
+Before a swap, borrow, lend, liquidation, or repayment, an application can request a cross-oracle assessment. The response combines price agreement, deviation, freshness, stablecoin peg status, reputation, and relevant protocol risk into a **PASS, CAUTION, DANGER, or BLOCK** verdict with a recommended maximum position size. Agents should not execute when the verdict is DANGER or BLOCK.
 
-## Table of Contents
+The verdict comes from deterministic rules; experimental ML scores provide additional context but do not drive it. Lending checks can freeze new borrowing when sustained oracle dispersion consumes the protocol's liquidation buffer. Successfully returned judgments are audit-logged before issuance; an audit-storage failure prevents a successful response.
 
-- [Start here](#start-here)
-- [The Flagship: Pre-Trade Oracle Safety Check](#the-flagship-pre-trade-oracle-safety-check)
-- [Agent Guard SDK](#agent-guard-sdk)
-- [Independent Receipt Verification](#independent-receipt-verification)
-- [Protocol Release Isolation](#protocol-release-isolation)
-- [Oracle Watch: Always-On Cross-Oracle Monitoring](#oracle-watch-always-on-cross-oracle-monitoring)
-- [Key Features](#key-features)
-- [Supported Oracles](#supported-oracles)
-- [Supported Protocols](#supported-protocols-safety-check)
-- [Technology Stack](#technology-stack)
-- [Getting Started](#getting-started)
-- [Project Structure](#project-structure)
-- [API Access](#api-access)
-- [AI Agent Integration (MCP Server)](#ai-agent-integration-mcp-server)
-- [Data Pipeline](#data-pipeline)
-- [Workspace-only RWA research](#workspace-only-rwa-research)
+When signing is configured, the check can include an EIP-712 attestation. A signature proves who issued the signed fields and whether they changed. It does **not** prove that the underlying prices were correct or that an agent obeyed the verdict. See the [verifier's supported schemas](verifier/README.md#supported-schemas) for version-specific verification requirements.
 
-## The Flagship: Pre-Trade Oracle Safety Check
+### Oracle Watch
 
-An application of Insight’s oracle transparency and risk intelligence. Before an agent (or human) executes an on-chain **swap / borrow / lend / liquidate / repay**, it calls one checkpoint that aggregates cross-oracle consensus prices, per-provider deviation, data freshness, stablecoin peg status, and reputation — and returns a single, machine-readable verdict:
+Oracle Watch gives a running strategy a cross-oracle **NORMAL, CAUTION, or DANGER** signal and a `proceed`, `proceed_with_caution`, or `halt` recommendation. Applications can poll it between trades and pause on `halt`. It checks deviation, agreement, stale or outlying feeds, coverage, and independent source groups; it can also issue signed receipts when an attester key is configured.
 
-> **PASS · CAUTION · DANGER · BLOCK** + a recommended maximum position size
+Historical coverage is guaranteed for **ETH, BTC, USDC, and USDT on Ethereum, Arbitrum, and Base**. Other pairs can return a current signal without a historical curve; check `meta.historyGuaranteed` rather than treating an empty series as evidence of no incidents. Use the [AI/MCP hub](https://www.oracleinsight.xyz/ai#oracle-watch) or `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` to explore the signal.
 
-Agents must not execute when the verdict is DANGER or BLOCK. Every successfully returned judgment is audit-logged before issuance, building the data flywheel for the ML risk model; an audit-storage failure prevents a successful response.
+### Explore oracle and protocol risk
 
-### How it decides — deterministic rule engine
+The web app also provides cross-oracle price comparison, feed health and reputation, position safety and liquidation analysis, Peg Risk for stablecoins and wrapped assets, and daily reports. Researchers can inspect source timestamps and export results; developers can use the corresponding API endpoints.
 
-| Signal                                    | What it catches                                                                                                                   |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Max provider deviation                    | One oracle diverging from consensus                                                                                               |
-| Cross-provider spread                     | Oracles disagreeing with each other                                                                                               |
-| Provider agreement                        | Consensus quality breaking down                                                                                                   |
-| Cadence-relative staleness                | A feed falling behind its own observed rhythm (soft CAUTION) — plus a 7-day absolute hard-block backstop for genuinely dead feeds |
-| Stablecoin depeg                          | Peg breakages contaminating lending markets                                                                                       |
-| **Protocol buffer consumption (lending)** | How much of a protocol's max-LTV liquidation buffer the current oracle dispersion already eats                                    |
+Integrated providers include Chainlink, API3, RedStone, DIA, WINkLink, Supra, Uniswap V3 TWAP, Reflector, Flare, and Band. Position safety supports selected Aave V3, Compound V3, Morpho Blue, Venus, and BENQI markets. Coverage varies by asset and chain, so confirm the available sources and protocol parameters for the position being assessed.
 
-**Lending freeze — the "decisive & actionable" layer.** When cross-oracle dispersion consumes **≥95% of a protocol's max-LTV liquidation buffer** _and_ the erosion is sustained (24h z-score elevated or 3h deviation velocity still rising), **new borrowing is frozen (BLOCK)**. One-tick volatility spikes are not frozen. Instead of only flagging risk, the check returns concrete actions: `freeze_borrow`, `wait_convergence`, `add_collateral`, `reduce_position`. Recommended borrow size shrinks in step with buffer consumption (floor 10%). Swap remains unaffected — a swap opens no liquidatable position.
+### SDK, API, MCP, and verifier
 
-### ML augmentation (experimental — never drives the verdict)
+- **[Guard SDK](sdk/README.md)** — TypeScript integration for assessment, monitoring, and supported execution-price evidence. `assessSwap()` supports an assessment-only workflow; optional helpers can gate transaction submission and request execution receipts. The SDK uses the Insight API and its credit wallet.
+- **[REST API](https://www.oracleinsight.xyz/docs/api)** — versioned `/api/v1/` endpoints for prices, risk, safety checks, and Oracle Watch. Metered calls use an `X-API-Key`; public receipt-verification endpoints do not require one. The [API reference](https://www.oracleinsight.xyz/docs/api) has request and response details.
+- **MCP server** — exposes the same services to compatible agents through stdio, HTTP, or the app's `/api/mcp` endpoint. See the [AI/MCP hub](https://www.oracleinsight.xyz/ai) for client configuration and tools.
+- **[Independent verifier](verifier/README.md)** — verifies receipt signatures and signed fields locally without depending on the Insight API. Consumers must independently establish trust in the attester key or key registry; successful signature verification is not an endorsement of a trade or verdict.
 
-- A **multi-horizon ML model** (1h + 6h) produces a manipulation risk score [0,1] that feeds the displayed risk level and audit log. The verdict itself is produced by the deterministic rule engine only.
-- **Unsupervised anomaly detection** (z-score + EWMA residual vs 24h baseline) catches novel manipulation the supervised model has never seen.
-- If no verified model is active, the score gracefully falls back to a hand-tuned rule-based formula — the check never depends on ML availability.
+REST, MCP, and SDK calls draw from the same API-key credit wallet. Plans add credit capacity rather than separate feature tiers. See [current pricing](https://www.oracleinsight.xyz/pricing) for plans and per-call costs.
 
-### Verifiable attestations
+## Local development
 
-When an attester key is configured, a check can carry a signed receipt. A reviewer can recompute the signature and signed fields locally, but must establish trust in the attester key independently. The public verify endpoint checks the signature against the published attester key, routes by the attestation's own schemaVersion, and at schema v3 both safety gates are recomputable from the bytes alone because both policy constants are inside the signed struct.
-
-When signing is configured, a check can carry an **EIP-712 offchain attestation** — portable, gasless, tamper-evident evidence of the oracle assessment Insight issued at time T. An application can preserve or reference that evidence in its execution workflow. A signature establishes the issuer and integrity of the signed fields; it does not prove that the underlying oracle prices were correct or that an agent enforced the assessment.
-
-- **v1** — 11-field attestation (default, backward compatible).
-- **v2** — 26-field attestation: CAIP-19 asset-pair binding, request hash, provider-observations hash, reason-codes hash, plus a **quorum gate** (≥3 participating providers) and an **independence gate** (≥2 distinct non-derived operator groups) that escalate to BLOCK. Unresolvable assets are signed with an explicit `unresolved:` marker rather than silently dropped.
-- **v3** — 27-field attestation: identical evidence to v2 plus **the independence threshold itself** (`requiredSourceGroupCount`). v2 signs `sourceGroupCount` without the number it is compared against, so a third party cannot tell whether the gate passed without reading this codebase. v3 puts both operands inside the signature, which makes the gate checkable from the bytes alone. Same gates, same verdict policy as v2.
-
-Anyone can verify a signature against the published attester address via `POST /api/v1/safety/attestation/verify` (public, no API key). The feature is disabled (non-breaking) when no signer key is configured. v1/v2/v3 coexist; the endpoint routes by the attestation's own `schemaVersion` and publishes all three type layouts from `GET` (`latestSchemaVersion` is 3).
-
-## Agent Guard SDK
-
-[![oracle-insight-guard npm version](https://img.shields.io/npm/v/oracle-insight-guard?label=npm)](https://www.npmjs.com/package/oracle-insight-guard)
-
-The publishable TypeScript package in [`sdk/`](./sdk) brings oracle assessment, monitoring, and supported execution-price evidence into an application’s workflow. It offers assessment-only APIs and an optional gated execution helper:
-
-```text
-two-sided Pre-Trade gate → transaction submission → VERIFIED Execution Receipt
-                ↑
-        Oracle Watch can halt the strategy between trades
-```
-
-`oracle-insight-guard` does not embed a copy of Insight's rules or signing keys. It calls the existing API with the integrator's API key, so risk decisions, EIP-712 attestations, audit logs, and C3/C4 credit metering stay server-side and authoritative. `executeSwap()` does not call the supplied transaction submitter when either pre-trade result is `DANGER` or `BLOCK`; when both signed v2/v3 proofs are available, it sends them with the transaction hash to issue a `VERIFIED` execution receipt.
-
-For agents that also use PriorSeal, the recommended non-intervening flow is
-`assessSwap()` → external agent decision/execution →
-`verifyAssessedSwapExecution()`. `authorizeAssessedSwap()` optionally binds the
-assessment to a principal-authorized exact call without broadcasting it. The
-derived joint report records complete, partial, pending, mismatched and
-against-recommendation outcomes without becoming a third attestation.
-
-`assessSwap()` is also the cost-controlled assessment-only mode: it makes two C3
-Pre-Trade calls (**10 credits** at the current 5-credit C3 price) and makes no C4
-call. Its `receiptDraft` is an unsigned template, not an issued receipt. A C4
-charge occurs only if the caller later requests execution evidence through
-`verifyAssessedSwapExecution()` or uses the one-shot `executeSwap()` workflow.
-Skipping C4 does not skip the separate principal exact-call authorization that
-should gate any signing path.
-
-`executeSwapWithPriorSeal()` remains available as an optional gated convenience
-wrapper. The signed PriorSeal intent commits to both Insight pre-trade
-attestation UIDs, both request hashes and the slippage ceiling. Insight continues
-to attest quote/fill/slippage semantics; PriorSeal independently proves that the
-exact call and those external proof references were principal-authorized.
-
-### Integration surfaces and billing
-
-These are distinct ways to integrate Insight, not separate wallets or feature tiers:
-
-| Surface       | Best for                                                                   | Credit behavior                                                                                                                                                                                                                           |
-| ------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **REST API**  | Custom applications that need individual data, analysis, or risk endpoints | Each successful endpoint call draws its C1–C4 cost from the API key's wallet.                                                                                                                                                             |
-| **AI / MCP**  | Claude, Cursor, Windsurf, and other MCP-compatible agents                  | Each successful tool call draws the equivalent C1–C4 cost from the same wallet.                                                                                                                                                           |
-| **Guard SDK** | Agents that should assess, gate, execute, monitor, and retain proof        | No separate SDK fee. `assessSwap()` uses two C3 calls and no C4 (**10 credits** at current prices). A successful two-sided `executeSwap()` uses two C3 calls plus one C4 receipt call (**20 credits**), excluding optional Watch polling. |
-
-Oracle Watch polling is a C3 call per signal. Plans and prepaid top-ups only add credit capacity; every paying user can use every surface. See [Pricing](https://www.oracleinsight.xyz/pricing) for the current wallet and plan details.
-
-```bash
-npm install oracle-insight-guard
-```
-
-See [`sdk/README.md`](./sdk/README.md) for the package API, or visit [`/sdk`](https://www.oracleinsight.xyz/sdk) and [`/docs/sdk`](https://www.oracleinsight.xyz/docs/sdk) for the product overview and integration guide.
-
-## Independent Receipt Verification
-
-For integrations that should not depend on Insight being online, the repository also ships a standalone verifier package in [`verifier/`](./verifier/). It can be published or copied into a separate consumer repository without importing the Next.js app.
-
-**Live in-browser verifier —** the deployed site hosts a demo at [`/verify`](https://www.oracleinsight.xyz/verify). It fetches a public sample receipt and the published `/.well-known/oracle-keys.json` registry, then recomputes the EIP-712 signature in your browser with `verify-insight-receipt`. The demo needs network access to obtain those inputs. For an independent trust decision, confirm the key registry through a source you trust; fetching a registry from the same site as the receipt alone does not establish key provenance.
-
-**Published to npm:** [`verify-insight-receipt`](https://www.npmjs.com/package/verify-insight-receipt)
-[![verify-insight-receipt npm version](https://img.shields.io/npm/v/verify-insight-receipt?label=npm)](https://www.npmjs.com/package/verify-insight-receipt).
-
-```bash
-# Published package (recommended)
-npm install verify-insight-receipt
-
-# Or from a checkout of this repository
-npm install ./verifier
-```
-
-```ts
-import { verifyReceipt } from 'verify-insight-receipt';
-
-const result = await verifyReceipt(receipt, { keyRegistry });
-if (result.code !== 'ok') {
-  throw new Error(`Receipt failed: ${result.code}`);
-}
-```
-
-`verifyReceipt()` performs EIP-712 verification locally with no API key, database, environment variable, or default network call. Pass an independently confirmed key registry when the consumer also wants attester key-window status. Verification is not endorsement: a valid receipt proves that the signed bytes were issued by the listed signer and were not modified; it does not prove that the signer is trustworthy or that the underlying trade or verdict was correct.
-
-If a consumer explicitly wants to share anonymous verification outcomes, `reportVerification()` is a separate opt-in API. Insight does not use client-side verification calls as its primary usage metric. The reliable product metric is **evidence utilization**: the share of issued attestation UIDs that later appear as `execution_receipts.pre_trade_uid`. The read-only report script is [`verifier/scripts/evidence-utilization.mjs`](./verifier/scripts/evidence-utilization.mjs).
-
-The 0.3.1 verifier source supports pre-trade v1–v3 and ExecutionReceipt v1–v5; v5 requires an independently pinned semantic profile. Earlier 0.2.x packages support ExecutionReceipt v1–v4. Check the [verifier README](verifier/README.md#supported-schemas) and the version you actually install. Schema constants are guarded against production drift by `src/lib/attestations/__tests__/verifierParity.test.ts`.
-
-**VRT1 (§8.6)** — Insight's OracleSafetyCheck is listed as a vendor action type in the VRT1 specification, as a pointer to our machine-readable scale declaration: https://github.com/Ifasola34/vrt1-spec/blob/main/registry/vendor-action-types.json. The declaration pins the per-field integer scale and both policy constants (`requiredParticipantCount`, `requiredSourceGroupCount`); at schema v3 both constants are also inside the signed struct, so the gates are checkable from the bytes alone. Listing records that the type exists, where its declaration is, and what those bytes hashed to. It is not an endorsement of Insight's verdicts, and it does not describe Insight's default traffic: schema v1 (11 fields, no gates) remains the service default and v3 is opt-in.
-
-### Access
-
-- **MCP tool** — `pre_trade_safety_check` (one of 40 tools).
-- **REST** — `GET /api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=100000`.
-- **Web** — interactive demo at `/ai`; the same lending check is embedded live on every position at `/safety-check`.
-
-## Protocol Release Isolation
-
-ExecutionReceipt v5 signs a content-addressed `profileId` alongside the receipt.
-That immutable profile fixes the commitment, sentinel, scale and verdict rules;
-`schemaVersion` continues to identify only the EIP-712 field layout. The public
-registry also exposes `registryRevision`, `effectiveFrom`, a small current
-pointer and immutable release/profile URLs. All partner code can coexist on
-`main`: independently activated, content-addressed partner policies ensure that
-one collaboration cannot silently advance another collaboration's path.
-Partner production verification uses `/api/v1/partners/{partnerId}/...` and
-requires the exact active immutable `policyId` on every request; the generic
-verification URLs remain public/historical surfaces. Production deployment is
-also gated: Vercel Git auto-deploy is disabled and the deploy hook runs only
-after the same `main` commit passes full validation and browser smoke. See
-[the oracle registry release policy](./docs/oracle-registry-release-policy.md).
-The end-to-end workflow is documented in
-[main-only partner isolation](./docs/mainline-partner-isolation.md).
-
-## Oracle Watch: Always-On Cross-Oracle Monitoring
-
-The always-on companion to Pre-Trade. Pre-trade answers "can I trade this price right now?" for a single moment; Oracle Watch answers "can my strategy keep depending on this feed?" with a consolidated cross-oracle risk signal any application or agent can poll and gate on — no trade required.
-
-> **NORMAL · CAUTION · DANGER** + a `proceed` / `proceed_with_caution` / `halt` recommendation
-
-Agents running long-lived strategies (yield bots, keepers, portfolio managers) should poll the signal on a schedule and **pause when the verdict turns DANGER**. It is the counterpart to the one-off pre-trade checkpoint for the between-trades window.
-
-### How it decides
-
-Oracle Watch condenses the same underlying consensus data into one verdict using **the same severity thresholds as Pre-Trade** (max deviation: caution 1.0% / danger 3.0%; agreement: caution 0.95 / danger 0.85), so both surfaces speak one consistent risk language:
-
-| Signal                      | NORMAL | CAUTION                   | DANGER                                                                  |
-| --------------------------- | ------ | ------------------------- | ----------------------------------------------------------------------- |
-| Max cross-oracle deviation  | < 1.0% | 1.0% – 3.0%               | ≥ 3.0%                                                                  |
-| Cross-provider agreement    | ≥ 0.95 | 0.85 – 0.95               | < 0.85                                                                  |
-| Outliers / staleness        | none   | any outlier or stale feed | — (escalated by deviation/agreement)                                    |
-| Independent operator groups | ≥ 2    | —                         | < 2 (`insufficient_oracle_independence`)                                |
-| No cross-oracle coverage    | —      | —                         | `DANGER` / `halt` (`no_cross_oracle_coverage`) — degrades, never errors |
-
-**Independence is not the same as headcount.** Three responses can come from one
-operator — three white-labelled wrappers of Chainlink, or two real sources plus a
-TWAP — and still satisfy a quorum of 3 while describing a single point of
-failure. The independence gate counts _distinct non-derived operator groups_
-(`sourceGroupCount`); TWAP feeds the consensus and the quorum count but never the
-independence count. It is the same gate Pre-Trade has enforced since v2.1.
-
-### Reason codes
-
-A single `reason` string can only name the dominant cause, so every response also
-carries `reasonCodes` — the full set of conditions that fired. That is what makes
-a "pause when DANGER" policy explainable after the fact:
-
-`NO_COVERAGE` · `INSUFFICIENT_QUORUM` · `INSUFFICIENT_INDEPENDENCE` ·
-`MAX_DEVIATION` · `LOW_AGREEMENT` · `OUTLIER_PRESENT` · `STALE_DATA` ·
-`ML_FORWARD_RISK_HIGH`
-
-v2 receipts sign `reasonCodesHash` alongside them, so the diagnosis travels with
-the proof instead of living only in a log.
-
-### Access
-
-- **MCP tools** — `oracle_watch` (current point signal) and `oracle_watch_history`
-  (retrospective trend), two of 40. Pair them with `pre_trade_safety_check` for
-  the decision moment.
-- **REST** — `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` and
-  `GET /api/v1/oracle-watch/history?symbol=ETH&chain=arbitrum&days=7`. Every
-  paying key gets the full 90-day window; long windows roll up hourly or daily
-  in Postgres so responses remain complete and bounded.
-- **Web** — interactive demo with MCP + REST calling methods at `/ai#oracle-watch`.
-
-### History coverage — what we promise
-
-Oracle Watch is positioned as always-on, but "always-on" cannot mean "every pair
-has a retrospective curve". Collection costs one full cross-oracle evaluation per
-pair every 30 minutes, so we publish a narrow promise and keep it:
-
-> **History is guaranteed for ETH / BTC / USDC / USDT on Ethereum, Arbitrum and
-> Base.** Every other pair still returns a live point signal from `oracle_watch`,
-> but no curve.
-
-An out-of-universe pair returns an empty `series` plus
-`meta.historyGuaranteed: false` — never a silent empty array, which a dependent
-agent would otherwise read as "no incidents".
-
-### Per-issuance audit log
-
-Every judgment actually returned to a caller — receipt or not — is recorded in
-`oracle_watch_checks` (uid, symbol, chain, verdict, recommendation, reason codes,
-both gate counts with their thresholds, validity window, issuing surface). That
-is what lets us answer "which receipt did this agent gate on" after the fact.
-The write is confirmed before a successful response. If audit storage is
-unavailable, the check fails closed rather than issuing an unaccounted signal.
-
-### Signed Watch attestations (EIP-712)
-
-Every Watch signal can carry a signed `OracleWatchCheck` receipt — the always-on
-counterpart to the pre-trade attestation. It uses the same attester key and the
-same evidence-binding primitives, so one verifier handles both surfaces. Pass
-`?attest=false` to skip it.
-
-New receipts are **v2 — 26 signed fields**: verdict, recommendation, trust
-score/level, consensus price, deviation, agreement, participant count, outlier/
-stale counts, ML risk, reputation, `providerObservationsHash`, `requestHash`,
-evaluatedAt, validUntil, plus:
-
-- **The quorum threshold** — `requiredParticipantCount` next to the
-  `participantCount` it gates.
-- **The independence gate** — `sourceGroupCount`, `requiredSourceGroupCount` and
-  `independenceSatisfied`. Without them a holder cannot tell whether "quorum
-  satisfied" means three independent operators or three wrappers of one.
-- **`reasonCodesHash`** — binds the composable reason-code set above.
-
-Every threshold is signed next to the value it judges, so a receipt is
-self-contained: a holder can re-derive the verdict without Insight's source code.
-
-- **v1 stays verifiable** — its 22-field layout is frozen rather than rewritten,
-  so receipts already in counterparties' hands keep validating. Both layouts are
-  published in `.well-known/oracle-keys.json`, which also carries Watch's own
-  `verify` / `sample` pointers.
-- **Sample** — `GET /api/v1/oracle-watch/attestation/sample?symbol=ETH`.
-- **Verify** — `POST /api/v1/oracle-watch/attestation/verify` with `{ "attestation": <receipt> }`.
-  Public and unauthenticated; anyone holding a receipt can check it.
-
-Signing is additive: if no attester key is configured the field is `null` and the
-signal itself is unchanged.
-
-## Key Features
-
-### For DeFi Users
-
-- **Safety Check** — enter a lending position to get the exact oracle price deviation that would trigger liquidation, health factor gauge, safety buffer analysis, and per-asset bidirectional deviation — now with the pre-trade lending check (buffer-consumption bar + recommended actions) right on the position page.
-- **Peg Risk** — one shared view at `/peg-risk` for stablecoins, wrapped assets, and liquid-staking tokens. Switch between all assets, stablecoins, and wrapped/LST categories; compare oracle and market-source deviation, depeg duration, on-chain LST exchange rates, and affected protocol exposure without leaving the page. The former `/stablecoin-depeg` and `/wrapped-assets` URLs redirect here with the matching category selected.
-- **Price Query** — query any provider with on-chain data, confidence intervals, and freshness at a glance.
-
-### For Researchers & Analysts
-
-- **Price Insight** — unified cross-oracle / cross-chain analysis with 4 consensus algorithms, risk analysis, divergence signal detection, and feed health tracking.
-- **Oracle Reputation System** — persistent 7-day rolling scores (accuracy, uptime, reliability, latency, freshness) with provider profiles and trend charts.
-- **Daily Reports** — aggregated oracle market snapshots with consensus prices, provider rankings, unified Peg Risk summaries, and risk highlights.
-
-### For AI Agents
-
-- **Pre-Trade Oracle Safety Check** — the flagship checkpoint described above.
-- **40-tool MCP server** — prices, consensus, risk, reputation, Peg Risk across stablecoins and wrapped/LST assets, RWA diagnostics, issuer context and MIC/FIGI identity, protocol parameters, position safety, pre-trade checks — callable by Claude, Cursor, Windsurf, and any MCP-compatible client.
-- **Verifiable attestations** — signed EIP-712 proof agents can relay to users and protocols, with a standalone local verifier for consumers that need independent verification.
-
-### Shared
-
-- **Data Export** — CSV, JSON, Excel, PDF, PNG.
-- **Consensus Price** — median, trimmed mean, weighted median, IQR-filtered.
-- **Data Transparency** — source indicators and update-time tracking.
-- **Accessibility** — keyboard navigation, colorblind mode, screen reader support.
-
-## Supported Oracles
-
-| Provider  | Type            | Supported Chains                                                                                                                  |
-| --------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Chainlink | On-chain        | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, BNB Chain, Base                                                                 |
-| API3      | On-chain dAPIs  | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base, Optimism                                                                 |
-| RedStone  | API / On-chain  | Ethereum, Arbitrum, Optimism, Polygon, Avalanche, Base, BNB Chain, Fantom, Linea, Mantle, Scroll, zkSync                          |
-| DIA       | API / On-chain  | Ethereum, Arbitrum, Polygon, Avalanche, BNB Chain, Base                                                                           |
-| WINkLink  | On-chain        | TRON                                                                                                                              |
-| Supra     | API / On-chain  | Ethereum, Arbitrum, Optimism, Polygon, Base, Solana, BNB Chain, Avalanche, zkSync, Scroll, Mantle, Linea, Supra Chain, Aptos, Sui |
-| TWAP      | On-chain (DEX)  | Ethereum, Arbitrum, Optimism, Polygon, Base, BNB Chain (Uniswap V3 TWAP)                                                          |
-| Reflector | On-chain        | Stellar (Soroban)                                                                                                                 |
-| Flare     | On-chain        | Flare (FTSO)                                                                                                                      |
-| Band      | BandChain / API | BandChain v3 Concurrent Price Stream                                                                                              |
-
-Band reads use the public v3 `feeds/v1beta1` endpoints, preserve BandChain's
-source timestamp, and fail closed when the status is unavailable or the value or
-timestamp is invalid. Source age flows through Insight's existing freshness,
-consensus and coverage checks; signed strict coverage remains capped at 300
-seconds.
-
-## Supported Protocols (Safety Check)
-
-| Protocol       | Chain     | TVL   | Supported Assets                                 |
-| -------------- | --------- | ----- | ------------------------------------------------ |
-| Aave V3        | Ethereum  | $12B  | ETH, WBTC, tBTC, USDC, USDT, LINK                |
-| Compound V3    | Ethereum  | $2.5B | ETH, WBTC, USDC, USDT                            |
-| Morpho Blue    | Ethereum  | $8B   | ETH, WBTC, tBTC, wstETH, USDC, USDT, DAI         |
-| Aave V3        | Arbitrum  | $3B   | ETH, WBTC, cbBTC, tBTC, USDC, USDT, ARB          |
-| Compound V3    | Arbitrum  | $800M | ETH, WBTC, USDC, USDT                            |
-| Aave V3        | Optimism  | $1.8B | ETH, WBTC, USDC, USDT, DAI, wstETH, OP           |
-| Aave V3        | Polygon   | $1.2B | ETH, WBTC, USDC, USDT, DAI, wstETH, MATIC        |
-| Aave V3        | Base      | $2B   | ETH, WBTC, cbBTC, tBTC, USDC, USDT, cbETH        |
-| Compound V3    | Base      | $1B   | ETH, WBTC, USDC, USDT                            |
-| Morpho Blue    | Base      | $5B   | ETH, WBTC, cbBTC, cbETH, wstETH, USDC, USDT, DAI |
-| Venus Protocol | BNB Chain | $1.7B | BNB, BTCB, ETH, USDT, USDC                       |
-| BENQI          | Avalanche | $500M | AVAX, WETH, BTC.b, WBTC, USDC, USDt, DAI, LINK   |
-
-The safety check calculates critical deviation percentage, liquidation trigger price, health factor (circular gauge), safety buffer level (safe / moderate / risky / dangerous), per-asset bidirectional deviation analysis, collateral ratio curve, and oracle reliability warnings. Per-asset deviation bounds are derived from each protocol's own liquidation-threshold parameters — the same values power the pre-trade lending freeze.
-
-## Technology Stack
-
-- **Framework**: Next.js 16 (App Router) + React 19 + TypeScript 5
-- **Styling**: Tailwind CSS 4
-- **State Management**: React Query 5, Zustand 5
-- **Charts**: Recharts 3
-- **Database & Auth**: Supabase (PostgreSQL + RLS + pg_cron)
-- **Blockchain**: viem 2, @api3/contracts, supra-oracle-sdk, @stellar/stellar-sdk
-- **AI Agent Layer**: @modelcontextprotocol/sdk 1.x (stdio + HTTP transports)
-- **Billing**: NOWPayments — USDC-denominated subscriptions, prepaid credit packs, and per-call credit-wallet metering
-- **Validation**: zod 4
-- **Error Tracking**: Sentry
-- **Observability**: Vercel Analytics, Vercel Speed Insights
-
-## Getting Started
+Requires Node.js 22 or later. From the repository root:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Set up environment variables first (see `src/lib/config/serverEnv.ts` for the full reference). Required in production: Supabase URL + anon key + service-role key, `CSRF_SECRET`, `JWT_SECRET`. In non-production, missing secrets fall back to safe dev defaults so the app runs without a full env setup. Optional: Sentry DSN, NOWPayments billing keys (checkout is unavailable when unset), per-chain `ALCHEMY_<CHAIN>_RPC` endpoints, TRON / WINkLink access, and `ATTESTATION_SIGNER_PRIVATE_KEY` to enable signed pre-trade attestations.
+See [`.env.local.example`](.env.local.example) and [`src/lib/config/serverEnv.ts`](src/lib/config/serverEnv.ts) for environment configuration. Development can run with safe defaults for missing secrets; production requires Supabase credentials, `CSRF_SECRET`, and `JWT_SECRET`. Signed pre-trade attestations require `ATTESTATION_SIGNER_PRIVATE_KEY`.
 
-## Project Structure
-
-```
-src/
-├── app/          # Next.js App Router — pages + API routes (/api/v1, /api/mcp)
-├── components/   # React UI components (incl. shared safety/ LendingSafetyPanel)
-├── hooks/        # React hooks
-├── lib/          # Core logic — analytics, api, attestations, billing, ml, oracles,
-│                 #   protocols, risk, stablecoins, supabase, ...
-├── mcp/          # MCP server implementation (stdio + http transports, 40 tools)
-├── providers/    # React context providers
-├── stores/       # Zustand state stores
-├── types/        # TypeScript type definitions
-└── __mocks__/    # Jest mocks
-```
-
-Database migrations and Supabase config live under `supabase/`; the [SQL inventory and execution order](docs/operations/sql-inventory.md) lists every maintained SQL file. The ML training pipeline lives under `ml/` (`ml/train.py`, models output to `ml/models/`). Standalone TypeScript runners for scheduled jobs live under `scripts/`.
-
-## API Access
-
-Insight exposes a versioned REST API (`/api/v1/`) authenticated with `X-API-Key` (created from the Settings page; plaintext shown once, stored as SHA-256 hash). The full interactive reference (OpenAPI 3.1, live "Try It Out", code snippets) is at **`/docs/api`**.
-
-### Access & Billing
-
-Access is gated by a **credit wallet**, not plan tiers. There is **no recurring
-free tier and no feature gating** — every paying user gets every endpoint and
-MCP tool. A call is allowed iff the key's credit balance covers its metering
-class cost.
-
-| Component             | Description                                                                                                                                                                                                                                                                        |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Trial**             | New users get **100 one-time trial credits** after email verification (`POST /api/billing/signup-grant`). It never refreshes and never re-issues.                                                                                                                                  |
-| **Subscriptions**     | **Developer** ($49/mo → 60,000 credits/mo, 60 req/min), **Team** ($199/mo → 300,000 credits/mo, 300 req/min), and **Scale** ($499/mo → 1,000,000 credits/mo, 1,200 req/min). Yearly = 10× monthly. **Enterprise** is contact-sales unlimited. Features are identical across plans. |
-| **Credit packs**      | Prepaid top-ups, no subscription required: **Starter** (25,000 cr / $39), **Builder** (100,000 cr / $129), **Agent** (500,000 cr / $499).                                                                                                                                          |
-| **Per-call metering** | Every call is charged from the wallet by metering class C1–C4 (see `src/lib/billing/metering.ts`).                                                                                                                                                                                 |
-
-All paying users get the full 90-day history/reputation window. Payments are
-crypto-only via NOWPayments (USDC-denominated); subscriptions run one billing
-cycle with no auto-renewal. The public website (prices, protocols, rankings)
-stays free to browse — only API-key calls are metered.
-
-### Plans
-
-| Plan       | Rate limit    | Included credits/mo | Per-call metering        | Price         |
-| ---------- | ------------- | ------------------- | ------------------------ | ------------- |
-| Developer  | 60 req/min    | 60,000              | C1–C4 (0.5 / 2 / 5 / 10) | $49/mo        |
-| Team       | 300 req/min   | 300,000             | C1–C4 (0.5 / 2 / 5 / 10) | $199/mo       |
-| Scale      | 1,200 req/min | 1,000,000           | C1–C4 (0.5 / 2 / 5 / 10) | $499/mo       |
-| Enterprise | Unlimited     | Unlimited           | —                        | Contact sales |
-
-Credits are stored in `credit_wallet` / `credit_ledger` (migration `0039`).
-The monthly allowance is credited on subscription activation and at each cycle
-(billing cron). Additional credits can be bought as prepaid packs from Settings
-→ Billing or the pricing page.
-
-See `src/lib/billing/plans.ts` for the single source of truth.
-
-Key endpoint groups (all under `/api/v1/`): `prices*`, `reputation*`, `feeds*`, `deviation`, `correlation`, `latency`, `anomalies`, `signals`, `safety/*` (position, liquidation, pre-trade, attestation/verify), `oracle-watch`, `rwa/assessment`, `rwa/robinhood/context`, `rwa/robinhood/instrument`, `stablecoins/depeg`, `wrapped-assets/peg`, `protocols*`, `cross-chain/spreads`, `incidents`, `coverage`, `reports/daily/[date]`, `hourly-snapshots`, `price-snapshots`, `symbols`, `oracles/health`, `metrics`, `health`. Peg Risk combines the two peg endpoint families in the web product while keeping their API contracts separate and backward compatible.
-
-## AI Agent Integration (MCP Server)
-
-Insight exposes its oracle and risk capabilities as an [MCP (Model Context Protocol)](https://modelcontextprotocol.io) server — **40 tools** covering prices, consensus, risk summaries, liquidation stress tests, Peg Risk across stablecoins and wrapped/LST assets, RWA diagnostics, issuer context and MIC/FIGI identity, reputation, feed health, and protocol parameters, with the flagship `pre_trade_safety_check` and the always-on `oracle_watch` signal on top. The MCP layer is a thin adapter over the same `/api/v1/*` services — no duplicated business logic.
-
-Quick start:
+To run the MCP server separately:
 
 ```bash
-npm run mcp:stdio   # stdio transport for local agents
-npm run mcp:http    # HTTP transport on http://127.0.0.1:3001/mcp
+npm run mcp:stdio   # local stdio transport
+npm run mcp:http    # HTTP transport at http://127.0.0.1:3001/mcp
 ```
 
-When the Next.js app is running, the endpoint is also available at `/api/mcp` with the same authentication, rate limiting, and quota enforcement as the REST API.
+The application is built with Next.js, React, TypeScript, Tailwind CSS, and Supabase. App routes and API handlers live in `src/app/`; core oracle, risk, attestation, and billing logic lives in `src/lib/`; MCP code lives in `src/mcp/`. Database migrations are under `supabase/`.
 
-**Web hub — visit `/ai`** in the app to run the interactive pre-trade safety demo and the Oracle Watch demo, copy one-click MCP configs for Cursor / Windsurf / Claude Desktop, manage API keys, and test all 40 tools in the browser-based MCP Playground.
+## Documentation
 
-## Data Pipeline
+| Topic                                        | Details                                                                                                                                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product scope and PriorSeal relationship     | [Product positioning](docs/product-positioning.md) and [Guard SDK](sdk/README.md)                                                                                                                 |
+| Receipt schemas and independent verification | [Verifier README](verifier/README.md) and [registry release policy](docs/oracle-registry-release-policy.md)                                                                                       |
+| Partner protocol and release isolation       | [Mainline partner isolation](docs/mainline-partner-isolation.md) and [protocol README](protocol/mainline/README.md)                                                                               |
+| Operations and data collection               | [Production readiness](docs/operations/production-readiness.md), [cron dispatcher](docs/operations/cron-dispatcher.md), and [integration reliability](docs/operations/integration-reliability.md) |
+| Database changes                             | [SQL inventory and execution order](docs/operations/sql-inventory.md)                                                                                                                             |
+| Experimental RWA work                        | [RWA v1](docs/rwa-v1.md), [RWA v2](docs/rwa-v2.md), and [instrument registry](docs/rwa-instrument-registry.md)                                                                                    |
 
-Supabase `pg_cron` is the reliable clock for the seven product-critical jobs. It
-uses `pg_net` plus a repository-scoped token in Vault to dispatch dependency-free
-GitHub Actions runners; GitHub performs the network/compute-heavy work and writes
-results directly to Supabase, so Vercel spends no background Active CPU. Guarded
-native GitHub schedules remain as stale-ledger fallbacks. Supporting jobs — feed
-discovery, feed reactivation, protocol TVL / risk-params sync, ML retraining, and
-billing lifecycle — remain low-frequency GitHub schedules. The authenticated
-`/api/cron/*` routes are manual recovery paths. Fine-grained, hourly, and market
-reference snapshots are retained for 120 days, preserving the advertised 90-day
-history window and the eight-week ML lookback.
+RWA/tokenized-equity adaptations remain opt-in research; no production RWA signer or authorization policy is activated. The optional [Robinhood Stock Token issuer context](docs/rwa-robinhood.md) is read-only and does not count as an independent oracle source.
 
-Deployment and rollback instructions live in
-[`docs/operations/cron-dispatcher.md`](docs/operations/cron-dispatcher.md). The
-service objectives, monitoring, backups, release checks, load testing, incident
-response, and application rollback process are in
-[`docs/operations/production-readiness.md`](docs/operations/production-readiness.md).
+## License
 
-## Integration reliability
-
-See the [integration and recovery runbook](docs/operations/integration-reliability.md) for the integration doctor, durable Watch state, billing reconciliation and source-latency diagnostics.
-
-## Workspace-only RWA research
-
-[Unreleased, opt-in RWA/tokenized-equity adaptation](docs/rwa-v1.md) supplements
-the existing Agent/DeFi capabilities; no production RWA signer or authorization policy is
-activated. The optional [Robinhood Stock Token issuer context](docs/rwa-robinhood.md) is a live,
-read-only first-party data surface and is explicitly excluded from independent oracle quorum.
-The [MIC/FIGI instrument registry](docs/rwa-instrument-registry.md) adds pinned, fail-closed RWA
-identity admission without changing the signed protocol or treating master data as a price source.
-The [RWA v2 hardening](docs/rwa-v2.md) adds linked semantic assessments and receiver
-eligibility while preserving the v1 signing contract.
+See [LICENSE](LICENSE).
