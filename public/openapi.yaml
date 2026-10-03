@@ -1859,6 +1859,77 @@ paths:
               schema:
                 $ref: '#/components/schemas/DepegResponse'
 
+  /testing/scenarios:
+    get:
+      operationId: listOracleTestingScenarios
+      tags: [Testing]
+      summary: List built-in oracle scenario fixtures
+      description: Replayable mechanism reconstructions of publicly documented oracle failures plus labeled synthetic scenarios, each with provenance.
+      security: []
+      responses:
+        '200': { description: Scenario catalog with incident provenance }
+
+  /testing/runs:
+    get:
+      operationId: getOracleTestingHarnessMeta
+      tags: [Testing]
+      summary: Get oracle testing harness metadata
+      security: []
+      responses:
+        '200':
+          { description: Harness version, scenario kinds, and expected detection codes per kind }
+    post:
+      operationId: runOracleScenario
+      tags: [Testing]
+      summary: Replay an oracle scenario against the detection policy
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scenarioId: { type: string, description: Id of a built-in fixture scenario }
+                scenario:
+                  {
+                    type: object,
+                    additionalProperties: true,
+                    description: Inline OracleScenario (validated server-side),
+                  }
+      responses:
+        '200':
+          {
+            description: Deterministic run result plus a signed test attestation when an attester key is configured,
+          }
+        '400': { description: Inline scenario failed validation }
+        '404': { description: Unknown scenarioId }
+
+  /testing/attestations/verify:
+    get:
+      operationId: getOracleTestAttestationSchema
+      tags: [Testing]
+      summary: Get Oracle Test attestation schema and attester identity
+      security: []
+      responses:
+        '200': { description: Attester identity and the frozen OracleScenarioRun EIP-712 schema }
+    post:
+      operationId: verifyOracleTestAttestation
+      tags: [Testing]
+      summary: Verify an Oracle Test attestation
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [attestation]
+              properties:
+                attestation: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result }
+
   /wrapped-assets/peg:
     get:
       operationId: getWrappedAssetPeg
