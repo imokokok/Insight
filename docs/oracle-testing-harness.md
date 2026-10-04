@@ -12,7 +12,7 @@ replayable scenarios, and every run can produce a verifiable receipt.
   the price the protocol would settle against, evaluated against an explicit
   policy (max staleness, max cross-source deviation, min sources).
 - **Engine** (`engine.ts`): fully deterministic. Emits `STALE_DATA`,
-  `MAX_DEVIATION`, `INSUFFICIENT_QUORUM`, `ANOMALY_ELEVATED` (reusing the
+  `MAX_DEVIATION`, `INSUFFICIENT_QUORUM`, `INSUFFICIENT_INDEPENDENCE`, `ANOMALY_ELEVATED` (reusing the
   unsupervised detector from `src/lib/anomaly`) and `PRECISION_DRIFT`
   (cumulative sub-threshold drift). Verdicts: `caught` / `partial` / `missed`,
   with baseline false positives reported separately.
@@ -61,11 +61,15 @@ partner.
 `replay-check` is a **consistency gate, not attack coverage**. Replaying
 observed data can only show that a healthy feed looks healthy; only the
 injected-failure fixtures can speak to attack detection, and they say nothing
-about a real market. Two known modelling gaps are documented in
-`scripts/oracle-testing/watchReplayPolicy.mts`: the harness has no
-operator-group concept (so the independence gate is unmodelled) and its
-`STALE_DATA` rule is age-only where the live rule is consensus-aware. Treat a
-lone `STALE_DATA` disagreement as a known gap, not automatically a bug.
+about a real market. It runs in CI and **skips** when no snapshot file is
+supplied, so "skipped" must never be read as "agreed".
+
+One modelling gap remains, documented in
+`scripts/oracle-testing/watchReplayPolicy.ts`: the harness's `STALE_DATA` rule
+is age-only where the live rule is consensus-aware. Treat a lone `STALE_DATA`
+disagreement as a known gap, not automatically a bug. The independence gate is
+no longer a gap — the engine models it as production defines it (distinct
+non-derived operator groups, threshold 2, absent policy disables the gate).
 
 Snapshot input lives outside the repo at
 `~/.workbuddy/insight_oracle_testing/watch-snapshots.json`; point `--path` at a

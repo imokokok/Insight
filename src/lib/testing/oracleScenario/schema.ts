@@ -27,6 +27,7 @@ export const SCENARIO_KINDS = [
   'multi_source_divergence',
   'precision_error',
   'feed_failure',
+  'correlated_sources',
 ] as const;
 
 export type ScenarioKind = (typeof SCENARIO_KINDS)[number];
@@ -40,6 +41,15 @@ export const ScenarioSourceSchema = z.object({
   /** Provider's own data timestamp (unix seconds). */
   timestamp: z.number().int().nonnegative(),
   status: z.enum(['ok', 'stale', 'error']),
+  /** Operator group this provider belongs to. Used by the independence gate:
+   *  providers sharing an operator count once, mirroring production's
+   *  "distinct NON-DERIVED operator groups" rule. Absent = the provider is
+   *  treated as its own group. */
+  operatorGroup: z.string().min(1).optional(),
+  /** True for a source derived from others (e.g. a TWAP). Derived sources
+   *  never count toward independence, matching the production definition,
+   *  but still participate in price comparison. */
+  derived: z.boolean().optional(),
 });
 
 export type ScenarioSource = z.infer<typeof ScenarioSourceSchema>;
@@ -67,6 +77,10 @@ export const ScenarioPolicySchema = z.object({
   maxDeviationPct: z.number().positive(),
   /** Min number of usable (ok) sources required to act. */
   minSources: z.number().int().positive(),
+  /** Min number of distinct non-derived operator groups required, matching the
+   *  production independence gate (`requiredSourceGroupCount`, 2 in v3). Absent
+   *  disables the gate, so existing scenarios keep their prior behaviour. */
+  minIndependentGroups: z.number().int().positive().optional(),
 });
 
 export type ScenarioPolicy = z.infer<typeof ScenarioPolicySchema>;

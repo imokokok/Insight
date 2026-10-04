@@ -63,6 +63,13 @@ jobs:
           node verifier/examples/quickstart.mjs --offline
       - name: Verify the packed standalone verifier and pinned offline CLI
         run: npm run verifier:release:check
+      - name: Verify scenario-test receipts against the packed verifier
+        run: npm run oracle:test:verifier-e2e
+      - name: Replay captured Oracle Watch observations offline
+        # Skips by design when no snapshot file is supplied: snapshots are
+        # captured observations rather than repo fixtures, so CI has none.
+        # Only a replay that actually disagreed fails this step.
+        run: npm run oracle:test:replay-check
       - name: Reject stale generated cron bundles
         run: npm run validate:generated
       - name: Reject mutable or bypassing workflow configuration

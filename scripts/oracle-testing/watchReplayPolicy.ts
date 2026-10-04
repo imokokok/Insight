@@ -61,7 +61,11 @@ export const WATCH_POLICY: ScenarioPolicy = {
 };
 
 /** Independence floor, surfaced in the report so a reader can see the gate the
- *  harness does NOT model (it has no operator-group concept). */
+ *  harness does NOT model in this replay: the engine has an independence gate,
+ *  but it reads operator groups from a scenario's declared sources, and
+ *  captured snapshots carry no operator attribution. So the gate is modelled in
+ *  the engine and unexercised here — a disagreement on independence is not
+ *  evidence of a bug in either path. */
 export const WATCH_INDEPENDENCE_MIN = INDEPENDENCE_MIN;
 
 /** Live staleness also requires divergence from consensus. Exported so the
