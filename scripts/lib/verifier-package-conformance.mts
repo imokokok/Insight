@@ -286,8 +286,70 @@ const bad = spawnSync(
 );
 assert.equal(bad.status, 1);
 assert.match(bad.stderr, /HASH_MISMATCH/);
+// OracleScenarioRun v1 must work in the PACKED build, not just in workspace
+// source. It shares schemaVersion 1 with the v1 pre-trade receipt, so this also
+// pins that the two families stay distinguishable after packaging.
+{
+  const z = `0x${'00'.repeat(32)}`,
+    ranAt = Math.floor(Date.now() / 1000);
+  const data = {
+    scenarioId: 'synthetic-conformance-scenario',
+    scenarioKind: 'stale_price',
+    verdict: 'caught',
+    harnessVersion: '1.0.0',
+    stepCount: 4,
+    caughtStepCount: 2,
+    falsePositiveCount: 0,
+    detectionRate: 10_000,
+    scenarioHash: z,
+    reasonCodesHash: z,
+    ranAt,
+    validUntil: ranAt + 3600,
+    schemaVersion: 1,
+  };
+  const types = (cjs.TEST_TYPES as Record<string, Array<{ name: string; type: string }>>)[
+    cjs.TEST_PRIMARY_TYPE
+  ];
+  assert.equal(types.length, 13, 'TEST_TYPES must carry the 13 signed fields');
+  assert.deepEqual(cjs.TEST_DOMAIN, { name: 'Insight Oracle Test', version: '1', chainId: 1 });
+  const message: Record<string, unknown> = {};
+  for (const field of types) {
+    const v = data[field.name as keyof typeof data];
+    message[field.name] = field.type === 'uint256' ? BigInt(v as number) : v;
+  }
+  const args = {
+    domain: cjs.TEST_DOMAIN,
+    types: cjs.TEST_TYPES,
+    primaryType: cjs.TEST_PRIMARY_TYPE,
+    message,
+  };
+  const receipt = {
+    uid: hashTypedData(args as never),
+    schemaVersion: 1,
+    attester: account.address,
+    signature: await account.signTypedData(args as never),
+    data,
+    eip712: { primaryType: cjs.TEST_PRIMARY_TYPE },
+  };
+
+  const verified = await api.verifyReceipt(receipt as RoutableAttestation, {
+    keyRegistry: registry,
+  });
+  assert.equal(verified.code, 'ok');
+  assert.equal(verified.valid, true);
+  assert.equal(verified.kind, 'test');
+  assert.equal(verified.checkedAt, ranAt, 'ranAt must anchor checkedAt for this family');
+
+  // A tampered payload must fail, proving the packed layout actually binds.
+  const tampered = await api.verifyReceipt(
+    { ...receipt, data: { ...data, detectionRate: 9999 } } as RoutableAttestation,
+    { keyRegistry: registry }
+  );
+  assert.equal(tampered.code, 'uid_mismatch');
+  assert.equal(tampered.valid, false);
+}
 const pkg = JSON.parse(await readFile('node_modules/verify-insight-receipt/package.json', 'utf8'));
-assert.equal(pkg.version, '0.3.1');
+assert.equal(pkg.version, '0.4.0');
 process.stdout.write(
   JSON.stringify({
     version: pkg.version,
@@ -295,6 +357,7 @@ process.stdout.write(
       cjs: true,
       esm: true,
       preTradeSchemas: [1, 2, 3],
+      scenarioTestRunSchema: 1,
       recheckSchemas: [2, 3],
       executionSchemas: [1, 2, 3, 4, 5],
       pinnedSnapshot: true,
