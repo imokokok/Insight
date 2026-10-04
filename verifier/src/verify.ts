@@ -18,6 +18,12 @@
  * Those orderings are reproduced from Insight's production verifier, not
  * improved on: an independent verifier that "fixes" production's semantics
  * stops being a check on production.
+ *
+ * Three receipt FAMILIES are routed here, and the discriminator matters:
+ *   - pre-trade / watch assessments (v1, v2, v3) — routed by schemaVersion
+ *   - rechecks of those (v2 / v3 + two reference fields) — routed by primaryType
+ *   - scenario-test runs (OracleScenarioRun v1) — ALSO schemaVersion 1, so it is
+ *     routed by primaryType too. See the isTestRun branch for why that is forced.
  */
 
 import { hashTypedData, verifyTypedData } from 'viem';
@@ -31,6 +37,10 @@ import {
   RECHECK_V3_DOMAIN,
   RECHECK_V3_PRIMARY_TYPE,
   RECHECK_V3_TYPES,
+  TEST_DOMAIN,
+  TEST_PRIMARY_TYPE,
+  TEST_TYPE,
+  TEST_TYPES,
   V1_DOMAIN,
   V1_PRIMARY_TYPE,
   V1_TYPES,
@@ -42,6 +52,7 @@ import {
   V3_TYPES,
   toRecheckMessage,
   toRecheckV3Message,
+  toTestRunMessage,
   toV1Message,
   toV2Message,
   toV3Message,
@@ -53,6 +64,9 @@ const V1_SCHEMA_VERSION = 1;
 const V2_SCHEMA_VERSION = 2;
 const V3_SCHEMA_VERSION = 3;
 const V1_VALID_FOR_SECONDS = 600;
+/** OracleScenarioRun v1. Shares the number 1 with pre-trade v1; routing is by
+ *  primaryType, never by this value alone. */
+const TEST_SCHEMA_VERSION = 1;
 
 export interface VerifyOptions {
   /**
@@ -67,7 +81,7 @@ export interface VerifyOptions {
 interface CoreResult {
   valid: boolean;
   code: VerifyCode;
-  kind: 'check' | 'recheck';
+  kind: 'check' | 'recheck' | 'test';
   uid: string | null;
   checkedAt: number | null;
   validUntil: number | null;
@@ -210,15 +224,20 @@ async function verifyWindowed(
   },
   schemaVersion: number,
   data: Record<string, unknown>,
-  kind: 'check' | 'recheck'
+  kind: 'check' | 'recheck' | 'test',
+  /** Which signed field anchors the run's start time. Every assessment line
+   *  signs `checkedAt`; OracleScenarioRun signs `ranAt` instead, so the two
+   *  MUST be passed explicitly or the anchor reads as null. */
+  timeField: 'checkedAt' | 'ranAt' = 'checkedAt'
 ): Promise<CoreResult> {
   const typedArgs = args as Parameters<typeof hashTypedData>[0];
   const expectedUid = hashTypedData(typedArgs);
+  const anchor = typeof data[timeField] === 'number' ? (data[timeField] as number) : null;
 
   if (expectedUid !== attestation.uid) {
     return fail(schemaVersion, 'uid_mismatch', 'uid_mismatch: data was modified after signing', {
       uid: attestation.uid ?? null,
-      checkedAt: typeof data.checkedAt === 'number' ? data.checkedAt : null,
+      checkedAt: anchor,
       validUntil: typeof data.validUntil === 'number' ? data.validUntil : null,
     });
   }
@@ -232,12 +251,12 @@ async function verifyWindowed(
   if (!signatureOk) {
     return fail(schemaVersion, 'signature_invalid', 'signature_invalid', {
       uid: attestation.uid ?? null,
-      checkedAt: typeof data.checkedAt === 'number' ? data.checkedAt : null,
+      checkedAt: anchor,
       validUntil: typeof data.validUntil === 'number' ? data.validUntil : null,
     });
   }
 
-  const checkedAt = typeof data.checkedAt === 'number' ? data.checkedAt : null;
+  const checkedAt = anchor;
   const validUntil = typeof data.validUntil === 'number' ? data.validUntil : null;
   const expired = validUntil !== null && nowSeconds() > validUntil;
 
@@ -339,6 +358,36 @@ async function verifyRecheckV3(attestation: RoutableAttestation): Promise<CoreRe
 }
 
 // ---------------------------------------------------------------------------
+// OracleScenarioRun v1 — 13 fields (scenario-testing harness)
+// ---------------------------------------------------------------------------
+
+/**
+ * A scenario-test receipt says "Insight ran THIS scenario and got THIS verdict",
+ * not "this trade is safe". It shares `schemaVersion: 1` with the v1 pre-trade
+ * receipt, so it is only ever reached via the primaryType/type branch in
+ * `verifyReceipt` — never through the numeric v1 path.
+ *
+ * It reuses {@link verifyWindowed}: UID first, then signature, then the explicit
+ * `validUntil`. That ordering matches v2/v3 rather than v1 because the harness
+ * signs an explicit deadline like the windowed lines do.
+ *
+ * The scenario hash is carried but NOT recomputed here: verifying it would
+ * require the verifier to re-run the scenario DSL, which the package
+ * deliberately does not ship. The signature already binds the hash, so a
+ * receipt cannot point at a different scenario without breaking the UID.
+ */
+async function verifyTestRun(attestation: RoutableAttestation): Promise<CoreResult> {
+  const data = attestation.data ?? {};
+  const args = {
+    domain: TEST_DOMAIN,
+    types: TEST_TYPES,
+    primaryType: TEST_PRIMARY_TYPE,
+    message: toTestRunMessage(data),
+  } as const;
+  return verifyWindowed(attestation, args, TEST_SCHEMA_VERSION, data, 'test', 'ranAt');
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -389,9 +438,16 @@ export async function verifyReceipt(
     // fields, and every recheck would fail UID recovery.
     const primaryType = attestation.eip712?.primaryType;
     const isRecheck = attestation.type === RECHECK_TYPE || primaryType === RECHECK_TYPE;
+    // A scenario-test receipt ALSO carries schemaVersion 1 — the same number as
+    // pre-trade v1 — so this branch must precede the numeric `=== 1` path, or
+    // every harness receipt would be hashed against the 11-field v1 layout and
+    // fail UID recovery. Distinct primaryType is the only reliable discriminator.
+    const isTestRun = attestation.type === TEST_TYPE || primaryType === TEST_TYPE;
 
     let core: CoreResult;
-    if (schemaVersion === V3_SCHEMA_VERSION && isRecheck) {
+    if (isTestRun) {
+      core = await verifyTestRun(attestation);
+    } else if (schemaVersion === V3_SCHEMA_VERSION && isRecheck) {
       core = await verifyRecheckV3(attestation);
     } else if (schemaVersion === V2_SCHEMA_VERSION && isRecheck) {
       core = await verifyRecheck(attestation);
@@ -405,7 +461,8 @@ export async function verifyReceipt(
       core = fail(
         typeof schemaVersion === 'number' ? schemaVersion : 0,
         'unsupported_schema',
-        `Unsupported schemaVersion ${String(schemaVersion)}; supported: 1 (v1), 2 (v2), 3 (v3).`
+        `Unsupported schemaVersion ${String(schemaVersion)}; supported: 1 (v1), 2 (v2), 3 (v3). ` +
+          `OracleScenarioRun v1 is routed by primaryType, not by this number.`
       );
     }
 

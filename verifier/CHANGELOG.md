@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add `OracleScenarioRun` v1 (13 fields): the scenario-testing harness receipt, so a test run is verifiable offline like every other Insight line.
+- Route that family by `primaryType` before the numeric schema-version checks. It carries `schemaVersion: 1`, identical to the v1 pre-trade receipt, so the version number alone cannot select the layout.
+- Report `kind: 'test'` for this family; `checkedAt` is populated from the receipt's `ranAt` anchor.
+- Export `TEST_DOMAIN` / `TEST_TYPES` / `TEST_PRIMARY_TYPE` / `TEST_TYPE`, `toTestRunMessage`, and `TestRunMessage`, and add `testRun` to the `SchemaId` registry maps.
+
 ## 0.3.1 — 2026-09-28
 
 - Require registry roles to be strings. Reject one-element arrays such as `["sample"]` instead of coercing them during validation, preserving the exact role used by downstream trust checks.

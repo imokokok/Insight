@@ -27,6 +27,8 @@
     "test:e2e:ui": "playwright test --ui",
     "rwa:parity": "node --import tsx scripts/check-rwa-parity.ts",
     "rwa:registry:check": "node --import tsx scripts/verify-rwa-reference-data.ts --offline",
+    "oracle:test:replay-check": "node --import tsx scripts/oracle-testing/watch-replay-check.mts",
+    "oracle:test:verifier-e2e": "node --import tsx scripts/oracle-testing/verifier-testrun-e2e.mts",
     "rwa:execution:check": "npm run sdk:build && node scripts/verify-rwa-execution-profiles.mjs",
     "rwa:execution:check:online": "npm run sdk:build && node scripts/verify-rwa-execution-profiles.mjs --online",
     "rwa:reference:verify": "node --import tsx scripts/verify-rwa-reference-data.ts",
