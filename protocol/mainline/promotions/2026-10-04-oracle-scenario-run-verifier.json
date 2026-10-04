@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 27,
+  "effectiveFrom": "2026-10-04",
+  "classification": "Additive OracleScenarioRun v1 verifier registration with an explicit primaryType routing precedence; no existing signed layout, activation or partner policy change",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0xab4e861dbb6f5371622e93f5c52bf8479af346a91c084f9f2bf7194cad2c35ac",
+  "activationSetId": "0x0965f5dcd6a30513fe95894208e5147f6fa62de5789e201ed99c87e8cc791af8",
+  "receiptImpact": "No existing signed report schema, EIP-712 field order, digest, signature, registry release, attester key, partner policy or activation is changed. OracleScenarioRun v1 (13 fields, domain 'Insight Oracle Test') is ADDED to the standalone verifier and to the production router. All pre-existing layouts are byte-identical: OracleSafetyCheck v1, v2, v3, OracleSafetyRecheck v2, v3, and ExecutionReceipt v1 through v5. The new receipt family carries schemaVersion 1, which collides numerically with the v1 pre-trade receipt, so it is routed by primaryType ('OracleScenarioRun') ahead of every numeric schema-version test. That branch is additive: a receipt with any other primaryType resolves exactly as before, and the verdict-parity suite pins that a v1 pre-trade receipt still reports kind check while the new family reports kind test. A signed OracleScenarioRun receipt is a statement that a named scenario was replayed to a named verdict; it is not an assessment, authorization, or execution record, and confers no trading authority.",
+  "activationRule": "Existing partner policies and activation set v5 remain unchanged and no partner is newly activated. This promotion records an additive verifier schema registration plus two internal quality-assurance scripts under scripts/oracle-testing/. It does not authorize a live run, claim partner acceptance, change any production reachability, or publish a new npm version. The scenario-testing API surface is unauthenticated by construction and is not a billable product surface. Production release remains gated on main.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x11d4736a2c0a2c23f3a2d46f863d3ebb64e2b738f8da4a02bd12a30368578a43 remains selected byte for byte. OracleScenarioRun registration adds a new family only: its own EIP-712 layout is new, no existing layout, digest, profile, registry release, signer or production reachability changes, and the production and offline routers agree on every schema family including the new one. No partner runtime, trust pin or activation is affected."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xe556b47dbdb4e3d7cab2c4fb882ffe0b65d6c4750ac0ff5ce6ee2f0494d3b787 remains selected byte for byte. OracleScenarioRun registration adds a new family only: its own EIP-712 layout is new, no existing layout, digest, profile, registry release, signer or production reachability changes, and the production and offline routers agree on every schema family including the new one. No partner runtime, trust pin or activation is affected."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x0ce8536c90b23ebcb2952422e5eb67628da65c14b6bf5782849f20c0b137815b remains selected byte for byte. OracleScenarioRun registration adds a new family only: its own EIP-712 layout is new, no existing layout, digest, profile, registry release, signer or production reachability changes, and the production and offline routers agree on every schema family including the new one. No partner runtime, trust pin or activation is affected."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xca3bd5acb9d70f9e9755fad44e87cff1122f88986a6c61b33d93a49e3bb15861 remains selected byte for byte. OracleScenarioRun registration adds a new family only: its own EIP-712 layout is new, no existing layout, digest, profile, registry release, signer or production reachability changes, and the production and offline routers agree on every schema family including the new one. No partner runtime, trust pin or activation is affected."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xd510bd9f29be0b896aed2e2b95200eab25cb9e03430a456f1bee3df7a17de158 remains selected byte for byte. OracleScenarioRun registration adds a new family only: its own EIP-712 layout is new, no existing layout, digest, profile, registry release, signer or production reachability changes, and the production and offline routers agree on every schema family including the new one. No partner runtime, trust pin or activation is affected."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xb539451842dc4e907d6fcea012aa094f4fea3c3acd2fd054aa4106848f602239 remains selected byte for byte. OracleScenarioRun registration adds a new family only: its own EIP-712 layout is new, no existing layout, digest, profile, registry release, signer or production reachability changes, and the production and offline routers agree on every schema family including the new one. No partner runtime, trust pin or activation is affected."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x5a80afffbb667b62014c727fae35e9f00edd6ca99555baa1c4cc79d0650768d0 remains selected byte for byte. OracleScenarioRun registration adds a new family only: its own EIP-712 layout is new, no existing layout, digest, profile, registry release, signer or production reachability changes, and the production and offline routers agree on every schema family including the new one. No partner runtime, trust pin or activation is affected."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0x248f339e382efefaf20c9caad0ed6ee3db75775b5b5649b3d2421bb28d376341 remains selected byte for byte. OracleScenarioRun registration adds a new family only: its own EIP-712 layout is new, no existing layout, digest, profile, registry release, signer or production reachability changes, and the production and offline routers agree on every schema family including the new one. No partner runtime, trust pin or activation is affected."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "signed_protocol_unchanged",
+      "evidence": "Active immutable policy 0xad711736aa60459299c94f0b6cdc7fd51d5ace20024f9fbd23344e4e03de47da remains selected byte for byte. OracleScenarioRun registration adds a new family only: its own EIP-712 layout is new, no existing layout, digest, profile, registry release, signer or production reachability changes, and the production and offline routers agree on every schema family including the new one. No partner runtime, trust pin or activation is affected."
+    }
+  ],
+  "promotionId": "0xaadeb60e299f2a6480220b3fca9f7624ec2f060d9184a2534a7cf8076e380372"
+}

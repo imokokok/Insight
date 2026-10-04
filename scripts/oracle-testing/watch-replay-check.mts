@@ -310,7 +310,7 @@ async function main(): Promise<void> {
     // A single observation cannot exercise cross-source logic; skip it rather
     // than reporting a meaningless 'agree'.
     .filter(([, g]) => g.length >= 2)
-    .map(([key, g]) => evaluateGroup(key.replace('|', '-'), g))
+    .map(([key, g]) => evaluateGroup(key.replaceAll('|', '-'), g))
     .sort((a, b) => Number(a.agree) - Number(b.agree));
 
   const summary: WatchReplaySummary = {
