@@ -45,7 +45,7 @@
  *   node --import tsx scripts/oracle-testing/watch-replay-check.ts --json
  */
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -289,6 +289,31 @@ function parseArgs(argv: string[]): { online: boolean; json: boolean; path: stri
 
 async function main(): Promise<void> {
   const { json, path } = parseArgs(process.argv.slice(2));
+
+  // Snapshots are captured observations, not repo fixtures, so CI has none.
+  // Skipping is the honest outcome there: it means "not checked", which must
+  // stay distinguishable from "checked and agreed" and from "checked and
+  // disagreed". Only the last one fails the build.
+  if (!existsSync(path)) {
+    const message = `snapshot file not found: ${path}`;
+    if (json) {
+      console.log(
+        JSON.stringify(
+          {
+            skipped: true,
+            reason: message,
+            note: 'No captured snapshots supplied. This run proved nothing either way; it did not fail because no data was replayed, not because a replay agreed.',
+          },
+          null,
+          2
+        )
+      );
+    } else {
+      console.log(`[watch-replay-check] SKIPPED: ${message}`);
+      console.log('[watch-replay-check]       Nothing replayed. This proves nothing either way.');
+    }
+    process.exit(0);
+  }
 
   const rows = loadSnapshots(path);
   if (rows.length === 0) {

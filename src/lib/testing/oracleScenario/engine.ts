@@ -38,6 +38,7 @@ export const EXPECTED_DETECTION: Record<ScenarioKind, readonly string[]> = {
   multi_source_divergence: ['MAX_DEVIATION'],
   precision_error: ['PRECISION_DRIFT'],
   feed_failure: ['INSUFFICIENT_QUORUM', 'STALE_DATA'],
+  correlated_sources: ['INSUFFICIENT_INDEPENDENCE'],
 };
 
 /** Detection codes the engine can emit per step. */
@@ -45,6 +46,7 @@ export type DetectionCode =
   | 'STALE_DATA'
   | 'MAX_DEVIATION'
   | 'INSUFFICIENT_QUORUM'
+  | 'INSUFFICIENT_INDEPENDENCE'
   | 'ANOMALY_ELEVATED'
   | 'PRECISION_DRIFT';
 
@@ -91,7 +93,13 @@ function median(values: number[]): number {
 }
 
 interface StepStats {
-  okSources: Array<{ price: number; timestamp: number }>;
+  okSources: Array<{
+    price: number;
+    timestamp: number;
+    provider: string;
+    operatorGroup?: string;
+    derived?: boolean;
+  }>;
   maxDeviationPct: number;
   medianPrice: number;
 }
@@ -99,7 +107,13 @@ interface StepStats {
 function stepStats(step: ScenarioStep): StepStats {
   const okSources = step.sources
     .filter((s) => s.status === 'ok' && s.price > 0)
-    .map((s) => ({ price: s.price, timestamp: s.timestamp }));
+    .map((s) => ({
+      price: s.price,
+      timestamp: s.timestamp,
+      provider: s.provider,
+      operatorGroup: s.operatorGroup,
+      derived: s.derived,
+    }));
   const medianPrice = median(okSources.map((s) => s.price));
   let maxDeviationPct = 0;
   if (okSources.length > 0 && medianPrice > 0) {
@@ -127,6 +141,21 @@ function evaluateStep(
 
   if (stats.okSources.length < policy.minSources) {
     detected.push('INSUFFICIENT_QUORUM');
+  }
+
+  // Independence gate. Counts distinct non-derived operator groups among the
+  // usable sources, mirroring production's `sourceGroupCount` definition: a
+  // derived feed (TWAP and friends) is not an independent observation, and
+  // three providers behind two operators are not three sources. Skipped when
+  // the policy does not set a threshold, so scenarios that predate this gate
+  // keep their prior behaviour.
+  if (policy.minIndependentGroups !== undefined) {
+    const groups = new Set(
+      stats.okSources.filter((s) => s.derived !== true).map((s) => s.operatorGroup ?? s.provider)
+    );
+    if (groups.size < policy.minIndependentGroups) {
+      detected.push('INSUFFICIENT_INDEPENDENCE');
+    }
   }
 
   const stale =

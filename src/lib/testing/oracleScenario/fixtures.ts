@@ -340,6 +340,183 @@ const syntheticDivergence: OracleFixture = {
   },
 };
 
+/**
+ * Independence-gate scenarios. The quorum gate counts usable sources, so a
+ * failure that keeps several feeds healthy can still satisfy `minSources`
+ * while every usable feed traces back to one operator. These exercise the gate
+ * production applies since v3 (`sourceGroupCount >= requiredSourceGroupCount`),
+ * where a derived feed is not an independent observation.
+ */
+const correlatedSourcesQuorum: OracleFixture = {
+  scenario: {
+    id: 'synthetic-correlated-sources',
+    kind: 'correlated_sources',
+    title: 'Synthetic: three feeds, one operator, quorum satisfied but independence is not',
+    description:
+      'Synthetic scenario (no incident behind it): three providers report consistent ' +
+      'prices, so the quorum gate passes and no per-source deviation is visible. But all ' +
+      'three are operated by the same entity, so a single compromise reaches the settlement ' +
+      'price unchallenged. The independence gate exists for exactly this shape: consistency ' +
+      'across providers is evidence only when the providers are independent. Mechanism ' +
+      'references public reporting on oracle-related attacks, not any specific event.',
+    symbol: 'SYN-CORR-USD',
+    chainId: 1,
+    startedAt: ANCHOR,
+    policy: {
+      maxStalenessSeconds: 300,
+      maxDeviationPct: 1,
+      minSources: 2,
+      minIndependentGroups: 2,
+    },
+    steps: [
+      {
+        t: 0,
+        phase: 'baseline',
+        settlementPrice: 2500,
+        sources: [
+          {
+            provider: 'feed-a',
+            price: 2500,
+            timestamp: ANCHOR,
+            status: 'ok',
+            operatorGroup: 'operator-one',
+          },
+          {
+            provider: 'feed-b',
+            price: 2500,
+            timestamp: ANCHOR,
+            status: 'ok',
+            operatorGroup: 'operator-one',
+          },
+          {
+            provider: 'feed-c',
+            price: 2500,
+            timestamp: ANCHOR,
+            status: 'ok',
+            operatorGroup: 'operator-one',
+          },
+          {
+            provider: 'feed-independent',
+            price: 2500,
+            timestamp: ANCHOR,
+            status: 'ok',
+            operatorGroup: 'operator-two',
+          },
+        ],
+      },
+      {
+        t: 60,
+        phase: 'attack',
+        settlementPrice: 2500,
+        sources: [
+          {
+            provider: 'feed-a',
+            price: 2500,
+            timestamp: ANCHOR + 60,
+            status: 'ok',
+            operatorGroup: 'operator-one',
+          },
+          {
+            provider: 'feed-b',
+            price: 2500,
+            timestamp: ANCHOR + 60,
+            status: 'ok',
+            operatorGroup: 'operator-one',
+          },
+          {
+            provider: 'feed-c',
+            price: 2500,
+            timestamp: ANCHOR + 60,
+            status: 'ok',
+            operatorGroup: 'operator-one',
+          },
+        ],
+      },
+    ],
+  },
+  incident: {
+    sourceType: 'synthetic',
+    note: 'No real incident. Exercises INSUFFICIENT_INDEPENDENCE: quorum satisfied, cross-source deviation zero, independence gate violated. The baseline step carries a second operator so the gate holds before the single-operator failure.',
+  },
+};
+
+/**
+ * A derived feed (TWAP) and one independent feed: two usable sources, but only
+ * one independent observation. Stands alone as the negative case for the
+ * derived-source exclusion rule.
+ */
+const derivedTwapNoIndependence: OracleFixture = {
+  scenario: {
+    id: 'synthetic-derived-twap-no-independence',
+    kind: 'correlated_sources',
+    title: 'Synthetic: a spot feed and its own TWAP count as one observation, not two',
+    description:
+      'Synthetic scenario (no incident behind it): a spot feed and a TWAP derived from it. ' +
+      'Both are fresh and both report the same price, so the quorum gate passes with two ' +
+      'sources and no deviation fires. A TWAP derived from the spot feed is not an ' +
+      'independent witness to it, so the independence gate must not count it. The baseline ' +
+      'step adds a genuinely separate operator to show the gate flipping back to satisfied.',
+    symbol: 'SYN-TWAP-USD',
+    chainId: 1,
+    startedAt: ANCHOR,
+    policy: {
+      maxStalenessSeconds: 300,
+      maxDeviationPct: 1,
+      minSources: 2,
+      minIndependentGroups: 2,
+    },
+    steps: [
+      {
+        t: 0,
+        phase: 'baseline',
+        settlementPrice: 1800,
+        sources: [
+          {
+            provider: 'spot-feed',
+            price: 1800,
+            timestamp: ANCHOR,
+            status: 'ok',
+            operatorGroup: 'operator-spot',
+          },
+          {
+            provider: 'independent-feed',
+            price: 1800,
+            timestamp: ANCHOR,
+            status: 'ok',
+            operatorGroup: 'operator-other',
+          },
+        ],
+      },
+      {
+        t: 60,
+        phase: 'attack',
+        settlementPrice: 1800,
+        sources: [
+          {
+            provider: 'spot-feed',
+            price: 1800,
+            timestamp: ANCHOR + 60,
+            status: 'ok',
+            operatorGroup: 'operator-spot',
+          },
+          {
+            provider: 'spot-twap',
+            price: 1800,
+            timestamp: ANCHOR + 60,
+            status: 'ok',
+            operatorGroup: 'operator-spot',
+            derived: true,
+          },
+        ],
+      },
+    ],
+  },
+  incident: {
+    sourceType: 'synthetic',
+    note: 'No real incident. Exercises derived-source exclusion: a TWAP of a feed does not make that feed independently witnessed.',
+  },
+};
+
 /** All built-in fixtures, in stable order. */
 export function getFixtures(): OracleFixture[] {
   return [
@@ -349,6 +526,8 @@ export function getFixtures(): OracleFixture[] {
     creamOracleSpike,
     centrifugeRounding,
     syntheticDivergence,
+    correlatedSourcesQuorum,
+    derivedTwapNoIndependence,
   ];
 }
 
