@@ -17,6 +17,7 @@
     "scripts/collect-market-reference.ts",
     "scripts/collect-oracle-watch.ts",
     "scripts/collect-snapshot.ts",
+    "scripts/incident-forensics.ts",
     "scripts/publish-automation-pr.ts",
     "scripts/daily-report-publish.ts",
     "scripts/feed-cadence.ts",
