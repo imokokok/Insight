@@ -136,6 +136,7 @@ window because the envelope's `validForSeconds` metadata was not signed.
 | schemaVersion | primaryType           | signed fields                                   |
 | ------------- | --------------------- | ----------------------------------------------- |
 | 1             | `OracleSafetyCheck`   | 11                                              |
+| 1             | `OracleScenarioRun`   | 13 (scenario-testing harness)                   |
 | 2             | `OracleSafetyCheck`   | 26                                              |
 | 2             | `OracleSafetyRecheck` | 28 (v2 + `originalUid` + `originalRequestHash`) |
 | 3             | `OracleSafetyCheck`   | 27 (v2 + `requiredSourceGroupCount`)            |
@@ -169,6 +170,15 @@ A recheck carries `schemaVersion: 2` (or 3) but a distinct `primaryType`, so it
 is routed before the plain-check branch. Routing it after would hash it against
 the 26-field layout, silently ignoring the two reference fields, and every
 recheck would fail UID recovery.
+
+`OracleScenarioRun` is routed the same way, with a sharper edge: it carries
+`schemaVersion: 1`, the SAME number as the v1 `OracleSafetyCheck` receipt. The
+`primaryType` is therefore the only discriminator between the two — there is no
+version-number test that can tell them apart. Verify returns
+`kind: 'test'` for this family (and `'check'` for v1–v3 assessments), so branch
+on `kind` rather than assuming `'check'`. The result's `checkedAt` is
+populated from the receipt's `ranAt` field, which is how this line anchors its
+start time.
 
 ---
 
