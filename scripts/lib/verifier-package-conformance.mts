@@ -307,9 +307,11 @@ assert.match(bad.stderr, /HASH_MISMATCH/);
     validUntil: ranAt + 3600,
     schemaVersion: 1,
   };
-  const types = (cjs.TEST_TYPES as Record<string, Array<{ name: string; type: string }>>)[
-    cjs.TEST_PRIMARY_TYPE
-  ];
+  // TEST_TYPES is a readonly tuple, so it cannot be asserted straight to a
+  // mutable array type; go through unknown first.
+  const types = (
+    cjs.TEST_TYPES as unknown as Record<string, Array<{ name: string; type: string }>>
+  )[cjs.TEST_PRIMARY_TYPE];
   assert.equal(types.length, 13, 'TEST_TYPES must carry the 13 signed fields');
   assert.deepEqual(cjs.TEST_DOMAIN, { name: 'Insight Oracle Test', version: '1', chainId: 1 });
   const message: Record<string, unknown> = {};
