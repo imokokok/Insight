@@ -1,0 +1,31 @@
+{
+  "policyId": "0x55fbfb17fbab461ff237cad4b19f8fba71411461d19f8e99af103910ae47ae63",
+  "kind": "MainlinePartnerPolicy",
+  "policyVersion": 5,
+  "partnerId": "veritas",
+  "lifecycle": "draft",
+  "activation": "explicit-policy-id",
+  "surfaces": [
+    "oracle-safety-check",
+    "execution-receipt",
+    "pre-trade-binding",
+    "attester-key-role"
+  ],
+  "pins": {
+    "oracleRegistryReleaseIds": [
+      "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b"
+    ],
+    "executionProfileIds": ["0xe7513b059e9f8291bfa21250e0234661d74112a491efc6b40fbb56692013cb8e"],
+    "executionSchemaVersions": [5],
+    "externalContracts": ["vrt1:8.6", "veritas-r6:F15-F16"]
+  },
+  "legacyRule": "The active registered v2 gate window remains 600 seconds. This v5 policy is an optional, one-time VERITAS joint-run 1800-second exception for the 2026-10-06 15:30\u201317:00 UTC window only after explicit activation promotion, bilateral written agreement and fresh READY. It does not change the registered or other-partner default, and the run cannot be evidence for the registered 600-second configuration.",
+  "productionReachability": "enabled",
+  "jointRunValidity": {
+    "runId": "insight-veritas-2026-09-18",
+    "selectionRuleHash": "0xb1071d6929d1dc13812d9aa19bf28a74dca4d90c07d47e9b2052f9f9c3c52465",
+    "gateWindowSeconds": 1800,
+    "exceptionScope": "one-time-veritas-joint-run-only",
+    "latestWindowEndUtc": "2026-10-06T17:00:00Z"
+  }
+}
