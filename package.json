@@ -78,6 +78,7 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "@walletconnect/ethereum-provider": "^2.25.0",
+    "@x402/core": "2.27.0",
     "@x402/evm": "^2.27.0",
     "@x402/fetch": "^2.27.0",
     "canonicalize": "^4.0.0",
