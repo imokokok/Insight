@@ -4,6 +4,7 @@ import {
   x402ResourceServer,
 } from '@x402/core/server';
 import { ExactEvmScheme } from '@x402/evm/exact/server';
+import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 
 import { type X402Config, X402_PRE_TRADE_ROUTE, usdcForNetwork } from './config';
 
@@ -19,6 +20,70 @@ import { type X402Config, X402_PRE_TRADE_ROUTE, usdcForNetwork } from './config'
 
 let cached: x402HTTPResourceServer | null = null;
 let cachedKey = '';
+
+/**
+ * Bazaar discovery metadata (Agentic.Market / CDP indexing). Declared once and
+ * embedded in every 402 quote so facilitators can catalog the endpoint after
+ * the first settled payment. The input example mirrors the required query
+ * params of `PreTradeQuerySchema`; the output example mirrors the top-level
+ * fields of `PreTradeSafetyResult` that a paid caller actually consumes.
+ * Exported for tests.
+ */
+export const BAZAAR_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  // No `method` here: the config type omits it and the registered
+  // bazaarResourceServerExtension injects GET from each request context.
+  input: {
+    asset: 'ETH',
+    chainId: 1,
+    action: 'swap',
+    tradeAmountUsd: 1000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      asset: { type: 'string', description: 'Asset symbol, e.g. ETH, BTC, USDC' },
+      chainId: { type: 'number', description: 'Chain ID, e.g. 1=Ethereum, 0=chain-agnostic' },
+      action: {
+        type: 'string',
+        enum: ['swap', 'borrow', 'lend', 'liquidate', 'repay'],
+        description: 'Type of DeFi operation',
+      },
+      tradeAmountUsd: { type: 'number', description: 'Trade size in USD' },
+      targetProviders: {
+        type: 'string',
+        description: 'Comma-separated list of oracle providers to restrict the check to',
+      },
+      protocolId: {
+        type: 'string',
+        description: 'Optional lending protocol id to evaluate against (e.g. aave-v3-ethereum)',
+      },
+      schemaVersion: {
+        type: 'number',
+        enum: [1, 2, 3],
+        description:
+          'Attestation schema version: 1 (default, 11-field), 2 (26-field, CAIP-19 + quorum gate), ' +
+          'or 3 (27-field: v2 + the signed independence threshold, so the gate is self-verifying)',
+      },
+      destinationAsset: {
+        type: 'string',
+        description: 'Optional destination asset symbol (v2 binds it as destinationAssetId)',
+      },
+    },
+    required: ['asset', 'chainId', 'action', 'tradeAmountUsd'],
+  },
+  output: {
+    example: {
+      verdict: 'PASS',
+      consensusPrice: 3124.5,
+      maxDeviationPct: 0.42,
+      manipulationRiskScore: 0.08,
+      crossProviderAgreement: 0.998,
+      recommendedMaxPositionUsd: 95000,
+      staleDataRisk: false,
+      participantCount: 5,
+    },
+  },
+});
 
 function routeConfigFor(cfg: X402Config) {
   return {
@@ -37,6 +102,7 @@ function routeConfigFor(cfg: X402Config) {
         extra: { name: 'USDC', version: '2' },
       },
     ],
+    extensions: BAZAAR_DISCOVERY_EXTENSION,
     x402Version: 2,
   };
 }
@@ -62,6 +128,9 @@ export async function buildX402HttpServer(
 
   const server = new x402ResourceServer(facilitator);
   server.register(cfg.network, new ExactEvmScheme());
+  // Enriches the declared discovery extension with the actual HTTP method and
+  // query params from each request context before the 402 goes out.
+  server.registerExtension(bazaarResourceServerExtension);
 
   const httpServer = new x402HTTPResourceServer(server, {
     [X402_PRE_TRADE_ROUTE]: routeConfigFor(cfg),

@@ -36,6 +36,29 @@ const BILLING_FACTS = [
   },
 ];
 
+const X402_PAY_PER_CALL_FACTS = [
+  {
+    value: '$0.02',
+    label: 'Per check',
+    detail: 'USDC on Base, settled on-chain via the x402 protocol (v2)',
+  },
+  {
+    value: '0',
+    label: 'Credentials',
+    detail: 'No account, no API key: the 402 quote is the contract',
+  },
+  {
+    value: 'HTTP 402',
+    label: 'Machine-native',
+    detail: 'Agents discover the price in the PAYMENT-REQUIRED header and retry paid',
+  },
+  {
+    value: 'BLOCK',
+    label: 'Still charged',
+    detail: 'A BLOCK verdict is a complete check; the answer, not the outcome, is the product',
+  },
+];
+
 export default function PricingPage() {
   return (
     <div className="editorial-workspace evidence-workbench commercial-workbench pricing-workbench min-h-screen">
@@ -112,6 +135,45 @@ export default function PricingPage() {
             </div>
           </div>
           <PricingSection />
+        </div>
+      </section>
+
+      <section className="pricing-plan-section py-14 sm:py-20">
+        <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+          <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+            <p className="editorial-index">02 — Pay per call, no account</p>
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                One endpoint for autonomous agents: hit it, pay, get the verdict.
+              </h2>
+              <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
+                <code className="font-mono text-base">GET /api/v1/safety/pre-trade</code> speaks the
+                x402 protocol. A request without credentials receives an HTTP 402 quote; the agent
+                pays $0.02 in USDC on Base and retries with a signed payment to receive the full
+                safety check. Humans and teams with ongoing volume should use the credit plans below
+                instead.
+              </p>
+            </div>
+          </div>
+          <div className="pricing-fact-ledger grid border-b border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
+            {X402_PAY_PER_CALL_FACTS.map((fact, index) => (
+              <div
+                key={fact.label}
+                className="pricing-fact-record border-b border-r border-slate-900/10 bg-white/30 px-0 py-6 sm:px-5 first:sm:pl-0"
+              >
+                <span className="font-mono text-[10px] text-blue-700">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <p className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">
+                  {fact.value}
+                </p>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-600">
+                  {fact.label}
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-slate-500">{fact.detail}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

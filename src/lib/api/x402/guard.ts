@@ -139,6 +139,45 @@ function newRequestId(): string {
 }
 
 /**
+ * Surface the facilitator's Bazaar indexing verdict. The `EXTENSION-RESPONSES`
+ * header on verify/settle responses is the ONLY signal that discovery metadata
+ * was accepted (`{"bazaar":{"status":"processing"}}`) or silently rejected
+ * (`{"bazaar":{"status":"rejected","rejectedReason":...}}`) — without this log
+ * an invalid discovery extension would never be noticed. Best-effort: any
+ * decode failure logs the raw header and moves on.
+ */
+function logBazaarExtensionStatus(
+  requestId: string,
+  headers: Record<string, string> | undefined
+): void {
+  const raw = headers?.['extension-responses'] ?? headers?.['EXTENSION-RESPONSES'];
+  if (!raw) {
+    return;
+  }
+  try {
+    const decoded = JSON.parse(Buffer.from(raw, 'base64').toString('utf8')) as {
+      bazaar?: { status?: string; rejectedReason?: string };
+    };
+    if (decoded.bazaar?.status === 'rejected') {
+      logger.warn('x402 bazaar discovery extension rejected by facilitator', {
+        requestId,
+        rejectedReason: decoded.bazaar.rejectedReason,
+      });
+    } else {
+      logger.info('x402 bazaar extension status', {
+        requestId,
+        status: decoded.bazaar?.status ?? 'unknown',
+      });
+    }
+  } catch (error) {
+    logger.warn('x402 bazaar extension header undecodable', {
+      requestId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+/**
  * Run the x402 lifecycle for one pre-trade request.
  *
  * - No/invalid payment → the core server produces a 402 quote
@@ -220,6 +259,7 @@ export async function handlePaidPreTradeRequest(
   for (const [key, value] of Object.entries(settle.headers ?? {})) {
     businessResponse.headers.set(key, value);
   }
+  logBazaarExtensionStatus(requestId, settle.headers);
 
   if (settle.success) {
     recordX402Settlement({
