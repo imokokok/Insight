@@ -32,7 +32,13 @@ describe('x402 config', () => {
   it('defaults to testnet config when network is unset', () => {
     const cfg = parseX402Config({ X402_ENABLED: 'true', X402_PAY_TO: '' });
     expect(cfg.network).toBe('eip155:84532');
-    expect(usdcForNetwork(cfg.network)).toBe('0x036CbD53842C5b0Bb4dAaCa107AdCa4Ac6b51246');
+    expect(usdcForNetwork(cfg.network)).toBe('0x036CbD53842c5426634e7929541eC2318f3dCF7e');
+  });
+
+  it('every supported network USDC address is a well-formed 20-byte address', () => {
+    for (const network of ['eip155:84532', 'eip155:8453'] as const) {
+      expect(usdcForNetwork(network)).toMatch(/^0x[a-fA-F0-9]{40}$/);
+    }
   });
 
   it('rejects a malformed payTo instead of silently disarming', () => {

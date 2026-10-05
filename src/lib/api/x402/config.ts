@@ -18,8 +18,8 @@ import { z } from 'zod';
 /** Well-known USDC contract per CAIP-2 network id (x402 v2 wire format). */
 const SUPPORTED_NETWORKS = {
   'eip155:84532': {
-    /** Chain: Base Sepolia (testnet). */
-    usdc: '0x036CbD53842C5b0Bb4dAaCa107AdCa4Ac6b51246',
+    /** Chain: Base Sepolia (testnet). Circle native USDC. */
+    usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
   },
   'eip155:8453': {
     /** Chain: Base mainnet. */
