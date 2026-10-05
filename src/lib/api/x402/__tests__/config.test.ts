@@ -55,4 +55,42 @@ describe('x402 config', () => {
   it('maps mainnet to the canonical Base USDC contract', () => {
     expect(usdcForNetwork('eip155:8453')).toBe('0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913');
   });
+
+  describe('CDP facilitator auth', () => {
+    it('defaults to no auth for the x402.org facilitator', () => {
+      const cfg = parseX402Config({ ...BASE_ENV });
+      expect(cfg.facilitatorCdpAuth).toBeNull();
+    });
+
+    it('parses CDP credentials when both key id and secret are set', () => {
+      const cfg = parseX402Config({
+        ...BASE_ENV,
+        X402_FACILITATOR_URL: 'https://api.cdp.coinbase.com/platform/v2/x402',
+        X402_CDP_API_KEY_ID: 'c816b095-0102-4b4e-ad90-a522a4175df5',
+        X402_CDP_API_KEY_SECRET: 'test-secret',
+      });
+      expect(cfg.facilitatorCdpAuth).toEqual({
+        apiKeyId: 'c816b095-0102-4b4e-ad90-a522a4175df5',
+        apiKeySecret: 'test-secret',
+      });
+    });
+
+    it('throws when only one of the two CDP variables is set', () => {
+      expect(() => parseX402Config({ ...BASE_ENV, X402_CDP_API_KEY_ID: 'some-id' })).toThrow(
+        /must be set together/
+      );
+      expect(() =>
+        parseX402Config({ ...BASE_ENV, X402_CDP_API_KEY_SECRET: 'some-secret' })
+      ).toThrow(/must be set together/);
+    });
+
+    it('throws when the facilitator URL is CDP but credentials are missing', () => {
+      expect(() =>
+        parseX402Config({
+          ...BASE_ENV,
+          X402_FACILITATOR_URL: 'https://api.cdp.coinbase.com/platform/v2/x402',
+        })
+      ).toThrow(/CDP requires authenticated/);
+    });
+  });
 });

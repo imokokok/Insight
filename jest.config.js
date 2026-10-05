@@ -15,6 +15,10 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@sentry/nextjs$': '<rootDir>/src/__mocks__/@sentry/nextjs.ts',
+    // @coinbase/cdp-sdk/auth pulls in jose v6 (pure ESM), unrequirable under
+    // jest's jsdom runtime; unit tests use a behavior-preserving mock (real
+    // JWTs are verified end-to-end by scripts/x402/cdp-auth-probe.mts).
+    '^@coinbase/cdp-sdk/auth$': '<rootDir>/src/__mocks__/@coinbase/cdp-sdk/auth.ts',
   },
   testMatch: ['<rootDir>/src/**/*.test.{ts,tsx}', '<rootDir>/src/**/*.spec.{ts,tsx}'],
   collectCoverageFrom: [

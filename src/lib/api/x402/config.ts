@@ -52,6 +52,12 @@ export interface X402Config {
   facilitatorTimeoutMs: number;
   /** Payment authorization validity window advertised in 402 requirements. */
   maxTimeoutSeconds: number;
+  /**
+   * CDP Secret API key credentials. Required (and validated) whenever the
+   * facilitator URL points at api.cdp.coinbase.com, since CDP rejects
+   * unauthenticated verify/settle calls. Null = no auth (x402.org default).
+   */
+  facilitatorCdpAuth: { apiKeyId: string; apiKeySecret: string } | null;
 }
 
 function parsePriceUsd(raw: string | undefined): number {
@@ -71,6 +77,40 @@ function usdToAtomicUnits(usd: number): string {
   return String(microUsd);
 }
 
+const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
+
+function parseFacilitatorCdpAuth(
+  env: NodeJS.ProcessEnv,
+  facilitatorUrl: string
+): { apiKeyId: string; apiKeySecret: string } | null {
+  const apiKeyId = env.X402_CDP_API_KEY_ID?.trim() ?? '';
+  const apiKeySecret = env.X402_CDP_API_KEY_SECRET?.trim() ?? '';
+
+  if ((apiKeyId === '') !== (apiKeySecret === '')) {
+    throw new Error(
+      'X402_CDP_API_KEY_ID and X402_CDP_API_KEY_SECRET must be set together ' +
+        '(CDP Secret API key from portal.cdp.coinbase.com)'
+    );
+  }
+
+  let host = '';
+  try {
+    host = new URL(facilitatorUrl).host;
+  } catch {
+    // URL syntax errors surface later via the facilitator client; do not
+    // double-report here.
+  }
+
+  if (host === CDP_FACILITATOR_HOST && apiKeyId === '') {
+    throw new Error(
+      'X402_FACILITATOR_URL points at the CDP facilitator but X402_CDP_API_KEY_ID/' +
+        'X402_CDP_API_KEY_SECRET are missing — CDP requires authenticated verify/settle'
+    );
+  }
+
+  return apiKeyId === '' ? null : { apiKeyId, apiKeySecret };
+}
+
 /**
  * Parse and validate x402 env configuration. Throws on a malformed value so a
  * misconfigured deployment fails loudly instead of silently under- or
@@ -84,6 +124,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
   const payTo = rawPayTo === '' ? '' : PayToSchema.parse(rawPayTo);
 
   const flagEnabled = env.X402_ENABLED === 'true';
+  const facilitatorUrl = env.X402_FACILITATOR_URL?.trim() || 'https://x402.org/facilitator';
 
   return {
     enabled: flagEnabled && payTo !== '',
@@ -91,9 +132,10 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     payTo,
     amountAtomic: usdToAtomicUnits(priceUsd),
     priceUsd,
-    facilitatorUrl: env.X402_FACILITATOR_URL?.trim() || 'https://x402.org/facilitator',
+    facilitatorUrl,
     facilitatorTimeoutMs: 15_000,
     maxTimeoutSeconds: 60,
+    facilitatorCdpAuth: parseFacilitatorCdpAuth(env, facilitatorUrl),
   };
 }
 

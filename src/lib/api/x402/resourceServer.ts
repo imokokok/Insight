@@ -6,6 +6,7 @@ import {
 import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 
+import { createCdpAuthHeaders } from './cdpAuth';
 import { type X402Config, X402_PRE_TRADE_ROUTE, usdcForNetwork } from './config';
 
 /**
@@ -121,9 +122,12 @@ export async function buildX402HttpServer(
   cfg: X402Config,
   deps?: Partial<X402ServerDeps>
 ): Promise<x402HTTPResourceServer> {
+  const cdpAuth = cfg.facilitatorCdpAuth;
   const facilitator = new HTTPFacilitatorClient({
     url: deps?.facilitatorUrl ?? cfg.facilitatorUrl,
     timeoutMs: deps?.facilitatorTimeoutMs ?? cfg.facilitatorTimeoutMs,
+    // CDP facilitator requires per-request Bearer JWTs; x402.org needs none.
+    ...(cdpAuth ? { createAuthHeaders: createCdpAuthHeaders(cdpAuth) } : {}),
   });
 
   const server = new x402ResourceServer(facilitator);
@@ -149,6 +153,7 @@ export async function getX402HttpServer(cfg: X402Config): Promise<x402HTTPResour
     p: cfg.payTo,
     a: cfg.amountAtomic,
     f: cfg.facilitatorUrl,
+    c: cfg.facilitatorCdpAuth ? 'cdp' : 'none',
   });
   if (cached && cachedKey === key) {
     return cached;
