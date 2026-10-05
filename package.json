@@ -80,6 +80,7 @@
     "@walletconnect/ethereum-provider": "^2.25.0",
     "@x402/core": "2.27.0",
     "@x402/evm": "^2.27.0",
+    "@x402/extensions": "2.27.0",
     "@x402/fetch": "^2.27.0",
     "canonicalize": "^4.0.0",
     "clsx": "^2.1.1",
