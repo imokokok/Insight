@@ -1,6 +1,7 @@
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 
 import { getCorsHeaders } from '@/lib/api/handler';
+import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 import { createLogger } from '@/lib/utils/logger';
 
 import { authenticateMcpRequest } from '../auth';
@@ -49,13 +50,147 @@ function jsonResponse(
 }
 
 /**
+ * JSON-RPC methods an UNAUTHENTICATED client may invoke. These are read-only
+ * protocol/discovery operations (browse the server identity and the tool
+ * catalog); none of them touch data or execute tools. Everything else —
+ * notably `tools/call` — still requires credentials.
+ */
+const ANON_ALLOWED_METHODS = new Set([
+  'initialize',
+  'notifications/initialized',
+  'tools/list',
+  'ping',
+]);
+
+const ANON_RATE_LIMIT = { windowMs: 60_000, maxRequests: 20 };
+
+/**
+ * Read the JSON-RPC method names from a POST body without consuming the
+ * original request (the transport still needs it, hence the clone).
+ *
+ * Returns the method list for a parseable single or batch JSON-RPC message,
+ * or null when the request is not a JSON POST, is unparseable, is an empty
+ * batch, or contains any entry without a string `method` — the caller then
+ * falls back to the normal authenticated path.
+ */
+async function probeRpcMethods(request: Request): Promise<string[] | null> {
+  try {
+    if (request.method !== 'POST') return null;
+    const contentType = (request.headers.get('content-type') ?? '').toLowerCase();
+    if (!contentType.includes('application/json')) return null;
+
+    const body: unknown = JSON.parse(await request.clone().text());
+    const messages: unknown[] = Array.isArray(body) ? body : [body];
+    if (messages.length === 0) return null;
+
+    const methods: string[] = [];
+    for (const message of messages) {
+      if (
+        !message ||
+        typeof message !== 'object' ||
+        typeof (message as { method?: unknown }).method !== 'string'
+      ) {
+        return null;
+      }
+      methods.push((message as { method: string }).method);
+    }
+    return methods;
+  } catch {
+    return null;
+  }
+}
+
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return request.headers.get('x-real-ip') ?? 'unknown';
+}
+
+/**
+ * Serve an unauthenticated discovery request (initialize / tools/list /
+ * notifications / ping) with an IP-keyed rate limit. Returns null when the
+ * request is not anonymous-discovery eligible and should fall through to the
+ * regular 401 path.
+ *
+ * The MCP server is created WITHOUT an auth context, matching the stdio
+ * path. This is safe only because the method allowlist above is enforced
+ * before dispatch: `tools/call` can never reach this server, and mixed
+ * batches (e.g. [tools/list, tools/call]) fail the every() check and are
+ * rejected with 401 instead.
+ */
+async function tryAnonymousDiscovery(request: Request): Promise<McpHttpHandlerResult | null> {
+  const methods = await probeRpcMethods(request);
+  if (!methods || !methods.every((method) => ANON_ALLOWED_METHODS.has(method))) {
+    return null;
+  }
+
+  const identity = `mcp:anon:${getClientIp(request)}`;
+  const rate = await rateLimitStore.increment(identity, ANON_RATE_LIMIT.windowMs);
+  if (rate.count > ANON_RATE_LIMIT.maxRequests) {
+    return {
+      response: jsonResponse({ error: 'Rate limit exceeded' }, 429, {
+        'X-RateLimit-Limit': String(ANON_RATE_LIMIT.maxRequests),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(Math.floor(rate.resetTime / 1000)),
+        'Retry-After': String(Math.max(1, Math.ceil((rate.resetTime - Date.now()) / 1000))),
+      }),
+      cleanup: async () => {},
+    };
+  }
+
+  logger.info('Anonymous MCP discovery request', { methods, identity });
+
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true,
+  });
+  const server = createMcpServer(undefined);
+  server.onclose = async () => {
+    logger.debug('Anonymous MCP discovery server closed');
+  };
+  server.onerror = (error) => {
+    logger.error('Anonymous MCP discovery server error', error);
+  };
+
+  await server.connect(transport);
+  const response = await transport.handleRequest(request);
+
+  const merged = new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+  merged.headers.set('X-RateLimit-Limit', String(ANON_RATE_LIMIT.maxRequests));
+  merged.headers.set(
+    'X-RateLimit-Remaining',
+    String(Math.max(0, ANON_RATE_LIMIT.maxRequests - rate.count))
+  );
+  merged.headers.set('X-RateLimit-Reset', String(Math.floor(rate.resetTime / 1000)));
+  withCors(merged);
+
+  return {
+    response: merged,
+    cleanup: async () => {
+      try {
+        await server.close();
+      } catch {
+        // ignore
+      }
+    },
+  };
+}
+
+/**
  * Handle a single MCP HTTP request using the streamable HTTP transport.
  * Each request gets its own transport/server pair (stateless mode).
  *
  * Before the request reaches the MCP server we run:
  *   1. Authentication (API key, Supabase session, or MCP_BEARER_TOKEN)
- *   2. Per-identity rate limiting
- *   3. Credit-wallet precheck for API-key users (402 when balance is empty)
+ *   2. Anonymous discovery fallback: unauthenticated clients may invoke
+ *      read-only protocol methods (initialize/tools/list) so agents can
+ *      browse the catalog without credentials (see tryAnonymousDiscovery)
+ *   3. Per-identity rate limiting
+ *   4. Credit-wallet precheck for API-key users (402 when balance is empty)
  *
  * The resulting auth context is passed into the MCP server so individual tool
  * calls can apply credit prechecks/charges and usage logging.
@@ -64,6 +199,10 @@ export async function handleMcpHttpRequest(request: Request): Promise<McpHttpHan
   const authResult = await authenticateMcpRequest(request);
 
   if (!authResult.success) {
+    const anonymous = await tryAnonymousDiscovery(request);
+    if (anonymous) {
+      return anonymous;
+    }
     return {
       response: jsonResponse({ error: authResult.error }, authResult.statusCode),
       cleanup: async () => {},
