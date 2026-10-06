@@ -1,0 +1,136 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Insight Pre-Trade Safety API",
+    "version": "1.0.0",
+    "description": "Oracle-immune-system pre-trade safety checks with verifiable EIP-712 attestation support. One GET returns a verdict (PASS / ALERT / BLOCK) for a single trade, priced per call in USDC via x402 on Base mainnet. BLOCK verdicts are complete checks and are charged.",
+    "x-guidance": "Call GET /api/v1/safety/pre-trade with query parameters: asset (e.g. ETH), chainId (e.g. 1), action (swap|borrow|lend|liquidate|repay), tradeAmountUsd. Unauthenticated requests receive HTTP 402 with an x402 v2 payment challenge (USDC on Base, eip155:8453); retry the same request with the PAYMENT-SIGNATURE header to receive the safety verdict. Add schemaVersion=2 or 3 to include quorum-gate and independence-threshold attestation fields."
+  },
+  "servers": [
+    {
+      "url": "https://www.oracleinsight.xyz",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/api/v1/safety/pre-trade": {
+      "get": {
+        "operationId": "preTradeSafetyCheck",
+        "summary": "Pre-trade safety check with verifiable attestation",
+        "tags": ["Safety"],
+        "x-payment-info": {
+          "price": {
+            "mode": "fixed",
+            "currency": "USD",
+            "amount": "0.020000"
+          },
+          "protocols": [{ "x402": {} }]
+        },
+        "parameters": [
+          {
+            "name": "asset",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "examples": ["ETH"] },
+            "description": "Asset symbol, e.g. ETH, BTC, USDC"
+          },
+          {
+            "name": "chainId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "integer", "examples": [1] },
+            "description": "Chain ID, e.g. 1=Ethereum, 0=chain-agnostic"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["swap", "borrow", "lend", "liquidate", "repay"]
+            },
+            "description": "Type of DeFi operation"
+          },
+          {
+            "name": "tradeAmountUsd",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "number", "exclusiveMinimum": 0, "examples": [1000] },
+            "description": "Trade size in USD"
+          },
+          {
+            "name": "targetProviders",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Comma-separated list of oracle providers to restrict the check to"
+          },
+          {
+            "name": "protocolId",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "examples": ["aave-v3-ethereum"] },
+            "description": "Optional lending protocol id to evaluate against"
+          },
+          {
+            "name": "schemaVersion",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "enum": [1, 2, 3] },
+            "description": "Attestation schema version: 1 (default, 11-field), 2 (26-field, CAIP-19 + quorum gate), 3 (27-field: v2 + signed independence threshold)"
+          },
+          {
+            "name": "destinationAsset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Optional destination asset symbol (v2 binds it as destinationAssetId)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Safety verdict returned (request was paid via x402 or authorized by API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "verdict": { "type": "string" },
+                        "consensusPrice": { "type": "number" },
+                        "maxDeviationPct": { "type": "number" },
+                        "manipulationRiskScore": { "type": "number" },
+                        "crossProviderAgreement": { "type": "number" },
+                        "recommendedMaxPositionUsd": { "type": "number" },
+                        "staleDataRisk": { "type": "boolean" },
+                        "participantCount": { "type": "integer" }
+                      },
+                      "additionalProperties": true
+                    },
+                    "requestId": { "type": "string" }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "401": {
+            "description": "Unauthorized (paid tier disarmed and no API key supplied)"
+          },
+          "402": {
+            "description": "Payment Required: x402 v2 challenge in the payment-required response header (base64 JSON with accepts[].amount in USDC atomic units on Base eip155:8453 and bazaar discovery metadata)."
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    }
+  }
+}
