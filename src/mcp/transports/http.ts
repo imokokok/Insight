@@ -2,6 +2,8 @@ import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/
 
 import { getCorsHeaders } from '@/lib/api/handler';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
+import { getX402Config } from '@/lib/api/x402/config';
+import { handleMcpPaidToolCall } from '@/lib/api/x402/mcpBridge';
 import { createLogger } from '@/lib/utils/logger';
 
 import { authenticateMcpRequest } from '../auth';
@@ -106,6 +108,122 @@ function getClientIp(request: Request): string {
   return request.headers.get('x-real-ip') ?? 'unknown';
 }
 
+/** Per-minute IP rate limit for the unauthenticated x402 tools/call tier. */
+const PAID_TOOLS_RATE_LIMIT = { windowMs: 60_000, maxRequests: 60 };
+
+/**
+ * Extract the tool name from a single (non-batch) `tools/call` JSON-RPC
+ * message without consuming the request. Returns null for batches, other
+ * methods, or a missing/unnamed tool — the caller then falls through.
+ */
+async function probeToolName(request: Request): Promise<string | null> {
+  try {
+    if (request.method !== 'POST') return null;
+    const contentType = (request.headers.get('content-type') ?? '').toLowerCase();
+    if (!contentType.includes('application/json')) return null;
+
+    const body: unknown = JSON.parse(await request.clone().text());
+    if (Array.isArray(body)) return null;
+    if (
+      !body ||
+      typeof body !== 'object' ||
+      (body as { method?: unknown }).method !== 'tools/call'
+    ) {
+      return null;
+    }
+    const name = (body as { params?: { name?: unknown } }).params?.name;
+    return typeof name === 'string' && name.length > 0 ? name : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Serve an UNAUTHENTICATED `tools/call` through the x402 pay-per-call bridge:
+ * a 402 quote priced by the tool's metering class when no payment signature
+ * is present, or verify → dispatch → settle when it is (see mcpBridge).
+ *
+ * Returns null when the paid tier is disarmed or the request is not a single
+ * named tools/call, in which case the caller falls back to the 401 path.
+ * The MCP server instance runs WITHOUT an auth context — metering happens
+ * on-chain, not against credit wallets — and is only reachable because the
+ * probe above pins the request to exactly one tools/call message.
+ */
+async function tryPaidToolCall(request: Request): Promise<McpHttpHandlerResult | null> {
+  const cfg = getX402Config();
+  if (!cfg.enabled) {
+    return null;
+  }
+
+  const toolName = await probeToolName(request);
+  if (!toolName) {
+    return null;
+  }
+
+  const identity = `mcp:x402:${getClientIp(request)}`;
+  const rate = await rateLimitStore.increment(identity, PAID_TOOLS_RATE_LIMIT.windowMs);
+  if (rate.count > PAID_TOOLS_RATE_LIMIT.maxRequests) {
+    return {
+      response: jsonResponse({ error: 'Rate limit exceeded' }, 429, {
+        'X-RateLimit-Limit': String(PAID_TOOLS_RATE_LIMIT.maxRequests),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(Math.floor(rate.resetTime / 1000)),
+        'Retry-After': String(Math.max(1, Math.ceil((rate.resetTime - Date.now()) / 1000))),
+      }),
+      cleanup: async () => {},
+    };
+  }
+
+  logger.info('Paid anonymous MCP tools/call', { toolName, identity });
+
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true,
+  });
+  const server = createMcpServer(undefined);
+  server.onerror = (error) => {
+    logger.error('Paid MCP tools/call server error', error);
+  };
+  await server.connect(transport);
+
+  const cleanup = async (): Promise<void> => {
+    try {
+      await server.close();
+    } catch {
+      // ignore
+    }
+  };
+
+  try {
+    const response = await handleMcpPaidToolCall({
+      request,
+      cfg,
+      toolName,
+      runBusiness: async () => {
+        const raw = await transport.handleRequest(request);
+        return new Response(raw.body, {
+          status: raw.status,
+          statusText: raw.statusText,
+          headers: raw.headers,
+        });
+      },
+    });
+
+    response.headers.set('X-RateLimit-Limit', String(PAID_TOOLS_RATE_LIMIT.maxRequests));
+    response.headers.set(
+      'X-RateLimit-Remaining',
+      String(Math.max(0, PAID_TOOLS_RATE_LIMIT.maxRequests - rate.count))
+    );
+    response.headers.set('X-RateLimit-Reset', String(Math.floor(rate.resetTime / 1000)));
+    withCors(response);
+
+    return { response, cleanup };
+  } catch (error) {
+    await cleanup();
+    throw error;
+  }
+}
+
 /**
  * Serve an unauthenticated discovery request (initialize / tools/list /
  * notifications / ping) with an IP-keyed rate limit. Returns null when the
@@ -189,8 +307,11 @@ async function tryAnonymousDiscovery(request: Request): Promise<McpHttpHandlerRe
  *   2. Anonymous discovery fallback: unauthenticated clients may invoke
  *      read-only protocol methods (initialize/tools/list) so agents can
  *      browse the catalog without credentials (see tryAnonymousDiscovery)
- *   3. Per-identity rate limiting
- *   4. Credit-wallet precheck for API-key users (402 when balance is empty)
+ *   3. x402 paid fallback: an unauthenticated single tools/call is served
+ *      through the pay-per-call bridge (402 quote → verify → settle) when
+ *      the paid tier is armed (see tryPaidToolCall)
+ *   4. Per-identity rate limiting
+ *   5. Credit-wallet precheck for API-key users (402 when balance is empty)
  *
  * The resulting auth context is passed into the MCP server so individual tool
  * calls can apply credit prechecks/charges and usage logging.
@@ -202,6 +323,10 @@ export async function handleMcpHttpRequest(request: Request): Promise<McpHttpHan
     const anonymous = await tryAnonymousDiscovery(request);
     if (anonymous) {
       return anonymous;
+    }
+    const paid = await tryPaidToolCall(request);
+    if (paid) {
+      return paid;
     }
     return {
       response: jsonResponse({ error: authResult.error }, authResult.statusCode),

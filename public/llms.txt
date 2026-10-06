@@ -5,6 +5,7 @@
 ## Paid API (x402)
 
 - [Pre-trade safety check](https://www.oracleinsight.xyz/api/v1/safety/pre-trade): GET. Query params: `asset` (e.g. ETH), `chainId` (e.g. 1), `action` (e.g. swap), `tradeAmountUsd` (e.g. 1000), all required; optional `targetProviders`, `protocolId`, `schemaVersion` (2 or 3; v3 adds quorum and independence gates verifiable from signature bytes). Example response fields: `verdict`, `staleDataRisk`, `consensusPrice`, `maxDeviationPct`, `participantCount`, `manipulationRiskScore`, `crossProviderAgreement`, `recommendedMaxPositionUsd`.
+- [MCP endpoint](https://www.oracleinsight.xyz/api/mcp): POST (JSON-RPC, streamable HTTP). `initialize`, `tools/list` and `ping` are free without credentials (40 tools). `tools/call` from an agent without an API key is paid per call via x402: the HTTP 402 quote prices the call from the tool's metering class (1 credit = $0.004, e.g. C3 pre-trade = $0.02); retry with `PAYMENT-SIGNATURE` as below. With an `X-API-Key` header, calls meter against the credit wallet instead.
 
 ## Payment flow (x402 v2, exact scheme)
 

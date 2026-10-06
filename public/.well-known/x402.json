@@ -23,6 +23,25 @@
           "version": "2"
         }
       }
+    },
+    {
+      "url": "https://www.oracleinsight.xyz/api/mcp",
+      "method": "POST",
+      "description": "MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Amount shown is the C3 anchor ($0.02, e.g. pre_trade_safety_check); the live 402 quote prices each call from its tool metering class (C1=2000, C2=8000, C3=20000, C4=40000 atomic).",
+      "accepts": {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "amount": "20000",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "assetSymbol": "USDC",
+        "assetDecimals": 6,
+        "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+        "maxTimeoutSeconds": 60,
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
     }
   ],
   "attestation": {
