@@ -144,9 +144,10 @@ function newRequestId(): string {
  * was accepted (`{"bazaar":{"status":"processing"}}`) or silently rejected
  * (`{"bazaar":{"status":"rejected","rejectedReason":...}}`) — without this log
  * an invalid discovery extension would never be noticed. Best-effort: any
- * decode failure logs the raw header and moves on.
+ * decode failure logs the raw header and moves on. Shared with the MCP paid
+ * bridge, which settles through the same facilitator stack.
  */
-function logBazaarExtensionStatus(
+export function logBazaarExtensionStatus(
   requestId: string,
   headers: Record<string, string> | undefined
 ): void {

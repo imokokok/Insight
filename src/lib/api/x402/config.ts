@@ -142,6 +142,18 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
 /** The v1 route this paid tier protects; used as the x402 route pattern. */
 export const X402_PRE_TRADE_ROUTE = '/api/v1/safety/pre-trade';
 
+/** The MCP streamable-HTTP route paid per tools/call (JSON-RPC POST). */
+export const X402_MCP_ROUTE = '/api/mcp';
+
+/**
+ * USD value of one billing credit for the MCP x402 tier, derived from the
+ * REST anchor: the pre-trade check (metering class C3 = 5 credits) sells for
+ * $0.02 on the keyless tier, so 1 credit = $0.004. The MCP bridge converts a
+ * tool's credit cost (getToolCreditCost) into a USDC amount with this factor,
+ * keeping the two payment rails price-consistent by construction.
+ */
+export const X402_CREDIT_USD = 0.004;
+
 /** USDC asset address for the configured network. */
 export function usdcForNetwork(network: X402NetworkId): string {
   return SUPPORTED_NETWORKS[network].usdc;
