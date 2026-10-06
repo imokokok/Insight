@@ -262,13 +262,31 @@ export async function handlePaidPreTradeRequest(
   logBazaarExtensionStatus(requestId, settle.headers);
 
   if (settle.success) {
+    // The CDP v2 settle response omits `amount`, and the exact scheme always
+    // settles the issued requirements, so the configured atomic amount is the
+    // deterministic charge. Verdict is lifted from the business body
+    // (best-effort clone) so audit rows carry the check outcome.
+    const atomic = settle.amount ?? cfg.amountAtomic;
+    const amountUsdc = String(Number(atomic) / 1_000_000);
+    let verdict: string | undefined;
+    try {
+      const body = (await businessResponse.clone().json()) as {
+        data?: { verdict?: unknown };
+        verdict?: unknown;
+      };
+      const raw = body?.data?.verdict ?? body?.verdict;
+      if (typeof raw === 'string') verdict = raw;
+    } catch {
+      // Body parse is best-effort; the audit row stays useful without it.
+    }
     recordX402Settlement({
       requestId,
       status: 'settled',
       txHash: settle.transaction,
       payer: settle.payer,
-      amountUsdc: settle.amount,
+      amountUsdc,
       network: cfg.network,
+      verdict,
     });
   } else {
     recordX402Settlement({
