@@ -1,0 +1,25 @@
+# Insight — Oracle Transparency & Risk Intelligence for DeFi
+
+> Pre-trade safety checks for AI agents trading DeFi. Returns an oracle-manipulation-aware verdict (PASS/WARN/BLOCK) for a single trade, backed by multi-provider oracle consensus and verifiable EIP-712 attestations. Paid via x402: USDC on Base, $0.02 per request, no signup or API key required.
+
+## Paid API (x402)
+
+- [Pre-trade safety check](https://www.oracleinsight.xyz/api/v1/safety/pre-trade): GET. Query params: `asset` (e.g. ETH), `chainId` (e.g. 1), `action` (e.g. swap), `tradeAmountUsd` (e.g. 1000), all required; optional `targetProviders`, `protocolId`, `schemaVersion` (2 or 3; v3 adds quorum and independence gates verifiable from signature bytes). Example response fields: `verdict`, `staleDataRisk`, `consensusPrice`, `maxDeviationPct`, `participantCount`, `manipulationRiskScore`, `crossProviderAgreement`, `recommendedMaxPositionUsd`.
+
+## Payment flow (x402 v2, exact scheme)
+
+1. GET the endpoint without payment credentials. You receive HTTP 402 with a `PAYMENT-REQUIRED` response header (base64 JSON) describing the exact-scheme challenge: USDC (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`), 20000 atomic units ($0.02), network `eip155:8453`, payTo `0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231`.
+2. Sign an EIP-3009 `transferWithAuthorization` with your wallet (domain: name "USD Coin", version "2", chainId 8453). No gas needed from the payer; the facilitator settles on-chain.
+3. Retry the GET with the `PAYMENT-SIGNATURE` header carrying the base64-encoded payment payload. The Coinbase CDP facilitator verifies and settles; a successful call returns HTTP 200 with the verdict JSON.
+
+## Machine-readable discovery
+
+- [OpenAPI discovery document](https://www.oracleinsight.xyz/openapi.json): x402-focused discovery doc for the paid endpoint, including the `x-payment-info` pricing block and parameter schemas.
+- [x402 well-known manifest](https://www.oracleinsight.xyz/.well-known/x402.json): resource-server manifest (also served at [/.well-known/x402](https://www.oracleinsight.xyz/.well-known/x402)).
+
+## Free (keyless) endpoints
+
+- [POST /api/v1/safety/attestation/verify](https://www.oracleinsight.xyz/api/v1/safety/attestation/verify): verify an EIP-712 attestation receipt (keyless, no charge).
+- [GET /api/v1/symbols](https://www.oracleinsight.xyz/api/v1/symbols): list supported feed symbols (keyless).
+
+Other data endpoints (oracle health, feeds, deviation, reports) require an API key; see the [OpenAPI reference](https://www.oracleinsight.xyz/openapi.yaml).

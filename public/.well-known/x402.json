@@ -1,0 +1,32 @@
+{
+  "x402Version": 2,
+  "kind": "resource-server",
+  "name": "Insight Pre-Trade Safety API",
+  "description": "Pre-trade safety checks for AI agents trading DeFi: oracle-manipulation-aware verdicts (PASS/BLOCK/WARN) with verifiable EIP-712 attestations, powered by multi-provider oracle consensus on Base.",
+  "docs": "https://www.oracleinsight.xyz/openapi.json",
+  "resources": [
+    {
+      "url": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",
+      "method": "GET",
+      "description": "Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.",
+      "accepts": {
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "amount": "20000",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "assetSymbol": "USDC",
+        "assetDecimals": 6,
+        "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+        "maxTimeoutSeconds": 60,
+        "extra": {
+          "name": "USD Coin",
+          "version": "2"
+        }
+      }
+    }
+  ],
+  "attestation": {
+    "type": "none"
+  },
+  "updated": "2026-10-07T00:00:00Z"
+}
