@@ -35,9 +35,12 @@ export const GET = createApiHandler(
       );
     }
 
+    // The report is built from hourly snapshots (5-minute in-process cache in
+    // getOracleHealthReport), so a 60-second CDN window is safe and keeps
+    // request bursts from invoking the full-day read behind this endpoint.
     return createCachedJsonResponse(
       ApiResponseBuilder.success(healthReport, { requestId: context.requestId }),
-      { preset: 'realtime' }
+      { preset: 'shortLived' }
     );
   },
   {
