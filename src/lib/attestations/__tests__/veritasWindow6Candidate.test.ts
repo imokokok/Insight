@@ -8,7 +8,7 @@ import {
 const context = {
   partnerId: 'veritas',
   policyId: VERITAS_JOINT_RUN_POLICY_ID,
-  apiKeyId: 'window-five-key',
+  apiKeyId: 'window-six-key',
   asset: 'WETH',
   destinationAsset: 'USDC',
   chainId: 1,
@@ -17,23 +17,23 @@ const context = {
   schemaVersion: 3,
 };
 
-test('October policy is active but issuance remains gated by the key, date and UTC cutoffs', () => {
+test('October 6 policy is active but issuance remains gated by the key, date and UTC cutoffs', () => {
   expect(activePartnerIntegrationPolicy('veritas')?.policyId).toBe(VERITAS_JOINT_RUN_POLICY_ID);
   expect(() =>
     assertVeritasJointRun1800Admission(
       context,
       'request',
-      new Date('2026-10-02T14:20:00Z'),
-      '2026-10-02',
-      'window-five-key'
+      new Date('2026-10-06T15:50:00Z'),
+      '2026-10-06',
+      'window-six-key'
     )
   ).not.toThrow();
   expect(() =>
     assertVeritasJointRun1800Admission(
       context,
       'request',
-      new Date('2026-10-02T14:20:00Z'),
-      '2026-10-02',
+      new Date('2026-10-06T15:50:00Z'),
+      '2026-10-06',
       ''
     )
   ).toThrow('not authorized');
@@ -41,9 +41,9 @@ test('October policy is active but issuance remains gated by the key, date and U
     assertVeritasJointRun1800Admission(
       context,
       'request',
-      new Date('2026-10-02T13:59:59Z'),
-      '2026-10-02',
-      'window-five-key'
+      new Date('2026-10-06T15:29:59Z'),
+      '2026-10-06',
+      'window-six-key'
     )
   ).toThrow('outside its one-time cutoff');
 });

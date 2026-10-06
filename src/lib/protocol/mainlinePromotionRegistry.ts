@@ -26,6 +26,8 @@ import promotionVeritas1800Json from '../../../protocol/mainline/promotions/2026
 import promotionVeritasWindow5ActivationJson from '../../../protocol/mainline/promotions/2026-10-01-veritas-window-five-activation.json';
 import promotionVeritasWindow5CandidateJson from '../../../protocol/mainline/promotions/2026-10-01-veritas-window-five-candidate.json';
 import promotionOracleScenarioRunVerifierJson from '../../../protocol/mainline/promotions/2026-10-04-oracle-scenario-run-verifier.json';
+import promotionVeritasWindow6ActivationJson from '../../../protocol/mainline/promotions/2026-10-06-veritas-window-six-activation.json';
+import promotionVeritasWindow6CandidateJson from '../../../protocol/mainline/promotions/2026-10-06-veritas-window-six-candidate.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -83,6 +85,8 @@ const rawPromotions = [
   promotionVeritasWindow5CandidateJson,
   promotionVeritasWindow5ActivationJson,
   promotionOracleScenarioRunVerifierJson,
+  promotionVeritasWindow6CandidateJson,
+  promotionVeritasWindow6ActivationJson,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {

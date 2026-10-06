@@ -3,6 +3,7 @@ import activationSetV2Json from '../../../protocol/mainline/activation-sets/v2.j
 import activationSetV3Json from '../../../protocol/mainline/activation-sets/v3.json';
 import activationSetV4Json from '../../../protocol/mainline/activation-sets/v4.json';
 import activationSetV5Json from '../../../protocol/mainline/activation-sets/v5.json';
+import activationSetV6Json from '../../../protocol/mainline/activation-sets/v6.json';
 import activationPointerJson from '../../../protocol/mainline/activations.json';
 import agentPassportJson from '../../../protocol/mainline/policies/agent-passport/v1.json';
 import andydgreaJson from '../../../protocol/mainline/policies/andydgrea/v1.json';
@@ -17,6 +18,7 @@ import veritasJson from '../../../protocol/mainline/policies/veritas/v1.json';
 import veritasV2Json from '../../../protocol/mainline/policies/veritas/v2.json';
 import veritasV3Json from '../../../protocol/mainline/policies/veritas/v3.json';
 import veritasV4Json from '../../../protocol/mainline/policies/veritas/v4.json';
+import veritasV5Json from '../../../protocol/mainline/policies/veritas/v5.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -85,6 +87,7 @@ const rawPolicies = [
   veritasV2Json,
   veritasV3Json,
   veritasV4Json,
+  veritasV5Json,
 ] as unknown as PartnerIntegrationPolicy[];
 
 function assertPolicy(policy: PartnerIntegrationPolicy): void {
@@ -113,12 +116,14 @@ const activationSetV2 = activationSetV2Json as unknown as PartnerActivationSet;
 const activationSetV3 = activationSetV3Json as unknown as PartnerActivationSet;
 const activationSetV4 = activationSetV4Json as unknown as PartnerActivationSet;
 const activationSetV5 = activationSetV5Json as unknown as PartnerActivationSet;
+const activationSetV6 = activationSetV6Json as unknown as PartnerActivationSet;
 const rawActivationSets = [
   activationSetV1,
   activationSetV2,
   activationSetV3,
   activationSetV4,
   activationSetV5,
+  activationSetV6,
 ];
 
 export const PARTNER_ACTIVATION_SETS = Object.freeze(
