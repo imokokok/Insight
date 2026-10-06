@@ -19,6 +19,7 @@ import {
 } from '@/lib/reports/reportCalculations';
 import { type SnapshotRow } from '@/lib/reports/types';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { TTLCache } from '@/lib/utils/cache';
 import { getTodayUtc } from '@/lib/utils/date';
 import { roundTo } from '@/lib/utils/format';
 import { type OracleProvider } from '@/types/oracle';
@@ -381,10 +382,30 @@ function buildOverview(params: {
   };
 }
 
+// Each uncached call reads the ENTIRE day's hourly snapshots (plus any cold
+// archive chunks) from Supabase — ~280 KB and seconds of latency per read.
+// The inputs only change when the collector writes a new hourly row, so a
+// 5-minute in-process TTL keeps repeat requests (and the bursty traffic the
+// 5-second CDN window used to let through) from re-pulling the full day.
+const ORACLE_HEALTH_CACHE_TTL_MS = 5 * 60 * 1000;
+const oracleHealthCache = new TTLCache({ maxSize: 8 });
+
 export async function getOracleHealthReport(
   date?: string
 ): Promise<OracleHealthApiResponse | null> {
   const reportDate = date ?? getTodayUtc();
+  const cached = oracleHealthCache.get<OracleHealthApiResponse>(reportDate);
+  if (cached) return cached;
+  const report = await buildOracleHealthReport(reportDate);
+  if (report) {
+    oracleHealthCache.set(reportDate, report, ORACLE_HEALTH_CACHE_TTL_MS);
+  }
+  return report;
+}
+
+async function buildOracleHealthReport(
+  reportDate: string
+): Promise<OracleHealthApiResponse | null> {
   const { startAt, endAt, evaluationTime } = getDateRange(reportDate);
   const supabase = createServiceRoleClient();
 

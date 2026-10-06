@@ -26,9 +26,11 @@ export const GET = createApiHandler(
     }
 
     const searchParams = _request.nextUrl.searchParams;
+    // Egress guard: 50,000 rows ≈ 21 MB of Supabase egress per request;
+    // 10,000 (~4 MB) still covers the UI's download needs.
     const parsedLimit = parseInt(searchParams.get('limit') || '10000', 10);
     const limit =
-      Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 50000) : 10000;
+      Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 10000) : 10000;
 
     const supabase = createUserClient(accessToken);
     const { data, error } = await supabase

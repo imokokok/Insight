@@ -29,6 +29,20 @@ const queryQueue = new RequestQueue({
 // below this.
 const ORACLE_FEEDS_PAGE_SIZE = 500;
 
+// Core projection for every active-registry read. The resolver hot path
+// (price fetches, consensus, snapshot collection) and the feed-health
+// surfaces only consume these columns; the lifecycle/audit columns
+// (created_at, updated_at, last_discovery_at, deactivated_reason,
+// deactivated_at, absent_discovery_runs) are written here but only ever
+// READ by ops diagnostics that query oracle_feeds directly. Selecting them
+// on every cold-start cron read cost ~31% of the wire: the registry is
+// re-fetched by fresh GitHub Actions processes (96 snapshot + 48 oracle
+// watch + 24 reputation runs/day) where the 5-minute in-memory cache never
+// warms, and that repeat read was the dominant Supabase egress driver
+// (2.29 MB -> ~1.6 MB per full registry read).
+const ORACLE_FEEDS_CORE_COLUMNS =
+  'id,provider,symbol,chain_id,address,name,decimals,category,is_active,source,metadata,consecutive_failures,last_success_at,last_failure_at';
+
 export interface PriceRecord {
   id?: string;
   provider: string;
@@ -377,7 +391,7 @@ export class DatabaseQueries {
       for (;;) {
         let query = this.client
           .from('oracle_feeds')
-          .select('*', offset === 0 ? { count: 'exact' } : undefined)
+          .select(ORACLE_FEEDS_CORE_COLUMNS, offset === 0 ? { count: 'exact' } : undefined)
           .eq('is_active', true)
           .order('symbol', { ascending: true })
           .order('chain_id', { ascending: true })

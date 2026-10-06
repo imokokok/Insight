@@ -24,7 +24,10 @@ const ExportQuerySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format, expected YYYY-MM-DD')
     .optional(),
-  limit: z.coerce.number().int().min(1).max(50000).optional().default(1000),
+  // Egress guard: price_records rows average ~420B on the wire, so the old
+  // 50,000 ceiling allowed a single request to pull ~21 MB out of Supabase.
+  // 10,000 rows (~4 MB) still covers a full day of high-frequency symbols.
+  limit: z.coerce.number().int().min(1).max(10000).optional().default(1000),
   offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
