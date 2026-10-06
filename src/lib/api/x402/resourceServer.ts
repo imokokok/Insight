@@ -100,7 +100,11 @@ function routeConfigFor(cfg: X402Config) {
         // server-side USD→asset resolution, the wire amount is fixed here.
         price: { asset: usdcForNetwork(cfg.network), amount: cfg.amountAtomic },
         maxTimeoutSeconds: cfg.maxTimeoutSeconds,
-        extra: { name: 'USDC', version: '2' },
+        // EIP-712 domain name must match the token contract exactly:
+        // Base mainnet USDC's DOMAIN_SEPARATOR is built from "USD Coin",
+        // not the symbol. A wrong name makes the facilitator's on-chain
+        // simulation revert with "FiatTokenV2: invalid signature".
+        extra: { name: 'USD Coin', version: '2' },
       },
     ],
     extensions: BAZAAR_DISCOVERY_EXTENSION,
