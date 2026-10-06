@@ -1,6 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { createServiceRoleClient } from '@/lib/supabase/server';
+
 import { type X402Config } from '../config';
 import {
   handlePaidPreTradeRequest,
@@ -10,9 +12,11 @@ import {
 } from '../guard';
 import { getX402HttpServer } from '../resourceServer';
 
+const mockInsert = jest.fn(async () => ({ error: null }));
+
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(() => ({
-    from: () => ({ insert: jest.fn(async () => ({ error: null })) }),
+    from: () => ({ insert: mockInsert }),
   })),
 }));
 
@@ -45,12 +49,26 @@ jest.mock('next/server', () => {
     json() {
       return Promise.resolve(this.bodyText ? JSON.parse(this.bodyText) : null);
     }
+
+    clone() {
+      return this;
+    }
   }
 
-  return { NextResponse, after: jest.fn() };
+  return { NextResponse, after: (fn: () => unknown) => void Promise.resolve().then(fn) };
 });
 
 const mockedGetServer = getX402HttpServer as jest.Mock;
+
+// jest.config.js sets resetMocks: true, which wipes factory-installed
+// implementations before every test — re-prime the service-role client and
+// the insert recorder so audit assertions observe real calls.
+beforeEach(() => {
+  (createServiceRoleClient as jest.Mock).mockImplementation(() => ({
+    from: () => ({ insert: mockInsert }),
+  }));
+  mockInsert.mockImplementation(async () => ({ error: null }));
+});
 
 const CFG: X402Config = {
   enabled: true,
@@ -141,20 +159,36 @@ describe('x402 guard', () => {
         success: true,
         transaction: '0xtxhash',
         payer: '0xpayer',
-        amount: '20000',
+        // CDP v2 settle responses omit `amount`; the guard must fall back to
+        // the configured atomic charge so audit rows keep their amount.
+        amount: undefined,
         network: 'eip155:84532',
         headers: { 'PAYMENT-RESPONSE': 'receipt' },
         requirements: {},
       });
       mockedGetServer.mockResolvedValue({ processHTTPRequest, processSettlement });
 
-      const business = jest.fn(OK_BUSINESS);
+      const business = jest.fn(() =>
+        Promise.resolve(NextResponse.json({ ok: true, data: { verdict: 'PASS' } }, { status: 200 }))
+      );
+      mockInsert.mockClear();
       const res = await handlePaidPreTradeRequest(makeRequest(), CFG, business);
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(business).toHaveBeenCalledTimes(1);
       expect(processSettlement).toHaveBeenCalledTimes(1);
       expect(res.status).toBe(200);
       expect(res.headers.get('PAYMENT-RESPONSE')).toBe('receipt');
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'settled',
+          tx_hash: '0xtxhash',
+          payer: '0xpayer',
+          amount_usdc: '0.02',
+          network: 'eip155:84532',
+          verdict: 'PASS',
+        })
+      );
     });
 
     it('skips settlement when the business response is non-2xx', async () => {
