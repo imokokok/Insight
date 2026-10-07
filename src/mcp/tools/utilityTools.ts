@@ -1,9 +1,25 @@
-import { getAllActiveFeedsByProvider } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { STABLECOINS } from '@/lib/stablecoins/config';
+import type { OracleFeed } from '@/lib/supabase/queries';
 
 import { OracleSetupRecommendationInputSchema, SymbolQueryInputSchema } from './schemas';
 
 import type { McpToolDefinition } from './types';
+
+/**
+ * Load the active-feed registry for a PAID tool. Unlike the plain
+ * `getAllActiveFeedsByProvider()`, a database failure surfaces as a thrown
+ * error (the MCP SDK turns it into `isError: true`), so the x402 bridge
+ * skips settlement — a paid symbol listing must never answer from a
+ * swallowed infrastructure error.
+ */
+async function loadActiveFeedsOrThrow(): Promise<Map<string, OracleFeed[]>> {
+  const { feeds, errored } = await getAllActiveFeedsByProviderWithStatus();
+  if (errored) {
+    throw new Error('Feed registry temporarily unavailable, please retry.');
+  }
+  return feeds;
+}
 
 export const getSymbolsTool: McpToolDefinition<typeof SymbolQueryInputSchema> = {
   name: 'get_symbols',
@@ -11,9 +27,7 @@ export const getSymbolsTool: McpToolDefinition<typeof SymbolQueryInputSchema> = 
     'List supported asset symbols. Optionally filter by a search query. Use this when you are unsure whether a symbol is supported.',
   parameters: SymbolQueryInputSchema,
   handler: async (args) => {
-    const feedsByProvider = await getAllActiveFeedsByProvider().catch(
-      () => new Map<string, unknown[]>()
-    );
+    const feedsByProvider = await loadActiveFeedsOrThrow();
 
     const symbolSet = new Set<string>();
     for (const feeds of feedsByProvider.values()) {
@@ -55,9 +69,7 @@ export const recommendOracleSetupTool: McpToolDefinition<
     'Recommend oracle provider setup for an asset based on active feeds. Use this to decide which providers to include in price feeds or risk analysis.',
   parameters: OracleSetupRecommendationInputSchema,
   handler: async (args) => {
-    const feedsByProvider = await getAllActiveFeedsByProvider().catch(
-      () => new Map<string, unknown[]>()
-    );
+    const feedsByProvider = await loadActiveFeedsOrThrow();
 
     const targetSymbol = args.symbol.toUpperCase();
     const recommendations: Array<{ provider: string; chains: string[]; count: number }> = [];
