@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { ArrowRight, BookOpen } from 'lucide-react';
+import { ArrowRight, BookOpen, ShieldCheck, Terminal } from 'lucide-react';
 
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { DataAccessTierMatrix, PricingSection } from '@/components/pricing';
@@ -153,6 +153,22 @@ export default function PricingPage() {
                 safety check. Humans and teams with ongoing volume should use the credit plans below
                 instead.
               </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/docs/x402"
+                  className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
+                >
+                  <Terminal className="h-4 w-4" />
+                  Copy-paste quickstart
+                </Link>
+                <Link
+                  href="/docs/x402#verify"
+                  className="inline-flex items-center gap-2 border border-slate-900/20 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-500 hover:text-blue-700"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  Verify a receipt
+                </Link>
+              </div>
             </div>
           </div>
           <div className="pricing-fact-ledger grid border-b border-slate-900/15 sm:grid-cols-2 lg:grid-cols-4">
