@@ -9,6 +9,7 @@ import {
   Bot,
   ChevronDown,
   Code2,
+  Coins,
   ExternalLink,
   FileCode,
   HelpCircle,
@@ -28,6 +29,14 @@ interface Resource {
 }
 
 const resources: Resource[] = [
+  {
+    icon: <Coins className="w-6 h-6" />,
+    title: 'x402 Pay-per-Call',
+    description:
+      'No account, no API key: pay $0.02 in USDC on Base per pre-trade safety check, or per-call pricing for all 40 MCP tools. Copy-paste quickstarts for curl, TypeScript, Python, and MCP.',
+    href: '/docs/x402',
+    accent: 'emerald',
+  },
   {
     icon: <Terminal className="w-6 h-6" />,
     title: 'API Reference',

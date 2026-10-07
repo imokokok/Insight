@@ -15,6 +15,7 @@
 
 ## Machine-readable discovery
 
+- [x402 pay-per-call quickstart](https://www.oracleinsight.xyz/docs/x402): copy-paste clients for curl, TypeScript (@x402/fetch), Python (x402[httpx,evm]), and MCP tools/call; query parameters, metering classes (C1 $0.002, C2 $0.008, C3 $0.02, C4 $0.04), and receipt verification.
 - [OpenAPI discovery document](https://www.oracleinsight.xyz/openapi.json): x402-focused discovery doc for the paid endpoint, including the `x-payment-info` pricing block and parameter schemas.
 - [x402 well-known manifest](https://www.oracleinsight.xyz/.well-known/x402.json): resource-server manifest (also served at [/.well-known/x402](https://www.oracleinsight.xyz/.well-known/x402)).
 

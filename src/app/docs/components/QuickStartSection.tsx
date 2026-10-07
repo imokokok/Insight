@@ -71,6 +71,7 @@ const steps = [
 
 const ctas = [
   { href: '/price-query', label: 'Start Searching', primary: true },
+  { href: '/docs/x402', label: 'Pay per call (x402)', primary: false },
   { href: '/price-insight', label: 'Compare Oracles', primary: false },
   { href: '/sdk', label: 'Build a guarded agent', primary: false },
 ];

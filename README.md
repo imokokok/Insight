@@ -61,6 +61,10 @@ The hosted MCP server is live at `https://www.oracleinsight.xyz/api/mcp` (stream
 - **Discovery surfaces**: `llms.txt`, `/.well-known/x402`, `/.well-known/mcp/server-card.json`, and `openapi.json` at the site root.
 - **Registry listing**: published to the official MCP registry as `io.github.imokokok/insight-oracle`.
 
+### x402 quickstart (pay per call)
+
+The pre-trade safety check is available with no account and no API key: an unauthenticated request gets an HTTP 402 quote ($0.02 USDC on Base), the client signs an EIP-3009 authorization and retries, and the facilitator settles only successful calls. Copy-paste client examples for curl, TypeScript (`@x402/fetch`), Python (`x402[httpx,evm]`), and MCP `tools/call` live in [examples/x402-quickstart](examples/x402-quickstart) and on the [x402 quickstart page](https://www.oracleinsight.xyz/docs/x402).
+
 ## Local development
 
 Requires Node.js 22 or later. From the repository root:
