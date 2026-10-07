@@ -7,7 +7,13 @@ import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 
 import { createCdpAuthHeaders } from './cdpAuth';
-import { type X402Config, X402_MCP_ROUTE, X402_PRE_TRADE_ROUTE, usdcForNetwork } from './config';
+import {
+  type X402Config,
+  X402_MCP_ROUTE,
+  X402_PRE_TRADE_ROUTE,
+  tokenNameForNetwork,
+  usdcForNetwork,
+} from './config';
 
 /**
  * Lazily-built singleton around the official x402 Foundation v2 server stack
@@ -96,11 +102,11 @@ function acceptsFor(cfg: X402Config, amountAtomic: string) {
       // server-side USD→asset resolution, the wire amount is fixed here.
       price: { asset: usdcForNetwork(cfg.network), amount: amountAtomic },
       maxTimeoutSeconds: cfg.maxTimeoutSeconds,
-      // EIP-712 domain name must match the token contract exactly:
-      // Base mainnet USDC's DOMAIN_SEPARATOR is built from "USD Coin",
-      // not the symbol. A wrong name makes the facilitator's on-chain
-      // simulation revert with "FiatTokenV2: invalid signature".
-      extra: { name: 'USD Coin', version: '2' },
+      // EIP-712 domain name must match the token contract exactly, and it
+      // DIFFERS per network: Base mainnet USDC's domain name is "USD Coin",
+      // Base Sepolia's is "USDC" (both version "2"). A wrong name makes the
+      // facilitator reject with invalid_exact_evm_token_name_mismatch.
+      extra: { name: tokenNameForNetwork(cfg.network), version: '2' },
     },
   ];
 }

@@ -20,10 +20,20 @@ const SUPPORTED_NETWORKS = {
   'eip155:84532': {
     /** Chain: Base Sepolia (testnet). Circle native USDC. */
     usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+    /**
+     * EIP-712 domain name as deployed on-chain (name() selector 0x06fdde03):
+     * the Base Sepolia USDC proxy answers name() = "USDC", unlike the Base
+     * mainnet proxy which answers "USD Coin". Quoting the wrong name makes the
+     * facilitator reject the payment with invalid_exact_evm_token_name_mismatch
+     * before the signature is ever checked.
+     */
+    tokenName: 'USDC',
   },
   'eip155:8453': {
     /** Chain: Base mainnet. */
     usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    /** On-chain name() = "USD Coin" (validated via DOMAIN_SEPARATOR, 2026-10-07). */
+    tokenName: 'USD Coin',
   },
 } as const;
 
@@ -157,6 +167,15 @@ export const X402_CREDIT_USD = 0.004;
 /** USDC asset address for the configured network. */
 export function usdcForNetwork(network: X402NetworkId): string {
   return SUPPORTED_NETWORKS[network].usdc;
+}
+
+/**
+ * EIP-712 domain name of the network's USDC token as deployed on-chain
+ * (FiatToken EIP712Domain version is "2" on both supported networks, but the
+ * name differs: "USDC" on Base Sepolia vs "USD Coin" on Base mainnet).
+ */
+export function tokenNameForNetwork(network: X402NetworkId): string {
+  return SUPPORTED_NETWORKS[network].tokenName;
 }
 
 /**
