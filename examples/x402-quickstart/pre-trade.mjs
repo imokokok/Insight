@@ -8,10 +8,11 @@
 // The wallet needs a small USDC balance on Base mainnet.
 // Docs: https://www.oracleinsight.xyz/docs/x402
 
-import { wrapFetchWithPayment, x402Client } from '@x402/fetch';
+/* eslint-disable no-console -- runnable example script */
 import { ExactEvmScheme, toClientEvmSigner } from '@x402/evm';
-import { privateKeyToAccount } from 'viem/accounts';
+import { wrapFetchWithPayment, x402Client } from '@x402/fetch';
 import { createPublicClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 
 const ENDPOINT =
@@ -26,7 +27,7 @@ const publicClient = createPublicClient({
 });
 const client = new x402Client().register(
   'eip155:8453',
-  new ExactEvmScheme(toClientEvmSigner(account, publicClient)),
+  new ExactEvmScheme(toClientEvmSigner(account, publicClient))
 );
 const fetchWithPay = wrapFetchWithPayment(fetch, client);
 
