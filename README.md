@@ -50,6 +50,17 @@ Integrated providers include Chainlink, API3, RedStone, DIA, WINkLink, Supra, Un
 
 REST, MCP, and SDK calls draw from the same API-key credit wallet. Plans add credit capacity rather than separate feature tiers. See [current pricing](https://www.oracleinsight.xyz/pricing) for plans and per-call costs.
 
+### MCP endpoint (production)
+
+The hosted MCP server is live at `https://www.oracleinsight.xyz/api/mcp` (streamable HTTP).
+
+- **Anonymous discovery**: `initialize`, `tools/list`, and `ping` work without credentials, so agents can browse the 40-tool oracle catalog before committing.
+- **Authenticated calls**: pass an API key and calls draw from the credit wallet.
+- **x402 pay-per-call**: a single unauthenticated `tools/call` receives an [x402 v2](https://www.x402.org) 402 quote priced by the tool's metering class (USDC on Base), then verify → execute → settle. A failed tool result is never settled.
+- **One-click install (Cursor)**: [Install Insight Oracle](https://cursor.com/en/install-mcp?name=Insight+Oracle&config=eyJ1cmwiOiAiaHR0cHM6Ly93d3cub3JhY2xlaW5zaWdodC54eXovYXBpL21jcCJ9)
+- **Discovery surfaces**: `llms.txt`, `/.well-known/x402`, `/.well-known/mcp/server-card.json`, and `openapi.json` at the site root.
+- **Registry listing**: published to the official MCP registry as `io.github.imokokok/insight-oracle`.
+
 ## Local development
 
 Requires Node.js 22 or later. From the repository root:
