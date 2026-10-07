@@ -10,10 +10,10 @@ Live docs: https://www.oracleinsight.xyz/docs/x402
 
 ## Files
 
-| File | Stack | Run |
-|---|---|---|
+| File            | Stack                                                                                        | Run                                                                                |
+| --------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `pre-trade.mjs` | TypeScript/Node, official `@x402/fetch` + `@x402/evm` (same version line the server runs on) | `npm i @x402/fetch @x402/evm viem` then `EVM_PRIVATE_KEY=0x... node pre-trade.mjs` |
-| `pre-trade.py` | Python, official `x402[httpx,evm]` SDK | `pip install "x402[httpx,evm]"` then `EVM_PRIVATE_KEY=0x... python pre-trade.py` |
+| `pre-trade.py`  | Python, official `x402[httpx,evm]` SDK                                                       | `pip install "x402[httpx,evm]"` then `EVM_PRIVATE_KEY=0x... python pre-trade.py`   |
 
 Both need a wallet with a small USDC balance on Base mainnet (a few cents is
 plenty at $0.02 per check).
