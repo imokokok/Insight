@@ -180,7 +180,7 @@
                     "additionalProperties": true
                   }
                 },
-                "required": ["jsonrpc", "method"],
+                "required": ["jsonrpc", "method", "params"],
                 "additionalProperties": true
               }
             }
