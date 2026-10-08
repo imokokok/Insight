@@ -2,6 +2,8 @@
 
 import { Check, Coins, Globe, Lock, Zap } from 'lucide-react';
 
+import { CREDIT_PACKS, PLANS } from '@/lib/billing/plans';
+
 /**
  * Data Access Matrix
  *
@@ -262,9 +264,7 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
 
         {/* Footnote */}
         <p className="text-xs text-slate-400 text-center mt-8 max-w-2xl mx-auto">
-          New users get 100 free trial credits after email verification. API access starts at a $49
-          Developer subscription (60,000 credits/mo) or a $39 prepaid Starter pack. The website
-          remains free to browse.
+          {`New users get 100 free trial credits after email verification. API access starts at a $${PLANS.developer.priceMonthly} Developer subscription (60,000 credits/mo) or a $${CREDIT_PACKS.starter.priceUsd} prepaid Starter pack. The website remains free to browse.`}
         </p>
       </div>
     </section>

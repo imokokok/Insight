@@ -29,11 +29,16 @@
  * cadence: polling faster than 15 minutes yields no fresher snapshot data, so
  * clients should cache on their side.
  *
- * Pricing rationale (validated against 2026-07 market):
- *   - Developer 49 USDC/mo  : 60K credits, entry production workload
- *   - Team 199 USDC/mo      : 300K credits, multi-agent workload
- *   - Scale 499 USDC/mo     : 1M credits, high-volume production workload
- *   - Yearly = 10x monthly (2 months free) : standard industry discount
+ * Pricing model (2026-10):
+ *   - x402 remains the public per-call list price: C1 $0.002, C2 $0.008,
+ *     C3 $0.02, C4 $0.04 (1 credit = $0.004).
+ *   - API credits are modestly discounted for prepaid volume and annual
+ *     commitment; the largest annual plan stays within 20% of x402 per call.
+ *   - Developer 229 USDC/mo : 60K credits, entry production workload
+ *   - Team 1,099 USDC/mo    : 300K credits, multi-agent workload
+ *   - Scale 3,499 USDC/mo   : 1M credits, high-volume production workload
+ *   - Yearly = 11x monthly for 12 monthly credit grants (one month included)
+ *   - Packs: Starter 99 / 25K, Builder 389 / 100K, Agent 1,849 / 500K
  *
  * Payments are processed via NOWPayments (crypto only). Prices are denominated
  * in USDC at 1:1 with USD; the payer may settle in any NOWPayments-supported
@@ -46,8 +51,8 @@ export const PLANS = {
     name: 'Developer',
     rateLimit: 60, // requests per minute
     monthlyQuota: 60_000, // credits included per billing cycle with a subscription
-    priceMonthly: 49,
-    priceYearly: 490,
+    priceMonthly: 229,
+    priceYearly: 2519,
     features: [
       '60,000 credits / month included',
       '60 requests / minute',
@@ -64,8 +69,8 @@ export const PLANS = {
     name: 'Team',
     rateLimit: 300, // requests per minute
     monthlyQuota: 300_000, // credits included per billing cycle with a subscription
-    priceMonthly: 199,
-    priceYearly: 1990,
+    priceMonthly: 1099,
+    priceYearly: 12089,
     features: [
       '300,000 credits / month included',
       '300 requests / minute',
@@ -80,8 +85,8 @@ export const PLANS = {
     name: 'Scale',
     rateLimit: 1_200, // requests per minute
     monthlyQuota: 1_000_000, // credits included per billing cycle with a subscription
-    priceMonthly: 499,
-    priceYearly: 4990,
+    priceMonthly: 3499,
+    priceYearly: 38489,
     features: [
       '1,000,000 credits / month included',
       '1,200 requests / minute',
@@ -126,19 +131,19 @@ export const CREDIT_PACKS = {
   starter: {
     name: 'Starter Pack',
     credits: 25_000,
-    priceUsd: 39,
+    priceUsd: 99,
     description: '≈12,500 deep-analysis calls or ≈5,000 pre-trade checks',
   },
   builder: {
     name: 'Builder Pack',
     credits: 100_000,
-    priceUsd: 129,
+    priceUsd: 389,
     description: '≈50,000 deep-analysis calls or ≈20,000 pre-trade checks',
   },
   agent: {
     name: 'Agent Pack',
     credits: 500_000,
-    priceUsd: 499,
+    priceUsd: 1849,
     description: '≈100,000 pre-trade checks or ≈50,000 attested receipts',
   },
 } as const;

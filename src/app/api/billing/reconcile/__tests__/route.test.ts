@@ -89,7 +89,7 @@ describe('POST /api/billing/reconcile', () => {
     mockGetPaymentStatus.mockResolvedValue({
       id: '1001',
       status: 'finished',
-      priceAmount: 49,
+      priceAmount: 229,
       priceCurrency: 'usd',
       orderId: 'sub_1',
       invoiceId: 'inv_1',
@@ -186,7 +186,7 @@ describe('POST /api/billing/reconcile', () => {
       status: 'finished',
       invoiceId: 'other_invoice',
       orderId: 'other_order',
-      priceAmount: 39,
+      priceAmount: 99,
       priceCurrency: 'usd',
     });
     const response = await callPost({ type: 'topup', id: 'top_1', paymentId: '1001' });
@@ -209,7 +209,7 @@ describe('POST /api/billing/reconcile', () => {
     mockGetPaymentStatus.mockResolvedValue({
       id: '1001',
       status: 'finished',
-      priceAmount: 49,
+      priceAmount: 229,
       priceCurrency: 'usd',
       orderId: 'sub_1',
       invoiceId: 'inv_1',
@@ -225,7 +225,7 @@ describe('POST /api/billing/reconcile', () => {
         invoice_id: 'inv_1',
         order_id: 'sub_1',
         payment_status: 'finished',
-        price_amount: 49,
+        price_amount: 229,
         price_currency: 'usd',
       })
     );

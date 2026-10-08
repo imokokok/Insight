@@ -24,6 +24,7 @@ import { DeveloperPathSwitch } from '@/components/developer/DeveloperPathSwitch'
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { PricingCtaSection } from '@/components/pricing';
 import { Button } from '@/components/ui/Button';
+import { PLANS } from '@/lib/billing/plans';
 import { announceNavigationStart } from '@/lib/navigation/progress';
 import { createLogger } from '@/lib/utils/logger';
 import { useSession, useUser } from '@/stores/authStore';
@@ -106,7 +107,7 @@ const INTEGRATION_STEPS = [
   {
     step: '1',
     title: 'Create an API Key',
-    body: 'Sign in, generate an API key. API access is credit-metered — subscriptions from 49 USDC/mo or prepaid top-up packs.',
+    body: `Sign in, generate an API key. API access is credit-metered — subscriptions from ${PLANS.developer.priceMonthly} USDC/mo or prepaid top-up packs.`,
   },
   {
     step: '2',
@@ -600,7 +601,7 @@ when the verdict turns DANGER.`}
 
       <PricingCtaSection
         title="AI Agent Pricing"
-        subtitle="MCP and safety-check calls share the same credit meter and billing as the REST API. New users get 100 free trial credits after email verification — Developer from 49 USDC/mo (60,000 credits) or pay-as-you-go top-up packs."
+        subtitle={`MCP and safety-check calls share the same credit meter and billing as the REST API. New users get 100 free trial credits after email verification — Developer from ${PLANS.developer.priceMonthly} USDC/mo (60,000 credits) or pay-as-you-go top-up packs.`}
         buttonText="View Pricing"
       />
     </div>

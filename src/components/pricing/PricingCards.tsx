@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { Check, Coins, Loader2, Zap } from 'lucide-react';
 
+import { CREDIT_COST } from '@/lib/billing/metering';
 import { CREDIT_PACKS, CREDIT_PACK_ORDER, PLANS, PLAN_ORDER, type Plan } from '@/lib/billing/plans';
 import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useSession } from '@/stores/authStore';
@@ -38,6 +39,22 @@ const METERING_ROWS = [
     desc: 'Proofs & receipts — attested execution receipts across every integration surface',
   },
 ];
+
+const apiC3PricesUsd = [
+  ...CREDIT_PACK_ORDER.map(
+    (pack) => (CREDIT_PACKS[pack].priceUsd * CREDIT_COST.C3) / CREDIT_PACKS[pack].credits
+  ),
+  ...PLAN_ORDER.flatMap((plan) => {
+    if (plan === 'enterprise') return [];
+    const config = PLANS[plan];
+    return [
+      (config.priceMonthly * CREDIT_COST.C3) / config.monthlyQuota,
+      (config.priceYearly * CREDIT_COST.C3) / (config.monthlyQuota * 12),
+    ];
+  }),
+];
+const apiC3PriceMin = Math.min(...apiC3PricesUsd).toFixed(4);
+const apiC3PriceMax = Math.max(...apiC3PricesUsd).toFixed(4);
 
 export function PricingCards({ billingCycle }: PricingCardsProps) {
   const router = useRouter();
@@ -250,6 +267,11 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
           <p className="text-sm text-slate-500 mb-4">
             Every paying user gets all endpoints and MCP tools. Each call costs credits by metering
             class — subscribe for a monthly allowance, then top up when your agents burn through it.
+          </p>
+          <p className="text-xs text-slate-500 mb-4">
+            For C3 pre-trade checks, API credit pricing works out to ${apiC3PriceMin}–$
+            {apiC3PriceMax} per call, depending on the plan, billing cycle, or prepaid pack. The
+            direct x402 price remains $0.02 per check.
           </p>
           <div className="border-y border-slate-900/15">
             {METERING_ROWS.map((row) => (
