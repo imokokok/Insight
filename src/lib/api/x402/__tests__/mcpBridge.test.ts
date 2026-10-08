@@ -24,6 +24,14 @@ jest.mock('../resourceServer', () => ({
 jest.mock('../guard', () => ({
   recordX402Settlement: jest.fn(),
   logBazaarExtensionStatus: jest.fn(),
+  atomicUnitsToUsdc: (atomic: string) => {
+    const units = BigInt(atomic);
+    const whole = units / 1_000_000n;
+    const fraction = String(units % 1_000_000n)
+      .padStart(6, '0')
+      .replace(/0+$/, '');
+    return fraction ? `${whole}.${fraction}` : String(whole);
+  },
 }));
 
 const fakeServer = {
@@ -90,7 +98,7 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     expect(res.status).toBe(200);
     expect(fakeServer.processSettlement).not.toHaveBeenCalled();
     expect(mockedRecord).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'verify_failed', errorReason: 'mcp_tool_error' })
+      expect.objectContaining({ status: 'business_failed', errorReason: 'mcp_tool_error' })
     );
   });
 
@@ -109,7 +117,7 @@ describe('handleMcpPaidToolCall settlement gating', () => {
 
     expect(fakeServer.processSettlement).not.toHaveBeenCalled();
     expect(mockedRecord).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'verify_failed', errorReason: 'mcp_tool_error' })
+      expect.objectContaining({ status: 'business_failed', errorReason: 'mcp_tool_error' })
     );
   });
 
@@ -118,7 +126,7 @@ describe('handleMcpPaidToolCall settlement gating', () => {
 
     expect(fakeServer.processSettlement).not.toHaveBeenCalled();
     expect(mockedRecord).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'verify_failed', errorReason: 'handler_failed:503' })
+      expect.objectContaining({ status: 'business_failed', errorReason: 'handler_failed:503' })
     );
   });
 

@@ -194,8 +194,8 @@ describe('x402 paid MCP tools/call', () => {
     });
     processSettlement.mockResolvedValue({
       success: true,
-      transaction: '0xtxhash',
-      payer: '0xpayer',
+      transaction: `0x${'a'.repeat(64)}`,
+      payer: `0x${'b'.repeat(40)}`,
       amount: undefined, // CDP v2 settle omits amount; bridge falls back to the quote.
       network: 'eip155:84532',
       headers: { 'PAYMENT-RESPONSE': 'receipt' },
@@ -217,8 +217,8 @@ describe('x402 paid MCP tools/call', () => {
     expect(mockInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'settled',
-        tx_hash: '0xtxhash',
-        payer: '0xpayer',
+        tx_hash: `0x${'a'.repeat(64)}`,
+        payer: `0x${'b'.repeat(40)}`,
         amount_usdc: '0.002',
         verdict: 'mcp:get_symbols',
       })

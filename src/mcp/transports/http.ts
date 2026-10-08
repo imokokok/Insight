@@ -26,7 +26,7 @@ interface McpHttpHandlerResult {
 const CORS_HEADERS: Record<string, string> = {
   ...getCorsHeaders({}),
   'Access-Control-Expose-Headers':
-    'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-Quota-Limit, X-Quota-Remaining, X-Quota-Reset',
+    'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-Quota-Limit, X-Quota-Remaining, X-Quota-Reset, X-Request-Id',
 };
 
 function withCors(response: Response): Response {

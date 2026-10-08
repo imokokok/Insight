@@ -157,8 +157,8 @@ describe('x402 guard', () => {
       });
       const processSettlement = jest.fn().mockResolvedValue({
         success: true,
-        transaction: '0xtxhash',
-        payer: '0xpayer',
+        transaction: `0x${'a'.repeat(64)}`,
+        payer: `0x${'b'.repeat(40)}`,
         // CDP v2 settle responses omit `amount`; the guard must fall back to
         // the configured atomic charge so audit rows keep their amount.
         amount: undefined,
@@ -182,8 +182,8 @@ describe('x402 guard', () => {
       expect(mockInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'settled',
-          tx_hash: '0xtxhash',
-          payer: '0xpayer',
+          tx_hash: `0x${'a'.repeat(64)}`,
+          payer: `0x${'b'.repeat(40)}`,
           amount_usdc: '0.02',
           network: 'eip155:84532',
           verdict: 'PASS',

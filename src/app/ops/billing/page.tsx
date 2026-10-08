@@ -42,7 +42,9 @@ export default async function OpsBillingPage() {
 
       <OpsScopeNote label="Reading this record">
         This is a cumulative snapshot of <code>api_keys</code>, not a time-windowed billing report.
-        For requests and credit movement, open the <Link href="/ops/usage">usage record</Link>.
+        For requests and credit movement, open the <Link href="/ops/usage">usage record</Link>. For
+        direct x402 receipts and paid-call outcomes, open{' '}
+        <Link href="/ops/x402">x402 operations</Link>.
       </OpsScopeNote>
 
       {billing.errored && (
