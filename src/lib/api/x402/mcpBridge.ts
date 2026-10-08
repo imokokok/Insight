@@ -4,7 +4,7 @@ import { getToolCreditCost } from '@/lib/billing/metering';
 import { createLogger } from '@/lib/utils/logger';
 
 import { type X402Config, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
-import { logBazaarExtensionStatus, recordX402Settlement } from './guard';
+import { atomicUnitsToUsdc, logBazaarExtensionStatus, recordX402Settlement } from './guard';
 import { getMcpX402HttpServer } from './resourceServer';
 
 const logger = createLogger('x402-mcp-bridge');
@@ -104,6 +104,11 @@ function newRequestId(): string {
   return `req_${crypto.randomUUID().replace(/-/g, '')}`;
 }
 
+function attachRequestId(response: Response, requestId: string): Response {
+  response.headers.set('X-Request-Id', requestId);
+  return response;
+}
+
 export interface McpPaidCallInput {
   request: Request;
   cfg: X402Config;
@@ -126,6 +131,7 @@ export async function handleMcpPaidToolCall({
 }: McpPaidCallInput): Promise<Response> {
   const requestId = newRequestId();
   const httpServer = await getMcpX402HttpServer(cfg, priceAtomicForTool(toolName));
+  const requestStartedAt = Date.now();
 
   const result = await httpServer.processHTTPRequest({
     adapter: new PlainRequestAdapter(request),
@@ -134,33 +140,61 @@ export async function handleMcpPaidToolCall({
   });
 
   if (result.type === 'payment-error') {
+    const hasPaymentSignature = request.headers.has('payment-signature');
     logger.info('x402 MCP payment required / rejected', {
       requestId,
       toolName,
       priceAtomic: priceAtomicForTool(toolName),
     });
-    return toResponse(result.response);
+    recordX402Settlement({
+      requestId,
+      status: hasPaymentSignature ? 'payment_rejected' : 'quote_issued',
+      network: cfg.network,
+      amountUsdc: atomicUnitsToUsdc(priceAtomicForTool(toolName)),
+      surface: 'mcp',
+      resource: `mcp:${toolName}`,
+      responseTimeMs: Date.now() - requestStartedAt,
+      errorReason: hasPaymentSignature ? 'facilitator_rejected_payment' : undefined,
+    });
+    return attachRequestId(toResponse(result.response), requestId);
   }
 
   if (result.type === 'no-payment-required') {
     // The route is registered and protected, so this branch is defensive.
     logger.warn('x402 server classified MCP request as unpaid', { requestId });
-    return toResponse({
-      status: 402,
-      headers: { 'Cache-Control': 'no-store' },
-      body: { error: 'X402_PAYMENT_REQUIRED' },
-    });
+    return attachRequestId(
+      toResponse({
+        status: 402,
+        headers: { 'Cache-Control': 'no-store' },
+        body: { error: 'X402_PAYMENT_REQUIRED' },
+      }),
+      requestId
+    );
   }
 
+  recordX402Settlement({
+    requestId,
+    status: 'payment_verified',
+    network: cfg.network,
+    amountUsdc: atomicUnitsToUsdc(priceAtomicForTool(toolName)),
+    surface: 'mcp',
+    resource: `mcp:${toolName}`,
+    responseTimeMs: Date.now() - requestStartedAt,
+  });
+
   // payment-verified: dispatch first, settle only on success.
+  const businessStartedAt = Date.now();
   let businessResponse: Response;
   try {
     businessResponse = await runBusiness();
   } catch (error) {
     recordX402Settlement({
       requestId,
-      status: 'verify_failed',
+      status: 'business_failed',
       network: cfg.network,
+      surface: 'mcp',
+      resource: `mcp:${toolName}`,
+      responseTimeMs: Date.now() - businessStartedAt,
       errorReason: `handler_error:${error instanceof Error ? error.name : 'unknown'}`,
     });
     throw error;
@@ -174,8 +208,11 @@ export async function handleMcpPaidToolCall({
     // Audit as verify-only so the operator can see paid-call failure rates.
     recordX402Settlement({
       requestId,
-      status: 'verify_failed',
+      status: 'business_failed',
       network: cfg.network,
+      surface: 'mcp',
+      resource: `mcp:${toolName}`,
+      responseTimeMs: Date.now() - businessStartedAt,
       errorReason: toolFailed ? `handler_failed:${businessResponse.status}` : 'mcp_tool_error',
     });
     logger.info('x402 MCP business failed, settlement skipped', {
@@ -184,9 +221,20 @@ export async function handleMcpPaidToolCall({
       status: businessResponse.status,
       jsonRpcFailed,
     });
-    return businessResponse;
+    return attachRequestId(businessResponse, requestId);
   }
 
+  recordX402Settlement({
+    requestId,
+    status: 'business_succeeded',
+    network: cfg.network,
+    amountUsdc: atomicUnitsToUsdc(priceAtomicForTool(toolName)),
+    surface: 'mcp',
+    resource: `mcp:${toolName}`,
+    responseTimeMs: Date.now() - businessStartedAt,
+  });
+
+  const settlementStartedAt = Date.now();
   const settle = await httpServer.processSettlement(
     result.paymentPayload,
     result.paymentRequirements
@@ -199,7 +247,7 @@ export async function handleMcpPaidToolCall({
 
   if (settle.success) {
     const atomic = settle.amount ?? priceAtomicForTool(toolName);
-    const amountUsdc = String(Number(atomic) / 1_000_000);
+    const amountUsdc = atomicUnitsToUsdc(String(atomic));
     recordX402Settlement({
       requestId,
       status: 'settled',
@@ -207,6 +255,9 @@ export async function handleMcpPaidToolCall({
       payer: settle.payer,
       amountUsdc,
       network: cfg.network,
+      surface: 'mcp',
+      resource: `mcp:${toolName}`,
+      responseTimeMs: Date.now() - settlementStartedAt,
       // Reuse the verdict column to record which MCP tool was paid for.
       verdict: `mcp:${toolName}`,
     });
@@ -215,6 +266,9 @@ export async function handleMcpPaidToolCall({
       requestId,
       status: 'settlement_failed',
       network: cfg.network,
+      surface: 'mcp',
+      resource: `mcp:${toolName}`,
+      responseTimeMs: Date.now() - settlementStartedAt,
       errorReason: settle.errorReason,
     });
     logger.warn('x402 MCP settlement failed after successful tool call', {
@@ -224,5 +278,5 @@ export async function handleMcpPaidToolCall({
     });
   }
 
-  return businessResponse;
+  return attachRequestId(businessResponse, requestId);
 }

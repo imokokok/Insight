@@ -4,7 +4,7 @@
 
 ## 使用规则
 
-- `supabase/migrations/` 是**历史变更记录**；当前文件以四位版本号从 `0001` 连续到 `0074`。既有迁移可能已应用到数据库，也被测试和文档按原路径引用；不要重命名、移动、批量格式化或修改旧迁移。需要修正当前数据库时追加新迁移。
+- `supabase/migrations/` 是**历史变更记录**；当前文件使用四位版本号，最近追加到 `0079`（序号中存在历史空缺）。既有迁移可能已应用到数据库，也被测试和文档按原路径引用；不要重命名、移动、批量格式化或修改旧迁移。需要修正当前数据库时追加新迁移。
 - `supabase/seed.sql` 在 `supabase/config.toml` 的 `[db.seed]` 中启用，但当前仅有注释。基础 feed 注册位于迁移内；本地重置不会导入生产数据。
 - `scripts/*.sql` 是独立的运维查询，**不会**由迁移或 seed 自动执行。通过已授权的数据库连接按各自运行手册执行；它们均为只读。
 - 文件编号表示应用顺序，不表示生产数据库已经应用到该编号。发布前检查目标数据库的迁移记录、备份和 [生产发布手册](production-readiness.md)。此清单不授权对线上数据库执行任何操作。
@@ -89,6 +89,10 @@
 | 0072 | [`0072_feed_cadence_live_window.sql`](../../supabase/migrations/0072_feed_cadence_live_window.sql)                       | Feed 频率只读取实时窗口                    |
 | 0073 | [`0073_preserve_payable_invoices.sql`](../../supabase/migrations/0073_preserve_payable_invoices.sql)                     | 保留仍可付款的发票                         |
 | 0074 | [`0074_aggregate_oracle_latency.sql`](../../supabase/migrations/0074_aggregate_oracle_latency.sql)                       | 数据库侧聚合预言机延迟统计                 |
+| 0075 | [`0075_drop_unused_price_records_gin.sql`](../../supabase/migrations/0075_drop_unused_price_records_gin.sql)             | 删除未使用价格记录 GIN 索引                |
+| 0077 | [`0077_x402_settlements.sql`](../../supabase/migrations/0077_x402_settlements.sql)                                       | x402 结算审计表                            |
+| 0078 | [`0078_x402_settlements_network_caip2.sql`](../../supabase/migrations/0078_x402_settlements_network_caip2.sql)           | x402 v2 CAIP-2 网络 ID 约束修正            |
+| 0079 | [`0079_x402_ops_lifecycle.sql`](../../supabase/migrations/0079_x402_ops_lifecycle.sql)                                   | x402 报价、付款、服务和结算运营事件        |
 
 ## 非迁移 SQL
 

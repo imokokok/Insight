@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Rss,
   ShieldCheck,
+  Wallet,
 } from 'lucide-react';
 
 import type { LucideIcon } from 'lucide-react';
@@ -45,6 +46,9 @@ export const OPS_NAV: OpNavGroup[] = [
   },
   {
     title: 'Admin',
-    items: [{ href: '/ops/billing', label: 'Billing', icon: CreditCard }],
+    items: [
+      { href: '/ops/billing', label: 'Billing', icon: CreditCard },
+      { href: '/ops/x402', label: 'x402 operations', icon: Wallet },
+    ],
   },
 ];

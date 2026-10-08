@@ -101,7 +101,7 @@ export const GET = (
 
   if (cfg.enabled) {
     if (isPaidRequest(request)) {
-      return handlePaidPreTradeRequest(request, cfg, async () => {
+      return handlePaidPreTradeRequest(request, cfg, async (requestId) => {
         const parsed = PreTradeQuerySchema.safeParse(
           Object.fromEntries(request.nextUrl.searchParams.entries())
         );
@@ -115,13 +115,17 @@ export const GET = (
         }
         return executePreTradeCheck({
           query: parsed.data,
-          requestId: `req_${crypto.randomUUID().replace(/-/g, '')}`,
+          requestId,
         });
       });
     }
 
     if (!hasAuthCredentials(request)) {
-      return handlePaidPreTradeRequest(request, cfg, () => legacyGet(request, routeContext));
+      return handlePaidPreTradeRequest(request, cfg, async (requestId) => {
+        const response = await legacyGet(request, routeContext);
+        response.headers.set('X-Request-Id', requestId);
+        return response;
+      });
     }
   }
 
