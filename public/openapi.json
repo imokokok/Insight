@@ -3,6 +3,10 @@
   "info": {
     "title": "Insight Pre-Trade Safety API",
     "version": "1.0.0",
+    "contact": {
+      "name": "YuTao Peng (Insight)",
+      "email": "imokokok123@gmail.com"
+    },
     "description": "Oracle-immune-system pre-trade safety checks with verifiable EIP-712 attestation support. One GET returns a verdict (PASS / ALERT / BLOCK) for a single trade, priced per call in USDC via x402 on Base mainnet. BLOCK verdicts are complete checks and are charged.",
     "x-guidance": "Call GET /api/v1/safety/pre-trade with query parameters: asset (e.g. ETH), chainId (e.g. 1), action (swap|borrow|lend|liquidate|repay), tradeAmountUsd. Unauthenticated requests receive HTTP 402 with an x402 v2 payment challenge (USDC on Base, eip155:8453); retry the same request with the PAYMENT-SIGNATURE header to receive the safety verdict. Add schemaVersion=2 or 3 to include quorum-gate and independence-threshold attestation fields."
   },
