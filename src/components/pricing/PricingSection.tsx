@@ -52,7 +52,7 @@ export function PricingSection() {
               <span
                 className={`pricing-cycle-saving ${billingCycle === 'yearly' ? 'is-active' : ''}`}
               >
-                2 months included
+                1 month included
               </span>
             </button>
           </div>
