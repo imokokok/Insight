@@ -135,6 +135,16 @@ export function sanitizeSymbol(symbol: string): string {
 
   sanitized = sanitized.toUpperCase();
 
+  // Path-traversal guard: the charset whitelist below keeps '/' for pair
+  // notation (BTC/USD) but strips '.', which would silently turn
+  // '../../etc/passwd' into the harmless-looking '//ETC/PASSWD'. Detect the
+  // traversal BEFORE stripping so it can be rejected outright (return '' so
+  // the schema-level refine rejects the input instead of letting a mutated
+  // string reach the business layer as a "valid" unknown asset).
+  if (sanitized.includes('..')) {
+    return '';
+  }
+
   sanitized = sanitized.replace(/[^A-Z0-9/\-]/g, '');
 
   sanitized = sanitized.replace(CONTROL_CHARS_PATTERN, '');
@@ -172,7 +182,11 @@ export function sanitizeProvider(provider: string): string {
 
   if (!validProviders.includes(sanitized as OracleProvider)) {
     logger.warn('Invalid provider value rejected', { provider: provider.substring(0, 50) });
-    throw new Error(`Invalid provider: ${provider.substring(0, 50)}`);
+    // Return '' (do NOT throw): this function runs inside a zod transform, and
+    // a thrown generic Error escapes the validation middleware as an unhandled
+    // 500. Returning '' lets the downstream z.enum() produce a clean
+    // VALIDATION_ERROR (400) instead.
+    return '';
   }
   return sanitized;
 }
@@ -189,7 +203,10 @@ export function sanitizeChain(chain: string): string {
 
   if (!validChains.includes(sanitized)) {
     logger.warn('Invalid chain value rejected', { chain: chain.substring(0, 50) });
-    throw new Error(`Invalid chain: ${chain.substring(0, 50)}`);
+    // Return '' (do NOT throw): same zod-transform rationale as sanitizeProvider
+    // — a thrown generic Error surfaces as an unhandled 500; '' makes the
+    // downstream z.enum() fail with a clean VALIDATION_ERROR (400).
+    return '';
   }
   return sanitized;
 }
