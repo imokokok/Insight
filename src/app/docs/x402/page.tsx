@@ -25,6 +25,7 @@ const ENDPOINT =
   'https://www.oracleinsight.xyz/api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=1000';
 
 const MCP_ENDPOINT = 'https://www.oracleinsight.xyz/api/mcp';
+const MCP_MPP_ENDPOINT = 'https://www.oracleinsight.xyz/api/mcp/mpp';
 
 const PAY_FACTS = [
   {
@@ -183,6 +184,35 @@ const res = await fetchWithPay('${MCP_ENDPOINT}', {
 // The settle receipt arrives in the payment-response header:
 // decode it and read .transaction for the BaseScan link.`;
 
+const mcpMppCode = `// npm i @modelcontextprotocol/sdk mppx viem
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { evm } from 'mppx/client';
+import { McpClient } from 'mppx/mcp/client';
+import { privateKeyToAccount } from 'viem/accounts';
+
+const client = new Client({ name: 'insight-agent', version: '1.0.0' });
+await client.connect(
+  new StreamableHTTPClientTransport(new URL('${MCP_MPP_ENDPOINT}')),
+);
+
+const paidClient = McpClient.wrap(client, {
+  methods: [
+    evm.charge({
+      account: privateKeyToAccount(process.env.EVM_PRIVATE_KEY!),
+      networks: [8453],
+      currencies: ['0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'],
+      maxAmount: '0.02',
+    }),
+  ],
+});
+
+const result = await paidClient.callTool({
+  name: 'pre_trade_safety_check',
+  arguments: { asset: 'ETH', chainId: 1, action: 'swap', tradeAmountUsd: 1000 },
+});
+console.log(result.content, result.receipt);`;
+
 const verifyCode = `# 1. Verify a returned attestation receipt online (keyless, free):
 curl -X POST https://www.oracleinsight.xyz/api/v1/safety/attestation/verify \\
   -H "Content-Type: application/json" --data @receipt.json
@@ -200,7 +230,7 @@ export default function X402QuickstartPage() {
           stage="Integrate"
           eyebrow="Pay per call, no account · x402 or MPP · USDC on Base"
           title="One wallet. One HTTP call. One verifiable verdict."
-          description="The REST pre-trade safety check accepts x402 and optional MPP at the same price. An unauthenticated request receives an HTTP 402 challenge; your agent signs an EIP-3009 USDC authorization, retries, and receives the full check. Business errors are not settled. Every settled call is auditable on-chain; verdicts carry verifiable EIP-712 attestations. MCP calls continue to use x402."
+          description="The REST pre-trade safety check accepts x402 and optional MPP at the same price. The full MCP catalog supports x402 and API keys; a separate MPP MCP endpoint pilots pre_trade_safety_check. Both payment flows validate first and settle only after a successful check. Every settled call is auditable on-chain; verdicts carry verifiable EIP-712 attestations."
           evidence={['No signup', 'Settle only on success', 'Offline-verifiable receipts']}
           action={
             <div className="flex flex-wrap items-center gap-2">
@@ -305,9 +335,10 @@ export default function X402QuickstartPage() {
                 Use the standard Payment authorization scheme.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-                When MPP is enabled on the deployment, the same REST endpoint advertises an MPP
-                <code className="font-mono text-base"> evm/charge</code> challenge alongside its
-                x402 quote. The mppx client handles the challenge and sends its credential in{' '}
+                When MPP is enabled on the deployment, the REST endpoint advertises an MPP
+                <code className="font-mono text-base"> evm</code> charge offer alongside its x402
+                quote. The dedicated MCP pilot uses standard MPP challenge, credential, and receipt
+                metadata. The mppx client handles challenges and sends its credential in{' '}
                 <code className="font-mono text-base">Authorization: Payment</code>. Both rails use
                 the configured price and USDC recipient.
               </p>
@@ -317,8 +348,10 @@ export default function X402QuickstartPage() {
             <CodeBlock code={mppCode} label="pre-trade.mts · MPP" />
           </div>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-500">
-            MPP is deployment-opt-in. The REST endpoint settles only after a successful check;
-            <code className="font-mono"> /api/mcp</code> currently uses x402.
+            MPP is deployment-opt-in. The REST endpoint settles only after a successful check. The
+            MPP MCP pilot is at <code className="font-mono">/api/mcp/mpp</code> and supports only{' '}
+            <code className="font-mono">pre_trade_safety_check</code>; the full catalog at{' '}
+            <code className="font-mono">/api/mcp</code> keeps its x402 and API-key payment paths.
           </p>
         </div>
       </section>
@@ -358,12 +391,18 @@ export default function X402QuickstartPage() {
                 <code className="font-mono text-base">tools/call</code> is priced by the tool&apos;s
                 metering class and settles through the same x402 rail. With an{' '}
                 <code className="font-mono text-base">X-API-Key</code>, calls draw from the credit
-                wallet instead.
+                wallet instead. The MPP pilot at{' '}
+                <code className="font-mono text-base">{MCP_MPP_ENDPOINT}</code>
+                accepts only <code className="font-mono text-base">pre_trade_safety_check</code>;
+                its challenge is bound to the tool arguments and settles only after success.
               </p>
             </div>
           </div>
           <div className="mt-6">
             <CodeBlock code={mcpCode} label="mcp-tools-call.mts" />
+          </div>
+          <div className="mt-6">
+            <CodeBlock code={mcpMppCode} label="mcp-tools-call.mts · MPP" />
           </div>
           <div className="mt-6 overflow-x-auto border-b border-slate-900/15">
             <table className="w-full min-w-[560px] text-left text-sm">
@@ -468,7 +507,7 @@ export default function X402QuickstartPage() {
                 icon: BookOpen,
                 label: 'OpenAPI discovery doc',
                 href: 'https://www.oracleinsight.xyz/openapi.json',
-                detail: 'openapi.json with pricing block',
+                detail: 'Live OpenAPI with standard MPP offers',
               },
               {
                 icon: KeyRound,
