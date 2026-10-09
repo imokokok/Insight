@@ -56,6 +56,7 @@ import {
   type MultiHorizonScore,
   type PreTradeFeatures,
 } from '@/lib/ml/inference';
+import { readIssuanceHalt } from '@/lib/ops/issuanceControl';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import {
   getFeedStalenessBaselineMap,
@@ -1325,6 +1326,96 @@ function applyV2IndependenceGate(
   return 'BLOCK';
 }
 
+/**
+ * A well-formed, empty consensus response. Used when no oracle data is available
+ * (zero coverage) and when issuance is halted: CAIP-19 resolution and the
+ * remaining fields still produce a valid, verifiable attestation, so the BLOCK
+ * is provable downstream instead of being dropped.
+ */
+function emptyConsensusResponse(
+  symbol: string,
+  chain: Blockchain | undefined
+): ConsensusPriceResponse {
+  return {
+    symbol,
+    chain,
+    consensusPrice: 0,
+    // 'reference' is deliberately outside the ConsensusMethod union: it marks a
+    // response that carries no consensus at all, so it can never be mistaken for
+    // a real aggregation method.
+    method: 'reference' as ConsensusMethod,
+    recommendedMethod: 'reference' as ConsensusMethod,
+    confidence: 0,
+    confidenceLevel: 'very_low',
+    agreement: 0,
+    participantCount: 0,
+    excludedCount: 0,
+    excludedProviders: [],
+    priceRange: { min: 0, max: 0 },
+    methodResults: {} as Record<ConsensusMethod, number>,
+    providers: [],
+    recommendedProvider: null,
+  };
+}
+
+/** Unsigned rule name recorded for a check refused by the operator kill switch. */
+const ISSUANCE_HALTED_RULE = 'issuance_halted';
+
+/**
+ * The result returned while the operator kill switch is engaged. It is a normal,
+ * signed BLOCK: no trade is authorised, the refusal is provable downstream, and
+ * the per-request audit row still accounts for the check. The operator's free-text
+ * reason is carried in the (unsigned) contributing factor and the audit row — it
+ * is deliberately NOT added to the signed field set, whose reason codes stay a
+ * fixed enum, so the signature layout is unchanged.
+ */
+function buildHaltedSafetyResult(
+  input: PreTradeSafetyInput,
+  reason: string | null,
+  startedAt: number
+): PreTradeSafetyResult {
+  const detail = reason ? ` Reason: ${reason}` : '';
+  const message = `Pre-trade issuance is halted by the operator; no verdict is issued while the halt is engaged.${detail}`;
+  return {
+    assessmentScope: buildAssessmentScope(input, {}, null, null, false),
+    sizingBasis: buildSizingBasis(null),
+    verdict: 'BLOCK',
+    consensusPrice: 0,
+    maxDeviationPct: 0,
+    manipulationRiskScore: 1,
+    staleDataRisk: false,
+    crossProviderAgreement: 0,
+    recommendedMaxPositionUsd: 0,
+    participantCount: 0,
+    providerPrices: {},
+    depegWarnings: [],
+    warnings: [message],
+    contributingFactors: [
+      {
+        rule: ISSUANCE_HALTED_RULE,
+        value: 1,
+        threshold: 0,
+        triggeredVerdict: 'BLOCK',
+        message,
+      },
+    ],
+    protocolSafety: null,
+    recommendedActions: [],
+    mlScore: null,
+    mlModelVersion: null,
+    mlScore1h: null,
+    mlScore6h: null,
+    mlRiskLevel: null,
+    mlMediumThreshold: null,
+    mlHighThreshold: null,
+    mlFeatureVector: {},
+    anomalyScore: 0,
+    attestation: null,
+    evaluatedAt: new Date().toISOString(),
+    latencyMs: Date.now() - startedAt,
+  };
+}
+
 function buildUnavailableSafetyResult(
   input: PreTradeSafetyInput,
   depegWarnings: DepegWarning[],
@@ -1366,6 +1457,44 @@ function buildUnavailableSafetyResult(
 }
 
 /**
+ * Evaluate the operator kill switch and, when it is engaged, produce the signed
+ * BLOCK that every surface returns. Returns null while issuance runs normally.
+ *
+ * Kept out of preTradeSafetyCheck so that (already large) function stays within
+ * its line/complexity budget, and so the halt contract has exactly one home. The
+ * switch is read before any upstream call, so an incident implicating the oracle
+ * sources cannot influence the outcome, and the refusal is signed + accounted
+ * for exactly like a normal check.
+ */
+async function haltedCheckResult(
+  input: PreTradeSafetyInput,
+  meta: AuditMeta,
+  chain: Blockchain | undefined,
+  startedAt: number
+): Promise<PreTradeSafetyResult | null> {
+  const halt = await readIssuanceHalt();
+  if (!halt.halted) return null;
+
+  const result = buildHaltedSafetyResult(input, halt.reason, startedAt);
+  try {
+    result.attestation = await issueAttestation(
+      input,
+      result,
+      emptyConsensusResponse(input.asset, chain),
+      { maxAge: 0, worstDepegPct: 0, meta }
+    );
+  } catch (error) {
+    logger.warn('Failed to issue attestation for a halted check', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+  // Do not return a refusal that cannot be accounted for later. This write is
+  // fail-closed, so an unreadable database still refuses to serve the request.
+  await logAudit(input, result, meta);
+  return result;
+}
+
+/**
  * Run a pre-trade oracle safety check.
  *
  * @param input Trade intent (asset, chain, action, amount).
@@ -1387,6 +1516,13 @@ export async function preTradeSafetyCheck(
       { field: 'chainId' }
     );
   }
+
+  // 0. Operator kill switch (see haltedCheckResult). Read before any upstream
+  // call: while halted, every surface receives a signed BLOCK and no upstream
+  // data is consulted. See src/lib/ops/issuanceControl.ts for the deliberate
+  // (and loudly logged) fail-open behaviour when the switch is unreadable.
+  const halted = await haltedCheckResult(input, meta, chain, startedAt);
+  if (halted) return halted;
 
   // 1. Cross-oracle consensus price (also embeds reputation + agreement).
   let consensus: ConsensusPriceResponse | undefined;
@@ -1445,28 +1581,12 @@ export async function preTradeSafetyCheck(
     // oracle data was available — the CAIP-19 resolution and remaining
     // fields still produce a valid, verifiable attestation.
     try {
-      const emptyConsensus = {
-        symbol: input.asset,
-        chain: chain,
-        consensusPrice: 0,
-        method: 'reference' as ConsensusMethod,
-        recommendedMethod: 'reference' as ConsensusMethod,
-        confidence: 0,
-        confidenceLevel: 'very_low' as const,
-        agreement: 0,
-        participantCount: 0,
-        excludedCount: 0,
-        excludedProviders: [],
-        priceRange: { min: 0, max: 0 },
-        methodResults: {} as Record<ConsensusMethod, number>,
-        providers: [],
-        recommendedProvider: null,
-      };
-      result.attestation = await issueAttestation(input, result, emptyConsensus, {
-        maxAge: 0,
-        worstDepegPct: 0,
-        meta,
-      });
+      result.attestation = await issueAttestation(
+        input,
+        result,
+        emptyConsensusResponse(input.asset, chain),
+        { maxAge: 0, worstDepegPct: 0, meta }
+      );
     } catch (error) {
       logger.warn('Failed to issue attestation for zero-coverage BLOCK', {
         error: error instanceof Error ? error.message : String(error),
