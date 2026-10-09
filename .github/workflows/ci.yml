@@ -92,6 +92,10 @@ jobs:
       INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
       CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
       JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
+      # The homepage budget check must hard-fail here when it cannot locate the
+      # prerendered homepage, so a Next.js output-layout change cannot quietly
+      # drop the gate. Deploy targets only warn (see the script).
+      HOME_JS_BUDGET_REQUIRE_ARTIFACT: '1'
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
