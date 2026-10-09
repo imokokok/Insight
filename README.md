@@ -63,7 +63,7 @@ The hosted MCP server is live at `https://www.oracleinsight.xyz/api/mcp` (stream
 
 ### x402 quickstart (pay per call)
 
-The pre-trade safety check is available with no account and no API key: an unauthenticated request gets an HTTP 402 quote ($0.02 USDC on Base), the client signs an EIP-3009 authorization and retries, and the facilitator settles only successful calls. Copy-paste client examples for curl, TypeScript (`@x402/fetch`), Python (`x402[httpx,evm]`), and MCP `tools/call` live in [examples/x402-quickstart](examples/x402-quickstart) and on the [x402 quickstart page](https://www.oracleinsight.xyz/docs/x402).
+The REST pre-trade safety check accepts x402 and, when `MPP_ENABLED=true`, MPP at the same $0.02 USDC price, network, recipient, and facilitator. Its initial HTTP 402 response advertises both rails; business errors are not settled. Set a server-only `MPP_SECRET_KEY` of at least 32 bytes to sign MPP challenges. MCP `tools/call` continues to use x402. Copy-paste client examples for curl, TypeScript (`@x402/fetch` or `mppx`), Python (`x402[httpx,evm]`), and MCP live in [examples/x402-quickstart](examples/x402-quickstart) and on the [pay-per-call quickstart page](https://www.oracleinsight.xyz/docs/x402).
 
 ## Local development
 

@@ -699,6 +699,7 @@ export interface X402OpsRow {
   requestId: string;
   createdAt: string;
   status: string;
+  protocol: 'x402' | 'mpp';
   surface: 'rest' | 'mcp' | 'legacy';
   resource: string | null;
   network: string;
@@ -710,6 +711,7 @@ export interface X402OpsRow {
 }
 
 export interface X402OpsResourceSummary {
+  protocol: 'x402' | 'mpp';
   surface: string;
   resource: string;
   quotes: number;
@@ -760,6 +762,7 @@ interface X402OpsDbRow {
   request_id: string;
   created_at: string;
   status: string;
+  protocol: string | null;
   surface: string | null;
   resource: string | null;
   network: string;
@@ -791,7 +794,7 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
     supabase
       .from('x402_settlements')
       .select(
-        'id, request_id, created_at, status, surface, resource, network, amount_usdc, payer, tx_hash, response_time_ms, error_reason'
+        'id, request_id, created_at, status, protocol, surface, resource, network, amount_usdc, payer, tx_hash, response_time_ms, error_reason'
       )
       .gte('created_at', since)
       .order('created_at', { ascending: false })
@@ -801,7 +804,7 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
   const recentResult = await supabase
     .from('x402_settlements')
     .select(
-      'id, request_id, created_at, status, surface, resource, network, amount_usdc, payer, tx_hash, response_time_ms, error_reason'
+      'id, request_id, created_at, status, protocol, surface, resource, network, amount_usdc, payer, tx_hash, response_time_ms, error_reason'
     )
     .gte('created_at', since)
     .order('created_at', { ascending: false })
@@ -858,6 +861,7 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
   const resources = new Map<
     string,
     {
+      protocol: 'x402' | 'mpp';
       surface: string;
       resource: string;
       quotes: Set<string>;
@@ -871,12 +875,15 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
     }
   >();
   const hours = new Map<string, X402OpsTrendPoint>();
+  const quoteRequestsByHour = new Map<string, Set<string>>();
 
   for (const row of rows) {
+    const protocol = row.protocol === 'mpp' ? 'mpp' : 'x402';
     const surface = row.surface ?? 'legacy';
     const resource = row.resource ?? 'historical / unclassified';
-    const resourceKey = `${surface}\0${resource}`;
+    const resourceKey = `${protocol}\0${surface}\0${resource}`;
     const group = resources.get(resourceKey) ?? {
+      protocol,
       surface,
       resource,
       quotes: new Set<string>(),
@@ -916,7 +923,14 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
 
     const hour = new Date(row.created_at).toISOString().slice(0, 13);
     const trend = hours.get(hour) ?? { hour, quotes: 0, verified: 0, settled: 0, grossUsdc: 0 };
-    if (row.status === 'quote_issued') trend.quotes++;
+    if (row.status === 'quote_issued') {
+      const quoteRequests = quoteRequestsByHour.get(hour) ?? new Set<string>();
+      if (!quoteRequests.has(row.request_id)) {
+        quoteRequests.add(row.request_id);
+        trend.quotes++;
+        quoteRequestsByHour.set(hour, quoteRequests);
+      }
+    }
     if (row.status === 'payment_verified') trend.verified++;
     if (row.status === 'settled') {
       trend.settled++;
@@ -930,6 +944,7 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
     requestId: row.request_id,
     createdAt: row.created_at,
     status: row.status,
+    protocol: row.protocol === 'mpp' ? 'mpp' : 'x402',
     surface: row.surface === 'rest' || row.surface === 'mcp' ? row.surface : 'legacy',
     resource: row.resource,
     network: row.network,
@@ -964,6 +979,7 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
     businessToSettlementPct: percentage(instrumentedSettled, businessSucceeded),
     byResource: Array.from(resources.values())
       .map((group) => ({
+        protocol: group.protocol,
         surface: group.surface,
         resource: group.resource,
         quotes: group.quotes.size,

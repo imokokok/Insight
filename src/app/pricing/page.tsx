@@ -40,7 +40,7 @@ const X402_PAY_PER_CALL_FACTS = [
   {
     value: '$0.02',
     label: 'Per check',
-    detail: 'USDC on Base, settled on-chain via the x402 protocol (v2)',
+    detail: 'USDC on Base via x402 or optional MPP; settled on-chain',
   },
   {
     value: '0',
@@ -50,7 +50,7 @@ const X402_PAY_PER_CALL_FACTS = [
   {
     value: 'HTTP 402',
     label: 'Machine-native',
-    detail: 'Agents discover the price in the PAYMENT-REQUIRED header and retry paid',
+    detail: 'Agents discover the price in HTTP 402 and retry with x402 or MPP',
   },
   {
     value: 'BLOCK',
@@ -148,10 +148,10 @@ export default function PricingPage() {
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 <code className="font-mono text-base">GET /api/v1/safety/pre-trade</code> speaks the
-                x402 protocol. A request without credentials receives an HTTP 402 quote; the agent
-                pays $0.02 in USDC on Base and retries with a signed payment to receive the full
-                safety check. Humans and teams with ongoing volume should use the credit plans below
-                instead.
+                x402 and optional MPP protocols. A request without credentials receives an HTTP 402
+                quote; the agent pays $0.02 in USDC on Base and retries with a signed payment to
+                receive the full safety check. Humans and teams with ongoing volume should use the
+                credit plans below instead.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link

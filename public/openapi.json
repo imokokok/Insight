@@ -7,8 +7,8 @@
       "name": "YuTao Peng (Insight)",
       "email": "imokokok123@gmail.com"
     },
-    "description": "Oracle-immune-system pre-trade safety checks with verifiable EIP-712 attestation support. One GET returns a verdict (PASS / ALERT / BLOCK) for a single trade, priced per call in USDC via x402 on Base mainnet. BLOCK verdicts are complete checks and are charged. Also exposes the full oracle tool catalog over MCP (JSON-RPC 2.0 streamable HTTP) with x402 pay-per-call.",
-    "x-guidance": "REST: call GET /api/v1/safety/pre-trade with query parameters: asset (e.g. ETH), chainId (e.g. 1), action (swap|borrow|lend|liquidate|repay), tradeAmountUsd. MCP: POST /api/mcp with JSON-RPC 2.0, method=tools/call and params.name set to a tool name (e.g. get_symbols, pre_trade_safety_check, get_risk_summary). Unauthenticated requests receive HTTP 402 with an x402 v2 payment challenge (USDC on Base, eip155:8453); retry the same request with the PAYMENT-SIGNATURE header to receive the result. Every paid response carries a verifiable EIP-712 receipt (keyless verification at oracleinsight.xyz/verify). REST: add schemaVersion=2 or 3 to include quorum-gate and independence-threshold attestation fields."
+    "description": "Oracle-immune-system pre-trade safety checks with verifiable EIP-712 attestation support. One GET returns a verdict (PASS / ALERT / BLOCK) for a single trade, priced per call in USDC on Base via x402 or optional MPP. BLOCK verdicts are complete checks and are charged. Also exposes the full oracle tool catalog over MCP (JSON-RPC 2.0 streamable HTTP) with x402 pay-per-call.",
+    "x-guidance": "REST: call GET /api/v1/safety/pre-trade with query parameters: asset (e.g. ETH), chainId (e.g. 1), action (swap|borrow|lend|liquidate|repay), tradeAmountUsd. MCP: POST /api/mcp with JSON-RPC 2.0, method=tools/call and params.name set to a tool name (e.g. get_symbols, pre_trade_safety_check, get_risk_summary). Unauthenticated REST requests receive HTTP 402 with an x402 v2 quote in PAYMENT-REQUIRED and, when MPP_ENABLED is active, an MPP evm/charge challenge in WWW-Authenticate. Retry with PAYMENT-SIGNATURE for x402 or Authorization: Payment for MPP. MCP calls use x402. Every paid response carries a verifiable EIP-712 receipt (keyless verification at oracleinsight.xyz/verify). REST: add schemaVersion=2 or 3 to include quorum-gate and independence-threshold attestation fields."
   },
   "servers": [
     {
@@ -28,7 +28,10 @@
             "currency": "USD",
             "amount": "0.020000"
           },
-          "protocols": [{ "x402": {} }]
+          "protocols": [
+            { "x402": {} },
+            { "mpp": { "method": "evm/charge", "enabledBy": "MPP_ENABLED" } }
+          ]
         },
         "parameters": [
           {
@@ -93,7 +96,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Safety verdict returned (request was paid via x402 or authorized by API key)",
+            "description": "Safety verdict returned (paid via x402 or MPP, or authorized by API key)",
+            "headers": {
+              "PAYMENT-RESPONSE": {
+                "description": "x402 settlement receipt for x402-paid calls.",
+                "schema": { "type": "string" }
+              },
+              "Payment-Receipt": {
+                "description": "MPP settlement receipt for MPP-paid calls.",
+                "schema": { "type": "string" }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -128,7 +141,17 @@
             "description": "Unauthorized (paid tier disarmed and no API key supplied)"
           },
           "402": {
-            "description": "Payment Required: x402 v2 challenge in the payment-required response header (base64 JSON with accepts[].amount in USDC atomic units on Base eip155:8453 and bazaar discovery metadata)."
+            "description": "Payment Required: x402 v2 quote in PAYMENT-REQUIRED (base64 JSON with USDC requirements and Bazaar metadata) and, when MPP is enabled, an MPP evm/charge challenge in WWW-Authenticate. API-key callers may also receive 402 when their credit balance is insufficient.",
+            "headers": {
+              "PAYMENT-REQUIRED": {
+                "description": "x402 v2 payment quote.",
+                "schema": { "type": "string" }
+              },
+              "WWW-Authenticate": {
+                "description": "MPP challenge when MPP_ENABLED is active.",
+                "schema": { "type": "string" }
+              }
+            }
           },
           "429": {
             "description": "Rate limited"

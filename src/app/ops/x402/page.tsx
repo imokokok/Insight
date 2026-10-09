@@ -21,7 +21,7 @@ import {
 } from '../ui';
 
 export const metadata = {
-  title: 'x402 Operations - Insight Ops',
+  title: 'Pay-per-call Operations - Insight Ops',
 };
 
 function formatUsdc(value: number | null): string {
@@ -72,7 +72,7 @@ function statusLabel(status: string): string {
     business_succeeded: 'Service succeeded',
     settled: 'Settled',
     settlement_failed: 'Settlement failed',
-    verify_failed: 'Historical failure',
+    verify_failed: 'Verify failed',
   };
   return labels[status] ?? status;
 }
@@ -99,8 +99,8 @@ export default async function OpsX402Page({
       <PageHeader
         index="11"
         context="Agent payments"
-        title="x402 operations"
-        subtitle="Follow paid requests from quote through service execution and settlement."
+        title="Pay-per-call operations"
+        subtitle="Follow x402 and MPP requests from quote through service execution and settlement."
         updatedAt={new Date().toISOString()}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -111,15 +111,15 @@ export default async function OpsX402Page({
       />
 
       <OpsScopeNote label="Data scope">
-        Internal lifecycle audit from <code>x402_settlements</code>, using the selected {label}{' '}
-        window. Revenue sums <code>settled</code> rows only. Quote-to-payment is a window-level
-        comparison: the initial quote and paid retry are separate HTTP requests and cannot be
-        attributed to one another exactly. Payer counts are wallet-address proxies, not customer
-        identities.
+        Internal x402 and MPP lifecycle audit from <code>x402_settlements</code>, using the selected{' '}
+        {label} window. Revenue sums <code>settled</code> rows only. Quote-to-payment is a
+        window-level comparison: the initial quote and paid retry are separate HTTP requests and
+        cannot be attributed to one another exactly. Payer counts are wallet-address proxies, not
+        customer identities.
       </OpsScopeNote>
 
       {x402.errored && (
-        <ErrorBanner message="x402 运营数据暂不可用。请确认 migration 0079 已应用、服务端 Supabase 凭据可读，并检查 x402_settlements 查询错误。" />
+        <ErrorBanner message="付费调用运营数据暂不可用。请确认 migrations 0079 和 0080 已应用、服务端 Supabase 凭据可读，并检查 x402_settlements 查询错误。" />
       )}
 
       <OpsSectionHeading
@@ -158,7 +158,7 @@ export default async function OpsX402Page({
       <OpsSectionHeading
         index="02"
         title="Lifecycle conversion"
-        detail="Use the stage counts to locate friction. The first rate is approximate because x402 does not carry a shared quote ID across the retry."
+        detail="Use the stage counts to locate friction. Quote-to-payment rates are approximate because the initial quote and paid retry are separate requests."
       />
       <div className="ops-signal-grid grid grid-cols-2 gap-3 xl:grid-cols-4">
         <Stat
@@ -215,9 +215,9 @@ export default async function OpsX402Page({
       />
       <Card title="Settled calls by hour">
         {x402.errored ? (
-          <EmptyState message="x402 trend unavailable" />
+          <EmptyState message="Pay-per-call trend unavailable" />
         ) : x402.byHour.length === 0 ? (
-          <EmptyState message="No x402 lifecycle events in this window" />
+          <EmptyState message="No pay-per-call lifecycle events in this window" />
         ) : (
           <div className="ops-table-scroll overflow-x-auto">
             <div className="flex min-w-max items-end gap-2 border-b border-gray-200 pb-3 pt-2">
@@ -273,7 +273,7 @@ export default async function OpsX402Page({
               <thead>
                 <tr>
                   {[
-                    'Surface / resource',
+                    'Protocol / surface / resource',
                     'Quotes',
                     'Verified',
                     'Service OK',
@@ -295,8 +295,11 @@ export default async function OpsX402Page({
               </thead>
               <tbody>
                 {x402.byResource.map((row) => (
-                  <tr key={`${row.surface}:${row.resource}`} className={trCls}>
+                  <tr key={`${row.protocol}:${row.surface}:${row.resource}`} className={trCls}>
                     <td className="py-2 pr-3">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                        {row.protocol}
+                      </div>
                       <div className="text-xs uppercase tracking-wide text-gray-400">
                         {row.surface}
                       </div>
@@ -339,9 +342,9 @@ export default async function OpsX402Page({
       />
       <Card>
         {x402.errored ? (
-          <EmptyState message="Recent x402 records unavailable" />
+          <EmptyState message="Recent pay-per-call records unavailable" />
         ) : x402.recent.length === 0 ? (
-          <EmptyState message="No x402 records have been written yet" />
+          <EmptyState message="No pay-per-call records have been written yet" />
         ) : (
           <>
             <p className="ops-table-scroll-hint lg:hidden">
@@ -355,6 +358,7 @@ export default async function OpsX402Page({
                       'Time (Beijing)',
                       'Stage',
                       'Request ID',
+                      'Protocol',
                       'Resource',
                       'Network',
                       'Amount',
@@ -384,6 +388,11 @@ export default async function OpsX402Page({
                           title={row.requestId}
                         >
                           {shortValue(row.requestId, 12, 6)}
+                        </td>
+                        <td className="py-2 pr-3">
+                          <Badge tone={row.protocol === 'mpp' ? 'info' : 'default'}>
+                            {row.protocol}
+                          </Badge>
                         </td>
                         <td className="max-w-56 break-all py-2 pr-3 font-mono text-xs text-gray-700">
                           <div className="mb-1 text-[10px] uppercase tracking-wide text-gray-400">

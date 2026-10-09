@@ -6,6 +6,12 @@ import {
   ApiResponseBuilder,
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
+import { getMppConfig } from '@/lib/api/mpp/config';
+import {
+  handleMppPaidPreTradeRequest,
+  hasMppCredential,
+  issueMppPreTradeQuote,
+} from '@/lib/api/mpp/preTrade';
 import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { getX402Config } from '@/lib/api/x402/config';
@@ -85,21 +91,42 @@ const legacyGet = createApiHandler(
 );
 
 /**
- * Three-way dispatch on the same URL (see ~/.workbuddy/insight-x402/):
+ * Payment dispatch on the same URL:
+ * - `Authorization: Payment ...` → optional MPP rail (validate → check → settle).
  * - `PAYMENT-SIGNATURE` header → keyless x402 paid tier (verify → check → settle).
  * - Any auth header → legacy API-key handler, unchanged behaviour.
- * - Neither (paid tier armed only) → standard x402 402 quote so anonymous
- *   agents can self-discover the price. When the paid tier is disarmed
- *   (kill switch off or X402_PAY_TO empty) anonymous requests fall through to
- *   the legacy handler and get today's 401.
+ * - Neither (paid tier armed only) → x402 quote, with an MPP challenge when
+ *   MPP is enabled. When the paid tier is disarmed, anonymous requests fall
+ *   through to the legacy handler and get today's 401.
  */
 export const GET = (
   request: NextRequest,
   routeContext: { params: Promise<Record<string, string>> }
 ): Promise<NextResponse> => {
   const cfg = getX402Config();
+  const mppCfg = getMppConfig(cfg);
 
   if (cfg.enabled) {
+    if (mppCfg.enabled && hasMppCredential(request)) {
+      return handleMppPaidPreTradeRequest(request, cfg, mppCfg.secretKey!, async (requestId) => {
+        const parsed = PreTradeQuerySchema.safeParse(
+          Object.fromEntries(request.nextUrl.searchParams.entries())
+        );
+        if (!parsed.success) {
+          return NextResponse.json(
+            ApiResponseBuilder.error('VALIDATION_ERROR', 'Invalid pre-trade query parameters', {
+              details: { issues: parsed.error.issues.map((issue) => issue.path.join('.')) },
+            }),
+            { status: 400 }
+          );
+        }
+        return executePreTradeCheck({
+          query: parsed.data,
+          requestId,
+        });
+      });
+    }
+
     if (isPaidRequest(request)) {
       return handlePaidPreTradeRequest(request, cfg, async (requestId) => {
         const parsed = PreTradeQuerySchema.safeParse(
@@ -121,11 +148,18 @@ export const GET = (
     }
 
     if (!hasAuthCredentials(request)) {
-      return handlePaidPreTradeRequest(request, cfg, async (requestId) => {
-        const response = await legacyGet(request, routeContext);
-        response.headers.set('X-Request-Id', requestId);
-        return response;
-      });
+      const issueX402Quote = () =>
+        handlePaidPreTradeRequest(request, cfg, async (requestId) => {
+          const response = await legacyGet(request, routeContext);
+          response.headers.set('X-Request-Id', requestId);
+          return response;
+        });
+
+      if (mppCfg.enabled) {
+        return issueMppPreTradeQuote(request, cfg, mppCfg.secretKey!, issueX402Quote);
+      }
+
+      return issueX402Quote();
     }
   }
 

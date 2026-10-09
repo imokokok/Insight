@@ -93,6 +93,7 @@
 | 0077 | [`0077_x402_settlements.sql`](../../supabase/migrations/0077_x402_settlements.sql)                                       | x402 结算审计表                            |
 | 0078 | [`0078_x402_settlements_network_caip2.sql`](../../supabase/migrations/0078_x402_settlements_network_caip2.sql)           | x402 v2 CAIP-2 网络 ID 约束修正            |
 | 0079 | [`0079_x402_ops_lifecycle.sql`](../../supabase/migrations/0079_x402_ops_lifecycle.sql)                                   | x402 报价、付款、服务和结算运营事件        |
+| 0080 | [`0080_mpp_payment_protocol.sql`](../../supabase/migrations/0080_mpp_payment_protocol.sql)                               | x402 与 MPP 付费协议审计标记               |
 
 ## 非迁移 SQL
 

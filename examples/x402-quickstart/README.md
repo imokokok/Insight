@@ -1,19 +1,21 @@
-# x402 pay-per-call quickstart
+# x402 and MPP pay-per-call quickstart
 
 Call the Insight pre-trade safety check with **no account and no API key**. An
-unauthenticated request receives an HTTP 402 quote ($0.02 USDC on Base,
-network `eip155:8453`); the client signs an EIP-3009 `transferWithAuthorization`,
-retries with a `PAYMENT-SIGNATURE` header, and the Coinbase CDP facilitator
-settles the payment on-chain. A failed call is never settled.
+unauthenticated request receives an HTTP 402 challenge ($0.02 USDC on Base,
+network `eip155:8453`); an x402 client retries with `PAYMENT-SIGNATURE`, while
+an MPP client retries with `Authorization: Payment`. Both sign EIP-3009
+`transferWithAuthorization` and use the configured facilitator. MPP is available
+when enabled on the deployment. A failed call is never settled.
 
 Live docs: https://www.oracleinsight.xyz/docs/x402
 
 ## Files
 
-| File            | Stack                                                                                        | Run                                                                                |
-| --------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `pre-trade.mjs` | TypeScript/Node, official `@x402/fetch` + `@x402/evm` (same version line the server runs on) | `npm i @x402/fetch @x402/evm viem` then `EVM_PRIVATE_KEY=0x... node pre-trade.mjs` |
-| `pre-trade.py`  | Python, official `x402[httpx,evm]` SDK                                                       | `pip install "x402[httpx,evm]"` then `EVM_PRIVATE_KEY=0x... python pre-trade.py`   |
+| File                | Stack                                                                                        | Run                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `pre-trade.mjs`     | TypeScript/Node, official `@x402/fetch` + `@x402/evm` (same version line the server runs on) | `npm i @x402/fetch @x402/evm viem` then `EVM_PRIVATE_KEY=0x... node pre-trade.mjs` |
+| `pre-trade.py`      | Python, official `x402[httpx,evm]` SDK                                                       | `pip install "x402[httpx,evm]"` then `EVM_PRIVATE_KEY=0x... python pre-trade.py`   |
+| `pre-trade-mpp.mts` | TypeScript/Node, official `mppx` EVM client                                                  | `npm i mppx viem zod` then `EVM_PRIVATE_KEY=0x... npx tsx pre-trade-mpp.mts`       |
 
 Both need a wallet with a small USDC balance on Base mainnet (a few cents is
 plenty at $0.02 per check).
