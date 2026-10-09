@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, ShieldCheck, Terminal } from 'lucide-react';
 
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { DataAccessTierMatrix, PricingSection } from '@/components/pricing';
+import { METERING_CLASS_ORDER, creditCostRange } from '@/lib/billing/metering';
 
 import type { Metadata } from 'next';
 
@@ -13,6 +14,12 @@ export const metadata: Metadata = {
     'Choose capacity for Insight REST API, AI/MCP, and Guard SDK usage. Every paying user gets every endpoint, with transparent per-call credit metering and prepaid top-ups.',
 };
 
+// Derived from metering.ts so re-pricing a class updates this ledger too.
+const CREDIT_COST_RANGE = creditCostRange();
+const METERING_LADDER_LABEL = `${METERING_CLASS_ORDER[0]}–${
+  METERING_CLASS_ORDER[METERING_CLASS_ORDER.length - 1]
+}`;
+
 const BILLING_FACTS = [
   {
     value: '100',
@@ -20,9 +27,9 @@ const BILLING_FACTS = [
     detail: 'One grant after email verification',
   },
   {
-    value: 'C1–C4',
+    value: METERING_LADDER_LABEL,
     label: 'Metering classes',
-    detail: '0.5 to 10 credits per call',
+    detail: `${CREDIT_COST_RANGE.min} to ${CREDIT_COST_RANGE.max} credits per call`,
   },
   {
     value: '100%',
@@ -151,7 +158,7 @@ export default function PricingPage() {
                 x402 and optional MPP protocols. A request without credentials receives an HTTP 402
                 quote; the agent pays $0.02 in USDC on Base and retries with a signed payment to
                 receive the full safety check. Humans and teams with ongoing volume should use the
-                credit plans below instead.
+                credit plans above instead.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link

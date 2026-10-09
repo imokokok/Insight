@@ -24,6 +24,61 @@ export const CREDIT_COST: Record<MeteringClass, number> = {
   C4: 10,
 };
 
+/** Display order for the metering ladder, cheapest class first. */
+export const METERING_CLASS_ORDER: readonly MeteringClass[] = ['C1', 'C2', 'C3', 'C4'];
+
+/**
+ * Human-facing description for each metering class. Co-located with the cost so
+ * the pricing page can never describe a class differently from what the
+ * middleware actually charges — every surface renders from this record.
+ */
+export const METERING_CLASS_DESCRIPTION: Record<MeteringClass, string> = {
+  C1: 'Foundational data — prices, listings, daily reports',
+  C2: 'Deep analysis — deviation, correlation, risk, history',
+  C3: 'Agent gates — pre-trade safety and Oracle Watch across REST, MCP, or Guard',
+  C4: 'Proofs & receipts — attested execution receipts across every integration surface',
+};
+
+/**
+ * Render a class cost for display. `unit: 'short'` yields "0.5 cr" for compact
+ * ledgers; `unit: 'long'` yields "0.5 credits" for prose. Always derived from
+ * {@link CREDIT_COST} so a re-priced class updates every surface at once.
+ */
+export function formatCreditCost(cls: MeteringClass, unit: 'short' | 'long' = 'short'): string {
+  return `${CREDIT_COST[cls]} ${unit === 'long' ? 'credits' : 'cr'}`;
+}
+
+/** Lowest and highest per-call credit cost across the metering ladder. */
+export function creditCostRange(): { min: number; max: number } {
+  const costs = METERING_CLASS_ORDER.map((cls) => CREDIT_COST[cls]);
+  return { min: Math.min(...costs), max: Math.max(...costs) };
+}
+
+/** Noun used when translating a credit allowance into concrete call counts. */
+export const METERING_CLASS_CALL_LABEL: Record<MeteringClass, string> = {
+  C1: 'foundational calls',
+  C2: 'deep-analysis calls',
+  C3: 'pre-trade checks',
+  C4: 'attested receipts',
+};
+
+/**
+ * Translate a credit allowance into "≈N <class label>" examples, e.g.
+ * `creditAllowanceExamples(25_000, ['C2', 'C3'])` →
+ * "≈12,500 deep-analysis calls or ≈5,000 pre-trade checks".
+ */
+export function creditAllowanceExamples(
+  credits: number,
+  classes: readonly MeteringClass[]
+): string {
+  return classes
+    .map(
+      (cls) =>
+        `≈${Math.floor(credits / CREDIT_COST[cls]).toLocaleString('en-US')} ${METERING_CLASS_CALL_LABEL[cls]}`
+    )
+    .join(' or ');
+}
+
 /**
  * Credit exhaustion is an operator-action condition, not a transient server
  * error. Tell automated consumers to wait until their next normal polling
