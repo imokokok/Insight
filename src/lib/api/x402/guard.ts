@@ -85,6 +85,7 @@ export function toNextResponse(instructions: HTTPResponseInstructions): NextResp
 
 export interface X402SettlementAudit {
   requestId: string;
+  protocol?: 'x402' | 'mpp';
   status:
     | 'quote_issued'
     | 'payment_rejected'
@@ -109,6 +110,7 @@ export interface X402SettlementAudit {
 const X402SettlementAuditSchema = z
   .object({
     requestId: z.string().regex(/^req_[a-f0-9]{32}$/),
+    protocol: z.enum(['x402', 'mpp']).optional(),
     status: z.enum([
       'quote_issued',
       'payment_rejected',
@@ -163,6 +165,7 @@ export function recordX402Settlement(audit: X402SettlementAudit): void {
       const client = createServiceRoleClient();
       const { error } = await client.from('x402_settlements').insert({
         request_id: validAudit.requestId,
+        protocol: validAudit.protocol ?? 'x402',
         status: validAudit.status,
         tx_hash: validAudit.txHash ?? null,
         payer: validAudit.payer ?? null,

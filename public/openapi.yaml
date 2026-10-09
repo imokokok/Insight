@@ -61,8 +61,8 @@ info:
     wallet). Public metadata endpoints (`/health`, `/symbols`) are free.
     Annual billing is 11 times the monthly price for 12 monthly credit grants
     (one month included). API C3 pre-trade checks work out to about $0.0160–$0.0198
-    per call depending on the plan, billing cycle, or prepaid pack; direct x402 C3
-    access remains $0.02.
+    per call depending on the plan, billing cycle, or prepaid pack; direct x402
+    and optional MPP C3 access remains $0.02.
     Payments are crypto-only via NOWPayments (USDC-denominated); there is no
     auto-renewal — subscriptions run one billing cycle.
 
@@ -1664,9 +1664,21 @@ paths:
         execute trades when the verdict is `DANGER` or `BLOCK`. Also returns a recommended maximum
         position size. Every call is audit-logged to build a data flywheel for a future ML model.
 
-        **Credit-metered** — any API key with sufficient credit balance.
+        **Ways to pay:** use an API key with sufficient credits, or pay $0.02 USDC per successful
+        check through x402. When the deployment has `MPP_ENABLED=true`, the same REST endpoint also
+        accepts the MPP `evm/charge` method at the same price, network, recipient, and facilitator.
+        Failed checks are not settled. MCP tools/call continues to use x402.
+      x-payment-protocols:
+        - name: x402
+          enabledBy: X402_ENABLED
+          header: PAYMENT-SIGNATURE
+        - name: MPP
+          method: evm/charge
+          enabledBy: MPP_ENABLED
+          header: 'Authorization: Payment'
       security:
         - apiKey: []
+        - {}
       parameters:
         - name: asset
           in: query
@@ -1708,13 +1720,30 @@ paths:
             example: chainlink,redstone,api3
       responses:
         '200':
-          description: Pre-trade safety verdict
+          description: Pre-trade safety verdict, paid through x402 or MPP or authorized by API key.
+          headers:
+            PAYMENT-RESPONSE:
+              description: x402 settlement receipt when x402 was used.
+              schema: { type: string }
+            Payment-Receipt:
+              description: MPP settlement receipt when MPP was used.
+              schema: { type: string }
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PreTradeSafetyResponse'
         '402':
-          $ref: '#/components/responses/CreditExhausted'
+          description: >-
+            HTTP 402 carries an x402 quote in PAYMENT-REQUIRED and, when MPP_ENABLED is active,
+            an MPP evm/charge challenge in WWW-Authenticate. API-key calls can also return 402
+            when the credit balance is insufficient.
+          headers:
+            PAYMENT-REQUIRED:
+              description: x402 v2 quote, base64 encoded.
+              schema: { type: string }
+            WWW-Authenticate:
+              description: MPP challenge when enabled on this deployment.
+              schema: { type: string }
 
   /oracle-watch:
     get:

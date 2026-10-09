@@ -48,7 +48,7 @@ export const OPS_NAV: OpNavGroup[] = [
     title: 'Admin',
     items: [
       { href: '/ops/billing', label: 'Billing', icon: CreditCard },
-      { href: '/ops/x402', label: 'x402 operations', icon: Wallet },
+      { href: '/ops/x402', label: 'Pay-per-call', icon: Wallet },
     ],
   },
 ];

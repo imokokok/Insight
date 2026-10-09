@@ -66,8 +66,8 @@ export default async function OpsUsagePage({
         Requests and 5xx errors come from <code>api_key_usage</code>; credit movement comes from a
         separate ledger. Both use the selected {label} window. Net flow is credited minus spent, not
         a current wallet balance. View the cumulative <Link href="/ops/billing">key inventory</Link>
-        . Direct x402 pay-per-call receipts and lifecycle outcomes are on{' '}
-        <Link href="/ops/x402">x402 operations</Link>.
+        . Direct x402 and MPP pay-per-call receipts and lifecycle outcomes are on{' '}
+        <Link href="/ops/x402">pay-per-call operations</Link>.
       </OpsScopeNote>
 
       {usage.errored && <ErrorBanner message="API 用量数据查询失败。请求、错误和延迟暂不可用。" />}

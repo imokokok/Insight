@@ -8,11 +8,12 @@ import { CodeBlock } from '@/components/shared/CodeBlock';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'x402 Pay-per-Call Quickstart — Insight',
+  title: 'Pay-per-Call Quickstart: x402 and MPP — Insight',
   description:
-    'Call the Insight pre-trade safety check with no account and no API key: pay $0.02 in USDC on Base per check via the x402 protocol. Copy-paste quickstarts for curl, TypeScript, Python, and MCP tools/call.',
+    'Call the Insight pre-trade safety check with no account or API key: pay $0.02 in USDC on Base via x402 or optional MPP. Copy-paste quickstarts for curl, TypeScript, Python, and MCP tools/call.',
   keywords: [
     'x402 quickstart',
+    'MPP quickstart',
     'pay per call API',
     'USDC Base micropayments',
     'AI agent payments',
@@ -29,7 +30,7 @@ const PAY_FACTS = [
   {
     value: '$0.02',
     label: 'Per check (C3)',
-    detail: 'USDC on Base, settled on-chain by the Coinbase CDP facilitator',
+    detail: 'USDC on Base via the configured facilitator for x402 or MPP',
   },
   {
     value: '0',
@@ -39,7 +40,7 @@ const PAY_FACTS = [
   {
     value: 'HTTP 402',
     label: 'Machine-native',
-    detail: 'Read the PAYMENT-REQUIRED header, sign EIP-3009, retry paid',
+    detail: 'Read the protocol challenge, sign EIP-3009, retry paid',
   },
   {
     value: 'EIP-712',
@@ -114,6 +115,27 @@ const check = await res.json();
 console.log(check.verdict, check.recommendedMaxPositionUsd);
 // The 402 -> sign -> retry -> settle round trip is automatic.`;
 
+const mppCode = `// npm i mppx viem
+import { Mppx, evm } from 'mppx/client';
+import { privateKeyToAccount } from 'viem/accounts';
+
+const mppx = Mppx.create({
+  methods: [
+    evm.charge({
+      account: privateKeyToAccount(process.env.EVM_PRIVATE_KEY!),
+      networks: [8453],
+      currencies: ['0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'],
+      maxAmount: '0.02',
+    }),
+  ],
+});
+
+// mppx reads the MPP challenge, signs the EIP-3009 authorization,
+// retries with Authorization: Payment, and returns the safety-check JSON.
+const res = await mppx.fetch('${ENDPOINT}');
+const check = await res.json();
+console.log(check.verdict, check.recommendedMaxPositionUsd);`;
+
 const pyCode = `# pip install "x402[httpx,evm]"
 import asyncio, os
 
@@ -176,9 +198,9 @@ export default function X402QuickstartPage() {
         <EditorialWorkspaceHeader
           index="14"
           stage="Integrate"
-          eyebrow="Pay per call, no account · x402 v2 exact scheme · USDC on Base"
+          eyebrow="Pay per call, no account · x402 or MPP · USDC on Base"
           title="One wallet. One HTTP call. One verifiable verdict."
-          description="The pre-trade safety check speaks the x402 protocol: an unauthenticated request receives an HTTP 402 quote, your agent signs an EIP-3009 USDC authorization, retries with a payment header, and receives the full oracle-manipulation-aware check. Every settled call is auditable on-chain; verdicts carry verifiable EIP-712 attestations."
+          description="The REST pre-trade safety check accepts x402 and optional MPP at the same price. An unauthenticated request receives an HTTP 402 challenge; your agent signs an EIP-3009 USDC authorization, retries, and receives the full check. Business errors are not settled. Every settled call is auditable on-chain; verdicts carry verifiable EIP-712 attestations. MCP calls continue to use x402."
           evidence={['No signup', 'Settle only on success', 'Offline-verifiable receipts']}
           action={
             <div className="flex flex-wrap items-center gap-2">
@@ -203,8 +225,8 @@ export default function X402QuickstartPage() {
         <EvidenceProcessRail
           label="Paid call lifecycle"
           items={[
-            { label: 'Request', detail: '402 quote names price · payTo · network' },
-            { label: 'Sign & retry', detail: 'EIP-3009 USDC auth · PAYMENT-SIGNATURE header' },
+            { label: 'Request', detail: '402 advertises x402 and optional MPP terms' },
+            { label: 'Sign & retry', detail: 'EIP-3009 USDC auth · payment protocol header' },
             { label: 'Verdict', detail: 'Facilitator settles on-chain · receipt is verifiable' },
           ]}
         />
@@ -236,11 +258,13 @@ export default function X402QuickstartPage() {
             <p className="editorial-index">01 — See the quote</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                The 402 response is the price tag.
+                The HTTP 402 response is the price tag.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
-                Before writing any code, inspect what an agent sees. The quote is a base64 JSON
-                header; every x402 v2 client parses it for you.
+                Before writing any code, inspect what an agent sees. Protocol-specific response
+                headers carry the quote: x402 clients read{' '}
+                <code className="font-mono">PAYMENT-REQUIRED</code>, while MPP clients read{' '}
+                <code className="font-mono">WWW-Authenticate</code>.
               </p>
             </div>
           </div>
@@ -275,7 +299,34 @@ export default function X402QuickstartPage() {
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">03 — Python</p>
+            <p className="editorial-index">03 — MPP</p>
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                Use the standard Payment authorization scheme.
+              </h2>
+              <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
+                When MPP is enabled on the deployment, the same REST endpoint advertises an MPP
+                <code className="font-mono text-base"> evm/charge</code> challenge alongside its
+                x402 quote. The mppx client handles the challenge and sends its credential in{' '}
+                <code className="font-mono text-base">Authorization: Payment</code>. Both rails use
+                the configured price and USDC recipient.
+              </p>
+            </div>
+          </div>
+          <div className="mt-6">
+            <CodeBlock code={mppCode} label="pre-trade.mts · MPP" />
+          </div>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-500">
+            MPP is deployment-opt-in. The REST endpoint settles only after a successful check;
+            <code className="font-mono"> /api/mcp</code> currently uses x402.
+          </p>
+        </div>
+      </section>
+
+      <section className="py-14 sm:py-20">
+        <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+          <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+            <p className="editorial-index">04 — Python</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 httpx with a paying transport.
@@ -295,7 +346,7 @@ export default function X402QuickstartPage() {
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">04 — MCP tools/call</p>
+            <p className="editorial-index">05 — MCP tools/call</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 40 tools over MCP, paid per call.
@@ -342,7 +393,7 @@ export default function X402QuickstartPage() {
       <section id="verify" className="scroll-mt-20 py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">05 — Verify what you paid for</p>
+            <p className="editorial-index">06 — Verify what you paid for</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 A BLOCK verdict is still a complete check.
@@ -372,7 +423,7 @@ export default function X402QuickstartPage() {
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">06 — Reference</p>
+            <p className="editorial-index">07 — Reference</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 Query parameters and discovery.
