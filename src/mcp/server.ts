@@ -6,6 +6,7 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 
+import type { MppMcpCallHandler } from '@/lib/api/mpp/mcp';
 import { createLogger } from '@/lib/utils/logger';
 
 import packageJson from '../../package.json';
@@ -17,7 +18,12 @@ import type { McpAuthContext } from './auth';
 
 const logger = createLogger('mcp-server');
 
-export function createMcpServer(auth?: McpAuthContext): Server {
+export interface McpServerOptions {
+  mppPaymentEnabled?: boolean;
+  mppCallHandler?: MppMcpCallHandler;
+}
+
+export function createMcpServer(auth?: McpAuthContext, options: McpServerOptions = {}): Server {
   const tools = getToolDefinitions();
 
   const server = new Server(
@@ -28,6 +34,17 @@ export function createMcpServer(auth?: McpAuthContext): Server {
     {
       capabilities: {
         tools: {},
+        ...(options.mppPaymentEnabled
+          ? {
+              experimental: {
+                payment: {
+                  methods: {
+                    evm: { intents: ['charge'] },
+                  },
+                },
+              },
+            }
+          : {}),
       },
     }
   );
@@ -39,52 +56,79 @@ export function createMcpServer(auth?: McpAuthContext): Server {
   server.setRequestHandler(
     CallToolRequestSchema,
     async (
-      request
-    ): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }> => {
+      request,
+      extra
+    ): Promise<{
+      content: Array<{ type: 'text'; text: string }>;
+      isError?: boolean;
+      _meta?: Record<string, unknown>;
+    }> => {
       const { name, arguments: args } = request.params;
       const startTime = Date.now();
       logger.info(`MCP tool called: ${name}`, { args });
 
-      // Credit gate: reject before executing if the key can't afford THIS
-      // tool (the HTTP-boundary precheck only tests the cheapest class).
-      if (auth) {
-        const creditCheck = await precheckMcpToolQuota(auth, name);
-        if (!creditCheck.allowed) {
-          recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
-          return {
-            content: [{ type: 'text', text: `Insufficient credits: ${creditCheck.reason}` }],
-            isError: true,
-          };
-        }
-      }
-
-      const result = await executeTool(name, args);
-
-      if (auth) {
-        // Only consume credits when the tool actually returned data.
-        // Protocol overhead (initialize/tools/list/ping) and execution
-        // failures are NOT metered — mirroring the REST API which only
-        // charges successful data requests.
-        if (!result.isError) {
-          const charge = await consumeMcpQuota(auth, name);
-          if (!charge.allowed) {
+      const runBusiness = async () => {
+        // Credit gate: reject before executing if the key can't afford THIS
+        // tool (the HTTP-boundary precheck only tests the cheapest class).
+        if (auth) {
+          const creditCheck = await precheckMcpToolQuota(auth, name);
+          if (!creditCheck.allowed) {
             recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
             return {
               content: [
-                {
-                  type: 'text',
-                  text: `Insufficient credits: ${charge.reason ?? 'authoritative charge rejected'}`,
-                },
+                { type: 'text' as const, text: `Insufficient credits: ${creditCheck.reason}` },
               ],
               isError: true,
             };
           }
         }
-        recordMcpToolUsage(auth, name, result.isError ? 500 : 200, Date.now() - startTime);
-      }
+
+        const result = await executeTool(name, args);
+
+        if (auth) {
+          // Only consume credits when the tool actually returned data.
+          // Protocol overhead (initialize/tools/list/ping) and execution
+          // failures are NOT metered — mirroring the REST API which only
+          // charges successful data requests.
+          if (!result.isError) {
+            const charge = await consumeMcpQuota(auth, name);
+            if (!charge.allowed) {
+              recordMcpToolUsage(auth, name, 402, Date.now() - startTime);
+              return {
+                content: [
+                  {
+                    type: 'text' as const,
+                    text: `Insufficient credits: ${charge.reason ?? 'authoritative charge rejected'}`,
+                  },
+                ],
+                isError: true,
+              };
+            }
+          }
+          recordMcpToolUsage(auth, name, result.isError ? 500 : 200, Date.now() - startTime);
+        }
+
+        return result as {
+          content: Array<{ type: 'text'; text: string }>;
+          isError?: boolean;
+        };
+      };
+
+      const result = options.mppCallHandler
+        ? await options.mppCallHandler({
+            name,
+            args: (args ?? {}) as Record<string, unknown>,
+            extra,
+            runBusiness,
+          })
+        : await runBusiness();
 
       // Cast required due to minor zod v4 / MCP SDK type compatibility gap at compile time
-      return result as { content: Array<{ type: 'text'; text: string }>; isError?: boolean };
+      return result as {
+        content: Array<{ type: 'text'; text: string }>;
+        isError?: boolean;
+        _meta?: Record<string, unknown>;
+      };
     }
   );
 

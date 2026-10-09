@@ -11,11 +11,12 @@ Live docs: https://www.oracleinsight.xyz/docs/x402
 
 ## Files
 
-| File                | Stack                                                                                        | Run                                                                                |
-| ------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `pre-trade.mjs`     | TypeScript/Node, official `@x402/fetch` + `@x402/evm` (same version line the server runs on) | `npm i @x402/fetch @x402/evm viem` then `EVM_PRIVATE_KEY=0x... node pre-trade.mjs` |
-| `pre-trade.py`      | Python, official `x402[httpx,evm]` SDK                                                       | `pip install "x402[httpx,evm]"` then `EVM_PRIVATE_KEY=0x... python pre-trade.py`   |
-| `pre-trade-mpp.mts` | TypeScript/Node, official `mppx` EVM client                                                  | `npm i mppx viem zod` then `EVM_PRIVATE_KEY=0x... npx tsx pre-trade-mpp.mts`       |
+| File                    | Stack                                                                                        | Run                                                                                                        |
+| ----------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `pre-trade.mjs`         | TypeScript/Node, official `@x402/fetch` + `@x402/evm` (same version line the server runs on) | `npm i @x402/fetch @x402/evm viem` then `EVM_PRIVATE_KEY=0x... node pre-trade.mjs`                         |
+| `pre-trade.py`          | Python, official `x402[httpx,evm]` SDK                                                       | `pip install "x402[httpx,evm]"` then `EVM_PRIVATE_KEY=0x... python pre-trade.py`                           |
+| `pre-trade-mpp.mts`     | TypeScript/Node, official `mppx` EVM client                                                  | `npm i mppx viem zod` then `EVM_PRIVATE_KEY=0x... npx tsx pre-trade-mpp.mts`                               |
+| `mcp-pre-trade-mpp.mts` | TypeScript/Node, MCP SDK with `mppx/mcp/client`                                              | `npm i @modelcontextprotocol/sdk mppx viem zod` then `EVM_PRIVATE_KEY=0x... npx tsx mcp-pre-trade-mpp.mts` |
 
 Both need a wallet with a small USDC balance on Base mainnet (a few cents is
 plenty at $0.02 per check).
@@ -42,6 +43,13 @@ C4 = $0.04). Body shape:
 
 The settle receipt arrives in the `payment-response` response header; decode it
 (base64 JSON) and read `.transaction` for the BaseScan link.
+
+When `MPP_MCP_ENABLED=true`, the separate MPP endpoint
+(`https://www.oracleinsight.xyz/api/mcp/mpp`) supports only
+`pre_trade_safety_check` at $0.02. Its MCP client uses standard MPP challenge,
+credential, and receipt metadata. The challenge is bound to the canonical tool
+arguments, and failed tool calls do not settle. The full catalog at `/api/mcp`
+continues to support x402 and API keys.
 
 ## Verify what you paid for
 
