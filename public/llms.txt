@@ -18,6 +18,7 @@
 - [x402 pay-per-call quickstart](https://www.oracleinsight.xyz/docs/x402): copy-paste clients for curl, TypeScript (@x402/fetch), Python (x402[httpx,evm]), and MCP tools/call; query parameters, metering classes (C1 $0.002, C2 $0.008, C3 $0.02, C4 $0.04), and receipt verification.
 - [OpenAPI discovery document](https://www.oracleinsight.xyz/openapi.json): x402-focused discovery doc for the paid endpoint, including the `x-payment-info` pricing block and parameter schemas.
 - [x402 well-known manifest](https://www.oracleinsight.xyz/.well-known/x402.json): resource-server manifest (also served at [/.well-known/x402](https://www.oracleinsight.xyz/.well-known/x402)).
+- [x402-quality/v0 schema](https://www.oracleinsight.xyz/x402-quality/v0/x402-quality-v0.schema.json): draft JSON Schema (2020-12) for a quality-attestation artifact, plus a zero-dependency projection tool and fixtures generated from live receipts. A reference implementation for the x402 quality-attestation discussion, not an adopted standard.
 
 ## Free (keyless) endpoints
 

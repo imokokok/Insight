@@ -1,0 +1,50 @@
+{
+  "schema": "x402-quality/v0",
+  "issued_at": 1791571933,
+  "subject": {
+    "bound_receipt": {
+      "kind": "oracle-pretrade",
+      "uid": "0x6ff5e1d04ab51d8e220a91b1f1f4dba87500d367e863473d07d0cb8841488b72",
+      "schema_version": 3,
+      "primary_type": "OracleSafetyCheck"
+    }
+  },
+  "measurement": {
+    "profile": "oracle-pretrade/v3",
+    "algorithm_version": "insight-oracle-safety@3",
+    "observed_at": 1791571933,
+    "verdict": "PASS",
+    "metrics": {
+      "maxDeviationBps": 80,
+      "crossProviderAgreementBps": 9920,
+      "manipulationRiskBps": 500,
+      "participantCount": 6,
+      "requiredParticipantCount": 3,
+      "sourceGroupCount": 6,
+      "requiredSourceGroupCount": 2,
+      "independenceStatus": "ASSESSED",
+      "coverageStatus": "SUFFICIENT",
+      "maxStablecoinDepegBps": 0,
+      "maxDataAgeSeconds": 9,
+      "recommendedMaxPositionUsd": 10000000000
+    },
+    "inputs": {
+      "providerObservationsHash": "0xa2bc1288c9d0eb8258cc5d1e265d47e2745501f11acefe1a95411c1aa890bf7d",
+      "evaluatedAssetIdsHash": "0x08d8c93d2f0e710195398373ae826c528c5b539211ad13c8d1a9157c157bf234",
+      "reasonCodesHash": "0x569e75fc77c1a856f6daaf9e69d8a9566ca34aa47f9133711ce065a571af0cfd",
+      "requestHash": "0xd9123f4d07987219385997482269e13f0727d10d3bab8ec453afa94cf3563912",
+      "evaluationScope": "SOURCE_ASSET_ONLY"
+    },
+    "valid_until": 1791572533
+  },
+  "attester": [
+    {
+      "address": "0xa41d5Ee795d95B87B3AA988150fC2d5e5fE5A534",
+      "signature": "0x95825b7bba4e98e87f23d87338f77610d04bfa24c2580e50193ef054632a0be17c3bf7444d9ac7cfff58825f36030b53976bcb84bacb6d019a1436c8d32d0c5b1c",
+      "signature_scheme": "eip712",
+      "covers": "bound-receipt",
+      "bound_receipt_uid": "0x6ff5e1d04ab51d8e220a91b1f1f4dba87500d367e863473d07d0cb8841488b72",
+      "role": "sample"
+    }
+  ]
+}
