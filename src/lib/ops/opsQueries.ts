@@ -58,7 +58,7 @@ interface ApiUsageRow {
  */
 const PAGE_SIZE = 1000;
 
-async function pagedSelect<T>(
+export async function pagedSelect<T>(
   buildPage: (
     from: number,
     to: number

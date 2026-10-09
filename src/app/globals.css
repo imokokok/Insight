@@ -11688,3 +11688,36 @@ body {
     animation: none;
   }
 }
+
+/*---------------------------------------------------------------------------
+  /ops/issuance — the console's one privileged action surface.
+  The release button reuses .ops-review-submit; halting needs its own danger
+  treatment so the destructive action cannot be confused with the safe one.
+---------------------------------------------------------------------------*/
+.ops-issuance-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.8rem;
+  border: 1px solid #8f1d1d;
+  background: #8f1d1d;
+  padding: 0.65rem 1rem;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.ops-issuance-danger:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.ops-review-submit:disabled,
+.ops-issuance-danger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
