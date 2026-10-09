@@ -9,6 +9,11 @@
 - The deployment workflow uses the repository's GitHub Actions secret named `VERCEL_TOKEN`. Keep that secret in sync when the user requests credential replacement; changing it alone must not trigger a deployment.
 - Reusing a credential does not authorize unrelated deployments or account changes. If authentication fails, report the failure and request a replacement only when needed.
 
+## GitHub CLI device authorization
+
+- If GitHub CLI authentication has expired and the standard `gh auth login --hostname github.com --web --git-protocol https` flow is needed, start the flow only when authorized. As soon as GitHub returns a one-time device code, tell the user the code and `https://github.com/login/device` before asking them to authorize, opening the browser, or waiting for completion.
+- Never store a one-time device code in workspace memory, repository files, or logs. Never ask the user to paste a GitHub token into chat.
+
 ## Partner joint-run instructions
 
 - For partner integration preparation, rehearsal, fresh bundles, live execution, post-run verification, or replies, first read `/Users/imokokok/Documents/partnerships/AGENTS.md`, then `/Users/imokokok/Documents/partnerships/COLLABORATION-DOCS-STANDARD.md`, then `/Users/imokokok/Documents/partnerships/JOINT-RUN-PLAYBOOK.md`. Continue with the partnerships root README, the partner README, and the current stage fact sources. These rules supplement this repository's rules.
