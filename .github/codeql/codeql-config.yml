@@ -1,0 +1,16 @@
+name: Insight CodeQL configuration
+
+# Test sources route mock transports by URL substring (for example the fetch
+# stub in src/lib/marketReference/__tests__/collector.test.ts) and are not part
+# of the deployed attack surface. Excluding them keeps the code scanning tab
+# actionable: every alert that remains is production code.
+#
+# Only the analysis scope is narrowed here. The query suite is left at the
+# default so this file cannot silently weaken which rules run.
+paths-ignore:
+  - '**/__tests__/**'
+  - '**/*.test.ts'
+  - '**/*.test.tsx'
+  - '**/*.spec.ts'
+  - '**/*.spec.tsx'
+  - '**/e2e/**'

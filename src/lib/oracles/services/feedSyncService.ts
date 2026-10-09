@@ -51,6 +51,25 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
   return data?.length || 0;
 }
 
+/**
+ * Provider order used by `fullSync` when no single provider is requested.
+ * `chainlink` is listed first for documentation value; the no-argument path
+ * seeds it explicitly (catalog, then registry) before the remaining providers.
+ */
+const SEED_PROVIDER_ORDER = [
+  'chainlink',
+  'supra',
+  'dia',
+  'redstone',
+  'api3',
+  'winklink',
+  'twap',
+  'twap-token',
+  'reflector',
+  'flare',
+  'band',
+] as const;
+
 class FeedSyncService {
   // ─── Chainlink ────────────────────────────────────────────────────
 
@@ -585,26 +604,8 @@ class FeedSyncService {
   async fullSync(provider?: string): Promise<SyncResult[]> {
     const results: SyncResult[] = [];
 
-    const seeders = new Map<string, () => Promise<SyncResult>>([
-      ['chainlink', () => this.syncChainlinkFeedsFromCatalog()],
-      ['supra', () => this.seedSupraFeedsFromHardcoded()],
-      ['dia', () => this.seedDIAFeedsFromHardcoded()],
-      ['redstone', () => this.seedRedStoneFeedsFromHardcoded()],
-      ['api3', () => this.seedAPI3FeedsFromHardcoded()],
-      ['winklink', () => this.seedWinklinkFeedsFromHardcoded()],
-      ['twap', () => this.seedTwapFeedsFromHardcoded()],
-      ['twap-token', () => this.seedTwapFeedsFromHardcoded()],
-      ['reflector', () => this.seedReflectorFeedsFromHardcoded()],
-      ['flare', () => this.seedFlareFeedsFromHardcoded()],
-      ['band', () => this.seedBandFeedsFromHardcoded()],
-    ]);
-
     if (provider) {
-      const seeder = seeders.get(provider);
-      if (!seeder) {
-        throw new Error(`Unsupported feed sync provider: ${provider}`);
-      }
-      results.push(await seeder());
+      results.push(await this.runSeeder(provider));
     } else {
       // Primary: seed the committed catalog directory (official universe, no RPC).
       // Then run the on-chain Feed Registry as a best-effort mainnet freshness
@@ -613,14 +614,51 @@ class FeedSyncService {
       results.push(await this.syncChainlinkFeedsFromCatalog());
       results.push(await this.syncChainlinkFeedsFromRegistry());
       // Seed other providers
-      for (const [name, seeder] of seeders) {
+      for (const name of SEED_PROVIDER_ORDER) {
         if (name !== 'chainlink') {
-          results.push(await seeder());
+          results.push(await this.runSeeder(name));
         }
       }
     }
 
     return results;
+  }
+
+  /**
+   * Dispatch one named seeder.
+   *
+   * `provider` can originate from a request, so it is matched by an exhaustive
+   * `switch` instead of being used as a key that selects a callable. An explicit
+   * switch keeps the reachable set of seeder implementations statically visible
+   * (CodeQL js/unvalidated-dynamic-method-call) and makes an unknown provider a
+   * checked error rather than an `undefined` lookup.
+   */
+  private async runSeeder(provider: string): Promise<SyncResult> {
+    switch (provider) {
+      case 'chainlink':
+        return this.syncChainlinkFeedsFromCatalog();
+      case 'supra':
+        return this.seedSupraFeedsFromHardcoded();
+      case 'dia':
+        return this.seedDIAFeedsFromHardcoded();
+      case 'redstone':
+        return this.seedRedStoneFeedsFromHardcoded();
+      case 'api3':
+        return this.seedAPI3FeedsFromHardcoded();
+      case 'winklink':
+        return this.seedWinklinkFeedsFromHardcoded();
+      case 'twap':
+      case 'twap-token':
+        return this.seedTwapFeedsFromHardcoded();
+      case 'reflector':
+        return this.seedReflectorFeedsFromHardcoded();
+      case 'flare':
+        return this.seedFlareFeedsFromHardcoded();
+      case 'band':
+        return this.seedBandFeedsFromHardcoded();
+      default:
+        throw new Error(`Unsupported feed sync provider: ${provider}`);
+    }
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
