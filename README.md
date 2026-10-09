@@ -63,7 +63,7 @@ The hosted MCP server is live at `https://www.oracleinsight.xyz/api/mcp` (stream
 
 ### x402 quickstart (pay per call)
 
-The REST pre-trade safety check accepts x402 and, when `MPP_ENABLED=true`, MPP at the same $0.02 USDC price, network, recipient, and facilitator. Its initial HTTP 402 response advertises both rails; business errors are not settled. Set a server-only `MPP_SECRET_KEY` of at least 32 bytes to sign MPP challenges. MCP `tools/call` continues to use x402. Copy-paste client examples for curl, TypeScript (`@x402/fetch` or `mppx`), Python (`x402[httpx,evm]`), and MCP live in [examples/x402-quickstart](examples/x402-quickstart) and on the [pay-per-call quickstart page](https://www.oracleinsight.xyz/docs/x402).
+The REST pre-trade safety check accepts x402 and, when `MPP_ENABLED=true`, MPP at the same configured USDC price, network, recipient, and facilitator. Its initial HTTP 402 response advertises both rails; business errors are not settled. Set a server-only `MPP_SECRET_KEY` of at least 32 bytes to sign MPP challenges. The full MCP catalog at `/api/mcp` continues to support x402 and API keys. A separately gated MPP MCP pilot (`MPP_MCP_ENABLED=true`) exposes only `pre_trade_safety_check` at `/api/mcp/mpp`; the MPP challenge binds the tool arguments and settles only after success. Live `/openapi.json` discovery publishes canonical MPP offers with the configured USDC contract and atomic amount when enabled. Copy-paste client examples for curl, TypeScript (`@x402/fetch` or `mppx`), Python (`x402[httpx,evm]`), and MCP live in [examples/x402-quickstart](examples/x402-quickstart) and on the [pay-per-call quickstart page](https://www.oracleinsight.xyz/docs/x402).
 
 ## Local development
 

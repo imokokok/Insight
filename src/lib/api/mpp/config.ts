@@ -1,7 +1,11 @@
 import type { X402Config } from '@/lib/api/x402/config';
 
+export const MPP_MCP_TOOL = 'pre_trade_safety_check';
+
 export interface MppConfig {
   enabled: boolean;
+  /** Independent opt-in for the MCP pre-trade tool pilot. */
+  mcpEnabled: boolean;
   secretKey: string | null;
 }
 
@@ -14,8 +18,12 @@ export function getMppConfig(
   x402Config: X402Config,
   env: NodeJS.ProcessEnv = process.env
 ): MppConfig {
+  if (env.MPP_MCP_ENABLED === 'true' && env.MPP_ENABLED !== 'true') {
+    throw new Error('MPP_MCP_ENABLED requires MPP_ENABLED=true');
+  }
+
   if (env.MPP_ENABLED !== 'true') {
-    return { enabled: false, secretKey: null };
+    return { enabled: false, mcpEnabled: false, secretKey: null };
   }
 
   if (!x402Config.enabled) {
@@ -27,5 +35,9 @@ export function getMppConfig(
     throw new Error('MPP_SECRET_KEY must contain at least 32 bytes');
   }
 
-  return { enabled: true, secretKey };
+  return {
+    enabled: true,
+    mcpEnabled: env.MPP_MCP_ENABLED === 'true',
+    secretKey,
+  };
 }
