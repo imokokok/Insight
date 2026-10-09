@@ -2,6 +2,11 @@
 
 import { Check, Coins, Globe, Lock, Zap } from 'lucide-react';
 
+import {
+  METERING_CLASS_DESCRIPTION,
+  METERING_CLASS_ORDER,
+  formatCreditCost,
+} from '@/lib/billing/metering';
 import { CREDIT_PACKS, PLANS } from '@/lib/billing/plans';
 
 /**
@@ -22,29 +27,13 @@ import { CREDIT_PACKS, PLANS } from '@/lib/billing/plans';
  */
 
 // --- Metering classes surfaced as the pricing ladder -------------------------
+// Derived from metering.ts (single source of truth) — never hardcode a cost here.
 
-const METERING_CLASSES = [
-  {
-    cls: 'C1',
-    cost: '0.5 credits',
-    desc: 'Foundational data — prices, listings, daily reports',
-  },
-  {
-    cls: 'C2',
-    cost: '2 credits',
-    desc: 'Deep analysis — deviation, correlation, risk, history',
-  },
-  {
-    cls: 'C3',
-    cost: '5 credits',
-    desc: 'Agent gates — pre-trade safety, oracle-watch',
-  },
-  {
-    cls: 'C4',
-    cost: '10 credits',
-    desc: 'Proofs & receipts — attested execution receipts',
-  },
-];
+const METERING_CLASSES = METERING_CLASS_ORDER.map((cls) => ({
+  cls,
+  cost: formatCreditCost(cls, 'long'),
+  desc: METERING_CLASS_DESCRIPTION[cls],
+}));
 
 // --- Access surface data -----------------------------------------------------
 
@@ -140,7 +129,7 @@ export function DataAccessTierMatrix({ className = '' }: { className?: string })
       <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         {/* Section header */}
         <div className="mb-12 grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-          <p className="editorial-index">02 — Inspect access</p>
+          <p className="editorial-index">03 — Inspect access</p>
           <div>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
               One platform, no feature gates

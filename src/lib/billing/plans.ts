@@ -5,6 +5,11 @@
  * this file — the API key creation, the quota middleware, the billing panel,
  * and the pricing page. Changing a limit here propagates everywhere.
  *
+ * Per-call credit prices are deliberately NOT copied into components. The cost
+ * of each metering class lives in ./metering.ts (CREDIT_COST) and every surface
+ * derives its numbers from {@link creditPricePaths} / {@link callPriceRange}
+ * below, so the pricing page cannot drift from what the middleware charges.
+ *
  * Model (2026-09): Codex-style paid platform.
  *   - NO recurring free tier. API access requires either an active
  *     subscription or a positive credit-wallet balance.
@@ -32,8 +37,14 @@
  * Pricing model (2026-10):
  *   - x402 remains the public per-call list price: C1 $0.002, C2 $0.008,
  *     C3 $0.02, C4 $0.04 (1 credit = $0.004).
- *   - API credits are modestly discounted for prepaid volume and annual
- *     commitment; the largest annual plan stays within 20% of x402 per call.
+ *   - The annual commitment carries the discount. Measured against the x402
+ *     list price, annual plans land 12.5%–19.8% below and monthly plans
+ *     4.6%–12.5% below. Monthly-only volume pricing is therefore shallow
+ *     (Developer → Scale, a 16.7x volume step, is only ~9% cheaper per call).
+ *   - Prepaid packs are NOT a volume discount. Per call they sit within ~1%–8%
+ *     of the x402 list price (Starter is within 1%). Their value is settlement
+ *     batching: one invoice instead of a per-call on-chain x402 payment. Do not
+ *     advertise them as cheaper — advertise them as fewer settlements.
  *   - Developer 229 USDC/mo : 60K credits, entry production workload
  *   - Team 1,099 USDC/mo    : 300K credits, multi-agent workload
  *   - Scale 3,499 USDC/mo   : 1M credits, high-volume production workload
@@ -45,6 +56,8 @@
  * currency at the invoice-time exchange rate. There is no auto-renewal —
  * subscriptions are activated for one billing cycle and require manual renewal.
  */
+
+import { CREDIT_COST, creditAllowanceExamples, type MeteringClass } from './metering';
 
 export const PLANS = {
   developer: {
@@ -132,25 +145,102 @@ export const CREDIT_PACKS = {
     name: 'Starter Pack',
     credits: 25_000,
     priceUsd: 99,
-    description: '≈12,500 deep-analysis calls or ≈5,000 pre-trade checks',
+    description: creditAllowanceExamples(25_000, ['C2', 'C3']),
   },
   builder: {
     name: 'Builder Pack',
     credits: 100_000,
     priceUsd: 389,
-    description: '≈50,000 deep-analysis calls or ≈20,000 pre-trade checks',
+    description: creditAllowanceExamples(100_000, ['C2', 'C3']),
   },
   agent: {
     name: 'Agent Pack',
     credits: 500_000,
     priceUsd: 1849,
-    description: '≈100,000 pre-trade checks or ≈50,000 attested receipts',
+    description: creditAllowanceExamples(500_000, ['C3', 'C4']),
   },
 } as const;
 
 export type CreditPack = keyof typeof CREDIT_PACKS;
 
 export const CREDIT_PACK_ORDER: CreditPack[] = ['starter', 'builder', 'agent'];
+
+// ---------------------------------------------------------------------------
+// Derived per-call pricing
+//
+// The pricing page must never hardcode a credit cost or a per-call dollar
+// figure: both are functions of CREDIT_COST (metering.ts) and the plan/pack
+// tables above. These helpers are the only supported way to render them.
+// ---------------------------------------------------------------------------
+
+/** A way to buy credits: a subscription interval or a one-off prepaid pack. */
+export interface CreditPricePath {
+  /** Stable identifier, e.g. `developer-yearly` or `starter-pack`. */
+  id: string;
+  /** Human label for the path. */
+  label: string;
+  kind: 'subscription' | 'pack';
+  interval: BillingInterval | 'one-off';
+  /** Effective USD price of a single credit on this path. */
+  usdPerCredit: number;
+}
+
+/**
+ * Every paid path that yields credits, with its effective per-credit price.
+ * Enterprise is excluded — it is contact-sales and has no listed rate.
+ */
+export function creditPricePaths(): CreditPricePath[] {
+  const subscriptions = PLAN_ORDER.flatMap((plan) => {
+    if (plan === 'enterprise') return [];
+    const config = PLANS[plan];
+    return [
+      {
+        id: `${plan}-monthly`,
+        label: `${config.name} monthly`,
+        kind: 'subscription' as const,
+        interval: 'month' as const,
+        usdPerCredit: config.priceMonthly / config.monthlyQuota,
+      },
+      {
+        id: `${plan}-yearly`,
+        label: `${config.name} yearly`,
+        kind: 'subscription' as const,
+        interval: 'year' as const,
+        usdPerCredit: config.priceYearly / (config.monthlyQuota * 12),
+      },
+    ];
+  });
+
+  const packs = CREDIT_PACK_ORDER.map((pack) => ({
+    id: `${pack}-pack`,
+    label: CREDIT_PACKS[pack].name,
+    kind: 'pack' as const,
+    interval: 'one-off' as const,
+    usdPerCredit: CREDIT_PACKS[pack].priceUsd / CREDIT_PACKS[pack].credits,
+  }));
+
+  return [...subscriptions, ...packs];
+}
+
+/**
+ * USD cost of a single call in the given metering class, as a range across
+ * every paid path — the cheapest path and the most expensive listed path.
+ * This is what the pricing page shows instead of a hand-written number.
+ */
+export function callPriceRange(cls: MeteringClass): { min: number; max: number } {
+  const prices = creditPricePaths().map((path) => path.usdPerCredit * CREDIT_COST[cls]);
+  return { min: Math.min(...prices), max: Math.max(...prices) };
+}
+
+/**
+ * Credits a plan grants per billing cycle as a function of the metering class,
+ * so the pricing page can translate an allowance into concrete call counts.
+ */
+export function callsPerCycle(plan: Plan, cls: MeteringClass): number {
+  const quota = PLANS[plan].monthlyQuota;
+  if (quota < 0) return Number.POSITIVE_INFINITY;
+  return Math.floor(quota / CREDIT_COST[cls]);
+}
 
 /**
  * Monthly credit allowance a subscription plan grants to its holder's wallet
