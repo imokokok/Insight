@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  merge_group:
   workflow_dispatch:
     inputs:
       expected_sha:
@@ -32,7 +33,7 @@ jobs:
       INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
       CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
       JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
-      PROTOCOL_GOVERNANCE_BASE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+      PROTOCOL_GOVERNANCE_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before || github.sha }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
