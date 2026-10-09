@@ -17,6 +17,21 @@ import type { DiscoveryResult } from './discoveryTypes';
 
 const logger = createLogger('FeedDiscoveryService');
 
+/** Provider order used by `discoverAll` when no single provider is requested. */
+const DISCOVER_PROVIDER_ORDER = [
+  'chainlink',
+  'supra',
+  'dia',
+  'redstone',
+  'api3',
+  'flare',
+  'band',
+  'winklink',
+  'twap',
+  'twap-token',
+  'reflector',
+] as const;
+
 class FeedDiscoveryService {
   async discoverChainlinkFeeds(): Promise<DiscoveryResult> {
     return discoverChainlinkFeeds();
@@ -53,31 +68,12 @@ class FeedDiscoveryService {
   async discoverAll(provider?: string): Promise<DiscoveryResult[]> {
     const results: DiscoveryResult[] = [];
 
-    const discoverers = new Map<string, () => Promise<DiscoveryResult>>([
-      ['chainlink', () => discoverChainlinkFeeds()],
-      ['supra', () => discoverSupraFeeds()],
-      ['dia', () => discoverDIAFeeds()],
-      ['redstone', () => discoverRedStoneFeeds()],
-      ['api3', () => discoverAPI3Feeds()],
-      ['flare', () => discoverFlareFeeds()],
-      ['band', () => discoverBandFeeds()],
-      // No public API — verify existing
-      ['winklink', () => discoverWINkLinkFeeds()],
-      ['twap', () => verifyExistingFeeds('twap')],
-      ['twap-token', () => verifyExistingFeeds('twap-token')],
-      ['reflector', () => discoverReflectorFeeds()],
-    ]);
-
     if (provider) {
-      const discoverer = discoverers.get(provider);
-      if (!discoverer) {
-        throw new Error(`Unsupported discovery provider: ${provider}`);
-      }
-      results.push(await discoverer());
+      results.push(await this.runDiscoverer(provider));
     } else {
-      for (const [name, discoverer] of discoverers) {
+      for (const name of DISCOVER_PROVIDER_ORDER) {
         try {
-          results.push(await discoverer());
+          results.push(await this.runDiscoverer(name));
         } catch (error) {
           logger.error(`Discovery failed for ${name}`, normalizeError(error));
           results.push({ provider: name, discovered: 0, feeds: [], errors: [String(error)] });
@@ -86,6 +82,45 @@ class FeedDiscoveryService {
     }
 
     return results;
+  }
+
+  /**
+   * Dispatch one named discoverer.
+   *
+   * `provider` can originate from a request, so it is matched by an exhaustive
+   * `switch` instead of being used as a key that selects a callable. An explicit
+   * switch keeps the reachable set of discoverer implementations statically
+   * visible (CodeQL js/unvalidated-dynamic-method-call) and makes an unknown
+   * provider a checked error rather than an `undefined` lookup.
+   */
+  private async runDiscoverer(provider: string): Promise<DiscoveryResult> {
+    switch (provider) {
+      case 'chainlink':
+        return discoverChainlinkFeeds();
+      case 'supra':
+        return discoverSupraFeeds();
+      case 'dia':
+        return discoverDIAFeeds();
+      case 'redstone':
+        return discoverRedStoneFeeds();
+      case 'api3':
+        return discoverAPI3Feeds();
+      case 'flare':
+        return discoverFlareFeeds();
+      case 'band':
+        return discoverBandFeeds();
+      // No public API — verify existing
+      case 'winklink':
+        return discoverWINkLinkFeeds();
+      case 'twap':
+        return verifyExistingFeeds('twap');
+      case 'twap-token':
+        return verifyExistingFeeds('twap-token');
+      case 'reflector':
+        return discoverReflectorFeeds();
+      default:
+        throw new Error(`Unsupported discovery provider: ${provider}`);
+    }
   }
 }
 
