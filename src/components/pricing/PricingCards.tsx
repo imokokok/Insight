@@ -4,10 +4,22 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Check, Coins, Loader2, Zap } from 'lucide-react';
+import { Check, Coins, Layers, Loader2, Zap } from 'lucide-react';
 
-import { CREDIT_COST } from '@/lib/billing/metering';
-import { CREDIT_PACKS, CREDIT_PACK_ORDER, PLANS, PLAN_ORDER, type Plan } from '@/lib/billing/plans';
+import {
+  METERING_CLASS_DESCRIPTION,
+  METERING_CLASS_ORDER,
+  formatCreditCost,
+} from '@/lib/billing/metering';
+import {
+  CREDIT_PACKS,
+  CREDIT_PACK_ORDER,
+  PLANS,
+  PLAN_ORDER,
+  callPriceRange,
+  callsPerCycle,
+  type Plan,
+} from '@/lib/billing/plans';
 import { announceNavigationStart } from '@/lib/navigation/progress';
 import { useSession } from '@/stores/authStore';
 
@@ -24,37 +36,23 @@ const PLAN_DESCRIPTIONS: Record<Plan, string> = {
   enterprise: 'For protocols and risk committees managing systemic exposure.',
 };
 
-/** Per-call metering classes surfaced on the pricing page. */
-const METERING_ROWS = [
-  { cls: 'C1', cost: '0.5 cr', desc: 'Foundational data — prices, listings, daily reports' },
-  { cls: 'C2', cost: '2 cr', desc: 'Deep analysis — deviation, correlation, risk, history' },
-  {
-    cls: 'C3',
-    cost: '5 cr',
-    desc: 'Agent gates — pre-trade safety and Oracle Watch across REST, MCP, or Guard',
-  },
-  {
-    cls: 'C4',
-    cost: '10 cr',
-    desc: 'Proofs & receipts — attested execution receipts across every integration surface',
-  },
-];
+/**
+ * Per-call metering classes surfaced on the pricing page. Derived from
+ * metering.ts so the ledger can never disagree with what the middleware
+ * charges — changing CREDIT_COST is the only edit ever needed.
+ */
+const METERING_ROWS = METERING_CLASS_ORDER.map((cls) => ({
+  cls,
+  cost: formatCreditCost(cls),
+  desc: METERING_CLASS_DESCRIPTION[cls],
+}));
 
-const apiC3PricesUsd = [
-  ...CREDIT_PACK_ORDER.map(
-    (pack) => (CREDIT_PACKS[pack].priceUsd * CREDIT_COST.C3) / CREDIT_PACKS[pack].credits
-  ),
-  ...PLAN_ORDER.flatMap((plan) => {
-    if (plan === 'enterprise') return [];
-    const config = PLANS[plan];
-    return [
-      (config.priceMonthly * CREDIT_COST.C3) / config.monthlyQuota,
-      (config.priceYearly * CREDIT_COST.C3) / (config.monthlyQuota * 12),
-    ];
-  }),
-];
-const apiC3PriceMin = Math.min(...apiC3PricesUsd).toFixed(4);
-const apiC3PriceMax = Math.max(...apiC3PricesUsd).toFixed(4);
+/** The metering class behind a pre-trade safety check, used for translations. */
+const AGENT_GATE_CLASS = 'C3' as const;
+
+const API_C3_PRICE_RANGE = callPriceRange(AGENT_GATE_CLASS);
+const apiC3PriceMin = API_C3_PRICE_RANGE.min.toFixed(4);
+const apiC3PriceMax = API_C3_PRICE_RANGE.max.toFixed(4);
 
 export function PricingCards({ billingCycle }: PricingCardsProps) {
   const router = useRouter();
@@ -148,6 +146,12 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
           const isEnterprise = planId === 'enterprise';
           const price = billingCycle === 'yearly' ? plan.priceYearly : plan.priceMonthly;
           const isLoading = loadingPlan === planId;
+          // The first two bullets restate the capacity readout, so the list
+          // shows only what is left. Higher tiers lead with an inheritance
+          // line, because the ladder is a superset — every tier carries the
+          // same capabilities and only the operating limits improve.
+          const visibleFeatures = plan.features.slice(isEnterprise ? 1 : 2);
+          const previousPlan = planIndex > 0 ? PLANS[PLAN_ORDER[planIndex - 1]] : null;
 
           return (
             <div
@@ -191,13 +195,13 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
                       <span className="pricing-price-number">
                         {billingCycle === 'yearly' && price
                           ? (price / 12).toFixed(2)
-                          : (price ?? 0)}
+                          : (price ?? 0).toLocaleString('en-US')}
                       </span>
                       <span className="text-sm text-slate-500">/ month</span>
                     </div>
                     <p className="text-xs text-slate-500 mt-1">
                       {billingCycle === 'yearly' && price
-                        ? `${price} USDC billed annually · effective monthly price`
+                        ? `${price.toLocaleString('en-US')} USDC billed annually · effective monthly price`
                         : 'USDC billed monthly'}
                     </p>
                   </>
@@ -206,17 +210,33 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
 
               <div className="pricing-capacity-readout">
                 <span>Included capacity</span>
-                <strong>{isEnterprise ? 'Unlimited' : plan.monthlyQuota.toLocaleString()}</strong>
+                <strong>
+                  {isEnterprise ? 'Unlimited' : plan.monthlyQuota.toLocaleString('en-US')}
+                </strong>
                 <span>{isEnterprise ? 'API calls' : 'credits / month'}</span>
                 <small>
                   {isEnterprise
                     ? 'Dedicated limits'
-                    : `${plan.rateLimit.toLocaleString()} requests / minute`}
+                    : `${plan.rateLimit.toLocaleString('en-US')} requests / minute`}
                 </small>
+                {!isEnterprise && (
+                  <small className="pricing-capacity-equivalent">
+                    {`≈${callsPerCycle(planId, AGENT_GATE_CLASS).toLocaleString('en-US')} pre-trade checks / month`}
+                  </small>
+                )}
               </div>
 
               <ul className="pricing-feature-list space-y-3 mb-7 flex-1">
-                {plan.features.slice(isEnterprise ? 1 : 2).map((feature) => (
+                {previousPlan && (
+                  <li
+                    key="inherited"
+                    className="pricing-feature-inherit flex items-start gap-3 text-sm font-semibold text-slate-700"
+                  >
+                    <Layers className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <span>{`Everything in ${previousPlan.name}, plus`}</span>
+                  </li>
+                )}
+                {visibleFeatures.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm text-slate-600">
                     <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
                     <span>{feature}</span>
@@ -270,8 +290,8 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
           </p>
           <p className="text-xs text-slate-500 mb-4">
             For C3 pre-trade checks, API credit pricing works out to ${apiC3PriceMin}–$
-            {apiC3PriceMax} per call, depending on the plan, billing cycle, or prepaid pack. The
-            direct x402 price remains $0.02 per check.
+            {apiC3PriceMax} per call, depending on the plan, billing cycle, or prepaid pack — annual
+            plans are the cheapest path. The direct x402 price remains $0.02 per check.
           </p>
           <div className="border-y border-slate-900/15">
             {METERING_ROWS.map((row) => (
@@ -303,8 +323,10 @@ export function PricingCards({ billingCycle }: PricingCardsProps) {
             <h3 className="text-base font-bold text-slate-900">Prepaid credit packs</h3>
           </div>
           <p className="text-sm text-slate-500 mb-4">
-            No subscription required — add credits and spend per call. Good for high-frequency and
-            bursty agent workloads.
+            No subscription required. A pack is not a volume discount — per call it lands within a
+            few percent of the x402 list price. Its value is settlement: one invoice instead of a
+            per-call on-chain x402 payment, which is what makes high-frequency and bursty agent
+            workloads practical.
           </p>
           <div className="border-y border-slate-900/15">
             {CREDIT_PACK_ORDER.map((pack) => {
