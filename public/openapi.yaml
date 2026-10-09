@@ -1666,16 +1666,12 @@ paths:
 
         **Ways to pay:** use an API key with sufficient credits, or pay $0.02 USDC per successful
         check through x402. When the deployment has `MPP_ENABLED=true`, the same REST endpoint also
-        accepts the MPP `evm/charge` method at the same price, network, recipient, and facilitator.
-        Failed checks are not settled. MCP tools/call continues to use x402.
-      x-payment-protocols:
-        - name: x402
-          enabledBy: X402_ENABLED
-          header: PAYMENT-SIGNATURE
-        - name: MPP
-          method: evm/charge
-          enabledBy: MPP_ENABLED
-          header: 'Authorization: Payment'
+        accepts MPP `evm` `charge` at the same price, network, recipient, and facilitator. Failed
+        checks are not settled. The MPP MCP pilot is available at `/api/mcp/mpp` only when
+        `MPP_MCP_ENABLED=true`; it accepts `pre_trade_safety_check` and settles only after success.
+        The live `/openapi.json` discovery document publishes canonical `x-payment-info.offers`
+        using the deployment's actual USDC contract and atomic-unit amount. x402 details remain in
+        the separate `x-x402-payment-info` extension.
       security:
         - apiKey: []
         - {}
@@ -1735,7 +1731,7 @@ paths:
         '402':
           description: >-
             HTTP 402 carries an x402 quote in PAYMENT-REQUIRED and, when MPP_ENABLED is active,
-            an MPP evm/charge challenge in WWW-Authenticate. API-key calls can also return 402
+            an MPP evm charge challenge in WWW-Authenticate. API-key calls can also return 402
             when the credit balance is insufficient.
           headers:
             PAYMENT-REQUIRED:

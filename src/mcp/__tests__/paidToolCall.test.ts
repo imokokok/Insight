@@ -60,6 +60,12 @@ jest.mock('next/server', () => ({
 // The MCP server factory is mocked: real tool execution would hit Supabase.
 const createMcpServerMock = jest.fn();
 
+const createMppMcpCallHandlerMock = jest.fn();
+
+jest.mock('@/lib/api/mpp/mcp', () => ({
+  createMppMcpCallHandler: (...args: unknown[]) => createMppMcpCallHandlerMock(...(args as [])),
+}));
+
 jest.mock('../server', () => ({
   createMcpServer: (...args: unknown[]) => createMcpServerMock(...(args as [])),
 }));
@@ -304,5 +310,97 @@ describe('x402 paid MCP tools/call', () => {
     expect(priceAtomicForTool('pre_trade_safety_check')).toBe('20000');
     expect(priceAtomicForTool('get_symbols')).toBe('2000');
     expect(priceAtomicForTool('verify_execution_pair')).toBe('40000');
+  });
+});
+
+describe('MPP paid MCP pilot routing', () => {
+  it('routes anonymous calls through the MPP handler only when the pilot is enabled', async () => {
+    const previous = {
+      MPP_ENABLED: process.env.MPP_ENABLED,
+      MPP_MCP_ENABLED: process.env.MPP_MCP_ENABLED,
+      MPP_SECRET_KEY: process.env.MPP_SECRET_KEY,
+    };
+    process.env.MPP_ENABLED = 'true';
+    process.env.MPP_MCP_ENABLED = 'true';
+    process.env.MPP_SECRET_KEY = 'mpp-test-secret-key-with-at-least-32-bytes';
+    const mppHandler = jest.fn();
+    createMppMcpCallHandlerMock.mockReturnValue(mppHandler);
+
+    try {
+      const { response, cleanup } = await handleMcpHttpRequest(
+        mcpPost(toolsCallBody('pre_trade_safety_check')),
+        { paymentRail: 'mpp' }
+      );
+      await cleanup();
+
+      expect(response.status).toBe(200);
+      expect(createMppMcpCallHandlerMock).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: true }),
+        process.env.MPP_SECRET_KEY
+      );
+      expect(createMcpServerMock).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ mppPaymentEnabled: true, mppCallHandler: mppHandler })
+      );
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+    } finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
+  });
+
+  it('does not arm the MPP handler when its separate MCP flag is off', async () => {
+    const previous = {
+      MPP_ENABLED: process.env.MPP_ENABLED,
+      MPP_MCP_ENABLED: process.env.MPP_MCP_ENABLED,
+      MPP_SECRET_KEY: process.env.MPP_SECRET_KEY,
+    };
+    process.env.MPP_ENABLED = 'true';
+    process.env.MPP_MCP_ENABLED = 'false';
+    process.env.MPP_SECRET_KEY = 'mpp-test-secret-key-with-at-least-32-bytes';
+
+    try {
+      const { response, cleanup } = await handleMcpHttpRequest(mcpPost(toolsCallBody()), {
+        paymentRail: 'mpp',
+      });
+      await cleanup();
+
+      expect(response.status).toBe(401);
+      expect(createMppMcpCallHandlerMock).not.toHaveBeenCalled();
+    } finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
+  });
+
+  it('does not turn failed authorization headers into MPP payment challenges', async () => {
+    const previous = {
+      MPP_ENABLED: process.env.MPP_ENABLED,
+      MPP_MCP_ENABLED: process.env.MPP_MCP_ENABLED,
+      MPP_SECRET_KEY: process.env.MPP_SECRET_KEY,
+    };
+    process.env.MPP_ENABLED = 'true';
+    process.env.MPP_MCP_ENABLED = 'true';
+    process.env.MPP_SECRET_KEY = 'mpp-test-secret-key-with-at-least-32-bytes';
+
+    try {
+      const { response, cleanup } = await handleMcpHttpRequest(
+        mcpPost(toolsCallBody('pre_trade_safety_check'), { authorization: 'Bearer expired' }),
+        { paymentRail: 'mpp' }
+      );
+      await cleanup();
+
+      expect(response.status).toBe(401);
+      expect(createMppMcpCallHandlerMock).not.toHaveBeenCalled();
+    } finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
   });
 });
