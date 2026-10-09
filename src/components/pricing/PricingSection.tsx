@@ -5,7 +5,10 @@ import { useState } from 'react';
 import { PricingCards } from './PricingCards';
 
 export function PricingSection() {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  // Annual is the default because it is the only cadence that carries a real
+  // discount: measured against the x402 list price, annual plans land
+  // 12.5%–19.8% below while monthly plans manage only 4.6%–12.5%.
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
 
   return (
     <section className="pricing-cycle-control py-8 sm:py-12">
@@ -18,7 +21,7 @@ export function PricingSection() {
             </p>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-600">
               Choose the allowance that fits your request volume. Every paid option opens the same
-              tools and endpoints.
+              tools and endpoints — annual billing is where the discount lives.
             </p>
           </div>
           <div
