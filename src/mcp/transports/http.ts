@@ -2,6 +2,7 @@ import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/
 
 import { getCorsHeaders } from '@/lib/api/handler';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
+import { getMppConfig } from '@/lib/api/mpp/config';
 import { getX402Config } from '@/lib/api/x402/config';
 import { handleMcpPaidToolCall } from '@/lib/api/x402/mcpBridge';
 import { createLogger } from '@/lib/utils/logger';
@@ -236,7 +237,10 @@ async function tryPaidToolCall(request: Request): Promise<McpHttpHandlerResult |
  * batches (e.g. [tools/list, tools/call]) fail the every() check and are
  * rejected with 401 instead.
  */
-async function tryAnonymousDiscovery(request: Request): Promise<McpHttpHandlerResult | null> {
+async function tryAnonymousDiscovery(
+  request: Request,
+  mppPaymentEnabled = false
+): Promise<McpHttpHandlerResult | null> {
   const methods = await probeRpcMethods(request);
   if (!methods || !methods.every((method) => ANON_ALLOWED_METHODS.has(method))) {
     return null;
@@ -262,7 +266,7 @@ async function tryAnonymousDiscovery(request: Request): Promise<McpHttpHandlerRe
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
   });
-  const server = createMcpServer(undefined);
+  const server = createMcpServer(undefined, { mppPaymentEnabled });
   server.onclose = async () => {
     logger.debug('Anonymous MCP discovery server closed');
   };
@@ -299,6 +303,89 @@ async function tryAnonymousDiscovery(request: Request): Promise<McpHttpHandlerRe
 }
 
 /**
+ * Serve the MPP MCP pilot on its dedicated endpoint. Only the pre-trade tool
+ * is priced here; the existing /api/mcp x402 flow remains unchanged.
+ */
+async function tryMppPaidToolCall(
+  request: Request,
+  cfg: ReturnType<typeof getX402Config>,
+  mppConfig: ReturnType<typeof getMppConfig>
+): Promise<McpHttpHandlerResult | null> {
+  if (!mppConfig.mcpEnabled || !mppConfig.secretKey) return null;
+
+  const toolName = await probeToolName(request);
+  if (!toolName) return null;
+
+  if (request.headers.has('payment-signature')) {
+    return {
+      response: jsonResponse(
+        { error: 'This endpoint accepts MPP credentials; use /api/mcp for x402 payments.' },
+        400
+      ),
+      cleanup: async () => {},
+    };
+  }
+  // MCP MPP credentials travel in params._meta. Header credentials belong to
+  // the normal authentication/x402 paths and must never be ignored here.
+  if (request.headers.has('x-api-key') || request.headers.has('authorization')) {
+    return null;
+  }
+
+  const identity = `mcp:mpp:${getClientIp(request)}`;
+  const rate = await rateLimitStore.increment(identity, PAID_TOOLS_RATE_LIMIT.windowMs);
+  if (rate.count > PAID_TOOLS_RATE_LIMIT.maxRequests) {
+    return {
+      response: jsonResponse({ error: 'Rate limit exceeded' }, 429, {
+        'X-RateLimit-Limit': String(PAID_TOOLS_RATE_LIMIT.maxRequests),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(Math.floor(rate.resetTime / 1000)),
+        'Retry-After': String(Math.max(1, Math.ceil((rate.resetTime - Date.now()) / 1000))),
+      }),
+      cleanup: async () => {},
+    };
+  }
+
+  logger.info('MPP anonymous MCP tools/call', { toolName, identity });
+
+  const transport = new WebStandardStreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+    enableJsonResponse: true,
+  });
+  const { createMppMcpCallHandler } = await import('@/lib/api/mpp/mcp');
+  const server = createMcpServer(undefined, {
+    mppPaymentEnabled: true,
+    mppCallHandler: createMppMcpCallHandler(cfg, mppConfig.secretKey),
+  });
+  server.onerror = (error) => {
+    logger.error('MPP MCP tools/call server error', error);
+  };
+  await server.connect(transport);
+
+  const cleanup = async (): Promise<void> => {
+    try {
+      await server.close();
+    } catch {
+      // ignore
+    }
+  };
+
+  try {
+    const response = await transport.handleRequest(request);
+    response.headers.set('X-RateLimit-Limit', String(PAID_TOOLS_RATE_LIMIT.maxRequests));
+    response.headers.set(
+      'X-RateLimit-Remaining',
+      String(Math.max(0, PAID_TOOLS_RATE_LIMIT.maxRequests - rate.count))
+    );
+    response.headers.set('X-RateLimit-Reset', String(Math.floor(rate.resetTime / 1000)));
+    withCors(response);
+    return { response, cleanup };
+  } catch (error) {
+    await cleanup();
+    throw error;
+  }
+}
+
+/**
  * Handle a single MCP HTTP request using the streamable HTTP transport.
  * Each request gets its own transport/server pair (stateless mode).
  *
@@ -316,15 +403,27 @@ async function tryAnonymousDiscovery(request: Request): Promise<McpHttpHandlerRe
  * The resulting auth context is passed into the MCP server so individual tool
  * calls can apply credit prechecks/charges and usage logging.
  */
-export async function handleMcpHttpRequest(request: Request): Promise<McpHttpHandlerResult> {
+export interface McpHttpHandlerOptions {
+  paymentRail?: 'x402' | 'mpp';
+}
+
+export async function handleMcpHttpRequest(
+  request: Request,
+  options: McpHttpHandlerOptions = {}
+): Promise<McpHttpHandlerResult> {
+  const x402Config = options.paymentRail === 'mpp' ? getX402Config() : null;
+  const mppConfig = x402Config ? getMppConfig(x402Config) : null;
   const authResult = await authenticateMcpRequest(request);
 
   if (!authResult.success) {
-    const anonymous = await tryAnonymousDiscovery(request);
+    const anonymous = await tryAnonymousDiscovery(request, Boolean(mppConfig?.mcpEnabled));
     if (anonymous) {
       return anonymous;
     }
-    const paid = await tryPaidToolCall(request);
+    const paid =
+      x402Config && mppConfig
+        ? await tryMppPaidToolCall(request, x402Config, mppConfig)
+        : await tryPaidToolCall(request);
     if (paid) {
       return paid;
     }
@@ -372,7 +471,9 @@ export async function handleMcpHttpRequest(request: Request): Promise<McpHttpHan
     enableJsonResponse: true,
   });
 
-  const server = createMcpServer(authResult.auth);
+  const server = createMcpServer(authResult.auth, {
+    mppPaymentEnabled: Boolean(mppConfig?.mcpEnabled),
+  });
 
   server.onclose = async () => {
     logger.debug('MCP HTTP server closed');

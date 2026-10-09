@@ -24,6 +24,7 @@ describe('getMppConfig', () => {
       getMppConfig(X402_ENABLED, env({ MPP_ENABLED: 'True', MPP_SECRET_KEY: 'x'.repeat(32) }))
     ).toEqual({
       enabled: false,
+      mcpEnabled: false,
       secretKey: null,
     });
   });
@@ -54,7 +55,27 @@ describe('getMppConfig', () => {
           MPP_SECRET_KEY: `  ${secretKey}  `,
         })
       )
-    ).toEqual({ enabled: true, secretKey });
+    ).toEqual({ enabled: true, mcpEnabled: false, secretKey });
+  });
+
+  it('requires MPP_ENABLED before arming the MCP pilot', () => {
+    expect(() =>
+      getMppConfig(X402_ENABLED, env({ MPP_MCP_ENABLED: 'true', MPP_SECRET_KEY: 'x'.repeat(32) }))
+    ).toThrow('MPP_MCP_ENABLED requires MPP_ENABLED=true');
+  });
+
+  it('keeps MCP independently opt-in after MPP is configured', () => {
+    const secretKey = 'x'.repeat(32);
+    expect(
+      getMppConfig(
+        X402_ENABLED,
+        env({
+          MPP_ENABLED: 'true',
+          MPP_MCP_ENABLED: 'true',
+          MPP_SECRET_KEY: secretKey,
+        })
+      )
+    ).toEqual({ enabled: true, mcpEnabled: true, secretKey });
   });
 
   it('counts UTF-8 bytes rather than JavaScript characters', () => {

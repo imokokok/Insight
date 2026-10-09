@@ -7,8 +7,8 @@
       "name": "YuTao Peng (Insight)",
       "email": "imokokok123@gmail.com"
     },
-    "description": "Oracle-immune-system pre-trade safety checks with verifiable EIP-712 attestation support. One GET returns a verdict (PASS / ALERT / BLOCK) for a single trade, priced per call in USDC on Base via x402 or optional MPP. BLOCK verdicts are complete checks and are charged. Also exposes the full oracle tool catalog over MCP (JSON-RPC 2.0 streamable HTTP) with x402 pay-per-call.",
-    "x-guidance": "REST: call GET /api/v1/safety/pre-trade with query parameters: asset (e.g. ETH), chainId (e.g. 1), action (swap|borrow|lend|liquidate|repay), tradeAmountUsd. MCP: POST /api/mcp with JSON-RPC 2.0, method=tools/call and params.name set to a tool name (e.g. get_symbols, pre_trade_safety_check, get_risk_summary). Unauthenticated REST requests receive HTTP 402 with an x402 v2 quote in PAYMENT-REQUIRED and, when MPP_ENABLED is active, an MPP evm/charge challenge in WWW-Authenticate. Retry with PAYMENT-SIGNATURE for x402 or Authorization: Payment for MPP. MCP calls use x402. Every paid response carries a verifiable EIP-712 receipt (keyless verification at oracleinsight.xyz/verify). REST: add schemaVersion=2 or 3 to include quorum-gate and independence-threshold attestation fields."
+    "description": "Oracle-immune-system pre-trade safety checks with verifiable EIP-712 attestation support. The REST pre-trade endpoint supports x402 and optional MPP; the MPP MCP pilot exposes pre_trade_safety_check on a dedicated endpoint. The full MCP tool catalog remains on /api/mcp.",
+    "x-guidance": "REST: GET /api/v1/safety/pre-trade with asset, chainId, action, and tradeAmountUsd. The full MCP catalog uses POST /api/mcp (x402 or API key). The MPP MCP pilot uses POST /api/mcp/mpp and only accepts pre_trade_safety_check. MPP is shown only when enabled; its challenge is authoritative. Every paid result is settled only after the tool succeeds."
   },
   "servers": [
     {
@@ -22,17 +22,6 @@
         "operationId": "preTradeSafetyCheck",
         "summary": "Pre-trade safety check with verifiable attestation",
         "tags": ["Safety"],
-        "x-payment-info": {
-          "price": {
-            "mode": "fixed",
-            "currency": "USD",
-            "amount": "0.020000"
-          },
-          "protocols": [
-            { "x402": {} },
-            { "mpp": { "method": "evm/charge", "enabledBy": "MPP_ENABLED" } }
-          ]
-        },
         "parameters": [
           {
             "name": "asset",
@@ -141,14 +130,14 @@
             "description": "Unauthorized (paid tier disarmed and no API key supplied)"
           },
           "402": {
-            "description": "Payment Required: x402 v2 quote in PAYMENT-REQUIRED (base64 JSON with USDC requirements and Bazaar metadata) and, when MPP is enabled, an MPP evm/charge challenge in WWW-Authenticate. API-key callers may also receive 402 when their credit balance is insufficient.",
+            "description": "Payment Required: x402 v2 quote in PAYMENT-REQUIRED. MPP is discoverable through x-payment-info only when enabled and is available on the dedicated MPP MCP endpoint. API-key callers may also receive 402 when their credit balance is insufficient.",
             "headers": {
               "PAYMENT-REQUIRED": {
                 "description": "x402 v2 payment quote.",
                 "schema": { "type": "string" }
               },
               "WWW-Authenticate": {
-                "description": "MPP challenge when MPP_ENABLED is active.",
+                "description": "MPP challenge for the REST pre-trade endpoint when MPP_ENABLED is active.",
                 "schema": { "type": "string" }
               }
             }
@@ -165,15 +154,6 @@
         "summary": "MCP tools/call over JSON-RPC 2.0 (streamable HTTP), x402 pay-per-call",
         "tags": ["MCP"],
         "description": "Pay-per-call access to the Insight oracle tool catalog (40+ tools: prices, consensus, peg risk, lending safety) for x402 agents without an API key. Price scales with the tool metering class (C1=$0.002, C2=$0.008, C3=$0.02, C4=$0.04). tools/list and initialize are free. Every paid response carries a verifiable EIP-712 attestation receipt.",
-        "x-payment-info": {
-          "price": {
-            "mode": "dynamic",
-            "currency": "USD",
-            "min": "0.002",
-            "max": "0.04"
-          },
-          "protocols": [{ "x402": {} }]
-        },
         "requestBody": {
           "required": true,
           "content": {
@@ -228,7 +208,7 @@
             }
           },
           "402": {
-            "description": "Payment Required: x402 v2 challenge in the payment-required response header (base64 JSON with accepts[].amount in USDC atomic units on Base eip155:8453 and bazaar discovery metadata). Amount in the challenge reflects the requested tool's metering class."
+            "description": "x402 v2 challenge in the PAYMENT-REQUIRED response header (base64 JSON with USDC requirements and Bazaar metadata). Amount in the challenge reflects the requested tool's metering class."
           },
           "429": {
             "description": "Rate limited (paid tier 60/min/IP)"
