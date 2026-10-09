@@ -5,7 +5,9 @@ import {
   Clock,
   CreditCard,
   LayoutDashboard,
+  Link2,
   Rss,
+  ShieldAlert,
   ShieldCheck,
   Wallet,
 } from 'lucide-react';
@@ -32,6 +34,7 @@ export const OPS_NAV: OpNavGroup[] = [
       { href: '/ops', label: 'Overview', exact: true, icon: LayoutDashboard },
       { href: '/ops/health', label: 'Provider Reputation', icon: Activity },
       { href: '/ops/safety', label: 'Safety & Attestation', icon: ShieldCheck },
+      { href: '/ops/evidence', label: 'Evidence chain', icon: Link2 },
       { href: '/ops/coverage', label: 'Coverage readiness', icon: Activity },
     ],
   },
@@ -42,6 +45,7 @@ export const OPS_NAV: OpNavGroup[] = [
       { href: '/ops/usage', label: 'API Usage', icon: BarChart3 },
       { href: '/ops/incidents', label: 'Incidents', icon: AlertTriangle },
       { href: '/ops/cron', label: 'Cron & Pipelines', icon: Clock },
+      { href: '/ops/issuance', label: 'Issuance control', icon: ShieldAlert },
     ],
   },
   {
