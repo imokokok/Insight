@@ -95,7 +95,7 @@
     "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.577.0",
     "mppx": "^0.12.0",
-    "next": "16.3.6",
+    "next": "16.4.0",
     "qrcode.react": "^4.2.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
