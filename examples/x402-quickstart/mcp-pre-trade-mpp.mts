@@ -12,6 +12,7 @@ import { z } from 'zod';
 
 const ENDPOINT = 'https://www.oracleinsight.xyz/api/mcp/mpp';
 const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+const BASE_USDC_AUTHORIZATION = { name: 'USD Coin', version: '2' } as const;
 
 function readPrivateKey(): `0x${string}` {
   const value = process.env.EVM_PRIVATE_KEY;
@@ -30,6 +31,8 @@ const paidClient = McpClient.wrap(client, {
       account: privateKeyToAccount(readPrivateKey()),
       networks: [8453],
       currencies: [BASE_USDC],
+      decimals: 6,
+      authorization: BASE_USDC_AUTHORIZATION,
       maxAmount: '0.02',
     }),
   ],
@@ -51,9 +54,12 @@ try {
   if (!parsed.success || parsed.data.isError) {
     throw new Error('MCP pre-trade tool returned an invalid or failed result');
   }
+  if (!result.receipt || result.receipt.status !== 'success' || !result.receipt.reference) {
+    throw new Error('MPP settlement did not return a successful receipt');
+  }
 
   process.stdout.write(`Tool result: ${JSON.stringify(parsed.data.content)}\n`);
-  process.stdout.write(`MPP receipt: ${JSON.stringify(result.receipt ?? 'not returned')}\n`);
+  process.stdout.write(`MPP receipt: ${JSON.stringify(result.receipt)}\n`);
 } finally {
   await client.close();
 }
