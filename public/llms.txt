@@ -1,6 +1,6 @@
 # Insight — Oracle Transparency & Risk Intelligence for DeFi
 
-> Pre-trade safety checks for AI agents trading DeFi. Returns an oracle-manipulation-aware verdict (PASS/WARN/BLOCK) for a single trade, backed by multi-provider oracle consensus and verifiable EIP-712 attestations. Paid via x402: USDC on Base, $0.02 per request, no signup or API key required.
+> Pre-trade safety checks for AI agents trading DeFi. Returns an oracle-manipulation-aware verdict (PASS/WARN/BLOCK) for a single trade, backed by multi-provider oracle consensus and verifiable EIP-712 attestations. Paid via x402 (MPP also accepted, see below): USDC on Base, $0.02 per request, no signup or API key required.
 
 ## Paid API (x402)
 
@@ -12,6 +12,14 @@
 1. GET the endpoint without payment credentials. You receive HTTP 402 with a `PAYMENT-REQUIRED` response header (base64 JSON) describing the exact-scheme challenge: USDC (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`), 20000 atomic units ($0.02), network `eip155:8453`, payTo `0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231`.
 2. Sign an EIP-3009 `transferWithAuthorization` with your wallet (domain: name "USD Coin", version "2", chainId 8453). No gas needed from the payer; the facilitator settles on-chain.
 3. Retry the GET with the `PAYMENT-SIGNATURE` header carrying the base64-encoded payment payload. The Coinbase CDP facilitator verifies and settles; a successful call returns HTTP 200 with the verdict JSON.
+
+## Alternative rail (MPP)
+
+The pre-trade endpoint and the pre-trade MCP tool also accept payment via MPP. Same asset (USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`), same network (`eip155:8453`), same price ($0.02), same receiving address (`0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231`). No signup or API key.
+
+- REST: call [GET /api/v1/safety/pre-trade](https://www.oracleinsight.xyz/api/v1/safety/pre-trade) without payment credentials; the 402 response carries both an x402 `PAYMENT-REQUIRED` header and an MPP `WWW-Authenticate: Payment` challenge whose scope binds the exact request URL.
+- MCP: [POST /api/mcp/mpp](https://www.oracleinsight.xyz/api/mcp/mpp) (JSON-RPC, streamable HTTP). `initialize` and `tools/list` are free without credentials; an unpaid `tools/call` of `pre_trade_safety_check` returns a 402 challenge whose scope binds the tool name plus arguments hash.
+- Client: use `mppx` (npm) to answer the challenge automatically — it signs the EIP-3009 `transferWithAuthorization` (domain: name "USD Coin", version "2", chainId 8453; no gas needed from the payer), retries, and returns the verdict with an on-chain settlement receipt. Reference clients: [REST quickstart](https://github.com/imokokok/Insight/blob/main/examples/x402-quickstart/pre-trade-mpp.mts) and [MCP quickstart](https://github.com/imokokok/Insight/blob/main/examples/x402-quickstart/mcp-pre-trade-mpp.mts).
 
 ## Machine-readable discovery
 
