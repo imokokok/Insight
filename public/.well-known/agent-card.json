@@ -1,0 +1,29 @@
+{
+  "protocolVersion": "0.2.9",
+  "name": "Insight",
+  "description": "Oracle-manipulation-aware pre-trade safety checks for DeFi AI agents. One trade in, a PASS/WARN/BLOCK verdict out — consensus price, max deviation %, manipulation-risk score, cross-provider agreement — backfillable to a verifiable EIP-712 attestation. Pay-per-call: $0.02 USDC on Base via x402 v2 or MPP (both challenges advertised on the same 402); settlement happens only after the check succeeds. Endpoint is MCP over Streamable HTTP.",
+  "url": "https://www.oracleinsight.xyz/api/mcp",
+  "provider": {
+    "organization": "Insight",
+    "url": "https://www.oracleinsight.xyz"
+  },
+  "version": "1.0.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "pre_trade_safety_check",
+      "name": "Pre-trade safety check",
+      "description": "Oracle-manipulation-aware PASS/WARN/BLOCK verdict for a single trade (asset, chainId, action, tradeAmountUsd). Returns consensus price, max deviation %, manipulation-risk score and provider quorum; optionally a verifiable EIP-712 attestation. $0.02 USDC on Base via x402 or MPP, settled only after success.",
+      "tags": ["defi", "trading", "risk", "oracle", "safety", "pre-trade"],
+      "examples": [
+        "Check whether swapping 1000 USD of ETH on mainnet is exposed to oracle manipulation",
+        "Get a manipulation-risk verdict before executing a trade"
+      ]
+    }
+  ]
+}
