@@ -1,0 +1,85 @@
+name: SDK release
+
+on:
+  push:
+    tags: ['sdk-v*']
+
+concurrency:
+  group: sdk-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish with provenance and attest the artifacts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+      INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
+      CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
+      JWT_SECRET: ci-csrf-secret-that-is-not-used-in-production
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+          cache: npm
+      # npm >= 11.5.1 is required for Trusted Publishing (OIDC auth, no
+      # NODE_AUTH_TOKEN) and for --provenance. The runner's bundled npm is
+      # older, so upgrade first.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@^11
+      - run: npm ci
+      - name: Install the browser used by the release check
+        run: npx playwright install --with-deps chromium
+      - name: Verify the packed verifier package shape
+        run: npm run verifier:release:check -- --browser
+      - name: Verify the tag matches the SDK package version and record versions
+        run: |
+          set -euo pipefail
+          tag_version="${GITHUB_REF_NAME#sdk-v}"
+          sdk_version="$(node -p "require('./sdk/package.json').version")"
+          verifier_version="$(node -p "require('./verifier/package.json').version")"
+          if [ "$tag_version" != "$sdk_version" ]; then
+            echo "::error::tag is $GITHUB_REF_NAME but sdk/package.json is $sdk_version" >&2
+            exit 1
+          fi
+          echo "SDK_VERSION=$sdk_version" >> "$GITHUB_ENV"
+          echo "VERIFIER_VERSION=$verifier_version" >> "$GITHUB_ENV"
+      - name: Pack the release tarballs
+        run: |
+          mkdir -p .release-artifacts
+          npm --prefix verifier pack --pack-destination .release-artifacts
+          npm --prefix sdk pack --pack-destination .release-artifacts
+      # Provenance requires the npm package.json `repository` field to match
+      # this repository (sdk has it; verifier gained it together with this
+      # workflow) and the npm package settings to list this repo and workflow
+      # as a trusted publisher.
+      - name: Publish verify-insight-receipt to npm with provenance
+        run: npm --prefix verifier publish --provenance
+      - name: Publish oracle-insight-guard to npm with provenance
+        run: npm --prefix sdk publish --provenance
+      - name: Attest the release tarballs
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: '.release-artifacts/*.tgz'
+      - name: Create the GitHub release with the npm tarballs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd .release-artifacts
+          for f in *.tgz; do shasum -a 256 "$f" > "$f.sha256"; done
+          gh release create "$GITHUB_REF_NAME" --verify-tag \
+            --title "Insight Guard SDK $SDK_VERSION" \
+            --notes "Insight Guard SDK $SDK_VERSION and verify-insight-receipt $VERIFIER_VERSION are published to npm from GitHub Actions with provenance (Trusted Publishing via OIDC; no long-lived publish token exists). Both attached tarballs are the artifacts built by this workflow run and carry Sigstore build attestations: verify with \`gh attestation verify <file> -R imokokok/Insight\`. The companion .sha256 assets record their checksums. Install: \`npm install oracle-insight-guard@$SDK_VERSION\`." \
+            *.tgz *.sha256
