@@ -109,6 +109,55 @@ function getClientIp(request: Request): string {
   return request.headers.get('x-real-ip') ?? 'unknown';
 }
 
+/**
+ * Normalize the Accept header so JSON-only MCP clients are not bounced.
+ *
+ * The streamable HTTP transport hard-rejects (406) any POST whose Accept
+ * header does not name BOTH application/json and text/event-stream, per the
+ * MCP spec. Real-world clients — health checkers, minimal SDK wrappers, some
+ * directory crawlers — often send an Accept header naming only one of the
+ * two (or none at all) and would fail before reaching discovery. Every
+ * server below is created with enableJsonResponse: true, so SSE is never
+ * emitted and advertising both types is safe: responses stay JSON either way.
+ */
+async function normalizeAcceptHeader(request: Request): Promise<Request> {
+  if (request.method !== 'POST') return request;
+
+  const types = (request.headers.get('accept') ?? '')
+    .split(',')
+    .map((type) => type.trim().split(';')[0].toLowerCase())
+    .filter(Boolean);
+  if (types.includes('application/json') && types.includes('text/event-stream')) {
+    return request;
+  }
+
+  const merged = [...new Set([...types, 'application/json', 'text/event-stream'])].join(', ');
+  const headers = new Headers(request.headers);
+  headers.set('Accept', merged);
+  // Buffer the body instead of forwarding request.body: constructing a
+  // Request from a ReadableStream requires the `duplex` option, which is not
+  // in this project's RequestInit typings. MCP POSTs are small JSON documents.
+  const body = await request.arrayBuffer();
+  return new Request(request.url, { method: request.method, headers, body });
+}
+
+/**
+ * Mirror the SDK's canonical response for methods the stateless streamable
+ * transport never serves (GET SSE streams, DELETE session teardown).
+ *
+ * Unauthenticated GET/DELETE used to fall through to the plain 401, which is
+ * a misleading signal for directory health checkers: the protocol-correct
+ * answer is 405 Method Not Allowed, matching what an authenticated request
+ * already gets from the transport itself.
+ */
+function methodNotAllowedResponse(): Response {
+  return jsonResponse(
+    { jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed.' }, id: null },
+    405,
+    { Allow: 'GET, POST, DELETE' }
+  );
+}
+
 /** Per-minute IP rate limit for the unauthenticated x402 tools/call tier. */
 const PAID_TOOLS_RATE_LIMIT = { windowMs: 60_000, maxRequests: 60 };
 
@@ -411,19 +460,26 @@ export async function handleMcpHttpRequest(
   request: Request,
   options: McpHttpHandlerOptions = {}
 ): Promise<McpHttpHandlerResult> {
+  const normalized = await normalizeAcceptHeader(request);
   const x402Config = options.paymentRail === 'mpp' ? getX402Config() : null;
   const mppConfig = x402Config ? getMppConfig(x402Config) : null;
-  const authResult = await authenticateMcpRequest(request);
+  const authResult = await authenticateMcpRequest(normalized);
 
   if (!authResult.success) {
-    const anonymous = await tryAnonymousDiscovery(request, Boolean(mppConfig?.mcpEnabled));
+    if (normalized.method !== 'POST') {
+      return {
+        response: methodNotAllowedResponse(),
+        cleanup: async () => {},
+      };
+    }
+    const anonymous = await tryAnonymousDiscovery(normalized, Boolean(mppConfig?.mcpEnabled));
     if (anonymous) {
       return anonymous;
     }
     const paid =
       x402Config && mppConfig
-        ? await tryMppPaidToolCall(request, x402Config, mppConfig)
-        : await tryPaidToolCall(request);
+        ? await tryMppPaidToolCall(normalized, x402Config, mppConfig)
+        : await tryPaidToolCall(normalized);
     if (paid) {
       return paid;
     }
@@ -485,7 +541,7 @@ export async function handleMcpHttpRequest(
 
   await server.connect(transport);
 
-  const response = await transport.handleRequest(request);
+  const response = await transport.handleRequest(normalized);
 
   // Merge rate-limit/credit headers into the final MCP response so consumers
   // can track limits and their credit balance without parsing JSON-RPC bodies.

@@ -134,12 +134,56 @@ describe('anonymous MCP discovery', () => {
     await cleanup();
   });
 
-  it('rejects anonymous GET (SSE) with 401', async () => {
+  it('rejects anonymous GET (SSE) with 405 method not allowed', async () => {
     const { response, cleanup } = await handleMcpHttpRequest(
       new Request('http://localhost:3000/api/mcp', { method: 'GET' })
     );
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(405);
+    expect(response.headers.get('allow')).toBe('GET, POST, DELETE');
+    const body = await readJson(response);
+    expect((body.error as { code?: number }).code).toBe(-32000);
+    await cleanup();
+  });
+
+  it('serves initialize for a JSON-only Accept header (no event-stream)', async () => {
+    const request = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 7,
+        method: 'initialize',
+        params: {
+          protocolVersion: PROTOCOL_VERSION,
+          capabilities: {},
+          clientInfo: { name: 'json-only-probe', version: '0.0.0' },
+        },
+      }),
+    });
+
+    const { response, cleanup } = await handleMcpHttpRequest(request);
+
+    expect(response.status).toBe(200);
+    const body = await readJson(response);
+    expect((body.result as { serverInfo?: { name?: string } }).serverInfo?.name).toBe(
+      'insight-oracle-mcp-server'
+    );
+    await cleanup();
+  });
+
+  it('serves initialize when the Accept header is missing entirely', async () => {
+    const request = new Request('http://localhost:3000/api/mcp', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 8, method: 'tools/list' }),
+    });
+
+    const { response, cleanup } = await handleMcpHttpRequest(request);
+
+    expect(response.status).toBe(200);
+    const body = await readJson(response);
+    expect((body.result as { tools?: unknown[] }).tools).toBeDefined();
     await cleanup();
   });
 

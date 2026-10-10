@@ -20,6 +20,11 @@
     "CHANGELOG.md",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imokokok/Insight.git",
+    "directory": "verifier"
+  },
   "engines": {
     "node": ">=18"
   },
