@@ -1,0 +1,50 @@
+name: Bug report
+description: Something in an Insight SDK, receipt, or API did not behave as documented.
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please include exact commands and exact error output. Remove any
+        secrets, receipts, or registry snapshots you do not want public —
+        everything posted here is a public, citable trail.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened, and what did you expect?
+      description: State the observed behavior and the documented/expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Exact commands, inputs, and versions so a third party can rerun it offline.
+      placeholder: |
+        npm install verify-insight-receipt@0.4.0
+        node repro.mjs ...
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - verify-insight-receipt (npm verifier)
+        - oracle-insight-guard (npm SDK)
+        - pre-trade safety API (/api/v1/safety/pre-trade)
+        - MCP endpoint (/api/mcp)
+        - web app / ops
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Verifier JSON results, stack traces, or logs. Fail-closed codes matter.
+  - type: textarea
+    id: context
+    attributes:
+      label: Environment
+      description: OS, Node version, package versions, browser if relevant.
