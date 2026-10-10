@@ -16,6 +16,14 @@
       "description": "Production"
     }
   ],
+  "x-service-info": {
+    "categories": ["ai", "data"],
+    "docs": {
+      "homepage": "https://www.oracleinsight.xyz/docs/x402",
+      "llms": "https://www.oracleinsight.xyz/llms.txt",
+      "apiReference": "https://www.oracleinsight.xyz/openapi.yaml"
+    }
+  },
   "paths": {
     "/api/v1/safety/pre-trade": {
       "get": {
