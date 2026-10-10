@@ -1,25 +1,41 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join, sep } from 'node:path';
+import { join, relative, sep } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const maxGzipKb = Number(process.env.HOME_JS_BUDGET_KB ?? 375);
+// CI sets this so a Next.js output-layout change can never silently drop the
+// gate. Deploy-target builds (Vercel) only warn: a reporting script must not
+// be able to block a production release on its own.
+const requireArtifact = process.env.HOME_JS_BUDGET_REQUIRE_ARTIFACT === '1';
 
-function findRouteCacheHomepages(directory) {
+function collectRouteCacheHomepages(directory, depth = 0) {
   let entries;
   try {
     entries = readdirSync(directory, { withFileTypes: true });
   } catch {
     return [];
   }
+  if (depth > 6) return [];
 
-  return entries.flatMap((entry) => {
+  const results = [];
+  for (const entry of entries) {
     const path = join(directory, entry.name);
-    if (entry.isDirectory()) return findRouteCacheHomepages(path);
-    return path.endsWith(`${sep}$${sep}index.body`) ? [path] : [];
-  });
+    if (entry.isDirectory()) {
+      results.push(...collectRouteCacheHomepages(path, depth + 1));
+      continue;
+    }
+    if (entry.name !== 'index.html' && entry.name !== 'index.body') continue;
+    // Only the root route's artifact: either directly under route-cache or
+    // inside the "$" segment, depending on the Next.js version.
+    const dirs = relative('.next/server/route-cache', path).split(sep).slice(0, -1);
+    if (dirs.length === 0 || dirs[0] === '$') results.push(path);
+  }
+  return results;
 }
 
-const routeCacheHomepages = findRouteCacheHomepages('.next/server/route-cache');
+// ISR pages may be written under .next/server/route-cache instead of
+// .next/server/app, and deploy targets relocate the build output again.
+const routeCacheHomepages = collectRouteCacheHomepages('.next/server/route-cache');
 const htmlCandidates = [
   '.next/server/app/index.html',
   '.next/server/app/index.body',
@@ -31,10 +47,24 @@ const htmlCandidates = [
 const htmlPath = htmlCandidates.find((path) => existsSync(path));
 
 if (!htmlPath) {
-  console.error(
-    `Bundle budget could not find the homepage HTML in ${htmlCandidates.join(', ')}. Run the production build first.`
+  const layout = ['.next/server/app', '.next/server/route-cache']
+    .map((dir) => {
+      try {
+        return `${dir}: ${readdirSync(dir).slice(0, 20).join(', ')}`;
+      } catch {
+        return `${dir}: (absent)`;
+      }
+    })
+    .join('\n  ');
+  const message = `Bundle budget could not find the homepage HTML in ${htmlCandidates.join(', ')}.\n  ${layout}`;
+  if (requireArtifact) {
+    console.error(message);
+    process.exit(1);
+  }
+  console.warn(
+    `[warn] ${message}\n[warn] Skipping the homepage bundle budget for this build; CI enforces it.`
   );
-  process.exit(1);
+  process.exit(0);
 }
 
 const html = readFileSync(htmlPath, 'utf8');
