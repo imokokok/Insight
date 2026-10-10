@@ -103,7 +103,7 @@ describe('handleMcpPaidToolCall settlement gating', () => {
   });
 
   it('skips settlement on a JSON-RPC level error', async () => {
-    const res = await handleMcpPaidToolCall(
+    const _res = await handleMcpPaidToolCall(
       input(
         async () =>
           new Response(
