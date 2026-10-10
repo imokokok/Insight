@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.1 — 2026-10-10
 
 - Validate successful PriorSeal bridge responses before using authorization and observation data. Reject mismatched authorization and job IDs, malformed receipts, and unknown observation states instead of continuing a joint workflow with untrusted response fields.
 

@@ -37,7 +37,9 @@ jobs:
       # NODE_AUTH_TOKEN) and for --provenance. The runner's bundled npm is
       # older, so upgrade first.
       - name: Upgrade npm for trusted publishing
-        run: npm install -g npm@^11
+        run: |
+          npm install -g npm@^11
+          npm --version
       - run: npm ci
       - name: Install the browser used by the release check
         run: npx playwright install --with-deps chromium
@@ -55,19 +57,38 @@ jobs:
           fi
           echo "SDK_VERSION=$sdk_version" >> "$GITHUB_ENV"
           echo "VERIFIER_VERSION=$verifier_version" >> "$GITHUB_ENV"
+      # NOTE: run pack/publish from inside each package directory. `npm
+      # --prefix <dir> pack|publish` resolves against the repository root
+      # under npm 11 and breaks the OIDC context (observed live on the
+      # PriorSeal sdk-v0.9.2 run: wrong package packed, ENEEDAUTH).
       - name: Pack the release tarballs
         run: |
           mkdir -p .release-artifacts
-          npm --prefix verifier pack --pack-destination .release-artifacts
-          npm --prefix sdk pack --pack-destination .release-artifacts
+          (cd verifier && npm pack --pack-destination ../.release-artifacts)
+          (cd sdk && npm pack --pack-destination ../.release-artifacts)
       # Provenance requires the npm package.json `repository` field to match
       # this repository (sdk has it; verifier gained it together with this
       # workflow) and the npm package settings to list this repo and workflow
       # as a trusted publisher.
+      # Idempotent by design: a tag can carry a version bump for one package
+      # only. If the exact version is already on npm, skip instead of failing
+      # the whole release.
       - name: Publish verify-insight-receipt to npm with provenance
-        run: npm --prefix verifier publish --provenance
+        run: |
+          pkg_name="$(node -p "require('./verifier/package.json').name")"
+          if npm view "$pkg_name@$VERIFIER_VERSION" version >/dev/null 2>&1; then
+            echo "$pkg_name@$VERIFIER_VERSION is already on npm; skipping publish"
+          else
+            (cd verifier && npm publish --provenance)
+          fi
       - name: Publish oracle-insight-guard to npm with provenance
-        run: npm --prefix sdk publish --provenance
+        run: |
+          pkg_name="$(node -p "require('./sdk/package.json').name")"
+          if npm view "$pkg_name@$SDK_VERSION" version >/dev/null 2>&1; then
+            echo "$pkg_name@$SDK_VERSION is already on npm; skipping publish"
+          else
+            (cd sdk && npm publish --provenance)
+          fi
       - name: Attest the release tarballs
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
