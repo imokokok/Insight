@@ -53,6 +53,8 @@ function createMppMcpServer(cfg: X402Config, secretKey: string) {
         },
       }),
     ],
+    // Pin the MPP realm to the production hostname (see preTrade.ts).
+    realm: 'oracleinsight.xyz',
     secretKey,
     transport,
   });
