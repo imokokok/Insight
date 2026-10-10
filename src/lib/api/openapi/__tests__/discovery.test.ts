@@ -14,24 +14,57 @@ describe('OpenAPI payment discovery', () => {
     const document = buildOpenApiDiscovery(BASE_CONFIG);
     const rest = document.paths['/api/v1/safety/pre-trade'].get['x-payment-info'] as {
       offers: Array<Record<string, unknown>>;
+      protocols: Array<Record<string, unknown>>;
+      price: Record<string, unknown>;
     };
     const mcp = document.paths['/api/mcp/mpp'].post['x-payment-info'] as {
       offers: Array<Record<string, unknown>>;
+      protocols: Array<Record<string, unknown>>;
+      price: Record<string, unknown>;
     };
 
-    expect(rest).toEqual({
-      offers: [
-        {
-          intent: 'charge',
+    expect(rest.offers).toEqual([
+      {
+        intent: 'charge',
+        method: 'evm',
+        amount: '20000',
+        currency: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        description: '$0.02 USDC per successful pre-trade safety check',
+      },
+    ]);
+    expect(rest.protocols).toEqual([
+      {
+        mpp: {
           method: 'evm',
-          amount: '20000',
+          intent: 'charge',
           currency: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-          description: '$0.02 USDC per successful pre-trade safety check',
         },
-      ],
+      },
+      { x402: {} },
+    ]);
+    expect(rest.price).toEqual({ mode: 'fixed', currency: 'USD', amount: '0.02' });
+    expect(mcp.offers).toEqual(rest.offers);
+    expect(mcp.price).toEqual(rest.price);
+    expect(mcp.protocols).toEqual([
+      {
+        mpp: {
+          method: 'evm',
+          intent: 'charge',
+          currency: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        },
+      },
+    ]);
+    const x402McpInfo = document.paths['/api/mcp'].post['x-payment-info'] as {
+      protocols: Array<Record<string, unknown>>;
+      price: Record<string, unknown>;
+    };
+    expect(x402McpInfo.protocols).toEqual([{ x402: {} }]);
+    expect(x402McpInfo.price).toEqual({
+      mode: 'dynamic',
+      currency: 'USD',
+      min: '0.002',
+      max: '0.04',
     });
-    expect(mcp).toEqual(rest);
-    expect(document.paths['/api/mcp'].post['x-payment-info']).toBeUndefined();
     expect(document.paths['/api/mcp'].post['x-x402-payment-info']).toEqual(
       expect.objectContaining({ protocol: 'x402-v2' })
     );
