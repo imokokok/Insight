@@ -283,6 +283,7 @@ describe('MPP pre-trade payment guard', () => {
       );
       expect(mockMppCreate).toHaveBeenCalledWith({
         methods: [mockMethod],
+        realm: 'oracleinsight.xyz',
         secretKey,
       });
     });
