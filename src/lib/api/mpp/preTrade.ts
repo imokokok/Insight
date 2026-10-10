@@ -330,10 +330,11 @@ export async function handleMppPaidPreTradeRequest(
       responseTimeMs: Date.now() - settlementStartedAt,
       errorReason: error instanceof Error ? error.name : 'unknown',
     });
-    logger.warn('MPP settlement failed after successful pre-trade check', {
-      requestId,
-      error: error instanceof Error ? error.name : 'unknown',
-    });
+    logger.error(
+      'MPP settlement failed after successful pre-trade check',
+      error instanceof Error ? error : new Error(String(error)),
+      { requestId }
+    );
     businessResponse.headers.set('X-Request-Id', requestId);
     businessResponse.headers.set('Payment-Settlement-Status', 'failed');
     return withCors(businessResponse);

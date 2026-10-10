@@ -257,14 +257,16 @@ describe('MPP MCP pre-trade lifecycle', () => {
     expect(mockBroadcastCredential).not.toHaveBeenCalled();
   });
 
-  it('returns the business result without a receipt if settlement fails', async () => {
+  it('returns the business result with a settlement-failure marker if settlement fails', async () => {
     mockBroadcastCredential.mockRejectedValue(new Error('settlement unavailable'));
     const handler = createHandler();
     const runBusiness = jest.fn().mockResolvedValue(SUCCESS);
 
     const result = await handler({ ...CALL, runBusiness });
 
-    expect(result).toBe(SUCCESS);
+    expect(result).not.toBe(SUCCESS);
+    expect(result._meta?.paymentSettlementStatus).toBe('failed');
+    expect(result._meta?.['org.paymentauth/receipt']).toBeUndefined();
     expect(mockRespondReceipt).not.toHaveBeenCalled();
     expect(mockAudit.mock.calls.map(([event]) => event.status)).toEqual([
       'payment_verified',
