@@ -160,3 +160,14 @@ jobs:
             echo "::error::main advanced to $current_sha while deployment $GITHUB_SHA was being verified"
             exit 1
           fi
+
+      # A READY deployment only proves the build succeeded. Probe the live
+      # pay-per-call challenge paths so a regression that still builds (e.g.
+      # the Next 16.4 homepage-artifact incident) cannot reach users silently.
+      # SMOKE_EXPECT_MPP (repo variable, default true) can be set to false if
+      # MPP is intentionally disabled on the deployment.
+      - name: Live smoke the payment rails
+        env:
+          SMOKE_BASE_URL: https://www.oracleinsight.xyz
+          SMOKE_EXPECT_MPP: ${{ vars.SMOKE_EXPECT_MPP || 'true' }}
+        run: node scripts/smoke-live-payment-rails.mjs

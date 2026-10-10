@@ -10,6 +10,7 @@ import { z } from 'zod';
 const ENDPOINT =
   'https://www.oracleinsight.xyz/api/v1/safety/pre-trade?asset=ETH&chainId=1&action=swap&tradeAmountUsd=1000';
 const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+const BASE_USDC_AUTHORIZATION = { name: 'USD Coin', version: '2' } as const;
 
 function readPrivateKey(): `0x${string}` {
   const value = process.env.EVM_PRIVATE_KEY;
@@ -23,8 +24,10 @@ const mppx = Mppx.create({
   methods: [
     evm.charge({
       account: privateKeyToAccount(readPrivateKey()),
+      authorization: BASE_USDC_AUTHORIZATION,
       networks: [8453],
       currencies: [BASE_USDC],
+      decimals: 6,
       maxAmount: '0.02',
     }),
   ],

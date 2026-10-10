@@ -280,11 +280,29 @@ export function createMppMcpCallHandler(cfg: X402Config, secretKey: string): Mpp
         responseTimeMs: Date.now() - settlementStartedAt,
         errorReason: error instanceof Error ? error.name : 'unknown',
       });
-      logger.warn('MPP MCP settlement failed after successful tool call', {
+      logger.error('MPP MCP settlement failed after successful tool call', undefined, {
         requestId,
         error: error instanceof Error ? error.name : 'unknown',
       });
-      return businessResult;
+      // The buyer received the paid result but was not charged. Surface that
+      // explicitly: unlike the REST rail there is no response header channel
+      // here, so the caller would otherwise see an ordinary success.
+      return withSettlementFailureMarker(businessResult);
     }
+  };
+}
+
+/**
+ * Marks a tool result whose business logic succeeded but whose payment
+ * settlement did not. Mirrors the REST rail's `Payment-Settlement-Status:
+ * failed` header so both surfaces make fail-open settlement observable.
+ */
+function withSettlementFailureMarker(result: CallToolResult): CallToolResult {
+  return {
+    ...result,
+    _meta: {
+      ...(result._meta ?? {}),
+      paymentSettlementStatus: 'failed',
+    },
   };
 }
