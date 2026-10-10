@@ -32,6 +32,40 @@ function mppOffer(config: OpenApiPaymentConfig): JsonObject {
   };
 }
 
+/**
+ * Registry-facing payment info (MPPScan et al.): `protocols` classifies the
+ * rails a registry can index, `price` carries decimal USD pricing, and
+ * `offers` keeps the paymentauth.org discovery draft shape for generic
+ * MPP clients.
+ */
+function mppPaymentInfo(config: OpenApiPaymentConfig, options: { x402: boolean }): JsonObject {
+  const protocols: JsonObject[] = [
+    { mpp: { method: 'evm', intent: 'charge', currency: usdcForNetwork(config.network) } },
+  ];
+  if (options.x402) protocols.push({ x402: {} });
+  return {
+    offers: [mppOffer(config)],
+    protocols,
+    price: {
+      mode: 'fixed',
+      currency: 'USD',
+      amount: config.priceUsd.toFixed(2),
+    },
+  };
+}
+
+function x402PaymentInfo(): JsonObject {
+  return {
+    protocols: [{ x402: {} }],
+    price: {
+      mode: 'dynamic',
+      currency: 'USD',
+      min: '0.002',
+      max: '0.04',
+    },
+  };
+}
+
 function addMcpPaymentNameConstraint(operation: JsonObject): void {
   const requestBody = object(operation.requestBody);
   const content = object(requestBody.content);
@@ -84,7 +118,7 @@ export function buildOpenApiDiscovery(config: OpenApiPaymentConfig): OpenApiDocu
       };
     }
     if (config.mppEnabled) {
-      preTrade['x-payment-info'] = { offers: [mppOffer(config)] };
+      preTrade['x-payment-info'] = mppPaymentInfo(config, { x402: true });
     }
   }
 
@@ -100,6 +134,7 @@ export function buildOpenApiDiscovery(config: OpenApiPaymentConfig): OpenApiDocu
         protocol: 'x402-v2',
         price: { currency: 'USD', min: '0.002', max: '0.04', unit: 'per tool call' },
       };
+      x402Mcp['x-payment-info'] = x402PaymentInfo();
     } else {
       x402Mcp.description =
         'The full Insight oracle tool catalog is available to authenticated API-key callers. ' +
@@ -128,7 +163,7 @@ export function buildOpenApiDiscovery(config: OpenApiPaymentConfig): OpenApiDocu
     'only after a successful tool result. MCP reports payment-required as JSON-RPC error -32042 ' +
     'with data.httpStatus=402; Streamable HTTP may carry that JSON-RPC response with HTTP 200.';
   delete mppMcp['x-x402-payment-info'];
-  mppMcp['x-payment-info'] = { offers: [mppOffer(config)] };
+  mppMcp['x-payment-info'] = mppPaymentInfo(config, { x402: false });
   addMcpPaymentNameConstraint(mppMcp);
 
   const responses = object(mppMcp.responses);
