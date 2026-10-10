@@ -47,5 +47,7 @@ if (!response.ok || !parsed.success) {
   throw new Error(`Pre-trade check failed with HTTP ${response.status}`);
 }
 
+// eslint-disable-next-line no-console -- runnable example script
 console.log('Verdict:', parsed.data.data.verdict);
+// eslint-disable-next-line no-console -- runnable example script
 console.log('Payment receipt:', response.headers.get('Payment-Receipt') ?? 'not returned');
