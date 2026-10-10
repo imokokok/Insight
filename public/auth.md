@@ -8,10 +8,10 @@ business outcome succeeds.
 
 ## Free (no payment required)
 
-| Route | Notes |
-|---|---|
+| Route                                                  | Notes                                                              |
+| ------------------------------------------------------ | ------------------------------------------------------------------ |
 | `GET /api/v1/safety/pre-trade` without payment headers | Returns `402` + payment challenge. Doubles as a free health check. |
-| MCP `initialize`, `tools/list` | Free discovery of the tool catalog. |
+| MCP `initialize`, `tools/list`                         | Free discovery of the tool catalog.                                |
 
 ## Paid (pay per call, $0.02 USDC on Base)
 
