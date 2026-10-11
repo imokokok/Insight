@@ -6,15 +6,19 @@
 
 Insight makes oracle observations, source reliability, and the risks of relying on a price inspectable. It connects cross-source comparison, deviation, freshness, source independence, and protocol exposure to explainable assessments and portable signed evidence when signing is available.
 
-Its product path is **oracle observations → transparency → risk assessment → verifiable evidence**. Protocol teams, operators, developers, and AI agents can use these capabilities independently of PriorSeal. Pre-trade checks and agent workflows are applications of the oracle foundation; they do not replace it.
+Its product path is **oracle observations → transparency → risk assessment → verifiable evidence**. Protocol teams, operators, developers, and AI agents can use these capabilities independently of PriorSeal. Pre-trade checks and agent workflows apply the same assessment method to the decision inputs of onchain actions; oracle observations remain the primary evidence base behind them.
 
 中文：**预言机透明度与风险情报，让价格背后的来源和使用风险可见、可判断，并保留可验证的评估证据。**
+
+**Capability layer.** The method — **multi-source assessment → signed evidence → independent re-verification** — does not depend on the oracle domain. In agent contexts the same method is offered as **decision-input integrity**: before an agent acts on a price, Insight evaluates whether that price can be trusted and returns a signed verdict that a third party can re-verify offline. Oracle feeds are the first and deepest assessment domain, not the boundary of the capability.
+
+中文：**能力层。** 评估方法——多源评估 → 签名证据 → 独立复核——不依赖预言机数据域。在 agent 语境中，同一方法以"决策输入完整性"形态提供：在 agent 依据某个价格行动之前，评估该价格是否可信，并返回可离线独立复核的签名 verdict。预言机是第一个也是目前最深的评估域，不是能力的边界。
 
 ## Public copy
 
 - Homepage headline: **See the oracles behind the price.**
 - Short description: **Compare oracle sources, understand the risk of relying on a price, and retain verifiable assessment evidence.**
-- Agent description: **Give agents oracle evidence before they act.**
+- Agent description: **Before your agent signs, verify what it is about to trust.** Decision-input integrity for onchain agents: a signed, independently re-verifiable answer to "can this price be trusted".
 - SDK description: **Oracle risk assessments, monitoring, and signed price/fill evidence, with assessment-only APIs and optional gated execution.**
 
 ## Three independently selectable offers

@@ -2,13 +2,13 @@
   "x402Version": 2,
   "kind": "resource-server",
   "name": "Insight Pre-Trade Safety API",
-  "description": "Pre-trade safety checks for AI agents trading DeFi: oracle-manipulation-aware verdicts (PASS/BLOCK/WARN) with verifiable EIP-712 attestations, powered by multi-provider oracle consensus on Base.",
+  "description": "Decision-input integrity for AI agents trading onchain: before a trade is signed, check whether the price it relies on is trustworthy — multi-provider oracle consensus, manipulation-risk scoring, and feed health, with verifiable EIP-712 attestations. USDC on Base.",
   "docs": "https://www.oracleinsight.xyz/openapi.json",
   "resources": [
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",
       "method": "GET",
-      "description": "Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.",
+      "description": "Pre-trade decision-input integrity check: is the price this action relies on trustworthy? Cross-provider consensus, deviation, freshness, and manipulation risk for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.",
       "accepts": {
         "scheme": "exact",
         "network": "eip155:8453",
@@ -47,5 +47,5 @@
   "attestation": {
     "type": "none"
   },
-  "updated": "2026-10-07T00:00:00Z"
+  "updated": "2026-10-12T00:00:00Z"
 }
