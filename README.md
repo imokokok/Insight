@@ -1,6 +1,6 @@
 # Insight — Oracle Transparency & Risk Intelligence
 
-Insight helps DeFi applications, operators, developers, and AI agents inspect oracle prices and the risks of relying on them. It compares data from **10 oracle providers across 40+ blockchain networks**, evaluates deviation, freshness, source independence, and protocol impact, and can issue signed evidence of its assessments.
+Insight helps DeFi applications, operators, developers, and AI agents inspect oracle prices and the risks of relying on them. It compares data from **10 oracle providers across 40+ blockchain networks**, evaluates deviation, freshness, source independence, and protocol impact, and can issue signed evidence of its assessments. For AI agents specifically, this is **decision-input integrity**: a signed, re-verifiable answer to "can this price be trusted" before a trade is signed.
 
 ```text
 Oracle observations → Cross-source comparison → Risk assessment → Verifiable evidence
@@ -20,6 +20,10 @@ Oracle observations → Cross-source comparison → Risk assessment → Verifiab
 | Run the website and API locally                    | [Local development](#local-development)                                                                                           |
 
 ## What Insight provides
+
+### For AI agents: decision-input integrity
+
+Agents fail differently from humans: they act on the prices they read, and a manipulated or stale price produces a confident agent executing a bad trade. `pre_trade_safety_check` answers the question the transaction simulator cannot — **whether the price the agent is about to trust is currently trustworthy** — with cross-provider agreement, manipulation-risk scoring, and feed health, returned as a signed EIP-712 verdict. Agents reach it via the [MCP endpoint](#mcp-endpoint-production) or [x402 pay-per-call](#x402-quickstart-pay-per-call); humans re-verify the receipt with the [independent verifier](verifier/README.md).
 
 ### Pre-Trade Safety Check
 
