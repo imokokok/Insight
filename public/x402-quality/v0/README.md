@@ -14,11 +14,12 @@ and the commitment recorded in
 
 The artifact shape is deliberately domain-neutral. `profile` names the assessment
 procedure; the first implemented profile is `oracle-pretrade` (is the price this
-action relies on trustworthy?), alongside `execution` (did the paid interaction do
-what it claimed?). The same `subject`/`measurement`/`attester` shape can carry any
-pre-decision or post-interaction quality claim about a paid interaction: future
-decision-input domains slot in as new profiles, not schema forks. Oracle feeds are
-where this implementation is deepest today, not the boundary of the artifact.
+action relies on trustworthy?), alongside `oracle-execution` (did the paid
+interaction do what it claimed?). The same `subject`/`measurement`/`attester`
+shape can carry any pre-decision or post-interaction quality claim about a paid
+interaction: future decision-input domains slot in as new profiles, not schema
+forks. Oracle feeds are where this implementation is deepest today, not the
+boundary of the artifact.
 
 ## The predicate split
 
@@ -104,6 +105,43 @@ receipt signature, reused. The consequence is exact and must not be glossed:
 `covers: "this-document"` is specified for implementations that sign the assertion directly
 (committing to this artifact's own `subject` + `measurement` under the profile's canonical
 serialization). It is reserved, not demonstrated here — see _Known gaps_.
+
+## Threat model
+
+The sections above state the boundary per artifact. This one states it per adversary, so that
+"what this artifact is for" and "what it must not be cited against" are both written down.
+
+The **asset** is an agent's authorized budget and the decisions it takes with it. The
+**adversary** is anything that can influence what the agent believes (the content it reads), what
+it decides (the inputs it acts on), or who it deals with (the counterparty it pays). We assume the
+adversary cannot break signing keys, the ledger, or attester infrastructure itself — key custody
+and key governance are principal-side concerns, not artifact properties.
+
+Five failure classes recur in agentic payments. For each: where the quality layer intervenes, and
+what remains open.
+
+| Threat                                                                                   | Where the quality layer intervenes                                                                                                                                                                                                                                                                              | What remains open                                                                                                                                                                                                                   |
+| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Manipulated decision inputs** — the price or datum the agent acts on is wrong          | Deepest coverage. The `oracle-pretrade` profile measures cross-provider consensus, deviation, freshness and manipulation cost at decision time; the verdict is signed and re-verifiable offline.                                                                                                                | An attestation records what was measured and by whom, never what will happen. A PASS is not an economic guarantee (see _What this proves_).                                                                                         |
+| **Post-authorization abuse** — the agent spends inside its mandate against its principal | At decision time: a pre-trade verdict gates each payment against input risk. The signed artifact preserves what the agent relied on — the raw material for forensic reconstruction and dispute.                                                                                                                 | Whether the _pattern_ of payments is abusive is behavioral profiling over history. It can be carried as a future profile; it is not delivery-receipt semantics.                                                                     |
+| **Agent impersonation** — a party misrepresents which agent or service it is             | By binding, not by identity: `attester[]` is verifiable by signature and `key_id`, and `subject.binding` ties the measurement to one paid interaction. Forging the claim requires forging a signature, not a story.                                                                                             | Who the actor _is_ — identity and accountability — belongs to identity layers (e.g. ERC-8004). This artifact attests measurements, not persons.                                                                                     |
+| **Prompt injection** — hostile content steers the agent                                  | Symptom only, deliberately. Injection is a model-layer problem this artifact cannot prevent. What it enables is a contestable downstream: the inputs the agent relied on when paying are signed and recomputable, so "the agent was manipulated" becomes a provable claim about inputs rather than a narrative. | Prevention belongs to guardrails and model providers. This artifact MUST NOT be cited as an injection defense.                                                                                                                      |
+| **Key leakage** — the signing key or wallet is compromised                               | Out of scope.                                                                                                                                                                                                                                                                                                   | Custody, signing policy and spend limits are wallet and principal concerns. A measurement signed with a compromised key still proves measurement integrity — which is exactly why spend authorization MUST NOT be inferred from it. |
+
+### Non-goals
+
+- **Not a fraud detector.** It records what was measured and who measured it; it does not score
+  the intent of a payment.
+- **Not an authorization record.** A signature over a measurement is not the principal's consent
+  to spend.
+- **Not an injection defense.** Guardrails sit upstream; this artifact makes the consequences
+  contestable after the fact.
+- **Not a substitute for the delivery receipt.** The predicate split stands: binding joins the two
+  artifacts, extension does not.
+
+One deliberate choice worth arguing with: this table is short on purpose. Any new risk dimension
+admitted into this artifact must name a row above and state what its profile measures. If it
+cannot, it does not get a `profile` string. Domain-neutral must not mean anything-shaped.
 
 ## Independent re-computation
 
