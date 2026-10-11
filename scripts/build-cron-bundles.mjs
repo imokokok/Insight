@@ -21,6 +21,7 @@ const entryPoints = {
   'backfill-market-reference': 'scripts/backfill-market-reference.ts',
   billing: 'scripts/billing.ts',
   'collect-market-reference': 'scripts/collect-market-reference.ts',
+  'collect-manip-cost': 'scripts/collect-manip-cost.ts',
   'collect-oracle-watch': 'scripts/collect-oracle-watch.ts',
   'collect-snapshot': 'scripts/collect-snapshot.ts',
   'daily-report-publish': 'scripts/daily-report-publish.ts',
