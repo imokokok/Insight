@@ -40,6 +40,7 @@ import type { ProviderObservationEntry } from '@/lib/attestations/providerObserv
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
 import { assertVeritasJointRun1800Admission } from '@/lib/attestations/veritasJointRunValidity';
 import { UnsupportedSymbolError, ValidationError } from '@/lib/errors';
+import { getManipCostAdvisory, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import {
   computeMarketReferenceContext,
   type MarketReferenceContext,
@@ -269,6 +270,16 @@ export interface PreTradeSafetyResult {
    * the displayed risk level; does not itself drive the verdict.
    */
   anomalyScore: number;
+  /**
+   * Advisory manipulation-cost context (foundation block ②). EVIDENCE ONLY,
+   * per the collector's own discipline: how much USD (lower bound for v3
+   * pools) it would take to move the Ethereum-mainnet DEX reference price of
+   * this asset by 0.5–10%. NEVER a verdict gate and NEVER part of the signed
+   * attestation. Omitted when the asset has no covered pool mapping, the chain
+   * is not Ethereum, or fresh snapshots are unavailable — absence means "no
+   * evidence", not "low risk".
+   */
+  manipulationCost?: ManipCostAdvisory;
   /**
    * EIP-712 offchain attestation proving "Insight verified oracle state for this
    * trade at time T". Portable, tamper-evident proof agents can relay in tx
@@ -1495,6 +1506,33 @@ async function haltedCheckResult(
 }
 
 /**
+ * Advisory manipulation-cost fetch (foundation block ②), extracted to keep
+ * preTradeSafetyCheck within its complexity budget. EVIDENCE ONLY per the
+ * collector's discipline: the result is attached to the response verbatim and
+ * is NEVER a verdict gate or a signed-attestation input. Ethereum mainnet
+ * (chainId 1) only in v0 — mainnet pool depth must not be presented as the
+ * manipulation cost of another chain's reference market. Returns undefined on
+ * any failure, uncovered symbol, or stale data; never throws.
+ */
+async function fetchManipCostAdvisorySafe(
+  asset: string,
+  chainId: number
+): Promise<ManipCostAdvisory | undefined> {
+  if (chainId !== 1) return undefined;
+  try {
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = createServiceRoleClient();
+    return (await getManipCostAdvisory(supabase, asset)) ?? undefined;
+  } catch (e) {
+    logger.warn('Manipulation-cost advisory fetch failed; advisory omitted', {
+      asset,
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return undefined;
+  }
+}
+
+/**
  * Run a pre-trade oracle safety check.
  *
  * @param input Trade intent (asset, chain, action, amount).
@@ -1602,6 +1640,9 @@ export async function preTradeSafetyCheck(
   // NON-BLOCKING: on any failure we fall back to an empty map → no cadence
   // CAUTION, but the 7-day absolute hard-block backstop still applies.
   let stalenessBaselines: Map<string, number | null> = new Map();
+  // 3b. Advisory manipulation-cost context (see fetchManipCostAdvisorySafe —
+  // EVIDENCE ONLY, never a verdict gate, never in the signed attestation).
+  const manipulationCost = await fetchManipCostAdvisorySafe(input.asset, input.chainId);
   try {
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
     const supabase = createServiceRoleClient();
@@ -1962,6 +2003,9 @@ export async function preTradeSafetyCheck(
     mlHighThreshold,
     mlFeatureVector,
     anomalyScore,
+    // Advisory only (see ManipCostAdvisory). undefined drops out of the JSON
+    // response entirely — the field is absent, not null, for uncovered assets.
+    manipulationCost,
     // Non-blocking: sign the verdict as an EIP-712 offchain attestation. null
     // when no attester key is configured — never affects the verdict itself.
     attestation: null,

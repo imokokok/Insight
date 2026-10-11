@@ -120,6 +120,16 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
         '- ⚠️ Novel-manipulation signal: anomaly layer flags an outlier the supervised ML does not. Treat oracle data as suspect.'
       );
     }
+    if (result.manipulationCost) {
+      const mc = result.manipulationCost;
+      const cheap =
+        mc.cheapestMove1PctUsd !== null
+          ? `$${Math.round(mc.cheapestMove1PctUsd).toLocaleString()}`
+          : 'n/a';
+      lines.push(
+        `- Manipulation cost (advisory, DEX ${mc.referenceChain} v0): min ≈ ${cheap} to move ${mc.symbol} ±1% (lower bound; advisory only — not a verdict input)`
+      );
+    }
 
     if (result.protocolSafety) {
       const ps = result.protocolSafety;

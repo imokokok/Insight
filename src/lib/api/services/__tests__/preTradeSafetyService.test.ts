@@ -3,6 +3,7 @@ import { signAttestationV2 } from '@/lib/attestations/oracleSafetyAttestationV2'
 import { signAttestationV3 } from '@/lib/attestations/oracleSafetyAttestationV3';
 import { assertVeritasJointRun1800Admission } from '@/lib/attestations/veritasJointRunValidity';
 import { UnsupportedSymbolError } from '@/lib/errors';
+import { getManipCostAdvisory, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import { computeMarketReferenceContext } from '@/lib/marketReference/client';
 import { getModelStatus, scorePreTradeMultiHorizon } from '@/lib/ml/inference';
 import { getFeedStalenessBaselineMap } from '@/lib/oracles/feedCadence';
@@ -47,6 +48,13 @@ jest.mock('@/lib/supabase/server', () => ({
 jest.mock('@/lib/oracles/feedCadence', () => ({
   ...jest.requireActual('@/lib/oracles/feedCadence'),
   getFeedStalenessBaselineMap: jest.fn(() => Promise.resolve(new Map())),
+}));
+
+// Manipulation-cost advisory (foundation block ②): default OFF (null → field
+// omitted) so unrelated tests are unaffected; the advisory describe block
+// overrides per-case.
+jest.mock('@/lib/manipCost/baseline', () => ({
+  getManipCostAdvisory: jest.fn(() => Promise.resolve(null)),
 }));
 
 // The cadence-relative CAUTION path is opt-in via ENABLE_CADENCE_CAUTION (default
@@ -116,6 +124,9 @@ const mockedVeritasAdmission = assertVeritasJointRun1800Admission as jest.Mocked
 >;
 const mockedGetFeedStalenessBaselineMap = getFeedStalenessBaselineMap as jest.MockedFunction<
   typeof getFeedStalenessBaselineMap
+>;
+const mockedGetManipCostAdvisory = getManipCostAdvisory as jest.MockedFunction<
+  typeof getManipCostAdvisory
 >;
 
 // ---------------------------------------------------------------------------
@@ -1446,5 +1457,119 @@ describe('operator-enabled WAK signed validity', () => {
       }
     );
     expect(mockedSignAttestationV3.mock.calls[0]).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Manipulation-cost advisory (foundation block ②) — advisory only, never a
+// verdict gate and never in the signed attestation (collector discipline).
+// ---------------------------------------------------------------------------
+
+function makeAdvisory(overrides: Partial<ManipCostAdvisory> = {}): ManipCostAdvisory {
+  return {
+    symbol: 'ETH',
+    referenceChain: 'ethereum',
+    advisoryOnly: true,
+    pools: [
+      {
+        poolKey: 'uniswap-v3-eth-usdc-005',
+        dex: 'uniswap-v3',
+        feeTier: '0.0005',
+        snapshotTs: new Date().toISOString(),
+        blockNumber: 26_000_000,
+        midPrice: 0.0004,
+        tvlUsd: 154_000_000,
+        curve: [
+          {
+            movePct: 1,
+            upUsd: 600_000,
+            downUsd: 620_000,
+            minUsd: 600_000,
+            minRoundtripFeeUsd: 600,
+            withinRangeAssumed: true,
+          },
+        ],
+      },
+    ],
+    cheapestMove1PctUsd: 600_000,
+    freshestSnapshotTs: new Date().toISOString(),
+    note: 'advisory',
+    ...overrides,
+  };
+}
+
+describe('preTradeSafetyCheck — manipulation-cost advisory', () => {
+  it('attaches the advisory to an Ethereum check without affecting the verdict', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 0.05 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860.5, deviationPct: 0.03 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 1859.8, deviationPct: 0.02 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+    mockedGetManipCostAdvisory.mockResolvedValue(makeAdvisory());
+
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'ETH', chainId: 1 }));
+
+    expect(mockedGetManipCostAdvisory).toHaveBeenCalledWith(expect.anything(), 'ETH');
+    expect(result.manipulationCost).toBeDefined();
+    expect(result.manipulationCost?.cheapestMove1PctUsd).toBe(600_000);
+    expect(result.manipulationCost?.advisoryOnly).toBe(true);
+    // Advisory must not gate the verdict.
+    expect(result.verdict).toBe('PASS');
+    expect(result.warnings).toEqual(['No oracle risk signals detected.']);
+    expect(result.contributingFactors).toHaveLength(0);
+    // Advisory must not enter the signed attestation input.
+    const attestationInput = mockedSignAttestationV2.mock.calls[0]?.[0] as
+      | Record<string, unknown>
+      | undefined;
+    if (attestationInput) {
+      expect(attestationInput).not.toHaveProperty('manipulationCost');
+    }
+  });
+
+  it('omits the field (undefined, not null) when no advisory is available', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 0.05 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860.5, deviationPct: 0.03 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 1859.8, deviationPct: 0.02 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+    mockedGetManipCostAdvisory.mockResolvedValue(null);
+
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'APE' }));
+
+    expect(result.manipulationCost).toBeUndefined();
+    // The API response serializes to JSON: an undefined advisory must drop out
+    // of the payload entirely (absent, not null).
+    expect(JSON.parse(JSON.stringify(result))).not.toHaveProperty('manipulationCost');
+    expect(result.verdict).toBe('PASS');
+  });
+
+  it('never fetches the advisory for non-Ethereum chains (v0 scope guard)', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 0.05 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860.5, deviationPct: 0.03 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 1859.8, deviationPct: 0.02 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    await preTradeSafetyCheck(makeInput({ asset: 'ETH', chainId: 8453 }));
+
+    expect(mockedGetManipCostAdvisory).not.toHaveBeenCalled();
+  });
+
+  it('an advisory fetch failure does not block or degrade the verdict', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 0.05 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860.5, deviationPct: 0.03 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 1859.8, deviationPct: 0.02 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+    mockedGetManipCostAdvisory.mockRejectedValue(new Error('advisory backend down'));
+
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'ETH', chainId: 1 }));
+
+    expect(result.verdict).toBe('PASS');
+    expect(result.manipulationCost).toBeUndefined();
   });
 });
