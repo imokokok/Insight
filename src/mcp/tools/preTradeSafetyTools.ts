@@ -71,6 +71,7 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
       tradeAmountUsd: args.tradeAmountUsd,
       targetProviders: args.targetProviders,
       protocolId: args.protocolId,
+      tokenAddress: args.tokenAddress,
     };
 
     const result = await preTradeSafetyCheck(input);
@@ -131,6 +132,20 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
           : 'n/a';
       lines.push(
         `- Manipulation cost (advisory, DEX ${mc.referenceChain} v0): min ≈ ${cheap} to move ${mc.symbol} ±1% (lower bound; advisory only — not a verdict input)`
+      );
+    }
+
+    if (result.tokenSecurity && result.contextAttestation) {
+      const ts = result.tokenSecurity;
+      // One-line advisory render. Presence of the signed contextAttestation is
+      // what makes this line evidence rather than a bare GoPlus passthrough.
+      lines.push(
+        `- Token security (advisory, ${ts.sourcedFrom} · signed · not a verdict input):` +
+          ` honeypot=${ts.isHoneypot ?? 'unreported'}` +
+          ` tax=${ts.buyTaxPct ?? '?'}%/${ts.sellTaxPct ?? '?'}%` +
+          ` open_source=${ts.isOpenSource ?? 'unreported'}` +
+          ` trust_list=${ts.trustList ?? 'unreported'}` +
+          ` raw=${ts.rawHash.slice(0, 18)}… (offline-verifiable via contextAttestation)`
       );
     }
 

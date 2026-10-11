@@ -42,4 +42,13 @@ export const PreTradeQuerySchema = z.object({
     .describe(
       'Optional destination asset symbol (v2 binds it as destinationAssetId; not evaluated in v2.0)'
     ),
+  tokenAddress: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{40}$/, 'tokenAddress must be a 20-byte EVM contract address')
+    .optional()
+    .describe(
+      'Optional token contract address whose third-party security scan is captured and signed as ' +
+        'decision-input evidence (contextAttestation + tokenSecurity advisory view). When omitted, ' +
+        'a built-in symbol map (Ethereum mainnet ETH/USDC/WBTC) is used. Never affects the verdict.'
+    ),
 });
