@@ -69,6 +69,17 @@ import {
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { getStablecoinConfig } from '@/lib/stablecoins/config';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
+import {
+  rawBodySha256,
+  signContextAttestation,
+  type ContextAttestation,
+  type TokenSecurityView,
+} from '@/lib/tokenSecurity/contextAttestation';
+import {
+  fetchGoPlusTokenSecurity,
+  parseTokenSecurityViewFields,
+  type GoPlusRawResult,
+} from '@/lib/tokenSecurity/goplus';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 import { Blockchain, type OracleProvider } from '@/types/oracle';
@@ -142,6 +153,16 @@ export interface PreTradeSafetyInput {
    * the source asset id (degenerate self-pair) so the binding is still valid.
    */
   destinationAsset?: string;
+  /**
+   * Optional token contract address whose third-party security scan should be
+   * captured and signed as decision-input evidence (contextAttestation +
+   * tokenSecurity advisory view). When omitted, a small built-in symbol→address
+   * map (Ethereum mainnet USDC/WBTC/WETH) is used; when neither resolves, both
+   * fields are omitted entirely (禁合成: absence means "no evidence", never
+   * "safe"). Advisory evidence only — NEVER a verdict input and NEVER part of
+   * the signed oracle attestation.
+   */
+  tokenAddress?: string;
 }
 
 /**
@@ -280,6 +301,24 @@ export interface PreTradeSafetyResult {
    * evidence", not "low risk".
    */
   manipulationCost?: ManipCostAdvisory;
+  /**
+   * Signed third-party input evidence (decision-input expansion, lane 1):
+   * proves "Insight received this raw token-security response at time T".
+   * Independent nested EIP-712 signature (InsightContextAttestation domain) —
+   * deliberately NOT part of the oracle attestation, which stays unchanged.
+   * Emitted ONLY when raw evidence was captured AND signing succeeded
+   * (fail-closed: no unsigned evidence lookalikes). Absence means "no
+   * evidence", not "safe".
+   */
+  contextAttestation?: ContextAttestation;
+  /**
+   * Advisory parsed view of the third-party token scan linked by `rawHash` to
+   * the signed capture above. Flag passthrough only — Insight makes no
+   * honeypot/tax judgment and never adjusts the verdict for these values.
+   * Omitted together with contextAttestation (an unsigned view would read as
+   * an Insight endorsement of the third party's conclusion).
+   */
+  tokenSecurity?: TokenSecurityView;
   /**
    * EIP-712 offchain attestation proving "Insight verified oracle state for this
    * trade at time T". Portable, tamper-evident proof agents can relay in tx
@@ -1532,6 +1571,107 @@ async function fetchManipCostAdvisorySafe(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Decision-input context evidence (token-security lane, advisory only)
+// ---------------------------------------------------------------------------
+
+/**
+ * Built-in symbol→address map for the token-security evidence lane (Ethereum
+ * mainnet only — address resolution is chain-specific and a mainnet address
+ * must never be presented as another chain's token). ETH resolves to its WETH
+ * contract because that is the token contract scanners cover.
+ */
+const TOKEN_ADDRESS_BY_SYMBOL: Record<string, string> = {
+  ETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+  WETH: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+  USDC: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  WBTC: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+};
+
+function resolveTokenSecurityAddress(
+  input: PreTradeSafetyInput
+): { chainId: number; address: string } | null {
+  if (input.tokenAddress) {
+    const address = input.tokenAddress.toLowerCase();
+    if (!/^0x[0-9a-f]{40}$/.test(address)) return null;
+    if (!Number.isInteger(input.chainId) || input.chainId <= 0) return null;
+    return { chainId: input.chainId, address };
+  }
+  // Symbol fallback: Ethereum mainnet (chainId 1) covered symbols only.
+  if (input.chainId !== 1) return null;
+  const address = TOKEN_ADDRESS_BY_SYMBOL[input.asset.toUpperCase()];
+  return address ? { chainId: 1, address } : null;
+}
+
+/**
+ * Kick off the raw third-party token-security fetch without awaiting it, so
+ * the ~sub-second GoPlus call overlaps the oracle consensus work instead of
+ * extending tail latency. Returns null when no address resolves (fields will
+ * be omitted). Any downstream failure also resolves to null.
+ */
+function startTokenSecurityFetch(input: PreTradeSafetyInput): Promise<GoPlusRawResult | null> {
+  const resolved = resolveTokenSecurityAddress(input);
+  if (!resolved) return Promise.resolve(null);
+  return fetchGoPlusTokenSecurity(resolved.chainId, resolved.address);
+}
+
+/**
+ * Build and sign the contextAttestation from the fetched raw evidence, then
+ * attach both advisory fields to the result. Transaction context pins the
+ * issued verdict attestation uid when one exists (AIUC-1 D003 slot). On ANY
+ * failure — fetch null, signing unavailable, signing error — both fields stay
+ * undefined: we never emit an unsigned evidence lookalike, and never let this
+ * lane affect the verdict or throw.
+ */
+async function attachTokenSecurityEvidence(
+  input: PreTradeSafetyInput,
+  result: PreTradeSafetyResult,
+  fetchPromise: Promise<GoPlusRawResult | null>
+): Promise<void> {
+  try {
+    const raw = await fetchPromise;
+    if (!raw) return;
+
+    const resolved = resolveTokenSecurityAddress(input);
+    if (!resolved) return;
+
+    const capturedAt = new Date().toISOString();
+    const entry = {
+      kind: 'third_party_token_scan',
+      source: 'gopluslabs',
+      request: {
+        chainId: resolved.chainId,
+        contractAddress: raw.contractAddress,
+      },
+      rawResponseSha256: rawBodySha256(raw.rawBody),
+      retrievedAt: raw.fetchedAt,
+      toolVersion: 'goplus.token_security.v1',
+      authorization: 'public-source.advisory-only.v1',
+      latencyMs: raw.latencyMs,
+      ...(result.attestation?.uid ? { transactionContext: result.attestation.uid } : {}),
+    };
+
+    const attestation = await signContextAttestation({
+      entries: [entry],
+      capturedAt,
+      transactionContext: entry.transactionContext,
+    });
+    if (!attestation) return; // fail-closed: omit both fields, stay advisory
+
+    result.contextAttestation = attestation;
+    result.tokenSecurity = {
+      sourcedFrom: 'gopluslabs',
+      rawHash: entry.rawResponseSha256,
+      advisory: true,
+      ...parseTokenSecurityViewFields(raw.record),
+    };
+  } catch (e) {
+    logger.warn('Token-security evidence lane failed; advisory omitted', {
+      error: e instanceof Error ? e.message : String(e),
+    });
+  }
+}
+
 /**
  * Run a pre-trade oracle safety check.
  *
@@ -1643,6 +1783,10 @@ export async function preTradeSafetyCheck(
   // 3b. Advisory manipulation-cost context (see fetchManipCostAdvisorySafe —
   // EVIDENCE ONLY, never a verdict gate, never in the signed attestation).
   const manipulationCost = await fetchManipCostAdvisorySafe(input.asset, input.chainId);
+  // 3c. Token-security evidence lane — started WITHOUT awaiting so the fetch
+  // overlaps oracle consensus work; signed+attached after the verdict
+  // attestation issues (needs its uid). EVIDENCE ONLY: never a verdict gate.
+  const tokenSecurityFetch = startTokenSecurityFetch(input);
   try {
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
     const supabase = createServiceRoleClient();
@@ -2024,6 +2168,10 @@ export async function preTradeSafetyCheck(
       error: error instanceof Error ? error.message : String(error),
     });
   }
+
+  // 7. Advisory evidence lanes (see attachTokenSecurityEvidence): signed
+  // third-party capture + parsed view, omitted on any failure.
+  await attachTokenSecurityEvidence(input, result, tokenSecurityFetch);
 
   // Do not issue a safety verdict that cannot be accounted for later.
   await logAudit(input, result, meta);

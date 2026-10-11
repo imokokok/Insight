@@ -47,6 +47,7 @@ async function executePreTradeCheck(params: PreTradeCheckParams): Promise<NextRe
       protocolId: query.protocolId,
       schemaVersion: query.schemaVersion,
       destinationAsset: query.destinationAsset,
+      tokenAddress: query.tokenAddress,
     },
     {
       apiKeyId,

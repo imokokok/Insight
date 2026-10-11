@@ -10,6 +10,11 @@ import { getFeedStalenessBaselineMap } from '@/lib/oracles/feedCadence';
 import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import {
+  signContextAttestation,
+  type ContextAttestation,
+} from '@/lib/tokenSecurity/contextAttestation';
+import { fetchGoPlusTokenSecurity, type GoPlusRawResult } from '@/lib/tokenSecurity/goplus';
 import { Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { preTradeSafetyCheck, type PreTradeSafetyInput } from '../preTradeSafetyService';
@@ -55,6 +60,20 @@ jest.mock('@/lib/oracles/feedCadence', () => ({
 // overrides per-case.
 jest.mock('@/lib/manipCost/baseline', () => ({
   getManipCostAdvisory: jest.fn(() => Promise.resolve(null)),
+}));
+
+// Token-security evidence lane (decision-input expansion): default OFF (null
+// fetch → both fields omitted) so unrelated tests are unaffected; the
+// evidence-lane describe block overrides per-case. The canonical digest /
+// parser stay real via requireActual.
+jest.mock('@/lib/tokenSecurity/goplus', () => ({
+  ...jest.requireActual('@/lib/tokenSecurity/goplus'),
+  fetchGoPlusTokenSecurity: jest.fn(() => Promise.resolve(null)),
+}));
+
+jest.mock('@/lib/tokenSecurity/contextAttestation', () => ({
+  ...jest.requireActual('@/lib/tokenSecurity/contextAttestation'),
+  signContextAttestation: jest.fn(() => Promise.resolve(null)),
 }));
 
 // The cadence-relative CAUTION path is opt-in via ENABLE_CADENCE_CAUTION (default
@@ -127,6 +146,12 @@ const mockedGetFeedStalenessBaselineMap = getFeedStalenessBaselineMap as jest.Mo
 >;
 const mockedGetManipCostAdvisory = getManipCostAdvisory as jest.MockedFunction<
   typeof getManipCostAdvisory
+>;
+const mockedFetchGoPlusTokenSecurity = fetchGoPlusTokenSecurity as jest.MockedFunction<
+  typeof fetchGoPlusTokenSecurity
+>;
+const mockedSignContextAttestation = signContextAttestation as jest.MockedFunction<
+  typeof signContextAttestation
 >;
 
 // ---------------------------------------------------------------------------
@@ -1571,5 +1596,214 @@ describe('preTradeSafetyCheck — manipulation-cost advisory', () => {
 
     expect(result.verdict).toBe('PASS');
     expect(result.manipulationCost).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Token-security evidence lane (decision-input expansion) — advisory only,
+// signed capture + parsed view, fail-closed omission, never a verdict gate.
+// ---------------------------------------------------------------------------
+
+const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const CONTEXT_RAW_BODY = '{"code":1,"result":{"is_honeypot":"0"}}';
+
+function makeRawResult(overrides: Partial<GoPlusRawResult> = {}): GoPlusRawResult {
+  return {
+    contractAddress: USDC_MAINNET,
+    rawBody: CONTEXT_RAW_BODY,
+    record: {
+      token_symbol: 'USD Coin',
+      is_honeypot: '0',
+      buy_tax: '0',
+      sell_tax: '0',
+      is_open_source: '1',
+      is_proxy: '1',
+      holder_count: '11072602',
+      is_in_cex: '1',
+      trust_list: '1',
+    },
+    fetchedAt: '2026-10-12T15:00:00.000Z',
+    latencyMs: 123,
+    ...overrides,
+  };
+}
+
+function makeSignedContext(
+  entryOverrides: Partial<ContextAttestation['entries'][0]> = {}
+): ContextAttestation {
+  return {
+    schemaVersion: 1,
+    capturedAt: '2026-10-12T15:00:00.000Z',
+    entries: [
+      {
+        kind: 'third_party_token_scan',
+        source: 'gopluslabs',
+        request: { chainId: 1, contractAddress: USDC_MAINNET },
+        rawResponseSha256: `0x${'ab'.repeat(32)}`,
+        retrievedAt: '2026-10-12T15:00:00.000Z',
+        toolVersion: 'goplus.token_security.v1',
+        authorization: 'public-source.advisory-only.v1',
+        latencyMs: 123,
+        transactionContext: '0xverdictuid',
+        priorSeal: {
+          manifest: 'context-attestation.v1',
+          signature: '0xsigned',
+          keyId: '0x0000000000000000000000000000000000000001',
+        },
+        ...entryOverrides,
+      },
+    ],
+  };
+}
+
+describe('preTradeSafetyCheck — token-security evidence lane (advisory)', () => {
+  it('attaches signed evidence for an explicit tokenAddress without affecting the verdict', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1, deviationPct: 0.01 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1.0001, deviationPct: 0.01 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 0.9999, deviationPct: 0.01 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+    mockedFetchGoPlusTokenSecurity.mockResolvedValue(makeRawResult());
+    // Mirror the real signer's shape: the canned attestation carries the SAME
+    // digest the service computed from the raw body (rawBodySha256 is real via
+    // requireActual), so the view↔attestation link assertion is meaningful.
+    mockedSignContextAttestation.mockImplementation(async (input) =>
+      makeSignedContext({
+        rawResponseSha256: input.entries[0].rawResponseSha256,
+        retrievedAt: input.entries[0].retrievedAt,
+        transactionContext: input.transactionContext,
+      })
+    );
+
+    const result = await preTradeSafetyCheck(
+      makeInput({ asset: 'USDC', chainId: 1, tokenAddress: USDC_MAINNET })
+    );
+
+    expect(mockedFetchGoPlusTokenSecurity).toHaveBeenCalledWith(1, USDC_MAINNET);
+    expect(result.contextAttestation).toBeDefined();
+    expect(result.tokenSecurity).toBeDefined();
+    expect(result.tokenSecurity?.advisory).toBe(true);
+    expect(result.tokenSecurity?.isHoneypot).toBe(false);
+    expect(result.tokenSecurity?.holderCount).toBe(11_072_602);
+    // The advisory view links to the signed raw capture (draft contract).
+    expect(result.tokenSecurity?.rawHash).toBe(
+      result.contextAttestation?.entries[0].rawResponseSha256
+    );
+    // Evidence never gates the verdict.
+    expect(result.verdict).toBe('PASS');
+    // Evidence never enters the signed oracle attestation input.
+    const attestationInput = mockedSignAttestationV2.mock.calls[0]?.[0] as
+      | Record<string, unknown>
+      | undefined;
+    if (attestationInput) {
+      expect(attestationInput).not.toHaveProperty('contextAttestation');
+      expect(attestationInput).not.toHaveProperty('tokenSecurity');
+    }
+  });
+
+  it('uses the built-in Ethereum symbol map when tokenAddress is omitted', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1, deviationPct: 0.01 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1.0001, deviationPct: 0.01 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 0.9999, deviationPct: 0.01 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+    mockedFetchGoPlusTokenSecurity.mockResolvedValue(null);
+
+    await preTradeSafetyCheck(makeInput({ asset: 'USDC', chainId: 1 }));
+
+    expect(mockedFetchGoPlusTokenSecurity).toHaveBeenCalledWith(1, USDC_MAINNET);
+  });
+
+  it('does not resolve symbols on non-mainnet chains without an explicit address', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1, deviationPct: 0.01 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1.0001, deviationPct: 0.01 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 0.9999, deviationPct: 0.01 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(
+      makeInput({ asset: 'USDC', chainId: 8453, schemaVersion: 3 })
+    );
+
+    expect(mockedFetchGoPlusTokenSecurity).not.toHaveBeenCalled();
+    expect(result.contextAttestation).toBeUndefined();
+    expect(result.tokenSecurity).toBeUndefined();
+  });
+
+  it('omits both fields (absent from JSON, not null) when the scan fails', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1, deviationPct: 0.01 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1.0001, deviationPct: 0.01 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 0.9999, deviationPct: 0.01 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+    mockedFetchGoPlusTokenSecurity.mockResolvedValue(null);
+
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'USDC', chainId: 1 }));
+
+    expect(result.contextAttestation).toBeUndefined();
+    expect(result.tokenSecurity).toBeUndefined();
+    const serialized = JSON.parse(JSON.stringify(result));
+    expect(serialized).not.toHaveProperty('contextAttestation');
+    expect(serialized).not.toHaveProperty('tokenSecurity');
+    expect(result.verdict).toBe('PASS');
+  });
+
+  it('emits nothing when signing is unavailable (fail-closed, no unsigned evidence lookalikes)', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1, deviationPct: 0.01 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1.0001, deviationPct: 0.01 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 0.9999, deviationPct: 0.01 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+    mockedFetchGoPlusTokenSecurity.mockResolvedValue(makeRawResult());
+    mockedSignContextAttestation.mockResolvedValue(null);
+
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'USDC', chainId: 1 }));
+
+    expect(mockedFetchGoPlusTokenSecurity).toHaveBeenCalled();
+    expect(result.contextAttestation).toBeUndefined();
+    expect(result.tokenSecurity).toBeUndefined();
+    expect(result.verdict).toBe('PASS');
+  });
+
+  it('reports a flagged token verbatim but never lets it gate the verdict (禁合成/禁判断)', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1, deviationPct: 0.01 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1.0001, deviationPct: 0.01 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 0.9999, deviationPct: 0.01 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+    mockedFetchGoPlusTokenSecurity.mockResolvedValue(
+      makeRawResult({
+        record: {
+          is_honeypot: '1',
+          buy_tax: '0.99',
+          sell_tax: '0.99',
+          is_open_source: '0',
+          trust_list: '0',
+        },
+      })
+    );
+    mockedSignContextAttestation.mockImplementation(async (input) =>
+      makeSignedContext({
+        rawResponseSha256: input.entries[0].rawResponseSha256,
+        retrievedAt: input.entries[0].retrievedAt,
+      })
+    );
+
+    const result = await preTradeSafetyCheck(
+      makeInput({ asset: 'SCAM', chainId: 1, tokenAddress: USDC_MAINNET })
+    );
+
+    expect(result.tokenSecurity?.isHoneypot).toBe(true);
+    expect(result.tokenSecurity?.buyTaxPct).toBe(99);
+    expect(result.tokenSecurity?.sellTaxPct).toBe(99);
+    expect(result.tokenSecurity?.isOpenSource).toBe(false);
+    expect(result.verdict).toBe('PASS');
+    expect(result.warnings).toEqual(['No oracle risk signals detected.']);
   });
 });
