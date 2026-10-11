@@ -8,11 +8,17 @@ import HomeContent from './HomeContent';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Insight — Oracle Transparency & Risk Intelligence for DeFi',
+  title: 'Insight — Decision-Input Integrity for AI Agents & Oracle Risk Intelligence',
   description:
-    'Oracle transparency and risk intelligence for DeFi. Compare sources, assess deviation, freshness and independence, and preserve signed assessment evidence for protocols and AI agents.',
+    'Before an AI agent acts on a price, verify that the price can be trusted. Multi-source assessment, signed pre-trade verdicts, and preserved evidence — decision-input integrity for onchain agents, with oracle risk as the first assessment domain.',
   keywords: [
+    'decision-input integrity',
+    'pre-trade safety',
+    'agent safety',
+    'AI agents',
+    'MCP',
     'oracle',
+    'oracle risk intelligence',
     'chainlink',
     'price data',
     'blockchain',
@@ -20,25 +26,21 @@ export const metadata: Metadata = {
     'risk',
     'liquidation',
     'transparency',
-    'oracle risk intelligence',
-    'AI agents',
-    'MCP',
     'DeFi agent SDK',
     'execution receipt',
-    'pre-trade safety',
     'uni',
   ],
   openGraph: {
-    title: 'Insight — Oracle Transparency & Risk Intelligence for DeFi',
+    title: 'Insight — Decision-Input Integrity for AI Agents & Oracle Risk Intelligence',
     description:
-      'See the oracles behind the price. Compare sources, understand oracle risk, and retain verifiable assessment evidence for DeFi.',
+      'Before an agent acts on a price, verify the price. Multi-source assessment, signed pre-trade verdicts, and verifiable evidence for agents and DeFi.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Insight — Oracle Transparency & Risk Intelligence for DeFi',
+    title: 'Insight — Decision-Input Integrity for AI Agents & Oracle Risk Intelligence',
     description:
-      'See the oracles behind the price. Compare sources, understand oracle risk, and retain verifiable assessment evidence for DeFi.',
+      'Before an agent acts on a price, verify the price. Multi-source assessment, signed pre-trade verdicts, and verifiable evidence for agents and DeFi.',
   },
 };
 

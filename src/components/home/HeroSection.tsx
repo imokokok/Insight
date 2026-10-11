@@ -38,7 +38,8 @@ export function HeroSection() {
             </h1>
             <p className="home-hero-description home-hero-reveal home-hero-reveal-3">
               A price is a surface. Insight reveals the oracle sources, their agreement, their
-              freshness, and the risk of acting on them.
+              freshness, and the risk of acting on them — and returns a signed pre-trade verdict for
+              AI agents that act on prices without a human in the loop.
             </p>
             <div className="home-hero-actions home-hero-reveal home-hero-reveal-4">
               <Link href="#live-evidence" className="home-hero-primary">

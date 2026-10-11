@@ -10,6 +10,16 @@ Published in response to the draft structure given in
 and the commitment recorded in
 [comment 6052028329](https://github.com/x402-foundation/x402/issues/2833#issuecomment-6052028329).
 
+## Scope: a domain-neutral artifact, oracle-first profiles
+
+The artifact shape is deliberately domain-neutral. `profile` names the assessment
+procedure; the first implemented profile is `oracle-pretrade` (is the price this
+action relies on trustworthy?), alongside `execution` (did the paid interaction do
+what it claimed?). The same `subject`/`measurement`/`attester` shape can carry any
+pre-decision or post-interaction quality claim about a paid interaction: future
+decision-input domains slot in as new profiles, not schema forks. Oracle feeds are
+where this implementation is deepest today, not the boundary of the artifact.
+
 ## The predicate split
 
 Two questions get conflated, and they are not the same question:
