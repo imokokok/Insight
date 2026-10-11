@@ -1,10 +1,12 @@
 /**
  * pre_trade_safety_check MCP tool.
  *
- * The oracle risk assessment entry point. Applications and agents SHOULD call
- * this tool before a swap/borrow/lend/liquidation to assess cross-oracle
- * deviation, freshness, and other risk signals. PASS/CAUTION/DANGER/BLOCK is
- * a policy assessment, not a guarantee of price correctness or economic safety.
+ * The decision-input integrity entry point for agents: before acting on a
+ * price, assess whether that price can be trusted. Oracle feeds are the first
+ * assessment domain — applications and agents SHOULD call this tool before a
+ * swap/borrow/lend/liquidation to assess cross-oracle deviation, freshness,
+ * and other risk signals. PASS/CAUTION/DANGER/BLOCK is a policy assessment,
+ * not a guarantee of price correctness or economic safety.
  *
  * Agents MUST NOT execute trades when the verdict is DANGER or BLOCK.
  */
@@ -52,12 +54,13 @@ function formatContributingFactors(result: PreTradeSafetyResult): string[] {
 export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInputSchema> = {
   name: 'pre_trade_safety_check',
   description: [
-    'Pre-trade oracle safety checkpoint for AI agents. Call this BEFORE executing any on-chain',
-    'swap/borrow/lend/liquidation/repay to assess oracle risk. Aggregates cross-oracle',
-    'consensus prices, per-provider deviation, data freshness, stablecoin peg status, and reputation',
-    'into a single verdict: PASS / CAUTION / DANGER / BLOCK. AI agents MUST NOT execute trades when',
-    'the verdict is DANGER or BLOCK. Also returns a recommended maximum position size. A PASS',
-    'is not principal authorization or a guarantee of price correctness or economic safety.',
+    'Pre-trade decision-input integrity checkpoint for AI agents. Call this BEFORE executing any',
+    'on-chain swap/borrow/lend/liquidation/repay to verify that the price the action relies on can',
+    'be trusted. First assessment domain: oracle risk — aggregates cross-oracle consensus prices,',
+    'per-provider deviation, data freshness, stablecoin peg status, and reputation into a single',
+    'verdict: PASS / CAUTION / DANGER / BLOCK. AI agents MUST NOT execute trades when the verdict',
+    'is DANGER or BLOCK. Also returns a recommended maximum position size. A PASS is not principal',
+    'authorization or a guarantee of price correctness or economic safety.',
   ].join(' '),
   parameters: PreTradeSafetyInputSchema,
   handler: async (args) => {
