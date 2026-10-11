@@ -121,6 +121,15 @@ jobs:
         if: (success() || failure()) && steps.guard.outputs.should_run == 'true'
         run: node .github/cron-dist/collect-market-reference.mjs
 
+      # Manipulation-cost layer (foundation block ②: DEX pool depth -> cost to
+      # move price, arXiv:2606.03548), same 15-min cadence and proven runner.
+      # Evidence-only: writes manip_cost_pool_snapshots (migration 0082).
+      # Fail-closed per pool; the step hard-fails only when zero pools succeed
+      # (same policy as the market-reference step above).
+      - name: Collect manipulation cost
+        if: (success() || failure()) && steps.guard.outputs.should_run == 'true'
+        run: node .github/cron-dist/collect-manip-cost.mjs
+
       - name: Finish run ledger
         if: always() && steps.guard.outputs.should_run == 'true'
         env:
