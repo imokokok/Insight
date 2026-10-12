@@ -318,7 +318,7 @@ export const PreTradeSafetyInputSchema = z.object({
     .regex(/^0x[0-9a-fA-F]{40}$/, 'tokenAddress must be a 20-byte EVM contract address')
     .optional()
     .describe(
-      'Optional token contract address whose third-party security scan is captured and signed as decision-input evidence (contextAttestation + tokenSecurity advisory view). When omitted, a built-in symbol map (Ethereum mainnet ETH/USDC/WBTC) is used. Advisory only — never affects the verdict.'
+      'Optional token contract address whose third-party scan is returned as an advisory view linked to an Insight-signed capture statement (contextAttestation + tokenSecurity). Schema v2 binds the exact normalized view digest, but does not prove source correctness or agent consumption. When omitted, a built-in symbol map (Ethereum mainnet ETH/USDC/WBTC) is used. Advisory only — never affects the verdict.'
     ),
 });
 

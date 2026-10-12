@@ -11,7 +11,9 @@ import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import {
+  CONTEXT_ATTESTATION_MANIFEST,
   signContextAttestation,
+  tokenSecurityViewSha256,
   type ContextAttestation,
 } from '@/lib/tokenSecurity/contextAttestation';
 import { fetchGoPlusTokenSecurity, type GoPlusRawResult } from '@/lib/tokenSecurity/goplus';
@@ -1632,7 +1634,7 @@ function makeSignedContext(
   entryOverrides: Partial<ContextAttestation['entries'][0]> = {}
 ): ContextAttestation {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     capturedAt: '2026-10-12T15:00:00.000Z',
     entries: [
       {
@@ -1640,13 +1642,14 @@ function makeSignedContext(
         source: 'gopluslabs',
         request: { chainId: 1, contractAddress: USDC_MAINNET },
         rawResponseSha256: `0x${'ab'.repeat(32)}`,
+        normalizedResultSha256: `0x${'cd'.repeat(32)}`,
         retrievedAt: '2026-10-12T15:00:00.000Z',
         toolVersion: 'goplus.token_security.v1',
         authorization: 'public-source.advisory-only.v1',
         latencyMs: 123,
         transactionContext: '0xverdictuid',
         priorSeal: {
-          manifest: 'context-attestation.v1',
+          manifest: CONTEXT_ATTESTATION_MANIFEST,
           signature: '0xsigned',
           keyId: '0x0000000000000000000000000000000000000001',
         },
@@ -1665,12 +1668,12 @@ describe('preTradeSafetyCheck — token-security evidence lane (advisory)', () =
     ];
     mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
     mockedFetchGoPlusTokenSecurity.mockResolvedValue(makeRawResult());
-    // Mirror the real signer's shape: the canned attestation carries the SAME
-    // digest the service computed from the raw body (rawBodySha256 is real via
-    // requireActual), so the view↔attestation link assertion is meaningful.
+    // Mirror the real signer: both the source response and normalized view
+    // digests are carried in the canned signed entry.
     mockedSignContextAttestation.mockImplementation(async (input) =>
       makeSignedContext({
         rawResponseSha256: input.entries[0].rawResponseSha256,
+        normalizedResultSha256: input.entries[0].normalizedResultSha256,
         retrievedAt: input.entries[0].retrievedAt,
         transactionContext: input.transactionContext,
       })
@@ -1686,9 +1689,12 @@ describe('preTradeSafetyCheck — token-security evidence lane (advisory)', () =
     expect(result.tokenSecurity?.advisory).toBe(true);
     expect(result.tokenSecurity?.isHoneypot).toBe(false);
     expect(result.tokenSecurity?.holderCount).toBe(11_072_602);
-    // The advisory view links to the signed raw capture (draft contract).
+    // The returned view links to the signed source hash and signed view digest.
     expect(result.tokenSecurity?.rawHash).toBe(
       result.contextAttestation?.entries[0].rawResponseSha256
+    );
+    expect(result.contextAttestation?.entries[0].normalizedResultSha256).toBe(
+      tokenSecurityViewSha256(result.tokenSecurity!)
     );
     // Evidence never gates the verdict.
     expect(result.verdict).toBe('PASS');
@@ -1791,6 +1797,7 @@ describe('preTradeSafetyCheck — token-security evidence lane (advisory)', () =
     mockedSignContextAttestation.mockImplementation(async (input) =>
       makeSignedContext({
         rawResponseSha256: input.entries[0].rawResponseSha256,
+        normalizedResultSha256: input.entries[0].normalizedResultSha256,
         retrievedAt: input.entries[0].retrievedAt,
       })
     );

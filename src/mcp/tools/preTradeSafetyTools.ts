@@ -137,8 +137,8 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
 
     if (result.tokenSecurity && result.contextAttestation) {
       const ts = result.tokenSecurity;
-      // One-line advisory render. Presence of the signed contextAttestation is
-      // what makes this line evidence rather than a bare GoPlus passthrough.
+      // One-line advisory render. V2 links the normalized view to the signed
+      // capture statement; the statement is not a source-truth guarantee.
       lines.push(
         `- Token security (advisory, ${ts.sourcedFrom} · signed · not a verdict input):` +
           ` honeypot=${ts.isHoneypot ?? 'unreported'}` +

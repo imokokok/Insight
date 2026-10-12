@@ -26,6 +26,16 @@ export {
 export { resolveKeyStatus } from './keyRegistry';
 export { parsePinnedKeyRegistry, type PinnedKeyRegistry } from './snapshot';
 export {
+  verifyContextAttestation,
+  CONTEXT_ATTESTATION_V1_MANIFEST,
+  CONTEXT_ATTESTATION_V2_MANIFEST,
+  TOKEN_SECURITY_VIEW_SCHEMA,
+  canonicalContextJson,
+  type ContextAttestationVerifyOptions,
+  type ContextAttestationVerification,
+  type ContextTokenSecurityView,
+} from './contextAttestation';
+export {
   verifyExecutionReceipt,
   verifyExecutionPair,
   executionTypesForSchemaVersion,
