@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { clearGoPlusCacheForTest, fetchGoPlusTokenSecurity } from '../goplus';
 
 const USDC_BASE = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
@@ -26,6 +27,9 @@ describe('fetchGoPlusTokenSecurity', () => {
   beforeEach(() => {
     clearGoPlusCacheForTest();
     fetchMock.mockReset();
+    delete process.env.GOPLUS_APP_KEY;
+    delete process.env.GOPLUS_APP_SECRET;
+    delete process.env.GOPLUS_API_KEY;
     // jsdom test env has no global fetch — assign directly (the client reads
     // globalThis.fetch lazily at call time via its default parameter).
     (globalThis as { fetch?: unknown }).fetch = fetchMock as unknown;
@@ -33,6 +37,9 @@ describe('fetchGoPlusTokenSecurity', () => {
 
   afterEach(() => {
     delete (globalThis as { fetch?: unknown }).fetch;
+    delete process.env.GOPLUS_APP_KEY;
+    delete process.env.GOPLUS_APP_SECRET;
+    delete process.env.GOPLUS_API_KEY;
   });
 
   it('returns the raw body plus record on a healthy response', async () => {
@@ -61,23 +68,57 @@ describe('fetchGoPlusTokenSecurity', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('sends the Authorization header only when GOPLUS_API_KEY is set', async () => {
-    fetchMock.mockResolvedValue(new Response(goPlusOkBody(HEALTHY_RECORD), { status: 200 }));
+  it('exchanges app credentials, caches the access token, and sends it raw', async () => {
+    process.env.GOPLUS_APP_KEY = 'test-app-key';
+    process.env.GOPLUS_APP_SECRET = 'test-app-secret';
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            code: 1,
+            result: { access_token: 'test-access-token', expires_in: 3600 },
+          }),
+          { status: 200 }
+        )
+      )
+      .mockResolvedValueOnce(new Response(goPlusOkBody(HEALTHY_RECORD), { status: 200 }))
+      .mockResolvedValueOnce(new Response(goPlusOkBody(HEALTHY_RECORD), { status: 200 }));
 
-    delete process.env.GOPLUS_API_KEY;
-    await fetchGoPlusTokenSecurity(8453, USDC_BASE);
-    const keylessHeaders = (fetchMock.mock.calls[0][1]?.headers ?? {}) as Record<string, string>;
-    expect(keylessHeaders.Authorization).toBeUndefined();
+    const result = await fetchGoPlusTokenSecurity(8453, USDC_BASE);
+    await fetchGoPlusTokenSecurity(1, USDC_BASE);
 
-    clearGoPlusCacheForTest();
-    process.env.GOPLUS_API_KEY = 'test-token-123';
-    try {
-      await fetchGoPlusTokenSecurity(8453, USDC_BASE);
-      const keyedHeaders = (fetchMock.mock.calls[1][1]?.headers ?? {}) as Record<string, string>;
-      expect(keyedHeaders.Authorization).toBe('Bearer test-token-123');
-    } finally {
-      delete process.env.GOPLUS_API_KEY;
-    }
+    expect(result).not.toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    const tokenRequest = fetchMock.mock.calls[0];
+    expect(tokenRequest[0]).toBe('https://api.gopluslabs.io/api/v1/token');
+    expect(tokenRequest[1]?.method).toBe('POST');
+    const tokenBody = JSON.parse(String(tokenRequest[1]?.body)) as {
+      app_key: string;
+      time: string;
+      sign: string;
+    };
+    expect(tokenBody.app_key).toBe('test-app-key');
+    expect(tokenBody.sign).toBe(
+      createHash('sha1').update(`test-app-key${tokenBody.time}test-app-secret`).digest('hex')
+    );
+    const securityHeaders = (fetchMock.mock.calls[1][1]?.headers ?? {}) as Record<string, string>;
+    expect(securityHeaders.Authorization).toBe('test-access-token');
+    const secondSecurityHeaders = (fetchMock.mock.calls[2][1]?.headers ?? {}) as Record<
+      string,
+      string
+    >;
+    expect(secondSecurityHeaders.Authorization).toBe('test-access-token');
+  });
+
+  it('omits the advisory if only one app credential is configured', async () => {
+    process.env.GOPLUS_APP_KEY = 'test-app-key';
+    const outcome = jest.fn();
+
+    const result = await fetchGoPlusTokenSecurity(8453, USDC_BASE, fetchMock, outcome);
+
+    expect(result).toBeNull();
+    expect(outcome).toHaveBeenCalledWith('fetch_exception');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('returns null on a non-OK GoPlus error code (never synthesizes)', async () => {
