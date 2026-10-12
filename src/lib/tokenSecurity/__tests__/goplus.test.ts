@@ -59,6 +59,25 @@ describe('fetchGoPlusTokenSecurity', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('sends the Authorization header only when GOPLUS_API_KEY is set', async () => {
+    fetchMock.mockResolvedValue(new Response(goPlusOkBody(HEALTHY_RECORD), { status: 200 }));
+
+    delete process.env.GOPLUS_API_KEY;
+    await fetchGoPlusTokenSecurity(8453, USDC_BASE);
+    const keylessHeaders = (fetchMock.mock.calls[0][1]?.headers ?? {}) as Record<string, string>;
+    expect(keylessHeaders.Authorization).toBeUndefined();
+
+    clearGoPlusCacheForTest();
+    process.env.GOPLUS_API_KEY = 'test-token-123';
+    try {
+      await fetchGoPlusTokenSecurity(8453, USDC_BASE);
+      const keyedHeaders = (fetchMock.mock.calls[1][1]?.headers ?? {}) as Record<string, string>;
+      expect(keyedHeaders.Authorization).toBe('test-token-123');
+    } finally {
+      delete process.env.GOPLUS_API_KEY;
+    }
+  });
+
   it('returns null on a non-OK GoPlus error code (never synthesizes)', async () => {
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({ code: 0, message: 'rate limited' }), { status: 200 })
