@@ -78,6 +78,7 @@ import {
 import {
   fetchGoPlusTokenSecurity,
   parseTokenSecurityViewFields,
+  type GoPlusLaneOutcome,
   type GoPlusRawResult,
 } from '@/lib/tokenSecurity/goplus';
 import { roundTo } from '@/lib/utils/format';
@@ -163,6 +164,12 @@ export interface PreTradeSafetyInput {
    * the signed oracle attestation.
    */
   tokenAddress?: string;
+  /**
+   * Opt-in diagnostic surface (query `debugTokenSec=1`): attaches
+   * `tokenSecurityDebug` to the response with the advisory lane's terminal
+   * outcome. Never affects the verdict and adds no external calls.
+   */
+  debugTokenSecurity?: boolean;
 }
 
 /**
@@ -319,6 +326,17 @@ export interface PreTradeSafetyResult {
    * an Insight endorsement of the third party's conclusion).
    */
   tokenSecurity?: TokenSecurityView;
+  /**
+   * Opt-in diagnostic (query `debugTokenSec=1`): terminal outcome of the
+   * token-security advisory lane. Explicitly requested, so this is an honest
+   * probe result rather than a synthesized safety signal.
+   */
+  tokenSecurityDebug?: {
+    requested: boolean;
+    outcome: GoPlusLaneOutcome;
+    latencyMs?: number;
+    keyed: boolean;
+  };
   /**
    * EIP-712 offchain attestation proving "Insight verified oracle state for this
    * trade at time T". Portable, tamper-evident proof agents can relay in tx
@@ -1609,7 +1627,10 @@ function resolveTokenSecurityAddress(
  * extending tail latency. Returns null when no address resolves (fields will
  * be omitted). Any downstream failure also resolves to null.
  */
-function startTokenSecurityFetch(input: PreTradeSafetyInput): Promise<GoPlusRawResult | null> {
+function startTokenSecurityFetch(
+  input: PreTradeSafetyInput,
+  onOutcome?: (outcome: GoPlusLaneOutcome) => void
+): Promise<GoPlusRawResult | null> {
   const resolved = resolveTokenSecurityAddress(input);
   if (!resolved) {
     // Explicit param that fails resolution is a caller-visible config issue —
@@ -1620,9 +1641,45 @@ function startTokenSecurityFetch(input: PreTradeSafetyInput): Promise<GoPlusRawR
         chainId: input.chainId,
       });
     }
+    onOutcome?.('unresolved_address');
     return Promise.resolve(null);
   }
-  return fetchGoPlusTokenSecurity(resolved.chainId, resolved.address);
+  return fetchGoPlusTokenSecurity(resolved.chainId, resolved.address, globalThis.fetch, onOutcome);
+}
+
+/**
+ * Load per-symbol observed-cadence baselines (single indexed query).
+ * NON-BLOCKING by contract: on any failure we fall back to an empty map → no
+ * cadence CAUTION, but the 7-day absolute hard-block backstop still applies.
+ */
+async function loadStalenessBaselines(asset: string): Promise<Map<string, number | null>> {
+  try {
+    const { createServiceRoleClient } = await import('@/lib/supabase/server');
+    const supabase = createServiceRoleClient();
+    const fetched = await getFeedStalenessBaselineMap(supabase, asset);
+    return fetched instanceof Map ? fetched : new Map();
+  } catch (e) {
+    logger.warn('Failed to load staleness baselines; staleness will use absolute backstop only', {
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return new Map();
+  }
+}
+
+/**
+ * Bundle the lane fetch with its outcome capture so the main flow stays flat:
+ * `fetch` starts immediately (overlapping consensus work), `getOutcome` reports
+ * the terminal lane state for the opt-in debugTokenSec response surface.
+ */
+function createTokenSecurityLane(input: PreTradeSafetyInput): {
+  fetch: Promise<GoPlusRawResult | null>;
+  getOutcome: () => GoPlusLaneOutcome;
+} {
+  let outcome: GoPlusLaneOutcome = 'not_requested';
+  const fetchPromise = startTokenSecurityFetch(input, (o) => {
+    outcome = o;
+  });
+  return { fetch: fetchPromise, getOutcome: () => outcome };
 }
 
 /**
@@ -1636,10 +1693,20 @@ function startTokenSecurityFetch(input: PreTradeSafetyInput): Promise<GoPlusRawR
 async function attachTokenSecurityEvidence(
   input: PreTradeSafetyInput,
   result: PreTradeSafetyResult,
-  fetchPromise: Promise<GoPlusRawResult | null>
+  fetchPromise: Promise<GoPlusRawResult | null>,
+  getOutcome: () => GoPlusLaneOutcome
 ): Promise<void> {
+  const debugOn = Boolean(input.debugTokenSecurity);
   try {
     const raw = await fetchPromise;
+    if (debugOn) {
+      result.tokenSecurityDebug = {
+        requested: true,
+        outcome: getOutcome(),
+        latencyMs: raw?.latencyMs,
+        keyed: Boolean(process.env.GOPLUS_API_KEY),
+      };
+    }
     if (!raw) return;
 
     const resolved = resolveTokenSecurityAddress(input);
@@ -1796,17 +1863,9 @@ export async function preTradeSafetyCheck(
   // 3c. Token-security evidence lane — started WITHOUT awaiting so the fetch
   // overlaps oracle consensus work; signed+attached after the verdict
   // attestation issues (needs its uid). EVIDENCE ONLY: never a verdict gate.
-  const tokenSecurityFetch = startTokenSecurityFetch(input);
-  try {
-    const { createServiceRoleClient } = await import('@/lib/supabase/server');
-    const supabase = createServiceRoleClient();
-    const fetched = await getFeedStalenessBaselineMap(supabase, input.asset);
-    if (fetched instanceof Map) stalenessBaselines = fetched;
-  } catch (e) {
-    logger.warn('Failed to load staleness baselines; staleness will use absolute backstop only', {
-      error: e instanceof Error ? e.message : String(e),
-    });
-  }
+  // Outcome captured for the opt-in debugTokenSec response surface.
+  const tokenSecurityLane = createTokenSecurityLane(input);
+  stalenessBaselines = await loadStalenessBaselines(input.asset);
 
   const providerPrices = buildProviderPrices(consensus, stalenessBaselines);
 
@@ -2181,7 +2240,12 @@ export async function preTradeSafetyCheck(
 
   // 7. Advisory evidence lanes (see attachTokenSecurityEvidence): signed
   // third-party capture + parsed view, omitted on any failure.
-  await attachTokenSecurityEvidence(input, result, tokenSecurityFetch);
+  await attachTokenSecurityEvidence(
+    input,
+    result,
+    tokenSecurityLane.fetch,
+    tokenSecurityLane.getOutcome
+  );
 
   // Do not issue a safety verdict that cannot be accounted for later.
   await logAudit(input, result, meta);

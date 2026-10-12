@@ -1680,7 +1680,7 @@ describe('preTradeSafetyCheck — token-security evidence lane (advisory)', () =
       makeInput({ asset: 'USDC', chainId: 1, tokenAddress: USDC_MAINNET })
     );
 
-    expect(mockedFetchGoPlusTokenSecurity).toHaveBeenCalledWith(1, USDC_MAINNET);
+    expect(mockedFetchGoPlusTokenSecurity.mock.calls[0]?.slice(0, 2)).toEqual([1, USDC_MAINNET]);
     expect(result.contextAttestation).toBeDefined();
     expect(result.tokenSecurity).toBeDefined();
     expect(result.tokenSecurity?.advisory).toBe(true);
@@ -1713,7 +1713,7 @@ describe('preTradeSafetyCheck — token-security evidence lane (advisory)', () =
 
     await preTradeSafetyCheck(makeInput({ asset: 'USDC', chainId: 1 }));
 
-    expect(mockedFetchGoPlusTokenSecurity).toHaveBeenCalledWith(1, USDC_MAINNET);
+    expect(mockedFetchGoPlusTokenSecurity.mock.calls[0]?.slice(0, 2)).toEqual([1, USDC_MAINNET]);
   });
 
   it('does not resolve symbols on non-mainnet chains without an explicit address', async () => {
