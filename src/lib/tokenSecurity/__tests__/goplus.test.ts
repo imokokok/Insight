@@ -46,7 +46,9 @@ describe('fetchGoPlusTokenSecurity', () => {
     expect(result?.record.is_honeypot).toBe('0');
     expect(result?.contractAddress).toBe(USDC_BASE);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/token_security/8453');
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      'https://api.gopluslabs.io/api/v1/token_security/8453'
+    );
     expect(fetchMock.mock.calls[0][0]).toContain(encodeURIComponent(USDC_BASE));
   });
 
@@ -72,7 +74,7 @@ describe('fetchGoPlusTokenSecurity', () => {
     try {
       await fetchGoPlusTokenSecurity(8453, USDC_BASE);
       const keyedHeaders = (fetchMock.mock.calls[1][1]?.headers ?? {}) as Record<string, string>;
-      expect(keyedHeaders.Authorization).toBe('test-token-123');
+      expect(keyedHeaders.Authorization).toBe('Bearer test-token-123');
     } finally {
       delete process.env.GOPLUS_API_KEY;
     }
