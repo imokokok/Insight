@@ -70,8 +70,10 @@ import { getProtocolByIdWithDynamicData } from '@/lib/protocols/dynamicData';
 import { getStablecoinConfig } from '@/lib/stablecoins/config';
 import { calculateAllStablecoinSnapshots } from '@/lib/stablecoins/monitor';
 import {
+  normalizeTokenSecurityView,
   rawBodySha256,
   signContextAttestation,
+  tokenSecurityViewSha256,
   type ContextAttestation,
   type TokenSecurityView,
 } from '@/lib/tokenSecurity/contextAttestation';
@@ -310,17 +312,18 @@ export interface PreTradeSafetyResult {
   manipulationCost?: ManipCostAdvisory;
   /**
    * Signed third-party input evidence (decision-input expansion, lane 1):
-   * proves "Insight received this raw token-security response at time T".
-   * Independent nested EIP-712 signature (InsightContextAttestation domain) —
-   * deliberately NOT part of the oracle attestation, which stays unchanged.
+   * signs the source-response digest and the digest of the normalized view
+   * returned alongside it. This is an Insight capture statement, not proof
+   * that the source was correct or an agent consumed the view. The independent
+   * EIP-712 domain deliberately leaves the oracle attestation unchanged.
    * Emitted ONLY when raw evidence was captured AND signing succeeded
    * (fail-closed: no unsigned evidence lookalikes). Absence means "no
    * evidence", not "safe".
    */
   contextAttestation?: ContextAttestation;
   /**
-   * Advisory parsed view of the third-party token scan linked by `rawHash` to
-   * the signed capture above. Flag passthrough only — Insight makes no
+   * Advisory parsed view of the third-party token scan linked by `rawHash` and
+   * `normalizedResultSha256` to the signed capture above. Flag passthrough only — Insight makes no
    * honeypot/tax judgment and never adjusts the verdict for these values.
    * Omitted together with contextAttestation (an unsigned view would read as
    * an Insight endorsement of the third party's conclusion).
@@ -1683,9 +1686,9 @@ function createTokenSecurityLane(input: PreTradeSafetyInput): {
 }
 
 /**
- * Build and sign the contextAttestation from the fetched raw evidence, then
- * attach both advisory fields to the result. Transaction context pins the
- * issued verdict attestation uid when one exists (AIUC-1 D003 slot). On ANY
+ * Build and sign the contextAttestation from the fetched raw evidence and the
+ * exact normalized view returned alongside it. Transaction context pins the
+ * issued verdict attestation uid when one exists. On ANY
  * failure — fetch null, signing unavailable, signing error — both fields stay
  * undefined: we never emit an unsigned evidence lookalike, and never let this
  * lane affect the verdict or throw.
@@ -1713,6 +1716,16 @@ async function attachTokenSecurityEvidence(
     if (!resolved) return;
 
     const capturedAt = new Date().toISOString();
+    const rawHash = rawBodySha256(raw.rawBody);
+    const tokenSecurity = normalizeTokenSecurityView({
+      schema: 'insight.token-security-view.v1',
+      sourcedFrom: 'gopluslabs',
+      rawHash,
+      advisory: true,
+      ...parseTokenSecurityViewFields(raw.record),
+    });
+    if (!tokenSecurity) return;
+
     const entry = {
       kind: 'third_party_token_scan',
       source: 'gopluslabs',
@@ -1720,7 +1733,8 @@ async function attachTokenSecurityEvidence(
         chainId: resolved.chainId,
         contractAddress: raw.contractAddress,
       },
-      rawResponseSha256: rawBodySha256(raw.rawBody),
+      rawResponseSha256: rawHash,
+      normalizedResultSha256: tokenSecurityViewSha256(tokenSecurity),
       retrievedAt: raw.fetchedAt,
       toolVersion: 'goplus.token_security.v1',
       authorization: 'public-source.advisory-only.v1',
@@ -1736,12 +1750,7 @@ async function attachTokenSecurityEvidence(
     if (!attestation) return; // fail-closed: omit both fields, stay advisory
 
     result.contextAttestation = attestation;
-    result.tokenSecurity = {
-      sourcedFrom: 'gopluslabs',
-      rawHash: entry.rawResponseSha256,
-      advisory: true,
-      ...parseTokenSecurityViewFields(raw.record),
-    };
+    result.tokenSecurity = tokenSecurity;
   } catch (e) {
     logger.warn('Token-security evidence lane failed; advisory omitted', {
       error: e instanceof Error ? e.message : String(e),

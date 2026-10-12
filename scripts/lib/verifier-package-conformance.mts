@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { concat, hashTypedData, keccak256 } from 'viem';
+import { concat, hashTypedData, keccak256, sha256, toBytes } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import type { KeyRegistry, RoutableAttestation, ExecutionReceipt } from '../../verifier/src/index';
 
@@ -248,6 +248,93 @@ assert.equal(
   ).pairedValid,
   false
 );
+
+// Context-attestation V2 is part of the packed public API and the offline CLI.
+// Keep this synthetic signed fixture independent of Insight's signing module.
+const contextCapturedAt = new Date(now * 1000).toISOString();
+const contextView = {
+  schema: api.TOKEN_SECURITY_VIEW_SCHEMA,
+  sourcedFrom: 'gopluslabs',
+  rawHash: `0x${'cd'.repeat(32)}`,
+  advisory: true,
+  isHoneypot: false,
+  buyTaxPct: 0,
+  tokenSymbol: 'SYNTH',
+};
+async function signedContextAttestation(version: 1 | 2) {
+  const manifest = `context-attestation.v${version}`;
+  const unsignedEntry = {
+    kind: 'third_party_token_scan',
+    source: 'gopluslabs',
+    request: {
+      chainId: 1,
+      contractAddress: `0x${'34'.repeat(20)}`,
+    },
+    rawResponseSha256: contextView.rawHash,
+    ...(version === 2
+      ? { normalizedResultSha256: sha256(toBytes(api.canonicalContextJson(contextView))) }
+      : {}),
+    retrievedAt: contextCapturedAt,
+  };
+  const domain = { name: 'InsightContextAttestation', version: String(version) };
+  const contextSigningTypes = {
+    ContextAttestationManifest: [
+      { name: 'manifest', type: 'string' },
+      { name: 'schemaVersion', type: 'uint256' },
+      { name: 'capturedAt', type: 'string' },
+      { name: 'entriesDigest', type: 'bytes32' },
+      { name: 'transactionContext', type: 'string' },
+    ],
+  } as const;
+  const message = {
+    manifest,
+    schemaVersion: BigInt(version),
+    capturedAt: contextCapturedAt,
+    entriesDigest: keccak256(toBytes(api.canonicalContextJson([unsignedEntry]))),
+    transactionContext: '',
+  };
+  const signArgs = {
+    domain,
+    types: contextSigningTypes,
+    primaryType: 'ContextAttestationManifest',
+    message,
+  } as Parameters<typeof account.signTypedData>[0];
+  const signature = await account.signTypedData(signArgs);
+  return {
+    schemaVersion: version,
+    capturedAt: contextCapturedAt,
+    entries: [
+      {
+        ...unsignedEntry,
+        priorSeal: { manifest, signature, keyId: account.address },
+      },
+    ],
+  };
+}
+const contextV2 = await signedContextAttestation(2);
+const contextVerified = await api.verifyContextAttestation(contextV2, contextView, {
+  keyRegistry: registry,
+});
+assert.equal(contextVerified.valid, true, JSON.stringify(contextVerified));
+assert.equal(contextVerified.accepted, true);
+assert.equal(contextVerified.resultLinked, true);
+assert.equal(contextVerified.keyStatus, 'valid');
+assert.equal(contextVerified.sourceBodyRecomputed, false);
+const contextTampered = await api.verifyContextAttestation(
+  contextV2,
+  { ...contextView, tokenSymbol: 'TAMPERED' },
+  { keyRegistry: registry }
+);
+assert.equal(contextTampered.code, 'result_digest_mismatch');
+assert.equal(contextTampered.accepted, false);
+const legacyContext = await signedContextAttestation(1);
+const legacyContextVerified = await api.verifyContextAttestation(legacyContext, undefined, {
+  keyRegistry: registry,
+});
+assert.equal(legacyContextVerified.valid, true);
+assert.equal(legacyContextVerified.accepted, false);
+assert.equal(legacyContextVerified.code, 'legacy_result_unlinked');
+
 const clock = Date.now;
 try {
   Date.now = () => (now + 600) * 1000;
@@ -286,6 +373,43 @@ const bad = spawnSync(
 );
 assert.equal(bad.status, 1);
 assert.match(bad.stderr, /HASH_MISMATCH/);
+await writeFile('context-attestation.json', JSON.stringify(contextV2));
+await writeFile('token-security-view.json', JSON.stringify(contextView));
+const contextArgs = [
+  '--registry',
+  'registry.json',
+  '--registry-sha256',
+  pin,
+  '--context-attestation',
+  'context-attestation.json',
+  '--token-security-view',
+  'token-security-view.json',
+];
+const contextGood = spawnSync(process.execPath, [cli, ...contextArgs], { encoding: 'utf8' });
+assert.equal(contextGood.status, 0, contextGood.stderr);
+assert.equal(JSON.parse(contextGood.stdout).accepted, true);
+await writeFile(
+  'token-security-view.json',
+  JSON.stringify({ ...contextView, tokenSymbol: 'TAMPERED' })
+);
+const contextBadView = spawnSync(process.execPath, [cli, ...contextArgs], { encoding: 'utf8' });
+assert.equal(contextBadView.status, 1);
+assert.equal(JSON.parse(contextBadView.stdout).result.code, 'result_digest_mismatch');
+const sampleRegistry = structuredClone(registry);
+sampleRegistry.keys![0].role = 'sample';
+const sampleRegistryBytes = Buffer.from(JSON.stringify(sampleRegistry, null, 2) + '\n');
+const samplePin = createHash('sha256').update(sampleRegistryBytes).digest('hex');
+await writeFile('registry.json', sampleRegistryBytes);
+await writeFile('token-security-view.json', JSON.stringify(contextView));
+const contextSample = spawnSync(
+  process.execPath,
+  [cli, ...contextArgs.map((value) => (value === pin ? samplePin : value))],
+  { encoding: 'utf8' }
+);
+assert.equal(contextSample.status, 1);
+assert.equal(JSON.parse(contextSample.stdout).result.code, 'ok');
+assert.equal(JSON.parse(contextSample.stdout).result.accepted, false);
+await writeFile('registry.json', bytes);
 // OracleScenarioRun v1 must work in the PACKED build, not just in workspace
 // source. It shares schemaVersion 1 with the v1 pre-trade receipt, so this also
 // pins that the two families stay distinguishable after packaging.
@@ -370,6 +494,11 @@ process.stdout.write(
       malformedPairRejected: true,
       historicalPairVerified: true,
       offlineCli: true,
+      contextAttestationV2: true,
+      legacyContextAttestationUnlinked: true,
+      contextViewTamperRejected: true,
+      contextOfflineCli: true,
+      contextSampleKeyRejected: true,
     },
     browserFixture: { source, execution: current, registry, pin },
   })

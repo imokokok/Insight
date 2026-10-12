@@ -2,13 +2,13 @@
 
 Verify Insight’s signed oracle-assessment and execution-price evidence on your own machine. The verification functions make no network call and need no API key. They check signed bytes and report key status only relative to a registry you supply; you must establish the issuer key and any semantic policy trust independently.
 
-This source/package version is **0.3.1**. Version **0.3.1** rejects non-string registry roles, including one-element arrays; consumers using exact-byte snapshot parsing should use this patch or later. Versions **0.2.0 and 0.2.1** do not include v5 execution profile support. Check the registry release before installing; a source checkout or local tarball does not establish npm publication.
+This source checkout declares package version **0.4.0**. Check the npm registry before installing; a source checkout or local tarball does not establish publication of this version. Version **0.3.1** rejects non-string registry roles, including one-element arrays. Versions **0.2.0 and 0.2.1** do not include v5 execution profile support.
 
 ```bash
 npm install verify-insight-receipt
 ```
 
-## Independent offline verification (0.3.1)
+## Independent offline verification
 
 The CLI reads local files only and requires the SHA-256 of an independently reviewed registry snapshot. Hash the **exact UTF-8 file bytes**, including whitespace. Keep the expected hash in your own trust configuration; accepting a hash from the same untrusted bundle does not authenticate the issuer.
 
@@ -20,6 +20,17 @@ verify-insight-offline --registry reviewed-registry.json --registry-sha256 YOUR_
 ```
 
 Exit 0 means the selected check passed against the pinned registry; exit 1 means verification or input validation failed. JSON output includes the exact snapshot hash and byte length. Pair verification establishes a historical execution-time relationship and can accept a now-expired pair whose execution occurred inside its signed gates; it does not authorize a new trade. Sample keys, unknown v5 profiles, malformed UIDs, revoked keys, mismatched snapshots and modified signed bytes fail closed.
+
+The same CLI verifies the token-security capture statement and the exact normalized view returned by the API:
+
+```bash
+verify-insight-offline --registry reviewed-registry.json --registry-sha256 YOUR_64_HEX_PIN \
+  --context-attestation context-attestation.json --token-security-view token-security.json
+```
+
+For this mode, `accepted: true` requires a valid V2 signature, a matching normalized-view digest, a key inside its trusted validity window, and a non-sample signer role. A V1 signature can still be verified by the library, but it does not bind the returned view and therefore is not accepted by the CLI. This statement authenticates what the signer attested; the raw source body is not included, so source parsing cannot be independently replayed. The attestation does not establish source truth, agent consumption, legal diligence, or compliance.
+
+Static synthetic clean/risk examples and a sample-role registry are in [`examples/context-attestation-v2`](./examples/context-attestation-v2/). The fixtures should verify cryptographically but return `accepted: false` because their signer is deliberately untrusted for production use.
 
 Browser/Node applications can use `parsePinnedKeyRegistry(bytes, expectedSha256)` and pass its `registry` to the existing verification functions. The parser rejects malformed dates, ambiguous registry shapes and duplicate key identities. Old verification APIs remain available.
 
@@ -53,7 +64,12 @@ node verifier/examples/quickstart.mjs
 ```
 
 ```ts
-import { verifyReceipt, verifyExecutionReceipt, verifyExecutionPair } from 'verify-insight-receipt';
+import {
+  verifyReceipt,
+  verifyExecutionReceipt,
+  verifyExecutionPair,
+  verifyContextAttestation,
+} from 'verify-insight-receipt';
 
 const result = await verifyReceipt(receipt);
 
@@ -68,6 +84,12 @@ const loop = await verifyExecutionPair(sourcePreTrade, executionReceipt, destina
   keyRegistry,
 });
 if (!loop.pairedValid) throw new Error(loop.reason);
+
+const inputEvidence = await verifyContextAttestation(contextAttestation, tokenSecurityView, {
+  keyRegistry,
+});
+if (!inputEvidence.accepted)
+  throw new Error(`decision-input evidence not accepted: ${inputEvidence.code}`);
 ```
 
 The TypeScript snippet assumes that your application has already obtained `receipt`, `executionReceipt`, `sourcePreTrade`, `destinationPreTrade`, and an independently confirmed `keyRegistry`. It is an integration outline, not a standalone program.

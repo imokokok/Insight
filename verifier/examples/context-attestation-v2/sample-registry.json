@@ -1,0 +1,13 @@
+{
+  "keys": [
+    {
+      "key_id": "context-demo-sample-v1",
+      "public_key": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "validFrom": "2026-01-01T00:00:00.000Z",
+      "validUntil": null,
+      "revoked": false,
+      "role": "sample"
+    }
+  ],
+  "revoked": []
+}
