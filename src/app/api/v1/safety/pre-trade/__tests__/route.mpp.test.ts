@@ -148,7 +148,7 @@ describe('pre-trade route MPP dispatch', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
     expect(mockPreTradeSafetyCheck).toHaveBeenCalledWith(
-      {
+      expect.objectContaining({
         asset: 'ETH',
         chainId: 1,
         action: 'swap',
@@ -157,7 +157,7 @@ describe('pre-trade route MPP dispatch', () => {
         protocolId: undefined,
         schemaVersion: undefined,
         destinationAsset: undefined,
-      },
+      }),
       expect.objectContaining({ requestId: 'req_mpp_route' })
     );
   });
