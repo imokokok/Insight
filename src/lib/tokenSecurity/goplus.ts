@@ -20,17 +20,17 @@ const logger = createLogger('GoPlusTokenSecurity');
 export const GOPLUS_TIMEOUT_MS = 3_000;
 export const GOPLUS_CACHE_TTL_MS = 15 * 60_000;
 
-const GOPLUS_BASE_URL = 'https://api.gopluslabs.com';
+const GOPLUS_BASE_URL = 'https://api.gopluslabs.io';
 
 /**
  * Optional paid-tier access token (free tier works keyless but datacenter
  * egress IPs are frequently blocked by GoPlus edge protection). Read at call
  * time, not module load, so deploys never need a code change to pick it up.
- * GoPlus auth header is the bare token — no "Bearer" prefix.
+ * GoPlus expects its access token in the standard Bearer authorization scheme.
  */
 function goPlusAuthHeader(): Record<string, string> {
   const token = process.env.GOPLUS_API_KEY;
-  return token ? { Authorization: token } : {};
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 /** Raw GoPlus token_security record — every field is a string on the wire. */
