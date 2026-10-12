@@ -57,6 +57,9 @@ async function getGoPlusAccessToken(
 
   if (!accessTokenPromise) {
     const time = Math.floor(now / 1000).toString();
+
+    // GoPlus mandates SHA-1 for this token-request signature; it is not used for data integrity.
+    // codeql[js/weak-cryptographic-algorithm]
     const sign = createHash('sha1').update(`${appKey}${time}${appSecret}`).digest('hex');
     const controller = new AbortController();
     const timeout = setTimeout(
