@@ -22,6 +22,17 @@ export const GOPLUS_CACHE_TTL_MS = 15 * 60_000;
 
 const GOPLUS_BASE_URL = 'https://api.gopluslabs.com';
 
+/**
+ * Optional paid-tier access token (free tier works keyless but datacenter
+ * egress IPs are frequently blocked by GoPlus edge protection). Read at call
+ * time, not module load, so deploys never need a code change to pick it up.
+ * GoPlus auth header is the bare token — no "Bearer" prefix.
+ */
+function goPlusAuthHeader(): Record<string, string> {
+  const token = process.env.GOPLUS_API_KEY;
+  return token ? { Authorization: token } : {};
+}
+
 /** Raw GoPlus token_security record — every field is a string on the wire. */
 export type GoPlusTokenSecurityRecord = Record<string, string>;
 
@@ -92,7 +103,7 @@ async function fetchOnce(
     const response = await fetchImpl(url, {
       method: 'GET',
       signal: controller.signal,
-      headers: { Accept: 'application/json' },
+      headers: { Accept: 'application/json', ...goPlusAuthHeader() },
     });
     const rawBody = await response.text();
     const latencyMs = Date.now() - startedAt;
@@ -100,6 +111,10 @@ async function fetchOnce(
       logger.warn('GoPlus token_security non-OK response; advisory omitted', {
         chainId,
         status: response.status,
+        contentType: response.headers.get('content-type') ?? 'none',
+        bodyHead: rawBody.slice(0, 160),
+        latencyMs,
+        keyed: Boolean(process.env.GOPLUS_API_KEY),
       });
       return null;
     }
@@ -107,7 +122,10 @@ async function fetchOnce(
     try {
       payload = JSON.parse(rawBody);
     } catch {
-      logger.warn('GoPlus token_security malformed JSON; advisory omitted', { chainId });
+      logger.warn('GoPlus token_security malformed JSON; advisory omitted', {
+        chainId,
+        bodyHead: rawBody.slice(0, 160),
+      });
       return null;
     }
     if (
@@ -115,7 +133,11 @@ async function fetchOnce(
       payload === null ||
       (payload as { code?: unknown }).code !== 1
     ) {
-      logger.warn('GoPlus token_security error code; advisory omitted', { chainId });
+      logger.warn('GoPlus token_security error code; advisory omitted', {
+        chainId,
+        payloadCode: (payload as { code?: unknown })?.code,
+        payloadMessage: (payload as { message?: unknown })?.message,
+      });
       return null;
     }
     const result = (payload as { result?: unknown }).result;
@@ -124,13 +146,20 @@ async function fetchOnce(
         ? ((result as Record<string, unknown>)[address] as unknown)
         : undefined;
     if (typeof record !== 'object' || record === null) {
-      // Unknown contract (no scan available) — omit, never synthesize.
+      // Unknown contract (no scan available) — omit, never synthesize. Logged
+      // so a shape mismatch on GoPlus's side is diagnosable, not invisible.
+      logger.warn('GoPlus token_security no scan record; advisory omitted', {
+        chainId,
+        address,
+        resultKind: result === null ? 'null' : Array.isArray(result) ? 'array' : typeof result,
+      });
       return null;
     }
     const normalized: GoPlusTokenSecurityRecord = {};
     for (const [field, value] of Object.entries(record as Record<string, unknown>)) {
       if (typeof value === 'string') normalized[field] = value;
     }
+    logger.info('GoPlus token_security fetched', { chainId, address, latencyMs });
     return {
       contractAddress: address,
       rawBody,

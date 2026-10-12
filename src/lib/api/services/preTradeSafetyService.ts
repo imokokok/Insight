@@ -1611,7 +1611,17 @@ function resolveTokenSecurityAddress(
  */
 function startTokenSecurityFetch(input: PreTradeSafetyInput): Promise<GoPlusRawResult | null> {
   const resolved = resolveTokenSecurityAddress(input);
-  if (!resolved) return Promise.resolve(null);
+  if (!resolved) {
+    // Explicit param that fails resolution is a caller-visible config issue —
+    // log it so a silently stripped/invalid tokenAddress is diagnosable.
+    if (input.tokenAddress) {
+      logger.warn('tokenSecurity lane skipped: tokenAddress failed resolution', {
+        tokenAddressHead: input.tokenAddress.slice(0, 12),
+        chainId: input.chainId,
+      });
+    }
+    return Promise.resolve(null);
+  }
   return fetchGoPlusTokenSecurity(resolved.chainId, resolved.address);
 }
 
