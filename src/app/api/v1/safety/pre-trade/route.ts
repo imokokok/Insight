@@ -48,6 +48,7 @@ async function executePreTradeCheck(params: PreTradeCheckParams): Promise<NextRe
       schemaVersion: query.schemaVersion,
       destinationAsset: query.destinationAsset,
       tokenAddress: query.tokenAddress,
+      debugTokenSecurity: query.debugTokenSec === '1',
     },
     {
       apiKeyId,

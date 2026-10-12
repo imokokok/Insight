@@ -45,6 +45,18 @@ export interface GoPlusRawResult {
   latencyMs: number;
 }
 
+/** One-line lane outcome for the opt-in debugTokenSec response surface. */
+export type GoPlusLaneOutcome =
+  | 'not_requested'
+  | 'unresolved_address'
+  | 'fetched'
+  | 'http_error'
+  | 'malformed_json'
+  | 'error_code'
+  | 'no_scan_record'
+  | 'fetch_exception'
+  | 'cached_null';
+
 interface CacheSlot {
   value: GoPlusRawResult | null;
   expiresAt: number;
@@ -65,22 +77,35 @@ export function clearGoPlusCacheForTest(): void {
  * Fetch the GoPlus token_security record for one contract. Returns null on any
  * failure (timeout, rate limit, error code, empty result, unsupported chain) —
  * null means "no evidence", never "safe".
+ *
+ * `onOutcome` receives the terminal lane outcome (including the silent
+ * cache-hit paths) for the opt-in debug surface; production logging is separate.
  */
 export async function fetchGoPlusTokenSecurity(
   chainId: number,
   contractAddress: string,
-  fetchImpl: typeof globalThis.fetch = globalThis.fetch
+  fetchImpl: typeof globalThis.fetch = globalThis.fetch,
+  onOutcome?: (outcome: GoPlusLaneOutcome) => void
 ): Promise<GoPlusRawResult | null> {
   const address = contractAddress.toLowerCase();
-  if (!/^0x[0-9a-f]{40}$/.test(address)) return null;
-  if (!Number.isInteger(chainId) || chainId <= 0) return null;
+  if (!/^0x[0-9a-f]{40}$/.test(address)) {
+    onOutcome?.('unresolved_address');
+    return null;
+  }
+  if (!Number.isInteger(chainId) || chainId <= 0) {
+    onOutcome?.('unresolved_address');
+    return null;
+  }
 
   const key = goPlusCacheKey(chainId, address);
   const cached = cache.get(key);
   const now = Date.now();
-  if (cached && cached.expiresAt > now) return cached.value;
+  if (cached && cached.expiresAt > now) {
+    onOutcome?.(cached.value ? 'fetched' : 'cached_null');
+    return cached.value;
+  }
 
-  const result = await fetchOnce(chainId, address, fetchImpl);
+  const result = await fetchOnce(chainId, address, fetchImpl, onOutcome);
   cache.set(key, { value: result, expiresAt: Date.now() + GOPLUS_CACHE_TTL_MS });
   return result;
 }
@@ -88,7 +113,8 @@ export async function fetchGoPlusTokenSecurity(
 async function fetchOnce(
   chainId: number,
   address: string,
-  fetchImpl: typeof globalThis.fetch
+  fetchImpl: typeof globalThis.fetch,
+  onOutcome?: (outcome: GoPlusLaneOutcome) => void
 ): Promise<GoPlusRawResult | null> {
   const url =
     `${GOPLUS_BASE_URL}/api/v1/token_security/${chainId}` +
@@ -108,6 +134,7 @@ async function fetchOnce(
     const rawBody = await response.text();
     const latencyMs = Date.now() - startedAt;
     if (!response.ok) {
+      onOutcome?.('http_error');
       logger.warn('GoPlus token_security non-OK response; advisory omitted', {
         chainId,
         status: response.status,
@@ -122,6 +149,7 @@ async function fetchOnce(
     try {
       payload = JSON.parse(rawBody);
     } catch {
+      onOutcome?.('malformed_json');
       logger.warn('GoPlus token_security malformed JSON; advisory omitted', {
         chainId,
         bodyHead: rawBody.slice(0, 160),
@@ -133,6 +161,7 @@ async function fetchOnce(
       payload === null ||
       (payload as { code?: unknown }).code !== 1
     ) {
+      onOutcome?.('error_code');
       logger.warn('GoPlus token_security error code; advisory omitted', {
         chainId,
         payloadCode: (payload as { code?: unknown })?.code,
@@ -148,6 +177,7 @@ async function fetchOnce(
     if (typeof record !== 'object' || record === null) {
       // Unknown contract (no scan available) — omit, never synthesize. Logged
       // so a shape mismatch on GoPlus's side is diagnosable, not invisible.
+      onOutcome?.('no_scan_record');
       logger.warn('GoPlus token_security no scan record; advisory omitted', {
         chainId,
         address,
@@ -160,6 +190,7 @@ async function fetchOnce(
       if (typeof value === 'string') normalized[field] = value;
     }
     logger.info('GoPlus token_security fetched', { chainId, address, latencyMs });
+    onOutcome?.('fetched');
     return {
       contractAddress: address,
       rawBody,
@@ -168,6 +199,7 @@ async function fetchOnce(
       latencyMs,
     };
   } catch (error) {
+    onOutcome?.('fetch_exception');
     logger.warn('GoPlus token_security fetch failed; advisory omitted', {
       chainId,
       error: error instanceof Error ? error.message : String(error),

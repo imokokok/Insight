@@ -51,4 +51,11 @@ export const PreTradeQuerySchema = z.object({
         'decision-input evidence (contextAttestation + tokenSecurity advisory view). When omitted, ' +
         'a built-in symbol map (Ethereum mainnet ETH/USDC/WBTC) is used. Never affects the verdict.'
     ),
+  debugTokenSec: z
+    .enum(['0', '1'])
+    .optional()
+    .describe(
+      'Opt-in diagnostic: when "1", the response carries tokenSecurityDebug with the advisory ' +
+        "lane's terminal outcome. Adds no external calls and never affects the verdict."
+    ),
 });
