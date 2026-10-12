@@ -475,7 +475,9 @@ await writeFile('registry.json', bytes);
   assert.equal(tampered.valid, false);
 }
 const pkg = JSON.parse(await readFile('node_modules/verify-insight-receipt/package.json', 'utf8'));
-assert.equal(pkg.version, '0.4.0');
+const expectedVersion = process.env.VERIFY_INSIGHT_RECEIPT_EXPECTED_VERSION;
+assert.match(expectedVersion ?? '', /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/);
+assert.equal(pkg.version, expectedVersion, 'packed version must match verifier/package.json');
 process.stdout.write(
   JSON.stringify({
     version: pkg.version,

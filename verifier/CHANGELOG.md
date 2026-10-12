@@ -2,10 +2,14 @@
 
 ## Unreleased
 
-- Verify signed decision-input context attestations and the exact normalized token-security view; accept V2 only when the signature, view digest, pinned key registry, validity window, and non-sample key role all pass.
-- Continue recognizing V1 signatures as legacy evidence while reporting that the returned view is not linked; keep the standalone verifier fail-closed for that layout.
-- Add synthetic clean/risk fixtures. Their sample-role signer is deliberately rejected for production acceptance.
-- Preserve the evidence boundary: the raw GoPlus body is not included, so offline verification cannot replay source parsing or prove source truth or agent consumption.
+## 0.5.0 — 2026-10-13
+
+- Verify signed Context Attestation V2 envelopes and bind them to the exact normalized token-security view.
+- Require a pinned, independently reviewed key registry, valid attester role and validity window; reject sample-role keys.
+- Continue recognizing V1 receipts as legacy evidence while reporting that they do not bind the returned view.
+- Keep the standalone CLI offline and fail-closed when signature, registry, or view binding checks fail.
+- Add synthetic clean/risk fixtures; the sample-role signer remains rejected for production acceptance.
+- Keep the raw GoPlus body out of the response; offline verification cannot replay source parsing or prove source truth or agent consumption.
 
 ## 0.4.0 — 2026-10-04
 
