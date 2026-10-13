@@ -24,7 +24,10 @@ and WBTC pairs on Ethereum mainnet; unsupported pairs or unavailable RPC
 agreement fail closed. The signed Execution Receipt later references both
 pre-trade UIDs. Once migration
 `0085_decision_input_assessment.sql` is applied, those UIDs join the receipt to
-the source and destination assessments in `pre_trade_checks`.
+the source and destination assessments in `pre_trade_checks`. Migration
+`0086_market_reference_source_coverage.sql` makes the CEX source count reflect
+independent exchanges by reducing each exchange's 15-minute observations to
+one hourly median before cross-exchange aggregation.
 
 The separate decision-input signature commits to the exact assessment JSON,
 including its policy, prices, normalized per-source snapshot hashes, source
@@ -109,22 +112,65 @@ This is an RPC-reproducible record, not a light-client proof.
 
 - **Chainlink:** a catalogued on-chain USD feed for the requested asset and
   chain, checked against that feed's heartbeat.
+- **RedStone:** an additional USD reference from the existing RedStone API
+  adapter. A fresh observation (at most five minutes old) is compared with the
+  decision price and can block on excess deviation. Missing or stale RedStone
+  data is retained as optional evidence where available and does not by itself
+  lower the assessment status.
 - **CEX reference:** the latest stored hourly market reference, provided it is
-  less than three hours old, has at least two exchanges, and includes a
-  cross-exchange spread.
+  less than three hours old, has at least two independent exchanges, and
+  includes a cross-exchange spread. Each venue is first reduced to one hourly
+  median, so the four 15-minute samples from one exchange cannot inflate the
+  source count or outweigh another venue.
 - **DEX depth context:** the latest manipulation-cost snapshots for the
   Ethereum mainnet pool map, provided they are less than two hours old. The v1
   map covers ETH/WETH, USDC, and WBTC on chain 1.
 - **Caller inputs:** decision price, venue quote, quote timestamp, and explicit
   tolerances.
 
-Chainlink and CEX prices are compared against the caller's decision price.
-The supplied per-asset quotes are compared against their decision prices. The
-CEX spread is also compared against `maxReferenceDeviationBps`. The DEX
-manipulation-cost figure is included as market-depth context and is not used as
-an execution-slippage estimate. In `agent_begin_trade`, the independent
-Uniswap V3 quote is separately compared against the oracle cross-rate and the
-caller-reported route quote.
+Chainlink, fresh RedStone, and CEX prices are compared against the caller's
+decision price. The supplied per-asset quotes are compared against their
+decision prices. The CEX spread is also compared against
+`maxReferenceDeviationBps`. The DEX manipulation-cost figure is included as
+market-depth context and is not used as an execution-slippage estimate. In
+`agent_begin_trade`, the independent Uniswap V3 quote is separately compared
+against the oracle cross-rate and the caller-reported route quote.
+
+RedStone is a separate provider path, but its API response is not independently
+signature-verified by this assessment and may share upstream market venues with
+the other references. The signed snapshot records its reported timestamp,
+provider/source label, and observed price so a verifier can inspect exactly what
+the assessment used.
+
+## Additional source candidates
+
+- **Pyth Hermes:** a useful next oracle reference for ETH, BTC, and stablecoin
+  coverage. The current Hermes integration requires a Pyth API key, so it is
+  not enabled here until that credential and feed-specific freshness limits are
+  configured. See [Pyth's current setup guide](https://docs.pyth.network/price-feeds/core/getting-started).
+- **Uniswap V3:** already used for block-pinned, exact-notional route simulation
+  in the gated MCP flow and for the separate manipulation-cost pool map. A
+  future multi-pool TWAP can add a time-windowed on-chain signal, but should be
+  kept distinct from the execution quote.
+- **Kraken and Crypto.com for WBTC/USD:** both list direct WBTC/USD spot
+  markets: Kraken's [WBTC/USD market page](https://www.kraken.com/convert/wbtc/usd)
+  confirms the pair, and Crypto.com's [current instrument catalog](https://api.crypto.com/exchange/v1/public/get-instruments)
+  lists `WBTC_USD` as a tradable currency pair. Coinbase's [WBTC availability page](https://www.coinbase.com/how-to-buy/wrapped-bitcoin)
+  specifies DEX trading rather than a Coinbase centralized-exchange market.
+  The collector now records Kraken and Crypto.com for WBTC, while Coinbase
+  remains an explicit unsupported-pair observation. The manual historical
+  backfill now uses Kraken and Crypto.com for WBTC; existing rows are not
+  changed automatically. Crypto.com's
+  [`public/get-tickers` API](https://exchange-developer.crypto.com/exchange/v1/docs/api/rest-single-page/)
+  supplies the latest trade, top of book, 24-hour volume, instrument, and
+  publish time. The `public/get-candlestick` endpoint on the same API supplies
+  historical hourly closes and volume for backfill. Both paths validate the
+  returned pair and timestamps before storage.
+  The two-venue CEX reference becomes usable after successful rows from both
+  sources land in the same hour through scheduled sampling or the manual
+  historical backfill. Until then, the assessment remains
+  `INSUFFICIENT_EVIDENCE` for WBTC.
+- **Gemini:** remains a third independent source for its supported ticker set.
 
 ## Result
 

@@ -213,7 +213,7 @@
                         "participantCount": { "type": "integer" },
                         "decisionInputAssessment": {
                           "type": "object",
-                          "description": "Returned only when decisionInputCheck=1. Separate assessment with an optional nested EIP-712 integrity attestation; never changes the oracle verdict or authorizes a transaction. Its signature commits to caller-supplied per-asset quotes but does not authenticate their source. agent_begin_trade adds a separately simulated, block-pinned Uniswap V3 route quote for its supported Ethereum pairs.",
+                          "description": "Returned only when decisionInputCheck=1. Separate assessment with an optional nested EIP-712 integrity attestation; never changes the oracle verdict or authorizes a transaction. Its signature commits to caller-supplied per-asset quotes but does not authenticate their source. A fresh RedStone API USD reference is also compared against the decision price when available; its absence or staleness is optional. agent_begin_trade adds a separately simulated, block-pinned Uniswap V3 route quote for its supported Ethereum pairs.",
                           "properties": {
                             "schemaVersion": { "type": "integer", "const": 1 },
                             "status": {

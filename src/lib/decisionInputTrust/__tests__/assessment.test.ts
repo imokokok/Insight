@@ -1,8 +1,9 @@
 import type { ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import type { ChainlinkMarketReference } from '@/lib/marketReference/chainlink';
 import type { MarketReference } from '@/lib/marketReference/client';
+import type { RedStoneMarketReference } from '@/lib/marketReference/redstone';
 
-import { assessDecisionInput } from '../assessment';
+import { assessDecisionInput, DecisionInputAssessmentSchema } from '../assessment';
 
 const NOW = new Date('2026-10-13T06:30:00.000Z');
 
@@ -67,6 +68,7 @@ function assess(
   overrides: {
     request?: Partial<typeof request>;
     chainlink?: ChainlinkMarketReference | null;
+    redstone?: RedStoneMarketReference | null;
     cex?: MarketReference | null;
     dex?: ManipCostAdvisory | null;
     asset?: string;
@@ -80,6 +82,7 @@ function assess(
     tradeAmountUsd: 10_000,
     request: { ...request, ...overrides.request },
     chainlink: overrides.chainlink === undefined ? chainlink : overrides.chainlink,
+    redstone: overrides.redstone ?? null,
     cex: overrides.cex === undefined ? cex : overrides.cex,
     dex: overrides.dex === undefined ? dex : overrides.dex,
     now: NOW,
@@ -126,5 +129,73 @@ describe('assessDecisionInput', () => {
     expect(result.status).toBe('INSUFFICIENT_EVIDENCE');
     expect(result.evidence.dexManipulationCost).toBeNull();
     expect(result.reasons.map(({ code }) => code)).toContain('DEX_DEPTH_UNAVAILABLE');
+  });
+
+  it('includes a fresh RedStone reference in the signed assessment inputs', () => {
+    const result = assess({
+      redstone: {
+        provider: 'redstone-api',
+        symbol: 'ETH',
+        quote: 'USD',
+        price: 2000.2,
+        source: 'RedStone',
+        updatedAt: '2026-10-13T06:29:55.000Z',
+      },
+    });
+
+    expect(result.status).toBe('SUFFICIENT');
+    expect(result.prices.redstonePriceUsd).toBe(2000.2);
+    expect(result.prices.redstoneDeviationBps).toBeCloseTo(1, 3);
+    expect(result.evidence.redstone).toEqual(
+      expect.objectContaining({ provider: 'redstone-api', fresh: true, priceUsd: 2000.2 })
+    );
+  });
+
+  it('blocks when a fresh RedStone reference exceeds the explicit deviation limit', () => {
+    const result = assess({
+      redstone: {
+        provider: 'redstone-api',
+        symbol: 'ETH',
+        quote: 'USD',
+        price: 2020,
+        source: 'RedStone',
+        updatedAt: '2026-10-13T06:29:55.000Z',
+      },
+    });
+
+    expect(result.status).toBe('BLOCK');
+    expect(result.reasons.map(({ code }) => code)).toContain('REDSTONE_DIVERGENCE');
+  });
+
+  it('records stale RedStone evidence as optional without lowering sufficiency', () => {
+    const result = assess({
+      redstone: {
+        provider: 'redstone-api',
+        symbol: 'ETH',
+        quote: 'USD',
+        price: 2000.2,
+        source: 'RedStone',
+        updatedAt: '2026-10-13T06:20:00.000Z',
+      },
+    });
+
+    expect(result.status).toBe('SUFFICIENT');
+    expect(result.prices.redstonePriceUsd).toBeNull();
+    expect(result.evidence.redstone?.fresh).toBe(false);
+    expect(result.reasons.map(({ code }) => code)).not.toContain('REDSTONE_DIVERGENCE');
+  });
+
+  it('still accepts previously signed v1 assessments without the optional RedStone fields', () => {
+    const assessment = assess();
+    const legacyAssessment = {
+      ...assessment,
+      prices: { ...assessment.prices },
+      evidence: { ...assessment.evidence },
+    };
+    delete legacyAssessment.prices.redstonePriceUsd;
+    delete legacyAssessment.prices.redstoneDeviationBps;
+    delete legacyAssessment.evidence.redstone;
+
+    expect(DecisionInputAssessmentSchema.safeParse(legacyAssessment).success).toBe(true);
   });
 });

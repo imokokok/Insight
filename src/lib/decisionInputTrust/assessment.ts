@@ -5,6 +5,7 @@ import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/vali
 import { MANIP_COST_MAX_AGE_MS, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import type { ChainlinkMarketReference } from '@/lib/marketReference/chainlink';
 import { MAX_REF_AGE_HOURS, type MarketReference } from '@/lib/marketReference/client';
+import type { RedStoneMarketReference } from '@/lib/marketReference/redstone';
 import { ETHEREUM_TOKEN_ADDRESSES } from '@/lib/oracles/constants/ethereumTokenAddresses';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 
@@ -51,6 +52,7 @@ export interface DecisionInputReason {
     | 'MARKET_REFERENCE_DIVERGENCE'
     | 'MARKET_REFERENCE_SPREAD'
     | 'CHAINLINK_DIVERGENCE'
+    | 'REDSTONE_DIVERGENCE'
     | 'DEX_DEPTH_UNAVAILABLE'
     | 'QUOTE_TIMESTAMP_INVALID'
     | 'QUOTE_STALE'
@@ -88,6 +90,8 @@ export interface DecisionInputAssessment {
     quoteDeviationBps: number | null;
     chainlinkPriceUsd: number | null;
     chainlinkDeviationBps: number | null;
+    redstonePriceUsd?: number | null;
+    redstoneDeviationBps?: number | null;
     cexMedianPriceUsd: number | null;
     cexDeviationBps: number | null;
     cexSpreadBps: number | null;
@@ -101,6 +105,15 @@ export interface DecisionInputAssessment {
       heartbeatSeconds: number;
       feedAddress: `0x${string}`;
       roundId: string;
+    } | null;
+    redstone?: {
+      provider: 'redstone-api';
+      snapshotHash: `0x${string}`;
+      updatedAt: string;
+      ageSeconds: number;
+      fresh: boolean;
+      priceUsd: number;
+      source: string | null;
     } | null;
     cex: {
       snapshotHash: `0x${string}`;
@@ -145,6 +158,7 @@ const ONCHAIN_QUOTE_ROUTE_FEES: Readonly<Record<string, readonly number[]>> = {
   'WBTC>WETH>USDC': [3_000, 500],
 };
 const TOKEN_DECIMALS = { WETH: 18, USDC: 6, WBTC: 8 } as const;
+const MAX_REDSTONE_REFERENCE_AGE_MS = 5 * 60_000;
 
 const OnchainRouteQuoteEvidenceSchema = z
   .object({
@@ -346,6 +360,8 @@ export const DecisionInputAssessmentSchema = z
         quoteDeviationBps: NullableNonnegativeNumberSchema,
         chainlinkPriceUsd: NullablePositiveNumberSchema,
         chainlinkDeviationBps: NullableNonnegativeNumberSchema,
+        redstonePriceUsd: NullablePositiveNumberSchema.optional(),
+        redstoneDeviationBps: NullableNonnegativeNumberSchema.optional(),
         cexMedianPriceUsd: NullablePositiveNumberSchema,
         cexDeviationBps: NullableNonnegativeNumberSchema,
         cexSpreadBps: NullableNonnegativeNumberSchema,
@@ -365,6 +381,19 @@ export const DecisionInputAssessmentSchema = z
           })
           .strict()
           .nullable(),
+        redstone: z
+          .object({
+            provider: z.literal('redstone-api'),
+            snapshotHash: Bytes32Schema,
+            updatedAt: EvidenceTimestampSchema,
+            ageSeconds: FiniteNonnegativeNumberSchema,
+            fresh: z.boolean(),
+            priceUsd: FinitePositiveNumberSchema,
+            source: z.string().min(1).max(120).nullable(),
+          })
+          .strict()
+          .nullable()
+          .optional(),
         cex: z
           .object({
             snapshotHash: Bytes32Schema,
@@ -401,6 +430,7 @@ export const DecisionInputAssessmentSchema = z
               'MARKET_REFERENCE_DIVERGENCE',
               'MARKET_REFERENCE_SPREAD',
               'CHAINLINK_DIVERGENCE',
+              'REDSTONE_DIVERGENCE',
               'DEX_DEPTH_UNAVAILABLE',
               'QUOTE_TIMESTAMP_INVALID',
               'QUOTE_STALE',
@@ -564,6 +594,7 @@ export interface AssessDecisionInputOptions {
   tradeAmountUsd: number;
   request: DecisionInputCheckRequest;
   chainlink: ChainlinkMarketReference | null;
+  redstone?: RedStoneMarketReference | null;
   cex: MarketReference | null;
   dex: ManipCostAdvisory | null;
   now?: Date;
@@ -604,6 +635,14 @@ interface ChainlinkChecks {
   priceUsd: number | null;
   deviationBps: number | null;
   evidence: ChainlinkEvidence | null;
+}
+
+type RedStoneEvidence = NonNullable<DecisionInputAssessment['evidence']['redstone']>;
+
+interface RedStoneChecks {
+  priceUsd: number | null;
+  deviationBps: number | null;
+  evidence: RedStoneEvidence | null;
 }
 
 interface CexChecks {
@@ -714,6 +753,64 @@ function assessChainlink(
             roundId: chainlink.roundId,
           }
         : null,
+  };
+}
+
+function assessRedStone(
+  asset: string,
+  request: DecisionInputCheckRequest,
+  redstone: RedStoneMarketReference | null | undefined,
+  nowMs: number,
+  reasons: DecisionInputReason[]
+): RedStoneChecks {
+  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset;
+  const updatedAtMs = redstone ? Date.parse(redstone.updatedAt) : Number.NaN;
+  const valid =
+    redstone !== null &&
+    redstone !== undefined &&
+    redstone.provider === 'redstone-api' &&
+    redstone.symbol === referenceSymbol &&
+    redstone.quote === 'USD' &&
+    Number.isFinite(redstone.price) &&
+    redstone.price > 0 &&
+    Number.isFinite(updatedAtMs) &&
+    updatedAtMs > 0 &&
+    updatedAtMs <= nowMs;
+  if (!valid || !redstone) {
+    return { priceUsd: null, deviationBps: null, evidence: null };
+  }
+
+  const ageMs = nowMs - updatedAtMs;
+  const ageSeconds = ageMs / 1000;
+  const fresh = ageMs <= MAX_REDSTONE_REFERENCE_AGE_MS;
+  const diffBps = fresh ? deviationBps(request.decisionPriceUsd, redstone.price) : null;
+  if (fresh && diffBps !== null && diffBps > request.maxReferenceDeviationBps) {
+    addReason(
+      reasons,
+      'REDSTONE_DIVERGENCE',
+      'block',
+      `The decision price differs from the fresh RedStone reference by ${diffBps.toFixed(1)} bps; the limit is ${request.maxReferenceDeviationBps} bps.`
+    );
+  }
+
+  const source =
+    typeof redstone.source === 'string' && redstone.source.trim().length > 0
+      ? redstone.source.trim().slice(0, 120)
+      : null;
+  const evidence: RedStoneEvidence = {
+    provider: 'redstone-api',
+    snapshotHash: snapshotHash({ ...redstone, source }),
+    updatedAt: redstone.updatedAt,
+    ageSeconds,
+    fresh,
+    priceUsd: redstone.price,
+    source,
+  };
+
+  return {
+    priceUsd: fresh ? redstone.price : null,
+    deviationBps: diffBps,
+    evidence,
   };
 }
 
@@ -841,13 +938,15 @@ function assessDex(
 }
 
 export function assessDecisionInput(options: AssessDecisionInputOptions): DecisionInputAssessment {
-  const { asset, chainId, action, tradeAmountUsd, request, chainlink, cex, dex } = options;
+  const { asset, chainId, action, tradeAmountUsd, request, chainlink, redstone, cex, dex } =
+    options;
   const now = options.now ?? new Date();
   const nowMs = now.getTime();
   const normalizedAsset = asset.trim().toUpperCase();
   const reasons: DecisionInputReason[] = [];
   const quote = assessQuote(request, nowMs, reasons);
   const oracle = assessChainlink(normalizedAsset, chainId, request, chainlink, reasons);
+  const redstoneReference = assessRedStone(normalizedAsset, request, redstone, nowMs, reasons);
   const market = assessCex(request, cex, nowMs, reasons);
   const depth = assessDex(normalizedAsset, chainId, tradeAmountUsd, dex, nowMs, reasons);
   const hasBlock = reasons.some((reason) => reason.severity === 'block');
@@ -887,12 +986,15 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
       quoteDeviationBps: quote.deviationBps,
       chainlinkPriceUsd: oracle.priceUsd,
       chainlinkDeviationBps: oracle.deviationBps,
+      redstonePriceUsd: redstoneReference.priceUsd,
+      redstoneDeviationBps: redstoneReference.deviationBps,
       cexMedianPriceUsd: market.priceUsd,
       cexDeviationBps: market.deviationBps,
       cexSpreadBps: market.spreadBps,
     },
     evidence: {
       chainlink: oracle.evidence,
+      redstone: redstoneReference.evidence,
       cex: market.evidence,
       dexManipulationCost: depth.evidence,
     },
@@ -900,6 +1002,7 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
     caveats: [
       'This checks the supplied price, venue quote, freshness, source agreement, and available DEX depth evidence. It does not by itself authorize or submit a transaction.',
       'This assessment is separate from the EIP-712 oracle safety attestation and may carry its own integrity signature.',
+      'A fresh RedStone USD reference is an additional divergence check. Its absence or staleness does not by itself lower the assessment status; the API observation is not independently signature-verified here and may share upstream market venues with other sources.',
       'The per-asset venue quote is caller-supplied. In agent_begin_trade, the route quote is independently simulated against Ethereum mainnet state and committed with its block evidence; this does not guarantee a later transaction will execute at that price.',
       'DEX manipulation cost is a pool-depth proxy, not a route-specific quote, price-impact estimate, or guarantee that the pool can execute this trade.',
     ],
