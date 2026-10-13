@@ -21,7 +21,13 @@ const gate = {
     ageSeconds: 1,
     oracleCrossRate: 2000,
     deviationBps: 0,
+    callerReportedPrice: 2000,
+    callerReportedAt: '2026-10-13T06:29:59.000Z',
+    callerDeviationBps: 0,
     maxDeviationBps: 50,
+    source: 'uniswap-v3-quoter-v2' as const,
+    blockNumber: '23000000',
+    blockHash: `0x${'aa'.repeat(32)}` as `0x${string}`,
   },
 };
 

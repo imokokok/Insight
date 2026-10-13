@@ -10,7 +10,7 @@ export const PreTradeQuerySchema = z
     action: z
       .enum(['swap', 'borrow', 'lend', 'liquidate', 'repay'])
       .describe('Type of DeFi operation'),
-    tradeAmountUsd: z.coerce.number().positive().describe('Trade size in USD'),
+    tradeAmountUsd: z.coerce.number().finite().positive().describe('Trade size in USD'),
     targetProviders: z
       .string()
       .transform((value) => value.split(',').map((provider) => provider.trim()))

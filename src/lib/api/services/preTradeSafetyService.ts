@@ -44,6 +44,7 @@ import {
   type DecisionInputAssessment,
   type DecisionInputCheckRequest,
 } from '@/lib/decisionInputTrust/assessment';
+import { signDecisionInputAssessment } from '@/lib/decisionInputTrust/attestation';
 import { UnsupportedSymbolError, ValidationError } from '@/lib/errors';
 import { getManipCostAdvisory, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import {
@@ -1666,7 +1667,7 @@ async function attachDecisionInputAssessment(
       : Promise.resolve(knownManipulationCost ?? undefined),
   ]);
 
-  result.decisionInputAssessment = assessDecisionInput({
+  const assessment = assessDecisionInput({
     asset: input.asset,
     chainId: input.chainId,
     action: input.action,
@@ -1676,6 +1677,19 @@ async function attachDecisionInputAssessment(
     cex: referenceEvidence.cex,
     dex: manipulationCost ?? null,
   });
+  const attestation = await signDecisionInputAssessment(assessment, result.attestation?.uid);
+  if (attestation) {
+    assessment.attestation = attestation;
+  } else {
+    logger.warn('Decision-input assessment signature unavailable', {
+      asset: input.asset,
+      chainId: input.chainId,
+    });
+    assessment.caveats.push(
+      'The decision-input integrity signature is unavailable; this assessment cannot be independently verified.'
+    );
+  }
+  result.decisionInputAssessment = assessment;
 }
 
 // ---------------------------------------------------------------------------

@@ -25,6 +25,47 @@
     }
   },
   "paths": {
+    "/api/v1/safety/decision-input/verify": {
+      "get": {
+        "operationId": "decisionInputAttestationDescriptor",
+        "summary": "Get the decision-input attester and EIP-712 schema",
+        "tags": ["Safety"],
+        "responses": {
+          "200": {
+            "description": "Published attester identity, EIP-712 descriptor, and signer readiness (READY, UNCONFIGURED, or UNTRUSTED_SIGNER)"
+          }
+        }
+      },
+      "post": {
+        "operationId": "verifyDecisionInputAssessment",
+        "summary": "Verify a signed decision-input assessment",
+        "tags": ["Safety"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["assessment"],
+                "properties": {
+                  "assessment": {
+                    "type": "object",
+                    "description": "Exact decisionInputAssessment object returned by the pre-trade endpoint, including its nested attestation"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Strict assessment schema, digest, UID, signature, trusted key window, and expiry verification result. Returns the signed linked pre-trade UID for the caller to compare with the corresponding pre-trade attestation."
+          },
+          "400": { "description": "Malformed verification request" }
+        }
+      }
+    },
     "/api/v1/safety/pre-trade": {
       "get": {
         "operationId": "preTradeSafetyCheck",
@@ -172,7 +213,7 @@
                         "participantCount": { "type": "integer" },
                         "decisionInputAssessment": {
                           "type": "object",
-                          "description": "Returned only when decisionInputCheck=1. Separate advisory; not included in the EIP-712 attestation, never changes verdict, and never authorizes a transaction.",
+                          "description": "Returned only when decisionInputCheck=1. Separate assessment with an optional nested EIP-712 integrity attestation; never changes the oracle verdict or authorizes a transaction. Its signature commits to caller-supplied per-asset quotes but does not authenticate their source. agent_begin_trade adds a separately simulated, block-pinned Uniswap V3 route quote for its supported Ethereum pairs.",
                           "properties": {
                             "schemaVersion": { "type": "integer", "const": 1 },
                             "status": {
@@ -182,6 +223,83 @@
                             "eligibleToProceed": { "type": "boolean" },
                             "asset": { "type": "string" },
                             "chainId": { "type": "integer" },
+                            "operationRouteQuote": {
+                              "type": ["object", "null"],
+                              "description": "Route quote included by the MCP execution workflow. When onchainEvidence is present, price and observedAt come from a Uniswap V3 Quoter V2 call pinned to the agreed canonical Ethereum block hash; callerReported is retained for comparison.",
+                              "properties": {
+                                "price": { "type": "number" },
+                                "observedAt": { "type": "string", "format": "date-time" },
+                                "callerReported": {
+                                  "type": "object",
+                                  "properties": {
+                                    "price": { "type": "number" },
+                                    "observedAt": { "type": "string", "format": "date-time" }
+                                  }
+                                },
+                                "onchainEvidence": {
+                                  "type": "object",
+                                  "properties": {
+                                    "provider": {
+                                      "type": "string",
+                                      "const": "uniswap-v3-quoter-v2"
+                                    },
+                                    "chainId": { "type": "integer", "const": 1 },
+                                    "blockNumber": { "type": "string" },
+                                    "blockHash": { "type": "string" },
+                                    "quoterAddress": { "type": "string" },
+                                    "path": { "type": "string" },
+                                    "routeSymbols": {
+                                      "type": "array",
+                                      "items": { "type": "string" }
+                                    },
+                                    "routeTokens": {
+                                      "type": "array",
+                                      "items": { "type": "string" }
+                                    },
+                                    "feeTiers": { "type": "array", "items": { "type": "integer" } },
+                                    "amountInRaw": { "type": "string" },
+                                    "amountOutRaw": { "type": "string" },
+                                    "rpcWitnessCount": { "type": "integer", "const": 2 },
+                                    "rpcWitnessHosts": {
+                                      "type": "array",
+                                      "items": { "type": "string" },
+                                      "minItems": 2,
+                                      "maxItems": 2
+                                    },
+                                    "notionalPrice": {
+                                      "type": "object",
+                                      "properties": {
+                                        "provider": {
+                                          "type": "string",
+                                          "const": "chainlink-data-feed"
+                                        },
+                                        "assetSymbol": { "type": "string" },
+                                        "priceReferenceSymbol": {
+                                          "type": "string",
+                                          "enum": ["ETH", "USDC", "BTC"]
+                                        },
+                                        "pricingBasis": {
+                                          "type": "string",
+                                          "enum": [
+                                            "chainlink-usd",
+                                            "chainlink-btc-usd-wbtc-peg-assumption"
+                                          ]
+                                        },
+                                        "priceUsd": { "type": "number" },
+                                        "feedAddress": { "type": "string" },
+                                        "roundId": { "type": "string" },
+                                        "updatedAt": { "type": "string", "format": "date-time" },
+                                        "heartbeatSeconds": { "type": "integer" }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "quoteInputHash": {
+                              "type": "string",
+                              "description": "Keccak-256 digest over the asset, action, trade amount, decision price, venue quote, timestamps, and optional route quote"
+                            },
                             "action": {
                               "type": "string",
                               "enum": ["swap", "borrow", "lend", "liquidate", "repay"]
@@ -190,7 +308,81 @@
                             "reasons": { "type": "array", "items": { "type": "object" } },
                             "prices": { "type": "object" },
                             "evidence": { "type": "object" },
-                            "caveats": { "type": "array", "items": { "type": "string" } }
+                            "caveats": { "type": "array", "items": { "type": "string" } },
+                            "attestation": {
+                              "type": "object",
+                              "description": "Optional Insight EIP-712 signature over the canonical assessment JSON with this attestation property omitted. Verify the exact assessment at /api/v1/safety/decision-input/verify.",
+                              "properties": {
+                                "type": { "type": "string", "const": "DecisionInputAssessment" },
+                                "schemaVersion": { "type": "integer", "const": 1 },
+                                "uid": {
+                                  "type": "string",
+                                  "pattern": "^0x[0-9a-fA-F]{64}$"
+                                },
+                                "attester": {
+                                  "type": "string",
+                                  "pattern": "^0x[0-9a-fA-F]{40}$"
+                                },
+                                "attesterLabel": {
+                                  "type": "string",
+                                  "const": "Insight Decision Input Assessment attester"
+                                },
+                                "signedAt": { "type": "string", "format": "date-time" },
+                                "validForSeconds": { "type": "integer", "const": 300 },
+                                "signature": {
+                                  "type": "string",
+                                  "pattern": "^0x[0-9a-fA-F]{130}$"
+                                },
+                                "verifyUrl": { "type": "string", "format": "uri" },
+                                "data": {
+                                  "type": "object",
+                                  "properties": {
+                                    "assessmentHash": {
+                                      "type": "string",
+                                      "pattern": "^0x[0-9a-fA-F]{64}$"
+                                    },
+                                    "linkedPreTradeUid": {
+                                      "type": "string",
+                                      "pattern": "^0x[0-9a-fA-F]{64}$"
+                                    },
+                                    "verifyUrlHash": {
+                                      "type": "string",
+                                      "pattern": "^0x[0-9a-fA-F]{64}$"
+                                    },
+                                    "issuedAt": { "type": "integer" },
+                                    "validUntil": { "type": "integer" },
+                                    "schemaVersion": { "type": "integer", "const": 1 }
+                                  },
+                                  "required": [
+                                    "assessmentHash",
+                                    "linkedPreTradeUid",
+                                    "verifyUrlHash",
+                                    "issuedAt",
+                                    "validUntil",
+                                    "schemaVersion"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "eip712": {
+                                  "type": "object",
+                                  "description": "EIP-712 descriptor; the verifier derives the trusted domain and field list locally."
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "schemaVersion",
+                                "uid",
+                                "attester",
+                                "attesterLabel",
+                                "signedAt",
+                                "validForSeconds",
+                                "signature",
+                                "verifyUrl",
+                                "data",
+                                "eip712"
+                              ],
+                              "additionalProperties": false
+                            }
                           },
                           "additionalProperties": true
                         }

@@ -22,7 +22,7 @@ const QuerySchema = z
     destinationAsset: z.enum(['WETH', 'USDC']),
     chainId: z.coerce.number().int(),
     action: z.literal('swap'),
-    tradeAmountUsd: z.coerce.number().positive(),
+    tradeAmountUsd: z.coerce.number().finite().positive(),
     schemaVersion: z.coerce.number().pipe(z.literal(3)),
   })
   .strict();

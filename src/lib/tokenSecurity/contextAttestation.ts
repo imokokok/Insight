@@ -13,7 +13,10 @@ import { createHash } from 'node:crypto';
 import { keccak256, verifyTypedData } from 'viem';
 
 import { getAttesterAccount } from '@/lib/attestations/attesterAccount';
+import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 import { createLogger } from '@/lib/utils/logger';
+
+export { canonicalJsonString };
 
 const logger = createLogger('ContextAttestation');
 
@@ -116,7 +119,6 @@ const SAFE_HASH_PATTERN = /^0x[0-9a-f]{64}$/;
 const ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
 const SIGNATURE_PATTERN = /^0x[0-9a-fA-F]{130}$/;
 const MAX_ENTRIES = 32;
-const MAX_CANONICAL_BYTES = 256 * 1024;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
@@ -140,54 +142,6 @@ function isSafeText(value: unknown, maxLength = 256): value is string {
 
 function isSafeHash(value: unknown): value is `0x${string}` {
   return typeof value === 'string' && SAFE_HASH_PATTERN.test(value);
-}
-
-/**
- * Deterministic JSON for signed values. Rejects values JSON would silently
- * omit or coerce so a caller cannot hash a different object than it emits.
- */
-export function canonicalJsonString(value: unknown): string {
-  const ancestors = new Set<object>();
-  let visited = 0;
-
-  const visit = (current: unknown, depth: number): string => {
-    visited += 1;
-    if (visited > 20_000 || depth > 64)
-      throw new TypeError('JSON value exceeds canonicalization limits');
-    if (current === null) return 'null';
-    if (typeof current === 'string' || typeof current === 'boolean') return JSON.stringify(current);
-    if (typeof current === 'number') {
-      if (!Number.isFinite(current))
-        throw new TypeError('Non-finite numbers are not canonical JSON');
-      return JSON.stringify(current);
-    }
-    if (typeof current !== 'object') throw new TypeError('Value is not JSON serializable');
-    if (ancestors.has(current)) throw new TypeError('Circular JSON value');
-
-    ancestors.add(current);
-    try {
-      if (Array.isArray(current))
-        return `[${current.map((item) => visit(item, depth + 1)).join(',')}]`;
-      if (!isRecord(current)) throw new TypeError('Only plain JSON objects are supported');
-      const keys = Object.keys(current).sort();
-      for (const key of keys) {
-        if (key === '__proto__' || key === 'prototype' || key === 'constructor') {
-          throw new TypeError('Unsafe JSON object key');
-        }
-      }
-      return `{${keys
-        .map((key) => `${JSON.stringify(key)}:${visit(current[key], depth + 1)}`)
-        .join(',')}}`;
-    } finally {
-      ancestors.delete(current);
-    }
-  };
-
-  const canonical = visit(value, 0);
-  if (new TextEncoder().encode(canonical).byteLength > MAX_CANONICAL_BYTES) {
-    throw new TypeError('Canonical JSON exceeds the byte limit');
-  }
-  return canonical;
 }
 
 export function rawBodySha256(rawBody: string): `0x${string}` {

@@ -2,23 +2,41 @@
 
 The pre-trade API can optionally assess whether an application's asset price
 input and venue quote are supported by current external evidence. Its
-`decisionInputAssessment` is separate from the existing oracle `verdict` and is
-not included in the EIP-712 oracle attestation.
+`decisionInputAssessment` is separate from the existing oracle `verdict`. When
+the Insight attester is configured, the assessment carries its own EIP-712
+attestation over the canonical JSON assessment (with the nested `attestation`
+property omitted from the digest). This leaves the existing oracle attestation
+schema unchanged.
 
 The MCP `agent_begin_trade` workflow uses the assessment as a required
-pre-execution gate for both assets in a swap. It issues a handle only when both
-asset assessments are `SUFFICIENT`, the caller-supplied route quote is fresh and
-within the tightest caller reference/slippage limit (capped at 50 bps), both oracle verdicts
-allow execution, and both pre-trade attestations are signed. The signed
-Execution Receipt later references both pre-trade UIDs. Once migration
+pre-execution gate for both assets in a swap. It independently simulates the
+exact-notional route through reviewed Uniswap V3 pools on Ethereum mainnet. The
+input amount is sized with a fresh Chainlink USD observation (WBTC follows the
+existing BTC/USD fallback and records that peg assumption), and two distinct
+RPC hosts must agree on the chain, block hash, and exact route output. The
+caller-reported route quote remains as a comparison input. A handle is issued
+only when both asset assessments are `SUFFICIENT`, both the on-chain quote and
+caller quote are fresh, the on-chain quote matches the oracle cross-rate, the
+caller quote matches the on-chain quote within the tightest policy (capped at
+50 bps), both oracle verdicts allow execution, and both oracle and
+decision-input attestations are signed. Supported routes are ETH/WETH, USDC,
+and WBTC pairs on Ethereum mainnet; unsupported pairs or unavailable RPC
+agreement fail closed. The signed Execution Receipt later references both
+pre-trade UIDs. Once migration
 `0085_decision_input_assessment.sql` is applied, those UIDs join the receipt to
 the source and destination assessments in `pre_trade_checks`.
 
-The assessment data and caller quotes remain unsigned audit context. The
-EIP-712 receipt cryptographically commits to the pre-trade attestations and
-their UIDs, but does not cryptographically commit to the assessment JSON or
-caller-supplied route quote. The route quote is persisted alongside each
-pre-trade assessment so an auditor can reconstruct what the gate evaluated.
+The separate decision-input signature commits to the exact assessment JSON,
+including its policy, prices, normalized per-source snapshot hashes, source
+evidence summary, caller-supplied prices, the route quote and any on-chain
+block/path/amount evidence, and `quoteInputHash`. It is linked to the
+corresponding pre-trade UID and expires after five minutes. The snapshot hashes cover the
+normalized Chainlink observation, stored CEX rollup, and DEX advisory consumed
+by the assessment. The Execution Receipt still commits to the pre-trade UIDs; a verifier
+can follow those UIDs to the separately signed assessment in the audit rows.
+The signature proves assessment integrity and issuer identity. It does not
+authenticate the caller's quote source, prove an external source is correct, or
+authorize a transaction.
 
 ## Request
 
@@ -50,8 +68,42 @@ The MCP `pre_trade_safety_check` tool accepts the same six values nested under
 `decisionInput`; this direct tool remains advisory. `agent_begin_trade` requires
 source and destination `decisionInput` objects, each containing those six
 values, plus a `routeQuotePrice` (destination per source) and
-`routeQuoteObservedAt`. The agent must obtain these from the application or
-venue that produced the proposed operation.
+`routeQuoteObservedAt` for comparison. Insight independently obtains the
+execution-sized Uniswap V3 quote for supported Ethereum pairs; the
+caller-reported values do not establish the price source.
+
+## Verify the assessment signature
+
+If `decisionInputAssessment.attestation` is present, submit the exact
+`decisionInputAssessment` object from the API response:
+
+```sh
+curl 'https://www.oracleinsight.xyz/api/v1/safety/decision-input/verify' \
+  --header 'content-type: application/json' \
+  --data-binary "$(jq -c '{assessment: .data.decisionInputAssessment}' pretrade.json)"
+```
+
+The endpoint recomputes the assessment digest, EIP-712 UID, and signature, and
+checks that the signer is Insight's published attester and that the
+five-minute validity window has not expired. The result returns the pre-trade
+UID committed by the signature; the caller compares it with the paired signed
+pre-trade attestation. `GET` on the same endpoint returns the attester address
+and frozen EIP-712 descriptor for independent verifiers.
+If the signature is absent, the assessment remains an advisory result and
+`agent_begin_trade` will not issue an execution handle.
+Before issuing a handle, `agent_begin_trade` verifies each assessment's strict
+v1 shape, canonical digest, EIP-712 signature, published key window and expiry,
+then checks that its signed `linkedPreTradeUid` matches that asset's pre-trade
+attestation UID. A signature string by itself is never accepted as proof.
+
+For an `agent_begin_trade` handle, the signed assessment also contains the
+Uniswap V3 path, exact input/output amounts, Chainlink notional-price round and
+pricing basis, and the agreed block number/hash. The verifier endpoint checks Insight's signature;
+the Quoter call is pinned to that block hash and requires the block to remain
+canonical. An independent chain replay can call the published Quoter V2
+contract with that path and input amount at the same block hash and compare the
+output. A reorg or RPC that cannot honor the hash-pinned call fails closed.
+This is an RPC-reproducible record, not a light-client proof.
 
 ## Evidence used
 
@@ -67,10 +119,12 @@ venue that produced the proposed operation.
   tolerances.
 
 Chainlink and CEX prices are compared against the caller's decision price.
-The quote is compared against the decision price. The CEX spread is also
-compared against `maxReferenceDeviationBps`. The DEX manipulation-cost figure
-is included as market-depth context and is not used as an execution-slippage
-estimate.
+The supplied per-asset quotes are compared against their decision prices. The
+CEX spread is also compared against `maxReferenceDeviationBps`. The DEX
+manipulation-cost figure is included as market-depth context and is not used as
+an execution-slippage estimate. In `agent_begin_trade`, the independent
+Uniswap V3 quote is separately compared against the oracle cross-rate and the
+caller-reported route quote.
 
 ## Result
 
@@ -85,12 +139,15 @@ estimate.
 `eligibleToProceed` is true only for `SUFFICIENT`. That status is one gate in
 `agent_begin_trade`; it is not a transaction authorization. Integrators still
 need their own transaction authorization, simulation, wallet, and protocol
-checks. A `SUFFICIENT` result does not prove that the caller's quote is
-authentic, route-specific, or executable at the time of submission. In
-particular, the DEX figure is a manipulation-cost proxy, not a route quote,
-price-impact estimate, or guarantee of available liquidity. Unsupported asset
-or chain coverage fails closed in `agent_begin_trade` and returns no execution
-handle.
+checks. A `SUFFICIENT` result does not authenticate caller-supplied per-asset
+quotes. The on-chain route simulation proves that the reviewed Uniswap V3 path
+returned an output against a block agreed by two configured RPC hosts; it is
+not a cryptographic light-client proof and does not guarantee a later
+transaction will execute at that price. The user may submit through another
+router, and state, gas, MEV, and liquidity can change after the quoted block.
+The DEX manipulation-cost figure remains a separate pool-depth proxy, not an
+execution quote. Unsupported assets or chain coverage fail closed in
+`agent_begin_trade` and return no execution handle.
 
 ## Audit linkage
 

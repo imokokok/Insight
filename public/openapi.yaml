@@ -2389,6 +2389,46 @@ paths:
       responses:
         '200': { description: Cryptographic verification result }
 
+  /safety/decision-input/verify:
+    get:
+      operationId: getDecisionInputAttestationDescriptor
+      tags: [Safety]
+      summary: Get the decision-input attester and EIP-712 schema
+      description: Public signer-readiness and verification descriptor. The status is READY, UNCONFIGURED, or UNTRUSTED_SIGNER.
+      security: []
+      responses:
+        '200':
+          description: Attester identity, readiness status, and frozen EIP-712 verification descriptor
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+    post:
+      operationId: verifyDecisionInputAssessment
+      tags: [Safety]
+      summary: Verify a signed decision-input assessment
+      description: Recomputes the canonical assessment digest and verifies the frozen EIP-712 signature, trusted attester, UID, linked pre-trade UID, and expiry. A valid signature proves integrity and issuer identity; it does not prove quote-source authenticity or authorize a transaction.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assessment]
+              properties:
+                assessment:
+                  type: object
+                  description: Exact decisionInputAssessment object returned by the pre-trade endpoint, including its nested attestation
+                  additionalProperties: true
+              additionalProperties: false
+      responses:
+        '200':
+          description: Cryptographic verification result, including validity, signer, digest, linked UID, expiry, and failure reason
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: Malformed verification request }
+
   /oracle-watch/attestation/verify:
     get:
       operationId: getOracleWatchAttestationVerificationSchema
