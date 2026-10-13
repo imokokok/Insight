@@ -1707,7 +1707,7 @@ async function attachTokenSecurityEvidence(
         requested: true,
         outcome: getOutcome(),
         latencyMs: raw?.latencyMs,
-        keyed: Boolean(process.env.GOPLUS_API_KEY),
+        keyed: Boolean(process.env.GOPLUS_APP_KEY?.trim() && process.env.GOPLUS_APP_SECRET?.trim()),
       };
     }
     if (!raw) return;
