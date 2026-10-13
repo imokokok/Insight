@@ -58,6 +58,9 @@ async function getGoPlusAccessToken(
 
   if (!accessTokenPromise) {
     const time = Math.floor(now / 1000);
+    // GoPlus requires SHA-1 over app_key + time + app_secret for its access-token
+    // endpoint. This value authenticates that request; it is not used for data integrity.
+    // Protocol reference: https://docs.gopluslabs.io/reference/getaccesstokenusingpost
     const sign = createHash('sha1').update(`${appKey}${time}${appSecret}`).digest('hex');
     const controller = new AbortController();
     const timeout = setTimeout(
