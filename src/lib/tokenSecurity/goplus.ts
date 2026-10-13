@@ -13,8 +13,7 @@
  *   budget; cache misses after process restart simply re-fetch.
  */
 
-// @ts-expect-error @goplus/sdk-node 1.1.2 exports JavaScript without resolving its declared types.
-import { GoPlus as goPlusSdkValue } from '@goplus/sdk-node';
+import { createHash } from 'node:crypto';
 
 import { createLogger } from '@/lib/utils/logger';
 
@@ -24,14 +23,8 @@ export const GOPLUS_TIMEOUT_MS = 3_000;
 export const GOPLUS_CACHE_TTL_MS = 15 * 60_000;
 
 const GOPLUS_BASE_URL = 'https://api.gopluslabs.io';
+const GOPLUS_TOKEN_URL = `${GOPLUS_BASE_URL}/api/v1/token`;
 const GOPLUS_TOKEN_REFRESH_SKEW_SECONDS = 60;
-
-interface GoPlusSdk {
-  config(appKey: string, appSecret: string, timeoutSeconds: number): void;
-  getAccessToken(): Promise<unknown>;
-}
-
-const goPlusSdk = goPlusSdkValue as GoPlusSdk;
 
 interface CachedAccessToken {
   value: string;
@@ -46,7 +39,10 @@ let accessTokenPromise: Promise<string | null> | null = null;
  * and cache the short-lived API token from GoPlus at runtime so secrets never
  * leave the server. Read env at call time to support runtime configuration.
  */
-async function getGoPlusAccessToken(callerSignal: AbortSignal): Promise<string | null> {
+async function getGoPlusAccessToken(
+  fetchImpl: typeof globalThis.fetch,
+  callerSignal: AbortSignal
+): Promise<string | null> {
   const appKey = process.env.GOPLUS_APP_KEY?.trim() ?? '';
   const appSecret = process.env.GOPLUS_APP_SECRET?.trim() ?? '';
   if (!appKey && !appSecret) return null;
@@ -61,6 +57,8 @@ async function getGoPlusAccessToken(callerSignal: AbortSignal): Promise<string |
   }
 
   if (!accessTokenPromise) {
+    const time = Math.floor(now / 1000);
+    const sign = createHash('sha1').update(`${appKey}${time}${appSecret}`).digest('hex');
     const controller = new AbortController();
     const timeout = setTimeout(
       () => controller.abort(new Error('GoPlus token request timed out')),
@@ -68,10 +66,20 @@ async function getGoPlusAccessToken(callerSignal: AbortSignal): Promise<string |
     );
     const request = (async (): Promise<string | null> => {
       try {
-        // GoPlus mandates SHA-1 for its token-request signature; delegate the
-        // protocol signing and token exchange to its official SDK.
-        goPlusSdk.config(appKey, appSecret, Math.ceil(GOPLUS_TIMEOUT_MS / 1000));
-        const payload: unknown = await waitForAbort(goPlusSdk.getAccessToken(), controller.signal);
+        const response = await fetchImpl(GOPLUS_TOKEN_URL, {
+          method: 'POST',
+          headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ app_key: appKey, time, sign }),
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          logger.warn('GoPlus access token request failed; advisory omitted', {
+            status: response.status,
+          });
+          return null;
+        }
+
+        const payload: unknown = await response.json().catch(() => null);
         if (
           typeof payload !== 'object' ||
           payload === null ||
@@ -250,7 +258,7 @@ async function fetchOnce(
       onOutcome?.('fetch_exception');
       return null;
     }
-    const accessToken = hasAppKey ? await getGoPlusAccessToken(controller.signal) : null;
+    const accessToken = hasAppKey ? await getGoPlusAccessToken(fetchImpl, controller.signal) : null;
     if (hasAppKey && !accessToken) {
       onOutcome?.('fetch_exception');
       return null;
