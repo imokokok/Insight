@@ -49,6 +49,13 @@ Nonstandard fee/rebase/partial-fill semantics are not silently admitted.
 
 ## Integration and regression checks
 
+Applications can use [`preflightRwaAction`](./rwa-action-preflight.md) to collect their own
+policy-pinned price, market and eligibility adapters in one call before constructing/signing a v2
+report. It decodes the proposed transaction before collection and returns source statuses with an
+unsigned, non-authorizing report. The adapter contract is issuer-neutral, while the committed
+production instrument/execution profiles remain Robinhood-only and SHADOW today; adding an adapter
+does not grant production admission.
+
 PriorSeal's matching v2 helpers bind the authority digest into the principal's intent.
 Its Node application adds `executeRwaAuthorized` with principal verification, durable
 single-use authorization/nonce claims and observation-only recovery. Low-level SDK
