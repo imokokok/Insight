@@ -13,6 +13,9 @@
  *   budget; cache misses after process restart simply re-fetch.
  */
 
+// @ts-expect-error @goplus/sdk-node 1.1.2 exports JavaScript without resolving its declared types.
+import { GoPlus as goPlusSdkValue } from '@goplus/sdk-node';
+
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('GoPlusTokenSecurity');
@@ -21,16 +24,128 @@ export const GOPLUS_TIMEOUT_MS = 3_000;
 export const GOPLUS_CACHE_TTL_MS = 15 * 60_000;
 
 const GOPLUS_BASE_URL = 'https://api.gopluslabs.io';
+const GOPLUS_TOKEN_REFRESH_SKEW_SECONDS = 60;
+
+interface GoPlusSdk {
+  config(appKey: string, appSecret: string, timeoutSeconds: number): void;
+  getAccessToken(): Promise<unknown>;
+}
+
+const goPlusSdk = goPlusSdkValue as GoPlusSdk;
+
+interface CachedAccessToken {
+  value: string;
+  expiresAt: number;
+}
+
+let cachedAccessToken: CachedAccessToken | null = null;
+let accessTokenPromise: Promise<string | null> | null = null;
 
 /**
- * Optional paid-tier access token (free tier works keyless but datacenter
- * egress IPs are frequently blocked by GoPlus edge protection). Read at call
- * time, not module load, so deploys never need a code change to pick it up.
- * GoPlus expects its access token in the standard Bearer authorization scheme.
+ * GoPlus credentials are an app key + app secret, not an access token. Mint
+ * and cache the short-lived API token from GoPlus at runtime so secrets never
+ * leave the server. Read env at call time to support runtime configuration.
  */
-function goPlusAuthHeader(): Record<string, string> {
-  const token = process.env.GOPLUS_API_KEY;
-  return token ? { Authorization: `Bearer ${token}` } : {};
+async function getGoPlusAccessToken(callerSignal: AbortSignal): Promise<string | null> {
+  const appKey = process.env.GOPLUS_APP_KEY?.trim() ?? '';
+  const appSecret = process.env.GOPLUS_APP_SECRET?.trim() ?? '';
+  if (!appKey && !appSecret) return null;
+  if (!appKey || !appSecret) {
+    logger.warn('GoPlus app credentials incomplete; advisory omitted');
+    return null;
+  }
+
+  const now = Date.now();
+  if (cachedAccessToken && cachedAccessToken.expiresAt > now) {
+    return waitForAbort(cachedAccessToken.value, callerSignal);
+  }
+
+  if (!accessTokenPromise) {
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(new Error('GoPlus token request timed out')),
+      GOPLUS_TIMEOUT_MS
+    );
+    const request = (async (): Promise<string | null> => {
+      try {
+        // GoPlus mandates SHA-1 for its token-request signature; delegate the
+        // protocol signing and token exchange to its official SDK.
+        goPlusSdk.config(appKey, appSecret, Math.ceil(GOPLUS_TIMEOUT_MS / 1000));
+        const payload: unknown = await waitForAbort(goPlusSdk.getAccessToken(), controller.signal);
+        if (
+          typeof payload !== 'object' ||
+          payload === null ||
+          (payload as { code?: unknown }).code !== 1
+        ) {
+          logger.warn('GoPlus access token response rejected; advisory omitted', {
+            payloadCode: (payload as { code?: unknown } | null)?.code,
+          });
+          return null;
+        }
+
+        const result = (payload as { result?: unknown }).result;
+        if (typeof result !== 'object' || result === null) {
+          logger.warn('GoPlus access token response malformed; advisory omitted');
+          return null;
+        }
+        const token = (result as { access_token?: unknown }).access_token;
+        const expiresInValue = (result as { expires_in?: unknown }).expires_in;
+        const expiresIn =
+          typeof expiresInValue === 'number' || typeof expiresInValue === 'string'
+            ? Number(expiresInValue)
+            : Number.NaN;
+        if (
+          typeof token !== 'string' ||
+          token.length === 0 ||
+          !Number.isFinite(expiresIn) ||
+          expiresIn <= 0
+        ) {
+          logger.warn('GoPlus access token response malformed; advisory omitted');
+          return null;
+        }
+
+        const refreshInSeconds = Math.max(1, expiresIn - GOPLUS_TOKEN_REFRESH_SKEW_SECONDS);
+        cachedAccessToken = {
+          value: token,
+          expiresAt: Date.now() + refreshInSeconds * 1000,
+        };
+        return token;
+      } catch (error) {
+        logger.warn('GoPlus access token request failed; advisory omitted', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return null;
+      } finally {
+        clearTimeout(timeout);
+      }
+    })();
+    accessTokenPromise = request;
+    void request.finally(() => {
+      if (accessTokenPromise === request) accessTokenPromise = null;
+    });
+  }
+
+  return waitForAbort(accessTokenPromise, callerSignal);
+}
+
+function waitForAbort<T>(value: T, signal: AbortSignal): Promise<T>;
+function waitForAbort<T>(value: Promise<T>, signal: AbortSignal): Promise<T>;
+function waitForAbort<T>(value: T | Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) return Promise.reject(signal.reason ?? new Error('GoPlus request timed out'));
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => reject(signal.reason ?? new Error('GoPlus request timed out'));
+    signal.addEventListener('abort', abort, { once: true });
+    Promise.resolve(value).then(
+      (result) => {
+        signal.removeEventListener('abort', abort);
+        resolve(result);
+      },
+      (error: unknown) => {
+        signal.removeEventListener('abort', abort);
+        reject(error);
+      }
+    );
+  });
 }
 
 /** Raw GoPlus token_security record — every field is a string on the wire. */
@@ -71,6 +186,8 @@ export function goPlusCacheKey(chainId: number, contractAddress: string): string
 /** Test seam — clears the in-process cache. */
 export function clearGoPlusCacheForTest(): void {
   cache.clear();
+  cachedAccessToken = null;
+  accessTokenPromise = null;
 }
 
 /**
@@ -126,10 +243,26 @@ async function fetchOnce(
   );
   const startedAt = Date.now();
   try {
+    const hasAppKey = Boolean(process.env.GOPLUS_APP_KEY?.trim());
+    const hasAppSecret = Boolean(process.env.GOPLUS_APP_SECRET?.trim());
+    if (hasAppKey !== hasAppSecret) {
+      logger.warn('GoPlus app credentials incomplete; advisory omitted');
+      onOutcome?.('fetch_exception');
+      return null;
+    }
+    const accessToken = hasAppKey ? await getGoPlusAccessToken(controller.signal) : null;
+    if (hasAppKey && !accessToken) {
+      onOutcome?.('fetch_exception');
+      return null;
+    }
     const response = await fetchImpl(url, {
       method: 'GET',
       signal: controller.signal,
-      headers: { Accept: 'application/json', ...goPlusAuthHeader() },
+      headers: {
+        Accept: 'application/json',
+        // GoPlus validates the raw token here; adding "Bearer " yields 4012.
+        ...(accessToken ? { Authorization: accessToken } : {}),
+      },
     });
     const rawBody = await response.text();
     const latencyMs = Date.now() - startedAt;
@@ -141,7 +274,7 @@ async function fetchOnce(
         contentType: response.headers.get('content-type') ?? 'none',
         bodyHead: rawBody.slice(0, 160),
         latencyMs,
-        keyed: Boolean(process.env.GOPLUS_API_KEY),
+        keyed: Boolean(process.env.GOPLUS_APP_KEY && process.env.GOPLUS_APP_SECRET),
       });
       return null;
     }
