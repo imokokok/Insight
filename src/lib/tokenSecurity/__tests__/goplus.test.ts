@@ -1,5 +1,21 @@
-import { createHash } from 'node:crypto';
 import { clearGoPlusCacheForTest, fetchGoPlusTokenSecurity } from '../goplus';
+
+jest.mock('@goplus/sdk-node', () => ({
+  GoPlus: {
+    config: jest.fn(),
+    getAccessToken: jest.fn(),
+  },
+  ErrorCode: {},
+}));
+
+const goPlusSdkMock = (
+  jest.requireMock('@goplus/sdk-node') as {
+    GoPlus: {
+      config: jest.Mock;
+      getAccessToken: jest.Mock<Promise<unknown>, []>;
+    };
+  }
+).GoPlus;
 
 const USDC_BASE = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
 
@@ -27,6 +43,8 @@ describe('fetchGoPlusTokenSecurity', () => {
   beforeEach(() => {
     clearGoPlusCacheForTest();
     fetchMock.mockReset();
+    goPlusSdkMock.config.mockReset();
+    goPlusSdkMock.getAccessToken.mockReset();
     delete process.env.GOPLUS_APP_KEY;
     delete process.env.GOPLUS_APP_SECRET;
     delete process.env.GOPLUS_API_KEY;
@@ -71,16 +89,11 @@ describe('fetchGoPlusTokenSecurity', () => {
   it('exchanges app credentials, caches the access token, and sends it raw', async () => {
     process.env.GOPLUS_APP_KEY = 'test-app-key';
     process.env.GOPLUS_APP_SECRET = 'test-app-secret';
+    goPlusSdkMock.getAccessToken.mockResolvedValue({
+      code: 1,
+      result: { access_token: 'test-access-token', expires_in: 3600 },
+    });
     fetchMock
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            code: 1,
-            result: { access_token: 'test-access-token', expires_in: 3600 },
-          }),
-          { status: 200 }
-        )
-      )
       .mockResolvedValueOnce(new Response(goPlusOkBody(HEALTHY_RECORD), { status: 200 }))
       .mockResolvedValueOnce(new Response(goPlusOkBody(HEALTHY_RECORD), { status: 200 }));
 
@@ -88,22 +101,13 @@ describe('fetchGoPlusTokenSecurity', () => {
     await fetchGoPlusTokenSecurity(1, USDC_BASE);
 
     expect(result).not.toBeNull();
-    expect(fetchMock).toHaveBeenCalledTimes(3);
-    const tokenRequest = fetchMock.mock.calls[0];
-    expect(tokenRequest[0]).toBe('https://api.gopluslabs.io/api/v1/token');
-    expect(tokenRequest[1]?.method).toBe('POST');
-    const tokenBody = JSON.parse(String(tokenRequest[1]?.body)) as {
-      app_key: string;
-      time: string;
-      sign: string;
-    };
-    expect(tokenBody.app_key).toBe('test-app-key');
-    expect(tokenBody.sign).toBe(
-      createHash('sha1').update(`test-app-key${tokenBody.time}test-app-secret`).digest('hex')
-    );
-    const securityHeaders = (fetchMock.mock.calls[1][1]?.headers ?? {}) as Record<string, string>;
+    expect(goPlusSdkMock.config).toHaveBeenCalledTimes(1);
+    expect(goPlusSdkMock.config).toHaveBeenCalledWith('test-app-key', 'test-app-secret', 3);
+    expect(goPlusSdkMock.getAccessToken).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const securityHeaders = (fetchMock.mock.calls[0][1]?.headers ?? {}) as Record<string, string>;
     expect(securityHeaders.Authorization).toBe('test-access-token');
-    const secondSecurityHeaders = (fetchMock.mock.calls[2][1]?.headers ?? {}) as Record<
+    const secondSecurityHeaders = (fetchMock.mock.calls[1][1]?.headers ?? {}) as Record<
       string,
       string
     >;
