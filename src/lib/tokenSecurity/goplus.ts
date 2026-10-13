@@ -13,9 +13,10 @@
  *   budget; cache misses after process restart simply re-fetch.
  */
 
-import { createLogger } from '@/lib/utils/logger';
 // @ts-expect-error @goplus/sdk-node 1.1.2 exports JavaScript without resolving its declared types.
 import { GoPlus as goPlusSdkValue } from '@goplus/sdk-node';
+
+import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('GoPlusTokenSecurity');
 
