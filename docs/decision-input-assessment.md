@@ -109,6 +109,11 @@ This is an RPC-reproducible record, not a light-client proof.
 
 - **Chainlink:** a catalogued on-chain USD feed for the requested asset and
   chain, checked against that feed's heartbeat.
+- **RedStone:** an additional USD reference from the existing RedStone API
+  adapter. A fresh observation (at most five minutes old) is compared with the
+  decision price and can block on excess deviation. Missing or stale RedStone
+  data is retained as optional evidence where available and does not by itself
+  lower the assessment status.
 - **CEX reference:** the latest stored hourly market reference, provided it is
   less than three hours old, has at least two exchanges, and includes a
   cross-exchange spread.
@@ -118,13 +123,35 @@ This is an RPC-reproducible record, not a light-client proof.
 - **Caller inputs:** decision price, venue quote, quote timestamp, and explicit
   tolerances.
 
-Chainlink and CEX prices are compared against the caller's decision price.
+Chainlink, fresh RedStone, and CEX prices are compared against the caller's
+decision price.
 The supplied per-asset quotes are compared against their decision prices. The
 CEX spread is also compared against `maxReferenceDeviationBps`. The DEX
 manipulation-cost figure is included as market-depth context and is not used as
 an execution-slippage estimate. In `agent_begin_trade`, the independent
 Uniswap V3 quote is separately compared against the oracle cross-rate and the
 caller-reported route quote.
+
+RedStone is a separate provider path, but its API response is not independently
+signature-verified by this assessment and may share upstream market venues with
+the other references. The signed snapshot records its reported timestamp,
+provider/source label, and observed price so a verifier can inspect exactly what
+the assessment used.
+
+## Additional source candidates
+
+- **Pyth Hermes:** a useful next oracle reference for ETH, BTC, and stablecoin
+  coverage. The current Hermes integration requires a Pyth API key, so it is
+  not enabled here until that credential and feed-specific freshness limits are
+  configured. See [Pyth's current setup guide](https://docs.pyth.network/price-feeds/core/getting-started).
+- **Uniswap V3:** already used for block-pinned, exact-notional route simulation
+  in the gated MCP flow and for the separate manipulation-cost pool map. A
+  future multi-pool TWAP can add a time-windowed on-chain signal, but should be
+  kept distinct from the execution quote.
+- **Coinbase, Kraken, and Gemini:** already aggregated in the stored CEX
+  reference. The existing collector records the exchange count and spread, so
+  adding another venue should follow a successful production coverage check
+  rather than increasing the count with unsupported pairs.
 
 ## Result
 

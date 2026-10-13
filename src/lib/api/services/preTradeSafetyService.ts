@@ -58,6 +58,10 @@ import {
   type MarketReference,
 } from '@/lib/marketReference/client';
 import {
+  fetchRedStoneMarketReference,
+  type RedStoneMarketReference,
+} from '@/lib/marketReference/redstone';
+import {
   classifyMlRisk,
   featuresFromPreTrade,
   getModelStatus,
@@ -1615,6 +1619,7 @@ async function fetchManipCostAdvisorySafe(
 
 interface DecisionInputReferenceEvidence {
   chainlink: ChainlinkMarketReference | null;
+  redstone: RedStoneMarketReference | null;
   cex: MarketReference | null;
 }
 
@@ -1644,11 +1649,25 @@ function startDecisionInputReferenceFetch(
     });
     return null;
   });
+  const redstone = fetchRedStoneMarketReference({
+    symbol,
+    // This is an optional cross-check, so keep its added request latency bounded.
+    signal: AbortSignal.timeout(3_000),
+  }).catch((error: unknown) => {
+    logger.warn('Decision-input RedStone evidence unavailable', {
+      asset: input.asset,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
 
-  return Promise.all([chainlink, cex]).then(([chainlinkResult, cexResult]) => ({
-    chainlink: chainlinkResult,
-    cex: cexResult,
-  }));
+  return Promise.all([chainlink, cex, redstone]).then(
+    ([chainlinkResult, cexResult, redstoneResult]) => ({
+      chainlink: chainlinkResult,
+      cex: cexResult,
+      redstone: redstoneResult,
+    })
+  );
 }
 
 async function attachDecisionInputAssessment(
@@ -1661,7 +1680,7 @@ async function attachDecisionInputAssessment(
   if (!input.decisionInput) return;
 
   const [referenceEvidence, manipulationCost] = await Promise.all([
-    referenceEvidencePromise ?? Promise.resolve({ chainlink: null, cex: null }),
+    referenceEvidencePromise ?? Promise.resolve({ chainlink: null, cex: null, redstone: null }),
     knownManipulationCost === undefined
       ? fetchManipCostAdvisorySafe(input.asset, input.chainId)
       : Promise.resolve(knownManipulationCost ?? undefined),
@@ -1674,6 +1693,7 @@ async function attachDecisionInputAssessment(
     tradeAmountUsd: input.tradeAmountUsd,
     request: input.decisionInput,
     chainlink: referenceEvidence.chainlink,
+    redstone: referenceEvidence.redstone,
     cex: referenceEvidence.cex,
     dex: manipulationCost ?? null,
   });
