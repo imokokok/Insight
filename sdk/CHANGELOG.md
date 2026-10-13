@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+- Add `preflightRwaAction()` to collect application-owned RWA evidence adapters, validate their
+  source bindings, decode the exact proposed transaction and return an unsigned v2 action report
+  with per-source status. The adapter workflow is issuer-neutral and cannot authorize execution.
+- Add `createRobinhoodRwaMarketProvider()` to bind the existing Robinhood issuer context to the
+  action-preflight flow without treating its quote as an independent oracle price. Unknown market
+  session or unresolved issuer integrity remains non-allowing.
+- Add `createRobinhoodChainlinkPriceProvider()` to read the caller-pinned feed and token state at
+  one block, reject paused or pending multiplier states, and normalize total-return value to the
+  registered underlying-spot basis. Feed address pinning and session resolution remain app-owned.
+- Add `createRobinhoodRwaSessionResolver()` to validate venue session observations and share the
+  same observation across the market-state and Chainlink adapters in one preflight request.
+- Add `createIsOpenNowRwaSessionResolver()` for zero-cost XNAS/XNYS session observations, with
+  one-minute per-market caching, explicit UNKNOWN handling and unverified-source boundaries.
+
 ## 0.5.1 — 2026-10-10
 
 - Validate successful PriorSeal bridge responses before using authorization and observation data. Reject mismatched authorization and job IDs, malformed receipts, and unknown observation states instead of continuing a joint workflow with untrusted response fields.
