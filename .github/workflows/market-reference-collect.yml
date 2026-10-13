@@ -6,8 +6,8 @@ name: Market Reference Collect
 # after hours; only workflow_dispatch fired). Keep this as a manual trigger for
 # one-off catch-up runs.
 #
-# Sources: coinbase + kraken + gemini (all US-runner-safe public APIs; Gemini
-# replaced Binance, which returns HTTP 451 on GitHub US runners).
+# Sources: Coinbase, Kraken, Gemini, and Crypto.com (WBTC/USD only). Gemini
+# replaced Binance, which returns HTTP 451 on GitHub US runners.
 
 on:
   workflow_dispatch:

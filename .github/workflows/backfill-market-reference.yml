@@ -1,9 +1,9 @@
 name: Backfill Market Reference
 
 # One-shot historical backfill of the external truth layer. Pulls
-# BACKFILL_DAYS of hourly candles (Coinbase Exchange + Kraken OHLC) for the
-# universe symbols and upserts them into `market_reference_snapshots`
-# (migration 0037 must be applied first).
+# BACKFILL_DAYS of hourly candles from Coinbase Exchange and Kraken, plus
+# Crypto.com for WBTC/USD, then upserts them into `market_reference_snapshots`
+# (migration 0038 must be applied first).
 #
 # Trigger manually: Actions → Backfill Market Reference → Run workflow →
 # set "days" (default 90). Idempotent (upsert with ignoreDuplicates), safe to

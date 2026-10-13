@@ -2,7 +2,8 @@
 /**
  * Market-reference collector entry (the step inside snapshot-collect.yml and
  * the manual market-reference-collect.yml workflow). Delegates to
- * `collectMarketReference()` (which queries Coinbase/Kraken/Gemini spot) and
+ * `collectMarketReference()` (which queries Coinbase/Kraken/Gemini/Crypto.com
+ * spot) and
  * upserts one row per (symbol, exchange, snapshot_ts) into
  * `market_reference_snapshots` (migration 0037).
  *
@@ -44,7 +45,7 @@ async function main(): Promise<void> {
   console.log('[collect-market-reference] starting…');
   const snapshotTs = new Date();
 
-  // Preserve 15-minute truth for the four strategic/core assets, while the
+  // Preserve 15-minute truth for the five strategic/core assets, while the
   // eight demand-led additions run hourly. This reuses the same workflow but
   // roughly halves new rows and exchange requests for the Supabase/GitHub free
   // tiers. Dispatcher-triggered runs provide the exact scheduled slot; manual

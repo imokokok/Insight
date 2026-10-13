@@ -1,4 +1,8 @@
-import { collectMarketReference } from '@/lib/marketReference/collector';
+import {
+  collectMarketReference,
+  MARKET_REFERENCE_CORE_SYMBOLS,
+  MAX_SOURCE_TICKER_AGE_MS,
+} from '@/lib/marketReference/collector';
 
 type Json = unknown;
 
@@ -8,6 +12,26 @@ function jsonResponse(body: Json, ok = true): Response {
     status: ok ? 200 : 500,
     json: async () => body,
   } as Response;
+}
+
+const MOCK_NOW = 1_752_000_000_000;
+
+function cryptoComTickerResponse(timestampMs = Date.now(), instrument = 'WBTC_USD') {
+  return {
+    code: 0,
+    result: {
+      data: [
+        {
+          i: instrument,
+          a: '84000.50',
+          b: '83999.00',
+          k: '84002.00',
+          v: '17.25',
+          t: String(timestampMs),
+        },
+      ],
+    },
+  };
 }
 
 describe('collectMarketReference', () => {
@@ -26,12 +50,15 @@ describe('collectMarketReference', () => {
       if (u.includes('api.gemini.com')) {
         return jsonResponse({ last: '3002.25', bid: '3001', ask: '3003' });
       }
+      if (u.includes('api.crypto.com')) {
+        return jsonResponse(cryptoComTickerResponse(MOCK_NOW));
+      }
       throw new Error('unexpected url ' + u);
     });
 
     const { rows, summary } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
       fetchImpl,
-      now: () => 1_752_000_000_000,
+      now: () => MOCK_NOW,
     });
 
     const eth = rows.filter((r) => r.symbol === 'ETH');
@@ -48,6 +75,16 @@ describe('collectMarketReference', () => {
     expect(summary.covered).toContain('BTC');
     expect(summary.covered).toContain('USDC');
     expect(summary.covered).toContain('USDT');
+    expect(summary.covered).toContain('WBTC');
+    const wbtc = rows.filter((r) => r.symbol === 'WBTC' && r.is_success);
+    expect(wbtc.map((r) => r.exchange).sort()).toEqual(['crypto.com', 'kraken']);
+    expect(wbtc.find((r) => r.exchange === 'crypto.com')).toMatchObject({
+      quote: 'USD',
+      ref_price: 84000.5,
+      bid: 83999,
+      ask: 84002,
+      volume: 17.25,
+    });
     expect(summary.uncovered).toHaveLength(0);
     // Cross-exchange spread over ETH: (3002.25-3000.5)/3002.25 ≈ 0.058%
     expect(summary.maxCrossExchangeSpreadPct).not.toBeNull();
@@ -65,6 +102,9 @@ describe('collectMarketReference', () => {
       }
       if (u.includes('api.gemini.com')) {
         return jsonResponse({ last: '1.0' });
+      }
+      if (u.includes('api.crypto.com')) {
+        return jsonResponse(cryptoComTickerResponse());
       }
       throw new Error('boom');
     });
@@ -93,9 +133,9 @@ describe('collectMarketReference', () => {
       fetchImpl,
     });
 
-    // Coinbase + Kraken cover all 12; Gemini is queried only for its 7 listed
-    // pairs, avoiding predictable failed rows and free-tier storage waste.
-    expect(rows).toHaveLength(12 * 2 + 7);
+    // Coinbase + Kraken are attempted across 13 symbols; Gemini is queried only
+    // for its 7 mapped pairs and Crypto.com only for WBTC.
+    expect(rows).toHaveLength(13 * 2 + 7 + 1);
     expect(rows.every((r) => r.is_success === false)).toBe(true);
     expect(rows.every((r) => r.ref_price === null)).toBe(true);
     expect(rows.every((r) => r.error_message)).toBe(true);
@@ -103,6 +143,7 @@ describe('collectMarketReference', () => {
     expect(summary.uncovered).toEqual([
       'ETH',
       'BTC',
+      'WBTC',
       'USDC',
       'USDT',
       'SOL',
@@ -124,14 +165,15 @@ describe('collectMarketReference', () => {
       if (u.includes('kraken')) {
         return jsonResponse({ error: [], result: { NORMALIZED: { c: ['1.0'] } } });
       }
+      if (u.includes('api.crypto.com')) return jsonResponse(cryptoComTickerResponse(Date.now()));
       return jsonResponse({ last: '1.0' });
     });
     const { rows, summary } = await collectMarketReference(new Date('2026-08-30T16:15:00Z'), {
       fetchImpl,
-      symbols: ['ETH', 'BTC', 'USDC', 'USDT'],
+      symbols: MARKET_REFERENCE_CORE_SYMBOLS,
     });
-    expect(rows).toHaveLength(12);
-    expect(summary.symbols).toEqual(['ETH', 'BTC', 'USDC', 'USDT']);
+    expect(rows).toHaveLength(15);
+    expect(summary.symbols).toEqual(MARKET_REFERENCE_CORE_SYMBOLS);
   });
 
   it('treats a zero/negative exchange price as a failed quote', async () => {
@@ -149,6 +191,7 @@ describe('collectMarketReference', () => {
           },
         });
       }
+      if (u.includes('api.crypto.com')) return jsonResponse(cryptoComTickerResponse());
       return jsonResponse({ last: '5' });
     });
 
@@ -165,6 +208,7 @@ describe('collectMarketReference', () => {
       if (u.includes('api.kraken.com')) {
         return jsonResponse({ error: ['EGeneral:Too many requests'], result: {} });
       }
+      if (u.includes('api.crypto.com')) return jsonResponse(cryptoComTickerResponse());
       return jsonResponse({ last: '1.0' });
     });
 
@@ -172,5 +216,68 @@ describe('collectMarketReference', () => {
     const ethKraken = rows.find((r) => r.symbol === 'ETH' && r.exchange === 'kraken')!;
     expect(ethKraken.is_success).toBe(false);
     expect(ethKraken.error_message).toContain('EGeneral:Too many requests');
+  });
+
+  it('collects WBTC from Kraken and Crypto.com as direct USD spot markets', async () => {
+    const urls: string[] = [];
+    const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
+      const value = String(url);
+      urls.push(value);
+      if (value.includes('api.exchange.coinbase.com')) return jsonResponse({ price: '84001' });
+      if (value.includes('api.kraken.com')) {
+        return jsonResponse({
+          error: [],
+          result: { WBTCUSD: { c: ['84000'], a: ['84001'], b: ['83999'] } },
+        });
+      }
+      if (value.includes('api.crypto.com')) return jsonResponse(cryptoComTickerResponse(MOCK_NOW));
+      throw new Error(`unexpected URL ${value}`);
+    });
+
+    const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      fetchImpl,
+      now: () => MOCK_NOW,
+      symbols: ['WBTC'],
+    });
+
+    expect(urls).toContain(
+      'https://api.crypto.com/exchange/v1/public/get-tickers?instrument_name=WBTC_USD'
+    );
+    expect(urls).toContain('https://api.kraken.com/0/public/Ticker?pair=WBTCUSD');
+    expect(
+      rows
+        .filter((row) => row.is_success)
+        .map((row) => row.exchange)
+        .sort()
+    ).toEqual(['crypto.com', 'kraken']);
+    expect(rows.find((row) => row.exchange === 'coinbase')?.is_success).toBe(false);
+  });
+
+  it('rejects stale Crypto.com ticker data instead of counting it as an independent source', async () => {
+    const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
+      const value = String(url);
+      if (value.includes('api.exchange.coinbase.com')) return jsonResponse({ price: '84001' });
+      if (value.includes('api.kraken.com')) {
+        return jsonResponse({ error: [], result: { WBTCUSD: { c: ['84000'] } } });
+      }
+      if (value.includes('api.crypto.com')) {
+        return jsonResponse(cryptoComTickerResponse(MOCK_NOW - MAX_SOURCE_TICKER_AGE_MS - 1));
+      }
+      throw new Error(`unexpected URL ${value}`);
+    });
+
+    const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      fetchImpl,
+      now: () => MOCK_NOW,
+      symbols: ['WBTC'],
+    });
+
+    const cryptoCom = rows.find((row) => row.exchange === 'crypto.com');
+    expect(cryptoCom?.is_success).toBe(false);
+    expect(cryptoCom?.error_message).toContain('outside freshness window');
+  });
+
+  it('keeps WBTC in the regular 15-minute market-reference set', () => {
+    expect(MARKET_REFERENCE_CORE_SYMBOLS).toContain('WBTC');
   });
 });

@@ -2,7 +2,8 @@
 
 Insight already reads Chainlink feeds for its oracle product. This adds a
 separate, read-only check that compares one catalogued Chainlink USD feed with
-the existing Coinbase, Kraken, and Gemini spot observations. Chainlink is
+the existing Coinbase, Kraken, and Gemini spot observations; Crypto.com supplies
+the second direct USD spot market for WBTC. Chainlink is
 reported as an oracle reference, not counted as a fourth exchange, and this
 check does not persist or publish any prices or affect production decisions.
 

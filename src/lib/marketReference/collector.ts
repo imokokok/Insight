@@ -2,7 +2,7 @@
  * Market-reference collector — the external truth layer.
  *
  * Fetches independent CEX spot prices for the Oracle Watch universe
- * (the demand-led 12-asset set below, quote USD) every 15 minutes from GitHub Actions
+ * (the demand-led 13-asset set below, quote USD) every 15 minutes from GitHub Actions
  * (`market-reference-collect.yml`), writing one row per (symbol, exchange,
  * snapshot_ts) into `market_reference_snapshots` (migration 0038).
  *
@@ -12,10 +12,12 @@
  *    same "non-derived group" concept as the Watch independence gate — and
  *    oracle-vs-market divergence is the closest thing to a manipulation
  *    ground truth available without inside information.
- *  - This layer is EVIDENCE, not a decision input: it never relaxes a verdict
- *    gate and never enters signed receipts. It feeds (a) the training
- *    pipeline's `oracle_vs_market_deviation_pct` feature + Track-B label and
- *    (b) a Watch ADVISORY divergence reason code.
+ *  - This layer is evidence, not an oracle-verdict input: it never relaxes
+ *    that verdict or enters the existing oracle attestation. It feeds (a) the
+ *    training pipeline's `oracle_vs_market_deviation_pct` feature + Track-B
+ *    label, (b) a Watch ADVISORY divergence reason, and (c) the separate
+ *    decision-input assessment, which binds the hourly reference snapshot in
+ *    its own signature.
  *
  * Standards compliance (from the partnership archives):
  *  - APS SOURCE discipline: `COLLECTOR_VERSION` is pinned to the repo commit
@@ -30,10 +32,11 @@
  * Gemini note: replaced Binance as the third source. Binance's public API is
  * geo-blocked (HTTP 451) on GitHub US runners, so it contributed zero
  * successful rows in production. Gemini (NY-regulated, public keyless
- * pubticker) gives us a third source where it lists the asset, while Coinbase
- * and Kraken retain two-source coverage for the full demand-led universe.
- * For supported assets, three independent sources provide a stronger median;
- * unsupported pairs remain explicit failed observations rather than estimates.
+ * pubticker) gives us a third source for supported symbols. Coinbase and
+ * Kraken cover the broad demand-led universe; WBTC is covered by Kraken and
+ * Crypto.com because Coinbase has no centralized WBTC market. Crypto.com is
+ * queried only for its directly listed WBTC/USD spot instrument. Unsupported
+ * pairs remain explicit failed observations rather than estimates.
  * Cross-exchange consistency is computed by the `market_reference_hourly`
  * view, not asserted here.
  */
@@ -43,7 +46,7 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('MarketReference');
 
 /** Bump when the fetch/row semantics change; pinned for reproducibility. */
-export const COLLECTOR_VERSION = '1.2.0'; // 1.2.0: demand-led universe + ticker liquidity context
+export const COLLECTOR_VERSION = '1.3.0'; // 1.3.0: WBTC/USD coverage via Kraken + Crypto.com
 
 /** Quote currency for all rows. */
 export const MARKET_REFERENCE_QUOTE = 'USD';
@@ -52,6 +55,7 @@ export const MARKET_REFERENCE_QUOTE = 'USD';
 export const MARKET_REFERENCE_SYMBOLS = [
   'ETH',
   'BTC',
+  'WBTC',
   'USDC',
   'USDT',
   // Highest-volume assets in the real pre_trade_checks distribution that are
@@ -67,7 +71,7 @@ export const MARKET_REFERENCE_SYMBOLS = [
 ] as const;
 
 /** Core assets retain 15-minute coverage; demand-led additions run hourly. */
-export const MARKET_REFERENCE_CORE_SYMBOLS = ['ETH', 'BTC', 'USDC', 'USDT'] as const;
+export const MARKET_REFERENCE_CORE_SYMBOLS = ['ETH', 'BTC', 'WBTC', 'USDC', 'USDT'] as const;
 
 /** Per-exchange symbol → trading-pair mapping (quote USD). */
 const COINBASE_PRODUCTS: Record<string, string> = {
@@ -92,6 +96,7 @@ const KRAKEN_PAIRS: Record<string, string> = {
   // stays as-is). The request param AND the result lookup must both use these.
   ETH: 'XETHZUSD',
   BTC: 'XXBTZUSD',
+  WBTC: 'WBTCUSD',
   USDC: 'USDCUSD',
   USDT: 'USDTZUSD',
   SOL: 'SOLUSD',
@@ -104,8 +109,7 @@ const KRAKEN_PAIRS: Record<string, string> = {
   STG: 'STGUSD',
 };
 
-// Gemini ticker symbols (lowercase base + usd). VERIFIED against the live
-// API for all four universe symbols (public pubticker, no key, US-friendly).
+// Gemini ticker symbols (lowercase base + usd), public pubticker and no key.
 const GEMINI_TICKERS: Record<string, string> = {
   ETH: 'ethusd',
   BTC: 'btcusd',
@@ -115,6 +119,15 @@ const GEMINI_TICKERS: Record<string, string> = {
   XRP: 'xrpusd',
   HYPE: 'hypeusd',
 };
+
+/** Crypto.com is currently used only as WBTC's second direct USD spot venue. */
+const CRYPTO_COM_INSTRUMENTS: Record<string, string> = {
+  WBTC: 'WBTC_USD',
+};
+
+/** Reject a ticker that cannot reasonably represent a current 15-minute sample. */
+export const MAX_SOURCE_TICKER_AGE_MS = 15 * 60 * 1000;
+const MAX_SOURCE_TICKER_FUTURE_SKEW_MS = 60 * 1000;
 
 export interface ExchangeQuote {
   exchange: string;
@@ -172,6 +185,16 @@ function parsePrice(value: unknown): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function arrayValue(value: unknown, index: number): unknown {
+  return Array.isArray(value) ? value[index] : undefined;
+}
+
 function requirePair(mapping: Record<string, string>, symbol: string, exchange: string): string {
   const pair = mapping[symbol];
   if (!pair) throw new Error(`${exchange} does not list ${symbol}/USD`);
@@ -191,12 +214,8 @@ async function fetchCoinbaseSpot(symbol: string, fetchImpl: typeof fetch): Promi
   const url = `https://api.exchange.coinbase.com/products/${product}/ticker`;
   const r = await fetchImpl(url);
   if (!r.ok) throw new Error(`coinbase ${r.status}`);
-  const body = (await r.json()) as {
-    price?: unknown;
-    bid?: unknown;
-    ask?: unknown;
-    volume?: unknown;
-  };
+  const body = asRecord(await r.json());
+  if (!body) throw new Error('coinbase unexpected response shape');
   return {
     exchange: 'coinbase',
     symbol,
@@ -214,26 +233,27 @@ async function fetchKrakenSpot(symbol: string, fetchImpl: typeof fetch): Promise
   if (!r.ok) throw new Error(`kraken ${r.status}`);
   // Kraken returns HTTP 200 with a non-empty `error` array on failures
   // (e.g. rate limits) — surface the real reason instead of a generic miss.
-  const body = (await r.json()) as {
-    error?: unknown[];
-    result?: Record<string, { a?: unknown[]; b?: unknown[]; c?: unknown[]; v?: unknown[] }>;
-  };
+  const body = asRecord(await r.json());
+  if (!body) throw new Error('kraken unexpected response shape');
   if (Array.isArray(body.error) && body.error.length > 0) {
     throw new Error(`kraken ${String(body.error[0])}`);
   }
   // Kraken normalizes aliases in response keys. Use the sole returned ticker
   // instead of coupling every newly supported asset to its canonical key.
-  const ticker = Object.values(body.result ?? {})[0];
+  const result = asRecord(body.result);
+  const ticker = Object.values(result ?? {})
+    .map(asRecord)
+    .find((value) => value !== null);
   if (!ticker) {
     throw new Error(`kraken unexpected response shape (pair ${pair} not in result)`);
   }
   return {
     exchange: 'kraken',
     symbol,
-    price: parsePrice(ticker.c?.[0]),
-    ask: parsePrice(ticker.a?.[0]),
-    bid: parsePrice(ticker.b?.[0]),
-    volume: parsePrice(ticker.v?.[1] ?? ticker.v?.[0]),
+    price: parsePrice(arrayValue(ticker.c, 0)),
+    ask: parsePrice(arrayValue(ticker.a, 0)),
+    bid: parsePrice(arrayValue(ticker.b, 0)),
+    volume: parsePrice(arrayValue(ticker.v, 1) ?? arrayValue(ticker.v, 0)),
   };
 }
 
@@ -242,30 +262,79 @@ async function fetchGeminiSpot(symbol: string, fetchImpl: typeof fetch): Promise
   const url = `https://api.gemini.com/v1/pubticker/${ticker}`;
   const r = await fetchImpl(url);
   if (!r.ok) throw new Error(`gemini ${r.status}`);
-  const body = (await r.json()) as {
-    last?: unknown;
-    bid?: unknown;
-    ask?: unknown;
-    volume?: Record<string, unknown>;
-  };
+  const body = asRecord(await r.json());
+  if (!body) throw new Error('gemini unexpected response shape');
+  const volume = asRecord(body.volume);
   return {
     exchange: 'gemini',
     symbol,
     price: parsePrice(body.last),
     bid: parsePrice(body.bid),
     ask: parsePrice(body.ask),
-    volume: parsePrice(body.volume?.[symbol] ?? body.volume?.[symbol.toUpperCase()]),
+    volume: parsePrice(volume?.[symbol] ?? volume?.[symbol.toUpperCase()]),
+  };
+}
+
+async function fetchCryptoComSpot(
+  symbol: string,
+  fetchImpl: typeof fetch,
+  now: () => number
+): Promise<ExchangeQuote> {
+  const instrument = requirePair(CRYPTO_COM_INSTRUMENTS, symbol, 'crypto.com');
+  const url = `https://api.crypto.com/exchange/v1/public/get-tickers?instrument_name=${encodeURIComponent(instrument)}`;
+  const r = await fetchImpl(url);
+  if (!r.ok) throw new Error(`crypto.com ${r.status}`);
+
+  const body = asRecord(await r.json());
+  if (!body) throw new Error('crypto.com unexpected response shape');
+  if (body.code !== 0 && body.code !== '0') {
+    throw new Error(`crypto.com API error (${String(body.code)})`);
+  }
+
+  const result = asRecord(body.result);
+  if (!Array.isArray(result?.data)) throw new Error('crypto.com ticker data is missing');
+  const ticker = result.data.map(asRecord).find((entry) => entry?.i === instrument);
+  if (!ticker) throw new Error(`crypto.com ticker missing instrument ${instrument}`);
+
+  const timestampMs =
+    typeof ticker.t === 'number'
+      ? ticker.t
+      : typeof ticker.t === 'string' && /^\d{13}$/.test(ticker.t)
+        ? Number(ticker.t)
+        : Number.NaN;
+  if (!Number.isSafeInteger(timestampMs) || timestampMs <= 0) {
+    throw new Error('crypto.com ticker timestamp is missing or invalid');
+  }
+  const ageMs = now() - timestampMs;
+  if (ageMs > MAX_SOURCE_TICKER_AGE_MS || ageMs < -MAX_SOURCE_TICKER_FUTURE_SKEW_MS) {
+    throw new Error(
+      `crypto.com ticker timestamp outside freshness window (${Math.round(ageMs / 1000)}s)`
+    );
+  }
+
+  return {
+    exchange: 'crypto.com',
+    symbol,
+    price: parsePrice(ticker.a),
+    bid: parsePrice(ticker.b),
+    ask: parsePrice(ticker.k),
+    volume: parsePrice(ticker.v),
   };
 }
 
 const ADAPTERS: Array<{
   name: string;
-  fn: (symbol: string, f: typeof fetch) => Promise<ExchangeQuote>;
+  fn: (symbol: string, f: typeof fetch, now: () => number) => Promise<ExchangeQuote>;
   supports?: (symbol: string) => boolean;
 }> = [
   { name: 'coinbase', fn: fetchCoinbaseSpot },
   { name: 'kraken', fn: fetchKrakenSpot },
   { name: 'gemini', fn: fetchGeminiSpot, supports: (symbol) => Boolean(GEMINI_TICKERS[symbol]) },
+  {
+    name: 'crypto.com',
+    fn: fetchCryptoComSpot,
+    supports: (symbol) => Boolean(CRYPTO_COM_INSTRUMENTS[symbol]),
+  },
 ];
 
 /**
@@ -296,14 +365,14 @@ export async function collectMarketReference(
   const rows: MarketReferenceRow[] = [];
 
   for (const symbol of symbols) {
-    // Three requests per asset run concurrently. Assets remain sequential so a
-    // 12-symbol pass never bursts 36 requests at the free public APIs.
+    // Requests for each asset run concurrently. Assets remain sequential so a
+    // full pass stays bounded at the free public APIs.
     const symbolRows = await Promise.all(
       ADAPTERS.filter(({ supports }) => !supports || supports(symbol)).map(
         async ({ name, fn }): Promise<MarketReferenceRow> => {
           const started = now();
           try {
-            const quote = await fn(symbol, fetchImpl);
+            const quote = await fn(symbol, fetchImpl, now);
             const latency = Math.round((now() - started) / 1000);
             const ok = quote.price !== null;
             return {
