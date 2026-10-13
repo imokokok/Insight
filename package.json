@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build && npm run perf:budget",
+    "build": "next build --webpack && npm run perf:budget",
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix .",
