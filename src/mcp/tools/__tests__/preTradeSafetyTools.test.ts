@@ -188,6 +188,14 @@ describe('pre_trade_safety_check MCP tool', () => {
     await preTradeSafetyCheckTool.handler({
       ...baseArgs,
       targetProviders: ['chainlink', 'redstone'],
+      decisionInput: {
+        decisionPriceUsd: 1860,
+        quotePriceUsd: 1861,
+        quoteObservedAt: '2026-08-01T00:00:00.000Z',
+        maxReferenceDeviationBps: 50,
+        maxSlippageBps: 75,
+        maxQuoteAgeSeconds: 30,
+      },
     });
 
     expect(mockedCheck).toHaveBeenCalledWith({
@@ -196,6 +204,14 @@ describe('pre_trade_safety_check MCP tool', () => {
       action: 'swap',
       tradeAmountUsd: 50000,
       targetProviders: ['chainlink', 'redstone'],
+      decisionInput: {
+        decisionPriceUsd: 1860,
+        quotePriceUsd: 1861,
+        quoteObservedAt: '2026-08-01T00:00:00.000Z',
+        maxReferenceDeviationBps: 50,
+        maxSlippageBps: 75,
+        maxQuoteAgeSeconds: 30,
+      },
     });
   });
 

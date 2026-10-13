@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
 import { boundedIntegerInput } from '@/lib/security/boundedIntegerInput';
 import { SafeProviderSchema, SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
 import { STABLECOINS, type StablecoinSymbol } from '@/lib/stablecoins/config';
@@ -320,6 +321,19 @@ export const PreTradeSafetyInputSchema = z.object({
     .describe(
       'Optional token contract address whose third-party scan is returned as an advisory view linked to an Insight-signed capture statement (contextAttestation + tokenSecurity). Schema v2 binds the exact normalized view digest, but does not prove source correctness or agent consumption. When omitted, a built-in symbol map (Ethereum mainnet ETH/USDC/WBTC) is used. Advisory only — never affects the verdict.'
     ),
+  decisionInput: z
+    .object({
+      decisionPriceUsd: z.number().finite().positive(),
+      quotePriceUsd: z.number().finite().positive(),
+      quoteObservedAt: DecisionInputQuoteTimestampSchema,
+      maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
+      maxSlippageBps: z.number().int().min(0).max(10_000),
+      maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+    })
+    .optional()
+    .describe(
+      'Optional separate input-sufficiency assessment. Supply the application decision price, actual venue quote and timestamp, and explicit reference-deviation, slippage, and quote-age limits together. This never changes the oracle verdict or authorizes execution.'
+    ),
 });
 
 /**
@@ -362,6 +376,35 @@ export const AgentBeginTradeInputSchema = z.object({
     .optional()
     .describe(
       'Distinct non-derived operator groups the agent gated on; defaults to participantCount'
+    ),
+  decisionInput: z
+    .object({
+      source: z
+        .object({
+          decisionPriceUsd: z.number().finite().positive(),
+          quotePriceUsd: z.number().finite().positive(),
+          quoteObservedAt: DecisionInputQuoteTimestampSchema,
+          maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
+          maxSlippageBps: z.number().int().min(0).max(50),
+          maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+        })
+        .strict(),
+      destination: z
+        .object({
+          decisionPriceUsd: z.number().finite().positive(),
+          quotePriceUsd: z.number().finite().positive(),
+          quoteObservedAt: DecisionInputQuoteTimestampSchema,
+          maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
+          maxSlippageBps: z.number().int().min(0).max(50),
+          maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+        })
+        .strict(),
+      routeQuotePrice: z.number().finite().positive(),
+      routeQuoteObservedAt: DecisionInputQuoteTimestampSchema,
+    })
+    .strict()
+    .describe(
+      'Required operation-input gate: caller decision price and venue quote for both assets, plus the actual route quote in destination-per-source units and its timestamp. Both asset assessments must be SUFFICIENT, and the route quote must be fresh and within the tightest caller reference/slippage limit (capped at 50 bps). Caller-supplied quotes are recorded as unsigned audit context.'
     ),
 });
 

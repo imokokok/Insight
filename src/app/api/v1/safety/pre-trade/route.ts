@@ -49,6 +49,18 @@ async function executePreTradeCheck(params: PreTradeCheckParams): Promise<NextRe
       destinationAsset: query.destinationAsset,
       tokenAddress: query.tokenAddress,
       debugTokenSecurity: query.debugTokenSec === '1',
+      ...(query.decisionInputCheck === '1'
+        ? {
+            decisionInput: {
+              decisionPriceUsd: query.decisionPriceUsd!,
+              quotePriceUsd: query.quotePriceUsd!,
+              quoteObservedAt: query.quoteObservedAt!,
+              maxReferenceDeviationBps: query.maxReferenceDeviationBps!,
+              maxSlippageBps: query.maxSlippageBps!,
+              maxQuoteAgeSeconds: query.maxQuoteAgeSeconds!,
+            },
+          }
+        : {}),
     },
     {
       apiKeyId,

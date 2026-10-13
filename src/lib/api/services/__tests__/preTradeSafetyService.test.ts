@@ -1660,6 +1660,61 @@ function makeSignedContext(
 }
 
 describe('preTradeSafetyCheck — token-security evidence lane (advisory)', () => {
+  it('reports GoPlus app credentials as keyed in the debug surface', async () => {
+    const originalAppKey = process.env.GOPLUS_APP_KEY;
+    const originalAppSecret = process.env.GOPLUS_APP_SECRET;
+    const originalLegacyKey = process.env.GOPLUS_API_KEY;
+    process.env.GOPLUS_APP_KEY = 'test-app-key';
+    process.env.GOPLUS_APP_SECRET = 'test-app-secret';
+    delete process.env.GOPLUS_API_KEY;
+
+    try {
+      const providers = [
+        makeProvider({ provider: 'chainlink' as OracleProvider, price: 1, deviationPct: 0.01 }),
+        makeProvider({ provider: 'redstone' as OracleProvider, price: 1.0001, deviationPct: 0.01 }),
+        makeProvider({ provider: 'api3' as OracleProvider, price: 0.9999, deviationPct: 0.01 }),
+      ];
+      mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+      mockedFetchGoPlusTokenSecurity.mockImplementation(
+        async (_chainId, _address, _fetch, onOutcome) => {
+          onOutcome?.('fetched');
+          return makeRawResult();
+        }
+      );
+      mockedSignContextAttestation.mockImplementation(async (input) =>
+        makeSignedContext({
+          rawResponseSha256: input.entries[0].rawResponseSha256,
+          normalizedResultSha256: input.entries[0].normalizedResultSha256,
+          retrievedAt: input.entries[0].retrievedAt,
+          transactionContext: input.transactionContext,
+        })
+      );
+
+      const result = await preTradeSafetyCheck(
+        makeInput({
+          asset: 'USDC',
+          chainId: 1,
+          tokenAddress: USDC_MAINNET,
+          debugTokenSecurity: true,
+        })
+      );
+
+      expect(result.tokenSecurityDebug).toEqual({
+        requested: true,
+        outcome: 'fetched',
+        latencyMs: 123,
+        keyed: true,
+      });
+    } finally {
+      if (originalAppKey === undefined) delete process.env.GOPLUS_APP_KEY;
+      else process.env.GOPLUS_APP_KEY = originalAppKey;
+      if (originalAppSecret === undefined) delete process.env.GOPLUS_APP_SECRET;
+      else process.env.GOPLUS_APP_SECRET = originalAppSecret;
+      if (originalLegacyKey === undefined) delete process.env.GOPLUS_API_KEY;
+      else process.env.GOPLUS_API_KEY = originalLegacyKey;
+    }
+  });
+
   it('attaches signed evidence for an explicit tokenAddress without affecting the verdict', async () => {
     const providers = [
       makeProvider({ provider: 'chainlink' as OracleProvider, price: 1, deviationPct: 0.01 }),

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
 import { STABLECOINS } from '@/lib/stablecoins/config';
 import { WRAPPED_ASSETS } from '@/lib/wrapped-assets/config';
 import { BLOCKCHAIN_VALUES, ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
@@ -299,6 +300,30 @@ export const AgentBeginTradeJsonSchema = z.object({
     .min(0)
     .optional()
     .describe('Distinct non-derived operator groups; defaults to participantCount'),
+  decisionInput: z
+    .object({
+      source: z.object({
+        decisionPriceUsd: z.number().positive(),
+        quotePriceUsd: z.number().positive(),
+        quoteObservedAt: DecisionInputQuoteTimestampSchema,
+        maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
+        maxSlippageBps: z.number().int().min(0).max(50),
+        maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+      }),
+      destination: z.object({
+        decisionPriceUsd: z.number().positive(),
+        quotePriceUsd: z.number().positive(),
+        quoteObservedAt: DecisionInputQuoteTimestampSchema,
+        maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
+        maxSlippageBps: z.number().int().min(0).max(50),
+        maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+      }),
+      routeQuotePrice: z.number().positive(),
+      routeQuoteObservedAt: DecisionInputQuoteTimestampSchema,
+    })
+    .describe(
+      'Required operation-input gate for both assets and the route quote; no execution handle is issued unless both evidence assessments pass and the route quote is fresh and within the reference policy.'
+    ),
 });
 
 export const MetricsJsonSchema = z.object({});

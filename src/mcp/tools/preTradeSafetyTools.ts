@@ -58,7 +58,9 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
     'on-chain swap/borrow/lend/liquidation/repay to verify that the price the action relies on can',
     'be trusted. First assessment domain: oracle risk — aggregates cross-oracle consensus prices,',
     'per-provider deviation, data freshness, stablecoin peg status, and reputation into a single',
-    'verdict: PASS / CAUTION / DANGER / BLOCK. AI agents MUST NOT execute trades when the verdict',
+    'verdict. An optional decisionInput object adds a separate Chainlink/CEX/DEX input-sufficiency',
+    'assessment against the caller-supplied venue quote and explicit limits; it never changes the verdict.',
+    'Verdicts are PASS / CAUTION / DANGER / BLOCK. AI agents MUST NOT execute trades when the verdict',
     'is DANGER or BLOCK. Also returns a recommended maximum position size. A PASS is not principal',
     'authorization or a guarantee of price correctness or economic safety.',
   ].join(' '),
@@ -72,6 +74,7 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
       targetProviders: args.targetProviders,
       protocolId: args.protocolId,
       tokenAddress: args.tokenAddress,
+      ...(args.decisionInput ? { decisionInput: args.decisionInput } : {}),
     };
 
     const result = await preTradeSafetyCheck(input);
@@ -96,6 +99,24 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
       '**Provider breakdown:**',
       ...formatProviderBreakdown(result),
     ];
+
+    if (result.decisionInputAssessment) {
+      const assessment = result.decisionInputAssessment;
+      lines.push(
+        '',
+        '**Decision-input sufficiency (separate advisory):**',
+        `- Status: ${assessment.status} (eligibleToProceed=${assessment.eligibleToProceed})`,
+        `- Decision price: $${formatPrice(assessment.prices.decisionPriceUsd, 4)}; venue quote: $${formatPrice(assessment.prices.quotePriceUsd, 4)}; quote age: ${assessment.prices.quoteAgeSeconds?.toFixed(1) ?? 'unknown'}s`,
+        `- Reference deviation: Chainlink ${assessment.prices.chainlinkDeviationBps?.toFixed(1) ?? 'unknown'} bps; CEX ${assessment.prices.cexDeviationBps?.toFixed(1) ?? 'unknown'} bps; quote ${assessment.prices.quoteDeviationBps?.toFixed(1) ?? 'unknown'} bps`,
+        `- DEX depth evidence: ${assessment.evidence.dexManipulationCost ? `${assessment.evidence.dexManipulationCost.poolCount} Ethereum pool(s); ≈$${assessment.evidence.dexManipulationCost.cheapestMove1PctUsd?.toLocaleString() ?? 'unknown'} to move the reference by 1%` : 'unavailable'}`
+      );
+      lines.push(
+        ...assessment.reasons.map(
+          (reason) => `- [${reason.severity}] ${reason.code}: ${reason.message}`
+        )
+      );
+      lines.push(...assessment.caveats.map((caveat) => `- Scope: ${caveat}`));
+    }
 
     // ML + unsupervised anomaly signals. The anomaly layer is model-free — it
     // catches novel manipulation patterns the supervised ML has never seen, so an

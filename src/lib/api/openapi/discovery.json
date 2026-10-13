@@ -89,6 +89,55 @@
             "required": false,
             "schema": { "type": "string" },
             "description": "Optional destination asset symbol (v2 binds it as destinationAssetId)"
+          },
+          {
+            "name": "decisionInputCheck",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["0", "1"] },
+            "description": "Set to 1 to request a separate input-sufficiency result. Requires all decisionPriceUsd, quotePriceUsd, quoteObservedAt, maxReferenceDeviationBps, maxSlippageBps, and maxQuoteAgeSeconds parameters. Does not alter the oracle safety verdict or authorize a transaction."
+          },
+          {
+            "name": "decisionPriceUsd",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "exclusiveMinimum": 0 },
+            "description": "Application or agent price input in USD per asset; required when decisionInputCheck=1"
+          },
+          {
+            "name": "quotePriceUsd",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "exclusiveMinimum": 0 },
+            "description": "Caller-supplied venue quote in USD per asset; required when decisionInputCheck=1"
+          },
+          {
+            "name": "quoteObservedAt",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "date-time" },
+            "description": "Timezone-qualified timestamp for the venue quote; required when decisionInputCheck=1"
+          },
+          {
+            "name": "maxReferenceDeviationBps",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "maximum": 10000 },
+            "description": "Caller policy limit for decision-price divergence from Chainlink and the CEX median, and for CEX spread; required when decisionInputCheck=1"
+          },
+          {
+            "name": "maxSlippageBps",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "maximum": 10000 },
+            "description": "Caller policy limit for venue-quote divergence from decisionPriceUsd; required when decisionInputCheck=1"
+          },
+          {
+            "name": "maxQuoteAgeSeconds",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 300 },
+            "description": "Caller policy limit for venue quote age; required when decisionInputCheck=1"
           }
         ],
         "responses": {
@@ -120,7 +169,31 @@
                         "crossProviderAgreement": { "type": "number" },
                         "recommendedMaxPositionUsd": { "type": "number" },
                         "staleDataRisk": { "type": "boolean" },
-                        "participantCount": { "type": "integer" }
+                        "participantCount": { "type": "integer" },
+                        "decisionInputAssessment": {
+                          "type": "object",
+                          "description": "Returned only when decisionInputCheck=1. Separate advisory; not included in the EIP-712 attestation, never changes verdict, and never authorizes a transaction.",
+                          "properties": {
+                            "schemaVersion": { "type": "integer", "const": 1 },
+                            "status": {
+                              "type": "string",
+                              "enum": ["SUFFICIENT", "BLOCK", "INSUFFICIENT_EVIDENCE"]
+                            },
+                            "eligibleToProceed": { "type": "boolean" },
+                            "asset": { "type": "string" },
+                            "chainId": { "type": "integer" },
+                            "action": {
+                              "type": "string",
+                              "enum": ["swap", "borrow", "lend", "liquidate", "repay"]
+                            },
+                            "tradeAmountUsd": { "type": "number" },
+                            "reasons": { "type": "array", "items": { "type": "object" } },
+                            "prices": { "type": "object" },
+                            "evidence": { "type": "object" },
+                            "caveats": { "type": "array", "items": { "type": "string" } }
+                          },
+                          "additionalProperties": true
+                        }
                       },
                       "additionalProperties": true
                     },
