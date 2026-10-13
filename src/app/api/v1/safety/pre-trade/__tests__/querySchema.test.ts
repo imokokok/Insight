@@ -37,4 +37,55 @@ describe('PreTradeQuerySchema targetProviders', () => {
   it.each(['unknown-provider', 'chainlink,unknown-provider', ''])('%s fails closed', (value) => {
     expect(() => PreTradeQuerySchema.parse({ ...base, targetProviders: value })).toThrow();
   });
+
+  it('accepts the complete opt-in decision-input check with explicit policy bounds', () => {
+    const parsed = PreTradeQuerySchema.parse({
+      ...base,
+      decisionInputCheck: '1',
+      decisionPriceUsd: '2500',
+      quotePriceUsd: '2501',
+      quoteObservedAt: '2026-10-13T06:00:00.000Z',
+      maxReferenceDeviationBps: '50',
+      maxSlippageBps: '75',
+      maxQuoteAgeSeconds: '30',
+    });
+
+    expect(parsed).toMatchObject({
+      decisionInputCheck: '1',
+      decisionPriceUsd: 2500,
+      quotePriceUsd: 2501,
+      maxReferenceDeviationBps: 50,
+      maxSlippageBps: 75,
+      maxQuoteAgeSeconds: 30,
+    });
+  });
+
+  it('rejects partial input checks, orphaned parameters, and timestamps without a timezone', () => {
+    expect(() => PreTradeQuerySchema.parse({ ...base, decisionInputCheck: '1' })).toThrow();
+    expect(() => PreTradeQuerySchema.parse({ ...base, decisionPriceUsd: '2500' })).toThrow();
+    expect(() =>
+      PreTradeQuerySchema.parse({
+        ...base,
+        decisionInputCheck: '1',
+        decisionPriceUsd: '2500',
+        quotePriceUsd: '2501',
+        quoteObservedAt: '2026-10-13T06:00:00',
+        maxReferenceDeviationBps: '50',
+        maxSlippageBps: '75',
+        maxQuoteAgeSeconds: '30',
+      })
+    ).toThrow();
+    expect(() =>
+      PreTradeQuerySchema.parse({
+        ...base,
+        decisionInputCheck: '1',
+        decisionPriceUsd: '2500',
+        quotePriceUsd: '2501',
+        quoteObservedAt: '2026-02-30T06:00:00Z',
+        maxReferenceDeviationBps: '50',
+        maxSlippageBps: '75',
+        maxQuoteAgeSeconds: '30',
+      })
+    ).toThrow();
+  });
 });

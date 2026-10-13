@@ -20,6 +20,18 @@ export const GET = createApiHandler(
       protocolId: query.protocolId,
       schemaVersion: query.schemaVersion,
       destinationAsset: query.destinationAsset,
+      ...(query.decisionInputCheck === '1'
+        ? {
+            decisionInput: {
+              decisionPriceUsd: query.decisionPriceUsd!,
+              quotePriceUsd: query.quotePriceUsd!,
+              quoteObservedAt: query.quoteObservedAt!,
+              maxReferenceDeviationBps: query.maxReferenceDeviationBps!,
+              maxSlippageBps: query.maxSlippageBps!,
+              maxQuoteAgeSeconds: query.maxQuoteAgeSeconds!,
+            },
+          }
+        : {}),
     });
 
     return new Response(
