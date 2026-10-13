@@ -12,7 +12,13 @@ export interface DecisionInputExecutionGateAudit {
     ageSeconds: number | null;
     oracleCrossRate: number;
     deviationBps: number | null;
+    callerReportedPrice: number;
+    callerReportedAt: string;
+    callerDeviationBps: number | null;
     maxDeviationBps: number;
+    source: 'uniswap-v3-quoter-v2';
+    blockNumber: string;
+    blockHash: `0x${string}`;
   };
 }
 

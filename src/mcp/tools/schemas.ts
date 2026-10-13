@@ -303,7 +303,7 @@ export const PreTradeSafetyInputSchema = z.object({
   action: z
     .enum(['swap', 'borrow', 'lend', 'liquidate', 'repay'])
     .describe('Type of DeFi operation being considered'),
-  tradeAmountUsd: z.number().positive().describe('Trade size in USD'),
+  tradeAmountUsd: z.number().finite().positive().describe('Trade size in USD'),
   targetProviders: z
     .array(SafeProviderSchema)
     .optional()
@@ -358,7 +358,7 @@ export const AgentBeginTradeInputSchema = z.object({
   action: z
     .enum(['swap', 'borrow', 'lend', 'liquidate', 'repay'])
     .describe('Type of DeFi operation being considered'),
-  tradeAmountUsd: z.number().positive().describe('Trade size in USD'),
+  tradeAmountUsd: z.number().finite().positive().describe('Trade size in USD'),
   maxSlippageBps: z
     .literal(50)
     .describe(
@@ -399,12 +399,20 @@ export const AgentBeginTradeInputSchema = z.object({
           maxQuoteAgeSeconds: z.number().int().min(1).max(300),
         })
         .strict(),
-      routeQuotePrice: z.number().finite().positive(),
-      routeQuoteObservedAt: DecisionInputQuoteTimestampSchema,
+      routeQuotePrice: z
+        .number()
+        .finite()
+        .positive()
+        .describe(
+          "Caller-reported destination-per-source route quote, compared with Insight's on-chain quote"
+        ),
+      routeQuoteObservedAt: DecisionInputQuoteTimestampSchema.describe(
+        'Timezone-qualified caller quote timestamp; checked for freshness as an additional condition'
+      ),
     })
     .strict()
     .describe(
-      'Required operation-input gate: caller decision price and venue quote for both assets, plus the actual route quote in destination-per-source units and its timestamp. Both asset assessments must be SUFFICIENT, and the route quote must be fresh and within the tightest caller reference/slippage limit (capped at 50 bps). Caller-supplied quotes are recorded as unsigned audit context.'
+      'Required operation-input gate: caller decision price and venue quote for both assets, plus a caller-reported route quote for comparison. Insight independently quotes the exact notional through reviewed Uniswap V3 routes on Ethereum mainnet, sizes the input with a fresh Chainlink price, and requires two RPCs to agree on the same block hash and output. Both asset assessments must be SUFFICIENT and carry an Insight EIP-712 signature; the on-chain quote must match the oracle cross-rate and caller quote within the tightest limit (capped at 50 bps). Only ETH/WETH, USDC, and WBTC pairs on Ethereum are supported; other routes fail closed. The block quote does not guarantee a later transaction will execute at that price.'
     ),
 });
 

@@ -267,7 +267,7 @@ export const PreTradeSafetyJsonSchema = z.object({
       'Chain ID where the trade executes, e.g. 1=Ethereum, 42161=Arbitrum, 8453=Base. Use 0 for chain-agnostic.'
     ),
   action: z.enum(['swap', 'borrow', 'lend', 'liquidate', 'repay']),
-  tradeAmountUsd: z.number().positive().describe('Trade size in USD'),
+  tradeAmountUsd: z.number().finite().positive().describe('Trade size in USD'),
   targetProviders: z
     .array(providerEnum)
     .optional()
@@ -285,7 +285,7 @@ export const AgentBeginTradeJsonSchema = z.object({
     .int()
     .describe('Chain ID where the trade executes, e.g. 1=Ethereum, 42161=Arbitrum, 8453=Base'),
   action: z.enum(['swap', 'borrow', 'lend', 'liquidate', 'repay']),
-  tradeAmountUsd: z.number().positive().describe('Trade size in USD'),
+  tradeAmountUsd: z.number().finite().positive().describe('Trade size in USD'),
   maxSlippageBps: z
     .literal(50)
     .describe('Current pre-committed execution tolerance; custom values are rejected'),
@@ -303,26 +303,34 @@ export const AgentBeginTradeJsonSchema = z.object({
   decisionInput: z
     .object({
       source: z.object({
-        decisionPriceUsd: z.number().positive(),
-        quotePriceUsd: z.number().positive(),
+        decisionPriceUsd: z.number().finite().positive(),
+        quotePriceUsd: z.number().finite().positive(),
         quoteObservedAt: DecisionInputQuoteTimestampSchema,
         maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
         maxSlippageBps: z.number().int().min(0).max(50),
         maxQuoteAgeSeconds: z.number().int().min(1).max(300),
       }),
       destination: z.object({
-        decisionPriceUsd: z.number().positive(),
-        quotePriceUsd: z.number().positive(),
+        decisionPriceUsd: z.number().finite().positive(),
+        quotePriceUsd: z.number().finite().positive(),
         quoteObservedAt: DecisionInputQuoteTimestampSchema,
         maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
         maxSlippageBps: z.number().int().min(0).max(50),
         maxQuoteAgeSeconds: z.number().int().min(1).max(300),
       }),
-      routeQuotePrice: z.number().positive(),
-      routeQuoteObservedAt: DecisionInputQuoteTimestampSchema,
+      routeQuotePrice: z
+        .number()
+        .finite()
+        .positive()
+        .describe(
+          "Caller-reported destination-per-source route quote, compared with Insight's on-chain quote"
+        ),
+      routeQuoteObservedAt: DecisionInputQuoteTimestampSchema.describe(
+        'Timezone-qualified caller quote timestamp; checked for freshness as an additional condition'
+      ),
     })
     .describe(
-      'Required operation-input gate for both assets and the route quote; no execution handle is issued unless both evidence assessments pass and the route quote is fresh and within the reference policy.'
+      'Required operation-input gate for both assets and the caller-reported route quote. Insight also obtains an exact-notional Uniswap V3 quote on Ethereum mainnet, sized from a fresh Chainlink price and cross-checked by two RPCs at one block. No execution handle is issued unless both signed assessments pass and the on-chain quote, caller quote, and oracle cross-rate satisfy the 50 bps-capped policy. Supported pairs are ETH/WETH, USDC, and WBTC on Ethereum; other routes fail closed.'
     ),
 });
 

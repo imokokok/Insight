@@ -59,7 +59,8 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
     'be trusted. First assessment domain: oracle risk — aggregates cross-oracle consensus prices,',
     'per-provider deviation, data freshness, stablecoin peg status, and reputation into a single',
     'verdict. An optional decisionInput object adds a separate Chainlink/CEX/DEX input-sufficiency',
-    'assessment against the caller-supplied venue quote and explicit limits; it never changes the verdict.',
+    'assessment against the caller-supplied venue quote and explicit limits, with an independently',
+    'verifiable EIP-712 signature when signing is enabled; it never changes the verdict.',
     'Verdicts are PASS / CAUTION / DANGER / BLOCK. AI agents MUST NOT execute trades when the verdict',
     'is DANGER or BLOCK. Also returns a recommended maximum position size. A PASS is not principal',
     'authorization or a guarantee of price correctness or economic safety.',
@@ -106,6 +107,7 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
         '',
         '**Decision-input sufficiency (separate advisory):**',
         `- Status: ${assessment.status} (eligibleToProceed=${assessment.eligibleToProceed})`,
+        `- Quote input hash: ${assessment.quoteInputHash}`,
         `- Decision price: $${formatPrice(assessment.prices.decisionPriceUsd, 4)}; venue quote: $${formatPrice(assessment.prices.quotePriceUsd, 4)}; quote age: ${assessment.prices.quoteAgeSeconds?.toFixed(1) ?? 'unknown'}s`,
         `- Reference deviation: Chainlink ${assessment.prices.chainlinkDeviationBps?.toFixed(1) ?? 'unknown'} bps; CEX ${assessment.prices.cexDeviationBps?.toFixed(1) ?? 'unknown'} bps; quote ${assessment.prices.quoteDeviationBps?.toFixed(1) ?? 'unknown'} bps`,
         `- DEX depth evidence: ${assessment.evidence.dexManipulationCost ? `${assessment.evidence.dexManipulationCost.poolCount} Ethereum pool(s); ≈$${assessment.evidence.dexManipulationCost.cheapestMove1PctUsd?.toLocaleString() ?? 'unknown'} to move the reference by 1%` : 'unavailable'}`
@@ -116,6 +118,24 @@ export const preTradeSafetyCheckTool: McpToolDefinition<typeof PreTradeSafetyInp
         )
       );
       lines.push(...assessment.caveats.map((caveat) => `- Scope: ${caveat}`));
+      if (assessment.attestation) {
+        lines.push(
+          '',
+          '**Decision-input integrity attestation:**',
+          `- Attester: ${assessment.attestation.attester}`,
+          `- UID: ${assessment.attestation.uid}`,
+          `- Valid for: ${assessment.attestation.validForSeconds}s`,
+          `- Verify at: POST ${assessment.attestation.verifyUrl} with body { "assessment": <full assessment object> }`,
+          '- The signature binds the exact assessment JSON but does not authenticate caller-supplied quote sources.',
+          '```json',
+          JSON.stringify(assessment),
+          '```'
+        );
+      } else {
+        lines.push(
+          '- Integrity attestation unavailable; this assessment cannot be independently verified.'
+        );
+      }
     }
 
     // ML + unsupervised anomaly signals. The anomaly layer is model-free — it
