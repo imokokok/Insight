@@ -28,6 +28,40 @@ Version **0.5.0** adds transaction-specific swap risk review and optional PriorS
 
 The 0.4.0 release added independently verified coverage readiness, execution-time rechecks, and PriorSeal coverage binding while retaining the diagnostics, freshness, and durable Watch APIs from 0.3.0.
 
+## RWA action preflight
+
+`preflightRwaAction()` gives an application one local SDK call for a specific tokenized-equity
+buy/sell attempt. It gathers normalized evidence through application-owned, policy-pinned source
+adapters, decodes the exact proposed transaction through the admitted call profile, and returns an
+RWA v2 report, a final `decision` that includes receiver eligibility, and per-source collection
+status. See the [RWA action preflight guide](https://github.com/imokokok/Insight/blob/main/docs/rwa-action-preflight.md) for the request contract and limits.
+
+The adapter interface is issuer-neutral, so an app can connect additional issuers without changing
+the report format. It does not ship additional issuer data or certify that an adapter authenticated
+its upstream. Results remain unsigned diagnostics with `mayAuthorizeExecution: false`; production
+use still needs an ACTIVE instrument admission, licensed/authenticated sources, a separately
+operated signer and the existing PriorSeal authorization/execution workflow where required.
+`createRobinhoodRwaMarketProvider()` connects the existing issuer context to this flow. Its current
+session field defaults to `UNKNOWN`. Supply a separately sourced and validated session resolver and a
+policy-pinned composite `marketSourceId` to combine it with the issuer's halt and corporate-action
+context.
+`createRobinhoodChainlinkPriceProvider()` reads a caller-pinned Robinhood Chain feed and token
+contract at one block, then converts Chainlink's multiplier-adjusted token reference price to the
+instrument's `underlying-spot` basis. The caller pins the feed address from Chainlink's official
+directory and supplies a validated market-session resolver; without one, the price is marked
+`UNKNOWN` session and cannot clear the preflight. Create the resolver with
+`createRobinhoodRwaSessionResolver()` and share it with `createRobinhoodRwaMarketProvider()`.
+Paused feeds and pending multiplier updates do not contribute a price. See the [RWA action
+preflight guide](https://github.com/imokokok/Insight/blob/main/docs/rwa-action-preflight.md).
+For US-listed XNAS/XNYS instruments, `createIsOpenNowRwaSessionResolver()` is an optional adapter
+for isopennow.com's free status API. It needs no API key and has no hard quota; its fair-use guidance
+asks clients to query no more than once per minute per market. It maps continuous core-session
+`open` to `REGULAR`, `closed` to `CLOSED`, and `unknown` to `UNKNOWN`; it does not distinguish
+pre-market from post-market. The calendar and derived status are CC BY 4.0 and require attribution.
+The provider describes itself as a hobby project with no SLA and a secondary, non-authoritative
+source. Do not present its output to users as an authoritative market determination or use it as the
+sole basis for execution. See the [RWA action preflight guide](https://github.com/imokokok/Insight/blob/main/docs/rwa-action-preflight.md).
+
 ## InterAI external evidence v0
 
 Use the frozen rev6 inline profile to carry a signed Insight
