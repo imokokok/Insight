@@ -39,11 +39,22 @@ import { selectPreTradeValidity } from '@/lib/attestations/preTradeValidityPolic
 import type { ProviderObservationEntry } from '@/lib/attestations/providerObservationsHash';
 import { nonDerivedGroupCount } from '@/lib/attestations/sourceGroups';
 import { assertVeritasJointRun1800Admission } from '@/lib/attestations/veritasJointRunValidity';
+import {
+  assessDecisionInput,
+  type DecisionInputAssessment,
+  type DecisionInputCheckRequest,
+} from '@/lib/decisionInputTrust/assessment';
 import { UnsupportedSymbolError, ValidationError } from '@/lib/errors';
 import { getManipCostAdvisory, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import {
+  fetchChainlinkMarketReference,
+  type ChainlinkMarketReference,
+} from '@/lib/marketReference/chainlink';
+import {
   computeMarketReferenceContext,
+  getMarketReference,
   type MarketReferenceContext,
+  type MarketReference,
 } from '@/lib/marketReference/client';
 import {
   classifyMlRisk,
@@ -172,6 +183,12 @@ export interface PreTradeSafetyInput {
    * outcome. Never affects the verdict and adds no external calls.
    */
   debugTokenSecurity?: boolean;
+  /**
+   * Opt-in operation-input sufficiency check. This is an advisory output
+   * separate from the existing oracle verdict and requires caller-supplied
+   * decision price, venue quote, and explicit tolerances.
+   */
+  decisionInput?: DecisionInputCheckRequest;
 }
 
 /**
@@ -310,6 +327,8 @@ export interface PreTradeSafetyResult {
    * evidence", not "low risk".
    */
   manipulationCost?: ManipCostAdvisory;
+  /** Optional, caller-requested assessment of price + quote evidence. */
+  decisionInputAssessment?: DecisionInputAssessment;
   /**
    * Signed third-party input evidence (decision-input expansion, lane 1):
    * signs the source-response digest and the digest of the normalized view
@@ -523,6 +542,7 @@ async function logAudit(
       api_key_id: meta.apiKeyId ?? null,
       protocol_id: input.protocolId ?? null,
       protocol_safety: result.protocolSafety,
+      decision_input_assessment: result.decisionInputAssessment ?? null,
       verdict: result.verdict,
       consensus_price: result.consensusPrice,
       max_deviation_pct: result.maxDeviationPct,
@@ -1592,6 +1612,72 @@ async function fetchManipCostAdvisorySafe(
   }
 }
 
+interface DecisionInputReferenceEvidence {
+  chainlink: ChainlinkMarketReference | null;
+  cex: MarketReference | null;
+}
+
+function startDecisionInputReferenceFetch(
+  input: PreTradeSafetyInput
+): Promise<DecisionInputReferenceEvidence> | undefined {
+  if (!input.decisionInput) return undefined;
+
+  // WETH uses the ETH/USD reference feed and centralized market symbol.
+  const symbol = input.asset.trim().toUpperCase() === 'WETH' ? 'ETH' : input.asset;
+  const chainlink = fetchChainlinkMarketReference({
+    symbol,
+    chainId: input.chainId,
+    signal: AbortSignal.timeout(10_000),
+  }).catch((error: unknown) => {
+    logger.warn('Decision-input Chainlink evidence unavailable', {
+      asset: input.asset,
+      chainId: input.chainId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+  const cex = getMarketReference(symbol).catch((error: unknown) => {
+    logger.warn('Decision-input CEX evidence unavailable', {
+      asset: input.asset,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+
+  return Promise.all([chainlink, cex]).then(([chainlinkResult, cexResult]) => ({
+    chainlink: chainlinkResult,
+    cex: cexResult,
+  }));
+}
+
+async function attachDecisionInputAssessment(
+  input: PreTradeSafetyInput,
+  result: PreTradeSafetyResult,
+  referenceEvidencePromise: Promise<DecisionInputReferenceEvidence> | undefined,
+  /** undefined means fetch now; null means the normal advisory fetch already found no evidence. */
+  knownManipulationCost?: ManipCostAdvisory | null
+): Promise<void> {
+  if (!input.decisionInput) return;
+
+  const [referenceEvidence, manipulationCost] = await Promise.all([
+    referenceEvidencePromise ?? Promise.resolve({ chainlink: null, cex: null }),
+    knownManipulationCost === undefined
+      ? fetchManipCostAdvisorySafe(input.asset, input.chainId)
+      : Promise.resolve(knownManipulationCost ?? undefined),
+  ]);
+
+  result.decisionInputAssessment = assessDecisionInput({
+    asset: input.asset,
+    chainId: input.chainId,
+    action: input.action,
+    tradeAmountUsd: input.tradeAmountUsd,
+    request: input.decisionInput,
+    chainlink: referenceEvidence.chainlink,
+    cex: referenceEvidence.cex,
+    dex: manipulationCost ?? null,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Decision-input context evidence (token-security lane, advisory only)
 // ---------------------------------------------------------------------------
@@ -1764,6 +1850,42 @@ async function attachTokenSecurityEvidence(
  * @param input Trade intent (asset, chain, action, amount).
  * @param meta  Optional audit metadata (api key id for attribution).
  */
+async function buildUnavailablePreTradeResult(
+  input: PreTradeSafetyInput,
+  meta: AuditMeta,
+  chain: Blockchain | undefined,
+  depegWarnings: DepegWarning[],
+  depegAvailable: boolean,
+  warnings: string[],
+  contributingFactors: ContributingFactor[],
+  startedAt: number,
+  decisionInputReferenceEvidence: Promise<DecisionInputReferenceEvidence> | undefined
+): Promise<PreTradeSafetyResult> {
+  const result = buildUnavailableSafetyResult(
+    input,
+    depegWarnings,
+    depegAvailable,
+    warnings,
+    contributingFactors,
+    startedAt
+  );
+  try {
+    result.attestation = await issueAttestation(
+      input,
+      result,
+      emptyConsensusResponse(input.asset, chain),
+      { maxAge: 0, worstDepegPct: 0, meta }
+    );
+  } catch (error) {
+    logger.warn('Failed to issue attestation for zero-coverage BLOCK', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+  await attachDecisionInputAssessment(input, result, decisionInputReferenceEvidence);
+  await logAudit(input, result, meta);
+  return result;
+}
+
 export async function preTradeSafetyCheck(
   input: PreTradeSafetyInput,
   meta: AuditMeta = {}
@@ -1787,6 +1909,8 @@ export async function preTradeSafetyCheck(
   // (and loudly logged) fail-open behaviour when the switch is unreadable.
   const halted = await haltedCheckResult(input, meta, chain, startedAt);
   if (halted) return halted;
+
+  const decisionInputReferenceEvidence = startDecisionInputReferenceFetch(input);
 
   // 1. Cross-oracle consensus price (also embeds reputation + agreement).
   let consensus: ConsensusPriceResponse | undefined;
@@ -1826,39 +1950,19 @@ export async function preTradeSafetyCheck(
       'Stablecoin peg monitor unavailable; absence of a depeg warning is not a verified healthy peg.'
     );
 
-  const startedAtMs = Date.now();
-
   // If consensus failed, short-circuit to BLOCK.
   if (consensusFailed || !consensus) {
-    const result = buildUnavailableSafetyResult(
+    return buildUnavailablePreTradeResult(
       input,
+      meta,
+      chain,
       depegWarnings,
       depeg.available,
       warnings,
       contributingFactors,
-      startedAt
+      startedAt,
+      decisionInputReferenceEvidence
     );
-
-    // Even for zero-coverage BLOCKs, sign the attestation. The signed
-    // attestation proves Insight issued the BLOCK, making it provable
-    // downstream. An empty consensus (no providers) is used since no
-    // oracle data was available — the CAIP-19 resolution and remaining
-    // fields still produce a valid, verifiable attestation.
-    try {
-      result.attestation = await issueAttestation(
-        input,
-        result,
-        emptyConsensusResponse(input.asset, chain),
-        { maxAge: 0, worstDepegPct: 0, meta }
-      );
-    } catch (error) {
-      logger.warn('Failed to issue attestation for zero-coverage BLOCK', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-
-    await logAudit(input, result, meta);
-    return result;
   }
 
   // 3. Build per-provider detail map.
@@ -2191,8 +2295,6 @@ export async function preTradeSafetyCheck(
     if (indep) verdict = pickWorst(verdict, indep);
   }
 
-  void startedAtMs; // marker for future per-phase timing
-
   const result: PreTradeSafetyResult = {
     assessmentScope: buildAssessmentScope(
       input,
@@ -2246,6 +2348,13 @@ export async function preTradeSafetyCheck(
       error: error instanceof Error ? error.message : String(error),
     });
   }
+
+  await attachDecisionInputAssessment(
+    input,
+    result,
+    decisionInputReferenceEvidence,
+    manipulationCost ?? null
+  );
 
   // 7. Advisory evidence lanes (see attachTokenSecurityEvidence): signed
   // third-party capture + parsed view, omitted on any failure.

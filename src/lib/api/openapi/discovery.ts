@@ -101,6 +101,7 @@ export function buildOpenApiDiscovery(config: OpenApiPaymentConfig): OpenApiDocu
     'the full MCP tool catalog remains on /api/mcp.';
   document.info['x-guidance'] =
     'REST: GET /api/v1/safety/pre-trade with asset, chainId, action, and tradeAmountUsd. ' +
+    'An optional decisionInputCheck=1 adds an input-sufficiency assessment when the caller also supplies its price, venue quote, quote timestamp, and explicit tolerance limits; this does not change the oracle verdict or authorize execution. ' +
     `The full MCP catalog uses POST /api/mcp (${mcpAccess}). ` +
     (config.mcpMppEnabled
       ? 'The MPP MCP pilot uses POST /api/mcp/mpp and only accepts pre_trade_safety_check. '
