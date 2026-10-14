@@ -16,15 +16,15 @@ Insight gates → construct exact call → PriorSeal authorization → broadcast
                                                         └→ PriorSeal execution receipt
 ```
 
-The SDK sends oracle risk decisions and attestation signing to Insight with the supplied API key, so normal API authentication, credit metering, audit rows, and EIP-712 attestations remain intact. The optional `assessV3Swap()` adapter adds an unsigned local review of a concrete swap call using pinned-block RPC simulation; `authorizeAssessedV3Swap()` requires a fresh acceptable review before PriorSeal authorization. See [transaction-specific swap risk](https://github.com/imokokok/Insight/blob/main/docs/swap-transaction-risk.md) for its exact scope and trust limits.
+The SDK sends oracle risk decisions and attestation signing to Insight with the supplied API key, so normal API authentication, credit metering, audit rows, and EIP-712 attestations remain intact. The optional `assessV3Swap()` adapter adds an unsigned local review of a concrete swap call using pinned-block RPC simulation; it supports the original deadline-in-tuple SwapRouter and a one-swap, deadline-protected SwapRouter02 multicall. `authorizeAssessedV3Swap()` requires a fresh acceptable review before PriorSeal authorization. See [transaction-specific swap risk](https://github.com/imokokok/Insight/blob/main/docs/swap-transaction-risk.md) for its exact scope and trust limits.
 
 ## Install
 
 ```bash
-npm install oracle-insight-guard@0.5.0
+npm install oracle-insight-guard@0.5.1
 ```
 
-Version **0.5.0** adds transaction-specific swap risk review and optional PriorSeal authorization binding. The SDK includes opt-in RWA diagnostics; it does not activate an RWA production signer. Use the published SDK from a trusted server or agent runtime; do not put an Insight API key in a browser bundle. The API-backed examples below require an API key and your own transaction builder or wallet. For a no-key verification path, start with the [standalone verifier](https://github.com/imokokok/Insight/tree/main/verifier).
+Version **0.5.1** adds stricter validation of PriorSeal bridge responses. The **0.5.0** release added transaction-specific V3 swap risk review and optional PriorSeal authorization binding. The strict trusted V3 workflow below is unreleased source and is not available from npm yet. The SDK includes opt-in RWA diagnostics; it does not activate an RWA production signer. Use the published SDK from a trusted server or agent runtime; do not put an Insight API key in a browser bundle. The API-backed examples require an API key and your own transaction builder or wallet. For a no-key verification path, start with the [standalone verifier](https://github.com/imokokok/Insight/tree/main/verifier).
 
 The 0.4.0 release added independently verified coverage readiness, execution-time rechecks, and PriorSeal coverage binding while retaining the diagnostics, freshness, and durable Watch APIs from 0.3.0.
 
@@ -272,6 +272,106 @@ one issuer's receipt as the other's. If
 `observeExecutionUntilFinal()` in a background worker.
 
 Insight adds a namespaced context commitment to the signed PriorSeal intent. Its digest covers the source and destination pre-trade attestation UIDs, their request hashes and the signed slippage ceiling. PriorSeal treats source asset and amount as descriptive context and does not reinterpret Insight's economics: calldata remains authoritative for exact-call execution, while Insight remains authoritative for quote quality, fill attribution and slippage.
+
+## Strict trusted V3 workflow (unreleased SDK source)
+
+`executeTrustedV3SwapWithPriorSeal()` closes the supported ERC-20 V3 swap path in one SDK call:
+
+1. Request source and destination C3 assessments with caller-supplied decision prices, venue quotes, timestamps and explicit tolerances.
+2. Verify both decision-input signatures and v3 pre-trade signatures offline against a separately provisioned Insight key registry and consumer-owned policy.
+3. Bind each decision-input assessment to its matching pre-trade UID and CAIP-19 asset ID.
+4. Review the exact `exactInputSingle` calldata against signed oracle prices, the configured router code hash and a pinned-block simulation. Only `RECOMMENDED` assessments and an `ACCEPTABLE` V3 review proceed.
+5. Put the oracle pair, decision-input pair, local V3 review, swap-approval digest and optional coverage reports in the single-use PriorSeal intent. The strict entry point requires the submitter returned by `createPriorSealDefiSubmitter()` (or an equivalent adapter exposing the same binding contract), checks the prepared call against that approval before authorization and submission, and sends through PriorSeal's durable DeFi gateway for its signing/broadcast checks.
+6. Request Insight's signed execution receipt and PriorSeal's execution observation independently. Return both results and a recovery checkpoint; evidence-only recovery never repeats signing or broadcast.
+
+The feature is in repository source and is not included in the currently published `0.5.1` package. `decisionInput` carries the caller's explicit tolerances; the SDK does not select them. Obtain the key registry from a trusted operations channel and review key rotation separately. `policy.assetIds` maps request labels to canonical CAIP-19 ERC-20 IDs so a symbol cannot be silently rebound to another token contract.
+
+```ts
+import { createPriorSealDefiSubmitter, InsightGuard } from 'oracle-insight-guard';
+
+const guard = new InsightGuard({
+  apiKey: process.env.INSIGHT_API_KEY!,
+  decisionInputTrust: {
+    keyRegistry: trustedInsightKeyRegistry,
+    policy: {
+      policyId: 'treasury-uniswap-v3',
+      version: '1',
+      assetIds: {
+        WETH: 'eip155:1/erc20:0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+        USDC: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      },
+      maxReferenceDeviationBps: 50,
+      maxSlippageBps: 50,
+      maxQuoteAgeSeconds: 30,
+    },
+  },
+});
+
+const submitThroughPriorSealGateway = createPriorSealDefiSubmitter({
+  gateway: priorSealDefiGateway,
+  approval: approvedV3SwapApproval,
+  routerAddress: approvedV3RouterAddress,
+  routerCodeHash: reviewedRouterCodeHash,
+  acceptanceKey: pinnedPriorSealAcceptanceKey,
+});
+
+const quoteObservedAt = new Date().toISOString();
+const result = await guard.executeTrustedV3SwapWithPriorSeal({
+  source: {
+    asset: 'WETH',
+    destinationAsset: 'USDC',
+    chainId: 1,
+    action: 'swap',
+    tradeAmountUsd: 10_000,
+    decisionInput: {
+      decisionPriceUsd: wethUsd,
+      quotePriceUsd: wethVenueQuoteUsd,
+      quoteObservedAt,
+      maxReferenceDeviationBps: 50,
+      maxSlippageBps: 50,
+      maxQuoteAgeSeconds: 30,
+    },
+  },
+  destination: {
+    asset: 'USDC',
+    destinationAsset: 'WETH',
+    chainId: 1,
+    action: 'swap',
+    tradeAmountUsd: 10_000,
+    decisionInput: {
+      decisionPriceUsd: usdcUsd,
+      quotePriceUsd: usdcVenueQuoteUsd,
+      quoteObservedAt,
+      maxReferenceDeviationBps: 50,
+      maxSlippageBps: 50,
+      maxQuoteAgeSeconds: 30,
+    },
+  },
+  receipt: { settlementChainId: 1, maxSlippageBps: 50 },
+  v3Risk: {
+    routerAddress: approvedV3RouterAddress,
+    routerCodeHash: reviewedRouterCodeHash,
+    reader: pinnedBlockReader,
+    maxBlockAgeSeconds: 30,
+  },
+  priorSeal: {
+    client: priorSeal,
+    principal,
+    agentId: 'treasury-swap-agent',
+    validUntil: transactionDeadline,
+    confirmations: 12,
+    signAuthorization: ({ typedData }) => wallet.signTypedData(typedData),
+  },
+  prepareTransaction: async () => preparedExactInputSingle,
+  submitTransaction: submitThroughPriorSealGateway,
+});
+```
+
+`createPriorSealDefiSubmitter()` adapts the Node-only `priorseal-sdk/defi` gateway to the Insight submit callback. The gateway must use a durable attempt store shared by workers that share its signer. If the broadcast result is uncertain, the helper preserves the authorization ID in `PriorSealGatewayExecutionError`; inspect the gateway attempt and recover by observation before any new authorization is created. Do not fall back to a direct wallet send for the covered strategy. The strict path pins both `routerAddress` and `routerCodeHash`; the PriorSeal review policy must independently pin the same deployment. The `SwapRiskReader`, router approval, acceptance key and gateway are operator supplied. The simulation is unsigned and its RPC trust boundary must be configured by the operator. This adapter supports the original single-pool Uniswap V3 `exactInputSingle` call shape. It does not cover other selectors, routers, multi-hop calldata, native-asset inputs or every chain deployment.
+
+`verifyDecisionInputAssessment()` also verifies saved assessments offline with the same independently provisioned key registry and policy. The joint report still states `verificationOrigin: 'service_response'` and `independentVerificationPerformed: false`; the local input verification and V3 simulation do not independently verify either issuer's execution receipt.
+
+`exportReviewAttachments(checkpoint)` preserves the two original decision-input assessments, both signed pre-trade receipts, the signed execution receipt when available, and the unsigned local V3 risk report. Pass those attachments and PriorSeal's verification bundle to `buildReviewManifest()`. In PriorSeal's local verifier, supply the independently obtained Insight key registry and the same consumer policy, including `assetIds`; require `insightDecisionInputPair`, `insightDecisionInputAuthorizationBinding`, `insightTransactionRiskBinding`, `insightPair` and `transaction` to be true before treating the strict workflow evidence as complete. The strict path clamps the signed execution-receipt slippage ceiling to the lower of the requested limit and the consumer policy; the offline verifier checks that signed ceiling against the policy too. The V3 simulation remains an unsigned advisory whose digest is committed to the authorization. Quote freshness is rechecked locally before authorization and submission, and PriorSeal authorization expires no later than either signed quote's policy freshness deadline.
 
 ## Watch a running strategy
 

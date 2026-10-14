@@ -25,9 +25,17 @@ const PATH = '/api/v1/safety/pre-trade';
 const QUERY = '?asset=ETH&chainId=1&action=swap&tradeAmountUsd=1000';
 const NETWORK = 'eip155:84532' as const;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function decodeBase64Json(value: string): Record<string, unknown> {
   const json = Buffer.from(value, 'base64').toString('utf8');
-  return JSON.parse(json) as Record<string, unknown>;
+  const parsed: unknown = JSON.parse(json);
+  if (!isRecord(parsed)) {
+    throw new Error('payment header did not contain a JSON object');
+  }
+  return parsed;
 }
 
 async function stage1Quote(): Promise<void> {
@@ -77,14 +85,33 @@ async function stage2PaidCall(): Promise<void> {
   }
 
   const receiptHeader = res.headers.get('payment-response');
-  const body = (await res.json()) as { data?: { verdict?: string } };
-  console.log('[stage2] OK: paid 200, verdict =', body?.data?.verdict);
-  if (receiptHeader) {
-    console.log('[stage2] settlement receipt:');
-    console.log(JSON.stringify(decodeBase64Json(receiptHeader), null, 2));
-  } else {
-    console.warn('[stage2] WARN: no PAYMENT-RESPONSE header on 200 response');
+  const body: unknown = await res.json();
+  if (!isRecord(body) || !isRecord(body.data) || typeof body.data.verdict !== 'string') {
+    console.error('[stage2] FAIL: paid response did not contain a verdict');
+    process.exit(1);
   }
+
+  if (!receiptHeader) {
+    console.error('[stage2] FAIL: no PAYMENT-RESPONSE settlement receipt on 200 response');
+    process.exit(1);
+  }
+
+  const receipt = decodeBase64Json(receiptHeader);
+  const transaction = receipt.transaction;
+  const payer = receipt.payer;
+  const validTransaction =
+    typeof transaction === 'string' && /^0x[0-9a-fA-F]{64}$/.test(transaction);
+  const validPayer =
+    typeof payer === 'string' && payer.toLowerCase() === signer.address.toLowerCase();
+  if (receipt.success !== true || receipt.network !== NETWORK || !validPayer || !validTransaction) {
+    const reason =
+      typeof receipt.errorReason === 'string' ? receipt.errorReason : 'settlement_receipt_invalid';
+    console.error(`[stage2] FAIL: payment was not confirmed (${reason})`);
+    process.exit(1);
+  }
+
+  console.log('[stage2] OK: settlement confirmed, verdict =', body.data.verdict);
+  console.log('[stage2] transaction =', transaction, 'payer =', payer, 'network =', NETWORK);
 }
 
 try {

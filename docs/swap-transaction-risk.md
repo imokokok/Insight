@@ -1,10 +1,12 @@
 # Transaction-specific swap risk review
 
 `InsightGuard.assessV3Swap()` combines the existing two-sided signed pre-trade
-oracle assessment with a concrete EVM call review. The adapter is limited to
-the original Uniswap V3 SwapRouter `exactInputSingle` with a deadline inside
-the tuple, one ERC-20 pool hop, zero native value and no partial-fill price
-limit. Other routers need separately reviewed adapters.
+oracle assessment with a concrete EVM call review. It accepts the original
+Uniswap V3 SwapRouter `exactInputSingle` with a deadline inside the tuple, or
+SwapRouter02 through exactly one canonical
+`multicall(deadline, [exactInputSingle])`. Both paths require one ERC-20 pool
+hop, zero native value and no partial-fill price limit. Deadline-free calls,
+multi-call batches and other routers remain unsupported.
 
 The caller prepares the exact transaction and supplies a viem `PublicClient`
 (or equivalent `SwapRiskReader`) and an **independently reviewed** router runtime
