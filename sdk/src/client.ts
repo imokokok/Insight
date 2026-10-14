@@ -61,6 +61,7 @@ export class InsightClient {
   }
 
   async preTrade(request: PreTradeRequest, signal?: AbortSignal): Promise<PreTradeResult> {
+    if (request.decisionInput) validateDecisionInputRequest(request.decisionInput);
     const query: Record<string, string | number | undefined> = {
       asset: request.asset,
       chainId: request.chainId,
@@ -73,12 +74,27 @@ export class InsightClient {
       workflowTag: request.workflowTag,
       baselineVerdict: request.baselineVerdict,
       baselineVersion: request.baselineVersion,
+      ...(request.decisionInput
+        ? {
+            decisionInputCheck: '1',
+            decisionPriceUsd: request.decisionInput.decisionPriceUsd,
+            quotePriceUsd: request.decisionInput.quotePriceUsd,
+            quoteObservedAt: request.decisionInput.quoteObservedAt,
+            maxReferenceDeviationBps: request.decisionInput.maxReferenceDeviationBps,
+            maxSlippageBps: request.decisionInput.maxSlippageBps,
+            maxQuoteAgeSeconds: request.decisionInput.maxQuoteAgeSeconds,
+          }
+        : {}),
     };
     const result = await this.request<unknown>('GET', '/api/v1/safety/pre-trade', {
       query,
       signal,
     });
-    return validatePreTradeResult(result);
+    const data = validatePreTradeResult(result);
+    if (request.decisionInput && !data.decisionInputAssessment) {
+      return invalidApiResponse('decision-input assessment was requested but not returned');
+    }
+    return data;
   }
 
   /** Unsigned evaluation of caller-supplied data; never sufficient to authorize execution. */
@@ -213,6 +229,14 @@ export class InsightClient {
     request: ExecutionReceiptRequest,
     signal?: AbortSignal
   ): Promise<ExecutionReceiptResult> {
+    if (
+      request.maxSlippageBps !== undefined &&
+      (!Number.isSafeInteger(request.maxSlippageBps) ||
+        request.maxSlippageBps < 0 ||
+        request.maxSlippageBps > 50)
+    ) {
+      throw new TypeError('Execution receipt maxSlippageBps must be an integer from 0 to 50.');
+    }
     return this.request('POST', '/api/v1/execution/attestation/issue', { body: request, signal });
   }
 
@@ -364,7 +388,47 @@ function validatePreTradeResult(value: unknown): PreTradeResult {
     return invalidApiResponse('evaluatedAt must be an ISO timestamp');
   }
   if (data.attestation !== null && data.attestation !== undefined) record(data.attestation);
+  if (data.decisionInputAssessment !== undefined) {
+    const assessment = record(data.decisionInputAssessment);
+    if (
+      assessment.schemaVersion !== 1 ||
+      !['SUFFICIENT', 'BLOCK', 'INSUFFICIENT_EVIDENCE'].includes(String(assessment.status)) ||
+      typeof assessment.eligibleToProceed !== 'boolean' ||
+      !Number.isSafeInteger(assessment.chainId) ||
+      typeof assessment.asset !== 'string' ||
+      typeof assessment.action !== 'string' ||
+      !Number.isFinite(assessment.tradeAmountUsd) ||
+      !Number.isFinite(Date.parse(String(assessment.evaluatedAt)))
+    ) {
+      return invalidApiResponse('decision-input assessment is malformed');
+    }
+  }
   return data as unknown as PreTradeResult;
+}
+
+function validateDecisionInputRequest(value: NonNullable<PreTradeRequest['decisionInput']>): void {
+  if (
+    !Number.isFinite(value.decisionPriceUsd) ||
+    value.decisionPriceUsd <= 0 ||
+    !Number.isFinite(value.quotePriceUsd) ||
+    value.quotePriceUsd <= 0 ||
+    typeof value.quoteObservedAt !== 'string' ||
+    !/(?:Z|[+-]\d{2}:\d{2})$/i.test(value.quoteObservedAt) ||
+    !Number.isFinite(Date.parse(value.quoteObservedAt)) ||
+    !Number.isSafeInteger(value.maxReferenceDeviationBps) ||
+    value.maxReferenceDeviationBps < 0 ||
+    value.maxReferenceDeviationBps > 10_000 ||
+    !Number.isSafeInteger(value.maxSlippageBps) ||
+    value.maxSlippageBps < 0 ||
+    value.maxSlippageBps > 10_000 ||
+    !Number.isSafeInteger(value.maxQuoteAgeSeconds) ||
+    value.maxQuoteAgeSeconds < 1 ||
+    value.maxQuoteAgeSeconds > 300
+  ) {
+    throw new TypeError(
+      'decisionInput must contain finite prices, a timezone-qualified timestamp, and supported tolerances.'
+    );
+  }
 }
 
 function validateOracleWatchResult(value: unknown): OracleWatchResult {

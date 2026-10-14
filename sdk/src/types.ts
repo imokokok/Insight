@@ -1,10 +1,109 @@
 import type { CoverageTrust, SignedCoverageReport } from './coverage';
-import type { V3SwapRiskReport } from './swap-transaction-risk';
+import type { SwapRiskReader, V3SwapRiskReport } from './swap-transaction-risk';
 
 export type SafetyVerdict = 'PASS' | 'CAUTION' | 'DANGER' | 'BLOCK';
 export type OracleWatchVerdict = 'normal' | 'caution' | 'danger';
 export type OracleWatchRecommendation = 'proceed' | 'proceed_with_caution' | 'halt';
 export type TradeAction = 'swap' | 'borrow' | 'lend' | 'liquidate' | 'repay';
+
+export interface DecisionInputRequest {
+  decisionPriceUsd: number;
+  quotePriceUsd: number;
+  quoteObservedAt: string;
+  maxReferenceDeviationBps: number;
+  maxSlippageBps: number;
+  maxQuoteAgeSeconds: number;
+}
+
+export interface DecisionInputPolicy {
+  /** Consumer-owned identifiers; DIT v1 signs the numeric limits. */
+  policyId: string;
+  version: string;
+  /** Independently reviewed asset label to canonical CAIP-19 ID bindings. */
+  assetIds: Record<string, string>;
+  maxReferenceDeviationBps: number;
+  maxSlippageBps: number;
+  maxQuoteAgeSeconds: number;
+}
+
+export interface DecisionInputPairCommitment {
+  namespace: 'insight.decision-input-pair.v1';
+  algorithm: 'keccak256';
+  digest: `0x${string}`;
+}
+
+export interface DecisionInputAssessment {
+  schemaVersion: 1;
+  status: 'SUFFICIENT' | 'BLOCK' | 'INSUFFICIENT_EVIDENCE';
+  eligibleToProceed: boolean;
+  asset: string;
+  chainId: number;
+  action: TradeAction;
+  tradeAmountUsd: number;
+  evaluatedAt: string;
+  operationRouteQuote: Record<string, unknown> | null;
+  quoteInputHash: string;
+  policy: Pick<
+    DecisionInputPolicy,
+    'maxReferenceDeviationBps' | 'maxSlippageBps' | 'maxQuoteAgeSeconds'
+  >;
+  prices: Record<string, unknown> & {
+    decisionPriceUsd: number;
+    quotePriceUsd: number;
+    quoteObservedAt: string;
+    quoteAgeSeconds: number | null;
+    quoteDeviationBps: number | null;
+  };
+  evidence: Record<string, unknown>;
+  reasons: Array<{ code: string; severity: 'block' | 'insufficient_evidence'; message: string }>;
+  caveats: string[];
+  attestation?: {
+    type: 'DecisionInputAssessment';
+    schemaVersion: 1;
+    uid: string;
+    attester: string;
+    attesterLabel: string;
+    signedAt: string;
+    validForSeconds: 300;
+    signature: string;
+    verifyUrl: string;
+    data: {
+      assessmentHash: string;
+      linkedPreTradeUid: string;
+      verifyUrlHash: string;
+      issuedAt: number;
+      validUntil: number;
+      schemaVersion: 1;
+    };
+    eip712: Record<string, unknown>;
+  };
+  [key: string]: unknown;
+}
+
+export interface DecisionInputTrust {
+  /** Independently obtained Insight key registry; never accept a registry from an assessment. */
+  keyRegistry: {
+    public_keys?: Array<Record<string, unknown>>;
+    keys?: Array<Record<string, unknown>>;
+    revoked_keys?: Array<Record<string, unknown>>;
+    revoked?: Array<Record<string, unknown>>;
+  };
+  /** Consumer-owned policy profile. Its limits must exactly match the signed assessment. */
+  policy: DecisionInputPolicy;
+}
+
+export interface TrustedV3SwapRiskOptions {
+  /** Independently reviewed address for the exact router deployment. */
+  routerAddress: `0x${string}`;
+  /** Operator reviewed hash for the exact Uniswap V3 router deployment. */
+  routerCodeHash: `0x${string}`;
+  /** Caller controlled RPC reader; its output remains unsigned local evidence. */
+  reader: SwapRiskReader;
+  maxOracleDeviationBps?: number;
+  maxTradeAmountDeviationBps?: number;
+  maxSlippageBps?: number;
+  maxBlockAgeSeconds?: number;
+}
 
 export interface SignedAttestation {
   uid: string;
@@ -31,6 +130,8 @@ export interface PreTradeRequest {
   workflowTag?: string;
   baselineVerdict?: 'allow' | 'alert' | 'block' | 'unknown';
   baselineVersion?: string;
+  /** Optional signed decision-input evaluation. Required by authorizeTrustedV3Swap(). */
+  decisionInput?: DecisionInputRequest;
 }
 
 export interface PreTradeResult {
@@ -44,6 +145,7 @@ export interface PreTradeResult {
   contributingFactors: Array<{ message: string; [key: string]: unknown }>;
   evaluatedAt: string;
   attestation: SignedAttestation | null;
+  decisionInputAssessment?: DecisionInputAssessment;
   assessmentScope?: {
     requestedDimensions: string[];
     evaluatedDimensions: string[];
@@ -97,7 +199,7 @@ export interface ExecutionReceiptRequest {
   quotedPrice: number;
   txHash: string;
   taker?: string;
-  maxSlippageBps?: 50;
+  maxSlippageBps?: number;
   action?: string;
   quotedAmountUsd?: number;
   executedAmountUsd?: number;
@@ -223,6 +325,8 @@ export interface GuardOptions extends InsightClientOptions {
     source: CoverageTrust;
     destination: CoverageTrust;
   };
+  /** Required for the strict Decision Input + exact-call authorization path. */
+  decisionInputTrust?: DecisionInputTrust;
 }
 
 export interface GuardDecision {
@@ -244,6 +348,21 @@ export interface SwapAssessmentRequest {
   watchTarget?: OracleWatchTarget;
   receipt: SwapReceiptOptions;
   freshness?: FreshnessProfile;
+}
+
+export interface TrustedV3SwapAuthorizationRequest extends SwapAssessmentRequest {
+  source: PreTradeRequest & { decisionInput: DecisionInputRequest };
+  destination: PreTradeRequest & { decisionInput: DecisionInputRequest };
+  transaction: PreparedExactCallTransaction;
+  routerAddress: `0x${string}`;
+  routerCodeHash: `0x${string}`;
+  reader: SwapRiskReader;
+  priorSeal: PriorSealFlowOptions;
+  decisionInputTrust?: DecisionInputTrust;
+  maxOracleDeviationBps?: number;
+  maxTradeAmountDeviationBps?: number;
+  maxSlippageBps?: number;
+  maxBlockAgeSeconds?: number;
 }
 
 /**
@@ -295,6 +414,17 @@ export interface PriorSealContextCommitment {
   algorithm: 'keccak256' | 'sha256';
   digest: `0x${string}`;
 }
+
+/** Optional submission-bound authorization context supplied by a reviewed adapter. */
+export type PriorSealSubmitTransaction = ((context: {
+  sourcePreTrade: PreTradeResult;
+  destinationPreTrade: PreTradeResult;
+  transaction: PreparedExactCallTransaction;
+  priorSealAuthorization: PriorSealAcceptedAuthorization;
+}) => Promise<SubmittedTransaction>) & {
+  authorizationContextCommitments?: readonly PriorSealContextCommitment[];
+  assertAuthorizationTransaction?: (transaction: PreparedExactCallTransaction) => void;
+};
 
 export interface PriorSealIntent {
   schema: 'priorseal.intent.v2';
@@ -423,7 +553,7 @@ export interface PriorSealFlowOptions {
 
 export interface SwapReceiptOptions {
   settlementChainId: number;
-  maxSlippageBps?: 50;
+  maxSlippageBps?: number;
   action?: string;
   quotedAmountUsd?: number;
   executedAmountUsd?: number;
@@ -457,12 +587,15 @@ export interface PriorSealGuardedSwapRequest extends Omit<GuardedSwapRequest, 's
     sourcePreTrade: PreTradeResult;
     destinationPreTrade: PreTradeResult;
   }): Promise<PreparedExactCallTransaction>;
-  submitTransaction(context: {
-    sourcePreTrade: PreTradeResult;
-    destinationPreTrade: PreTradeResult;
-    transaction: PreparedExactCallTransaction;
-    priorSealAuthorization: PriorSealAcceptedAuthorization;
-  }): Promise<SubmittedTransaction>;
+  submitTransaction: PriorSealSubmitTransaction;
+}
+
+/** Strict swap path requiring signed decision inputs and exact V3 call review. */
+export interface TrustedV3PriorSealGuardedSwapRequest extends PriorSealGuardedSwapRequest {
+  source: PreTradeRequest & { decisionInput: DecisionInputRequest };
+  destination: PreTradeRequest & { decisionInput: DecisionInputRequest };
+  v3Risk: TrustedV3SwapRiskOptions;
+  decisionInputTrust?: DecisionInputTrust;
 }
 
 export interface AssessedSwapAuthorizationRequest {
@@ -471,12 +604,17 @@ export interface AssessedSwapAuthorizationRequest {
   priorSeal: PriorSealFlowOptions;
   /** Optional unsigned local route review, bound as an additional context commitment. */
   transactionRisk?: V3SwapRiskReport;
+  /** Required only by the strict decision-input authorization path. */
+  decisionInputTrust?: DecisionInputTrust;
+  /** Set only after both signed assessments pass independent verification. */
+  decisionInputPairCommitment?: DecisionInputPairCommitment;
 }
 
 export interface AssessedSwapAuthorizationResult {
   assessment: SwapAssessment;
   transaction: PreparedExactCallTransaction;
   priorSealAuthorization: PriorSealAcceptedAuthorization;
+  decisionInputPairCommitment?: DecisionInputPairCommitment;
 }
 
 export interface AssessedSwapExecutionVerificationRequest {
@@ -485,6 +623,9 @@ export interface AssessedSwapExecutionVerificationRequest {
   priorSealAuthorization: PriorSealAcceptedAuthorization;
   txHash: string;
   taker?: string;
+  /** Retained so recovery and exported evidence can reproduce the signed context bindings. */
+  transactionRisk?: V3SwapRiskReport;
+  decisionInputPairCommitment?: DecisionInputPairCommitment;
   priorSeal: {
     client: PriorSealApi;
     confirmations?: number;
@@ -559,6 +700,8 @@ export type PriorSealGuardedSwapResult =
       transactionCorrelation: boolean | null;
       assuranceValid: boolean | null;
       evidenceErrors: { insight?: JointEvidenceError; priorSeal?: JointEvidenceError };
+      transactionRisk?: V3SwapRiskReport;
+      decisionInputPairCommitment?: DecisionInputPairCommitment;
     };
 
 export type GuardedSwapResult =
@@ -632,6 +775,9 @@ export interface JointEvidenceCheckpoint {
   confirmations?: number;
   insightReceipt: ExecutionReceiptResult | null;
   priorSealEvidence: PriorSealObservationResult | null;
+  /** Retained for strict-path evidence-only recovery. */
+  transactionRisk?: V3SwapRiskReport;
+  decisionInputPairCommitment?: DecisionInputPairCommitment;
 }
 
 export interface WatchState {

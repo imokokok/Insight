@@ -1,9 +1,40 @@
-import { keccak256 } from 'viem';
-
 import { InsightClient } from './client';
 import { verifyCoverageReport, type SignedCoverageReport } from './coverage';
+import {
+  type buildDecisionInputPairCommitment,
+  decisionInputQuoteValidUntil,
+  verifyDecisionInputPair as verifyDecisionInputPairForRequest,
+} from './decision-input';
 import { diagnosePreTrade, evaluateFreshness, validateFreshnessProfile } from './diagnostics';
-import { InsightApiError, ReceiptConfigurationError, TradeBlockedError } from './errors';
+import { ReceiptConfigurationError, TradeBlockedError } from './errors';
+import {
+  assertAcceptedAuthorizationMatchesPresented,
+  assertAuthorizationMatchesAssessment,
+  assertCurrentV3Risk,
+  assertPairFreshness,
+  buildJointAssuranceReport,
+  buildVerifiedReceiptDraft,
+  canonicalJson,
+  correlateTransactionHashes,
+  evidenceAvailabilityFor,
+  evidenceError,
+  isExecutionAuthorised,
+  isPriorSealPending,
+  jsonSafe,
+  minimumKnownNonNegative,
+  minimumPositive,
+  number,
+  protocolScopeAvailable,
+  recommendationFor,
+  assessmentReasonCodes,
+  requireAssessmentEvidence,
+  targetKey,
+  verifyDecisionInputPair,
+  requestedScopeAvailable,
+  type BlockedSwapResult,
+  type SwapGateEvaluation,
+  type SwapGateRequest,
+} from './guard-helpers';
 import {
   buildInsightPriorSealContextCommitment,
   buildPriorSealExactCallIntent,
@@ -20,6 +51,7 @@ import { createWatch } from './watch';
 
 import type {
   FreshnessProfile,
+  DecisionInputTrust,
   RefreshedSwapAssessment,
   JointEvidenceCheckpoint,
   JointEvidenceError,
@@ -41,14 +73,40 @@ import type {
   PriorSealGuardedSwapRequest,
   PriorSealGuardedSwapResult,
   PriorSealObservationResult,
-  SignedAttestation,
+  PriorSealSubmitTransaction,
   SwapAssessment,
   SwapAssessmentRequest,
-  TransactionRecommendation,
+  TrustedV3PriorSealGuardedSwapRequest,
+  TrustedV3SwapRiskOptions,
+  TrustedV3SwapAuthorizationRequest,
   WatchHandle,
   WatchOptions,
 } from './types';
 
+export { exportReviewAttachments } from './guard-helpers';
+
+type StrictV3SwapOptions = { trust: DecisionInputTrust; v3Risk: TrustedV3SwapRiskOptions };
+type ReadySwapGateEvaluation = Extract<SwapGateEvaluation, { ready: true }>;
+type PriorSealSwapWorkflowContext = {
+  request: PriorSealGuardedSwapRequest;
+  submissionAdapter: PriorSealSubmitTransaction;
+  strictV3?: StrictV3SwapOptions;
+  gated: ReadySwapGateEvaluation;
+  coverage: SignedCoverageReport[];
+  preparedTransaction: PreparedExactCallTransaction;
+  assessment: SwapAssessment;
+  transactionRisk?: V3SwapRiskReport;
+  decisionInputPairCommitment?: ReturnType<typeof buildDecisionInputPairCommitment>;
+};
+type PriorSealAuthorizationContext = PriorSealSwapWorkflowContext & {
+  issuedAt: number;
+  validUntil: number;
+  intent: ReturnType<typeof buildPriorSealExactCallIntent>;
+  preparedAuthorization: Awaited<
+    ReturnType<PriorSealGuardedSwapRequest['priorSeal']['client']['prepareAuthorization']>
+  >;
+  signature: string;
+};
 const BLOCKED_BY_DEFAULT = new Set(['DANGER', 'BLOCK']);
 
 /**
@@ -61,6 +119,7 @@ export class InsightGuard {
   private readonly blockOnWatchHalt: boolean;
   private readonly freshness: FreshnessProfile;
   private readonly coverage: GuardOptions['coverage'];
+  private readonly decisionInputTrust: DecisionInputTrust | undefined;
   private readonly haltedTargets = new Set<string>();
   private readonly watchHandles = new Map<string, WatchHandle>();
   private readonly watchGenerations = new Map<string, symbol>();
@@ -69,6 +128,9 @@ export class InsightGuard {
   constructor(options: GuardOptions) {
     this.client = new InsightClient(options);
     this.coverage = options.coverage ? JSON.parse(JSON.stringify(options.coverage)) : undefined;
+    this.decisionInputTrust = options.decisionInputTrust
+      ? JSON.parse(JSON.stringify(options.decisionInputTrust))
+      : undefined;
     this.freshness = options.freshness ?? {};
     validateFreshnessProfile(this.freshness);
     this.blockedVerdicts = new Set(options.policy?.blockedPreTradeVerdicts ?? BLOCKED_BY_DEFAULT);
@@ -132,6 +194,7 @@ export class InsightGuard {
   async assessV3Swap(
     request: SwapAssessmentRequest & {
       transaction: V3SwapRiskRequest['transaction'];
+      routerAddress?: V3SwapRiskRequest['routerAddress'];
       routerCodeHash: V3SwapRiskRequest['routerCodeHash'];
       reader: V3SwapRiskRequest['reader'];
       maxOracleDeviationBps?: number;
@@ -139,6 +202,7 @@ export class InsightGuard {
       maxSlippageBps?: number;
       maxBlockAgeSeconds?: number;
       now?: () => number;
+      decisionInputTrust?: DecisionInputTrust;
     },
     signal?: AbortSignal
   ): Promise<{ assessment: SwapAssessment; transactionRisk: V3SwapRiskReport }> {
@@ -146,6 +210,7 @@ export class InsightGuard {
     const transactionRisk = await assessV3SwapTransaction({
       assessment,
       transaction: request.transaction,
+      routerAddress: request.routerAddress,
       routerCodeHash: request.routerCodeHash,
       reader: request.reader,
       maxOracleDeviationBps: request.maxOracleDeviationBps,
@@ -153,6 +218,7 @@ export class InsightGuard {
       maxSlippageBps: request.maxSlippageBps,
       maxBlockAgeSeconds: request.maxBlockAgeSeconds,
       now: request.now,
+      decisionInputTrust: request.decisionInputTrust ?? this.decisionInputTrust,
     });
     return { assessment, transactionRisk };
   }
@@ -163,6 +229,7 @@ export class InsightGuard {
   async authorizeAssessedV3Swap(
     request: SwapAssessmentRequest & {
       transaction: V3SwapRiskRequest['transaction'];
+      routerAddress?: V3SwapRiskRequest['routerAddress'];
       routerCodeHash: V3SwapRiskRequest['routerCodeHash'];
       reader: V3SwapRiskRequest['reader'];
       priorSeal: AssessedSwapAuthorizationRequest['priorSeal'];
@@ -170,6 +237,7 @@ export class InsightGuard {
       maxTradeAmountDeviationBps?: number;
       maxSlippageBps?: number;
       maxBlockAgeSeconds?: number;
+      decisionInputTrust?: DecisionInputTrust;
     },
     signal?: AbortSignal
   ): Promise<AssessedSwapAuthorizationResult & { transactionRisk: V3SwapRiskReport }> {
@@ -187,8 +255,86 @@ export class InsightGuard {
       transaction: request.transaction,
       priorSeal: request.priorSeal,
       transactionRisk,
+      ...((request.decisionInputTrust ?? this.decisionInputTrust)
+        ? { decisionInputTrust: request.decisionInputTrust ?? this.decisionInputTrust }
+        : {}),
     });
     return { ...result, transactionRisk };
+  }
+
+  /** Strict path: both Insight decision-input proofs must satisfy the consumer's pinned policy. */
+  async authorizeTrustedV3Swap(
+    request: TrustedV3SwapAuthorizationRequest,
+    signal?: AbortSignal
+  ): Promise<
+    AssessedSwapAuthorizationResult & {
+      transactionRisk: V3SwapRiskReport;
+      decisionInputPairCommitment: ReturnType<typeof buildDecisionInputPairCommitment>;
+    }
+  > {
+    const trust = request.decisionInputTrust ?? this.decisionInputTrust;
+    if (!trust)
+      throw new ReceiptConfigurationError(
+        'Trusted Decision Input policy and key registry are required.'
+      );
+    if (!request.source.decisionInput || !request.destination.decisionInput) {
+      throw new ReceiptConfigurationError(
+        'Decision Input assessments are required for both swap assets.'
+      );
+    }
+    const strictReceipt = {
+      ...request.receipt,
+      maxSlippageBps: Math.min(request.receipt.maxSlippageBps ?? 50, trust.policy.maxSlippageBps),
+    };
+    const { assessment, transactionRisk } = await this.assessV3Swap(
+      {
+        ...request,
+        receipt: strictReceipt,
+        decisionInputTrust: trust,
+        maxOracleDeviationBps: Math.min(
+          request.maxOracleDeviationBps ?? 100,
+          trust.policy.maxReferenceDeviationBps
+        ),
+        maxSlippageBps: Math.min(
+          request.maxSlippageBps ?? trust.policy.maxSlippageBps,
+          trust.policy.maxSlippageBps,
+          request.receipt.maxSlippageBps ?? 50
+        ),
+        maxBlockAgeSeconds: Math.min(request.maxBlockAgeSeconds ?? 30, 30),
+      },
+      signal
+    );
+    if (transactionRisk.status !== 'ACCEPTABLE') {
+      throw new ReceiptConfigurationError(
+        `V3 swap risk: ${transactionRisk.reasonCodes.join(', ')}`
+      );
+    }
+    if (!assessment.sourcePreTrade || !assessment.destinationPreTrade) {
+      throw new ReceiptConfigurationError('Both signed pre-trade results are required.');
+    }
+    let decisionInputPairCommitment: ReturnType<typeof buildDecisionInputPairCommitment>;
+    try {
+      ({ commitment: decisionInputPairCommitment } = await verifyDecisionInputPairForRequest(
+        assessment.sourcePreTrade,
+        request.source,
+        assessment.destinationPreTrade,
+        request.destination,
+        trust
+      ));
+    } catch (error) {
+      throw new ReceiptConfigurationError(
+        `Decision Input pair rejected: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+    const result = await this.authorizeAssessedSwap({
+      assessment,
+      transaction: request.transaction,
+      priorSeal: request.priorSeal,
+      transactionRisk,
+      decisionInputTrust: trust,
+      decisionInputPairCommitment,
+    });
+    return { ...result, transactionRisk, decisionInputPairCommitment };
   }
 
   private assessmentFromResults(
@@ -382,7 +528,7 @@ export class InsightGuard {
   async authorizeAssessedSwap(
     request: AssessedSwapAuthorizationRequest
   ): Promise<AssessedSwapAuthorizationResult> {
-    const { assessment, transaction, priorSeal, transactionRisk } = request;
+    const { assessment, transaction, priorSeal, transactionRisk, decisionInputTrust } = request;
     const evidence = requireAssessmentEvidence(assessment);
     assertPairFreshness(assessment.sourcePreTrade!, assessment.destinationPreTrade!, {
       ...this.freshness,
@@ -395,7 +541,29 @@ export class InsightGuard {
     }
 
     const issuedAt = priorSeal.issuedAt ?? Math.floor(Date.now() / 1000);
-    const validUntil = priorSeal.validUntil ?? assessment.constraints.validUntil;
+    const validUntil =
+      priorSeal.validUntil ??
+      minimumPositive([
+        assessment.constraints.validUntil,
+        ...(transactionRisk ? [transactionRisk.validUntil] : []),
+      ]);
+    const decisionInputCommitment = decisionInputTrust
+      ? await verifyDecisionInputPair(
+          assessment,
+          decisionInputTrust,
+          issuedAt,
+          validUntil ?? undefined
+        )
+      : undefined;
+    if (
+      request.decisionInputPairCommitment &&
+      request.decisionInputPairCommitment.digest.toLowerCase() !==
+        decisionInputCommitment?.digest.toLowerCase()
+    ) {
+      throw new ReceiptConfigurationError(
+        'Decision Input pair commitment does not match the verified assessments.'
+      );
+    }
     if (transactionRisk)
       assertCurrentV3Risk(transactionRisk, assessment, transaction, issuedAt, validUntil);
     if (!Number.isSafeInteger(validUntil) || (validUntil ?? 0) <= issuedAt) {
@@ -423,6 +591,7 @@ export class InsightGuard {
       contextCommitments: [
         assessment.contextCommitment!,
         ...(transactionRisk ? [v3SwapRiskCommitment(transactionRisk)] : []),
+        ...(decisionInputCommitment ? [decisionInputCommitment] : []),
       ],
     });
     const preparedAuthorization = await priorSeal.client.prepareAuthorization(
@@ -455,6 +624,21 @@ export class InsightGuard {
         Math.floor(Date.now() / 1000),
         validUntil
       );
+    if (decisionInputTrust) {
+      const currentCommitment = await verifyDecisionInputPair(
+        assessment,
+        decisionInputTrust,
+        Math.floor(Date.now() / 1000),
+        validUntil ?? undefined
+      );
+      if (
+        currentCommitment.digest.toLowerCase() !== decisionInputCommitment?.digest.toLowerCase()
+      ) {
+        throw new ReceiptConfigurationError(
+          'Decision Input evidence changed after authorization preparation.'
+        );
+      }
+    }
     const signature = await priorSeal.signAuthorization(preparedAuthorization);
     if (!/^0x[0-9a-fA-F]+$/.test(signature)) {
       throw new ReceiptConfigurationError('PriorSeal signer returned no hex signature.');
@@ -473,6 +657,19 @@ export class InsightGuard {
         Math.floor(Date.now() / 1000),
         validUntil
       );
+    if (decisionInputTrust) {
+      const latestCommitment = await verifyDecisionInputPair(
+        assessment,
+        decisionInputTrust,
+        Math.floor(Date.now() / 1000),
+        validUntil ?? undefined
+      );
+      if (latestCommitment.digest.toLowerCase() !== decisionInputCommitment?.digest.toLowerCase()) {
+        throw new ReceiptConfigurationError(
+          'Decision Input evidence expired or changed before authorization acceptance.'
+        );
+      }
+    }
     const signedAuthorization = { ...preparedAuthorization.authorization, signature };
     const priorSealAuthorization = await priorSeal.client.acceptAuthorization(
       signedAuthorization,
@@ -484,7 +681,8 @@ export class InsightGuard {
       assessment,
       transaction,
       false,
-      transactionRisk
+      transactionRisk,
+      decisionInputCommitment
     );
     assertPairFreshness(
       assessment.sourcePreTrade!,
@@ -492,7 +690,12 @@ export class InsightGuard {
       { ...this.freshness, ...assessment.freshnessProfile },
       priorSealAuthorization.authorization
     );
-    return { assessment, transaction, priorSealAuthorization };
+    return {
+      assessment,
+      transaction,
+      priorSealAuthorization,
+      ...(decisionInputCommitment ? { decisionInputPairCommitment: decisionInputCommitment } : {}),
+    };
   }
 
   /** Observe an externally submitted transaction and derive a joint, non-authoritative report. */
@@ -510,6 +713,10 @@ export class InsightGuard {
         confirmations: request.priorSeal.confirmations,
         insightReceipt: null,
         priorSealEvidence: null,
+        ...(request.transactionRisk ? { transactionRisk: request.transactionRisk } : {}),
+        ...(request.decisionInputPairCommitment
+          ? { decisionInputPairCommitment: request.decisionInputPairCommitment }
+          : {}),
       },
       request.priorSeal
     );
@@ -530,7 +737,9 @@ export class InsightGuard {
       checkpoint.priorSealAuthorization,
       checkpoint.assessment,
       checkpoint.transaction,
-      true
+      true,
+      checkpoint.transactionRisk,
+      checkpoint.decisionInputPairCommitment
     );
     if (
       correlateTransactionHashes(
@@ -687,11 +896,77 @@ export class InsightGuard {
   async executeSwapWithPriorSeal(
     request: PriorSealGuardedSwapRequest
   ): Promise<PriorSealGuardedSwapResult> {
+    return this.executeSwapWithPriorSealInternal(request);
+  }
+
+  /**
+   * Full strict path for supported Uniswap V3 exactInputSingle swaps. It requires
+   * two signed decision-input assessments, an acceptable exact-call simulation,
+   * a single-use PriorSeal authorization and both post-execution evidence paths.
+   */
+  async executeTrustedV3SwapWithPriorSeal(
+    request: TrustedV3PriorSealGuardedSwapRequest
+  ): Promise<PriorSealGuardedSwapResult> {
+    const trust = request.decisionInputTrust ?? this.decisionInputTrust;
+    if (!trust) {
+      throw new ReceiptConfigurationError(
+        'Trusted Decision Input policy and independently obtained key registry are required.'
+      );
+    }
+    if (!request.source.decisionInput || !request.destination.decisionInput) {
+      throw new ReceiptConfigurationError(
+        'Decision Input assessments are required for both swap assets.'
+      );
+    }
+    return this.executeSwapWithPriorSealInternal(request, {
+      trust,
+      v3Risk: request.v3Risk,
+    });
+  }
+
+  private async executeSwapWithPriorSealInternal(
+    request: PriorSealGuardedSwapRequest,
+    strictV3?: StrictV3SwapOptions
+  ): Promise<PriorSealGuardedSwapResult> {
+    const preparation = await this.preparePriorSealSwapWorkflow(request, strictV3);
+    if ('status' in preparation) return preparation;
+    const authorization = await this.preparePriorSealAuthorization(preparation);
+    if ('status' in authorization) return authorization;
+    return this.acceptAndSubmitPriorSealSwap(authorization);
+  }
+
+  private async preparePriorSealSwapWorkflow(
+    request: PriorSealGuardedSwapRequest,
+    strictV3?: StrictV3SwapOptions
+  ): Promise<PriorSealSwapWorkflowContext | BlockedSwapResult> {
+    const submissionAdapter = request.submitTransaction as PriorSealSubmitTransaction;
+    const submissionCommitments = submissionAdapter.authorizationContextCommitments ?? [];
+    if (
+      strictV3 &&
+      (!submissionCommitments.some(
+        (commitment) => commitment.namespace === 'priorseal.swap-approval.v1'
+      ) ||
+        typeof submissionAdapter.assertAuthorizationTransaction !== 'function')
+    ) {
+      throw new ReceiptConfigurationError(
+        'The strict V3 PriorSeal flow requires a submitter that binds and checks its swap approval before authorization.'
+      );
+    }
+    if (strictV3) {
+      request = {
+        ...request,
+        receipt: {
+          ...request.receipt,
+          maxSlippageBps: Math.min(
+            request.receipt.maxSlippageBps ?? 50,
+            strictV3.trust.policy.maxSlippageBps
+          ),
+        },
+      };
+    }
     const gated = await this.evaluateSwapGates(request);
     if (!gated.ready) return gated.result;
-
     const coverage = await this.collectSwapCoverage(request);
-
     const preparedTransaction = await request.prepareTransaction({
       sourcePreTrade: gated.sourcePreTrade,
       destinationPreTrade: gated.destinationPreTrade,
@@ -702,16 +977,121 @@ export class InsightGuard {
         'Prepared transaction and Insight receipt must use the same settlement chain.'
       );
     }
+    try {
+      submissionAdapter.assertAuthorizationTransaction?.(preparedTransaction);
+    } catch (error) {
+      throw new ReceiptConfigurationError(
+        `PriorSeal swap approval rejected the prepared transaction: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
 
+    const assessment = this.assessmentFromResults(
+      request,
+      gated.sourcePreTrade,
+      gated.destinationPreTrade
+    );
+    let transactionRisk: V3SwapRiskReport | undefined;
+    let decisionInputPairCommitment:
+      | ReturnType<typeof buildDecisionInputPairCommitment>
+      | undefined;
+    if (strictV3) {
+      try {
+        ({ commitment: decisionInputPairCommitment } = await verifyDecisionInputPairForRequest(
+          gated.sourcePreTrade,
+          request.source,
+          gated.destinationPreTrade,
+          request.destination,
+          strictV3.trust
+        ));
+      } catch (error) {
+        throw new ReceiptConfigurationError(
+          `Decision Input pair rejected: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+      transactionRisk = await assessV3SwapTransaction({
+        assessment,
+        transaction: preparedTransaction,
+        routerAddress: strictV3.v3Risk.routerAddress,
+        routerCodeHash: strictV3.v3Risk.routerCodeHash,
+        reader: strictV3.v3Risk.reader,
+        maxOracleDeviationBps: Math.min(
+          strictV3.v3Risk.maxOracleDeviationBps ?? 100,
+          strictV3.trust.policy.maxReferenceDeviationBps
+        ),
+        maxTradeAmountDeviationBps: strictV3.v3Risk.maxTradeAmountDeviationBps,
+        maxSlippageBps: Math.min(
+          strictV3.v3Risk.maxSlippageBps ?? strictV3.trust.policy.maxSlippageBps,
+          strictV3.trust.policy.maxSlippageBps,
+          request.receipt.maxSlippageBps ?? 50
+        ),
+        maxBlockAgeSeconds: Math.min(strictV3.v3Risk.maxBlockAgeSeconds ?? 30, 30),
+        decisionInputTrust: strictV3.trust,
+      });
+      if (transactionRisk.status !== 'ACCEPTABLE') {
+        throw new ReceiptConfigurationError(
+          `V3 swap risk: ${transactionRisk.reasonCodes.join(', ')}`
+        );
+      }
+    }
+    const context: PriorSealSwapWorkflowContext = {
+      request,
+      submissionAdapter,
+      strictV3,
+      gated,
+      coverage,
+      preparedTransaction,
+      assessment,
+      ...(transactionRisk ? { transactionRisk } : {}),
+      ...(decisionInputPairCommitment ? { decisionInputPairCommitment } : {}),
+    };
+    const blocked = this.watchHaltResult(context);
+    return blocked ?? context;
+  }
+
+  private async preparePriorSealAuthorization(
+    context: PriorSealSwapWorkflowContext
+  ): Promise<PriorSealAuthorizationContext | BlockedSwapResult> {
+    const { request, strictV3, gated, coverage, transactionRisk, decisionInputPairCommitment } =
+      context;
     const issuedAt = request.priorSeal.issuedAt ?? Math.floor(Date.now() / 1000);
     const signedGateValidUntil = Math.min(
       number(gated.sourcePreTrade.attestation?.data.validUntil),
       number(gated.destinationPreTrade.attestation?.data.validUntil)
     );
-    const validUntil = Math.min(
-      request.priorSeal.validUntil ?? signedGateValidUntil,
-      ...coverage.map((p) => p.report.validUntil)
+    const strictDecisionInputValidUntil = strictV3
+      ? Math.min(
+          number(gated.sourcePreTrade.decisionInputAssessment?.attestation?.data.validUntil),
+          number(gated.destinationPreTrade.decisionInputAssessment?.attestation?.data.validUntil)
+        )
+      : Number.POSITIVE_INFINITY;
+    const strictDecisionInputQuoteValidUntil = strictV3
+      ? Math.min(
+          decisionInputQuoteValidUntil(
+            gated.sourcePreTrade.decisionInputAssessment!,
+            strictV3.trust.policy
+          ),
+          decisionInputQuoteValidUntil(
+            gated.destinationPreTrade.decisionInputAssessment!,
+            strictV3.trust.policy
+          )
+        )
+      : Number.POSITIVE_INFINITY;
+    const evidenceValidUntil = Math.min(
+      signedGateValidUntil,
+      strictDecisionInputValidUntil,
+      strictDecisionInputQuoteValidUntil,
+      transactionRisk?.validUntil ?? Number.POSITIVE_INFINITY,
+      ...coverage.map((item) => item.report.validUntil)
     );
+    if (
+      request.priorSeal.validUntil !== undefined &&
+      request.priorSeal.validUntil > evidenceValidUntil
+    ) {
+      throw new ReceiptConfigurationError(
+        'PriorSeal authorization cannot outlive the shortest signed or simulated review evidence.'
+      );
+    }
+    const validUntil = request.priorSeal.validUntil ?? evidenceValidUntil;
     if (!Number.isSafeInteger(validUntil) || validUntil <= issuedAt) {
       throw new ReceiptConfigurationError(
         'PriorSeal validUntil must be after issuedAt; pass it explicitly when the gate does not expose one.'
@@ -722,6 +1102,22 @@ export class InsightGuard {
         'PriorSeal authorization cannot outlive the signed Insight pre-trade gate.'
       );
     }
+    if (strictV3) {
+      const boundAtAuthorization = await verifyDecisionInputPair(
+        context.assessment,
+        strictV3.trust,
+        issuedAt,
+        validUntil
+      );
+      if (
+        boundAtAuthorization.digest.toLowerCase() !==
+        decisionInputPairCommitment?.digest.toLowerCase()
+      ) {
+        throw new ReceiptConfigurationError(
+          'Decision Input evidence was issued after the authorization or changed during preparation.'
+        );
+      }
+    }
 
     const authorizationNonce =
       request.priorSeal.authorizationNonce ?? generatePriorSealAuthorizationNonce();
@@ -731,20 +1127,26 @@ export class InsightGuard {
       maxSlippageBps: gated.receiptDraft.maxSlippageBps,
     });
     const intent = buildPriorSealExactCallIntent({
-      transaction: preparedTransaction,
+      transaction: context.preparedTransaction,
       intentId: request.priorSeal.intentId ?? `insight:${authorizationNonce.slice(2, 34)}`,
       sourceAssetId: gated.receiptDraft.sourceAssetId,
       validUntil,
       minConfirmations: request.priorSeal.confirmations,
       contextCommitments: [
         insightContextCommitment,
-        ...coverage.map((p, index) => ({
+        ...(transactionRisk ? [v3SwapRiskCommitment(transactionRisk)] : []),
+        ...(decisionInputPairCommitment ? [decisionInputPairCommitment] : []),
+        ...(context.submissionAdapter.authorizationContextCommitments ?? []),
+        ...coverage.map((item, index) => ({
           namespace: `insight.coverage.${index === 0 ? 'source' : 'destination'}.v1`,
           algorithm: 'keccak256' as const,
-          digest: p.digest as `0x${string}`,
+          digest: item.digest as `0x${string}`,
         })),
       ],
     });
+    const window = { issuedAt, validUntil };
+    const blockedBeforePrepare = this.watchHaltResult(context);
+    if (blockedBeforePrepare) return blockedBeforePrepare;
     const preparedAuthorization = await request.priorSeal.client.prepareAuthorization(
       {
         intent,
@@ -763,11 +1165,16 @@ export class InsightGuard {
       },
       request.priorSeal.signal
     );
-    assertPairFreshness(gated.sourcePreTrade, gated.destinationPreTrade, {
-      ...this.freshness,
-      ...request.freshness,
-    });
+    const freshness = { ...this.freshness, ...request.freshness };
+    assertPairFreshness(gated.sourcePreTrade, gated.destinationPreTrade, freshness);
+    await this.assertPriorSealEvidenceCurrent(
+      context,
+      window,
+      'Decision Input evidence changed after authorization preparation.'
+    );
     await this.checkSwapCoverage(coverage, preparedAuthorization.authorization.intent);
+    const blockedAfterPrepare = this.watchHaltResult(context);
+    if (blockedAfterPrepare) return blockedAfterPrepare;
     const signature = await request.priorSeal.signAuthorization(preparedAuthorization);
     if (!/^0x[0-9a-fA-F]+$/.test(signature)) {
       throw new ReceiptConfigurationError('PriorSeal signer returned no hex signature.');
@@ -775,48 +1182,141 @@ export class InsightGuard {
     assertPairFreshness(
       gated.sourcePreTrade,
       gated.destinationPreTrade,
-      { ...this.freshness, ...request.freshness },
+      freshness,
       preparedAuthorization.authorization
     );
-    const signedAuthorization = { ...preparedAuthorization.authorization, signature };
+    await this.assertPriorSealEvidenceCurrent(
+      context,
+      window,
+      'Decision Input evidence expired or changed before authorization acceptance.'
+    );
+    const blockedAfterSigning = this.watchHaltResult(context);
+    if (blockedAfterSigning) return blockedAfterSigning;
+    return {
+      ...context,
+      ...window,
+      intent,
+      preparedAuthorization,
+      signature,
+    };
+  }
+
+  private async acceptAndSubmitPriorSealSwap(
+    context: PriorSealAuthorizationContext
+  ): Promise<PriorSealGuardedSwapResult> {
+    const {
+      request,
+      gated,
+      coverage,
+      transactionRisk,
+      decisionInputPairCommitment,
+      preparedTransaction,
+    } = context;
+    const signedAuthorization = {
+      ...context.preparedAuthorization.authorization,
+      signature: context.signature,
+    };
     const priorSealAuthorization = await request.priorSeal.client.acceptAuthorization(
       signedAuthorization,
       request.priorSeal.signal
     );
     assertAcceptedAuthorizationMatchesPresented(priorSealAuthorization, signedAuthorization);
-    const assessment = this.assessmentFromResults(
-      request,
-      gated.sourcePreTrade,
-      gated.destinationPreTrade
+    assertAuthorizationMatchesAssessment(
+      priorSealAuthorization,
+      context.assessment,
+      preparedTransaction,
+      false,
+      transactionRisk,
+      decisionInputPairCommitment
     );
-    assertAuthorizationMatchesAssessment(priorSealAuthorization, assessment, preparedTransaction);
     assertPairFreshness(
       gated.sourcePreTrade,
       gated.destinationPreTrade,
       { ...this.freshness, ...request.freshness },
       priorSealAuthorization.authorization
     );
-
-    if (this.blockOnWatchHalt && request.watchTarget && this.isHalted(request.watchTarget))
-      return {
-        status: 'blocked',
-        stage: 'watch_halt',
-        sourcePreTrade: gated.sourcePreTrade,
-        destinationPreTrade: gated.destinationPreTrade,
-      };
+    const blocked = this.watchHaltResult(context);
+    if (blocked) return blocked;
     await this.checkSwapCoverage(coverage, priorSealAuthorization.authorization.intent);
+    await this.assertPriorSealEvidenceCurrent(
+      context,
+      context,
+      'Decision Input evidence expired before transaction submission.'
+    );
+    try {
+      context.submissionAdapter.assertAuthorizationTransaction?.(preparedTransaction);
+    } catch (error) {
+      throw new ReceiptConfigurationError(
+        `PriorSeal swap approval no longer matches the prepared transaction: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+    const submissionTransaction = Object.freeze({ ...preparedTransaction });
     const transaction = await request.submitTransaction({
       sourcePreTrade: gated.sourcePreTrade,
       destinationPreTrade: gated.destinationPreTrade,
-      transaction: preparedTransaction,
+      transaction: submissionTransaction,
       priorSealAuthorization,
     });
     if (!/^0x[0-9a-fA-F]{64}$/.test(transaction.txHash)) {
       throw new ReceiptConfigurationError('submitTransaction returned no valid transaction hash.');
     }
+    return this.collectPriorSealSwapEvidence(context, priorSealAuthorization, transaction);
+  }
 
-    // Once a transaction has been broadcast, evidence services are independent:
-    // preserve either result instead of hiding it when its companion is down.
+  private async assertPriorSealEvidenceCurrent(
+    context: PriorSealSwapWorkflowContext,
+    window: { issuedAt: number; validUntil: number },
+    errorMessage: string
+  ): Promise<void> {
+    if (context.transactionRisk) {
+      assertCurrentV3Risk(
+        context.transactionRisk,
+        context.assessment,
+        context.preparedTransaction,
+        Math.floor(Date.now() / 1000),
+        window.validUntil
+      );
+    }
+    if (!context.strictV3) return;
+    const current = await verifyDecisionInputPair(
+      context.assessment,
+      context.strictV3.trust,
+      Math.floor(Date.now() / 1000),
+      window.validUntil
+    );
+    if (
+      current.digest.toLowerCase() !== context.decisionInputPairCommitment?.digest.toLowerCase()
+    ) {
+      throw new ReceiptConfigurationError(errorMessage);
+    }
+  }
+
+  private watchHaltResult(context: PriorSealSwapWorkflowContext): BlockedSwapResult | undefined {
+    const { request, gated } = context;
+    if (!(this.blockOnWatchHalt && request.watchTarget && this.isHalted(request.watchTarget)))
+      return undefined;
+    return {
+      status: 'blocked',
+      stage: 'watch_halt',
+      sourcePreTrade: gated.sourcePreTrade,
+      destinationPreTrade: gated.destinationPreTrade,
+    };
+  }
+
+  private async collectPriorSealSwapEvidence(
+    context: PriorSealAuthorizationContext,
+    priorSealAuthorization: PriorSealAcceptedAuthorization,
+    transaction: Awaited<ReturnType<PriorSealGuardedSwapRequest['submitTransaction']>>
+  ): Promise<PriorSealGuardedSwapResult> {
+    const {
+      request,
+      gated,
+      coverage,
+      transactionRisk,
+      decisionInputPairCommitment,
+      preparedTransaction,
+      assessment,
+    } = context;
     const [insightResult, priorSealResult] = await Promise.allSettled([
       this.client.issueExecutionReceipt(
         {
@@ -836,7 +1336,6 @@ export class InsightGuard {
         request.priorSeal.signal
       ),
     ]);
-
     const insightReceipt = insightResult.status === 'fulfilled' ? insightResult.value : null;
     const priorSealEvidence = priorSealResult.status === 'fulfilled' ? priorSealResult.value : null;
     const evidenceErrors = {
@@ -867,7 +1366,6 @@ export class InsightGuard {
         : evidenceAvailability === 'UNAVAILABLE'
           ? 'UNAVAILABLE'
           : 'PARTIAL';
-
     return {
       status: 'executed',
       checkpoint: jsonSafe({
@@ -881,6 +1379,8 @@ export class InsightGuard {
         confirmations: request.priorSeal.confirmations,
         insightReceipt,
         priorSealEvidence,
+        ...(transactionRisk ? { transactionRisk } : {}),
+        ...(decisionInputPairCommitment ? { decisionInputPairCommitment } : {}),
       }),
       ...(coverage.length ? { coverageReports: coverage } : {}),
       verificationOrigin: 'service_response',
@@ -897,6 +1397,8 @@ export class InsightGuard {
       transactionCorrelation,
       assuranceValid,
       evidenceErrors,
+      ...(transactionRisk ? { transactionRisk } : {}),
+      ...(decisionInputPairCommitment ? { decisionInputPairCommitment } : {}),
     };
   }
 
@@ -1068,717 +1570,4 @@ export class InsightGuard {
   clearHalt(target: OracleWatchTarget): void {
     this.haltedTargets.delete(targetKey(target));
   }
-}
-
-type BlockedSwapResult = Extract<GuardedSwapResult, { status: 'blocked' }>;
-type SwapGateRequest = Pick<
-  GuardedSwapRequest,
-  'source' | 'destination' | 'watchTarget' | 'receipt' | 'freshness'
->;
-type SwapGateEvaluation =
-  | { ready: false; result: BlockedSwapResult }
-  | {
-      ready: true;
-      sourcePreTrade: PreTradeResult;
-      destinationPreTrade: PreTradeResult;
-      receiptDraft: Omit<ExecutionReceiptRequest, 'txHash' | 'taker'>;
-    };
-
-function recommendationFor(
-  source: PreTradeResult | null,
-  destination: PreTradeResult | null,
-  watchHalted: boolean,
-  bindingInvalid: boolean
-): TransactionRecommendation {
-  if (!source || !destination || bindingInvalid) return 'UNASSESSABLE';
-  if (watchHalted || source.verdict === 'BLOCK' || destination.verdict === 'BLOCK') {
-    return 'NOT_RECOMMENDED';
-  }
-  if (source.verdict === 'DANGER' || destination.verdict === 'DANGER') {
-    return 'REVIEW_REQUIRED';
-  }
-  if (source.verdict === 'CAUTION' || destination.verdict === 'CAUTION') {
-    return 'CONDITIONALLY_RECOMMENDED';
-  }
-  return source.verdict === 'PASS' && destination.verdict === 'PASS'
-    ? 'RECOMMENDED'
-    : 'UNASSESSABLE';
-}
-
-function assessmentReasonCodes(
-  source: PreTradeResult | null,
-  destination: PreTradeResult | null,
-  watchHalted: boolean,
-  errors: { source?: unknown; destination?: unknown },
-  bindingError?: unknown
-): string[] {
-  const codes: string[] = [];
-  if (watchHalted) codes.push('WATCH_HALT');
-  if (source && source.verdict !== 'PASS') codes.push(`SOURCE_${source.verdict}`);
-  if (destination && destination.verdict !== 'PASS') {
-    codes.push(`DESTINATION_${destination.verdict}`);
-  }
-  if (errors.source) codes.push('SOURCE_ASSESSMENT_UNAVAILABLE');
-  if (errors.destination) codes.push('DESTINATION_ASSESSMENT_UNAVAILABLE');
-  if (bindingError) codes.push('EVIDENCE_BINDING_INVALID');
-  return [...new Set(codes)];
-}
-
-function minimumPositive(values: Array<number | null | undefined>): number | null {
-  if (
-    values.length === 0 ||
-    values.some((value) => value == null || !Number.isFinite(value) || value <= 0)
-  ) {
-    return null;
-  }
-  return Math.min(...(values as number[]));
-}
-
-function minimumKnownNonNegative(values: Array<number | null | undefined>): number | null {
-  const known = values.filter(
-    (value): value is number => value != null && Number.isFinite(value) && value >= 0
-  );
-  return known.length ? Math.min(...known) : null;
-}
-
-function requireAssessmentEvidence(
-  assessment: SwapAssessment,
-  allowExpired = false
-): Omit<ExecutionReceiptRequest, 'txHash' | 'taker'> {
-  if (
-    assessment.schema !== 'insight.swap-assessment.v1' ||
-    !assessment.receiptDraft ||
-    !assessment.contextCommitment
-  ) {
-    throw new ReceiptConfigurationError(
-      'The assessment has no complete signed evidence to bind or verify.'
-    );
-  }
-  if (!assessment.sourcePreTrade || !assessment.destinationPreTrade) {
-    throw new ReceiptConfigurationError(
-      'The assessment is missing its source or destination result.'
-    );
-  }
-  const sourceAttestation = requireV2Proof(assessment.sourcePreTrade, 'source', allowExpired);
-  const destinationAttestation = requireV2Proof(
-    assessment.destinationPreTrade,
-    'destination',
-    allowExpired
-  );
-  const expectedValidUntil = minimumPositive([
-    number(sourceAttestation.data.validUntil),
-    number(destinationAttestation.data.validUntil),
-  ]);
-  if (assessment.constraints.validUntil !== expectedValidUntil) {
-    throw new ReceiptConfigurationError(
-      'The assessment validity is inconsistent with its signed evidence.'
-    );
-  }
-  if (
-    assessment.receiptDraft.preTradeUid !== sourceAttestation.uid ||
-    assessment.receiptDraft.destinationPreTradeUid !== destinationAttestation.uid ||
-    assessment.receiptDraft.requestHash !== text(sourceAttestation.data.requestHash) ||
-    assessment.receiptDraft.sourceAssetId !== text(sourceAttestation.data.sourceAssetId) ||
-    assessment.receiptDraft.destinationAssetId !== text(sourceAttestation.data.destinationAssetId)
-  ) {
-    throw new ReceiptConfigurationError(
-      'The assessment receipt draft is inconsistent with its signed evidence.'
-    );
-  }
-  const expectedRecommendation = recommendationFor(
-    assessment.sourcePreTrade,
-    assessment.destinationPreTrade,
-    assessment.watchHalted,
-    false
-  );
-  if (assessment.recommendation !== expectedRecommendation) {
-    throw new ReceiptConfigurationError(
-      'The assessment recommendation is inconsistent with its underlying evidence.'
-    );
-  }
-  const expectedCommitment = buildInsightPriorSealContextCommitment({
-    sourceAttestation,
-    destinationAttestation,
-    maxSlippageBps: assessment.receiptDraft.maxSlippageBps,
-  });
-  if (
-    expectedCommitment.namespace !== assessment.contextCommitment.namespace ||
-    expectedCommitment.algorithm !== assessment.contextCommitment.algorithm ||
-    expectedCommitment.digest.toLowerCase() !== assessment.contextCommitment.digest.toLowerCase()
-  ) {
-    throw new ReceiptConfigurationError(
-      'The assessment context commitment is inconsistent with its signed evidence.'
-    );
-  }
-  return assessment.receiptDraft;
-}
-
-function assertAuthorizationMatchesAssessment(
-  accepted: PriorSealAcceptedAuthorization,
-  assessment: SwapAssessment,
-  transaction: PreparedExactCallTransaction,
-  allowExpired = false,
-  transactionRisk?: V3SwapRiskReport
-): void {
-  const evidence = requireAssessmentEvidence(assessment, allowExpired);
-  const actual = accepted.authorization?.intent;
-  if (!actual) throw new ReceiptConfigurationError('PriorSeal returned no authorized intent.');
-  if (
-    assessment.constraints.validUntil == null ||
-    actual.validUntil > assessment.constraints.validUntil
-  ) {
-    throw new ReceiptConfigurationError(
-      'PriorSeal authorization outlives the signed Insight assessment.'
-    );
-  }
-  const expected = buildPriorSealExactCallIntent({
-    transaction,
-    intentId: actual.intentId,
-    sourceAssetId: evidence.sourceAssetId,
-    validUntil: actual.validUntil,
-    minConfirmations: actual.constraints?.minConfirmations,
-    contextCommitments: [
-      assessment.contextCommitment!,
-      ...(transactionRisk ? [v3SwapRiskCommitment(transactionRisk)] : []),
-    ],
-  });
-  const fields: Array<keyof typeof expected> = [
-    'schema',
-    'executionProfile',
-    'intentId',
-    'chainId',
-    'action',
-    'asset',
-    'amount',
-    'sender',
-    'recipient',
-    'validUntil',
-    'nonce',
-    'callTarget',
-    'calldataHash',
-    'transactionValue',
-  ];
-  const mismatch = fields.find((field) =>
-    typeof expected[field] === 'string'
-      ? String(expected[field]).toLowerCase() !== String(actual[field]).toLowerCase()
-      : expected[field] !== actual[field]
-  );
-  const insightCommitments =
-    actual.contextCommitments?.filter(
-      (entry) => entry.namespace === assessment.contextCommitment!.namespace
-    ) ?? [];
-  const commitmentMatched = insightCommitments.some(
-    (entry) =>
-      entry.algorithm === assessment.contextCommitment!.algorithm &&
-      entry.digest.toLowerCase() === assessment.contextCommitment!.digest.toLowerCase()
-  );
-  if (mismatch || insightCommitments.length !== 1 || !commitmentMatched) {
-    throw new ReceiptConfigurationError(
-      mismatch
-        ? `PriorSeal authorization does not match the assessed transaction field: ${mismatch}.`
-        : 'PriorSeal authorization does not contain the Insight assessment commitment.'
-    );
-  }
-  if (transactionRisk) {
-    const commitment = v3SwapRiskCommitment(transactionRisk);
-    const matches =
-      actual.contextCommitments?.filter((entry) => entry.namespace === commitment.namespace) ?? [];
-    if (
-      matches.length !== 1 ||
-      matches[0].algorithm !== commitment.algorithm ||
-      matches[0].digest.toLowerCase() !== commitment.digest.toLowerCase()
-    ) {
-      throw new ReceiptConfigurationError(
-        'PriorSeal authorization does not bind the V3 transaction risk review.'
-      );
-    }
-  }
-}
-
-function assertCurrentV3Risk(
-  report: V3SwapRiskReport,
-  assessment: SwapAssessment,
-  transaction: PreparedExactCallTransaction,
-  now: number,
-  validUntil: number | null
-): void {
-  v3SwapRiskCommitment(report);
-  const tx = report.transaction!,
-    evidence = report.evidence!;
-  if (
-    !Number.isSafeInteger(now) ||
-    !Number.isSafeInteger(validUntil) ||
-    validUntil! <= now ||
-    report.validUntil! < validUntil! ||
-    evidence.blockTimestamp > now + 5 ||
-    now - evidence.blockTimestamp > 30 ||
-    tx.chainId !== transaction.chainId ||
-    tx.from !== transaction.from.toLowerCase() ||
-    tx.router !== transaction.to.toLowerCase() ||
-    tx.calldataHash.toLowerCase() !== keccak256(transaction.data).toLowerCase() ||
-    tx.amountIn !== String(transaction.sourceAmount) ||
-    evidence.sourceAttestationUid !== assessment.sourcePreTrade?.attestation?.uid ||
-    evidence.destinationAttestationUid !== assessment.destinationPreTrade?.attestation?.uid
-  ) {
-    throw new ReceiptConfigurationError(
-      'V3 transaction risk review is stale or does not match the prepared call.'
-    );
-  }
-}
-
-function assertAcceptedAuthorizationMatchesPresented(
-  accepted: PriorSealAcceptedAuthorization,
-  presented: PriorSealAcceptedAuthorization['authorization']
-): void {
-  if (accepted.acceptance?.status !== 'ACCEPTED') {
-    throw new ReceiptConfigurationError('PriorSeal returned no accepted authorization evidence.');
-  }
-  if (canonicalJson(accepted.authorization) !== canonicalJson(presented)) {
-    throw new ReceiptConfigurationError(
-      'PriorSeal accepted authorization differs from the authorization presented for signing.'
-    );
-  }
-}
-
-function canonicalJson(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
-  if (value && typeof value === 'object') {
-    return `{${Object.entries(value as Record<string, unknown>)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, entry]) => `${JSON.stringify(key)}:${canonicalJson(entry)}`)
-      .join(',')}}`;
-  }
-  return JSON.stringify(value) ?? 'null';
-}
-
-function buildJointAssuranceReport(
-  assessment: SwapAssessment,
-  expectedTxHash: string,
-  insightReceipt: ExecutionReceiptResult | null,
-  priorSealEvidence: PriorSealObservationResult | null
-): AssessedSwapExecutionVerificationResult['report'] {
-  const pending = isPriorSealPending(priorSealEvidence);
-  const evidenceAvailability = evidenceAvailabilityFor(insightReceipt, priorSealEvidence);
-  const transactionCorrelation = correlateTransactionHashes(
-    expectedTxHash,
-    insightReceipt,
-    priorSealEvidence
-  );
-  const evidenceStatus = jointEvidenceStatus(
-    insightReceipt,
-    priorSealEvidence,
-    pending,
-    transactionCorrelation
-  );
-  const compliance = priorSealEvidence?.receipt?.compliance?.status ?? null;
-  const priorSealReceiptValid = priorSealEvidence?.receipt
-    ? (priorSealEvidence.verification?.valid ?? null)
-    : null;
-  const exactCallMatched = exactCallMatch(priorSealEvidence, priorSealReceiptValid, compliance);
-  const constraintsSatisfied = insightConstraintsSatisfied(insightReceipt);
-  const executionFinal = ['CONFIRMED', 'REVERTED'].includes(
-    priorSealEvidence?.observation.status ?? ''
-  );
-  const recommendationFollowed = followedRecommendation(assessment.recommendation, executionFinal);
-  const reasonCodes = [...assessment.reasonCodes];
-  if (priorSealEvidence?.observationJob && !priorSealEvidence.receipt && !pending)
-    reasonCodes.push(`PRIORSEAL_JOB_${priorSealEvidence.observationJob.state}_WITHOUT_RECEIPT`);
-  if (priorSealReceiptValid === false) reasonCodes.push('PRIORSEAL_RECEIPT_INVALID');
-  if (compliance === 'NON_COMPLIANT') reasonCodes.push('PRIORSEAL_NON_COMPLIANT');
-  if (constraintsSatisfied === false) reasonCodes.push('INSIGHT_CONSTRAINTS_NOT_SATISFIED');
-  if (transactionCorrelation === false) reasonCodes.push('EVIDENCE_TRANSACTION_MISMATCH');
-  if (evidenceStatus === 'PARTIAL') reasonCodes.push('EVIDENCE_PARTIAL');
-  if (evidenceStatus === 'UNAVAILABLE') reasonCodes.push('EVIDENCE_UNAVAILABLE');
-  const assuranceValid =
-    evidenceAvailability === 'COMPLETE'
-      ? insightReceipt?.bindingMode === 'VERIFIED' &&
-        priorSealReceiptValid === true &&
-        transactionCorrelation === true
-      : null;
-
-  const conclusion = jointConclusion({
-    recommendation: assessment.recommendation,
-    pending,
-    evidenceStatus,
-    priorSealReceiptValid,
-    exactCallMatched,
-    constraintsSatisfied,
-    recommendationFollowed,
-    transactionCorrelation,
-  });
-
-  return {
-    schema: 'insight.priorseal-assurance-report.v1',
-    verificationOrigin: 'service_response',
-    independentVerificationPerformed: false,
-    limitations: [
-      'This report correlates artifacts and service responses; it does not independently verify signatures or signer trust.',
-      'Exact-call matching does not prove output amounts, liquidity, or price execution.',
-      'Historical contract-wallet state and external anchors may require separate verification.',
-    ],
-    recommendation: assessment.recommendation,
-    recommendationFollowed,
-    evidenceStatus,
-    evidenceAvailability,
-    expectedTxHash: normalizeTxHash(expectedTxHash) ?? expectedTxHash,
-    transactionCorrelation,
-    assuranceValid,
-    insightExecutionStatus: insightReceipt?.executionStatus ?? null,
-    priorSealReceiptValid,
-    priorSealComplianceStatus: compliance,
-    exactCallMatched,
-    constraintsSatisfied,
-    conclusion,
-    reasonCodes: [...new Set(reasonCodes)],
-  };
-}
-
-function isPriorSealPending(evidence: PriorSealObservationResult | null): boolean {
-  if (!evidence) return false;
-  // Terminal jobs retain their last observation, which can still say PENDING/RPC_ERROR.
-  if (evidence.observationJob)
-    return !['COMPLETED', 'UNDETERMINED', 'FAILED'].includes(evidence.observationJob.state);
-  return ['PENDING', 'NOT_FOUND', 'RPC_ERROR', 'RPC_TIMEOUT'].includes(evidence.observation.status);
-}
-
-function jointEvidenceStatus(
-  insightReceipt: ExecutionReceiptResult | null,
-  priorSealEvidence: PriorSealObservationResult | null,
-  pending: boolean,
-  transactionCorrelation: boolean | null
-): AssessedSwapExecutionVerificationResult['report']['evidenceStatus'] {
-  if (pending) return 'PRIORSEAL_PENDING';
-  if (
-    insightReceipt?.bindingMode === 'VERIFIED' &&
-    priorSealEvidence?.receipt &&
-    priorSealEvidence.verification?.valid === true &&
-    transactionCorrelation === true
-  ) {
-    return 'COMPLETE';
-  }
-  return insightReceipt || priorSealEvidence?.receipt ? 'PARTIAL' : 'UNAVAILABLE';
-}
-
-function exactCallMatch(
-  evidence: PriorSealObservationResult | null,
-  receiptValid: boolean | null,
-  compliance: string | null
-): boolean | null {
-  if (receiptValid === false || compliance === 'NON_COMPLIANT') return false;
-  if (compliance === 'COMPLIANT') return true;
-  return typeof evidence?.receipt?.binding?.bound === 'boolean'
-    ? evidence.receipt.binding.bound
-    : null;
-}
-
-function insightConstraintsSatisfied(receipt: ExecutionReceiptResult | null): boolean | null {
-  if (receipt?.executionStatus === 'FAITHFUL') return true;
-  if (receipt?.executionStatus === 'DEVIATED') return false;
-  return null;
-}
-
-function followedRecommendation(
-  recommendation: TransactionRecommendation,
-  executionFinal: boolean
-): boolean | null {
-  if (!executionFinal) return null;
-  if (recommendation === 'NOT_RECOMMENDED') return false;
-  if (['RECOMMENDED', 'CONDITIONALLY_RECOMMENDED'].includes(recommendation)) return true;
-  return null;
-}
-
-function jointConclusion(input: {
-  recommendation: TransactionRecommendation;
-  pending: boolean;
-  evidenceStatus: AssessedSwapExecutionVerificationResult['report']['evidenceStatus'];
-  priorSealReceiptValid: boolean | null;
-  exactCallMatched: boolean | null;
-  constraintsSatisfied: boolean | null;
-  recommendationFollowed: boolean | null;
-  transactionCorrelation: boolean | null;
-}): AssessedSwapExecutionVerificationResult['report']['conclusion'] {
-  if (input.transactionCorrelation === false) return 'EVIDENCE_TRANSACTION_MISMATCH';
-  if (input.pending) return 'EXECUTION_PENDING';
-  if (input.priorSealReceiptValid === false || input.exactCallMatched === false) {
-    return 'AUTHORIZATION_MISMATCH';
-  }
-  if (input.recommendationFollowed === false) return 'EXECUTED_AGAINST_RECOMMENDATION';
-  if (input.recommendation === 'REVIEW_REQUIRED' && input.exactCallMatched === true) {
-    return 'EXECUTED_WITHOUT_REQUIRED_REVIEW_EVIDENCE';
-  }
-  if (input.evidenceStatus === 'PARTIAL') return 'PARTIAL_EVIDENCE';
-  if (input.evidenceStatus === 'UNAVAILABLE') return 'UNASSESSABLE';
-  if (input.constraintsSatisfied === false) return 'EXECUTED_OUTSIDE_ASSESSED_CONSTRAINTS';
-  if (
-    input.exactCallMatched === true &&
-    input.constraintsSatisfied === true &&
-    input.recommendationFollowed === true
-  ) {
-    return 'EXECUTED_AS_ASSESSED_AND_AUTHORIZED';
-  }
-  return 'UNASSESSABLE';
-}
-
-function evidenceAvailabilityFor(
-  insightReceipt: ExecutionReceiptResult | null,
-  priorSealEvidence: PriorSealObservationResult | null
-): 'COMPLETE' | 'PARTIAL' | 'UNAVAILABLE' {
-  const insightPresent = insightReceipt !== null;
-  const priorSealPresent = priorSealEvidence?.receipt != null;
-  if (insightPresent && priorSealPresent) return 'COMPLETE';
-  return insightPresent || priorSealPresent ? 'PARTIAL' : 'UNAVAILABLE';
-}
-
-function correlateTransactionHashes(
-  expectedTxHash: string,
-  insightReceipt: ExecutionReceiptResult | null,
-  priorSealEvidence: PriorSealObservationResult | null
-): boolean | null {
-  const expected = normalizeTxHash(expectedTxHash);
-  if (!expected) return false;
-  const hashes: Array<string | undefined> = [];
-  if (insightReceipt) hashes.push(text(insightReceipt.attestation?.data?.txHash));
-  if (priorSealEvidence) {
-    hashes.push(text(priorSealEvidence.observation?.txHash));
-    if (priorSealEvidence.receipt) hashes.push(text(priorSealEvidence.receipt.execution?.txHash));
-  }
-  if (hashes.length === 0) return null;
-  return hashes.every((hash) => normalizeTxHash(hash) === expected);
-}
-
-function normalizeTxHash(value: unknown): string | null {
-  return typeof value === 'string' && /^0x[0-9a-fA-F]{64}$/.test(value)
-    ? value.toLowerCase()
-    : null;
-}
-
-function evidenceError(error: unknown): JointEvidenceError {
-  if (error instanceof PriorSealBridgeError) {
-    return { code: error.options.code, status: error.options.status, message: error.message };
-  }
-  if (error instanceof InsightApiError) {
-    return { code: error.options.code, status: error.options.status, message: error.message };
-  }
-  if (error instanceof Error) return { message: error.message };
-  return { message: String(error) };
-}
-
-function buildVerifiedReceiptDraft(
-  source: PreTradeResult,
-  destination: PreTradeResult,
-  receipt: GuardedSwapRequest['receipt']
-): Omit<ExecutionReceiptRequest, 'txHash' | 'taker'> {
-  const sourceAttestation = requireV2Proof(source, 'source');
-  const destinationAttestation = requireV2Proof(destination, 'destination');
-  const sourceData = sourceAttestation.data;
-  const destinationData = destinationAttestation.data;
-
-  const sourceAssetId = text(sourceData.sourceAssetId);
-  const destinationAssetId = text(sourceData.destinationAssetId);
-  const destinationSourceAssetId = text(destinationData.sourceAssetId);
-  const destinationDestinationAssetId = text(destinationData.destinationAssetId);
-  if (
-    !sourceAssetId ||
-    !destinationAssetId ||
-    !destinationSourceAssetId ||
-    !destinationDestinationAssetId
-  ) {
-    throw new ReceiptConfigurationError(
-      'Pre-trade attestations are missing canonical asset-pair bindings.'
-    );
-  }
-
-  const sourceChain = number(sourceData.subjectChainId);
-  const destinationChain = number(destinationData.subjectChainId);
-  if (sourceChain !== destinationChain || sourceChain !== receipt.settlementChainId) {
-    throw new ReceiptConfigurationError(
-      'Source gate, destination gate and settlement must use the same chain.'
-    );
-  }
-  if (
-    text(sourceData.action).toLowerCase() !== text(destinationData.action).toLowerCase() ||
-    (receipt.action != null &&
-      receipt.action.toLowerCase() !== text(sourceData.action).toLowerCase())
-  ) {
-    throw new ReceiptConfigurationError(
-      'Both gates and the receipt must describe the same action.'
-    );
-  }
-  if (number(sourceData.tradeAmountUsd) !== number(destinationData.tradeAmountUsd)) {
-    throw new ReceiptConfigurationError('Both gates must commit to the same trade amount.');
-  }
-  if (
-    sourceAssetId !== destinationDestinationAssetId ||
-    destinationAssetId !== destinationSourceAssetId
-  ) {
-    throw new ReceiptConfigurationError(
-      'Source and destination pre-trade proofs must describe the same swap in opposite directions.'
-    );
-  }
-
-  const sourceConsensusUsd = number(sourceData.consensusPrice) / 1e8;
-  const destinationConsensusUsd = number(destinationData.consensusPrice) / 1e8;
-  if (!(sourceConsensusUsd > 0) || !(destinationConsensusUsd > 0)) {
-    throw new ReceiptConfigurationError('Pre-trade proofs contain no usable consensus prices.');
-  }
-
-  const requestHash = text(sourceData.requestHash);
-  if (!requestHash)
-    throw new ReceiptConfigurationError('Source pre-trade proof is missing requestHash.');
-
-  return {
-    preTradeUid: sourceAttestation.uid,
-    destinationPreTradeUid: destinationAttestation.uid,
-    requestHash,
-    sourceAssetId,
-    destinationAssetId,
-    subjectChainId: number(sourceData.subjectChainId),
-    settlementChainId: receipt.settlementChainId,
-    participantCount: number(sourceData.participantCount),
-    sourceGroupCount: number(sourceData.sourceGroupCount),
-    preTradeSignedAt: number(sourceData.checkedAt),
-    quotedPrice: sourceConsensusUsd / destinationConsensusUsd,
-    maxSlippageBps: receipt.maxSlippageBps,
-    action: receipt.action ?? 'SWAP',
-    quotedAmountUsd: receipt.quotedAmountUsd,
-    executedAmountUsd: receipt.executedAmountUsd,
-    actualFeeUsd: receipt.actualFeeUsd,
-    mevRiskScore: receipt.mevRiskScore,
-    quoteVenueIndependent: receipt.quoteVenueIndependent,
-    quoteBasis: receipt.quoteBasis,
-    quoteBlockNumber: receipt.quoteBlockNumber,
-    priceStateAgeAtExecSeconds: receipt.priceStateAgeAtExecSeconds,
-    claimRole: receipt.claimRole,
-    preTradeAttestations: { source: sourceAttestation, destination: destinationAttestation },
-  };
-}
-
-function requireV2Proof(
-  result: PreTradeResult,
-  label: string,
-  allowExpired = false
-): SignedAttestation {
-  const attestation = result.attestation;
-  if (
-    !attestation ||
-    ![2, 3].includes(attestation.schemaVersion) ||
-    typeof attestation.signature !== 'string' ||
-    !/^0x[0-9a-fA-F]+$/.test(attestation.signature)
-  ) {
-    throw new ReceiptConfigurationError(
-      `${label} pre-trade needs a signed v2/v3 attestation for a VERIFIED execution receipt.`
-    );
-  }
-  const signedVerdict = text(attestation.data.verdict).toUpperCase();
-  if (signedVerdict !== result.verdict) {
-    throw new ReceiptConfigurationError(
-      `${label} pre-trade verdict does not match its signed attestation.`
-    );
-  }
-  const checkedAt = number(attestation.data.checkedAt);
-  const validUntil = number(attestation.data.validUntil);
-  if (checkedAt <= 0 || validUntil < checkedAt) {
-    throw new ReceiptConfigurationError(`${label} pre-trade has an invalid signed time window.`);
-  }
-  if (!allowExpired && validUntil <= Math.floor(Date.now() / 1000)) {
-    throw new ReceiptConfigurationError(`${label} pre-trade signed evidence has expired.`);
-  }
-  return attestation;
-}
-
-function number(value: unknown): number {
-  const parsed = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function text(value: unknown): string {
-  return typeof value === 'string' ? value : '';
-}
-
-function isExecutionAuthorised(verdict: string): boolean {
-  return verdict === 'PASS' || verdict === 'CAUTION';
-}
-
-function targetKey(target: OracleWatchTarget): string {
-  return `${target.symbol.trim().toUpperCase()}@${(target.chain ?? '').trim().toLowerCase()}`;
-}
-
-function assertPairFreshness(
-  source: PreTradeResult,
-  destination: PreTradeResult,
-  profile: FreshnessProfile,
-  authorization?: PriorSealAcceptedAuthorization['authorization']
-): void {
-  for (const [label, result] of [
-    ['source', source],
-    ['destination', destination],
-  ] as const) {
-    requireV2Proof(result, label);
-    const freshness = evaluateFreshness(result, profile);
-    if (!freshness.satisfied)
-      throw new ReceiptConfigurationError(
-        `${label} freshness policy failed: ${freshness.reasons.join(', ')}. Refresh assessment and reauthorize changed evidence.`
-      );
-  }
-  if (authorization) {
-    const now = Math.floor(Date.now() / 1000);
-    const remaining = Math.min(authorization.expiresAt, authorization.intent.validUntil) - now;
-    if (
-      authorization.notBefore > now ||
-      remaining <= 0 ||
-      remaining < (profile.minimumRemainingValiditySeconds ?? 0)
-    )
-      throw new ReceiptConfigurationError(
-        'PriorSeal authorization is not currently valid or has insufficient remaining validity.'
-      );
-  }
-}
-
-function jsonSafe<T>(value: T): T {
-  return JSON.parse(
-    JSON.stringify(value, (_key, entry) => (typeof entry === 'bigint' ? entry.toString() : entry))
-  ) as T;
-}
-
-/** Attach original proof objects without re-signing. Preserve received raw bytes separately when byte identity matters. */
-export function exportReviewAttachments(
-  checkpoint: JointEvidenceCheckpoint
-): Array<{ id: string; role: string; profile: string; rawJson: string }> {
-  const artifacts = [
-    ['source', 'insight.source', checkpoint.assessment.sourcePreTrade?.attestation],
-    ['destination', 'insight.destination', checkpoint.assessment.destinationPreTrade?.attestation],
-    ['execution', 'insight.execution', checkpoint.insightReceipt?.attestation],
-  ] as const;
-  return artifacts.flatMap(([id, role, proof]) =>
-    proof
-      ? [
-          {
-            id,
-            role,
-            profile: `insight.${id === 'execution' ? 'execution' : 'pretrade'}.v${proof.schemaVersion}`,
-            rawJson: JSON.stringify(proof),
-          },
-        ]
-      : []
-  );
-}
-
-function requestedScopeAvailable(result: PreTradeResult): boolean {
-  const scope = result.assessmentScope;
-  return (
-    !scope ||
-    scope.requestedDimensions.every(
-      (dimension) =>
-        scope.evaluatedDimensions.includes(dimension) &&
-        !scope.unavailableDimensions.some((item) => item.dimension === dimension)
-    )
-  );
-}
-
-function protocolScopeAvailable(result: PreTradeResult, request: PreTradeRequest): boolean {
-  if (!request.protocolId) return true;
-  if (result.assessmentScope)
-    return result.assessmentScope.evaluatedDimensions.includes('protocol_parameters');
-  // Older APIs return an actual protocolSafety object when evaluated.
-  return result.protocolSafety !== null && typeof result.protocolSafety === 'object';
 }

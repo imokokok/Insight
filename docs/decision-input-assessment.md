@@ -108,6 +108,34 @@ contract with that path and input amount at the same block hash and compare the
 output. A reorg or RPC that cannot honor the hash-pinned call fails closed.
 This is an RPC-reproducible record, not a light-client proof.
 
+## SDK integration
+
+The SDK's `PreTradeRequest.decisionInput` sends the six fields above through the
+authenticated endpoint. `verifyDecisionInputAssessment()` verifies the
+assessment digest, EIP-712 signature, key-registry window, and consumer-pinned
+numeric policy locally. `verifyDecisionInputPair()` additionally checks each
+assessment against the request and its matching pre-trade UID, and checks the
+operator's label-to-CAIP-19 asset mapping.
+
+The unreleased SDK source adds `executeTrustedV3SwapWithPriorSeal()` for the
+exact original Uniswap V3 `exactInputSingle` shape. It binds the two decision
+inputs, two oracle attestations, unsigned local transaction review, and any
+enabled coverage reports into the one-use PriorSeal intent before submission.
+Use `createPriorSealDefiSubmitter()` with PriorSeal's Node DeFi gateway to
+recheck the approved router, runtime code hash, transaction and authorization
+at the signing/broadcast boundary. The SDK rechecks the quote timestamps before
+authorization and submission, caps the receipt slippage ceiling to the
+consumer policy, and expires authorization at the earliest quote freshness
+deadline. It then collects Insight's execution
+receipt and PriorSeal's observation independently and preserves a checkpoint
+for evidence-only recovery. The combined report still labels verification as
+service-derived; local input verification and RPC simulation do not
+independently verify the issuers' execution receipts. The application remains
+responsible for routing every signing path for the covered strategy through
+the gateway. Other router selectors, multi-hop calls, and unsupported token
+deployments are outside this adapter. The SDK source changes are not included
+in the published package yet.
+
 ## Evidence used
 
 - **Chainlink:** a catalogued on-chain USD feed for the requested asset and

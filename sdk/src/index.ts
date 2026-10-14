@@ -1,4 +1,26 @@
 export { InsightClient } from './client';
+export {
+  DECISION_INPUT_DOMAIN,
+  DECISION_INPUT_PAIR_NAMESPACE,
+  DECISION_INPUT_TYPES,
+  buildDecisionInputPairCommitment,
+  decisionInputQuoteValidUntil,
+  decisionInputPolicyDigest,
+  verifyDecisionInputAssessment,
+  verifyDecisionInputPair,
+  verifyLinkedDecisionInputPair,
+  verifySignedPreTradeAttestation,
+} from './decision-input';
+export type { DecisionInputVerification } from './decision-input';
+export {
+  createPriorSealDefiSubmitter,
+  PriorSealGatewayExecutionError,
+  PRIORSEAL_SWAP_APPROVAL_NAMESPACE,
+} from './priorseal-defi-gateway';
+export type {
+  PriorSealDefiExecutionGateway,
+  PriorSealGatewayAcceptanceKey,
+} from './priorseal-defi-gateway';
 export * from './rwa';
 export * from './rwa-call';
 export * from './rwa-instrument-registry';
@@ -11,6 +33,14 @@ export * from './rwa-robinhood-session';
 export * from './rwa-isopennow-session';
 export { InsightApiError, ReceiptConfigurationError, TradeBlockedError } from './errors';
 export { InsightGuard, exportReviewAttachments } from './guard';
+export {
+  V3_SINGLE_SWAP_ABI,
+  V3_ROUTER02_SINGLE_SWAP_ABI,
+  V3_ROUTER02_MULTICALL_ABI,
+  assessV3SwapTransaction,
+  v3SwapRiskCommitment,
+} from './swap-transaction-risk';
+export type { SwapRiskReader, V3SwapRiskRequest, V3SwapRiskReport } from './swap-transaction-risk';
 export {
   buildInterAIExternalEvidenceRequestV0,
   buildInterAIExternalEvidenceV0,
@@ -54,8 +84,12 @@ export type {
   PriorSealAuthorization,
   PriorSealContextCommitment,
   PriorSealFlowOptions,
+  PriorSealSubmitTransaction,
   PriorSealGuardedSwapRequest,
   PriorSealGuardedSwapResult,
+  TrustedV3PriorSealGuardedSwapRequest,
+  TrustedV3SwapAuthorizationRequest,
+  TrustedV3SwapRiskOptions,
   PriorSealIntent,
   PriorSealObservationResult,
   PriorSealObservationJob,
@@ -80,6 +114,11 @@ export { diagnosePreTrade, evaluateFreshness } from './diagnostics';
 export { estimateWorkflowBudget, DEFAULT_WORKFLOW_CREDITS } from './budget';
 export type {
   AssessmentDiagnostic,
+  DecisionInputAssessment,
+  DecisionInputPairCommitment,
+  DecisionInputPolicy,
+  DecisionInputRequest,
+  DecisionInputTrust,
   FreshnessCheck,
   FreshnessProfile,
   ResponseMeta,

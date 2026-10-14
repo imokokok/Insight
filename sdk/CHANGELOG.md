@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Support one canonical SwapRouter02 `multicall(deadline, [exactInputSingle])` in the pinned-block V3 risk review; bare calls and batches with other contents fail closed.
+- Expose typed Decision Input requests through the SDK, validate the response envelope, and add offline EIP-712 verification against an operator supplied key registry and policy.
+- Add `authorizeTrustedV3Swap()` and `executeTrustedV3SwapWithPriorSeal()` to verify both asset assessments, bind them to pre-trade UIDs and CAIP-19 identities, assess the exact V3 call, bind all review commitments to one-use authorization, and retain both execution evidence paths for recovery.
+- Preserve the unsigned local RPC review and service-response verification labels; only the provided PriorSeal gateway adapter delegates final signer/broadcast checks to PriorSeal's Node gateway, and no path claims independent verification of issuer execution receipts.
+- Recheck caller-quote freshness at authorization and submission, cap local route deviation/slippage by the consumer policy, and expire PriorSeal authorization at the earliest signed quote-freshness deadline.
+- Add `createPriorSealDefiSubmitter()` for the Node-only PriorSeal durable DeFi gateway; preserve the authorization ID and attempt state when broadcast outcome is uncertain.
+- Bind the PriorSeal V3 swap approval digest into the strict joint authorization and validate the prepared call against that approval before authorization and submission.
 - Add `preflightRwaAction()` to collect application-owned RWA evidence adapters, validate their
   source bindings, decode the exact proposed transaction and return an unsigned v2 action report
   with per-source status. The adapter workflow is issuer-neutral and cannot authorize execution.

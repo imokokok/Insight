@@ -30,6 +30,7 @@ import promotionVeritasWindow6ActivationJson from '../../../protocol/mainline/pr
 import promotionVeritasWindow6CandidateJson from '../../../protocol/mainline/promotions/2026-10-06-veritas-window-six-candidate.json';
 import promotionContextAttestationV2Json from '../../../protocol/mainline/promotions/2026-10-13-context-attestation-v2.json';
 import promotionRwaActionPreflightJson from '../../../protocol/mainline/promotions/2026-10-13-rwa-action-preflight.json';
+import promotionDecisionInputSwapRiskJson from '../../../protocol/mainline/promotions/2026-10-14-decision-input-swap-risk-sdk.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -91,6 +92,7 @@ const rawPromotions = [
   promotionVeritasWindow6ActivationJson,
   promotionContextAttestationV2Json,
   promotionRwaActionPreflightJson,
+  promotionDecisionInputSwapRiskJson,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {
