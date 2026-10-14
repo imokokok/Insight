@@ -11,12 +11,10 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
-import {
-  verifyDecisionInputAssessment,
-  verifyDecisionInputPair,
-} from '../src/decision-input';
+import { verifyDecisionInputAssessment, verifyDecisionInputPair } from '../src/decision-input';
 import { exportReviewAttachments, InsightGuard } from '../src/guard';
 import { V3_SINGLE_SWAP_ABI, type SwapRiskReader } from '../src/swap-transaction-risk';
+
 import type {
   DecisionInputAssessment,
   DecisionInputTrust,
@@ -80,7 +78,9 @@ const decisionTypes = {
 function canonicalJson(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
-  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
+  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
+    a.localeCompare(b)
+  );
   return `{${entries.map(([key, entry]) => `${JSON.stringify(key)}:${canonicalJson(entry)}`).join(',')}}`;
 }
 
@@ -95,21 +95,23 @@ const policy = {
 const trust: DecisionInputTrust = {
   policy,
   keyRegistry: {
-    public_keys: [{
-      key_id: 'decision-input-test-key',
-      public_key: signer.address,
-      revoked: false,
-      role: 'attester',
-      validFrom: new Date(0).toISOString(),
-      validUntil: null,
-    }],
+    public_keys: [
+      {
+        key_id: 'decision-input-test-key',
+        public_key: signer.address,
+        revoked: false,
+        role: 'attester',
+        validFrom: new Date(0).toISOString(),
+        validUntil: null,
+      },
+    ],
   },
 };
 
 async function signedPreTrade(
   source: boolean,
   now: number,
-  tradeAmountUsd = 100,
+  tradeAmountUsd = 100
 ): Promise<PreTradeResult> {
   const sourceAssetId = source ? idA : idB;
   const destinationAssetId = source ? idB : idA;
@@ -153,7 +155,10 @@ async function signedPreTrade(
   const uid = hashTypedData(typedData);
   const signature = await signer.signTypedData(typedData);
   const data = Object.fromEntries(
-    Object.entries(message).map(([key, value]) => [key, typeof value === 'bigint' ? Number(value) : value]),
+    Object.entries(message).map(([key, value]) => [
+      key,
+      typeof value === 'bigint' ? Number(value) : value,
+    ])
   );
   const attestation = {
     uid,
@@ -185,7 +190,7 @@ async function signedDecisionInput(
   asset: 'AAA' | 'BBB',
   linkedPreTradeUid: string,
   now: number,
-  tradeAmountUsd = 100,
+  tradeAmountUsd = 100
 ): Promise<DecisionInputAssessment> {
   const issuedAt = now - 2;
   const validUntil = issuedAt + 300;
@@ -245,7 +250,11 @@ async function signedDecisionInput(
     signature: await signer.signTypedData(typedData),
     verifyUrl,
     data: { ...message, issuedAt, validUntil, schemaVersion: 1 },
-    eip712: { domain: decisionDomain, types: decisionTypes, primaryType: 'DecisionInputAssessment' },
+    eip712: {
+      domain: decisionDomain,
+      types: decisionTypes,
+      primaryType: 'DecisionInputAssessment',
+    },
   };
   return { ...unsigned, attestation: proof } as DecisionInputAssessment;
 }
@@ -253,7 +262,7 @@ async function signedDecisionInput(
 function preTradeRequest(
   asset: 'AAA' | 'BBB',
   now: number,
-  tradeAmountUsd = 100,
+  tradeAmountUsd = 100
 ): PreTradeRequest & { decisionInput: NonNullable<PreTradeRequest['decisionInput']> } {
   return {
     asset,
@@ -281,12 +290,12 @@ test('verifies signed Decision Input pair against trusted policy, assets and sig
   sourcePreTrade.decisionInputAssessment = await signedDecisionInput(
     'AAA',
     sourcePreTrade.attestation!.uid,
-    now,
+    now
   );
   destinationPreTrade.decisionInputAssessment = await signedDecisionInput(
     'BBB',
     destinationPreTrade.attestation!.uid,
-    now,
+    now
   );
 
   const result = await verifyDecisionInputPair(
@@ -295,7 +304,7 @@ test('verifies signed Decision Input pair against trusted policy, assets and sig
     destinationPreTrade,
     destinationRequest,
     trust,
-    { now },
+    { now }
   );
   assert.equal(result.commitment.namespace, 'insight.decision-input-pair.v1');
   assert.match(result.commitment.digest, /^0x[0-9a-f]{64}$/);
@@ -310,36 +319,40 @@ test('rejects Decision Input tampering, mismatched request scope and stale signe
   sourcePreTrade.decisionInputAssessment = await signedDecisionInput(
     'AAA',
     sourcePreTrade.attestation!.uid,
-    now,
+    now
   );
   destinationPreTrade.decisionInputAssessment = await signedDecisionInput(
     'BBB',
     destinationPreTrade.attestation!.uid,
-    now,
+    now
   );
 
   const tampered = structuredClone(sourcePreTrade);
   tampered.decisionInputAssessment!.prices.quotePriceUsd = 0.9;
-  await assert.rejects(() => verifyDecisionInputPair(
-    tampered,
-    sourceRequest,
-    destinationPreTrade,
-    destinationRequest,
-    trust,
-    { now },
-  ));
-  await assert.rejects(() => verifyDecisionInputPair(
-    sourcePreTrade,
-    { ...sourceRequest, asset: 'BBB' },
-    destinationPreTrade,
-    destinationRequest,
-    trust,
-    { now },
-  ));
+  await assert.rejects(() =>
+    verifyDecisionInputPair(
+      tampered,
+      sourceRequest,
+      destinationPreTrade,
+      destinationRequest,
+      trust,
+      { now }
+    )
+  );
+  await assert.rejects(() =>
+    verifyDecisionInputPair(
+      sourcePreTrade,
+      { ...sourceRequest, asset: 'BBB' },
+      destinationPreTrade,
+      destinationRequest,
+      trust,
+      { now }
+    )
+  );
   const expired = await verifyDecisionInputAssessment(
     sourcePreTrade.decisionInputAssessment,
     trust,
-    { now: now + 298 },
+    { now: now + 298 }
   );
   assert.equal(expired.valid, false);
   assert.ok(['expired', 'quote_stale'].includes(expired.reason));
@@ -357,13 +370,13 @@ test('strict V3 authorization binds signed inputs, exact calldata, pinned simula
     'AAA',
     sourceResult.attestation!.uid,
     now,
-    amount,
+    amount
   );
   destinationResult.decisionInputAssessment = await signedDecisionInput(
     'BBB',
     destinationResult.attestation!.uid,
     now,
-    amount,
+    amount
   );
   const apiCalls: string[] = [];
   const guard = new InsightGuard({
@@ -373,9 +386,12 @@ test('strict V3 authorization binds signed inputs, exact calldata, pinned simula
       apiCalls.push(url);
       const asset = new URL(url).searchParams.get('asset');
       const data = asset === 'AAA' ? sourceResult : destinationResult;
-      return new Response(JSON.stringify({ success: true, data, meta: { requestId: 'strict-v3-test' } }), {
-        headers: { 'content-type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ success: true, data, meta: { requestId: 'strict-v3-test' } }),
+        {
+          headers: { 'content-type': 'application/json' },
+        }
+      );
     },
   });
   const from = '0x3333333333333333333333333333333333333333' as Hex;
@@ -391,23 +407,29 @@ test('strict V3 authorization binds signed inputs, exact calldata, pinned simula
     data: encodeFunctionData({
       abi: V3_SINGLE_SWAP_ABI,
       functionName: 'exactInputSingle',
-      args: [{
-        tokenIn: tokenA as Hex,
-        tokenOut,
-        fee: 500,
-        recipient,
-        deadline: BigInt(now + 120),
-        amountIn: 1_000_000n,
-        amountOutMinimum: 995_000n,
-        sqrtPriceLimitX96: 0n,
-      }],
+      args: [
+        {
+          tokenIn: tokenA as Hex,
+          tokenOut,
+          fee: 500,
+          recipient,
+          deadline: BigInt(now + 120),
+          amountIn: 1_000_000n,
+          amountOutMinimum: 995_000n,
+          sqrtPriceLimitX96: 0n,
+        },
+      ],
     }),
     nonce: 7n,
     value: 0n,
     sourceAmount: 1_000_000n,
   };
   const reader: SwapRiskReader = {
-    getBlock: async () => ({ number: 10n, timestamp: BigInt(now - 1), hash: `0x${'d'.repeat(64)}` as Hex }),
+    getBlock: async () => ({
+      number: 10n,
+      timestamp: BigInt(now - 1),
+      hash: `0x${'d'.repeat(64)}` as Hex,
+    }),
     getBytecode: async () => routerCode,
     readContract: async () => 6,
     call: async () => ({
@@ -461,7 +483,10 @@ test('strict V3 authorization binds signed inputs, exact calldata, pinned simula
   assert.equal(result.transactionRisk.status, 'ACCEPTABLE');
   assert.equal(result.transactionRisk.transaction?.calldata, transaction.data);
   assert.ok(result.transactionRisk.evidence?.decisionInputPair);
-  assert.equal(result.priorSealAuthorization.authorization.expiresAt, result.transactionRisk.validUntil);
+  assert.equal(
+    result.priorSealAuthorization.authorization.expiresAt,
+    result.transactionRisk.validUntil
+  );
   assert.equal(apiCalls.length, 2);
   const commitments = (prepared?.intent as { contextCommitments: { namespace: string }[] })
     .contextCommitments;
@@ -471,7 +496,7 @@ test('strict V3 authorization binds signed inputs, exact calldata, pinned simula
       'insight.decision-input-pair.v1',
       'insight.pretrade-pair.v1',
       'insight.swap-transaction-risk.v1',
-    ],
+    ]
   );
 
   const exported = exportReviewAttachments({
@@ -479,13 +504,16 @@ test('strict V3 authorization binds signed inputs, exact calldata, pinned simula
     insightReceipt: { attestation: { schemaVersion: 5, uid: `0x${'5'.repeat(64)}` } },
     transactionRisk: result.transactionRisk,
   } as never);
-  assert.deepEqual(exported.map(({ role, profile }) => [role, profile]), [
-    ['insight.source', 'insight.pretrade.v3'],
-    ['insight.destination', 'insight.pretrade.v3'],
-    ['insight.execution', 'insight.execution.v5'],
-    ['insight.decision-input.source', 'insight.decision-input.v1'],
-    ['insight.decision-input.destination', 'insight.decision-input.v1'],
-    ['insight.swap-transaction-risk', 'insight.swap-transaction-risk.v1'],
-  ]);
+  assert.deepEqual(
+    exported.map(({ role, profile }) => [role, profile]),
+    [
+      ['insight.source', 'insight.pretrade.v3'],
+      ['insight.destination', 'insight.pretrade.v3'],
+      ['insight.execution', 'insight.execution.v5'],
+      ['insight.decision-input.source', 'insight.decision-input.v1'],
+      ['insight.decision-input.destination', 'insight.decision-input.v1'],
+      ['insight.swap-transaction-risk', 'insight.swap-transaction-risk.v1'],
+    ]
+  );
   assert.deepEqual(JSON.parse(exported.at(-1)!.rawJson), result.transactionRisk);
 });

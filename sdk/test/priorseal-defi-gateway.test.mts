@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { encodeFunctionData, keccak256, toBytes } from 'viem';
 
 import {
@@ -10,6 +11,7 @@ import {
   V3_SINGLE_SWAP_ABI,
   type PriorSealDefiExecutionGateway,
 } from '../src/index';
+
 import type { DecisionInputTrust } from '../src/types.ts';
 
 const authorizationId = 'auth_1234567890abcdef1234567890abcdef';
@@ -41,18 +43,28 @@ const acceptanceKey = {
   validUntil: null,
 } as const;
 const decisionInputTrust: DecisionInputTrust = {
-  keyRegistry: { public_keys: [{
-    key_id: 'local-test-key',
-    public_key: '0x1111111111111111111111111111111111111111',
-    revoked: false,
-    role: 'attester',
-    validFrom: new Date(0).toISOString(),
-    validUntil: null,
-  }] },
+  keyRegistry: {
+    public_keys: [
+      {
+        key_id: 'local-test-key',
+        public_key: '0x1111111111111111111111111111111111111111',
+        revoked: false,
+        role: 'attester',
+        validFrom: new Date(0).toISOString(),
+        validUntil: null,
+      },
+    ],
+  },
   policy: {
-    policyId: 'local-test', version: '1',
-    assetIds: { AAA: 'eip155:8453/erc20:0x3333333333333333333333333333333333333333', BBB: 'eip155:8453/erc20:0x4444444444444444444444444444444444444444' },
-    maxReferenceDeviationBps: 100, maxSlippageBps: 100, maxQuoteAgeSeconds: 90,
+    policyId: 'local-test',
+    version: '1',
+    assetIds: {
+      AAA: 'eip155:8453/erc20:0x3333333333333333333333333333333333333333',
+      BBB: 'eip155:8453/erc20:0x4444444444444444444444444444444444444444',
+    },
+    maxReferenceDeviationBps: 100,
+    maxSlippageBps: 100,
+    maxQuoteAgeSeconds: 90,
   },
 };
 const authorization = {
@@ -68,16 +80,18 @@ const call = {
     data: encodeFunctionData({
       abi: V3_SINGLE_SWAP_ABI,
       functionName: 'exactInputSingle',
-      args: [{
-        tokenIn: approval.inputToken as `0x${string}`,
-        tokenOut: approval.outputToken as `0x${string}`,
-        fee: approval.fee,
-        recipient: approval.recipient as `0x${string}`,
-        deadline: BigInt(approval.deadline),
-        amountIn: 10n,
-        amountOutMinimum: 1n,
-        sqrtPriceLimitX96: 0n,
-      }],
+      args: [
+        {
+          tokenIn: approval.inputToken as `0x${string}`,
+          tokenOut: approval.outputToken as `0x${string}`,
+          fee: approval.fee,
+          recipient: approval.recipient as `0x${string}`,
+          deadline: BigInt(approval.deadline),
+          amountIn: 10n,
+          amountOutMinimum: 1n,
+          sqrtPriceLimitX96: 0n,
+        },
+      ],
     }),
     nonce: 7n,
     value: 0n,
@@ -88,12 +102,14 @@ const call = {
 
 function gateway(
   execute: PriorSealDefiExecutionGateway['execute'],
-  status: PriorSealDefiExecutionGateway['status'] = async () => null,
+  status: PriorSealDefiExecutionGateway['status'] = async () => null
 ): PriorSealDefiExecutionGateway {
   return { execute, status };
 }
 
-function attempt(transaction: Parameters<PriorSealDefiExecutionGateway['execute']>[0]['transaction']) {
+function attempt(
+  transaction: Parameters<PriorSealDefiExecutionGateway['execute']>[0]['transaction']
+) {
   return { authorizationId, status: 'SUBMITTED', transaction, txHash };
 }
 
@@ -120,16 +136,22 @@ test('submits the exact authorized call through PriorSeal and returns its transa
   assert.deepEqual(received?.adapter.approval, approval);
   assert.ok(Object.isFrozen(submit));
   assert.ok(Object.isFrozen(submit.authorizationContextCommitments));
-  assert.deepEqual(submit.authorizationContextCommitments, [{
-    namespace: PRIORSEAL_SWAP_APPROVAL_NAMESPACE,
-    algorithm: 'keccak256',
-    digest: keccak256(toBytes(JSON.stringify(approval))),
-  }]);
+  assert.deepEqual(submit.authorizationContextCommitments, [
+    {
+      namespace: PRIORSEAL_SWAP_APPROVAL_NAMESPACE,
+      algorithm: 'keccak256',
+      digest: keccak256(toBytes(JSON.stringify(approval))),
+    },
+  ]);
   assert.doesNotThrow(() => submit.assertAuthorizationTransaction?.(call.transaction));
-  assert.throws(() => submit.assertAuthorizationTransaction?.({
-    ...call.transaction,
-    from: '0x6666666666666666666666666666666666666666',
-  }), /does not satisfy the committed PriorSeal swap approval/);
+  assert.throws(
+    () =>
+      submit.assertAuthorizationTransaction?.({
+        ...call.transaction,
+        from: '0x6666666666666666666666666666666666666666',
+      }),
+    /does not satisfy the committed PriorSeal swap approval/
+  );
   assert.deepEqual(received?.transaction, {
     chainId: 8453,
     from: sender,
@@ -157,7 +179,7 @@ test('recovers an uncertain gateway response by authorization ID without resubmi
           nonce: '7',
           value: '0',
         });
-      },
+      }
     ),
     approval,
     routerAddress: router,
@@ -177,7 +199,7 @@ test('keeps an unresolved authorization identifiable when both execution and sta
       },
       async () => {
         throw new Error('status unavailable');
-      },
+      }
     ),
     approval,
     routerAddress: router,
@@ -190,7 +212,7 @@ test('keeps an unresolved authorization identifiable when both execution and sta
     (error: unknown) =>
       error instanceof PriorSealGatewayExecutionError &&
       error.authorizationId === authorizationId &&
-      error.attemptStatus === null,
+      error.attemptStatus === null
   );
 });
 
@@ -206,15 +228,31 @@ test('rejects Insight and PriorSeal router profile mismatches before execution',
         routerCodeHash,
         acceptanceKey,
       }),
-    /same reviewed router address and code hash/,
+    /same reviewed router address and code hash/
   );
 });
 
 test('strict V3 joint entry refuses a submitter that cannot bind the gateway swap approval', async () => {
   const guard = new InsightGuard({ apiKey: 'test-key', decisionInputTrust });
-  await assert.rejects(() => guard.executeTrustedV3SwapWithPriorSeal({
-    source: { asset: 'AAA', chainId: 8453, action: 'swap', tradeAmountUsd: 1, decisionInput: {} },
-    destination: { asset: 'BBB', chainId: 8453, action: 'swap', tradeAmountUsd: 1, decisionInput: {} },
-    submitTransaction: async () => ({ txHash, taker: sender }),
-  } as never), /requires a submitter that binds and checks its swap approval/);
+  await assert.rejects(
+    () =>
+      guard.executeTrustedV3SwapWithPriorSeal({
+        source: {
+          asset: 'AAA',
+          chainId: 8453,
+          action: 'swap',
+          tradeAmountUsd: 1,
+          decisionInput: {},
+        },
+        destination: {
+          asset: 'BBB',
+          chainId: 8453,
+          action: 'swap',
+          tradeAmountUsd: 1,
+          decisionInput: {},
+        },
+        submitTransaction: async () => ({ txHash, taker: sender }),
+      } as never),
+    /requires a submitter that binds and checks its swap approval/
+  );
 });
