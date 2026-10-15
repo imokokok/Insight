@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0 — 2026-10-15
 
 - Support one canonical SwapRouter02 `multicall(deadline, [exactInputSingle])` in the pinned-block V3 risk review; bare calls and batches with other contents fail closed.
 - Expose typed Decision Input requests through the SDK, validate the response envelope, and add offline EIP-712 verification against an operator supplied key registry and policy.

@@ -21,10 +21,10 @@ The SDK sends oracle risk decisions and attestation signing to Insight with the 
 ## Install
 
 ```bash
-npm install oracle-insight-guard@0.5.1
+npm install oracle-insight-guard@0.6.0
 ```
 
-Version **0.5.1** adds stricter validation of PriorSeal bridge responses. The **0.5.0** release added transaction-specific V3 swap risk review and optional PriorSeal authorization binding. The strict trusted V3 workflow below is unreleased source and is not available from npm yet. The SDK includes opt-in RWA diagnostics; it does not activate an RWA production signer. Use the published SDK from a trusted server or agent runtime; do not put an Insight API key in a browser bundle. The API-backed examples require an API key and your own transaction builder or wallet. For a no-key verification path, start with the [standalone verifier](https://github.com/imokokok/Insight/tree/main/verifier).
+Version **0.6.0** adds signed Decision Input verification, the strict trusted V3 swap workflow, and application-owned RWA action preflight adapters. Version **0.5.1** added stricter validation of PriorSeal bridge responses; **0.5.0** added transaction-specific V3 swap risk review and optional PriorSeal authorization binding. RWA diagnostics remain non-authorizing and do not activate an RWA production signer. Use the published SDK from a trusted server or agent runtime; do not put an Insight API key in a browser bundle. The API-backed examples require an API key and your own transaction builder or wallet. For a no-key verification path, start with the [standalone verifier](https://github.com/imokokok/Insight/tree/main/verifier).
 
 The 0.4.0 release added independently verified coverage readiness, execution-time rechecks, and PriorSeal coverage binding while retaining the diagnostics, freshness, and durable Watch APIs from 0.3.0.
 
@@ -273,7 +273,7 @@ one issuer's receipt as the other's. If
 
 Insight adds a namespaced context commitment to the signed PriorSeal intent. Its digest covers the source and destination pre-trade attestation UIDs, their request hashes and the signed slippage ceiling. PriorSeal treats source asset and amount as descriptive context and does not reinterpret Insight's economics: calldata remains authoritative for exact-call execution, while Insight remains authoritative for quote quality, fill attribution and slippage.
 
-## Strict trusted V3 workflow (unreleased SDK source)
+## Strict trusted V3 workflow
 
 `executeTrustedV3SwapWithPriorSeal()` closes the supported ERC-20 V3 swap path in one SDK call:
 
@@ -284,7 +284,7 @@ Insight adds a namespaced context commitment to the signed PriorSeal intent. Its
 5. Put the oracle pair, decision-input pair, local V3 review, swap-approval digest and optional coverage reports in the single-use PriorSeal intent. The strict entry point requires the submitter returned by `createPriorSealDefiSubmitter()` (or an equivalent adapter exposing the same binding contract), checks the prepared call against that approval before authorization and submission, and sends through PriorSeal's durable DeFi gateway for its signing/broadcast checks.
 6. Request Insight's signed execution receipt and PriorSeal's execution observation independently. Return both results and a recovery checkpoint; evidence-only recovery never repeats signing or broadcast.
 
-The feature is in repository source and is not included in the currently published `0.5.1` package. `decisionInput` carries the caller's explicit tolerances; the SDK does not select them. Obtain the key registry from a trusted operations channel and review key rotation separately. `policy.assetIds` maps request labels to canonical CAIP-19 ERC-20 IDs so a symbol cannot be silently rebound to another token contract.
+This workflow is included in SDK **0.6.0**. `decisionInput` carries the caller's explicit tolerances; the SDK does not select them. Obtain the key registry from a trusted operations channel and review key rotation separately. `policy.assetIds` maps request labels to canonical CAIP-19 ERC-20 IDs so a symbol cannot be silently rebound to another token contract.
 
 ```ts
 import { createPriorSealDefiSubmitter, InsightGuard } from 'oracle-insight-guard';
