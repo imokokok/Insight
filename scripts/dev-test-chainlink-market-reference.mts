@@ -51,9 +51,7 @@ async function main(): Promise<void> {
 
   const symbol = (process.env.CHAINLINK_DEV_TEST_SYMBOL ?? 'ETH').trim().toUpperCase();
   const chainId = parseChainId(process.env.CHAINLINK_DEV_TEST_CHAIN_ID);
-  const licensedExchanges = parseLicensedExchanges(
-    process.env.MARKET_REFERENCE_LICENSED_EXCHANGES
-  );
+  const licensedExchanges = parseLicensedExchanges(process.env.MARKET_REFERENCE_LICENSED_EXCHANGES);
   const now = new Date();
   const [exchangeResult, chainlinkResult] = await Promise.allSettled([
     collectMarketReference(now, { symbols: [symbol], licensedExchanges }),
