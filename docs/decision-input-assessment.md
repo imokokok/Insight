@@ -193,11 +193,24 @@ the assessment used.
   supplies the latest trade, top of book, 24-hour volume, instrument, and
   publish time. The `public/get-candlestick` endpoint on the same API supplies
   historical hourly closes and volume for backfill. Both paths validate the
-  returned pair and timestamps before storage.
+  returned pair and timestamps before storage. The collector also rejects a
+  latest trade outside the same ticker response's best bid/ask so an internally
+  inconsistent quote does not count toward WBTC coverage.
   The two-venue CEX reference becomes usable after successful rows from both
   sources land in the same hour through scheduled sampling or the manual
   historical backfill. Until then, the assessment remains
   `INSUFFICIENT_EVIDENCE` for WBTC.
+- **Binance for WBTC/USD:** Binance's public market catalog currently lists
+  active WBTC/USDT and USDT/USD spot markets. The collector derives an explicit
+  USD quote from the product of the two best bid/ask books and takes the
+  converted midpoint as the reference price. It validates both fresh trade
+  timestamps and both books, and preserves the older trade time. This
+  provides a third exchange observation alongside Kraken and Crypto.com while
+  keeping the USDT conversion visible. Live sampling and matched hourly
+  backfill are implemented behind the commercial-license switch; Binance stays
+  off until commercial-use terms are confirmed. CEX.IO was removed after live
+  verification found its newest returned WBTC trade was stale despite a current
+  ticker response.
 - **Gemini:** remains a third independent source for its supported ticker set.
 
 ## Result

@@ -1,10 +1,10 @@
 # SQL 文件清单与使用顺序
 
-本清单覆盖仓库中受 Git 管理的全部 88 个 `.sql` 文件：85 个 Supabase 迁移、1 个本地重置种子文件、2 个只读运维查询。目录中的 `node_modules/`、`.worktrees/`、备份和临时文件不是本仓库的 SQL 源文件。
+本清单覆盖仓库中受 Git 管理的全部 89 个 `.sql` 文件：86 个 Supabase 迁移、1 个本地重置种子文件、2 个只读运维查询。目录中的 `node_modules/`、`.worktrees/`、备份和临时文件不是本仓库的 SQL 源文件。
 
 ## 使用规则
 
-- `supabase/migrations/` 是**历史变更记录**；当前文件使用四位版本号，最近追加到 `0086`（序号中存在历史空缺）。既有迁移可能已应用到数据库，也被测试和文档按原路径引用；不要重命名、移动、批量格式化或修改旧迁移。需要修正当前数据库时追加新迁移。
+- `supabase/migrations/` 是**历史变更记录**；当前文件使用四位版本号，最近追加到 `0087`（序号中存在历史空缺）。既有迁移可能已应用到数据库，也被测试和文档按原路径引用；不要重命名、移动、批量格式化或修改旧迁移。需要修正当前数据库时追加新迁移。
 - `supabase/seed.sql` 在 `supabase/config.toml` 的 `[db.seed]` 中启用，但当前仅有注释。基础 feed 注册位于迁移内；本地重置不会导入生产数据。
 - `scripts/*.sql` 是独立的运维查询，**不会**由迁移或 seed 自动执行。通过已授权的数据库连接按各自运行手册执行；它们均为只读。
 - 文件编号表示应用顺序，不表示生产数据库已经应用到该编号。发布前检查目标数据库的迁移记录、备份和 [生产发布手册](production-readiness.md)。此清单不授权对线上数据库执行任何操作。
@@ -100,6 +100,7 @@
 | 0084 | [`0084_oracle_lineage_mag7_seed.sql`](../../supabase/migrations/0084_oracle_lineage_mag7_seed.sql)                       | 首批 Mag-7 oracle lineage 样本                 |
 | 0085 | [`0085_decision_input_assessment.sql`](../../supabase/migrations/0085_decision_input_assessment.sql)                     | decision-input assessment 审计字段             |
 | 0086 | [`0086_market_reference_source_coverage.sql`](../../supabase/migrations/0086_market_reference_source_coverage.sql)       | CEX 独立来源计数与小时级来源聚合               |
+| 0087 | [`0087_market_reference_source_timestamps.sql`](../../supabase/migrations/0087_market_reference_source_timestamps.sql)   | CEX 源端观测时间及新数据源说明                 |
 
 ## 非迁移 SQL
 
@@ -115,6 +116,7 @@
 - `0055` 的头部要求先应用迁移再部署新的审计写入端；`0064` 的头部要求读取端先使用历史视图；`0065` 的头部要求归档感知的应用及 cron/ML 读取端部署后再启用归档。发布时遵守这些阶段条件。
 - `0034`、`0035`、`0039` 缺少文件末尾换行。这只是历史文件的文本一致性问题；为避免更改已应用迁移的字节内容，留待有明确历史迁移重写需求时再处理。
 - `0086` 需与更新后的市场采集器一起发布；WBTC 至少需要 Kraken 与 Crypto.com 在同一小时内各写入成功快照后，决策输入评估才会将其 CEX 证据视为双源。定时采集和手动历史回填都支持写入这两路来源。
+- `0087` 必须先于 Bitstamp/Bitfinex/Binance 的采集开关启用；将 GitHub Actions repository variable `MARKET_REFERENCE_LICENSED_EXCHANGES` 设置为已获得书面商业数据授权的 venue 名称（`bitstamp`、`bitfinex`、`binance`，逗号分隔）后才会采集。未设置时新增来源保持关闭。Binance 的 WBTC/USD 价格由同所现货 WBTC/USDT 与 USDT/USD 市场交叉换算，实时采集与历史回填都受此开关约束。
 - 本地 SQL 测试入口是 `npm run test:reliability`，覆盖账单对账、安全边界、覆盖率、快照历史及最新的延迟聚合等逻辑。它不等同于在目标 Supabase 环境执行完整迁移或通过 Security Advisor。
 
 ## 后续管理方式

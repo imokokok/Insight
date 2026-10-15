@@ -2,7 +2,9 @@ name: Backfill Market Reference
 
 # One-shot historical backfill of the external truth layer. Pulls
 # BACKFILL_DAYS of hourly candles from Coinbase Exchange and Kraken, plus
-# Crypto.com for WBTC/USD, then upserts them into `market_reference_snapshots`
+# Crypto.com and (when commercially licensed) Binance's WBTC/USDT × USDT/USD
+# hourly cross-market price, then upserts
+# them into `market_reference_snapshots`
 # (migration 0038 must be applied first).
 #
 # Trigger manually: Actions → Backfill Market Reference → Run workflow →
@@ -29,6 +31,7 @@ env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
   BACKFILL_DAYS: ${{ inputs.days || '90' }}
+  MARKET_REFERENCE_LICENSED_EXCHANGES: ${{ vars.MARKET_REFERENCE_LICENSED_EXCHANGES }}
 
 jobs:
   backfill:
