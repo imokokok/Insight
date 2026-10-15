@@ -6,9 +6,10 @@ import { isSolanaPublicKey } from './solanaEncoding';
  * x402 keyless paid-tier configuration for the pre-trade safety check.
  *
  * Design rules (see ~/.workbuddy/insight-x402/x402-pretrade-plan.md):
- * - The master switch (`X402_ENABLED`) must be exactly "true". EVM payment
- *   uses `X402_PAY_TO`; Solana is an independent opt-in that also requires
- *   `X402_SOLANA_PAY_TO`.
+ * - The master switch (`X402_ENABLED`) must be exactly "true". EVM payment is
+ *   enabled only with a valid `X402_PAY_TO`; `X402_EVM_NETWORKS` selects which
+ *   EVM networks are advertised and defaults to `X402_NETWORK`. Solana is an
+ *   independent opt-in that also requires `X402_SOLANA_PAY_TO`.
  * - The receiving address lives in server-side env only. It is NEVER read from
  *   request parameters, so a caller cannot redirect a 402 quote to another
  *   wallet.
@@ -17,8 +18,23 @@ import { isSolanaPublicKey } from './solanaEncoding';
  *   deterministic integer amount.
  */
 
-/** Well-known USDC contract per CAIP-2 network id (x402 v2 wire format). */
-const SUPPORTED_NETWORKS = {
+/** EVM networks with native USDC and an EIP-3009 exact-payment path. */
+export const X402_EVM_NETWORK_IDS = [
+  'eip155:84532', // Base Sepolia
+  'eip155:8453', // Base
+  'eip155:1', // Ethereum
+  'eip155:10', // OP Mainnet
+  'eip155:42161', // Arbitrum One
+  'eip155:137', // Polygon PoS
+  'eip155:43114', // Avalanche C-Chain
+  'eip155:1329', // Sei
+  'eip155:196', // X Layer
+] as const;
+
+export type X402NetworkId = (typeof X402_EVM_NETWORK_IDS)[number];
+
+/** Native USDC contract and EIP-712 domain name for each supported EVM network. */
+const SUPPORTED_NETWORKS: Record<X402NetworkId, { usdc: string; tokenName: string }> = {
   'eip155:84532': {
     /** Chain: Base Sepolia (testnet). Circle native USDC. */
     usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
@@ -37,11 +53,35 @@ const SUPPORTED_NETWORKS = {
     /** On-chain name() = "USD Coin" (validated via DOMAIN_SEPARATOR, 2026-10-07). */
     tokenName: 'USD Coin',
   },
-} as const;
-
-export type X402NetworkId = keyof typeof SUPPORTED_NETWORKS;
-
-const NetworkSchema = z.enum(['eip155:84532', 'eip155:8453']);
+  'eip155:1': {
+    usdc: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    tokenName: 'USD Coin',
+  },
+  'eip155:10': {
+    usdc: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+    tokenName: 'USD Coin',
+  },
+  'eip155:42161': {
+    usdc: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+    tokenName: 'USD Coin',
+  },
+  'eip155:137': {
+    usdc: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+    tokenName: 'USD Coin',
+  },
+  'eip155:43114': {
+    usdc: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
+    tokenName: 'USD Coin',
+  },
+  'eip155:1329': {
+    usdc: '0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392',
+    tokenName: 'USD Coin',
+  },
+  'eip155:196': {
+    usdc: '0xB6CEceAB302E2E4948951eE7843FC24E92933061',
+    tokenName: 'USD Coin',
+  },
+};
 
 export const SOLANA_MAINNET_CAIP2 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
 export const SOLANA_DEVNET_CAIP2 = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1' as const;
@@ -78,6 +118,7 @@ export interface X402PaymentOption {
   tokenName?: string;
 }
 
+const NetworkSchema = z.enum(X402_EVM_NETWORK_IDS);
 const SolanaNetworkSchema = z.enum([SOLANA_DEVNET_CAIP2, SOLANA_MAINNET_CAIP2]);
 
 const USDC_DECIMALS = 6;
@@ -98,6 +139,8 @@ export interface X402Config {
   /** EVM remains the MPP rail and the legacy/default x402 payment option. */
   evmEnabled?: boolean;
   network: X402NetworkId;
+  /** EVM networks advertised by x402; MPP continues to use `network`. */
+  evmNetworks?: X402NetworkId[];
   payTo: string;
   /** USDC atomic units (6 decimals) charged per successful check. */
   amountAtomic: string;
@@ -124,6 +167,21 @@ function parsePriceUsd(raw: string | undefined): number {
     throw new Error('X402_PRICE_USD must be a positive number');
   }
   return parsed;
+}
+
+function parseEvmNetworks(raw: string | undefined, defaultNetwork: X402NetworkId): X402NetworkId[] {
+  if (raw === undefined || raw.trim() === '') return [defaultNetwork];
+
+  const values = raw.split(',').map((value) => value.trim());
+  if (values.some((value) => value === '')) {
+    throw new Error('X402_EVM_NETWORKS must be a comma-separated list without empty entries');
+  }
+
+  const networks = z.array(NetworkSchema).min(1).parse(values);
+  if (new Set(networks).size !== networks.length) {
+    throw new Error('X402_EVM_NETWORKS must not contain duplicate networks');
+  }
+  return networks;
 }
 
 function usdToAtomicUnits(usd: number): string {
@@ -176,6 +234,7 @@ function parseFacilitatorCdpAuth(
  */
 export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Config {
   const network = NetworkSchema.parse(env.X402_NETWORK ?? 'eip155:84532');
+  const evmNetworks = parseEvmNetworks(env.X402_EVM_NETWORKS, network);
   const priceUsd = parsePriceUsd(env.X402_PRICE_USD);
 
   const rawPayTo = env.X402_PAY_TO?.trim() ?? '';
@@ -210,6 +269,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     enabled: evmEnabled || solana !== null,
     evmEnabled,
     network,
+    evmNetworks,
     payTo,
     amountAtomic: usdToAtomicUnits(priceUsd),
     priceUsd,
@@ -259,14 +319,16 @@ export function getX402PaymentOptions(
   const evmEnabled = cfg.evmEnabled ?? (cfg.enabled && cfg.payTo !== '');
 
   if (evmEnabled && cfg.payTo !== '') {
-    options.push({
-      family: 'evm',
-      network: cfg.network,
-      payTo: cfg.payTo,
-      asset: usdcForNetwork(cfg.network),
-      amountAtomic: amountOverride ?? cfg.amountAtomic,
-      tokenName: tokenNameForNetwork(cfg.network),
-    });
+    for (const network of cfg.evmNetworks?.length ? cfg.evmNetworks : [cfg.network]) {
+      options.push({
+        family: 'evm',
+        network,
+        payTo: cfg.payTo,
+        asset: usdcForNetwork(network),
+        amountAtomic: amountOverride ?? cfg.amountAtomic,
+        tokenName: tokenNameForNetwork(network),
+      });
+    }
   }
 
   if (cfg.solana) {

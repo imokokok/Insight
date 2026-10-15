@@ -10,6 +10,7 @@ import {
   getX402PaymentOptions,
   SOLANA_DEVNET_CAIP2,
   SOLANA_MAINNET_CAIP2,
+  X402_EVM_NETWORK_IDS,
   type X402Config,
 } from './config';
 import { getX402HttpServer } from './resourceServer';
@@ -137,7 +138,7 @@ const X402SettlementAuditSchema = z
       .regex(/^\d+(?:\.\d{1,6})?$/)
       .optional(),
     network: z
-      .enum(['eip155:84532', 'eip155:8453', SOLANA_MAINNET_CAIP2, SOLANA_DEVNET_CAIP2] as const)
+      .enum([...X402_EVM_NETWORK_IDS, SOLANA_MAINNET_CAIP2, SOLANA_DEVNET_CAIP2] as const)
       .nullable(),
     asset: z.string().max(64).optional(),
     verdict: z.string().max(128).optional(),
@@ -177,8 +178,7 @@ const X402SettlementAuditSchema = z
   });
 
 const SupportedX402NetworkSchema = z.enum([
-  'eip155:84532',
-  'eip155:8453',
+  ...X402_EVM_NETWORK_IDS,
   SOLANA_MAINNET_CAIP2,
   SOLANA_DEVNET_CAIP2,
 ] as const);
