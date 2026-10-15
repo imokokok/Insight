@@ -17,6 +17,7 @@ import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 /** Public fallback RPCs, matching the fallbacks already used in the oracle
  *  layer. Alchemy is preferred when configured; these are the safety net. */
 const PUBLIC_FALLBACKS: Record<number, string[]> = {
+  0: ['https://api.mainnet-beta.solana.com'],
   1: ['https://eth.llamarpc.com', 'https://ethereum.publicnode.com'],
   42161: ['https://arb1.arbitrum.io/rpc', 'https://arbitrum.publicnode.com'],
   8453: ['https://mainnet.base.org', 'https://base.publicnode.com'],

@@ -624,6 +624,220 @@ paths:
         '503':
           description: Signing or durable persistence unavailable
 
+  /execution/solana/collect:
+    post:
+      operationId: collectSolanaExecutionFacts
+      tags: [Execution Evidence]
+      summary: Collect unsigned Solana balance facts
+      description: |
+        Reads a confirmed Solana mainnet-beta transaction and measures the taker's
+        net wallet-owned SPL or Token-2022 balance changes and/or native SOL lamport
+        change across the full transaction. This endpoint returns unsigned facts.
+        SOL movements include rent, tips and unrelated instructions, so they do not
+        produce an attributed execution price.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [signature, sourceAssetId, destinationAssetId, taker]
+              properties:
+                signature:
+                  type: string
+                  minLength: 87
+                  maxLength: 88
+                  description: Base58 Solana transaction signature.
+                sourceAssetId:
+                  type: string
+                  description: CAIP-19 SOL ID solana:0/slip44:501 or SPL/Token-2022 ID solana:0/spl:<mint>.
+                destinationAssetId:
+                  type: string
+                  description: CAIP-19 SOL ID solana:0/slip44:501 or SPL/Token-2022 ID solana:0/spl:<mint>.
+                taker:
+                  type: string
+                  minLength: 32
+                  maxLength: 44
+                  description: Base58 wallet public key whose token-account and/or lamport changes are measured.
+      responses:
+        '200':
+          description: Collection result; inspect data.collection.ok and data.signed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      signed:
+                        type: boolean
+                        const: false
+                      assertionScope:
+                        type: [string, 'null']
+                        enum:
+                          [
+                            NET_WALLET_OWNED_SPL_BALANCE_DELTA,
+                            NET_WALLET_LAMPORT_AND_SPL_BALANCE_DELTA,
+                            null,
+                          ]
+                      collection:
+                        type: object
+                        description: 'Either { ok: true, facts } or { ok: false, code, message }.'
+        '400':
+          description: Invalid request body
+        '401':
+          description: API key required
+        '402':
+          description: Credit balance insufficient
+
+  /execution/solana/receipt:
+    post:
+      operationId: issueSolanaExecutionReceipt
+      tags: [Execution Evidence]
+      summary: Issue signed Solana execution evidence
+      description: |
+        Reads a confirmed mainnet-beta transaction and signs bounded wallet-level
+        SPL/Token-2022 and native SOL balance-delta facts with the dedicated Insight
+        Ed25519 Solana evidence key. It does not attribute arbitrary instruction
+        semantics, venue fills, or SOL transfers. The response includes a SHA-256
+        context commitment over the complete signed receipt.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [signature, sourceAssetId, destinationAssetId, taker]
+              properties:
+                signature:
+                  {
+                    type: string,
+                    minLength: 87,
+                    maxLength: 88,
+                    description: Base58 Solana transaction signature.,
+                  }
+                sourceAssetId:
+                  { type: string, description: CAIP-19 native SOL or SPL/Token-2022 asset ID. }
+                destinationAssetId:
+                  { type: string, description: CAIP-19 native SOL or SPL/Token-2022 asset ID. }
+                taker:
+                  {
+                    type: string,
+                    minLength: 32,
+                    maxLength: 44,
+                    description: Base58 wallet whose balance changes are measured.,
+                  }
+      responses:
+        '200':
+          description: Ed25519-signed execution evidence and context commitment.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    required: [receipt, contextCommitment, signerPublicKey]
+                    properties:
+                      receipt:
+                        {
+                          type: object,
+                          description: insight.solana-execution-receipt.v1 signed envelope.,
+                        }
+                      contextCommitment:
+                        {
+                          type: object,
+                          description: SHA-256 commitment over canonical receipt JSON.,
+                        }
+                      signerPublicKey:
+                        {
+                          type: string,
+                          description: Base58 Ed25519 public key; consumers must independently pin it.,
+                        }
+        '400': { description: Invalid request or unsupported asset pair. }
+        '401': { description: API key required. }
+        '402': { description: Credit balance insufficient. }
+        '503': { description: Dedicated Solana evidence signer unavailable. }
+
+  /execution/solana/simulate:
+    post:
+      operationId: simulateSolanaTransaction
+      tags: [Execution Evidence]
+      summary: Simulate and sign a Solana pre-sign receipt
+      description: |
+        Simulates an unsigned serialized legacy, v0, or v1 transaction on
+        mainnet-beta at confirmed commitment with signature verification disabled.
+        All signature slots must be zero. It checks the
+        exact message SHA-256 against expectedMessageHash and signs the simulation
+        result. Simulation is a state snapshot and does not predict landing or
+        subsequent state changes.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [transactionBase64, expectedMessageHash]
+              properties:
+                transactionBase64:
+                  {
+                    type: string,
+                    minLength: 8,
+                    maxLength: 12000,
+                    description: Serialized Solana transaction in base64.,
+                  }
+                expectedMessageHash:
+                  {
+                    type: string,
+                    pattern: '^0x[0-9a-fA-F]{64}$',
+                    description: SHA-256 digest of the exact serialized message bytes.,
+                  }
+      responses:
+        '200':
+          description: Ed25519-signed simulation evidence and context commitment.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    required: [receipt, contextCommitment, signerPublicKey]
+                    properties:
+                      receipt:
+                        {
+                          type: object,
+                          description: insight.solana-simulation-receipt.v1 signed envelope.,
+                        }
+                      contextCommitment:
+                        {
+                          type: object,
+                          description: SHA-256 commitment over canonical receipt JSON.,
+                        }
+                      signerPublicKey:
+                        {
+                          type: string,
+                          description: Base58 Ed25519 public key; consumers must independently pin it.,
+                        }
+        '400': { description: Invalid/signed transaction or expected message hash mismatch. }
+        '401': { description: API key required. }
+        '402': { description: Credit balance insufficient. }
+        '503': { description: Dedicated Solana evidence signer or RPC unavailable. }
+
   /execution/attestation/verify:
     post:
       operationId: verifyExecutionReceipt
