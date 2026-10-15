@@ -83,6 +83,21 @@ describe('x402 config', () => {
     });
   });
 
+  it('can keep a configured EVM recipient inactive while enabling Solana', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_ENABLED: 'false',
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_NETWORK: SOLANA_DEVNET_CAIP2,
+      X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+    });
+
+    expect(cfg.enabled).toBe(true);
+    expect(cfg.evmEnabled).toBe(false);
+    expect(cfg.payTo).toBe('0xAbC0000000000000000000000000000000000001');
+    expect(getX402PaymentOptions(cfg).map((option) => option.family)).toEqual(['svm']);
+  });
+
   it('keeps EVM and Solana payment options independent', () => {
     const cfg = parseX402Config({
       ...BASE_ENV,

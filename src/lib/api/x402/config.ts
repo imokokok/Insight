@@ -7,9 +7,10 @@ import { isSolanaPublicKey } from './solanaEncoding';
  *
  * Design rules (see ~/.workbuddy/insight-x402/x402-pretrade-plan.md):
  * - The master switch (`X402_ENABLED`) must be exactly "true". EVM payment is
- *   enabled only with a valid `X402_PAY_TO`; `X402_EVM_NETWORKS` selects which
- *   EVM networks are advertised and defaults to `X402_NETWORK`. Solana is an
- *   independent opt-in that also requires `X402_SOLANA_PAY_TO`.
+ *   enabled only with a valid `X402_PAY_TO` and unless `X402_EVM_ENABLED` is
+ *   exactly "false"; `X402_EVM_NETWORKS` selects advertised EVM networks and
+ *   defaults to `X402_NETWORK`. Solana is an independent opt-in that also
+ *   requires `X402_SOLANA_PAY_TO`.
  * - The receiving address lives in server-side env only. It is NEVER read from
  *   request parameters, so a caller cannot redirect a 402 quote to another
  *   wallet.
@@ -241,7 +242,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
   const payTo = rawPayTo === '' ? '' : PayToSchema.parse(rawPayTo);
 
   const flagEnabled = env.X402_ENABLED === 'true';
-  const evmEnabled = flagEnabled && payTo !== '';
+  const evmEnabled = flagEnabled && env.X402_EVM_ENABLED !== 'false' && payTo !== '';
 
   const solanaFlagEnabled = flagEnabled && env.X402_SOLANA_ENABLED === 'true';
   const rawSolanaPayTo = env.X402_SOLANA_PAY_TO?.trim() ?? '';

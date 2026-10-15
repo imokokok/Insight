@@ -380,7 +380,9 @@ export default function X402QuickstartPage() {
             <code className="font-mono">solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1</code>; mainnet uses{' '}
             <code className="font-mono">solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp</code> and is
             opt-in. Create the recipient USDC associated token account and confirm facilitator
-            support before enabling it.
+            support before enabling it. Set{' '}
+            <code className="font-mono">X402_EVM_ENABLED=false</code> when enabling Solana without
+            activating an EVM recipient.
           </p>
         </div>
       </section>

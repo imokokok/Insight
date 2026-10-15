@@ -32,6 +32,10 @@ listed chain, but each chain has its own USDC contract and balance. Only enable
 networks that the configured facilitator advertises for x402 v2 `exact` in
 `/supported`.
 
+Set `X402_EVM_ENABLED=false` to keep a configured EVM recipient inactive while
+enabling Solana x402. If unset, EVM behavior remains compatible with the
+existing `X402_ENABLED` and `X402_PAY_TO` settings.
+
 The challenge scope binds the payment to the exact resource (REST URL, or MCP
 tool name + canonicalized arguments), so receipts cannot be replayed against
 different requests.
