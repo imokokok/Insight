@@ -26,8 +26,9 @@ export function getMppConfig(
     return { enabled: false, mcpEnabled: false, secretKey: null };
   }
 
-  if (!x402Config.enabled) {
-    throw new Error('MPP_ENABLED requires the x402 paid tier to be enabled');
+  const evmX402Enabled = x402Config.evmEnabled ?? (x402Config.enabled && x402Config.payTo !== '');
+  if (!evmX402Enabled) {
+    throw new Error('MPP_ENABLED requires an enabled EVM x402 payment option');
   }
 
   const secretKey = env.MPP_SECRET_KEY?.trim() ?? '';

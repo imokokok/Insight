@@ -101,6 +101,7 @@
 | 0085 | [`0085_decision_input_assessment.sql`](../../supabase/migrations/0085_decision_input_assessment.sql)                     | decision-input assessment 审计字段             |
 | 0086 | [`0086_market_reference_source_coverage.sql`](../../supabase/migrations/0086_market_reference_source_coverage.sql)       | CEX 独立来源计数与小时级来源聚合               |
 | 0087 | [`0087_market_reference_source_timestamps.sql`](../../supabase/migrations/0087_market_reference_source_timestamps.sql)   | CEX 源端观测时间及新数据源说明                 |
+| 0088 | [`0088_x402_solana_networks.sql`](../../supabase/migrations/0088_x402_solana_networks.sql)                               | x402 结算审计支持 Solana CAIP-2 网络           |
 
 ## 非迁移 SQL
 

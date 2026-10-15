@@ -5,21 +5,20 @@ import {
 } from '@x402/core/server';
 import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
+import { ExactSvmScheme } from '@x402/svm/exact/server';
 
 import { createCdpAuthHeaders } from './cdpAuth';
 import {
   type X402Config,
   X402_MCP_ROUTE,
   X402_PRE_TRADE_ROUTE,
-  tokenNameForNetwork,
-  usdcForNetwork,
+  getX402PaymentOptions,
 } from './config';
 
 /**
  * Lazily-built singleton around the official x402 Foundation v2 server stack
- * (`@x402/core/server` + `@x402/evm/exact/server`), wired to the pre-trade
- * route. The packages are already in the dependency tree (the Headless Oracle
- * client uses their client-side counterparts), so no new install is required.
+ * (`@x402/core/server` plus the configured EVM and SVM exact schemes), wired
+ * to the pre-trade and MCP routes.
  *
  * `initialize()` performs a facilitator `getSupported()` round-trip; the
  * singleton keeps that cost off the request path.
@@ -92,23 +91,19 @@ export const BAZAAR_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   },
 });
 
-function acceptsFor(cfg: X402Config, amountAtomic: string) {
-  return [
-    {
-      scheme: 'exact',
-      network: cfg.network,
-      payTo: cfg.payTo,
-      // Deterministic AssetAmount instead of a "$x.yy" money string: no
-      // server-side USD→asset resolution, the wire amount is fixed here.
-      price: { asset: usdcForNetwork(cfg.network), amount: amountAtomic },
-      maxTimeoutSeconds: cfg.maxTimeoutSeconds,
-      // EIP-712 domain name must match the token contract exactly, and it
-      // DIFFERS per network: Base mainnet USDC's domain name is "USD Coin",
-      // Base Sepolia's is "USDC" (both version "2"). A wrong name makes the
-      // facilitator reject with invalid_exact_evm_token_name_mismatch.
-      extra: { name: tokenNameForNetwork(cfg.network), version: '2' },
-    },
-  ];
+function acceptsFor(cfg: X402Config, amountOverride?: string) {
+  return getX402PaymentOptions(cfg, amountOverride).map((option) => ({
+    scheme: 'exact',
+    network: option.network,
+    payTo: option.payTo,
+    // Use a deterministic atomic amount; the accepted mint is network-specific.
+    price: { asset: option.asset, amount: option.amountAtomic },
+    maxTimeoutSeconds: cfg.maxTimeoutSeconds,
+    // EIP-712 metadata only applies to the EVM transferWithAuthorization flow.
+    ...(option.family === 'evm' && option.tokenName
+      ? { extra: { name: option.tokenName, version: '2' } }
+      : {}),
+  }));
 }
 
 function routeConfigFor(cfg: X402Config) {
@@ -116,7 +111,7 @@ function routeConfigFor(cfg: X402Config) {
     description:
       'Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.',
     mimeType: 'application/json',
-    accepts: acceptsFor(cfg, cfg.amountAtomic),
+    accepts: acceptsFor(cfg),
     extensions: BAZAAR_DISCOVERY_EXTENSION,
     x402Version: 2,
   };
@@ -192,7 +187,19 @@ export async function buildX402HttpServer(
   });
 
   const server = new x402ResourceServer(facilitator);
-  server.register(cfg.network, new ExactEvmScheme());
+  const paymentOptions = getX402PaymentOptions(cfg);
+  if (paymentOptions.some((option) => option.family === 'evm')) {
+    const networks = new Set(
+      paymentOptions.filter((option) => option.family === 'evm').map((option) => option.network)
+    );
+    for (const network of networks) server.register(network, new ExactEvmScheme());
+  }
+  if (paymentOptions.some((option) => option.family === 'svm')) {
+    const networks = new Set(
+      paymentOptions.filter((option) => option.family === 'svm').map((option) => option.network)
+    );
+    for (const network of networks) server.register(network, new ExactSvmScheme());
+  }
   // Enriches the declared discovery extension with the actual HTTP method and
   // query params from each request context before the 402 goes out.
   server.registerExtension(bazaarResourceServerExtension);
@@ -202,6 +209,16 @@ export async function buildX402HttpServer(
     [X402_MCP_ROUTE]: mcpRouteConfigFor(cfg, options?.mcpAmountAtomic ?? cfg.amountAtomic),
   });
   await httpServer.initialize();
+
+  const unsupportedNetworks = paymentOptions
+    .filter((option) => !server.getSupportedKind(2, option.network, 'exact'))
+    .map((option) => option.network);
+  if (unsupportedNetworks.length > 0) {
+    throw new Error(
+      `X402_FACILITATOR_URL does not advertise x402 v2 exact support for: ${unsupportedNetworks.join(', ')}. Check its /supported endpoint and the configured x402 network values.`
+    );
+  }
+
   return httpServer;
 }
 
@@ -211,9 +228,7 @@ export async function buildX402HttpServer(
  */
 export async function getX402HttpServer(cfg: X402Config): Promise<x402HTTPResourceServer> {
   const key = JSON.stringify({
-    n: cfg.network,
-    p: cfg.payTo,
-    a: cfg.amountAtomic,
+    options: getX402PaymentOptions(cfg),
     f: cfg.facilitatorUrl,
     c: cfg.facilitatorCdpAuth ? 'cdp' : 'none',
   });
@@ -253,9 +268,7 @@ export async function getMcpX402HttpServer(
   amountAtomic: string
 ): Promise<x402HTTPResourceServer> {
   const key = JSON.stringify({
-    n: cfg.network,
-    p: cfg.payTo,
-    a: amountAtomic,
+    options: getX402PaymentOptions(cfg, amountAtomic),
     f: cfg.facilitatorUrl,
     c: cfg.facilitatorCdpAuth ? 'cdp' : 'none',
   });

@@ -4,7 +4,13 @@ import { getToolCreditCost } from '@/lib/billing/metering';
 import { createLogger } from '@/lib/utils/logger';
 
 import { type X402Config, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
-import { atomicUnitsToUsdc, logBazaarExtensionStatus, recordX402Settlement } from './guard';
+import {
+  atomicUnitsToUsdc,
+  logBazaarExtensionStatus,
+  paymentAuditFields,
+  quoteAuditFields,
+  recordX402Settlement,
+} from './guard';
 import { getMcpX402HttpServer } from './resourceServer';
 
 const logger = createLogger('x402-mcp-bridge');
@@ -149,8 +155,9 @@ export async function handleMcpPaidToolCall({
     recordX402Settlement({
       requestId,
       status: hasPaymentSignature ? 'payment_rejected' : 'quote_issued',
-      network: cfg.network,
-      amountUsdc: atomicUnitsToUsdc(priceAtomicForTool(toolName)),
+      ...(hasPaymentSignature
+        ? { network: null }
+        : quoteAuditFields(cfg, priceAtomicForTool(toolName))),
       surface: 'mcp',
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - requestStartedAt,
@@ -175,8 +182,7 @@ export async function handleMcpPaidToolCall({
   recordX402Settlement({
     requestId,
     status: 'payment_verified',
-    network: cfg.network,
-    amountUsdc: atomicUnitsToUsdc(priceAtomicForTool(toolName)),
+    ...paymentAuditFields(result.paymentRequirements),
     surface: 'mcp',
     resource: `mcp:${toolName}`,
     responseTimeMs: Date.now() - requestStartedAt,
@@ -191,7 +197,7 @@ export async function handleMcpPaidToolCall({
     recordX402Settlement({
       requestId,
       status: 'business_failed',
-      network: cfg.network,
+      ...paymentAuditFields(result.paymentRequirements),
       surface: 'mcp',
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - businessStartedAt,
@@ -209,7 +215,7 @@ export async function handleMcpPaidToolCall({
     recordX402Settlement({
       requestId,
       status: 'business_failed',
-      network: cfg.network,
+      ...paymentAuditFields(result.paymentRequirements),
       surface: 'mcp',
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - businessStartedAt,
@@ -227,8 +233,7 @@ export async function handleMcpPaidToolCall({
   recordX402Settlement({
     requestId,
     status: 'business_succeeded',
-    network: cfg.network,
-    amountUsdc: atomicUnitsToUsdc(priceAtomicForTool(toolName)),
+    ...paymentAuditFields(result.paymentRequirements),
     surface: 'mcp',
     resource: `mcp:${toolName}`,
     responseTimeMs: Date.now() - businessStartedAt,
@@ -246,15 +251,17 @@ export async function handleMcpPaidToolCall({
   logBazaarExtensionStatus(requestId, settle.headers);
 
   if (settle.success) {
-    const atomic = settle.amount ?? priceAtomicForTool(toolName);
+    const atomic = settle.amount ?? result.paymentRequirements.amount;
     const amountUsdc = atomicUnitsToUsdc(String(atomic));
+    const requirementAudit = paymentAuditFields(result.paymentRequirements);
     recordX402Settlement({
       requestId,
       status: 'settled',
       txHash: settle.transaction,
       payer: settle.payer,
       amountUsdc,
-      network: cfg.network,
+      network: requirementAudit.network,
+      asset: requirementAudit.asset,
       surface: 'mcp',
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - settlementStartedAt,
@@ -265,7 +272,7 @@ export async function handleMcpPaidToolCall({
     recordX402Settlement({
       requestId,
       status: 'settlement_failed',
-      network: cfg.network,
+      ...paymentAuditFields(result.paymentRequirements),
       surface: 'mcp',
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - settlementStartedAt,

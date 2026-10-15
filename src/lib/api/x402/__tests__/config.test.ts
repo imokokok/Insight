@@ -1,4 +1,11 @@
-import { getX402Config, parseX402Config, usdcForNetwork } from '../config';
+import {
+  getX402Config,
+  parseX402Config,
+  SOLANA_DEVNET_CAIP2,
+  SOLANA_MAINNET_CAIP2,
+  getX402PaymentOptions,
+  usdcForNetwork,
+} from '../config';
 
 const BASE_ENV = {
   X402_ENABLED: 'true',
@@ -54,6 +61,69 @@ describe('x402 config', () => {
 
   it('maps mainnet to the canonical Base USDC contract', () => {
     expect(usdcForNetwork('eip155:8453')).toBe('0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913');
+  });
+
+  it('enables Solana Devnet x402 without requiring an EVM recipient', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_PAY_TO: '',
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_NETWORK: SOLANA_DEVNET_CAIP2,
+      X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+    });
+
+    expect(cfg.enabled).toBe(true);
+    expect(cfg.evmEnabled).toBe(false);
+    expect(cfg.solana).toEqual({
+      network: SOLANA_DEVNET_CAIP2,
+      payTo: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+      usdcMint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+      amountAtomic: '20000',
+      priceUsd: 0.02,
+    });
+  });
+
+  it('keeps EVM and Solana payment options independent', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_NETWORK: SOLANA_MAINNET_CAIP2,
+      X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+      X402_SOLANA_PRICE_USD: '0.03',
+    });
+
+    expect(cfg.enabled).toBe(true);
+    expect(cfg.evmEnabled).toBe(true);
+    expect(cfg.solana?.network).toBe(SOLANA_MAINNET_CAIP2);
+    expect(cfg.solana?.usdcMint).toBe('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+    expect(cfg.solana?.amountAtomic).toBe('30000');
+    expect(cfg.amountAtomic).toBe('20000');
+    expect(getX402PaymentOptions(cfg)).toEqual([
+      {
+        family: 'evm',
+        network: 'eip155:84532',
+        payTo: '0xAbC0000000000000000000000000000000000001',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amountAtomic: '20000',
+        tokenName: 'USDC',
+      },
+      {
+        family: 'svm',
+        network: SOLANA_MAINNET_CAIP2,
+        payTo: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+        asset: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        amountAtomic: '30000',
+      },
+    ]);
+  });
+
+  it('requires a valid Solana receiving wallet when the Solana option is enabled', () => {
+    expect(() =>
+      parseX402Config({ ...BASE_ENV, X402_SOLANA_ENABLED: 'true', X402_SOLANA_PAY_TO: '' })
+    ).toThrow(/requires X402_SOLANA_PAY_TO/);
+    expect(() =>
+      parseX402Config({ ...BASE_ENV, X402_SOLANA_ENABLED: 'true', X402_SOLANA_PAY_TO: '0x1234' })
+    ).toThrow(/valid 32-byte Solana public key/);
   });
 
   describe('CDP facilitator auth', () => {

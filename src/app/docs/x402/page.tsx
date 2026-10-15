@@ -10,12 +10,12 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Pay-per-Call Quickstart: x402 and MPP — Insight',
   description:
-    'Call the Insight pre-trade safety check with no account or API key: pay $0.02 in USDC on Base via x402 or optional MPP. Copy-paste quickstarts for curl, TypeScript, Python, and MCP tools/call.',
+    'Call the Insight pre-trade safety check with no account or API key: pay in USDC on the configured EVM network or optional Solana network via x402; MPP uses the configured EVM network.',
   keywords: [
     'x402 quickstart',
     'MPP quickstart',
     'pay per call API',
-    'USDC Base micropayments',
+    'USDC EVM micropayments',
     'AI agent payments',
     'pre-trade safety check',
   ],
@@ -31,7 +31,7 @@ const PAY_FACTS = [
   {
     value: '$0.02',
     label: 'Per check (C3)',
-    detail: 'USDC on Base via the configured facilitator for x402 or MPP',
+    detail: 'USDC on the configured EVM or optional Solana x402 network; MPP remains EVM-only',
   },
   {
     value: '0',
@@ -41,10 +41,10 @@ const PAY_FACTS = [
   {
     value: 'HTTP 402',
     label: 'Machine-native',
-    detail: 'Read the protocol challenge, sign EIP-3009, retry paid',
+    detail: 'Read the payment challenge, sign with the selected network scheme, retry',
   },
   {
-    value: 'EIP-712',
+    value: 'Signed',
     label: 'Verifiable verdict',
     detail: 'Attestation receipts verify offline via verify-insight-receipt',
   },
@@ -87,11 +87,12 @@ const curlCode = `# Call without credentials: HTTP 402 with a PAYMENT-REQUIRED q
 curl -sD - -o /dev/null "${ENDPOINT}" \\
   | grep -i '^payment-required' | cut -d' ' -f2- | base64 --decode | jq
 
-# The decoded quote names everything an x402 client needs:
+# Example Base option from the decoded quote:
 #   scheme "exact", network "eip155:8453" (Base),
 #   USDC 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913, 20000 atomic units ($0.02),
 #   payTo 0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231.
-# Sign EIP-3009 transferWithAuthorization, retry with PAYMENT-SIGNATURE, get the verdict.`;
+# The quote includes the configured EVM option and, when enabled, a Solana option.
+# The registered x402 scheme signs the selected option, retries, and returns the verdict.`;
 
 const tsCode = `// npm i @x402/fetch @x402/evm viem
 import { wrapFetchWithPayment, x402Client } from '@x402/fetch';
@@ -115,6 +116,28 @@ const res = await fetchWithPay('${ENDPOINT}');
 const check = await res.json();
 console.log(check.verdict, check.recommendedMaxPositionUsd);
 // The 402 -> sign -> retry -> settle round trip is automatic.`;
+
+const solanaTsCode = `// npm i @x402/fetch @x402/svm @solana/kit @scure/base
+import { base58 } from '@scure/base';
+import { createKeyPairSignerFromBytes } from '@solana/kit';
+import { wrapFetchWithPayment, x402Client } from '@x402/fetch';
+import { ExactSvmScheme } from '@x402/svm/exact/client';
+
+const secret = process.env.SOLANA_PRIVATE_KEY;
+if (!secret) throw new Error('Set SOLANA_PRIVATE_KEY in the server environment');
+
+const signer = await createKeyPairSignerFromBytes(base58.decode(secret));
+const client = new x402Client().register(
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  new ExactSvmScheme(signer),
+);
+const fetchWithPay = wrapFetchWithPayment(fetch, client);
+
+// The API may advertise configured EVM and Solana options. This client selects Solana.
+const res = await fetchWithPay('${ENDPOINT}');
+const check = await res.json();
+console.log(check.verdict, check.recommendedMaxPositionUsd);
+// Keep the signing key in a server-side or constrained signing service.`;
 
 const mppCode = `// npm i mppx viem
 import { Mppx, evm } from 'mppx/client';
@@ -182,7 +205,7 @@ const res = await fetchWithPay('${MCP_ENDPOINT}', {
   body: JSON.stringify(rpcBody),
 });
 // The settle receipt arrives in the payment-response header:
-// decode it and read .transaction for the BaseScan link.`;
+// decode it and read .transaction for the matching chain explorer link.`;
 
 const mcpMppCode = `// npm i @modelcontextprotocol/sdk mppx viem
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -228,9 +251,9 @@ export default function X402QuickstartPage() {
         <EditorialWorkspaceHeader
           index="14"
           stage="Integrate"
-          eyebrow="Pay per call, no account · x402 or MPP · USDC on Base"
+          eyebrow="Pay per call, no account · x402 across EVM and Solana · optional MPP"
           title="One wallet. One HTTP call. One verifiable verdict."
-          description="The REST pre-trade safety check accepts x402 and optional MPP at the same price. The full MCP catalog supports x402 and API keys; a separate MPP MCP endpoint pilots pre_trade_safety_check. Both payment flows validate first and settle only after a successful check. Every settled call is auditable on-chain; verdicts carry verifiable EIP-712 attestations."
+          description="The REST pre-trade safety check can advertise x402 payment options on configured EVM and Solana networks; optional MPP remains on the configured EVM network. The full MCP catalog supports x402 and API keys. Payment is verified first and settled only after a successful check. Settlements are auditable on-chain, and verdicts carry verifiable attestations."
           evidence={['No signup', 'Settle only on success', 'Offline-verifiable receipts']}
           action={
             <div className="flex flex-wrap items-center gap-2">
@@ -256,7 +279,7 @@ export default function X402QuickstartPage() {
           label="Paid call lifecycle"
           items={[
             { label: 'Request', detail: '402 advertises x402 and optional MPP terms' },
-            { label: 'Sign & retry', detail: 'EIP-3009 USDC auth · payment protocol header' },
+            { label: 'Sign & retry', detail: 'EVM or Solana USDC · x402 payment header' },
             { label: 'Verdict', detail: 'Facilitator settles on-chain · receipt is verifiable' },
           ]}
         />
@@ -314,9 +337,9 @@ export default function X402QuickstartPage() {
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 Wrap <code className="font-mono text-base">fetch</code> with an x402 client and the
-                402 round trip disappears: the wrapper signs, retries, and hands your code the
-                verdict JSON. Fund the wallet with a few dollars of USDC on Base and point
-                <code className="font-mono text-base">EVM_PRIVATE_KEY</code> at it.
+                402 round trip disappears: the wrapper signs on the advertised EVM network, retries,
+                and hands your code the verdict JSON. The client pays on the configured EVM network.
+                The next section shows the Solana client.
               </p>
             </div>
           </div>
@@ -329,7 +352,39 @@ export default function X402QuickstartPage() {
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">03 — MPP</p>
+            <p className="editorial-index">03 — Solana x402</p>
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                Pay with Solana USDC.
+              </h2>
+              <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
+                When Solana is enabled on the deployment, the endpoint advertises a Solana x402 V2{' '}
+                <code className="font-mono text-base">exact</code> option alongside the configured
+                EVM option. Register the Solana scheme in your client and keep its signer on the
+                server or behind a spending-limited signing interface. The selected facilitator must
+                advertise support for this exact network and scheme.
+              </p>
+            </div>
+          </div>
+          <div className="mt-6">
+            <CodeBlock code={solanaTsCode} label="pre-trade-solana.mts" />
+          </div>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-500">
+            Server setup uses <code className="font-mono">X402_SOLANA_ENABLED</code>,{' '}
+            <code className="font-mono">X402_SOLANA_NETWORK</code>, and{' '}
+            <code className="font-mono">X402_SOLANA_PAY_TO</code>. Devnet uses{' '}
+            <code className="font-mono">solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1</code>; mainnet uses{' '}
+            <code className="font-mono">solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp</code> and is
+            opt-in. Create the recipient USDC associated token account and confirm facilitator
+            support before enabling it.
+          </p>
+        </div>
+      </section>
+
+      <section className="py-14 sm:py-20">
+        <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+          <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+            <p className="editorial-index">04 — MPP</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 Use the standard Payment authorization scheme.
@@ -340,7 +395,8 @@ export default function X402QuickstartPage() {
                 quote. The dedicated MCP pilot uses standard MPP challenge, credential, and receipt
                 metadata. The mppx client handles challenges and sends its credential in{' '}
                 <code className="font-mono text-base">Authorization: Payment</code>. Both rails use
-                the configured price and USDC recipient.
+                the configured EVM price and USDC recipient. MPP does not use the Solana x402
+                option.
               </p>
             </div>
           </div>
@@ -359,7 +415,7 @@ export default function X402QuickstartPage() {
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">04 — Python</p>
+            <p className="editorial-index">05 — Python</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 httpx with a paying transport.
@@ -379,7 +435,7 @@ export default function X402QuickstartPage() {
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">05 — MCP tools/call</p>
+            <p className="editorial-index">06 — MCP tools/call</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 40 tools over MCP, paid per call.
@@ -432,7 +488,7 @@ export default function X402QuickstartPage() {
       <section id="verify" className="scroll-mt-20 py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">06 — Verify what you paid for</p>
+            <p className="editorial-index">07 — Verify what you paid for</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 A BLOCK verdict is still a complete check.
@@ -462,7 +518,7 @@ export default function X402QuickstartPage() {
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">07 — Reference</p>
+            <p className="editorial-index">08 — Reference</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 Query parameters and discovery.

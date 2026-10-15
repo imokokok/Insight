@@ -35,7 +35,28 @@ describe('getMppConfig', () => {
         { ...X402_ENABLED, enabled: false },
         env({ MPP_ENABLED: 'true', MPP_SECRET_KEY: 'x'.repeat(32) })
       )
-    ).toThrow('MPP_ENABLED requires the x402 paid tier to be enabled');
+    ).toThrow('MPP_ENABLED requires an enabled EVM x402 payment option');
+  });
+
+  it('does not enable MPP from a Solana-only x402 configuration', () => {
+    expect(() =>
+      getMppConfig(
+        {
+          ...X402_ENABLED,
+          enabled: true,
+          evmEnabled: false,
+          payTo: '',
+          solana: {
+            network: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+            payTo: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+            usdcMint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+            amountAtomic: '20000',
+            priceUsd: 0.02,
+          },
+        },
+        env({ MPP_ENABLED: 'true', MPP_SECRET_KEY: 'x'.repeat(32) })
+      )
+    ).toThrow('MPP_ENABLED requires an enabled EVM x402 payment option');
   });
 
   it.each(['', 'x'.repeat(31)])('rejects an absent or short MPP secret key', (secretKey) => {

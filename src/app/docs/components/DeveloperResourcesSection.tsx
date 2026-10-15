@@ -33,7 +33,7 @@ const resources: Resource[] = [
     icon: <Coins className="w-6 h-6" />,
     title: 'x402 Pay-per-Call',
     description:
-      'No account, no API key: pay $0.02 in USDC on Base per pre-trade safety check, or per-call pricing for all 40 MCP tools. Copy-paste quickstarts for curl, TypeScript, Python, and MCP.',
+      'No account, no API key: pay per call in USDC on configured Base or optional Solana x402 networks. MPP remains available on EVM. Copy-paste quickstarts for REST and MCP.',
     href: '/docs/x402',
     accent: 'emerald',
   },
