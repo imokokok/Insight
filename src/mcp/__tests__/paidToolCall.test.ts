@@ -196,7 +196,12 @@ describe('x402 paid MCP tools/call', () => {
       type: 'payment-verified',
       cancellationDispatcher: {},
       paymentPayload: { x402Version: 2 },
-      paymentRequirements: { scheme: 'exact', amount: '2000' },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:84532',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '2000',
+      },
     });
     processSettlement.mockResolvedValue({
       success: true,
@@ -236,7 +241,12 @@ describe('x402 paid MCP tools/call', () => {
       type: 'payment-verified',
       cancellationDispatcher: {},
       paymentPayload: { x402Version: 2 },
-      paymentRequirements: { scheme: 'exact', amount: '2000' },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:84532',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '2000',
+      },
     });
     cannedRpcResponse = {
       jsonrpc: '2.0',
@@ -259,7 +269,12 @@ describe('x402 paid MCP tools/call', () => {
       type: 'payment-verified',
       cancellationDispatcher: {},
       paymentPayload: { x402Version: 2 },
-      paymentRequirements: { scheme: 'exact', amount: '2000' },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:84532',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '2000',
+      },
     });
     cannedRpcStatus = 500;
 

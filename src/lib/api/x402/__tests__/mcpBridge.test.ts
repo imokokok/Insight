@@ -24,6 +24,12 @@ jest.mock('../resourceServer', () => ({
 jest.mock('../guard', () => ({
   recordX402Settlement: jest.fn(),
   logBazaarExtensionStatus: jest.fn(),
+  paymentAuditFields: (requirement: { network: string; asset: string; amount: string }) => ({
+    network: requirement.network,
+    asset: requirement.asset,
+    amountUsdc: String(Number(requirement.amount) / 1_000_000),
+  }),
+  quoteAuditFields: () => ({ network: null }),
   atomicUnitsToUsdc: (atomic: string) => {
     const units = BigInt(atomic);
     const whole = units / 1_000_000n;
@@ -66,12 +72,16 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     fakeServer.processHTTPRequest.mockReset().mockResolvedValue({
       type: 'payment-verified',
       paymentPayload: { x402Version: 2 },
-      paymentRequirements: {},
+      paymentRequirements: {
+        network: 'eip155:84532',
+        asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+        amount: '2000',
+      },
     });
     fakeServer.processSettlement.mockReset().mockResolvedValue({
       success: true,
-      transaction: '0xabc',
-      payer: '0x payer',
+      transaction: `0x${'a'.repeat(64)}`,
+      payer: `0x${'b'.repeat(40)}`,
       amount: '2000',
       headers: { 'PAYMENT-RESPONSE': 'c2V0dGxlZA==' },
     });

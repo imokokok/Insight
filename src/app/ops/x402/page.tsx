@@ -77,9 +77,15 @@ function statusLabel(status: string): string {
   return labels[status] ?? status;
 }
 
-function explorerUrl(network: string, txHash: string): string | null {
+function explorerUrl(network: string | null, txHash: string): string | null {
   if (network === 'eip155:8453') return `https://basescan.org/tx/${txHash}`;
   if (network === 'eip155:84532') return `https://sepolia.basescan.org/tx/${txHash}`;
+  if (network === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
+    return `https://explorer.solana.com/tx/${txHash}`;
+  }
+  if (network === 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1') {
+    return `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+  }
   return null;
 }
 
@@ -119,7 +125,7 @@ export default async function OpsX402Page({
       </OpsScopeNote>
 
       {x402.errored && (
-        <ErrorBanner message="付费调用运营数据暂不可用。请确认 migrations 0079 和 0080 已应用、服务端 Supabase 凭据可读，并检查 x402_settlements 查询错误。" />
+        <ErrorBanner message="付费调用运营数据暂不可用。请确认 migrations 0079、0080 和 0088 已应用，服务端 Supabase 凭据可读，并检查 x402_settlements 查询错误。" />
       )}
 
       <OpsSectionHeading
@@ -401,7 +407,7 @@ export default async function OpsX402Page({
                           {row.resource ?? 'historical / unclassified'}
                         </td>
                         <td className="whitespace-nowrap py-2 pr-3 font-mono text-xs text-gray-500">
-                          {row.network}
+                          {row.network ?? 'unselected / unknown'}
                         </td>
                         <td className="whitespace-nowrap py-2 pr-3 font-mono text-xs tabular-nums">
                           {formatUsdc(row.amountUsdc)}

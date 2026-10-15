@@ -702,7 +702,7 @@ export interface X402OpsRow {
   protocol: 'x402' | 'mpp';
   surface: 'rest' | 'mcp' | 'legacy';
   resource: string | null;
-  network: string;
+  network: string | null;
   amountUsdc: number | null;
   payer: string | null;
   txHash: string | null;
@@ -765,7 +765,7 @@ interface X402OpsDbRow {
   protocol: string | null;
   surface: string | null;
   resource: string | null;
-  network: string;
+  network: string | null;
   amount_usdc: number | string | null;
   payer: string | null;
   tx_hash: string | null;

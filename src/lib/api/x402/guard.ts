@@ -6,8 +6,14 @@ import { z } from 'zod';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
-import { type X402Config } from './config';
+import {
+  getX402PaymentOptions,
+  SOLANA_DEVNET_CAIP2,
+  SOLANA_MAINNET_CAIP2,
+  type X402Config,
+} from './config';
 import { getX402HttpServer } from './resourceServer';
+import { isSolanaPublicKey, isSolanaSignature } from './solanaEncoding';
 
 const logger = createLogger('x402-guard');
 
@@ -101,7 +107,7 @@ export interface X402SettlementAudit {
   txHash?: string;
   payer?: string;
   amountUsdc?: string;
-  network: string;
+  network: string | null;
   asset?: string;
   verdict?: string;
   errorReason?: string;
@@ -124,27 +130,120 @@ const X402SettlementAuditSchema = z
     surface: z.enum(['rest', 'mcp', 'legacy']).optional(),
     resource: z.string().max(512).optional(),
     responseTimeMs: z.number().int().min(0).max(2_147_483_647).optional(),
-    txHash: z
-      .string()
-      .regex(/^0x[a-f0-9]{64}$/i)
-      .optional(),
-    payer: z
-      .string()
-      .regex(/^0x[a-f0-9]{40}$/i)
-      .optional(),
+    txHash: z.string().max(128).optional(),
+    payer: z.string().max(64).optional(),
     amountUsdc: z
       .string()
       .regex(/^\d+(?:\.\d{1,6})?$/)
       .optional(),
-    network: z.enum(['eip155:84532', 'eip155:8453']),
-    asset: z
-      .string()
-      .regex(/^0x[a-f0-9]{40}$/i)
-      .optional(),
+    network: z
+      .enum(['eip155:84532', 'eip155:8453', SOLANA_MAINNET_CAIP2, SOLANA_DEVNET_CAIP2] as const)
+      .nullable(),
+    asset: z.string().max(64).optional(),
     verdict: z.string().max(128).optional(),
     errorReason: z.string().max(512).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((audit, context) => {
+    const isSolana = audit.network?.startsWith('solana:') ?? false;
+    const valid = (value: string | undefined, validator: (candidate: string) => boolean) =>
+      value === undefined || validator(value);
+
+    const validTxHash = valid(
+      audit.txHash,
+      isSolana ? isSolanaSignature : (value) => /^0x[a-f0-9]{64}$/i.test(value)
+    );
+    const validPayer = valid(
+      audit.payer,
+      isSolana ? isSolanaPublicKey : (value) => /^0x[a-f0-9]{40}$/i.test(value)
+    );
+    const validAsset = valid(
+      audit.asset,
+      isSolana ? isSolanaPublicKey : (value) => /^0x[a-f0-9]{40}$/i.test(value)
+    );
+
+    if (!validTxHash || !validPayer || !validAsset) {
+      context.addIssue({
+        code: 'custom',
+        message: 'x402 audit facts do not match the network format',
+      });
+    }
+    if (audit.network === null && (audit.txHash || audit.payer || audit.asset)) {
+      context.addIssue({
+        code: 'custom',
+        message: 'network is required for chain-specific audit facts',
+      });
+    }
+  });
+
+const SupportedX402NetworkSchema = z.enum([
+  'eip155:84532',
+  'eip155:8453',
+  SOLANA_MAINNET_CAIP2,
+  SOLANA_DEVNET_CAIP2,
+] as const);
+
+type SupportedX402Network = z.infer<typeof SupportedX402NetworkSchema>;
+
+interface PaymentRequirementAuditInput {
+  network: string;
+  asset: string;
+  amount: string;
+}
+
+/** Convert the verified requirement into chain-aware audit facts. */
+export function paymentAuditFields(requirement: PaymentRequirementAuditInput): {
+  network: SupportedX402Network | null;
+  asset?: string;
+  amountUsdc?: string;
+} {
+  const network = SupportedX402NetworkSchema.safeParse(requirement.network);
+  if (!network.success || !/^\d+$/.test(requirement.amount)) {
+    logger.warn('x402 payment requirement rejected by audit validation');
+    return { network: null };
+  }
+
+  const isSolana = network.data.startsWith('solana:');
+  const validAsset = isSolana
+    ? isSolanaPublicKey(requirement.asset)
+    : /^0x[a-fA-F0-9]{40}$/.test(requirement.asset);
+  if (!validAsset) {
+    logger.warn('x402 payment asset rejected by audit validation', { network: network.data });
+    return { network: null };
+  }
+
+  try {
+    return {
+      network: network.data,
+      asset: requirement.asset,
+      amountUsdc: atomicUnitsToUsdc(requirement.amount),
+    };
+  } catch {
+    logger.warn('x402 payment amount rejected by audit validation', { network: network.data });
+    return { network: null };
+  }
+}
+
+/** A quote can be attributed only when the route advertises one payment option. */
+export function quoteAuditFields(
+  cfg: X402Config,
+  amountOverride?: string
+): {
+  network: SupportedX402Network | null;
+  asset?: string;
+  amountUsdc?: string;
+} {
+  const options = getX402PaymentOptions(cfg, amountOverride);
+  if (options.length !== 1) return { network: null };
+  const [option] = options;
+  return option
+    ? paymentAuditFields({
+        network: option.network,
+        asset: option.asset,
+        amount: option.amountAtomic,
+      })
+    : { network: null };
+}
 
 /**
  * Best-effort lifecycle audit row. Uses the service-role client (RLS-denied
@@ -282,8 +381,8 @@ export async function handlePaidPreTradeRequest(
     recordX402Settlement({
       requestId,
       status: hasPaymentSignature ? 'payment_rejected' : 'quote_issued',
-      network: cfg.network,
-      amountUsdc: atomicUnitsToUsdc(cfg.amountAtomic),
+      // A multi-chain quote or rejected payload has no validated selected chain.
+      ...(hasPaymentSignature ? { network: null } : quoteAuditFields(cfg)),
       surface: 'rest',
       resource: request.nextUrl.pathname,
       responseTimeMs: Date.now() - requestStartedAt,
@@ -313,8 +412,7 @@ export async function handlePaidPreTradeRequest(
   recordX402Settlement({
     requestId,
     status: 'payment_verified',
-    network: cfg.network,
-    amountUsdc: atomicUnitsToUsdc(cfg.amountAtomic),
+    ...paymentAuditFields(result.paymentRequirements),
     surface: 'rest',
     resource: request.nextUrl.pathname,
     responseTimeMs: Date.now() - requestStartedAt,
@@ -329,7 +427,7 @@ export async function handlePaidPreTradeRequest(
     recordX402Settlement({
       requestId,
       status: 'business_failed',
-      network: cfg.network,
+      ...paymentAuditFields(result.paymentRequirements),
       surface: 'rest',
       resource: request.nextUrl.pathname,
       responseTimeMs: Date.now() - businessStartedAt,
@@ -345,7 +443,7 @@ export async function handlePaidPreTradeRequest(
     recordX402Settlement({
       requestId,
       status: 'business_failed',
-      network: cfg.network,
+      ...paymentAuditFields(result.paymentRequirements),
       surface: 'rest',
       resource: request.nextUrl.pathname,
       responseTimeMs: Date.now() - businessStartedAt,
@@ -362,8 +460,7 @@ export async function handlePaidPreTradeRequest(
   recordX402Settlement({
     requestId,
     status: 'business_succeeded',
-    network: cfg.network,
-    amountUsdc: atomicUnitsToUsdc(cfg.amountAtomic),
+    ...paymentAuditFields(result.paymentRequirements),
     surface: 'rest',
     resource: request.nextUrl.pathname,
     responseTimeMs: Date.now() - businessStartedAt,
@@ -385,8 +482,9 @@ export async function handlePaidPreTradeRequest(
     // settles the issued requirements, so the configured atomic amount is the
     // deterministic charge. Verdict is lifted from the business body
     // (best-effort clone) so audit rows carry the check outcome.
-    const atomic = settle.amount ?? cfg.amountAtomic;
+    const atomic = settle.amount ?? result.paymentRequirements.amount;
     const amountUsdc = atomicUnitsToUsdc(String(atomic));
+    const requirementAudit = paymentAuditFields(result.paymentRequirements);
     let verdict: string | undefined;
     try {
       const body = (await businessResponse.clone().json()) as {
@@ -404,7 +502,8 @@ export async function handlePaidPreTradeRequest(
       txHash: settle.transaction,
       payer: settle.payer,
       amountUsdc,
-      network: cfg.network,
+      network: requirementAudit.network,
+      asset: requirementAudit.asset,
       surface: 'rest',
       resource: request.nextUrl.pathname,
       responseTimeMs: Date.now() - settlementStartedAt,
@@ -414,7 +513,7 @@ export async function handlePaidPreTradeRequest(
     recordX402Settlement({
       requestId,
       status: 'settlement_failed',
-      network: cfg.network,
+      ...paymentAuditFields(result.paymentRequirements),
       surface: 'rest',
       resource: request.nextUrl.pathname,
       responseTimeMs: Date.now() - settlementStartedAt,

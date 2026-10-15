@@ -1,16 +1,18 @@
 import { z } from 'zod';
 
+import { isSolanaPublicKey } from './solanaEncoding';
+
 /**
  * x402 keyless paid-tier configuration for the pre-trade safety check.
  *
  * Design rules (see ~/.workbuddy/insight-x402/x402-pretrade-plan.md):
- * - The kill switch (`X402_ENABLED`) must be exactly "true" AND a syntactically
- *   valid `X402_PAY_TO` must be present for the paid tier to arm. An empty
- *   payTo therefore keeps the endpoint's behaviour byte-identical to today.
+ * - The master switch (`X402_ENABLED`) must be exactly "true". EVM payment
+ *   uses `X402_PAY_TO`; Solana is an independent opt-in that also requires
+ *   `X402_SOLANA_PAY_TO`.
  * - The receiving address lives in server-side env only. It is NEVER read from
  *   request parameters, so a caller cannot redirect a 402 quote to another
  *   wallet.
- * - Price is expressed in US dollars and converted to USDC atomic units
+ * - Prices are expressed in US dollars and converted to USDC atomic units
  *   (6 decimals) at config-parse time, so the wire always carries a
  *   deterministic integer amount.
  */
@@ -41,6 +43,43 @@ export type X402NetworkId = keyof typeof SUPPORTED_NETWORKS;
 
 const NetworkSchema = z.enum(['eip155:84532', 'eip155:8453']);
 
+export const SOLANA_MAINNET_CAIP2 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
+export const SOLANA_DEVNET_CAIP2 = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1' as const;
+
+export type X402SolanaNetworkId = typeof SOLANA_MAINNET_CAIP2 | typeof SOLANA_DEVNET_CAIP2;
+
+const SOLANA_NETWORKS = {
+  [SOLANA_MAINNET_CAIP2]: {
+    /** Canonical mainnet USDC mint. */
+    usdc: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  },
+  [SOLANA_DEVNET_CAIP2]: {
+    /** Circle USDC devnet mint. */
+    usdc: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+  },
+} as const;
+
+export interface X402SolanaConfig {
+  network: X402SolanaNetworkId;
+  /** Owner wallet address; the associated USDC token account must be provisioned. */
+  payTo: string;
+  usdcMint: string;
+  /** USDC atomic units (6 decimals) charged per successful check. */
+  amountAtomic: string;
+  priceUsd: number;
+}
+
+export interface X402PaymentOption {
+  family: 'evm' | 'svm';
+  network: X402NetworkId | X402SolanaNetworkId;
+  payTo: string;
+  asset: string;
+  amountAtomic: string;
+  tokenName?: string;
+}
+
+const SolanaNetworkSchema = z.enum([SOLANA_DEVNET_CAIP2, SOLANA_MAINNET_CAIP2]);
+
 const USDC_DECIMALS = 6;
 
 const PayToSchema = z
@@ -48,9 +87,16 @@ const PayToSchema = z
   .trim()
   .regex(/^0x[a-fA-F0-9]{40}$/, 'X402_PAY_TO must be a 0x-prefixed 20-byte address');
 
+const SolanaPayToSchema = z
+  .string()
+  .trim()
+  .refine(isSolanaPublicKey, 'X402_SOLANA_PAY_TO must be a valid 32-byte Solana public key');
+
 export interface X402Config {
-  /** True only when the kill switch is on AND payTo is a valid address. */
+  /** True when the master switch is on and at least one network is configured. */
   enabled: boolean;
+  /** EVM remains the MPP rail and the legacy/default x402 payment option. */
+  evmEnabled?: boolean;
   network: X402NetworkId;
   payTo: string;
   /** USDC atomic units (6 decimals) charged per successful check. */
@@ -68,6 +114,8 @@ export interface X402Config {
    * unauthenticated verify/settle calls. Null = no auth (x402.org default).
    */
   facilitatorCdpAuth: { apiKeyId: string; apiKeySecret: string } | null;
+  /** Optional, independently opted-in Solana x402 option. */
+  solana?: X402SolanaConfig | null;
 }
 
 function parsePriceUsd(raw: string | undefined): number {
@@ -134,10 +182,33 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
   const payTo = rawPayTo === '' ? '' : PayToSchema.parse(rawPayTo);
 
   const flagEnabled = env.X402_ENABLED === 'true';
+  const evmEnabled = flagEnabled && payTo !== '';
+
+  const solanaFlagEnabled = flagEnabled && env.X402_SOLANA_ENABLED === 'true';
+  const rawSolanaPayTo = env.X402_SOLANA_PAY_TO?.trim() ?? '';
+  const solanaPayTo = rawSolanaPayTo === '' ? '' : SolanaPayToSchema.parse(rawSolanaPayTo);
+  if (solanaFlagEnabled && solanaPayTo === '') {
+    throw new Error('X402_SOLANA_ENABLED=true requires X402_SOLANA_PAY_TO');
+  }
+
+  let solana: X402SolanaConfig | null = null;
+  if (solanaFlagEnabled && solanaPayTo !== '') {
+    const solanaNetwork = SolanaNetworkSchema.parse(env.X402_SOLANA_NETWORK ?? SOLANA_DEVNET_CAIP2);
+    const solanaPriceUsd = parsePriceUsd(env.X402_SOLANA_PRICE_USD ?? env.X402_PRICE_USD);
+    solana = {
+      network: solanaNetwork,
+      payTo: solanaPayTo,
+      usdcMint: SOLANA_NETWORKS[solanaNetwork].usdc,
+      amountAtomic: usdToAtomicUnits(solanaPriceUsd),
+      priceUsd: solanaPriceUsd,
+    };
+  }
+
   const facilitatorUrl = env.X402_FACILITATOR_URL?.trim() || 'https://x402.org/facilitator';
 
   return {
-    enabled: flagEnabled && payTo !== '',
+    enabled: evmEnabled || solana !== null,
+    evmEnabled,
     network,
     payTo,
     amountAtomic: usdToAtomicUnits(priceUsd),
@@ -146,6 +217,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     facilitatorTimeoutMs: 15_000,
     maxTimeoutSeconds: 60,
     facilitatorCdpAuth: parseFacilitatorCdpAuth(env, facilitatorUrl),
+    solana,
   };
 }
 
@@ -164,7 +236,7 @@ export const X402_MCP_ROUTE = '/api/mcp';
  */
 export const X402_CREDIT_USD = 0.004;
 
-/** USDC asset address for the configured network. */
+/** EVM USDC contract for the configured EVM network. */
 export function usdcForNetwork(network: X402NetworkId): string {
   return SUPPORTED_NETWORKS[network].usdc;
 }
@@ -178,10 +250,42 @@ export function tokenNameForNetwork(network: X402NetworkId): string {
   return SUPPORTED_NETWORKS[network].tokenName;
 }
 
+/** Build the network-specific payment options advertised by REST and MCP. */
+export function getX402PaymentOptions(
+  cfg: X402Config,
+  amountOverride?: string
+): X402PaymentOption[] {
+  const options: X402PaymentOption[] = [];
+  const evmEnabled = cfg.evmEnabled ?? (cfg.enabled && cfg.payTo !== '');
+
+  if (evmEnabled && cfg.payTo !== '') {
+    options.push({
+      family: 'evm',
+      network: cfg.network,
+      payTo: cfg.payTo,
+      asset: usdcForNetwork(cfg.network),
+      amountAtomic: amountOverride ?? cfg.amountAtomic,
+      tokenName: tokenNameForNetwork(cfg.network),
+    });
+  }
+
+  if (cfg.solana) {
+    options.push({
+      family: 'svm',
+      network: cfg.solana.network,
+      payTo: cfg.solana.payTo,
+      asset: cfg.solana.usdcMint,
+      amountAtomic: amountOverride ?? cfg.solana.amountAtomic,
+    });
+  }
+
+  return options;
+}
+
 /**
- * Resolve the x402 config for a request. Returns `enabled: false` when the
- * paid tier is not armed (kill switch off, or payTo intentionally left empty),
- * in which case the caller must fall through to the legacy API-key path.
+ * Resolve x402 configuration for a request. Returns `enabled: false` when the
+ * master switch is off or no network has a configured receiving wallet, in
+ * which case the caller falls through to the legacy API-key path.
  */
 export function getX402Config(env: NodeJS.ProcessEnv = process.env): X402Config {
   return parseX402Config(env);

@@ -8,6 +8,7 @@ import {
   handlePaidPreTradeRequest,
   hasAuthCredentials,
   isPaidRequest,
+  paymentAuditFields,
   toNextResponse,
 } from '../guard';
 import { getX402HttpServer } from '../resourceServer';
@@ -97,6 +98,28 @@ function makeRequest(headers: Record<string, string> = {}): NextRequest {
 const OK_BUSINESS = () => Promise.resolve(NextResponse.json({ ok: true }, { status: 200 }));
 
 describe('x402 guard', () => {
+  describe('chain-aware payment audit fields', () => {
+    it('formats verified Solana USDC requirements without assuming the EVM network', () => {
+      expect(
+        paymentAuditFields({
+          network: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+          asset: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+          amount: '20000',
+        })
+      ).toEqual({
+        network: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+        asset: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+        amountUsdc: '0.02',
+      });
+    });
+
+    it('omits unsupported or malformed payment requirements from audit facts', () => {
+      expect(
+        paymentAuditFields({ network: 'solana:unknown', asset: 'not-a-mint', amount: '20000' })
+      ).toEqual({ network: null });
+    });
+  });
+
   describe('header detection', () => {
     it('detects the v2 PAYMENT-SIGNATURE header', () => {
       expect(isPaidRequest(makeRequest({ 'payment-signature': 'abc' }))).toBe(true);
@@ -153,7 +176,12 @@ describe('x402 guard', () => {
         type: 'payment-verified',
         cancellationDispatcher: {},
         paymentPayload: { x402Version: 2 },
-        paymentRequirements: { scheme: 'exact', amount: '20000' },
+        paymentRequirements: {
+          scheme: 'exact',
+          network: 'eip155:84532',
+          asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+          amount: '20000',
+        },
       });
       const processSettlement = jest.fn().mockResolvedValue({
         success: true,
@@ -196,7 +224,12 @@ describe('x402 guard', () => {
         type: 'payment-verified',
         cancellationDispatcher: {},
         paymentPayload: { x402Version: 2 },
-        paymentRequirements: { scheme: 'exact', amount: '20000' },
+        paymentRequirements: {
+          scheme: 'exact',
+          network: 'eip155:84532',
+          asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+          amount: '20000',
+        },
       });
       const processSettlement = jest.fn();
       mockedGetServer.mockResolvedValue({ processHTTPRequest, processSettlement });
@@ -216,7 +249,12 @@ describe('x402 guard', () => {
         type: 'payment-verified',
         cancellationDispatcher: {},
         paymentPayload: { x402Version: 2 },
-        paymentRequirements: { scheme: 'exact', amount: '20000' },
+        paymentRequirements: {
+          scheme: 'exact',
+          network: 'eip155:84532',
+          asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+          amount: '20000',
+        },
       });
       const processSettlement = jest.fn().mockResolvedValue({
         success: false,
