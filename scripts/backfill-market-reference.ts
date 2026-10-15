@@ -289,20 +289,18 @@ async function fetchBitstampHourlyCandles(
       throw new Error(`bitstamp ${symbol} candles returned an unexpected market`);
     }
 
-    const pageCandles = data.ohlc.flatMap((rawCandle): Candle[] => {
+    const parsedPageCandles = data.ohlc.flatMap((rawCandle): Candle[] => {
       const candle = asRecord(rawCandle);
       if (!candle) return [];
-      const timestamp =
-        typeof candle.timestamp === 'string' || typeof candle.timestamp === 'number'
-          ? Number(candle.timestamp)
-          : Number.NaN;
-      const timeMs = Number.isSafeInteger(timestamp) && timestamp > 0 ? timestamp * 1000 : NaN;
+      const timestamp = parseFiniteNumber(candle.timestamp);
+      const timeMs =
+        timestamp !== null && Number.isSafeInteger(timestamp) && timestamp > 0
+          ? timestamp * 1000
+          : NaN;
       const close = parseFiniteNumber(candle.close) ?? Number.NaN;
       const volume = parseFiniteNumber(candle.volume) ?? Number.NaN;
       if (
         !Number.isSafeInteger(timeMs) ||
-        timeMs < startMs ||
-        timeMs >= endMs ||
         !Number.isFinite(close) ||
         close <= 0 ||
         !Number.isFinite(volume) ||
@@ -312,22 +310,24 @@ async function fetchBitstampHourlyCandles(
       }
       return [{ time: new Date(timeMs), close, volume }];
     });
-    candles.push(...pageCandles);
-    if (data.ohlc.length === 0) break;
-    if (pageCandles.length === 0) {
+    if (data.ohlc.length > 0 && parsedPageCandles.length === 0) {
       throw new Error(`bitstamp ${symbol} candle page has no valid observations`);
     }
-
-    const oldest = pageCandles.reduce(
-      (value, candle) => Math.min(value, Math.floor(candle.time.getTime() / 1000)),
+    const oldest = parsedPageCandles.reduce(
+      (value, candle) => Math.min(value, candle.time.getTime()),
       Number.POSITIVE_INFINITY
     );
+    const pageCandles = parsedPageCandles.filter(
+      (candle) => candle.time.getTime() >= startMs && candle.time.getTime() < endMs
+    );
+    candles.push(...pageCandles);
+    if (data.ohlc.length === 0) break;
     if (!Number.isFinite(oldest)) break;
-    const nextEndSeconds = oldest - 1;
+    const nextEndSeconds = Math.floor(oldest / 1000) - 1;
     if (nextEndSeconds >= cursorEndSeconds) {
       throw new Error(`bitstamp ${symbol} candle cursor did not advance`);
     }
-    if (data.ohlc.length < 1000 || oldest * 1000 <= startMs) break;
+    if (data.ohlc.length < 1000 || oldest <= startMs) break;
     cursorEndSeconds = nextEndSeconds;
   }
 
