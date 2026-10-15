@@ -4,9 +4,8 @@ name: Backfill Market Reference
 # BACKFILL_DAYS of hourly candles from Coinbase Exchange and Kraken, plus
 # Crypto.com WBTC/USD and (when commercially licensed) Bitstamp and Bitfinex
 # direct USD spot candles and Binance's WBTC/USDT × USDT/USD cross-market price,
-# then upserts
-# them into `market_reference_snapshots`
-# (migration 0038 must be applied first).
+# then upserts them into `market_reference_snapshots` (migration 0038 must be
+# applied first; migration 0087 is required for the optional licensed sources).
 #
 # Trigger manually: Actions → Backfill Market Reference → Run workflow →
 # set "days" (default 90). Idempotent (upsert with ignoreDuplicates), safe to
