@@ -6,7 +6,7 @@ import { PGlite } from '@electric-sql/pglite';
 // Regression: 0077 declared the audit network check with legacy names
 // ('base', 'base-sepolia') while the code writes CAIP-2 ids ('eip155:84532'),
 // so every settlement audit insert was rejected in production. 0078 widens
-// the check to CAIP-2, and 0088 adds nullable network support plus Solana networks.
+// the check to CAIP-2, and 0088/0089 add Solana plus the supported EVM networks.
 test('x402 settlement audit accepts supported CAIP-2 networks and nullable quotes', async () => {
   const db = new PGlite();
   try {
@@ -16,6 +16,7 @@ test('x402 settlement audit accepts supported CAIP-2 networks and nullable quote
       '0078_x402_settlements_network_caip2.sql',
       '0079_x402_ops_lifecycle.sql',
       '0088_x402_solana_networks.sql',
+      '0089_x402_evm_networks.sql',
     ]) {
       await db.exec(
         await readFile(new URL(`../../supabase/migrations/${migration}`, import.meta.url), 'utf8')
@@ -24,6 +25,13 @@ test('x402 settlement audit accepts supported CAIP-2 networks and nullable quote
     const supportedNetworks = [
       'eip155:84532',
       'eip155:8453',
+      'eip155:1',
+      'eip155:10',
+      'eip155:42161',
+      'eip155:137',
+      'eip155:43114',
+      'eip155:1329',
+      'eip155:196',
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
     ];
