@@ -9,11 +9,13 @@ name: Market Reference Collect
 # Sources: Coinbase, Kraken, Gemini, Crypto.com (WBTC/USD only), plus optional
 # licensed Bitstamp/Bitfinex/Binance sources. Binance WBTC uses the dedicated
 # public market-data endpoint and a verified WBTC/USDT × USDT/USD conversion.
+# The dedicated Binance endpoint has been reached from the developer host, but
+# availability from this GitHub-hosted runner has not yet been confirmed.
 # Set the repository variable
 # MARKET_REFERENCE_LICENSED_EXCHANGES only after written commercial data rights
-# are confirmed and migration 0087 has been applied. Gemini replaced Binance,
-# whose standard API returns HTTP 451 on GitHub US runners; the dedicated
-# market-data endpoint still requires an Actions-runner availability check.
+# are confirmed and migration 0087 has been applied. The standard Binance API
+# host returned HTTP 451 on GitHub US runners; the dedicated market-data host
+# is separate and remains subject to a runner check.
 
 on:
   workflow_dispatch:

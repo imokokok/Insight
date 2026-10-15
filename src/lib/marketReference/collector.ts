@@ -29,14 +29,14 @@
  *    version, client-measured latency) so provenance is separable from
  *    applicability.
  *
- * Gemini note: Binance's standard public API was geo-blocked (HTTP 451) on
- * GitHub US runners, so Gemini (NY-regulated, public keyless pubticker) gives
- * us a third source for supported symbols. Coinbase and Kraken cover the broad
- * demand-led universe; WBTC is covered by Kraken and Crypto.com because
- * Coinbase has no centralized WBTC market. Binance's dedicated public-market
- * data endpoint can provide a fresh WBTC/USDT × USDT/USD composite observation
- * for WBTC. Optional sources remain license-gated; unsupported pairs remain
- * explicit failed observations rather than estimates.
+ * Source coverage: Coinbase, Kraken, and Gemini provide broad direct-USD spot
+ * coverage; Crypto.com adds a direct WBTC/USD market. Bitstamp and Bitfinex
+ * add optional direct-USD spot coverage, while Binance currently adds a
+ * WBTC/USDT × USDT/USD composite through its dedicated public-market-data host.
+ * Binance's standard API host returned HTTP 451 on a GitHub-hosted runner in
+ * prior checks; the dedicated host is a separate route whose GitHub-runner
+ * availability still requires an actual runner check. Optional sources remain
+ * license-gated, and unsupported pairs remain explicit failed observations.
  * Cross-exchange consistency is computed by the `market_reference_hourly`
  * view, not asserted here.
  */
