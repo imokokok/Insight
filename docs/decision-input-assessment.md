@@ -211,7 +211,14 @@ the assessment used.
   off until commercial-use terms are confirmed. CEX.IO was removed after live
   verification found its newest returned WBTC trade was stale despite a current
   ticker response.
-- **Gemini:** remains a third independent source for its supported ticker set.
+- **Bitstamp and Bitfinex:** both are implemented as optional direct-USD spot
+  sources. The collector discovers active USD spot pairs from each venue's
+  public catalog, validates live source timestamps, and keeps each venue as an
+  independent row in the hourly reference. Licensed hourly-candle backfill is
+  also available for both. Collection stays disabled until written commercial
+  data-use permission is confirmed and the venue is added to
+  `MARKET_REFERENCE_LICENSED_EXCHANGES`.
+- **Gemini:** provides a direct USD spot source for its supported ticker set.
 
 ## Result
 

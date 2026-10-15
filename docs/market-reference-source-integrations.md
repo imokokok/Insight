@@ -15,10 +15,12 @@ terms cover the intended Insight use.
   or infer USD from EUR, derivatives, or a wrapped-asset proxy.
 - The configured Insight market-reference universe remains the upper bound;
   discovering an exchange market does not add a new Insight asset.
-- `data_age_seconds` remains client-measured collector latency. Bitstamp ticker
-  time and Bitfinex/Binance latest-public-trade times are recorded separately
-  in `source_observed_at`. For Binance, that field is the older of the two
-  conversion-leg trade timestamps.
+- `data_age_seconds` remains client-measured collector latency. Live Bitstamp
+  ticker time and Bitfinex/Binance latest-public-trade times are recorded
+  separately in `source_observed_at`. For Binance, that field is the older of
+  the two conversion-leg trade timestamps. Historical Bitstamp and Bitfinex
+  candles use the candle timestamp as `snapshot_ts` and leave
+  `source_observed_at` null.
 - A source timestamp must be no more than 15 minutes old and no more than 60
   seconds in the future. Missing, malformed, or stale source timestamps fail
   closed. No estimate or stale price is substituted.
@@ -32,6 +34,7 @@ Official public endpoints:
 
 - Markets: `GET https://www.bitstamp.net/api/v2/markets/`
 - Ticker: `GET https://www.bitstamp.net/api/v2/ticker/{market_symbol}/`
+- Hourly candles: `GET https://www.bitstamp.net/api/v2/ohlc/{market_symbol}/`
 - API reference: <https://www.bitstamp.net/api/>
 
 The collector discovers the market catalog and retains entries where
@@ -39,6 +42,9 @@ The collector discovers the market catalog and retains entries where
 `SPOT`, and `trading` is `Enabled`. It rejects ambiguous USD spot entries for
 the same base. The selected ticker supplies `last`, `bid`, `ask`, 24-hour
 `volume`, and Unix-second `timestamp`; that timestamp is freshness-checked.
+The licensed historical backfill uses the same discovered USD spot market and
+hourly OHLC endpoint, excludes the open candle, and pages backward with a
+cursor-advance guard.
 
 ## Bitfinex
 
@@ -47,14 +53,17 @@ Official public endpoints:
 - Exchange-pair catalog: `GET https://api-pub.bitfinex.com/v2/conf/pub:list:pair:exchange`
 - Multiple tickers: `GET https://api-pub.bitfinex.com/v2/tickers?symbols=...`
 - Latest public trade: `GET https://api-pub.bitfinex.com/v2/trades/{symbol}/hist?limit=1&sort=-1`
+- Hourly candles: `GET https://api-pub.bitfinex.com/v2/candles/trade:1h:{symbol}/hist`
 - API references: <https://docs.bitfinex.com/reference/rest-public-conf>,
   <https://docs.bitfinex.com/reference/rest-public-tickers>, and
-  <https://docs.bitfinex.com/reference/rest-public-trades>
+  <https://docs.bitfinex.com/reference/rest-public-trades> and
+  <https://docs.bitfinex.com/reference/rest-public-candles>
 
 The adapter matches catalog entries exactly equal to `BASEUSD` or `BASE:USD`.
 The ticker provides best bid, best ask, and 24-hour base volume. The latest
 public trade supplies price and millisecond epoch timestamp. Margin, futures,
-securities, and stablecoin-converted pairs are excluded.
+securities, and stablecoin-converted pairs are excluded. Licensed historical
+backfill uses Bitfinex's hourly trade candles for the same exact USD spot pair.
 
 ## Binance WBTC/USD composite
 
@@ -87,10 +96,25 @@ source time is the older of the WBTC/USDT and USDT/USD latest trades. Historical
 backfill uses only matched, completed hourly candles from both markets and
 applies the same licensed-source switch.
 
-The live public API is documented as keyless on `data-api.binance.vision`. Its
-availability does not itself establish Insight's right to store, derive, or
-show data commercially; confirm the applicable Binance terms before enabling
-the integration for production collection.
+The live public API is documented as keyless on `data-api.binance.vision`. The
+standard `api.binance.com` host previously returned HTTP 451 on a GitHub-hosted
+runner. The dedicated `data-api.binance.vision` host is separate; a successful
+developer-host request does not confirm that the GitHub runner can reach it.
+Record a successful hosted collection before relying on Binance in scheduled
+production data. API availability does not establish Insight's right to store,
+derive, or show data commercially; confirm the applicable Binance terms before
+enabling the integration for production collection.
+
+## Historical backfill
+
+The manual backfill collects Coinbase and Kraken hourly data, direct Crypto.com
+WBTC/USD candles, Bitstamp and Bitfinex USD spot candles when those sources are
+included in `MARKET_REFERENCE_LICENSED_EXCHANGES`, and the matched Binance
+WBTC/USDT × USDT/USD composite candles when Binance is included. Gemini does not
+currently have a historical-candle backfill path. All three optional sources
+are disabled when the variable is empty. Local collector and backfill commands
+read the same variable from `.env.local`; the GitHub Actions workflows read the
+repository Actions variable.
 
 ## Enablement sequence
 
