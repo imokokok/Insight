@@ -149,10 +149,11 @@ export default function DataSourcesSection() {
               Independent CEX spot-market references
             </h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Coinbase, Kraken, and Gemini provide direct USD spot references; Crypto.com adds a
-              direct WBTC/USD market. Bitstamp and Bitfinex are optional direct USD spot sources.
-              Binance currently adds a WBTC reference derived from its WBTC/USDT and USDT/USD spot
-              markets, so its quote-currency conversion remains explicit.
+              Coinbase, Kraken, and Gemini provide direct USD spot references for their supported
+              pairs; Crypto.com adds a direct WBTC/USD market. Bitstamp and Bitfinex are optional
+              direct USD spot sources for their supported pairs. Binance currently adds a WBTC
+              reference derived from its WBTC/USDT and USDT/USD spot markets, so its quote-currency
+              conversion remains explicit.
             </p>
             <p className="mt-3 text-sm text-slate-600 leading-relaxed">
               Optional Bitstamp, Bitfinex, and Binance collection is enabled only when the intended
