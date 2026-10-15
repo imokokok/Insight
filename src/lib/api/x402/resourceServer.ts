@@ -215,7 +215,7 @@ export async function buildX402HttpServer(
     .map((option) => option.network);
   if (unsupportedNetworks.length > 0) {
     throw new Error(
-      `X402_FACILITATOR_URL does not advertise x402 v2 exact support for: ${unsupportedNetworks.join(', ')}. Check its /supported endpoint and X402_EVM_NETWORKS/X402_SOLANA_NETWORK.`
+      `X402_FACILITATOR_URL does not advertise x402 v2 exact support for: ${unsupportedNetworks.join(', ')}. Check its /supported endpoint and the configured x402 network values.`
     );
   }
 

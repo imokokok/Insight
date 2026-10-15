@@ -80,13 +80,6 @@ function statusLabel(status: string): string {
 function explorerUrl(network: string | null, txHash: string): string | null {
   if (network === 'eip155:8453') return `https://basescan.org/tx/${txHash}`;
   if (network === 'eip155:84532') return `https://sepolia.basescan.org/tx/${txHash}`;
-  if (network === 'eip155:1') return `https://etherscan.io/tx/${txHash}`;
-  if (network === 'eip155:10') return `https://optimistic.etherscan.io/tx/${txHash}`;
-  if (network === 'eip155:42161') return `https://arbiscan.io/tx/${txHash}`;
-  if (network === 'eip155:137') return `https://polygonscan.com/tx/${txHash}`;
-  if (network === 'eip155:43114') return `https://snowtrace.io/tx/${txHash}`;
-  if (network === 'eip155:1329') return `https://seitrace.com/tx/${txHash}`;
-  if (network === 'eip155:196') return `https://www.oklink.com/x-layer/tx/${txHash}`;
   if (network === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
     return `https://explorer.solana.com/tx/${txHash}`;
   }
@@ -132,7 +125,7 @@ export default async function OpsX402Page({
       </OpsScopeNote>
 
       {x402.errored && (
-        <ErrorBanner message="付费调用运营数据暂不可用。请确认 migrations 0079、0080、0088 和 0089 已应用，服务端 Supabase 凭据可读，并检查 x402_settlements 查询错误。" />
+        <ErrorBanner message="付费调用运营数据暂不可用。请确认 migrations 0079、0080 和 0088 已应用，服务端 Supabase 凭据可读，并检查 x402_settlements 查询错误。" />
       )}
 
       <OpsSectionHeading

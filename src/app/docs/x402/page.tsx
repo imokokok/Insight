@@ -10,7 +10,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Pay-per-Call Quickstart: x402 and MPP — Insight',
   description:
-    'Call the Insight pre-trade safety check with no account or API key: pay in USDC on configured EVM or Solana networks via x402, or the configured EVM network via optional MPP.',
+    'Call the Insight pre-trade safety check with no account or API key: pay in USDC on the configured EVM network or optional Solana network via x402; MPP uses the configured EVM network.',
   keywords: [
     'x402 quickstart',
     'MPP quickstart',
@@ -31,7 +31,7 @@ const PAY_FACTS = [
   {
     value: '$0.02',
     label: 'Per check (C3)',
-    detail: 'USDC on configured EVM or Solana x402 networks; MPP remains EVM-only',
+    detail: 'USDC on the configured EVM or optional Solana x402 network; MPP remains EVM-only',
   },
   {
     value: '0',
@@ -91,25 +91,31 @@ curl -sD - -o /dev/null "${ENDPOINT}" \\
 #   scheme "exact", network "eip155:8453" (Base),
 #   USDC 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913, 20000 atomic units ($0.02),
 #   payTo 0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231.
-# The quote lists each configured EVM network; an enabled Solana option is listed too.
+# The quote includes the configured EVM option and, when enabled, a Solana option.
 # The registered x402 scheme signs the selected option, retries, and returns the verdict.`;
 
 const tsCode = `// npm i @x402/fetch @x402/evm viem
 import { wrapFetchWithPayment, x402Client } from '@x402/fetch';
 import { ExactEvmScheme, toClientEvmSigner } from '@x402/evm';
 import { privateKeyToAccount } from 'viem/accounts';
+import { createPublicClient, http } from 'viem';
+import { base } from 'viem/chains';
 
 const account = privateKeyToAccount(process.env.EVM_PRIVATE_KEY!);
+const publicClient = createPublicClient({
+  chain: base,
+  transport: http('https://mainnet.base.org'),
+});
 const client = new x402Client().register(
-  'eip155:*',
-  new ExactEvmScheme(toClientEvmSigner(account)),
+  'eip155:8453',
+  new ExactEvmScheme(toClientEvmSigner(account, publicClient)),
 );
 const fetchWithPay = wrapFetchWithPayment(fetch, client);
 
 const res = await fetchWithPay('${ENDPOINT}');
 const check = await res.json();
 console.log(check.verdict, check.recommendedMaxPositionUsd);
-// The server only advertises its configured, facilitator-supported networks.`;
+// The 402 -> sign -> retry -> settle round trip is automatic.`;
 
 const solanaTsCode = `// npm i @x402/fetch @x402/svm @solana/kit @scure/base
 import { base58 } from '@scure/base';
@@ -332,24 +338,14 @@ export default function X402QuickstartPage() {
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 Wrap <code className="font-mono text-base">fetch</code> with an x402 client and the
                 402 round trip disappears: the wrapper signs on the advertised EVM network, retries,
-                and hands your code the verdict JSON. The wildcard client can pay on any EVM network
-                listed by the server; the next section shows the Solana client.
+                and hands your code the verdict JSON. The client pays on the configured EVM network.
+                The next section shows the Solana client.
               </p>
             </div>
           </div>
           <div className="mt-6">
             <CodeBlock code={tsCode} label="pre-trade.mts" />
           </div>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-500">
-            Configure comma-separated CAIP-2 ids in{' '}
-            <code className="font-mono">X402_EVM_NETWORKS</code> to advertise multiple EVM chains.
-            The registry includes Ethereum, OP Mainnet, Arbitrum, Polygon, Avalanche, Sei, X Layer,
-            Base, and Base Sepolia. If the variable is unset, x402 uses only{' '}
-            <code className="font-mono">X402_NETWORK</code>; that setting remains MPP&apos;s single
-            EVM network. The same <code className="font-mono">X402_PAY_TO</code> address is reused,
-            while each chain has a separate USDC balance. Only list networks advertised by the
-            facilitator&apos;s <code className="font-mono">/supported</code> endpoint.
-          </p>
         </div>
       </section>
 
@@ -363,9 +359,9 @@ export default function X402QuickstartPage() {
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 When Solana is enabled on the deployment, the endpoint advertises a Solana x402 V2{' '}
-                <code className="font-mono text-base">exact</code> option alongside the enabled EVM
-                options. Register the Solana scheme in your client and keep its signer on the server
-                or behind a spending-limited signing interface. The selected facilitator must
+                <code className="font-mono text-base">exact</code> option alongside the configured
+                EVM option. Register the Solana scheme in your client and keep its signer on the
+                server or behind a spending-limited signing interface. The selected facilitator must
                 advertise support for this exact network and scheme.
               </p>
             </div>
