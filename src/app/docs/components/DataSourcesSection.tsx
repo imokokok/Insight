@@ -63,7 +63,9 @@ export default function DataSourcesSection() {
           </div>
           <p className="text-slate-600 leading-relaxed max-w-3xl">
             Insight aggregates price data from leading oracle providers across 40+ blockchain
-            networks, normalizing every feed into a common format for comparison and analysis.
+            networks, normalizing every feed into a common format for comparison and analysis. It
+            also maintains a separate CEX spot-market reference for oracle divergence and decision
+            input context.
           </p>
         </motion.div>
 
@@ -136,6 +138,29 @@ export default function DataSourcesSection() {
                 </tbody>
               </table>
             </div>
+          </motion.div>
+
+          {/* Independent centralized-exchange references are separate from oracle providers. */}
+          <motion.div
+            variants={itemVariants}
+            className="border-l-2 border-emerald-600 bg-emerald-50/70 p-6"
+          >
+            <h3 className="font-semibold text-slate-900 mb-2">
+              Independent CEX spot-market references
+            </h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Coinbase, Kraken, and Gemini provide direct USD spot references for their supported
+              pairs; Crypto.com adds a direct WBTC/USD market. Bitstamp and Bitfinex are optional
+              direct USD spot sources for their supported pairs. Binance currently adds a WBTC
+              reference derived from its WBTC/USDT and USDT/USD spot markets, so its quote-currency
+              conversion remains explicit.
+            </p>
+            <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+              Optional Bitstamp, Bitfinex, and Binance collection is enabled only when the intended
+              commercial use is covered by written data permissions and the deployment is
+              configured. These market references are evidence for comparison; they are not counted
+              among the 10 oracle providers and do not enter oracle consensus.
+            </p>
           </motion.div>
 
           {/* Verification note */}

@@ -3,9 +3,12 @@
 Insight already reads Chainlink feeds for its oracle product. This adds a
 separate, read-only check that compares one catalogued Chainlink USD feed with
 the existing Coinbase, Kraken, and Gemini spot observations; Crypto.com supplies
-the second direct USD spot market for WBTC. Chainlink is
-reported as an oracle reference, not counted as a fourth exchange, and this
-check does not persist or publish any prices or affect production decisions.
+the second direct USD spot market for WBTC. Bitstamp and Bitfinex can add direct
+USD spot observations, while Binance currently supports a WBTC/USDT × USDT/USD
+composite. Set `MARKET_REFERENCE_LICENSED_EXCHANGES` only after the relevant
+written commercial data permissions are in place. Chainlink is reported as an
+oracle reference, not counted as an exchange, and this check does not persist or
+publish prices or affect production decisions.
 
 ## Run locally
 
@@ -22,7 +25,15 @@ Optional local settings:
 ```dotenv
 CHAINLINK_DEV_TEST_SYMBOL=ETH
 CHAINLINK_DEV_TEST_CHAIN_ID=8453
+# Optional; requires written commercial data permissions and migration 0087.
+MARKET_REFERENCE_LICENSED_EXCHANGES=bitstamp,bitfinex,binance
 ```
+
+The Binance adapter uses `data-api.binance.vision`, the dedicated public-market
+data host. The ordinary `api.binance.com` host returned HTTP 451 on a previous
+GitHub-hosted runner check. The dedicated host is a distinct endpoint; its
+availability on the scheduled GitHub runner still needs to be confirmed by a
+hosted collection run.
 
 The JSON output includes the selected feed address/path, price, update age,
 catalog heartbeat, freshness status, CEX quotes, CEX median, and their relative

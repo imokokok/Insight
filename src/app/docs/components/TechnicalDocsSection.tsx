@@ -58,9 +58,9 @@ const docs: DocCard[] = [
     icon: <Database className="w-6 h-6" />,
     title: 'Data Sources',
     description:
-      '10 oracle providers including Chainlink, API3, RedStone, DIA, WINkLink, Supra, TWAP, Reflector, Flare, and Band Protocol.',
+      '10 oracle providers plus independent CEX market references for price divergence and decision-input context.',
     href: '#data-sources',
-    tags: ['10 Oracles', '40+ Chains', 'On-chain Data'],
+    tags: ['10 Oracle Providers', 'CEX References', '40+ Chains'],
     accent: 'amber',
     anchor: true,
   },

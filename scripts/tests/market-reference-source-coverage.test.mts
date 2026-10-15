@@ -31,6 +31,15 @@ test('market-reference hourly rollups count independent exchanges, not ticker ro
     );
     await db.exec(migration);
 
+    const sourceTimestampsMigration = await readFile(
+      new URL(
+        '../../supabase/migrations/0087_market_reference_source_timestamps.sql',
+        import.meta.url
+      ),
+      'utf8'
+    );
+    await db.exec(sourceTimestampsMigration);
+
     await db.exec(`
       INSERT INTO public.market_reference_snapshots
         (snapshot_ts,symbol,exchange,ref_price,volume,bid_ask_spread_pct,data_age_seconds,is_success)
@@ -80,6 +89,70 @@ test('market-reference hourly rollups count independent exchanges, not ticker ro
     assert.equal(Number(latest.cross_exchange_spread_pct), ((215 - 115) / 215) * 100);
     assert.ok(Math.abs(Number(latest.median_bid_ask_spread_pct) - 2.7) < 1e-12);
     assert.equal(Number(latest.median_volume), 137.5);
+
+    await db.exec(`
+      INSERT INTO public.market_reference_snapshots
+        (snapshot_ts,symbol,exchange,ref_price,volume,bid_ask_spread_pct,
+         data_age_seconds,is_success,source_observed_at)
+      VALUES
+        (date_trunc('hour', now()),'BTC','bitstamp',84000,100,0.1,1,true,now()),
+        (date_trunc('hour', now()),'BTC','bitfinex',84100,120,0.2,1,true,now());
+    `);
+
+    const sourceRows = (
+      await db.query(
+        `SELECT exchange,source_observed_at
+         FROM public.market_reference_snapshots WHERE symbol='BTC' ORDER BY exchange`
+      )
+    ).rows;
+    assert.equal(sourceRows.length, 2);
+    assert.deepEqual(
+      sourceRows.map((row) => row.exchange),
+      ['bitfinex', 'bitstamp']
+    );
+    assert.ok(sourceRows.every((row) => row.source_observed_at instanceof Date));
+
+    const newVenueRollup = (
+      await db.query(
+        `SELECT exchange_count FROM public.market_reference_hourly
+         WHERE symbol='BTC' AND ref_hour=date_trunc('hour', now())`
+      )
+    ).rows[0];
+    assert.equal(Number(newVenueRollup.exchange_count), 2);
+
+    const newVenueLatest = (
+      await db.query(`SELECT exchange_count FROM public.get_latest_market_reference('btc')`)
+    ).rows[0];
+    assert.equal(Number(newVenueLatest.exchange_count), 2);
+
+    await db.exec(`
+      INSERT INTO public.market_reference_snapshots
+        (snapshot_ts,symbol,exchange,ref_price,volume,bid_ask_spread_pct,
+         data_age_seconds,is_success,source_observed_at)
+      VALUES
+        (date_trunc('hour', now()),'WBTC','binance',84050,25,0.15,1,true,now());
+    `);
+
+    const wbtcThreeVenueRollup = (
+      await db.query(
+        `SELECT exchange_count FROM public.market_reference_hourly
+         WHERE symbol='WBTC' AND ref_hour=date_trunc('hour', now())`
+      )
+    ).rows[0];
+    assert.equal(Number(wbtcThreeVenueRollup.exchange_count), 3);
+
+    const wbtcThreeVenueLatest = (
+      await db.query(`SELECT exchange_count FROM public.get_latest_market_reference('wbtc')`)
+    ).rows[0];
+    assert.equal(Number(wbtcThreeVenueLatest.exchange_count), 3);
+
+    const binanceSourceTimestamp = (
+      await db.query(
+        `SELECT source_observed_at FROM public.market_reference_snapshots
+         WHERE symbol='WBTC' AND exchange='binance'`
+      )
+    ).rows[0];
+    assert.ok(binanceSourceTimestamp.source_observed_at instanceof Date);
   } finally {
     await db.close();
   }

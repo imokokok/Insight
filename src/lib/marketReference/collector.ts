@@ -29,14 +29,14 @@
  *    version, client-measured latency) so provenance is separable from
  *    applicability.
  *
- * Gemini note: replaced Binance as the third source. Binance's public API is
- * geo-blocked (HTTP 451) on GitHub US runners, so it contributed zero
- * successful rows in production. Gemini (NY-regulated, public keyless
- * pubticker) gives us a third source for supported symbols. Coinbase and
- * Kraken cover the broad demand-led universe; WBTC is covered by Kraken and
- * Crypto.com because Coinbase has no centralized WBTC market. Crypto.com is
- * queried only for its directly listed WBTC/USD spot instrument. Unsupported
- * pairs remain explicit failed observations rather than estimates.
+ * Source coverage: Coinbase, Kraken, and Gemini provide broad direct-USD spot
+ * coverage; Crypto.com adds a direct WBTC/USD market. Bitstamp and Bitfinex
+ * add optional direct-USD spot coverage, while Binance currently adds a
+ * WBTC/USDT × USDT/USD composite through its dedicated public-market-data host.
+ * Binance's standard API host returned HTTP 451 on a GitHub-hosted runner in
+ * prior checks; the dedicated host is a separate route whose GitHub-runner
+ * availability still requires an actual runner check. Optional sources remain
+ * license-gated, and unsupported pairs remain explicit failed observations.
  * Cross-exchange consistency is computed by the `market_reference_hourly`
  * view, not asserted here.
  */
@@ -46,7 +46,7 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('MarketReference');
 
 /** Bump when the fetch/row semantics change; pinned for reproducibility. */
-export const COLLECTOR_VERSION = '1.3.0'; // 1.3.0: WBTC/USD coverage via Kraken + Crypto.com
+export const COLLECTOR_VERSION = '1.6.0'; // 1.6.0: licensed Binance WBTC/USDT × USDT/USD source
 
 /** Quote currency for all rows. */
 export const MARKET_REFERENCE_QUOTE = 'USD';
@@ -133,6 +133,8 @@ export interface ExchangeQuote {
   exchange: string;
   symbol: string;
   price: number | null;
+  /** Source-side timestamp when the venue exposes or can independently verify it. */
+  sourceObservedAt?: string | null;
   bid?: number | null;
   ask?: number | null;
   volume?: number | null;
@@ -151,6 +153,8 @@ export interface MarketReferenceRow {
   ask: number | null;
   bid_ask_spread_pct: number | null;
   data_age_seconds: number | null;
+  /** Nullable source timestamp; present for venues with verifiable source time. */
+  source_observed_at?: string | null;
   is_success: boolean;
   error_message: string | null;
   collector_version: string;
@@ -173,10 +177,30 @@ export interface MarketReferenceDeps {
   now?: () => number;
   /** Optional bounded subset used by the free-tier cadence router. */
   symbols?: readonly string[];
+  /** Additional commercial sources run only after their use is licensed. */
+  licensedExchanges?: readonly LicensedMarketReferenceExchange[];
 }
+
+export type LicensedMarketReferenceExchange = 'bitstamp' | 'bitfinex' | 'binance';
 
 /** Per-request timeout (ms) — abort a stalled exchange call, never hang a run. */
 export const REQUEST_TIMEOUT_MS = 15_000;
+
+type SpotFetcher = (
+  symbol: string,
+  fetchImpl: typeof fetch,
+  now: () => number
+) => Promise<ExchangeQuote>;
+
+type BoundSpotFetcher = (symbol: string) => Promise<ExchangeQuote>;
+
+interface MarketReferenceAdapter {
+  name: string;
+  fn?: SpotFetcher;
+  supports?: (symbol: string) => boolean;
+  requiresLicense?: boolean;
+  bind?: (fetchImpl: typeof fetch, now: () => number) => BoundSpotFetcher;
+}
 
 /** Parse a string/unknown price from an exchange response; null if unusable. */
 function parsePrice(value: unknown): number | null {
@@ -205,6 +229,36 @@ function spreadPct(bid: number | null | undefined, ask: number | null | undefine
   if (bid == null || ask == null || bid <= 0 || ask <= 0 || ask < bid) return null;
   const midpoint = (bid + ask) / 2;
   return midpoint > 0 ? ((ask - bid) / midpoint) * 100 : null;
+}
+
+function parseSourceTimestamp(value: unknown): number | null {
+  let timestamp: number;
+  if (typeof value === 'number') {
+    timestamp = value;
+  } else if (typeof value === 'string' && value.trim() !== '') {
+    const trimmed = value.trim();
+    timestamp = /^\d+(?:\.\d+)?$/.test(trimmed) ? Number(trimmed) : Date.parse(trimmed);
+  } else {
+    return null;
+  }
+
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return null;
+  // Bitstamp uses Unix seconds; Bitfinex/Binance trade timestamps are ms.
+  const timestampMs = timestamp < 100_000_000_000 ? timestamp * 1000 : timestamp;
+  return Number.isSafeInteger(timestampMs) ? timestampMs : null;
+}
+
+function requireFreshSourceTimestamp(value: unknown, now: () => number, exchange: string): string {
+  const timestampMs = parseSourceTimestamp(value);
+  if (timestampMs === null) throw new Error(`${exchange} source timestamp is missing or invalid`);
+
+  const ageMs = now() - timestampMs;
+  if (ageMs > MAX_SOURCE_TICKER_AGE_MS || ageMs < -MAX_SOURCE_TICKER_FUTURE_SKEW_MS) {
+    throw new Error(
+      `${exchange} source timestamp outside freshness window (${Math.round(ageMs / 1000)}s)`
+    );
+  }
+  return new Date(timestampMs).toISOString();
 }
 
 async function fetchCoinbaseSpot(symbol: string, fetchImpl: typeof fetch): Promise<ExchangeQuote> {
@@ -305,6 +359,17 @@ async function fetchCryptoComSpot(
   if (!Number.isSafeInteger(timestampMs) || timestampMs <= 0) {
     throw new Error('crypto.com ticker timestamp is missing or invalid');
   }
+
+  const price = parsePrice(ticker.a);
+  const bid = parsePrice(ticker.b);
+  const ask = parsePrice(ticker.k);
+  if (price === null || bid === null || ask === null || ask < bid) {
+    throw new Error('crypto.com ticker has an invalid latest price or best bid/ask');
+  }
+  if (price < bid || price > ask) {
+    throw new Error('crypto.com latest trade price is outside the best bid/ask');
+  }
+
   const ageMs = now() - timestampMs;
   if (ageMs > MAX_SOURCE_TICKER_AGE_MS || ageMs < -MAX_SOURCE_TICKER_FUTURE_SKEW_MS) {
     throw new Error(
@@ -315,18 +380,330 @@ async function fetchCryptoComSpot(
   return {
     exchange: 'crypto.com',
     symbol,
-    price: parsePrice(ticker.a),
-    bid: parsePrice(ticker.b),
-    ask: parsePrice(ticker.k),
+    price,
+    bid,
+    ask,
     volume: parsePrice(ticker.v),
   };
 }
 
-const ADAPTERS: Array<{
-  name: string;
-  fn: (symbol: string, f: typeof fetch, now: () => number) => Promise<ExchangeQuote>;
-  supports?: (symbol: string) => boolean;
-}> = [
+async function loadBitstampUsdSpotMarkets(
+  fetchImpl: typeof fetch
+): Promise<Record<string, string>> {
+  const r = await fetchImpl('https://www.bitstamp.net/api/v2/markets/');
+  if (!r.ok) throw new Error(`bitstamp markets ${r.status}`);
+  const body: unknown = await r.json();
+  if (!Array.isArray(body)) throw new Error('bitstamp markets response is not an array');
+
+  const pairs: Record<string, string> = {};
+  for (const rawMarket of body) {
+    const market = asRecord(rawMarket);
+    if (!market) continue;
+    const base = typeof market.base_currency === 'string' ? market.base_currency.toUpperCase() : '';
+    const quote =
+      typeof market.counter_currency === 'string' ? market.counter_currency.toUpperCase() : '';
+    const kind = typeof market.market_type === 'string' ? market.market_type.toUpperCase() : '';
+    const status = typeof market.trading === 'string' ? market.trading.toUpperCase() : '';
+    const pair = typeof market.market_symbol === 'string' ? market.market_symbol.trim() : '';
+    if (!base || quote !== 'USD' || kind !== 'SPOT' || status !== 'ENABLED' || !pair) continue;
+    if (pairs[base] && pairs[base] !== pair) {
+      throw new Error(`bitstamp has ambiguous USD spot markets for ${base}`);
+    }
+    pairs[base] = pair;
+  }
+  return pairs;
+}
+
+function createBitstampFetcher(fetchImpl: typeof fetch, now: () => number): BoundSpotFetcher {
+  let marketsPromise: Promise<Record<string, string>> | null = null;
+  const markets = () => {
+    marketsPromise ??= loadBitstampUsdSpotMarkets(fetchImpl);
+    return marketsPromise;
+  };
+
+  return async (symbol) => {
+    const marketSymbol = (await markets())[symbol.toUpperCase()];
+    if (!marketSymbol) throw new Error(`bitstamp does not list an enabled ${symbol}/USD spot pair`);
+
+    const r = await fetchImpl(
+      `https://www.bitstamp.net/api/v2/ticker/${encodeURIComponent(marketSymbol)}/`
+    );
+    if (!r.ok) throw new Error(`bitstamp ${r.status}`);
+    const body = asRecord(await r.json());
+    if (!body) throw new Error('bitstamp ticker response is not an object');
+    if (typeof body.market_type === 'string' && body.market_type.toUpperCase() !== 'SPOT') {
+      throw new Error(`bitstamp returned non-spot market for ${symbol}/USD`);
+    }
+
+    const sourceObservedAt = requireFreshSourceTimestamp(body.timestamp, now, 'bitstamp');
+    return {
+      exchange: 'bitstamp',
+      symbol,
+      price: parsePrice(body.last),
+      bid: parsePrice(body.bid),
+      ask: parsePrice(body.ask),
+      volume: parsePrice(body.volume),
+      sourceObservedAt,
+    };
+  };
+}
+
+function bitfinexUsdPair(symbol: string, catalog: readonly string[]): string | null {
+  const candidates = catalog.filter((pair) => {
+    const normalized = pair.toUpperCase();
+    const base = symbol.toUpperCase();
+    return normalized === `${base}USD` || normalized === `${base}:USD`;
+  });
+  if (candidates.length > 1) {
+    throw new Error(`bitfinex has ambiguous USD spot markets for ${symbol}`);
+  }
+  return candidates[0] ?? null;
+}
+
+async function loadBitfinexUsdSpotTickers(
+  symbols: readonly string[],
+  fetchImpl: typeof fetch
+): Promise<Map<string, { pair: string; ticker: unknown[] }>> {
+  const catalogResponse = await fetchImpl(
+    'https://api-pub.bitfinex.com/v2/conf/pub:list:pair:exchange'
+  );
+  if (!catalogResponse.ok) throw new Error(`bitfinex markets ${catalogResponse.status}`);
+  const rawCatalog: unknown = await catalogResponse.json();
+  if (!Array.isArray(rawCatalog) || !Array.isArray(rawCatalog[0])) {
+    throw new Error('bitfinex market catalog response is malformed');
+  }
+  const catalog = rawCatalog[0].filter((pair): pair is string => typeof pair === 'string');
+  const requested = new Map<string, string>();
+  for (const symbol of symbols) {
+    const pair = bitfinexUsdPair(symbol, catalog);
+    if (pair) requested.set(symbol, pair);
+  }
+
+  const result = new Map<string, { pair: string; ticker: unknown[] }>();
+  if (requested.size === 0) return result;
+
+  const tickerSymbols = [...requested.values()]
+    .map((pair) => encodeURIComponent(`t${pair}`))
+    .join(',');
+  const tickerResponse = await fetchImpl(
+    `https://api-pub.bitfinex.com/v2/tickers?symbols=${tickerSymbols}`
+  );
+  if (!tickerResponse.ok) throw new Error(`bitfinex tickers ${tickerResponse.status}`);
+  const rawTickers: unknown = await tickerResponse.json();
+  if (!Array.isArray(rawTickers)) throw new Error('bitfinex ticker response is not an array');
+
+  const tickerByPair = new Map<string, unknown[]>();
+  for (const rawTicker of rawTickers) {
+    if (!Array.isArray(rawTicker) || typeof rawTicker[0] !== 'string') continue;
+    tickerByPair.set(rawTicker[0], rawTicker);
+  }
+  for (const [symbol, pair] of requested) {
+    const ticker = tickerByPair.get(`t${pair}`);
+    if (ticker) result.set(symbol, { pair, ticker });
+  }
+  return result;
+}
+
+async function fetchBitfinexLatestTrade(
+  pair: string,
+  fetchImpl: typeof fetch,
+  now: () => number
+): Promise<{ price: number; sourceObservedAt: string }> {
+  const apiSymbol = `t${pair}`;
+  const url = `https://api-pub.bitfinex.com/v2/trades/${encodeURIComponent(apiSymbol)}/hist?limit=1&sort=-1`;
+  const r = await fetchImpl(url);
+  if (!r.ok) throw new Error(`bitfinex trades ${r.status}`);
+  const body: unknown = await r.json();
+  const trade = Array.isArray(body) ? body[0] : null;
+  if (!Array.isArray(trade)) throw new Error(`bitfinex latest trade is missing for ${pair}`);
+  const sourceObservedAt = requireFreshSourceTimestamp(trade[1], now, 'bitfinex');
+  const price = parsePrice(trade[3]);
+  if (price === null) throw new Error(`bitfinex latest trade price is invalid for ${pair}`);
+  return { price, sourceObservedAt };
+}
+
+function createBitfinexFetcher(fetchImpl: typeof fetch, now: () => number): BoundSpotFetcher {
+  let tickersPromise: Promise<Map<string, { pair: string; ticker: unknown[] }>> | null = null;
+  const tickers = () => {
+    tickersPromise ??= loadBitfinexUsdSpotTickers(MARKET_REFERENCE_SYMBOLS, fetchImpl);
+    return tickersPromise;
+  };
+
+  return async (symbol) => {
+    const tickerData = (await tickers()).get(symbol);
+    if (!tickerData) throw new Error(`bitfinex does not list ${symbol}/USD spot`);
+    const latestTrade = await fetchBitfinexLatestTrade(tickerData.pair, fetchImpl, now);
+    return {
+      exchange: 'bitfinex',
+      symbol,
+      price: latestTrade.price,
+      bid: parsePrice(tickerData.ticker[1]),
+      ask: parsePrice(tickerData.ticker[3]),
+      volume: parsePrice(tickerData.ticker[8]),
+      sourceObservedAt: latestTrade.sourceObservedAt,
+    };
+  };
+}
+
+const BINANCE_MARKET_DATA_BASE_URL = 'https://data-api.binance.vision/api/v3';
+const BINANCE_WBTC_USDT = 'WBTCUSDT';
+const BINANCE_USDT_USD = 'USDTUSD';
+
+function binanceUrl(path: string, params: Record<string, string>): string {
+  const query = new URLSearchParams(params);
+  return `${BINANCE_MARKET_DATA_BASE_URL}/${path}?${query.toString()}`;
+}
+
+function validateBinanceResponse(body: unknown, endpoint: string): Record<string, unknown> {
+  const record = asRecord(body);
+  if (!record) throw new Error(`binance ${endpoint} response is not an object`);
+  if (typeof record.code === 'number' && record.code < 0) {
+    throw new Error(`binance ${endpoint} API error (${record.code}): ${String(record.msg ?? '')}`);
+  }
+  return record;
+}
+
+function validateBinanceSpotMarkets(body: unknown): void {
+  const record = validateBinanceResponse(body, 'exchangeInfo');
+  if (!Array.isArray(record.symbols)) {
+    throw new Error('binance exchangeInfo symbols are missing');
+  }
+  const markets = new Map<string, Record<string, unknown>>();
+  for (const rawMarket of record.symbols) {
+    const market = asRecord(rawMarket);
+    if (market && typeof market.symbol === 'string') {
+      markets.set(market.symbol, market);
+    }
+  }
+
+  for (const [symbol, baseAsset, quoteAsset] of [
+    [BINANCE_WBTC_USDT, 'WBTC', 'USDT'],
+    [BINANCE_USDT_USD, 'USDT', 'USD'],
+  ] as const) {
+    const market = markets.get(symbol);
+    if (
+      !market ||
+      market.status !== 'TRADING' ||
+      market.baseAsset !== baseAsset ||
+      market.quoteAsset !== quoteAsset ||
+      market.isSpotTradingAllowed !== true
+    ) {
+      throw new Error(`binance does not list an enabled ${baseAsset}/${quoteAsset} spot market`);
+    }
+  }
+}
+
+function parseBinanceLatestTrade(
+  body: unknown,
+  symbol: string,
+  now: () => number
+): { price: number; timestampMs: number } {
+  if (!Array.isArray(body) || body.length === 0) {
+    throw new Error(`binance latest trade is missing for ${symbol}`);
+  }
+  const trade = asRecord(body[body.length - 1]);
+  const price = parsePrice(trade?.price);
+  if (price === null) throw new Error(`binance latest trade price is invalid for ${symbol}`);
+  const timestampMs = parseSourceTimestamp(trade?.time);
+  if (timestampMs === null) throw new Error(`binance latest trade time is invalid for ${symbol}`);
+  requireFreshSourceTimestamp(timestampMs, now, `binance ${symbol}`);
+  return { price, timestampMs };
+}
+
+function parseBinanceBookTicker(body: unknown, symbol: string): { bid: number; ask: number } {
+  const ticker = validateBinanceResponse(body, `bookTicker ${symbol}`);
+  const bid = parsePrice(ticker.bidPrice);
+  const ask = parsePrice(ticker.askPrice);
+  if (ticker.symbol !== symbol || bid === null || ask === null || ask < bid) {
+    throw new Error(`binance ${symbol} best bid/ask is missing or invalid`);
+  }
+  return { bid, ask };
+}
+
+function parseNonNegative(value: unknown): number | null {
+  if (typeof value !== 'string' && typeof value !== 'number') return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function createBinanceFetcher(fetchImpl: typeof fetch, now: () => number): BoundSpotFetcher {
+  return async (symbol) => {
+    if (symbol.toUpperCase() !== 'WBTC') {
+      throw new Error('binance adapter only supports WBTC/USD cross-market pricing');
+    }
+
+    const [
+      catalogResponse,
+      wbtcTradesResponse,
+      fxTradesResponse,
+      wbtcBookResponse,
+      fxBookResponse,
+      volumeResponse,
+    ] = await Promise.all([
+      fetchImpl(
+        binanceUrl('exchangeInfo', {
+          symbols: JSON.stringify([BINANCE_WBTC_USDT, BINANCE_USDT_USD]),
+        })
+      ),
+      fetchImpl(binanceUrl('trades', { symbol: BINANCE_WBTC_USDT, limit: '1' })),
+      fetchImpl(binanceUrl('trades', { symbol: BINANCE_USDT_USD, limit: '1' })),
+      fetchImpl(binanceUrl('ticker/bookTicker', { symbol: BINANCE_WBTC_USDT })),
+      fetchImpl(binanceUrl('ticker/bookTicker', { symbol: BINANCE_USDT_USD })),
+      fetchImpl(binanceUrl('ticker/24hr', { symbol: BINANCE_WBTC_USDT })),
+    ]);
+
+    const responses = [
+      ['exchangeInfo', catalogResponse],
+      ['WBTCUSDT trades', wbtcTradesResponse],
+      ['USDTUSD trades', fxTradesResponse],
+      ['WBTCUSDT book', wbtcBookResponse],
+      ['USDTUSD book', fxBookResponse],
+      ['WBTCUSDT 24h ticker', volumeResponse],
+    ] as const;
+    for (const [name, response] of responses) {
+      if (!response.ok) throw new Error(`binance ${name} ${response.status}`);
+    }
+
+    const [catalogBody, wbtcTradesBody, fxTradesBody, wbtcBookBody, fxBookBody, volumeBody] =
+      await Promise.all(responses.map(([, response]) => response.json()));
+    validateBinanceSpotMarkets(catalogBody);
+
+    const wbtcTrade = parseBinanceLatestTrade(wbtcTradesBody, BINANCE_WBTC_USDT, now);
+    const fxTrade = parseBinanceLatestTrade(fxTradesBody, BINANCE_USDT_USD, now);
+    const wbtcBook = parseBinanceBookTicker(wbtcBookBody, BINANCE_WBTC_USDT);
+    const fxBook = parseBinanceBookTicker(fxBookBody, BINANCE_USDT_USD);
+    const volumeTicker = validateBinanceResponse(volumeBody, `24hr ${BINANCE_WBTC_USDT}`);
+    if (volumeTicker.symbol !== BINANCE_WBTC_USDT) {
+      throw new Error('binance 24h ticker returned an unexpected market');
+    }
+    const volume = parseNonNegative(volumeTicker.volume);
+    if (volume === null) throw new Error('binance WBTCUSDT 24h volume is invalid');
+
+    const bid = wbtcBook.bid * fxBook.bid;
+    const ask = wbtcBook.ask * fxBook.ask;
+    const price = (bid + ask) / 2;
+    if (!Number.isFinite(bid) || !Number.isFinite(ask) || bid <= 0 || ask < bid) {
+      throw new Error('binance WBTC/USD cross-market order book is invalid');
+    }
+    if (!Number.isFinite(price) || price <= 0) {
+      throw new Error('binance WBTC/USD cross-market midpoint is invalid');
+    }
+
+    return {
+      exchange: 'binance',
+      symbol,
+      price,
+      bid,
+      ask,
+      volume,
+      sourceObservedAt: new Date(
+        Math.min(wbtcTrade.timestampMs, fxTrade.timestampMs)
+      ).toISOString(),
+    };
+  };
+}
+
+const ADAPTERS: MarketReferenceAdapter[] = [
   { name: 'coinbase', fn: fetchCoinbaseSpot },
   { name: 'kraken', fn: fetchKrakenSpot },
   { name: 'gemini', fn: fetchGeminiSpot, supports: (symbol) => Boolean(GEMINI_TICKERS[symbol]) },
@@ -334,6 +711,22 @@ const ADAPTERS: Array<{
     name: 'crypto.com',
     fn: fetchCryptoComSpot,
     supports: (symbol) => Boolean(CRYPTO_COM_INSTRUMENTS[symbol]),
+  },
+  {
+    name: 'bitstamp',
+    requiresLicense: true,
+    bind: createBitstampFetcher,
+  },
+  {
+    name: 'bitfinex',
+    requiresLicense: true,
+    bind: createBitfinexFetcher,
+  },
+  {
+    name: 'binance',
+    requiresLicense: true,
+    bind: createBinanceFetcher,
+    supports: (symbol) => symbol.toUpperCase() === 'WBTC',
   },
 ];
 
@@ -363,16 +756,29 @@ export async function collectMarketReference(
   const symbols = deps.symbols ? [...deps.symbols] : [...MARKET_REFERENCE_SYMBOLS];
   const snapshotIso = snapshotTs.toISOString();
   const rows: MarketReferenceRow[] = [];
+  const licensedExchanges = new Set<string>(deps.licensedExchanges ?? []);
+  const adapters = ADAPTERS.filter(
+    ({ name, requiresLicense }) => !requiresLicense || licensedExchanges.has(name)
+  ).map((adapter) => ({
+    ...adapter,
+    fetchQuote: adapter.bind
+      ? adapter.bind(fetchImpl, now)
+      : (symbol: string) => {
+          if (!adapter.fn) throw new Error(`${adapter.name} adapter has no fetcher`);
+          return adapter.fn(symbol, fetchImpl, now);
+        },
+  }));
 
   for (const symbol of symbols) {
     // Requests for each asset run concurrently. Assets remain sequential so a
     // full pass stays bounded at the free public APIs.
     const symbolRows = await Promise.all(
-      ADAPTERS.filter(({ supports }) => !supports || supports(symbol)).map(
-        async ({ name, fn }): Promise<MarketReferenceRow> => {
+      adapters
+        .filter(({ supports }) => !supports || supports(symbol))
+        .map(async ({ name, fetchQuote }): Promise<MarketReferenceRow> => {
           const started = now();
           try {
-            const quote = await fn(symbol, fetchImpl, now);
+            const quote = await fetchQuote(symbol);
             const latency = Math.round((now() - started) / 1000);
             const ok = quote.price !== null;
             return {
@@ -386,6 +792,7 @@ export async function collectMarketReference(
               ask: quote.ask ?? null,
               bid_ask_spread_pct: spreadPct(quote.bid, quote.ask),
               data_age_seconds: latency,
+              ...(quote.sourceObservedAt ? { source_observed_at: quote.sourceObservedAt } : {}),
               is_success: ok,
               error_message: ok ? null : 'unusable price from exchange',
               collector_version: COLLECTOR_VERSION,
@@ -414,8 +821,7 @@ export async function collectMarketReference(
               collector_version: COLLECTOR_VERSION,
             };
           }
-        }
-      )
+        })
     );
     rows.push(...symbolRows);
     const successes = symbolRows.filter((row) => row.is_success).length;

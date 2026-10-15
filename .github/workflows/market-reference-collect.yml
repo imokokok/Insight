@@ -6,8 +6,16 @@ name: Market Reference Collect
 # after hours; only workflow_dispatch fired). Keep this as a manual trigger for
 # one-off catch-up runs.
 #
-# Sources: Coinbase, Kraken, Gemini, and Crypto.com (WBTC/USD only). Gemini
-# replaced Binance, which returns HTTP 451 on GitHub US runners.
+# Sources: Coinbase, Kraken, Gemini, Crypto.com (WBTC/USD only), plus optional
+# licensed Bitstamp/Bitfinex/Binance sources. Binance WBTC uses the dedicated
+# public market-data endpoint and a verified WBTC/USDT × USDT/USD conversion.
+# The dedicated Binance endpoint has been reached from the developer host, but
+# availability from this GitHub-hosted runner has not yet been confirmed.
+# Set the repository variable
+# MARKET_REFERENCE_LICENSED_EXCHANGES only after written commercial data rights
+# are confirmed and migration 0087 has been applied. The standard Binance API
+# host returned HTTP 451 on GitHub US runners; the dedicated market-data host
+# is separate and remains subject to a runner check.
 
 on:
   workflow_dispatch:
@@ -22,6 +30,7 @@ permissions:
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  MARKET_REFERENCE_LICENSED_EXCHANGES: ${{ vars.MARKET_REFERENCE_LICENSED_EXCHANGES }}
 
 jobs:
   collect:

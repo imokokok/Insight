@@ -1,6 +1,32 @@
 /* eslint-disable no-console */
 import { fetchChainlinkMarketReference } from '@/lib/marketReference/chainlink';
-import { collectMarketReference } from '@/lib/marketReference/collector';
+import {
+  collectMarketReference,
+  type LicensedMarketReferenceExchange,
+} from '@/lib/marketReference/collector';
+
+const LICENSED_EXCHANGE_NAMES = ['bitstamp', 'bitfinex', 'binance'] as const;
+
+function parseLicensedExchanges(raw: string | undefined): LicensedMarketReferenceExchange[] {
+  if (!raw?.trim()) return [];
+  const requested = [
+    ...new Set(
+      raw
+        .split(',')
+        .map((name) => name.trim().toLowerCase())
+        .filter(Boolean)
+    ),
+  ];
+  const unsupported = requested.filter(
+    (name) => !LICENSED_EXCHANGE_NAMES.includes(name as (typeof LICENSED_EXCHANGE_NAMES)[number])
+  );
+  if (unsupported.length > 0) {
+    throw new Error(
+      `MARKET_REFERENCE_LICENSED_EXCHANGES contains unsupported venue(s): ${unsupported.join(', ')}`
+    );
+  }
+  return requested as LicensedMarketReferenceExchange[];
+}
 
 function parseChainId(value: string | undefined): number {
   if (value === undefined || value.trim() === '') return 8453;
@@ -25,9 +51,10 @@ async function main(): Promise<void> {
 
   const symbol = (process.env.CHAINLINK_DEV_TEST_SYMBOL ?? 'ETH').trim().toUpperCase();
   const chainId = parseChainId(process.env.CHAINLINK_DEV_TEST_CHAIN_ID);
+  const licensedExchanges = parseLicensedExchanges(process.env.MARKET_REFERENCE_LICENSED_EXCHANGES);
   const now = new Date();
   const [exchangeResult, chainlinkResult] = await Promise.allSettled([
-    collectMarketReference(now, { symbols: [symbol] }),
+    collectMarketReference(now, { symbols: [symbol], licensedExchanges }),
     fetchChainlinkMarketReference({ symbol, chainId }),
   ]);
 
