@@ -23,13 +23,13 @@ GET https://www.oracleinsight.xyz/api/v1/safety/pre-trade
 
 Parameters:
 
-| Param | Meaning |
-| --- | --- |
-| `asset` | The asset your agent is trading (e.g. `USDC`) |
-| `chainId` | EVM chain id of the trade venue (e.g. `1` mainnet, `8453` Base) |
-| `action` | `swap`, `buy`, `sell`, or other trade verb |
-| `tradeAmountUsd` | Notional size in USD |
-| `tokenAddress` | Contract address of the token being priced/traded |
+| Param            | Meaning                                                         |
+| ---------------- | --------------------------------------------------------------- |
+| `asset`          | The asset your agent is trading (e.g. `USDC`)                   |
+| `chainId`        | EVM chain id of the trade venue (e.g. `1` mainnet, `8453` Base) |
+| `action`         | `swap`, `buy`, `sell`, or other trade verb                      |
+| `tradeAmountUsd` | Notional size in USD                                            |
+| `tokenAddress`   | Contract address of the token being priced/traded               |
 
 Unauthenticated calls receive `HTTP 402` with a base64url `PAYMENT-REQUIRED` header (x402 v2). Sign one `accepts[]` entry and retry with the payment header.
 
@@ -45,12 +45,12 @@ JSON-RPC `tools/call` access to the Insight tool catalog for x402-aware MCP clie
 
 Scheme: `exact` (x402 v2, EIP-3009 transferWithAuthorization for EVM). Price: **$0.02 USDC** (`20000` atomic, 6 decimals) for the pre-trade check. The same 402 advertises:
 
-| Network | CAIP-2 | USDC asset |
-| --- | --- | --- |
-| Base | `eip155:8453` | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` |
-| Polygon PoS | `eip155:137` | `0x3c499c542cef5e3811e1192ce70d8cC03d5c3359` |
-| Arbitrum One | `eip155:42161` | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831` |
-| Monad | `eip155:143` | `0x754704Bc059F8C67012fEd69BC8A327a5aafb603` |
+| Network       | CAIP-2              | USDC asset                                     |
+| ------------- | ------------------- | ---------------------------------------------- |
+| Base          | `eip155:8453`       | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`   |
+| Polygon PoS   | `eip155:137`        | `0x3c499c542cef5e3811e1192ce70d8cC03d5c3359`   |
+| Arbitrum One  | `eip155:42161`      | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831`   |
+| Monad         | `eip155:143`        | `0x754704Bc059F8C67012fEd69BC8A327a5aafb603`   |
 | Solana devnet | `solana:EtWT…2xqa1` | `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU` |
 
 All entries pay to `0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231` (EVM). Pick the network matching your wallet's USDC inventory; the facilitator sponsors gas on EVM chains (no native gas needed).
@@ -69,12 +69,12 @@ JSON containing: `verdict` (`PASS` / `WARN` / `BLOCK`), consensus price, max dev
 
 ## MCP tool metering classes
 
-| Class | Atomic (USDC 6dp) | USD |
-| --- | --- | --- |
-| C1 | 2000 | $0.002 |
-| C2 | 8000 | $0.008 |
-| C3 | 20000 | $0.02 |
-| C4 | 40000 | $0.04 |
+| Class | Atomic (USDC 6dp) | USD    |
+| ----- | ----------------- | ------ |
+| C1    | 2000              | $0.002 |
+| C2    | 8000              | $0.008 |
+| C3    | 20000             | $0.02  |
+| C4    | 40000             | $0.04  |
 
 ## Compliance notes
 
