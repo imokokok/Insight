@@ -23,6 +23,26 @@ function getSupabaseAnonKey(): string {
 }
 
 /**
+ * Hard cap on any single Supabase REST request, applied at the fetch layer so
+ * it covers every call site — including the ones that bypass the query queue
+ * (ops queries, api keys, x402 audit inserts, rate-limit RPC).
+ *
+ * Why: supabase-js has no default timeout. When the database saturates,
+ * requests hang until the Vercel runtime kills the function (30s), holding
+ * instances and concurrency slots the whole time. 15s bounds the worst case
+ * while staying far above legitimate query latencies (the largest observed
+ * read, the full oracle registry, completes in ~1s).
+ */
+const SUPABASE_FETCH_TIMEOUT_MS = 15_000;
+
+const timeoutFetch: typeof fetch = (input, init) => {
+  const callerSignal = init?.signal;
+  const hardTimeout = AbortSignal.timeout(SUPABASE_FETCH_TIMEOUT_MS);
+  const signal = callerSignal ? AbortSignal.any([callerSignal, hardTimeout]) : hardTimeout;
+  return fetch(input, { ...init, signal });
+};
+
+/**
  * Service-role client: bypasses ALL Row Level Security (RLS).
  * Use ONLY for privileged/admin operations that cannot rely on user RLS,
  * e.g. cron jobs, account deletion, seeding, or writes to tables without
@@ -45,6 +65,9 @@ export function createServiceRoleClient(): SupabaseClient {
       autoRefreshToken: false,
       persistSession: false,
     },
+    global: {
+      fetch: timeoutFetch,
+    },
   });
 
   return serverClientInstance;
@@ -65,6 +88,7 @@ export function createUserClient(accessToken?: string): SupabaseClient {
     },
     global: {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      fetch: timeoutFetch,
     },
   });
 }
