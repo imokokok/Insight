@@ -83,14 +83,14 @@ describe('x402 config', () => {
     ]);
   });
 
-  it('maps BNB Smart Chain to the bridged USDC contract without an EIP-712 domain', () => {
+  it('maps BNB Smart Chain to the bridged USDC contract with the AEON mandate domain', () => {
     expect(usdcForNetwork('eip155:56')).toBe('0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d');
-    expect(tokenNameForNetwork('eip155:56')).toBeUndefined();
+    expect(tokenNameForNetwork('eip155:56')).toBe('USD Coin');
     expect(tokenDecimalsForNetwork('eip155:56')).toBe(18);
     expect(() => eip3009TokenNameForNetwork('eip155:56')).toThrow(/no EIP-3009/);
   });
 
-  it('converts the micro-USDC amount to 18-decimal atomic units for eip155:56 and omits extra', () => {
+  it('converts the micro-USDC amount to 18-decimal atomic units for eip155:56', () => {
     const cfg = parseX402Config({
       ...BASE_ENV,
       X402_EVM_NETWORKS: 'eip155:8453,eip155:56',
@@ -98,7 +98,7 @@ describe('x402 config', () => {
     const bnb = getX402PaymentOptions(cfg).find((option) => option.network === 'eip155:56');
     expect(bnb).toBeDefined();
     expect(bnb?.amountAtomic).toBe('20000000000000000'); // 0.02 USDC at 18 decimals
-    expect(bnb?.tokenName).toBeUndefined();
+    expect(bnb?.tokenName).toBe('USD Coin');
     const base = getX402PaymentOptions(cfg).find((option) => option.network === 'eip155:8453');
     expect(base?.amountAtomic).toBe('20000'); // unchanged 6-decimal grid
   });
