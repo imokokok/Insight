@@ -45,16 +45,16 @@ JSON-RPC `tools/call` access to the Insight tool catalog for x402-aware MCP clie
 
 Scheme: `exact` (x402 v2, EIP-3009 transferWithAuthorization for EVM). Price: **$0.02 USDC** (`20000` atomic, 6 decimals) for the pre-trade check. The same 402 advertises:
 
-| Network       | CAIP-2              | USDC asset                                     |
-| ------------- | ------------------- | ---------------------------------------------- |
-| Base          | `eip155:8453`       | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`   |
-| Polygon PoS   | `eip155:137`        | `0x3c499c542cef5e3811e1192ce70d8cC03d5c3359`   |
-| Arbitrum One  | `eip155:42161`      | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831`   |
-| Monad         | `eip155:143`        | `0x754704Bc059F8C67012fEd69BC8A327a5aafb603`   |
-| BNB Chain     | `eip155:56`         | `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d`   |
-| Solana devnet | `solana:EtWT…2xqa1` | `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU` |
+| Network      | CAIP-2               | USDC asset                                     |
+| ------------ | -------------------- | ---------------------------------------------- |
+| Base         | `eip155:8453`        | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`   |
+| Polygon PoS  | `eip155:137`         | `0x3c499c542cef5e3811e1192ce70d8cC03d5c3359`   |
+| Arbitrum One | `eip155:42161`       | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831`   |
+| Monad        | `eip155:143`         | `0x754704Bc059F8C67012fEd69BC8A327a5aafb603`   |
+| BNB Chain    | `eip155:56`          | `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d`   |
+| Solana       | `solana:5eykt4…Kvdp` | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` |
 
-All entries pay to `0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231` (EVM). Pick the network matching your wallet's USDC inventory; the facilitator sponsors gas on EVM chains (no native gas needed). Notes: BNB Chain settles in the 18-decimal bridged USDC and has no EIP-3009 path — pay it with an x402 client that speaks the AEON facilitator flow (e.g. the AEON SDK); the other EVM entries use standard EIP-3009.
+All entries pay to `0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231` (EVM) or `BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4` (Solana). Pick the network matching your wallet's USDC inventory; the facilitator sponsors gas on EVM chains and Solana (no native gas needed). Notes: BNB Chain settles in the 18-decimal bridged USDC and has no EIP-3009 path — pay it with an x402 client that speaks the AEON facilitator flow (e.g. the AEON SDK); the other EVM entries use standard EIP-3009; Solana uses the exact-scheme SVM flow (SPL transfer to the payTo ATA, CDP feePayer sponsored).
 
 Readiness check: the endpoint answers a well-formed 402 at all times; verify before paying by issuing a plain unsigned GET.
 
