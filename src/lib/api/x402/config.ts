@@ -39,7 +39,7 @@ export type X402NetworkId = (typeof X402_EVM_NETWORK_IDS)[number];
 /** Native USDC contract and EIP-712 domain name for each supported EVM network. */
 const SUPPORTED_NETWORKS: Record<
   X402NetworkId,
-  { usdc: string; tokenName?: string; decimals?: number }
+  { usdc: string; tokenName?: string; decimals?: number; eip3009?: boolean }
 > = {
   'eip155:84532': {
     /** Chain: Base Sepolia (testnet). Circle native USDC. */
@@ -99,17 +99,21 @@ const SUPPORTED_NETWORKS: Record<
     tokenName: 'USDC',
   },
   'eip155:56': {
-    /**
-     * Chain: BNB Smart Chain. Binance-bridged USDC (18 decimals), the token
-     * listed by the AEON x402 facilitator (facilitator.aeon.xyz /supported,
-     * kind exact v2 on eip155:56, verified 2026-10-17). Unlike the Circle
-     * FiatToken deployments above, this token exposes neither
-     * DOMAIN_SEPARATOR nor authorizationState (probed via eth_call), i.e. it
-     * has no EIP-3009 path — buyers pay through the AEON facilitator's
-     * ERC-20 mandate flow instead, so no tokenName/extra is advertised here.
-     */
+    /** Chain: BNB Smart Chain. Binance-bridged USDC (18 decimals), the token listed by the AEON x402 facilitator (facilitator.aeon.xyz /supported, kind exact v2 on eip155:56, verified 2026-10-17). */
     usdc: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+    /**
+     * The bridged token itself exposes no EIP-712 domain (no DOMAIN_SEPARATOR
+     * on-chain), but the AEON facilitator's non-EIP-3009 mandate flow signs a
+     * TransferWithAuthorization-shaped message against the domain carried in
+     * the quote `extra` and verifies it facilitator-side (spender
+     * 0x555e3311a9893c9B17444C1Ff0d88192a57Ef13e after a client-side approve).
+     * Name/version below are the AEON stack's canonical values for BSC USDC
+     * (asset registry in @aeon-ai-pay/evm).
+     */
+    tokenName: 'USD Coin',
     decimals: 18,
+    /** No on-chain EIP-3009; settlement is the AEON facilitator mandate flow. */
+    eip3009: false,
   },
 };
 
@@ -396,13 +400,13 @@ export function tokenNameForNetwork(network: X402NetworkId): string | undefined 
  * Chain) must route through that network's facilitator flow instead.
  */
 export function eip3009TokenNameForNetwork(network: X402NetworkId): string {
-  const name = SUPPORTED_NETWORKS[network].tokenName;
-  if (name === undefined) {
+  const entry = SUPPORTED_NETWORKS[network];
+  if (entry.tokenName === undefined || entry.eip3009 === false) {
     throw new Error(
       `network ${network} has no EIP-3009 settlement token; EIP-712 authorization is unavailable`
     );
   }
-  return name;
+  return entry.tokenName;
 }
 
 /** Token decimals of the network's settlement asset (Circle USDC default: 6). */
