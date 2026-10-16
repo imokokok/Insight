@@ -2,7 +2,7 @@
   "x402Version": 2,
   "kind": "resource-server",
   "name": "Insight Pre-Trade Safety API",
-  "description": "Pre-trade safety checks for AI agents trading DeFi: oracle-manipulation-aware verdicts (PASS/BLOCK/WARN) with verifiable EIP-712 attestations, powered by multi-provider oracle consensus. USDC settles on Base, Polygon, Arbitrum One, Monad, and BNB Chain (AEON facilitator).",
+  "description": "Pre-trade safety checks for AI agents trading DeFi: oracle-manipulation-aware verdicts (PASS/BLOCK/WARN) with verifiable EIP-712 attestations, powered by multi-provider oracle consensus. USDC settles on Base, Polygon, Arbitrum One, Monad, BNB Chain (AEON facilitator), and Solana mainnet (CDP facilitator sponsors fees).",
   "docs": "https://www.oracleinsight.xyz/openapi.json",
   "resources": [
     {
@@ -78,13 +78,13 @@
         },
         {
           "scheme": "exact",
-          "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
           "amount": "20000",
-          "asset": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
           "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
           "maxTimeoutSeconds": 60,
           "extra": {
-            "feePayer": "D6ZhtNQ5nT9ZnTHUbqXZsTx5MH2rPFiBBggX4hY1WePM"
+            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -162,13 +162,13 @@
         },
         {
           "scheme": "exact",
-          "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
           "amount": "20000",
-          "asset": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
           "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
           "maxTimeoutSeconds": 60,
           "extra": {
-            "feePayer": "D6ZhtNQ5nT9ZnTHUbqXZsTx5MH2rPFiBBggX4hY1WePM"
+            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]

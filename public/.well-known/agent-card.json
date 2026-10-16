@@ -14,7 +14,7 @@
     "extensions": [
       {
         "uri": "https://github.com/google-agentic-commerce/a2a-x402/blob/main/spec/v0.2",
-        "description": "Supports payments using the x402 protocol for on-chain settlement. Every paid call returns an HTTP 402 challenge advertising USDC acceptance on eip155:8453 (Base), eip155:137 (Polygon), eip155:42161 (Arbitrum One), eip155:143 (Monad) and Solana devnet.",
+        "description": "Supports payments using the x402 protocol for on-chain settlement. Every paid call returns an HTTP 402 challenge advertising USDC acceptance on eip155:8453 (Base), eip155:137 (Polygon), eip155:42161 (Arbitrum One), eip155:143 (Monad), eip155:56 (BNB Chain via AEON) and solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp (Solana mainnet).",
         "required": true
       }
     ]
