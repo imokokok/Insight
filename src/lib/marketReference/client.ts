@@ -12,6 +12,7 @@
 
 import { z } from 'zod';
 
+import { customerEligibleMarketReferenceVenues } from '@/lib/dataRights/evidenceRights';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { TTLCache } from '@/lib/utils/cache';
 import { roundTo } from '@/lib/utils/format';
@@ -70,6 +71,10 @@ export function resetMarketReferenceCacheForTests(): void {
  * Stale (>= MAX_REF_AGE_HOURS behind now) is treated as absent — fail-closed.
  */
 export async function getMarketReference(symbol: string): Promise<MarketReference | null> {
+  // Keep customer paths fail-closed even before the database migration is
+  // applied: a legacy rollup cannot be consumed while the local rights
+  // register has no reviewed vendor source.
+  if (customerEligibleMarketReferenceVenues().length === 0) return null;
   const key = symbol.toUpperCase();
   const cached = cache.get<{ ref: MarketReference | null }>(key);
   if (cached !== null) return cached.ref && isFresh(cached.ref) ? cached.ref : null;

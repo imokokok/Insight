@@ -41,6 +41,9 @@ const mockOnchainRouteQuote = getOnchainRouteQuote as jest.MockedFunction<
 const UID = '0x' + '11'.repeat(32);
 const DEST_UID = '0x' + '33'.repeat(32);
 const REQ_HASH = '0x' + '22'.repeat(32);
+const QUOTE_OBSERVED_AT = new Date().toISOString();
+const QUOTE_REQUEST_HASH = `0x${'99'.repeat(32)}`;
+const QUOTE_RESPONSE_HASH = `0x${'aa'.repeat(32)}`;
 const SUFFICIENT_INPUT_ASSESSMENT = {
   schemaVersion: 1,
   status: 'SUFFICIENT',
@@ -107,18 +110,42 @@ const BASE_ARGS = {
     source: {
       decisionPriceUsd: 2000,
       quotePriceUsd: 2000,
-      quoteObservedAt: new Date().toISOString(),
+      quoteObservedAt: QUOTE_OBSERVED_AT,
       maxReferenceDeviationBps: 50,
       maxSlippageBps: 50,
       maxQuoteAgeSeconds: 30,
+      quoteProvenance: {
+        schemaVersion: 1,
+        sourceId: 'customer-venue',
+        rightsScope: 'customer-authorized',
+        captureMethod: 'client-held',
+        asset: 'ETH',
+        chainId: 1,
+        quotePriceUsd: 2000,
+        observedAt: QUOTE_OBSERVED_AT,
+        requestHash: QUOTE_REQUEST_HASH,
+        responseHash: QUOTE_RESPONSE_HASH,
+      },
     },
     destination: {
       decisionPriceUsd: 1,
       quotePriceUsd: 1,
-      quoteObservedAt: new Date().toISOString(),
+      quoteObservedAt: QUOTE_OBSERVED_AT,
       maxReferenceDeviationBps: 50,
       maxSlippageBps: 50,
       maxQuoteAgeSeconds: 30,
+      quoteProvenance: {
+        schemaVersion: 1,
+        sourceId: 'customer-venue',
+        rightsScope: 'customer-authorized',
+        captureMethod: 'client-held',
+        asset: 'USDC',
+        chainId: 1,
+        quotePriceUsd: 1,
+        observedAt: QUOTE_OBSERVED_AT,
+        requestHash: QUOTE_REQUEST_HASH,
+        responseHash: QUOTE_RESPONSE_HASH,
+      },
     },
     routeQuotePrice: 2000,
     routeQuoteObservedAt: new Date().toISOString(),

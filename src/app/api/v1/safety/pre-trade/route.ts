@@ -58,6 +58,8 @@ async function executePreTradeCheck(params: PreTradeCheckParams): Promise<NextRe
               maxReferenceDeviationBps: query.maxReferenceDeviationBps!,
               maxSlippageBps: query.maxSlippageBps!,
               maxQuoteAgeSeconds: query.maxQuoteAgeSeconds!,
+              ...(query.quoteProvenance ? { quoteProvenance: query.quoteProvenance } : {}),
+              ...(query.requireQuoteProvenance === true ? { requireQuoteProvenance: true } : {}),
             },
           }
         : {}),

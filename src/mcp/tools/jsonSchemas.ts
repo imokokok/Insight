@@ -9,6 +9,26 @@ const providerEnum = z.enum(ORACLE_PROVIDER_VALUES as [string, ...string[]]);
 const chainEnum = z.enum(BLOCKCHAIN_VALUES as [string, ...string[]]);
 const stablecoinEnum = z.enum(STABLECOINS.map((c) => c.symbol) as [string, ...string[]]);
 const wrappedAssetEnum = z.enum(WRAPPED_ASSETS.map((a) => a.symbol) as [string, ...string[]]);
+const decisionInputQuoteProvenanceJsonSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    sourceId: z.string().regex(/^[A-Za-z0-9_.:-]{1,160}$/),
+    rightsScope: z.enum([
+      'synthetic',
+      'onchain',
+      'customer-authorized',
+      'vendor-licensed',
+      'research-quarantined',
+    ]),
+    captureMethod: z.enum(['client-held', 'onchain-read']),
+    asset: z.string().regex(/^[A-Za-z0-9_.:-]{1,80}$/),
+    chainId: z.number().int().nonnegative(),
+    quotePriceUsd: z.number().finite().positive(),
+    observedAt: DecisionInputQuoteTimestampSchema,
+    requestHash: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
+    responseHash: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
+  })
+  .strict();
 
 /**
  * Plain JSON-Schema-compatible schemas for MCP tool definitions.
@@ -309,6 +329,7 @@ export const AgentBeginTradeJsonSchema = z.object({
         maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
         maxSlippageBps: z.number().int().min(0).max(50),
         maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+        quoteProvenance: decisionInputQuoteProvenanceJsonSchema,
       }),
       destination: z.object({
         decisionPriceUsd: z.number().finite().positive(),
@@ -317,6 +338,7 @@ export const AgentBeginTradeJsonSchema = z.object({
         maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
         maxSlippageBps: z.number().int().min(0).max(50),
         maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+        quoteProvenance: decisionInputQuoteProvenanceJsonSchema,
       }),
       routeQuotePrice: z
         .number()

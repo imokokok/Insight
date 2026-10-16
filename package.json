@@ -39,6 +39,7 @@
     "rwa:reference:verify": "node --import tsx scripts/verify-rwa-reference-data.ts",
     "alpaca:dev-test": "node --env-file-if-exists=.env.local --import tsx scripts/dev-test-alpaca-market-data.mts",
     "chainlink:market-reference:dev-test": "node --env-file-if-exists=.env.local --import tsx scripts/dev-test-chainlink-market-reference.mts",
+    "decision-input:synthetic-e2e": "node --import tsx scripts/decision-input-synthetic-e2e.mts",
     "rwa:preflight:readiness": "node --env-file=.env.local --import tsx scripts/rwa-action-preflight-readiness.mts",
     "dev:testnet": "node --env-file=.env.x402-testnet --import tsx scripts/dev-testnet-server.mts",
     "rwa:pilot:sample": "node scripts/rwa-shadow-pilot.mjs sample",

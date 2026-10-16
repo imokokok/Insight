@@ -314,6 +314,7 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
       destinationAsset: args.destinationAsset,
       decisionInput: {
         ...args.decisionInput.source,
+        requireQuoteProvenance: true,
         operationRouteQuote,
       },
     });
@@ -363,6 +364,7 @@ export const agentBeginTradeTool: McpToolDefinition<typeof AgentBeginTradeInputS
         destinationAsset: args.asset,
         decisionInput: {
           ...args.decisionInput.destination,
+          requireQuoteProvenance: true,
           operationRouteQuote,
         },
       });

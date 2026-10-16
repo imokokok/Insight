@@ -1,7 +1,32 @@
 import { z } from 'zod';
 
+import { DecisionInputQuoteProvenanceSchema } from '@/lib/decisionInputTrust/quoteProvenance';
 import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
 import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
+
+const DecisionInputQuoteProvenanceQuerySchema = z
+  .string()
+  .trim()
+  .min(2)
+  .max(4096)
+  .transform((value, context) => {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      context.addIssue({ code: 'custom', message: 'quoteProvenance must be valid JSON' });
+      return z.NEVER;
+    }
+    const validated = DecisionInputQuoteProvenanceSchema.safeParse(parsed);
+    if (!validated.success) {
+      context.addIssue({
+        code: 'custom',
+        message: 'quoteProvenance must be a valid hash-only quote provenance envelope',
+      });
+      return z.NEVER;
+    }
+    return validated.data;
+  });
 
 export const PreTradeQuerySchema = z
   .object({
@@ -72,6 +97,11 @@ export const PreTradeQuerySchema = z
     maxReferenceDeviationBps: z.coerce.number().int().min(0).max(10_000).optional(),
     maxSlippageBps: z.coerce.number().int().min(0).max(10_000).optional(),
     maxQuoteAgeSeconds: z.coerce.number().int().min(1).max(300).optional(),
+    quoteProvenance: DecisionInputQuoteProvenanceQuerySchema.optional(),
+    requireQuoteProvenance: z
+      .enum(['0', '1'])
+      .transform((value) => value === '1')
+      .optional(),
   })
   .superRefine((value, context) => {
     const fields = [
@@ -82,7 +112,11 @@ export const PreTradeQuerySchema = z
       'maxSlippageBps',
       'maxQuoteAgeSeconds',
     ] as const;
-    const provided = fields.filter((field) => value[field] !== undefined);
+    const provided = [
+      ...fields.filter((field) => value[field] !== undefined),
+      ...(value.quoteProvenance !== undefined ? ['quoteProvenance'] : []),
+      ...(value.requireQuoteProvenance !== undefined ? ['requireQuoteProvenance'] : []),
+    ];
 
     if (value.decisionInputCheck === '1') {
       for (const field of fields) {

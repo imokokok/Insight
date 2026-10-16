@@ -1,3 +1,4 @@
+import { MARKET_REFERENCE_SOURCE_RIGHTS } from '@/lib/dataRights/evidenceRights';
 import {
   collectMarketReference,
   MARKET_REFERENCE_CORE_SYMBOLS,
@@ -35,6 +36,58 @@ function cryptoComTickerResponse(timestampMs = Date.now(), instrument = 'WBTC_US
 }
 
 describe('collectMarketReference', () => {
+  it('does not contact a CEX for a customer-facing collection without reviewed vendor rights', async () => {
+    const fetchImpl = jest.fn(async () => jsonResponse({ price: '1' }));
+
+    const { rows, summary } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'customer-facing',
+      fetchImpl,
+      now: () => MOCK_NOW,
+      symbols: ['ETH'],
+    });
+
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(rows).toEqual([]);
+    expect(summary).toMatchObject({
+      collectionPurpose: 'customer-facing',
+      eligibleExchanges: [],
+      covered: [],
+      uncovered: ['ETH'],
+    });
+  });
+
+  it('persists an agreement reference only for a customer-admitted source', async () => {
+    const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
+      if (String(url).includes('api.exchange.coinbase.com')) {
+        return jsonResponse({ price: '3000', bid: '2999', ask: '3001' });
+      }
+      throw new Error(`unexpected URL ${String(url)}`);
+    });
+
+    const { rows, summary } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'customer-facing',
+      fetchImpl,
+      now: () => MOCK_NOW,
+      symbols: ['ETH'],
+      sourceRights: {
+        ...MARKET_REFERENCE_SOURCE_RIGHTS,
+        coinbase: {
+          sourceId: 'coinbase',
+          rightsScope: 'vendor-licensed',
+          agreementReference: 'test-agreement-2026-10',
+        },
+      },
+    });
+
+    expect(summary.eligibleExchanges).toEqual(['coinbase']);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      exchange: 'coinbase',
+      rights_scope: 'vendor-licensed',
+      rights_reference: 'test-agreement-2026-10',
+    });
+  });
+
   it('writes one row per (symbol, exchange), marking successes and failures', async () => {
     const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
       const u = String(url);
@@ -57,6 +110,7 @@ describe('collectMarketReference', () => {
     });
 
     const { rows, summary } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
     });
@@ -66,6 +120,7 @@ describe('collectMarketReference', () => {
     expect(eth.every((r) => r.is_success)).toBe(true);
     expect(eth.map((r) => r.exchange).sort()).toEqual(['coinbase', 'gemini', 'kraken']);
     expect(eth[0].quote).toBe('USD');
+    expect(eth[0].rights_scope).toBe('synthetic');
     expect(eth[0].collector_version).toBeTruthy();
     expect(eth[0].data_age_seconds).toBeGreaterThanOrEqual(0);
     expect(eth.find((r) => r.exchange === 'coinbase')?.volume).toBe(42);
@@ -110,6 +165,7 @@ describe('collectMarketReference', () => {
     });
 
     const { rows, summary } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
+      purpose: 'synthetic-test',
       fetchImpl,
     });
 
@@ -130,6 +186,7 @@ describe('collectMarketReference', () => {
     });
 
     const { rows, summary } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
+      purpose: 'synthetic-test',
       fetchImpl,
     });
 
@@ -169,6 +226,7 @@ describe('collectMarketReference', () => {
       return jsonResponse({ last: '1.0' });
     });
     const { rows, summary } = await collectMarketReference(new Date('2026-08-30T16:15:00Z'), {
+      purpose: 'synthetic-test',
       fetchImpl,
       symbols: MARKET_REFERENCE_CORE_SYMBOLS,
     });
@@ -195,7 +253,10 @@ describe('collectMarketReference', () => {
       return jsonResponse({ last: '5' });
     });
 
-    const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), { fetchImpl });
+    const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
+      purpose: 'synthetic-test',
+      fetchImpl,
+    });
     const ethCoinbase = rows.find((r) => r.symbol === 'ETH' && r.exchange === 'coinbase')!;
     expect(ethCoinbase.is_success).toBe(false);
     expect(ethCoinbase.error_message).toBe('unusable price from exchange');
@@ -212,7 +273,10 @@ describe('collectMarketReference', () => {
       return jsonResponse({ last: '1.0' });
     });
 
-    const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), { fetchImpl });
+    const { rows } = await collectMarketReference(new Date('2026-08-30T16:00:00Z'), {
+      purpose: 'synthetic-test',
+      fetchImpl,
+    });
     const ethKraken = rows.find((r) => r.symbol === 'ETH' && r.exchange === 'kraken')!;
     expect(ethKraken.is_success).toBe(false);
     expect(ethKraken.error_message).toContain('EGeneral:Too many requests');
@@ -235,6 +299,7 @@ describe('collectMarketReference', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['WBTC'],
@@ -255,8 +320,8 @@ describe('collectMarketReference', () => {
   });
 });
 
-describe('licensed market reference adapters', () => {
-  it('collects a fresh Binance WBTC/USD composite only when licensed', async () => {
+describe('optional market reference adapters', () => {
+  it('collects a fresh Binance WBTC/USD composite only when explicitly admitted in a synthetic test', async () => {
     const urls: string[] = [];
     const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
       const value = String(url);
@@ -305,6 +370,7 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['WBTC', 'BTC'],
@@ -315,10 +381,11 @@ describe('licensed market reference adapters', () => {
 
     urls.length = 0;
     const licensed = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['WBTC', 'BTC'],
-      licensedExchanges: ['binance'],
+      enabledExchanges: ['binance'],
     });
     const binance = licensed.rows.find((row) => row.exchange === 'binance');
     expect(binance).toMatchObject({
@@ -392,10 +459,11 @@ describe('licensed market reference adapters', () => {
 
     for (const scenario of [{ staleFx: true }, { fxTrading: false }]) {
       const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+        purpose: 'synthetic-test',
         fetchImpl: makeFetcher(scenario),
         now: () => MOCK_NOW,
         symbols: ['WBTC'],
-        licensedExchanges: ['binance'],
+        enabledExchanges: ['binance'],
       });
 
       const binance = rows.find((row) => row.exchange === 'binance');
@@ -421,6 +489,7 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['WBTC'],
@@ -459,6 +528,7 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['WBTC'],
@@ -518,10 +588,11 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['BTC'],
-      licensedExchanges: ['bitstamp'],
+      enabledExchanges: ['bitstamp'],
     });
 
     const bitstamp = rows.find((row) => row.exchange === 'bitstamp');
@@ -560,10 +631,11 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['BTC'],
-      licensedExchanges: ['bitfinex'],
+      enabledExchanges: ['bitfinex'],
     });
 
     const bitfinex = rows.find((row) => row.exchange === 'bitfinex');
@@ -580,7 +652,7 @@ describe('licensed market reference adapters', () => {
     expect(urls).toContain('https://api-pub.bitfinex.com/v2/trades/tBTCUSD/hist?limit=1&sort=-1');
   });
 
-  it('fails closed when a licensed Bitfinex source timestamp is stale', async () => {
+  it('fails closed when an explicitly admitted Bitfinex source timestamp is stale', async () => {
     const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
       const value = String(url);
       if (value.includes('/conf/pub:list:pair:exchange')) return jsonResponse([['BTCUSD']]);
@@ -599,10 +671,11 @@ describe('licensed market reference adapters', () => {
     });
 
     const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'synthetic-test',
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['BTC'],
-      licensedExchanges: ['bitfinex'],
+      enabledExchanges: ['bitfinex'],
     });
 
     const bitfinex = rows.find((row) => row.exchange === 'bitfinex');
