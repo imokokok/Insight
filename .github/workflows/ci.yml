@@ -20,7 +20,8 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  validate-static:
+    name: Static, protocol, and SDK checks
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     # Next builds in production mode and validates required configuration while
@@ -79,8 +80,50 @@ jobs:
         run: npm run rwa:parity
       - name: Enforce main-only protocol isolation
         run: npm run protocol:check
-      - name: Run remaining validation checks
-        run: npm run validate:ci:checks
+      - name: Run remaining static validation checks
+        run: npm run validate:ci:static
+
+  validate-tests:
+    name: Unit and reliability tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+      INTERNAL_API_SECRET: ci-internal-secret-that-is-not-used-in-production
+      CSRF_SECRET: ci-csrf-secret-that-is-not-used-in-production
+      JWT_SECRET: ci-jwt-secret-that-is-not-used-in-production
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+          cache: npm
+      - run: npm ci
+      # The test suite can import the packed verifier through the same boundary
+      # as the static type checks. Build it in this independent job as well.
+      - run: npm run build --prefix verifier
+      - name: Run coverage and reliability tests
+        run: npm run validate:ci:tests
+
+  # Keep the historical required-check name. This status only passes after both
+  # independent validation paths pass, so branch protection cannot be bypassed
+  # while the two paths run concurrently.
+  validate:
+    needs: [validate-static, validate-tests]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every validation path to pass
+        env:
+          STATIC_RESULT: ${{ needs.validate-static.result }}
+          TEST_RESULT: ${{ needs.validate-tests.result }}
+        run: |
+          if [ "$STATIC_RESULT" != 'success' ] || [ "$TEST_RESULT" != 'success' ]; then
+            echo "::error::Validation paths finished with static=$STATIC_RESULT tests=$TEST_RESULT"
+            exit 1
+          fi
 
   smoke:
     runs-on: ubuntu-24.04
@@ -103,7 +146,23 @@ jobs:
           node-version: 22.23.2
           cache: npm
       - run: npm ci
+      - name: Restore Next.js build cache
+        id: next-cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .next/cache
+          # Next invalidates changed source entries itself.  Keeping this key at
+          # dependency granularity makes the incremental cache a true hit for
+          # every commit with the same dependency graph, rather than only for
+          # an explicit re-run of the same SHA.
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm run build
+      - name: Cache Next.js build state
+        if: steps.next-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Restore Playwright Chromium
         id: playwright-cache
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
