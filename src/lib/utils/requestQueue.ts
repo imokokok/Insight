@@ -34,6 +34,19 @@ interface QueuedRequest {
 interface RequestQueueConfig {
   maxConcurrency?: number;
   defaultTimeout?: number;
+  /**
+   * Optional admission gate (e.g. a circuit breaker). When `shouldReject`
+   * returns true, the request is rejected immediately with `rejection()`
+   * without occupying a concurrency slot — the point is to fail fast during
+   * an outage instead of piling 30s-hanging requests onto a saturated
+   * backend. `onSettled` receives every executed request's outcome so the
+   * gate can observe availability failures (including queue timeouts).
+   */
+  gate?: {
+    shouldReject: () => boolean;
+    rejection: () => Error;
+    onSettled: (ok: boolean, error?: unknown) => void;
+  };
 }
 
 interface RequestQueueStats {
@@ -50,12 +63,14 @@ export class RequestQueue {
   private failed = 0;
   private maxConcurrency: number;
   private defaultTimeout: number;
+  private gate: RequestQueueConfig['gate'];
   private requestIdCounter = 0;
   private runningRequests = new Map<string, QueuedRequest>();
 
   constructor(config: RequestQueueConfig = {}) {
     this.maxConcurrency = config.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY;
     this.defaultTimeout = config.defaultTimeout ?? DEFAULT_TIMEOUT;
+    this.gate = config.gate;
     logger.info('RequestQueue initialized', {
       maxConcurrency: this.maxConcurrency,
       defaultTimeout: this.defaultTimeout,
@@ -107,6 +122,10 @@ export class RequestQueue {
 
     if (abortSignal?.aborted) {
       throw new DOMException('Request aborted', 'AbortError');
+    }
+
+    if (this.gate?.shouldReject()) {
+      throw this.gate.rejection();
     }
 
     return new Promise<T>((resolve, reject) => {
@@ -197,6 +216,7 @@ export class RequestQueue {
       if (request.finalized) return;
 
       this.completed++;
+      this.gate?.onSettled(true);
       request.resolve(result);
 
       logger.debug('Request completed', {
@@ -209,6 +229,7 @@ export class RequestQueue {
       if (request.finalized) return;
 
       this.failed++;
+      this.gate?.onSettled(false, error);
 
       const err = normalizeError(error);
       request.reject(err);
@@ -228,6 +249,8 @@ export class RequestQueue {
   }
 
   private handleTimeout(request: QueuedRequest): void {
+    const timeoutError = new DOMException('Request timeout', 'TimeoutError');
+    this.gate?.onSettled(false, timeoutError);
     const queueIndex = this.queue.findIndex((r) => r.id === request.id);
     if (queueIndex !== -1) {
       request.finalized = true;

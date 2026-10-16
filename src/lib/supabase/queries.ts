@@ -1,5 +1,6 @@
 import { type SupabaseClient } from '@supabase/supabase-js';
 
+import { DatabaseUnavailableError, dbCircuitBreaker } from '@/lib/utils/dbCircuitBreaker';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { RequestQueue } from '@/lib/utils/requestQueue';
 import { normalizeTimestamp } from '@/lib/utils/timestamp';
@@ -16,9 +17,20 @@ const logger = createLogger('supabase-queries');
 // single slow query (e.g. the dashboard SSR fires 20 parallel reads).
 // 15 is still well within Supabase connection limits and leaves headroom
 // for concurrent API requests sharing the same serverless instance.
+//
+// The gate wires in the process-level database circuit breaker: once the
+// breaker is open, requests are rejected in microseconds instead of
+// hanging for the full timeout against a saturated PostgREST pool (see
+// dbCircuitBreaker.ts for the outage this prevents from amplifying).
 const queryQueue = new RequestQueue({
   maxConcurrency: 15,
   defaultTimeout: 30000,
+  gate: {
+    shouldReject: () => !dbCircuitBreaker.claimProbe(),
+    rejection: () => new DatabaseUnavailableError(),
+    onSettled: (ok, error) =>
+      ok ? dbCircuitBreaker.recordSuccess() : dbCircuitBreaker.recordFailure(error),
+  },
 });
 
 // Page size for `oracle_feeds` reads. Conservative, kept well under the

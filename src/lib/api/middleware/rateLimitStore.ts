@@ -1,4 +1,5 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { dbCircuitBreaker } from '@/lib/utils/dbCircuitBreaker';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 const logger = createLogger('rate-limit-store');
@@ -105,6 +106,14 @@ class SupabaseRateLimitStore implements RateLimitStore {
       return this.memoryFallback.increment(key, windowMs);
     }
 
+    // While the database circuit breaker is open, don't fire the RPC at all:
+    // a hanging rate-limit increment on every request is what turned the
+    // outage into 30s function timeouts. Serve from memory until the breaker
+    // allows a probe through.
+    if (!dbCircuitBreaker.claimProbe()) {
+      return this.memoryFallback.increment(key, windowMs);
+    }
+
     const client = createServiceRoleClient();
 
     try {
@@ -124,6 +133,7 @@ class SupabaseRateLimitStore implements RateLimitStore {
 
       // Recovered from fallback — reset flag
       this.useMemoryFallback = false;
+      dbCircuitBreaker.recordSuccess();
 
       return {
         count: rows[0].count,
@@ -141,6 +151,7 @@ class SupabaseRateLimitStore implements RateLimitStore {
           normalizeError(error)
         );
       }
+      dbCircuitBreaker.recordFailure(error);
       return this.memoryFallback.increment(key, windowMs);
     }
   }
