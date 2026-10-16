@@ -79,9 +79,52 @@ export function hasAuthCredentials(request: NextRequest): boolean {
   return request.headers.has('x-api-key') || request.headers.has('authorization');
 }
 
+/**
+ * Body for an x402 HTTP response, with a v1-era compatibility unwrap for 402
+ * challenges: x402 v2 carries the quote in the base64 PAYMENT-REQUIRED header
+ * and many servers send an empty JSON body. Some directory validators and
+ * crawlers only parse a JSON body with an `accepts` array, so when the header
+ * decodes to a challenge we mirror it into the body. Purely additive — the
+ * header stays authoritative and any body that already carries `accepts` is
+ * returned untouched.
+ */
+export function x402ResponseBody(instructions: HTTPResponseInstructions): unknown {
+  const body = instructions.body === undefined ? null : instructions.body;
+  if (instructions.status !== 402) return body;
+
+  if (
+    body !== null &&
+    typeof body === 'object' &&
+    !Array.isArray(body) &&
+    Array.isArray((body as { accepts?: unknown }).accepts)
+  ) {
+    return body;
+  }
+
+  const headers = instructions.headers ?? {};
+  const raw = Object.entries(headers).find(
+    ([key]) => key.toLowerCase() === 'payment-required'
+  )?.[1];
+  if (typeof raw !== 'string' || raw.length === 0) return body;
+
+  try {
+    const decoded = JSON.parse(Buffer.from(raw, 'base64').toString('utf8')) as unknown;
+    if (
+      decoded !== null &&
+      typeof decoded === 'object' &&
+      Array.isArray((decoded as { accepts?: unknown }).accepts)
+    ) {
+      return decoded;
+    }
+  } catch {
+    // Undecodable header: keep the original body rather than guessing.
+  }
+  return body;
+}
+
 /** Translate x402 HTTP response instructions into a NextResponse. */
 export function toNextResponse(instructions: HTTPResponseInstructions): NextResponse {
-  const body = instructions.body === undefined ? null : instructions.body;
+  const body = x402ResponseBody(instructions);
   const payload = typeof body === 'string' ? body : JSON.stringify(body);
   const response = new NextResponse(payload, { status: instructions.status });
   for (const [key, value] of Object.entries(instructions.headers ?? {})) {

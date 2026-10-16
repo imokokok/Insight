@@ -1,6 +1,6 @@
 import { type X402Config } from '../config';
 import { recordX402Settlement } from '../guard';
-import { handleMcpPaidToolCall, type McpPaidCallInput } from '../mcpBridge';
+import { handleMcpPaidToolCall, toResponse, type McpPaidCallInput } from '../mcpBridge';
 import { getMcpX402HttpServer } from '../resourceServer';
 
 // Jest's Response polyfill lacks clone() (real Node/undici has it). The bridge
@@ -22,6 +22,7 @@ jest.mock('../resourceServer', () => ({
 }));
 
 jest.mock('../guard', () => ({
+  ...jest.requireActual('../guard'),
   recordX402Settlement: jest.fn(),
   logBazaarExtensionStatus: jest.fn(),
   paymentAuditFields: (requirement: { network: string; asset: string; amount: string }) => ({
@@ -146,5 +147,31 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     );
 
     expect(fakeServer.processSettlement).not.toHaveBeenCalled();
+  });
+});
+
+describe('toResponse 402 body compat', () => {
+  it('mirrors a header-encoded challenge into the body while keeping the header', async () => {
+    const challenge = {
+      x402Version: 2,
+      error: 'Payment required',
+      accepts: [{ scheme: 'exact', network: 'eip155:8453', amount: '2000' }],
+    };
+    const res = toResponse({
+      status: 402,
+      headers: {
+        'PAYMENT-REQUIRED': Buffer.from(JSON.stringify(challenge)).toString('base64'),
+      },
+      body: {},
+    });
+    expect(res.status).toBe(402);
+    expect(res.headers.get('PAYMENT-REQUIRED')).toBeTruthy();
+    await expect(res.json()).resolves.toEqual(challenge);
+  });
+
+  it('passes through non-402 instructions unchanged', async () => {
+    const res = toResponse({ status: 200, headers: {}, body: { ok: true } });
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({ ok: true });
   });
 });

@@ -149,6 +149,45 @@ describe('x402 guard', () => {
       const body = await res.json();
       expect(body).toEqual({ accepts: [] });
     });
+
+    it('mirrors a header-encoded 402 challenge into the body for v1 parsers', async () => {
+      const challenge = {
+        x402Version: 2,
+        error: 'Payment required',
+        accepts: [
+          {
+            scheme: 'exact',
+            network: 'eip155:8453',
+            amount: '2000',
+            asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+            payTo: '0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231',
+          },
+        ],
+      };
+      const res = toNextResponse({
+        status: 402,
+        headers: { 'PAYMENT-REQUIRED': Buffer.from(JSON.stringify(challenge)).toString('base64') },
+        body: {},
+      });
+      expect(res.status).toBe(402);
+      await expect(res.json()).resolves.toEqual(challenge);
+    });
+
+    it('leaves non-402 bodies and undecodable 402 headers untouched', async () => {
+      const ok = toNextResponse({
+        status: 200,
+        headers: { 'PAYMENT-REQUIRED': 'bm9wZQ==' },
+        body: { verdict: 'PASS' },
+      });
+      await expect(ok.json()).resolves.toEqual({ verdict: 'PASS' });
+
+      const bad = toNextResponse({
+        status: 402,
+        headers: { 'PAYMENT-REQUIRED': '!!!not-base64!!!' },
+        body: {},
+      });
+      await expect(bad.json()).resolves.toEqual({});
+    });
   });
 
   describe('handlePaidPreTradeRequest', () => {
