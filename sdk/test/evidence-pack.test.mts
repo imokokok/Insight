@@ -10,8 +10,9 @@ import {
   verifyEvidencePack,
   withEvidencePackClientArtifacts,
 } from '../src/evidence-pack';
-import type { DecisionInputAssessment, DecisionInputTrust, PreTradeResult } from '../src/types.ts';
+
 import type { DecisionEvidencePack } from '../src/evidence-pack';
+import type { DecisionInputAssessment, DecisionInputTrust, PreTradeResult } from '../src/types.ts';
 
 const signer = privateKeyToAccount(`0x${'11'.repeat(32)}`);
 const tokenA = '0x1111111111111111111111111111111111111111';
