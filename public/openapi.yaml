@@ -2603,6 +2603,58 @@ paths:
       responses:
         '200': { description: Cryptographic verification result }
 
+  /safety/decision-input/evidence-pack:
+    get:
+      operationId: getDecisionEvidencePack
+      tags: [Safety]
+      summary: Assemble one operation's verifiable decision evidence pack
+      description: Public assembly of one pre-trade operation's evidence chain (signed decision-input assessments, oracle pre-trade provenance, combined input-gate audit, signed execution receipt) into a manifest-hashed pack keyed by a 32-byte hex UID. The UID is the capability; the read is rate-limited and never cached. The pack is evidence for review and dispute, not authorization.
+      security: []
+      parameters:
+        - name: preTradeUid
+          in: query
+          required: false
+          schema: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' }
+          description: Anchor the pack on a pre-trade attestation UID
+        - name: receiptUid
+          in: query
+          required: false
+          schema: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' }
+          description: Anchor the pack on an execution receipt UID
+      responses:
+        '200':
+          description: The assembled evidence pack, its computed manifest hashes, and a completeness summary of optional artifacts
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: Malformed or missing UID, or nothing anchored to it }
+    post:
+      operationId: verifyDecisionEvidencePack
+      tags: [Safety]
+      summary: Verify a decision evidence pack without persisting anything
+      description: Recomputes the manifest hashes, verifies carried decision-input assessment signatures, client-held oracle envelopes, anchor linkage, and (when the full triangle is present) the closed-loop execution pair. Nothing is persisted.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pack]
+              properties:
+                pack:
+                  type: object
+                  description: A decision evidence pack as returned by the GET endpoint, optionally merged with client-held artifacts
+                  additionalProperties: true
+              additionalProperties: false
+      responses:
+        '200':
+          description: Integrity result with manifest validity, per-assessment checks, client-envelope checks, closed-loop status, and anchor linkage
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { description: Malformed verification request }
+
   /safety/decision-input/verify:
     get:
       operationId: getDecisionInputAttestationDescriptor
