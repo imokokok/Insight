@@ -4,6 +4,7 @@ import {
   SOLANA_DEVNET_CAIP2,
   SOLANA_MAINNET_CAIP2,
   getX402PaymentOptions,
+  tokenNameForNetwork,
   usdcForNetwork,
 } from '../config';
 
@@ -61,6 +62,63 @@ describe('x402 config', () => {
 
   it('maps mainnet to the canonical Base USDC contract', () => {
     expect(usdcForNetwork('eip155:8453')).toBe('0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913');
+  });
+
+  it('maps Monad mainnet to the Circle native USDC contract with its on-chain domain name', () => {
+    expect(usdcForNetwork('eip155:143')).toBe('0x754704Bc059F8C67012fEd69BC8A327a5aafb603');
+    expect(tokenNameForNetwork('eip155:143')).toBe('USDC');
+  });
+
+  it('accepts eip155:143 in X402_EVM_NETWORKS', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:143',
+    });
+    expect(cfg.evmNetworks).toEqual(['eip155:8453', 'eip155:143']);
+    expect(getX402PaymentOptions(cfg).map((option) => option.asset)).toEqual([
+      '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      '0x754704Bc059F8C67012fEd69BC8A327a5aafb603',
+    ]);
+  });
+
+  describe('per-network facilitator URLs', () => {
+    it('defaults to an empty override map', () => {
+      const cfg = parseX402Config({ ...BASE_ENV });
+      expect(cfg.facilitatorUrls).toEqual({});
+    });
+
+    it('parses network=url pairs', () => {
+      const cfg = parseX402Config({
+        ...BASE_ENV,
+        X402_FACILITATOR_URLS: 'eip155:143=https://x402-facilitator.molandak.org',
+      });
+      expect(cfg.facilitatorUrls).toEqual({
+        'eip155:143': 'https://x402-facilitator.molandak.org',
+      });
+    });
+
+    it('rejects malformed, non-https, unknown-network, and duplicate entries', () => {
+      const env = { ...BASE_ENV };
+      expect(() => parseX402Config({ ...env, X402_FACILITATOR_URLS: 'no-equals-sign' })).toThrow(
+        /network=url/
+      );
+      expect(() =>
+        parseX402Config({
+          ...env,
+          X402_FACILITATOR_URLS: 'eip155:143=http://x402-facilitator.molandak.org',
+        })
+      ).toThrow(/valid https URL/);
+      expect(() =>
+        parseX402Config({ ...env, X402_FACILITATOR_URLS: 'eip155:999=https://x.example.com' })
+      ).toThrow();
+      expect(() =>
+        parseX402Config({
+          ...env,
+          X402_FACILITATOR_URLS:
+            'eip155:143=https://a.example.com,eip155:143=https://b.example.com',
+        })
+      ).toThrow(/duplicate/);
+    });
   });
 
   it('enables Solana Devnet x402 without requiring an EVM recipient', () => {

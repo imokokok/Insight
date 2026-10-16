@@ -10,6 +10,7 @@ import { ExactSvmScheme } from '@x402/svm/exact/server';
 import { createCdpAuthHeaders } from './cdpAuth';
 import {
   type X402Config,
+  type X402NetworkId,
   X402_MCP_ROUTE,
   X402_PRE_TRADE_ROUTE,
   getX402PaymentOptions,
@@ -173,20 +174,62 @@ export interface X402ServerDeps {
  * pre-trade route. Exported for tests; production callers use
  * {@link getX402HttpServer}.
  */
+/** CDP host that requires authenticated verify/settle (see cdpAuth.ts). */
+const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
+
+/**
+ * Build one HTTP facilitator client per distinct facilitator URL needed by
+ * the configured payment options. Networks inherit `cfg.facilitatorUrl`
+ * unless `cfg.facilitatorUrls[network]` overrides them (e.g. Monad mainnet
+ * routes to the Monad facilitator because CDP does not serve it). CDP
+ * bearer-JWT auth is attached only to the client whose URL points at the CDP
+ * host; third-party facilitators need none.
+ */
+function buildFacilitatorClients(
+  cfg: X402Config,
+  deps?: Partial<X402ServerDeps>
+): HTTPFacilitatorClient[] {
+  const timeoutMs = deps?.facilitatorTimeoutMs ?? cfg.facilitatorTimeoutMs;
+  const urls = new Set<string>();
+  const options = getX402PaymentOptions(cfg);
+  if (deps?.facilitatorUrl) {
+    // Test hook: force every network onto one facilitator.
+    urls.add(deps.facilitatorUrl);
+  } else if (options.length === 0) {
+    urls.add(cfg.facilitatorUrl);
+  } else {
+    for (const option of options) {
+      urls.add(cfg.facilitatorUrls?.[option.network as X402NetworkId] ?? cfg.facilitatorUrl);
+    }
+  }
+
+  return [...urls].map((url) => {
+    let host = '';
+    try {
+      host = new URL(url).host;
+    } catch {
+      // Malformed URLs throw later via the facilitator client itself.
+    }
+    const isCdp = host === CDP_FACILITATOR_HOST;
+    return new HTTPFacilitatorClient({
+      url,
+      timeoutMs,
+      // CDP facilitator requires per-request Bearer JWTs; others need none.
+      ...(isCdp && cfg.facilitatorCdpAuth
+        ? { createAuthHeaders: createCdpAuthHeaders(cfg.facilitatorCdpAuth) }
+        : {}),
+    });
+  });
+}
+
 export async function buildX402HttpServer(
   cfg: X402Config,
   deps?: Partial<X402ServerDeps>,
   options?: { mcpAmountAtomic?: string }
 ): Promise<x402HTTPResourceServer> {
-  const cdpAuth = cfg.facilitatorCdpAuth;
-  const facilitator = new HTTPFacilitatorClient({
-    url: deps?.facilitatorUrl ?? cfg.facilitatorUrl,
-    timeoutMs: deps?.facilitatorTimeoutMs ?? cfg.facilitatorTimeoutMs,
-    // CDP facilitator requires per-request Bearer JWTs; x402.org needs none.
-    ...(cdpAuth ? { createAuthHeaders: createCdpAuthHeaders(cdpAuth) } : {}),
-  });
+  const facilitators = buildFacilitatorClients(cfg, deps);
 
-  const server = new x402ResourceServer(facilitator);
+  const server = new x402ResourceServer(facilitators);
   const paymentOptions = getX402PaymentOptions(cfg);
   if (paymentOptions.some((option) => option.family === 'evm')) {
     const networks = new Set(
@@ -230,6 +273,7 @@ export async function getX402HttpServer(cfg: X402Config): Promise<x402HTTPResour
   const key = JSON.stringify({
     options: getX402PaymentOptions(cfg),
     f: cfg.facilitatorUrl,
+    u: cfg.facilitatorUrls,
     c: cfg.facilitatorCdpAuth ? 'cdp' : 'none',
   });
   if (cached && cachedKey === key) {
@@ -270,6 +314,7 @@ export async function getMcpX402HttpServer(
   const key = JSON.stringify({
     options: getX402PaymentOptions(cfg, amountAtomic),
     f: cfg.facilitatorUrl,
+    u: cfg.facilitatorUrls,
     c: cfg.facilitatorCdpAuth ? 'cdp' : 'none',
   });
   const hit = mcpCache.get(key);

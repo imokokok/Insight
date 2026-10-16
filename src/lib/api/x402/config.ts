@@ -30,6 +30,7 @@ export const X402_EVM_NETWORK_IDS = [
   'eip155:43114', // Avalanche C-Chain
   'eip155:1329', // Sei
   'eip155:196', // X Layer
+  'eip155:143', // Monad
 ] as const;
 
 export type X402NetworkId = (typeof X402_EVM_NETWORK_IDS)[number];
@@ -81,6 +82,17 @@ const SUPPORTED_NETWORKS: Record<X402NetworkId, { usdc: string; tokenName: strin
   'eip155:196': {
     usdc: '0xB6CEceAB302E2E4948951eE7843FC24E92933061',
     tokenName: 'USD Coin',
+  },
+  'eip155:143': {
+    /** Chain: Monad mainnet. Circle native USDC (Circle blog, 2025-11-24). */
+    usdc: '0x754704Bc059F8C67012fEd69BC8A327a5aafb603',
+    /**
+     * On-chain name() = "USDC" (verified via eth_call 2026-10-16 against
+     * rpc.monad.xyz), NOT "USD Coin" — same trap as Base Sepolia. version()
+     * is "2" and DOMAIN_SEPARATOR matches { name: "USDC", version: "2" },
+     * consistent with the @x402/evm >= 2.22 built-in Monad asset config.
+     */
+    tokenName: 'USDC',
   },
 };
 
@@ -148,6 +160,15 @@ export interface X402Config {
   /** Human-readable USD price for docs/telemetry. */
   priceUsd: number;
   facilitatorUrl: string;
+  /**
+   * Per-network facilitator overrides parsed from X402_FACILITATOR_URLS
+   * (comma-separated "network=url" pairs, e.g.
+   * "eip155:143=https://x402-facilitator.molandak.org"). Networks not listed
+   * fall back to `facilitatorUrl`. Needed when the primary facilitator (e.g.
+   * CDP) does not support every advertised network (e.g. Monad mainnet is
+   * served by the Monad x402 facilitator instead).
+   */
+  facilitatorUrls: Partial<Record<X402NetworkId, string>>;
   /** Facilitator HTTP timeout (verify + settle), bounded well below 90s default. */
   facilitatorTimeoutMs: number;
   /** Payment authorization validity window advertised in 402 requirements. */
@@ -160,6 +181,40 @@ export interface X402Config {
   facilitatorCdpAuth: { apiKeyId: string; apiKeySecret: string } | null;
   /** Optional, independently opted-in Solana x402 option. */
   solana?: X402SolanaConfig | null;
+}
+
+function parseFacilitatorUrls(raw: string | undefined): Partial<Record<X402NetworkId, string>> {
+  if (raw === undefined || raw.trim() === '') return {};
+
+  const urls: Partial<Record<X402NetworkId, string>> = {};
+  for (const pair of raw.split(',')) {
+    const trimmed = pair.trim();
+    if (trimmed === '') {
+      throw new Error('X402_FACILITATOR_URLS must not contain empty entries');
+    }
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0 || eq === trimmed.length - 1) {
+      throw new Error(
+        'X402_FACILITATOR_URLS entries must be "network=url" pairs separated by commas'
+      );
+    }
+    const network = trimmed.slice(0, eq).trim() as X402NetworkId;
+    const url = trimmed.slice(eq + 1).trim();
+    NetworkSchema.parse(network);
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== 'https:') {
+        throw new Error('not https');
+      }
+    } catch {
+      throw new Error(`X402_FACILITATOR_URLS entry for ${network} is not a valid https URL`);
+    }
+    if (urls[network]) {
+      throw new Error(`X402_FACILITATOR_URLS has a duplicate entry for ${network}`);
+    }
+    urls[network] = url;
+  }
+  return urls;
 }
 
 function parsePriceUsd(raw: string | undefined): number {
@@ -265,6 +320,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
   }
 
   const facilitatorUrl = env.X402_FACILITATOR_URL?.trim() || 'https://x402.org/facilitator';
+  const facilitatorUrls = parseFacilitatorUrls(env.X402_FACILITATOR_URLS);
 
   return {
     enabled: evmEnabled || solana !== null,
@@ -275,6 +331,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     amountAtomic: usdToAtomicUnits(priceUsd),
     priceUsd,
     facilitatorUrl,
+    facilitatorUrls,
     facilitatorTimeoutMs: 15_000,
     maxTimeoutSeconds: 60,
     facilitatorCdpAuth: parseFacilitatorCdpAuth(env, facilitatorUrl),
