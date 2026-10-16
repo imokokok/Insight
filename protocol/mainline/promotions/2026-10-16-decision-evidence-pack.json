@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 33,
+  "effectiveFrom": "2026-10-16",
+  "classification": "Opt-in decision evidence pack: service assembly and verification endpoints with an SDK offline evidence-pack module",
+  "registryReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x67e44ab848ee73297ca1d01738bfc3290f4e311eb1c8f037b7036e0f13ba6281",
+  "activationSetId": "0x32335b66b91bd4ab1742b86ffcaefa94bbfc063de5f9a1d51e0080df67896157",
+  "receiptImpact": "Existing OracleSafetyCheck and ExecutionReceipt layouts, registry release, attester keys, partner policies, and activation set v6 remain unchanged. Insight adds opt-in decision evidence pack endpoints that assemble and verify already persisted audit artifacts into one manifest-hashed pack, and the SDK adds an offline evidence-pack verification module plus a canonical JSON export. The pack is review evidence, not authorization, and no partner policy or partner production verifier admission changes.",
+  "activationRule": "Consumers must explicitly call the evidence pack endpoints or SDK module; the pack verifies bytes and linkage, grants no execution capability, and does not substitute for verify-insight-receipt or PriorSeal verification. Existing SDK and service behavior is unchanged and opt-in compatible. This promotion does not change partner activations, grant partner reliance, authorize live execution, or publish an npm package.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves this partner policy ID 0x11d4736a2c0a2c23f3a2d46f863d3ebb64e2b738f8da4a02bd12a30368578a43 byte for byte. No partner policy, activation, production reachability, trust pin, OracleSafetyCheck layout, or ExecutionReceipt layout changes. The evidence pack service endpoints and the SDK evidence-pack module are additive, opt-in verification surfaces over already persisted audit rows; this promotion does not adopt them on behalf of this partner and does not publish an npm package."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves this partner policy ID 0xe556b47dbdb4e3d7cab2c4fb882ffe0b65d6c4750ac0ff5ce6ee2f0494d3b787 byte for byte. No partner policy, activation, production reachability, trust pin, OracleSafetyCheck layout, or ExecutionReceipt layout changes. The evidence pack service endpoints and the SDK evidence-pack module are additive, opt-in verification surfaces over already persisted audit rows; this promotion does not adopt them on behalf of this partner and does not publish an npm package."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves this partner policy ID 0x0ce8536c90b23ebcb2952422e5eb67628da65c14b6bf5782849f20c0b137815b byte for byte. No partner policy, activation, production reachability, trust pin, OracleSafetyCheck layout, or ExecutionReceipt layout changes. The evidence pack service endpoints and the SDK evidence-pack module are additive, opt-in verification surfaces over already persisted audit rows; this promotion does not adopt them on behalf of this partner and does not publish an npm package."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves this partner policy ID 0xca3bd5acb9d70f9e9755fad44e87cff1122f88986a6c61b33d93a49e3bb15861 byte for byte. No partner policy, activation, production reachability, trust pin, OracleSafetyCheck layout, or ExecutionReceipt layout changes. The evidence pack service endpoints and the SDK evidence-pack module are additive, opt-in verification surfaces over already persisted audit rows; this promotion does not adopt them on behalf of this partner and does not publish an npm package."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves this partner policy ID 0xd510bd9f29be0b896aed2e2b95200eab25cb9e03430a456f1bee3df7a17de158 byte for byte. No partner policy, activation, production reachability, trust pin, OracleSafetyCheck layout, or ExecutionReceipt layout changes. The evidence pack service endpoints and the SDK evidence-pack module are additive, opt-in verification surfaces over already persisted audit rows; this promotion does not adopt them on behalf of this partner and does not publish an npm package."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves this partner policy ID 0xb539451842dc4e907d6fcea012aa094f4fea3c3acd2fd054aa4106848f602239 byte for byte. No partner policy, activation, production reachability, trust pin, OracleSafetyCheck layout, or ExecutionReceipt layout changes. The evidence pack service endpoints and the SDK evidence-pack module are additive, opt-in verification surfaces over already persisted audit rows; this promotion does not adopt them on behalf of this partner and does not publish an npm package."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves this partner policy ID 0x5a80afffbb667b62014c727fae35e9f00edd6ca99555baa1c4cc79d0650768d0 byte for byte. No partner policy, activation, production reachability, trust pin, OracleSafetyCheck layout, or ExecutionReceipt layout changes. The evidence pack service endpoints and the SDK evidence-pack module are additive, opt-in verification surfaces over already persisted audit rows; this promotion does not adopt them on behalf of this partner and does not publish an npm package."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves this partner policy ID 0x248f339e382efefaf20c9caad0ed6ee3db75775b5b5649b3d2421bb28d376341 byte for byte. No partner policy, activation, production reachability, trust pin, OracleSafetyCheck layout, or ExecutionReceipt layout changes. The evidence pack service endpoints and the SDK evidence-pack module are additive, opt-in verification surfaces over already persisted audit rows; this promotion does not adopt them on behalf of this partner and does not publish an npm package."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves this partner policy ID 0x55fbfb17fbab461ff237cad4b19f8fba71411461d19f8e99af103910ae47ae63 byte for byte. No partner policy, activation, production reachability, trust pin, OracleSafetyCheck layout, or ExecutionReceipt layout changes. The evidence pack service endpoints and the SDK evidence-pack module are additive, opt-in verification surfaces over already persisted audit rows; this promotion does not adopt them on behalf of this partner and does not publish an npm package."
+    }
+  ],
+  "promotionId": "0xbf2b4e3a17be7a1f3c5dd1c2049330bcbce6df4a0d8696ea0d21dade265a9db4"
+}
