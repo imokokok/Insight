@@ -2,9 +2,9 @@
 /**
  * Market-reference collector entry (the step inside snapshot-collect.yml and
  * the manual market-reference-collect.yml workflow). Delegates to
- * `collectMarketReference()` (which queries Coinbase/Kraken/Gemini/Crypto.com
- * spot, plus Bitstamp/Bitfinex/Binance after their commercial data licenses
- * are recorded in the repository variable) and
+ * `collectMarketReference()` only after the source-rights register records a
+ * reviewed vendor agreement for a venue. Without one, the job exits cleanly
+ * without contacting a CEX or writing rows. It then
  * upserts one row per (symbol, exchange, snapshot_ts) into
  * `market_reference_snapshots` (migration 0037).
  *
@@ -17,35 +17,10 @@ import {
   collectMarketReference,
   MARKET_REFERENCE_CORE_SYMBOLS,
   MARKET_REFERENCE_SYMBOLS,
-  type LicensedMarketReferenceExchange,
   type MarketReferenceRow,
 } from '@/lib/marketReference/collector';
+import { customerEligibleMarketReferenceVenues } from '@/lib/dataRights/evidenceRights';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-
-const LICENSED_EXCHANGE_NAMES = ['bitstamp', 'bitfinex', 'binance'] as const;
-
-function parseLicensedExchanges(raw: string | undefined): LicensedMarketReferenceExchange[] {
-  if (!raw?.trim()) return [];
-
-  const allowed = new Map<string, LicensedMarketReferenceExchange>(
-    LICENSED_EXCHANGE_NAMES.map((name): [string, LicensedMarketReferenceExchange] => [name, name])
-  );
-  const requested = [
-    ...new Set(
-      raw
-        .split(',')
-        .map((name) => name.trim().toLowerCase())
-        .filter(Boolean)
-    ),
-  ];
-  const unsupported = requested.filter((name) => !allowed.has(name));
-  if (unsupported.length > 0) {
-    throw new Error(
-      `MARKET_REFERENCE_LICENSED_EXCHANGES contains unsupported venue(s): ${unsupported.join(', ')}`
-    );
-  }
-  return requested.map((name) => allowed.get(name)!);
-}
 
 async function insertRows(rows: MarketReferenceRow[]): Promise<number> {
   if (rows.length === 0) return 0;
@@ -71,6 +46,13 @@ async function main(): Promise<void> {
   const startedAt = Date.now();
   console.log('[collect-market-reference] starting…');
   const snapshotTs = new Date();
+  const eligibleExchanges = customerEligibleMarketReferenceVenues();
+  if (eligibleExchanges.length === 0) {
+    console.log(
+      '[collect-market-reference] skipped: no reviewed vendor market-data agreement is registered; no CEX request or database write was made'
+    );
+    return;
+  }
 
   // Preserve 15-minute truth for the five strategic/core assets, while the
   // eight demand-led additions run hourly. This reuses the same workflow but
@@ -83,15 +65,14 @@ async function main(): Promise<void> {
   const fullUniverse = manual || cadenceTime.getUTCMinutes() < 15;
   const symbols = fullUniverse ? MARKET_REFERENCE_SYMBOLS : MARKET_REFERENCE_CORE_SYMBOLS;
 
-  const licensedExchanges = parseLicensedExchanges(process.env.MARKET_REFERENCE_LICENSED_EXCHANGES);
   const { rows, summary } = await collectMarketReference(snapshotTs, {
     symbols,
-    licensedExchanges,
+    purpose: 'customer-facing',
   });
   const inserted = await insertRows(rows);
 
   console.log(
-    `[collect-market-reference] licensedExchanges=${licensedExchanges.join(',') || '(none)'} ` +
+    `[collect-market-reference] eligibleExchanges=${summary.eligibleExchanges.join(',') || '(none)'} ` +
       `rows=${rows.length} inserted=${inserted} ` +
       `covered=${summary.covered.join(',') || '(none)'} ` +
       `uncovered=${summary.uncovered.join(',') || '(none)'} ` +

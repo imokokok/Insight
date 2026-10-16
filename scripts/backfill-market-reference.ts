@@ -2,10 +2,10 @@
 /**
  * Historical market-reference backfill (workflow_dispatch only).
  *
- * Pulls ~BACKFILL_DAYS of hourly candles from Coinbase Exchange (primary,
- * start/end paging), Kraken OHLC (secondary), Crypto.com WBTC/USD, and
- * commercially licensed Bitstamp/Bitfinex spot markets and Binance WBTC/USDT ×
- * USDT/USD candles,
+ * Pulls ~BACKFILL_DAYS of hourly candles only from venues that have a reviewed
+ * vendor-data agreement recorded in the source-rights register. It supports
+ * Coinbase Exchange (start/end paging), Kraken OHLC, Crypto.com WBTC/USD,
+ * Bitstamp/Bitfinex spot markets, and Binance WBTC/USDT × USDT/USD candles,
  * then upserts them into `market_reference_snapshots` as successful rows
  * (volume populated from candles). WBTC is never backfilled from Coinbase's
  * DEX experience as though it were a CEX market.
@@ -36,10 +36,14 @@ import {
   MARKET_REFERENCE_SYMBOLS,
   type MarketReferenceRow,
 } from '@/lib/marketReference/collector';
+import {
+  customerEligibleMarketReferenceVenues,
+  MARKET_REFERENCE_SOURCE_RIGHTS,
+  type MarketReferenceVenue,
+} from '@/lib/dataRights/evidenceRights';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
-const COLLECTOR_VERSION = 'backfill-1.5.0';
-const LICENSED_EXCHANGE_NAMES = ['bitstamp', 'bitfinex', 'binance'] as const;
+const COLLECTOR_VERSION = 'backfill-1.6.0';
 
 const COINBASE_PRODUCTS: Record<string, string> = {
   ETH: 'ETH-USD',
@@ -404,26 +408,6 @@ async function fetchBitfinexHourlyCandles(
   });
 }
 
-function parseLicensedExchanges(raw: string | undefined): Set<string> {
-  const requested = [
-    ...new Set(
-      (raw ?? '')
-        .split(',')
-        .map((name) => name.trim().toLowerCase())
-        .filter(Boolean)
-    ),
-  ];
-  const unsupported = requested.filter(
-    (name) => !LICENSED_EXCHANGE_NAMES.includes(name as (typeof LICENSED_EXCHANGE_NAMES)[number])
-  );
-  if (unsupported.length > 0) {
-    throw new Error(
-      `MARKET_REFERENCE_LICENSED_EXCHANGES contains unsupported venue(s): ${unsupported.join(', ')}`
-    );
-  }
-  return new Set(requested);
-}
-
 const BINANCE_MARKET_DATA_BASE_URL = 'https://data-api.binance.vision/api/v3';
 const BINANCE_WBTC_USDT = 'WBTCUSDT';
 const BINANCE_USDT_USD = 'USDTUSD';
@@ -563,7 +547,7 @@ async function backfillSymbol(
   symbol: string,
   days: number,
   rows: MarketReferenceRow[],
-  licensedExchanges: ReadonlySet<string>
+  customerVenues: ReadonlySet<MarketReferenceVenue>
 ): Promise<void> {
   const now = new Date();
   const startAll = new Date(now.getTime() - days * 86400_000);
@@ -572,7 +556,7 @@ async function backfillSymbol(
   // Hard cap + advance guard: if the API ever stops honoring start/end, `end`
   // stops advancing and we bail instead of looping forever. Skip symbols with
   // no direct Coinbase CEX pair, including WBTC.
-  if (COINBASE_PRODUCTS[symbol]) {
+  if (customerVenues.has('coinbase') && COINBASE_PRODUCTS[symbol]) {
     let end = now;
     for (let page = 0; page < 12 && end > startAll; page++) {
       const start = new Date(Math.max(startAll.getTime(), end.getTime() - 12.5 * 86400_000));
@@ -599,6 +583,8 @@ async function backfillSymbol(
           ask: null,
           bid_ask_spread_pct: null,
           data_age_seconds: null,
+          rights_scope: 'vendor-licensed',
+          rights_reference: MARKET_REFERENCE_SOURCE_RIGHTS.coinbase.agreementReference,
           is_success: true,
           error_message: null,
           collector_version: COLLECTOR_VERSION,
@@ -612,13 +598,13 @@ async function backfillSymbol(
       }
       end = oldest;
     }
-  } else {
+  } else if (customerVenues.has('coinbase')) {
     console.log(`[backfill] coinbase ${symbol}: no direct USD market; skipping source`);
   }
 
   // --- Kraken: page forward using the `since` cursor. -----------------------
   let since = Math.floor(startAll.getTime() / 1000);
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; customerVenues.has('kraken') && i < 12; i++) {
     let candles: Candle[] = [];
     try {
       candles = await fetchKrakenOhlc(symbol, since);
@@ -643,6 +629,8 @@ async function backfillSymbol(
         ask: null,
         bid_ask_spread_pct: null,
         data_age_seconds: null,
+        rights_scope: 'vendor-licensed',
+        rights_reference: MARKET_REFERENCE_SOURCE_RIGHTS.kraken.agreementReference,
         is_success: true,
         error_message: null,
         collector_version: COLLECTOR_VERSION,
@@ -660,7 +648,7 @@ async function backfillSymbol(
   // --- Crypto.com: hourly WBTC/USD candles in bounded 7-day windows. ---------
   // Each 7-day window contains at most 168 hourly candles. This path only
   // exists for direct CCY_PAIR instruments.
-  if (CRYPTO_COM_INSTRUMENTS[symbol]) {
+  if (customerVenues.has('crypto.com') && CRYPTO_COM_INSTRUMENTS[symbol]) {
     const windowMs = 7 * 86400_000;
     for (let startMs = startAll.getTime(); startMs < now.getTime(); startMs += windowMs) {
       const endMs = Math.min(startMs + windowMs, now.getTime());
@@ -687,6 +675,8 @@ async function backfillSymbol(
           ask: null,
           bid_ask_spread_pct: null,
           data_age_seconds: null,
+          rights_scope: 'vendor-licensed',
+          rights_reference: MARKET_REFERENCE_SOURCE_RIGHTS['crypto.com'].agreementReference,
           is_success: true,
           error_message: null,
           collector_version: COLLECTOR_VERSION,
@@ -696,7 +686,7 @@ async function backfillSymbol(
   }
 
   // --- Bitstamp: licensed USD spot candles, paged backward by hour. ---------
-  if (licensedExchanges.has('bitstamp')) {
+  if (customerVenues.has('bitstamp')) {
     try {
       const marketSymbol = (await bitstampUsdSpotMarkets())[symbol];
       if (!marketSymbol) {
@@ -722,6 +712,8 @@ async function backfillSymbol(
             bid_ask_spread_pct: null,
             data_age_seconds: null,
             source_observed_at: null,
+            rights_scope: 'vendor-licensed',
+            rights_reference: MARKET_REFERENCE_SOURCE_RIGHTS.bitstamp.agreementReference,
             is_success: true,
             error_message: null,
             collector_version: COLLECTOR_VERSION,
@@ -737,7 +729,7 @@ async function backfillSymbol(
   }
 
   // --- Bitfinex: licensed direct USD spot candles. --------------------------
-  if (licensedExchanges.has('bitfinex')) {
+  if (customerVenues.has('bitfinex')) {
     try {
       const pair = findBitfinexUsdPair(symbol, await bitfinexUsdSpotMarkets());
       if (!pair) {
@@ -763,6 +755,8 @@ async function backfillSymbol(
             bid_ask_spread_pct: null,
             data_age_seconds: null,
             source_observed_at: null,
+            rights_scope: 'vendor-licensed',
+            rights_reference: MARKET_REFERENCE_SOURCE_RIGHTS.bitfinex.agreementReference,
             is_success: true,
             error_message: null,
             collector_version: COLLECTOR_VERSION,
@@ -778,7 +772,7 @@ async function backfillSymbol(
   }
 
   // --- Binance: matched hourly WBTC/USDT × USDT/USD candles. -----------------
-  if (symbol === 'WBTC' && licensedExchanges.has('binance')) {
+  if (symbol === 'WBTC' && customerVenues.has('binance')) {
     let candles: Candle[] = [];
     try {
       candles = await fetchBinanceWbtcUsdCandles(startAll.getTime(), now.getTime());
@@ -802,6 +796,8 @@ async function backfillSymbol(
         bid_ask_spread_pct: null,
         data_age_seconds: null,
         source_observed_at: candle.sourceObservedAt?.toISOString() ?? null,
+        rights_scope: 'vendor-licensed',
+        rights_reference: MARKET_REFERENCE_SOURCE_RIGHTS.binance.agreementReference,
         is_success: true,
         error_message: null,
         collector_version: COLLECTOR_VERSION,
@@ -841,17 +837,18 @@ async function main(): Promise<void> {
   if (!Number.isSafeInteger(days) || days < 1 || days > 150) {
     throw new RangeError('Backfill days must be an integer from 1 to 150');
   }
-  const licensedExchanges = parseLicensedExchanges(process.env.MARKET_REFERENCE_LICENSED_EXCHANGES);
+  const customerVenues = new Set(customerEligibleMarketReferenceVenues());
   console.log(`[backfill] backfilling ${days} days of market reference…`);
-  if (licensedExchanges.size === 0) {
+  if (customerVenues.size === 0) {
     console.log(
-      '[backfill] Bitstamp, Bitfinex, and Binance history remain disabled (commercial data licenses not configured)'
+      '[backfill] skipped: no reviewed vendor market-data agreement is registered; no CEX request or database write was made'
     );
+    return;
   }
   let rows: MarketReferenceRow[] = [];
   let inserted = 0;
   for (const symbol of MARKET_REFERENCE_SYMBOLS) {
-    await backfillSymbol(symbol, days, rows, licensedExchanges);
+    await backfillSymbol(symbol, days, rows, customerVenues);
     inserted += await flushRows(rows);
     console.log(`[backfill] flushed ${rows.length} rows for ${symbol} (cumulative ${inserted})`);
     rows = [];

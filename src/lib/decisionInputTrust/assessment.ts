@@ -1,6 +1,7 @@
 import { keccak256 } from 'viem';
 import { z } from 'zod';
 
+import type { EvidenceUse } from '@/lib/dataRights/evidenceRights';
 import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
 import { MANIP_COST_MAX_AGE_MS, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import type { ChainlinkMarketReference } from '@/lib/marketReference/chainlink';
@@ -8,6 +9,13 @@ import { MAX_REF_AGE_HOURS, type MarketReference } from '@/lib/marketReference/c
 import type { RedStoneMarketReference } from '@/lib/marketReference/redstone';
 import { ETHEREUM_TOKEN_ADDRESSES } from '@/lib/oracles/constants/ethereumTokenAddresses';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
+
+import {
+  DecisionInputQuoteProvenanceSchema,
+  quoteProvenanceMatchesQuote,
+  usableQuoteProvenance,
+  type DecisionInputQuoteProvenance,
+} from './quoteProvenance';
 
 import type { DecisionInputAssessmentAttestation } from './attestation';
 import type { OnchainRouteQuoteEvidence } from './onchainRouteQuote';
@@ -38,6 +46,14 @@ export interface DecisionInputCheckRequest {
   maxSlippageBps: number;
   /** Maximum acceptable age for the supplied venue quote. */
   maxQuoteAgeSeconds: number;
+  /**
+   * Hash-only evidence retained by the caller. It binds the reported quote to
+   * a source identifier and the caller-held request/response bytes without
+   * proxying or persisting a third-party market-data payload.
+   */
+  quoteProvenance?: DecisionInputQuoteProvenance;
+  /** Fail closed unless `quoteProvenance` is present, valid, and usable here. */
+  requireQuoteProvenance?: boolean;
   /** Optional route quote captured by the gated execution workflow. */
   operationRouteQuote?: DecisionInputRouteQuote;
 }
@@ -56,7 +72,11 @@ export interface DecisionInputReason {
     | 'DEX_DEPTH_UNAVAILABLE'
     | 'QUOTE_TIMESTAMP_INVALID'
     | 'QUOTE_STALE'
-    | 'QUOTE_SLIPPAGE';
+    | 'QUOTE_SLIPPAGE'
+    | 'QUOTE_PROVENANCE_REQUIRED'
+    | 'QUOTE_PROVENANCE_MALFORMED'
+    | 'QUOTE_PROVENANCE_MISMATCH'
+    | 'QUOTE_PROVENANCE_RIGHTS';
   severity: 'block' | 'insufficient_evidence';
   message: string;
 }
@@ -78,10 +98,17 @@ export interface DecisionInputAssessment {
   operationRouteQuote: DecisionInputRouteQuote | null;
   /** Digest of the decision price, venue quote, timestamps, and optional route quote. */
   quoteInputHash: `0x${string}`;
+  /** Present only when caller-held quote evidence passed structural and scope checks. */
+  quoteProvenance?: DecisionInputQuoteProvenance;
+  /** Present when this signed result was evaluated only in the synthetic staging mode. */
+  evidenceUse?: 'staging';
   policy: Pick<
     DecisionInputCheckRequest,
     'maxReferenceDeviationBps' | 'maxSlippageBps' | 'maxQuoteAgeSeconds'
-  >;
+  > & {
+    /** Optional for backwards-compatible verification of earlier attestations. */
+    requireQuoteProvenance?: boolean;
+  };
   prices: {
     decisionPriceUsd: number;
     quotePriceUsd: number;
@@ -344,11 +371,14 @@ export const DecisionInputAssessmentSchema = z
     evaluatedAt: DecisionInputQuoteTimestampSchema,
     operationRouteQuote: DecisionInputRouteQuoteSchema.nullable(),
     quoteInputHash: Bytes32Schema,
+    quoteProvenance: DecisionInputQuoteProvenanceSchema.optional(),
+    evidenceUse: z.literal('staging').optional(),
     policy: z
       .object({
         maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
         maxSlippageBps: z.number().int().min(0).max(10_000),
         maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+        requireQuoteProvenance: z.boolean().optional(),
       })
       .strict(),
     prices: z
@@ -435,6 +465,10 @@ export const DecisionInputAssessmentSchema = z
               'QUOTE_TIMESTAMP_INVALID',
               'QUOTE_STALE',
               'QUOTE_SLIPPAGE',
+              'QUOTE_PROVENANCE_REQUIRED',
+              'QUOTE_PROVENANCE_MALFORMED',
+              'QUOTE_PROVENANCE_MISMATCH',
+              'QUOTE_PROVENANCE_RIGHTS',
             ]),
             severity: z.enum(['block', 'insufficient_evidence']),
             message: z.string().min(1).max(512),
@@ -465,6 +499,8 @@ export const DecisionInputAssessmentSchema = z
         quotePriceUsd: assessment.prices.quotePriceUsd,
         quoteObservedAt: assessment.prices.quoteObservedAt,
         operationRouteQuote: assessment.operationRouteQuote,
+        ...(assessment.quoteProvenance ? { quoteProvenance: assessment.quoteProvenance } : {}),
+        ...(assessment.evidenceUse ? { evidenceUse: assessment.evidenceUse } : {}),
       });
     } catch {
       context.addIssue({
@@ -482,6 +518,50 @@ export const DecisionInputAssessmentSchema = z
         path: ['quoteInputHash'],
         message: 'Quote input hash does not match the assessment inputs.',
       });
+    }
+
+    const quoteProvenance = assessment.quoteProvenance;
+    if (
+      assessment.status === 'SUFFICIENT' &&
+      assessment.policy.requireQuoteProvenance === true &&
+      !quoteProvenance
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['quoteProvenance'],
+        message:
+          'A sufficient result under a provenance-required policy must carry a validated provenance envelope.',
+      });
+    }
+    if (quoteProvenance) {
+      if (quoteProvenance.rightsScope === 'synthetic' && assessment.evidenceUse !== 'staging') {
+        context.addIssue({
+          code: 'custom',
+          path: ['evidenceUse'],
+          message: 'Synthetic quote provenance is valid only in a signed staging assessment.',
+        });
+      }
+      if (quoteProvenance.rightsScope === 'research-quarantined') {
+        context.addIssue({
+          code: 'custom',
+          path: ['quoteProvenance', 'rightsScope'],
+          message: 'Research-quarantined quote provenance may not be signed as usable evidence.',
+        });
+      }
+      if (
+        !quoteProvenanceMatchesQuote(quoteProvenance, {
+          asset: assessment.asset,
+          chainId: assessment.chainId,
+          quotePriceUsd: assessment.prices.quotePriceUsd,
+          quoteObservedAt: assessment.prices.quoteObservedAt,
+        })
+      ) {
+        context.addIssue({
+          code: 'custom',
+          path: ['quoteProvenance'],
+          message: 'Quote provenance does not bind to the assessed quote.',
+        });
+      }
     }
 
     const hasBlockReason = assessment.reasons.some((reason) => reason.severity === 'block');
@@ -597,6 +677,8 @@ export interface AssessDecisionInputOptions {
   redstone?: RedStoneMarketReference | null;
   cex: MarketReference | null;
   dex: ManipCostAdvisory | null;
+  /** Synthetic evidence is accepted only in staging/test evaluation. */
+  evidenceUse?: EvidenceUse;
   now?: Date;
 }
 
@@ -629,6 +711,7 @@ type DexEvidence = NonNullable<DecisionInputAssessment['evidence']['dexManipulat
 interface QuoteChecks {
   ageSeconds: number | null;
   deviationBps: number | null;
+  provenance?: DecisionInputQuoteProvenance;
 }
 
 interface ChainlinkChecks {
@@ -659,7 +742,10 @@ interface DexChecks {
 function assessQuote(
   request: DecisionInputCheckRequest,
   nowMs: number,
-  reasons: DecisionInputReason[]
+  reasons: DecisionInputReason[],
+  asset: string,
+  chainId: number,
+  evidenceUse: EvidenceUse
 ): QuoteChecks {
   const timestampFormatValid = DecisionInputQuoteTimestampSchema.safeParse(
     request.quoteObservedAt
@@ -691,9 +777,56 @@ function assessQuote(
       `The venue quote differs from the decision price by ${quoteDiffBps.toFixed(1)} bps; the limit is ${request.maxSlippageBps} bps.`
     );
   }
+
+  let provenance: DecisionInputQuoteProvenance | undefined;
+  if (request.quoteProvenance !== undefined) {
+    const result = usableQuoteProvenance(
+      request.quoteProvenance,
+      {
+        asset,
+        chainId,
+        quotePriceUsd: request.quotePriceUsd,
+        quoteObservedAt: request.quoteObservedAt,
+      },
+      evidenceUse
+    );
+    if (result.provenance) {
+      provenance = result.provenance;
+    } else if (result.reason === 'rights_not_permitted') {
+      addReason(
+        reasons,
+        'QUOTE_PROVENANCE_RIGHTS',
+        'insufficient_evidence',
+        'The quote provenance is quarantined or not permitted for this assessment environment.'
+      );
+    } else if (result.reason === 'binding_mismatch') {
+      addReason(
+        reasons,
+        'QUOTE_PROVENANCE_MISMATCH',
+        'insufficient_evidence',
+        'The quote provenance does not bind to the submitted asset, chain, price, and timestamp.'
+      );
+    } else {
+      addReason(
+        reasons,
+        'QUOTE_PROVENANCE_MALFORMED',
+        'insufficient_evidence',
+        'The quote provenance envelope is malformed.'
+      );
+    }
+  } else if (request.requireQuoteProvenance === true) {
+    addReason(
+      reasons,
+      'QUOTE_PROVENANCE_REQUIRED',
+      'insufficient_evidence',
+      'The policy requires caller-held quote provenance before this input can proceed.'
+    );
+  }
+
   return {
     ageSeconds: ageSeconds !== null && ageSeconds >= 0 ? ageSeconds : null,
     deviationBps: quoteDiffBps,
+    ...(provenance ? { provenance } : {}),
   };
 }
 
@@ -943,8 +1076,9 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
   const now = options.now ?? new Date();
   const nowMs = now.getTime();
   const normalizedAsset = asset.trim().toUpperCase();
+  const evidenceUse = options.evidenceUse ?? 'customer';
   const reasons: DecisionInputReason[] = [];
-  const quote = assessQuote(request, nowMs, reasons);
+  const quote = assessQuote(request, nowMs, reasons, normalizedAsset, chainId, evidenceUse);
   const oracle = assessChainlink(normalizedAsset, chainId, request, chainlink, reasons);
   const redstoneReference = assessRedStone(normalizedAsset, request, redstone, nowMs, reasons);
   const market = assessCex(request, cex, nowMs, reasons);
@@ -972,11 +1106,16 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
       quotePriceUsd: request.quotePriceUsd,
       quoteObservedAt: request.quoteObservedAt,
       operationRouteQuote: request.operationRouteQuote ?? null,
+      ...(quote.provenance ? { quoteProvenance: quote.provenance } : {}),
+      ...(evidenceUse === 'staging' ? { evidenceUse: 'staging' } : {}),
     }),
+    ...(quote.provenance ? { quoteProvenance: quote.provenance } : {}),
+    ...(evidenceUse === 'staging' ? { evidenceUse: 'staging' } : {}),
     policy: {
       maxReferenceDeviationBps: request.maxReferenceDeviationBps,
       maxSlippageBps: request.maxSlippageBps,
       maxQuoteAgeSeconds: request.maxQuoteAgeSeconds,
+      ...(request.requireQuoteProvenance === true ? { requireQuoteProvenance: true } : {}),
     },
     prices: {
       decisionPriceUsd: request.decisionPriceUsd,
@@ -1004,6 +1143,11 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
       'This assessment is separate from the EIP-712 oracle safety attestation and may carry its own integrity signature.',
       'A fresh RedStone USD reference is an additional divergence check. Its absence or staleness does not by itself lower the assessment status; the API observation is not independently signature-verified here and may share upstream market venues with other sources.',
       'The per-asset venue quote is caller-supplied. In agent_begin_trade, the route quote is independently simulated against Ethereum mainnet state and committed with its block evidence; this does not guarantee a later transaction will execute at that price.',
+      ...(quote.provenance
+        ? [
+            'Quote provenance is hash-only evidence retained by the caller. It binds the submitted quote to a source identifier and request/response digests, but does not authenticate the upstream provider or grant rights to redistribute upstream data.',
+          ]
+        : []),
       'DEX manipulation cost is a pool-depth proxy, not a route-specific quote, price-impact estimate, or guarantee that the pool can execute this trade.',
     ],
   };

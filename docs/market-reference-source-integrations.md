@@ -1,11 +1,10 @@
 # CEX market-reference source integrations
 
-Bitstamp, Bitfinex, and Binance are implemented as optional sources for the
-existing `market_reference_snapshots` collector. They remain disabled unless
-the GitHub Actions repository variable `MARKET_REFERENCE_LICENSED_EXCHANGES`
-names them. Public endpoint availability does not grant commercial
-redistribution or third-party data rights; enable a venue only after written
-terms cover the intended Insight use.
+All CEX venues are disabled for customer-facing collection by default. The
+collector admits a venue only when the checked-in source-rights register has a
+reviewed `vendor-licensed` record with an agreement reference; an environment
+variable cannot manufacture data rights. Public endpoint availability does not
+grant commercial redistribution or third-party data rights.
 
 ## Data contract
 
@@ -42,7 +41,7 @@ The collector discovers the market catalog and retains entries where
 `SPOT`, and `trading` is `Enabled`. It rejects ambiguous USD spot entries for
 the same base. The selected ticker supplies `last`, `bid`, `ask`, 24-hour
 `volume`, and Unix-second `timestamp`; that timestamp is freshness-checked.
-The licensed historical backfill uses the same discovered USD spot market and
+The rights-gated historical backfill uses the same discovered USD spot market and
 hourly OHLC endpoint, excludes the open candle, and pages backward with a
 cursor-advance guard.
 
@@ -93,8 +92,8 @@ expected base and quote assets. Each latest trade timestamp must be within 15
 minutes and at most 60 seconds in the future. A stale trade on either leg,
 missing pair, invalid bid/ask, or malformed response fails closed. The row's
 source time is the older of the WBTC/USDT and USDT/USD latest trades. Historical
-backfill uses only matched, completed hourly candles from both markets and
-applies the same licensed-source switch.
+backfill uses only matched, completed hourly candles from both markets and is
+admitted only after the same reviewed vendor agreement is registered.
 
 The live public API is documented as keyless on `data-api.binance.vision`. The
 standard `api.binance.com` host previously returned HTTP 451 on a GitHub-hosted
@@ -107,39 +106,37 @@ enabling the integration for production collection.
 
 ## Historical backfill
 
-The manual backfill collects Coinbase and Kraken hourly data, direct Crypto.com
-WBTC/USD candles, Bitstamp and Bitfinex USD spot candles when those sources are
-included in `MARKET_REFERENCE_LICENSED_EXCHANGES`, and the matched Binance
-WBTC/USDT × USDT/USD composite candles when Binance is included. Gemini does not
-currently have a historical-candle backfill path. All three optional sources
-are disabled when the variable is empty. Local collector and backfill commands
-read the same variable from `.env.local`; the GitHub Actions workflows read the
-repository Actions variable.
+The manual backfill collects only venues that are in the source-rights register
+as reviewed `vendor-licensed` sources with an agreement reference. This applies
+equally to Coinbase, Kraken, Crypto.com, Bitstamp, Bitfinex, and Binance; Gemini
+does not currently have a historical-candle backfill path. If no source meets
+that standard, the command exits successfully before making a CEX request or
+writing a row.
 
 ## Enablement sequence
 
 1. Confirm written commercial data permission with each exchange for the
    planned collection, storage, analytics, and any customer-facing use.
-2. Apply `supabase/migrations/0087_market_reference_source_timestamps.sql` to
-   the target database before enabling any new venue. This repository change
-   does not apply the migration to a remote database.
-3. Publish the collector, workflow, and generated cron bundles. Regenerate the
+2. Record the agreement reference and any expiry in
+   `src/lib/dataRights/evidenceRights.ts`, changing only the covered venue to
+   `vendor-licensed`. This code review is an explicit control point, not a
+   substitute for legal review.
+3. Apply `supabase/migrations/0090_market_reference_rights_gate.sql` to the
+   target database. This repository change does not apply the migration to a
+   remote database.
+4. Publish the collector, workflow, and generated cron bundles. Regenerate the
    bundles from TypeScript with `node scripts/build-cron-bundles.mjs`.
-4. In GitHub repository **Settings → Secrets and variables → Actions →
-   Variables**, set `MARKET_REFERENCE_LICENSED_EXCHANGES` only to venues
-   covered by written permission, for example `bitstamp,bitfinex,binance`.
-   Leave it unset or empty to keep all optional sources off.
-5. Inspect collected rows, source timestamps, failed-source errors, and hourly
+5. Inspect collected rows, source timestamps, agreement references, failed-source errors, and hourly
    coverage after the next collection or manual backfill.
 
 ## WBTC source coverage
 
-Kraken and Crypto.com already provide two direct WBTC/USD CEX sources and meet
-the assessment's existing two-venue minimum once successful observations land
-in the same hour. Binance adds a third exchange's WBTC observation after it is
-licensed, deployed, and its rows are collected. Its price is a same-exchange
-cross-market conversion, not a direct WBTC/USD order book, and remains off by
-default until commercial use is cleared.
+No CEX source presently contributes to a customer-facing WBTC reference until
+its reviewed agreement is recorded. Once two covered venues produce successful
+same-hour rows, the existing assessment can use their independent-source count.
+Binance would add a third venue after its own agreement, deployment, and
+collection; its price is a same-exchange cross-market conversion, not a direct
+WBTC/USD order book.
 
 ## Commercial data-rights outreach status
 

@@ -41,12 +41,19 @@
  * view, not asserted here.
  */
 
+import {
+  hasCustomerMarketReferenceRights,
+  MARKET_REFERENCE_SOURCE_RIGHTS,
+  type EvidenceRightsScope,
+  type MarketReferenceSourceRights,
+  type MarketReferenceVenue,
+} from '@/lib/dataRights/evidenceRights';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('MarketReference');
 
 /** Bump when the fetch/row semantics change; pinned for reproducibility. */
-export const COLLECTOR_VERSION = '1.6.0'; // 1.6.0: licensed Binance WBTC/USDT × USDT/USD source
+export const COLLECTOR_VERSION = '1.7.0'; // 1.7.0: source-rights-gated collection and persistence
 
 /** Quote currency for all rows. */
 export const MARKET_REFERENCE_QUOTE = 'USD';
@@ -155,6 +162,10 @@ export interface MarketReferenceRow {
   data_age_seconds: number | null;
   /** Nullable source timestamp; present for venues with verifiable source time. */
   source_observed_at?: string | null;
+  /** Rights classification applied before this row may be persisted or consumed. */
+  rights_scope?: EvidenceRightsScope;
+  /** Reviewed agreement reference for customer-eligible vendor data, never a credential. */
+  rights_reference?: string | null;
   is_success: boolean;
   error_message: string | null;
   collector_version: string;
@@ -170,18 +181,28 @@ export interface MarketReferenceSummary {
   uncovered: string[];
   /** Max pairwise cross-exchange deviation (%) across covered symbols. */
   maxCrossExchangeSpreadPct: number | null;
+  /** Venues admitted for this run after the rights gate. */
+  eligibleExchanges: MarketReferenceVenue[];
+  collectionPurpose: MarketReferenceCollectionPurpose;
 }
 
+export type MarketReferenceCollectionPurpose = 'synthetic-test' | 'customer-facing';
+
 export interface MarketReferenceDeps {
+  /** Required to make the data-use boundary explicit at every call site. */
+  purpose: MarketReferenceCollectionPurpose;
   fetchImpl?: typeof fetch;
   now?: () => number;
   /** Optional bounded subset used by the free-tier cadence router. */
   symbols?: readonly string[];
-  /** Additional commercial sources run only after their use is licensed. */
-  licensedExchanges?: readonly LicensedMarketReferenceExchange[];
+  /**
+   * Explicit optional-source selection for deterministic synthetic tests. It
+   * never grants customer-facing rights.
+   */
+  enabledExchanges?: readonly MarketReferenceVenue[];
+  /** Reviewed source-rights register; defaults to the repository register. */
+  sourceRights?: Readonly<Record<MarketReferenceVenue, MarketReferenceSourceRights>>;
 }
-
-export type LicensedMarketReferenceExchange = 'bitstamp' | 'bitfinex' | 'binance';
 
 /** Per-request timeout (ms) — abort a stalled exchange call, never hang a run. */
 export const REQUEST_TIMEOUT_MS = 15_000;
@@ -195,10 +216,11 @@ type SpotFetcher = (
 type BoundSpotFetcher = (symbol: string) => Promise<ExchangeQuote>;
 
 interface MarketReferenceAdapter {
-  name: string;
+  name: MarketReferenceVenue;
   fn?: SpotFetcher;
   supports?: (symbol: string) => boolean;
-  requiresLicense?: boolean;
+  /** Optional collectors remain off unless a test/research caller names them. */
+  requiresExplicitAdmission?: boolean;
   bind?: (fetchImpl: typeof fetch, now: () => number) => BoundSpotFetcher;
 }
 
@@ -714,21 +736,53 @@ const ADAPTERS: MarketReferenceAdapter[] = [
   },
   {
     name: 'bitstamp',
-    requiresLicense: true,
+    requiresExplicitAdmission: true,
     bind: createBitstampFetcher,
   },
   {
     name: 'bitfinex',
-    requiresLicense: true,
+    requiresExplicitAdmission: true,
     bind: createBitfinexFetcher,
   },
   {
     name: 'binance',
-    requiresLicense: true,
+    requiresExplicitAdmission: true,
     bind: createBinanceFetcher,
     supports: (symbol) => symbol.toUpperCase() === 'WBTC',
   },
 ];
+
+function adapterAdmitted(
+  adapter: MarketReferenceAdapter,
+  deps: MarketReferenceDeps,
+  rights: Readonly<Record<MarketReferenceVenue, MarketReferenceSourceRights>>,
+  now: number
+): boolean {
+  if (deps.purpose === 'customer-facing') {
+    return hasCustomerMarketReferenceRights(rights[adapter.name], now);
+  }
+  // A synthetic run must inject its own fetch implementation. This keeps the
+  // test mode from accidentally contacting a real vendor endpoint.
+  if (!deps.fetchImpl) return false;
+  return (
+    !adapter.requiresExplicitAdmission || deps.enabledExchanges?.includes(adapter.name) === true
+  );
+}
+
+function rightsForCollection(
+  purpose: MarketReferenceCollectionPurpose,
+  venue: MarketReferenceVenue,
+  rights: Readonly<Record<MarketReferenceVenue, MarketReferenceSourceRights>>
+): Pick<MarketReferenceRow, 'rights_scope' | 'rights_reference'> {
+  if (purpose === 'synthetic-test') {
+    return { rights_scope: 'synthetic', rights_reference: null };
+  }
+  const sourceRights = rights[venue];
+  return {
+    rights_scope: purpose === 'customer-facing' ? 'vendor-licensed' : sourceRights.rightsScope,
+    rights_reference: purpose === 'customer-facing' ? sourceRights.agreementReference : null,
+  };
+}
 
 /**
  * Collect one pass: for every universe symbol, query all configured exchanges,
@@ -738,7 +792,7 @@ const ADAPTERS: MarketReferenceAdapter[] = [
  */
 export async function collectMarketReference(
   snapshotTs: Date,
-  deps: MarketReferenceDeps = {}
+  deps: MarketReferenceDeps
 ): Promise<{ rows: MarketReferenceRow[]; summary: MarketReferenceSummary }> {
   const rawFetch = deps.fetchImpl ?? fetch;
   // Hard per-request timeout so a stalled exchange API cannot hang a 15-min
@@ -756,9 +810,9 @@ export async function collectMarketReference(
   const symbols = deps.symbols ? [...deps.symbols] : [...MARKET_REFERENCE_SYMBOLS];
   const snapshotIso = snapshotTs.toISOString();
   const rows: MarketReferenceRow[] = [];
-  const licensedExchanges = new Set<string>(deps.licensedExchanges ?? []);
-  const adapters = ADAPTERS.filter(
-    ({ name, requiresLicense }) => !requiresLicense || licensedExchanges.has(name)
+  const sourceRights = deps.sourceRights ?? MARKET_REFERENCE_SOURCE_RIGHTS;
+  const adapters = ADAPTERS.filter((adapter) =>
+    adapterAdmitted(adapter, deps, sourceRights, now())
   ).map((adapter) => ({
     ...adapter,
     fetchQuote: adapter.bind
@@ -793,6 +847,7 @@ export async function collectMarketReference(
               bid_ask_spread_pct: spreadPct(quote.bid, quote.ask),
               data_age_seconds: latency,
               ...(quote.sourceObservedAt ? { source_observed_at: quote.sourceObservedAt } : {}),
+              ...rightsForCollection(deps.purpose, name, sourceRights),
               is_success: ok,
               error_message: ok ? null : 'unusable price from exchange',
               collector_version: COLLECTOR_VERSION,
@@ -816,6 +871,7 @@ export async function collectMarketReference(
               ask: null,
               bid_ask_spread_pct: null,
               data_age_seconds: latency,
+              ...rightsForCollection(deps.purpose, name, sourceRights),
               is_success: false,
               error_message: message,
               collector_version: COLLECTOR_VERSION,
@@ -859,6 +915,8 @@ export async function collectMarketReference(
     covered,
     uncovered,
     maxCrossExchangeSpreadPct,
+    eligibleExchanges: adapters.map((adapter) => adapter.name),
+    collectionPurpose: deps.purpose,
   };
   logger.info('market reference collection complete', { ...summary });
   return { rows, summary };

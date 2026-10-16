@@ -1950,6 +1950,51 @@ paths:
             type: string
             pattern: '^0x[0-9a-fA-F]{40}$'
             example: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
+        - name: decisionInputCheck
+          in: query
+          required: false
+          description: Set to `1` to request the separate signed decision-input sufficiency assessment. It does not change the oracle safety verdict or authorize execution.
+          schema: { type: string, enum: ['0', '1'] }
+        - name: decisionPriceUsd
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Intended USD price for the operation.
+          schema: { type: number, exclusiveMinimum: 0 }
+        - name: quotePriceUsd
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Price returned by the actual venue quote.
+          schema: { type: number, exclusiveMinimum: 0 }
+        - name: quoteObservedAt
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Offset-qualified ISO-8601 venue quote timestamp.
+          schema: { type: string, format: date-time }
+        - name: maxReferenceDeviationBps
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Maximum decision-price deviation from each reference, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: maxSlippageBps
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Maximum decision-price-to-venue-quote deviation, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: maxQuoteAgeSeconds
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Maximum accepted age of the venue quote, 1 to 300 seconds.
+          schema: { type: integer, minimum: 1, maximum: 300 }
+        - name: quoteProvenance
+          in: query
+          required: false
+          description: URL-encoded JSON hash-only quote-provenance envelope. Raw vendor request and response bytes stay with the caller. It binds source id, rights scope, asset, chain, price, timestamp, and request/response hashes.
+          schema: { type: string, minLength: 2, maxLength: 4096 }
+        - name: requireQuoteProvenance
+          in: query
+          required: false
+          description: With decisionInputCheck=1, set to `1` to fail closed unless a permitted quoteProvenance envelope binds the submitted quote. A missing or prohibited envelope returns INSUFFICIENT_EVIDENCE.
+          schema: { type: string, enum: ['0', '1'] }
       responses:
         '200':
           description: Pre-trade safety verdict, paid through x402 or MPP or authorized by API key.

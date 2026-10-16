@@ -1,4 +1,5 @@
 import type { CoverageTrust, SignedCoverageReport } from './coverage';
+import type { DecisionInputQuoteProvenance } from './decision-input-provenance';
 import type { SwapRiskReader, V3SwapRiskReport } from './swap-transaction-risk';
 
 export type SafetyVerdict = 'PASS' | 'CAUTION' | 'DANGER' | 'BLOCK';
@@ -13,6 +14,8 @@ export interface DecisionInputRequest {
   maxReferenceDeviationBps: number;
   maxSlippageBps: number;
   maxQuoteAgeSeconds: number;
+  quoteProvenance?: DecisionInputQuoteProvenance;
+  requireQuoteProvenance?: boolean;
 }
 
 export interface DecisionInputPolicy {
@@ -24,6 +27,7 @@ export interface DecisionInputPolicy {
   maxReferenceDeviationBps: number;
   maxSlippageBps: number;
   maxQuoteAgeSeconds: number;
+  requireQuoteProvenance?: boolean;
 }
 
 export interface DecisionInputPairCommitment {
@@ -43,10 +47,13 @@ export interface DecisionInputAssessment {
   evaluatedAt: string;
   operationRouteQuote: Record<string, unknown> | null;
   quoteInputHash: string;
+  quoteProvenance?: DecisionInputQuoteProvenance;
+  /** Synthetic-stage assessment marker. Production consumers reject it by default. */
+  evidenceUse?: 'staging';
   policy: Pick<
     DecisionInputPolicy,
     'maxReferenceDeviationBps' | 'maxSlippageBps' | 'maxQuoteAgeSeconds'
-  >;
+  > & { requireQuoteProvenance?: boolean };
   prices: Record<string, unknown> & {
     decisionPriceUsd: number;
     quotePriceUsd: number;

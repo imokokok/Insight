@@ -18,6 +18,7 @@
  * real-time and are stored with an explicit schema version.
  */
 
+import { customerEligibleMarketReferenceVenues } from '@/lib/dataRights/evidenceRights';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
@@ -264,40 +265,42 @@ export async function computeOutcome(
   // No reference coverage => null (excluded from the label, never a zero fill).
   let maxMarketDivergencePct: number | null = null;
   let divergenceAbnormal = false;
-  try {
-    const { data: refData, error: refError } = await supabase
-      .from('market_reference_hourly')
-      .select('ref_hour, ref_price')
-      .eq('symbol', asset)
-      .gt('ref_hour', fromMinus.toISOString())
-      .lte('ref_hour', to.toISOString())
-      .order('ref_hour', { ascending: true });
-    if (!refError && refData && refData.length > 0) {
-      const refRows = refData as RefHourRow[];
-      const refByHour = new Map(
-        refRows
-          .filter((r) => typeof r.ref_price === 'number' && (r.ref_price as number) > 0)
-          .map((r) => [new Date(r.ref_hour).getTime(), r.ref_price as number])
-      );
-      // Track B is trained on hourly oracle-vs-market observations. Fine rows
-      // add Track-A price/deviation incidents, not new market-reference labels.
-      for (const [key, entry] of hourlyByHour.entries()) {
-        const eventTime = new Date(key).getTime();
-        const refHour = Math.floor(eventTime / 3600_000) * 3600_000;
-        const ref = refByHour.get(refHour);
-        if (ref === undefined || entry.consensus.length === 0) continue;
-        const consensus = median(entry.consensus);
-        const div = (Math.abs(consensus - ref) / ref) * 100;
-        if (maxMarketDivergencePct === null || div > maxMarketDivergencePct) {
-          maxMarketDivergencePct = div;
+  if (customerEligibleMarketReferenceVenues().length > 0) {
+    try {
+      const { data: refData, error: refError } = await supabase
+        .from('market_reference_hourly')
+        .select('ref_hour, ref_price')
+        .eq('symbol', asset)
+        .gt('ref_hour', fromMinus.toISOString())
+        .lte('ref_hour', to.toISOString())
+        .order('ref_hour', { ascending: true });
+      if (!refError && refData && refData.length > 0) {
+        const refRows = refData as RefHourRow[];
+        const refByHour = new Map(
+          refRows
+            .filter((r) => typeof r.ref_price === 'number' && (r.ref_price as number) > 0)
+            .map((r) => [new Date(r.ref_hour).getTime(), r.ref_price as number])
+        );
+        // Track B is trained on hourly oracle-vs-market observations. Fine rows
+        // add Track-A price/deviation incidents, not new market-reference labels.
+        for (const [key, entry] of hourlyByHour.entries()) {
+          const eventTime = new Date(key).getTime();
+          const refHour = Math.floor(eventTime / 3600_000) * 3600_000;
+          const ref = refByHour.get(refHour);
+          if (ref === undefined || entry.consensus.length === 0) continue;
+          const consensus = median(entry.consensus);
+          const div = (Math.abs(consensus - ref) / ref) * 100;
+          if (maxMarketDivergencePct === null || div > maxMarketDivergencePct) {
+            maxMarketDivergencePct = div;
+          }
         }
+        divergenceAbnormal =
+          maxMarketDivergencePct !== null &&
+          maxMarketDivergencePct >= OUTCOME_THRESHOLDS.marketDivergencePct;
       }
-      divergenceAbnormal =
-        maxMarketDivergencePct !== null &&
-        maxMarketDivergencePct >= OUTCOME_THRESHOLDS.marketDivergencePct;
+    } catch {
+      // Reference layer unreachable: divergence stays null (excluded).
     }
-  } catch {
-    // Reference layer unreachable: divergence stays null (excluded).
   }
 
   const priceAbnormal = maxPriceMovePct >= OUTCOME_THRESHOLDS.priceMovePct;

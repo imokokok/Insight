@@ -4,6 +4,7 @@ export {
   DECISION_INPUT_PAIR_NAMESPACE,
   DECISION_INPUT_TYPES,
   buildDecisionInputPairCommitment,
+  canonicalJson,
   decisionInputQuoteValidUntil,
   decisionInputPolicyDigest,
   verifyDecisionInputAssessment,
@@ -12,6 +13,17 @@ export {
   verifySignedPreTradeAttestation,
 } from './decision-input';
 export type { DecisionInputVerification } from './decision-input';
+export {
+  createDecisionInputQuoteProvenance,
+  DECISION_INPUT_QUOTE_PROVENANCE_SCHEMA_VERSION,
+  isDecisionInputQuoteProvenance,
+  quoteProvenanceMatchesInput,
+} from './decision-input-provenance';
+export type {
+  CreateDecisionInputQuoteProvenanceInput,
+  DecisionInputEvidenceRightsScope,
+  DecisionInputQuoteProvenance,
+} from './decision-input-provenance';
 export {
   createPriorSealDefiSubmitter,
   PriorSealGatewayExecutionError,

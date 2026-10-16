@@ -3,14 +3,22 @@ import {
   computeOutcome,
   OUTCOME_THRESHOLDS,
 } from '@/lib/api/services/safetyOutcomeService';
+import { customerEligibleMarketReferenceVenues } from '@/lib/dataRights/evidenceRights';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(),
 }));
 
+jest.mock('@/lib/dataRights/evidenceRights', () => ({
+  customerEligibleMarketReferenceVenues: jest.fn(() => ['coinbase']),
+}));
+
 const mockedCreateServiceRoleClient = createServiceRoleClient as jest.MockedFunction<
   typeof createServiceRoleClient
+>;
+const mockedCustomerEligibleVenues = customerEligibleMarketReferenceVenues as jest.MockedFunction<
+  typeof customerEligibleMarketReferenceVenues
 >;
 
 type Result = { data: unknown; error: unknown };
@@ -87,7 +95,30 @@ function completeFineWindow(hours: number, price = 1860) {
 const CHECK_AT = '2026-01-01T00:00:00Z';
 
 describe('safetyOutcomeService — computeOutcome', () => {
-  afterEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    mockedCustomerEligibleVenues.mockReturnValue(['coinbase']);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('does not read CEX history into Track-B labels without reviewed vendor rights', async () => {
+    const from = jest.fn((table: string) =>
+      makeChain({
+        data: table === 'price_snapshot_history' ? completeFineWindow(6) : [],
+        error: null,
+      })
+    );
+    mockedCreateServiceRoleClient.mockReturnValue({ from } as never);
+    mockedCustomerEligibleVenues.mockReturnValue([]);
+
+    const outcome = await computeOutcome('ETH', CHECK_AT);
+
+    expect(outcome).not.toBeNull();
+    expect(outcome!.maxMarketDivergencePct).toBeNull();
+    expect(from.mock.calls.map(([table]) => table)).not.toContain('market_reference_hourly');
+  });
 
   it('labels POSITIVE when the consensus price moves >= priceMovePct in the window', async () => {
     // Baseline 1860 at h=-1; window climbs to 1960 at h=2 → ~5.4% move (>= 5%).
@@ -427,6 +458,10 @@ describe('safetyOutcomeService — computeOutcome', () => {
 });
 
 describe('safetyOutcomeService — backfillOutcomes', () => {
+  beforeEach(() => {
+    mockedCustomerEligibleVenues.mockReturnValue(['coinbase']);
+  });
+
   afterEach(() => jest.clearAllMocks());
 
   it('labels pending rows and reports a positive when the outcome is abnormal', async () => {
