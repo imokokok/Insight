@@ -190,7 +190,8 @@ async function signedDecisionInput(
   asset: 'AAA' | 'BBB',
   linkedPreTradeUid: string,
   now: number,
-  tradeAmountUsd = 100
+  tradeAmountUsd = 100,
+  staging = false
 ): Promise<DecisionInputAssessment> {
   const issuedAt = now - 2;
   const validUntil = issuedAt + 300;
@@ -206,6 +207,7 @@ async function signedDecisionInput(
     evaluatedAt: new Date((now - 5) * 1000).toISOString(),
     operationRouteQuote: null,
     quoteInputHash: `0x${'4'.repeat(64)}`,
+    ...(staging ? { evidenceUse: 'staging' as const } : {}),
     policy: {
       maxReferenceDeviationBps: policy.maxReferenceDeviationBps,
       maxSlippageBps: policy.maxSlippageBps,
@@ -356,6 +358,29 @@ test('rejects Decision Input tampering, mismatched request scope and stale signe
   );
   assert.equal(expired.valid, false);
   assert.ok(['expired', 'quote_stale'].includes(expired.reason));
+});
+
+test('requires an explicit verifier opt-in for a correctly signed staging assessment', async () => {
+  const now = Math.floor(Date.now() / 1000);
+  const preTrade = await signedPreTrade(true, now);
+  const stagingAssessment = await signedDecisionInput(
+    'AAA',
+    preTrade.attestation!.uid,
+    now,
+    100,
+    true
+  );
+
+  const productionResult = await verifyDecisionInputAssessment(stagingAssessment, trust, { now });
+  assert.equal(productionResult.valid, false);
+  assert.equal(productionResult.reason, 'malformed');
+
+  const stagingResult = await verifyDecisionInputAssessment(stagingAssessment, trust, {
+    now,
+    allowStagingEvidence: true,
+  });
+  assert.equal(stagingResult.valid, true);
+  assert.equal(stagingResult.reason, 'verified');
 });
 
 test('strict V3 authorization binds signed inputs, exact calldata, pinned simulation and PriorSeal expiry', async (t) => {

@@ -5,6 +5,8 @@ import type { RedStoneMarketReference } from '@/lib/marketReference/redstone';
 
 import { assessDecisionInput, DecisionInputAssessmentSchema } from '../assessment';
 
+import type { DecisionInputQuoteProvenance } from '../quoteProvenance';
+
 const NOW = new Date('2026-10-13T06:30:00.000Z');
 
 const request = {
@@ -73,6 +75,7 @@ function assess(
     dex?: ManipCostAdvisory | null;
     asset?: string;
     chainId?: number;
+    evidenceUse?: 'staging' | 'customer';
   } = {}
 ) {
   return assessDecisionInput({
@@ -85,9 +88,23 @@ function assess(
     redstone: overrides.redstone ?? null,
     cex: overrides.cex === undefined ? cex : overrides.cex,
     dex: overrides.dex === undefined ? dex : overrides.dex,
+    evidenceUse: overrides.evidenceUse,
     now: NOW,
   });
 }
+
+const customerQuoteProvenance: DecisionInputQuoteProvenance = {
+  schemaVersion: 1,
+  sourceId: 'customer-venue-quote',
+  rightsScope: 'customer-authorized',
+  captureMethod: 'client-held',
+  asset: 'ETH',
+  chainId: 1,
+  quotePriceUsd: 2000.5,
+  observedAt: '2026-10-13T06:29:58.000Z',
+  requestHash: `0x${'11'.repeat(32)}`,
+  responseHash: `0x${'22'.repeat(32)}`,
+};
 
 describe('assessDecisionInput', () => {
   it('marks the supplied price and quote sufficient when all fresh evidence fits the explicit policy', () => {
@@ -100,6 +117,53 @@ describe('assessDecisionInput', () => {
     expect(result.prices.chainlinkDeviationBps).toBeCloseTo(2, 3);
     expect(result.prices.cexDeviationBps).toBeCloseTo(4, 2);
     expect(result.evidence.dexManipulationCost?.tradeSizeTo1PctManipulationCostRatio).toBe(0.02);
+  });
+
+  it('binds permitted caller-held quote provenance into a strict assessment', () => {
+    const baseline = assess();
+    const result = assess({
+      request: {
+        quoteProvenance: customerQuoteProvenance,
+        requireQuoteProvenance: true,
+      },
+    });
+
+    expect(result.status).toBe('SUFFICIENT');
+    expect(result.policy.requireQuoteProvenance).toBe(true);
+    expect(result.quoteProvenance).toEqual(customerQuoteProvenance);
+    expect(result.quoteInputHash).not.toBe(baseline.quoteInputHash);
+    expect(DecisionInputAssessmentSchema.safeParse(result).success).toBe(true);
+  });
+
+  it('does not let quarantined or synthetic provenance satisfy a customer-facing strict policy', () => {
+    const quarantined = assess({
+      request: {
+        quoteProvenance: { ...customerQuoteProvenance, rightsScope: 'research-quarantined' },
+        requireQuoteProvenance: true,
+      },
+    });
+    const syntheticInCustomerUse = assess({
+      request: {
+        quoteProvenance: { ...customerQuoteProvenance, rightsScope: 'synthetic' },
+        requireQuoteProvenance: true,
+      },
+    });
+    const syntheticInStaging = assess({
+      evidenceUse: 'staging',
+      request: {
+        quoteProvenance: { ...customerQuoteProvenance, rightsScope: 'synthetic' },
+        requireQuoteProvenance: true,
+      },
+    });
+
+    expect(quarantined.status).toBe('INSUFFICIENT_EVIDENCE');
+    expect(quarantined.reasons.map(({ code }) => code)).toContain('QUOTE_PROVENANCE_RIGHTS');
+    expect(syntheticInCustomerUse.reasons.map(({ code }) => code)).toContain(
+      'QUOTE_PROVENANCE_RIGHTS'
+    );
+    expect(syntheticInStaging.status).toBe('SUFFICIENT');
+    expect(syntheticInStaging.evidenceUse).toBe('staging');
+    expect(DecisionInputAssessmentSchema.safeParse(syntheticInStaging).success).toBe(true);
   });
 
   it('blocks when the venue quote exceeds the caller-supplied slippage limit', () => {

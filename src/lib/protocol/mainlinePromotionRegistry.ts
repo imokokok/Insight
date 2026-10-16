@@ -32,6 +32,7 @@ import promotionContextAttestationV2Json from '../../../protocol/mainline/promot
 import promotionRwaActionPreflightJson from '../../../protocol/mainline/promotions/2026-10-13-rwa-action-preflight.json';
 import promotionDecisionInputSwapRiskJson from '../../../protocol/mainline/promotions/2026-10-14-decision-input-swap-risk-sdk.json';
 import promotionDecisionEvidencePackJson from '../../../protocol/mainline/promotions/2026-10-16-decision-evidence-pack.json';
+import promotionDecisionInputDataRightsGateJson from '../../../protocol/mainline/promotions/2026-10-17-decision-input-data-rights-gate.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -95,6 +96,7 @@ const rawPromotions = [
   promotionRwaActionPreflightJson,
   promotionDecisionInputSwapRiskJson,
   promotionDecisionEvidencePackJson,
+  promotionDecisionInputDataRightsGateJson,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {

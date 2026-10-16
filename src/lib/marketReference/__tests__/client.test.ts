@@ -1,3 +1,4 @@
+import { customerEligibleMarketReferenceVenues } from '@/lib/dataRights/evidenceRights';
 import {
   computeMarketDivergencePct,
   computeMarketReferenceContext,
@@ -11,8 +12,15 @@ jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(),
 }));
 
+jest.mock('@/lib/dataRights/evidenceRights', () => ({
+  customerEligibleMarketReferenceVenues: jest.fn(() => ['coinbase']),
+}));
+
 const mockedCreateServiceRoleClient = createServiceRoleClient as jest.MockedFunction<
   typeof createServiceRoleClient
+>;
+const mockedCustomerEligibleVenues = customerEligibleMarketReferenceVenues as jest.MockedFunction<
+  typeof customerEligibleMarketReferenceVenues
 >;
 
 type Result = { data: unknown; error: unknown };
@@ -44,6 +52,18 @@ describe('marketReference client', () => {
   beforeEach(() => {
     resetMarketReferenceCacheForTests();
     jest.clearAllMocks();
+    mockedCustomerEligibleVenues.mockReturnValue(['coinbase']);
+  });
+
+  it('does not query a legacy database rollup when no vendor source has reviewed rights', async () => {
+    const rpc = jest.fn(() =>
+      makeChain({ data: [refRow('ETH', new Date().toISOString(), 3000)], error: null })
+    );
+    mockedCreateServiceRoleClient.mockReturnValue({ rpc } as never);
+    mockedCustomerEligibleVenues.mockReturnValue([]);
+
+    expect(await getMarketReference('ETH')).toBeNull();
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it('returns the latest reference when fresh', async () => {

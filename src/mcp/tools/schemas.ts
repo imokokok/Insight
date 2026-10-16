@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { DecisionInputQuoteProvenanceSchema } from '@/lib/decisionInputTrust/quoteProvenance';
 import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
 import { boundedIntegerInput } from '@/lib/security/boundedIntegerInput';
 import { SafeProviderSchema, SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
@@ -329,6 +330,8 @@ export const PreTradeSafetyInputSchema = z.object({
       maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
       maxSlippageBps: z.number().int().min(0).max(10_000),
       maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+      quoteProvenance: DecisionInputQuoteProvenanceSchema.optional(),
+      requireQuoteProvenance: z.boolean().optional(),
     })
     .optional()
     .describe(
@@ -387,6 +390,7 @@ export const AgentBeginTradeInputSchema = z.object({
           maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
           maxSlippageBps: z.number().int().min(0).max(50),
           maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+          quoteProvenance: DecisionInputQuoteProvenanceSchema,
         })
         .strict(),
       destination: z
@@ -397,6 +401,7 @@ export const AgentBeginTradeInputSchema = z.object({
           maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
           maxSlippageBps: z.number().int().min(0).max(50),
           maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+          quoteProvenance: DecisionInputQuoteProvenanceSchema,
         })
         .strict(),
       routeQuotePrice: z

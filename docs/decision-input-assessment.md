@@ -196,10 +196,10 @@ the assessment used.
   returned pair and timestamps before storage. The collector also rejects a
   latest trade outside the same ticker response's best bid/ask so an internally
   inconsistent quote does not count toward WBTC coverage.
-  The two-venue CEX reference becomes usable after successful rows from both
-  sources land in the same hour through scheduled sampling or the manual
-  historical backfill. Until then, the assessment remains
-  `INSUFFICIENT_EVIDENCE` for WBTC.
+  The two-venue CEX reference becomes usable only after successful same-hour
+  rows from both sources carry a reviewed `vendor-licensed` agreement
+  reference. Historical rows are deliberately research-quarantined. Until
+  then, the assessment remains `INSUFFICIENT_EVIDENCE` for WBTC.
 - **Binance for WBTC/USD:** Binance's public market catalog currently lists
   active WBTC/USDT and USDT/USD spot markets. The collector derives an explicit
   USD quote from the product of the two best bid/ask books and takes the
@@ -207,17 +207,17 @@ the assessment used.
   timestamps and both books, and preserves the older trade time. This
   provides a third exchange observation alongside Kraken and Crypto.com while
   keeping the USDT conversion visible. Live sampling and matched hourly
-  backfill are implemented behind the commercial-license switch; Binance stays
-  off until commercial-use terms are confirmed. CEX.IO was removed after live
+  backfill are admitted only through the reviewed source-rights register;
+  Binance stays off until commercial-use terms are confirmed. CEX.IO was removed after live
   verification found its newest returned WBTC trade was stale despite a current
   ticker response.
 - **Bitstamp and Bitfinex:** both are implemented as optional direct-USD spot
   sources. The collector discovers active USD spot pairs from each venue's
   public catalog, validates live source timestamps, and keeps each venue as an
-  independent row in the hourly reference. Licensed hourly-candle backfill is
-  also available for both. Collection stays disabled until written commercial
-  data-use permission is confirmed and the venue is added to
-  `MARKET_REFERENCE_LICENSED_EXCHANGES`.
+  independent row in the hourly reference. Rights-gated hourly-candle backfill
+  is also available for both. Collection stays disabled until written
+  commercial data-use permission is confirmed and a reviewed agreement
+  reference is added to the source-rights register.
 - **Gemini:** provides a direct USD spot source for its supported ticker set.
 
 ## Result
@@ -272,3 +272,6 @@ closed and returns no handle.
 To export one operation's full evidence chain — the signed assessments, the
 gate audit, the signed receipt, and client-held oracle envelopes or PriorSeal
 objects — as a single manifest-hashed bundle, see [evidence-pack.md](evidence-pack.md).
+
+For the CEX source-rights gate, caller-held quote-provenance envelope, and the
+no-network synthetic exercise, see [data-rights-and-byod.md](data-rights-and-byod.md).

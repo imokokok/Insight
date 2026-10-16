@@ -103,6 +103,7 @@
 | 0087 | [`0087_market_reference_source_timestamps.sql`](../../supabase/migrations/0087_market_reference_source_timestamps.sql)   | CEX 源端观测时间及新数据源说明                 |
 | 0088 | [`0088_x402_solana_networks.sql`](../../supabase/migrations/0088_x402_solana_networks.sql)                               | x402 结算审计支持 Solana CAIP-2 网络           |
 | 0089 | [`0089_x402_evm_networks.sql`](../../supabase/migrations/0089_x402_evm_networks.sql)                                     | x402 结算审计支持多条 EVM CAIP-2 网络          |
+| 0090 | [`0090_market_reference_rights_gate.sql`](../../supabase/migrations/0090_market_reference_rights_gate.sql)               | CEX 权利范围、协议引用与面客读取门禁           |
 
 ## 非迁移 SQL
 
@@ -117,8 +118,8 @@
 - `0007`、`0027`–`0031`、`0033`、`0058`、`0060` 含配置或 feed 数据变更；不要把 `seed.sql` 的空内容解读为全仓库无数据迁移。
 - `0055` 的头部要求先应用迁移再部署新的审计写入端；`0064` 的头部要求读取端先使用历史视图；`0065` 的头部要求归档感知的应用及 cron/ML 读取端部署后再启用归档。发布时遵守这些阶段条件。
 - `0034`、`0035`、`0039` 缺少文件末尾换行。这只是历史文件的文本一致性问题；为避免更改已应用迁移的字节内容，留待有明确历史迁移重写需求时再处理。
-- `0086` 需与更新后的市场采集器一起发布；WBTC 至少需要 Kraken 与 Crypto.com 在同一小时内各写入成功快照后，决策输入评估才会将其 CEX 证据视为双源。定时采集和手动历史回填都支持写入这两路来源。
-- `0087` 必须先于 Bitstamp/Bitfinex/Binance 的采集开关启用；将 GitHub Actions repository variable `MARKET_REFERENCE_LICENSED_EXCHANGES` 设置为已获得书面商业数据授权的 venue 名称（`bitstamp`、`bitfinex`、`binance`，逗号分隔）后才会采集。未设置时新增来源保持关闭。Binance 的 WBTC/USD 价格由同所现货 WBTC/USDT 与 USDT/USD 市场交叉换算，实时采集与历史回填都受此开关约束。
+- `0086` 需与更新后的市场采集器一起发布；WBTC 至少需要两家已获书面授权的 venue 在同一小时内各写入成功快照后，决策输入评估才会将其 CEX 证据视为双源。
+- `0090` 必须先于 source-rights-gated collector 发布。它将历史 CEX 行标记为 `research-quarantined`，并使面客 RPC 只读取带有书面协议引用的 `vendor-licensed` 行。不要用环境变量或 GitHub Actions variable 声称取得数据使用权。
 - 本地 SQL 测试入口是 `npm run test:reliability`，覆盖账单对账、安全边界、覆盖率、快照历史及最新的延迟聚合等逻辑。它不等同于在目标 Supabase 环境执行完整迁移或通过 Security Advisor。
 
 ## 后续管理方式

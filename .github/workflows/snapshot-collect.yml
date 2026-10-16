@@ -53,9 +53,6 @@ permissions:
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-  # Comma-separated venues (bitstamp,bitfinex,binance); enable only after written
-  # commercial data permission is confirmed and migration 0087 is applied.
-  MARKET_REFERENCE_LICENSED_EXCHANGES: ${{ vars.MARKET_REFERENCE_LICENSED_EXCHANGES }}
   CRON_WORKFLOW: snapshot-collect.yml
   CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
   CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
@@ -115,11 +112,9 @@ jobs:
         if: steps.guard.outputs.should_run == 'true'
         run: node .github/cron-dist/collect-snapshot.mjs
 
-      # External truth layer (CEX market reference), same 15-min cadence, same
-      # proven runner. Runs here — not as a separate schedule — because GitHub
-      # Actions did not register the new market-reference-collect.yml cron
-      # (0 scheduled runs after hours). This workflow's schedule demonstrably
-      # fires (728+ runs). Idempotent per-snapshot_ts upsert.
+      # External truth layer. The checked-in source-rights gate makes this a
+      # no-op until a reviewed vendor agreement is recorded; it cannot be
+      # enabled by a repository variable alone.
       - name: Collect market reference
         if: (success() || failure()) && steps.guard.outputs.should_run == 'true'
         run: node .github/cron-dist/collect-market-reference.mjs
