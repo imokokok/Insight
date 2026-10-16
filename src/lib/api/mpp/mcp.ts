@@ -6,7 +6,7 @@ import { Errors, Expires } from 'mppx';
 import { Mppx, Transport, evm } from 'mppx/server';
 
 import { createCdpAuthHeaders } from '@/lib/api/x402/cdpAuth';
-import { type X402Config, tokenNameForNetwork, usdcForNetwork } from '@/lib/api/x402/config';
+import { type X402Config, eip3009TokenNameForNetwork, usdcForNetwork } from '@/lib/api/x402/config';
 import { atomicUnitsToUsdc, recordX402Settlement } from '@/lib/api/x402/guard';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -42,7 +42,7 @@ function createMppMcpServer(cfg: X402Config, secretKey: string) {
   return Mppx.create({
     methods: [
       evm.charge({
-        authorization: { name: tokenNameForNetwork(cfg.network), version: '2' },
+        authorization: { name: eip3009TokenNameForNetwork(cfg.network), version: '2' },
         chainId: Number(cfg.network.slice('eip155:'.length)),
         currency: usdcForNetwork(cfg.network) as `0x${string}`,
         decimals: 6,

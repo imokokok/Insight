@@ -1,0 +1,35 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "name": "Insight",
+  "description": "Pre-trade decision-input integrity for onchain AI agents: before a trade is signed, check whether the price it relies on is trustworthy. Returns an oracle-manipulation-aware verdict (PASS/WARN/BLOCK) from multi-provider oracle consensus, with verifiable EIP-712 attestations. Pay-per-call via x402 v2 in USDC.",
+  "services": [
+    {
+      "name": "A2A",
+      "endpoint": "https://www.oracleinsight.xyz/.well-known/agent-card.json",
+      "version": "0.2.9"
+    },
+    {
+      "name": "MCP",
+      "endpoint": "https://www.oracleinsight.xyz/api/mcp",
+      "version": "2025-06-18"
+    },
+    {
+      "name": "OpenAPI",
+      "endpoint": "https://www.oracleinsight.xyz/openapi.json",
+      "version": "1.0.0"
+    }
+  ],
+  "x402Support": true,
+  "x402": {
+    "paymentEndpoint": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",
+    "mcpEndpoint": "https://www.oracleinsight.xyz/api/mcp",
+    "manifest": "https://www.oracleinsight.xyz/.well-known/x402",
+    "agentSkill": "https://www.oracleinsight.xyz/skill.md",
+    "pricePerRequest": "0.02",
+    "acceptedTokens": ["USDC"],
+    "networks": ["eip155:8453", "eip155:137", "eip155:42161", "eip155:143", "eip155:56"],
+    "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231"
+  },
+  "active": true,
+  "supportedTrust": ["reputation"]
+}

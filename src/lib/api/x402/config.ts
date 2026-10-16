@@ -19,7 +19,7 @@ import { isSolanaPublicKey } from './solanaEncoding';
  *   deterministic integer amount.
  */
 
-/** EVM networks with native USDC and an EIP-3009 exact-payment path. */
+/** EVM networks with a USDC-class settlement asset reachable by a registered facilitator. */
 export const X402_EVM_NETWORK_IDS = [
   'eip155:84532', // Base Sepolia
   'eip155:8453', // Base
@@ -31,12 +31,16 @@ export const X402_EVM_NETWORK_IDS = [
   'eip155:1329', // Sei
   'eip155:196', // X Layer
   'eip155:143', // Monad
+  'eip155:56', // BNB Smart Chain (AEON facilitator; bridged USDC, 18 decimals)
 ] as const;
 
 export type X402NetworkId = (typeof X402_EVM_NETWORK_IDS)[number];
 
 /** Native USDC contract and EIP-712 domain name for each supported EVM network. */
-const SUPPORTED_NETWORKS: Record<X402NetworkId, { usdc: string; tokenName: string }> = {
+const SUPPORTED_NETWORKS: Record<
+  X402NetworkId,
+  { usdc: string; tokenName?: string; decimals?: number }
+> = {
   'eip155:84532': {
     /** Chain: Base Sepolia (testnet). Circle native USDC. */
     usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
@@ -93,6 +97,19 @@ const SUPPORTED_NETWORKS: Record<X402NetworkId, { usdc: string; tokenName: strin
      * consistent with the @x402/evm >= 2.22 built-in Monad asset config.
      */
     tokenName: 'USDC',
+  },
+  'eip155:56': {
+    /**
+     * Chain: BNB Smart Chain. Binance-bridged USDC (18 decimals), the token
+     * listed by the AEON x402 facilitator (facilitator.aeon.xyz /supported,
+     * kind exact v2 on eip155:56, verified 2026-10-17). Unlike the Circle
+     * FiatToken deployments above, this token exposes neither
+     * DOMAIN_SEPARATOR nor authorizationState (probed via eth_call), i.e. it
+     * has no EIP-3009 path — buyers pay through the AEON facilitator's
+     * ERC-20 mandate flow instead, so no tokenName/extra is advertised here.
+     */
+    usdc: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+    decimals: 18,
   },
 };
 
@@ -363,9 +380,47 @@ export function usdcForNetwork(network: X402NetworkId): string {
  * EIP-712 domain name of the network's USDC token as deployed on-chain
  * (FiatToken EIP712Domain version is "2" on both supported networks, but the
  * name differs: "USDC" on Base Sepolia vs "USD Coin" on Base mainnet).
+ * Undefined on networks whose settlement token has no EIP-712 domain at all
+ * (BNB Smart Chain's bridged USDC), where the quote must not carry an
+ * `extra: { name, version }` hint and payment goes through the network's
+ * facilitator-specific authorization flow.
  */
-export function tokenNameForNetwork(network: X402NetworkId): string {
+export function tokenNameForNetwork(network: X402NetworkId): string | undefined {
   return SUPPORTED_NETWORKS[network].tokenName;
+}
+
+/**
+ * Like tokenNameForNetwork but requires an EIP-712 domain name. MPP payments
+ * build an EIP-3009 authorization against this domain, which only exists on
+ * Circle FiatToken deployments; callers on a network without one (BNB Smart
+ * Chain) must route through that network's facilitator flow instead.
+ */
+export function eip3009TokenNameForNetwork(network: X402NetworkId): string {
+  const name = SUPPORTED_NETWORKS[network].tokenName;
+  if (name === undefined) {
+    throw new Error(
+      `network ${network} has no EIP-3009 settlement token; EIP-712 authorization is unavailable`
+    );
+  }
+  return name;
+}
+
+/** Token decimals of the network's settlement asset (Circle USDC default: 6). */
+export function tokenDecimalsForNetwork(network: X402NetworkId): number {
+  return SUPPORTED_NETWORKS[network].decimals ?? USDC_DECIMALS;
+}
+
+/**
+ * Convert a 6-decimal micro-USDC amount (the canonical internal grid) into the
+ * settlement token's atomic units for the given network. On 18-decimal tokens
+ * (BNB Smart Chain) the micro amount is shifted by 12 places; integer math
+ * keeps this lossless.
+ */
+export function atomicUnitsForNetwork(network: X402NetworkId, microUsdAtomic: string): string {
+  const decimals = tokenDecimalsForNetwork(network);
+  if (decimals === USDC_DECIMALS) return microUsdAtomic;
+  const shift = BigInt(decimals - USDC_DECIMALS);
+  return (BigInt(microUsdAtomic) * 10n ** shift).toString();
 }
 
 /** Build the network-specific payment options advertised by REST and MCP. */
@@ -378,12 +433,13 @@ export function getX402PaymentOptions(
 
   if (evmEnabled && cfg.payTo !== '') {
     for (const network of cfg.evmNetworks?.length ? cfg.evmNetworks : [cfg.network]) {
+      const microAtomic = amountOverride ?? cfg.amountAtomic;
       options.push({
         family: 'evm',
         network,
         payTo: cfg.payTo,
         asset: usdcForNetwork(network),
-        amountAtomic: amountOverride ?? cfg.amountAtomic,
+        amountAtomic: atomicUnitsForNetwork(network, microAtomic),
         tokenName: tokenNameForNetwork(network),
       });
     }
