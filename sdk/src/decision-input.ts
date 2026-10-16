@@ -222,7 +222,8 @@ export async function verifySignedPreTradeAttestation(
   });
 }
 
-function canonicalJson(value: unknown, depth = 0): string {
+/** Deterministic key-sorted JSON, shared with the server's canonical hashing. */
+export function canonicalJson(value: unknown, depth = 0): string {
   if (depth > 64) throw new TypeError('JSON value is too deeply nested');
   if (value === null || typeof value === 'string' || typeof value === 'boolean')
     return JSON.stringify(value);

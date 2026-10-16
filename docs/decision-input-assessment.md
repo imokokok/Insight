@@ -268,3 +268,7 @@ WHERE receipt.uid = '<execution-receipt-uid>';
 `decision_input_gate` is written to both pre-trade rows before an execution
 handle is issued. If that durable audit write fails, `agent_begin_trade` fails
 closed and returns no handle.
+
+To export one operation's full evidence chain — the signed assessments, the
+gate audit, the signed receipt, and client-held oracle envelopes or PriorSeal
+objects — as a single manifest-hashed bundle, see [evidence-pack.md](evidence-pack.md).

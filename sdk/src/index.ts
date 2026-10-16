@@ -4,6 +4,7 @@ export {
   DECISION_INPUT_PAIR_NAMESPACE,
   DECISION_INPUT_TYPES,
   buildDecisionInputPairCommitment,
+  canonicalJson,
   decisionInputQuoteValidUntil,
   decisionInputPolicyDigest,
   verifyDecisionInputAssessment,
@@ -12,6 +13,22 @@ export {
   verifySignedPreTradeAttestation,
 } from './decision-input';
 export type { DecisionInputVerification } from './decision-input';
+export {
+  EVIDENCE_PACK_SCHEMA_VERSION,
+  EVIDENCE_PACK_TYPE,
+  computeEvidencePackManifest,
+  verifyEvidencePack,
+  withEvidencePackClientArtifacts,
+} from './evidence-pack';
+export type {
+  DecisionEvidencePack,
+  EvidencePackClientArtifacts,
+  EvidencePackExecutionReceiptEntry,
+  EvidencePackManifest,
+  EvidencePackPreTradeEntry,
+  EvidencePackPreTradeRole,
+  EvidencePackVerification,
+} from './evidence-pack';
 export {
   createPriorSealDefiSubmitter,
   PriorSealGatewayExecutionError,
