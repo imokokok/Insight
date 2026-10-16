@@ -1,13 +1,12 @@
 import {
-  HTTPFacilitatorClient,
   x402HTTPResourceServer,
   x402ResourceServer,
+  type FacilitatorClient,
 } from '@x402/core/server';
 import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 
-import { createCdpAuthHeaders } from './cdpAuth';
 import {
   type X402Config,
   type X402NetworkId,
@@ -15,6 +14,7 @@ import {
   X402_PRE_TRADE_ROUTE,
   getX402PaymentOptions,
 } from './config';
+import { createResilientFacilitator } from './facilitatorResilience';
 
 /**
  * Lazily-built singleton around the official x402 Foundation v2 server stack
@@ -22,7 +22,9 @@ import {
  * to the pre-trade and MCP routes.
  *
  * `initialize()` performs a facilitator `getSupported()` round-trip; the
- * singleton keeps that cost off the request path.
+ * singleton keeps that cost off the request path, and the resilient
+ * facilitator wrapper (see facilitatorResilience.ts) keeps that round-trip
+ * itself from stalling a cold instance when the facilitator rate-limits.
  */
 
 let cached: x402HTTPResourceServer | null = null;
@@ -178,17 +180,23 @@ export interface X402ServerDeps {
 const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
 
 /**
- * Build one HTTP facilitator client per distinct facilitator URL needed by
- * the configured payment options. Networks inherit `cfg.facilitatorUrl`
- * unless `cfg.facilitatorUrls[network]` overrides them (e.g. Monad mainnet
- * routes to the Monad facilitator because CDP does not serve it). CDP
- * bearer-JWT auth is attached only to the client whose URL points at the CDP
- * host; third-party facilitators need none.
+ * Build one facilitator client per distinct facilitator URL needed by the
+ * configured payment options. Networks inherit `cfg.facilitatorUrl` unless
+ * `cfg.facilitatorUrls[network]` overrides them (e.g. Monad mainnet routes to
+ * the Monad facilitator because CDP does not serve it). CDP bearer-JWT auth is
+ * attached only to the client whose URL points at the CDP host; third-party
+ * facilitators need none.
+ *
+ * Every client is wrapped by {@link createResilientFacilitator}: verify/settle
+ * pass through to the core HTTP client unchanged, while getSupported is served
+ * from a process-local cache (stale-while-error + config-derived fallback) so
+ * a rate-limited or down facilitator cannot stall `initialize()` on cold
+ * instances for ~90s (production incident INT-07, 2026-10-16).
  */
 function buildFacilitatorClients(
   cfg: X402Config,
   deps?: Partial<X402ServerDeps>
-): HTTPFacilitatorClient[] {
+): FacilitatorClient[] {
   const timeoutMs = deps?.facilitatorTimeoutMs ?? cfg.facilitatorTimeoutMs;
   const urls = new Set<string>();
   const options = getX402PaymentOptions(cfg);
@@ -211,13 +219,25 @@ function buildFacilitatorClients(
       // Malformed URLs throw later via the facilitator client itself.
     }
     const isCdp = host === CDP_FACILITATOR_HOST;
-    return new HTTPFacilitatorClient({
+    // Networks routed to this facilitator, used to synthesize the offline
+    // fallback /supported response (only served when the facilitator is
+    // unreachable and no cached response exists).
+    const routed = deps?.facilitatorUrl
+      ? options
+      : options.filter(
+          (option) =>
+            (cfg.facilitatorUrls?.[option.network as X402NetworkId] ?? cfg.facilitatorUrl) === url
+        );
+    const fallbackKinds = (routed.length > 0 ? routed : options).map((option) => ({
+      x402Version: 2,
+      scheme: 'exact',
+      network: option.network,
+    }));
+    return createResilientFacilitator({
       url,
       timeoutMs,
-      // CDP facilitator requires per-request Bearer JWTs; others need none.
-      ...(isCdp && cfg.facilitatorCdpAuth
-        ? { createAuthHeaders: createCdpAuthHeaders(cfg.facilitatorCdpAuth) }
-        : {}),
+      cdpAuth: isCdp ? cfg.facilitatorCdpAuth : null,
+      fallbackKinds,
     });
   });
 }
