@@ -1,16 +1,23 @@
 {
   "protocolVersion": "0.2.9",
   "name": "Insight",
-  "description": "Pre-trade decision-input integrity for onchain AI agents: is the price trustworthy? Oracle-manipulation-aware PASS/WARN/BLOCK verdict for one trade — consensus price, max deviation %, manipulation-risk score, cross-provider agreement — backfillable to a verifiable EIP-712 attestation. Pay-per-call: $0.02 USDC on Base via x402 v2 or MPP (both challenges advertised on the same 402); settlement happens only after the check succeeds. Endpoint is MCP over Streamable HTTP.",
+  "description": "Pre-trade decision-input integrity for onchain AI agents: is the price trustworthy? Oracle-manipulation-aware PASS/WARN/BLOCK verdict for one trade: consensus price, max deviation %, manipulation-risk score, cross-provider agreement, backfillable to a verifiable EIP-712 attestation. Pay-per-call: $0.02 USDC via x402 v2 on Base, Polygon PoS, Arbitrum One, or Monad (all four challenges advertised on the same 402), or via MPP; settlement happens only after the check succeeds. Endpoint is MCP over Streamable HTTP.",
   "url": "https://www.oracleinsight.xyz/api/mcp",
   "provider": {
     "organization": "Insight",
     "url": "https://www.oracleinsight.xyz"
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
   "capabilities": {
     "streaming": false,
-    "pushNotifications": false
+    "pushNotifications": false,
+    "extensions": [
+      {
+        "uri": "https://github.com/google-agentic-commerce/a2a-x402/blob/main/spec/v0.2",
+        "description": "Supports payments using the x402 protocol for on-chain settlement. Every paid call returns an HTTP 402 challenge advertising USDC acceptance on eip155:8453 (Base), eip155:137 (Polygon), eip155:42161 (Arbitrum One), eip155:143 (Monad) and Solana devnet.",
+        "required": true
+      }
+    ]
   },
   "defaultInputModes": ["application/json"],
   "defaultOutputModes": ["application/json"],
@@ -18,7 +25,7 @@
     {
       "id": "pre_trade_safety_check",
       "name": "Pre-trade safety check",
-      "description": "Oracle-manipulation-aware PASS/WARN/BLOCK verdict for a single trade (asset, chainId, action, tradeAmountUsd). Returns consensus price, max deviation %, manipulation-risk score and provider quorum; optionally a verifiable EIP-712 attestation. $0.02 USDC on Base via x402 or MPP, settled only after success.",
+      "description": "Oracle-manipulation-aware PASS/WARN/BLOCK verdict for a single trade (asset, chainId, action, tradeAmountUsd). Returns consensus price, max deviation %, manipulation-risk score and provider quorum; optionally a verifiable EIP-712 attestation. $0.02 USDC via x402 v2 (Base, Polygon, Arbitrum One, or Monad) or MPP, settled only after success.",
       "tags": [
         "defi",
         "trading",
