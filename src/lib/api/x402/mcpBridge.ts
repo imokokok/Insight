@@ -10,6 +10,7 @@ import {
   paymentAuditFields,
   quoteAuditFields,
   recordX402Settlement,
+  x402ResponseBody,
 } from './guard';
 import { getMcpX402HttpServer } from './resourceServer';
 
@@ -68,7 +69,7 @@ class PlainRequestAdapter implements HTTPAdapter {
 
 /** Translate x402 HTTP response instructions into a plain Response. */
 export function toResponse(instructions: HTTPResponseInstructions): Response {
-  const body = instructions.body === undefined ? null : instructions.body;
+  const body = x402ResponseBody(instructions);
   const payload = typeof body === 'string' ? body : JSON.stringify(body);
   return new Response(payload, {
     status: instructions.status,
