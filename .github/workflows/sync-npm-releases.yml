@@ -72,9 +72,22 @@ jobs:
       - name: Run the full validation suite
         if: steps.changes.outputs.changed == 'true'
         run: npm run validate:ci
+      - name: Restore Playwright Chromium
+        id: playwright-cache
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install the browser used by smoke tests
         if: steps.changes.outputs.changed == 'true'
         run: npx playwright install --with-deps chromium
+      - name: Cache Playwright Chromium
+        if: steps.changes.outputs.changed == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Run browser smoke tests
         if: steps.changes.outputs.changed == 'true'
         run: npm run test:e2e -- --project=chromium
