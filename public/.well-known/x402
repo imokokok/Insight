@@ -2,50 +2,160 @@
   "x402Version": 2,
   "kind": "resource-server",
   "name": "Insight Pre-Trade Safety API",
-  "description": "Pre-trade safety checks for AI agents trading DeFi: oracle-manipulation-aware verdicts (PASS/BLOCK/WARN) with verifiable EIP-712 attestations, powered by multi-provider oracle consensus on Base.",
+  "description": "Pre-trade safety checks for AI agents trading DeFi: oracle-manipulation-aware verdicts (PASS/BLOCK/WARN) with verifiable EIP-712 attestations, powered by multi-provider oracle consensus. USDC settles on Base, Polygon, Arbitrum One, and Monad.",
   "docs": "https://www.oracleinsight.xyz/openapi.json",
   "resources": [
     {
       "url": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",
       "method": "GET",
       "description": "Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.",
-      "accepts": {
-        "scheme": "exact",
-        "network": "eip155:8453",
-        "amount": "20000",
-        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-        "assetSymbol": "USDC",
-        "assetDecimals": 6,
-        "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-        "maxTimeoutSeconds": 60,
-        "extra": {
-          "name": "USD Coin",
-          "version": "2"
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "amount": "20000",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:137",
+          "amount": "20000",
+          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:42161",
+          "amount": "20000",
+          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:143",
+          "amount": "20000",
+          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+          "amount": "20000",
+          "asset": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "feePayer": "D6ZhtNQ5nT9ZnTHUbqXZsTx5MH2rPFiBBggX4hY1WePM"
+          }
         }
-      }
+      ]
     },
     {
       "url": "https://www.oracleinsight.xyz/api/mcp",
       "method": "POST",
       "description": "MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Amount shown is the C3 anchor ($0.02, e.g. pre_trade_safety_check); the live 402 quote prices each call from its tool metering class (C1=2000, C2=8000, C3=20000, C4=40000 atomic).",
-      "accepts": {
-        "scheme": "exact",
-        "network": "eip155:8453",
-        "amount": "20000",
-        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-        "assetSymbol": "USDC",
-        "assetDecimals": 6,
-        "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-        "maxTimeoutSeconds": 60,
-        "extra": {
-          "name": "USD Coin",
-          "version": "2"
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "amount": "20000",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:137",
+          "amount": "20000",
+          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:42161",
+          "amount": "20000",
+          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:143",
+          "amount": "20000",
+          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
+          "amount": "20000",
+          "asset": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "feePayer": "D6ZhtNQ5nT9ZnTHUbqXZsTx5MH2rPFiBBggX4hY1WePM"
+          }
         }
-      }
+      ]
     }
   ],
   "attestation": {
     "type": "none"
   },
-  "updated": "2026-10-07T00:00:00Z"
+  "updated": "2026-10-16T00:00:00Z"
 }
