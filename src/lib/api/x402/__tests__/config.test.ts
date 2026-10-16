@@ -3,7 +3,9 @@ import {
   parseX402Config,
   SOLANA_DEVNET_CAIP2,
   SOLANA_MAINNET_CAIP2,
+  eip3009TokenNameForNetwork,
   getX402PaymentOptions,
+  tokenDecimalsForNetwork,
   tokenNameForNetwork,
   usdcForNetwork,
 } from '../config';
@@ -79,6 +81,36 @@ describe('x402 config', () => {
       '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
       '0x754704Bc059F8C67012fEd69BC8A327a5aafb603',
     ]);
+  });
+
+  it('maps BNB Smart Chain to the bridged USDC contract without an EIP-712 domain', () => {
+    expect(usdcForNetwork('eip155:56')).toBe('0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d');
+    expect(tokenNameForNetwork('eip155:56')).toBeUndefined();
+    expect(tokenDecimalsForNetwork('eip155:56')).toBe(18);
+    expect(() => eip3009TokenNameForNetwork('eip155:56')).toThrow(/no EIP-3009/);
+  });
+
+  it('converts the micro-USDC amount to 18-decimal atomic units for eip155:56 and omits extra', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:56',
+    });
+    const bnb = getX402PaymentOptions(cfg).find((option) => option.network === 'eip155:56');
+    expect(bnb).toBeDefined();
+    expect(bnb?.amountAtomic).toBe('20000000000000000'); // 0.02 USDC at 18 decimals
+    expect(bnb?.tokenName).toBeUndefined();
+    const base = getX402PaymentOptions(cfg).find((option) => option.network === 'eip155:8453');
+    expect(base?.amountAtomic).toBe('20000'); // unchanged 6-decimal grid
+  });
+
+  it('scales MCP credit overrides onto the 18-decimal grid for eip155:56', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:56',
+    });
+    // 1 credit = $0.004 → 4000 micro-units canonical.
+    const bnb = getX402PaymentOptions(cfg, '4000').find((option) => option.network === 'eip155:56');
+    expect(bnb?.amountAtomic).toBe('4000000000000000');
   });
 
   describe('per-network facilitator URLs', () => {

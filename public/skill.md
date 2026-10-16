@@ -51,9 +51,10 @@ Scheme: `exact` (x402 v2, EIP-3009 transferWithAuthorization for EVM). Price: **
 | Polygon PoS   | `eip155:137`        | `0x3c499c542cef5e3811e1192ce70d8cC03d5c3359`   |
 | Arbitrum One  | `eip155:42161`      | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831`   |
 | Monad         | `eip155:143`        | `0x754704Bc059F8C67012fEd69BC8A327a5aafb603`   |
+| BNB Chain     | `eip155:56`         | `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d`   |
 | Solana devnet | `solana:EtWT…2xqa1` | `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU` |
 
-All entries pay to `0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231` (EVM). Pick the network matching your wallet's USDC inventory; the facilitator sponsors gas on EVM chains (no native gas needed).
+All entries pay to `0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231` (EVM). Pick the network matching your wallet's USDC inventory; the facilitator sponsors gas on EVM chains (no native gas needed). Notes: BNB Chain settles in the 18-decimal bridged USDC and has no EIP-3009 path — pay it with an x402 client that speaks the AEON facilitator flow (e.g. the AEON SDK); the other EVM entries use standard EIP-3009.
 
 Readiness check: the endpoint answers a well-formed 402 at all times; verify before paying by issuing a plain unsigned GET.
 

@@ -2,7 +2,7 @@
   "x402Version": 2,
   "kind": "resource-server",
   "name": "Insight Pre-Trade Safety API",
-  "description": "Pre-trade safety checks for AI agents trading DeFi: oracle-manipulation-aware verdicts (PASS/BLOCK/WARN) with verifiable EIP-712 attestations, powered by multi-provider oracle consensus. USDC settles on Base, Polygon, Arbitrum One, and Monad.",
+  "description": "Pre-trade safety checks for AI agents trading DeFi: oracle-manipulation-aware verdicts (PASS/BLOCK/WARN) with verifiable EIP-712 attestations, powered by multi-provider oracle consensus. USDC settles on Base, Polygon, Arbitrum One, Monad, and BNB Chain (AEON facilitator).",
   "docs": "https://www.oracleinsight.xyz/openapi.json",
   "resources": [
     {
@@ -65,6 +65,16 @@
             "name": "USDC",
             "version": "2"
           }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:56",
+          "amount": "20000000000000",
+          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+          "assetSymbol": "USDC",
+          "assetDecimals": 18,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60
         },
         {
           "scheme": "exact",
@@ -142,6 +152,16 @@
         },
         {
           "scheme": "exact",
+          "network": "eip155:56",
+          "amount": "20000000000000",
+          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+          "assetSymbol": "USDC",
+          "assetDecimals": 18,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60
+        },
+        {
+          "scheme": "exact",
           "network": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
           "amount": "20000",
           "asset": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
@@ -157,5 +177,5 @@
   "attestation": {
     "type": "none"
   },
-  "updated": "2026-10-16T00:00:00Z"
+  "updated": "2026-10-17T00:00:00Z"
 }
