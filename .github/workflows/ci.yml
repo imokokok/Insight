@@ -151,18 +151,18 @@ jobs:
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .next/cache
-          # A unique save key keeps the cache current, while the lockfile
-          # prefix lets a new commit reuse the last verified incremental cache.
-          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
-          restore-keys: |
-            nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+          # Next invalidates changed source entries itself.  Keeping this key at
+          # dependency granularity makes the incremental cache a true hit for
+          # every commit with the same dependency graph, rather than only for
+          # an explicit re-run of the same SHA.
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm run build
       - name: Cache Next.js build state
         if: steps.next-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .next/cache
-          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Restore Playwright Chromium
         id: playwright-cache
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
