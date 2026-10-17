@@ -102,6 +102,22 @@ export const PreTradeQuerySchema = z
       .enum(['0', '1'])
       .transform((value) => value === '1')
       .optional(),
+    reputationOptIn: z
+      .enum(['0', '1'])
+      .optional()
+      .describe(
+        'Opt in to anchoring this paid check as ERC-8004 reputation feedback on BNB Chain ' +
+          '(x402 payments only). Anchors check completion and verdict tag only — never trade details.'
+      ),
+    reputationAgentId: z.coerce
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .describe(
+        "Caller's ERC-8004 agentId on the BNB Identity Registry; required when reputationOptIn=1. " +
+          'Ownership (ownerOf(agentId) == payer) is verified before anchoring.'
+      ),
   })
   .superRefine((value, context) => {
     const fields = [
@@ -133,6 +149,14 @@ export const PreTradeQuerySchema = z
         code: 'custom',
         path: ['decisionInputCheck'],
         message: 'Set decisionInputCheck=1 to request the decision-input assessment',
+      });
+    }
+
+    if (value.reputationOptIn === '1' && value.reputationAgentId === undefined) {
+      context.addIssue({
+        code: 'custom',
+        path: ['reputationAgentId'],
+        message: 'reputationAgentId is required when reputationOptIn=1',
       });
     }
   });

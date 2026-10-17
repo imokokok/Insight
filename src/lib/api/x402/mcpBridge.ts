@@ -1,6 +1,9 @@
+import { after } from 'next/server';
+
 import { type HTTPAdapter, type HTTPResponseInstructions } from '@x402/core/server';
 
 import { getToolCreditCost } from '@/lib/billing/metering';
+import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
 import { createLogger } from '@/lib/utils/logger';
 
 import { type X402Config, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
@@ -107,6 +110,59 @@ async function isMcpToolFailure(response: Response): Promise<boolean> {
   }
 }
 
+/** ERC-8004 reputation opt-in declared in the tool arguments (pre-trade tool only). */
+const REPUTATION_OPT_IN_TOOL = 'pre_trade_safety_check';
+
+/**
+ * Read the caller's ERC-8004 reputation opt-in from the JSON-RPC arguments
+ * without consuming the original request (the transport still needs the body,
+ * hence the clone). Returns a no-op result for every other tool, a missing or
+ * invalid agentId, or an unparseable body — anchoring then never happens.
+ */
+async function extractReputationOptIn(
+  request: Request,
+  toolName: string
+): Promise<{ optedIn: boolean; agentId: number | null }> {
+  if (toolName !== REPUTATION_OPT_IN_TOOL) return { optedIn: false, agentId: null };
+  try {
+    const body = (await request.clone().json()) as {
+      params?: { arguments?: { reputationOptIn?: unknown; reputationAgentId?: unknown } };
+    };
+    const args = body?.params?.arguments;
+    if (!args || args.reputationOptIn !== true) return { optedIn: false, agentId: null };
+    const agentId = Number(args.reputationAgentId);
+    if (!Number.isInteger(agentId) || agentId <= 0) return { optedIn: false, agentId: null };
+    return { optedIn: true, agentId };
+  } catch {
+    return { optedIn: false, agentId: null };
+  }
+}
+
+/**
+ * Lift the verdict and attestation UID from the pre-trade tool's markdown
+ * result text (best-effort clone of the JSON-RPC response). The verdict line
+ * is `**Verdict: <emoji> PASS**`; the UID line is `- UID: 0x…64-hex…`. A parse
+ * failure or absent fields simply anchor with `unknown` / a zero hash.
+ */
+async function extractMcpVerdictAndUid(
+  response: Response
+): Promise<{ verdict?: string; attestationUid?: string }> {
+  try {
+    const body = (await response.clone().json()) as {
+      result?: { content?: Array<{ type?: unknown; text?: unknown }> };
+    };
+    const text = (body?.result?.content ?? [])
+      .filter((part) => part?.type === 'text' && typeof part.text === 'string')
+      .map((part) => part.text as string)
+      .join('\n');
+    const uidMatch = text.match(/UID:\s*(0x[0-9a-fA-F]{64})/);
+    const verdictMatch = text.match(/Verdict:\s*(?:[^*\n]*?)\b(PASS|CAUTION|DANGER|BLOCK)\b/);
+    return { verdict: verdictMatch?.[1], attestationUid: uidMatch?.[1] };
+  } catch {
+    return {};
+  }
+}
+
 function newRequestId(): string {
   return `req_${crypto.randomUUID().replace(/-/g, '')}`;
 }
@@ -139,6 +195,8 @@ export async function handleMcpPaidToolCall({
   const requestId = newRequestId();
   const httpServer = await getMcpX402HttpServer(cfg, priceAtomicForTool(toolName));
   const requestStartedAt = Date.now();
+  // Clone-read before the transport consumes the body in runBusiness.
+  const reputation = await extractReputationOptIn(request, toolName);
 
   const result = await httpServer.processHTTPRequest({
     adapter: new PlainRequestAdapter(request),
@@ -269,6 +327,28 @@ export async function handleMcpPaidToolCall({
       // Reuse the verdict column to record which MCP tool was paid for.
       verdict: `mcp:${toolName}`,
     });
+
+    if (reputation.optedIn && reputation.agentId != null) {
+      // Best-effort: parse the result in-request, defer only the DB insert
+      // past the response via after() (same pattern as the REST pre-trade
+      // hook). enqueueReputationAnchor never throws.
+      const observed = await extractMcpVerdictAndUid(businessResponse);
+      const anchorInput = {
+        requestId,
+        payer: settle.payer ?? '',
+        agentId: reputation.agentId,
+        verdict: observed.verdict,
+        attestationUid: observed.attestationUid,
+        paymentNetwork: requirementAudit.network,
+        paymentTxHash: settle.transaction ?? null,
+        amountUsdc,
+      };
+      try {
+        after(() => enqueueReputationAnchor(anchorInput));
+      } catch {
+        void enqueueReputationAnchor(anchorInput);
+      }
+    }
   } else {
     recordX402Settlement({
       requestId,

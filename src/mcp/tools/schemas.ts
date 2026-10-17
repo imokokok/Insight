@@ -337,6 +337,20 @@ export const PreTradeSafetyInputSchema = z.object({
     .describe(
       'Optional separate input-sufficiency assessment. Supply the application decision price, actual venue quote and timestamp, and explicit reference-deviation, slippage, and quote-age limits together. This never changes the oracle verdict or authorizes execution.'
     ),
+  reputationOptIn: z
+    .boolean()
+    .optional()
+    .describe(
+      'Opt in to anchoring this paid check as ERC-8004 reputation feedback on BNB Chain (paid calls only). Anchors check completion and verdict tag only — never trade details.'
+    ),
+  reputationAgentId: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe(
+      "Caller's ERC-8004 agentId on the BNB Identity Registry; required when reputationOptIn is true. Ownership (ownerOf(agentId) == payer) is verified before anchoring."
+    ),
 });
 
 /**

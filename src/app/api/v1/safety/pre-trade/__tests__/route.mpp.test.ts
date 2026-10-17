@@ -212,7 +212,12 @@ describe('pre-trade route MPP dispatch', () => {
     const x402Request = makeRequest({ 'payment-signature': 'x402-signature' });
     await GET(x402Request, routeContext());
 
-    expect(mockHandleX402).toHaveBeenCalledWith(x402Request, X402_CONFIG, expect.any(Function));
+    expect(mockHandleX402).toHaveBeenCalledWith(
+      x402Request,
+      X402_CONFIG,
+      expect.any(Function),
+      expect.any(Object)
+    );
     expect(mockHandleMpp).not.toHaveBeenCalled();
 
     jest.clearAllMocks();

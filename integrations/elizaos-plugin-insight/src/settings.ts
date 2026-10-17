@@ -5,13 +5,13 @@
  */
 export const DEFAULT_BASE_URL = 'https://www.oracleinsight.xyz';
 
-/** EVM networks the plugin can pay from via the exact EIP-3009 scheme.
+/** EVM networks the plugin can pay from via the exact scheme.
  *
- * BNB Smart Chain (eip155:56) is deliberately absent: Insight's BNB settlement
- * uses the AEON facilitator mandate flow (no on-chain EIP-3009), which the
- * stock @x402/evm client scheme does not sign. Agents that need to pay on BNB
- * should pay from another supported network or use the Insight MCP endpoint
- * with an x402-capable wallet plugin.
+ * EIP-3009 networks use the stock @x402/evm client scheme. BNB Smart Chain
+ * (eip155:56) settles through the AEON facilitator mandate flow (Binance-
+ * bridged USDC has no on-chain EIP-3009), handled by the vendored
+ * ExactEvmMandateScheme in aeonMandate.ts — same payer key, plus a one-time
+ * unlimited ERC-20 approve to the AEON facilitator on first use.
  */
 export const PAYABLE_NETWORKS = [
   'eip155:84532', // Base Sepolia (test)
@@ -24,6 +24,7 @@ export const PAYABLE_NETWORKS = [
   'eip155:1329', // Sei
   'eip155:196', // X Layer
   'eip155:143', // Monad
+  'eip155:56', // BNB Smart Chain (AEON mandate scheme)
 ] as const;
 
 export const DEFAULT_PAYABLE_NETWORKS: readonly string[] = [
@@ -33,7 +34,11 @@ export const DEFAULT_PAYABLE_NETWORKS: readonly string[] = [
   'eip155:42161',
   'eip155:137',
   'eip155:143',
+  'eip155:56',
 ];
+
+/** Networks routed through the AEON mandate scheme instead of @x402/evm. */
+export const MANDATE_NETWORKS: readonly string[] = ['eip155:56'];
 
 /** Oracle coverage chain ids accepted by /api/v1/safety/pre-trade. */
 export const CHAIN_IDS: Record<string, number> = {
@@ -61,6 +66,12 @@ export interface InsightSettings {
   baseUrl: string;
   x402PrivateKey: string | null;
   payableNetworks: readonly string[];
+  /** RPC for mandate-flow approvals on mandate networks (BNB default seed). */
+  bnbRpcUrl: string;
+  /** Opt in to anchoring paid-check reputation feedback on-chain (ERC-8004). */
+  reputationOptIn: boolean;
+  /** This agent's ERC-8004 agentId on the BNB Identity Registry (required for opt-in). */
+  reputationAgentId: number | null;
 }
 
 type RuntimeLike = {
@@ -86,6 +97,13 @@ export function resolveSettings(runtime: RuntimeLike): InsightSettings {
     ''
   );
   const x402PrivateKey = readSetting(runtime, 'ORACLE_INSIGHT_X402_PRIVATE_KEY') ?? null;
+  const bnbRpcUrl =
+    readSetting(runtime, 'ORACLE_INSIGHT_BNB_RPC_URL') ?? 'https://bsc-dataseed.binance.org';
+  const reputationOptIn =
+    (readSetting(runtime, 'ORACLE_INSIGHT_REPUTATION_OPT_IN') ?? '').toLowerCase() === 'true' ||
+    readSetting(runtime, 'ORACLE_INSIGHT_REPUTATION_OPT_IN') === '1';
+  const reputationAgentIdRaw = readSetting(runtime, 'ORACLE_INSIGHT_REPUTATION_AGENT_ID');
+  const reputationAgentId = reputationAgentIdRaw ? Number.parseInt(reputationAgentIdRaw, 10) : null;
 
   let payableNetworks: readonly string[] = DEFAULT_PAYABLE_NETWORKS;
   const configured = readSetting(runtime, 'ORACLE_INSIGHT_X402_NETWORKS');
@@ -96,5 +114,14 @@ export function resolveSettings(runtime: RuntimeLike): InsightSettings {
       .filter((value) => value !== '');
   }
 
-  return { baseUrl, x402PrivateKey, payableNetworks };
+  return {
+    baseUrl,
+    x402PrivateKey,
+    payableNetworks,
+    bnbRpcUrl,
+    reputationOptIn:
+      reputationOptIn && reputationAgentId !== null && !Number.isNaN(reputationAgentId),
+    reputationAgentId:
+      reputationAgentId !== null && !Number.isNaN(reputationAgentId) ? reputationAgentId : null,
+  };
 }
