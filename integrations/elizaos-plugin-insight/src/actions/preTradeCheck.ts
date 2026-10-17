@@ -16,7 +16,7 @@ export const preTradeCheckAction = {
     'general market data or charts -> other tools (NOT this action)',
   validate: async (_runtime: IAgentRuntime, message: Memory, _state?: State): Promise<boolean> => {
     const text = (message.content?.text ?? '').toLowerCase();
-    return /oracle|price.{0,20}(safe|trust|manipul)|pre.?trade|safety check|check .*(pair|price)/.test(
+    return /oracle|price .{0,20}(safe|trust|manipul)|pre.?trade|safety check|check .{0,60}(pair|price)/.test(
       text
     );
   },

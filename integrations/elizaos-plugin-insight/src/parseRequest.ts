@@ -14,7 +14,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 /** `ETH/USDC`, `WETH → USDC`, or a bare base-asset symbol (quote defaults to USDC). */
 function parseAsset(raw: string): string | null {
-  const cleaned = raw.trim().replace(/\s*(?:\/|->|→|to)\s*/i, '/');
+  const collapsed = raw.trim().replace(/\s+/g, ' ');
+  const cleaned = collapsed.replace(/ (?:\/|->|→|to) /i, '/');
   if (/^[A-Za-z0-9]+\/[A-Za-z0-9]+$/.test(cleaned)) return cleaned.toUpperCase();
   if (/^[A-Za-z0-9]{2,20}$/.test(cleaned.trim())) return `${cleaned.trim().toUpperCase()}/USDC`;
   return null;
