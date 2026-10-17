@@ -402,6 +402,28 @@ export function logBazaarExtensionStatus(
 }
 
 /**
+ * Facts of one successfully settled x402 payment, for optional post-settle
+ * hooks (e.g. ERC-8004 reputation anchoring). Read-only; hooks run after the
+ * response is dispatched and must never throw into the payment path.
+ */
+export interface SettledHookContext {
+  requestId: string;
+  /** Payer address from the settlement (empty string if facilitator omitted it). */
+  payer: string;
+  txHash: string | null;
+  amountUsdc: string;
+  network: string | null;
+  asset: string | null;
+  verdict: string | undefined;
+  attestationUid: string | undefined;
+}
+
+export interface HandlePaidOptions {
+  /** Invoked once per successful settlement (after-response, best-effort). */
+  onSettled?: (context: SettledHookContext) => void | Promise<void>;
+}
+
+/**
  * Run the x402 lifecycle for one pre-trade request.
  *
  * - No/invalid payment → the core server produces a 402 quote
@@ -415,7 +437,8 @@ export function logBazaarExtensionStatus(
 export async function handlePaidPreTradeRequest(
   request: NextRequest,
   cfg: X402Config,
-  runBusiness: (requestId: string) => Promise<NextResponse>
+  runBusiness: (requestId: string) => Promise<NextResponse>,
+  options?: HandlePaidOptions
 ): Promise<NextResponse> {
   const requestId = newRequestId();
   const httpServer = await getX402HttpServer(cfg);
@@ -537,13 +560,16 @@ export async function handlePaidPreTradeRequest(
     const requirementAudit = paymentAuditFields(result.paymentRequirements);
     const amountUsdc = requirementAudit.amountUsdc ?? atomicUnitsToUsdc(String(atomic));
     let verdict: string | undefined;
+    let attestationUid: string | undefined;
     try {
       const body = (await businessResponse.clone().json()) as {
-        data?: { verdict?: unknown };
+        data?: { verdict?: unknown; attestation?: { uid?: unknown } | null };
         verdict?: unknown;
       };
       const raw = body?.data?.verdict ?? body?.verdict;
       if (typeof raw === 'string') verdict = raw;
+      const uid = body?.data?.attestation?.uid;
+      if (typeof uid === 'string') attestationUid = uid;
     } catch {
       // Body parse is best-effort; the audit row stays useful without it.
     }
@@ -560,6 +586,34 @@ export async function handlePaidPreTradeRequest(
       responseTimeMs: Date.now() - settlementStartedAt,
       verdict,
     });
+    if (options?.onSettled) {
+      const hookContext: SettledHookContext = {
+        requestId,
+        payer: settle.payer ?? '',
+        txHash: settle.transaction ?? null,
+        amountUsdc,
+        network: requirementAudit.network,
+        asset: requirementAudit.asset ?? null,
+        verdict,
+        attestationUid,
+      };
+      const hook = options.onSettled;
+      const hookTask = async (): Promise<void> => {
+        try {
+          await hook(hookContext);
+        } catch (error) {
+          logger.warn('x402 onSettled hook failed', {
+            requestId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      };
+      try {
+        after(hookTask);
+      } catch {
+        void hookTask();
+      }
+    }
   } else {
     recordX402Settlement({
       requestId,

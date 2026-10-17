@@ -28,16 +28,19 @@ Add the plugin to your character config:
 
 Runtime settings (or environment):
 
-| Key                               | Required        | Meaning                                                                                                                                                       |
-| --------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ORACLE_INSIGHT_BASE_URL`         | no              | Defaults to `https://www.oracleinsight.xyz`.                                                                                                                  |
-| `ORACLE_INSIGHT_X402_PRIVATE_KEY` | for paid checks | The agent's payment key. Each check pays 0.02 USDC (+ network gas) from this key. Without it, a check surfaces the 402 with setup guidance instead of paying. |
-| `ORACLE_INSIGHT_X402_NETWORKS`    | no              | Comma-separated CAIP-2 list the agent can pay from. Default: `eip155:8453,eip155:1,eip155:10,eip155:42161,eip155:137,eip155:143`.                             |
+| Key                                  | Required        | Meaning                                                                                                                                                       |
+| ------------------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ORACLE_INSIGHT_BASE_URL`            | no              | Defaults to `https://www.oracleinsight.xyz`.                                                                                                                  |
+| `ORACLE_INSIGHT_X402_PRIVATE_KEY`    | for paid checks | The agent's payment key. Each check pays 0.02 USDC (+ network gas) from this key. Without it, a check surfaces the 402 with setup guidance instead of paying. |
+| `ORACLE_INSIGHT_X402_NETWORKS`       | no              | Comma-separated CAIP-2 list the agent can pay from. Default: `eip155:8453,eip155:1,eip155:10,eip155:42161,eip155:137,eip155:143,eip155:56`.                   |
+| `ORACLE_INSIGHT_BNB_RPC_URL`         | no              | RPC for BNB mandate approvals. Default: a public BSC endpoint.                                                                                                |
+| `ORACLE_INSIGHT_REPUTATION_OPT_IN`   | no              | `true`/`1` — anchor each paid check as ERC-8004 reputation feedback on BNB Chain (opt-in; anchors completion + verdict tag only, never trade details).        |
+| `ORACLE_INSIGHT_REPUTATION_AGENT_ID` | with opt-in     | This agent's ERC-8004 agentId on the BNB Identity Registry (e.g. from 8004scan.io). Required for reputation opt-in.                                           |
 
 Payment-network notes:
 
 - The key needs a USDC balance on at least one of the configured networks (and a little native gas).
-- BNB Smart Chain (`eip155:56`) is deliberately not in the default set: Insight's BNB settlement uses the AEON facilitator mandate flow (no on-chain EIP-3009), which the stock `@x402/evm` client scheme does not sign. Pay from another supported network.
+- BNB Smart Chain (`eip155:56`) pays through the AEON facilitator mandate flow via the vendored `ExactEvmMandateScheme` (also exported from the plugin index for non-ElizaOS x402 clients): one-time unlimited ERC-20 `approve` to the AEON facilitator on first use, then facilitator-domain EIP-712 signatures. The key needs a little BNB for that first approve.
 - Use a dedicated agent payment key with a bounded balance — the agent can move funds it holds. Do not point it at a treasury key.
 
 ## Usage

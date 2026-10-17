@@ -25,6 +25,7 @@ const entryPoints = {
   'collect-oracle-watch': 'scripts/collect-oracle-watch.ts',
   'collect-snapshot': 'scripts/collect-snapshot.ts',
   'daily-report-publish': 'scripts/daily-report-publish.ts',
+  'erc8004-anchor': 'scripts/anchor-erc8004-reputation.ts',
   'feed-cadence': 'scripts/feed-cadence.ts',
   'protocol-metrics': 'scripts/protocol-metrics.ts',
   reputation: 'scripts/reputation.ts',

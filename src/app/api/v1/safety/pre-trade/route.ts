@@ -16,6 +16,7 @@ import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
+import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
 
 import { PreTradeQuerySchema } from './querySchema';
 
@@ -144,23 +145,47 @@ export const GET = (
     }
 
     if (isPaidRequest(request)) {
-      return handlePaidPreTradeRequest(request, cfg, async (requestId) => {
-        const parsed = PreTradeQuerySchema.safeParse(
-          Object.fromEntries(request.nextUrl.searchParams.entries())
-        );
-        if (!parsed.success) {
-          return NextResponse.json(
-            ApiResponseBuilder.error('VALIDATION_ERROR', 'Invalid pre-trade query parameters', {
-              details: { issues: parsed.error.issues.map((issue) => issue.path.join('.')) },
-            }),
-            { status: 400 }
+      return handlePaidPreTradeRequest(
+        request,
+        cfg,
+        async (requestId) => {
+          const parsed = PreTradeQuerySchema.safeParse(
+            Object.fromEntries(request.nextUrl.searchParams.entries())
           );
+          if (!parsed.success) {
+            return NextResponse.json(
+              ApiResponseBuilder.error('VALIDATION_ERROR', 'Invalid pre-trade query parameters', {
+                details: { issues: parsed.error.issues.map((issue) => issue.path.join('.')) },
+              }),
+              { status: 400 }
+            );
+          }
+          return executePreTradeCheck({
+            query: parsed.data,
+            requestId,
+          });
+        },
+        {
+          // Opt-in ERC-8004 reputation anchoring (M2): enqueue after settlement,
+          // off the response path. Validation already enforces the pairing.
+          onSettled: async (settled) => {
+            const params = request.nextUrl.searchParams;
+            if (params.get('reputationOptIn') !== '1') return;
+            const agentId = Number.parseInt(params.get('reputationAgentId') ?? '', 10);
+            if (!Number.isInteger(agentId) || agentId <= 0) return;
+            await enqueueReputationAnchor({
+              requestId: settled.requestId,
+              payer: settled.payer,
+              agentId,
+              verdict: settled.verdict,
+              attestationUid: settled.attestationUid,
+              paymentNetwork: settled.network,
+              paymentTxHash: settled.txHash,
+              amountUsdc: settled.amountUsdc,
+            });
+          },
         }
-        return executePreTradeCheck({
-          query: parsed.data,
-          requestId,
-        });
-      });
+      );
     }
 
     if (!hasAuthCredentials(request)) {

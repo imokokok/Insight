@@ -10,7 +10,10 @@
  * Configuration (runtime settings or env):
  *   ORACLE_INSIGHT_BASE_URL          default https://www.oracleinsight.xyz
  *   ORACLE_INSIGHT_X402_PRIVATE_KEY  agent payment key (USDC + gas per check)
- *   ORACLE_INSIGHT_X402_NETWORKS     comma list, default eip155:8453,eip155:1,eip155:10,eip155:42161,eip155:137,eip155:143
+ *   ORACLE_INSIGHT_X402_NETWORKS     comma list, default eip155:8453,eip155:1,eip155:10,eip155:42161,eip155:137,eip155:143,eip155:56
+ *   ORACLE_INSIGHT_BNB_RPC_URL       RPC for BNB mandate approvals (optional)
+ *   ORACLE_INSIGHT_REPUTATION_OPT_IN 'true'/'1' to anchor check feedback on-chain (ERC-8004)
+ *   ORACLE_INSIGHT_REPUTATION_AGENT_ID  this agent's ERC-8004 agentId (required for opt-in)
  */
 import { logger } from '@elizaos/core';
 import type { IAgentRuntime, Plugin } from '@elizaos/core';
@@ -41,3 +44,10 @@ const insightPlugin: Plugin = {
 export default insightPlugin;
 export { insightPlugin };
 export { preTradeCheckAction, verifyAttestationAction, insightProvider };
+/**
+ * AEON mandate client scheme (BNB Smart Chain USDC and other non-EIP-3009
+ * tokens). Exported so non-ElizaOS agents can register BNB payments on an
+ * @x402/fetch x402Client in three lines; the plugin itself registers it for
+ * eip155:56 in buildPaidFetch.
+ */
+export { ExactEvmMandateScheme, createMandateSignerFromKey } from './aeonMandate.js';

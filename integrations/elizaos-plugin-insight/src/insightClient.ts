@@ -1,7 +1,10 @@
 import { ExactEvmScheme } from '@x402/evm/exact/client';
 import { wrapFetchWithPayment, x402Client } from '@x402/fetch';
+import { bsc } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
+import { createMandateSignerFromKey, ExactEvmMandateScheme } from './aeonMandate.js';
+import { MANDATE_NETWORKS } from './settings.js';
 import type { InsightSettings } from './settings.js';
 
 export interface PreTradeQuery {
@@ -10,6 +13,10 @@ export interface PreTradeQuery {
   action: string;
   tradeAmountUsd?: number;
   destinationAsset?: string;
+  /** Opt in to on-chain reputation anchoring of this check (ERC-8004). */
+  reputationOptIn?: boolean;
+  /** Caller's ERC-8004 agentId on the BNB Identity Registry (required with opt-in). */
+  reputationAgentId?: number;
 }
 
 export interface PreTradeOutcome {
@@ -43,6 +50,10 @@ export function buildPreTradeUrl(baseUrl: string, query: PreTradeQuery): string 
   if (query.tradeAmountUsd !== undefined)
     params.set('tradeAmountUsd', String(query.tradeAmountUsd));
   if (query.destinationAsset) params.set('destinationAsset', query.destinationAsset);
+  if (query.reputationOptIn && query.reputationAgentId) {
+    params.set('reputationOptIn', '1');
+    params.set('reputationAgentId', String(query.reputationAgentId));
+  }
   return `${base}/api/v1/safety/pre-trade?${params.toString()}`;
 }
 
@@ -57,7 +68,18 @@ export function buildPaidFetch(settings: InsightSettings): typeof fetch | null {
   const client = x402Client.fromConfig({
     schemes: settings.payableNetworks.map((network) => ({
       network: network as `${string}:${string}`,
-      client: new ExactEvmScheme(signer),
+      client: MANDATE_NETWORKS.includes(network)
+        ? // BNB Smart Chain: Binance-bridged USDC has no on-chain EIP-3009, so
+          // the AEON facilitator mandate flow signs here (incl. one-time
+          // unlimited approve on first use).
+          new ExactEvmMandateScheme(
+            createMandateSignerFromKey({
+              privateKey: settings.x402PrivateKey as string,
+              chain: bsc,
+              rpcUrl: settings.bnbRpcUrl,
+            })
+          )
+        : new ExactEvmScheme(signer),
       x402Version: 2,
     })),
   });
