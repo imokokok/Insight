@@ -5,6 +5,10 @@
 /.pnp
 .pnp.*
 
+# standalone integration packages (own installs/builds)
+integrations/*/node_modules
+integrations/*/dist
+
 # ML training venv (local only; GitHub Actions installs fresh)
 ml/.venv/
 .yarn/*

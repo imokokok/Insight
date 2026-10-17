@@ -8,6 +8,8 @@ sdk/dist
 verifier/dist
 .local
 ml/models
+integrations/*/dist
+integrations/*/package-lock.json
 
 # Generated/pinned VRT1 conformance artifacts. Formatting changes their exact
 # bytes, which are part of the verifier test vectors.
