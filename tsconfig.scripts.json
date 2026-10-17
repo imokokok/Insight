@@ -8,6 +8,7 @@
     "src/types/supra-oracle-sdk.d.ts",
     "scripts/backfill-market-reference.ts",
     "scripts/billing.ts",
+    "scripts/register-erc8004-agent.ts",
     "scripts/approve-dependabot-workflow-runs.mts",
     "scripts/check-rwa-parity.ts",
     "scripts/check-workflow-security.ts",
