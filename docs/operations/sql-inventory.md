@@ -104,6 +104,7 @@
 | 0088 | [`0088_x402_solana_networks.sql`](../../supabase/migrations/0088_x402_solana_networks.sql)                               | x402 结算审计支持 Solana CAIP-2 网络           |
 | 0089 | [`0089_x402_evm_networks.sql`](../../supabase/migrations/0089_x402_evm_networks.sql)                                     | x402 结算审计支持多条 EVM CAIP-2 网络          |
 | 0090 | [`0090_market_reference_rights_gate.sql`](../../supabase/migrations/0090_market_reference_rights_gate.sql)               | CEX 权利范围、协议引用与面客读取门禁           |
+| 0091 | [`0091_x402_monad_bnb_networks.sql`](../../supabase/migrations/0091_x402_monad_bnb_networks.sql)                         | x402 结算审计补 Monad 并新增 BNB Chain 网络    |
 
 ## 非迁移 SQL
 
