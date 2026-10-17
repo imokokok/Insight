@@ -27,6 +27,7 @@ The pre-trade endpoint and the pre-trade MCP tool also accept payment via MPP. S
 - [OpenAPI discovery document](https://www.oracleinsight.xyz/openapi.json): x402-focused discovery doc for the paid endpoint, including the `x-payment-info` pricing block and parameter schemas.
 - [x402 well-known manifest](https://www.oracleinsight.xyz/.well-known/x402.json): resource-server manifest (also served at [/.well-known/x402](https://www.oracleinsight.xyz/.well-known/x402)).
 - [x402-quality/v0 schema](https://www.oracleinsight.xyz/x402-quality/v0/x402-quality-v0.schema.json): draft JSON Schema (2020-12) for a quality-attestation artifact, plus a zero-dependency projection tool and fixtures generated from live receipts. A reference implementation for the x402 quality-attestation discussion, not an adopted standard.
+- [ERC-8004 evidence descriptor (v1)](https://www.oracleinsight.xyz/erc8004/v1/insight-evidence.v1.json): how Insight's signed pre-trade attestations and quality receipts anchor into ERC-8004 agent Reputation/Validation registries (source: docs/erc8004-reputation-evidence.md).
 
 ## Free (keyless) endpoints
 

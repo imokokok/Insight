@@ -253,8 +253,8 @@ export async function handleMcpPaidToolCall({
 
   if (settle.success) {
     const atomic = settle.amount ?? result.paymentRequirements.amount;
-    const amountUsdc = atomicUnitsToUsdc(String(atomic));
     const requirementAudit = paymentAuditFields(result.paymentRequirements);
+    const amountUsdc = requirementAudit.amountUsdc ?? atomicUnitsToUsdc(String(atomic));
     recordX402Settlement({
       requestId,
       status: 'settled',
