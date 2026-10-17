@@ -10,8 +10,10 @@ import {
   getX402PaymentOptions,
   SOLANA_DEVNET_CAIP2,
   SOLANA_MAINNET_CAIP2,
+  tokenDecimalsForNetwork,
   X402_EVM_NETWORK_IDS,
   type X402Config,
+  type X402NetworkId,
 } from './config';
 import { getX402HttpServer } from './resourceServer';
 import { isSolanaPublicKey, isSolanaSignature } from './solanaEncoding';
@@ -259,7 +261,12 @@ export function paymentAuditFields(requirement: PaymentRequirementAuditInput): {
     return {
       network: network.data,
       asset: requirement.asset,
-      amountUsdc: atomicUnitsToUsdc(requirement.amount),
+      // 18-decimal Binance-Peg tokens (BNB Smart Chain) must not be read on
+      // the 6-decimal USDC grid, or audit rows carry a 10^12-scaled amount.
+      amountUsdc: atomicUnitsToUsdc(
+        requirement.amount,
+        isSolana ? 6 : tokenDecimalsForNetwork(network.data as X402NetworkId)
+      ),
     };
   } catch {
     logger.warn('x402 payment amount rejected by audit validation', { network: network.data });
@@ -339,12 +346,13 @@ export function recordX402Settlement(audit: X402SettlementAudit): void {
   }
 }
 
-/** Format USDC atomic units without floating-point rounding. */
-export function atomicUnitsToUsdc(atomic: string): string {
+/** Format token atomic units as a decimal string without floating-point rounding. */
+export function atomicUnitsToUsdc(atomic: string, decimals = 6): string {
   const units = BigInt(atomic);
-  const whole = units / 1_000_000n;
-  const fraction = String(units % 1_000_000n)
-    .padStart(6, '0')
+  const scale = 10n ** BigInt(decimals);
+  const whole = units / scale;
+  const fraction = String(units % scale)
+    .padStart(decimals, '0')
     .replace(/0+$/, '');
   return fraction ? `${whole}.${fraction}` : String(whole);
 }
@@ -526,8 +534,8 @@ export async function handlePaidPreTradeRequest(
     // deterministic charge. Verdict is lifted from the business body
     // (best-effort clone) so audit rows carry the check outcome.
     const atomic = settle.amount ?? result.paymentRequirements.amount;
-    const amountUsdc = atomicUnitsToUsdc(String(atomic));
     const requirementAudit = paymentAuditFields(result.paymentRequirements);
+    const amountUsdc = requirementAudit.amountUsdc ?? atomicUnitsToUsdc(String(atomic));
     let verdict: string | undefined;
     try {
       const body = (await businessResponse.clone().json()) as {

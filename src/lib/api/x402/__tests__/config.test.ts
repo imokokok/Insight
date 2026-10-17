@@ -113,6 +113,48 @@ describe('x402 config', () => {
     expect(bnb?.amountAtomic).toBe('4000000000000000');
   });
 
+  it('defaults X402_BNB_ASSETS to usdc only', () => {
+    const cfg = parseX402Config({ ...BASE_ENV });
+    expect(cfg.bnbAssets).toEqual(['usdc']);
+  });
+
+  it('emits a BNB USDT option only when X402_BNB_ASSETS opts in', () => {
+    const base = parseX402Config({ ...BASE_ENV, X402_EVM_NETWORKS: 'eip155:56' });
+    const baseOptions = getX402PaymentOptions(base).filter(
+      (option) => option.network === 'eip155:56'
+    );
+    expect(baseOptions).toHaveLength(1);
+    expect(baseOptions[0]?.asset).toBe('0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d');
+
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:56',
+      X402_BNB_ASSETS: 'usdc,usdt',
+    });
+    expect(cfg.bnbAssets).toEqual(['usdc', 'usdt']);
+    const bnb = getX402PaymentOptions(cfg).filter((option) => option.network === 'eip155:56');
+    expect(bnb).toHaveLength(2);
+    expect(bnb[0]?.asset).toBe('0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d');
+    expect(bnb[0]?.tokenName).toBe('USD Coin');
+    expect(bnb[1]?.asset).toBe('0x55d398326f99059fF775485246999027B3197955');
+    expect(bnb[1]?.tokenName).toBe('Tether USD');
+    // Both Binance-Peg tokens share the 18-decimal grid and pay-to.
+    expect(bnb[1]?.amountAtomic).toBe(bnb[0]?.amountAtomic);
+    expect(bnb[1]?.payTo).toBe(bnb[0]?.payTo);
+  });
+
+  it('rejects unknown X402_BNB_ASSETS entries and keeps usdc first', () => {
+    expect(() => parseX402Config({ ...BASE_ENV, X402_BNB_ASSETS: 'usdt,usdc' })).not.toThrow();
+    const cfg = parseX402Config({ ...BASE_ENV, X402_BNB_ASSETS: 'usdt,usdc' });
+    expect(cfg.bnbAssets).toEqual(['usdc', 'usdt']);
+    expect(() => parseX402Config({ ...BASE_ENV, X402_BNB_ASSETS: 'usd1' })).toThrow(
+      /unsupported assets/
+    );
+    expect(() => parseX402Config({ ...BASE_ENV, X402_BNB_ASSETS: 'usdt,,usdc' })).toThrow(
+      /without empty entries/
+    );
+  });
+
   describe('per-network facilitator URLs', () => {
     it('defaults to an empty override map', () => {
       const cfg = parseX402Config({ ...BASE_ENV });

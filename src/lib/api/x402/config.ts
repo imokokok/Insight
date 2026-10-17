@@ -39,7 +39,14 @@ export type X402NetworkId = (typeof X402_EVM_NETWORK_IDS)[number];
 /** Native USDC contract and EIP-712 domain name for each supported EVM network. */
 const SUPPORTED_NETWORKS: Record<
   X402NetworkId,
-  { usdc: string; tokenName?: string; decimals?: number; eip3009?: boolean }
+  {
+    usdc: string;
+    tokenName?: string;
+    decimals?: number;
+    eip3009?: boolean;
+    /** Opt-in additional settlement assets sharing the network's decimals and facilitator flow. */
+    extraAssets?: readonly { symbol: string; address: string; tokenName?: string }[];
+  }
 > = {
   'eip155:84532': {
     /** Chain: Base Sepolia (testnet). Circle native USDC. */
@@ -114,6 +121,21 @@ const SUPPORTED_NETWORKS: Record<
     decimals: 18,
     /** No on-chain EIP-3009; settlement is the AEON facilitator mandate flow. */
     eip3009: false,
+    /**
+     * USDT (Binance-Peg, 18 decimals) is in the AEON asset registry for chain
+     * 56 (TokenSymbolUtil, @aeon-ai-pay/evm 2.1.4) and settles through the same
+     * mandate flow as USDC. Emitted as a second challenge option only when
+     * X402_BNB_ASSETS lists `usdt`. USD1/United Stables are NOT listed here:
+     * they have on-chain EIP-3009 but are absent from the AEON registry, so a
+     * challenge advertising them today could not be verified or settled.
+     */
+    extraAssets: [
+      {
+        symbol: 'USDT',
+        address: '0x55d398326f99059fF775485246999027B3197955',
+        tokenName: 'Tether USD',
+      },
+    ],
   },
 };
 
@@ -156,6 +178,33 @@ const NetworkSchema = z.enum(X402_EVM_NETWORK_IDS);
 const SolanaNetworkSchema = z.enum([SOLANA_DEVNET_CAIP2, SOLANA_MAINNET_CAIP2]);
 
 const USDC_DECIMALS = 6;
+
+/**
+ * Settlement assets selectable for the BNB Smart Chain challenge. `usdc` is
+ * the default; `usdt` is opt-in via X402_BNB_ASSETS and shares the AEON
+ * mandate flow (both assets are 18-decimal Binance-Peg tokens).
+ */
+export type X402BnbAsset = 'usdc' | 'usdt';
+
+const BNB_ASSET_CATALOG: readonly X402BnbAsset[] = ['usdc', 'usdt'];
+
+function parseBnbAssets(raw: string | undefined): X402BnbAsset[] {
+  if (raw === undefined || raw.trim() === '') return ['usdc'];
+
+  const values = raw.split(',').map((value) => value.trim().toLowerCase());
+  if (values.some((value) => value === '')) {
+    throw new Error('X402_BNB_ASSETS must be a comma-separated list without empty entries');
+  }
+  const invalid = values.filter((value) => !BNB_ASSET_CATALOG.includes(value as X402BnbAsset));
+  if (invalid.length > 0) {
+    throw new Error(
+      `X402_BNB_ASSETS has unsupported assets: ${invalid.join(', ')} (supported: ${BNB_ASSET_CATALOG.join(', ')})`
+    );
+  }
+  const unique = [...new Set(values)] as X402BnbAsset[];
+  // `usdc` stays first so the primary challenge option is deterministic.
+  return ['usdc', ...unique.filter((value) => value !== 'usdc')];
+}
 
 const PayToSchema = z
   .string()
@@ -202,6 +251,13 @@ export interface X402Config {
   facilitatorCdpAuth: { apiKeyId: string; apiKeySecret: string } | null;
   /** Optional, independently opted-in Solana x402 option. */
   solana?: X402SolanaConfig | null;
+  /**
+   * Settlement assets advertised for BNB Smart Chain (default `['usdc']`).
+   * Parsed from X402_BNB_ASSETS; `usdc` is always first so the primary
+   * challenge option is deterministic. Optional so hand-built configs
+   * (tests) default to USDC.
+   */
+  bnbAssets?: X402BnbAsset[];
 }
 
 function parseFacilitatorUrls(raw: string | undefined): Partial<Record<X402NetworkId, string>> {
@@ -342,6 +398,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
 
   const facilitatorUrl = env.X402_FACILITATOR_URL?.trim() || 'https://x402.org/facilitator';
   const facilitatorUrls = parseFacilitatorUrls(env.X402_FACILITATOR_URLS);
+  const bnbAssets = parseBnbAssets(env.X402_BNB_ASSETS);
 
   return {
     enabled: evmEnabled || solana !== null,
@@ -357,6 +414,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     maxTimeoutSeconds: 60,
     facilitatorCdpAuth: parseFacilitatorCdpAuth(env, facilitatorUrl),
     solana,
+    bnbAssets,
   };
 }
 
@@ -446,6 +504,21 @@ export function getX402PaymentOptions(
         amountAtomic: atomicUnitsForNetwork(network, microAtomic),
         tokenName: tokenNameForNetwork(network),
       });
+      // Opt-in additional assets (BNB USDT today) share the network's
+      // decimals, pay-to and facilitator flow, so only the asset identity
+      // and EIP-712 domain name differ.
+      const bnbAssets = cfg.bnbAssets ?? (['usdc'] as X402BnbAsset[]);
+      for (const extra of SUPPORTED_NETWORKS[network].extraAssets ?? []) {
+        if (!bnbAssets.includes(extra.symbol.toLowerCase() as X402BnbAsset)) continue;
+        options.push({
+          family: 'evm',
+          network,
+          payTo: cfg.payTo,
+          asset: extra.address,
+          amountAtomic: atomicUnitsForNetwork(network, microAtomic),
+          tokenName: extra.tokenName,
+        });
+      }
     }
   }
 

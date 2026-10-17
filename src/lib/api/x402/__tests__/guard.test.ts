@@ -5,6 +5,7 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 
 import { type X402Config } from '../config';
 import {
+  atomicUnitsToUsdc,
   handlePaidPreTradeRequest,
   hasAuthCredentials,
   isPaidRequest,
@@ -117,6 +118,23 @@ describe('x402 guard', () => {
       expect(
         paymentAuditFields({ network: 'solana:unknown', asset: 'not-a-mint', amount: '20000' })
       ).toEqual({ network: null });
+    });
+
+    it('reads 18-decimal BNB Chain requirements on the token grid, not the 6-decimal USDC grid', () => {
+      // 0.02 USDT atomic at 18 decimals must audit as 0.02, not 2e13.
+      expect(
+        paymentAuditFields({
+          network: 'eip155:56',
+          asset: '0x55d398326f99059fF775485246999027B3197955',
+          amount: '20000000000000000',
+        })
+      ).toEqual({
+        network: 'eip155:56',
+        asset: '0x55d398326f99059fF775485246999027B3197955',
+        amountUsdc: '0.02',
+      });
+      expect(atomicUnitsToUsdc('20000000000000000', 18)).toBe('0.02');
+      expect(atomicUnitsToUsdc('20000')).toBe('0.02');
     });
   });
 
