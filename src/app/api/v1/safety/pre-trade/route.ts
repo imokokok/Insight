@@ -22,6 +22,17 @@ import { PreTradeQuerySchema } from './querySchema';
 
 import type { z } from 'zod';
 
+/**
+ * Route segment config: the paid pre-trade pipeline (provider feeds + risk
+ * model + GoPlus advisory + attestation + x402 settle) has been observed at
+ * ~45s when an upstream provider fetch degrades, which exceeded the 30s
+ * platform default and turned every paid call into a 504
+ * FUNCTION_INVOCATION_TIMEOUT (2026-10-18 WAK window, INT-02). 60s matches
+ * the /api/cron budget and keeps headroom over the observed worst case
+ * without allowing an unbounded hang.
+ */
+export const maxDuration = 60;
+
 export const OPTIONS = createOptionsHandler();
 
 interface PreTradeCheckParams {
