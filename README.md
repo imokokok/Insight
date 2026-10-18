@@ -14,10 +14,11 @@ Oracle observations → Cross-source comparison → Risk assessment → Verifiab
 
 ## Technology Stack
 
-- **Blockchain:** BNB Smart Chain (BSC) + EVM-compatible chains (oracle data covers 40+ networks)
+- **Blockchain:** BNB Smart Chain (BSC) — the primary deployment chain — + EVM-compatible chains (oracle data covers 40+ networks)
 - **Smart Contracts:** none deployed by Insight — it integrates the official ERC-8004 Identity & Reputation Registries and x402 (AEON facilitator) settlement
 - **Frontend:** Next.js (React) + viem
 - **Development:** TypeScript, Node.js 22, Jest, Supabase
+- **BNB Chain deployment configuration:** [`bnbconfig.json`](./bnbconfig.json) — chain, contracts, agent registration, and x402 settlement details
 
 ## Supported Networks
 
