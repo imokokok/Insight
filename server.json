@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.imokokok/oracle-insight",
-  "title": "Oracle Insight",
-  "description": "Pre-trade decision-input integrity for onchain AI agents: before a trade is signed, check whether the price it relies on is trustworthy. Returns an oracle-manipulation-aware verdict (PASS/WARN/BLOCK) from multi-provider oracle consensus, with verifiable EIP-712 attestations. Pay-per-call via x402 v2 in USDC.",
-  "version": "0.1.0",
+  "name": "io.github.imokokok/insight-oracle",
+  "title": "Insight Pre-Trade Safety",
+  "description": "Decision-input integrity for onchain AI agents: verify oracle prices before signing a trade.",
+  "version": "0.3.0",
   "homepage": "https://www.oracleinsight.xyz",
   "remotes": [
     {
