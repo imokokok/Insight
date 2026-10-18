@@ -1,5 +1,7 @@
 # Insight — Oracle Transparency & Risk Intelligence
 
+Insight is oracle transparency and risk infrastructure for DeFi and AI agents, built on **BNB Smart Chain (BSC)** and compatible with other EVM networks.
+
 Insight helps DeFi applications, operators, developers, and AI agents inspect oracle prices and the risks of relying on them. It compares data from **10 oracle providers across 40+ blockchain networks**, evaluates deviation, freshness, source independence, and protocol impact, and can issue signed evidence of its assessments. For AI agents specifically, this is **decision-input integrity**: a signed, re-verifiable answer to "can this price be trusted" before a trade is signed.
 
 ```text
@@ -9,6 +11,36 @@ Oracle observations → Cross-source comparison → Risk assessment → Verifiab
 **Pre-Trade Safety Check** assesses a proposed action. **Oracle Watch** monitors changing conditions between actions. The REST API, MCP server, [Guard SDK](sdk/README.md), and [independent verifier](verifier/README.md) make these capabilities available to applications and agents. Insight also works independently of [PriorSeal](https://github.com/imokokok/PriorSeal); see the [product positioning guide](docs/product-positioning.md) for the combined assessment, authorization, execution, and review workflow.
 
 > Insight is **not a real-time oracle tracker**. Price snapshots and feed health are collected every 15 minutes, reputation scores are recalculated hourly, and data is aggregated into daily reports. Check each assessment's freshness and validity window before using it.
+
+## Technology Stack
+
+- **Blockchain:** BNB Smart Chain (BSC) — the primary deployment chain — + EVM-compatible chains (oracle data covers 40+ networks)
+- **Smart Contracts:** none deployed by Insight — it integrates the official ERC-8004 Identity & Reputation Registries and x402 (AEON facilitator) settlement
+- **Frontend:** Next.js (React) + viem
+- **Development:** TypeScript, Node.js 22, Jest, Supabase
+- **BNB Chain deployment configuration:** [`bnbconfig.json`](./bnbconfig.json) — chain, contracts, agent registration, and x402 settlement details
+
+## Supported Networks
+
+- BNB Smart Chain Mainnet (Chain ID: 56) — x402 pay-per-call settlement in Binance-Peg USDC via the AEON mandate flow
+- Base Mainnet (Chain ID: 8453) — x402 pay-per-call settlement in USDC
+- Additional EVM networks are covered read-only for oracle data (40+ chains)
+
+## Contract Addresses
+
+Insight is an API/agent service and issues no token. Its on-chain footprint on BNB Mainnet is its ERC-8004 agent registration:
+
+| Network     | Core Contract                                                                                                                                                               | Token Contract  |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| BNB Mainnet | ERC-8004 Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (Insight agent #375779) · ERC-8004 Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` | None — no token |
+| BNB Testnet | None                                                                                                                                                                        | None            |
+
+## Features
+
+- **Pre-Trade Safety Check** — cross-oracle pre-trade verdict (PASS / CAUTION / DANGER / BLOCK) with signed EIP-712 attestation and a recommended maximum position size
+- **Oracle Watch** — continuous between-action monitoring with `proceed` / `proceed_with_caution` / `halt` recommendations
+- **Agent-native payments** — x402 pay-per-call in USDC on BNB Chain (AEON mandate flow) and a hosted MCP server at `/api/mcp`; registered ERC-8004 agent #375779
+- **Verifiable evidence** — independently verifiable signed receipts, plus opt-in ERC-8004 reputation anchoring of completed checks
 
 ## Start here
 

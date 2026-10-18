@@ -1,0 +1,33 @@
+{
+  "name": "Insight",
+  "description": "Oracle transparency and risk infrastructure for DeFi and AI agents, deployed on BNB Smart Chain (BSC). Registered ERC-8004 agent #375779 with x402 pay-per-call settlement in Binance-Peg USDC via the AEON mandate flow.",
+  "primaryChain": {
+    "network": "BNB Smart Chain Mainnet",
+    "chainId": 56,
+    "rpcUrls": ["https://bsc-dataseed.bnbchain.org"],
+    "explorer": "https://bscscan.com",
+    "nativeCurrency": { "name": "BNB", "symbol": "BNB", "decimals": 18 }
+  },
+  "contracts": {
+    "erc8004IdentityRegistry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+    "erc8004ReputationRegistry": "0x8004BAa17C55a88189AE136b182e5fdA19dE9b63",
+    "insightAgentId": 375779,
+    "note": "Insight deploys no contracts of its own; it registers its agent in the official ERC-8004 registries and settles through the x402 facilitator."
+  },
+  "x402Settlement": {
+    "chainId": 56,
+    "asset": "Binance-Peg USDC",
+    "scheme": "exact (AEON mandate flow, EIP-712 tokenTransferWithAuthorization)",
+    "facilitatorAddress": "0x555e3311a9893c9B17444C1Ff0d88192a57Ef13e"
+  },
+  "services": {
+    "website": "https://www.oracleinsight.xyz",
+    "preTradeSafetyCheck": "https://www.oracleinsight.xyz/api/v1/safety/pre-trade",
+    "mcpEndpoint": "https://www.oracleinsight.xyz/api/mcp",
+    "apiDocs": "https://www.oracleinsight.xyz/docs/api"
+  },
+  "additionalNetworks": [
+    { "network": "Base Mainnet", "chainId": 8453, "role": "x402 settlement (USDC)" },
+    { "network": "40+ EVM networks", "role": "read-only oracle data coverage" }
+  ]
+}

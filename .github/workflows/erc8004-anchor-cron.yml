@@ -5,9 +5,10 @@ name: ERC-8004 reputation anchor
 # pre-trade route after opted-in x402 settlements.
 
 on:
-  schedule:
-    # 02:23 UTC daily — off-peak, off the round-hour collision zone.
-    - cron: '23 2 * * *'
+  # Daily schedule paused for now — re-enable by restoring:
+  #   schedule:
+  #     - cron: '23 2 * * *'
+  # until then the batch runs only via manual workflow_dispatch.
   workflow_dispatch: {}
 
 permissions:

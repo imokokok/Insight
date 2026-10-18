@@ -59,6 +59,11 @@ jobs:
           node-version: 22.23.2
           cache: npm
       - run: npm ci
+      # Generated bundles are deterministic repository outputs. Check them
+      # before the expensive verifier and replay work, so contributors get a
+      # fast, actionable failure instead of waiting through unrelated gates.
+      - name: Reject stale generated cron bundles
+        run: npm run validate:generated
       - name: Check the documented offline verifier example
         run: |
           npm run build --prefix verifier
@@ -72,8 +77,6 @@ jobs:
         # captured observations rather than repo fixtures, so CI has none.
         # Only a replay that actually disagreed fails this step.
         run: npm run oracle:test:replay-check
-      - name: Reject stale generated cron bundles
-        run: npm run validate:generated
       - name: Reject mutable or bypassing workflow configuration
         run: npm run workflow:check
       - name: Enforce pinned RWA source and frozen-vector integrity
@@ -114,6 +117,7 @@ jobs:
     needs: [validate-static, validate-tests]
     if: ${{ always() }}
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - name: Require every validation path to pass
         env:
@@ -179,6 +183,16 @@ jobs:
       - name: Verify the packed package shape in Chromium without network
         run: npm run verifier:release:check -- --browser
       - run: npm run test:e2e -- --project=chromium
+      - name: Retain browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: chromium-smoke-diagnostics
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7
 
   deploy-production:
     name: Deploy production (gated and verified)
@@ -245,4 +259,16 @@ jobs:
         env:
           SMOKE_BASE_URL: https://www.oracleinsight.xyz
           SMOKE_EXPECT_MPP: ${{ vars.SMOKE_EXPECT_MPP || 'true' }}
-        run: node scripts/smoke-live-payment-rails.mjs
+        run: |
+          set -euo pipefail
+          for attempt in 1 2; do
+            if node scripts/smoke-live-payment-rails.mjs; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 2 ]; then
+              echo "::warning::Payment-rail smoke failed immediately after deployment; retrying once in 30 seconds."
+              sleep 30
+            fi
+          done
+          echo "::error::Payment-rail smoke failed after the post-deploy retry."
+          exit 1

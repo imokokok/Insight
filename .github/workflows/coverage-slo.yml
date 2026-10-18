@@ -63,6 +63,18 @@ jobs:
           fi
           node -e 'const r=require("./coverage-result.json"); if(r.success!==true || !Array.isArray(r.targets) || !Array.isArray(r.alerts) || !Array.isArray(r.latestAlerts) || !Array.isArray(r.newFailures) || !Array.isArray(r.recoveries)) process.exit(1);'
 
+      # The structured response preserves the reason (for example an
+      # enrollment failure) when the API rejects a sample. It is more useful
+      # than a generic exit code and expires quickly to limit retained data.
+      - name: Retain failed coverage response
+        if: failure() && steps.collect.outcome == 'failure'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage-slo-failure-response
+          path: coverage-result.json
+          if-no-files-found: ignore
+          retention-days: 7
+
       # A completed sample is a successful dispatch even when the rolling SLO is
       # unhealthy. Record collection success before the final alert step so the
       # delayed fallback does not retry an immutable slot just to repeat an alert.
