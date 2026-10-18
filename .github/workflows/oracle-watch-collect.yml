@@ -5,14 +5,17 @@ name: Oracle Watch Collect
 # to a Vercel function) so it escapes the 60s serverless timeout — a collection
 # pass fans out live cross-oracle fetches across ~16 symbols.
 #
-# Every 30 minutes: evaluates each target through getOracleWatchSignal (live
+# Every 60 minutes (reduced from 30 to halve write load on the Supabase nano
+# instance): evaluates each target through getOracleWatchSignal (live
 # consensus + ML manipulation risk + provider reputation) and appends one row
 # per symbol to feed_health_snapshots, which powers /api/v1/oracle-watch/history.
 
 on:
   schedule:
-    # Same nominal cadence as before; the stale-ledger guard skips healthy slots.
-    - cron: '*/30 * * * *'
+    # Hourly native fallback at :00, offset from the primary Supabase dispatch
+    # slot (job 47, hourly at :08) the same way as the previous 30-minute pair.
+    # The stale-ledger guard skips healthy slots.
+    - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       dispatch_id:
@@ -24,7 +27,7 @@ on:
         required: false
         type: string
 
-# Prevent overlapping runs. If one exceeds 30 min (almost never — typical
+# Prevent overlapping runs. If one exceeds the hour slot (almost never — typical
 # runtime is well under 2 min), queue rather than cancel (same reasoning as
 # snapshot-collect).
 concurrency:
@@ -52,7 +55,7 @@ jobs:
         id: guard
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          FALLBACK_MAX_AGE_MINUTES: '50'
+          FALLBACK_MAX_AGE_MINUTES: '110'
         run: node scripts/cron-control.mjs guard
 
       - name: Verify required secrets

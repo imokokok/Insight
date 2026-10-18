@@ -16,8 +16,8 @@ The dispatcher covers the seven product-critical jobs:
 | Workflow                        | Primary cadence  | Native GitHub fallback                          |
 | ------------------------------- | ---------------- | ----------------------------------------------- |
 | `snapshot-collect.yml`          | every 15 minutes | same cadence, skips while ledger is fresh       |
-| `oracle-watch-collect.yml`      | every 30 minutes | same cadence, skips while ledger is fresh       |
-| `reputation-cron.yml`           | hourly           | same cadence, skips while ledger is fresh       |
+| `oracle-watch-collect.yml`      | hourly (dispatch :08, reduced from every 30 minutes) | hourly at :00, skips while ledger is fresh |
+| `reputation-cron.yml`           | every 2 hours (dispatch :12, reduced from hourly)   | same cadence at :07, skips while ledger is fresh |
 | `safety-outcome-cron.yml`       | every 2 hours    | same cadence, skips while ledger is fresh       |
 | `feed-cadence-cron.yml`         | daily            | one hour later, only when ledger is stale       |
 | `daily-report-publish-cron.yml` | daily            | 05:30 UTC `--if-missing` backfill               |
