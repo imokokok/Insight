@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 35,
+  "effectiveFrom": "2026-10-18",
+  "classification": "InterAI D8 experimental economic-evidence domain admission",
+  "registryReleaseId": "0xc90709876d4210c521d36a27171d4f45bca4a7b48e67658fac9c76c04ef50831",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0xb8b86d3bc09612eea733ac3f939e9aa1340db92bdf93a2d943601520032cbd7f",
+  "activationSetId": "0x32335b66b91bd4ab1742b86ffcaefa94bbfc063de5f9a1d51e0080df67896157",
+  "receiptImpact": "The immutable registry release publishes the exact InterAI D8 EconomicEvidenceCommitment EIP-712 descriptor and an explicit experimental-only admission. OracleSafetyCheck v3 remains its exact existing 27-field signed layout; existing attester keys, all partner policies, activation set v6, Stage 2 policy, execution behavior, and production decision authority remain unchanged. No companion issuance path is enabled by this promotion.",
+  "activationRule": "The D8 companion may not be signed or treated as decision authority merely because this descriptor is published. Any future D8 capture requires bilateral domain acceptance, an independently pinned current registry body and active attester validity window, D8-03 pre-capture verification, a positive companion window contained by both v3 evidences and the quote at evaluation time, and experiment-plus-input UID replay protection. This promotion grants no capture, /verify, execution, broadcast, or Stage 2 change.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x11d4736a2c0a2c23f3a2d46f863d3ebb64e2b738f8da4a02bd12a30368578a43 byte for byte. The D8 descriptor is not in this policy and does not change OracleSafetyCheck or execution admission."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xe556b47dbdb4e3d7cab2c4fb882ffe0b65d6c4750ac0ff5ce6ee2f0494d3b787 byte for byte. No shared receipt layout, key, or production reachability changes."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x0ce8536c90b23ebcb2952422e5eb67628da65c14b6bf5782849f20c0b137815b byte for byte. The InterAI-only descriptor is not activated for this partner."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xca3bd5acb9d70f9e9755fad44e87cff1122f88986a6c61b33d93a49e3bb15861 byte for byte. No OracleSafetyCheck schema or key admission changes."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xd510bd9f29be0b896aed2e2b95200eab25cb9e03430a456f1bee3df7a17de158 byte for byte. Existing execution and historical verification behavior is unchanged."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "experimental descriptor admitted; runtime unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xb539451842dc4e907d6fcea012aa094f4fea3c3acd2fd054aa4106848f602239 byte for byte. Release 2026-10-18.1 exposes the exact D8 companion domain and admission only; there is no signing endpoint, policy activation, Stage 2 change, or decision authority."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x5a80afffbb667b62014c727fae35e9f00edd6ca99555baa1c4cc79d0650768d0 byte for byte. No partner runtime or public attestation semantics changes."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x248f339e382efefaf20c9caad0ed6ee3db75775b5b5649b3d2421bb28d376341 byte for byte. The D8 descriptor is isolated from this policy."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x55fbfb17fbab461ff237cad4b19f8fba71411461d19f8e99af103910ae47ae63 byte for byte. Existing dedicated-window and receipt verification rules remain unchanged."
+    }
+  ],
+  "promotionId": "0x75cc0474d80512dda1fc25f5560596308cb2d663c9abb0eb6a4aa7747a691242"
+}
