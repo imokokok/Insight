@@ -26,6 +26,7 @@ const PUBLIC_FALLBACKS: Record<number, string[]> = {
 
 /** Map an Alchemy network key to its chain id. */
 const ALCHEMY_BY_CHAIN: Record<number, string | undefined> = {
+  0: ALCHEMY_RPC.solana,
   1: ALCHEMY_RPC.ethereum,
   42161: ALCHEMY_RPC.arbitrum,
   8453: ALCHEMY_RPC.base,

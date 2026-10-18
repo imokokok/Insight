@@ -6,6 +6,7 @@ import { isDomainOrSubdomain } from '@/lib/utils/urlHost';
 const logger = createLogger('ServerEnv');
 
 const alchemyRpcSchema = z.object({
+  solana: z.string().url().optional().default(''),
   ethereum: z.string().url().optional().default(''),
   arbitrum: z.string().url().optional().default(''),
   polygon: z.string().url().optional().default(''),
@@ -45,6 +46,7 @@ function sanitizeAlchemyUrl(network: string, url: string): string {
 
 function parseAlchemyRpc() {
   const raw = {
+    solana: process.env.ALCHEMY_SOLANA_RPC || undefined,
     ethereum: process.env.ALCHEMY_ETHEREUM_RPC || undefined,
     arbitrum: process.env.ALCHEMY_ARBITRUM_RPC || undefined,
     polygon: process.env.ALCHEMY_POLYGON_RPC || undefined,

@@ -1,7 +1,10 @@
 import { createHash } from 'node:crypto';
 
 export const SOLANA_MAINNET_CAIP2 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-const SOLANA_MAINNET_GENESIS_HASH = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+// CAIP-2 uses a 32-character customary Solana reference, while JSON-RPC
+// getGenesisHash returns the full 44-character base58 blockhash. Do not use
+// the CAIP-2 reference for this transport-level cluster check.
+const SOLANA_MAINNET_GENESIS_HASH = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d';
 
 export type SolanaSimulationPayload = {
   network: typeof SOLANA_MAINNET_CAIP2;
