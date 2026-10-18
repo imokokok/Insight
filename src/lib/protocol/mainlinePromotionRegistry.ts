@@ -33,6 +33,7 @@ import promotionRwaActionPreflightJson from '../../../protocol/mainline/promotio
 import promotionDecisionInputSwapRiskJson from '../../../protocol/mainline/promotions/2026-10-14-decision-input-swap-risk-sdk.json';
 import promotionDecisionEvidencePackJson from '../../../protocol/mainline/promotions/2026-10-16-decision-evidence-pack.json';
 import promotionDecisionInputDataRightsGateJson from '../../../protocol/mainline/promotions/2026-10-17-decision-input-data-rights-gate.json';
+import promotionInterAiD8EconomicEvidenceAdmissionJson from '../../../protocol/mainline/promotions/2026-10-18-interai-d8-economic-evidence-admission.json';
 
 import { bodyWithoutId, keccakContentId } from './contentAddress';
 
@@ -97,6 +98,7 @@ const rawPromotions = [
   promotionDecisionInputSwapRiskJson,
   promotionDecisionEvidencePackJson,
   promotionDecisionInputDataRightsGateJson,
+  promotionInterAiD8EconomicEvidenceAdmissionJson,
 ] as unknown as MainlineProtocolPromotion[];
 
 for (const promotion of rawPromotions) {
