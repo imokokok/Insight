@@ -36,6 +36,33 @@ function cryptoComTickerResponse(timestampMs = Date.now(), instrument = 'WBTC_US
 }
 
 describe('collectMarketReference', () => {
+  it('collects Kraken for customer-facing Insight analytics with a derived-only delivery policy', async () => {
+    const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
+      expect(String(url)).toBe('https://api.kraken.com/0/public/Ticker?pair=XETHZUSD');
+      return jsonResponse({
+        error: [],
+        result: { XETHZUSD: { c: ['3000'], b: ['2999'], a: ['3001'], v: ['1', '2'] } },
+      });
+    });
+
+    const { rows, summary } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'customer-facing',
+      fetchImpl,
+      now: () => MOCK_NOW,
+      symbols: ['ETH'],
+    });
+
+    expect(summary.eligibleExchanges).toEqual(['kraken']);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      exchange: 'kraken',
+      rights_scope: 'vendor-licensed',
+      rights_reference: 'kraken-support-email-2026-10-19-beijing-derived-analytics',
+      delivery_policy: 'derived-analytics-only',
+      is_success: true,
+    });
+  });
+
   it('does not contact a CEX for a customer-facing collection without reviewed vendor rights', async () => {
     const fetchImpl = jest.fn(async () => jsonResponse({ price: '1' }));
 
@@ -44,6 +71,15 @@ describe('collectMarketReference', () => {
       fetchImpl,
       now: () => MOCK_NOW,
       symbols: ['ETH'],
+      sourceRights: {
+        ...MARKET_REFERENCE_SOURCE_RIGHTS,
+        kraken: {
+          sourceId: 'kraken',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+      },
     });
 
     expect(fetchImpl).not.toHaveBeenCalled();
@@ -75,6 +111,13 @@ describe('collectMarketReference', () => {
           sourceId: 'coinbase',
           rightsScope: 'vendor-licensed',
           agreementReference: 'test-agreement-2026-10',
+          deliveryPolicy: 'not-authorized',
+        },
+        kraken: {
+          sourceId: 'kraken',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
         },
       },
     });
@@ -85,6 +128,7 @@ describe('collectMarketReference', () => {
       exchange: 'coinbase',
       rights_scope: 'vendor-licensed',
       rights_reference: 'test-agreement-2026-10',
+      delivery_policy: 'not-authorized',
     });
   });
 
@@ -121,6 +165,7 @@ describe('collectMarketReference', () => {
     expect(eth.map((r) => r.exchange).sort()).toEqual(['coinbase', 'gemini', 'kraken']);
     expect(eth[0].quote).toBe('USD');
     expect(eth[0].rights_scope).toBe('synthetic');
+    expect(eth[0].delivery_policy).toBe('not-authorized');
     expect(eth[0].collector_version).toBeTruthy();
     expect(eth[0].data_age_seconds).toBeGreaterThanOrEqual(0);
     expect(eth.find((r) => r.exchange === 'coinbase')?.volume).toBe(42);

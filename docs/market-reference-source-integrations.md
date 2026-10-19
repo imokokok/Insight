@@ -2,9 +2,21 @@
 
 All CEX venues are disabled for customer-facing collection by default. The
 collector admits a venue only when the checked-in source-rights register has a
-reviewed `vendor-licensed` record with an agreement reference; an environment
-variable cannot manufacture data rights. Public endpoint availability does not
-grant commercial redistribution or third-party data rights.
+reviewed `vendor-licensed` record with a written-permission reference; an
+environment variable cannot manufacture data rights. Public endpoint
+availability does not grant commercial redistribution or third-party data
+rights.
+
+Kraken is the sole admitted source as of 2026-10-19 Asia/Shanghai. Its written Support reply
+permits Insight to collect, store, display, and analyse Kraken market data
+without a separate licence for the stated use case, and confirms that derived
+analytics may be distributed. Its register entry is deliberately
+`derived-analytics-only`: Insight may use it in its existing assessment,
+divergence, and evidence workflows, but must not sell, redistribute,
+sublicense, publish as a data service, or otherwise make the underlying Kraken
+data available to third parties. The public raw market-reference endpoint stays
+disabled while this policy is active. Any customer-facing raw-data view, export,
+or broader commercial scope requires a new written Kraken review.
 
 ## Data contract
 
@@ -116,12 +128,14 @@ writing a row.
 ## Enablement sequence
 
 1. Confirm written commercial data permission with each exchange for the
-   planned collection, storage, analytics, and any customer-facing use.
+   planned collection, storage, analytics, customer-facing use, and whether
+   raw data (rather than only derived analytics) may be delivered.
 2. Record the agreement reference and any expiry in
    `src/lib/dataRights/evidenceRights.ts`, changing only the covered venue to
-   `vendor-licensed`. This code review is an explicit control point, not a
-   substitute for legal review.
-3. Apply `supabase/migrations/0090_market_reference_rights_gate.sql` to the
+   `vendor-licensed`, and set its delivery policy. This code review is an
+   explicit control point, not a substitute for legal review.
+3. Apply `supabase/migrations/0090_market_reference_rights_gate.sql` and
+   `0093_market_reference_delivery_policy.sql` to the
    target database. This repository change does not apply the migration to a
    remote database.
 4. Publish the collector, workflow, and generated cron bundles. Regenerate the
@@ -140,11 +154,11 @@ WBTC/USD order book.
 
 ## Commercial data-rights outreach status
 
-Last updated: 2026-10-16 Asia/Shanghai. Kraken, Gemini, and Bitstamp initial requests were reported sent at 2026-10-15 23:13 Asia/Shanghai; Coinbase at 23:59; Bitfinex at 2026-10-16 00:23. At 2026-10-16 00:37, the user reported sending Kraken’s requested follow-up and the outstanding Crypto.com Exchange and Binance requests. Kraken’s follow-up identifies the applicant as an independent developer of Insight operating in China; Business Development response is pending. A sent request is not a data license; keep customer-facing commercial use gated until written terms cover the intended scope.
+Last updated: 2026-10-19 Asia/Shanghai. Kraken, Gemini, and Bitstamp initial requests were reported sent at 2026-10-15 23:13 Asia/Shanghai; Coinbase at 23:59; Bitfinex at 2026-10-16 00:23. At 2026-10-16 00:37, the user reported sending Kraken’s requested follow-up and the outstanding Crypto.com Exchange and Binance requests. On 2026-10-18 16:05 GMT-7 (2026-10-19 07:05 Asia/Shanghai), Kraken Support confirmed in writing that Insight may collect, store, display, and analyse Kraken market data without a separate licence for the described use case, while prohibiting delivery of underlying data to third parties and permitting distribution of derived analytics. Kraken is enabled only under that narrower delivery policy. A sent request or a limited permission is not a broad raw-data licence; keep other customer-facing commercial use gated until written terms cover the intended scope.
 
 | Venue               | Outreach status                                                                                                                                                                                                                                                                                                                                                  | Contact / terms                                                                                                                                                                                                                                                                                                                                                 |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kraken              | Initial request sent 2026-10-15 23:13; Kraken Support requested the company represented, partnership rationale, and primary country of operations. Follow-up sent 2026-10-16 00:37, identifying the applicant as an independent developer of Insight operating in China; awaiting Business Development response and applicable written agreement                 | `marketdata@kraken.com`; [Kraken API Center](https://support.kraken.com/hc/en-us/articles/360000919966-API-Center)                                                                                                                                                                                                                                              |
+| Kraken              | Support reply received 2026-10-18 16:05 GMT-7 (2026-10-19 07:05 Asia/Shanghai): Insight may programmatically collect, store, display, and analyse market data for the stated use case without a separate licence; derived analytics may be distributed. Underlying data must remain for Insight's own benefit and must not be sold, redistributed, sublicensed, published as a data service, or made available to third parties. Enabled only as `derived-analytics-only`. | `marketdata@kraken.com`; [Kraken API Center](https://support.kraken.com/hc/en-us/articles/360000919966-API-Center) |
 | Gemini              | Sent; awaiting written reply and applicable agreement                                                                                                                                                                                                                                                                                                            | `bizdev@gemini.com`                                                                                                                                                                                                                                                                                                                                             |
 | Bitstamp            | Sent; awaiting written reply and applicable agreement                                                                                                                                                                                                                                                                                                            | `partners@bitstamp.net`                                                                                                                                                                                                                                                                                                                                         |
 | Coinbase            | Sent 2026-10-15 23:59 Asia/Shanghai; awaiting written reply and applicable agreement. Request coverage for server-side collection, storage, derived analysis, and customer-facing outputs                                                                                                                                                                        | `marketdata@coinbase.com`; [Market Data Terms](https://www.coinbase.com/legal/market_data)                                                                                                                                                                                                                                                                      |
