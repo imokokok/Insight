@@ -3,9 +3,12 @@
  * ERC-8004 reputation anchor batch (M2).
  *
  * Consumes the opt-in reputation_anchor_queue and writes one ERC-8004
- * feedback entry per row to the Reputation Registry on BNB Chain mainnet
+ * feedback entry per row to the canonical Reputation Registry
  * (0x8004BAa17C55a88189AE136b182e5fdA19dE9b63, the deployment bound to the
- * Identity Registry at 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432).
+ * Identity Registry at 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432). Routing
+ * is by settlement network: rows paid on eip155:143 anchor on Monad mainnet,
+ * all other rows anchor on BNB Chain mainnet — same registry addresses,
+ * chain-local ownership verification.
  *
  * Semantics (see src/lib/erc8004/reputationAnchor.ts):
  *   - value 100 / valueDecimals 0 = "x402-paid decision-input check completed
@@ -17,10 +20,11 @@
  *     payer, and the submitter must not own the reviewed agentId (the
  *     registry would revert anyway; we pre-check to keep the queue clean).
  *
- * Keys: ERC8004_REGISTRAR_PRIVATE_KEY (owner of Insight's agentId 375779).
- * It signs the feedback transactions and pays BNB gas; it must never be the
- * owner of a reviewed agentId. Requires SUPABASE_URL +
- * SUPABASE_SERVICE_ROLE_KEY. Optional ALCHEMY_BNB_RPC for a stable RPC.
+ * Keys: ERC8004_REGISTRAR_PRIVATE_KEY (owner of Insight's agentId 375779 on
+ * BNB Chain and 10414 on Monad). It signs the feedback transactions and pays
+ * gas on both chains; it must never be the owner of a reviewed agentId.
+ * Requires SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY. Optional ALCHEMY_BNB_RPC
+ * and MONAD_RPC_URL override the default public RPCs.
  *
  * Modes:
  *   --check     Read-only: registrar, gas balance, queue status counts, batch preview.
@@ -44,13 +48,39 @@ import {
   type Address,
   type PublicClient,
 } from 'viem';
-import { bsc } from 'viem/chains';
+import { bsc, monad } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
 const IDENTITY_REGISTRY: Address = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
 const REPUTATION_REGISTRY: Address = '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
-/** Insight's own ERC-8004 identity — never a reviewed subject. */
-const INSIGHT_AGENT_ID = 375779n;
+/**
+ * Canonical ERC-8004 registries are deployed at identical addresses on every
+ * supported chain, so anchoring routes purely by chain. Since 2026-10-19 the
+ * batch anchors on the chain the payment settled on: x402 v2 networks are
+ * CAIP-2 ids and `eip155:143` rows anchor on Monad mainnet. Anything else
+ * (null, unknown network, other EVM ids) keeps anchoring on BNB Chain.
+ */
+const ANCHOR_CHAINS = {
+  bsc: {
+    chain: bsc,
+    chainId: 56,
+    label: 'BNB mainnet',
+    defaultRpc: 'https://bsc-dataseed.binance.org',
+    rpcEnv: 'ALCHEMY_BNB_RPC',
+    gasSymbol: 'BNB',
+  },
+  monad: {
+    chain: monad,
+    chainId: 143,
+    label: 'Monad mainnet',
+    defaultRpc: 'https://rpc.monad.xyz',
+    rpcEnv: 'MONAD_RPC_URL',
+    gasSymbol: 'MON',
+  },
+} as const;
+type AnchorChainKey = keyof typeof ANCHOR_CHAINS;
+/** Insight's own identities per chain — never a reviewed subject, on any chain. */
+const INSIGHT_AGENT_IDS = new Set([375779n, 10414n]);
 const FEEDBACK_URI = 'https://www.oracleinsight.xyz/erc8004/v1/insight-evidence.v1.json';
 const TAG1 = 'oracle-safety-check';
 const VALUE = 100n;
@@ -93,8 +123,14 @@ interface QueueRow {
   agent_id: number;
   verdict: string | null;
   attestation_uid: string | null;
+  payment_network: string | null;
   status: string;
   attempts: number;
+}
+
+/** Route a queue row to the registry chain its payment settled on. */
+function resolveAnchorChainKey(paymentNetwork: string | null): AnchorChainKey {
+  return paymentNetwork === 'eip155:143' ? 'monad' : 'bsc';
 }
 
 function parseArgs(argv: string[]) {
@@ -126,7 +162,9 @@ function openSupabase(): SupabaseClient {
 async function fetchPending(supabase: SupabaseClient, limit: number): Promise<QueueRow[]> {
   const { data, error } = await supabase
     .from('reputation_anchor_queue')
-    .select('id, request_id, payer, agent_id, verdict, attestation_uid, status, attempts')
+    .select(
+      'id, request_id, payer, agent_id, verdict, attestation_uid, payment_network, status, attempts'
+    )
     .eq('status', 'pending')
     .order('created_at', { ascending: true })
     .limit(limit);
@@ -166,8 +204,6 @@ function verdictTag(verdict: string | null): string {
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
-  const rpcUrl = process.env.ALCHEMY_BNB_RPC?.trim() || 'https://bsc-dataseed.binance.org';
-  const publicClient: PublicClient = createPublicClient({ chain: bsc, transport: http(rpcUrl) });
   const supabase = openSupabase();
 
   const registrarKey = requireEnv('ERC8004_REGISTRAR_PRIVATE_KEY');
@@ -175,34 +211,53 @@ async function main(): Promise<void> {
     (registrarKey.startsWith('0x') ? registrarKey : `0x${registrarKey}`) as `0x${string}`
   );
 
+  const clients = new Map<
+    AnchorChainKey,
+    {
+      publicClient: PublicClient;
+      wallet: ReturnType<typeof createWalletClient>;
+      gasSymbol: string;
+      chainId: number;
+    }
+  >();
+  for (const key of Object.keys(ANCHOR_CHAINS) as AnchorChainKey[]) {
+    const cfg = ANCHOR_CHAINS[key];
+    const rpcUrl = process.env[cfg.rpcEnv]?.trim() || cfg.defaultRpc;
+    clients.set(key, {
+      publicClient: createPublicClient({ chain: cfg.chain, transport: http(rpcUrl) }),
+      wallet: createWalletClient({ account, chain: cfg.chain, transport: http(rpcUrl) }),
+      gasSymbol: cfg.gasSymbol,
+      chainId: cfg.chainId,
+    });
+  }
+
   console.log(
-    `\nERC-8004 reputation anchor · BNB mainnet (chain 56)\n` +
-      `reputation  ${REPUTATION_REGISTRY}\n` +
+    `\nERC-8004 reputation anchor · routed by settlement network\n` +
+      `reputation  ${REPUTATION_REGISTRY} (same address on both chains)\n` +
       `identity    ${IDENTITY_REGISTRY}\n` +
       `submitter   ${account.address}\n` +
+      `routing     eip155:143 → Monad mainnet (chain 143) · everything else → BNB mainnet (chain 56)\n` +
       `mode        ${args.check ? 'check' : args.dryRun ? 'dry-run' : 'write'} · limit ${args.limit}\n`
   );
 
   if (args.check) {
-    const [gasBalance, pending] = await Promise.all([
-      publicClient.getBalance({ address: account.address }),
-      fetchPending(supabase, 1000),
-    ]);
-    const byStatus = await supabase
-      .from('reputation_anchor_queue')
-      .select('status', { count: 'exact', head: true })
-      .eq('status', 'pending');
-    console.log(`gas balance ${formatEther(gasBalance)} BNB`);
-    console.log(`pending rows: ${pending.length} (count query: ${byStatus.count ?? 'n/a'})`);
-    for (const row of pending.slice(0, 5)) {
+    const pending = await fetchPending(supabase, 1000);
+    for (const key of Object.keys(ANCHOR_CHAINS) as AnchorChainKey[]) {
+      const client = clients.get(key)!;
+      const gasBalance = await client.publicClient.getBalance({ address: account.address });
+      const routed = pending.filter((row) => resolveAnchorChainKey(row.payment_network) === key);
       console.log(
-        `  preview agentId=${row.agent_id} verdict=${row.verdict ?? 'unknown'} payer=${row.payer}`
+        `${ANCHOR_CHAINS[key].label}: gas ${formatEther(gasBalance)} ${client.gasSymbol} · pending ${routed.length}`
       );
+      for (const row of routed.slice(0, 3)) {
+        console.log(
+          `  preview agentId=${row.agent_id} verdict=${row.verdict ?? 'unknown'} payer=${row.payer} network=${row.payment_network ?? '(null → BNB)'}`
+        );
+      }
     }
     return;
   }
 
-  const wallet = createWalletClient({ account, chain: bsc, transport: http(rpcUrl) });
   const rows = await fetchPending(supabase, args.limit);
   if (rows.length === 0) {
     console.log('[anchor] queue empty — nothing to anchor');
@@ -215,9 +270,11 @@ async function main(): Promise<void> {
 
   for (const row of rows) {
     const tag2 = verdictTag(row.verdict);
+    const chainKey = resolveAnchorChainKey(row.payment_network);
+    const { publicClient, wallet } = clients.get(chainKey)!;
     try {
       const agentId = BigInt(row.agent_id);
-      if (agentId === INSIGHT_AGENT_ID) {
+      if (INSIGHT_AGENT_IDS.has(agentId)) {
         await updateRow(supabase, row.id, {
           status: 'skipped',
           last_error: 'insight_agent_id_not_reviewable',
@@ -226,7 +283,8 @@ async function main(): Promise<void> {
         continue;
       }
 
-      // On-chain ownership gate: the reviewed identity must belong to the payer.
+      // On-chain ownership gate on the routed chain: the reviewed identity
+      // must belong to the payer there.
       let owner: Address;
       try {
         owner = await publicClient.readContract({
@@ -262,7 +320,7 @@ async function main(): Promise<void> {
 
       if (args.dryRun) {
         console.log(
-          `[anchor] dry-run would anchor agentId=${row.agent_id} tag2=${tag2} hash=${feedbackHash(row.attestation_uid).slice(0, 10)}…`
+          `[anchor] dry-run would anchor agentId=${row.agent_id} tag2=${tag2} chain=${ANCHOR_CHAINS[chainKey].label} hash=${feedbackHash(row.attestation_uid).slice(0, 10)}…`
         );
         anchored += 1;
         continue;
