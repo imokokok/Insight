@@ -788,8 +788,7 @@ function rightsForCollection(
   return {
     rights_scope: purpose === 'customer-facing' ? 'vendor-licensed' : sourceRights.rightsScope,
     rights_reference: purpose === 'customer-facing' ? sourceRights.agreementReference : null,
-    delivery_policy:
-      purpose === 'customer-facing' ? sourceRights.deliveryPolicy : 'not-authorized',
+    delivery_policy: purpose === 'customer-facing' ? sourceRights.deliveryPolicy : 'not-authorized',
   };
 }
 
