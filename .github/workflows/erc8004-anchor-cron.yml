@@ -36,4 +36,5 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ERC8004_REGISTRAR_PRIVATE_KEY: ${{ secrets.ERC8004_REGISTRAR_PRIVATE_KEY }}
           ALCHEMY_BNB_RPC: ${{ secrets.ALCHEMY_BNB_RPC }}
+          MONAD_RPC_URL: ${{ secrets.MONAD_RPC_URL }}
         run: node .github/cron-dist/erc8004-anchor.mjs

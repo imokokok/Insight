@@ -2,11 +2,13 @@
  * Opt-in ERC-8004 reputation anchoring for paid pre-trade checks.
  *
  * When an agent opts in (query `reputationOptIn=1` + its own `reputationAgentId`),
- * every successfully-settled x402 check enqueues a feedback row here; a daily
- * GitHub Action batch (scripts/anchor-erc8004-reputation.ts) writes them to the
- * ERC-8004 Reputation Registry on BNB Chain mainnet (0x8004BAa17C55a88189AE13
- * 6b182e5fdA19dE9b63, the deployment bound to the Identity Registry at
- * 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432 where agentId 375779 lives).
+ * every successfully-settled x402 check enqueues a feedback row here (including
+ * the settlement network as payment_network); a daily GitHub Action batch
+ * (scripts/anchor-erc8004-reputation.ts) writes them to the canonical ERC-8004
+ * Reputation Registry (0x8004BAa17C55a88189AE136b182e5fdA19dE9b63, bound to the
+ * Identity Registry at 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432) on the chain
+ * the payment settled on — eip155:143 rows anchor on Monad mainnet (Insight
+ * agentId 10414), everything else on BNB Chain mainnet (agentId 375779).
  *
  * Privacy and semantics are deliberate:
  * - The anchor carries check *completion* and the verdict tag only — never
