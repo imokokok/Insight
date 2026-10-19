@@ -5,8 +5,8 @@ import PriceInsightContent from './PriceInsightContent';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Price Insight - Insight',
-  description: 'Compare oracle prices across blockchains and providers',
+  title: 'Oracle Evidence - Insight',
+  description: 'Inspect source records, compare oracle evidence and assess price risk',
 };
 
 export default function PriceInsightPage() {

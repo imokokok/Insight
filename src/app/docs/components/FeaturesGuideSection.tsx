@@ -70,10 +70,10 @@ const features: Feature[] = [
   },
   {
     icon: <Search className="w-6 h-6" />,
-    title: 'Price Query',
+    title: 'Oracle Evidence',
     description:
       'Query current prices from any oracle provider with on-chain data, confidence intervals, and auto-refresh.',
-    href: '/price-query',
+    href: '/price-insight?stage=observe',
     highlights: [
       '10 oracle providers with cascade filtering',
       'On-chain data and confidence intervals',

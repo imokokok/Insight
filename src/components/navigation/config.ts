@@ -20,8 +20,8 @@ import { type NavStructure } from './types';
 // dedicated "Home" tab would be a redundant second route to the same page.
 export const navigationConfig: NavStructure = [
   {
-    href: '/price-query',
-    label: 'Price Query',
+    href: '/price-insight?stage=observe',
+    label: 'Oracle Evidence',
     icon: Search,
   },
   {

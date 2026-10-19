@@ -101,7 +101,7 @@ export default function UnifiedExportSection({
   return (
     <UnifiedExport
       data={queryResults}
-      dataSource="price-query"
+      dataSource="source-record"
       fields={exportFields}
       stats={stats}
       disabled={loading || queryResults.length === 0}

@@ -11,7 +11,7 @@ const features = [
       'Resolve independent feeds into a consensus, then inspect the spread, freshness, and source behaviour behind it.',
     href: '/price-insight',
     glyph: 'layers' as const,
-    tags: ['Price Query', 'Cross-chain', 'Reputation'],
+    tags: ['Source record', 'Cross-chain', 'Reputation'],
   },
   {
     title: 'Model the consequence',
@@ -32,7 +32,7 @@ const features = [
 ];
 
 const referenceLinks = [
-  { label: 'Price Query', href: '/price-query' },
+  { label: 'Oracle Evidence', href: '/price-insight?stage=observe' },
   { label: 'Daily Reports', href: '/reports' },
   { label: 'Oracle Reputation', href: '/reputation' },
   { label: 'Developer API', href: '/api' },
