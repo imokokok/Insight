@@ -15,6 +15,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { createApiHandler, createOptionsHandler } from '@/lib/api/handler';
+import { customerRawMarketReferenceDeliveryPermitted } from '@/lib/dataRights/evidenceRights';
 import { getMarketReference } from '@/lib/marketReference/client';
 import { SafeSymbolSchema } from '@/lib/security/validation';
 
@@ -27,6 +28,23 @@ export const OPTIONS = createOptionsHandler();
 export const GET = createApiHandler(
   async (_request: NextRequest, context) => {
     const { symbol } = context.validated!.query! as { symbol: string };
+
+    // This endpoint exposes a price-like market reference and is therefore a
+    // data-delivery surface, not an Insight-derived assessment. Kraken's
+    // written permission is deliberately registered as
+    // `derived-analytics-only`; do not turn its collection permission into a
+    // customer-queryable raw-market-data service.
+    if (!customerRawMarketReferenceDeliveryPermitted()) {
+      return NextResponse.json(
+        {
+          symbol: symbol.toUpperCase(),
+          available: false,
+          reason: 'raw_market_data_delivery_not_permitted',
+          note: 'This endpoint is disabled while an admitted source is restricted to Insight-derived analytics.',
+        },
+        { status: 404 }
+      );
+    }
     const ref = await getMarketReference(symbol);
 
     if (!ref) {

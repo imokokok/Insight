@@ -113,6 +113,7 @@ const blockchainIcons: Record<Blockchain, string> = {
   [Blockchain.FLARE]: '',
   [Blockchain.SUPRA_CHAIN]: '',
   [Blockchain.BANDCHAIN]: '/logos/oracles/band.svg',
+  [Blockchain.MONAD]: '',
 };
 
 // Generate blockchain search results

@@ -46,6 +46,7 @@ import {
   MARKET_REFERENCE_SOURCE_RIGHTS,
   type EvidenceRightsScope,
   type MarketReferenceSourceRights,
+  type MarketReferenceDeliveryPolicy,
   type MarketReferenceVenue,
 } from '@/lib/dataRights/evidenceRights';
 import { createLogger } from '@/lib/utils/logger';
@@ -53,7 +54,7 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('MarketReference');
 
 /** Bump when the fetch/row semantics change; pinned for reproducibility. */
-export const COLLECTOR_VERSION = '1.7.0'; // 1.7.0: source-rights-gated collection and persistence
+export const COLLECTOR_VERSION = '1.8.0'; // 1.8.0: persist vendor delivery boundaries with each row
 
 /** Quote currency for all rows. */
 export const MARKET_REFERENCE_QUOTE = 'USD';
@@ -166,6 +167,8 @@ export interface MarketReferenceRow {
   rights_scope?: EvidenceRightsScope;
   /** Reviewed agreement reference for customer-eligible vendor data, never a credential. */
   rights_reference?: string | null;
+  /** Whether the source permits raw delivery or only Insight-derived analytics. */
+  delivery_policy?: MarketReferenceDeliveryPolicy;
   is_success: boolean;
   error_message: string | null;
   collector_version: string;
@@ -773,14 +776,19 @@ function rightsForCollection(
   purpose: MarketReferenceCollectionPurpose,
   venue: MarketReferenceVenue,
   rights: Readonly<Record<MarketReferenceVenue, MarketReferenceSourceRights>>
-): Pick<MarketReferenceRow, 'rights_scope' | 'rights_reference'> {
+): Pick<MarketReferenceRow, 'rights_scope' | 'rights_reference' | 'delivery_policy'> {
   if (purpose === 'synthetic-test') {
-    return { rights_scope: 'synthetic', rights_reference: null };
+    return {
+      rights_scope: 'synthetic',
+      rights_reference: null,
+      delivery_policy: 'not-authorized',
+    };
   }
   const sourceRights = rights[venue];
   return {
     rights_scope: purpose === 'customer-facing' ? 'vendor-licensed' : sourceRights.rightsScope,
     rights_reference: purpose === 'customer-facing' ? sourceRights.agreementReference : null,
+    delivery_policy: purpose === 'customer-facing' ? sourceRights.deliveryPolicy : 'not-authorized',
   };
 }
 

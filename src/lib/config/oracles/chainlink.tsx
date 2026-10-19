@@ -27,6 +27,7 @@ export const chainlinkConfig = createOracleConfig({
     Blockchain.KAVA,
     Blockchain.LINEA,
     Blockchain.SOLANA,
+    Blockchain.MONAD,
   ],
   color: '#2563EB',
   features: {

@@ -3,8 +3,10 @@
  * Market-reference collector entry (the step inside snapshot-collect.yml and
  * the manual market-reference-collect.yml workflow). Delegates to
  * `collectMarketReference()` only after the source-rights register records a
- * reviewed vendor agreement for a venue. Without one, the job exits cleanly
- * without contacting a CEX or writing rows. It then
+ * reviewed vendor permission for a venue. Without one, the job exits cleanly
+ * without contacting a CEX or writing rows. The source register also records
+ * whether the venue permits only Insight-derived analytics or raw customer
+ * delivery; that boundary is persisted with each row. It then
  * upserts one row per (symbol, exchange, snapshot_ts) into
  * `market_reference_snapshots` (migration 0037).
  *
@@ -49,7 +51,7 @@ async function main(): Promise<void> {
   const eligibleExchanges = customerEligibleMarketReferenceVenues();
   if (eligibleExchanges.length === 0) {
     console.log(
-      '[collect-market-reference] skipped: no reviewed vendor market-data agreement is registered; no CEX request or database write was made'
+      '[collect-market-reference] skipped: no reviewed vendor market-data permission is registered; no CEX request or database write was made'
     );
     return;
   }

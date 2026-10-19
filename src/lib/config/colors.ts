@@ -124,6 +124,7 @@ export const chainColors = {
   stellar: '#14B8A6',
   supra: '#3B82F6',
   bandchain: '#4520E6',
+  monad: '#836EF9',
 } as const;
 
 export const chartColors = {

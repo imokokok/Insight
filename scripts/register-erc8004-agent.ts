@@ -27,7 +27,7 @@
  */
 import './loadEnv';
 import { createPublicClient, createWalletClient, http, parseEther, formatEther } from 'viem';
-import { bsc, bscTestnet } from 'viem/chains';
+import { bsc, bscTestnet, monad } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
 const AGENT_URI_DEFAULT = 'https://www.oracleinsight.xyz/.well-known/agent8004.json';
@@ -35,9 +35,12 @@ const AGENT_URI_DEFAULT = 'https://www.oracleinsight.xyz/.well-known/agent8004.j
 const REGISTRY: Record<string, `0x${string}`> = {
   bsc: '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
   bscTestnet: '0x8004A818BFB912233c491871b3d84c89A494BD9e',
+  // Monad mainnet: canonical ERC-8004 singleton deployment (same addresses as
+  // BSC per erc-8004/erc-8004-contracts README; code verified on-chain 2026-10-19).
+  monad: '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432',
 };
 
-const CHAINS = { bsc, bscTestnet } as const;
+const CHAINS = { bsc, bscTestnet, monad } as const;
 
 // Minimal ABI: register + the views/events this script touches.
 const IDENTITY_REGISTRY_ABI = [
@@ -88,7 +91,12 @@ const IDENTITY_REGISTRY_ABI = [
 ] as const;
 
 function parseArgs(argv: string[]) {
-  const args: { check: boolean; network: 'bsc' | 'bscTestnet'; uri?: string; agentId?: bigint } = {
+  const args: {
+    check: boolean;
+    network: 'bsc' | 'bscTestnet' | 'monad';
+    uri?: string;
+    agentId?: bigint;
+  } = {
     check: false,
     network: 'bscTestnet',
   };
@@ -96,7 +104,8 @@ function parseArgs(argv: string[]) {
     if (argv[i] === '--check') args.check = true;
     else if (argv[i] === '--network' && argv[i + 1]) {
       const n = argv[++i];
-      if (n !== 'bsc' && n !== 'bscTestnet') throw new Error(`Unknown network: ${n}`);
+      if (n !== 'bsc' && n !== 'bscTestnet' && n !== 'monad')
+        throw new Error(`Unknown network: ${n}`);
       args.network = n;
     } else if (argv[i] === '--uri' && argv[i + 1]) args.uri = argv[++i];
     else if (argv[i] === '--agent-id' && argv[i + 1]) args.agentId = BigInt(argv[++i]);

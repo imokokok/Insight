@@ -43,6 +43,8 @@ export const BLOCKCHAIN_TO_CHAIN_ID: Record<Blockchain, number> = {
   [Blockchain.SUPRA_CHAIN]: 8,
   // BandChain is Cosmos-SDK based and has no EVM numeric chain id.
   [Blockchain.BANDCHAIN]: 0,
+  // Monad mainnet (chainId 143 verified via eth_chainId against rpc.monad.xyz, 2026-10-19).
+  [Blockchain.MONAD]: 143,
 };
 
 // Reverse mapping: chain_id → Blockchain.

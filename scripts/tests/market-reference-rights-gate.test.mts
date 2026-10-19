@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { PGlite } from '@electric-sql/pglite';
 
-test('market-reference rights gate quarantines legacy CEX rows and exposes only agreement-backed rows', async () => {
+test('market-reference rights gate quarantines legacy CEX rows and records delivery limits', async () => {
   const db = new PGlite();
   try {
     await db.exec(`
@@ -33,12 +33,26 @@ test('market-reference rights gate quarantines legacy CEX rows and exposes only 
     );
     await db.exec(migration);
 
+    const deliveryMigration = await readFile(
+      new URL(
+        '../../supabase/migrations/0093_market_reference_delivery_policy.sql',
+        import.meta.url
+      ),
+      'utf8'
+    );
+    await db.exec(deliveryMigration);
+
     const legacy = (
       await db.query(
-        `SELECT rights_scope, rights_reference FROM public.market_reference_snapshots WHERE exchange='legacy-venue'`
+        `SELECT rights_scope, rights_reference, delivery_policy
+         FROM public.market_reference_snapshots WHERE exchange='legacy-venue'`
       )
     ).rows[0];
-    assert.deepEqual(legacy, { rights_scope: 'research-quarantined', rights_reference: null });
+    assert.deepEqual(legacy, {
+      rights_scope: 'research-quarantined',
+      rights_reference: null,
+      delivery_policy: 'not-authorized',
+    });
     assert.deepEqual(
       (
         await db.query(
@@ -50,10 +64,10 @@ test('market-reference rights gate quarantines legacy CEX rows and exposes only 
 
     await db.exec(`
       INSERT INTO public.market_reference_snapshots
-        (snapshot_ts,symbol,exchange,ref_price,volume,bid_ask_spread_pct,data_age_seconds,is_success,rights_scope,rights_reference)
+        (snapshot_ts,symbol,exchange,ref_price,volume,bid_ask_spread_pct,data_age_seconds,is_success,rights_scope,rights_reference,delivery_policy)
       VALUES
-        (date_trunc('hour', now()),'ETH','vendor-one',2001,10,0.1,1,true,'vendor-licensed','agreement-001'),
-        (date_trunc('hour', now()),'ETH','vendor-two',1999,12,0.2,1,true,'vendor-licensed','agreement-002');
+        (date_trunc('hour', now()),'ETH','vendor-one',2001,10,0.1,1,true,'vendor-licensed','agreement-001','derived-analytics-only'),
+        (date_trunc('hour', now()),'ETH','vendor-two',1999,12,0.2,1,true,'vendor-licensed','agreement-002','raw-data-permitted');
     `);
 
     const hourly = (
@@ -71,8 +85,8 @@ test('market-reference rights gate quarantines legacy CEX rows and exposes only 
     await assert.rejects(
       db.exec(`
         INSERT INTO public.market_reference_snapshots
-          (snapshot_ts,symbol,exchange,ref_price,is_success,rights_scope)
-        VALUES (date_trunc('hour', now()),'ETH','invalid-vendor',2000,true,'vendor-licensed');
+          (snapshot_ts,symbol,exchange,ref_price,is_success,rights_scope,rights_reference,delivery_policy)
+        VALUES (date_trunc('hour', now()),'ETH','invalid-vendor',2000,true,'vendor-licensed','agreement-003','not-authorized');
       `)
     );
   } finally {

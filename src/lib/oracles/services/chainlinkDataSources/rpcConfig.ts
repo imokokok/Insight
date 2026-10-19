@@ -90,4 +90,14 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
     chainId: 10,
     name: 'Optimism',
   },
+  143: {
+    // Monad mainnet: official public RPC (docs.monad.xyz). chainId 143 verified
+    // via eth_chainId against this endpoint (2026-10-19). No Feed Registry is
+    // deployed here — feed resolution goes through the committed catalog
+    // directory (network key "143", seeded from the official Chainlink
+    // reference data directory feeds-monad-mainnet.json).
+    endpoints: ['https://rpc.monad.xyz'],
+    chainId: 143,
+    name: 'Monad',
+  },
 };
