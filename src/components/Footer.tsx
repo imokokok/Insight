@@ -14,8 +14,8 @@ import {
 
 const PLATFORM_LINKS = [
   ['Home', '/'],
-  ['Price Query', '/price-query'],
-  ['Price Insight', '/price-insight'],
+  ['Oracle Evidence', '/price-insight?stage=observe'],
+  ['Compare & Assess', '/price-insight?stage=compare'],
   ['Oracle Directory', '/reputation'],
   ['Daily Reports', '/reports'],
   ['API', '/api'],

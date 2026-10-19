@@ -2,7 +2,6 @@ const ALLOWED_REDIRECT_PATHS = [
   '/',
   '/settings',
   '/ops',
-  '/price-query',
   '/price-insight',
   '/safety-check',
   '/peg-risk',

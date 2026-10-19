@@ -14,6 +14,15 @@ export interface QueryConfig {
 const VALID_ORACLES = ORACLE_PROVIDER_VALUES;
 const VALID_TIME_RANGES = [1, 6, 12, 24, 72, 168, 720];
 const VALID_REFRESH_INTERVALS: number[] = [0, 10000, 30000, 60000, 300000];
+const QUERY_CONFIG_PARAM_KEYS = [
+  'oracles',
+  'chains',
+  'symbol',
+  'timeRange',
+  'refresh',
+  'compare',
+  'compareTimeRange',
+] as const;
 
 function isOracleProvider(value: string): value is OracleProvider {
   return VALID_ORACLES.some((v) => v === value);
@@ -83,8 +92,14 @@ export function parseQueryParams(search: string): Partial<QueryConfig> {
   return result;
 }
 
-function buildQueryParams(config: QueryConfig): string {
-  const params = new URLSearchParams();
+function buildQueryParams(config: QueryConfig, existingParams: URLSearchParams): string {
+  const params = new URLSearchParams(existingParams);
+
+  // This helper owns only query-control parameters. Keep route-level state
+  // (for example, `stage=observe`) intact when a source-record control updates.
+  for (const key of QUERY_CONFIG_PARAM_KEYS) {
+    params.delete(key);
+  }
 
   if (config.oracles && config.oracles.length > 0) {
     params.set('oracles', config.oracles.join(','));
@@ -123,10 +138,10 @@ export function updateUrlParams(config: QueryConfig): void {
     return;
   }
 
-  const queryString = buildQueryParams(config);
+  const queryString = buildQueryParams(config, new URLSearchParams(window.location.search));
   const newUrl = queryString
-    ? `${window.location.pathname}${queryString}`
-    : window.location.pathname;
+    ? `${window.location.pathname}${queryString}${window.location.hash}`
+    : `${window.location.pathname}${window.location.hash}`;
 
   window.history.replaceState({}, '', newUrl);
 }

@@ -15,7 +15,12 @@ jest.mock('@/lib/constants/searchConfig', () => ({
     if (query.toLowerCase() === 'btc') {
       return [
         {
-          item: { type: 'token', symbol: 'BTC', name: 'Bitcoin', path: '/price-query?symbol=BTC' },
+          item: {
+            type: 'token',
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            path: '/price-insight?stage=observe&symbol=BTC',
+          },
           matches: [],
           score: 1,
         },
@@ -97,7 +102,7 @@ describe('useSearch', () => {
         result.current.handleSearch('BTC');
       });
 
-      expect(mockPush).toHaveBeenCalledWith('/price-query?symbol=BTC');
+      expect(mockPush).toHaveBeenCalledWith('/price-insight?stage=observe&symbol=BTC');
     });
 
     it('handleSearch shouldspecification', () => {
@@ -107,7 +112,7 @@ describe('useSearch', () => {
         result.current.handleSearch('btc');
       });
 
-      expect(mockPush).toHaveBeenCalledWith('/price-query?symbol=BTC');
+      expect(mockPush).toHaveBeenCalledWith('/price-insight?stage=observe&symbol=BTC');
     });
 
     it('handleSearch useemptystringnotshouldnavigation', () => {
@@ -124,7 +129,12 @@ describe('useSearch', () => {
       const { result } = renderHook(() => useSearch());
 
       const searchResult = {
-        item: { type: 'token', symbol: 'ETH', name: 'Ethereum', path: '/price-query?symbol=ETH' },
+        item: {
+          type: 'token',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          path: '/price-insight?stage=observe&symbol=ETH',
+        },
         matches: [],
         score: 1,
       };
@@ -133,7 +143,7 @@ describe('useSearch', () => {
         result.current.handleSearch(searchResult);
       });
 
-      expect(mockPush).toHaveBeenCalledWith('/price-query?symbol=ETH');
+      expect(mockPush).toHaveBeenCalledWith('/price-insight?stage=observe&symbol=ETH');
     });
   });
 

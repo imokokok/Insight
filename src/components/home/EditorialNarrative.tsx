@@ -7,8 +7,8 @@ const steps = [
     number: '01',
     title: 'Observe',
     text: 'Start with the market price and the feeds that produced it.',
-    href: '/price-query',
-    label: 'Price Query',
+    href: '/price-insight?stage=observe',
+    label: 'Oracle Evidence',
   },
   {
     number: '02',
@@ -49,7 +49,11 @@ export function OracleQuestionSection() {
           </h2>
           <div className="home-question-grid mt-10 grid gap-3 sm:grid-cols-3">
             {[
-              { icon: ScanSearch, label: 'Where did it come from?', href: '/price-query' },
+              {
+                icon: ScanSearch,
+                label: 'Where did it come from?',
+                href: '/price-insight?stage=observe',
+              },
               { icon: CircleDot, label: 'Does it agree elsewhere?', href: '/price-insight' },
               { icon: ShieldCheck, label: 'What happens if it moves?', href: '/safety-check' },
             ].map(({ icon: Icon, label, href }, index) => (

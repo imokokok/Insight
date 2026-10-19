@@ -31,7 +31,7 @@ export function useSearch() {
         const normalizedSymbol = searchItem.trim().toUpperCase();
         if (!normalizedSymbol) return;
         symbolToSave = normalizedSymbol;
-        path = `/price-query?symbol=${encodeURIComponent(normalizedSymbol)}`;
+        path = `/price-insight?stage=observe&symbol=${encodeURIComponent(normalizedSymbol)}`;
       } else {
         const result = searchItem as SearchResult;
         path = result.item.path;
