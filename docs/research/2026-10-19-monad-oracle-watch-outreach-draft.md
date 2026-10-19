@@ -25,7 +25,7 @@ Insight (oracleinsight.xyz) is oracle transparency and risk infrastructure, alre
 
 - **Pre-Trade Safety Check** — a cross-source pre-trade verdict (PASS / CAUTION / DANGER / BLOCK) with manipulation-risk scoring and a signed EIP-712 receipt, sized as a recommended max position. Priced per call (x402, USDC) — no retainer, no integration sprint.
 - **Oracle Watch** — continuous between-action monitoring (proceed / proceed_with_caution / halt) with webhook-ready recommendations, covering freshness, deviation across sources, and feed health per chain.
-- **Monad coverage** — we now monitor Monad mainnet (chain 143) Chainlink feeds; public health page: https://www.oracleinsight.xyz/monad
+- **Monad coverage** — we now monitor Monad mainnet (chain 143) Chainlink feeds (51 USD feeds, 15-minute sampling), queryable via our API and MCP tools. (The standalone /monad page was retired on 2026-10-19; do not link it.)
 - **Independent verification** — every verdict is a signed receipt any third party can re-verify offline (open-source verifier), not a screenshot from a dashboard.
 
 For [PROTOCOL] specifically, a white-label Oracle Watch would give your risk page or governance forum a live, independently re-verifiable oracle-health view — branded as yours, priced by usage (from $50/mo equivalent in per-call volume for light tiers).
