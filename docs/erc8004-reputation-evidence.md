@@ -6,6 +6,8 @@ Machine-readable version of this page: [`/erc8004/v1/insight-evidence.v1.json`](
 
 Insight's own identity is registered on the BNB Chain mainnet (chain 56) Identity Registry as **agentId 375779** — tx `0x5f7896ec9142681ea27680f692117b1dc367b76100f0e64edb76fd4fa45ee185` (2026-10-17), `tokenURI` → `/.well-known/agent8004.json`. Registrator tooling: [`scripts/register-erc8004-agent.ts`](../scripts/register-erc8004-agent.ts) (read-only `--check` mode is safe to run against any agentId).
 
+A second registration exists on **Monad mainnet (chain 143)** — same canonical Identity Registry addresses — as **agentId 10414**: tx `0x63c782dc97372e3c2abeed105f8d01566bf677abc7701261eaa1b72f1c80c95b` (2026-10-19), same `tokenURI`. Reputation anchoring currently writes to the BNB Chain registry only; the Monad registration establishes chain-local identity for Monad-native agents and integrations.
+
 ## What Insight signs today
 
 1. **Oracle Safety Attestation v2** — an EIP-712 typed attestation with a stable UID over 26 signed fields: verdict (PASS/WARN/BLOCK), CAIP-19 asset pair binding, request/provider/reason-code commitments, quorum (≥3 independent providers), operator independence (≥2 non-derived groups), and a bounded validity window (600 s). Obtained from `POST /api/v1/safety/pre-trade`; offline-verifiable from the domain and types in the response envelope, or via `POST /api/v1/safety/attestation/verify`.

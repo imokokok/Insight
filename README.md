@@ -29,12 +29,13 @@ Oracle observations → Cross-source comparison → Risk assessment → Verifiab
 
 ## Contract Addresses
 
-Insight is an API/agent service and issues no token. Its on-chain footprint on BNB Mainnet is its ERC-8004 agent registration:
+Insight is an API/agent service and issues no token. Its on-chain footprint is its ERC-8004 agent registration on BNB Mainnet and Monad Mainnet:
 
-| Network     | Core Contract                                                                                                                                                               | Token Contract  |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| BNB Mainnet | ERC-8004 Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (Insight agent #375779) · ERC-8004 Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` | None — no token |
-| BNB Testnet | None                                                                                                                                                                        | None            |
+| Network       | Core Contract                                                                                                                                                               | Token Contract  |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| BNB Mainnet   | ERC-8004 Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (Insight agent #375779) · ERC-8004 Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` | None — no token |
+| Monad Mainnet | ERC-8004 Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` (Insight agent #10414) · ERC-8004 Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`  | None — no token |
+| BNB Testnet   | None                                                                                                                                                                        | None            |
 
 ## Features
 
