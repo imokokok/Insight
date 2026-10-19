@@ -37,6 +37,7 @@
     "scripts/reputation.ts",
     "scripts/verify-rwa-reference-data.ts",
     "scripts/safety-outcome.ts",
+    "scripts/build-headless-h4-issuer-profile.mts",
     "scripts/sync-feeds.ts"
   ],
   "include": [],
