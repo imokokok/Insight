@@ -190,10 +190,13 @@ function MonadX402Status() {
 }
 
 export default async function MonadOracleHealthPage() {
-  const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
-  const [monitored, samples] = isBuild
-    ? [{ providers: [], errored: false }, null]
-    : await Promise.all([loadMonitoredFeeds(), loadRecentSamples()]);
+  // No NEXT_PHASE build guard: on Vercel the build-time NEXT_PHASE leaks into
+  // the function runtime, so a guard comparison is always true there and the
+  // page would serve its empty build render forever (the reports/[date] ISR
+  // pages prove runtime DB access works). Build-time fetches are safe: Vercel
+  // injects the Supabase env for builds, and local/CI builds without it fall
+  // through the try/catch blocks below to the honest "unknown" copy.
+  const [monitored, samples] = await Promise.all([loadMonitoredFeeds(), loadRecentSamples()]);
 
   const catalogFeeds = getAllCatalogFeeds().filter((f) => f.chainId === MONAD_CHAIN_ID);
   const catalogSymbols = Array.from(new Set(catalogFeeds.map((f) => f.symbol))).sort();
