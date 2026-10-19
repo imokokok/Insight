@@ -14,7 +14,7 @@
 
 ## Nitro 加速器
 
-已知口径(2026-10 报道):总额 $7.5M、最高 $500K/队、15 队、3 个月(NY+远程)、execution-first、面向已获融资或自筹且能快速执行的团队。**申请入口未核实——发送前先在 Nitro 官方渠道确认表单与条款(股权/代币/SAFE 结构未知,不预填)。**
+已知口径(2026-10 官方博客 [Home for Builders](https://blog.monad.xyz/blog/home-for-builders),E2_VERIFIED):每队 $500K **入选第一天即到账**、15 队、3 个月(1 个月 NYC 现场 + 2 个月远程周 KPI 检查)、demo day 面对 300+ 投资人;参与方含 Paradigm、Electric Capital、Dragonfly、Castle。**录取门槛:先连续 4 周公开发布 weekly ship logs,之后才给面试**——正式申请入口未公开,ship logs 即前置申请材料。
 
 拟答「What will you use the funding for」:
 
