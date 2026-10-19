@@ -24,6 +24,7 @@ Oracle observations → Cross-source comparison → Risk assessment → Verifiab
 
 - BNB Smart Chain Mainnet (Chain ID: 56) — x402 pay-per-call settlement in Binance-Peg USDC via the AEON mandate flow
 - Base Mainnet (Chain ID: 8453) — x402 pay-per-call settlement in USDC
+- Monad Mainnet (Chain ID: 143) — read-only oracle coverage for 51 official Chainlink USD feeds ([public health page](https://www.oracleinsight.xyz/monad)); x402 pay-per-call support is configuration-ready (`eip155:143` + Monad facilitator, USDC verified on-chain 2026-10-16)
 - Additional EVM networks are covered read-only for oracle data (40+ chains)
 
 ## Contract Addresses

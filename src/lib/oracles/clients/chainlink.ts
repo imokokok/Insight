@@ -58,6 +58,11 @@ const CHAINLINK_QUALITY_CONFIG = {
     [Blockchain.STARKEX]: 0.0,
     [Blockchain.STELLAR]: 0.0,
     [Blockchain.FLARE]: 0.0,
+    [Blockchain.SUPRA_CHAIN]: 0.0,
+    [Blockchain.BANDCHAIN]: 0.0,
+    // New chain (mainnet 2025-11, feeds since 2025-11-24). Conservative
+    // reliability until an observed track record justifies raising it.
+    [Blockchain.MONAD]: 0.93,
   } as Record<Blockchain, number>,
   defaultConfidence: 0.98,
   minConfidence: 0.9,
@@ -85,6 +90,10 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.AVALANCHE,
     Blockchain.BNB_CHAIN,
     Blockchain.BASE,
+    // Monad: catalog-resolved proxy reads over the official public RPC. Unlike
+    // the chains above there is no Feed Registry on Monad — resolution relies
+    // on the committed catalog (network "143") and feedAddressOverride paths.
+    Blockchain.MONAD,
   ];
 
   private useRealData: boolean;
