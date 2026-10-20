@@ -63,7 +63,7 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('MarketReference');
 
 /** Bump when the fetch/row semantics change; pinned for reproducibility. */
-export const COLLECTOR_VERSION = '1.9.0'; // 1.9.0: Solana sources (jupiter baseline, dexscreener, geckoterminal)
+export const COLLECTOR_VERSION = '1.9.1'; // 1.9.1: dexscreener pair-staleness gate (pair updatedAt, 24h window)
 
 /** Quote currency for all rows. */
 export const MARKET_REFERENCE_QUOTE = 'USD';
