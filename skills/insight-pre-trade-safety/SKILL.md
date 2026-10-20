@@ -30,7 +30,7 @@ GET https://www.oracleinsight.xyz/api/v1/safety/pre-trade
 | ---------------- | --------------------------------------------------------------------------- |
 | `asset`          | The asset being traded (e.g. `USDC`)                                        |
 | `chainId`        | EVM chain id of the trade venue (`1` Ethereum, `8453` Base, `143` Monad, …) |
-| `action`         | `swap`, `buy`, `sell`, or other trade verb                                  |
+| `action`         | `swap`, `borrow`, `lend`, `liquidate`, or `repay`                           |
 | `tradeAmountUsd` | Notional size in USD                                                        |
 | `tokenAddress`   | Contract address of the token being priced/traded                           |
 
