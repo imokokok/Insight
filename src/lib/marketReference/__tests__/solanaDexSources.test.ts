@@ -7,6 +7,7 @@ type Json = unknown;
 const MOCK_NOW = 1_752_000_000_000;
 const WIF_MINT = SOLANA_DEX_PRICE_MINTS.WIF;
 const BONK_MINT = SOLANA_DEX_PRICE_MINTS.BONK;
+const POPCAT_MINT = SOLANA_DEX_PRICE_MINTS.POPCAT;
 
 function jsonResponse(body: Json, ok = true, status = ok ? 200 : 500): Response {
   return { ok, status, json: async () => body } as Response;
@@ -25,6 +26,7 @@ function dexPair(mint: string, overrides: Record<string, Json> = {}): Json {
     priceUsd: '2.5',
     liquidity: { usd: '100000' },
     volume: { h24: '250000' },
+    updatedAt: MOCK_NOW,
     ...overrides,
   };
 }
@@ -249,6 +251,51 @@ describe('solana dex market-reference sources', () => {
 
     expect(summary.covered).toHaveLength(0);
     expect(summary.uncovered).toEqual(['WIF', 'BONK']);
+  });
+
+  it('fail-closes a DexScreener pair whose freshness is stale, future, or unattestable', async () => {
+    const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
+      if (String(url).includes('api.dexscreener.com')) {
+        return jsonResponse(
+          dexScreenerPairs([
+            dexPair(WIF_MINT, { updatedAt: MOCK_NOW - 25 * 60 * 60 * 1000 }),
+            dexPair(BONK_MINT, { updatedAt: MOCK_NOW + 60 * 60 * 1000 }),
+            dexPair(POPCAT_MINT, { updatedAt: null }),
+          ])
+        );
+      }
+      return jsonResponse(
+        geckoBody([geckoToken(WIF_MINT), geckoToken(BONK_MINT), geckoToken(POPCAT_MINT)])
+      );
+    });
+
+    const { rows } = await collectMarketReference(new Date(MOCK_NOW), {
+      purpose: 'customer-facing',
+      fetchImpl,
+      now: () => MOCK_NOW,
+      symbols: ['WIF', 'BONK', 'POPCAT'],
+    });
+
+    const wifDex = rows.find((r) => r.symbol === 'WIF' && r.exchange === 'dexscreener')!;
+    expect(wifDex.is_success).toBe(false);
+    expect(wifDex.error_message).toBe(
+      'dexscreener WIF/USD pair is stale (no indexed trade in over 24h)'
+    );
+
+    const bonkDex = rows.find((r) => r.symbol === 'BONK' && r.exchange === 'dexscreener')!;
+    expect(bonkDex.is_success).toBe(false);
+    expect(bonkDex.error_message).toBe(
+      'dexscreener BONK/USD pair updatedAt is implausibly in the future'
+    );
+
+    const popcatDex = rows.find((r) => r.symbol === 'POPCAT' && r.exchange === 'dexscreener')!;
+    expect(popcatDex.is_success).toBe(false);
+    expect(popcatDex.error_message).toBe(
+      'dexscreener POPCAT/USD pair freshness is unattestable (no updatedAt)'
+    );
+
+    // The other two sources are unaffected by DexScreener's staleness gate.
+    expect(rows.filter((r) => r.exchange === 'geckoterminal' && r.is_success)).toHaveLength(3);
   });
 
   it('captures HTTP failures as failed rows without retry-storming the vendor', async () => {

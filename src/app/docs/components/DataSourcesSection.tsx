@@ -162,7 +162,8 @@ export default function DataSourcesSection() {
               public on-chain Solana liquidity pools — one batch request each per collection run.
               These quotes give every registered Solana asset a three-source cross-checkable market
               reference; as pool-derived prices they are treated as consensus inputs, not
-              authoritative prints.
+              authoritative prints. DexScreener additionally fail-closes any pair its indexer has
+              not seen trade in over 24 hours, so a silent pool never writes a stale reference.
             </p>
             <p className="mt-3 text-sm text-slate-600 leading-relaxed">
               Optional Bitstamp, Bitfinex, and Binance collection is enabled only when the intended
