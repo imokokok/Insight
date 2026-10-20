@@ -11,6 +11,14 @@
  * fail-closed ladder: present → finite → positive, else the symbol's row fails
  * auditable rather than writing a bad price.
  *
+ * Freshness gate: a pool-derived price with no recent trade is not a market
+ * reference. DexScreener stamps each pair with `updatedAt` (unix ms of the
+ * last indexed trade); a pair that is older than 24h, stamped in the future,
+ * or missing the stamp entirely fails the row fail-closed. The 24h window is
+ * deliberately far more permissive than the CEX 15-minute ticker age: illiquid
+ * Solana pools legitimately trade infrequently at the hourly cadence, but a
+ * pool silent for a day no longer represents the market.
+ *
  * Rights: vendor-licensed, derived-analytics-only (see
  * `MARKET_REFERENCE_SOURCE_RIGHTS.dexscreener`) — raw venue quotes are never
  * re-served; only Insight-derived consensus and analytics are.
@@ -21,6 +29,11 @@ import { SOLANA_DEX_PRICE_MINTS } from './solanaDexSources';
 import type { BoundSpotFetcher } from './collector';
 
 const DEXSCREENER_TOKENS_URL = 'https://api.dexscreener.com/tokens/v1/solana';
+
+/** A pair with no indexed trade for a day no longer represents the market. */
+const STALE_PAIR_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+/** Tolerated clock skew between Insight's clock and DexScreener's stamp. */
+const PAIR_FUTURE_SKEW_MS = 60 * 1000;
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -60,7 +73,7 @@ function pickDeepestPairByMint(pairs: unknown[]): Map<string, Record<string, unk
  */
 export function createDexScreenerFetcher(
   fetchImpl: typeof fetch,
-  _now: () => number
+  now: () => number
 ): BoundSpotFetcher {
   const mints = Object.values(SOLANA_DEX_PRICE_MINTS);
   let batchPromise: Promise<Map<string, Record<string, unknown>>> | null = null;
@@ -97,6 +110,18 @@ export function createDexScreenerFetcher(
 
     const price = parsePositiveNumber(pair.priceUsd);
     if (price === null) throw new Error(`dexscreener ${symbol}/USD price is unusable`);
+
+    const updatedAt = parsePositiveNumber(pair.updatedAt);
+    if (updatedAt === null) {
+      throw new Error(`dexscreener ${symbol}/USD pair freshness is unattestable (no updatedAt)`);
+    }
+    const ageMs = now() - updatedAt;
+    if (ageMs > STALE_PAIR_MAX_AGE_MS) {
+      throw new Error(`dexscreener ${symbol}/USD pair is stale (no indexed trade in over 24h)`);
+    }
+    if (ageMs < -PAIR_FUTURE_SKEW_MS) {
+      throw new Error(`dexscreener ${symbol}/USD pair updatedAt is implausibly in the future`);
+    }
 
     return {
       exchange: 'dexscreener',

@@ -47,6 +47,7 @@ function dexScreenerBatchBody(price = '3000.5'): Json {
     priceUsd: price,
     liquidity: { usd: String(250_000 - index) },
     volume: { h24: String(1000 + index) },
+    updatedAt: MOCK_NOW,
   }));
 }
 
