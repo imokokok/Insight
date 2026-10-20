@@ -156,6 +156,15 @@ export default function DataSourcesSection() {
               conversion remains explicit.
             </p>
             <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+              Solana-native assets (the CAIP-19 Solana registry) are priced by three Solana sources:
+              Jupiter Lite (the documented free tier of Jupiter&apos;s price API, serving as the
+              aggregated-liquidity baseline), plus DexScreener and GeckoTerminal, which aggregate
+              public on-chain Solana liquidity pools — one batch request each per collection run.
+              These quotes give every registered Solana asset a three-source cross-checkable market
+              reference; as pool-derived prices they are treated as consensus inputs, not
+              authoritative prints.
+            </p>
+            <p className="mt-3 text-sm text-slate-600 leading-relaxed">
               Optional Bitstamp, Bitfinex, and Binance collection is enabled only when the intended
               commercial use is covered by written data permissions and the deployment is
               configured. These market references are evidence for comparison; they are not counted
