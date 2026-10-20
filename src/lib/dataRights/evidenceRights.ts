@@ -38,6 +38,9 @@ export const MARKET_REFERENCE_VENUES = [
   'bitstamp',
   'bitfinex',
   'binance',
+  'dexscreener',
+  'geckoterminal',
+  'jupiter',
 ] as const;
 
 export type MarketReferenceVenue = (typeof MARKET_REFERENCE_VENUES)[number];
@@ -126,6 +129,42 @@ export const MARKET_REFERENCE_SOURCE_RIGHTS: Readonly<
     rightsScope: 'research-quarantined',
     agreementReference: null,
     deliveryPolicy: 'not-authorized',
+  },
+  dexscreener: {
+    sourceId: 'dexscreener',
+    rightsScope: 'vendor-licensed',
+    // DexScreener public token API (api.dexscreener.com), reviewed 2026-10:
+    // free, unauthenticated, documented rate limits. The underlying prices are
+    // derived from public on-chain DEX pools. Same derived-analytics boundary
+    // as kraken: Insight may collect, retain and analyze, but raw venue quotes
+    // must never be re-served as a market-data product. Reconfirm the public
+    // terms before any scope expansion.
+    agreementReference: 'dexscreener-public-api-terms-2026-10-derived-analytics',
+    deliveryPolicy: 'derived-analytics-only',
+  },
+  geckoterminal: {
+    sourceId: 'geckoterminal',
+    rightsScope: 'vendor-licensed',
+    // GeckoTerminal public API (api.geckoterminal.com), reviewed 2026-10: free
+    // with documented rate limits and attribution expectations; prices are
+    // derived from public on-chain DEX pools. Treated identically to
+    // dexscreener: derived analytics only, raw delivery forbidden. The
+    // published terms emphasize non-commercial use — reconfirm with the vendor
+    // before any commercial delivery scope expansion.
+    agreementReference: 'geckoterminal-public-api-terms-2026-10-derived-analytics',
+    deliveryPolicy: 'derived-analytics-only',
+  },
+  jupiter: {
+    sourceId: 'jupiter',
+    rightsScope: 'vendor-licensed',
+    // Jupiter Lite public price API (lite-api.jup.ag), reviewed 2026-10:
+    // documented free tier (1 req/s, unauthenticated); prices aggregate
+    // Solana DEX liquidity. Serves as the Solana market-reference baseline
+    // alongside dexscreener and geckoterminal. The paid api.jup.ag host is
+    // deliberately unused. Derived analytics only — raw venue quotes are
+    // never re-served. Reconfirm the public terms before any scope expansion.
+    agreementReference: 'jupiter-lite-api-terms-2026-10-derived-analytics',
+    deliveryPolicy: 'derived-analytics-only',
   },
 });
 

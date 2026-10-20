@@ -37,8 +37,13 @@
  * prior checks; the dedicated host is a separate route whose GitHub-runner
  * availability still requires an actual runner check. Optional sources remain
  * license-gated, and unsupported pairs remain explicit failed observations.
- * Cross-exchange consistency is computed by the `market_reference_hourly`
- * view, not asserted here.
+ * Solana-native SPL assets (the CAIP-19 registry) have no direct CEX USD venue
+ * in this free set: jupiter (Lite tier, the aggregated-liquidity baseline),
+ * dexscreener and geckoterminal price them from public Solana pools — one
+ * batch request each per run — giving every Solana asset a three-source
+ * cross-checkable market reference. Cross-exchange
+ * consistency is computed by the `market_reference_hourly` view, not asserted
+ * here.
  */
 
 import {
@@ -49,12 +54,16 @@ import {
   type MarketReferenceDeliveryPolicy,
   type MarketReferenceVenue,
 } from '@/lib/dataRights/evidenceRights';
+import { createDexScreenerFetcher } from '@/lib/marketReference/dexscreener';
+import { createGeckoTerminalFetcher } from '@/lib/marketReference/geckoterminal';
+import { createJupiterLiteFetcher } from '@/lib/marketReference/jupiter';
+import { isSolanaDexPricedSymbol } from '@/lib/marketReference/solanaDexSources';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('MarketReference');
 
 /** Bump when the fetch/row semantics change; pinned for reproducibility. */
-export const COLLECTOR_VERSION = '1.8.0'; // 1.8.0: persist vendor delivery boundaries with each row
+export const COLLECTOR_VERSION = '1.9.0'; // 1.9.0: Solana sources (jupiter baseline, dexscreener, geckoterminal)
 
 /** Quote currency for all rows. */
 export const MARKET_REFERENCE_QUOTE = 'USD';
@@ -76,6 +85,15 @@ export const MARKET_REFERENCE_SYMBOLS = [
   'TAO',
   'VVV',
   'STG',
+  // Solana-native SPL assets (CAIP-19 registry). SOL itself is CEX-priced
+  // above; these have no direct CEX USD venue in our free set and are priced
+  // by the two Solana DEX-derived sources (dexscreener, geckoterminal).
+  'WIF',
+  'BONK',
+  'POPCAT',
+  'JUP',
+  'PYTH',
+  'RAY',
 ] as const;
 
 /** Core assets retain 15-minute coverage; demand-led additions run hourly. */
@@ -216,7 +234,8 @@ type SpotFetcher = (
   now: () => number
 ) => Promise<ExchangeQuote>;
 
-type BoundSpotFetcher = (symbol: string) => Promise<ExchangeQuote>;
+/** A per-run bound fetcher: one symbol in, one venue quote out. */
+export type BoundSpotFetcher = (symbol: string) => Promise<ExchangeQuote>;
 
 interface MarketReferenceAdapter {
   name: MarketReferenceVenue;
@@ -730,7 +749,7 @@ function createBinanceFetcher(fetchImpl: typeof fetch, now: () => number): Bound
 
 const ADAPTERS: MarketReferenceAdapter[] = [
   { name: 'coinbase', fn: fetchCoinbaseSpot },
-  { name: 'kraken', fn: fetchKrakenSpot },
+  { name: 'kraken', fn: fetchKrakenSpot, supports: (symbol) => Boolean(KRAKEN_PAIRS[symbol]) },
   { name: 'gemini', fn: fetchGeminiSpot, supports: (symbol) => Boolean(GEMINI_TICKERS[symbol]) },
   {
     name: 'crypto.com',
@@ -752,6 +771,23 @@ const ADAPTERS: MarketReferenceAdapter[] = [
     requiresExplicitAdmission: true,
     bind: createBinanceFetcher,
     supports: (symbol) => symbol.toUpperCase() === 'WBTC',
+  },
+  {
+    // Solana DEX-derived sources: each prices the whole CAIP-19 Solana
+    // registry with exactly ONE batch request per run (see solanaDexSources).
+    name: 'dexscreener',
+    bind: createDexScreenerFetcher,
+    supports: isSolanaDexPricedSymbol,
+  },
+  {
+    name: 'geckoterminal',
+    bind: createGeckoTerminalFetcher,
+    supports: isSolanaDexPricedSymbol,
+  },
+  {
+    name: 'jupiter',
+    bind: createJupiterLiteFetcher,
+    supports: isSolanaDexPricedSymbol,
   },
 ];
 
