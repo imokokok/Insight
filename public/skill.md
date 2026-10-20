@@ -27,7 +27,7 @@ Parameters:
 | ---------------- | --------------------------------------------------------------- |
 | `asset`          | The asset your agent is trading (e.g. `USDC`)                   |
 | `chainId`        | EVM chain id of the trade venue (e.g. `1` mainnet, `8453` Base) |
-| `action`         | `swap`, `buy`, `sell`, or other trade verb                      |
+| `action`         | `swap`, `borrow`, `lend`, `liquidate`, or `repay`               |
 | `tradeAmountUsd` | Notional size in USD                                            |
 | `tokenAddress`   | Contract address of the token being priced/traded               |
 
