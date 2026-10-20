@@ -80,6 +80,14 @@ test('never reuses expired, future-dated, malformed or differently scoped metada
   expect(getRpcMetadata('chainlink', 1, address)).toBeNull();
 });
 
+test('keeps verified static metadata for nearly one day, then expires it', () => {
+  rememberRpcMetadata('chainlink', 1, address, metadata);
+  jest.spyOn(Date, 'now').mockReturnValue(now + 23 * 60 * 60 * 1000 + 59 * 60 * 1000);
+  expect(getRpcMetadata('chainlink', 1, address)).toEqual(metadata);
+  jest.spyOn(Date, 'now').mockReturnValue(now + 24 * 60 * 60 * 1000);
+  expect(getRpcMetadata('chainlink', 1, address)).toBeNull();
+});
+
 test('preload outages leave live metadata intact and a stale preload cannot overwrite it', async () => {
   rememberRpcMetadata('chainlink', 1, address, metadata);
   database(null, { message: 'unavailable' });
