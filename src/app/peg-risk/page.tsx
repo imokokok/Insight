@@ -12,10 +12,14 @@ export const metadata: Metadata = {
     'Assess stablecoin, wrapped-asset, and liquid-staking-token peg risk across oracle sources, markets, and affected DeFi protocols.',
 };
 
+// These snapshots rely on Supabase and multiple oracle/RPC providers. Render
+// them only for a real request so a transient upstream outage cannot fail a
+// production deployment. This does not use NEXT_PHASE: Vercel can retain that
+// build-time value in a function runtime, which would freeze the page empty.
+export const dynamic = 'force-dynamic';
+
 export default async function PegRiskPage() {
-  // No NEXT_PHASE build guard: on Vercel that comparison is true at runtime
-  // (build env leak), which kept this page on its empty build render forever.
-  // Local/CI builds without data-source env degrade via Promise.allSettled.
+  // Keep partial data when one source is temporarily unavailable.
   const [stablecoinResult, wrappedResult] = await Promise.allSettled([
     calculateAllStablecoinSnapshots(),
     calculateAllWrappedAssetSnapshots(),
