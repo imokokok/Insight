@@ -26,6 +26,14 @@
  * Requires SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY. Optional ALCHEMY_BNB_RPC
  * and MONAD_RPC_URL override the default public RPCs.
  *
+ * Validation responder pass (opt-in): when ERC8004_VALIDATION_REGISTRY is set
+ * to a deployed Validation Registry address, the batch also polls requests
+ * addressed to the registrar wallet (Insight as validator) and answers each
+ * unanswered one with response=100 + the static evidence spec URI. No
+ * canonical Validation Registry deployment exists on any chain as of
+ * 2026-10-21; leave the variable unset to skip the pass (see
+ * src/lib/erc8004/validationRegistry.ts).
+ *
  * Modes:
  *   --check     Read-only: registrar, gas balance, queue status counts, batch preview.
  *   --dry-run   Full loop without sending transactions.
@@ -37,6 +45,7 @@
  *       npx tsx scripts/anchor-erc8004-reputation.ts
  */
 import './loadEnv';
+import { readFileSync } from 'node:fs';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import {
   createPublicClient,
@@ -50,6 +59,15 @@ import {
 } from 'viem';
 import { bsc, monad } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
+import {
+  buildValidationResponseHash,
+  selectPendingValidations,
+  validationRegistryAddress,
+  VALIDATION_REGISTRY_ABI,
+  VALIDATION_RESPONSE_COMPLETED,
+  VALIDATION_RESPONSE_URI,
+  VALIDATION_TAG,
+} from '@/lib/erc8004/validationRegistry';
 
 const IDENTITY_REGISTRY: Address = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432';
 const REPUTATION_REGISTRY: Address = '0x8004BAa17C55a88189AE136b182e5fdA19dE9b63';
@@ -202,6 +220,118 @@ function verdictTag(verdict: string | null): string {
   return ['pass', 'warn', 'block'].includes(normalized) ? normalized : 'unknown';
 }
 
+/** keccak256 of the checked-in evidence spec — integrity hash for responseURI. */
+function evidenceResponseHash(): `0x${string}` {
+  const evidence = readFileSync('public/erc8004/v1/insight-evidence.v1.json', 'utf8');
+  return buildValidationResponseHash(evidence);
+}
+
+interface ValidationPassClients {
+  publicClient: PublicClient;
+  wallet: ReturnType<typeof createWalletClient>;
+  label: string;
+}
+
+/**
+ * Validation responder pass (pull model): agents address validationRequest at
+ * the registrar wallet; we answer every unanswered one with response=100 and
+ * the static evidence spec. Idempotent — answered requests are skipped, so
+ * the daily batch can simply re-run. No-ops entirely while
+ * ERC8004_VALIDATION_REGISTRY is unset (no canonical deployment yet).
+ */
+async function respondToValidations(
+  clients: Map<AnchorChainKey, ValidationPassClients>,
+  accountAddress: Address,
+  registry: `0x${string}` | null,
+  dryRun: boolean
+): Promise<void> {
+  if (!registry) {
+    console.log(
+      '[validate] ERC8004_VALIDATION_REGISTRY unset — no canonical Validation Registry deployment yet, responder skipped'
+    );
+    return;
+  }
+  const responseHash = evidenceResponseHash();
+  let answered = 0;
+  let failed = 0;
+
+  for (const key of Object.keys(ANCHOR_CHAINS) as AnchorChainKey[]) {
+    const { publicClient, wallet, label } = clients.get(key)!;
+    let requestHashes: ReadonlyArray<`0x${string}`>;
+    try {
+      requestHashes = await publicClient.readContract({
+        address: registry,
+        abi: VALIDATION_REGISTRY_ABI,
+        functionName: 'getValidatorRequests',
+        args: [accountAddress],
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[validate] ${label}: getValidatorRequests failed: ${message.slice(0, 200)}`);
+      failed += 1;
+      continue;
+    }
+    if (requestHashes.length === 0) continue;
+
+    const statuses = [];
+    for (const requestHash of requestHashes) {
+      try {
+        const status = await publicClient.readContract({
+          address: registry,
+          abi: VALIDATION_REGISTRY_ABI,
+          functionName: 'getValidationStatus',
+          args: [requestHash],
+        });
+        statuses.push({ requestHash, response: Number(status.response) });
+      } catch (error) {
+        statuses.push({
+          requestHash,
+          response: 0,
+          readError: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+    const selection = selectPendingValidations(statuses);
+    console.log(
+      `[validate] ${label}: ${requestHashes.length} request(s) · ${selection.alreadyAnswered} answered · ${selection.unreadable} unreadable · ${selection.pending.length} to answer`
+    );
+
+    for (const requestHash of selection.pending) {
+      if (dryRun) {
+        console.log(`[validate] dry-run would respond requestHash=${requestHash}`);
+        answered += 1;
+        continue;
+      }
+      try {
+        const hash = await wallet.writeContract({
+          address: registry,
+          abi: VALIDATION_REGISTRY_ABI,
+          functionName: 'validationResponse',
+          args: [
+            requestHash,
+            VALIDATION_RESPONSE_COMPLETED,
+            VALIDATION_RESPONSE_URI,
+            responseHash,
+            VALIDATION_TAG,
+          ],
+        });
+        const receipt = await publicClient.waitForTransactionReceipt({ hash });
+        if (receipt.status !== 'success') {
+          throw new Error(`validation response tx reverted: ${hash}`);
+        }
+        answered += 1;
+        console.log(`[validate] ${label}: responded requestHash=${requestHash} tx=${hash}`);
+      } catch (error) {
+        failed += 1;
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`[validate] ${label}: response failed: ${message.slice(0, 200)}`);
+      }
+    }
+  }
+
+  console.log(`[validate] done: ${answered} answered, ${failed} failed`);
+}
+
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const supabase = openSupabase();
@@ -211,14 +341,11 @@ async function main(): Promise<void> {
     (registrarKey.startsWith('0x') ? registrarKey : `0x${registrarKey}`) as `0x${string}`
   );
 
+  const validationRegistry = validationRegistryAddress(process.env);
+
   const clients = new Map<
     AnchorChainKey,
-    {
-      publicClient: PublicClient;
-      wallet: ReturnType<typeof createWalletClient>;
-      gasSymbol: string;
-      chainId: number;
-    }
+    ValidationPassClients & { gasSymbol: string; chainId: number }
   >();
   for (const key of Object.keys(ANCHOR_CHAINS) as AnchorChainKey[]) {
     const cfg = ANCHOR_CHAINS[key];
@@ -228,6 +355,7 @@ async function main(): Promise<void> {
       wallet: createWalletClient({ account, chain: cfg.chain, transport: http(rpcUrl) }),
       gasSymbol: cfg.gasSymbol,
       chainId: cfg.chainId,
+      label: cfg.label,
     });
   }
 
@@ -235,6 +363,7 @@ async function main(): Promise<void> {
     `\nERC-8004 reputation anchor · routed by settlement network\n` +
       `reputation  ${REPUTATION_REGISTRY} (same address on both chains)\n` +
       `identity    ${IDENTITY_REGISTRY}\n` +
+      `validation  ${validationRegistry ?? '(not configured — responder disabled)'}\n` +
       `submitter   ${account.address}\n` +
       `routing     eip155:143 → Monad mainnet (chain 143) · everything else → BNB mainnet (chain 56)\n` +
       `mode        ${args.check ? 'check' : args.dryRun ? 'dry-run' : 'write'} · limit ${args.limit}\n`
@@ -255,8 +384,11 @@ async function main(): Promise<void> {
         );
       }
     }
+    await respondToValidations(clients, account.address, validationRegistry, true);
     return;
   }
+
+  await respondToValidations(clients, account.address, validationRegistry, args.dryRun);
 
   const rows = await fetchPending(supabase, args.limit);
   if (rows.length === 0) {

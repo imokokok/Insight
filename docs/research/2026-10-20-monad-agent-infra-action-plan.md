@@ -9,6 +9,25 @@
 - [Monad ERC-8004 指南](https://docs.monad.xyz/guides/erc-8004)复核：Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` 与 Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` 已上线；**Validation Registry 仍为 coming soon，无地址**。
 - ERC-8004 全链 CREATE2 确定性部署（同地址）：Identity 全链地址一致已证实；Validation 的 canonical 地址本轮未从一手来源取到（erc-8004-contracts 仓库 README 抓取失败），列为 spike 第 0 步核实项，不得臆写。
 
+## 0b. 2026-10-21 复核与 B1 进展
+
+**第 0 步核实结论（一手来源，2026-10-21）**：
+
+- Validation Registry **在所有链上都无 canonical 部署**：erc-8004/erc-8004-contracts README 全部链目仅列 Identity+Reputation，无任何 Validation 条目（非 Monad 独有等待）。
+- Monad 文档复核：Validation Registry 仍为 coming soon，无地址。
+- 测试网 canonical 地址已核实（BNB Testnet 与 Monad Testnet 均已部署 Identity/Reputation）：Identity `0x8004A818BFB912233c491871b3d84c89A494BD9e`、Reputation `0x8004B663056A597Dffe9eCcC1965A193B7388713`（与主网确定性地址不同组）。
+- 参考实现接口与行动方案预估不同（已逐字段核对 ValidationRegistryUpgradeable.sol + ABI）：
+  - `validationRequest(validatorAddress, agentId, requestURI, requestHash)` —— 调用方必须是该 agentId 的 owner/operator（链上强制）；**验证是拉模式：agent 发起、Insight 应答**，不是双写。
+  - `validationResponse(requestHash, response, responseURI, responseHash, tag)` —— 仅被指定的 validatorAddress 可应答；`response` 是 **uint8 0-100 分值**（getSummary 取均值），不是枚举。
+  - `requestHash` 由请求方自带且需唯一；`getValidationStatus` 不暴露 hasResponse（用 response>0 判断）。
+
+**B1 执行进展（2026-10-21）**：
+
+- 第 2 步已完成：新增 `src/lib/erc8004/validationRegistry.ts`（ABI+常量+选择逻辑），锚定 cron 扩展 validator 应答器 pass——仅当 `ERC8004_VALIDATION_REGISTRY` 配置了已部署地址时才轮询应答（response=100 + 静态 evidence spec URI + 内容哈希），未配置则整段跳过。单测 20 项全过，typecheck 通过，cron-dist bundle 已重建，`--check` 模式端到端实测通过。
+- 对外纪律不变：canonical 地址公布前，外部材料只能说「架构上已预留」。
+- 第 1 步（演练）受阻：无 canonical 合约可打。若要在 BNB 测试网演练需自行部署参考合约（需演练私钥 + 水龙头领测试币，均为用户动作）；按计划改为等待 canonical 上线后零改动移植。
+- gas 实测：registrar `0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231` —— BNB 0.00201（仍需补 ~0.05），MON 102.45（充裕）。
+
 ## 1. 线 A：Monad 分发冲刺
 
 ### A1. Agent Hub skill 收录（已发球，等待期）
