@@ -102,10 +102,15 @@ const SOLANA_NATIVE_COIN_TYPE = 501;
  * deterministic — no DB reads — so every entry here must be reviewed and
  * updated manually when a new Solana token is added to the oracle feed set.
  *
+ * This registry is also the single source of truth for the market-reference
+ * layer's Solana DEX price sources (`src/lib/marketReference/solanaDexSources.ts`),
+ * so registering an asset here grants it CAIP-19 identity AND DEX-derived
+ * market-reference coverage in one reviewed change.
+ *
  * Format: { symbol: { [SOLANA_CHAIN_ID]: mintAddress } }
  * Using the same nested structure as TWAP_TOKEN_ADDRESSES for consistency.
  */
-const SOLANA_SPL_TOKEN_ADDRESSES: Record<string, Record<number, string>> = {
+export const SOLANA_SPL_TOKEN_ADDRESSES: Record<string, Record<number, string>> = {
   WIF: { [SOLANA_CHAIN_ID]: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm' },
   BONK: { [SOLANA_CHAIN_ID]: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' },
   POPCAT: { [SOLANA_CHAIN_ID]: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr' },

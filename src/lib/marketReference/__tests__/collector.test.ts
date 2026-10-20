@@ -2,8 +2,10 @@ import { MARKET_REFERENCE_SOURCE_RIGHTS } from '@/lib/dataRights/evidenceRights'
 import {
   collectMarketReference,
   MARKET_REFERENCE_CORE_SYMBOLS,
+  MARKET_REFERENCE_SYMBOLS,
   MAX_SOURCE_TICKER_AGE_MS,
 } from '@/lib/marketReference/collector';
+import { SOLANA_DEX_PRICE_MINTS } from '@/lib/marketReference/solanaDexSources';
 
 type Json = unknown;
 
@@ -35,6 +37,40 @@ function cryptoComTickerResponse(timestampMs = Date.now(), instrument = 'WBTC_US
   };
 }
 
+/** One indexed pair per registered Solana mint (DexScreener batch shape). */
+function dexScreenerBatchBody(price = '3000.5'): Json {
+  return Object.values(SOLANA_DEX_PRICE_MINTS).map((mint, index) => ({
+    chainId: 'solana',
+    dexId: 'raydium',
+    baseToken: { address: mint, name: `Solana Token ${index}`, symbol: `SOLTEST${index}` },
+    quoteToken: { address: 'So11111111111111111111111111111111111111112', symbol: 'WSOL' },
+    priceUsd: price,
+    liquidity: { usd: String(250_000 - index) },
+    volume: { h24: String(1000 + index) },
+  }));
+}
+
+/** One token entry per registered Solana mint (GeckoTerminal batch shape). */
+function geckoTerminalBatchBody(price = '3001.25'): Json {
+  return {
+    data: Object.values(SOLANA_DEX_PRICE_MINTS).map((mint) => ({
+      id: `sol/${mint}`,
+      type: 'token',
+      attributes: { address: mint, symbol: 'SOLTEST', price_usd: price, volume_usd: '2000' },
+    })),
+  };
+}
+
+/** Jupiter Lite v3 price entry per registered Solana mint. */
+function jupiterBatchBody(price = '3002.1'): Json {
+  return Object.fromEntries(
+    Object.values(SOLANA_DEX_PRICE_MINTS).map((mint) => [
+      mint,
+      { usdPrice: price, blockId: 459140141, decimals: 5, priceChange24h: -0.47 },
+    ])
+  );
+}
+
 describe('collectMarketReference', () => {
   it('collects Kraken for customer-facing Insight analytics with a derived-only delivery policy', async () => {
     const fetchImpl = jest.fn(async (url: RequestInfo | URL) => {
@@ -52,7 +88,12 @@ describe('collectMarketReference', () => {
       symbols: ['ETH'],
     });
 
-    expect(summary.eligibleExchanges).toEqual(['kraken']);
+    expect(summary.eligibleExchanges).toEqual([
+      'kraken',
+      'dexscreener',
+      'geckoterminal',
+      'jupiter',
+    ]);
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({
       exchange: 'kraken',
@@ -75,6 +116,24 @@ describe('collectMarketReference', () => {
         ...MARKET_REFERENCE_SOURCE_RIGHTS,
         kraken: {
           sourceId: 'kraken',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        dexscreener: {
+          sourceId: 'dexscreener',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        geckoterminal: {
+          sourceId: 'geckoterminal',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        jupiter: {
+          sourceId: 'jupiter',
           rightsScope: 'research-quarantined',
           agreementReference: null,
           deliveryPolicy: 'not-authorized',
@@ -119,6 +178,24 @@ describe('collectMarketReference', () => {
           agreementReference: null,
           deliveryPolicy: 'not-authorized',
         },
+        dexscreener: {
+          sourceId: 'dexscreener',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        geckoterminal: {
+          sourceId: 'geckoterminal',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
+        jupiter: {
+          sourceId: 'jupiter',
+          rightsScope: 'research-quarantined',
+          agreementReference: null,
+          deliveryPolicy: 'not-authorized',
+        },
       },
     });
 
@@ -150,6 +227,9 @@ describe('collectMarketReference', () => {
       if (u.includes('api.crypto.com')) {
         return jsonResponse(cryptoComTickerResponse(MOCK_NOW));
       }
+      if (u.includes('api.dexscreener.com')) return jsonResponse(dexScreenerBatchBody());
+      if (u.includes('api.geckoterminal.com')) return jsonResponse(geckoTerminalBatchBody());
+      if (u.includes('lite-api.jup.ag')) return jsonResponse(jupiterBatchBody());
       throw new Error('unexpected url ' + u);
     });
 
@@ -206,6 +286,9 @@ describe('collectMarketReference', () => {
       if (u.includes('api.crypto.com')) {
         return jsonResponse(cryptoComTickerResponse());
       }
+      if (u.includes('api.dexscreener.com')) return jsonResponse(dexScreenerBatchBody());
+      if (u.includes('api.geckoterminal.com')) return jsonResponse(geckoTerminalBatchBody());
+      if (u.includes('lite-api.jup.ag')) return jsonResponse(jupiterBatchBody());
       throw new Error('boom');
     });
 
@@ -235,28 +318,17 @@ describe('collectMarketReference', () => {
       fetchImpl,
     });
 
-    // Coinbase + Kraken are attempted across 13 symbols; Gemini is queried only
-    // for its 7 mapped pairs and Crypto.com only for WBTC.
-    expect(rows).toHaveLength(13 * 2 + 7 + 1);
+    // Coinbase is attempted for the full universe (its WBTC miss is an
+    // explicit failed row), Kraken only for its 13 mapped pairs, Gemini for
+    // its 7 mapped pairs, Crypto.com for WBTC, and each Solana source once
+    // per registry symbol (the batch fetch itself failed, so every Solana
+    // symbol still writes its own failed rows).
+    expect(rows).toHaveLength(19 + 13 + 7 + 1 + 8 * 3);
     expect(rows.every((r) => r.is_success === false)).toBe(true);
     expect(rows.every((r) => r.ref_price === null)).toBe(true);
     expect(rows.every((r) => r.error_message)).toBe(true);
     expect(summary.covered).toHaveLength(0);
-    expect(summary.uncovered).toEqual([
-      'ETH',
-      'BTC',
-      'WBTC',
-      'USDC',
-      'USDT',
-      'SOL',
-      'ADA',
-      'XRP',
-      'ICP',
-      'HYPE',
-      'TAO',
-      'VVV',
-      'STG',
-    ]);
+    expect(summary.uncovered).toEqual([...MARKET_REFERENCE_SYMBOLS]);
     expect(summary.maxCrossExchangeSpreadPct).toBeNull();
   });
 
@@ -275,7 +347,10 @@ describe('collectMarketReference', () => {
       fetchImpl,
       symbols: MARKET_REFERENCE_CORE_SYMBOLS,
     });
-    expect(rows).toHaveLength(15);
+    // 3+3+2 CEX rows plus coinbase's explicit failed WBTC row, plus 2×3
+    // Solana-source rows for USDC/USDT (the only registry symbols in the
+    // core set; their mocked batch bodies are unusable → failed rows).
+    expect(rows).toHaveLength(21);
     expect(summary.symbols).toEqual(MARKET_REFERENCE_CORE_SYMBOLS);
   });
 

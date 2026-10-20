@@ -7,10 +7,27 @@ import {
 } from '../evidenceRights';
 
 describe('evidence rights', () => {
-  it('admits only Kraken for derived Insight analytics and not raw customer delivery', () => {
-    expect(customerEligibleMarketReferenceVenues()).toEqual(['kraken']);
+  it('admits Kraken and the Solana sources for derived Insight analytics, never raw customer delivery', () => {
+    expect(customerEligibleMarketReferenceVenues()).toEqual([
+      'kraken',
+      'dexscreener',
+      'geckoterminal',
+      'jupiter',
+    ]);
     expect(hasCustomerMarketReferenceRights(MARKET_REFERENCE_SOURCE_RIGHTS.coinbase)).toBe(false);
     expect(hasCustomerMarketReferenceRights(MARKET_REFERENCE_SOURCE_RIGHTS.kraken)).toBe(true);
+    expect(hasCustomerMarketReferenceRights(MARKET_REFERENCE_SOURCE_RIGHTS.dexscreener)).toBe(true);
+    expect(hasCustomerMarketReferenceRights(MARKET_REFERENCE_SOURCE_RIGHTS.geckoterminal)).toBe(
+      true
+    );
+    expect(hasCustomerMarketReferenceRights(MARKET_REFERENCE_SOURCE_RIGHTS.jupiter)).toBe(true);
+    expect(MARKET_REFERENCE_SOURCE_RIGHTS.dexscreener.deliveryPolicy).toBe(
+      'derived-analytics-only'
+    );
+    expect(MARKET_REFERENCE_SOURCE_RIGHTS.geckoterminal.deliveryPolicy).toBe(
+      'derived-analytics-only'
+    );
+    expect(MARKET_REFERENCE_SOURCE_RIGHTS.jupiter.deliveryPolicy).toBe('derived-analytics-only');
     expect(customerRawMarketReferenceDeliveryPermitted()).toBe(false);
   });
 
