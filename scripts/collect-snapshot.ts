@@ -21,13 +21,14 @@
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (service-role, bypasses
  * RLS — same credentials the ml-train workflow already uses).
  */
+import { type HourlySnapshotInput } from '@/lib/reports/reportService';
 import {
   collectSnapshot,
   resolveSnapshotSlot,
   SnapshotCollectionError,
 } from '@/lib/reports/snapshotCollector';
+import { retryIdempotentSupabaseWrite } from '@/lib/supabase/idempotentWrite';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { type HourlySnapshotInput } from '@/lib/reports/reportService';
 
 function buildPriceSnapshotRows(
   inputs: HourlySnapshotInput[],
@@ -55,17 +56,19 @@ async function insertPriceSnapshots(rows: Array<Record<string, unknown>>): Promi
   const supabase = createServiceRoleClient();
   // Upsert with ignoreDuplicates so a retried run (same snapshot_ts) silently
   // no-ops instead of erroring on the UNIQUE constraint added in migration 0024.
-  const { error } = await supabase.from('price_snapshots').upsert(rows, {
-    onConflict: 'snapshot_ts,provider,symbol,chain_id',
-    ignoreDuplicates: true,
-  });
-  if (error) {
-    throw new Error(
-      `Failed to insert ${rows.length} price_snapshots rows: ${
-        typeof error.message === 'string' ? error.message : '[object Object]'
-      }`
-    );
-  }
+  await retryIdempotentSupabaseWrite(async () => {
+    const { error } = await supabase.from('price_snapshots').upsert(rows, {
+      onConflict: 'snapshot_ts,provider,symbol,chain_id',
+      ignoreDuplicates: true,
+    });
+    if (error) {
+      throw new Error(
+        `Failed to insert ${rows.length} price_snapshots rows: ${
+          typeof error.message === 'string' ? error.message : '[object Object]'
+        }`
+      );
+    }
+  }, 'append fine-grained price snapshots');
   return rows.length;
 }
 

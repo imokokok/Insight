@@ -1,5 +1,6 @@
 import { getMlOutcomeMetrics } from '@/lib/api/services/mlOutcomeMetrics';
 import { getModelStatus } from '@/lib/ml/inference';
+import { retryIdempotentSupabaseWrite } from '@/lib/supabase/idempotentWrite';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -78,18 +79,21 @@ class ReportService {
       error_message: input.errorMessage ?? null,
     }));
 
-    const { error } = await supabase.from('hourly_price_snapshots').upsert(rows, {
-      onConflict: 'snapshot_hour,provider,symbol,chain_id',
-    });
+    await retryIdempotentSupabaseWrite(async () => {
+      const { error } = await supabase.from('hourly_price_snapshots').upsert(rows, {
+        onConflict: 'snapshot_hour,provider,symbol,chain_id',
+      });
 
-    if (error) {
-      logger.error('Failed to upsert hourly snapshots', error);
-      // Supabase PostgrestError is not a standard Error instance; normalize it
-      // so upstream catch blocks get a readable message instead of [object Object].
-      throw new Error(
-        typeof error.message === 'string' ? error.message : 'Failed to upsert hourly snapshots'
-      );
-    }
+      if (error) {
+        logger.error('Failed to upsert hourly snapshots', error);
+        // Supabase PostgrestError is not a standard Error instance; normalize it
+        // so the retry layer can identify its HTTP status and callers receive a
+        // readable message instead of [object Object].
+        throw new Error(
+          typeof error.message === 'string' ? error.message : 'Failed to upsert hourly snapshots'
+        );
+      }
+    }, 'upsert hourly price snapshots');
 
     return rows.length;
   }

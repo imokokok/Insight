@@ -24,6 +24,9 @@ async function withTimeout<T>(operation: PromiseLike<T>, timeoutMs: number): Pro
 export const OPTIONS = createOptionsHandler();
 export const dynamic = 'force-dynamic';
 
+// Keep the middleware path independent of Supabase so this endpoint can
+// report database unavailability (below) instead of timing out before its
+// bounded readiness query runs.
 export const GET = createApiHandler(
   async (_request, context) => {
     const startedAt = Date.now();
@@ -88,7 +91,6 @@ export const GET = createApiHandler(
     middlewares: {
       logging: true,
       auth: false,
-      rateLimit: { preset: 'lenient' },
       cors: true,
     },
   }
