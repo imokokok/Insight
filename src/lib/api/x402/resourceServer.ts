@@ -10,6 +10,7 @@ import { ExactSvmScheme } from '@x402/svm/exact/server';
 import {
   type X402Config,
   type X402NetworkId,
+  X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
   X402_PRE_TRADE_ROUTE,
   getX402PaymentOptions,
@@ -19,7 +20,7 @@ import { createResilientFacilitator } from './facilitatorResilience';
 /**
  * Lazily-built singleton around the official x402 Foundation v2 server stack
  * (`@x402/core/server` plus the configured EVM and SVM exact schemes), wired
- * to the pre-trade and MCP routes.
+ * to the pre-trade, execution-preflight, and MCP routes.
  *
  * `initialize()` performs a facilitator `getSupported()` round-trip; the
  * singleton keeps that cost off the request path, and the resilient
@@ -94,6 +95,53 @@ export const BAZAAR_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   },
 });
 
+/**
+ * Separate marketplace descriptor for the action-facing preflight route. It
+ * must not advertise the legacy PASS/CAUTION/DANGER/BLOCK response shape.
+ */
+export const BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    asset: 'MON',
+    chainId: 143,
+    action: 'swap',
+    tradeAmountUsd: 1000,
+    destinationAsset: 'USDC',
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      asset: { type: 'string', description: 'Asset symbol, e.g. MON, ETH, BTC' },
+      chainId: { type: 'number', description: 'Execution chain ID; Monad mainnet is 143' },
+      action: { type: 'string', enum: ['swap', 'borrow', 'lend', 'liquidate', 'repay'] },
+      tradeAmountUsd: { type: 'number', description: 'Trade size in USD' },
+      destinationAsset: { type: 'string', description: 'Optional destination asset for the route' },
+      targetProviders: {
+        type: 'string',
+        description:
+          'Optional comma-separated provider scope. On Monad, `pyth` uses the pinned Pyth Core fast path; one provider remains insufficient for ALLOW.',
+      },
+      decisionInputCheck: {
+        type: 'string',
+        enum: ['0', '1'],
+        description:
+          'Set to 1 with a fresh venue quote and explicit policy to become eligible for ALLOW',
+      },
+    },
+    required: ['asset', 'chainId', 'action', 'tradeAmountUsd'],
+  },
+  output: {
+    example: {
+      verdict: 'caution',
+      recommendation: 'review_before_execution',
+      gates: {
+        oracleSafety: { status: 'passed' },
+        venueQuote: { status: 'not_assessed' },
+        nativeOracle: { provider: 'pyth', status: 'passed', onChainVerified: true },
+      },
+    },
+  },
+});
+
 function acceptsFor(cfg: X402Config, amountOverride?: string) {
   return getX402PaymentOptions(cfg, amountOverride).map((option) => ({
     scheme: 'exact',
@@ -109,13 +157,16 @@ function acceptsFor(cfg: X402Config, amountOverride?: string) {
   }));
 }
 
-function routeConfigFor(cfg: X402Config) {
+function routeConfigFor(
+  cfg: X402Config,
+  extension = BAZAAR_DISCOVERY_EXTENSION,
+  description = 'Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.'
+) {
   return {
-    description:
-      'Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.',
+    description,
     mimeType: 'application/json',
     accepts: acceptsFor(cfg),
-    extensions: BAZAAR_DISCOVERY_EXTENSION,
+    extensions: extension,
     x402Version: 2,
   };
 }
@@ -269,6 +320,11 @@ export async function buildX402HttpServer(
 
   const httpServer = new x402HTTPResourceServer(server, {
     [X402_PRE_TRADE_ROUTE]: routeConfigFor(cfg),
+    [X402_EXECUTION_PREFLIGHT_ROUTE]: routeConfigFor(
+      cfg,
+      BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION,
+      'Execution preflight: a chain-neutral ALLOW/CAUTION/BLOCK data-sufficiency decision for one declared action. A complete BLOCK result is charged; settlement occurs only after a successful response.'
+    ),
     [X402_MCP_ROUTE]: mcpRouteConfigFor(cfg, options?.mcpAmountAtomic ?? cfg.amountAtomic),
   });
   await httpServer.initialize();

@@ -294,6 +294,35 @@ export const PreTradeSafetyJsonSchema = z.object({
     .describe('Optional: restrict the check to specific oracle providers'),
 });
 
+/** Wire schema for the chain-neutral `execution_preflight` decision tool. */
+export const ExecutionPreflightJsonSchema = PreTradeSafetyJsonSchema.extend({
+  destinationAsset: z
+    .string()
+    .optional()
+    .describe('Optional destination asset for the intended route'),
+  protocolId: z.string().optional().describe('Optional protocol identifier for lending actions'),
+  tokenAddress: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{40}$/)
+    .optional()
+    .describe('Optional 20-byte EVM token address for advisory token-security evidence'),
+  decisionInput: z
+    .object({
+      decisionPriceUsd: z.number().finite().positive(),
+      quotePriceUsd: z.number().finite().positive(),
+      quoteObservedAt: DecisionInputQuoteTimestampSchema,
+      maxReferenceDeviationBps: z.number().int().min(0).max(10_000),
+      maxSlippageBps: z.number().int().min(0).max(10_000),
+      maxQuoteAgeSeconds: z.number().int().min(1).max(300),
+      quoteProvenance: decisionInputQuoteProvenanceJsonSchema.optional(),
+      requireQuoteProvenance: z.boolean().optional(),
+    })
+    .optional()
+    .describe(
+      'Optional fresh venue quote and explicit limits. This evidence is required for an ALLOW result; without it a healthy oracle result remains CAUTION.'
+    ),
+});
+
 /** Wire schema for `agent_begin_trade`. No `.default()` so zod v4 toJSONSchema()
  *  stays happy; the tool pins schemaVersion 3 internally and applies the
  *  sourceGroupCount default from participantCount. */

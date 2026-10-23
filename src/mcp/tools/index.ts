@@ -10,6 +10,7 @@ import {
 } from './analysisTools';
 import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
 import { getCrossChainSpreadsTool } from './crossChainTools';
+import { executionPreflightTool } from './executionPreflightTools';
 import { executionReceiptTool } from './executionReceiptTools';
 import {
   getFeedFreshnessTool,
@@ -27,6 +28,7 @@ import {
   DateQueryJsonSchema,
   DeviationJsonSchema,
   ExecutionReceiptJsonSchema,
+  ExecutionPreflightJsonSchema,
   AgentBeginTradeJsonSchema,
   VerifyExecutionPairJsonSchema,
   FeedFreshnessJsonSchema,
@@ -119,6 +121,7 @@ const MCP_TOOLS: McpToolDefinition[] = [
   oracleWatchTool,
   oracleWatchHistoryTool,
   executionReceiptTool,
+  executionPreflightTool,
   agentBeginTradeTool,
   verifyExecutionPairTool,
 ];
@@ -335,6 +338,11 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   execution_receipt: ExecutionReceiptJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  execution_preflight: ExecutionPreflightJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

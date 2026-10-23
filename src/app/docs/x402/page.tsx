@@ -444,12 +444,12 @@ export default function X402QuickstartPage() {
             <p className="editorial-index">06 — MCP tools/call</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                40 tools over MCP, paid per call.
+                40+ tools over MCP, paid per call.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 The Model Context Protocol endpoint at{' '}
                 <code className="font-mono text-base">{MCP_ENDPOINT}</code> lets any agent browse
-                the 40-tool catalog for free (initialize, tools/list, ping). Unauthenticated{' '}
+                the 40+-tool catalog for free (initialize, tools/list, ping). Unauthenticated{' '}
                 <code className="font-mono text-base">tools/call</code> is priced by the tool&apos;s
                 metering class and settles through the same x402 rail. With an{' '}
                 <code className="font-mono text-base">X-API-Key</code>, calls draw from the credit
@@ -575,7 +575,7 @@ export default function X402QuickstartPage() {
                 icon: KeyRound,
                 label: 'MCP server card',
                 href: 'https://www.oracleinsight.xyz/.well-known/mcp/server-card.json',
-                detail: '40-tool catalog, no handshake needed',
+                detail: '40+ tool catalog, no handshake needed',
               },
               {
                 icon: Coins,

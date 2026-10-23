@@ -128,6 +128,9 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^assess_rwa_evidence$/, 'C1'],
   [/^get_robinhood_rwa_context$/, 'C1'],
   [/^get_robinhood_rwa_instrument$/, 'C1'],
+  // A decision gate, not an execution receipt: must precede the broad C4
+  // `execution` matcher below.
+  [/^execution_preflight$/, 'C3'],
   // C4 — receipts / verification.
   [/agent_begin_trade|execution|receipt|verify_execution|verify_pair/, 'C4'],
 

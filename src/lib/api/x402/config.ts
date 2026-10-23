@@ -421,6 +421,13 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
 /** The v1 route this paid tier protects; used as the x402 route pattern. */
 export const X402_PRE_TRADE_ROUTE = '/api/v1/safety/pre-trade';
 
+/**
+ * Chain-neutral action gate. It accepts the same validated evidence inputs as
+ * pre-trade and is priced identically; the response is the compact
+ * ALLOW/CAUTION/BLOCK decision contract used by agents.
+ */
+export const X402_EXECUTION_PREFLIGHT_ROUTE = '/api/v1/safety/preflight';
+
 /** The MCP streamable-HTTP route paid per tools/call (JSON-RPC POST). */
 export const X402_MCP_ROUTE = '/api/mcp';
 

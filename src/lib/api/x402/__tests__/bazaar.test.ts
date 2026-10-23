@@ -3,7 +3,10 @@ import {
   validateDiscoveryExtensionSpec,
 } from '@x402/extensions/bazaar';
 
-import { BAZAAR_DISCOVERY_EXTENSION } from '../resourceServer';
+import {
+  BAZAAR_DISCOVERY_EXTENSION,
+  BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION,
+} from '../resourceServer';
 
 /**
  * The Bazaar discovery extension is the contract with Agentic.Market / CDP
@@ -37,6 +40,8 @@ interface QueryBazaarExtension {
 }
 
 const declared = BAZAAR_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
+const preflightDeclared =
+  BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
 
 /** The wire shape after bazaarResourceServerExtension.enrichDeclaration on a GET. */
 const enrichedGet = {
@@ -88,5 +93,32 @@ describe('bazaar discovery extension', () => {
       ])
     );
     expect(queryParams.required).toEqual(['asset', 'chainId', 'action', 'tradeAmountUsd']);
+  });
+
+  it('declares the execution-preflight contract with its own truthful wire shape', () => {
+    const enriched = {
+      ...preflightDeclared,
+      info: {
+        ...preflightDeclared.info,
+        input: { ...preflightDeclared.info.input, method: 'GET' },
+      },
+    };
+    expect(
+      validateDiscoveryExtensionSpec(
+        BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION.bazaar as unknown as Record<string, unknown>
+      )
+    ).toEqual({ valid: true });
+    expect(validateDiscoveryExtension(enriched as never)).toEqual({ valid: true });
+    expect(preflightDeclared.info.input.queryParams).toMatchObject({
+      asset: 'MON',
+      chainId: 143,
+      action: 'swap',
+      tradeAmountUsd: 1000,
+      destinationAsset: 'USDC',
+    });
+    expect(preflightDeclared.info.output.example).toMatchObject({
+      verdict: 'caution',
+      recommendation: 'review_before_execution',
+    });
   });
 });

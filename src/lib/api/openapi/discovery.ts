@@ -91,6 +91,7 @@ function addMcpPaymentNameConstraint(operation: JsonObject): void {
 export function buildOpenApiDiscovery(config: OpenApiPaymentConfig): OpenApiDocument {
   const document = JSON.parse(JSON.stringify(sourceDocument)) as OpenApiDocument;
   const preTrade = document.paths['/api/v1/safety/pre-trade']?.get;
+  const preflight = document.paths['/api/v1/safety/preflight']?.get;
   const x402Mcp = document.paths['/api/mcp']?.post;
   const mcpAccess = config.x402Enabled ? 'x402 or API key' : 'API key';
 
@@ -100,7 +101,7 @@ export function buildOpenApiDiscovery(config: OpenApiPaymentConfig): OpenApiDocu
     'payment rails. The MPP MCP pilot exposes pre_trade_safety_check on its dedicated endpoint; ' +
     'the full MCP tool catalog remains on /api/mcp.';
   document.info['x-guidance'] =
-    'REST: GET /api/v1/safety/pre-trade with asset, chainId, action, and tradeAmountUsd. ' +
+    'REST: GET /api/v1/safety/pre-trade for the full oracle assessment, or GET /api/v1/safety/preflight for the compact ALLOW/CAUTION/BLOCK action decision; both take asset, chainId, action, and tradeAmountUsd. ' +
     'An optional decisionInputCheck=1 adds an input-sufficiency assessment when the caller also supplies its price, venue quote, quote timestamp, and explicit tolerance limits; this does not change the oracle verdict or authorize execution. ' +
     `The full MCP catalog uses POST /api/mcp (${mcpAccess}). ` +
     (config.mcpMppEnabled
@@ -120,6 +121,17 @@ export function buildOpenApiDiscovery(config: OpenApiPaymentConfig): OpenApiDocu
     }
     if (config.mppEnabled) {
       preTrade['x-payment-info'] = mppPaymentInfo(config, { x402: true });
+    }
+  }
+
+  if (preflight) {
+    delete preflight['x-payment-info'];
+    delete preflight['x-x402-payment-info'];
+    if (config.x402Enabled) {
+      preflight['x-x402-payment-info'] = {
+        protocol: 'x402-v2',
+        price: { currency: 'USDC', amount: config.priceUsd.toFixed(6) },
+      };
     }
   }
 

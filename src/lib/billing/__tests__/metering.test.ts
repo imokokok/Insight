@@ -16,4 +16,8 @@ describe('MCP tool metering', () => {
   it('charges agent_begin_trade as the two-leg attested gate', () => {
     expect(getToolCreditCost('agent_begin_trade')).toBe(10);
   });
+  it('prices execution preflight as a C3 decision gate, not a C4 receipt', () => {
+    expect(getToolCreditCost('execution_preflight')).toBe(5);
+    expect(getCreditCost('/api/v1/safety/preflight')).toBe(5);
+  });
 });
