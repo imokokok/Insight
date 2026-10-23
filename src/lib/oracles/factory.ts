@@ -6,6 +6,7 @@ import { OracleProvider } from '@/types/oracle';
 import { API3Client } from './clients/api3';
 import { BandClient } from './clients/band';
 import { ChainlinkClient } from './clients/chainlink';
+import { ChronicleMonadClient } from './clients/chronicleMonad';
 import { DIAClient } from './clients/dia';
 import { FlareClient } from './clients/flare';
 import { PythMonadClient } from './clients/pythMonad';
@@ -57,6 +58,8 @@ class OracleClientFactory {
         return new PythMonadClient();
       case OracleProvider.STORK:
         return new StorkMonadClient();
+      case OracleProvider.CHRONICLE:
+        return new ChronicleMonadClient();
       case OracleProvider.API3:
         return new API3Client();
       case OracleProvider.REDSTONE:

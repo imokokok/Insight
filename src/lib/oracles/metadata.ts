@@ -1,3 +1,4 @@
+import { CHRONICLE_MONAD_PRICE_FEEDS } from '@/lib/oracles/constants/chronicleMonad';
 import { PYTH_MONAD_SPONSORED_FEEDS } from '@/lib/oracles/constants/pythMonad';
 import { STORK_MONAD_PUSHED_FEEDS } from '@/lib/oracles/constants/storkMonad';
 import {
@@ -23,6 +24,7 @@ export const PRICE_ORACLE_ORDER: readonly OracleProvider[] = [
   OracleProvider.CHAINLINK,
   OracleProvider.PYTH,
   OracleProvider.STORK,
+  OracleProvider.CHRONICLE,
   OracleProvider.API3,
   OracleProvider.REDSTONE,
   OracleProvider.DIA,
@@ -47,6 +49,7 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
   ],
   [OracleProvider.PYTH]: [Blockchain.MONAD],
   [OracleProvider.STORK]: [Blockchain.MONAD],
+  [OracleProvider.CHRONICLE]: [Blockchain.MONAD],
   [OracleProvider.API3]: [
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
@@ -115,6 +118,9 @@ const PAIRS_BY_PROVIDER: Partial<Record<OracleProvider, Record<string, string[]>
   },
   [OracleProvider.STORK]: {
     [Blockchain.MONAD]: STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
+  },
+  [OracleProvider.CHRONICLE]: {
+    [Blockchain.MONAD]: CHRONICLE_MONAD_PRICE_FEEDS.map((feed) => feed.alias),
   },
   [OracleProvider.API3]: API3_AVAILABLE_PAIRS,
   [OracleProvider.WINKLINK]: WINKLINK_AVAILABLE_PAIRS,

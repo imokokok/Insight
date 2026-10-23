@@ -40,7 +40,7 @@ const layers = [
     title: 'Oracle Client Layer',
     subtitle: 'Factory + BaseOracleClient',
     description:
-      'A unified abstraction wraps 10 oracle providers. Each client handles chain-specific calls, retries, TTL caching, and normalization into a common PriceData format.',
+      'A unified abstraction wraps 13 oracle providers. Each client handles chain-specific calls, retries, TTL caching, and normalization into a common PriceData format.',
   },
   {
     icon: Shield,

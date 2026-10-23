@@ -56,6 +56,10 @@ function maxFeedAgeMs(feed: OracleFeed | OracleFeedInsert): number {
     const configured = Number(metadata.maxStalenessSeconds);
     return Number.isFinite(configured) && configured > 0 ? configured * 1000 : 60 * 60 * 1000;
   }
+  if (feed.provider === OracleProvider.CHRONICLE) {
+    const configured = Number(metadata.maxStalenessSeconds);
+    return Number.isFinite(configured) && configured > 0 ? configured * 1000 : 30 * 60 * 1000;
+  }
   if (feed.provider === OracleProvider.API3) return API3_MAX_DATA_AGE_SECONDS * 1000;
   if (feed.provider === OracleProvider.DIA) return 72 * 60 * 60 * 1000;
   if (feed.provider === OracleProvider.SUPRA) {

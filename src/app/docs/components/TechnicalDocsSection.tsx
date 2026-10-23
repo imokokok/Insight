@@ -48,7 +48,7 @@ const docs: DocCard[] = [
     icon: <Layers className="w-6 h-6" />,
     title: 'Architecture',
     description:
-      'Next.js App Router with Supabase, React Query, Zustand, and 10 oracle client implementations.',
+      'Next.js App Router with Supabase, React Query, Zustand, and 13 oracle client implementations.',
     href: '#architecture',
     tags: ['Next.js', 'Supabase', 'TypeScript'],
     accent: 'blue',
@@ -58,9 +58,9 @@ const docs: DocCard[] = [
     icon: <Database className="w-6 h-6" />,
     title: 'Data Sources',
     description:
-      '10 oracle providers plus independent CEX market references for price divergence and decision-input context.',
+      '13 oracle providers plus independent CEX market references for price divergence and decision-input context.',
     href: '#data-sources',
-    tags: ['10 Oracle Providers', 'CEX References', '40+ Chains'],
+    tags: ['13 Oracle Providers', 'CEX References', '40+ Chains'],
     accent: 'amber',
     anchor: true,
   },

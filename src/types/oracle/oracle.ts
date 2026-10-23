@@ -22,6 +22,7 @@ export type OracleErrorCode =
   | 'DIA_ERROR'
   | 'FETCH_ERROR'
   | 'REDSTONE_ERROR'
+  | 'CHRONICLE_ERROR'
   | 'WINKLINK_ERROR'
   | 'SUPRA_ERROR'
   | 'TWAP_ERROR'

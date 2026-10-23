@@ -1,6 +1,7 @@
 import { ValidationError } from '@/lib/errors';
 import { API3Client } from '@/lib/oracles/clients/api3';
 import { BandClient } from '@/lib/oracles/clients/band';
+import { ChronicleMonadClient } from '@/lib/oracles/clients/chronicleMonad';
 import { PythMonadClient } from '@/lib/oracles/clients/pythMonad';
 import { StorkMonadClient } from '@/lib/oracles/clients/storkMonad';
 import { OracleProvider } from '@/types/oracle';
@@ -68,6 +69,15 @@ describe('OracleClientFactory', () => {
     const second = factory.getClient(OracleProvider.STORK);
 
     expect(first).toBeInstanceOf(StorkMonadClient);
+    expect(second).toBe(first);
+  });
+
+  it('creates and caches the Monad Chronicle push-feed client', () => {
+    const factory = getDefaultFactory();
+    const first = factory.getClient(OracleProvider.CHRONICLE);
+    const second = factory.getClient(OracleProvider.CHRONICLE);
+
+    expect(first).toBeInstanceOf(ChronicleMonadClient);
     expect(second).toBe(first);
   });
 });
