@@ -77,9 +77,20 @@ export function createOracleConfig(params: {
   features?: Partial<OracleConfig['features']>;
   tabs: OracleTab[];
   views?: OracleViewConfig[];
+  icon?: OracleConfig['icon'];
 }): OracleConfig {
-  const { provider, name, symbol, defaultChain, supportedChains, color, features, tabs, views } =
-    params;
+  const {
+    provider,
+    name,
+    symbol,
+    defaultChain,
+    supportedChains,
+    color,
+    features,
+    tabs,
+    views,
+    icon,
+  } = params;
 
   return {
     provider,
@@ -90,7 +101,7 @@ export function createOracleConfig(params: {
     supportedChains,
     iconBgColor: color,
     themeColor: color,
-    icon: (
+    icon: icon ?? (
       <Image src={`/logos/oracles/${name.toLowerCase()}.svg`} alt={name} width={48} height={48} />
     ),
     marketData: getDefaultMarketData(symbol, name),

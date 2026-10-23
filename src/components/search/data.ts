@@ -32,6 +32,7 @@ import type { LucideIcon } from 'lucide-react';
 const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.CHAINLINK]: Shield,
   [OracleProvider.PYTH]: Radio,
+  [OracleProvider.STORK]: Radio,
   [OracleProvider.API3]: Activity,
   [OracleProvider.REDSTONE]: Flame,
   [OracleProvider.DIA]: Globe,
@@ -48,6 +49,8 @@ const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Decentralized oracle network providing reliable price feeds',
   [OracleProvider.PYTH]:
     'On-chain Pyth Core price feeds on Monad with publish-time and confidence evidence',
+  [OracleProvider.STORK]:
+    'Monad on-chain Stork pushed feeds with fixed-point value and timestamp evidence',
   [OracleProvider.API3]: 'First-party oracle solution with Airnode technology',
   [OracleProvider.REDSTONE]: 'Innovative oracle with on-chain data streaming',
   [OracleProvider.DIA]: 'Open-source oracle for financial data',

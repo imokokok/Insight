@@ -1,5 +1,6 @@
 import { decodeFunctionResult, encodeFunctionData } from 'viem';
 
+import { ALCHEMY_RPC } from '@/lib/config/serverEnv';
 import { OracleCache } from '@/lib/oracles/base';
 import {
   PYTH_MONAD_CHAIN_ID,
@@ -138,7 +139,7 @@ export class PythMonadOnChainService {
     });
     const raw = await this.rpcClient.ethCall(
       String(PYTH_MONAD_CHAIN_ID),
-      [...PYTH_MONAD_RPC_ENDPOINTS],
+      [...(ALCHEMY_RPC.monad ? [ALCHEMY_RPC.monad] : []), ...PYTH_MONAD_RPC_ENDPOINTS],
       PYTH_MONAD_CORE_ADDRESS,
       data,
       signal

@@ -2,6 +2,7 @@ import { bandSymbols } from './bandConstants';
 import { flareSymbols } from './flareConstants';
 import { PYTH_MONAD_SPONSORED_FEEDS } from './pythMonad';
 import { reflectorSymbols } from './reflectorConstants';
+import { STORK_MONAD_PUSHED_FEEDS } from './storkMonad';
 import { supraSymbols } from './supraConstants';
 import { twapSymbols } from './twapConstants';
 
@@ -622,6 +623,9 @@ const api3Symbols = [...new Set(Object.values(API3_AVAILABLE_PAIRS).flat())] as 
 // registry. Keep pair notation for the `.RR` reference-rate feeds.
 const pythSymbols = PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias);
 
+// Stork support is restricted to the committed Monad pushed-feed pilot set.
+const storkSymbols = STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias);
+
 // WINkLink supported symbols (primarily supports TRON ecosystem, only including trading pairs with real contract addresses)
 export const winklinkSymbols = [
   'BTC',
@@ -683,6 +687,7 @@ export const SUPRA_AVAILABLE_PAIRS: Record<string, string[]> = {
 export const oracleSupportedSymbols = {
   chainlink: chainlinkSymbols,
   pyth: pythSymbols,
+  stork: storkSymbols,
   redstone: redstoneSymbols,
   dia: diaSymbols,
   api3: api3Symbols,

@@ -72,6 +72,23 @@ export const PROVIDER_PROFILES: Record<OracleProvider, ProviderProfile> = {
       { icon: Clock, label: 'Freshness policy', value: '≤ 2h' },
     ],
   },
+  stork: {
+    tagline: 'Stork Pushed Feeds on Monad',
+    description:
+      'Insight reads Stork TemporalNumericValue observations directly from the Monad contract, preserving the 18-decimal value, nanosecond source timestamp, feed hash, and contract evidence.',
+    highlights: [
+      'Direct Monad contract safe read',
+      'Fixed-point value and nanosecond timestamp evidence',
+      'Provider-enforced stale-value rejection',
+      'Observation-only until the independent-source review is complete',
+    ],
+    features: [
+      { icon: Globe, label: 'Integration chain', value: 'Monad' },
+      { icon: Database, label: 'Reviewed feeds', value: '5' },
+      { icon: Shield, label: 'Evidence', value: 'Stork contract' },
+      { icon: Clock, label: 'Max staleness', value: '≤ 1h' },
+    ],
+  },
   api3: {
     tagline: 'First-Party Oracle',
     description:

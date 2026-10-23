@@ -91,12 +91,18 @@ export const CHAINLINK_RPC_CONFIG: Record<number, ChainlinkRPCConfig> = {
     name: 'Optimism',
   },
   143: {
-    // Monad mainnet: official public RPC (docs.monad.xyz). chainId 143 verified
-    // via eth_chainId against this endpoint (2026-10-19). No Feed Registry is
-    // deployed here — feed resolution goes through the committed catalog
-    // directory (network key "143", seeded from the official Chainlink
-    // reference data directory feeds-monad-mainnet.json).
-    endpoints: ['https://rpc.monad.xyz'],
+    // Monad mainnet: Alchemy is preferred when configured; official endpoints
+    // remain as an independent fallback. No Feed Registry is deployed here —
+    // feed resolution goes through the committed catalog directory (network
+    // key "143", seeded from the official Chainlink reference data directory
+    // feeds-monad-mainnet.json).
+    endpoints: buildEndpoints(ALCHEMY_RPC.monad, [
+      'https://rpc.monad.xyz',
+      'https://rpc1.monad.xyz',
+      'https://rpc2.monad.xyz',
+      'https://rpc3.monad.xyz',
+      'https://rpc-mainnet.monadinfra.com',
+    ]),
     chainId: 143,
     name: 'Monad',
   },

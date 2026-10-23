@@ -1,6 +1,7 @@
 export enum OracleProvider {
   CHAINLINK = 'chainlink',
   PYTH = 'pyth',
+  STORK = 'stork',
   API3 = 'api3',
   REDSTONE = 'redstone',
   DIA = 'dia',

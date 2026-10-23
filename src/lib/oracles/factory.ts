@@ -11,6 +11,7 @@ import { FlareClient } from './clients/flare';
 import { PythMonadClient } from './clients/pythMonad';
 import { RedStoneClient } from './clients/redstone';
 import { ReflectorClient } from './clients/reflector';
+import { StorkMonadClient } from './clients/storkMonad';
 import { SupraClient } from './clients/supra';
 import { TWAPClient } from './clients/twap';
 import { WINkLinkClient } from './clients/winklink';
@@ -54,6 +55,8 @@ class OracleClientFactory {
         return new ChainlinkClient({ useRealData: FEATURE_FLAGS.useRealChainlinkData });
       case OracleProvider.PYTH:
         return new PythMonadClient();
+      case OracleProvider.STORK:
+        return new StorkMonadClient();
       case OracleProvider.API3:
         return new API3Client();
       case OracleProvider.REDSTONE:
