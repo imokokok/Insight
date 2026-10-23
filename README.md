@@ -2,7 +2,7 @@
 
 Insight is oracle transparency and risk infrastructure for DeFi and AI agents, built on **BNB Smart Chain (BSC)** and compatible with other EVM networks.
 
-Insight helps DeFi applications, operators, developers, and AI agents inspect oracle prices and the risks of relying on them. It compares data from **10 oracle providers across 40+ blockchain networks**, evaluates deviation, freshness, source independence, and protocol impact, and can issue signed evidence of its assessments. For AI agents specifically, this is **decision-input integrity**: a signed, re-verifiable answer to "can this price be trusted" before a trade is signed.
+Insight helps DeFi applications, operators, developers, and AI agents inspect oracle prices and the risks of relying on them. It compares data from **13 oracle providers across 40+ blockchain networks**, evaluates deviation, freshness, source independence, and protocol impact, and can issue signed evidence of its assessments. For AI agents specifically, this is **decision-input integrity**: a signed, re-verifiable answer to "can this price be trusted" before a trade is signed.
 
 ```text
 Oracle observations → Cross-source comparison → Risk assessment → Verifiable evidence
@@ -77,7 +77,7 @@ Historical coverage is guaranteed for **ETH, BTC, USDC, and USDT on Ethereum, Ar
 
 The web app also provides cross-oracle price comparison, feed health and reputation, position safety and liquidation analysis, Peg Risk for stablecoins and wrapped assets, and daily reports. Researchers can inspect source timestamps and export results; developers can use the corresponding API endpoints.
 
-Integrated providers include Chainlink, API3, RedStone, DIA, WINkLink, Supra, Uniswap V3 TWAP, Reflector, Flare, and Band. Position safety supports selected Aave V3, Compound V3, Morpho Blue, Venus, and BENQI markets. Coverage varies by asset and chain, so confirm the available sources and protocol parameters for the position being assessed.
+Integrated providers include Chainlink, Pyth Core, Stork, Chronicle, API3, RedStone, DIA, WINkLink, Supra, Uniswap V3 TWAP, Reflector, Flare, and Band. Position safety supports selected Aave V3, Compound V3, Morpho Blue, Venus, and BENQI markets. Coverage varies by asset and chain, so confirm the available sources and protocol parameters for the position being assessed.
 
 ### SDK, API, MCP, and verifier
 

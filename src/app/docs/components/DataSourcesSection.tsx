@@ -5,6 +5,9 @@ import { Database, Globe } from 'lucide-react';
 
 const providers = [
   { name: 'Chainlink', type: 'On-chain', chains: 'EVM L1s & L2s' },
+  { name: 'Pyth Core', type: 'On-chain push', chains: 'Monad' },
+  { name: 'Stork', type: 'On-chain push', chains: 'Monad' },
+  { name: 'Chronicle', type: 'On-chain push', chains: 'Monad' },
   { name: 'API3', type: 'On-chain dAPIs', chains: 'Ethereum, Arbitrum, Base, Polygon, others' },
   { name: 'RedStone', type: 'API / On-chain', chains: 'EVM L1s & L2s' },
   { name: 'DIA', type: 'API / On-chain', chains: 'EVM L1s & L2s' },
@@ -17,7 +20,7 @@ const providers = [
 ];
 
 const highlights = [
-  { label: 'Oracle Providers', value: '10' },
+  { label: 'Oracle Providers', value: '13' },
   { label: 'Supported Chains', value: '40+' },
   { label: 'Data Type', value: 'On-chain & API' },
 ];
@@ -169,7 +172,7 @@ export default function DataSourcesSection() {
               Optional Bitstamp, Bitfinex, and Binance collection is enabled only when the intended
               commercial use is covered by written data permissions and the deployment is
               configured. These market references are evidence for comparison; they are not counted
-              among the 10 oracle providers and do not enter oracle consensus.
+              among the 13 oracle providers and do not enter oracle consensus.
             </p>
           </motion.div>
 

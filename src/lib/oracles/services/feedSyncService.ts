@@ -9,6 +9,7 @@ import {
   CHAINLINK_CATALOG_VERSION,
   getAllCatalogFeeds,
 } from '../constants/chainlinkCatalogLoader';
+import { CHRONICLE_MONAD_CHAIN_ID, CHRONICLE_MONAD_PRICE_FEEDS } from '../constants/chronicleMonad';
 import { DIA_ASSET_MAPPING, type DIAAssetConfig } from '../constants/diaConstants';
 import { FLARE_SYMBOL_TO_FEED_ID } from '../constants/flareConstants';
 import {
@@ -32,6 +33,7 @@ import {
   getSupportedSymbols,
   type ChainlinkPriceFeed,
 } from './chainlinkDataSources';
+import { chronicleMonadOnChainService } from './chronicleMonadOnChainService';
 import { feedRegistryService } from './feedRegistryService';
 import { pythMonadOnChainService } from './pythMonadOnChainService';
 import { redStoneMonadOnChainService } from './redstoneMonadOnChainService';
@@ -77,10 +79,11 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
  * and feeds from other seed paths out of scope.
  */
 async function deactivateRetiredCuratedMonadFeeds(args: {
-  provider: 'pyth' | 'stork' | 'redstone';
+  provider: 'pyth' | 'stork' | 'chronicle' | 'redstone';
   source:
     | 'pyth-monad-sponsored-registry'
     | 'stork-monad-pushed-registry'
+    | 'chronicle-monad-price-feed-registry'
     | 'redstone-monad-price-feed-registry';
   chainId: number;
   catalogSymbols: readonly string[];
@@ -144,6 +147,7 @@ const SEED_PROVIDER_ORDER = [
   'chainlink',
   'pyth',
   'stork',
+  'chronicle',
   'supra',
   'dia',
   'redstone',
@@ -438,6 +442,70 @@ class FeedSyncService {
       source: 'stork-monad-pushed-registry',
       chainId: STORK_MONAD_CHAIN_ID,
       catalogSymbols: STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
+    });
+    return result;
+  }
+
+  // ─── Chronicle push feeds / Monad ─────────────────────────────────
+
+  /**
+   * Seed only Chronicle contracts which were reviewed as directly readable
+   * direct-USD feeds. Each is read through `readWithAge()` before activation;
+   * a catalog listing alone is not enough to admit it into price evidence.
+   */
+  async seedChronicleMonadPriceFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'chronicle',
+      discovered: CHRONICLE_MONAD_PRICE_FEEDS.length,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+
+    const verification = await mapWithConcurrency(CHRONICLE_MONAD_PRICE_FEEDS, 4, async (feed) => {
+      try {
+        await chronicleMonadOnChainService.getPrice(feed);
+        return { feed, usable: true } as const;
+      } catch (error) {
+        logger.warn('Skipped unusable Chronicle Monad price feed', {
+          alias: feed.alias,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return { feed, usable: false } as const;
+      }
+    });
+    const usableFeeds = verification.filter((entry) => entry.usable).map((entry) => entry.feed);
+    result.errors = verification.length - usableFeeds.length;
+
+    result.upserted = await upsertFeeds(
+      usableFeeds.map((feed) => ({
+        provider: 'chronicle',
+        symbol: feed.alias,
+        chain_id: CHRONICLE_MONAD_CHAIN_ID,
+        address: feed.address,
+        name: `Chronicle ${feed.feedName}`,
+        decimals: 18,
+        category: this.inferCategory(feed.alias.split('/')[0]),
+        is_active: true,
+        source: 'chronicle-monad-price-feed-registry',
+        metadata: {
+          feedName: feed.feedName,
+          priceFeedAddress: feed.address,
+          chainId: CHRONICLE_MONAD_CHAIN_ID,
+          maxStalenessSeconds: feed.maxStalenessSeconds,
+          priceDeviationPercent: feed.priceDeviationPercent,
+          quoteType: 'price',
+          freshnessPolicy: 'readWithAge source timestamp <= maxStalenessSeconds',
+          quorumStatus: 'shadow-only-pending-source-overlap-review',
+          registrySource: 'monad-crypto/protocols/mainnet/chronicle.jsonc',
+        },
+      }))
+    );
+    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+      provider: 'chronicle',
+      source: 'chronicle-monad-price-feed-registry',
+      chainId: CHRONICLE_MONAD_CHAIN_ID,
+      catalogSymbols: CHRONICLE_MONAD_PRICE_FEEDS.map((feed) => feed.alias),
     });
     return result;
   }
@@ -928,6 +996,8 @@ class FeedSyncService {
         return this.seedPythMonadSponsoredFeeds();
       case 'stork':
         return this.seedStorkMonadPushedFeeds();
+      case 'chronicle':
+        return this.seedChronicleMonadPriceFeeds();
       case 'supra':
         return this.seedSupraFeedsFromHardcoded();
       case 'dia':

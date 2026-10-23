@@ -35,6 +35,7 @@ export const PROVIDER_SOURCE_GROUP: Readonly<Record<string, string>> = {
   flare: 'flare',
   pyth: 'pyth',
   stork: 'stork',
+  chronicle: 'chronicle',
 } as const;
 
 /** Groups that are DERIVED (on-chain, not externally attested). Excluded from

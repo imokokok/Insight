@@ -43,6 +43,7 @@ jobs:
           - chainlink
           - pyth
           - stork
+          - chronicle
           - supra
           - dia
           - redstone
@@ -86,7 +87,7 @@ jobs:
             *) echo "::error::Invalid sync mode"; exit 1 ;;
           esac
           case "$PINNED" in
-            ''|chainlink|pyth|stork|supra|dia|redstone|api3|winklink|twap|twap-token|reflector|flare) ;;
+            ''|chainlink|pyth|stork|chronicle|supra|dia|redstone|api3|winklink|twap|twap-token|reflector|flare) ;;
             *) echo "::error::Invalid provider"; exit 1 ;;
           esac
           # If the dispatcher pinned a single provider, skip the others.
@@ -99,11 +100,11 @@ jobs:
           # `discover` mode is a no-op (it only verifies existing rows and adds
           # nothing). TWAP pools/token metadata and the reviewed Pyth/Stork
           # Monad registries are policy-curated in code and MUST be written via
-          # `seed` mode. Pyth/Stork seeders also re-read every entry on-chain
+          # `seed` mode. Pyth/Stork/Chronicle seeders also re-read every entry on-chain
           # before admitting it. WINkLink and Reflector now have proper
           # discoverers and therefore stay on the verified discover path.
           case "${PROVIDER}" in
-            pyth|stork|twap|twap-token)
+            pyth|stork|chronicle|twap|twap-token)
               node .github/cron-dist/sync-feeds.mjs --mode=seed --provider="${PROVIDER}"
               ;;
             *)

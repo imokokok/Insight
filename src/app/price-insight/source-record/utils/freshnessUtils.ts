@@ -56,6 +56,7 @@ export const ORACLE_UPDATE_FREQUENCIES: Record<OracleProvider, number> = {
   chainlink: 3600,
   pyth: 3600,
   stork: 3600,
+  chronicle: 1800,
   api3: 3600,
   dia: 3600,
   band: 120,

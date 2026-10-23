@@ -1,7 +1,9 @@
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
+import { CHRONICLE_MONAD_PRICE_FEEDS } from '../../constants/chronicleMonad';
 import { PYTH_MONAD_SPONSORED_FEEDS } from '../../constants/pythMonad';
 import { STORK_MONAD_PUSHED_FEEDS } from '../../constants/storkMonad';
+import { chronicleMonadOnChainService } from '../chronicleMonadOnChainService';
 import { feedSyncService } from '../feedSyncService';
 import { pythMonadOnChainService } from '../pythMonadOnChainService';
 import { storkMonadOnChainService } from '../storkMonadOnChainService';
@@ -134,6 +136,47 @@ describe('feedSyncService seed lifecycle', () => {
     expect(rows.find((row) => row.symbol === 'S/USD')?.metadata).toMatchObject({
       assetId: 'SUSD',
       quoteType: 'price',
+    });
+  });
+
+  it('seeds only reviewed Chronicle Monad feeds after each passes readWithAge freshness', async () => {
+    const select = jest.fn().mockResolvedValue({ data: CHRONICLE_MONAD_PRICE_FEEDS, error: null });
+    const upsert = jest.fn().mockReturnValue({ select });
+
+    const registryQuery = {
+      select: jest.fn(),
+      eq: jest.fn(),
+    };
+    registryQuery.select.mockReturnValue(registryQuery);
+    registryQuery.eq.mockReturnValue(registryQuery);
+    Object.assign(registryQuery, {
+      then: (resolve: (value: { data: []; error: null }) => unknown) =>
+        resolve({ data: [], error: null }),
+    });
+
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: jest.fn().mockReturnValueOnce({ upsert }).mockReturnValueOnce(registryQuery),
+    } as never);
+    const getPrice = jest
+      .spyOn(chronicleMonadOnChainService, 'getPrice')
+      .mockResolvedValue({} as never);
+
+    const result = await feedSyncService.seedChronicleMonadPriceFeeds();
+
+    expect(result).toEqual({
+      provider: 'chronicle',
+      discovered: 22,
+      upserted: 22,
+      deactivated: 0,
+      errors: 0,
+    });
+    expect(getPrice).toHaveBeenCalledTimes(22);
+    const rows = upsert.mock.calls[0][0] as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(22);
+    expect(rows.find((row) => row.symbol === 'MON/USD')?.metadata).toMatchObject({
+      feedName: 'Chronicle_MON_USD_1',
+      quoteType: 'price',
+      maxStalenessSeconds: 1800,
     });
   });
 });

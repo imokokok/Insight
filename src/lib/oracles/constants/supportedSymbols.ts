@@ -1,4 +1,5 @@
 import { bandSymbols } from './bandConstants';
+import { CHRONICLE_MONAD_PRICE_FEEDS } from './chronicleMonad';
 import { flareSymbols } from './flareConstants';
 import { PYTH_MONAD_SPONSORED_FEEDS } from './pythMonad';
 import { reflectorSymbols } from './reflectorConstants';
@@ -688,6 +689,7 @@ export const oracleSupportedSymbols = {
   chainlink: chainlinkSymbols,
   pyth: pythSymbols,
   stork: storkSymbols,
+  chronicle: CHRONICLE_MONAD_PRICE_FEEDS.map((feed) => feed.alias.split('/')[0]),
   redstone: redstoneSymbols,
   dia: diaSymbols,
   api3: api3Symbols,

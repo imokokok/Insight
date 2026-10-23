@@ -89,6 +89,23 @@ export const PROVIDER_PROFILES: Record<OracleProvider, ProviderProfile> = {
       { icon: Clock, label: 'Max staleness', value: '≤ 1h' },
     ],
   },
+  chronicle: {
+    tagline: 'Chronicle Push Feeds on Monad',
+    description:
+      'Insight reads Chronicle values directly from reviewed Monad feed contracts, preserving their 18-decimal raw value, on-chain source timestamp, and contract evidence.',
+    highlights: [
+      'Direct `readWithAge()` Monad contract read',
+      'Source timestamp is freshness-gated before use',
+      'Only reviewed, publicly readable direct-USD feeds',
+      'Observation-only until the independent-source review is complete',
+    ],
+    features: [
+      { icon: Globe, label: 'Integration chain', value: 'Monad' },
+      { icon: Database, label: 'Reviewed feeds', value: '22' },
+      { icon: Shield, label: 'Evidence', value: 'Chronicle contract' },
+      { icon: Clock, label: 'Max staleness', value: '≤ 30m' },
+    ],
+  },
   api3: {
     tagline: 'First-Party Oracle',
     description:
