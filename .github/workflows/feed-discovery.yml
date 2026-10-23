@@ -41,6 +41,7 @@ jobs:
       matrix:
         provider:
           - chainlink
+          - pyth
           - supra
           - dia
           - redstone
@@ -83,7 +84,7 @@ jobs:
             *) echo "::error::Invalid sync mode"; exit 1 ;;
           esac
           case "$PINNED" in
-            ''|chainlink|supra|dia|redstone|api3|winklink|twap|twap-token|reflector|flare) ;;
+            ''|chainlink|pyth|supra|dia|redstone|api3|winklink|twap|twap-token|reflector|flare) ;;
             *) echo "::error::Invalid provider"; exit 1 ;;
           esac
           # If the dispatcher pinned a single provider, skip the others.
@@ -94,11 +95,12 @@ jobs:
           echo "Syncing ${PROVIDER} in ${MODE} mode..."
           # Constant-only providers: these have no enumerable live directory, so
           # `discover` mode is a no-op (it only verifies existing rows and adds
-          # nothing). TWAP pools/token metadata are policy-curated in code and
-          # MUST be written via `seed` mode. WINkLink and Reflector now have
+          # nothing). TWAP pools/token metadata and the Pyth Monad sponsored
+          # registry are policy-curated in code and MUST be written via `seed`
+          # mode. WINkLink and Reflector now have
           # proper discoverers and therefore stay on the verified discover path.
           case "${PROVIDER}" in
-            twap|twap-token)
+            pyth|twap|twap-token)
               node .github/cron-dist/sync-feeds.mjs --mode=seed --provider="${PROVIDER}"
               ;;
             *)
