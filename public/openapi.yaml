@@ -2593,6 +2593,109 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ApiErrorResponse' }
 
+  /safety/preflight:
+    get:
+      operationId: executionPreflight
+      tags: [Safety]
+      summary: Chain-neutral execution preflight decision 🔒
+      description: |
+        Converts Insight's strict oracle assessment and an optional fresh venue quote into a
+        data-sufficiency decision: `allow` / `caution` / `block`. A result evaluates only the
+        declared data inputs; it never certifies contract code, custody, MEV outcome, execution,
+        or profitability. On Monad (chain ID 143), the result surfaces Pyth Core evidence when
+        available. `allow` requires both a passing oracle assessment and an eligible supplied
+        venue quote; without decision-input evidence, a healthy oracle result remains `caution`.
+
+        **Ways to pay:** use an API key with sufficient credits, or pay $0.02 USDC per successful
+        check through x402. A payment settles only after the preflight returns successfully.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - name: asset
+          in: query
+          required: true
+          description: Asset symbol, e.g. MON, ETH, BTC.
+          schema: { type: string, example: MON }
+        - name: chainId
+          in: query
+          required: true
+          description: Execution chain ID; Monad mainnet is 143.
+          schema: { type: integer, example: 143 }
+        - name: action
+          in: query
+          required: true
+          description: Type of intended DeFi operation.
+          schema: { type: string, enum: [swap, borrow, lend, liquidate, repay], example: swap }
+        - name: tradeAmountUsd
+          in: query
+          required: true
+          description: Intended operation size in USD.
+          schema: { type: number, exclusiveMinimum: 0, example: 1000 }
+        - name: targetProviders
+          in: query
+          required: false
+          description: Optional comma-separated provider scope. On Monad, `pyth` reads the pinned Pyth Core fast path; one provider remains insufficient for an `allow` response.
+          schema: { type: string, example: pyth }
+        - name: destinationAsset
+          in: query
+          required: false
+          description: Optional route destination asset, e.g. USDC.
+          schema: { type: string, example: USDC }
+        - name: decisionInputCheck
+          in: query
+          required: false
+          description: Set to `1` to supply a venue quote and explicit limits. Required for an `allow` response.
+          schema: { type: string, enum: ['0', '1'] }
+        - name: decisionPriceUsd
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Intended USD decision price.
+          schema: { type: number, exclusiveMinimum: 0 }
+        - name: quotePriceUsd
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Fresh venue quote in USD.
+          schema: { type: number, exclusiveMinimum: 0 }
+        - name: quoteObservedAt
+          in: query
+          required: false
+          description: Required with decisionInputCheck=1. Offset-qualified ISO-8601 quote time.
+          schema: { type: string, format: date-time }
+        - name: maxReferenceDeviationBps
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: maxSlippageBps
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: maxQuoteAgeSeconds
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 300 }
+      responses:
+        '200':
+          description: Completed preflight decision with gates, reasons, and underlying strict assessment.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    required: [verdict, recommendation, gates, assessment]
+                    properties:
+                      verdict: { type: string, enum: [allow, caution, block] }
+                      recommendation:
+                        { type: string, enum: [proceed, review_before_execution, do_not_execute] }
+                      gates: { type: object, additionalProperties: true }
+                      assessment: { type: object, additionalProperties: true }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
   /safety/pre-trade/recheck:
     post:
       operationId: recheckPreTradeSafety

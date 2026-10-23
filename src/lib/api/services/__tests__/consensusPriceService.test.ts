@@ -145,6 +145,18 @@ describe('resolveProvidersForSymbol', () => {
     expect(providers).toEqual([]);
   });
 
+  it('keeps the pinned Monad Pyth Core registry available while the operational feed mirror is empty', async () => {
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({ feeds: new Map(), errored: false });
+    getClient.mockImplementation((provider: OracleProvider) => ({
+      isSymbolSupported: (symbol: string, chain?: Blockchain) =>
+        provider === OracleProvider.PYTH && symbol === 'MON' && chain === Blockchain.MONAD,
+    }));
+
+    const providers = await resolveProvidersForSymbol('MON', Blockchain.MONAD);
+
+    expect(providers).toEqual([OracleProvider.PYTH]);
+  });
+
   it('uses the curated static list only when the registry read failed', async () => {
     getAllActiveFeedsByProviderWithStatus.mockResolvedValue({ feeds: new Map(), errored: true });
     isSymbolSupported.mockImplementation(
@@ -262,5 +274,32 @@ describe('getConsensusPrice provider scoping', () => {
     expect(result.consensusPrice).toBe(2000);
     expect(result.participantCount).toBe(1);
     expect(result.providers.map((provider) => provider.provider)).toEqual([OracleProvider.API3]);
+  });
+
+  it('reads a Pyth-only Monad request directly from the pinned Core client', async () => {
+    const getPrice = jest.fn().mockResolvedValue({
+      provider: OracleProvider.PYTH,
+      symbol: 'MON',
+      chain: Blockchain.MONAD,
+      price: 0.02,
+      timestamp: Date.now(),
+      confidence: 0.99,
+      source: 'Pyth Core Monad:MON/USD',
+      dataAge: 2,
+      ingestionTimestamp: Date.now(),
+    });
+    getClient.mockReturnValue({ isSymbolSupported, getPrice });
+
+    const result = await getConsensusPrice('MON', Blockchain.MONAD, undefined, [
+      OracleProvider.PYTH,
+    ]);
+
+    expect(getPrice).toHaveBeenCalledWith('MON', Blockchain.MONAD);
+    expect(mockFetchPriceWithDatabase).not.toHaveBeenCalled();
+    expect(mockGetReputations).not.toHaveBeenCalled();
+    expect(result.participantCount).toBe(1);
+    expect(result.providers).toMatchObject([
+      { provider: OracleProvider.PYTH, status: 'success', source: 'Pyth Core Monad:MON/USD' },
+    ]);
   });
 });

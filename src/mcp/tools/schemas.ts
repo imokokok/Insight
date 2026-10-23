@@ -354,6 +354,21 @@ export const PreTradeSafetyInputSchema = z.object({
 });
 
 /**
+ * The action-facing counterpart to `pre_trade_safety_check`.
+ *
+ * It deliberately reuses every validated pre-trade input, then adds the
+ * destination asset so the decision contract can describe the intended route
+ * without inventing a route quote. A missing `decisionInput` is valid but can
+ * never produce an ALLOW decision: the preflight response tells the agent
+ * exactly which venue quote evidence it must supply next.
+ */
+export const ExecutionPreflightInputSchema = PreTradeSafetyInputSchema.extend({
+  destinationAsset: SafeSymbolSchema.optional().describe(
+    'Optional destination asset for a swap or action route, e.g. USDC. It is bound into the preflight context but does not synthesize a venue quote.'
+  ),
+});
+
+/**
  * Inputs for the `agent_begin_trade` tool — the pre-trade half of the verifiable
  * execution loop. An agent hands its swap/DeFi intent; Insight runs the oracle
  * safety check and, if the verdict allows trading, returns a machine-readable

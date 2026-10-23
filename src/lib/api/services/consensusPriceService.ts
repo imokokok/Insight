@@ -142,8 +142,19 @@ export async function resolveProvidersForSymbol(
     // silently dropped from consensus / pre-trade quorum.
     try {
       const client = getDefaultFactory().getClient(provider);
+      const clientSupportsSymbol = client.isSymbolSupported(baseSymbol, chain);
+      // Monad Pyth Core is a versioned, first-party registry bundled with the
+      // service and read directly from Pyth's on-chain Core contract. Unlike a
+      // generic curated list, it is the native source of truth for the
+      // sponsored feeds, so it must remain available while the operational
+      // `oracle_feeds` mirror is empty or catching up. Keeping this exception
+      // scoped to the chain/provider pair preserves the normal rule that a
+      // successful empty DB registry deactivates ordinary providers.
+      const isPinnedMonadPyth =
+        provider === OracleProvider.PYTH && chain === Blockchain.MONAD && clientSupportsSymbol;
+
       if (
-        (client.isSymbolSupported(baseSymbol, chain) && (hasActiveFeed || feedRegistry.errored)) ||
+        (clientSupportsSymbol && (hasActiveFeed || feedRegistry.errored || isPinnedMonadPyth)) ||
         hasSpecificChainFeed
       ) {
         providers.push(provider);
@@ -163,6 +174,57 @@ interface FetchProviderPriceResult {
   priceData?: PriceData;
   status: 'success' | 'unsupported' | 'error';
   errorMessage?: string;
+}
+
+/**
+ * A Monad caller that explicitly scopes consensus to Pyth is asking for the
+ * chain's pinned, on-chain Pyth Core feed. Do not make that single RPC read
+ * wait on the operational feed mirror, reputation table, or price-cache
+ * persistence: each of those is useful for multi-provider consensus but none
+ * changes whether the Core contract returned a fresh, verified observation.
+ *
+ * This path is intentionally narrow. A one-provider result remains subject to
+ * the v2/v3 quorum gate in pre-trade safety and therefore cannot produce an
+ * execution ALLOW on its own.
+ */
+function isPinnedMonadPythOnlyRequest(
+  chain: Blockchain | undefined,
+  targetProviders: readonly OracleProvider[] | undefined
+): boolean {
+  return (
+    chain === Blockchain.MONAD &&
+    targetProviders?.length === 1 &&
+    targetProviders[0] === OracleProvider.PYTH
+  );
+}
+
+async function readPinnedMonadPythPrice(symbol: string): Promise<FetchProviderPriceResult> {
+  const startedAt = performance.now();
+  const duration = () => Math.round(performance.now() - startedAt);
+  try {
+    const priceData = await getDefaultFactory()
+      .getClient(OracleProvider.PYTH)
+      .getPrice(symbol, Blockchain.MONAD);
+    return {
+      provider: OracleProvider.PYTH,
+      priceData,
+      retrievedAt: Date.now(),
+      fetchDurationMs: duration(),
+      status: 'success',
+    };
+  } catch (error) {
+    if (error instanceof UnsupportedSymbolError) {
+      return { provider: OracleProvider.PYTH, status: 'unsupported', fetchDurationMs: duration() };
+    }
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.warn(`Pinned Monad Pyth Core fetch failed for ${symbol}`, { errorMessage });
+    return {
+      provider: OracleProvider.PYTH,
+      status: 'error',
+      errorMessage,
+      fetchDurationMs: duration(),
+    };
+  }
 }
 
 async function readProviderPrice(
@@ -310,9 +372,16 @@ export async function getConsensusPrice(
 ): Promise<ConsensusPriceResponse> {
   const baseSymbol = normalizeSymbol(symbol);
   const resolvedChain = resolveChain(chain);
+  const pinnedMonadPythOnly = isPinnedMonadPythOnlyRequest(resolvedChain, targetProviders);
 
   const [prices, reputationsList] = await Promise.all([
     (async () => {
+      if (pinnedMonadPythOnly) {
+        return {
+          providers: [OracleProvider.PYTH],
+          fetchResults: [await readPinnedMonadPythPrice(baseSymbol)],
+        };
+      }
       const resolvedProviders = await resolveProvidersForSymbol(baseSymbol, resolvedChain);
       const requestedProviders =
         targetProviders && targetProviders.length > 0 ? new Set(targetProviders) : null;
@@ -326,7 +395,10 @@ export async function getConsensusPrice(
       );
       return { providers, fetchResults };
     })(),
-    reputationService.getReputations(),
+    // Pyth Core's verification and freshness are embedded in PriceData. A
+    // reputation lookup cannot turn this one-provider fast path into quorum,
+    // so skip an unrelated network hop and leave its score as null.
+    pinnedMonadPythOnly ? Promise.resolve([]) : reputationService.getReputations(),
   ]);
   const { providers, fetchResults } = prices;
 

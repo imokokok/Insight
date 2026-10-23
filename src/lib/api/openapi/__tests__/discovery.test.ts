@@ -68,6 +68,11 @@ describe('OpenAPI payment discovery', () => {
     expect(document.paths['/api/mcp'].post['x-x402-payment-info']).toEqual(
       expect.objectContaining({ protocol: 'x402-v2' })
     );
+    expect(document.paths['/api/v1/safety/preflight'].get['x-x402-payment-info']).toEqual({
+      protocol: 'x402-v2',
+      price: { currency: 'USDC', amount: '0.020000' },
+    });
+    expect(document.paths['/api/v1/safety/preflight'].get['x-payment-info']).toBeUndefined();
   });
 
   it('omits MPP offers when the feature is disabled and isolates x402 metadata', () => {
@@ -80,6 +85,7 @@ describe('OpenAPI payment discovery', () => {
     expect(document.paths['/api/v1/safety/pre-trade'].get['x-payment-info']).toBeUndefined();
     expect(document.paths['/api/mcp/mpp']).toBeUndefined();
     expect(document.paths['/api/v1/safety/pre-trade'].get['x-x402-payment-info']).toBeDefined();
+    expect(document.paths['/api/v1/safety/preflight'].get['x-x402-payment-info']).toBeDefined();
     expect(document.paths['/api/mcp'].post['x-x402-payment-info']).toBeDefined();
   });
 
@@ -87,6 +93,7 @@ describe('OpenAPI payment discovery', () => {
     const document = buildOpenApiDiscovery({ ...BASE_CONFIG, x402Enabled: false });
 
     expect(document.paths['/api/v1/safety/pre-trade'].get['x-x402-payment-info']).toBeUndefined();
+    expect(document.paths['/api/v1/safety/preflight'].get['x-x402-payment-info']).toBeUndefined();
     expect(document.paths['/api/mcp'].post['x-x402-payment-info']).toBeUndefined();
     expect(document.paths['/api/mcp/mpp'].post['x-payment-info']).toBeDefined();
   });

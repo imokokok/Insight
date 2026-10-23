@@ -421,6 +421,134 @@
         }
       }
     },
+    "/api/v1/safety/preflight": {
+      "get": {
+        "operationId": "executionPreflight",
+        "summary": "Chain-neutral execution preflight decision",
+        "tags": ["Safety"],
+        "description": "Returns an action-facing ALLOW, CAUTION, or BLOCK result by combining the strict oracle safety assessment with an optional caller-supplied venue quote. The result covers data sufficiency only, not contract security, custody, MEV outcome, execution, or profitability. Monad requests surface Pyth Core evidence when available.",
+        "parameters": [
+          {
+            "name": "asset",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "examples": ["MON"] },
+            "description": "Asset symbol, e.g. MON, ETH, BTC"
+          },
+          {
+            "name": "chainId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "integer", "examples": [143] },
+            "description": "Execution chain ID; Monad mainnet is 143"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "enum": ["swap", "borrow", "lend", "liquidate", "repay"] }
+          },
+          {
+            "name": "tradeAmountUsd",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "number", "exclusiveMinimum": 0, "examples": [1000] }
+          },
+          {
+            "name": "targetProviders",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "examples": ["pyth"] },
+            "description": "Optional comma-separated provider scope. On Monad, targetProviders=pyth reads the pinned Pyth Core fast path; one provider remains insufficient for ALLOW."
+          },
+          {
+            "name": "destinationAsset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "examples": ["USDC"] }
+          },
+          {
+            "name": "decisionInputCheck",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["0", "1"] },
+            "description": "Set to 1 with a fresh venue quote and explicit thresholds to become eligible for ALLOW. Without it, a healthy oracle result remains CAUTION."
+          },
+          {
+            "name": "decisionPriceUsd",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          {
+            "name": "quotePriceUsd",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          {
+            "name": "quoteObservedAt",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "date-time" }
+          },
+          {
+            "name": "maxReferenceDeviationBps",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "maximum": 10000 }
+          },
+          {
+            "name": "maxSlippageBps",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "maximum": 10000 }
+          },
+          {
+            "name": "maxQuoteAgeSeconds",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 300 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preflight decision completed; x402 settlement occurs only after this response is successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "required": ["verdict", "recommendation", "gates", "assessment"],
+                      "properties": {
+                        "verdict": { "type": "string", "enum": ["allow", "caution", "block"] },
+                        "recommendation": {
+                          "type": "string",
+                          "enum": ["proceed", "review_before_execution", "do_not_execute"]
+                        },
+                        "gates": { "type": "object" },
+                        "assessment": {
+                          "type": "object",
+                          "description": "Underlying strict pre-trade oracle assessment and optional attestation."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid query parameters" },
+          "401": { "description": "API key required when keyless payment is not enabled" },
+          "402": {
+            "description": "x402 payment required; challenge is carried in PAYMENT-REQUIRED"
+          }
+        }
+      }
+    },
     "/api/mcp": {
       "post": {
         "operationId": "mcpToolCall",
