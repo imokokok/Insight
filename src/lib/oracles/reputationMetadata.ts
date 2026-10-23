@@ -17,6 +17,7 @@ export interface ProviderTypeConfig {
 export const PROVIDER_TYPE_CONFIG: Record<OracleProvider, ProviderTypeConfig> = {
   [OracleProvider.FLARE]: { type: 'onchain', latencyBaseline: 1500 },
   [OracleProvider.CHAINLINK]: { type: 'onchain', latencyBaseline: 1200 },
+  [OracleProvider.PYTH]: { type: 'onchain', latencyBaseline: 1100 },
   [OracleProvider.API3]: { type: 'onchain', latencyBaseline: 1000 },
   [OracleProvider.TWAP]: { type: 'onchain', latencyBaseline: 1400 },
   [OracleProvider.WINKLINK]: { type: 'onchain', latencyBaseline: 1200 },

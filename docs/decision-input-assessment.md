@@ -172,10 +172,15 @@ the assessment used.
 
 ## Additional source candidates
 
-- **Pyth Hermes:** a useful next oracle reference for ETH, BTC, and stablecoin
-  coverage. The current Hermes integration requires a Pyth API key, so it is
-  not enabled here until that credential and feed-specific freshness limits are
-  configured. See [Pyth's current setup guide](https://docs.pyth.network/price-feeds/core/getting-started).
+- **Pyth Core on Monad:** enabled as a read-only on-chain reference for the
+  reviewed Monad-sponsored feed catalog. Insight calls the Pyth Core contract
+  directly and retains the feed ID, exponent, publish time, and raw confidence
+  interval. A value is rejected before use when it is stale, future-dated,
+  non-positive, malformed, reverted, or has an abnormally wide confidence
+  interval. The catalog is not treated as an uptime promise: each feed is
+  re-verified before activation. This path does not use Hermes or an API key.
+  Hermes remains unconfigured because its current API path requires a Pyth API
+  key. See [Pyth's current setup guide](https://docs.pyth.network/price-feeds/core/getting-started).
 - **Uniswap V3:** already used for block-pinned, exact-notional route simulation
   in the gated MCP flow and for the separate manipulation-cost pool map. A
   future multi-pool TWAP can add a time-windowed on-chain signal, but should be

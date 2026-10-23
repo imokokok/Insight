@@ -8,6 +8,7 @@ import { BandClient } from './clients/band';
 import { ChainlinkClient } from './clients/chainlink';
 import { DIAClient } from './clients/dia';
 import { FlareClient } from './clients/flare';
+import { PythMonadClient } from './clients/pythMonad';
 import { RedStoneClient } from './clients/redstone';
 import { ReflectorClient } from './clients/reflector';
 import { SupraClient } from './clients/supra';
@@ -51,6 +52,8 @@ class OracleClientFactory {
     switch (provider) {
       case OracleProvider.CHAINLINK:
         return new ChainlinkClient({ useRealData: FEATURE_FLAGS.useRealChainlinkData });
+      case OracleProvider.PYTH:
+        return new PythMonadClient();
       case OracleProvider.API3:
         return new API3Client();
       case OracleProvider.REDSTONE:

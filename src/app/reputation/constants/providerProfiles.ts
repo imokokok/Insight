@@ -55,6 +55,23 @@ export const PROVIDER_PROFILES: Record<OracleProvider, ProviderProfile> = {
       { icon: Database, label: 'Data Sources', value: '350+' },
     ],
   },
+  pyth: {
+    tagline: 'Pyth Core on Monad',
+    description:
+      'Insight reads Pyth Core values directly from the Monad contract and records the feed ID, publish time, exponent, and confidence interval for each observation.',
+    highlights: [
+      'Monad-sponsored on-chain feed registry',
+      'No Hermes API dependency or key',
+      'Publish-time freshness gate before use',
+      'Raw confidence interval retained as evidence',
+    ],
+    features: [
+      { icon: Globe, label: 'Integration chain', value: 'Monad' },
+      { icon: Database, label: 'Sponsored feeds', value: '60' },
+      { icon: Shield, label: 'Evidence', value: 'Pyth Core' },
+      { icon: Clock, label: 'Freshness policy', value: '≤ 2h' },
+    ],
+  },
   api3: {
     tagline: 'First-Party Oracle',
     description:

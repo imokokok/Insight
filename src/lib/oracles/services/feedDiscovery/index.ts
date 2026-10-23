@@ -20,6 +20,7 @@ const logger = createLogger('FeedDiscoveryService');
 /** Provider order used by `discoverAll` when no single provider is requested. */
 const DISCOVER_PROVIDER_ORDER = [
   'chainlink',
+  'pyth',
   'supra',
   'dia',
   'redstone',
@@ -97,6 +98,11 @@ class FeedDiscoveryService {
     switch (provider) {
       case 'chainlink':
         return discoverChainlinkFeeds();
+      // Pyth's Monad sponsored catalog is committed and seeded separately;
+      // this path re-verifies its existing rows against Pyth Core instead of
+      // calling Hermes or treating a public off-chain list as authoritative.
+      case 'pyth':
+        return verifyExistingFeeds('pyth');
       case 'supra':
         return discoverSupraFeeds();
       case 'dia':

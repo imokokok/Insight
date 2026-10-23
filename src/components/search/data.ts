@@ -9,6 +9,7 @@ import {
   BarChart3,
   Sun,
   Waves,
+  Radio,
   Search,
   GitCompare,
   Settings,
@@ -30,6 +31,7 @@ import type { LucideIcon } from 'lucide-react';
 // Oracle icons mapping
 const oracleIcons: Record<OracleProvider, LucideIcon> = {
   [OracleProvider.CHAINLINK]: Shield,
+  [OracleProvider.PYTH]: Radio,
   [OracleProvider.API3]: Activity,
   [OracleProvider.REDSTONE]: Flame,
   [OracleProvider.DIA]: Globe,
@@ -44,6 +46,8 @@ const oracleIcons: Record<OracleProvider, LucideIcon> = {
 // Oracle descriptions mapping
 const oracleDescriptions: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Decentralized oracle network providing reliable price feeds',
+  [OracleProvider.PYTH]:
+    'On-chain Pyth Core price feeds on Monad with publish-time and confidence evidence',
   [OracleProvider.API3]: 'First-party oracle solution with Airnode technology',
   [OracleProvider.REDSTONE]: 'Innovative oracle with on-chain data streaming',
   [OracleProvider.DIA]: 'Open-source oracle for financial data',

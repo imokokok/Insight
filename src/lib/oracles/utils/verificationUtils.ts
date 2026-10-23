@@ -23,6 +23,7 @@ const CHAIN_EXPLORER_BASE_URL: Record<number, string> = {
   1088: 'https://andromeda-explorer.metis.io',
   14: 'https://flare-explorer.flare.network',
   25: 'https://cronoscan.com',
+  143: 'https://monadscan.com',
 };
 
 const TRON_EXPLORER_BASE = 'https://tronscan.org/#';

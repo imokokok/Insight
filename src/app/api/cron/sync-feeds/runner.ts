@@ -36,6 +36,7 @@ const VERIFY_CONCURRENCY = 8;
 const VERIFY_TIMEOUT_MS = 10_000;
 const CHAINLINK_VERIFY_CONCURRENCY = 4;
 const CHAINLINK_VERIFY_TIMEOUT_MS = 4_000;
+const PYTH_VERIFY_CONCURRENCY = 4;
 
 function maxFeedAgeMs(feed: OracleFeed | OracleFeedInsert): number {
   const metadata = (feed.metadata || {}) as Record<string, unknown>;
@@ -43,6 +44,12 @@ function maxFeedAgeMs(feed: OracleFeed | OracleFeedInsert): number {
     const heartbeat = Number(metadata.heartbeat);
     return Number.isFinite(heartbeat) && heartbeat > 0
       ? Math.max(60 * 60 * 1000, heartbeat * 2 * 1000)
+      : 2 * 60 * 60 * 1000;
+  }
+  if (feed.provider === OracleProvider.PYTH) {
+    const configured = Number(metadata.timeDifferenceSeconds);
+    return Number.isFinite(configured) && configured > 0
+      ? Math.max(60 * 1000, configured * 2 * 1000)
       : 2 * 60 * 60 * 1000;
   }
   if (feed.provider === OracleProvider.API3) return API3_MAX_DATA_AGE_SECONDS * 1000;
@@ -256,7 +263,9 @@ async function verifyDiscoveredFeeds(
     ? 1
     : feeds.every((feed) => feed.provider === OracleProvider.CHAINLINK)
       ? CHAINLINK_VERIFY_CONCURRENCY
-      : VERIFY_CONCURRENCY;
+      : feeds.every((feed) => feed.provider === OracleProvider.PYTH)
+        ? PYTH_VERIFY_CONCURRENCY
+        : VERIFY_CONCURRENCY;
   const results = await mapWithConcurrency(feeds, concurrency, async (feed, index) => {
     if (feed.provider === OracleProvider.WINKLINK && index > 0) {
       // Public TronGrid permits 15 calls per 30-second window. Each feed needs
