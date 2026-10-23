@@ -145,7 +145,9 @@ export function sanitizeSymbol(symbol: string): string {
     return '';
   }
 
-  sanitized = sanitized.replace(/[^A-Z0-9/\-]/g, '');
+  // A single dot is needed for Pyth's canonical `.RR` reference-rate pairs.
+  // The traversal guard above rejects `..` before the allow-list is applied.
+  sanitized = sanitized.replace(/[^A-Z0-9/\-.]/g, '');
 
   sanitized = sanitized.replace(CONTROL_CHARS_PATTERN, '');
 

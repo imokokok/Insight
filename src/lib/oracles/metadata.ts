@@ -1,3 +1,4 @@
+import { PYTH_MONAD_SPONSORED_FEEDS } from '@/lib/oracles/constants/pythMonad';
 import {
   API3_AVAILABLE_PAIRS,
   oracleSupportedSymbols,
@@ -19,6 +20,7 @@ export interface OracleMetadata {
  */
 export const PRICE_ORACLE_ORDER: readonly OracleProvider[] = [
   OracleProvider.CHAINLINK,
+  OracleProvider.PYTH,
   OracleProvider.API3,
   OracleProvider.REDSTONE,
   OracleProvider.DIA,
@@ -39,7 +41,9 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
     Blockchain.AVALANCHE,
     Blockchain.BNB_CHAIN,
     Blockchain.BASE,
+    Blockchain.MONAD,
   ],
+  [OracleProvider.PYTH]: [Blockchain.MONAD],
   [OracleProvider.API3]: [
     Blockchain.ETHEREUM,
     Blockchain.ARBITRUM,
@@ -103,6 +107,9 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
 };
 
 const PAIRS_BY_PROVIDER: Partial<Record<OracleProvider, Record<string, string[]>>> = {
+  [OracleProvider.PYTH]: {
+    [Blockchain.MONAD]: PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias),
+  },
   [OracleProvider.API3]: API3_AVAILABLE_PAIRS,
   [OracleProvider.WINKLINK]: WINKLINK_AVAILABLE_PAIRS,
   [OracleProvider.SUPRA]: SUPRA_AVAILABLE_PAIRS,

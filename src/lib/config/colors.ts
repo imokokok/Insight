@@ -130,6 +130,7 @@ export const chainColors = {
 export const chartColors = {
   oracle: {
     chainlink: '#2563EB',
+    pyth: '#8B5CF6',
     api3: '#DB2777',
     redstone: '#FF6B6B',
     dia: '#6366F1',

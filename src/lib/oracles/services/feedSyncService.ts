@@ -1,5 +1,6 @@
 import { type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 
 import { bandSymbols, getBandSignalId } from '../constants/bandConstants';
@@ -10,6 +11,11 @@ import {
 } from '../constants/chainlinkCatalogLoader';
 import { DIA_ASSET_MAPPING, type DIAAssetConfig } from '../constants/diaConstants';
 import { FLARE_SYMBOL_TO_FEED_ID } from '../constants/flareConstants';
+import {
+  PYTH_MONAD_CHAIN_ID,
+  PYTH_MONAD_CORE_ADDRESS,
+  PYTH_MONAD_SPONSORED_FEEDS,
+} from '../constants/pythMonad';
 import { REFLECTOR_ASSET_CONTRACT_MAP } from '../constants/reflectorConstants';
 import { getAssetClass, redstoneSymbols } from '../constants/supportedSymbols';
 import { SUPRA_PAIR_INDEX_MAP } from '../constants/supraConstants';
@@ -21,6 +27,7 @@ import {
   type ChainlinkPriceFeed,
 } from './chainlinkDataSources';
 import { feedRegistryService } from './feedRegistryService';
+import { pythMonadOnChainService } from './pythMonadOnChainService';
 import { WINKLINK_PRICE_FEEDS } from './winklinkRealDataService';
 
 const logger = createLogger('FeedSyncService');
@@ -58,6 +65,7 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
  */
 const SEED_PROVIDER_ORDER = [
   'chainlink',
+  'pyth',
   'supra',
   'dia',
   'redstone',
@@ -221,6 +229,69 @@ class FeedSyncService {
       logger.error('Failed to verify feeds', normalizeError(error));
       result.errors++;
     }
+    return result;
+  }
+
+  // ─── Pyth Core / Monad ───────────────────────────────────────────
+
+  /**
+   * Seed the exact sponsored Monad registry. This is a committed, reviewed
+   * catalog: it never calls Hermes and never tries to infer Pyth IDs from a
+   * symbol. Runtime reads still enforce Pyth publish-time and confidence gates
+   * before a value can be used.
+   */
+  async seedPythMonadSponsoredFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'pyth',
+      discovered: PYTH_MONAD_SPONSORED_FEEDS.length,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+    // The public registry describes sponsored targets, not an uptime promise.
+    // Read every entry from Pyth Core before activation: a listed but stale or
+    // reverted feed must remain out of the active registry and therefore out
+    // of Insight's USD consensus / decision evidence.
+    const verification = await mapWithConcurrency(PYTH_MONAD_SPONSORED_FEEDS, 4, async (feed) => {
+      try {
+        await pythMonadOnChainService.getPrice(feed);
+        return { feed, usable: true } as const;
+      } catch (error) {
+        logger.warn('Skipped unusable Pyth Monad sponsored feed', {
+          alias: feed.alias,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return { feed, usable: false } as const;
+      }
+    });
+    const usableFeeds = verification.filter((entry) => entry.usable).map((entry) => entry.feed);
+    result.errors = verification.length - usableFeeds.length;
+
+    const feeds: OracleFeedInsert[] = usableFeeds.map((feed) => ({
+      provider: 'pyth',
+      symbol: feed.alias,
+      chain_id: PYTH_MONAD_CHAIN_ID,
+      // Pyth Core stores every feed under one contract; the feed ID lives in
+      // metadata and is supplied to getPriceUnsafe(bytes32).
+      address: PYTH_MONAD_CORE_ADDRESS,
+      name: `Pyth ${feed.alias}`,
+      // Pyth's exponent is dynamic and returned with every value. Eight is a
+      // display default only; consumers must use the fetched exponent.
+      decimals: 8,
+      category: this.inferCategory(feed.alias.split('/')[0]),
+      is_active: true,
+      source: 'pyth-monad-sponsored-registry',
+      metadata: {
+        feedId: `0x${feed.id}`,
+        pythContract: PYTH_MONAD_CORE_ADDRESS,
+        chainId: PYTH_MONAD_CHAIN_ID,
+        timeDifferenceSeconds: feed.timeDifferenceSeconds,
+        priceDeviationPercent: feed.priceDeviationPercent,
+        quoteType: feed.alias.endsWith('.RR') ? 'reference-rate' : 'price',
+        freshnessPolicy: 'publish_time <= 2 * sponsored_time_difference',
+      },
+    }));
+    result.upserted = await upsertFeeds(feeds);
     return result;
   }
 
@@ -637,6 +708,8 @@ class FeedSyncService {
     switch (provider) {
       case 'chainlink':
         return this.syncChainlinkFeedsFromCatalog();
+      case 'pyth':
+        return this.seedPythMonadSponsoredFeeds();
       case 'supra':
         return this.seedSupraFeedsFromHardcoded();
       case 'dia':
