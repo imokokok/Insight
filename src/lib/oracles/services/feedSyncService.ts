@@ -16,6 +16,7 @@ import {
   PYTH_MONAD_CORE_ADDRESS,
   PYTH_MONAD_SPONSORED_FEEDS,
 } from '../constants/pythMonad';
+import { REDSTONE_MONAD_CHAIN_ID, REDSTONE_MONAD_PRICE_FEEDS } from '../constants/redstoneMonad';
 import { REFLECTOR_ASSET_CONTRACT_MAP } from '../constants/reflectorConstants';
 import {
   STORK_MONAD_CHAIN_ID,
@@ -33,6 +34,7 @@ import {
 } from './chainlinkDataSources';
 import { feedRegistryService } from './feedRegistryService';
 import { pythMonadOnChainService } from './pythMonadOnChainService';
+import { redStoneMonadOnChainService } from './redstoneMonadOnChainService';
 import { storkMonadOnChainService } from './storkMonadOnChainService';
 import { WINKLINK_PRICE_FEEDS } from './winklinkRealDataService';
 
@@ -75,8 +77,11 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
  * and feeds from other seed paths out of scope.
  */
 async function deactivateRetiredCuratedMonadFeeds(args: {
-  provider: 'pyth' | 'stork';
-  source: 'pyth-monad-sponsored-registry' | 'stork-monad-pushed-registry';
+  provider: 'pyth' | 'stork' | 'redstone';
+  source:
+    | 'pyth-monad-sponsored-registry'
+    | 'stork-monad-pushed-registry'
+    | 'redstone-monad-price-feed-registry';
   chainId: number;
   catalogSymbols: readonly string[];
 }): Promise<number> {
@@ -437,6 +442,70 @@ class FeedSyncService {
     return result;
   }
 
+  // ─── RedStone price feeds / Monad ─────────────────────────────────
+
+  /**
+   * Seed only direct USD feeds. The public deployment registry also includes
+   * fundamental exchange-rate feeds, which must not be misclassified as USD.
+   */
+  async seedRedStoneMonadPriceFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'redstone',
+      discovered: REDSTONE_MONAD_PRICE_FEEDS.length,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+
+    const verification = await mapWithConcurrency(REDSTONE_MONAD_PRICE_FEEDS, 4, async (feed) => {
+      try {
+        await redStoneMonadOnChainService.getPrice(feed);
+        return { feed, usable: true } as const;
+      } catch (error) {
+        logger.warn('Skipped unusable RedStone Monad price feed', {
+          alias: feed.alias,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return { feed, usable: false } as const;
+      }
+    });
+    const usableFeeds = verification.filter((entry) => entry.usable).map((entry) => entry.feed);
+    result.errors = verification.length - usableFeeds.length;
+
+    result.upserted = await upsertFeeds(
+      usableFeeds.map((feed) => ({
+        provider: 'redstone',
+        symbol: feed.alias,
+        chain_id: REDSTONE_MONAD_CHAIN_ID,
+        address: feed.address,
+        name: `RedStone ${feed.feedName}`,
+        // Runtime reads decimals() rather than trusting this display default.
+        decimals: 8,
+        category: this.inferCategory(feed.alias.split('/')[0]),
+        is_active: true,
+        source: 'redstone-monad-price-feed-registry',
+        metadata: {
+          feedName: feed.feedName,
+          priceFeedAddress: feed.address,
+          chainId: REDSTONE_MONAD_CHAIN_ID,
+          maxStalenessSeconds: feed.maxStalenessSeconds,
+          priceDeviationPercent: feed.priceDeviationPercent,
+          quoteType: 'price',
+          freshnessPolicy: 'latestRoundData updatedAt <= maxStalenessSeconds',
+          quorumStatus: 'shadow-only-pending-source-overlap-review',
+          registrySource: 'monad-crypto/protocols/mainnet/redstone.jsonc',
+        },
+      }))
+    );
+    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+      provider: 'redstone',
+      source: 'redstone-monad-price-feed-registry',
+      chainId: REDSTONE_MONAD_CHAIN_ID,
+      catalogSymbols: REDSTONE_MONAD_PRICE_FEEDS.map((feed) => feed.alias),
+    });
+    return result;
+  }
+
   // ─── Supra ────────────────────────────────────────────────────────
 
   async seedSupraFeedsFromHardcoded(): Promise<SyncResult> {
@@ -532,6 +601,11 @@ class FeedSyncService {
     }
 
     result.upserted = await upsertFeeds(feeds);
+    const monad = await this.seedRedStoneMonadPriceFeeds();
+    result.discovered += monad.discovered;
+    result.upserted += monad.upserted;
+    result.deactivated += monad.deactivated;
+    result.errors += monad.errors;
     return result;
   }
 

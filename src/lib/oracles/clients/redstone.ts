@@ -5,11 +5,17 @@ import {
   REDSTONE_API_BASE,
   isRedStoneSymbolSupportedAsync,
 } from '@/lib/oracles/constants/redstoneConstants';
+import {
+  REDSTONE_MONAD_CHAIN_ID,
+  REDSTONE_MONAD_PRICE_FEEDS,
+  resolveRedStoneMonadFeed,
+} from '@/lib/oracles/constants/redstoneMonad';
 import { redstoneSymbols } from '@/lib/oracles/constants/supportedSymbols';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
+import { redStoneMonadOnChainService } from '@/lib/oracles/services/redstoneMonadOnChainService';
 import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
-import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
+import { buildApiVerification, buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { toMilliseconds } from '@/lib/utils/timestamp';
@@ -20,12 +26,30 @@ import {
   type ConfidenceInterval,
   type RedStoneTokenOnChainData,
 } from '@/types/oracle';
+import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 
 const logger = createLogger('RedStoneClient');
 
 const REDSTONE_CACHE_TTL = {
   PRICE: 10000,
 };
+
+const REDSTONE_API_CHAINS: readonly Blockchain[] = [
+  Blockchain.ETHEREUM,
+  Blockchain.ARBITRUM,
+  Blockchain.OPTIMISM,
+  Blockchain.POLYGON,
+  Blockchain.AVALANCHE,
+  Blockchain.BASE,
+  Blockchain.BNB_CHAIN,
+  Blockchain.FANTOM,
+  Blockchain.LINEA,
+  Blockchain.MANTLE,
+  Blockchain.SCROLL,
+  Blockchain.ZKSYNC,
+];
+
+const REDSTONE_MONAD_RELIABILITY = 0.9;
 
 // Per-request hard timeout. The fetch call in fetchRealPrice has no native
 // timeout (the external `signal` is undefined when called from the snapshot
@@ -53,22 +77,14 @@ interface RedStonePriceResponse {
 
 export class RedStoneClient extends BaseOracleClient {
   name = OracleProvider.REDSTONE;
-  supportedChains = [
-    Blockchain.ETHEREUM,
-    Blockchain.ARBITRUM,
-    Blockchain.OPTIMISM,
-    Blockchain.POLYGON,
-    Blockchain.AVALANCHE,
-    Blockchain.BASE,
-    Blockchain.BNB_CHAIN,
-    Blockchain.FANTOM,
-    Blockchain.LINEA,
-    Blockchain.MANTLE,
-    Blockchain.SCROLL,
-    Blockchain.ZKSYNC,
-  ];
+  supportedChains = [...REDSTONE_API_CHAINS, Blockchain.MONAD];
 
-  supportedSymbolsList = redstoneSymbols;
+  protected supportedSymbolsList = Array.from(
+    new Set([
+      ...redstoneSymbols,
+      ...REDSTONE_MONAD_PRICE_FEEDS.map((feed) => feed.alias.split('/')[0]),
+    ])
+  );
 
   defaultUpdateIntervalMinutes = 10;
   private cache = new OracleCache();
@@ -355,12 +371,93 @@ export class RedStoneClient extends BaseOracleClient {
     };
   }
 
+  /**
+   * Monad uses a contract-backed path. RedStone's ordinary HTTP API must not
+   * be used as evidence that a price was published to Monad.
+   */
+  private async getMonadPrice(symbol: string, signal?: AbortSignal): Promise<PriceData> {
+    const feed = resolveRedStoneMonadFeed(symbol);
+    if (!feed) throw this.createUnsupportedSymbolError(symbol, Blockchain.MONAD);
+
+    const reading = await withOracleRetry(
+      () => redStoneMonadOnChainService.getPrice(feed, signal),
+      'redstone-monad:getPrice',
+      ORACLE_RETRY_PRESETS.standard,
+      signal
+    );
+    const dataAge = Math.max(0, Math.floor(Date.now() / 1000) - reading.updatedAt);
+    return this.validatePriceData(
+      {
+        provider: this.name,
+        chain: Blockchain.MONAD,
+        symbol: feed.alias,
+        price: reading.price,
+        timestamp: reading.timestamp,
+        decimals: reading.decimals,
+        source: `RedStone Monad on-chain feed:${feed.feedName}`,
+        priceId: feed.address,
+        feedId: feed.address,
+        roundId: reading.roundId.toString(),
+        answeredInRound: reading.answeredInRound.toString(),
+        startedAt: reading.startedAt,
+        dataAge,
+        dataSource: 'real',
+        ingestionTimestamp: Date.now(),
+        failureMode: FailureMode.NONE,
+        // This new provider is visible during a shadow period but cannot make
+        // a strict quorum pass until source-overlap review is explicitly done.
+        countsTowardOracleQuorum: false,
+        signalVector: buildSignalVector({
+          dataAgeSeconds: dataAge,
+          isOnChain: true,
+          hasVerification: true,
+          providerUptime: REDSTONE_MONAD_RELIABILITY * 100,
+          hasConfidence: false,
+          hasTimestamp: true,
+          hasDecimals: true,
+          hasSource: true,
+          verificationMethod: 'latestRoundData()+freshness-gate',
+        }),
+        verification: {
+          ...buildEvmVerification(
+            feed.address,
+            REDSTONE_MONAD_CHAIN_ID,
+            'latestRoundData()+decimals()+freshness-gate'
+          ),
+          feedHash: feed.address,
+          rawValue: reading.rawAnswer.toString(),
+          sourceTimestamp: reading.updatedAt,
+          valueExponent: -reading.decimals,
+          assetId: feed.feedName,
+        },
+      },
+      'redstone-monad:getPrice'
+    );
+  }
+
   async getPrice(
     symbol: string,
     chain?: Blockchain,
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
     this.validateGetPriceParams(symbol, options);
+
+    const monadFeed = resolveRedStoneMonadFeed(symbol);
+    // Preserve the historical API default for cross-chain assets, but route an
+    // asset that exists only in the Monad registry (for example MON) to its
+    // contract-backed source even when a caller omits `chain`.
+    const targetChain =
+      chain ??
+      (monadFeed !== null && !this.isApiSymbolSupported(symbol)
+        ? Blockchain.MONAD
+        : this.defaultChain);
+    if (targetChain === Blockchain.MONAD) {
+      try {
+        return await this.getMonadPrice(symbol, options?.signal);
+      } catch (error) {
+        this.handleGetPriceError(error, 'RedStone on Monad', 'REDSTONE_PRICE_ERROR');
+      }
+    }
 
     try {
       const realPrice = await this.fetchRealPrice(symbol, options?.signal);
@@ -413,10 +510,26 @@ export class RedStoneClient extends BaseOracleClient {
    * chain check — when the cache is cold.
    */
   override isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
-    if (isSymbolActiveInCacheSync('redstone', symbol)) {
-      return chain === undefined || this.supportedChains.includes(chain);
+    if (chain === Blockchain.MONAD) return resolveRedStoneMonadFeed(symbol) !== null;
+
+    const apiSupportsSymbol = this.isApiSymbolSupported(symbol);
+    if (chain === undefined) {
+      return apiSupportsSymbol || resolveRedStoneMonadFeed(symbol) !== null;
     }
-    return super.isSymbolSupported(symbol, chain);
+    return apiSupportsSymbol && REDSTONE_API_CHAINS.includes(chain);
+  }
+
+  override getSupportedChainsForSymbol(symbol: string): Blockchain[] {
+    const chains: Blockchain[] = [];
+    if (this.isApiSymbolSupported(symbol)) chains.push(...REDSTONE_API_CHAINS);
+    if (resolveRedStoneMonadFeed(symbol)) chains.push(Blockchain.MONAD);
+    return chains;
+  }
+
+  private isApiSymbolSupported(symbol: string): boolean {
+    if (isSymbolActiveInCacheSync('redstone', symbol)) return true;
+    const upperSymbol = symbol.toUpperCase();
+    return redstoneSymbols.includes(upperSymbol as (typeof redstoneSymbols)[number]);
   }
 
   override destroy(): void {
@@ -424,7 +537,9 @@ export class RedStoneClient extends BaseOracleClient {
   }
 
   async isSymbolSupportedAsync(symbol: string): Promise<boolean> {
-    return isRedStoneSymbolSupportedAsync(symbol);
+    return (
+      resolveRedStoneMonadFeed(symbol) !== null || (await isRedStoneSymbolSupportedAsync(symbol))
+    );
   }
 
   async getTokenOnChainData(symbol: string): Promise<RedStoneTokenOnChainData | null> {
