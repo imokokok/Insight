@@ -305,7 +305,7 @@ class FeedSyncService {
   // ─── Stork pushed feeds / Monad ───────────────────────────────────
 
   /**
-   * Seed only Stork's reviewed Monad pushed-feed pilot. Each row is activated
+   * Seed Stork's complete reviewed Monad pushed-feed set. Each row is activated
    * only when `getTemporalNumericValueV1` returns a current, correctly-scaled
    * observation; an advertised asset alone is never enough.
    */
@@ -350,6 +350,7 @@ class FeedSyncService {
         chainId: STORK_MONAD_CHAIN_ID,
         maxStalenessSeconds: feed.maxStalenessSeconds,
         priceDeviationPercent: feed.priceDeviationPercent,
+        quoteType: feed.alias.endsWith('.RR') ? 'reference-rate' : 'price',
         freshnessPolicy: 'getTemporalNumericValueV1 safe read and timestamp <= maxStalenessSeconds',
         quorumStatus: 'shadow-only-pending-source-overlap-review',
       },
