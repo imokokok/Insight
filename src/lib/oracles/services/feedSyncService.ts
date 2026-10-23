@@ -65,6 +65,72 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
 }
 
 /**
+ * Retire only feeds that disappeared from a reviewed, committed Monad catalog.
+ *
+ * This deliberately compares against the complete catalog rather than the
+ * subset that happened to pass this run's on-chain availability probe: a
+ * temporary RPC outage or stale feed must not erase coverage. Conversely, a
+ * catalog removal is an explicit reviewed change and must stop routing reads
+ * to the retired identifier. The source predicate keeps operator-managed rows
+ * and feeds from other seed paths out of scope.
+ */
+async function deactivateRetiredCuratedMonadFeeds(args: {
+  provider: 'pyth' | 'stork';
+  source: 'pyth-monad-sponsored-registry' | 'stork-monad-pushed-registry';
+  chainId: number;
+  catalogSymbols: readonly string[];
+}): Promise<number> {
+  const supabase = createServiceRoleClient();
+  const { data, error } = await supabase
+    .from('oracle_feeds')
+    .select('symbol')
+    .eq('provider', args.provider)
+    .eq('chain_id', args.chainId)
+    .eq('source', args.source)
+    .eq('is_active', true);
+  if (error) {
+    logger.error('Failed to load curated Monad feeds for reconciliation', normalizeError(error), {
+      provider: args.provider,
+    });
+    return 0;
+  }
+
+  const catalogSymbols = new Set(args.catalogSymbols);
+  const retiredSymbols = (data ?? [])
+    .map((row) => row.symbol)
+    .filter(
+      (symbol): symbol is string => typeof symbol === 'string' && !catalogSymbols.has(symbol)
+    );
+  if (retiredSymbols.length === 0) return 0;
+
+  const now = new Date().toISOString();
+  const results = await mapWithConcurrency(retiredSymbols, 4, async (symbol) => {
+    const { error: updateError } = await supabase
+      .from('oracle_feeds')
+      .update({
+        is_active: false,
+        updated_at: now,
+        deactivated_reason: 'curated_registry_retired',
+        deactivated_at: now,
+      })
+      .eq('provider', args.provider)
+      .eq('symbol', symbol)
+      .eq('chain_id', args.chainId)
+      .eq('source', args.source)
+      .eq('is_active', true);
+    if (updateError) {
+      logger.error('Failed to retire removed curated Monad feed', normalizeError(updateError), {
+        provider: args.provider,
+        symbol,
+      });
+      return false;
+    }
+    return true;
+  });
+  return results.filter(Boolean).length;
+}
+
+/**
  * Provider order used by `fullSync` when no single provider is requested.
  * `chainlink` is listed first for documentation value; the no-argument path
  * seeds it explicitly (catalog, then registry) before the remaining providers.
@@ -299,13 +365,19 @@ class FeedSyncService {
       },
     }));
     result.upserted = await upsertFeeds(feeds);
+    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+      provider: 'pyth',
+      source: 'pyth-monad-sponsored-registry',
+      chainId: PYTH_MONAD_CHAIN_ID,
+      catalogSymbols: PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias),
+    });
     return result;
   }
 
   // ─── Stork pushed feeds / Monad ───────────────────────────────────
 
   /**
-   * Seed only Stork's reviewed Monad pushed-feed pilot. Each row is activated
+   * Seed Stork's complete reviewed Monad pushed-feed set. Each row is activated
    * only when `getTemporalNumericValueV1` returns a current, correctly-scaled
    * observation; an advertised asset alone is never enough.
    */
@@ -350,11 +422,18 @@ class FeedSyncService {
         chainId: STORK_MONAD_CHAIN_ID,
         maxStalenessSeconds: feed.maxStalenessSeconds,
         priceDeviationPercent: feed.priceDeviationPercent,
+        quoteType: feed.alias.endsWith('.RR') ? 'reference-rate' : 'price',
         freshnessPolicy: 'getTemporalNumericValueV1 safe read and timestamp <= maxStalenessSeconds',
         quorumStatus: 'shadow-only-pending-source-overlap-review',
       },
     }));
     result.upserted = await upsertFeeds(feeds);
+    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+      provider: 'stork',
+      source: 'stork-monad-pushed-registry',
+      chainId: STORK_MONAD_CHAIN_ID,
+      catalogSymbols: STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
+    });
     return result;
   }
 

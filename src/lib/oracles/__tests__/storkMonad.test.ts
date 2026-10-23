@@ -32,15 +32,60 @@ function rpcReturning(result: `0x${string}`): RpcClientWithFallback {
 }
 
 describe('Stork Monad pushed-feed registry', () => {
-  it('uses reviewed unique asset IDs whose hashes match the contract bytes32 IDs', () => {
-    expect(STORK_MONAD_PUSHED_FEEDS).toHaveLength(5);
-    expect(new Set(STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.encodedAssetId)).size).toBe(5);
+  const documentedMonadAssetIds = [
+    'AAVEUSD',
+    'ADAUSD',
+    'APTUSD',
+    'ARBUSD',
+    'AUSDUSD',
+    'AVAXUSD',
+    'BERAUSD',
+    'BNBUSD',
+    'BTCUSD',
+    'CAKEUSD',
+    'DOGEUSD',
+    'EARNAUSDAUSD_RR',
+    'ETHUSD',
+    'HYPEUSD',
+    'LINKUSD',
+    'MONUSD',
+    'OPUSD',
+    'POLUSD',
+    'PYTHUSD',
+    'REDUSD',
+    'SBTCUSD',
+    'SEIUSD',
+    'SOLUSD',
+    'SUIUSD',
+    'SUSD',
+    'SUSDEUSD',
+    'TIAUSD',
+    'UNIUSD',
+    'USDCUSD',
+    'USDEUSD',
+    'USDTUSD',
+    'WBTCUSD',
+    'WEETHUSD',
+    'WETHUSD',
+    'WSTETHUSD',
+    'XAUUSD',
+    'XRPUSD',
+    'ZROUSD',
+  ];
+
+  it('uses the complete reviewed Monad set with unique asset IDs whose hashes match the contract bytes32 IDs', () => {
+    expect(STORK_MONAD_PUSHED_FEEDS).toHaveLength(38);
+    expect(STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.assetId)).toEqual(documentedMonadAssetIds);
+    expect(new Set(STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.encodedAssetId)).size).toBe(38);
     for (const feed of STORK_MONAD_PUSHED_FEEDS) {
       expect(keccak256(toHex(feed.assetId))).toBe(feed.encodedAssetId);
       expect(feed.maxStalenessSeconds).toBe(3600);
     }
     expect(resolveStorkMonadFeed('BTC')?.assetId).toBe('BTCUSD');
     expect(resolveStorkMonadFeed('USDC/USD')?.assetId).toBe('USDCUSD');
+    expect(resolveStorkMonadFeed('S')?.assetId).toBe('SUSD');
+    expect(resolveStorkMonadFeed('EARNAUSDA/USD.RR')?.assetId).toBe('EARNAUSDAUSD_RR');
+    expect(resolveStorkMonadFeed('EARNAUSDA')).toBeNull();
     expect(resolveStorkMonadFeed('NOT_A_FEED')).toBeNull();
   });
 });
@@ -136,8 +181,12 @@ describe('StorkMonadClient', () => {
         chainId: 143,
         feedHash: resolveStorkMonadFeed('BTC')!.encodedAssetId,
         rawValue: '81265292110690000000000',
+        sourceTimestampNs: `${BigInt(publishedAtMs) * 1_000_000n}`,
+        valueExponent: -18,
+        assetId: 'BTCUSD',
       },
     });
+    expect(result.confidence).toBeUndefined();
   });
 
   it('is Monad-only and recognizes both bare symbols and canonical pairs', () => {

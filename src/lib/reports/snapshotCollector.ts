@@ -326,6 +326,11 @@ export function buildProviderConsensusInputs(items: BatchResultItem[]): Consensu
 
   for (const item of items) {
     if (!item.price || item.price.price <= 0 || !Number.isFinite(item.price.price)) continue;
+    // A shadow-only observation is valuable for feed-health and divergence
+    // monitoring, but it has not passed the source-overlap / promotion review
+    // required to influence strict historical consensus. Keep the raw snapshot
+    // row elsewhere in this collector; exclude it only from this aggregate.
+    if (item.price.countsTowardOracleQuorum === false) continue;
     const prices = byProvider.get(item.provider) ?? [];
     prices.push(item.price);
     byProvider.set(item.provider, prices);

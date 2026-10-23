@@ -52,8 +52,9 @@ export class StorkMonadClient extends BaseOracleClient {
         price: reading.price,
         timestamp: reading.timestamp,
         decimals: 18,
-        confidence: 0.9,
-        confidenceSource: 'estimated',
+        // Stork's safe EVM getter attests timestamp/value freshness but does
+        // not publish a statistical interval. Do not manufacture a confidence
+        // number that downstream quality metrics could mistake for evidence.
         source: `Stork pushed feed on Monad:${feed.assetId}`,
         priceId: reading.encodedAssetId,
         feedId: reading.encodedAssetId,
@@ -70,7 +71,7 @@ export class StorkMonadClient extends BaseOracleClient {
           isOnChain: true,
           hasVerification: true,
           providerUptime: STORK_MONAD_RELIABILITY * 100,
-          hasConfidence: true,
+          hasConfidence: false,
           hasTimestamp: true,
           hasDecimals: true,
           hasSource: true,
@@ -85,6 +86,9 @@ export class StorkMonadClient extends BaseOracleClient {
           feedHash: reading.encodedAssetId,
           rawValue: reading.quantizedValue.toString(),
           sourceTimestamp: reading.sourceTimestamp,
+          sourceTimestampNs: reading.timestampNs.toString(),
+          valueExponent: -18,
+          assetId: reading.assetId,
         },
       };
       return this.validatePriceData(data, 'stork-monad:getPrice');

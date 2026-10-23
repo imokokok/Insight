@@ -238,6 +238,8 @@ export interface ProviderPriceDetail {
   confidence: number | null;
   reputationScore: number | null;
   status: 'success' | 'unsupported' | 'error';
+  /** False when the provider is an observation-only/shadow feed. */
+  countsTowardOracleQuorum: boolean;
 }
 
 export interface DepegWarning {
@@ -615,6 +617,10 @@ function buildProviderPrices(
       confidence: p.confidence,
       reputationScore: p.reputationScore,
       status: p.status,
+      // Older persisted/fixture responses predate the explicit field. They
+      // remain strict participants unless a source explicitly opts into the
+      // shadow-only state.
+      countsTowardOracleQuorum: p.countsTowardOracleQuorum !== false,
       timestamp: p.status === 'success' ? p.timestamp : null,
       source: p.source,
       retrievedAt: p.retrievedAt,
@@ -655,7 +661,9 @@ function computeMaxDeviation(
     targetProviders && targetProviders.length > 0
       ? entries.filter(([provider]) => targetProviders.includes(provider))
       : entries;
-  const successful = filtered.filter(([, d]) => d.status === 'success' && d.deviationPct !== null);
+  const successful = filtered.filter(
+    ([, d]) => d.status === 'success' && d.countsTowardOracleQuorum && d.deviationPct !== null
+  );
   if (successful.length === 0) return 0;
   const scored = inConsensusOrAll(successful, (d) => d.isOutlier);
   return Math.max(...scored.map(([, d]) => Math.abs(d.deviationPct as number)));
@@ -670,7 +678,9 @@ function computeSpread(
     targetProviders && targetProviders.length > 0
       ? entries.filter(([provider]) => targetProviders.includes(provider))
       : entries;
-  const successful = filtered.filter(([, d]) => d.status === 'success' && d.price > 0);
+  const successful = filtered.filter(
+    ([, d]) => d.status === 'success' && d.countsTowardOracleQuorum && d.price > 0
+  );
   const scored = inConsensusOrAll(successful, (d) => d.isOutlier);
   const prices = scored.map(([, d]) => d.price);
   if (prices.length < 2) return 0;
@@ -689,7 +699,7 @@ function computeStaleRisk(
   staleProviders: string[];
 } {
   const entries = Object.entries(providerPrices).filter(
-    ([, d]) => d.status === 'success' && d.dataAgeSeconds !== null
+    ([, d]) => d.status === 'success' && d.countsTowardOracleQuorum && d.dataAgeSeconds !== null
   );
   if (entries.length === 0) return { staleRisk: false, maxAge: 0, staleProviders: [] };
 
@@ -728,7 +738,11 @@ function classifyStalenessHardBlock(providerPrices: Record<string, ProviderPrice
   timestampAnomalyProviders: string[];
 } {
   const successful = Object.entries(providerPrices).filter(
-    ([, d]) => d.status === 'success' && d.dataAgeSeconds !== null && d.price > 0
+    ([, d]) =>
+      d.status === 'success' &&
+      d.countsTowardOracleQuorum &&
+      d.dataAgeSeconds !== null &&
+      d.price > 0
   );
   const absolutelyStale = successful.filter(
     ([, d]) => (d.dataAgeSeconds as number) >= HARD_STALE_BLOCK_SECONDS
@@ -1028,7 +1042,7 @@ function computeManipulationRisk(args: {
   let anomalyScore = 0;
   try {
     const successfulProviders = Object.values(args.providerPrices).filter(
-      (d) => d.status === 'success'
+      (d) => d.status === 'success' && d.countsTowardOracleQuorum
     );
     const absDevs = successfulProviders
       .map((d) => d.deviationPct)
@@ -1244,22 +1258,28 @@ const OBS_PRICE_SCALE = 1e8; // provider observation prices → uint256 (matches
  * Build the canonical provider-observation entries for the v2
  * providerObservationsHash from the consensus response. Each entry binds the
  * evidence source (provider), the observed value, freshness, and inclusion
- * status. `feedId` is left empty in v2.0 — feed-level granularity would require
- * an oracle_feeds lookup (a hot-path DB read this service deliberately avoids);
- * the provider namespace is the primary evidence key and is sufficient for the
- * v2.0 binding. Outlier providers remain `included` (they contributed to the
- * consensus); only unsupported/error providers are marked excluded.
+ * status. Feed IDs travel with the already-fetched provider reading, avoiding
+ * an extra hot-path registry lookup. Only observations that participated in
+ * strict consensus are included; shadow-only, outlier, unsupported, and error
+ * observations remain committed as explicit exclusions.
  */
 function buildProviderObservations(consensus: ConsensusPriceResponse): ProviderObservationEntry[] {
   return consensus.providers.map((p) => {
-    const included = p.status === 'success';
+    const included = p.status === 'success' && p.countsTowardOracleQuorum !== false && !p.isOutlier;
     let exclusionReason = '';
     if (!included) {
-      exclusionReason = p.status === 'unsupported' ? 'UNSUPPORTED' : 'ERROR';
+      exclusionReason =
+        p.status !== 'success'
+          ? p.status === 'unsupported'
+            ? 'UNSUPPORTED'
+            : 'ERROR'
+          : p.countsTowardOracleQuorum === false
+            ? 'SHADOW_ONLY'
+            : 'OUTLIER';
     }
     return {
       provider: p.provider,
-      feedId: '',
+      feedId: p.feedId ?? '',
       value: BigInt(Math.max(0, Math.round(p.price * OBS_PRICE_SCALE))),
       timestamp: BigInt(Math.floor((p.timestamp ?? Date.now()) / 1000)),
       dataAgeSeconds: BigInt(Math.max(0, Math.floor(p.dataAgeSeconds ?? 0))),
@@ -1404,7 +1424,7 @@ function applyV2IndependenceGate(
   warnings: string[]
 ): SafetyVerdict | null {
   const includedProviders = consensus.providers
-    .filter((p) => p.status === 'success')
+    .filter((p) => p.status === 'success' && p.countsTowardOracleQuorum !== false && !p.isOutlier)
     .map((p) => p.provider);
   const nonDerivedGroups = nonDerivedGroupCount(includedProviders);
   if (nonDerivedGroups >= V2_REQUIRED_NON_DERIVED_GROUPS) return null;
@@ -2026,6 +2046,7 @@ export async function preTradeSafetyCheck(
   const agreement = consensus.agreement;
 
   const reputationScores = Object.values(providerPrices)
+    .filter((d) => d.countsTowardOracleQuorum)
     .map((d) => d.reputationScore)
     .filter((s): s is number => s !== null);
   const minReputation = reputationScores.length > 0 ? Math.min(...reputationScores) : 75;
@@ -2293,7 +2314,7 @@ export async function preTradeSafetyCheck(
 
   // 9. Outlier provider warning (informational).
   const outliers = Object.entries(providerPrices)
-    .filter(([, d]) => d.isOutlier)
+    .filter(([, d]) => d.countsTowardOracleQuorum && d.isOutlier)
     .map(([provider]) => provider);
   if (outliers.length > 0) {
     warnings.push(`Outlier providers detected: ${outliers.join(', ')}.`);

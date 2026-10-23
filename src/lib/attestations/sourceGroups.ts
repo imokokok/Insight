@@ -19,8 +19,10 @@
  * sources must not satisfy independence. TWAP may still contribute to the quorum.
  */
 
-/** provider → source group (operator-level). Each of the 10 production
- *  providers is its own distinct operator; TWAP is the one derived exception. */
+/** provider → source group (operator-level). Each reviewed provider is its own
+ *  distinct operator; TWAP is the derived exception. Stork stays
+ *  shadow-only at runtime, so this mapping cannot make it pass a strict gate
+ *  until an explicit quorum promotion changes that policy. */
 export const PROVIDER_SOURCE_GROUP: Readonly<Record<string, string>> = {
   chainlink: 'chainlink',
   api3: 'api3',
@@ -31,6 +33,8 @@ export const PROVIDER_SOURCE_GROUP: Readonly<Record<string, string>> = {
   twap: 'twap',
   reflector: 'reflector',
   flare: 'flare',
+  pyth: 'pyth',
+  stork: 'stork',
 } as const;
 
 /** Groups that are DERIVED (on-chain, not externally attested). Excluded from

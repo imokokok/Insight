@@ -137,6 +137,43 @@ describe('resolveSnapshotSlot', () => {
 });
 
 describe('buildProviderConsensusInputs', () => {
+  it('keeps a shadow-only Stork observation in collection but out of strict consensus', () => {
+    const now = Date.now();
+    const out = buildProviderConsensusInputs([
+      {
+        provider: 'pyth',
+        symbol: 'ETH',
+        feedChainId: 143,
+        price: {
+          provider: 'pyth',
+          symbol: 'ETH/USD',
+          chain: 'monad',
+          price: 100,
+          timestamp: now,
+        },
+        error: null,
+        skipped: false,
+      },
+      {
+        provider: 'stork',
+        symbol: 'ETH',
+        feedChainId: 143,
+        price: {
+          provider: 'stork',
+          symbol: 'ETH/USD',
+          chain: 'monad',
+          price: 101,
+          timestamp: now,
+          countsTowardOracleQuorum: false,
+        },
+        error: null,
+        skipped: false,
+      },
+    ]);
+
+    expect(out).toEqual([expect.objectContaining({ provider: 'pyth', price: 100 })]);
+  });
+
   it('collapses multiple chains from the same provider into one consensus vote', () => {
     const now = Date.now();
     const result = buildProviderConsensusInputs([

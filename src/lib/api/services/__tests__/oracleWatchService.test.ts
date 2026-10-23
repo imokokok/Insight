@@ -57,6 +57,7 @@ function makeProvider(overrides: Partial<ConsensusProviderPrice> = {}): Consensu
     confidence: null,
     timestamp: Date.now(),
     dataAgeSeconds: null,
+    countsTowardOracleQuorum: true,
     reputationScore: null,
     status: 'success',
     isStale: false,
@@ -117,6 +118,42 @@ describe('getOracleWatchSignal', () => {
     expect(signal.agreement).toBe(0.99);
     expect(signal.participantCount).toBe(3);
     expect(signal.reason).toBe('within_tolerance');
+  });
+
+  it('records a shadow-only Stork observation without letting it change strict Watch gates', async () => {
+    mockGetConsensusPrice.mockResolvedValueOnce(
+      makeResponse({
+        agreement: 0.99,
+        participantCount: 3,
+        providers: [
+          makeProvider({ deviationPct: 0.2, feedId: 'chainlink-eth' }),
+          makeProvider({ deviationPct: 0.1, provider: 'pyth', feedId: 'pyth-eth' }),
+          makeProvider({ deviationPct: 0.3, provider: 'redstone', feedId: 'redstone-eth' }),
+          makeProvider({
+            provider: 'stork',
+            price: 3300,
+            deviationPct: 10,
+            isOutlier: true,
+            countsTowardOracleQuorum: false,
+            feedId: '0xstorketh',
+          }),
+        ],
+      })
+    );
+
+    const signal = await getOracleWatchSignal('ETH', 'monad');
+
+    expect(signal.verdict).toBe('normal');
+    expect(signal.maxDeviationPct).toBe(0.3);
+    expect(signal.outlierCount).toBe(0);
+    expect(signal.sourceGroupCount).toBe(3);
+    expect(signal.providers).toContainEqual(
+      expect.objectContaining({
+        provider: 'stork',
+        feedId: '0xstorketh',
+        countsTowardOracleQuorum: false,
+      })
+    );
   });
 
   it('returns CAUTION / proceed_with_caution when max deviation breaches the caution threshold', async () => {

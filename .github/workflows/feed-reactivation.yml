@@ -49,6 +49,7 @@ jobs:
           ALCHEMY_SCROLL_RPC: ${{ secrets.ALCHEMY_SCROLL_RPC }}
           ALCHEMY_MANTLE_RPC: ${{ secrets.ALCHEMY_MANTLE_RPC }}
           ALCHEMY_LINEA_RPC: ${{ secrets.ALCHEMY_LINEA_RPC }}
+          ALCHEMY_MONAD_RPC: ${{ secrets.ALCHEMY_MONAD_RPC }}
           ALCHEMY_SOLANA_RPC: ${{ secrets.ALCHEMY_SOLANA_RPC }}
           TRON_RPC_URL: ${{ secrets.TRON_RPC_URL }}
           TRON_SOLIDITY_RPC: ${{ secrets.TRON_SOLIDITY_RPC }}
