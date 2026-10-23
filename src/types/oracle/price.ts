@@ -25,6 +25,14 @@ export interface OnChainVerification {
   feedHash?: string;
   rawValue?: string;
   sourceTimestamp?: number;
+  /** Provider-native numeric scale (Pyth exponent / Stork fixed-point scale). */
+  valueExponent?: number;
+  /** Provider-native absolute confidence interval, when published. */
+  rawConfidence?: number;
+  /** Serialized provider timestamp when it exceeds JS-safe integer precision. */
+  sourceTimestampNs?: string;
+  /** Provider-native asset key paired with the canonical feed hash. */
+  assetId?: string;
   signatureScheme?: 'ed25519' | 'secp256k1';
   recoveryId?: number;
 }

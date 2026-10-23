@@ -44,6 +44,12 @@ export interface ConsensusProviderPrice {
   fetchDurationMs?: number;
   timestampProvenance?: 'provider_age' | 'provider_timestamp' | 'unknown';
   dataAgeSeconds: number | null;
+  /**
+   * Canonical feed identifier from the provider response. This is distinct
+   * from `source` (a human-readable provenance label) and is carried into
+   * signed pre-trade / Watch observation commitments.
+   */
+  feedId?: string;
   source?: string;
   verification?: PriceData['verification'];
   verificationLevel?: PriceData['verificationLevel'];
@@ -323,6 +329,7 @@ function buildProviderPrice(
           ? 'provider_age'
           : 'provider_timestamp',
     dataAgeSeconds,
+    feedId: priceData?.feedId ?? priceData?.priceId ?? priceData?.verification?.feedHash,
     source: priceData?.source,
     verification: priceData?.verification,
     verificationLevel: priceData?.verificationLevel,

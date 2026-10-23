@@ -16,6 +16,7 @@ import {
   PYTH_MONAD_CORE_ADDRESS,
   PYTH_MONAD_SPONSORED_FEEDS,
 } from '../constants/pythMonad';
+import { REDSTONE_MONAD_CHAIN_ID, REDSTONE_MONAD_PRICE_FEEDS } from '../constants/redstoneMonad';
 import { REFLECTOR_ASSET_CONTRACT_MAP } from '../constants/reflectorConstants';
 import {
   STORK_MONAD_CHAIN_ID,
@@ -33,6 +34,7 @@ import {
 } from './chainlinkDataSources';
 import { feedRegistryService } from './feedRegistryService';
 import { pythMonadOnChainService } from './pythMonadOnChainService';
+import { redStoneMonadOnChainService } from './redstoneMonadOnChainService';
 import { storkMonadOnChainService } from './storkMonadOnChainService';
 import { WINKLINK_PRICE_FEEDS } from './winklinkRealDataService';
 
@@ -62,6 +64,75 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
     return 0;
   }
   return data?.length || 0;
+}
+
+/**
+ * Retire only feeds that disappeared from a reviewed, committed Monad catalog.
+ *
+ * This deliberately compares against the complete catalog rather than the
+ * subset that happened to pass this run's on-chain availability probe: a
+ * temporary RPC outage or stale feed must not erase coverage. Conversely, a
+ * catalog removal is an explicit reviewed change and must stop routing reads
+ * to the retired identifier. The source predicate keeps operator-managed rows
+ * and feeds from other seed paths out of scope.
+ */
+async function deactivateRetiredCuratedMonadFeeds(args: {
+  provider: 'pyth' | 'stork' | 'redstone';
+  source:
+    | 'pyth-monad-sponsored-registry'
+    | 'stork-monad-pushed-registry'
+    | 'redstone-monad-price-feed-registry';
+  chainId: number;
+  catalogSymbols: readonly string[];
+}): Promise<number> {
+  const supabase = createServiceRoleClient();
+  const { data, error } = await supabase
+    .from('oracle_feeds')
+    .select('symbol')
+    .eq('provider', args.provider)
+    .eq('chain_id', args.chainId)
+    .eq('source', args.source)
+    .eq('is_active', true);
+  if (error) {
+    logger.error('Failed to load curated Monad feeds for reconciliation', normalizeError(error), {
+      provider: args.provider,
+    });
+    return 0;
+  }
+
+  const catalogSymbols = new Set(args.catalogSymbols);
+  const retiredSymbols = (data ?? [])
+    .map((row) => row.symbol)
+    .filter(
+      (symbol): symbol is string => typeof symbol === 'string' && !catalogSymbols.has(symbol)
+    );
+  if (retiredSymbols.length === 0) return 0;
+
+  const now = new Date().toISOString();
+  const results = await mapWithConcurrency(retiredSymbols, 4, async (symbol) => {
+    const { error: updateError } = await supabase
+      .from('oracle_feeds')
+      .update({
+        is_active: false,
+        updated_at: now,
+        deactivated_reason: 'curated_registry_retired',
+        deactivated_at: now,
+      })
+      .eq('provider', args.provider)
+      .eq('symbol', symbol)
+      .eq('chain_id', args.chainId)
+      .eq('source', args.source)
+      .eq('is_active', true);
+    if (updateError) {
+      logger.error('Failed to retire removed curated Monad feed', normalizeError(updateError), {
+        provider: args.provider,
+        symbol,
+      });
+      return false;
+    }
+    return true;
+  });
+  return results.filter(Boolean).length;
 }
 
 /**
@@ -299,13 +370,19 @@ class FeedSyncService {
       },
     }));
     result.upserted = await upsertFeeds(feeds);
+    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+      provider: 'pyth',
+      source: 'pyth-monad-sponsored-registry',
+      chainId: PYTH_MONAD_CHAIN_ID,
+      catalogSymbols: PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias),
+    });
     return result;
   }
 
   // ─── Stork pushed feeds / Monad ───────────────────────────────────
 
   /**
-   * Seed only Stork's reviewed Monad pushed-feed pilot. Each row is activated
+   * Seed Stork's complete reviewed Monad pushed-feed set. Each row is activated
    * only when `getTemporalNumericValueV1` returns a current, correctly-scaled
    * observation; an advertised asset alone is never enough.
    */
@@ -350,11 +427,82 @@ class FeedSyncService {
         chainId: STORK_MONAD_CHAIN_ID,
         maxStalenessSeconds: feed.maxStalenessSeconds,
         priceDeviationPercent: feed.priceDeviationPercent,
+        quoteType: feed.alias.endsWith('.RR') ? 'reference-rate' : 'price',
         freshnessPolicy: 'getTemporalNumericValueV1 safe read and timestamp <= maxStalenessSeconds',
         quorumStatus: 'shadow-only-pending-source-overlap-review',
       },
     }));
     result.upserted = await upsertFeeds(feeds);
+    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+      provider: 'stork',
+      source: 'stork-monad-pushed-registry',
+      chainId: STORK_MONAD_CHAIN_ID,
+      catalogSymbols: STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
+    });
+    return result;
+  }
+
+  // ─── RedStone price feeds / Monad ─────────────────────────────────
+
+  /**
+   * Seed only direct USD feeds. The public deployment registry also includes
+   * fundamental exchange-rate feeds, which must not be misclassified as USD.
+   */
+  async seedRedStoneMonadPriceFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'redstone',
+      discovered: REDSTONE_MONAD_PRICE_FEEDS.length,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+
+    const verification = await mapWithConcurrency(REDSTONE_MONAD_PRICE_FEEDS, 4, async (feed) => {
+      try {
+        await redStoneMonadOnChainService.getPrice(feed);
+        return { feed, usable: true } as const;
+      } catch (error) {
+        logger.warn('Skipped unusable RedStone Monad price feed', {
+          alias: feed.alias,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return { feed, usable: false } as const;
+      }
+    });
+    const usableFeeds = verification.filter((entry) => entry.usable).map((entry) => entry.feed);
+    result.errors = verification.length - usableFeeds.length;
+
+    result.upserted = await upsertFeeds(
+      usableFeeds.map((feed) => ({
+        provider: 'redstone',
+        symbol: feed.alias,
+        chain_id: REDSTONE_MONAD_CHAIN_ID,
+        address: feed.address,
+        name: `RedStone ${feed.feedName}`,
+        // Runtime reads decimals() rather than trusting this display default.
+        decimals: 8,
+        category: this.inferCategory(feed.alias.split('/')[0]),
+        is_active: true,
+        source: 'redstone-monad-price-feed-registry',
+        metadata: {
+          feedName: feed.feedName,
+          priceFeedAddress: feed.address,
+          chainId: REDSTONE_MONAD_CHAIN_ID,
+          maxStalenessSeconds: feed.maxStalenessSeconds,
+          priceDeviationPercent: feed.priceDeviationPercent,
+          quoteType: 'price',
+          freshnessPolicy: 'latestRoundData updatedAt <= maxStalenessSeconds',
+          quorumStatus: 'shadow-only-pending-source-overlap-review',
+          registrySource: 'monad-crypto/protocols/mainnet/redstone.jsonc',
+        },
+      }))
+    );
+    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+      provider: 'redstone',
+      source: 'redstone-monad-price-feed-registry',
+      chainId: REDSTONE_MONAD_CHAIN_ID,
+      catalogSymbols: REDSTONE_MONAD_PRICE_FEEDS.map((feed) => feed.alias),
+    });
     return result;
   }
 
@@ -453,6 +601,11 @@ class FeedSyncService {
     }
 
     result.upserted = await upsertFeeds(feeds);
+    const monad = await this.seedRedStoneMonadPriceFeeds();
+    result.discovered += monad.discovered;
+    result.upserted += monad.upserted;
+    result.deactivated += monad.deactivated;
+    result.errors += monad.errors;
     return result;
   }
 

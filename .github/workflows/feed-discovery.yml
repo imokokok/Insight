@@ -42,6 +42,7 @@ jobs:
         provider:
           - chainlink
           - pyth
+          - stork
           - supra
           - dia
           - redstone
@@ -70,6 +71,7 @@ jobs:
           ALCHEMY_SCROLL_RPC: ${{ secrets.ALCHEMY_SCROLL_RPC }}
           ALCHEMY_MANTLE_RPC: ${{ secrets.ALCHEMY_MANTLE_RPC }}
           ALCHEMY_LINEA_RPC: ${{ secrets.ALCHEMY_LINEA_RPC }}
+          ALCHEMY_MONAD_RPC: ${{ secrets.ALCHEMY_MONAD_RPC }}
           ALCHEMY_SOLANA_RPC: ${{ secrets.ALCHEMY_SOLANA_RPC }}
           TRON_RPC_URL: ${{ secrets.TRON_RPC_URL }}
           TRON_SOLIDITY_RPC: ${{ secrets.TRON_SOLIDITY_RPC }}
@@ -84,7 +86,7 @@ jobs:
             *) echo "::error::Invalid sync mode"; exit 1 ;;
           esac
           case "$PINNED" in
-            ''|chainlink|pyth|supra|dia|redstone|api3|winklink|twap|twap-token|reflector|flare) ;;
+            ''|chainlink|pyth|stork|supra|dia|redstone|api3|winklink|twap|twap-token|reflector|flare) ;;
             *) echo "::error::Invalid provider"; exit 1 ;;
           esac
           # If the dispatcher pinned a single provider, skip the others.
@@ -95,12 +97,13 @@ jobs:
           echo "Syncing ${PROVIDER} in ${MODE} mode..."
           # Constant-only providers: these have no enumerable live directory, so
           # `discover` mode is a no-op (it only verifies existing rows and adds
-          # nothing). TWAP pools/token metadata and the Pyth Monad sponsored
-          # registry are policy-curated in code and MUST be written via `seed`
-          # mode. WINkLink and Reflector now have
-          # proper discoverers and therefore stay on the verified discover path.
+          # nothing). TWAP pools/token metadata and the reviewed Pyth/Stork
+          # Monad registries are policy-curated in code and MUST be written via
+          # `seed` mode. Pyth/Stork seeders also re-read every entry on-chain
+          # before admitting it. WINkLink and Reflector now have proper
+          # discoverers and therefore stay on the verified discover path.
           case "${PROVIDER}" in
-            pyth|twap|twap-token)
+            pyth|stork|twap|twap-token)
               node .github/cron-dist/sync-feeds.mjs --mode=seed --provider="${PROVIDER}"
               ;;
             *)

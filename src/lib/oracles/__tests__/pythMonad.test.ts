@@ -1,6 +1,7 @@
 import { PythMonadClient } from '@/lib/oracles/clients/pythMonad';
 import {
   PYTH_MONAD_CORE_ADDRESS,
+  PYTH_MONAD_RPC_ENDPOINTS,
   PYTH_MONAD_SPONSORED_FEEDS,
   resolvePythMonadFeed,
 } from '@/lib/oracles/constants/pythMonad';
@@ -71,7 +72,7 @@ describe('PythMonadOnChainService', () => {
     expect(result.confidenceRatio).toBeCloseTo(0.00005143, 8);
     expect(rpc.ethCall).toHaveBeenCalledWith(
       '143',
-      ['https://rpc.monad.xyz'],
+      PYTH_MONAD_RPC_ENDPOINTS,
       PYTH_MONAD_CORE_ADDRESS,
       expect.stringMatching(/^0x96834ad3/),
       undefined
@@ -140,6 +141,9 @@ describe('PythMonadClient', () => {
         contractAddress: PYTH_MONAD_CORE_ADDRESS,
         chainId: 143,
         explorerUrl: `https://monadscan.com/address/${PYTH_MONAD_CORE_ADDRESS}#readContract`,
+        feedHash: `0x${resolvePythMonadFeed('BTC')!.id}`,
+        valueExponent: -8,
+        rawConfidence: 4.17946651,
       },
     });
     expect(result.confidenceInterval?.widthPercentage).toBeCloseTo(0.010286, 5);

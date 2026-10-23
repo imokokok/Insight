@@ -623,7 +623,7 @@ const api3Symbols = [...new Set(Object.values(API3_AVAILABLE_PAIRS).flat())] as 
 // registry. Keep pair notation for the `.RR` reference-rate feeds.
 const pythSymbols = PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias);
 
-// Stork support is restricted to the committed Monad pushed-feed pilot set.
+// Stork support is derived from the complete committed Monad pushed-feed set.
 const storkSymbols = STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias);
 
 // WINkLink supported symbols (primarily supports TRON ecosystem, only including trading pairs with real contract addresses)

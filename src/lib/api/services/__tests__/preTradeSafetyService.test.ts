@@ -171,6 +171,7 @@ function makeProvider(overrides: Partial<ConsensusProviderPrice> = {}): Consensu
     confidence: 0.95,
     timestamp: Date.now(),
     dataAgeSeconds: 5,
+    countsTowardOracleQuorum: true,
     reputationScore: 90,
     status: 'success',
     ...overrides,
@@ -964,6 +965,37 @@ describe('preTradeSafetyCheck — v2 schema', () => {
     expect(arg.providerObservations[0].provider).toBe('chainlink');
     // Stubbed v2 attestation flows into the result.
     expect(result.attestation?.schemaVersion).toBe(2);
+  });
+
+  it('commits a Stork shadow observation with its feed ID but excludes it from v2 gates', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, feedId: 'chainlink-eth' }),
+      makeProvider({ provider: 'redstone' as OracleProvider, feedId: 'redstone-eth' }),
+      makeProvider({ provider: 'api3' as OracleProvider, feedId: 'api3-eth' }),
+      makeProvider({
+        provider: 'stork' as OracleProvider,
+        price: 1,
+        deviationPct: -99,
+        isOutlier: true,
+        countsTowardOracleQuorum: false,
+        feedId: '0xstorketh',
+      }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers, { participantCount: 3 }));
+
+    const result = await preTradeSafetyCheck(makeInput({ schemaVersion: 2 }));
+
+    expect(result.verdict).toBe('PASS');
+    expect(result.maxDeviationPct).toBe(0.1);
+    const observations = mockedSignAttestationV2.mock.calls[0][0].providerObservations;
+    expect(observations).toContainEqual(
+      expect.objectContaining({
+        provider: 'stork',
+        feedId: '0xstorketh',
+        included: false,
+        exclusionReason: 'SHADOW_ONLY',
+      })
+    );
   });
 
   it('v2 destinationAsset defaults to the source asset when omitted (degenerate pair)', async () => {

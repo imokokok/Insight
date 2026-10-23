@@ -91,6 +91,8 @@ export class PythMonadClient extends BaseOracleClient {
           feedHash: reading.feedId,
           rawValue: reading.price.toString(),
           sourceTimestamp: reading.publishTime,
+          valueExponent: reading.exponent,
+          rawConfidence: reading.conf,
         },
       };
       return this.validatePriceData(data, 'pyth-monad:getPrice');

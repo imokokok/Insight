@@ -10,7 +10,16 @@ export const PYTH_MONAD_CHAIN_ID = 143;
 
 export const PYTH_MONAD_CORE_ADDRESS = '0x2880aB155794e7179c9eE2e38200202908C17B43' as const;
 
-export const PYTH_MONAD_RPC_ENDPOINTS = ['https://rpc.monad.xyz'] as const;
+// Keep Pyth Core reads on the same redundant Monad endpoint set used by the
+// Stork integration. A sponsored feed can be perfectly healthy while one
+// public RPC is congested; one endpoint is not a trustworthy availability gate.
+export const PYTH_MONAD_RPC_ENDPOINTS = [
+  'https://rpc.monad.xyz',
+  'https://rpc1.monad.xyz',
+  'https://rpc2.monad.xyz',
+  'https://rpc3.monad.xyz',
+  'https://rpc-mainnet.monadinfra.com',
+] as const;
 
 export interface PythMonadFeed {
   /** Pyth's canonical pair name. `.RR` denotes a rate/reference pair. */
