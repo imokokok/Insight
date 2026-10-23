@@ -17,6 +17,11 @@ import {
   PYTH_MONAD_SPONSORED_FEEDS,
 } from '../constants/pythMonad';
 import { REFLECTOR_ASSET_CONTRACT_MAP } from '../constants/reflectorConstants';
+import {
+  STORK_MONAD_CHAIN_ID,
+  STORK_MONAD_CONTRACT_ADDRESS,
+  STORK_MONAD_PUSHED_FEEDS,
+} from '../constants/storkMonad';
 import { getAssetClass, redstoneSymbols } from '../constants/supportedSymbols';
 import { SUPRA_PAIR_INDEX_MAP } from '../constants/supraConstants';
 import { TWAP_POOL_ADDRESSES, TWAP_TOKEN_ADDRESSES } from '../constants/twapConstants';
@@ -28,6 +33,7 @@ import {
 } from './chainlinkDataSources';
 import { feedRegistryService } from './feedRegistryService';
 import { pythMonadOnChainService } from './pythMonadOnChainService';
+import { storkMonadOnChainService } from './storkMonadOnChainService';
 import { WINKLINK_PRICE_FEEDS } from './winklinkRealDataService';
 
 const logger = createLogger('FeedSyncService');
@@ -66,6 +72,7 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
 const SEED_PROVIDER_ORDER = [
   'chainlink',
   'pyth',
+  'stork',
   'supra',
   'dia',
   'redstone',
@@ -289,6 +296,62 @@ class FeedSyncService {
         priceDeviationPercent: feed.priceDeviationPercent,
         quoteType: feed.alias.endsWith('.RR') ? 'reference-rate' : 'price',
         freshnessPolicy: 'publish_time <= 2 * sponsored_time_difference',
+      },
+    }));
+    result.upserted = await upsertFeeds(feeds);
+    return result;
+  }
+
+  // ─── Stork pushed feeds / Monad ───────────────────────────────────
+
+  /**
+   * Seed only Stork's reviewed Monad pushed-feed pilot. Each row is activated
+   * only when `getTemporalNumericValueV1` returns a current, correctly-scaled
+   * observation; an advertised asset alone is never enough.
+   */
+  async seedStorkMonadPushedFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'stork',
+      discovered: STORK_MONAD_PUSHED_FEEDS.length,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+
+    const verification = await mapWithConcurrency(STORK_MONAD_PUSHED_FEEDS, 4, async (feed) => {
+      try {
+        await storkMonadOnChainService.getPrice(feed);
+        return { feed, usable: true } as const;
+      } catch (error) {
+        logger.warn('Skipped unusable Stork Monad pushed feed', {
+          alias: feed.alias,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return { feed, usable: false } as const;
+      }
+    });
+    const usableFeeds = verification.filter((entry) => entry.usable).map((entry) => entry.feed);
+    result.errors = verification.length - usableFeeds.length;
+
+    const feeds: OracleFeedInsert[] = usableFeeds.map((feed) => ({
+      provider: 'stork',
+      symbol: feed.alias,
+      chain_id: STORK_MONAD_CHAIN_ID,
+      address: STORK_MONAD_CONTRACT_ADDRESS,
+      name: `Stork ${feed.alias}`,
+      decimals: 18,
+      category: this.inferCategory(feed.alias.split('/')[0]),
+      is_active: true,
+      source: 'stork-monad-pushed-registry',
+      metadata: {
+        assetId: feed.assetId,
+        encodedAssetId: feed.encodedAssetId,
+        storkContract: STORK_MONAD_CONTRACT_ADDRESS,
+        chainId: STORK_MONAD_CHAIN_ID,
+        maxStalenessSeconds: feed.maxStalenessSeconds,
+        priceDeviationPercent: feed.priceDeviationPercent,
+        freshnessPolicy: 'getTemporalNumericValueV1 safe read and timestamp <= maxStalenessSeconds',
+        quorumStatus: 'shadow-only-pending-source-overlap-review',
       },
     }));
     result.upserted = await upsertFeeds(feeds);
@@ -710,6 +773,8 @@ class FeedSyncService {
         return this.syncChainlinkFeedsFromCatalog();
       case 'pyth':
         return this.seedPythMonadSponsoredFeeds();
+      case 'stork':
+        return this.seedStorkMonadPushedFeeds();
       case 'supra':
         return this.seedSupraFeedsFromHardcoded();
       case 'dia':

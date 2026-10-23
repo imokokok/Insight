@@ -21,6 +21,7 @@ const logger = createLogger('FeedDiscoveryService');
 const DISCOVER_PROVIDER_ORDER = [
   'chainlink',
   'pyth',
+  'stork',
   'supra',
   'dia',
   'redstone',
@@ -103,6 +104,10 @@ class FeedDiscoveryService {
       // calling Hermes or treating a public off-chain list as authoritative.
       case 'pyth':
         return verifyExistingFeeds('pyth');
+      // Stork's approved Monad feed list is checked in and seeded separately;
+      // this pass verifies the actual safe contract reads before keeping rows active.
+      case 'stork':
+        return verifyExistingFeeds('stork');
       case 'supra':
         return discoverSupraFeeds();
       case 'dia':

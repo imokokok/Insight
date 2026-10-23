@@ -15,6 +15,7 @@ const alchemyRpcSchema = z.object({
   bnb: z.string().url().optional().default(''),
   avalanche: z.string().url().optional().default(''),
   linea: z.string().url().optional().default(''),
+  monad: z.string().url().optional().default(''),
 });
 
 // Alchemy API keys are appended as the last URL path segment
@@ -55,6 +56,7 @@ function parseAlchemyRpc() {
     bnb: process.env.ALCHEMY_BNB_RPC || undefined,
     avalanche: process.env.ALCHEMY_AVALANCHE_RPC || undefined,
     linea: process.env.ALCHEMY_LINEA_RPC || undefined,
+    monad: process.env.ALCHEMY_MONAD_RPC || undefined,
   };
   const result = alchemyRpcSchema.safeParse(raw);
   if (!result.success) {

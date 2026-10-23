@@ -7,6 +7,7 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 export const providerNames: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: 'Chainlink',
   [OracleProvider.PYTH]: 'Pyth',
+  [OracleProvider.STORK]: 'Stork',
   [OracleProvider.API3]: 'API3',
   [OracleProvider.REDSTONE]: 'RedStone',
   [OracleProvider.DIA]: 'DIA',
@@ -111,6 +112,7 @@ export const chainColors: Record<Blockchain, string> = {
 export const oracleColors: Record<OracleProvider, string> = {
   [OracleProvider.CHAINLINK]: configChartColors.oracle.chainlink,
   [OracleProvider.PYTH]: configChartColors.oracle.pyth,
+  [OracleProvider.STORK]: configChartColors.oracle.stork,
   [OracleProvider.API3]: configChartColors.oracle.api3,
   [OracleProvider.REDSTONE]: configChartColors.oracle.redstone,
   [OracleProvider.DIA]: configChartColors.oracle.dia,
@@ -131,6 +133,7 @@ export const ORACLE_EXPECTED_INTERVALS: Record<string, number> = {
   winklink: 1800,
   chainlink: 3600,
   pyth: 3600,
+  stork: 3600,
   api3: 3600,
   dia: 3600,
   band: 120,

@@ -8,6 +8,7 @@ import { flareConfig } from './flare';
 import { pythConfig } from './pyth';
 import { redstoneConfig } from './redstone';
 import { reflectorConfig } from './reflector';
+import { storkConfig } from './stork';
 import { supraConfig } from './supra';
 import { twapConfig } from './twap';
 import { winklinkConfig } from './winklink';
@@ -17,6 +18,7 @@ import type { OracleConfig } from './types';
 const oracleConfigs: Record<OracleProvider, OracleConfig> = {
   [OracleProvider.CHAINLINK]: chainlinkConfig,
   [OracleProvider.PYTH]: pythConfig,
+  [OracleProvider.STORK]: storkConfig,
   [OracleProvider.API3]: api3Config,
   [OracleProvider.REDSTONE]: redstoneConfig,
   [OracleProvider.DIA]: diaConfig,
