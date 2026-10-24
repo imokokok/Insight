@@ -1,5 +1,6 @@
 import { CHRONICLE_MONAD_PRICE_FEEDS } from '@/lib/oracles/constants/chronicleMonad';
 import { PYTH_MONAD_SPONSORED_FEEDS } from '@/lib/oracles/constants/pythMonad';
+import { PYTH_SOLANA_SPONSORED_FEEDS } from '@/lib/oracles/constants/pythSolana';
 import { STORK_MONAD_PUSHED_FEEDS } from '@/lib/oracles/constants/storkMonad';
 import {
   API3_AVAILABLE_PAIRS,
@@ -48,7 +49,7 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
     Blockchain.BASE,
     Blockchain.MONAD,
   ],
-  [OracleProvider.PYTH]: [Blockchain.MONAD],
+  [OracleProvider.PYTH]: [Blockchain.MONAD, Blockchain.SOLANA],
   [OracleProvider.STORK]: [Blockchain.MONAD],
   [OracleProvider.CHRONICLE]: [Blockchain.MONAD],
   [OracleProvider.API3]: [
@@ -117,6 +118,7 @@ export const ORACLE_SUPPORTED_CHAINS: Record<OracleProvider, readonly Blockchain
 const PAIRS_BY_PROVIDER: Partial<Record<OracleProvider, Record<string, string[]>>> = {
   [OracleProvider.PYTH]: {
     [Blockchain.MONAD]: PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias),
+    [Blockchain.SOLANA]: PYTH_SOLANA_SPONSORED_FEEDS.map((feed) => feed.alias),
   },
   [OracleProvider.STORK]: {
     [Blockchain.MONAD]: STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),

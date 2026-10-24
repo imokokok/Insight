@@ -2,11 +2,16 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 
 import { CHRONICLE_MONAD_PRICE_FEEDS } from '../../constants/chronicleMonad';
 import { PYTH_MONAD_SPONSORED_FEEDS } from '../../constants/pythMonad';
+import {
+  PYTH_SOLANA_PRICE_UPDATE_OWNER_PROGRAM_ID,
+  PYTH_SOLANA_SPONSORED_FEEDS,
+} from '../../constants/pythSolana';
 import { STORK_MONAD_PUSHED_FEEDS } from '../../constants/storkMonad';
 import { SUPRA_MONAD_PUSHED_FEEDS } from '../../constants/supraMonad';
 import { chronicleMonadOnChainService } from '../chronicleMonadOnChainService';
 import { feedSyncService } from '../feedSyncService';
 import { pythMonadOnChainService } from '../pythMonadOnChainService';
+import { pythSolanaOnChainService } from '../pythSolanaOnChainService';
 import { storkMonadOnChainService } from '../storkMonadOnChainService';
 import { supraMonadOnChainService } from '../supraMonadOnChainService';
 
@@ -95,6 +100,68 @@ describe('feedSyncService seed lifecycle', () => {
       })
     );
     expect(retirementQuery.eq).toHaveBeenCalledWith('symbol', 'RETIRED/USD');
+  });
+
+  it('seeds every currently usable Pyth Solana sponsored feed with its verified account evidence', async () => {
+    const select = jest.fn().mockResolvedValue({ data: PYTH_SOLANA_SPONSORED_FEEDS, error: null });
+    const upsert = jest.fn().mockReturnValue({ select });
+    const registryQuery = {
+      select: jest.fn(),
+      eq: jest.fn(),
+    };
+    registryQuery.select.mockReturnValue(registryQuery);
+    registryQuery.eq.mockReturnValue(registryQuery);
+    Object.assign(registryQuery, {
+      then: (resolve: (value: { data: []; error: null }) => unknown) =>
+        resolve({ data: [], error: null }),
+    });
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: jest.fn().mockReturnValueOnce({ upsert }).mockReturnValueOnce(registryQuery),
+    } as never);
+    jest.spyOn(pythSolanaOnChainService, 'getPrices').mockResolvedValue(
+      PYTH_SOLANA_SPONSORED_FEEDS.map((feed, index) => ({
+        symbol: feed.alias,
+        feedId: `0x${feed.id}`,
+        price: 1,
+        conf: 0,
+        exponent: -8,
+        publishTime: Math.floor(Date.now() / 1000),
+        timestamp: Date.now(),
+        confidenceRatio: 0,
+        maxAgeSeconds: feed.timeDifferenceSeconds * 2,
+        priceDeviationPercent: feed.priceDeviationPercent,
+        accountAddress: `PythSolanaAccount${index}`,
+        accountOwner: PYTH_SOLANA_PRICE_UPDATE_OWNER_PROGRAM_ID,
+        postedSlot: String(index),
+        observationSlot: 123_456_789,
+        accountDataHash: `0x${index.toString(16).padStart(64, '0')}`,
+      })) as never
+    );
+
+    const result = await feedSyncService.seedPythSolanaSponsoredFeeds();
+
+    expect(result).toEqual({
+      provider: 'pyth',
+      discovered: 64,
+      upserted: 64,
+      deactivated: 0,
+      errors: 0,
+    });
+    const rows = upsert.mock.calls[0][0] as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(64);
+    expect(rows.find((row) => row.symbol === 'SOL/USD')).toMatchObject({
+      chain_id: 0,
+      address: 'PythSolanaAccount0',
+      source: 'pyth-solana-sponsored-registry',
+      metadata: {
+        feedId: `0x${PYTH_SOLANA_SPONSORED_FEEDS[0].id}`,
+        solanaNetwork: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        shardId: 0,
+      },
+    });
+    expect(rows.find((row) => row.symbol === 'JITOSOL/SOL.RR')?.metadata).toMatchObject({
+      quoteType: 'reference-rate',
+    });
   });
 
   it('seeds all reviewed Stork Monad feeds only after each passes the on-chain freshness gate', async () => {
