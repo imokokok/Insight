@@ -4,6 +4,7 @@ import { type HTTPAdapter, type HTTPResponseInstructions } from '@x402/core/serv
 import { z } from 'zod';
 
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { dbCircuitBreaker } from '@/lib/utils/dbCircuitBreaker';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
@@ -311,6 +312,13 @@ export function recordX402Settlement(audit: X402SettlementAudit): void {
 
   const task = async () => {
     try {
+      // Audit is advisory: while the database circuit breaker is open, skip
+      // the insert entirely instead of adding a hanging 15s query to the
+      // storm (the paid response path must never wait on this write).
+      if (!dbCircuitBreaker.claimProbe()) {
+        logger.warn('x402 settlement audit skipped (database circuit breaker open)');
+        return;
+      }
       const client = createServiceRoleClient();
       const { error } = await client.from('x402_settlements').insert({
         request_id: validAudit.requestId,
@@ -328,9 +336,13 @@ export function recordX402Settlement(audit: X402SettlementAudit): void {
         error_reason: validAudit.errorReason ?? null,
       });
       if (error) {
+        dbCircuitBreaker.recordFailure(error);
         logger.warn('x402 settlement audit insert failed', { error: error.message });
+      } else {
+        dbCircuitBreaker.recordSuccess();
       }
     } catch (error) {
+      dbCircuitBreaker.recordFailure(error);
       // Missing SUPABASE_SERVICE_ROLE_KEY in dev is expected — audit is
       // advisory, never load-bearing.
       logger.warn('x402 settlement audit unavailable', {
