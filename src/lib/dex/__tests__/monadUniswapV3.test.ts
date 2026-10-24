@@ -1,6 +1,7 @@
 import {
   MONAD_CHAIN_ID,
   MONAD_UNISWAP_V3_WMON_USDC,
+  monadUniswapV3WmonUsdcProfile,
   uniswapArithmeticMeanTick,
   wmonUsdcPriceFromTick,
 } from '../monadUniswapV3';
@@ -12,6 +13,12 @@ describe('Monad Uniswap V3 market math', () => {
     expect(MONAD_UNISWAP_V3_WMON_USDC.twapWindowSeconds).toBe(900);
     expect(MONAD_UNISWAP_V3_WMON_USDC.token0Symbol).toBe('WMON');
     expect(MONAD_UNISWAP_V3_WMON_USDC.token1Symbol).toBe('USDC');
+    expect(monadUniswapV3WmonUsdcProfile()).toMatchObject({
+      id: 'monad-uniswap-v3-wmon-usdc',
+      chainId: 143,
+      venue: 'uniswap-v3',
+      market: 'MON/USDC',
+    });
   });
 
   it('uses floor division for negative Uniswap TWAP ticks', () => {

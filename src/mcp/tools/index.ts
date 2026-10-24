@@ -10,7 +10,11 @@ import {
 } from './analysisTools';
 import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
 import { getCrossChainSpreadsTool } from './crossChainTools';
-import { getMonadDexMarketTool } from './dexMarketTools';
+import {
+  getBaseDexMarketTool,
+  getMonadDexMarketTool,
+  getSolanaDexRouteTool,
+} from './dexMarketTools';
 import { executionPreflightTool } from './executionPreflightTools';
 import { executionReceiptTool } from './executionReceiptTools';
 import {
@@ -21,6 +25,7 @@ import {
 } from './feedTools';
 import {
   AnomaliesJsonSchema,
+  BaseDexMarketJsonSchema,
   BatchPriceJsonSchema,
   ConsensusPriceJsonSchema,
   CorrelationJsonSchema,
@@ -52,6 +57,7 @@ import {
   ProtocolsJsonSchema,
   ReputationRankingsJsonSchema,
   RiskSummaryJsonSchema,
+  SolanaDexRouteJsonSchema,
   StablecoinJsonSchema,
   SymbolQueryJsonSchema,
   WrappedAssetJsonSchema,
@@ -119,6 +125,8 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getCoverageTool,
   getMetricsTool,
   getMonadDexMarketTool,
+  getBaseDexMarketTool,
+  getSolanaDexRouteTool,
   checkPositionSafetyTool,
   preTradeSafetyCheckTool,
   oracleWatchTool,
@@ -321,6 +329,16 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   get_monad_dex_market: MonadDexMarketJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  get_base_dex_market: BaseDexMarketJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  get_solana_dex_route: SolanaDexRouteJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];
