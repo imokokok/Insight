@@ -18,6 +18,10 @@ const alchemyRpcSchema = z.object({
   monad: z.string().url().optional().default(''),
 });
 
+const heliusRpcSchema = z.object({
+  solana: z.string().url().optional().default(''),
+});
+
 // Alchemy API keys are appended as the last URL path segment
 // (e.g. https://eth-mainnet.g.alchemy.com/v2/<KEY>). Keys are NOT a fixed
 // length: Alchemy has shipped both 32-char hex keys and shorter (~21-char)
@@ -77,6 +81,21 @@ function parseAlchemyRpc() {
   ) as typeof parsed;
 }
 
+function parseHeliusRpc() {
+  const raw = {
+    solana: process.env.HELIUS_SOLANA_RPC || undefined,
+  };
+  const result = heliusRpcSchema.safeParse(raw);
+  if (!result.success) {
+    const errors = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`);
+    logger.warn('Helius RPC config validation warnings:', { errors });
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Helius RPC config validation failed: ${errors.join(', ')}`);
+    }
+  }
+  return result.success ? result.data : heliusRpcSchema.parse({});
+}
+
 const tronConfigSchema = z.object({
   rpcUrl: z.string().url().optional().default('https://api.trongrid.io'),
   apiKey: z.string().optional().default(''),
@@ -96,6 +115,9 @@ function parseTronConfig() {
 }
 
 export const ALCHEMY_RPC = parseAlchemyRpc();
+
+/** Server-only Solana RPC endpoint. Prefer it over the multi-chain provider. */
+export const HELIUS_RPC = parseHeliusRpc();
 
 export const TRON_CONFIG = parseTronConfig();
 
