@@ -4,7 +4,7 @@ import { getCorsHeaders } from '@/lib/api/handler';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 import { getMppConfig } from '@/lib/api/mpp/config';
 import { getX402Config } from '@/lib/api/x402/config';
-import { handleMcpPaidToolCall } from '@/lib/api/x402/mcpBridge';
+import { handleMcpIndexerQuote, handleMcpPaidToolCall } from '@/lib/api/x402/mcpBridge';
 import { createLogger } from '@/lib/utils/logger';
 
 import { authenticateMcpRequest } from '../auth';
@@ -156,6 +156,11 @@ function methodNotAllowedResponse(): Response {
     405,
     { Allow: 'GET, POST, DELETE' }
   );
+}
+
+/** True when a GET asks for the transport's SSE stream, as real MCP clients do. */
+function sseRequested(request: Request): boolean {
+  return (request.headers.get('accept') ?? '').toLowerCase().includes('text/event-stream');
 }
 
 /** Per-minute IP rate limit for the unauthenticated x402 tools/call tier. */
@@ -467,6 +472,20 @@ export async function handleMcpHttpRequest(
 
   if (!authResult.success) {
     if (normalized.method !== 'POST') {
+      // CDP Bazaar's indexer probes the resource URL with GET and requires
+      // the x402 402 challenge; real MCP clients asking for the GET SSE
+      // stream keep the protocol-correct 405 below.
+      if (normalized.method === 'GET' && !sseRequested(normalized)) {
+        // The x402 rail resolves its config lazily inside tryPaidToolCall;
+        // the MPP rail already carries it above.
+        const probeCfg = x402Config ?? getX402Config();
+        if (probeCfg) {
+          return {
+            response: await handleMcpIndexerQuote(normalized, probeCfg),
+            cleanup: async () => {},
+          };
+        }
+      }
       return {
         response: methodNotAllowedResponse(),
         cleanup: async () => {},

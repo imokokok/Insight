@@ -126,6 +126,10 @@ function toolsCallBody(name = 'get_symbols') {
   };
 }
 
+function mcpGet(headers: Record<string, string> = {}): Request {
+  return new Request('http://localhost:3000/api/mcp', { method: 'GET', headers });
+}
+
 const CFG = {
   enabled: true,
   network: 'eip155:84532' as const,
@@ -325,6 +329,44 @@ describe('x402 paid MCP tools/call', () => {
     expect(priceAtomicForTool('pre_trade_safety_check')).toBe('20000');
     expect(priceAtomicForTool('get_symbols')).toBe('2000');
     expect(priceAtomicForTool('verify_execution_pair')).toBe('40000');
+  });
+});
+
+describe('unauthenticated GET indexer probes', () => {
+  it('answers a plain GET with the x402 quote built for the resource\u2019s canonical POST method', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-error',
+      response: {
+        status: 402,
+        headers: { 'PAYMENT-REQUIRED': 'base64quote' },
+        body: { x402Version: 2, accepts: [{ scheme: 'exact', amount: '2000' }] },
+      },
+    });
+
+    const { response, cleanup } = await handleMcpHttpRequest(mcpGet());
+    await cleanup();
+
+    expect(response.status).toBe(402);
+    expect(response.headers.get('payment-required')).toBe('base64quote');
+    const body = await response.json();
+    expect(body.x402Version).toBe(2);
+    // The probe quote is priced by the flagship tool and mirrors the POST
+    // handshake's method so directory metadata stays accurate.
+    expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+      priceAtomicForTool('pre_trade_safety_check')
+    );
+    expect(processHTTPRequest).toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
+  });
+
+  it('keeps the protocol 405 for an SSE stream request and carries no payment signature', async () => {
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpGet({ accept: 'text/event-stream' })
+    );
+    await cleanup();
+
+    expect(response.status).toBe(405);
+    expect(processHTTPRequest).not.toHaveBeenCalled();
   });
 });
 

@@ -136,7 +136,10 @@ describe('anonymous MCP discovery', () => {
 
   it('rejects anonymous GET (SSE) with 405 method not allowed', async () => {
     const { response, cleanup } = await handleMcpHttpRequest(
-      new Request('http://localhost:3000/api/mcp', { method: 'GET' })
+      new Request('http://localhost:3000/api/mcp', {
+        method: 'GET',
+        headers: { accept: 'text/event-stream' },
+      })
     );
 
     expect(response.status).toBe(405);
