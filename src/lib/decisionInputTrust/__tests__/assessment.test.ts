@@ -1,9 +1,14 @@
+import type { ReviewedUniswapV3PreTradeEvidence } from '@/lib/dex/preTradeUniswapV3';
 import type { ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import type { ChainlinkMarketReference } from '@/lib/marketReference/chainlink';
 import type { MarketReference } from '@/lib/marketReference/client';
 import type { RedStoneMarketReference } from '@/lib/marketReference/redstone';
 
-import { assessDecisionInput, DecisionInputAssessmentSchema } from '../assessment';
+import {
+  assessDecisionInput,
+  DecisionInputAssessmentSchema,
+  type DecisionInputCheckRequest,
+} from '../assessment';
 
 import type { DecisionInputQuoteProvenance } from '../quoteProvenance';
 
@@ -68,18 +73,21 @@ const dex: ManipCostAdvisory = {
 
 function assess(
   overrides: {
-    request?: Partial<typeof request>;
+    request?: Partial<DecisionInputCheckRequest>;
     chainlink?: ChainlinkMarketReference | null;
     redstone?: RedStoneMarketReference | null;
     cex?: MarketReference | null;
     dex?: ManipCostAdvisory | null;
     asset?: string;
+    destinationAsset?: string;
     chainId?: number;
     evidenceUse?: 'staging' | 'customer';
+    reviewedUniswapV3?: ReviewedUniswapV3PreTradeEvidence | null;
   } = {}
 ) {
   return assessDecisionInput({
     asset: overrides.asset ?? 'ETH',
+    destinationAsset: overrides.destinationAsset,
     chainId: overrides.chainId ?? 1,
     action: 'swap',
     tradeAmountUsd: 10_000,
@@ -88,6 +96,7 @@ function assess(
     redstone: overrides.redstone ?? null,
     cex: overrides.cex === undefined ? cex : overrides.cex,
     dex: overrides.dex === undefined ? dex : overrides.dex,
+    reviewedUniswapV3: overrides.reviewedUniswapV3,
     evidenceUse: overrides.evidenceUse,
     now: NOW,
   });
@@ -104,6 +113,36 @@ const customerQuoteProvenance: DecisionInputQuoteProvenance = {
   observedAt: '2026-10-13T06:29:58.000Z',
   requestHash: `0x${'11'.repeat(32)}`,
   responseHash: `0x${'22'.repeat(32)}`,
+};
+
+const reviewedBaseQuote: ReviewedUniswapV3PreTradeEvidence = {
+  profile: 'base-weth-usdc',
+  venue: 'uniswap-v3',
+  market: 'WETH/USDC',
+  sourceFreshnessSeconds: 2,
+  observedAt: '2026-10-13T06:29:59.000Z',
+  block: {
+    number: '123456',
+    hash: `0x${'33'.repeat(32)}`,
+    timestamp: '2026-10-13T06:29:58.000Z',
+  },
+  contracts: {
+    pool: '0x0000000000000000000000000000000000000003',
+    quoterV2: '0x0000000000000000000000000000000000000004',
+    feeTier: 3_000,
+  },
+  quote: {
+    amountIn: 5,
+    amountInRaw: '5000000000000000000',
+    amountOut: 10_000,
+    amountOutRaw: '10000000000',
+    effectiveToken1PerToken0: 2000,
+    initializedTicksCrossed: 1,
+    priceImpactBps: 5,
+  },
+  spotToken1PerToken0: 2001,
+  twapToken1PerToken0: 2000,
+  twapDeviationBpsFromSpot: 5,
 };
 
 describe('assessDecisionInput', () => {
@@ -193,6 +232,59 @@ describe('assessDecisionInput', () => {
     expect(result.status).toBe('INSUFFICIENT_EVIDENCE');
     expect(result.evidence.dexManipulationCost).toBeNull();
     expect(result.reasons.map(({ code }) => code)).toContain('DEX_DEPTH_UNAVAILABLE');
+  });
+
+  it('uses a reviewed Base Uniswap V3 quote instead of Ethereum-only depth evidence', () => {
+    const result = assess({
+      asset: 'WETH',
+      destinationAsset: 'USDC',
+      chainId: 8453,
+      chainlink: { ...chainlink, chainId: 8453 },
+      dex: null,
+      reviewedUniswapV3: reviewedBaseQuote,
+      request: {
+        reviewedUniswapV3: {
+          amountIn: '5',
+          maxQuoteDeviationBps: 50,
+          maxTwapDeviationBps: 50,
+        },
+      },
+    });
+
+    expect(result.status).toBe('SUFFICIENT');
+    expect(result.evidence.dexManipulationCost).toBeNull();
+    expect(result.evidence.reviewedUniswapV3).toMatchObject({
+      profile: 'base-weth-usdc',
+      amountInRaw: '5000000000000000000',
+      pool: reviewedBaseQuote.contracts.pool,
+    });
+    expect(DecisionInputAssessmentSchema.safeParse(result).success).toBe(true);
+  });
+
+  it('blocks when the reviewed Uniswap quote violates its own divergence policy', () => {
+    const result = assess({
+      asset: 'WETH',
+      destinationAsset: 'USDC',
+      chainId: 8453,
+      chainlink: { ...chainlink, chainId: 8453 },
+      dex: null,
+      reviewedUniswapV3: {
+        ...reviewedBaseQuote,
+        quote: { ...reviewedBaseQuote.quote, effectiveToken1PerToken0: 2100 },
+      },
+      request: {
+        reviewedUniswapV3: {
+          amountIn: '5',
+          maxQuoteDeviationBps: 50,
+          maxTwapDeviationBps: 50,
+        },
+      },
+    });
+
+    expect(result.status).toBe('BLOCK');
+    expect(result.reasons.map(({ code }) => code)).toContain(
+      'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE'
+    );
   });
 
   it('includes a fresh RedStone reference in the signed assessment inputs', () => {

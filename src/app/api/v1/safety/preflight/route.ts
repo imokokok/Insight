@@ -44,6 +44,15 @@ function toPreflightInput(query: PreflightQuery) {
             maxQuoteAgeSeconds: query.maxQuoteAgeSeconds!,
             ...(query.quoteProvenance ? { quoteProvenance: query.quoteProvenance } : {}),
             ...(query.requireQuoteProvenance === true ? { requireQuoteProvenance: true } : {}),
+            ...(query.reviewedUniswapV3AmountIn
+              ? {
+                  reviewedUniswapV3: {
+                    amountIn: query.reviewedUniswapV3AmountIn,
+                    maxQuoteDeviationBps: query.reviewedUniswapV3MaxQuoteDeviationBps!,
+                    maxTwapDeviationBps: query.reviewedUniswapV3MaxTwapDeviationBps!,
+                  },
+                }
+              : {}),
           },
         }
       : {}),

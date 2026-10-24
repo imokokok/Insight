@@ -16,6 +16,12 @@ export interface DecisionInputRequest {
   maxQuoteAgeSeconds: number;
   quoteProvenance?: DecisionInputQuoteProvenance;
   requireQuoteProvenance?: boolean;
+  /** Opt in to an exact-input, block-pinned reviewed Uniswap V3 quote. */
+  reviewedUniswapV3?: {
+    amountIn: string;
+    maxQuoteDeviationBps: number;
+    maxTwapDeviationBps: number;
+  };
 }
 
 export interface DecisionInputPolicy {
@@ -53,7 +59,10 @@ export interface DecisionInputAssessment {
   policy: Pick<
     DecisionInputPolicy,
     'maxReferenceDeviationBps' | 'maxSlippageBps' | 'maxQuoteAgeSeconds'
-  > & { requireQuoteProvenance?: boolean };
+  > & {
+    requireQuoteProvenance?: boolean;
+    reviewedUniswapV3?: NonNullable<DecisionInputRequest['reviewedUniswapV3']>;
+  };
   prices: Record<string, unknown> & {
     decisionPriceUsd: number;
     quotePriceUsd: number;

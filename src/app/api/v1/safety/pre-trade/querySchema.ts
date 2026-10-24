@@ -97,6 +97,15 @@ export const PreTradeQuerySchema = z
     maxReferenceDeviationBps: z.coerce.number().int().min(0).max(10_000).optional(),
     maxSlippageBps: z.coerce.number().int().min(0).max(10_000).optional(),
     maxQuoteAgeSeconds: z.coerce.number().int().min(1).max(300).optional(),
+    reviewedUniswapV3AmountIn: z
+      .string()
+      .trim()
+      .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+      .max(128)
+      .optional()
+      .describe('Exact source-token input amount for the reviewed Monad/Base Uniswap V3 quote.'),
+    reviewedUniswapV3MaxQuoteDeviationBps: z.coerce.number().int().min(0).max(10_000).optional(),
+    reviewedUniswapV3MaxTwapDeviationBps: z.coerce.number().int().min(0).max(10_000).optional(),
     quoteProvenance: DecisionInputQuoteProvenanceQuerySchema.optional(),
     requireQuoteProvenance: z
       .enum(['0', '1'])
@@ -132,6 +141,13 @@ export const PreTradeQuerySchema = z
       ...fields.filter((field) => value[field] !== undefined),
       ...(value.quoteProvenance !== undefined ? ['quoteProvenance'] : []),
       ...(value.requireQuoteProvenance !== undefined ? ['requireQuoteProvenance'] : []),
+      ...(value.reviewedUniswapV3AmountIn !== undefined ? ['reviewedUniswapV3AmountIn'] : []),
+      ...(value.reviewedUniswapV3MaxQuoteDeviationBps !== undefined
+        ? ['reviewedUniswapV3MaxQuoteDeviationBps']
+        : []),
+      ...(value.reviewedUniswapV3MaxTwapDeviationBps !== undefined
+        ? ['reviewedUniswapV3MaxTwapDeviationBps']
+        : []),
     ];
 
     if (value.decisionInputCheck === '1') {
@@ -149,6 +165,27 @@ export const PreTradeQuerySchema = z
         code: 'custom',
         path: ['decisionInputCheck'],
         message: 'Set decisionInputCheck=1 to request the decision-input assessment',
+      });
+    }
+
+    const reviewedFields = [
+      'reviewedUniswapV3AmountIn',
+      'reviewedUniswapV3MaxQuoteDeviationBps',
+      'reviewedUniswapV3MaxTwapDeviationBps',
+    ] as const;
+    const reviewedProvided = reviewedFields.filter((field) => value[field] !== undefined);
+    if (reviewedProvided.length > 0 && reviewedProvided.length !== reviewedFields.length) {
+      context.addIssue({
+        code: 'custom',
+        path: ['reviewedUniswapV3AmountIn'],
+        message: 'All reviewedUniswapV3 parameters are required together.',
+      });
+    }
+    if (reviewedProvided.length > 0 && !value.destinationAsset) {
+      context.addIssue({
+        code: 'custom',
+        path: ['destinationAsset'],
+        message: 'destinationAsset is required with reviewedUniswapV3 evidence.',
       });
     }
 

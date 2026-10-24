@@ -34,3 +34,22 @@ For an authorization that must bind an exact Solana transaction, use the signed
 Both tools have foundational C1 pricing. The existing `get_monad_dex_market`
 continues to provide Monad WMON/USDC evidence and its finalized rolling-volume
 index.
+
+## C3 pre-trade integration
+
+Paid `GET /api/v1/safety/pre-trade` and `GET /api/v1/safety/preflight` can
+now opt into `reviewedUniswapV3` evidence inside their decision-input check.
+The caller supplies the exact source amount plus explicit maximum quote and
+spot/TWAP divergence limits. Insight then admits only these source-to-USDC
+profiles:
+
+- Monad `MON`/`WMON` → `USDC` (reviewed WMON/USDC V3 pool)
+- Base `ETH`/`WETH` → `USDC` (reviewed WETH/USDC V3 pool)
+
+For an admitted route, Insight obtains a Quoter V2 exact-input simulation at
+one pinned block and binds the pool, quoter, fee tier, block witness, raw
+amounts, price impact, and the two deviation checks into the signed
+decision-input assessment. Unsupported direction/pair, stale or unreadable
+evidence, and a failed limit produce `INSUFFICIENT_EVIDENCE` or `BLOCK`; they
+never fall back to an inferred route. This is not a signed-transaction
+simulation or a guarantee that a later transaction will land at that quote.

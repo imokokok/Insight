@@ -325,6 +325,21 @@ export const ExecutionPreflightJsonSchema = PreTradeSafetyJsonSchema.extend({
       maxQuoteAgeSeconds: z.number().int().min(1).max(300),
       quoteProvenance: decisionInputQuoteProvenanceJsonSchema.optional(),
       requireQuoteProvenance: z.boolean().optional(),
+      reviewedUniswapV3: z
+        .object({
+          amountIn: z
+            .string()
+            .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+            .max(128)
+            .describe('Exact source-token amount for the reviewed Uniswap V3 quote'),
+          maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
+          maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+        })
+        .strict()
+        .optional()
+        .describe(
+          'Optional strict reviewed-pool lane. Currently only MON/USDC on Monad and WETH/USDC on Base, in source-to-USDC direction; unsupported routes fail closed.'
+        ),
     })
     .optional()
     .describe(
