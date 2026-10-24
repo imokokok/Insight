@@ -8,6 +8,7 @@ import {
   chainlinkOnChainService,
   type ChainlinkPriceData,
 } from '@/lib/oracles/services/chainlinkOnChainService';
+import { chainlinkSolanaOnChainService } from '@/lib/oracles/services/chainlinkSolanaOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { roundTo } from '@/lib/utils/format';
@@ -29,7 +30,7 @@ const CHAINLINK_QUALITY_CONFIG = {
     [Blockchain.AVALANCHE]: 0.96,
     [Blockchain.BNB_CHAIN]: 0.95,
     [Blockchain.BASE]: 0.97,
-    [Blockchain.SOLANA]: 0.0,
+    [Blockchain.SOLANA]: 0.97,
     [Blockchain.FANTOM]: 0.94,
     [Blockchain.CRONOS]: 0.93,
     [Blockchain.JUNO]: 0.0,
@@ -72,9 +73,11 @@ export class ChainlinkClient extends BaseOracleClient {
   name = OracleProvider.CHAINLINK;
   // Chains ChainlinkClient can actually serve. This MUST stay in sync with
   // CHAINLINK_RPC_CONFIG (rpcConfig.ts): a chain only works here if it has an
-  // RPC endpoint and a deployed Feed Registry. Solana/Starknet are excluded —
-  // they are non-EVM and the EVM Feed Registry/aggregator path cannot query
-  // them. Scroll/zkSync Era/Linea are intentionally NOT listed: Chainlink does
+  // RPC endpoint and a deployed Feed Registry. Solana is the one non-EVM
+  // exception: its OCR2 Transmissions accounts are read by the dedicated native
+  // reader below, with owner/layout/pair/freshness validation. Starknet is
+  // excluded because the EVM Feed Registry/aggregator path cannot query it.
+  // Scroll/zkSync Era/Linea are intentionally NOT listed: Chainlink does
   // not deploy a Feed Registry on those L2s (the on-chain registry is Mainnet-
   // only), and our CHAINLINK_PRICE_FEEDS fallback only covers the 7 chains
   // below — so any feed request to them would fail regardless.
@@ -90,6 +93,7 @@ export class ChainlinkClient extends BaseOracleClient {
     Blockchain.AVALANCHE,
     Blockchain.BNB_CHAIN,
     Blockchain.BASE,
+    Blockchain.SOLANA,
     // Monad: catalog-resolved proxy reads over the official public RPC. Unlike
     // the chains above there is no Feed Registry on Monad — resolution relies
     // on the committed catalog (network "143") and feedAddressOverride paths.
@@ -105,6 +109,7 @@ export class ChainlinkClient extends BaseOracleClient {
 
   private getChainId(chain?: Blockchain): number {
     if (!chain) return ETHEREUM_CHAIN_ID;
+    if (chain === Blockchain.SOLANA) return BLOCKCHAIN_TO_CHAIN_ID[Blockchain.SOLANA];
     const chainId = BLOCKCHAIN_TO_CHAIN_ID[chain];
     if (!chainId || chainId === 0) {
       throw this.createError(
@@ -210,6 +215,11 @@ export class ChainlinkClient extends BaseOracleClient {
   ): Promise<PriceData> {
     this.validateGetPriceParams(symbol, options);
 
+    const targetChain = chain ?? Blockchain.ETHEREUM;
+    if (targetChain === Blockchain.SOLANA) {
+      return this.getSolanaPrice(symbol, options?.signal);
+    }
+
     const chainId = this.getChainId(chain);
 
     if (this.useRealData && this.isPriceFeedSupported(symbol, chain)) {
@@ -253,6 +263,11 @@ export class ChainlinkClient extends BaseOracleClient {
   }
 
   private isPriceFeedSupported(symbol: string, chain?: Blockchain): boolean {
+    // Solana's roster is the official live Reference Data Directory rather
+    // than an EVM catalog. Registry-gated callers load the row before this
+    // fallback is consulted; a direct getPrice performs its own directory and
+    // account validation below.
+    if (chain === Blockchain.SOLANA) return false;
     const chainId = this.getChainId(chain);
     return isPriceFeedSupportedSync(symbol, chainId);
   }
@@ -283,8 +298,70 @@ export class ChainlinkClient extends BaseOracleClient {
   }
 
   getSupportedSymbolsForChain(chain: Blockchain): string[] {
+    if (chain === Blockchain.SOLANA) return [];
     const chainId = this.getChainId(chain);
     const allSymbols = this.getSupportedSymbols();
     return allSymbols.filter((symbol) => isPriceFeedSupportedSync(symbol, chainId));
+  }
+
+  private async getSolanaPrice(symbol: string, signal?: AbortSignal): Promise<PriceData> {
+    try {
+      const reading = await withOracleRetry(
+        () => chainlinkSolanaOnChainService.getPrice(symbol, signal),
+        'chainlink-solana:getPrice',
+        ORACLE_RETRY_PRESETS.standard,
+        signal
+      );
+      const ageSeconds = Math.max(
+        0,
+        Math.floor(Date.now() / 1000) - Math.floor(reading.timestamp / 1000)
+      );
+      const data: PriceData = {
+        provider: this.name,
+        chain: Blockchain.SOLANA,
+        symbol: reading.symbol,
+        price: reading.price,
+        timestamp: reading.timestamp,
+        decimals: reading.decimals,
+        confidence: this.calculateConfidence(Blockchain.SOLANA),
+        confidenceSource: 'estimated',
+        change24h: 0,
+        change24hPercent: 0,
+        source: `Chainlink OCR2 Solana:${reading.description}`,
+        roundId: reading.roundId,
+        answeredInRound: reading.roundId,
+        startedAt: reading.timestamp,
+        dataAge: ageSeconds,
+        dataSource: 'real',
+        ingestionTimestamp: Date.now(),
+        failureMode: FailureMode.NONE,
+        signalVector: buildSignalVector({
+          dataAgeSeconds: ageSeconds,
+          isOnChain: true,
+          hasVerification: true,
+          providerUptime: CHAINLINK_QUALITY_CONFIG.chainReliability[Blockchain.SOLANA] * 100,
+          hasConfidence: true,
+          hasTimestamp: true,
+          hasDecimals: true,
+          hasSource: true,
+          verificationMethod: 'getMultipleAccounts+OCR2-owner/layout/pair/heartbeat gates',
+        }),
+        verification: {
+          type: 'on-chain',
+          contractAddress: reading.accountAddress,
+          chainId: BLOCKCHAIN_TO_CHAIN_ID[Blockchain.SOLANA],
+          explorerUrl: `https://solscan.io/account/${reading.accountAddress}`,
+          method: 'getMultipleAccounts(base64)+OCR2-Transmissions/owner/pair/heartbeat gates',
+          blockNumber: reading.observationSlot,
+          rawValue: reading.answer,
+          sourceTimestamp: Math.floor(reading.timestamp / 1000),
+          valueExponent: -reading.decimals,
+          assetId: reading.accountDataHash,
+        },
+      };
+      return this.validatePriceData(data, 'chainlink-solana:getPrice');
+    } catch (error) {
+      this.handleGetPriceError(error, 'Chainlink on Solana', 'CHAINLINK_PRICE_ERROR');
+    }
   }
 }

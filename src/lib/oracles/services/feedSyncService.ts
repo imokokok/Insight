@@ -9,6 +9,13 @@ import {
   CHAINLINK_CATALOG_VERSION,
   getAllCatalogFeeds,
 } from '../constants/chainlinkCatalogLoader';
+import {
+  CHAINLINK_SOLANA_CHAIN_ID,
+  CHAINLINK_SOLANA_MAINNET_CAIP2,
+  CHAINLINK_SOLANA_RDD_SOURCE,
+  CHAINLINK_SOLANA_RDD_URL,
+  CHAINLINK_SOLANA_STORE_PROGRAM_ID,
+} from '../constants/chainlinkSolana';
 import { CHRONICLE_MONAD_CHAIN_ID, CHRONICLE_MONAD_PRICE_FEEDS } from '../constants/chronicleMonad';
 import { DIA_ASSET_MAPPING, type DIAAssetConfig } from '../constants/diaConstants';
 import { FLARE_SYMBOL_TO_FEED_ID } from '../constants/flareConstants';
@@ -17,6 +24,12 @@ import {
   PYTH_MONAD_CORE_ADDRESS,
   PYTH_MONAD_SPONSORED_FEEDS,
 } from '../constants/pythMonad';
+import {
+  PYTH_SOLANA_CHAIN_ID,
+  PYTH_SOLANA_PRICE_UPDATE_OWNER_PROGRAM_ID,
+  PYTH_SOLANA_PUSH_ORACLE_PROGRAM_ID,
+  PYTH_SOLANA_SPONSORED_FEEDS,
+} from '../constants/pythSolana';
 import { REDSTONE_MONAD_CHAIN_ID, REDSTONE_MONAD_PRICE_FEEDS } from '../constants/redstoneMonad';
 import { REFLECTOR_ASSET_CONTRACT_MAP } from '../constants/reflectorConstants';
 import {
@@ -38,9 +51,11 @@ import {
   getSupportedSymbols,
   type ChainlinkPriceFeed,
 } from './chainlinkDataSources';
+import { chainlinkSolanaOnChainService } from './chainlinkSolanaOnChainService';
 import { chronicleMonadOnChainService } from './chronicleMonadOnChainService';
 import { feedRegistryService } from './feedRegistryService';
 import { pythMonadOnChainService } from './pythMonadOnChainService';
+import { pythSolanaOnChainService } from './pythSolanaOnChainService';
 import { redStoneMonadOnChainService } from './redstoneMonadOnChainService';
 import { storkMonadOnChainService } from './storkMonadOnChainService';
 import { supraMonadOnChainService } from './supraMonadOnChainService';
@@ -75,7 +90,7 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
 }
 
 /**
- * Retire only feeds that disappeared from a reviewed, committed Monad catalog.
+ * Retire only feeds that disappeared from a reviewed, committed catalog.
  *
  * This deliberately compares against the complete catalog rather than the
  * subset that happened to pass this run's on-chain availability probe: a
@@ -84,10 +99,12 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
  * to the retired identifier. The source predicate keeps operator-managed rows
  * and feeds from other seed paths out of scope.
  */
-async function deactivateRetiredCuratedMonadFeeds(args: {
-  provider: 'pyth' | 'stork' | 'chronicle' | 'redstone' | 'supra';
+async function deactivateRetiredCuratedFeeds(args: {
+  provider: 'chainlink' | 'pyth' | 'stork' | 'chronicle' | 'redstone' | 'supra';
   source:
+    | 'chainlink-solana-rdd'
     | 'pyth-monad-sponsored-registry'
+    | 'pyth-solana-sponsored-registry'
     | 'stork-monad-pushed-registry'
     | 'chronicle-monad-price-feed-registry'
     | 'redstone-monad-price-feed-registry'
@@ -104,7 +121,7 @@ async function deactivateRetiredCuratedMonadFeeds(args: {
     .eq('source', args.source)
     .eq('is_active', true);
   if (error) {
-    logger.error('Failed to load curated Monad feeds for reconciliation', normalizeError(error), {
+    logger.error('Failed to load curated feeds for reconciliation', normalizeError(error), {
       provider: args.provider,
     });
     return 0;
@@ -134,7 +151,7 @@ async function deactivateRetiredCuratedMonadFeeds(args: {
       .eq('source', args.source)
       .eq('is_active', true);
     if (updateError) {
-      logger.error('Failed to retire removed curated Monad feed', normalizeError(updateError), {
+      logger.error('Failed to retire removed curated feed', normalizeError(updateError), {
         provider: args.provider,
         symbol,
       });
@@ -282,6 +299,93 @@ class FeedSyncService {
     return result;
   }
 
+  /**
+   * Seed native Chainlink Solana feeds from the official live Reference Data
+   * Directory, but activate an entry only after a direct mainnet account read
+   * proves the OCR2 owner, layout, pair, positive answer and heartbeat-based
+   * freshness. The directory supplies discovery metadata, never a price.
+   */
+  async syncChainlinkSolanaFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'chainlink',
+      discovered: 0,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+    let officialSymbols: string[] | null = null;
+
+    try {
+      const officialFeeds = await chainlinkSolanaOnChainService.getOfficialFeeds();
+      officialSymbols = officialFeeds.map((feed) => feed.alias);
+      result.discovered = officialFeeds.length;
+
+      const readings = await chainlinkSolanaOnChainService.getPrices(officialFeeds);
+      const readingsByAddress = new Map(
+        readings.map((reading) => [reading.accountAddress, reading])
+      );
+      const usableFeeds = officialFeeds.flatMap((feed) => {
+        const reading = readingsByAddress.get(feed.accountAddress);
+        return reading ? [{ feed, reading }] : [];
+      });
+      result.errors = result.discovered - usableFeeds.length;
+
+      const feeds: OracleFeedInsert[] = usableFeeds.map(({ feed, reading }) => ({
+        provider: 'chainlink',
+        symbol: feed.alias,
+        chain_id: CHAINLINK_SOLANA_CHAIN_ID,
+        address: reading.accountAddress,
+        name: `Chainlink Solana ${reading.description}`,
+        decimals: reading.decimals,
+        category: this.inferCategory(feed.alias.split('/')[0]),
+        is_active: true,
+        source: CHAINLINK_SOLANA_RDD_SOURCE,
+        metadata: {
+          solanaNetwork: CHAINLINK_SOLANA_MAINNET_CAIP2,
+          referenceDataDirectory: CHAINLINK_SOLANA_RDD_URL,
+          accountOwner: CHAINLINK_SOLANA_STORE_PROGRAM_ID,
+          accountDescription: reading.description,
+          roundId: reading.roundId,
+          rawAnswer: reading.answer,
+          transmissionSlot: reading.transmissionSlot,
+          observationSlot: reading.observationSlot,
+          accountDataHash: reading.accountDataHash,
+          heartbeatSeconds: reading.heartbeatSeconds,
+          freshnessPolicy:
+            'OCR2 owner + Transmissions v2 layout + pair + positive answer + timestamp <= 2 * official heartbeat',
+        },
+      }));
+      result.upserted = await upsertFeeds(feeds);
+    } catch (error) {
+      logger.error('Failed to sync native Chainlink Solana feeds', normalizeError(error));
+      result.errors = Math.max(1, result.discovered);
+    }
+
+    // Reconcile only after fetching and parsing the complete official directory.
+    // A transient RDD/RPC failure must not retire healthy evidence rows.
+    if (officialSymbols) {
+      result.deactivated = await deactivateRetiredCuratedFeeds({
+        provider: 'chainlink',
+        source: CHAINLINK_SOLANA_RDD_SOURCE,
+        chainId: CHAINLINK_SOLANA_CHAIN_ID,
+        catalogSymbols: officialSymbols,
+      });
+    }
+    return result;
+  }
+
+  async seedChainlinkFeeds(): Promise<SyncResult> {
+    const catalog = await this.syncChainlinkFeedsFromCatalog();
+    const solana = await this.syncChainlinkSolanaFeeds();
+    return {
+      provider: 'chainlink',
+      discovered: catalog.discovered + solana.discovered,
+      upserted: catalog.upserted + solana.upserted,
+      deactivated: catalog.deactivated + solana.deactivated,
+      errors: catalog.errors + solana.errors,
+    };
+  }
+
   async verifyChainlinkFeeds(): Promise<SyncResult> {
     const result: SyncResult = {
       provider: 'chainlink',
@@ -381,13 +485,99 @@ class FeedSyncService {
       },
     }));
     result.upserted = await upsertFeeds(feeds);
-    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+    result.deactivated = await deactivateRetiredCuratedFeeds({
       provider: 'pyth',
       source: 'pyth-monad-sponsored-registry',
       chainId: PYTH_MONAD_CHAIN_ID,
       catalogSymbols: PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias),
     });
     return result;
+  }
+
+  /**
+   * Seed all Pyth-sponsored Solana shard-0 feeds after directly validating
+   * their currently posted Pyth Core account. The batch read is evidence-first:
+   * a catalogue entry becomes active only when its PDA, owner, full guardian
+   * verification, feed ID, publish time and confidence interval all pass.
+   */
+  async seedPythSolanaSponsoredFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'pyth',
+      discovered: PYTH_SOLANA_SPONSORED_FEEDS.length,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+
+    try {
+      const readings = await pythSolanaOnChainService.getPrices(PYTH_SOLANA_SPONSORED_FEEDS);
+      const readingsByFeedId = new Map(
+        readings.map((reading) => [reading.feedId.slice(2), reading])
+      );
+      const usableFeeds = PYTH_SOLANA_SPONSORED_FEEDS.flatMap((feed) => {
+        const reading = readingsByFeedId.get(feed.id);
+        return reading ? [{ feed, reading }] : [];
+      });
+      result.errors = result.discovered - usableFeeds.length;
+
+      const feeds: OracleFeedInsert[] = usableFeeds.map(({ feed, reading }) => ({
+        provider: 'pyth',
+        symbol: feed.alias,
+        // Insight represents Solana mainnet with chain_id 0. `source` and
+        // `solanaNetwork` retain the required chain specificity for consumers
+        // that also store off-chain / chain-agnostic provider rows under 0.
+        chain_id: PYTH_SOLANA_CHAIN_ID,
+        address: reading.accountAddress,
+        name: `Pyth Solana ${feed.alias}`,
+        decimals: Math.max(0, -reading.exponent),
+        category: this.inferCategory(feed.alias.split('/')[0]),
+        is_active: true,
+        source: 'pyth-solana-sponsored-registry',
+        metadata: {
+          feedId: reading.feedId,
+          accountAddress: reading.accountAddress,
+          pdaDerivationProgram: PYTH_SOLANA_PUSH_ORACLE_PROGRAM_ID,
+          accountOwner: PYTH_SOLANA_PRICE_UPDATE_OWNER_PROGRAM_ID,
+          solanaNetwork: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          shardId: 0,
+          postedSlot: reading.postedSlot,
+          observationSlot: reading.observationSlot,
+          accountDataHash: reading.accountDataHash,
+          timeDifferenceSeconds: feed.timeDifferenceSeconds,
+          priceDeviationPercent: feed.priceDeviationPercent,
+          quoteType: feed.alias.endsWith('.RR') ? 'reference-rate' : 'price',
+          freshnessPolicy:
+            'PDA derivation + Pyth Receiver owner + full verification + feed ID + publish_time <= 2 * sponsored_time_difference',
+        },
+      }));
+      result.upserted = await upsertFeeds(feeds);
+    } catch (error) {
+      logger.error('Failed to batch-read Pyth Solana sponsored feeds', normalizeError(error));
+      result.errors = result.discovered;
+    }
+
+    result.deactivated = await deactivateRetiredCuratedFeeds({
+      provider: 'pyth',
+      source: 'pyth-solana-sponsored-registry',
+      chainId: PYTH_SOLANA_CHAIN_ID,
+      catalogSymbols: PYTH_SOLANA_SPONSORED_FEEDS.map((feed) => feed.alias),
+    });
+    return result;
+  }
+
+  /** Seed both native Pyth Core sponsored registries as one provider refresh. */
+  async seedPythSponsoredFeeds(): Promise<SyncResult> {
+    const [monad, solana] = await Promise.all([
+      this.seedPythMonadSponsoredFeeds(),
+      this.seedPythSolanaSponsoredFeeds(),
+    ]);
+    return {
+      provider: 'pyth',
+      discovered: monad.discovered + solana.discovered,
+      upserted: monad.upserted + solana.upserted,
+      deactivated: monad.deactivated + solana.deactivated,
+      errors: monad.errors + solana.errors,
+    };
   }
 
   // ─── Stork pushed feeds / Monad ───────────────────────────────────
@@ -444,7 +634,7 @@ class FeedSyncService {
       },
     }));
     result.upserted = await upsertFeeds(feeds);
-    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+    result.deactivated = await deactivateRetiredCuratedFeeds({
       provider: 'stork',
       source: 'stork-monad-pushed-registry',
       chainId: STORK_MONAD_CHAIN_ID,
@@ -508,7 +698,7 @@ class FeedSyncService {
         },
       }))
     );
-    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+    result.deactivated = await deactivateRetiredCuratedFeeds({
       provider: 'chronicle',
       source: 'chronicle-monad-price-feed-registry',
       chainId: CHRONICLE_MONAD_CHAIN_ID,
@@ -572,7 +762,7 @@ class FeedSyncService {
         },
       }))
     );
-    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+    result.deactivated = await deactivateRetiredCuratedFeeds({
       provider: 'redstone',
       source: 'redstone-monad-price-feed-registry',
       chainId: REDSTONE_MONAD_CHAIN_ID,
@@ -671,7 +861,7 @@ class FeedSyncService {
       },
     }));
     result.upserted = await upsertFeeds(feeds);
-    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+    result.deactivated = await deactivateRetiredCuratedFeeds({
       provider: 'supra',
       source: 'supra-monad-dora-push-registry',
       chainId: SUPRA_MONAD_CHAIN_ID,
@@ -1054,6 +1244,7 @@ class FeedSyncService {
       // directory lacks). Other providers follow.
       results.push(await this.syncChainlinkFeedsFromCatalog());
       results.push(await this.syncChainlinkFeedsFromRegistry());
+      results.push(await this.syncChainlinkSolanaFeeds());
       // Seed other providers
       for (const name of SEED_PROVIDER_ORDER) {
         if (name !== 'chainlink') {
@@ -1077,9 +1268,9 @@ class FeedSyncService {
   private async runSeeder(provider: string): Promise<SyncResult> {
     switch (provider) {
       case 'chainlink':
-        return this.syncChainlinkFeedsFromCatalog();
+        return this.seedChainlinkFeeds();
       case 'pyth':
-        return this.seedPythMonadSponsoredFeeds();
+        return this.seedPythSponsoredFeeds();
       case 'stork':
         return this.seedStorkMonadPushedFeeds();
       case 'chronicle':
