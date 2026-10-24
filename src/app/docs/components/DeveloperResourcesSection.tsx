@@ -87,7 +87,7 @@ const faqs = [
   {
     question: 'What oracle providers are supported?',
     answer:
-      'We support 13 oracle providers: chainlink, pyth, stork, chronicle, api3, redstone, dia, winklink, supra, twap, reflector, flare, and band. Pyth, Stork, and Chronicle are direct Monad reads with source-timestamp freshness gates; Stork and Chronicle remain observation-only until their source-overlap reviews are complete. Band uses the v3 Concurrent Price Stream and exposes its source timestamp to the same freshness and coverage checks used across Insight.',
+      'We support 13 oracle providers: chainlink, pyth, stork, chronicle, api3, redstone, dia, winklink, supra, twap, reflector, flare, and band. Pyth, Stork, Chronicle, and Supra DORA Push are direct Monad reads with source-timestamp freshness gates; Stork, Chronicle, and Supra remain observation-only until their source-overlap reviews are complete. Band uses the v3 Concurrent Price Stream and exposes its source timestamp to the same freshness and coverage checks used across Insight.',
   },
   {
     question: 'What consensus algorithms are available?',

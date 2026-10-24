@@ -4,6 +4,7 @@ import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { API3_MAX_DATA_AGE_SECONDS } from '@/lib/oracles/constants/api3Health';
 import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
+import { resolveSupraMonadFeed } from '@/lib/oracles/constants/supraMonad';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
 import { chainlinkOnChainService } from '@/lib/oracles/services/chainlinkOnChainService';
@@ -11,6 +12,7 @@ import { feedDiscoveryService } from '@/lib/oracles/services/feedDiscovery';
 import { feedSyncService } from '@/lib/oracles/services/feedSyncService';
 import { getReflectorDataService } from '@/lib/oracles/services/reflectorDataService';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
+import { supraMonadOnChainService } from '@/lib/oracles/services/supraMonadOnChainService';
 import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
 import { invalidateAllFeedsCache } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
@@ -63,6 +65,8 @@ function maxFeedAgeMs(feed: OracleFeed | OracleFeedInsert): number {
   if (feed.provider === OracleProvider.API3) return API3_MAX_DATA_AGE_SECONDS * 1000;
   if (feed.provider === OracleProvider.DIA) return 72 * 60 * 60 * 1000;
   if (feed.provider === OracleProvider.SUPRA) {
+    const configured = Number(metadata.maxStalenessSeconds);
+    if (Number.isFinite(configured) && configured > 0) return configured * 1000;
     return feed.category === 'equity' || feed.category === 'commodity'
       ? 72 * 60 * 60 * 1000
       : 60 * 60 * 1000;
@@ -413,6 +417,23 @@ async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
           REACTIVATE_TIMEOUT_MS
         )) ?? false
       );
+    }
+
+    // Curated Monad DORA Push rows are identity-bound to one pair index under
+    // the shared S-value contract. They cannot be reactivated by the generic
+    // API client without losing that identity; reread the exact Push pair.
+    if (
+      provider === OracleProvider.SUPRA &&
+      chain === Blockchain.MONAD &&
+      feed.source === 'supra-monad-dora-push-registry'
+    ) {
+      const supraFeed = resolveSupraMonadFeed(feed.symbol);
+      if (!supraFeed) return false;
+      const reading = await runProbeWithTimeout(
+        (signal) => supraMonadOnChainService.getPrice(supraFeed, signal),
+        REACTIVATE_TIMEOUT_MS
+      );
+      return !!reading && isFreshTimestamp(feed, reading.timestamp);
     }
 
     if (provider === OracleProvider.SUPRA && /^\d+$/.test(feed.address)) {

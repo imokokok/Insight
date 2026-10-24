@@ -5,9 +5,17 @@ import {
   SUPRA_DORA_REST_URL,
   getSupraPairIndexAsync,
 } from '@/lib/oracles/constants/supraConstants';
+import {
+  SUPRA_MONAD_CHAIN_ID,
+  SUPRA_MONAD_PUSHED_FEEDS,
+  SUPRA_MONAD_SVALUE_FEED_ADDRESS,
+  resolveSupraMonadFeed,
+} from '@/lib/oracles/constants/supraMonad';
 import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
+import { supraMonadOnChainService } from '@/lib/oracles/services/supraMonadOnChainService';
 import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
-import { buildApiVerification } from '@/lib/oracles/utils/verificationUtils';
+import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import { buildApiVerification, buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import {
@@ -16,6 +24,7 @@ import {
   type SupraTokenOnChainData,
   type PriceData,
 } from '@/types/oracle';
+import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
 
 const logger = createLogger('SupraClient');
 
@@ -39,9 +48,12 @@ export class SupraClient extends BaseOracleClient {
     Blockchain.SUPRA_CHAIN,
     Blockchain.APTOS,
     Blockchain.SUI,
+    Blockchain.MONAD,
   ];
 
-  supportedSymbolsList = supraSymbols;
+  supportedSymbolsList = [
+    ...new Set([...supraSymbols, ...SUPRA_MONAD_PUSHED_FEEDS.map((feed) => feed.alias)]),
+  ];
 
   defaultUpdateIntervalMinutes = 5;
   private cache = new OracleCache();
@@ -57,6 +69,10 @@ export class SupraClient extends BaseOracleClient {
     options?: { signal?: AbortSignal }
   ): Promise<PriceData> {
     this.validateGetPriceParams(symbol, options);
+
+    if (chain === Blockchain.MONAD) {
+      return this.getMonadPushPrice(symbol, options?.signal);
+    }
 
     const upperSymbol = symbol.toUpperCase();
     const pairIndex = await getSupraPairIndexAsync(upperSymbol);
@@ -113,8 +129,81 @@ export class SupraClient extends BaseOracleClient {
     }
   }
 
-  async getTokenOnChainData(symbol: string): Promise<SupraTokenOnChainData | null> {
-    const cacheKey = `onchain-data:${symbol.toUpperCase()}`;
+  /**
+   * Monad is deliberately read through Supra's Push contract, never through
+   * the DORA HTTP API. The on-chain `time` field is a millisecond timestamp
+   * and is validated by the service before this observation is exposed.
+   */
+  private async getMonadPushPrice(symbol: string, signal?: AbortSignal): Promise<PriceData> {
+    const feed = resolveSupraMonadFeed(symbol);
+    if (!feed) throw this.createUnsupportedSymbolError(symbol, Blockchain.MONAD);
+
+    try {
+      const reading = await withOracleRetry(
+        () => supraMonadOnChainService.getPrice(feed, signal),
+        'supra-monad:getPrice',
+        ORACLE_RETRY_PRESETS.standard,
+        signal
+      );
+      const dataAge = Math.max(0, Math.floor((Date.now() - reading.sourceTimestampMs) / 1000));
+      const data: PriceData = {
+        provider: OracleProvider.SUPRA,
+        chain: Blockchain.MONAD,
+        symbol: feed.alias,
+        price: reading.price,
+        timestamp: reading.timestamp,
+        decimals: reading.decimals,
+        source: `Supra DORA Push on Monad:${feed.alias} (${feed.quality}; ${feed.quoteType})`,
+        priceId: String(feed.pairIndex),
+        feedId: `supra-monad:${feed.pairIndex}`,
+        pairIndex: feed.pairIndex,
+        dataAge,
+        dataSource: 'real',
+        ingestionTimestamp: Date.now(),
+        failureMode: FailureMode.NONE,
+        // DORA Push is an independently-verifiable observation, but it stays
+        // shadow-only while Insight collects source-overlap and deviation
+        // evidence. Stablecoin quotes and reference rates are visible with
+        // their exact denomination and cannot manufacture a USD quorum vote.
+        countsTowardOracleQuorum: false,
+        signalVector: buildSignalVector({
+          dataAgeSeconds: dataAge,
+          isOnChain: true,
+          hasVerification: true,
+          providerUptime: 90,
+          hasConfidence: false,
+          hasTimestamp: true,
+          hasDecimals: true,
+          hasSource: true,
+          verificationMethod: 'getSvalue(uint256)+millisecond-freshness-gate',
+        }),
+        verification: {
+          ...buildEvmVerification(
+            SUPRA_MONAD_SVALUE_FEED_ADDRESS,
+            SUPRA_MONAD_CHAIN_ID,
+            'getSvalue(uint256)+millisecond-freshness-gate'
+          ),
+          rawValue: reading.rawValue.toString(),
+          sourceTimestamp: reading.sourceTimestamp,
+          valueExponent: -reading.decimals,
+          assetId: `${feed.alias};quality=${feed.quality};quote=${feed.quoteAsset};type=${feed.quoteType}`,
+        },
+      };
+      return this.validatePriceData(data, 'supra-monad:getPrice');
+    } catch (error) {
+      this.handleGetPriceError(error, 'Supra DORA Push on Monad', 'SUPRA_ERROR');
+    }
+  }
+
+  async getTokenOnChainData(
+    symbol: string,
+    chain?: Blockchain
+  ): Promise<SupraTokenOnChainData | null> {
+    if (chain === Blockchain.MONAD) {
+      return this.getMonadPushOnChainData(symbol);
+    }
+
+    const cacheKey = `onchain-data:${chain ?? 'default'}:${symbol.toUpperCase()}`;
     const cached = this.cache.get<SupraTokenOnChainData>(cacheKey);
     if (cached) {
       return cached;
@@ -164,6 +253,55 @@ export class SupraClient extends BaseOracleClient {
     }
   }
 
+  /**
+   * The detail/statistics endpoint must use the same verified Push reading as
+   * getPrice on Monad. Falling back to DORA's HTTP API here would show an
+   * unrelated observation beside an on-chain price and timestamp.
+   */
+  private async getMonadPushOnChainData(symbol: string): Promise<SupraTokenOnChainData | null> {
+    const feed = resolveSupraMonadFeed(symbol);
+    if (!feed) {
+      logger.warn(`Symbol '${symbol.toUpperCase()}' is not supported by Supra DORA Push on Monad`);
+      return null;
+    }
+
+    const cacheKey = `onchain-data:${Blockchain.MONAD}:${feed.alias}`;
+    const cached = this.cache.get<SupraTokenOnChainData>(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const reading = await withOracleRetry(
+        () => supraMonadOnChainService.getPrice(feed),
+        'supra-monad:getTokenOnChainData',
+        ORACLE_RETRY_PRESETS.standard
+      );
+      const dataAge = Math.max(0, Math.floor((Date.now() - reading.sourceTimestampMs) / 1000));
+      const onChainData: SupraTokenOnChainData = {
+        symbol: feed.alias,
+        price: reading.price,
+        decimals: reading.decimals,
+        pairIndex: feed.pairIndex,
+        pairName: feed.alias,
+        // This is a Monad-only Push deployment. Do not imply that this exact
+        // contract/pair observation has the generic API's multi-chain reach.
+        supportedChainsCount: 1,
+        // This is the maximum accepted source age, not an asserted cadence.
+        updateIntervalMinutes: Math.ceil(feed.maxStalenessSeconds / 60),
+        dataAge,
+        lastUpdated: reading.timestamp,
+        source: 'Supra DORA Push on Monad (getSvalue)',
+      };
+      this.cache.set(cacheKey, onChainData, Math.min(30_000, feed.maxStalenessSeconds * 1000));
+      return onChainData;
+    } catch (error) {
+      logger.error(
+        `Failed to get on-chain Supra DORA Push data for ${feed.alias}`,
+        normalizeError(error)
+      );
+      return null;
+    }
+  }
+
   async getHistoricalPrices(
     symbol: string,
     chain?: Blockchain,
@@ -171,6 +309,15 @@ export class SupraClient extends BaseOracleClient {
     options?: { signal?: AbortSignal }
   ): Promise<PriceData[]> {
     const upperSymbol = symbol.toUpperCase();
+
+    // The Push contract exposes only its latest S-value. Returning DORA HTTP
+    // candles here would look like Monad on-chain history even though it is a
+    // different transport and can have a different timestamp/value. Database
+    // snapshots collected from verified Push reads remain available through
+    // fetchHistoricalPricesWithDatabase when present.
+    if (chain === Blockchain.MONAD) {
+      return [];
+    }
 
     if (!this.isSymbolSupported(upperSymbol, chain)) {
       return [];
@@ -228,6 +375,12 @@ export class SupraClient extends BaseOracleClient {
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {
     const upperSymbol = symbol.toUpperCase();
+    if (chain === Blockchain.MONAD) {
+      return resolveSupraMonadFeed(upperSymbol) !== null;
+    }
+    if (chain === undefined && resolveSupraMonadFeed(upperSymbol) !== null) {
+      return true;
+    }
     if (isSymbolActiveInCacheSync('supra', upperSymbol)) {
       return chain === undefined || this.supportedChains.includes(chain);
     }
