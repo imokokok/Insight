@@ -82,7 +82,7 @@
     "@modelcontextprotocol/sdk": "^1.32.1",
     "@noble/curves": "^1.9.7",
     "@noble/hashes": "^1.8.0",
-    "@scalar/api-reference-react": "^0.9.79",
+    "@scalar/api-reference-react": "^0.9.83",
     "@sentry/nextjs": "^10.75.3",
     "@solana/kit": "^6.10.0",
     "@stellar/stellar-sdk": "^17.1.0",
