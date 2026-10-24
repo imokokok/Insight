@@ -1164,6 +1164,99 @@ paths:
         '503':
           description: Fresh Monad DEX evidence is unavailable.
 
+  /markets/dex/base:
+    get:
+      operationId: getBaseDexMarket
+      tags: [DEX Markets]
+      summary: Base WETH/USDC on-chain market evidence
+      description: >-
+        Returns a block-pinned, Factory-verified Uniswap V3 WETH/USDC snapshot
+        on Base: spot, a 30-minute TWAP, active in-range liquidity, token
+        balances, and fixed-size Quoter V2 exact-input quotes. This is one DEX
+        market source, not an oracle feed, consensus vote, or statement about
+        every Base route.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned Base DEX market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required: [source, venue, chainId, market, block, spot, twap, quotes]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: uniswap-v3 }
+                      chainId: { type: integer, const: 8453 }
+                      market: { type: string, const: WETH/USDC }
+                      block:
+                        type: object
+                        required: [number, hash, timestamp]
+                      spot:
+                        type: object
+                        required: [tick, token1PerToken0]
+                      twap:
+                        type: object
+                        required: [windowSeconds, tick, token1PerToken0, deviationBpsFromSpot]
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required: [amountIn, amountOut, effectiveToken1PerToken0, priceImpactBps]
+        '503':
+          description: Fresh Base DEX evidence is unavailable.
+
+  /markets/dex/solana:
+    get:
+      operationId: getSolanaDexRoute
+      tags: [DEX Markets]
+      summary: Solana SOL/USDC route evidence
+      description: >-
+        Returns an authenticated Jupiter exact-input SOL/USDC quote ladder with
+        its selected AMM route, Jupiter context slot, and a verified Solana
+        mainnet-beta finalized RPC witness. This is an aggregator route quote,
+        not a block-pinned single-pool read, transaction simulation, or landing
+        guarantee. Use the signed Solana simulation endpoint for an exact
+        prepared transaction before authorization.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh Solana route evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required: [source, venue, network, market, finalizedSlot, quotes]
+                    properties:
+                      source: { type: string, const: dex-route }
+                      venue: { type: string, const: jupiter }
+                      network: { type: string, const: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' }
+                      market: { type: string, const: SOL/USDC }
+                      finalizedSlot: { type: integer, minimum: 0 }
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required: [amountInRaw, amountOutRaw, priceImpactPct, contextSlot, route]
+        '503':
+          description: Fresh Solana route evidence is unavailable.
+
   # ── Prices ──────────────────────────────────────────────
   /prices:
     get:

@@ -130,6 +130,8 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^get_robinhood_rwa_instrument$/, 'C1'],
   // Block-pinned, single-market evidence — foundational data, not a safety gate.
   [/^get_monad_dex_market$/, 'C1'],
+  [/^get_base_dex_market$/, 'C1'],
+  [/^get_solana_dex_route$/, 'C1'],
   // A decision gate, not an execution receipt: must precede the broad C4
   // `execution` matcher below.
   [/^execution_preflight$/, 'C3'],
