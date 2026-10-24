@@ -218,6 +218,8 @@ tags:
     description: Service liveness and dependency readiness
   - name: Prices
     description: Historical and latest oracle price data
+  - name: DEX Markets
+    description: Block-pinned on-chain execution-market evidence, separate from oracle consensus
   - name: Consensus
     description: Cross-oracle consensus pricing 🔒
   - name: Feeds
@@ -1106,6 +1108,61 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetricsResponse'
+
+  # ── DEX Markets ─────────────────────────────────────────
+  /markets/dex/monad:
+    get:
+      operationId: getMonadDexMarket
+      tags: [DEX Markets]
+      summary: Monad WMON/USDC on-chain market evidence
+      description: >-
+        Returns a block-pinned, Factory-verified Uniswap V3 WMON/USDC snapshot
+        on Monad: spot, a 15-minute TWAP, active liquidity, token balances,
+        and fixed-size Quoter V2 execution quotes. Finalized Swap-event volume
+        is returned only after the contiguous local index covers each window.
+        This is DEX execution evidence, not an oracle feed and never an oracle-consensus vote.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned Monad DEX market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required: [source, venue, chainId, market, block, spot, twap, quotes, volume]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: uniswap-v3 }
+                      chainId: { type: integer, const: 143 }
+                      market: { type: string, const: MON/USDC }
+                      block:
+                        type: object
+                        required: [number, hash, timestamp]
+                      spot:
+                        type: object
+                        required: [tick, usdcPerWmon]
+                      twap:
+                        type: object
+                        required: [windowSeconds, tick, usdcPerWmon, deviationBpsFromSpot]
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [amountInWmon, amountOutUsdc, effectiveUsdcPerWmon, priceImpactBps]
+                      volume:
+                        type: object
+                        description: Null volume fields mean the finalized event index is warming or unavailable, never zero volume.
+        '503':
+          description: Fresh Monad DEX evidence is unavailable.
 
   # ── Prices ──────────────────────────────────────────────
   /prices:

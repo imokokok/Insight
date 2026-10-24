@@ -22,9 +22,10 @@ Oracle observations → Cross-source comparison → Risk assessment → Verifiab
 
 ## Supported Networks
 
-- BNB Smart Chain Mainnet (Chain ID: 56) — x402 pay-per-call settlement in Binance-Peg USDC via the AEON mandate flow
-- Base Mainnet (Chain ID: 8453) — x402 pay-per-call settlement in USDC
-- Monad Mainnet (Chain ID: 143) — read-only oracle coverage for 51 official Chainlink USD feeds; x402 pay-per-call support is configuration-ready (`eip155:143` + Monad facilitator, USDC verified on-chain 2026-10-16)
+- **x402 pay-per-call settlement:** Base, Polygon, Arbitrum One, Monad, BNB Smart Chain, and Solana mainnet. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) is the source of truth for rails currently advertised in production.
+- **BNB Smart Chain (Chain ID: 56):** Binance-Peg USDC via the AEON mandate flow; clients must use the supplied mandate scheme rather than a stock EIP-3009 payer.
+- **Monad Mainnet (Chain ID: 143):** read-only oracle coverage for 51 official Chainlink USD feeds, with x402 settlement on Circle native USDC.
+- **Additional EVM rails:** Ethereum, OP Mainnet, Avalanche, Sei, and X Layer have typed payment-configuration entries, but are not presented as public payment rails until their facilitator support and an end-to-end settlement check are confirmed.
 - Additional EVM networks are covered read-only for oracle data (40+ chains)
 
 ## Contract Addresses
@@ -77,7 +78,7 @@ Historical coverage is guaranteed for **ETH, BTC, USDC, and USDT on Ethereum, Ar
 
 The web app also provides cross-oracle price comparison, feed health and reputation, position safety and liquidation analysis, Peg Risk for stablecoins and wrapped assets, and daily reports. Researchers can inspect source timestamps and export results; developers can use the corresponding API endpoints.
 
-Integrated providers include Chainlink, Pyth Core, Stork, Chronicle, API3, RedStone, DIA, WINkLink, Supra, Uniswap V3 TWAP, Reflector, Flare, and Band. Position safety supports selected Aave V3, Compound V3, Morpho Blue, Venus, and BENQI markets. Coverage varies by asset and chain, so confirm the available sources and protocol parameters for the position being assessed.
+Integrated providers include Chainlink, Pyth Core, Stork, Chronicle, API3, RedStone, DIA, WINkLink, Supra, Uniswap V3 TWAP, Reflector, Flare, and Band. Monad also has a separate, block-pinned Uniswap V3 WMON/USDC execution-market layer: spot, 15-minute TWAP, in-range liquidity, fixed-size Quoter V2 slippage, and finalized Swap-event volume. DEX evidence never counts as an independent oracle or enters oracle consensus. Position safety supports selected Aave V3, Compound V3, Morpho Blue, Venus, and BENQI markets. Coverage varies by asset and chain, so confirm the available sources and protocol parameters for the position being assessed.
 
 ### SDK, API, MCP, and verifier
 

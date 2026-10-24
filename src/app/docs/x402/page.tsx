@@ -109,7 +109,8 @@ const fetchWithPay = wrapFetchWithPayment(fetch, client);
 const res = await fetchWithPay('${ENDPOINT}');
 const check = await res.json();
 console.log(check.verdict, check.recommendedMaxPositionUsd);
-// The server only advertises its configured, facilitator-supported networks.`;
+// This covers standard EIP-3009 EVM options. BNB Chain uses the AEON mandate
+// scheme documented below; do not register the stock scheme for eip155:56.`;
 
 const solanaTsCode = `// npm i @x402/fetch @x402/svm @solana/kit @scure/base
 import { base58 } from '@scure/base';
@@ -331,9 +332,9 @@ export default function X402QuickstartPage() {
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
                 Wrap <code className="font-mono text-base">fetch</code> with an x402 client and the
-                402 round trip disappears: the wrapper signs on the advertised EVM network, retries,
-                and hands your code the verdict JSON. The wildcard client can pay on any EVM network
-                listed by the server; the next section shows the Solana client.
+                402 round trip disappears: the wrapper signs on the advertised standard EVM network,
+                retries, and hands your code the verdict JSON. BNB Chain uses a separate AEON
+                mandate scheme; the next sections cover that exception and Solana.
               </p>
             </div>
           </div>
@@ -344,11 +345,15 @@ export default function X402QuickstartPage() {
             Configure comma-separated CAIP-2 ids in{' '}
             <code className="font-mono">X402_EVM_NETWORKS</code> to advertise multiple EVM chains.
             The registry includes Ethereum, OP Mainnet, Arbitrum, Polygon, Avalanche, Sei, X Layer,
-            Base, and Base Sepolia. If the variable is unset, x402 uses only{' '}
+            Monad, BNB Chain, Base, and Base Sepolia. If the variable is unset, x402 uses only{' '}
             <code className="font-mono">X402_NETWORK</code>; that setting remains MPP&apos;s single
-            EVM network. The same <code className="font-mono">X402_PAY_TO</code> address is reused,
-            while each chain has a separate USDC balance. Only list networks advertised by the
-            facilitator&apos;s <code className="font-mono">/supported</code> endpoint.
+            EVM network. Use <code className="font-mono">X402_PAY_TO</code> for a shared recipient
+            or <code className="font-mono">X402_EVM_PAY_TOS</code> for explicit{' '}
+            <code className="font-mono">network=recipient</code> treasury isolation. Use{' '}
+            <code className="font-mono">X402_FACILITATOR_URLS</code> for per-network{' '}
+            <code className="font-mono">network=https://facilitator</code> routing. Only list
+            networks advertised by that facilitator&apos;s{' '}
+            <code className="font-mono">/supported</code> endpoint.
           </p>
         </div>
       </section>
@@ -356,7 +361,39 @@ export default function X402QuickstartPage() {
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">03 — Solana x402</p>
+            <p className="editorial-index">03 — BNB Chain</p>
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                BNB uses a mandate, not stock EIP-3009.
+              </h2>
+              <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
+                Binance-Peg USDC has no EIP-3009 authorization entrypoint. A BNB payer must register
+                Insight&apos;s AEON mandate scheme for{' '}
+                <code className="font-mono text-base">eip155:56</code>, which makes a one-time
+                ERC-20 allowance transaction before signing the exact payment. The standard wildcard
+                EVM example above must not be used for BNB.
+              </p>
+            </div>
+          </div>
+          <p className="mt-6 max-w-3xl text-sm leading-relaxed text-slate-500">
+            The maintained adapter is exported by the{' '}
+            <Link
+              href="https://github.com/imokokok/Insight/tree/main/integrations/elizaos-plugin-insight"
+              className="text-primary-700 hover:underline"
+            >
+              Insight ElizaOS integration
+            </Link>{' '}
+            as <code className="font-mono">ExactEvmMandateScheme</code> and{' '}
+            <code className="font-mono">createMandateSignerFromKey</code>. Use a dedicated,
+            balance-capped agent key; the facilitator can pull the allowance granted by that key.
+          </p>
+        </div>
+      </section>
+
+      <section className="py-14 sm:py-20">
+        <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+          <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+            <p className="editorial-index">04 — Solana x402</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 Pay with Solana USDC.
@@ -376,7 +413,9 @@ export default function X402QuickstartPage() {
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-500">
             Server setup uses <code className="font-mono">X402_SOLANA_ENABLED</code>,{' '}
             <code className="font-mono">X402_SOLANA_NETWORK</code>, and{' '}
-            <code className="font-mono">X402_SOLANA_PAY_TO</code>. Devnet uses{' '}
+            <code className="font-mono">X402_SOLANA_PAY_TO</code>. To route Solana through a
+            different facilitator than EVM, add its CAIP-2 id to{' '}
+            <code className="font-mono">X402_FACILITATOR_URLS</code>. Devnet uses{' '}
             <code className="font-mono">solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1</code>; mainnet uses{' '}
             <code className="font-mono">solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp</code> and is
             opt-in. Create the recipient USDC associated token account and confirm facilitator
@@ -390,7 +429,7 @@ export default function X402QuickstartPage() {
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">04 — MPP</p>
+            <p className="editorial-index">05 — MPP</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 Use the standard Payment authorization scheme.
@@ -562,8 +601,8 @@ export default function X402QuickstartPage() {
               {
                 icon: Radio,
                 label: 'Discovery manifest',
-                href: 'https://www.oracleinsight.xyz/.well-known/x402.json',
-                detail: '.well-known/x402.json',
+                href: 'https://www.oracleinsight.xyz/.well-known/x402',
+                detail: '.well-known/x402',
               },
               {
                 icon: BookOpen,

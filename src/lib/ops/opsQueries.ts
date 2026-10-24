@@ -724,6 +724,19 @@ export interface X402OpsResourceSummary {
   avgResponseMs: number | null;
 }
 
+/** Lifecycle and gross receipts grouped by the selected payment network. */
+export interface X402OpsNetworkSummary {
+  /** `unattributed` means a multi-chain quote/rejection had no selected rail yet. */
+  network: string;
+  quotes: number;
+  verified: number;
+  businessSucceeded: number;
+  businessFailed: number;
+  settled: number;
+  settlementFailed: number;
+  grossUsdc: number;
+}
+
 export interface X402OpsTrendPoint {
   hour: string;
   quotes: number;
@@ -752,6 +765,7 @@ export interface X402Ops {
   verificationToBusinessPct: number | null;
   businessToSettlementPct: number | null;
   byResource: X402OpsResourceSummary[];
+  byNetwork: X402OpsNetworkSummary[];
   byHour: X402OpsTrendPoint[];
   recent: X402OpsRow[];
   errored?: boolean;
@@ -830,6 +844,7 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
     verificationToBusinessPct: null,
     businessToSettlementPct: null,
     byResource: [],
+    byNetwork: [],
     byHour: [],
     recent: [],
   };
@@ -872,6 +887,19 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
       settlementFailed: Set<string>;
       grossUsdc: number;
       responseTimes: number[];
+    }
+  >();
+  const networks = new Map<
+    string,
+    {
+      network: string;
+      quotes: Set<string>;
+      verified: Set<string>;
+      businessSucceeded: Set<string>;
+      businessFailed: Set<string>;
+      settled: Set<string>;
+      settlementFailed: Set<string>;
+      grossUsdc: number;
     }
   >();
   const hours = new Map<string, X402OpsTrendPoint>();
@@ -920,6 +948,31 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
     }
     if (row.status === 'settlement_failed') group.settlementFailed.add(row.request_id);
     resources.set(resourceKey, group);
+
+    // Multi-chain 402 quotes intentionally have no selected network until the
+    // payer returns a signature. Keep those lifecycle rows visible as
+    // `unattributed` rather than guessing a rail.
+    const network = row.network ?? 'unattributed';
+    const networkGroup = networks.get(network) ?? {
+      network,
+      quotes: new Set<string>(),
+      verified: new Set<string>(),
+      businessSucceeded: new Set<string>(),
+      businessFailed: new Set<string>(),
+      settled: new Set<string>(),
+      settlementFailed: new Set<string>(),
+      grossUsdc: 0,
+    };
+    if (row.status === 'quote_issued') networkGroup.quotes.add(row.request_id);
+    if (row.status === 'payment_verified') networkGroup.verified.add(row.request_id);
+    if (row.status === 'business_succeeded') networkGroup.businessSucceeded.add(row.request_id);
+    if (row.status === 'business_failed') networkGroup.businessFailed.add(row.request_id);
+    if (row.status === 'settled') {
+      networkGroup.settled.add(row.request_id);
+      networkGroup.grossUsdc += asUsdc(row.amount_usdc) ?? 0;
+    }
+    if (row.status === 'settlement_failed') networkGroup.settlementFailed.add(row.request_id);
+    networks.set(network, networkGroup);
 
     const hour = new Date(row.created_at).toISOString().slice(0, 13);
     const trend = hours.get(hour) ?? { hour, quotes: 0, verified: 0, settled: 0, grossUsdc: 0 };
@@ -998,6 +1051,24 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
           : null,
       }))
       .sort((a, b) => b.grossUsdc - a.grossUsdc || b.verified - a.verified),
+    byNetwork: Array.from(networks.values())
+      .map((group) => ({
+        network: group.network,
+        quotes: group.quotes.size,
+        verified: group.verified.size,
+        businessSucceeded: group.businessSucceeded.size,
+        businessFailed: group.businessFailed.size,
+        settled: group.settled.size,
+        settlementFailed: group.settlementFailed.size,
+        grossUsdc: roundTo(group.grossUsdc, 6),
+      }))
+      .sort(
+        (a, b) =>
+          b.grossUsdc - a.grossUsdc ||
+          b.settled - a.settled ||
+          b.verified - a.verified ||
+          a.network.localeCompare(b.network)
+      ),
     byHour: Array.from(hours.values()).sort((a, b) => a.hour.localeCompare(b.hour)),
     recent,
   };

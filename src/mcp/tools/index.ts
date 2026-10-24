@@ -10,6 +10,7 @@ import {
 } from './analysisTools';
 import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
 import { getCrossChainSpreadsTool } from './crossChainTools';
+import { getMonadDexMarketTool } from './dexMarketTools';
 import { executionPreflightTool } from './executionPreflightTools';
 import { executionReceiptTool } from './executionReceiptTools';
 import {
@@ -37,6 +38,7 @@ import {
   IncidentsJsonSchema,
   LatencyJsonSchema,
   MetricsJsonSchema,
+  MonadDexMarketJsonSchema,
   OraclePriceJsonSchema,
   OracleSetupRecommendationJsonSchema,
   OracleWatchHistoryJsonSchema,
@@ -116,6 +118,7 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getCorrelationTool,
   getCoverageTool,
   getMetricsTool,
+  getMonadDexMarketTool,
   checkPositionSafetyTool,
   preTradeSafetyCheckTool,
   oracleWatchTool,
@@ -313,6 +316,11 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   get_metrics: MetricsJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  get_monad_dex_market: MonadDexMarketJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

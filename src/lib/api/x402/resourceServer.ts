@@ -8,8 +8,8 @@ import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 
 import {
+  facilitatorUrlForNetwork,
   type X402Config,
-  type X402NetworkId,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
   X402_PRE_TRADE_ROUTE,
@@ -258,7 +258,7 @@ function buildFacilitatorClients(
     urls.add(cfg.facilitatorUrl);
   } else {
     for (const option of options) {
-      urls.add(cfg.facilitatorUrls?.[option.network as X402NetworkId] ?? cfg.facilitatorUrl);
+      urls.add(facilitatorUrlForNetwork(cfg, option.network));
     }
   }
 
@@ -275,10 +275,7 @@ function buildFacilitatorClients(
     // unreachable and no cached response exists).
     const routed = deps?.facilitatorUrl
       ? options
-      : options.filter(
-          (option) =>
-            (cfg.facilitatorUrls?.[option.network as X402NetworkId] ?? cfg.facilitatorUrl) === url
-        );
+      : options.filter((option) => facilitatorUrlForNetwork(cfg, option.network) === url);
     const fallbackKinds = (routed.length > 0 ? routed : options).map((option) => ({
       x402Version: 2,
       scheme: 'exact',
@@ -334,7 +331,7 @@ export async function buildX402HttpServer(
     .map((option) => option.network);
   if (unsupportedNetworks.length > 0) {
     throw new Error(
-      `X402_FACILITATOR_URL does not advertise x402 v2 exact support for: ${unsupportedNetworks.join(', ')}. Check its /supported endpoint and X402_EVM_NETWORKS/X402_SOLANA_NETWORK.`
+      `a configured facilitator does not advertise x402 v2 exact support for: ${unsupportedNetworks.join(', ')}. Check its /supported endpoint and X402_EVM_NETWORKS/X402_SOLANA_NETWORK.`
     );
   }
 

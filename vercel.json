@@ -26,6 +26,9 @@
     "src/app/api/cron/sync-feeds/route.ts": {
       "maxDuration": 60
     },
+    "src/app/api/cron/monad-dex-market/route.ts": {
+      "maxDuration": 60
+    },
     "src/app/api/cron/daily-report/route.ts": {
       "maxDuration": 60
     },

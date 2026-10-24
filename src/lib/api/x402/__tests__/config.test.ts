@@ -4,7 +4,9 @@ import {
   SOLANA_DEVNET_CAIP2,
   SOLANA_MAINNET_CAIP2,
   eip3009TokenNameForNetwork,
+  facilitatorUrlForNetwork,
   getX402PaymentOptions,
+  payToForEvmNetwork,
   tokenDecimalsForNetwork,
   tokenNameForNetwork,
   usdcForNetwork,
@@ -81,6 +83,61 @@ describe('x402 config', () => {
       '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
       '0x754704Bc059F8C67012fEd69BC8A327a5aafb603',
     ]);
+  });
+
+  it('uses an explicit EVM recipient per chain while retaining a default recipient', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:42161',
+      X402_EVM_PAY_TOS: 'eip155:42161=0xdef0000000000000000000000000000000000002',
+    });
+
+    expect(payToForEvmNetwork(cfg, 'eip155:8453')).toBe(BASE_ENV.X402_PAY_TO);
+    expect(payToForEvmNetwork(cfg, 'eip155:42161')).toBe(
+      '0xdef0000000000000000000000000000000000002'
+    );
+    expect(getX402PaymentOptions(cfg).map((option) => option.payTo)).toEqual([
+      BASE_ENV.X402_PAY_TO,
+      '0xdef0000000000000000000000000000000000002',
+    ]);
+  });
+
+  it('can enable EVM x402 from explicit per-chain recipients without a default recipient', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_PAY_TO: '',
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:42161',
+      X402_EVM_PAY_TOS:
+        'eip155:8453=0xabc0000000000000000000000000000000000001,eip155:42161=0xdef0000000000000000000000000000000000002',
+    });
+
+    expect(cfg.enabled).toBe(true);
+    expect(cfg.evmEnabled).toBe(true);
+    expect(getX402PaymentOptions(cfg).map((option) => option.payTo)).toEqual([
+      '0xabc0000000000000000000000000000000000001',
+      '0xdef0000000000000000000000000000000000002',
+    ]);
+  });
+
+  it('rejects malformed, duplicate, and incomplete EVM recipient maps', () => {
+    expect(() =>
+      parseX402Config({ ...BASE_ENV, X402_EVM_PAY_TOS: 'eip155:8453=not-an-address' })
+    ).toThrow();
+    expect(() =>
+      parseX402Config({
+        ...BASE_ENV,
+        X402_EVM_PAY_TOS:
+          'eip155:8453=0xabc0000000000000000000000000000000000001,eip155:8453=0xdef0000000000000000000000000000000000002',
+      })
+    ).toThrow(/duplicate/);
+    expect(() =>
+      parseX402Config({
+        ...BASE_ENV,
+        X402_PAY_TO: '',
+        X402_EVM_NETWORKS: 'eip155:8453,eip155:42161',
+        X402_EVM_PAY_TOS: 'eip155:8453=0xabc0000000000000000000000000000000000001',
+      })
+    ).toThrow(/no recipient/);
   });
 
   it('maps BNB Smart Chain to the bridged USDC contract with the AEON mandate domain', () => {
@@ -169,6 +226,20 @@ describe('x402 config', () => {
       expect(cfg.facilitatorUrls).toEqual({
         'eip155:143': 'https://x402-facilitator.molandak.org',
       });
+    });
+
+    it('allows Solana to use a facilitator independently of EVM rails', () => {
+      const cfg = parseX402Config({
+        ...BASE_ENV,
+        X402_SOLANA_ENABLED: 'true',
+        X402_SOLANA_NETWORK: SOLANA_MAINNET_CAIP2,
+        X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+        X402_FACILITATOR_URLS: `${SOLANA_MAINNET_CAIP2}=https://solana.example.com`,
+      });
+      expect(facilitatorUrlForNetwork(cfg, 'eip155:84532')).toBe('https://x402.org/facilitator');
+      expect(facilitatorUrlForNetwork(cfg, SOLANA_MAINNET_CAIP2)).toBe(
+        'https://solana.example.com'
+      );
     });
 
     it('rejects malformed, non-https, unknown-network, and duplicate entries', () => {
@@ -306,6 +377,15 @@ describe('x402 config', () => {
         parseX402Config({
           ...BASE_ENV,
           X402_FACILITATOR_URL: 'https://api.cdp.coinbase.com/platform/v2/x402',
+        })
+      ).toThrow(/CDP requires authenticated/);
+    });
+
+    it('requires CDP credentials when any per-network facilitator uses CDP', () => {
+      expect(() =>
+        parseX402Config({
+          ...BASE_ENV,
+          X402_FACILITATOR_URLS: 'eip155:143=https://api.cdp.coinbase.com/platform/v2/x402',
         })
       ).toThrow(/CDP requires authenticated/);
     });
