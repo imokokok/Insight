@@ -6,6 +6,7 @@ import {
 import {
   BAZAAR_DISCOVERY_EXTENSION,
   BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION,
+  BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION,
 } from '../resourceServer';
 
 /**
@@ -42,6 +43,8 @@ interface QueryBazaarExtension {
 const declared = BAZAAR_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
 const preflightDeclared =
   BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
+const swapIntentDeclared =
+  BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
 
 /** The wire shape after bazaarResourceServerExtension.enrichDeclaration on a GET. */
 const enrichedGet = {
@@ -120,5 +123,29 @@ describe('bazaar discovery extension', () => {
       verdict: 'caution',
       recommendation: 'review_before_execution',
     });
+  });
+
+  it('declares the paid two-gate Swap Intent contract for GET discovery', () => {
+    const enriched = {
+      ...swapIntentDeclared,
+      info: {
+        ...swapIntentDeclared.info,
+        input: { ...swapIntentDeclared.info.input, method: 'GET' },
+      },
+    };
+    expect(
+      validateDiscoveryExtensionSpec(
+        BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION.bazaar as unknown as Record<string, unknown>
+      )
+    ).toEqual({ valid: true });
+    expect(validateDiscoveryExtension(enriched as never)).toEqual({ valid: true });
+    expect(swapIntentDeclared.info.input.queryParams).toMatchObject({
+      sourceAsset: 'ETH',
+      destinationAsset: 'USDC',
+      subjectChainId: 1,
+      settlementChainId: 1,
+      declaredNotionalUsd: 1000,
+    });
+    expect(swapIntentDeclared.info.output.example).toHaveProperty('journeyId');
   });
 });

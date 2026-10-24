@@ -626,6 +626,44 @@ paths:
         '503':
           description: Signing or durable persistence unavailable
 
+  /execution/attestation/issue/journey:
+    post:
+      operationId: redeemSwapIntentReceipt
+      tags: [Execution Evidence]
+      summary: Redeem the included Swap Intent Execution Receipt
+      description: |
+        Redeems the single receipt credit created by a settled x402 Swap Intent.
+        The caller must present the opaque `journeyId`, its caller-held
+        `outcomeToken`, both signed Pre-Trade gates, and the settlement transaction.
+        Both gates are signature-verified and must match the journey. This route
+        does not accept an API key in place of the one-time capability.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ExecutionIssueRequest'
+                - type: object
+                  required: [journeyId, outcomeToken, destinationPreTradeUid, preTradeAttestations]
+                  properties:
+                    journeyId:
+                      type: string
+                      format: uuid
+                    outcomeToken:
+                      type: string
+                      minLength: 32
+                      description: Caller-held one-time lifecycle capability; do not log it.
+      responses:
+        '200':
+          description: Signed receipt issued, or the exact same persisted receipt returned idempotently.
+        '404':
+          description: Unknown journey or invalid caller capability.
+        '409':
+          description: Settlement is still pending, a receipt is being issued, or the credit is unavailable.
+        '503':
+          description: Durable receipt finalization temporarily unavailable; retry the identical request.
+
   /execution/solana/collect:
     post:
       operationId: collectSolanaExecutionFacts
@@ -2171,6 +2209,112 @@ paths:
             WWW-Authenticate:
               description: MPP challenge when enabled on this deployment.
               schema: { type: string }
+
+  /safety/swap-intent:
+    get:
+      operationId: createPaidSwapIntent
+      tags: [Safety]
+      summary: Create a two-gate Swap Intent 🔒
+      description: |
+        The paid x402 path for a transaction-verifiable same-chain swap decision.
+        It issues two signed schema-v3 Pre-Trade gates, one for each asset, and
+        returns a `journeyId` plus one receipt credit once the x402 payment has
+        settled. `venue` and `router` are caller claims, not verified venue facts.
+        A `BLOCK` is a complete paid decision. Cross-chain intents are not supported.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - { name: sourceAsset, in: query, required: true, schema: { type: string, example: ETH } }
+        - {
+            name: destinationAsset,
+            in: query,
+            required: true,
+            schema: { type: string, example: USDC },
+          }
+        - { name: subjectChainId, in: query, required: true, schema: { type: integer, example: 1 } }
+        - {
+            name: settlementChainId,
+            in: query,
+            required: true,
+            schema: { type: integer, example: 1 },
+          }
+        - {
+            name: declaredNotionalUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 1000 },
+          }
+        - { name: venue, in: query, required: false, schema: { type: string, example: uniswap-v3 } }
+        - {
+            name: router,
+            in: query,
+            required: false,
+            schema: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' },
+          }
+      responses:
+        '200':
+          description: Two signed checks and next actions for receipt redemption or a voluntary non-execution report.
+        '402':
+          description: x402 v2 quote in PAYMENT-REQUIRED for anonymous calls.
+    post:
+      operationId: createApiKeySwapIntent
+      tags: [Safety]
+      summary: Create a two-gate Swap Intent with an API key 🔒
+      description: API-key variant of Swap Intent. JSON body uses the same fields as the GET query contract.
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                [
+                  sourceAsset,
+                  destinationAsset,
+                  subjectChainId,
+                  settlementChainId,
+                  declaredNotionalUsd,
+                ]
+              properties:
+                sourceAsset: { type: string }
+                destinationAsset: { type: string }
+                subjectChainId: { type: integer }
+                settlementChainId: { type: integer }
+                declaredNotionalUsd: { type: number, exclusiveMinimum: 0 }
+                venue: { type: string }
+                router: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+      responses:
+        '200': { description: Two signed gates and a receipt capability. }
+
+  /trade-journeys/outcome:
+    post:
+      operationId: reportSwapJourneyNotExecuted
+      tags: [Execution Evidence]
+      summary: Record a voluntary non-execution report
+      description: |
+        Records a caller statement that it did not execute the checked journey.
+        It is intentionally not a claim about chain state: no callback or report
+        is ever interpreted as proof that a transaction did not occur.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [journeyId, outcomeToken, reason]
+              properties:
+                journeyId: { type: string, format: uuid }
+                outcomeToken: { type: string, minLength: 32 }
+                reason:
+                  type: string
+                  enum: [risk_caution, market_changed, user_cancelled, integration_failed, other]
+      responses:
+        '200': { description: Voluntary report recorded. }
+        '404': { description: Unknown journey or invalid caller capability. }
+        '409': { description: Journey already has an execution or terminal state. }
 
   /oracle-watch:
     get:

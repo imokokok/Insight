@@ -1,0 +1,60 @@
+{
+  "kind": "MainlineProtocolPromotion",
+  "promotionVersion": 36,
+  "effectiveFrom": "2026-10-25",
+  "classification": "Optional paid Swap Intent journeys: paired schema-v3 Pre-Trade gates, settlement-gated receipt credit, and caller-held outcome reporting",
+  "registryReleaseId": "0xc90709876d4210c521d36a27171d4f45bca4a7b48e67658fac9c76c04ef50831",
+  "predecessorReleaseId": "0x6e3bd18c541cc80e326754a7743f05050df348257102b93f9a13bc82c7e69f6b",
+  "predecessorPromotionId": "0x75cc0474d80512dda1fc25f5560596308cb2d663c9abb0eb6a4aa7747a691242",
+  "activationSetId": "0x32335b66b91bd4ab1742b86ffcaefa94bbfc063de5f9a1d51e0080df67896157",
+  "receiptImpact": "Existing OracleSafetyCheck v3 and ExecutionReceipt signed layouts, registry release, attester keys, partner policies, and activation set v6 remain unchanged. Insight adds an optional same-chain x402 Swap Intent that binds two independently signed v3 Pre-Trade gates to an opaque journey. A caller can redeem one Execution Receipt only after x402 settlement and the existing execution-proof verification succeeds. Venue and router values are caller claims, not verified venue facts; a missing callback is never treated as proof of non-execution.",
+  "activationRule": "The Swap Intent path is available only to a caller that completes the paid same-chain intent and retains its one-time outcome capability. Receipt issuance remains bound to the two signed gate UIDs and an independently verified settlement transaction. This promotion grants no partner activation, partner reliance, execution or broadcast authority, Stage 2 change, new attester key, or new data-source authority.",
+  "compatibilityMatrix": [
+    {
+      "partnerId": "agent-passport",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x11d4736a2c0a2c23f3a2d46f863d3ebb64e2b738f8da4a02bd12a30368578a43 byte for byte. The optional Insight journey is not in this policy and changes no shared signed layout or execution authority."
+    },
+    {
+      "partnerId": "andydgrea",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xe556b47dbdb4e3d7cab2c4fb882ffe0b65d6c4750ac0ff5ce6ee2f0494d3b787 byte for byte. No partner policy, key, production reachability, or receipt verifier behavior changes."
+    },
+    {
+      "partnerId": "emilia",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x0ce8536c90b23ebcb2952422e5eb67628da65c14b6bf5782849f20c0b137815b byte for byte. The caller-held journey capability is Insight-only and has no partner activation effect."
+    },
+    {
+      "partnerId": "frontier-compute",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xca3bd5acb9d70f9e9755fad44e87cff1122f88986a6c61b33d93a49e3bb15861 byte for byte. No OracleSafetyCheck schema, key admission, or shared execution path changes."
+    },
+    {
+      "partnerId": "headless",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xd510bd9f29be0b896aed2e2b95200eab25cb9e03430a456f1bee3df7a17de158 byte for byte. Existing headless verification and historical receipt behavior are unchanged."
+    },
+    {
+      "partnerId": "interai",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0xb539451842dc4e907d6fcea012aa094f4fea3c3acd2fd054aa4106848f602239 byte for byte. This promotion changes neither D8 admission nor any InterAI signing or decision authority."
+    },
+    {
+      "partnerId": "raul",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x5a80afffbb667b62014c727fae35e9f00edd6ca99555baa1c4cc79d0650768d0 byte for byte. No partner runtime, public attestation semantics, or execution behavior changes."
+    },
+    {
+      "partnerId": "vaara",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x248f339e382efefaf20c9caad0ed6ee3db75775b5b5649b3d2421bb28d376341 byte for byte. The optional Insight journey changes no partner policy, activation, trust pin, or execution behavior."
+    },
+    {
+      "partnerId": "veritas",
+      "outcome": "unchanged",
+      "evidence": "Activation set v6 preserves policy ID 0x55fbfb17fbab461ff237cad4b19f8fba71411461d19f8e99af103910ae47ae63 byte for byte. Existing dedicated-window and receipt verification rules remain unchanged."
+    }
+  ],
+  "promotionId": "0x76ac6f9a1b8120c323d132367db1b75e468044826dc909008b16d9927eaa0700"
+}

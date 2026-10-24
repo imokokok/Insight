@@ -10,6 +10,12 @@ import {
 import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
 import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
+import {
+  attachGenericJourneyCheck,
+  createJourney,
+  nextActions,
+  recordJourneyPayment,
+} from '@/lib/tradeJourney/journeyService';
 
 import { GET } from '../route';
 
@@ -65,6 +71,13 @@ jest.mock('@/lib/api/x402/guard', () => ({
   isPaidRequest: jest.fn(),
 }));
 
+jest.mock('@/lib/tradeJourney/journeyService', () => ({
+  attachGenericJourneyCheck: jest.fn(),
+  createJourney: jest.fn(),
+  nextActions: jest.fn(),
+  recordJourneyPayment: jest.fn(),
+}));
+
 const mockLegacyGet = (createApiHandler as jest.Mock).mock.results[0]?.value as jest.Mock;
 const mockMppConfig = getMppConfig as jest.Mock;
 const mockHandleMpp = handleMppPaidPreTradeRequest as jest.Mock;
@@ -77,6 +90,10 @@ const mockHasAuthCredentials = hasAuthCredentials as jest.Mock;
 const mockIsPaidRequest = isPaidRequest as jest.Mock;
 const mockSuccessResponse = ApiResponseBuilder.success as jest.Mock;
 const mockErrorResponse = ApiResponseBuilder.error as jest.Mock;
+const mockAttachGenericJourneyCheck = attachGenericJourneyCheck as jest.Mock;
+const mockCreateJourney = createJourney as jest.Mock;
+const mockNextActions = nextActions as jest.Mock;
+const mockRecordJourneyPayment = recordJourneyPayment as jest.Mock;
 
 const X402_CONFIG = {
   enabled: true,
@@ -105,6 +122,7 @@ function routeContext() {
 }
 
 beforeEach(() => {
+  jest.clearAllMocks();
   mockGetX402Config.mockReturnValue(X402_CONFIG);
   mockMppConfig.mockReturnValue(MPP_CONFIG);
   mockHasMppCredential.mockImplementation(
@@ -124,6 +142,14 @@ beforeEach(() => {
       issueX402Quote()
   );
   mockPreTradeSafetyCheck.mockResolvedValue(TOOL_RESULT);
+  mockCreateJourney.mockResolvedValue({
+    journeyId: '11111111-1111-4111-8111-111111111111',
+    outcomeToken: 'a'.repeat(43),
+    receiptCreditState: 'not_available',
+  });
+  mockAttachGenericJourneyCheck.mockResolvedValue(undefined);
+  mockNextActions.mockReturnValue({});
+  mockRecordJourneyPayment.mockResolvedValue(undefined);
   mockSuccessResponse.mockImplementation((data, metadata) => ({ ok: true, data, ...metadata }));
   mockErrorResponse.mockImplementation((code, message, details) => ({ code, message, details }));
   mockLegacyGet.mockResolvedValue(new Response('legacy handler', { status: 200 }));

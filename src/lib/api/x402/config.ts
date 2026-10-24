@@ -487,6 +487,9 @@ export const X402_PRE_TRADE_ROUTE = '/api/v1/safety/pre-trade';
  */
 export const X402_EXECUTION_PREFLIGHT_ROUTE = '/api/v1/safety/preflight';
 
+/** A two-gate same-chain swap lifecycle with one post-settlement receipt credit. */
+export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';
+
 /** The MCP streamable-HTTP route paid per tools/call (JSON-RPC POST). */
 export const X402_MCP_ROUTE = '/api/mcp';
 

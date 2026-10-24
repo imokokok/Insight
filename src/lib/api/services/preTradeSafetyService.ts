@@ -495,6 +495,8 @@ function normalize(value: number, max: number): number {
 export interface AuditMeta {
   apiKeyId?: string;
   requestId?: string;
+  /** Opaque lifecycle correlation. It is operational metadata, never signed evidence. */
+  journeyId?: string;
   workflowTag?: string;
   baselineVerdict?: 'allow' | 'alert' | 'block' | 'unknown';
   baselineVersion?: string;
@@ -536,6 +538,7 @@ async function logAudit(
 
     const { error } = await client.from('pre_trade_checks').insert({
       request_id: meta.requestId ?? null,
+      journey_id: meta.journeyId ?? null,
       workflow_tag: meta.workflowTag ?? null,
       baseline_verdict: meta.baselineVerdict ?? null,
       baseline_version: meta.baselineVersion ?? null,
