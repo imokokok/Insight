@@ -17,6 +17,12 @@ import { CACHE_PRESETS } from '@/lib/api/utils';
 import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
+import {
+  attachGenericJourneyCheck,
+  createJourney,
+  nextActions,
+  recordJourneyPayment,
+} from '@/lib/tradeJourney/journeyService';
 
 import { PreTradeQuerySchema } from './querySchema';
 
@@ -40,11 +46,28 @@ interface PreTradeCheckParams {
   /** API-key path only; the keyless x402 tier has no key to meter. */
   apiKeyId?: string;
   requestId: string;
+  /** Paid callers receive an opaque lifecycle handle; API-key responses stay unchanged. */
+  trackJourney?: boolean;
+  onJourneyIssued?: (journeyId: string) => void;
 }
 
 /** Shared business core for both the API-key path and the x402 paid tier. */
 async function executePreTradeCheck(params: PreTradeCheckParams): Promise<NextResponse> {
-  const { query, apiKeyId, requestId } = params;
+  const { query, apiKeyId, requestId, trackJourney = false, onJourneyIssued } = params;
+
+  const journey = trackJourney
+    ? await createJourney({
+        requestId,
+        kind: 'pre_trade',
+        source: 'rest',
+        action: query.action,
+        sourceAsset: query.asset,
+        destinationAsset: query.destinationAsset,
+        subjectChainId: query.chainId,
+        declaredNotionalUsd: query.tradeAmountUsd,
+        receiptCreditState: 'not_available',
+      })
+    : null;
 
   // preTradeSafetyCheck swallows UnsupportedSymbolError internally and returns
   // a BLOCK verdict, so any throw here is genuinely unexpected — let the
@@ -79,15 +102,36 @@ async function executePreTradeCheck(params: PreTradeCheckParams): Promise<NextRe
     {
       apiKeyId,
       requestId,
+      journeyId: journey?.journeyId,
       workflowTag: query.workflowTag,
       baselineVerdict: query.baselineVerdict,
       baselineVersion: query.baselineVersion,
     }
   );
 
+  if (journey) {
+    await attachGenericJourneyCheck(journey.journeyId, result);
+    onJourneyIssued?.(journey.journeyId);
+  }
+
+  const body = journey
+    ? {
+        ...result,
+        journeyId: journey.journeyId,
+        outcomeToken: journey.outcomeToken,
+        next: nextActions({
+          kind: 'pre_trade',
+          journeyId: journey.journeyId,
+          outcomeToken: journey.outcomeToken,
+          verdict: result.verdict,
+          receiptCreditState: journey.receiptCreditState,
+        }),
+      }
+    : result;
+
   const response: NextResponse = new Response(
     JSON.stringify(
-      ApiResponseBuilder.success(result, {
+      ApiResponseBuilder.success(body, {
         requestId,
         meta: { verdict: result.verdict },
       })
@@ -133,6 +177,7 @@ export const GET = (
 ): Promise<NextResponse> => {
   const cfg = getX402Config();
   const mppCfg = getMppConfig(cfg);
+  let x402JourneyId: string | null = null;
 
   if (cfg.enabled) {
     if (mppCfg.enabled && hasMppCredential(request)) {
@@ -151,6 +196,7 @@ export const GET = (
         return executePreTradeCheck({
           query: parsed.data,
           requestId,
+          trackJourney: true,
         });
       });
     }
@@ -174,12 +220,25 @@ export const GET = (
           return executePreTradeCheck({
             query: parsed.data,
             requestId,
+            trackJourney: true,
+            onJourneyIssued: (journeyId) => {
+              x402JourneyId = journeyId;
+            },
           });
         },
         {
           // Opt-in ERC-8004 reputation anchoring (M2): enqueue after settlement,
           // off the response path. Validation already enforces the pairing.
           onSettled: async (settled) => {
+            if (x402JourneyId) {
+              await recordJourneyPayment({
+                journeyId: x402JourneyId,
+                requestId: settled.requestId,
+                payer: settled.payer,
+                network: settled.network,
+                txHash: settled.txHash,
+              });
+            }
             const params = request.nextUrl.searchParams;
             if (params.get('reputationOptIn') !== '1') return;
             const agentId = Number.parseInt(params.get('reputationAgentId') ?? '', 10);
