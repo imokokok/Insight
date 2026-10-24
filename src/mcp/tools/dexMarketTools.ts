@@ -1,8 +1,14 @@
+import { getBaseUniswapV3MarketSnapshot } from '@/lib/dex/baseUniswapV3';
 import { getMonadUniswapV3MarketSnapshot } from '@/lib/dex/monadUniswapV3';
 import { getMonadUniswapV3VolumeSummary } from '@/lib/dex/monadUniswapV3Volume';
+import { getSolanaJupiterRouteSnapshot } from '@/lib/dex/solanaJupiterRoute';
 
 import { formatAsText } from './formatters';
-import { MonadDexMarketInputSchema } from './schemas';
+import {
+  BaseDexMarketInputSchema,
+  MonadDexMarketInputSchema,
+  SolanaDexRouteInputSchema,
+} from './schemas';
 
 import type { McpToolDefinition } from './types';
 
@@ -28,6 +34,44 @@ export const getMonadDexMarketTool: McpToolDefinition<typeof MonadDexMarketInput
         'DEX market evidence is not an oracle-consensus vote or a venue-independent fair price.',
         'activeLiquidityRaw is Uniswap V3 in-range liquidity; it is not token reserve TVL.',
         'Rolling volume is null while the finalized Swap-event index is warming or unavailable; null never means zero.',
+      ],
+    });
+  },
+};
+
+/** Returns block-pinned Base evidence for the reviewed WETH/USDC pool. */
+export const getBaseDexMarketTool: McpToolDefinition<typeof BaseDexMarketInputSchema> = {
+  name: 'get_base_dex_market',
+  description:
+    'Get fresh, block-pinned Base Uniswap V3 WETH/USDC market evidence: spot, 30-minute TWAP, active liquidity, and executable quote ladder. This is one DEX venue, not an oracle-consensus price.',
+  parameters: BaseDexMarketInputSchema,
+  handler: async () => {
+    const snapshot = await getBaseUniswapV3MarketSnapshot();
+    return formatAsText({
+      ...snapshot,
+      caveats: [
+        'DEX market evidence is not an oracle-consensus vote or a venue-independent fair price.',
+        'activeLiquidityRaw is Uniswap V3 in-range liquidity; it is not token reserve TVL.',
+        'This endpoint reports one reviewed WETH/USDC pool, not every Base route.',
+      ],
+    });
+  },
+};
+
+/** Returns authenticated Jupiter route context for the reviewed SOL/USDC market. */
+export const getSolanaDexRouteTool: McpToolDefinition<typeof SolanaDexRouteInputSchema> = {
+  name: 'get_solana_dex_route',
+  description:
+    'Get fresh Jupiter SOL/USDC exact-input route evidence: quote ladder, price impact, selected AMM route, quote context slot, and finalized Solana RPC witness. It is a route quote, not a simulated or guaranteed swap.',
+  parameters: SolanaDexRouteInputSchema,
+  handler: async () => {
+    const snapshot = await getSolanaJupiterRouteSnapshot();
+    return formatAsText({
+      ...snapshot,
+      caveats: [
+        'Jupiter route evidence is an aggregator quote, not a block-pinned read of one Solana pool.',
+        'A quote is not a transaction simulation or a guarantee that a later signed swap will land.',
+        'Use Insight’s signed Solana simulation receipt to bind an exact prepared transaction before authorization.',
       ],
     });
   },
