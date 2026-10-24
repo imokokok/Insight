@@ -2,6 +2,7 @@ import { bandSymbols } from './bandConstants';
 import { CHRONICLE_MONAD_PRICE_FEEDS } from './chronicleMonad';
 import { flareSymbols } from './flareConstants';
 import { PYTH_MONAD_SPONSORED_FEEDS } from './pythMonad';
+import { PYTH_SOLANA_SPONSORED_FEEDS } from './pythSolana';
 import { reflectorSymbols } from './reflectorConstants';
 import { STORK_MONAD_PUSHED_FEEDS } from './storkMonad';
 import { supraSymbols } from './supraConstants';
@@ -620,9 +621,14 @@ export const API3_AVAILABLE_PAIRS: Record<string, string[]> = {
 // claims symbols that are not actually active on any chain.
 const api3Symbols = [...new Set(Object.values(API3_AVAILABLE_PAIRS).flat())] as const;
 
-// Monad Pyth Core support is deliberately derived from the committed sponsored
-// registry. Keep pair notation for the `.RR` reference-rate feeds.
-const pythSymbols = PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias);
+// Pyth Core support is derived from the committed Monad and Solana sponsored
+// registries. Keep pair notation for the `.RR` reference-rate feeds.
+const pythSymbols = [
+  ...new Set([
+    ...PYTH_MONAD_SPONSORED_FEEDS.map((feed) => feed.alias),
+    ...PYTH_SOLANA_SPONSORED_FEEDS.map((feed) => feed.alias),
+  ]),
+];
 
 // Stork support is derived from the complete committed Monad pushed-feed set.
 const storkSymbols = STORK_MONAD_PUSHED_FEEDS.map((feed) => feed.alias);

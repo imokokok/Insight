@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import { verifyCronSecret } from '@/lib/api/cronAuth';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
 import { API3_MAX_DATA_AGE_SECONDS } from '@/lib/oracles/constants/api3Health';
-import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { resolveSupraMonadFeed } from '@/lib/oracles/constants/supraMonad';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { api3NetworkService } from '@/lib/oracles/services/api3NetworkService';
@@ -15,6 +14,7 @@ import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
 import { supraMonadOnChainService } from '@/lib/oracles/services/supraMonadOnChainService';
 import { getWINkLinkRealDataService } from '@/lib/oracles/services/winklinkRealDataService';
 import { invalidateAllFeedsCache } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { resolveOracleFeedBlockchain } from '@/lib/oracles/utils/feedChain';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { type OracleFeed, type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
@@ -145,7 +145,7 @@ async function probeRedStoneFeed(
 ): Promise<boolean> {
   try {
     const provider = OracleProvider.REDSTONE;
-    const chain = getBlockchainByChainId(feed.chain_id);
+    const chain = resolveOracleFeedBlockchain(feed);
     const client = getDefaultFactory().getClient(provider);
     const price = await client.getPrice(feed.symbol, chain, { signal });
     return (
@@ -170,7 +170,7 @@ async function probeFeed(
     // BSC/Polygon/Arbitrum) are verified on the correct chain instead of the
     // client's default (Ethereum), which would cause checkSymbolActive to
     // reject them. chain_id=0 (chain-agnostic) → undefined → default chain.
-    const chain = getBlockchainByChainId(feed.chain_id);
+    const chain = resolveOracleFeedBlockchain(feed);
 
     if (provider === OracleProvider.REDSTONE) {
       return probeRedStoneFeed(feed, signal);
@@ -379,7 +379,7 @@ const REACTIVATE_LIMIT = 200;
 async function probeInactiveFeed(feed: OracleFeed): Promise<boolean> {
   try {
     const provider = feed.provider as OracleProvider;
-    const chain = getBlockchainByChainId(feed.chain_id);
+    const chain = resolveOracleFeedBlockchain(feed);
 
     // API3 dAPIs are cross-chain and resolved via the communal proxy contract
     // using the dAPI name stored in `address`. Probe through the network

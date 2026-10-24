@@ -149,18 +149,19 @@ export async function resolveProvidersForSymbol(
     try {
       const client = getDefaultFactory().getClient(provider);
       const clientSupportsSymbol = client.isSymbolSupported(baseSymbol, chain);
-      // Monad Pyth Core is a versioned, first-party registry bundled with the
-      // service and read directly from Pyth's on-chain Core contract. Unlike a
-      // generic curated list, it is the native source of truth for the
-      // sponsored feeds, so it must remain available while the operational
-      // `oracle_feeds` mirror is empty or catching up. Keeping this exception
-      // scoped to the chain/provider pair preserves the normal rule that a
-      // successful empty DB registry deactivates ordinary providers.
-      const isPinnedMonadPyth =
-        provider === OracleProvider.PYTH && chain === Blockchain.MONAD && clientSupportsSymbol;
+      // The Pyth Core sponsored registries are versioned, first-party catalogs
+      // bundled with Insight and read from the native chain-owned account. They
+      // remain available while the operational `oracle_feeds` mirror is empty
+      // or catching up. Keeping this exception limited to the two reviewed
+      // Pyth deployments preserves the normal rule that a successful empty DB
+      // registry deactivates ordinary providers.
+      const isPinnedNativePyth =
+        provider === OracleProvider.PYTH &&
+        (chain === Blockchain.MONAD || chain === Blockchain.SOLANA) &&
+        clientSupportsSymbol;
 
       if (
-        (clientSupportsSymbol && (hasActiveFeed || feedRegistry.errored || isPinnedMonadPyth)) ||
+        (clientSupportsSymbol && (hasActiveFeed || feedRegistry.errored || isPinnedNativePyth)) ||
         hasSpecificChainFeed
       ) {
         providers.push(provider);
@@ -183,8 +184,8 @@ interface FetchProviderPriceResult {
 }
 
 /**
- * A Monad caller that explicitly scopes consensus to Pyth is asking for the
- * chain's pinned, on-chain Pyth Core feed. Do not make that single RPC read
+ * A caller that explicitly scopes native Monad or Solana consensus to Pyth is
+ * asking for that chain's pinned, on-chain Pyth Core feed. Do not make that single RPC read
  * wait on the operational feed mirror, reputation table, or price-cache
  * persistence: each of those is useful for multi-provider consensus but none
  * changes whether the Core contract returned a fresh, verified observation.
@@ -193,24 +194,27 @@ interface FetchProviderPriceResult {
  * the v2/v3 quorum gate in pre-trade safety and therefore cannot produce an
  * execution ALLOW on its own.
  */
-function isPinnedMonadPythOnlyRequest(
+function isPinnedNativePythOnlyRequest(
   chain: Blockchain | undefined,
   targetProviders: readonly OracleProvider[] | undefined
 ): boolean {
   return (
-    chain === Blockchain.MONAD &&
+    (chain === Blockchain.MONAD || chain === Blockchain.SOLANA) &&
     targetProviders?.length === 1 &&
     targetProviders[0] === OracleProvider.PYTH
   );
 }
 
-async function readPinnedMonadPythPrice(symbol: string): Promise<FetchProviderPriceResult> {
+async function readPinnedPythPrice(
+  symbol: string,
+  chain: Blockchain.MONAD | Blockchain.SOLANA
+): Promise<FetchProviderPriceResult> {
   const startedAt = performance.now();
   const duration = () => Math.round(performance.now() - startedAt);
   try {
     const priceData = await getDefaultFactory()
       .getClient(OracleProvider.PYTH)
-      .getPrice(symbol, Blockchain.MONAD);
+      .getPrice(symbol, chain);
     return {
       provider: OracleProvider.PYTH,
       priceData,
@@ -223,7 +227,7 @@ async function readPinnedMonadPythPrice(symbol: string): Promise<FetchProviderPr
       return { provider: OracleProvider.PYTH, status: 'unsupported', fetchDurationMs: duration() };
     }
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.warn(`Pinned Monad Pyth Core fetch failed for ${symbol}`, { errorMessage });
+    logger.warn(`Pinned ${chain} Pyth Core fetch failed for ${symbol}`, { errorMessage });
     return {
       provider: OracleProvider.PYTH,
       status: 'error',
@@ -379,14 +383,18 @@ export async function getConsensusPrice(
 ): Promise<ConsensusPriceResponse> {
   const baseSymbol = normalizeSymbol(symbol);
   const resolvedChain = resolveChain(chain);
-  const pinnedMonadPythOnly = isPinnedMonadPythOnlyRequest(resolvedChain, targetProviders);
+  const pinnedPythChain =
+    resolvedChain === Blockchain.MONAD || resolvedChain === Blockchain.SOLANA
+      ? resolvedChain
+      : undefined;
+  const pinnedNativePythOnly = isPinnedNativePythOnlyRequest(pinnedPythChain, targetProviders);
 
   const [prices, reputationsList] = await Promise.all([
     (async () => {
-      if (pinnedMonadPythOnly) {
+      if (pinnedNativePythOnly && pinnedPythChain) {
         return {
           providers: [OracleProvider.PYTH],
-          fetchResults: [await readPinnedMonadPythPrice(baseSymbol)],
+          fetchResults: [await readPinnedPythPrice(baseSymbol, pinnedPythChain)],
         };
       }
       const resolvedProviders = await resolveProvidersForSymbol(baseSymbol, resolvedChain);
@@ -405,7 +413,7 @@ export async function getConsensusPrice(
     // Pyth Core's verification and freshness are embedded in PriceData. A
     // reputation lookup cannot turn this one-provider fast path into quorum,
     // so skip an unrelated network hop and leave its score as null.
-    pinnedMonadPythOnly ? Promise.resolve([]) : reputationService.getReputations(),
+    pinnedNativePythOnly ? Promise.resolve([]) : reputationService.getReputations(),
   ]);
   const { providers, fetchResults } = prices;
 

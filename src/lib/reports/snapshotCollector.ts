@@ -16,10 +16,10 @@
  */
 import { calculateConsensusPrice, type ConsensusPriceInput } from '@/lib/analytics/consensusPrice';
 import { fetchPriceWithDatabase } from '@/lib/oracles/base/databaseOperations';
-import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { getDefaultFactory } from '@/lib/oracles/factory';
 import { resolveOracleAgeSeconds } from '@/lib/oracles/oracleAge';
 import { getAllActiveFeedsByProviderWithStatus } from '@/lib/oracles/utils/dynamicFeedResolver';
+import { resolveOracleFeedBlockchain } from '@/lib/oracles/utils/feedChain';
 import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { getRpcUsage, rpcUsageSince } from '@/lib/oracles/utils/rpcClientWithFallback';
 import { flushRpcMetadataCache, primeRpcMetadataCache } from '@/lib/oracles/utils/rpcMetadataCache';
@@ -166,7 +166,7 @@ async function fetchBatchPrices(
           queries.push({
             provider,
             symbol,
-            chain: getBlockchainByChainId(feed.chain_id),
+            chain: resolveOracleFeedBlockchain(feed),
             feedChainId: feed.chain_id,
             feedSymbol: feed.symbol,
           });
@@ -225,7 +225,7 @@ async function fetchBatchPrices(
     queries.push({
       provider: feed.provider as OracleProvider,
       symbol: extractBaseSymbol(feed.symbol).toUpperCase(),
-      chain: getBlockchainByChainId(feed.chain_id),
+      chain: resolveOracleFeedBlockchain(feed),
       feedChainId: feed.chain_id,
       feedSymbol: feed.symbol,
       healthOnly: true,
