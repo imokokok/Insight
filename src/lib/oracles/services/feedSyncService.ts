@@ -26,6 +26,11 @@ import {
 } from '../constants/storkMonad';
 import { getAssetClass, redstoneSymbols } from '../constants/supportedSymbols';
 import { SUPRA_PAIR_INDEX_MAP } from '../constants/supraConstants';
+import {
+  SUPRA_MONAD_CHAIN_ID,
+  SUPRA_MONAD_PUSHED_FEEDS,
+  SUPRA_MONAD_SVALUE_FEED_ADDRESS,
+} from '../constants/supraMonad';
 import { TWAP_POOL_ADDRESSES, TWAP_TOKEN_ADDRESSES } from '../constants/twapConstants';
 
 import {
@@ -38,6 +43,7 @@ import { feedRegistryService } from './feedRegistryService';
 import { pythMonadOnChainService } from './pythMonadOnChainService';
 import { redStoneMonadOnChainService } from './redstoneMonadOnChainService';
 import { storkMonadOnChainService } from './storkMonadOnChainService';
+import { supraMonadOnChainService } from './supraMonadOnChainService';
 import { WINKLINK_PRICE_FEEDS } from './winklinkRealDataService';
 
 const logger = createLogger('FeedSyncService');
@@ -79,12 +85,13 @@ async function upsertFeeds(feeds: OracleFeedInsert[]): Promise<number> {
  * and feeds from other seed paths out of scope.
  */
 async function deactivateRetiredCuratedMonadFeeds(args: {
-  provider: 'pyth' | 'stork' | 'chronicle' | 'redstone';
+  provider: 'pyth' | 'stork' | 'chronicle' | 'redstone' | 'supra';
   source:
     | 'pyth-monad-sponsored-registry'
     | 'stork-monad-pushed-registry'
     | 'chronicle-monad-price-feed-registry'
-    | 'redstone-monad-price-feed-registry';
+    | 'redstone-monad-price-feed-registry'
+    | 'supra-monad-dora-push-registry';
   chainId: number;
   catalogSymbols: readonly string[];
 }): Promise<number> {
@@ -606,6 +613,85 @@ class FeedSyncService {
     return result;
   }
 
+  /**
+   * Seed Monad's reviewed Supra DORA Push registry. Source-native pair
+   * denominations stay intact: USDT/USDC observations and reference rates are
+   * not relabelled as USD prices. A row is activated only when `getSvalue()`
+   * passes the direct, millisecond-aware freshness gate.
+   */
+  async seedSupraMonadPushedFeeds(): Promise<SyncResult> {
+    const result: SyncResult = {
+      provider: 'supra',
+      discovered: SUPRA_MONAD_PUSHED_FEEDS.length,
+      upserted: 0,
+      deactivated: 0,
+      errors: 0,
+    };
+    const verification = await mapWithConcurrency(SUPRA_MONAD_PUSHED_FEEDS, 4, async (feed) => {
+      try {
+        const reading = await supraMonadOnChainService.getPrice(feed);
+        return { feed, reading, usable: true } as const;
+      } catch (error) {
+        logger.warn('Skipped unusable Supra Monad pushed feed', {
+          alias: feed.alias,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return { feed, usable: false } as const;
+      }
+    });
+    const usableFeeds = verification.filter(
+      (entry): entry is Extract<(typeof verification)[number], { usable: true }> => entry.usable
+    );
+    result.errors = verification.length - usableFeeds.length;
+
+    const feeds: OracleFeedInsert[] = usableFeeds.map(({ feed, reading }) => ({
+      provider: 'supra',
+      symbol: feed.alias,
+      chain_id: SUPRA_MONAD_CHAIN_ID,
+      address: SUPRA_MONAD_SVALUE_FEED_ADDRESS,
+      name: `Supra DORA Push ${feed.alias}`,
+      // Persist the scale returned by this verified getSvalue() read. Pair
+      // indices do not imply a fixed decimal exponent.
+      decimals: reading.decimals,
+      category: this.inferCategory(feed.alias.split('/')[0]),
+      is_active: true,
+      source: 'supra-monad-dora-push-registry',
+      metadata: {
+        pairIndex: feed.pairIndex,
+        supraContract: SUPRA_MONAD_SVALUE_FEED_ADDRESS,
+        chainId: SUPRA_MONAD_CHAIN_ID,
+        sourcePair: feed.alias,
+        quoteAsset: feed.quoteAsset,
+        quality: feed.quality,
+        quoteType: feed.quoteType,
+        maxStalenessSeconds: feed.maxStalenessSeconds,
+        freshnessPolicy: 'getSvalue(uint256) millisecond timestamp <= maxStalenessSeconds',
+        quorumStatus: 'shadow-only-pending-source-overlap-review',
+        registrySource: 'monad-crypto/protocols/mainnet/supra_oracles.jsonc',
+      },
+    }));
+    result.upserted = await upsertFeeds(feeds);
+    result.deactivated = await deactivateRetiredCuratedMonadFeeds({
+      provider: 'supra',
+      source: 'supra-monad-dora-push-registry',
+      chainId: SUPRA_MONAD_CHAIN_ID,
+      catalogSymbols: SUPRA_MONAD_PUSHED_FEEDS.map((feed) => feed.alias),
+    });
+    return result;
+  }
+
+  async seedSupraFeeds(): Promise<SyncResult> {
+    const existing = await this.seedSupraFeedsFromHardcoded();
+    const monad = await this.seedSupraMonadPushedFeeds();
+    return {
+      provider: 'supra',
+      discovered: existing.discovered + monad.discovered,
+      upserted: existing.upserted + monad.upserted,
+      deactivated: existing.deactivated + monad.deactivated,
+      errors: existing.errors + monad.errors,
+    };
+  }
+
   // ─── DIA ──────────────────────────────────────────────────────────
 
   async seedDIAFeedsFromHardcoded(): Promise<SyncResult> {
@@ -999,7 +1085,7 @@ class FeedSyncService {
       case 'chronicle':
         return this.seedChronicleMonadPriceFeeds();
       case 'supra':
-        return this.seedSupraFeedsFromHardcoded();
+        return this.seedSupraFeeds();
       case 'dia':
         return this.seedDIAFeedsFromHardcoded();
       case 'redstone':

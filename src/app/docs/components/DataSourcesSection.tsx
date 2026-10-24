@@ -12,7 +12,7 @@ const providers = [
   { name: 'RedStone', type: 'API / On-chain', chains: 'EVM L1s & L2s' },
   { name: 'DIA', type: 'API / On-chain', chains: 'EVM L1s & L2s' },
   { name: 'WINkLink', type: 'On-chain', chains: 'TRON' },
-  { name: 'Supra', type: 'API / On-chain', chains: 'EVM, Move, Cosmos ecosystems' },
+  { name: 'Supra DORA Push', type: 'On-chain push', chains: 'Monad; API coverage elsewhere' },
   { name: 'TWAP', type: 'On-chain', chains: 'DEX TWAP oracles' },
   { name: 'Reflector', type: 'On-chain', chains: 'Stellar / Soroban' },
   { name: 'Flare', type: 'On-chain', chains: 'Flare Network' },

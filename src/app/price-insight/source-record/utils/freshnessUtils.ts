@@ -64,6 +64,17 @@ export const ORACLE_UPDATE_FREQUENCIES: Record<OracleProvider, number> = {
 
 export const REALTIME_ORACLES: OracleProvider[] = [OracleProviderEnum.REDSTONE];
 
+/**
+ * Supra's generic DORA API cadence differs from the reviewed Monad Push
+ * contract. The Monad reader enforces a 30-minute source-timestamp bound, so
+ * the UI must not grade a valid on-chain observation against the API's 60s
+ * expectation.
+ */
+export function getExpectedUpdateFrequency(provider: OracleProvider, chain?: string): number {
+  if (provider === OracleProviderEnum.SUPRA && chain === 'monad') return 30 * 60;
+  return ORACLE_UPDATE_FREQUENCIES[provider] || 3600;
+}
+
 export function getDynamicThresholds(
   expectedUpdateFreq: number,
   isRealtime: boolean = false

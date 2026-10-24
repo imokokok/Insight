@@ -3,10 +3,12 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { CHRONICLE_MONAD_PRICE_FEEDS } from '../../constants/chronicleMonad';
 import { PYTH_MONAD_SPONSORED_FEEDS } from '../../constants/pythMonad';
 import { STORK_MONAD_PUSHED_FEEDS } from '../../constants/storkMonad';
+import { SUPRA_MONAD_PUSHED_FEEDS } from '../../constants/supraMonad';
 import { chronicleMonadOnChainService } from '../chronicleMonadOnChainService';
 import { feedSyncService } from '../feedSyncService';
 import { pythMonadOnChainService } from '../pythMonadOnChainService';
 import { storkMonadOnChainService } from '../storkMonadOnChainService';
+import { supraMonadOnChainService } from '../supraMonadOnChainService';
 
 jest.mock('@/lib/supabase/server');
 
@@ -177,6 +179,54 @@ describe('feedSyncService seed lifecycle', () => {
       feedName: 'Chronicle_MON_USD_1',
       quoteType: 'price',
       maxStalenessSeconds: 1800,
+    });
+  });
+
+  it('seeds Supra Monad DORA pairs only after each passes the direct millisecond freshness gate', async () => {
+    const select = jest.fn().mockResolvedValue({ data: SUPRA_MONAD_PUSHED_FEEDS, error: null });
+    const upsert = jest.fn().mockReturnValue({ select });
+
+    const registryQuery = {
+      select: jest.fn(),
+      eq: jest.fn(),
+    };
+    registryQuery.select.mockReturnValue(registryQuery);
+    registryQuery.eq.mockReturnValue(registryQuery);
+    Object.assign(registryQuery, {
+      then: (resolve: (value: { data: []; error: null }) => unknown) =>
+        resolve({ data: [], error: null }),
+    });
+
+    mockedCreateServiceRoleClient.mockReturnValue({
+      from: jest.fn().mockReturnValueOnce({ upsert }).mockReturnValueOnce(registryQuery),
+    } as never);
+    const getPrice = jest
+      .spyOn(supraMonadOnChainService, 'getPrice')
+      .mockResolvedValue({ decimals: 18 } as never);
+
+    const result = await feedSyncService.seedSupraMonadPushedFeeds();
+
+    expect(result).toEqual({
+      provider: 'supra',
+      discovered: 39,
+      upserted: 39,
+      deactivated: 0,
+      errors: 0,
+    });
+    expect(getPrice).toHaveBeenCalledTimes(39);
+    const rows = upsert.mock.calls[0][0] as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(39);
+    expect(rows.find((row) => row.symbol === 'SUI/USDT')?.metadata).toMatchObject({
+      pairIndex: 90,
+      quoteAsset: 'USDT',
+      quality: 'premium',
+      quoteType: 'price',
+      maxStalenessSeconds: 1800,
+    });
+    expect(rows.find((row) => row.symbol === 'SUI/USDT')?.decimals).toBe(18);
+    expect(rows.find((row) => row.symbol === 'SBTC/BTC.RR')?.metadata).toMatchObject({
+      pairIndex: 510,
+      quoteType: 'reference-rate',
     });
   });
 });

@@ -100,11 +100,11 @@ jobs:
           # `discover` mode is a no-op (it only verifies existing rows and adds
           # nothing). TWAP pools/token metadata and the reviewed Pyth/Stork
           # Monad registries are policy-curated in code and MUST be written via
-          # `seed` mode. Pyth/Stork/Chronicle seeders also re-read every entry on-chain
+          # `seed` mode. Pyth/Stork/Chronicle/Supra seeders also re-read every entry on-chain
           # before admitting it. WINkLink and Reflector now have proper
           # discoverers and therefore stay on the verified discover path.
           case "${PROVIDER}" in
-            pyth|stork|chronicle|twap|twap-token)
+            pyth|stork|chronicle|supra|twap|twap-token)
               node .github/cron-dist/sync-feeds.mjs --mode=seed --provider="${PROVIDER}"
               ;;
             *)

@@ -162,6 +162,62 @@ describe('databaseOperations', () => {
         signal: undefined,
       });
     });
+
+    it('uses the exact Supra Monad pair for direct reads and cache identity', async () => {
+      const monad = 'monad' as Blockchain;
+      mockGetActiveFeedsMap.mockResolvedValue(
+        new Map([
+          [
+            'SUI/USDT-143',
+            {
+              id: 1,
+              provider: 'supra',
+              symbol: 'SUI/USDT',
+              base_symbol: 'SUI',
+              quote_symbol: 'USDT',
+              chain_id: 143,
+              chain_name: 'monad',
+              feed_address: '0x58e158c74DF7Ad6396C0dcbadc4878faC9e93d57',
+              price_decimals: 18,
+              heartbeat_seconds: null,
+              deviation_threshold_bps: null,
+              is_active: true,
+            },
+          ],
+        ])
+      );
+      mockClientGetPrice.mockResolvedValue(
+        createMockPriceData({ provider: 'supra', symbol: 'SUI/USDT', chain: monad })
+      );
+
+      await fetchPriceWithDatabase('supra', 'SUI', monad, false, true);
+
+      expect(mockClientGetPrice).toHaveBeenCalledWith('SUI/USDT', monad, {
+        signal: undefined,
+      });
+    });
+
+    it('never serves a stale cached price when Monad Supra Push is unavailable', async () => {
+      const monad = 'monad' as Blockchain;
+      mockGetPriceFromDatabase.mockResolvedValue(
+        createMockPriceData({
+          provider: 'supra',
+          symbol: 'SUI/USDT',
+          chain: monad,
+          // Simulate a just-ingested cache row whose source timestamp has
+          // already crossed the Push reader's 30-minute admissibility gate.
+          timestamp: Date.now() - 30 * 60 * 1000 - 1,
+          ingestionTimestamp: Date.now(),
+        })
+      );
+
+      await expect(fetchPriceWithDatabase('supra', 'SUI', monad, true)).rejects.toBeInstanceOf(
+        PriceFetchError
+      );
+      expect(mockClientGetPrice).toHaveBeenCalledWith('SUI', monad, {
+        signal: undefined,
+      });
+    });
   });
 
   describe('Transaction Tests', () => {
