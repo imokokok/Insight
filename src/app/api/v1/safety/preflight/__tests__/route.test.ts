@@ -146,6 +146,45 @@ describe('execution-preflight route', () => {
     );
   });
 
+  it('forwards an opt-in reviewed Uniswap V3 lane only with the validated decision input', async () => {
+    const query = [
+      'asset=WETH',
+      'chainId=8453',
+      'action=swap',
+      'tradeAmountUsd=1000',
+      'destinationAsset=USDC',
+      'decisionInputCheck=1',
+      'decisionPriceUsd=2000',
+      'quotePriceUsd=2000',
+      'quoteObservedAt=2026-10-25T00%3A00%3A00.000Z',
+      'maxReferenceDeviationBps=50',
+      'maxSlippageBps=50',
+      'maxQuoteAgeSeconds=30',
+      'reviewedUniswapV3AmountIn=0.5',
+      'reviewedUniswapV3MaxQuoteDeviationBps=50',
+      'reviewedUniswapV3MaxTwapDeviationBps=50',
+    ].join('&');
+    const request = makeRequest({}, query);
+
+    await GET(request, routeContext());
+    const runBusiness = mockHandleX402.mock.calls[0][2] as (requestId: string) => Promise<Response>;
+    await runBusiness('req_preflight_reviewed_dex');
+
+    expect(mockAssessPreflight).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destinationAsset: 'USDC',
+        decisionInput: expect.objectContaining({
+          reviewedUniswapV3: {
+            amountIn: '0.5',
+            maxQuoteDeviationBps: 50,
+            maxTwapDeviationBps: 50,
+          },
+        }),
+      }),
+      expect.any(Object)
+    );
+  });
+
   it('leaves API-key requests on the standard credit-metered v1 handler', async () => {
     const request = makeRequest({ 'x-api-key': 'ins_test' });
 

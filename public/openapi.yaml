@@ -2183,6 +2183,21 @@ paths:
           required: false
           description: With decisionInputCheck=1, set to `1` to fail closed unless a permitted quoteProvenance envelope binds the submitted quote. A missing or prohibited envelope returns INSUFFICIENT_EVIDENCE.
           schema: { type: string, enum: ['0', '1'] }
+        - name: reviewedUniswapV3AmountIn
+          in: query
+          required: false
+          description: Exact source-token amount for the reviewed Uniswap V3 pre-trade lane. Requires all reviewedUniswapV3 parameters, decisionInputCheck=1, and destinationAsset. Admitted routes are Monad MON/WMON→USDC and Base ETH/WETH→USDC only.
+          schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
+        - name: reviewedUniswapV3MaxQuoteDeviationBps
+          in: query
+          required: false
+          description: Maximum divergence between the pinned reviewed-pool quote and the submitted venue quote, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedUniswapV3MaxTwapDeviationBps
+          in: query
+          required: false
+          description: Maximum spot-to-TWAP divergence for the reviewed pool, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
       responses:
         '200':
           description: Pre-trade safety verdict, paid through x402 or MPP or authorized by API key.
@@ -2968,6 +2983,21 @@ paths:
           in: query
           required: false
           schema: { type: integer, minimum: 1, maximum: 300 }
+        - name: reviewedUniswapV3AmountIn
+          in: query
+          required: false
+          description: Exact source-token amount for the reviewed Monad/Base Uniswap V3 lane. Requires decisionInputCheck=1, destinationAsset, and both reviewedUniswapV3 bps limits.
+          schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
+        - name: reviewedUniswapV3MaxQuoteDeviationBps
+          in: query
+          required: false
+          description: Maximum reviewed-pool quote divergence from the submitted venue quote, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedUniswapV3MaxTwapDeviationBps
+          in: query
+          required: false
+          description: Maximum reviewed-pool spot-to-TWAP divergence, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
       responses:
         '200':
           description: Completed preflight decision with gates, reasons, and underlying strict assessment.

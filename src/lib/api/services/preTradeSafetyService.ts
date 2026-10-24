@@ -45,6 +45,10 @@ import {
   type DecisionInputCheckRequest,
 } from '@/lib/decisionInputTrust/assessment';
 import { signDecisionInputAssessment } from '@/lib/decisionInputTrust/attestation';
+import {
+  getReviewedUniswapV3PreTradeEvidence,
+  type ReviewedUniswapV3PreTradeEvidence,
+} from '@/lib/dex/preTradeUniswapV3';
 import { UnsupportedSymbolError, ValidationError } from '@/lib/errors';
 import { getManipCostAdvisory, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import {
@@ -1646,6 +1650,33 @@ interface DecisionInputReferenceEvidence {
   cex: MarketReference | null;
 }
 
+/**
+ * Start the optional reviewed-pool read alongside the independent references.
+ * This lane is deliberately opt-in and fail-closed: a requested, unavailable,
+ * or unsupported profile becomes signed insufficient evidence rather than an
+ * inferred quote from another pool or direction.
+ */
+function startReviewedUniswapV3Fetch(
+  input: PreTradeSafetyInput
+): Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined {
+  const requested = input.decisionInput?.reviewedUniswapV3;
+  if (!requested) return undefined;
+  return getReviewedUniswapV3PreTradeEvidence({
+    chainId: input.chainId,
+    asset: input.asset,
+    destinationAsset: input.destinationAsset,
+    amountIn: requested.amountIn,
+  }).catch((error: unknown) => {
+    logger.warn('Reviewed Uniswap V3 pre-trade evidence unavailable', {
+      asset: input.asset,
+      destinationAsset: input.destinationAsset ?? null,
+      chainId: input.chainId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+}
+
 function startDecisionInputReferenceFetch(
   input: PreTradeSafetyInput
 ): Promise<DecisionInputReferenceEvidence> | undefined {
@@ -1697,20 +1728,23 @@ async function attachDecisionInputAssessment(
   input: PreTradeSafetyInput,
   result: PreTradeSafetyResult,
   referenceEvidencePromise: Promise<DecisionInputReferenceEvidence> | undefined,
+  reviewedUniswapV3Promise: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined,
   /** undefined means fetch now; null means the normal advisory fetch already found no evidence. */
   knownManipulationCost?: ManipCostAdvisory | null
 ): Promise<void> {
   if (!input.decisionInput) return;
 
-  const [referenceEvidence, manipulationCost] = await Promise.all([
+  const [referenceEvidence, manipulationCost, reviewedUniswapV3] = await Promise.all([
     referenceEvidencePromise ?? Promise.resolve({ chainlink: null, cex: null, redstone: null }),
     knownManipulationCost === undefined
       ? fetchManipCostAdvisorySafe(input.asset, input.chainId)
       : Promise.resolve(knownManipulationCost ?? undefined),
+    reviewedUniswapV3Promise ?? Promise.resolve(null),
   ]);
 
   const assessment = assessDecisionInput({
     asset: input.asset,
+    destinationAsset: input.destinationAsset,
     chainId: input.chainId,
     action: input.action,
     tradeAmountUsd: input.tradeAmountUsd,
@@ -1719,6 +1753,7 @@ async function attachDecisionInputAssessment(
     redstone: referenceEvidence.redstone,
     cex: referenceEvidence.cex,
     dex: manipulationCost ?? null,
+    reviewedUniswapV3,
   });
   const attestation = await signDecisionInputAssessment(assessment, result.attestation?.uid);
   if (attestation) {
@@ -1916,7 +1951,8 @@ async function buildUnavailablePreTradeResult(
   warnings: string[],
   contributingFactors: ContributingFactor[],
   startedAt: number,
-  decisionInputReferenceEvidence: Promise<DecisionInputReferenceEvidence> | undefined
+  decisionInputReferenceEvidence: Promise<DecisionInputReferenceEvidence> | undefined,
+  reviewedUniswapV3Promise: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined
 ): Promise<PreTradeSafetyResult> {
   const result = buildUnavailableSafetyResult(
     input,
@@ -1938,7 +1974,12 @@ async function buildUnavailablePreTradeResult(
       error: error instanceof Error ? error.message : String(error),
     });
   }
-  await attachDecisionInputAssessment(input, result, decisionInputReferenceEvidence);
+  await attachDecisionInputAssessment(
+    input,
+    result,
+    decisionInputReferenceEvidence,
+    reviewedUniswapV3Promise
+  );
   await logAudit(input, result, meta);
   return result;
 }
@@ -1968,6 +2009,7 @@ export async function preTradeSafetyCheck(
   if (halted) return halted;
 
   const decisionInputReferenceEvidence = startDecisionInputReferenceFetch(input);
+  const reviewedUniswapV3Evidence = startReviewedUniswapV3Fetch(input);
 
   // 1. Cross-oracle consensus price (also embeds reputation + agreement).
   let consensus: ConsensusPriceResponse | undefined;
@@ -2018,7 +2060,8 @@ export async function preTradeSafetyCheck(
       warnings,
       contributingFactors,
       startedAt,
-      decisionInputReferenceEvidence
+      decisionInputReferenceEvidence,
+      reviewedUniswapV3Evidence
     );
   }
 
@@ -2411,6 +2454,7 @@ export async function preTradeSafetyCheck(
     input,
     result,
     decisionInputReferenceEvidence,
+    reviewedUniswapV3Evidence,
     manipulationCost ?? null
   );
 

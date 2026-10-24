@@ -171,6 +171,17 @@ describe('shared Uniswap V3 market evidence primitives', () => {
     ).toThrow('invalid numeric configuration');
   });
 
+  it('admits exact base-unit quote amounts for a transaction-bound pre-trade read', () => {
+    expect(() =>
+      assertUniswapV3MarketProfile({
+        ...baseProfile,
+        id: 'example-exact-input',
+        quoteAmountsToken0: undefined,
+        quoteAmountsToken0Raw: [1_234_567_890_123_456_789n],
+      })
+    ).not.toThrow();
+  });
+
   it('rejects values that do not fit the Uniswap ABI integer fields', () => {
     expect(() => assertUniswapV3MarketProfile({ ...baseProfile, feeTier: 2 ** 24 })).toThrow(
       'invalid numeric configuration'

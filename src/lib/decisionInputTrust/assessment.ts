@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import type { EvidenceUse } from '@/lib/dataRights/evidenceRights';
 import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
+import type { ReviewedUniswapV3PreTradeEvidence } from '@/lib/dex/preTradeUniswapV3';
 import { MANIP_COST_MAX_AGE_MS, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import type { ChainlinkMarketReference } from '@/lib/marketReference/chainlink';
 import { MAX_REF_AGE_HOURS, type MarketReference } from '@/lib/marketReference/client';
@@ -54,6 +55,17 @@ export interface DecisionInputCheckRequest {
   quoteProvenance?: DecisionInputQuoteProvenance;
   /** Fail closed unless `quoteProvenance` is present, valid, and usable here. */
   requireQuoteProvenance?: boolean;
+  /**
+   * Opt in to a block-pinned quote from one reviewed Uniswap V3 pool. The
+   * exact input amount is expressed in the source asset's decimal units. This
+   * first release admits only MON/USDC on Monad and WETH/USDC on Base, in the
+   * source-to-USDC direction; unsupported routes fail closed.
+   */
+  reviewedUniswapV3?: {
+    amountIn: string;
+    maxQuoteDeviationBps: number;
+    maxTwapDeviationBps: number;
+  };
   /** Optional route quote captured by the gated execution workflow. */
   operationRouteQuote?: DecisionInputRouteQuote;
 }
@@ -70,6 +82,10 @@ export interface DecisionInputReason {
     | 'CHAINLINK_DIVERGENCE'
     | 'REDSTONE_DIVERGENCE'
     | 'DEX_DEPTH_UNAVAILABLE'
+    | 'REVIEWED_UNISWAP_V3_UNAVAILABLE'
+    | 'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE'
+    | 'REVIEWED_UNISWAP_V3_PRICE_IMPACT'
+    | 'REVIEWED_UNISWAP_V3_TWAP_DEVIATION'
     | 'QUOTE_TIMESTAMP_INVALID'
     | 'QUOTE_STALE'
     | 'QUOTE_SLIPPAGE'
@@ -108,6 +124,7 @@ export interface DecisionInputAssessment {
   > & {
     /** Optional for backwards-compatible verification of earlier attestations. */
     requireQuoteProvenance?: boolean;
+    reviewedUniswapV3?: NonNullable<DecisionInputCheckRequest['reviewedUniswapV3']>;
   };
   prices: {
     decisionPriceUsd: number;
@@ -156,6 +173,26 @@ export interface DecisionInputAssessment {
       freshestSnapshotTs: string | null;
       cheapestMove1PctUsd: number | null;
       tradeSizeTo1PctManipulationCostRatio: number | null;
+    } | null;
+    reviewedUniswapV3?: {
+      profile: 'monad-wmon-usdc' | 'base-weth-usdc';
+      venue: 'uniswap-v3';
+      market: string;
+      sourceFreshnessSeconds: number;
+      observedAt: string;
+      blockNumber: string;
+      blockHash: `0x${string}`;
+      pool: `0x${string}`;
+      quoterV2: `0x${string}`;
+      feeTier: number;
+      amountIn: number;
+      amountInRaw: string;
+      amountOut: number;
+      amountOutRaw: string;
+      effectiveToken1PerToken0: number;
+      priceImpactBps: number;
+      quoteDeviationBps: number | null;
+      twapDeviationBpsFromSpot: number;
     } | null;
   };
   reasons: DecisionInputReason[];
@@ -379,6 +416,17 @@ export const DecisionInputAssessmentSchema = z
         maxSlippageBps: z.number().int().min(0).max(10_000),
         maxQuoteAgeSeconds: z.number().int().min(1).max(300),
         requireQuoteProvenance: z.boolean().optional(),
+        reviewedUniswapV3: z
+          .object({
+            amountIn: z
+              .string()
+              .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+              .max(128),
+            maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
+            maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+          })
+          .strict()
+          .optional(),
       })
       .strict(),
     prices: z
@@ -445,6 +493,39 @@ export const DecisionInputAssessmentSchema = z
           })
           .strict()
           .nullable(),
+        reviewedUniswapV3: z
+          .object({
+            profile: z.enum(['monad-wmon-usdc', 'base-weth-usdc']),
+            venue: z.literal('uniswap-v3'),
+            market: z.string().min(1).max(80),
+            sourceFreshnessSeconds: FiniteNonnegativeNumberSchema,
+            observedAt: EvidenceTimestampSchema,
+            blockNumber: z
+              .string()
+              .regex(/^[1-9][0-9]*$/)
+              .max(80),
+            blockHash: Bytes32Schema,
+            pool: AddressSchema,
+            quoterV2: AddressSchema,
+            feeTier: z.number().int().positive().max(1_000_000),
+            amountIn: FinitePositiveNumberSchema,
+            amountInRaw: z
+              .string()
+              .regex(/^[1-9][0-9]*$/)
+              .max(80),
+            amountOut: FinitePositiveNumberSchema,
+            amountOutRaw: z
+              .string()
+              .regex(/^[1-9][0-9]*$/)
+              .max(80),
+            effectiveToken1PerToken0: FinitePositiveNumberSchema,
+            priceImpactBps: FiniteNonnegativeNumberSchema,
+            quoteDeviationBps: NullableNonnegativeNumberSchema,
+            twapDeviationBpsFromSpot: FiniteNonnegativeNumberSchema,
+          })
+          .strict()
+          .nullable()
+          .optional(),
       })
       .strict(),
     reasons: z
@@ -500,6 +581,9 @@ export const DecisionInputAssessmentSchema = z
         quoteObservedAt: assessment.prices.quoteObservedAt,
         operationRouteQuote: assessment.operationRouteQuote,
         ...(assessment.quoteProvenance ? { quoteProvenance: assessment.quoteProvenance } : {}),
+        ...(assessment.policy.reviewedUniswapV3
+          ? { reviewedUniswapV3: assessment.policy.reviewedUniswapV3 }
+          : {}),
         ...(assessment.evidenceUse ? { evidenceUse: assessment.evidenceUse } : {}),
       });
     } catch {
@@ -585,7 +669,9 @@ export const DecisionInputAssessmentSchema = z
       assessment.status === 'SUFFICIENT' &&
       (assessment.evidence.chainlink === null ||
         assessment.evidence.cex === null ||
-        assessment.evidence.dexManipulationCost === null ||
+        (assessment.policy.reviewedUniswapV3
+          ? assessment.evidence.reviewedUniswapV3 === null
+          : assessment.evidence.dexManipulationCost === null) ||
         assessment.prices.quoteAgeSeconds === null)
     ) {
       context.addIssue({
@@ -669,6 +755,7 @@ export const DecisionInputAssessmentSchema = z
 
 export interface AssessDecisionInputOptions {
   asset: string;
+  destinationAsset?: string;
   chainId: number;
   action: DecisionInputAssessment['action'];
   tradeAmountUsd: number;
@@ -677,6 +764,8 @@ export interface AssessDecisionInputOptions {
   redstone?: RedStoneMarketReference | null;
   cex: MarketReference | null;
   dex: ManipCostAdvisory | null;
+  /** Fresh exact-notional evidence from a reviewed Monad or Base V3 pool. */
+  reviewedUniswapV3?: ReviewedUniswapV3PreTradeEvidence | null;
   /** Synthetic evidence is accepted only in staging/test evaluation. */
   evidenceUse?: EvidenceUse;
   now?: Date;
@@ -1027,7 +1116,8 @@ function assessDex(
   tradeAmountUsd: number,
   dex: ManipCostAdvisory | null,
   nowMs: number,
-  reasons: DecisionInputReason[]
+  reasons: DecisionInputReason[],
+  required: boolean
 ): DexChecks {
   const snapshotMs = dex?.freshestSnapshotTs ? Date.parse(dex.freshestSnapshotTs) : Number.NaN;
   const symbolMatches =
@@ -1045,12 +1135,14 @@ function assessDex(
     Number.isFinite(dex.cheapestMove1PctUsd) &&
     dex.cheapestMove1PctUsd > 0;
   if (!usable || !dex || typeof dex.cheapestMove1PctUsd !== 'number') {
-    addReason(
-      reasons,
-      'DEX_DEPTH_UNAVAILABLE',
-      'insufficient_evidence',
-      `No fresh Ethereum DEX manipulation-cost evidence is available for ${asset}; this v1 evidence map covers ETH, USDC, and WBTC on Ethereum mainnet.`
-    );
+    if (required) {
+      addReason(
+        reasons,
+        'DEX_DEPTH_UNAVAILABLE',
+        'insufficient_evidence',
+        `No fresh Ethereum DEX manipulation-cost evidence is available for ${asset}; this v1 evidence map covers ETH, USDC, and WBTC on Ethereum mainnet.`
+      );
+    }
     return { evidence: null };
   }
 
@@ -1070,9 +1162,99 @@ function assessDex(
   };
 }
 
+type ReviewedUniswapV3Evidence = NonNullable<
+  NonNullable<DecisionInputAssessment['evidence']['reviewedUniswapV3']>
+>;
+
+interface ReviewedUniswapV3Checks {
+  evidence: ReviewedUniswapV3Evidence | null;
+}
+
+function assessReviewedUniswapV3(
+  request: DecisionInputCheckRequest,
+  evidence: ReviewedUniswapV3PreTradeEvidence | null | undefined,
+  reasons: DecisionInputReason[]
+): ReviewedUniswapV3Checks {
+  if (!request.reviewedUniswapV3) return { evidence: null };
+  if (!evidence) {
+    addReason(
+      reasons,
+      'REVIEWED_UNISWAP_V3_UNAVAILABLE',
+      'insufficient_evidence',
+      'No fresh block-pinned quote is available from the reviewed Uniswap V3 pool for this exact route and amount.'
+    );
+    return { evidence: null };
+  }
+
+  const quoteDeviationBps = deviationBps(
+    evidence.quote.effectiveToken1PerToken0,
+    request.quotePriceUsd
+  );
+  if (
+    quoteDeviationBps !== null &&
+    quoteDeviationBps > request.reviewedUniswapV3.maxQuoteDeviationBps
+  ) {
+    addReason(
+      reasons,
+      'REVIEWED_UNISWAP_V3_QUOTE_DIVERGENCE',
+      'block',
+      `The reviewed Uniswap V3 quote differs from the submitted venue quote by ${quoteDeviationBps.toFixed(1)} bps; the limit is ${request.reviewedUniswapV3.maxQuoteDeviationBps} bps.`
+    );
+  }
+  if (evidence.quote.priceImpactBps > request.maxSlippageBps) {
+    addReason(
+      reasons,
+      'REVIEWED_UNISWAP_V3_PRICE_IMPACT',
+      'block',
+      `The reviewed Uniswap V3 exact-input quote has ${evidence.quote.priceImpactBps.toFixed(1)} bps price impact; the declared slippage limit is ${request.maxSlippageBps} bps.`
+    );
+  }
+  if (evidence.twapDeviationBpsFromSpot > request.reviewedUniswapV3.maxTwapDeviationBps) {
+    addReason(
+      reasons,
+      'REVIEWED_UNISWAP_V3_TWAP_DEVIATION',
+      'block',
+      `The reviewed Uniswap V3 spot/TWAP divergence is ${evidence.twapDeviationBpsFromSpot.toFixed(1)} bps; the limit is ${request.reviewedUniswapV3.maxTwapDeviationBps} bps.`
+    );
+  }
+
+  return {
+    evidence: {
+      profile: evidence.profile,
+      venue: evidence.venue,
+      market: evidence.market,
+      sourceFreshnessSeconds: evidence.sourceFreshnessSeconds,
+      observedAt: evidence.observedAt,
+      blockNumber: evidence.block.number,
+      blockHash: evidence.block.hash,
+      pool: evidence.contracts.pool,
+      quoterV2: evidence.contracts.quoterV2,
+      feeTier: evidence.contracts.feeTier,
+      amountIn: evidence.quote.amountIn,
+      amountInRaw: evidence.quote.amountInRaw,
+      amountOut: evidence.quote.amountOut,
+      amountOutRaw: evidence.quote.amountOutRaw,
+      effectiveToken1PerToken0: evidence.quote.effectiveToken1PerToken0,
+      priceImpactBps: evidence.quote.priceImpactBps,
+      quoteDeviationBps,
+      twapDeviationBpsFromSpot: evidence.twapDeviationBpsFromSpot,
+    },
+  };
+}
+
 export function assessDecisionInput(options: AssessDecisionInputOptions): DecisionInputAssessment {
-  const { asset, chainId, action, tradeAmountUsd, request, chainlink, redstone, cex, dex } =
-    options;
+  const {
+    asset,
+    chainId,
+    action,
+    tradeAmountUsd,
+    request,
+    chainlink,
+    redstone,
+    cex,
+    dex,
+    reviewedUniswapV3,
+  } = options;
   const now = options.now ?? new Date();
   const nowMs = now.getTime();
   const normalizedAsset = asset.trim().toUpperCase();
@@ -1082,7 +1264,16 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
   const oracle = assessChainlink(normalizedAsset, chainId, request, chainlink, reasons);
   const redstoneReference = assessRedStone(normalizedAsset, request, redstone, nowMs, reasons);
   const market = assessCex(request, cex, nowMs, reasons);
-  const depth = assessDex(normalizedAsset, chainId, tradeAmountUsd, dex, nowMs, reasons);
+  const depth = assessDex(
+    normalizedAsset,
+    chainId,
+    tradeAmountUsd,
+    dex,
+    nowMs,
+    reasons,
+    request.reviewedUniswapV3 === undefined
+  );
+  const reviewedDex = assessReviewedUniswapV3(request, reviewedUniswapV3, reasons);
   const hasBlock = reasons.some((reason) => reason.severity === 'block');
   const hasMissingEvidence = reasons.some((reason) => reason.severity === 'insufficient_evidence');
   const status = hasBlock ? 'BLOCK' : hasMissingEvidence ? 'INSUFFICIENT_EVIDENCE' : 'SUFFICIENT';
@@ -1107,6 +1298,7 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
       quoteObservedAt: request.quoteObservedAt,
       operationRouteQuote: request.operationRouteQuote ?? null,
       ...(quote.provenance ? { quoteProvenance: quote.provenance } : {}),
+      ...(request.reviewedUniswapV3 ? { reviewedUniswapV3: request.reviewedUniswapV3 } : {}),
       ...(evidenceUse === 'staging' ? { evidenceUse: 'staging' } : {}),
     }),
     ...(quote.provenance ? { quoteProvenance: quote.provenance } : {}),
@@ -1116,6 +1308,7 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
       maxSlippageBps: request.maxSlippageBps,
       maxQuoteAgeSeconds: request.maxQuoteAgeSeconds,
       ...(request.requireQuoteProvenance === true ? { requireQuoteProvenance: true } : {}),
+      ...(request.reviewedUniswapV3 ? { reviewedUniswapV3: request.reviewedUniswapV3 } : {}),
     },
     prices: {
       decisionPriceUsd: request.decisionPriceUsd,
@@ -1136,6 +1329,7 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
       redstone: redstoneReference.evidence,
       cex: market.evidence,
       dexManipulationCost: depth.evidence,
+      ...(request.reviewedUniswapV3 ? { reviewedUniswapV3: reviewedDex.evidence } : {}),
     },
     reasons,
     caveats: [
@@ -1149,6 +1343,12 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
           ]
         : []),
       'DEX manipulation cost is a pool-depth proxy, not a route-specific quote, price-impact estimate, or guarantee that the pool can execute this trade.',
+      ...(request.reviewedUniswapV3
+        ? [
+            'The reviewed Uniswap V3 evidence is an exact-input Quoter V2 simulation at one pinned block for the admitted source-to-USDC pool. It does not simulate the caller’s signed transaction, other routes, MEV, or a later block.',
+            'The Uniswap quote-to-USD comparison treats the reviewed USDC output as a dollar-denominated venue quote; separate stablecoin and oracle evidence remains required.',
+          ]
+        : []),
     ],
   };
 }

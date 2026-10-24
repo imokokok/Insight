@@ -28,7 +28,15 @@ export interface UniswapV3MarketProfile {
   feeTier: number;
   twapWindowSeconds: number;
   /** Exact-input quote ladder expressed in whole token0 units. */
-  quoteAmountsToken0: readonly number[];
+  quoteAmountsToken0?: readonly number[];
+  /**
+   * Exact-input quote ladder expressed in token0 base units.  This is used by
+   * the pre-trade path, where rounding an intended amount to a whole token
+   * would make the evidence describe a different trade.  It is deliberately
+   * not accepted at an HTTP boundary: reviewed callers construct it only after
+   * strict decimal parsing.
+   */
+  quoteAmountsToken0Raw?: readonly bigint[];
   /** Independently configured HTTPS JSON-RPC endpoints for this network. */
   rpcEndpoints: readonly string[];
   /** Maximum permitted age of the block that supplies a live observation. */
@@ -196,13 +204,21 @@ export function assertUniswapV3MarketProfile(profile: UniswapV3MarketProfile): v
     profile.twapWindowSeconds > MAX_UINT32 ||
     !isSafePositiveInteger(profile.maxSourceAgeSeconds) ||
     !isSafePositiveInteger(profile.cacheTtlMs) ||
-    profile.quoteAmountsToken0.length === 0 ||
-    profile.quoteAmountsToken0.some(
-      (amount, index) =>
-        !Number.isSafeInteger(amount) ||
-        amount <= 0 ||
-        (index > 0 && amount <= profile.quoteAmountsToken0[index - 1]!)
-    )
+    ((!profile.quoteAmountsToken0 || profile.quoteAmountsToken0.length === 0) &&
+      (!profile.quoteAmountsToken0Raw || profile.quoteAmountsToken0Raw.length === 0)) ||
+    (profile.quoteAmountsToken0 !== undefined && profile.quoteAmountsToken0Raw !== undefined) ||
+    (profile.quoteAmountsToken0 !== undefined &&
+      profile.quoteAmountsToken0.some(
+        (amount, index) =>
+          !Number.isSafeInteger(amount) ||
+          amount <= 0 ||
+          (index > 0 && amount <= profile.quoteAmountsToken0![index - 1]!)
+      )) ||
+    (profile.quoteAmountsToken0Raw !== undefined &&
+      profile.quoteAmountsToken0Raw.some(
+        (amount, index) =>
+          amount <= 0n || (index > 0 && amount <= profile.quoteAmountsToken0Raw![index - 1]!)
+      ))
   ) {
     throw new UniswapV3MarketError('Uniswap V3 market profile has invalid numeric configuration.');
   }
@@ -476,9 +492,11 @@ async function fetchSnapshot(
   const blockNumber = await rpc.getBlockNumber(signal);
   const block = await rpc.getBlock(blockNumber, signal);
   const blockTag = block.number;
-  const quoteInputs = profile.quoteAmountsToken0.map(
-    (amount) => BigInt(amount) * 10n ** BigInt(profile.token0.decimals)
-  );
+  const quoteInputs =
+    profile.quoteAmountsToken0Raw ??
+    profile.quoteAmountsToken0!.map(
+      (amount) => BigInt(amount) * 10n ** BigInt(profile.token0.decimals)
+    );
   const [
     factoryPoolData,
     token0Data,
@@ -568,14 +586,15 @@ async function fetchSnapshot(
     if (typeof amountOut !== 'bigint' || amountOut <= 0n || typeof ticksCrossed !== 'number') {
       throw new UniswapV3MarketError('Uniswap V3 Quoter returned an invalid quote.');
     }
-    const amountIn = profile.quoteAmountsToken0[index];
-    if (amountIn === undefined) {
+    const amountInRaw = quoteInputs[index];
+    if (amountInRaw === undefined) {
       throw new UniswapV3MarketError('Uniswap V3 quote ladder is inconsistent.');
     }
+    const amountIn = unitsToNumber(amountInRaw, profile.token0.decimals);
     const amountOutNumber = unitsToNumber(amountOut, profile.token1.decimals);
     return {
       amountIn,
-      amountInRaw: quoteInputs[index]!.toString(),
+      amountInRaw: amountInRaw.toString(),
       amountOut: amountOutNumber,
       amountOutRaw: amountOut.toString(),
       effectiveToken1PerToken0: amountOutNumber / amountIn,
@@ -667,11 +686,14 @@ export async function getUniswapV3MarketSnapshot(
     rpc?: UniswapV3MarketRpcClient;
     nowMs?: number;
     signal?: AbortSignal;
+    /** Disable the shared profile cache for an untrusted exact-input amount. */
+    cache?: boolean;
   } = {}
 ): Promise<UniswapV3MarketSnapshot> {
   assertUniswapV3MarketProfile(profile);
   const nowMs = options.nowMs ?? Date.now();
-  if (!options.rpc) {
+  const cacheEnabled = !options.rpc && options.cache !== false;
+  if (cacheEnabled) {
     const cached = cachedSnapshots.get(profile.id);
     if (cached && cached.expiresAt > nowMs) return cached.value;
     const inFlight = inFlightSnapshots.get(profile.id);
@@ -680,14 +702,14 @@ export async function getUniswapV3MarketSnapshot(
 
   const rpc = options.rpc ?? new UniswapV3MarketRpcClient(profile.chainId, profile.rpcEndpoints);
   const request = fetchSnapshot(profile, rpc, nowMs, options.signal);
-  if (!options.rpc) inFlightSnapshots.set(profile.id, request);
+  if (cacheEnabled) inFlightSnapshots.set(profile.id, request);
   try {
     const value = await request;
-    if (!options.rpc) {
+    if (cacheEnabled) {
       cachedSnapshots.set(profile.id, { value, expiresAt: nowMs + profile.cacheTtlMs });
     }
     return value;
   } finally {
-    if (!options.rpc) inFlightSnapshots.delete(profile.id);
+    if (cacheEnabled) inFlightSnapshots.delete(profile.id);
   }
 }
