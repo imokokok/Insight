@@ -59,6 +59,15 @@ describe('getMppConfig', () => {
     ).toThrow('MPP_ENABLED requires an enabled EVM x402 payment option');
   });
 
+  it('rejects BNB Chain because MPP requires an EIP-3009 settlement asset', () => {
+    expect(() =>
+      getMppConfig(
+        { ...X402_ENABLED, network: 'eip155:56' },
+        env({ MPP_ENABLED: 'true', MPP_SECRET_KEY: 'x'.repeat(32) })
+      )
+    ).toThrow(/no EIP-3009/);
+  });
+
   it.each(['', 'x'.repeat(31)])('rejects an absent or short MPP secret key', (secretKey) => {
     expect(() =>
       getMppConfig(X402_ENABLED, env({ MPP_ENABLED: 'true', MPP_SECRET_KEY: secretKey }))

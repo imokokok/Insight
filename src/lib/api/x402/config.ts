@@ -7,10 +7,11 @@ import { isSolanaPublicKey } from './solanaEncoding';
  *
  * Design rules (see ~/.workbuddy/insight-x402/x402-pretrade-plan.md):
  * - The master switch (`X402_ENABLED`) must be exactly "true". EVM payment is
- *   enabled only with a valid `X402_PAY_TO` and unless `X402_EVM_ENABLED` is
- *   exactly "false"; `X402_EVM_NETWORKS` selects advertised EVM networks and
- *   defaults to `X402_NETWORK`. Solana is an independent opt-in that also
- *   requires `X402_SOLANA_PAY_TO`.
+ *   enabled with a valid default `X402_PAY_TO` or explicit
+ *   `X402_EVM_PAY_TOS` entries, unless `X402_EVM_ENABLED` is exactly "false".
+ *   `X402_EVM_NETWORKS` selects advertised EVM networks and defaults to
+ *   `X402_NETWORK`. Solana is an independent opt-in that also requires
+ *   `X402_SOLANA_PAY_TO`.
  * - The receiving address lives in server-side env only. It is NEVER read from
  *   request parameters, so a caller cannot redirect a 402 quote to another
  *   wallet.
@@ -144,6 +145,9 @@ export const SOLANA_DEVNET_CAIP2 = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1' as 
 
 export type X402SolanaNetworkId = typeof SOLANA_MAINNET_CAIP2 | typeof SOLANA_DEVNET_CAIP2;
 
+/** Any network that can appear in an x402 `accepts[]` payment option. */
+export type X402PaymentNetworkId = X402NetworkId | X402SolanaNetworkId;
+
 const SOLANA_NETWORKS = {
   [SOLANA_MAINNET_CAIP2]: {
     /** Canonical mainnet USDC mint. */
@@ -176,6 +180,7 @@ export interface X402PaymentOption {
 
 const NetworkSchema = z.enum(X402_EVM_NETWORK_IDS);
 const SolanaNetworkSchema = z.enum([SOLANA_DEVNET_CAIP2, SOLANA_MAINNET_CAIP2]);
+const PaymentNetworkSchema = z.union([NetworkSchema, SolanaNetworkSchema]);
 
 const USDC_DECIMALS = 6;
 
@@ -224,7 +229,14 @@ export interface X402Config {
   network: X402NetworkId;
   /** EVM networks advertised by x402; MPP continues to use `network`. */
   evmNetworks?: X402NetworkId[];
+  /** Default EVM recipient, retained for backwards-compatible single-wallet deployments. */
   payTo: string;
+  /**
+   * Optional EVM-recipient overrides parsed from `X402_EVM_PAY_TOS`.
+   * Entries take precedence over `payTo`, allowing per-chain treasury and
+   * incident isolation without changing the public payment protocol.
+   */
+  evmPayTos?: Partial<Record<X402NetworkId, string>>;
   /** USDC atomic units (6 decimals) charged per successful check. */
   amountAtomic: string;
   /** Human-readable USD price for docs/telemetry. */
@@ -236,9 +248,10 @@ export interface X402Config {
    * "eip155:143=https://x402-facilitator.molandak.org"). Networks not listed
    * fall back to `facilitatorUrl`. Needed when the primary facilitator (e.g.
    * CDP) does not support every advertised network (e.g. Monad mainnet is
-   * served by the Monad x402 facilitator instead).
+   * served by the Monad x402 facilitator instead). SVM networks are included
+   * so Solana can be moved independently of EVM rails.
    */
-  facilitatorUrls: Partial<Record<X402NetworkId, string>>;
+  facilitatorUrls: Partial<Record<X402PaymentNetworkId, string>>;
   /** Facilitator HTTP timeout (verify + settle), bounded well below 90s default. */
   facilitatorTimeoutMs: number;
   /** Payment authorization validity window advertised in 402 requirements. */
@@ -260,10 +273,37 @@ export interface X402Config {
   bnbAssets?: X402BnbAsset[];
 }
 
-function parseFacilitatorUrls(raw: string | undefined): Partial<Record<X402NetworkId, string>> {
+function parseEvmPayTos(raw: string | undefined): Partial<Record<X402NetworkId, string>> {
   if (raw === undefined || raw.trim() === '') return {};
 
-  const urls: Partial<Record<X402NetworkId, string>> = {};
+  const payTos: Partial<Record<X402NetworkId, string>> = {};
+  for (const pair of raw.split(',')) {
+    const trimmed = pair.trim();
+    if (trimmed === '') {
+      throw new Error('X402_EVM_PAY_TOS must not contain empty entries');
+    }
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0 || eq === trimmed.length - 1) {
+      throw new Error(
+        'X402_EVM_PAY_TOS entries must be "network=0xRecipient" pairs separated by commas'
+      );
+    }
+    const network = NetworkSchema.parse(trimmed.slice(0, eq).trim());
+    const payTo = PayToSchema.parse(trimmed.slice(eq + 1).trim());
+    if (payTos[network]) {
+      throw new Error(`X402_EVM_PAY_TOS has a duplicate entry for ${network}`);
+    }
+    payTos[network] = payTo;
+  }
+  return payTos;
+}
+
+function parseFacilitatorUrls(
+  raw: string | undefined
+): Partial<Record<X402PaymentNetworkId, string>> {
+  if (raw === undefined || raw.trim() === '') return {};
+
+  const urls: Partial<Record<X402PaymentNetworkId, string>> = {};
   for (const pair of raw.split(',')) {
     const trimmed = pair.trim();
     if (trimmed === '') {
@@ -275,9 +315,8 @@ function parseFacilitatorUrls(raw: string | undefined): Partial<Record<X402Netwo
         'X402_FACILITATOR_URLS entries must be "network=url" pairs separated by commas'
       );
     }
-    const network = trimmed.slice(0, eq).trim() as X402NetworkId;
+    const network = PaymentNetworkSchema.parse(trimmed.slice(0, eq).trim());
     const url = trimmed.slice(eq + 1).trim();
-    NetworkSchema.parse(network);
     try {
       const parsed = new URL(url);
       if (parsed.protocol !== 'https:') {
@@ -328,9 +367,18 @@ function usdToAtomicUnits(usd: number): string {
 
 const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
 
+/** True only for the CDP facilitator host, never for a lookalike URL. */
+export function isCdpFacilitatorUrl(url: string): boolean {
+  try {
+    return new URL(url).host === CDP_FACILITATOR_HOST;
+  } catch {
+    return false;
+  }
+}
+
 function parseFacilitatorCdpAuth(
   env: NodeJS.ProcessEnv,
-  facilitatorUrl: string
+  facilitatorUrls: readonly string[]
 ): { apiKeyId: string; apiKeySecret: string } | null {
   const apiKeyId = env.X402_CDP_API_KEY_ID?.trim() ?? '';
   const apiKeySecret = env.X402_CDP_API_KEY_SECRET?.trim() ?? '';
@@ -342,17 +390,11 @@ function parseFacilitatorCdpAuth(
     );
   }
 
-  let host = '';
-  try {
-    host = new URL(facilitatorUrl).host;
-  } catch {
-    // URL syntax errors surface later via the facilitator client; do not
-    // double-report here.
-  }
+  const usesCdp = facilitatorUrls.some(isCdpFacilitatorUrl);
 
-  if (host === CDP_FACILITATOR_HOST && apiKeyId === '') {
+  if (usesCdp && apiKeyId === '') {
     throw new Error(
-      'X402_FACILITATOR_URL points at the CDP facilitator but X402_CDP_API_KEY_ID/' +
+      'a configured x402 facilitator points at CDP but X402_CDP_API_KEY_ID/' +
         'X402_CDP_API_KEY_SECRET are missing — CDP requires authenticated verify/settle'
     );
   }
@@ -372,9 +414,22 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
 
   const rawPayTo = env.X402_PAY_TO?.trim() ?? '';
   const payTo = rawPayTo === '' ? '' : PayToSchema.parse(rawPayTo);
+  const evmPayTos = parseEvmPayTos(env.X402_EVM_PAY_TOS);
 
   const flagEnabled = env.X402_ENABLED === 'true';
-  const evmEnabled = flagEnabled && env.X402_EVM_ENABLED !== 'false' && payTo !== '';
+  const hasEvmRecipient = payTo !== '' || Object.keys(evmPayTos).length > 0;
+  const evmEnabled = flagEnabled && env.X402_EVM_ENABLED !== 'false' && hasEvmRecipient;
+  if (evmEnabled) {
+    const missingRecipients = evmNetworks.filter(
+      (networkId) => (evmPayTos[networkId] ?? payTo) === ''
+    );
+    if (missingRecipients.length > 0) {
+      throw new Error(
+        `enabled EVM x402 networks have no recipient: ${missingRecipients.join(', ')}. ` +
+          'Set X402_PAY_TO or add entries to X402_EVM_PAY_TOS.'
+      );
+    }
+  }
 
   const solanaFlagEnabled = flagEnabled && env.X402_SOLANA_ENABLED === 'true';
   const rawSolanaPayTo = env.X402_SOLANA_PAY_TO?.trim() ?? '';
@@ -406,13 +461,17 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     network,
     evmNetworks,
     payTo,
+    evmPayTos,
     amountAtomic: usdToAtomicUnits(priceUsd),
     priceUsd,
     facilitatorUrl,
     facilitatorUrls,
     facilitatorTimeoutMs: 15_000,
     maxTimeoutSeconds: 60,
-    facilitatorCdpAuth: parseFacilitatorCdpAuth(env, facilitatorUrl),
+    facilitatorCdpAuth: parseFacilitatorCdpAuth(env, [
+      facilitatorUrl,
+      ...Object.values(facilitatorUrls),
+    ]),
     solana,
     bnbAssets,
   };
@@ -458,6 +517,16 @@ export function tokenNameForNetwork(network: X402NetworkId): string | undefined 
   return SUPPORTED_NETWORKS[network].tokenName;
 }
 
+/** Resolve the configured EVM recipient for one payment network. */
+export function payToForEvmNetwork(cfg: X402Config, network: X402NetworkId): string {
+  return cfg.evmPayTos?.[network] ?? cfg.payTo;
+}
+
+/** Resolve the configured facilitator for any EVM or Solana payment network. */
+export function facilitatorUrlForNetwork(cfg: X402Config, network: X402PaymentNetworkId): string {
+  return cfg.facilitatorUrls?.[network] ?? cfg.facilitatorUrl;
+}
+
 /**
  * Like tokenNameForNetwork but requires an EIP-712 domain name. MPP payments
  * build an EIP-3009 authorization against this domain, which only exists on
@@ -498,15 +567,18 @@ export function getX402PaymentOptions(
   amountOverride?: string
 ): X402PaymentOption[] {
   const options: X402PaymentOption[] = [];
-  const evmEnabled = cfg.evmEnabled ?? (cfg.enabled && cfg.payTo !== '');
+  const evmEnabled =
+    cfg.evmEnabled ??
+    (cfg.enabled && (cfg.payTo !== '' || Object.keys(cfg.evmPayTos ?? {}).length > 0));
 
-  if (evmEnabled && cfg.payTo !== '') {
+  if (evmEnabled) {
     for (const network of cfg.evmNetworks?.length ? cfg.evmNetworks : [cfg.network]) {
       const microAtomic = amountOverride ?? cfg.amountAtomic;
+      const payTo = payToForEvmNetwork(cfg, network);
       options.push({
         family: 'evm',
         network,
-        payTo: cfg.payTo,
+        payTo,
         asset: usdcForNetwork(network),
         amountAtomic: atomicUnitsForNetwork(network, microAtomic),
         tokenName: tokenNameForNetwork(network),
@@ -520,7 +592,7 @@ export function getX402PaymentOptions(
         options.push({
           family: 'evm',
           network,
-          payTo: cfg.payTo,
+          payTo,
           asset: extra.address,
           amountAtomic: atomicUnitsForNetwork(network, microAtomic),
           tokenName: extra.tokenName,

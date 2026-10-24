@@ -1,0 +1,39 @@
+name: Monad DEX Market Collector
+
+# Index finalized Monad Uniswap V3 Swap events every five minutes. The runner
+# advances a durable cursor and catches up after delayed Actions executions, so
+# rolling volumes remain attributable to on-chain event logs rather than an
+# unauditable aggregator API.
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: monad-dex-market
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Index finalized Swap events
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ALCHEMY_MONAD_RPC: ${{ secrets.ALCHEMY_MONAD_RPC }}
+        run: |
+          set -u
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
+            echo "::error::SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY secrets are required."
+            exit 1
+          fi
+          node .github/cron-dist/monad-dex-market.mjs

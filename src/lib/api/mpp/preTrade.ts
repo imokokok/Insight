@@ -5,7 +5,14 @@ import { Credential, Errors, Expires } from 'mppx';
 import { Mppx, evm } from 'mppx/server';
 
 import { createCdpAuthHeaders } from '@/lib/api/x402/cdpAuth';
-import { type X402Config, eip3009TokenNameForNetwork, usdcForNetwork } from '@/lib/api/x402/config';
+import {
+  type X402Config,
+  eip3009TokenNameForNetwork,
+  facilitatorUrlForNetwork,
+  isCdpFacilitatorUrl,
+  payToForEvmNetwork,
+  usdcForNetwork,
+} from '@/lib/api/x402/config';
 import {
   atomicUnitsToUsdc,
   recordX402Settlement,
@@ -19,10 +26,11 @@ const logger = createLogger('mpp-pretrade');
 const MPP_RESOURCE = 'pre-trade-safety-check';
 
 function createMppServer(cfg: X402Config, secretKey: string) {
+  const facilitatorUrl = facilitatorUrlForNetwork(cfg, cfg.network);
   const httpFacilitator = new HTTPFacilitatorClient({
-    url: cfg.facilitatorUrl,
+    url: facilitatorUrl,
     timeoutMs: cfg.facilitatorTimeoutMs,
-    ...(cfg.facilitatorCdpAuth
+    ...(isCdpFacilitatorUrl(facilitatorUrl) && cfg.facilitatorCdpAuth
       ? { createAuthHeaders: createCdpAuthHeaders(cfg.facilitatorCdpAuth) }
       : {}),
   });
@@ -34,7 +42,7 @@ function createMppServer(cfg: X402Config, secretKey: string) {
         chainId: getChainId(cfg.network),
         currency: usdcForNetwork(cfg.network) as `0x${string}`,
         decimals: 6,
-        recipient: cfg.payTo as `0x${string}`,
+        recipient: payToForEvmNetwork(cfg, cfg.network) as `0x${string}`,
         x402: {
           // Both clients implement the same verify/settle wire contract. The
           // assertion bridges incompatible optional-field types from their
@@ -61,10 +69,11 @@ function getChainId(network: X402Config['network']): number {
 }
 
 function getServer(cfg: X402Config, secretKey: string): MppServer {
+  const facilitatorUrl = facilitatorUrlForNetwork(cfg, cfg.network);
   const key = JSON.stringify({
     network: cfg.network,
-    payTo: cfg.payTo.toLowerCase(),
-    facilitatorUrl: cfg.facilitatorUrl,
+    payTo: payToForEvmNetwork(cfg, cfg.network).toLowerCase(),
+    facilitatorUrl,
     secretKey,
   });
   if (cachedServer && cachedServerKey === key) return cachedServer;

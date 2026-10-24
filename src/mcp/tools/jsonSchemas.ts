@@ -260,6 +260,9 @@ export const CorrelationJsonSchema = z.object({
 
 export const CoverageJsonSchema = z.object({});
 
+/** Wire schema for the one reviewed WMON/USDC Monad DEX market. */
+export const MonadDexMarketJsonSchema = z.object({});
+
 const AssetEntryJsonSchema = z.object({
   symbol: z.string().min(1).describe('Asset symbol'),
   amount: z.number().positive().describe('Asset amount'),

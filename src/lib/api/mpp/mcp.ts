@@ -6,7 +6,14 @@ import { Errors, Expires } from 'mppx';
 import { Mppx, Transport, evm } from 'mppx/server';
 
 import { createCdpAuthHeaders } from '@/lib/api/x402/cdpAuth';
-import { type X402Config, eip3009TokenNameForNetwork, usdcForNetwork } from '@/lib/api/x402/config';
+import {
+  type X402Config,
+  eip3009TokenNameForNetwork,
+  facilitatorUrlForNetwork,
+  isCdpFacilitatorUrl,
+  payToForEvmNetwork,
+  usdcForNetwork,
+} from '@/lib/api/x402/config';
 import { atomicUnitsToUsdc, recordX402Settlement } from '@/lib/api/x402/guard';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -30,10 +37,11 @@ export interface MppMcpCallInput {
 export type MppMcpCallHandler = (input: MppMcpCallInput) => Promise<CallToolResult>;
 
 function createMppMcpServer(cfg: X402Config, secretKey: string) {
+  const facilitatorUrl = facilitatorUrlForNetwork(cfg, cfg.network);
   const facilitator = new HTTPFacilitatorClient({
-    url: cfg.facilitatorUrl,
+    url: facilitatorUrl,
     timeoutMs: cfg.facilitatorTimeoutMs,
-    ...(cfg.facilitatorCdpAuth
+    ...(isCdpFacilitatorUrl(facilitatorUrl) && cfg.facilitatorCdpAuth
       ? { createAuthHeaders: createCdpAuthHeaders(cfg.facilitatorCdpAuth) }
       : {}),
   });
@@ -46,7 +54,7 @@ function createMppMcpServer(cfg: X402Config, secretKey: string) {
         chainId: Number(cfg.network.slice('eip155:'.length)),
         currency: usdcForNetwork(cfg.network) as `0x${string}`,
         decimals: 6,
-        recipient: cfg.payTo as `0x${string}`,
+        recipient: payToForEvmNetwork(cfg, cfg.network) as `0x${string}`,
         x402: {
           facilitator: facilitator as unknown as MppFacilitator,
           maxTimeoutSeconds: cfg.maxTimeoutSeconds,
@@ -66,10 +74,11 @@ let cachedServer: MppMcpServer | null = null;
 let cachedServerKey = '';
 
 function getServer(cfg: X402Config, secretKey: string): MppMcpServer {
+  const facilitatorUrl = facilitatorUrlForNetwork(cfg, cfg.network);
   const key = JSON.stringify({
     network: cfg.network,
-    payTo: cfg.payTo.toLowerCase(),
-    facilitatorUrl: cfg.facilitatorUrl,
+    payTo: payToForEvmNetwork(cfg, cfg.network).toLowerCase(),
+    facilitatorUrl,
     facilitatorTimeoutMs: cfg.facilitatorTimeoutMs,
     facilitatorCdpAuth: cfg.facilitatorCdpAuth,
     maxTimeoutSeconds: cfg.maxTimeoutSeconds,

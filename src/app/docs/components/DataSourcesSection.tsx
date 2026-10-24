@@ -176,6 +176,21 @@ export default function DataSourcesSection() {
             </p>
           </motion.div>
 
+          <motion.div
+            variants={itemVariants}
+            className="border-l-2 border-violet-600 bg-violet-50/70 p-6"
+          >
+            <h3 className="font-semibold text-slate-900 mb-2">Monad DEX market evidence</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              The reviewed Uniswap V3 WMON/USDC market on Monad contributes block-pinned spot and
+              15-minute TWAP observations, in-range liquidity, and Quoter V2 execution quotes at
+              fixed MON sizes. Finalized Swap events are indexed separately for rolling source-local
+              volume, and the API reports a warming state until 24 hours of contiguous coverage
+              exists. This is execution and manipulation-context evidence, not an oracle provider
+              and never an oracle-consensus vote.
+            </p>
+          </motion.div>
+
           {/* Verification note */}
           <motion.div
             variants={itemVariants}

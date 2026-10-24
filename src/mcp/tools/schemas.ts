@@ -259,6 +259,9 @@ export const CorrelationInputSchema = z.object({
 
 export const CoverageInputSchema = z.object({});
 
+/** No caller input: this tool exposes one reviewed Monad DEX market only. */
+export const MonadDexMarketInputSchema = z.object({});
+
 const AssetEntrySchema = z.object({
   symbol: z.string().min(1),
   amount: z.number().positive(),

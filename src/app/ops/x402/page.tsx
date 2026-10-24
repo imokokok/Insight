@@ -87,6 +87,8 @@ function explorerUrl(network: string | null, txHash: string): string | null {
   if (network === 'eip155:43114') return `https://snowtrace.io/tx/${txHash}`;
   if (network === 'eip155:1329') return `https://seitrace.com/tx/${txHash}`;
   if (network === 'eip155:196') return `https://www.oklink.com/x-layer/tx/${txHash}`;
+  if (network === 'eip155:143') return `https://monadscan.com/tx/${txHash}`;
+  if (network === 'eip155:56') return `https://bscscan.com/tx/${txHash}`;
   if (network === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
     return `https://explorer.solana.com/tx/${txHash}`;
   }
@@ -272,6 +274,70 @@ export default async function OpsX402Page({
 
       <OpsSectionHeading
         index="04"
+        title="Performance by payment rail"
+        detail="Compare the selected rail through verification, service execution, and settlement. Multi-chain quotes are intentionally unattributed until a payer selects one."
+      />
+      <Card>
+        {x402.errored ? (
+          <EmptyState message="Payment-rail breakdown unavailable" />
+        ) : x402.byNetwork.length === 0 ? (
+          <EmptyState message="No payment-rail lifecycle events in this window" />
+        ) : (
+          <div className="ops-table-scroll overflow-x-auto">
+            <table className={tableCls}>
+              <thead>
+                <tr>
+                  {[
+                    'Payment rail',
+                    'Quotes',
+                    'Verified',
+                    'Service OK',
+                    'Service errors',
+                    'Settled',
+                    'Settle errors',
+                    'Gross USDC',
+                  ].map((heading, index) => (
+                    <th
+                      key={heading}
+                      scope="col"
+                      className={`${thCls} ${index ? 'text-right' : ''}`}
+                    >
+                      {heading}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {x402.byNetwork.map((row) => (
+                  <tr key={row.network} className={trCls}>
+                    <td className="py-2 pr-3 font-mono text-xs text-gray-700">{row.network}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{row.quotes}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{row.verified}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{row.businessSucceeded}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">
+                      {row.businessFailed ? <Badge tone="warn">{row.businessFailed}</Badge> : '0'}
+                    </td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{row.settled}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">
+                      {row.settlementFailed ? (
+                        <Badge tone="warn">{row.settlementFailed}</Badge>
+                      ) : (
+                        '0'
+                      )}
+                    </td>
+                    <td className="py-2 pr-3 text-right font-mono tabular-nums">
+                      {formatUsdc(row.grossUsdc)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <OpsSectionHeading
+        index="05"
         title="Performance by resource"
         detail="Compare usage, service completion, settlement reliability, and realized gross revenue."
       />
@@ -349,7 +415,7 @@ export default async function OpsX402Page({
       </Card>
 
       <OpsSectionHeading
-        index="05"
+        index="06"
         title="Recent lifecycle records"
         detail="The audit table includes request-stage rows and confirmed settlement details."
       />

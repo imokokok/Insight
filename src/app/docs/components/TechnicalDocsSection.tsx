@@ -58,9 +58,9 @@ const docs: DocCard[] = [
     icon: <Database className="w-6 h-6" />,
     title: 'Data Sources',
     description:
-      '13 oracle providers plus independent CEX market references for price divergence and decision-input context.',
+      '13 oracle providers, independent CEX references, and separate Monad DEX execution-market evidence.',
     href: '#data-sources',
-    tags: ['13 Oracle Providers', 'CEX References', '40+ Chains'],
+    tags: ['13 Oracle Providers', 'DEX Evidence', '40+ Chains'],
     accent: 'amber',
     anchor: true,
   },
