@@ -13,6 +13,7 @@ import {
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
   X402_PRE_TRADE_ROUTE,
+  X402_SWAP_INTENT_ROUTE,
   getX402PaymentOptions,
 } from './config';
 import { createResilientFacilitator } from './facilitatorResilience';
@@ -138,6 +139,47 @@ export const BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION = declareDiscoveryExtension({
         venueQuote: { status: 'not_assessed' },
         nativeOracle: { provider: 'pyth', status: 'passed', onChainVerified: true },
       },
+    },
+  },
+});
+
+/** Marketplace contract for a paired swap decision, distinct from a lone price check. */
+export const BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    sourceAsset: 'ETH',
+    destinationAsset: 'USDC',
+    subjectChainId: 1,
+    settlementChainId: 1,
+    declaredNotionalUsd: 1000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      sourceAsset: { type: 'string', description: 'Asset being sold, e.g. ETH' },
+      destinationAsset: { type: 'string', description: 'Asset being bought, e.g. USDC' },
+      subjectChainId: { type: 'number', description: 'Same chain on which the swap is evaluated' },
+      settlementChainId: { type: 'number', description: 'Must equal subjectChainId in v1' },
+      declaredNotionalUsd: { type: 'number', description: 'Declared swap notional in USD' },
+      venue: {
+        type: 'string',
+        description: 'Optional caller-claimed venue, never a verified venue fact',
+      },
+      router: { type: 'string', description: 'Optional caller-claimed EVM router' },
+    },
+    required: [
+      'sourceAsset',
+      'destinationAsset',
+      'subjectChainId',
+      'settlementChainId',
+      'declaredNotionalUsd',
+    ],
+  },
+  output: {
+    example: {
+      journeyId: 'opaque UUID',
+      sourceCheck: { verdict: 'PASS' },
+      destinationCheck: { verdict: 'PASS' },
+      next: { executionReceipt: { method: 'POST' } },
     },
   },
 });
@@ -321,6 +363,11 @@ export async function buildX402HttpServer(
       cfg,
       BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION,
       'Execution preflight: a chain-neutral ALLOW/CAUTION/BLOCK data-sufficiency decision for one declared action. A complete BLOCK result is charged; settlement occurs only after a successful response.'
+    ),
+    [X402_SWAP_INTENT_ROUTE]: routeConfigFor(
+      cfg,
+      BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION,
+      'Verified Swap Intent: two signed schema-v3 Pre-Trade gates for one same-chain swap, plus one Execution Receipt credit after x402 settlement. A BLOCK is a complete, charged decision.'
     ),
     [X402_MCP_ROUTE]: mcpRouteConfigFor(cfg, options?.mcpAmountAtomic ?? cfg.amountAtomic),
   });

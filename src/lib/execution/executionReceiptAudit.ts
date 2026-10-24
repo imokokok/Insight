@@ -22,6 +22,8 @@ export type ExecutionCheckSource = 'rest' | 'mcp' | 'sample' | 'collector';
 export interface ExecutionAuditMeta {
   source: ExecutionCheckSource;
   apiKeyId?: string | null;
+  /** Opaque lifecycle correlation; receipt content remains the authoritative proof. */
+  journeyId?: string | null;
   latencyMs?: number;
   subjectChainId?: number;
   settlementChainId?: number;
@@ -92,6 +94,7 @@ export async function recordExecutionReceipt(
 
       source: meta.source,
       api_key_id: meta.apiKeyId ?? null,
+      journey_id: meta.journeyId ?? null,
       latency_ms: meta.latencyMs ?? null,
     },
     { onConflict: 'uid' }
