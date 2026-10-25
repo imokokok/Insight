@@ -1252,43 +1252,6 @@ paths:
         '503':
           description: Fresh Base DEX evidence is unavailable.
 
-  /markets/dex/hyperliquid:
-    get:
-      operationId: getHyperliquidPerpMarket
-      tags: [DEX Markets]
-      summary: Hyperliquid perpetual-market evidence
-      description: >-
-        Returns read-only mainnet CLOB evidence for one reviewed perpetual market
-        (BTC, ETH, or HYPE). Book-impact estimates, funding, open interest, mark,
-        and oracle values are venue context, not independent oracle consensus or an
-        execution authorization.
-      security:
-        - apiKey: []
-      parameters:
-        - name: market
-          in: query
-          description: Reviewed perpetual market. Defaults to BTC.
-          schema:
-            type: string
-            enum: [BTC, ETH, HYPE]
-      responses:
-        '200':
-          description: Fresh read-only perpetual-market evidence.
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [success, data]
-                properties:
-                  success: { type: boolean, const: true }
-                  data:
-                    type: object
-                    description: Venue-reported market snapshot with explicit caveats.
-        '400':
-          description: The requested market is not in the reviewed allowlist.
-        '503':
-          description: Fresh Hyperliquid perpetual-market evidence is unavailable.
-
   /markets/dex/solana:
     get:
       operationId: getSolanaDexRoute
