@@ -6,6 +6,7 @@ import { buildX402HttpServer, resetX402HttpServerForTests } from '../resourceSer
 
 const PAY_TO = 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX';
 const FEE_PAYER = '11111111111111111111111111111111';
+const REFRESHED_FEE_PAYER = 'PEAxftCwr8ZcYKESZSL24zSMMScCD8sLFVauLz2uBw6';
 const BLOCKHASH = '11111111111111111111111111111111';
 const REFRESHED_BLOCKHASH = 'PEAxftCwr8ZcYKESZSL24zSMMScCD8sLFVauLz2uBw6';
 
@@ -148,7 +149,7 @@ describe('x402 SVM resource-server registration', () => {
             scheme: 'exact',
             network: SOLANA_DEVNET_CAIP2,
             extra: {
-              feePayer: FEE_PAYER,
+              feePayer: supportedCalls === 1 ? FEE_PAYER : REFRESHED_FEE_PAYER,
               recentBlockhash: supportedCalls === 1 ? BLOCKHASH : REFRESHED_BLOCKHASH,
               lastValidBlockHeight: supportedCalls === 1 ? '123' : '456',
             },
@@ -184,7 +185,7 @@ describe('x402 SVM resource-server registration', () => {
 
     expect(supportedCalls).toBe(2);
     expect(solana?.extra).toMatchObject({
-      feePayer: FEE_PAYER,
+      feePayer: REFRESHED_FEE_PAYER,
       recentBlockhash: REFRESHED_BLOCKHASH,
       lastValidBlockHeight: '456',
     });
