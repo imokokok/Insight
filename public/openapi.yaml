@@ -1343,15 +1343,44 @@ paths:
                       sourceFreshnessSeconds: { type: number, minimum: 0 }
                       book:
                         type: object
-                        required: [timestamp, displayedLevelsPerSide, bestBid, bestAsk, spreadBps, bidDepthNotionalUsd, askDepthNotionalUsd]
+                        required:
+                          [
+                            timestamp,
+                            displayedLevelsPerSide,
+                            bestBid,
+                            bestAsk,
+                            spreadBps,
+                            bidDepthNotionalUsd,
+                            askDepthNotionalUsd,
+                          ]
                       perpetual:
                         type: object
-                        required: [markPrice, midPrice, oraclePrice, markDeviationBpsFromOracle, fundingRate, openInterest, dayNotionalVolume, sizeDecimals, maxLeverage]
+                        required:
+                          [
+                            markPrice,
+                            midPrice,
+                            oraclePrice,
+                            markDeviationBpsFromOracle,
+                            fundingRate,
+                            openInterest,
+                            dayNotionalVolume,
+                            sizeDecimals,
+                            maxLeverage,
+                          ]
                       estimates:
                         type: array
                         items:
                           type: object
-                          required: [side, targetNotionalUsd, filledNotionalUsd, filledBase, averagePrice, priceImpactBps, complete]
+                          required:
+                            [
+                              side,
+                              targetNotionalUsd,
+                              filledNotionalUsd,
+                              filledBase,
+                              averagePrice,
+                              priceImpactBps,
+                              complete,
+                            ]
         '400':
           description: The market is not in Insight's reviewed Hyperliquid perpetual allowlist.
         '503':
