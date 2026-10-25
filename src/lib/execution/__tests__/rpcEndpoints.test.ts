@@ -34,6 +34,7 @@ describe('getRpcEndpoints', () => {
       'https://mainnet.helius-rpc.com/?api-key=test-key-12345678',
       'https://solana-mainnet.g.alchemy.com/v2/test-key-12345678',
       'https://api.mainnet-beta.solana.com',
+      'https://solana-rpc.publicnode.com',
     ]);
   });
 
