@@ -243,6 +243,19 @@ describe('x402 config', () => {
       );
     });
 
+    it('defaults Solana Devnet to PayAI instead of the public x402 facilitator', () => {
+      const cfg = parseX402Config({
+        ...BASE_ENV,
+        X402_SOLANA_ENABLED: 'true',
+        X402_SOLANA_NETWORK: SOLANA_DEVNET_CAIP2,
+        X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+      });
+
+      expect(facilitatorUrlForNetwork(cfg, SOLANA_DEVNET_CAIP2)).toBe(
+        'https://facilitator.payai.network'
+      );
+    });
+
     it('allows an explicit dedicated Solana facilitator to override the PayAI default', () => {
       const cfg = parseX402Config({
         ...BASE_ENV,
@@ -318,7 +331,32 @@ describe('x402 config', () => {
       usdcMint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
       amountAtomic: '20000',
       priceUsd: 0.02,
+      rpcUrl: null,
     });
+  });
+
+  it('accepts a dedicated HTTPS RPC for a Solana blockhash hint', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_ENABLED: 'false',
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_NETWORK: SOLANA_DEVNET_CAIP2,
+      X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+      X402_SOLANA_RPC_URL: 'https://rpc.example.test/solana',
+    });
+
+    expect(cfg.solana?.rpcUrl).toBe('https://rpc.example.test/solana');
+  });
+
+  it('rejects a non-HTTPS Solana blockhash RPC', () => {
+    expect(() =>
+      parseX402Config({
+        ...BASE_ENV,
+        X402_SOLANA_ENABLED: 'true',
+        X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+        X402_SOLANA_RPC_URL: 'http://rpc.example.test/solana',
+      })
+    ).toThrow(/X402_SOLANA_RPC_URL/);
   });
 
   it('can keep a configured EVM recipient inactive while enabling Solana', () => {

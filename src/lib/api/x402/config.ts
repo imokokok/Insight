@@ -167,6 +167,12 @@ export interface X402SolanaConfig {
   /** USDC atomic units (6 decimals) charged per successful check. */
   amountAtomic: string;
   priceUsd: number;
+  /**
+   * Optional RPC used solely to pin a fresh blockhash into each SVM payment
+   * challenge. It must observe the same cluster view as the facilitator's
+   * settlement RPC; otherwise it is safer to leave this unset.
+   */
+  rpcUrl: string | null;
 }
 
 export interface X402PaymentOption {
@@ -338,8 +344,8 @@ function parseFacilitatorUrls(
   return urls;
 }
 
-/** Parse a dedicated facilitator endpoint at an environment boundary. */
-function parseOptionalFacilitatorUrl(raw: string | undefined, name: string): string | null {
+/** Parse a server-side HTTPS endpoint at an environment boundary. */
+function parseOptionalHttpsUrl(raw: string | undefined, name: string): string | null {
   const url = raw?.trim() ?? '';
   if (url === '') return null;
   try {
@@ -439,7 +445,7 @@ function usdToAtomicUnits(usd: number): string {
 
 const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
 const DAYDREAMS_FACILITATOR_HOST = 'facilitator.daydreams.systems';
-const PAYAI_SOLANA_MAINNET_FACILITATOR_URL = 'https://facilitator.payai.network';
+const PAYAI_SOLANA_FACILITATOR_URL = 'https://facilitator.payai.network';
 
 /** True only for the CDP facilitator host, never for a lookalike URL. */
 export function isCdpFacilitatorUrl(url: string): boolean {
@@ -525,29 +531,31 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
   if (solanaFlagEnabled && solanaPayTo !== '') {
     const solanaNetwork = SolanaNetworkSchema.parse(env.X402_SOLANA_NETWORK ?? SOLANA_DEVNET_CAIP2);
     const solanaPriceUsd = parsePriceUsd(env.X402_SOLANA_PRICE_USD ?? env.X402_PRICE_USD);
+    const solanaRpcUrl = parseOptionalHttpsUrl(env.X402_SOLANA_RPC_URL, 'X402_SOLANA_RPC_URL');
     solana = {
       network: solanaNetwork,
       payTo: solanaPayTo,
       usdcMint: SOLANA_NETWORKS[solanaNetwork].usdc,
       amountAtomic: usdToAtomicUnits(solanaPriceUsd),
       priceUsd: solanaPriceUsd,
+      rpcUrl: solanaRpcUrl,
     };
   }
 
   const facilitatorUrl = env.X402_FACILITATOR_URL?.trim() || 'https://x402.org/facilitator';
   const facilitatorUrls = parseFacilitatorUrls(env.X402_FACILITATOR_URLS);
-  const solanaFacilitatorUrl = parseOptionalFacilitatorUrl(
+  const solanaFacilitatorUrl = parseOptionalHttpsUrl(
     env.X402_SOLANA_FACILITATOR_URL,
     'X402_SOLANA_FACILITATOR_URL'
   );
-  if (solana && solana.network === SOLANA_MAINNET_CAIP2) {
-    // Mainnet Solana is intentionally isolated from the generic map. This
-    // prevents a legacy Daydreams entry from being reintroduced by an old
-    // environment snapshot. Operators may still intentionally select another
-    // provider via the dedicated, HTTPS-only override.
-    facilitatorUrls[solana.network] = solanaFacilitatorUrl ?? PAYAI_SOLANA_MAINNET_FACILITATOR_URL;
-  } else if (solanaFacilitatorUrl && solana) {
-    facilitatorUrls[solana.network] = solanaFacilitatorUrl;
+  if (solana) {
+    // Solana is intentionally isolated from the generic map. PayAI currently
+    // advertises both canonical Solana networks and includes a fresh
+    // facilitator-side blockhash hint; the public x402 Devnet facilitator
+    // advertises support but has rejected valid fresh hashes in live testing.
+    // Operators can still intentionally select another provider through the
+    // dedicated HTTPS-only override.
+    facilitatorUrls[solana.network] = solanaFacilitatorUrl ?? PAYAI_SOLANA_FACILITATOR_URL;
   }
   const facilitatorBearerToken = parseBearerToken(
     env.X402_FACILITATOR_BEARER_TOKEN,

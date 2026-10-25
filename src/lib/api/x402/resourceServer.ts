@@ -22,6 +22,7 @@ import {
   getX402PaymentOptions,
 } from './config';
 import { createResilientFacilitator } from './facilitatorResilience';
+import { isSolanaPublicKey } from './solanaEncoding';
 
 /**
  * Lazily-built singleton around the official x402 Foundation v2 server stack
@@ -36,6 +37,110 @@ import { createResilientFacilitator } from './facilitatorResilience';
 
 let cached: x402HTTPResourceServer | null = null;
 let cachedKey = '';
+
+type SvmPaymentRequirements = Parameters<ExactSvmScheme['enhancePaymentRequirements']>[0];
+type SvmSupportedKind = Parameters<ExactSvmScheme['enhancePaymentRequirements']>[1];
+
+interface FacilitatorBlockhashHint {
+  recentBlockhash: string;
+  lastValidBlockHeight: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function parseFacilitatorBlockhashHint(extra: unknown): FacilitatorBlockhashHint | null {
+  if (!isRecord(extra)) return null;
+  const recentBlockhash = extra.recentBlockhash;
+  const lastValidBlockHeight = extra.lastValidBlockHeight;
+  if (
+    typeof recentBlockhash !== 'string' ||
+    !isSolanaPublicKey(recentBlockhash) ||
+    typeof lastValidBlockHeight !== 'string' ||
+    !/^(0|[1-9]\d*)$/.test(lastValidBlockHeight)
+  ) {
+    return null;
+  }
+  return { recentBlockhash, lastValidBlockHeight };
+}
+
+/**
+ * The `supported` response is normally cached during server initialization.
+ * For SVM providers that publish a blockhash there, refreshing it for the
+ * individual 402 quote is necessary: a cached hash expires in about a minute.
+ *
+ * This stays additive to the upstream exact scheme. If either response does
+ * not advertise a hint, the provider changes fee payer, or the refresh fails,
+ * the normal SDK behaviour remains unchanged.
+ */
+class FacilitatorHintExactSvmScheme extends ExactSvmScheme {
+  constructor(
+    private readonly hintSource: {
+      url: string;
+      timeoutMs: number;
+      bearerToken: string | null;
+    } | null,
+    options?: { rpcUrl: string }
+  ) {
+    super(options);
+  }
+
+  async enhancePaymentRequirements(
+    paymentRequirements: SvmPaymentRequirements,
+    supportedKind: SvmSupportedKind,
+    extensionKeys: string[]
+  ) {
+    const requirements = await super.enhancePaymentRequirements(
+      paymentRequirements,
+      supportedKind,
+      extensionKeys
+    );
+    // An explicitly configured, operator-confirmed RPC has precedence. The
+    // upstream scheme already fetched its current hash in that case.
+    if (requirements.extra?.recentBlockhash || this.hintSource === null) return requirements;
+
+    const initialExtra = isRecord(supportedKind.extra) ? supportedKind.extra : {};
+    const feePayer = initialExtra.feePayer;
+    // Only contact providers which explicitly advertise this capability. That
+    // keeps ordinary facilitators on the SDK's zero-extra-request path.
+    if (typeof feePayer !== 'string' || !isSolanaPublicKey(feePayer)) return requirements;
+    if (parseFacilitatorBlockhashHint(initialExtra) === null) return requirements;
+
+    try {
+      const response = await fetch(`${this.hintSource.url.replace(/\/+$/, '')}/supported`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Cache-Control': 'no-store',
+          ...(this.hintSource.bearerToken
+            ? { Authorization: `Bearer ${this.hintSource.bearerToken}` }
+            : {}),
+        },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(Math.min(this.hintSource.timeoutMs, 3_000)),
+      });
+      if (!response.ok) return requirements;
+
+      const payload: unknown = await response.json();
+      if (!isRecord(payload) || !Array.isArray(payload.kinds)) return requirements;
+      const currentKind = payload.kinds.find(
+        (kind): kind is Record<string, unknown> =>
+          isRecord(kind) &&
+          kind.x402Version === 2 &&
+          kind.scheme === 'exact' &&
+          kind.network === supportedKind.network
+      );
+      if (!currentKind || !isRecord(currentKind.extra) || currentKind.extra.feePayer !== feePayer) {
+        return requirements;
+      }
+      const hint = parseFacilitatorBlockhashHint(currentKind.extra);
+      return hint ? { ...requirements, extra: { ...requirements.extra, ...hint } } : requirements;
+    } catch {
+      return requirements;
+    }
+  }
+}
 
 /**
  * Bazaar discovery metadata (Agentic.Market / CDP indexing). Declared once and
@@ -542,7 +647,21 @@ export async function buildX402HttpServer(
     const networks = new Set(
       paymentOptions.filter((option) => option.family === 'svm').map((option) => option.network)
     );
-    for (const network of networks) server.register(network, new ExactSvmScheme());
+    // An SVM transaction expires quickly. When the operator provides an RPC
+    // known to share the facilitator's cluster view, emit one fresh blockhash
+    // in the quote so the client does not fetch a potentially divergent one.
+    // The SDK deliberately omits the hint when this is unset or unavailable.
+    const svmSchemeOptions = cfg.solana?.rpcUrl ? { rpcUrl: cfg.solana.rpcUrl } : undefined;
+    const svmHintSource = cfg.solana
+      ? {
+          url: facilitatorUrlForNetwork(cfg, cfg.solana.network),
+          timeoutMs: cfg.facilitatorTimeoutMs,
+          bearerToken: facilitatorBearerTokenForNetwork(cfg, cfg.solana.network),
+        }
+      : null;
+    for (const network of networks) {
+      server.register(network, new FacilitatorHintExactSvmScheme(svmHintSource, svmSchemeOptions));
+    }
   }
   // Enriches the declared discovery extension with the actual HTTP method and
   // query params from each request context before the 402 goes out.
@@ -605,6 +724,7 @@ export async function getX402HttpServer(cfg: X402Config): Promise<x402HTTPResour
     f: cfg.facilitatorUrl,
     u: cfg.facilitatorUrls,
     c: cfg.facilitatorCdpAuth ? 'cdp' : 'none',
+    r: cfg.solana?.rpcUrl ?? null,
   });
   if (cached && cachedKey === key) {
     return cached;
@@ -646,6 +766,7 @@ export async function getMcpX402HttpServer(
     f: cfg.facilitatorUrl,
     u: cfg.facilitatorUrls,
     c: cfg.facilitatorCdpAuth ? 'cdp' : 'none',
+    r: cfg.solana?.rpcUrl ?? null,
   });
   const hit = mcpCache.get(key);
   if (hit) {
