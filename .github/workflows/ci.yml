@@ -265,6 +265,15 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      # This job runs on a fresh runner rather than reusing the validation
+      # jobs. The deployment script imports the lockfile-pinned `tsx` loader,
+      # so install dependencies here before invoking it.
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+          cache: npm
+      - name: Install pinned deployment dependencies
+        run: npm ci
       - name: Refuse to release an outdated commit
         run: |
           current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
