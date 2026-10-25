@@ -1,4 +1,4 @@
-import { getAerodromeSlipstreamMarketSnapshot } from '@/lib/dex/aerodromeSlipstream';
+import { getReviewedAerodromeSlipstreamMarketSnapshot } from '@/lib/dex/aerodromeSlipstream';
 import { getBaseUniswapV3MarketSnapshot } from '@/lib/dex/baseUniswapV3';
 import {
   getHyperliquidPerpMarketSnapshot,
@@ -65,23 +65,25 @@ export const getBaseDexMarketTool: McpToolDefinition<typeof BaseDexMarketInputSc
   },
 };
 
-/** Returns block-pinned evidence for the reviewed Aerodrome CL100 pool on Base. */
+/** Returns block-pinned evidence for one allowlisted Aerodrome pool on Base. */
 export const getAerodromeSlipstreamMarketTool: McpToolDefinition<
   typeof AerodromeSlipstreamMarketInputSchema
 > = {
   name: 'get_aerodrome_slipstream_market',
   description:
-    'Get fresh, block-pinned Aerodrome Slipstream Base WETH/USDC CL100 market evidence: spot, 30-minute TWAP, active liquidity, live pool fee, and executable quote ladder. This is one reviewed DEX venue, not an oracle-consensus price.',
+    'Get fresh, block-pinned market evidence for one allowlisted Aerodrome Slipstream Base pool. The pool’s Factory, QuoterV2, and runtime code identities are re-verified at the quoted block. This is DEX venue context, not an oracle-consensus price.',
   parameters: AerodromeSlipstreamMarketInputSchema,
-  handler: async () => {
-    const snapshot = await getAerodromeSlipstreamMarketSnapshot();
+  handler: async ({ profileId }) => {
+    const snapshot = await getReviewedAerodromeSlipstreamMarketSnapshot(
+      profileId ?? 'base-aerodrome-slipstream-weth-usdc-cl100'
+    );
     return formatAsText({
       ...snapshot,
       caveats: [
         'DEX market evidence is not an oracle-consensus vote or a venue-independent fair price.',
         'activeLiquidityRaw is Slipstream in-range liquidity; it is not token reserve TVL.',
         'feePips is the pool fee read at the pinned block and can change with Aerodrome fee configuration.',
-        'This endpoint reports one reviewed WETH/USDC CL100 pool, not every Aerodrome or Base route.',
+        'Only code-reviewed pool identifiers in Insight’s allowlist are admitted; arbitrary Aerodrome pools and routes are rejected.',
       ],
     });
   },

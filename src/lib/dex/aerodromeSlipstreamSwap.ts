@@ -11,9 +11,11 @@ import {
   AERODROME_SLIPSTREAM_CHAIN_ID,
   AERODROME_SLIPSTREAM_SWAP_ROUTER,
   AERODROME_SLIPSTREAM_SWAP_ROUTER_CODE_HASH,
+  BASE_WETH,
   AerodromeSlipstreamRpcClient,
-  aerodromeSlipstreamWethUsdcProfile,
+  reviewedAerodromeSlipstreamProfile,
   type AerodromeSlipstreamMarketProfile,
+  type ReviewedAerodromeSlipstreamProfileId,
 } from './aerodromeSlipstream';
 import {
   getReviewedAerodromeSlipstreamPreTradeEvidence,
@@ -32,7 +34,9 @@ const MAX_DEADLINE_AHEAD_SECONDS = 30 * 60;
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 export interface PrepareAerodromeSlipstreamExactInputRequest {
-  /** Exact WETH amount to sell. Native ETH and reverse direction are not admitted. */
+  /** One code-reviewed pool from the static allowlist. */
+  profileId?: ReviewedAerodromeSlipstreamProfileId;
+  /** Exact amount of the selected profile's token0. Native ETH and reverse direction are not admitted. */
   amountIn: string;
   /** Recipient of USDC, encoded into the transaction calldata. */
   recipient: string;
@@ -57,6 +61,7 @@ export interface PreparedAerodromeSlipstreamExactInput {
     data: `0x${string}`;
   };
   exactInput: {
+    profileId: ReviewedAerodromeSlipstreamProfileId;
     tokenIn: string;
     tokenOut: string;
     tickSpacing: number;
@@ -117,7 +122,8 @@ function minimumAmountOut(quotedAmountOut: bigint, maxSlippageBps: number): bigi
 }
 
 /**
- * Produce a user-signable, single-hop WETH -> USDC Slipstream call. The
+ * Produce a user-signable, single-hop call through one allowlisted Slipstream
+ * pool. The
  * service cannot sign, relay, approve, or broadcast it. Before calldata is
  * emitted it requires a fresh exact-notional quote and verifies both the
  * router code hash and its immutable factory/WETH bindings at that quote's
@@ -135,7 +141,8 @@ export async function prepareAerodromeSlipstreamExactInput(
   assertDeadline(request.deadlineUnixSeconds, nowUnixSeconds);
   assertSlippage(request.maxSlippageBps);
   const recipient = verifiedRecipient(request.recipient);
-  const profile: AerodromeSlipstreamMarketProfile = aerodromeSlipstreamWethUsdcProfile();
+  const profileId = request.profileId ?? 'base-aerodrome-slipstream-weth-usdc-cl100';
+  const profile: AerodromeSlipstreamMarketProfile = reviewedAerodromeSlipstreamProfile(profileId);
   const rpc = options.rpc ?? new AerodromeSlipstreamRpcClient(profile.rpcEndpoints);
   const quote = await getReviewedAerodromeSlipstreamPreTradeEvidence(
     {
@@ -143,6 +150,7 @@ export async function prepareAerodromeSlipstreamExactInput(
       asset: profile.token0.symbol,
       destinationAsset: profile.token1.symbol,
       amountIn: request.amountIn,
+      profileId,
     },
     { rpc, signal: options.signal }
   );
@@ -173,8 +181,9 @@ export async function prepareAerodromeSlipstreamExactInput(
   const routerFactory = decodeAddress(factoryData, 'factory');
   const routerWeth9 = decodeAddress(weth9Data, 'WETH9');
   if (
+    quote.profile !== profileId ||
     routerFactory.toLowerCase() !== quote.contracts.factory.toLowerCase() ||
-    routerWeth9.toLowerCase() !== profile.token0.address.toLowerCase()
+    routerWeth9.toLowerCase() !== BASE_WETH.toLowerCase()
   ) {
     throw new Error('Aerodrome Slipstream router bindings do not match the reviewed pool.');
   }
@@ -215,6 +224,7 @@ export async function prepareAerodromeSlipstreamExactInput(
       data: approvalData,
     },
     exactInput: {
+      profileId,
       tokenIn: profile.token0.address,
       tokenOut: profile.token1.address,
       tickSpacing: profile.tickSpacing,
@@ -234,7 +244,7 @@ export async function prepareAerodromeSlipstreamExactInput(
     },
     caveats: [
       'This is unsigned calldata only. Insight cannot approve, sign, relay, or broadcast a transaction.',
-      'The approval template is exact-amount WETH approval for the reviewed router; inspect existing allowance before signing any approval.',
+      'The approval template is exact-amount token approval for the reviewed router; inspect existing allowance before signing any approval.',
       'The quote and router checks describe one pinned block. They do not simulate a later signed transaction, guarantee a fill, protect against MEV, or cover another route.',
       'Use the returned exact transaction with a user-controlled signer and submit its Base transaction hash to Insight or PriorSeal for post-settlement evidence.',
     ],
