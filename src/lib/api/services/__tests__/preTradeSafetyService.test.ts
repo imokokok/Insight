@@ -61,6 +61,7 @@ jest.mock('@/lib/oracles/feedCadence', () => ({
 // omitted) so unrelated tests are unaffected; the advisory describe block
 // overrides per-case.
 jest.mock('@/lib/manipCost/baseline', () => ({
+  ...jest.requireActual('@/lib/manipCost/baseline'),
   getManipCostAdvisory: jest.fn(() => Promise.resolve(null)),
 }));
 
@@ -526,11 +527,12 @@ describe('preTradeSafetyCheck — agreement & depeg rules', () => {
       } as never,
     ]);
 
-    const result = await preTradeSafetyCheck(makeInput());
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'USDT' }));
 
     expect(result.verdict).toBe('BLOCK');
     expect(result.depegWarnings).toHaveLength(1);
     expect(result.contributingFactors.find((f) => f.rule === 'stablecoin_depeg_pct')).toBeDefined();
+    expect(mockedSnapshots).toHaveBeenCalledWith({ symbols: ['USDT'], signal: undefined });
   });
 
   it('ignores depeg deviations below the 0.3% caution threshold', async () => {
@@ -1615,6 +1617,20 @@ describe('preTradeSafetyCheck — manipulation-cost advisory', () => {
     await preTradeSafetyCheck(makeInput({ asset: 'ETH', chainId: 8453 }));
 
     expect(mockedGetManipCostAdvisory).not.toHaveBeenCalled();
+  });
+
+  it('skips the advisory database read for an uncovered Ethereum asset', async () => {
+    const providers = [
+      makeProvider({ provider: 'chainlink' as OracleProvider, price: 1860, deviationPct: 0.05 }),
+      makeProvider({ provider: 'redstone' as OracleProvider, price: 1860.5, deviationPct: 0.03 }),
+      makeProvider({ provider: 'api3' as OracleProvider, price: 1859.8, deviationPct: 0.02 }),
+    ];
+    mockedGetConsensusPrice.mockResolvedValue(makeConsensus(providers));
+
+    const result = await preTradeSafetyCheck(makeInput({ asset: 'APE', chainId: 1 }));
+
+    expect(mockedGetManipCostAdvisory).not.toHaveBeenCalled();
+    expect(result.manipulationCost).toBeUndefined();
   });
 
   it('an advisory fetch failure does not block or degrade the verdict', async () => {

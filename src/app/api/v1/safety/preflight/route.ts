@@ -10,6 +10,7 @@ import { CACHE_PRESETS } from '@/lib/api/utils';
 import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
 import { assessExecutionPreflight } from '@/lib/preflight/executionPreflight';
+import { createRequestDeadline } from '@/lib/utils/requestDeadline';
 
 import { PreTradeQuerySchema } from '../pre-trade/querySchema';
 
@@ -17,6 +18,7 @@ import type { z } from 'zod';
 
 /** The preflight can make live RPC/oracle reads; retain the established paid-gate budget. */
 export const maxDuration = 60;
+const PREFLIGHT_DEADLINE_MS = 45_000;
 export const OPTIONS = createOptionsHandler();
 
 type PreflightQuery = z.infer<typeof PreTradeQuerySchema>;
@@ -62,32 +64,58 @@ function toPreflightInput(query: PreflightQuery) {
 async function executePreflight(
   query: PreflightQuery,
   requestId: string,
-  apiKeyId?: string
+  apiKeyId?: string,
+  requestSignal?: AbortSignal
 ): Promise<NextResponse> {
-  const result = await assessExecutionPreflight(toPreflightInput(query), { apiKeyId, requestId });
-  return new Response(
-    JSON.stringify(
-      ApiResponseBuilder.success(result, {
-        requestId,
-        meta: { verdict: result.verdict, recommendation: result.recommendation },
-      })
-    ),
-    {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': CACHE_PRESETS.noStore,
-      },
+  const deadline = createRequestDeadline(
+    requestSignal,
+    PREFLIGHT_DEADLINE_MS,
+    'Execution preflight deadline exceeded'
+  );
+  try {
+    const result = await assessExecutionPreflight(
+      toPreflightInput(query),
+      { apiKeyId, requestId },
+      { signal: deadline.signal }
+    );
+    return new Response(
+      JSON.stringify(
+        ApiResponseBuilder.success(result, {
+          requestId,
+          meta: { verdict: result.verdict, recommendation: result.recommendation },
+        })
+      ),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': CACHE_PRESETS.noStore,
+        },
+      }
+    ) as NextResponse;
+  } catch (error) {
+    if (deadline.didExpire()) {
+      return NextResponse.json(
+        ApiResponseBuilder.error('REQUEST_TIMEOUT', 'Execution preflight timed out', {
+          retryable: true,
+          requestId,
+        }),
+        { status: 503, headers: { 'Cache-Control': CACHE_PRESETS.noStore, 'Retry-After': '5' } }
+      );
     }
-  ) as NextResponse;
+    throw error;
+  } finally {
+    deadline.dispose();
+  }
 }
 
 const legacyGet = createApiHandler(
-  async (_request, context) =>
+  async (request, context) =>
     executePreflight(
       context.validated!.query as PreflightQuery,
       context.requestId,
-      context.auth?.apiKey?.keyId
+      context.auth?.apiKey?.keyId,
+      request.signal
     ),
   {
     middlewares: V1_STANDARD_MIDDLEWARES,
@@ -122,7 +150,7 @@ export const GET = (
           { status: 400 }
         );
       }
-      return executePreflight(parsed.data, requestId);
+      return executePreflight(parsed.data, requestId, undefined, request.signal);
     });
   }
 

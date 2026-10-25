@@ -55,7 +55,7 @@ jobs:
         if: steps.guard.outputs.should_run == 'true'
         run: |
           test -n "$CRON_SECRET" || { echo '::error::CRON_SECRET is required'; exit 1; }
-          if ! curl --fail-with-body --silent --show-error --max-time 280 \
+          if ! curl --fail-with-body --silent --show-error --max-time 230 \
             -H "Authorization: Bearer $CRON_SECRET" \
             -o coverage-result.json https://www.oracleinsight.xyz/api/cron/coverage-slo; then
             node -e 'try { const r=require("./coverage-result.json"); if(typeof r.error==="string" && /^COVERAGE_[A-Z_]+$/.test(r.error)) console.error("::error::Coverage API failed at",r.error); } catch {}'

@@ -12,7 +12,10 @@ import {
   hasMppCredential,
   issueMppPreTradeQuote,
 } from '@/lib/api/mpp/preTrade';
-import { preTradeSafetyCheck } from '@/lib/api/services/preTradeSafetyService';
+import {
+  preTradeSafetyCheck,
+  type PreTradeSafetyResult,
+} from '@/lib/api/services/preTradeSafetyService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
@@ -23,6 +26,7 @@ import {
   nextActions,
   recordJourneyPayment,
 } from '@/lib/tradeJourney/journeyService';
+import { createRequestDeadline } from '@/lib/utils/requestDeadline';
 
 import { PreTradeQuerySchema } from './querySchema';
 
@@ -38,6 +42,7 @@ import type { z } from 'zod';
  * without allowing an unbounded hang.
  */
 export const maxDuration = 60;
+const PRE_TRADE_DEADLINE_MS = 45_000;
 
 export const OPTIONS = createOptionsHandler();
 
@@ -52,7 +57,10 @@ interface PreTradeCheckParams {
 }
 
 /** Shared business core for both the API-key path and the x402 paid tier. */
-async function executePreTradeCheck(params: PreTradeCheckParams): Promise<NextResponse> {
+async function executePreTradeCheck(
+  params: PreTradeCheckParams,
+  requestSignal?: AbortSignal
+): Promise<NextResponse> {
   const { query, apiKeyId, requestId, trackJourney = false, onJourneyIssued } = params;
 
   const journey = trackJourney
@@ -69,54 +77,76 @@ async function executePreTradeCheck(params: PreTradeCheckParams): Promise<NextRe
       })
     : null;
 
-  // preTradeSafetyCheck swallows UnsupportedSymbolError internally and returns
-  // a BLOCK verdict, so any throw here is genuinely unexpected — let the
-  // createApiHandler error middleware translate it to a 500.
-  const result = await preTradeSafetyCheck(
-    {
-      asset: query.asset,
-      chainId: query.chainId,
-      action: query.action,
-      tradeAmountUsd: query.tradeAmountUsd,
-      targetProviders: query.targetProviders,
-      protocolId: query.protocolId,
-      schemaVersion: query.schemaVersion,
-      destinationAsset: query.destinationAsset,
-      tokenAddress: query.tokenAddress,
-      debugTokenSecurity: query.debugTokenSec === '1',
-      ...(query.decisionInputCheck === '1'
-        ? {
-            decisionInput: {
-              decisionPriceUsd: query.decisionPriceUsd!,
-              quotePriceUsd: query.quotePriceUsd!,
-              quoteObservedAt: query.quoteObservedAt!,
-              maxReferenceDeviationBps: query.maxReferenceDeviationBps!,
-              maxSlippageBps: query.maxSlippageBps!,
-              maxQuoteAgeSeconds: query.maxQuoteAgeSeconds!,
-              ...(query.quoteProvenance ? { quoteProvenance: query.quoteProvenance } : {}),
-              ...(query.requireQuoteProvenance === true ? { requireQuoteProvenance: true } : {}),
-              ...(query.reviewedUniswapV3AmountIn
-                ? {
-                    reviewedUniswapV3: {
-                      amountIn: query.reviewedUniswapV3AmountIn,
-                      maxQuoteDeviationBps: query.reviewedUniswapV3MaxQuoteDeviationBps!,
-                      maxTwapDeviationBps: query.reviewedUniswapV3MaxTwapDeviationBps!,
-                    },
-                  }
-                : {}),
-            },
-          }
-        : {}),
-    },
-    {
-      apiKeyId,
-      requestId,
-      journeyId: journey?.journeyId,
-      workflowTag: query.workflowTag,
-      baselineVerdict: query.baselineVerdict,
-      baselineVersion: query.baselineVersion,
-    }
+  const deadline = createRequestDeadline(
+    requestSignal,
+    PRE_TRADE_DEADLINE_MS,
+    'Pre-trade evaluation deadline exceeded'
   );
+  let result: PreTradeSafetyResult;
+  try {
+    // preTradeSafetyCheck swallows UnsupportedSymbolError internally and returns
+    // a BLOCK verdict, so any throw here is genuinely unexpected — let the
+    // createApiHandler error middleware translate it to a 500.
+    result = await preTradeSafetyCheck(
+      {
+        asset: query.asset,
+        chainId: query.chainId,
+        action: query.action,
+        tradeAmountUsd: query.tradeAmountUsd,
+        targetProviders: query.targetProviders,
+        protocolId: query.protocolId,
+        schemaVersion: query.schemaVersion,
+        destinationAsset: query.destinationAsset,
+        tokenAddress: query.tokenAddress,
+        debugTokenSecurity: query.debugTokenSec === '1',
+        ...(query.decisionInputCheck === '1'
+          ? {
+              decisionInput: {
+                decisionPriceUsd: query.decisionPriceUsd!,
+                quotePriceUsd: query.quotePriceUsd!,
+                quoteObservedAt: query.quoteObservedAt!,
+                maxReferenceDeviationBps: query.maxReferenceDeviationBps!,
+                maxSlippageBps: query.maxSlippageBps!,
+                maxQuoteAgeSeconds: query.maxQuoteAgeSeconds!,
+                ...(query.quoteProvenance ? { quoteProvenance: query.quoteProvenance } : {}),
+                ...(query.requireQuoteProvenance === true ? { requireQuoteProvenance: true } : {}),
+                ...(query.reviewedUniswapV3AmountIn
+                  ? {
+                      reviewedUniswapV3: {
+                        amountIn: query.reviewedUniswapV3AmountIn,
+                        maxQuoteDeviationBps: query.reviewedUniswapV3MaxQuoteDeviationBps!,
+                        maxTwapDeviationBps: query.reviewedUniswapV3MaxTwapDeviationBps!,
+                      },
+                    }
+                  : {}),
+              },
+            }
+          : {}),
+      },
+      {
+        apiKeyId,
+        requestId,
+        journeyId: journey?.journeyId,
+        workflowTag: query.workflowTag,
+        baselineVerdict: query.baselineVerdict,
+        baselineVersion: query.baselineVersion,
+      },
+      { signal: deadline.signal }
+    );
+  } catch (error) {
+    if (deadline.didExpire()) {
+      return NextResponse.json(
+        ApiResponseBuilder.error('REQUEST_TIMEOUT', 'Pre-trade evaluation timed out', {
+          retryable: true,
+          requestId,
+        }),
+        { status: 503, headers: { 'Cache-Control': CACHE_PRESETS.noStore, 'Retry-After': '5' } }
+      );
+    }
+    throw error;
+  } finally {
+    deadline.dispose();
+  }
 
   if (journey) {
     await attachGenericJourneyCheck(journey.journeyId, result);
@@ -158,12 +188,15 @@ async function executePreTradeCheck(params: PreTradeCheckParams): Promise<NextRe
 }
 
 const legacyGet = createApiHandler(
-  async (_request, context) => {
-    return executePreTradeCheck({
-      query: context.validated!.query as z.infer<typeof PreTradeQuerySchema>,
-      apiKeyId: context.auth?.apiKey?.keyId,
-      requestId: context.requestId,
-    });
+  async (request, context) => {
+    return executePreTradeCheck(
+      {
+        query: context.validated!.query as z.infer<typeof PreTradeQuerySchema>,
+        apiKeyId: context.auth?.apiKey?.keyId,
+        requestId: context.requestId,
+      },
+      request.signal
+    );
   },
   {
     middlewares: V1_STANDARD_MIDDLEWARES,
@@ -202,11 +235,14 @@ export const GET = (
             { status: 400 }
           );
         }
-        return executePreTradeCheck({
-          query: parsed.data,
-          requestId,
-          trackJourney: true,
-        });
+        return executePreTradeCheck(
+          {
+            query: parsed.data,
+            requestId,
+            trackJourney: true,
+          },
+          request.signal
+        );
       });
     }
 
@@ -226,14 +262,17 @@ export const GET = (
               { status: 400 }
             );
           }
-          return executePreTradeCheck({
-            query: parsed.data,
-            requestId,
-            trackJourney: true,
-            onJourneyIssued: (journeyId) => {
-              x402JourneyId = journeyId;
+          return executePreTradeCheck(
+            {
+              query: parsed.data,
+              requestId,
+              trackJourney: true,
+              onJourneyIssued: (journeyId) => {
+                x402JourneyId = journeyId;
+              },
             },
-          });
+            request.signal
+          );
         },
         {
           // Opt-in ERC-8004 reputation anchoring (M2): enqueue after settlement,

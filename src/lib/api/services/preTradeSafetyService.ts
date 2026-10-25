@@ -50,7 +50,11 @@ import {
   type ReviewedUniswapV3PreTradeEvidence,
 } from '@/lib/dex/preTradeUniswapV3';
 import { UnsupportedSymbolError, ValidationError } from '@/lib/errors';
-import { getManipCostAdvisory, type ManipCostAdvisory } from '@/lib/manipCost/baseline';
+import {
+  getManipCostAdvisory,
+  isManipCostCoveredSymbol,
+  type ManipCostAdvisory,
+} from '@/lib/manipCost/baseline';
 import {
   fetchChainlinkMarketReference,
   type ChainlinkMarketReference,
@@ -105,6 +109,7 @@ import {
 } from '@/lib/tokenSecurity/goplus';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
+import { throwIfAborted } from '@/lib/utils/requestDeadline';
 import { Blockchain, type OracleProvider } from '@/types/oracle';
 
 import { getConsensusPrice, type ConsensusPriceResponse } from './consensusPriceService';
@@ -793,18 +798,35 @@ function classifyStalenessHardBlock(providerPrices: Record<string, ProviderPrice
 }
 
 async function fetchDepegWarnings(
-  asset: string
+  asset: string,
+  destinationAsset: string | undefined,
+  signal?: AbortSignal
 ): Promise<{ warnings: DepegWarning[]; available: boolean }> {
   try {
-    const snapshots = await calculateAllStablecoinSnapshots();
+    // A pre-trade check only needs peg evidence for the assets it evaluates.
+    // Collecting every supported stablecoin on a cold instance fans a single
+    // check into dozens of Oracle/RPC calls and is not evidence about this
+    // trade's source or destination asset.
+    const evaluatedStablecoins = [asset, destinationAsset]
+      .filter((symbol): symbol is string => typeof symbol === 'string')
+      .map((symbol) => symbol.toUpperCase())
+      .filter((symbol, index, values) => values.indexOf(symbol) === index)
+      .filter((symbol) => Boolean(getStablecoinConfig(symbol)));
+    if (evaluatedStablecoins.length === 0) return { warnings: [], available: true };
+
+    const snapshots = await calculateAllStablecoinSnapshots({
+      symbols: evaluatedStablecoins,
+      signal,
+    });
+    throwIfAborted(signal);
     // The monitor deliberately resolves partial results after per-coin failures.
-    // An unrelated coin's snapshot cannot establish this asset's peg evidence.
     const validSnapshots = snapshots.filter((s) => Number.isFinite(s.maxDeviationPercent));
     return {
-      available: getStablecoinConfig(asset)
-        ? validSnapshots.some((s) => s.symbol === asset)
-        : validSnapshots.length > 0,
+      available: evaluatedStablecoins.every((symbol) =>
+        validSnapshots.some((snapshot) => snapshot.symbol === symbol)
+      ),
       warnings: validSnapshots
+        .filter((snapshot) => evaluatedStablecoins.includes(snapshot.symbol))
         .filter((s) => Math.abs(s.maxDeviationPercent) >= THRESHOLDS.stablecoinDepegPct.caution)
         .map((s) => ({
           stablecoin: s.symbol,
@@ -816,6 +838,17 @@ async function fetchDepegWarnings(
     // Non-blocking: depeg data unavailable should not fail the safety check.
     return { warnings: [], available: false };
   }
+}
+
+function fetchConsensusForPreTrade(
+  input: PreTradeSafetyInput,
+  chain: Blockchain | undefined,
+  signal?: AbortSignal
+) {
+  const targetProviders = input.targetProviders as OracleProvider[] | undefined;
+  return signal
+    ? getConsensusPrice(input.asset, chain, undefined, targetProviders, { signal })
+    : getConsensusPrice(input.asset, chain, undefined, targetProviders);
 }
 
 /**
@@ -1630,7 +1663,10 @@ async function fetchManipCostAdvisorySafe(
   asset: string,
   chainId: number
 ): Promise<ManipCostAdvisory | undefined> {
-  if (chainId !== 1) return undefined;
+  // Avoid constructing a database client for an asset that the fixed v0 pool
+  // map cannot possibly cover. The helper has the same guard internally, but
+  // this hot-path check prevents needless work for every unsupported symbol.
+  if (chainId !== 1 || !isManipCostCoveredSymbol(asset)) return undefined;
   try {
     const { createServiceRoleClient } = await import('@/lib/supabase/server');
     const supabase = createServiceRoleClient();
@@ -1986,8 +2022,10 @@ async function buildUnavailablePreTradeResult(
 
 export async function preTradeSafetyCheck(
   input: PreTradeSafetyInput,
-  meta: AuditMeta = {}
+  meta: AuditMeta = {},
+  options: { signal?: AbortSignal } = {}
 ): Promise<PreTradeSafetyResult> {
+  throwIfAborted(options.signal);
   const startedAt = Date.now();
   const warnings: string[] = [];
   const contributingFactors: ContributingFactor[] = [];
@@ -2006,6 +2044,7 @@ export async function preTradeSafetyCheck(
   // data is consulted. See src/lib/ops/issuanceControl.ts for the deliberate
   // (and loudly logged) fail-open behaviour when the switch is unreadable.
   const halted = await haltedCheckResult(input, meta, chain, startedAt);
+  throwIfAborted(options.signal);
   if (halted) return halted;
 
   const decisionInputReferenceEvidence = startDecisionInputReferenceFetch(input);
@@ -2015,13 +2054,9 @@ export async function preTradeSafetyCheck(
   let consensus: ConsensusPriceResponse | undefined;
   let consensusFailed = false;
   try {
-    consensus = await getConsensusPrice(
-      input.asset,
-      chain,
-      undefined,
-      input.targetProviders as OracleProvider[] | undefined
-    );
+    consensus = await fetchConsensusForPreTrade(input, chain, options.signal);
   } catch (error) {
+    throwIfAborted(options.signal);
     if (error instanceof UnsupportedSymbolError) {
       // No oracle coverage for this asset/chain — cannot verify, treat as BLOCK.
       consensusFailed = true;
@@ -2042,7 +2077,8 @@ export async function preTradeSafetyCheck(
   }
 
   // 2. Stablecoin depeg warnings (non-blocking).
-  const depeg = await fetchDepegWarnings(input.asset);
+  const depeg = await fetchDepegWarnings(input.asset, input.destinationAsset, options.signal);
+  throwIfAborted(options.signal);
   const depegWarnings = depeg.warnings;
   if (!depeg.available)
     warnings.push(
@@ -2069,16 +2105,16 @@ export async function preTradeSafetyCheck(
   // Fetch observed-cadence baselines for this symbol (single indexed query).
   // NON-BLOCKING: on any failure we fall back to an empty map → no cadence
   // CAUTION, but the 7-day absolute hard-block backstop still applies.
-  let stalenessBaselines: Map<string, number | null> = new Map();
-  // 3b. Advisory manipulation-cost context (see fetchManipCostAdvisorySafe —
-  // EVIDENCE ONLY, never a verdict gate, never in the signed attestation).
-  const manipulationCost = await fetchManipCostAdvisorySafe(input.asset, input.chainId);
-  // 3c. Token-security evidence lane — started WITHOUT awaiting so the fetch
-  // overlaps oracle consensus work; signed+attached after the verdict
-  // attestation issues (needs its uid). EVIDENCE ONLY: never a verdict gate.
-  // Outcome captured for the opt-in debugTokenSec response surface.
+  // 3b. These reads are all independent, advisory/context inputs. Start them
+  // together so a pre-trade request pays the longest read once rather than
+  // serial database latency. None is a verdict gate.
+  const manipulationCostPromise = fetchManipCostAdvisorySafe(input.asset, input.chainId);
   const tokenSecurityLane = createTokenSecurityLane(input);
-  stalenessBaselines = await loadStalenessBaselines(input.asset);
+  const stalenessBaselinesPromise = loadStalenessBaselines(input.asset);
+  const [manipulationCost, stalenessBaselines] = await Promise.all([
+    manipulationCostPromise,
+    stalenessBaselinesPromise,
+  ]);
 
   const providerPrices = buildProviderPrices(consensus, stalenessBaselines);
 

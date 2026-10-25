@@ -207,14 +207,16 @@ function isPinnedNativePythOnlyRequest(
 
 async function readPinnedPythPrice(
   symbol: string,
-  chain: Blockchain.MONAD | Blockchain.SOLANA
+  chain: Blockchain.MONAD | Blockchain.SOLANA,
+  signal?: AbortSignal
 ): Promise<FetchProviderPriceResult> {
   const startedAt = performance.now();
   const duration = () => Math.round(performance.now() - startedAt);
   try {
-    const priceData = await getDefaultFactory()
-      .getClient(OracleProvider.PYTH)
-      .getPrice(symbol, chain);
+    const client = getDefaultFactory().getClient(OracleProvider.PYTH);
+    const priceData = await (signal
+      ? client.getPrice(symbol, chain, { signal })
+      : client.getPrice(symbol, chain));
     return {
       provider: OracleProvider.PYTH,
       priceData,
@@ -240,12 +242,15 @@ async function readPinnedPythPrice(
 async function readProviderPrice(
   provider: OracleProvider,
   symbol: string,
-  chain?: Blockchain
+  chain?: Blockchain,
+  signal?: AbortSignal
 ): Promise<FetchProviderPriceResult> {
   const startedAt = performance.now();
   const duration = () => Math.round(performance.now() - startedAt);
   try {
-    const priceData = await fetchPriceWithDatabase(provider, symbol, chain, true, false);
+    const priceData = await (signal
+      ? fetchPriceWithDatabase(provider, symbol, chain, true, false, signal)
+      : fetchPriceWithDatabase(provider, symbol, chain, true, false));
     return {
       provider,
       priceData,
@@ -263,7 +268,15 @@ async function readProviderPrice(
   }
 }
 
-function fetchProviderPrice(provider: OracleProvider, symbol: string, chain?: Blockchain) {
+function fetchProviderPrice(
+  provider: OracleProvider,
+  symbol: string,
+  chain?: Blockchain,
+  signal?: AbortSignal
+) {
+  // In-flight de-duplication cannot safely share a caller-owned cancellation
+  // signal: one cancelled request would otherwise abort unrelated callers.
+  if (signal) return readProviderPrice(provider, symbol, chain, signal);
   const key = JSON.stringify([provider, symbol, chain ?? null]);
   const existing = pendingPrices.get(key);
   if (existing) return existing;
@@ -379,7 +392,7 @@ export async function getConsensusPrice(
   chain?: string,
   method?: ConsensusMethod,
   targetProviders?: readonly OracleProvider[],
-  options: { allowUnavailable?: boolean } = {}
+  options: { allowUnavailable?: boolean; signal?: AbortSignal } = {}
 ): Promise<ConsensusPriceResponse> {
   const baseSymbol = normalizeSymbol(symbol);
   const resolvedChain = resolveChain(chain);
@@ -394,7 +407,7 @@ export async function getConsensusPrice(
       if (pinnedNativePythOnly && pinnedPythChain) {
         return {
           providers: [OracleProvider.PYTH],
-          fetchResults: [await readPinnedPythPrice(baseSymbol, pinnedPythChain)],
+          fetchResults: [await readPinnedPythPrice(baseSymbol, pinnedPythChain, options.signal)],
         };
       }
       const resolvedProviders = await resolveProvidersForSymbol(baseSymbol, resolvedChain);
@@ -406,7 +419,7 @@ export async function getConsensusPrice(
       const fetchResults = await mapWithConcurrency(
         providers,
         CONSENSUS_FETCH_CONCURRENCY,
-        (provider) => fetchProviderPrice(provider, baseSymbol, resolvedChain)
+        (provider) => fetchProviderPrice(provider, baseSymbol, resolvedChain, options.signal)
       );
       return { providers, fetchResults };
     })(),

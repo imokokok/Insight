@@ -85,7 +85,8 @@ export class TWAPClient extends BaseOracleClient {
       const twapData = await withOracleRetry(
         () => twapOnChainService.getTwapPrice(upperSymbol, chainId, 1800, options?.signal),
         `twap-getPrice-${upperSymbol}`,
-        { ...ORACLE_RETRY_PRESETS.standard, timeout: 15000 }
+        { ...ORACLE_RETRY_PRESETS.standard, timeout: 15000 },
+        options?.signal
       );
 
       return this.toPriceData(upperSymbol, chain, twapData, 'getPrice');
