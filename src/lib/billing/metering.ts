@@ -143,7 +143,7 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/agent_begin_trade|execution|receipt|verify_execution|verify_pair/, 'C4'],
 
   // C3 — agent gates.
-  [/pre_trade|oracle_watch|position_safety|liquidation/, 'C3'],
+  [/pre_trade|oracle_watch|position_safety|liquidation|(?:base|monad)_lending_guard/, 'C3'],
 
   // C2 — deep analysis tools (non-list).
   [

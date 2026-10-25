@@ -4,6 +4,7 @@ import {
   SOLANA_DEVNET_CAIP2,
   SOLANA_MAINNET_CAIP2,
   eip3009TokenNameForNetwork,
+  facilitatorBearerTokenForNetwork,
   facilitatorUrlForNetwork,
   getX402PaymentOptions,
   payToForEvmNetwork,
@@ -242,6 +243,19 @@ describe('x402 config', () => {
       );
     });
 
+    it('parses an opaque per-network Bearer token without losing base64 padding', () => {
+      const cfg = parseX402Config({
+        ...BASE_ENV,
+        X402_SOLANA_ENABLED: 'true',
+        X402_SOLANA_NETWORK: SOLANA_MAINNET_CAIP2,
+        X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+        X402_FACILITATOR_URLS: `${SOLANA_MAINNET_CAIP2}=https://solana.example.com`,
+        X402_FACILITATOR_BEARER_TOKENS: `${SOLANA_MAINNET_CAIP2}=unit-test-token==`,
+      });
+
+      expect(facilitatorBearerTokenForNetwork(cfg, SOLANA_MAINNET_CAIP2)).toBe('unit-test-token==');
+    });
+
     it('rejects malformed, non-https, unknown-network, and duplicate entries', () => {
       const env = { ...BASE_ENV };
       expect(() => parseX402Config({ ...env, X402_FACILITATOR_URLS: 'no-equals-sign' })).toThrow(
@@ -388,6 +402,40 @@ describe('x402 config', () => {
           X402_FACILITATOR_URLS: 'eip155:143=https://api.cdp.coinbase.com/platform/v2/x402',
         })
       ).toThrow(/CDP requires authenticated/);
+    });
+  });
+
+  describe('static facilitator Bearer auth', () => {
+    const SOLANA_ENV = {
+      ...BASE_ENV,
+      X402_SOLANA_ENABLED: 'true',
+      X402_SOLANA_NETWORK: SOLANA_MAINNET_CAIP2,
+      X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+      X402_FACILITATOR_URLS: `${SOLANA_MAINNET_CAIP2}=https://facilitator.daydreams.systems`,
+    };
+
+    it('refuses to advertise Daydreams Solana without its required server credential', () => {
+      expect(() => parseX402Config(SOLANA_ENV)).toThrow(/Daydreams facilitator/);
+    });
+
+    it('accepts a server-only network credential for Daydreams Solana', () => {
+      const cfg = parseX402Config({
+        ...SOLANA_ENV,
+        X402_FACILITATOR_BEARER_TOKENS: `${SOLANA_MAINNET_CAIP2}=daydreams-unit-token`,
+      });
+
+      expect(facilitatorBearerTokenForNetwork(cfg, SOLANA_MAINNET_CAIP2)).toBe(
+        'daydreams-unit-token'
+      );
+    });
+
+    it('rejects malformed static credentials before they can reach an HTTP header', () => {
+      expect(() =>
+        parseX402Config({
+          ...BASE_ENV,
+          X402_FACILITATOR_BEARER_TOKEN: 'Bearer token with spaces',
+        })
+      ).toThrow(/without whitespace/);
     });
   });
 });

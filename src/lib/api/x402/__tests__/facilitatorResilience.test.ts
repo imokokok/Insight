@@ -173,6 +173,26 @@ describe('createResilientFacilitator', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
+  it('attaches a static Bearer credential to the /supported probe when configured', async () => {
+    const fetchImpl = mockFetch((_url, init) => {
+      const headers = (init.headers ?? {}) as Record<string, string>;
+      expect(headers.Authorization).toBe('Bearer unit-test-facilitator-token');
+      return { body: GOOD_SUPPORTED };
+    });
+    const client = createResilientFacilitator({
+      url: 'https://facilitator.example',
+      timeoutMs: 5_000,
+      cdpAuth: null,
+      bearerToken: 'unit-test-facilitator-token',
+      fallbackKinds: FALLBACK_KINDS,
+      fetchImpl,
+      now,
+    });
+
+    await client.getSupported();
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
   it('delegates verify to the inner HTTP client with the same URL and timeout', async () => {
     // The inner core client uses global fetch, which the jsdom env lacks.
     global.fetch = jest.fn(

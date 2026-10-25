@@ -1,6 +1,6 @@
 import { HTTPFacilitatorClient, type FacilitatorClient } from '@x402/core/server';
 
-import { createCdpAuthHeaders } from './cdpAuth';
+import { createCdpAuthHeaders, createStaticBearerAuthHeaders } from './cdpAuth';
 
 /**
  * Wire types derived from the core `FacilitatorClient` interface because the
@@ -67,6 +67,8 @@ export interface ResilientFacilitatorOptions {
   timeoutMs: number;
   /** CDP credentials when the facilitator requires JWT auth; null otherwise. */
   cdpAuth?: { apiKeyId: string; apiKeySecret: string } | null;
+  /** Static server-side Bearer token for non-CDP facilitators. */
+  bearerToken?: string | null;
   /** Kinds to advertise when the facilitator is unreachable and no cache exists. */
   fallbackKinds: SupportedKind[];
   /** Injectable fetch for tests. */
@@ -100,17 +102,27 @@ export function createResilientFacilitator(
     url,
     timeoutMs,
     cdpAuth = null,
+    bearerToken = null,
     fallbackKinds,
     fetchImpl = fetch,
     now = Date.now,
   } = options;
 
-  // verify/settle keep the core client: same URL, same bounded timeout, same
-  // per-request JWT auth. Only getSupported is replaced.
+  if (cdpAuth && bearerToken) {
+    throw new Error('a facilitator cannot use both CDP credentials and a static Bearer token');
+  }
+  const createAuthHeaders = cdpAuth
+    ? createCdpAuthHeaders(cdpAuth)
+    : bearerToken
+      ? createStaticBearerAuthHeaders(bearerToken)
+      : undefined;
+
+  // verify/settle keep the core client: same URL, same bounded timeout, and
+  // the configured per-operation authentication. Only getSupported is replaced.
   const inner = new HTTPFacilitatorClient({
     url,
     timeoutMs,
-    ...(cdpAuth ? { createAuthHeaders: createCdpAuthHeaders(cdpAuth) } : {}),
+    ...(createAuthHeaders ? { createAuthHeaders } : {}),
   });
 
   const base = url.replace(/\/+$/, '');
@@ -123,8 +135,8 @@ export function createResilientFacilitator(
   const refresh = async (): Promise<SupportedResponse> => {
     const stale = supportedCache.get(base);
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (cdpAuth) {
-      const auth = await createCdpAuthHeaders(cdpAuth)();
+    if (createAuthHeaders) {
+      const auth = await createAuthHeaders();
       Object.assign(headers, auth.supported ?? {});
     }
     try {

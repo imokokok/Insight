@@ -10,6 +10,8 @@ Oracle observations → Cross-source comparison → Risk assessment → Verifiab
 
 **Pre-Trade Safety Check** assesses a proposed action. **Oracle Watch** monitors changing conditions between actions. The REST API, MCP server, [Guard SDK](sdk/README.md), and [independent verifier](verifier/README.md) make these capabilities available to applications and agents. Insight also works independently of [PriorSeal](https://github.com/imokokok/PriorSeal); see the [product positioning guide](docs/product-positioning.md) for the combined assessment, authorization, execution, and review workflow.
 
+**Lending Guard** now covers focused direct-call profiles on Base and Monad. It checks collateral and loan oracle integrity plus caller-declared post-action LTV for Aave V3 and Morpho Blue on both chains, plus Compound V3 Base USDC Comet and reviewed Moonwell Base markets. It is read-only and x402-metered; it never signs or broadcasts a lending transaction. See [Base Lending Guard](docs/base-lending-guard.md) and [Monad Lending Guard](docs/monad-lending-guard.md).
+
 > Insight is **not a real-time oracle tracker**. Price snapshots and feed health are collected every 15 minutes, reputation scores are recalculated hourly, and data is aggregated into daily reports. Check each assessment's freshness and validity window before using it.
 
 ## Technology Stack

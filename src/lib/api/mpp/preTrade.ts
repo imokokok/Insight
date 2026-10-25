@@ -4,10 +4,11 @@ import { HTTPFacilitatorClient, getFacilitatorResponseError } from '@x402/core/s
 import { Credential, Errors, Expires } from 'mppx';
 import { Mppx, evm } from 'mppx/server';
 
-import { createCdpAuthHeaders } from '@/lib/api/x402/cdpAuth';
+import { createCdpAuthHeaders, createStaticBearerAuthHeaders } from '@/lib/api/x402/cdpAuth';
 import {
   type X402Config,
   eip3009TokenNameForNetwork,
+  facilitatorBearerTokenForNetwork,
   facilitatorUrlForNetwork,
   isCdpFacilitatorUrl,
   payToForEvmNetwork,
@@ -27,12 +28,15 @@ const MPP_RESOURCE = 'pre-trade-safety-check';
 
 function createMppServer(cfg: X402Config, secretKey: string) {
   const facilitatorUrl = facilitatorUrlForNetwork(cfg, cfg.network);
+  const bearerToken = facilitatorBearerTokenForNetwork(cfg, cfg.network);
   const httpFacilitator = new HTTPFacilitatorClient({
     url: facilitatorUrl,
     timeoutMs: cfg.facilitatorTimeoutMs,
     ...(isCdpFacilitatorUrl(facilitatorUrl) && cfg.facilitatorCdpAuth
       ? { createAuthHeaders: createCdpAuthHeaders(cfg.facilitatorCdpAuth) }
-      : {}),
+      : bearerToken
+        ? { createAuthHeaders: createStaticBearerAuthHeaders(bearerToken) }
+        : {}),
   });
 
   return Mppx.create({

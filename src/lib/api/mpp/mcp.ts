@@ -5,10 +5,11 @@ import { HTTPFacilitatorClient, getFacilitatorResponseError } from '@x402/core/s
 import { Errors, Expires } from 'mppx';
 import { Mppx, Transport, evm } from 'mppx/server';
 
-import { createCdpAuthHeaders } from '@/lib/api/x402/cdpAuth';
+import { createCdpAuthHeaders, createStaticBearerAuthHeaders } from '@/lib/api/x402/cdpAuth';
 import {
   type X402Config,
   eip3009TokenNameForNetwork,
+  facilitatorBearerTokenForNetwork,
   facilitatorUrlForNetwork,
   isCdpFacilitatorUrl,
   payToForEvmNetwork,
@@ -38,12 +39,15 @@ export type MppMcpCallHandler = (input: MppMcpCallInput) => Promise<CallToolResu
 
 function createMppMcpServer(cfg: X402Config, secretKey: string) {
   const facilitatorUrl = facilitatorUrlForNetwork(cfg, cfg.network);
+  const bearerToken = facilitatorBearerTokenForNetwork(cfg, cfg.network);
   const facilitator = new HTTPFacilitatorClient({
     url: facilitatorUrl,
     timeoutMs: cfg.facilitatorTimeoutMs,
     ...(isCdpFacilitatorUrl(facilitatorUrl) && cfg.facilitatorCdpAuth
       ? { createAuthHeaders: createCdpAuthHeaders(cfg.facilitatorCdpAuth) }
-      : {}),
+      : bearerToken
+        ? { createAuthHeaders: createStaticBearerAuthHeaders(bearerToken) }
+        : {}),
   });
 
   const transport: MppTransport.McpSdk = Transport.mcpSdk();

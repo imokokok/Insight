@@ -54,3 +54,21 @@ export function createCdpAuthHeaders(key: CdpApiKey): () => Promise<FacilitatorA
       makeHeader('GET', `${CDP_X402_BASE_PATH}/supported`),
     ]).then(([verify, settle, supported]) => ({ verify, settle, supported }));
 }
+
+/**
+ * Build static Bearer headers for facilitators that issue a server credential
+ * rather than CDP's per-request JWT. The token remains server-only: callers
+ * must source it from a non-public environment variable and never include it
+ * in a payment requirement or response.
+ */
+export function createStaticBearerAuthHeaders(
+  token: string
+): () => Promise<FacilitatorAuthHeaders> {
+  const authorization = { Authorization: `Bearer ${token}` };
+
+  return async () => ({
+    verify: authorization,
+    settle: authorization,
+    supported: authorization,
+  });
+}
