@@ -27,6 +27,7 @@
     "test:watch": "jest --watch",
     "verifier:release:check": "node --import tsx scripts/check-verifier-release.mts",
     "verify:solana-evidence": "node --import tsx scripts/verify-solana-evidence.mts",
+    "lending:rpc:check": "node --import tsx scripts/verify-lending-guard-live-rpc.mts",
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
