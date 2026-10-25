@@ -2847,6 +2847,85 @@ paths:
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
 
+  /safety/solana-lending-guard:
+    post:
+      operationId: createSolanaLendingGuardExactDecision
+      tags: [Safety]
+      summary: Simulate and attest one exact Solana lending instruction
+      description: >-
+        Read-only pre-signing gate for one direct Kamino Lend or Marginfi v2
+        supply/borrow instruction on Solana mainnet. It verifies protocol-owned
+        accounts and simulates the exact unsigned message before issuing an
+        Ed25519 decision when configured. It never signs, submits, or
+        authorizes a transaction. API-key access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard:
+                  type: object
+                  required:
+                    [
+                      protocolId,
+                      action,
+                      collateralSymbol,
+                      loanSymbol,
+                      collateralValueUsd,
+                      debtValueUsd,
+                    ]
+                  properties:
+                    protocolId: { type: string, enum: [kamino-lend, marginfi-v2] }
+                    action: { type: string, enum: [supply, borrow] }
+                    collateralSymbol: { type: string, example: SOL }
+                    loanSymbol: { type: string, example: USDC }
+                    collateralValueUsd: { type: number, exclusiveMinimum: 0, example: 10000 }
+                    debtValueUsd: { type: number, minimum: 0, example: 4000 }
+                transaction:
+                  type: object
+                  description: >-
+                    Complete unsigned legacy or v0 Solana message. Every
+                    address lookup table must include its resolved addresses.
+      responses:
+        '200':
+          {
+            description: Complete BLOCK/CAUTION/ALLOW decision,
+            optionally with a short-lived Ed25519 attestation.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/solana-lending-guard/verify:
+    get:
+      operationId: getSolanaLendingGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Solana lending guard Ed25519 attester information
+      security: []
+      responses:
+        '200': { description: Attester public key and schema status. }
+    post:
+      operationId: verifySolanaLendingGuardDecision
+      tags: [Safety]
+      summary: Verify a Solana lending guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
   /safety/swap-intent:
     get:
       operationId: createPaidSwapIntent

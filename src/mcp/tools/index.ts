@@ -105,6 +105,7 @@ import {
 } from './riskTools';
 import { robinhoodRwaContextTool, robinhoodRwaInstrumentTool, rwaAssessmentTool } from './rwaTools';
 import { checkPositionSafetyTool } from './safetyTools';
+import { solanaLendingGuardTool } from './solanaLendingGuardTools';
 import { getStablecoinPegTool } from './stablecoinTools';
 import { getStablecoinListTool, getSymbolsTool, recommendOracleSetupTool } from './utilityTools';
 import { verifyExecutionPairTool } from './verifyExecutionPairTools';
@@ -163,6 +164,7 @@ const MCP_TOOLS: McpToolDefinition[] = [
   baseLendingGuardExactCallTool,
   monadLendingGuardTool,
   monadLendingGuardExactCallTool,
+  solanaLendingGuardTool,
   checkPositionSafetyTool,
   preTradeSafetyCheckTool,
   oracleWatchTool,
@@ -416,6 +418,11 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   monad_lending_guard_exact_call: MonadLendingGuardExactJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  solana_lending_guard: solanaLendingGuardTool.parameters.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

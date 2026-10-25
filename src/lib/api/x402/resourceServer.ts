@@ -14,6 +14,7 @@ import {
   X402_BASE_LENDING_GUARD_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
+  X402_SOLANA_LENDING_GUARD_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
   X402_PRE_TRADE_ROUTE,
@@ -378,6 +379,16 @@ function routeConfigFor(
   };
 }
 
+/** A POST-only exact-message route cannot truthfully use Bazaar's GET-query discovery schema. */
+function routeConfigWithoutDiscovery(cfg: X402Config, description: string) {
+  return {
+    description,
+    mimeType: 'application/json',
+    accepts: acceptsFor(cfg),
+    x402Version: 2,
+  };
+}
+
 /**
  * Bazaar discovery metadata for the MCP endpoint. Declared as an MCP-shaped
  * extension (`toolName` present) so the SDK emits `{type:"mcp"}` info; a
@@ -558,6 +569,10 @@ export async function buildX402HttpServer(
       cfg,
       BAZAAR_MULTICHAIN_EVM_LENDING_GUARD_DISCOVERY_EXTENSION,
       'Multichain EVM Lending Guard: a read-only, pre-signing decision for direct Aave V3 calls on Polygon, Arbitrum or BNB Chain, plus reviewed Venus Core Pool calls on BNB Chain. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
+    ),
+    [X402_SOLANA_LENDING_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Solana Lending Guard: a read-only, pre-signing decision for one direct Kamino Lend or Marginfi v2 instruction. POST verifies program-owned accounts and simulates the exact unsigned Solana message before optionally returning an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.'
     ),
     [X402_SWAP_INTENT_ROUTE]: routeConfigFor(
       cfg,
