@@ -26,14 +26,33 @@ Solana pool. It is also not a simulation, authorization, or execution promise.
 For an authorization that must bind an exact Solana transaction, use the signed
 `POST /api/v1/execution/solana/simulate` receipt as a separate evidence item.
 
+## Hyperliquid: reviewed perpetual CLOB markets
+
+`GET /api/v1/markets/dex/hyperliquid?market=BTC` reads a reviewed Hyperliquid
+mainnet perpetual market. `BTC` is the default; `ETH` and `HYPE` are also
+available. Each response includes the exchange-reported mark, mid, oracle,
+funding, open interest, 24-hour notional volume, plus a fresh L2-book witness
+with spread and displayed bid/ask depth. Insight derives buy and sell impact
+estimates for a fixed, market-specific USD-notional ladder from that displayed
+book only.
+
+This is CLOB context rather than an AMM pool analysis: Insight does not invent
+a V3-style TWAP or liquidity metric for Hyperliquid. The endpoint rejects an
+invalid, crossed, future, or stale L2 snapshot. Estimates are incomplete when
+the published book cannot fill the target and exclude fees, funding, margin,
+matching priority, and subsequent book changes. No endpoint signs, simulates,
+or submits an order.
+
 ## Agent tools
 
 - `get_base_dex_market` exposes the Base pool evidence.
 - `get_solana_dex_route` exposes the Solana route evidence.
+- `get_hyperliquid_perp_market` exposes the reviewed Hyperliquid perpetual
+  evidence; it accepts `market: BTC | ETH | HYPE` and defaults to `BTC`.
 
-Both tools have foundational C1 pricing. The existing `get_monad_dex_market`
-continues to provide Monad WMON/USDC evidence and its finalized rolling-volume
-index.
+All three tools have foundational C1 pricing. The existing
+`get_monad_dex_market` continues to provide Monad WMON/USDC evidence and its
+finalized rolling-volume index.
 
 ## C3 pre-trade integration
 

@@ -269,6 +269,14 @@ export const BaseDexMarketJsonSchema = z.object({});
 /** Wire schema for the one reviewed SOL/USDC Solana route market. */
 export const SolanaDexRouteJsonSchema = z.object({});
 
+/** Wire schema for the reviewed Hyperliquid perpetual-market set. */
+export const HyperliquidPerpMarketJsonSchema = z.object({
+  market: z
+    .enum(['BTC', 'ETH', 'HYPE'])
+    .optional()
+    .describe('Reviewed Hyperliquid perpetual market: BTC, ETH, or HYPE. Defaults to BTC.'),
+});
+
 const AssetEntryJsonSchema = z.object({
   symbol: z.string().min(1).describe('Asset symbol'),
   amount: z.number().positive().describe('Asset amount'),
