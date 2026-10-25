@@ -9,7 +9,7 @@ import { ChainlinkClient } from './clients/chainlink';
 import { ChronicleMonadClient } from './clients/chronicleMonad';
 import { DIAClient } from './clients/dia';
 import { FlareClient } from './clients/flare';
-import { PythMonadClient } from './clients/pythMonad';
+import { PythClient } from './clients/pyth';
 import { RedStoneClient } from './clients/redstone';
 import { ReflectorClient } from './clients/reflector';
 import { StorkMonadClient } from './clients/storkMonad';
@@ -55,7 +55,7 @@ class OracleClientFactory {
       case OracleProvider.CHAINLINK:
         return new ChainlinkClient({ useRealData: FEATURE_FLAGS.useRealChainlinkData });
       case OracleProvider.PYTH:
-        return new PythMonadClient();
+        return new PythClient();
       case OracleProvider.STORK:
         return new StorkMonadClient();
       case OracleProvider.CHRONICLE:

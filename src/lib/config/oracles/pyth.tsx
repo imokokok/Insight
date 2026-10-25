@@ -2,13 +2,13 @@ import { OracleProvider, Blockchain } from '@/types/oracle';
 
 import { COMMON_TABS, createOracleConfig } from './helpers';
 
-/** Pyth Core integration is intentionally Monad-only until another sponsored chain is verified. */
+/** Pyth Core reads reviewed sponsored accounts on Monad and Solana. */
 export const pythConfig = createOracleConfig({
   provider: OracleProvider.PYTH,
   name: 'Pyth',
   symbol: 'PYTH',
   defaultChain: Blockchain.MONAD,
-  supportedChains: [Blockchain.MONAD],
+  supportedChains: [Blockchain.MONAD, Blockchain.SOLANA],
   color: '#8B5CF6',
   features: {
     hasPublisherAnalytics: true,

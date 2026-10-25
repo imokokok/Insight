@@ -2,7 +2,7 @@ import { ValidationError } from '@/lib/errors';
 import { API3Client } from '@/lib/oracles/clients/api3';
 import { BandClient } from '@/lib/oracles/clients/band';
 import { ChronicleMonadClient } from '@/lib/oracles/clients/chronicleMonad';
-import { PythMonadClient } from '@/lib/oracles/clients/pythMonad';
+import { PythClient } from '@/lib/oracles/clients/pyth';
 import { StorkMonadClient } from '@/lib/oracles/clients/storkMonad';
 import { OracleProvider } from '@/types/oracle';
 
@@ -54,12 +54,12 @@ describe('OracleClientFactory', () => {
     expect(second).toBe(first);
   });
 
-  it('creates and caches the Monad Pyth Core client', () => {
+  it('creates and caches the native Pyth Core client', () => {
     const factory = getDefaultFactory();
     const first = factory.getClient(OracleProvider.PYTH);
     const second = factory.getClient(OracleProvider.PYTH);
 
-    expect(first).toBeInstanceOf(PythMonadClient);
+    expect(first).toBeInstanceOf(PythClient);
     expect(second).toBe(first);
   });
 
