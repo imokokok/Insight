@@ -214,12 +214,16 @@ function routeConfigFor(
 }
 
 /**
- * Bazaar discovery metadata for the MCP endpoint. The resource is a JSON-RPC
- * POST, so the input example is a `tools/call` invocation rather than query
- * params. Exported for tests.
+ * Bazaar discovery metadata for the MCP endpoint. Declared as an MCP-shaped
+ * extension (`toolName` present) so the SDK emits `{type:"mcp"}` info; a
+ * config without `toolName` is downgraded to a query extension, which the
+ * CDP indexer rejects for this POST-only resource. The example is the
+ * JSON-RPC `tools/call` params object. Exported for tests.
  */
 export const BAZAAR_MCP_DISCOVERY_EXTENSION = declareDiscoveryExtension({
-  input: {
+  toolName: 'pre_trade_safety_check',
+  transport: 'streamable-http',
+  example: {
     name: 'pre_trade_safety_check',
     arguments: {
       asset: 'ETH',
