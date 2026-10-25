@@ -229,7 +229,7 @@ describe('x402 config', () => {
       });
     });
 
-    it('allows Solana to use a facilitator independently of EVM rails', () => {
+    it('defaults Solana mainnet to PayAI even when a legacy generic map exists', () => {
       const cfg = parseX402Config({
         ...BASE_ENV,
         X402_SOLANA_ENABLED: 'true',
@@ -239,11 +239,11 @@ describe('x402 config', () => {
       });
       expect(facilitatorUrlForNetwork(cfg, 'eip155:84532')).toBe('https://x402.org/facilitator');
       expect(facilitatorUrlForNetwork(cfg, SOLANA_MAINNET_CAIP2)).toBe(
-        'https://solana.example.com'
+        'https://facilitator.payai.network'
       );
     });
 
-    it('prefers the dedicated Solana facilitator over a generic network map', () => {
+    it('allows an explicit dedicated Solana facilitator to override the PayAI default', () => {
       const cfg = parseX402Config({
         ...BASE_ENV,
         X402_SOLANA_ENABLED: 'true',
@@ -435,13 +435,24 @@ describe('x402 config', () => {
       X402_FACILITATOR_URLS: `${SOLANA_MAINNET_CAIP2}=https://facilitator.daydreams.systems`,
     };
 
-    it('refuses to advertise Daydreams Solana without its required server credential', () => {
-      expect(() => parseX402Config(SOLANA_ENV)).toThrow(/Daydreams facilitator/);
+    it('ignores a legacy generic Daydreams Solana mapping in favor of PayAI', () => {
+      const cfg = parseX402Config(SOLANA_ENV);
+      expect(facilitatorUrlForNetwork(cfg, SOLANA_MAINNET_CAIP2)).toBe(
+        'https://facilitator.payai.network'
+      );
     });
 
-    it('accepts a server-only network credential for Daydreams Solana', () => {
+    it('requires and accepts a server-only credential for an explicit Daydreams override', () => {
+      expect(() =>
+        parseX402Config({
+          ...SOLANA_ENV,
+          X402_SOLANA_FACILITATOR_URL: 'https://facilitator.daydreams.systems',
+        })
+      ).toThrow(/Daydreams facilitator/);
+
       const cfg = parseX402Config({
         ...SOLANA_ENV,
+        X402_SOLANA_FACILITATOR_URL: 'https://facilitator.daydreams.systems',
         X402_FACILITATOR_BEARER_TOKENS: `${SOLANA_MAINNET_CAIP2}=daydreams-unit-token`,
       });
 

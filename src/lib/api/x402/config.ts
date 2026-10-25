@@ -248,8 +248,9 @@ export interface X402Config {
    * "eip155:143=https://x402-facilitator.molandak.org"). Networks not listed
    * fall back to `facilitatorUrl`. Needed when the primary facilitator (e.g.
    * CDP) does not support every advertised network (e.g. Monad mainnet is
-   * served by the Monad x402 facilitator instead). SVM networks are included
-   * so Solana can be moved independently of EVM rails.
+   * served by the Monad x402 facilitator instead). Solana mainnet is handled
+   * separately so an inherited generic mapping cannot silently route it away
+   * from its PayAI default.
    */
   facilitatorUrls: Partial<Record<X402PaymentNetworkId, string>>;
   /** Facilitator HTTP timeout (verify + settle), bounded well below 90s default. */
@@ -438,6 +439,7 @@ function usdToAtomicUnits(usd: number): string {
 
 const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
 const DAYDREAMS_FACILITATOR_HOST = 'facilitator.daydreams.systems';
+const PAYAI_SOLANA_MAINNET_FACILITATOR_URL = 'https://facilitator.payai.network';
 
 /** True only for the CDP facilitator host, never for a lookalike URL. */
 export function isCdpFacilitatorUrl(url: string): boolean {
@@ -538,7 +540,13 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     env.X402_SOLANA_FACILITATOR_URL,
     'X402_SOLANA_FACILITATOR_URL'
   );
-  if (solana && solanaFacilitatorUrl) {
+  if (solana && solana.network === SOLANA_MAINNET_CAIP2) {
+    // Mainnet Solana is intentionally isolated from the generic map. This
+    // prevents a legacy Daydreams entry from being reintroduced by an old
+    // environment snapshot. Operators may still intentionally select another
+    // provider via the dedicated, HTTPS-only override.
+    facilitatorUrls[solana.network] = solanaFacilitatorUrl ?? PAYAI_SOLANA_MAINNET_FACILITATOR_URL;
+  } else if (solanaFacilitatorUrl && solana) {
     facilitatorUrls[solana.network] = solanaFacilitatorUrl;
   }
   const facilitatorBearerToken = parseBearerToken(
