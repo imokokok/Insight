@@ -1,4 +1,4 @@
-import { encodeFunctionResult, parseAbi } from 'viem';
+import { encodeFunctionResult, keccak256, parseAbi } from 'viem';
 
 import {
   assertUniswapV3MarketProfile,
@@ -41,6 +41,12 @@ const quoterAbi = parseAbi([
   'function quoteExactInputSingle((address tokenIn,address tokenOut,uint256 amountIn,uint24 fee,uint160 sqrtPriceLimitX96) params) returns (uint256 amountOut,uint160 sqrtPriceX96After,uint32 initializedTicksCrossed,uint256 gasEstimate)',
 ]);
 
+const fixtureRuntimeCode = {
+  factory: '0x60016000',
+  quoter: '0x60026000',
+  pool: '0x60036000',
+} as const;
+
 class FixtureRpc extends UniswapV3MarketRpcClient {
   private quoteCalls = 0;
 
@@ -58,6 +64,15 @@ class FixtureRpc extends UniswapV3MarketRpcClient {
       hash: '0x1111111111111111111111111111111111111111111111111111111111111111',
       timestamp: Math.floor(Date.now() / 1000),
     };
+  }
+
+  override async getCode(address: `0x${string}`): Promise<`0x${string}`> {
+    if (address.toLowerCase() === baseProfile.factory.toLowerCase())
+      return fixtureRuntimeCode.factory;
+    if (address.toLowerCase() === baseProfile.quoterV2.toLowerCase())
+      return fixtureRuntimeCode.quoter;
+    if (address.toLowerCase() === baseProfile.pool.toLowerCase()) return fixtureRuntimeCode.pool;
+    throw new Error(`Unexpected fixture code request ${address}`);
   }
 
   override async call(_to: `0x${string}`, data: `0x${string}`): Promise<`0x${string}`> {
@@ -163,6 +178,33 @@ describe('shared Uniswap V3 market evidence primitives', () => {
     expect(snapshot.quotes[0]).toMatchObject({ amountIn: 1, amountOut: 1, priceImpactBps: 0 });
     expect(snapshot.quotes[1]).toMatchObject({ amountIn: 1_000, amountOut: 990 });
     expect(snapshot.quotes[1]?.priceImpactBps).toBeCloseTo(100, 8);
+  });
+
+  it('re-verifies a configured factory, quoter, and pool code identity at the pinned block', async () => {
+    const profile: UniswapV3MarketProfile = {
+      ...baseProfile,
+      codeIdentity: {
+        factory: keccak256(fixtureRuntimeCode.factory),
+        quoterV2: keccak256(fixtureRuntimeCode.quoter),
+        pool: keccak256(fixtureRuntimeCode.pool),
+      },
+    };
+    const snapshot = await getUniswapV3MarketSnapshot(profile, {
+      rpc: new FixtureRpc(),
+      nowMs: Date.now(),
+    });
+    expect(snapshot.contracts.codeIdentity).toEqual(profile.codeIdentity);
+
+    await expect(
+      getUniswapV3MarketSnapshot(
+        {
+          ...profile,
+          id: 'bad-code',
+          codeIdentity: { ...profile.codeIdentity, pool: `0x${'00'.repeat(32)}` },
+        },
+        { rpc: new FixtureRpc(), nowMs: Date.now() }
+      )
+    ).rejects.toThrow('runtime code');
   });
 
   it('rejects an unordered quote ladder before it can distort price-impact evidence', () => {

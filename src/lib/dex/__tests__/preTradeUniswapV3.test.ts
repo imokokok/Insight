@@ -20,6 +20,13 @@ const BASE_REQUEST: ReviewedUniswapV3PreTradeRequest = {
   amountIn: '1.25',
 };
 
+const PANCAKE_REQUEST: ReviewedUniswapV3PreTradeRequest = {
+  chainId: 8453,
+  asset: 'USDC',
+  destinationAsset: 'USDT',
+  amountIn: '1250.5',
+};
+
 const snapshot = {
   source: 'dex-market',
   venue: 'uniswap-v3',
@@ -78,6 +85,23 @@ describe('reviewed Uniswap V3 pre-trade evidence', () => {
       quoteAmountsToken0Raw: [1250000000000000000n],
     });
     expect(mockedSnapshot.mock.calls[0]?.[1]).toMatchObject({ cache: false });
+  });
+
+  it('selects only the allowlisted PancakeSwap V3 USDC/USDT direction on Base', async () => {
+    const result = await getReviewedUniswapV3PreTradeEvidence(PANCAKE_REQUEST);
+
+    expect(result).toMatchObject({
+      profile: 'base-pancakeswap-v3-usdc-usdt',
+      venue: 'uniswap-v3',
+      market: 'WETH/USDC',
+    });
+    const profile = mockedSnapshot.mock.calls[0]?.[0];
+    expect(profile).toMatchObject({
+      id: expect.stringContaining('1250500000'),
+      venue: 'pancakeswap-v3',
+      market: 'USDC/USDT',
+      quoteAmountsToken0Raw: [1250500000n],
+    });
   });
 
   it('rejects an unreviewed route instead of substituting another pool or direction', async () => {

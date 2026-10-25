@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
 import { REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS } from '@/lib/dex/aerodromeSlipstream';
+import { BASE_DEX_VENUE_IDS } from '@/lib/dex/baseDexVenues';
+import { REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS } from '@/lib/dex/pancakeSwapV3';
 import { STABLECOINS } from '@/lib/stablecoins/config';
 import { WRAPPED_ASSETS } from '@/lib/wrapped-assets/config';
 import { BLOCKCHAIN_VALUES, ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
@@ -267,12 +269,30 @@ export const MonadDexMarketJsonSchema = z.object({});
 /** Wire schema for the one reviewed WETH/USDC Base DEX market. */
 export const BaseDexMarketJsonSchema = z.object({});
 
+/** Wire schema for the Base DEX deployment identity catalog. */
+export const BaseDexVenueIntegrationJsonSchema = z.object({
+  venues: z
+    .array(z.enum(BASE_DEX_VENUE_IDS))
+    .min(1)
+    .max(BASE_DEX_VENUE_IDS.length)
+    .optional()
+    .describe('Optional reviewed Base venues to inspect; defaults to every reviewed venue'),
+});
+
 /** Wire schema for a named allowlisted Aerodrome Slipstream Base market. */
 export const AerodromeSlipstreamMarketJsonSchema = z.object({
   profileId: z
     .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
     .optional()
     .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
+});
+
+/** Wire schema for a named allowlisted PancakeSwap V3 Base market. */
+export const PancakeSwapV3MarketJsonSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
 });
 
 /** Wire schema for the Base-only pre-signing lending gate. */
@@ -481,14 +501,14 @@ export const ExecutionPreflightJsonSchema = PreTradeSafetyJsonSchema.extend({
             .string()
             .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
             .max(128)
-            .describe('Exact source-token amount for the reviewed Uniswap V3 quote'),
+            .describe('Exact source-token amount for the reviewed concentrated-liquidity quote'),
           maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
           maxTwapDeviationBps: z.number().int().min(0).max(10_000),
         })
         .strict()
         .optional()
         .describe(
-          'Optional strict reviewed-pool lane. Currently only MON/USDC on Monad and WETH/USDC on Base, in source-to-USDC direction; unsupported routes fail closed.'
+          'Optional strict reviewed-pool lane. Admits Monad MON/WMON→USDC and Base ETH/WETH→USDC through Uniswap V3, plus Base USDC→USDT through PancakeSwap V3; only the reviewed forward directions are admitted and all other routes fail closed.'
         ),
       reviewedAerodromeSlipstream: z
         .object({
@@ -540,6 +560,25 @@ export const AerodromeSlipstreamSwapPreparationJsonSchema = z.object({
     .min(0)
     .max(9999)
     .describe('Maximum shortfall versus the pinned quote, encoded as amountOutMinimum'),
+});
+
+/** Wire schema for a user-signable PancakeSwap V3 Base transaction. */
+export const PancakeSwapV3SwapPreparationJsonSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+  amountIn: z
+    .string()
+    .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+    .max(128)
+    .describe('Exact USDC input amount; the tool never handles native ETH or reverse direction'),
+  recipient: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{40}$/)
+    .describe('USDT recipient'),
+  deadlineUnixSeconds: z.number().int().positive().describe('User-selected short Unix deadline'),
+  maxSlippageBps: z.number().int().min(0).max(9999).describe('Maximum quote shortfall in bps'),
 });
 
 /** Wire schema for `agent_begin_trade`. No `.default()` so zod v4 toJSONSchema()
