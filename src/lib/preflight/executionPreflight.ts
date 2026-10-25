@@ -225,17 +225,18 @@ export function composeExecutionPreflight(
 /** Run the existing safety engine and return the chain-neutral preflight contract. */
 export async function assessExecutionPreflight(
   input: ExecutionPreflightRequest,
-  options?: Parameters<typeof preTradeSafetyCheck>[1]
+  options?: Parameters<typeof preTradeSafetyCheck>[1],
+  deadlineOptions?: Parameters<typeof preTradeSafetyCheck>[2]
 ): Promise<ExecutionPreflightResult> {
-  const assessment = await preTradeSafetyCheck(
-    {
-      ...input,
-      // v3 binds quorum + independence thresholds into any available attestation.
-      // The preflight layer never downgrades a caller who explicitly requested a
-      // different schema version.
-      schemaVersion: input.schemaVersion ?? 3,
-    },
-    options
-  );
+  const safetyInput = {
+    ...input,
+    // v3 binds quorum + independence thresholds into any available attestation.
+    // The preflight layer never downgrades a caller who explicitly requested a
+    // different schema version.
+    schemaVersion: input.schemaVersion ?? 3,
+  };
+  const assessment = deadlineOptions
+    ? await preTradeSafetyCheck(safetyInput, options, deadlineOptions)
+    : await preTradeSafetyCheck(safetyInput, options);
   return composeExecutionPreflight(input, assessment);
 }

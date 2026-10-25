@@ -4,6 +4,7 @@ import {
   getCoverageAlertChanges,
   getCoverageSlo,
 } from '@/lib/coverage/collector';
+import { RequestDeadlineExceededError } from '@/lib/utils/requestDeadline';
 
 import { GET } from '../route';
 
@@ -121,4 +122,47 @@ it('returns a safe stage code for an unavailable coverage database read', async 
   );
   expect(response.status).toBe(503);
   expect(await response.json()).toEqual({ success: false, error: 'COVERAGE_SLO_READ_FAILED' });
+});
+
+it('forwards the route deadline signal to every coverage stage', async () => {
+  jest.mocked(collectCoverageSlo).mockResolvedValue([]);
+  jest
+    .mocked(getCoverageSlo)
+    .mockResolvedValue({ targets: [] } as Awaited<ReturnType<typeof getCoverageSlo>>);
+  const response = await GET(
+    new Request('https://test/api/cron/coverage-slo', {
+      headers: { Authorization: 'Bearer test-coverage-cron' },
+    })
+  );
+
+  expect(response.status).toBe(200);
+  expect(collectCoverageSlo).toHaveBeenCalledWith(
+    expect.objectContaining({ signal: expect.anything() })
+  );
+  expect(getCoverageSlo).toHaveBeenCalledWith(
+    24,
+    expect.objectContaining({ signal: expect.anything() })
+  );
+  expect(getCoverageAlertChanges).toHaveBeenCalledWith(
+    [],
+    expect.any(Object),
+    expect.objectContaining({ signal: expect.anything() })
+  );
+});
+
+it('returns a retryable deadline code before the platform hard timeout', async () => {
+  jest
+    .mocked(collectCoverageSlo)
+    .mockRejectedValue(new RequestDeadlineExceededError('Coverage collection deadline exceeded'));
+  const response = await GET(
+    new Request('https://test/api/cron/coverage-slo', {
+      headers: { Authorization: 'Bearer test-coverage-cron' },
+    })
+  );
+
+  expect(response.status).toBe(503);
+  expect(await response.json()).toEqual({
+    success: false,
+    error: 'COVERAGE_COLLECTION_DEADLINE_EXCEEDED',
+  });
 });

@@ -69,7 +69,31 @@ export async function withOracleRetry<T>(
       })
     : null;
 
-  const operationPromise = enhancedWithRetry(operation, operationName, enhancedConfig);
+  // The caller-owned signal is already forwarded into the underlying HTTP/RPC
+  // operation by the Oracle clients. Check it again before every retry attempt
+  // so a deadline that fires during exponential backoff cannot start a new
+  // external request after the route has returned.
+  const operationPromise = enhancedWithRetry(
+    () => {
+      if (signal?.aborted) {
+        const reason = signal.reason instanceof Error ? signal.reason.message : 'unknown reason';
+        throw new Error(`Operation ${operationName} was aborted: ${reason}`);
+      }
+      return operation().catch((error: unknown) => {
+        // Abort-aware transports are not consistent: some reject with
+        // AbortError, while others surface a generic network error after their
+        // controller fires. Preserve the cancellation cause so retry policy
+        // never turns that generic error into a backoff cycle.
+        if (signal?.aborted) {
+          const reason = signal.reason instanceof Error ? signal.reason.message : 'unknown reason';
+          throw new Error(`Operation ${operationName} was aborted: ${reason}`);
+        }
+        throw error;
+      });
+    },
+    operationName,
+    enhancedConfig
+  );
 
   try {
     const result = abortPromise

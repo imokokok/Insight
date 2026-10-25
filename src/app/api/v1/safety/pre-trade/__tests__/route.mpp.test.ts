@@ -184,7 +184,8 @@ describe('pre-trade route MPP dispatch', () => {
         schemaVersion: undefined,
         destinationAsset: undefined,
       }),
-      expect.objectContaining({ requestId: 'req_mpp_route' })
+      expect.objectContaining({ requestId: 'req_mpp_route' }),
+      expect.objectContaining({ signal: expect.anything() })
     );
   });
 

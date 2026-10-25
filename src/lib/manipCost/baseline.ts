@@ -20,6 +20,7 @@
  * presented as the manipulation cost of a different chain's reference market.
  */
 
+import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -32,6 +33,23 @@ const logger = createLogger('manip-cost-baseline');
  * depth as current.
  */
 export const MANIP_COST_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+
+/**
+ * The collector writes snapshots every 15 minutes. Reuse a verified advisory
+ * for one minute on warm instances to avoid repeating an identical DB query on
+ * each pre-trade request. The cache is always cut short before the oldest pool
+ * in the advisory can reach the strict two-hour freshness limit.
+ */
+export const MANIP_COST_CACHE_TTL_MS = 60_000;
+
+const advisoryCache = new TTLCache({ maxSize: 32, cleanupIntervalMs: 0 });
+const advisoryInFlight = new Map<string, Promise<ManipCostAdvisory | null>>();
+
+/** Test seam — clears the warm-instance advisory cache and request coalescer. */
+export function resetManipCostAdvisoryCacheForTests(): void {
+  advisoryCache.clear();
+  advisoryInFlight.clear();
+}
 
 /** Symbols covered by the v0 pool map, normalized (WETH is treated as ETH). */
 export type ManipCostCoveredSymbol = 'ETH' | 'USDC' | 'WBTC';
@@ -95,6 +113,27 @@ export function isManipCostCoveredSymbol(symbol: string): boolean {
   return manipCostPoolKeysForSymbol(symbol) !== null;
 }
 
+function advisoryCacheKey(symbol: string): string {
+  const normalized = symbol.trim().toUpperCase();
+  return normalized === 'WETH' ? 'ETH' : normalized;
+}
+
+function cloneAdvisory(advisory: ManipCostAdvisory): ManipCostAdvisory {
+  return {
+    ...advisory,
+    pools: advisory.pools.map((pool) => ({
+      ...pool,
+      curve: pool.curve.map((point) => ({ ...point })),
+    })),
+  };
+}
+
+function cacheTtlFor(advisory: ManipCostAdvisory): number {
+  const oldestSnapshotMs = Math.min(...advisory.pools.map((pool) => Date.parse(pool.snapshotTs)));
+  const remainingFreshnessMs = MANIP_COST_MAX_AGE_MS - (Date.now() - oldestSnapshotMs);
+  return Math.max(0, Math.min(MANIP_COST_CACHE_TTL_MS, remainingFreshnessMs));
+}
+
 interface SnapshotRow {
   pool_key: string;
   dex: string;
@@ -143,6 +182,38 @@ function buildCurve(raw: unknown): ManipCostCurvePoint[] | null {
  * MANIP_COST_MAX_AGE_MS. Never throws.
  */
 export async function getManipCostAdvisory(
+  supabase: SupabaseClient,
+  symbol: string,
+  opts?: { now?: Date; maxAgeMs?: number }
+): Promise<ManipCostAdvisory | null> {
+  // Explicit timing options are used for deterministic callers/tests and must
+  // observe the supplied clock exactly rather than a warm-instance value.
+  if (opts) return loadManipCostAdvisory(supabase, symbol, opts);
+
+  const key = advisoryCacheKey(symbol);
+  const cached = advisoryCache.get<ManipCostAdvisory>(key);
+  if (cached !== null) return cloneAdvisory(cached);
+
+  let request = advisoryInFlight.get(key);
+  if (!request) {
+    request = loadManipCostAdvisory(supabase, symbol);
+    advisoryInFlight.set(key, request);
+  }
+
+  try {
+    const advisory = await request;
+    if (advisory) {
+      const ttl = cacheTtlFor(advisory);
+      if (ttl > 0) advisoryCache.set(key, cloneAdvisory(advisory), ttl);
+      return cloneAdvisory(advisory);
+    }
+    return null;
+  } finally {
+    if (advisoryInFlight.get(key) === request) advisoryInFlight.delete(key);
+  }
+}
+
+async function loadManipCostAdvisory(
   supabase: SupabaseClient,
   symbol: string,
   opts?: { now?: Date; maxAgeMs?: number }

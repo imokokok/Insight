@@ -119,7 +119,8 @@ describe('execution-preflight route', () => {
         action: 'swap',
         tradeAmountUsd: 1000,
       }),
-      { requestId: 'req_preflight_x402', apiKeyId: undefined }
+      { requestId: 'req_preflight_x402', apiKeyId: undefined },
+      expect.objectContaining({ signal: expect.anything() })
     );
     expect(mockSuccessResponse).toHaveBeenCalledWith(
       expect.objectContaining({ verdict: 'caution' }),
@@ -181,7 +182,8 @@ describe('execution-preflight route', () => {
           },
         }),
       }),
-      expect.any(Object)
+      expect.any(Object),
+      expect.objectContaining({ signal: expect.anything() })
     );
   });
 
