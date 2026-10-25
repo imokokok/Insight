@@ -29,6 +29,12 @@ const queryQueue = new RequestQueue({
 // below this.
 const ORACLE_FEEDS_PAGE_SIZE = 500;
 
+// A registry refresh is a recoverable metadata read: the resolver has
+// committed fallbacks and a five-minute in-process cache. Do not let one
+// saturated PostgREST request occupy a worker (and add more Disk I/O) for the
+// default 30-second queue deadline.
+const ORACLE_FEEDS_QUERY_TIMEOUT_MS = 5_000;
+
 // Core projection for every active-registry read. The resolver hot path
 // (price fetches, consensus, snapshot collection) and the feed-health
 // surfaces only consume these columns; the lifecycle/audit columns
@@ -406,7 +412,9 @@ export class DatabaseQueries {
           query = query.eq('chain_id', chainId);
         }
 
-        const { data, error, count } = await query;
+        const { data, error, count } = await query.abortSignal(
+          AbortSignal.timeout(ORACLE_FEEDS_QUERY_TIMEOUT_MS)
+        );
 
         if (error) {
           logger.error('Failed to get oracle feeds', normalizeError(error), {

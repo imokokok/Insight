@@ -20,6 +20,14 @@ import { isSolanaPublicKey, isSolanaSignature } from './solanaEncoding';
 
 const logger = createLogger('x402-guard');
 
+// Settlement audits are useful evidence, but never payment-path correctness
+// requirements. Bound their database work tightly so an unavailable database
+// cannot retain Vercel functions for the default PostgREST timeout or keep
+// adding pressure to Supabase's Disk I/O budget.
+const X402_AUDIT_TIMEOUT_MS = 2_000;
+const X402_AUDIT_BACKOFF_MS = 5 * 60_000;
+let x402AuditUnavailableUntil = 0;
+
 /**
  * Request-path payment guard for the x402 keyless paid tier.
  *
@@ -307,32 +315,43 @@ export function recordX402Settlement(audit: X402SettlementAudit): void {
     logger.warn('x402 lifecycle audit rejected by validation');
     return;
   }
+  if (Date.now() < x402AuditUnavailableUntil) {
+    logger.debug('x402 lifecycle audit skipped while Supabase is unavailable');
+    return;
+  }
   const validAudit = validation.data;
 
   const task = async () => {
     try {
       const client = createServiceRoleClient();
-      const { error } = await client.from('x402_settlements').insert({
-        request_id: validAudit.requestId,
-        protocol: validAudit.protocol ?? 'x402',
-        status: validAudit.status,
-        tx_hash: validAudit.txHash ?? null,
-        payer: validAudit.payer ?? null,
-        amount_usdc: validAudit.amountUsdc ?? null,
-        network: validAudit.network,
-        asset: validAudit.asset ?? null,
-        surface: validAudit.surface ?? 'legacy',
-        resource: validAudit.resource ?? null,
-        response_time_ms: validAudit.responseTimeMs ?? null,
-        verdict: validAudit.verdict ?? null,
-        error_reason: validAudit.errorReason ?? null,
-      });
+      const { error } = await client
+        .from('x402_settlements')
+        .insert({
+          request_id: validAudit.requestId,
+          protocol: validAudit.protocol ?? 'x402',
+          status: validAudit.status,
+          tx_hash: validAudit.txHash ?? null,
+          payer: validAudit.payer ?? null,
+          amount_usdc: validAudit.amountUsdc ?? null,
+          network: validAudit.network,
+          asset: validAudit.asset ?? null,
+          surface: validAudit.surface ?? 'legacy',
+          resource: validAudit.resource ?? null,
+          response_time_ms: validAudit.responseTimeMs ?? null,
+          verdict: validAudit.verdict ?? null,
+          error_reason: validAudit.errorReason ?? null,
+        })
+        .abortSignal(AbortSignal.timeout(X402_AUDIT_TIMEOUT_MS));
       if (error) {
+        x402AuditUnavailableUntil = Date.now() + X402_AUDIT_BACKOFF_MS;
         logger.warn('x402 settlement audit insert failed', { error: error.message });
+        return;
       }
+      x402AuditUnavailableUntil = 0;
     } catch (error) {
       // Missing SUPABASE_SERVICE_ROLE_KEY in dev is expected — audit is
       // advisory, never load-bearing.
+      x402AuditUnavailableUntil = Date.now() + X402_AUDIT_BACKOFF_MS;
       logger.warn('x402 settlement audit unavailable', {
         error: error instanceof Error ? error.message : String(error),
       });

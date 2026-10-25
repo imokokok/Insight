@@ -94,7 +94,17 @@ class SupabaseRateLimitStore implements RateLimitStore {
   private memoryFallback = new MemoryRateLimitStore();
   private useMemoryFallback = false;
   private memoryFallbackSince = 0;
-  private readonly MEMORY_FALLBACK_TTL_MS = 60_000; // retry Supabase after 1 min
+  // A rate-limit write must never hold a customer request open for the full
+  // PostgREST timeout. During a database incident the local fallback preserves
+  // a limit, and this short deadline prevents each warm function from adding
+  // another long-lived request to the already-degraded database.
+  private readonly SUPABASE_RPC_TIMEOUT_MS = 2_000;
+
+  // Keep the process-local circuit open long enough for a saturated Nano
+  // database to recover. This is deliberately longer than the former one
+  // minute retry window: retrying every warm function every minute amplified
+  // Disk I/O incidents without improving enforcement.
+  private readonly MEMORY_FALLBACK_TTL_MS = 5 * 60_000;
 
   async increment(key: string, windowMs: number): Promise<RateLimitResult> {
     // If we recently fell back to memory, use it until the TTL expires
@@ -108,10 +118,12 @@ class SupabaseRateLimitStore implements RateLimitStore {
     const client = createServiceRoleClient();
 
     try {
-      const { data, error } = await client.rpc('increment_rate_limit', {
-        p_key: key,
-        p_window_ms: windowMs,
-      });
+      const { data, error } = await client
+        .rpc('increment_rate_limit', {
+          p_key: key,
+          p_window_ms: windowMs,
+        })
+        .abortSignal(AbortSignal.timeout(this.SUPABASE_RPC_TIMEOUT_MS));
 
       if (error) {
         throw error;

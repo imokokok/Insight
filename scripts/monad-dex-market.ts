@@ -2,7 +2,7 @@
 /**
  * Finalized Monad Uniswap V3 market-event collector.
  *
- * Runs on GitHub Actions every five minutes. It deliberately shares the same
+ * Runs on GitHub Actions every ten minutes. It deliberately shares the same
  * implementation as the authenticated cron route, while avoiding a Vercel
  * request-duration ceiling during catch-up after an outage.
  */
