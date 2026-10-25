@@ -1,3 +1,4 @@
+import { getAerodromeSlipstreamMarketSnapshot } from '@/lib/dex/aerodromeSlipstream';
 import { getBaseUniswapV3MarketSnapshot } from '@/lib/dex/baseUniswapV3';
 import {
   getHyperliquidPerpMarketSnapshot,
@@ -9,6 +10,7 @@ import { getSolanaJupiterRouteSnapshot } from '@/lib/dex/solanaJupiterRoute';
 
 import { formatAsText } from './formatters';
 import {
+  AerodromeSlipstreamMarketInputSchema,
   BaseDexMarketInputSchema,
   HyperliquidPerpMarketInputSchema,
   MonadDexMarketInputSchema,
@@ -58,6 +60,28 @@ export const getBaseDexMarketTool: McpToolDefinition<typeof BaseDexMarketInputSc
         'DEX market evidence is not an oracle-consensus vote or a venue-independent fair price.',
         'activeLiquidityRaw is Uniswap V3 in-range liquidity; it is not token reserve TVL.',
         'This endpoint reports one reviewed WETH/USDC pool, not every Base route.',
+      ],
+    });
+  },
+};
+
+/** Returns block-pinned evidence for the reviewed Aerodrome CL100 pool on Base. */
+export const getAerodromeSlipstreamMarketTool: McpToolDefinition<
+  typeof AerodromeSlipstreamMarketInputSchema
+> = {
+  name: 'get_aerodrome_slipstream_market',
+  description:
+    'Get fresh, block-pinned Aerodrome Slipstream Base WETH/USDC CL100 market evidence: spot, 30-minute TWAP, active liquidity, live pool fee, and executable quote ladder. This is one reviewed DEX venue, not an oracle-consensus price.',
+  parameters: AerodromeSlipstreamMarketInputSchema,
+  handler: async () => {
+    const snapshot = await getAerodromeSlipstreamMarketSnapshot();
+    return formatAsText({
+      ...snapshot,
+      caveats: [
+        'DEX market evidence is not an oracle-consensus vote or a venue-independent fair price.',
+        'activeLiquidityRaw is Slipstream in-range liquidity; it is not token reserve TVL.',
+        'feePips is the pool fee read at the pinned block and can change with Aerodrome fee configuration.',
+        'This endpoint reports one reviewed WETH/USDC CL100 pool, not every Aerodrome or Base route.',
       ],
     });
   },

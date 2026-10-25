@@ -12,6 +12,47 @@ relationship at that block and includes spot, a 30-minute TWAP, active
 in-range liquidity, pool balances, and a 1/10/100 WETH exact-input quote
 ladder. It does not represent every Base route or a reserve-TV L calculation.
 
+## Base: one Aerodrome Slipstream pool
+
+`GET /api/v1/markets/dex/aerodrome` reads the reviewed Aerodrome Slipstream
+WETH/USDC CL100 pool at one Base block. It proves both directions of pool
+provenance (the configured factory resolves the pool and the pool reports that
+factory), then verifies the sorted token pair and tick spacing before returning
+spot, a 30-minute TWAP, active in-range liquidity, token balances, the pool's
+live fee in pips, and a 1/10/100 WETH exact-input QuoterV2 ladder.
+
+Slipstream is derived from Uniswap V3 but uses `tickSpacing` to identify pools
+and its six-field `slot0`; Insight therefore has a distinct adapter rather than
+reusing the Uniswap ABI. The fee is block-pinned venue context and may change
+with Aerodrome fee configuration. This remains a single reviewed pool rather
+than an Aerodrome-wide route, reserve-TVL measurement, execution promise, or
+oracle-consensus input.
+
+## Aerodrome user-signed Base execution loop
+
+The Aerodrome path has three separate stages:
+
+1. The C3 pre-trade decision-input policy accepts `reviewedAerodromeSlipstream`
+   only for Base `WETH → USDC` through this exact CL100 pool. It binds the
+   exact-notional QuoterV2 result, factory, pool, quoter, tick spacing, live
+   fee, raw amounts, impact, and spot/TWAP checks into the assessment.
+2. `prepare_aerodrome_slipstream_swap` returns unsigned, single-hop router
+   calldata plus an **exact-amount** WETH approval template. Before returning
+   either, Insight verifies the pinned router bytecode hash and immutable
+   factory/WETH bindings at the quote block, then encodes `amountOutMinimum`
+   from the caller's slippage bound.
+3. The wallet owner signs and submits calls directly on Base. Afterwards,
+   `execution_receipt` can accept the Base transaction hash and signed
+   pre-trade originals to collect ERC-20 settlement evidence and issue a
+   paired, verifiable receipt.
+
+Insight never holds a key, creates a signature, sends an approval, relays a
+swap, or claims that unsigned calldata will execute. The preparation path
+never substitutes native ETH wrapping, a reverse direction, arbitrary pool or
+router, multi-hop path, or aggregator route. The receipt observes settlement;
+it does not authorize a transaction or prove strategy, MEV outcome, or fill
+quality.
+
 ## Solana: one Jupiter route market
 
 `GET /api/v1/markets/dex/solana` obtains exact-input SOL/USDC quote ladders
@@ -46,6 +87,11 @@ never signs, simulates, or submits an order.
 ## Agent tools
 
 - `get_base_dex_market` exposes the Base pool evidence.
+- `get_aerodrome_slipstream_market` exposes the reviewed Aerodrome Slipstream
+  Base WETH/USDC CL100 evidence.
+- `prepare_aerodrome_slipstream_swap` prepares bounded, unsigned Base calldata
+  for that same reviewed Aerodrome pool. It is C3; the existing
+  `execution_receipt` tool is the post-settlement verification handoff.
 - `get_solana_dex_route` exposes the Solana route evidence.
 - `get_hyperliquid_perp_market` exposes the reviewed Hyperliquid perpetual
   evidence; it accepts `market: BTC | ETH | HYPE` and defaults to `BTC`.
@@ -102,7 +148,9 @@ See Hyperliquid's official [tick and lot size](https://hyperliquid.gitbook.io/hy
 ## C3 pre-trade integration
 
 Paid `GET /api/v1/safety/pre-trade` and `GET /api/v1/safety/preflight` can
-now opt into `reviewedUniswapV3` evidence inside their decision-input check.
+opt into `reviewedUniswapV3` or `reviewedAerodromeSlipstream` evidence inside
+their decision-input check. Only one reviewed DEX lane is admitted per
+assessment.
 The caller supplies the exact source amount plus explicit maximum quote and
 spot/TWAP divergence limits. Insight then admits only these source-to-USDC
 profiles:
@@ -117,3 +165,7 @@ decision-input assessment. Unsupported direction/pair, stale or unreadable
 evidence, and a failed limit produce `INSUFFICIENT_EVIDENCE` or `BLOCK`; they
 never fall back to an inferred route. This is not a signed-transaction
 simulation or a guarantee that a later transaction will land at that quote.
+
+`reviewedAerodromeSlipstream` applies the same exact-notional, fail-closed
+model to Base `WETH → USDC`, while retaining Slipstream's own identity rules:
+CL `tickSpacing` plus the pool's live fee rather than a Uniswap V3 fee tier.

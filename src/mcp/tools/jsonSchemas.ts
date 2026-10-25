@@ -266,6 +266,9 @@ export const MonadDexMarketJsonSchema = z.object({});
 /** Wire schema for the one reviewed WETH/USDC Base DEX market. */
 export const BaseDexMarketJsonSchema = z.object({});
 
+/** Wire schema for the reviewed Aerodrome Slipstream Base market. */
+export const AerodromeSlipstreamMarketJsonSchema = z.object({});
+
 /** Wire schema for the Base-only pre-signing lending gate. */
 export const BaseLendingGuardJsonSchema = z
   .object({
@@ -481,11 +484,52 @@ export const ExecutionPreflightJsonSchema = PreTradeSafetyJsonSchema.extend({
         .describe(
           'Optional strict reviewed-pool lane. Currently only MON/USDC on Monad and WETH/USDC on Base, in source-to-USDC direction; unsupported routes fail closed.'
         ),
+      reviewedAerodromeSlipstream: z
+        .object({
+          amountIn: z
+            .string()
+            .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+            .max(128)
+            .describe(
+              'Exact WETH amount for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 quote'
+            ),
+          maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
+          maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+        })
+        .strict()
+        .optional()
+        .describe(
+          'Optional strict reviewed-pool lane. Only WETH/USDC on Base through the reviewed Aerodrome Slipstream CL100 pool is admitted; unsupported routes fail closed.'
+        ),
     })
     .optional()
     .describe(
       'Optional fresh venue quote and explicit limits. This evidence is required for an ALLOW result; without it a healthy oracle result remains CAUTION.'
     ),
+});
+
+/** Wire schema for a user-signable transaction against the reviewed Base pool. */
+export const AerodromeSlipstreamSwapPreparationJsonSchema = z.object({
+  amountIn: z
+    .string()
+    .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+    .max(128)
+    .describe('Exact WETH input amount; the tool never handles native ETH'),
+  recipient: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{40}$/)
+    .describe('USDC recipient encoded into the unsigned router transaction'),
+  deadlineUnixSeconds: z
+    .number()
+    .int()
+    .positive()
+    .describe('User-selected Unix deadline, no more than 30 minutes ahead'),
+  maxSlippageBps: z
+    .number()
+    .int()
+    .min(0)
+    .max(9999)
+    .describe('Maximum shortfall versus the pinned quote, encoded as amountOutMinimum'),
 });
 
 /** Wire schema for `agent_begin_trade`. No `.default()` so zod v4 toJSONSchema()

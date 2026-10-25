@@ -106,6 +106,27 @@ export const PreTradeQuerySchema = z
       .describe('Exact source-token input amount for the reviewed Monad/Base Uniswap V3 quote.'),
     reviewedUniswapV3MaxQuoteDeviationBps: z.coerce.number().int().min(0).max(10_000).optional(),
     reviewedUniswapV3MaxTwapDeviationBps: z.coerce.number().int().min(0).max(10_000).optional(),
+    reviewedAerodromeSlipstreamAmountIn: z
+      .string()
+      .trim()
+      .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+      .max(128)
+      .optional()
+      .describe(
+        'Exact WETH input for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 quote.'
+      ),
+    reviewedAerodromeSlipstreamMaxQuoteDeviationBps: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .max(10_000)
+      .optional(),
+    reviewedAerodromeSlipstreamMaxTwapDeviationBps: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .max(10_000)
+      .optional(),
     quoteProvenance: DecisionInputQuoteProvenanceQuerySchema.optional(),
     requireQuoteProvenance: z
       .enum(['0', '1'])
@@ -148,6 +169,15 @@ export const PreTradeQuerySchema = z
       ...(value.reviewedUniswapV3MaxTwapDeviationBps !== undefined
         ? ['reviewedUniswapV3MaxTwapDeviationBps']
         : []),
+      ...(value.reviewedAerodromeSlipstreamAmountIn !== undefined
+        ? ['reviewedAerodromeSlipstreamAmountIn']
+        : []),
+      ...(value.reviewedAerodromeSlipstreamMaxQuoteDeviationBps !== undefined
+        ? ['reviewedAerodromeSlipstreamMaxQuoteDeviationBps']
+        : []),
+      ...(value.reviewedAerodromeSlipstreamMaxTwapDeviationBps !== undefined
+        ? ['reviewedAerodromeSlipstreamMaxTwapDeviationBps']
+        : []),
     ];
 
     if (value.decisionInputCheck === '1') {
@@ -186,6 +216,39 @@ export const PreTradeQuerySchema = z
         code: 'custom',
         path: ['destinationAsset'],
         message: 'destinationAsset is required with reviewedUniswapV3 evidence.',
+      });
+    }
+
+    const aerodromeReviewedFields = [
+      'reviewedAerodromeSlipstreamAmountIn',
+      'reviewedAerodromeSlipstreamMaxQuoteDeviationBps',
+      'reviewedAerodromeSlipstreamMaxTwapDeviationBps',
+    ] as const;
+    const aerodromeReviewedProvided = aerodromeReviewedFields.filter(
+      (field) => value[field] !== undefined
+    );
+    if (
+      aerodromeReviewedProvided.length > 0 &&
+      aerodromeReviewedProvided.length !== aerodromeReviewedFields.length
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['reviewedAerodromeSlipstreamAmountIn'],
+        message: 'All reviewedAerodromeSlipstream parameters are required together.',
+      });
+    }
+    if (aerodromeReviewedProvided.length > 0 && !value.destinationAsset) {
+      context.addIssue({
+        code: 'custom',
+        path: ['destinationAsset'],
+        message: 'destinationAsset is required with reviewedAerodromeSlipstream evidence.',
+      });
+    }
+    if (reviewedProvided.length > 0 && aerodromeReviewedProvided.length > 0) {
+      context.addIssue({
+        code: 'custom',
+        path: ['reviewedAerodromeSlipstreamAmountIn'],
+        message: 'Choose only one reviewed DEX evidence lane per decision-input assessment.',
       });
     }
 

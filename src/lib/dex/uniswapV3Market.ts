@@ -321,6 +321,22 @@ export class UniswapV3MarketRpcClient {
     );
   }
 
+  /**
+   * Return runtime code at a pinned block. Reviewed transaction-preparation
+   * paths use this to reject a target whose bytecode no longer matches the
+   * deployed contract they were audited against.
+   */
+  async getCode(
+    address: UniswapV3Hex,
+    blockNumber: bigint,
+    signal?: AbortSignal
+  ): Promise<UniswapV3Hex> {
+    return asHex(
+      await this.request('eth_getCode', [address, `0x${blockNumber.toString(16)}`], signal),
+      'contract runtime code'
+    );
+  }
+
   async getLogs(
     input: { address: UniswapV3Hex; topic0: UniswapV3Hex; fromBlock: bigint; toBlock: bigint },
     signal?: AbortSignal
