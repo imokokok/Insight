@@ -196,7 +196,7 @@ jobs:
       - name: Restore Next.js build cache
         if: needs.runtime-impact.outputs.runtime == 'true'
         id: next-cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .next/cache
           # Next invalidates changed source entries itself.  Keeping this key at
@@ -208,14 +208,14 @@ jobs:
         run: npm run build
       - name: Cache Next.js build state
         if: needs.runtime-impact.outputs.runtime == 'true' && steps.next-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .next/cache
           key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Restore Playwright Chromium
         if: needs.runtime-impact.outputs.runtime == 'true'
         id: playwright-cache
-        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -230,7 +230,7 @@ jobs:
         run: npx playwright install chromium
       - name: Cache Playwright Chromium
         if: needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
