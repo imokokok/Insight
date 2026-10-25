@@ -13,6 +13,7 @@ import {
   type X402Config,
   X402_BASE_LENDING_GUARD_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
+  X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
   X402_PRE_TRADE_ROUTE,
@@ -244,6 +245,62 @@ export const BAZAAR_MONAD_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryEx
   output: {
     example: {
       schema: 'insight.monad-lending-guard.v1',
+      verdict: 'ALLOW',
+      projected: { ltv: 0.4, liquidationBufferPct: 50, conservativeMaxDebtUsd: 7200 },
+      next: { execution: 'not_performed' },
+    },
+  },
+});
+
+/** Marketplace contract for reviewed Polygon, Arbitrum and BNB direct lending calls. */
+export const BAZAAR_MULTICHAIN_EVM_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    chainId: 42161,
+    protocolId: 'aave-v3-arbitrum',
+    action: 'borrow',
+    collateralSymbol: 'WETH',
+    loanSymbol: 'USDC',
+    collateralValueUsd: 10_000,
+    debtValueUsd: 4_000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      chainId: { type: 'number', enum: [137, 42161, 56] },
+      protocolId: {
+        type: 'string',
+        enum: ['aave-v3-polygon', 'aave-v3-arbitrum', 'aave-v3-bnb', 'venus-core-bnb'],
+      },
+      action: { type: 'string', enum: ['supply', 'borrow'] },
+      collateralSymbol: { type: 'string', description: 'Reviewed collateral token symbol' },
+      loanSymbol: { type: 'string', description: 'Reviewed loan token symbol' },
+      collateralValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action collateral value in USD',
+      },
+      debtValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action debt value in USD',
+      },
+      transaction: {
+        type: 'object',
+        description:
+          'POST only: exact unsigned direct EVM transaction {chainId,from,to,data,nonce,value}.',
+      },
+    },
+    required: [
+      'chainId',
+      'protocolId',
+      'action',
+      'collateralSymbol',
+      'loanSymbol',
+      'collateralValueUsd',
+      'debtValueUsd',
+    ],
+  },
+  output: {
+    example: {
+      schema: 'insight.multichain-evm-lending-guard.v1',
       verdict: 'ALLOW',
       projected: { ltv: 0.4, liquidationBufferPct: 50, conservativeMaxDebtUsd: 7200 },
       next: { execution: 'not_performed' },
@@ -496,6 +553,11 @@ export async function buildX402HttpServer(
       cfg,
       BAZAAR_MONAD_LENDING_GUARD_DISCOVERY_EXTENSION,
       'Monad Lending Guard: a read-only, pre-signing decision for direct Aave V3 Monad calls or exact Morpho Blue Monad markets. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
+    ),
+    [X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE]: routeConfigFor(
+      cfg,
+      BAZAAR_MULTICHAIN_EVM_LENDING_GUARD_DISCOVERY_EXTENSION,
+      'Multichain EVM Lending Guard: a read-only, pre-signing decision for direct Aave V3 calls on Polygon, Arbitrum or BNB Chain, plus reviewed Venus Core Pool calls on BNB Chain. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
     ),
     [X402_SWAP_INTENT_ROUTE]: routeConfigFor(
       cfg,
