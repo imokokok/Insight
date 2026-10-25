@@ -1,16 +1,29 @@
-import { encodeFunctionResult, parseAbi } from 'viem';
+import { encodeFunctionResult, keccak256, parseAbi } from 'viem';
 
 import {
   AERODROME_SLIPSTREAM_WETH_USDC,
   AerodromeSlipstreamRpcClient,
   aerodromeSlipstreamWethUsdcProfile,
   assertAerodromeSlipstreamMarketProfile,
-  getAerodromeSlipstreamMarketSnapshot,
+  getAerodromeSlipstreamMarketSnapshotForProfile,
+  listReviewedAerodromeSlipstreamProfiles,
+  reviewedAerodromeSlipstreamProfile,
   type AerodromeSlipstreamMarketProfile,
 } from '../aerodromeSlipstream';
 
+const FIXTURE_RUNTIME_CODE = {
+  factory: '0x60016000',
+  quoterV2: '0x60026000',
+  pool: '0x60036000',
+} as const;
+
 const baseProfile: AerodromeSlipstreamMarketProfile = {
   ...aerodromeSlipstreamWethUsdcProfile(),
+  codeIdentity: {
+    factory: keccak256(FIXTURE_RUNTIME_CODE.factory),
+    quoterV2: keccak256(FIXTURE_RUNTIME_CODE.quoterV2),
+    pool: keccak256(FIXTURE_RUNTIME_CODE.pool),
+  },
   rpcEndpoints: ['https://example.invalid'],
 };
 
@@ -49,6 +62,19 @@ class FixtureRpc extends AerodromeSlipstreamRpcClient {
       hash: '0x1111111111111111111111111111111111111111111111111111111111111111',
       timestamp: Math.floor(Date.now() / 1000),
     };
+  }
+
+  override async getCode(address: `0x${string}`): Promise<`0x${string}`> {
+    if (address.toLowerCase() === baseProfile.factory.toLowerCase()) {
+      return FIXTURE_RUNTIME_CODE.factory;
+    }
+    if (address.toLowerCase() === baseProfile.quoterV2.toLowerCase()) {
+      return FIXTURE_RUNTIME_CODE.quoterV2;
+    }
+    if (address.toLowerCase() === baseProfile.pool.toLowerCase()) {
+      return FIXTURE_RUNTIME_CODE.pool;
+    }
+    throw new Error(`Unexpected fixture code request ${address}`);
   }
 
   override async call(_to: `0x${string}`, data: `0x${string}`): Promise<`0x${string}`> {
@@ -127,7 +153,7 @@ class FixtureRpc extends AerodromeSlipstreamRpcClient {
 }
 
 describe('Aerodrome Slipstream Base market evidence', () => {
-  it('pins Aerodrome’s reviewed Base WETH/USDC CL100 identity', () => {
+  it('pins Aerodrome’s allowlisted Base WETH/USDC CL100 identity', () => {
     expect(AERODROME_SLIPSTREAM_WETH_USDC).toMatchObject({
       pool: '0xb2cc224c1c9feE385f8ad6a55b4d94E92359DC59',
       tickSpacing: 100,
@@ -142,6 +168,29 @@ describe('Aerodrome Slipstream Base market evidence', () => {
       market: 'WETH/USDC',
       quoteAmountsToken0: [1, 10, 100],
     });
+    expect(aerodromeSlipstreamWethUsdcProfile().codeIdentity).toEqual({
+      factory: '0x7340cf80843bd721bcaefbfc050e38304cb4174c239e6e914e3056f27f39b11c',
+      quoterV2: '0xfb0ab713266d089d5b6ac48d50455c4fadc9cd49a1efcc83a091e7c2e48dad0e',
+      pool: '0xacd6710f7037ad095b1e4d5f8ee5b2681069cb4dd316e77e4e0cb8f85716a2a1',
+    });
+  });
+
+  it.each(listReviewedAerodromeSlipstreamProfiles())(
+    'requires a complete code identity for allowlisted pool $id',
+    (profile) => {
+      expect(() => assertAerodromeSlipstreamMarketProfile(profile)).not.toThrow();
+      expect(profile.codeIdentity).toEqual({
+        factory: expect.stringMatching(/^0x[0-9a-f]{64}$/),
+        quoterV2: expect.stringMatching(/^0x[0-9a-f]{64}$/),
+        pool: expect.stringMatching(/^0x[0-9a-f]{64}$/),
+      });
+    }
+  );
+
+  it('rejects a pool identifier outside the reviewed allowlist', () => {
+    expect(() => reviewedAerodromeSlipstreamProfile('unreviewed-aerodrome-pool')).toThrow(
+      'reviewed pool allowlist'
+    );
   });
 
   it('rejects an invalid Slipstream tick spacing before any RPC read', () => {
@@ -151,7 +200,7 @@ describe('Aerodrome Slipstream Base market evidence', () => {
   });
 
   it('returns block-pinned Slipstream evidence with provenance and live fee checks', async () => {
-    const snapshot = await getAerodromeSlipstreamMarketSnapshot({
+    const snapshot = await getAerodromeSlipstreamMarketSnapshotForProfile(baseProfile, {
       rpc: new FixtureRpc(),
       nowMs: Date.now(),
     });
@@ -167,11 +216,29 @@ describe('Aerodrome Slipstream Base market evidence', () => {
         pool: baseProfile.pool,
         tickSpacing: 100,
         feePips: 150,
+        codeIdentity: baseProfile.codeIdentity,
       },
       poolBalances: { token0: 0.000000000002, token1: 2 },
     });
     expect(snapshot.quotes[0]).toMatchObject({ amountIn: 1, amountOut: 1, priceImpactBps: 0 });
     expect(snapshot.quotes[1]).toMatchObject({ amountIn: 10, amountOut: 9.9 });
     expect(snapshot.quotes[1]?.priceImpactBps).toBeCloseTo(100, 8);
+  });
+
+  it('fails closed when an allowlisted pool runtime code no longer matches its pin', async () => {
+    const mismatchedProfile: AerodromeSlipstreamMarketProfile = {
+      ...baseProfile,
+      codeIdentity: {
+        ...baseProfile.codeIdentity,
+        pool: `0x${'00'.repeat(32)}`,
+      },
+    };
+
+    await expect(
+      getAerodromeSlipstreamMarketSnapshotForProfile(mismatchedProfile, {
+        rpc: new FixtureRpc(),
+        nowMs: Date.now(),
+      })
+    ).rejects.toThrow('pool runtime code');
   });
 });

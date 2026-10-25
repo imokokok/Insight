@@ -1,5 +1,5 @@
 import { getToolCreditCost } from '@/lib/billing/metering';
-import { getAerodromeSlipstreamMarketSnapshot } from '@/lib/dex/aerodromeSlipstream';
+import { getReviewedAerodromeSlipstreamMarketSnapshot } from '@/lib/dex/aerodromeSlipstream';
 import { getBaseUniswapV3MarketSnapshot } from '@/lib/dex/baseUniswapV3';
 import {
   getHyperliquidPerpMarketSnapshot,
@@ -19,7 +19,8 @@ jest.mock('@/lib/dex/baseUniswapV3', () => ({
   getBaseUniswapV3MarketSnapshot: jest.fn(),
 }));
 jest.mock('@/lib/dex/aerodromeSlipstream', () => ({
-  getAerodromeSlipstreamMarketSnapshot: jest.fn(),
+  ...jest.requireActual('@/lib/dex/aerodromeSlipstream'),
+  getReviewedAerodromeSlipstreamMarketSnapshot: jest.fn(),
 }));
 jest.mock('@/lib/dex/solanaJupiterRoute', () => ({
   getSolanaJupiterRouteSnapshot: jest.fn(),
@@ -32,8 +33,8 @@ jest.mock('@/lib/dex/hyperliquidPerpMarket', () => ({
 const mockedBaseSnapshot = getBaseUniswapV3MarketSnapshot as jest.MockedFunction<
   typeof getBaseUniswapV3MarketSnapshot
 >;
-const mockedAerodromeSnapshot = getAerodromeSlipstreamMarketSnapshot as jest.MockedFunction<
-  typeof getAerodromeSlipstreamMarketSnapshot
+const mockedAerodromeSnapshot = getReviewedAerodromeSlipstreamMarketSnapshot as jest.MockedFunction<
+  typeof getReviewedAerodromeSlipstreamMarketSnapshot
 >;
 const mockedSolanaSnapshot = getSolanaJupiterRouteSnapshot as jest.MockedFunction<
   typeof getSolanaJupiterRouteSnapshot
@@ -63,6 +64,11 @@ describe('additional DEX market MCP tools', () => {
     );
     expect(getBaseDexMarketTool.parameters.safeParse({}).success).toBe(true);
     expect(getAerodromeSlipstreamMarketTool.parameters.safeParse({}).success).toBe(true);
+    expect(
+      getAerodromeSlipstreamMarketTool.parameters.safeParse({
+        profileId: 'unreviewed-aerodrome-pool',
+      }).success
+    ).toBe(false);
     expect(getSolanaDexRouteTool.parameters.safeParse({}).success).toBe(true);
     expect(getHyperliquidPerpMarketTool.parameters.safeParse({}).data).toEqual({ market: 'BTC' });
     expect(getHyperliquidPerpMarketTool.parameters.safeParse({ market: 'SOL' }).success).toBe(
@@ -127,6 +133,11 @@ describe('additional DEX market MCP tools', () => {
         token1: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
         tickSpacing: 100,
         feePips: 150,
+        codeIdentity: {
+          factory: `0x${'1'.repeat(64)}`,
+          quoterV2: `0x${'2'.repeat(64)}`,
+          pool: `0x${'3'.repeat(64)}`,
+        },
       },
       spot: { tick: 0, token1PerToken0: 1_000_000_000_000 },
       twap: {
@@ -142,6 +153,9 @@ describe('additional DEX market MCP tools', () => {
 
     const result = JSON.parse(await getAerodromeSlipstreamMarketTool.handler({}));
     expect(result.venue).toBe('aerodrome-slipstream');
+    expect(mockedAerodromeSnapshot).toHaveBeenCalledWith(
+      'base-aerodrome-slipstream-weth-usdc-cl100'
+    );
     expect(result.caveats).toContain(
       'feePips is the pool fee read at the pinned block and can change with Aerodrome fee configuration.'
     );

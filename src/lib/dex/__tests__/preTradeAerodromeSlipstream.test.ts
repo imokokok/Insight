@@ -40,6 +40,11 @@ const snapshot = {
     token1: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
     tickSpacing: 100,
     feePips: 150,
+    codeIdentity: {
+      factory: '0x7340cf80843bd721bcaefbfc050e38304cb4174c239e6e914e3056f27f39b11c',
+      quoterV2: '0xfb0ab713266d089d5b6ac48d50455c4fadc9cd49a1efcc83a091e7c2e48dad0e',
+      pool: '0xacd6710f7037ad095b1e4d5f8ee5b2681069cb4dd316e77e4e0cb8f85716a2a1',
+    },
   },
   spot: { tick: 1, token1PerToken0: 2000 },
   twap: { windowSeconds: 1800, tick: 1, token1PerToken0: 1999, deviationBpsFromSpot: 5 },
@@ -80,6 +85,28 @@ describe('reviewed Aerodrome Slipstream pre-trade evidence', () => {
       quoteAmountsToken0Raw: [1250000000000000000n],
     });
     expect(mockedSnapshot.mock.calls[0]?.[1]).toMatchObject({ cache: false });
+  });
+
+  it('binds an explicitly named reviewed profile to the same exact route', async () => {
+    await getReviewedAerodromeSlipstreamPreTradeEvidence({
+      ...REQUEST,
+      profileId: 'base-aerodrome-slipstream-weth-usdc-cl100',
+    });
+
+    expect(mockedSnapshot.mock.calls[0]?.[0]).toMatchObject({
+      id: expect.stringContaining('base-aerodrome-slipstream-weth-usdc-cl100-pretrade-'),
+    });
+  });
+
+  it('fails closed when a named reviewed profile does not match the requested route', async () => {
+    await expect(
+      getReviewedAerodromeSlipstreamPreTradeEvidence({
+        ...REQUEST,
+        profileId: 'base-aerodrome-slipstream-weth-usdc-cl100',
+        destinationAsset: 'WETH',
+      })
+    ).rejects.toThrow('No reviewed Aerodrome Slipstream pre-trade profile');
+    expect(mockedSnapshot).not.toHaveBeenCalled();
   });
 
   it('rejects unreviewed directions or native-asset aliases rather than substituting a route', async () => {

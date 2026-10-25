@@ -1,21 +1,26 @@
 import { parseUnits } from 'viem';
 
 import {
-  AERODROME_SLIPSTREAM_CHAIN_ID,
-  aerodromeSlipstreamWethUsdcProfile,
+  findReviewedAerodromeSlipstreamProfile,
   getAerodromeSlipstreamMarketSnapshotForProfile,
+  reviewedAerodromeSlipstreamProfile,
   type AerodromeSlipstreamRpcClient,
   type AerodromeSlipstreamMarketProfile,
   type AerodromeSlipstreamMarketSnapshot,
+  type ReviewedAerodromeSlipstreamProfileId,
 } from './aerodromeSlipstream';
 
-export type ReviewedAerodromeSlipstreamPreTradeProfile =
-  'base-aerodrome-slipstream-weth-usdc-cl100';
+export type ReviewedAerodromeSlipstreamPreTradeProfile = ReviewedAerodromeSlipstreamProfileId;
 
 export interface ReviewedAerodromeSlipstreamPreTradeRequest {
   chainId: number;
   asset: string;
   destinationAsset: string | undefined;
+  /**
+   * Optional explicit reviewed pool identity. Without it, a route must match
+   * exactly one allowlisted profile; ambiguous routes fail closed.
+   */
+  profileId?: ReviewedAerodromeSlipstreamProfileId;
   /** Exact WETH input in human-readable decimal units. */
   amountIn: string;
 }
@@ -29,7 +34,7 @@ export interface ReviewedAerodromeSlipstreamPreTradeEvidence {
   block: AerodromeSlipstreamMarketSnapshot['block'];
   contracts: Pick<
     AerodromeSlipstreamMarketSnapshot['contracts'],
-    'factory' | 'quoterV2' | 'pool' | 'tickSpacing' | 'feePips'
+    'factory' | 'quoterV2' | 'pool' | 'tickSpacing' | 'feePips' | 'codeIdentity'
   >;
   quote: AerodromeSlipstreamMarketSnapshot['quotes'][number];
   spotToken1PerToken0: number;
@@ -47,17 +52,26 @@ function selectProfile(request: ReviewedAerodromeSlipstreamPreTradeRequest): {
   profile: ReviewedAerodromeSlipstreamPreTradeProfile;
   definition: AerodromeSlipstreamMarketProfile;
 } | null {
-  if (
-    request.chainId === AERODROME_SLIPSTREAM_CHAIN_ID &&
-    normalized(request.asset) === 'WETH' &&
-    normalized(request.destinationAsset) === 'USDC'
-  ) {
-    return {
-      profile: 'base-aerodrome-slipstream-weth-usdc-cl100',
-      definition: aerodromeSlipstreamWethUsdcProfile(),
-    };
+  const route = {
+    chainId: request.chainId,
+    tokenInSymbol: normalized(request.asset),
+    tokenOutSymbol: normalized(request.destinationAsset),
+  };
+  if (request.profileId) {
+    const definition = reviewedAerodromeSlipstreamProfile(request.profileId);
+    if (
+      definition.chainId !== route.chainId ||
+      definition.token0.symbol.toUpperCase() !== route.tokenInSymbol ||
+      definition.token1.symbol.toUpperCase() !== route.tokenOutSymbol
+    ) {
+      return null;
+    }
+    return { profile: request.profileId, definition };
   }
-  return null;
+  const definition = findReviewedAerodromeSlipstreamProfile(route);
+  return definition
+    ? { profile: definition.id as ReviewedAerodromeSlipstreamPreTradeProfile, definition }
+    : null;
 }
 
 function exactAmountInRaw(amountIn: string, decimals: number): bigint {
@@ -125,6 +139,7 @@ export async function getReviewedAerodromeSlipstreamPreTradeEvidence(
       pool: snapshot.contracts.pool,
       tickSpacing: snapshot.contracts.tickSpacing,
       feePips: snapshot.contracts.feePips,
+      codeIdentity: snapshot.contracts.codeIdentity,
     },
     quote,
     spotToken1PerToken0: snapshot.spot.token1PerToken0,

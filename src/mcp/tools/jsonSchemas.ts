@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
+import { REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS } from '@/lib/dex/aerodromeSlipstream';
 import { STABLECOINS } from '@/lib/stablecoins/config';
 import { WRAPPED_ASSETS } from '@/lib/wrapped-assets/config';
 import { BLOCKCHAIN_VALUES, ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
@@ -266,8 +267,13 @@ export const MonadDexMarketJsonSchema = z.object({});
 /** Wire schema for the one reviewed WETH/USDC Base DEX market. */
 export const BaseDexMarketJsonSchema = z.object({});
 
-/** Wire schema for the reviewed Aerodrome Slipstream Base market. */
-export const AerodromeSlipstreamMarketJsonSchema = z.object({});
+/** Wire schema for a named allowlisted Aerodrome Slipstream Base market. */
+export const AerodromeSlipstreamMarketJsonSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
+});
 
 /** Wire schema for the Base-only pre-signing lending gate. */
 export const BaseLendingGuardJsonSchema = z
@@ -508,8 +514,12 @@ export const ExecutionPreflightJsonSchema = PreTradeSafetyJsonSchema.extend({
     ),
 });
 
-/** Wire schema for a user-signable transaction against the reviewed Base pool. */
+/** Wire schema for a user-signable transaction against one reviewed Base pool. */
 export const AerodromeSlipstreamSwapPreparationJsonSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
   amountIn: z
     .string()
     .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
