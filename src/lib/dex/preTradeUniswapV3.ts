@@ -2,13 +2,18 @@ import { parseUnits } from 'viem';
 
 import { baseUniswapV3WethUsdcProfile } from './baseUniswapV3';
 import { monadUniswapV3WmonUsdcProfile } from './monadUniswapV3';
+import { reviewedPancakeSwapV3Profile } from './pancakeSwapV3';
 import {
   getUniswapV3MarketSnapshot,
   type UniswapV3MarketProfile,
   type UniswapV3MarketSnapshot,
+  type UniswapV3CompatibleVenue,
 } from './uniswapV3Market';
 
-export type ReviewedUniswapV3PreTradeProfile = 'monad-wmon-usdc' | 'base-weth-usdc';
+export type ReviewedUniswapV3PreTradeProfile =
+  | 'monad-wmon-usdc'
+  | 'base-weth-usdc'
+  | 'base-pancakeswap-v3-usdc-usdt';
 
 export interface ReviewedUniswapV3PreTradeRequest {
   chainId: number;
@@ -20,12 +25,15 @@ export interface ReviewedUniswapV3PreTradeRequest {
 
 export interface ReviewedUniswapV3PreTradeEvidence {
   profile: ReviewedUniswapV3PreTradeProfile;
-  venue: 'uniswap-v3';
+  venue: UniswapV3CompatibleVenue;
   market: string;
   sourceFreshnessSeconds: number;
   observedAt: string;
   block: UniswapV3MarketSnapshot['block'];
-  contracts: Pick<UniswapV3MarketSnapshot['contracts'], 'pool' | 'quoterV2' | 'feeTier'>;
+  contracts: Pick<
+    UniswapV3MarketSnapshot['contracts'],
+    'factory' | 'pool' | 'quoterV2' | 'feeTier' | 'codeIdentity'
+  >;
   quote: UniswapV3MarketSnapshot['quotes'][number];
   spotToken1PerToken0: number;
   twapToken1PerToken0: number;
@@ -49,6 +57,12 @@ function selectProfile(
   if (request.chainId === 8453 && (asset === 'ETH' || asset === 'WETH') && destination === 'USDC') {
     return { profile: 'base-weth-usdc', definition: baseUniswapV3WethUsdcProfile() };
   }
+  if (request.chainId === 8453 && asset === 'USDC' && destination === 'USDT') {
+    return {
+      profile: 'base-pancakeswap-v3-usdc-usdt',
+      definition: reviewedPancakeSwapV3Profile('base-pancakeswap-v3-usdc-usdt-100'),
+    };
+  }
   return null;
 }
 
@@ -69,10 +83,9 @@ function exactAmountInRaw(amountIn: string, decimals: number): bigint {
 
 /**
  * Obtain a block-pinned, exact-notional quote from one reviewed Uniswap V3
- * market.  This deliberately accepts only the two pairs reviewed for the
- * first pre-trade release and only token0 -> token1: it must never silently
- * substitute a pool, reverse a pair, or turn generic DEX data into evidence
- * about the caller's declared trade.
+ * market. It deliberately accepts only the reviewed, forward-direction
+ * markets: it must never silently substitute a pool, reverse a pair, or turn
+ * generic DEX data into evidence about the caller's declared trade.
  */
 export async function getReviewedUniswapV3PreTradeEvidence(
   request: ReviewedUniswapV3PreTradeRequest,
@@ -105,9 +118,11 @@ export async function getReviewedUniswapV3PreTradeEvidence(
     observedAt: snapshot.observedAt,
     block: snapshot.block,
     contracts: {
+      factory: snapshot.contracts.factory,
       pool: snapshot.contracts.pool,
       quoterV2: snapshot.contracts.quoterV2,
       feeTier: snapshot.contracts.feeTier,
+      ...(snapshot.contracts.codeIdentity ? { codeIdentity: snapshot.contracts.codeIdentity } : {}),
     },
     quote,
     spotToken1PerToken0: snapshot.spot.token1PerToken0,

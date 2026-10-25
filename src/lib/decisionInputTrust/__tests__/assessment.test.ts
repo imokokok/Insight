@@ -130,6 +130,7 @@ const reviewedBaseQuote: ReviewedUniswapV3PreTradeEvidence = {
     timestamp: '2026-10-13T06:29:58.000Z',
   },
   contracts: {
+    factory: '0x0000000000000000000000000000000000000002',
     pool: '0x0000000000000000000000000000000000000003',
     quoterV2: '0x0000000000000000000000000000000000000004',
     feeTier: 3_000,

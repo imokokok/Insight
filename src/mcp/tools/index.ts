@@ -14,7 +14,9 @@ import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
 import { getCrossChainSpreadsTool } from './crossChainTools';
 import {
   getAerodromeSlipstreamMarketTool,
+  getPancakeSwapV3MarketTool,
   getBaseDexMarketTool,
+  getBaseDexVenueIntegrationsTool,
   getHyperliquidPerpMarketTool,
   getMonadDexMarketTool,
   getSolanaDexRouteTool,
@@ -34,8 +36,11 @@ import {
 import {
   AerodromeSlipstreamMarketJsonSchema,
   AerodromeSlipstreamSwapPreparationJsonSchema,
+  PancakeSwapV3MarketJsonSchema,
+  PancakeSwapV3SwapPreparationJsonSchema,
   AnomaliesJsonSchema,
   BaseDexMarketJsonSchema,
+  BaseDexVenueIntegrationJsonSchema,
   BaseLendingGuardExactJsonSchema,
   BaseLendingGuardJsonSchema,
   MonadLendingGuardExactJsonSchema,
@@ -88,6 +93,7 @@ import {
 } from './oracleTools';
 import { oracleWatchHistoryTool } from './oracleWatchHistoryTools';
 import { oracleWatchTool } from './oracleWatchTools';
+import { preparePancakeSwapV3SwapTool } from './pancakeSwapV3Tools';
 import { preTradeSafetyCheckTool } from './preTradeSafetyTools';
 import { getProtocolOracleExposureTool, getProtocolsTool } from './protocolTools';
 import { getDailyReportTool, getIncidentsTool } from './reportTools';
@@ -145,8 +151,11 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getMetricsTool,
   getMonadDexMarketTool,
   getBaseDexMarketTool,
+  getBaseDexVenueIntegrationsTool,
   getAerodromeSlipstreamMarketTool,
   prepareAerodromeSlipstreamSwapTool,
+  getPancakeSwapV3MarketTool,
+  preparePancakeSwapV3SwapTool,
   getSolanaDexRouteTool,
   getHyperliquidPerpMarketTool,
   prepareHyperliquidPerpOrderTool,
@@ -367,6 +376,11 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  get_base_dex_venue_integrations: BaseDexVenueIntegrationJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
   get_aerodrome_slipstream_market: AerodromeSlipstreamMarketJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
@@ -378,6 +392,16 @@ const JSON_SCHEMA_MAP: Record<
       properties?: Record<string, unknown>;
       required?: string[];
     },
+  get_pancakeswap_v3_market: PancakeSwapV3MarketJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  prepare_pancakeswap_v3_swap: PancakeSwapV3SwapPreparationJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
   base_lending_guard: BaseLendingGuardJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;

@@ -20,6 +20,13 @@ const BASE_REQUEST: ReviewedUniswapV3PreTradeRequest = {
   amountIn: '1.25',
 };
 
+const PANCAKE_REQUEST: ReviewedUniswapV3PreTradeRequest = {
+  chainId: 8453,
+  asset: 'USDC',
+  destinationAsset: 'USDT',
+  amountIn: '1250.5',
+};
+
 const snapshot = {
   source: 'dex-market',
   venue: 'uniswap-v3',
@@ -39,6 +46,11 @@ const snapshot = {
     token0: '0x4200000000000000000000000000000000000006',
     token1: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
     feeTier: 3_000,
+    codeIdentity: {
+      factory: `0x${'aa'.repeat(32)}`,
+      quoterV2: `0x${'bb'.repeat(32)}`,
+      pool: `0x${'cc'.repeat(32)}`,
+    },
   },
   spot: { tick: 1, token1PerToken0: 2000 },
   twap: { windowSeconds: 1800, tick: 1, token1PerToken0: 1999, deviationBpsFromSpot: 5 },
@@ -69,6 +81,10 @@ describe('reviewed Uniswap V3 pre-trade evidence', () => {
     expect(result).toMatchObject({
       profile: 'base-weth-usdc',
       market: 'WETH/USDC',
+      contracts: {
+        factory: '0x33128a8fC17869897dcE68Ed026d694621f6FDfD',
+        codeIdentity: { factory: `0x${'aa'.repeat(32)}` },
+      },
       quote: { amountInRaw: '1250000000000000000' },
     });
     const profile = mockedSnapshot.mock.calls[0]?.[0];
@@ -78,6 +94,23 @@ describe('reviewed Uniswap V3 pre-trade evidence', () => {
       quoteAmountsToken0Raw: [1250000000000000000n],
     });
     expect(mockedSnapshot.mock.calls[0]?.[1]).toMatchObject({ cache: false });
+  });
+
+  it('selects only the allowlisted PancakeSwap V3 USDC/USDT direction on Base', async () => {
+    const result = await getReviewedUniswapV3PreTradeEvidence(PANCAKE_REQUEST);
+
+    expect(result).toMatchObject({
+      profile: 'base-pancakeswap-v3-usdc-usdt',
+      venue: 'uniswap-v3',
+      market: 'WETH/USDC',
+    });
+    const profile = mockedSnapshot.mock.calls[0]?.[0];
+    expect(profile).toMatchObject({
+      id: expect.stringContaining('1250500000'),
+      venue: 'pancakeswap-v3',
+      market: 'USDC/USDT',
+      quoteAmountsToken0Raw: [1250500000n],
+    });
   });
 
   it('rejects an unreviewed route instead of substituting another pool or direction', async () => {

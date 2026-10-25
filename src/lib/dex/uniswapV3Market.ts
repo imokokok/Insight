@@ -1,11 +1,35 @@
-import { decodeFunctionResult, encodeFunctionData, getAddress, isAddress, parseAbi } from 'viem';
+import {
+  decodeFunctionResult,
+  encodeFunctionData,
+  getAddress,
+  isAddress,
+  keccak256,
+  parseAbi,
+} from 'viem';
 
 export type UniswapV3Hex = `0x${string}`;
+/**
+ * Protocols whose reviewed pools expose the canonical Uniswap V3 pool and
+ * quoter interfaces.  This is deliberately a protocol label, not an ABI
+ * inference: every non-Uniswap deployment still needs its own identity pins.
+ */
+export type UniswapV3CompatibleVenue = 'uniswap-v3' | 'pancakeswap-v3';
 
 export interface UniswapV3MarketToken {
   address: UniswapV3Hex;
   symbol: string;
   decimals: number;
+}
+
+/**
+ * Runtime bytecode pins for a reviewed V3 deployment.  A shared ABI is not
+ * sufficient provenance: forks can retain the ABI while replacing the
+ * implementation or periphery contracts.
+ */
+export interface UniswapV3CodeIdentity {
+  factory: UniswapV3Hex;
+  quoterV2: UniswapV3Hex;
+  pool: UniswapV3Hex;
 }
 
 /**
@@ -18,11 +42,13 @@ export interface UniswapV3MarketToken {
 export interface UniswapV3MarketProfile {
   id: string;
   chainId: number;
-  venue: 'uniswap-v3';
+  venue: UniswapV3CompatibleVenue;
   market: string;
   factory: UniswapV3Hex;
   quoterV2: UniswapV3Hex;
   pool: UniswapV3Hex;
+  /** Optional for legacy profiles; mandatory for new allowlisted integrations. */
+  codeIdentity?: UniswapV3CodeIdentity;
   token0: UniswapV3MarketToken;
   token1: UniswapV3MarketToken;
   feeTier: number;
@@ -74,7 +100,7 @@ export interface UniswapV3MarketQuote {
 
 export interface UniswapV3MarketSnapshot {
   source: 'dex-market';
-  venue: 'uniswap-v3';
+  venue: UniswapV3CompatibleVenue;
   chainId: number;
   market: string;
   sourceFreshnessSeconds: number;
@@ -91,6 +117,8 @@ export interface UniswapV3MarketSnapshot {
     token0: UniswapV3Hex;
     token1: UniswapV3Hex;
     feeTier: number;
+    /** Runtime identities re-verified at the pinned block when configured. */
+    codeIdentity?: UniswapV3CodeIdentity;
   };
   spot: {
     tick: number;
@@ -168,7 +196,7 @@ export function assertUniswapV3MarketProfile(profile: UniswapV3MarketProfile): v
   if (!profile.id || !profile.market || !isSafePositiveInteger(profile.chainId)) {
     throw new UniswapV3MarketError('Uniswap V3 market profile has invalid identity metadata.');
   }
-  if (profile.venue !== 'uniswap-v3') {
+  if (profile.venue !== 'uniswap-v3' && profile.venue !== 'pancakeswap-v3') {
     throw new UniswapV3MarketError('Uniswap V3 market profile has an unsupported venue.');
   }
   for (const [label, address] of [
@@ -221,6 +249,12 @@ export function assertUniswapV3MarketProfile(profile: UniswapV3MarketProfile): v
       ))
   ) {
     throw new UniswapV3MarketError('Uniswap V3 market profile has invalid numeric configuration.');
+  }
+  if (
+    profile.codeIdentity &&
+    Object.values(profile.codeIdentity).some((hash) => !/^0x[0-9a-fA-F]{64}$/.test(hash))
+  ) {
+    throw new UniswapV3MarketError('Uniswap V3 market profile has an invalid code identity.');
   }
   if (
     profile.rpcEndpoints.length === 0 ||
@@ -513,6 +547,31 @@ async function fetchSnapshot(
     profile.quoteAmountsToken0!.map(
       (amount) => BigInt(amount) * 10n ** BigInt(profile.token0.decimals)
     );
+  const [marketReads, quoteData, runtimeCodes] = await Promise.all([
+    Promise.all([
+      rpc.call(profile.factory, encodeGetPool(profile), blockTag, signal),
+      rpc.call(profile.pool, encodePoolCall('token0'), blockTag, signal),
+      rpc.call(profile.pool, encodePoolCall('token1'), blockTag, signal),
+      rpc.call(profile.pool, encodePoolCall('fee'), blockTag, signal),
+      rpc.call(profile.pool, encodePoolCall('liquidity'), blockTag, signal),
+      rpc.call(profile.pool, encodePoolCall('slot0'), blockTag, signal),
+      rpc.call(profile.pool, encodeObserve(profile), blockTag, signal),
+      rpc.call(profile.token0.address, encodeBalanceOf(profile.pool), blockTag, signal),
+      rpc.call(profile.token1.address, encodeBalanceOf(profile.pool), blockTag, signal),
+    ]),
+    Promise.all(
+      quoteInputs.map((amount) =>
+        rpc.call(profile.quoterV2, encodeQuote(profile, amount), blockTag, signal)
+      )
+    ),
+    profile.codeIdentity
+      ? Promise.all([
+          rpc.getCode(profile.factory, blockTag, signal),
+          rpc.getCode(profile.quoterV2, blockTag, signal),
+          rpc.getCode(profile.pool, blockTag, signal),
+        ])
+      : Promise.resolve(undefined),
+  ]);
   const [
     factoryPoolData,
     token0Data,
@@ -523,21 +582,19 @@ async function fetchSnapshot(
     observeData,
     token0BalanceData,
     token1BalanceData,
-    ...quoteData
-  ] = await Promise.all([
-    rpc.call(profile.factory, encodeGetPool(profile), blockTag, signal),
-    rpc.call(profile.pool, encodePoolCall('token0'), blockTag, signal),
-    rpc.call(profile.pool, encodePoolCall('token1'), blockTag, signal),
-    rpc.call(profile.pool, encodePoolCall('fee'), blockTag, signal),
-    rpc.call(profile.pool, encodePoolCall('liquidity'), blockTag, signal),
-    rpc.call(profile.pool, encodePoolCall('slot0'), blockTag, signal),
-    rpc.call(profile.pool, encodeObserve(profile), blockTag, signal),
-    rpc.call(profile.token0.address, encodeBalanceOf(profile.pool), blockTag, signal),
-    rpc.call(profile.token1.address, encodeBalanceOf(profile.pool), blockTag, signal),
-    ...quoteInputs.map((amount) =>
-      rpc.call(profile.quoterV2, encodeQuote(profile, amount), blockTag, signal)
-    ),
-  ]);
+  ] = marketReads;
+  if (
+    profile.codeIdentity &&
+    (!runtimeCodes ||
+      runtimeCodes.some((code) => code === '0x') ||
+      keccak256(runtimeCodes[0]) !== profile.codeIdentity.factory ||
+      keccak256(runtimeCodes[1]) !== profile.codeIdentity.quoterV2 ||
+      keccak256(runtimeCodes[2]) !== profile.codeIdentity.pool)
+  ) {
+    throw new UniswapV3MarketError(
+      'Uniswap V3 runtime code does not match the reviewed deployment.'
+    );
+  }
 
   const factoryPool = decodeAddressResult(factoryPoolData, FACTORY_ABI, 'getPool');
   const token0 = decodeAddressResult(token0Data, POOL_ABI, 'token0');
@@ -635,7 +692,7 @@ async function fetchSnapshot(
 
   return {
     source: 'dex-market',
-    venue: 'uniswap-v3',
+    venue: profile.venue,
     chainId: profile.chainId,
     market: profile.market,
     sourceFreshnessSeconds,
@@ -652,6 +709,15 @@ async function fetchSnapshot(
       token0,
       token1,
       feeTier: Number(fee),
+      ...(profile.codeIdentity
+        ? {
+            codeIdentity: {
+              factory: keccak256(runtimeCodes![0]),
+              quoterV2: keccak256(runtimeCodes![1]),
+              pool: keccak256(runtimeCodes![2]),
+            },
+          }
+        : {}),
     },
     spot: { tick: spotTick, token1PerToken0: spotPrice },
     twap: {

@@ -1,4 +1,5 @@
 import { getReviewedAerodromeSlipstreamMarketSnapshot } from '@/lib/dex/aerodromeSlipstream';
+import { getBaseDexVenueSnapshot } from '@/lib/dex/baseDexVenues';
 import { getBaseUniswapV3MarketSnapshot } from '@/lib/dex/baseUniswapV3';
 import {
   getHyperliquidPerpMarketSnapshot,
@@ -6,12 +7,15 @@ import {
 } from '@/lib/dex/hyperliquidPerpMarket';
 import { getMonadUniswapV3MarketSnapshot } from '@/lib/dex/monadUniswapV3';
 import { getMonadUniswapV3VolumeSummary } from '@/lib/dex/monadUniswapV3Volume';
+import { getReviewedPancakeSwapV3MarketSnapshot } from '@/lib/dex/pancakeSwapV3';
 import { getSolanaJupiterRouteSnapshot } from '@/lib/dex/solanaJupiterRoute';
 
 import { formatAsText } from './formatters';
 import {
   AerodromeSlipstreamMarketInputSchema,
+  PancakeSwapV3MarketInputSchema,
   BaseDexMarketInputSchema,
+  BaseDexVenueIntegrationInputSchema,
   HyperliquidPerpMarketInputSchema,
   MonadDexMarketInputSchema,
   SolanaDexRouteInputSchema,
@@ -65,6 +69,30 @@ export const getBaseDexMarketTool: McpToolDefinition<typeof BaseDexMarketInputSc
   },
 };
 
+/**
+ * Verifies the public deployment identities of heterogeneous Base DEXs without
+ * pretending their AMM models, hooks, or routers share one swap ABI.
+ */
+export const getBaseDexVenueIntegrationsTool: McpToolDefinition<
+  typeof BaseDexVenueIntegrationInputSchema
+> = {
+  name: 'get_base_dex_venue_integrations',
+  description:
+    'Get block-pinned code-identity evidence for reviewed Base DEX deployments: Aerodrome Slipstream, PancakeSwap V3, Curve StableSwap, Maverick V2, QuickSwap V2 and Algebra V4, Uniswap V4, and PancakeSwap Infinity. The response distinguishes currently enabled unsigned-calldata lanes from venues that remain read-only until their pool-specific model, hook/plugin, and tests are reviewed.',
+  parameters: BaseDexVenueIntegrationInputSchema,
+  handler: async ({ venues }) => {
+    const snapshot = await getBaseDexVenueSnapshot(venues);
+    return formatAsText({
+      ...snapshot,
+      caveats: [
+        'Deployment identity proves only that the reviewed public contracts match their pinned bytecode at one Base block; it is not a liquidity, price, security, or execution guarantee.',
+        'No caller-controlled contract or pool address is accepted. Dynamic-hook, dynamic-fee, bin, and Curve pool semantics remain fail-closed until a separately allowlisted pool adapter passes review and tests.',
+        'All transaction preparation returns unsigned calldata only; Insight never signs, relays, or broadcasts user transactions.',
+      ],
+    });
+  },
+};
+
 /** Returns block-pinned evidence for one allowlisted Aerodrome pool on Base. */
 export const getAerodromeSlipstreamMarketTool: McpToolDefinition<
   typeof AerodromeSlipstreamMarketInputSchema
@@ -88,6 +116,28 @@ export const getAerodromeSlipstreamMarketTool: McpToolDefinition<
     });
   },
 };
+
+/** Returns block-pinned evidence for one allowlisted PancakeSwap V3 Base pool. */
+export const getPancakeSwapV3MarketTool: McpToolDefinition<typeof PancakeSwapV3MarketInputSchema> =
+  {
+    name: 'get_pancakeswap_v3_market',
+    description:
+      'Get fresh, block-pinned market evidence for one allowlisted PancakeSwap V3 Base pool. The Factory, QuoterV2, and Pool runtime identities are re-verified at the quoted block. This is DEX venue context, not an oracle-consensus price.',
+    parameters: PancakeSwapV3MarketInputSchema,
+    handler: async ({ profileId }) => {
+      const snapshot = await getReviewedPancakeSwapV3MarketSnapshot(
+        profileId ?? 'base-pancakeswap-v3-usdc-usdt-100'
+      );
+      return formatAsText({
+        ...snapshot,
+        caveats: [
+          'DEX market evidence is not an oracle-consensus vote or a venue-independent fair price.',
+          'activeLiquidityRaw is V3 in-range liquidity; it is not token reserve TVL.',
+          'Only code-reviewed pool identifiers in Insight’s allowlist are admitted; arbitrary PancakeSwap pools and routes are rejected.',
+        ],
+      });
+    },
+  };
 
 /** Returns authenticated Jupiter route context for the reviewed SOL/USDC market. */
 export const getSolanaDexRouteTool: McpToolDefinition<typeof SolanaDexRouteInputSchema> = {
