@@ -31,3 +31,35 @@ describe('reportService.generateDailyReport', () => {
     expect(from).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('reportService.upsertHourlySnapshots', () => {
+  it('delegates conditional hourly writes to the database function', async () => {
+    const rpc = jest.fn().mockResolvedValue({ data: 1, error: null });
+    mockedCreateServiceRoleClient.mockReturnValue({ rpc } as never);
+
+    await expect(
+      reportService.upsertHourlySnapshots([
+        {
+          snapshotHour: new Date('2026-10-25T13:00:00.000Z'),
+          provider: 'dia',
+          symbol: 'ETH',
+          chainId: 1,
+          price: 3210.5,
+          isSuccess: true,
+        },
+      ])
+    ).resolves.toBe(1);
+
+    expect(rpc).toHaveBeenCalledWith('upsert_hourly_price_snapshots', {
+      p_rows: [
+        expect.objectContaining({
+          snapshot_hour: '2026-10-25T13:00:00.000Z',
+          provider: 'dia',
+          symbol: 'ETH',
+          chain_id: 1,
+          is_success: true,
+        }),
+      ],
+    });
+  });
+});

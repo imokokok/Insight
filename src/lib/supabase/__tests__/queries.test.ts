@@ -250,6 +250,14 @@ describe('getPriceRecords', () => {
 
     expect(result).toBeNull();
   });
+
+  it('caps an internal price-record history read to a bounded page', async () => {
+    mockQuery._resolveWith({ data: [], error: null });
+
+    await queries.getPriceRecords({ limit: 100_000, offset: 0 });
+
+    expect(mockQuery.range).toHaveBeenCalledWith(0, 999);
+  });
 });
 
 describe('User Profile operations - getUserProfile', () => {

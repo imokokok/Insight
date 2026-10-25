@@ -35,6 +35,11 @@ const ORACLE_FEEDS_PAGE_SIZE = 500;
 // default 30-second queue deadline.
 const ORACLE_FEEDS_QUERY_TIMEOUT_MS = 5_000;
 
+// This is an internal helper, but it is shared by cache-backed history paths.
+// Keep a missing/oversized caller limit from becoming an unbounded PostgREST
+// scan and response. Public export endpoints apply their own tighter policy.
+const MAX_PRICE_RECORDS_QUERY_LIMIT = 1_000;
+
 // Core projection for every active-registry read. The resolver hot path
 // (price fetches, consensus, snapshot collection) and the feed-health
 // surfaces only consume these columns; the lifecycle/audit columns
@@ -322,12 +327,16 @@ export class DatabaseQueries {
         query = query.lte('timestamp', endTimeStr);
       }
 
-      if (filters.offset && filters.limit) {
-        query = query.range(filters.offset, filters.offset + filters.limit - 1);
-      } else if (filters.offset) {
-        query = query.range(filters.offset, filters.offset + 99);
-      } else if (filters.limit) {
-        query = query.limit(filters.limit);
+      const offset = Number.isFinite(filters.offset) ? Math.max(0, Math.floor(filters.offset!)) : 0;
+      const requestedLimit = Number.isFinite(filters.limit)
+        ? Math.floor(filters.limit!)
+        : MAX_PRICE_RECORDS_QUERY_LIMIT;
+      const limit = Math.min(Math.max(1, requestedLimit), MAX_PRICE_RECORDS_QUERY_LIMIT);
+
+      if (filters.offset !== undefined) {
+        query = query.range(offset, offset + limit - 1);
+      } else {
+        query = query.limit(limit);
       }
 
       const { data, error } = await query;

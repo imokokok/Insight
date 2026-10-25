@@ -79,23 +79,29 @@ class ReportService {
       error_message: input.errorMessage ?? null,
     }));
 
-    await retryIdempotentSupabaseWrite(async () => {
-      const { error } = await supabase.from('hourly_price_snapshots').upsert(rows, {
-        onConflict: 'snapshot_hour,provider,symbol,chain_id',
+    const written = await retryIdempotentSupabaseWrite(async () => {
+      // A given feed/hour is sampled four times.  The database function only
+      // writes the first result, unless it needs to replace a failure with a
+      // later success.  That keeps the hourly evidence useful without turning
+      // three ordinary repeat samples into table and index churn.
+      const { data, error } = await supabase.rpc('upsert_hourly_price_snapshots', {
+        p_rows: rows,
       });
 
       if (error) {
-        logger.error('Failed to upsert hourly snapshots', error);
+        logger.error('Failed to persist hourly snapshots', error);
         // Supabase PostgrestError is not a standard Error instance; normalize it
         // so the retry layer can identify its HTTP status and callers receive a
         // readable message instead of [object Object].
         throw new Error(
-          typeof error.message === 'string' ? error.message : 'Failed to upsert hourly snapshots'
+          typeof error.message === 'string' ? error.message : 'Failed to persist hourly snapshots'
         );
       }
+
+      return typeof data === 'number' && Number.isFinite(data) ? data : 0;
     }, 'upsert hourly price snapshots');
 
-    return rows.length;
+    return written;
   }
 
   async generateDailyReport(dateStr: string): Promise<DailyReportData> {
