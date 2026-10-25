@@ -2679,7 +2679,11 @@ paths:
             name: protocolId,
             in: query,
             required: true,
-            schema: { type: string, enum: [aave-v3-polygon, aave-v3-arbitrum, aave-v3-bnb, venus-core-bnb] },
+            schema:
+              {
+                type: string,
+                enum: [aave-v3-polygon, aave-v3-arbitrum, aave-v3-bnb, venus-core-bnb],
+              },
           }
         - {
             name: action,
@@ -2733,12 +2737,15 @@ paths:
                 transaction:
                   {
                     type: object,
-                    description: Exact unsigned direct EVM call with sender, nonce, and zero value.,
+                    description: Exact unsigned direct EVM call with sender,
+                    nonce,
+                    and zero value.,
                   }
       responses:
         '200':
           {
-            description: Complete decision, optionally carrying an attestation when an eligible attester is configured.,
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
           }
         '400': { $ref: '#/components/responses/ValidationError' }
         '402': { $ref: '#/components/responses/CreditExhausted' }
