@@ -1,4 +1,5 @@
 import { getToolCreditCost } from '@/lib/billing/metering';
+import { getAerodromeSlipstreamMarketSnapshot } from '@/lib/dex/aerodromeSlipstream';
 import { getBaseUniswapV3MarketSnapshot } from '@/lib/dex/baseUniswapV3';
 import {
   getHyperliquidPerpMarketSnapshot,
@@ -7,6 +8,7 @@ import {
 import { getSolanaJupiterRouteSnapshot } from '@/lib/dex/solanaJupiterRoute';
 
 import {
+  getAerodromeSlipstreamMarketTool,
   getBaseDexMarketTool,
   getHyperliquidPerpMarketTool,
   getSolanaDexRouteTool,
@@ -15,6 +17,9 @@ import { getToolDefinitions } from '../index';
 
 jest.mock('@/lib/dex/baseUniswapV3', () => ({
   getBaseUniswapV3MarketSnapshot: jest.fn(),
+}));
+jest.mock('@/lib/dex/aerodromeSlipstream', () => ({
+  getAerodromeSlipstreamMarketSnapshot: jest.fn(),
 }));
 jest.mock('@/lib/dex/solanaJupiterRoute', () => ({
   getSolanaJupiterRouteSnapshot: jest.fn(),
@@ -26,6 +31,9 @@ jest.mock('@/lib/dex/hyperliquidPerpMarket', () => ({
 
 const mockedBaseSnapshot = getBaseUniswapV3MarketSnapshot as jest.MockedFunction<
   typeof getBaseUniswapV3MarketSnapshot
+>;
+const mockedAerodromeSnapshot = getAerodromeSlipstreamMarketSnapshot as jest.MockedFunction<
+  typeof getAerodromeSlipstreamMarketSnapshot
 >;
 const mockedSolanaSnapshot = getSolanaJupiterRouteSnapshot as jest.MockedFunction<
   typeof getSolanaJupiterRouteSnapshot
@@ -43,22 +51,25 @@ describe('additional DEX market MCP tools', () => {
     mockedHyperliquidProfile.mockImplementation((market) => ({ coin: market }) as never);
   });
 
-  it('registers the reviewed Base, Solana, and Hyperliquid evidence tools at C1', () => {
+  it('registers the reviewed Base, Aerodrome, Solana, and Hyperliquid evidence tools at C1', () => {
     const names = getToolDefinitions().map((tool) => tool.name);
     expect(names).toEqual(
       expect.arrayContaining([
         'get_base_dex_market',
+        'get_aerodrome_slipstream_market',
         'get_solana_dex_route',
         'get_hyperliquid_perp_market',
       ])
     );
     expect(getBaseDexMarketTool.parameters.safeParse({}).success).toBe(true);
+    expect(getAerodromeSlipstreamMarketTool.parameters.safeParse({}).success).toBe(true);
     expect(getSolanaDexRouteTool.parameters.safeParse({}).success).toBe(true);
     expect(getHyperliquidPerpMarketTool.parameters.safeParse({}).data).toEqual({ market: 'BTC' });
     expect(getHyperliquidPerpMarketTool.parameters.safeParse({ market: 'SOL' }).success).toBe(
       false
     );
     expect(getToolCreditCost('get_base_dex_market')).toBe(0.5);
+    expect(getToolCreditCost('get_aerodrome_slipstream_market')).toBe(0.5);
     expect(getToolCreditCost('get_solana_dex_route')).toBe(0.5);
     expect(getToolCreditCost('get_hyperliquid_perp_market')).toBe(0.5);
   });
@@ -96,6 +107,43 @@ describe('additional DEX market MCP tools', () => {
     expect(result.market).toBe('WETH/USDC');
     expect(result.caveats).toContain(
       'DEX market evidence is not an oracle-consensus vote or a venue-independent fair price.'
+    );
+  });
+
+  it('reports Aerodrome’s pinned fee as venue context, not an oracle vote', async () => {
+    mockedAerodromeSnapshot.mockResolvedValue({
+      source: 'dex-market',
+      venue: 'aerodrome-slipstream',
+      chainId: 8453,
+      market: 'WETH/USDC',
+      sourceFreshnessSeconds: 2,
+      observedAt: '2026-10-25T00:00:02.000Z',
+      block: { number: '1', hash: `0x${'a'.repeat(64)}`, timestamp: '2026-10-25T00:00:00.000Z' },
+      contracts: {
+        factory: '0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A',
+        quoterV2: '0x254cF9E1E6e233aa1AC962CB9B05b2cfeAaE15b0',
+        pool: '0xb2cc224c1c9feE385f8ad6a55b4d94E92359DC59',
+        token0: '0x4200000000000000000000000000000000000006',
+        token1: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        tickSpacing: 100,
+        feePips: 150,
+      },
+      spot: { tick: 0, token1PerToken0: 1_000_000_000_000 },
+      twap: {
+        windowSeconds: 1_800,
+        tick: 0,
+        token1PerToken0: 1_000_000_000_000,
+        deviationBpsFromSpot: 0,
+      },
+      activeLiquidityRaw: '1',
+      poolBalances: { token0Raw: '1', token0: 1e-18, token1Raw: '1', token1: 0.000001 },
+      quotes: [],
+    });
+
+    const result = JSON.parse(await getAerodromeSlipstreamMarketTool.handler({}));
+    expect(result.venue).toBe('aerodrome-slipstream');
+    expect(result.caveats).toContain(
+      'feePips is the pool fee read at the pinned block and can change with Aerodrome fee configuration.'
     );
   });
 

@@ -1,3 +1,4 @@
+import type { ReviewedAerodromeSlipstreamPreTradeEvidence } from '@/lib/dex/preTradeAerodromeSlipstream';
 import type { ReviewedUniswapV3PreTradeEvidence } from '@/lib/dex/preTradeUniswapV3';
 import type { ManipCostAdvisory } from '@/lib/manipCost/baseline';
 import type { ChainlinkMarketReference } from '@/lib/marketReference/chainlink';
@@ -83,6 +84,7 @@ function assess(
     chainId?: number;
     evidenceUse?: 'staging' | 'customer';
     reviewedUniswapV3?: ReviewedUniswapV3PreTradeEvidence | null;
+    reviewedAerodromeSlipstream?: ReviewedAerodromeSlipstreamPreTradeEvidence | null;
   } = {}
 ) {
   return assessDecisionInput({
@@ -97,6 +99,7 @@ function assess(
     cex: overrides.cex === undefined ? cex : overrides.cex,
     dex: overrides.dex === undefined ? dex : overrides.dex,
     reviewedUniswapV3: overrides.reviewedUniswapV3,
+    reviewedAerodromeSlipstream: overrides.reviewedAerodromeSlipstream,
     evidenceUse: overrides.evidenceUse,
     now: NOW,
   });
@@ -130,6 +133,38 @@ const reviewedBaseQuote: ReviewedUniswapV3PreTradeEvidence = {
     pool: '0x0000000000000000000000000000000000000003',
     quoterV2: '0x0000000000000000000000000000000000000004',
     feeTier: 3_000,
+  },
+  quote: {
+    amountIn: 5,
+    amountInRaw: '5000000000000000000',
+    amountOut: 10_000,
+    amountOutRaw: '10000000000',
+    effectiveToken1PerToken0: 2000,
+    initializedTicksCrossed: 1,
+    priceImpactBps: 5,
+  },
+  spotToken1PerToken0: 2001,
+  twapToken1PerToken0: 2000,
+  twapDeviationBpsFromSpot: 5,
+};
+
+const reviewedAerodromeQuote: ReviewedAerodromeSlipstreamPreTradeEvidence = {
+  profile: 'base-aerodrome-slipstream-weth-usdc-cl100',
+  venue: 'aerodrome-slipstream',
+  market: 'WETH/USDC',
+  sourceFreshnessSeconds: 2,
+  observedAt: '2026-10-13T06:29:59.000Z',
+  block: {
+    number: '123456',
+    hash: `0x${'44'.repeat(32)}`,
+    timestamp: '2026-10-13T06:29:58.000Z',
+  },
+  contracts: {
+    factory: '0x0000000000000000000000000000000000000005',
+    quoterV2: '0x0000000000000000000000000000000000000006',
+    pool: '0x0000000000000000000000000000000000000007',
+    tickSpacing: 100,
+    feePips: 150,
   },
   quote: {
     amountIn: 5,
@@ -257,6 +292,35 @@ describe('assessDecisionInput', () => {
       profile: 'base-weth-usdc',
       amountInRaw: '5000000000000000000',
       pool: reviewedBaseQuote.contracts.pool,
+    });
+    expect(DecisionInputAssessmentSchema.safeParse(result).success).toBe(true);
+  });
+
+  it('uses reviewed Aerodrome Slipstream evidence for its exact Base WETH/USDC amount', () => {
+    const result = assess({
+      asset: 'WETH',
+      destinationAsset: 'USDC',
+      chainId: 8453,
+      chainlink: { ...chainlink, chainId: 8453 },
+      dex: null,
+      reviewedAerodromeSlipstream: reviewedAerodromeQuote,
+      request: {
+        reviewedAerodromeSlipstream: {
+          amountIn: '5',
+          maxQuoteDeviationBps: 50,
+          maxTwapDeviationBps: 50,
+        },
+      },
+    });
+
+    expect(result.status).toBe('SUFFICIENT');
+    expect(result.evidence.dexManipulationCost).toBeNull();
+    expect(result.evidence.reviewedAerodromeSlipstream).toMatchObject({
+      profile: 'base-aerodrome-slipstream-weth-usdc-cl100',
+      amountInRaw: '5000000000000000000',
+      pool: reviewedAerodromeQuote.contracts.pool,
+      tickSpacing: 100,
+      feePips: 150,
     });
     expect(DecisionInputAssessmentSchema.safeParse(result).success).toBe(true);
   });

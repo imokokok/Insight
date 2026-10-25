@@ -265,6 +265,9 @@ export const MonadDexMarketInputSchema = z.object({});
 /** No caller input: this tool exposes one reviewed Base DEX market only. */
 export const BaseDexMarketInputSchema = z.object({});
 
+/** No caller input: this tool exposes one reviewed Aerodrome Slipstream market only. */
+export const AerodromeSlipstreamMarketInputSchema = z.object({});
+
 /** No caller input: this tool exposes one reviewed Solana route market only. */
 export const SolanaDexRouteInputSchema = z.object({});
 
@@ -427,6 +430,31 @@ export const PreTradeSafetyInputSchema = z.object({
       maxQuoteAgeSeconds: z.number().int().min(1).max(300),
       quoteProvenance: DecisionInputQuoteProvenanceSchema.optional(),
       requireQuoteProvenance: z.boolean().optional(),
+      reviewedUniswapV3: z
+        .object({
+          amountIn: z
+            .string()
+            .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+            .max(128),
+          maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
+          maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+        })
+        .strict()
+        .optional(),
+      reviewedAerodromeSlipstream: z
+        .object({
+          amountIn: z
+            .string()
+            .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+            .max(128)
+            .describe(
+              'Exact WETH input for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 quote'
+            ),
+          maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
+          maxTwapDeviationBps: z.number().int().min(0).max(10_000),
+        })
+        .strict()
+        .optional(),
     })
     .optional()
     .describe(
@@ -461,6 +489,30 @@ export const ExecutionPreflightInputSchema = PreTradeSafetyInputSchema.extend({
   destinationAsset: SafeSymbolSchema.optional().describe(
     'Optional destination asset for a swap or action route, e.g. USDC. It is bound into the preflight context but does not synthesize a venue quote.'
   ),
+});
+
+/** User-controlled transaction preparation for the single reviewed Base pool. */
+export const AerodromeSlipstreamSwapPreparationInputSchema = z.object({
+  amountIn: z
+    .string()
+    .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+    .max(128)
+    .describe('Exact WETH input amount; native ETH and reverse direction are not supported'),
+  recipient: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{40}$/)
+    .describe('USDC recipient encoded into the unsigned router transaction'),
+  deadlineUnixSeconds: z
+    .number()
+    .int()
+    .positive()
+    .describe('User-selected router deadline in Unix seconds, no more than 30 minutes ahead'),
+  maxSlippageBps: z
+    .number()
+    .int()
+    .min(0)
+    .max(9999)
+    .describe('Maximum shortfall versus the pinned quote, encoded as amountOutMinimum'),
 });
 
 /**

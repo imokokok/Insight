@@ -119,6 +119,16 @@ async function executePreTradeCheck(
                       },
                     }
                   : {}),
+                ...(query.reviewedAerodromeSlipstreamAmountIn
+                  ? {
+                      reviewedAerodromeSlipstream: {
+                        amountIn: query.reviewedAerodromeSlipstreamAmountIn,
+                        maxQuoteDeviationBps:
+                          query.reviewedAerodromeSlipstreamMaxQuoteDeviationBps!,
+                        maxTwapDeviationBps: query.reviewedAerodromeSlipstreamMaxTwapDeviationBps!,
+                      },
+                    }
+                  : {}),
               },
             }
           : {}),

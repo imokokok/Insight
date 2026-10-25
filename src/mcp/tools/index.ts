@@ -1,5 +1,6 @@
 import { createLogger } from '@/lib/utils/logger';
 
+import { prepareAerodromeSlipstreamSwapTool } from './aerodromeSlipstreamTools';
 import { agentBeginTradeTool } from './agentBeginTradeTools';
 import {
   getAnomaliesTool,
@@ -12,6 +13,7 @@ import { baseLendingGuardExactCallTool, baseLendingGuardTool } from './baseLendi
 import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
 import { getCrossChainSpreadsTool } from './crossChainTools';
 import {
+  getAerodromeSlipstreamMarketTool,
   getBaseDexMarketTool,
   getHyperliquidPerpMarketTool,
   getMonadDexMarketTool,
@@ -30,6 +32,8 @@ import {
   verifyHyperliquidPerpExecutionTool,
 } from './hyperliquidPerpTools';
 import {
+  AerodromeSlipstreamMarketJsonSchema,
+  AerodromeSlipstreamSwapPreparationJsonSchema,
   AnomaliesJsonSchema,
   BaseDexMarketJsonSchema,
   BaseLendingGuardExactJsonSchema,
@@ -140,6 +144,8 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getMetricsTool,
   getMonadDexMarketTool,
   getBaseDexMarketTool,
+  getAerodromeSlipstreamMarketTool,
+  prepareAerodromeSlipstreamSwapTool,
   getSolanaDexRouteTool,
   getHyperliquidPerpMarketTool,
   prepareHyperliquidPerpOrderTool,
@@ -359,6 +365,17 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  get_aerodrome_slipstream_market: AerodromeSlipstreamMarketJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  prepare_aerodrome_slipstream_swap:
+    AerodromeSlipstreamSwapPreparationJsonSchema.toJSONSchema() as {
+      type: 'object';
+      properties?: Record<string, unknown>;
+      required?: string[];
+    },
   base_lending_guard: BaseLendingGuardJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;

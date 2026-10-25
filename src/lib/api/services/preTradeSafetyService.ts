@@ -46,6 +46,10 @@ import {
 } from '@/lib/decisionInputTrust/assessment';
 import { signDecisionInputAssessment } from '@/lib/decisionInputTrust/attestation';
 import {
+  getReviewedAerodromeSlipstreamPreTradeEvidence,
+  type ReviewedAerodromeSlipstreamPreTradeEvidence,
+} from '@/lib/dex/preTradeAerodromeSlipstream';
+import {
   getReviewedUniswapV3PreTradeEvidence,
   type ReviewedUniswapV3PreTradeEvidence,
 } from '@/lib/dex/preTradeUniswapV3';
@@ -1713,6 +1717,36 @@ function startReviewedUniswapV3Fetch(
   });
 }
 
+function startReviewedAerodromeSlipstreamFetch(
+  input: PreTradeSafetyInput
+): Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null> | undefined {
+  const requested = input.decisionInput?.reviewedAerodromeSlipstream;
+  if (!requested) return undefined;
+  return getReviewedAerodromeSlipstreamPreTradeEvidence({
+    chainId: input.chainId,
+    asset: input.asset,
+    destinationAsset: input.destinationAsset,
+    amountIn: requested.amountIn,
+  }).catch((error: unknown) => {
+    logger.warn('Reviewed Aerodrome Slipstream pre-trade evidence unavailable', {
+      asset: input.asset,
+      destinationAsset: input.destinationAsset ?? null,
+      chainId: input.chainId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  });
+}
+
+function assertSingleReviewedDexLane(input: PreTradeSafetyInput): void {
+  if (input.decisionInput?.reviewedUniswapV3 && input.decisionInput.reviewedAerodromeSlipstream) {
+    throw new ValidationError(
+      'Choose only one reviewed DEX evidence lane per decision-input assessment.',
+      { field: 'decisionInput' }
+    );
+  }
+}
+
 function startDecisionInputReferenceFetch(
   input: PreTradeSafetyInput
 ): Promise<DecisionInputReferenceEvidence> | undefined {
@@ -1765,18 +1799,23 @@ async function attachDecisionInputAssessment(
   result: PreTradeSafetyResult,
   referenceEvidencePromise: Promise<DecisionInputReferenceEvidence> | undefined,
   reviewedUniswapV3Promise: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined,
+  reviewedAerodromeSlipstreamPromise:
+    | Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null>
+    | undefined,
   /** undefined means fetch now; null means the normal advisory fetch already found no evidence. */
   knownManipulationCost?: ManipCostAdvisory | null
 ): Promise<void> {
   if (!input.decisionInput) return;
 
-  const [referenceEvidence, manipulationCost, reviewedUniswapV3] = await Promise.all([
-    referenceEvidencePromise ?? Promise.resolve({ chainlink: null, cex: null, redstone: null }),
-    knownManipulationCost === undefined
-      ? fetchManipCostAdvisorySafe(input.asset, input.chainId)
-      : Promise.resolve(knownManipulationCost ?? undefined),
-    reviewedUniswapV3Promise ?? Promise.resolve(null),
-  ]);
+  const [referenceEvidence, manipulationCost, reviewedUniswapV3, reviewedAerodromeSlipstream] =
+    await Promise.all([
+      referenceEvidencePromise ?? Promise.resolve({ chainlink: null, cex: null, redstone: null }),
+      knownManipulationCost === undefined
+        ? fetchManipCostAdvisorySafe(input.asset, input.chainId)
+        : Promise.resolve(knownManipulationCost ?? undefined),
+      reviewedUniswapV3Promise ?? Promise.resolve(null),
+      reviewedAerodromeSlipstreamPromise ?? Promise.resolve(null),
+    ]);
 
   const assessment = assessDecisionInput({
     asset: input.asset,
@@ -1790,6 +1829,7 @@ async function attachDecisionInputAssessment(
     cex: referenceEvidence.cex,
     dex: manipulationCost ?? null,
     reviewedUniswapV3,
+    reviewedAerodromeSlipstream,
   });
   const attestation = await signDecisionInputAssessment(assessment, result.attestation?.uid);
   if (attestation) {
@@ -1988,7 +2028,10 @@ async function buildUnavailablePreTradeResult(
   contributingFactors: ContributingFactor[],
   startedAt: number,
   decisionInputReferenceEvidence: Promise<DecisionInputReferenceEvidence> | undefined,
-  reviewedUniswapV3Promise: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined
+  reviewedUniswapV3Promise: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined,
+  reviewedAerodromeSlipstreamPromise:
+    | Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null>
+    | undefined
 ): Promise<PreTradeSafetyResult> {
   const result = buildUnavailableSafetyResult(
     input,
@@ -2014,7 +2057,8 @@ async function buildUnavailablePreTradeResult(
     input,
     result,
     decisionInputReferenceEvidence,
-    reviewedUniswapV3Promise
+    reviewedUniswapV3Promise,
+    reviewedAerodromeSlipstreamPromise
   );
   await logAudit(input, result, meta);
   return result;
@@ -2047,8 +2091,10 @@ export async function preTradeSafetyCheck(
   throwIfAborted(options.signal);
   if (halted) return halted;
 
+  assertSingleReviewedDexLane(input);
   const decisionInputReferenceEvidence = startDecisionInputReferenceFetch(input);
   const reviewedUniswapV3Evidence = startReviewedUniswapV3Fetch(input);
+  const reviewedAerodromeSlipstreamEvidence = startReviewedAerodromeSlipstreamFetch(input);
 
   // 1. Cross-oracle consensus price (also embeds reputation + agreement).
   let consensus: ConsensusPriceResponse | undefined;
@@ -2097,7 +2143,8 @@ export async function preTradeSafetyCheck(
       contributingFactors,
       startedAt,
       decisionInputReferenceEvidence,
-      reviewedUniswapV3Evidence
+      reviewedUniswapV3Evidence,
+      reviewedAerodromeSlipstreamEvidence
     );
   }
 
@@ -2491,6 +2538,7 @@ export async function preTradeSafetyCheck(
     result,
     decisionInputReferenceEvidence,
     reviewedUniswapV3Evidence,
+    reviewedAerodromeSlipstreamEvidence,
     manipulationCost ?? null
   );
 
