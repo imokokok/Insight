@@ -8,7 +8,12 @@ jest.mock('@/lib/supabase/server', () => ({
 jest.mock('@/lib/utils/logger', () => ({
   normalizeError: (error: unknown) =>
     error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Unknown error'),
-  createLogger: jest.fn(() => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() })),
+  createLogger: jest.fn(() => ({
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  })),
 }));
 
 describe('Supabase rate-limit outage fallback', () => {
