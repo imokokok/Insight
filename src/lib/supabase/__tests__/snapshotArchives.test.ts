@@ -72,3 +72,11 @@ it('fails closed when the archive cursor does not advance', async () => {
   const { db } = client([[chunk()], [chunk()]]);
   await expect(loadArchivedSnapshots(db, 'hourly', start, end)).rejects.toThrow('cursor');
 });
+
+it('rejects history reads wider than the bounded archive window', async () => {
+  const { db, builder } = client([]);
+  await expect(
+    loadArchivedSnapshots(db, 'hourly', '2026-09-01T00:00:00Z', '2026-09-09T00:00:00Z')
+  ).rejects.toThrow('7-day safety limit');
+  expect(builder.select).not.toHaveBeenCalled();
+});

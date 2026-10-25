@@ -2,6 +2,15 @@ import { z } from 'zod';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * A cold-history request expands compressed JSON chunks in application memory.
+ * Keep an individual database read small; wider report/backfill windows are
+ * split by the caller into these bounded ranges.
+ */
+export const MAX_ARCHIVE_READ_WINDOW_DAYS = 7;
+const MAX_ARCHIVE_READ_PAGES = 40;
+const ARCHIVE_PAGE_SIZE = 100;
+
 const chunkSchema = z.object({
   archive_id: z.number().int().positive().safe(),
   kind: z.enum(['price', 'hourly']),
@@ -47,18 +56,29 @@ export async function loadArchivedSnapshots(
   if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
     throw new Error('Invalid archive read window');
   }
+  if (end - start > MAX_ARCHIVE_READ_WINDOW_DAYS * 24 * 60 * 60 * 1000) {
+    throw new Error(
+      `Archive read window exceeds the ${MAX_ARCHIVE_READ_WINDOW_DAYS}-day safety limit`
+    );
+  }
+  if (end === start) return [];
+
+  // `endAt` is exclusive. Filtering through its UTC calendar date used to
+  // fetch a full extra day of archive payload only to discard it below.
+  const startDay = new Date(start).toISOString().slice(0, 10);
+  const lastIncludedDay = new Date(end - 1).toISOString().slice(0, 10);
   const rows: ArchivedSnapshot[] = [];
   let lastId = 0;
-  for (let page = 0; page < 1000; page++) {
+  for (let page = 0; page < MAX_ARCHIVE_READ_PAGES; page++) {
     const { data, error } = await client
       .from('snapshot_archive_exports')
       .select('archive_id,kind,archive_day,provider,symbol,chain_id,row_count,checksum,payload')
       .eq('kind', kind)
-      .gte('archive_day', new Date(start).toISOString().slice(0, 10))
-      .lte('archive_day', new Date(end).toISOString().slice(0, 10))
+      .gte('archive_day', startDay)
+      .lte('archive_day', lastIncludedDay)
       .gt('archive_id', lastId)
       .order('archive_id', { ascending: true })
-      .limit(100)
+      .limit(ARCHIVE_PAGE_SIZE)
       .abortSignal(AbortSignal.timeout(30_000));
     if (error) throw new Error(`Archive read failed: ${error.message}`);
     if (!Array.isArray(data)) throw new Error('Invalid snapshot archive response');
