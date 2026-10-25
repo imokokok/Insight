@@ -279,6 +279,81 @@ export const HyperliquidPerpMarketInputSchema = z.object({
     .describe('Reviewed Hyperliquid perpetual market: BTC, ETH, or HYPE. Defaults to BTC.'),
 });
 
+/** Produces one reviewed, immediate-or-cancel Hyperliquid perp action for local signing. */
+export const HyperliquidPerpOrderPreflightInputSchema = z
+  .object({
+    market: z.enum(['BTC', 'ETH', 'HYPE']),
+    side: z.enum(['buy', 'sell']),
+    size: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+      .max(80)
+      .describe('Exact base size as a non-exponent decimal string.'),
+    limitPrice: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+      .max(80)
+      .describe('Exact IOC limit price as a non-exponent decimal string.'),
+    reduceOnly: z.boolean(),
+    clientOrderId: z
+      .string()
+      .regex(/^0x[0-9a-fA-F]{32}$/)
+      .describe('Caller-generated 16-byte client order id used for post-trade verification.'),
+    maxNotionalUsd: z.number().finite().min(1).max(1_000_000_000),
+    maxPriceImpactBps: z.number().finite().min(0).max(10_000),
+    maxMarkOracleDeviationBps: z.number().finite().min(0).max(10_000),
+    requireFullFill: z
+      .boolean()
+      .optional()
+      .describe('Refuse a displayed partial IOC fill. Defaults to true.'),
+    expiresAfterSeconds: z
+      .number()
+      .int()
+      .min(5)
+      .max(120)
+      .optional()
+      .describe(
+        'Short expiry to include in the locally signed Hyperliquid exchange envelope. Defaults to 30.'
+      ),
+  })
+  .strict();
+
+/** Read-only verification of an order status and its bounded public fill history. */
+export const HyperliquidPerpExecutionVerificationInputSchema = z
+  .object({
+    user: z
+      .string()
+      .regex(/^0x[0-9a-fA-F]{40}$/)
+      .describe('Master account, subaccount, or vault address; never an API-wallet address.'),
+    orderId: z
+      .string()
+      .regex(/^(?:[1-9][0-9]{0,19}|0x[0-9a-fA-F]{32})$/)
+      .describe('Hyperliquid uint64 order id or the original 16-byte client order id.'),
+    submittedAt: z
+      .string()
+      .datetime({ offset: true })
+      .describe(
+        'Timezone-qualified timestamp immediately before signed submission; must be within 24 hours.'
+      ),
+    expectedOrder: z
+      .object({
+        market: z.enum(['BTC', 'ETH', 'HYPE']),
+        side: z.enum(['buy', 'sell']),
+        size: z
+          .string()
+          .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+          .max(80),
+        limitPrice: z
+          .string()
+          .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+          .max(80),
+        reduceOnly: z.boolean(),
+        clientOrderId: z.string().regex(/^0x[0-9a-fA-F]{32}$/),
+      })
+      .strict(),
+  })
+  .strict();
+
 const AssetEntrySchema = z.object({
   symbol: z.string().min(1),
   amount: z.number().positive(),

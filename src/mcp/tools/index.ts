@@ -25,9 +25,15 @@ import {
   getFeedsTool,
 } from './feedTools';
 import {
+  prepareHyperliquidPerpOrderTool,
+  verifyHyperliquidPerpExecutionTool,
+} from './hyperliquidPerpTools';
+import {
   AnomaliesJsonSchema,
   BaseDexMarketJsonSchema,
   HyperliquidPerpMarketJsonSchema,
+  HyperliquidPerpExecutionVerificationJsonSchema,
+  HyperliquidPerpOrderPreflightJsonSchema,
   BatchPriceJsonSchema,
   ConsensusPriceJsonSchema,
   CorrelationJsonSchema,
@@ -130,6 +136,8 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getBaseDexMarketTool,
   getSolanaDexRouteTool,
   getHyperliquidPerpMarketTool,
+  prepareHyperliquidPerpOrderTool,
+  verifyHyperliquidPerpExecutionTool,
   checkPositionSafetyTool,
   preTradeSafetyCheckTool,
   oracleWatchTool,
@@ -351,6 +359,17 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  prepare_hyperliquid_perp_order: HyperliquidPerpOrderPreflightJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  verify_hyperliquid_perp_execution:
+    HyperliquidPerpExecutionVerificationJsonSchema.toJSONSchema() as {
+      type: 'object';
+      properties?: Record<string, unknown>;
+      required?: string[];
+    },
   check_position_safety: PositionSafetyJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;

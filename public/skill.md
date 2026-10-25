@@ -41,6 +41,16 @@ POST https://www.oracleinsight.xyz/api/mcp
 
 JSON-RPC `tools/call` access to the Insight tool catalog for x402-aware MCP clients. Each call is priced by its tool metering class; the 402 challenge carries the live quote.
 
+### 3. Hyperliquid perpetual execution loop (MCP)
+
+For reviewed `BTC`, `ETH`, and `HYPE` perpetuals, use the MCP tools in this order:
+
+1. `prepare_hyperliquid_perp_order` — validates the exact IOC intent against fresh market metadata, tick/lot constraints, an explicit notional cap, mark/oracle divergence, and displayed L2 fill/impact limits. A `READY_TO_SIGN` result includes a short-expiry unsigned exchange action and the original client order id.
+2. Sign and submit that action in the account owner's own Hyperliquid client or approved API-wallet process. Insight does not accept or hold an API key, private key, nonce, signature, or exchange submission.
+3. `verify_hyperliquid_perp_execution` — provides a bounded public observation of the exact order status and matching fills, compared with the original expected intent.
+
+Only IOC is admitted, so an action that cannot fully satisfy its caller-selected displayed-book constraints is returned as `BLOCK` and has no signable envelope. The final observation is not a signed Insight receipt or a guarantee of the exchange's future state.
+
 ## Payment
 
 Scheme: `exact` (x402 v2, EIP-3009 transferWithAuthorization for EVM). Price: **$0.02 USDC** (`20000` atomic, 6 decimals) for the pre-trade check. The same 402 advertises:
