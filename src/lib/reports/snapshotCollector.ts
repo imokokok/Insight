@@ -23,6 +23,10 @@ import { resolveOracleFeedBlockchain } from '@/lib/oracles/utils/feedChain';
 import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { getRpcUsage, rpcUsageSince } from '@/lib/oracles/utils/rpcClientWithFallback';
 import { flushRpcMetadataCache, primeRpcMetadataCache } from '@/lib/oracles/utils/rpcMetadataCache';
+import {
+  type SnapshotBatchPriceClient,
+  type SnapshotBatchPriceRequest,
+} from '@/lib/oracles/utils/snapshotBatch';
 import { savePricesToDatabase } from '@/lib/oracles/utils/storage';
 import {
   reportService,
@@ -35,7 +39,7 @@ import { getAdminQueries } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { calculateMedian } from '@/lib/utils/statistics';
-import { type Blockchain, type OracleProvider, type PriceData } from '@/types/oracle';
+import { type Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('DailyReportSnapshot');
 
@@ -116,6 +120,7 @@ async function fetchBatchPrices(
     chain?: Blockchain;
     feedChainId?: number;
     feedSymbol?: string;
+    feedAddress?: string;
     healthOnly?: boolean;
   }[] = [];
   const skipped: BatchResultItem[] = [];
@@ -169,6 +174,7 @@ async function fetchBatchPrices(
             chain: resolveOracleFeedBlockchain(feed),
             feedChainId: feed.chain_id,
             feedSymbol: feed.symbol,
+            feedAddress: feed.address,
           });
         }
       } else if (feedRegistry.errored) {
@@ -228,6 +234,7 @@ async function fetchBatchPrices(
       chain: resolveOracleFeedBlockchain(feed),
       feedChainId: feed.chain_id,
       feedSymbol: feed.symbol,
+      feedAddress: feed.address,
       healthOnly: true,
     });
   }
@@ -239,59 +246,31 @@ async function fetchBatchPrices(
   const rpcBefore = getRpcUsage();
   const preloaded = reuseRpcMetadata ? await primeRpcMetadataCache() : 0;
 
-  const fetched = await mapWithConcurrency(
-    queries,
-    REPORT_FETCH_CONCURRENCY,
-    async ({
-      provider,
-      symbol,
-      chain,
-      feedChainId,
-      feedSymbol,
-      healthOnly,
-    }): Promise<BatchResultItem> => {
-      const startedAt = performance.now();
-      const latencyMs = () => Math.round(performance.now() - startedAt);
-      try {
-        const price = await fetchPriceWithDatabase(
-          provider,
-          symbol,
-          chain,
-          true,
-          true,
-          healthOnly ? AbortSignal.timeout(ADDITIONAL_HEALTH_TIMEOUT_MS) : undefined,
-          feedSymbol,
-          { persist: false }
-        );
-        const check = sanitizePriceForSnapshot(price.price);
-        if (!check.valid) {
-          logger.warn(`Price validation failed for ${provider}/${symbol}: ${check.reason}`);
-          return {
-            provider,
-            symbol,
-            feedChainId,
-            feedSymbol,
-            healthOnly,
-            price: null,
-            error: `Price validation failed: ${check.reason}`,
-            skipped: false,
-            latencyMs: latencyMs(),
-          };
-        }
-        return {
-          provider,
-          symbol,
-          feedChainId,
-          feedSymbol,
-          healthOnly,
-          price,
-          error: null,
-          skipped: false,
-          latencyMs: latencyMs(),
-        };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        logger.warn(`Price fetch failed for ${provider}/${symbol}: ${message}`);
+  type SnapshotQuery = (typeof queries)[number];
+  const fetchOne = async ({
+    provider,
+    symbol,
+    chain,
+    feedChainId,
+    feedSymbol,
+    healthOnly,
+  }: SnapshotQuery): Promise<BatchResultItem> => {
+    const startedAt = performance.now();
+    const latencyMs = () => Math.round(performance.now() - startedAt);
+    try {
+      const price = await fetchPriceWithDatabase(
+        provider,
+        symbol,
+        chain,
+        true,
+        true,
+        healthOnly ? AbortSignal.timeout(ADDITIONAL_HEALTH_TIMEOUT_MS) : undefined,
+        feedSymbol,
+        { persist: false }
+      );
+      const check = sanitizePriceForSnapshot(price.price);
+      if (!check.valid) {
+        logger.warn(`Price validation failed for ${provider}/${symbol}: ${check.reason}`);
         return {
           provider,
           symbol,
@@ -299,13 +278,182 @@ async function fetchBatchPrices(
           feedSymbol,
           healthOnly,
           price: null,
-          error: message,
+          error: `Price validation failed: ${check.reason}`,
           skipped: false,
           latencyMs: latencyMs(),
         };
       }
+      return {
+        provider,
+        symbol,
+        feedChainId,
+        feedSymbol,
+        healthOnly,
+        price,
+        error: null,
+        skipped: false,
+        latencyMs: latencyMs(),
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      logger.warn(`Price fetch failed for ${provider}/${symbol}: ${message}`);
+      return {
+        provider,
+        symbol,
+        feedChainId,
+        feedSymbol,
+        healthOnly,
+        price: null,
+        error: message,
+        skipped: false,
+        latencyMs: latencyMs(),
+      };
     }
+  };
+
+  const isMulticallProvider = (provider: OracleProvider): boolean =>
+    provider === OracleProvider.CHAINLINK || provider === OracleProvider.TWAP;
+  const hasSnapshotBatchCapability = (client: unknown): client is SnapshotBatchPriceClient =>
+    !!client &&
+    typeof client === 'object' &&
+    'getSnapshotPricesBatch' in client &&
+    typeof client.getSnapshotPricesBatch === 'function';
+  const validEvmAddress = (address: string | undefined): address is `0x${string}` =>
+    typeof address === 'string' && /^0x[0-9a-f]{40}$/i.test(address);
+
+  type IndexedQuery = { index: number; query: SnapshotQuery };
+  type FetchTask =
+    | { kind: 'single'; entry: IndexedQuery }
+    | { kind: 'batch'; entries: IndexedQuery[] };
+  const batchGroups = new Map<string, IndexedQuery[]>();
+  const tasks: FetchTask[] = [];
+  for (const [index, query] of queries.entries()) {
+    // A batch is deliberately limited to active registry feeds with an
+    // explicit chain. The generic/fallback query path below retains all
+    // existing database gates and client behaviour for every other source.
+    if (
+      isMulticallProvider(query.provider) &&
+      query.chain &&
+      query.feedChainId !== undefined &&
+      (query.provider !== OracleProvider.CHAINLINK || validEvmAddress(query.feedAddress))
+    ) {
+      const key = `${query.provider}:${query.feedChainId}:${query.healthOnly ? 'health' : 'report'}`;
+      const entries = batchGroups.get(key) ?? [];
+      entries.push({ index, query });
+      batchGroups.set(key, entries);
+    } else {
+      tasks.push({ kind: 'single', entry: { index, query } });
+    }
+  }
+  const multicallPlan = Array.from(batchGroups.values()).reduce(
+    (plan, entries) => {
+      const provider = entries[0]?.query.provider;
+      if (provider) plan[provider] = (plan[provider] ?? 0) + entries.length;
+      return plan;
+    },
+    {} as Record<string, number>
   );
+  if (batchGroups.size > 0) {
+    logger.info('Snapshot Multicall plan', {
+      batches: batchGroups.size,
+      feeds: Object.values(multicallPlan).reduce((total, count) => total + count, 0),
+      byProvider: multicallPlan,
+    });
+  }
+  for (const entries of batchGroups.values()) tasks.push({ kind: 'batch', entries });
+
+  const taskResults = await mapWithConcurrency(tasks, REPORT_FETCH_CONCURRENCY, async (task) => {
+    if (task.kind === 'single') {
+      return [{ index: task.entry.index, result: await fetchOne(task.entry.query) }];
+    }
+    const first = task.entries[0].query;
+    const client = factory.getClient(first.provider);
+    if (!hasSnapshotBatchCapability(client)) {
+      return Promise.all(
+        task.entries.map(async (entry) => ({
+          index: entry.index,
+          result: await fetchOne(entry.query),
+        }))
+      );
+    }
+    const startedAt = performance.now();
+    const requestById = new Map<string, IndexedQuery>();
+    const requests: SnapshotBatchPriceRequest[] = task.entries.map((entry) => {
+      const id = `snapshot-${entry.index}`;
+      requestById.set(id, entry);
+      return {
+        id,
+        symbol: entry.query.symbol,
+        chain: entry.query.chain!,
+        // TWAP does not consume the registry address. For Chainlink it pins
+        // the aggregate read to the exact active feed we just selected.
+        feedAddress: validEvmAddress(entry.query.feedAddress) ? entry.query.feedAddress : undefined,
+      };
+    });
+    try {
+      const batch = await client.getSnapshotPricesBatch(
+        requests,
+        first.healthOnly ? AbortSignal.timeout(ADDITIONAL_HEALTH_TIMEOUT_MS) : undefined
+      );
+      const resultById = new Map(batch.map((result) => [result.id, result]));
+      return task.entries.map((entry) => {
+        const id = `snapshot-${entry.index}`;
+        const outcome = resultById.get(id);
+        const latencyMs = Math.round(performance.now() - startedAt);
+        if (!outcome) {
+          return {
+            index: entry.index,
+            result: {
+              provider: entry.query.provider,
+              symbol: entry.query.symbol,
+              feedChainId: entry.query.feedChainId,
+              feedSymbol: entry.query.feedSymbol,
+              healthOnly: entry.query.healthOnly,
+              price: null,
+              error: 'Missing Multicall batch result',
+              skipped: false,
+              latencyMs,
+            } satisfies BatchResultItem,
+          };
+        }
+        const check = outcome.price ? sanitizePriceForSnapshot(outcome.price.price) : null;
+        return {
+          index: entry.index,
+          result: {
+            provider: entry.query.provider,
+            symbol: entry.query.symbol,
+            feedChainId: entry.query.feedChainId,
+            feedSymbol: entry.query.feedSymbol,
+            healthOnly: entry.query.healthOnly,
+            price: check?.valid ? outcome.price : null,
+            error:
+              outcome.error?.message ??
+              (check && !check.valid ? `Price validation failed: ${check.reason}` : null),
+            skipped: false,
+            latencyMs,
+          } satisfies BatchResultItem,
+        };
+      });
+    } catch (error) {
+      // This protects the collector if an adapter capability itself throws
+      // before producing per-feed fallback results. Use the unmodified path.
+      logger.warn('Snapshot Multicall batch setup failed; using individual reads', {
+        provider: first.provider,
+        chain: first.chain,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return Promise.all(
+        task.entries.map(async (entry) => ({
+          index: entry.index,
+          result: await fetchOne(entry.query),
+        }))
+      );
+    }
+  });
+  const fetched = taskResults
+    .flat()
+    .sort((a, b) => a.index - b.index)
+    .map(({ result }) => result);
 
   const persisted = reuseRpcMetadata ? await flushRpcMetadataCache() : 0;
   logger.info('Snapshot RPC resource usage', {

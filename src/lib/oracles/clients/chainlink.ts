@@ -10,6 +10,10 @@ import {
 } from '@/lib/oracles/services/chainlinkOnChainService';
 import { chainlinkSolanaOnChainService } from '@/lib/oracles/services/chainlinkSolanaOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import {
+  type SnapshotBatchPriceRequest,
+  type SnapshotBatchPriceResult,
+} from '@/lib/oracles/utils/snapshotBatch';
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
@@ -136,7 +140,11 @@ export class ChainlinkClient extends BaseOracleClient {
     return roundTo(adjustedConfidence, 4);
   }
 
-  private convertToPriceData(chainlinkData: ChainlinkPriceData, chain?: Blockchain): PriceData {
+  private convertToPriceData(
+    chainlinkData: ChainlinkPriceData,
+    chain?: Blockchain,
+    verificationFeedAddress?: `0x${string}`
+  ): PriceData {
     let confidence = this.calculateConfidence(chain);
 
     if (chainlinkData.decimalsIsFallback) {
@@ -156,7 +164,9 @@ export class ChainlinkClient extends BaseOracleClient {
     const startedAt = chainlinkData.startedAt;
 
     const chainId = this.getChainId(chain);
-    const feed = getChainlinkPriceFeed(chainlinkData.symbol, chainId);
+    const feed = verificationFeedAddress
+      ? { address: verificationFeedAddress }
+      : getChainlinkPriceFeed(chainlinkData.symbol, chainId);
 
     logger.debug('Converting Chainlink data to PriceData', {
       symbol: chainlinkData.symbol,
@@ -259,6 +269,98 @@ export class ChainlinkClient extends BaseOracleClient {
     throw this.createError(
       `No price data available for ${symbol}. Real data is not enabled or price feed is not supported on this chain.`,
       'REAL_DATA_NOT_AVAILABLE'
+    );
+  }
+
+  /**
+   * Snapshot-collector fast path. It is intentionally not part of the normal
+   * request API: only a registry-authenticated background batch may coalesce
+   * reads. Any aggregate or sub-result problem falls back to the established
+   * single-price method with its retry and validation behaviour.
+   */
+  async getSnapshotPricesBatch(
+    requests: readonly SnapshotBatchPriceRequest[],
+    signal?: AbortSignal
+  ): Promise<SnapshotBatchPriceResult[]> {
+    if (requests.length === 0) return [];
+    const raw = await chainlinkOnChainService.getSnapshotPricesBatch(
+      requests.map((request) => ({
+        id: request.id,
+        symbol: request.symbol,
+        chainId: this.getChainId(request.chain),
+        feedAddressOverride: request.feedAddress,
+      })),
+      signal
+    );
+    const requestsById = new Map(requests.map((request) => [request.id, request]));
+    return Promise.all(
+      raw.map(async (result): Promise<SnapshotBatchPriceResult> => {
+        const request = requestsById.get(result.id);
+        if (!request) {
+          return {
+            id: result.id,
+            price: null,
+            error: new Error('Unknown Chainlink batch request'),
+          };
+        }
+        if (result.data && !result.error) {
+          try {
+            return {
+              id: result.id,
+              price: this.validatePriceData(
+                this.convertToPriceData(result.data, request.chain, request.feedAddress),
+                'snapshot-batch'
+              ),
+              error: null,
+            };
+          } catch (error) {
+            return {
+              id: result.id,
+              price: null,
+              error: error instanceof Error ? error : new Error(String(error)),
+            };
+          }
+        }
+
+        try {
+          // A Multicall response is an optimization, never a new dependency.
+          // The established path remains the safety net for an outer failure,
+          // a failed subcall, malformed ABI output, or a phase transition.
+          const fallbackData = await withOracleRetry(
+            () =>
+              chainlinkOnChainService.getPrice(
+                request.symbol,
+                this.getChainId(request.chain),
+                signal,
+                request.feedAddress
+              ),
+            'chainlink:snapshot-batch-fallback',
+            { ...ORACLE_RETRY_PRESETS.standard, timeout: 30000 },
+            signal
+          );
+          if (!fallbackData) {
+            throw this.createNoDataError(
+              request.symbol,
+              request.chain,
+              'Chainlink Multicall fallback returned no price'
+            );
+          }
+          return {
+            id: result.id,
+            price: this.validatePriceData(
+              this.convertToPriceData(fallbackData, request.chain, request.feedAddress),
+              'snapshot-batch-fallback'
+            ),
+            error: null,
+          };
+        } catch (error) {
+          return {
+            id: result.id,
+            price: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+          };
+        }
+      })
     );
   }
 
