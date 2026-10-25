@@ -52,6 +52,7 @@ describe('getMppConfig', () => {
             usdcMint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
             amountAtomic: '20000',
             priceUsd: 0.02,
+            rpcUrl: null,
           },
         },
         env({ MPP_ENABLED: 'true', MPP_SECRET_KEY: 'x'.repeat(32) })
