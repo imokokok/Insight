@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { DecisionInputQuoteProvenanceSchema } from '@/lib/decisionInputTrust/quoteProvenance';
 import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
 import { REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS } from '@/lib/dex/aerodromeSlipstream';
+import { BASE_DEX_VENUE_IDS } from '@/lib/dex/baseDexVenues';
+import { REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS } from '@/lib/dex/pancakeSwapV3';
 import { boundedIntegerInput } from '@/lib/security/boundedIntegerInput';
 import { SafeProviderSchema, SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
 import { STABLECOINS, type StablecoinSymbol } from '@/lib/stablecoins/config';
@@ -266,6 +268,16 @@ export const MonadDexMarketInputSchema = z.object({});
 /** No caller input: this tool exposes one reviewed Base DEX market only. */
 export const BaseDexMarketInputSchema = z.object({});
 
+/** Bounded selector for Base deployments; raw contract addresses are never accepted. */
+export const BaseDexVenueIntegrationInputSchema = z.object({
+  venues: z
+    .array(z.enum(BASE_DEX_VENUE_IDS))
+    .min(1)
+    .max(BASE_DEX_VENUE_IDS.length)
+    .optional()
+    .describe('Optional reviewed Base venues to inspect; defaults to every reviewed venue'),
+});
+
 /**
  * A fixed profile id selects one code-reviewed pool. The schema deliberately
  * cannot express raw pool, router, token, or tick-spacing addresses.
@@ -275,6 +287,14 @@ export const AerodromeSlipstreamMarketInputSchema = z.object({
     .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
     .optional()
     .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
+});
+
+/** A fixed profile id selects one code-reviewed PancakeSwap V3 Base pool. */
+export const PancakeSwapV3MarketInputSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
 });
 
 /** No caller input: this tool exposes one reviewed Solana route market only. */
@@ -515,6 +535,34 @@ export const AerodromeSlipstreamSwapPreparationInputSchema = z.object({
     .string()
     .regex(/^0x[0-9a-fA-F]{40}$/)
     .describe('USDC recipient encoded into the unsigned router transaction'),
+  deadlineUnixSeconds: z
+    .number()
+    .int()
+    .positive()
+    .describe('User-selected router deadline in Unix seconds, no more than 30 minutes ahead'),
+  maxSlippageBps: z
+    .number()
+    .int()
+    .min(0)
+    .max(9999)
+    .describe('Maximum shortfall versus the pinned quote, encoded as amountOutMinimum'),
+});
+
+/** User-controlled transaction preparation for one allowlisted Pancake V3 pool. */
+export const PancakeSwapV3SwapPreparationInputSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+  amountIn: z
+    .string()
+    .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
+    .max(128)
+    .describe('Exact USDC input amount; reverse direction is not supported'),
+  recipient: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]{40}$/)
+    .describe('USDT recipient encoded into the unsigned router transaction'),
   deadlineUnixSeconds: z
     .number()
     .int()

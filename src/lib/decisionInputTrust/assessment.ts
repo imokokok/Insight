@@ -59,8 +59,9 @@ export interface DecisionInputCheckRequest {
   /**
    * Opt in to a block-pinned quote from one reviewed Uniswap V3 pool. The
    * exact input amount is expressed in the source asset's decimal units. This
-   * first release admits only MON/USDC on Monad and WETH/USDC on Base, in the
-   * source-to-USDC direction; unsupported routes fail closed.
+   * first release admits MON/USDC on Monad, WETH/USDC on Base, and reviewed
+   * PancakeSwap V3 USDC/USDT on Base, only in the reviewed forward direction;
+   * unsupported routes fail closed.
    */
   reviewedUniswapV3?: {
     amountIn: string;
@@ -193,16 +194,22 @@ export interface DecisionInputAssessment {
       tradeSizeTo1PctManipulationCostRatio: number | null;
     } | null;
     reviewedUniswapV3?: {
-      profile: 'monad-wmon-usdc' | 'base-weth-usdc';
-      venue: 'uniswap-v3';
+      profile: 'monad-wmon-usdc' | 'base-weth-usdc' | 'base-pancakeswap-v3-usdc-usdt';
+      venue: 'uniswap-v3' | 'pancakeswap-v3';
       market: string;
       sourceFreshnessSeconds: number;
       observedAt: string;
       blockNumber: string;
       blockHash: `0x${string}`;
+      factory: `0x${string}`;
       pool: `0x${string}`;
       quoterV2: `0x${string}`;
       feeTier: number;
+      codeIdentity?: {
+        factory: `0x${string}`;
+        quoterV2: `0x${string}`;
+        pool: `0x${string}`;
+      };
       amountIn: number;
       amountInRaw: string;
       amountOut: number;
@@ -546,8 +553,8 @@ export const DecisionInputAssessmentSchema = z
           .nullable(),
         reviewedUniswapV3: z
           .object({
-            profile: z.enum(['monad-wmon-usdc', 'base-weth-usdc']),
-            venue: z.literal('uniswap-v3'),
+            profile: z.enum(['monad-wmon-usdc', 'base-weth-usdc', 'base-pancakeswap-v3-usdc-usdt']),
+            venue: z.enum(['uniswap-v3', 'pancakeswap-v3']),
             market: z.string().min(1).max(80),
             sourceFreshnessSeconds: FiniteNonnegativeNumberSchema,
             observedAt: EvidenceTimestampSchema,
@@ -556,9 +563,18 @@ export const DecisionInputAssessmentSchema = z
               .regex(/^[1-9][0-9]*$/)
               .max(80),
             blockHash: Bytes32Schema,
+            factory: AddressSchema,
             pool: AddressSchema,
             quoterV2: AddressSchema,
             feeTier: z.number().int().positive().max(1_000_000),
+            codeIdentity: z
+              .object({
+                factory: Bytes32Schema,
+                quoterV2: Bytes32Schema,
+                pool: Bytes32Schema,
+              })
+              .strict()
+              .optional(),
             amountIn: FinitePositiveNumberSchema,
             amountInRaw: z
               .string()
@@ -1282,7 +1298,7 @@ function assessReviewedUniswapV3(
       reasons,
       'REVIEWED_UNISWAP_V3_UNAVAILABLE',
       'insufficient_evidence',
-      'No fresh block-pinned quote is available from the reviewed Uniswap V3 pool for this exact route and amount.'
+      'No fresh block-pinned quote is available from the reviewed concentrated-liquidity pool for this exact route and amount.'
     );
     return { evidence: null };
   }
@@ -1328,9 +1344,11 @@ function assessReviewedUniswapV3(
       observedAt: evidence.observedAt,
       blockNumber: evidence.block.number,
       blockHash: evidence.block.hash,
+      factory: evidence.contracts.factory,
       pool: evidence.contracts.pool,
       quoterV2: evidence.contracts.quoterV2,
       feeTier: evidence.contracts.feeTier,
+      ...(evidence.contracts.codeIdentity ? { codeIdentity: evidence.contracts.codeIdentity } : {}),
       amountIn: evidence.quote.amountIn,
       amountInRaw: evidence.quote.amountInRaw,
       amountOut: evidence.quote.amountOut,
@@ -1543,8 +1561,8 @@ export function assessDecisionInput(options: AssessDecisionInputOptions): Decisi
       'DEX manipulation cost is a pool-depth proxy, not a route-specific quote, price-impact estimate, or guarantee that the pool can execute this trade.',
       ...(request.reviewedUniswapV3
         ? [
-            'The reviewed Uniswap V3 evidence is an exact-input Quoter V2 simulation at one pinned block for the admitted source-to-USDC pool. It does not simulate the caller’s signed transaction, other routes, MEV, or a later block.',
-            'The Uniswap quote-to-USD comparison treats the reviewed USDC output as a dollar-denominated venue quote; separate stablecoin and oracle evidence remains required.',
+            'The reviewed concentrated-liquidity evidence is an exact-input Quoter V2 simulation at one pinned block for an admitted forward-direction pool. It does not simulate the caller’s signed transaction, other routes, MEV, or a later block.',
+            'The quote-to-USD comparison treats the reviewed USDC or USDT output as a dollar-denominated venue quote; separate stablecoin and oracle evidence remains required.',
           ]
         : []),
       ...(request.reviewedAerodromeSlipstream

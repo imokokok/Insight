@@ -1352,6 +1352,76 @@ paths:
         '503':
           description: Fresh Aerodrome Slipstream evidence is unavailable.
 
+  /markets/dex/pancakeswap:
+    get:
+      operationId: getPancakeSwapV3Market
+      tags: [DEX Markets]
+      summary: Base PancakeSwap V3 USDC/USDT market evidence
+      description: >-
+        Returns block-pinned, code-identity-verified PancakeSwap V3 evidence
+        for the reviewed Base USDC/USDT 0.01% pool. It is one venue witness,
+        not an oracle consensus input or a general PancakeSwap route quote.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned PancakeSwap V3 market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data:
+                    type: object
+                    required: [source, venue, chainId, market, block, contracts, spot, twap, quotes]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: uniswap-v3 }
+                      chainId: { type: integer, const: 8453 }
+                      market: { type: string, const: USDC/USDT }
+                      block: { type: object }
+                      contracts: { type: object }
+                      spot: { type: object }
+                      twap: { type: object }
+                      quotes: { type: array, items: { type: object } }
+        '503':
+          description: Fresh PancakeSwap V3 market evidence is unavailable.
+
+  /markets/dex/base/venues:
+    get:
+      operationId: getBaseDexVenueIntegrations
+      tags: [DEX Markets]
+      summary: Reviewed Base DEX deployment identities
+      description: >-
+        Re-verifies pinned runtime bytecode for Insight's reviewed Base DEX
+        deployments at one block. The response distinguishes deployment
+        evidence from pool-specific execution support; dynamic hooks, fees,
+        bins, and Curve invariants are fail-closed until separately reviewed.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh pinned Base DEX deployment evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data:
+                    type: object
+                    required: [source, chainId, block, venues]
+                    properties:
+                      source: { type: string, const: dex-deployment }
+                      chainId: { type: integer, const: 8453 }
+                      block: { type: object }
+                      venues: { type: array, items: { type: object } }
+        '503':
+          description: Fresh Base DEX deployment evidence is unavailable.
+
   /markets/dex/solana:
     get:
       operationId: getSolanaDexRoute
@@ -2377,7 +2447,7 @@ paths:
         - name: reviewedUniswapV3AmountIn
           in: query
           required: false
-          description: Exact source-token amount for the reviewed Uniswap V3 pre-trade lane. Requires all reviewedUniswapV3 parameters, decisionInputCheck=1, and destinationAsset. Admitted routes are Monad MON/WMON→USDC and Base ETH/WETH→USDC only.
+          description: Exact source-token amount for the reviewed concentrated-liquidity pre-trade lane. Requires all reviewedUniswapV3 parameters, decisionInputCheck=1, and destinationAsset. Admitted routes are Monad MON/WMON→USDC, Base ETH/WETH→USDC, and Base PancakeSwap V3 USDC→USDT only.
           schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
         - name: reviewedUniswapV3MaxQuoteDeviationBps
           in: query
@@ -3538,7 +3608,7 @@ paths:
         - name: reviewedUniswapV3AmountIn
           in: query
           required: false
-          description: Exact source-token amount for the reviewed Monad/Base Uniswap V3 lane. Requires decisionInputCheck=1, destinationAsset, and both reviewedUniswapV3 bps limits.
+          description: Exact source-token amount for the reviewed Monad/Base concentrated-liquidity lane. Requires decisionInputCheck=1, destinationAsset, and both reviewedUniswapV3 bps limits. The Base USDC→USDT profile is PancakeSwap V3; all other admitted profiles are Uniswap V3.
           schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
         - name: reviewedUniswapV3MaxQuoteDeviationBps
           in: query

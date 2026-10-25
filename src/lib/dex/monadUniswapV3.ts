@@ -128,14 +128,18 @@ export interface MonadDexMarketSnapshot {
 }
 
 function toMonadSnapshot(snapshot: UniswapV3MarketSnapshot): MonadDexMarketSnapshot {
-  if (snapshot.chainId !== MONAD_CHAIN_ID || snapshot.market !== 'MON/USDC') {
+  if (
+    snapshot.venue !== 'uniswap-v3' ||
+    snapshot.chainId !== MONAD_CHAIN_ID ||
+    snapshot.market !== 'MON/USDC'
+  ) {
     throw new UniswapV3MarketError(
       'Shared Uniswap V3 reader returned an unexpected Monad profile.'
     );
   }
   return {
     source: snapshot.source,
-    venue: snapshot.venue,
+    venue: 'uniswap-v3',
     chainId: MONAD_CHAIN_ID,
     market: 'MON/USDC',
     sourceFreshnessSeconds: snapshot.sourceFreshnessSeconds,

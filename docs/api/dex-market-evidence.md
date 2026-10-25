@@ -32,6 +32,39 @@ with Aerodrome fee configuration. This remains a single reviewed pool rather
 than an Aerodrome-wide route, reserve-TVL measurement, execution promise, or
 oracle-consensus input.
 
+## Base: reviewed PancakeSwap V3 pool
+
+`GET /api/v1/markets/dex/pancakeswap` reads the allowlisted PancakeSwap V3
+USDC/USDT 0.01% pool. It verifies the factory mapping, sorted tokens, fee,
+liquidity, 30-minute observation, and quote ladder at one Base block, and
+re-hashes the Factory, QuoterV2, and Pool runtime bytecode at that same block.
+It is a single-pool market witness rather than a PancakeSwap-wide router,
+oracle vote, or execution guarantee.
+
+`prepare_pancakeswap_v3_swap` is the corresponding bounded signing handoff:
+only USDC -> USDT through that profile is admitted. It derives a fresh
+exact-input quote, verifies the router code plus its factory/WETH bindings, and
+returns exact-amount approval and swap calldata for the user to inspect and
+sign locally. Insight never holds a key, submits the approval, relays the call,
+or broadcasts it.
+
+## Base DEX deployment catalog
+
+`GET /api/v1/markets/dex/base/venues` and
+`get_base_dex_venue_integrations` verify the code identity of each admitted
+Base DEX deployment at a single block: Aerodrome Slipstream, PancakeSwap V3,
+Curve StableSwap, Maverick V2, QuickSwap V2, QuickSwap Algebra V4, Uniswap V4,
+and PancakeSwap Infinity. The catalog makes the support boundary explicit:
+Aerodrome and PancakeSwap V3 currently have separate reviewed-pool, unsigned
+calldata lanes. The other entries provide deployment-identity evidence but are
+**fail-closed for execution** until their own pool allowlist, pricing model,
+and route-specific tests are reviewed.
+
+This distinction is intentional. Curve uses pool-specific stable-swap curves,
+Maverick uses bin liquidity, Algebra can use dynamic fee/plugin state, and V4
+and Infinity use singleton managers with hook-dependent behavior. Matching
+addresses or an ABI is not enough to authorize a quote or swap adapter.
+
 ## Aerodrome user-signed Base execution loop
 
 The Aerodrome path has three separate stages:
@@ -92,12 +125,19 @@ never signs, simulates, or submits an order.
 ## Agent tools
 
 - `get_base_dex_market` exposes the Base pool evidence.
+- `get_base_dex_venue_integrations` exposes the block-pinned Base deployment
+  catalog and reports whether a venue currently has an unsigned-calldata lane
+  or is intentionally execution-disabled pending a per-pool adapter.
 - `get_aerodrome_slipstream_market` accepts only a reviewed Aerodrome
   Slipstream pool id and exposes its Base evidence. The current allowlist
   contains Base WETH/USDC CL100.
 - `prepare_aerodrome_slipstream_swap` prepares bounded, unsigned Base calldata
   for a named reviewed Aerodrome pool. It is C3; the existing
   `execution_receipt` tool is the post-settlement verification handoff.
+- `get_pancakeswap_v3_market` accepts only a reviewed PancakeSwap V3 pool id;
+  the current allowlist contains Base USDC/USDT 0.01%.
+- `prepare_pancakeswap_v3_swap` prepares bounded, unsigned Base calldata for
+  that named PancakeSwap pool and is also C3.
 - `get_solana_dex_route` exposes the Solana route evidence.
 - `get_hyperliquid_perp_market` exposes the reviewed Hyperliquid perpetual
   evidence; it accepts `market: BTC | ETH | HYPE` and defaults to `BTC`.
@@ -158,15 +198,17 @@ opt into `reviewedUniswapV3` or `reviewedAerodromeSlipstream` evidence inside
 their decision-input check. Only one reviewed DEX lane is admitted per
 assessment.
 The caller supplies the exact source amount plus explicit maximum quote and
-spot/TWAP divergence limits. Insight then admits only these source-to-USDC
-profiles:
+spot/TWAP divergence limits. Insight then admits only these reviewed,
+forward-direction profiles:
 
 - Monad `MON`/`WMON` → `USDC` (reviewed WMON/USDC V3 pool)
 - Base `ETH`/`WETH` → `USDC` (reviewed WETH/USDC V3 pool)
+- Base `USDC` → `USDT` (reviewed PancakeSwap V3 USDC/USDT 0.01% pool)
 
 For an admitted route, Insight obtains a Quoter V2 exact-input simulation at
-one pinned block and binds the pool, quoter, fee tier, block witness, raw
-amounts, price impact, and the two deviation checks into the signed
+one pinned block and binds the factory, pool, quoter, fee tier, any reviewed
+runtime code hashes, block witness, raw amounts, price impact, and the two
+deviation checks into the signed
 decision-input assessment. Unsupported direction/pair, stale or unreadable
 evidence, and a failed limit produce `INSUFFICIENT_EVIDENCE` or `BLOCK`; they
 never fall back to an inferred route. This is not a signed-transaction
