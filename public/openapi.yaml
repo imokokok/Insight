@@ -2654,6 +2654,120 @@ paths:
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
 
+  /safety/multichain-evm-lending-guard:
+    get:
+      operationId: assessMultichainEvmLendingGuard
+      tags: [Safety]
+      summary: Polygon, Arbitrum, and BNB lending risk decision
+      description: >-
+        Read-only risk gate for a caller-declared post-action lending position on
+        Polygon, Arbitrum, or BNB Chain. It validates the requested Aave V3 or
+        Venus direct-call market against live reviewed protocol controls and
+        oracle safety evidence. It never signs, submits, or authorizes a transaction.
+        API-key access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: chainId,
+            in: query,
+            required: true,
+            schema: { type: integer, enum: [137, 42161, 56] },
+          }
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [aave-v3-polygon, aave-v3-arbitrum, aave-v3-bnb, venus-core-bnb] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [supply, borrow] },
+          }
+        - {
+            name: collateralSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, example: WETH },
+          }
+        - { name: loanSymbol, in: query, required: true, schema: { type: string, example: USDC } }
+        - {
+            name: collateralValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 10000 },
+          }
+        - {
+            name: debtValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, minimum: 0, example: 5000 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK lending decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createMultichainEvmLendingGuardExactDecision
+      tags: [Safety]
+      summary: Bind a multichain lending decision to one exact direct call
+      description: >-
+        Creates a portable EIP-712 decision for a read-only assessment and one
+        unsigned direct EVM lending call. The decision remains non-authorizing
+        and must be bound to user authorization before execution.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard: { type: object, description: The same lending fields accepted by GET. }
+                transaction:
+                  {
+                    type: object,
+                    description: Exact unsigned direct EVM call with sender, nonce, and zero value.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision, optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/multichain-evm-lending-guard/verify:
+    get:
+      operationId: getMultichainEvmLendingGuardVerificationSchema
+      tags: [Safety]
+      summary: Get multichain EVM lending guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyMultichainEvmLendingGuardDecision
+      tags: [Safety]
+      summary: Verify a multichain EVM lending guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
   /safety/swap-intent:
     get:
       operationId: createPaidSwapIntent
