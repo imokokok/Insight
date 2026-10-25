@@ -50,6 +50,11 @@ it('returns reviewed Aerodrome evidence with a dynamic-fee caveat', async () => 
       token1: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
       tickSpacing: 100,
       feePips: 150,
+      codeIdentity: {
+        factory: `0x${'1'.repeat(64)}`,
+        quoterV2: `0x${'2'.repeat(64)}`,
+        pool: `0x${'3'.repeat(64)}`,
+      },
     },
     spot: { tick: 0, token1PerToken0: 1_000_000_000_000 },
     twap: {
@@ -70,7 +75,11 @@ it('returns reviewed Aerodrome evidence with a dynamic-fee caveat', async () => 
 
   expect(response.status).toBe(200);
   const body = await response.json();
-  expect(body.data).toMatchObject({ venue: 'aerodrome-slipstream', market: 'WETH/USDC' });
+  expect(body.data).toMatchObject({
+    venue: 'aerodrome-slipstream',
+    market: 'WETH/USDC',
+    contracts: { codeIdentity: { pool: `0x${'3'.repeat(64)}` } },
+  });
   expect(body.data.caveats).toContain(
     'feePips is the pool fee read at the pinned block and can change with Aerodrome fee configuration.'
   );

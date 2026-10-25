@@ -15,7 +15,7 @@ export const prepareAerodromeSlipstreamSwapTool: McpToolDefinition<
 > = {
   name: 'prepare_aerodrome_slipstream_swap',
   description:
-    'Prepare a user-signable Base WETH→USDC Aerodrome Slipstream exact-input swap against one reviewed CL100 pool. The tool takes an exact WETH amount, recipient, short deadline, and slippage bound; then obtains a pinned exact quote and rejects a router whose code hash or immutable factory/WETH bindings differ from the reviewed deployment. It returns unsigned approval and swap calldata only. Insight never receives a key, signs, relays, or broadcasts a transaction.',
+    'Prepare a user-signable exact-input swap against one allowlisted Base Aerodrome Slipstream pool. The tool takes a reviewed profile id, exact input amount, recipient, short deadline, and slippage bound; then obtains a pinned quote and re-verifies the Factory, QuoterV2, Pool, and Router identities. It returns unsigned approval and swap calldata only. Insight never receives a key, signs, relays, or broadcasts a transaction.',
   parameters: AerodromeSlipstreamSwapPreparationInputSchema,
   handler: async (args) => {
     const prepared = await prepareAerodromeSlipstreamExactInput(args);

@@ -14,12 +14,16 @@ ladder. It does not represent every Base route or a reserve-TV L calculation.
 
 ## Base: one Aerodrome Slipstream pool
 
-`GET /api/v1/markets/dex/aerodrome` reads the reviewed Aerodrome Slipstream
-WETH/USDC CL100 pool at one Base block. It proves both directions of pool
-provenance (the configured factory resolves the pool and the pool reports that
-factory), then verifies the sorted token pair and tick spacing before returning
-spot, a 30-minute TWAP, active in-range liquidity, token balances, the pool's
-live fee in pips, and a 1/10/100 WETH exact-input QuoterV2 ladder.
+`GET /api/v1/markets/dex/aerodrome` reads the default allowlisted Aerodrome
+Slipstream WETH/USDC CL100 pool at one Base block. The registry is a
+code-reviewed allowlist: an entry records its ordered tokens, tick spacing,
+Factory, QuoterV2, Pool, and the runtime-code hash for each DEX contract. At
+the quoted block Insight re-reads all three contract bytecodes, rejects a hash
+mismatch, proves both directions of pool provenance (the configured factory
+resolves the pool and the pool reports that factory), and verifies the sorted
+token pair and tick spacing before returning spot, a 30-minute TWAP, active
+in-range liquidity, token balances, the pool's live fee in pips, and a
+1/10/100 WETH exact-input QuoterV2 ladder.
 
 Slipstream is derived from Uniswap V3 but uses `tickSpacing` to identify pools
 and its six-field `slot0`; Insight therefore has a distinct adapter rather than
@@ -36,11 +40,12 @@ The Aerodrome path has three separate stages:
    only for Base `WETH → USDC` through this exact CL100 pool. It binds the
    exact-notional QuoterV2 result, factory, pool, quoter, tick spacing, live
    fee, raw amounts, impact, and spot/TWAP checks into the assessment.
-2. `prepare_aerodrome_slipstream_swap` returns unsigned, single-hop router
-   calldata plus an **exact-amount** WETH approval template. Before returning
-   either, Insight verifies the pinned router bytecode hash and immutable
-   factory/WETH bindings at the quote block, then encodes `amountOutMinimum`
-   from the caller's slippage bound.
+2. `prepare_aerodrome_slipstream_swap` accepts only a named allowlisted pool
+   profile and returns unsigned, single-hop router calldata plus an
+   **exact-amount** approval template. Before returning either, Insight
+   re-verifies the Factory, QuoterV2, Pool, and router bytecodes plus the
+   router's immutable factory/WETH bindings at the quote block, then encodes
+   `amountOutMinimum` from the caller's slippage bound.
 3. The wallet owner signs and submits calls directly on Base. Afterwards,
    `execution_receipt` can accept the Base transaction hash and signed
    pre-trade originals to collect ERC-20 settlement evidence and issue a
@@ -87,10 +92,11 @@ never signs, simulates, or submits an order.
 ## Agent tools
 
 - `get_base_dex_market` exposes the Base pool evidence.
-- `get_aerodrome_slipstream_market` exposes the reviewed Aerodrome Slipstream
-  Base WETH/USDC CL100 evidence.
+- `get_aerodrome_slipstream_market` accepts only a reviewed Aerodrome
+  Slipstream pool id and exposes its Base evidence. The current allowlist
+  contains Base WETH/USDC CL100.
 - `prepare_aerodrome_slipstream_swap` prepares bounded, unsigned Base calldata
-  for that same reviewed Aerodrome pool. It is C3; the existing
+  for a named reviewed Aerodrome pool. It is C3; the existing
   `execution_receipt` tool is the post-settlement verification handoff.
 - `get_solana_dex_route` exposes the Solana route evidence.
 - `get_hyperliquid_perp_market` exposes the reviewed Hyperliquid perpetual
