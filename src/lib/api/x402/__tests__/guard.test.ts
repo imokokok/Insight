@@ -14,11 +14,21 @@ import {
 } from '../guard';
 import { getX402HttpServer } from '../resourceServer';
 
-const mockInsert = jest.fn(async () => ({ error: null }));
+const mockInsert = jest.fn();
+const mockAbortSignal = jest.fn(async () => ({ error: null }));
+
+function mockSettlementTable() {
+  return {
+    insert: (row: unknown) => {
+      mockInsert(row);
+      return { abortSignal: mockAbortSignal };
+    },
+  };
+}
 
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(() => ({
-    from: () => ({ insert: mockInsert }),
+    from: () => mockSettlementTable(),
   })),
 }));
 
@@ -67,9 +77,11 @@ const mockedGetServer = getX402HttpServer as jest.Mock;
 // the insert recorder so audit assertions observe real calls.
 beforeEach(() => {
   (createServiceRoleClient as jest.Mock).mockImplementation(() => ({
-    from: () => ({ insert: mockInsert }),
+    from: () => mockSettlementTable(),
   }));
-  mockInsert.mockImplementation(async () => ({ error: null }));
+  mockInsert.mockClear();
+  mockAbortSignal.mockClear();
+  mockAbortSignal.mockImplementation(async () => ({ error: null }));
 });
 
 const CFG: X402Config = {

@@ -1,13 +1,14 @@
 name: Monad DEX Market Collector
 
-# Index finalized Monad Uniswap V3 Swap events every five minutes. The runner
+# Index finalized Monad Uniswap V3 Swap events every ten minutes. The runner
 # advances a durable cursor and catches up after delayed Actions executions, so
 # rolling volumes remain attributable to on-chain event logs rather than an
-# unauditable aggregator API.
+# unauditable aggregator API. Ten minutes halves recurring cursor writes while
+# preserving complete finalized event coverage.
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 concurrency:

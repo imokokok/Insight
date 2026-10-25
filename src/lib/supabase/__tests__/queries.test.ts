@@ -318,6 +318,7 @@ describe('getOracleFeeds paging', () => {
   const createPageThenable = (value: unknown) => {
     const promise = new Promise((resolve) => resolve(value));
     const thenable = {
+      abortSignal: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       then: promise.then.bind(promise),
       catch: promise.catch.bind(promise),
