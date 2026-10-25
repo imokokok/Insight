@@ -204,9 +204,13 @@ async function infoRequest(
   }
 }
 
-type ParsedBookLevel = { price: number; size: number };
+/** Full-precision L2 level used only for an immediate order preflight. */
+export interface HyperliquidPerpBookLevel {
+  price: number;
+  size: number;
+}
 
-function parsedBookLevels(value: unknown, side: 'bids' | 'asks'): ParsedBookLevel[] {
+function parsedBookLevels(value: unknown, side: 'bids' | 'asks'): HyperliquidPerpBookLevel[] {
   if (!Array.isArray(value) || value.length === 0 || value.length > 20) {
     throw new HyperliquidPerpMarketError(`Hyperliquid returned an invalid ${side} book.`);
   }
@@ -222,7 +226,7 @@ function parsedBookLevels(value: unknown, side: 'bids' | 'asks'): ParsedBookLeve
   });
 }
 
-function assertBookOrder(levels: readonly ParsedBookLevel[], side: 'bids' | 'asks'): void {
+function assertBookOrder(levels: readonly HyperliquidPerpBookLevel[], side: 'bids' | 'asks'): void {
   for (let index = 1; index < levels.length; index += 1) {
     const previous = levels[index - 1]!;
     const current = levels[index]!;
@@ -259,6 +263,7 @@ function parseMarketContext(value: unknown, profile: HyperliquidPerpMarketProfil
     throw new HyperliquidPerpMarketError('Hyperliquid reviewed perpetual market is delisted.');
   }
   return {
+    assetIndex: index,
     markPrice: finiteNumber(context.markPx, 'markPx', 0),
     midPrice: finiteNumber(context.midPx, 'midPx', 0),
     oraclePrice: finiteNumber(context.oraclePx, 'oraclePx', 0),
@@ -290,7 +295,7 @@ function parseBook(value: unknown, profile: HyperliquidPerpMarketProfile) {
 }
 
 function estimateBookImpact(
-  levels: readonly ParsedBookLevel[],
+  levels: readonly HyperliquidPerpBookLevel[],
   side: 'buy' | 'sell',
   targetNotionalUsd: number
 ): HyperliquidBookImpactEstimate {
@@ -322,6 +327,91 @@ function estimateBookImpact(
     averagePrice,
     priceImpactBps,
     complete,
+  };
+}
+
+/**
+ * Fresh full-depth witness for a user-signed, IOC-only Hyperliquid order
+ * preflight. It intentionally contains no account state, key material, nonce,
+ * or exchange signature. The exchange exposes at most twenty levels per side,
+ * so callers must treat a partial result as a bound on displayed liquidity,
+ * never as a promise that a later order can fill.
+ */
+export interface HyperliquidPerpExecutionMarketState {
+  source: 'dex-market';
+  venue: 'hyperliquid-perp';
+  network: typeof HYPERLIQUID_MAINNET_NETWORK;
+  market: string;
+  coin: HyperliquidReviewedPerpMarket;
+  observedAt: string;
+  sourceFreshnessSeconds: number;
+  assetIndex: number;
+  perpetual: {
+    markPrice: number;
+    midPrice: number;
+    oraclePrice: number;
+    fundingRate: number;
+    openInterest: number;
+    dayNotionalVolume: number;
+    sizeDecimals: number;
+    maxLeverage: number;
+  };
+  book: {
+    timestamp: string;
+    bids: readonly HyperliquidPerpBookLevel[];
+    asks: readonly HyperliquidPerpBookLevel[];
+  };
+}
+
+/**
+ * Read the exact metadata and L2 snapshot used by a single order preflight.
+ * Unlike the market-evidence endpoint this read is never cacheable: a caller
+ * should sign only a freshly prepared, expiring IOC action.
+ */
+export async function getHyperliquidPerpExecutionMarketState(
+  profile: HyperliquidPerpMarketProfile = hyperliquidPerpMarketProfile(),
+  options: { fetcher?: Fetcher; nowMs?: number; signal?: AbortSignal } = {}
+): Promise<HyperliquidPerpExecutionMarketState> {
+  assertHyperliquidPerpMarketProfile(profile);
+  const nowMs = options.nowMs ?? Date.now();
+  const fetcher = options.fetcher ?? fetch;
+  const [contextPayload, bookPayload] = await Promise.all([
+    infoRequest({ type: 'metaAndAssetCtxs' }, fetcher, options.signal),
+    infoRequest({ type: 'l2Book', coin: profile.coin }, fetcher, options.signal),
+  ]);
+  const perpetual = parseMarketContext(contextPayload, profile);
+  const book = parseBook(bookPayload, profile);
+  if (book.timestamp > nowMs + 5_000) {
+    throw new HyperliquidPerpMarketError('Hyperliquid L2 book timestamp is in the future.');
+  }
+  const sourceFreshnessSeconds = Math.max(0, (nowMs - book.timestamp) / 1_000);
+  if (sourceFreshnessSeconds > profile.maxSourceAgeSeconds) {
+    throw new HyperliquidPerpMarketError('Hyperliquid L2 book exceeded its freshness limit.');
+  }
+  return {
+    source: 'dex-market',
+    venue: 'hyperliquid-perp',
+    network: HYPERLIQUID_MAINNET_NETWORK,
+    market: profile.market,
+    coin: profile.coin,
+    observedAt: new Date(nowMs).toISOString(),
+    sourceFreshnessSeconds,
+    assetIndex: perpetual.assetIndex,
+    perpetual: {
+      markPrice: perpetual.markPrice,
+      midPrice: perpetual.midPrice,
+      oraclePrice: perpetual.oraclePrice,
+      fundingRate: perpetual.fundingRate,
+      openInterest: perpetual.openInterest,
+      dayNotionalVolume: perpetual.dayNotionalVolume,
+      sizeDecimals: perpetual.sizeDecimals,
+      maxLeverage: perpetual.maxLeverage,
+    },
+    book: {
+      timestamp: new Date(book.timestamp).toISOString(),
+      bids: book.bids,
+      asks: book.asks,
+    },
   };
 }
 
@@ -362,25 +452,12 @@ export async function getHyperliquidPerpMarketSnapshot(
     if (inFlight) return inFlight;
   }
   const request = (async (): Promise<HyperliquidPerpMarketSnapshot> => {
-    const fetcher = options.fetcher ?? fetch;
-    const [contextPayload, bookPayload] = await Promise.all([
-      infoRequest({ type: 'metaAndAssetCtxs' }, fetcher, options.signal),
-      infoRequest({ type: 'l2Book', coin: profile.coin }, fetcher, options.signal),
-    ]);
-    const perpetual = parseMarketContext(contextPayload, profile);
-    const book = parseBook(bookPayload, profile);
-    if (book.timestamp > nowMs + 5_000) {
-      throw new HyperliquidPerpMarketError('Hyperliquid L2 book timestamp is in the future.');
-    }
-    const sourceFreshnessSeconds = Math.max(0, (nowMs - book.timestamp) / 1_000);
-    if (sourceFreshnessSeconds > profile.maxSourceAgeSeconds) {
-      throw new HyperliquidPerpMarketError('Hyperliquid L2 book exceeded its freshness limit.');
-    }
-    const bestBid = book.bids[0]!.price;
-    const bestAsk = book.asks[0]!.price;
+    const state = await getHyperliquidPerpExecutionMarketState(profile, options);
+    const bestBid = state.book.bids[0]!.price;
+    const bestAsk = state.book.asks[0]!.price;
     const estimates = profile.quoteNotionalsUsd.flatMap((targetNotionalUsd) => [
-      estimateBookImpact(book.asks, 'buy', targetNotionalUsd),
-      estimateBookImpact(book.bids, 'sell', targetNotionalUsd),
+      estimateBookImpact(state.book.asks, 'buy', targetNotionalUsd),
+      estimateBookImpact(state.book.bids, 'sell', targetNotionalUsd),
     ]);
     return {
       source: 'dex-market',
@@ -388,22 +465,28 @@ export async function getHyperliquidPerpMarketSnapshot(
       network: HYPERLIQUID_MAINNET_NETWORK,
       market: profile.market,
       coin: profile.coin,
-      sourceFreshnessSeconds,
-      observedAt: new Date(nowMs).toISOString(),
+      sourceFreshnessSeconds: state.sourceFreshnessSeconds,
+      observedAt: state.observedAt,
       book: {
-        timestamp: new Date(book.timestamp).toISOString(),
-        displayedLevelsPerSide: Math.min(book.bids.length, book.asks.length),
+        timestamp: state.book.timestamp,
+        displayedLevelsPerSide: Math.min(state.book.bids.length, state.book.asks.length),
         bestBid,
         bestAsk,
         spreadBps: bps(bestAsk, bestBid, 'bid-ask spread'),
-        bidDepthNotionalUsd: book.bids.reduce((sum, level) => sum + level.price * level.size, 0),
-        askDepthNotionalUsd: book.asks.reduce((sum, level) => sum + level.price * level.size, 0),
+        bidDepthNotionalUsd: state.book.bids.reduce(
+          (sum, level) => sum + level.price * level.size,
+          0
+        ),
+        askDepthNotionalUsd: state.book.asks.reduce(
+          (sum, level) => sum + level.price * level.size,
+          0
+        ),
       },
       perpetual: {
-        ...perpetual,
+        ...state.perpetual,
         markDeviationBpsFromOracle: bps(
-          perpetual.markPrice,
-          perpetual.oraclePrice,
+          state.perpetual.markPrice,
+          state.perpetual.oraclePrice,
           'mark-oracle deviation'
         ),
       },

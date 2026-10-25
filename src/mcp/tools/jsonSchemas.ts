@@ -277,6 +277,54 @@ export const HyperliquidPerpMarketJsonSchema = z.object({
     .describe('Reviewed Hyperliquid perpetual market: BTC, ETH, or HYPE. Defaults to BTC.'),
 });
 
+/** Wire schema for a user-signed, IOC-only reviewed Hyperliquid perp order. */
+export const HyperliquidPerpOrderPreflightJsonSchema = z
+  .object({
+    market: z.enum(['BTC', 'ETH', 'HYPE']),
+    side: z.enum(['buy', 'sell']),
+    size: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+      .max(80),
+    limitPrice: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+      .max(80),
+    reduceOnly: z.boolean(),
+    clientOrderId: z.string().regex(/^0x[0-9a-fA-F]{32}$/),
+    maxNotionalUsd: z.number().finite().min(1).max(1_000_000_000),
+    maxPriceImpactBps: z.number().finite().min(0).max(10_000),
+    maxMarkOracleDeviationBps: z.number().finite().min(0).max(10_000),
+    requireFullFill: z.boolean().optional(),
+    expiresAfterSeconds: z.number().int().min(5).max(120).optional(),
+  })
+  .strict();
+
+/** Wire schema for a bounded, read-only Hyperliquid order/fill observation. */
+export const HyperliquidPerpExecutionVerificationJsonSchema = z
+  .object({
+    user: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+    orderId: z.string().regex(/^(?:[1-9][0-9]{0,19}|0x[0-9a-fA-F]{32})$/),
+    submittedAt: z.string().datetime({ offset: true }),
+    expectedOrder: z
+      .object({
+        market: z.enum(['BTC', 'ETH', 'HYPE']),
+        side: z.enum(['buy', 'sell']),
+        size: z
+          .string()
+          .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+          .max(80),
+        limitPrice: z
+          .string()
+          .regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/)
+          .max(80),
+        reduceOnly: z.boolean(),
+        clientOrderId: z.string().regex(/^0x[0-9a-fA-F]{32}$/),
+      })
+      .strict(),
+  })
+  .strict();
+
 const AssetEntryJsonSchema = z.object({
   symbol: z.string().min(1).describe('Asset symbol'),
   amount: z.number().positive().describe('Asset amount'),

@@ -40,8 +40,8 @@ This is CLOB context rather than an AMM pool analysis: Insight does not invent
 a V3-style TWAP or liquidity metric for Hyperliquid. The endpoint rejects an
 invalid, crossed, future, or stale L2 snapshot. Estimates are incomplete when
 the published book cannot fill the target and exclude fees, funding, margin,
-matching priority, and subsequent book changes. No endpoint signs, simulates,
-or submits an order.
+matching priority, and subsequent book changes. The market-evidence endpoint
+never signs, simulates, or submits an order.
 
 ## Agent tools
 
@@ -49,10 +49,55 @@ or submits an order.
 - `get_solana_dex_route` exposes the Solana route evidence.
 - `get_hyperliquid_perp_market` exposes the reviewed Hyperliquid perpetual
   evidence; it accepts `market: BTC | ETH | HYPE` and defaults to `BTC`.
+- `prepare_hyperliquid_perp_order` performs the user-side execution preflight
+  below and returns an unsigned IOC action only if it passes.
+- `verify_hyperliquid_perp_execution` reads a single known order and a bounded
+  window of its fills after the user has signed and submitted it.
 
-All three tools have foundational C1 pricing. The existing
+The three market-evidence tools have foundational C1 pricing. The existing
 `get_monad_dex_market` continues to provide Monad WMON/USDC evidence and its
 finalized rolling-volume index.
+
+## Hyperliquid user-signed execution loop
+
+The reviewed Hyperliquid integration is deliberately equivalent in security
+shape to Insight's Uniswap execution support: Insight evaluates the exact
+intent and later observes execution, while the account owner or its approved
+Hyperliquid API wallet performs the only signing and submission.
+
+1. Call `prepare_hyperliquid_perp_order` with one reviewed `BTC`, `ETH`, or
+   `HYPE` perpetual, a `buy` or `sell` base size, IOC limit price,
+   `reduceOnly` setting, caller-created 16-byte `clientOrderId`, notional cap,
+   and explicit book-impact / mark-oracle limits.
+2. Insight reads fresh `metaAndAssetCtxs` and the unaggregated 20-level L2
+   book. It checks the live asset index, `szDecimals`, perpetual price tick,
+   caller limit notional, full-fill requirement, displayed-book impact, and
+   mark/oracle divergence. A failed gate returns `BLOCK` and no action to
+   sign.
+3. A `READY_TO_SIGN` response contains a short-expiry, single-order,
+   `grouping: "na"`, `Ioc` action. The user process chooses a fresh nonce,
+   signs it with the official Hyperliquid signing flow, and sends it directly
+   to Hyperliquid's exchange endpoint. Insight never receives a private key,
+   approved API-wallet key, nonce, or signature.
+4. Call `verify_hyperliquid_perp_execution` using the account/subaccount/vault
+   address, the `oid` or original `clientOrderId`, the submission timestamp,
+   and the expected order fields. It compares `orderStatus` with that intent
+   and aggregates only matching `userFillsByTime` rows inside a 24-hour bounded
+   window.
+
+The preparation tool is C3 ($0.02 through x402 MCP); the execution observer is
+C4 ($0.04). The normal MCP x402 `tools/call` bridge applies these prices on all
+advertised payment networks; no separate trading payment or exchange
+credential is involved.
+
+This is not a custodial broker. IOC is intentionally the only admitted order
+type because it lets Insight apply a finite displayed-book bound. It cannot
+prove future matching priority, exchange margin and open-interest rules,
+fees, funding, liquidation risk, later order-book state, or the correctness of
+the exchange's public API. The returned execution record is labelled
+`verificationLevel: "observed"`, not an Insight signature.
+
+See Hyperliquid's official [tick and lot size](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size), [exchange action](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint), [API-wallet/nonce](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets), and [order-status/fills](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint) documentation for the user-side final step.
 
 ## C3 pre-trade integration
 
