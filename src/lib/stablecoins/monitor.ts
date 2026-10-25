@@ -28,7 +28,16 @@ import type {
 const logger = createLogger('stablecoin-monitor');
 
 const SNAPSHOT_CACHE_TTL = ORACLE_CACHE_TTL.PRICE;
-const snapshotCache = new TTLCache({ maxSize: 16, cleanupIntervalMs: 60000 });
+// Capacity is bounded and entries expire lazily on reads, so a per-instance
+// interval only wakes an otherwise idle server. Keep this cache timer-free.
+const snapshotCache = new TTLCache({ maxSize: 16, cleanupIntervalMs: 0 });
+const snapshotInFlight = new Map<string, Promise<StablecoinDepegSnapshot>>();
+
+/** Test seam — clears completed and pending process-local snapshots. */
+export function resetStablecoinSnapshotCacheForTests(): void {
+  snapshotCache.clear();
+  snapshotInFlight.clear();
+}
 
 export interface StablecoinDepegSnapshot {
   symbol: StablecoinSymbol;
@@ -258,6 +267,34 @@ export async function calculateStablecoinDepegSnapshot(
   if (cached) {
     return cached;
   }
+
+  // A caller-owned signal cannot safely be shared: aborting one HTTP request
+  // must not cancel another request that happens to need the same snapshot.
+  // Signal-free calls (cron, MCP and most server reads) can share one costly
+  // recomputation after cache expiry.
+  if (options.signal) {
+    return loadStablecoinDepegSnapshot(symbol, options);
+  }
+
+  const pending = snapshotInFlight.get(cacheKey);
+  if (pending) return pending;
+
+  const request = loadStablecoinDepegSnapshot(symbol, options);
+  snapshotInFlight.set(cacheKey, request);
+  try {
+    return await request;
+  } finally {
+    if (snapshotInFlight.get(cacheKey) === request) {
+      snapshotInFlight.delete(cacheKey);
+    }
+  }
+}
+
+async function loadStablecoinDepegSnapshot(
+  symbol: StablecoinSymbol,
+  options: { signal?: AbortSignal }
+): Promise<StablecoinDepegSnapshot> {
+  const cacheKey = `snapshot:${symbol}`;
 
   const config = getStablecoinConfig(symbol);
   if (!config) {
