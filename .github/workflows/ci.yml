@@ -20,6 +20,36 @@ permissions:
   contents: read
 
 jobs:
+  runtime-impact:
+    name: Classify runtime impact
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      runtime: ${{ steps.impact.outputs.runtime }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.23.2
+      - name: Determine whether this change can affect the running web app
+        id: impact
+        env:
+          CHANGE_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$CHANGE_BASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            # workflow_dispatch and a first push have no reliable comparison.
+            # Treat them as runtime-impacting rather than risk a skipped gate.
+            echo "runtime=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! git cat-file -e "${CHANGE_BASE_SHA}^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$CHANGE_BASE_SHA"
+          fi
+          node scripts/determine-runtime-impact.mts
+
   validate-static:
     name: Static, protocol, and SDK checks
     runs-on: ubuntu-24.04
@@ -130,6 +160,8 @@ jobs:
           fi
 
   smoke:
+    needs: runtime-impact
+    if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -144,13 +176,25 @@ jobs:
       # drop the gate. Deploy targets only warn (see the script).
       HOME_JS_BUDGET_REQUIRE_ARTIFACT: '1'
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - name: Require a successful runtime-impact classification
+        if: needs.runtime-impact.result != 'success'
+        run: |
+          echo "::error::Unable to classify the change; refusing to skip browser verification."
+          exit 1
+      - name: Skip browser smoke for non-runtime-only changes
+        if: needs.runtime-impact.outputs.runtime != 'true'
+        run: echo "Only docs, GitHub automation, or repository metadata changed."
+      - if: needs.runtime-impact.outputs.runtime == 'true'
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - if: needs.runtime-impact.outputs.runtime == 'true'
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22.23.2
           cache: npm
-      - run: npm ci
+      - if: needs.runtime-impact.outputs.runtime == 'true'
+        run: npm ci
       - name: Restore Next.js build cache
+        if: needs.runtime-impact.outputs.runtime == 'true'
         id: next-cache
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
@@ -160,31 +204,43 @@ jobs:
           # every commit with the same dependency graph, rather than only for
           # an explicit re-run of the same SHA.
           key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npm run build
+      - if: needs.runtime-impact.outputs.runtime == 'true'
+        run: npm run build
       - name: Cache Next.js build state
-        if: steps.next-cache.outputs.cache-hit != 'true'
+        if: needs.runtime-impact.outputs.runtime == 'true' && steps.next-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .next/cache
           key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Restore Playwright Chromium
+        if: needs.runtime-impact.outputs.runtime == 'true'
         id: playwright-cache
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npx playwright install --with-deps chromium
+      # System dependencies belong to the disposable Linux runner and must be
+      # installed every time. The Chromium binary is safe to reuse from the
+      # versioned cache, so avoid re-downloading it when the cache hits.
+      - name: Install Chromium system dependencies
+        if: needs.runtime-impact.outputs.runtime == 'true'
+        run: npx playwright install-deps chromium
+      - name: Install Chromium when the browser cache misses
+        if: needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
       - name: Cache Playwright Chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: needs.runtime-impact.outputs.runtime == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Verify the packed package shape in Chromium without network
+        if: needs.runtime-impact.outputs.runtime == 'true'
         run: npm run verifier:release:check -- --browser
-      - run: npm run test:e2e -- --project=chromium
+      - if: needs.runtime-impact.outputs.runtime == 'true'
+        run: npm run test:e2e -- --project=chromium
       - name: Retain browser failure evidence
-        if: failure()
+        if: failure() && needs.runtime-impact.outputs.runtime == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: chromium-smoke-diagnostics
@@ -198,8 +254,9 @@ jobs:
     name: Deploy production (gated and verified)
     if: >-
       github.ref == 'refs/heads/main' &&
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    needs: [validate, smoke]
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      needs.runtime-impact.outputs.runtime == 'true'
+    needs: [validate, smoke, runtime-impact]
     runs-on: ubuntu-24.04
     # Environment-scoped deployment: only the `main` branch may deploy to
     # production, and the VERCEL_* secrets are (or will be) scoped to this
@@ -236,13 +293,7 @@ jobs:
             exit 1
           fi
 
-          response_path="$RUNNER_TEMP/vercel-deploy-response.json"
-          curl --fail-with-body --silent --show-error \
-            --request POST \
-            --max-time 30 \
-            --output "$response_path" \
-            "$VERCEL_DEPLOY_HOOK_URL"
-          node scripts/verify-vercel-deploy.mjs "$response_path"
+          node --import tsx scripts/deploy-vercel-production.mts
 
           current_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
           if [ "$current_sha" != "$GITHUB_SHA" ]; then
