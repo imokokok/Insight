@@ -93,6 +93,46 @@ export function priceAtomicForTool(toolName: string): string {
 }
 
 /**
+ * Quote an unauthenticated GET probe of the MCP endpoint. Directory indexers
+ * (CDP Bazaar's validator among them) probe the resource URL with GET and
+ * require the x402 402 challenge; the streamable transport's protocol 405
+ * reads as "unindexable" to them. The challenge mirrors the canonical POST
+ * tools/call quote for the flagship tool so the discovery metadata keeps the
+ * resource's real method and shape; the actual per-tool price is still issued
+ * by the POST handshake, where the requested tool name is known.
+ */
+export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): Promise<Response> {
+  const requestId = newRequestId();
+  const price = priceAtomicForTool(REPUTATION_OPT_IN_TOOL);
+  const httpServer = await getMcpX402HttpServer(cfg, price);
+  const result = await httpServer.processHTTPRequest({
+    adapter: new PlainRequestAdapter(request),
+    path: X402_MCP_ROUTE,
+    method: 'POST',
+  });
+  if (result.type !== 'payment-error' || request.headers.has('payment-signature')) {
+    return new Response(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        error: { code: -32000, message: 'Method not allowed.' },
+        id: null,
+      }),
+      { status: 405, headers: { 'Content-Type': 'application/json', Allow: 'POST' } }
+    );
+  }
+  recordX402Settlement({
+    requestId,
+    status: 'quote_issued',
+    ...quoteAuditFields(cfg, price),
+    surface: 'mcp',
+    resource: 'mcp:indexer-probe',
+    responseTimeMs: 0,
+  });
+  logger.info('x402 MCP indexer probe quote issued', { requestId, priceAtomic: price });
+  return attachRequestId(toResponse(result.response), requestId);
+}
+
+/**
  * True when the JSON-RPC response represents a failed tool execution
  * (`result.isError` or a JSON-RPC-level `error`). Best-effort: an
  * unparseable body counts as failed — never charge on ambiguity.
