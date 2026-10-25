@@ -30,7 +30,10 @@ export interface ReviewedUniswapV3PreTradeEvidence {
   sourceFreshnessSeconds: number;
   observedAt: string;
   block: UniswapV3MarketSnapshot['block'];
-  contracts: Pick<UniswapV3MarketSnapshot['contracts'], 'pool' | 'quoterV2' | 'feeTier'>;
+  contracts: Pick<
+    UniswapV3MarketSnapshot['contracts'],
+    'factory' | 'pool' | 'quoterV2' | 'feeTier' | 'codeIdentity'
+  >;
   quote: UniswapV3MarketSnapshot['quotes'][number];
   spotToken1PerToken0: number;
   twapToken1PerToken0: number;
@@ -115,9 +118,11 @@ export async function getReviewedUniswapV3PreTradeEvidence(
     observedAt: snapshot.observedAt,
     block: snapshot.block,
     contracts: {
+      factory: snapshot.contracts.factory,
       pool: snapshot.contracts.pool,
       quoterV2: snapshot.contracts.quoterV2,
       feeTier: snapshot.contracts.feeTier,
+      ...(snapshot.contracts.codeIdentity ? { codeIdentity: snapshot.contracts.codeIdentity } : {}),
     },
     quote,
     spotToken1PerToken0: snapshot.spot.token1PerToken0,

@@ -206,8 +206,9 @@ forward-direction profiles:
 - Base `USDC` → `USDT` (reviewed PancakeSwap V3 USDC/USDT 0.01% pool)
 
 For an admitted route, Insight obtains a Quoter V2 exact-input simulation at
-one pinned block and binds the pool, quoter, fee tier, block witness, raw
-amounts, price impact, and the two deviation checks into the signed
+one pinned block and binds the factory, pool, quoter, fee tier, any reviewed
+runtime code hashes, block witness, raw amounts, price impact, and the two
+deviation checks into the signed
 decision-input assessment. Unsupported direction/pair, stale or unreadable
 evidence, and a failed limit produce `INSUFFICIENT_EVIDENCE` or `BLOCK`; they
 never fall back to an inferred route. This is not a signed-transaction

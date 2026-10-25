@@ -201,9 +201,15 @@ export interface DecisionInputAssessment {
       observedAt: string;
       blockNumber: string;
       blockHash: `0x${string}`;
+      factory: `0x${string}`;
       pool: `0x${string}`;
       quoterV2: `0x${string}`;
       feeTier: number;
+      codeIdentity?: {
+        factory: `0x${string}`;
+        quoterV2: `0x${string}`;
+        pool: `0x${string}`;
+      };
       amountIn: number;
       amountInRaw: string;
       amountOut: number;
@@ -557,9 +563,18 @@ export const DecisionInputAssessmentSchema = z
               .regex(/^[1-9][0-9]*$/)
               .max(80),
             blockHash: Bytes32Schema,
+            factory: AddressSchema,
             pool: AddressSchema,
             quoterV2: AddressSchema,
             feeTier: z.number().int().positive().max(1_000_000),
+            codeIdentity: z
+              .object({
+                factory: Bytes32Schema,
+                quoterV2: Bytes32Schema,
+                pool: Bytes32Schema,
+              })
+              .strict()
+              .optional(),
             amountIn: FinitePositiveNumberSchema,
             amountInRaw: z
               .string()
@@ -1329,9 +1344,11 @@ function assessReviewedUniswapV3(
       observedAt: evidence.observedAt,
       blockNumber: evidence.block.number,
       blockHash: evidence.block.hash,
+      factory: evidence.contracts.factory,
       pool: evidence.contracts.pool,
       quoterV2: evidence.contracts.quoterV2,
       feeTier: evidence.contracts.feeTier,
+      ...(evidence.contracts.codeIdentity ? { codeIdentity: evidence.contracts.codeIdentity } : {}),
       amountIn: evidence.quote.amountIn,
       amountInRaw: evidence.quote.amountInRaw,
       amountOut: evidence.quote.amountOut,

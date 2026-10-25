@@ -46,6 +46,11 @@ const snapshot = {
     token0: '0x4200000000000000000000000000000000000006',
     token1: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
     feeTier: 3_000,
+    codeIdentity: {
+      factory: `0x${'aa'.repeat(32)}`,
+      quoterV2: `0x${'bb'.repeat(32)}`,
+      pool: `0x${'cc'.repeat(32)}`,
+    },
   },
   spot: { tick: 1, token1PerToken0: 2000 },
   twap: { windowSeconds: 1800, tick: 1, token1PerToken0: 1999, deviationBpsFromSpot: 5 },
@@ -76,6 +81,10 @@ describe('reviewed Uniswap V3 pre-trade evidence', () => {
     expect(result).toMatchObject({
       profile: 'base-weth-usdc',
       market: 'WETH/USDC',
+      contracts: {
+        factory: '0x33128a8fC17869897dcE68Ed026d694621f6FDfD',
+        codeIdentity: { factory: `0x${'aa'.repeat(32)}` },
+      },
       quote: { amountInRaw: '1250000000000000000' },
     });
     const profile = mockedSnapshot.mock.calls[0]?.[0];
