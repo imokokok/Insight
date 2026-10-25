@@ -1,4 +1,8 @@
 import { getBaseUniswapV3MarketSnapshot } from '@/lib/dex/baseUniswapV3';
+import {
+  getHyperliquidPerpMarketSnapshot,
+  hyperliquidPerpMarketProfile,
+} from '@/lib/dex/hyperliquidPerpMarket';
 import { getMonadUniswapV3MarketSnapshot } from '@/lib/dex/monadUniswapV3';
 import { getMonadUniswapV3VolumeSummary } from '@/lib/dex/monadUniswapV3Volume';
 import { getSolanaJupiterRouteSnapshot } from '@/lib/dex/solanaJupiterRoute';
@@ -6,6 +10,7 @@ import { getSolanaJupiterRouteSnapshot } from '@/lib/dex/solanaJupiterRoute';
 import { formatAsText } from './formatters';
 import {
   BaseDexMarketInputSchema,
+  HyperliquidPerpMarketInputSchema,
   MonadDexMarketInputSchema,
   SolanaDexRouteInputSchema,
 } from './schemas';
@@ -72,6 +77,31 @@ export const getSolanaDexRouteTool: McpToolDefinition<typeof SolanaDexRouteInput
         'Jupiter route evidence is an aggregator quote, not a block-pinned read of one Solana pool.',
         'A quote is not a transaction simulation or a guarantee that a later signed swap will land.',
         'Use Insight’s signed Solana simulation receipt to bind an exact prepared transaction before authorization.',
+      ],
+    });
+  },
+};
+
+/**
+ * Hyperliquid is a CLOB perpetual venue, so Insight returns exchange context
+ * and bounded estimates from the displayed L2 book rather than pretending an
+ * AMM quote or a fair-price oracle exists.
+ */
+export const getHyperliquidPerpMarketTool: McpToolDefinition<
+  typeof HyperliquidPerpMarketInputSchema
+> = {
+  name: 'get_hyperliquid_perp_market',
+  description:
+    'Get fresh Hyperliquid mainnet perpetual-market evidence for a reviewed BTC, ETH, or HYPE market: mark/oracle divergence, funding, open interest, 24-hour notional volume, L2 spread, displayed depth, and two-sided book-impact estimates. It is read-only CLOB context, not an oracle-consensus price or executable exchange quote.',
+  parameters: HyperliquidPerpMarketInputSchema,
+  handler: async ({ market }) => {
+    const snapshot = await getHyperliquidPerpMarketSnapshot(hyperliquidPerpMarketProfile(market));
+    return formatAsText({
+      ...snapshot,
+      caveats: [
+        'Hyperliquid perpetual-market evidence is read-only CLOB context, not an oracle-consensus vote or venue-independent fair price.',
+        'Book-impact estimates consume at most the published L2 levels and exclude fees, funding, margin, matching priority, and future book changes.',
+        'Funding, open interest, mark, and oracle values are exchange-reported perpetual context, not independently verified on-chain data.',
       ],
     });
   },

@@ -132,6 +132,7 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^get_monad_dex_market$/, 'C1'],
   [/^get_base_dex_market$/, 'C1'],
   [/^get_solana_dex_route$/, 'C1'],
+  [/^get_hyperliquid_perp_market$/, 'C1'],
   // A decision gate, not an execution receipt: must precede the broad C4
   // `execution` matcher below.
   [/^execution_preflight$/, 'C3'],

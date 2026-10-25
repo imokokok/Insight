@@ -1,8 +1,16 @@
 import { getToolCreditCost } from '@/lib/billing/metering';
 import { getBaseUniswapV3MarketSnapshot } from '@/lib/dex/baseUniswapV3';
+import {
+  getHyperliquidPerpMarketSnapshot,
+  hyperliquidPerpMarketProfile,
+} from '@/lib/dex/hyperliquidPerpMarket';
 import { getSolanaJupiterRouteSnapshot } from '@/lib/dex/solanaJupiterRoute';
 
-import { getBaseDexMarketTool, getSolanaDexRouteTool } from '../dexMarketTools';
+import {
+  getBaseDexMarketTool,
+  getHyperliquidPerpMarketTool,
+  getSolanaDexRouteTool,
+} from '../dexMarketTools';
 import { getToolDefinitions } from '../index';
 
 jest.mock('@/lib/dex/baseUniswapV3', () => ({
@@ -11,6 +19,10 @@ jest.mock('@/lib/dex/baseUniswapV3', () => ({
 jest.mock('@/lib/dex/solanaJupiterRoute', () => ({
   getSolanaJupiterRouteSnapshot: jest.fn(),
 }));
+jest.mock('@/lib/dex/hyperliquidPerpMarket', () => ({
+  getHyperliquidPerpMarketSnapshot: jest.fn(),
+  hyperliquidPerpMarketProfile: jest.fn((market: string) => ({ coin: market })),
+}));
 
 const mockedBaseSnapshot = getBaseUniswapV3MarketSnapshot as jest.MockedFunction<
   typeof getBaseUniswapV3MarketSnapshot
@@ -18,17 +30,37 @@ const mockedBaseSnapshot = getBaseUniswapV3MarketSnapshot as jest.MockedFunction
 const mockedSolanaSnapshot = getSolanaJupiterRouteSnapshot as jest.MockedFunction<
   typeof getSolanaJupiterRouteSnapshot
 >;
+const mockedHyperliquidSnapshot = getHyperliquidPerpMarketSnapshot as jest.MockedFunction<
+  typeof getHyperliquidPerpMarketSnapshot
+>;
+const mockedHyperliquidProfile = hyperliquidPerpMarketProfile as jest.MockedFunction<
+  typeof hyperliquidPerpMarketProfile
+>;
 
 describe('additional DEX market MCP tools', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedHyperliquidProfile.mockImplementation((market) => ({ coin: market }) as never);
+  });
 
-  it('registers the reviewed Base and Solana evidence tools at C1', () => {
+  it('registers the reviewed Base, Solana, and Hyperliquid evidence tools at C1', () => {
     const names = getToolDefinitions().map((tool) => tool.name);
-    expect(names).toEqual(expect.arrayContaining(['get_base_dex_market', 'get_solana_dex_route']));
+    expect(names).toEqual(
+      expect.arrayContaining([
+        'get_base_dex_market',
+        'get_solana_dex_route',
+        'get_hyperliquid_perp_market',
+      ])
+    );
     expect(getBaseDexMarketTool.parameters.safeParse({}).success).toBe(true);
     expect(getSolanaDexRouteTool.parameters.safeParse({}).success).toBe(true);
+    expect(getHyperliquidPerpMarketTool.parameters.safeParse({}).data).toEqual({ market: 'BTC' });
+    expect(getHyperliquidPerpMarketTool.parameters.safeParse({ market: 'SOL' }).success).toBe(
+      false
+    );
     expect(getToolCreditCost('get_base_dex_market')).toBe(0.5);
     expect(getToolCreditCost('get_solana_dex_route')).toBe(0.5);
+    expect(getToolCreditCost('get_hyperliquid_perp_market')).toBe(0.5);
   });
 
   it('keeps Base pool evidence explicitly separate from oracle consensus', async () => {
@@ -83,6 +115,48 @@ describe('additional DEX market MCP tools', () => {
     expect(result.market).toBe('SOL/USDC');
     expect(result.caveats).toContain(
       'A quote is not a transaction simulation or a guarantee that a later signed swap will land.'
+    );
+  });
+
+  it('labels Hyperliquid output as bounded CLOB context rather than a fair-price oracle', async () => {
+    mockedHyperliquidSnapshot.mockResolvedValue({
+      source: 'dex-market',
+      venue: 'hyperliquid-perp',
+      network: 'hyperliquid:mainnet',
+      market: 'BTC-PERP',
+      coin: 'BTC',
+      sourceFreshnessSeconds: 2,
+      observedAt: '2026-10-25T00:00:02.000Z',
+      book: {
+        timestamp: '2026-10-25T00:00:00.000Z',
+        displayedLevelsPerSide: 20,
+        bestBid: 100,
+        bestAsk: 101,
+        spreadBps: 100,
+        bidDepthNotionalUsd: 100_000,
+        askDepthNotionalUsd: 100_000,
+      },
+      perpetual: {
+        markPrice: 100.5,
+        midPrice: 100.5,
+        oraclePrice: 100.25,
+        markDeviationBpsFromOracle: 24.9,
+        fundingRate: 0.00001,
+        openInterest: 12_000,
+        dayNotionalVolume: 2_500_000,
+        sizeDecimals: 5,
+        maxLeverage: 40,
+      },
+      estimates: [],
+    });
+
+    const result = JSON.parse(await getHyperliquidPerpMarketTool.handler({ market: 'BTC' }));
+
+    expect(mockedHyperliquidProfile).toHaveBeenCalledWith('BTC');
+    expect(mockedHyperliquidSnapshot).toHaveBeenCalledWith({ coin: 'BTC' });
+    expect(result.market).toBe('BTC-PERP');
+    expect(result.caveats).toContain(
+      'Book-impact estimates consume at most the published L2 levels and exclude fees, funding, margin, matching priority, and future book changes.'
     );
   });
 });

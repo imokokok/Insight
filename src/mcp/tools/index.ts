@@ -12,6 +12,7 @@ import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
 import { getCrossChainSpreadsTool } from './crossChainTools';
 import {
   getBaseDexMarketTool,
+  getHyperliquidPerpMarketTool,
   getMonadDexMarketTool,
   getSolanaDexRouteTool,
 } from './dexMarketTools';
@@ -26,6 +27,7 @@ import {
 import {
   AnomaliesJsonSchema,
   BaseDexMarketJsonSchema,
+  HyperliquidPerpMarketJsonSchema,
   BatchPriceJsonSchema,
   ConsensusPriceJsonSchema,
   CorrelationJsonSchema,
@@ -127,6 +129,7 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getMonadDexMarketTool,
   getBaseDexMarketTool,
   getSolanaDexRouteTool,
+  getHyperliquidPerpMarketTool,
   checkPositionSafetyTool,
   preTradeSafetyCheckTool,
   oracleWatchTool,
@@ -339,6 +342,11 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   get_solana_dex_route: SolanaDexRouteJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  get_hyperliquid_perp_market: HyperliquidPerpMarketJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

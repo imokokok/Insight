@@ -268,6 +268,17 @@ export const BaseDexMarketInputSchema = z.object({});
 /** No caller input: this tool exposes one reviewed Solana route market only. */
 export const SolanaDexRouteInputSchema = z.object({});
 
+/** A small reviewed set prevents an MCP caller from turning Insight into an
+ * unbounded public-market proxy while still exposing the primary Hyperliquid
+ * perpetual markets. */
+export const HyperliquidPerpMarketInputSchema = z.object({
+  market: z
+    .enum(['BTC', 'ETH', 'HYPE'])
+    .optional()
+    .default('BTC')
+    .describe('Reviewed Hyperliquid perpetual market: BTC, ETH, or HYPE. Defaults to BTC.'),
+});
+
 const AssetEntrySchema = z.object({
   symbol: z.string().min(1),
   amount: z.number().positive(),

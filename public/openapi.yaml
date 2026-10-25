@@ -219,7 +219,7 @@ tags:
   - name: Prices
     description: Historical and latest oracle price data
   - name: DEX Markets
-    description: Block-pinned on-chain execution-market evidence, separate from oracle consensus
+    description: Reviewed execution-market evidence, separate from oracle consensus
   - name: Consensus
     description: Cross-oracle consensus pricing 🔒
   - name: Feeds
@@ -1294,6 +1294,97 @@ paths:
                           required: [amountInRaw, amountOutRaw, priceImpactPct, contextSlot, route]
         '503':
           description: Fresh Solana route evidence is unavailable.
+
+  /markets/dex/hyperliquid:
+    get:
+      operationId: getHyperliquidPerpMarket
+      tags: [DEX Markets]
+      summary: Hyperliquid perpetual CLOB market evidence
+      description: >-
+        Returns fresh, read-only Hyperliquid mainnet perpetual-market context
+        for a reviewed BTC, ETH, or HYPE market: exchange-reported mark, mid,
+        oracle, funding, open interest and 24-hour notional volume, plus a
+        fresh L2 book witness, displayed depth, and bounded two-sided impact
+        estimates. This is one exchange's CLOB context, not an oracle feed,
+        consensus vote, or executable quote. It never signs, simulates, or
+        submits an order.
+      security:
+        - apiKey: []
+      parameters:
+        - name: market
+          in: query
+          required: false
+          description: Reviewed Hyperliquid perpetual market. Defaults to BTC.
+          schema:
+            type: string
+            enum: [BTC, ETH, HYPE]
+            default: BTC
+      responses:
+        '200':
+          description: Fresh reviewed Hyperliquid perpetual-market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required: [source, venue, network, market, coin, book, perpetual, estimates]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: hyperliquid-perp }
+                      network: { type: string, const: hyperliquid:mainnet }
+                      market: { type: string, example: BTC-PERP }
+                      coin: { type: string, enum: [BTC, ETH, HYPE] }
+                      sourceFreshnessSeconds: { type: number, minimum: 0 }
+                      book:
+                        type: object
+                        required:
+                          [
+                            timestamp,
+                            displayedLevelsPerSide,
+                            bestBid,
+                            bestAsk,
+                            spreadBps,
+                            bidDepthNotionalUsd,
+                            askDepthNotionalUsd,
+                          ]
+                      perpetual:
+                        type: object
+                        required:
+                          [
+                            markPrice,
+                            midPrice,
+                            oraclePrice,
+                            markDeviationBpsFromOracle,
+                            fundingRate,
+                            openInterest,
+                            dayNotionalVolume,
+                            sizeDecimals,
+                            maxLeverage,
+                          ]
+                      estimates:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [
+                              side,
+                              targetNotionalUsd,
+                              filledNotionalUsd,
+                              filledBase,
+                              averagePrice,
+                              priceImpactBps,
+                              complete,
+                            ]
+        '400':
+          description: The market is not in Insight's reviewed Hyperliquid perpetual allowlist.
+        '503':
+          description: Fresh Hyperliquid perpetual-market evidence is unavailable.
 
   # ── Prices ──────────────────────────────────────────────
   /prices:
