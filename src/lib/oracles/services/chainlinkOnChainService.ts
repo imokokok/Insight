@@ -5,6 +5,12 @@ import { nowInSeconds } from '@/lib/utils/time';
 
 import { OracleCache } from '../base';
 import { getCatalogSupportedChainIds } from '../constants/chainlinkCatalogLoader';
+import {
+  decodeAggregate3,
+  encodeAggregate3,
+  MULTICALL3_ADDRESS,
+  type Multicall3Call,
+} from '../utils/multicall3';
 import { stringToPrice } from '../utils/oracleDataUtils';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 import {
@@ -35,6 +41,20 @@ export interface ChainlinkPriceData {
   description?: string;
   version?: bigint;
   startedAt?: number;
+}
+
+/** Internal input for a single-chain, collector-only Multicall request. */
+export interface ChainlinkSnapshotBatchRequest {
+  id: string;
+  symbol: string;
+  chainId: number;
+  feedAddressOverride?: `0x${string}`;
+}
+
+export interface ChainlinkSnapshotBatchResult {
+  id: string;
+  data: ChainlinkPriceData | null;
+  error: Error | null;
 }
 
 function encodeAggregatorCall(
@@ -153,6 +173,29 @@ class ChainlinkOnChainService {
     return this.rpcClient.ethCall(String(chainId), config.endpoints, to, data, signal);
   }
 
+  /**
+   * Execute a bounded set of independent reads in Multicall3. The outer call
+   * remains an ordinary `eth_call`; `allowFailure` means one broken feed does
+   * not conceal the other observations in the same block snapshot.
+   */
+  private async aggregate3(
+    chainId: number,
+    calls: readonly Multicall3Call[],
+    signal?: AbortSignal
+  ) {
+    const config = getChainlinkRPCConfig(chainId);
+    if (!config) throw new Error(`No RPC config for chain ${chainId}`);
+    const data = encodeAggregate3(calls);
+    const response = await this.rpcClient.ethCall(
+      String(chainId),
+      config.endpoints,
+      MULTICALL3_ADDRESS,
+      data,
+      signal
+    );
+    return decodeAggregate3(response as `0x${string}`, calls.length);
+  }
+
   private isValidChainlinkPriceData(data: unknown): data is ChainlinkPriceData {
     if (!data || typeof data !== 'object') return false;
     const d = data as Partial<ChainlinkPriceData>;
@@ -225,6 +268,241 @@ class ChainlinkOnChainService {
     }
 
     return metadata;
+  }
+
+  /**
+   * Fetch several same-chain Chainlink observations with one (or bounded
+   * chunks of) Multicall3 outer read. It deliberately does not replace the
+   * normal getPrice path: callers must fall back to that path for an outer or
+   * per-feed Multicall failure, preserving retries and all legacy validation.
+   */
+  async getSnapshotPricesBatch(
+    requests: readonly ChainlinkSnapshotBatchRequest[],
+    signal?: AbortSignal
+  ): Promise<ChainlinkSnapshotBatchResult[]> {
+    if (requests.length === 0) return [];
+    const chainId = requests[0].chainId;
+    if (requests.some((request) => request.chainId !== chainId)) {
+      return requests.map((request) => ({
+        id: request.id,
+        data: null,
+        error: new Error('Chainlink Multicall batch must contain exactly one chain'),
+      }));
+    }
+
+    type Prepared = {
+      request: ChainlinkSnapshotBatchRequest;
+      feed: { symbol: string; address: `0x${string}` };
+      cacheKey: string;
+      metadata: FeedMetadata | null;
+      roundIndex: number;
+      metadataIndexes?: { decimals: number; description: number; version: number };
+    };
+
+    const resolved = await Promise.all(
+      requests.map(async (request) => {
+        try {
+          const resolvedFeed = request.feedAddressOverride
+            ? null
+            : await getChainlinkPriceFeedAsync(request.symbol, request.chainId);
+          const feed = request.feedAddressOverride
+            ? { symbol: request.symbol, address: request.feedAddressOverride }
+            : resolvedFeed;
+          if (!feed)
+            throw new Error(`Price feed not found for ${request.symbol} on chain ${chainId}`);
+          return { request, feed, error: null };
+        } catch (error) {
+          return {
+            request,
+            feed: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+          };
+        }
+      })
+    );
+
+    const calls: Multicall3Call[] = [];
+    const prepared: Prepared[] = [];
+    const unresolved = new Map<string, Error>();
+    for (const item of resolved) {
+      if (!item.feed) {
+        unresolved.set(
+          item.request.id,
+          item.error ?? new Error('Unable to resolve Chainlink feed')
+        );
+        continue;
+      }
+      const roundIndex = calls.length;
+      calls.push({
+        target: item.feed.address,
+        allowFailure: true,
+        callData: encodeAggregatorCall('latestRoundData'),
+      });
+      const cached = getRpcMetadata('chainlink', chainId, item.feed.address);
+      const entry: Prepared = {
+        request: item.request,
+        feed: item.feed,
+        cacheKey: `price-${item.request.symbol}-${chainId}-${item.request.feedAddressOverride ?? 'resolved'}`,
+        metadata: cached
+          ? {
+              ...cached,
+              version: BigInt(cached.version),
+              decimalsIsFallback: false,
+            }
+          : null,
+        roundIndex,
+      };
+      if (!entry.metadata) {
+        entry.metadataIndexes = {
+          decimals: calls.length,
+          description: calls.length + 1,
+          version: calls.length + 2,
+        };
+        calls.push(
+          {
+            target: item.feed.address,
+            allowFailure: true,
+            callData: encodeAggregatorCall('decimals'),
+          },
+          {
+            target: item.feed.address,
+            allowFailure: true,
+            callData: encodeAggregatorCall('description'),
+          },
+          {
+            target: item.feed.address,
+            allowFailure: true,
+            callData: encodeAggregatorCall('version'),
+          }
+        );
+      }
+      prepared.push(entry);
+    }
+
+    const results: ReturnType<typeof decodeAggregate3> = [];
+    // Keep calldata and response bodies bounded even if the catalog expands.
+    const MAX_INNER_CALLS = 48;
+    try {
+      for (let offset = 0; offset < calls.length; offset += MAX_INNER_CALLS) {
+        results.push(
+          ...(await this.aggregate3(chainId, calls.slice(offset, offset + MAX_INNER_CALLS), signal))
+        );
+      }
+    } catch (error) {
+      const failure = error instanceof Error ? error : new Error(String(error));
+      return requests.map((request) => ({ id: request.id, data: null, error: failure }));
+    }
+
+    const resultById = new Map<string, ChainlinkSnapshotBatchResult>();
+    for (const [id, error] of unresolved) resultById.set(id, { id, data: null, error });
+    for (const entry of prepared) {
+      try {
+        const round = results[entry.roundIndex];
+        if (!round?.success) throw new Error('Multicall latestRoundData subcall failed');
+        let metadata = entry.metadata;
+        if (!metadata && entry.metadataIndexes) {
+          const { decimals, description, version } = entry.metadataIndexes;
+          const raw = [results[decimals], results[description], results[version]];
+          if (raw.some((result) => !result?.success)) {
+            throw new Error('Multicall Chainlink metadata subcall failed');
+          }
+          const decimalsResult = decodeDecimals(raw[0].returnData);
+          metadata = {
+            decimals: decimalsResult.decimals,
+            decimalsIsFallback: decimalsResult.isFallback,
+            description: this.decodeString(raw[1].returnData),
+            version: decodeUint256(raw[2].returnData),
+          };
+          if (!decimalsResult.isFallback) {
+            try {
+              const verifiedDecimals = decodeFunctionResult({
+                abi: CHAINLINK_AGGREGATOR_ABI,
+                functionName: 'decimals',
+                data: raw[0].returnData,
+              });
+              const verifiedDescription = decodeFunctionResult({
+                abi: CHAINLINK_AGGREGATOR_ABI,
+                functionName: 'description',
+                data: raw[1].returnData,
+              });
+              const verifiedVersion = decodeFunctionResult({
+                abi: CHAINLINK_AGGREGATOR_ABI,
+                functionName: 'version',
+                data: raw[2].returnData,
+              });
+              if (
+                verifiedDecimals === metadata.decimals &&
+                verifiedDescription === metadata.description &&
+                verifiedVersion === metadata.version
+              ) {
+                metadata.verifiedAt = Date.now();
+              }
+            } catch {
+              // The normal path likewise retains an unverified metadata result
+              // for this response but does not persist it across processes.
+            }
+          }
+        }
+        if (!metadata) throw new Error('Missing Chainlink metadata');
+
+        const decoded = decodeLatestRoundData(round.returnData);
+        const phase = Number(decoded.roundId >> 64n);
+        // Do not use metadata from a prior proxy phase. Returning an error here
+        // invokes the caller's existing individual path, which re-reads and
+        // validates the new metadata before accepting the price.
+        if (metadata.phase !== undefined && metadata.phase !== phase) {
+          throw new Error('Chainlink aggregator phase changed; individual refresh required');
+        }
+        const price = stringToPrice(decoded.answer.toString(), metadata.decimals);
+        if (price <= 0 || decoded.updatedAt === 0n || decoded.answeredInRound < decoded.roundId) {
+          resultById.set(entry.request.id, { id: entry.request.id, data: null, error: null });
+          continue;
+        }
+        if (metadata.verifiedAt !== undefined) {
+          rememberRpcMetadata(
+            'chainlink',
+            chainId,
+            entry.feed.address,
+            {
+              decimals: metadata.decimals,
+              description: metadata.description,
+              version: metadata.version.toString(),
+              phase,
+            },
+            metadata.verifiedAt
+          );
+        }
+        const data: ChainlinkPriceData = {
+          symbol: entry.feed.symbol,
+          price,
+          decimals: metadata.decimals,
+          decimalsIsFallback: metadata.decimalsIsFallback,
+          timestamp: Number(decoded.updatedAt) * 1000,
+          roundId: decoded.roundId,
+          answeredInRound: decoded.answeredInRound,
+          chainId,
+          description: metadata.description,
+          version: metadata.version,
+          startedAt: Number(decoded.startedAt) * 1000,
+        };
+        this.cache.set(entry.cacheKey, data, this.cacheTTL);
+        resultById.set(entry.request.id, { id: entry.request.id, data, error: null });
+      } catch (error) {
+        resultById.set(entry.request.id, {
+          id: entry.request.id,
+          data: null,
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
+      }
+    }
+    return requests.map(
+      (request) =>
+        resultById.get(request.id) ?? {
+          id: request.id,
+          data: null,
+          error: new Error('Missing Chainlink Multicall batch result'),
+        }
+    );
   }
 
   async getPrice(

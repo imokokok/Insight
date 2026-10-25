@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { encodeAbiParameters } from 'viem';
+import { decodeFunctionData, encodeAbiParameters, encodeFunctionResult } from 'viem';
 
 import {
   clearRpcMetadataCache,
@@ -9,6 +9,7 @@ import {
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { Blockchain } from '@/types/oracle';
 
+import { MULTICALL3_ABI, MULTICALL3_ADDRESS } from '../../utils/multicall3';
 import { api3NetworkService } from '../api3NetworkService';
 import { chainlinkOnChainService } from '../chainlinkOnChainService';
 
@@ -102,6 +103,67 @@ test('Chainlink cold read uses four calls, fresh-process reuse uses one and stil
     decimalsIsFallback: false,
   });
   expect(await flushRpcMetadataCache()).toBe(0);
+});
+
+test('Chainlink snapshot Multicall combines independent feeds into one outer RPC call', async () => {
+  const addressA = ('0x' + 'ab'.repeat(20)) as `0x${string}`;
+  const addressB = ('0x' + 'cd'.repeat(20)) as `0x${string}`;
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const dataForSelector = (selector: string): `0x${string}` => {
+    if (selector === '0x313ce567') return uint(8n);
+    if (selector === '0x7284e416') return encodeAbiParameters([{ type: 'string' }], ['ETH / USD']);
+    if (selector === '0x54fd4d50') return uint(4n);
+    if (selector === '0xfeaf968c') {
+      return encodeAbiParameters(
+        [
+          { type: 'uint80' },
+          { type: 'int256' },
+          { type: 'uint256' },
+          { type: 'uint256' },
+          { type: 'uint80' },
+        ],
+        [round, 3000n * 10n ** 8n, now, now, round]
+      );
+    }
+    throw new Error(`Unexpected selector ${selector}`);
+  };
+  global.fetch = jest.fn(async (_: unknown, options?: RequestInit) => {
+    const request = JSON.parse(String(options?.body));
+    expect(request.params[0].to.toLowerCase()).toBe(MULTICALL3_ADDRESS.toLowerCase());
+    const decoded = decodeFunctionData({ abi: MULTICALL3_ABI, data: request.params[0].data });
+    const calls = decoded.args?.[0] as readonly { callData: `0x${string}` }[];
+    const data = encodeFunctionResult({
+      abi: MULTICALL3_ABI,
+      functionName: 'aggregate3',
+      result: calls.map((call) => ({
+        success: true,
+        returnData: dataForSelector(call.callData.slice(0, 10)),
+      })),
+    });
+    return {
+      ok: true,
+      json: async () => ({ jsonrpc: '2.0', id: request.id, result: data }),
+    } as Response;
+  });
+
+  const results = await chainlinkOnChainService.getSnapshotPricesBatch([
+    { id: 'a', symbol: 'ETH', chainId: 1, feedAddressOverride: addressA },
+    { id: 'b', symbol: 'BTC', chainId: 1, feedAddressOverride: addressB },
+  ]);
+
+  expect(global.fetch).toHaveBeenCalledTimes(1);
+  expect(results).toEqual([
+    expect.objectContaining({
+      id: 'a',
+      error: null,
+      data: expect.objectContaining({ price: 3000 }),
+    }),
+    expect.objectContaining({
+      id: 'b',
+      error: null,
+      data: expect.objectContaining({ price: 3000 }),
+    }),
+  ]);
 });
 
 test('API3 fresh-process reuse eliminates decimals calls and preserves live price and confidence', async () => {

@@ -16,6 +16,12 @@ import {
   getTwapPoolConfigAsync,
   getTwapTokenAddressAsync,
 } from '../constants/twapConstants';
+import {
+  decodeAggregate3,
+  encodeAggregate3,
+  MULTICALL3_ADDRESS,
+  type Multicall3Call,
+} from '../utils/multicall3';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 const logger = createLogger('TwapOnChainService');
@@ -33,6 +39,18 @@ interface TwapPriceData {
   feeTier: number;
   twapInterval: number;
   confidence: number;
+}
+
+export interface TwapSnapshotBatchRequest {
+  id: string;
+  symbol: string;
+  chainId: number;
+}
+
+export interface TwapSnapshotBatchResult {
+  id: string;
+  data: TwapPriceData | null;
+  error: Error | null;
 }
 
 class TwapOnChainService {
@@ -75,6 +93,23 @@ class TwapOnChainService {
       throw new Error(`No RPC config for chain ${chainId}`);
     }
     return this.rpcClient.ethCall(String(chainId), config.endpoints, to, data, signal);
+  }
+
+  private async aggregate3(
+    chainId: number,
+    calls: readonly Multicall3Call[],
+    signal?: AbortSignal
+  ) {
+    const config = TWAP_RPC_CONFIG[chainId];
+    if (!config) throw new Error(`No RPC config for chain ${chainId}`);
+    const response = await this.rpcClient.ethCall(
+      String(chainId),
+      config.endpoints,
+      MULTICALL3_ADDRESS,
+      encodeAggregate3(calls),
+      signal
+    );
+    return decodeAggregate3(response as `0x${string}`, calls.length);
   }
 
   private encodeSlot0Call(): `0x${string}` {
@@ -665,6 +700,162 @@ class TwapOnChainService {
     } finally {
       this.inFlightRequests.delete(dedupeKey);
     }
+  }
+
+  /**
+   * Collector-only fast path for pools on one chain. The aggregate combines
+   * each pool's slot0/liquidity/observe reads at one chain state. A failed
+   * outer call or any failed pool is reported to the caller, which reuses the
+   * existing individual path (including shorter observe intervals).
+   */
+  async getSnapshotPricesBatch(
+    requests: readonly TwapSnapshotBatchRequest[],
+    signal?: AbortSignal
+  ): Promise<TwapSnapshotBatchResult[]> {
+    if (requests.length === 0) return [];
+    const chainId = requests[0].chainId;
+    if (requests.some((request) => request.chainId !== chainId)) {
+      return requests.map((request) => ({
+        id: request.id,
+        data: null,
+        error: new Error('TWAP Multicall batch must contain exactly one chain'),
+      }));
+    }
+
+    type Prepared = {
+      request: TwapSnapshotBatchRequest;
+      pool: { address: `0x${string}`; feeTier: number; token0: string; token1: string };
+      slot0Index: number;
+      liquidityIndex: number;
+      observeIndex: number;
+    };
+    const prepared: Prepared[] = [];
+    const resultById = new Map<string, TwapSnapshotBatchResult>();
+    for (const request of requests) {
+      try {
+        const pool = await this.getPoolAddress(request.symbol, chainId, signal);
+        if (!pool) throw new Error(`Pool not found for ${request.symbol} on chain ${chainId}`);
+        prepared.push({
+          request,
+          pool,
+          slot0Index: -1,
+          liquidityIndex: -1,
+          observeIndex: -1,
+        });
+      } catch (error) {
+        resultById.set(request.id, {
+          id: request.id,
+          data: null,
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
+      }
+    }
+
+    const calls: Multicall3Call[] = [];
+    for (const entry of prepared) {
+      entry.slot0Index = calls.length;
+      entry.liquidityIndex = calls.length + 1;
+      entry.observeIndex = calls.length + 2;
+      calls.push(
+        { target: entry.pool.address, allowFailure: true, callData: this.encodeSlot0Call() },
+        { target: entry.pool.address, allowFailure: true, callData: this.encodeLiquidityCall() },
+        {
+          target: entry.pool.address,
+          allowFailure: true,
+          callData: this.encodeObserveCall([TWAP_INTERVALS.MEDIUM, 0]),
+        }
+      );
+    }
+
+    const results: ReturnType<typeof decodeAggregate3> = [];
+    const MAX_INNER_CALLS = 48;
+    try {
+      for (let offset = 0; offset < calls.length; offset += MAX_INNER_CALLS) {
+        results.push(
+          ...(await this.aggregate3(chainId, calls.slice(offset, offset + MAX_INNER_CALLS), signal))
+        );
+      }
+    } catch (error) {
+      const failure = error instanceof Error ? error : new Error(String(error));
+      return requests.map((request) => ({ id: request.id, data: null, error: failure }));
+    }
+
+    // Process after the one aggregate reads. This lets the 60-second USD
+    // reference cache serve subsequent pools in this batch instead of racing
+    // several identical reference reads.
+    for (const entry of prepared) {
+      try {
+        const slot0 = results[entry.slot0Index];
+        const liquidityResult = results[entry.liquidityIndex];
+        const observe = results[entry.observeIndex];
+        if (!slot0?.success || !liquidityResult?.success || !observe?.success) {
+          throw new Error('Multicall TWAP pool subcall failed');
+        }
+        const { sqrtPriceX96, tick } = this.decodeSlot0(slot0.returnData);
+        const liquidity = this.decodeLiquidity(liquidityResult.returnData);
+        const { tickCumulatives } = this.decodeObserve(observe.returnData);
+        if (tickCumulatives.length < 2) throw new Error('Invalid TWAP observe response');
+        const twapTick = Number(tickCumulatives[1] - tickCumulatives[0]) / TWAP_INTERVALS.MEDIUM;
+        if (!Number.isFinite(twapTick)) throw new Error('Invalid TWAP tick');
+        const twapPrice = await this.calculateUsdPrice(
+          twapTick,
+          entry.pool.token0,
+          entry.pool.token1,
+          chainId,
+          signal,
+          entry.request.symbol
+        );
+        const spotPrice = await this.calculateUsdPrice(
+          tick,
+          entry.pool.token0,
+          entry.pool.token1,
+          chainId,
+          signal,
+          entry.request.symbol
+        );
+        const deviation = spotPrice > 0 ? Math.abs(twapPrice - spotPrice) / spotPrice : 0;
+        const liquidityScore =
+          liquidity > 1000000000000000000n ? 1.0 : Number(liquidity) / 1000000000000000000;
+        const confidence = Math.min(
+          0.99,
+          Math.max(0.85, 0.95 * liquidityScore * (1 - deviation * 10))
+        );
+        const data: TwapPriceData = {
+          symbol: entry.request.symbol,
+          twapPrice,
+          spotPrice,
+          tick,
+          sqrtPriceX96,
+          liquidity,
+          timestamp: Date.now(),
+          chainId,
+          poolAddress: entry.pool.address,
+          feeTier: entry.pool.feeTier,
+          twapInterval: TWAP_INTERVALS.MEDIUM,
+          confidence,
+        };
+        this.cache.set(
+          `twap-${entry.request.symbol}-${chainId}-${TWAP_INTERVALS.MEDIUM}`,
+          data,
+          this.cacheTTL
+        );
+        resultById.set(entry.request.id, { id: entry.request.id, data, error: null });
+      } catch (error) {
+        resultById.set(entry.request.id, {
+          id: entry.request.id,
+          data: null,
+          error: error instanceof Error ? error : new Error(String(error)),
+        });
+      }
+    }
+    return requests.map(
+      (request) =>
+        resultById.get(request.id) ?? {
+          id: request.id,
+          data: null,
+          error: new Error('Missing TWAP Multicall batch result'),
+        }
+    );
   }
 
   private async _executeGetTwapPrice(
