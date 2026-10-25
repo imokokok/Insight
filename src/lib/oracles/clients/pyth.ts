@@ -12,6 +12,10 @@ import {
 import { pythMonadOnChainService } from '@/lib/oracles/services/pythMonadOnChainService';
 import { pythSolanaOnChainService } from '@/lib/oracles/services/pythSolanaOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import {
+  type SnapshotBatchPriceRequest,
+  type SnapshotBatchPriceResult,
+} from '@/lib/oracles/utils/snapshotBatch';
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { roundTo } from '@/lib/utils/format';
 import { Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
@@ -80,6 +84,107 @@ export class PythClient extends BaseOracleClient {
     if (resolvePythMonadFeed(symbol)) chains.push(Blockchain.MONAD);
     if (resolvePythSolanaFeed(symbol)) chains.push(Blockchain.SOLANA);
     return chains;
+  }
+
+  /**
+   * Collector-only batch path for the reviewed Monad and Solana registries.
+   * Successful batch observations retain every normal decoder and validation
+   * gate; only missing or rejected entries retry through the single-feed path.
+   */
+  async getSnapshotPricesBatch(
+    requests: readonly SnapshotBatchPriceRequest[],
+    signal?: AbortSignal
+  ): Promise<SnapshotBatchPriceResult[]> {
+    if (requests.length === 0) return [];
+    const failures = new Map<string, Error>();
+    const monad = new Map<string, (typeof PYTH_MONAD_SPONSORED_FEEDS)[number]>();
+    const solana = new Map<string, (typeof PYTH_SOLANA_SPONSORED_FEEDS)[number]>();
+
+    for (const request of requests) {
+      if (request.chain === Blockchain.MONAD) {
+        const feed = resolvePythMonadFeed(request.symbol);
+        if (feed) monad.set(request.id, feed);
+        else
+          failures.set(request.id, new Error(`No reviewed Pyth Monad feed for ${request.symbol}`));
+      } else if (request.chain === Blockchain.SOLANA) {
+        const feed = resolvePythSolanaFeed(request.symbol);
+        if (feed) solana.set(request.id, feed);
+        else
+          failures.set(request.id, new Error(`No reviewed Pyth Solana feed for ${request.symbol}`));
+      } else {
+        failures.set(
+          request.id,
+          new Error(`Pyth snapshot batch does not support ${request.chain}`)
+        );
+      }
+    }
+
+    if (monad.size > 0) {
+      try {
+        await withOracleRetry(
+          () => pythMonadOnChainService.getPrices([...monad.values()], signal),
+          'pyth-monad:snapshot-batch',
+          ORACLE_RETRY_PRESETS.standard,
+          signal
+        );
+      } catch {
+        // Each request below uses the established individual retry path.
+      }
+    }
+
+    const solanaReadings = new Map<
+      string,
+      Awaited<ReturnType<typeof pythSolanaOnChainService.getPrice>>
+    >();
+    if (solana.size > 0) {
+      try {
+        const feeds = [...solana.values()];
+        for (let offset = 0; offset < feeds.length; offset += 100) {
+          const readings = await withOracleRetry(
+            () => pythSolanaOnChainService.getPrices(feeds.slice(offset, offset + 100), signal),
+            'pyth-solana:snapshot-batch',
+            ORACLE_RETRY_PRESETS.standard,
+            signal
+          );
+          for (const reading of readings) solanaReadings.set(reading.feedId.slice(2), reading);
+        }
+      } catch {
+        // A fallback per request preserves current availability semantics.
+      }
+    }
+
+    return Promise.all(
+      requests.map(async (request): Promise<SnapshotBatchPriceResult> => {
+        const initialFailure = failures.get(request.id);
+        if (initialFailure) return { id: request.id, price: null, error: initialFailure };
+        try {
+          if (request.chain === Blockchain.SOLANA) {
+            const feed = solana.get(request.id)!;
+            const reading = solanaReadings.get(feed.id);
+            return {
+              id: request.id,
+              price: reading
+                ? this.toSolanaPriceData(reading)
+                : await this.getSolanaPrice(request.symbol, signal),
+              error: null,
+            };
+          }
+          return {
+            id: request.id,
+            // getPrices() primed the short, freshness-bounded Monad cache;
+            // this preserves the existing conversion and validation boundary.
+            price: await this.getMonadPrice(request.symbol, signal),
+            error: null,
+          };
+        } catch (error) {
+          return {
+            id: request.id,
+            price: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+          };
+        }
+      })
+    );
   }
 
   private async getMonadPrice(symbol: string, signal?: AbortSignal): Promise<PriceData> {
@@ -157,47 +262,53 @@ export class PythClient extends BaseOracleClient {
         ORACLE_RETRY_PRESETS.standard,
         signal
       );
-      const ageSeconds = Math.max(0, Math.floor(Date.now() / 1000) - reading.publishTime);
-      const data: PriceData = {
-        provider: this.name,
-        chain: Blockchain.SOLANA,
-        symbol: feed.alias,
-        price: reading.price,
-        timestamp: reading.timestamp,
-        decimals: Math.max(0, -reading.exponent),
-        confidence: confidenceScore(reading.confidenceRatio),
-        confidenceSource: 'calculated',
-        confidenceInterval: {
-          bid: reading.price - reading.conf,
-          ask: reading.price + reading.conf,
-          widthPercentage: reading.confidenceRatio * 200,
-        },
-        source: `Pyth Core Solana:${feed.alias}`,
-        priceId: reading.feedId,
-        feedId: reading.feedId,
-        exponent: reading.exponent,
-        conf: reading.conf,
-        publishTime: reading.publishTime,
-        dataAge: ageSeconds,
-        dataSource: 'real',
-        ingestionTimestamp: Date.now(),
-        failureMode: FailureMode.NONE,
-        signalVector: buildSignalVector({
-          dataAgeSeconds: ageSeconds,
-          isOnChain: true,
-          hasVerification: true,
-          providerUptime: PYTH_RELIABILITY * 100,
-          hasConfidence: true,
-          hasTimestamp: true,
-          hasDecimals: true,
-          hasSource: true,
-          verificationMethod: 'getMultipleAccounts+PDA/owner/feed/freshness gates',
-        }),
-        verification: solanaVerification(reading),
-      };
-      return this.validatePriceData(data, 'pyth-solana:getPrice');
+      return this.toSolanaPriceData(reading);
     } catch (error) {
       this.handleGetPriceError(error, 'Pyth Core on Solana', 'PYTH_PRICE_ERROR');
     }
+  }
+
+  private toSolanaPriceData(
+    reading: Awaited<ReturnType<typeof pythSolanaOnChainService.getPrice>>
+  ): PriceData {
+    const ageSeconds = Math.max(0, Math.floor(Date.now() / 1000) - reading.publishTime);
+    const data: PriceData = {
+      provider: this.name,
+      chain: Blockchain.SOLANA,
+      symbol: reading.symbol,
+      price: reading.price,
+      timestamp: reading.timestamp,
+      decimals: Math.max(0, -reading.exponent),
+      confidence: confidenceScore(reading.confidenceRatio),
+      confidenceSource: 'calculated',
+      confidenceInterval: {
+        bid: reading.price - reading.conf,
+        ask: reading.price + reading.conf,
+        widthPercentage: reading.confidenceRatio * 200,
+      },
+      source: `Pyth Core Solana:${reading.symbol}`,
+      priceId: reading.feedId,
+      feedId: reading.feedId,
+      exponent: reading.exponent,
+      conf: reading.conf,
+      publishTime: reading.publishTime,
+      dataAge: ageSeconds,
+      dataSource: 'real',
+      ingestionTimestamp: Date.now(),
+      failureMode: FailureMode.NONE,
+      signalVector: buildSignalVector({
+        dataAgeSeconds: ageSeconds,
+        isOnChain: true,
+        hasVerification: true,
+        providerUptime: PYTH_RELIABILITY * 100,
+        hasConfidence: true,
+        hasTimestamp: true,
+        hasDecimals: true,
+        hasSource: true,
+        verificationMethod: 'getMultipleAccounts+PDA/owner/feed/freshness gates',
+      }),
+      verification: solanaVerification(reading),
+    };
+    return this.validatePriceData(data, 'pyth-solana:getPrice');
   }
 }

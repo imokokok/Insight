@@ -14,6 +14,7 @@ import {
   CHAINLINK_SOLANA_TRANSMISSION_BYTES,
   CHAINLINK_SOLANA_TRANSMISSIONS_DISCRIMINATOR,
 } from '@/lib/oracles/constants/chainlinkSolana';
+import { recordRpcUsage } from '@/lib/oracles/utils/rpcClientWithFallback';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('ChainlinkSolanaOnChainService');
@@ -320,30 +321,52 @@ async function rpc<T>(
   signal?: AbortSignal
 ): Promise<T> {
   const id = `insight-chainlink-solana-${method}`;
-  const response = await fetcher(endpoint, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
-    signal: signal
-      ? AbortSignal.any([signal, AbortSignal.timeout(10_000)])
-      : AbortSignal.timeout(10_000),
-  });
-  if (!response.ok) throw new Error('Solana RPC returned a non-success HTTP response');
-  let body: unknown;
+  const startedAt = Date.now();
   try {
-    body = await response.json();
-  } catch {
-    throw new InvalidChainlinkSolanaDataError('Solana RPC returned invalid JSON');
+    const response = await fetcher(endpoint, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(10_000)])
+        : AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) throw new Error('Solana RPC returned a non-success HTTP response');
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      throw new InvalidChainlinkSolanaDataError('Solana RPC returned invalid JSON');
+    }
+    const envelope = asRecord(body, 'Solana JSON-RPC response');
+    if (envelope.jsonrpc !== '2.0' || envelope.id !== id) {
+      throw new InvalidChainlinkSolanaDataError('Solana RPC envelope is invalid');
+    }
+    if (envelope.error != null) throw new Error('Solana RPC rejected the Chainlink query');
+    if (!Object.hasOwn(envelope, 'result')) {
+      throw new InvalidChainlinkSolanaDataError('Solana RPC result is missing');
+    }
+    recordRpcUsage({
+      context: 'chainlink-solana',
+      chain: 'solana',
+      method,
+      kind: 'read',
+      success: true,
+      durationMs: Date.now() - startedAt,
+    });
+    return envelope.result as T;
+  } catch (error) {
+    recordRpcUsage({
+      context: 'chainlink-solana',
+      chain: 'solana',
+      method,
+      kind: 'read',
+      success: false,
+      timedOut: !signal?.aborted && error instanceof DOMException && error.name === 'TimeoutError',
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
   }
-  const envelope = asRecord(body, 'Solana JSON-RPC response');
-  if (envelope.jsonrpc !== '2.0' || envelope.id !== id) {
-    throw new InvalidChainlinkSolanaDataError('Solana RPC envelope is invalid');
-  }
-  if (envelope.error != null) throw new Error('Solana RPC rejected the Chainlink query');
-  if (!Object.hasOwn(envelope, 'result')) {
-    throw new InvalidChainlinkSolanaDataError('Solana RPC result is missing');
-  }
-  return envelope.result as T;
 }
 
 /**
