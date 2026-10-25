@@ -606,6 +606,10 @@ export const X402_BASE_LENDING_GUARD_ROUTE = '/api/v1/safety/base-lending-guard'
 /** Monad lending decision gate; payment settlement remains configured separately. */
 export const X402_MONAD_LENDING_GUARD_ROUTE = '/api/v1/safety/monad-lending-guard';
 
+/** Polygon, Arbitrum and BNB native lending gate; settlement remains independently configured. */
+export const X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE =
+  '/api/v1/safety/multichain-evm-lending-guard';
+
 /** A two-gate same-chain swap lifecycle with one post-settlement receipt credit. */
 export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';
 
