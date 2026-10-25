@@ -1252,6 +1252,104 @@ paths:
         '503':
           description: Fresh Base DEX evidence is unavailable.
 
+  /markets/dex/aerodrome:
+    get:
+      operationId: getAerodromeSlipstreamMarket
+      tags: [DEX Markets]
+      summary: Base Aerodrome Slipstream WETH/USDC market evidence
+      description: >-
+        Returns a block-pinned, factory- and pool-verified Aerodrome
+        Slipstream WETH/USDC CL100 snapshot on Base: spot, a 30-minute TWAP,
+        active in-range liquidity, token balances, the live pool fee, and
+        fixed-size QuoterV2 exact-input quotes. This is evidence for one
+        reviewed pool, not an oracle feed, consensus vote, executable route,
+        or statement about every Aerodrome or Base route.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned Aerodrome Slipstream market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required:
+                      [
+                        source,
+                        venue,
+                        chainId,
+                        market,
+                        block,
+                        contracts,
+                        spot,
+                        twap,
+                        activeLiquidityRaw,
+                        poolBalances,
+                        quotes,
+                        caveats,
+                      ]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: aerodrome-slipstream }
+                      chainId: { type: integer, const: 8453 }
+                      market: { type: string, const: WETH/USDC }
+                      sourceFreshnessSeconds: { type: integer, minimum: 0 }
+                      observedAt: { type: string, format: date-time }
+                      block:
+                        type: object
+                        required: [number, hash, timestamp]
+                        properties:
+                          number: { type: string, pattern: '^[0-9]+$' }
+                          hash: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' }
+                          timestamp: { type: string, format: date-time }
+                      contracts:
+                        type: object
+                        required: [factory, quoterV2, pool, token0, token1, tickSpacing, feePips]
+                        properties:
+                          factory: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+                          quoterV2: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+                          pool: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+                          token0: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+                          token1: { type: string, pattern: '^0x[0-9a-fA-F]{40}$' }
+                          tickSpacing: { type: integer, const: 100 }
+                          feePips: { type: integer, minimum: 0 }
+                      spot:
+                        type: object
+                        required: [tick, token1PerToken0]
+                      twap:
+                        type: object
+                        required: [windowSeconds, tick, token1PerToken0, deviationBpsFromSpot]
+                      activeLiquidityRaw: { type: string, pattern: '^[0-9]+$' }
+                      poolBalances:
+                        type: object
+                        required: [token0Raw, token0, token1Raw, token1]
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [
+                              amountIn,
+                              amountInRaw,
+                              amountOut,
+                              amountOutRaw,
+                              effectiveToken1PerToken0,
+                              initializedTicksCrossed,
+                              priceImpactBps,
+                            ]
+                      caveats:
+                        type: array
+                        items: { type: string }
+        '503':
+          description: Fresh Aerodrome Slipstream evidence is unavailable.
+
   /markets/dex/solana:
     get:
       operationId: getSolanaDexRoute
