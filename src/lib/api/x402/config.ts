@@ -618,6 +618,9 @@ export const X402_MONAD_LENDING_GUARD_ROUTE = '/api/v1/safety/monad-lending-guar
 export const X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE =
   '/api/v1/safety/multichain-evm-lending-guard';
 
+/** Solana-native exact-transaction lending gate for Kamino Lend and Marginfi. */
+export const X402_SOLANA_LENDING_GUARD_ROUTE = '/api/v1/safety/solana-lending-guard';
+
 /** A two-gate same-chain swap lifecycle with one post-settlement receipt credit. */
 export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';
 
