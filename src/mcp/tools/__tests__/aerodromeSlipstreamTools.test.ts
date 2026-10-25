@@ -28,6 +28,18 @@ describe('prepare_aerodrome_slipstream_swap MCP tool', () => {
     );
     expect(prepareAerodromeSlipstreamSwapTool.parameters.safeParse(args).success).toBe(true);
     expect(
+      prepareAerodromeSlipstreamSwapTool.parameters.safeParse({
+        ...args,
+        profileId: 'base-aerodrome-slipstream-weth-usdc-cl100',
+      }).success
+    ).toBe(true);
+    expect(
+      prepareAerodromeSlipstreamSwapTool.parameters.safeParse({
+        ...args,
+        profileId: 'unreviewed-aerodrome-pool',
+      }).success
+    ).toBe(false);
+    expect(
       prepareAerodromeSlipstreamSwapTool.parameters.safeParse({ ...args, amountIn: '1e-2' }).success
     ).toBe(false);
     expect(

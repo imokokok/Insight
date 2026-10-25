@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { DecisionInputQuoteProvenanceSchema } from '@/lib/decisionInputTrust/quoteProvenance';
 import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/validation';
+import { REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS } from '@/lib/dex/aerodromeSlipstream';
 import { boundedIntegerInput } from '@/lib/security/boundedIntegerInput';
 import { SafeProviderSchema, SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
 import { STABLECOINS, type StablecoinSymbol } from '@/lib/stablecoins/config';
@@ -265,8 +266,16 @@ export const MonadDexMarketInputSchema = z.object({});
 /** No caller input: this tool exposes one reviewed Base DEX market only. */
 export const BaseDexMarketInputSchema = z.object({});
 
-/** No caller input: this tool exposes one reviewed Aerodrome Slipstream market only. */
-export const AerodromeSlipstreamMarketInputSchema = z.object({});
+/**
+ * A fixed profile id selects one code-reviewed pool. The schema deliberately
+ * cannot express raw pool, router, token, or tick-spacing addresses.
+ */
+export const AerodromeSlipstreamMarketInputSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
+});
 
 /** No caller input: this tool exposes one reviewed Solana route market only. */
 export const SolanaDexRouteInputSchema = z.object({});
@@ -491,8 +500,12 @@ export const ExecutionPreflightInputSchema = PreTradeSafetyInputSchema.extend({
   ),
 });
 
-/** User-controlled transaction preparation for the single reviewed Base pool. */
+/** User-controlled transaction preparation for one allowlisted Base pool. */
 export const AerodromeSlipstreamSwapPreparationInputSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
   amountIn: z
     .string()
     .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)

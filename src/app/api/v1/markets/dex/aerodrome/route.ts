@@ -13,7 +13,8 @@ export const OPTIONS = createOptionsHandler();
 
 /**
  * Block-pinned Base market evidence from the reviewed Aerodrome Slipstream
- * WETH/USDC CL100 pool. It is route context, not an oracle-consensus input.
+ * WETH/USDC CL100 pool. Factory, QuoterV2, and Pool runtime identities are
+ * re-verified at the quoted block. It is route context, not an oracle-consensus input.
  */
 export const GET = createApiHandler(
   async (_request: NextRequest, context) => {
@@ -27,7 +28,7 @@ export const GET = createApiHandler(
               'DEX market evidence is not an oracle-consensus vote or a venue-independent fair price.',
               'activeLiquidityRaw is Slipstream in-range liquidity; it is not token reserve TVL.',
               'feePips is the pool fee read at the pinned block and can change with Aerodrome fee configuration.',
-              'This endpoint reports one reviewed WETH/USDC CL100 pool, not every Aerodrome or Base route.',
+              'This endpoint reports one allowlisted WETH/USDC CL100 pool, not every Aerodrome or Base route.',
             ],
           },
           { requestId: context.requestId }

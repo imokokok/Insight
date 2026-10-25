@@ -1258,12 +1258,14 @@ paths:
       tags: [DEX Markets]
       summary: Base Aerodrome Slipstream WETH/USDC market evidence
       description: >-
-        Returns a block-pinned, factory- and pool-verified Aerodrome
-        Slipstream WETH/USDC CL100 snapshot on Base: spot, a 30-minute TWAP,
-        active in-range liquidity, token balances, the live pool fee, and
-        fixed-size QuoterV2 exact-input quotes. This is evidence for one
-        reviewed pool, not an oracle feed, consensus vote, executable route,
-        or statement about every Aerodrome or Base route.
+        Returns a block-pinned, code-identity-verified Aerodrome Slipstream
+        WETH/USDC CL100 snapshot on Base: spot, a 30-minute TWAP, active
+        in-range liquidity, token balances, the live pool fee, and fixed-size
+        QuoterV2 exact-input quotes. Factory, QuoterV2, and Pool runtime
+        hashes are re-verified against the reviewed allowlist at the quoted
+        block. This is evidence for one reviewed pool, not an oracle feed,
+        consensus vote, executable route, or statement about every Aerodrome
+        or Base route.
       security:
         - apiKey: []
       responses:

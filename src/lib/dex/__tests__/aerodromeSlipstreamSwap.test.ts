@@ -106,6 +106,7 @@ describe('Aerodrome Slipstream user-signable swap preparation', () => {
       amountRaw: '1250000000000000000',
     });
     expect(result.exactInput).toMatchObject({
+      profileId: 'base-aerodrome-slipstream-weth-usdc-cl100',
       quotedAmountOutRaw: '2500000000',
       amountOutMinimumRaw: '2487500000',
       tickSpacing: 100,
@@ -143,6 +144,23 @@ describe('Aerodrome Slipstream user-signable swap preparation', () => {
         { rpc: rpc as never, nowUnixSeconds: 1_700_000_000 }
       )
     ).rejects.toThrow('runtime code');
+  });
+
+  it('refuses a quote whose reviewed profile identity does not match the selected allowlist entry', async () => {
+    const rpc = rpcFixture();
+    mockedQuote.mockResolvedValue({ ...quote, profile: 'unexpected-profile' } as never);
+
+    await expect(
+      prepareAerodromeSlipstreamExactInput(
+        {
+          amountIn: '1',
+          recipient: '0x1111111111111111111111111111111111111111',
+          deadlineUnixSeconds: 1_700_000_600,
+          maxSlippageBps: 50,
+        },
+        { rpc: rpc as never, nowUnixSeconds: 1_700_000_000 }
+      )
+    ).rejects.toThrow('bindings do not match');
   });
 
   it('refuses a zero recipient or long-lived deadline before any quote is read', async () => {
