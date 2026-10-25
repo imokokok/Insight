@@ -8,7 +8,10 @@ import {
   chainlinkOnChainService,
   type ChainlinkPriceData,
 } from '@/lib/oracles/services/chainlinkOnChainService';
-import { chainlinkSolanaOnChainService } from '@/lib/oracles/services/chainlinkSolanaOnChainService';
+import {
+  chainlinkSolanaOnChainService,
+  type ChainlinkSolanaPriceData,
+} from '@/lib/oracles/services/chainlinkSolanaOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
 import {
   type SnapshotBatchPriceRequest,
@@ -283,6 +286,16 @@ export class ChainlinkClient extends BaseOracleClient {
     signal?: AbortSignal
   ): Promise<SnapshotBatchPriceResult[]> {
     if (requests.length === 0) return [];
+    if (requests.every((request) => request.chain === Blockchain.SOLANA)) {
+      return this.getSolanaSnapshotPricesBatch(requests, signal);
+    }
+    if (requests.some((request) => request.chain === Blockchain.SOLANA)) {
+      return requests.map((request) => ({
+        id: request.id,
+        price: null,
+        error: new Error('Chainlink snapshot batch must contain exactly one chain'),
+      }));
+    }
     const raw = await chainlinkOnChainService.getSnapshotPricesBatch(
       requests.map((request) => ({
         id: request.id,
@@ -414,56 +427,136 @@ export class ChainlinkClient extends BaseOracleClient {
         ORACLE_RETRY_PRESETS.standard,
         signal
       );
-      const ageSeconds = Math.max(
-        0,
-        Math.floor(Date.now() / 1000) - Math.floor(reading.timestamp / 1000)
-      );
-      const data: PriceData = {
-        provider: this.name,
-        chain: Blockchain.SOLANA,
-        symbol: reading.symbol,
-        price: reading.price,
-        timestamp: reading.timestamp,
-        decimals: reading.decimals,
-        confidence: this.calculateConfidence(Blockchain.SOLANA),
-        confidenceSource: 'estimated',
-        change24h: 0,
-        change24hPercent: 0,
-        source: `Chainlink OCR2 Solana:${reading.description}`,
-        roundId: reading.roundId,
-        answeredInRound: reading.roundId,
-        startedAt: reading.timestamp,
-        dataAge: ageSeconds,
-        dataSource: 'real',
-        ingestionTimestamp: Date.now(),
-        failureMode: FailureMode.NONE,
-        signalVector: buildSignalVector({
-          dataAgeSeconds: ageSeconds,
-          isOnChain: true,
-          hasVerification: true,
-          providerUptime: CHAINLINK_QUALITY_CONFIG.chainReliability[Blockchain.SOLANA] * 100,
-          hasConfidence: true,
-          hasTimestamp: true,
-          hasDecimals: true,
-          hasSource: true,
-          verificationMethod: 'getMultipleAccounts+OCR2-owner/layout/pair/heartbeat gates',
-        }),
-        verification: {
-          type: 'on-chain',
-          contractAddress: reading.accountAddress,
-          chainId: BLOCKCHAIN_TO_CHAIN_ID[Blockchain.SOLANA],
-          explorerUrl: `https://solscan.io/account/${reading.accountAddress}`,
-          method: 'getMultipleAccounts(base64)+OCR2-Transmissions/owner/pair/heartbeat gates',
-          blockNumber: reading.observationSlot,
-          rawValue: reading.answer,
-          sourceTimestamp: Math.floor(reading.timestamp / 1000),
-          valueExponent: -reading.decimals,
-          assetId: reading.accountDataHash,
-        },
-      };
-      return this.validatePriceData(data, 'chainlink-solana:getPrice');
+      return this.toSolanaPriceData(reading);
     } catch (error) {
       this.handleGetPriceError(error, 'Chainlink on Solana', 'CHAINLINK_PRICE_ERROR');
     }
+  }
+
+  private async getSolanaSnapshotPricesBatch(
+    requests: readonly SnapshotBatchPriceRequest[],
+    signal?: AbortSignal
+  ): Promise<SnapshotBatchPriceResult[]> {
+    const feedById = new Map<
+      string,
+      Awaited<ReturnType<typeof chainlinkSolanaOnChainService.getOfficialFeeds>>[number]
+    >();
+    const failures = new Map<string, Error>();
+    try {
+      const officialFeeds = await withOracleRetry(
+        () => chainlinkSolanaOnChainService.getOfficialFeeds(signal),
+        'chainlink-solana:snapshot-directory',
+        ORACLE_RETRY_PRESETS.standard,
+        signal
+      );
+      const byAlias = new Map(officialFeeds.map((feed) => [feed.alias, feed]));
+      for (const request of requests) {
+        const base = request.symbol.trim().toUpperCase().split('/')[0];
+        const feed = byAlias.get(`${base}/USD`);
+        if (feed) feedById.set(request.id, feed);
+        else
+          failures.set(request.id, new Error(`No official Chainlink Solana USD feed for ${base}`));
+      }
+    } catch {
+      // The per-request fallback below retains the established retry path.
+    }
+
+    const readingsByAddress = new Map<string, ChainlinkSolanaPriceData>();
+    if (feedById.size > 0) {
+      try {
+        const uniqueFeeds = [
+          ...new Map(
+            [...feedById.values()].map((feed) => [feed.accountAddress.toLowerCase(), feed])
+          ).values(),
+        ];
+        const readings = await withOracleRetry(
+          () => chainlinkSolanaOnChainService.getPrices(uniqueFeeds, signal),
+          'chainlink-solana:snapshot-batch',
+          ORACLE_RETRY_PRESETS.standard,
+          signal
+        );
+        for (const reading of readings) {
+          readingsByAddress.set(reading.accountAddress.toLowerCase(), reading);
+        }
+      } catch {
+        // A successful directory lookup must not turn an RPC batch issue into
+        // a data loss; each feed still receives its legacy individual read.
+      }
+    }
+
+    return Promise.all(
+      requests.map(async (request): Promise<SnapshotBatchPriceResult> => {
+        const initialFailure = failures.get(request.id);
+        if (initialFailure) return { id: request.id, price: null, error: initialFailure };
+        const feed = feedById.get(request.id);
+        try {
+          const reading = feed && readingsByAddress.get(feed.accountAddress.toLowerCase());
+          return {
+            id: request.id,
+            price: reading
+              ? this.toSolanaPriceData(reading)
+              : await this.getSolanaPrice(request.symbol, signal),
+            error: null,
+          };
+        } catch (error) {
+          return {
+            id: request.id,
+            price: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+          };
+        }
+      })
+    );
+  }
+
+  private toSolanaPriceData(reading: ChainlinkSolanaPriceData): PriceData {
+    const ageSeconds = Math.max(
+      0,
+      Math.floor(Date.now() / 1000) - Math.floor(reading.timestamp / 1000)
+    );
+    const data: PriceData = {
+      provider: this.name,
+      chain: Blockchain.SOLANA,
+      symbol: reading.symbol,
+      price: reading.price,
+      timestamp: reading.timestamp,
+      decimals: reading.decimals,
+      confidence: this.calculateConfidence(Blockchain.SOLANA),
+      confidenceSource: 'estimated',
+      change24h: 0,
+      change24hPercent: 0,
+      source: `Chainlink OCR2 Solana:${reading.description}`,
+      roundId: reading.roundId,
+      answeredInRound: reading.roundId,
+      startedAt: reading.timestamp,
+      dataAge: ageSeconds,
+      dataSource: 'real',
+      ingestionTimestamp: Date.now(),
+      failureMode: FailureMode.NONE,
+      signalVector: buildSignalVector({
+        dataAgeSeconds: ageSeconds,
+        isOnChain: true,
+        hasVerification: true,
+        providerUptime: CHAINLINK_QUALITY_CONFIG.chainReliability[Blockchain.SOLANA] * 100,
+        hasConfidence: true,
+        hasTimestamp: true,
+        hasDecimals: true,
+        hasSource: true,
+        verificationMethod: 'getMultipleAccounts+OCR2-owner/layout/pair/heartbeat gates',
+      }),
+      verification: {
+        type: 'on-chain',
+        contractAddress: reading.accountAddress,
+        chainId: BLOCKCHAIN_TO_CHAIN_ID[Blockchain.SOLANA],
+        explorerUrl: `https://solscan.io/account/${reading.accountAddress}`,
+        method: 'getMultipleAccounts(base64)+OCR2-Transmissions/owner/pair/heartbeat gates',
+        blockNumber: reading.observationSlot,
+        rawValue: reading.answer,
+        sourceTimestamp: Math.floor(reading.timestamp / 1000),
+        valueExponent: -reading.decimals,
+        assetId: reading.accountDataHash,
+      },
+    };
+    return this.validatePriceData(data, 'chainlink-solana:getPrice');
   }
 }

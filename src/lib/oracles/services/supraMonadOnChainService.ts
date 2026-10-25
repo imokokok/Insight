@@ -8,8 +8,10 @@ import {
   SUPRA_MONAD_SVALUE_FEED_ADDRESS,
   type SupraMonadFeed,
 } from '@/lib/oracles/constants/supraMonad';
+import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
 
+import { aggregateMonadCalls } from '../utils/monadMulticall';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 const logger = createLogger('SupraMonadOnChainService');
@@ -141,14 +143,108 @@ export class SupraMonadOnChainService {
       }),
       signal
     );
+    return this.acceptPrice(feed, raw, cacheKey);
+  }
+
+  /** Read reviewed Supra pair indices in bounded Multicall3 chunks on Monad. */
+  async getPrices(
+    feeds: readonly SupraMonadFeed[],
+    signal?: AbortSignal
+  ): Promise<SupraMonadPriceData[]> {
+    if (feeds.length === 0) return [];
+    if (new Set(feeds.map((feed) => feed.pairIndex)).size !== feeds.length) {
+      throw new Error('Supra Monad batch contains duplicate pair indices');
+    }
+
+    const readings = new Map<number, SupraMonadPriceData>();
+    const pending: SupraMonadFeed[] = [];
+    for (const feed of feeds) {
+      const cacheKey = `supra-monad:${feed.pairIndex}`;
+      const cached = this.cache.get<SupraMonadPriceData>(cacheKey);
+      if (cached && this.isUsable(cached)) readings.set(feed.pairIndex, cached);
+      else {
+        if (cached) this.cache.delete(cacheKey);
+        pending.push(feed);
+      }
+    }
+    if (pending.length === 0) return feeds.flatMap((feed) => [readings.get(feed.pairIndex)!]);
+
+    const endpoints = [
+      ...(ALCHEMY_RPC.monad ? [ALCHEMY_RPC.monad] : []),
+      ...SUPRA_MONAD_RPC_ENDPOINTS,
+    ];
+    let aggregateResults: Awaited<ReturnType<typeof aggregateMonadCalls>> | null = null;
+    try {
+      aggregateResults = await aggregateMonadCalls(
+        this.rpcClient,
+        endpoints,
+        pending.map((feed) => ({
+          target: SUPRA_MONAD_SVALUE_FEED_ADDRESS,
+          allowFailure: true,
+          callData: encodeFunctionData({
+            abi: SUPRA_SVALUE_ABI,
+            functionName: 'getSvalue',
+            args: [BigInt(feed.pairIndex)],
+          }),
+        })),
+        signal
+      );
+    } catch (error) {
+      logger.warn('Supra Monad Multicall failed; using bounded individual reads', {
+        error: error instanceof Error ? error.message : String(error),
+        feeds: pending.length,
+      });
+    }
+
+    const fallback = async (feed: SupraMonadFeed): Promise<void> => {
+      try {
+        readings.set(feed.pairIndex, await this.getPrice(feed, signal));
+      } catch (error) {
+        logger.warn('Supra Monad batch feed is unavailable after individual fallback', {
+          symbol: feed.alias,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    };
+    if (!aggregateResults) {
+      await mapWithConcurrency(pending, 4, fallback);
+      return feeds.flatMap((feed) => {
+        const reading = readings.get(feed.pairIndex);
+        return reading ? [reading] : [];
+      });
+    }
+
+    const fallbacks: SupraMonadFeed[] = [];
+    for (const [index, feed] of pending.entries()) {
+      const result = aggregateResults[index];
+      if (!result?.success) {
+        fallbacks.push(feed);
+        continue;
+      }
+      try {
+        readings.set(
+          feed.pairIndex,
+          this.acceptPrice(feed, result.returnData, `supra-monad:${feed.pairIndex}`)
+        );
+      } catch {
+        fallbacks.push(feed);
+      }
+    }
+    await mapWithConcurrency(fallbacks, 4, fallback);
+    return feeds.flatMap((feed) => {
+      const reading = readings.get(feed.pairIndex);
+      return reading ? [reading] : [];
+    });
+  }
+
+  private acceptPrice(feed: SupraMonadFeed, raw: string, cacheKey: string): SupraMonadPriceData {
     const reading = decodePrice(raw, feed);
     if (!this.isUsable(reading)) {
       const age = Math.max(0, Math.floor((Date.now() - reading.sourceTimestampMs) / 1000));
       throw new Error(
-        `Supra Monad price is stale or future-dated for ${feed.alias} (age ${age}s, maximum ${feed.maxStalenessSeconds}s)`
+        `Supra Monad price is stale or future-dated for ${feed.alias} (age ${age}s, maximum ${reading.maxAgeSeconds}s)`
       );
     }
-
     this.cache.set(cacheKey, reading, Math.min(30_000, reading.maxAgeSeconds * 1000));
     return reading;
   }

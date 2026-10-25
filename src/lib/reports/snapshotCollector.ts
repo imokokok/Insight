@@ -39,7 +39,7 @@ import { getAdminQueries } from '@/lib/supabase/server';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { calculateMedian } from '@/lib/utils/statistics';
-import { type Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
+import { Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
 
 const logger = createLogger('DailyReportSnapshot');
 
@@ -311,8 +311,6 @@ async function fetchBatchPrices(
     }
   };
 
-  const isMulticallProvider = (provider: OracleProvider): boolean =>
-    provider === OracleProvider.CHAINLINK || provider === OracleProvider.TWAP;
   const hasSnapshotBatchCapability = (client: unknown): client is SnapshotBatchPriceClient =>
     !!client &&
     typeof client === 'object' &&
@@ -320,6 +318,24 @@ async function fetchBatchPrices(
     typeof client.getSnapshotPricesBatch === 'function';
   const validEvmAddress = (address: string | undefined): address is `0x${string}` =>
     typeof address === 'string' && /^0x[0-9a-f]{40}$/i.test(address);
+  const isSnapshotBatchEligible = (query: SnapshotQuery): boolean => {
+    if (!query.chain || query.feedChainId === undefined) return false;
+    switch (query.provider) {
+      case OracleProvider.CHAINLINK:
+        return query.chain === Blockchain.SOLANA || validEvmAddress(query.feedAddress);
+      case OracleProvider.PYTH:
+        return query.chain === Blockchain.SOLANA || query.chain === Blockchain.MONAD;
+      case OracleProvider.STORK:
+      case OracleProvider.CHRONICLE:
+      case OracleProvider.REDSTONE:
+      case OracleProvider.SUPRA:
+        return query.chain === Blockchain.MONAD;
+      case OracleProvider.TWAP:
+        return true;
+      default:
+        return false;
+    }
+  };
 
   type IndexedQuery = { index: number; query: SnapshotQuery };
   type FetchTask =
@@ -331,12 +347,7 @@ async function fetchBatchPrices(
     // A batch is deliberately limited to active registry feeds with an
     // explicit chain. The generic/fallback query path below retains all
     // existing database gates and client behaviour for every other source.
-    if (
-      isMulticallProvider(query.provider) &&
-      query.chain &&
-      query.feedChainId !== undefined &&
-      (query.provider !== OracleProvider.CHAINLINK || validEvmAddress(query.feedAddress))
-    ) {
+    if (isSnapshotBatchEligible(query)) {
       const key = `${query.provider}:${query.feedChainId}:${query.healthOnly ? 'health' : 'report'}`;
       const entries = batchGroups.get(key) ?? [];
       entries.push({ index, query });

@@ -10,6 +10,7 @@ import {
   type PythSolanaFeed,
 } from '@/lib/oracles/constants/pythSolana';
 import { scalePythValue } from '@/lib/oracles/services/pythMonadOnChainService';
+import { recordRpcUsage } from '@/lib/oracles/utils/rpcClientWithFallback';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('PythSolanaOnChainService');
@@ -193,28 +194,48 @@ async function rpc<T>(
   signal?: AbortSignal
 ): Promise<T> {
   const id = `insight-pyth-solana-${method}`;
-  const response = await fetcher(endpoint, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
-    signal: signal
-      ? AbortSignal.any([signal, AbortSignal.timeout(10_000)])
-      : AbortSignal.timeout(10_000),
-  });
-  if (!response.ok) throw new Error('Solana RPC returned a non-success HTTP response');
-  let body: unknown;
+  const startedAt = performance.now();
   try {
-    body = await response.json();
-  } catch {
-    throw new InvalidPythSolanaDataError('Solana RPC returned invalid JSON');
+    const response = await fetcher(endpoint, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(10_000)])
+        : AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) throw new Error('Solana RPC returned a non-success HTTP response');
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      throw new InvalidPythSolanaDataError('Solana RPC returned invalid JSON');
+    }
+    const envelope = asRecord(body, 'Solana JSON-RPC response');
+    if (envelope.jsonrpc !== '2.0' || envelope.id !== id)
+      throw new InvalidPythSolanaDataError('Solana RPC envelope is invalid');
+    if (envelope.error != null) throw new Error('Solana RPC rejected the Pyth query');
+    if (!Object.hasOwn(envelope, 'result'))
+      throw new InvalidPythSolanaDataError('Solana RPC result is missing');
+    recordRpcUsage({
+      context: 'pyth-solana',
+      chain: 'solana',
+      method,
+      success: true,
+      durationMs: performance.now() - startedAt,
+    });
+    return envelope.result as T;
+  } catch (error) {
+    recordRpcUsage({
+      context: 'pyth-solana',
+      chain: 'solana',
+      method,
+      success: false,
+      timedOut: !signal?.aborted && error instanceof DOMException && error.name === 'TimeoutError',
+      durationMs: performance.now() - startedAt,
+    });
+    throw error;
   }
-  const envelope = asRecord(body, 'Solana JSON-RPC response');
-  if (envelope.jsonrpc !== '2.0' || envelope.id !== id)
-    throw new InvalidPythSolanaDataError('Solana RPC envelope is invalid');
-  if (envelope.error != null) throw new Error('Solana RPC rejected the Pyth query');
-  if (!Object.hasOwn(envelope, 'result'))
-    throw new InvalidPythSolanaDataError('Solana RPC result is missing');
-  return envelope.result as T;
 }
 
 /**

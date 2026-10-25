@@ -7,6 +7,10 @@ import {
 } from '@/lib/oracles/constants/storkMonad';
 import { storkMonadOnChainService } from '@/lib/oracles/services/storkMonadOnChainService';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import {
+  type SnapshotBatchPriceRequest,
+  type SnapshotBatchPriceResult,
+} from '@/lib/oracles/utils/snapshotBatch';
 import { buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
 import { FailureMode, buildSignalVector } from '@/types/oracle/signals';
@@ -95,6 +99,52 @@ export class StorkMonadClient extends BaseOracleClient {
     } catch (error) {
       this.handleGetPriceError(error, 'Stork pushed feed on Monad', 'STORK_PRICE_ERROR');
     }
+  }
+
+  async getSnapshotPricesBatch(
+    requests: readonly SnapshotBatchPriceRequest[],
+    signal?: AbortSignal
+  ): Promise<SnapshotBatchPriceResult[]> {
+    const feeds = new Map<string, (typeof STORK_MONAD_PUSHED_FEEDS)[number]>();
+    const failures = new Map<string, Error>();
+    for (const request of requests) {
+      const feed =
+        request.chain === Blockchain.MONAD ? resolveStorkMonadFeed(request.symbol) : null;
+      if (feed) feeds.set(feed.encodedAssetId.toLowerCase(), feed);
+      else
+        failures.set(request.id, new Error(`No reviewed Stork Monad feed for ${request.symbol}`));
+    }
+    if (feeds.size > 0) {
+      try {
+        await withOracleRetry(
+          () => storkMonadOnChainService.getPrices([...feeds.values()], signal),
+          'stork-monad:snapshot-batch',
+          ORACLE_RETRY_PRESETS.standard,
+          signal
+        );
+      } catch {
+        // getPrice below remains the individual safety net.
+      }
+    }
+    return Promise.all(
+      requests.map(async (request): Promise<SnapshotBatchPriceResult> => {
+        const failure = failures.get(request.id);
+        if (failure) return { id: request.id, price: null, error: failure };
+        try {
+          return {
+            id: request.id,
+            price: await this.getPrice(request.symbol, Blockchain.MONAD, { signal }),
+            error: null,
+          };
+        } catch (error) {
+          return {
+            id: request.id,
+            price: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+          };
+        }
+      })
+    );
   }
 
   isSymbolSupported(symbol: string, chain?: Blockchain): boolean {

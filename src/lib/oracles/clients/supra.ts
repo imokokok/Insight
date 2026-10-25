@@ -15,6 +15,10 @@ import { getSupraDataService } from '@/lib/oracles/services/supraDataService';
 import { supraMonadOnChainService } from '@/lib/oracles/services/supraMonadOnChainService';
 import { isSymbolActiveInCacheSync } from '@/lib/oracles/utils/dynamicFeedResolver';
 import { withOracleRetry, ORACLE_RETRY_PRESETS } from '@/lib/oracles/utils/retry';
+import {
+  type SnapshotBatchPriceRequest,
+  type SnapshotBatchPriceResult,
+} from '@/lib/oracles/utils/snapshotBatch';
 import { buildApiVerification, buildEvmVerification } from '@/lib/oracles/utils/verificationUtils';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
@@ -127,6 +131,52 @@ export class SupraClient extends BaseOracleClient {
       }
       this.handleGetPriceError(error, 'Supra', 'SUPRA_ERROR');
     }
+  }
+
+  async getSnapshotPricesBatch(
+    requests: readonly SnapshotBatchPriceRequest[],
+    signal?: AbortSignal
+  ): Promise<SnapshotBatchPriceResult[]> {
+    const feeds = new Map<number, (typeof SUPRA_MONAD_PUSHED_FEEDS)[number]>();
+    const failures = new Map<string, Error>();
+    for (const request of requests) {
+      const feed =
+        request.chain === Blockchain.MONAD ? resolveSupraMonadFeed(request.symbol) : null;
+      if (feed) feeds.set(feed.pairIndex, feed);
+      else
+        failures.set(request.id, new Error(`No reviewed Supra Monad feed for ${request.symbol}`));
+    }
+    if (feeds.size > 0) {
+      try {
+        await withOracleRetry(
+          () => supraMonadOnChainService.getPrices([...feeds.values()], signal),
+          'supra-monad:snapshot-batch',
+          ORACLE_RETRY_PRESETS.standard,
+          signal
+        );
+      } catch {
+        // getPrice below remains the individual safety net.
+      }
+    }
+    return Promise.all(
+      requests.map(async (request): Promise<SnapshotBatchPriceResult> => {
+        const failure = failures.get(request.id);
+        if (failure) return { id: request.id, price: null, error: failure };
+        try {
+          return {
+            id: request.id,
+            price: await this.getPrice(request.symbol, Blockchain.MONAD, { signal }),
+            error: null,
+          };
+        } catch (error) {
+          return {
+            id: request.id,
+            price: null,
+            error: error instanceof Error ? error : new Error(String(error)),
+          };
+        }
+      })
+    );
   }
 
   /**
