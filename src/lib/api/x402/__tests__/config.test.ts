@@ -243,6 +243,27 @@ describe('x402 config', () => {
       );
     });
 
+    it('prefers the dedicated Solana facilitator over a generic network map', () => {
+      const cfg = parseX402Config({
+        ...BASE_ENV,
+        X402_SOLANA_ENABLED: 'true',
+        X402_SOLANA_NETWORK: SOLANA_MAINNET_CAIP2,
+        X402_SOLANA_PAY_TO: 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX',
+        X402_FACILITATOR_URLS: `${SOLANA_MAINNET_CAIP2}=https://legacy.example.com`,
+        X402_SOLANA_FACILITATOR_URL: 'https://solana.example.com',
+      });
+
+      expect(facilitatorUrlForNetwork(cfg, SOLANA_MAINNET_CAIP2)).toBe(
+        'https://solana.example.com'
+      );
+    });
+
+    it('rejects a non-HTTPS dedicated Solana facilitator', () => {
+      expect(() =>
+        parseX402Config({ ...BASE_ENV, X402_SOLANA_FACILITATOR_URL: 'http://solana.example.com' })
+      ).toThrow(/X402_SOLANA_FACILITATOR_URL/);
+    });
+
     it('parses an opaque per-network Bearer token without losing base64 padding', () => {
       const cfg = parseX402Config({
         ...BASE_ENV,

@@ -337,6 +337,19 @@ function parseFacilitatorUrls(
   return urls;
 }
 
+/** Parse a dedicated facilitator endpoint at an environment boundary. */
+function parseOptionalFacilitatorUrl(raw: string | undefined, name: string): string | null {
+  const url = raw?.trim() ?? '';
+  if (url === '') return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:') throw new Error('not https');
+  } catch {
+    throw new Error(`${name} must be a valid https URL`);
+  }
+  return url;
+}
+
 /**
  * Parse a server-side opaque Bearer credential. Authorization header injection
  * is rejected at the configuration boundary; the returned value never carries
@@ -521,6 +534,13 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
 
   const facilitatorUrl = env.X402_FACILITATOR_URL?.trim() || 'https://x402.org/facilitator';
   const facilitatorUrls = parseFacilitatorUrls(env.X402_FACILITATOR_URLS);
+  const solanaFacilitatorUrl = parseOptionalFacilitatorUrl(
+    env.X402_SOLANA_FACILITATOR_URL,
+    'X402_SOLANA_FACILITATOR_URL'
+  );
+  if (solana && solanaFacilitatorUrl) {
+    facilitatorUrls[solana.network] = solanaFacilitatorUrl;
+  }
   const facilitatorBearerToken = parseBearerToken(
     env.X402_FACILITATOR_BEARER_TOKEN,
     'X402_FACILITATOR_BEARER_TOKEN'
