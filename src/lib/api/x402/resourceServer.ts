@@ -46,15 +46,22 @@ interface FacilitatorBlockhashHint {
   lastValidBlockHeight: string;
 }
 
+interface FacilitatorPaymentHint extends FacilitatorBlockhashHint {
+  feePayer: string;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function parseFacilitatorBlockhashHint(extra: unknown): FacilitatorBlockhashHint | null {
+function parseFacilitatorPaymentHint(extra: unknown): FacilitatorPaymentHint | null {
   if (!isRecord(extra)) return null;
+  const feePayer = extra.feePayer;
   const recentBlockhash = extra.recentBlockhash;
   const lastValidBlockHeight = extra.lastValidBlockHeight;
   if (
+    typeof feePayer !== 'string' ||
+    !isSolanaPublicKey(feePayer) ||
     typeof recentBlockhash !== 'string' ||
     !isSolanaPublicKey(recentBlockhash) ||
     typeof lastValidBlockHeight !== 'string' ||
@@ -62,7 +69,7 @@ function parseFacilitatorBlockhashHint(extra: unknown): FacilitatorBlockhashHint
   ) {
     return null;
   }
-  return { recentBlockhash, lastValidBlockHeight };
+  return { feePayer, recentBlockhash, lastValidBlockHeight };
 }
 
 /**
@@ -70,9 +77,11 @@ function parseFacilitatorBlockhashHint(extra: unknown): FacilitatorBlockhashHint
  * For SVM providers that publish a blockhash there, refreshing it for the
  * individual 402 quote is necessary: a cached hash expires in about a minute.
  *
- * This stays additive to the upstream exact scheme. If either response does
- * not advertise a hint, the provider changes fee payer, or the refresh fails,
- * the normal SDK behaviour remains unchanged.
+ * This stays additive to the upstream exact scheme. A validated refreshed
+ * response replaces fee payer, blockhash, and validity height as one atomic
+ * tuple, since SVM facilitators can rotate all three together. If either
+ * response does not advertise a usable tuple or the refresh fails, normal SDK
+ * behaviour remains unchanged.
  */
 class FacilitatorHintExactSvmScheme extends ExactSvmScheme {
   constructor(
@@ -101,11 +110,9 @@ class FacilitatorHintExactSvmScheme extends ExactSvmScheme {
     if (requirements.extra?.recentBlockhash || this.hintSource === null) return requirements;
 
     const initialExtra = isRecord(supportedKind.extra) ? supportedKind.extra : {};
-    const feePayer = initialExtra.feePayer;
     // Only contact providers which explicitly advertise this capability. That
     // keeps ordinary facilitators on the SDK's zero-extra-request path.
-    if (typeof feePayer !== 'string' || !isSolanaPublicKey(feePayer)) return requirements;
-    if (parseFacilitatorBlockhashHint(initialExtra) === null) return requirements;
+    if (parseFacilitatorPaymentHint(initialExtra) === null) return requirements;
 
     try {
       const response = await fetch(`${this.hintSource.url.replace(/\/+$/, '')}/supported`, {
@@ -131,10 +138,8 @@ class FacilitatorHintExactSvmScheme extends ExactSvmScheme {
           kind.scheme === 'exact' &&
           kind.network === supportedKind.network
       );
-      if (!currentKind || !isRecord(currentKind.extra) || currentKind.extra.feePayer !== feePayer) {
-        return requirements;
-      }
-      const hint = parseFacilitatorBlockhashHint(currentKind.extra);
+      if (!currentKind || !isRecord(currentKind.extra)) return requirements;
+      const hint = parseFacilitatorPaymentHint(currentKind.extra);
       return hint ? { ...requirements, extra: { ...requirements.extra, ...hint } } : requirements;
     } catch {
       return requirements;
