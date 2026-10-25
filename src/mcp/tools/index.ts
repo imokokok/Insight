@@ -8,6 +8,7 @@ import {
   getLatencyTool,
   getMetricsTool,
 } from './analysisTools';
+import { baseLendingGuardExactCallTool, baseLendingGuardTool } from './baseLendingGuardTools';
 import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
 import { getCrossChainSpreadsTool } from './crossChainTools';
 import {
@@ -31,6 +32,10 @@ import {
 import {
   AnomaliesJsonSchema,
   BaseDexMarketJsonSchema,
+  BaseLendingGuardExactJsonSchema,
+  BaseLendingGuardJsonSchema,
+  MonadLendingGuardExactJsonSchema,
+  MonadLendingGuardJsonSchema,
   HyperliquidPerpMarketJsonSchema,
   HyperliquidPerpExecutionVerificationJsonSchema,
   HyperliquidPerpOrderPreflightJsonSchema,
@@ -70,6 +75,7 @@ import {
   SymbolQueryJsonSchema,
   WrappedAssetJsonSchema,
 } from './jsonSchemas';
+import { monadLendingGuardExactCallTool, monadLendingGuardTool } from './monadLendingGuardTools';
 import {
   compareOracleDeviationTool,
   getConsensusPriceTool,
@@ -138,6 +144,10 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getHyperliquidPerpMarketTool,
   prepareHyperliquidPerpOrderTool,
   verifyHyperliquidPerpExecutionTool,
+  baseLendingGuardTool,
+  baseLendingGuardExactCallTool,
+  monadLendingGuardTool,
+  monadLendingGuardExactCallTool,
   checkPositionSafetyTool,
   preTradeSafetyCheckTool,
   oracleWatchTool,
@@ -345,6 +355,26 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   get_base_dex_market: BaseDexMarketJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  base_lending_guard: BaseLendingGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  base_lending_guard_exact_call: BaseLendingGuardExactJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  monad_lending_guard: MonadLendingGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  monad_lending_guard_exact_call: MonadLendingGuardExactJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

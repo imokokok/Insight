@@ -262,6 +262,10 @@ export interface X402Config {
    * unauthenticated verify/settle calls. Null = no auth (x402.org default).
    */
   facilitatorCdpAuth: { apiKeyId: string; apiKeySecret: string } | null;
+  /** Optional static Bearer credential for the default facilitator URL. */
+  facilitatorBearerToken?: string | null;
+  /** Optional static Bearer credential overrides keyed by payment network. */
+  facilitatorBearerTokens?: Partial<Record<X402PaymentNetworkId, string>>;
   /** Optional, independently opted-in Solana x402 option. */
   solana?: X402SolanaConfig | null;
   /**
@@ -333,6 +337,60 @@ function parseFacilitatorUrls(
   return urls;
 }
 
+/**
+ * Parse a server-side opaque Bearer credential. Authorization header injection
+ * is rejected at the configuration boundary; the returned value never carries
+ * a `Bearer ` prefix so every caller emits a single canonical header.
+ */
+function parseBearerToken(raw: string | undefined, name: string): string | null {
+  const supplied = raw?.trim() ?? '';
+  if (supplied === '') return null;
+
+  const token = supplied.replace(/^Bearer[ \t]+/i, '');
+  if (token === '' || /\s/.test(token)) {
+    throw new Error(`${name} must be one opaque Bearer token without whitespace`);
+  }
+  return token;
+}
+
+/**
+ * Parse per-network static facilitator credentials without ever logging their
+ * values. Split only on the first '=': opaque tokens may themselves end in
+ * base64 padding.
+ */
+function parseFacilitatorBearerTokens(
+  raw: string | undefined
+): Partial<Record<X402PaymentNetworkId, string>> {
+  if (raw === undefined || raw.trim() === '') return {};
+
+  const tokens: Partial<Record<X402PaymentNetworkId, string>> = {};
+  for (const pair of raw.split(',')) {
+    const trimmed = pair.trim();
+    if (trimmed === '') {
+      throw new Error('X402_FACILITATOR_BEARER_TOKENS must not contain empty entries');
+    }
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0 || eq === trimmed.length - 1) {
+      throw new Error(
+        'X402_FACILITATOR_BEARER_TOKENS entries must be "network=token" pairs separated by commas'
+      );
+    }
+    const network = PaymentNetworkSchema.parse(trimmed.slice(0, eq).trim());
+    const token = parseBearerToken(
+      trimmed.slice(eq + 1),
+      `X402_FACILITATOR_BEARER_TOKENS entry for ${network}`
+    );
+    if (token === null) {
+      throw new Error(`X402_FACILITATOR_BEARER_TOKENS entry for ${network} has no token`);
+    }
+    if (tokens[network]) {
+      throw new Error(`X402_FACILITATOR_BEARER_TOKENS has a duplicate entry for ${network}`);
+    }
+    tokens[network] = token;
+  }
+  return tokens;
+}
+
 function parsePriceUsd(raw: string | undefined): number {
   const parsed = Number.parseFloat(raw ?? '0.02');
   if (!Number.isFinite(parsed) || parsed <= 0) {
@@ -366,11 +424,21 @@ function usdToAtomicUnits(usd: number): string {
 }
 
 const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
+const DAYDREAMS_FACILITATOR_HOST = 'facilitator.daydreams.systems';
 
 /** True only for the CDP facilitator host, never for a lookalike URL. */
 export function isCdpFacilitatorUrl(url: string): boolean {
   try {
     return new URL(url).host === CDP_FACILITATOR_HOST;
+  } catch {
+    return false;
+  }
+}
+
+/** True only for the production Daydreams facilitator host. */
+export function isDaydreamsFacilitatorUrl(url: string): boolean {
+  try {
+    return new URL(url).host === DAYDREAMS_FACILITATOR_HOST;
   } catch {
     return false;
   }
@@ -453,7 +521,30 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
 
   const facilitatorUrl = env.X402_FACILITATOR_URL?.trim() || 'https://x402.org/facilitator';
   const facilitatorUrls = parseFacilitatorUrls(env.X402_FACILITATOR_URLS);
+  const facilitatorBearerToken = parseBearerToken(
+    env.X402_FACILITATOR_BEARER_TOKEN,
+    'X402_FACILITATOR_BEARER_TOKEN'
+  );
+  const facilitatorBearerTokens = parseFacilitatorBearerTokens(env.X402_FACILITATOR_BEARER_TOKENS);
   const bnbAssets = parseBnbAssets(env.X402_BNB_ASSETS);
+
+  // Daydreams exposes /supported publicly but requires a server Bearer token
+  // for the payment path. Fail before advertising a Solana option that could
+  // only fail after a buyer signs a payment.
+  const activeNetworks: X402PaymentNetworkId[] = [
+    ...(evmEnabled ? evmNetworks : []),
+    ...(solana ? [solana.network] : []),
+  ];
+  for (const activeNetwork of activeNetworks) {
+    const activeUrl = facilitatorUrls[activeNetwork] ?? facilitatorUrl;
+    const token = facilitatorBearerTokens[activeNetwork] ?? facilitatorBearerToken;
+    if (isDaydreamsFacilitatorUrl(activeUrl) && token === null) {
+      throw new Error(
+        `Daydreams facilitator for ${activeNetwork} requires X402_FACILITATOR_BEARER_TOKEN ` +
+          `or X402_FACILITATOR_BEARER_TOKENS entry for that network`
+      );
+    }
+  }
 
   return {
     enabled: evmEnabled || solana !== null,
@@ -466,6 +557,8 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     priceUsd,
     facilitatorUrl,
     facilitatorUrls,
+    facilitatorBearerToken,
+    facilitatorBearerTokens,
     facilitatorTimeoutMs: 15_000,
     maxTimeoutSeconds: 60,
     facilitatorCdpAuth: parseFacilitatorCdpAuth(env, [
@@ -486,6 +579,12 @@ export const X402_PRE_TRADE_ROUTE = '/api/v1/safety/pre-trade';
  * ALLOW/CAUTION/BLOCK decision contract used by agents.
  */
 export const X402_EXECUTION_PREFLIGHT_ROUTE = '/api/v1/safety/preflight';
+
+/** Base-only lending decision gate. The caller receives no transaction authority. */
+export const X402_BASE_LENDING_GUARD_ROUTE = '/api/v1/safety/base-lending-guard';
+
+/** Monad lending decision gate; payment settlement remains configured separately. */
+export const X402_MONAD_LENDING_GUARD_ROUTE = '/api/v1/safety/monad-lending-guard';
 
 /** A two-gate same-chain swap lifecycle with one post-settlement receipt credit. */
 export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';
@@ -528,6 +627,14 @@ export function payToForEvmNetwork(cfg: X402Config, network: X402NetworkId): str
 /** Resolve the configured facilitator for any EVM or Solana payment network. */
 export function facilitatorUrlForNetwork(cfg: X402Config, network: X402PaymentNetworkId): string {
   return cfg.facilitatorUrls?.[network] ?? cfg.facilitatorUrl;
+}
+
+/** Resolve a static server-side Bearer credential for a payment network. */
+export function facilitatorBearerTokenForNetwork(
+  cfg: X402Config,
+  network: X402PaymentNetworkId
+): string | null {
+  return cfg.facilitatorBearerTokens?.[network] ?? cfg.facilitatorBearerToken ?? null;
 }
 
 /**

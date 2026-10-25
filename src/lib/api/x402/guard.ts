@@ -324,29 +324,24 @@ export function recordX402Settlement(audit: X402SettlementAudit): void {
   const task = async () => {
     try {
       const client = createServiceRoleClient();
-      const insert = client.from('x402_settlements').insert({
-        request_id: validAudit.requestId,
-        protocol: validAudit.protocol ?? 'x402',
-        status: validAudit.status,
-        tx_hash: validAudit.txHash ?? null,
-        payer: validAudit.payer ?? null,
-        amount_usdc: validAudit.amountUsdc ?? null,
-        network: validAudit.network,
-        asset: validAudit.asset ?? null,
-        surface: validAudit.surface ?? 'legacy',
-        resource: validAudit.resource ?? null,
-        response_time_ms: validAudit.responseTimeMs ?? null,
-        verdict: validAudit.verdict ?? null,
-        error_reason: validAudit.errorReason ?? null,
-      });
-      // Supabase's PostgREST builder supports abortSignal(). Keep a narrow
-      // compatibility fallback for minimal clients used by integrations and
-      // tests; real production writes always take the bounded path.
-      const result =
-        typeof insert.abortSignal === 'function'
-          ? insert.abortSignal(AbortSignal.timeout(X402_AUDIT_TIMEOUT_MS))
-          : insert;
-      const { error } = await result;
+      const { error } = await client
+        .from('x402_settlements')
+        .insert({
+          request_id: validAudit.requestId,
+          protocol: validAudit.protocol ?? 'x402',
+          status: validAudit.status,
+          tx_hash: validAudit.txHash ?? null,
+          payer: validAudit.payer ?? null,
+          amount_usdc: validAudit.amountUsdc ?? null,
+          network: validAudit.network,
+          asset: validAudit.asset ?? null,
+          surface: validAudit.surface ?? 'legacy',
+          resource: validAudit.resource ?? null,
+          response_time_ms: validAudit.responseTimeMs ?? null,
+          verdict: validAudit.verdict ?? null,
+          error_reason: validAudit.errorReason ?? null,
+        })
+        .abortSignal(AbortSignal.timeout(X402_AUDIT_TIMEOUT_MS));
       if (error) {
         x402AuditUnavailableUntil = Date.now() + X402_AUDIT_BACKOFF_MS;
         logger.warn('x402 settlement audit insert failed', { error: error.message });

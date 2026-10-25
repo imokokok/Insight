@@ -166,7 +166,11 @@ beforeEach(() => {
     processSettlement,
   }));
   createServiceRoleClientMock.mockImplementation(() => ({
-    from: () => ({ insert: mockInsert }),
+    from: () => ({
+      insert: (...args: unknown[]) => ({
+        abortSignal: () => mockInsert(...args),
+      }),
+    }),
   }));
   mockInsert.mockImplementation(async () => ({ error: null }));
   cannedRpcResponse = OK_RPC;

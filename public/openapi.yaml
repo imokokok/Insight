@@ -2316,6 +2316,246 @@ paths:
               description: MPP challenge when enabled on this deployment.
               schema: { type: string }
 
+  /safety/base-lending-guard:
+    get:
+      operationId: assessBaseLendingGuard
+      tags: [Safety]
+      summary: Base lending risk decision
+      description: >-
+        Read-only risk gate for a caller-declared post-action lending position on
+        Base. It checks live reviewed protocol controls and oracle safety evidence;
+        it never signs, submits, or authorizes a transaction. API-key access or
+        x402 payment is accepted. Morpho Blue requires a marketId.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema:
+              {
+                type: string,
+                enum: [aave-v3-base, morpho-blue-base, compound-v3-base, moonwell-base],
+              },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [supply, borrow] },
+          }
+        - {
+            name: collateralSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, example: ETH },
+          }
+        - { name: loanSymbol, in: query, required: true, schema: { type: string, example: USDC } }
+        - {
+            name: collateralValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 10000 },
+          }
+        - {
+            name: debtValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, minimum: 0, example: 5000 },
+          }
+        - {
+            name: marketId,
+            in: query,
+            required: false,
+            description: Required 32-byte Morpho Blue market ID.,
+            schema: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK lending decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createBaseLendingGuardExactDecision
+      tags: [Safety]
+      summary: Bind a Base lending decision to one exact direct call
+      description: >-
+        Creates a portable EIP-712 decision for a read-only assessment and one
+        unsigned direct Base lending call. The decision remains non-authorizing
+        and must be bound to user authorization before execution.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard: { type: object, description: The same lending fields accepted by GET. }
+                transaction:
+                  {
+                    type: object,
+                    description: Exact unsigned direct call,
+                    sender,
+                    nonce,
+                    and zero value.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/base-lending-guard/verify:
+    get:
+      operationId: getBaseLendingGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Base lending guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyBaseLendingGuardDecision
+      tags: [Safety]
+      summary: Verify a Base lending guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/monad-lending-guard:
+    get:
+      operationId: assessMonadLendingGuard
+      tags: [Safety]
+      summary: Monad lending risk decision
+      description: >-
+        Read-only risk gate for a caller-declared post-action lending position on
+        Monad (chain ID 143). It checks live Aave V3 or Morpho Blue controls and
+        oracle safety evidence; it never signs, submits, or authorizes a transaction.
+        API-key access or x402 payment is accepted. Morpho Blue requires a marketId.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [aave-v3-monad, morpho-blue-monad] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [supply, borrow] },
+          }
+        - {
+            name: collateralSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, example: WETH },
+          }
+        - { name: loanSymbol, in: query, required: true, schema: { type: string, example: USDC } }
+        - {
+            name: collateralValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 10000 },
+          }
+        - {
+            name: debtValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, minimum: 0, example: 5000 },
+          }
+        - {
+            name: marketId,
+            in: query,
+            required: false,
+            description: Required 32-byte Morpho Blue market ID.,
+            schema: { type: string, pattern: '^0x[0-9a-fA-F]{64}$' },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK lending decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createMonadLendingGuardExactDecision
+      tags: [Safety]
+      summary: Bind a Monad lending decision to one exact direct call
+      description: >-
+        Creates a portable EIP-712 decision for a read-only assessment and one
+        unsigned direct Monad lending call. The decision remains non-authorizing
+        and must be bound to user authorization before execution.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard: { type: object, description: The same lending fields accepted by GET. }
+                transaction:
+                  {
+                    type: object,
+                    description: Exact unsigned direct call,
+                    sender,
+                    nonce,
+                    and zero value.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/monad-lending-guard/verify:
+    get:
+      operationId: getMonadLendingGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Monad lending guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyMonadLendingGuardDecision
+      tags: [Safety]
+      summary: Verify a Monad lending guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
   /safety/swap-intent:
     get:
       operationId: createPaidSwapIntent

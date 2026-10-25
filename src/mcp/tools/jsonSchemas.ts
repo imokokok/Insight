@@ -266,6 +266,49 @@ export const MonadDexMarketJsonSchema = z.object({});
 /** Wire schema for the one reviewed WETH/USDC Base DEX market. */
 export const BaseDexMarketJsonSchema = z.object({});
 
+/** Wire schema for the Base-only pre-signing lending gate. */
+export const BaseLendingGuardJsonSchema = z
+  .object({
+    protocolId: z.enum(['aave-v3-base', 'morpho-blue-base', 'compound-v3-base', 'moonwell-base']),
+    action: z.enum(['supply', 'borrow']),
+    collateralSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    collateralValueUsd: z.number().positive().max(1_000_000_000_000),
+    debtValueUsd: z.number().min(0).max(1_000_000_000_000),
+    marketId: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.protocolId === 'morpho-blue-base' && !value.marketId) {
+      context.addIssue({
+        code: 'custom',
+        path: ['marketId'],
+        message: 'marketId is required for Morpho Blue',
+      });
+    }
+  });
+
+/** Wire schema for exact-call Base Lending Guard decision evidence. */
+export const BaseLendingGuardExactJsonSchema = z
+  .object({
+    guard: BaseLendingGuardJsonSchema,
+    transaction: z
+      .object({
+        chainId: z.literal(8453),
+        from: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        to: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        data: z.string().regex(/^0x(?:[a-fA-F0-9]{2})+$/),
+        nonce: z.union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()]),
+        value: z
+          .union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()])
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
 /** Wire schema for the one reviewed SOL/USDC Solana route market. */
 export const SolanaDexRouteJsonSchema = z.object({});
 
@@ -276,6 +319,48 @@ export const HyperliquidPerpMarketJsonSchema = z.object({
     .optional()
     .describe('Reviewed Hyperliquid perpetual market: BTC, ETH, or HYPE. Defaults to BTC.'),
 });
+
+/** Wire schema for the Monad pre-signing lending gate. */
+export const MonadLendingGuardJsonSchema = z
+  .object({
+    protocolId: z.enum(['aave-v3-monad', 'morpho-blue-monad']),
+    action: z.enum(['supply', 'borrow']),
+    collateralSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    collateralValueUsd: z.number().finite().positive(),
+    debtValueUsd: z.number().finite().nonnegative(),
+    marketId: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.protocolId === 'morpho-blue-monad' && !value.marketId) {
+      context.addIssue({
+        code: 'custom',
+        path: ['marketId'],
+        message: 'marketId is required for Morpho Blue',
+      });
+    }
+  });
+
+export const MonadLendingGuardExactJsonSchema = z
+  .object({
+    guard: MonadLendingGuardJsonSchema,
+    transaction: z
+      .object({
+        chainId: z.literal(143),
+        from: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        to: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        data: z.string().regex(/^0x(?:[a-fA-F0-9]{2})+$/),
+        nonce: z.union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()]),
+        value: z
+          .union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()])
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
 
 /** Wire schema for a user-signed, IOC-only reviewed Hyperliquid perp order. */
 export const HyperliquidPerpOrderPreflightJsonSchema = z

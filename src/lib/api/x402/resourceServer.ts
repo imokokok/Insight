@@ -8,8 +8,11 @@ import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 
 import {
+  facilitatorBearerTokenForNetwork,
   facilitatorUrlForNetwork,
   type X402Config,
+  X402_BASE_LENDING_GUARD_ROUTE,
+  X402_MONAD_LENDING_GUARD_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
   X402_PRE_TRADE_ROUTE,
@@ -139,6 +142,111 @@ export const BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION = declareDiscoveryExtension({
         venueQuote: { status: 'not_assessed' },
         nativeOracle: { provider: 'pyth', status: 'passed', onChainVerified: true },
       },
+    },
+  },
+});
+
+/** Marketplace contract for the Base-specific lending decision gate. */
+export const BAZAAR_BASE_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    protocolId: 'aave-v3-base',
+    action: 'borrow',
+    collateralSymbol: 'WETH',
+    loanSymbol: 'USDC',
+    collateralValueUsd: 10_000,
+    debtValueUsd: 4_000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      protocolId: {
+        type: 'string',
+        enum: ['aave-v3-base', 'morpho-blue-base', 'compound-v3-base', 'moonwell-base'],
+      },
+      action: { type: 'string', enum: ['supply', 'borrow'] },
+      collateralSymbol: { type: 'string', description: 'On-chain collateral token symbol' },
+      loanSymbol: { type: 'string', description: 'On-chain loan token symbol' },
+      collateralValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action collateral value in USD',
+      },
+      debtValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action debt value in USD',
+      },
+      marketId: { type: 'string', description: 'Required immutable Morpho Blue market id' },
+      transaction: {
+        type: 'object',
+        description:
+          'POST only: exact unsigned Base transaction {chainId,from,to,data,nonce,value}; required for portable signed decision evidence.',
+      },
+    },
+    required: [
+      'protocolId',
+      'action',
+      'collateralSymbol',
+      'loanSymbol',
+      'collateralValueUsd',
+      'debtValueUsd',
+    ],
+  },
+  output: {
+    example: {
+      schema: 'insight.base-lending-guard.v1',
+      verdict: 'ALLOW',
+      projected: { ltv: 0.4, liquidationBufferPct: 50, conservativeMaxDebtUsd: 7200 },
+      next: { execution: 'not_performed' },
+    },
+  },
+});
+
+/** Marketplace contract for the Monad direct-lending decision gate. */
+export const BAZAAR_MONAD_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    protocolId: 'aave-v3-monad',
+    action: 'borrow',
+    collateralSymbol: 'WETH',
+    loanSymbol: 'USDC',
+    collateralValueUsd: 10_000,
+    debtValueUsd: 4_000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      protocolId: { type: 'string', enum: ['aave-v3-monad', 'morpho-blue-monad'] },
+      action: { type: 'string', enum: ['supply', 'borrow'] },
+      collateralSymbol: { type: 'string', description: 'On-chain collateral token symbol' },
+      loanSymbol: { type: 'string', description: 'On-chain loan token symbol' },
+      collateralValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action collateral value in USD',
+      },
+      debtValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action debt value in USD',
+      },
+      marketId: { type: 'string', description: 'Required immutable Morpho Blue Monad market id' },
+      transaction: {
+        type: 'object',
+        description:
+          'POST only: exact unsigned Monad transaction {chainId:143,from,to,data,nonce,value}.',
+      },
+    },
+    required: [
+      'protocolId',
+      'action',
+      'collateralSymbol',
+      'loanSymbol',
+      'collateralValueUsd',
+      'debtValueUsd',
+    ],
+  },
+  output: {
+    example: {
+      schema: 'insight.monad-lending-guard.v1',
+      verdict: 'ALLOW',
+      projected: { ltv: 0.4, liquidationBufferPct: 50, conservativeMaxDebtUsd: 7200 },
+      next: { execution: 'not_performed' },
     },
   },
 });
@@ -280,9 +388,8 @@ const CDP_FACILITATOR_HOST = 'api.cdp.coinbase.com';
  * Build one facilitator client per distinct facilitator URL needed by the
  * configured payment options. Networks inherit `cfg.facilitatorUrl` unless
  * `cfg.facilitatorUrls[network]` overrides them (e.g. Monad mainnet routes to
- * the Monad facilitator because CDP does not serve it). CDP bearer-JWT auth is
- * attached only to the client whose URL points at the CDP host; third-party
- * facilitators need none.
+ * the Monad facilitator because CDP does not serve it). CDP bearer-JWT auth
+ * and configured static Bearer credentials are attached server-side only.
  *
  * Every client is wrapped by {@link createResilientFacilitator}: verify/settle
  * pass through to the core HTTP client unchanged, while getSupported is served
@@ -327,10 +434,22 @@ function buildFacilitatorClients(
       scheme: 'exact',
       network: option.network,
     }));
+    const bearerTokens = new Set(
+      (routed.length > 0 ? routed : options).map((option) =>
+        facilitatorBearerTokenForNetwork(cfg, option.network)
+      )
+    );
+    if (bearerTokens.size > 1) {
+      throw new Error(
+        `facilitator ${url} has conflicting static Bearer credentials across routed networks`
+      );
+    }
+    const bearerToken = bearerTokens.values().next().value ?? cfg.facilitatorBearerToken ?? null;
     return createResilientFacilitator({
       url,
       timeoutMs,
       cdpAuth: isCdp ? cfg.facilitatorCdpAuth : null,
+      bearerToken: isCdp ? null : bearerToken,
       fallbackKinds,
     });
   });
@@ -367,6 +486,16 @@ export async function buildX402HttpServer(
       cfg,
       BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION,
       'Execution preflight: a chain-neutral ALLOW/CAUTION/BLOCK data-sufficiency decision for one declared action. A complete BLOCK result is charged; settlement occurs only after a successful response.'
+    ),
+    [X402_BASE_LENDING_GUARD_ROUTE]: routeConfigFor(
+      cfg,
+      BAZAAR_BASE_LENDING_GUARD_DISCOVERY_EXTENSION,
+      'Base Lending Guard: a read-only, pre-signing decision for Aave V3, exact Morpho Blue markets, Compound V3 Base USDC Comet, or reviewed Moonwell Base markets. GET returns a preview; POST accepts one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
+    ),
+    [X402_MONAD_LENDING_GUARD_ROUTE]: routeConfigFor(
+      cfg,
+      BAZAAR_MONAD_LENDING_GUARD_DISCOVERY_EXTENSION,
+      'Monad Lending Guard: a read-only, pre-signing decision for direct Aave V3 Monad calls or exact Morpho Blue Monad markets. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
     ),
     [X402_SWAP_INTENT_ROUTE]: routeConfigFor(
       cfg,
