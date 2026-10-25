@@ -567,15 +567,29 @@ export class DatabaseQueries {
           };
 
       if (isSuccess) {
-        const { error } = await this.client
-          .from('oracle_feeds')
-          .update(update)
-          .eq('provider', provider)
-          .eq('symbol', symbol)
-          .eq('chain_id', chainId);
+        // Live API traffic can observe the same healthy feed repeatedly in a
+        // few seconds. The RPC only writes on recovery or once per collection
+        // interval, keeping the two-hour stale-health contract while avoiding
+        // a wide registry-row rewrite for every successful request.
+        const { error } = await this.client.rpc('touch_oracle_feed_success', {
+          p_provider: provider,
+          p_symbol: symbol,
+          p_chain_id: chainId,
+          p_success_at: now,
+        });
 
         if (error) {
-          logger.error('Failed to update feed health (success)', normalizeError(error));
+          // Preserve health tracking during a rolling migration or a partial
+          // deployment. This fallback is deliberately the former direct write.
+          const { error: fallbackError } = await this.client
+            .from('oracle_feeds')
+            .update(update)
+            .eq('provider', provider)
+            .eq('symbol', symbol)
+            .eq('chain_id', chainId);
+          if (fallbackError) {
+            logger.error('Failed to update feed health (success)', normalizeError(fallbackError));
+          }
         }
       } else {
         // Increment consecutive_failures atomically
