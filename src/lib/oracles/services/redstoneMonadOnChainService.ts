@@ -7,8 +7,10 @@ import {
   REDSTONE_MONAD_RPC_ENDPOINTS,
   type RedStoneMonadFeed,
 } from '@/lib/oracles/constants/redstoneMonad';
+import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/utils/logger';
 
+import { aggregateMonadCalls } from '../utils/monadMulticall';
 import { RpcClientWithFallback } from '../utils/rpcClientWithFallback';
 
 const logger = createLogger('RedStoneMonadOnChainService');
@@ -166,6 +168,128 @@ export class RedStoneMonadOnChainService {
         signal
       ),
     ]);
+    return this.acceptPrice(feed, roundRaw, decimalsRaw, cacheKey);
+  }
+
+  /**
+   * Read direct-USD AggregatorV3 feeds in bounded Multicall3 chunks. Decimals
+   * remains in every batch: persisting it without an upgrade detector could
+   * silently apply the wrong scale after a proxy change.
+   */
+  async getPrices(
+    feeds: readonly RedStoneMonadFeed[],
+    signal?: AbortSignal
+  ): Promise<RedStoneMonadPriceData[]> {
+    if (feeds.length === 0) return [];
+    if (new Set(feeds.map((feed) => feed.address.toLowerCase())).size !== feeds.length) {
+      throw new Error('RedStone Monad batch contains duplicate feed addresses');
+    }
+
+    const readings = new Map<string, RedStoneMonadPriceData>();
+    const pending: RedStoneMonadFeed[] = [];
+    for (const feed of feeds) {
+      const key = feed.address.toLowerCase();
+      const cacheKey = `redstone-monad:${key}`;
+      const cached = this.cache.get<RedStoneMonadPriceData>(cacheKey);
+      if (cached && this.isUsable(cached)) readings.set(key, cached);
+      else {
+        if (cached) this.cache.delete(cacheKey);
+        pending.push(feed);
+      }
+    }
+    if (pending.length === 0) {
+      return feeds.flatMap((feed) => [readings.get(feed.address.toLowerCase())!]);
+    }
+
+    const endpoints = [
+      ...(ALCHEMY_RPC.monad ? [ALCHEMY_RPC.monad] : []),
+      ...REDSTONE_MONAD_RPC_ENDPOINTS,
+    ];
+    let aggregateResults: Awaited<ReturnType<typeof aggregateMonadCalls>> | null = null;
+    try {
+      aggregateResults = await aggregateMonadCalls(
+        this.rpcClient,
+        endpoints,
+        pending.flatMap((feed) => [
+          {
+            target: feed.address,
+            allowFailure: true,
+            callData: encodeFunctionData({
+              abi: REDSTONE_AGGREGATOR_V3_ABI,
+              functionName: 'latestRoundData',
+            }),
+          },
+          {
+            target: feed.address,
+            allowFailure: true,
+            callData: encodeFunctionData({
+              abi: REDSTONE_AGGREGATOR_V3_ABI,
+              functionName: 'decimals',
+            }),
+          },
+        ]),
+        signal
+      );
+    } catch (error) {
+      logger.warn('RedStone Monad Multicall failed; using bounded individual reads', {
+        error: error instanceof Error ? error.message : String(error),
+        feeds: pending.length,
+      });
+    }
+
+    const fallback = async (feed: RedStoneMonadFeed): Promise<void> => {
+      try {
+        readings.set(feed.address.toLowerCase(), await this.getPrice(feed, signal));
+      } catch (error) {
+        logger.warn('RedStone Monad batch feed is unavailable after individual fallback', {
+          symbol: feed.alias,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    };
+    if (!aggregateResults) {
+      await mapWithConcurrency(pending, 4, fallback);
+      return feeds.flatMap((feed) => {
+        const reading = readings.get(feed.address.toLowerCase());
+        return reading ? [reading] : [];
+      });
+    }
+
+    const fallbacks: RedStoneMonadFeed[] = [];
+    for (const [index, feed] of pending.entries()) {
+      const round = aggregateResults[index * 2];
+      const decimals = aggregateResults[index * 2 + 1];
+      if (!round?.success || !decimals?.success) {
+        fallbacks.push(feed);
+        continue;
+      }
+      try {
+        readings.set(
+          feed.address.toLowerCase(),
+          this.acceptPrice(
+            feed,
+            round.returnData,
+            decimals.returnData,
+            `redstone-monad:${feed.address.toLowerCase()}`
+          )
+        );
+      } catch {
+        fallbacks.push(feed);
+      }
+    }
+    await mapWithConcurrency(fallbacks, 4, fallback);
+    return feeds.flatMap((feed) => {
+      const reading = readings.get(feed.address.toLowerCase());
+      return reading ? [reading] : [];
+    });
+  }
+
+  private acceptPrice(
+    feed: RedStoneMonadFeed,
+    roundRaw: string,
+    decimalsRaw: string,
+    cacheKey: string
+  ): RedStoneMonadPriceData {
     const reading = decodePrice(roundRaw, decimalsRaw, feed);
     if (!this.isUsable(reading)) {
       const age = Math.max(0, Math.floor(Date.now() / 1000) - reading.updatedAt);
@@ -173,7 +297,6 @@ export class RedStoneMonadOnChainService {
         `RedStone Monad price is stale or future-dated for ${feed.alias} (age ${age}s, maximum ${feed.maxStalenessSeconds}s)`
       );
     }
-
     this.cache.set(cacheKey, reading, Math.min(30_000, reading.maxAgeSeconds * 1000));
     return reading;
   }

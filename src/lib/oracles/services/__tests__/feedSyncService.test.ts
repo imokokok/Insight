@@ -79,24 +79,27 @@ describe('feedSyncService seed lifecycle', () => {
         .mockReturnValueOnce(registryQuery)
         .mockReturnValueOnce(retirementQuery),
     } as never);
-    jest.spyOn(pythMonadOnChainService, 'getPrice').mockImplementation(async (feed) => ({
-      symbol: feed.alias,
-      feedId: `0x${feed.id}`,
-      price: 1,
-      conf: 0,
-      exponent: -8,
-      publishTime: Math.floor(Date.now() / 1000),
-      timestamp: Date.now(),
-      confidenceRatio: 0,
-      maxAgeSeconds: feed.timeDifferenceSeconds * 2,
-      priceDeviationPercent: feed.priceDeviationPercent,
-    }));
+    const getPrices = jest.spyOn(pythMonadOnChainService, 'getPrices').mockResolvedValue(
+      PYTH_MONAD_SPONSORED_FEEDS.map((feed) => ({
+        symbol: feed.alias,
+        feedId: `0x${feed.id}`,
+        price: 1,
+        conf: 0,
+        exponent: -8,
+        publishTime: Math.floor(Date.now() / 1000),
+        timestamp: Date.now(),
+        confidenceRatio: 0,
+        maxAgeSeconds: feed.timeDifferenceSeconds * 2,
+        priceDeviationPercent: feed.priceDeviationPercent,
+      }))
+    );
 
     const result = await feedSyncService.seedPythMonadSponsoredFeeds();
 
     expect(result.discovered).toBe(PYTH_MONAD_SPONSORED_FEEDS.length);
     expect(result.upserted).toBe(1);
     expect(result.deactivated).toBe(1);
+    expect(getPrices).toHaveBeenCalledWith(PYTH_MONAD_SPONSORED_FEEDS);
     expect(registryQuery.eq).toHaveBeenCalledWith('source', 'pyth-monad-sponsored-registry');
     expect(retirementQuery.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -256,9 +259,11 @@ describe('feedSyncService seed lifecycle', () => {
     mockedCreateServiceRoleClient.mockReturnValue({
       from: jest.fn().mockReturnValueOnce({ upsert }).mockReturnValueOnce(registryQuery),
     } as never);
-    const getPrice = jest
-      .spyOn(storkMonadOnChainService, 'getPrice')
-      .mockResolvedValue({} as never);
+    const getPrices = jest
+      .spyOn(storkMonadOnChainService, 'getPrices')
+      .mockResolvedValue(
+        STORK_MONAD_PUSHED_FEEDS.map((feed) => ({ encodedAssetId: feed.encodedAssetId })) as never
+      );
 
     const result = await feedSyncService.seedStorkMonadPushedFeeds();
 
@@ -269,7 +274,7 @@ describe('feedSyncService seed lifecycle', () => {
       deactivated: 0,
       errors: 0,
     });
-    expect(getPrice).toHaveBeenCalledTimes(38);
+    expect(getPrices).toHaveBeenCalledWith(STORK_MONAD_PUSHED_FEEDS);
     const rows = upsert.mock.calls[0][0] as Array<Record<string, unknown>>;
     expect(rows).toHaveLength(38);
     expect(rows.find((row) => row.symbol === 'EARNAUSDA/USD.RR')?.metadata).toMatchObject({
@@ -300,9 +305,11 @@ describe('feedSyncService seed lifecycle', () => {
     mockedCreateServiceRoleClient.mockReturnValue({
       from: jest.fn().mockReturnValueOnce({ upsert }).mockReturnValueOnce(registryQuery),
     } as never);
-    const getPrice = jest
-      .spyOn(chronicleMonadOnChainService, 'getPrice')
-      .mockResolvedValue({} as never);
+    const getPrices = jest
+      .spyOn(chronicleMonadOnChainService, 'getPrices')
+      .mockResolvedValue(
+        CHRONICLE_MONAD_PRICE_FEEDS.map((feed) => ({ feedAddress: feed.address })) as never
+      );
 
     const result = await feedSyncService.seedChronicleMonadPriceFeeds();
 
@@ -313,7 +320,7 @@ describe('feedSyncService seed lifecycle', () => {
       deactivated: 0,
       errors: 0,
     });
-    expect(getPrice).toHaveBeenCalledTimes(22);
+    expect(getPrices).toHaveBeenCalledWith(CHRONICLE_MONAD_PRICE_FEEDS);
     const rows = upsert.mock.calls[0][0] as Array<Record<string, unknown>>;
     expect(rows).toHaveLength(22);
     expect(rows.find((row) => row.symbol === 'MON/USD')?.metadata).toMatchObject({
@@ -341,9 +348,12 @@ describe('feedSyncService seed lifecycle', () => {
     mockedCreateServiceRoleClient.mockReturnValue({
       from: jest.fn().mockReturnValueOnce({ upsert }).mockReturnValueOnce(registryQuery),
     } as never);
-    const getPrice = jest
-      .spyOn(supraMonadOnChainService, 'getPrice')
-      .mockResolvedValue({ decimals: 18 } as never);
+    const getPrices = jest.spyOn(supraMonadOnChainService, 'getPrices').mockResolvedValue(
+      SUPRA_MONAD_PUSHED_FEEDS.map((feed) => ({
+        pairIndex: feed.pairIndex,
+        decimals: 18,
+      })) as never
+    );
 
     const result = await feedSyncService.seedSupraMonadPushedFeeds();
 
@@ -354,7 +364,7 @@ describe('feedSyncService seed lifecycle', () => {
       deactivated: 0,
       errors: 0,
     });
-    expect(getPrice).toHaveBeenCalledTimes(39);
+    expect(getPrices).toHaveBeenCalledWith(SUPRA_MONAD_PUSHED_FEEDS);
     const rows = upsert.mock.calls[0][0] as Array<Record<string, unknown>>;
     expect(rows).toHaveLength(39);
     expect(rows.find((row) => row.symbol === 'SUI/USDT')?.metadata).toMatchObject({

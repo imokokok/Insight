@@ -445,20 +445,10 @@ class FeedSyncService {
     // Read every entry from Pyth Core before activation: a listed but stale or
     // reverted feed must remain out of the active registry and therefore out
     // of Insight's USD consensus / decision evidence.
-    const verification = await mapWithConcurrency(PYTH_MONAD_SPONSORED_FEEDS, 4, async (feed) => {
-      try {
-        await pythMonadOnChainService.getPrice(feed);
-        return { feed, usable: true } as const;
-      } catch (error) {
-        logger.warn('Skipped unusable Pyth Monad sponsored feed', {
-          alias: feed.alias,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return { feed, usable: false } as const;
-      }
-    });
-    const usableFeeds = verification.filter((entry) => entry.usable).map((entry) => entry.feed);
-    result.errors = verification.length - usableFeeds.length;
+    const readings = await pythMonadOnChainService.getPrices(PYTH_MONAD_SPONSORED_FEEDS);
+    const usableIds = new Set(readings.map((reading) => reading.feedId.slice(2)));
+    const usableFeeds = PYTH_MONAD_SPONSORED_FEEDS.filter((feed) => usableIds.has(feed.id));
+    result.errors = result.discovered - usableFeeds.length;
 
     const feeds: OracleFeedInsert[] = usableFeeds.map((feed) => ({
       provider: 'pyth',
@@ -596,20 +586,12 @@ class FeedSyncService {
       errors: 0,
     };
 
-    const verification = await mapWithConcurrency(STORK_MONAD_PUSHED_FEEDS, 4, async (feed) => {
-      try {
-        await storkMonadOnChainService.getPrice(feed);
-        return { feed, usable: true } as const;
-      } catch (error) {
-        logger.warn('Skipped unusable Stork Monad pushed feed', {
-          alias: feed.alias,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return { feed, usable: false } as const;
-      }
-    });
-    const usableFeeds = verification.filter((entry) => entry.usable).map((entry) => entry.feed);
-    result.errors = verification.length - usableFeeds.length;
+    const readings = await storkMonadOnChainService.getPrices(STORK_MONAD_PUSHED_FEEDS);
+    const usableIds = new Set(readings.map((reading) => reading.encodedAssetId.toLowerCase()));
+    const usableFeeds = STORK_MONAD_PUSHED_FEEDS.filter((feed) =>
+      usableIds.has(feed.encodedAssetId.toLowerCase())
+    );
+    result.errors = result.discovered - usableFeeds.length;
 
     const feeds: OracleFeedInsert[] = usableFeeds.map((feed) => ({
       provider: 'stork',
@@ -659,20 +641,12 @@ class FeedSyncService {
       errors: 0,
     };
 
-    const verification = await mapWithConcurrency(CHRONICLE_MONAD_PRICE_FEEDS, 4, async (feed) => {
-      try {
-        await chronicleMonadOnChainService.getPrice(feed);
-        return { feed, usable: true } as const;
-      } catch (error) {
-        logger.warn('Skipped unusable Chronicle Monad price feed', {
-          alias: feed.alias,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return { feed, usable: false } as const;
-      }
-    });
-    const usableFeeds = verification.filter((entry) => entry.usable).map((entry) => entry.feed);
-    result.errors = verification.length - usableFeeds.length;
+    const readings = await chronicleMonadOnChainService.getPrices(CHRONICLE_MONAD_PRICE_FEEDS);
+    const usableAddresses = new Set(readings.map((reading) => reading.feedAddress.toLowerCase()));
+    const usableFeeds = CHRONICLE_MONAD_PRICE_FEEDS.filter((feed) =>
+      usableAddresses.has(feed.address.toLowerCase())
+    );
+    result.errors = result.discovered - usableFeeds.length;
 
     result.upserted = await upsertFeeds(
       usableFeeds.map((feed) => ({
@@ -722,20 +696,12 @@ class FeedSyncService {
       errors: 0,
     };
 
-    const verification = await mapWithConcurrency(REDSTONE_MONAD_PRICE_FEEDS, 4, async (feed) => {
-      try {
-        await redStoneMonadOnChainService.getPrice(feed);
-        return { feed, usable: true } as const;
-      } catch (error) {
-        logger.warn('Skipped unusable RedStone Monad price feed', {
-          alias: feed.alias,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return { feed, usable: false } as const;
-      }
-    });
-    const usableFeeds = verification.filter((entry) => entry.usable).map((entry) => entry.feed);
-    result.errors = verification.length - usableFeeds.length;
+    const readings = await redStoneMonadOnChainService.getPrices(REDSTONE_MONAD_PRICE_FEEDS);
+    const usableAddresses = new Set(readings.map((reading) => reading.feedAddress.toLowerCase()));
+    const usableFeeds = REDSTONE_MONAD_PRICE_FEEDS.filter((feed) =>
+      usableAddresses.has(feed.address.toLowerCase())
+    );
+    result.errors = result.discovered - usableFeeds.length;
 
     result.upserted = await upsertFeeds(
       usableFeeds.map((feed) => ({
@@ -817,22 +783,13 @@ class FeedSyncService {
       deactivated: 0,
       errors: 0,
     };
-    const verification = await mapWithConcurrency(SUPRA_MONAD_PUSHED_FEEDS, 4, async (feed) => {
-      try {
-        const reading = await supraMonadOnChainService.getPrice(feed);
-        return { feed, reading, usable: true } as const;
-      } catch (error) {
-        logger.warn('Skipped unusable Supra Monad pushed feed', {
-          alias: feed.alias,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return { feed, usable: false } as const;
-      }
+    const readings = await supraMonadOnChainService.getPrices(SUPRA_MONAD_PUSHED_FEEDS);
+    const readingsByPairIndex = new Map(readings.map((reading) => [reading.pairIndex, reading]));
+    const usableFeeds = SUPRA_MONAD_PUSHED_FEEDS.flatMap((feed) => {
+      const reading = readingsByPairIndex.get(feed.pairIndex);
+      return reading ? [{ feed, reading }] : [];
     });
-    const usableFeeds = verification.filter(
-      (entry): entry is Extract<(typeof verification)[number], { usable: true }> => entry.usable
-    );
-    result.errors = verification.length - usableFeeds.length;
+    result.errors = result.discovered - usableFeeds.length;
 
     const feeds: OracleFeedInsert[] = usableFeeds.map(({ feed, reading }) => ({
       provider: 'supra',
