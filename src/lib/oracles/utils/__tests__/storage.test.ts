@@ -1,16 +1,32 @@
 /** @jest-environment node */
 
-import { getHistoricalPricesFromDatabase } from '../storage';
+import { getHistoricalPricesFromDatabase, getLatestPriceSnapshotFromDatabase } from '../storage';
 
 const mockGetPriceRecords = jest.fn();
 const mockHistory = jest.fn();
 const mockLoggerError = jest.fn();
+const mockSnapshotMaybeSingle = jest.fn();
+const mockSnapshotFrom = jest.fn();
+
+const mockSnapshotQuery = {
+  select: jest.fn(),
+  eq: jest.fn(),
+  gt: jest.fn(),
+  order: jest.fn(),
+  limit: jest.fn(),
+  maybeSingle: (...args: unknown[]) => mockSnapshotMaybeSingle(...args),
+};
+for (const method of ['select', 'eq', 'gt', 'order', 'limit'] as const) {
+  mockSnapshotQuery[method].mockReturnValue(mockSnapshotQuery);
+}
 
 jest.mock('@/lib/supabase/server', () => ({
   getAdminQueries: () => ({
     getPriceRecords: (...args: unknown[]) => mockGetPriceRecords(...args),
   }),
-  createServiceRoleClient: jest.fn(),
+  createServiceRoleClient: () => ({
+    from: (...args: unknown[]) => mockSnapshotFrom(...args),
+  }),
 }));
 jest.mock('@/lib/supabase/snapshotHistory', () => ({
   loadSnapshotHistoryRange: (...args: unknown[]) => mockHistory(...args),
@@ -38,6 +54,39 @@ function makePriceRecord(timestamp: string) {
 describe('oracle storage historical archive', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSnapshotFrom.mockReturnValue(mockSnapshotQuery);
+    for (const method of ['select', 'eq', 'gt', 'order', 'limit'] as const) {
+      mockSnapshotQuery[method].mockReturnValue(mockSnapshotQuery);
+    }
+  });
+
+  it('loads the newest successful snapshot as an outage-only fallback', async () => {
+    const snapshotTs = new Date().toISOString();
+    mockSnapshotMaybeSingle.mockResolvedValue({
+      data: {
+        snapshot_ts: snapshotTs,
+        provider: 'chainlink',
+        symbol: 'BTC',
+        chain_id: 1,
+        price: '50100',
+        confidence: '0.98',
+        data_age_seconds: 90,
+      },
+      error: null,
+    });
+
+    const fallback = await getLatestPriceSnapshotFromDatabase('chainlink', 'BTC', 'ethereum');
+    expect(mockLoggerError.mock.calls).toEqual([]);
+    expect(fallback).toMatchObject({
+      provider: 'chainlink',
+      symbol: 'BTC',
+      chain: 'ethereum',
+      price: 50_100,
+      source: 'price_snapshots',
+    });
+    expect(fallback?.timestamp).toBe(Date.parse(snapshotTs) - 90_000);
+    expect(mockSnapshotFrom).toHaveBeenCalledWith('price_snapshots');
+    expect(mockSnapshotQuery.eq).toHaveBeenCalledWith('chain_id', 1);
   });
 
   it('does not present the 24-hour TTL cache as long-term history', async () => {

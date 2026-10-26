@@ -104,12 +104,16 @@ export function DataManagementPanel() {
         exportedAt: string;
         records: unknown[];
         count: number;
+        snapshots?: unknown[];
+        snapshotCount?: number;
       }>('/api/price-records/export');
 
       const exportPayload = {
         exportedAt: response.data?.exportedAt ?? new Date().toISOString(),
         records: response.data?.records ?? [],
         count: response.data?.count ?? 0,
+        snapshots: response.data?.snapshots ?? [],
+        snapshotCount: response.data?.snapshotCount ?? 0,
       };
 
       exportToJson({ filename: 'price-history', data: exportPayload });
