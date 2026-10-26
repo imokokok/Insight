@@ -4,7 +4,10 @@ import { ed25519 } from '@noble/curves/ed25519';
 
 import {
   KAMINO_LEND_PROGRAM_ID,
+  JUPITER_LEND_LIQUIDITY_PROGRAM_ID,
+  JUPITER_LEND_PROGRAM_ID,
   MARGINFI_V2_PROGRAM_ID,
+  SAVE_LEND_PROGRAM_ID,
   decodeSolanaLendingExactCall,
   type SolanaLendingTransaction,
 } from '../solanaLendingAction';
@@ -115,6 +118,88 @@ function marginfiBorrowTransaction(): SolanaLendingTransaction {
     ],
   };
 }
+function jupiterDepositTransaction(): SolanaLendingTransaction {
+  const accountKeys = [
+    key(60),
+    key(61),
+    key(62),
+    'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    key(63),
+    key(64),
+    key(65),
+    key(66),
+    key(67),
+    key(68),
+    key(69),
+    key(70),
+    JUPITER_LEND_LIQUIDITY_PROGRAM_ID,
+    key(71),
+    'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+    'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
+    '11111111111111111111111111111111',
+    JUPITER_LEND_PROGRAM_ID,
+  ];
+  const discriminator = [242, 35, 198, 137, 82, 225, 242, 182];
+  const instructionData = Uint8Array.from([...discriminator, 64, 66, 15, 0, 0, 0, 0, 0]);
+  return {
+    network: 'mainnet-beta',
+    messageVersion: 'legacy',
+    feePayer: accountKeys[0],
+    recentBlockhash: key(72),
+    header: {
+      numRequiredSignatures: 1,
+      numReadonlySignedAccounts: 0,
+      numReadonlyUnsignedAccounts: 1,
+    },
+    accountKeys,
+    addressTableLookups: [],
+    loadedAddresses: { writable: [], readonly: [] },
+    instructions: [
+      {
+        programIdIndex: 17,
+        accountIndexes: Array.from({ length: 17 }, (_, index) => index),
+        data: base58(instructionData),
+      },
+    ],
+  };
+}
+function saveDepositTransaction(): SolanaLendingTransaction {
+  const accountKeys = [
+    key(80),
+    key(81),
+    key(82),
+    key(83),
+    key(84),
+    key(85),
+    key(86),
+    key(87),
+    'SysvarC1ock11111111111111111111111111111111',
+    'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+    SAVE_LEND_PROGRAM_ID,
+  ];
+  const instructionData = Uint8Array.from([4, 64, 66, 15, 0, 0, 0, 0, 0]);
+  return {
+    network: 'mainnet-beta',
+    messageVersion: 'legacy',
+    feePayer: accountKeys[0],
+    recentBlockhash: key(90),
+    header: {
+      numRequiredSignatures: 1,
+      numReadonlySignedAccounts: 0,
+      numReadonlyUnsignedAccounts: 1,
+    },
+    accountKeys,
+    addressTableLookups: [],
+    loadedAddresses: { writable: [], readonly: [] },
+    instructions: [
+      {
+        programIdIndex: 10,
+        accountIndexes: [1, 2, 3, 4, 5, 6, 7, 0, 8, 9],
+        data: base58(instructionData),
+      },
+    ],
+  };
+}
 const input = {
   protocolId: 'kamino-lend' as const,
   action: 'supply' as const,
@@ -168,6 +253,16 @@ const accounts = (action: ReturnType<typeof decodeSolanaLendingExactCall>) => [
         },
       ]
     : []),
+  ...(action.sourceTokenAccount
+    ? [
+        {
+          address: action.sourceTokenAccount,
+          role: 'source-token' as const,
+          owner: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+          executable: false,
+        },
+      ]
+    : []),
 ];
 
 describe('Solana Lending Guard', () => {
@@ -204,6 +299,57 @@ describe('Solana Lending Guard', () => {
       assetMint: null,
     });
     expect(decoded.positionAccount).toBe(key(32));
+  });
+
+  it('admits only the canonical Jupiter Lend Earn main-market deposit profile', () => {
+    const decoded = decodeSolanaLendingExactCall(jupiterDepositTransaction(), {
+      protocolId: 'jupiter-lend-earn',
+      action: 'supply',
+      collateralSymbol: 'USDC',
+      loanSymbol: 'USDC',
+    });
+    expect(decoded).toMatchObject({
+      protocolId: 'jupiter-lend-earn',
+      action: 'supply',
+      programId: JUPITER_LEND_PROGRAM_ID,
+      secondaryProgramId: JUPITER_LEND_LIQUIDITY_PROGRAM_ID,
+      amount: '1000000',
+      assetMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    });
+    expect(() =>
+      decodeSolanaLendingExactCall(jupiterDepositTransaction(), {
+        protocolId: 'jupiter-lend-earn',
+        action: 'borrow',
+        collateralSymbol: 'USDC',
+        loanSymbol: 'USDC',
+      })
+    ).toThrow(/outside the direct profile/);
+  });
+
+  it('binds Save Lend reserve-liquidity deposits to the source SPL account and mint', () => {
+    const decoded = decodeSolanaLendingExactCall(saveDepositTransaction(), {
+      protocolId: 'save-lend',
+      action: 'supply',
+      collateralSymbol: 'USDC',
+      loanSymbol: 'USDC',
+      assetMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    });
+    expect(decoded).toMatchObject({
+      protocolId: 'save-lend',
+      programId: SAVE_LEND_PROGRAM_ID,
+      amount: '1000000',
+      assetMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      sourceTokenAccount: key(81),
+    });
+    expect(() =>
+      decodeSolanaLendingExactCall(saveDepositTransaction(), {
+        protocolId: 'save-lend',
+        action: 'borrow',
+        collateralSymbol: 'USDC',
+        loanSymbol: 'USDC',
+        assetMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      })
+    ).toThrow(/only reserve-liquidity deposits/);
   });
 
   it('creates a short-lived Ed25519 decision only after oracle, account, and simulation checks pass', async () => {

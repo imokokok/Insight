@@ -19,7 +19,11 @@ import {
 
 import {
   KAMINO_LEND_PROGRAM_ID,
+  JUPITER_LEND_LIQUIDITY_PROGRAM_ID,
+  JUPITER_LEND_PROGRAM_ID,
   MARGINFI_V2_PROGRAM_ID,
+  SAVE_LEND_PROGRAM_ID,
+  SolanaPublicKeySchema,
   SolanaLendingActionSchema,
   SolanaLendingProtocolIdSchema,
   SolanaLendingTransactionSchema,
@@ -39,8 +43,28 @@ export const SolanaLendingGuardInputSchema = z
     loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
     collateralValueUsd: z.number().finite().positive().max(1_000_000_000_000),
     debtValueUsd: z.number().finite().min(0).max(1_000_000_000_000),
+    assetMint: SolanaPublicKeySchema.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    if (
+      (value.protocolId === 'save-lend' || value.protocolId === 'loopscale-vault') &&
+      !value.assetMint
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['assetMint'],
+        message: `${value.protocolId} requires assetMint`,
+      });
+    }
+    if (value.protocolId === 'loopscale-vault' && value.action !== 'supply') {
+      context.addIssue({
+        code: 'custom',
+        path: ['action'],
+        message: 'Loopscale vault integration supports deposits only',
+      });
+    }
+  });
 export type SolanaLendingGuardInput = z.infer<typeof SolanaLendingGuardInputSchema>;
 
 export const SolanaLendingGuardExactInputSchema = z
@@ -59,7 +83,7 @@ type OracleCheckSummary = {
 };
 export type SolanaProtocolAccountCheck = {
   address: string;
-  role: 'program' | 'market-or-group' | 'reserve-or-bank' | 'position';
+  role: 'program' | 'market-or-group' | 'reserve-or-bank' | 'position' | 'source-token';
   owner: string | null;
   executable: boolean | null;
 };
@@ -304,13 +328,26 @@ async function verifyLiveProtocolAccounts(
   }> = [
     { address: action.programId, role: 'program', expectedOwner: null },
     { address: action.marketId, role: 'market-or-group', expectedOwner: action.programId },
-    { address: action.reserveOrBank, role: 'reserve-or-bank', expectedOwner: action.programId },
+    {
+      address: action.reserveOrBank,
+      role: 'reserve-or-bank',
+      expectedOwner: action.secondaryProgramId ?? action.programId,
+    },
     ...(action.positionAccount
       ? [
           {
             address: action.positionAccount,
             role: 'position' as const,
             expectedOwner: action.programId,
+          },
+        ]
+      : []),
+    ...(action.sourceTokenAccount
+      ? [
+          {
+            address: action.sourceTokenAccount,
+            role: 'source-token' as const,
+            expectedOwner: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
           },
         ]
       : []),
@@ -324,6 +361,14 @@ async function verifyLiveProtocolAccounts(
       if (executable !== true) throw new Error('Reviewed program account is no longer executable');
     } else if (owner !== check.expectedOwner) {
       throw new Error(`Reviewed ${check.role} is not owned by the expected lending program`);
+    }
+    if (check.role === 'source-token') {
+      const token = await getMainnetTokenAccountInfo(check.address, endpoints);
+      if (token.owner !== action.account || token.mint !== action.assetMint) {
+        throw new Error(
+          'Save source token account owner or mint is outside the reviewed exact scope'
+        );
+      }
     }
     output.push({ address: check.address, role: check.role, owner, executable });
   }
@@ -352,6 +397,40 @@ async function getMainnetAccountInfo(
   }
   throw new Error(last instanceof Error ? last.message : 'All Solana RPC account reads failed');
 }
+async function getMainnetTokenAccountInfo(
+  address: string,
+  endpoints: string[]
+): Promise<{ owner: string; mint: string }> {
+  let last: unknown;
+  for (const endpoint of endpoints) {
+    try {
+      const genesis = await rpc(endpoint, 'getGenesisHash', []);
+      if (genesis !== '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d') continue;
+      const result = await rpc(endpoint, 'getAccountInfo', [
+        address,
+        { encoding: 'jsonParsed', commitment: 'confirmed' },
+      ]);
+      if (!isRecord(result) || !isRecord(result.value) || !isRecord(result.value.data)) {
+        throw new Error('RPC returned no parsed SPL token account');
+      }
+      const parsed = result.value.data.parsed;
+      if (
+        !isRecord(parsed) ||
+        !isRecord(parsed.info) ||
+        typeof parsed.info.owner !== 'string' ||
+        typeof parsed.info.mint !== 'string'
+      ) {
+        throw new Error('RPC token account data is malformed');
+      }
+      return { owner: parsed.info.owner, mint: parsed.info.mint };
+    } catch (error) {
+      last = error;
+    }
+  }
+  throw new Error(
+    last instanceof Error ? last.message : 'All Solana RPC token-account reads failed'
+  );
+}
 async function rpc(endpoint: string, method: string, params: unknown[]): Promise<unknown> {
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -377,4 +456,10 @@ function message(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export { KAMINO_LEND_PROGRAM_ID, MARGINFI_V2_PROGRAM_ID };
+export {
+  JUPITER_LEND_LIQUIDITY_PROGRAM_ID,
+  JUPITER_LEND_PROGRAM_ID,
+  KAMINO_LEND_PROGRAM_ID,
+  MARGINFI_V2_PROGRAM_ID,
+  SAVE_LEND_PROGRAM_ID,
+};

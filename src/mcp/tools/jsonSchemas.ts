@@ -338,6 +338,122 @@ export const BaseLendingGuardExactJsonSchema = z
   })
   .strict();
 
+/** Wire schema for the reviewed Base, Polygon, Arbitrum and BNB lending gate. */
+export const MultichainEvmLendingGuardJsonSchema = z
+  .object({
+    chainId: z.union([z.literal(8453), z.literal(137), z.literal(42161), z.literal(56)]),
+    protocolId: z.enum([
+      'aave-v3-polygon',
+      'aave-v3-arbitrum',
+      'aave-v3-bnb',
+      'venus-core-bnb',
+      'compound-v3-arbitrum',
+      'morpho-blue-polygon',
+      'morpho-blue-arbitrum',
+      'lista-moolah-bnb',
+      'euler-v2-base',
+      'euler-v2-arbitrum',
+      'dolomite-arbitrum',
+      'fluid-vault-t1-base',
+      'fluid-vault-t1-arbitrum',
+    ]),
+    action: z.enum(['supply', 'borrow']),
+    collateralSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    loanSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+    collateralValueUsd: z.number().finite().positive().max(1_000_000_000_000),
+    debtValueUsd: z.number().finite().nonnegative().max(1_000_000_000_000),
+    marketId: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{64}$/)
+      .optional(),
+    marketAddress: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/)
+      .optional(),
+    collateralVaultAddress: z
+      .string()
+      .regex(/^0x[a-fA-F0-9]{40}$/)
+      .optional(),
+    collateralMarketId: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)$/)
+      .optional(),
+    loanMarketId: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)$/)
+      .optional(),
+    accountNumber: z
+      .string()
+      .regex(/^(?:0|[1-9][0-9]*)$/)
+      .optional(),
+  })
+  .superRefine((value, context) => {
+    const isolated = ['morpho-blue-polygon', 'morpho-blue-arbitrum', 'lista-moolah-bnb'].includes(
+      value.protocolId
+    );
+    const euler = ['euler-v2-base', 'euler-v2-arbitrum'].includes(value.protocolId);
+    const fluid = ['fluid-vault-t1-base', 'fluid-vault-t1-arbitrum'].includes(value.protocolId);
+    if (isolated && !value.marketId) {
+      context.addIssue({ code: 'custom', path: ['marketId'], message: 'marketId is required' });
+    }
+    if (euler && !value.marketAddress) {
+      context.addIssue({
+        code: 'custom',
+        path: ['marketAddress'],
+        message: 'marketAddress is required for Euler v2',
+      });
+    }
+    if (euler && value.action === 'borrow' && !value.collateralVaultAddress) {
+      context.addIssue({
+        code: 'custom',
+        path: ['collateralVaultAddress'],
+        message: 'collateralVaultAddress is required for an Euler v2 borrow batch',
+      });
+    }
+    if (fluid && !value.marketAddress) {
+      context.addIssue({
+        code: 'custom',
+        path: ['marketAddress'],
+        message: 'marketAddress is required for Fluid T1',
+      });
+    }
+    if (fluid && value.action !== 'supply') {
+      context.addIssue({
+        code: 'custom',
+        path: ['action'],
+        message: 'Fluid T1 only supports collateral-only supply',
+      });
+    }
+    if (
+      value.protocolId === 'dolomite-arbitrum' &&
+      (!value.collateralMarketId || !value.loanMarketId || value.accountNumber === undefined)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['collateralMarketId'],
+        message: 'Dolomite requires collateralMarketId, loanMarketId, and accountNumber',
+      });
+    }
+  });
+
+export const MultichainEvmLendingGuardExactJsonSchema = z
+  .object({
+    guard: MultichainEvmLendingGuardJsonSchema,
+    transaction: z
+      .object({
+        chainId: z.union([z.literal(8453), z.literal(137), z.literal(42161), z.literal(56)]),
+        from: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        to: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        data: z.string().regex(/^0x(?:[a-fA-F0-9]{2})+$/),
+        nonce: z.union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()]),
+        value: z
+          .union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()])
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
 /** Wire schema for the one reviewed SOL/USDC Solana route market. */
 export const SolanaDexRouteJsonSchema = z.object({});
 

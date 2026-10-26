@@ -15,7 +15,7 @@ export const solanaLendingGuardTool: McpToolDefinition<typeof SolanaLendingGuard
   {
     name: 'solana_lending_guard',
     description:
-      'Create portable Insight risk evidence for exactly one unsigned direct Kamino Lend or Marginfi v2 supply/borrow instruction on Solana mainnet. It accepts no transaction authority, verifies the reviewed program and its live-owned accounts, simulates the full unsigned message, checks both assets’ oracle evidence, and returns ALLOW / CAUTION / BLOCK. An ALLOW still needs a separately user-authorized PriorSeal binding before execution.',
+      'Create portable Insight risk evidence for exactly one unsigned direct Kamino Lend, Marginfi v2, Jupiter Lend Earn deposit, or Save Lend reserve-liquidity deposit instruction on Solana mainnet. Save additionally verifies the submitted asset mint against the live source SPL token account. It accepts no transaction authority, verifies reviewed program-owned accounts, simulates the full unsigned message, checks both assets’ oracle evidence, and returns ALLOW / CAUTION / BLOCK. An ALLOW still needs a separately user-authorized PriorSeal binding before execution.',
     parameters: SolanaLendingGuardExactInputSchema,
     handler: async ({ guard: input, transaction }) => {
       const guard = await assessSolanaLendingGuard(input, transaction);

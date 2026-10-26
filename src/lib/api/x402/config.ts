@@ -622,12 +622,15 @@ export const X402_BASE_LENDING_GUARD_ROUTE = '/api/v1/safety/base-lending-guard'
 /** Monad lending decision gate; payment settlement remains configured separately. */
 export const X402_MONAD_LENDING_GUARD_ROUTE = '/api/v1/safety/monad-lending-guard';
 
-/** Polygon, Arbitrum and BNB native lending gate; settlement remains independently configured. */
+/** Base, Polygon, Arbitrum and BNB native lending gate; settlement remains independently configured. */
 export const X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE =
   '/api/v1/safety/multichain-evm-lending-guard';
 
-/** Solana-native exact-transaction lending gate for Kamino Lend and Marginfi. */
+/** Solana-native exact-transaction lending gate for Kamino, Marginfi, and Jupiter Earn. */
 export const X402_SOLANA_LENDING_GUARD_ROUTE = '/api/v1/safety/solana-lending-guard';
+
+/** Official-API-built Loopscale Solana lending-vault deposit gate. */
+export const X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE = '/api/v1/safety/loopscale-vault-deposit';
 
 /** A two-gate same-chain swap lifecycle with one post-settlement receipt credit. */
 export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';

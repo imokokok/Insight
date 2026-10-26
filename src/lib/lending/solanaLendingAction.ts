@@ -12,6 +12,12 @@ import { z } from 'zod';
 export const SOLANA_MAINNET_CAIP2 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
 export const KAMINO_LEND_PROGRAM_ID = 'KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD' as const;
 export const MARGINFI_V2_PROGRAM_ID = 'MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA' as const;
+/** Official Jupiter Lend main-market programs from the published Anchor IDL. */
+export const JUPITER_LEND_PROGRAM_ID = 'jup3YeL8QhtSx1e253b2FDvsMNC87fDrgQZivbrndc9' as const;
+export const JUPITER_LEND_LIQUIDITY_PROGRAM_ID =
+  'jupeiUmn818Jg1ekPURTpr4mFo29p46vygyykFJ3wZC' as const;
+/** Save uses the audited SPL Token Lending program on its mainnet market. */
+export const SAVE_LEND_PROGRAM_ID = 'So1endDq2YkqhipRh3WViPa8hdiSpxWy6z3Z6tMCpAo' as const;
 
 const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 const BASE58_DATA = /^[1-9A-HJ-NP-Za-km-z]*$/;
@@ -19,6 +25,11 @@ const KAMINO_DEPOSIT_RESERVE_LIQUIDITY = Uint8Array.from([169, 201, 30, 126, 6, 
 const KAMINO_BORROW_OBLIGATION_LIQUIDITY = Uint8Array.from([121, 127, 18, 204, 73, 245, 225, 65]);
 const MARGINFI_DEPOSIT = anchorDiscriminator('lending_account_deposit');
 const MARGINFI_BORROW = anchorDiscriminator('lending_account_borrow');
+const JUPITER_LEND_DEPOSIT = Uint8Array.from([242, 35, 198, 137, 82, 225, 242, 182]);
+const SAVE_DEPOSIT_RESERVE_LIQUIDITY = 4;
+const SOLANA_SYSTEM_PROGRAM_ID = '11111111111111111111111111111111' as const;
+const SOLANA_CLOCK_SYSVAR_ID = 'SysvarC1ock11111111111111111111111111111111' as const;
+const SPL_TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as const;
 
 function publicKey(value: string): boolean {
   try {
@@ -28,7 +39,9 @@ function publicKey(value: string): boolean {
   }
 }
 
-const PublicKeySchema = z.string().refine(publicKey, 'Expected a 32-byte base58 Solana public key');
+export const SolanaPublicKeySchema = z
+  .string()
+  .refine(publicKey, 'Expected a 32-byte base58 Solana public key');
 const ByteIndexSchema = z.number().int().min(0).max(255);
 const HeaderSchema = z
   .object({
@@ -46,7 +59,7 @@ const InstructionSchema = z
   .strict();
 const LookupSchema = z
   .object({
-    accountKey: PublicKeySchema,
+    accountKey: SolanaPublicKeySchema,
     writableIndexes: z.array(ByteIndexSchema).max(256),
     readonlyIndexes: z.array(ByteIndexSchema).max(256),
   })
@@ -57,15 +70,15 @@ export const SolanaLendingTransactionSchema = z
   .object({
     network: z.literal('mainnet-beta'),
     messageVersion: z.enum(['legacy', 'v0']),
-    feePayer: PublicKeySchema,
-    recentBlockhash: PublicKeySchema,
+    feePayer: SolanaPublicKeySchema,
+    recentBlockhash: SolanaPublicKeySchema,
     header: HeaderSchema,
-    accountKeys: z.array(PublicKeySchema).min(1).max(256),
+    accountKeys: z.array(SolanaPublicKeySchema).min(1).max(256),
     addressTableLookups: z.array(LookupSchema).max(32),
     loadedAddresses: z
       .object({
-        writable: z.array(PublicKeySchema).max(256),
-        readonly: z.array(PublicKeySchema).max(256),
+        writable: z.array(SolanaPublicKeySchema).max(256),
+        readonly: z.array(SolanaPublicKeySchema).max(256),
       })
       .strict(),
     instructions: z.array(InstructionSchema).min(1).max(64),
@@ -128,7 +141,13 @@ export const SolanaLendingTransactionSchema = z
   });
 
 export type SolanaLendingTransaction = z.infer<typeof SolanaLendingTransactionSchema>;
-export const SolanaLendingProtocolIdSchema = z.enum(['kamino-lend', 'marginfi-v2']);
+export const SolanaLendingProtocolIdSchema = z.enum([
+  'kamino-lend',
+  'marginfi-v2',
+  'jupiter-lend-earn',
+  'save-lend',
+  'loopscale-vault',
+]);
 export type SolanaLendingProtocolId = z.infer<typeof SolanaLendingProtocolIdSchema>;
 export const SolanaLendingActionSchema = z.enum(['supply', 'borrow']);
 export type SolanaLendingAction = z.infer<typeof SolanaLendingActionSchema>;
@@ -136,7 +155,8 @@ export type SolanaLendingAction = z.infer<typeof SolanaLendingActionSchema>;
 export type SolanaLendingDecodedAction = {
   protocolId: SolanaLendingProtocolId;
   action: SolanaLendingAction;
-  programId: typeof KAMINO_LEND_PROGRAM_ID | typeof MARGINFI_V2_PROGRAM_ID;
+  /** The reviewed program for direct profiles, or the exact Tars-built message's first instruction program for Loopscale. */
+  programId: string;
   instructionDataHash: `0x${string}`;
   messageHash: `0x${string}`;
   amount: string;
@@ -145,6 +165,10 @@ export type SolanaLendingDecodedAction = {
   reserveOrBank: string;
   positionAccount: string | null;
   assetMint: string | null;
+  /** Required owner for the liquidity-layer account in Jupiter Earn. */
+  secondaryProgramId: typeof JUPITER_LEND_LIQUIDITY_PROGRAM_ID | null;
+  /** User-owned SPL token account for Save's direct deposit profile. */
+  sourceTokenAccount: string | null;
 };
 
 type ExpectedScope = {
@@ -152,10 +176,66 @@ type ExpectedScope = {
   action: SolanaLendingAction;
   collateralSymbol?: string;
   loanSymbol?: string;
+  /** Save mint independently checked against the source SPL token account live. */
+  assetMint?: string;
+  /** Internal-only scope supplied after Insight has built a Loopscale vault deposit with its official API. */
+  loopscaleVaultAddress?: string;
+  loopscaleStakeAccount?: string;
+  loopscaleMessageHash?: string;
+  loopscaleAmount?: string;
 };
 
+function decodeLoopscaleVaultCall(
+  transaction: SolanaLendingTransaction,
+  expected: ExpectedScope,
+  keys: string[],
+  account: string
+): SolanaLendingDecodedAction {
+  if (
+    expected.action !== 'supply' ||
+    !expected.assetMint ||
+    !expected.loopscaleVaultAddress ||
+    !expected.loopscaleStakeAccount ||
+    !expected.loopscaleMessageHash ||
+    !expected.loopscaleAmount ||
+    !publicKey(expected.assetMint) ||
+    !publicKey(expected.loopscaleVaultAddress) ||
+    !publicKey(expected.loopscaleStakeAccount) ||
+    !/^0x[0-9a-f]{64}$/i.test(expected.loopscaleMessageHash) ||
+    !/^(?:0|[1-9][0-9]*)$/.test(expected.loopscaleAmount)
+  ) {
+    throw new Error(
+      'Loopscale vault exact call requires an Insight-built, fully scoped deposit message'
+    );
+  }
+  if (transaction.instructions.length < 1) {
+    throw new Error('Loopscale vault message must contain at least one instruction');
+  }
+  const messageHash = solanaLendingMessageHash(transaction);
+  if (messageHash.toLowerCase() !== expected.loopscaleMessageHash.toLowerCase()) {
+    throw new Error('Loopscale vault message does not match the Insight-built exact message');
+  }
+  assertAssetSymbol(expected.assetMint, expected.collateralSymbol);
+  const firstInstruction = transaction.instructions[0];
+  return decoded({
+    protocolId: 'loopscale-vault',
+    action: 'supply',
+    programId: keys[firstInstruction.programIdIndex],
+    data: new Uint8Array(),
+    transaction,
+    account,
+    marketId: expected.loopscaleVaultAddress,
+    reserveOrBank: expected.loopscaleStakeAccount,
+    positionAccount: null,
+    assetMint: expected.assetMint,
+    secondaryProgramId: null,
+    sourceTokenAccount: null,
+    amount: expected.loopscaleAmount,
+  });
+}
+
 /**
- * Decode one canonical direct Kamino or Marginfi instruction.  There is no
+ * Decode one canonical direct Kamino, Marginfi, or Jupiter Earn instruction. There is no
  * authority delegation, multisig, instruction bundle, or unknown program in
  * this profile.  The returned message hash is the digest PriorSeal commits.
  */
@@ -167,14 +247,106 @@ export function decodeSolanaLendingExactCall(
   if (transaction.header.numRequiredSignatures !== 1) {
     throw new Error('The Solana lending profile permits exactly one fee-payer signature');
   }
+  const keys = effectiveKeys(transaction);
+  const account = transaction.feePayer;
+
+  if (expected.protocolId === 'loopscale-vault') {
+    return decodeLoopscaleVaultCall(transaction, expected, keys, account);
+  }
+
   if (transaction.instructions.length !== 1) {
     throw new Error('The Solana lending profile permits exactly one protocol instruction');
   }
   const instruction = transaction.instructions[0];
-  const keys = effectiveKeys(transaction);
   const programId = keys[instruction.programIdIndex];
   const data = decodeBase58(instruction.data);
-  const account = transaction.feePayer;
+
+  if (expected.protocolId === 'jupiter-lend-earn') {
+    if (expected.action !== 'supply') {
+      throw new Error(
+        'Jupiter Lend Borrow operates a position batch and is outside the direct profile'
+      );
+    }
+    if (programId !== JUPITER_LEND_PROGRAM_ID) {
+      throw new Error('Exact call target is not the reviewed Jupiter Lend Earn program');
+    }
+    if (!startsWith(data, JUPITER_LEND_DEPOSIT) || data.length !== 16) {
+      throw new Error('Jupiter Lend direct profile accepts only canonical deposit instructions');
+    }
+    if (instruction.accountIndexes.length !== 17) {
+      throw new Error('Jupiter Lend deposit instruction account layout is not canonical');
+    }
+    if (keys[instruction.accountIndexes[0]] !== account) {
+      throw new Error('Jupiter Lend deposit signer must be the fee payer');
+    }
+    if (keys[instruction.accountIndexes[12]] !== JUPITER_LEND_LIQUIDITY_PROGRAM_ID) {
+      throw new Error('Jupiter Lend deposit must bind the reviewed liquidity program');
+    }
+    if (keys[instruction.accountIndexes[16]] !== SOLANA_SYSTEM_PROGRAM_ID) {
+      throw new Error('Jupiter Lend deposit must bind the Solana system program');
+    }
+    const amount = decodeAmount(data, 8, 16);
+    const assetMint = keys[instruction.accountIndexes[3]];
+    assertAssetSymbol(assetMint, expected.collateralSymbol);
+    return decoded({
+      protocolId: 'jupiter-lend-earn',
+      action: 'supply',
+      programId,
+      data,
+      transaction,
+      account,
+      marketId: keys[instruction.accountIndexes[5]],
+      reserveOrBank: keys[instruction.accountIndexes[8]],
+      positionAccount: null,
+      assetMint,
+      secondaryProgramId: JUPITER_LEND_LIQUIDITY_PROGRAM_ID,
+      sourceTokenAccount: null,
+      amount,
+    });
+  }
+
+  if (expected.protocolId === 'save-lend') {
+    if (expected.action !== 'supply') {
+      throw new Error('Save Lend direct profile currently accepts only reserve-liquidity deposits');
+    }
+    if (!expected.assetMint || !publicKey(expected.assetMint)) {
+      throw new Error('Save Lend direct profile requires a validated assetMint');
+    }
+    if (programId !== SAVE_LEND_PROGRAM_ID) {
+      throw new Error('Exact call target is not the reviewed Save Lend program');
+    }
+    if (data.length !== 9 || data[0] !== SAVE_DEPOSIT_RESERVE_LIQUIDITY) {
+      throw new Error('Save Lend direct profile accepts only canonical DepositReserveLiquidity');
+    }
+    if (instruction.accountIndexes.length !== 10) {
+      throw new Error('Save Lend deposit instruction account layout is not canonical');
+    }
+    if (keys[instruction.accountIndexes[7]] !== account) {
+      throw new Error('Save Lend deposit transfer authority must be the fee payer');
+    }
+    if (keys[instruction.accountIndexes[8]] !== SOLANA_CLOCK_SYSVAR_ID) {
+      throw new Error('Save Lend deposit must bind the Solana Clock sysvar');
+    }
+    if (keys[instruction.accountIndexes[9]] !== SPL_TOKEN_PROGRAM_ID) {
+      throw new Error('Save Lend deposit must bind the canonical SPL Token program');
+    }
+    assertAssetSymbol(expected.assetMint, expected.collateralSymbol);
+    return decoded({
+      protocolId: 'save-lend',
+      action: 'supply',
+      programId,
+      data,
+      transaction,
+      account,
+      marketId: keys[instruction.accountIndexes[5]],
+      reserveOrBank: keys[instruction.accountIndexes[2]],
+      positionAccount: null,
+      assetMint: expected.assetMint,
+      secondaryProgramId: null,
+      sourceTokenAccount: keys[instruction.accountIndexes[0]],
+      amount: decodeAmount(data, 1, 9),
+    });
+  }
 
   if (expected.protocolId === 'kamino-lend') {
     if (programId !== KAMINO_LEND_PROGRAM_ID)
@@ -210,6 +382,8 @@ export function decodeSolanaLendingExactCall(
       reserveOrBank,
       positionAccount: action === 'borrow' ? keys[instruction.accountIndexes[1]] : null,
       assetMint,
+      secondaryProgramId: null,
+      sourceTokenAccount: null,
       amount,
     });
   }
@@ -240,6 +414,8 @@ export function decodeSolanaLendingExactCall(
     reserveOrBank: keys[instruction.accountIndexes[3]],
     positionAccount: keys[instruction.accountIndexes[1]],
     assetMint: null,
+    secondaryProgramId: null,
+    sourceTokenAccount: null,
     amount,
   });
 }
@@ -311,9 +487,9 @@ function assertAssetSymbol(assetMint: string, symbol: string | undefined): void 
         ? 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
         : null;
   if (!expected)
-    throw new Error('Kamino direct profile currently reviews only SOL and USDC mint bindings');
+    throw new Error('Solana direct profile currently reviews only SOL and USDC mint bindings');
   if (assetMint !== expected)
-    throw new Error('Kamino instruction mint does not match the declared asset');
+    throw new Error('Solana lending instruction mint does not match the declared asset');
 }
 
 function effectiveKeys(transaction: SolanaLendingTransaction): string[] {

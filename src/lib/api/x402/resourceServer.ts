@@ -15,6 +15,7 @@ import {
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
+  X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
   X402_PRE_TRADE_ROUTE,
@@ -380,7 +381,7 @@ export const BAZAAR_MONAD_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryEx
   },
 });
 
-/** Marketplace contract for reviewed Polygon, Arbitrum and BNB direct lending calls. */
+/** Marketplace contract for reviewed Base, Polygon, Arbitrum and BNB direct lending calls. */
 export const BAZAAR_MULTICHAIN_EVM_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   input: {
     chainId: 42161,
@@ -394,10 +395,24 @@ export const BAZAAR_MULTICHAIN_EVM_LENDING_GUARD_DISCOVERY_EXTENSION = declareDi
   inputSchema: {
     type: 'object',
     properties: {
-      chainId: { type: 'number', enum: [137, 42161, 56] },
+      chainId: { type: 'number', enum: [8453, 137, 42161, 56] },
       protocolId: {
         type: 'string',
-        enum: ['aave-v3-polygon', 'aave-v3-arbitrum', 'aave-v3-bnb', 'venus-core-bnb'],
+        enum: [
+          'aave-v3-polygon',
+          'aave-v3-arbitrum',
+          'aave-v3-bnb',
+          'venus-core-bnb',
+          'compound-v3-arbitrum',
+          'morpho-blue-polygon',
+          'morpho-blue-arbitrum',
+          'lista-moolah-bnb',
+          'euler-v2-base',
+          'euler-v2-arbitrum',
+          'dolomite-arbitrum',
+          'fluid-vault-t1-base',
+          'fluid-vault-t1-arbitrum',
+        ],
       },
       action: { type: 'string', enum: ['supply', 'borrow'] },
       collateralSymbol: { type: 'string', description: 'Reviewed collateral token symbol' },
@@ -409,6 +424,35 @@ export const BAZAAR_MULTICHAIN_EVM_LENDING_GUARD_DISCOVERY_EXTENSION = declareDi
       debtValueUsd: {
         type: 'number',
         description: 'Caller-declared post-action debt value in USD',
+      },
+      marketId: {
+        type: 'string',
+        description:
+          'Required immutable market ID for Morpho Blue and Lista Moolah isolated-market calls.',
+      },
+      marketAddress: {
+        type: 'string',
+        description:
+          'Required for Euler v2 or Fluid T1: the exact vault address Insight verifies against the protocol canonical factory.',
+      },
+      collateralVaultAddress: {
+        type: 'string',
+        description:
+          'Required for an Euler v2 borrow: the collateral EVault enabled and funded within the exact EVC batch.',
+      },
+      collateralMarketId: {
+        type: 'string',
+        description:
+          'Required for Dolomite: decimal collateral market ID bound to the exact operate call.',
+      },
+      loanMarketId: {
+        type: 'string',
+        description:
+          'Required for Dolomite: decimal debt market ID bound to the exact operate call.',
+      },
+      accountNumber: {
+        type: 'string',
+        description: 'Required for Dolomite: sender-owned decimal margin account number.',
       },
       transaction: {
         type: 'object',
@@ -709,11 +753,15 @@ export async function buildX402HttpServer(
     [X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE]: routeConfigFor(
       cfg,
       BAZAAR_MULTICHAIN_EVM_LENDING_GUARD_DISCOVERY_EXTENSION,
-      'Multichain EVM Lending Guard: a read-only, pre-signing decision for direct Aave V3 calls on Polygon, Arbitrum or BNB Chain, plus reviewed Venus Core Pool calls on BNB Chain. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
+      'Multichain EVM Lending Guard: a read-only, pre-signing decision for direct Aave V3 calls on Polygon, Arbitrum or BNB Chain; Venus Core or Lista Moolah isolated-market calls on BNB Chain; Compound V3, Dolomite, Euler v2, and Fluid T1 collateral-only supply on Arbitrum; Euler v2 and Fluid T1 collateral-only supply on Base; and exact Morpho Blue markets on Polygon or Arbitrum. Dolomite is restricted to one sender-owned account and one deposit or borrow action; Fluid vaults must verify against the canonical factory. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
     ),
     [X402_SOLANA_LENDING_GUARD_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
-      'Solana Lending Guard: a read-only, pre-signing decision for one direct Kamino Lend or Marginfi v2 instruction. POST verifies program-owned accounts and simulates the exact unsigned Solana message before optionally returning an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.'
+      'Solana Lending Guard: a read-only, pre-signing decision for one direct Kamino Lend, Marginfi v2, Jupiter Lend Earn deposit, or Save Lend reserve-liquidity deposit instruction. Save deposits must provide an asset mint that is live-verified against the source SPL token account. POST verifies program-owned accounts and simulates the exact unsigned Solana message before optionally returning an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.'
+    ),
+    [X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Loopscale Vault Deposit Guard: a read-only, pre-signing preparation for one official Loopscale Solana lending-vault deposit. POST validates live vault metadata and principal mint, accepts only a single returned message with no preliminary transactions, resolves address lookup tables, simulates the exact unsigned message, and may return an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.'
     ),
     [X402_SWAP_INTENT_ROUTE]: routeConfigFor(
       cfg,
