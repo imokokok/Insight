@@ -4,6 +4,7 @@ import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/vali
 import { REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS } from '@/lib/dex/aerodromeSlipstream';
 import { BASE_DEX_VENUE_IDS } from '@/lib/dex/baseDexVenues';
 import { REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS } from '@/lib/dex/pancakeSwapV3';
+import { REVIEWED_QUICKSWAP_V2_PROFILE_IDS } from '@/lib/dex/quickSwapV2';
 import { STABLECOINS } from '@/lib/stablecoins/config';
 import { WRAPPED_ASSETS } from '@/lib/wrapped-assets/config';
 import { BLOCKCHAIN_VALUES, ORACLE_PROVIDER_VALUES } from '@/types/oracle/enums';
@@ -266,6 +267,9 @@ export const CoverageJsonSchema = z.object({});
 /** Wire schema for the one reviewed WMON/USDC Monad DEX market. */
 export const MonadDexMarketJsonSchema = z.object({});
 
+/** Wire schema for the reviewed Hanji Monad CLOB market. */
+export const HanjiMonadMarketJsonSchema = z.object({});
+
 /** Wire schema for the one reviewed WETH/USDC Base DEX market. */
 export const BaseDexMarketJsonSchema = z.object({});
 
@@ -293,6 +297,14 @@ export const PancakeSwapV3MarketJsonSchema = z.object({
     .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
     .optional()
     .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+});
+
+/** Wire schema for a named allowlisted QuickSwap V2 Base pair. */
+export const QuickSwapV2MarketJsonSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_QUICKSWAP_V2_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed QuickSwap V2 pair id; defaults to Base USDC/USDT'),
 });
 
 /** Wire schema for the Base-only pre-signing lending gate. */

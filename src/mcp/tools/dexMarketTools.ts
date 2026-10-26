@@ -1,6 +1,7 @@
 import { getReviewedAerodromeSlipstreamMarketSnapshot } from '@/lib/dex/aerodromeSlipstream';
 import { getBaseDexVenueSnapshot } from '@/lib/dex/baseDexVenues';
 import { getBaseUniswapV3MarketSnapshot } from '@/lib/dex/baseUniswapV3';
+import { getHanjiMonadMarketSnapshot } from '@/lib/dex/hanjiMonad';
 import {
   getHyperliquidPerpMarketSnapshot,
   hyperliquidPerpMarketProfile,
@@ -8,14 +9,17 @@ import {
 import { getMonadUniswapV3MarketSnapshot } from '@/lib/dex/monadUniswapV3';
 import { getMonadUniswapV3VolumeSummary } from '@/lib/dex/monadUniswapV3Volume';
 import { getReviewedPancakeSwapV3MarketSnapshot } from '@/lib/dex/pancakeSwapV3';
+import { getQuickSwapV2BaseMarketSnapshot } from '@/lib/dex/quickSwapV2';
 import { getSolanaJupiterRouteSnapshot } from '@/lib/dex/solanaJupiterRoute';
 
 import { formatAsText } from './formatters';
 import {
   AerodromeSlipstreamMarketInputSchema,
   PancakeSwapV3MarketInputSchema,
+  QuickSwapV2MarketInputSchema,
   BaseDexMarketInputSchema,
   BaseDexVenueIntegrationInputSchema,
+  HanjiMonadMarketInputSchema,
   HyperliquidPerpMarketInputSchema,
   MonadDexMarketInputSchema,
   SolanaDexRouteInputSchema,
@@ -45,6 +49,25 @@ export const getMonadDexMarketTool: McpToolDefinition<typeof MonadDexMarketInput
         'DEX market evidence is not an oracle-consensus vote or a venue-independent fair price.',
         'activeLiquidityRaw is Uniswap V3 in-range liquidity; it is not token reserve TVL.',
         'Rolling volume is null while the finalized Swap-event index is warming or unavailable; null never means zero.',
+      ],
+    });
+  },
+};
+
+/** Read-only Hanji MON/USDC CLOB evidence with an explicit no-execution boundary. */
+export const getHanjiMonadMarketTool: McpToolDefinition<typeof HanjiMonadMarketInputSchema> = {
+  name: 'get_hanji_monad_market',
+  description:
+    'Get fresh Hanji Monad MON/USDC CLOB context: code-pinned orderbook and fast-quoter proxy identities, proxy implementation identities, L2 spread, displayed depth, and bounded two-sided book-impact estimates. It is read-only venue context, not an oracle-consensus price or executable order quote.',
+  parameters: HanjiMonadMarketInputSchema,
+  handler: async () => {
+    const snapshot = await getHanjiMonadMarketSnapshot();
+    return formatAsText({
+      ...snapshot,
+      caveats: [
+        'Hanji CLOB evidence is read-only venue context, not an oracle-consensus vote or venue-independent fair price.',
+        'Book-impact estimates use only fresh displayed L2 levels and exclude fees, matching priority, margin, settlement, and changes after observation.',
+        'Insight intentionally does not prepare a Hanji transaction until the user margin/deposit lifecycle and order settlement ABI receive a separate review.',
       ],
     });
   },
@@ -138,6 +161,26 @@ export const getPancakeSwapV3MarketTool: McpToolDefinition<typeof PancakeSwapV3M
       });
     },
   };
+
+/** Returns same-block reserve and quote evidence for one allowlisted V2 pair. */
+export const getQuickSwapV2MarketTool: McpToolDefinition<typeof QuickSwapV2MarketInputSchema> = {
+  name: 'get_quickswap_v2_market',
+  description:
+    'Get fresh, block-pinned Base QuickSwap V2 USDC/USDT market evidence: factory/router/pair identities, reserves, spot, and a bounded exact-input quote ladder. This is one reviewed pair, not an oracle-consensus price or a generic QuickSwap route.',
+  parameters: QuickSwapV2MarketInputSchema,
+  handler: async () => {
+    const snapshot = await getQuickSwapV2BaseMarketSnapshot();
+    return formatAsText({
+      ...snapshot,
+      caveats: [
+        'DEX market evidence is not an oracle-consensus vote or a venue-independent fair price.',
+        'V2 reserves and quotes describe one pinned block; they do not simulate a later signed transaction or protect against MEV.',
+        'Current executionReadiness is authoritative: an insufficient-reserve result keeps transaction preparation fail-closed.',
+        'Only the code-reviewed Base USDC/USDT pair is admitted; arbitrary pools, routes, and reverse direction are rejected.',
+      ],
+    });
+  },
+};
 
 /** Returns authenticated Jupiter route context for the reviewed SOL/USDC market. */
 export const getSolanaDexRouteTool: McpToolDefinition<typeof SolanaDexRouteInputSchema> = {

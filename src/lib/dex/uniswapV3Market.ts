@@ -371,6 +371,27 @@ export class UniswapV3MarketRpcClient {
     );
   }
 
+  /**
+   * Read one storage slot at a pinned block.  A small number of reviewed
+   * integrations use EIP-1967 proxies, where pinning only the proxy shell
+   * would not identify the code that actually processes an order or quote.
+   */
+  async getStorageAt(
+    address: UniswapV3Hex,
+    slot: UniswapV3Hex,
+    blockNumber: bigint,
+    signal?: AbortSignal
+  ): Promise<UniswapV3Hex> {
+    return asHex(
+      await this.request(
+        'eth_getStorageAt',
+        [address, slot, `0x${blockNumber.toString(16)}`],
+        signal
+      ),
+      'contract storage value'
+    );
+  }
+
   async getLogs(
     input: { address: UniswapV3Hex; topic0: UniswapV3Hex; fromBlock: bigint; toBlock: bigint },
     signal?: AbortSignal

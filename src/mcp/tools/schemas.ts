@@ -5,6 +5,7 @@ import { DecisionInputQuoteTimestampSchema } from '@/lib/decisionInputTrust/vali
 import { REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS } from '@/lib/dex/aerodromeSlipstream';
 import { BASE_DEX_VENUE_IDS } from '@/lib/dex/baseDexVenues';
 import { REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS } from '@/lib/dex/pancakeSwapV3';
+import { REVIEWED_QUICKSWAP_V2_PROFILE_IDS } from '@/lib/dex/quickSwapV2';
 import { boundedIntegerInput } from '@/lib/security/boundedIntegerInput';
 import { SafeProviderSchema, SafeSymbolSchema, SafeChainSchema } from '@/lib/security/validation';
 import { STABLECOINS, type StablecoinSymbol } from '@/lib/stablecoins/config';
@@ -265,6 +266,9 @@ export const CoverageInputSchema = z.object({});
 /** No caller input: this tool exposes one reviewed Monad DEX market only. */
 export const MonadDexMarketInputSchema = z.object({});
 
+/** No caller input: this tool exposes one reviewed Hanji Monad CLOB market only. */
+export const HanjiMonadMarketInputSchema = z.object({});
+
 /** No caller input: this tool exposes one reviewed Base DEX market only. */
 export const BaseDexMarketInputSchema = z.object({});
 
@@ -295,6 +299,14 @@ export const PancakeSwapV3MarketInputSchema = z.object({
     .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
     .optional()
     .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+});
+
+/** A fixed profile id selects one code-reviewed QuickSwap V2 Base pair. */
+export const QuickSwapV2MarketInputSchema = z.object({
+  profileId: z
+    .enum(REVIEWED_QUICKSWAP_V2_PROFILE_IDS)
+    .optional()
+    .describe('Reviewed QuickSwap V2 pair id; defaults to Base USDC/USDT'),
 });
 
 /** No caller input: this tool exposes one reviewed Solana route market only. */
