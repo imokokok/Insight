@@ -2592,6 +2592,21 @@ paths:
           required: false
           description: Maximum spot-to-TWAP divergence for the reviewed pool, in basis points.
           schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamAmountIn
+          in: query
+          required: false
+          description: Exact WETH input for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 lane. Requires all reviewedAerodromeSlipstream parameters, decisionInputCheck=1, and destinationAsset=USDC. It cannot be combined with the reviewedUniswapV3 lane.
+          schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
+        - name: reviewedAerodromeSlipstreamMaxQuoteDeviationBps
+          in: query
+          required: false
+          description: Maximum divergence between the pinned reviewed Aerodrome pool quote and the submitted venue quote, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamMaxTwapDeviationBps
+          in: query
+          required: false
+          description: Maximum spot-to-TWAP divergence for the reviewed Aerodrome pool, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
       responses:
         '200':
           description: Pre-trade safety verdict, paid through x402 or MPP or authorized by API key.
@@ -3901,6 +3916,21 @@ paths:
           in: query
           required: false
           description: Maximum reviewed-pool spot-to-TWAP divergence, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamAmountIn
+          in: query
+          required: false
+          description: Exact WETH input for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 lane. Requires all reviewedAerodromeSlipstream parameters, decisionInputCheck=1, and destinationAsset=USDC. It cannot be combined with the reviewedUniswapV3 lane.
+          schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
+        - name: reviewedAerodromeSlipstreamMaxQuoteDeviationBps
+          in: query
+          required: false
+          description: Maximum divergence between the pinned reviewed Aerodrome pool quote and the submitted venue quote, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamMaxTwapDeviationBps
+          in: query
+          required: false
+          description: Maximum spot-to-TWAP divergence for the reviewed Aerodrome pool, in basis points.
           schema: { type: integer, minimum: 0, maximum: 10000 }
       responses:
         '200':
