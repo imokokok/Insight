@@ -187,6 +187,46 @@ describe('execution-preflight route', () => {
     );
   });
 
+  it('forwards an opt-in reviewed Aerodrome Slipstream lane with the validated decision input', async () => {
+    const query = [
+      'asset=WETH',
+      'chainId=8453',
+      'action=swap',
+      'tradeAmountUsd=1000',
+      'destinationAsset=USDC',
+      'decisionInputCheck=1',
+      'decisionPriceUsd=2000',
+      'quotePriceUsd=2000',
+      'quoteObservedAt=2026-10-25T00%3A00%3A00.000Z',
+      'maxReferenceDeviationBps=50',
+      'maxSlippageBps=50',
+      'maxQuoteAgeSeconds=30',
+      'reviewedAerodromeSlipstreamAmountIn=0.5',
+      'reviewedAerodromeSlipstreamMaxQuoteDeviationBps=50',
+      'reviewedAerodromeSlipstreamMaxTwapDeviationBps=50',
+    ].join('&');
+    const request = makeRequest({}, query);
+
+    await GET(request, routeContext());
+    const runBusiness = mockHandleX402.mock.calls[0][2] as (requestId: string) => Promise<Response>;
+    await runBusiness('req_preflight_reviewed_aerodrome');
+
+    expect(mockAssessPreflight).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destinationAsset: 'USDC',
+        decisionInput: expect.objectContaining({
+          reviewedAerodromeSlipstream: {
+            amountIn: '0.5',
+            maxQuoteDeviationBps: 50,
+            maxTwapDeviationBps: 50,
+          },
+        }),
+      }),
+      expect.any(Object),
+      expect.objectContaining({ signal: expect.anything() })
+    );
+  });
+
   it('leaves API-key requests on the standard credit-metered v1 handler', async () => {
     const request = makeRequest({ 'x-api-key': 'ins_test' });
 

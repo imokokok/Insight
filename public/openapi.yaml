@@ -1252,6 +1252,90 @@ paths:
         '503':
           description: Fresh Base DEX evidence is unavailable.
 
+  /markets/dex/aerodrome:
+    get:
+      operationId: getAerodromeSlipstreamMarket
+      tags: [DEX Markets]
+      summary: Base Aerodrome Slipstream WETH/USDC market evidence
+      description: >-
+        Returns a block-pinned, factory-verified snapshot of the one reviewed
+        Aerodrome Slipstream WETH/USDC CL100 pool on Base: spot, a 30-minute
+        TWAP, in-range liquidity, pool balances, the live pool fee, and fixed
+        exact-input Quoter V2 quotes. This is one DEX market source, not an
+        oracle feed, consensus vote, executable route, or statement about
+        every Aerodrome or Base route.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned Aerodrome Slipstream market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    required:
+                      [
+                        source,
+                        venue,
+                        chainId,
+                        market,
+                        sourceFreshnessSeconds,
+                        observedAt,
+                        block,
+                        contracts,
+                        spot,
+                        twap,
+                        activeLiquidityRaw,
+                        poolBalances,
+                        quotes,
+                      ]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: aerodrome-slipstream }
+                      chainId: { type: integer, const: 8453 }
+                      market: { type: string, const: WETH/USDC }
+                      sourceFreshnessSeconds: { type: integer, minimum: 1 }
+                      observedAt: { type: string, format: date-time }
+                      block:
+                        type: object
+                        required: [number, hash, timestamp]
+                      contracts:
+                        type: object
+                        required: [factory, quoterV2, pool, token0, token1, tickSpacing, feePips]
+                      spot:
+                        type: object
+                        required: [tick, token1PerToken0]
+                      twap:
+                        type: object
+                        required: [windowSeconds, tick, token1PerToken0, deviationBpsFromSpot]
+                      activeLiquidityRaw: { type: string }
+                      poolBalances:
+                        type: object
+                        required: [token0Raw, token0, token1Raw, token1]
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [
+                              amountIn,
+                              amountInRaw,
+                              amountOut,
+                              amountOutRaw,
+                              effectiveToken1PerToken0,
+                              initializedTicksCrossed,
+                              priceImpactBps,
+                            ]
+        '503':
+          description: Fresh Aerodrome Slipstream market evidence is unavailable.
+
   /markets/dex/solana:
     get:
       operationId: getSolanaDexRoute
@@ -2288,6 +2372,21 @@ paths:
           in: query
           required: false
           description: Maximum spot-to-TWAP divergence for the reviewed pool, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamAmountIn
+          in: query
+          required: false
+          description: Exact WETH input for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 lane. Requires all reviewedAerodromeSlipstream parameters, decisionInputCheck=1, and destinationAsset=USDC. It cannot be combined with the reviewedUniswapV3 lane.
+          schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
+        - name: reviewedAerodromeSlipstreamMaxQuoteDeviationBps
+          in: query
+          required: false
+          description: Maximum divergence between the pinned reviewed Aerodrome pool quote and the submitted venue quote, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamMaxTwapDeviationBps
+          in: query
+          required: false
+          description: Maximum spot-to-TWAP divergence for the reviewed Aerodrome pool, in basis points.
           schema: { type: integer, minimum: 0, maximum: 10000 }
       responses:
         '200':
@@ -3328,6 +3427,21 @@ paths:
           in: query
           required: false
           description: Maximum reviewed-pool spot-to-TWAP divergence, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamAmountIn
+          in: query
+          required: false
+          description: Exact WETH input for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 lane. Requires all reviewedAerodromeSlipstream parameters, decisionInputCheck=1, and destinationAsset=USDC. It cannot be combined with the reviewedUniswapV3 lane.
+          schema: { type: string, pattern: '^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$' }
+        - name: reviewedAerodromeSlipstreamMaxQuoteDeviationBps
+          in: query
+          required: false
+          description: Maximum divergence between the pinned reviewed Aerodrome pool quote and the submitted venue quote, in basis points.
+          schema: { type: integer, minimum: 0, maximum: 10000 }
+        - name: reviewedAerodromeSlipstreamMaxTwapDeviationBps
+          in: query
+          required: false
+          description: Maximum spot-to-TWAP divergence for the reviewed Aerodrome pool, in basis points.
           schema: { type: integer, minimum: 0, maximum: 10000 }
       responses:
         '200':

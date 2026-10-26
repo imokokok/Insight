@@ -55,6 +55,15 @@ function toPreflightInput(query: PreflightQuery) {
                   },
                 }
               : {}),
+            ...(query.reviewedAerodromeSlipstreamAmountIn
+              ? {
+                  reviewedAerodromeSlipstream: {
+                    amountIn: query.reviewedAerodromeSlipstreamAmountIn,
+                    maxQuoteDeviationBps: query.reviewedAerodromeSlipstreamMaxQuoteDeviationBps!,
+                    maxTwapDeviationBps: query.reviewedAerodromeSlipstreamMaxTwapDeviationBps!,
+                  },
+                }
+              : {}),
           },
         }
       : {}),
