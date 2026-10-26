@@ -171,7 +171,7 @@ const VENUES: Record<BaseDexVenueId, BaseDexVenueDefinition> = {
     ],
     capabilities: { deploymentEvidence: true, exactInputPreparation: 'review-required' },
     executionBoundary:
-      'A reviewed V2 reserve/fee adapter and exact path test are required before emitting router calldata.',
+      'The currently reviewed Base USDC/USDT pair has insufficient live reserves for transaction preparation. A separately reviewed, capacity-tested pool must pass reserve, code, binding, and router-quote checks before this lane is enabled.',
   },
   'quickswap-algebra-v4': {
     id: 'quickswap-algebra-v4',
