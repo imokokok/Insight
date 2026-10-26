@@ -1,9 +1,11 @@
 import type { OracleProvider } from '@/types/oracle';
+import { FailureMode } from '@/types/oracle/signals';
 
 import {
   buildProviderConsensusInputs,
   dedupeHourlySnapshotInputs,
   resolveSnapshotSlot,
+  selectPriceRecordsForPersistence,
 } from '../snapshotCollector';
 
 import type { HourlySnapshotInput } from '../types';
@@ -133,6 +135,56 @@ describe('resolveSnapshotSlot', () => {
     expect(resolveSnapshotSlot('', new Date('2026-09-13T12:44:00.000Z'))).toEqual(
       new Date('2026-09-13T12:30:00.000Z')
     );
+  });
+});
+
+describe('selectPriceRecordsForPersistence', () => {
+  const normal = {
+    provider: 'redstone' as OracleProvider,
+    symbol: 'ETH',
+    chain: 'ethereum' as const,
+    price: 3000,
+    timestamp: Date.parse('2026-09-13T12:15:00.000Z'),
+    failureMode: FailureMode.NONE,
+  };
+
+  it('keeps the complete rich sample set at the hourly checkpoint', () => {
+    const prices = [normal, { ...normal, symbol: 'BTC', price: 100_000 }];
+    expect(selectPriceRecordsForPersistence(prices, new Date('2026-09-13T12:00:00.000Z'))).toEqual(
+      prices
+    );
+  });
+
+  it('skips normal rich records between hourly checkpoints', () => {
+    expect(
+      selectPriceRecordsForPersistence([normal], new Date('2026-09-13T12:15:00.000Z'))
+    ).toEqual([]);
+  });
+
+  it('persists audit-relevant degradations immediately between checkpoints', () => {
+    const fallbackMetadata = {
+      ...normal,
+      symbol: 'BTC',
+      metadataFallback: true,
+      failureMode: FailureMode.FALLBACK_METADATA,
+    };
+    const stale = {
+      ...normal,
+      symbol: 'SOL',
+      failureMode: FailureMode.STALE_TIMESTAMP,
+    };
+    const fallbackSource = {
+      ...normal,
+      symbol: 'USDC',
+      dataSource: 'fallback' as const,
+    };
+
+    expect(
+      selectPriceRecordsForPersistence(
+        [normal, fallbackMetadata, stale, fallbackSource],
+        new Date('2026-09-13T12:15:00.000Z')
+      )
+    ).toEqual([fallbackMetadata, stale, fallbackSource]);
   });
 });
 
