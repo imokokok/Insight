@@ -754,8 +754,9 @@ export async function collectSnapshot(
     options.includeAdditionalHealthChecks ?? true,
     options.reuseRpcMetadata ?? false
   );
-  // Finish cache persistence before returning. Individual adapters must not
-  // append one row/HTTP request per feed while the batch is still running.
+  // The collector is the sole durable writer for the short-term price cache.
+  // Finish one bounded batch before returning; ordinary live request paths
+  // deliberately read this cache but never append to it.
   try {
     const prices = results.flatMap((result) => (result.price ? [result.price] : []));
     const saved = await savePricesToDatabase(prices);
