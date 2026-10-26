@@ -50,6 +50,8 @@ interface FacilitatorPaymentHint extends FacilitatorBlockhashHint {
   feePayer: string;
 }
 
+const PAYAI_SOLANA_FACILITATOR_HOST = 'facilitator.payai.network';
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -70,6 +72,14 @@ function parseFacilitatorPaymentHint(extra: unknown): FacilitatorPaymentHint | n
     return null;
   }
   return { feePayer, recentBlockhash, lastValidBlockHeight };
+}
+
+function isPayAiSolanaFacilitator(url: string): boolean {
+  try {
+    return new URL(url).host === PAYAI_SOLANA_FACILITATOR_HOST;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -110,9 +120,16 @@ class FacilitatorHintExactSvmScheme extends ExactSvmScheme {
     if (requirements.extra?.recentBlockhash || this.hintSource === null) return requirements;
 
     const initialExtra = isRecord(supportedKind.extra) ? supportedKind.extra : {};
-    // Only contact providers which explicitly advertise this capability. That
-    // keeps ordinary facilitators on the SDK's zero-extra-request path.
-    if (parseFacilitatorPaymentHint(initialExtra) === null) return requirements;
+    // Most facilitators need to advertise the whole tuple before we add a
+    // request. The current x402 SVM kind parser retains PayAI's fee payer but
+    // discards its dynamic blockhash fields, so PayAI is the narrow exception:
+    // query its authoritative /supported response per quote.
+    if (
+      parseFacilitatorPaymentHint(initialExtra) === null &&
+      !isPayAiSolanaFacilitator(this.hintSource.url)
+    ) {
+      return requirements;
+    }
 
     try {
       const response = await fetch(`${this.hintSource.url.replace(/\/+$/, '')}/supported`, {
