@@ -253,11 +253,11 @@ export default function X402QuickstartPage() {
           action={
             <div className="flex flex-wrap items-center gap-2">
               <Link
-                href="/safety-check"
+                href="/decision-integrity#pre-trade"
                 className="inline-flex items-center gap-2 border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-blue-700 hover:bg-blue-700"
               >
                 <ShieldCheck className="h-4 w-4" />
-                Try the check in your browser
+                Try a pre-trade assessment in your browser
               </Link>
               <Link
                 href="/docs/api"
@@ -639,10 +639,10 @@ export default function X402QuickstartPage() {
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/safety-check"
+              href="/decision-integrity#pre-trade"
               className="inline-flex items-center gap-2 border border-blue-600 bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
             >
-              Run a free check in the browser
+              Run a free pre-trade assessment in the browser
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link

@@ -6,16 +6,24 @@ import Link from 'next/link';
 
 import { ChevronDown } from 'lucide-react';
 
+import { isNavigationGroupActive, isNavigationLinkActive } from './isNavigationLinkActive';
 import { type NavGroup } from './types';
 
 interface DropdownMenuProps {
   group: NavGroup;
   isActive: boolean;
   currentPath: string;
+  currentSearch?: string;
   onItemClick?: () => void;
 }
 
-export function DropdownMenu({ group, isActive, currentPath, onItemClick }: DropdownMenuProps) {
+export function DropdownMenu({
+  group,
+  isActive,
+  currentPath,
+  currentSearch = '',
+  onItemClick,
+}: DropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [_isHovered, setIsHovered] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -58,9 +66,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
     }
   };
 
-  const isGroupActive = group.items.some(
-    (item) => currentPath === item.href || currentPath.startsWith(item.href + '/')
-  );
+  const isGroupActive = isNavigationGroupActive(group.items, currentPath, currentSearch);
   return (
     <div
       ref={containerRef}
@@ -92,8 +98,7 @@ export function DropdownMenu({ group, isActive, currentPath, onItemClick }: Drop
         >
           {group.items.map((item) => {
             const ItemIcon = item.icon;
-            const isItemActive =
-              currentPath === item.href || currentPath.startsWith(item.href + '/');
+            const isItemActive = isNavigationLinkActive(item.href, currentPath, currentSearch);
             return (
               <Link
                 key={item.href}

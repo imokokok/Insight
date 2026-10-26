@@ -9,33 +9,34 @@ const features = [
     title: 'Compare the evidence',
     description:
       'Resolve independent feeds into a consensus, then inspect the spread, freshness, and source behaviour behind it.',
-    href: '/price-insight',
+    href: '/price-insight?stage=compare',
     glyph: 'layers' as const,
     tags: ['Source record', 'Cross-chain', 'Reputation'],
   },
   {
-    title: 'Model the consequence',
+    title: 'Assess a proposed action',
     description:
-      'Stress-test a live or manual position against oracle deviation before a liquidation engine has to react.',
-    href: '/safety-check',
+      'Turn cross-oracle agreement, freshness, deviation, and peg signals into a clear pre-trade assessment before your policy decides what to do.',
+    href: '/decision-integrity#pre-trade',
     glyph: 'fault' as const,
-    tags: ['Safety Check', 'Peg Risk', 'What-if'],
+    tags: ['Pre-trade', 'Reason codes', 'Evidence'],
   },
   {
-    title: 'Preserve the assessment',
+    title: 'Watch and preserve the record',
     description:
-      'Carry oracle assessments, signed receipts, and Oracle Watch risk signals into an application or agent workflow.',
-    href: '/sdk',
+      'Monitor changing oracle conditions with Oracle Watch, retain optional attestations, and use your own policy to pause or continue.',
+    href: '/decision-integrity#oracle-watch-demo',
     glyph: 'seal' as const,
-    tags: ['Guard SDK', 'REST API', 'Signed receipt'],
+    tags: ['Oracle Watch', 'Attestations', 'Your policy'],
   },
 ];
 
 const referenceLinks = [
   { label: 'Oracle Evidence', href: '/price-insight?stage=observe' },
+  { label: 'Position Stress Test', href: '/safety-check' },
   { label: 'Daily Reports', href: '/reports' },
   { label: 'Oracle Reputation', href: '/reputation' },
-  { label: 'Developer API', href: '/api' },
+  { label: 'Build with Insight', href: '/build' },
   { label: 'Receipt Verification', href: '/verify' },
 ] as const;
 

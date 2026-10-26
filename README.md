@@ -1,11 +1,11 @@
-# Insight — Oracle Transparency & Risk Intelligence
+# Insight — Decision Integrity & Oracle Risk Intelligence
 
-Insight is oracle transparency and risk infrastructure for DeFi and AI agents, built on **BNB Smart Chain (BSC)** and compatible with other EVM networks.
+Insight is oracle transparency, decision integrity, and risk intelligence infrastructure for DeFi and AI agents, built on **BNB Smart Chain (BSC)** and compatible with other EVM networks.
 
 Insight helps DeFi applications, operators, developers, and AI agents inspect oracle prices and the risks of relying on them. It compares data from **13 oracle providers across 40+ blockchain networks**, evaluates deviation, freshness, source independence, and protocol impact, and can issue signed evidence of its assessments. For AI agents specifically, this is **decision-input integrity**: a signed, re-verifiable answer to "can this price be trusted" before a trade is signed.
 
 ```text
-Oracle observations → Cross-source comparison → Risk assessment → Verifiable evidence
+Oracle observations → Cross-source comparison → Risk assessment → Decision-input integrity → Verifiable evidence
 ```
 
 **Pre-Trade Safety Check** assesses a proposed action. **Oracle Watch** monitors changing conditions between actions. The REST API, MCP server, [Guard SDK](sdk/README.md), and [independent verifier](verifier/README.md) make these capabilities available to applications and agents. Insight also works independently of [PriorSeal](https://github.com/imokokok/PriorSeal); see the [product positioning guide](docs/product-positioning.md) for the combined assessment, authorization, execution, and review workflow.
@@ -49,12 +49,14 @@ Insight is an API/agent service and issues no token. Its on-chain footprint is i
 
 ## Start here
 
-| Goal                                               | Where to go                                                                                                                       |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Assess a trade from an application or agent        | [Guard SDK](sdk/README.md#non-intervening-assessment-and-verification) or [API reference](https://www.oracleinsight.xyz/docs/api) |
-| Verify a signed receipt with your own trusted keys | [Independent verifier](verifier/README.md) or [browser demo](https://www.oracleinsight.xyz/verify)                                |
-| Explore the product                                | [Website](https://www.oracleinsight.xyz) or [AI/MCP hub](https://www.oracleinsight.xyz/ai)                                        |
-| Run the website and API locally                    | [Local development](#local-development)                                                                                           |
+| Goal                                               | Where to go                                                                                                                                                                                                |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inspect current oracle evidence                    | [Oracle Evidence](https://www.oracleinsight.xyz/price-insight?stage=observe)                                                                                                                               |
+| Assess a proposed action or monitor changed inputs | [Decision Integrity](https://www.oracleinsight.xyz/decision-integrity), [Guard SDK](sdk/README.md#non-intervening-assessment-and-verification), or [API reference](https://www.oracleinsight.xyz/docs/api) |
+| Compare sources or investigate a risk question     | [Risk Intelligence](https://www.oracleinsight.xyz/risk-intelligence)                                                                                                                                       |
+| Choose REST, AI / MCP, or SDK                      | [Build](https://www.oracleinsight.xyz/build)                                                                                                                                                               |
+| Verify a signed receipt with your own trusted keys | [Independent verifier](verifier/README.md) or [browser demo](https://www.oracleinsight.xyz/verify)                                                                                                         |
+| Run the website and API locally                    | [Local development](#local-development)                                                                                                                                                                    |
 
 ## What Insight provides
 
@@ -74,7 +76,7 @@ When signing is configured, the check can include an EIP-712 attestation. A sign
 
 Oracle Watch gives a running strategy a cross-oracle **NORMAL, CAUTION, or DANGER** signal and a `proceed`, `proceed_with_caution`, or `halt` recommendation. Applications can poll it between trades and pause on `halt`. It checks deviation, agreement, stale or outlying feeds, coverage, and independent source groups; it can also issue signed receipts when an attester key is configured.
 
-Historical coverage is guaranteed for **ETH, BTC, USDC, and USDT on Ethereum, Arbitrum, and Base**. Other pairs can return a current signal without a historical curve; check `meta.historyGuaranteed` rather than treating an empty series as evidence of no incidents. Use the [AI/MCP hub](https://www.oracleinsight.xyz/ai#oracle-watch) or `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` to explore the signal.
+Historical coverage is guaranteed for **ETH, BTC, USDC, and USDT on Ethereum, Arbitrum, and Base**. Other pairs can return a current signal without a historical curve; check `meta.historyGuaranteed` rather than treating an empty series as evidence of no incidents. Use the [Decision Integrity page](https://www.oracleinsight.xyz/decision-integrity#oracle-watch-demo) or `GET /api/v1/oracle-watch?symbol=ETH&chain=ethereum` to explore the signal.
 
 ### Explore oracle and protocol risk
 

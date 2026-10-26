@@ -91,6 +91,19 @@ describe('MobileDrawer', () => {
     expect(closeButton).toBeInTheDocument();
   });
 
+  it('exposes the drawer as a modal navigation dialog', () => {
+    render(
+      <MobileDrawer
+        isOpen={true}
+        onClose={mockOnClose}
+        navStructure={mockNavStructure}
+        currentPath="/"
+      />
+    );
+
+    expect(screen.getByRole('dialog', { name: 'Insight' })).toHaveAttribute('aria-modal', 'true');
+  });
+
   it('should call onClose when close button is clicked', () => {
     render(
       <MobileDrawer
@@ -123,6 +136,21 @@ describe('MobileDrawer', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
+  it('should call onClose when Escape is pressed', () => {
+    render(
+      <MobileDrawer
+        isOpen={true}
+        onClose={mockOnClose}
+        navStructure={mockNavStructure}
+        currentPath="/"
+      />
+    );
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
   it('should render navigation groups', () => {
     render(
       <MobileDrawer
@@ -147,8 +175,10 @@ describe('MobileDrawer', () => {
     );
 
     const groupButton = screen.getByRole('button', { name: /oracles/i });
+    expect(groupButton).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(groupButton);
 
+    expect(groupButton).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('Chainlink')).toBeInTheDocument();
     expect(screen.getByText('RedStone')).toBeInTheDocument();
   });

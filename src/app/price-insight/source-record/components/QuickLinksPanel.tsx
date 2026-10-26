@@ -30,14 +30,14 @@ export const QuickLinksPanel = memo(function QuickLinksPanel({
   const links: QuickLink[] = [
     {
       href: `/safety-check?symbol=${encodedSymbol}`,
-      label: 'Safety Check',
+      label: 'Position Stress Test',
       description: 'Stress-test this price against liquidation thresholds',
       icon: ShieldCheck,
       colorClass: 'text-emerald-600 bg-emerald-50',
     },
     {
-      href: `/price-insight?symbol=${encodedSymbol}`,
-      label: 'Price Insight',
+      href: `/price-insight?stage=compare&symbol=${encodedSymbol}`,
+      label: 'Compare & Assess',
       description: 'Cross-oracle and cross-chain comparison',
       icon: BarChart3,
       colorClass: 'text-blue-700 bg-blue-50',

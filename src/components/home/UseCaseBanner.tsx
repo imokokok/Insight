@@ -28,7 +28,7 @@ export function UseCaseBanner() {
           could affect a position before a risk engine has to react.
         </p>
         <Link href="/safety-check">
-          Run Safety Check <ArrowUpRight aria-hidden="true" />
+          Open Position Stress Test <ArrowUpRight aria-hidden="true" />
         </Link>
       </div>
     </section>

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
 
 import { X, ChevronDown, Gauge } from 'lucide-react';
 
+import { isNavigationGroupActive, isNavigationLinkActive } from './isNavigationLinkActive';
 import { type NavStructure, type NavGroup } from './types';
 
 interface MobileDrawerProps {
@@ -14,7 +15,9 @@ interface MobileDrawerProps {
   onClose: () => void;
   navStructure: NavStructure;
   currentPath: string;
+  currentSearch?: string;
   isOpsOwner?: boolean;
+  triggerRef?: RefObject<HTMLButtonElement | null>;
 }
 
 export function MobileDrawer({
@@ -22,9 +25,13 @@ export function MobileDrawer({
   onClose,
   navStructure,
   currentPath,
+  currentSearch = '',
   isOpsOwner = false,
+  triggerRef,
 }: MobileDrawerProps) {
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+  const drawerRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroups((prev) =>
@@ -32,19 +39,81 @@ export function MobileDrawer({
     );
   };
 
-  const isGroupActive = (group: NavGroup) => {
-    return group.items.some(
-      (item) => currentPath === item.href || currentPath.startsWith(item.href + '/')
+  const isGroupActive = (group: NavGroup) =>
+    isNavigationGroupActive(group.items, currentPath, currentSearch);
+
+  const handleClose = useCallback(() => {
+    onClose();
+    if (triggerRef?.current) {
+      window.requestAnimationFrame(() => triggerRef.current?.focus());
+    }
+  }, [onClose, triggerRef]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        handleClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [handleClose, isOpen]);
+
+  const handleFocusTrap = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Tab') return;
+
+    const focusable = Array.from(
+      drawerRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ) ?? []
     );
+
+    if (focusable.length === 0) {
+      event.preventDefault();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   };
 
   if (!isOpen) return null;
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/30 animate-fade-in" onClick={onClose} />
+      <div
+        className="fixed inset-0 z-40 bg-black/30 animate-fade-in"
+        onClick={handleClose}
+        aria-hidden="true"
+      />
 
-      <div className="fixed inset-y-0 right-0 z-50 w-full border-l border-slate-900/15 bg-[#f8f7f4] sm:max-w-md animate-slide-in-right">
+      <aside
+        id="mobile-navigation-drawer"
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-navigation-title"
+        onKeyDown={handleFocusTrap}
+        className="fixed inset-y-0 right-0 z-50 w-full border-l border-slate-900/15 bg-[#f8f7f4] sm:max-w-md animate-slide-in-right"
+      >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between border-b border-slate-900/15 px-5 py-5">
             <div className="flex items-center gap-3">
@@ -56,7 +125,9 @@ export function MobileDrawer({
                 priority
               />
               <div>
-                <div className="text-lg font-bold text-slate-950">Insight</div>
+                <div id="mobile-navigation-title" className="text-lg font-bold text-slate-950">
+                  Insight
+                </div>
                 <span className="sr-only">Menu</span>
                 <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-blue-700">
                   Navigation index
@@ -64,7 +135,8 @@ export function MobileDrawer({
               </div>
             </div>
             <button
-              onClick={onClose}
+              ref={closeButtonRef}
+              onClick={handleClose}
               className="border border-transparent p-2 text-gray-500 transition-colors hover:border-slate-300 hover:bg-white hover:text-gray-900"
               aria-label="Close"
             >
@@ -89,6 +161,8 @@ export function MobileDrawer({
                           ? 'border-primary-600 bg-primary-50 text-primary-700'
                           : 'border-transparent text-gray-700 hover:bg-white/70'
                       }`}
+                      aria-expanded={isExpanded}
+                      aria-controls={`mobile-navigation-group-${group.id}`}
                     >
                       <div className="flex items-center gap-3">
                         {GroupIcon && <GroupIcon className="w-5 h-5" />}
@@ -102,11 +176,17 @@ export function MobileDrawer({
                     </button>
 
                     {isExpanded && (
-                      <div className="ml-4 border-l border-slate-900/10 animate-fade-in">
+                      <div
+                        id={`mobile-navigation-group-${group.id}`}
+                        className="ml-4 border-l border-slate-900/10 animate-fade-in"
+                      >
                         {group.items.map((item) => {
                           const ItemIcon = item.icon;
-                          const isItemActive =
-                            currentPath === item.href || currentPath.startsWith(item.href + '/');
+                          const isItemActive = isNavigationLinkActive(
+                            item.href,
+                            currentPath,
+                            currentSearch
+                          );
                           return (
                             <Link
                               key={item.href}
@@ -152,8 +232,7 @@ export function MobileDrawer({
 
               const item = navItem;
               const ItemIcon = item.icon;
-              const isItemActive =
-                currentPath === item.href || currentPath.startsWith(item.href + '/');
+              const isItemActive = isNavigationLinkActive(item.href, currentPath, currentSearch);
 
               return (
                 <Link
@@ -184,7 +263,7 @@ export function MobileDrawer({
             )}
           </nav>
         </div>
-      </div>
+      </aside>
     </>
   );
 }

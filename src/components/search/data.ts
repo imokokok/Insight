@@ -14,6 +14,7 @@ import {
   GitCompare,
   Settings,
   FileText,
+  Radar,
 } from 'lucide-react';
 
 import { providerNames, chainNames, symbols } from '@/lib/constants';
@@ -178,6 +179,24 @@ function getPageSearchResults(): SearchResult[] {
       priority: 9,
     },
     {
+      id: 'page-decision-integrity',
+      title: 'Decision Integrity',
+      description:
+        'Run a pre-trade oracle assessment, monitor conditions with Oracle Watch, and understand the evidence boundary',
+      type: 'page',
+      href: '/decision-integrity',
+      icon: Shield,
+      keywords: [
+        'decision integrity',
+        'pre-trade',
+        'pre trade',
+        'oracle watch',
+        'assessment',
+        'agent safety',
+      ],
+      priority: 9,
+    },
+    {
       id: 'page-price-insight',
       title: 'Compare & Assess',
       description: 'Compare oracle prices across providers and chains, then assess the risk',
@@ -186,6 +205,27 @@ function getPageSearchResults(): SearchResult[] {
       icon: GitCompare,
       keywords: ['price insight', 'comparison', 'cross oracle', 'cross chain', 'risk'],
       priority: 8,
+    },
+    {
+      id: 'page-risk-intelligence',
+      title: 'Risk Intelligence',
+      description:
+        'Explore source comparison, position stress, peg risk, and oracle monitoring tools',
+      type: 'page',
+      href: '/risk-intelligence',
+      icon: Radar,
+      keywords: ['risk', 'position stress', 'peg risk', 'oracle risk', 'liquidation'],
+      priority: 8,
+    },
+    {
+      id: 'page-build',
+      title: 'Build with Insight',
+      description: 'Choose the REST API, AI / MCP, or Guard SDK integration path',
+      type: 'page',
+      href: '/build',
+      icon: Settings,
+      keywords: ['build', 'api', 'mcp', 'sdk', 'integration', 'developer'],
+      priority: 7,
     },
 
     {
