@@ -16,7 +16,7 @@ export const AAVE_V3_MONAD_UI_POOL_DATA_PROVIDER =
   '0xa7d38785be3422c25677a8aa4a44d3a0853a3a17' as const;
 
 /** Morpho Blue's immutable, canonical Monad singleton. */
-export const MORPHO_BLUE_MONAD = '0xbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb' as const;
+export const MORPHO_BLUE_MONAD = '0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb' as const;
 
 /**
  * Assets intentionally admitted to the direct Aave v3 path.  The guard still

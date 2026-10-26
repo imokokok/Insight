@@ -26,7 +26,7 @@ export type SolanaLendingGuardAttestationData = {
   decisionHash: `0x${string}`;
   messageHash: `0x${string}`;
   account: string;
-  protocolId: 'kamino-lend' | 'marginfi-v2';
+  protocolId: 'kamino-lend' | 'marginfi-v2' | 'jupiter-lend-earn' | 'save-lend' | 'loopscale-vault';
   action: 'supply' | 'borrow';
   verdict: 0 | 1 | 2;
   issuedAt: number;
@@ -89,6 +89,24 @@ export function solanaLendingGuardDecisionHash(
     .digest('hex')}`;
 }
 
+function exactScopeForGuard(guard: SolanaLendingGuardResult) {
+  const base = {
+    protocolId: guard.protocolId,
+    action: guard.action,
+    collateralSymbol: guard.market.collateralSymbol,
+    loanSymbol: guard.market.loanSymbol,
+    assetMint: guard.exactAction?.assetMint ?? undefined,
+  };
+  if (guard.protocolId !== 'loopscale-vault' || !guard.exactAction) return base;
+  return {
+    ...base,
+    loopscaleVaultAddress: guard.exactAction.marketId,
+    loopscaleStakeAccount: guard.exactAction.reserveOrBank,
+    loopscaleMessageHash: guard.exactAction.messageHash,
+    loopscaleAmount: guard.exactAction.amount,
+  };
+}
+
 /** Create a short-lived attestation only when an exact, executable ALLOW exists. */
 export function createSolanaLendingGuardDecision(
   guard: SolanaLendingGuardResult,
@@ -97,12 +115,7 @@ export function createSolanaLendingGuardDecision(
 ): SolanaLendingGuardDecision {
   const transaction = SolanaLendingTransactionSchema.parse(rawTransaction);
   const action = guard.exactAction
-    ? decodeSolanaLendingExactCall(transaction, {
-        protocolId: guard.protocolId,
-        action: guard.action,
-        collateralSymbol: guard.market.collateralSymbol,
-        loanSymbol: guard.market.loanSymbol,
-      })
+    ? decodeSolanaLendingExactCall(transaction, exactScopeForGuard(guard))
     : null;
   const decisionHash = solanaLendingGuardDecisionHash({ guard, transaction, action });
   if (guard.verdict !== 'ALLOW' || !action) {
@@ -158,9 +171,21 @@ export function verifySolanaLendingGuardDecision(
       loanSymbol: guard.market?.loanSymbol,
       collateralValueUsd: guard.projected?.collateralValueUsd,
       debtValueUsd: guard.projected?.debtValueUsd,
+      assetMint: isRecord(guard.exactAction) ? guard.exactAction.assetMint : undefined,
     });
     const transaction = SolanaLendingTransactionSchema.parse(value.transaction);
-    const action = decodeSolanaLendingExactCall(transaction, guardInput);
+    const action = decodeSolanaLendingExactCall(
+      transaction,
+      guardInput.protocolId === 'loopscale-vault' && isRecord(guard.exactAction)
+        ? {
+            ...guardInput,
+            loopscaleVaultAddress: String(guard.exactAction.marketId),
+            loopscaleStakeAccount: String(guard.exactAction.reserveOrBank),
+            loopscaleMessageHash: String(guard.exactAction.messageHash),
+            loopscaleAmount: String(guard.exactAction.amount),
+          }
+        : guardInput
+    );
     if (
       !isRecord(value.action) ||
       !isRecord(guard.exactAction) ||

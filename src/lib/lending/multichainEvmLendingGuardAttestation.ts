@@ -58,11 +58,13 @@ const GuardSchema = z
   .object({
     schema: z.literal('insight.multichain-evm-lending-guard.v1'),
     verdict: z.enum(['ALLOW', 'CAUTION', 'BLOCK']),
-    chainId: z.union([z.literal(137), z.literal(42161), z.literal(56)]),
+    chainId: z.union([z.literal(137), z.literal(42161), z.literal(56), z.literal(8453)]),
     protocolId: MultichainEvmLendingProtocolIdSchema,
     action: z.enum(['supply', 'borrow']),
     scope: z
-      .object({ chainId: z.union([z.literal(137), z.literal(42161), z.literal(56)]) })
+      .object({
+        chainId: z.union([z.literal(137), z.literal(42161), z.literal(56), z.literal(8453)]),
+      })
       .passthrough(),
     market: z.object({ collateralSymbol: z.string(), loanSymbol: z.string() }).passthrough(),
   })
@@ -82,7 +84,7 @@ const ActionSchema = z
     account: z.string().regex(ADDRESS),
     receiver: z.string().regex(ADDRESS).nullable(),
     asset: z.string().regex(ADDRESS).nullable(),
-    marketId: z.null(),
+    marketId: z.string().regex(HASH).nullable(),
   })
   .strict();
 const AttestationDataSchema = z
@@ -90,7 +92,7 @@ const AttestationDataSchema = z
     decisionHash: z.string().regex(HASH),
     calldataHash: z.string().regex(HASH),
     account: z.string().regex(ADDRESS),
-    chainId: z.union([z.literal(137), z.literal(42161), z.literal(56)]),
+    chainId: z.union([z.literal(137), z.literal(42161), z.literal(56), z.literal(8453)]),
     verdict: z.number().int().min(0).max(2),
     issuedAt: z.number().int().nonnegative().safe(),
     validUntil: z.number().int().nonnegative().safe(),
@@ -127,7 +129,7 @@ export interface MultichainEvmLendingGuardAttestationData {
   decisionHash: `0x${string}`;
   calldataHash: `0x${string}`;
   account: `0x${string}`;
-  chainId: 137 | 42161 | 56;
+  chainId: 137 | 42161 | 56 | 8453;
   verdict: 0 | 1 | 2;
   issuedAt: number;
   validUntil: number;
@@ -238,6 +240,12 @@ function assertCallBinding(
     action: guard.action,
     collateralSymbol: guard.market.collateralSymbol,
     loanSymbol: guard.market.loanSymbol,
+    marketId: guard.market.marketId ?? undefined,
+    marketAddress: guard.market.marketAddress ?? undefined,
+    collateralVaultAddress: guard.market.collateralVaultAddress ?? undefined,
+    collateralMarketId: guard.market.collateralMarketId ?? undefined,
+    loanMarketId: guard.market.loanMarketId ?? undefined,
+    accountNumber: guard.market.accountNumber ?? undefined,
   });
   if (canonicalJsonString(decoded) !== canonicalJsonString(action)) {
     throw new Error('decoded exact call does not match the decision action binding');
@@ -255,6 +263,12 @@ export async function createMultichainEvmLendingGuardDecision(
     action: guard.action,
     collateralSymbol: guard.market.collateralSymbol,
     loanSymbol: guard.market.loanSymbol,
+    marketId: guard.market.marketId ?? undefined,
+    marketAddress: guard.market.marketAddress ?? undefined,
+    collateralVaultAddress: guard.market.collateralVaultAddress ?? undefined,
+    collateralMarketId: guard.market.collateralMarketId ?? undefined,
+    loanMarketId: guard.market.loanMarketId ?? undefined,
+    accountNumber: guard.market.accountNumber ?? undefined,
   });
   const decisionHash = multichainEvmLendingGuardDecisionHash({ guard, transaction, action });
   const signer =

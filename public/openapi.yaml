@@ -2730,12 +2730,12 @@ paths:
     get:
       operationId: assessMultichainEvmLendingGuard
       tags: [Safety]
-      summary: Polygon, Arbitrum, and BNB lending risk decision
+      summary: Base, Polygon, Arbitrum, and BNB lending risk decision
       description: >-
         Read-only risk gate for a caller-declared post-action lending position on
-        Polygon, Arbitrum, or BNB Chain. It validates the requested Aave V3 or
-        Venus direct-call market against live reviewed protocol controls and
-        oracle safety evidence. It never signs, submits, or authorizes a transaction.
+        Base, Polygon, Arbitrum, or BNB Chain. It validates the requested
+        reviewed direct-call market against live protocol controls and oracle
+        safety evidence. It never signs, submits, or authorizes a transaction.
         API-key access or x402 payment is accepted.
       security:
         - apiKey: []
@@ -2745,7 +2745,7 @@ paths:
             name: chainId,
             in: query,
             required: true,
-            schema: { type: integer, enum: [137, 42161, 56] },
+            schema: { type: integer, enum: [8453, 137, 42161, 56] },
           }
         - {
             name: protocolId,
@@ -2754,7 +2754,22 @@ paths:
             schema:
               {
                 type: string,
-                enum: [aave-v3-polygon, aave-v3-arbitrum, aave-v3-bnb, venus-core-bnb],
+                enum:
+                  [
+                    aave-v3-polygon,
+                    aave-v3-arbitrum,
+                    aave-v3-bnb,
+                    venus-core-bnb,
+                    compound-v3-arbitrum,
+                    morpho-blue-polygon,
+                    morpho-blue-arbitrum,
+                    lista-moolah-bnb,
+                    euler-v2-base,
+                    euler-v2-arbitrum,
+                    dolomite-arbitrum,
+                    fluid-vault-t1-base,
+                    fluid-vault-t1-arbitrum,
+                  ],
               },
           }
         - {
@@ -2847,17 +2862,67 @@ paths:
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
 
+  /safety/loopscale-vault-deposit:
+    post:
+      operationId: prepareLoopscaleVaultDeposit
+      tags: [Safety]
+      summary: Build and simulate one exact Loopscale vault deposit
+      description: >-
+        Read-only pre-signing gate that requests an unsigned deposit message
+        only from Loopscale's official API, resolves its address tables, checks
+        the vault and principal mint, and simulates the exact message on Solana
+        mainnet. An ALLOW never signs, submits, or authorizes a transaction.
+        API-key access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                [
+                  wallet,
+                  vault,
+                  assetMint,
+                  collateralSymbol,
+                  loanSymbol,
+                  collateralValueUsd,
+                  principalAmount,
+                ]
+              properties:
+                wallet: { type: string, description: Solana wallet public key. }
+                vault: { type: string, description: Loopscale vault public key. }
+                assetMint: { type: string, description: Vault principal SPL mint. }
+                collateralSymbol: { type: string, example: USDC }
+                loanSymbol: { type: string, example: USDC }
+                collateralValueUsd: { type: number, exclusiveMinimum: 0, example: 1000 }
+                principalAmount: { type: string, pattern: '^[1-9][0-9]*$', example: '1000000' }
+                minLpAmount: { type: string, pattern: '^(?:0|[1-9][0-9]*)$', default: '0' }
+      responses:
+        '200':
+          {
+            description: Complete BLOCK,
+            CAUTION,
+            or ALLOW decision with an exact unsigned message when accepted.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
   /safety/solana-lending-guard:
     post:
       operationId: createSolanaLendingGuardExactDecision
       tags: [Safety]
       summary: Simulate and attest one exact Solana lending instruction
       description: >-
-        Read-only pre-signing gate for one direct Kamino Lend or Marginfi v2
-        supply/borrow instruction on Solana mainnet. It verifies protocol-owned
-        accounts and simulates the exact unsigned message before issuing an
-        Ed25519 decision when configured. It never signs, submits, or
-        authorizes a transaction. API-key access or x402 payment is accepted.
+        Read-only pre-signing gate for one direct Kamino Lend, Marginfi v2,
+        Jupiter Lend Earn, Save Lend, or Loopscale vault supply/borrow profile
+        on Solana mainnet. It verifies protocol-owned accounts and simulates the
+        exact unsigned message before issuing an Ed25519 decision when configured.
+        It never signs, submits, or authorizes a transaction. API-key access or
+        x402 payment is accepted.
       security:
         - apiKey: []
         - {}
@@ -2881,7 +2946,12 @@ paths:
                       debtValueUsd,
                     ]
                   properties:
-                    protocolId: { type: string, enum: [kamino-lend, marginfi-v2] }
+                    protocolId:
+                      {
+                        type: string,
+                        enum:
+                          [kamino-lend, marginfi-v2, jupiter-lend-earn, save-lend, loopscale-vault],
+                      }
                     action: { type: string, enum: [supply, borrow] }
                     collateralSymbol: { type: string, example: SOL }
                     loanSymbol: { type: string, example: USDC }

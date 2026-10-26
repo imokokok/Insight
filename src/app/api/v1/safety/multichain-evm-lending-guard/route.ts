@@ -31,6 +31,12 @@ const QuerySchema = z
     loanSymbol: z.string(),
     collateralValueUsd: z.coerce.number(),
     debtValueUsd: z.coerce.number(),
+    marketId: z.string().optional(),
+    marketAddress: z.string().optional(),
+    collateralVaultAddress: z.string().optional(),
+    collateralMarketId: z.string().optional(),
+    loanMarketId: z.string().optional(),
+    accountNumber: z.string().optional(),
   })
   .transform((input) => MultichainEvmLendingGuardInputSchema.parse(input));
 type GuardQuery = z.output<typeof QuerySchema>;

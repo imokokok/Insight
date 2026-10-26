@@ -139,7 +139,11 @@ function isValidSolanaLendingGuardPayload(payload: Record<string, unknown>): boo
     typeof payload.messageHash === 'string' &&
     /^0x[0-9a-f]{64}$/i.test(payload.messageHash) &&
     isSolanaPublicKey(payload.account) &&
-    (payload.protocolId === 'kamino-lend' || payload.protocolId === 'marginfi-v2') &&
+    (payload.protocolId === 'kamino-lend' ||
+      payload.protocolId === 'marginfi-v2' ||
+      payload.protocolId === 'jupiter-lend-earn' ||
+      payload.protocolId === 'save-lend' ||
+      payload.protocolId === 'loopscale-vault') &&
     (payload.action === 'supply' || payload.action === 'borrow') &&
     (payload.verdict === 0 || payload.verdict === 1 || payload.verdict === 2) &&
     isUnixSeconds(issuedAt) &&

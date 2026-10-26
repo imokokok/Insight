@@ -17,7 +17,7 @@ import {
 } from './baseLendingProtocols';
 
 export const BASE_CHAIN_ID = 8453;
-export const MORPHO_BLUE_BASE = '0xbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb' as const;
+export const MORPHO_BLUE_BASE = '0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb' as const;
 
 const AddressSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/);
 const HexSchema = z.string().regex(/^0x(?:[a-fA-F0-9]{2})*$/);

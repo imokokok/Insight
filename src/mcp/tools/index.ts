@@ -45,6 +45,8 @@ import {
   BaseLendingGuardJsonSchema,
   MonadLendingGuardExactJsonSchema,
   MonadLendingGuardJsonSchema,
+  MultichainEvmLendingGuardExactJsonSchema,
+  MultichainEvmLendingGuardJsonSchema,
   HyperliquidPerpMarketJsonSchema,
   HyperliquidPerpExecutionVerificationJsonSchema,
   HyperliquidPerpOrderPreflightJsonSchema,
@@ -84,7 +86,12 @@ import {
   SymbolQueryJsonSchema,
   WrappedAssetJsonSchema,
 } from './jsonSchemas';
+import { loopscaleVaultDepositTool } from './loopscaleVaultDepositTools';
 import { monadLendingGuardExactCallTool, monadLendingGuardTool } from './monadLendingGuardTools';
+import {
+  multichainEvmLendingGuardExactCallTool,
+  multichainEvmLendingGuardTool,
+} from './multichainEvmLendingGuardTools';
 import {
   compareOracleDeviationTool,
   getConsensusPriceTool,
@@ -164,7 +171,10 @@ const MCP_TOOLS: McpToolDefinition[] = [
   baseLendingGuardExactCallTool,
   monadLendingGuardTool,
   monadLendingGuardExactCallTool,
+  multichainEvmLendingGuardTool,
+  multichainEvmLendingGuardExactCallTool,
   solanaLendingGuardTool,
+  loopscaleVaultDepositTool,
   checkPositionSafetyTool,
   preTradeSafetyCheckTool,
   oracleWatchTool,
@@ -422,7 +432,23 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  multichain_evm_lending_guard: MultichainEvmLendingGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  multichain_evm_lending_guard_exact_call:
+    MultichainEvmLendingGuardExactJsonSchema.toJSONSchema() as {
+      type: 'object';
+      properties?: Record<string, unknown>;
+      required?: string[];
+    },
   solana_lending_guard: solanaLendingGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  loopscale_vault_deposit: loopscaleVaultDepositTool.parameters.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];
