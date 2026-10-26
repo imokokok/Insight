@@ -12,6 +12,36 @@ relationship at that block and includes spot, a 30-minute TWAP, active
 in-range liquidity, pool balances, and a 1/10/100 WETH exact-input quote
 ladder. It does not represent every Base route or a reserve-TV L calculation.
 
+## Base: reviewed QuickSwap V2 pair
+
+`GET /api/v1/markets/dex/base/quickswap` reads one reviewed Base QuickSwap V2
+USDC/USDT pair at a single EVM block. It proves the Factory-to-Pair mapping,
+Pair-to-Factory and ordered-token bindings, Router-to-Factory/WETH bindings,
+and runtime bytecode identities before returning reserves, spot, and a bounded
+1/10/100 USDC exact-input quote ladder.
+
+This is deliberately read-only. `executionReadiness` is authoritative: the
+reviewed pair's current reserves are below Insight's execution-capacity floor,
+so no transaction preparation, approval template, or route handoff is exposed.
+Arbitrary QuickSwap pairs, routes, reverse directions, and user-supplied
+contract addresses are rejected by construction.
+
+## Monad: reviewed Hanji CLOB market
+
+`GET /api/v1/markets/dex/monad/hanji` returns bounded MON/USDC CLOB context
+from Hanji's documented public order-book endpoint. It requires a fresh,
+uncached order-book snapshot and best bid/ask, rejects crossed, future-dated,
+or stale evidence, and provides displayed depth plus fixed-notional buy/sell
+book-impact estimates. In parallel it pins a fresh Monad block and verifies
+the order-book and fast-quoter proxy bytecode, EIP-1967 implementation
+addresses, and implementation bytecode.
+
+The endpoint is not an executable quote. Hanji order placement, margin or
+deposit lifecycle, matching priority, fees, and settlement remain out of scope
+until their specific interfaces receive a separate review. When either source
+fails freshness or identity checks, the endpoint returns `503` rather than
+returning stale market data.
+
 ## Base: one Aerodrome Slipstream pool
 
 `GET /api/v1/markets/dex/aerodrome` reads the default allowlisted Aerodrome
@@ -125,6 +155,8 @@ never signs, simulates, or submits an order.
 ## Agent tools
 
 - `get_base_dex_market` exposes the Base pool evidence.
+- `get_quickswap_v2_market` exposes the fixed, read-only Base QuickSwap V2
+  USDC/USDT evidence and its authoritative execution-readiness state.
 - `get_base_dex_venue_integrations` exposes the block-pinned Base deployment
   catalog and reports whether a venue currently has an unsigned-calldata lane
   or is intentionally execution-disabled pending a per-pool adapter.
@@ -139,6 +171,8 @@ never signs, simulates, or submits an order.
 - `prepare_pancakeswap_v3_swap` prepares bounded, unsigned Base calldata for
   that named PancakeSwap pool and is also C3.
 - `get_solana_dex_route` exposes the Solana route evidence.
+- `get_hanji_monad_market` exposes bounded, read-only Hanji Monad MON/USDC
+  CLOB evidence; it never creates an order or a transaction.
 - `get_hyperliquid_perp_market` exposes the reviewed Hyperliquid perpetual
   evidence; it accepts `market: BTC | ETH | HYPE` and defaults to `BTC`.
 - `prepare_hyperliquid_perp_order` performs the user-side execution preflight
