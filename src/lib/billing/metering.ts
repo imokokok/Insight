@@ -130,12 +130,14 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^get_robinhood_rwa_instrument$/, 'C1'],
   // Block-pinned, single-market evidence — foundational data, not a safety gate.
   [/^get_monad_dex_market$/, 'C1'],
+  [/^get_hanji_monad_market$/, 'C1'],
   [/^get_base_dex_market$/, 'C1'],
   [/^get_base_dex_venue_integrations$/, 'C1'],
   [/^get_aerodrome_slipstream_market$/, 'C1'],
   [/^prepare_aerodrome_slipstream_swap$/, 'C3'],
   [/^get_pancakeswap_v3_market$/, 'C1'],
   [/^prepare_pancakeswap_v3_swap$/, 'C3'],
+  [/^get_quickswap_v2_market$/, 'C1'],
   [/^get_solana_dex_route$/, 'C1'],
   [/^get_hyperliquid_perp_market$/, 'C1'],
   // A locally signed order gate: it reads fresh venue state and refuses unsafe

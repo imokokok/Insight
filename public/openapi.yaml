@@ -1202,6 +1202,58 @@ paths:
         '503':
           description: Fresh Monad DEX evidence is unavailable.
 
+  /markets/dex/monad/hanji:
+    get:
+      operationId: getHanjiMonadMarket
+      tags: [DEX Markets]
+      summary: Monad Hanji MON/USDC CLOB market context
+      description: >-
+        Returns bounded, read-only Hanji MON/USDC CLOB context: a fresh public
+        L2 order book, displayed-depth and two-sided impact estimates, plus
+        block-pinned code identity checks for the reviewed order-book and
+        fast-quoter proxies and their implementations. It is venue context,
+        not an oracle feed, executable quote, order simulation, margin action,
+        or settlement guarantee.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh Hanji Monad CLOB market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data:
+                    type: object
+                    required:
+                      [source, venue, chainId, market, block, contracts, book, estimates, caveats]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: hanji }
+                      chainId: { type: integer, const: 143 }
+                      market: { type: string, const: MON/USDC }
+                      sourceFreshnessSeconds: { type: number, minimum: 0 }
+                      observedAt: { type: string, format: date-time }
+                      block: { type: object }
+                      contracts: { type: object }
+                      book:
+                        type: object
+                        required: [timestamp, bestBidUsdcPerMon, bestAskUsdcPerMon, spreadBps]
+                      estimates:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [side, targetNotionalUsdc, filledNotionalUsdc, filledMon, complete]
+                      caveats:
+                        type: array
+                        items: { type: string }
+        '503':
+          description: Fresh Hanji Monad CLOB evidence is unavailable.
+
   /markets/dex/base:
     get:
       operationId: getBaseDexMarket
@@ -1251,6 +1303,87 @@ paths:
                           required: [amountIn, amountOut, effectiveToken1PerToken0, priceImpactBps]
         '503':
           description: Fresh Base DEX evidence is unavailable.
+
+  /markets/dex/base/quickswap:
+    get:
+      operationId: getQuickSwapV2BaseMarket
+      tags: [DEX Markets]
+      summary: Base QuickSwap V2 USDC/USDT market evidence
+      description: >-
+        Returns block-pinned, code-identity-verified evidence for one reviewed
+        Base QuickSwap V2 USDC/USDT pair: Factory, Router, Pair, token
+        bindings, reserves, spot, and a bounded exact-input quote ladder.
+        This is read-only venue context, not a generic QuickSwap route,
+        executable transaction, or oracle-consensus input. The response's
+        executionReadiness field is authoritative and remains fail-closed when
+        reserves are insufficient.
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Fresh block-pinned QuickSwap V2 market evidence.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: { type: boolean, const: true }
+                  data:
+                    type: object
+                    required:
+                      [
+                        source,
+                        venue,
+                        chainId,
+                        market,
+                        block,
+                        contracts,
+                        reserves,
+                        executionReadiness,
+                        spot,
+                        quotes,
+                        caveats,
+                      ]
+                    properties:
+                      source: { type: string, const: dex-market }
+                      venue: { type: string, const: quickswap-v2 }
+                      chainId: { type: integer, const: 8453 }
+                      market: { type: string, const: USDC/USDT }
+                      sourceFreshnessSeconds: { type: number, minimum: 0 }
+                      observedAt: { type: string, format: date-time }
+                      block: { type: object }
+                      contracts: { type: object }
+                      reserves:
+                        type: object
+                        required: [token0Raw, token0, token1Raw, token1]
+                      executionReadiness:
+                        type: object
+                        required: [status, reason]
+                        properties:
+                          status: { type: string, enum: [unavailable, review-required] }
+                          reason: { type: string }
+                      spot:
+                        type: object
+                        required: [token1PerToken0]
+                      quotes:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [
+                              amountIn,
+                              amountInRaw,
+                              amountOut,
+                              amountOutRaw,
+                              effectiveToken1PerToken0,
+                              priceImpactBps,
+                            ]
+                      caveats:
+                        type: array
+                        items: { type: string }
+        '503':
+          description: Fresh QuickSwap V2 Base market evidence is unavailable.
 
   /markets/dex/aerodrome:
     get:

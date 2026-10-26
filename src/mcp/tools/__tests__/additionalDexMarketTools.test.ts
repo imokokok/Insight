@@ -11,6 +11,7 @@ import {
   getAerodromeSlipstreamMarketTool,
   getBaseDexMarketTool,
   getHyperliquidPerpMarketTool,
+  getHanjiMonadMarketTool,
   getSolanaDexRouteTool,
 } from '../dexMarketTools';
 import { getToolDefinitions } from '../index';
@@ -52,7 +53,7 @@ describe('additional DEX market MCP tools', () => {
     mockedHyperliquidProfile.mockImplementation((market) => ({ coin: market }) as never);
   });
 
-  it('registers the reviewed Base, Aerodrome, Solana, and Hyperliquid evidence tools at C1', () => {
+  it('registers the reviewed Base, Aerodrome, Solana, Monad CLOB, and Hyperliquid evidence tools at C1', () => {
     const names = getToolDefinitions().map((tool) => tool.name);
     expect(names).toEqual(
       expect.arrayContaining([
@@ -60,6 +61,7 @@ describe('additional DEX market MCP tools', () => {
         'get_aerodrome_slipstream_market',
         'get_solana_dex_route',
         'get_hyperliquid_perp_market',
+        'get_hanji_monad_market',
       ])
     );
     expect(getBaseDexMarketTool.parameters.safeParse({}).success).toBe(true);
@@ -74,10 +76,12 @@ describe('additional DEX market MCP tools', () => {
     expect(getHyperliquidPerpMarketTool.parameters.safeParse({ market: 'SOL' }).success).toBe(
       false
     );
+    expect(getHanjiMonadMarketTool.parameters.safeParse({}).success).toBe(true);
     expect(getToolCreditCost('get_base_dex_market')).toBe(0.5);
     expect(getToolCreditCost('get_aerodrome_slipstream_market')).toBe(0.5);
     expect(getToolCreditCost('get_solana_dex_route')).toBe(0.5);
     expect(getToolCreditCost('get_hyperliquid_perp_market')).toBe(0.5);
+    expect(getToolCreditCost('get_hanji_monad_market')).toBe(0.5);
   });
 
   it('keeps Base pool evidence explicitly separate from oracle consensus', async () => {

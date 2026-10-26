@@ -15,8 +15,10 @@ import { getCrossChainSpreadsTool } from './crossChainTools';
 import {
   getAerodromeSlipstreamMarketTool,
   getPancakeSwapV3MarketTool,
+  getQuickSwapV2MarketTool,
   getBaseDexMarketTool,
   getBaseDexVenueIntegrationsTool,
+  getHanjiMonadMarketTool,
   getHyperliquidPerpMarketTool,
   getMonadDexMarketTool,
   getSolanaDexRouteTool,
@@ -38,6 +40,7 @@ import {
   AerodromeSlipstreamSwapPreparationJsonSchema,
   PancakeSwapV3MarketJsonSchema,
   PancakeSwapV3SwapPreparationJsonSchema,
+  QuickSwapV2MarketJsonSchema,
   AnomaliesJsonSchema,
   BaseDexMarketJsonSchema,
   BaseDexVenueIntegrationJsonSchema,
@@ -67,6 +70,7 @@ import {
   IncidentsJsonSchema,
   LatencyJsonSchema,
   MetricsJsonSchema,
+  HanjiMonadMarketJsonSchema,
   MonadDexMarketJsonSchema,
   OraclePriceJsonSchema,
   OracleSetupRecommendationJsonSchema,
@@ -157,12 +161,14 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getCoverageTool,
   getMetricsTool,
   getMonadDexMarketTool,
+  getHanjiMonadMarketTool,
   getBaseDexMarketTool,
   getBaseDexVenueIntegrationsTool,
   getAerodromeSlipstreamMarketTool,
   prepareAerodromeSlipstreamSwapTool,
   getPancakeSwapV3MarketTool,
   preparePancakeSwapV3SwapTool,
+  getQuickSwapV2MarketTool,
   getSolanaDexRouteTool,
   getHyperliquidPerpMarketTool,
   prepareHyperliquidPerpOrderTool,
@@ -381,6 +387,11 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  get_hanji_monad_market: HanjiMonadMarketJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
   get_base_dex_market: BaseDexMarketJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
@@ -408,6 +419,11 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   prepare_pancakeswap_v3_swap: PancakeSwapV3SwapPreparationJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  get_quickswap_v2_market: QuickSwapV2MarketJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];
