@@ -40,6 +40,7 @@ import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { calculateMedian } from '@/lib/utils/statistics';
 import { Blockchain, OracleProvider, type PriceData } from '@/types/oracle';
+import { FailureMode } from '@/types/oracle/signals';
 
 const logger = createLogger('DailyReportSnapshot');
 
@@ -63,6 +64,32 @@ function lastHealthCheck(feed: OracleFeed): number {
 const MAX_SNAPSHOT_PRICE = 9_999_999_999_999_999.99999999;
 // DECIMAL(10, 4) max absolute value
 const MAX_DEVIATION_PCT = 9_999.9999;
+
+/**
+ * Keep the rich, short-lived record stream useful for signals and exports
+ * without duplicating every normal 15-minute snapshot.
+ *
+ * `price_snapshots` remains the durable 15-minute source for all successful
+ * observations. `price_records` retains one rich checkpoint per hour plus
+ * every observation that carries an audit-relevant degradation. That preserves
+ * the near-term evidence needed to investigate a fallback or stale source,
+ * while avoiding three out of four normal record inserts and their later TTL
+ * deletes.
+ */
+export function selectPriceRecordsForPersistence(
+  prices: PriceData[],
+  snapshotTs: Date
+): PriceData[] {
+  const isHourlyCheckpoint = snapshotTs.getUTCMinutes() === 0;
+  if (isHourlyCheckpoint) return prices;
+
+  return prices.filter(
+    (price) =>
+      price.metadataFallback === true ||
+      price.dataSource === 'fallback' ||
+      (price.failureMode !== undefined && price.failureMode !== FailureMode.NONE)
+  );
+}
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -754,13 +781,26 @@ export async function collectSnapshot(
     options.includeAdditionalHealthChecks ?? true,
     options.reuseRpcMetadata ?? false
   );
-  // The collector is the sole durable writer for the short-term price cache.
-  // Finish one bounded batch before returning; ordinary live request paths
-  // deliberately read this cache but never append to it.
+  // The collector is the sole durable writer for the short-term rich record
+  // stream. Normal observations are checkpointed hourly; the durable
+  // 15-minute snapshot stream below preserves the full price history. Ordinary
+  // live request paths deliberately read this cache but never append to it.
   try {
     const prices = results.flatMap((result) => (result.price ? [result.price] : []));
-    const saved = await savePricesToDatabase(prices);
-    logger.info('Persisted price cache batch', { observations: prices.length, saved });
+    const records = selectPriceRecordsForPersistence(prices, snapshotTs);
+    if (records.length > 0) {
+      const saved = await savePricesToDatabase(records);
+      logger.info('Persisted rich price-record batch', {
+        observations: prices.length,
+        selected: records.length,
+        saved,
+        checkpoint: snapshotTs.getUTCMinutes() === 0 ? 'hourly' : 'audit-exception',
+      });
+    } else {
+      logger.info('Skipped normal rich price-record batch between hourly checkpoints', {
+        observations: prices.length,
+      });
+    }
   } catch (error) {
     // Durable snapshots and feed failure evidence still need to be recorded.
     logger.warn('Price cache batch persistence failed', normalizeError(error));

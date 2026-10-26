@@ -9,8 +9,10 @@ import {
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { CACHE_PRESETS } from '@/lib/api/utils';
+import { getBlockchainByChainId } from '@/lib/oracles/constants/chainMapping';
 import { SafeProviderSchema, SafeSymbolSchema } from '@/lib/security/validation';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
 import { getDaysAgoUtc, getTodayUtc, addDay } from '@/lib/utils/date';
 
 const ExportQuerySchema = z.object({
@@ -56,7 +58,42 @@ export const GET = createApiHandler(
       query = query.eq('provider', provider);
     }
 
-    const { data, error } = await query;
+    let data;
+    let error;
+    let snapshotRows;
+    try {
+      [{ data, error }, snapshotRows] = await Promise.all([
+        query,
+        loadSnapshotHistoryPage(
+          supabase,
+          'price',
+          fromOrDefault,
+          addDay(toOrDefault),
+          [
+            'snapshot_ts',
+            'provider',
+            'symbol',
+            'chain_id',
+            'price',
+            'confidence',
+            'data_age_seconds',
+          ],
+          {
+            providers: provider ? [provider] : undefined,
+            symbol,
+            successOnly: true,
+            ascending: false,
+            limit,
+            offset,
+          }
+        ),
+      ]);
+    } catch {
+      return ApiResponseBuilder.serverError(
+        'Failed to fetch price snapshot history',
+        context.requestId
+      );
+    }
 
     if (error) {
       return ApiResponseBuilder.serverError('Failed to fetch price records', context.requestId);
@@ -74,6 +111,22 @@ export const GET = createApiHandler(
           },
           count: data?.length ?? 0,
           records: data ?? [],
+          // `records` remains the rich, short-retention compatibility stream.
+          // `snapshots` carries the complete 15-minute price series; it has no
+          // rich verification payload, which is intentionally sampled hourly.
+          snapshotCount: snapshotRows.length,
+          snapshots: snapshotRows.map((row) => ({
+            provider: row.provider,
+            symbol: row.symbol,
+            chain: getBlockchainByChainId(row.chain_id) ?? null,
+            chainId: row.chain_id,
+            price: row.price,
+            timestamp: row.snapshot_ts,
+            confidence: row.confidence,
+            dataAgeSeconds: row.data_age_seconds,
+            source: 'price_snapshots',
+            verification: null,
+          })),
         },
         { requestId: context.requestId }
       )
