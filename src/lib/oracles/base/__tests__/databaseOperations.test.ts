@@ -99,6 +99,29 @@ describe('databaseOperations', () => {
   });
 
   describe('feed identity and error semantics', () => {
+    it('does not write through live request results unless persistence is explicitly requested', async () => {
+      const livePrice = createMockPriceData();
+      mockGetPriceFromDatabase.mockResolvedValue(null);
+      mockClientGetPrice.mockResolvedValue(livePrice);
+
+      await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
+
+      expect(mockSavePriceToDatabase).not.toHaveBeenCalled();
+
+      await fetchPriceWithDatabase(
+        mockProvider,
+        mockSymbol,
+        mockChain,
+        true,
+        false,
+        undefined,
+        undefined,
+        { persist: true }
+      );
+
+      expect(mockSavePriceToDatabase).toHaveBeenCalledWith(livePrice);
+    });
+
     it('uses the client default chain when the caller omits a chain', async () => {
       const cacheableProvider: OracleProvider = 'redstone';
       mockGetPriceFromDatabase.mockResolvedValue(

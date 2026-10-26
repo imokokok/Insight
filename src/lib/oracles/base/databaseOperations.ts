@@ -365,7 +365,13 @@ export async function fetchPriceWithDatabase(
 
     try {
       const livePrice = await client.getPrice(fetchSymbol, targetChain, { signal });
-      if (storageOptions.persist !== false && supportsPricePersistence(provider)) {
+      // A live API or UI request must not turn into a Postgres write.  The
+      // 15-minute snapshot collector owns the short-term cache and persists
+      // its complete result set once per batch.  Keeping this opt-in prevents
+      // request volume from growing `price_records`, its indexes, WAL, and the
+      // later TTL-cleanup work.  A dedicated ingest path may opt in explicitly
+      // when it has a documented need for a one-off durable observation.
+      if (storageOptions.persist === true && supportsPricePersistence(provider)) {
         await savePriceToDatabase(livePrice)
           .then((saved) => {
             if (saved) {
