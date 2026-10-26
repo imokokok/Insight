@@ -38,9 +38,9 @@ const manrope = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.oracleinsight.xyz'),
-  title: 'Insight — Oracle Transparency & Risk Intelligence for DeFi',
+  title: 'Insight — Decision Integrity & Oracle Risk Intelligence for DeFi',
   description:
-    'Oracle transparency and risk intelligence for DeFi. Cross-source price comparison, freshness, source independence, protocol risk analysis, and verifiable assessment evidence.',
+    'Decision integrity and oracle risk intelligence for DeFi. Inspect source evidence, assess a proposed action, monitor changed conditions, and retain verifiable assessment evidence.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

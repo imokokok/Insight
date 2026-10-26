@@ -1739,6 +1739,10 @@ h3,
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.evidence-process-rail[data-item-count='4'] ol {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .evidence-process-rail li {
   position: relative;
   display: grid;
@@ -8897,6 +8901,10 @@ body:has(.ops-workspace) .public-chrome {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .evidence-process-rail[data-item-count='4'] ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .evidence-process-rail li {
     grid-template-columns: 1fr;
     gap: 0.35rem;
@@ -8908,6 +8916,18 @@ body:has(.ops-workspace) .public-chrome {
 
   .evidence-process-rail li:last-child {
     border-right: 0;
+  }
+
+  .evidence-process-rail[data-item-count='4'] li {
+    border-bottom: 1px solid rgb(15 23 42 / 11%);
+  }
+
+  .evidence-process-rail[data-item-count='4'] li:nth-child(even) {
+    border-right: 0;
+  }
+
+  .evidence-process-rail[data-item-count='4'] li:nth-last-child(-n + 2) {
+    border-bottom: 0;
   }
 
   .evidence-process-index {

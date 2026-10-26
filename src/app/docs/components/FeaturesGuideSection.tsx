@@ -27,7 +27,20 @@ interface Feature {
 const features: Feature[] = [
   {
     icon: <ShieldCheck className="w-6 h-6" />,
-    title: 'Safety Check',
+    title: 'Decision Integrity',
+    description:
+      'Inspect oracle evidence, assess a proposed action, monitor changing conditions, and retain optional verifiable assessment records.',
+    href: '/decision-integrity',
+    highlights: [
+      'Pre-trade assessment with machine-readable factors',
+      'Oracle Watch for changing source conditions',
+      'Clear boundary: your policy, signer, and execution remain yours',
+    ],
+    accent: 'blue',
+  },
+  {
+    icon: <ShieldCheck className="w-6 h-6" />,
+    title: 'Position Stress Test',
     description:
       'Calculate the exact oracle price deviation that would trigger liquidation for your DeFi lending positions across multiple protocols.',
     href: '/safety-check',
@@ -44,7 +57,7 @@ const features: Feature[] = [
     title: 'Oracle Watch',
     description:
       'Always-on cross-oracle trust signal (NORMAL / CAUTION / DANGER) that AI agents running long-lived strategies can poll and gate on between trades.',
-    href: '/ai#oracle-watch',
+    href: '/decision-integrity#oracle-watch-demo',
     highlights: [
       'Live consensus deviation, agreement, quorum, outliers and staleness',
       'proceed / proceed_with_caution / halt recommendation',
@@ -83,10 +96,10 @@ const features: Feature[] = [
   },
   {
     icon: <GitCompare className="w-6 h-6" />,
-    title: 'Price Insight',
+    title: 'Compare & Assess',
     description:
       'Compare oracle prices across providers and blockchains with consensus price, divergence signals, and risk analysis.',
-    href: '/price-insight',
+    href: '/price-insight?stage=compare',
     highlights: [
       'By Oracle / By Chain dimension switching',
       '4 consensus algorithms and divergence signals',

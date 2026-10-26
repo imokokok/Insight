@@ -3,8 +3,9 @@ import { Suspense } from 'react';
 import SafetyCheckContent from './SafetyCheckContent';
 
 export const metadata = {
-  title: 'Safety Check - Insight',
-  description: 'Calculate your personal position critical deviation and liquidation risk',
+  title: 'Position Stress Test - Insight',
+  description:
+    'Calculate position-specific oracle deviation and liquidation risk across supported lending protocols',
 };
 
 export default function SafetyCheckPage() {

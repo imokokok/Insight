@@ -21,7 +21,11 @@ export function EvidenceProcessRail({
   const boundedActiveIndex = Math.min(Math.max(activeIndex, 0), Math.max(items.length - 1, 0));
 
   return (
-    <section className={cn('evidence-process-rail', className)} aria-label={label}>
+    <section
+      className={cn('evidence-process-rail', className)}
+      aria-label={label}
+      data-item-count={items.length}
+    >
       <div className="evidence-process-meta">
         <span>{label}</span>
         <span>

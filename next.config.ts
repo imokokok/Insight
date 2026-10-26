@@ -7,12 +7,19 @@ const withBundleAnalyzer = createBundleAnalyzer({
   openAnalyzer: process.env.CI !== 'true',
 });
 
-const contentSecurityPolicyReportOnly = [
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live",
+  // App Router emits per-page inline Flight payloads. A nonce would require
+  // dynamic rendering for every page, while fixed hashes would require a
+  // route-specific and constantly regenerated header set. Keep the required
+  // inline compatibility for static pages, but never permit eval in production
+  // and use SRI below to verify every framework bundle.
+  `script-src 'self' 'unsafe-inline' https://vercel.live${isDevelopment ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
@@ -25,6 +32,14 @@ const contentSecurityPolicyReportOnly = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
+  // Hash framework bundles at build time so production can enforce a strict
+  // CSP without turning every public, cacheable page into nonce-based SSR.
+  // Nonce CSP would disable static generation across this App Router site.
+  // These SDKs are referenced exclusively from route handlers and server-side
+  // services. Keep their Node-only dynamic worker paths out of Webpack's
+  // browser-oriented dependency analysis while retaining them in the server
+  // deployment trace.
+  serverExternalPackages: ['mppx', 'viem'],
   transpilePackages: [
     'recharts',
     'uint8array-extras',
@@ -61,6 +76,9 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    sri: {
+      algorithm: 'sha384',
+    },
     optimizePackageImports: [
       'recharts',
       'framer-motion',
@@ -117,7 +135,7 @@ const nextConfig: NextConfig = {
           },
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-          { key: 'Content-Security-Policy-Report-Only', value: contentSecurityPolicyReportOnly },
+          { key: 'Content-Security-Policy', value: contentSecurityPolicy },
         ],
       },
       {
