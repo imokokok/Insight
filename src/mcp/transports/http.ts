@@ -206,13 +206,15 @@ async function tryLightweightAnonymousDiscovery(
   }
 
   if (message.method === 'tools/list') {
-    const { getToolDefinitions } = await import('../tools');
+    // Keep anonymous discovery on a data-only chunk. Importing ../tools
+    // eagerly loads every tool handler (and its database/RPC dependencies)
+    // even though tools/list needs only name, description and JSON Schema.
+    // The catalog is generated from getToolDefinitions during the build, and
+    // the public server card is generated from that same source of truth.
+    const { default: MCP_TOOL_CATALOG } = await import('../tools/generatedCatalog.json');
     return {
       response: withAnonymousRateLimitHeaders(
-        jsonResponse(
-          { jsonrpc: '2.0', id: message.id, result: { tools: getToolDefinitions() } },
-          200
-        ),
+        jsonResponse({ jsonrpc: '2.0', id: message.id, result: { tools: MCP_TOOL_CATALOG } }, 200),
         rate
       ),
       cleanup: async () => {},

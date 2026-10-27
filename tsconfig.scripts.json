@@ -28,6 +28,7 @@
     "scripts/publish-automation-pr.ts",
     "scripts/daily-report-publish.ts",
     "scripts/feed-cadence.ts",
+    "scripts/generate-mcp-catalog.mts",
     "scripts/inspect-dependabot-lock-repair.mts",
     "scripts/interai-track1/capture-preflight-gates.mts",
     "scripts/oracle-testing/watch-replay-check.mts",
