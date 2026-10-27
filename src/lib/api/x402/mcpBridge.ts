@@ -11,7 +11,6 @@ import {
   atomicUnitsToUsdc,
   logBazaarExtensionStatus,
   paymentAuditFields,
-  quoteAuditFields,
   recordX402Settlement,
   x402ResponseBody,
 } from './guard';
@@ -120,14 +119,11 @@ export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): 
       { status: 405, headers: { 'Content-Type': 'application/json', Allow: 'POST' } }
     );
   }
-  recordX402Settlement({
-    requestId,
-    status: 'quote_issued',
-    ...quoteAuditFields(cfg, price),
-    surface: 'mcp',
-    resource: 'mcp:indexer-probe',
-    responseTimeMs: 0,
-  });
+  // A directory's initial GET is only a non-binding quote. Persisting every
+  // crawl through after() keeps the Vercel function alive for a Supabase
+  // write without adding settlement evidence. Match the REST x402 guard:
+  // audit signatures that were rejected and all verified/settled payments,
+  // but leave an unsigned quote to request logs and edge metrics.
   logger.info('x402 MCP indexer probe quote issued', { requestId, priceAtomic: price });
   return attachRequestId(toResponse(result.response), requestId);
 }
@@ -251,17 +247,21 @@ export async function handleMcpPaidToolCall({
       toolName,
       priceAtomic: priceAtomicForTool(toolName),
     });
-    recordX402Settlement({
-      requestId,
-      status: hasPaymentSignature ? 'payment_rejected' : 'quote_issued',
-      ...(hasPaymentSignature
-        ? { network: null }
-        : quoteAuditFields(cfg, priceAtomicForTool(toolName))),
-      surface: 'mcp',
-      resource: `mcp:${toolName}`,
-      responseTimeMs: Date.now() - requestStartedAt,
-      errorReason: hasPaymentSignature ? 'facilitator_rejected_payment' : undefined,
-    });
+    // A bare quote is not a billing event. It is especially common when a
+    // catalog crawler is deciding whether to pay, so do not turn it into an
+    // after()-scheduled Supabase insert. A signed but rejected request is
+    // materially different and remains an auditable payment lifecycle event.
+    if (hasPaymentSignature) {
+      recordX402Settlement({
+        requestId,
+        status: 'payment_rejected',
+        network: null,
+        surface: 'mcp',
+        resource: `mcp:${toolName}`,
+        responseTimeMs: Date.now() - requestStartedAt,
+        errorReason: 'facilitator_rejected_payment',
+      });
+    }
     return attachRequestId(toResponse(result.response), requestId);
   }
 

@@ -13,6 +13,7 @@
  * batches) must still be rejected with 401.
  */
 
+import MCP_TOOL_CATALOG from '../tools/generatedCatalog.json';
 import { handleMcpHttpRequest } from '../transports/http';
 
 const authenticateMcpRequestMock = jest.fn();
@@ -20,6 +21,13 @@ const authenticateMcpRequestMock = jest.fn();
 jest.mock('../auth', () => ({
   authenticateMcpRequest: (...args: unknown[]) => authenticateMcpRequestMock(...(args as [])),
 }));
+
+// tools/list is discovery-only. If this test ever starts importing the tool
+// execution barrel, fail immediately instead of silently restoring its cold
+// database/RPC dependency graph.
+jest.mock('../tools', () => {
+  throw new Error('Anonymous MCP discovery must not load tool handlers');
+});
 
 const incrementMock = jest.fn();
 
@@ -73,7 +81,7 @@ describe('anonymous MCP discovery', () => {
     const body = await readJson(response);
     const result = body.result as { serverInfo?: { name?: string }; protocolVersion?: string };
     expect(result.serverInfo?.name).toBe('insight-oracle-mcp-server');
-    expect(response.headers.get('x-ratelimit-limit')).toBe('20');
+    expect(response.headers.get('x-ratelimit-limit')).toBe('12');
     await cleanup();
   });
 
@@ -85,7 +93,7 @@ describe('anonymous MCP discovery', () => {
     expect(response.status).toBe(200);
     const body = await readJson(response);
     const tools = (body.result as { tools?: Array<{ name: string }> }).tools ?? [];
-    expect(tools.length).toBeGreaterThan(0);
+    expect(tools).toEqual(MCP_TOOL_CATALOG);
     expect(tools.map((t) => t.name)).toContain('get_symbols');
     await cleanup();
   });

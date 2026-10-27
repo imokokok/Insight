@@ -16,6 +16,7 @@ import { getX402HttpServer } from '../resourceServer';
 
 const mockInsert = jest.fn();
 const mockAbortSignal = jest.fn(async () => ({ error: null }));
+const incrementRateLimitMock = jest.fn();
 
 function mockSettlementTable() {
   return {
@@ -30,6 +31,10 @@ jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(() => ({
     from: () => mockSettlementTable(),
   })),
+}));
+
+jest.mock('@/lib/api/middleware/rateLimitStore', () => ({
+  rateLimitStore: { increment: (...args: unknown[]) => incrementRateLimitMock(...args) },
 }));
 
 jest.mock('../resourceServer', () => ({
@@ -82,6 +87,11 @@ beforeEach(() => {
   mockInsert.mockClear();
   mockAbortSignal.mockClear();
   mockAbortSignal.mockImplementation(async () => ({ error: null }));
+  incrementRateLimitMock.mockClear();
+  incrementRateLimitMock.mockImplementation(async () => ({
+    count: 1,
+    resetTime: Date.now() + 60_000,
+  }));
 });
 
 const CFG: X402Config = {
@@ -238,6 +248,23 @@ describe('x402 guard', () => {
       expect(res.status).toBe(402);
       expect(res.headers.get('PAYMENT-REQUIRED')).toBe('quote');
       expect(business).not.toHaveBeenCalled();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(mockInsert).not.toHaveBeenCalled();
+    });
+
+    it('rejects quote floods before payment handling', async () => {
+      incrementRateLimitMock.mockResolvedValue({
+        count: 7,
+        resetTime: Date.now() + 60_000,
+      });
+      const processHTTPRequest = jest.fn();
+      mockedGetServer.mockResolvedValue({ processHTTPRequest });
+
+      const res = await handlePaidPreTradeRequest(makeRequest(), CFG, OK_BUSINESS);
+
+      expect(res.status).toBe(429);
+      expect(processHTTPRequest).not.toHaveBeenCalled();
+      expect(mockedGetServer).not.toHaveBeenCalled();
     });
 
     it('settles after a 2xx business response and attaches settlement headers', async () => {
