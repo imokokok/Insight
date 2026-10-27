@@ -568,9 +568,9 @@ export class DatabaseQueries {
 
       if (isSuccess) {
         // Live API traffic can observe the same healthy feed repeatedly in a
-        // few seconds. The RPC only writes on recovery or once per collection
-        // interval, keeping the two-hour stale-health contract while avoiding
-        // a wide registry-row rewrite for every successful request.
+        // few seconds. The RPC only writes on recovery or once per hour,
+        // keeping the two-hour stale-health contract while avoiding a wide
+        // registry-row rewrite for every successful request.
         const { error } = await this.client.rpc('touch_oracle_feed_success', {
           p_provider: provider,
           p_symbol: symbol,
