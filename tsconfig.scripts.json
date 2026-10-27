@@ -14,6 +14,7 @@
     "scripts/check-workflow-security.ts",
     "scripts/check-npm-releases.mts",
     "scripts/check-verifier-release.mts",
+    "scripts/coverage-slo.mts",
     "scripts/lib/verifier-package-conformance.mts",
     "scripts/collect-market-reference.ts",
     "scripts/dev-test-alpaca-market-data.mts",

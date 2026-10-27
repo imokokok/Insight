@@ -73,7 +73,7 @@ describe('anonymous MCP discovery', () => {
     const body = await readJson(response);
     const result = body.result as { serverInfo?: { name?: string }; protocolVersion?: string };
     expect(result.serverInfo?.name).toBe('insight-oracle-mcp-server');
-    expect(response.headers.get('x-ratelimit-limit')).toBe('20');
+    expect(response.headers.get('x-ratelimit-limit')).toBe('12');
     await cleanup();
   });
 

@@ -20,7 +20,6 @@ concurrency:
   group: coverage-slo
   cancel-in-progress: false
 env:
-  CRON_SECRET: ${{ secrets.CRON_SECRET }}
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
   CRON_WORKFLOW: coverage-slo.yml
@@ -50,15 +49,16 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: node scripts/cron-control.mjs start
 
+      - name: Install direct runner dependencies
+        if: steps.guard.outputs.should_run == 'true'
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
       - name: Collect fixed-slot coverage samples
         id: collect
         if: steps.guard.outputs.should_run == 'true'
         run: |
-          test -n "$CRON_SECRET" || { echo '::error::CRON_SECRET is required'; exit 1; }
-          if ! curl --fail-with-body --silent --show-error --max-time 230 \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            -o coverage-result.json https://www.oracleinsight.xyz/api/cron/coverage-slo; then
-            node -e 'try { const r=require("./coverage-result.json"); if(typeof r.error==="string" && /^COVERAGE_[A-Z_]+$/.test(r.error)) console.error("::error::Coverage API failed at",r.error); } catch {}'
+          if ! node --import tsx scripts/coverage-slo.mts > coverage-result.json; then
+            node -e 'try { const r=require("./coverage-result.json"); if(typeof r.error==="string" && /^COVERAGE_[A-Z_]+$/.test(r.error)) console.error("::error::Coverage runner failed at",r.error); } catch {}'
             exit 1
           fi
           node -e 'const r=require("./coverage-result.json"); if(r.success!==true || !Array.isArray(r.targets) || !Array.isArray(r.alerts) || !Array.isArray(r.latestAlerts) || !Array.isArray(r.newFailures) || !Array.isArray(r.recoveries)) process.exit(1);'
