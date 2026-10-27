@@ -53,6 +53,62 @@ export function createEmptyDashboardData(): ServerDashboardData {
 // simultaneously, piling up on the shared DB request queue and on upstream
 // oracle rate limits. Matches the batch API route's concurrency approach.
 const DASHBOARD_FETCH_CONCURRENCY = 8;
+// A failed provider should not be retried for every homepage cache refresh.
+// This is intentionally scoped to the public dashboard: paid pre-trade checks
+// retain their stricter live-data behavior. Successful/stale database data is
+// retained while the affected provider cools down.
+const DASHBOARD_FAILURE_COOLDOWN_MS = 5 * 60_000;
+
+interface DashboardPriceCircuitEntry {
+  retryAfter: number;
+  lastSuccess?: DashboardPriceItem;
+}
+
+const dashboardPriceCircuit = new Map<string, DashboardPriceCircuitEntry>();
+
+function dashboardPriceKey(provider: OracleProvider, symbol: string): string {
+  return `${provider}:${symbol}`;
+}
+
+async function fetchDashboardPrice(
+  provider: OracleProvider,
+  symbol: string
+): Promise<DashboardPriceItem> {
+  const key = dashboardPriceKey(provider, symbol);
+  const circuit = dashboardPriceCircuit.get(key);
+  if (circuit && circuit.retryAfter > Date.now()) {
+    return (
+      circuit.lastSuccess ?? {
+        provider,
+        symbol,
+        price: null,
+        error: 'Provider temporarily unavailable; retry deferred',
+      }
+    );
+  }
+
+  try {
+    const price = await fetchPriceWithDatabase(provider, symbol, undefined, true);
+    const result: DashboardPriceItem = { provider, symbol, price, error: null };
+    dashboardPriceCircuit.set(key, { retryAfter: 0, lastSuccess: result });
+    return result;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    dashboardPriceCircuit.set(key, {
+      retryAfter: Date.now() + DASHBOARD_FAILURE_COOLDOWN_MS,
+      lastSuccess: circuit?.lastSuccess,
+    });
+    logger.warn(`Server prefetch failed for ${provider}/${symbol}: ${message}`);
+    return (
+      circuit?.lastSuccess ?? {
+        provider,
+        symbol,
+        price: null,
+        error: message,
+      }
+    );
+  }
+}
 
 /**
  * Resolve the dashboard's "main oracles" list dynamically:
@@ -106,26 +162,7 @@ export async function fetchDashboardInitialData(): Promise<ServerDashboardData> 
   const results = await mapWithConcurrency(
     queries,
     DASHBOARD_FETCH_CONCURRENCY,
-    async (query): Promise<DashboardPriceItem> => {
-      try {
-        const price = await fetchPriceWithDatabase(query.provider, query.symbol, undefined, true);
-        return {
-          provider: query.provider,
-          symbol: query.symbol,
-          price,
-          error: null,
-        };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        logger.warn(`Server prefetch failed for ${query.provider}/${query.symbol}: ${message}`);
-        return {
-          provider: query.provider,
-          symbol: query.symbol,
-          price: null,
-          error: message,
-        };
-      }
-    }
+    async (query): Promise<DashboardPriceItem> => fetchDashboardPrice(query.provider, query.symbol)
   );
 
   return {

@@ -1,4 +1,8 @@
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
+import {
+  LATEST_PROTOCOL_VERSION,
+  SUPPORTED_PROTOCOL_VERSIONS,
+} from '@modelcontextprotocol/sdk/types.js';
 
 import { getCorsHeaders } from '@/lib/api/handler';
 import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
@@ -7,9 +11,11 @@ import { getX402Config } from '@/lib/api/x402/config';
 import { handleMcpIndexerQuote, handleMcpPaidToolCall } from '@/lib/api/x402/mcpBridge';
 import { createLogger } from '@/lib/utils/logger';
 
-import { authenticateMcpRequest } from '../auth';
+import packageJson from '../../../package.json';
+import { authenticateMcpRequest, type McpAuthContext } from '../auth';
 import { checkMcpQuota, checkMcpRateLimit } from '../middleware';
-import { createMcpServer } from '../server';
+
+import type { McpServerOptions } from '../server';
 
 const logger = createLogger('mcp-http-transport');
 
@@ -65,18 +71,21 @@ const ANON_ALLOWED_METHODS = new Set([
   'ping',
 ]);
 
-const ANON_RATE_LIMIT = { windowMs: 60_000, maxRequests: 20 };
+const ANON_RATE_LIMIT = { windowMs: 60 * 60_000, maxRequests: 12 };
+
+interface JsonRpcMessage {
+  jsonrpc?: unknown;
+  id?: unknown;
+  method?: unknown;
+  params?: unknown;
+}
 
 /**
- * Read the JSON-RPC method names from a POST body without consuming the
- * original request (the transport still needs it, hence the clone).
- *
- * Returns the method list for a parseable single or batch JSON-RPC message,
- * or null when the request is not a JSON POST, is unparseable, is an empty
- * batch, or contains any entry without a string `method` — the caller then
- * falls back to the normal authenticated path.
+ * Parse the JSON-RPC envelope without consuming the original request. Invalid
+ * payloads deliberately fall through to the SDK transport so it retains its
+ * protocol-standard error behavior.
  */
-async function probeRpcMethods(request: Request): Promise<string[] | null> {
+async function parseRpcMessages(request: Request): Promise<JsonRpcMessage[] | null> {
   try {
     if (request.method !== 'POST') return null;
     const contentType = (request.headers.get('content-type') ?? '').toLowerCase();
@@ -84,23 +93,143 @@ async function probeRpcMethods(request: Request): Promise<string[] | null> {
 
     const body: unknown = JSON.parse(await request.clone().text());
     const messages: unknown[] = Array.isArray(body) ? body : [body];
-    if (messages.length === 0) return null;
-
-    const methods: string[] = [];
+    if (messages.length === 0 || messages.length > 100) return null;
     for (const message of messages) {
       if (
         !message ||
         typeof message !== 'object' ||
-        typeof (message as { method?: unknown }).method !== 'string'
+        typeof (message as JsonRpcMessage).method !== 'string'
       ) {
         return null;
       }
-      methods.push((message as { method: string }).method);
     }
-    return methods;
+    return messages as JsonRpcMessage[];
   } catch {
     return null;
   }
+}
+
+async function createMcpServer(auth?: McpAuthContext, options?: McpServerOptions) {
+  const { createMcpServer: createServer } = await import('../server');
+  return createServer(auth, options);
+}
+
+function hasJsonRpcRequestId(
+  message: JsonRpcMessage
+): message is JsonRpcMessage & { id: string | number } {
+  return typeof message.id === 'string' || typeof message.id === 'number';
+}
+
+function anonymousDiscoveryCapabilities(mppPaymentEnabled: boolean) {
+  return {
+    tools: {},
+    ...(mppPaymentEnabled
+      ? {
+          experimental: {
+            payment: {
+              methods: {
+                evm: { intents: ['charge'] },
+              },
+            },
+          },
+        }
+      : {}),
+  };
+}
+
+function withAnonymousRateLimitHeaders(
+  response: Response,
+  rate: { count: number; resetTime: number }
+): Response {
+  response.headers.set('X-RateLimit-Limit', String(ANON_RATE_LIMIT.maxRequests));
+  response.headers.set(
+    'X-RateLimit-Remaining',
+    String(Math.max(0, ANON_RATE_LIMIT.maxRequests - rate.count))
+  );
+  response.headers.set('X-RateLimit-Reset', String(Math.floor(rate.resetTime / 1000)));
+  return withCors(response);
+}
+
+/**
+ * The anonymous discovery methods are stateless by design. Serving their
+ * single-message form directly avoids creating a complete MCP server and
+ * transport for every directory crawler. Unsupported/batched requests retain
+ * the SDK fallback below, keeping protocol compatibility conservative.
+ */
+async function tryLightweightAnonymousDiscovery(
+  messages: JsonRpcMessage[],
+  rate: { count: number; resetTime: number },
+  mppPaymentEnabled: boolean
+): Promise<McpHttpHandlerResult | null> {
+  if (messages.length !== 1) return null;
+  const [message] = messages;
+  if (message.jsonrpc !== '2.0' || typeof message.method !== 'string') return null;
+
+  if (message.method === 'notifications/initialized') {
+    if (hasJsonRpcRequestId(message)) return null;
+    return { response: withCors(new Response(null, { status: 202 })), cleanup: async () => {} };
+  }
+
+  if (!hasJsonRpcRequestId(message)) return null;
+
+  if (message.method === 'initialize') {
+    const params = message.params;
+    if (
+      !params ||
+      typeof params !== 'object' ||
+      typeof (params as { protocolVersion?: unknown }).protocolVersion !== 'string'
+    ) {
+      return null;
+    }
+    const requestedVersion = (params as { protocolVersion: string }).protocolVersion;
+    const protocolVersion = SUPPORTED_PROTOCOL_VERSIONS.includes(requestedVersion)
+      ? requestedVersion
+      : LATEST_PROTOCOL_VERSION;
+    return {
+      response: withAnonymousRateLimitHeaders(
+        jsonResponse(
+          {
+            jsonrpc: '2.0',
+            id: message.id,
+            result: {
+              protocolVersion,
+              capabilities: anonymousDiscoveryCapabilities(mppPaymentEnabled),
+              serverInfo: { name: 'insight-oracle-mcp-server', version: packageJson.version },
+            },
+          },
+          200
+        ),
+        rate
+      ),
+      cleanup: async () => {},
+    };
+  }
+
+  if (message.method === 'tools/list') {
+    const { getToolDefinitions } = await import('../tools');
+    return {
+      response: withAnonymousRateLimitHeaders(
+        jsonResponse(
+          { jsonrpc: '2.0', id: message.id, result: { tools: getToolDefinitions() } },
+          200
+        ),
+        rate
+      ),
+      cleanup: async () => {},
+    };
+  }
+
+  if (message.method === 'ping') {
+    return {
+      response: withAnonymousRateLimitHeaders(
+        jsonResponse({ jsonrpc: '2.0', id: message.id, result: {} }, 200),
+        rate
+      ),
+      cleanup: async () => {},
+    };
+  }
+
+  return null;
 }
 
 function getClientIp(request: Request): string {
@@ -235,7 +364,7 @@ async function tryPaidToolCall(request: Request): Promise<McpHttpHandlerResult |
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
   });
-  const server = createMcpServer(undefined);
+  const server = await createMcpServer(undefined);
   server.onerror = (error) => {
     logger.error('Paid MCP tools/call server error', error);
   };
@@ -295,8 +424,13 @@ async function tryAnonymousDiscovery(
   request: Request,
   mppPaymentEnabled = false
 ): Promise<McpHttpHandlerResult | null> {
-  const methods = await probeRpcMethods(request);
-  if (!methods || !methods.every((method) => ANON_ALLOWED_METHODS.has(method))) {
+  const messages = await parseRpcMessages(request);
+  if (
+    !messages ||
+    !messages.every(
+      (message) => typeof message.method === 'string' && ANON_ALLOWED_METHODS.has(message.method)
+    )
+  ) {
     return null;
   }
 
@@ -314,13 +448,19 @@ async function tryAnonymousDiscovery(
     };
   }
 
-  logger.info('Anonymous MCP discovery request', { methods, identity });
+  logger.info('Anonymous MCP discovery request', {
+    methods: messages.map((message) => message.method),
+    identity,
+  });
+
+  const lightweight = await tryLightweightAnonymousDiscovery(messages, rate, mppPaymentEnabled);
+  if (lightweight) return lightweight;
 
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
   });
-  const server = createMcpServer(undefined, { mppPaymentEnabled });
+  const server = await createMcpServer(undefined, { mppPaymentEnabled });
   server.onclose = async () => {
     logger.debug('Anonymous MCP discovery server closed');
   };
@@ -336,13 +476,7 @@ async function tryAnonymousDiscovery(
     statusText: response.statusText,
     headers: response.headers,
   });
-  merged.headers.set('X-RateLimit-Limit', String(ANON_RATE_LIMIT.maxRequests));
-  merged.headers.set(
-    'X-RateLimit-Remaining',
-    String(Math.max(0, ANON_RATE_LIMIT.maxRequests - rate.count))
-  );
-  merged.headers.set('X-RateLimit-Reset', String(Math.floor(rate.resetTime / 1000)));
-  withCors(merged);
+  withAnonymousRateLimitHeaders(merged, rate);
 
   return {
     response: merged,
@@ -406,7 +540,7 @@ async function tryMppPaidToolCall(
     enableJsonResponse: true,
   });
   const { createMppMcpCallHandler } = await import('@/lib/api/mpp/mcp');
-  const server = createMcpServer(undefined, {
+  const server = await createMcpServer(undefined, {
     mppPaymentEnabled: true,
     mppCallHandler: createMppMcpCallHandler(cfg, mppConfig.secretKey),
   });
@@ -546,7 +680,7 @@ export async function handleMcpHttpRequest(
     enableJsonResponse: true,
   });
 
-  const server = createMcpServer(authResult.auth, {
+  const server = await createMcpServer(authResult.auth, {
     mppPaymentEnabled: Boolean(mppConfig?.mcpEnabled),
   });
 

@@ -1,25 +1,13 @@
 import { HomeLiveDashboard } from '@/components/home/HomeLiveDashboard';
-import {
-  createEmptyDashboardData,
-  fetchDashboardInitialDataCached,
-} from '@/lib/home/dashboardData';
+import { createEmptyDashboardData } from '@/lib/home/dashboardData';
 
 /**
- * Server Component responsible for fetching the cached dashboard initial data
- * and streaming the result to the client via Suspense.
+ * Server Component responsible for shipping a static dashboard shell.
  *
- * Keeping the data fetch in a separate Server Component allows the parent
- * page.tsx to render the shell immediately and show the Suspense fallback
- * while prices are resolved, instead of blocking the HTML response.
+ * The client hydrates this shell from the separately cached dashboard endpoint.
+ * Keeping live oracle work out of the public page means crawlers and ISR
+ * regeneration cannot fan out to upstream price providers.
  */
-export async function DashboardDataFetcher() {
-  // Deploys must not depend on the availability of live oracle/RPC services.
-  // The browser immediately hydrates this empty build-time shell from the
-  // cached dashboard endpoint; ISR requests after deployment still receive a
-  // fully populated server snapshot.
-  if (process.env.NEXT_PHASE === 'phase-production-build') {
-    return <HomeLiveDashboard initialData={createEmptyDashboardData()} />;
-  }
-  const initialData = await fetchDashboardInitialDataCached();
-  return <HomeLiveDashboard initialData={initialData} />;
+export function DashboardDataFetcher() {
+  return <HomeLiveDashboard initialData={createEmptyDashboardData()} />;
 }
