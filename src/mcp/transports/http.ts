@@ -48,7 +48,15 @@ function jsonResponse(
   status: number,
   extraHeaders?: Record<string, string>
 ): Response {
-  return new Response(JSON.stringify(body), {
+  return jsonTextResponse(JSON.stringify(body), status, extraHeaders);
+}
+
+function jsonTextResponse(
+  serializedBody: string,
+  status: number,
+  extraHeaders?: Record<string, string>
+): Response {
+  return new Response(serializedBody, {
     status,
     headers: {
       'Content-Type': 'application/json',
@@ -72,6 +80,41 @@ const ANON_ALLOWED_METHODS = new Set([
 ]);
 
 const ANON_RATE_LIMIT = { windowMs: 60 * 60_000, maxRequests: 12 };
+
+// Directory crawlers commonly repeat tools/list. The generated catalog is
+// stable for a deployment, so retain its JSON representation after the first
+// request instead of stringifying roughly 100 KB on every response.
+let serializedToolCatalogPromise: Promise<string> | undefined;
+
+function getSerializedToolCatalog(): Promise<string> {
+  serializedToolCatalogPromise ??= import('../tools/generatedCatalog.json').then(
+    ({ default: catalog }) => JSON.stringify(catalog)
+  );
+  return serializedToolCatalogPromise;
+}
+
+// Keep a representative success signal without emitting one application log
+// per anonymous directory poll. Rejections, limits and paid lifecycle events
+// remain fully logged elsewhere. The counter is intentionally process-local:
+// it only controls log volume and never participates in access control.
+const ANONYMOUS_DISCOVERY_LOG_SAMPLE_EVERY = 100;
+let anonymousDiscoveryLogCount = 0;
+
+function logAnonymousDiscoverySample(messages: JsonRpcMessage[], identity: string): void {
+  anonymousDiscoveryLogCount += 1;
+  if (
+    anonymousDiscoveryLogCount !== 1 &&
+    anonymousDiscoveryLogCount % ANONYMOUS_DISCOVERY_LOG_SAMPLE_EVERY !== 0
+  ) {
+    return;
+  }
+  logger.info('Anonymous MCP discovery request', {
+    methods: messages.map((message) => message.method),
+    identity,
+    sampleEvery: ANONYMOUS_DISCOVERY_LOG_SAMPLE_EVERY,
+    sampleOrdinal: anonymousDiscoveryLogCount,
+  });
+}
 
 interface JsonRpcMessage {
   jsonrpc?: unknown;
@@ -211,10 +254,13 @@ async function tryLightweightAnonymousDiscovery(
     // even though tools/list needs only name, description and JSON Schema.
     // The catalog is generated from getToolDefinitions during the build, and
     // the public server card is generated from that same source of truth.
-    const { default: MCP_TOOL_CATALOG } = await import('../tools/generatedCatalog.json');
+    const catalog = await getSerializedToolCatalog();
     return {
       response: withAnonymousRateLimitHeaders(
-        jsonResponse({ jsonrpc: '2.0', id: message.id, result: { tools: MCP_TOOL_CATALOG } }, 200),
+        jsonTextResponse(
+          `{"jsonrpc":"2.0","id":${JSON.stringify(message.id)},"result":{"tools":${catalog}}}`,
+          200
+        ),
         rate
       ),
       cleanup: async () => {},
@@ -450,10 +496,7 @@ async function tryAnonymousDiscovery(
     };
   }
 
-  logger.info('Anonymous MCP discovery request', {
-    methods: messages.map((message) => message.method),
-    identity,
-  });
+  logAnonymousDiscoverySample(messages, identity);
 
   const lightweight = await tryLightweightAnonymousDiscovery(messages, rate, mppPaymentEnabled);
   if (lightweight) return lightweight;
@@ -601,23 +644,26 @@ export async function handleMcpHttpRequest(
   request: Request,
   options: McpHttpHandlerOptions = {}
 ): Promise<McpHttpHandlerResult> {
-  const normalized = await normalizeAcceptHeader(request);
   const x402Config = options.paymentRail === 'mpp' ? getX402Config() : null;
   const mppConfig = x402Config ? getMppConfig(x402Config) : null;
-  const authResult = await authenticateMcpRequest(normalized);
+  // Authentication uses headers/cookies only. Run it before accepting-header
+  // normalization so the common anonymous discovery path can parse a clone
+  // once and return directly, rather than buffering then rebuilding the
+  // original request only to parse it again.
+  const authResult = await authenticateMcpRequest(request);
 
   if (!authResult.success) {
-    if (normalized.method !== 'POST') {
+    if (request.method !== 'POST') {
       // CDP Bazaar's indexer probes the resource URL with GET and requires
       // the x402 402 challenge; real MCP clients asking for the GET SSE
       // stream keep the protocol-correct 405 below.
-      if (normalized.method === 'GET' && !sseRequested(normalized)) {
+      if (request.method === 'GET' && !sseRequested(request)) {
         // The x402 rail resolves its config lazily inside tryPaidToolCall;
         // the MPP rail already carries it above.
         const probeCfg = x402Config ?? getX402Config();
         if (probeCfg) {
           return {
-            response: await handleMcpIndexerQuote(normalized, probeCfg),
+            response: await handleMcpIndexerQuote(request, probeCfg),
             cleanup: async () => {},
           };
         }
@@ -627,10 +673,14 @@ export async function handleMcpHttpRequest(
         cleanup: async () => {},
       };
     }
-    const anonymous = await tryAnonymousDiscovery(normalized, Boolean(mppConfig?.mcpEnabled));
+    const anonymous = await tryAnonymousDiscovery(request, Boolean(mppConfig?.mcpEnabled));
     if (anonymous) {
       return anonymous;
     }
+    // The only remaining anonymous POSTs need the SDK transport (for example
+    // an x402 tools/call). Normalize their Accept header lazily so successful
+    // lightweight discovery did not allocate a second body buffer.
+    const normalized = await normalizeAcceptHeader(request);
     const paid =
       x402Config && mppConfig
         ? await tryMppPaidToolCall(normalized, x402Config, mppConfig)
@@ -643,6 +693,10 @@ export async function handleMcpHttpRequest(
       cleanup: async () => {},
     };
   }
+
+  // Authenticated requests use the full SDK transport, which requires the
+  // compatibility normalization above for JSON-only clients.
+  const normalized = await normalizeAcceptHeader(request);
 
   const rateLimit = await checkMcpRateLimit(authResult.auth);
   if (!rateLimit.allowed) {
