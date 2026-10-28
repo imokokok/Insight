@@ -5,7 +5,7 @@ import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
 import { assessExecutionPreflight } from '@/lib/preflight/executionPreflight';
 
-import { GET } from '../route';
+import { GET, HEAD } from '../route';
 
 jest.mock('next/server', () => {
   class NextResponse {
@@ -100,6 +100,14 @@ beforeEach(() => {
 });
 
 describe('execution-preflight route', () => {
+  it('rejects HEAD without entering the x402 payment dispatch', () => {
+    const response = HEAD();
+
+    expect(response.status).toBe(405);
+    expect(response.headers.get('allow')).toBe('GET, OPTIONS');
+    expect(mockHandleX402).not.toHaveBeenCalled();
+  });
+
   it('runs validated keyless x402 requests through the preflight callback and returns its decision', async () => {
     const request = makeRequest();
 

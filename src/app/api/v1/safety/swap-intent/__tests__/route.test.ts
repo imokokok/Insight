@@ -6,7 +6,7 @@ import { handlePaidPreTradeRequest, hasAuthCredentials } from '@/lib/api/x402/gu
 import { activateJourneyReceiptCredit } from '@/lib/tradeJourney/journeyService';
 import { createSwapIntent } from '@/lib/tradeJourney/swapIntent';
 
-import { GET } from '../route';
+import { GET, HEAD } from '../route';
 
 jest.mock('next/server', () => {
   class NextResponse extends Response {
@@ -94,6 +94,14 @@ beforeEach(() => {
     next: {},
   });
   mockActivateJourneyReceiptCredit.mockResolvedValue(undefined);
+});
+
+it('rejects HEAD without entering the x402 payment dispatch', () => {
+  const response = HEAD();
+
+  expect(response.status).toBe(405);
+  expect(response.headers.get('allow')).toBe('GET, POST, OPTIONS');
+  expect(mockHandlePaid).not.toHaveBeenCalled();
 });
 
 it('uses a discoverable x402 GET path and only unlocks its receipt after settlement', async () => {

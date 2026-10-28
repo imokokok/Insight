@@ -46,6 +46,13 @@ const PRE_TRADE_DEADLINE_MS = 45_000;
 
 export const OPTIONS = createOptionsHandler();
 
+// Paid safety decisions are exposed through GET (and CORS through OPTIONS).
+// Next.js otherwise delegates HEAD to GET, which would build a per-request
+// x402 quote for directory probes that cannot consume a response body.
+export function HEAD(): Response {
+  return new Response(null, { status: 405, headers: { Allow: 'GET, OPTIONS' } });
+}
+
 interface PreTradeCheckParams {
   query: z.infer<typeof PreTradeQuerySchema>;
   /** API-key path only; the keyless x402 tier has no key to meter. */
