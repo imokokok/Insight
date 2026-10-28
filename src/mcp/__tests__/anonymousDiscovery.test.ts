@@ -176,6 +176,9 @@ describe('anonymous MCP discovery', () => {
     const { response, cleanup } = await handleMcpHttpRequest(request);
 
     expect(response.status).toBe(200);
+    // Lightweight discovery parses a clone, so JSON-only clients avoid the
+    // former normalizeAcceptHeader body buffer/rebuild before this response.
+    expect(request.bodyUsed).toBe(false);
     const body = await readJson(response);
     expect((body.result as { serverInfo?: { name?: string } }).serverInfo?.name).toBe(
       'insight-oracle-mcp-server'
@@ -193,6 +196,7 @@ describe('anonymous MCP discovery', () => {
     const { response, cleanup } = await handleMcpHttpRequest(request);
 
     expect(response.status).toBe(200);
+    expect(request.bodyUsed).toBe(false);
     const body = await readJson(response);
     expect((body.result as { tools?: unknown[] }).tools).toBeDefined();
     await cleanup();

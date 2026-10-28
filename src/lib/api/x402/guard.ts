@@ -39,6 +39,29 @@ const X402_QUOTE_RATE_LIMIT = { windowMs: 60 * 60_000, maxRequests: 6 };
 // signature floods before they repeatedly reach the facilitator.
 const X402_PAYMENT_RATE_LIMIT = { windowMs: 60_000, maxRequests: 60 };
 
+// Unsigned quote requests are expected during client discovery and cannot
+// change payment state. Preserve a representative operational signal without
+// paying application-log CPU for every repeated probe. Signed rejections keep
+// their full log and audit trail below.
+const UNSIGNED_QUOTE_LOG_SAMPLE_EVERY = 100;
+let unsignedQuoteLogCount = 0;
+
+function logUnsignedQuoteSample(requestId: string, path: string): void {
+  unsignedQuoteLogCount += 1;
+  if (
+    unsignedQuoteLogCount !== 1 &&
+    unsignedQuoteLogCount % UNSIGNED_QUOTE_LOG_SAMPLE_EVERY !== 0
+  ) {
+    return;
+  }
+  logger.info('x402 payment quote issued', {
+    requestId,
+    path,
+    sampleEvery: UNSIGNED_QUOTE_LOG_SAMPLE_EVERY,
+    sampleOrdinal: unsignedQuoteLogCount,
+  });
+}
+
 /**
  * Request-path payment guard for the x402 keyless paid tier.
  *
@@ -525,11 +548,13 @@ export async function handlePaidPreTradeRequest(
         responseTimeMs: Date.now() - requestStartedAt,
         errorReason: 'facilitator_rejected_payment',
       });
+      logger.warn('x402 payment rejected', {
+        requestId,
+        path: request.nextUrl.pathname,
+      });
+    } else {
+      logUnsignedQuoteSample(requestId, request.nextUrl.pathname);
     }
-    logger.info('x402 payment required / rejected', {
-      requestId,
-      path: request.nextUrl.pathname,
-    });
     const response = toNextResponse(result.response);
     response.headers.set('X-Request-Id', requestId);
     return response;

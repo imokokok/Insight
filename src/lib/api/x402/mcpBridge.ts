@@ -18,6 +18,30 @@ import { getMcpX402HttpServer } from './resourceServer';
 
 const logger = createLogger('x402-mcp-bridge');
 
+// Directory crawlers legitimately ask for unsigned quotes before deciding to
+// pay. Sample those routine events, but keep every signed rejection and every
+// completed-payment lifecycle event visible to operators.
+const UNSIGNED_MCP_QUOTE_LOG_SAMPLE_EVERY = 100;
+let unsignedMcpQuoteLogCount = 0;
+
+function logUnsignedMcpQuoteSample(
+  event: 'indexer quote issued' | 'payment quote issued',
+  fields: { requestId: string; priceAtomic: string; toolName?: string }
+): void {
+  unsignedMcpQuoteLogCount += 1;
+  if (
+    unsignedMcpQuoteLogCount !== 1 &&
+    unsignedMcpQuoteLogCount % UNSIGNED_MCP_QUOTE_LOG_SAMPLE_EVERY !== 0
+  ) {
+    return;
+  }
+  logger.info(`x402 MCP ${event}`, {
+    ...fields,
+    sampleEvery: UNSIGNED_MCP_QUOTE_LOG_SAMPLE_EVERY,
+    sampleOrdinal: unsignedMcpQuoteLogCount,
+  });
+}
+
 /**
  * x402 pay-per-call bridge for the MCP streamable-HTTP endpoint.
  *
@@ -124,7 +148,7 @@ export async function handleMcpIndexerQuote(request: Request, cfg: X402Config): 
   // write without adding settlement evidence. Match the REST x402 guard:
   // audit signatures that were rejected and all verified/settled payments,
   // but leave an unsigned quote to request logs and edge metrics.
-  logger.info('x402 MCP indexer probe quote issued', { requestId, priceAtomic: price });
+  logUnsignedMcpQuoteSample('indexer quote issued', { requestId, priceAtomic: price });
   return attachRequestId(toResponse(result.response), requestId);
 }
 
@@ -229,7 +253,8 @@ export async function handleMcpPaidToolCall({
   runBusiness,
 }: McpPaidCallInput): Promise<Response> {
   const requestId = newRequestId();
-  const httpServer = await getMcpX402HttpServer(cfg, priceAtomicForTool(toolName));
+  const priceAtomic = priceAtomicForTool(toolName);
+  const httpServer = await getMcpX402HttpServer(cfg, priceAtomic);
   const requestStartedAt = Date.now();
   // Clone-read before the transport consumes the body in runBusiness.
   const reputation = await extractReputationOptIn(request, toolName);
@@ -242,11 +267,6 @@ export async function handleMcpPaidToolCall({
 
   if (result.type === 'payment-error') {
     const hasPaymentSignature = request.headers.has('payment-signature');
-    logger.info('x402 MCP payment required / rejected', {
-      requestId,
-      toolName,
-      priceAtomic: priceAtomicForTool(toolName),
-    });
     // A bare quote is not a billing event. It is especially common when a
     // catalog crawler is deciding whether to pay, so do not turn it into an
     // after()-scheduled Supabase insert. A signed but rejected request is
@@ -261,6 +281,9 @@ export async function handleMcpPaidToolCall({
         responseTimeMs: Date.now() - requestStartedAt,
         errorReason: 'facilitator_rejected_payment',
       });
+      logger.warn('x402 MCP payment rejected', { requestId, toolName, priceAtomic });
+    } else {
+      logUnsignedMcpQuoteSample('payment quote issued', { requestId, toolName, priceAtomic });
     }
     return attachRequestId(toResponse(result.response), requestId);
   }
