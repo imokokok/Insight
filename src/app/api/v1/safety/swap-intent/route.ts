@@ -24,6 +24,12 @@ import {
 export const maxDuration = 60;
 export const OPTIONS = createOptionsHandler();
 
+// A HEAD response has no receipt or intent semantics. Answer it before the
+// discoverable GET payment path so health probes do not issue x402 quotes.
+export function HEAD(): Response {
+  return new Response(null, { status: 405, headers: { Allow: 'GET, POST, OPTIONS' } });
+}
+
 function responseForIntent(
   result: Awaited<ReturnType<typeof createSwapIntent>>,
   requestId: string

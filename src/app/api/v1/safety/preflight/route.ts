@@ -21,6 +21,12 @@ export const maxDuration = 60;
 const PREFLIGHT_DEADLINE_MS = 45_000;
 export const OPTIONS = createOptionsHandler();
 
+// HEAD has no documented preflight semantics. Reject it before the GET
+// payment dispatch so availability probes cannot generate x402 quotes.
+export function HEAD(): Response {
+  return new Response(null, { status: 405, headers: { Allow: 'GET, OPTIONS' } });
+}
+
 type PreflightQuery = z.infer<typeof PreTradeQuerySchema>;
 
 function toPreflightInput(query: PreflightQuery) {
