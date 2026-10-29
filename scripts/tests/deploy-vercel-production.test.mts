@@ -120,6 +120,37 @@ test('cancels an obsolete hook build before creating and verifying the current d
   );
 });
 
+test('waits for an exact-SHA deployment when the accepted deploy hook response times out', async () => {
+  const building = deployment('BUILDING', {
+    buildingAt: undefined,
+    ready: undefined,
+    createdAt: 1_000_000,
+  });
+  const ready = deployment('READY', { aliasAssigned: 1, createdAt: 1_000_000 });
+  const setup = harness([[], [], [building], [ready]]);
+  const fetcher = setup.fetcher;
+  setup.fetcher = async (url, init) => {
+    if (String(url) === hookUrl) {
+      setup.requests.push({ url, init });
+      throw Object.assign(new Error('The operation was aborted due to timeout'), {
+        name: 'TimeoutError',
+      });
+    }
+    return fetcher(url, init);
+  };
+
+  const result = await deployVercelProduction({
+    hookUrl,
+    token: 'test-token',
+    commitSha,
+    ...setup,
+  });
+
+  assert.equal(result.mode, 'created');
+  assert.equal(result.id, 'dpl_test');
+  assert.equal(setup.requests.filter((request) => String(request.url) === hookUrl).length, 1);
+});
+
 test('does not cancel an active build that is not a main-branch deploy hook build', async () => {
   const unrelated = deployment('BUILDING', {
     uid: 'dpl_preview',
