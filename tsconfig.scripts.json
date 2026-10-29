@@ -21,6 +21,7 @@
     "scripts/dev-test-chainlink-market-reference.mts",
     "scripts/dev-testnet-server.mts",
     "scripts/migrations/generate-decision-input-assessment.mts",
+    "scripts/migrations/generate-adaptive-snapshot-persistence.mts",
     "scripts/rwa-action-preflight-readiness.mts",
     "scripts/collect-oracle-watch.ts",
     "scripts/collect-snapshot.ts",
