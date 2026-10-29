@@ -39,6 +39,18 @@ import { isSolanaPublicKey } from './solanaEncoding';
 let cached: x402HTTPResourceServer | null = null;
 let cachedKey = '';
 
+/**
+ * Optional, searchable service fields carried in the `resource` object of
+ * every Bazaar-enabled payment requirement. They let facilitator catalogs
+ * identify Insight consistently without changing a quote's price, payee, or
+ * execution semantics.
+ */
+export const BAZAAR_SERVICE_METADATA = {
+  serviceName: 'Insight Oracle',
+  tags: ['oracle-safety', 'defi', 'pre-trade', 'x402', 'agent'],
+  iconUrl: 'https://www.oracleinsight.xyz/logos/insight-glacier-cut.svg',
+};
+
 type SvmPaymentRequirements = Parameters<ExactSvmScheme['enhancePaymentRequirements']>[0];
 type SvmSupportedKind = Parameters<ExactSvmScheme['enhancePaymentRequirements']>[1];
 
@@ -545,6 +557,7 @@ function routeConfigFor(
     description,
     mimeType: 'application/json',
     accepts: acceptsFor(cfg),
+    ...BAZAAR_SERVICE_METADATA,
     extensions: extension,
     x402Version: 2,
   };
@@ -605,6 +618,7 @@ function mcpRouteConfigFor(cfg: X402Config, amountAtomic: string) {
       'MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Price scales with the tool metering class (C1..C4).',
     mimeType: 'application/json',
     accepts: acceptsFor(cfg, amountAtomic),
+    ...BAZAAR_SERVICE_METADATA,
     extensions: BAZAAR_MCP_DISCOVERY_EXTENSION,
     x402Version: 2,
   };
