@@ -42,6 +42,15 @@ export function projectIdFromHook(hookUrl: string) {
   return projectId;
 }
 
+function isRequestTimeout(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'name' in error &&
+    (error as { name?: unknown }).name === 'TimeoutError'
+  );
+}
+
 function deploymentTime(
   deployment: Deployment,
   key: 'createdAt' | 'created' | 'buildingAt' | 'ready'
@@ -327,27 +336,52 @@ export async function deployVercelProduction({
 
   let deployment = alreadyPromoted ?? activeCurrentBuild;
   if (!deployment) {
-    const hookResponse = await fetcher(hookUrl, {
-      method: 'POST',
-      signal: AbortSignal.timeout(30_000),
-    });
-    if (!hookResponse.ok) throw new Error(`Vercel deploy hook failed: HTTP ${hookResponse.status}`);
-    const hookBody: HookResponse = await hookResponse.json();
-    if (!hookBody.job?.id || !Number.isFinite(hookBody.job.createdAt)) {
-      throw new Error('Vercel deploy hook did not return a valid deployment job');
+    // Vercel can accept a deploy hook and start its build before the hook
+    // response reaches us. Retrying after a client-side timeout could create
+    // a duplicate production build, so discover the exact-SHA deployment
+    // instead and let the normal readiness polling verify it.
+    const hookRequestedAt = now();
+    try {
+      const hookResponse = await fetcher(hookUrl, {
+        method: 'POST',
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (!hookResponse.ok)
+        throw new Error(`Vercel deploy hook failed: HTTP ${hookResponse.status}`);
+      const hookBody: HookResponse = await hookResponse.json();
+      if (!hookBody.job?.id || !Number.isFinite(hookBody.job.createdAt)) {
+        throw new Error('Vercel deploy hook did not return a valid deployment job');
+      }
+      deployment = await waitForDeployment({
+        projectId,
+        token,
+        teamId,
+        commitSha,
+        since: hookBody.job.createdAt as number,
+        fetcher,
+        now,
+        sleep,
+        timeoutMs,
+        pollIntervalMs,
+      });
+    } catch (error) {
+      if (!isRequestTimeout(error)) throw error;
+      console.warn(
+        'Vercel deploy hook response timed out; waiting for the exact-SHA deployment without retrying.'
+      );
+      deployment = await waitForDeployment({
+        projectId,
+        token,
+        teamId,
+        commitSha,
+        since: hookRequestedAt,
+        fetcher,
+        now,
+        sleep,
+        timeoutMs,
+        pollIntervalMs,
+      });
     }
-    deployment = await waitForDeployment({
-      projectId,
-      token,
-      teamId,
-      commitSha,
-      since: hookBody.job.createdAt as number,
-      fetcher,
-      now,
-      sleep,
-      timeoutMs,
-      pollIntervalMs,
-    });
   } else if (!alreadyPromoted) {
     // A concurrent workflow_dispatch can reach here with the same SHA. Reuse
     // its Deploy Hook build rather than starting a duplicate remote build.
