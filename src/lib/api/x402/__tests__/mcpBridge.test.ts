@@ -60,8 +60,16 @@ function jsonRpcResult(result: unknown): Response {
   });
 }
 
-function input(runBusiness: () => Promise<Response>): McpPaidCallInput {
-  return { request: new Request('http://x/api/mcp'), cfg, toolName: 'get_symbols', runBusiness };
+function input(
+  runBusiness: () => Promise<Response>,
+  headers: HeadersInit | undefined = undefined
+): McpPaidCallInput {
+  return {
+    request: new Request('http://x/api/mcp', { headers }),
+    cfg,
+    toolName: 'get_symbols',
+    runBusiness,
+  };
 }
 
 describe('handleMcpPaidToolCall settlement gating', () => {
@@ -90,13 +98,19 @@ describe('handleMcpPaidToolCall settlement gating', () => {
 
   it('settles and audits a successful tool result', async () => {
     const res = await handleMcpPaidToolCall(
-      input(async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }))
+      input(async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }), {
+        'x-insight-entry-source': 'mcp',
+      })
     );
 
     expect(res.status).toBe(200);
     expect(fakeServer.processSettlement).toHaveBeenCalledTimes(1);
     expect(mockedRecord).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'settled', verdict: 'mcp:get_symbols' })
+      expect.objectContaining({
+        status: 'settled',
+        verdict: 'mcp:get_symbols',
+        acquisitionSource: 'mcp',
+      })
     );
     expect(res.headers.get('PAYMENT-RESPONSE')).toBe('c2V0dGxlZA==');
   });

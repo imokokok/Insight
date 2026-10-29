@@ -180,6 +180,9 @@ const DEFAULT_CORS_HEADERS = [
   // x402 v2 payment headers: browser-resident agents must be able to send the
   // signed payment on the retry, or their CORS preflight is rejected.
   'PAYMENT-SIGNATURE',
+  // Bounded, optional attribution for aggregate conversion analysis. It never
+  // conveys caller identity and has no effect on auth or payment handling.
+  'X-Insight-Entry-Source',
 ];
 
 export function getCorsHeaders(options: CorsOptions): Record<string, string> {

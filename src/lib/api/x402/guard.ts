@@ -62,6 +62,31 @@ function logUnsignedQuoteSample(requestId: string, path: string): void {
   });
 }
 
+export const X402_ACQUISITION_SOURCES = [
+  'direct',
+  'docs',
+  'bazaar',
+  'mcp',
+  'sdk',
+  'unknown',
+] as const;
+export type X402AcquisitionSource = (typeof X402_ACQUISITION_SOURCES)[number];
+
+/**
+ * Accept only a small, non-identifying attribution vocabulary. This label is
+ * advisory analytics metadata: it never controls access, prices, verification,
+ * or settlement, and it intentionally cannot carry a wallet, campaign ID, IP,
+ * user agent, or free-form client value.
+ */
+export function x402AcquisitionSource(
+  request: Pick<NextRequest, 'headers'>
+): X402AcquisitionSource {
+  const value = request.headers.get('x-insight-entry-source')?.trim().toLowerCase();
+  return X402_ACQUISITION_SOURCES.some((source) => source === value)
+    ? (value as X402AcquisitionSource)
+    : 'unknown';
+}
+
 /**
  * Request-path payment guard for the x402 keyless paid tier.
  *
@@ -226,6 +251,7 @@ export interface X402SettlementAudit {
   asset?: string;
   verdict?: string;
   errorReason?: string;
+  acquisitionSource?: X402AcquisitionSource;
 }
 
 const X402SettlementAuditSchema = z
@@ -257,6 +283,7 @@ const X402SettlementAuditSchema = z
     asset: z.string().max(64).optional(),
     verdict: z.string().max(128).optional(),
     errorReason: z.string().max(512).optional(),
+    acquisitionSource: z.enum(X402_ACQUISITION_SOURCES).optional(),
   })
   .strict()
   .superRefine((audit, context) => {
@@ -401,6 +428,7 @@ export function recordX402Settlement(audit: X402SettlementAudit): void {
           response_time_ms: validAudit.responseTimeMs ?? null,
           verdict: validAudit.verdict ?? null,
           error_reason: validAudit.errorReason ?? null,
+          acquisition_source: validAudit.acquisitionSource ?? 'unknown',
         })
         .abortSignal(AbortSignal.timeout(X402_AUDIT_TIMEOUT_MS));
       if (error) {
@@ -524,6 +552,7 @@ export async function handlePaidPreTradeRequest(
   if (rateLimited) return rateLimited;
 
   const requestId = newRequestId();
+  const acquisitionSource = x402AcquisitionSource(request);
   const httpServer = await getX402HttpServer(cfg);
   const requestStartedAt = Date.now();
 
@@ -547,6 +576,7 @@ export async function handlePaidPreTradeRequest(
         resource: request.nextUrl.pathname,
         responseTimeMs: Date.now() - requestStartedAt,
         errorReason: 'facilitator_rejected_payment',
+        acquisitionSource,
       });
       logger.warn('x402 payment rejected', {
         requestId,
@@ -579,6 +609,7 @@ export async function handlePaidPreTradeRequest(
     surface: 'rest',
     resource: request.nextUrl.pathname,
     responseTimeMs: Date.now() - requestStartedAt,
+    acquisitionSource,
   });
 
   // payment-verified: business first, settle only on 2xx.
@@ -595,6 +626,7 @@ export async function handlePaidPreTradeRequest(
       resource: request.nextUrl.pathname,
       responseTimeMs: Date.now() - businessStartedAt,
       errorReason: `handler_error:${error instanceof Error ? error.name : 'unknown'}`,
+      acquisitionSource,
     });
     throw error;
   }
@@ -611,6 +643,7 @@ export async function handlePaidPreTradeRequest(
       resource: request.nextUrl.pathname,
       responseTimeMs: Date.now() - businessStartedAt,
       errorReason: `handler_failed:${businessResponse.status}`,
+      acquisitionSource,
     });
     logger.info('x402 business response non-2xx, settlement skipped', {
       requestId,
@@ -627,6 +660,7 @@ export async function handlePaidPreTradeRequest(
     surface: 'rest',
     resource: request.nextUrl.pathname,
     responseTimeMs: Date.now() - businessStartedAt,
+    acquisitionSource,
   });
 
   const settlementStartedAt = Date.now();
@@ -674,6 +708,7 @@ export async function handlePaidPreTradeRequest(
       resource: request.nextUrl.pathname,
       responseTimeMs: Date.now() - settlementStartedAt,
       verdict,
+      acquisitionSource,
     });
     if (options?.onSettled) {
       const hookContext: SettledHookContext = {
@@ -712,6 +747,7 @@ export async function handlePaidPreTradeRequest(
       resource: request.nextUrl.pathname,
       responseTimeMs: Date.now() - settlementStartedAt,
       errorReason: settle.errorReason,
+      acquisitionSource,
     });
     logger.warn('x402 settlement failed after successful check', {
       requestId,

@@ -416,6 +416,54 @@ export default async function OpsX402Page({
 
       <OpsSectionHeading
         index="06"
+        title="Aggregate entry paths"
+        detail="Optional fixed labels show which documented or machine entry path reaches payment. They are not accounts, wallets, or customer identities; historical rows remain unknown."
+      />
+      <Card>
+        {x402.errored ? (
+          <EmptyState message="Entry-path breakdown unavailable" />
+        ) : x402.byAcquisitionSource.length === 0 ? (
+          <EmptyState message="No pay-per-call lifecycle events in this window" />
+        ) : (
+          <div className="ops-table-scroll overflow-x-auto">
+            <table className={tableCls}>
+              <thead>
+                <tr>
+                  {['Entry path', 'Quotes', 'Verified', 'Settled', 'Gross USDC'].map(
+                    (heading, index) => (
+                      <th
+                        key={heading}
+                        scope="col"
+                        className={`${thCls} ${index ? 'text-right' : ''}`}
+                      >
+                        {heading}
+                      </th>
+                    )
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {x402.byAcquisitionSource.map((row) => (
+                  <tr key={row.acquisitionSource} className={trCls}>
+                    <td className="py-2 pr-3 font-mono text-xs text-gray-700">
+                      {row.acquisitionSource}
+                    </td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{row.quotes}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{row.verified}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{row.settled}</td>
+                    <td className="py-2 pr-3 text-right font-mono tabular-nums">
+                      {formatUsdc(row.grossUsdc)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      <OpsSectionHeading
+        index="07"
         title="Recent lifecycle records"
         detail="The audit table includes request-stage rows and confirmed settlement details."
       />

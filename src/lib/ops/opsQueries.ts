@@ -737,6 +737,15 @@ export interface X402OpsNetworkSummary {
   grossUsdc: number;
 }
 
+/** Aggregate-only attribution; never a customer or wallet identity. */
+export interface X402OpsAcquisitionSourceSummary {
+  acquisitionSource: string;
+  quotes: number;
+  verified: number;
+  settled: number;
+  grossUsdc: number;
+}
+
 export interface X402OpsTrendPoint {
   hour: string;
   quotes: number;
@@ -766,6 +775,7 @@ export interface X402Ops {
   businessToSettlementPct: number | null;
   byResource: X402OpsResourceSummary[];
   byNetwork: X402OpsNetworkSummary[];
+  byAcquisitionSource: X402OpsAcquisitionSourceSummary[];
   byHour: X402OpsTrendPoint[];
   recent: X402OpsRow[];
   errored?: boolean;
@@ -785,6 +795,7 @@ interface X402OpsDbRow {
   tx_hash: string | null;
   response_time_ms: number | null;
   error_reason: string | null;
+  acquisition_source: string | null;
 }
 
 function asUsdc(value: number | string | null): number | null {
@@ -808,7 +819,7 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
     supabase
       .from('x402_settlements')
       .select(
-        'id, request_id, created_at, status, protocol, surface, resource, network, amount_usdc, payer, tx_hash, response_time_ms, error_reason'
+        'id, request_id, created_at, status, protocol, surface, resource, network, amount_usdc, payer, tx_hash, response_time_ms, error_reason, acquisition_source'
       )
       .gte('created_at', since)
       .order('created_at', { ascending: false })
@@ -818,7 +829,7 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
   const recentResult = await supabase
     .from('x402_settlements')
     .select(
-      'id, request_id, created_at, status, protocol, surface, resource, network, amount_usdc, payer, tx_hash, response_time_ms, error_reason'
+      'id, request_id, created_at, status, protocol, surface, resource, network, amount_usdc, payer, tx_hash, response_time_ms, error_reason, acquisition_source'
     )
     .gte('created_at', since)
     .order('created_at', { ascending: false })
@@ -845,6 +856,7 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
     businessToSettlementPct: null,
     byResource: [],
     byNetwork: [],
+    byAcquisitionSource: [],
     byHour: [],
     recent: [],
   };
@@ -899,6 +911,16 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
       businessFailed: Set<string>;
       settled: Set<string>;
       settlementFailed: Set<string>;
+      grossUsdc: number;
+    }
+  >();
+  const acquisitionSources = new Map<
+    string,
+    {
+      acquisitionSource: string;
+      quotes: Set<string>;
+      verified: Set<string>;
+      settled: Set<string>;
       grossUsdc: number;
     }
   >();
@@ -973,6 +995,22 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
     }
     if (row.status === 'settlement_failed') networkGroup.settlementFailed.add(row.request_id);
     networks.set(network, networkGroup);
+
+    const acquisitionSource = row.acquisition_source ?? 'unknown';
+    const acquisitionGroup = acquisitionSources.get(acquisitionSource) ?? {
+      acquisitionSource,
+      quotes: new Set<string>(),
+      verified: new Set<string>(),
+      settled: new Set<string>(),
+      grossUsdc: 0,
+    };
+    if (row.status === 'quote_issued') acquisitionGroup.quotes.add(row.request_id);
+    if (row.status === 'payment_verified') acquisitionGroup.verified.add(row.request_id);
+    if (row.status === 'settled') {
+      acquisitionGroup.settled.add(row.request_id);
+      acquisitionGroup.grossUsdc += asUsdc(row.amount_usdc) ?? 0;
+    }
+    acquisitionSources.set(acquisitionSource, acquisitionGroup);
 
     const hour = new Date(row.created_at).toISOString().slice(0, 13);
     const trend = hours.get(hour) ?? { hour, quotes: 0, verified: 0, settled: 0, grossUsdc: 0 };
@@ -1068,6 +1106,21 @@ export async function getX402Ops(windowHours = 24): Promise<X402Ops> {
           b.settled - a.settled ||
           b.verified - a.verified ||
           a.network.localeCompare(b.network)
+      ),
+    byAcquisitionSource: Array.from(acquisitionSources.values())
+      .map((group) => ({
+        acquisitionSource: group.acquisitionSource,
+        quotes: group.quotes.size,
+        verified: group.verified.size,
+        settled: group.settled.size,
+        grossUsdc: roundTo(group.grossUsdc, 6),
+      }))
+      .sort(
+        (a, b) =>
+          b.grossUsdc - a.grossUsdc ||
+          b.settled - a.settled ||
+          b.verified - a.verified ||
+          a.acquisitionSource.localeCompare(b.acquisitionSource)
       ),
     byHour: Array.from(hours.values()).sort((a, b) => a.hour.localeCompare(b.hour)),
     recent,

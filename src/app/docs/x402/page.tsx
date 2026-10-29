@@ -84,7 +84,8 @@ const METERING_CLASSES = [
 ];
 
 const curlCode = `# Call without credentials: HTTP 402 with a PAYMENT-REQUIRED quote header
-curl -sD - -o /dev/null "${ENDPOINT}" \\
+# The fixed entry label is optional aggregate attribution, never an identity.
+curl -sD - -o /dev/null -H 'X-Insight-Entry-Source: docs' "${ENDPOINT}" \\
   | grep -i '^payment-required' | cut -d' ' -f2- | base64 --decode | jq
 
 # Example Base option from the decoded quote:
@@ -106,7 +107,9 @@ const client = new x402Client().register(
 );
 const fetchWithPay = wrapFetchWithPayment(fetch, client);
 
-const res = await fetchWithPay('${ENDPOINT}');
+const res = await fetchWithPay('${ENDPOINT}', {
+  headers: { 'X-Insight-Entry-Source': 'docs' },
+});
 const check = await res.json();
 console.log(check.verdict, check.recommendedMaxPositionUsd);
 // This covers standard EIP-3009 EVM options. BNB Chain uses the AEON mandate
@@ -129,7 +132,9 @@ const client = new x402Client().register(
 const fetchWithPay = wrapFetchWithPayment(fetch, client);
 
 // The API may advertise configured EVM and Solana options. This client selects Solana.
-const res = await fetchWithPay('${ENDPOINT}');
+const res = await fetchWithPay('${ENDPOINT}', {
+  headers: { 'X-Insight-Entry-Source': 'docs' },
+});
 const check = await res.json();
 console.log(check.verdict, check.recommendedMaxPositionUsd);
 // Keep the signing key in a server-side or constrained signing service.`;
@@ -172,7 +177,7 @@ async def main():
     client = x402Client()
     register_exact_evm_client(client, EthAccountSigner(account))
     async with x402HttpxClient(client) as http:
-        response = await http.get(URL)
+        response = await http.get(URL, headers={"X-Insight-Entry-Source": "docs"})
         await response.aread()
         print(response.text)  # verdict JSON, payment settled automatically
 
@@ -196,6 +201,7 @@ const res = await fetchWithPay('${MCP_ENDPOINT}', {
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json, text/event-stream',
+    'X-Insight-Entry-Source': 'docs',
   },
   body: JSON.stringify(rpcBody),
 });

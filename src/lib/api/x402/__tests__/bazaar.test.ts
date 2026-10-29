@@ -6,6 +6,7 @@ import {
 import {
   BAZAAR_DISCOVERY_EXTENSION,
   BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION,
+  BAZAAR_SERVICE_METADATA,
   BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION,
 } from '../resourceServer';
 
@@ -53,6 +54,14 @@ const enrichedGet = {
 };
 
 describe('bazaar discovery extension', () => {
+  it('declares searchable service metadata for every Bazaar-enabled resource', () => {
+    expect(BAZAAR_SERVICE_METADATA).toEqual({
+      serviceName: 'Insight Oracle',
+      tags: ['oracle-safety', 'defi', 'pre-trade', 'x402', 'agent'],
+      iconUrl: 'https://www.oracleinsight.xyz/logos/insight-glacier-cut.svg',
+    });
+  });
+
   it('declares the bazaar key as the only extension entry', () => {
     expect(Object.keys(BAZAAR_DISCOVERY_EXTENSION)).toEqual(['bazaar']);
   });

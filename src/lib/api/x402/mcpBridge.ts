@@ -12,6 +12,7 @@ import {
   logBazaarExtensionStatus,
   paymentAuditFields,
   recordX402Settlement,
+  x402AcquisitionSource,
   x402ResponseBody,
 } from './guard';
 import { getMcpX402HttpServer } from './resourceServer';
@@ -255,6 +256,7 @@ export async function handleMcpPaidToolCall({
   const requestId = newRequestId();
   const priceAtomic = priceAtomicForTool(toolName);
   const httpServer = await getMcpX402HttpServer(cfg, priceAtomic);
+  const acquisitionSource = x402AcquisitionSource(request);
   const requestStartedAt = Date.now();
   // Clone-read before the transport consumes the body in runBusiness.
   const reputation = await extractReputationOptIn(request, toolName);
@@ -280,6 +282,7 @@ export async function handleMcpPaidToolCall({
         resource: `mcp:${toolName}`,
         responseTimeMs: Date.now() - requestStartedAt,
         errorReason: 'facilitator_rejected_payment',
+        acquisitionSource,
       });
       logger.warn('x402 MCP payment rejected', { requestId, toolName, priceAtomic });
     } else {
@@ -308,6 +311,7 @@ export async function handleMcpPaidToolCall({
     surface: 'mcp',
     resource: `mcp:${toolName}`,
     responseTimeMs: Date.now() - requestStartedAt,
+    acquisitionSource,
   });
 
   // payment-verified: dispatch first, settle only on success.
@@ -324,6 +328,7 @@ export async function handleMcpPaidToolCall({
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - businessStartedAt,
       errorReason: `handler_error:${error instanceof Error ? error.name : 'unknown'}`,
+      acquisitionSource,
     });
     throw error;
   }
@@ -342,6 +347,7 @@ export async function handleMcpPaidToolCall({
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - businessStartedAt,
       errorReason: toolFailed ? `handler_failed:${businessResponse.status}` : 'mcp_tool_error',
+      acquisitionSource,
     });
     logger.info('x402 MCP business failed, settlement skipped', {
       requestId,
@@ -359,6 +365,7 @@ export async function handleMcpPaidToolCall({
     surface: 'mcp',
     resource: `mcp:${toolName}`,
     responseTimeMs: Date.now() - businessStartedAt,
+    acquisitionSource,
   });
 
   const settlementStartedAt = Date.now();
@@ -389,6 +396,7 @@ export async function handleMcpPaidToolCall({
       responseTimeMs: Date.now() - settlementStartedAt,
       // Reuse the verdict column to record which MCP tool was paid for.
       verdict: `mcp:${toolName}`,
+      acquisitionSource,
     });
 
     if (reputation.optedIn && reputation.agentId != null) {
@@ -421,6 +429,7 @@ export async function handleMcpPaidToolCall({
       resource: `mcp:${toolName}`,
       responseTimeMs: Date.now() - settlementStartedAt,
       errorReason: settle.errorReason,
+      acquisitionSource,
     });
     logger.warn('x402 MCP settlement failed after successful tool call', {
       requestId,
