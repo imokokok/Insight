@@ -7,16 +7,29 @@
  * sequential coverage probes. Requires SUPABASE_URL and
  * SUPABASE_SERVICE_ROLE_KEY from the workflow environment.
  */
-import {
-  collectCoverageSlo,
-  getCoverageAlertChanges,
-  getCoverageSlo,
-} from '@/lib/coverage/collector';
 import { createRequestDeadline, RequestDeadlineExceededError } from '@/lib/utils/requestDeadline';
+import { format } from 'node:util';
 
 const COVERAGE_RUNNER_DEADLINE_MS = 225_000;
 
+/**
+ * The workflow parses stdout as one JSON document. Application modules emit
+ * useful startup diagnostics through console methods while they are imported,
+ * so isolate those diagnostics on stderr before loading them.
+ */
+function sendDiagnosticsToStderr(): void {
+  const writeDiagnostic = (...args: unknown[]) => {
+    process.stderr.write(`${format(...args)}\n`);
+  };
+
+  console.log = writeDiagnostic;
+  console.info = writeDiagnostic;
+  console.warn = writeDiagnostic;
+  console.debug = writeDiagnostic;
+}
+
 async function main(): Promise<void> {
+  sendDiagnosticsToStderr();
   const deadline = createRequestDeadline(
     undefined,
     COVERAGE_RUNNER_DEADLINE_MS,
@@ -24,6 +37,8 @@ async function main(): Promise<void> {
   );
 
   try {
+    const { collectCoverageSlo, getCoverageAlertChanges, getCoverageSlo } =
+      await import('@/lib/coverage/collector');
     const targets = await collectCoverageSlo({ signal: deadline.signal });
     const summary = await getCoverageSlo(24, { signal: deadline.signal });
     const { newFailures, recoveries } = await getCoverageAlertChanges(targets, summary, {
