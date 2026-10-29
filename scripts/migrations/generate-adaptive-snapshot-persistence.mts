@@ -397,7 +397,7 @@ COMMIT;
 
 const repositoryRoot = new URL('../../', import.meta.url);
 const outputPath = fileURLToPath(
-  new URL('supabase/migrations/0105_adaptive_snapshot_persistence.sql', repositoryRoot)
+  new URL('supabase/migrations/0106_adaptive_snapshot_persistence.sql', repositoryRoot)
 );
 const args = new Set(process.argv.slice(2));
 const write = args.has('--write');
@@ -413,7 +413,7 @@ if (write) {
   const current = await readFile(outputPath, 'utf8');
   if (current !== migrationSql) {
     throw new Error(
-      '0105_adaptive_snapshot_persistence.sql is stale; regenerate it from this TypeScript source.'
+      '0106_adaptive_snapshot_persistence.sql is stale; regenerate it from this TypeScript source.'
     );
   }
 }
