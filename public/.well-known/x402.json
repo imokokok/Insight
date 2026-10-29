@@ -90,6 +90,90 @@
       ]
     },
     {
+      "url": "https://www.oracleinsight.xyz/api/v1/safety/monad-lending-guard",
+      "method": "GET",
+      "description": "Monad Lending Guard: a read-only, pre-signing decision for direct Aave V3 Monad calls or exact Morpho Blue Monad markets. GET returns a preview; POST binds one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.",
+      "accepts": [
+        {
+          "scheme": "exact",
+          "network": "eip155:8453",
+          "amount": "20000",
+          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:137",
+          "amount": "20000",
+          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:42161",
+          "amount": "20000",
+          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USD Coin",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:143",
+          "amount": "20000",
+          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:56",
+          "amount": "20000000000000000",
+          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+          "assetSymbol": "USDC",
+          "assetDecimals": 18,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60
+        },
+        {
+          "scheme": "exact",
+          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+          "amount": "20000",
+          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
+          }
+        }
+      ]
+    },
+    {
       "url": "https://www.oracleinsight.xyz/api/mcp",
       "method": "POST",
       "description": "MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Amount shown is the C3 anchor ($0.02, e.g. pre_trade_safety_check); the live 402 quote prices each call from its tool metering class (C1=2000, C2=8000, C3=20000, C4=40000 atomic).",
@@ -177,5 +261,5 @@
   "attestation": {
     "type": "none"
   },
-  "updated": "2026-10-20T00:00:00Z"
+  "updated": "2026-10-30T00:00:00Z"
 }
