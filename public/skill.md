@@ -33,7 +33,23 @@ Parameters:
 
 Unauthenticated calls receive `HTTP 402` with a base64url `PAYMENT-REQUIRED` header (x402 v2). Sign one `accepts[]` entry and retry with the payment header.
 
-### 2. MCP: tools/call over Streamable HTTP
+### 2. HTTP: Monad Lending Guard
+
+```
+GET https://www.oracleinsight.xyz/api/v1/safety/monad-lending-guard
+    ?protocolId=aave-v3-monad
+    &action=borrow
+    &collateralSymbol=WETH
+    &loanSymbol=USDC
+    &collateralValueUsd=10000
+    &debtValueUsd=4000
+```
+
+This is a read-only, pre-signing decision gate for direct Aave V3 Monad calls or exact Morpho Blue Monad markets. Required query parameters are `protocolId` (`aave-v3-monad` or `morpho-blue-monad`), `action` (`supply` or `borrow`), `collateralSymbol`, `loanSymbol`, `collateralValueUsd`, and `debtValueUsd`; add the immutable `marketId` for Morpho. The response is an `ALLOW`, `CAUTION`, or `BLOCK` decision based on live protocol controls and separate collateral/debt oracle evidence. It never authorizes, signs, relays, or broadcasts a transaction.
+
+`POST` to the same endpoint may bind that assessment to one caller-built unsigned direct Monad call and return an EIP-712 decision attestation when an eligible Insight attester is configured. The attestation remains non-authorizing.
+
+### 3. MCP: tools/call over Streamable HTTP
 
 ```
 POST https://www.oracleinsight.xyz/api/mcp
@@ -41,7 +57,7 @@ POST https://www.oracleinsight.xyz/api/mcp
 
 JSON-RPC `tools/call` access to the Insight tool catalog for x402-aware MCP clients. Each call is priced by its tool metering class; the 402 challenge carries the live quote.
 
-### 3. Hyperliquid perpetual execution loop (MCP)
+### 4. Hyperliquid perpetual execution loop (MCP)
 
 For reviewed `BTC`, `ETH`, and `HYPE` perpetuals, use the MCP tools in this order:
 
