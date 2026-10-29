@@ -5,6 +5,7 @@ import type {
   SafetyVerdict,
   TradeAction,
 } from '@/lib/api/services/preTradeSafetyService';
+import type { X402AcquisitionSource } from '@/lib/api/x402/guard';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -51,6 +52,8 @@ export interface CreateJourneyInput {
   venueClaim?: string;
   routerClaim?: string;
   receiptCreditState: ReceiptCreditState;
+  /** Fixed, non-identifying source label used only for aggregate conversion analysis. */
+  acquisitionSource?: X402AcquisitionSource;
 }
 
 export interface CreatedJourney {
@@ -138,6 +141,7 @@ export async function createJourney(input: CreateJourneyInput): Promise<CreatedJ
       venue_claim: input.venueClaim ?? null,
       router_claim: input.routerClaim ?? null,
       receipt_credit_state: input.receiptCreditState,
+      acquisition_source: input.acquisitionSource ?? 'unknown',
       payment_request_id: input.requestId,
       outcome_token_hash: tokenHash(outcomeToken),
     })
@@ -382,6 +386,8 @@ export function nextActions(input: {
   verdict: SafetyVerdict;
   receiptCreditState: ReceiptCreditState;
   receiptRequestTemplate?: Record<string, unknown>;
+  contributingFactors?: PreTradeSafetyResult['contributingFactors'];
+  recommendedActions?: PreTradeSafetyResult['recommendedActions'];
 }): Record<string, unknown> {
   const outcome = {
     url: '/api/v1/trade-journeys/outcome',
@@ -391,6 +397,34 @@ export function nextActions(input: {
       'This is the caller’s voluntary non-execution report, not evidence that no on-chain transaction occurred.',
   };
   if (input.kind === 'pre_trade') {
+    const cautionRecovery =
+      input.verdict === 'CAUTION'
+        ? {
+            state: 'RECHECK_BEFORE_EXECUTION',
+            instruction:
+              'Do not execute from a CAUTION result alone. Recheck immediately before execution with the same trade parameters and the original attestation references, then decide from the fresh verdict.',
+            recheck: {
+              url: '/api/v1/safety/pre-trade/recheck',
+              method: 'POST',
+              required: [
+                'asset',
+                'chainId',
+                'action',
+                'tradeAmountUsd',
+                'originalUid',
+                'originalRequestHash',
+              ],
+              note: 'Copy these fields from this check and its signed attestation. A recheck creates a separate, fresh attestation; it never mutates the original.',
+            },
+            triggers: (input.contributingFactors ?? [])
+              .filter((factor) => factor.triggeredVerdict === 'CAUTION')
+              .slice(0, 3)
+              .map((factor) => ({ rule: factor.rule, message: factor.message })),
+            ...(input.recommendedActions && input.recommendedActions.length > 0
+              ? { lendingActions: input.recommendedActions }
+              : {}),
+          }
+        : undefined;
     return {
       journeyId: input.journeyId,
       closeWith: 'swap_intent',
@@ -407,10 +441,13 @@ export function nextActions(input: {
         note: 'A basic check is advisory only. A verified swap receipt needs two signed gates.',
       },
       outcome,
+      ...(cautionRecovery ? { cautionRecovery } : {}),
       recommendation:
         input.verdict === 'PASS'
           ? 'Use Swap Intent before execution when you need a transaction-verifiable outcome.'
-          : 'Recheck or inspect risk evidence before deciding whether to execute.',
+          : input.verdict === 'CAUTION'
+            ? 'Recheck immediately before execution; inspect the listed CAUTION triggers and wait for a fresh PASS or apply the returned lending action.'
+            : 'Do not execute until the risk evidence is remediated and a fresh check permits it.',
     };
   }
   return {
