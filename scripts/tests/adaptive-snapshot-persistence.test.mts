@@ -62,7 +62,7 @@ test('adaptive snapshot persistence keeps core resolution and suppresses stable 
       );
     `);
     const migration = await readFile(
-      new URL('../../supabase/migrations/0105_adaptive_snapshot_persistence.sql', import.meta.url),
+      new URL('../../supabase/migrations/0106_adaptive_snapshot_persistence.sql', import.meta.url),
       'utf8'
     );
     await db.exec(migration);
