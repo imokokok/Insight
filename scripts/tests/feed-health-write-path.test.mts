@@ -32,6 +32,19 @@ test('feed-health success writes are throttled without delaying failure recovery
       'utf8'
     );
     await db.exec(migration);
+    const ioBudgetMigration = await readFile(
+      new URL('../../supabase/migrations/0101_reduce_realtime_health_io.sql', import.meta.url),
+      'utf8'
+    );
+    await db.exec(ioBudgetMigration);
+    const hourlyHeartbeatMigration = await readFile(
+      new URL(
+        '../../supabase/migrations/0102_reduce_healthy_feed_heartbeat_io.sql',
+        import.meta.url
+      ),
+      'utf8'
+    );
+    await db.exec(hourlyHeartbeatMigration);
     await db.exec('SET ROLE service_role');
 
     const at = '2026-10-25T15:00:00.000Z';
@@ -52,7 +65,7 @@ test('feed-health success writes are throttled without delaying failure recovery
           'dia',
           'ETH',
           1,
-          '2026-10-25T15:14:59.999Z',
+          '2026-10-25T15:29:59.999Z',
         ])
       ).rows,
       [{ wrote: false }]
@@ -63,14 +76,10 @@ test('feed-health success writes are throttled without delaying failure recovery
           'dia',
           'ETH',
           1,
-          '2026-10-25T15:15:00.001Z',
+          '2026-10-25T15:30:00.001Z',
         ])
       ).rows,
-      [{ wrote: true }]
-    );
-
-    await db.exec(
-      "UPDATE oracle_feeds SET consecutive_failures=3,last_failure_at='2026-10-25T15:16:00Z' WHERE provider='dia'"
+      [{ wrote: false }]
     );
     assert.deepEqual(
       (
@@ -78,7 +87,22 @@ test('feed-health success writes are throttled without delaying failure recovery
           'dia',
           'ETH',
           1,
-          '2026-10-25T15:16:01Z',
+          '2026-10-25T16:00:00.001Z',
+        ])
+      ).rows,
+      [{ wrote: true }]
+    );
+
+    await db.exec(
+      "UPDATE oracle_feeds SET consecutive_failures=3,last_failure_at='2026-10-25T16:01:00Z' WHERE provider='dia'"
+    );
+    assert.deepEqual(
+      (
+        await db.query('SELECT touch_oracle_feed_success($1,$2,$3,$4::timestamptz) AS wrote', [
+          'dia',
+          'ETH',
+          1,
+          '2026-10-25T16:01:01Z',
         ])
       ).rows,
       [{ wrote: true }]
@@ -89,7 +113,7 @@ test('feed-health success writes are throttled without delaying failure recovery
           "SELECT consecutive_failures,(last_success_at AT TIME ZONE 'UTC')::text AS success FROM oracle_feeds WHERE provider='dia'"
         )
       ).rows,
-      [{ consecutive_failures: 0, success: '2026-10-25 15:16:01' }]
+      [{ consecutive_failures: 0, success: '2026-10-25 16:01:01' }]
     );
 
     const payload = JSON.stringify({
@@ -104,7 +128,14 @@ test('feed-health success writes are throttled without delaying failure recovery
       [{ updated: 0 }]
     );
     await db.query(
-      "UPDATE oracle_feeds SET last_success_at=clock_timestamp()-interval '16 minutes' WHERE provider='dia'"
+      "UPDATE oracle_feeds SET last_success_at=clock_timestamp()-interval '31 minutes' WHERE provider='dia'"
+    );
+    assert.deepEqual(
+      (await db.query('SELECT batch_update_feed_health($1::jsonb) AS updated', [payload])).rows,
+      [{ updated: 0 }]
+    );
+    await db.query(
+      "UPDATE oracle_feeds SET last_success_at=clock_timestamp()-interval '61 minutes' WHERE provider='dia'"
     );
     assert.deepEqual(
       (await db.query('SELECT batch_update_feed_health($1::jsonb) AS updated', [payload])).rows,

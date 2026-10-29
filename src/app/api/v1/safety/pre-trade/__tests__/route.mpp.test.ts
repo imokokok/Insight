@@ -17,7 +17,7 @@ import {
   recordJourneyPayment,
 } from '@/lib/tradeJourney/journeyService';
 
-import { GET } from '../route';
+import { GET, HEAD } from '../route';
 
 jest.mock('next/server', () => {
   class NextResponse {
@@ -156,6 +156,15 @@ beforeEach(() => {
 });
 
 describe('pre-trade route MPP dispatch', () => {
+  it('rejects HEAD without entering either payment rail', () => {
+    const response = HEAD();
+
+    expect(response.status).toBe(405);
+    expect(response.headers.get('allow')).toBe('GET, OPTIONS');
+    expect(mockHandleMpp).not.toHaveBeenCalled();
+    expect(mockHandleX402).not.toHaveBeenCalled();
+  });
+
   it('dispatches MPP credentials through MPP and executes the validated business callback', async () => {
     const request = makeRequest({ authorization: 'Payment credential=abc' });
 

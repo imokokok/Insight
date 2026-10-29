@@ -693,6 +693,9 @@
             "type": "string",
             "enum": [
               "chainlink",
+              "pyth",
+              "stork",
+              "chronicle",
               "api3",
               "redstone",
               "dia",
@@ -753,7 +756,8 @@
               "stellar",
               "flare",
               "supra-chain",
-              "bandchain"
+              "bandchain",
+              "monad"
             ]
           },
           "forceRefresh": {
@@ -820,7 +824,8 @@
               "stellar",
               "flare",
               "supra-chain",
-              "bandchain"
+              "bandchain",
+              "monad"
             ]
           },
           "method": {
@@ -851,6 +856,9 @@
               "type": "string",
               "enum": [
                 "chainlink",
+                "pyth",
+                "stork",
+                "chronicle",
                 "api3",
                 "redstone",
                 "dia",
@@ -1035,6 +1043,9 @@
                   "type": "string",
                   "enum": [
                     "chainlink",
+                    "pyth",
+                    "stork",
+                    "chronicle",
                     "api3",
                     "redstone",
                     "dia",
@@ -1095,7 +1106,8 @@
                     "stellar",
                     "flare",
                     "supra-chain",
-                    "bandchain"
+                    "bandchain",
+                    "monad"
                   ]
                 }
               },
@@ -1124,6 +1136,9 @@
             "type": "string",
             "enum": [
               "chainlink",
+              "pyth",
+              "stork",
+              "chronicle",
               "api3",
               "redstone",
               "dia",
@@ -1184,7 +1199,8 @@
               "stellar",
               "flare",
               "supra-chain",
-              "bandchain"
+              "bandchain",
+              "monad"
             ]
           },
           "period": {
@@ -1213,6 +1229,9 @@
             "type": "string",
             "enum": [
               "chainlink",
+              "pyth",
+              "stork",
+              "chronicle",
               "api3",
               "redstone",
               "dia",
@@ -1273,7 +1292,8 @@
               "stellar",
               "flare",
               "supra-chain",
-              "bandchain"
+              "bandchain",
+              "monad"
             ]
           }
         },
@@ -1341,6 +1361,9 @@
             "type": "string",
             "enum": [
               "chainlink",
+              "pyth",
+              "stork",
+              "chronicle",
               "api3",
               "redstone",
               "dia",
@@ -1377,6 +1400,9 @@
             "type": "string",
             "enum": [
               "chainlink",
+              "pyth",
+              "stork",
+              "chronicle",
               "api3",
               "redstone",
               "dia",
@@ -1453,6 +1479,9 @@
             "type": "string",
             "enum": [
               "chainlink",
+              "pyth",
+              "stork",
+              "chronicle",
               "api3",
               "redstone",
               "dia",
@@ -1510,6 +1539,9 @@
             "type": "string",
             "enum": [
               "chainlink",
+              "pyth",
+              "stork",
+              "chronicle",
               "api3",
               "redstone",
               "dia",
@@ -1565,6 +1597,9 @@
             "type": "string",
             "enum": [
               "chainlink",
+              "pyth",
+              "stork",
+              "chronicle",
               "api3",
               "redstone",
               "dia",
@@ -1619,6 +1654,9 @@
             "type": "string",
             "enum": [
               "chainlink",
+              "pyth",
+              "stork",
+              "chronicle",
               "api3",
               "redstone",
               "dia",
@@ -1712,6 +1750,1193 @@
       }
     },
     {
+      "name": "get_monad_dex_market",
+      "description": "Get fresh, block-pinned Monad Uniswap V3 WMON/USDC market evidence: spot, 15-minute TWAP, active liquidity, executable quote ladder, and finalized rolling volume. This is a single-venue DEX market source, not an oracle-consensus price.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_hanji_monad_market",
+      "description": "Get fresh Hanji Monad MON/USDC CLOB context: code-pinned orderbook and fast-quoter proxy identities, proxy implementation identities, L2 spread, displayed depth, and bounded two-sided book-impact estimates. It is read-only venue context, not an oracle-consensus price or executable order quote.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_base_dex_market",
+      "description": "Get fresh, block-pinned Base Uniswap V3 WETH/USDC market evidence: spot, 30-minute TWAP, active liquidity, and executable quote ladder. This is one DEX venue, not an oracle-consensus price.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_base_dex_venue_integrations",
+      "description": "Get block-pinned code-identity evidence for reviewed Base DEX deployments: Aerodrome Slipstream, PancakeSwap V3, Curve StableSwap, Maverick V2, QuickSwap V2 and Algebra V4, Uniswap V4, and PancakeSwap Infinity. The response distinguishes currently enabled unsigned-calldata lanes from venues that remain read-only until their pool-specific model, hook/plugin, and tests are reviewed.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "venues": {
+            "description": "Optional reviewed Base venues to inspect; defaults to every reviewed venue",
+            "minItems": 1,
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "aerodrome-slipstream",
+                "pancakeswap-v3",
+                "curve-stableswap",
+                "maverick-v2",
+                "quickswap-v2",
+                "quickswap-algebra-v4",
+                "uniswap-v4",
+                "pancakeswap-infinity"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_aerodrome_slipstream_market",
+      "description": "Get fresh, block-pinned market evidence for one allowlisted Aerodrome Slipstream Base pool. The pool’s Factory, QuoterV2, and runtime code identities are re-verified at the quoted block. This is DEX venue context, not an oracle-consensus price.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "description": "Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100",
+            "type": "string",
+            "enum": ["base-aerodrome-slipstream-weth-usdc-cl100"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "prepare_aerodrome_slipstream_swap",
+      "description": "Prepare a user-signable exact-input swap against one allowlisted Base Aerodrome Slipstream pool. The tool takes a reviewed profile id, exact input amount, recipient, short deadline, and slippage bound; then obtains a pinned quote and re-verifies the Factory, QuoterV2, Pool, and Router identities. It returns unsigned approval and swap calldata only. Insight never receives a key, signs, relays, or broadcasts a transaction.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "description": "Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100",
+            "type": "string",
+            "enum": ["base-aerodrome-slipstream-weth-usdc-cl100"]
+          },
+          "amountIn": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^(?:0\\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\\.[0-9]+)?)$",
+            "description": "Exact WETH input amount; the tool never handles native ETH"
+          },
+          "recipient": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "description": "USDC recipient encoded into the unsigned router transaction"
+          },
+          "deadlineUnixSeconds": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "User-selected Unix deadline, no more than 30 minutes ahead"
+          },
+          "maxSlippageBps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9999,
+            "description": "Maximum shortfall versus the pinned quote, encoded as amountOutMinimum"
+          }
+        },
+        "required": ["amountIn", "recipient", "deadlineUnixSeconds", "maxSlippageBps"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_pancakeswap_v3_market",
+      "description": "Get fresh, block-pinned market evidence for one allowlisted PancakeSwap V3 Base pool. The Factory, QuoterV2, and Pool runtime identities are re-verified at the quoted block. This is DEX venue context, not an oracle-consensus price.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "description": "Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%",
+            "type": "string",
+            "enum": ["base-pancakeswap-v3-usdc-usdt-100"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "prepare_pancakeswap_v3_swap",
+      "description": "Prepare a user-signable exact-input swap against one allowlisted Base PancakeSwap V3 pool. Insight obtains a pinned quote and re-verifies the Factory, QuoterV2, Pool, and Router runtime identities before returning unsigned approval and swap calldata. It never receives a key, signs, relays, or broadcasts a transaction.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "description": "Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%",
+            "type": "string",
+            "enum": ["base-pancakeswap-v3-usdc-usdt-100"]
+          },
+          "amountIn": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^(?:0\\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\\.[0-9]+)?)$",
+            "description": "Exact USDC input amount; the tool never handles native ETH or reverse direction"
+          },
+          "recipient": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$",
+            "description": "USDT recipient"
+          },
+          "deadlineUnixSeconds": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "description": "User-selected short Unix deadline"
+          },
+          "maxSlippageBps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9999,
+            "description": "Maximum quote shortfall in bps"
+          }
+        },
+        "required": ["amountIn", "recipient", "deadlineUnixSeconds", "maxSlippageBps"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_quickswap_v2_market",
+      "description": "Get fresh, block-pinned Base QuickSwap V2 USDC/USDT market evidence: factory/router/pair identities, reserves, spot, and a bounded exact-input quote ladder. This is one reviewed pair, not an oracle-consensus price or a generic QuickSwap route.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "profileId": {
+            "description": "Reviewed QuickSwap V2 pair id; defaults to Base USDC/USDT",
+            "type": "string",
+            "enum": ["base-quickswap-v2-usdc-usdt"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_solana_dex_route",
+      "description": "Get fresh Jupiter SOL/USDC exact-input route evidence: quote ladder, price impact, selected AMM route, quote context slot, and finalized Solana RPC witness. It is a route quote, not a simulated or guaranteed swap.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_hyperliquid_perp_market",
+      "description": "Get fresh Hyperliquid mainnet perpetual-market evidence for a reviewed BTC, ETH, or HYPE market: mark/oracle divergence, funding, open interest, 24-hour notional volume, L2 spread, displayed depth, and two-sided book-impact estimates. It is read-only CLOB context, not an oracle-consensus price or executable exchange quote.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "market": {
+            "description": "Reviewed Hyperliquid perpetual market: BTC, ETH, or HYPE. Defaults to BTC.",
+            "type": "string",
+            "enum": ["BTC", "ETH", "HYPE"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "prepare_hyperliquid_perp_order",
+      "description": "Prepare a reviewed BTC, ETH, or HYPE Hyperliquid perpetual IOC order for LOCAL user/agent-wallet signing. Validates live asset metadata, lot/tick rules, caller notional cap, mark-oracle divergence, and displayed-L2 fill/impact bounds. Returns an unsigned, short-expiry exchange envelope only when every gate passes. Insight never creates a nonce, receives a key, signs, or submits an order.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "market": {
+            "type": "string",
+            "enum": ["BTC", "ETH", "HYPE"]
+          },
+          "side": {
+            "type": "string",
+            "enum": ["buy", "sell"]
+          },
+          "size": {
+            "type": "string",
+            "maxLength": 80,
+            "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+          },
+          "limitPrice": {
+            "type": "string",
+            "maxLength": 80,
+            "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+          },
+          "reduceOnly": {
+            "type": "boolean"
+          },
+          "clientOrderId": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{32}$"
+          },
+          "maxNotionalUsd": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000000000
+          },
+          "maxPriceImpactBps": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "maxMarkOracleDeviationBps": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "requireFullFill": {
+            "type": "boolean"
+          },
+          "expiresAfterSeconds": {
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 120
+          }
+        },
+        "required": [
+          "market",
+          "side",
+          "size",
+          "limitPrice",
+          "reduceOnly",
+          "clientOrderId",
+          "maxNotionalUsd",
+          "maxPriceImpactBps",
+          "maxMarkOracleDeviationBps"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "verify_hyperliquid_perp_execution",
+      "description": "Read and verify the public Hyperliquid status and bounded fill history for one user-signed reviewed BTC, ETH, or HYPE perp order. Compares the returned order and fills to the expected client-order-id intent. This is an observed Info-API record, not an Insight signature, a wallet authorization, or a trade submission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "orderId": {
+            "type": "string",
+            "pattern": "^(?:[1-9][0-9]{0,19}|0x[0-9a-fA-F]{32})$"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "expectedOrder": {
+            "type": "object",
+            "properties": {
+              "market": {
+                "type": "string",
+                "enum": ["BTC", "ETH", "HYPE"]
+              },
+              "side": {
+                "type": "string",
+                "enum": ["buy", "sell"]
+              },
+              "size": {
+                "type": "string",
+                "maxLength": 80,
+                "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+              },
+              "limitPrice": {
+                "type": "string",
+                "maxLength": 80,
+                "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+              },
+              "reduceOnly": {
+                "type": "boolean"
+              },
+              "clientOrderId": {
+                "type": "string",
+                "pattern": "^0x[0-9a-fA-F]{32}$"
+              }
+            },
+            "required": ["market", "side", "size", "limitPrice", "reduceOnly", "clientOrderId"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["user", "orderId", "submittedAt", "expectedOrder"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "base_lending_guard",
+      "description": "Read-only Base lending pre-signing gate for Aave V3, an exact Morpho Blue market, Compound V3 USDC Comet, or reviewed Moonwell markets. Separately evaluates collateral and loan oracle integrity, checks caller-declared post-action LTV against live protocol parameters, and returns ALLOW / CAUTION / BLOCK. It never signs, broadcasts, or authorizes a transaction; bind a successful decision to an exact user-authorized transaction separately.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "protocolId": {
+            "type": "string",
+            "enum": ["aave-v3-base", "morpho-blue-base", "compound-v3-base", "moonwell-base"]
+          },
+          "action": {
+            "type": "string",
+            "enum": ["supply", "borrow"]
+          },
+          "collateralSymbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+          },
+          "loanSymbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+          },
+          "collateralValueUsd": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000
+          },
+          "debtValueUsd": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "marketId": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{64}$"
+          }
+        },
+        "required": [
+          "protocolId",
+          "action",
+          "collateralSymbol",
+          "loanSymbol",
+          "collateralValueUsd",
+          "debtValueUsd"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "base_lending_guard_exact_call",
+      "description": "Create portable Insight risk evidence for one exact unsigned direct Aave V3, Morpho Blue, Compound V3, or reviewed Moonwell Base supply/borrow call. It verifies target, selector, token or market binding, sender, nonce and zero value, then returns a short-lived EIP-712 decision when Insight signing is configured. It never authorizes, signs, or broadcasts the transaction; bind an ALLOW through PriorSeal or another user-authorization system.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "guard": {
+            "type": "object",
+            "properties": {
+              "protocolId": {
+                "type": "string",
+                "enum": ["aave-v3-base", "morpho-blue-base", "compound-v3-base", "moonwell-base"]
+              },
+              "action": {
+                "type": "string",
+                "enum": ["supply", "borrow"]
+              },
+              "collateralSymbol": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+              },
+              "loanSymbol": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+              },
+              "collateralValueUsd": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1000000000000
+              },
+              "debtValueUsd": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000000000000
+              },
+              "marketId": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{64}$"
+              }
+            },
+            "required": [
+              "protocolId",
+              "action",
+              "collateralSymbol",
+              "loanSymbol",
+              "collateralValueUsd",
+              "debtValueUsd"
+            ],
+            "additionalProperties": false
+          },
+          "transaction": {
+            "type": "object",
+            "properties": {
+              "chainId": {
+                "type": "number",
+                "const": 8453
+              },
+              "from": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{40}$"
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{40}$"
+              },
+              "data": {
+                "type": "string",
+                "pattern": "^0x(?:[a-fA-F0-9]{2})+$"
+              },
+              "nonce": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^0$|^[1-9][0-9]*$"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                ]
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^0$|^[1-9][0-9]*$"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                ]
+              }
+            },
+            "required": ["chainId", "from", "to", "data", "nonce"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["guard", "transaction"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "monad_lending_guard",
+      "description": "Read-only Monad lending pre-signing gate for direct Aave V3 or an exact Morpho Blue market. Separately evaluates collateral and loan oracle integrity, checks caller-declared post-action LTV against live protocol parameters, and returns ALLOW / CAUTION / BLOCK. It never signs, broadcasts, or authorizes a transaction; bind a successful decision to an exact user-authorized transaction separately.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "protocolId": {
+            "type": "string",
+            "enum": ["aave-v3-monad", "morpho-blue-monad"]
+          },
+          "action": {
+            "type": "string",
+            "enum": ["supply", "borrow"]
+          },
+          "collateralSymbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+          },
+          "loanSymbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+          },
+          "collateralValueUsd": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "debtValueUsd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "marketId": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{64}$"
+          }
+        },
+        "required": [
+          "protocolId",
+          "action",
+          "collateralSymbol",
+          "loanSymbol",
+          "collateralValueUsd",
+          "debtValueUsd"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "monad_lending_guard_exact_call",
+      "description": "Create portable Insight risk evidence for one exact unsigned direct Aave V3 Monad or Morpho Blue Monad supply/borrow call. It verifies target, selector, token or market binding, sender, nonce and zero value, then returns a short-lived EIP-712 decision when Insight signing is configured. It never authorizes, signs, or broadcasts the transaction; bind an ALLOW through PriorSeal or another user-authorization system.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "guard": {
+            "type": "object",
+            "properties": {
+              "protocolId": {
+                "type": "string",
+                "enum": ["aave-v3-monad", "morpho-blue-monad"]
+              },
+              "action": {
+                "type": "string",
+                "enum": ["supply", "borrow"]
+              },
+              "collateralSymbol": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+              },
+              "loanSymbol": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+              },
+              "collateralValueUsd": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "debtValueUsd": {
+                "type": "number",
+                "minimum": 0
+              },
+              "marketId": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{64}$"
+              }
+            },
+            "required": [
+              "protocolId",
+              "action",
+              "collateralSymbol",
+              "loanSymbol",
+              "collateralValueUsd",
+              "debtValueUsd"
+            ],
+            "additionalProperties": false
+          },
+          "transaction": {
+            "type": "object",
+            "properties": {
+              "chainId": {
+                "type": "number",
+                "const": 143
+              },
+              "from": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{40}$"
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{40}$"
+              },
+              "data": {
+                "type": "string",
+                "pattern": "^0x(?:[a-fA-F0-9]{2})+$"
+              },
+              "nonce": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^0$|^[1-9][0-9]*$"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                ]
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^0$|^[1-9][0-9]*$"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                ]
+              }
+            },
+            "required": ["chainId", "from", "to", "data", "nonce"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["guard", "transaction"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "multichain_evm_lending_guard",
+      "description": "Read-only lending pre-signing gate for reviewed Base, Polygon, Arbitrum, and BNB Chain deployments: Aave V3, Venus Core, Compound V3, Dolomite, Morpho Blue, Lista Moolah, Euler v2, and Fluid T1. Euler borrowing is accepted only as the reviewed four-step EVC batch; Dolomite only as one sender-owned account with one direct deposit or borrow; Fluid T1 only as collateral-only supply into a factory-authenticated vault. The tool checks caller-declared post-action values against live protocol state and independent oracle evidence, then returns ALLOW / CAUTION / BLOCK. It never signs, broadcasts, or authorizes a transaction.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "chainId": {
+            "anyOf": [
+              {
+                "type": "number",
+                "const": 8453
+              },
+              {
+                "type": "number",
+                "const": 137
+              },
+              {
+                "type": "number",
+                "const": 42161
+              },
+              {
+                "type": "number",
+                "const": 56
+              }
+            ]
+          },
+          "protocolId": {
+            "type": "string",
+            "enum": [
+              "aave-v3-polygon",
+              "aave-v3-arbitrum",
+              "aave-v3-bnb",
+              "venus-core-bnb",
+              "compound-v3-arbitrum",
+              "morpho-blue-polygon",
+              "morpho-blue-arbitrum",
+              "lista-moolah-bnb",
+              "euler-v2-base",
+              "euler-v2-arbitrum",
+              "dolomite-arbitrum",
+              "fluid-vault-t1-base",
+              "fluid-vault-t1-arbitrum"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": ["supply", "borrow"]
+          },
+          "collateralSymbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+          },
+          "loanSymbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+          },
+          "collateralValueUsd": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000
+          },
+          "debtValueUsd": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "marketId": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{64}$"
+          },
+          "marketAddress": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{40}$"
+          },
+          "collateralVaultAddress": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{40}$"
+          },
+          "collateralMarketId": {
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]*)$"
+          },
+          "loanMarketId": {
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]*)$"
+          },
+          "accountNumber": {
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]*)$"
+          }
+        },
+        "required": [
+          "chainId",
+          "protocolId",
+          "action",
+          "collateralSymbol",
+          "loanSymbol",
+          "collateralValueUsd",
+          "debtValueUsd"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "multichain_evm_lending_guard_exact_call",
+      "description": "Create portable Insight evidence for one exact unsigned direct reviewed EVM lending call on Base, Polygon, Arbitrum, or BNB Chain. It binds target, calldata, sender, nonce, value, protocol market, and short-lived Insight signature when configured. It never authorizes, signs, relays, or broadcasts the transaction; use PriorSeal for user authorization.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "guard": {
+            "type": "object",
+            "properties": {
+              "chainId": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "const": 8453
+                  },
+                  {
+                    "type": "number",
+                    "const": 137
+                  },
+                  {
+                    "type": "number",
+                    "const": 42161
+                  },
+                  {
+                    "type": "number",
+                    "const": 56
+                  }
+                ]
+              },
+              "protocolId": {
+                "type": "string",
+                "enum": [
+                  "aave-v3-polygon",
+                  "aave-v3-arbitrum",
+                  "aave-v3-bnb",
+                  "venus-core-bnb",
+                  "compound-v3-arbitrum",
+                  "morpho-blue-polygon",
+                  "morpho-blue-arbitrum",
+                  "lista-moolah-bnb",
+                  "euler-v2-base",
+                  "euler-v2-arbitrum",
+                  "dolomite-arbitrum",
+                  "fluid-vault-t1-base",
+                  "fluid-vault-t1-arbitrum"
+                ]
+              },
+              "action": {
+                "type": "string",
+                "enum": ["supply", "borrow"]
+              },
+              "collateralSymbol": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+              },
+              "loanSymbol": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+              },
+              "collateralValueUsd": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1000000000000
+              },
+              "debtValueUsd": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000000000000
+              },
+              "marketId": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{64}$"
+              },
+              "marketAddress": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{40}$"
+              },
+              "collateralVaultAddress": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{40}$"
+              },
+              "collateralMarketId": {
+                "type": "string",
+                "pattern": "^(?:0|[1-9][0-9]*)$"
+              },
+              "loanMarketId": {
+                "type": "string",
+                "pattern": "^(?:0|[1-9][0-9]*)$"
+              },
+              "accountNumber": {
+                "type": "string",
+                "pattern": "^(?:0|[1-9][0-9]*)$"
+              }
+            },
+            "required": [
+              "chainId",
+              "protocolId",
+              "action",
+              "collateralSymbol",
+              "loanSymbol",
+              "collateralValueUsd",
+              "debtValueUsd"
+            ],
+            "additionalProperties": false
+          },
+          "transaction": {
+            "type": "object",
+            "properties": {
+              "chainId": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "const": 8453
+                  },
+                  {
+                    "type": "number",
+                    "const": 137
+                  },
+                  {
+                    "type": "number",
+                    "const": 42161
+                  },
+                  {
+                    "type": "number",
+                    "const": 56
+                  }
+                ]
+              },
+              "from": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{40}$"
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^0x[a-fA-F0-9]{40}$"
+              },
+              "data": {
+                "type": "string",
+                "pattern": "^0x(?:[a-fA-F0-9]{2})+$"
+              },
+              "nonce": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^0$|^[1-9][0-9]*$"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                ]
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^0$|^[1-9][0-9]*$"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                ]
+              }
+            },
+            "required": ["chainId", "from", "to", "data", "nonce"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["guard", "transaction"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "solana_lending_guard",
+      "description": "Create portable Insight risk evidence for exactly one unsigned direct Kamino Lend, Marginfi v2, Jupiter Lend Earn deposit, or Save Lend reserve-liquidity deposit instruction on Solana mainnet. Save additionally verifies the submitted asset mint against the live source SPL token account. It accepts no transaction authority, verifies reviewed program-owned accounts, simulates the full unsigned message, checks both assets’ oracle evidence, and returns ALLOW / CAUTION / BLOCK. An ALLOW still needs a separately user-authorized PriorSeal binding before execution.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "guard": {
+            "type": "object",
+            "properties": {
+              "protocolId": {
+                "type": "string",
+                "enum": [
+                  "kamino-lend",
+                  "marginfi-v2",
+                  "jupiter-lend-earn",
+                  "save-lend",
+                  "loopscale-vault"
+                ]
+              },
+              "action": {
+                "type": "string",
+                "enum": ["supply", "borrow"]
+              },
+              "collateralSymbol": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+              },
+              "loanSymbol": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+              },
+              "collateralValueUsd": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1000000000000
+              },
+              "debtValueUsd": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000000000000
+              },
+              "assetMint": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "protocolId",
+              "action",
+              "collateralSymbol",
+              "loanSymbol",
+              "collateralValueUsd",
+              "debtValueUsd"
+            ],
+            "additionalProperties": false
+          },
+          "transaction": {
+            "type": "object",
+            "properties": {
+              "network": {
+                "type": "string",
+                "const": "mainnet-beta"
+              },
+              "messageVersion": {
+                "type": "string",
+                "enum": ["legacy", "v0"]
+              },
+              "feePayer": {
+                "type": "string"
+              },
+              "recentBlockhash": {
+                "type": "string"
+              },
+              "header": {
+                "type": "object",
+                "properties": {
+                  "numRequiredSignatures": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 32
+                  },
+                  "numReadonlySignedAccounts": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 32
+                  },
+                  "numReadonlyUnsignedAccounts": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 255
+                  }
+                },
+                "required": [
+                  "numRequiredSignatures",
+                  "numReadonlySignedAccounts",
+                  "numReadonlyUnsignedAccounts"
+                ],
+                "additionalProperties": false
+              },
+              "accountKeys": {
+                "minItems": 1,
+                "maxItems": 256,
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "addressTableLookups": {
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "accountKey": {
+                      "type": "string"
+                    },
+                    "writableIndexes": {
+                      "maxItems": 256,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                      }
+                    },
+                    "readonlyIndexes": {
+                      "maxItems": 256,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                      }
+                    }
+                  },
+                  "required": ["accountKey", "writableIndexes", "readonlyIndexes"],
+                  "additionalProperties": false
+                }
+              },
+              "loadedAddresses": {
+                "type": "object",
+                "properties": {
+                  "writable": {
+                    "maxItems": 256,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "readonly": {
+                    "maxItems": 256,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["writable", "readonly"],
+                "additionalProperties": false
+              },
+              "instructions": {
+                "minItems": 1,
+                "maxItems": 64,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "programIdIndex": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    "accountIndexes": {
+                      "maxItems": 64,
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                      }
+                    },
+                    "data": {
+                      "type": "string",
+                      "maxLength": 8192,
+                      "pattern": "^[1-9A-HJ-NP-Za-km-z]*$"
+                    }
+                  },
+                  "required": ["programIdIndex", "accountIndexes", "data"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "network",
+              "messageVersion",
+              "feePayer",
+              "recentBlockhash",
+              "header",
+              "accountKeys",
+              "addressTableLookups",
+              "loadedAddresses",
+              "instructions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": ["guard", "transaction"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "loopscale_vault_deposit",
+      "description": "Build a single Solana mainnet Loopscale lending-vault deposit with Loopscale’s official production API, verify the live vault and principal mint, resolve every address lookup table, simulate the exact unsigned message, check oracle evidence, and return short-lived Insight evidence for PriorSeal. It does not sign, authorize, or broadcast. Deposit bundles requiring preliminary transactions are rejected rather than partially attested.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "wallet": {
+            "type": "string"
+          },
+          "vault": {
+            "type": "string"
+          },
+          "assetMint": {
+            "type": "string"
+          },
+          "collateralSymbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+          },
+          "loanSymbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+          },
+          "collateralValueUsd": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000
+          },
+          "principalAmount": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "minLpAmount": {
+            "default": "0",
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]*)$"
+          }
+        },
+        "required": [
+          "wallet",
+          "vault",
+          "assetMint",
+          "collateralSymbol",
+          "loanSymbol",
+          "collateralValueUsd",
+          "principalAmount",
+          "minLpAmount"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "check_position_safety",
       "description": "Check the safety of a DeFi lending position against oracle deviation stress tests. Supports multi-asset or single-asset positions.",
       "inputSchema": {
@@ -1790,7 +3015,7 @@
     },
     {
       "name": "pre_trade_safety_check",
-      "description": "Pre-trade oracle safety checkpoint for AI agents. Call this BEFORE executing any on-chain swap/borrow/lend/liquidation/repay to assess oracle risk. Aggregates cross-oracle consensus prices, per-provider deviation, data freshness, stablecoin peg status, and reputation into a single verdict: PASS / CAUTION / DANGER / BLOCK. AI agents MUST NOT execute trades when the verdict is DANGER or BLOCK. Also returns a recommended maximum position size. A PASS is not principal authorization or a guarantee of price correctness or economic safety.",
+      "description": "Pre-trade decision-input integrity checkpoint for AI agents. Call this BEFORE executing any on-chain swap/borrow/lend/liquidation/repay to verify that the price the action relies on can be trusted. First assessment domain: oracle risk — aggregates cross-oracle consensus prices, per-provider deviation, data freshness, stablecoin peg status, and reputation into a single verdict. An optional decisionInput object adds a separate Chainlink/CEX/DEX input-sufficiency assessment against the caller-supplied venue quote and explicit limits, with an independently verifiable EIP-712 signature when signing is enabled; it never changes the verdict. Verdicts are PASS / CAUTION / DANGER / BLOCK. AI agents MUST NOT execute trades when the verdict is DANGER or BLOCK. Also returns a recommended maximum position size. A PASS is not principal authorization or a guarantee of price correctness or economic safety.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -1821,6 +3046,9 @@
               "type": "string",
               "enum": [
                 "chainlink",
+                "pyth",
+                "stork",
+                "chronicle",
                 "api3",
                 "redstone",
                 "dia",
@@ -1893,7 +3121,8 @@
               "stellar",
               "flare",
               "supra-chain",
-              "bandchain"
+              "bandchain",
+              "monad"
             ]
           }
         },
@@ -1956,7 +3185,8 @@
               "stellar",
               "flare",
               "supra-chain",
-              "bandchain"
+              "bandchain",
+              "monad"
             ]
           },
           "days": {
@@ -2083,8 +3313,234 @@
       }
     },
     {
+      "name": "execution_preflight",
+      "description": "Action-facing, chain-neutral data-sufficiency gate for an intended swap, borrow, lend, liquidation, or repay. It composes Insight’s strict multi-oracle pre-trade assessment with an optional fresh venue-quote assessment into ALLOW / CAUTION / BLOCK, lists the exact missing evidence, and returns the underlying signed assessment when available. It evaluates data sufficiency only — never contract safety, custody, profitability, or transaction execution. Monad is a first-class profile using on-chain Pyth Core evidence; set targetProviders to [\"pyth\"] for a low-latency native snapshot, which remains CAUTION under the strict quorum policy until independent evidence is present. Other supported chains use their configured oracle adapters.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "asset": {
+            "type": "string",
+            "description": "Asset symbol being traded, e.g. BTC, ETH, USDC"
+          },
+          "chainId": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "Chain ID where the trade executes, e.g. 1=Ethereum, 42161=Arbitrum, 8453=Base. Use 0 for chain-agnostic."
+          },
+          "action": {
+            "type": "string",
+            "enum": ["swap", "borrow", "lend", "liquidate", "repay"]
+          },
+          "tradeAmountUsd": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Trade size in USD"
+          },
+          "targetProviders": {
+            "description": "Optional: restrict the check to specific oracle providers",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "chainlink",
+                "pyth",
+                "stork",
+                "chronicle",
+                "api3",
+                "redstone",
+                "dia",
+                "winklink",
+                "supra",
+                "twap",
+                "reflector",
+                "flare",
+                "band"
+              ]
+            }
+          },
+          "destinationAsset": {
+            "description": "Optional destination asset for the intended route",
+            "type": "string"
+          },
+          "protocolId": {
+            "description": "Optional protocol identifier for lending actions",
+            "type": "string"
+          },
+          "tokenAddress": {
+            "description": "Optional 20-byte EVM token address for advisory token-security evidence",
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "decisionInput": {
+            "description": "Optional fresh venue quote and explicit limits. This evidence is required for an ALLOW result; without it a healthy oracle result remains CAUTION.",
+            "type": "object",
+            "properties": {
+              "decisionPriceUsd": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "quotePriceUsd": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "quoteObservedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              "maxReferenceDeviationBps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "maxSlippageBps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "maxQuoteAgeSeconds": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 300
+              },
+              "quoteProvenance": {
+                "type": "object",
+                "properties": {
+                  "schemaVersion": {
+                    "type": "number",
+                    "const": 1
+                  },
+                  "sourceId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.:-]{1,160}$"
+                  },
+                  "rightsScope": {
+                    "type": "string",
+                    "enum": [
+                      "synthetic",
+                      "onchain",
+                      "customer-authorized",
+                      "vendor-licensed",
+                      "research-quarantined"
+                    ]
+                  },
+                  "captureMethod": {
+                    "type": "string",
+                    "enum": ["client-held", "onchain-read"]
+                  },
+                  "asset": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_.:-]{1,80}$"
+                  },
+                  "chainId": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "quotePriceUsd": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "observedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "requestHash": {
+                    "type": "string",
+                    "pattern": "^0x[0-9a-fA-F]{64}$"
+                  },
+                  "responseHash": {
+                    "type": "string",
+                    "pattern": "^0x[0-9a-fA-F]{64}$"
+                  }
+                },
+                "required": [
+                  "schemaVersion",
+                  "sourceId",
+                  "rightsScope",
+                  "captureMethod",
+                  "asset",
+                  "chainId",
+                  "quotePriceUsd",
+                  "observedAt",
+                  "requestHash",
+                  "responseHash"
+                ],
+                "additionalProperties": false
+              },
+              "requireQuoteProvenance": {
+                "type": "boolean"
+              },
+              "reviewedUniswapV3": {
+                "description": "Optional strict reviewed-pool lane. Admits Monad MON/WMON→USDC and Base ETH/WETH→USDC through Uniswap V3, plus Base USDC→USDT through PancakeSwap V3; only the reviewed forward directions are admitted and all other routes fail closed.",
+                "type": "object",
+                "properties": {
+                  "amountIn": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "pattern": "^(?:0\\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\\.[0-9]+)?)$",
+                    "description": "Exact source-token amount for the reviewed concentrated-liquidity quote"
+                  },
+                  "maxQuoteDeviationBps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000
+                  },
+                  "maxTwapDeviationBps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000
+                  }
+                },
+                "required": ["amountIn", "maxQuoteDeviationBps", "maxTwapDeviationBps"],
+                "additionalProperties": false
+              },
+              "reviewedAerodromeSlipstream": {
+                "description": "Optional strict reviewed-pool lane. Only WETH/USDC on Base through the reviewed Aerodrome Slipstream CL100 pool is admitted; unsupported routes fail closed.",
+                "type": "object",
+                "properties": {
+                  "amountIn": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "pattern": "^(?:0\\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\\.[0-9]+)?)$",
+                    "description": "Exact WETH amount for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 quote"
+                  },
+                  "maxQuoteDeviationBps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000
+                  },
+                  "maxTwapDeviationBps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000
+                  }
+                },
+                "required": ["amountIn", "maxQuoteDeviationBps", "maxTwapDeviationBps"],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "decisionPriceUsd",
+              "quotePriceUsd",
+              "quoteObservedAt",
+              "maxReferenceDeviationBps",
+              "maxSlippageBps",
+              "maxQuoteAgeSeconds"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": ["asset", "chainId", "action", "tradeAmountUsd"],
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "agent_begin_trade",
-      "description": "Obtain oracle assessment evidence for a swap/DeFi intent BEFORE trading. Insight runs the oracle safety check and, if the verdict is PASS/CAUTION, returns a machine-readable \"execution certification handle\": preTradeUid, requestHash, CAIP-19 asset ids, the certified price (destination per source) and maxSlippageBps, plus participant/source-group counts and the pre-trade signing time. Execute the trade with YOUR wallet, then call execution_receipt with this handle + txHash to obtain the signed, verifiable Execution Receipt. If the verdict is DANGER or BLOCK this tool refuses (do not trade). This is oracle assessment evidence, not principal authorization — pair it with execution_receipt.",
+      "description": "Obtain oracle assessment evidence for a swap/DeFi intent BEFORE trading. Insight runs the oracle safety check and, if the verdict is PASS/CAUTION, returns a machine-readable \"execution certification handle\": preTradeUid, requestHash, CAIP-19 asset ids, the certified price (destination per source) and maxSlippageBps, plus a required operation-input check for both asset legs and a fresh Uniswap V3 on-chain route quote cross-checked by two Ethereum RPCs. If either input assessment is not SUFFICIENT, either route quote is stale or outside policy, or either oracle gate blocks, no execution handle is issued. The assessments are independently EIP-712 signed and linked to the receipt through both pre-trade UIDs. participant/source-group counts and the pre-trade signing time. Execute the trade with YOUR wallet, then call execution_receipt with this handle + txHash to obtain the signed, verifiable Execution Receipt. If the verdict is DANGER or BLOCK this tool refuses (do not trade). This is oracle assessment evidence, not principal authorization — pair it with execution_receipt.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -2124,6 +3580,9 @@
               "type": "string",
               "enum": [
                 "chainlink",
+                "pyth",
+                "stork",
+                "chronicle",
                 "api3",
                 "redstone",
                 "dia",
@@ -2145,6 +3604,243 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 9007199254740991
+          },
+          "decisionInput": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "object",
+                "properties": {
+                  "decisionPriceUsd": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "quotePriceUsd": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "quoteObservedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "maxReferenceDeviationBps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000
+                  },
+                  "maxSlippageBps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 50
+                  },
+                  "maxQuoteAgeSeconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 300
+                  },
+                  "quoteProvenance": {
+                    "type": "object",
+                    "properties": {
+                      "schemaVersion": {
+                        "type": "number",
+                        "const": 1
+                      },
+                      "sourceId": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9_.:-]{1,160}$"
+                      },
+                      "rightsScope": {
+                        "type": "string",
+                        "enum": [
+                          "synthetic",
+                          "onchain",
+                          "customer-authorized",
+                          "vendor-licensed",
+                          "research-quarantined"
+                        ]
+                      },
+                      "captureMethod": {
+                        "type": "string",
+                        "enum": ["client-held", "onchain-read"]
+                      },
+                      "asset": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9_.:-]{1,80}$"
+                      },
+                      "chainId": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "quotePriceUsd": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "observedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      "requestHash": {
+                        "type": "string",
+                        "pattern": "^0x[0-9a-fA-F]{64}$"
+                      },
+                      "responseHash": {
+                        "type": "string",
+                        "pattern": "^0x[0-9a-fA-F]{64}$"
+                      }
+                    },
+                    "required": [
+                      "schemaVersion",
+                      "sourceId",
+                      "rightsScope",
+                      "captureMethod",
+                      "asset",
+                      "chainId",
+                      "quotePriceUsd",
+                      "observedAt",
+                      "requestHash",
+                      "responseHash"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "decisionPriceUsd",
+                  "quotePriceUsd",
+                  "quoteObservedAt",
+                  "maxReferenceDeviationBps",
+                  "maxSlippageBps",
+                  "maxQuoteAgeSeconds",
+                  "quoteProvenance"
+                ],
+                "additionalProperties": false
+              },
+              "destination": {
+                "type": "object",
+                "properties": {
+                  "decisionPriceUsd": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "quotePriceUsd": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "quoteObservedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "maxReferenceDeviationBps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000
+                  },
+                  "maxSlippageBps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 50
+                  },
+                  "maxQuoteAgeSeconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 300
+                  },
+                  "quoteProvenance": {
+                    "type": "object",
+                    "properties": {
+                      "schemaVersion": {
+                        "type": "number",
+                        "const": 1
+                      },
+                      "sourceId": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9_.:-]{1,160}$"
+                      },
+                      "rightsScope": {
+                        "type": "string",
+                        "enum": [
+                          "synthetic",
+                          "onchain",
+                          "customer-authorized",
+                          "vendor-licensed",
+                          "research-quarantined"
+                        ]
+                      },
+                      "captureMethod": {
+                        "type": "string",
+                        "enum": ["client-held", "onchain-read"]
+                      },
+                      "asset": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9_.:-]{1,80}$"
+                      },
+                      "chainId": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "quotePriceUsd": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "observedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      "requestHash": {
+                        "type": "string",
+                        "pattern": "^0x[0-9a-fA-F]{64}$"
+                      },
+                      "responseHash": {
+                        "type": "string",
+                        "pattern": "^0x[0-9a-fA-F]{64}$"
+                      }
+                    },
+                    "required": [
+                      "schemaVersion",
+                      "sourceId",
+                      "rightsScope",
+                      "captureMethod",
+                      "asset",
+                      "chainId",
+                      "quotePriceUsd",
+                      "observedAt",
+                      "requestHash",
+                      "responseHash"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "decisionPriceUsd",
+                  "quotePriceUsd",
+                  "quoteObservedAt",
+                  "maxReferenceDeviationBps",
+                  "maxSlippageBps",
+                  "maxQuoteAgeSeconds",
+                  "quoteProvenance"
+                ],
+                "additionalProperties": false
+              },
+              "routeQuotePrice": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "Caller-reported destination-per-source route quote, compared with Insight's on-chain quote"
+              },
+              "routeQuoteObservedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "description": "Timezone-qualified caller quote timestamp; checked for freshness as an additional condition"
+              }
+            },
+            "required": ["source", "destination", "routeQuotePrice", "routeQuoteObservedAt"],
+            "additionalProperties": false,
+            "description": "Required operation-input gate for both assets and the caller-reported route quote. Insight also obtains an exact-notional Uniswap V3 quote on Ethereum mainnet, sized from a fresh Chainlink price and cross-checked by two RPCs at one block. No execution handle is issued unless both signed assessments pass and the on-chain quote, caller quote, and oracle cross-rate satisfy the 50 bps-capped policy. Supported pairs are ETH/WETH, USDC, and WBTC on Ethereum; other routes fail closed."
           }
         },
         "required": [
@@ -2153,7 +3849,8 @@
           "chainId",
           "action",
           "tradeAmountUsd",
-          "maxSlippageBps"
+          "maxSlippageBps",
+          "decisionInput"
         ],
         "additionalProperties": false
       }

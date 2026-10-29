@@ -3,6 +3,8 @@ import { after, type NextRequest, NextResponse } from 'next/server';
 import { type HTTPAdapter, type HTTPResponseInstructions } from '@x402/core/server';
 import { z } from 'zod';
 
+import { extractClientIp } from '@/lib/api/middleware/rateLimitMiddleware';
+import { rateLimitStore } from '@/lib/api/middleware/rateLimitStore';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -27,6 +29,38 @@ const logger = createLogger('x402-guard');
 const X402_AUDIT_TIMEOUT_MS = 2_000;
 const X402_AUDIT_BACKOFF_MS = 5 * 60_000;
 let x402AuditUnavailableUntil = 0;
+
+// Anonymous quote probes are expected for a pay-per-call API, but a client
+// only needs a handful before submitting a payment signature. Keep this
+// identity-wide (rather than per endpoint) so directory health checks cannot
+// multiply work by cycling through the public safety routes.
+const X402_QUOTE_RATE_LIMIT = { windowMs: 60 * 60_000, maxRequests: 6 };
+// A valid payer can make more calls, while this still bounds malformed payment
+// signature floods before they repeatedly reach the facilitator.
+const X402_PAYMENT_RATE_LIMIT = { windowMs: 60_000, maxRequests: 60 };
+
+// Unsigned quote requests are expected during client discovery and cannot
+// change payment state. Preserve a representative operational signal without
+// paying application-log CPU for every repeated probe. Signed rejections keep
+// their full log and audit trail below.
+const UNSIGNED_QUOTE_LOG_SAMPLE_EVERY = 100;
+let unsignedQuoteLogCount = 0;
+
+function logUnsignedQuoteSample(requestId: string, path: string): void {
+  unsignedQuoteLogCount += 1;
+  if (
+    unsignedQuoteLogCount !== 1 &&
+    unsignedQuoteLogCount % UNSIGNED_QUOTE_LOG_SAMPLE_EVERY !== 0
+  ) {
+    return;
+  }
+  logger.info('x402 payment quote issued', {
+    requestId,
+    path,
+    sampleEvery: UNSIGNED_QUOTE_LOG_SAMPLE_EVERY,
+    sampleOrdinal: unsignedQuoteLogCount,
+  });
+}
 
 /**
  * Request-path payment guard for the x402 keyless paid tier.
@@ -77,6 +111,33 @@ class NextRequestAdapter implements HTTPAdapter {
  */
 export function isPaidRequest(request: NextRequest): boolean {
   return request.headers.has('payment-signature');
+}
+
+async function checkX402RateLimit(request: NextRequest): Promise<NextResponse | null> {
+  const paid = isPaidRequest(request);
+  const limit = paid ? X402_PAYMENT_RATE_LIMIT : X402_QUOTE_RATE_LIMIT;
+  const identity = `x402:${paid ? 'payment' : 'quote'}:${extractClientIp(request)}`;
+  const result = await rateLimitStore.increment(identity, limit.windowMs);
+  if (result.count <= limit.maxRequests) return null;
+
+  const retryAfter = Math.max(1, Math.ceil((result.resetTime - Date.now()) / 1000));
+  return NextResponse.json(
+    {
+      error: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many payment or quote requests. Please retry later.',
+      retryAfter,
+    },
+    {
+      status: 429,
+      headers: {
+        'Cache-Control': 'no-store',
+        'Retry-After': String(retryAfter),
+        'X-RateLimit-Limit': String(limit.maxRequests),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(Math.floor(result.resetTime / 1000)),
+      },
+    }
+  );
 }
 
 /**
@@ -459,6 +520,9 @@ export async function handlePaidPreTradeRequest(
   runBusiness: (requestId: string) => Promise<NextResponse>,
   options?: HandlePaidOptions
 ): Promise<NextResponse> {
+  const rateLimited = await checkX402RateLimit(request);
+  if (rateLimited) return rateLimited;
+
   const requestId = newRequestId();
   const httpServer = await getX402HttpServer(cfg);
   const requestStartedAt = Date.now();
@@ -471,20 +535,26 @@ export async function handlePaidPreTradeRequest(
 
   if (result.type === 'payment-error') {
     const hasPaymentSignature = request.headers.has('payment-signature');
-    recordX402Settlement({
-      requestId,
-      status: hasPaymentSignature ? 'payment_rejected' : 'quote_issued',
-      // A multi-chain quote or rejected payload has no validated selected chain.
-      ...(hasPaymentSignature ? { network: null } : quoteAuditFields(cfg)),
-      surface: 'rest',
-      resource: request.nextUrl.pathname,
-      responseTimeMs: Date.now() - requestStartedAt,
-      errorReason: hasPaymentSignature ? 'facilitator_rejected_payment' : undefined,
-    });
-    logger.info('x402 payment required / rejected', {
-      requestId,
-      path: request.nextUrl.pathname,
-    });
+    // A payment rejection is an auditable lifecycle event. A bare quote is
+    // not: recording every crawler quote with after() keeps the function alive
+    // and turns public discovery traffic into a Supabase write workload.
+    if (hasPaymentSignature) {
+      recordX402Settlement({
+        requestId,
+        status: 'payment_rejected',
+        network: null,
+        surface: 'rest',
+        resource: request.nextUrl.pathname,
+        responseTimeMs: Date.now() - requestStartedAt,
+        errorReason: 'facilitator_rejected_payment',
+      });
+      logger.warn('x402 payment rejected', {
+        requestId,
+        path: request.nextUrl.pathname,
+      });
+    } else {
+      logUnsignedQuoteSample(requestId, request.nextUrl.pathname);
+    }
     const response = toNextResponse(result.response);
     response.headers.set('X-Request-Id', requestId);
     return response;

@@ -12,6 +12,7 @@ const migrationUrl = new URL(
   import.meta.url
 );
 const workflowUrl = new URL('../../.github/workflows/coverage-slo.yml', import.meta.url);
+const runnerUrl = new URL('../../scripts/coverage-slo.mts', import.meta.url);
 
 test('Coverage SLO migration schedules, dispatches and removes the reliable job', async () => {
   const db = new PGlite();
@@ -114,6 +115,10 @@ test('Coverage SLO workflow records dispatched runs and guards its delayed nativ
   assert.match(workflow, /FALLBACK_MAX_AGE_MINUTES: '10'/);
   assert.match(workflow, /node scripts\/cron-control\.mjs guard/);
   assert.match(workflow, /node scripts\/cron-control\.mjs start/);
+  assert.match(
+    workflow,
+    /actions\/setup-node@a0853c24544627f65ddf259abe73b1d18a591444[\s\S]*cache: npm/
+  );
   assert.match(workflow, /CRON_CONCLUSION: \$\{\{ steps\.collect\.outcome \}\}/);
   assert.match(workflow, /node scripts\/cron-control\.mjs finish/);
   assert.match(workflow, /Rolling coverage SLO needs attention/);
@@ -123,5 +128,16 @@ test('Coverage SLO workflow records dispatched runs and guards its delayed nativ
     workflow.indexOf('node scripts/cron-control.mjs finish') <
       workflow.indexOf('Report new coverage incidents and recoveries'),
     'collection must be marked successful before a new incident can fail the job'
+  );
+});
+
+test('Coverage SLO runner reserves stdout for its JSON response', async () => {
+  const runner = await readFile(runnerUrl, 'utf8');
+
+  assert.doesNotMatch(runner, /from '@\/lib\/coverage\/collector';/);
+  assert.match(runner, /process\.stderr\.write/);
+  assert.match(
+    runner,
+    /sendDiagnosticsToStderr\(\);[\s\S]*await import\('\@\/lib\/coverage\/collector'\)/
   );
 });

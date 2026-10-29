@@ -44,7 +44,10 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 60;
+// The live price grid hydrates from its separately cached JSON endpoint. Keep
+// the public marketing shell static so crawlers cannot trigger upstream oracle
+// fan-out through ISR regeneration.
+export const revalidate = 3600;
 
 export default function HomePage() {
   return (

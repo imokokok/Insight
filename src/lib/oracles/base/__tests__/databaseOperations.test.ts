@@ -16,6 +16,7 @@ jest.mock('@/lib/utils/logger', () => ({
 
 const mockShouldUseDatabase = jest.fn();
 const mockGetPriceFromDatabase = jest.fn();
+const mockGetLatestPriceSnapshotFromDatabase = jest.fn();
 const mockGetHistoricalPricesFromDatabase = jest.fn();
 const mockSavePriceToDatabase = jest.fn();
 const mockGetActiveFeedsMap = jest.fn();
@@ -30,6 +31,8 @@ jest.mock('../../utils/storage', () => ({
   supportsPricePersistence: (provider: string) => !['chainlink', 'api3'].includes(provider),
   shouldUseDatabase: () => mockShouldUseDatabase(),
   getPriceFromDatabase: (...args: unknown[]) => mockGetPriceFromDatabase(...args),
+  getLatestPriceSnapshotFromDatabase: (...args: unknown[]) =>
+    mockGetLatestPriceSnapshotFromDatabase(...args),
   getHistoricalPricesFromDatabase: (...args: unknown[]) =>
     mockGetHistoricalPricesFromDatabase(...args),
   savePriceToDatabase: (...args: unknown[]) => mockSavePriceToDatabase(...args),
@@ -86,6 +89,7 @@ describe('databaseOperations', () => {
     mockClientGetSupportedSymbols.mockReset().mockReturnValue([mockSymbol]);
     mockClientGetDefaultChain.mockReset().mockReturnValue(mockChain);
     mockSavePriceToDatabase.mockReset().mockResolvedValue(true);
+    mockGetLatestPriceSnapshotFromDatabase.mockReset().mockResolvedValue(null);
     mockGetActiveFeedsMap.mockReset().mockResolvedValue(new Map());
     mockGetClient.mockReset().mockReturnValue({
       getPrice: mockClientGetPrice,
@@ -99,6 +103,29 @@ describe('databaseOperations', () => {
   });
 
   describe('feed identity and error semantics', () => {
+    it('does not write through live request results unless persistence is explicitly requested', async () => {
+      const livePrice = createMockPriceData();
+      mockGetPriceFromDatabase.mockResolvedValue(null);
+      mockClientGetPrice.mockResolvedValue(livePrice);
+
+      await fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true);
+
+      expect(mockSavePriceToDatabase).not.toHaveBeenCalled();
+
+      await fetchPriceWithDatabase(
+        mockProvider,
+        mockSymbol,
+        mockChain,
+        true,
+        false,
+        undefined,
+        undefined,
+        { persist: true }
+      );
+
+      expect(mockSavePriceToDatabase).toHaveBeenCalledWith(livePrice);
+    });
+
     it('uses the client default chain when the caller omits a chain', async () => {
       const cacheableProvider: OracleProvider = 'redstone';
       mockGetPriceFromDatabase.mockResolvedValue(
@@ -217,6 +244,49 @@ describe('databaseOperations', () => {
       expect(mockClientGetPrice).toHaveBeenCalledWith('SUI', monad, {
         signal: undefined,
       });
+    });
+
+    it('uses the newer 15-minute snapshot when a live refresh fails', async () => {
+      const staleTimestamp = Date.now() - 60 * 60 * 1000;
+      const snapshotTimestamp = Date.now() - 14 * 60 * 1000;
+      const staleRecord = createMockPriceData({
+        timestamp: staleTimestamp,
+        ingestionTimestamp: staleTimestamp,
+        source: 'price_records',
+      });
+      const snapshot = createMockPriceData({
+        timestamp: snapshotTimestamp,
+        ingestionTimestamp: snapshotTimestamp,
+        source: 'price_snapshots',
+      });
+      mockGetPriceFromDatabase.mockResolvedValue(staleRecord);
+      mockGetLatestPriceSnapshotFromDatabase.mockResolvedValue(snapshot);
+
+      await expect(
+        fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true)
+      ).resolves.toEqual(snapshot);
+      expect(mockGetLatestPriceSnapshotFromDatabase).toHaveBeenCalledWith(
+        mockProvider,
+        mockSymbol,
+        mockChain
+      );
+    });
+
+    it('does not read snapshots when a stale record can be live-refreshed', async () => {
+      const staleTimestamp = Date.now() - 60 * 60 * 1000;
+      mockGetPriceFromDatabase.mockResolvedValue(
+        createMockPriceData({
+          timestamp: staleTimestamp,
+          ingestionTimestamp: staleTimestamp,
+        })
+      );
+      const livePrice = createMockPriceData();
+      mockClientGetPrice.mockResolvedValue(livePrice);
+
+      await expect(
+        fetchPriceWithDatabase(mockProvider, mockSymbol, mockChain, true)
+      ).resolves.toEqual(livePrice);
+      expect(mockGetLatestPriceSnapshotFromDatabase).not.toHaveBeenCalled();
     });
   });
 

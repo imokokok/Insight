@@ -12,6 +12,7 @@ import { extractBaseSymbol, isUsdDenominatedFeedSymbol } from '../utils/oracleDa
 import {
   shouldUseDatabase,
   getPriceFromDatabase,
+  getLatestPriceSnapshotFromDatabase,
   savePriceToDatabase,
   getHistoricalPricesFromDatabase,
   supportsPricePersistence,
@@ -89,6 +90,18 @@ function isDbPriceStale(
   }
 
   return false;
+}
+
+function selectNewestFallbackPrice(
+  staleRecord: PriceData | null,
+  latestSnapshot: PriceData | null
+): PriceData | null {
+  if (!staleRecord) return latestSnapshot;
+  if (!latestSnapshot) return staleRecord;
+
+  const recordTime = staleRecord.ingestionTimestamp ?? staleRecord.timestamp;
+  const snapshotTime = latestSnapshot.ingestionTimestamp ?? latestSnapshot.timestamp;
+  return snapshotTime > recordTime ? latestSnapshot : staleRecord;
 }
 
 function getOracleClient(provider: OracleProvider) {
@@ -365,7 +378,13 @@ export async function fetchPriceWithDatabase(
 
     try {
       const livePrice = await client.getPrice(fetchSymbol, targetChain, { signal });
-      if (storageOptions.persist !== false && supportsPricePersistence(provider)) {
+      // A live API or UI request must not turn into a Postgres write.  The
+      // 15-minute snapshot collector owns the short-term cache and persists
+      // its complete result set once per batch.  Keeping this opt-in prevents
+      // request volume from growing `price_records`, its indexes, WAL, and the
+      // later TTL-cleanup work.  A dedicated ingest path may opt in explicitly
+      // when it has a documented need for a one-off durable observation.
+      if (storageOptions.persist === true && supportsPricePersistence(provider)) {
         await savePriceToDatabase(livePrice)
           .then((saved) => {
             if (saved) {
@@ -413,19 +432,29 @@ export async function fetchPriceWithDatabase(
       if (!forceRefresh) await recordFeedHealthResult(provider, baseSymbol, chain, true);
       return livePrice;
     } catch (liveError) {
-      // Live refresh failed. If we have a stale DB fallback, serve it rather
-      // than failing the request — the staleness is still surfaced to consumers
-      // via dataAgeSeconds in the consensus response. Record the feed health
-      // failure so feeds that only fail under live traffic are still tracked
-      // (matches the outer-catcher's behavior for the no-fallback path).
-      if (staleDbPrice && !requiresStrictDirectFreshness(provider, targetChain)) {
+      // Live refresh failed. A price_records row is rich but normally only
+      // hourly; the lean snapshot stream remains 15-minute. Consult it only
+      // now (never on the normal request path) so outage fallback freshness is
+      // retained without adding a read to successful live requests.
+      const latestSnapshot =
+        !forceRefresh && useDatabase && shouldUseDatabase() && supportsPricePersistence(provider)
+          ? await getLatestPriceSnapshotFromDatabase(provider, fetchSymbol, targetChain)
+          : null;
+      const fallbackPrice = selectNewestFallbackPrice(staleDbPrice, latestSnapshot);
+
+      // The staleness is still surfaced to consumers via dataAgeSeconds in the
+      // consensus response. Record the feed health failure so feeds that only
+      // fail under live traffic are still tracked (matching the outer catcher's
+      // behavior for the no-fallback path).
+      if (fallbackPrice && !requiresStrictDirectFreshness(provider, targetChain)) {
         await recordFeedHealthResult(provider, baseSymbol, chain, false);
-        logger.warn('Live price refresh failed; serving stale DB cache', {
+        logger.warn('Live price refresh failed; serving latest durable fallback', {
           provider,
           symbol: baseSymbol,
+          source: fallbackPrice.source ?? 'price_records',
           error: liveError instanceof Error ? liveError.message : String(liveError),
         });
-        return staleDbPrice;
+        return fallbackPrice;
       }
       throw liveError;
     }

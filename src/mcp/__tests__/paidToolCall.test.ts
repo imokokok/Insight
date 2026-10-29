@@ -197,6 +197,10 @@ describe('x402 paid MCP tools/call', () => {
     expect(processHTTPRequest).toHaveBeenCalledWith(
       expect.objectContaining({ path: '/api/mcp', method: 'POST' })
     );
+    // An unsigned quote carries no payment evidence, so it must not schedule
+    // an x402 lifecycle insert for a directory crawler to amplify.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockInsert).not.toHaveBeenCalled();
   });
 
   it('settles after a successful tool result and attaches the receipt header', async () => {
@@ -361,6 +365,8 @@ describe('unauthenticated GET indexer probes', () => {
       priceAtomicForTool('pre_trade_safety_check')
     );
     expect(processHTTPRequest).toHaveBeenCalledWith(expect.objectContaining({ method: 'POST' }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockInsert).not.toHaveBeenCalled();
   });
 
   it('keeps the protocol 405 for an SSE stream request and carries no payment signature', async () => {

@@ -45,7 +45,7 @@ describe('Reflector default chain in snapshot collection', () => {
     });
   });
 
-  it('fetches a chain_id=0 registry feed on Stellar through the snapshot fetch path', async () => {
+  it('fetches a chain_id=0 registry feed on Stellar without request-path persistence', async () => {
     const price = await fetchPriceWithDatabase(
       OracleProvider.REFLECTOR,
       'BTC',
@@ -63,7 +63,7 @@ describe('Reflector default chain in snapshot collection', () => {
       chain: Blockchain.STELLAR,
       price: 75000,
     });
-    expect(mockSavePriceToDatabase).toHaveBeenCalledWith(price);
+    expect(mockSavePriceToDatabase).not.toHaveBeenCalled();
   });
 
   it('still rejects an explicitly unsupported chain before querying the oracle', async () => {
