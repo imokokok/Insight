@@ -5,8 +5,8 @@
  * runs from BOTH the Vercel cron route AND the GitHub Actions
  * `scripts/collect-snapshot.ts` job. The GH Actions job escapes Vercel's 60s
  * serverless timeout and runs at 15-minute cadence, dual-writing to
- * `hourly_price_snapshots` (upsert, for the daily report) and the new
- * `price_snapshots` table (append, 15-min grain, for ML/anomaly detection).
+ * `hourly_price_snapshots` (upsert, for the daily report) and a
+ * policy-controlled `price_snapshots` history for ML/anomaly detection.
  *
  * The route's behaviour is unchanged: `collectSnapshot()` performs exactly the
  * steps the old GET handler did (fetch → consensus → build inputs → upsert
@@ -69,12 +69,11 @@ const MAX_DEVIATION_PCT = 9_999.9999;
  * Keep the rich, short-lived record stream useful for signals and exports
  * without duplicating every normal 15-minute snapshot.
  *
- * `price_snapshots` remains the durable 15-minute source for all successful
- * observations. `price_records` retains one rich checkpoint per hour plus
- * every observation that carries an audit-relevant degradation. That preserves
- * the near-term evidence needed to investigate a fallback or stale source,
- * while avoiding three out of four normal record inserts and their later TTL
- * deletes.
+ * `price_snapshots` retains every 15-minute core-asset observation; adaptive
+ * feeds retain an hourly baseline plus material changes. `price_records` keeps
+ * one rich checkpoint per hour plus every observation that carries an
+ * audit-relevant degradation. That preserves near-term investigation evidence
+ * without writing redundant normal samples and their later TTL deletes.
  */
 export function selectPriceRecordsForPersistence(
   prices: PriceData[],

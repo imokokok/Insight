@@ -1,5 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["scripts/collect-snapshot.ts"],
   "project": ["src/**/*.ts", "src/**/*.tsx"],
   "ignore": [".worktrees/**"],
   "ignoreDependencies": ["postcss", "canonicalize"],

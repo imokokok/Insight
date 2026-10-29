@@ -6,14 +6,15 @@
  * minutes) — NOT inside Vercel — so it is not bound by the 60s serverless
  * timeout. Mirrors the Vercel `/api/cron/daily-report` pipeline by delegating
  * to `collectSnapshot()` (which upserts `hourly_price_snapshots` and updates
- * feed health), then ADDITIONALLY appends a fine-grained row per feed to the
- * `price_snapshots` table for ML / anomaly detection.
+ * feed health), then persists fine-grained price evidence through a database
+ * policy: core assets keep every sample; adaptive assets retain an hourly
+ * baseline plus material changes and state transitions.
  *
  * Why a separate table: `hourly_price_snapshots` upserts on
  * `(snapshot_hour, provider, symbol, chain_id)`, so running more frequently
- * would just overwrite the same hourly row. `price_snapshots` appends with a
- * precise `snapshot_ts`, so each 15-min run produces new data points (4x
- * denser signal for ML, which previously only had hourly grain).
+ * would just overwrite the same hourly row. `price_snapshots` uses a precise
+ * `snapshot_ts`; its persistence policy preserves high-resolution core
+ * history while eliminating stable, redundant raw writes for adaptive feeds.
  *
  * Run locally:
  *   npx tsx --env-file=.env.local scripts/collect-snapshot.ts
@@ -21,56 +22,12 @@
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (service-role, bypasses
  * RLS — same credentials the ml-train workflow already uses).
  */
-import { type HourlySnapshotInput } from '@/lib/reports/reportService';
 import {
   collectSnapshot,
   resolveSnapshotSlot,
   SnapshotCollectionError,
 } from '@/lib/reports/snapshotCollector';
-import { retryIdempotentSupabaseWrite } from '@/lib/supabase/idempotentWrite';
-import { createServiceRoleClient } from '@/lib/supabase/server';
-
-function buildPriceSnapshotRows(
-  inputs: HourlySnapshotInput[],
-  snapshotTs: Date
-): Array<Record<string, unknown>> {
-  return inputs.map((input) => ({
-    snapshot_ts: snapshotTs.toISOString(),
-    snapshot_hour: input.snapshotHour.toISOString(),
-    provider: input.provider,
-    symbol: input.symbol,
-    chain_id: input.chainId ?? 0,
-    price: input.price,
-    consensus_price: input.consensusPrice ?? null,
-    deviation_pct: input.deviationPct ?? null,
-    latency_ms: input.latencyMs ?? null,
-    data_age_seconds: input.dataAgeSeconds ?? null,
-    confidence: input.confidence ?? null,
-    is_success: input.isSuccess,
-    error_message: input.errorMessage ?? null,
-  }));
-}
-
-async function insertPriceSnapshots(rows: Array<Record<string, unknown>>): Promise<number> {
-  if (rows.length === 0) return 0;
-  const supabase = createServiceRoleClient();
-  // Upsert with ignoreDuplicates so a retried run (same snapshot_ts) silently
-  // no-ops instead of erroring on the UNIQUE constraint added in migration 0024.
-  await retryIdempotentSupabaseWrite(async () => {
-    const { error } = await supabase.from('price_snapshots').upsert(rows, {
-      onConflict: 'snapshot_ts,provider,symbol,chain_id',
-      ignoreDuplicates: true,
-    });
-    if (error) {
-      throw new Error(
-        `Failed to insert ${rows.length} price_snapshots rows: ${
-          typeof error.message === 'string' ? error.message : '[object Object]'
-        }`
-      );
-    }
-  }, 'append fine-grained price snapshots');
-  return rows.length;
-}
+import { persistAdaptivePriceSnapshots } from '@/lib/supabase/adaptiveSnapshotPersistence';
 
 async function main(): Promise<void> {
   const startedAt = Date.now();
@@ -103,21 +60,35 @@ async function main(): Promise<void> {
       `${successCount} success / ${failedCount} failed`
   );
 
-  // Fine-grained append for ML/anomaly detection. Only the GH Actions job
-  // writes this table; the Vercel route does not, so its behaviour is unchanged.
-  let insertedFine = 0;
+  // Policy-controlled fine-grained persistence for ML/anomaly detection. Only
+  // the GH Actions job writes this table; the Vercel route is unchanged.
   try {
-    const rows = buildPriceSnapshotRows(result.inputs, result.snapshotTs);
-    insertedFine = await insertPriceSnapshots(rows);
-    console.log(`[collect-snapshot] price_snapshots append: ${insertedFine} rows`);
+    const persistenceSummary = await persistAdaptivePriceSnapshots(
+      result.inputs,
+      result.snapshotTs
+    );
+    console.log(
+      `[collect-snapshot] price_snapshots: ${persistenceSummary.persisted}/` +
+        `${persistenceSummary.candidates} written | ` +
+        `full=${persistenceSummary.fullResolution} hourly=${persistenceSummary.hourlyBaseline} ` +
+        `events=${
+          persistenceSummary.initial +
+          persistenceSummary.stateTransition +
+          persistenceSummary.errorChange +
+          persistenceSummary.priceChange +
+          persistenceSummary.deviationChange +
+          persistenceSummary.dataAgeChange +
+          persistenceSummary.confidenceChange
+        } stable-skipped=${persistenceSummary.stableSkipped}`
+    );
   } catch (error) {
     // The hourly snapshot + feed health already succeeded, so a fine-grained
-    // insert failure must NOT cause the whole run to be treated as failed
+    // persistence failure must NOT cause the whole run to be treated as failed
     // (that would skip feed-health/deactivate side effects on retry). Log and
     // exit non-zero so the run is visible as degraded, but the hourly data is
     // already persisted.
     console.error(
-      '[collect-snapshot] price_snapshots append failed (hourly data already persisted):',
+      '[collect-snapshot] adaptive price snapshot persistence failed (hourly data already persisted):',
       error instanceof Error ? error.message : error
     );
     process.exit(2);
