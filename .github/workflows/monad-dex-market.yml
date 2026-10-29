@@ -8,8 +8,19 @@ name: Monad DEX Market Collector
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    # Independent fallback, five minutes after the Supabase primary slot. It
+    # exits before the collector when the ledger has a fresh primary success.
+    - cron: '7,17,27,37,47,57 * * * *'
   workflow_dispatch:
+    inputs:
+      dispatch_id:
+        description: 'Supabase cron_dispatch_runs id (empty for manual/fallback runs)'
+        required: false
+        type: string
+      scheduled_for:
+        description: 'Supabase scheduled slot (audit only)'
+        required: false
+        type: string
 
 concurrency:
   group: monad-dex-market
@@ -17,6 +28,13 @@ concurrency:
 
 permissions:
   contents: read
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  CRON_WORKFLOW: monad-dex-market.yml
+  CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+  CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
 
 jobs:
   collect:
@@ -26,10 +44,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      - name: Index finalized Swap events
+      - name: Check whether native fallback is needed
+        id: guard
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          FALLBACK_MAX_AGE_MINUTES: '10'
+        run: node scripts/cron-control.mjs guard
+
+      - name: Start run ledger
+        if: steps.guard.outputs.should_run == 'true'
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/cron-control.mjs start
+
+      - name: Index finalized Swap events
+        id: index
+        if: steps.guard.outputs.should_run == 'true'
+        env:
           ALCHEMY_MONAD_RPC: ${{ secrets.ALCHEMY_MONAD_RPC }}
         run: |
           set -u
@@ -38,3 +72,9 @@ jobs:
             exit 1
           fi
           node .github/cron-dist/monad-dex-market.mjs
+
+      - name: Finish run ledger
+        if: always() && steps.guard.outputs.should_run == 'true'
+        env:
+          CRON_CONCLUSION: ${{ steps.index.outcome }}
+        run: node scripts/cron-control.mjs finish

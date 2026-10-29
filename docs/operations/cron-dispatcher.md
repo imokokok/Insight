@@ -11,7 +11,7 @@ Supabase pg_cron → pg_net → GitHub workflow_dispatch → GitHub runner → S
 Vercel is not in this path. The public API routes remain available as manual
 recovery paths; their response contracts are unchanged.
 
-The dispatcher covers the seven product-critical jobs:
+The dispatcher covers the eight product-critical jobs:
 
 | Workflow                        | Primary cadence                                      | Native GitHub fallback                           |
 | ------------------------------- | ---------------------------------------------------- | ------------------------------------------------ |
@@ -22,6 +22,7 @@ The dispatcher covers the seven product-critical jobs:
 | `feed-cadence-cron.yml`         | daily                                                | one hour later, only when ledger is stale        |
 | `daily-report-publish-cron.yml` | daily                                                | 05:30 UTC `--if-missing` backfill                |
 | `coverage-slo.yml`              | every 15 minutes                                     | five minutes later, skips while ledger is fresh  |
+| `monad-dex-market.yml`          | every 10 minutes at `:02,:12,:22,:32,:42,:52`        | five minutes later, skips while ledger is fresh  |
 
 ## One-time activation
 
