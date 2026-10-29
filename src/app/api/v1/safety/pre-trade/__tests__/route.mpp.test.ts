@@ -69,6 +69,7 @@ jest.mock('@/lib/api/x402/guard', () => ({
   handlePaidPreTradeRequest: jest.fn(),
   hasAuthCredentials: jest.fn(),
   isPaidRequest: jest.fn(),
+  x402AcquisitionSource: jest.fn(() => 'unknown'),
 }));
 
 jest.mock('@/lib/tradeJourney/journeyService', () => ({

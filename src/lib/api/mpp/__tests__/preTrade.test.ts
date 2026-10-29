@@ -78,6 +78,7 @@ jest.mock('@/lib/api/x402/guard', () => ({
     return fraction ? `${units / 1_000_000n}.${fraction}` : String(units / 1_000_000n);
   },
   recordX402Settlement: jest.fn(),
+  x402AcquisitionSource: () => 'unknown',
 }));
 
 jest.mock('@/lib/utils/logger', () => ({
