@@ -730,6 +730,12 @@ export interface SnapshotCollectionResult {
   snapshotTs: Date;
   results: BatchResultItem[];
   inputs: HourlySnapshotInput[];
+  /**
+   * One normalized health observation per probed feed. The Actions collector
+   * passes these to the post-commit lifecycle step; normal API callers keep
+   * the existing immediate path.
+   */
+  healthUpdates: Array<{ provider: string; symbol: string; chainId: number; isSuccess: boolean }>;
   insertedHourly: number;
   updatedHealth: number;
   deactivated: number;
@@ -766,7 +772,17 @@ export function resolveSnapshotSlot(scheduledFor?: string, now: Date = new Date(
  */
 export async function collectSnapshot(
   snapshotTs: Date = resolveSnapshotSlot(),
-  options: { includeAdditionalHealthChecks?: boolean; reuseRpcMetadata?: boolean } = {}
+  options: {
+    includeAdditionalHealthChecks?: boolean;
+    reuseRpcMetadata?: boolean;
+    /**
+     * Let a trusted caller atomically commit hourly + fine-grained evidence
+     * before applying the non-critical feed-health lifecycle. This removes a
+     * commit/WAL flush from the high-frequency Actions path while preserving
+     * the existing API-route behaviour by default.
+     */
+    deferDurableSnapshotWrites?: boolean;
+  } = {}
 ): Promise<SnapshotCollectionResult> {
   const now = snapshotTs;
   const snapshotDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
@@ -812,6 +828,7 @@ export async function collectSnapshot(
   // "ETH" + "ETH/USDC") can't violate hourly_price_snapshots' unique key and
   // crash the whole run. See dedupeHourlySnapshotInputs for the full rationale.
   const hourlyInputs = dedupeHourlySnapshotInputs(inputs);
+  const healthUpdates = buildFeedHealthUpdates(results);
 
   const successCount = inputs.filter((i) => i.isSuccess).length;
   const failedCount = inputs.length - successCount;
@@ -819,6 +836,24 @@ export async function collectSnapshot(
   logger.info(
     `Price batch completed for ${snapshotDate}: ${successCount} success, ${failedCount} failed, ${skippedCount} skipped out of ${results.length}`
   );
+
+  if (options.deferDurableSnapshotWrites) {
+    logger.info('Deferred durable snapshot writes for atomic collection-slot commit', {
+      hourlyRows: hourlyInputs.length,
+      healthRows: healthUpdates.length,
+    });
+    return {
+      snapshotDate,
+      snapshotHour,
+      snapshotTs,
+      results,
+      inputs: hourlyInputs,
+      healthUpdates,
+      insertedHourly: 0,
+      updatedHealth: 0,
+      deactivated: 0,
+    };
+  }
 
   let insertedHourly = 0;
   try {
@@ -839,12 +874,58 @@ export async function collectSnapshot(
     throw new SnapshotCollectionError('upsert_snapshots', error.message);
   }
 
+  const { updatedHealth, deactivated } = await applyFeedHealthLifecycle(healthUpdates);
+
+  return {
+    snapshotDate,
+    snapshotHour,
+    snapshotTs,
+    results,
+    inputs: hourlyInputs,
+    healthUpdates,
+    insertedHourly,
+    updatedHealth,
+    deactivated,
+  };
+}
+
+/**
+ * Apply the intentionally non-critical feed-health side effects after the
+ * snapshot evidence transaction has committed. Failures remain isolated from
+ * snapshot collection exactly as they were before the slot-commit path.
+ */
+export async function applyFeedHealthLifecycle(
+  healthUpdates: Array<{ provider: string; symbol: string; chainId: number; isSuccess: boolean }>
+): Promise<{ updatedHealth: number; deactivated: number }> {
+  const adminQueries = getAdminQueries();
+
+  // Newer deployments complete health mutation and threshold deactivation in
+  // one RPC transaction. Keep the compatibility path below for a rolling
+  // deploy or a partial database rollout: health remains non-critical and a
+  // failure here must never make the evidence collector fail.
+  if (typeof adminQueries.applyFeedHealthAndDeactivate === 'function') {
+    try {
+      const { updated, deactivated } = await adminQueries.applyFeedHealthAndDeactivate(
+        healthUpdates,
+        3
+      );
+      logger.info(`Updated feed health for ${updated} feeds`);
+      if (deactivated > 0) {
+        logger.info(`Auto-deactivated ${deactivated} feeds with persistent failures`);
+      }
+      return { updatedHealth: updated, deactivated };
+    } catch (healthLifecycleError) {
+      logger.warn(
+        'Failed atomic feed-health lifecycle; using compatibility path',
+        healthLifecycleError instanceof Error ? healthLifecycleError : undefined
+      );
+    }
+  }
+
   // Update feed health based on this batch's results. Each result carries
   // the chain_id of the feed it was sampled from (one result per feed).
   let updatedHealth = 0;
   try {
-    const adminQueries = getAdminQueries();
-    const healthUpdates = buildFeedHealthUpdates(results);
     const { updated } = await adminQueries.batchUpdateFeedHealth(healthUpdates);
     updatedHealth = updated;
     logger.info(`Updated feed health for ${updatedHealth} feeds`);
@@ -864,7 +945,7 @@ export async function collectSnapshot(
   // threw, ensuring persistently-broken feeds are taken offline promptly.
   let deactivated = 0;
   try {
-    deactivated = await getAdminQueries().deactivateStaleFeeds(3);
+    deactivated = await adminQueries.deactivateStaleFeeds(3);
     if (deactivated > 0) {
       logger.info(`Auto-deactivated ${deactivated} feeds with persistent failures`);
     }
@@ -875,14 +956,5 @@ export async function collectSnapshot(
     );
   }
 
-  return {
-    snapshotDate,
-    snapshotHour,
-    snapshotTs,
-    results,
-    inputs: hourlyInputs,
-    insertedHourly,
-    updatedHealth,
-    deactivated,
-  };
+  return { updatedHealth, deactivated };
 }

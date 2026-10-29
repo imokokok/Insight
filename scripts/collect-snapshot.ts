@@ -23,11 +23,12 @@
  * RLS — same credentials the ml-train workflow already uses).
  */
 import {
+  applyFeedHealthLifecycle,
   collectSnapshot,
   resolveSnapshotSlot,
   SnapshotCollectionError,
 } from '@/lib/reports/snapshotCollector';
-import { persistAdaptivePriceSnapshots } from '@/lib/supabase/adaptiveSnapshotPersistence';
+import { commitSnapshotDataSlot } from '@/lib/supabase/adaptiveSnapshotPersistence';
 
 async function main(): Promise<void> {
   const startedAt = Date.now();
@@ -37,6 +38,7 @@ async function main(): Promise<void> {
   try {
     result = await collectSnapshot(resolveSnapshotSlot(process.env.CRON_SCHEDULED_FOR), {
       reuseRpcMetadata: true,
+      deferDurableSnapshotWrites: true,
     });
   } catch (error) {
     if (error instanceof SnapshotCollectionError) {
@@ -52,47 +54,44 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const successCount = result.inputs.filter((i) => i.isSuccess).length;
-  const failedCount = result.inputs.length - successCount;
-  console.log(
-    `[collect-snapshot] hourly upsert: ${result.insertedHourly} rows | ` +
-      `feed health: ${result.updatedHealth} updated, ${result.deactivated} deactivated | ` +
-      `${successCount} success / ${failedCount} failed`
-  );
-
-  // Policy-controlled fine-grained persistence for ML/anomaly detection. Only
-  // the GH Actions job writes this table; the Vercel route is unchanged.
+  // Commit the hourly and fine-grained evidence layers together. The database
+  // transaction either persists both layers for this slot or neither, which
+  // avoids a second commit/WAL flush and makes transient network retries safe.
   try {
-    const persistenceSummary = await persistAdaptivePriceSnapshots(
-      result.inputs,
-      result.snapshotTs
-    );
+    const committed = await commitSnapshotDataSlot(result.inputs, result.snapshotTs);
     console.log(
-      `[collect-snapshot] price_snapshots: ${persistenceSummary.persisted}/` +
-        `${persistenceSummary.candidates} written | ` +
-        `full=${persistenceSummary.fullResolution} hourly=${persistenceSummary.hourlyBaseline} ` +
+      `[collect-snapshot] hourly upsert: ${committed.hourlyWritten} rows | ` +
+        `price_snapshots: ${committed.persistence.persisted}/` +
+        `${committed.persistence.candidates} written | ` +
+        `full=${committed.persistence.fullResolution} hourly=${committed.persistence.hourlyBaseline} ` +
         `events=${
-          persistenceSummary.initial +
-          persistenceSummary.stateTransition +
-          persistenceSummary.errorChange +
-          persistenceSummary.priceChange +
-          persistenceSummary.deviationChange +
-          persistenceSummary.dataAgeChange +
-          persistenceSummary.confidenceChange
-        } stable-skipped=${persistenceSummary.stableSkipped}`
+          committed.persistence.initial +
+          committed.persistence.stateTransition +
+          committed.persistence.errorChange +
+          committed.persistence.priceChange +
+          committed.persistence.deviationChange +
+          committed.persistence.dataAgeChange +
+          committed.persistence.confidenceChange
+        } stable-skipped=${committed.persistence.stableSkipped}`
     );
   } catch (error) {
-    // The hourly snapshot + feed health already succeeded, so a fine-grained
-    // persistence failure must NOT cause the whole run to be treated as failed
-    // (that would skip feed-health/deactivate side effects on retry). Log and
-    // exit non-zero so the run is visible as degraded, but the hourly data is
-    // already persisted.
     console.error(
-      '[collect-snapshot] adaptive price snapshot persistence failed (hourly data already persisted):',
+      '[collect-snapshot] atomic snapshot slot commit failed (no hourly or fine-grained rows were committed):',
       error instanceof Error ? error.message : error
     );
     process.exit(2);
   }
+
+  // Health is deliberately best-effort and remains isolated from evidence
+  // persistence. A health-registry issue must not roll back an already
+  // durable slot or turn a successful evidence collection into a data loss.
+  const health = await applyFeedHealthLifecycle(result.healthUpdates);
+  const successCount = result.inputs.filter((i) => i.isSuccess).length;
+  const failedCount = result.inputs.length - successCount;
+  console.log(
+    `[collect-snapshot] feed health: ${health.updatedHealth} updated, ` +
+      `${health.deactivated} deactivated | ${successCount} success / ${failedCount} failed`
+  );
 
   const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
   console.log(

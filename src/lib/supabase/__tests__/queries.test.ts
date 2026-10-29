@@ -448,3 +448,29 @@ describe('bounded bulk price persistence', () => {
     ).rejects.toThrow('unavailable');
   });
 });
+
+describe('atomic feed-health lifecycle', () => {
+  it('uses one validated RPC response for health updates and deactivation', async () => {
+    mockClient.rpc.mockResolvedValueOnce({
+      data: { updated: 4, deactivated: 1 },
+      error: null,
+    } as never);
+
+    await expect(
+      queries.applyFeedHealthAndDeactivate([
+        { provider: 'chainlink', symbol: 'ETH', chainId: 1, isSuccess: true },
+        { provider: 'pyth', symbol: 'SOL', chainId: 1, isSuccess: false },
+      ])
+    ).resolves.toEqual({ updated: 4, deactivated: 1 });
+
+    expect(mockClient.rpc).toHaveBeenCalledTimes(1);
+    expect(mockClient.rpc).toHaveBeenCalledWith('apply_feed_health_batch', {
+      p_results: {
+        successes: [{ provider: 'chainlink', symbol: 'ETH', chainId: 1 }],
+        failures: [{ provider: 'pyth', symbol: 'SOL', chainId: 1 }],
+      },
+      p_failure_threshold: 3,
+    });
+    expect(mockClient.from).not.toHaveBeenCalled();
+  });
+});
