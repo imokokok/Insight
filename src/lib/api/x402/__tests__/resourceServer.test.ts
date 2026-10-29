@@ -2,7 +2,11 @@ import { type HTTPAdapter } from '@x402/core/server';
 
 import { parseX402Config, SOLANA_DEVNET_CAIP2 } from '../config';
 import { resetFacilitatorResilienceForTests } from '../facilitatorResilience';
-import { buildX402HttpServer, resetX402HttpServerForTests } from '../resourceServer';
+import {
+  BAZAAR_SERVICE_METADATA,
+  buildX402HttpServer,
+  resetX402HttpServerForTests,
+} from '../resourceServer';
 
 const PAY_TO = 'seFkxFkXEY9JGEpCyPfCWTuPZG9WK6ucf95zvKCfsRX';
 const FEE_PAYER = '11111111111111111111111111111111';
@@ -121,6 +125,7 @@ describe('x402 SVM resource-server registration', () => {
     expect(encoded).toBeDefined();
     const quote = JSON.parse(Buffer.from(encoded ?? '', 'base64url').toString('utf8')) as {
       accepts: Array<{ network: string; extra?: Record<string, string> }>;
+      resource?: Record<string, unknown>;
     };
     const solana = quote.accepts.find((entry) => entry.network === SOLANA_DEVNET_CAIP2);
 
@@ -129,6 +134,7 @@ describe('x402 SVM resource-server registration', () => {
       recentBlockhash: BLOCKHASH,
       lastValidBlockHeight: '123',
     });
+    expect(quote.resource).toMatchObject(BAZAAR_SERVICE_METADATA);
     expect(fetchMock).toHaveBeenCalledWith(
       'https://rpc.example/solana',
       expect.objectContaining({ method: 'POST' })
