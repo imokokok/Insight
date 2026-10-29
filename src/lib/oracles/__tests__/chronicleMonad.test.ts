@@ -86,10 +86,11 @@ describe('ChronicleMonadOnChainService', () => {
     );
     await expect(stale.getPrice(btc!)).rejects.toThrow('stale or future-dated');
 
+    // The service permits a small amount of clock skew. Keep this comfortably
+    // beyond that window so crossing a second boundary cannot make it valid.
+    const futureTimestamp = BigInt(Math.floor(Date.now() / 1000) + 600);
     const future = new ChronicleMonadOnChainService(
-      rpcReturning(
-        chronicleResponse(100_000_000_000_000_000_000n, BigInt(Math.floor(Date.now() / 1000) + 301))
-      )
+      rpcReturning(chronicleResponse(100_000_000_000_000_000_000n, futureTimestamp))
     );
     await expect(future.getPrice(btc!)).rejects.toThrow('stale or future-dated');
 
