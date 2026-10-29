@@ -18,7 +18,13 @@ import {
 } from '@/lib/api/services/preTradeSafetyService';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { getX402Config } from '@/lib/api/x402/config';
-import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
+import {
+  handlePaidPreTradeRequest,
+  hasAuthCredentials,
+  isPaidRequest,
+  x402AcquisitionSource,
+  type X402AcquisitionSource,
+} from '@/lib/api/x402/guard';
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
 import {
   attachGenericJourneyCheck,
@@ -61,6 +67,7 @@ interface PreTradeCheckParams {
   /** Paid callers receive an opaque lifecycle handle; API-key responses stay unchanged. */
   trackJourney?: boolean;
   onJourneyIssued?: (journeyId: string) => void;
+  acquisitionSource?: X402AcquisitionSource;
 }
 
 /** Shared business core for both the API-key path and the x402 paid tier. */
@@ -68,7 +75,14 @@ async function executePreTradeCheck(
   params: PreTradeCheckParams,
   requestSignal?: AbortSignal
 ): Promise<NextResponse> {
-  const { query, apiKeyId, requestId, trackJourney = false, onJourneyIssued } = params;
+  const {
+    query,
+    apiKeyId,
+    requestId,
+    trackJourney = false,
+    onJourneyIssued,
+    acquisitionSource,
+  } = params;
 
   const journey = trackJourney
     ? await createJourney({
@@ -81,6 +95,7 @@ async function executePreTradeCheck(
         subjectChainId: query.chainId,
         declaredNotionalUsd: query.tradeAmountUsd,
         receiptCreditState: 'not_available',
+        acquisitionSource,
       })
     : null;
 
@@ -181,6 +196,8 @@ async function executePreTradeCheck(
           outcomeToken: journey.outcomeToken,
           verdict: result.verdict,
           receiptCreditState: journey.receiptCreditState,
+          contributingFactors: result.contributingFactors,
+          recommendedActions: result.recommendedActions,
         }),
       }
     : result;
@@ -257,6 +274,7 @@ export const GET = (
             query: parsed.data,
             requestId,
             trackJourney: true,
+            acquisitionSource: x402AcquisitionSource(request),
           },
           request.signal
         );
@@ -287,6 +305,7 @@ export const GET = (
               onJourneyIssued: (journeyId) => {
                 x402JourneyId = journeyId;
               },
+              acquisitionSource: x402AcquisitionSource(request),
             },
             request.signal
           );

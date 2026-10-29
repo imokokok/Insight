@@ -11,6 +11,7 @@ import {
   isPaidRequest,
   paymentAuditFields,
   toNextResponse,
+  x402AcquisitionSource,
 } from '../guard';
 import { getX402HttpServer } from '../resourceServer';
 
@@ -170,6 +171,13 @@ describe('x402 guard', () => {
       expect(isPaidRequest(makeRequest({ 'x-payment': 'legacy' }))).toBe(false);
     });
 
+    it('keeps entry attribution bounded and non-identifying', () => {
+      expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'docs' }))).toBe('docs');
+      expect(
+        x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'campaign-42-wallet-abc' }))
+      ).toBe('unknown');
+    });
+
     it('detects API-key credentials for the legacy path', () => {
       expect(hasAuthCredentials(makeRequest({ 'x-api-key': 'isk_...' }))).toBe(true);
       expect(hasAuthCredentials(makeRequest({ authorization: 'Bearer isk_...' }))).toBe(true);
@@ -296,7 +304,11 @@ describe('x402 guard', () => {
         Promise.resolve(NextResponse.json({ ok: true, data: { verdict: 'PASS' } }, { status: 200 }))
       );
       mockInsert.mockClear();
-      const res = await handlePaidPreTradeRequest(makeRequest(), CFG, business);
+      const res = await handlePaidPreTradeRequest(
+        makeRequest({ 'x-insight-entry-source': 'docs' }),
+        CFG,
+        business
+      );
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(business).toHaveBeenCalledTimes(1);
@@ -311,6 +323,7 @@ describe('x402 guard', () => {
           amount_usdc: '0.02',
           network: 'eip155:84532',
           verdict: 'PASS',
+          acquisition_source: 'docs',
         })
       );
     });
