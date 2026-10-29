@@ -49,6 +49,13 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: node scripts/cron-control.mjs start
 
+      - name: Set up cached Node.js
+        if: steps.guard.outputs.should_run == 'true'
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+          cache: npm
+
       - name: Install direct runner dependencies
         if: steps.guard.outputs.should_run == 'true'
         run: npm ci --ignore-scripts --no-audit --no-fund
