@@ -173,6 +173,12 @@ describe('x402 guard', () => {
 
     it('keeps entry attribution bounded and non-identifying', () => {
       expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'docs' }))).toBe('docs');
+      expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'sendaifun' }))).toBe(
+        'sendaifun'
+      );
+      expect(x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'wallet_mcp' }))).toBe(
+        'wallet_mcp'
+      );
       expect(
         x402AcquisitionSource(makeRequest({ 'x-insight-entry-source': 'campaign-42-wallet-abc' }))
       ).toBe('unknown');
