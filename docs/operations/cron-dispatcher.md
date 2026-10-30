@@ -17,7 +17,7 @@ The dispatcher covers the eight product-critical jobs:
 | ------------------------------- | ---------------------------------------------------- | ------------------------------------------------ |
 | `snapshot-collect.yml`          | every 15 minutes                                     | same cadence, skips while ledger is fresh        |
 | `oracle-watch-collect.yml`      | hourly (dispatch :08, reduced from every 30 minutes) | hourly at :00, skips while ledger is fresh       |
-| `reputation-cron.yml`           | every 2 hours (dispatch :12, reduced from hourly)    | same cadence at :07, skips while ledger is fresh |
+| `reputation-cron.yml`           | every 2 hours (dispatch :27, reduced from hourly)    | same cadence at :07, skips while ledger is fresh |
 | `safety-outcome-cron.yml`       | every 2 hours                                        | same cadence, skips while ledger is fresh        |
 | `feed-cadence-cron.yml`         | daily                                                | one hour later, only when ledger is stale        |
 | `daily-report-publish-cron.yml` | daily                                                | 05:30 UTC `--if-missing` backfill                |
@@ -83,6 +83,13 @@ Vault UI; there is no reason to modify a migration or repository secret.
 
 - Dispatch requests are tiny and do not invoke an Edge Function.
 - The run ledger is retained for 30 days.
+- A new `snapshot-collect`, Coverage SLO, or Monad DEX dispatch is coalesced
+  when its own preceding primary run is still open. The normal GitHub
+  concurrency controls remain a second layer; the database gate avoids extra
+  `pg_net` queue rows and runner starts during a stalled run.
+- Healthy feed heartbeats are persisted at most once every 90 minutes. This is
+  deliberately inside the two-hour stale-feed threshold; failures and recovery
+  successes still write immediately.
 - Fine-grained price, hourly price, and market-reference retention remains 120
   days. This preserves the current 90-day public product window and 8-week ML
   lookback; shortening fine-grained history to 30 days would be a capability
