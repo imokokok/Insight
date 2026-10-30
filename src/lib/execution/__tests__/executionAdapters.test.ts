@@ -4,6 +4,7 @@ import {
   ExecutionAdapterRegistry,
   type ExecutionAdapter,
 } from '../adapters';
+import { noVenueFeeCommercialTerms } from '../commerce';
 
 describe('execution adapter core', () => {
   const observedAt = '2026-10-31T00:00:00.000Z';
@@ -20,6 +21,7 @@ describe('execution adapter core', () => {
         expiresAt: null,
         evidence: [{ kind: 'test', observedAt, source: 'fixture' }],
         caveats: ['Do not submit.'],
+        commerce: noVenueFeeCommercialTerms(),
         payload: null,
         native: { result: 'blocked' },
       })
@@ -36,6 +38,7 @@ describe('execution adapter core', () => {
         expiresAt: null,
         evidence: [],
         caveats: [],
+        commerce: noVenueFeeCommercialTerms(),
         payload: null,
         native: null,
       })
@@ -58,6 +61,7 @@ describe('execution adapter core', () => {
           expiresAt: null,
           evidence: [],
           caveats: [],
+          commerce: noVenueFeeCommercialTerms(),
           payload: {
             kind: 'evm-transaction',
             chainId: 8453,

@@ -11,6 +11,7 @@ import {
   type HyperliquidPerpExecutionVerificationRequest,
 } from '@/lib/dex/hyperliquidPerpExecution';
 import {
+  hyperliquidBuilderFeeCommercialTerms,
   prepareHyperliquidPerpOrder,
   type HyperliquidPerpOrderPreflight,
   type HyperliquidPerpOrderPreflightRequest,
@@ -30,6 +31,8 @@ import {
   type SolanaLendingGuardResult,
 } from '@/lib/lending/solanaLendingGuard';
 import { canonicalJsonString } from '@/lib/utils/canonicalJson';
+
+import { estimateVenueNativeFee, noVenueFeeCommercialTerms } from '../commerce';
 
 import {
   createPreparedExecution,
@@ -69,6 +72,7 @@ function evmPrepared<Native extends EvmExactInput>(
       },
     ],
     caveats: native.caveats,
+    commerce: noVenueFeeCommercialTerms(),
     payload: {
       kind: 'evm-transaction',
       chainId: native.chainId,
@@ -144,6 +148,7 @@ export const solanaLendingAdapter: ExecutionAdapter<
         },
       ],
       caveats: native.reasons,
+      commerce: noVenueFeeCommercialTerms(),
       payload:
         state === 'BLOCK'
           ? null
@@ -197,6 +202,7 @@ export const hyperliquidPerpAdapter: ExecutionAdapter<
         },
       ],
       caveats: native.caveats,
+      commerce: native.commerce,
       payload: native.unsignedExchangeEnvelope
         ? {
             kind: 'venue-action',
@@ -217,6 +223,12 @@ export const hyperliquidPerpAdapter: ExecutionAdapter<
     if (reference.kind !== 'venue-order' || reference.venue !== 'hyperliquid') {
       throw new TypeError('Hyperliquid observation requires a Hyperliquid venue order reference.');
     }
+    const expectedVerification = expected as Partial<HyperliquidPerpExecutionVerificationRequest>;
+    // Normalize before reading the venue so malformed commercial input cannot
+    // consume an observation request or be attached after the fact.
+    const commercialTerms = hyperliquidBuilderFeeCommercialTerms(
+      expectedVerification.expectedOrder?.builderFee
+    );
     const request = {
       ...(expected as Omit<HyperliquidPerpExecutionVerificationRequest, 'user' | 'orderId'>),
       user: reference.account,
@@ -225,6 +237,18 @@ export const hyperliquidPerpAdapter: ExecutionAdapter<
     const native = options?.signal
       ? await verifyHyperliquidPerpExecution(request, { signal: options.signal })
       : await verifyHyperliquidPerpExecution(request);
+    const venueFeeEstimate = commercialTerms.venueFee
+      ? estimateVenueNativeFee({
+          terms: commercialTerms,
+          venue: 'hyperliquid',
+          reference: {
+            account: reference.account,
+            clientOrderId: reference.clientOrderId,
+          },
+          observedAt: native.observedAt,
+          filledNotionalUsd: String(native.fills.filledNotionalUsd),
+        })
+      : null;
     return {
       schema: 'insight.execution-observation.v1',
       adapterId: this.id,
@@ -232,6 +256,7 @@ export const hyperliquidPerpAdapter: ExecutionAdapter<
       lifecycle: hyperliquidLifecycle(native),
       observedAt: native.observedAt,
       caveats: native.caveats,
+      commerce: { venueFeeEstimate },
       native,
     };
   },
