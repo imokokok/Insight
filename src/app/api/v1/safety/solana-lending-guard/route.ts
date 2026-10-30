@@ -9,10 +9,11 @@ import {
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
+import { executionAdapterRegistry } from '@/lib/execution/adapters';
 import {
   SolanaLendingGuardExactInputSchema,
-  assessSolanaLendingGuard,
   type SolanaLendingGuardExactInput,
+  type SolanaLendingGuardResult,
 } from '@/lib/lending/solanaLendingGuard';
 import { createSolanaLendingGuardDecision } from '@/lib/lending/solanaLendingGuardAttestation';
 
@@ -24,7 +25,11 @@ async function executeDecision(
   input: SolanaLendingGuardExactInput,
   requestId: string
 ): Promise<NextResponse> {
-  const guard = await assessSolanaLendingGuard(input.guard, input.transaction);
+  const prepared = await executionAdapterRegistry.preflight<
+    SolanaLendingGuardExactInput,
+    SolanaLendingGuardResult
+  >('insight.solana.direct-lending-guard.v1', input);
+  const guard = prepared.native;
   const decision = createSolanaLendingGuardDecision(guard, input.transaction);
   return NextResponse.json(
     ApiResponseBuilder.success(decision, {
