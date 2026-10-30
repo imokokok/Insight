@@ -52,7 +52,17 @@ describe('prepare_aerodrome_slipstream_swap MCP tool', () => {
   it('returns unsigned preparation output and the Base execution-receipt handoff', async () => {
     mockedPrepare.mockResolvedValue({
       kind: 'aerodrome-slipstream-exact-input-v1',
+      chainId: 8453,
       transaction: { to: '0xBE6D8f0d05cC4be24d5167a3eF062215bE6D18a5', data: '0x12', value: '0x0' },
+      approval: {
+        token: '0x4200000000000000000000000000000000000006',
+        spender: '0xBE6D8f0d05cC4be24d5167a3eF062215bE6D18a5',
+        amountRaw: '1',
+        data: '0x34',
+      },
+      exactInput: { deadlineUnixSeconds: 1_800_000_000 },
+      quote: { observedAt: '2026-10-31T00:00:00.000Z', venue: 'aerodrome-slipstream' },
+      caveats: [],
     } as never);
 
     const output = JSON.parse(await prepareAerodromeSlipstreamSwapTool.handler(args));

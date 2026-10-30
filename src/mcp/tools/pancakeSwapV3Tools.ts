@@ -1,4 +1,8 @@
-import { preparePancakeSwapV3ExactInput } from '@/lib/dex/pancakeSwapV3Swap';
+import type {
+  PreparePancakeSwapV3ExactInputRequest,
+  PreparedPancakeSwapV3ExactInput,
+} from '@/lib/dex/pancakeSwapV3Swap';
+import { executionAdapterRegistry } from '@/lib/execution/adapters';
 
 import { formatAsText } from './formatters';
 import { PancakeSwapV3SwapPreparationInputSchema } from './schemas';
@@ -17,9 +21,12 @@ export const preparePancakeSwapV3SwapTool: McpToolDefinition<
     'Prepare a user-signable exact-input swap against one allowlisted Base PancakeSwap V3 pool. Insight obtains a pinned quote and re-verifies the Factory, QuoterV2, Pool, and Router runtime identities before returning unsigned approval and swap calldata. It never receives a key, signs, relays, or broadcasts a transaction.',
   parameters: PancakeSwapV3SwapPreparationInputSchema,
   handler: async (args) => {
-    const prepared = await preparePancakeSwapV3ExactInput(args);
+    const prepared = await executionAdapterRegistry.preflight<
+      PreparePancakeSwapV3ExactInputRequest,
+      PreparedPancakeSwapV3ExactInput
+    >('insight.evm.pancakeswap-v3-exact-input.v1', args);
     return formatAsText({
-      ...prepared,
+      ...prepared.native,
       postSettlement: {
         submitTransactionHashTo: 'execution_receipt',
         sourceAssetId: 'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',

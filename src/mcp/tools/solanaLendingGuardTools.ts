@@ -1,6 +1,8 @@
+import { executionAdapterRegistry } from '@/lib/execution/adapters';
 import {
   SolanaLendingGuardExactInputSchema,
-  assessSolanaLendingGuard,
+  type SolanaLendingGuardExactInput,
+  type SolanaLendingGuardResult,
 } from '@/lib/lending/solanaLendingGuard';
 import { createSolanaLendingGuardDecision } from '@/lib/lending/solanaLendingGuardAttestation';
 
@@ -18,7 +20,11 @@ export const solanaLendingGuardTool: McpToolDefinition<typeof SolanaLendingGuard
       'Create portable Insight risk evidence for exactly one unsigned direct Kamino Lend, Marginfi v2, Jupiter Lend Earn deposit, or Save Lend reserve-liquidity deposit instruction on Solana mainnet. Save additionally verifies the submitted asset mint against the live source SPL token account. It accepts no transaction authority, verifies reviewed program-owned accounts, simulates the full unsigned message, checks both assets’ oracle evidence, and returns ALLOW / CAUTION / BLOCK. An ALLOW still needs a separately user-authorized PriorSeal binding before execution.',
     parameters: SolanaLendingGuardExactInputSchema,
     handler: async ({ guard: input, transaction }) => {
-      const guard = await assessSolanaLendingGuard(input, transaction);
+      const prepared = await executionAdapterRegistry.preflight<
+        SolanaLendingGuardExactInput,
+        SolanaLendingGuardResult
+      >('insight.solana.direct-lending-guard.v1', { guard: input, transaction });
+      const guard = prepared.native;
       const decision = createSolanaLendingGuardDecision(guard, transaction);
       return [
         `**Solana Lending Guard: ${guard.protocolId} · ${guard.action}**`,
