@@ -68,6 +68,10 @@ export const X402_ACQUISITION_SOURCES = [
   'bazaar',
   'mcp',
   'sdk',
+  'skill',
+  'wallet_mcp',
+  'sendaifun',
+  'solana_directory',
   'unknown',
 ] as const;
 export type X402AcquisitionSource = (typeof X402_ACQUISITION_SOURCES)[number];
