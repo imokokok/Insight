@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-
 import {
   getTursoPriceClient,
   readTursoPriceReadCutoverMs,
   readTursoPriceWriteMode,
 } from '@/lib/turso/price/client';
 import { loadTursoPriceHistoryPage } from '@/lib/turso/price/historyRepository';
+
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 const timestamp = z.string().refine((value) => Number.isFinite(Date.parse(value)));
 const fields = {

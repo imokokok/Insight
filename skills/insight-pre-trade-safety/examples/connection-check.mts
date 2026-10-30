@@ -47,6 +47,6 @@ await notifyInitialized();
 const listed = await request('tools/list');
 const tools = record(listed.result).tools;
 if (!Array.isArray(tools)) throw new Error('tools/list did not return a tools array');
-console.log(
-  `Insight discovery reachable: ${String(serverInfo.name)} ${String(serverInfo.version)}; ${tools.length} tools listed; no paid tool called`
+process.stdout.write(
+  `Insight discovery reachable: ${String(serverInfo.name)} ${String(serverInfo.version)}; ${tools.length} tools listed; no paid tool called\n`
 );

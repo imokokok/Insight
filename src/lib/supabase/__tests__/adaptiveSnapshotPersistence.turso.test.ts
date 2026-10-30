@@ -1,16 +1,21 @@
 /** @jest-environment node */
-import {
-  acknowledgeTursoPriceSlot,
-  captureTursoPriceSlot,
-  listPendingTursoPriceSlots,
-} from '@/lib/turso/price/slotRepository';
+import { createServiceRoleClient } from '@/lib/supabase/server';
 import {
   getTursoPriceClient,
   readTursoPriceConfig,
   readTursoPriceReadCutoverMs,
   readTursoPriceWriteMode,
 } from '@/lib/turso/price/client';
-import { createServiceRoleClient } from '@/lib/supabase/server';
+import {
+  acknowledgeTursoPriceSlot,
+  captureTursoPriceSlot,
+  listPendingTursoPriceSlots,
+} from '@/lib/turso/price/slotRepository';
+
+import {
+  commitSnapshotDataSlot,
+  reconcilePendingTursoPriceSlots,
+} from '../adaptiveSnapshotPersistence';
 
 jest.mock('@/lib/turso/price/client', () => ({
   getTursoPriceClient: jest.fn(),
@@ -27,11 +32,6 @@ jest.mock('@/lib/turso/price/slotRepository', () => ({
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(),
 }));
-
-import {
-  commitSnapshotDataSlot,
-  reconcilePendingTursoPriceSlots,
-} from '../adaptiveSnapshotPersistence';
 
 const mockedMode = jest.mocked(readTursoPriceWriteMode);
 const mockedConfig = jest.mocked(readTursoPriceConfig);

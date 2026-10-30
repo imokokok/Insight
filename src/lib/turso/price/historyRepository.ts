@@ -1,7 +1,8 @@
-import type { Client } from '@libsql/client';
 import { z } from 'zod';
 
 import { CONFIDENCE_SCALE, DEVIATION_SCALE, PRICE_SCALE } from './decimal';
+
+import type { Client } from '@libsql/client';
 
 export const TURSO_PRICE_HISTORY_FIELDS = [
   'id',

@@ -21,6 +21,7 @@
 import { customerEligibleMarketReferenceVenues } from '@/lib/dataRights/evidenceRights';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
+import { readTursoPriceWriteMode } from '@/lib/turso/price/client';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -148,6 +149,9 @@ export async function computeOutcome(
     };
   };
   const fetchFineRows = async () => {
+    if (readTursoPriceWriteMode() !== 'primary') {
+      return fetchRows('price_snapshot_history', 'snapshot_ts');
+    }
     try {
       const data = await loadSnapshotHistoryRange(
         supabase,

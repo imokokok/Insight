@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
 
-import type { Client, Transaction } from '@libsql/client';
 import { z } from 'zod';
 
 import {
@@ -13,6 +12,7 @@ import {
   scaledToCanonicalString,
 } from './decimal';
 import { TURSO_PRICE_SCHEMA_VERSION } from './schema';
+
 import type {
   CapturedTursoPriceSlot,
   PriceWriteReason,
@@ -20,6 +20,7 @@ import type {
   TursoPricePolicy,
   TursoPriceSlotSummary,
 } from './types';
+import type { Client, Transaction } from '@libsql/client';
 
 const MAX_SNAPSHOT_PRICE = 9_999_999_999_999_999.99999999;
 const MAX_DEVIATION_PCT = 9_999.9999;

@@ -6,6 +6,8 @@ import {
 } from '@/lib/turso/price/client';
 import { loadTursoPriceHistoryPage } from '@/lib/turso/price/historyRepository';
 
+import { loadSnapshotHistoryPage } from '../snapshotHistory';
+
 jest.mock('@/lib/turso/price/client', () => ({
   getTursoPriceClient: jest.fn(),
   readTursoPriceReadCutoverMs: jest.fn(),
@@ -14,8 +16,6 @@ jest.mock('@/lib/turso/price/client', () => ({
 jest.mock('@/lib/turso/price/historyRepository', () => ({
   loadTursoPriceHistoryPage: jest.fn(),
 }));
-
-import { loadSnapshotHistoryPage } from '../snapshotHistory';
 
 const mockedMode = jest.mocked(readTursoPriceWriteMode);
 const mockedCutover = jest.mocked(readTursoPriceReadCutoverMs);
