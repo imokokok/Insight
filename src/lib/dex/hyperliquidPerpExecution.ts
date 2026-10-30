@@ -2,7 +2,10 @@
 
 import { HYPERLIQUID_INFO_URL, type HyperliquidReviewedPerpMarket } from './hyperliquidPerpMarket';
 
-import type { HyperliquidPerpOrderSide } from './hyperliquidPerpOrder';
+import type {
+  HyperliquidPerpBuilderFeePolicy,
+  HyperliquidPerpOrderSide,
+} from './hyperliquidPerpOrder';
 
 type JsonRecord = Record<string, unknown>;
 type Fetcher = typeof fetch;
@@ -23,6 +26,8 @@ export interface HyperliquidPerpExpectedOrder {
   limitPrice: string;
   reduceOnly: boolean;
   clientOrderId: string;
+  /** The opt-in fee policy from the preflight that created this cloid. */
+  builderFee?: HyperliquidPerpBuilderFeePolicy;
 }
 
 export interface HyperliquidPerpExecutionVerificationRequest {

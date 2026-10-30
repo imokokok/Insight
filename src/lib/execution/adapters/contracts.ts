@@ -1,3 +1,9 @@
+import {
+  createExecutionCommercialTerms,
+  type ExecutionCommercialTerms,
+  type VenueNativeFeeEstimate,
+} from '../commerce';
+
 /**
  * Protocol-neutral, non-custodial execution boundary.
  *
@@ -54,6 +60,8 @@ export type PreparedExecution<Native> = {
   expiresAt: string | null;
   evidence: EvidencePointer[];
   caveats: string[];
+  /** Pricing terms are part of the review record, never signing authority. */
+  commerce: ExecutionCommercialTerms;
   payload: PreparedExecutionPayload | null;
   /** The unmodified protocol result. Consumers that need native detail use this field. */
   native: Native;
@@ -71,6 +79,8 @@ export type ExecutionObservation<Native> = {
   lifecycle: 'OBSERVED' | 'PENDING' | 'CONFIRMED' | 'REVERTED' | 'NOT_FOUND' | 'UNAVAILABLE';
   observedAt: string;
   caveats: string[];
+  /** Present only where the adapter can derive a clearly-labelled fee estimate. */
+  commerce?: { venueFeeEstimate: VenueNativeFeeEstimate | null };
   native: Native;
 };
 
@@ -137,6 +147,7 @@ export function createPreparedExecution<Native>(
   if (!Array.isArray(value.caveats) || value.caveats.some((entry) => typeof entry !== 'string')) {
     throw new TypeError('Execution caveats are invalid.');
   }
+  createExecutionCommercialTerms(value.commerce);
   if ((value.state === 'READY' || value.state === 'CAUTION') !== Boolean(value.payload)) {
     throw new TypeError('Execution preflight payload does not match its state.');
   }
