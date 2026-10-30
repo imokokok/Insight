@@ -13,6 +13,20 @@ single trade it returns:
 - manipulation-risk score with cross-provider agreement / quorum
 - optional EIP-712 attestation any third party can re-verify offline
 
+## Install and verify free discovery first
+
+Use [`mcp.json`](mcp.json) as the credential-free remote MCP template. Before
+configuring an API key or an x402 wallet, run
+[`examples/connection-check.mts`](examples/connection-check.mts) with Node 22+.
+It sends only `initialize`, `notifications/initialized`, and `tools/list`. It
+does not call an assessment, request payment, prompt a wallet, or send a
+transaction.
+
+Use only the narrow action prompts in
+[`references/action-prompts.md`](references/action-prompts.md). They instruct
+an agent to assess a proposed action before signing; they never tell an agent
+to execute a transaction because Insight has no transaction authority.
+
 ## How to call
 
 Plain HTTP:
