@@ -899,6 +899,14 @@ export async function applyFeedHealthLifecycle(
 ): Promise<{ updatedHealth: number; deactivated: number }> {
   const adminQueries = getAdminQueries();
 
+  // This lifecycle is deliberately a non-critical side effect. Preserve that
+  // contract even when an incomplete rolling deployment (or an unavailable
+  // service-role query facade) cannot supply the admin query implementation.
+  if (!adminQueries) {
+    logger.warn('Feed-health lifecycle unavailable (non-critical)');
+    return { updatedHealth: 0, deactivated: 0 };
+  }
+
   // Newer deployments complete health mutation and threshold deactivation in
   // one RPC transaction. Keep the compatibility path below for a rolling
   // deploy or a partial database rollout: health remains non-critical and a
