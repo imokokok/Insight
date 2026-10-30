@@ -26,6 +26,10 @@ const adaptiveSnapshotRowSchema = z.object({
   error_message: z.string().max(8_000).nullable(),
 });
 
+const hourlySnapshotRowSchema = adaptiveSnapshotRowSchema.extend({
+  snapshot_hour: z.string().datetime({ offset: true }),
+});
+
 const adaptiveSnapshotSummarySchema = z
   .object({
     received: z.number().int().min(0),
@@ -45,22 +49,43 @@ const adaptiveSnapshotSummarySchema = z
   .strict();
 
 type AdaptiveSnapshotRow = z.infer<typeof adaptiveSnapshotRowSchema>;
+type HourlySnapshotRow = z.infer<typeof hourlySnapshotRowSchema>;
 export type AdaptiveSnapshotPersistenceSummary = z.infer<typeof adaptiveSnapshotSummarySchema>;
 
+const snapshotSlotCommitSummarySchema = z
+  .object({
+    hourlyWritten: z.number().int().min(0),
+    persistence: adaptiveSnapshotSummarySchema,
+  })
+  .strict();
+
+export type SnapshotSlotCommitSummary = z.infer<typeof snapshotSlotCommitSummarySchema>;
+
+function buildRow(input: HourlySnapshotInput): AdaptiveSnapshotRow {
+  return adaptiveSnapshotRowSchema.parse({
+    provider: input.provider,
+    symbol: input.symbol,
+    chain_id: input.chainId ?? 0,
+    price: input.price,
+    consensus_price: input.consensusPrice ?? null,
+    deviation_pct: input.deviationPct ?? null,
+    latency_ms: input.latencyMs ?? null,
+    data_age_seconds: input.dataAgeSeconds ?? null,
+    confidence: input.confidence ?? null,
+    is_success: input.isSuccess,
+    error_message: input.errorMessage ?? null,
+  });
+}
+
 function buildRows(inputs: HourlySnapshotInput[]): AdaptiveSnapshotRow[] {
+  return inputs.map(buildRow);
+}
+
+function buildHourlyRows(inputs: HourlySnapshotInput[]): HourlySnapshotRow[] {
   return inputs.map((input) =>
-    adaptiveSnapshotRowSchema.parse({
-      provider: input.provider,
-      symbol: input.symbol,
-      chain_id: input.chainId ?? 0,
-      price: input.price,
-      consensus_price: input.consensusPrice ?? null,
-      deviation_pct: input.deviationPct ?? null,
-      latency_ms: input.latencyMs ?? null,
-      data_age_seconds: input.dataAgeSeconds ?? null,
-      confidence: input.confidence ?? null,
-      is_success: input.isSuccess,
-      error_message: input.errorMessage ?? null,
+    hourlySnapshotRowSchema.parse({
+      ...buildRow(input),
+      snapshot_hour: input.snapshotHour.toISOString(),
     })
   );
 }
@@ -114,4 +139,47 @@ export async function persistAdaptivePriceSnapshots(
     }
     return parsed.data;
   }, 'persist adaptive price snapshots');
+}
+
+/**
+ * Commit the two high-volume evidence streams for a collection slot in one
+ * database transaction.  The RPC invokes the existing, idempotent hourly and
+ * adaptive routines, so a network retry cannot leave a slot with only one of
+ * the two evidence layers written.
+ */
+export async function commitSnapshotDataSlot(
+  inputs: HourlySnapshotInput[],
+  snapshotTs: Date
+): Promise<SnapshotSlotCommitSummary> {
+  if (!Number.isFinite(snapshotTs.getTime())) {
+    throw new Error('Cannot commit a snapshot slot with an invalid timestamp');
+  }
+
+  const rows = z.array(adaptiveSnapshotRowSchema).max(500).parse(buildRows(inputs));
+  const hourlyRows = z.array(hourlySnapshotRowSchema).max(500).parse(buildHourlyRows(inputs));
+  const timestamp = snapshotTs.toISOString();
+  const inputHash = canonicalInputHash(timestamp, rows);
+  const supabase = createServiceRoleClient();
+
+  return retryIdempotentSupabaseWrite(async () => {
+    const { data, error } = await supabase.rpc('commit_snapshot_data_slot', {
+      p_hourly_rows: hourlyRows,
+      p_adaptive_rows: rows,
+      p_snapshot_ts: timestamp,
+      p_input_hash: inputHash,
+    });
+    if (error) {
+      throw new Error(
+        `Failed to atomically commit snapshot data slot: ${
+          typeof error.message === 'string' ? error.message : '[object Object]'
+        }`
+      );
+    }
+
+    const parsed = snapshotSlotCommitSummarySchema.safeParse(data);
+    if (!parsed.success) {
+      throw new Error(`Invalid snapshot slot commit response: ${parsed.error.message}`);
+    }
+    return parsed.data;
+  }, 'commit snapshot data slot');
 }

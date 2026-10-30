@@ -5,8 +5,9 @@
  * Commands:
  *   guard  - skip a low-frequency GitHub fallback when a recent Supabase-
  *            dispatched run already succeeded.
- *   start  - attach the GitHub run id to the dispatch ledger row.
- *   finish - record the final GitHub job conclusion.
+ *   start  - records local run metadata; primary dispatches defer their sole
+ *            ledger update until completion.
+ *   finish - records the final GitHub job conclusion and run metadata.
  *
  * Telemetry is deliberately fail-open: a temporary ledger/API failure must
  * never prevent the actual data pipeline from running.
@@ -93,21 +94,12 @@ async function start() {
   const now = new Date().toISOString();
 
   try {
+    await writeGithubFile('CRON_STARTED_AT', now, process.env.GITHUB_ENV);
     if (dispatchId) {
-      const response = await requestLedger(
-        `${baseUrl}/rest/v1/cron_dispatch_runs?id=eq.${encodeURIComponent(dispatchId)}`,
-        {
-          method: 'PATCH',
-          headers: headers({ Prefer: 'return=minimal' }),
-          body: JSON.stringify({
-            status: 'running',
-            github_run_id: runId,
-            github_run_url: runUrl,
-            started_at: now,
-          }),
-        }
-      );
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      // Supabase-created rows are already durable and `dispatching` is a
+      // sufficient in-flight state for the timeout guard. Deferring metadata
+      // to finish collapses insert → start update → finish update into an
+      // insert plus one terminal update, avoiding needless MVCC tuples.
     } else {
       const response = await requestLedger(`${baseUrl}/rest/v1/cron_dispatch_runs`, {
         method: 'POST',
@@ -146,15 +138,36 @@ async function finish() {
   const conclusion = process.env.CRON_CONCLUSION || 'failure';
   const status =
     conclusion === 'success' ? 'succeeded' : conclusion === 'cancelled' ? 'cancelled' : 'failed';
+  const completedAt = new Date().toISOString();
+  const startedAt = process.env.CRON_STARTED_AT?.trim() || completedAt;
+  const runId = Number(process.env.GITHUB_RUN_ID);
+  const runUrl =
+    Number.isSafeInteger(runId) && process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY
+      ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`
+      : undefined;
+  const body = {
+    status,
+    conclusion,
+    completed_at: completedAt,
+    ...(Number.isSafeInteger(runId)
+      ? {
+          github_run_id: runId,
+          github_run_url: runUrl,
+          started_at: startedAt,
+        }
+      : {}),
+  };
+  const query = new URL(`${baseUrl}/rest/v1/cron_dispatch_runs`);
+  query.searchParams.set('id', `eq.${dispatchId}`);
+  // A duplicated callback after a terminal write is a no-op rather than a
+  // fresh row version. The same predicate protects a slot already timed out.
+  query.searchParams.set('status', 'in.(dispatching,running)');
   try {
-    const response = await requestLedger(
-      `${baseUrl}/rest/v1/cron_dispatch_runs?id=eq.${encodeURIComponent(dispatchId)}`,
-      {
-        method: 'PATCH',
-        headers: headers({ Prefer: 'return=minimal' }),
-        body: JSON.stringify({ status, conclusion, completed_at: new Date().toISOString() }),
-      }
-    );
+    const response = await requestLedger(query, {
+      method: 'PATCH',
+      headers: headers({ Prefer: 'return=minimal' }),
+      body: JSON.stringify(body),
+    });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     console.log(`[cron-control] ledger finished for ${workflow}: ${status}`);
   } catch (error) {

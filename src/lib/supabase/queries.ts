@@ -54,6 +54,26 @@ const MAX_PRICE_RECORDS_QUERY_LIMIT = 1_000;
 const ORACLE_FEEDS_CORE_COLUMNS =
   'id,provider,symbol,chain_id,address,name,decimals,category,is_active,source,metadata,consecutive_failures,last_success_at,last_failure_at';
 
+/** Validate the JSONB payload returned by the atomic feed-health RPC. */
+function parseFeedHealthLifecycleSummary(
+  value: unknown
+): { updated: number; deactivated: number } | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const { updated, deactivated } = record;
+  if (
+    typeof updated !== 'number' ||
+    !Number.isSafeInteger(updated) ||
+    updated < 0 ||
+    typeof deactivated !== 'number' ||
+    !Number.isSafeInteger(deactivated) ||
+    deactivated < 0
+  ) {
+    return null;
+  }
+  return { updated, deactivated };
+}
+
 export interface PriceRecord {
   id?: string;
   provider: string;
@@ -653,26 +673,86 @@ export class DatabaseQueries {
   ): Promise<{ updated: number }> {
     if (results.length === 0) return { updated: 0 };
 
+    return queryQueue.add(() => this.batchUpdateFeedHealthInQueue(results));
+  }
+
+  /**
+   * Atomically apply one collector batch and deactivate feeds that crossed the
+   * threshold. This replaces two PostgREST transactions with one database
+   * transaction: the registry writes themselves are unchanged, but every
+   * collection slot now needs one fewer commit/WAL flush and round trip.
+   */
+  async applyFeedHealthAndDeactivate(
+    results: Array<{
+      provider: string;
+      symbol: string;
+      chainId: number;
+      isSuccess: boolean;
+    }>,
+    threshold: number = 3
+  ): Promise<{ updated: number; deactivated: number }> {
     return queryQueue.add(async () => {
-      const successes = results
-        .filter((r) => r.isSuccess)
-        .map(({ provider, symbol, chainId }) => ({ provider, symbol, chainId }));
-      const failures = results
-        .filter((r) => !r.isSuccess)
-        .map(({ provider, symbol, chainId }) => ({ provider, symbol, chainId }));
-
-      // Single RPC call processes all successes and failures in one round-trip
-      const { data, error } = await this.client.rpc('batch_update_feed_health', {
+      const { successes, failures } = this.splitFeedHealthResults(results);
+      const { data, error } = await this.client.rpc('apply_feed_health_batch', {
         p_results: { successes, failures },
+        p_failure_threshold: threshold,
       });
+      const summary = parseFeedHealthLifecycleSummary(data);
+      if (!error && summary) return summary;
 
-      if (error) {
-        // Fallback to individual updates if RPC is not available (e.g. migration not applied)
-        return this.batchUpdateFeedHealthFallback(results);
-      }
-
-      return { updated: data ?? results.length };
+      // Preserve the old two-step lifecycle during a rolling migration, or if
+      // a malformed response is returned by the RPC boundary. The collector
+      // must keep recording failures and removing broken feeds even when this
+      // I/O optimisation is temporarily unavailable.
+      logger.warn(
+        'Atomic feed-health lifecycle RPC unavailable; using compatibility path',
+        error ? normalizeError(error) : new Error('Invalid feed-health lifecycle summary')
+      );
+      const { updated } = await this.batchUpdateFeedHealthInQueue(results);
+      const deactivated = await this.deactivateStaleFeedsInQueue(threshold);
+      return { updated, deactivated };
     });
+  }
+
+  private splitFeedHealthResults(
+    results: Array<{
+      provider: string;
+      symbol: string;
+      chainId: number;
+      isSuccess: boolean;
+    }>
+  ) {
+    const successes = results
+      .filter((r) => r.isSuccess)
+      .map(({ provider, symbol, chainId }) => ({ provider, symbol, chainId }));
+    const failures = results
+      .filter((r) => !r.isSuccess)
+      .map(({ provider, symbol, chainId }) => ({ provider, symbol, chainId }));
+    return { successes, failures };
+  }
+
+  private async batchUpdateFeedHealthInQueue(
+    results: Array<{
+      provider: string;
+      symbol: string;
+      chainId: number;
+      isSuccess: boolean;
+    }>
+  ): Promise<{ updated: number }> {
+    if (results.length === 0) return { updated: 0 };
+    const { successes, failures } = this.splitFeedHealthResults(results);
+
+    // Single RPC call processes all successes and failures in one round-trip.
+    const { data, error } = await this.client.rpc('batch_update_feed_health', {
+      p_results: { successes, failures },
+    });
+
+    if (error) {
+      // Fallback to individual updates if RPC is not available (e.g. migration not applied).
+      return this.batchUpdateFeedHealthFallback(results);
+    }
+
+    return { updated: typeof data === 'number' && Number.isFinite(data) ? data : results.length };
   }
 
   /**
@@ -755,32 +835,34 @@ export class DatabaseQueries {
    * and returning the exact affected-row count.
    */
   async deactivateStaleFeeds(threshold: number = 3): Promise<number> {
-    return queryQueue.add(async () => {
-      const now = new Date().toISOString();
+    return queryQueue.add(() => this.deactivateStaleFeedsInQueue(threshold));
+  }
 
-      const { data: deactivated, error } = await this.client
-        .from('oracle_feeds')
-        .update({
-          is_active: false,
-          updated_at: now,
-          deactivated_reason: 'health_failed',
-          deactivated_at: now,
-        })
-        .eq('is_active', true)
-        .gte('consecutive_failures', threshold)
-        .select('provider, symbol, chain_id');
+  private async deactivateStaleFeedsInQueue(threshold: number): Promise<number> {
+    const now = new Date().toISOString();
 
-      if (error) {
-        logger.error('Failed to deactivate stale feeds', normalizeError(error));
-        return 0;
-      }
+    const { data: deactivated, error } = await this.client
+      .from('oracle_feeds')
+      .update({
+        is_active: false,
+        updated_at: now,
+        deactivated_reason: 'health_failed',
+        deactivated_at: now,
+      })
+      .eq('is_active', true)
+      .gte('consecutive_failures', threshold)
+      .select('provider, symbol, chain_id');
 
-      const count = deactivated?.length ?? 0;
-      if (count > 0) {
-        logger.info(`Auto-deactivated ${count} feeds with >= ${threshold} consecutive failures`);
-      }
-      return count;
-    });
+    if (error) {
+      logger.error('Failed to deactivate stale feeds', normalizeError(error));
+      return 0;
+    }
+
+    const count = deactivated?.length ?? 0;
+    if (count > 0) {
+      logger.info(`Auto-deactivated ${count} feeds with >= ${threshold} consecutive failures`);
+    }
+    return count;
   }
 
   /**
