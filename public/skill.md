@@ -8,6 +8,17 @@ Agent-facing contacts:
 - OpenAPI 3.1 contract: `GET https://www.oracleinsight.xyz/openapi.json`
 - This manual: `GET https://www.oracleinsight.xyz/skill.md`
 
+## Installable Agent Skills
+
+- [Pre-Trade Safety Skill](https://www.oracleinsight.xyz/downloads/insight-pre-trade-safety-skill-v0.2.0.zip) — installable MCP configuration, no-money discovery check, and prompts for one proposed trade or DeFi action.
+- [Base Aave V3 Lending Guard Skill](https://www.oracleinsight.xyz/downloads/insight-lending-guard-skill-v0.1.0.zip) — a deliberately narrow, exact-call decision layer for direct Base Aave V3 EOA `supply` and variable-rate `borrow` calls.
+
+Install a package, then run its free discovery check before configuring a
+credential or an x402 wallet. A successful discovery check does not call a
+paid tool, ask for a signature, or send a transaction. Insight risk evidence
+does not authorize execution; use a separate wallet-authorization and evidence
+workflow when the caller needs one.
+
 ## Endpoints
 
 ### 1. HTTP: pre-trade safety check

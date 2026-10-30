@@ -1,0 +1,6 @@
+{
+  "name": "insight-pre-trade-safety",
+  "source": "./skills/insight-pre-trade-safety",
+  "description": "Oracle-manipulation-aware safety evidence for one proposed onchain trade before signing.",
+  "category": "Oracles"
+}
