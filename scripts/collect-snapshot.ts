@@ -28,11 +28,30 @@ import {
   resolveSnapshotSlot,
   SnapshotCollectionError,
 } from '@/lib/reports/snapshotCollector';
-import { commitSnapshotDataSlot } from '@/lib/supabase/adaptiveSnapshotPersistence';
+import {
+  commitSnapshotDataSlot,
+  reconcilePendingTursoPriceSlots,
+} from '@/lib/supabase/adaptiveSnapshotPersistence';
 
 async function main(): Promise<void> {
   const startedAt = Date.now();
   console.log('[collect-snapshot] starting collection pipeline…');
+
+  // In Turso-primary mode, finish interrupted cross-database hand-offs before
+  // collecting a new slot. This always reuses the immutable slot payload and
+  // never fetches a changed price for an already-captured timestamp.
+  try {
+    const reconciled = await reconcilePendingTursoPriceSlots();
+    if (reconciled > 0) {
+      console.log(`[collect-snapshot] reconciled ${reconciled} pending Turso price slot(s)`);
+    }
+  } catch (error) {
+    console.error(
+      '[collect-snapshot] pending Turso price-slot reconciliation failed:',
+      error instanceof Error ? error.message : error
+    );
+    process.exit(2);
+  }
 
   let result;
   try {
@@ -54,9 +73,10 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Commit the hourly and fine-grained evidence layers together. The database
-  // transaction either persists both layers for this slot or neither, which
-  // avoids a second commit/WAL flush and makes transient network retries safe.
+  // Commit the hourly and fine-grained evidence layers through the configured
+  // storage mode. Legacy mode uses the existing single-Supabase transaction;
+  // Turso-primary mode uses an immutable outbox/receipt hand-off so retries
+  // cannot project a changed payload for an already-captured slot.
   try {
     const committed = await commitSnapshotDataSlot(result.inputs, result.snapshotTs);
     console.log(
@@ -76,7 +96,7 @@ async function main(): Promise<void> {
     );
   } catch (error) {
     console.error(
-      '[collect-snapshot] atomic snapshot slot commit failed (no hourly or fine-grained rows were committed):',
+      '[collect-snapshot] snapshot slot commit failed:',
       error instanceof Error ? error.message : error
     );
     process.exit(2);

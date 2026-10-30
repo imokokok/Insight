@@ -53,6 +53,14 @@ permissions:
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  # Keep the collector on the proven Supabase path until the migration runbook
+  # explicitly advances it to shadow, then primary. An unset token is harmless
+  # in legacy mode; the code fails closed before either non-legacy mode writes.
+  TURSO_PRICE_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+  TURSO_PRICE_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+  TURSO_PRICE_PARTITION_KEY: ${{ vars.TURSO_PRICE_PARTITION_KEY || 'bootstrap' }}
+  TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
+  TURSO_PRICE_READ_CUTOVER_AT: ${{ vars.TURSO_PRICE_READ_CUTOVER_AT || '' }}
   CRON_WORKFLOW: snapshot-collect.yml
   CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
   CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}

@@ -20,6 +20,7 @@
 
 import { customerEligibleMarketReferenceVenues } from '@/lib/dataRights/evidenceRights';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
 import { roundTo } from '@/lib/utils/format';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -146,8 +147,42 @@ export async function computeOutcome(
       error: { message: `${table} exceeded ${SNAPSHOT_MAX_ROWS} rows in outcome window` },
     };
   };
+  const fetchFineRows = async () => {
+    try {
+      const data = await loadSnapshotHistoryRange(
+        supabase,
+        'price',
+        fromMinus.toISOString(),
+        to.toISOString(),
+        ['snapshot_ts', 'provider', 'data_age_seconds', 'price', 'deviation_pct'],
+        {
+          symbol: asset,
+          successOnly: true,
+          ascending: true,
+          inclusiveBefore: true,
+          limit: SNAPSHOT_MAX_ROWS + 1,
+        }
+      );
+      if (data.length > SNAPSHOT_MAX_ROWS) {
+        return {
+          data: null,
+          error: {
+            message: `price snapshots exceeded ${SNAPSHOT_MAX_ROWS} rows in outcome window`,
+          },
+        };
+      }
+      return { data: data as Array<Record<string, unknown>>, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: {
+          message: error instanceof Error ? error.message : 'price snapshot history read failed',
+        },
+      };
+    }
+  };
   const [fineResult, hourlyResult] = await Promise.all([
-    fetchRows('price_snapshot_history', 'snapshot_ts'),
+    fetchFineRows(),
     fetchRows('hourly_snapshot_history', 'snapshot_hour'),
   ]);
 
