@@ -21,7 +21,7 @@ The dispatcher covers the eight product-critical jobs:
 | `safety-outcome-cron.yml`       | every 2 hours                                        | same cadence, skips while ledger is fresh        |
 | `feed-cadence-cron.yml`         | daily                                                | one hour later, only when ledger is stale        |
 | `daily-report-publish-cron.yml` | daily                                                | 05:30 UTC `--if-missing` backfill                |
-| `coverage-slo.yml`              | every 15 minutes                                     | five minutes later, skips while ledger is fresh  |
+| `coverage-slo.yml`              | every 15 minutes at `:09,:24,:39,:54`                | five minutes later, skips while ledger is fresh  |
 | `monad-dex-market.yml`          | every 10 minutes at `:02,:12,:22,:32,:42,:52`        | five minutes later, skips while ledger is fresh  |
 
 ## One-time activation
