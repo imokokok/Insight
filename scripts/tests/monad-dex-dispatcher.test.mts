@@ -16,6 +16,10 @@ const migrationUrl = new URL(
   '../../supabase/migrations/0104_reliable_monad_dex_dispatcher.sql',
   import.meta.url
 );
+const cadenceAlignmentMigrationUrl = new URL(
+  '../../supabase/migrations/0110_align_dispatcher_cadence.sql',
+  import.meta.url
+);
 const workflowUrl = new URL('../../.github/workflows/monad-dex-market.yml', import.meta.url);
 
 test('Monad DEX migration registers the reliable primary dispatcher and removes it cleanly', async () => {
@@ -66,6 +70,7 @@ test('Monad DEX migration registers the reliable primary dispatcher and removes 
     );
     await db.exec(await readFile(coverageMigrationUrl, 'utf8'));
     await db.exec(await readFile(migrationUrl, 'utf8'));
+    await db.exec(await readFile(cadenceAlignmentMigrationUrl, 'utf8'));
 
     const jobs = await db.query(
       "SELECT jobname, schedule, command FROM cron.job WHERE jobname='github-dispatch-monad-dex-market'"
@@ -76,6 +81,14 @@ test('Monad DEX migration registers the reliable primary dispatcher and removes 
         schedule: '2,12,22,32,42,52 * * * *',
         command: "SELECT public.dispatch_github_workflow('monad-dex-market.yml');",
       },
+    ]);
+
+    const correctedCadences = await db.query(
+      "SELECT jobname, schedule FROM cron.job WHERE jobname IN ('github-dispatch-oracle-watch', 'github-dispatch-reputation') ORDER BY jobname"
+    );
+    assert.deepEqual(correctedCadences.rows, [
+      { jobname: 'github-dispatch-oracle-watch', schedule: '8 * * * *' },
+      { jobname: 'github-dispatch-reputation', schedule: '12 */2 * * *' },
     ]);
 
     await db.query("SELECT public.dispatch_github_workflow('monad-dex-market.yml')");
