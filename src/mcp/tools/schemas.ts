@@ -359,6 +359,31 @@ export const HyperliquidPerpOrderPreflightInputSchema = z
       .describe(
         'Short expiry to include in the locally signed Hyperliquid exchange envelope. Defaults to 30.'
       ),
+    builderFee: z
+      .object({
+        builder: z
+          .string()
+          .regex(/^0x[0-9a-fA-F]{40}$/)
+          .describe('Configured Hyperliquid builder address; visible in the user-signed order.'),
+        feeTenthsOfBasisPoint: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .describe('Per-order builder fee in tenths of a basis point. 10 means one basis point.'),
+        maximumFeeTenthsOfBasisPoint: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .optional()
+          .describe('Maximum user-approved fee; defaults to the exact per-order fee.'),
+      })
+      .strict()
+      .optional()
+      .describe(
+        'Optional venue-native fee policy. The response includes a separate user-signed approval action.'
+      ),
   })
   .strict();
 
@@ -393,6 +418,17 @@ export const HyperliquidPerpExecutionVerificationInputSchema = z
           .max(80),
         reduceOnly: z.boolean(),
         clientOrderId: z.string().regex(/^0x[0-9a-fA-F]{32}$/),
+        builderFee: z
+          .object({
+            builder: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+            feeTenthsOfBasisPoint: z.number().int().min(1).max(100),
+            maximumFeeTenthsOfBasisPoint: z.number().int().min(1).max(100).optional(),
+          })
+          .strict()
+          .optional()
+          .describe(
+            'Optional fee terms from the original preflight; returns an estimate, not a payout claim.'
+          ),
       })
       .strict(),
   })

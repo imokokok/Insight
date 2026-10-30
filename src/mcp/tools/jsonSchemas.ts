@@ -539,6 +539,14 @@ export const HyperliquidPerpOrderPreflightJsonSchema = z
     maxMarkOracleDeviationBps: z.number().finite().min(0).max(10_000),
     requireFullFill: z.boolean().optional(),
     expiresAfterSeconds: z.number().int().min(5).max(120).optional(),
+    builderFee: z
+      .object({
+        builder: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+        feeTenthsOfBasisPoint: z.number().int().min(1).max(100),
+        maximumFeeTenthsOfBasisPoint: z.number().int().min(1).max(100).optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 
@@ -562,6 +570,14 @@ export const HyperliquidPerpExecutionVerificationJsonSchema = z
           .max(80),
         reduceOnly: z.boolean(),
         clientOrderId: z.string().regex(/^0x[0-9a-fA-F]{32}$/),
+        builderFee: z
+          .object({
+            builder: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+            feeTenthsOfBasisPoint: z.number().int().min(1).max(100),
+            maximumFeeTenthsOfBasisPoint: z.number().int().min(1).max(100).optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict(),
   })

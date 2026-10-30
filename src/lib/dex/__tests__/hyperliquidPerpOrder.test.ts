@@ -1,4 +1,7 @@
-import { prepareHyperliquidPerpOrder } from '../hyperliquidPerpOrder';
+import {
+  prepareHyperliquidBuilderFeeApproval,
+  prepareHyperliquidPerpOrder,
+} from '../hyperliquidPerpOrder';
 
 function jsonResponse(body: unknown): Response {
   return { ok: true, json: async () => body } as Response;
@@ -82,5 +85,62 @@ describe('Hyperliquid IOC order preflight', () => {
         { fetcher, nowMs: 1_000_000 }
       )
     ).rejects.toThrow('tick precision');
+  });
+
+  it('makes an opt-in builder fee explicit, separately approvable, and part of the order intent', async () => {
+    const builderFee = {
+      builder: '0x1111111111111111111111111111111111111111',
+      feeTenthsOfBasisPoint: 10,
+      maximumFeeTenthsOfBasisPoint: 15,
+    };
+    const result = await prepareHyperliquidPerpOrder(
+      { ...request, builderFee },
+      { fetcher, nowMs: 1_000_000 }
+    );
+
+    expect(result.commerce).toMatchObject({
+      schema: 'execution.commerce.v1',
+      venueFee: {
+        beneficiary: builderFee.builder,
+        rate: 10,
+        maximumRate: 15,
+        settlement: 'VENUE_RECONCILIATION_REQUIRED',
+      },
+    });
+    expect(result.builderFeeApproval).toMatchObject({
+      maximumFeeRate: '0.015%',
+      unsignedExchangeAction: {
+        type: 'approveBuilderFee',
+        builder: builderFee.builder,
+        maxFeeRate: '0.015%',
+      },
+    });
+    expect(result.unsignedExchangeEnvelope?.action.builder).toEqual({
+      b: builderFee.builder,
+      f: 10,
+    });
+    expect(prepareHyperliquidBuilderFeeApproval(builderFee).maximumFeeRate).toBe('0.015%');
+  });
+
+  it('rejects a builder fee above its user-approved maximum or venue cap', async () => {
+    await expect(
+      prepareHyperliquidPerpOrder(
+        {
+          ...request,
+          builderFee: {
+            builder: '0x1111111111111111111111111111111111111111',
+            feeTenthsOfBasisPoint: 11,
+            maximumFeeTenthsOfBasisPoint: 10,
+          },
+        },
+        { fetcher, nowMs: 1_000_000 }
+      )
+    ).rejects.toThrow('builder fee');
+    expect(() =>
+      prepareHyperliquidBuilderFeeApproval({
+        builder: '0x1111111111111111111111111111111111111111',
+        feeTenthsOfBasisPoint: 101,
+      })
+    ).toThrow('builder fee');
   });
 });
