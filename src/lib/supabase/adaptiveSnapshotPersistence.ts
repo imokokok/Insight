@@ -14,9 +14,16 @@ import {
 import {
   acknowledgeTursoPriceSlot,
   captureTursoPriceSlot,
+  latestAcknowledgedTursoPriceSlot,
   listPendingTursoPriceSlots,
+  replaceTursoPricePersistenceProjection,
 } from '@/lib/turso/price/slotRepository';
-import type { TursoPriceInput, TursoPriceSlotSummary } from '@/lib/turso/price/types';
+import type {
+  TursoPriceInput,
+  TursoPricePersistenceState,
+  TursoPricePolicy,
+  TursoPriceSlotSummary,
+} from '@/lib/turso/price/types';
 import { createLogger } from '@/lib/utils/logger';
 
 const MAX_SNAPSHOT_PRICE = 9_999_999_999_999_999.99999999;
@@ -75,6 +82,40 @@ const snapshotSlotCommitSummarySchema = z
 
 export type SnapshotSlotCommitSummary = z.infer<typeof snapshotSlotCommitSummarySchema>;
 
+const finiteNumber = z.coerce.number().finite();
+const supabasePersistenceTimestampSchema = z
+  .object({
+    last_snapshot_ts: z.string().datetime({ offset: true }),
+  })
+  .strict();
+const supabasePersistenceStateSchema = z
+  .object({
+    provider: z.string().trim().min(1).max(128),
+    symbol: z
+      .string()
+      .trim()
+      .regex(/^[A-Z0-9][A-Z0-9._-]{0,31}$/),
+    chain_id: z.number().int().min(0),
+    last_snapshot_ts: z.string().datetime({ offset: true }),
+    last_price: finiteNumber.min(0).max(MAX_SNAPSHOT_PRICE),
+    last_deviation_pct: finiteNumber.min(-MAX_DEVIATION_PCT).max(MAX_DEVIATION_PCT).nullable(),
+    last_data_age_seconds: z.number().int().min(0).max(2_147_483_647).nullable(),
+    last_confidence: finiteNumber.min(0).max(1).nullable(),
+    last_is_success: z.boolean(),
+    last_error_message: z.string().max(8_000).nullable(),
+  })
+  .strict();
+const supabasePersistencePolicySchema = z
+  .object({
+    policy_key: z.string().trim().min(1).max(32),
+    resolution: z.enum(['full', 'adaptive']),
+    price_change_bps: z.number().int().min(1).max(100_000),
+    deviation_change_bps: z.number().int().min(1).max(100_000),
+    data_age_change_seconds: z.number().int().min(1).max(2_147_483_647),
+    confidence_change: finiteNumber.min(0.0001).max(1),
+  })
+  .strict();
+
 const tursoProjectionSchema = z
   .object({
     hourlyWritten: z.number().int().min(0),
@@ -132,6 +173,119 @@ function buildTursoInputs(inputs: HourlySnapshotInput[]): TursoPriceInput[] {
       errorMessage: row.error_message,
       snapshotHourMs,
     };
+  });
+}
+
+function timestampMs(value: string, label: string): number {
+  const parsed = Date.parse(value);
+  if (!Number.isSafeInteger(parsed) || parsed < 0) {
+    throw new Error(`Invalid ${label}`);
+  }
+  return parsed;
+}
+
+function confidenceToE4(value: number): number {
+  const scaled = Math.round(value * 10_000);
+  if (Math.abs(value * 10_000 - scaled) > 1e-9 || scaled < 1 || scaled > 10_000) {
+    throw new Error('Invalid Supabase persistence confidence threshold');
+  }
+  return scaled;
+}
+
+async function readLatestSupabasePersistenceStateMs(): Promise<number | null> {
+  const { data, error } = await createServiceRoleClient()
+    .from('price_snapshot_persistence_state')
+    .select('last_snapshot_ts')
+    .order('last_snapshot_ts', { ascending: false })
+    .limit(1);
+  if (error) {
+    throw new Error(`Failed to read Supabase persistence state checkpoint: ${error.message}`);
+  }
+  if (!data || data.length === 0) return null;
+  return timestampMs(
+    supabasePersistenceTimestampSchema.parse(data[0]).last_snapshot_ts,
+    'Supabase persistence checkpoint'
+  );
+}
+
+async function readSupabasePersistenceStates(): Promise<TursoPricePersistenceState[]> {
+  const { data, error } = await createServiceRoleClient()
+    .from('price_snapshot_persistence_state')
+    .select(
+      'provider,symbol,chain_id,last_snapshot_ts,last_price,last_deviation_pct,last_data_age_seconds,last_confidence,last_is_success,last_error_message'
+    );
+  if (error) {
+    throw new Error(`Failed to read Supabase persistence state: ${error.message}`);
+  }
+  return z
+    .array(supabasePersistenceStateSchema)
+    .parse(data ?? [])
+    .map((state) => ({
+      provider: state.provider,
+      symbol: state.symbol,
+      chainId: state.chain_id,
+      lastSnapshotMs: timestampMs(state.last_snapshot_ts, 'Supabase persistence state timestamp'),
+      lastPrice: state.last_price,
+      lastDeviationPct: state.last_deviation_pct,
+      lastDataAgeSeconds: state.last_data_age_seconds,
+      lastConfidence: state.last_confidence,
+      lastIsSuccess: state.last_is_success,
+      lastErrorMessage: state.last_error_message,
+    }));
+}
+
+async function readSupabasePersistencePolicies(): Promise<TursoPricePolicy[]> {
+  const { data, error } = await createServiceRoleClient()
+    .from('price_snapshot_persistence_policies')
+    .select(
+      'policy_key,resolution,price_change_bps,deviation_change_bps,data_age_change_seconds,confidence_change'
+    );
+  if (error) {
+    throw new Error(`Failed to read Supabase persistence policies: ${error.message}`);
+  }
+  return z
+    .array(supabasePersistencePolicySchema)
+    .parse(data ?? [])
+    .map((policy) => ({
+      policyKey: policy.policy_key,
+      resolution: policy.resolution,
+      priceChangeBps: policy.price_change_bps,
+      deviationChangeBps: policy.deviation_change_bps,
+      dataAgeChangeSeconds: policy.data_age_change_seconds,
+      confidenceChangeE4: confidenceToE4(policy.confidence_change),
+    }));
+}
+
+/**
+ * A shadow session may resume after `legacy` has advanced Supabase, or after a
+ * prior Turso capture wrote evidence but failed parity validation. Before the
+ * next capture, rebase Turso's mutable decision state to the last known
+ * Supabase state. The immutable Turso slot history remains intact.
+ */
+async function rebaseTursoShadowStateIfNeeded(
+  client: ReturnType<typeof getTursoPriceClient>
+): Promise<void> {
+  const [lastSupabaseStateMs, lastAcknowledgedTursoSlotMs] = await Promise.all([
+    readLatestSupabasePersistenceStateMs(),
+    latestAcknowledgedTursoPriceSlot(client),
+  ]);
+  if (
+    lastAcknowledgedTursoSlotMs !== null &&
+    (lastSupabaseStateMs === null || lastSupabaseStateMs <= lastAcknowledgedTursoSlotMs)
+  ) {
+    return;
+  }
+
+  const [states, policies] = await Promise.all([
+    readSupabasePersistenceStates(),
+    readSupabasePersistencePolicies(),
+  ]);
+  await replaceTursoPricePersistenceProjection(client, states, policies);
+  logger.info('Rebased Turso shadow persistence state from Supabase', {
+    states: states.length,
+    policies: policies.length,
+    lastSupabaseStateMs,
+    lastAcknowledgedTursoSlotMs,
   });
 }
 
@@ -354,9 +508,11 @@ export async function commitSnapshotDataSlot(
   const client = getTursoPriceClient();
 
   if (mode === 'shadow') {
+    await rebaseTursoShadowStateIfNeeded(client);
     const committed = await commitSnapshotDataSlotToSupabase(inputs, snapshotTs);
     const captured = await captureTursoPriceSlot(client, tursoInputs, snapshotTs.getTime());
     assertShadowWriteShape(committed.persistence, captured.summary);
+    await acknowledgeTursoPriceSlot(client, captured.slotMs, captured.inputHash);
     return committed;
   }
 

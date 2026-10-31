@@ -17,10 +17,11 @@ import type {
   CapturedTursoPriceSlot,
   PriceWriteReason,
   TursoPriceInput,
+  TursoPricePersistenceState,
   TursoPricePolicy,
   TursoPriceSlotSummary,
 } from './types';
-import type { Client, Transaction } from '@libsql/client';
+import type { Client, InStatement, Transaction } from '@libsql/client';
 
 const MAX_SNAPSHOT_PRICE = 9_999_999_999_999_999.99999999;
 const MAX_DEVIATION_PCT = 9_999.9999;
@@ -66,6 +67,31 @@ const payloadSchema = z
     inputs: z.array(inputSchema).min(1).max(500),
   })
   .strict();
+
+const persistenceStateSchema = z.object({
+  provider: z.string().trim().min(1).max(128),
+  symbol: z
+    .string()
+    .trim()
+    .regex(/^[A-Z0-9][A-Z0-9._-]{0,31}$/),
+  chainId: z.number().int().min(0),
+  lastSnapshotMs: z.number().int().nonnegative().safe(),
+  lastPrice: z.number().finite().min(0).max(MAX_SNAPSHOT_PRICE),
+  lastDeviationPct: z.number().finite().min(-MAX_DEVIATION_PCT).max(MAX_DEVIATION_PCT).nullable(),
+  lastDataAgeSeconds: z.number().int().min(0).max(2_147_483_647).nullable(),
+  lastConfidence: z.number().finite().min(0).max(1).nullable(),
+  lastIsSuccess: z.boolean(),
+  lastErrorMessage: z.string().max(8_000).nullable(),
+});
+
+const persistencePolicySchema = z.object({
+  policyKey: z.string().trim().min(1).max(32),
+  resolution: z.enum(['full', 'adaptive']),
+  priceChangeBps: z.number().int().min(1).max(100_000),
+  deviationChangeBps: z.number().int().min(1).max(100_000),
+  dataAgeChangeSeconds: z.number().int().min(1).max(2_147_483_647),
+  confidenceChangeE4: z.number().int().min(1).max(10_000),
+});
 
 interface StoredState {
   lastSnapshotMs: number;
@@ -522,6 +548,81 @@ export async function acknowledgeTursoPriceSlot(
     args: [nowMs, slotMs, inputHash],
   });
   if (result.rowsAffected !== 1) throw new Error('Cannot acknowledge an unknown Turso price slot');
+}
+
+/** The latest slot whose Supabase-primary result has been verified. */
+export async function latestAcknowledgedTursoPriceSlot(client: Client): Promise<number | null> {
+  const result = await client.execute(
+    'SELECT max(slot_ms) AS slot_ms FROM snapshot_slots WHERE supabase_acknowledged_at_ms IS NOT NULL'
+  );
+  const value = result.rows[0]?.slot_ms;
+  return value === null || value === undefined
+    ? null
+    : asInteger(value, 'acknowledged slot timestamp');
+}
+
+/**
+ * Atomically replace only the mutable adaptive baseline and policy projection.
+ * Immutable Turso slot evidence is deliberately retained for audit and replay.
+ */
+export async function replaceTursoPricePersistenceProjection(
+  client: Client,
+  rawStates: readonly TursoPricePersistenceState[],
+  rawPolicies: readonly TursoPricePolicy[],
+  nowMs: number = Date.now()
+): Promise<void> {
+  if (!Number.isSafeInteger(nowMs) || nowMs < 0) {
+    throw new Error('Invalid Turso persistence projection timestamp');
+  }
+  const states = z.array(persistenceStateSchema).max(2_000).parse(rawStates);
+  const policies = z.array(persistencePolicySchema).min(1).max(128).parse(rawPolicies);
+  if (!policies.some((policy) => policy.policyKey === '__default__')) {
+    throw new Error('Turso persistence projection is missing the default policy');
+  }
+
+  const statements: InStatement[] = [
+    'DELETE FROM persistence_policies',
+    ...policies.map((policy) => ({
+      sql: `INSERT INTO persistence_policies(
+        policy_key,resolution,price_change_bps,deviation_change_bps,
+        data_age_change_seconds,confidence_change_e4,updated_at_ms
+      ) VALUES(?,?,?,?,?,?,?)`,
+      args: [
+        policy.policyKey,
+        policy.resolution,
+        policy.priceChangeBps,
+        policy.deviationChangeBps,
+        policy.dataAgeChangeSeconds,
+        policy.confidenceChangeE4,
+        nowMs,
+      ],
+    })),
+    'DELETE FROM persistence_state',
+    ...states.map((state) => ({
+      sql: `INSERT INTO persistence_state(
+        provider,symbol,chain_id,last_snapshot_ms,last_price_e8,last_deviation_e4,
+        last_data_age_seconds,last_confidence_e4,last_is_success,last_error_message,updated_at_ms
+      ) VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
+      args: [
+        state.provider,
+        state.symbol,
+        state.chainId,
+        state.lastSnapshotMs,
+        scaledToCanonicalString(decimalToScaled(state.lastPrice, PRICE_SCALE, 'state price')),
+        state.lastDeviationPct === null
+          ? null
+          : Number(decimalToScaled(state.lastDeviationPct, DEVIATION_SCALE, 'state deviation')),
+        state.lastDataAgeSeconds,
+        state.lastConfidence === null
+          ? null
+          : Number(decimalToScaled(state.lastConfidence, CONFIDENCE_SCALE, 'state confidence')),
+        Number(state.lastIsSuccess),
+        state.lastErrorMessage,
+        nowMs,
+      ],
+    })),
+  ];
+  await client.batch(statements, 'write');
 }
 
 export interface PendingTursoPriceSlot {
