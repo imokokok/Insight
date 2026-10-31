@@ -9,7 +9,9 @@ import {
 import {
   acknowledgeTursoPriceSlot,
   captureTursoPriceSlot,
+  latestAcknowledgedTursoPriceSlot,
   listPendingTursoPriceSlots,
+  replaceTursoPricePersistenceProjection,
 } from '@/lib/turso/price/slotRepository';
 
 import {
@@ -26,14 +28,16 @@ jest.mock('@/lib/turso/price/client', () => ({
 jest.mock('@/lib/turso/price/slotRepository', () => ({
   acknowledgeTursoPriceSlot: jest.fn(),
   captureTursoPriceSlot: jest.fn(),
+  latestAcknowledgedTursoPriceSlot: jest.fn(),
   listPendingTursoPriceSlots: jest.fn(),
+  replaceTursoPricePersistenceProjection: jest.fn(),
 }));
 
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(),
 }));
 jest.mock('@/lib/utils/logger', () => ({
-  createLogger: jest.fn(() => ({ warn: jest.fn() })),
+  createLogger: jest.fn(() => ({ info: jest.fn(), warn: jest.fn() })),
 }));
 
 const mockedMode = jest.mocked(readTursoPriceWriteMode);
@@ -42,9 +46,15 @@ const mockedReadCutover = jest.mocked(readTursoPriceReadCutoverMs);
 const mockedClient = jest.mocked(getTursoPriceClient);
 const mockedCapture = jest.mocked(captureTursoPriceSlot);
 const mockedAck = jest.mocked(acknowledgeTursoPriceSlot);
+const mockedLatestAcknowledged = jest.mocked(latestAcknowledgedTursoPriceSlot);
 const mockedPending = jest.mocked(listPendingTursoPriceSlots);
+const mockedReplaceProjection = jest.mocked(replaceTursoPricePersistenceProjection);
 const mockedCreateServiceRoleClient = jest.mocked(createServiceRoleClient);
 const mockRpc = jest.fn();
+const mockFrom = jest.fn();
+const mockLatestStateLimit = jest.fn();
+const mockStateRows = jest.fn();
+const mockPolicyRows = jest.fn();
 
 const input = {
   provider: 'dia',
@@ -87,7 +97,35 @@ beforeEach(() => {
   });
   mockedReadCutover.mockReturnValue(input.snapshotHour.getTime());
   mockedClient.mockReturnValue({} as never);
-  mockedCreateServiceRoleClient.mockReturnValue({ rpc: mockRpc } as never);
+  mockLatestStateLimit.mockResolvedValue({
+    data: [{ last_snapshot_ts: input.snapshotHour.toISOString() }],
+    error: null,
+  });
+  mockStateRows.mockResolvedValue({ data: [], error: null });
+  mockPolicyRows.mockResolvedValue({
+    data: [
+      {
+        policy_key: '__default__',
+        resolution: 'adaptive',
+        price_change_bps: 25,
+        deviation_change_bps: 10,
+        data_age_change_seconds: 300,
+        confidence_change: '0.0500',
+      },
+    ],
+    error: null,
+  });
+  mockFrom.mockImplementation((table: string) => ({
+    select: () => {
+      if (table === 'price_snapshot_persistence_state') {
+        return Object.assign(mockStateRows(), { order: () => ({ limit: mockLatestStateLimit }) });
+      }
+      if (table === 'price_snapshot_persistence_policies') return mockPolicyRows();
+      throw new Error(`Unexpected table ${table}`);
+    },
+  }));
+  mockedCreateServiceRoleClient.mockReturnValue({ rpc: mockRpc, from: mockFrom } as never);
+  mockedLatestAcknowledged.mockResolvedValue(input.snapshotHour.getTime());
   mockRpc.mockResolvedValue({ data: { hourlyWritten: 1, replayed: false }, error: null });
   mockedCapture.mockResolvedValue({
     slotMs: input.snapshotHour.getTime(),
@@ -203,6 +241,58 @@ it('accepts a cold Turso shadow slot when its write shape matches Supabase', asy
     hourlyWritten: 1,
     persistence: supabaseSummary,
   });
+  expect(mockedAck).toHaveBeenCalledWith(
+    expect.anything(),
+    input.snapshotHour.getTime(),
+    'a'.repeat(64)
+  );
+});
+
+it('rebases Turso mutable state before shadow capture when Supabase advanced during legacy mode', async () => {
+  mockedMode.mockReturnValue('shadow');
+  mockedLatestAcknowledged.mockResolvedValue(input.snapshotHour.getTime() - 900_000);
+  mockLatestStateLimit.mockResolvedValue({
+    data: [{ last_snapshot_ts: input.snapshotHour.toISOString() }],
+    error: null,
+  });
+  mockStateRows.mockResolvedValue({
+    data: [
+      {
+        provider: 'dia',
+        symbol: 'ETH',
+        chain_id: 1,
+        last_snapshot_ts: input.snapshotHour.toISOString(),
+        last_price: '2000.00000000',
+        last_deviation_pct: '0.0000',
+        last_data_age_seconds: 2,
+        last_confidence: '0.9000',
+        last_is_success: true,
+        last_error_message: null,
+      },
+    ],
+    error: null,
+  });
+  mockRpc.mockResolvedValue({ data: { hourlyWritten: 1, persistence: summary }, error: null });
+
+  await expect(commitSnapshotDataSlot([input], input.snapshotHour)).resolves.toEqual({
+    hourlyWritten: 1,
+    persistence: summary,
+  });
+
+  expect(mockedReplaceProjection).toHaveBeenCalledWith(
+    expect.anything(),
+    [
+      expect.objectContaining({
+        provider: 'dia',
+        lastSnapshotMs: input.snapshotHour.getTime(),
+        lastPrice: 2_000,
+      }),
+    ],
+    [expect.objectContaining({ policyKey: '__default__', confidenceChangeE4: 500 })]
+  );
+  expect(mockedReplaceProjection.mock.invocationCallOrder[0]).toBeLessThan(
+    mockRpc.mock.invocationCallOrder[0]
+  );
 });
 
 it('rejects a Turso shadow slot when its write shape differs from Supabase', async () => {
