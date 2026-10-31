@@ -47,8 +47,13 @@ advanced by database creation or deployment.
    still in `legacy` mode.
 4. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
    for several complete collection cycles.
-   Supabase remains authoritative; each Turso slot summary must exactly match
-   the existing Supabase summary.
+   Supabase remains authoritative. Each Turso slot must exactly match the
+   Supabase write shape: received, candidate, persisted, full-resolution, and
+   stable-skipped counts. On Turso's first warm-up slot, adaptive rows can be
+   classified as `initial` instead of Supabase's historical write reason; this
+   is logged for review but does not alter the stored row set or source of
+   truth. All later classification differences remain observable in the job
+   log.
 5. Inspect the Turso `snapshot_slots` backlog. It must be empty and no shadow
    mismatch may have occurred.
 6. Record an ISO-8601 UTC boundary in the GitHub Actions repository variable
