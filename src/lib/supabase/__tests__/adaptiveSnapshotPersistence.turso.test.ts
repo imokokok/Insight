@@ -32,6 +32,9 @@ jest.mock('@/lib/turso/price/slotRepository', () => ({
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(),
 }));
+jest.mock('@/lib/utils/logger', () => ({
+  createLogger: jest.fn(() => ({ warn: jest.fn() })),
+}));
 
 const mockedMode = jest.mocked(readTursoPriceWriteMode);
 const mockedConfig = jest.mocked(readTursoPriceConfig);
@@ -169,4 +172,59 @@ it('replays only pending immutable payloads and skips reconciliation outside pri
   mockedMode.mockReturnValue('legacy');
   await expect(reconcilePendingTursoPriceSlots()).resolves.toBe(0);
   expect(mockedPending).toHaveBeenCalledTimes(1);
+});
+
+it('accepts a cold Turso shadow slot when its write shape matches Supabase', async () => {
+  mockedMode.mockReturnValue('shadow');
+  const supabaseSummary = {
+    ...summary,
+    fullResolution: 0,
+    hourlyBaseline: 1,
+  };
+  const tursoSummary = {
+    ...supabaseSummary,
+    initial: 1,
+    hourlyBaseline: 0,
+  };
+  mockRpc.mockResolvedValue({
+    data: { hourlyWritten: 1, persistence: supabaseSummary },
+    error: null,
+  });
+  mockedCapture.mockResolvedValue({
+    slotMs: input.snapshotHour.getTime(),
+    inputHash: 'a'.repeat(64),
+    rawDigest: 'b'.repeat(64),
+    inputs: [],
+    summary: tursoSummary,
+    replayed: false,
+  });
+
+  await expect(commitSnapshotDataSlot([input], input.snapshotHour)).resolves.toEqual({
+    hourlyWritten: 1,
+    persistence: supabaseSummary,
+  });
+});
+
+it('rejects a Turso shadow slot when its write shape differs from Supabase', async () => {
+  mockedMode.mockReturnValue('shadow');
+  mockRpc.mockResolvedValue({
+    data: { hourlyWritten: 1, persistence: summary },
+    error: null,
+  });
+  mockedCapture.mockResolvedValue({
+    slotMs: input.snapshotHour.getTime(),
+    inputHash: 'a'.repeat(64),
+    rawDigest: 'b'.repeat(64),
+    inputs: [],
+    summary: {
+      ...summary,
+      persisted: 0,
+      stableSkipped: 1,
+    },
+    replayed: false,
+  });
+
+  await expect(commitSnapshotDataSlot([input], input.snapshotHour)).rejects.toThrow(
+    'Turso shadow persistence write shape diverged for persisted: expected=1 actual=0'
+  );
 });

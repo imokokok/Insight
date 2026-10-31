@@ -17,9 +17,11 @@ import {
   listPendingTursoPriceSlots,
 } from '@/lib/turso/price/slotRepository';
 import type { TursoPriceInput, TursoPriceSlotSummary } from '@/lib/turso/price/types';
+import { createLogger } from '@/lib/utils/logger';
 
 const MAX_SNAPSHOT_PRICE = 9_999_999_999_999_999.99999999;
 const MAX_DEVIATION_PCT = 9_999.9999;
+const logger = createLogger('AdaptiveSnapshotPersistence');
 
 const adaptiveSnapshotRowSchema = z.object({
   provider: z.string().trim().min(1).max(128),
@@ -284,17 +286,50 @@ function toCommitSummary(
   return snapshotSlotCommitSummarySchema.parse({ hourlyWritten, persistence });
 }
 
-function assertShadowParity(
+const shadowWriteShapeFields = [
+  'received',
+  'candidates',
+  'persisted',
+  'fullResolution',
+  'stableSkipped',
+] as const;
+
+const shadowReasonFields = [
+  'initial',
+  'stateTransition',
+  'errorChange',
+  'hourlyBaseline',
+  'priceChange',
+  'deviationChange',
+  'dataAgeChange',
+  'confidenceChange',
+] as const;
+
+function assertShadowWriteShape(
   expected: AdaptiveSnapshotPersistenceSummary,
   actual: TursoPriceSlotSummary
 ): void {
-  const fields = Object.keys(expected) as Array<keyof AdaptiveSnapshotPersistenceSummary>;
-  for (const field of fields) {
+  for (const field of shadowWriteShapeFields) {
     if (expected[field] !== actual[field]) {
       throw new Error(
-        `Turso shadow persistence summary diverged for ${field}: expected=${expected[field]} actual=${actual[field]}`
+        `Turso shadow persistence write shape diverged for ${field}: expected=${expected[field]} actual=${actual[field]}`
       );
     }
+  }
+
+  const reasonDifferences = shadowReasonFields.flatMap((field) =>
+    expected[field] === actual[field]
+      ? []
+      : [`${field}: expected=${expected[field]} actual=${actual[field]}`]
+  );
+  if (reasonDifferences.length > 0) {
+    // Turso starts with no adaptive-state rows. Its first shadow slot can
+    // classify otherwise-identical writes as `initial` while Supabase uses a
+    // more specific historical reason. The write shape remains exact; logging
+    // preserves visibility until the state is warm on subsequent slots.
+    logger.warn('Turso shadow write reasons differ while write shape matches', {
+      differences: reasonDifferences,
+    });
   }
 }
 
@@ -321,7 +356,7 @@ export async function commitSnapshotDataSlot(
   if (mode === 'shadow') {
     const committed = await commitSnapshotDataSlotToSupabase(inputs, snapshotTs);
     const captured = await captureTursoPriceSlot(client, tursoInputs, snapshotTs.getTime());
-    assertShadowParity(committed.persistence, captured.summary);
+    assertShadowWriteShape(committed.persistence, captured.summary);
     return committed;
   }
 
