@@ -4,6 +4,7 @@ import { createApiHandler, createOptionsHandler } from '@/lib/api/handler';
 import { ApiResponseBuilder } from '@/lib/api/response';
 import { CACHE_PRESETS } from '@/lib/api/utils';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { loadSnapshotHistoryPage } from '@/lib/supabase/snapshotHistory';
 
 const MAX_SNAPSHOT_AGE_MS = 45 * 60 * 1000;
 const CHECK_TIMEOUT_MS = 2500;
@@ -32,19 +33,25 @@ export const GET = createApiHandler(
     const startedAt = Date.now();
 
     try {
-      const { data, error } = await withTimeout(
-        createServiceRoleClient()
-          .from('price_snapshots')
-          .select('snapshot_ts')
-          .order('snapshot_ts', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
+      // Two days is deliberately wider than the freshness SLO: if it is empty,
+      // the service is stale either way, without scanning an unbounded history.
+      const recentRows = await withTimeout(
+        loadSnapshotHistoryPage(
+          createServiceRoleClient(),
+          'price',
+          new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          new Date().toISOString(),
+          ['snapshot_ts'],
+          { ascending: false, inclusiveBefore: true, limit: 1 }
+        ),
         CHECK_TIMEOUT_MS
       );
 
-      const latestSnapshotAt = data?.snapshot_ts ? new Date(data.snapshot_ts).getTime() : null;
+      const latestSnapshotAt = recentRows[0]?.snapshot_ts
+        ? new Date(recentRows[0].snapshot_ts).getTime()
+        : null;
       const snapshotAgeMs = latestSnapshotAt == null ? null : Date.now() - latestSnapshotAt;
-      const databaseReady = !error;
+      const databaseReady = true;
       const dataFresh =
         snapshotAgeMs != null && snapshotAgeMs >= 0 && snapshotAgeMs <= MAX_SNAPSHOT_AGE_MS;
       const ready = databaseReady && dataFresh;

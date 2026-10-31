@@ -22,6 +22,7 @@
     "scripts/dev-testnet-server.mts",
     "scripts/migrations/generate-decision-input-assessment.mts",
     "scripts/migrations/generate-adaptive-snapshot-persistence.mts",
+    "scripts/migrations/generate-turso-price-projection.mts",
     "scripts/rwa-action-preflight-readiness.mts",
     "scripts/collect-oracle-watch.ts",
     "scripts/collect-snapshot.ts",
@@ -40,7 +41,8 @@
     "scripts/reputation.ts",
     "scripts/verify-rwa-reference-data.ts",
     "scripts/safety-outcome.ts",
-    "scripts/sync-feeds.ts"
+    "scripts/sync-feeds.ts",
+    "scripts/turso/migrate-price.mts"
   ],
   "include": [],
   "exclude": [
