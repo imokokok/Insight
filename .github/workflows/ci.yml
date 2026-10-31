@@ -116,25 +116,6 @@ jobs:
       - name: Run remaining static validation checks
         run: npm run validate:ci:static
 
-  build-cron-bundle-artifact:
-    name: Build cron bundle artifact
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'codex/turso-shadow-bootstrap'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-        with:
-          node-version: 22.23.2
-          cache: npm
-      - run: npm ci
-      - run: npm run build:cron
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: cron-dist-linux
-          path: .github/cron-dist
-          if-no-files-found: error
-
   validate-tests:
     name: Unit and reliability tests
     runs-on: ubuntu-24.04
