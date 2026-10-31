@@ -1,7 +1,9 @@
 import { type PriceRecordInsert, type PriceRecord } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
 import { loadSnapshotHistoryRange } from '@/lib/supabase/snapshotHistory';
-import { readTursoPriceWriteMode } from '@/lib/turso/price/client';
+import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
+import { loadTursoLatestPrice } from '@/lib/turso/price/historyRepository';
+import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { type PriceData, type OracleProvider, type Blockchain } from '@/types/oracle';
 import { type FailureMode, type OracleSignalVector } from '@/types/oracle/signals';
@@ -125,23 +127,15 @@ export async function getLatestPriceSnapshotFromDatabase(
 
       return data ? snapshotToPriceData(data as HistoricalSnapshotRow, chain) : null;
     }
-    const rows = await loadSnapshotHistoryRange(
-      client,
-      'price',
-      new Date(0).toISOString(),
-      new Date().toISOString(),
-      ['snapshot_ts', 'provider', 'symbol', 'chain_id', 'price', 'confidence', 'data_age_seconds'],
-      {
-        providers: [provider],
-        symbol: symbol.toUpperCase(),
-        chainId: chain ? (BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0) : undefined,
-        successOnly: true,
-        ascending: false,
-        inclusiveBefore: true,
-        limit: 1,
-      }
-    );
-    return rows[0] ? snapshotToPriceData(rows[0], chain) : null;
+    const turso = getTursoPriceClient();
+    await ensureTursoPriceSchema(turso);
+    const latest = await loadTursoLatestPrice(turso, {
+      provider,
+      symbol: symbol.toUpperCase(),
+      chainId: chain ? (BLOCKCHAIN_TO_CHAIN_ID[chain] ?? 0) : undefined,
+      successOnly: true,
+    });
+    return latest ? snapshotToPriceData(latest, chain) : null;
   } catch (error) {
     logger.error('Failed to get latest price snapshot fallback', normalizeError(error));
     return null;

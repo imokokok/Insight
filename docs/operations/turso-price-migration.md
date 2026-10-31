@@ -6,13 +6,22 @@ This migration moves only the high-frequency, policy-controlled raw price
 stream (`price_snapshots`) to Turso. Supabase retains the hourly business
 snapshot, reports, feed-health data, and all other relational workflows.
 
+The storage lifecycle is deliberately tiered:
+
+- Turso `price_latest`: one hot row per feed, used for current-price fallback.
+- Turso `price_snapshots`: immutable delta/event evidence, retained for 30
+  days by default. Full-resolution policies still record every sample.
+- Supabase `hourly_price_snapshots`: long-lived hourly business projection for
+  reports and relational queries.
+
 The collector uses a durable two-database hand-off:
 
-1. Turso atomically writes raw rows, adaptive state, and an immutable slot
-   payload.
-2. Supabase idempotently projects the hourly rows using the slot hash and raw
-   digest as a receipt.
-3. Turso marks the slot acknowledged only after that receipt succeeds.
+1. The collector atomically writes Turso raw rows, `price_latest`, adaptive
+   state, and an immutable slot payload.
+2. The independent `Turso Price Projection` workflow reads pending slots and
+   idempotently projects the hourly rows to Supabase using the slot hash and
+   raw digest as a receipt.
+3. Turso marks a slot acknowledged only after that receipt succeeds.
 
 Interrupted hand-offs are replayed from the stored payload before the next
 collection. A retry with different evidence for the same slot is rejected.
@@ -31,10 +40,20 @@ TURSO_PRICE_DATABASE_URL=libsql://insight-imokokok.aws-ap-southeast-1.turso.io
 TURSO_PRICE_AUTH_TOKEN=<database-token>
 TURSO_PRICE_PARTITION_KEY=bootstrap
 TURSO_PRICE_WRITE_MODE=legacy
+TURSO_PRICE_RAW_RETENTION_DAYS=30
 ```
 
 `TURSO_PRICE_WRITE_MODE` defaults to `legacy`. It is intentionally not
 advanced by database creation or deployment.
+
+`TURSO_PRICE_RAW_RETENTION_DAYS` accepts 1–3650 and defaults to 30. It applies
+only to Turso fine-grained event rows; it never deletes `price_latest`, an
+unacknowledged Turso slot payload, or Supabase hourly business data.
+Acknowledged slot payloads older than the same window are compacted to their
+hashes, digest, counts, and an empty-input audit marker. In production the
+projector workflow also accepts repository variables
+`TURSO_PRICE_PROJECTION_BATCH_SIZE` (default 16) and
+`TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS` (default 1800).
 
 ## Rollout
 
@@ -43,8 +62,8 @@ advanced by database creation or deployment.
 2. With the database token available, run `npm run turso:price:migrate`. It is
    additive and verifies the schema/version and default policy; it cannot
    create or delete a Turso database.
-3. Run `npm run build:cron`, then deploy the generated collector bundle while
-   still in `legacy` mode.
+3. Run `npm run build:cron`, then deploy both generated collector and projector
+   bundles while still in `legacy` mode.
 4. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
    for several complete collection cycles.
    Supabase remains authoritative. Each Turso slot must exactly match the
@@ -84,4 +103,7 @@ npx jest src/lib/turso/price/__tests__ src/lib/supabase/__tests__/snapshotHistor
 
 After the primary release, check that each Turso slot has an acknowledgement,
 that the Supabase receipt count advances with collection slots, and that a
-history query spanning the cutover returns both sides in timestamp order.
+history query spanning the cutover returns both sides in timestamp order. The
+projection workflow prints `before`, `projected`, `after`, `oldestLagSeconds`,
+`rawEventsPruned`, and `acknowledgedPayloadsCompacted`; a non-empty backlog
+older than its lag threshold fails the workflow for alerting.

@@ -1,6 +1,6 @@
 import type { Client, InStatement } from '@libsql/client';
 
-export const TURSO_PRICE_SCHEMA_VERSION = 1;
+export const TURSO_PRICE_SCHEMA_VERSION = 2;
 
 export const DEFAULT_TURSO_PRICE_POLICIES = [
   {
@@ -102,24 +102,76 @@ const ddl: InStatement[] = [
     ON price_snapshots(provider, symbol, chain_id, slot_ms DESC)`,
   `CREATE INDEX IF NOT EXISTS price_snapshots_symbol_history_idx
     ON price_snapshots(symbol, slot_ms DESC, provider, chain_id)`,
+  // `price_latest` is the hot read model. It prevents current-price callers
+  // from scanning the immutable event stream just to find one observation.
+  `CREATE TABLE IF NOT EXISTS price_latest (
+    provider TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    chain_id INTEGER NOT NULL CHECK (chain_id >= 0),
+    slot_ms INTEGER NOT NULL,
+    snapshot_hour_ms INTEGER NOT NULL,
+    price_e8 TEXT NOT NULL,
+    consensus_price_e8 TEXT,
+    deviation_e4 INTEGER,
+    latency_ms INTEGER,
+    data_age_seconds INTEGER,
+    confidence_e4 INTEGER,
+    is_success INTEGER NOT NULL CHECK (is_success IN (0, 1)),
+    error_message TEXT,
+    write_reason TEXT NOT NULL,
+    updated_at_ms INTEGER NOT NULL,
+    PRIMARY KEY (provider, symbol, chain_id)
+  )`,
+  `CREATE INDEX IF NOT EXISTS price_latest_symbol_idx
+    ON price_latest(symbol, slot_ms DESC, provider, chain_id)`,
+  // Maintenance is intentionally local to Turso. The event stream has a
+  // short, bounded retention window while Supabase keeps the hourly business
+  // projection for reporting and relational workflows.
+  `CREATE TABLE IF NOT EXISTS price_maintenance (
+    task_key TEXT PRIMARY KEY,
+    last_run_ms INTEGER NOT NULL
+  )`,
   `CREATE INDEX IF NOT EXISTS snapshot_slots_pending_idx
     ON snapshot_slots(supabase_acknowledged_at_ms, slot_ms)`,
 ];
+
+const initializedClients = new WeakSet<Client>();
 
 export async function ensureTursoPriceSchema(
   client: Client,
   nowMs: number = Date.now()
 ): Promise<void> {
-  await client.batch(ddl, 'write');
-  const versionResult = await client.execute(
-    'SELECT max(version) AS version FROM _insight_schema_migrations'
-  );
+  if (initializedClients.has(client)) return;
+
+  let versionResult;
+  try {
+    // Once a database is initialized, a cheap version read replaces a batch of
+    // CREATE IF NOT EXISTS statements on every collector invocation.
+    versionResult = await client.execute(
+      'SELECT max(version) AS version FROM _insight_schema_migrations'
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/no such table|does not exist/i.test(message)) throw error;
+    await client.batch(ddl, 'write');
+    versionResult = await client.execute(
+      'SELECT max(version) AS version FROM _insight_schema_migrations'
+    );
+  }
   const rawVersion = versionResult.rows[0]?.version;
   const version = rawVersion === null || rawVersion === undefined ? 0 : Number(rawVersion);
   if (!Number.isInteger(version) || version > TURSO_PRICE_SCHEMA_VERSION) {
     throw new Error('Turso price schema version is unsupported');
   }
-  if (version === TURSO_PRICE_SCHEMA_VERSION) return;
+  if (version === TURSO_PRICE_SCHEMA_VERSION) {
+    initializedClients.add(client);
+    return;
+  }
+
+  // Existing databases need only the DDL introduced since their recorded
+  // version. All statements are idempotent, so this also closes a concurrent
+  // first-initialization race safely.
+  await client.batch(ddl, 'write');
 
   const seedStatements: InStatement[] = DEFAULT_TURSO_PRICE_POLICIES.map((policy) => ({
     sql: `INSERT OR IGNORE INTO persistence_policies(
@@ -137,8 +189,9 @@ export async function ensureTursoPriceSchema(
     ],
   }));
   seedStatements.push({
-    sql: 'INSERT INTO _insight_schema_migrations(version,applied_at_ms) VALUES(?,?)',
+    sql: 'INSERT OR IGNORE INTO _insight_schema_migrations(version,applied_at_ms) VALUES(?,?)',
     args: [TURSO_PRICE_SCHEMA_VERSION, nowMs],
   });
   await client.batch(seedStatements, 'write');
+  initializedClients.add(client);
 }

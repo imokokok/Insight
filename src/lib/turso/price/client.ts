@@ -11,6 +11,10 @@ export interface TursoPriceConfig {
   partitionKey: string;
 }
 
+export interface TursoPriceRetentionPolicy {
+  rawRetentionDays: number;
+}
+
 /**
  * The raw stream is only safe to read from Turso after a recorded cutover.
  * It lets readers combine the immutable Supabase history before this instant
@@ -49,6 +53,23 @@ export function readTursoPriceConfig(env: NodeJS.ProcessEnv = process.env): Turs
     throw new Error('Invalid TURSO_PRICE_PARTITION_KEY');
   }
   return { url, authToken, partitionKey };
+}
+
+/**
+ * Fine-grained Turso events are a short-lived operational/audit layer. The
+ * durable long-range business projection remains in Supabase. Keeping this
+ * bounded prevents the raw table and its indexes from growing linearly.
+ */
+export function readTursoPriceRetentionPolicy(
+  env: NodeJS.ProcessEnv = process.env
+): TursoPriceRetentionPolicy {
+  const raw = env.TURSO_PRICE_RAW_RETENTION_DAYS ?? '30';
+  if (!/^\d+$/.test(raw)) throw new Error('Invalid TURSO_PRICE_RAW_RETENTION_DAYS');
+  const rawRetentionDays = Number(raw);
+  if (!Number.isSafeInteger(rawRetentionDays) || rawRetentionDays < 1 || rawRetentionDays > 3_650) {
+    throw new Error('Invalid TURSO_PRICE_RAW_RETENTION_DAYS');
+  }
+  return { rawRetentionDays };
 }
 
 export function getTursoPriceClient(): Client {

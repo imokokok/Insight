@@ -5,6 +5,7 @@ import {
   acknowledgeTursoPriceSlot,
   captureTursoPriceSlot,
   listPendingTursoPriceSlots,
+  pruneExpiredTursoPriceEvents,
   replaceTursoPricePersistenceProjection,
 } from '../slotRepository';
 
@@ -54,6 +55,17 @@ describe('Turso price-slot repository', () => {
 
     const rows = await client.execute('SELECT count(*) AS count FROM price_snapshots');
     expect(Number(rows.rows[0].count)).toBe(1);
+    const latest = await client.execute(
+      'SELECT slot_ms,price_e8,write_reason FROM price_latest WHERE provider=? AND symbol=? AND chain_id=?',
+      ['dia', 'UNI', 1]
+    );
+    expect(latest.rows).toEqual([
+      expect.objectContaining({
+        slot_ms: 3_600_000,
+        price_e8: '1000000000',
+        write_reason: 'initial',
+      }),
+    ]);
   });
 
   it('keeps adaptive state only for persisted adaptive observations', async () => {
@@ -150,5 +162,61 @@ describe('Turso price-slot repository', () => {
       6
     );
     expect(stable.summary).toMatchObject({ persisted: 0, stableSkipped: 1 });
+  });
+
+  it('batches large slots and keeps the current-price model for stable rows', async () => {
+    const inputs = Array.from({ length: 301 }, (_, index) =>
+      input({ symbol: `T${index}`, snapshotHourMs: 3_600_000 })
+    );
+    const captured = await captureTursoPriceSlot(client, inputs, 3_600_000, 2);
+    expect(captured.summary).toMatchObject({ received: 301, candidates: 301, persisted: 301 });
+
+    const stable = await captureTursoPriceSlot(
+      client,
+      inputs.map((row) => ({ ...row, snapshotHourMs: 3_600_000 })),
+      3_900_000,
+      3
+    );
+    expect(stable.summary).toMatchObject({ persisted: 0, stableSkipped: 301 });
+    const latest = await client.execute(
+      'SELECT count(*) AS count,min(slot_ms) AS oldest FROM price_latest'
+    );
+    expect(latest.rows[0]).toMatchObject({ count: 301, oldest: 3_900_000 });
+  });
+
+  it('prunes only expired raw events while preserving slot audit payloads and latest prices', async () => {
+    const previous = process.env.TURSO_PRICE_RAW_RETENTION_DAYS;
+    process.env.TURSO_PRICE_RAW_RETENTION_DAYS = '1';
+    try {
+      const first = await captureTursoPriceSlot(client, [input({ snapshotHourMs: 0 })], 0, 1);
+      const latest = await captureTursoPriceSlot(
+        client,
+        [input({ price: 11, snapshotHourMs: 3 * 24 * 60 * 60 * 1000 })],
+        3 * 24 * 60 * 60 * 1000,
+        2
+      );
+      await acknowledgeTursoPriceSlot(client, first.slotMs, first.inputHash, 3);
+      await acknowledgeTursoPriceSlot(client, latest.slotMs, latest.inputHash, 3);
+      await expect(pruneExpiredTursoPriceEvents(client, 3 * 24 * 60 * 60 * 1000)).resolves.toEqual({
+        rawEventsPruned: 1,
+        acknowledgedPayloadsCompacted: 1,
+      });
+
+      const [raw, slots, latestRow, compactedPayload] = await Promise.all([
+        client.execute('SELECT count(*) AS count FROM price_snapshots'),
+        client.execute('SELECT count(*) AS count FROM snapshot_slots'),
+        client.execute('SELECT price_e8 FROM price_latest'),
+        client.execute('SELECT canonical_payload FROM snapshot_slots WHERE slot_ms=0'),
+      ]);
+      expect(raw.rows[0]).toMatchObject({ count: 1 });
+      expect(slots.rows[0]).toMatchObject({ count: 2 });
+      expect(latestRow.rows[0]).toMatchObject({ price_e8: '1100000000' });
+      expect(compactedPayload.rows[0]).toMatchObject({
+        canonical_payload: '{"slotMs":0,"inputs":[]}',
+      });
+    } finally {
+      if (previous === undefined) delete process.env.TURSO_PRICE_RAW_RETENTION_DAYS;
+      else process.env.TURSO_PRICE_RAW_RETENTION_DAYS = previous;
+    }
   });
 });

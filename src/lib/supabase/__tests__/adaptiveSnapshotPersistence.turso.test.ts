@@ -6,6 +6,7 @@ import {
   readTursoPriceReadCutoverMs,
   readTursoPriceWriteMode,
 } from '@/lib/turso/price/client';
+import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import {
   acknowledgeTursoPriceSlot,
   captureTursoPriceSlot,
@@ -32,6 +33,7 @@ jest.mock('@/lib/turso/price/slotRepository', () => ({
   listPendingTursoPriceSlots: jest.fn(),
   replaceTursoPricePersistenceProjection: jest.fn(),
 }));
+jest.mock('@/lib/turso/price/schema', () => ({ ensureTursoPriceSchema: jest.fn() }));
 
 jest.mock('@/lib/supabase/server', () => ({
   createServiceRoleClient: jest.fn(),
@@ -50,6 +52,7 @@ const mockedLatestAcknowledged = jest.mocked(latestAcknowledgedTursoPriceSlot);
 const mockedPending = jest.mocked(listPendingTursoPriceSlots);
 const mockedReplaceProjection = jest.mocked(replaceTursoPricePersistenceProjection);
 const mockedCreateServiceRoleClient = jest.mocked(createServiceRoleClient);
+const mockedEnsureSchema = jest.mocked(ensureTursoPriceSchema);
 const mockRpc = jest.fn();
 const mockFrom = jest.fn();
 const mockLatestStateLimit = jest.fn();
@@ -97,6 +100,7 @@ beforeEach(() => {
   });
   mockedReadCutover.mockReturnValue(input.snapshotHour.getTime());
   mockedClient.mockReturnValue({} as never);
+  mockedEnsureSchema.mockResolvedValue(undefined);
   mockLatestStateLimit.mockResolvedValue({
     data: [{ last_snapshot_ts: input.snapshotHour.toISOString() }],
     error: null,
@@ -152,10 +156,11 @@ beforeEach(() => {
   });
 });
 
-it('projects a Turso-captured slot once and acknowledges it only after Supabase succeeds', async () => {
+it('queues a Turso-captured slot without blocking collection on Supabase', async () => {
   await expect(commitSnapshotDataSlot([input], input.snapshotHour)).resolves.toEqual({
-    hourlyWritten: 1,
+    hourlyWritten: 0,
     persistence: summary,
+    projection: 'queued',
   });
 
   expect(mockedCapture).toHaveBeenCalledWith(
@@ -163,20 +168,9 @@ it('projects a Turso-captured slot once and acknowledges it only after Supabase 
     expect.any(Array),
     input.snapshotHour.getTime()
   );
-  expect(mockRpc).toHaveBeenCalledWith(
-    'project_turso_price_slot',
-    expect.objectContaining({
-      p_snapshot_ts: input.snapshotHour.toISOString(),
-      p_partition_key: 'bootstrap',
-      p_input_hash: 'a'.repeat(64),
-      p_raw_digest: 'b'.repeat(64),
-    })
-  );
-  expect(mockedAck).toHaveBeenCalledWith(
-    expect.anything(),
-    input.snapshotHour.getTime(),
-    'a'.repeat(64)
-  );
+  expect(mockRpc).not.toHaveBeenCalled();
+  expect(mockedAck).not.toHaveBeenCalled();
+  expect(mockedEnsureSchema).toHaveBeenCalledWith(expect.anything());
 });
 
 it('replays only pending immutable payloads and skips reconciliation outside primary mode', async () => {
@@ -240,6 +234,7 @@ it('accepts a cold Turso shadow slot when its write shape matches Supabase', asy
   await expect(commitSnapshotDataSlot([input], input.snapshotHour)).resolves.toEqual({
     hourlyWritten: 1,
     persistence: supabaseSummary,
+    projection: 'committed',
   });
   expect(mockedAck).toHaveBeenCalledWith(
     expect.anything(),
@@ -277,6 +272,7 @@ it('rebases Turso mutable state before shadow capture when Supabase advanced dur
   await expect(commitSnapshotDataSlot([input], input.snapshotHour)).resolves.toEqual({
     hourlyWritten: 1,
     persistence: summary,
+    projection: 'committed',
   });
 
   expect(mockedReplaceProjection).toHaveBeenCalledWith(
