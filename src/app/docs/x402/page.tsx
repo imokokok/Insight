@@ -351,15 +351,17 @@ export default function X402QuickstartPage() {
             Configure comma-separated CAIP-2 ids in{' '}
             <code className="font-mono">X402_EVM_NETWORKS</code> to advertise multiple EVM chains.
             The registry includes Ethereum, OP Mainnet, Arbitrum, Polygon, Avalanche, Sei, X Layer,
-            Monad, BNB Chain, Base, and Base Sepolia. If the variable is unset, x402 uses only{' '}
-            <code className="font-mono">X402_NETWORK</code>; that setting remains MPP&apos;s single
-            EVM network. Use <code className="font-mono">X402_PAY_TO</code> for a shared recipient
-            or <code className="font-mono">X402_EVM_PAY_TOS</code> for explicit{' '}
+            Monad, HyperEVM, BNB Chain, Base, and Base Sepolia. If the variable is unset, x402 uses
+            only <code className="font-mono">X402_NETWORK</code>; that setting remains MPP&apos;s
+            single EVM network. Use <code className="font-mono">X402_PAY_TO</code> for a shared
+            recipient or <code className="font-mono">X402_EVM_PAY_TOS</code> for explicit{' '}
             <code className="font-mono">network=recipient</code> treasury isolation. Use{' '}
             <code className="font-mono">X402_FACILITATOR_URLS</code> for per-network{' '}
             <code className="font-mono">network=https://facilitator</code> routing. Only list
             networks advertised by that facilitator&apos;s{' '}
-            <code className="font-mono">/supported</code> endpoint.
+            <code className="font-mono">/supported</code> endpoint. HyperEVM uses{' '}
+            <code className="font-mono">eip155:999</code> with UVD&apos;s
+            <code className="font-mono">https://facilitator.ultravioletadao.xyz</code> override.
           </p>
         </div>
       </section>

@@ -32,6 +32,7 @@ export const X402_EVM_NETWORK_IDS = [
   'eip155:1329', // Sei
   'eip155:196', // X Layer
   'eip155:143', // Monad
+  'eip155:999', // HyperEVM
   'eip155:56', // BNB Smart Chain (AEON facilitator; bridged USDC, 18 decimals)
 ] as const;
 
@@ -104,6 +105,12 @@ const SUPPORTED_NETWORKS: Record<
      * is "2" and DOMAIN_SEPARATOR matches { name: "USDC", version: "2" },
      * consistent with the @x402/evm >= 2.22 built-in Monad asset config.
      */
+    tokenName: 'USDC',
+  },
+  'eip155:999': {
+    /** Chain: HyperEVM mainnet. UVD advertises this USDC asset for x402 v2 exact. */
+    usdc: '0xb88339CB7199b77E23DB6E890353E22632Ba630f',
+    /** HyperEVM USDC uses the FiatToken EIP-712 domain { name: "USDC", version: "2" }. */
     tokenName: 'USDC',
   },
   'eip155:56': {

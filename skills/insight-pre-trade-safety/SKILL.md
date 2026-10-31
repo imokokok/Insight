@@ -1,6 +1,6 @@
 ---
 name: insight-pre-trade-safety
-description: Check whether the price an agent is about to trade on is trustworthy. Returns an oracle-manipulation-aware verdict (PASS / WARN / BLOCK) for one trade, computed from multi-provider oracle consensus, with max deviation, manipulation-risk score, and an optional verifiable EIP-712 attestation. $0.02 per check in USDC via x402 v2 — no signup, no API key, no subscription. Invoke before executing any swap / buy / sell, when sizing DEX trades, when a quoted price looks off, or when the user asks "is this price safe to trade", "check for oracle manipulation", "run a pre-trade check", or asks to verify price-feed integrity. Works for agents settling on Monad (eip155:143), Base, Polygon, Arbitrum One, BNB Chain, and Solana.
+description: Check whether the price an agent is about to trade on is trustworthy. Returns an oracle-manipulation-aware verdict (PASS / WARN / BLOCK) for one trade, computed from multi-provider oracle consensus, with max deviation, manipulation-risk score, and an optional verifiable EIP-712 attestation. $0.02 per check in USDC via x402 v2 — no signup, no API key, no subscription. Invoke before executing any swap / buy / sell, when sizing DEX trades, when a quoted price looks off, or when the user asks "is this price safe to trade", "check for oracle manipulation", "run a pre-trade check", or asks to verify price-feed integrity. Works for agents settling on Monad (eip155:143), HyperEVM (eip155:999), Base, Polygon, Arbitrum One, BNB Chain, and Solana.
 ---
 
 # Insight — Pre-Trade Safety Check
@@ -64,13 +64,14 @@ Settle in USDC on whichever network matches your wallet's inventory:
 | Polygon PoS  | `eip155:137`         | `0x3c499c542cef5e3811e1192ce70d8cC03d5c3359`   |
 | Arbitrum One | `eip155:42161`       | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831`   |
 | Monad        | `eip155:143`         | `0x754704Bc059F8C67012fEd69BC8A327a5aafb603`   |
+| HyperEVM     | `eip155:999`         | `0xb88339CB7199b77E23DB6E890353E22632Ba630f`   |
 | BNB Chain    | `eip155:56`          | `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d`   |
 | Solana       | `solana:5eykt4…Kvdp` | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` |
 
 The facilitator sponsors gas on EVM chains and Solana — no native gas token
 needed. BNB Chain settles in the 18-decimal bridged USDC via the AEON
-facilitator flow; the other EVM entries use standard EIP-3009; Solana uses the
-exact-scheme SVM flow.
+facilitator flow; the other EVM entries, including HyperEVM through UVD, use
+standard EIP-3009; Solana uses the exact-scheme SVM flow.
 
 Full discovery manifest: `GET https://www.oracleinsight.xyz/.well-known/x402`
 OpenAPI 3.1 contract: `https://www.oracleinsight.xyz/openapi.json`
