@@ -34,6 +34,24 @@ export interface TursoPricePolicy {
   confidenceChangeE4: number;
 }
 
+/**
+ * The adaptive-write baseline copied from the primary store when a shadow
+ * session is first enabled or resumes after a gap. Decimal fields keep the
+ * same public units as the Supabase persistence-state table.
+ */
+export interface TursoPricePersistenceState {
+  provider: string;
+  symbol: string;
+  chainId: number;
+  lastSnapshotMs: number;
+  lastPrice: number;
+  lastDeviationPct: number | null;
+  lastDataAgeSeconds: number | null;
+  lastConfidence: number | null;
+  lastIsSuccess: boolean;
+  lastErrorMessage: string | null;
+}
+
 export interface TursoPriceSlotSummary {
   received: number;
   candidates: number;
