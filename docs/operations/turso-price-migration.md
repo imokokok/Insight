@@ -49,13 +49,18 @@ advanced by database creation or deployment.
    for several complete collection cycles.
    Supabase remains authoritative. Each Turso slot must exactly match the
    Supabase write shape: received, candidate, persisted, full-resolution, and
-   stable-skipped counts. On Turso's first warm-up slot, adaptive rows can be
-   classified as `initial` instead of Supabase's historical write reason; this
-   is logged for review but does not alter the stored row set or source of
-   truth. All later classification differences remain observable in the job
-   log.
-5. Inspect the Turso `snapshot_slots` backlog. It must be empty and no shadow
-   mismatch may have occurred.
+   stable-skipped counts. Before the first shadow capture, and again if
+   Supabase advanced while the collector was in `legacy`, the collector
+   atomically rebaselines Turso's mutable adaptive state and persistence policy
+   from Supabase. Immutable Turso evidence is retained. This prevents a
+   rollback/resume gap from being misread as a pricing difference. On the
+   first warm-up slot, adaptive rows can still be classified as `initial`
+   instead of Supabase's historical write reason; this is logged for review but
+   does not alter the stored row set or source of truth. All later
+   classification differences remain observable in the job log.
+5. Inspect the Turso `snapshot_slots` backlog. Every new shadow slot must be
+   acknowledged after its parity check, and no shadow mismatch may have
+   occurred.
 6. Record an ISO-8601 UTC boundary in the GitHub Actions repository variable
    `TURSO_PRICE_READ_CUTOVER_AT`, then set `TURSO_PRICE_WRITE_MODE=primary` in
    the same release. Raw-history readers use Supabase before that instant and

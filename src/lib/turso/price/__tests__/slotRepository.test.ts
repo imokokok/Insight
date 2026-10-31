@@ -5,9 +5,10 @@ import {
   acknowledgeTursoPriceSlot,
   captureTursoPriceSlot,
   listPendingTursoPriceSlots,
+  replaceTursoPricePersistenceProjection,
 } from '../slotRepository';
 
-import type { TursoPriceInput } from '../types';
+import type { TursoPriceInput, TursoPricePolicy } from '../types';
 
 function input(overrides: Partial<TursoPriceInput> = {}): TursoPriceInput {
   return {
@@ -92,5 +93,62 @@ describe('Turso price-slot repository', () => {
 
     await acknowledgeTursoPriceSlot(client, captured.slotMs, captured.inputHash, 3);
     await expect(listPendingTursoPriceSlots(client)).resolves.toEqual([]);
+  });
+
+  it('atomically replaces the mutable projection without discarding immutable slot evidence', async () => {
+    await captureTursoPriceSlot(client, [input()], 3_600_000, 2);
+    const policies: TursoPricePolicy[] = [
+      {
+        policyKey: '__default__',
+        resolution: 'adaptive',
+        priceChangeBps: 25,
+        deviationChangeBps: 10,
+        dataAgeChangeSeconds: 300,
+        confidenceChangeE4: 500,
+      },
+    ];
+
+    await replaceTursoPricePersistenceProjection(
+      client,
+      [
+        {
+          provider: 'dia',
+          symbol: 'UNI',
+          chainId: 1,
+          lastSnapshotMs: 7_200_000,
+          lastPrice: 11,
+          lastDeviationPct: 0,
+          lastDataAgeSeconds: 1,
+          lastConfidence: 0.9,
+          lastIsSuccess: true,
+          lastErrorMessage: null,
+        },
+      ],
+      policies,
+      5
+    );
+
+    const state = await client.execute(
+      'SELECT last_snapshot_ms,last_price_e8,last_confidence_e4 FROM persistence_state'
+    );
+    expect(state.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          last_snapshot_ms: 7_200_000,
+          last_price_e8: '1100000000',
+          last_confidence_e4: 9_000,
+        }),
+      ])
+    );
+    const immutableSlots = await client.execute('SELECT count(*) AS count FROM snapshot_slots');
+    expect(Number(immutableSlots.rows[0].count)).toBe(1);
+
+    const stable = await captureTursoPriceSlot(
+      client,
+      [input({ price: 11, snapshotHourMs: 7_200_000 })],
+      7_500_000,
+      6
+    );
+    expect(stable.summary).toMatchObject({ persisted: 0, stableSkipped: 1 });
   });
 });
