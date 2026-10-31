@@ -80,6 +80,20 @@ console.log(
   ).toFixed(1)} MiB total`
 );
 
+const nativeLibsqlBundleReferences = [];
+for (const output of Object.keys(result.metafile.outputs).filter((path) => path.endsWith('.mjs'))) {
+  const source = await readFile(output, 'utf8');
+  if (/@libsql\/(?:darwin|linux|win32)|\brequireNative\b/.test(source)) {
+    nativeLibsqlBundleReferences.push(output);
+  }
+}
+if (nativeLibsqlBundleReferences.length) {
+  throw new Error(
+    `Cron bundles must not load platform-specific libSQL bindings: ${nativeLibsqlBundleReferences.join(', ')}. ` +
+      "Use '@libsql/client/web' for code that runs from committed bundles."
+  );
+}
+
 if (check) {
   async function files(root, directory = root) {
     const entries = await readdir(directory, { withFileTypes: true });

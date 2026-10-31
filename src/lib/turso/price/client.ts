@@ -1,4 +1,7 @@
-import { createClient, type Client } from '@libsql/client';
+// The cron runner executes committed bundles without node_modules. The Web
+// client stays self-contained when bundled, unlike the native Node client
+// which dynamically requires a platform-specific libSQL binary at runtime.
+import { createClient, type Client } from '@libsql/client/web';
 
 export type TursoPriceWriteMode = 'legacy' | 'shadow' | 'primary';
 
