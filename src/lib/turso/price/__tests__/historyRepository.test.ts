@@ -1,6 +1,10 @@
 import { createClient, type Client } from '@libsql/client';
 
-import { loadTursoPriceHistoryPage } from '../historyRepository';
+import {
+  loadTursoLatestPrice,
+  loadTursoPriceHistoryPage,
+  resetTursoPriceReadCacheForTests,
+} from '../historyRepository';
 import { ensureTursoPriceSchema } from '../schema';
 import { captureTursoPriceSlot } from '../slotRepository';
 
@@ -48,6 +52,7 @@ describe('Turso price history repository', () => {
   });
 
   afterEach(() => {
+    resetTursoPriceReadCacheForTests();
     client.close();
   });
 
@@ -84,5 +89,79 @@ describe('Turso price history repository', () => {
     await expect(
       loadTursoPriceHistoryPage(client, 0, 7_200_000, { symbol: 'UNI', successOnly: true })
     ).resolves.toEqual([]);
+  });
+
+  it('serves current-price reads from the dedicated latest model', async () => {
+    const latest = await loadTursoLatestPrice(client, {
+      provider: 'dia',
+      symbol: 'ETH',
+      chainId: 1,
+      successOnly: true,
+    });
+    expect(latest).toEqual(
+      expect.objectContaining({
+        snapshot_ts: '1970-01-01T01:00:00.000Z',
+        price: 2_000.12345678,
+        confidence: 0.9876,
+        is_success: true,
+      })
+    );
+
+    await expect(
+      loadTursoLatestPrice(client, {
+        provider: 'pyth',
+        symbol: 'UNI',
+        chainId: 1,
+        successOnly: true,
+      })
+    ).resolves.toBeNull();
+  });
+
+  it('falls back to the prior successful event when the latest collection failed', async () => {
+    await captureTursoPriceSlot(
+      client,
+      [
+        {
+          provider: 'dia',
+          symbol: 'ETH',
+          chainId: 1,
+          price: 2_100,
+          consensusPrice: null,
+          deviationPct: null,
+          latencyMs: null,
+          dataAgeSeconds: null,
+          confidence: null,
+          isSuccess: false,
+          errorMessage: 'upstream unavailable',
+          snapshotHourMs: 3_600_000,
+        },
+      ],
+      4_500_000,
+      3
+    );
+    const latest = await loadTursoLatestPrice(client, {
+      provider: 'dia',
+      symbol: 'ETH',
+      chainId: 1,
+      successOnly: true,
+    });
+    expect(latest).toMatchObject({
+      snapshot_ts: '1970-01-01T01:00:00.000Z',
+      price: 2_000.12345678,
+      is_success: true,
+    });
+  });
+
+  it('coalesces identical in-flight history reads without sharing callers mutable rows', async () => {
+    const execute = jest.spyOn(client, 'execute');
+    const [first, second] = await Promise.all([
+      loadTursoPriceHistoryPage(client, 0, 7_200_000, { ascending: true }),
+      loadTursoPriceHistoryPage(client, 0, 7_200_000, { ascending: true }),
+    ]);
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(first).toEqual(second);
+    expect(first).not.toBe(second);
+    first[0].price = 0;
+    expect(second[0].price).toBe(2_000.12345678);
   });
 });

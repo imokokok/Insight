@@ -11,6 +11,7 @@ import {
   readTursoPriceReadCutoverMs,
   readTursoPriceWriteMode,
 } from '@/lib/turso/price/client';
+import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import {
   acknowledgeTursoPriceSlot,
   captureTursoPriceSlot,
@@ -77,6 +78,10 @@ const snapshotSlotCommitSummarySchema = z
   .object({
     hourlyWritten: z.number().int().min(0),
     persistence: adaptiveSnapshotSummarySchema,
+    // Legacy and shadow modes complete this synchronously. Primary mode puts
+    // the immutable slot in Turso's durable outbox and lets the independent
+    // projector deliver the business projection without delaying collection.
+    projection: z.enum(['committed', 'queued']).default('committed'),
   })
   .strict();
 
@@ -435,9 +440,10 @@ async function projectTursoPriceSlot(
 
 function toCommitSummary(
   hourlyWritten: number,
-  persistence: TursoPriceSlotSummary
+  persistence: TursoPriceSlotSummary,
+  projection: 'committed' | 'queued' = 'committed'
 ): SnapshotSlotCommitSummary {
-  return snapshotSlotCommitSummarySchema.parse({ hourlyWritten, persistence });
+  return snapshotSlotCommitSummarySchema.parse({ hourlyWritten, persistence, projection });
 }
 
 const shadowWriteShapeFields = [
@@ -491,7 +497,7 @@ function assertShadowWriteShape(
  * Commit via the configured storage mode. `legacy` retains the existing
  * single-Supabase transaction; `shadow` verifies Turso without changing the
  * source of truth; `primary` makes Turso the raw-stream source and projects
- * only the hourly business result back into Supabase.
+ * queues its hourly business projection for the independent projector.
  */
 export async function commitSnapshotDataSlot(
   inputs: HourlySnapshotInput[],
@@ -506,6 +512,7 @@ export async function commitSnapshotDataSlot(
   if (mode === 'primary') readTursoPriceReadCutoverMs();
   const tursoInputs = buildTursoInputs(inputs);
   const client = getTursoPriceClient();
+  await ensureTursoPriceSchema(client);
 
   if (mode === 'shadow') {
     await rebaseTursoShadowStateIfNeeded(client);
@@ -517,14 +524,7 @@ export async function commitSnapshotDataSlot(
   }
 
   const captured = await captureTursoPriceSlot(client, tursoInputs, snapshotTs.getTime());
-  const projection = await projectTursoPriceSlot(
-    buildHourlyRowsFromTurso(captured.inputs),
-    snapshotTs,
-    captured.inputHash,
-    captured.rawDigest
-  );
-  await acknowledgeTursoPriceSlot(client, captured.slotMs, captured.inputHash);
-  return toCommitSummary(projection.hourlyWritten, captured.summary);
+  return toCommitSummary(0, captured.summary, 'queued');
 }
 
 /** Replay a few incomplete cross-database hand-offs without fetching new prices. */
@@ -532,6 +532,7 @@ export async function reconcilePendingTursoPriceSlots(limit: number = 4): Promis
   if (readTursoPriceWriteMode() !== 'primary') return 0;
   readTursoPriceReadCutoverMs();
   const client = getTursoPriceClient();
+  await ensureTursoPriceSchema(client);
   const pending = await listPendingTursoPriceSlots(client, limit);
   for (const slot of pending) {
     const snapshotTs = new Date(slot.slotMs);

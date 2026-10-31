@@ -1,0 +1,43 @@
+name: Turso Price Projection
+
+# The collector durably commits to Turso first. This separate worker delivers
+# the immutable outbox to Supabase, so transient Supabase failures never delay
+# high-frequency price collection. Every delivery is receipt-backed and
+# idempotent.
+on:
+  schedule:
+    # Offset from the :00/:15/:30/:45 collector slots. GitHub scheduling is
+    # best-effort, but retries are safe and the worker alarms on retained lag.
+    - cron: '3,18,33,48 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: turso-price-projection
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  TURSO_PRICE_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+  TURSO_PRICE_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+  TURSO_PRICE_PARTITION_KEY: ${{ vars.TURSO_PRICE_PARTITION_KEY || 'bootstrap' }}
+  TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
+  TURSO_PRICE_READ_CUTOVER_AT: ${{ vars.TURSO_PRICE_READ_CUTOVER_AT || '' }}
+  # Defaults are enforced in the TypeScript runner; variables permit an
+  # operator to tighten the SLO without changing source.
+  TURSO_PRICE_PROJECTION_BATCH_SIZE: ${{ vars.TURSO_PRICE_PROJECTION_BATCH_SIZE || '16' }}
+  TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS: ${{ vars.TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS || '1800' }}
+  TURSO_PRICE_RAW_RETENTION_DAYS: ${{ vars.TURSO_PRICE_RAW_RETENTION_DAYS || '30' }}
+
+jobs:
+  project:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Project pending Turso price slots
+        run: node .github/cron-dist/project-turso-price.mjs

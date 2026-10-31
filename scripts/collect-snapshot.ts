@@ -28,30 +28,11 @@ import {
   resolveSnapshotSlot,
   SnapshotCollectionError,
 } from '@/lib/reports/snapshotCollector';
-import {
-  commitSnapshotDataSlot,
-  reconcilePendingTursoPriceSlots,
-} from '@/lib/supabase/adaptiveSnapshotPersistence';
+import { commitSnapshotDataSlot } from '@/lib/supabase/adaptiveSnapshotPersistence';
 
 async function main(): Promise<void> {
   const startedAt = Date.now();
   console.log('[collect-snapshot] starting collection pipeline…');
-
-  // In Turso-primary mode, finish interrupted cross-database hand-offs before
-  // collecting a new slot. This always reuses the immutable slot payload and
-  // never fetches a changed price for an already-captured timestamp.
-  try {
-    const reconciled = await reconcilePendingTursoPriceSlots();
-    if (reconciled > 0) {
-      console.log(`[collect-snapshot] reconciled ${reconciled} pending Turso price slot(s)`);
-    }
-  } catch (error) {
-    console.error(
-      '[collect-snapshot] pending Turso price-slot reconciliation failed:',
-      error instanceof Error ? error.message : error
-    );
-    process.exit(2);
-  }
 
   let result;
   try {
@@ -73,14 +54,13 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Commit the hourly and fine-grained evidence layers through the configured
-  // storage mode. Legacy mode uses the existing single-Supabase transaction;
-  // Turso-primary mode uses an immutable outbox/receipt hand-off so retries
-  // cannot project a changed payload for an already-captured slot.
+  // Commit the evidence slot through the configured storage mode. Primary
+  // mode finishes as soon as Turso has atomically captured it; a separate
+  // projector owns the idempotent Supabase hand-off and cannot delay intake.
   try {
     const committed = await commitSnapshotDataSlot(result.inputs, result.snapshotTs);
     console.log(
-      `[collect-snapshot] hourly upsert: ${committed.hourlyWritten} rows | ` +
+      `[collect-snapshot] hourly projection: ${committed.projection} (${committed.hourlyWritten} rows) | ` +
         `price_snapshots: ${committed.persistence.persisted}/` +
         `${committed.persistence.candidates} written | ` +
         `full=${committed.persistence.fullResolution} hourly=${committed.persistence.hourlyBaseline} ` +
