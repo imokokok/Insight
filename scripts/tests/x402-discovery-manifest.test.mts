@@ -74,6 +74,19 @@ test('x402 discovery manifests publish the Monad Lending Guard as a first-class 
     scheme: 'exact',
   });
 
+  const hyperEvm = guard.accepts.find((acceptance) => acceptance.network === 'eip155:999');
+  assert.deepEqual(hyperEvm, {
+    amount: '20000',
+    asset: '0xb88339CB7199b77E23DB6E890353E22632Ba630f',
+    assetDecimals: 6,
+    assetSymbol: 'USDC',
+    extra: { name: 'USDC', version: '2' },
+    maxTimeoutSeconds: 60,
+    network: 'eip155:999',
+    payTo: '0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231',
+    scheme: 'exact',
+  });
+
   const urls = manifest.resources.map((resource) => resource.url);
   assert.equal(new Set(urls).size, urls.length, 'resource URLs must be unique');
 });

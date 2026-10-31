@@ -14,6 +14,8 @@ const REFRESHED_FEE_PAYER = 'PEAxftCwr8ZcYKESZSL24zSMMScCD8sLFVauLz2uBw6';
 const BLOCKHASH = '11111111111111111111111111111111';
 const REFRESHED_BLOCKHASH = 'PEAxftCwr8ZcYKESZSL24zSMMScCD8sLFVauLz2uBw6';
 const PAYAI_FACILITATOR_URL = 'https://facilitator.payai.network';
+const UVD_FACILITATOR_URL = 'https://facilitator.ultravioletadao.xyz';
+const EVM_PAY_TO = '0xAbC0000000000000000000000000000000000001';
 
 class TestRequestAdapter implements HTTPAdapter {
   getHeader(): string | undefined {
@@ -139,6 +141,48 @@ describe('x402 SVM resource-server registration', () => {
       'https://rpc.example/solana',
       expect.objectContaining({ method: 'POST' })
     );
+  });
+
+  it('builds a HyperEVM quote only after UVD advertises x402 v2 exact support', async () => {
+    const fetchMock = jest.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url === `${UVD_FACILITATOR_URL}/supported`) {
+        return Response.json({
+          kinds: [{ x402Version: 2, scheme: 'exact', network: 'eip155:999' }],
+          extensions: [],
+          signers: {},
+        });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const cfg = parseX402Config({
+      X402_ENABLED: 'true',
+      X402_PAY_TO: EVM_PAY_TO,
+      X402_EVM_NETWORKS: 'eip155:999',
+      X402_FACILITATOR_URLS: `eip155:999=${UVD_FACILITATOR_URL}`,
+    });
+    const server = await buildX402HttpServer(cfg);
+    const result = await server.processHTTPRequest({
+      adapter: new TestRequestAdapter(),
+      path: '/api/v1/safety/pre-trade',
+      method: 'GET',
+    });
+
+    expect(result.type).toBe('payment-error');
+    if (result.type !== 'payment-error') throw new Error('expected a payment quote');
+    const quote = JSON.parse(
+      Buffer.from(result.response.headers['PAYMENT-REQUIRED'] ?? '', 'base64url').toString('utf8')
+    ) as { accepts: Array<Record<string, unknown>> };
+    expect(quote.accepts.find((entry) => entry.network === 'eip155:999')).toMatchObject({
+      amount: '20000',
+      asset: '0xb88339CB7199b77E23DB6E890353E22632Ba630f',
+      network: 'eip155:999',
+      payTo: EVM_PAY_TO,
+      scheme: 'exact',
+      extra: { name: 'USDC', version: '2' },
+    });
   });
 
   it('refreshes a facilitator-advertised blockhash for every Solana quote', async () => {
