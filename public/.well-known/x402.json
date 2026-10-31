@@ -2,7 +2,7 @@
   "x402Version": 2,
   "kind": "resource-server",
   "name": "Insight Pre-Trade Safety API",
-  "description": "Decision-input integrity for AI agents trading onchain: before a trade is signed, check whether the price it relies on is trustworthy — multi-provider oracle consensus, manipulation-risk scoring, and feed health, with verifiable EIP-712 attestations. USDC settles on Base, Polygon, Arbitrum One, Monad, BNB Chain (AEON facilitator), and Solana mainnet (CDP facilitator sponsors fees).",
+  "description": "Decision-input integrity for AI agents trading onchain: before a trade is signed, check whether the price it relies on is trustworthy — multi-provider oracle consensus, manipulation-risk scoring, and feed health, with verifiable EIP-712 attestations. USDC settles on Base, Polygon, Arbitrum One, Monad, HyperEVM (UVD facilitator), BNB Chain (AEON facilitator), and Solana mainnet (CDP facilitator sponsors fees).",
   "docs": "https://www.oracleinsight.xyz/openapi.json",
   "resources": [
     {
@@ -57,6 +57,20 @@
           "network": "eip155:143",
           "amount": "20000",
           "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
+          "network": "eip155:999",
+          "amount": "20000",
+          "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
           "assetSymbol": "USDC",
           "assetDecimals": 6,
           "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
@@ -152,6 +166,20 @@
         },
         {
           "scheme": "exact",
+          "network": "eip155:999",
+          "amount": "20000",
+          "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
           "network": "eip155:56",
           "amount": "20000000000000000",
           "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
@@ -236,6 +264,20 @@
         },
         {
           "scheme": "exact",
+          "network": "eip155:999",
+          "amount": "20000",
+          "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
+          "assetSymbol": "USDC",
+          "assetDecimals": 6,
+          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
+          "maxTimeoutSeconds": 60,
+          "extra": {
+            "name": "USDC",
+            "version": "2"
+          }
+        },
+        {
+          "scheme": "exact",
           "network": "eip155:56",
           "amount": "20000000000000000",
           "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
@@ -261,5 +303,5 @@
   "attestation": {
     "type": "none"
   },
-  "updated": "2026-10-30T00:00:00Z"
+  "updated": "2026-10-31T00:00:00Z"
 }
