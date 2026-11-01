@@ -7,6 +7,11 @@ import { extractBaseSymbol } from './oracleDataUtils';
 const logger = createLogger('DynamicFeedResolver');
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+// A database outage used to be represented as an empty registry, which made
+// the snapshot collector skip every candidate and repeatedly retried the same
+// failed read for every feed. Keep fallback reads available, but bound retry
+// pressure while the registry dependency is unavailable.
+const REGISTRY_FAILURE_BACKOFF_MS = 30_000;
 
 interface FeedCacheEntry {
   /** Every active feed, keyed by its exact DB symbol and chain. */
@@ -35,6 +40,7 @@ interface AllFeedsCacheEntry {
 let allFeedsCache: AllFeedsCacheEntry | null = null;
 let allFeedsFetchPromise: Promise<AllFeedsCacheEntry | null> | null = null;
 let cacheGeneration = 0;
+let registryFailureUntilMs = 0;
 
 function isAllFeedsCacheStale(): boolean {
   if (!allFeedsCache) return true;
@@ -46,6 +52,8 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
     return allFeedsCache;
   }
 
+  if (Date.now() < registryFailureUntilMs) return null;
+
   // Deduplicate concurrent callers — the cron job and dashboard SSR may
   // both request this in the same tick.
   if (allFeedsFetchPromise) return allFeedsFetchPromise;
@@ -55,7 +63,12 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
     try {
       const queries = getAdminQueries();
       // Empty provider string returns all active feeds (see getOracleFeeds).
-      const feeds = await queries.getOracleFeeds('');
+      const result = await queries.getOracleFeedsWithStatus('');
+      if (result.errored) {
+        registryFailureUntilMs = Date.now() + REGISTRY_FAILURE_BACKOFF_MS;
+        return null;
+      }
+      const feeds = result.feeds;
 
       const providerSet = new Set<string>();
       const symbolSet = new Set<string>();
@@ -107,6 +120,7 @@ async function loadAllActiveFeeds(): Promise<AllFeedsCacheEntry | null> {
       );
       return entry;
     } catch (error) {
+      registryFailureUntilMs = Date.now() + REGISTRY_FAILURE_BACKOFF_MS;
       logger.warn(
         'Failed to load all active feeds from database',
         error instanceof Error ? error : undefined
@@ -187,6 +201,7 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
   if (cache && !isCacheStale(provider)) {
     return cache.feeds;
   }
+  if (Date.now() < registryFailureUntilMs) return new Map();
 
   const map = new Map<string, OracleFeed>();
   const lookup = new Map<string, OracleFeed>();
@@ -214,6 +229,7 @@ async function loadFeedsForProvider(provider: string): Promise<Map<string, Oracl
     }
     logger.debug(`Loaded ${map.size} feeds for ${provider} from database`);
   } catch (error) {
+    registryFailureUntilMs = Date.now() + REGISTRY_FAILURE_BACKOFF_MS;
     logger.warn(
       `Failed to load feeds for ${provider} from database`,
       error instanceof Error ? error : undefined
@@ -390,4 +406,5 @@ export function invalidateAllFeedsCache(): void {
   allFeedsCache = null;
   allFeedsFetchPromise = null;
   providerCaches.clear();
+  registryFailureUntilMs = 0;
 }
