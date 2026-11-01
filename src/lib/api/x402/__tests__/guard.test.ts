@@ -1,6 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { webcrypto } from 'node:crypto';
+
 import { createServiceRoleClient } from '@/lib/supabase/server';
 
 import { type X402Config } from '../config';
@@ -82,6 +84,7 @@ const mockedGetServer = getX402HttpServer as jest.Mock;
 // implementations before every test — re-prime the service-role client and
 // the insert recorder so audit assertions observe real calls.
 beforeEach(() => {
+  Object.defineProperty(globalThis, 'crypto', { value: webcrypto, configurable: true });
   (createServiceRoleClient as jest.Mock).mockImplementation(() => ({
     from: () => mockSettlementTable(),
   }));
@@ -385,6 +388,72 @@ describe('x402 guard', () => {
       // on the header so the client can retry payment without re-running.
       expect(res.status).toBe(200);
       expect(res.headers.get('PAYMENT-RESPONSE')).toBe('failed-receipt');
+    });
+
+    it('routes a HyperCore usdSend payload through the self-hosted facilitator without invoking the EVM server', async () => {
+      const originalFetch = global.fetch;
+      const facilitatorFetch = jest.fn(async (input: RequestInfo | URL) => {
+        const url =
+          typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+        if (url.endsWith('/verify')) {
+          return Response.json({ isValid: true, payer: `0x${'b'.repeat(40)}` });
+        }
+        if (url.endsWith('/settle')) {
+          return Response.json({
+            success: true,
+            transaction: `hcx_${'a'.repeat(32)}`,
+            network: 'hyperliquid:mainnet',
+            payer: `0x${'b'.repeat(40)}`,
+            amount: '0.02',
+          });
+        }
+        throw new Error(`unexpected facilitator request ${url}`);
+      });
+      global.fetch = facilitatorFetch as unknown as typeof fetch;
+      try {
+        const config: X402Config = {
+          ...CFG,
+          hypercore: {
+            network: 'hyperliquid:mainnet',
+            payTo: '0xdef0000000000000000000000000000000000002',
+            facilitatorUrl: 'https://hypercore-facilitator.example',
+            merchantId: 'insight',
+            merchantSecret: 'a-merchant-secret-that-is-long-enough',
+            timeoutMs: 15_000,
+            maxTimeoutSeconds: 60,
+          },
+        };
+        const paymentPayload = {
+          x402Version: 2,
+          accepted: { network: 'hyperliquid:mainnet' },
+          payload: { quoteId: 'quote_0123456789abcdefghijklmnopqrstuv' },
+        };
+        const header = Buffer.from(JSON.stringify(paymentPayload), 'utf8').toString('base64');
+        const business = jest.fn(() =>
+          Promise.resolve(NextResponse.json({ data: { verdict: 'PASS' } }))
+        );
+        const response = await handlePaidPreTradeRequest(
+          makeRequest({ 'payment-signature': header }),
+          config,
+          business
+        );
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(business).toHaveBeenCalledTimes(1);
+        expect(mockedGetServer).not.toHaveBeenCalled();
+        expect(facilitatorFetch).toHaveBeenCalledTimes(2);
+        expect(response.headers.get('payment-response')).not.toBeNull();
+        expect(mockInsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            status: 'settled',
+            network: 'hyperliquid:mainnet',
+            asset: 'USDC',
+            tx_hash: `hcx_${'a'.repeat(32)}`,
+          })
+        );
+      } finally {
+        global.fetch = originalFetch;
+      }
     });
   });
 });
