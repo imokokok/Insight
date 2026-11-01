@@ -9,6 +9,7 @@ import {
   getLatencyTool,
   getMetricsTool,
 } from './analysisTools';
+import { prepareBaseAgentSwapGuardTool } from './baseAgentSwapGuardTools';
 import { baseLendingGuardExactCallTool, baseLendingGuardTool } from './baseLendingGuardTools';
 import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
 import { getCrossChainSpreadsTool } from './crossChainTools';
@@ -166,6 +167,7 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getBaseDexVenueIntegrationsTool,
   getAerodromeSlipstreamMarketTool,
   prepareAerodromeSlipstreamSwapTool,
+  prepareBaseAgentSwapGuardTool,
   getPancakeSwapV3MarketTool,
   preparePancakeSwapV3SwapTool,
   getQuickSwapV2MarketTool,
@@ -413,6 +415,11 @@ const JSON_SCHEMA_MAP: Record<
       properties?: Record<string, unknown>;
       required?: string[];
     },
+  prepare_base_agent_swap_guard: prepareBaseAgentSwapGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
   get_pancakeswap_v3_market: PancakeSwapV3MarketJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
