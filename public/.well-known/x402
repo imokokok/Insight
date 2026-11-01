@@ -204,7 +204,7 @@
     {
       "url": "https://www.oracleinsight.xyz/api/mcp",
       "method": "POST",
-      "description": "MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Amount shown is the C3 anchor ($0.02, e.g. pre_trade_safety_check); the live 402 quote prices each call from its tool metering class (C1=2000, C2=8000, C3=20000, C4=40000 atomic).",
+      "description": "MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Includes prepare_base_agent_swap_guard: a Base-mainnet pre-signing guard for reviewed direct Aerodrome Slipstream WETH→USDC CL100 and PancakeSwap V3 USDC→USDT 0.01% swaps; it returns ALLOW, CAUTION, or BLOCK and only exposes unsigned calldata on ALLOW. Amount shown is the C3 anchor ($0.02); the live 402 quote prices each call from its tool metering class (C1=2000, C2=8000, C3=20000, C4=40000 atomic).",
       "accepts": [
         {
           "scheme": "exact",
