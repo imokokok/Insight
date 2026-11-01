@@ -12,6 +12,8 @@ Oracle observations → Cross-source comparison → Risk assessment → Decision
 
 **Lending Guard** now covers focused direct-call profiles on Base and Monad. It checks collateral and loan oracle integrity plus caller-declared post-action LTV for Aave V3 and Morpho Blue on both chains, plus Compound V3 Base USDC Comet and reviewed Moonwell Base markets. It is read-only and x402-metered; it never signs or broadcasts a lending transaction. See [Base Lending Guard](docs/base-lending-guard.md) and [Monad Lending Guard](docs/monad-lending-guard.md).
 
+**Base Agent Swap Guard** is the focused Base DEX counterpart: it gates two reviewed direct single-hop profiles — Aerodrome Slipstream WETH→USDC and PancakeSwap V3 USDC→USDT — with exact quote/code identity, canonical calldata decoding, explicit execution thresholds, and independently checked source/destination price inputs. It returns no calls on CAUTION or BLOCK, and it never routes, signs, broadcasts, or treats a Base smart-account UserOperation or aggregator multicall as covered. See [Base Agent Swap Guard](docs/base-agent-swap-guard.md).
+
 > Insight is **not a real-time oracle tracker**. Price snapshots and feed health are collected every 15 minutes, reputation scores are recalculated hourly, and data is aggregated into daily reports. Check each assessment's freshness and validity window before using it.
 
 ## Technology Stack
@@ -50,15 +52,15 @@ Insight is an API/agent service and issues no token. Its on-chain footprint is i
 
 ## Start here
 
-| Goal                                               | Where to go                                                                                                                                                                                                |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Inspect current oracle evidence                    | [Oracle Evidence](https://www.oracleinsight.xyz/price-insight?stage=observe)                                                                                                                               |
-| Assess a proposed action or monitor changed inputs | [Decision Integrity](https://www.oracleinsight.xyz/decision-integrity), [Guard SDK](sdk/README.md#non-intervening-assessment-and-verification), or [API reference](https://www.oracleinsight.xyz/docs/api) |
-| Compare sources or investigate a risk question     | [Risk Intelligence](https://www.oracleinsight.xyz/risk-intelligence)                                                                                                                                       |
-| Choose REST, AI / MCP, or SDK                      | [Build](https://www.oracleinsight.xyz/build)                                                                                                                                                               |
-| Install a focused Agent Skill                      | [Pre-Trade Safety](skills/insight-pre-trade-safety/README.md) · [Base Aave V3 Lending Guard](skills/insight-lending-guard/README.md)                                                                       |
-| Verify a signed receipt with your own trusted keys | [Independent verifier](verifier/README.md) or [browser demo](https://www.oracleinsight.xyz/verify)                                                                                                         |
-| Run the website and API locally                    | [Local development](#local-development)                                                                                                                                                                    |
+| Goal                                               | Where to go                                                                                                                                                                                                    |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inspect current oracle evidence                    | [Oracle Evidence](https://www.oracleinsight.xyz/price-insight?stage=observe)                                                                                                                                   |
+| Assess a proposed action or monitor changed inputs | [Decision Integrity](https://www.oracleinsight.xyz/decision-integrity), [Guard SDK](sdk/README.md#non-intervening-assessment-and-verification), or [API reference](https://www.oracleinsight.xyz/docs/api)     |
+| Compare sources or investigate a risk question     | [Risk Intelligence](https://www.oracleinsight.xyz/risk-intelligence)                                                                                                                                           |
+| Choose REST, AI / MCP, or SDK                      | [Build](https://www.oracleinsight.xyz/build)                                                                                                                                                                   |
+| Install a focused Agent Skill                      | [Pre-Trade Safety](skills/insight-pre-trade-safety/README.md) · [Base Aave V3 Lending Guard](skills/insight-lending-guard/README.md) · [Base Agent Swap Guard](skills/insight-base-agent-swap-guard/README.md) |
+| Verify a signed receipt with your own trusted keys | [Independent verifier](verifier/README.md) or [browser demo](https://www.oracleinsight.xyz/verify)                                                                                                             |
+| Run the website and API locally                    | [Local development](#local-development)                                                                                                                                                                        |
 
 ## What Insight provides
 

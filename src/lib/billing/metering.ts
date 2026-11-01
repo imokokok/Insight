@@ -135,6 +135,7 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^get_base_dex_venue_integrations$/, 'C1'],
   [/^get_aerodrome_slipstream_market$/, 'C1'],
   [/^prepare_aerodrome_slipstream_swap$/, 'C3'],
+  [/^prepare_base_agent_swap_guard$/, 'C3'],
   [/^get_pancakeswap_v3_market$/, 'C1'],
   [/^prepare_pancakeswap_v3_swap$/, 'C3'],
   [/^get_quickswap_v2_market$/, 'C1'],
