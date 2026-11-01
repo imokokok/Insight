@@ -1,6 +1,9 @@
 name: Generate Linux Cron Artifacts
 
 on:
+  push:
+    branches:
+      - codex/turso-ingest-resilience
   workflow_dispatch:
 
 permissions:
