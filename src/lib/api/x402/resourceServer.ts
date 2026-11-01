@@ -7,6 +7,8 @@ import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 
+import { BaseAgentSwapGuardInputSchema } from '@/lib/dex/baseAgentSwapGuard';
+
 import {
   facilitatorBearerTokenForNetwork,
   facilitatorUrlForNetwork,
@@ -612,14 +614,64 @@ export const BAZAAR_MCP_DISCOVERY_EXTENSION = declareDiscoveryExtension({
   },
 });
 
-function mcpRouteConfigFor(cfg: X402Config, amountAtomic: string) {
+/**
+ * The Base Swap Guard is sold as a distinct x402 MCP resource, not merely as
+ * an opaque member of the wider Insight catalog. Bazaar identifies MCP
+ * resources by (resource URL, tool name), so its payment challenge needs the
+ * exact tool name, an agent-searchable description, and the same argument
+ * schema the MCP server validates at execution time.
+ */
+export const BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME = 'prepare_base_agent_swap_guard';
+
+export const BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  toolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
+  description:
+    'Base mainnet pre-signing Swap Guard for an AI agent. Reviews one supported direct Aerodrome Slipstream WETH→USDC CL100 or PancakeSwap V3 USDC→USDT 0.01% swap; independently validates source and destination decision prices, a pinned venue quote, price impact, TWAP, slippage, route contract identities, and byte-exact unsigned approval/swap calldata. Returns ALLOW, CAUTION, or BLOCK; only ALLOW includes calls for human confirmation. It never signs, routes, relays, or broadcasts a trade.',
+  transport: 'streamable-http',
+  inputSchema: BaseAgentSwapGuardInputSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  example: {
+    profileId: 'base-aerodrome-slipstream-weth-usdc-cl100',
+    amountIn: '0.25',
+    recipient: '0x1111111111111111111111111111111111111111',
+    deadlineUnixSeconds: 1_800_000_000,
+    sourceDecisionPriceUsd: 3500,
+    destinationDecisionPriceUsd: 1,
+    policy: {
+      maxSlippageBps: 50,
+      maxPriceImpactBps: 30,
+      maxTwapDeviationBps: 50,
+      maxReferenceDeviationBps: 100,
+      maxQuoteAgeSeconds: 60,
+    },
+  },
+  output: {
+    example: {
+      content: [
+        {
+          type: 'text',
+          text: '{"verdict":"ALLOW","decisionHash":"0x…","transactionsToSign":["approval","swap"]}',
+        },
+      ],
+    },
+  },
+});
+
+function mcpRouteConfigFor(cfg: X402Config, amountAtomic: string, discoveryToolName?: string) {
+  const baseSwapGuard = discoveryToolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
   return {
-    description:
-      'MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Price scales with the tool metering class (C1..C4).',
+    description: baseSwapGuard
+      ? 'Base mainnet AI-agent Swap Guard: a paid pre-signing decision for one reviewed Aerodrome Slipstream WETH→USDC CL100 or PancakeSwap V3 USDC→USDT 0.01% direct swap. It returns ALLOW, CAUTION, or BLOCK and only returns unsigned calldata on ALLOW; it never signs, routes, relays, or broadcasts a trade.'
+      : 'MCP tools/call over JSON-RPC (streamable HTTP): pay-per-call access to the Insight oracle tool catalog for x402 agents without an API key. Price scales with the tool metering class (C1..C4).',
     mimeType: 'application/json',
     accepts: acceptsFor(cfg, amountAtomic),
     ...BAZAAR_SERVICE_METADATA,
-    extensions: BAZAAR_MCP_DISCOVERY_EXTENSION,
+    extensions: baseSwapGuard
+      ? BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION
+      : BAZAAR_MCP_DISCOVERY_EXTENSION,
     x402Version: 2,
   };
 }
@@ -711,7 +763,7 @@ function buildFacilitatorClients(
 export async function buildX402HttpServer(
   cfg: X402Config,
   deps?: Partial<X402ServerDeps>,
-  options?: { mcpAmountAtomic?: string }
+  options?: { mcpAmountAtomic?: string; mcpDiscoveryToolName?: string }
 ): Promise<x402HTTPResourceServer> {
   const facilitators = buildFacilitatorClients(cfg, deps);
 
@@ -782,7 +834,11 @@ export async function buildX402HttpServer(
       BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION,
       'Verified Swap Intent: two signed schema-v3 Pre-Trade gates for one same-chain swap, plus one Execution Receipt credit after x402 settlement. A BLOCK is a complete, charged decision.'
     ),
-    [X402_MCP_ROUTE]: mcpRouteConfigFor(cfg, options?.mcpAmountAtomic ?? cfg.amountAtomic),
+    [X402_MCP_ROUTE]: mcpRouteConfigFor(
+      cfg,
+      options?.mcpAmountAtomic ?? cfg.amountAtomic,
+      options?.mcpDiscoveryToolName
+    ),
   });
   await httpServer.initialize();
 
@@ -827,23 +883,26 @@ export function resetX402HttpServerForTests(): void {
 }
 
 /**
- * Per-price MCP HTTP server cache. Tool calls are priced by metering class
- * (C1..C4 → 4 distinct USDC amounts), and each x402HTTPResourceServer bakes
- * its 402 quote amounts in at construction time — so one instance per price
- * is kept warm instead of paying a facilitator `getSupported()` round trip
- * per request.
+ * Per-price-and-discovery-tool MCP HTTP server cache. Tool calls are priced by
+ * metering class (C1..C4 → 4 distinct USDC amounts), and a Bazaar-listed MCP
+ * tool also bakes its own discovery extension into the quote. Each server
+ * therefore keeps one exact (price, discovery tool) contract warm instead of
+ * paying a facilitator `getSupported()` round trip per request.
  */
 const mcpCache = new Map<string, x402HTTPResourceServer>();
 
 /**
  * Get (or build) an initialized HTTP resource server whose `/api/mcp` route
- * quotes `amountAtomic` USDC for a tools/call. The pre-trade route on the
- * same instance always carries the default configured amount, which is
+ * quotes `amountAtomic` USDC for a tools/call. `discoveryToolName` is only
+ * set for a specifically Bazaar-listed MCP tool; omitted callers retain the
+ * existing catalog-level pre-trade discovery contract. The pre-trade route on
+ * the same instance always carries the default configured amount, which is
  * irrelevant to MCP callers.
  */
 export async function getMcpX402HttpServer(
   cfg: X402Config,
-  amountAtomic: string
+  amountAtomic: string,
+  discoveryToolName?: string
 ): Promise<x402HTTPResourceServer> {
   const key = JSON.stringify({
     options: getX402PaymentOptions(cfg, amountAtomic),
@@ -851,12 +910,16 @@ export async function getMcpX402HttpServer(
     u: cfg.facilitatorUrls,
     c: cfg.facilitatorCdpAuth ? 'cdp' : 'none',
     r: cfg.solana?.rpcUrl ?? null,
+    t: discoveryToolName ?? null,
   });
   const hit = mcpCache.get(key);
   if (hit) {
     return hit;
   }
-  const built = await buildX402HttpServer(cfg, undefined, { mcpAmountAtomic: amountAtomic });
+  const built = await buildX402HttpServer(cfg, undefined, {
+    mcpAmountAtomic: amountAtomic,
+    mcpDiscoveryToolName: discoveryToolName,
+  });
   mcpCache.set(key, built);
   return built;
 }

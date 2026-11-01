@@ -15,7 +15,7 @@ import {
   x402AcquisitionSource,
   x402ResponseBody,
 } from './guard';
-import { getMcpX402HttpServer } from './resourceServer';
+import { BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME, getMcpX402HttpServer } from './resourceServer';
 
 const logger = createLogger('x402-mcp-bridge');
 
@@ -255,7 +255,11 @@ export async function handleMcpPaidToolCall({
 }: McpPaidCallInput): Promise<Response> {
   const requestId = newRequestId();
   const priceAtomic = priceAtomicForTool(toolName);
-  const httpServer = await getMcpX402HttpServer(cfg, priceAtomic);
+  const httpServer = await getMcpX402HttpServer(
+    cfg,
+    priceAtomic,
+    toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME ? toolName : undefined
+  );
   const acquisitionSource = x402AcquisitionSource(request);
   const requestStartedAt = Date.now();
   // Clone-read before the transport consumes the body in runBusiness.

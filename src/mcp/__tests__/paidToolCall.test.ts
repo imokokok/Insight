@@ -41,6 +41,7 @@ jest.mock('@/lib/api/x402/config', () => ({
 const getMcpX402HttpServerMock = jest.fn();
 
 jest.mock('@/lib/api/x402/resourceServer', () => ({
+  BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME: 'prepare_base_agent_swap_guard',
   getMcpX402HttpServer: (...args: unknown[]) => getMcpX402HttpServerMock(...(args as [])),
 }));
 
@@ -222,7 +223,8 @@ describe('x402 paid MCP tools/call', () => {
     // C3 (5cr) × $0.004 = $0.02 = 20,000 Base-USDC atomic units.
     expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: true }),
-      priceAtomicForTool('prepare_base_agent_swap_guard')
+      priceAtomicForTool('prepare_base_agent_swap_guard'),
+      'prepare_base_agent_swap_guard'
     );
     expect(priceAtomicForTool('prepare_base_agent_swap_guard')).toBe('20000');
     // The stateless MCP transport is initialized before the payment bridge,
@@ -311,7 +313,8 @@ describe('x402 paid MCP tools/call', () => {
     expect(response.headers.get('PAYMENT-RESPONSE')).toBe('base-swap-guard-receipt');
     expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: true }),
-      '20000'
+      '20000',
+      'prepare_base_agent_swap_guard'
     );
     expect(processSettlement).toHaveBeenCalledWith(
       { x402Version: 2 },
