@@ -17,6 +17,14 @@ import {
   type X402Config,
   type X402NetworkId,
 } from './config';
+import {
+  HYPERCORE_X402_MAINNET,
+  HYPERCORE_X402_TESTNET,
+  coreUsdAmountFromAtomic,
+  createHypercoreFacilitatorClient,
+  hypercorePayloadFromHeader,
+  type HypercoreX402Config,
+} from './hypercore';
 import { getX402HttpServer } from './resourceServer';
 import { isSolanaPublicKey, isSolanaSignature } from './solanaEncoding';
 
@@ -282,7 +290,13 @@ const X402SettlementAuditSchema = z
       .regex(/^\d+(?:\.\d{1,6})?$/)
       .optional(),
     network: z
-      .enum([...X402_EVM_NETWORK_IDS, SOLANA_MAINNET_CAIP2, SOLANA_DEVNET_CAIP2] as const)
+      .enum([
+        ...X402_EVM_NETWORK_IDS,
+        SOLANA_MAINNET_CAIP2,
+        SOLANA_DEVNET_CAIP2,
+        HYPERCORE_X402_MAINNET,
+        HYPERCORE_X402_TESTNET,
+      ] as const)
       .nullable(),
     asset: z.string().max(64).optional(),
     verdict: z.string().max(128).optional(),
@@ -292,12 +306,17 @@ const X402SettlementAuditSchema = z
   .strict()
   .superRefine((audit, context) => {
     const isSolana = audit.network?.startsWith('solana:') ?? false;
+    const isHypercore = audit.network?.startsWith('hyperliquid:') ?? false;
     const valid = (value: string | undefined, validator: (candidate: string) => boolean) =>
       value === undefined || validator(value);
 
     const validTxHash = valid(
       audit.txHash,
-      isSolana ? isSolanaSignature : (value) => /^0x[a-f0-9]{64}$/i.test(value)
+      isHypercore
+        ? (value) => /^hcx_[0-9a-f]{32}$/.test(value)
+        : isSolana
+          ? isSolanaSignature
+          : (value) => /^0x[a-f0-9]{64}$/i.test(value)
     );
     const validPayer = valid(
       audit.payer,
@@ -305,7 +324,11 @@ const X402SettlementAuditSchema = z
     );
     const validAsset = valid(
       audit.asset,
-      isSolana ? isSolanaPublicKey : (value) => /^0x[a-f0-9]{40}$/i.test(value)
+      isHypercore
+        ? (value) => value === 'USDC'
+        : isSolana
+          ? isSolanaPublicKey
+          : (value) => /^0x[a-f0-9]{40}$/i.test(value)
     );
 
     if (!validTxHash || !validPayer || !validAsset) {
@@ -535,6 +558,280 @@ export interface HandlePaidOptions {
   onSettled?: (context: SettledHookContext) => void | Promise<void>;
 }
 
+function encodePaymentHeader(value: unknown): string {
+  return Buffer.from(JSON.stringify(value), 'utf8').toString('base64');
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+async function hypercorePaymentRequired(
+  request: NextRequest,
+  config: HypercoreX402Config,
+  amountAtomic: string,
+  error = 'Payment required'
+): Promise<NextResponse> {
+  const client = createHypercoreFacilitatorClient(config);
+  const requirement = await client.quote(
+    request.nextUrl.toString(),
+    coreUsdAmountFromAtomic(amountAtomic)
+  );
+  const body = {
+    x402Version: 2,
+    error,
+    resource: {
+      url: request.nextUrl.toString(),
+      mimeType: 'application/json',
+      serviceName: 'Insight Oracle',
+    },
+    accepts: [requirement],
+  };
+  return NextResponse.json(body, {
+    status: 402,
+    headers: { 'payment-required': encodePaymentHeader(body), 'cache-control': 'no-store' },
+  });
+}
+
+/**
+ * Run Core-USDC payments outside the stock EVM x402 scheme. The signature is
+ * verified by the self-hosted facilitator; this layer only preserves the
+ * business-before-settle ordering used by the regular x402 lifecycle.
+ */
+async function handleHypercorePayment(
+  request: NextRequest,
+  cfg: X402Config,
+  requestId: string,
+  acquisitionSource: X402AcquisitionSource,
+  runBusiness: (requestId: string) => Promise<NextResponse>,
+  options?: HandlePaidOptions
+): Promise<NextResponse | null> {
+  const config = cfg.hypercore;
+  if (!config) return null;
+  const paymentPayload = hypercorePayloadFromHeader(
+    request.headers.get('payment-signature'),
+    config
+  );
+  if (!paymentPayload) return null;
+  const startedAt = Date.now();
+  const client = createHypercoreFacilitatorClient(config);
+  let verification: { isValid: boolean; payer?: string; invalidReason?: string };
+  try {
+    verification = await client.verify(paymentPayload);
+  } catch (error) {
+    logger.warn('HyperCore facilitator verification unavailable', {
+      requestId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return NextResponse.json(
+      { error: 'HYPERCORE_FACILITATOR_UNAVAILABLE', requestId },
+      { status: 503, headers: { 'cache-control': 'no-store' } }
+    );
+  }
+  if (!verification.isValid) {
+    recordX402Settlement({
+      requestId,
+      status: 'payment_rejected',
+      network: config.network,
+      surface: 'rest',
+      resource: request.nextUrl.pathname,
+      responseTimeMs: Date.now() - startedAt,
+      errorReason: verification.invalidReason ?? 'facilitator_rejected_payment',
+      acquisitionSource,
+    });
+    const response = await hypercorePaymentRequired(
+      request,
+      config,
+      cfg.amountAtomic,
+      'Payment verification failed'
+    );
+    response.headers.set('X-Request-Id', requestId);
+    return response;
+  }
+
+  const amountUsdc = coreUsdAmountFromAtomic(cfg.amountAtomic);
+  recordX402Settlement({
+    requestId,
+    status: 'payment_verified',
+    network: config.network,
+    asset: 'USDC',
+    amountUsdc,
+    payer: verification.payer,
+    surface: 'rest',
+    resource: request.nextUrl.pathname,
+    responseTimeMs: Date.now() - startedAt,
+    acquisitionSource,
+  });
+  let businessResponse: NextResponse;
+  try {
+    businessResponse = await runBusiness(requestId);
+  } catch (error) {
+    recordX402Settlement({
+      requestId,
+      status: 'business_failed',
+      network: config.network,
+      asset: 'USDC',
+      amountUsdc,
+      payer: verification.payer,
+      surface: 'rest',
+      resource: request.nextUrl.pathname,
+      errorReason: `handler_error:${error instanceof Error ? error.name : 'unknown'}`,
+      acquisitionSource,
+    });
+    throw error;
+  }
+  if (businessResponse.status < 200 || businessResponse.status >= 300) {
+    recordX402Settlement({
+      requestId,
+      status: 'business_failed',
+      network: config.network,
+      asset: 'USDC',
+      amountUsdc,
+      payer: verification.payer,
+      surface: 'rest',
+      resource: request.nextUrl.pathname,
+      errorReason: `handler_failed:${businessResponse.status}`,
+      acquisitionSource,
+    });
+    businessResponse.headers.set('X-Request-Id', requestId);
+    return businessResponse;
+  }
+
+  let settlement: Awaited<ReturnType<typeof client.settle>>;
+  try {
+    settlement = await client.settle(paymentPayload);
+  } catch (error) {
+    logger.warn('HyperCore facilitator settlement unavailable', {
+      requestId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    businessResponse.headers.set(
+      'payment-response',
+      encodePaymentHeader({
+        success: false,
+        network: config.network,
+        errorReason: 'settlement_pending',
+      })
+    );
+    businessResponse.headers.set('X-Request-Id', requestId);
+    return businessResponse;
+  }
+  businessResponse.headers.set('payment-response', encodePaymentHeader(settlement));
+  if (settlement.success) {
+    let verdict: string | undefined;
+    let attestationUid: string | undefined;
+    try {
+      const body = (await businessResponse.clone().json()) as {
+        data?: { verdict?: unknown; attestation?: { uid?: unknown } | null };
+        verdict?: unknown;
+      };
+      const raw = body?.data?.verdict ?? body?.verdict;
+      if (typeof raw === 'string') verdict = raw;
+      const uid = body?.data?.attestation?.uid;
+      if (typeof uid === 'string') attestationUid = uid;
+    } catch {
+      // The response may not be JSON; settlement remains valid without these
+      // best-effort audit fields.
+    }
+    recordX402Settlement({
+      requestId,
+      status: 'settled',
+      network: config.network,
+      asset: 'USDC',
+      amountUsdc,
+      payer: settlement.payer ?? verification.payer,
+      txHash: settlement.transaction,
+      surface: 'rest',
+      resource: request.nextUrl.pathname,
+      responseTimeMs: Date.now() - startedAt,
+      verdict,
+      acquisitionSource,
+    });
+    if (options?.onSettled) {
+      const hook = options.onSettled;
+      const hookTask = async (): Promise<void> => {
+        try {
+          await hook({
+            requestId,
+            payer: settlement.payer ?? verification.payer ?? '',
+            txHash: settlement.transaction,
+            amountUsdc,
+            network: config.network,
+            asset: 'USDC',
+            verdict,
+            attestationUid,
+          });
+        } catch (error) {
+          logger.warn('x402 onSettled hook failed', {
+            requestId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      };
+      try {
+        after(hookTask);
+      } catch {
+        void hookTask();
+      }
+    }
+  } else {
+    recordX402Settlement({
+      requestId,
+      status: 'settlement_failed',
+      network: config.network,
+      asset: 'USDC',
+      amountUsdc,
+      payer: settlement.payer ?? verification.payer,
+      surface: 'rest',
+      resource: request.nextUrl.pathname,
+      responseTimeMs: Date.now() - startedAt,
+      errorReason: settlement.errorReason ?? 'settlement_pending',
+      acquisitionSource,
+    });
+  }
+  businessResponse.headers.set('X-Request-Id', requestId);
+  return businessResponse;
+}
+
+async function appendHypercoreQuote(
+  response: NextResponse,
+  request: NextRequest,
+  config: HypercoreX402Config,
+  amountAtomic: string
+): Promise<NextResponse> {
+  const client = createHypercoreFacilitatorClient(config);
+  const requirement = await client.quote(
+    request.nextUrl.toString(),
+    coreUsdAmountFromAtomic(amountAtomic)
+  );
+  let body: Record<string, unknown>;
+  try {
+    const parsed: unknown = await response.clone().json();
+    body =
+      isRecord(parsed) && Array.isArray(parsed.accepts)
+        ? parsed
+        : {
+            x402Version: 2,
+            error: 'Payment required',
+            resource: { url: request.nextUrl.toString() },
+            accepts: [],
+          };
+  } catch {
+    body = {
+      x402Version: 2,
+      error: 'Payment required',
+      resource: { url: request.nextUrl.toString() },
+      accepts: [],
+    };
+  }
+  const accepts = Array.isArray(body.accepts) ? body.accepts : [];
+  const nextBody = { ...body, accepts: [...accepts, requirement] };
+  const headers = new Headers(response.headers);
+  headers.set('payment-required', encodePaymentHeader(nextBody));
+  headers.set('cache-control', 'no-store');
+  return new NextResponse(JSON.stringify(nextBody), { status: response.status, headers });
+}
+
 /**
  * Run the x402 lifecycle for one pre-trade request.
  *
@@ -557,6 +854,15 @@ export async function handlePaidPreTradeRequest(
 
   const requestId = newRequestId();
   const acquisitionSource = x402AcquisitionSource(request);
+  const hypercoreResponse = await handleHypercorePayment(
+    request,
+    cfg,
+    requestId,
+    acquisitionSource,
+    runBusiness,
+    options
+  );
+  if (hypercoreResponse) return hypercoreResponse;
   const httpServer = await getX402HttpServer(cfg);
   const requestStartedAt = Date.now();
 
@@ -589,7 +895,19 @@ export async function handlePaidPreTradeRequest(
     } else {
       logUnsignedQuoteSample(requestId, request.nextUrl.pathname);
     }
-    const response = toNextResponse(result.response);
+    let response = toNextResponse(result.response);
+    if (!hasPaymentSignature && cfg.hypercore) {
+      try {
+        response = await appendHypercoreQuote(response, request, cfg.hypercore, cfg.amountAtomic);
+      } catch (error) {
+        // A Core-beta outage must not suppress established EVM/SVM payment
+        // options. Return the ordinary x402 quote and emit a useful signal.
+        logger.warn('HyperCore quote omitted because facilitator is unavailable', {
+          requestId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
     response.headers.set('X-Request-Id', requestId);
     return response;
   }
