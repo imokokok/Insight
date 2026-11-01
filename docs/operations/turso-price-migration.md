@@ -26,6 +26,13 @@ The collector uses a durable two-database hand-off:
 Interrupted hand-offs are replayed from the stored payload before the next
 collection. A retry with different evidence for the same slot is rejected.
 
+Supabase is the projection workflow's primary clock: it records a durable
+dispatch ledger row, invokes the workflow at minutes `3,18,33,48`, and records
+the terminal result. GitHub's native schedule is a guarded fallback only; it
+runs when no recent primary dispatch has succeeded. This keeps the projection
+independent from raw capture while avoiding reliance on best-effort GitHub
+schedule delivery.
+
 ## Required configuration
 
 The public database URL is committed in `snapshot-collect.yml`. Create a
@@ -64,7 +71,13 @@ projector workflow also accepts repository variables
    create or delete a Turso database.
 3. Run `npm run build:cron`, then deploy both generated collector and projector
    bundles while still in `legacy` mode.
-4. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
+4. Once the workflow definition containing `dispatch_id` and `scheduled_for`
+   inputs is on the default branch, apply
+   `0114_turso_price_projection_dispatcher.sql`. It registers the primary
+   Supabase dispatcher and preserves the guarded native schedule as a
+   fallback. Do not apply this activation migration before that workflow is
+   available on `main`.
+5. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
    for several complete collection cycles.
    Supabase remains authoritative. Each Turso slot must exactly match the
    Supabase write shape: received, candidate, persisted, full-resolution, and
@@ -77,10 +90,10 @@ projector workflow also accepts repository variables
    instead of Supabase's historical write reason; this is logged for review but
    does not alter the stored row set or source of truth. All later
    classification differences remain observable in the job log.
-5. Inspect the Turso `snapshot_slots` backlog. Every new shadow slot must be
+6. Inspect the Turso `snapshot_slots` backlog. Every new shadow slot must be
    acknowledged after its parity check, and no shadow mismatch may have
    occurred.
-6. Record an ISO-8601 UTC boundary in the GitHub Actions repository variable
+7. Record an ISO-8601 UTC boundary in the GitHub Actions repository variable
    `TURSO_PRICE_READ_CUTOVER_AT`, then set `TURSO_PRICE_WRITE_MODE=primary` in
    the same release. Raw-history readers use Supabase before that instant and
    Turso from that instant onward. The service refuses primary writes if the
@@ -97,6 +110,7 @@ replay an interrupted hand-off.
 
 ```bash
 npm run db:check:turso-price-projection
+npm run db:check:turso-price-projection-dispatcher
 npm run turso:price:migrate
 npx jest src/lib/turso/price/__tests__ src/lib/supabase/__tests__/snapshotHistory.turso.test.ts --runInBand
 ```
@@ -106,4 +120,8 @@ that the Supabase receipt count advances with collection slots, and that a
 history query spanning the cutover returns both sides in timestamp order. The
 projection workflow prints `before`, `projected`, `after`, `oldestLagSeconds`,
 `rawEventsPruned`, and `acknowledgedPayloadsCompacted`; a non-empty backlog
-older than its lag threshold fails the workflow for alerting.
+older than its lag threshold fails the workflow for alerting. In primary mode,
+`GET /api/v1/health/ready` also reports a projection check (`ok`,
+`catching_up`, `lagging`, or `unknown`) plus pending-slot and lag details. That
+signal does not make fresh Turso-backed price reads unavailable merely because
+the independent Supabase projection is catching up.

@@ -7,6 +7,7 @@
  * the Supabase receipt makes every retry idempotent.
  */
 import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
+import { readTursoPriceProjectionMaxLagSeconds } from '@/lib/turso/price/projectionConfig';
 import {
   getTursoPriceProjectionBacklog,
   pruneExpiredTursoPriceEvents,
@@ -31,11 +32,7 @@ async function main(): Promise<void> {
   }
 
   const limit = readPositiveInteger('TURSO_PRICE_PROJECTION_BATCH_SIZE', 16, 32);
-  const maximumLagSeconds = readPositiveInteger(
-    'TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS',
-    1_800,
-    86_400
-  );
+  const maximumLagSeconds = readTursoPriceProjectionMaxLagSeconds();
   const client = getTursoPriceClient();
   await ensureTursoPriceSchema(client);
   const before = await getTursoPriceProjectionBacklog(client);
