@@ -12,6 +12,7 @@ Agent-facing contacts:
 
 - [Pre-Trade Safety Skill](https://www.oracleinsight.xyz/downloads/insight-pre-trade-safety-skill-v0.2.0.zip) — installable MCP configuration, no-money discovery check, and prompts for one proposed trade or DeFi action.
 - [Base Aave V3 Lending Guard Skill](https://www.oracleinsight.xyz/downloads/insight-lending-guard-skill-v0.1.0.zip) — a deliberately narrow, exact-call decision layer for direct Base Aave V3 EOA `supply` and variable-rate `borrow` calls.
+- [Base Agent Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-base-agent-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow for reviewed Base Aerodrome Slipstream WETH→USDC or PancakeSwap V3 USDC→USDT direct swaps. It can be paid with x402 at C3 / $0.02 and returns no calldata for `CAUTION` or `BLOCK`.
 
 Install a package, then run its free discovery check before configuring a
 credential or an x402 wallet. A successful discovery check does not call a

@@ -18,6 +18,7 @@ if (typeof Response.prototype.clone !== 'function') {
 }
 
 jest.mock('../resourceServer', () => ({
+  BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME: 'prepare_base_agent_swap_guard',
   getMcpX402HttpServer: jest.fn(),
 }));
 

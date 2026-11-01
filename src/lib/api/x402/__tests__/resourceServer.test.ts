@@ -3,6 +3,7 @@ import { type HTTPAdapter } from '@x402/core/server';
 import { parseX402Config, SOLANA_DEVNET_CAIP2 } from '../config';
 import { resetFacilitatorResilienceForTests } from '../facilitatorResilience';
 import {
+  BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
   BAZAAR_SERVICE_METADATA,
   buildX402HttpServer,
   resetX402HttpServerForTests,
@@ -49,6 +50,36 @@ class TestRequestAdapter implements HTTPAdapter {
       action: 'swap',
       tradeAmountUsd: '1000',
     };
+  }
+}
+
+class McpTestRequestAdapter implements HTTPAdapter {
+  getHeader(): string | undefined {
+    return undefined;
+  }
+
+  getMethod(): string {
+    return 'POST';
+  }
+
+  getPath(): string {
+    return '/api/mcp';
+  }
+
+  getUrl(): string {
+    return 'https://oracleinsight.example/api/mcp';
+  }
+
+  getAcceptHeader(): string {
+    return 'application/json';
+  }
+
+  getUserAgent(): string {
+    return 'jest';
+  }
+
+  getQueryParams(): Record<string, string> {
+    return {};
   }
 }
 
@@ -182,6 +213,56 @@ describe('x402 SVM resource-server registration', () => {
       payTo: EVM_PAY_TO,
       scheme: 'exact',
       extra: { name: 'USDC', version: '2' },
+    });
+  });
+
+  it('puts the Base Swap Guard Bazaar tool contract in its paid MCP quote', async () => {
+    const fetchMock = jest.fn(async (input: string | URL | Request) => {
+      if (String(input) !== 'https://facilitator.example/supported') {
+        throw new Error(`unexpected fetch: ${String(input)}`);
+      }
+      return Response.json({
+        kinds: [{ x402Version: 2, scheme: 'exact', network: 'eip155:84532' }],
+        extensions: [],
+        signers: {},
+      });
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const cfg = parseX402Config({
+      X402_ENABLED: 'true',
+      X402_NETWORK: 'eip155:84532',
+      X402_PAY_TO: EVM_PAY_TO,
+      X402_FACILITATOR_URL: 'https://facilitator.example',
+    });
+    const server = await buildX402HttpServer(cfg, undefined, {
+      mcpAmountAtomic: '20000',
+      mcpDiscoveryToolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
+    });
+    const result = await server.processHTTPRequest({
+      adapter: new McpTestRequestAdapter(),
+      path: '/api/mcp',
+      method: 'POST',
+    });
+
+    expect(result.type).toBe('payment-error');
+    if (result.type !== 'payment-error') throw new Error('expected a payment quote');
+    const quote = JSON.parse(
+      Buffer.from(result.response.headers['PAYMENT-REQUIRED'] ?? '', 'base64url').toString('utf8')
+    ) as {
+      accepts: Array<{ amount: string }>;
+      resource?: { description?: string };
+      extensions?: { bazaar?: { info?: { input?: Record<string, unknown> } } };
+    };
+
+    expect(quote.accepts).toEqual(
+      expect.arrayContaining([expect.objectContaining({ amount: '20000' })])
+    );
+    expect(quote.resource?.description).toContain('Base mainnet AI-agent Swap Guard');
+    expect(quote.extensions?.bazaar?.info?.input).toMatchObject({
+      type: 'mcp',
+      toolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
+      transport: 'streamable-http',
     });
   });
 
