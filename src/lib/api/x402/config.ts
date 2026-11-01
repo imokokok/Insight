@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { parseHypercoreX402Config, type HypercoreX402Config } from './hypercore';
 import { isSolanaPublicKey } from './solanaEncoding';
 
 /**
@@ -282,6 +283,8 @@ export interface X402Config {
   facilitatorBearerTokens?: Partial<Record<X402PaymentNetworkId, string>>;
   /** Optional, independently opted-in Solana x402 option. */
   solana?: X402SolanaConfig | null;
+  /** Native HyperCore Core-USDC beta, isolated from ordinary EVM exact rails. */
+  hypercore?: HypercoreX402Config | null;
   /**
    * Settlement assets advertised for BNB Smart Chain (default `['usdc']`).
    * Parsed from X402_BNB_ASSETS; `usdc` is always first so the primary
@@ -588,9 +591,13 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
       );
     }
   }
+  const hypercore = parseHypercoreX402Config(env);
+  if (hypercore !== null && !flagEnabled) {
+    throw new Error('X402_HYPERCORE_ENABLED=true also requires X402_ENABLED=true');
+  }
 
   return {
-    enabled: evmEnabled || solana !== null,
+    enabled: evmEnabled || solana !== null || hypercore !== null,
     evmEnabled,
     network,
     evmNetworks,
@@ -610,6 +617,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     ]),
     solana,
     bnbAssets,
+    hypercore,
   };
 }
 

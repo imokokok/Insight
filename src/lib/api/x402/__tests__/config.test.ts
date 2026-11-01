@@ -532,3 +532,33 @@ describe('HyperEVM x402 configuration', () => {
     });
   });
 });
+
+describe('HyperCore native x402 configuration', () => {
+  const HYPERCORE_ENV = {
+    ...BASE_ENV,
+    X402_HYPERCORE_ENABLED: 'true',
+    X402_HYPERCORE_NETWORK: 'hyperliquid:mainnet',
+    X402_HYPERCORE_PAY_TO: '0xdef0000000000000000000000000000000000002',
+    X402_HYPERCORE_FACILITATOR_URL: 'https://hypercore-facilitator.example',
+    X402_HYPERCORE_MERCHANT_ID: 'insight',
+    X402_HYPERCORE_MERCHANT_SECRET: 'a-merchant-secret-that-is-long-enough',
+  } as NodeJS.ProcessEnv;
+
+  it('is absent by default and explicitly adds a server-only Core-USDC rail', () => {
+    expect(parseX402Config(BASE_ENV).hypercore).toBeNull();
+    expect(parseX402Config(HYPERCORE_ENV).hypercore).toMatchObject({
+      network: 'hyperliquid:mainnet',
+      payTo: HYPERCORE_ENV.X402_HYPERCORE_PAY_TO,
+      merchantId: 'insight',
+    });
+  });
+
+  it('requires the ordinary x402 master gate and complete merchant credentials', () => {
+    expect(() => parseX402Config({ ...HYPERCORE_ENV, X402_ENABLED: 'false' })).toThrow(
+      /X402_ENABLED/
+    );
+    expect(() => parseX402Config({ ...HYPERCORE_ENV, X402_HYPERCORE_MERCHANT_SECRET: '' })).toThrow(
+      /MERCHANT/
+    );
+  });
+});
