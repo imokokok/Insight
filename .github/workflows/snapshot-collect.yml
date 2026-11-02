@@ -17,9 +17,9 @@ name: Snapshot Collect
 
 on:
   schedule:
-    # Same nominal cadence as Supabase. The guard turns this into a no-op while
-    # recent dispatcher runs succeed, and automatically runs after a missed slot.
-    - cron: '*/15 * * * *'
+    # Cloudflare Cron is the raw-capture primary at :00/:15/:30/:45. Native
+    # GitHub scheduling is a delayed fallback so it never races the primary.
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
     inputs:
       dispatch_id:
@@ -65,6 +65,9 @@ env:
   CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
   CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
   SNAPSHOT_TRIGGER_SOURCE: github_actions
+  # A second, runtime-enforced guard against accidental schedule regressions.
+  # Seven minutes is comfortably above the primary route's 180-second ceiling.
+  SNAPSHOT_INGEST_FALLBACK_GRACE_SECONDS: '420'
   # Alchemy RPC keys (optional — public RPC fallbacks exist, but Alchemy
   # is more reliable for on-chain oracle reads). Same keys as .env.local.
   ALCHEMY_ETHEREUM_RPC: ${{ secrets.ALCHEMY_ETHEREUM_RPC }}
@@ -98,6 +101,11 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           FALLBACK_MAX_AGE_MINUTES: '25'
+          # The Supabase dispatcher creates a durable in-flight row before
+          # GitHub accepts the workflow_dispatch. Avoid a same-minute native
+          # duplicate while that primary-dispatched run is still fresh.
+          FALLBACK_REQUIRE_NO_PRIMARY_IN_FLIGHT: 'true'
+          FALLBACK_PRIMARY_IN_FLIGHT_MAX_AGE_MINUTES: '8'
         run: node scripts/cron-control.mjs guard
 
       - name: Verify required secrets

@@ -47,11 +47,15 @@ the `INGEST_SCHEDULER_SECRET` Bearer credential. Cloudflare Cron has a
 15-minute invocation window, while the route has an explicit 180-second
 maximum duration.
 
-The existing GitHub `Snapshot Collect` workflow remains a guarded fallback
-and runs the market-reference/manipulation-cost evidence tasks. Its raw
-capture step shares the same Turso lease, so an overlapping Cloudflare run
-returns `busy` or `already_captured` before it reads an oracle or writes a
-second slot.
+The existing GitHub `Snapshot Collect` workflow remains a delayed, guarded
+fallback and still runs the market-reference/manipulation-cost evidence tasks.
+Cloudflare starts raw capture at `:00/:15/:30/:45`; both Supabase-dispatched
+and native GitHub fallback runs begin seven minutes later at
+`:07/:22/:37/:52`. A runtime grace guard enforces the same delay, so an
+accidental cron regression cannot make GitHub compete with Cloudflare during
+the primary window. After that window its raw-capture step shares the Turso
+lease, so a completed primary slot returns `already_captured` before it reads
+an oracle or writes a second slot.
 
 The active feed registry is administered in Supabase but mirrored as a
 canonical, hashed last-known-good payload in Turso after successful
@@ -124,10 +128,10 @@ closed with HTTP 401 and leaves existing Turso data untouched.
    bundles while still in `legacy` mode.
 4. Once the workflow definition containing `dispatch_id` and `scheduled_for`
    inputs is on the default branch, apply
-   `0114_turso_price_projection_dispatcher.sql`. It registers the primary
-   Supabase dispatcher and preserves the guarded native schedule as a
-   fallback. Do not apply this activation migration before that workflow is
-   available on `main`.
+   `0114_turso_price_projection_dispatcher.sql`. Then apply
+   `0115_cloudflare_ingest_fallback.sql`, which registers the seven-minute
+   GitHub fallback offset and re-registers the dispatcher. Do not apply these
+   activation migrations before that workflow is available on `main`.
 5. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
    for several complete collection cycles.
    Supabase remains authoritative. Each Turso slot must exactly match the
@@ -180,7 +184,7 @@ npm run db:check:turso-price-projection
 npm run db:check:turso-price-projection-dispatcher
 npm run turso:price:migrate
 npm run worker:turso-ingest:check
-npx jest src/lib/turso/price/__tests__ src/lib/supabase/__tests__/snapshotHistory.turso.test.ts --runInBand
+npx jest src/lib/turso/price/__tests__ src/lib/reports/__tests__/snapshotIngest.test.ts src/lib/supabase/__tests__/snapshotHistory.turso.test.ts --runInBand
 ```
 
 After the primary release, check that each Turso slot has an acknowledgement,

@@ -44,7 +44,7 @@ function ready() {
   return false;
 }
 
-async function guard() {
+export async function guard() {
   // Every workflow_dispatch invocation is intentional. Only native GitHub
   // `schedule` events are stale-data fallbacks that may be skipped.
   if (process.env.GITHUB_EVENT_NAME !== 'schedule') {
@@ -72,7 +72,44 @@ async function guard() {
     const response = await requestLedger(query, { headers: headers() });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const rows = await response.json();
-    const shouldRun = rows.length === 0;
+    if (rows.length > 0) {
+      await writeGithubFile('should_run', 'false');
+      console.log(`[cron-control] dispatcher is healthy for ${workflow}; fallback skipped`);
+      return;
+    }
+
+    // A primary dispatcher creates its durable row before GitHub begins the
+    // workflow. For the Turso raw-capture fallback, regard a very recent
+    // in-flight primary as healthy too; otherwise the native schedule can
+    // start an identical runner in the same minute. The short window ensures
+    // a genuinely stuck dispatcher still falls back on the next quarter-hour.
+    if (process.env.FALLBACK_REQUIRE_NO_PRIMARY_IN_FLIGHT === 'true') {
+      const activeWindowMinutes = Math.max(
+        1,
+        Number(process.env.FALLBACK_PRIMARY_IN_FLIGHT_MAX_AGE_MINUTES) || 8
+      );
+      const activeCutoff = new Date(Date.now() - activeWindowMinutes * 60_000).toISOString();
+      const activeQuery = new URL(`${baseUrl}/rest/v1/cron_dispatch_runs`);
+      activeQuery.searchParams.set('select', 'id');
+      activeQuery.searchParams.set('workflow_file', `eq.${workflow}`);
+      activeQuery.searchParams.set('source', 'eq.supabase_cron');
+      activeQuery.searchParams.set('status', 'in.(dispatching,running)');
+      activeQuery.searchParams.set('created_at', `gte.${activeCutoff}`);
+      activeQuery.searchParams.set('limit', '1');
+
+      const activeResponse = await requestLedger(activeQuery, { headers: headers() });
+      if (!activeResponse.ok) throw new Error(`HTTP ${activeResponse.status}`);
+      const activeRows = await activeResponse.json();
+      if (activeRows.length > 0) {
+        await writeGithubFile('should_run', 'false');
+        console.log(
+          `[cron-control] primary ${workflow} dispatch is still in flight; fallback skipped`
+        );
+        return;
+      }
+    }
+
+    const shouldRun = true;
     await writeGithubFile('should_run', String(shouldRun));
     console.log(
       shouldRun
