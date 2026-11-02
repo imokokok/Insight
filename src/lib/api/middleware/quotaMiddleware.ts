@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { makeMeteringKey, precheckCredits } from '@/lib/billing/creditWallet';
-import { CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS, getCreditCost } from '@/lib/billing/metering';
+import { CREDIT_EXHAUSTED_RETRY_AFTER_SECONDS } from '@/lib/billing/metering';
 import { PLANS, normalizePlan } from '@/lib/billing/plans';
+import { getEndpointCreditCost } from '@/lib/billing/productPricing';
 import { createLogger } from '@/lib/utils/logger';
 
 import { ApiResponseBuilder } from '../response';
@@ -43,9 +44,11 @@ type QuotaMiddlewareResult =
 /**
  * Quota / credit middleware — the single gate on API access.
  *
- * Every API-key request is priced by getCreditCost(path) and must clear a
- * credit-wallet precheck before the handler runs; the authoritative charge is
- * consumed fire-and-forget via consumeCredits only after a 2xx response.
+ * Every API-key request is priced by getEndpointCreditCost(path) — a per-call
+ * metering class, or the full product price for a product-purchase endpoint —
+ * and must clear a credit-wallet precheck before the handler runs; the
+ * authoritative charge is consumed fire-and-forget via consumeCredits only
+ * after a 2xx response.
  *
  * There is no recurring free tier and no plan-based feature gating: "can this
  * call proceed?" is answered solely by the wallet balance covering the credit
@@ -90,8 +93,8 @@ export function createQuotaMiddleware(
       };
     }
 
-    // ----- Credit-metered, per-call cost --------------------------------
-    const cost = getCreditCost(request.nextUrl.pathname);
+    // ----- Credit-metered cost (per-call class or one-call product price) --
+    const cost = getEndpointCreditCost(request.nextUrl.pathname);
     const precheck = await precheckCredits(context.apiKeyId, cost);
 
     if (!precheck.ok) {

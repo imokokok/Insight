@@ -7,6 +7,7 @@ import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/extensions/bazaar';
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 
+import { ORACLE_WATCH_WINDOW_PLAN } from '@/lib/billing/oracleWatchWindow';
 import { BaseAgentSwapGuardInputSchema } from '@/lib/dex/baseAgentSwapGuard';
 
 import {
@@ -17,6 +18,7 @@ import {
   X402_BASE_PERP_GUARD_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
+  X402_ORACLE_WATCH_WINDOW_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
@@ -24,6 +26,7 @@ import {
   X402_PRE_TRADE_ROUTE,
   X402_SWAP_INTENT_ROUTE,
   getX402PaymentOptions,
+  usdToAtomicUnits,
 } from './config';
 import { createResilientFacilitator } from './facilitatorResilience';
 import { isSolanaPublicKey } from './solanaEncoding';
@@ -608,12 +611,13 @@ function acceptsFor(cfg: X402Config, amountOverride?: string) {
 function routeConfigFor(
   cfg: X402Config,
   extension = BAZAAR_DISCOVERY_EXTENSION,
-  description = 'Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.'
+  description = 'Pre-trade safety check: oracle-immune-system verdict for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.',
+  amountOverride?: string
 ) {
   return {
     description,
     mimeType: 'application/json',
-    accepts: acceptsFor(cfg),
+    accepts: acceptsFor(cfg, amountOverride),
     ...BAZAAR_SERVICE_METADATA,
     extensions: extension,
     x402Version: 2,
@@ -621,11 +625,15 @@ function routeConfigFor(
 }
 
 /** A POST-only exact-message route cannot truthfully use Bazaar's GET-query discovery schema. */
-function routeConfigWithoutDiscovery(cfg: X402Config, description: string) {
+function routeConfigWithoutDiscovery(
+  cfg: X402Config,
+  description: string,
+  amountOverride?: string
+) {
   return {
     description,
     mimeType: 'application/json',
-    accepts: acceptsFor(cfg),
+    accepts: acceptsFor(cfg, amountOverride),
     x402Version: 2,
   };
 }
@@ -893,6 +901,11 @@ export async function buildX402HttpServer(
       cfg,
       BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION,
       'Verified Swap Intent: two signed schema-v3 Pre-Trade gates for one same-chain swap, plus one Execution Receipt credit after x402 settlement. A BLOCK is a complete, charged decision.'
+    ),
+    [X402_ORACLE_WATCH_WINDOW_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Oracle Watch Monitored Window (24h): one settlement pre-pays continuous Oracle Watch halt/proceed signal coverage for one (symbol, chain) position for 24 hours. The purchase returns a one-time window token; in-window signal polls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
+      usdToAtomicUnits(ORACLE_WATCH_WINDOW_PLAN.priceUsd)
     ),
     [X402_MCP_ROUTE]: mcpRouteConfigFor(
       cfg,

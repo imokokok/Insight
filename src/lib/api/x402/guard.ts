@@ -556,6 +556,14 @@ export interface SettledHookContext {
 export interface HandlePaidOptions {
   /** Invoked once per successful settlement (after-response, best-effort). */
   onSettled?: (context: SettledHookContext) => void | Promise<void>;
+  /**
+   * Per-route price override in USDC atomic units. Routes registered with an
+   * amount override in resourceServer.ts (e.g. the monitored-window purchase)
+   * must pass the SAME amount here, or the HyperCore quote/settlement path
+   * would fall back to the merchant-wide per-call price and charge a
+   * materially different number than the EVM/SVM quote advertised.
+   */
+  amountAtomic?: string;
 }
 
 function encodePaymentHeader(value: unknown): string {
@@ -608,6 +616,7 @@ async function handleHypercorePayment(
 ): Promise<NextResponse | null> {
   const config = cfg.hypercore;
   if (!config) return null;
+  const amountAtomic = options?.amountAtomic ?? cfg.amountAtomic;
   const paymentPayload = hypercorePayloadFromHeader(
     request.headers.get('payment-signature'),
     config
@@ -642,14 +651,14 @@ async function handleHypercorePayment(
     const response = await hypercorePaymentRequired(
       request,
       config,
-      cfg.amountAtomic,
+      amountAtomic,
       'Payment verification failed'
     );
     response.headers.set('X-Request-Id', requestId);
     return response;
   }
 
-  const amountUsdc = coreUsdAmountFromAtomic(cfg.amountAtomic);
+  const amountUsdc = coreUsdAmountFromAtomic(amountAtomic);
   recordX402Settlement({
     requestId,
     status: 'payment_verified',
@@ -921,7 +930,12 @@ export async function handlePaidPreTradeRequest(
     let response = toNextResponse(result.response);
     if (!hasPaymentSignature && cfg.hypercore) {
       try {
-        response = await appendHypercoreQuote(response, request, cfg.hypercore, cfg.amountAtomic);
+        response = await appendHypercoreQuote(
+          response,
+          request,
+          cfg.hypercore,
+          options?.amountAtomic ?? cfg.amountAtomic
+        );
       } catch (error) {
         // A Core-beta outage must not suppress established EVM/SVM payment
         // options. Return the ordinary x402 quote and emit a useful signal.

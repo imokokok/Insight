@@ -2422,6 +2422,87 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /safety/oracle-watch-window:
+    post:
+      operationId: purchaseOracleWatchWindow
+      tags: [Safety]
+      summary: Purchase a 24h Oracle Watch monitored window
+      description: >-
+        Pre-pays continuous Oracle Watch coverage for one (symbol, chain)
+        subject for 24 hours — the first non-per-call product. The purchase
+        returns a one-time window token (shown exactly once; only its SHA-256
+        hash is stored) used to poll and close the window. In-window signal
+        polls are token-authenticated and never charged per call, bounded by
+        the plan's poll cap and minimum poll interval. Assessment and evidence
+        only — no custody, no execution authority. API-key access (charged as
+        one product-priced credit debit) or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [symbol]
+              properties:
+                symbol: { type: string, description: Asset to monitor, example: ETH }
+                chain:
+                  {
+                    type: string,
+                    description: Optional chain scope fixed for the window,
+                    example: arbitrum,
+                  }
+      responses:
+        '200':
+          { description: Window opened, with the one-time window token and poll/close usage hints. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/oracle-watch-window/{windowId}:
+    get:
+      operationId: pollOracleWatchWindow
+      tags: [Safety]
+      summary: Poll the current halt/proceed signal inside an open window
+      description: >-
+        Free in-window poll of the current Oracle Watch signal for the
+        monitored subject, authenticated by the one-time window token returned
+        at purchase (`Authorization: Bearer oww_<hex>`). Each poll is counted
+        against the window's poll budget and recorded as an auditable judgment.
+        Unknown window ids and wrong tokens are indistinguishable (401).
+      security: [{}]
+      parameters:
+        - in: path
+          name: windowId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Current signal with window usage (polls used, poll cap). }
+        '401': { description: Invalid or missing window token. }
+        '404': { description: Monitored window not found. }
+        '410': { description: Window closed or expired. }
+        '429': { description: Poll cap exhausted or polling before the minimum interval. }
+    post:
+      operationId: closeOracleWatchWindow
+      tags: [Safety]
+      summary: Close the window early and return its coverage summary
+      description: >-
+        Idempotent close. Returns the summary rebuilt from the per-issuance
+        audit rows: verdict/recommendation counts, halt count, and first/last
+        halt timestamps. Works on an expired window — the summary is the record
+        of what the window covered. Authenticated by the one-time window token.
+      security: [{}]
+      parameters:
+        - in: path
+          name: windowId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Window summary (polls issued, verdict counts, halt timeline). }
+        '401': { description: Invalid or missing window token. }
+        '404': { description: Monitored window not found. }
+
   /safety/position:
     post:
       operationId: calculatePositionSafety
