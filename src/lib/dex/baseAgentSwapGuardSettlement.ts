@@ -648,6 +648,11 @@ export async function settleBaseAgentSwapGuard(
 export interface BaseAgentSwapGuardSettlementVerification {
   valid: boolean;
   decisionHash: string | null;
+  /** The swap transaction hash bound inside the signed struct, when the
+   *  struct parsed far enough to trust it. Exposed so a third party can
+   *  detect two valid closures claiming the same decisionHash for different
+   *  swap transactions — a contradiction no honest settlement can produce. */
+  swapTxHash: string | null;
   attester: string | null;
   reason:
     | 'verified'
@@ -676,7 +681,12 @@ export async function verifyBaseAgentSwapGuardSettlement(
     trustAttester?: (address: string, issuedAt: number) => Promise<boolean>;
   } = {}
 ): Promise<BaseAgentSwapGuardSettlementVerification> {
-  const empty = { valid: false, decisionHash: null, attester: null } as const;
+  const empty = {
+    valid: false,
+    decisionHash: null,
+    swapTxHash: null,
+    attester: null,
+  } as const;
   try {
     if (!isPlainObject(value) || !isPlainObject(value.data))
       return { ...empty, reason: 'malformed' };
@@ -706,34 +716,36 @@ export async function verifyBaseAgentSwapGuardSettlement(
       return { ...empty, reason: 'malformed' };
     if (!attester || !signature) return { ...empty, reason: 'malformed' };
 
+    // From here on the struct parsed completely, so the signed
+    // decision/swap binding is reportable even when trust fails.
+    const bound = { decisionHash: data.decisionHash, swapTxHash: data.swapTxHash, attester };
+
     const expectedCodesHash = keccak256(
       toBytes(canonicalJsonString(value.reasonCodes as string[]))
     );
     if (!sameHash(expectedCodesHash, data.reasonCodesHash))
-      return {
-        ...empty,
-        decisionHash: data.decisionHash,
-        attester,
-        reason: 'reason_codes_mismatch',
-      };
+      return { ...empty, ...bound, reason: 'reason_codes_mismatch' };
 
     const args = typedDataArgs(data);
     if (!sameHash(hashTypedData(args), value.uid))
-      return { ...empty, decisionHash: data.decisionHash, attester, reason: 'uid_mismatch' };
+      return { ...empty, ...bound, reason: 'uid_mismatch' };
 
     const signatureValid = await verifyTypedData({
       ...args,
       address: attester as `0x${string}`,
       signature: signature as Hex,
     });
-    if (!signatureValid)
-      return { ...empty, decisionHash: data.decisionHash, attester, reason: 'signature_invalid' };
+    if (!signatureValid) return { ...empty, ...bound, reason: 'signature_invalid' };
 
     const trusted = dependencies.trustAttester ?? isPublishedBaseAgentSwapGuardAttester;
     if (!(await trusted(attester, data.checkedAt)))
-      return { ...empty, decisionHash: data.decisionHash, attester, reason: 'untrusted_attester' };
+      return { ...empty, ...bound, reason: 'untrusted_attester' };
 
-    return { valid: true, decisionHash: data.decisionHash, attester, reason: 'verified' };
+    return {
+      valid: true,
+      ...bound,
+      reason: 'verified',
+    };
   } catch (error) {
     logger.warn('Base agent swap guard settlement verification failed', {
       error: error instanceof Error ? error.message : String(error),

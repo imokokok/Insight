@@ -129,7 +129,13 @@ async function signedDecision(): Promise<
   return createBaseAgentSwapGuardDecision(guard(), signerDependencies);
 }
 
-function transferLog(token: string, from: string, to: string, value: bigint) {
+function transferLog(
+  token: string,
+  from: string,
+  to: string,
+  value: bigint,
+  txHash: Hex = SWAP_TX
+) {
   const padAddr = (a: string) => '0x' + a.slice(2).padStart(64, '0');
   const padUint = (v: bigint) => '0x' + v.toString(16).padStart(64, '0');
   return {
@@ -137,7 +143,7 @@ function transferLog(token: string, from: string, to: string, value: bigint) {
     topics: [TRANSFER_TOPIC, padAddr(from) as `0x${string}`, padAddr(to) as `0x${string}`],
     data: padUint(value) as `0x${string}`,
     blockNumber: '0x10',
-    transactionHash: SWAP_TX,
+    transactionHash: txHash,
     transactionIndex: '0x0',
     logIndex: '0x0',
     removed: false,
@@ -190,7 +196,7 @@ function fakeClient(fx: ChainFixture): RpcClientWithFallback {
   return {
     getTransactionByHash: async (_key, _endpoints, hash) => {
       const h = hash.toLowerCase();
-      if (fx.swapTx && h === SWAP_TX.toLowerCase()) return fx.swapTx;
+      if (fx.swapTx && h === fx.swapTx.hash.toLowerCase()) return fx.swapTx;
       if (fx.approvalTx && h === APPROVAL_TX.toLowerCase()) return fx.approvalTx;
       return null;
     },
@@ -466,7 +472,52 @@ describe('settleBaseAgentSwapGuard', () => {
         verifyBaseAgentSwapGuardSettlement(result.settlement, {
           trustAttester: baseParams.trustAttester,
         })
-      ).resolves.toMatchObject({ valid: true, reason: 'verified' });
+      ).resolves.toMatchObject({
+        valid: true,
+        reason: 'verified',
+        decisionHash: result.settlement.data.decisionHash,
+        swapTxHash: SWAP_TX,
+        attester: account.address.toLowerCase(),
+      });
+    });
+
+    it('exposes the signed swapTxHash so two closures for one decision are detectably contradictory', async () => {
+      const decision = await signedDecision();
+      const first = await settleBaseAgentSwapGuard({
+        ...baseParams,
+        decision,
+        swapTxHash: SWAP_TX,
+        client: fakeClient(baseChain()),
+      });
+      if (!first.ok) throw new Error(`expected ok, got ${first.code}`);
+
+      // The service is stateless: the same signed decision can also be closed
+      // against a second transaction with byte-identical calldata. Honest
+      // usage never produces this, so the verification output must surface
+      // the signed binding that makes the contradiction checkable offline.
+      const SWAP_TX_B = ('0x' + 'ef'.repeat(32)) as Hex;
+      const fixtureB = baseChain();
+      fixtureB.swapTx = { ...fixtureB.swapTx!, hash: SWAP_TX_B };
+      fixtureB.receipt = {
+        ...fixtureB.receipt!,
+        transactionHash: SWAP_TX_B,
+        logs: fixtureB.receipt!.logs.map((log) => ({ ...log, transactionHash: SWAP_TX_B })),
+      };
+      const second = await settleBaseAgentSwapGuard({
+        ...baseParams,
+        decision,
+        swapTxHash: SWAP_TX_B,
+        client: fakeClient(fixtureB),
+      });
+      if (!second.ok) throw new Error(`expected ok, got ${second.code}`);
+
+      const trust = { trustAttester: baseParams.trustAttester };
+      const v1 = await verifyBaseAgentSwapGuardSettlement(first.settlement, trust);
+      const v2 = await verifyBaseAgentSwapGuardSettlement(second.settlement, trust);
+      expect(v1).toMatchObject({ valid: true, reason: 'verified', swapTxHash: SWAP_TX });
+      expect(v2).toMatchObject({ valid: true, reason: 'verified', swapTxHash: SWAP_TX_B });
+      expect(v1.decisionHash).toBe(v2.decisionHash);
+      expect(v1.swapTxHash).not.toBe(v2.swapTxHash);
     });
 
     it('rejects edited reason codes', async () => {
@@ -487,7 +538,11 @@ describe('settleBaseAgentSwapGuard', () => {
         verifyBaseAgentSwapGuardSettlement(tampered, {
           trustAttester: baseParams.trustAttester,
         })
-      ).resolves.toMatchObject({ valid: false, reason: 'reason_codes_mismatch' });
+      ).resolves.toMatchObject({
+        valid: false,
+        reason: 'reason_codes_mismatch',
+        swapTxHash: SWAP_TX,
+      });
     });
 
     it('rejects an invalid signature', async () => {

@@ -1979,7 +1979,7 @@
   },
   {
     "name": "verify_base_agent_swap_guard_settlement",
-    "description": "Independently verify a signed BaseAgentSwapGuardSettlement: structural shape, the reason-code hash, the EIP-712 uid, the attester signature, and attester trust. Pass the settlement artifact wrapped as { decision: { settlement: <settlement> } }. Returns valid/invalid with a machine-readable reason. This checks the signature only; it does not re-read the chain.",
+    "description": "Independently verify a signed BaseAgentSwapGuardSettlement: structural shape, the reason-code hash, the EIP-712 uid, the attester signature, and attester trust. Pass the settlement artifact wrapped as { decision: { settlement: <settlement> } }. Returns valid/invalid with a machine-readable reason, plus the signed decisionHash, swapTxHash, and attester so a third party can detect two valid closures binding one decisionHash to different swap transactions — a contradiction no honest settlement produces. This checks the signature only; it does not re-read the chain.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
