@@ -2599,6 +2599,200 @@
       }
     },
     {
+      "name": "hyperliquid_perp_guard",
+      "description": "Read-only Hyperliquid pre-trade decision gate for opening a perpetual position on the Hyperliquid L1 venue (reviewed BTC and ETH markets today, USDC margin). Separately evaluates underlying and USDC cross-oracle consensus integrity on canonical mainnet feeds, checks caller-declared post-action leverage against a reviewed static profile capped by the freshly observed venue leverage limit, and attaches disclosed venue evidence (mark/oracle divergence, cross-venue consensus deviation, displayed depth) that can escalate the verdict. Returns ALLOW / CAUTION / BLOCK. Assessment-only: it does not evaluate the liquidation engine and never signs, submits, or authorizes an order; bind a successful result to an exact user-authorized order envelope separately.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "protocolId": {
+            "type": "string",
+            "enum": ["hyperliquid-perps-mainnet"]
+          },
+          "action": {
+            "type": "string",
+            "enum": ["open_long", "open_short"]
+          },
+          "assetSymbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+          },
+          "marginAssetSymbol": {
+            "type": "string",
+            "const": "USDC"
+          },
+          "sizeUsd": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000
+          },
+          "marginValueUsd": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1000000000000
+          }
+        },
+        "required": [
+          "protocolId",
+          "action",
+          "assetSymbol",
+          "marginAssetSymbol",
+          "sizeUsd",
+          "marginValueUsd"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "hyperliquid_perp_guard_exact_call",
+      "description": "Create portable Insight risk evidence for one exact unsigned Hyperliquid IOC order envelope on a reviewed market (BTC, ETH; USDC margin). It validates the single-order IOC envelope against the fresh assessment (side matches the assessed action, notional within the reviewed tolerance of the declared size, unexpired window, builder fee within the venue cap) and returns a short-lived EIP-712 decision over the envelope intent hash when Insight signing is configured. It never authorizes, signs, or submits the order; bind an ALLOW through PriorSeal or another user-authorization system, then sign the exact envelope in the user wallet process.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "guard": {
+            "type": "object",
+            "properties": {
+              "protocolId": {
+                "type": "string",
+                "enum": ["hyperliquid-perps-mainnet"]
+              },
+              "action": {
+                "type": "string",
+                "enum": ["open_long", "open_short"]
+              },
+              "assetSymbol": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+              },
+              "marginAssetSymbol": {
+                "type": "string",
+                "const": "USDC"
+              },
+              "sizeUsd": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1000000000000
+              },
+              "marginValueUsd": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1000000000000
+              }
+            },
+            "required": [
+              "protocolId",
+              "action",
+              "assetSymbol",
+              "marginAssetSymbol",
+              "sizeUsd",
+              "marginValueUsd"
+            ],
+            "additionalProperties": false
+          },
+          "order": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "order"
+                  },
+                  "orders": {
+                    "minItems": 1,
+                    "maxItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "a": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "b": {
+                          "type": "boolean"
+                        },
+                        "p": {
+                          "type": "string",
+                          "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+                        },
+                        "s": {
+                          "type": "string",
+                          "pattern": "^(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+                        },
+                        "r": {
+                          "type": "boolean",
+                          "const": false
+                        },
+                        "t": {
+                          "type": "object",
+                          "properties": {
+                            "limit": {
+                              "type": "object",
+                              "properties": {
+                                "tif": {
+                                  "type": "string",
+                                  "const": "Ioc"
+                                }
+                              },
+                              "required": ["tif"],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": ["limit"],
+                          "additionalProperties": false
+                        },
+                        "c": {
+                          "type": "string",
+                          "pattern": "^0x[0-9a-fA-F]{32}$"
+                        }
+                      },
+                      "required": ["a", "b", "p", "s", "r", "t", "c"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "grouping": {
+                    "type": "string",
+                    "const": "na"
+                  },
+                  "builder": {
+                    "type": "object",
+                    "properties": {
+                      "b": {
+                        "type": "string",
+                        "pattern": "^0x[a-fA-F0-9]{40}$"
+                      },
+                      "f": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100
+                      }
+                    },
+                    "required": ["b", "f"],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["type", "orders", "grouping"],
+                "additionalProperties": false
+              },
+              "expiresAfter": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": ["action", "expiresAfter"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["guard", "order"],
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "monad_lending_guard",
       "description": "Read-only Monad lending pre-signing gate for direct Aave V3 or an exact Morpho Blue market. Separately evaluates collateral and loan oracle integrity, checks caller-declared post-action LTV against live protocol parameters, and returns ALLOW / CAUTION / BLOCK. It never signs, broadcasts, or authorizes a transaction; bind a successful decision to an exact user-authorized transaction separately.",
       "inputSchema": {

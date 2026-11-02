@@ -3028,6 +3028,120 @@ paths:
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
 
+  /safety/hyperliquid-perp-guard:
+    get:
+      operationId: assessHyperliquidPerpGuard
+      tags: [Safety]
+      summary: Hyperliquid perp risk decision
+      description: >-
+        Read-only risk gate for a caller-declared Hyperliquid perpetual position.
+        It separately evaluates underlying and USDC cross-oracle consensus
+        integrity on canonical mainnet feeds, checks the declared post-action
+        leverage against a reviewed static profile capped by the freshly
+        observed venue leverage limit, and attaches disclosed venue evidence
+        (mark/oracle divergence, cross-venue consensus deviation) that can
+        escalate the verdict; it never signs, submits, or authorizes an order.
+        API-key access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [hyperliquid-perps-mainnet] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: BTC } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [USDC] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 25000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 2500 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createHyperliquidPerpGuardExactDecision
+      tags: [Safety]
+      summary: Bind a Hyperliquid perp decision to one exact unsigned order envelope
+      description: >-
+        Creates a portable EIP-712 decision that commits to the exact unsigned
+        Hyperliquid IOC order envelope, including its intent hash, asset index,
+        size, price, and expiry. The decision remains non-authorizing and must
+        be bound to user authorization before the envelope is signed in the
+        user wallet process.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, order]
+              properties:
+                guard: { type: object, description: The same perp fields accepted by GET. }
+                order:
+                  {
+                    type: object,
+                    description: Exact unsigned Hyperliquid exchange envelope from the reviewed IOC preflight.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/hyperliquid-perp-guard/verify:
+    get:
+      operationId: getHyperliquidPerpGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Hyperliquid Perp Guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyHyperliquidPerpGuardDecision
+      tags: [Safety]
+      summary: Verify a Hyperliquid Perp Guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
   /safety/monad-lending-guard:
     get:
       operationId: assessMonadLendingGuard

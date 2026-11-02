@@ -379,6 +379,52 @@ export const BasePerpGuardExactJsonSchema = z
   })
   .strict();
 
+/** Wire schema for the Hyperliquid perp pre-trade gate. */
+export const HyperliquidPerpGuardJsonSchema = z.object({
+  protocolId: z.enum(['hyperliquid-perps-mainnet']),
+  action: z.enum(['open_long', 'open_short']),
+  assetSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+  marginAssetSymbol: z.literal('USDC'),
+  sizeUsd: z.number().positive().max(1_000_000_000_000),
+  marginValueUsd: z.number().positive().max(1_000_000_000_000),
+});
+
+/** Wire schema for exact-order Hyperliquid Perp Guard decision evidence. */
+export const HyperliquidPerpGuardExactJsonSchema = z
+  .object({
+    guard: HyperliquidPerpGuardJsonSchema,
+    order: z
+      .object({
+        action: z.object({
+          type: z.literal('order'),
+          orders: z
+            .array(
+              z.object({
+                a: z.number().int().nonnegative(),
+                b: z.boolean(),
+                p: z.string().regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/),
+                s: z.string().regex(/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/),
+                r: z.literal(false),
+                t: z.object({ limit: z.object({ tif: z.literal('Ioc') }) }),
+                c: z.string().regex(/^0x[0-9a-fA-F]{32}$/),
+              })
+            )
+            .min(1)
+            .max(1),
+          grouping: z.literal('na'),
+          builder: z
+            .object({
+              b: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+              f: z.number().int().min(1).max(100),
+            })
+            .optional(),
+        }),
+        expiresAfter: z.number().int().nonnegative(),
+      })
+      .strict(),
+  })
+  .strict();
+
 /** Wire schema for the reviewed Base, Polygon, Arbitrum and BNB lending gate. */
 export const MultichainEvmLendingGuardJsonSchema = z
   .object({

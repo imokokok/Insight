@@ -39,6 +39,10 @@ import {
   getFeedsTool,
 } from './feedTools';
 import {
+  hyperliquidPerpGuardExactCallTool,
+  hyperliquidPerpGuardTool,
+} from './hyperliquidPerpGuardTools';
+import {
   prepareHyperliquidPerpOrderTool,
   verifyHyperliquidPerpExecutionTool,
 } from './hyperliquidPerpTools';
@@ -62,6 +66,8 @@ import {
   HyperliquidPerpMarketJsonSchema,
   HyperliquidPerpExecutionVerificationJsonSchema,
   HyperliquidPerpOrderPreflightJsonSchema,
+  HyperliquidPerpGuardExactJsonSchema,
+  HyperliquidPerpGuardJsonSchema,
   BatchPriceJsonSchema,
   ConsensusPriceJsonSchema,
   CorrelationJsonSchema,
@@ -189,6 +195,8 @@ const MCP_TOOLS: McpToolDefinition[] = [
   baseLendingGuardExactCallTool,
   basePerpGuardTool,
   basePerpGuardExactCallTool,
+  hyperliquidPerpGuardTool,
+  hyperliquidPerpGuardExactCallTool,
   monadLendingGuardTool,
   monadLendingGuardExactCallTool,
   multichainEvmLendingGuardTool,
@@ -474,6 +482,16 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   base_perp_guard_exact_call: BasePerpGuardExactJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  hyperliquid_perp_guard: HyperliquidPerpGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  hyperliquid_perp_guard_exact_call: HyperliquidPerpGuardExactJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];
