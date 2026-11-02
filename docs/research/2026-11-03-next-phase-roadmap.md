@@ -78,13 +78,13 @@ consensus core, or existing evidence tools.
 
 ## Sequencing and gates
 
-| Order | Item | Why this order | Done when |
-| ----- | ---- | -------------- | --------- |
-| 1 | Track B1 joint reference agent | Makes everything after it sellable | Published case study + receipts |
-| 2 | Track A1 perp liquidity evidence | Cheapest moat deepening; pattern exists | v3 shipped behind perp guard (shipped 2026-11-03) |
-| 3 | Track C1 Oracle Watch subscription | First recurring revenue | Live plan purchasable via x402 |
-| 4 | Track A2 Hyperliquid Perp Guard | Biggest TAM, moderate cost | Guard + exact-call on main |
-| 5 | Track B2/B3 + C2/C3 continuous | Compounding, run in background | Audit + first pricing review |
+| Order | Item                               | Why this order                          | Done when                                         |
+| ----- | ---------------------------------- | --------------------------------------- | ------------------------------------------------- |
+| 1     | Track B1 joint reference agent     | Makes everything after it sellable      | Published case study + receipts                   |
+| 2     | Track A1 perp liquidity evidence   | Cheapest moat deepening; pattern exists | v3 shipped behind perp guard (shipped 2026-11-03) |
+| 3     | Track C1 Oracle Watch subscription | First recurring revenue                 | Live plan purchasable via x402                    |
+| 4     | Track A2 Hyperliquid Perp Guard    | Biggest TAM, moderate cost              | Guard + exact-call on main                        |
+| 5     | Track B2/B3 + C2/C3 continuous     | Compounding, run in background          | Audit + first pricing review                      |
 
 Every item keeps the standing boundaries: assessment and evidence only, no custody,
 no execution authority, fail closed outside reviewed scope, x402-metered.
