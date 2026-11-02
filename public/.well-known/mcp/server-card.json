@@ -2400,7 +2400,7 @@
     },
     {
       "name": "base_perp_guard",
-      "description": "Read-only Base pre-trade decision-input integrity gate for opening a Synthetix Perps V3 position (reviewed BTC, ETH, SOL, XRP, DOGE, and PEPE markets, USDC margin). Separately evaluates underlying and margin oracle integrity, checks caller-declared post-action leverage against reviewed market caps, and returns ALLOW / CAUTION / BLOCK. Assessment-only: it does not evaluate the venue mark-price or liquidation engine and never signs, broadcasts, or authorizes an order; bind a successful result to an exact user-authorized order separately.",
+      "description": "Read-only Base pre-trade decision-input integrity gate for opening a Synthetix Perps V3 position (reviewed BTC, ETH, SOL, XRP, DOGE, and PEPE markets, USDC margin). Separately evaluates underlying and margin oracle integrity, checks caller-declared post-action leverage against reviewed market caps, and returns ALLOW / CAUTION / BLOCK. When a reviewed Base spot market exists for the underlying (ETH today), it also attaches spot/TWAP/in-range liquidity evidence as disclosed context without entering oracle consensus. Assessment-only: it does not evaluate the venue mark-price or liquidation engine and never signs, broadcasts, or authorizes an order; bind a successful result to an exact user-authorized order separately.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",

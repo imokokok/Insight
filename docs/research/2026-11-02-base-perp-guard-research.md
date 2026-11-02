@@ -53,9 +53,13 @@ adequate — exclusion is the source-independence control working as intended.
 2. **v2 (shipped 2026-11-02)**: exact-call binding + EIP-712 decision attestation for direct
    Synthetix V3 `commitOrder` calls, following the lending-guard attestation pattern. Address
    provenance below.
-3. **v3**: liquidity evidence layer for the underlying (spot/TWAP/in-range liquidity, following
-   the Monad Uniswap V3 execution-market precedent), fed in as context without entering oracle
-   consensus.
+3. **v3 (shipped 2026-11-03)**: liquidity evidence layer for the underlying (spot/TWAP/in-range
+   liquidity and a depth quote ladder from the reviewed Base WETH/USDC 0.05% pool), returned as
+   disclosed context (`liquidity` field) without entering oracle consensus; only concrete observed
+   concerns (TWAP deviation, price impact beyond the advisory bands, size beyond the reviewed
+   ladder) escalate an ALLOW to CAUTION, and unavailability is disclosed without changing the
+   verdict. Underlyings without a reviewed Base spot market state that their execution liquidity
+   is unverified.
 4. **v4**: extend the oracle-config defect-hunting pipeline to perp market configuration
    (Immunefi / governance-forum disclosure path, per the established disclosure policy).
 

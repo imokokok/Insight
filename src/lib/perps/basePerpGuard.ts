@@ -6,6 +6,12 @@ import {
 } from '@/lib/api/services/preTradeSafetyService';
 
 import { BasePerpExactTransactionSchema } from './basePerpAction';
+import {
+  basePerpLiquidityConcern,
+  basePerpLiquidityEvidenceNotRequested,
+  type BasePerpLiquidityEvidence,
+  type FetchBasePerpLiquidityEvidence,
+} from './basePerpLiquidityEvidence';
 
 /**
  * A read-only, Base-only perpetual-futures decision gate for Synthetix Perps
@@ -101,6 +107,12 @@ export interface BasePerpGuardResult {
     underlying: BasePerpGuardOracleCheckSummary;
     margin: BasePerpGuardOracleCheckSummary;
   };
+  /**
+   * v3 context layer: reviewed Base spot-market evidence for the underlying.
+   * It never enters the cross-oracle consensus; only concrete observed
+   * concerns escalate an ALLOW to CAUTION.
+   */
+  liquidity: BasePerpLiquidityEvidence;
   reasons: string[];
   next: {
     execution: 'not_performed';
@@ -110,6 +122,8 @@ export interface BasePerpGuardResult {
 
 export interface BasePerpGuardDependencies {
   checkOracle?: typeof preTradeSafetyCheck;
+  /** v3 opt-in: observe reviewed Base spot-market evidence for the underlying. */
+  fetchLiquidityEvidence?: FetchBasePerpLiquidityEvidence;
   now?: () => Date;
 }
 
@@ -146,7 +160,7 @@ export async function assessBasePerpGuard(
     throw new Error('Declared market is not in the reviewed Synthetix Perps V3 Base market set');
   }
 
-  const [underlyingResult, marginResult] = await Promise.all([
+  const [underlyingResult, marginResult, liquidity] = await Promise.all([
     checkOracle({
       asset: input.assetSymbol,
       chainId: 8453,
@@ -159,6 +173,10 @@ export async function assessBasePerpGuard(
       action: 'swap',
       tradeAmountUsd: input.marginValueUsd,
     }),
+    (
+      dependencies.fetchLiquidityEvidence ??
+      (async () => basePerpLiquidityEvidenceNotRequested(input.assetSymbol))
+    )(input),
   ]);
 
   const effectiveLeverage = input.sizeUsd / input.marginValueUsd;
@@ -188,6 +206,13 @@ export async function assessBasePerpGuard(
   if (underlyingResult.verdict === 'CAUTION' || marginResult.verdict === 'CAUTION') {
     if (verdict !== 'BLOCK') verdict = 'CAUTION';
     reasons.push('At least one oracle assessment requires review before execution.');
+  }
+  // v3 context layer: disclosed liquidity evidence. Only concrete observed
+  // concerns escalate an ALLOW; unavailability never changes the verdict.
+  const liquidityConcern = basePerpLiquidityConcern(liquidity);
+  if (liquidityConcern) {
+    reasons.push(liquidityConcern);
+    if (liquidity.status === 'observed' && verdict === 'ALLOW') verdict = 'CAUTION';
   }
   reasons.push(
     'Leverage bands come from a static reviewed profile; live Synthetix market parameters are governance-controlled and can change. Verify live venue configuration before execution.'
@@ -223,6 +248,7 @@ export async function assessBasePerpGuard(
       conservativeMaxSizeUsd,
     },
     oracleChecks: { underlying: summarize(underlyingResult), margin: summarize(marginResult) },
+    liquidity,
     reasons,
     next: {
       execution: 'not_performed',
