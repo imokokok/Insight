@@ -12,14 +12,20 @@ import {
   Sparkles,
   XCircle,
 } from 'lucide-react';
+import { z } from 'zod';
 
 import { LendingSafetyPanel } from '@/components/safety/LendingSafetyPanel';
 import { Button } from '@/components/ui/Button';
+import {
+  apiErrorCode,
+  apiErrorMessage,
+  parseApiEnvelope,
+  requireApiData,
+} from '@/lib/api/client/responseValidation';
 import type {
   LendingSafetyAction,
   ProtocolSafetyContext,
 } from '@/lib/api/services/preTradeSafetyService';
-import type { OracleSafetyAttestation } from '@/lib/attestations/oracleSafetyAttestation';
 import { useSession } from '@/stores/authStore';
 
 type Verdict = 'PASS' | 'CAUTION' | 'DANGER' | 'BLOCK';
@@ -78,12 +84,81 @@ interface SafetyResult {
   /** Model-free anomaly score [0,1] vs the 24h cross-oracle baseline. */
   anomalyScore: number;
   /** EIP-712 offchain attestation proving this check ran, or null. */
-  attestation: OracleSafetyAttestation | null;
+  attestation: { uid: string } | null;
   /** Lending-specific oracle-safety context (null unless a protocolId was passed). */
   protocolSafety: ProtocolSafetyContext | null;
   /** Concrete user-executable actions for the lending path (empty for swaps). */
   recommendedActions: LendingSafetyAction[];
 }
+
+const ProviderPriceSchema: z.ZodType<ProviderPrice> = z.object({
+  price: z.number(),
+  deviationPct: z.number().nullable(),
+  isOutlier: z.boolean(),
+  dataAgeSeconds: z.number().nullable(),
+  isStale: z.boolean(),
+  confidence: z.number().nullable(),
+  reputationScore: z.number().nullable(),
+  status: z.enum(['success', 'unsupported', 'error']),
+});
+
+const ProtocolSafetySchema: z.ZodType<ProtocolSafetyContext> = z.object({
+  protocolId: z.string(),
+  protocolName: z.string(),
+  criticalDeviationPct: z.number(),
+  bufferConsumedPct: z.number(),
+  liquidationThreshold: z.number(),
+  maxLtv: z.number(),
+  parameterSource: z.enum(['scheduled_dynamic', 'static_config']).optional(),
+  parametersFetchedAt: z.string().nullable().optional(),
+});
+
+const LendingSafetyActionSchema: z.ZodType<LendingSafetyAction> = z.object({
+  type: z.enum(['freeze_borrow', 'reduce_position', 'wait_convergence', 'add_collateral']),
+  severity: z.enum(['info', 'caution', 'danger', 'block']),
+  title: z.string(),
+  detail: z.string(),
+  targetDeviationPct: z.number().optional(),
+  targetBufferPct: z.number().optional(),
+});
+
+const SafetyResultSchema: z.ZodType<SafetyResult> = z.object({
+  verdict: z.enum(['PASS', 'CAUTION', 'DANGER', 'BLOCK']),
+  consensusPrice: z.number(),
+  maxDeviationPct: z.number(),
+  manipulationRiskScore: z.number(),
+  staleDataRisk: z.boolean(),
+  crossProviderAgreement: z.number(),
+  recommendedMaxPositionUsd: z.number(),
+  participantCount: z.number(),
+  providerPrices: z.record(z.string(), ProviderPriceSchema),
+  depegWarnings: z.array(
+    z.object({ stablecoin: z.string(), deviationPct: z.number(), riskLevel: z.string() })
+  ),
+  warnings: z.array(z.string()),
+  contributingFactors: z.array(
+    z.object({
+      rule: z.string(),
+      value: z.number(),
+      threshold: z.number(),
+      triggeredVerdict: z.enum(['CAUTION', 'DANGER', 'BLOCK']),
+      message: z.string(),
+    })
+  ),
+  evaluatedAt: z.string(),
+  latencyMs: z.number(),
+  mlScore: z.number().nullable(),
+  mlModelVersion: z.string().nullable(),
+  mlScore1h: z.number().nullable(),
+  mlScore6h: z.number().nullable(),
+  mlRiskLevel: z.enum(['low', 'medium', 'high']).nullable(),
+  mlMediumThreshold: z.number().nullable(),
+  mlHighThreshold: z.number().nullable(),
+  anomalyScore: z.number(),
+  attestation: z.object({ uid: z.string() }).nullable(),
+  protocolSafety: ProtocolSafetySchema.nullable(),
+  recommendedActions: z.array(LendingSafetyActionSchema),
+});
 
 const CHAIN_OPTIONS = [
   { label: 'Ethereum', value: 1 },
@@ -204,11 +279,11 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
 
       const endpoint = apiKey ? '/api/v1/safety/pre-trade' : '/api/demo/pre-trade';
       const res = await fetch(`${endpoint}?${params.toString()}`, { headers });
-      const json = await res.json();
+      const json = parseApiEnvelope(await res.json(), 'Pre-trade safety response');
 
       if (!res.ok || !json.success) {
-        const code = json?.error?.code ?? 'UNKNOWN';
-        const message = json?.error?.message ?? 'Request failed';
+        const code = apiErrorCode(json);
+        const message = apiErrorMessage(json, 'Request failed');
         if (res.status === 401 || res.status === 402) {
           setError(`${code}: ${message}`);
         } else {
@@ -217,7 +292,7 @@ export function PreTradeSafetyDemo({ apiKey }: { apiKey?: string }) {
         return;
       }
 
-      setResult(json.data as SafetyResult);
+      setResult(requireApiData(json, SafetyResultSchema, 'Pre-trade safety response'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
     } finally {

@@ -659,7 +659,11 @@ export async function acknowledgeTursoPriceSlot(
   nowMs: number = Date.now()
 ): Promise<void> {
   const result = await client.execute({
-    sql: `UPDATE snapshot_slots SET supabase_acknowledged_at_ms=coalesce(supabase_acknowledged_at_ms, ?)
+    sql: `UPDATE snapshot_slots SET
+      supabase_acknowledged_at_ms=coalesce(supabase_acknowledged_at_ms, ?),
+      projection_last_error=NULL,
+      projection_retry_after_ms=NULL,
+      projection_quarantined_at_ms=NULL
       WHERE slot_ms=? AND input_hash=?`,
     args: [nowMs, slotMs, inputHash],
   });
@@ -751,7 +755,19 @@ export interface PendingTursoPriceSlot {
 export interface TursoPriceProjectionBacklog {
   pendingCount: number;
   oldestSlotMs: number | null;
+  retryingCount: number;
+  quarantinedCount: number;
 }
+
+export interface TursoPriceProjectionFailure {
+  attempts: number;
+  retryAfterMs: number | null;
+  quarantined: boolean;
+}
+
+const PROJECTION_RETRY_BASE_MS = 60_000;
+const PROJECTION_RETRY_MAX_MS = 15 * 60_000;
+const PROJECTION_ERROR_MAX_LENGTH = 2_000;
 
 export interface TursoPriceMaintenanceSummary {
   rawEventsPruned: number;
@@ -760,14 +776,19 @@ export interface TursoPriceMaintenanceSummary {
 
 export async function listPendingTursoPriceSlots(
   client: Client,
-  limit: number = 4
+  limit: number = 4,
+  nowMs: number = Date.now()
 ): Promise<PendingTursoPriceSlot[]> {
   if (!Number.isSafeInteger(limit) || limit < 1 || limit > 32)
     throw new Error('Invalid pending slot limit');
+  if (!Number.isSafeInteger(nowMs) || nowMs < 0) throw new Error('Invalid pending slot timestamp');
   const result = await client.execute({
     sql: `SELECT slot_ms,input_hash,raw_digest,canonical_payload FROM snapshot_slots
-      WHERE supabase_acknowledged_at_ms IS NULL ORDER BY slot_ms ASC LIMIT ?`,
-    args: [limit],
+      WHERE supabase_acknowledged_at_ms IS NULL
+        AND projection_quarantined_at_ms IS NULL
+        AND (projection_retry_after_ms IS NULL OR projection_retry_after_ms<=?)
+      ORDER BY slot_ms ASC LIMIT ?`,
+    args: [nowMs, limit],
   });
   return result.rows.map((row) => {
     const stored = row as Record<string, unknown>;
@@ -791,8 +812,12 @@ export async function getTursoPriceProjectionBacklog(
   client: Client
 ): Promise<TursoPriceProjectionBacklog> {
   const result = await client.execute(
-    `SELECT count(*) AS pending_count,min(slot_ms) AS oldest_slot_ms
-      FROM snapshot_slots WHERE supabase_acknowledged_at_ms IS NULL`
+    `SELECT
+      coalesce(sum(CASE WHEN supabase_acknowledged_at_ms IS NULL AND projection_quarantined_at_ms IS NULL THEN 1 ELSE 0 END), 0) AS pending_count,
+      min(CASE WHEN supabase_acknowledged_at_ms IS NULL AND projection_quarantined_at_ms IS NULL THEN slot_ms END) AS oldest_slot_ms,
+      coalesce(sum(CASE WHEN supabase_acknowledged_at_ms IS NULL AND projection_quarantined_at_ms IS NULL AND projection_retry_after_ms IS NOT NULL THEN 1 ELSE 0 END), 0) AS retrying_count,
+      coalesce(sum(CASE WHEN supabase_acknowledged_at_ms IS NULL AND projection_quarantined_at_ms IS NOT NULL THEN 1 ELSE 0 END), 0) AS quarantined_count
+      FROM snapshot_slots`
   );
   const row = result.rows[0] as Record<string, unknown> | undefined;
   if (!row) throw new Error('Missing Turso projection backlog result');
@@ -804,7 +829,90 @@ export async function getTursoPriceProjectionBacklog(
       oldest === null || oldest === undefined
         ? null
         : asInteger(oldest, 'oldest pending slot timestamp'),
+    retryingCount: asInteger(row.retrying_count ?? 0, 'retrying slot count'),
+    quarantinedCount: asInteger(row.quarantined_count ?? 0, 'quarantined slot count'),
   };
+}
+
+function retryDelayMs(attempts: number): number {
+  const exponent = Math.min(Math.max(0, attempts - 1), 20);
+  return Math.min(PROJECTION_RETRY_MAX_MS, PROJECTION_RETRY_BASE_MS * 2 ** exponent);
+}
+
+/**
+ * Preserve a failed hand-off as evidence and allow later slots to proceed.
+ * Only deterministic integrity/protocol failures are quarantined; transient
+ * Supabase failures retain an exponential, bounded retry schedule.
+ */
+export async function recordTursoPriceProjectionFailure(
+  client: Client,
+  slotMs: number,
+  inputHash: string,
+  error: unknown,
+  options: { permanent?: boolean; nowMs?: number } = {}
+): Promise<TursoPriceProjectionFailure> {
+  if (!Number.isSafeInteger(slotMs) || slotMs < 0) throw new Error('Invalid Turso projection slot');
+  if (!inputHash) throw new Error('Missing Turso projection input hash');
+  const nowMs = options.nowMs ?? Date.now();
+  if (!Number.isSafeInteger(nowMs) || nowMs < 0)
+    throw new Error('Invalid Turso projection timestamp');
+  const message = (error instanceof Error ? error.message : String(error)).slice(
+    0,
+    PROJECTION_ERROR_MAX_LENGTH
+  );
+  let transaction: Transaction | undefined;
+  try {
+    transaction = await client.transaction('write');
+    const existing = await transaction.execute({
+      sql: `SELECT projection_attempts,supabase_acknowledged_at_ms
+        FROM snapshot_slots WHERE slot_ms=? AND input_hash=?`,
+      args: [slotMs, inputHash],
+    });
+    const row = existing.rows[0] as Record<string, unknown> | undefined;
+    if (!row) throw new Error('Cannot record failure for an unknown Turso price slot');
+    if (row.supabase_acknowledged_at_ms !== null && row.supabase_acknowledged_at_ms !== undefined) {
+      await transaction.commit();
+      return {
+        attempts: asInteger(row.projection_attempts ?? 0, 'projection attempts'),
+        retryAfterMs: null,
+        quarantined: false,
+      };
+    }
+    const attempts = asInteger(row.projection_attempts ?? 0, 'projection attempts') + 1;
+    const quarantined = options.permanent === true;
+    const retryAfterMs = quarantined ? null : nowMs + retryDelayMs(attempts);
+    await transaction.execute({
+      sql: `UPDATE snapshot_slots
+        SET projection_attempts=?,projection_last_error=?,projection_retry_after_ms=?,projection_quarantined_at_ms=?
+        WHERE slot_ms=? AND input_hash=? AND supabase_acknowledged_at_ms IS NULL`,
+      args: [attempts, message, retryAfterMs, quarantined ? nowMs : null, slotMs, inputHash],
+    });
+    await transaction.commit();
+    return { attempts, retryAfterMs, quarantined };
+  } catch (error) {
+    await rollbackQuietly(transaction);
+    throw error;
+  }
+}
+
+/** Explicit operator action for an evidence-preserving replay after review. */
+export async function requeueQuarantinedTursoPriceSlot(
+  client: Client,
+  slotMs: number,
+  inputHash: string,
+  nowMs: number = Date.now()
+): Promise<void> {
+  if (!Number.isSafeInteger(slotMs) || slotMs < 0) throw new Error('Invalid Turso projection slot');
+  if (!inputHash) throw new Error('Missing Turso projection input hash');
+  if (!Number.isSafeInteger(nowMs) || nowMs < 0)
+    throw new Error('Invalid Turso projection timestamp');
+  const result = await client.execute({
+    sql: `UPDATE snapshot_slots
+      SET projection_quarantined_at_ms=NULL,projection_retry_after_ms=?,projection_last_error=NULL
+      WHERE slot_ms=? AND input_hash=? AND supabase_acknowledged_at_ms IS NULL`,
+    args: [nowMs, slotMs, inputHash],
+  });
+  if (result.rowsAffected !== 1) throw new Error('Cannot requeue an unknown Turso price slot');
 }
 
 /**

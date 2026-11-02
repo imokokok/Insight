@@ -6,14 +6,14 @@
  * delay or fail a durable Turso capture. The outbox payload is immutable and
  * the Supabase receipt makes every retry idempotent.
  */
+import { reconcilePendingTursoPriceSlots } from '@/lib/supabase/adaptiveSnapshotPersistence';
 import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
 import { readTursoPriceProjectionMaxLagSeconds } from '@/lib/turso/price/projectionConfig';
+import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import {
   getTursoPriceProjectionBacklog,
   pruneExpiredTursoPriceEvents,
 } from '@/lib/turso/price/slotRepository';
-import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
-import { reconcilePendingTursoPriceSlots } from '@/lib/supabase/adaptiveSnapshotPersistence';
 
 function readPositiveInteger(name: string, fallback: number, maximum: number): number {
   const raw = process.env[name] ?? String(fallback);
@@ -54,6 +54,13 @@ async function main(): Promise<void> {
       ...maintenance,
     })
   );
+
+  if (after.quarantinedCount > 0) {
+    throw new Error(
+      `Turso price projection has ${after.quarantinedCount} quarantined immutable slot(s); ` +
+        'review and explicitly requeue the preserved evidence'
+    );
+  }
 
   if (after.pendingCount > 0 && oldestLagSeconds > maximumLagSeconds) {
     throw new Error(

@@ -6,9 +6,15 @@ import Link from 'next/link';
 
 import { ArrowRight, CheckCircle2, Loader2, RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
 import { verifyReceipt } from 'verify-insight-receipt';
+import { z } from 'zod';
 
 import { EditorialWorkspaceHeader, EvidenceProcessRail } from '@/components/editorial';
 import { shortAddress } from '@/components/verifiability/verifyReceipt';
+import {
+  apiErrorMessage,
+  parseApiEnvelope,
+  requireApiData,
+} from '@/lib/api/client/responseValidation';
 
 import type { KeyRegistry, RoutableAttestation, VerifyResult } from 'verify-insight-receipt';
 
@@ -31,6 +37,43 @@ const KEY_STATUS_STYLES: Record<string, string> = {
   not_checked: 'bg-slate-100 text-slate-600',
 };
 
+const KeyEntrySchema = z.object({
+  key_id: z.string(),
+  public_key: z.string(),
+  algorithm: z.literal('EIP-712/secp256k1').optional(),
+  validFrom: z.string(),
+  validUntil: z.string().nullable(),
+  revoked: z.boolean(),
+  note: z.string().optional(),
+  role: z.enum(['attester', 'sample']).optional(),
+});
+
+const KeyRegistrySchema: z.ZodType<KeyRegistry> = z.object({
+  keys: z.array(KeyEntrySchema).optional(),
+  public_keys: z.array(KeyEntrySchema).optional(),
+  revoked: z
+    .array(z.object({ key_id: z.string(), revoked_at: z.string(), reason: z.string() }))
+    .optional(),
+  revoked_keys: z
+    .array(z.object({ key_id: z.string(), revoked_at: z.string(), reason: z.string() }))
+    .optional(),
+});
+
+const RoutableAttestationSchema: z.ZodType<RoutableAttestation> = z
+  .object({
+    uid: z.string(),
+    schemaVersion: z.number(),
+    attester: z.string(),
+    data: z.record(z.string(), z.unknown()),
+    signature: z.string().optional(),
+    eip712: z.object({ primaryType: z.string().optional() }).optional(),
+    type: z.string().optional(),
+    validForSeconds: z.number().optional(),
+  })
+  .passthrough();
+
+const SampleAttestationSchema = z.object({ attestation: RoutableAttestationSchema });
+
 function fmtTime(ts: number | null): string {
   if (ts == null) return '—';
   return new Date(ts * 1000).toISOString().replace('T', ' ').replace('.000Z', ' UTC');
@@ -38,7 +81,11 @@ function fmtTime(ts: number | null): string {
 
 function fetchRegistry(): Promise<KeyRegistry | undefined> {
   return fetch('/.well-known/oracle-keys.json')
-    .then((res) => (res.ok ? res.json() : undefined))
+    .then(async (res) => {
+      if (!res.ok) return undefined;
+      const parsed = KeyRegistrySchema.safeParse(await res.json());
+      return parsed.success ? parsed.data : undefined;
+    })
     .catch(() => undefined);
 }
 
@@ -83,8 +130,8 @@ export default function VerifyClient() {
       if (!sampleRes.ok) {
         let msg = `Sample endpoint returned ${sampleRes.status}.`;
         try {
-          const b = await sampleRes.json();
-          if (b?.error?.message) msg = b.error.message;
+          const body = parseApiEnvelope(await sampleRes.json(), 'Sample receipt response');
+          msg = apiErrorMessage(body, msg);
         } catch {
           /* ignore parse errors, keep the status message */
         }
@@ -92,14 +139,14 @@ export default function VerifyClient() {
         return;
       }
 
-      const sampleBody = await sampleRes.json();
-      const attestation = sampleBody?.data?.attestation;
-      if (!attestation) {
-        if (activeRequest.current === requestId) {
-          setState({ status: 'error', error: 'Sample endpoint returned no attestation.' });
-        }
-        return;
-      }
+      const sampleBody = parseApiEnvelope(await sampleRes.json(), 'Sample receipt response');
+      if (!sampleBody.success)
+        throw new Error(apiErrorMessage(sampleBody, 'Sample request failed.'));
+      const { attestation } = requireApiData(
+        sampleBody,
+        SampleAttestationSchema,
+        'Sample receipt response'
+      );
 
       await verifyAttestation(attestation, registry, requestId);
     } catch (err) {
@@ -116,7 +163,7 @@ export default function VerifyClient() {
     const requestId = ++activeRequest.current;
     let attestation: RoutableAttestation;
     try {
-      attestation = JSON.parse(pastedInput) as RoutableAttestation;
+      attestation = RoutableAttestationSchema.parse(JSON.parse(pastedInput));
     } catch {
       if (activeRequest.current === requestId) {
         setState({ status: 'error', error: 'Receipt is not valid JSON.' });

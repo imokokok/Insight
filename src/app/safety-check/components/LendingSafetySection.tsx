@@ -3,8 +3,14 @@
 import { useEffect, useState } from 'react';
 
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { z } from 'zod';
 
 import { LendingSafetyPanel } from '@/components/safety/LendingSafetyPanel';
+import {
+  apiErrorMessage,
+  parseApiEnvelope,
+  requireApiData,
+} from '@/lib/api/client/responseValidation';
 import type {
   LendingSafetyAction,
   ProtocolSafetyContext,
@@ -41,6 +47,40 @@ interface PreTradePayload {
   mlRiskLevel?: 'low' | 'medium' | 'high' | null;
   anomalyScore?: number;
 }
+
+const ProtocolSafetySchema: z.ZodType<ProtocolSafetyContext> = z.object({
+  protocolId: z.string(),
+  protocolName: z.string(),
+  criticalDeviationPct: z.number(),
+  bufferConsumedPct: z.number(),
+  liquidationThreshold: z.number(),
+  maxLtv: z.number(),
+  parameterSource: z.enum(['scheduled_dynamic', 'static_config']).optional(),
+  parametersFetchedAt: z.string().nullable().optional(),
+});
+
+const LendingSafetyActionSchema: z.ZodType<LendingSafetyAction> = z.object({
+  type: z.enum(['freeze_borrow', 'reduce_position', 'wait_convergence', 'add_collateral']),
+  severity: z.enum(['info', 'caution', 'danger', 'block']),
+  title: z.string(),
+  detail: z.string(),
+  targetDeviationPct: z.number().optional(),
+  targetBufferPct: z.number().optional(),
+});
+
+const PreTradePayloadSchema: z.ZodType<PreTradePayload> = z.object({
+  protocolSafety: ProtocolSafetySchema.nullable(),
+  recommendedActions: z.array(LendingSafetyActionSchema),
+  verdict: z.enum(['PASS', 'CAUTION', 'DANGER', 'BLOCK']).optional(),
+  maxDeviationPct: z.number().optional(),
+  crossProviderAgreement: z.number().optional(),
+  participantCount: z.number().optional(),
+  manipulationRiskScore: z.number().optional(),
+  mlScore1h: z.number().nullable().optional(),
+  mlScore6h: z.number().nullable().optional(),
+  mlRiskLevel: z.enum(['low', 'medium', 'high']).nullable().optional(),
+  anomalyScore: z.number().optional(),
+});
 
 export function LendingSafetySection({
   protocolId,
@@ -92,44 +132,27 @@ export function LendingSafetySection({
 
     fetch(`/api/demo/pre-trade?${params.toString()}`, { headers })
       .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text().catch(() => '');
-          throw new Error(`${res.status} ${text || res.statusText}`);
+        const envelope = parseApiEnvelope(await res.json(), 'Pre-trade safety response');
+        if (!res.ok || !envelope.success) {
+          throw new Error(apiErrorMessage(envelope, `${res.status} ${res.statusText}`));
         }
-        return res.json();
+        return requireApiData(envelope, PreTradePayloadSchema, 'Pre-trade safety response');
       })
-      .then((json) => {
+      .then((payload) => {
         if (cancelled) return;
-        const payload = json?.data as PreTradePayload | undefined;
-        if (payload) {
-          setData({
-            protocolSafety: payload.protocolSafety ?? null,
-            recommendedActions: payload.recommendedActions ?? [],
-            verdict: payload.verdict,
-            maxDeviationPct: payload.maxDeviationPct,
-            crossProviderAgreement: payload.crossProviderAgreement,
-            participantCount: payload.participantCount,
-            manipulationRiskScore: payload.manipulationRiskScore,
-            mlScore1h: payload.mlScore1h ?? null,
-            mlScore6h: payload.mlScore6h ?? null,
-            mlRiskLevel: payload.mlRiskLevel ?? null,
-            anomalyScore: payload.anomalyScore,
-          });
-        } else {
-          setData({
-            protocolSafety: null,
-            recommendedActions: [],
-            verdict: undefined,
-            maxDeviationPct: undefined,
-            crossProviderAgreement: undefined,
-            participantCount: undefined,
-            manipulationRiskScore: undefined,
-            mlScore1h: null,
-            mlScore6h: null,
-            mlRiskLevel: null,
-            anomalyScore: undefined,
-          });
-        }
+        setData({
+          protocolSafety: payload.protocolSafety,
+          recommendedActions: payload.recommendedActions,
+          verdict: payload.verdict,
+          maxDeviationPct: payload.maxDeviationPct,
+          crossProviderAgreement: payload.crossProviderAgreement,
+          participantCount: payload.participantCount,
+          manipulationRiskScore: payload.manipulationRiskScore,
+          mlScore1h: payload.mlScore1h ?? null,
+          mlScore6h: payload.mlScore6h ?? null,
+          mlRiskLevel: payload.mlRiskLevel ?? null,
+          anomalyScore: payload.anomalyScore,
+        });
       })
       .catch((err) => {
         if (cancelled) return;

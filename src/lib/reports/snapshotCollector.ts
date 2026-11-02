@@ -730,6 +730,8 @@ export interface SnapshotCollectionResult {
   snapshotTs: Date;
   results: BatchResultItem[];
   inputs: HourlySnapshotInput[];
+  /** Selected rich observations, held for post-capture best-effort persistence when requested. */
+  priceRecords: PriceData[];
   /**
    * One normalized health observation per probed feed. The Actions collector
    * passes these to the post-commit lifecycle step; normal API callers keep
@@ -782,6 +784,12 @@ export async function collectSnapshot(
      * the existing API-route behaviour by default.
      */
     deferDurableSnapshotWrites?: boolean;
+    /**
+     * Keep the rich Supabase cache out of the intake critical path. Trusted
+     * callers persist this returned batch only after Turso durably owns the
+     * raw slot.
+     */
+    deferPriceRecordPersistence?: boolean;
   } = {}
 ): Promise<SnapshotCollectionResult> {
   const now = snapshotTs;
@@ -796,29 +804,15 @@ export async function collectSnapshot(
     options.includeAdditionalHealthChecks ?? true,
     options.reuseRpcMetadata ?? false
   );
-  // The collector is the sole durable writer for the short-term rich record
-  // stream. Normal observations are checkpointed hourly; the durable
-  // 15-minute snapshot stream below preserves the full price history. Ordinary
-  // live request paths deliberately read this cache but never append to it.
-  try {
-    const prices = results.flatMap((result) => (result.price ? [result.price] : []));
-    const records = selectPriceRecordsForPersistence(prices, snapshotTs);
-    if (records.length > 0) {
-      const saved = await savePricesToDatabase(records);
-      logger.info('Persisted rich price-record batch', {
-        observations: prices.length,
-        selected: records.length,
-        saved,
-        checkpoint: snapshotTs.getUTCMinutes() === 0 ? 'hourly' : 'audit-exception',
-      });
-    } else {
-      logger.info('Skipped normal rich price-record batch between hourly checkpoints', {
-        observations: prices.length,
-      });
-    }
-  } catch (error) {
-    // Durable snapshots and feed failure evidence still need to be recorded.
-    logger.warn('Price cache batch persistence failed', normalizeError(error));
+  const prices = results.flatMap((result) => (result.price ? [result.price] : []));
+  const priceRecords = selectPriceRecordsForPersistence(prices, snapshotTs);
+  if (options.deferPriceRecordPersistence) {
+    logger.info('Deferred rich price-record cache persistence until after raw capture', {
+      observations: prices.length,
+      selected: priceRecords.length,
+    });
+  } else {
+    await persistSelectedPriceRecords(priceRecords, prices.length, snapshotTs);
   }
   const consensusBySymbol = calculateConsensusBySymbol(results);
 
@@ -848,6 +842,7 @@ export async function collectSnapshot(
       snapshotTs,
       results,
       inputs: hourlyInputs,
+      priceRecords,
       healthUpdates,
       insertedHourly: 0,
       updatedHealth: 0,
@@ -882,11 +877,43 @@ export async function collectSnapshot(
     snapshotTs,
     results,
     inputs: hourlyInputs,
+    priceRecords,
     healthUpdates,
     insertedHourly,
     updatedHealth,
     deactivated,
   };
+}
+
+/**
+ * The rich cache is useful but never allowed to determine whether evidence is
+ * captured. Primary-mode callers invoke this only after Turso commits.
+ */
+export async function persistSelectedPriceRecords(
+  records: PriceData[],
+  observationCount: number,
+  snapshotTs: Date
+): Promise<number> {
+  try {
+    if (records.length === 0) {
+      logger.info('Skipped normal rich price-record batch between hourly checkpoints', {
+        observations: observationCount,
+      });
+      return 0;
+    }
+    const saved = await savePricesToDatabase(records);
+    logger.info('Persisted rich price-record batch', {
+      observations: observationCount,
+      selected: records.length,
+      saved,
+      checkpoint: snapshotTs.getUTCMinutes() === 0 ? 'hourly' : 'audit-exception',
+    });
+    return saved;
+  } catch (error) {
+    // Durable snapshots and feed failure evidence still need to be recorded.
+    logger.warn('Price cache batch persistence failed', normalizeError(error));
+    return 0;
+  }
 }
 
 /**

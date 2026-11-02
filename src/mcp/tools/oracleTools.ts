@@ -1,10 +1,12 @@
 import type { ConsensusMethod } from '@/lib/analytics/consensusPrice';
+import { apiErrorMessage, parseApiEnvelope } from '@/lib/api/client/responseValidation';
 import { handleGetPrice } from '@/lib/api/oracleHandlers';
 import { getConsensusPrice } from '@/lib/api/services/consensusPriceService';
 import {
   aggregateDeviationProviders,
   loadDeviationHistory,
 } from '@/lib/api/services/deviationService';
+import { validatePriceData } from '@/lib/api/validation/oracleDataValidation';
 import { getDaysAgoUtc, getTodayUtc } from '@/lib/utils/date';
 import { type Blockchain, type OracleProvider } from '@/types/oracle';
 
@@ -33,13 +35,13 @@ export const getOraclePriceTool: McpToolDefinition<typeof OraclePriceInputSchema
       `mcp_${Date.now()}`
     );
 
-    const data = await response.json();
+    const data = parseApiEnvelope(await response.json(), 'Oracle price response');
 
     if (!data.success) {
-      throw new Error(data.error?.message || 'Failed to fetch oracle price');
+      throw new Error(apiErrorMessage(data, 'Failed to fetch oracle price'));
     }
 
-    const price = data.data;
+    const price = validatePriceData(data.data);
     return [
       `**${price.provider.toUpperCase()} price for ${price.symbol}**`,
       `- Price: $${formatPrice(price.price)}`,
@@ -48,9 +50,7 @@ export const getOraclePriceTool: McpToolDefinition<typeof OraclePriceInputSchema
       price.confidence !== undefined && price.confidence !== null
         ? `- Confidence: ${(price.confidence * 100).toFixed(2)}%`
         : '',
-      price.dataAgeSeconds !== undefined && price.dataAgeSeconds !== null
-        ? `- Data age: ${price.dataAgeSeconds}s`
-        : '',
+      price.dataAge !== undefined && price.dataAge !== null ? `- Data age: ${price.dataAge}s` : '',
       price.source ? `- Source: ${price.source}` : '',
     ]
       .filter(Boolean)

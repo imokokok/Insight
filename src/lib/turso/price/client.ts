@@ -15,6 +15,11 @@ export interface TursoPriceRetentionPolicy {
   rawRetentionDays: number;
 }
 
+export interface TursoFeedRegistryPolicy {
+  /** Maximum age of a mirrored registry that a collector may trust. */
+  maxAgeMs: number;
+}
+
 /**
  * The raw stream is only safe to read from Turso after a recorded cutover.
  * It lets readers combine the immutable Supabase history before this instant
@@ -70,6 +75,24 @@ export function readTursoPriceRetentionPolicy(
     throw new Error('Invalid TURSO_PRICE_RAW_RETENTION_DAYS');
   }
   return { rawRetentionDays };
+}
+
+/**
+ * Feed discovery remains administered in Supabase, but collection reads the
+ * mirrored last-known-good registry from Turso while it is within this bound.
+ * A bounded TTL prevents a long-lived outage from silently preserving a feed
+ * that operators intentionally deactivated.
+ */
+export function readTursoFeedRegistryPolicy(
+  env: NodeJS.ProcessEnv = process.env
+): TursoFeedRegistryPolicy {
+  const raw = env.TURSO_FEED_REGISTRY_MAX_AGE_SECONDS ?? '86400';
+  if (!/^\d+$/.test(raw)) throw new Error('Invalid TURSO_FEED_REGISTRY_MAX_AGE_SECONDS');
+  const maxAgeSeconds = Number(raw);
+  if (!Number.isSafeInteger(maxAgeSeconds) || maxAgeSeconds < 300 || maxAgeSeconds > 7 * 86_400) {
+    throw new Error('Invalid TURSO_FEED_REGISTRY_MAX_AGE_SECONDS');
+  }
+  return { maxAgeMs: maxAgeSeconds * 1_000 };
 }
 
 export function getTursoPriceClient(): Client {

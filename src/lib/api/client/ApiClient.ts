@@ -2,6 +2,7 @@ import { createLogger } from '@/lib/utils/logger';
 import { type ApiClientResponse, type RequestConfig } from '@/types/api/client';
 
 import { ApiError } from './ApiError';
+import { isJsonRecord } from './responseValidation';
 
 const logger = createLogger('ApiClient');
 
@@ -98,28 +99,29 @@ class ApiClient {
       const response = await fetch(fullUrl, init);
 
       if (!response.ok) {
-        let errorData;
+        let errorData: Record<string, unknown> = { message: 'Unknown error' };
         try {
-          errorData = await response.json();
+          const payload: unknown = await response.json();
+          if (isJsonRecord(payload)) errorData = payload;
         } catch {
-          errorData = { message: 'Unknown error' };
+          // Keep the generic response error below when an upstream returned non-JSON.
         }
         throw new ApiError({
-          code: errorData.code || 'API_ERROR',
-          message: errorData.message || 'Request failed',
+          code: typeof errorData.code === 'string' ? errorData.code : 'API_ERROR',
+          message: typeof errorData.message === 'string' ? errorData.message : 'Request failed',
           statusCode: response.status,
-          details: errorData.details,
+          details: isJsonRecord(errorData.details) ? errorData.details : undefined,
         });
       }
 
-      let result;
+      let result: T;
       try {
         // Some responses (e.g. 204 No Content) have an empty body — treat
         // them as a successful result with null data rather than an error.
         if (response.status === 204 || response.headers.get('content-length') === '0') {
-          result = null;
+          result = null as T;
         } else {
-          result = await response.json();
+          result = (await response.json()) as T;
         }
       } catch {
         throw new ApiError({
@@ -139,7 +141,7 @@ class ApiClient {
             details: { errors: parsed.error.issues },
           });
         }
-        result = parsed.data;
+        result = parsed.data as T;
       }
 
       const duration = Date.now() - startTime;

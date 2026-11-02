@@ -1,7 +1,10 @@
+import { z } from 'zod';
+
 import { TTLCache } from '@/lib/utils/cache';
 import { createLogger } from '@/lib/utils/logger';
 import { type OracleProvider, type Blockchain, type PriceData } from '@/types/oracle';
 
+import { isJsonRecord } from './client/responseValidation';
 import { withRetry, type EnhancedRetryConfig } from './retry/enhancedRetry';
 import {
   validatePriceData,
@@ -31,18 +34,18 @@ interface FetchBatchPricesParams {
   forceRefresh?: boolean;
 }
 
-interface BatchPriceResult {
-  provider: string;
-  symbol: string;
-  chain?: string;
-  price: PriceData | null;
-  error: string | null;
-}
-
-interface BatchPriceResponse {
-  success: boolean;
-  data: BatchPriceResult[];
-}
+const BatchPriceResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.array(
+    z.object({
+      provider: z.string(),
+      symbol: z.string(),
+      chain: z.string().optional(),
+      price: z.unknown().nullable(),
+      error: z.string().nullable(),
+    })
+  ),
+});
 
 export interface CrossChainBatchResult {
   prices: Map<Blockchain, PriceData>;
@@ -291,15 +294,19 @@ async function handleApiResponse<T>(
     throw new Error(extractErrorMessage(errorData, context, response.status, response.statusText));
   }
 
-  const data = await response.json();
+  const body: unknown = await response.json();
+  if (!isJsonRecord(body)) {
+    throw new Error(`${context} API returned an invalid JSON response`);
+  }
 
   // Support both v1 wrapped responses ({ success, data, meta }) and legacy raw
   // responses. The /api/oracles/* routes now return the wrapped format.
-  const isWrapped = data && typeof data === 'object' && 'success' in data;
-  const payload = isWrapped ? data.data : data;
+  const isWrapped = typeof body.success === 'boolean';
+  const payload = isWrapped ? body.data : body;
+  const error = isJsonRecord(body.error) ? body.error : undefined;
 
-  if (data.error || (isWrapped && data.success === false)) {
-    const errorObj = data.error;
+  if (error || (isWrapped && body.success === false)) {
+    const errorObj = error;
     const errMsg =
       errorObj && typeof errorObj === 'object' && 'message' in errorObj
         ? String((errorObj as { message: unknown }).message)
@@ -549,7 +556,7 @@ async function fetchBatchPricesFromApi({
       throw new Error(`Batch price API error: ${response.status}`);
     }
 
-    const data: BatchPriceResponse = await response.json();
+    const data = BatchPriceResponseSchema.parse(await response.json());
 
     if (data.data) {
       for (const item of data.data) {
@@ -653,7 +660,7 @@ async function fetchMultiOraclePrices({
       throw new Error(`Multi-oracle batch API error: ${response.status} ${errorText}`);
     }
 
-    const data: BatchPriceResponse = await response.json();
+    const data = BatchPriceResponseSchema.parse(await response.json());
 
     const prices: PriceData[] = [];
     const errors: Array<{ provider: string; error: string }> = [];
