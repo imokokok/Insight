@@ -863,7 +863,30 @@ export async function handlePaidPreTradeRequest(
     options
   );
   if (hypercoreResponse) return hypercoreResponse;
-  const httpServer = await getX402HttpServer(cfg);
+  let httpServer: Awaited<ReturnType<typeof getX402HttpServer>>;
+  try {
+    httpServer = await getX402HttpServer(cfg);
+  } catch (error) {
+    // A chain-scoped route must never recover from an unavailable facilitator
+    // by emitting a quote on another configured rail. Return a retryable,
+    // explicit failure instead of leaking the initializer error or turning a
+    // configuration gap into an opaque 500.
+    logger.warn('x402 payment rail unavailable', {
+      requestId,
+      path: request.nextUrl.pathname,
+      errorName: error instanceof Error ? error.name : 'unknown',
+    });
+    const response = NextResponse.json(
+      {
+        error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+        message:
+          'The matching x402 payment rail is temporarily unavailable. Insight will not substitute another chain.',
+      },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } }
+    );
+    response.headers.set('X-Request-Id', requestId);
+    return response;
+  }
   const requestStartedAt = Date.now();
 
   const result = await httpServer.processHTTPRequest({

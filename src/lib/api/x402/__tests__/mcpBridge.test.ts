@@ -52,7 +52,11 @@ const mockedServerFactory = getMcpX402HttpServer as jest.MockedFunction<
 >;
 const mockedRecord = recordX402Settlement as jest.MockedFunction<typeof recordX402Settlement>;
 
-const cfg = { network: 'eip155:84532' } as unknown as X402Config;
+const cfg = {
+  enabled: true,
+  network: 'eip155:84532',
+  payTo: '0xAbC0000000000000000000000000000000000001',
+} as unknown as X402Config;
 
 function jsonRpcResult(result: unknown): Response {
   return new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result }), {
@@ -147,6 +151,80 @@ describe('handleMcpPaidToolCall settlement gating', () => {
       '20000',
       'prepare_base_agent_swap_guard'
     );
+  });
+
+  it('binds a multichain lending quote to the chain declared in its MCP arguments', async () => {
+    const multichainCfg = {
+      ...cfg,
+      enabled: true,
+      evmEnabled: true,
+      evmNetworks: ['eip155:999'],
+      payTo: '0xAbC0000000000000000000000000000000000001',
+      facilitatorUrl: 'https://merchant.example',
+      facilitatorUrls: { 'eip155:999': 'https://hyper.example' },
+    } as X402Config;
+    const request = new Request('http://x/api/mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'multichain_evm_lending_guard',
+          arguments: { chainId: 42161 },
+        },
+      }),
+    });
+
+    await handleMcpPaidToolCall({
+      request,
+      cfg: multichainCfg,
+      toolName: 'multichain_evm_lending_guard',
+      runBusiness: async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }),
+    });
+
+    expect(mockedServerFactory).toHaveBeenCalledWith(
+      expect.objectContaining({ network: 'eip155:42161', evmNetworks: ['eip155:42161'] }),
+      '20000',
+      undefined
+    );
+  });
+
+  it('fails closed when a chain-native MCP rail is not configured', async () => {
+    const response = await handleMcpPaidToolCall(
+      input(
+        async () => jsonRpcResult({ content: [{ type: 'text', text: 'must not execute' }] }),
+        undefined,
+        'solana_lending_guard'
+      )
+    );
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+    });
+    expect(mockedServerFactory).not.toHaveBeenCalled();
+    expect(fakeServer.processSettlement).not.toHaveBeenCalled();
+  });
+
+  it('returns an explicit unavailable response when the matching facilitator cannot initialize', async () => {
+    mockedServerFactory.mockRejectedValueOnce(new Error('facilitator unavailable'));
+
+    const response = await handleMcpPaidToolCall(
+      input(
+        async () => jsonRpcResult({ content: [{ type: 'text', text: 'must not execute' }] }),
+        undefined,
+        'prepare_base_agent_swap_guard'
+      )
+    );
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+    });
+    expect(fakeServer.processHTTPRequest).not.toHaveBeenCalled();
+    expect(fakeServer.processSettlement).not.toHaveBeenCalled();
   });
 
   it('skips settlement when the tool result carries isError', async () => {

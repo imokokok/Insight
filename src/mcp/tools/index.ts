@@ -1,3 +1,4 @@
+import { assertX402PaymentScopeDeclaredForMcpTool } from '@/lib/api/x402/capabilityPayment';
 import { createLogger } from '@/lib/utils/logger';
 
 import { prepareAerodromeSlipstreamSwapTool } from './aerodromeSlipstreamTools';
@@ -549,6 +550,7 @@ for (const tool of MCP_TOOLS) {
         'Add a corresponding schema in ./jsonSchemas and register it in the map.'
     );
   }
+  assertX402PaymentScopeDeclaredForMcpTool(tool.name);
 }
 
 export function getToolDefinitions() {

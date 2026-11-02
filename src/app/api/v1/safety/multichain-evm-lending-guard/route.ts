@@ -9,6 +9,10 @@ import {
   V1_STANDARD_MIDDLEWARES,
 } from '@/lib/api/handler';
 import { CACHE_PRESETS } from '@/lib/api/utils';
+import {
+  x402ConfigForPaymentScope,
+  x402PaymentScopeForEvmChainId,
+} from '@/lib/api/x402/capabilityPayment';
 import { getX402Config } from '@/lib/api/x402/config';
 import { handlePaidPreTradeRequest, hasAuthCredentials, isPaidRequest } from '@/lib/api/x402/guard';
 import {
@@ -41,6 +45,22 @@ const QuerySchema = z
   .transform((input) => MultichainEvmLendingGuardInputSchema.parse(input));
 type GuardQuery = z.output<typeof QuerySchema>;
 type DecisionBody = z.infer<typeof MultichainEvmLendingGuardExactInputSchema>;
+
+function paymentConfigForChain(chainId: number) {
+  const scope = x402PaymentScopeForEvmChainId(chainId);
+  return scope ? x402ConfigForPaymentScope(getX402Config(), scope) : null;
+}
+
+async function paymentConfigForExactRequest(request: NextRequest) {
+  try {
+    const parsed = MultichainEvmLendingGuardExactInputSchema.safeParse(
+      await request.clone().json()
+    );
+    return parsed.success ? paymentConfigForChain(parsed.data.guard.chainId) : null;
+  } catch {
+    return null;
+  }
+}
 
 async function executeGuard(input: GuardQuery, requestId: string): Promise<NextResponse> {
   const result = await assessMultichainEvmLendingGuard(input);
@@ -75,8 +95,11 @@ export const GET = (
   request: NextRequest,
   routeContext: { params: Promise<Record<string, string>> }
 ): Promise<NextResponse> => {
-  const config = getX402Config();
-  if (config.enabled && (isPaidRequest(request) || !hasAuthCredentials(request))) {
+  const quotedInput = QuerySchema.safeParse(
+    Object.fromEntries(request.nextUrl.searchParams.entries())
+  );
+  const config = quotedInput.success ? paymentConfigForChain(quotedInput.data.chainId) : null;
+  if (config && (isPaidRequest(request) || !hasAuthCredentials(request))) {
     return handlePaidPreTradeRequest(request, config, async (requestId) => {
       const parsed = QuerySchema.safeParse(
         Object.fromEntries(request.nextUrl.searchParams.entries())
@@ -112,8 +135,8 @@ export const POST = async (
   request: NextRequest,
   routeContext: { params: Promise<Record<string, string>> }
 ): Promise<NextResponse> => {
-  const config = getX402Config();
-  if (config.enabled && (isPaidRequest(request) || !hasAuthCredentials(request))) {
+  const config = await paymentConfigForExactRequest(request);
+  if (config && (isPaidRequest(request) || !hasAuthCredentials(request))) {
     return handlePaidPreTradeRequest(request, config, async (requestId) => {
       let body: unknown;
       try {
