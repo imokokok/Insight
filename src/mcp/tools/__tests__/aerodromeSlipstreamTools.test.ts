@@ -60,7 +60,11 @@ describe('prepare_aerodrome_slipstream_swap MCP tool', () => {
         amountRaw: '1',
         data: '0x34',
       },
-      exactInput: { deadlineUnixSeconds: 1_800_000_000 },
+      exactInput: {
+        deadlineUnixSeconds: 1_800_000_000,
+        tokenIn: '0x4200000000000000000000000000000000000006',
+        tokenOut: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      },
       quote: { observedAt: '2026-10-31T00:00:00.000Z', venue: 'aerodrome-slipstream' },
       caveats: [],
     } as never);

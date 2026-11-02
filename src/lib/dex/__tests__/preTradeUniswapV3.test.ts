@@ -69,10 +69,38 @@ const snapshot = {
   ],
 } as const;
 
+type SnapshotDirection = 'token0-to-token1' | 'token1-to-token0';
+
+function snapshotWithDirection(direction: SnapshotDirection) {
+  if (direction === 'token1-to-token0') {
+    return {
+      ...snapshot,
+      quotes: [
+        {
+          amountIn: 1250.5,
+          amountInRaw: '1250500000',
+          amountOut: 1249.875,
+          amountOutRaw: '1249875000',
+          effectiveToken0PerToken1: 0.9998,
+          initializedTicksCrossed: 1,
+          priceImpactBps: 6,
+          direction,
+        },
+      ],
+    };
+  }
+  return { ...snapshot, quotes: [{ ...snapshot.quotes[0], direction }] };
+}
+
 describe('reviewed Uniswap V3 pre-trade evidence', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedSnapshot.mockResolvedValue(snapshot as never);
+    mockedSnapshot.mockImplementation(async (profile: { id: string }) => {
+      const direction: SnapshotDirection = profile.id.includes('token1-to-token0')
+        ? 'token1-to-token0'
+        : 'token0-to-token1';
+      return snapshotWithDirection(direction) as never;
+    });
   });
 
   it('pins an exact Base input amount into its own short-lived profile', async () => {
@@ -110,6 +138,43 @@ describe('reviewed Uniswap V3 pre-trade evidence', () => {
       venue: 'pancakeswap-v3',
       market: 'USDC/USDT',
       quoteAmountsToken0Raw: [1250500000n],
+    });
+  });
+
+  it('binds the explicitly named deeper 0.05% WETH/USDC pool when requested', async () => {
+    const result = await getReviewedUniswapV3PreTradeEvidence({
+      ...BASE_REQUEST,
+      profileId: 'base-uniswap-v3-weth-usdc-500',
+    });
+
+    expect(result).toMatchObject({
+      profile: 'base-uniswap-v3-weth-usdc-500',
+      market: 'WETH/USDC',
+      direction: 'token0-to-token1',
+    });
+    expect(mockedSnapshot.mock.calls[0]?.[0]).toMatchObject({
+      id: expect.stringContaining('base-uniswap-v3-weth-usdc-500-pretrade-'),
+      quoteAmountsToken0Raw: [1250000000000000000n],
+    });
+  });
+
+  it('quotes the reviewed reverse stable lane USDT→USDC through the PancakeSwap pool', async () => {
+    const result = await getReviewedUniswapV3PreTradeEvidence({
+      chainId: 8453,
+      asset: 'USDT',
+      destinationAsset: 'USDC',
+      amountIn: '1250.5',
+    });
+
+    expect(result).toMatchObject({
+      profile: 'base-pancakeswap-v3-usdc-usdt',
+      market: 'WETH/USDC',
+      direction: 'token1-to-token0',
+    });
+    expect(mockedSnapshot.mock.calls[0]?.[0]).toMatchObject({
+      venue: 'pancakeswap-v3',
+      market: 'USDC/USDT',
+      quoteAmountsToken1Raw: [1250500000n],
     });
   });
 

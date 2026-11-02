@@ -14,9 +14,11 @@ reviewed direct swap before showing a wallet-signing request.
 
 ## Current scope
 
-- Aerodrome Slipstream WETH → USDC, one reviewed Base CL100 pool.
-- PancakeSwap V3 USDC → USDT, one reviewed Base 0.01% pool.
-- Exact input, direct router calls only; approval and swap calls are unsigned.
+- Aerodrome Slipstream WETH ↔ USDC, one reviewed Base CL100 pool (two-way).
+- Aerodrome Slipstream USDC ↔ USDT, one reviewed Base CL1 stable pool (two-way).
+- PancakeSwap V3 USDC ↔ USDT, one reviewed Base 0.01% pool (two-way).
+- One direction per call via `profileId` + `direction`; exact input, direct
+  router calls only; approval and swap calls are unsigned.
 - The agent's two price assumptions are checked against independent consensus;
   destination consensus, rather than the agent's destination assumption,
   converts the exact DEX quote to USD.
