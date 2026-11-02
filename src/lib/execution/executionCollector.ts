@@ -93,6 +93,10 @@ export interface CollectExecutionParams {
   destinationAssetId: string;
   /** Address whose balances define the trade. Defaults to the tx sender. */
   taker?: `0x${string}`;
+  /** Address the destination asset was bought FOR. Defaults to the taker.
+   *  Direct-router swaps can pay from the sender and deliver to a distinct
+   *  recipient, so the destination leg may need its own attribution address. */
+  destinationReceiver?: string;
   /** VERITAS pinned rule: exact Uniswap V3 Swap log in this transaction. */
   selectedSwapLogIndex?: number;
   signal?: AbortSignal;
@@ -369,7 +373,7 @@ export async function collectExecutionFacts(
     ? null
     : await readErc20Amount({
         tokenAddress: destinationSpec.address!,
-        taker,
+        taker: (params.destinationReceiver ?? taker) as `0x${string}`,
         direction: 'in',
         transfers,
         client,
