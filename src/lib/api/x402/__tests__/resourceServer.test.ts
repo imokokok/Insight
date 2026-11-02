@@ -1,6 +1,7 @@
 import { type HTTPAdapter } from '@x402/core/server';
 
-import { baseMainnetOnlyX402Config, parseX402Config, SOLANA_DEVNET_CAIP2 } from '../config';
+import { x402ConfigForPaymentScope, X402_PAYMENT_SCOPE } from '../capabilityPayment';
+import { parseX402Config, SOLANA_DEVNET_CAIP2 } from '../config';
 import { resetFacilitatorResilienceForTests } from '../facilitatorResilience';
 import {
   BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
@@ -236,7 +237,9 @@ describe('x402 SVM resource-server registration', () => {
       X402_PAY_TO: EVM_PAY_TO,
       X402_FACILITATOR_URL: 'https://facilitator.example',
     });
-    const server = await buildX402HttpServer(baseMainnetOnlyX402Config(cfg), undefined, {
+    const baseConfig = x402ConfigForPaymentScope(cfg, X402_PAYMENT_SCOPE.base);
+    if (!baseConfig) throw new Error('expected Base payment scope to be enabled');
+    const server = await buildX402HttpServer(baseConfig, undefined, {
       mcpAmountAtomic: '20000',
       mcpDiscoveryToolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
     });

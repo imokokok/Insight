@@ -7,11 +7,11 @@ import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
 import { createLogger } from '@/lib/utils/logger';
 
 import {
-  baseMainnetOnlyX402Config,
-  type X402Config,
-  X402_CREDIT_USD,
-  X402_MCP_ROUTE,
-} from './config';
+  x402ConfigForPaymentScope,
+  x402PaymentScopeForMcpTool,
+  type X402PaymentScope,
+} from './capabilityPayment';
+import { type X402Config, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
 import {
   atomicUnitsToUsdc,
   logBazaarExtensionStatus,
@@ -204,6 +204,33 @@ async function extractReputationOptIn(
   }
 }
 
+/** Read JSON-RPC arguments from a clone so the MCP transport retains the body. */
+async function extractMcpToolArguments(request: Request): Promise<unknown> {
+  try {
+    const body = (await request.clone().json()) as { params?: { arguments?: unknown } };
+    return body?.params?.arguments;
+  } catch {
+    return undefined;
+  }
+}
+
+function unavailablePaymentScopeResponse(
+  toolName: string,
+  scope: X402PaymentScope | null
+): Response {
+  const scopeLabel = scope?.label ?? 'the declared execution chain';
+  return new Response(
+    JSON.stringify({
+      error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+      message: `${toolName} requires a matching x402 payment rail for ${scopeLabel}; Insight will not substitute another chain.`,
+    }),
+    {
+      status: 503,
+      headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/json' },
+    }
+  );
+}
+
 /**
  * Lift the verdict and attestation UID from the pre-trade tool's markdown
  * result text (best-effort clone of the JSON-RPC response). The verdict line
@@ -260,12 +287,28 @@ export async function handleMcpPaidToolCall({
 }: McpPaidCallInput): Promise<Response> {
   const requestId = newRequestId();
   const priceAtomic = priceAtomicForTool(toolName);
+  const paymentScope = x402PaymentScopeForMcpTool(toolName, await extractMcpToolArguments(request));
+  const paymentConfig = paymentScope ? x402ConfigForPaymentScope(cfg, paymentScope) : null;
+  if (!paymentConfig) {
+    return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);
+  }
   const isBaseAgentSwapGuard = toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
-  const httpServer = await getMcpX402HttpServer(
-    isBaseAgentSwapGuard ? baseMainnetOnlyX402Config(cfg) : cfg,
-    priceAtomic,
-    isBaseAgentSwapGuard ? toolName : undefined
-  );
+  let httpServer: Awaited<ReturnType<typeof getMcpX402HttpServer>>;
+  try {
+    httpServer = await getMcpX402HttpServer(
+      paymentConfig,
+      priceAtomic,
+      isBaseAgentSwapGuard ? toolName : undefined
+    );
+  } catch (error) {
+    logger.warn('x402 MCP payment rail unavailable', {
+      requestId,
+      toolName,
+      paymentScope: paymentScope?.kind ?? 'undeclared',
+      errorName: error instanceof Error ? error.name : 'unknown',
+    });
+    return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);
+  }
   const acquisitionSource = x402AcquisitionSource(request);
   const requestStartedAt = Date.now();
   // Clone-read before the transport consumes the body in runBusiness.

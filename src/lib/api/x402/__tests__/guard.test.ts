@@ -248,6 +248,20 @@ describe('x402 guard', () => {
   });
 
   describe('handlePaidPreTradeRequest', () => {
+    it('returns an explicit unavailable response when the selected rail cannot initialize', async () => {
+      mockedGetServer.mockRejectedValueOnce(new Error('facilitator unavailable'));
+      const business = jest.fn(OK_BUSINESS);
+
+      const response = await handlePaidPreTradeRequest(makeRequest(), CFG, business);
+
+      expect(response.status).toBe(503);
+      await expect(response.json()).resolves.toMatchObject({
+        error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+      });
+      expect(response.headers.get('X-Request-Id')).toMatch(/^req_/);
+      expect(business).not.toHaveBeenCalled();
+    });
+
     it('returns the core 402 quote without running the business handler', async () => {
       const processHTTPRequest = jest.fn().mockResolvedValue({
         type: 'payment-error',
