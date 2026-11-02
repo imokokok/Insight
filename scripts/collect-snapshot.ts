@@ -2,13 +2,11 @@
 /**
  * High-frequency oracle price-snapshot collector.
  *
- * Runs on GitHub Actions (`/.github/workflows/snapshot-collect.yml`, every 15
- * minutes) — NOT inside Vercel — so it is not bound by the 60s serverless
- * timeout. Mirrors the Vercel `/api/cron/daily-report` pipeline by delegating
- * to `collectSnapshot()` (which upserts `hourly_price_snapshots` and updates
- * feed health), then persists fine-grained price evidence through a database
- * policy: core assets keep every sample; adaptive assets retain an hourly
- * baseline plus material changes and state transitions.
+ * Runs as the GitHub fallback collector. The primary collector is invoked by
+ * Cloudflare Cron through the Vercel `/api/cron/turso-ingest` route; both
+ * callers share `runSnapshotIngest()` and its Turso slot lease. This runner
+ * therefore never competes with an in-flight primary capture or produces a
+ * different payload for the same 15-minute slot.
  *
  * Why a separate table: `hourly_price_snapshots` upserts on
  * `(snapshot_hour, provider, symbol, chain_id)`, so running more frequently
@@ -22,82 +20,37 @@
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (service-role, bypasses
  * RLS — same credentials the ml-train workflow already uses).
  */
-import {
-  applyFeedHealthLifecycle,
-  collectSnapshot,
-  resolveSnapshotSlot,
-  SnapshotCollectionError,
-} from '@/lib/reports/snapshotCollector';
-import { commitSnapshotDataSlot } from '@/lib/supabase/adaptiveSnapshotPersistence';
+import { runSnapshotIngest } from '@/lib/reports/snapshotIngest';
 
 async function main(): Promise<void> {
   const startedAt = Date.now();
   console.log('[collect-snapshot] starting collection pipeline…');
 
-  let result;
   try {
-    result = await collectSnapshot(resolveSnapshotSlot(process.env.CRON_SCHEDULED_FOR), {
-      reuseRpcMetadata: true,
-      deferDurableSnapshotWrites: true,
-    });
-  } catch (error) {
-    if (error instanceof SnapshotCollectionError) {
-      console.error(
-        `[collect-snapshot] pipeline failed at stage "${error.stage}": ${error.message}`
-      );
-    } else {
-      console.error(
-        '[collect-snapshot] pipeline failed:',
-        error instanceof Error ? error.message : error
-      );
-    }
-    process.exit(1);
-  }
-
-  // Commit the evidence slot through the configured storage mode. Primary
-  // mode finishes as soon as Turso has atomically captured it; a separate
-  // projector owns the idempotent Supabase hand-off and cannot delay intake.
-  try {
-    const committed = await commitSnapshotDataSlot(result.inputs, result.snapshotTs);
+    const result = await runSnapshotIngest(
+      process.env.CRON_SCHEDULED_FOR,
+      process.env.SNAPSHOT_TRIGGER_SOURCE === 'cloudflare_cron'
+        ? 'cloudflare_cron'
+        : process.env.SNAPSHOT_TRIGGER_SOURCE === 'manual'
+          ? 'manual'
+          : 'github_actions'
+    );
     console.log(
-      `[collect-snapshot] hourly projection: ${committed.projection} (${committed.hourlyWritten} rows) | ` +
-        `price_snapshots: ${committed.persistence.persisted}/` +
-        `${committed.persistence.candidates} written | ` +
-        `full=${committed.persistence.fullResolution} hourly=${committed.persistence.hourlyBaseline} ` +
-        `events=${
-          committed.persistence.initial +
-          committed.persistence.stateTransition +
-          committed.persistence.errorChange +
-          committed.persistence.priceChange +
-          committed.persistence.deviationChange +
-          committed.persistence.dataAgeChange +
-          committed.persistence.confidenceChange
-        } stable-skipped=${committed.persistence.stableSkipped}`
+      `[collect-snapshot] ${result.outcome} slot=${new Date(result.slotMs).toISOString()} ` +
+        `projection=${result.projection ?? 'n/a'} inputs=${result.inputCount}`
+    );
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+    console.log(
+      `[collect-snapshot] done in ${elapsed}s — ` +
+        `slot=${new Date(result.slotMs).toISOString()} outcome=${result.outcome}`
     );
   } catch (error) {
     console.error(
-      '[collect-snapshot] snapshot slot commit failed:',
+      '[collect-snapshot] pipeline failed:',
       error instanceof Error ? error.message : error
     );
-    process.exit(2);
+    process.exit(1);
   }
-
-  // Health is deliberately best-effort and remains isolated from evidence
-  // persistence. A health-registry issue must not roll back an already
-  // durable slot or turn a successful evidence collection into a data loss.
-  const health = await applyFeedHealthLifecycle(result.healthUpdates);
-  const successCount = result.inputs.filter((i) => i.isSuccess).length;
-  const failedCount = result.inputs.length - successCount;
-  console.log(
-    `[collect-snapshot] feed health: ${health.updatedHealth} updated, ` +
-      `${health.deactivated} deactivated | ${successCount} success / ${failedCount} failed`
-  );
-
-  const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-  console.log(
-    `[collect-snapshot] done in ${elapsed}s — ` +
-      `snapshot_ts=${result.snapshotTs.toISOString()} date=${result.snapshotDate}`
-  );
 }
 
 // Hard deadline: if the pipeline hangs beyond this (e.g. an oracle client

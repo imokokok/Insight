@@ -26,6 +26,41 @@ The collector uses a durable two-database hand-off:
 Interrupted hand-offs are replayed from the stored payload before the next
 collection. A retry with different evidence for the same slot is rejected.
 
+## Primary ingest control plane
+
+In `primary` mode, raw capture no longer relies on a Supabase query or a
+GitHub Actions runner being available:
+
+```text
+Cloudflare Cron (every 15 min, UTC)
+  -> signed /api/cron/turso-ingest on Insight (Vercel Node runtime)
+  -> Turso slot lease
+  -> upstream oracle reads + atomic Turso raw slot capture
+  -> best-effort Supabase rich-cache/feed-health side effects
+  -> independent Turso-to-Supabase projector
+```
+
+The Cloudflare Worker only schedules and signs the request; it stores no
+price data and has no Turso, Supabase, GitHub, or Vercel administrator token.
+The Vercel route is deliberately separate from `CRON_SECRET` and accepts only
+the `INGEST_SCHEDULER_SECRET` Bearer credential. Cloudflare Cron has a
+15-minute invocation window, while the route has an explicit 180-second
+maximum duration.
+
+The existing GitHub `Snapshot Collect` workflow remains a guarded fallback
+and runs the market-reference/manipulation-cost evidence tasks. Its raw
+capture step shares the same Turso lease, so an overlapping Cloudflare run
+returns `busy` or `already_captured` before it reads an oracle or writes a
+second slot.
+
+The active feed registry is administered in Supabase but mirrored as a
+canonical, hashed last-known-good payload in Turso after successful
+discovery/seed/reactivation runs. Primary-mode collectors and individual
+provider resolvers use that mirror first. `TURSO_FEED_REGISTRY_MAX_AGE_SECONDS`
+defaults to 86400 (valid range: 300–604800); when the mirror exceeds that
+age, the resolver performs one bounded authoritative Supabase refresh rather
+than silently using an indefinitely old configuration.
+
 Supabase is the projection workflow's primary clock: it records a durable
 dispatch ledger row, invokes the workflow at minutes `3,18,33,48`, and records
 the terminal result. GitHub's native schedule is a guarded fallback only; it
@@ -48,6 +83,7 @@ TURSO_PRICE_AUTH_TOKEN=<database-token>
 TURSO_PRICE_PARTITION_KEY=bootstrap
 TURSO_PRICE_WRITE_MODE=legacy
 TURSO_PRICE_RAW_RETENTION_DAYS=30
+TURSO_FEED_REGISTRY_MAX_AGE_SECONDS=86400
 ```
 
 `TURSO_PRICE_WRITE_MODE` defaults to `legacy`. It is intentionally not
@@ -61,6 +97,21 @@ hashes, digest, counts, and an empty-input audit marker. In production the
 projector workflow also accepts repository variables
 `TURSO_PRICE_PROJECTION_BATCH_SIZE` (default 16) and
 `TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS` (default 1800).
+
+### Scheduler secrets
+
+For production, create one random scheduler value and install the identical
+value as an encrypted production environment variable in Vercel and as a
+Cloudflare Worker secret:
+
+```text
+Vercel project (production only): INGEST_SCHEDULER_SECRET
+Cloudflare Worker secret:          INGEST_SCHEDULER_SECRET
+```
+
+Do not place this value in GitHub Actions, `wrangler.jsonc`, a URL, or an
+application-visible variable. Rotate both ends together; a mismatch fails
+closed with HTTP 401 and leaves existing Turso data untouched.
 
 ## Rollout
 
@@ -98,6 +149,17 @@ projector workflow also accepts repository variables
    the same release. Raw-history readers use Supabase before that instant and
    Turso from that instant onward. The service refuses primary writes if the
    boundary is absent or invalid.
+8. Deploy the Vercel release containing `/api/cron/turso-ingest`, set the
+   production-only `INGEST_SCHEDULER_SECRET`, then deploy
+   `workers/turso-ingest-scheduler/` with the identical Worker secret. The
+   Worker configuration is the sole owner of the `*/15 * * * *` Cron trigger;
+   allow up to 15 minutes for a Cron-trigger change to propagate.
+9. Invoke the signed route once for the current quarter-hour and verify one
+   `snapshot_ingest_leases` row reaches `completed_at_ms` only after the
+   matching `snapshot_slots` row exists. Check the Cloudflare Worker log for a
+   `turso_ingest_triggered` event and the Vercel response for `captured`,
+   `busy`, or `already_captured`. All three are correct lease outcomes; an
+   unauthenticated request must receive 401.
 
 ## Rollback
 
@@ -105,6 +167,11 @@ Set `TURSO_PRICE_WRITE_MODE=legacy` and redeploy the collector. This returns
 new fine-price writes and reads to the existing Supabase flow. Do not delete
 Turso data or the Supabase receipt table; they are required to investigate or
 replay an interrupted hand-off.
+
+If the independent scheduler must be paused, remove its Cron entry through
+the Worker configuration and deploy that configuration; do not delete the
+Worker, the signing secret, or any Turso evidence. Retain the GitHub fallback
+until a replacement capture path has been verified.
 
 ## Verification commands
 
@@ -125,3 +192,18 @@ older than its lag threshold fails the workflow for alerting. In primary mode,
 `catching_up`, `lagging`, or `unknown`) plus pending-slot and lag details. That
 signal does not make fresh Turso-backed price reads unavailable merely because
 the independent Supabase projection is catching up.
+
+The readiness endpoint now reports four independent checks in primary mode:
+`tursoRawCapture`, `scheduler`, `supabase`, and `projection`. This separates
+a fresh raw data plane from a degraded Supabase query/control plane instead of
+labeling both simply as `database: ok`. `projection` can be `catching_up`,
+`lagging`, or `quarantined`; retryable failures back off from one minute to a
+15-minute maximum and do not block later slots. A quarantined slot preserves
+its original payload and hash for review. To explicitly replay a reviewed
+slot, use the exact identifiers from Turso (never edit a slot payload):
+
+```bash
+TURSO_PRICE_REQUEUE_SLOT_MS=<epoch-ms> \
+TURSO_PRICE_REQUEUE_INPUT_HASH=<64-hex-input-hash> \
+npm run turso:price:requeue
+```

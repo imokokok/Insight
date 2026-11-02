@@ -18,6 +18,9 @@ import { resolveOracleFeedBlockchain } from '@/lib/oracles/utils/feedChain';
 import { extractBaseSymbol } from '@/lib/oracles/utils/oracleDataUtils';
 import { type OracleFeed, type OracleFeedInsert } from '@/lib/supabase/queries';
 import { createServiceRoleClient, getAdminQueries } from '@/lib/supabase/server';
+import { getTursoPriceClient, readTursoPriceWriteMode } from '@/lib/turso/price/client';
+import { publishTursoFeedRegistry } from '@/lib/turso/price/controlPlaneRepository';
+import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import { mapWithConcurrency } from '@/lib/utils/concurrency';
 import { createLogger, normalizeError } from '@/lib/utils/logger';
 import { Blockchain, OracleProvider, ORACLE_PROVIDER_VALUES } from '@/types/oracle';
@@ -39,6 +42,32 @@ const VERIFY_TIMEOUT_MS = 10_000;
 const CHAINLINK_VERIFY_CONCURRENCY = 4;
 const CHAINLINK_VERIFY_TIMEOUT_MS = 4_000;
 const PYTH_VERIFY_CONCURRENCY = 4;
+
+/**
+ * Feed administration stays in Supabase, but primary-mode collection reads a
+ * bounded last-known-good copy from Turso. Publish immediately after a feed
+ * lifecycle mutation so an intentional activation/deactivation never waits
+ * for the mirror TTL to expire.
+ */
+async function invalidateAndRefreshTursoFeedRegistry(): Promise<void> {
+  invalidateAllFeedsCache();
+  if (readTursoPriceWriteMode() !== 'primary') return;
+  try {
+    const registry = await getAdminQueries().getOracleFeedsWithStatus('');
+    if (registry.errored) throw new Error('Authoritative active-feed registry read failed');
+    const client = getTursoPriceClient();
+    await ensureTursoPriceSchema(client);
+    const snapshot = await publishTursoFeedRegistry(client, registry.feeds);
+    logger.info('Published active feed registry to Turso', {
+      feeds: snapshot.feeds.length,
+      versionHash: snapshot.versionHash,
+    });
+  } catch (error) {
+    // The Supabase mutation remains authoritative and successful. Surface a
+    // mirror lag in logs; the next collector performs the same bounded repair.
+    logger.error('Failed to refresh Turso feed registry mirror', normalizeError(error));
+  }
+}
 
 function maxFeedAgeMs(feed: OracleFeed | OracleFeedInsert): number {
   const metadata = (feed.metadata || {}) as Record<string, unknown>;
@@ -592,7 +621,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         // Feed rows changed — drop the cross-provider aggregate cache so
         // the next dashboard SSR / cron read picks up the new state
         // without waiting for the 5-minute TTL.
-        invalidateAllFeedsCache();
+        await invalidateAndRefreshTursoFeedRegistry();
         const summary = results.map((r) => ({
           provider: r.provider,
           discovered: r.discovered,
@@ -728,7 +757,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         // Feed rows changed (upserts + deactivations) — drop the
         // cross-provider aggregate cache so the next read sees the new
         // state without waiting for the 5-minute TTL.
-        invalidateAllFeedsCache();
+        await invalidateAndRefreshTursoFeedRegistry();
         const summary = [
           {
             provider: discovery[0]?.provider || provider,
@@ -750,7 +779,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
       case 'registry': {
         // Chainlink Feed Registry only
         const results = [await feedSyncService.syncChainlinkFeedsFromRegistry()];
-        invalidateAllFeedsCache();
+        await invalidateAndRefreshTursoFeedRegistry();
         const summary = results.map((r) => ({
           provider: r.provider,
           discovered: r.discovered,
@@ -767,7 +796,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         // `npm run sync:chainlink-catalog` from an RPC-reachable env to EXPAND
         // the directory itself to the full on-chain universe.
         const results = [await feedSyncService.syncChainlinkFeedsFromCatalog()];
-        invalidateAllFeedsCache();
+        await invalidateAndRefreshTursoFeedRegistry();
         const summary = results.map((r) => ({
           provider: r.provider,
           discovered: r.discovered,
@@ -795,7 +824,7 @@ export async function runFeedSync(mode: string, provider: string): Promise<FeedS
         // inactive rows first). Safe to run frequently — each probe is bounded and
         // only feeds returning a valid price are reactivated.
         const result = await reactivateRecoveredFeeds(provider || undefined);
-        invalidateAllFeedsCache();
+        await invalidateAndRefreshTursoFeedRegistry();
         return {
           status: 200,
           body: {

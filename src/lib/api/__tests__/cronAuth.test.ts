@@ -1,4 +1,4 @@
-import { verifyCronSecret } from '@/lib/api/cronAuth';
+import { verifyCronSecret, verifyIngestSchedulerSecret } from '@/lib/api/cronAuth';
 
 jest.mock('@/lib/utils/logger', () => ({
   normalizeError: (e: unknown) => (e instanceof Error ? e : new Error(String(e))),
@@ -19,7 +19,11 @@ describe('verifyCronSecret', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env = { ...originalEnv, CRON_SECRET: 'super-secret-cron-token' };
+    process.env = {
+      ...originalEnv,
+      CRON_SECRET: 'super-secret-cron-token',
+      INGEST_SCHEDULER_SECRET: 'independent-scheduler-token',
+    };
   });
 
   afterEach(() => {
@@ -84,5 +88,39 @@ describe('verifyCronSecret', () => {
     // Some jest/Response polyfills return the body pre-stringified; normalise.
     const parsed = typeof body === 'string' ? JSON.parse(body) : body;
     expect(parsed).toEqual({ error: 'Unauthorized' });
+  });
+});
+
+describe('verifyIngestSchedulerSecret', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv, INGEST_SCHEDULER_SECRET: 'independent-scheduler-token' };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('uses the dedicated scheduler secret instead of CRON_SECRET', () => {
+    expect(
+      verifyIngestSchedulerSecret(
+        createRequest({ authorization: 'Bearer independent-scheduler-token' })
+      )
+    ).toBeNull();
+    expect(
+      verifyIngestSchedulerSecret(
+        createRequest({ authorization: 'Bearer super-secret-cron-token' })
+      )
+    ).not.toBeNull();
+  });
+
+  it('fails closed when the independent scheduler secret is missing', () => {
+    delete process.env.INGEST_SCHEDULER_SECRET;
+    expect(
+      verifyIngestSchedulerSecret(
+        createRequest({ authorization: 'Bearer independent-scheduler-token' })
+      )
+    ).not.toBeNull();
   });
 });

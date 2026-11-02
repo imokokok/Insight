@@ -1,6 +1,10 @@
 import type { Client, InStatement } from '@libsql/client';
 
-export const TURSO_PRICE_SCHEMA_VERSION = 2;
+// Version 2 introduced the Turso primary raw-price stream. Versions 3–5 add
+// the independent ingest control plane: an atomic slot lease, a mirrored feed
+// registry, and durable projection retry/quarantine state. Keep this local to
+// Turso so a degraded Supabase control plane cannot stop raw capture.
+export const TURSO_PRICE_SCHEMA_VERSION = 5;
 
 export const DEFAULT_TURSO_PRICE_POLICIES = [
   {
@@ -78,7 +82,36 @@ const ddl: InStatement[] = [
     persisted_count INTEGER NOT NULL,
     summary_json TEXT NOT NULL,
     supabase_acknowledged_at_ms INTEGER,
+    projection_attempts INTEGER NOT NULL DEFAULT 0,
+    projection_last_error TEXT,
+    projection_retry_after_ms INTEGER,
+    projection_quarantined_at_ms INTEGER,
     created_at_ms INTEGER NOT NULL
+  )`,
+  // A lease is acquired before an executor reads upstream oracles. GitHub's
+  // fallback runner and the independent Cloudflare scheduler can therefore
+  // overlap safely without capturing a different payload for the same slot.
+  `CREATE TABLE IF NOT EXISTS snapshot_ingest_leases (
+    slot_ms INTEGER PRIMARY KEY,
+    lease_id TEXT NOT NULL,
+    lease_expires_at_ms INTEGER NOT NULL,
+    trigger_source TEXT NOT NULL,
+    completed_at_ms INTEGER,
+    last_error TEXT,
+    created_at_ms INTEGER NOT NULL,
+    updated_at_ms INTEGER NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS snapshot_ingest_leases_active_idx
+    ON snapshot_ingest_leases(completed_at_ms, lease_expires_at_ms)`,
+  // This immutable, versioned payload is the collector's last-known-good
+  // feed registry. It intentionally mirrors only active feed configuration;
+  // Supabase remains authoritative for administration and discovery.
+  `CREATE TABLE IF NOT EXISTS feed_registry_snapshots (
+    registry_key TEXT PRIMARY KEY,
+    version_hash TEXT NOT NULL,
+    canonical_payload TEXT NOT NULL,
+    feed_count INTEGER NOT NULL,
+    published_at_ms INTEGER NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS price_snapshots (
     slot_ms INTEGER NOT NULL,
@@ -132,10 +165,67 @@ const ddl: InStatement[] = [
     last_run_ms INTEGER NOT NULL
   )`,
   `CREATE INDEX IF NOT EXISTS snapshot_slots_pending_idx
-    ON snapshot_slots(supabase_acknowledged_at_ms, slot_ms)`,
+    ON snapshot_slots(supabase_acknowledged_at_ms, projection_quarantined_at_ms, slot_ms)`,
 ];
 
+const migrationStatements: Readonly<Record<number, readonly InStatement[]>> = {
+  3: [
+    'ALTER TABLE snapshot_slots ADD COLUMN projection_attempts INTEGER NOT NULL DEFAULT 0',
+    'ALTER TABLE snapshot_slots ADD COLUMN projection_last_error TEXT',
+    'ALTER TABLE snapshot_slots ADD COLUMN projection_retry_after_ms INTEGER',
+    'ALTER TABLE snapshot_slots ADD COLUMN projection_quarantined_at_ms INTEGER',
+    'CREATE INDEX IF NOT EXISTS snapshot_slots_pending_retry_idx ON snapshot_slots(supabase_acknowledged_at_ms, projection_quarantined_at_ms, projection_retry_after_ms, slot_ms)',
+  ],
+  4: [
+    `CREATE TABLE IF NOT EXISTS snapshot_ingest_leases (
+      slot_ms INTEGER PRIMARY KEY,
+      lease_id TEXT NOT NULL,
+      lease_expires_at_ms INTEGER NOT NULL,
+      trigger_source TEXT NOT NULL,
+      completed_at_ms INTEGER,
+      last_error TEXT,
+      created_at_ms INTEGER NOT NULL,
+      updated_at_ms INTEGER NOT NULL
+    )`,
+    'CREATE INDEX IF NOT EXISTS snapshot_ingest_leases_active_idx ON snapshot_ingest_leases(completed_at_ms, lease_expires_at_ms)',
+  ],
+  5: [
+    `CREATE TABLE IF NOT EXISTS feed_registry_snapshots (
+      registry_key TEXT PRIMARY KEY,
+      version_hash TEXT NOT NULL,
+      canonical_payload TEXT NOT NULL,
+      feed_count INTEGER NOT NULL,
+      published_at_ms INTEGER NOT NULL
+    )`,
+  ],
+};
+
 const initializedClients = new WeakSet<Client>();
+
+async function applyAdditiveMigration(
+  client: Client,
+  statements: readonly InStatement[]
+): Promise<void> {
+  for (const statement of statements) {
+    try {
+      await client.execute(statement);
+    } catch (error) {
+      const sql = typeof statement === 'string' ? statement : statement.sql;
+      const message = error instanceof Error ? error.message : String(error);
+      // A process can be interrupted after SQLite commits an ADD COLUMN but
+      // before the version row is advanced. Treat only that exact replay as
+      // complete so a resumed migration remains additive; any other DDL error
+      // remains visible rather than being masked as a successful upgrade.
+      if (
+        /^ALTER TABLE\s+snapshot_slots\s+ADD COLUMN/i.test(sql) &&
+        /duplicate column name/i.test(message)
+      ) {
+        continue;
+      }
+      throw error;
+    }
+  }
+}
 
 export async function ensureTursoPriceSchema(
   client: Client,
@@ -144,6 +234,7 @@ export async function ensureTursoPriceSchema(
   if (initializedClients.has(client)) return;
 
   let versionResult;
+  let initialized = false;
   try {
     // Once a database is initialized, a cheap version read replaces a batch of
     // CREATE IF NOT EXISTS statements on every collector invocation.
@@ -154,6 +245,7 @@ export async function ensureTursoPriceSchema(
     const message = error instanceof Error ? error.message : String(error);
     if (!/no such table|does not exist/i.test(message)) throw error;
     await client.batch(ddl, 'write');
+    initialized = true;
     versionResult = await client.execute(
       'SELECT max(version) AS version FROM _insight_schema_migrations'
     );
@@ -168,9 +260,19 @@ export async function ensureTursoPriceSchema(
     return;
   }
 
-  // Existing databases need only the DDL introduced since their recorded
-  // version. All statements are idempotent, so this also closes a concurrent
-  // first-initialization race safely.
+  // A newly-created database already contains the newest table definitions.
+  // Existing databases receive only the additive migrations after their
+  // recorded version; SQLite's ADD COLUMN does not support IF NOT EXISTS.
+  if (!initialized && version > 0) {
+    for (let migration = version + 1; migration <= TURSO_PRICE_SCHEMA_VERSION; migration++) {
+      const statements = migrationStatements[migration];
+      if (statements?.length) await applyAdditiveMigration(client, statements);
+    }
+  }
+
+  // CREATE IF NOT EXISTS closes concurrent first-initialization races and
+  // protects installations that have a migration record but an incomplete
+  // table set after an interrupted historical bootstrap.
   await client.batch(ddl, 'write');
 
   const seedStatements: InStatement[] = DEFAULT_TURSO_PRICE_POLICIES.map((policy) => ({
@@ -189,7 +291,8 @@ export async function ensureTursoPriceSchema(
     ],
   }));
   seedStatements.push({
-    sql: 'INSERT OR IGNORE INTO _insight_schema_migrations(version,applied_at_ms) VALUES(?,?)',
+    sql: `INSERT INTO _insight_schema_migrations(version,applied_at_ms) VALUES(?,?)
+      ON CONFLICT(version) DO UPDATE SET applied_at_ms=excluded.applied_at_ms`,
     args: [TURSO_PRICE_SCHEMA_VERSION, nowMs],
   });
   await client.batch(seedStatements, 'write');
