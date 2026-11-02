@@ -147,6 +147,8 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   // A locally signed order gate: it reads fresh venue state and refuses unsafe
   // or non-executable intents, but never signs/submits an order itself.
   [/^prepare_hyperliquid_perp_order$/, 'C3'],
+  // Hyperliquid perp decision gates: assessment plus exact-envelope binding.
+  [/^hyperliquid_perp_guard(_exact_call)?$/, 'C3'],
   // A decision gate, not an execution receipt: must precede the broad C4
   // `execution` matcher below.
   [/^execution_preflight$/, 'C3'],

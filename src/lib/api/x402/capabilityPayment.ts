@@ -131,6 +131,11 @@ export const X402_MCP_PAYMENT_SCOPE_BY_TOOL: Readonly<Record<string, X402Payment
   get_hyperliquid_perp_market: X402_PAYMENT_SCOPE.hypercore,
   prepare_hyperliquid_perp_order: X402_PAYMENT_SCOPE.hypercore,
   verify_hyperliquid_perp_execution: X402_PAYMENT_SCOPE.hypercore,
+  // The Hyperliquid perp guard is venue-bound evidence about Hyperliquid, so
+  // it names the same realm; the paid tier is served by the REST route, and
+  // MCP-side keyless payment stays fail closed until HyperCore lands.
+  hyperliquid_perp_guard: X402_PAYMENT_SCOPE.hypercore,
+  hyperliquid_perp_guard_exact_call: X402_PAYMENT_SCOPE.hypercore,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
