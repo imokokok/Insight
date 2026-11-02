@@ -17,8 +17,9 @@ import {
   BasePerpGuardInputSchema,
 } from '@/lib/perps/basePerpGuard';
 import { createBasePerpGuardDecision } from '@/lib/perps/basePerpGuardAttestation';
+import { fetchBasePerpLiquidityEvidence } from '@/lib/perps/basePerpLiquidityEvidence';
 
-/** The guard performs two oracle assessments; no on-chain reads are required in v1. */
+/** The guard performs two oracle assessments plus one cached spot-market read. */
 export const maxDuration = 60;
 export const OPTIONS = createOptionsHandler();
 
@@ -40,7 +41,9 @@ const DecisionBodySchema = BasePerpGuardExactInputSchema;
 type DecisionBody = z.infer<typeof DecisionBodySchema>;
 
 async function executeGuard(input: GuardQuery, requestId: string): Promise<NextResponse> {
-  const result = await assessBasePerpGuard(input);
+  const result = await assessBasePerpGuard(input, {
+    fetchLiquidityEvidence: fetchBasePerpLiquidityEvidence,
+  });
   return NextResponse.json(
     ApiResponseBuilder.success(result, { requestId, meta: { verdict: result.verdict } }),
     {
@@ -50,7 +53,9 @@ async function executeGuard(input: GuardQuery, requestId: string): Promise<NextR
 }
 
 async function executeDecision(input: DecisionBody, requestId: string): Promise<NextResponse> {
-  const guard = await assessBasePerpGuard(input.guard);
+  const guard = await assessBasePerpGuard(input.guard, {
+    fetchLiquidityEvidence: fetchBasePerpLiquidityEvidence,
+  });
   const decision = await createBasePerpGuardDecision(guard, input.transaction);
   return NextResponse.json(
     ApiResponseBuilder.success(decision, {
