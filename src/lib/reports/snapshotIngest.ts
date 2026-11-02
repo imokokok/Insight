@@ -18,12 +18,49 @@ import { createLogger } from '@/lib/utils/logger';
 const logger = createLogger('SnapshotIngest');
 const INGEST_LEASE_MS = 12 * 60 * 1_000;
 const NON_CRITICAL_TIMEOUT_MS = 5_000;
+const MAX_GITHUB_FALLBACK_GRACE_SECONDS = 14 * 60;
 
 export interface SnapshotIngestResult {
-  outcome: 'captured' | 'busy' | 'already_captured';
+  outcome: 'captured' | 'busy' | 'already_captured' | 'deferred';
   slotMs: number;
   projection: 'committed' | 'queued' | null;
   inputCount: number;
+}
+
+/**
+ * The GitHub runner is deliberately a delayed fallback for the independent
+ * Cloudflare scheduler. Keep this runtime guard in addition to the two
+ * scheduler offsets: it prevents an accidental schedule regression from
+ * immediately turning GitHub back into a competing primary collector.
+ */
+export function readGithubFallbackGraceMs(
+  value: string | undefined = process.env.SNAPSHOT_INGEST_FALLBACK_GRACE_SECONDS
+): number {
+  if (value === undefined || value.trim() === '') return 0;
+  if (!/^\d+$/.test(value)) {
+    throw new Error('SNAPSHOT_INGEST_FALLBACK_GRACE_SECONDS must be an integer');
+  }
+  const seconds = Number(value);
+  if (
+    !Number.isSafeInteger(seconds) ||
+    seconds < 0 ||
+    seconds > MAX_GITHUB_FALLBACK_GRACE_SECONDS
+  ) {
+    throw new Error(
+      `SNAPSHOT_INGEST_FALLBACK_GRACE_SECONDS must be between 0 and ${MAX_GITHUB_FALLBACK_GRACE_SECONDS}`
+    );
+  }
+  return seconds * 1_000;
+}
+
+export function shouldDeferGithubFallback(
+  primary: boolean,
+  triggerSource: TursoIngestTriggerSource,
+  slotMs: number,
+  nowMs: number = Date.now(),
+  graceMs: number = readGithubFallbackGraceMs()
+): boolean {
+  return primary && triggerSource === 'github_actions' && nowMs < slotMs + graceMs;
 }
 
 async function settleNonCritical(name: string, operation: Promise<unknown>): Promise<void> {
@@ -65,6 +102,16 @@ export async function runSnapshotIngest(
   let client: ReturnType<typeof getTursoPriceClient> | undefined;
 
   if (primary) {
+    if (triggerSource === 'github_actions') {
+      const graceMs = readGithubFallbackGraceMs();
+      if (shouldDeferGithubFallback(primary, triggerSource, slotMs, Date.now(), graceMs)) {
+        logger.info('Deferred GitHub fallback until the Cloudflare primary grace window closes', {
+          slotMs,
+          graceMs,
+        });
+        return { outcome: 'deferred', slotMs, projection: null, inputCount: 0 };
+      }
+    }
     client = getTursoPriceClient();
     await ensureTursoPriceSchema(client);
     const lease = await acquireTursoPriceIngestLease(
