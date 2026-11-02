@@ -160,15 +160,23 @@ function toMonadSnapshot(snapshot: UniswapV3MarketSnapshot): MonadDexMarketSnaps
       usdcRaw: snapshot.poolBalances.token1Raw,
       usdc: snapshot.poolBalances.token1,
     },
-    quotes: snapshot.quotes.map((quote) => ({
-      amountInWmon: quote.amountIn,
-      amountInRaw: quote.amountInRaw,
-      amountOutUsdc: quote.amountOut,
-      amountOutRaw: quote.amountOutRaw,
-      effectiveUsdcPerWmon: quote.effectiveToken1PerToken0,
-      initializedTicksCrossed: quote.initializedTicksCrossed,
-      priceImpactBps: quote.priceImpactBps,
-    })),
+    quotes: snapshot.quotes.map((quote) => {
+      // The legacy Monad surface only exposes the reviewed forward direction.
+      if (quote.direction !== 'token0-to-token1' || quote.effectiveToken1PerToken0 === undefined) {
+        throw new UniswapV3MarketError(
+          'Shared Uniswap V3 reader returned a non-forward Monad quote.'
+        );
+      }
+      return {
+        amountInWmon: quote.amountIn,
+        amountInRaw: quote.amountInRaw,
+        amountOutUsdc: quote.amountOut,
+        amountOutRaw: quote.amountOutRaw,
+        effectiveUsdcPerWmon: quote.effectiveToken1PerToken0,
+        initializedTicksCrossed: quote.initializedTicksCrossed,
+        priceImpactBps: quote.priceImpactBps,
+      };
+    }),
   };
 }
 

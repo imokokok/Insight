@@ -28,8 +28,11 @@ import {
   AERODROME_SLIPSTREAM_SWAP_ROUTER,
   AERODROME_SLIPSTREAM_SWAP_ROUTER_CODE_HASH,
   AERODROME_SLIPSTREAM_WETH_USDC,
+  AERODROME_SLIPSTREAM_USDC_USDT,
   BASE_USDC,
+  BASE_USDT,
   BASE_WETH,
+  type ReviewedAerodromeSlipstreamProfileId,
 } from './aerodromeSlipstream';
 import {
   prepareAerodromeSlipstreamExactInput,
@@ -43,6 +46,7 @@ import {
   PANCAKE_SWAP_V3_BASE_USDC,
   PANCAKE_SWAP_V3_BASE_USDC_USDT,
   PANCAKE_SWAP_V3_BASE_USDT,
+  type ReviewedPancakeSwapV3ProfileId,
 } from './pancakeSwapV3';
 import {
   preparePancakeSwapV3ExactInput,
@@ -53,11 +57,13 @@ export const BASE_AGENT_SWAP_GUARD_SCHEMA = 'insight.base-agent-swap-guard.v1' a
 
 export const BASE_AGENT_SWAP_GUARD_PROFILE_IDS = [
   'base-aerodrome-slipstream-weth-usdc-cl100',
+  'base-aerodrome-slipstream-usdc-usdt-cl1',
   'base-pancakeswap-v3-usdc-usdt-100',
 ] as const;
 
 export type BaseAgentSwapGuardProfileId = (typeof BASE_AGENT_SWAP_GUARD_PROFILE_IDS)[number];
 export type BaseAgentSwapGuardVerdict = 'ALLOW' | 'CAUTION' | 'BLOCK';
+export type BaseAgentSwapGuardDirection = 'token0-to-token1' | 'token1-to-token0';
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const POSITIVE_DECIMAL = /^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/;
@@ -79,6 +85,12 @@ const PANCAKE_EXACT_INPUT_SINGLE_ABI = parseAbi([
 export const BaseAgentSwapGuardInputSchema = z
   .object({
     profileId: z.enum(BASE_AGENT_SWAP_GUARD_PROFILE_IDS),
+    /**
+     * Quote direction inside the reviewed pool. Defaults to the pool's
+     * token0→token1 direction; the reverse is admitted because both reviewed
+     * pairs are two-way single-pool lanes.
+     */
+    direction: z.enum(['token0-to-token1', 'token1-to-token0']).default('token0-to-token1'),
     amountIn: z.string().regex(POSITIVE_DECIMAL).max(128),
     recipient: z.string().regex(ADDRESS),
     deadlineUnixSeconds: z.number().int().positive(),
@@ -216,13 +228,77 @@ export interface BaseAgentSwapGuardDependencies {
   nowUnixSeconds?: () => number;
 }
 
-function profileAssets(profileId: BaseAgentSwapGuardProfileId): {
-  source: 'WETH' | 'USDC';
-  destination: 'USDC' | 'USDT';
+function profileAssets(
+  profileId: BaseAgentSwapGuardProfileId,
+  direction: BaseAgentSwapGuardDirection
+): {
+  source: { symbol: 'WETH' | 'USDC' | 'USDT'; address: string };
+  destination: { symbol: 'WETH' | 'USDC' | 'USDT'; address: string };
 } {
-  return profileId === 'base-aerodrome-slipstream-weth-usdc-cl100'
-    ? { source: 'WETH', destination: 'USDC' }
-    : { source: 'USDC', destination: 'USDT' };
+  const spec = GUARD_PROFILE_SPECS[profileId];
+  const source = direction === 'token0-to-token1' ? spec.token0 : spec.token1;
+  const destination = direction === 'token0-to-token1' ? spec.token1 : spec.token0;
+  return { source, destination };
+}
+
+/**
+ * The immutable reviewed identities each guard profile must bind to. The
+ * pre-parers re-verify deployment code at the quote block; repeating the
+ * profile-level constants here prevents a preparer regression from turning
+ * matching metadata into an authorization for a different pool or direction.
+ */
+const GUARD_PROFILE_SPECS: Record<
+  BaseAgentSwapGuardProfileId,
+  {
+    kind: 'aerodrome-slipstream-exact-input-v1' | 'pancakeswap-v3-exact-input-v1';
+    market: string;
+    token0: { symbol: 'WETH' | 'USDC' | 'USDT'; address: string };
+    token1: { symbol: 'WETH' | 'USDC' | 'USDT'; address: string };
+    pool: string;
+    tickSpacing?: number;
+    feeTier?: number;
+  }
+> = {
+  'base-aerodrome-slipstream-weth-usdc-cl100': {
+    kind: 'aerodrome-slipstream-exact-input-v1',
+    market: 'WETH/USDC',
+    token0: { symbol: 'WETH', address: BASE_WETH },
+    token1: { symbol: 'USDC', address: BASE_USDC },
+    pool: AERODROME_SLIPSTREAM_WETH_USDC.pool,
+    tickSpacing: AERODROME_SLIPSTREAM_WETH_USDC.tickSpacing,
+  },
+  'base-aerodrome-slipstream-usdc-usdt-cl1': {
+    kind: 'aerodrome-slipstream-exact-input-v1',
+    market: 'USDC/USDT',
+    token0: { symbol: 'USDC', address: BASE_USDC },
+    token1: { symbol: 'USDT', address: BASE_USDT },
+    pool: AERODROME_SLIPSTREAM_USDC_USDT.pool,
+    tickSpacing: AERODROME_SLIPSTREAM_USDC_USDT.tickSpacing,
+  },
+  'base-pancakeswap-v3-usdc-usdt-100': {
+    kind: 'pancakeswap-v3-exact-input-v1',
+    market: 'USDC/USDT',
+    token0: { symbol: 'USDC', address: PANCAKE_SWAP_V3_BASE_USDC },
+    token1: { symbol: 'USDT', address: PANCAKE_SWAP_V3_BASE_USDT },
+    pool: PANCAKE_SWAP_V3_BASE_USDC_USDT.pool,
+    feeTier: PANCAKE_SWAP_V3_BASE_USDC_USDT.feeTier,
+  },
+} as const;
+
+/**
+ * Resolve the destination token address of a guard decision. The guarded input
+ * token is the approval token (the binding is verified), and the destination is
+ * the reviewed pool's other asset. Null when the decision carries no binding or
+ * the approval token is outside the reviewed profile — a settlement closure must
+ * never guess the pair it reconciles.
+ */
+export function baseAgentSwapGuardDestinationToken(guard: BaseAgentSwapGuardResult): string | null {
+  const tokenIn = guard.binding?.approval.token;
+  if (!tokenIn) return null;
+  const spec = GUARD_PROFILE_SPECS[guard.scope.profileId];
+  if (tokenIn.toLowerCase() === spec.token0.address.toLowerCase()) return spec.token1.address;
+  if (tokenIn.toLowerCase() === spec.token1.address.toLowerCase()) return spec.token0.address;
+  return null;
 }
 
 function timestampSeconds(value: string): number | null {
@@ -275,8 +351,8 @@ function marketAndBinding(
     market: {
       venue: quote.venue,
       market: quote.market,
-      sourceAsset: assets.source,
-      destinationAsset: assets.destination,
+      sourceAsset: assets.source.symbol,
+      destinationAsset: assets.destination.symbol,
       observedAt: quote.observedAt,
       quoteAgeSeconds,
       sourceFreshnessSeconds: quote.sourceFreshnessSeconds,
@@ -291,7 +367,7 @@ function marketAndBinding(
         amountInRaw: prepared.exactInput.amountInRaw,
         quotedAmountOutRaw: prepared.exactInput.quotedAmountOutRaw,
         amountOutMinimumRaw: prepared.exactInput.amountOutMinimumRaw,
-        effectiveDestinationPerSource: quote.quote.effectiveToken1PerToken0,
+        effectiveDestinationPerSource: effectiveDestinationPerSource(prepared),
         routeQuotePriceUsd: null,
         destinationConsensusPriceUsd: null,
         priceImpactBps: quote.quote.priceImpactBps,
@@ -420,6 +496,13 @@ function sameCodeHash(left: unknown, right: string): boolean {
   );
 }
 
+function effectiveDestinationPerSource(prepared: PreparedBaseDirectSwap): number {
+  const quote = prepared.quote.quote;
+  return quote.direction === 'token1-to-token0'
+    ? quote.effectiveToken0PerToken1!
+    : quote.effectiveToken1PerToken0!;
+}
+
 /**
  * The preparation helpers independently verify these deployments at the quote
  * block.  Repeating the immutable profile identities here prevents a future
@@ -427,32 +510,41 @@ function sameCodeHash(left: unknown, right: string): boolean {
  * into an authorization for a different router or pool.
  */
 function reviewedProfileBindingIsValid(prepared: PreparedBaseDirectSwap): boolean {
+  const spec = GUARD_PROFILE_SPECS[prepared.exactInput.profileId];
+  const venue =
+    spec.kind === 'aerodrome-slipstream-exact-input-v1' ? 'aerodrome-slipstream' : 'pancakeswap-v3';
+  const shared = [
+    prepared.quote.venue === venue,
+    prepared.quote.market === spec.market,
+    sameAddress(prepared.quote.contracts.factory, prepared.router.factory),
+    sameAddress(prepared.quote.contracts.pool, spec.pool),
+  ];
+  if (!shared.every(Boolean)) return false;
+
+  const forward =
+    prepared.exactInput.tokenIn.toLowerCase() === spec.token0.address.toLowerCase() &&
+    prepared.exactInput.tokenOut.toLowerCase() === spec.token1.address.toLowerCase();
+  const reverse =
+    prepared.exactInput.tokenIn.toLowerCase() === spec.token1.address.toLowerCase() &&
+    prepared.exactInput.tokenOut.toLowerCase() === spec.token0.address.toLowerCase();
+  if (!forward && !reverse) return false;
+
   if (prepared.kind === 'aerodrome-slipstream-exact-input-v1') {
     return (
-      prepared.quote.venue === 'aerodrome-slipstream' &&
-      prepared.quote.market === 'WETH/USDC' &&
       sameAddress(prepared.router.address, AERODROME_SLIPSTREAM_SWAP_ROUTER) &&
       sameCodeHash(prepared.router.codeHash, AERODROME_SLIPSTREAM_SWAP_ROUTER_CODE_HASH) &&
       sameAddress(prepared.quote.contracts.factory, AERODROME_SLIPSTREAM_FACTORY) &&
       sameAddress(prepared.quote.contracts.quoterV2, AERODROME_SLIPSTREAM_QUOTER_V2) &&
-      sameAddress(prepared.quote.contracts.pool, AERODROME_SLIPSTREAM_WETH_USDC.pool) &&
-      sameAddress(prepared.exactInput.tokenIn, BASE_WETH) &&
-      sameAddress(prepared.exactInput.tokenOut, BASE_USDC) &&
-      prepared.exactInput.tickSpacing === AERODROME_SLIPSTREAM_WETH_USDC.tickSpacing
+      prepared.exactInput.tickSpacing === spec.tickSpacing
     );
   }
 
   return (
-    prepared.quote.venue === 'pancakeswap-v3' &&
-    prepared.quote.market === 'USDC/USDT' &&
     sameAddress(prepared.router.address, PANCAKE_SWAP_V3_BASE_SWAP_ROUTER) &&
     sameCodeHash(prepared.router.codeHash, PANCAKE_SWAP_V3_BASE_CODE_IDENTITY.router) &&
     sameAddress(prepared.quote.contracts.factory, PANCAKE_SWAP_V3_BASE_FACTORY) &&
     sameAddress(prepared.quote.contracts.quoterV2, PANCAKE_SWAP_V3_BASE_QUOTER_V2) &&
-    sameAddress(prepared.quote.contracts.pool, PANCAKE_SWAP_V3_BASE_USDC_USDT.pool) &&
-    sameAddress(prepared.exactInput.tokenIn, PANCAKE_SWAP_V3_BASE_USDC) &&
-    sameAddress(prepared.exactInput.tokenOut, PANCAKE_SWAP_V3_BASE_USDT) &&
-    prepared.exactInput.feeTier === PANCAKE_SWAP_V3_BASE_USDC_USDT.feeTier
+    prepared.exactInput.feeTier === spec.feeTier
   );
 }
 
@@ -554,10 +646,11 @@ function preparedCallBindingIsValid(
 ): boolean {
   return (
     prepared.chainId === 8453 &&
-    (input.profileId === 'base-aerodrome-slipstream-weth-usdc-cl100'
-      ? prepared.kind === 'aerodrome-slipstream-exact-input-v1'
-      : prepared.kind === 'pancakeswap-v3-exact-input-v1') &&
+    prepared.kind === GUARD_PROFILE_SPECS[input.profileId].kind &&
     prepared.exactInput.profileId === input.profileId &&
+    // The swap the preparer actually bound must be the direction the oracle
+    // gates were selected for; a mismatch would price one trade and sign another.
+    prepared.quote.quote.direction === input.direction &&
     prepared.transaction.value === '0x0' &&
     sameAddress(prepared.transaction.to, prepared.router.address) &&
     sameAddress(prepared.approval.spender, prepared.router.address) &&
@@ -581,23 +674,26 @@ export async function prepareBaseAgentSwapGuard(
   const input = BaseAgentSwapGuardInputSchema.parse(rawInput);
   const now = currentUnixSeconds(dependencies.nowUnixSeconds);
   const evaluatedAt = new Date(now * 1_000).toISOString();
-  const assets = profileAssets(input.profileId);
+  const assets = profileAssets(input.profileId, input.direction);
   const prepareAerodrome = dependencies.prepareAerodrome ?? prepareAerodromeSlipstreamExactInput;
   const preparePancake = dependencies.preparePancake ?? preparePancakeSwapV3ExactInput;
+  const spec = GUARD_PROFILE_SPECS[input.profileId];
 
   let prepared: PreparedBaseDirectSwap;
   try {
     prepared =
-      input.profileId === 'base-aerodrome-slipstream-weth-usdc-cl100'
+      spec.kind === 'aerodrome-slipstream-exact-input-v1'
         ? await prepareAerodrome({
-            profileId: input.profileId,
+            profileId: input.profileId as ReviewedAerodromeSlipstreamProfileId,
+            direction: input.direction,
             amountIn: input.amountIn,
             recipient: input.recipient,
             deadlineUnixSeconds: input.deadlineUnixSeconds,
             maxSlippageBps: input.policy.maxSlippageBps,
           })
         : await preparePancake({
-            profileId: input.profileId,
+            profileId: input.profileId as ReviewedPancakeSwapV3ProfileId,
+            direction: input.direction,
             amountIn: input.amountIn,
             recipient: input.recipient,
             deadlineUnixSeconds: input.deadlineUnixSeconds,
@@ -645,7 +741,7 @@ export async function prepareBaseAgentSwapGuard(
     exactReasons.push('QUOTE_SOURCE_FRESHNESS_EXCEEDED');
   }
   if (
-    !finitePositive(prepared.quote.quote.effectiveToken1PerToken0) ||
+    !finitePositive(effectiveDestinationPerSource(prepared)) ||
     !finiteNonnegative(prepared.quote.quote.priceImpactBps) ||
     !finiteNonnegative(twapDeviationBps(prepared))
   ) {
@@ -695,8 +791,8 @@ export async function prepareBaseAgentSwapGuard(
     // USD. Otherwise a false destination price supplied by the agent could
     // make a false source-side route price appear internally consistent.
     destination = await preTrade({
-      asset: assets.destination,
-      destinationAsset: assets.source,
+      asset: assets.destination.symbol,
+      destinationAsset: assets.source.symbol,
       chainId: 8453,
       action: 'swap',
       tradeAmountUsd: destinationDeclaredTradeAmountUsd,
@@ -717,7 +813,7 @@ export async function prepareBaseAgentSwapGuard(
   }
 
   const destinationSummary = oracleSummary(
-    assets.destination,
+    assets.destination.symbol,
     destination,
     input.destinationDecisionPriceUsd
   );
@@ -768,8 +864,7 @@ export async function prepareBaseAgentSwapGuard(
     );
   }
 
-  const routeQuotePriceUsd =
-    prepared.quote.quote.effectiveToken1PerToken0 * destination.consensusPrice;
+  const routeQuotePriceUsd = effectiveDestinationPerSource(prepared) * destination.consensusPrice;
   if (!finitePositive(routeQuotePriceUsd)) {
     return complete(
       baseResult(input, evaluatedAt, 'BLOCK', ['ROUTE_QUOTE_PRICE_INVALID'], {
@@ -811,8 +906,8 @@ export async function prepareBaseAgentSwapGuard(
   let source: PreTradeSafetyResult;
   try {
     source = await preTrade({
-      asset: assets.source,
-      destinationAsset: assets.destination,
+      asset: assets.source.symbol,
+      destinationAsset: assets.destination.symbol,
       chainId: 8453,
       action: 'swap',
       tradeAmountUsd: sourceTradeAmountUsd,
@@ -824,7 +919,7 @@ export async function prepareBaseAgentSwapGuard(
         maxReferenceDeviationBps: input.policy.maxReferenceDeviationBps,
         maxSlippageBps: input.policy.maxSlippageBps,
         maxQuoteAgeSeconds: input.policy.maxQuoteAgeSeconds,
-        ...(input.profileId === 'base-aerodrome-slipstream-weth-usdc-cl100'
+        ...(spec.kind === 'aerodrome-slipstream-exact-input-v1'
           ? {
               reviewedAerodromeSlipstream: {
                 amountIn: input.amountIn,
@@ -855,7 +950,7 @@ export async function prepareBaseAgentSwapGuard(
     );
   }
 
-  const sourceSummary = oracleSummary(assets.source, source, input.sourceDecisionPriceUsd);
+  const sourceSummary = oracleSummary(assets.source.symbol, source, input.sourceDecisionPriceUsd);
   const oracleChecks = {
     source: sourceSummary,
     destination: destinationSummary,
@@ -928,7 +1023,10 @@ export async function prepareBaseAgentSwapGuard(
       preTradeAttestations,
       transactionsToSign: {
         approval: {
-          to: prepared.approval.spender,
+          // ERC-20 approve calldata must be sent to the input token contract,
+          // not to the router which will receive the allowance. Keeping those
+          // two addresses distinct is essential for an exact-call authorization.
+          to: prepared.approval.token,
           value: '0x0',
           data: prepared.approval.data,
         },

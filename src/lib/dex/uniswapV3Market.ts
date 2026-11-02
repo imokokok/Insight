@@ -15,6 +15,13 @@ export type UniswapV3Hex = `0x${string}`;
  */
 export type UniswapV3CompatibleVenue = 'uniswap-v3' | 'pancakeswap-v3';
 
+/**
+ * The direction of an exact-input quote inside one reviewed pool. Forward
+ * quotes sell token0 for token1; reverse quotes sell token1 for token0. The
+ * pool itself is unchanged — only the quoted side of the same reviewed pair.
+ */
+export type UniswapV3QuoteDirection = 'token0-to-token1' | 'token1-to-token0';
+
 export interface UniswapV3MarketToken {
   address: UniswapV3Hex;
   symbol: string;
@@ -63,6 +70,12 @@ export interface UniswapV3MarketProfile {
    * strict decimal parsing.
    */
   quoteAmountsToken0Raw?: readonly bigint[];
+  /**
+   * Exact-input quote ladder expressed in token1 base units, quoting token1 →
+   * token0. Same trust boundary as `quoteAmountsToken0Raw`: internal reviewed
+   * callers only, mutually exclusive with the token0 ladders.
+   */
+  quoteAmountsToken1Raw?: readonly bigint[];
   /** Independently configured HTTPS JSON-RPC endpoints for this network. */
   rpcEndpoints: readonly string[];
   /** Maximum permitted age of the block that supplies a live observation. */
@@ -88,12 +101,15 @@ export interface UniswapV3RawLog {
 }
 
 export interface UniswapV3MarketQuote {
+  direction: UniswapV3QuoteDirection;
   amountIn: number;
   amountInRaw: string;
   amountOut: number;
   amountOutRaw: string;
-  /** token1 received per token0 submitted. */
-  effectiveToken1PerToken0: number;
+  /** Forward quotes: token1 received per token0 submitted. */
+  effectiveToken1PerToken0?: number;
+  /** Reverse quotes: token0 received per token1 submitted. */
+  effectiveToken0PerToken1?: number;
   initializedTicksCrossed: number;
   priceImpactBps: number;
 }
@@ -233,8 +249,12 @@ export function assertUniswapV3MarketProfile(profile: UniswapV3MarketProfile): v
     !isSafePositiveInteger(profile.maxSourceAgeSeconds) ||
     !isSafePositiveInteger(profile.cacheTtlMs) ||
     ((!profile.quoteAmountsToken0 || profile.quoteAmountsToken0.length === 0) &&
-      (!profile.quoteAmountsToken0Raw || profile.quoteAmountsToken0Raw.length === 0)) ||
-    (profile.quoteAmountsToken0 !== undefined && profile.quoteAmountsToken0Raw !== undefined) ||
+      (!profile.quoteAmountsToken0Raw || profile.quoteAmountsToken0Raw.length === 0) &&
+      (!profile.quoteAmountsToken1Raw || profile.quoteAmountsToken1Raw.length === 0)) ||
+    (profile.quoteAmountsToken0 !== undefined &&
+      (profile.quoteAmountsToken0Raw !== undefined ||
+        profile.quoteAmountsToken1Raw !== undefined)) ||
+    (profile.quoteAmountsToken0Raw !== undefined && profile.quoteAmountsToken1Raw !== undefined) ||
     (profile.quoteAmountsToken0 !== undefined &&
       profile.quoteAmountsToken0.some(
         (amount, index) =>
@@ -246,6 +266,11 @@ export function assertUniswapV3MarketProfile(profile: UniswapV3MarketProfile): v
       profile.quoteAmountsToken0Raw.some(
         (amount, index) =>
           amount <= 0n || (index > 0 && amount <= profile.quoteAmountsToken0Raw![index - 1]!)
+      )) ||
+    (profile.quoteAmountsToken1Raw !== undefined &&
+      profile.quoteAmountsToken1Raw.some(
+        (amount, index) =>
+          amount <= 0n || (index > 0 && amount <= profile.quoteAmountsToken1Raw![index - 1]!)
       ))
   ) {
     throw new UniswapV3MarketError('Uniswap V3 market profile has invalid numeric configuration.');
@@ -454,14 +479,19 @@ function encodeBalanceOf(owner: UniswapV3Hex): UniswapV3Hex {
   return encodeFunctionData({ abi: ERC20_ABI, functionName: 'balanceOf', args: [owner] });
 }
 
-function encodeQuote(profile: UniswapV3MarketProfile, amountIn: bigint): UniswapV3Hex {
+function encodeQuote(
+  profile: UniswapV3MarketProfile,
+  amountIn: bigint,
+  direction: UniswapV3QuoteDirection
+): UniswapV3Hex {
   return encodeFunctionData({
     abi: QUOTER_ABI,
     functionName: 'quoteExactInputSingle',
     args: [
       {
-        tokenIn: profile.token0.address,
-        tokenOut: profile.token1.address,
+        tokenIn: direction === 'token0-to-token1' ? profile.token0.address : profile.token1.address,
+        tokenOut:
+          direction === 'token0-to-token1' ? profile.token1.address : profile.token0.address,
         amountIn,
         fee: profile.feeTier,
         sqrtPriceLimitX96: 0n,
@@ -563,7 +593,10 @@ async function fetchSnapshot(
   const blockNumber = await rpc.getBlockNumber(signal);
   const block = await rpc.getBlock(blockNumber, signal);
   const blockTag = block.number;
+  const direction: UniswapV3QuoteDirection =
+    profile.quoteAmountsToken1Raw !== undefined ? 'token1-to-token0' : 'token0-to-token1';
   const quoteInputs =
+    profile.quoteAmountsToken1Raw ??
     profile.quoteAmountsToken0Raw ??
     profile.quoteAmountsToken0!.map(
       (amount) => BigInt(amount) * 10n ** BigInt(profile.token0.decimals)
@@ -582,7 +615,7 @@ async function fetchSnapshot(
     ]),
     Promise.all(
       quoteInputs.map((amount) =>
-        rpc.call(profile.quoterV2, encodeQuote(profile, amount), blockTag, signal)
+        rpc.call(profile.quoterV2, encodeQuote(profile, amount, direction), blockTag, signal)
       )
     ),
     profile.codeIdentity
@@ -669,6 +702,10 @@ async function fetchSnapshot(
     profile.token1.decimals
   );
 
+  const inputDecimals =
+    direction === 'token0-to-token1' ? profile.token0.decimals : profile.token1.decimals;
+  const outputDecimals =
+    direction === 'token0-to-token1' ? profile.token1.decimals : profile.token0.decimals;
   const decodedQuotes = quoteData.map((data, index) => {
     const quote = decodeFunctionResult({
       abi: QUOTER_ABI,
@@ -684,18 +721,25 @@ async function fetchSnapshot(
     if (amountInRaw === undefined) {
       throw new UniswapV3MarketError('Uniswap V3 quote ladder is inconsistent.');
     }
-    const amountIn = unitsToNumber(amountInRaw, profile.token0.decimals);
-    const amountOutNumber = unitsToNumber(amountOut, profile.token1.decimals);
-    return {
+    const amountIn = unitsToNumber(amountInRaw, inputDecimals);
+    const amountOutNumber = unitsToNumber(amountOut, outputDecimals);
+    const effective = amountOutNumber / amountIn;
+    const entry: Omit<UniswapV3MarketSnapshot['quotes'][number], 'priceImpactBps'> = {
+      direction,
       amountIn,
       amountInRaw: amountInRaw.toString(),
       amountOut: amountOutNumber,
       amountOutRaw: amountOut.toString(),
-      effectiveToken1PerToken0: amountOutNumber / amountIn,
       initializedTicksCrossed: ticksCrossed,
     };
+    if (direction === 'token0-to-token1') entry.effectiveToken1PerToken0 = effective;
+    else entry.effectiveToken0PerToken1 = effective;
+    return entry;
   });
-  const referencePrice = decodedQuotes[0]?.effectiveToken1PerToken0;
+  const referencePrice =
+    direction === 'token0-to-token1'
+      ? decodedQuotes[0]?.effectiveToken1PerToken0
+      : decodedQuotes[0]?.effectiveToken0PerToken1;
   if (!referencePrice || !Number.isFinite(referencePrice) || referencePrice <= 0) {
     throw new UniswapV3MarketError('Uniswap V3 Quoter returned an invalid reference quote.');
   }
@@ -757,7 +801,13 @@ async function fetchSnapshot(
     quotes: decodedQuotes.map((quote) => ({
       ...quote,
       priceImpactBps: boundedBps(
-        Math.max(0, referencePrice - quote.effectiveToken1PerToken0),
+        Math.max(
+          0,
+          referencePrice -
+            (quote.direction === 'token0-to-token1'
+              ? quote.effectiveToken1PerToken0!
+              : quote.effectiveToken0PerToken1!)
+        ),
         referencePrice
       ),
     })),

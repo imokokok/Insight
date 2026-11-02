@@ -26,15 +26,19 @@ prepared call.
 
 ## Supported scope
 
-| Profile                                     | Direct venue call    | Direction   |
-| ------------------------------------------- | -------------------- | ----------- |
-| `base-aerodrome-slipstream-weth-usdc-cl100` | Aerodrome Slipstream | WETH → USDC |
-| `base-pancakeswap-v3-usdc-usdt-100`         | PancakeSwap V3       | USDC → USDT |
+| Profile                                     | Direct venue call    | Admitted directions   |
+| ------------------------------------------- | -------------------- | --------------------- |
+| `base-aerodrome-slipstream-weth-usdc-cl100` | Aerodrome Slipstream | WETH ↔ USDC (two-way) |
+| `base-aerodrome-slipstream-usdc-usdt-cl1`   | Aerodrome Slipstream | USDC ↔ USDT (two-way) |
+| `base-pancakeswap-v3-usdc-usdt-100`         | PancakeSwap V3       | USDC ↔ USDT (two-way) |
 
-Both profiles are Base mainnet (`8453`) only. Each has a fixed pool, factory,
-quoter, router, token order, and forward direction. The preparation layer
-re-reads the reviewed contract identities at the quote block before producing
-calldata.
+All profiles are Base mainnet (`8453`) only. Each has a fixed pool, factory,
+quoter, router, and token order. Every lane is a single-pool, single-hop
+direction of one reviewed pool: the caller names the profile and a
+`direction` (`token0-to-token1`, the default, or `token1-to-token0`), and the
+preparation layer re-reads the reviewed contract identities at the quote block
+before producing calldata. There are no multi-hop or aggregator paths in either
+direction.
 
 The following are intentionally out of scope in v1 and fail closed rather than
 being treated as equivalent swaps:
@@ -54,15 +58,16 @@ final calldata, re-verify each admitted target, and have its own test profile.
 
 ## MCP input
 
-The agent calls the hosted Insight MCP server with a reviewed profile, the
-exact token input, a recipient, a short deadline, two declared USD decision
-prices, and all policy thresholds.
+The agent calls the hosted Insight MCP server with a reviewed profile, a
+direction, the exact token input, a recipient, a short deadline, two declared
+USD decision prices, and all policy thresholds.
 
 ```json
 {
   "name": "prepare_base_agent_swap_guard",
   "arguments": {
     "profileId": "base-aerodrome-slipstream-weth-usdc-cl100",
+    "direction": "token0-to-token1",
     "amountIn": "0.25",
     "recipient": "0x1111111111111111111111111111111111111111",
     "deadlineUnixSeconds": 1893456300,
@@ -78,6 +83,12 @@ prices, and all policy thresholds.
   }
 }
 ```
+
+`direction` selects which side of the reviewed pool is the input token
+(`token0-to-token1` by default; `token1-to-token0` for the reverse lane). The
+declared USD prices and the oracle gates follow that direction: the source
+decision price is per input token and the destination decision price is per
+output token.
 
 `sourceDecisionPriceUsd` and `destinationDecisionPriceUsd` are the prices the
 agent actually used when deciding to trade. They are not optional convenience
@@ -106,20 +117,48 @@ An `ALLOW` returns:
   summaries; and
 - a `decisionHash`, which is `keccak256` over the canonical result payload.
 
-`decisionHash` is an **unsigned integrity commitment**, not an authorization or
-an Insight assertion that an account will execute. A wallet, Base MCP plugin,
-or policy engine must show the user the exact calls and independently ensure
-that the calls it submits are byte-identical. For higher assurance, bind
-`decisionHash` and both exact calls to a PriorSeal authorization before asking
-the user to confirm.
+The guard payload's `decisionHash` is an **unsigned integrity commitment**, not
+an authorization or an Insight assertion that an account will execute. On a
+configured production deployment, the MCP response preserves the guard result
+and adds a nested `decision` object with a short-lived
+`insight.base-agent-swap-guard-decision.v1` EIP-712 attestation. Its signature
+binds the integrity hash, both calldata hashes, Base chain ID, the recipient,
+and the shared expiry. If `decision.attestation` is `null`, an agent must not
+use the result as a portable authorization input: it must obtain a fresh
+assessment after the Insight attester is configured and published in the key
+registry.
+
+The exact ERC-20 approval transaction always targets the **input token
+contract**; its `approve(spender, amount)` argument names the router. The swap
+transaction separately targets the router. Treating the router as the approval
+transaction target is invalid and rejected by the closure verifier.
+
+The closed Base path is intentionally two-step:
+
+```text
+signed Insight ALLOW
+  → PriorSeal authorization #1: exact token approval, nonce N
+  → user confirms; PriorSeal observes approval receipt
+  → PriorSeal authorization #2: exact direct-router swap, nonce N + 1
+  → user confirms; PriorSeal observes swap receipt
+  → independent verifier checks both receipts + signed Insight decision
+```
+
+Both PriorSeal intents must use the same source-token amount, wallet/recipient,
+expiry, and `insight.base-agent-swap-guard.v1` commitment. They must have
+different intent IDs and adjacent nonces. They are never a multicall or a
+single blanket allowance. See PriorSeal's
+[`Base Agent Swap Guard binding`](https://github.com/imokokok/PriorSeal/blob/main/docs/insight-base-agent-swap-guard.md)
+for the SDK verifier contract. A public attestation verifier is available at
+`/api/v1/safety/base-agent-swap-guard/verify`.
 
 ```text
 agent chooses a reviewed direct path
-  → Insight Base Agent Swap Guard
-  → ALLOW: bind exact calls + decisionHash to user authorization
-  → user reviews and confirms in their wallet
+  → Insight Base Agent Swap Guard + signed ALLOW
+  → bind exact approval (N) and swap (N+1) to two user authorizations
+  → user reviews each call; observe approval before submitting swap
   → wallet/executor broadcasts (outside Insight)
-  → send tx hash and original pre-trade attestations to execution_receipt
+  → preserve both PriorSeal receipts and original pre-trade attestations
 ```
 
 An `ALLOW` is still not a prediction of execution price or an authorization to
@@ -128,6 +167,44 @@ the encoded `amountOutMinimum` and short expiry remain the user-facing last
 line of price protection. The guard rechecks that expiry after its destination
 and source oracle stages; if either stage consumes the remaining quote window,
 the result becomes `BLOCK` and contains no calls.
+
+## Post-settlement closure
+
+The pre-signing workflow above ends at broadcast; until now nothing joined the
+signed decision back to what actually settled. `settle_base_agent_swap_guard`
+closes that loop. After the swap transaction is included, the agent presents the
+signed decision plus the swap transaction hash (and the approval transaction
+hash when it holds one), and Insight returns a signed
+`insight.base-agent-swap-guard-settlement.v1` closure bound to the
+`decisionHash` and both transaction hashes.
+
+The closure is evidence, not ceremony. Before signing it, Insight:
+
+1. re-verifies the decision itself — integrity hash, exact two-call binding,
+   attester signature, trust registry, and expiry. A decision that does not
+   verify produces **no settlement**; an expired-but-genuine one still closes
+   and carries `DECISION_EXPIRED_AT_CLOSURE`;
+2. requires the on-chain swap transaction to match the guarded call
+   byte-for-byte — same `to`, zero `value`, and `keccak256(calldata)` equal to
+   the guarded `swapCalldataHash`. A presented approval transaction must match
+   the guarded approval the same way; a presented-but-different approval is a
+   hard rejection, and an absent one is reported as
+   `APPROVAL_TX_NOT_PRESENTED`;
+3. reconciles the observed ERC-20 movements against the guarded commitment —
+   the input amount against `amountInRaw` (`SOURCE_AMOUNT_MISMATCH` on
+   divergence), the output amount against `amountOutMinimumRaw`
+   (`RECEIVED_BELOW_GUARANTEED_MINIMUM`) and the quoted output
+   (`REALIZED_SLIPPAGE_EXCEEDED` when the realized output-leg slippage exceeds
+   the agent's own `maxSlippageBps`); and
+4. reports a reverted swap as a real, signable outcome (`SWAP_TX_REVERTED`),
+   never as a collection failure.
+
+Amounts that cannot be attributed are signed as empty strings with an explicit
+reason code, never as zeros. The settlement certifies that the executed bytes
+were the guarded bytes and states the fill against the guarded quote; it is not
+a claim the price was correct, the trade was well-timed, or that anyone
+authorized the execution. A REST verifier is available at
+`POST /api/v1/safety/base-agent-swap-guard/settlement` with `verifyOnly: true`.
 
 ## Agent rules
 
@@ -138,9 +215,11 @@ the result becomes `BLOCK` and contains no calls.
 3. If the verdict is `CAUTION`, show the reason and create a new assessment
    only after a user changes the proposal, the market conditions materially
    change, or the previous result expires.
-4. If the verdict is `ALLOW`, display both the exact approval and swap calls,
-   their recipient and minimum output, and the expiry. Require explicit user
-   confirmation; Insight never has authority to provide it.
+4. If the verdict is `ALLOW`, require a non-null, currently valid Insight
+   attestation before creating a reusable PriorSeal binding. Display both exact
+   calls, their target, recipient, minimum output, and expiry. Require explicit
+   user confirmation for each transaction; Insight never has authority to
+   provide it.
 5. Do not label a Base Account UserOperation, an aggregator transaction, or a
    modified multicall as guarded by this v1 endpoint.
 
@@ -150,15 +229,27 @@ can use the same API-key or x402 MCP payment path as the rest of Insight.
 ## Development and verification
 
 The implementation lives in
-[`src/lib/dex/baseAgentSwapGuard.ts`](../src/lib/dex/baseAgentSwapGuard.ts) and
-the MCP entry point in
+[`src/lib/dex/baseAgentSwapGuard.ts`](../src/lib/dex/baseAgentSwapGuard.ts),
+the signed decision builder in
+[`src/lib/dex/baseAgentSwapGuardAttestation.ts`](../src/lib/dex/baseAgentSwapGuardAttestation.ts),
+the post-settlement closure in
+[`src/lib/dex/baseAgentSwapGuardSettlement.ts`](../src/lib/dex/baseAgentSwapGuardSettlement.ts),
+and the MCP entry point in
 [`src/mcp/tools/baseAgentSwapGuardTools.ts`](../src/mcp/tools/baseAgentSwapGuardTools.ts).
 
 The focused test suite covers the ALLOW handoff, caution and block call
 suppression, policy breach, insufficient decision-input evidence, unavailable
-route evidence, MCP discovery, validation, and metering:
+route evidence, MCP discovery, validation, and metering, plus the settlement
+closure (faithful fills, byte mismatches, reverted swaps, realized slippage,
+tampered closures):
 
 ```bash
 npx jest src/lib/dex/__tests__/baseAgentSwapGuard.test.ts \
+  src/lib/dex/__tests__/baseAgentSwapGuardAttestation.test.ts \
+  src/lib/dex/__tests__/baseAgentSwapGuardSettlement.test.ts \
   src/mcp/tools/__tests__/baseAgentSwapGuardTools.test.ts --runInBand
 ```
+
+Metering: `prepare_base_agent_swap_guard` is C3 / 5 credits;
+`settle_base_agent_swap_guard` and `verify_base_agent_swap_guard_settlement`
+are C4 evidence artifacts.

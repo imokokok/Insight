@@ -17,7 +17,11 @@ import {
   reviewedPancakeSwapV3Profile,
   type ReviewedPancakeSwapV3ProfileId,
 } from './pancakeSwapV3';
-import { getUniswapV3MarketSnapshot, type UniswapV3MarketSnapshot } from './uniswapV3Market';
+import {
+  getUniswapV3MarketSnapshot,
+  type UniswapV3MarketSnapshot,
+  type UniswapV3QuoteDirection,
+} from './uniswapV3Market';
 
 const ROUTER_STATE_ABI = parseAbi([
   'function factory() view returns (address)',
@@ -33,7 +37,13 @@ const DECIMAL_AMOUNT = /^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/;
 
 export interface PreparePancakeSwapV3ExactInputRequest {
   profileId?: ReviewedPancakeSwapV3ProfileId;
-  /** Exact input of the selected profile's token0; reverse routes are not admitted. */
+  /**
+   * Quote direction inside the reviewed pool. Both directions of the reviewed
+   * USDC/USDT pair are admitted; anything outside the reviewed pool's own two
+   * tokens is rejected by construction.
+   */
+  direction?: UniswapV3QuoteDirection;
+  /** Exact input amount in human-readable decimals of the input token. */
   amountIn: string;
   recipient: string;
   deadlineUnixSeconds: number;
@@ -148,15 +158,20 @@ export async function preparePancakeSwapV3ExactInput(
   assertSlippage(request.maxSlippageBps);
   const recipient = verifiedRecipient(request.recipient);
   const profileId = request.profileId ?? 'base-pancakeswap-v3-usdc-usdt-100';
+  const direction: UniswapV3QuoteDirection = request.direction ?? 'token0-to-token1';
   const profile = reviewedPancakeSwapV3Profile(profileId);
-  const amountIn = exactAmountInRaw(request.amountIn, profile.token0.decimals);
+  const inputToken = direction === 'token0-to-token1' ? profile.token0 : profile.token1;
+  const outputToken = direction === 'token0-to-token1' ? profile.token1 : profile.token0;
+  const amountIn = exactAmountInRaw(request.amountIn, inputToken.decimals);
   const rpc = options.rpc ?? new PancakeSwapV3BaseRpcClient(profile.rpcEndpoints.slice());
   const snapshot = await getUniswapV3MarketSnapshot(
     {
       ...profile,
-      id: `${profile.id}-pretrade-${amountIn.toString()}`,
+      id: `${profile.id}-pretrade-${direction}-${amountIn.toString()}`,
       quoteAmountsToken0: undefined,
-      quoteAmountsToken0Raw: [amountIn],
+      ...(direction === 'token1-to-token0'
+        ? { quoteAmountsToken1Raw: [amountIn] }
+        : { quoteAmountsToken0Raw: [amountIn] }),
     },
     { rpc, cache: false, signal: options.signal }
   );
@@ -203,8 +218,8 @@ export async function preparePancakeSwapV3ExactInput(
     functionName: 'exactInputSingle',
     args: [
       {
-        tokenIn: profile.token0.address,
-        tokenOut: profile.token1.address,
+        tokenIn: inputToken.address,
+        tokenOut: outputToken.address,
         fee: profile.feeTier,
         recipient,
         deadline: BigInt(request.deadlineUnixSeconds),
@@ -225,15 +240,15 @@ export async function preparePancakeSwapV3ExactInput(
     chainId: PANCAKE_SWAP_V3_BASE_CHAIN_ID,
     transaction: { to: PANCAKE_SWAP_V3_BASE_SWAP_ROUTER, data, value: '0x0' },
     approval: {
-      token: profile.token0.address,
+      token: inputToken.address,
       spender: PANCAKE_SWAP_V3_BASE_SWAP_ROUTER,
       amountRaw: amountIn.toString(),
       data: approvalData,
     },
     exactInput: {
       profileId,
-      tokenIn: profile.token0.address,
-      tokenOut: profile.token1.address,
+      tokenIn: inputToken.address,
+      tokenOut: outputToken.address,
       feeTier: profile.feeTier,
       amountInRaw: amountIn.toString(),
       quotedAmountOutRaw: quotedAmountOut.toString(),

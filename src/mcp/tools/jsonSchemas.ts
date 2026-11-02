@@ -350,6 +350,35 @@ export const BaseLendingGuardExactJsonSchema = z
   })
   .strict();
 
+/** Wire schema for the Base Synthetix Perps V3 pre-trade gate. */
+export const BasePerpGuardJsonSchema = z.object({
+  protocolId: z.enum(['synthetix-perps-v3-base']),
+  action: z.enum(['open_long', 'open_short']),
+  assetSymbol: z.string().regex(/^[A-Za-z][A-Za-z0-9.-]{0,15}$/),
+  marginAssetSymbol: z.literal('USDC'),
+  sizeUsd: z.number().positive().max(1_000_000_000_000),
+  marginValueUsd: z.number().positive().max(1_000_000_000_000),
+});
+
+/** Wire schema for exact-call Base Perp Guard decision evidence. */
+export const BasePerpGuardExactJsonSchema = z
+  .object({
+    guard: BasePerpGuardJsonSchema,
+    transaction: z
+      .object({
+        chainId: z.literal(8453),
+        from: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        to: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        data: z.string().regex(/^0x(?:[a-fA-F0-9]{2})+$/),
+        nonce: z.union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()]),
+        value: z
+          .union([z.string().regex(/^0$|^[1-9][0-9]*$/), z.number().int().nonnegative()])
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
 /** Wire schema for the reviewed Base, Polygon, Arbitrum and BNB lending gate. */
 export const MultichainEvmLendingGuardJsonSchema = z
   .object({
@@ -652,7 +681,7 @@ export const ExecutionPreflightJsonSchema = PreTradeSafetyJsonSchema.extend({
         .strict()
         .optional()
         .describe(
-          'Optional strict reviewed-pool lane. Admits Monad MON/WMON→USDC and Base ETH/WETH→USDC through Uniswap V3, plus Base USDC→USDT through PancakeSwap V3; only the reviewed forward directions are admitted and all other routes fail closed.'
+          'Optional strict reviewed-pool lane. Admits Monad MON/WMON→USDC and Base ETH/WETH→USDC through Uniswap V3, Base USDC↔USDT through PancakeSwap V3, and Base USDC↔USDT through the reviewed Uniswap V3 0.05% pool; other routes fail closed.'
         ),
       reviewedAerodromeSlipstream: z
         .object({
@@ -661,7 +690,7 @@ export const ExecutionPreflightJsonSchema = PreTradeSafetyJsonSchema.extend({
             .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
             .max(128)
             .describe(
-              'Exact WETH amount for the reviewed Base Aerodrome Slipstream WETH/USDC CL100 quote'
+              'Exact input amount for the reviewed Base Aerodrome Slipstream quote (WETH/USDC CL100 or USDC/USDT CL1, both directions)'
             ),
           maxQuoteDeviationBps: z.number().int().min(0).max(10_000),
           maxTwapDeviationBps: z.number().int().min(0).max(10_000),
@@ -669,7 +698,7 @@ export const ExecutionPreflightJsonSchema = PreTradeSafetyJsonSchema.extend({
         .strict()
         .optional()
         .describe(
-          'Optional strict reviewed-pool lane. Only WETH/USDC on Base through the reviewed Aerodrome Slipstream CL100 pool is admitted; unsupported routes fail closed.'
+          'Optional strict reviewed-pool lane. Admits Base WETH↔USDC through the Aerodrome Slipstream CL100 pool and Base USDC↔USDT through the CL1 stable pool, both directions; unsupported routes fail closed.'
         ),
     })
     .optional()
@@ -684,15 +713,20 @@ export const AerodromeSlipstreamSwapPreparationJsonSchema = z.object({
     .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
     .optional()
     .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
+  direction: z
+    .enum(['token0-to-token1', 'token1-to-token0'])
+    .describe(
+      'Quote direction inside the reviewed pool: token0→token1 (e.g. WETH→USDC, USDC→USDT) or the reverse (USDC→WETH, USDT→USDC). Defaults to token0→token1.'
+    ),
   amountIn: z
     .string()
     .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
     .max(128)
-    .describe('Exact WETH input amount; the tool never handles native ETH'),
+    .describe('Exact input amount of the direction input token; the tool never handles native ETH'),
   recipient: z
     .string()
     .regex(/^0x[0-9a-fA-F]{40}$/)
-    .describe('USDC recipient encoded into the unsigned router transaction'),
+    .describe('Output-token recipient encoded into the unsigned router transaction'),
   deadlineUnixSeconds: z
     .number()
     .int()
@@ -712,15 +746,20 @@ export const PancakeSwapV3SwapPreparationJsonSchema = z.object({
     .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
     .optional()
     .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+  direction: z
+    .enum(['token0-to-token1', 'token1-to-token0'])
+    .describe(
+      'Quote direction inside the reviewed pool: token0→token1 (USDC→USDT) or the reverse (USDT→USDC). Defaults to token0→token1.'
+    ),
   amountIn: z
     .string()
     .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
     .max(128)
-    .describe('Exact USDC input amount; the tool never handles native ETH or reverse direction'),
+    .describe('Exact input amount of the direction input token; the tool never handles native ETH'),
   recipient: z
     .string()
     .regex(/^0x[0-9a-fA-F]{40}$/)
-    .describe('USDT recipient'),
+    .describe('Output-token recipient'),
   deadlineUnixSeconds: z.number().int().positive().describe('User-selected short Unix deadline'),
   maxSlippageBps: z.number().int().min(0).max(9999).describe('Maximum quote shortfall in bps'),
 });

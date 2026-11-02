@@ -574,15 +574,21 @@ export const AerodromeSlipstreamSwapPreparationInputSchema = z.object({
     .enum(REVIEWED_AERODROME_SLIPSTREAM_PROFILE_IDS)
     .optional()
     .describe('Reviewed Aerodrome Slipstream pool id; defaults to Base WETH/USDC CL100'),
+  direction: z
+    .enum(['token0-to-token1', 'token1-to-token0'])
+    .default('token0-to-token1')
+    .describe(
+      'Quote direction inside the reviewed pool: token0→token1 (e.g. WETH→USDC, USDC→USDT) or the reverse (USDC→WETH, USDT→USDC)'
+    ),
   amountIn: z
     .string()
     .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
     .max(128)
-    .describe('Exact WETH input amount; native ETH and reverse direction are not supported'),
+    .describe('Exact input amount of the direction input token; native ETH remains out of scope'),
   recipient: z
     .string()
     .regex(/^0x[0-9a-fA-F]{40}$/)
-    .describe('USDC recipient encoded into the unsigned router transaction'),
+    .describe('Output-token recipient encoded into the unsigned router transaction'),
   deadlineUnixSeconds: z
     .number()
     .int()
@@ -602,15 +608,21 @@ export const PancakeSwapV3SwapPreparationInputSchema = z.object({
     .enum(REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)
     .optional()
     .describe('Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%'),
+  direction: z
+    .enum(['token0-to-token1', 'token1-to-token0'])
+    .default('token0-to-token1')
+    .describe(
+      'Quote direction inside the reviewed pool: token0→token1 (USDC→USDT) or the reverse (USDT→USDC)'
+    ),
   amountIn: z
     .string()
     .regex(/^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/)
     .max(128)
-    .describe('Exact USDC input amount; reverse direction is not supported'),
+    .describe('Exact input amount of the direction input token'),
   recipient: z
     .string()
     .regex(/^0x[0-9a-fA-F]{40}$/)
-    .describe('USDT recipient encoded into the unsigned router transaction'),
+    .describe('Output-token recipient encoded into the unsigned router transaction'),
   deadlineUnixSeconds: z
     .number()
     .int()

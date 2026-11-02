@@ -72,7 +72,8 @@ It is a single-pool market witness rather than a PancakeSwap-wide router,
 oracle vote, or execution guarantee.
 
 `prepare_pancakeswap_v3_swap` is the corresponding bounded signing handoff:
-only USDC -> USDT through that profile is admitted. It derives a fresh
+only USDC ↔ USDT through that profile is admitted, in either pool direction
+(`direction: "token0-to-token1"` or `"token1-to-token0"`). It derives a fresh
 exact-input quote, verifies the router code plus its factory/WETH bindings, and
 returns exact-amount approval and swap calldata for the user to inspect and
 sign locally. Insight never holds a key, submits the approval, relays the call,
@@ -100,11 +101,13 @@ addresses or an ABI is not enough to authorize a quote or swap adapter.
 The Aerodrome path has three separate stages:
 
 1. The C3 pre-trade decision-input policy accepts `reviewedAerodromeSlipstream`
-   only for Base `WETH → USDC` through this exact CL100 pool. It binds the
+   only for Base WETH ↔ USDC through the exact CL100 pool and USDC ↔ USDT
+   through the exact CL1 pool, in either reviewed pool direction. It binds the
    exact-notional QuoterV2 result, factory, pool, quoter, tick spacing, live
    fee, raw amounts, impact, and spot/TWAP checks into the assessment.
 2. `prepare_aerodrome_slipstream_swap` accepts only a named allowlisted pool
-   profile and returns unsigned, single-hop router calldata plus an
+   profile plus an explicit direction and returns unsigned, single-hop router
+   calldata plus an
    **exact-amount** approval template. Before returning either, Insight
    re-verifies the Factory, QuoterV2, Pool, and router bytecodes plus the
    router's immutable factory/WETH bindings at the quote block, then encodes
@@ -115,8 +118,8 @@ The Aerodrome path has three separate stages:
    paired, verifiable receipt.
 
 Insight never holds a key, creates a signature, sends an approval, relays a
-swap, or claims that unsigned calldata will execute. The preparation path
-never substitutes native ETH wrapping, a reverse direction, arbitrary pool or
+swap, or claims that unsigned calldata will execute. The preparation path never
+substitutes native ETH wrapping, an unreviewed direction, arbitrary pool or
 router, multi-hop path, or aggregator route. The receipt observes settlement;
 it does not authorize a transaction or prove strategy, MEV outcome, or fill
 quality.
@@ -233,11 +236,15 @@ their decision-input check. Only one reviewed DEX lane is admitted per
 assessment.
 The caller supplies the exact source amount plus explicit maximum quote and
 spot/TWAP divergence limits. Insight then admits only these reviewed,
-forward-direction profiles:
+single-pool directions:
 
 - Monad `MON`/`WMON` → `USDC` (reviewed WMON/USDC V3 pool)
-- Base `ETH`/`WETH` → `USDC` (reviewed WETH/USDC V3 pool)
-- Base `USDC` → `USDT` (reviewed PancakeSwap V3 USDC/USDT 0.01% pool)
+- Base `ETH`/`WETH` → `USDC` (reviewed WETH/USDC V3 pool; the deeper 0.05%
+  pool is available via `profileId: "base-uniswap-v3-weth-usdc-500"`)
+- Base `USDC` → `USDT` and `USDT` → `USDC` (reviewed PancakeSwap V3 USDC/USDT
+  0.01% pool, both directions)
+- Base `WETH` ↔ `USDC` and `USDC` ↔ `USDT` through the reviewed Aerodrome
+  Slipstream CL100 / CL1 pools, both directions (`reviewedAerodromeSlipstream`)
 
 For an admitted route, Insight obtains a Quoter V2 exact-input simulation at
 one pinned block and binds the factory, pool, quoter, fee tier, any reviewed
@@ -248,6 +255,18 @@ evidence, and a failed limit produce `INSUFFICIENT_EVIDENCE` or `BLOCK`; they
 never fall back to an inferred route. This is not a signed-transaction
 simulation or a guarantee that a later transaction will land at that quote.
 
+When a reviewed lane is present, the pre-trade result also calibrates
+`recommendedMaxPositionUsd` with real venue depth instead of publishing the
+oracle-only advisory cap unchanged. Insight takes the smaller of the pool's
+input-token balance (in USD at the consensus price) and the depth implied by
+the quote's own price impact (`amountInUsd × 10,000 / priceImpactBps`, floored
+at 1bp so zero-impact stable quotes cannot imply infinite depth), then caps the
+recommended position at 1% of that depth, and records a
+"Reviewed venue liquidity cap applied" warning with the pinned block number.
+The calibration happens before the attestation is signed, so the signed payload
+carries the calibrated cap.
+
 `reviewedAerodromeSlipstream` applies the same exact-notional, fail-closed
-model to Base `WETH → USDC`, while retaining Slipstream's own identity rules:
+model to Base WETH ↔ USDC (CL100) and USDC ↔ USDT (CL1), in both pool
+directions, while retaining Slipstream's own identity rules:
 CL `tickSpacing` plus the pool's live fee rather than a Uniswap V3 fee tier.

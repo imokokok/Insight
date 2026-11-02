@@ -3,6 +3,7 @@ import {
   prepareBaseAgentSwapGuard,
   type BaseAgentSwapGuardResult,
 } from '@/lib/dex/baseAgentSwapGuard';
+import { createBaseAgentSwapGuardDecision } from '@/lib/dex/baseAgentSwapGuardAttestation';
 
 import { prepareBaseAgentSwapGuardTool } from '../baseAgentSwapGuardTools';
 import { getToolDefinitions } from '../index';
@@ -11,9 +12,15 @@ jest.mock('@/lib/dex/baseAgentSwapGuard', () => ({
   ...jest.requireActual('@/lib/dex/baseAgentSwapGuard'),
   prepareBaseAgentSwapGuard: jest.fn(),
 }));
+jest.mock('@/lib/dex/baseAgentSwapGuardAttestation', () => ({
+  createBaseAgentSwapGuardDecision: jest.fn(),
+}));
 
 const mockedGuard = prepareBaseAgentSwapGuard as jest.MockedFunction<
   typeof prepareBaseAgentSwapGuard
+>;
+const mockedDecision = createBaseAgentSwapGuardDecision as jest.MockedFunction<
+  typeof createBaseAgentSwapGuardDecision
 >;
 
 const args = {
@@ -71,7 +78,16 @@ function result(verdict: BaseAgentSwapGuardResult['verdict']): BaseAgentSwapGuar
 }
 
 describe('prepare_base_agent_swap_guard MCP tool', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedDecision.mockImplementation(async (guard) => ({
+      schema: 'insight.base-agent-swap-guard-decision.v1',
+      guard,
+      decisionHash: guard.decisionHash,
+      attestation:
+        guard.verdict === 'ALLOW' ? ({ type: 'BaseAgentSwapGuardDecision' } as never) : null,
+    }));
+  });
 
   it('is discoverable, validates the narrow profile and is priced as an agent gate', () => {
     expect(getToolDefinitions().map((tool) => tool.name)).toContain(
@@ -99,13 +115,32 @@ describe('prepare_base_agent_swap_guard MCP tool', () => {
     const output = JSON.parse(await prepareBaseAgentSwapGuardTool.handler(args));
 
     expect(mockedGuard).toHaveBeenCalledWith(args);
+    expect(output.verdict).toBe('ALLOW');
+    expect(output.decision).toMatchObject({
+      schema: 'insight.base-agent-swap-guard-decision.v1',
+      decisionHash: `0x${'11'.repeat(32)}`,
+    });
     expect(output.agentInstructions).toContain(
-      'Present the exact approval and swap calls plus decisionHash to the user before requesting any signature.'
+      'Present the signed Insight decision and both exact calls to the user before requesting any signature.'
     );
   });
 
   it('tells an agent not to sign a BLOCK result', async () => {
     mockedGuard.mockResolvedValue(result('BLOCK'));
+
+    const output = JSON.parse(await prepareBaseAgentSwapGuardTool.handler(args));
+
+    expect(output.agentInstructions[0]).toContain('Do not request a signature');
+  });
+
+  it('does not let an unsigned ALLOW become a portable authorization input', async () => {
+    mockedGuard.mockResolvedValue(result('ALLOW'));
+    mockedDecision.mockResolvedValueOnce({
+      schema: 'insight.base-agent-swap-guard-decision.v1',
+      guard: result('ALLOW'),
+      decisionHash: `0x${'11'.repeat(32)}`,
+      attestation: null,
+    });
 
     const output = JSON.parse(await prepareBaseAgentSwapGuardTool.handler(args));
 

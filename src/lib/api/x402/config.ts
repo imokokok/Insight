@@ -634,6 +634,12 @@ export const X402_EXECUTION_PREFLIGHT_ROUTE = '/api/v1/safety/preflight';
 /** Base-only lending decision gate. The caller receives no transaction authority. */
 export const X402_BASE_LENDING_GUARD_ROUTE = '/api/v1/safety/base-lending-guard';
 
+/**
+ * Base-only Synthetix Perps V3 decision gate. GET returns the assessment;
+ * POST binds one exact unsigned commitOrder call into a signed decision.
+ */
+export const X402_BASE_PERP_GUARD_ROUTE = '/api/v1/safety/base-perp-guard';
+
 /** Monad lending decision gate; payment settlement remains configured separately. */
 export const X402_MONAD_LENDING_GUARD_ROUTE = '/api/v1/safety/monad-lending-guard';
 

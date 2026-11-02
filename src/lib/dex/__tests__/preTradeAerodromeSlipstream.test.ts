@@ -63,10 +63,68 @@ const snapshot = {
   ],
 } as const;
 
+const usdcUsdtSnapshot = {
+  ...snapshot,
+  market: 'USDC/USDT',
+  contracts: {
+    ...snapshot.contracts,
+    pool: '0xa41Bc0AFfbA7Fd420d186b84899d7ab2aC57fcD1',
+    token0: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    token1: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
+    tickSpacing: 1,
+    feePips: 1,
+  },
+  spot: { tick: 1, token1PerToken0: 1.0002 },
+  twap: { windowSeconds: 1800, tick: 1, token1PerToken0: 1.0001, deviationBpsFromSpot: 1 },
+  quotes: [
+    {
+      amountIn: 1000,
+      amountInRaw: '1000000000',
+      amountOut: 1000.2,
+      amountOutRaw: '1000200000',
+      effectiveToken1PerToken0: 1.0002,
+      initializedTicksCrossed: 0,
+      priceImpactBps: 0,
+    },
+  ],
+} as const;
+
+type SnapshotDirection = 'token0-to-token1' | 'token1-to-token0';
+
+function snapshotWithDirection(
+  base: typeof snapshot | typeof usdcUsdtSnapshot,
+  direction: SnapshotDirection
+) {
+  if (direction === 'token1-to-token0') {
+    return {
+      ...base,
+      quotes: [
+        {
+          amountIn: 1000,
+          amountInRaw: '1000000000',
+          amountOut: 999.8,
+          amountOutRaw: '999800000',
+          effectiveToken0PerToken1: 0.9998,
+          initializedTicksCrossed: 0,
+          priceImpactBps: 0,
+          direction,
+        },
+      ],
+    };
+  }
+  return { ...base, quotes: [{ ...base.quotes[0], direction }] };
+}
+
 describe('reviewed Aerodrome Slipstream pre-trade evidence', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedSnapshot.mockResolvedValue(snapshot as never);
+    mockedSnapshot.mockImplementation(async (profile: { id: string }) => {
+      const direction: SnapshotDirection = profile.id.includes('token1-to-token0')
+        ? 'token1-to-token0'
+        : 'token0-to-token1';
+      const base = profile.id.includes('usdc-usdt-cl1') ? usdcUsdtSnapshot : snapshot;
+      return snapshotWithDirection(base, direction) as never;
+    });
   });
 
   it('pins an exact WETH input amount into a dedicated, uncached CL100 profile', async () => {
@@ -111,12 +169,55 @@ describe('reviewed Aerodrome Slipstream pre-trade evidence', () => {
 
   it('rejects unreviewed directions or native-asset aliases rather than substituting a route', async () => {
     await expect(
-      getReviewedAerodromeSlipstreamPreTradeEvidence({ ...REQUEST, destinationAsset: 'WETH' })
+      getReviewedAerodromeSlipstreamPreTradeEvidence({ ...REQUEST, destinationAsset: 'USDT' })
     ).rejects.toThrow('No reviewed Aerodrome Slipstream pre-trade profile');
     await expect(
       getReviewedAerodromeSlipstreamPreTradeEvidence({ ...REQUEST, asset: 'ETH' })
     ).rejects.toThrow('No reviewed Aerodrome Slipstream pre-trade profile');
     expect(mockedSnapshot).not.toHaveBeenCalled();
+  });
+
+  it('quotes the reviewed reverse lane USDC→WETH with a token1 ladder', async () => {
+    const result = await getReviewedAerodromeSlipstreamPreTradeEvidence({
+      ...REQUEST,
+      asset: 'USDC',
+      destinationAsset: 'WETH',
+    });
+
+    expect(result).toMatchObject({
+      profile: 'base-aerodrome-slipstream-weth-usdc-cl100',
+      market: 'WETH/USDC',
+      direction: 'token1-to-token0',
+    });
+    expect(mockedSnapshot.mock.calls[0]?.[0]).toMatchObject({
+      quoteAmountsToken1Raw: [1_250_000n],
+    });
+  });
+
+  it('quotes the reviewed USDC/USDT CL1 pool in both directions', async () => {
+    const forward = await getReviewedAerodromeSlipstreamPreTradeEvidence({
+      chainId: 8453,
+      asset: 'USDC',
+      destinationAsset: 'USDT',
+      amountIn: '1000',
+    });
+    const reverse = await getReviewedAerodromeSlipstreamPreTradeEvidence({
+      chainId: 8453,
+      asset: 'USDT',
+      destinationAsset: 'USDC',
+      amountIn: '1000',
+    });
+
+    expect(forward).toMatchObject({
+      profile: 'base-aerodrome-slipstream-usdc-usdt-cl1',
+      market: 'USDC/USDT',
+      direction: 'token0-to-token1',
+    });
+    expect(reverse).toMatchObject({
+      profile: 'base-aerodrome-slipstream-usdc-usdt-cl1',
+      market: 'USDC/USDT',
+      direction: 'token1-to-token0',
+    });
   });
 
   it('rejects exponent-form and zero amounts before a quote can be requested', async () => {
