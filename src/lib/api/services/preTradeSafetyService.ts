@@ -2155,6 +2155,120 @@ async function buildUnavailablePreTradeResult(
   return result;
 }
 
+/** Cadence-relative staleness CAUTION plus the consensus-aware hard backstop.
+ *  Extracted from preTradeSafetyCheck to keep it within its lint budget; the
+ *  rule semantics live here. */
+function evaluateStalenessRules(params: {
+  providerPrices: Record<string, ProviderPriceDetail>;
+  stalenessBaselines: Map<string, number | null>;
+  maxAge: number;
+  staleProviders: string[];
+  staleRisk: boolean;
+}): { verdict: SafetyVerdict | null; factors: ContributingFactor[]; warnings: string[] } {
+  const factors: ContributingFactor[] = [];
+  const warnings: string[] = [];
+  let verdict: SafetyVerdict | null = null;
+  const escalate = (next: SafetyVerdict) => {
+    verdict = verdict === null ? next : pickWorst(verdict, next);
+  };
+
+  // Cadence-relative staleness: a SOFT CAUTION only — never blocks. A feed is
+  // stale only vs its own observed cadence (feedCadence.isCadenceStale), so
+  // naturally-slow sources are never falsely flagged and never blocked. The
+  // absolute 7-day threshold (THRESHOLDS.dataStaleSeconds.block) is the only
+  // hard-block backstop, for feeds that are genuinely stuck.
+  if (params.staleRisk) {
+    escalate('CAUTION');
+    // Representative effective threshold: K × the tightest stale baseline.
+    const staleBaselines = params.staleProviders
+      .map((p) => params.stalenessBaselines.get(p) ?? 0)
+      .filter((b) => b > 0);
+    const effectiveThreshold =
+      staleBaselines.length > 0
+        ? CAUTION_STALE_MULTIPLIER * Math.min(...staleBaselines)
+        : STALE_FLOOR_SECONDS;
+    factors.push({
+      rule: 'data_stale_seconds',
+      value: params.maxAge,
+      threshold: effectiveThreshold,
+      triggeredVerdict: 'CAUTION',
+      message: `Stale oracle data: ${params.staleProviders.join(', ')} exceed their observed update cadence (max age ${params.maxAge}s).`,
+    });
+    warnings.push(`Oracle data is stale vs its own cadence (max age ${params.maxAge}s).`);
+  }
+
+  // Hard backstop (consensus-aware): a feed is only BLOCKED as "extremely stale"
+  // when it is BOTH >= the absolute backstop age AND its price diverges from the
+  // fresh consensus (proving the data is genuinely dead, not just a stale
+  // timestamp). A stale timestamp whose price still agrees with consensus is a
+  // timestamp-source anomaly (e.g. API3 communal dAPIs report 7-120d-old
+  // `updatedAt` while serving current prices) and must NOT hard-block — it
+  // surfaces as a soft CAUTION instead. When NO provider is fresh (total oracle
+  // outage) we cannot corroborate and fall back to the absolute age -> BLOCK.
+  const hardStale = classifyStalenessHardBlock(params.providerPrices);
+  for (const [provider, detail] of Object.entries(params.providerPrices)) {
+    detail.timestampAnomaly = hardStale.timestampAnomalyProviders.includes(provider);
+  }
+  if (hardStale.hardBlock) {
+    escalate('BLOCK');
+    factors.push({
+      rule: 'data_stale_seconds',
+      value: params.maxAge,
+      threshold: THRESHOLDS.dataStaleSeconds.block,
+      triggeredVerdict: 'BLOCK',
+      message: `Oracle data extremely stale AND diverges from consensus: ${hardStale.hardStaleProviders.join(', ')} (max age ${params.maxAge}s >= ${THRESHOLDS.dataStaleSeconds.block}s absolute backstop).`,
+    });
+    warnings.push(`Oracle data is extremely stale (max age ${params.maxAge}s).`);
+  }
+  if (hardStale.timestampAnomalyProviders.length > 0) {
+    escalate('CAUTION');
+    factors.push({
+      rule: 'data_stale_timestamp_anomaly',
+      value: params.maxAge,
+      threshold: THRESHOLDS.dataStaleSeconds.block,
+      triggeredVerdict: 'CAUTION',
+      message: `Stale timestamp but price in consensus: ${hardStale.timestampAnomalyProviders.join(', ')} (max age ${params.maxAge}s) — likely a timestamp-source anomaly, not dead data.`,
+    });
+    warnings.push(
+      `Stale timestamp reported by ${hardStale.timestampAnomalyProviders.join(', ')} but price agrees with consensus (possible timestamp-source anomaly).`
+    );
+  }
+
+  return { verdict, factors, warnings };
+}
+
+/** Depeg rule: take the worst active depeg warning across the pair. */
+function evaluateDepegRule(params: { depegWarnings: DepegWarning[] }): {
+  verdict: SafetyVerdict | null;
+  factors: ContributingFactor[];
+  warnings: string[];
+} {
+  const factors: ContributingFactor[] = [];
+  const warnings: string[] = [];
+
+  const worstDepeg = params.depegWarnings.reduce<number>(
+    (max, w) => (Math.abs(w.deviationPct) > max ? Math.abs(w.deviationPct) : max),
+    0
+  );
+  const depegVerdict = evaluateHighIsBad(worstDepeg, THRESHOLDS.stablecoinDepegPct);
+  if (depegVerdict) {
+    const worstCoin = params.depegWarnings.reduce<string | null>(
+      (pick, w) => (Math.abs(w.deviationPct) >= worstDepeg ? w.stablecoin : pick),
+      null
+    );
+    factors.push({
+      rule: 'stablecoin_depeg_pct',
+      value: roundTo(worstDepeg, 4),
+      threshold:
+        THRESHOLDS.stablecoinDepegPct[depegVerdict.toLowerCase() as 'caution' | 'danger' | 'block'],
+      triggeredVerdict: depegVerdict,
+      message: `Stablecoin ${worstCoin ?? ''} depeg ${worstDepeg.toFixed(2)}% exceeds ${depegVerdict.toLowerCase()} threshold.`,
+    });
+    warnings.push(`Active stablecoin depeg detected (${worstDepeg.toFixed(2)}%).`);
+  }
+  return { verdict: depegVerdict, factors, warnings };
+}
+
 export async function preTradeSafetyCheck(
   input: PreTradeSafetyInput,
   meta: AuditMeta = {},
@@ -2346,66 +2460,18 @@ export async function preTradeSafetyCheck(
     warnings.push(`Price spread between oracles ${spreadPct.toFixed(2)}% is elevated.`);
   }
 
-  // Cadence-relative staleness: a SOFT CAUTION only — never blocks. A feed is
-  // stale only vs its own observed cadence (feedCadence.isCadenceStale), so
-  // naturally-slow sources are never falsely flagged and never blocked. The
-  // absolute 7-day threshold (THRESHOLDS.dataStaleSeconds.block) is the only
-  // hard-block backstop, for feeds that are genuinely stuck.
-  if (staleRisk) {
-    verdict = pickWorst(verdict, 'CAUTION');
-    // Representative effective threshold: K × the tightest stale baseline.
-    const staleBaselines = staleProviders
-      .map((p) => stalenessBaselines.get(p) ?? 0)
-      .filter((b) => b > 0);
-    const effectiveThreshold =
-      staleBaselines.length > 0
-        ? CAUTION_STALE_MULTIPLIER * Math.min(...staleBaselines)
-        : STALE_FLOOR_SECONDS;
-    contributingFactors.push({
-      rule: 'data_stale_seconds',
-      value: maxAge,
-      threshold: effectiveThreshold,
-      triggeredVerdict: 'CAUTION',
-      message: `Stale oracle data: ${staleProviders.join(', ')} exceed their observed update cadence (max age ${maxAge}s).`,
-    });
-    warnings.push(`Oracle data is stale vs its own cadence (max age ${maxAge}s).`);
-  }
-  // Hard backstop (consensus-aware): a feed is only BLOCKED as "extremely stale"
-  // when it is BOTH >= the absolute backstop age AND its price diverges from the
-  // fresh consensus (proving the data is genuinely dead, not just a stale
-  // timestamp). A stale timestamp whose price still agrees with consensus is a
-  // timestamp-source anomaly (e.g. API3 communal dAPIs report 7-120d-old
-  // `updatedAt` while serving current prices) and must NOT hard-block — it
-  // surfaces as a soft CAUTION instead. When NO provider is fresh (total oracle
-  // outage) we cannot corroborate and fall back to the absolute age -> BLOCK.
-  const hardStale = classifyStalenessHardBlock(providerPrices);
-  for (const [provider, detail] of Object.entries(providerPrices)) {
-    detail.timestampAnomaly = hardStale.timestampAnomalyProviders.includes(provider);
-  }
-  if (hardStale.hardBlock) {
-    verdict = pickWorst(verdict, 'BLOCK');
-    contributingFactors.push({
-      rule: 'data_stale_seconds',
-      value: maxAge,
-      threshold: THRESHOLDS.dataStaleSeconds.block,
-      triggeredVerdict: 'BLOCK',
-      message: `Oracle data extremely stale AND diverges from consensus: ${hardStale.hardStaleProviders.join(', ')} (max age ${maxAge}s >= ${THRESHOLDS.dataStaleSeconds.block}s absolute backstop).`,
-    });
-    warnings.push(`Oracle data is extremely stale (max age ${maxAge}s).`);
-  }
-  if (hardStale.timestampAnomalyProviders.length > 0) {
-    verdict = pickWorst(verdict, 'CAUTION');
-    contributingFactors.push({
-      rule: 'data_stale_timestamp_anomaly',
-      value: maxAge,
-      threshold: THRESHOLDS.dataStaleSeconds.block,
-      triggeredVerdict: 'CAUTION',
-      message: `Stale timestamp but price in consensus: ${hardStale.timestampAnomalyProviders.join(', ')} (max age ${maxAge}s) — likely a timestamp-source anomaly, not dead data.`,
-    });
-    warnings.push(
-      `Stale timestamp reported by ${hardStale.timestampAnomalyProviders.join(', ')} but price agrees with consensus (possible timestamp-source anomaly).`
-    );
-  }
+  // Staleness rules (cadence CAUTION + consensus-aware hard backstop), extracted
+  // into evaluateStalenessRules; see that helper for the full semantics.
+  const stalenessRules = evaluateStalenessRules({
+    providerPrices,
+    stalenessBaselines,
+    maxAge,
+    staleProviders,
+    staleRisk,
+  });
+  if (stalenessRules.verdict) verdict = pickWorst(verdict, stalenessRules.verdict);
+  contributingFactors.push(...stalenessRules.factors);
+  warnings.push(...stalenessRules.warnings);
 
   const agreementVerdict = evaluateLowIsBad(agreement, THRESHOLDS.crossProviderAgreement);
   if (agreementVerdict) {
@@ -2423,28 +2489,11 @@ export async function preTradeSafetyCheck(
     warnings.push(`Oracle providers disagree (agreement ${(agreement * 100).toFixed(1)}%).`);
   }
 
-  // Depeg: take the worst active depeg warning.
-  const worstDepeg = depegWarnings.reduce<number>(
-    (max, w) => (Math.abs(w.deviationPct) > max ? Math.abs(w.deviationPct) : max),
-    0
-  );
-  const depegVerdict = evaluateHighIsBad(worstDepeg, THRESHOLDS.stablecoinDepegPct);
-  if (depegVerdict) {
-    verdict = pickWorst(verdict, depegVerdict);
-    const worstCoin = depegWarnings.reduce<string | null>(
-      (pick, w) => (Math.abs(w.deviationPct) >= worstDepeg ? w.stablecoin : pick),
-      null
-    );
-    contributingFactors.push({
-      rule: 'stablecoin_depeg_pct',
-      value: roundTo(worstDepeg, 4),
-      threshold:
-        THRESHOLDS.stablecoinDepegPct[depegVerdict.toLowerCase() as 'caution' | 'danger' | 'block'],
-      triggeredVerdict: depegVerdict,
-      message: `Stablecoin ${worstCoin ?? ''} depeg ${worstDepeg.toFixed(2)}% exceeds ${depegVerdict.toLowerCase()} threshold.`,
-    });
-    warnings.push(`Active stablecoin depeg detected (${worstDepeg.toFixed(2)}%).`);
-  }
+  // Depeg rule, extracted into evaluateDepegRule; see that helper.
+  const depegRule = evaluateDepegRule({ depegWarnings });
+  if (depegRule.verdict) verdict = pickWorst(verdict, depegRule.verdict);
+  contributingFactors.push(...depegRule.factors);
+  warnings.push(...depegRule.warnings);
 
   // Protocol buffer rule (lending actions only): escalate + freeze based on
   // how much cross-oracle dispersion consumes the protocol's max-LTV buffer.

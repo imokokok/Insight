@@ -285,6 +285,22 @@ const GUARD_PROFILE_SPECS: Record<
   },
 } as const;
 
+/**
+ * Resolve the destination token address of a guard decision. The guarded input
+ * token is the approval token (the binding is verified), and the destination is
+ * the reviewed pool's other asset. Null when the decision carries no binding or
+ * the approval token is outside the reviewed profile — a settlement closure must
+ * never guess the pair it reconciles.
+ */
+export function baseAgentSwapGuardDestinationToken(guard: BaseAgentSwapGuardResult): string | null {
+  const tokenIn = guard.binding?.approval.token;
+  if (!tokenIn) return null;
+  const spec = GUARD_PROFILE_SPECS[guard.scope.profileId];
+  if (tokenIn.toLowerCase() === spec.token0.address.toLowerCase()) return spec.token1.address;
+  if (tokenIn.toLowerCase() === spec.token1.address.toLowerCase()) return spec.token0.address;
+  return null;
+}
+
 function timestampSeconds(value: string): number | null {
   const parsed = Date.parse(value);
   if (!Number.isFinite(parsed) || parsed < 0) return null;

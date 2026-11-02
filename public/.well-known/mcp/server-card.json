@@ -1973,6 +1973,60 @@
       }
     },
     {
+      "name": "settle_base_agent_swap_guard",
+      "description": "Close the loop on a settled Base Agent Swap Guard swap. Present the signed guard decision the agent executed under plus the swap transaction hash (and the approval transaction hash when held). Insight verifies the decision, requires the on-chain to/value/calldata to match the guarded approval and swap calls byte-for-byte, reconciles the observed ERC-20 input and output amounts against the guarded quote (amountInRaw, quotedAmountOutRaw, amountOutMinimumRaw, realized output-leg slippage vs the agent policy), and returns a signed BaseAgentSwapGuardSettlement bound to the decisionHash with explicit reason codes (SWAP_TX_REVERTED, SOURCE_AMOUNT_MISMATCH, REALIZED_SLIPPAGE_EXCEEDED, DECISION_EXPIRED_AT_CLOSURE, APPROVAL_TX_NOT_PRESENTED, and others). A decision that does not verify, or a transaction whose bytes differ from the guarded calls, is rejected. This is settlement evidence, not transaction authority, a price-correctness claim, or a guarantee of good timing.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "swapTxHash": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          },
+          "approvalTxHash": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          }
+        },
+        "required": ["decision", "swapTxHash"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "verify_base_agent_swap_guard_settlement",
+      "description": "Independently verify a signed BaseAgentSwapGuardSettlement: structural shape, the reason-code hash, the EIP-712 uid, the attester signature, and attester trust. Pass the settlement artifact wrapped as { decision: { settlement: <settlement> } }. Returns valid/invalid with a machine-readable reason. This checks the signature only; it does not re-read the chain.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "swapTxHash": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          },
+          "approvalTxHash": {
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{64}$"
+          }
+        },
+        "required": ["decision", "swapTxHash"],
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "get_pancakeswap_v3_market",
       "description": "Get fresh, block-pinned market evidence for one allowlisted PancakeSwap V3 Base pool. The Factory, QuoterV2, and Pool runtime identities are re-verified at the quoted block. This is DEX venue context, not an oracle-consensus price.",
       "inputSchema": {

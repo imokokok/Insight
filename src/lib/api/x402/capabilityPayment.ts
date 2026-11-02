@@ -113,6 +113,8 @@ export const X402_MCP_PAYMENT_SCOPE_BY_TOOL: Readonly<Record<string, X402Payment
   prepare_pancakeswap_v3_swap: X402_PAYMENT_SCOPE.base,
   get_quickswap_v2_market: X402_PAYMENT_SCOPE.base,
   prepare_base_agent_swap_guard: X402_PAYMENT_SCOPE.base,
+  settle_base_agent_swap_guard: X402_PAYMENT_SCOPE.base,
+  verify_base_agent_swap_guard_settlement: X402_PAYMENT_SCOPE.base,
   base_lending_guard: X402_PAYMENT_SCOPE.base,
   base_lending_guard_exact_call: X402_PAYMENT_SCOPE.base,
   base_perp_guard: X402_PAYMENT_SCOPE.base,

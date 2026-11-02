@@ -2659,6 +2659,62 @@ paths:
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
 
+  /safety/base-agent-swap-guard/settlement:
+    post:
+      operationId: settleBaseAgentSwapGuard
+      tags: [Safety]
+      summary: Post-settlement closure for a Base Agent Swap Guard decision
+      description: >-
+        Pair a signed Base Agent Swap Guard decision with the swap transaction
+        that settled it. Insight verifies the decision, requires the on-chain
+        to/value/calldata to match the guarded approval and swap calls
+        byte-for-byte, reconciles the observed ERC-20 input and output amounts
+        against the guarded quote (amountInRaw, quotedAmountOutRaw,
+        amountOutMinimumRaw, realized output-leg slippage vs the agent policy),
+        and returns a signed BaseAgentSwapGuardSettlement bound to the
+        decisionHash with explicit reason codes. A decision that does not
+        verify, or a transaction whose bytes differ from the guarded calls, is
+        rejected — never closed over. With verifyOnly=1 and a settlement
+        object, only the settlement's own EIP-712 signature and integrity are
+        checked.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, swapTxHash]
+              properties:
+                decision:
+                  type: object
+                  additionalProperties: true
+                  description: The signed Base Agent Swap Guard decision the agent executed under.
+                swapTxHash:
+                  type: string
+                  pattern: '^0x[0-9a-fA-F]{64}$'
+                  description: Hash of the executed swap transaction.
+                approvalTxHash:
+                  type: string
+                  pattern: '^0x[0-9a-fA-F]{64}$'
+                  description: Optional hash of the executed approval transaction. When presented it must match the guarded approval call exactly; when absent the settlement carries APPROVAL_TX_NOT_PRESENTED.
+                verifyOnly:
+                  type: boolean
+                  description: Set to true to only verify a previously issued settlement signature; requires the settlement property.
+                settlement:
+                  type: object
+                  additionalProperties: true
+                  description: The signed settlement to verify in verifyOnly mode.
+      responses:
+        '200':
+          description: Signed settlement closure (or, in verifyOnly mode, the signature verification result).
+        '400':
+          description: Rejected — the decision did not verify, the chain is unsupported, or the executed bytes differ from the guarded calls (ON_CHAIN_CALL_MISMATCH).
+        '404':
+          description: The presented swap or approval transaction was not found on the configured RPC.
+        '502':
+          description: RPC or collection failure while reading settlement evidence.
+
   /safety/base-lending-guard:
     get:
       operationId: assessBaseLendingGuard
