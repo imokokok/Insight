@@ -9,6 +9,7 @@ import {
   type AerodromeSlipstreamMarketSnapshot,
   type ReviewedAerodromeSlipstreamProfileId,
 } from './aerodromeSlipstream';
+
 import type { UniswapV3QuoteDirection } from './uniswapV3Market';
 
 export type ReviewedAerodromeSlipstreamPreTradeProfile = ReviewedAerodromeSlipstreamProfileId;

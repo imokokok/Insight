@@ -937,6 +937,61 @@ function computeVenueLiquidityCapUsd(
 }
 
 /**
+ * Step 7 of the pre-trade check: resolve the reviewed DEX evidence lane (the
+ * lane promises were started before consensus so the calibration lands inside
+ * the signed attestation; the same promises are consumed again by the
+ * decision-input assessment below), then combine the oracle-dispersion advisory
+ * cap with the lane's real venue depth. Returns the effective recommended
+ * maximum position, the lane evidence for downstream reuse, and the human
+ * basis string used by the amount sanity warnings.
+ */
+async function resolveRecommendedPositionCap(
+  maxDeviationPct: number,
+  protocolSafety: ProtocolSafetyContext | null,
+  consensusPriceUsd: number,
+  uniswapV3Lane: Promise<ReviewedUniswapV3PreTradeEvidence | null> | undefined,
+  aerodromeLane: Promise<ReviewedAerodromeSlipstreamPreTradeEvidence | null> | undefined,
+  warnings: string[]
+): Promise<{
+  reviewedLaneEvidence:
+    | ReviewedUniswapV3PreTradeEvidence
+    | ReviewedAerodromeSlipstreamPreTradeEvidence
+    | null;
+  recommendedMaxPositionUsd: number;
+  liquidityBasis: string;
+}> {
+  const oracleRecommendedMaxPositionUsd = computeRecommendedMaxPosition(
+    maxDeviationPct,
+    protocolSafety
+  );
+  const reviewedLaneEvidence =
+    (
+      await Promise.all([
+        uniswapV3Lane ?? Promise.resolve(null),
+        aerodromeLane ?? Promise.resolve(null),
+      ])
+    ).find((evidence): evidence is NonNullable<typeof evidence> => evidence !== null) ?? null;
+  const venueLiquidityCapUsd = reviewedLaneEvidence
+    ? computeVenueLiquidityCapUsd(reviewedLaneEvidence, consensusPriceUsd)
+    : null;
+  let recommendedMaxPositionUsd = oracleRecommendedMaxPositionUsd;
+  if (
+    reviewedLaneEvidence &&
+    venueLiquidityCapUsd !== null &&
+    venueLiquidityCapUsd < oracleRecommendedMaxPositionUsd
+  ) {
+    recommendedMaxPositionUsd = Math.max(1, venueLiquidityCapUsd);
+    warnings.push(
+      `Reviewed venue liquidity cap applied: recommended max position limited to $${recommendedMaxPositionUsd.toLocaleString()} by reviewed pool depth at block ${reviewedLaneEvidence.block.number}.`
+    );
+  }
+  const liquidityBasis = reviewedLaneEvidence
+    ? `oracle-condition and reviewed-venue-liquidity cap $${recommendedMaxPositionUsd.toLocaleString()}`
+    : `oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}`;
+  return { reviewedLaneEvidence, recommendedMaxPositionUsd, liquidityBasis };
+}
+
+/**
  * Build the concrete, user-executable lending-safety actions from the protocol
  * buffer context. This is the "actionable" half of the cross-oracle dispersion
  * signal: rather than only flagging risk, it tells the borrower exactly what to
@@ -2449,39 +2504,18 @@ export async function preTradeSafetyCheck(
 
   // 7. Recommended max position. Oracle dispersion sets the advisory base; when
   // the caller supplied a reviewed DEX evidence lane, that lane's exact quote
-  // and live pool balances calibrate the cap with real venue depth. The lane
-  // promises were started before consensus; resolving them here keeps the
-  // calibration inside the signed attestation, and the same promises are
-  // consumed again by the decision-input assessment below.
-  const oracleRecommendedMaxPositionUsd = computeRecommendedMaxPosition(
+  // and live pool balances calibrate the cap with real venue depth (see the
+  // helper for promise-timing and cap semantics).
+  const { recommendedMaxPositionUsd, liquidityBasis } = await resolveRecommendedPositionCap(
     maxDeviationPct,
-    protocolSafety
+    protocolSafety,
+    consensus.consensusPrice,
+    reviewedUniswapV3Evidence,
+    reviewedAerodromeSlipstreamEvidence,
+    warnings
   );
-  const reviewedLaneEvidence = (
-    await Promise.all([
-      reviewedUniswapV3Evidence ?? Promise.resolve(null),
-      reviewedAerodromeSlipstreamEvidence ?? Promise.resolve(null),
-    ])
-  ).find((evidence): evidence is NonNullable<typeof evidence> => evidence !== null);
-  const venueLiquidityCapUsd = reviewedLaneEvidence
-    ? computeVenueLiquidityCapUsd(reviewedLaneEvidence, consensus.consensusPrice)
-    : null;
-  let recommendedMaxPositionUsd = oracleRecommendedMaxPositionUsd;
-  if (
-    reviewedLaneEvidence &&
-    venueLiquidityCapUsd !== null &&
-    venueLiquidityCapUsd < oracleRecommendedMaxPositionUsd
-  ) {
-    recommendedMaxPositionUsd = Math.max(1, venueLiquidityCapUsd);
-    warnings.push(
-      `Reviewed venue liquidity cap applied: recommended max position limited to $${recommendedMaxPositionUsd.toLocaleString()} by reviewed pool depth at block ${reviewedLaneEvidence.block.number}.`
-    );
-  }
 
   // 8. Amount vs recommended position sanity.
-  const liquidityBasis = reviewedLaneEvidence
-    ? `oracle-condition and reviewed-venue-liquidity cap $${recommendedMaxPositionUsd.toLocaleString()}`
-    : `oracle-condition advisory cap (not venue liquidity) $${recommendedMaxPositionUsd.toLocaleString()}`;
   if (input.tradeAmountUsd > recommendedMaxPositionUsd * 3) {
     verdict = pickWorst(verdict, 'DANGER');
     contributingFactors.push({
