@@ -206,6 +206,54 @@ a claim the price was correct, the trade was well-timed, or that anyone
 authorized the execution. A REST verifier is available at
 `POST /api/v1/safety/base-agent-swap-guard/settlement` with `verifyOnly: true`.
 
+### One decision, one swap transaction
+
+Settlement is stateless: Insight does not record which decisions have already
+been closed, so nothing technically prevents the same signed decision from
+being closed against two different transactions whose calldata is
+byte-identical. Honest usage can never produce this — one `decisionHash`
+corresponds to exactly one swap transaction — and the closure is designed so
+that any violation is detectable offline:
+
+- the EIP-712 struct signs `decisionHash`, `swapTxHash`, and `approvalTxHash`
+  together, so the binding is inside the signature and cannot be stripped;
+- both independent verifiers (`verify_base_agent_swap_guard_settlement` and
+  the REST `verifyOnly` route) return the signed `decisionHash`, `swapTxHash`,
+  and `attester` alongside the verdict; and
+- therefore two closures that both verify, share a `decisionHash`, and name
+  different `swapTxHash` values are a contradiction: evidence that the
+  decision was double-settled (or that the attester infrastructure is
+  misbehaving), attributable via the signed `attester`.
+
+This is a detective control, not a preventive one: Insight guarantees that a
+double settlement cannot hide, not that only one settlement can be requested.
+
+### Trust root and key rotation
+
+The attester address is the public key (`EIP-712/secp256k1`); trust is not
+hard-coded into SDKs. It is published in the unauthenticated registry at
+`GET /.well-known/oracle-keys.json`, where every entry carries `key_id`,
+`public_key`, `validFrom`, `validUntil` (null = no scheduled expiry),
+`revoked`, and a `role`:
+
+- `role: "attester"` — production keys. Only these may sign real settlements
+  (the settlement verifier rejects every other role).
+- `role: "sample"` — the synthetic demo signer. Anything it signs verifies
+  cryptographically but is never evidence of a real trade.
+
+Verification semantics are anchored to the signing time, not the checking
+time: a closure is trusted when its `checkedAt` falls inside the attester
+key's validity window and the key is neither revoked nor listed in the
+registry's `revoked` list. Rotation therefore never invalidates history —
+publish the new key with a future `validFrom`, switch signing, then expire or
+revoke the old key. A compromise is handled by setting `revoked: true`; that
+only affects closures whose `checkedAt` falls after the trust boundary, which
+is exactly the horizon a third party can hold the attester to.
+
+Offline verifiers should fetch `oracle-keys.json` themselves and apply the
+same rule: signature valid **and** `checkedAt` inside the window for a
+non-revoked `role: "attester"` key.
+
 ## Agent rules
 
 1. Call the guard after selecting one supported profile and before any wallet
