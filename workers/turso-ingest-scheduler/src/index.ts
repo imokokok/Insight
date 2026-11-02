@@ -1,10 +1,5 @@
 const REQUEST_TIMEOUT_MS = 210_000;
 
-interface Env {
-  INSIGHT_INGEST_URL: string;
-  INGEST_SCHEDULER_SECRET: string;
-}
-
 function ingestUrl(base: string, scheduledTime: number): URL {
   const url = new URL(base);
   if (url.protocol !== 'https:') throw new Error('INSIGHT_INGEST_URL must use HTTPS');
@@ -46,10 +41,10 @@ async function triggerIngest(env: Env, scheduledTime: number): Promise<void> {
 }
 
 const worker = {
-  async scheduled(controller: { scheduledTime: number }, env: Env): Promise<void> {
+  async scheduled(controller: ScheduledController, env: Env): Promise<void> {
     await triggerIngest(env, controller.scheduledTime);
   },
-};
+} satisfies ExportedHandler<Env>;
 
 export default worker;
 export { ingestUrl };
