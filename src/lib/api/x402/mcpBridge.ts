@@ -6,7 +6,12 @@ import { getToolCreditCost } from '@/lib/billing/metering';
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
 import { createLogger } from '@/lib/utils/logger';
 
-import { type X402Config, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
+import {
+  baseMainnetOnlyX402Config,
+  type X402Config,
+  X402_CREDIT_USD,
+  X402_MCP_ROUTE,
+} from './config';
 import {
   atomicUnitsToUsdc,
   logBazaarExtensionStatus,
@@ -255,10 +260,11 @@ export async function handleMcpPaidToolCall({
 }: McpPaidCallInput): Promise<Response> {
   const requestId = newRequestId();
   const priceAtomic = priceAtomicForTool(toolName);
+  const isBaseAgentSwapGuard = toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
   const httpServer = await getMcpX402HttpServer(
-    cfg,
+    isBaseAgentSwapGuard ? baseMainnetOnlyX402Config(cfg) : cfg,
     priceAtomic,
-    toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME ? toolName : undefined
+    isBaseAgentSwapGuard ? toolName : undefined
   );
   const acquisitionSource = x402AcquisitionSource(request);
   const requestStartedAt = Date.now();

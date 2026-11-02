@@ -63,12 +63,13 @@ function jsonRpcResult(result: unknown): Response {
 
 function input(
   runBusiness: () => Promise<Response>,
-  headers: HeadersInit | undefined = undefined
+  headers: HeadersInit | undefined = undefined,
+  toolName = 'get_symbols'
 ): McpPaidCallInput {
   return {
     request: new Request('http://x/api/mcp', { headers }),
     cfg,
-    toolName: 'get_symbols',
+    toolName,
     runBusiness,
   };
 }
@@ -114,6 +115,38 @@ describe('handleMcpPaidToolCall settlement gating', () => {
       })
     );
     expect(res.headers.get('PAYMENT-RESPONSE')).toBe('c2V0dGxlZA==');
+  });
+
+  it('binds the Base Swap Guard payment quote to Base mainnet only', async () => {
+    const baseGuardCfg = {
+      ...cfg,
+      enabled: true,
+      evmEnabled: true,
+      evmNetworks: ['eip155:999'],
+      payTo: '0xAbC0000000000000000000000000000000000001',
+      facilitatorUrl: 'https://base.example',
+      facilitatorUrls: { 'eip155:999': 'https://hyper.example' },
+    } as X402Config;
+
+    await handleMcpPaidToolCall({
+      ...input(
+        async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }),
+        undefined,
+        'prepare_base_agent_swap_guard'
+      ),
+      cfg: baseGuardCfg,
+    });
+
+    expect(mockedServerFactory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        network: 'eip155:8453',
+        evmNetworks: ['eip155:8453'],
+        facilitatorUrl: 'https://base.example',
+        solana: null,
+      }),
+      '20000',
+      'prepare_base_agent_swap_guard'
+    );
   });
 
   it('skips settlement when the tool result carries isError', async () => {

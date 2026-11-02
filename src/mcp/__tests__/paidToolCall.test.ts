@@ -133,11 +133,14 @@ function mcpGet(headers: Record<string, string> = {}): Request {
 
 const CFG = {
   enabled: true,
-  network: 'eip155:84532' as const,
+  evmEnabled: true,
+  network: 'eip155:999' as const,
+  evmNetworks: ['eip155:999'] as const,
   payTo: '0xAbC0000000000000000000000000000000000001',
   amountAtomic: '20000',
   priceUsd: 0.02,
   facilitatorUrl: 'https://x402.org/facilitator',
+  facilitatorUrls: { 'eip155:999': 'https://hyper.example' },
   facilitatorTimeoutMs: 15_000,
   maxTimeoutSeconds: 60,
   facilitatorCdpAuth: null,
@@ -222,7 +225,12 @@ describe('x402 paid MCP tools/call', () => {
     expect(response.status).toBe(402);
     // C3 (5cr) × $0.004 = $0.02 = 20,000 Base-USDC atomic units.
     expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true }),
+      expect.objectContaining({
+        enabled: true,
+        network: 'eip155:8453',
+        evmNetworks: ['eip155:8453'],
+        solana: null,
+      }),
       priceAtomicForTool('prepare_base_agent_swap_guard'),
       'prepare_base_agent_swap_guard'
     );

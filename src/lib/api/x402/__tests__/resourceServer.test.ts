@@ -1,6 +1,6 @@
 import { type HTTPAdapter } from '@x402/core/server';
 
-import { parseX402Config, SOLANA_DEVNET_CAIP2 } from '../config';
+import { baseMainnetOnlyX402Config, parseX402Config, SOLANA_DEVNET_CAIP2 } from '../config';
 import { resetFacilitatorResilienceForTests } from '../facilitatorResilience';
 import {
   BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
@@ -222,7 +222,7 @@ describe('x402 SVM resource-server registration', () => {
         throw new Error(`unexpected fetch: ${String(input)}`);
       }
       return Response.json({
-        kinds: [{ x402Version: 2, scheme: 'exact', network: 'eip155:84532' }],
+        kinds: [{ x402Version: 2, scheme: 'exact', network: 'eip155:8453' }],
         extensions: [],
         signers: {},
       });
@@ -231,11 +231,12 @@ describe('x402 SVM resource-server registration', () => {
 
     const cfg = parseX402Config({
       X402_ENABLED: 'true',
-      X402_NETWORK: 'eip155:84532',
+      X402_NETWORK: 'eip155:999',
+      X402_EVM_NETWORKS: 'eip155:999',
       X402_PAY_TO: EVM_PAY_TO,
       X402_FACILITATOR_URL: 'https://facilitator.example',
     });
-    const server = await buildX402HttpServer(cfg, undefined, {
+    const server = await buildX402HttpServer(baseMainnetOnlyX402Config(cfg), undefined, {
       mcpAmountAtomic: '20000',
       mcpDiscoveryToolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
     });
@@ -250,14 +251,21 @@ describe('x402 SVM resource-server registration', () => {
     const quote = JSON.parse(
       Buffer.from(result.response.headers['PAYMENT-REQUIRED'] ?? '', 'base64url').toString('utf8')
     ) as {
-      accepts: Array<{ amount: string }>;
+      accepts: Array<Record<string, unknown>>;
       resource?: { description?: string };
       extensions?: { bazaar?: { info?: { input?: Record<string, unknown> } } };
     };
 
-    expect(quote.accepts).toEqual(
-      expect.arrayContaining([expect.objectContaining({ amount: '20000' })])
-    );
+    expect(quote.accepts).toEqual([
+      expect.objectContaining({
+        amount: '20000',
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        network: 'eip155:8453',
+        payTo: EVM_PAY_TO,
+        scheme: 'exact',
+        extra: { name: 'USD Coin', version: '2' },
+      }),
+    ]);
     expect(quote.resource?.description).toContain('Base mainnet AI-agent Swap Guard');
     expect(quote.extensions?.bazaar?.info?.input).toMatchObject({
       type: 'mcp',
