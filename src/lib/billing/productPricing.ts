@@ -19,6 +19,7 @@ import {
   ORACLE_WATCH_WINDOW_BEGIN_PATH,
   ORACLE_WATCH_WINDOW_CREDIT_COST,
 } from './oracleWatchWindow';
+import { POSITION_LIFECYCLE_BEGIN_PATH, POSITION_LIFECYCLE_CREDIT_COST } from './positionLifecycle';
 
 /**
  * Exact-path keyed product prices. One successful request at this path charges
@@ -26,6 +27,7 @@ import {
  */
 export const PRODUCT_ENDPOINT_CREDIT_COSTS: Readonly<Record<string, number>> = {
   [ORACLE_WATCH_WINDOW_BEGIN_PATH]: ORACLE_WATCH_WINDOW_CREDIT_COST,
+  [POSITION_LIFECYCLE_BEGIN_PATH]: POSITION_LIFECYCLE_CREDIT_COST,
 };
 
 /**

@@ -2503,6 +2503,153 @@ paths:
         '401': { description: Invalid or missing window token. }
         '404': { description: Monitored window not found. }
 
+  /safety/position-lifecycle:
+    post:
+      operationId: purchasePositionLifecycle
+      tags: [Safety]
+      summary: Purchase a 24h Position Lifecycle Bundle
+      description: >-
+        Pre-pays 24h of lifecycle coverage for one (symbol, chain) position
+        subject — the second non-per-call product, and the first bundle. One
+        purchase includes an embedded Oracle Watch monitored window (300 free
+        signal polls via the existing window routes with the same bearer
+        token), 4 bundled guard assessments across any position-guard family,
+        and 1 attested execution receipt. The purchase returns a one-time
+        lifecycle token (shown exactly once; only its SHA-256 hash is stored).
+        Assessment and evidence only — no custody, no execution authority.
+        API-key access (charged as one product-priced credit debit) or x402
+        payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [symbol]
+              properties:
+                symbol: { type: string, description: Position subject to cover, example: ETH }
+                chain:
+                  {
+                    type: string,
+                    description: Optional chain scope fixed for the lifecycle,
+                    example: arbitrum,
+                  }
+      responses:
+        '200': {
+            description: Lifecycle opened,
+            with the one-time lifecycle token,
+            embedded
+            windowId,
+            and usage hints for watch/guard/receipt/close.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/position-lifecycle/{lifecycleId}:
+    post:
+      operationId: closePositionLifecycle
+      tags: [Safety]
+      summary: Close the lifecycle early and return its combined summary
+      description: >-
+        Idempotent close. Returns the lifecycle's guard and receipt usage plus
+        the embedded monitored window's coverage summary (verdict and
+        recommendation counts, halt timeline). Works on an expired lifecycle —
+        the summary is the record of what the lifecycle covered. Authenticated
+        by the one-time lifecycle token (`Authorization: Bearer plc_<hex>`).
+        Unknown lifecycle ids and wrong tokens are indistinguishable (401).
+      security: [{}]
+      parameters:
+        - in: path
+          name: lifecycleId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          { description: Combined lifecycle summary (guard usage, receipt state, watch coverage). }
+        '401': { description: Invalid or missing lifecycle token. }
+        '404': { description: Position lifecycle not found. }
+
+  /safety/position-lifecycle/{lifecycleId}/guard:
+    post:
+      operationId: runBundledPositionGuard
+      tags: [Safety]
+      summary: Run one bundled guard assessment inside an open lifecycle
+      description: >-
+        One bundled guard assessment, free within the lifecycle's guard budget
+        (4 across the 24h window). The family is chosen per call
+        (base_perp, hyperliquid_perp, base_lending, monad_lending,
+        multichain_evm_lending, solana_lending) and params are validated against
+        that family's native route schema. A BLOCK verdict is a complete
+        assessment and consumes a budget slot; a schema or assessor technical
+        failure does not. solana_lending additionally requires the exact
+        unsigned Solana transaction as `transaction`. Assessment only — exact
+        call binding stays on the native guard routes.
+      security: [{}]
+      parameters:
+        - in: path
+          name: lifecycleId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [family, params]
+              properties:
+                family: { type: string, description: Guard family to assess with }
+                params: { type: object, description: Native guard input for the chosen family }
+                transaction:
+                  {
+                    type: object,
+                    description: Required for solana_lending — the exact unsigned transaction,
+                  }
+      responses:
+        '200': { description: Native guard result with guard budget usage. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { description: Invalid or missing lifecycle token. }
+        '404': { description: Position lifecycle not found. }
+        '410': { description: Lifecycle closed or expired. }
+        '429': { description: Guard budget exhausted. }
+
+  /safety/position-lifecycle/{lifecycleId}/receipt:
+    post:
+      operationId: issueBundledExecutionReceipt
+      tags: [Safety]
+      summary: Issue the bundled attested execution receipt (one per lifecycle)
+      description: >-
+        Issues one attested Execution Receipt, free within the lifecycle's
+        single receipt credit. The body is identical to the native
+        /api/v1/execution/attestation/issue body — the receipt binds to the
+        caller's own pre-trade attestations exactly as it does à la carte; the
+        bundle only changes who pays. The credit is consumed only by a
+        successfully recorded issuance; failed attempts restore it.
+      security: [{}]
+      parameters:
+        - in: path
+          name: lifecycleId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutionIssueRequest'
+      responses:
+        '200': { description: Signed receipt with the lifecycle receipt state (consumed). }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { description: Invalid or missing lifecycle token. }
+        '404': { description: Position lifecycle not found. }
+        '409': { description: The bundled receipt was already issued. }
+        '410': { description: Lifecycle closed or expired. }
+        '502': { description: On-chain execution fact collection failed. }
+        '503': { description: Receipt signing unavailable. }
+
   /safety/position:
     post:
       operationId: calculatePositionSafety
