@@ -179,6 +179,7 @@ until a replacement capture path has been verified.
 npm run db:check:turso-price-projection
 npm run db:check:turso-price-projection-dispatcher
 npm run turso:price:migrate
+npm run worker:turso-ingest:check
 npx jest src/lib/turso/price/__tests__ src/lib/supabase/__tests__/snapshotHistory.turso.test.ts --runInBand
 ```
 
