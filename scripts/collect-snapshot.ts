@@ -22,19 +22,25 @@
  */
 import { runSnapshotIngest } from '@/lib/reports/snapshotIngest';
 
+function resolveTriggerSource(): 'cloudflare_cron' | 'github_actions' | 'manual' {
+  if (process.env.SNAPSHOT_TRIGGER_SOURCE === 'cloudflare_cron') return 'cloudflare_cron';
+  if (process.env.SNAPSHOT_TRIGGER_SOURCE === 'manual') return 'manual';
+
+  // A human workflow_dispatch has no durable dispatcher row. It should remain
+  // an immediate recovery path rather than waiting through the GitHub fallback
+  // grace window that protects scheduled runs.
+  if (process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' && !process.env.CRON_DISPATCH_ID) {
+    return 'manual';
+  }
+  return 'github_actions';
+}
+
 async function main(): Promise<void> {
   const startedAt = Date.now();
   console.log('[collect-snapshot] starting collection pipeline…');
 
   try {
-    const result = await runSnapshotIngest(
-      process.env.CRON_SCHEDULED_FOR,
-      process.env.SNAPSHOT_TRIGGER_SOURCE === 'cloudflare_cron'
-        ? 'cloudflare_cron'
-        : process.env.SNAPSHOT_TRIGGER_SOURCE === 'manual'
-          ? 'manual'
-          : 'github_actions'
-    );
+    const result = await runSnapshotIngest(process.env.CRON_SCHEDULED_FOR, resolveTriggerSource());
     console.log(
       `[collect-snapshot] ${result.outcome} slot=${new Date(result.slotMs).toISOString()} ` +
         `projection=${result.projection ?? 'n/a'} inputs=${result.inputCount}`
