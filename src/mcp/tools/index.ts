@@ -12,6 +12,7 @@ import {
 } from './analysisTools';
 import { prepareBaseAgentSwapGuardTool } from './baseAgentSwapGuardTools';
 import { baseLendingGuardExactCallTool, baseLendingGuardTool } from './baseLendingGuardTools';
+import { basePerpGuardExactCallTool, basePerpGuardTool } from './basePerpGuardTools';
 import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
 import { getCrossChainSpreadsTool } from './crossChainTools';
 import {
@@ -48,6 +49,8 @@ import {
   BaseDexVenueIntegrationJsonSchema,
   BaseLendingGuardExactJsonSchema,
   BaseLendingGuardJsonSchema,
+  BasePerpGuardExactJsonSchema,
+  BasePerpGuardJsonSchema,
   MonadLendingGuardExactJsonSchema,
   MonadLendingGuardJsonSchema,
   MultichainEvmLendingGuardExactJsonSchema,
@@ -178,6 +181,8 @@ const MCP_TOOLS: McpToolDefinition[] = [
   verifyHyperliquidPerpExecutionTool,
   baseLendingGuardTool,
   baseLendingGuardExactCallTool,
+  basePerpGuardTool,
+  basePerpGuardExactCallTool,
   monadLendingGuardTool,
   monadLendingGuardExactCallTool,
   multichainEvmLendingGuardTool,
@@ -442,6 +447,16 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   base_lending_guard_exact_call: BaseLendingGuardExactJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  base_perp_guard: BasePerpGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  base_perp_guard_exact_call: BasePerpGuardExactJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

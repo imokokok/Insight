@@ -136,6 +136,7 @@ const reviewedBaseQuote: ReviewedUniswapV3PreTradeEvidence = {
     feeTier: 3_000,
   },
   quote: {
+    direction: 'token0-to-token1',
     amountIn: 5,
     amountInRaw: '5000000000000000000',
     amountOut: 10_000,
@@ -168,6 +169,7 @@ const reviewedAerodromeQuote: ReviewedAerodromeSlipstreamPreTradeEvidence = {
     feePips: 150,
   },
   quote: {
+    direction: 'token0-to-token1',
     amountIn: 5,
     amountInRaw: '5000000000000000000',
     amountOut: 10_000,

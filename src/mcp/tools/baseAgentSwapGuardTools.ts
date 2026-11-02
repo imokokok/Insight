@@ -2,6 +2,7 @@ import {
   prepareBaseAgentSwapGuard,
   BaseAgentSwapGuardInputSchema,
 } from '@/lib/dex/baseAgentSwapGuard';
+import { createBaseAgentSwapGuardDecision } from '@/lib/dex/baseAgentSwapGuardAttestation';
 
 import { formatAsText } from './formatters';
 
@@ -17,28 +18,37 @@ export const prepareBaseAgentSwapGuardTool: McpToolDefinition<
 > = {
   name: 'prepare_base_agent_swap_guard',
   description:
-    'Prepare and gate one reviewed Base direct-router swap for an AI agent: Aerodrome Slipstream WETH→USDC CL100 or PancakeSwap V3 USDC→USDT 0.01%. It obtains a fresh pinned quote, re-verifies reviewed contract identities, canonical-decodes the exact approval/swap calldata, validates both agent decision prices against independent oracle consensus, and converts the route quote using the independent destination consensus before applying price-impact/TWAP/slippage/freshness policy. ALLOW returns exact unsigned approval and swap calldata plus a decisionHash; CAUTION or BLOCK returns no calls to sign. It does not route, sign, relay, broadcast, authorize, assess smart-account UserOperations, or accept arbitrary aggregator calldata.',
+    'Prepare and gate one reviewed Base direct-router swap for an AI agent: Aerodrome Slipstream WETH→USDC CL100, Aerodrome Slipstream USDC→USDT CL1 (both directions), or PancakeSwap V3 USDC→USDT 0.01%. It obtains a fresh pinned quote, re-verifies reviewed contract identities, canonical-decodes the exact approval/swap calldata, validates both agent decision prices against independent oracle consensus, and converts the route quote using the independent destination consensus before applying price-impact/TWAP/slippage/freshness policy. ALLOW returns exact unsigned approval and swap calldata plus a decisionHash, and adds a short-lived signed decision when Insight has a published attester; CAUTION or BLOCK returns no calls to sign. After settlement, pair the signed decision with the swap transaction hash via settle_base_agent_swap_guard to obtain a signed settlement closure. It does not route, sign, relay, broadcast, authorize, assess smart-account UserOperations, or accept arbitrary aggregator calldata.',
   parameters: BaseAgentSwapGuardInputSchema,
   handler: async (args) => {
-    const result = await prepareBaseAgentSwapGuard(args);
+    const guard = await prepareBaseAgentSwapGuard(args);
+    const decision = await createBaseAgentSwapGuardDecision(guard);
     return formatAsText({
-      ...result,
+      // Preserve the original guard response as the top-level MCP contract;
+      // portable consumers take the nested signed decision to PriorSeal.
+      ...guard,
+      decision,
       agentInstructions:
-        result.verdict === 'ALLOW'
+        guard.verdict === 'ALLOW' && decision.attestation !== null
           ? [
-              'Present the exact approval and swap calls plus decisionHash to the user before requesting any signature.',
-              'Bind decisionHash and the byte-identical calls to the user authorization. Do not replace the router, token, recipient, amount, deadline, or calldata after this decision.',
-              'After settlement, use execution_receipt with the Base transaction hash and the original pre-trade attestations when available.',
+              'Present the signed Insight decision and both exact calls to the user before requesting any signature.',
+              'Create two PriorSeal exact-call authorizations: approval first, then the byte-identical swap with the next nonce. Do not batch the calls or replace the token, router, recipient, amount, deadline, or calldata.',
+              'Observe a successful approval before submitting the separately authorized swap, then preserve both execution receipts with the signed decision.',
             ]
-          : result.verdict === 'CAUTION'
+          : guard.verdict === 'ALLOW'
             ? [
-                'Do not request a signature or submit this proposal automatically.',
-                'Explain the caution, then obtain a newly assessed proposal if the user chooses a different policy or trade.',
+                'Do not request a signature: this ALLOW has no trusted Insight attestation and cannot form a portable PriorSeal authorization binding.',
+                'Configure and publish the Insight production attester, then obtain a fresh assessment; do not reuse this unsigned result.',
               ]
-            : [
-                'Do not request a signature, submit the calls, or bypass the result with a different route.',
-                'Create a separate assessment only after the underlying market, policy, or price inputs have materially changed.',
-              ],
+            : guard.verdict === 'CAUTION'
+              ? [
+                  'Do not request a signature or submit this proposal automatically.',
+                  'Explain the caution, then obtain a newly assessed proposal if the user chooses a different policy or trade.',
+                ]
+              : [
+                  'Do not request a signature, submit the calls, or bypass the result with a different route.',
+                  'Create a separate assessment only after the underlying market, policy, or price inputs have materially changed.',
+                ],
     });
   },
 };

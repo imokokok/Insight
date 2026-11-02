@@ -2634,6 +2634,31 @@ paths:
               description: MPP challenge when enabled on this deployment.
               schema: { type: string }
 
+  /safety/base-agent-swap-guard/verify:
+    get:
+      operationId: getBaseAgentSwapGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Base Agent Swap Guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyBaseAgentSwapGuardDecision
+      tags: [Safety]
+      summary: Verify a Base Agent Swap Guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
   /safety/base-lending-guard:
     get:
       operationId: assessBaseLendingGuard
@@ -2743,6 +2768,116 @@ paths:
       operationId: verifyBaseLendingGuardDecision
       tags: [Safety]
       summary: Verify a Base lending guard decision
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Cryptographic verification result and expiry state. }
+
+  /safety/base-perp-guard:
+    get:
+      operationId: assessBasePerpGuard
+      tags: [Safety]
+      summary: Base perp risk decision
+      description: >-
+        Read-only risk gate for a caller-declared Synthetix Perps V3 Base
+        position. It separately evaluates the underlying and USDC margin oracle
+        integrity and checks the declared post-action leverage against reviewed
+        market caps; it never signs, submits, or authorizes an order. API-key
+        access or x402 payment is accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [synthetix-perps-v3-base] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: ETH } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [USDC] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 5000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 2500 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+    post:
+      operationId: createBasePerpGuardExactDecision
+      tags: [Safety]
+      summary: Bind a Base perp decision to one exact PerpsMarketProxy commitOrder
+      description: >-
+        Creates a portable EIP-712 decision that commits to the full
+        PerpsMarketProxy commitOrder calldata, sender, nonce, and zero
+        transaction value. The decision remains non-authorizing and must be
+        bound to user authorization before execution.
+      security:
+        - apiKey: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [guard, transaction]
+              properties:
+                guard: { type: object, description: The same perp fields accepted by GET. }
+                transaction:
+                  {
+                    type: object,
+                    description: Exact unsigned PerpsMarketProxy commitOrder call with zero value.,
+                  }
+      responses:
+        '200':
+          {
+            description: Complete decision,
+            optionally carrying an attestation when an eligible attester is configured.,
+          }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
+  /safety/base-perp-guard/verify:
+    get:
+      operationId: getBasePerpGuardVerificationSchema
+      tags: [Safety]
+      summary: Get Base Perp Guard attestation schema
+      security: []
+      responses:
+        '200': { description: Attester status and supported EIP-712 schema. }
+    post:
+      operationId: verifyBasePerpGuardDecision
+      tags: [Safety]
+      summary: Verify a Base Perp Guard decision
       security: []
       requestBody:
         required: true

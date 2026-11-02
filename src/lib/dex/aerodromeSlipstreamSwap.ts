@@ -22,6 +22,8 @@ import {
   type ReviewedAerodromeSlipstreamPreTradeEvidence,
 } from './preTradeAerodromeSlipstream';
 
+import type { UniswapV3QuoteDirection } from './uniswapV3Market';
+
 const ROUTER_STATE_ABI = parseAbi([
   'function factory() view returns (address)',
   'function WETH9() view returns (address)',
@@ -36,9 +38,14 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export interface PrepareAerodromeSlipstreamExactInputRequest {
   /** One code-reviewed pool from the static allowlist. */
   profileId?: ReviewedAerodromeSlipstreamProfileId;
-  /** Exact amount of the selected profile's token0. Native ETH and reverse direction are not admitted. */
+  /**
+   * Quote direction inside the reviewed pool. The WETH/USDC and USDC/USDT
+   * reviewed pairs are two-way lanes; native ETH remains out of scope.
+   */
+  direction?: UniswapV3QuoteDirection;
+  /** Exact amount of the direction's input token. */
   amountIn: string;
-  /** Recipient of USDC, encoded into the transaction calldata. */
+  /** Recipient of the output token, encoded into the transaction calldata. */
   recipient: string;
   /** Unix seconds, encoded into the router's deadline field. */
   deadlineUnixSeconds: number;
@@ -142,13 +149,16 @@ export async function prepareAerodromeSlipstreamExactInput(
   assertSlippage(request.maxSlippageBps);
   const recipient = verifiedRecipient(request.recipient);
   const profileId = request.profileId ?? 'base-aerodrome-slipstream-weth-usdc-cl100';
+  const direction: UniswapV3QuoteDirection = request.direction ?? 'token0-to-token1';
   const profile: AerodromeSlipstreamMarketProfile = reviewedAerodromeSlipstreamProfile(profileId);
+  const inputToken = direction === 'token0-to-token1' ? profile.token0 : profile.token1;
+  const outputToken = direction === 'token0-to-token1' ? profile.token1 : profile.token0;
   const rpc = options.rpc ?? new AerodromeSlipstreamRpcClient(profile.rpcEndpoints);
   const quote = await getReviewedAerodromeSlipstreamPreTradeEvidence(
     {
       chainId: AERODROME_SLIPSTREAM_CHAIN_ID,
-      asset: profile.token0.symbol,
-      destinationAsset: profile.token1.symbol,
+      asset: inputToken.symbol,
+      destinationAsset: outputToken.symbol,
       amountIn: request.amountIn,
       profileId,
     },
@@ -196,8 +206,8 @@ export async function prepareAerodromeSlipstreamExactInput(
     functionName: 'exactInputSingle',
     args: [
       {
-        tokenIn: profile.token0.address,
-        tokenOut: profile.token1.address,
+        tokenIn: inputToken.address,
+        tokenOut: outputToken.address,
         tickSpacing: profile.tickSpacing,
         recipient,
         deadline: BigInt(request.deadlineUnixSeconds),
@@ -218,15 +228,15 @@ export async function prepareAerodromeSlipstreamExactInput(
     chainId: AERODROME_SLIPSTREAM_CHAIN_ID,
     transaction: { to: AERODROME_SLIPSTREAM_SWAP_ROUTER, data, value: '0x0' },
     approval: {
-      token: profile.token0.address,
+      token: inputToken.address,
       spender: AERODROME_SLIPSTREAM_SWAP_ROUTER,
       amountRaw: amountIn.toString(),
       data: approvalData,
     },
     exactInput: {
       profileId,
-      tokenIn: profile.token0.address,
-      tokenOut: profile.token1.address,
+      tokenIn: inputToken.address,
+      tokenOut: outputToken.address,
       tickSpacing: profile.tickSpacing,
       amountInRaw: amountIn.toString(),
       quotedAmountOutRaw: quotedAmountOut.toString(),

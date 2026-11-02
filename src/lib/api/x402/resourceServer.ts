@@ -14,6 +14,7 @@ import {
   facilitatorUrlForNetwork,
   type X402Config,
   X402_BASE_LENDING_GUARD_ROUTE,
+  X402_BASE_PERP_GUARD_ROUTE,
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
@@ -339,6 +340,60 @@ export const BAZAAR_BASE_LENDING_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExt
       schema: 'insight.base-lending-guard.v1',
       verdict: 'ALLOW',
       projected: { ltv: 0.4, liquidationBufferPct: 50, conservativeMaxDebtUsd: 7200 },
+      next: { execution: 'not_performed' },
+    },
+  },
+});
+
+/** Marketplace contract for the Base Synthetix Perps V3 pre-trade decision gate. */
+export const BAZAAR_BASE_PERP_GUARD_DISCOVERY_EXTENSION = declareDiscoveryExtension({
+  input: {
+    protocolId: 'synthetix-perps-v3-base',
+    action: 'open_long',
+    assetSymbol: 'ETH',
+    marginAssetSymbol: 'USDC',
+    sizeUsd: 25_000,
+    marginValueUsd: 5_000,
+  },
+  inputSchema: {
+    type: 'object',
+    properties: {
+      protocolId: { type: 'string', enum: ['synthetix-perps-v3-base'] },
+      action: { type: 'string', enum: ['open_long', 'open_short'] },
+      assetSymbol: { type: 'string', description: 'Perp market underlying asset symbol' },
+      marginAssetSymbol: { type: 'string', enum: ['USDC'], description: 'Margin asset symbol' },
+      sizeUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action notional position value in USD',
+      },
+      marginValueUsd: {
+        type: 'number',
+        description: 'Caller-declared post-action margin value in USD',
+      },
+      transaction: {
+        type: 'object',
+        description:
+          'POST only: exact unsigned Base transaction {chainId,from,to,data,nonce,value} for one direct PerpsMarketProxy commitOrder; required for portable signed decision evidence.',
+      },
+    },
+    required: [
+      'protocolId',
+      'action',
+      'assetSymbol',
+      'marginAssetSymbol',
+      'sizeUsd',
+      'marginValueUsd',
+    ],
+  },
+  output: {
+    example: {
+      schema: 'insight.base-perp-guard.v1',
+      verdict: 'ALLOW',
+      projected: {
+        effectiveLeverage: 5,
+        liquidationBufferPct: 80,
+        conservativeMaxSizeUsd: 112_500,
+      },
       next: { execution: 'not_performed' },
     },
   },
@@ -810,6 +865,11 @@ export async function buildX402HttpServer(
       cfg,
       BAZAAR_BASE_LENDING_GUARD_DISCOVERY_EXTENSION,
       'Base Lending Guard: a read-only, pre-signing decision for Aave V3, exact Morpho Blue markets, Compound V3 Base USDC Comet, or reviewed Moonwell Base markets. GET returns a preview; POST accepts one unsigned direct call and may return an Insight EIP-712 decision attestation. It never authorizes or broadcasts a transaction.'
+    ),
+    [X402_BASE_PERP_GUARD_ROUTE]: routeConfigFor(
+      cfg,
+      BAZAAR_BASE_PERP_GUARD_DISCOVERY_EXTENSION,
+      'Base Perp Guard: a read-only, pre-trade decision-input integrity gate for opening a Synthetix Perps V3 position on Base (reviewed BTC, ETH, SOL, XRP, DOGE, and PEPE markets, USDC margin). It separately evaluates the underlying and USDC margin oracle integrity and checks caller-declared post-action leverage against reviewed market caps. GET returns a preview; POST accepts one unsigned direct PerpsMarketProxy commitOrder call and may return an Insight EIP-712 decision attestation. It never signs, broadcasts, or authorizes an order.'
     ),
     [X402_MONAD_LENDING_GUARD_ROUTE]: routeConfigFor(
       cfg,

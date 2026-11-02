@@ -94,6 +94,7 @@ const preparedAerodrome = {
       pool: '0xb2cc224c1c9feE385f8ad6a55b4d94E92359DC59',
     },
     quote: {
+      direction: 'token0-to-token1',
       amountIn: 1.25,
       amountInRaw: '1250000000000000000',
       amountOut: 2_500,
@@ -107,6 +108,8 @@ const preparedAerodrome = {
   router: {
     address: '0xBE6D8f0d05cC4be24d5167a3eF062215bE6D18a5',
     codeHash: '0x8ca2876cc2c509da1648ef2ad21a8849c261cf7316b675119b98ba298c8657e7',
+    factory: '0x5e7BB104d84c7CB9B682AaC2F3d509f5F406809A',
+    weth9: '0x4200000000000000000000000000000000000006',
   },
   caveats: [],
 } as const;
@@ -178,6 +181,7 @@ const preparedPancake = {
       pool: '0x5f07bb9fee6062e9d09a52e6d587c64bad6ba706',
     },
     quote: {
+      direction: 'token0-to-token1',
       amountIn: 1.25,
       amountInRaw: '1250000',
       amountOut: 1.249,
@@ -190,6 +194,8 @@ const preparedPancake = {
   router: {
     address: '0x1b81D678ffb9C0263b24A97847620C99d213eB14',
     codeHash: '0x2cbdac93453dc8ebb7906446b3af75ada8ff43a6225a08ed2e0ee6eb12057b42',
+    factory: '0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865',
+    weth9: '0x4200000000000000000000000000000000000006',
   },
   caveats: [],
 } as const;
@@ -233,7 +239,7 @@ describe('Base Agent Swap Guard', () => {
     expect(result.validUntil).toBe(1_700_000_060);
     expect(result.transactionsToSign).toEqual({
       approval: {
-        to: preparedAerodrome.approval.spender,
+        to: preparedAerodrome.approval.token,
         value: '0x0',
         data: preparedAerodrome.approval.data,
       },
@@ -313,6 +319,96 @@ describe('Base Agent Swap Guard', () => {
         destinationAsset: 'USDT',
         decisionInput: expect.objectContaining({
           reviewedUniswapV3: expect.objectContaining({ amountIn: '1.25' }),
+        }),
+      })
+    );
+  });
+
+  it('guards the reviewed reverse lane USDC→WETH through the same pinned pool', async () => {
+    const reverseInput: BaseAgentSwapGuardInput = {
+      ...input,
+      direction: 'token1-to-token0',
+      sourceDecisionPriceUsd: 1,
+      destinationDecisionPriceUsd: 2_000,
+    };
+    const preparedAerodromeReverse = {
+      ...preparedAerodrome,
+      exactInput: {
+        ...preparedAerodrome.exactInput,
+        tokenIn: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        tokenOut: '0x4200000000000000000000000000000000000006',
+        amountInRaw: '1250000',
+        quotedAmountOutRaw: '625000000000000',
+        amountOutMinimumRaw: '621875000000000',
+      },
+      transaction: {
+        to: preparedAerodrome.transaction.to,
+        value: '0x0',
+        data: encodeFunctionData({
+          abi: AERODROME_EXACT_INPUT_SINGLE_ABI,
+          functionName: 'exactInputSingle',
+          args: [
+            {
+              tokenIn: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+              tokenOut: '0x4200000000000000000000000000000000000006',
+              tickSpacing: 100,
+              recipient: input.recipient,
+              deadline: 1_700_000_060n,
+              amountIn: 1_250_000n,
+              amountOutMinimum: 621_875_000_000_000n,
+              sqrtPriceLimitX96: 0n,
+            },
+          ],
+        }),
+      },
+      approval: {
+        token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        spender: preparedAerodrome.approval.spender,
+        amountRaw: '1250000',
+        data: encodeFunctionData({
+          abi: ERC20_APPROVE_ABI,
+          functionName: 'approve',
+          args: ['0xBE6D8f0d05cC4be24d5167a3eF062215bE6D18a5', 1_250_000n],
+        }),
+      },
+      quote: {
+        ...preparedAerodrome.quote,
+        quote: {
+          direction: 'token1-to-token0',
+          amountIn: 1.25,
+          amountInRaw: '1250000',
+          amountOut: 0.000625,
+          amountOutRaw: '625000000000000',
+          effectiveToken0PerToken1: 0.0005,
+          initializedTicksCrossed: 1,
+          priceImpactBps: 6,
+        },
+      },
+    } as const;
+    const deps = dependencies(check('PASS', 'SUFFICIENT', 1), check('PASS', null, 2_000));
+    (deps.prepareAerodrome as jest.Mock).mockResolvedValueOnce(preparedAerodromeReverse);
+
+    const result = await prepareBaseAgentSwapGuard(reverseInput, deps);
+
+    expect(result).toMatchObject({
+      verdict: 'ALLOW',
+      reasonCodes: [],
+      market: {
+        venue: 'aerodrome-slipstream',
+        sourceAsset: 'USDC',
+        destinationAsset: 'WETH',
+        exactInput: { routeQuotePriceUsd: 1 },
+      },
+    });
+    expect(result.transactionsToSign?.swap.data).toBe(preparedAerodromeReverse.transaction.data);
+    expect(deps.preTrade).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        asset: 'USDC',
+        destinationAsset: 'WETH',
+        decisionInput: expect.objectContaining({
+          quotePriceUsd: 1,
+          reviewedAerodromeSlipstream: expect.objectContaining({ amountIn: '1.25' }),
         }),
       })
     );
