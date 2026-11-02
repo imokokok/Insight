@@ -129,6 +129,19 @@ export const PLANS = {
 
 export type Plan = keyof typeof PLANS;
 
+/**
+ * Canonical USD value of one credit, anchored to the x402 public list price
+ * (C1 $0.002 per 0.5 cr). Product-level credit prices are derived from this
+ * constant so a non-per-call purchase can never drift from the per-call
+ * x402↔credit exchange rate documented in the pricing-model comment above.
+ */
+export const USD_PER_CREDIT = 0.004;
+
+/** Convert a USD list price into its integer credit cost at {@link USD_PER_CREDIT}. */
+export function usdToCredits(usd: number): number {
+  return Math.round(usd / USD_PER_CREDIT);
+}
+
 /** Billing cycle options for subscriptions. */
 export type BillingInterval = 'month' | 'year';
 

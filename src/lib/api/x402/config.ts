@@ -444,7 +444,8 @@ function parseEvmNetworks(raw: string | undefined, defaultNetwork: X402NetworkId
   return networks;
 }
 
-function usdToAtomicUnits(usd: number): string {
+/** Convert a USD price into USDC atomic units (6 decimals) as a decimal string. */
+export function usdToAtomicUnits(usd: number): string {
   // Integer math on the micro-dollar grid avoids binary float drift.
   const microUsd = Math.round(usd * 10 ** USDC_DECIMALS);
   if (microUsd <= 0) {
@@ -655,6 +656,16 @@ export const X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE = '/api/v1/safety/loopscale-vaul
 
 /** A two-gate same-chain swap lifecycle with one post-settlement receipt credit. */
 export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';
+
+/**
+ * Oracle Watch monitored-window purchase (POST): one settlement buys a 24 h
+ * continuous-signal window for one (symbol, chain). Unlike every other REST
+ * paid tier it is NOT priced at the configured per-call amount — the route
+ * quotes the window plan price (see src/lib/billing/oracleWatchWindow.ts) via
+ * a per-route amount override in resourceServer.ts. In-window polls are
+ * token-authenticated and never pass through this paid tier.
+ */
+export const X402_ORACLE_WATCH_WINDOW_ROUTE = '/api/v1/safety/oracle-watch-window';
 
 /** The MCP streamable-HTTP route paid per tools/call (JSON-RPC POST). */
 export const X402_MCP_ROUTE = '/api/mcp';
