@@ -39,6 +39,9 @@ export const X402_EVM_NETWORK_IDS = [
 
 export type X402NetworkId = (typeof X402_EVM_NETWORK_IDS)[number];
 
+/** Base mainnet is the settlement rail for Base-specific paid capabilities. */
+export const X402_BASE_MAINNET_NETWORK = 'eip155:8453' as const;
+
 /** Native USDC contract and EIP-712 domain name for each supported EVM network. */
 const SUPPORTED_NETWORKS: Record<
   X402NetworkId,
@@ -696,6 +699,43 @@ export function facilitatorBearerTokenForNetwork(
   network: X402PaymentNetworkId
 ): string | null {
   return cfg.facilitatorBearerTokens?.[network] ?? cfg.facilitatorBearerToken ?? null;
+}
+
+/**
+ * Restrict a Base-native paid capability to Base mainnet without changing the
+ * merchant's global x402 rails. This is intentionally derived at request time:
+ * a Base-specific tool must never silently advertise a different configured
+ * EVM network merely because that network is the portfolio-wide default.
+ */
+export function baseMainnetOnlyX402Config(cfg: X402Config): X402Config {
+  const network = X402_BASE_MAINNET_NETWORK;
+  const evmEnabled =
+    cfg.evmEnabled ??
+    (cfg.enabled && (cfg.payTo !== '' || Object.keys(cfg.evmPayTos ?? {}).length > 0));
+  const payTo = payToForEvmNetwork(cfg, network);
+
+  if (!cfg.enabled || !evmEnabled || payTo === '') {
+    throw new Error('Base-native x402 capability requires an enabled EVM payment recipient');
+  }
+
+  const facilitatorUrl = facilitatorUrlForNetwork(cfg, network);
+  const facilitatorBearerToken = facilitatorBearerTokenForNetwork(cfg, network);
+
+  return {
+    ...cfg,
+    enabled: true,
+    evmEnabled: true,
+    network,
+    evmNetworks: [network],
+    payTo,
+    evmPayTos: { [network]: payTo },
+    facilitatorUrl,
+    facilitatorUrls: { [network]: facilitatorUrl },
+    facilitatorBearerToken,
+    facilitatorBearerTokens: facilitatorBearerToken ? { [network]: facilitatorBearerToken } : {},
+    solana: null,
+    hypercore: null,
+  };
 }
 
 /**
