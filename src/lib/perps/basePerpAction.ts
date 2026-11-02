@@ -16,7 +16,7 @@
 import { decodeFunctionData, encodeFunctionData, keccak256 } from 'viem';
 import { z } from 'zod';
 
-import { SYNTHETIX_PERPS_V3_BASE_PROTOCOL_ID } from './basePerpGuard';
+import { type SYNTHETIX_PERPS_V3_BASE_PROTOCOL_ID } from './basePerpGuard';
 
 export const BASE_CHAIN_ID = 8453;
 

@@ -168,6 +168,44 @@ line of price protection. The guard rechecks that expiry after its destination
 and source oracle stages; if either stage consumes the remaining quote window,
 the result becomes `BLOCK` and contains no calls.
 
+## Post-settlement closure
+
+The pre-signing workflow above ends at broadcast; until now nothing joined the
+signed decision back to what actually settled. `settle_base_agent_swap_guard`
+closes that loop. After the swap transaction is included, the agent presents the
+signed decision plus the swap transaction hash (and the approval transaction
+hash when it holds one), and Insight returns a signed
+`insight.base-agent-swap-guard-settlement.v1` closure bound to the
+`decisionHash` and both transaction hashes.
+
+The closure is evidence, not ceremony. Before signing it, Insight:
+
+1. re-verifies the decision itself — integrity hash, exact two-call binding,
+   attester signature, trust registry, and expiry. A decision that does not
+   verify produces **no settlement**; an expired-but-genuine one still closes
+   and carries `DECISION_EXPIRED_AT_CLOSURE`;
+2. requires the on-chain swap transaction to match the guarded call
+   byte-for-byte — same `to`, zero `value`, and `keccak256(calldata)` equal to
+   the guarded `swapCalldataHash`. A presented approval transaction must match
+   the guarded approval the same way; a presented-but-different approval is a
+   hard rejection, and an absent one is reported as
+   `APPROVAL_TX_NOT_PRESENTED`;
+3. reconciles the observed ERC-20 movements against the guarded commitment —
+   the input amount against `amountInRaw` (`SOURCE_AMOUNT_MISMATCH` on
+   divergence), the output amount against `amountOutMinimumRaw`
+   (`RECEIVED_BELOW_GUARANTEED_MINIMUM`) and the quoted output
+   (`REALIZED_SLIPPAGE_EXCEEDED` when the realized output-leg slippage exceeds
+   the agent's own `maxSlippageBps`); and
+4. reports a reverted swap as a real, signable outcome (`SWAP_TX_REVERTED`),
+   never as a collection failure.
+
+Amounts that cannot be attributed are signed as empty strings with an explicit
+reason code, never as zeros. The settlement certifies that the executed bytes
+were the guarded bytes and states the fill against the guarded quote; it is not
+a claim the price was correct, the trade was well-timed, or that anyone
+authorized the execution. A REST verifier is available at
+`POST /api/v1/safety/base-agent-swap-guard/settlement` with `verifyOnly: true`.
+
 ## Agent rules
 
 1. Call the guard after selecting one supported profile and before any wallet
@@ -194,15 +232,24 @@ The implementation lives in
 [`src/lib/dex/baseAgentSwapGuard.ts`](../src/lib/dex/baseAgentSwapGuard.ts),
 the signed decision builder in
 [`src/lib/dex/baseAgentSwapGuardAttestation.ts`](../src/lib/dex/baseAgentSwapGuardAttestation.ts),
+the post-settlement closure in
+[`src/lib/dex/baseAgentSwapGuardSettlement.ts`](../src/lib/dex/baseAgentSwapGuardSettlement.ts),
 and the MCP entry point in
 [`src/mcp/tools/baseAgentSwapGuardTools.ts`](../src/mcp/tools/baseAgentSwapGuardTools.ts).
 
 The focused test suite covers the ALLOW handoff, caution and block call
 suppression, policy breach, insufficient decision-input evidence, unavailable
-route evidence, MCP discovery, validation, and metering:
+route evidence, MCP discovery, validation, and metering, plus the settlement
+closure (faithful fills, byte mismatches, reverted swaps, realized slippage,
+tampered closures):
 
 ```bash
 npx jest src/lib/dex/__tests__/baseAgentSwapGuard.test.ts \
   src/lib/dex/__tests__/baseAgentSwapGuardAttestation.test.ts \
+  src/lib/dex/__tests__/baseAgentSwapGuardSettlement.test.ts \
   src/mcp/tools/__tests__/baseAgentSwapGuardTools.test.ts --runInBand
 ```
+
+Metering: `prepare_base_agent_swap_guard` is C3 / 5 credits;
+`settle_base_agent_swap_guard` and `verify_base_agent_swap_guard_settlement`
+are C4 evidence artifacts.
