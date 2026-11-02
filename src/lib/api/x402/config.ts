@@ -667,6 +667,18 @@ export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';
  */
 export const X402_ORACLE_WATCH_WINDOW_ROUTE = '/api/v1/safety/oracle-watch-window';
 
+/**
+ * Position Lifecycle Bundle purchase (POST): one settlement buys 24 h of
+ * lifecycle coverage for one (symbol, chain) position — an embedded monitored
+ * window, 4 bundled guard assessments, and 1 attested execution receipt. Like
+ * the monitored-window route it is NOT priced at the configured per-call
+ * amount; the route quotes the bundle plan price (see
+ * src/lib/billing/positionLifecycle.ts) via a per-route amount override in
+ * resourceServer.ts. Bundled calls are token-authenticated and never pass
+ * through this paid tier.
+ */
+export const X402_POSITION_LIFECYCLE_ROUTE = '/api/v1/safety/position-lifecycle';
+
 /** The MCP streamable-HTTP route paid per tools/call (JSON-RPC POST). */
 export const X402_MCP_ROUTE = '/api/mcp';
 

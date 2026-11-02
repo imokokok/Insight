@@ -71,20 +71,23 @@ consensus core, or existing evidence tools.
    positions need continuous between-action monitoring. Sell a monitored-window
    plan (e.g. 24 h of halt/proceed signals for one position) — the first
    non-per-call product; billing infra (plans/credits) already exists.
-2. **Position monitoring bundles**: perp/lending guard + watch + execution receipt
-   as one priced lifecycle product per position, rather than four separate calls.
+2. **Position monitoring bundles** (shipped 2026-11-03, see
+   `2026-11-03-position-lifecycle-bundle-research.md`): perp/lending guard + watch +
+   execution receipt as one priced lifecycle product per position, rather than four
+   separate calls.
 3. **Pricing review after 30 days of live data**: C1–C4 classes were set a priori;
    let Bazaar telemetry decide the first adjustment.
 
 ## Sequencing and gates
 
-| Order | Item                               | Why this order                          | Done when                                                                                                                                           |
-| ----- | ---------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | Track B1 joint reference agent     | Makes everything after it sellable      | Published case study + receipts                                                                                                                     |
-| 2     | Track A1 perp liquidity evidence   | Cheapest moat deepening; pattern exists | v3 shipped behind perp guard (shipped 2026-11-03)                                                                                                   |
-| 3     | Track C1 Oracle Watch subscription | First recurring revenue                 | Live plan purchasable via x402 (shipped 2026-11-03: `/safety/oracle-watch-window` begin/poll/close, REST-first; MCP follow-up)                      |
-| 4     | Track A2 Hyperliquid Perp Guard    | Biggest TAM, moderate cost              | Guard + exact-call on main (shipped 2026-11-03: `/safety/hyperliquid-perp-guard` assess/exact/verify; MCP keyless payment fail-closed on HyperCore) |
-| 5     | Track B2/B3 + C2/C3 continuous     | Compounding, run in background          | Audit + first pricing review                                                                                                                        |
+| Order | Item                               | Why this order                          | Done when                                                                                                                                                      |
+| ----- | ---------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | Track B1 joint reference agent     | Makes everything after it sellable      | Published case study + receipts                                                                                                                                |
+| 2     | Track A1 perp liquidity evidence   | Cheapest moat deepening; pattern exists | v3 shipped behind perp guard (shipped 2026-11-03)                                                                                                              |
+| 3     | Track C1 Oracle Watch subscription | First recurring revenue                 | Live plan purchasable via x402 (shipped 2026-11-03: `/safety/oracle-watch-window` begin/poll/close, REST-first; MCP follow-up)                                 |
+| 4     | Track A2 Hyperliquid Perp Guard    | Biggest TAM, moderate cost              | Guard + exact-call on main (shipped 2026-11-03: `/safety/hyperliquid-perp-guard` assess/exact/verify; MCP keyless payment fail-closed on HyperCore)            |
+| 5     | Track C2 position lifecycle bundle | Second recurring; first bundle product  | Live bundle purchasable via x402 (shipped 2026-11-03: `/safety/position-lifecycle` begin + token-authed guard/receipt/close; embedded window reuses C1 routes) |
+| 6     | Track B2/B3 + C3 continuous        | Compounding, run in background          | Audit + first pricing review                                                                                                                                   |
 
 Every item keeps the standing boundaries: assessment and evidence only, no custody,
 no execution authority, fail closed outside reviewed scope, x402-metered.

@@ -8,6 +8,7 @@ import { bazaarResourceServerExtension, declareDiscoveryExtension } from '@x402/
 import { ExactSvmScheme } from '@x402/svm/exact/server';
 
 import { ORACLE_WATCH_WINDOW_PLAN } from '@/lib/billing/oracleWatchWindow';
+import { POSITION_LIFECYCLE_PLAN } from '@/lib/billing/positionLifecycle';
 import { BaseAgentSwapGuardInputSchema } from '@/lib/dex/baseAgentSwapGuard';
 
 import {
@@ -19,6 +20,7 @@ import {
   X402_MONAD_LENDING_GUARD_ROUTE,
   X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE,
   X402_ORACLE_WATCH_WINDOW_ROUTE,
+  X402_POSITION_LIFECYCLE_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
@@ -906,6 +908,11 @@ export async function buildX402HttpServer(
       cfg,
       'Oracle Watch Monitored Window (24h): one settlement pre-pays continuous Oracle Watch halt/proceed signal coverage for one (symbol, chain) position for 24 hours. The purchase returns a one-time window token; in-window signal polls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
       usdToAtomicUnits(ORACLE_WATCH_WINDOW_PLAN.priceUsd)
+    ),
+    [X402_POSITION_LIFECYCLE_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Position Lifecycle Bundle (24h): one settlement pre-pays a full monitored lifecycle for one (symbol, chain) position — an embedded Oracle Watch window (300 free signal polls), 4 bundled guard assessments across any position-guard family, and 1 attested execution receipt. The purchase returns a one-time lifecycle token; bundled calls are token-authenticated and never charged per call. Assessment and evidence only — no custody, no execution authority.',
+      usdToAtomicUnits(POSITION_LIFECYCLE_PLAN.priceUsd)
     ),
     [X402_MCP_ROUTE]: mcpRouteConfigFor(
       cfg,
