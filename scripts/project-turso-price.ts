@@ -29,7 +29,10 @@ async function main(): Promise<void> {
   }
 
   const limit = readPositiveInteger('TURSO_PRICE_PROJECTION_BATCH_SIZE', 16, 32);
-  const result = await runTursoPriceProjection(limit, 1);
+  // Normal cadence stops after one partial batch. During recovery, a bounded
+  // four-batch drain catches up without unbounded Supabase write pressure.
+  const maximumBatches = readPositiveInteger('TURSO_PRICE_PROJECTION_MAX_BATCHES', 4, 8);
+  const result = await runTursoPriceProjection(limit, maximumBatches);
 
   console.log(
     JSON.stringify({

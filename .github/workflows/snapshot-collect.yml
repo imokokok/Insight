@@ -17,19 +17,10 @@ name: Snapshot Collect
 
 on:
   schedule:
-    # Cloudflare Cron is the raw-capture primary at :00/:15/:30/:45. Native
-    # GitHub scheduling is a delayed fallback so it never races the primary.
-    - cron: '7,22,37,52 * * * *'
+    # GitHub Actions is the sole high-frequency clock. The Turso slot lease
+    # makes a delayed duplicate or manual recovery invocation idempotent.
+    - cron: '0,15,30,45 * * * *'
   workflow_dispatch:
-    inputs:
-      dispatch_id:
-        description: 'Supabase cron_dispatch_runs id (empty for manual/fallback runs)'
-        required: false
-        type: string
-      scheduled_for:
-        description: 'Supabase scheduled slot (audit only)'
-        required: false
-        type: string
 
 # Prevent overlapping 15-min runs. If a run exceeds 15 min (extremely
 # unlikely — typical runtime is ~50s), queue the new run instead of
@@ -61,13 +52,7 @@ env:
   TURSO_PRICE_PARTITION_KEY: ${{ vars.TURSO_PRICE_PARTITION_KEY || 'bootstrap' }}
   TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
   TURSO_PRICE_READ_CUTOVER_AT: ${{ vars.TURSO_PRICE_READ_CUTOVER_AT || '' }}
-  CRON_WORKFLOW: snapshot-collect.yml
-  CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
-  CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
   SNAPSHOT_TRIGGER_SOURCE: github_actions
-  # A second, runtime-enforced guard against accidental schedule regressions.
-  # Seven minutes is comfortably above the primary route's 180-second ceiling.
-  SNAPSHOT_INGEST_FALLBACK_GRACE_SECONDS: '420'
   # Alchemy RPC keys (optional — public RPC fallbacks exist, but Alchemy
   # is more reliable for on-chain oracle reads). Same keys as .env.local.
   ALCHEMY_ETHEREUM_RPC: ${{ secrets.ALCHEMY_ETHEREUM_RPC }}
@@ -96,20 +81,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      - name: Check whether native fallback is needed
-        id: guard
-        env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          FALLBACK_MAX_AGE_MINUTES: '25'
-          # The Supabase dispatcher creates a durable in-flight row before
-          # GitHub accepts the workflow_dispatch. Avoid a same-minute native
-          # duplicate while that primary-dispatched run is still fresh.
-          FALLBACK_REQUIRE_NO_PRIMARY_IN_FLIGHT: 'true'
-          FALLBACK_PRIMARY_IN_FLIGHT_MAX_AGE_MINUTES: '8'
-        run: node scripts/cron-control.mjs guard
-
       - name: Verify required secrets
-        if: steps.guard.outputs.should_run == 'true'
         run: |
           set -u
           if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
@@ -117,24 +89,8 @@ jobs:
             exit 1
           fi
 
-      - name: Start run ledger
-        if: steps.guard.outputs.should_run == 'true'
-        env:
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          GITHUB_SERVER_URL: ${{ github.server_url }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-        run: node scripts/cron-control.mjs start
-
       - name: Collect snapshots
-        if: steps.guard.outputs.should_run == 'true'
         run: node .github/cron-dist/collect-snapshot.mjs
-
-      - name: Finish run ledger
-        if: always() && steps.guard.outputs.should_run == 'true'
-        env:
-          CRON_CONCLUSION: ${{ job.status }}
-        run: node scripts/cron-control.mjs finish
 
   # Evidence collection has a separate job result from raw capture. A transient
   # Supabase schema-cache or evidence-source issue remains visible in Actions,

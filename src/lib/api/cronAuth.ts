@@ -63,8 +63,3 @@ function verifyBearerSecret(request: Request, secret: string | undefined): NextR
 export function verifyCronSecret(request: Request): NextResponse | null {
   return verifyBearerSecret(request, process.env.CRON_SECRET);
 }
-
-/** Dedicated secret boundary for the independent Cloudflare ingest scheduler. */
-export function verifyIngestSchedulerSecret(request: Request): NextResponse | null {
-  return verifyBearerSecret(request, process.env.INGEST_SCHEDULER_SECRET);
-}

@@ -1,15 +1,17 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-// Cloudflare owns the on-time Turso raw capture. Keep the existing GitHub
-// dispatcher, but offset its snapshot workflow far enough to become a real
-// fallback instead of a second primary contender for the same slot lease.
-const migrationSql = String.raw`-- Make GitHub snapshot capture a delayed fallback for Cloudflare Cron.
+// GitHub Actions owns the high-frequency Turso capture and projection clocks.
+// Keep Supabase pg_cron for the lower-frequency dispatches it performs well,
+// but remove the two 15-minute jobs that created avoidable PostgreSQL control-
+// plane traffic and shared the data path's failure domain.
+const migrationSql = String.raw`-- Keep high-frequency Turso scheduling outside Supabase pg_cron.
 --
--- The raw capture uses a Turso lease, so concurrent attempts were safe, but
--- scheduling both primaries at the same minute made GitHub win most leases.
--- Keep GitHub's market-reference and manipulation-cost work, while giving the
--- independent Cloudflare capture path a seven-minute head start.
+-- GitHub Actions directly captures raw slots at :00/:15/:30/:45 and projects
+-- them at :03/:18/:33/:48. The Turso lease and Supabase projection receipts
+-- make scheduled retries idempotent. Supabase retains its low-frequency
+-- dispatches, relational data, and health telemetry without carrying the
+-- high-frequency scheduler load.
 
 BEGIN;
 
@@ -37,17 +39,8 @@ BEGIN
 
   PERFORM public.disable_github_workflow_dispatcher();
 
-  -- Cloudflare is the :00/:15/:30/:45 raw-capture primary. This GitHub
-  -- workflow still runs the non-price evidence tasks every 15 minutes, but
-  -- only captures raw prices if the primary did not complete its slot.
-  PERFORM cron.schedule(
-    'github-dispatch-snapshot-collect', '7,22,37,52 * * * *',
-    $command$SELECT public.dispatch_github_workflow('snapshot-collect.yml');$command$
-  );
-  PERFORM cron.schedule(
-    'github-dispatch-turso-price-project', '3,18,33,48 * * * *',
-    $command$SELECT public.dispatch_github_workflow('turso-price-project.yml');$command$
-  );
+  -- High-frequency Turso capture and projection are native GitHub schedules,
+  -- not Supabase pg_cron dispatches. Keep only low-frequency product jobs here.
   PERFORM cron.schedule(
     'github-dispatch-oracle-watch', '8 * * * *',
     $command$SELECT public.dispatch_github_workflow('oracle-watch-collect.yml');$command$
@@ -100,8 +93,6 @@ REVOKE ALL ON FUNCTION public.enable_github_workflow_dispatcher()
 GRANT EXECUTE ON FUNCTION public.enable_github_workflow_dispatcher()
   TO service_role;
 
--- Re-register immediately. A missing Vault credential leaves the existing
--- schedule untouched and makes the migration's activation condition explicit.
 DO $block$
 BEGIN
   IF EXISTS (
@@ -112,7 +103,7 @@ BEGIN
     PERFORM public.enable_github_workflow_dispatcher();
   ELSE
     RAISE NOTICE
-      'Cloudflare ingest fallback cadence deferred: github_workflow_dispatch_token is unavailable';
+      'GitHub primary Turso scheduler activation deferred: github_workflow_dispatch_token is unavailable';
   END IF;
 END;
 $block$;
@@ -122,7 +113,7 @@ COMMIT;
 
 const repositoryRoot = new URL('../../', import.meta.url);
 const outputPath = fileURLToPath(
-  new URL('supabase/migrations/0115_cloudflare_ingest_fallback.sql', repositoryRoot)
+  new URL('supabase/migrations/0119_github_primary_turso_scheduler.sql', repositoryRoot)
 );
 const args = new Set(process.argv.slice(2));
 const write = args.has('--write');
@@ -138,7 +129,7 @@ if (write) {
   const current = await readFile(outputPath, 'utf8');
   if (current !== migrationSql) {
     throw new Error(
-      '0115_cloudflare_ingest_fallback.sql is stale; regenerate it from this TypeScript source.'
+      '0119_github_primary_turso_scheduler.sql is stale; regenerate it from this TypeScript source.'
     );
   }
 }

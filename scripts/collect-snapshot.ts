@@ -2,11 +2,9 @@
 /**
  * High-frequency oracle price-snapshot collector.
  *
- * Runs as the GitHub fallback collector. The primary collector is invoked by
- * Cloudflare Cron through the Vercel `/api/cron/turso-ingest` route; both
- * callers share `runSnapshotIngest()` and its Turso slot lease. This runner
- * therefore never competes with an in-flight primary capture or produces a
- * different payload for the same 15-minute slot.
+ * Runs as the primary GitHub Actions collector. Its Turso slot lease makes
+ * schedule retries and manual recovery runs idempotent, so they never produce
+ * a different payload for the same 15-minute slot.
  *
  * Why a separate table: `hourly_price_snapshots` upserts on
  * `(snapshot_hour, provider, symbol, chain_id)`, so running more frequently
@@ -22,13 +20,10 @@
  */
 import { runSnapshotIngest } from '@/lib/reports/snapshotIngest';
 
-function resolveTriggerSource(): 'cloudflare_cron' | 'github_actions' | 'manual' {
-  if (process.env.SNAPSHOT_TRIGGER_SOURCE === 'cloudflare_cron') return 'cloudflare_cron';
+function resolveTriggerSource(): 'github_actions' | 'manual' {
   if (process.env.SNAPSHOT_TRIGGER_SOURCE === 'manual') return 'manual';
 
-  // A human workflow_dispatch has no durable dispatcher row. It should remain
-  // an immediate recovery path rather than waiting through the GitHub fallback
-  // grace window that protects scheduled runs.
+  // A human workflow_dispatch remains an explicit recovery path.
   if (process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' && !process.env.CRON_DISPATCH_ID) {
     return 'manual';
   }

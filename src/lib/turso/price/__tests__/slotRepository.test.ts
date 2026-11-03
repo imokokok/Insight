@@ -167,7 +167,7 @@ describe('Turso price-slot repository', () => {
     const first = await acquireTursoPriceIngestLease(
       client,
       3_600_000,
-      'cloudflare_cron',
+      'github_actions',
       60_000,
       1
     );
