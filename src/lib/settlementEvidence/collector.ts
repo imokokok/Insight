@@ -17,6 +17,7 @@
 import type { AttesterAccount } from '@/lib/attestations/attesterAccount';
 import { createLogger } from '@/lib/utils/logger';
 
+import { sendInconsistentAlerts, type InconsistentAlert } from './alerts';
 import { buildEvidencePayload, assembleEvidencePack, logGradedEvidence } from './engine';
 import {
   fetchSettlementWindowCandles,
@@ -63,6 +64,7 @@ export interface CollectSettlementEvidenceResult {
   packsBuilt: number;
   packsSigned: number;
   grades: Record<string, number>;
+  alertsSent: number;
 }
 
 /**
@@ -150,12 +152,13 @@ export async function collectWindowCandles(
  */
 export async function buildAndPersistEvidencePacks(
   options: CollectSettlementEvidenceOptions
-): Promise<{ built: number; signed: number; grades: Record<string, number> }> {
+): Promise<{ built: number; signed: number; grades: Record<string, number>; alertsSent: number }> {
   const nowMs = options.nowMs ?? Date.now();
   const lookbackMs = options.lookbackMs ?? DEFAULT_LOOKBACK_HOURS * 60 * 60 * 1000;
   const rows = await listRecentlySettledWatchMarkets(nowMs, lookbackMs);
 
   const grades: Record<string, number> = {};
+  const inconsistentAlerts: InconsistentAlert[] = [];
   let built = 0;
   let signed = 0;
 
@@ -199,6 +202,21 @@ export async function buildAndPersistEvidencePacks(
       built += 1;
       if (attestation) signed += 1;
       grades[payload.grade] = (grades[payload.grade] ?? 0) + 1;
+      if (payload.grade === 'inconsistent') {
+        inconsistentAlerts.push({
+          marketSlug: payload.marketSlug,
+          asset: payload.asset,
+          settlementVenue: payload.settlementVenue,
+          declaredOutcome: payload.declaredOutcome,
+          independentOutcome: payload.independentOutcome,
+          priceChangeBps: payload.priceChangeBps,
+          oracleDeviationBps: payload.oracleDeviationBps,
+          candleCoverageE4: payload.candleCoverageE4,
+          windowStartMs: payload.windowStartMs,
+          windowEndMs: payload.windowEndMs,
+          payloadHash: pack.payloadHash,
+        });
+      }
       logGradedEvidence(payload);
     } catch (error) {
       logger.warn('Evidence build failed for market; remaining markets continue', {
@@ -207,7 +225,10 @@ export async function buildAndPersistEvidencePacks(
       });
     }
   }
-  return { built, signed, grades };
+  // Best-effort notification AFTER persistence: the evidence is already
+  // durable; a webhook outage only loses the ping, never the data.
+  const alertsSent = await sendInconsistentAlerts(inconsistentAlerts);
+  return { built, signed, grades, alertsSent };
 }
 
 export async function collectSettlementEvidence(
@@ -224,6 +245,7 @@ export async function collectSettlementEvidence(
     packsBuilt: packs.built,
     packsSigned: packs.signed,
     grades: packs.grades,
+    alertsSent: packs.alertsSent,
   });
   return {
     watchUpserted,
@@ -232,5 +254,6 @@ export async function collectSettlementEvidence(
     packsBuilt: packs.built,
     packsSigned: packs.signed,
     grades: packs.grades,
+    alertsSent: packs.alertsSent,
   };
 }
