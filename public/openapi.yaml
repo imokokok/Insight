@@ -220,6 +220,8 @@ tags:
     description: Historical and latest oracle price data
   - name: DEX Markets
     description: Reviewed execution-market evidence, separate from oracle consensus
+  - name: Settlement Evidence
+    description: Signed prediction-market settlement verdict evidence 🔒
   - name: Consensus
     description: Cross-oracle consensus pricing 🔒
   - name: Feeds
@@ -1688,6 +1690,76 @@ paths:
           description: The market is not in Insight's reviewed Hyperliquid perpetual allowlist.
         '503':
           description: Fresh Hyperliquid perpetual-market evidence is unavailable.
+
+  /markets/settlement-evidence:
+    get:
+      operationId: getSettlementEvidence
+      tags: [Settlement Evidence]
+      summary: Signed prediction-market settlement verdict evidence
+      description: >-
+        Returns Insight's independently graded settlement evidence for
+        prediction-market up/down windows. Each pack compares the market's
+        declared outcome against Insight's own independent price verdict for
+        the same window, graded consistent, inconsistent, or
+        insufficient_data, and carries derived window analytics only (never
+        raw settlement candles, whose venue data is vendor-licensed for
+        Insight's internal analysis and is not redistributed). Packs include
+        an attestation block with the EIP-712 domain, primary type, and
+        signature needed to verify them against Insight's published attester.
+      security:
+        - apiKey: []
+      parameters:
+        - name: slug
+          in: query
+          required: false
+          description: >-
+            A Polymarket up/down market slug (for example
+            btc-updown-5m-1766162100). When present, returns exactly one pack;
+            a 404 means the market has not produced evidence (packs are
+            produced after a market resolves). Omitted, returns the most
+            recent packs.
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Number of recent packs to return when slug is omitted. Defaults to 20.
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+      responses:
+        '200':
+          description: Signed settlement-evidence pack(s), derived analytics only.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    properties:
+                      pack:
+                        type: object
+                        description: Present when slug is provided; a single evidence pack.
+                      packs:
+                        type: array
+                        description: Present when slug is omitted; most recent evidence packs.
+                        items:
+                          type: object
+                      count:
+                        type: integer
+                        description: Number of packs returned in list mode.
+                      rightsNotice:
+                        type: string
+        '404':
+          description: No settlement-evidence pack exists for the requested market.
+        '503':
+          description: Settlement evidence is temporarily unavailable.
 
   # ── Prices ──────────────────────────────────────────────
   /prices:
