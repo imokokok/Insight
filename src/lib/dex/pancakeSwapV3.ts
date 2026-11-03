@@ -41,6 +41,8 @@ export const PANCAKE_SWAP_V3_BNB_QUOTER_V2 = PANCAKE_SWAP_V3_BASE_QUOTER_V2;
 export const PANCAKE_SWAP_V3_BNB_SWAP_ROUTER = PANCAKE_SWAP_V3_BASE_SWAP_ROUTER;
 export const PANCAKE_SWAP_V3_BNB_USDT = '0x55d398326f99059fF775485246999027B3197955' as const;
 export const PANCAKE_SWAP_V3_BNB_USDC = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d' as const;
+/** Canonical WBNB (wrapped BNB) of the reviewed BNB Smart Chain deployment. */
+export const PANCAKE_SWAP_V3_BNB_WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c' as const;
 
 /** Runtime pins recorded from the reviewed BNB deployment. */
 export const PANCAKE_SWAP_V3_BNB_CODE_IDENTITY = {
@@ -52,6 +54,20 @@ export const PANCAKE_SWAP_V3_BNB_CODE_IDENTITY = {
 export const PANCAKE_SWAP_V3_BNB_USDT_USDC = {
   pool: '0x92b7807bf19b7dddf89b706143896d05228f3121' as const,
   poolCodeHash: '0xc7f2aca72215bdbdca3ee6ae87d5500b09b13f0e6cfe097cd3092ab9e8439f34',
+  feeTier: 100,
+  twapWindowSeconds: 1_800,
+} as const;
+
+/**
+ * Reviewed volatile major pair. Recorded live from BSC mainnet at block
+ * 131435862: factory.getPool(WBNB, USDT, 100) won the in-range-liquidity
+ * comparison against the 0.05%/0.25%/1% siblings, and the router/quoter/factory
+ * code hashes match the pinned BNB deployment exactly, so no new contract
+ * identity is admitted with this profile.
+ */
+export const PANCAKE_SWAP_V3_BNB_USDT_WBNB = {
+  pool: '0x172fcD41E0913e95784454622d1c3724f546f849' as const,
+  poolCodeHash: '0x6796316e56ef0dd38755758b3239f271b2398ef028c8200bcf7fc8cc00ae1cfd',
   feeTier: 100,
   twapWindowSeconds: 1_800,
 } as const;
@@ -107,6 +123,7 @@ export function pancakeSwapV3DeploymentForChain(
 export const REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS = [
   'base-pancakeswap-v3-usdc-usdt-100',
   'bnb-pancakeswap-v3-usdt-usdc-100',
+  'bnb-pancakeswap-v3-usdt-wbnb-100',
 ] as const;
 
 export type ReviewedPancakeSwapV3ProfileId = (typeof REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)[number];
@@ -193,9 +210,37 @@ function bnbPancakeSwapV3UsdtUsdcProfile(): UniswapV3MarketProfile {
   };
 }
 
+function bnbPancakeSwapV3UsdtWbnbProfile(): UniswapV3MarketProfile {
+  return {
+    id: 'bnb-pancakeswap-v3-usdt-wbnb-100',
+    chainId: PANCAKE_SWAP_V3_BNB_CHAIN_ID,
+    venue: 'pancakeswap-v3',
+    market: 'USDT/WBNB',
+    factory: PANCAKE_SWAP_V3_BNB_FACTORY,
+    quoterV2: PANCAKE_SWAP_V3_BNB_QUOTER_V2,
+    pool: PANCAKE_SWAP_V3_BNB_USDT_WBNB.pool,
+    codeIdentity: {
+      factory: PANCAKE_SWAP_V3_BNB_CODE_IDENTITY.factory,
+      quoterV2: PANCAKE_SWAP_V3_BNB_CODE_IDENTITY.quoterV2,
+      pool: PANCAKE_SWAP_V3_BNB_USDT_WBNB.poolCodeHash,
+    },
+    // USDT sorts before WBNB on this pool, so token0 is USDT — same ordering as
+    // the reviewed BNB stable lane. Both tokens use 18 decimals.
+    token0: { address: PANCAKE_SWAP_V3_BNB_USDT, symbol: 'USDT', decimals: 18 },
+    token1: { address: PANCAKE_SWAP_V3_BNB_WBNB, symbol: 'WBNB', decimals: 18 },
+    feeTier: PANCAKE_SWAP_V3_BNB_USDT_WBNB.feeTier,
+    twapWindowSeconds: PANCAKE_SWAP_V3_BNB_USDT_WBNB.twapWindowSeconds,
+    quoteAmountsToken0: [100, 1_000, 10_000],
+    rpcEndpoints: bnbRpcEndpoints(),
+    maxSourceAgeSeconds: 120,
+    cacheTtlMs: 10_000,
+  };
+}
+
 const REVIEWED_PROFILES: Record<ReviewedPancakeSwapV3ProfileId, () => UniswapV3MarketProfile> = {
   'base-pancakeswap-v3-usdc-usdt-100': basePancakeSwapV3UsdcUsdtProfile,
   'bnb-pancakeswap-v3-usdt-usdc-100': bnbPancakeSwapV3UsdtUsdcProfile,
+  'bnb-pancakeswap-v3-usdt-wbnb-100': bnbPancakeSwapV3UsdtWbnbProfile,
 };
 
 export function isReviewedPancakeSwapV3ProfileId(

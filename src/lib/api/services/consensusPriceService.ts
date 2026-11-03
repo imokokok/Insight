@@ -29,6 +29,10 @@ const pendingPrices = new Map<string, Promise<FetchProviderPriceResult>>();
 // asset produced from the original request.
 const PRICE_REFERENCE_ALIASES: Readonly<Record<string, string>> = {
   WETH: 'ETH',
+  // Same 1:1 canonical-wrap argument on BNB Smart Chain: the pinned PancakeSwap
+  // router WBNB is the canonical BNB wrapper, so USD price discovery routes
+  // through the BNB oracle set while binding stays chain-specific.
+  WBNB: 'BNB',
 };
 
 export interface ConsensusProviderPrice {
