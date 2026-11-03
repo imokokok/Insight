@@ -2,9 +2,11 @@ import type { Client, InStatement } from '@libsql/client';
 
 // Version 2 introduced the Turso primary raw-price stream. Versions 3–5 add
 // the independent ingest control plane: an atomic slot lease, a mirrored feed
-// registry, and durable projection retry/quarantine state. Keep this local to
-// Turso so a degraded Supabase control plane cannot stop raw capture.
-export const TURSO_PRICE_SCHEMA_VERSION = 5;
+// registry, and durable projection retry/quarantine state. Version 6 adds the
+// settlement-evidence tables (prediction-market watch, settlement-window
+// candles, signed evidence packs). Keep this local to Turso so a degraded
+// Supabase control plane cannot stop raw capture.
+export const TURSO_PRICE_SCHEMA_VERSION = 6;
 
 export const DEFAULT_TURSO_PRICE_POLICIES = [
   {
@@ -166,6 +168,65 @@ const ddl: InStatement[] = [
   )`,
   `CREATE INDEX IF NOT EXISTS snapshot_slots_pending_idx
     ON snapshot_slots(supabase_acknowledged_at_ms, projection_quarantined_at_ms, slot_ms)`,
+  // --- Settlement evidence (schema v6) ---------------------------------------
+  // Prediction-market price contracts whose settlement window Insight watches.
+  // Rows come from the public Polymarket Gamma API; the declared settlement
+  // venue is parsed from the market's own resolution-source metadata.
+  `CREATE TABLE IF NOT EXISTS settlement_market_watch (
+    market_slug TEXT PRIMARY KEY,
+    gamma_id TEXT NOT NULL,
+    question TEXT NOT NULL,
+    asset TEXT NOT NULL,
+    window_seconds INTEGER NOT NULL CHECK (window_seconds BETWEEN 60 AND 604800),
+    window_start_ms INTEGER NOT NULL,
+    window_end_ms INTEGER NOT NULL,
+    settlement_venue TEXT NOT NULL,
+    resolution_source_url TEXT,
+    closed INTEGER NOT NULL CHECK (closed IN (0, 1)),
+    declared_outcome TEXT CHECK (declared_outcome IN ('Up', 'Down')),
+    outcome_prices_json TEXT,
+    first_seen_ms INTEGER NOT NULL,
+    updated_at_ms INTEGER NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS settlement_market_watch_window_idx
+    ON settlement_market_watch(window_end_ms)`,
+  `CREATE INDEX IF NOT EXISTS settlement_market_watch_closed_idx
+    ON settlement_market_watch(closed, window_end_ms)`,
+  // Independent settlement-window candles. Kraken is vendor-licensed
+  // derived-analytics-only: collected and retained for Insight's own analysis,
+  // never redistributed as raw venue data. Raw rows stay internal; only the
+  // derived fields of a signed evidence pack are delivered.
+  `CREATE TABLE IF NOT EXISTS settlement_window_candles (
+    market_slug TEXT NOT NULL,
+    venue TEXT NOT NULL,
+    interval_seconds INTEGER NOT NULL,
+    bucket_ts INTEGER NOT NULL,
+    open TEXT NOT NULL,
+    high TEXT NOT NULL,
+    low TEXT NOT NULL,
+    close TEXT NOT NULL,
+    volume TEXT,
+    rights_scope TEXT NOT NULL,
+    delivery_policy TEXT NOT NULL,
+    collected_at_ms INTEGER NOT NULL,
+    PRIMARY KEY (market_slug, venue, interval_seconds, bucket_ts)
+  )`,
+  `CREATE INDEX IF NOT EXISTS settlement_window_candles_market_idx
+    ON settlement_window_candles(market_slug, bucket_ts)`,
+  // The delivered artifact: a signed, canonical evidence pack. The canonical
+  // payload is byte-stable; the attestation fields stay null when no attester
+  // key is configured (signing is additive, never verdict-changing).
+  `CREATE TABLE IF NOT EXISTS settlement_evidence_packs (
+    market_slug TEXT PRIMARY KEY,
+    schema_version INTEGER NOT NULL,
+    canonical_payload TEXT NOT NULL,
+    payload_hash TEXT NOT NULL,
+    uid TEXT,
+    attester TEXT,
+    signature TEXT,
+    grade TEXT NOT NULL CHECK (grade IN ('consistent', 'inconsistent', 'insufficient_data')),
+    created_at_ms INTEGER NOT NULL
+  )`,
 ];
 
 const migrationStatements: Readonly<Record<number, readonly InStatement[]>> = {
@@ -196,6 +257,53 @@ const migrationStatements: Readonly<Record<number, readonly InStatement[]>> = {
       canonical_payload TEXT NOT NULL,
       feed_count INTEGER NOT NULL,
       published_at_ms INTEGER NOT NULL
+    )`,
+  ],
+  6: [
+    `CREATE TABLE IF NOT EXISTS settlement_market_watch (
+      market_slug TEXT PRIMARY KEY,
+      gamma_id TEXT NOT NULL,
+      question TEXT NOT NULL,
+      asset TEXT NOT NULL,
+      window_seconds INTEGER NOT NULL CHECK (window_seconds BETWEEN 60 AND 604800),
+      window_start_ms INTEGER NOT NULL,
+      window_end_ms INTEGER NOT NULL,
+      settlement_venue TEXT NOT NULL,
+      resolution_source_url TEXT,
+      closed INTEGER NOT NULL CHECK (closed IN (0, 1)),
+      declared_outcome TEXT CHECK (declared_outcome IN ('Up', 'Down')),
+      outcome_prices_json TEXT,
+      first_seen_ms INTEGER NOT NULL,
+      updated_at_ms INTEGER NOT NULL
+    )`,
+    'CREATE INDEX IF NOT EXISTS settlement_market_watch_window_idx ON settlement_market_watch(window_end_ms)',
+    'CREATE INDEX IF NOT EXISTS settlement_market_watch_closed_idx ON settlement_market_watch(closed, window_end_ms)',
+    `CREATE TABLE IF NOT EXISTS settlement_window_candles (
+      market_slug TEXT NOT NULL,
+      venue TEXT NOT NULL,
+      interval_seconds INTEGER NOT NULL,
+      bucket_ts INTEGER NOT NULL,
+      open TEXT NOT NULL,
+      high TEXT NOT NULL,
+      low TEXT NOT NULL,
+      close TEXT NOT NULL,
+      volume TEXT,
+      rights_scope TEXT NOT NULL,
+      delivery_policy TEXT NOT NULL,
+      collected_at_ms INTEGER NOT NULL,
+      PRIMARY KEY (market_slug, venue, interval_seconds, bucket_ts)
+    )`,
+    'CREATE INDEX IF NOT EXISTS settlement_window_candles_market_idx ON settlement_window_candles(market_slug, bucket_ts)',
+    `CREATE TABLE IF NOT EXISTS settlement_evidence_packs (
+      market_slug TEXT PRIMARY KEY,
+      schema_version INTEGER NOT NULL,
+      canonical_payload TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      uid TEXT,
+      attester TEXT,
+      signature TEXT,
+      grade TEXT NOT NULL CHECK (grade IN ('consistent', 'inconsistent', 'insufficient_data')),
+      created_at_ms INTEGER NOT NULL
     )`,
   ],
 };

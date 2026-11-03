@@ -941,3 +941,21 @@ export const PositionLifecycleCloseInputSchema = z.object({
     .min(1)
     .describe('The one-time lifecycle token returned by position_lifecycle_begin (plc_<hex>)'),
 });
+
+/** Settlement-evidence read input (`get_settlement_evidence`). */
+export const SettlementEvidenceInputSchema = z.object({
+  slug: z
+    .string()
+    .min(1)
+    .max(256)
+    .optional()
+    .describe('Polymarket market slug, e.g. btc-updown-5m-1766162100. Omit to list recent packs'),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .optional()
+    .default(20)
+    .describe('Maximum packs when listing, default 20'),
+});

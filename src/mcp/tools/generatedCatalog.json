@@ -1621,6 +1621,29 @@
     }
   },
   {
+    "name": "get_settlement_evidence",
+    "description": "Get Insight-signed settlement evidence for prediction-market crypto price contracts: the declared outcome vs Insight’s independent verdict, price change and oracle deviation in basis points, candle coverage, and a consistency grade (consistent / inconsistent / insufficient_data). Pass slug for one market, or omit it to list recent packs. Derived analytics only; raw venue candles are not distributed.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "slug": {
+          "description": "Polymarket market slug, e.g. btc-updown-5m-1766162100. Omit to list recent packs",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "limit": {
+          "description": "Maximum packs when listing, default 20",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
     "name": "get_latency",
     "description": "Analyze 15-minute oracle collector latency statistics (min, mean, p50, p90, p95, p99) over a date range, optionally filtered by provider or symbol.",
     "inputSchema": {
