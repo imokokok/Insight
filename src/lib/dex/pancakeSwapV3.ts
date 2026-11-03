@@ -31,16 +31,103 @@ export const PANCAKE_SWAP_V3_BASE_USDC_USDT = {
 } as const;
 
 /**
+ * BNB Smart Chain deployment of the same PancakeSwap V3 contracts. Addresses
+ * match Base; the recorded code hashes are per-chain because the deployed
+ * router/quoter/pool bytecodes differ between networks.
+ */
+export const PANCAKE_SWAP_V3_BNB_CHAIN_ID = 56;
+export const PANCAKE_SWAP_V3_BNB_FACTORY = PANCAKE_SWAP_V3_BASE_FACTORY;
+export const PANCAKE_SWAP_V3_BNB_QUOTER_V2 = PANCAKE_SWAP_V3_BASE_QUOTER_V2;
+export const PANCAKE_SWAP_V3_BNB_SWAP_ROUTER = PANCAKE_SWAP_V3_BASE_SWAP_ROUTER;
+export const PANCAKE_SWAP_V3_BNB_USDT = '0x55d398326f99059fF775485246999027B3197955' as const;
+export const PANCAKE_SWAP_V3_BNB_USDC = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d' as const;
+
+/** Runtime pins recorded from the reviewed BNB deployment. */
+export const PANCAKE_SWAP_V3_BNB_CODE_IDENTITY = {
+  factory: '0x8191d3ab1d55d3da9822199f28865415c99566b6f1aee4a4b16713f57930678c',
+  quoterV2: '0x2734833b7d2a656d4797f4a7d959314654749a7424ec473267613ff26424138a',
+  router: '0x61002a11263b2c38ff8d5ded90a655987ed98f171a31840ee0014dd7052bccda',
+} as const;
+
+export const PANCAKE_SWAP_V3_BNB_USDT_USDC = {
+  pool: '0x92b7807bf19b7dddf89b706143896d05228f3121' as const,
+  poolCodeHash: '0xc7f2aca72215bdbdca3ee6ae87d5500b09b13f0e6cfe097cd3092ab9e8439f34',
+  feeTier: 100,
+  twapWindowSeconds: 1_800,
+} as const;
+
+/** The router's WETH9 on each reviewed chain. */
+export const PANCAKE_SWAP_V3_ROUTER_WETH9_BY_CHAIN = {
+  [PANCAKE_SWAP_V3_BASE_CHAIN_ID]: '0x4200000000000000000000000000000000000006',
+  [PANCAKE_SWAP_V3_BNB_CHAIN_ID]: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+} as const;
+
+/** The immutable deployment bundle one reviewed chain is admitted through. */
+export interface PancakeSwapV3ChainDeployment {
+  chainId: number;
+  factory: string;
+  quoterV2: string;
+  swapRouter: string;
+  routerCodeHash: string;
+}
+
+const PANCAKE_SWAP_V3_DEPLOYMENTS_BY_CHAIN: Record<number, PancakeSwapV3ChainDeployment> = {
+  [PANCAKE_SWAP_V3_BASE_CHAIN_ID]: {
+    chainId: PANCAKE_SWAP_V3_BASE_CHAIN_ID,
+    factory: PANCAKE_SWAP_V3_BASE_FACTORY,
+    quoterV2: PANCAKE_SWAP_V3_BASE_QUOTER_V2,
+    swapRouter: PANCAKE_SWAP_V3_BASE_SWAP_ROUTER,
+    routerCodeHash: PANCAKE_SWAP_V3_BASE_CODE_IDENTITY.router,
+  },
+  [PANCAKE_SWAP_V3_BNB_CHAIN_ID]: {
+    chainId: PANCAKE_SWAP_V3_BNB_CHAIN_ID,
+    factory: PANCAKE_SWAP_V3_BNB_FACTORY,
+    quoterV2: PANCAKE_SWAP_V3_BNB_QUOTER_V2,
+    swapRouter: PANCAKE_SWAP_V3_BNB_SWAP_ROUTER,
+    routerCodeHash: PANCAKE_SWAP_V3_BNB_CODE_IDENTITY.router,
+  },
+};
+
+/**
+ * The reviewed deployment for one chain, or null for a chain Insight has not
+ * reviewed. Callers must treat null as fail-closed, never fall back to another
+ * chain's addresses.
+ */
+export function pancakeSwapV3DeploymentForChain(
+  chainId: number
+): PancakeSwapV3ChainDeployment | null {
+  return PANCAKE_SWAP_V3_DEPLOYMENTS_BY_CHAIN[chainId] ?? null;
+}
+
+/**
  * An MCP caller selects from an immutable profile id, never a pool or router
  * address.  Adding a pool therefore remains a review, bytecode-pin, and test
  * event rather than turning Insight into a route proxy.
  */
-export const REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS = ['base-pancakeswap-v3-usdc-usdt-100'] as const;
+export const REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS = [
+  'base-pancakeswap-v3-usdc-usdt-100',
+  'bnb-pancakeswap-v3-usdt-usdc-100',
+] as const;
 
 export type ReviewedPancakeSwapV3ProfileId = (typeof REVIEWED_PANCAKE_SWAP_V3_PROFILE_IDS)[number];
 
 function baseRpcEndpoints(): string[] {
   const configured = CHAINLINK_RPC_CONFIG[PANCAKE_SWAP_V3_BASE_CHAIN_ID]?.endpoints ?? [];
+  return [
+    ...new Set(
+      configured.filter((endpoint) => {
+        try {
+          return new URL(endpoint).protocol === 'https:';
+        } catch {
+          return false;
+        }
+      })
+    ),
+  ];
+}
+
+function bnbRpcEndpoints(): string[] {
+  const configured = CHAINLINK_RPC_CONFIG[PANCAKE_SWAP_V3_BNB_CHAIN_ID]?.endpoints ?? [];
   return [
     ...new Set(
       configured.filter((endpoint) => {
@@ -79,8 +166,36 @@ function basePancakeSwapV3UsdcUsdtProfile(): UniswapV3MarketProfile {
   };
 }
 
+function bnbPancakeSwapV3UsdtUsdcProfile(): UniswapV3MarketProfile {
+  return {
+    id: 'bnb-pancakeswap-v3-usdt-usdc-100',
+    chainId: PANCAKE_SWAP_V3_BNB_CHAIN_ID,
+    venue: 'pancakeswap-v3',
+    market: 'USDT/USDC',
+    factory: PANCAKE_SWAP_V3_BNB_FACTORY,
+    quoterV2: PANCAKE_SWAP_V3_BNB_QUOTER_V2,
+    pool: PANCAKE_SWAP_V3_BNB_USDT_USDC.pool,
+    codeIdentity: {
+      factory: PANCAKE_SWAP_V3_BNB_CODE_IDENTITY.factory,
+      quoterV2: PANCAKE_SWAP_V3_BNB_CODE_IDENTITY.quoterV2,
+      pool: PANCAKE_SWAP_V3_BNB_USDT_USDC.poolCodeHash,
+    },
+    // On this pool USDT sorts before USDC, so token0 is USDT. Both BSC
+    // stablecoins use 18 decimals (unlike Base's 6-decimal USDC).
+    token0: { address: PANCAKE_SWAP_V3_BNB_USDT, symbol: 'USDT', decimals: 18 },
+    token1: { address: PANCAKE_SWAP_V3_BNB_USDC, symbol: 'USDC', decimals: 18 },
+    feeTier: PANCAKE_SWAP_V3_BNB_USDT_USDC.feeTier,
+    twapWindowSeconds: PANCAKE_SWAP_V3_BNB_USDT_USDC.twapWindowSeconds,
+    quoteAmountsToken0: [100, 1_000, 10_000],
+    rpcEndpoints: bnbRpcEndpoints(),
+    maxSourceAgeSeconds: 120,
+    cacheTtlMs: 10_000,
+  };
+}
+
 const REVIEWED_PROFILES: Record<ReviewedPancakeSwapV3ProfileId, () => UniswapV3MarketProfile> = {
   'base-pancakeswap-v3-usdc-usdt-100': basePancakeSwapV3UsdcUsdtProfile,
+  'bnb-pancakeswap-v3-usdt-usdc-100': bnbPancakeSwapV3UsdtUsdcProfile,
 };
 
 export function isReviewedPancakeSwapV3ProfileId(

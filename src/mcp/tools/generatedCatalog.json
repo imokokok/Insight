@@ -1856,7 +1856,7 @@
   },
   {
     "name": "prepare_base_agent_swap_guard",
-    "description": "Prepare and gate one reviewed Base direct-router swap for an AI agent: Aerodrome Slipstream WETH→USDC CL100, Aerodrome Slipstream USDC→USDT CL1 (both directions), or PancakeSwap V3 USDC→USDT 0.01%. It obtains a fresh pinned quote, re-verifies reviewed contract identities, canonical-decodes the exact approval/swap calldata, validates both agent decision prices against independent oracle consensus, and converts the route quote using the independent destination consensus before applying price-impact/TWAP/slippage/freshness policy. ALLOW returns exact unsigned approval and swap calldata plus a decisionHash, and adds a short-lived signed decision when Insight has a published attester; CAUTION or BLOCK returns no calls to sign. After settlement, pair the signed decision with the swap transaction hash via settle_base_agent_swap_guard to obtain a signed settlement closure. It does not route, sign, relay, broadcast, authorize, assess smart-account UserOperations, or accept arbitrary aggregator calldata.",
+    "description": "Prepare and gate one reviewed direct-router swap for an AI agent on Base or BNB Smart Chain: Aerodrome Slipstream WETH→USDC CL100 and USDC→USDT CL1 (both directions) on Base, PancakeSwap V3 USDC→USDT 0.01% on Base, or PancakeSwap V3 USDT→USDC 0.01% on BNB (both directions). It obtains a fresh pinned quote, re-verifies reviewed contract identities, canonical-decodes the exact approval/swap calldata, validates both agent decision prices against independent oracle consensus, and converts the route quote using the independent destination consensus before applying price-impact/TWAP/slippage/freshness policy. ALLOW returns exact unsigned approval and swap calldata plus a decisionHash, and adds a short-lived signed decision when Insight has a published attester; CAUTION or BLOCK returns no calls to sign. After settlement, pair the signed decision with the swap transaction hash via settle_base_agent_swap_guard to obtain a signed settlement closure. It does not route, sign, relay, broadcast, authorize, assess smart-account UserOperations, or accept arbitrary aggregator calldata.",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -1866,7 +1866,8 @@
           "enum": [
             "base-aerodrome-slipstream-weth-usdc-cl100",
             "base-aerodrome-slipstream-usdc-usdt-cl1",
-            "base-pancakeswap-v3-usdc-usdt-100"
+            "base-pancakeswap-v3-usdc-usdt-100",
+            "bnb-pancakeswap-v3-usdt-usdc-100"
           ]
         },
         "direction": {
@@ -2014,7 +2015,7 @@
         "profileId": {
           "description": "Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%",
           "type": "string",
-          "enum": ["base-pancakeswap-v3-usdc-usdt-100"]
+          "enum": ["base-pancakeswap-v3-usdc-usdt-100", "bnb-pancakeswap-v3-usdt-usdc-100"]
         }
       },
       "additionalProperties": false
@@ -2030,7 +2031,7 @@
         "profileId": {
           "description": "Reviewed PancakeSwap V3 pool id; defaults to Base USDC/USDT 0.01%",
           "type": "string",
-          "enum": ["base-pancakeswap-v3-usdc-usdt-100"]
+          "enum": ["base-pancakeswap-v3-usdc-usdt-100", "bnb-pancakeswap-v3-usdt-usdc-100"]
         },
         "direction": {
           "type": "string",

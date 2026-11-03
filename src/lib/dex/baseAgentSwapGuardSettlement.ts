@@ -48,8 +48,11 @@ import { canonicalJsonString } from '@/lib/utils/canonicalJson';
 import { createLogger } from '@/lib/utils/logger';
 import { nowInSeconds } from '@/lib/utils/time';
 
-import { type BaseAgentSwapGuardResult } from './baseAgentSwapGuard';
-import { baseAgentSwapGuardDestinationToken } from './baseAgentSwapGuard';
+import {
+  baseAgentSwapGuardDestinationToken,
+  type BaseAgentSwapGuardChainId,
+  type BaseAgentSwapGuardResult,
+} from './baseAgentSwapGuard';
 import {
   isPublishedBaseAgentSwapGuardAttester,
   verifyBaseAgentSwapGuardDecision,
@@ -66,7 +69,8 @@ export const BASE_AGENT_SWAP_GUARD_SETTLEMENT_DOMAIN = {
   name: 'Insight Base Agent Swap Guard Settlement',
   version: '1',
   // Chain-separated from the settlement it attests, mirroring the decision
-  // domain; the signed message commits to Base chain ID 8453 explicitly.
+  // domain; the signed message commits to the reviewed execution chain
+  // (8453 or 56) explicitly inside the struct.
   chainId: 1,
 } as const;
 export const BASE_AGENT_SWAP_GUARD_SETTLEMENT_TYPES = {
@@ -94,7 +98,9 @@ const HASH = /^0x[0-9a-fA-F]{64}$/;
 const ZERO_HASH = `0x${'0'.repeat(64)}` as Hex;
 /** Raw amounts and prices are signed as exact decimal strings; '' = unmeasured. */
 const EMPTY = '';
-const SETTLEMENT_RECIPIENT_CHAIN_ID = 8453;
+/** The chains a settlement closure may be issued on, mirroring the reviewed
+ *  guard profiles. Any other chain id is rejected before any RPC work. */
+const SETTLEMENT_CHAIN_IDS = new Set<number>([8453, 56]);
 
 export interface BaseAgentSwapGuardSettlementData {
   decisionHash: Hex;
@@ -104,7 +110,7 @@ export interface BaseAgentSwapGuardSettlementData {
   /** keccak256 of the settlement transaction's actual input bytes. */
   onChainSwapCalldataHash: Hex;
   recipient: `0x${string}`;
-  chainId: 8453;
+  chainId: BaseAgentSwapGuardChainId;
   fillStatus: 'FULL' | 'REVERTED';
   /** Measured input amount in raw units; '' when unattributed. */
   sourceAmountRaw: string;
@@ -498,18 +504,21 @@ export async function settleBaseAgentSwapGuard(
     };
   }
 
-  const endpoints = getRpcEndpoints(SETTLEMENT_RECIPIENT_CHAIN_ID);
+  // The settlement is issued on the chain the decision itself binds to; the
+  // set membership was already enforced by the decision verification above.
+  const settlementChainId = guard.scope.chainId;
+  const endpoints = getRpcEndpoints(settlementChainId);
   if (!endpoints) {
     return {
       ok: false,
       code: 'UNSUPPORTED_CHAIN',
-      message: `No RPC endpoints configured for chain ${SETTLEMENT_RECIPIENT_CHAIN_ID}`,
+      message: `No RPC endpoints configured for chain ${settlementChainId}`,
     };
   }
   const client =
     params.client ??
     new RpcClientWithFallback({ contextLabel: 'base-agent-swap-guard-settlement' });
-  const key = String(SETTLEMENT_RECIPIENT_CHAIN_ID);
+  const key = String(settlementChainId);
 
   const reasonCodes: string[] = [];
   if (verification.expired) reasonCodes.push('DECISION_EXPIRED_AT_CLOSURE');
@@ -545,11 +554,11 @@ export async function settleBaseAgentSwapGuard(
   }
   const factsResult = await collectExecutionFacts({
     txHash: params.swapTxHash,
-    chainId: SETTLEMENT_RECIPIENT_CHAIN_ID,
+    chainId: settlementChainId,
     endpoints,
     // The guarded input token is the approval token (binding is verified above).
-    sourceAssetId: `eip155:8453/erc20:${tokenIn}`,
-    destinationAssetId: `eip155:8453/erc20:${tokenOut}`,
+    sourceAssetId: `eip155:${settlementChainId}/erc20:${tokenIn}`,
+    destinationAssetId: `eip155:${settlementChainId}/erc20:${tokenOut}`,
     // The source leg leaves the transaction sender; the destination leg arrives
     // at the guarded recipient, which may be a different address.
     destinationReceiver: guard.binding.recipient,
@@ -590,7 +599,7 @@ export async function settleBaseAgentSwapGuard(
     approvalTxHash,
     onChainSwapCalldataHash,
     recipient: guard.binding.recipient.toLowerCase() as `0x${string}`,
-    chainId: 8453,
+    chainId: settlementChainId,
     fillStatus: facts.fillStatus,
     sourceAmountRaw: fill.sourceAmountRaw,
     destinationAmountRaw: fill.destinationAmountRaw,
@@ -696,7 +705,7 @@ export async function verifyBaseAgentSwapGuardSettlement(
     if (
       value.type !== BASE_AGENT_SWAP_GUARD_SETTLEMENT_PRIMARY_TYPE ||
       data.schemaVersion !== BASE_AGENT_SWAP_GUARD_SETTLEMENT_SCHEMA_VERSION ||
-      data.chainId !== 8453 ||
+      !SETTLEMENT_CHAIN_IDS.has(data.chainId) ||
       (data.fillStatus !== 'FULL' && data.fillStatus !== 'REVERTED') ||
       typeof data.decisionHash !== 'string' ||
       !HASH.test(data.decisionHash) ||

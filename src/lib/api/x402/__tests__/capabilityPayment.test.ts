@@ -106,6 +106,11 @@ describe('x402 capability payment bindings', () => {
     const dynamicTools = new Set([
       'multichain_evm_lending_guard',
       'multichain_evm_lending_guard_exact_call',
+      'prepare_base_agent_swap_guard',
+      'settle_base_agent_swap_guard',
+      'verify_base_agent_swap_guard_settlement',
+      'get_pancakeswap_v3_market',
+      'prepare_pancakeswap_v3_swap',
     ]);
     const catalogNames = catalog.map((tool) => tool.name).sort();
     const boundNames = Object.keys(X402_MCP_PAYMENT_SCOPE_BY_TOOL)

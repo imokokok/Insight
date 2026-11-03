@@ -22,6 +22,7 @@ import { nowInSeconds } from '@/lib/utils/time';
 import {
   BASE_AGENT_SWAP_GUARD_SCHEMA,
   baseAgentSwapGuardDecisionHash,
+  type BaseAgentSwapGuardChainId,
   type BaseAgentSwapGuardResult,
 } from './baseAgentSwapGuard';
 
@@ -37,7 +38,8 @@ export const BASE_AGENT_SWAP_GUARD_ATTESTATION_DOMAIN = {
   name: 'Insight Base Agent Swap Guard',
   version: '1',
   // An EIP-712 domain is intentionally chain-separated from the calls it
-  // attests. The signed message separately commits to Base chain ID 8453.
+  // attests. The signed message separately commits to the reviewed execution
+  // chain (8453 or 56) inside the decisionHash and the chainId field.
   chainId: 1,
 } as const;
 export const BASE_AGENT_SWAP_GUARD_ATTESTATION_TYPES = {
@@ -61,14 +63,16 @@ const SUPPORTED_PROFILE_IDS = new Set([
   'base-aerodrome-slipstream-weth-usdc-cl100',
   'base-aerodrome-slipstream-usdc-usdt-cl1',
   'base-pancakeswap-v3-usdc-usdt-100',
+  'bnb-pancakeswap-v3-usdt-usdc-100',
 ]);
+const SUPPORTED_CHAIN_IDS = new Set<number>([8453, 56]);
 
 export interface BaseAgentSwapGuardAttestationData {
   decisionHash: Hex;
   approvalCalldataHash: Hex;
   swapCalldataHash: Hex;
   recipient: `0x${string}`;
-  chainId: 8453;
+  chainId: BaseAgentSwapGuardChainId;
   verdict: 0;
   issuedAt: number;
   validUntil: number;
@@ -190,13 +194,13 @@ function exactCallBindingIsValid(guard: BaseAgentSwapGuardResult): boolean {
   return Boolean(
     guard.schema === BASE_AGENT_SWAP_GUARD_SCHEMA &&
     guard.verdict === 'ALLOW' &&
-    guard.scope.chainId === 8453 &&
+    SUPPORTED_CHAIN_IDS.has(guard.scope.chainId) &&
     SUPPORTED_PROFILE_IDS.has(guard.scope.profileId) &&
     Number.isSafeInteger(guard.validUntil) &&
     guard.validUntil !== null &&
     binding &&
     calls &&
-    binding.chainId === 8453 &&
+    binding.chainId === guard.scope.chainId &&
     sameAddress(binding.recipient, guard.binding?.recipient) &&
     sameAddress(calls.approval.to, binding.approval.token) &&
     calls.approval.value === '0x0' &&
@@ -228,7 +232,8 @@ function asAttestationData(value: unknown): BaseAgentSwapGuardAttestationData | 
     fields.some((field) => typeof field !== 'string' || !HASH.test(field)) ||
     typeof value.recipient !== 'string' ||
     !ADDRESS.test(value.recipient) ||
-    value.chainId !== 8453 ||
+    typeof value.chainId !== 'number' ||
+    !SUPPORTED_CHAIN_IDS.has(value.chainId) ||
     value.verdict !== 0 ||
     value.schemaVersion !== BASE_AGENT_SWAP_GUARD_ATTESTATION_SCHEMA_VERSION ||
     typeof value.issuedAt !== 'number' ||
@@ -298,7 +303,7 @@ export async function createBaseAgentSwapGuardDecision(
     approvalCalldataHash: keccak256(calls.approval.data),
     swapCalldataHash: keccak256(calls.swap.data),
     recipient: binding.recipient.toLowerCase() as `0x${string}`,
-    chainId: 8453,
+    chainId: guard.scope.chainId,
     verdict: 0,
     issuedAt: now,
     validUntil: guard.validUntil,

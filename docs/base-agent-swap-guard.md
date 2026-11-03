@@ -26,19 +26,31 @@ prepared call.
 
 ## Supported scope
 
-| Profile                                     | Direct venue call    | Admitted directions   |
-| ------------------------------------------- | -------------------- | --------------------- |
-| `base-aerodrome-slipstream-weth-usdc-cl100` | Aerodrome Slipstream | WETH ↔ USDC (two-way) |
-| `base-aerodrome-slipstream-usdc-usdt-cl1`   | Aerodrome Slipstream | USDC ↔ USDT (two-way) |
-| `base-pancakeswap-v3-usdc-usdt-100`         | PancakeSwap V3       | USDC ↔ USDT (two-way) |
+| Profile                                     | Chain                | Direct venue call    | Admitted directions   |
+| ------------------------------------------- | -------------------- | -------------------- | --------------------- |
+| `base-aerodrome-slipstream-weth-usdc-cl100` | Base mainnet (8453)  | Aerodrome Slipstream | WETH ↔ USDC (two-way) |
+| `base-aerodrome-slipstream-usdc-usdt-cl1`   | Base mainnet (8453)  | Aerodrome Slipstream | USDC ↔ USDT (two-way) |
+| `base-pancakeswap-v3-usdc-usdt-100`         | Base mainnet (8453)  | PancakeSwap V3       | USDC ↔ USDT (two-way) |
+| `bnb-pancakeswap-v3-usdt-usdc-100`          | BNB Smart Chain (56) | PancakeSwap V3       | USDT ↔ USDC (two-way) |
 
-All profiles are Base mainnet (`8453`) only. Each has a fixed pool, factory,
-quoter, router, and token order. Every lane is a single-pool, single-hop
-direction of one reviewed pool: the caller names the profile and a
-`direction` (`token0-to-token1`, the default, or `token1-to-token0`), and the
-preparation layer re-reads the reviewed contract identities at the quote block
-before producing calldata. There are no multi-hop or aggregator paths in either
-direction.
+Each profile names one reviewed chain, one fixed pool, factory, quoter, router,
+and token order. Every lane is a single-pool, single-hop direction of one
+reviewed pool: the caller names the profile and a `direction` (`token0-to-token1`,
+the default, or `token1-to-token0`), and the preparation layer re-reads the
+reviewed contract identities at the quote block before producing calldata.
+There are no multi-hop or aggregator paths in either direction.
+
+Per-chain review notes:
+
+- Base USDC and USDT use 6 decimals; BNB Smart Chain USDT and USDC use 18
+  decimals. All raw amounts and reconciliations are derived from the reviewed
+  profile, never assumed per symbol.
+- On the reviewed BNB pool USDT sorts before USDC, so `token0` is USDT — the
+  opposite of the Base PancakeSwap lane. The guard's bindings carry explicit
+  token addresses, so direction semantics stay unambiguous.
+- Router/quoter/pool bytecodes are pinned per chain. The BNB pool bytecode
+  differs from the Base pool; a prepared call that presents one chain's code
+  hash for another chain's profile fails closed.
 
 The following are intentionally out of scope in v1 and fail closed rather than
 being treated as equivalent swaps:

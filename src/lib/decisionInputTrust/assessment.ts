@@ -198,7 +198,8 @@ export interface DecisionInputAssessment {
         | 'monad-wmon-usdc'
         | 'base-weth-usdc'
         | 'base-uniswap-v3-weth-usdc-500'
-        | 'base-pancakeswap-v3-usdc-usdt';
+        | 'base-pancakeswap-v3-usdc-usdt'
+        | 'bnb-pancakeswap-v3-usdt-usdc';
       venue: 'uniswap-v3' | 'pancakeswap-v3';
       market: string;
       /** Direction of the reviewed quote inside the pinned pool. */
