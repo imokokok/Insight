@@ -4,7 +4,7 @@ Insight tells an agent whether the price it is about to trade on is trustworthy.
 
 Agent-facing contacts:
 
-- Discovery manifest: `GET https://www.oracleinsight.xyz/.well-known/x402` (x402 v2, full accepts[] for every endpoint)
+- Discovery manifest: `GET https://www.oracleinsight.xyz/.well-known/x402` (x402 v2; fixed-route `accepts[]`, plus explicit request-bound route and quote metadata)
 - OpenAPI 3.1 contract: `GET https://www.oracleinsight.xyz/openapi.json`
 - This manual: `GET https://www.oracleinsight.xyz/skill.md`
 
@@ -86,7 +86,7 @@ Only IOC is admitted, so an action that cannot fully satisfy its caller-selected
 
 Paid calls use x402 v2. The pre-trade C3 price is **$0.02 USDC** (`20000` atomic units on a 6-decimal rail), but available networks, assets, payees, schemes, and facilitator-specific fields are deployment-specific.
 
-Before signing, issue a plain unsigned request and select an entry from its live `PAYMENT-REQUIRED` header. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) is a discovery aid; the live `accepts[]` array is the binding payment contract. Do not infer a payment rail from the action chain or reuse a network, asset, or `payTo` value from an example.
+Before signing, issue a plain unsigned request and select an entry from its live `PAYMENT-REQUIRED` header. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) derives fixed-route options from the same route scope as production; routes whose rail depends on validated input are listed under `requestBoundResources`. HyperCore quotes contain a short-lived `quoteId` and are listed under `dynamicPaymentOptions`, not fabricated in static `accepts[]`. The live `accepts[]` array is always the binding payment contract. Do not infer a payment rail from the action chain or reuse a network, asset, or `payTo` value from an example.
 
 ## Billing semantics
 
