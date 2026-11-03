@@ -289,6 +289,16 @@ const GUARD_QUICKSTARTS = [
     price: '$0.02 (C3)',
   },
   {
+    family: 'Solana Perp Guard',
+    path: '/api/v1/safety/solana-perp-guard',
+    method: 'GET',
+    query:
+      'protocolId=drift-v2-mainnet&action=open_long&assetSymbol=SOL&marginAssetSymbol=USDC&sizeUsd=5000&marginValueUsd=500',
+    mcp: 'solana_perp_guard',
+    decides: 'Drift v2 open: oracle integrity + leverage + on-chain venue evidence',
+    price: '$0.02 (C3)',
+  },
+  {
     family: 'Monad Lending Guard',
     path: '/api/v1/safety/monad-lending-guard',
     method: 'GET',

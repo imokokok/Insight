@@ -16,6 +16,7 @@ Agent-facing contacts:
 - [Solana Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow and signed settlement closure for one exact unsigned Orca Whirlpool USDC/USDT 0.01% swap on Solana mainnet. It can be paid with x402 at C3 / $0.02 per decision and C4 / $0.04 per settlement call and returns no signable payload for `CAUTION` or `BLOCK`.
 - [Base Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-base-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one Synthetix Perps V3 Base open-position intent, with disclosed spot/TWAP liquidity evidence and exact `commitOrder` call binding.
 - [Hyperliquid Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-hyperliquid-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Hyperliquid HyperCore open-position intent (BTC, ETH), with disclosed venue evidence and exact IOC order envelope binding.
+- [Solana Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Drift Protocol v2 Solana open-position intent (SOL, BTC, ETH), with disclosed on-chain venue evidence (mark/oracle deviation, funding rate, open interest).
 
 Install a package, then run its free discovery check before configuring a
 credential or an x402 wallet. A successful discovery check does not call a

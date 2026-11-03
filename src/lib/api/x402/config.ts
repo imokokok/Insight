@@ -663,6 +663,14 @@ export const X402_SOLANA_LENDING_GUARD_ROUTE = '/api/v1/safety/solana-lending-gu
 /** Solana-native exact-transaction Orca Whirlpool swap gate and its settlement. */
 export const X402_SOLANA_SWAP_GUARD_ROUTE = '/api/v1/safety/solana-swap-guard';
 
+/**
+ * Solana-native Drift Protocol v2 perp decision gate. GET returns the
+ * on-chain-evidence assessment; like every other guard route it must appear
+ * in the resource-server route map (resourceServer.ts) so a keyless x402
+ * caller gets a real 402 quote instead of the defensive no-route 402.
+ */
+export const X402_SOLANA_PERP_GUARD_ROUTE = '/api/v1/safety/solana-perp-guard';
+
 /** Official-API-built Loopscale Solana lending-vault deposit gate. */
 export const X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE = '/api/v1/safety/loopscale-vault-deposit';
 

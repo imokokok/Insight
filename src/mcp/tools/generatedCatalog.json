@@ -3444,6 +3444,51 @@
     }
   },
   {
+    "name": "solana_perp_guard",
+    "description": "Read-only Solana pre-trade decision gate for opening a perpetual position on Drift Protocol v2 on Solana mainnet (reviewed SOL, BTC, and ETH perp markets today, USDC margin). Drift publishes no REST API, so venue evidence is read directly from Drift on-chain Anchor accounts through Solana mainnet RPC: mark price from the AMM curve, the market’s own Pyth Lazer oracle price, funding rate, open interest versus the on-chain maxOpenInterest backstop, and live margin ratios. Separately evaluates underlying and USDC cross-oracle consensus integrity on canonical mainnet feeds, checks caller-declared post-action leverage against a reviewed static profile capped by the live on-chain margin ratio, and attaches disclosed venue evidence that can escalate the verdict. Returns ALLOW / CAUTION / BLOCK. Assessment-only: it does not evaluate Drift’s liquidation engine and never signs, submits, or authorizes a transaction; bind a successful result to one exact user-authorized unsigned transaction separately.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "protocolId": {
+          "type": "string",
+          "enum": ["drift-v2-mainnet"]
+        },
+        "action": {
+          "type": "string",
+          "enum": ["open_long", "open_short"]
+        },
+        "assetSymbol": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9.-]{0,15}$"
+        },
+        "marginAssetSymbol": {
+          "type": "string",
+          "const": "USDC"
+        },
+        "sizeUsd": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000000
+        },
+        "marginValueUsd": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000000
+        }
+      },
+      "required": [
+        "protocolId",
+        "action",
+        "assetSymbol",
+        "marginAssetSymbol",
+        "sizeUsd",
+        "marginValueUsd"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
     "name": "solana_swap_guard",
     "description": "Gate exactly one unsigned Orca Whirlpool swap on Solana mainnet: the reviewed USDC/USDT 0.01% pool (both directions). The caller supplies the fully resolved compiled unsigned transaction containing exactly one legacy Whirlpool swap instruction (no swapV2, no aggregators, no bundles). Insight canonical-decodes the instruction, re-verifies the pool, vaults, tick array, oracle, and both user token accounts from live mainnet state, prices the pool from its own sqrtPrice against independent oracle consensus, requires a positive otherAmountThreshold consistent with the declared decision prices, and simulates the exact unsigned message. ALLOW returns a short-lived signed decision bound to the exact message hash; CAUTION or BLOCK returns no executable payload. After settlement, pair the signed decision with the transaction signature via settle_solana_swap_guard. It does not sign, submit, relay, or authorize anything.",
     "inputSchema": {
