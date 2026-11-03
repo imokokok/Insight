@@ -1,6 +1,8 @@
 const REQUEST_TIMEOUT_MS = 210_000;
+const INGEST_CRON = '*/15 * * * *';
+const PROJECT_CRON = '3,18,33,48 * * * *';
 
-function ingestUrl(base: string, scheduledTime: number): URL {
+function schedulerUrl(base: string, scheduledTime: number): URL {
   const url = new URL(base);
   if (url.protocol !== 'https:') throw new Error('INSIGHT_INGEST_URL must use HTTPS');
   if (url.username || url.password)
@@ -12,8 +14,13 @@ function ingestUrl(base: string, scheduledTime: number): URL {
   return url;
 }
 
-async function triggerIngest(env: Env, scheduledTime: number): Promise<void> {
-  const url = ingestUrl(env.INSIGHT_INGEST_URL, scheduledTime);
+async function trigger(
+  env: Env,
+  baseUrl: string,
+  task: 'turso_ingest' | 'turso_projection',
+  scheduledTime: number
+): Promise<void> {
+  const url = schedulerUrl(baseUrl, scheduledTime);
   const abortController = new AbortController();
   const timeout = setTimeout(() => abortController.abort(), REQUEST_TIMEOUT_MS);
   try {
@@ -25,12 +32,12 @@ async function triggerIngest(env: Env, scheduledTime: number): Promise<void> {
       signal: abortController.signal,
     });
     if (!response.ok) {
-      throw new Error(`Insight ingest endpoint returned HTTP ${response.status}`);
+      throw new Error(`Insight ${task} endpoint returned HTTP ${response.status}`);
     }
     // eslint-disable-next-line no-console -- the Cron Event log is the scheduler's durable operator signal.
     console.log(
       JSON.stringify({
-        event: 'turso_ingest_triggered',
+        event: `${task}_triggered`,
         scheduledTime,
         status: response.status,
       })
@@ -42,9 +49,32 @@ async function triggerIngest(env: Env, scheduledTime: number): Promise<void> {
 
 const worker = {
   async scheduled(controller: ScheduledController, env: Env): Promise<void> {
-    await triggerIngest(env, controller.scheduledTime);
+    const task =
+      controller.cron === INGEST_CRON
+        ? { name: 'turso_ingest' as const, url: env.INSIGHT_INGEST_URL }
+        : controller.cron === PROJECT_CRON
+          ? { name: 'turso_projection' as const, url: env.INSIGHT_PROJECT_URL }
+          : null;
+    if (!task) {
+      console.error(JSON.stringify({ event: 'unexpected_cron_trigger', cron: controller.cron }));
+      return;
+    }
+
+    try {
+      await trigger(env, task.url, task.name, controller.scheduledTime);
+    } catch (error) {
+      console.error(
+        JSON.stringify({
+          event: `${task.name}_failed`,
+          cron: controller.cron,
+          scheduledTime: controller.scheduledTime,
+          error: error instanceof Error ? error.message : String(error),
+        })
+      );
+      throw error;
+    }
   },
 } satisfies ExportedHandler<Env>;
 
 export default worker;
-export { ingestUrl };
+export { schedulerUrl };

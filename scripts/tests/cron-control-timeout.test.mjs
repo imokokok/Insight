@@ -89,3 +89,51 @@ test('native fallback skips while a recent primary dispatch is in flight', async
     }
   }
 });
+
+test('projection fallback skips when the Cloudflare-primary receipt is fresh', async () => {
+  const saved = new Map();
+  const keys = [
+    'SUPABASE_URL',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'CRON_WORKFLOW',
+    'GITHUB_EVENT_NAME',
+    'FALLBACK_MAX_AGE_MINUTES',
+    'GITHUB_OUTPUT',
+  ];
+  for (const key of keys) saved.set(key, process.env[key]);
+  const originalFetch = globalThis.fetch;
+  const outputDir = await mkdtemp(join(tmpdir(), 'cron-control-projection-test-'));
+
+  try {
+    Object.assign(process.env, {
+      SUPABASE_URL: 'https://project.supabase.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'test-service-key',
+      CRON_WORKFLOW: 'turso-price-project.yml',
+      GITHUB_EVENT_NAME: 'schedule',
+      FALLBACK_MAX_AGE_MINUTES: '25',
+      GITHUB_OUTPUT: join(outputDir, 'output'),
+    });
+
+    const requests = [];
+    globalThis.fetch = async (input) => {
+      const url = new URL(String(input));
+      requests.push(url);
+      return new Response('[{"snapshot_ts":"2026-11-03T06:03:00.000Z"}]', { status: 200 });
+    };
+
+    const { guard } = await import(`../cron-control.mjs?projection=${Date.now()}`);
+    await guard();
+
+    assert.equal(await readFile(process.env.GITHUB_OUTPUT, 'utf8'), 'should_run=false\n');
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].pathname, '/rest/v1/turso_price_slot_receipts');
+    assert.equal(requests[0].searchParams.get('projected_at'), 'not.is.null');
+  } finally {
+    globalThis.fetch = originalFetch;
+    for (const key of keys) {
+      const value = saved.get(key);
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});

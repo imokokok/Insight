@@ -37,7 +37,9 @@ Cloudflare Cron (every 15 min, UTC)
   -> Turso slot lease
   -> upstream oracle reads + atomic Turso raw slot capture
   -> best-effort Supabase rich-cache/feed-health side effects
-  -> independent Turso-to-Supabase projector
+Cloudflare Cron (three minutes after each capture)
+  -> signed /api/cron/turso-project on Insight (Vercel Node runtime)
+  -> bounded, receipt-backed Turso-to-Supabase outbox drain
 ```
 
 The Cloudflare Worker only schedules and signs the request; it stores no
@@ -48,7 +50,9 @@ the `INGEST_SCHEDULER_SECRET` Bearer credential. Cloudflare Cron has a
 maximum duration.
 
 The existing GitHub `Snapshot Collect` workflow remains a delayed, guarded
-fallback and still runs the market-reference/manipulation-cost evidence tasks.
+fallback. Market-reference and manipulation-cost evidence now run in a
+separate Actions job, so a transient Supabase evidence-write failure remains
+visible but can never change the raw-capture ledger result.
 Cloudflare starts raw capture at `:00/:15/:30/:45`; both Supabase-dispatched
 and native GitHub fallback runs begin seven minutes later at
 `:07/:22/:37/:52`. A runtime grace guard enforces the same delay, so an
@@ -65,12 +69,13 @@ defaults to 86400 (valid range: 300–604800); when the mirror exceeds that
 age, the resolver performs one bounded authoritative Supabase refresh rather
 than silently using an indefinitely old configuration.
 
-Supabase is the projection workflow's primary clock: it records a durable
-dispatch ledger row, invokes the workflow at minutes `3,18,33,48`, and records
-the terminal result. GitHub's native schedule is a guarded fallback only; it
-runs when no recent primary dispatch has succeeded. This keeps the projection
-independent from raw capture while avoiding reliance on best-effort GitHub
-schedule delivery.
+Cloudflare is also the projection workflow's primary clock: it invokes the
+authenticated projector at minutes `3,18,33,48` and drains up to four bounded
+outbox batches per invocation, allowing a multi-hour Supabase outage to catch
+up in one successful run. GitHub's native schedule is a delayed, receipt-
+guarded fallback at minutes `10,25,40,55`; it runs only when the Supabase
+receipt proves that Cloudflare projection is stale. Supabase `pg_cron` no
+longer participates in the projection critical path.
 
 ## Required configuration
 
@@ -128,10 +133,12 @@ closed with HTTP 401 and leaves existing Turso data untouched.
    bundles while still in `legacy` mode.
 4. Once the workflow definition containing `dispatch_id` and `scheduled_for`
    inputs is on the default branch, apply
-   `0114_turso_price_projection_dispatcher.sql`. Then apply
-   `0115_cloudflare_ingest_fallback.sql`, which registers the seven-minute
-   GitHub fallback offset and re-registers the dispatcher. Do not apply these
-   activation migrations before that workflow is available on `main`.
+   `0114_turso_price_projection_dispatcher.sql`, then
+   `0115_cloudflare_ingest_fallback.sql`, and finally
+   `0116_cloudflare_primary_projection.sql`. The final migration removes the
+   projection job from Supabase `pg_cron` while retaining the delayed GitHub
+   fallback. Do not apply these activation migrations before their workflows
+   are available on `main`.
 5. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
    for several complete collection cycles.
    Supabase remains authoritative. Each Turso slot must exactly match the
@@ -153,17 +160,18 @@ closed with HTTP 401 and leaves existing Turso data untouched.
    the same release. Raw-history readers use Supabase before that instant and
    Turso from that instant onward. The service refuses primary writes if the
    boundary is absent or invalid.
-8. Deploy the Vercel release containing `/api/cron/turso-ingest`, set the
-   production-only `INGEST_SCHEDULER_SECRET`, then deploy
-   `workers/turso-ingest-scheduler/` with the identical Worker secret. The
-   Worker configuration is the sole owner of the `*/15 * * * *` Cron trigger;
-   allow up to 15 minutes for a Cron-trigger change to propagate.
-9. Invoke the signed route once for the current quarter-hour and verify one
+8. Deploy the Vercel release containing `/api/cron/turso-ingest` and
+   `/api/cron/turso-project`, set the production-only
+   `INGEST_SCHEDULER_SECRET`, then deploy `workers/turso-ingest-scheduler/`
+   with the identical Worker secret. The Worker configuration is the sole
+   owner of the raw `*/15 * * * *` and projection `3,18,33,48 * * * *` Cron
+   triggers; allow up to 15 minutes for a Cron-trigger change to propagate.
+9. Invoke the signed ingest route once for the current quarter-hour and verify one
    `snapshot_ingest_leases` row reaches `completed_at_ms` only after the
    matching `snapshot_slots` row exists. Check the Cloudflare Worker log for a
-   `turso_ingest_triggered` event and the Vercel response for `captured`,
-   `busy`, or `already_captured`. All three are correct lease outcomes; an
-   unauthenticated request must receive 401.
+   `turso_ingest_triggered` event. Then invoke the signed project route and
+   verify that its receipt exists in `turso_price_slot_receipts`. Both routes
+   must reject an unauthenticated request with 401.
 
 ## Rollback
 
@@ -182,6 +190,7 @@ until a replacement capture path has been verified.
 ```bash
 npm run db:check:turso-price-projection
 npm run db:check:turso-price-projection-dispatcher
+npm run db:check:cloudflare-primary-projection-migration
 npm run turso:price:migrate
 npm run worker:turso-ingest:check
 npx jest src/lib/turso/price/__tests__ src/lib/reports/__tests__/snapshotIngest.test.ts src/lib/supabase/__tests__/snapshotHistory.turso.test.ts --runInBand
@@ -212,3 +221,9 @@ TURSO_PRICE_REQUEUE_SLOT_MS=<epoch-ms> \
 TURSO_PRICE_REQUEUE_INPUT_HASH=<64-hex-input-hash> \
 npm run turso:price:requeue
 ```
+
+The `Turso Control Plane Alert` GitHub workflow checks this readiness endpoint
+at minutes `12,27,42,57`. A failing check opens one deduplicated GitHub Issue
+and comments on it while the incident remains open; the first healthy check
+comments with recovery evidence and closes it. This alert is intentionally
+outside the Supabase scheduler failure domain.
