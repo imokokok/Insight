@@ -199,7 +199,8 @@ export interface DecisionInputAssessment {
         | 'base-weth-usdc'
         | 'base-uniswap-v3-weth-usdc-500'
         | 'base-pancakeswap-v3-usdc-usdt'
-        | 'bnb-pancakeswap-v3-usdt-usdc';
+        | 'bnb-pancakeswap-v3-usdt-usdc'
+        | 'bnb-pancakeswap-v3-usdt-wbnb';
       venue: 'uniswap-v3' | 'pancakeswap-v3';
       market: string;
       /** Direction of the reviewed quote inside the pinned pool. */
@@ -1072,7 +1073,10 @@ function assessChainlink(
   chainlink: ChainlinkMarketReference | null,
   reasons: DecisionInputReason[]
 ): ChainlinkChecks {
-  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset;
+  // Canonical wrapped natives price against their native reference: WETH→ETH
+  // (Ethereum/Base) and WBNB→BNB (BNB Smart Chain), matching the consensus
+  // service's PRICE_REFERENCE_ALIASES.
+  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset === 'WBNB' ? 'BNB' : asset;
   const usable =
     chainlink !== null &&
     chainlink.symbol === referenceSymbol &&
@@ -1131,7 +1135,7 @@ function assessRedStone(
   nowMs: number,
   reasons: DecisionInputReason[]
 ): RedStoneChecks {
-  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset;
+  const referenceSymbol = asset === 'WETH' ? 'ETH' : asset === 'WBNB' ? 'BNB' : asset;
   const updatedAtMs = redstone ? Date.parse(redstone.updatedAt) : Number.NaN;
   const valid =
     redstone !== null &&

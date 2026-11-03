@@ -44,6 +44,8 @@ import {
   PANCAKE_SWAP_V3_BNB_USDC,
   PANCAKE_SWAP_V3_BNB_USDT,
   PANCAKE_SWAP_V3_BNB_USDT_USDC,
+  PANCAKE_SWAP_V3_BNB_USDT_WBNB,
+  PANCAKE_SWAP_V3_BNB_WBNB,
   PANCAKE_SWAP_V3_BASE_USDC,
   PANCAKE_SWAP_V3_BASE_USDC_USDT,
   PANCAKE_SWAP_V3_BASE_USDT,
@@ -62,6 +64,7 @@ export const BASE_AGENT_SWAP_GUARD_PROFILE_IDS = [
   'base-aerodrome-slipstream-usdc-usdt-cl1',
   'base-pancakeswap-v3-usdc-usdt-100',
   'bnb-pancakeswap-v3-usdt-usdc-100',
+  'bnb-pancakeswap-v3-usdt-wbnb-100',
 ] as const;
 
 export type BaseAgentSwapGuardProfileId = (typeof BASE_AGENT_SWAP_GUARD_PROFILE_IDS)[number];
@@ -239,8 +242,8 @@ function profileAssets(
   profileId: BaseAgentSwapGuardProfileId,
   direction: BaseAgentSwapGuardDirection
 ): {
-  source: { symbol: 'WETH' | 'USDC' | 'USDT'; address: string };
-  destination: { symbol: 'WETH' | 'USDC' | 'USDT'; address: string };
+  source: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB'; address: string };
+  destination: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB'; address: string };
 } {
   const spec = GUARD_PROFILE_SPECS[profileId];
   const source = direction === 'token0-to-token1' ? spec.token0 : spec.token1;
@@ -260,8 +263,8 @@ const GUARD_PROFILE_SPECS: Record<
     chainId: BaseAgentSwapGuardChainId;
     kind: 'aerodrome-slipstream-exact-input-v1' | 'pancakeswap-v3-exact-input-v1';
     market: string;
-    token0: { symbol: 'WETH' | 'USDC' | 'USDT'; address: string };
-    token1: { symbol: 'WETH' | 'USDC' | 'USDT'; address: string };
+    token0: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB'; address: string };
+    token1: { symbol: 'WETH' | 'USDC' | 'USDT' | 'WBNB'; address: string };
     pool: string;
     tickSpacing?: number;
     feeTier?: number;
@@ -303,6 +306,16 @@ const GUARD_PROFILE_SPECS: Record<
     token1: { symbol: 'USDC', address: PANCAKE_SWAP_V3_BNB_USDC },
     pool: PANCAKE_SWAP_V3_BNB_USDT_USDC.pool,
     feeTier: PANCAKE_SWAP_V3_BNB_USDT_USDC.feeTier,
+  },
+  'bnb-pancakeswap-v3-usdt-wbnb-100': {
+    chainId: PANCAKE_SWAP_V3_BNB_CHAIN_ID,
+    kind: 'pancakeswap-v3-exact-input-v1',
+    market: 'USDT/WBNB',
+    // Same token ordering as the reviewed BNB stable lane: USDT is token0.
+    token0: { symbol: 'USDT', address: PANCAKE_SWAP_V3_BNB_USDT },
+    token1: { symbol: 'WBNB', address: PANCAKE_SWAP_V3_BNB_WBNB },
+    pool: PANCAKE_SWAP_V3_BNB_USDT_WBNB.pool,
+    feeTier: PANCAKE_SWAP_V3_BNB_USDT_WBNB.feeTier,
   },
 } as const;
 

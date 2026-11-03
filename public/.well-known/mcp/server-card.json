@@ -1889,7 +1889,8 @@
               "base-aerodrome-slipstream-weth-usdc-cl100",
               "base-aerodrome-slipstream-usdc-usdt-cl1",
               "base-pancakeswap-v3-usdc-usdt-100",
-              "bnb-pancakeswap-v3-usdt-usdc-100"
+              "bnb-pancakeswap-v3-usdt-usdc-100",
+              "bnb-pancakeswap-v3-usdt-wbnb-100"
             ]
           },
           "direction": {
@@ -2037,7 +2038,11 @@
           "profileId": {
             "description": "Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%",
             "type": "string",
-            "enum": ["base-pancakeswap-v3-usdc-usdt-100", "bnb-pancakeswap-v3-usdt-usdc-100"]
+            "enum": [
+              "base-pancakeswap-v3-usdc-usdt-100",
+              "bnb-pancakeswap-v3-usdt-usdc-100",
+              "bnb-pancakeswap-v3-usdt-wbnb-100"
+            ]
           }
         },
         "additionalProperties": false
@@ -2053,7 +2058,11 @@
           "profileId": {
             "description": "Reviewed PancakeSwap V3 pool id (Base or BNB Smart Chain); defaults to Base USDC/USDT 0.01%",
             "type": "string",
-            "enum": ["base-pancakeswap-v3-usdc-usdt-100", "bnb-pancakeswap-v3-usdt-usdc-100"]
+            "enum": [
+              "base-pancakeswap-v3-usdc-usdt-100",
+              "bnb-pancakeswap-v3-usdt-usdc-100",
+              "bnb-pancakeswap-v3-usdt-wbnb-100"
+            ]
           },
           "direction": {
             "type": "string",
