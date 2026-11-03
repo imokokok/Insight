@@ -7,6 +7,8 @@
  * failures still produce signed evidence — with an explicit non-SETTLED status.
  */
 
+import { ed25519 } from '@noble/curves/ed25519';
+
 import { getRpcEndpoints } from '@/lib/execution/rpcEndpoints';
 import {
   signSolanaEvidence,
@@ -19,6 +21,12 @@ import {
   type SolanaExecutionCollectionFailure,
   type SolanaExecutionFacts,
 } from '@/lib/execution/solanaExecutionCollector';
+import {
+  decodeSolanaBase58,
+  encodeUnsignedSolanaLendingMessage,
+  SolanaLendingTransactionSchema,
+  type SolanaLendingTransaction,
+} from '@/lib/lending/solanaLendingAction';
 
 import {
   verifySolanaSwapGuardDecision,
@@ -74,6 +82,10 @@ export interface SolanaSwapGuardSettlementDependencies {
     value: unknown,
     dependencies?: { trustedPublicKey?: string | null }
   ) => SolanaSwapGuardDecisionVerification;
+  verifyMessageBinding?: (input: {
+    signature: string;
+    transaction: SolanaLendingTransaction;
+  }) => boolean;
   now?: () => number;
   trustedPublicKey?: string | null;
 }
@@ -98,6 +110,25 @@ export async function settleSolanaSwapGuard(
       ok: false,
       code: 'DECISION_INVALID',
       message: `The signed swap guard decision did not verify: ${verification.reason}`,
+    };
+  }
+  const parsedTransaction = SolanaLendingTransactionSchema.safeParse(
+    (rawInput.decision as { transaction?: unknown }).transaction
+  );
+  if (!parsedTransaction.success) {
+    return {
+      ok: false,
+      code: 'DECISION_INVALID',
+      message: 'The signed swap guard decision does not carry a well-formed transaction',
+    };
+  }
+  const verifyMessageBinding = dependencies.verifyMessageBinding ?? verifyExecutedMessageBinding;
+  if (!verifyMessageBinding({ signature, transaction: parsedTransaction.data })) {
+    return {
+      ok: false,
+      code: 'EXECUTED_MESSAGE_MISMATCH',
+      message:
+        'The on-chain signature does not verify over the attested unsigned message; the executed transaction is not the reviewed one',
     };
   }
   const decision = rawInput.decision as {
@@ -166,6 +197,31 @@ export async function settleSolanaSwapGuard(
     reason: reconciliation,
     facts,
   };
+}
+
+/**
+ * Cryptographic closure of the "executed message was the attested message"
+ * claim: Solana includes a transaction only under an Ed25519 fee-payer
+ * signature over the exact compiled message bytes, so verifying the presented
+ * on-chain signature against the attested unsigned message proves the executed
+ * transaction is the reviewed one.
+ */
+export function verifyExecutedMessageBinding(input: {
+  signature: string;
+  transaction: SolanaLendingTransaction;
+}): boolean {
+  try {
+    const signature = decodeSolanaBase58(input.signature);
+    const publicKey = decodeSolanaBase58(input.transaction.feePayer);
+    if (signature.length !== 64 || publicKey.length !== 32) return false;
+    return ed25519.verify(
+      signature,
+      encodeUnsignedSolanaLendingMessage(input.transaction),
+      publicKey
+    );
+  } catch {
+    return false;
+  }
 }
 
 function reconcile(

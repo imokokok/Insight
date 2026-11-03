@@ -134,10 +134,15 @@ decision plus the on-chain transaction signature. Insight:
 1. re-verifies the decision (integrity hash, exact action binding, Ed25519
    attester, expiry) — a decision that does not verify produces **no
    settlement**;
-2. collects execution facts from Solana JSON-RPC
+2. cryptographically binds the executed transaction to the attested message:
+   the presented on-chain signature must Ed25519-verify over the attested
+   unsigned message bytes (Solana only includes transactions under a fee-payer
+   signature over the exact compiled message) — a mismatch produces **no
+   settlement** (`EXECUTED_MESSAGE_MISMATCH`);
+3. collects execution facts from Solana JSON-RPC
    (`collectSolanaExecutionFacts`: net wallet-owned SPL balance deltas for the
    two reviewed mints, slot, status, fees); and
-3. reconciles the observed deltas against the guarded commitment —
+4. reconciles the observed deltas against the guarded commitment —
    `SOURCE_AMOUNT_MISMATCH`, `MIN_OUT_VIOLATED`, `EXECUTION_REVERTED`, or an
    explicit `unavailableReason` — and signs a portable
    `insight.solana-swap-guard-settlement.v1` receipt bound to the
