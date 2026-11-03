@@ -16,10 +16,6 @@ name: Snapshot Collect
 # why the former weekly keep-alive ping in feed-discovery.yml was removed.
 
 on:
-  schedule:
-    # GitHub Actions is the sole high-frequency clock. The Turso slot lease
-    # makes a delayed duplicate or manual recovery invocation idempotent.
-    - cron: '0,15,30,45 * * * *'
   workflow_dispatch:
     inputs:
       dispatch_id:
@@ -104,9 +100,8 @@ jobs:
       - name: Collect snapshots
         run: node .github/cron-dist/collect-snapshot.mjs
 
-      # Native schedules have no dispatch ID and therefore make no Supabase
-      # telemetry write. Receipt-gated fallback dispatches close their one
-      # existing ledger row after the actual capture outcome is known.
+      # Supabase owns the high-frequency clock and creates the dispatch row.
+      # A direct manual run has no ID and deliberately adds no telemetry row.
       - name: Finish fallback dispatch ledger
         if: always() && env.CRON_DISPATCH_ID != ''
         env:
