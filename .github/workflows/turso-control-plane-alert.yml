@@ -54,11 +54,11 @@ jobs:
           INCIDENT_BODY: ${{ steps.readiness.outputs.body }}
         run: |
           set -euo pipefail
-          title='[Turso Control Plane] readiness degraded'
-          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title $title" --json number --jq '.[0].number // empty')"
-          if [ "$HEALTHY" = 'true' ]; then
+          title="[Turso Control Plane] readiness degraded"
+          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title $title" --json number --jq ".[0].number // empty")"
+          if [ "$HEALTHY" = "true" ]; then
             if [ -n "$issue_number" ]; then
-              gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "Automated recovery check passed at $(date -u +'%Y-%m-%dT%H:%M:%SZ). Closing this incident."
+              gh issue comment "$issue_number" --repo "$GITHUB_REPOSITORY" --body "Automated recovery check passed at $(date -u +%Y-%m-%dT%H:%M:%SZ). Closing this incident."
               gh issue close "$issue_number" --repo "$GITHUB_REPOSITORY"
             fi
             exit 0
