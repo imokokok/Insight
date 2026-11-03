@@ -28,11 +28,9 @@ Oracle observations → Cross-source comparison → Risk assessment → Decision
 
 ## Supported Networks
 
-- **x402 pay-per-call settlement:** Base, Polygon, Arbitrum One, Monad, HyperEVM, BNB Smart Chain, and Solana mainnet. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) is the source of truth for rails currently advertised in production.
-- **HyperEVM (Chain ID: 999):** USDC through the UVD facilitator using the standard EIP-3009 x402 exact flow.
-- **BNB Smart Chain (Chain ID: 56):** Binance-Peg USDC via the AEON mandate flow; clients must use the supplied mandate scheme rather than a stock EIP-3009 payer.
-- **Monad Mainnet (Chain ID: 143):** read-only oracle coverage for 51 official Chainlink USD feeds, with x402 settlement on Circle native USDC.
-- **Additional EVM rails:** Ethereum, OP Mainnet, Avalanche, Sei, and X Layer have typed payment-configuration entries, but are not presented as public payment rails until their facilitator support and an end-to-end settlement check are confirmed.
+- **x402 pay-per-call settlement:** The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) and each endpoint's unsigned `PAYMENT-REQUIRED` response are the source of truth for rails currently advertised in production. A caller must select a live `accepts[]` option; do not infer availability from the action chain.
+- **Current x402 rail:** HyperEVM (Chain ID: 999) settles USDC through the UVD facilitator using the standard EIP-3009 x402 exact flow. The live challenge may additionally expose route-specific options that are not listed for discovery.
+- **Product coverage is separate from payment availability:** Base, BNB Chain, Monad, and additional EVM networks can be assessed by the API, but that does not make their native tokens payment rails. Treat the live quote as authoritative.
 - Additional EVM networks are covered read-only for oracle data (40+ chains)
 
 ## Contract Addresses
