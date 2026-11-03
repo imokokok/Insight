@@ -57,6 +57,10 @@ consensus core, or existing evidence tools.
    a Base swap/perp with Insight, binds a PriorSeal exact-call authorization,
    executes, and files the execution receipt — recorded and published as the
    canonical case study. Uses the existing partner joint-run playbook.
+   (Case study published 2026-11-03:
+   `docs/integrations/priorseal-joint-reference-agent.md`; the recorded-run
+   section lands with PriorSeal's base-agent-swap-guard SDK adapter release
+   plus a GO-gated mainnet rehearsal.)
 2. **Discovery surface optimization**: ERC-8004 agent metadata, x402 Bazaar
    listings, and MCP registry entries audited as a set (descriptions, examples,
    pricing) so directory-indexed agents find the guards; add a published
@@ -85,7 +89,7 @@ consensus core, or existing evidence tools.
 
 | Order | Item                               | Why this order                          | Done when                                                                                                                                                      |
 | ----- | ---------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | Track B1 joint reference agent     | Makes everything after it sellable      | Published case study + receipts                                                                                                                                |
+| 1     | Track B1 joint reference agent     | Makes everything after it sellable      | Published case study + receipts (case study shipped 2026-11-03; receipts pending adapter release + GO-gated mainnet run)                                       |
 | 2     | Track A1 perp liquidity evidence   | Cheapest moat deepening; pattern exists | v3 shipped behind perp guard (shipped 2026-11-03)                                                                                                              |
 | 3     | Track C1 Oracle Watch subscription | First recurring revenue                 | Live plan purchasable via x402 (shipped 2026-11-03: `/safety/oracle-watch-window` begin/poll/close, REST-first; MCP follow-up)                                 |
 | 4     | Track A2 Hyperliquid Perp Guard    | Biggest TAM, moderate cost              | Guard + exact-call on main (shipped 2026-11-03: `/safety/hyperliquid-perp-guard` assess/exact/verify; MCP keyless payment fail-closed on HyperCore)            |
