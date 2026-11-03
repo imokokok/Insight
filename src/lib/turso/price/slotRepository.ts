@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { z } from 'zod';
 
+import { readTursoPriceRetentionPolicy } from './client';
 import {
   absoluteDifference,
   CONFIDENCE_SCALE,
@@ -25,6 +26,14 @@ import type { Client, InStatement, Transaction } from '@libsql/client';
 
 const MAX_SNAPSHOT_PRICE = 9_999_999_999_999_999.99999999;
 const MAX_DEVIATION_PCT = 9_999.9999;
+// Stay below SQLite's conservative 999-bound-parameter default even when the
+// remote libSQL service accepts more. The transaction batch still turns each
+// group into one network round trip.
+const STATE_READ_BATCH_SIZE = 300;
+const RAW_WRITE_BATCH_SIZE = 60;
+const STATE_WRITE_BATCH_SIZE = 80;
+const LATEST_WRITE_BATCH_SIZE = 50;
+const MAINTENANCE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const inputSchema = z.object({
   provider: z.string().trim().min(1).max(128),
   symbol: z
@@ -64,7 +73,9 @@ const summarySchema = z
 const payloadSchema = z
   .object({
     slotMs: z.number().int().nonnegative().safe(),
-    inputs: z.array(inputSchema).min(1).max(500),
+    // Acknowledged slots can be compacted after the raw-retention window.
+    // Pending slots must still carry at least one input (enforced at read).
+    inputs: z.array(inputSchema).max(500),
   })
   .strict();
 
@@ -142,7 +153,7 @@ function asText(value: unknown, field: string): string {
   return value;
 }
 
-function inputKey(input: TursoPriceInput): string {
+function inputKey(input: Pick<TursoPriceInput, 'provider' | 'symbol' | 'chainId'>): string {
   return `${input.provider}\u0000${input.symbol}\u0000${input.chainId}`;
 }
 
@@ -324,17 +335,52 @@ async function readPolicies(transaction: Transaction): Promise<Map<string, Turso
   return policies;
 }
 
-async function readState(
+function chunks<T>(values: readonly T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let index = 0; index < values.length; index += size) {
+    result.push(values.slice(index, index + size));
+  }
+  return result;
+}
+
+/**
+ * Read all adaptive baselines in a handful of statements, rather than one
+ * remote SELECT per asset. Missing keys intentionally stay absent from the
+ * map and are treated as an initial observation by the planner.
+ */
+async function readStates(
   transaction: Transaction,
-  input: TursoPriceInput
-): Promise<StoredState | null> {
-  const result = await transaction.execute({
-    sql: `SELECT last_snapshot_ms,last_price_e8,last_deviation_e4,last_data_age_seconds,
-      last_confidence_e4,last_is_success,last_error_message
-      FROM persistence_state WHERE provider=? AND symbol=? AND chain_id=?`,
-    args: [input.provider, input.symbol, input.chainId],
-  });
-  return parseState(result.rows[0] as Record<string, unknown> | undefined);
+  inputs: readonly TursoPriceInput[]
+): Promise<Map<string, StoredState>> {
+  const inputGroups = chunks(inputs, STATE_READ_BATCH_SIZE);
+  const statements: InStatement[] = inputGroups.map((group) => ({
+    sql: `WITH requested(provider,symbol,chain_id) AS (
+      VALUES ${group.map(() => '(?,?,?)').join(',')}
+    )
+    SELECT state.provider,state.symbol,state.chain_id,state.last_snapshot_ms,state.last_price_e8,
+      state.last_deviation_e4,state.last_data_age_seconds,state.last_confidence_e4,
+      state.last_is_success,state.last_error_message
+    FROM persistence_state AS state
+    INNER JOIN requested
+      ON requested.provider=state.provider
+      AND requested.symbol=state.symbol
+      AND requested.chain_id=state.chain_id`,
+    args: group.flatMap((input) => [input.provider, input.symbol, input.chainId]),
+  }));
+  const results = await transaction.batch(statements);
+  const states = new Map<string, StoredState>();
+  for (const result of results) {
+    for (const raw of result.rows) {
+      const row = raw as Record<string, unknown>;
+      const provider = asText(row.provider, 'state provider');
+      const symbol = asText(row.symbol, 'state symbol');
+      const chainId = asInteger(row.chain_id, 'state chain id');
+      const parsed = parseState(row);
+      if (!parsed) throw new Error('Invalid Turso persistence state');
+      states.set(inputKey({ provider, symbol, chainId }), parsed);
+    }
+  }
+  return states;
 }
 
 function toPlannedRow(
@@ -380,6 +426,125 @@ function rawDigest(rows: readonly PlannedRow[]): string {
       reason: row.reason,
     }));
   return hash(JSON.stringify(persisted));
+}
+
+function rawInsertStatements(
+  rows: readonly PlannedRow[],
+  slotMs: number,
+  nowMs: number
+): InStatement[] {
+  return chunks(
+    rows.filter((row) => row.reason !== 'stable'),
+    RAW_WRITE_BATCH_SIZE
+  ).map((group) => ({
+    sql: `INSERT INTO price_snapshots(
+      slot_ms,snapshot_hour_ms,provider,symbol,chain_id,price_e8,consensus_price_e8,
+      deviation_e4,latency_ms,data_age_seconds,confidence_e4,is_success,error_message,
+      write_reason,created_at_ms
+    ) VALUES ${group.map(() => '(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').join(',')}
+    ON CONFLICT(slot_ms,provider,symbol,chain_id) DO NOTHING`,
+    args: group.flatMap((row) => [
+      slotMs,
+      row.input.snapshotHourMs,
+      row.input.provider,
+      row.input.symbol,
+      row.input.chainId,
+      scaledToCanonicalString(row.priceE8),
+      row.consensusPriceE8 === null ? null : scaledToCanonicalString(row.consensusPriceE8),
+      row.deviationE4,
+      row.input.latencyMs,
+      row.input.dataAgeSeconds,
+      row.confidenceE4,
+      Number(row.input.isSuccess),
+      row.input.errorMessage,
+      row.reason,
+      nowMs,
+    ]),
+  }));
+}
+
+function stateUpsertStatements(
+  rows: readonly PlannedRow[],
+  slotMs: number,
+  nowMs: number
+): InStatement[] {
+  const adaptive = rows.filter(
+    (row) => row.reason !== 'stable' && row.policy.resolution === 'adaptive'
+  );
+  return chunks(adaptive, STATE_WRITE_BATCH_SIZE).map((group) => ({
+    sql: `INSERT INTO persistence_state(
+      provider,symbol,chain_id,last_snapshot_ms,last_price_e8,last_deviation_e4,
+      last_data_age_seconds,last_confidence_e4,last_is_success,last_error_message,updated_at_ms
+    ) VALUES ${group.map(() => '(?,?,?,?,?,?,?,?,?,?,?)').join(',')}
+    ON CONFLICT(provider,symbol,chain_id) DO UPDATE SET
+      last_snapshot_ms=excluded.last_snapshot_ms,
+      last_price_e8=excluded.last_price_e8,
+      last_deviation_e4=excluded.last_deviation_e4,
+      last_data_age_seconds=excluded.last_data_age_seconds,
+      last_confidence_e4=excluded.last_confidence_e4,
+      last_is_success=excluded.last_is_success,
+      last_error_message=excluded.last_error_message,
+      updated_at_ms=excluded.updated_at_ms
+    WHERE persistence_state.last_snapshot_ms < excluded.last_snapshot_ms`,
+    args: group.flatMap((row) => [
+      row.input.provider,
+      row.input.symbol,
+      row.input.chainId,
+      slotMs,
+      scaledToCanonicalString(row.priceE8),
+      row.deviationE4,
+      row.input.dataAgeSeconds,
+      row.confidenceE4,
+      Number(row.input.isSuccess),
+      row.input.errorMessage,
+      nowMs,
+    ]),
+  }));
+}
+
+function latestUpsertStatements(
+  rows: readonly PlannedRow[],
+  slotMs: number,
+  nowMs: number
+): InStatement[] {
+  return chunks(rows, LATEST_WRITE_BATCH_SIZE).map((group) => ({
+    sql: `INSERT INTO price_latest(
+      provider,symbol,chain_id,slot_ms,snapshot_hour_ms,price_e8,consensus_price_e8,
+      deviation_e4,latency_ms,data_age_seconds,confidence_e4,is_success,error_message,
+      write_reason,updated_at_ms
+    ) VALUES ${group.map(() => '(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').join(',')}
+    ON CONFLICT(provider,symbol,chain_id) DO UPDATE SET
+      slot_ms=excluded.slot_ms,
+      snapshot_hour_ms=excluded.snapshot_hour_ms,
+      price_e8=excluded.price_e8,
+      consensus_price_e8=excluded.consensus_price_e8,
+      deviation_e4=excluded.deviation_e4,
+      latency_ms=excluded.latency_ms,
+      data_age_seconds=excluded.data_age_seconds,
+      confidence_e4=excluded.confidence_e4,
+      is_success=excluded.is_success,
+      error_message=excluded.error_message,
+      write_reason=excluded.write_reason,
+      updated_at_ms=excluded.updated_at_ms
+    WHERE price_latest.slot_ms <= excluded.slot_ms`,
+    args: group.flatMap((row) => [
+      row.input.provider,
+      row.input.symbol,
+      row.input.chainId,
+      slotMs,
+      row.input.snapshotHourMs,
+      scaledToCanonicalString(row.priceE8),
+      row.consensusPriceE8 === null ? null : scaledToCanonicalString(row.consensusPriceE8),
+      row.deviationE4,
+      row.input.latencyMs,
+      row.input.dataAgeSeconds,
+      row.confidenceE4,
+      Number(row.input.isSuccess),
+      row.input.errorMessage,
+      row.reason,
+      nowMs,
+    ]),
+  }));
 }
 
 async function rollbackQuietly(transaction: Transaction | undefined): Promise<void> {
@@ -439,12 +604,15 @@ export async function captureTursoPriceSlot(
       return captured;
     }
 
+    // A libSQL transaction owns one stream; keep these two batched reads
+    // serial instead of opening concurrent work on that stream.
     const policies = await readPolicies(transaction);
+    const states = await readStates(transaction, inputs);
     const summary = emptySummary(received.length, inputs.length);
     const planned: PlannedRow[] = [];
     for (const input of inputs) {
       const policy = policies.get(input.symbol) ?? policies.get('__default__')!;
-      const state = await readState(transaction, input);
+      const state = states.get(inputKey(input)) ?? null;
       const row = toPlannedRow(input, policy, state, slotMs);
       planned.push(row);
       incrementReason(summary, row.reason);
@@ -453,81 +621,29 @@ export async function captureTursoPriceSlot(
     const digest = rawDigest(planned);
     const payload = canonicalPayload(slotMs, inputs);
 
-    for (const row of planned) {
-      if (row.reason === 'stable') continue;
-      await transaction.execute({
-        sql: `INSERT INTO price_snapshots(
-          slot_ms,snapshot_hour_ms,provider,symbol,chain_id,price_e8,consensus_price_e8,
-          deviation_e4,latency_ms,data_age_seconds,confidence_e4,is_success,error_message,
-          write_reason,created_at_ms
-        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        args: [
-          slotMs,
-          row.input.snapshotHourMs,
-          row.input.provider,
-          row.input.symbol,
-          row.input.chainId,
-          scaledToCanonicalString(row.priceE8),
-          row.consensusPriceE8 === null ? null : scaledToCanonicalString(row.consensusPriceE8),
-          row.deviationE4,
-          row.input.latencyMs,
-          row.input.dataAgeSeconds,
-          row.confidenceE4,
-          Number(row.input.isSuccess),
-          row.input.errorMessage,
-          row.reason,
-          nowMs,
-        ],
-      });
-      if (row.policy.resolution !== 'adaptive') continue;
-      await transaction.execute({
-        sql: `INSERT INTO persistence_state(
-          provider,symbol,chain_id,last_snapshot_ms,last_price_e8,last_deviation_e4,
-          last_data_age_seconds,last_confidence_e4,last_is_success,last_error_message,updated_at_ms
-        ) VALUES(?,?,?,?,?,?,?,?,?,?,?)
-        ON CONFLICT(provider,symbol,chain_id) DO UPDATE SET
-          last_snapshot_ms=excluded.last_snapshot_ms,
-          last_price_e8=excluded.last_price_e8,
-          last_deviation_e4=excluded.last_deviation_e4,
-          last_data_age_seconds=excluded.last_data_age_seconds,
-          last_confidence_e4=excluded.last_confidence_e4,
-          last_is_success=excluded.last_is_success,
-          last_error_message=excluded.last_error_message,
-          updated_at_ms=excluded.updated_at_ms
-        WHERE persistence_state.last_snapshot_ms < excluded.last_snapshot_ms`,
-        args: [
-          row.input.provider,
-          row.input.symbol,
-          row.input.chainId,
-          slotMs,
-          scaledToCanonicalString(row.priceE8),
-          row.deviationE4,
-          row.input.dataAgeSeconds,
-          row.confidenceE4,
-          Number(row.input.isSuccess),
-          row.input.errorMessage,
-          nowMs,
-        ],
-      });
-    }
-    await transaction.execute({
-      sql: `INSERT INTO snapshot_slots(
+    await transaction.batch([
+      ...rawInsertStatements(planned, slotMs, nowMs),
+      ...stateUpsertStatements(planned, slotMs, nowMs),
+      ...latestUpsertStatements(planned, slotMs, nowMs),
+      {
+        sql: `INSERT INTO snapshot_slots(
         slot_ms,input_hash,raw_digest,canonical_payload,policy_version,received_count,
         candidate_count,persisted_count,summary_json,created_at_ms
       ) VALUES(?,?,?,?,?,?,?,?,?,?)`,
-      args: [
-        slotMs,
-        inputHash,
-        digest,
-        payload,
-        TURSO_PRICE_SCHEMA_VERSION,
-        summary.received,
-        summary.candidates,
-        summary.persisted,
-        JSON.stringify(summary),
-        nowMs,
-      ],
-    });
+        args: [
+          slotMs,
+          inputHash,
+          digest,
+          payload,
+          TURSO_PRICE_SCHEMA_VERSION,
+          summary.received,
+          summary.candidates,
+          summary.persisted,
+          JSON.stringify(summary),
+          nowMs,
+        ],
+      },
+    ]);
     await transaction.commit();
     return { slotMs, inputHash, rawDigest: digest, inputs, summary, replayed: false };
   } catch (error) {
@@ -543,7 +659,11 @@ export async function acknowledgeTursoPriceSlot(
   nowMs: number = Date.now()
 ): Promise<void> {
   const result = await client.execute({
-    sql: `UPDATE snapshot_slots SET supabase_acknowledged_at_ms=coalesce(supabase_acknowledged_at_ms, ?)
+    sql: `UPDATE snapshot_slots SET
+      supabase_acknowledged_at_ms=coalesce(supabase_acknowledged_at_ms, ?),
+      projection_last_error=NULL,
+      projection_retry_after_ms=NULL,
+      projection_quarantined_at_ms=NULL
       WHERE slot_ms=? AND input_hash=?`,
     args: [nowMs, slotMs, inputHash],
   });
@@ -632,22 +752,52 @@ export interface PendingTursoPriceSlot {
   inputs: TursoPriceInput[];
 }
 
+export interface TursoPriceProjectionBacklog {
+  pendingCount: number;
+  oldestSlotMs: number | null;
+  retryingCount: number;
+  quarantinedCount: number;
+}
+
+export interface TursoPriceProjectionFailure {
+  attempts: number;
+  retryAfterMs: number | null;
+  quarantined: boolean;
+}
+
+const PROJECTION_RETRY_BASE_MS = 60_000;
+const PROJECTION_RETRY_MAX_MS = 15 * 60_000;
+const PROJECTION_ERROR_MAX_LENGTH = 2_000;
+
+export interface TursoPriceMaintenanceSummary {
+  rawEventsPruned: number;
+  acknowledgedPayloadsCompacted: number;
+}
+
 export async function listPendingTursoPriceSlots(
   client: Client,
-  limit: number = 4
+  limit: number = 4,
+  nowMs: number = Date.now()
 ): Promise<PendingTursoPriceSlot[]> {
   if (!Number.isSafeInteger(limit) || limit < 1 || limit > 32)
     throw new Error('Invalid pending slot limit');
+  if (!Number.isSafeInteger(nowMs) || nowMs < 0) throw new Error('Invalid pending slot timestamp');
   const result = await client.execute({
     sql: `SELECT slot_ms,input_hash,raw_digest,canonical_payload FROM snapshot_slots
-      WHERE supabase_acknowledged_at_ms IS NULL ORDER BY slot_ms ASC LIMIT ?`,
-    args: [limit],
+      WHERE supabase_acknowledged_at_ms IS NULL
+        AND projection_quarantined_at_ms IS NULL
+        AND (projection_retry_after_ms IS NULL OR projection_retry_after_ms<=?)
+      ORDER BY slot_ms ASC LIMIT ?`,
+    args: [nowMs, limit],
   });
   return result.rows.map((row) => {
     const stored = row as Record<string, unknown>;
     const payload = payloadSchema.parse(
       JSON.parse(asText(stored.canonical_payload, 'slot payload'))
     );
+    if (payload.inputs.length === 0) {
+      throw new Error('Pending Turso price slot is missing its immutable payload');
+    }
     return {
       slotMs: asInteger(stored.slot_ms, 'slot timestamp'),
       inputHash: asText(stored.input_hash, 'slot hash'),
@@ -655,4 +805,174 @@ export async function listPendingTursoPriceSlots(
       inputs: payload.inputs,
     };
   });
+}
+
+/** A compact operational read used by the independent projection worker. */
+export async function getTursoPriceProjectionBacklog(
+  client: Client
+): Promise<TursoPriceProjectionBacklog> {
+  const result = await client.execute(
+    `SELECT
+      coalesce(sum(CASE WHEN supabase_acknowledged_at_ms IS NULL AND projection_quarantined_at_ms IS NULL THEN 1 ELSE 0 END), 0) AS pending_count,
+      min(CASE WHEN supabase_acknowledged_at_ms IS NULL AND projection_quarantined_at_ms IS NULL THEN slot_ms END) AS oldest_slot_ms,
+      coalesce(sum(CASE WHEN supabase_acknowledged_at_ms IS NULL AND projection_quarantined_at_ms IS NULL AND projection_retry_after_ms IS NOT NULL THEN 1 ELSE 0 END), 0) AS retrying_count,
+      coalesce(sum(CASE WHEN supabase_acknowledged_at_ms IS NULL AND projection_quarantined_at_ms IS NOT NULL THEN 1 ELSE 0 END), 0) AS quarantined_count
+      FROM snapshot_slots`
+  );
+  const row = result.rows[0] as Record<string, unknown> | undefined;
+  if (!row) throw new Error('Missing Turso projection backlog result');
+  const pendingCount = asInteger(row.pending_count, 'pending slot count');
+  const oldest = row.oldest_slot_ms;
+  return {
+    pendingCount,
+    oldestSlotMs:
+      oldest === null || oldest === undefined
+        ? null
+        : asInteger(oldest, 'oldest pending slot timestamp'),
+    retryingCount: asInteger(row.retrying_count ?? 0, 'retrying slot count'),
+    quarantinedCount: asInteger(row.quarantined_count ?? 0, 'quarantined slot count'),
+  };
+}
+
+function retryDelayMs(attempts: number): number {
+  const exponent = Math.min(Math.max(0, attempts - 1), 20);
+  return Math.min(PROJECTION_RETRY_MAX_MS, PROJECTION_RETRY_BASE_MS * 2 ** exponent);
+}
+
+/**
+ * Preserve a failed hand-off as evidence and allow later slots to proceed.
+ * Only deterministic integrity/protocol failures are quarantined; transient
+ * Supabase failures retain an exponential, bounded retry schedule.
+ */
+export async function recordTursoPriceProjectionFailure(
+  client: Client,
+  slotMs: number,
+  inputHash: string,
+  error: unknown,
+  options: { permanent?: boolean; nowMs?: number } = {}
+): Promise<TursoPriceProjectionFailure> {
+  if (!Number.isSafeInteger(slotMs) || slotMs < 0) throw new Error('Invalid Turso projection slot');
+  if (!inputHash) throw new Error('Missing Turso projection input hash');
+  const nowMs = options.nowMs ?? Date.now();
+  if (!Number.isSafeInteger(nowMs) || nowMs < 0)
+    throw new Error('Invalid Turso projection timestamp');
+  const message = (error instanceof Error ? error.message : String(error)).slice(
+    0,
+    PROJECTION_ERROR_MAX_LENGTH
+  );
+  let transaction: Transaction | undefined;
+  try {
+    transaction = await client.transaction('write');
+    const existing = await transaction.execute({
+      sql: `SELECT projection_attempts,supabase_acknowledged_at_ms
+        FROM snapshot_slots WHERE slot_ms=? AND input_hash=?`,
+      args: [slotMs, inputHash],
+    });
+    const row = existing.rows[0] as Record<string, unknown> | undefined;
+    if (!row) throw new Error('Cannot record failure for an unknown Turso price slot');
+    if (row.supabase_acknowledged_at_ms !== null && row.supabase_acknowledged_at_ms !== undefined) {
+      await transaction.commit();
+      return {
+        attempts: asInteger(row.projection_attempts ?? 0, 'projection attempts'),
+        retryAfterMs: null,
+        quarantined: false,
+      };
+    }
+    const attempts = asInteger(row.projection_attempts ?? 0, 'projection attempts') + 1;
+    const quarantined = options.permanent === true;
+    const retryAfterMs = quarantined ? null : nowMs + retryDelayMs(attempts);
+    await transaction.execute({
+      sql: `UPDATE snapshot_slots
+        SET projection_attempts=?,projection_last_error=?,projection_retry_after_ms=?,projection_quarantined_at_ms=?
+        WHERE slot_ms=? AND input_hash=? AND supabase_acknowledged_at_ms IS NULL`,
+      args: [attempts, message, retryAfterMs, quarantined ? nowMs : null, slotMs, inputHash],
+    });
+    await transaction.commit();
+    return { attempts, retryAfterMs, quarantined };
+  } catch (error) {
+    await rollbackQuietly(transaction);
+    throw error;
+  }
+}
+
+/** Explicit operator action for an evidence-preserving replay after review. */
+export async function requeueQuarantinedTursoPriceSlot(
+  client: Client,
+  slotMs: number,
+  inputHash: string,
+  nowMs: number = Date.now()
+): Promise<void> {
+  if (!Number.isSafeInteger(slotMs) || slotMs < 0) throw new Error('Invalid Turso projection slot');
+  if (!inputHash) throw new Error('Missing Turso projection input hash');
+  if (!Number.isSafeInteger(nowMs) || nowMs < 0)
+    throw new Error('Invalid Turso projection timestamp');
+  const result = await client.execute({
+    sql: `UPDATE snapshot_slots
+      SET projection_quarantined_at_ms=NULL,projection_retry_after_ms=?,projection_last_error=NULL
+      WHERE slot_ms=? AND input_hash=? AND supabase_acknowledged_at_ms IS NULL`,
+    args: [nowMs, slotMs, inputHash],
+  });
+  if (result.rowsAffected !== 1) throw new Error('Cannot requeue an unknown Turso price slot');
+}
+
+/**
+ * Retain the bounded, high-resolution event stream only. This never touches
+ * acknowledged slot payloads, Supabase's hourly business projection, or the
+ * hot `price_latest` model. At most one indexed delete runs per day.
+ */
+export async function pruneExpiredTursoPriceEvents(
+  client: Client,
+  nowMs: number = Date.now()
+): Promise<TursoPriceMaintenanceSummary> {
+  if (!Number.isSafeInteger(nowMs) || nowMs < 0) {
+    throw new Error('Invalid Turso price maintenance timestamp');
+  }
+  const { rawRetentionDays } = readTursoPriceRetentionPolicy();
+  const maintenance = await client.execute({
+    sql: 'SELECT last_run_ms FROM price_maintenance WHERE task_key=?',
+    args: ['raw-event-retention'],
+  });
+  const previous = maintenance.rows[0]?.last_run_ms;
+  if (
+    previous !== null &&
+    previous !== undefined &&
+    nowMs - asInteger(previous, 'raw-event retention timestamp') < MAINTENANCE_INTERVAL_MS
+  ) {
+    return { rawEventsPruned: 0, acknowledgedPayloadsCompacted: 0 };
+  }
+
+  const cutoffMs = nowMs - rawRetentionDays * 24 * 60 * 60 * 1000;
+  let transaction: Transaction | undefined;
+  try {
+    transaction = await client.transaction('write');
+    const compacted = await transaction.execute({
+      // The payload is needed only until Supabase acknowledges the immutable
+      // hand-off. Afterwards the slot's hashes, digest and summary remain as
+      // durable audit evidence; retaining hundreds of source inputs forever
+      // would erase most of the intended storage saving.
+      sql: `UPDATE snapshot_slots
+        SET canonical_payload='{"slotMs":' || slot_ms || ',"inputs":[]}'
+        WHERE supabase_acknowledged_at_ms IS NOT NULL
+          AND slot_ms < ?
+          AND canonical_payload NOT LIKE '%"inputs":[]%'`,
+      args: [cutoffMs],
+    });
+    const deletion = await transaction.execute({
+      sql: 'DELETE FROM price_snapshots WHERE slot_ms < ?',
+      args: [cutoffMs],
+    });
+    await transaction.execute({
+      sql: `INSERT INTO price_maintenance(task_key,last_run_ms) VALUES(?,?)
+        ON CONFLICT(task_key) DO UPDATE SET last_run_ms=excluded.last_run_ms`,
+      args: ['raw-event-retention', nowMs],
+    });
+    await transaction.commit();
+    return {
+      rawEventsPruned: Number(deletion.rowsAffected ?? 0),
+      acknowledgedPayloadsCompacted: Number(compacted.rowsAffected ?? 0),
+    };
+  } catch (error) {
+    await rollbackQuietly(transaction);
+    throw error;
+  }
 }

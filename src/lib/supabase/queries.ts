@@ -144,6 +144,16 @@ export interface OracleFeed {
   updated_at?: string;
 }
 
+/**
+ * A registry read must distinguish an authoritative empty result from an
+ * unavailable database. Callers that operate the live price path can safely
+ * fall back to their reviewed static catalog only in the latter case.
+ */
+export interface OracleFeedsReadResult {
+  feeds: OracleFeed[];
+  errored: boolean;
+}
+
 export interface OracleFeedInsert {
   provider: string;
   symbol: string;
@@ -398,6 +408,17 @@ export class DatabaseQueries {
   // ─── Oracle Feeds ──────────────────────────────────────────────────
 
   async getOracleFeeds(provider: string, chainId?: number): Promise<OracleFeed[]> {
+    return (await this.getOracleFeedsWithStatus(provider, chainId)).feeds;
+  }
+
+  /**
+   * Same bounded, paged registry read as {@link getOracleFeeds}, with the
+   * database-failure bit preserved for availability-sensitive callers.
+   */
+  async getOracleFeedsWithStatus(
+    provider: string,
+    chainId?: number
+  ): Promise<OracleFeedsReadResult> {
     return queryQueue.add(async () => {
       const feeds: OracleFeed[] = [];
       let offset = 0;
@@ -453,9 +474,9 @@ export class DatabaseQueries {
           // Fail closed. Returning the pages collected so far would silently
           // truncate the registry — the exact failure mode this paging exists
           // to recover — and the partial list would be cached for the 5-minute
-          // TTL. An empty list instead triggers the documented hardcoded
-          // fallback in the cache layers.
-          return [];
+          // TTL. Preserve the failure bit so cache layers can choose their
+          // reviewed fallback rather than treating this as an empty registry.
+          return { feeds: [], errored: true };
         }
 
         const page = data || [];
@@ -483,10 +504,10 @@ export class DatabaseQueries {
             pageSize: ORACLE_FEEDS_PAGE_SIZE,
           }
         );
-        return [];
+        return { feeds: [], errored: true };
       }
 
-      return feeds;
+      return { feeds, errored: false };
     });
   }
 

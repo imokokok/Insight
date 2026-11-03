@@ -11,6 +11,15 @@ export interface TursoPriceConfig {
   partitionKey: string;
 }
 
+export interface TursoPriceRetentionPolicy {
+  rawRetentionDays: number;
+}
+
+export interface TursoFeedRegistryPolicy {
+  /** Maximum age of a mirrored registry that a collector may trust. */
+  maxAgeMs: number;
+}
+
 /**
  * The raw stream is only safe to read from Turso after a recorded cutover.
  * It lets readers combine the immutable Supabase history before this instant
@@ -49,6 +58,41 @@ export function readTursoPriceConfig(env: NodeJS.ProcessEnv = process.env): Turs
     throw new Error('Invalid TURSO_PRICE_PARTITION_KEY');
   }
   return { url, authToken, partitionKey };
+}
+
+/**
+ * Fine-grained Turso events are a short-lived operational/audit layer. The
+ * durable long-range business projection remains in Supabase. Keeping this
+ * bounded prevents the raw table and its indexes from growing linearly.
+ */
+export function readTursoPriceRetentionPolicy(
+  env: NodeJS.ProcessEnv = process.env
+): TursoPriceRetentionPolicy {
+  const raw = env.TURSO_PRICE_RAW_RETENTION_DAYS ?? '30';
+  if (!/^\d+$/.test(raw)) throw new Error('Invalid TURSO_PRICE_RAW_RETENTION_DAYS');
+  const rawRetentionDays = Number(raw);
+  if (!Number.isSafeInteger(rawRetentionDays) || rawRetentionDays < 1 || rawRetentionDays > 3_650) {
+    throw new Error('Invalid TURSO_PRICE_RAW_RETENTION_DAYS');
+  }
+  return { rawRetentionDays };
+}
+
+/**
+ * Feed discovery remains administered in Supabase, but collection reads the
+ * mirrored last-known-good registry from Turso while it is within this bound.
+ * A bounded TTL prevents a long-lived outage from silently preserving a feed
+ * that operators intentionally deactivated.
+ */
+export function readTursoFeedRegistryPolicy(
+  env: NodeJS.ProcessEnv = process.env
+): TursoFeedRegistryPolicy {
+  const raw = env.TURSO_FEED_REGISTRY_MAX_AGE_SECONDS ?? '86400';
+  if (!/^\d+$/.test(raw)) throw new Error('Invalid TURSO_FEED_REGISTRY_MAX_AGE_SECONDS');
+  const maxAgeSeconds = Number(raw);
+  if (!Number.isSafeInteger(maxAgeSeconds) || maxAgeSeconds < 300 || maxAgeSeconds > 7 * 86_400) {
+    throw new Error('Invalid TURSO_FEED_REGISTRY_MAX_AGE_SECONDS');
+  }
+  return { maxAgeMs: maxAgeSeconds * 1_000 };
 }
 
 export function getTursoPriceClient(): Client {

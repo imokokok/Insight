@@ -436,6 +436,12 @@ export function solanaLendingMessageHash(raw: SolanaLendingTransaction): `0x${st
     .digest('hex')}`;
 }
 
+/** The exact wire-format unsigned message bytes that a Solana signature commits to. */
+export function encodeUnsignedSolanaLendingMessage(raw: SolanaLendingTransaction): Uint8Array {
+  const transaction = SolanaLendingTransactionSchema.parse(raw);
+  return Uint8Array.from(encodeMessage(transaction));
+}
+
 function decoded(
   input: Omit<SolanaLendingDecodedAction, 'instructionDataHash' | 'messageHash'> & {
     data: Uint8Array;

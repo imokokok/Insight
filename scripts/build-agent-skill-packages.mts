@@ -12,6 +12,26 @@ const packages = [
     archive: 'insight-pre-trade-safety-skill-v0.2.0.zip',
   },
   { directory: 'skills/insight-lending-guard', archive: 'insight-lending-guard-skill-v0.1.0.zip' },
+  {
+    directory: 'skills/insight-base-agent-swap-guard',
+    archive: 'insight-base-agent-swap-guard-skill-v0.1.0.zip',
+  },
+  {
+    directory: 'skills/insight-solana-swap-guard',
+    archive: 'insight-solana-swap-guard-skill-v0.1.0.zip',
+  },
+  {
+    directory: 'skills/insight-base-perp-guard',
+    archive: 'insight-base-perp-guard-skill-v0.1.0.zip',
+  },
+  {
+    directory: 'skills/insight-hyperliquid-perp-guard',
+    archive: 'insight-hyperliquid-perp-guard-skill-v0.1.0.zip',
+  },
+  {
+    directory: 'skills/insight-solana-perp-guard',
+    archive: 'insight-solana-perp-guard-skill-v0.1.0.zip',
+  },
 ] as const;
 const destination = path.join(root, 'public', 'downloads');
 

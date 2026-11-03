@@ -1,3 +1,4 @@
+import { assertX402PaymentScopeDeclaredForMcpTool } from '@/lib/api/x402/capabilityPayment';
 import { createLogger } from '@/lib/utils/logger';
 
 import { prepareAerodromeSlipstreamSwapTool } from './aerodromeSlipstreamTools';
@@ -9,7 +10,13 @@ import {
   getLatencyTool,
   getMetricsTool,
 } from './analysisTools';
+import {
+  prepareBaseAgentSwapGuardTool,
+  settleBaseAgentSwapGuardTool,
+  verifyBaseAgentSwapGuardSettlementTool,
+} from './baseAgentSwapGuardTools';
 import { baseLendingGuardExactCallTool, baseLendingGuardTool } from './baseLendingGuardTools';
+import { basePerpGuardExactCallTool, basePerpGuardTool } from './basePerpGuardTools';
 import { getOraclePricesBatchTool, getPriceHistoryTool } from './batchTools';
 import { getCrossChainSpreadsTool } from './crossChainTools';
 import {
@@ -32,6 +39,10 @@ import {
   getFeedsTool,
 } from './feedTools';
 import {
+  hyperliquidPerpGuardExactCallTool,
+  hyperliquidPerpGuardTool,
+} from './hyperliquidPerpGuardTools';
+import {
   prepareHyperliquidPerpOrderTool,
   verifyHyperliquidPerpExecutionTool,
 } from './hyperliquidPerpTools';
@@ -46,6 +57,8 @@ import {
   BaseDexVenueIntegrationJsonSchema,
   BaseLendingGuardExactJsonSchema,
   BaseLendingGuardJsonSchema,
+  BasePerpGuardExactJsonSchema,
+  BasePerpGuardJsonSchema,
   MonadLendingGuardExactJsonSchema,
   MonadLendingGuardJsonSchema,
   MultichainEvmLendingGuardExactJsonSchema,
@@ -53,6 +66,9 @@ import {
   HyperliquidPerpMarketJsonSchema,
   HyperliquidPerpExecutionVerificationJsonSchema,
   HyperliquidPerpOrderPreflightJsonSchema,
+  HyperliquidPerpGuardExactJsonSchema,
+  HyperliquidPerpGuardJsonSchema,
+  SolanaPerpGuardJsonSchema,
   BatchPriceJsonSchema,
   ConsensusPriceJsonSchema,
   CorrelationJsonSchema,
@@ -68,6 +84,7 @@ import {
   FeedHealthJsonSchema,
   FeedsJsonSchema,
   IncidentsJsonSchema,
+  SettlementEvidenceJsonSchema,
   LatencyJsonSchema,
   MetricsJsonSchema,
   HanjiMonadMarketJsonSchema,
@@ -76,6 +93,11 @@ import {
   OracleSetupRecommendationJsonSchema,
   OracleWatchHistoryJsonSchema,
   OracleWatchJsonSchema,
+  PositionLifecycleGuardJsonSchema,
+  PositionLifecycleReceiptJsonSchema,
+  LifecycleTokenJsonSchema,
+  ProductBeginJsonSchema,
+  ProductTokenJsonSchema,
   PositionSafetyJsonSchema,
   PreTradeSafetyJsonSchema,
   PriceHistoryJsonSchema,
@@ -104,7 +126,18 @@ import {
 } from './oracleTools';
 import { oracleWatchHistoryTool } from './oracleWatchHistoryTools';
 import { oracleWatchTool } from './oracleWatchTools';
+import {
+  oracleWatchWindowBeginTool,
+  oracleWatchWindowCloseTool,
+  oracleWatchWindowPollTool,
+} from './oracleWatchWindowTools';
 import { preparePancakeSwapV3SwapTool } from './pancakeSwapV3Tools';
+import {
+  positionLifecycleBeginTool,
+  positionLifecycleCloseTool,
+  positionLifecycleGuardTool,
+  positionLifecycleReceiptTool,
+} from './positionLifecycleTools';
 import { preTradeSafetyCheckTool } from './preTradeSafetyTools';
 import { getProtocolOracleExposureTool, getProtocolsTool } from './protocolTools';
 import { getDailyReportTool, getIncidentsTool } from './reportTools';
@@ -116,13 +149,20 @@ import {
 } from './riskTools';
 import { robinhoodRwaContextTool, robinhoodRwaInstrumentTool, rwaAssessmentTool } from './rwaTools';
 import { checkPositionSafetyTool } from './safetyTools';
+import { getSettlementEvidenceTool } from './settlementEvidenceTools';
 import { solanaLendingGuardTool } from './solanaLendingGuardTools';
+import { solanaPerpGuardTool } from './solanaPerpGuardTools';
+import {
+  settleSolanaSwapGuardTool,
+  solanaSwapGuardTool,
+  verifySolanaSwapGuardSettlementTool,
+} from './solanaSwapGuardTools';
 import { getStablecoinPegTool } from './stablecoinTools';
 import { getStablecoinListTool, getSymbolsTool, recommendOracleSetupTool } from './utilityTools';
 import { verifyExecutionPairTool } from './verifyExecutionPairTools';
 import { getWrappedAssetPegTool } from './wrappedAssetTools';
 
-import type { McpToolCallResult, McpToolDefinition } from './types';
+import type { McpToolCallContext, McpToolCallResult, McpToolDefinition } from './types';
 
 const logger = createLogger('mcp-tools');
 
@@ -155,6 +195,7 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getProviderReputationTool,
   getDailyReportTool,
   getIncidentsTool,
+  getSettlementEvidenceTool,
   getLatencyTool,
   getAnomaliesTool,
   getCorrelationTool,
@@ -166,6 +207,9 @@ const MCP_TOOLS: McpToolDefinition[] = [
   getBaseDexVenueIntegrationsTool,
   getAerodromeSlipstreamMarketTool,
   prepareAerodromeSlipstreamSwapTool,
+  prepareBaseAgentSwapGuardTool,
+  settleBaseAgentSwapGuardTool,
+  verifyBaseAgentSwapGuardSettlementTool,
   getPancakeSwapV3MarketTool,
   preparePancakeSwapV3SwapTool,
   getQuickSwapV2MarketTool,
@@ -175,16 +219,31 @@ const MCP_TOOLS: McpToolDefinition[] = [
   verifyHyperliquidPerpExecutionTool,
   baseLendingGuardTool,
   baseLendingGuardExactCallTool,
+  basePerpGuardTool,
+  basePerpGuardExactCallTool,
+  hyperliquidPerpGuardTool,
+  hyperliquidPerpGuardExactCallTool,
   monadLendingGuardTool,
   monadLendingGuardExactCallTool,
   multichainEvmLendingGuardTool,
   multichainEvmLendingGuardExactCallTool,
   solanaLendingGuardTool,
+  solanaPerpGuardTool,
+  solanaSwapGuardTool,
+  settleSolanaSwapGuardTool,
+  verifySolanaSwapGuardSettlementTool,
   loopscaleVaultDepositTool,
   checkPositionSafetyTool,
   preTradeSafetyCheckTool,
   oracleWatchTool,
   oracleWatchHistoryTool,
+  oracleWatchWindowBeginTool,
+  oracleWatchWindowPollTool,
+  oracleWatchWindowCloseTool,
+  positionLifecycleBeginTool,
+  positionLifecycleGuardTool,
+  positionLifecycleReceiptTool,
+  positionLifecycleCloseTool,
   executionReceiptTool,
   executionPreflightTool,
   agentBeginTradeTool,
@@ -357,6 +416,11 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  get_settlement_evidence: SettlementEvidenceJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
   get_latency: LatencyJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
@@ -413,6 +477,22 @@ const JSON_SCHEMA_MAP: Record<
       properties?: Record<string, unknown>;
       required?: string[];
     },
+  prepare_base_agent_swap_guard: prepareBaseAgentSwapGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  settle_base_agent_swap_guard: settleBaseAgentSwapGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  verify_base_agent_swap_guard_settlement:
+    verifyBaseAgentSwapGuardSettlementTool.parameters.toJSONSchema() as {
+      type: 'object';
+      properties?: Record<string, unknown>;
+      required?: string[];
+    },
   get_pancakeswap_v3_market: PancakeSwapV3MarketJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
@@ -434,6 +514,26 @@ const JSON_SCHEMA_MAP: Record<
     required?: string[];
   },
   base_lending_guard_exact_call: BaseLendingGuardExactJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  base_perp_guard: BasePerpGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  base_perp_guard_exact_call: BasePerpGuardExactJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  hyperliquid_perp_guard: HyperliquidPerpGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  hyperliquid_perp_guard_exact_call: HyperliquidPerpGuardExactJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];
@@ -464,6 +564,27 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  solana_perp_guard: SolanaPerpGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  solana_swap_guard: solanaSwapGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  settle_solana_swap_guard: settleSolanaSwapGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  verify_solana_swap_guard_settlement:
+    verifySolanaSwapGuardSettlementTool.parameters.toJSONSchema() as {
+      type: 'object';
+      properties?: Record<string, unknown>;
+      required?: string[];
+    },
   loopscale_vault_deposit: loopscaleVaultDepositTool.parameters.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
@@ -510,6 +631,41 @@ const JSON_SCHEMA_MAP: Record<
     properties?: Record<string, unknown>;
     required?: string[];
   },
+  oracle_watch_window_begin: ProductBeginJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  oracle_watch_window_poll: ProductTokenJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  oracle_watch_window_close: ProductTokenJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  position_lifecycle_begin: ProductBeginJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  position_lifecycle_guard: PositionLifecycleGuardJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  position_lifecycle_receipt: PositionLifecycleReceiptJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  position_lifecycle_close: LifecycleTokenJsonSchema.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
   execution_receipt: ExecutionReceiptJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
@@ -542,6 +698,7 @@ for (const tool of MCP_TOOLS) {
         'Add a corresponding schema in ./jsonSchemas and register it in the map.'
     );
   }
+  assertX402PaymentScopeDeclaredForMcpTool(tool.name);
 }
 
 export function getToolDefinitions() {
@@ -552,7 +709,11 @@ export function getToolDefinitions() {
   }));
 }
 
-export async function executeTool(name: string, args: unknown): Promise<McpToolCallResult> {
+export async function executeTool(
+  name: string,
+  args: unknown,
+  context?: McpToolCallContext
+): Promise<McpToolCallResult> {
   const tool = MCP_TOOLS.find((t) => t.name === name);
 
   if (!tool) {
@@ -564,7 +725,7 @@ export async function executeTool(name: string, args: unknown): Promise<McpToolC
 
   try {
     const validatedArgs = tool.parameters.parse(args);
-    const result = await tool.handler(validatedArgs);
+    const result = await tool.handler(validatedArgs, context);
     return {
       content: [{ type: 'text', text: result }],
     };

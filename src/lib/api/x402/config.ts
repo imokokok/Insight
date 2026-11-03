@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { parseHypercoreX402Config, type HypercoreX402Config } from './hypercore';
 import { isSolanaPublicKey } from './solanaEncoding';
 
 /**
@@ -32,6 +33,7 @@ export const X402_EVM_NETWORK_IDS = [
   'eip155:1329', // Sei
   'eip155:196', // X Layer
   'eip155:143', // Monad
+  'eip155:999', // HyperEVM
   'eip155:56', // BNB Smart Chain (AEON facilitator; bridged USDC, 18 decimals)
 ] as const;
 
@@ -104,6 +106,12 @@ const SUPPORTED_NETWORKS: Record<
      * is "2" and DOMAIN_SEPARATOR matches { name: "USDC", version: "2" },
      * consistent with the @x402/evm >= 2.22 built-in Monad asset config.
      */
+    tokenName: 'USDC',
+  },
+  'eip155:999': {
+    /** Chain: HyperEVM mainnet. UVD advertises this USDC asset for x402 v2 exact. */
+    usdc: '0xb88339CB7199b77E23DB6E890353E22632Ba630f',
+    /** HyperEVM USDC uses the FiatToken EIP-712 domain { name: "USDC", version: "2" }. */
     tokenName: 'USDC',
   },
   'eip155:56': {
@@ -275,6 +283,8 @@ export interface X402Config {
   facilitatorBearerTokens?: Partial<Record<X402PaymentNetworkId, string>>;
   /** Optional, independently opted-in Solana x402 option. */
   solana?: X402SolanaConfig | null;
+  /** Native HyperCore Core-USDC beta, isolated from ordinary EVM exact rails. */
+  hypercore?: HypercoreX402Config | null;
   /**
    * Settlement assets advertised for BNB Smart Chain (default `['usdc']`).
    * Parsed from X402_BNB_ASSETS; `usdc` is always first so the primary
@@ -434,7 +444,8 @@ function parseEvmNetworks(raw: string | undefined, defaultNetwork: X402NetworkId
   return networks;
 }
 
-function usdToAtomicUnits(usd: number): string {
+/** Convert a USD price into USDC atomic units (6 decimals) as a decimal string. */
+export function usdToAtomicUnits(usd: number): string {
   // Integer math on the micro-dollar grid avoids binary float drift.
   const microUsd = Math.round(usd * 10 ** USDC_DECIMALS);
   if (microUsd <= 0) {
@@ -581,9 +592,13 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
       );
     }
   }
+  const hypercore = parseHypercoreX402Config(env);
+  if (hypercore !== null && !flagEnabled) {
+    throw new Error('X402_HYPERCORE_ENABLED=true also requires X402_ENABLED=true');
+  }
 
   return {
-    enabled: evmEnabled || solana !== null,
+    enabled: evmEnabled || solana !== null || hypercore !== null,
     evmEnabled,
     network,
     evmNetworks,
@@ -603,6 +618,7 @@ export function parseX402Config(env: NodeJS.ProcessEnv = process.env): X402Confi
     ]),
     solana,
     bnbAssets,
+    hypercore,
   };
 }
 
@@ -619,21 +635,69 @@ export const X402_EXECUTION_PREFLIGHT_ROUTE = '/api/v1/safety/preflight';
 /** Base-only lending decision gate. The caller receives no transaction authority. */
 export const X402_BASE_LENDING_GUARD_ROUTE = '/api/v1/safety/base-lending-guard';
 
-/** Monad lending decision gate; payment settlement remains configured separately. */
+/**
+ * Base-only Synthetix Perps V3 decision gate. GET returns the assessment;
+ * POST binds one exact unsigned commitOrder call into a signed decision.
+ */
+export const X402_BASE_PERP_GUARD_ROUTE = '/api/v1/safety/base-perp-guard';
+
+/**
+ * Hyperliquid Perp decision gate. GET returns the assessment for one declared
+ * HyperCore order intent; POST binds one exact unsigned exchange envelope into
+ * a signed decision. Like every other guard route it must appear in the
+ * resource-server route map (resourceServer.ts) so a keyless x402 caller gets
+ * a real 402 quote instead of the defensive no-route 402.
+ */
+export const X402_HYPERLIQUID_PERP_GUARD_ROUTE = '/api/v1/safety/hyperliquid-perp-guard';
+
+/** Monad lending decision gate; x402 quotes are bound to Monad mainnet. */
 export const X402_MONAD_LENDING_GUARD_ROUTE = '/api/v1/safety/monad-lending-guard';
 
-/** Base, Polygon, Arbitrum and BNB native lending gate; settlement remains independently configured. */
+/** Base, Polygon, Arbitrum and BNB lending gate; x402 quotes derive from the validated chain ID. */
 export const X402_MULTICHAIN_EVM_LENDING_GUARD_ROUTE =
   '/api/v1/safety/multichain-evm-lending-guard';
 
 /** Solana-native exact-transaction lending gate for Kamino, Marginfi, and Jupiter Earn. */
 export const X402_SOLANA_LENDING_GUARD_ROUTE = '/api/v1/safety/solana-lending-guard';
 
+/** Solana-native exact-transaction Orca Whirlpool swap gate and its settlement. */
+export const X402_SOLANA_SWAP_GUARD_ROUTE = '/api/v1/safety/solana-swap-guard';
+
+/**
+ * Solana-native Drift Protocol v2 perp decision gate. GET returns the
+ * on-chain-evidence assessment; like every other guard route it must appear
+ * in the resource-server route map (resourceServer.ts) so a keyless x402
+ * caller gets a real 402 quote instead of the defensive no-route 402.
+ */
+export const X402_SOLANA_PERP_GUARD_ROUTE = '/api/v1/safety/solana-perp-guard';
+
 /** Official-API-built Loopscale Solana lending-vault deposit gate. */
 export const X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE = '/api/v1/safety/loopscale-vault-deposit';
 
 /** A two-gate same-chain swap lifecycle with one post-settlement receipt credit. */
 export const X402_SWAP_INTENT_ROUTE = '/api/v1/safety/swap-intent';
+
+/**
+ * Oracle Watch monitored-window purchase (POST): one settlement buys a 24 h
+ * continuous-signal window for one (symbol, chain). Unlike every other REST
+ * paid tier it is NOT priced at the configured per-call amount — the route
+ * quotes the window plan price (see src/lib/billing/oracleWatchWindow.ts) via
+ * a per-route amount override in resourceServer.ts. In-window polls are
+ * token-authenticated and never pass through this paid tier.
+ */
+export const X402_ORACLE_WATCH_WINDOW_ROUTE = '/api/v1/safety/oracle-watch-window';
+
+/**
+ * Position Lifecycle Bundle purchase (POST): one settlement buys 24 h of
+ * lifecycle coverage for one (symbol, chain) position — an embedded monitored
+ * window, 4 bundled guard assessments, and 1 attested execution receipt. Like
+ * the monitored-window route it is NOT priced at the configured per-call
+ * amount; the route quotes the bundle plan price (see
+ * src/lib/billing/positionLifecycle.ts) via a per-route amount override in
+ * resourceServer.ts. Bundled calls are token-authenticated and never pass
+ * through this paid tier.
+ */
+export const X402_POSITION_LIFECYCLE_ROUTE = '/api/v1/safety/position-lifecycle';
 
 /** The MCP streamable-HTTP route paid per tools/call (JSON-RPC POST). */
 export const X402_MCP_ROUTE = '/api/mcp';

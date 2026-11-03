@@ -23,6 +23,7 @@
     "scripts/migrations/generate-decision-input-assessment.mts",
     "scripts/migrations/generate-adaptive-snapshot-persistence.mts",
     "scripts/migrations/generate-turso-price-projection.mts",
+    "scripts/migrations/generate-github-primary-turso-scheduler.mts",
     "scripts/rwa-action-preflight-readiness.mts",
     "scripts/collect-oracle-watch.ts",
     "scripts/collect-snapshot.ts",

@@ -11,11 +11,13 @@ import {
   readTursoPriceReadCutoverMs,
   readTursoPriceWriteMode,
 } from '@/lib/turso/price/client';
+import { ensureTursoPriceSchema } from '@/lib/turso/price/schema';
 import {
   acknowledgeTursoPriceSlot,
   captureTursoPriceSlot,
   latestAcknowledgedTursoPriceSlot,
   listPendingTursoPriceSlots,
+  recordTursoPriceProjectionFailure,
   replaceTursoPricePersistenceProjection,
 } from '@/lib/turso/price/slotRepository';
 import type {
@@ -77,6 +79,10 @@ const snapshotSlotCommitSummarySchema = z
   .object({
     hourlyWritten: z.number().int().min(0),
     persistence: adaptiveSnapshotSummarySchema,
+    // Legacy and shadow modes complete this synchronously. Primary mode puts
+    // the immutable slot in Turso's durable outbox and lets the independent
+    // projector deliver the business projection without delaying collection.
+    projection: z.enum(['committed', 'queued']).default('committed'),
   })
   .strict();
 
@@ -435,9 +441,10 @@ async function projectTursoPriceSlot(
 
 function toCommitSummary(
   hourlyWritten: number,
-  persistence: TursoPriceSlotSummary
+  persistence: TursoPriceSlotSummary,
+  projection: 'committed' | 'queued' = 'committed'
 ): SnapshotSlotCommitSummary {
-  return snapshotSlotCommitSummarySchema.parse({ hourlyWritten, persistence });
+  return snapshotSlotCommitSummarySchema.parse({ hourlyWritten, persistence, projection });
 }
 
 const shadowWriteShapeFields = [
@@ -491,7 +498,7 @@ function assertShadowWriteShape(
  * Commit via the configured storage mode. `legacy` retains the existing
  * single-Supabase transaction; `shadow` verifies Turso without changing the
  * source of truth; `primary` makes Turso the raw-stream source and projects
- * only the hourly business result back into Supabase.
+ * queues its hourly business projection for the independent projector.
  */
 export async function commitSnapshotDataSlot(
   inputs: HourlySnapshotInput[],
@@ -506,6 +513,7 @@ export async function commitSnapshotDataSlot(
   if (mode === 'primary') readTursoPriceReadCutoverMs();
   const tursoInputs = buildTursoInputs(inputs);
   const client = getTursoPriceClient();
+  await ensureTursoPriceSchema(client);
 
   if (mode === 'shadow') {
     await rebaseTursoShadowStateIfNeeded(client);
@@ -517,33 +525,82 @@ export async function commitSnapshotDataSlot(
   }
 
   const captured = await captureTursoPriceSlot(client, tursoInputs, snapshotTs.getTime());
-  const projection = await projectTursoPriceSlot(
-    buildHourlyRowsFromTurso(captured.inputs),
-    snapshotTs,
-    captured.inputHash,
-    captured.rawDigest
-  );
-  await acknowledgeTursoPriceSlot(client, captured.slotMs, captured.inputHash);
-  return toCommitSummary(projection.hourlyWritten, captured.summary);
+  return toCommitSummary(0, captured.summary, 'queued');
 }
 
 /** Replay a few incomplete cross-database hand-offs without fetching new prices. */
-export async function reconcilePendingTursoPriceSlots(limit: number = 4): Promise<number> {
-  if (readTursoPriceWriteMode() !== 'primary') return 0;
+export interface TursoPriceProjectionReconcileSummary {
+  selected: number;
+  projected: number;
+  retrying: number;
+  quarantined: number;
+}
+
+function isPermanentProjectionError(error: unknown): boolean {
+  if (error instanceof z.ZodError) return true;
+  const message = error instanceof Error ? error.message : String(error);
+  // These are generated before (or as an integrity rejection from) the remote
+  // RPC. Do not keep retrying an immutable payload that cannot ever satisfy
+  // the projection contract. Transport/server errors intentionally remain
+  // retryable and are recorded with exponential backoff instead.
+  return /invalid (pending turso slot|turso slot|snapshot timestamp|hourly snapshot)|input hash|raw digest|canonical payload/i.test(
+    message
+  );
+}
+
+/**
+ * Replay incomplete hand-offs without fetching new prices. A bad immutable
+ * payload cannot block subsequent slots: its evidence remains in Turso with a
+ * failure record while healthy newer slots continue to project.
+ */
+export async function reconcilePendingTursoPriceSlots(
+  limit: number = 4
+): Promise<TursoPriceProjectionReconcileSummary> {
+  if (readTursoPriceWriteMode() !== 'primary') {
+    return { selected: 0, projected: 0, retrying: 0, quarantined: 0 };
+  }
   readTursoPriceReadCutoverMs();
   const client = getTursoPriceClient();
+  await ensureTursoPriceSchema(client);
   const pending = await listPendingTursoPriceSlots(client, limit);
+  const summary: TursoPriceProjectionReconcileSummary = {
+    selected: pending.length,
+    projected: 0,
+    retrying: 0,
+    quarantined: 0,
+  };
   for (const slot of pending) {
-    const snapshotTs = new Date(slot.slotMs);
-    if (!Number.isFinite(snapshotTs.getTime()))
-      throw new Error('Invalid pending Turso slot timestamp');
-    await projectTursoPriceSlot(
-      buildHourlyRowsFromTurso(slot.inputs),
-      snapshotTs,
-      slot.inputHash,
-      slot.rawDigest
-    );
-    await acknowledgeTursoPriceSlot(client, slot.slotMs, slot.inputHash);
+    try {
+      const snapshotTs = new Date(slot.slotMs);
+      if (!Number.isFinite(snapshotTs.getTime())) {
+        throw new Error('Invalid pending Turso slot timestamp');
+      }
+      await projectTursoPriceSlot(
+        buildHourlyRowsFromTurso(slot.inputs),
+        snapshotTs,
+        slot.inputHash,
+        slot.rawDigest
+      );
+      await acknowledgeTursoPriceSlot(client, slot.slotMs, slot.inputHash);
+      summary.projected++;
+    } catch (error) {
+      const failure = await recordTursoPriceProjectionFailure(
+        client,
+        slot.slotMs,
+        slot.inputHash,
+        error,
+        { permanent: isPermanentProjectionError(error) }
+      );
+      if (failure.quarantined) summary.quarantined++;
+      else summary.retrying++;
+      logger.warn('Turso price-slot projection failed; continuing with later slots', {
+        slotMs: slot.slotMs,
+        attempts: failure.attempts,
+        retryAfterMs: failure.retryAfterMs,
+        quarantined: failure.quarantined,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
-  return pending.length;
+  return summary;
 }

@@ -4,7 +4,7 @@ Insight tells an agent whether the price it is about to trade on is trustworthy.
 
 Agent-facing contacts:
 
-- Discovery manifest: `GET https://www.oracleinsight.xyz/.well-known/x402` (x402 v2, full accepts[] for every endpoint)
+- Discovery manifest: `GET https://www.oracleinsight.xyz/.well-known/x402` (x402 v2; fixed-route `accepts[]`, plus explicit request-bound route and quote metadata)
 - OpenAPI 3.1 contract: `GET https://www.oracleinsight.xyz/openapi.json`
 - This manual: `GET https://www.oracleinsight.xyz/skill.md`
 
@@ -12,6 +12,11 @@ Agent-facing contacts:
 
 - [Pre-Trade Safety Skill](https://www.oracleinsight.xyz/downloads/insight-pre-trade-safety-skill-v0.2.0.zip) — installable MCP configuration, no-money discovery check, and prompts for one proposed trade or DeFi action.
 - [Base Aave V3 Lending Guard Skill](https://www.oracleinsight.xyz/downloads/insight-lending-guard-skill-v0.1.0.zip) — a deliberately narrow, exact-call decision layer for direct Base Aave V3 EOA `supply` and variable-rate `borrow` calls.
+- [Base Agent Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-base-agent-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow for reviewed Base Aerodrome Slipstream WETH→USDC or PancakeSwap V3 USDC→USDT direct swaps. It can be paid with x402 at C3 / $0.02 and returns no calldata for `CAUTION` or `BLOCK`.
+- [Solana Swap Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-swap-guard-skill-v0.1.0.zip) — a narrow pre-signing workflow and signed settlement closure for one exact unsigned Orca Whirlpool USDC/USDT 0.01% swap on Solana mainnet. It can be paid with x402 at C3 / $0.02 per decision and C4 / $0.04 per settlement call and returns no signable payload for `CAUTION` or `BLOCK`.
+- [Base Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-base-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one Synthetix Perps V3 Base open-position intent, with disclosed spot/TWAP liquidity evidence and exact `commitOrder` call binding.
+- [Hyperliquid Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-hyperliquid-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Hyperliquid HyperCore open-position intent (BTC, ETH), with disclosed venue evidence and exact IOC order envelope binding.
+- [Solana Perp Guard Skill](https://www.oracleinsight.xyz/downloads/insight-solana-perp-guard-skill-v0.1.0.zip) — a decision-input skill for one reviewed Drift Protocol v2 Solana open-position intent (SOL, BTC, ETH), with disclosed on-chain venue evidence (mark/oracle deviation, funding rate, open interest).
 
 Install a package, then run its free discovery check before configuring a
 credential or an x402 wallet. A successful discovery check does not call a
@@ -80,20 +85,9 @@ Only IOC is admitted, so an action that cannot fully satisfy its caller-selected
 
 ## Payment
 
-Scheme: `exact` (x402 v2, EIP-3009 transferWithAuthorization for EVM). Price: **$0.02 USDC** (`20000` atomic, 6 decimals) for the pre-trade check. The same 402 advertises:
+Paid calls use x402 v2. The pre-trade C3 price is **$0.02 USDC** (`20000` atomic units on a 6-decimal rail), but available networks, assets, payees, schemes, and facilitator-specific fields are deployment-specific.
 
-| Network      | CAIP-2               | USDC asset                                     |
-| ------------ | -------------------- | ---------------------------------------------- |
-| Base         | `eip155:8453`        | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`   |
-| Polygon PoS  | `eip155:137`         | `0x3c499c542cef5e3811e1192ce70d8cC03d5c3359`   |
-| Arbitrum One | `eip155:42161`       | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831`   |
-| Monad        | `eip155:143`         | `0x754704Bc059F8C67012fEd69BC8A327a5aafb603`   |
-| BNB Chain    | `eip155:56`          | `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d`   |
-| Solana       | `solana:5eykt4…Kvdp` | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` |
-
-All entries pay to `0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231` (EVM) or `BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4` (Solana). Pick the network matching your wallet's USDC inventory; the facilitator sponsors gas on EVM chains and Solana (no native gas needed). Notes: BNB Chain settles in the 18-decimal bridged USDC and has no EIP-3009 path — pay it with an x402 client that speaks the AEON facilitator flow (e.g. the AEON SDK); the other EVM entries use standard EIP-3009; Solana uses the exact-scheme SVM flow (SPL transfer to the payTo ATA, CDP feePayer sponsored).
-
-Readiness check: the endpoint answers a well-formed 402 at all times; verify before paying by issuing a plain unsigned GET.
+Before signing, issue a plain unsigned request and select an entry from its live `PAYMENT-REQUIRED` header. The public [x402 manifest](https://www.oracleinsight.xyz/.well-known/x402) derives fixed-route options from the same route scope as production; routes whose rail depends on validated input are listed under `requestBoundResources`. HyperCore quotes contain a short-lived `quoteId` and are listed under `dynamicPaymentOptions`, not fabricated in static `accepts[]`. The live `accepts[]` array is always the binding payment contract. Do not infer a payment rail from the action chain or reuse a network, asset, or `payTo` value from an example.
 
 ## Billing semantics
 
@@ -110,7 +104,7 @@ JSON containing: `verdict` (`PASS` / `WARN` / `BLOCK`), consensus price, max dev
 | Class | Atomic (USDC 6dp) | USD    |
 | ----- | ----------------- | ------ |
 | C1    | 2000              | $0.002 |
-| C2    | 8000              | $0.008 |
+| C2    | 4000              | $0.004 |
 | C3    | 20000             | $0.02  |
 | C4    | 40000             | $0.04  |
 

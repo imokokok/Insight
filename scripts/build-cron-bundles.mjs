@@ -24,6 +24,8 @@ const entryPoints = {
   'collect-manip-cost': 'scripts/collect-manip-cost.ts',
   'collect-oracle-watch': 'scripts/collect-oracle-watch.ts',
   'collect-snapshot': 'scripts/collect-snapshot.ts',
+  'collect-settlement-evidence': 'scripts/collect-settlement-evidence.ts',
+  'project-turso-price': 'scripts/project-turso-price.ts',
   'daily-report-publish': 'scripts/daily-report-publish.ts',
   'erc8004-anchor': 'scripts/anchor-erc8004-reputation.ts',
   'feed-cadence': 'scripts/feed-cadence.ts',

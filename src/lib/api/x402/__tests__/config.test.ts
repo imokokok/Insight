@@ -49,7 +49,7 @@ describe('x402 config', () => {
   });
 
   it('every supported network USDC address is a well-formed 20-byte address', () => {
-    for (const network of ['eip155:84532', 'eip155:8453'] as const) {
+    for (const network of ['eip155:84532', 'eip155:8453', 'eip155:999'] as const) {
       expect(usdcForNetwork(network)).toMatch(/^0x[a-fA-F0-9]{40}$/);
     }
   });
@@ -302,7 +302,7 @@ describe('x402 config', () => {
         })
       ).toThrow(/valid https URL/);
       expect(() =>
-        parseX402Config({ ...env, X402_FACILITATOR_URLS: 'eip155:999=https://x.example.com' })
+        parseX402Config({ ...env, X402_FACILITATOR_URLS: 'eip155:998=https://x.example.com' })
       ).toThrow();
       expect(() =>
         parseX402Config({
@@ -507,5 +507,58 @@ describe('x402 config', () => {
         })
       ).toThrow(/without whitespace/);
     });
+  });
+});
+
+describe('HyperEVM x402 configuration', () => {
+  it('maps the UVD-advertised USDC asset and accepts its dedicated facilitator', () => {
+    const cfg = parseX402Config({
+      ...BASE_ENV,
+      X402_EVM_NETWORKS: 'eip155:8453,eip155:999',
+      X402_FACILITATOR_URLS: 'eip155:999=https://facilitator.ultravioletadao.xyz',
+    });
+
+    expect(usdcForNetwork('eip155:999')).toBe('0xb88339CB7199b77E23DB6E890353E22632Ba630f');
+    expect(tokenNameForNetwork('eip155:999')).toBe('USDC');
+    expect(facilitatorUrlForNetwork(cfg, 'eip155:999')).toBe(
+      'https://facilitator.ultravioletadao.xyz'
+    );
+    expect(
+      getX402PaymentOptions(cfg).find((option) => option.network === 'eip155:999')
+    ).toMatchObject({
+      amountAtomic: '20000',
+      asset: '0xb88339CB7199b77E23DB6E890353E22632Ba630f',
+      tokenName: 'USDC',
+    });
+  });
+});
+
+describe('HyperCore native x402 configuration', () => {
+  const HYPERCORE_ENV = {
+    ...BASE_ENV,
+    X402_HYPERCORE_ENABLED: 'true',
+    X402_HYPERCORE_NETWORK: 'hyperliquid:mainnet',
+    X402_HYPERCORE_PAY_TO: '0xdef0000000000000000000000000000000000002',
+    X402_HYPERCORE_FACILITATOR_URL: 'https://hypercore-facilitator.example',
+    X402_HYPERCORE_MERCHANT_ID: 'insight',
+    X402_HYPERCORE_MERCHANT_SECRET: 'a-merchant-secret-that-is-long-enough',
+  } as NodeJS.ProcessEnv;
+
+  it('is absent by default and explicitly adds a server-only Core-USDC rail', () => {
+    expect(parseX402Config(BASE_ENV).hypercore).toBeNull();
+    expect(parseX402Config(HYPERCORE_ENV).hypercore).toMatchObject({
+      network: 'hyperliquid:mainnet',
+      payTo: HYPERCORE_ENV.X402_HYPERCORE_PAY_TO,
+      merchantId: 'insight',
+    });
+  });
+
+  it('requires the ordinary x402 master gate and complete merchant credentials', () => {
+    expect(() => parseX402Config({ ...HYPERCORE_ENV, X402_ENABLED: 'false' })).toThrow(
+      /X402_ENABLED/
+    );
+    expect(() => parseX402Config({ ...HYPERCORE_ENV, X402_HYPERCORE_MERCHANT_SECRET: '' })).toThrow(
+      /MERCHANT/
+    );
   });
 });

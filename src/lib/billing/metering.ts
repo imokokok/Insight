@@ -9,7 +9,9 @@
  *
  * Classes (cost = supplier cost + value to the calling agent):
  *   C1 (0.5cr)  — foundational, cached data (prices, listings, reports)
- *   C2 (2cr)    — deep aggregation / analysis
+ *   C2 (1cr)    — deep aggregation / analysis (halved from 2cr in the
+ *                 2026-11-03 pricing review; see
+ *                 docs/research/2026-11-03-first-pricing-review.md)
  *   C3 (5cr)    — agent gating (pre-trade, oracle-watch)
  *   C4 (10cr)   — attested proofs & receipts (RPC read + KMS signing)
  */
@@ -19,7 +21,7 @@ export type MeteringClass = 'C1' | 'C2' | 'C3' | 'C4';
 /** Credits charged per call for each metering class. */
 export const CREDIT_COST: Record<MeteringClass, number> = {
   C1: 0.5,
-  C2: 2,
+  C2: 1,
   C3: 5,
   C4: 10,
 };
@@ -65,7 +67,7 @@ export const METERING_CLASS_CALL_LABEL: Record<MeteringClass, string> = {
 /**
  * Translate a credit allowance into "≈N <class label>" examples, e.g.
  * `creditAllowanceExamples(25_000, ['C2', 'C3'])` →
- * "≈12,500 deep-analysis calls or ≈5,000 pre-trade checks".
+ * "≈25,000 deep-analysis calls or ≈5,000 pre-trade checks".
  */
 export function creditAllowanceExamples(
   credits: number,
@@ -135,6 +137,13 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   [/^get_base_dex_venue_integrations$/, 'C1'],
   [/^get_aerodrome_slipstream_market$/, 'C1'],
   [/^prepare_aerodrome_slipstream_swap$/, 'C3'],
+  [/^prepare_base_agent_swap_guard$/, 'C3'],
+  [/^solana_swap_guard$/, 'C3'],
+  // Post-settlement guard closure / verification — C4 evidence artifacts.
+  [/^settle_base_agent_swap_guard$/, 'C4'],
+  [/^verify_base_agent_swap_guard_settlement$/, 'C4'],
+  [/^settle_solana_swap_guard$/, 'C4'],
+  [/^verify_solana_swap_guard_settlement$/, 'C4'],
   [/^get_pancakeswap_v3_market$/, 'C1'],
   [/^prepare_pancakeswap_v3_swap$/, 'C3'],
   [/^get_quickswap_v2_market$/, 'C1'],
@@ -143,6 +152,10 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
   // A locally signed order gate: it reads fresh venue state and refuses unsafe
   // or non-executable intents, but never signs/submits an order itself.
   [/^prepare_hyperliquid_perp_order$/, 'C3'],
+  // Hyperliquid perp decision gates: assessment plus exact-envelope binding.
+  [/^hyperliquid_perp_guard(_exact_call)?$/, 'C3'],
+  // Solana perp decision gate: on-chain Drift v2 evidence assessment.
+  [/^solana_perp_guard$/, 'C3'],
   // A decision gate, not an execution receipt: must precede the broad C4
   // `execution` matcher below.
   [/^execution_preflight$/, 'C3'],
@@ -151,7 +164,7 @@ const TOOL_RULES: Array<[RegExp, MeteringClass]> = [
 
   // C3 — agent gates.
   [
-    /pre_trade|oracle_watch|position_safety|liquidation|(?:base|monad|solana|multichain_evm)_lending_guard|loopscale_vault_deposit/,
+    /pre_trade|oracle_watch|position_safety|liquidation|(?:base|monad|solana|multichain_evm)_lending_guard|base_perp_guard|loopscale_vault_deposit/,
     'C3',
   ],
 

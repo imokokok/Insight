@@ -4,6 +4,8 @@ import {
 } from '@x402/extensions/bazaar';
 
 import {
+  BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
+  BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION,
   BAZAAR_DISCOVERY_EXTENSION,
   BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION,
   BAZAAR_SERVICE_METADATA,
@@ -41,11 +43,26 @@ interface QueryBazaarExtension {
   };
 }
 
+interface McpBazaarExtension {
+  info: {
+    input: {
+      type: string;
+      toolName: string;
+      description?: string;
+      transport?: string;
+      inputSchema: { type?: string; properties?: Record<string, unknown>; required?: string[] };
+      example?: Record<string, unknown>;
+    };
+  };
+}
+
 const declared = BAZAAR_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
 const preflightDeclared =
   BAZAAR_PREFLIGHT_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
 const swapIntentDeclared =
   BAZAAR_SWAP_INTENT_DISCOVERY_EXTENSION.bazaar as unknown as QueryBazaarExtension;
+const baseAgentSwapGuardDeclared =
+  BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION.bazaar as unknown as McpBazaarExtension;
 
 /** The wire shape after bazaarResourceServerExtension.enrichDeclaration on a GET. */
 const enrichedGet = {
@@ -156,5 +173,43 @@ describe('bazaar discovery extension', () => {
       declaredNotionalUsd: 1000,
     });
     expect(swapIntentDeclared.info.output.example).toHaveProperty('journeyId');
+  });
+
+  it('declares Base Swap Guard as a distinct, valid MCP discovery resource', () => {
+    expect(
+      validateDiscoveryExtensionSpec(
+        BAZAAR_BASE_AGENT_SWAP_GUARD_MCP_DISCOVERY_EXTENSION.bazaar as unknown as Record<
+          string,
+          unknown
+        >
+      )
+    ).toEqual({ valid: true });
+    // MCP declarations are not HTTP-route enriched: their exact tool name is
+    // already part of the wire contract consumed by Bazaar.
+    expect(validateDiscoveryExtension(baseAgentSwapGuardDeclared as never)).toEqual({
+      valid: true,
+    });
+    expect(baseAgentSwapGuardDeclared.info.input).toMatchObject({
+      type: 'mcp',
+      toolName: BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME,
+      transport: 'streamable-http',
+      example: {
+        profileId: 'base-aerodrome-slipstream-weth-usdc-cl100',
+        amountIn: '0.25',
+      },
+    });
+    expect(baseAgentSwapGuardDeclared.info.input.description).toContain('Base mainnet');
+    expect(baseAgentSwapGuardDeclared.info.input.description).toContain('ALLOW, CAUTION, or BLOCK');
+    expect(baseAgentSwapGuardDeclared.info.input.inputSchema.required).toEqual(
+      expect.arrayContaining([
+        'profileId',
+        'amountIn',
+        'recipient',
+        'deadlineUnixSeconds',
+        'sourceDecisionPriceUsd',
+        'destinationDecisionPriceUsd',
+        'policy',
+      ])
+    );
   });
 });

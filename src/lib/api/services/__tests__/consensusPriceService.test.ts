@@ -55,6 +55,20 @@ describe('resolveProvidersForSymbol', () => {
     expect(isSymbolSupported).toHaveBeenCalledWith('ETH', Blockchain.BASE);
   });
 
+  it('uses BNB oracle coverage as the price reference for canonical WBNB', async () => {
+    getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
+      feeds: new Map<string, unknown[]>([
+        [OracleProvider.CHAINLINK, [{ symbol: 'BNB/USD', chain_id: 56 }]],
+      ]),
+      errored: false,
+    });
+
+    const providers = await resolveProvidersForSymbol('WBNB', Blockchain.BNB_SMART_CHAIN);
+
+    expect(providers).toContain(OracleProvider.CHAINLINK);
+    expect(isSymbolSupported).toHaveBeenCalledWith('BNB', Blockchain.BNB_SMART_CHAIN);
+  });
+
   it('does not treat another quote currency or another chain as registered USD coverage', async () => {
     getAllActiveFeedsByProviderWithStatus.mockResolvedValue({
       feeds: new Map<string, unknown[]>([

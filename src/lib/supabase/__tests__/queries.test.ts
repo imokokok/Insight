@@ -387,6 +387,15 @@ describe('getOracleFeeds paging', () => {
     expect(result).toEqual([]);
   });
 
+  it('preserves the database-failure bit for availability-sensitive callers', async () => {
+    mockRangePages([{ data: [], error: { message: 'boom' }, count: null }]);
+
+    await expect(queries.getOracleFeedsWithStatus('redstone')).resolves.toEqual({
+      feeds: [],
+      errored: true,
+    });
+  });
+
   it('fails closed when the exact count does not match the loaded rows (server-side truncation)', async () => {
     // A server cap below the page size clamps the first page short, so the
     // loop ends early; only the exact count reveals the missing rows.

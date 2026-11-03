@@ -140,12 +140,12 @@ export const getAerodromeSlipstreamMarketTool: McpToolDefinition<
   },
 };
 
-/** Returns block-pinned evidence for one allowlisted PancakeSwap V3 Base pool. */
+/** Returns block-pinned evidence for one allowlisted PancakeSwap V3 pool. */
 export const getPancakeSwapV3MarketTool: McpToolDefinition<typeof PancakeSwapV3MarketInputSchema> =
   {
     name: 'get_pancakeswap_v3_market',
     description:
-      'Get fresh, block-pinned market evidence for one allowlisted PancakeSwap V3 Base pool. The Factory, QuoterV2, and Pool runtime identities are re-verified at the quoted block. This is DEX venue context, not an oracle-consensus price.',
+      'Get fresh, block-pinned market evidence for one allowlisted PancakeSwap V3 pool on Base or BNB Smart Chain. The Factory, QuoterV2, and Pool runtime identities are re-verified at the quoted block. This is DEX venue context, not an oracle-consensus price.',
     parameters: PancakeSwapV3MarketInputSchema,
     handler: async ({ profileId }) => {
       const snapshot = await getReviewedPancakeSwapV3MarketSnapshot(

@@ -60,6 +60,12 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Publish successful lifecycle mutations to Turso's bounded
+          # last-known-good registry so primary-mode collectors do not need a
+          # Supabase read at their next 15-minute slot.
+          TURSO_PRICE_DATABASE_URL: libsql://insight-imokokok.aws-ap-southeast-1.turso.io
+          TURSO_PRICE_AUTH_TOKEN: ${{ secrets.TURSO_PRICE_AUTH_TOKEN }}
+          TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
           # Alchemy RPC keys (optional — public RPC fallbacks exist).
           ALCHEMY_ETHEREUM_RPC: ${{ secrets.ALCHEMY_ETHEREUM_RPC }}
           ALCHEMY_ARBITRUM_RPC: ${{ secrets.ALCHEMY_ARBITRUM_RPC }}

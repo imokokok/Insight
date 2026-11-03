@@ -18,6 +18,7 @@ if (typeof Response.prototype.clone !== 'function') {
 }
 
 jest.mock('../resourceServer', () => ({
+  BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME: 'prepare_base_agent_swap_guard',
   getMcpX402HttpServer: jest.fn(),
 }));
 
@@ -51,7 +52,11 @@ const mockedServerFactory = getMcpX402HttpServer as jest.MockedFunction<
 >;
 const mockedRecord = recordX402Settlement as jest.MockedFunction<typeof recordX402Settlement>;
 
-const cfg = { network: 'eip155:84532' } as unknown as X402Config;
+const cfg = {
+  enabled: true,
+  network: 'eip155:84532',
+  payTo: '0xAbC0000000000000000000000000000000000001',
+} as unknown as X402Config;
 
 function jsonRpcResult(result: unknown): Response {
   return new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result }), {
@@ -62,12 +67,13 @@ function jsonRpcResult(result: unknown): Response {
 
 function input(
   runBusiness: () => Promise<Response>,
-  headers: HeadersInit | undefined = undefined
+  headers: HeadersInit | undefined = undefined,
+  toolName = 'get_symbols'
 ): McpPaidCallInput {
   return {
     request: new Request('http://x/api/mcp', { headers }),
     cfg,
-    toolName: 'get_symbols',
+    toolName,
     runBusiness,
   };
 }
@@ -115,6 +121,156 @@ describe('handleMcpPaidToolCall settlement gating', () => {
     expect(res.headers.get('PAYMENT-RESPONSE')).toBe('c2V0dGxlZA==');
   });
 
+  function guardCallRequest(profileId: string): Request {
+    return new Request('http://x/api/mcp', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'prepare_base_agent_swap_guard',
+          arguments: { profileId },
+        },
+      }),
+    });
+  }
+
+  it('binds the Base Swap Guard payment quote to Base mainnet only', async () => {
+    const baseGuardCfg = {
+      ...cfg,
+      enabled: true,
+      evmEnabled: true,
+      evmNetworks: ['eip155:999'],
+      payTo: '0xAbC0000000000000000000000000000000000001',
+      facilitatorUrl: 'https://base.example',
+      facilitatorUrls: { 'eip155:999': 'https://hyper.example' },
+    } as X402Config;
+
+    await handleMcpPaidToolCall({
+      request: guardCallRequest('base-pancakeswap-v3-usdc-usdt-100'),
+      cfg: baseGuardCfg,
+      toolName: 'prepare_base_agent_swap_guard',
+      runBusiness: async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }),
+    });
+
+    expect(mockedServerFactory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        network: 'eip155:8453',
+        evmNetworks: ['eip155:8453'],
+        facilitatorUrl: 'https://base.example',
+        solana: null,
+      }),
+      '20000',
+      'prepare_base_agent_swap_guard'
+    );
+  });
+
+  it('binds the BNB Swap Guard payment quote to BNB Smart Chain', async () => {
+    const bnbGuardCfg = {
+      ...cfg,
+      enabled: true,
+      evmEnabled: true,
+      evmNetworks: ['eip155:56'],
+      payTo: '0xAbC0000000000000000000000000000000000001',
+      facilitatorUrl: 'https://bnb.example',
+      facilitatorUrls: { 'eip155:56': 'https://bnb.example' },
+    } as X402Config;
+
+    await handleMcpPaidToolCall({
+      request: guardCallRequest('bnb-pancakeswap-v3-usdt-usdc-100'),
+      cfg: bnbGuardCfg,
+      toolName: 'prepare_base_agent_swap_guard',
+      runBusiness: async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }),
+    });
+
+    expect(mockedServerFactory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        network: 'eip155:56',
+        evmNetworks: ['eip155:56'],
+        facilitatorUrl: 'https://bnb.example',
+        solana: null,
+      }),
+      '20000',
+      'prepare_base_agent_swap_guard'
+    );
+  });
+
+  it('binds a multichain lending quote to the chain declared in its MCP arguments', async () => {
+    const multichainCfg = {
+      ...cfg,
+      enabled: true,
+      evmEnabled: true,
+      evmNetworks: ['eip155:999'],
+      payTo: '0xAbC0000000000000000000000000000000000001',
+      facilitatorUrl: 'https://merchant.example',
+      facilitatorUrls: { 'eip155:999': 'https://hyper.example' },
+    } as X402Config;
+    const request = new Request('http://x/api/mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: {
+          name: 'multichain_evm_lending_guard',
+          arguments: { chainId: 42161 },
+        },
+      }),
+    });
+
+    await handleMcpPaidToolCall({
+      request,
+      cfg: multichainCfg,
+      toolName: 'multichain_evm_lending_guard',
+      runBusiness: async () => jsonRpcResult({ content: [{ type: 'text', text: 'ok' }] }),
+    });
+
+    expect(mockedServerFactory).toHaveBeenCalledWith(
+      expect.objectContaining({ network: 'eip155:42161', evmNetworks: ['eip155:42161'] }),
+      '20000',
+      undefined
+    );
+  });
+
+  it('fails closed when a chain-native MCP rail is not configured', async () => {
+    const response = await handleMcpPaidToolCall(
+      input(
+        async () => jsonRpcResult({ content: [{ type: 'text', text: 'must not execute' }] }),
+        undefined,
+        'solana_lending_guard'
+      )
+    );
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+    });
+    expect(mockedServerFactory).not.toHaveBeenCalled();
+    expect(fakeServer.processSettlement).not.toHaveBeenCalled();
+  });
+
+  it('returns an explicit unavailable response when the matching facilitator cannot initialize', async () => {
+    mockedServerFactory.mockRejectedValueOnce(new Error('facilitator unavailable'));
+
+    const response = await handleMcpPaidToolCall(
+      input(
+        async () => jsonRpcResult({ content: [{ type: 'text', text: 'must not execute' }] }),
+        undefined,
+        'prepare_base_agent_swap_guard'
+      )
+    );
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+    });
+    expect(fakeServer.processHTTPRequest).not.toHaveBeenCalled();
+    expect(fakeServer.processSettlement).not.toHaveBeenCalled();
+  });
+
   it('skips settlement when the tool result carries isError', async () => {
     const res = await handleMcpPaidToolCall(
       input(async () => jsonRpcResult({ isError: true, content: [{ type: 'text', text: 'boom' }] }))
@@ -160,6 +316,72 @@ describe('handleMcpPaidToolCall settlement gating', () => {
       input(async () => new Response('not json at all', { status: 200 }))
     );
 
+    expect(fakeServer.processSettlement).not.toHaveBeenCalled();
+  });
+});
+
+describe('product-priced tools (monitored window / position lifecycle)', () => {
+  beforeEach(() => {
+    mockedServerFactory
+      .mockReset()
+      .mockResolvedValue(fakeServer as unknown as Awaited<ReturnType<typeof getMcpX402HttpServer>>);
+    mockedRecord.mockReset();
+    fakeServer.processHTTPRequest.mockReset().mockResolvedValue({
+      type: 'payment-verified',
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        network: 'eip155:8453',
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        amount: '500000',
+      },
+    });
+    fakeServer.processSettlement.mockReset().mockResolvedValue({
+      success: true,
+      transaction: `0x${'a'.repeat(64)}`,
+      payer: `0x${'b'.repeat(40)}`,
+      amount: '500000',
+      headers: {},
+    });
+  });
+
+  it('quotes a begin tool at the plan list price, not a per-call class price', async () => {
+    const { priceAtomicForTool } = await import('../mcpBridge');
+    // $0.50 window / $0.55 lifecycle, in USDC atomic units.
+    expect(priceAtomicForTool('oracle_watch_window_begin')).toBe('500000');
+    expect(priceAtomicForTool('position_lifecycle_begin')).toBe('550000');
+  });
+
+  it('dispatches an in-window tool without any x402 lifecycle', async () => {
+    const res = await handleMcpPaidToolCall(
+      input(
+        async () => jsonRpcResult({ content: [{ type: 'text', text: 'signal' }] }),
+        undefined,
+        'oracle_watch_window_poll'
+      )
+    );
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({
+      result: { content: [{ type: 'text', text: 'signal' }] },
+    });
+    // No quote, no verify, no settle: the window token is the entitlement.
+    expect(mockedServerFactory).not.toHaveBeenCalled();
+    expect(fakeServer.processHTTPRequest).not.toHaveBeenCalled();
+    expect(fakeServer.processSettlement).not.toHaveBeenCalled();
+    expect(mockedRecord).not.toHaveBeenCalled();
+  });
+
+  it('dispatches lifecycle bundled tools without payment as well', async () => {
+    const res = await handleMcpPaidToolCall(
+      input(
+        async () => jsonRpcResult({ content: [{ type: 'text', text: 'guard' }] }),
+        undefined,
+        'position_lifecycle_guard'
+      )
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockedServerFactory).not.toHaveBeenCalled();
     expect(fakeServer.processSettlement).not.toHaveBeenCalled();
   });
 });

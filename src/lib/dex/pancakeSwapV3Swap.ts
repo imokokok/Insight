@@ -9,15 +9,19 @@ import {
 } from 'viem';
 
 import {
-  PANCAKE_SWAP_V3_BASE_CHAIN_ID,
-  PANCAKE_SWAP_V3_BASE_CODE_IDENTITY,
-  PANCAKE_SWAP_V3_BASE_FACTORY,
-  PANCAKE_SWAP_V3_BASE_SWAP_ROUTER,
-  PancakeSwapV3BaseRpcClient,
+  type PANCAKE_SWAP_V3_BNB_CHAIN_ID,
+  type PANCAKE_SWAP_V3_BASE_CHAIN_ID,
+  PANCAKE_SWAP_V3_ROUTER_WETH9_BY_CHAIN,
+  pancakeSwapV3DeploymentForChain,
   reviewedPancakeSwapV3Profile,
   type ReviewedPancakeSwapV3ProfileId,
 } from './pancakeSwapV3';
-import { getUniswapV3MarketSnapshot, type UniswapV3MarketSnapshot } from './uniswapV3Market';
+import {
+  getUniswapV3MarketSnapshot,
+  UniswapV3MarketRpcClient,
+  type UniswapV3MarketSnapshot,
+  type UniswapV3QuoteDirection,
+} from './uniswapV3Market';
 
 const ROUTER_STATE_ABI = parseAbi([
   'function factory() view returns (address)',
@@ -33,7 +37,13 @@ const DECIMAL_AMOUNT = /^(?:0\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\.[0-9]+)?)$/;
 
 export interface PreparePancakeSwapV3ExactInputRequest {
   profileId?: ReviewedPancakeSwapV3ProfileId;
-  /** Exact input of the selected profile's token0; reverse routes are not admitted. */
+  /**
+   * Quote direction inside the reviewed pool. Both directions of the reviewed
+   * USDC/USDT pair are admitted; anything outside the reviewed pool's own two
+   * tokens is rejected by construction.
+   */
+  direction?: UniswapV3QuoteDirection;
+  /** Exact input amount in human-readable decimals of the input token. */
   amountIn: string;
   recipient: string;
   deadlineUnixSeconds: number;
@@ -42,11 +52,11 @@ export interface PreparePancakeSwapV3ExactInputRequest {
 
 export interface PreparedPancakeSwapV3ExactInput {
   kind: 'pancakeswap-v3-exact-input-v1';
-  chainId: typeof PANCAKE_SWAP_V3_BASE_CHAIN_ID;
-  transaction: { to: typeof PANCAKE_SWAP_V3_BASE_SWAP_ROUTER; data: `0x${string}`; value: '0x0' };
+  chainId: typeof PANCAKE_SWAP_V3_BASE_CHAIN_ID | typeof PANCAKE_SWAP_V3_BNB_CHAIN_ID;
+  transaction: { to: `0x${string}`; data: `0x${string}`; value: '0x0' };
   approval: {
     token: string;
-    spender: typeof PANCAKE_SWAP_V3_BASE_SWAP_ROUTER;
+    spender: `0x${string}`;
     amountRaw: string;
     data: `0x${string}`;
   };
@@ -75,8 +85,8 @@ export interface PreparedPancakeSwapV3ExactInput {
     | 'twap'
   > & { quote: UniswapV3MarketSnapshot['quotes'][number] };
   router: {
-    address: typeof PANCAKE_SWAP_V3_BASE_SWAP_ROUTER;
-    codeHash: typeof PANCAKE_SWAP_V3_BASE_CODE_IDENTITY.router;
+    address: `0x${string}`;
+    codeHash: string;
     factory: string;
     weth9: string;
   };
@@ -138,7 +148,7 @@ function decodeAddress(data: `0x${string}`, functionName: 'factory' | 'WETH9'): 
 export async function preparePancakeSwapV3ExactInput(
   request: PreparePancakeSwapV3ExactInputRequest,
   options: {
-    rpc?: PancakeSwapV3BaseRpcClient;
+    rpc?: UniswapV3MarketRpcClient;
     nowUnixSeconds?: number;
     signal?: AbortSignal;
   } = {}
@@ -148,15 +158,35 @@ export async function preparePancakeSwapV3ExactInput(
   assertSlippage(request.maxSlippageBps);
   const recipient = verifiedRecipient(request.recipient);
   const profileId = request.profileId ?? 'base-pancakeswap-v3-usdc-usdt-100';
+  const direction: UniswapV3QuoteDirection = request.direction ?? 'token0-to-token1';
   const profile = reviewedPancakeSwapV3Profile(profileId);
-  const amountIn = exactAmountInRaw(request.amountIn, profile.token0.decimals);
-  const rpc = options.rpc ?? new PancakeSwapV3BaseRpcClient(profile.rpcEndpoints.slice());
+  // Fail closed on a chain without a reviewed deployment bundle: no addresses
+  // are borrowed from another network's deployment.
+  const deployment = pancakeSwapV3DeploymentForChain(profile.chainId);
+  if (!deployment) {
+    throw new Error(
+      `PancakeSwap V3 profile ${profileId} targets chain ${profile.chainId}, which has no reviewed deployment.`
+    );
+  }
+  const expectedWeth9 = (
+    PANCAKE_SWAP_V3_ROUTER_WETH9_BY_CHAIN as Record<number, string | undefined>
+  )[profile.chainId];
+  if (!expectedWeth9) {
+    throw new Error(`PancakeSwap V3 router WETH9 is not reviewed for chain ${profile.chainId}.`);
+  }
+  const inputToken = direction === 'token0-to-token1' ? profile.token0 : profile.token1;
+  const outputToken = direction === 'token0-to-token1' ? profile.token1 : profile.token0;
+  const amountIn = exactAmountInRaw(request.amountIn, inputToken.decimals);
+  const rpc =
+    options.rpc ?? new UniswapV3MarketRpcClient(profile.chainId, profile.rpcEndpoints.slice());
   const snapshot = await getUniswapV3MarketSnapshot(
     {
       ...profile,
-      id: `${profile.id}-pretrade-${amountIn.toString()}`,
+      id: `${profile.id}-pretrade-${direction}-${amountIn.toString()}`,
       quoteAmountsToken0: undefined,
-      quoteAmountsToken0Raw: [amountIn],
+      ...(direction === 'token1-to-token0'
+        ? { quoteAmountsToken1Raw: [amountIn] }
+        : { quoteAmountsToken0Raw: [amountIn] }),
     },
     { rpc, cache: false, signal: options.signal }
   );
@@ -164,33 +194,31 @@ export async function preparePancakeSwapV3ExactInput(
   if (!quote) throw new Error('PancakeSwap V3 exact-input quote was absent.');
 
   const blockNumber = BigInt(snapshot.block.number);
+  const routerAddress = deployment.swapRouter as `0x${string}`;
   const [runtimeCode, factoryData, weth9Data] = await Promise.all([
-    rpc.getCode(PANCAKE_SWAP_V3_BASE_SWAP_ROUTER, blockNumber, options.signal),
+    rpc.getCode(routerAddress, blockNumber, options.signal),
     rpc.call(
-      PANCAKE_SWAP_V3_BASE_SWAP_ROUTER,
+      routerAddress,
       encodeFunctionData({ abi: ROUTER_STATE_ABI, functionName: 'factory' }),
       blockNumber,
       options.signal
     ),
     rpc.call(
-      PANCAKE_SWAP_V3_BASE_SWAP_ROUTER,
+      routerAddress,
       encodeFunctionData({ abi: ROUTER_STATE_ABI, functionName: 'WETH9' }),
       blockNumber,
       options.signal
     ),
   ]);
-  if (
-    runtimeCode === '0x' ||
-    keccak256(runtimeCode) !== PANCAKE_SWAP_V3_BASE_CODE_IDENTITY.router
-  ) {
+  if (runtimeCode === '0x' || keccak256(runtimeCode) !== deployment.routerCodeHash) {
     throw new Error('PancakeSwap V3 router runtime code does not match the reviewed deployment.');
   }
   const routerFactory = decodeAddress(factoryData, 'factory');
   const routerWeth9 = decodeAddress(weth9Data, 'WETH9');
   if (
-    routerFactory.toLowerCase() !== PANCAKE_SWAP_V3_BASE_FACTORY.toLowerCase() ||
+    routerFactory.toLowerCase() !== deployment.factory.toLowerCase() ||
     routerFactory.toLowerCase() !== snapshot.contracts.factory.toLowerCase() ||
-    routerWeth9.toLowerCase() !== '0x4200000000000000000000000000000000000006'
+    routerWeth9.toLowerCase() !== expectedWeth9.toLowerCase()
   ) {
     throw new Error('PancakeSwap V3 router bindings do not match the reviewed pool.');
   }
@@ -203,8 +231,8 @@ export async function preparePancakeSwapV3ExactInput(
     functionName: 'exactInputSingle',
     args: [
       {
-        tokenIn: profile.token0.address,
-        tokenOut: profile.token1.address,
+        tokenIn: inputToken.address,
+        tokenOut: outputToken.address,
         fee: profile.feeTier,
         recipient,
         deadline: BigInt(request.deadlineUnixSeconds),
@@ -217,23 +245,27 @@ export async function preparePancakeSwapV3ExactInput(
   const approvalData = encodeFunctionData({
     abi: ERC20_ABI,
     functionName: 'approve',
-    args: [PANCAKE_SWAP_V3_BASE_SWAP_ROUTER, amountIn],
+    args: [deployment.swapRouter as `0x${string}`, amountIn],
   });
 
   return {
     kind: 'pancakeswap-v3-exact-input-v1',
-    chainId: PANCAKE_SWAP_V3_BASE_CHAIN_ID,
-    transaction: { to: PANCAKE_SWAP_V3_BASE_SWAP_ROUTER, data, value: '0x0' },
+    chainId: profile.chainId as PreparedPancakeSwapV3ExactInput['chainId'],
+    transaction: {
+      to: deployment.swapRouter,
+      data,
+      value: '0x0',
+    } as PreparedPancakeSwapV3ExactInput['transaction'],
     approval: {
-      token: profile.token0.address,
-      spender: PANCAKE_SWAP_V3_BASE_SWAP_ROUTER,
+      token: inputToken.address,
+      spender: deployment.swapRouter as `0x${string}`,
       amountRaw: amountIn.toString(),
       data: approvalData,
     },
     exactInput: {
       profileId,
-      tokenIn: profile.token0.address,
-      tokenOut: profile.token1.address,
+      tokenIn: inputToken.address,
+      tokenOut: outputToken.address,
       feeTier: profile.feeTier,
       amountInRaw: amountIn.toString(),
       quotedAmountOutRaw: quotedAmountOut.toString(),
@@ -255,8 +287,8 @@ export async function preparePancakeSwapV3ExactInput(
       quote,
     },
     router: {
-      address: PANCAKE_SWAP_V3_BASE_SWAP_ROUTER,
-      codeHash: PANCAKE_SWAP_V3_BASE_CODE_IDENTITY.router,
+      address: deployment.swapRouter as `0x${string}`,
+      codeHash: deployment.routerCodeHash,
       factory: routerFactory,
       weth9: routerWeth9,
     },
@@ -264,7 +296,7 @@ export async function preparePancakeSwapV3ExactInput(
       'This is unsigned calldata only. Insight cannot approve, sign, relay, or broadcast a transaction.',
       'The approval template is exact-amount token approval for the reviewed router; inspect existing allowance before signing any approval.',
       'The quote and code checks describe one pinned block. They do not simulate a later signed transaction, guarantee a fill, protect against MEV, or cover another pool or route.',
-      'Use a user-controlled signer and submit the Base transaction hash to Insight or PriorSeal for post-settlement evidence.',
+      'Use a user-controlled signer and submit the executed transaction hash to Insight or PriorSeal for post-settlement evidence.',
     ],
   };
 }

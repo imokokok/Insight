@@ -3,10 +3,19 @@ import { after } from 'next/server';
 import { type HTTPAdapter, type HTTPResponseInstructions } from '@x402/core/server';
 
 import { getToolCreditCost } from '@/lib/billing/metering';
+import {
+  isEntitlementCoveredMcpTool,
+  PRODUCT_MCP_TOOL_USD_PRICES,
+} from '@/lib/billing/productPricing';
 import { enqueueReputationAnchor } from '@/lib/erc8004/reputationAnchor';
 import { createLogger } from '@/lib/utils/logger';
 
-import { type X402Config, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
+import {
+  x402ConfigForPaymentScope,
+  x402PaymentScopeForMcpTool,
+  type X402PaymentScope,
+} from './capabilityPayment';
+import { type X402Config, usdToAtomicUnits, X402_CREDIT_USD, X402_MCP_ROUTE } from './config';
 import {
   atomicUnitsToUsdc,
   logBazaarExtensionStatus,
@@ -15,7 +24,7 @@ import {
   x402AcquisitionSource,
   x402ResponseBody,
 } from './guard';
-import { getMcpX402HttpServer } from './resourceServer';
+import { BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME, getMcpX402HttpServer } from './resourceServer';
 
 const logger = createLogger('x402-mcp-bridge');
 
@@ -105,13 +114,20 @@ export function toResponse(instructions: HTTPResponseInstructions): Response {
 }
 
 /**
- * USDC atomic units (6 decimals) for one call of `toolName`: credit cost ×
- * the per-credit USD factor, floored onto the micro-dollar grid with integer
- * math. A zero/negative result can only come from a zero cost, which the
- * metering table never produces (C1 = 0.5); still guarded so a misconfigured
- * table can never mint a free-quote.
+ * USDC atomic units (6 decimals) for one call of `toolName`: the product list
+ * price for a product begin tool, otherwise credit cost × the per-credit USD
+ * factor, floored onto the micro-dollar grid with integer math. A zero/negative
+ * result can only come from a zero cost, which the metering table never
+ * produces (C1 = 0.5); still guarded so a misconfigured table can never mint a
+ * free-quote.
  */
 export function priceAtomicForTool(toolName: string): string {
+  const productUsd = PRODUCT_MCP_TOOL_USD_PRICES[toolName];
+  if (productUsd !== undefined) {
+    // Product purchases quote the plan's USD list price directly — the same
+    // value the REST begin route charges — never a per-call class price.
+    return usdToAtomicUnits(productUsd);
+  }
   const microUsd = Math.round(getToolCreditCost(toolName) * X402_CREDIT_USD * 1_000_000);
   return String(Math.max(1, microUsd));
 }
@@ -199,6 +215,33 @@ async function extractReputationOptIn(
   }
 }
 
+/** Read JSON-RPC arguments from a clone so the MCP transport retains the body. */
+async function extractMcpToolArguments(request: Request): Promise<unknown> {
+  try {
+    const body = (await request.clone().json()) as { params?: { arguments?: unknown } };
+    return body?.params?.arguments;
+  } catch {
+    return undefined;
+  }
+}
+
+function unavailablePaymentScopeResponse(
+  toolName: string,
+  scope: X402PaymentScope | null
+): Response {
+  const scopeLabel = scope?.label ?? 'the declared execution chain';
+  return new Response(
+    JSON.stringify({
+      error: 'X402_PAYMENT_RAIL_UNAVAILABLE',
+      message: `${toolName} requires a matching x402 payment rail for ${scopeLabel}; Insight will not substitute another chain.`,
+    }),
+    {
+      status: 503,
+      headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/json' },
+    }
+  );
+}
+
 /**
  * Lift the verdict and attestation UID from the pre-trade tool's markdown
  * result text (best-effort clone of the JSON-RPC response). The verdict line
@@ -254,8 +297,36 @@ export async function handleMcpPaidToolCall({
   runBusiness,
 }: McpPaidCallInput): Promise<Response> {
   const requestId = newRequestId();
+  // In-window product tools (poll/close/guard/receipt/close-summary) are
+  // covered by the purchase that returned their one-time token; the token in
+  // the tool arguments is the entitlement check and fails closed without it.
+  // No x402 lifecycle runs, so a window buyer is never re-charged per call.
+  if (isEntitlementCoveredMcpTool(toolName)) {
+    return attachRequestId(await runBusiness(), requestId);
+  }
   const priceAtomic = priceAtomicForTool(toolName);
-  const httpServer = await getMcpX402HttpServer(cfg, priceAtomic);
+  const paymentScope = x402PaymentScopeForMcpTool(toolName, await extractMcpToolArguments(request));
+  const paymentConfig = paymentScope ? x402ConfigForPaymentScope(cfg, paymentScope) : null;
+  if (!paymentConfig) {
+    return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);
+  }
+  const isBaseAgentSwapGuard = toolName === BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME;
+  let httpServer: Awaited<ReturnType<typeof getMcpX402HttpServer>>;
+  try {
+    httpServer = await getMcpX402HttpServer(
+      paymentConfig,
+      priceAtomic,
+      isBaseAgentSwapGuard ? toolName : undefined
+    );
+  } catch (error) {
+    logger.warn('x402 MCP payment rail unavailable', {
+      requestId,
+      toolName,
+      paymentScope: paymentScope?.kind ?? 'undeclared',
+      errorName: error instanceof Error ? error.name : 'unknown',
+    });
+    return attachRequestId(unavailablePaymentScopeResponse(toolName, paymentScope), requestId);
+  }
   const acquisitionSource = x402AcquisitionSource(request);
   const requestStartedAt = Date.now();
   // Clone-read before the transport consumes the body in runBusiness.

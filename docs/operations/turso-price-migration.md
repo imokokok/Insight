@@ -6,16 +6,66 @@ This migration moves only the high-frequency, policy-controlled raw price
 stream (`price_snapshots`) to Turso. Supabase retains the hourly business
 snapshot, reports, feed-health data, and all other relational workflows.
 
+The storage lifecycle is deliberately tiered:
+
+- Turso `price_latest`: one hot row per feed, used for current-price fallback.
+- Turso `price_snapshots`: immutable delta/event evidence, retained for 30
+  days by default. Full-resolution policies still record every sample.
+- Supabase `hourly_price_snapshots`: long-lived hourly business projection for
+  reports and relational queries.
+
 The collector uses a durable two-database hand-off:
 
-1. Turso atomically writes raw rows, adaptive state, and an immutable slot
-   payload.
-2. Supabase idempotently projects the hourly rows using the slot hash and raw
-   digest as a receipt.
-3. Turso marks the slot acknowledged only after that receipt succeeds.
+1. The collector atomically writes Turso raw rows, `price_latest`, adaptive
+   state, and an immutable slot payload.
+2. The independent `Turso Price Projection` workflow reads pending slots and
+   idempotently projects the hourly rows to Supabase using the slot hash and
+   raw digest as a receipt.
+3. Turso marks a slot acknowledged only after that receipt succeeds.
 
 Interrupted hand-offs are replayed from the stored payload before the next
 collection. A retry with different evidence for the same slot is rejected.
+
+## Primary ingest control plane
+
+In `primary` mode, the high-frequency control plane is intentionally small:
+Supabase owns the reliable 15-minute clock, GitHub Actions runs the bounded
+collector and projector, Turso holds the immutable raw evidence, and Supabase
+receives only the idempotent business projection.
+
+```text
+Supabase pg_cron -> GitHub Actions Snapshot Collect (every 15 min, UTC)
+  -> Turso slot lease
+  -> upstream oracle reads + atomic Turso raw slot capture
+  -> best-effort Supabase rich-cache/feed-health side effects
+Supabase pg_cron -> GitHub Actions Turso Price Projection (three minutes after capture)
+  -> bounded, receipt-backed Turso-to-Supabase outbox drain
+```
+
+The Supabase dispatcher runs the collector at `:00/:15/:30/:45` and projection
+at `:03/:18/:33/:48`. The Actions workflows expose only controlled
+`workflow_dispatch` entry points, so GitHub's best-effort native scheduler
+cannot add a duplicate high-frequency clock. Both workflows use queued
+concurrency rather than cancellation, and the Turso lease / Supabase receipt
+boundaries make a delayed or manually retried run safe. Market-reference and
+manipulation-cost evidence remain in a separate job, so a transient
+evidence-write failure cannot change the raw-capture result.
+
+The active feed registry is administered in Supabase but mirrored as a
+canonical, hashed last-known-good payload in Turso after successful
+discovery/seed/reactivation runs. Primary-mode collectors and individual
+provider resolvers use that mirror first. `TURSO_FEED_REGISTRY_MAX_AGE_SECONDS`
+defaults to 86400 (valid range: 300–604800); when the mirror exceeds that
+age, the resolver performs one bounded authoritative Supabase refresh rather
+than silently using an indefinitely old configuration.
+
+Projection drains up to four bounded outbox batches per invocation. This lets a
+multi-hour Supabase outage catch up promptly without turning recovery into
+unbounded write pressure. Supabase `pg_cron` is the high-frequency primary and
+creates exactly two dispatches per healthy slot: collector then projector. Two
+later receipt-indexed probes run only as recovery guards; once the slot receipt
+exists, they add no pg_net request, ledger write, runner start, or duplicate
+upstream read.
 
 ## Required configuration
 
@@ -31,10 +81,22 @@ TURSO_PRICE_DATABASE_URL=libsql://insight-imokokok.aws-ap-southeast-1.turso.io
 TURSO_PRICE_AUTH_TOKEN=<database-token>
 TURSO_PRICE_PARTITION_KEY=bootstrap
 TURSO_PRICE_WRITE_MODE=legacy
+TURSO_PRICE_RAW_RETENTION_DAYS=30
+TURSO_FEED_REGISTRY_MAX_AGE_SECONDS=86400
 ```
 
 `TURSO_PRICE_WRITE_MODE` defaults to `legacy`. It is intentionally not
 advanced by database creation or deployment.
+
+`TURSO_PRICE_RAW_RETENTION_DAYS` accepts 1–3650 and defaults to 30. It applies
+only to Turso fine-grained event rows; it never deletes `price_latest`, an
+unacknowledged Turso slot payload, or Supabase hourly business data.
+Acknowledged slot payloads older than the same window are compacted to their
+hashes, digest, counts, and an empty-input audit marker. In production the
+projector workflow also accepts repository variables
+`TURSO_PRICE_PROJECTION_BATCH_SIZE` (default 16) and
+`TURSO_PRICE_PROJECTION_MAX_BATCHES` (default 4) and
+`TURSO_PRICE_PROJECTION_MAX_LAG_SECONDS` (default 1800).
 
 ## Rollout
 
@@ -43,9 +105,14 @@ advanced by database creation or deployment.
 2. With the database token available, run `npm run turso:price:migrate`. It is
    additive and verifies the schema/version and default policy; it cannot
    create or delete a Turso database.
-3. Run `npm run build:cron`, then deploy the generated collector bundle while
-   still in `legacy` mode.
-4. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
+3. Run `npm run build:cron`, then deploy both generated collector and projector
+   bundles while still in `legacy` mode.
+4. Apply `0121_supabase_primary_turso_scheduler.sql` after the controlled
+   workflow-dispatch entry points are on `main`. It makes Supabase the
+   authoritative high-frequency clock, removes the duplicate native GitHub
+   schedules, and retains receipt-gated recovery for an incomplete slot while
+   preserving lower-frequency product jobs.
+5. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
    for several complete collection cycles.
    Supabase remains authoritative. Each Turso slot must exactly match the
    Supabase write shape: received, candidate, persisted, full-resolution, and
@@ -58,14 +125,18 @@ advanced by database creation or deployment.
    instead of Supabase's historical write reason; this is logged for review but
    does not alter the stored row set or source of truth. All later
    classification differences remain observable in the job log.
-5. Inspect the Turso `snapshot_slots` backlog. Every new shadow slot must be
+6. Inspect the Turso `snapshot_slots` backlog. Every new shadow slot must be
    acknowledged after its parity check, and no shadow mismatch may have
    occurred.
-6. Record an ISO-8601 UTC boundary in the GitHub Actions repository variable
+7. Record an ISO-8601 UTC boundary in the GitHub Actions repository variable
    `TURSO_PRICE_READ_CUTOVER_AT`, then set `TURSO_PRICE_WRITE_MODE=primary` in
    the same release. Raw-history readers use Supabase before that instant and
    Turso from that instant onward. The service refuses primary writes if the
    boundary is absent or invalid.
+8. Confirm the two Supabase primary jobs are active, then dispatch each
+   workflow once. Verify a `snapshot_ingest_leases` row reaches
+   `completed_at_ms` only after its matching `snapshot_slots` row exists, and
+   verify the matching `turso_price_slot_receipts` receipt is present.
 
 ## Rollback
 
@@ -74,14 +145,52 @@ new fine-price writes and reads to the existing Supabase flow. Do not delete
 Turso data or the Supabase receipt table; they are required to investigate or
 replay an interrupted hand-off.
 
+If high-frequency collection must be paused, call
+`SELECT public.disable_github_workflow_dispatcher();` in Supabase. Do not
+disable the GitHub workflows themselves: their controlled manual dispatch path
+is required for recovery. Do not delete Turso data or the Supabase receipt
+table.
+
 ## Verification commands
 
 ```bash
 npm run db:check:turso-price-projection
+npm run db:check:turso-price-projection-dispatcher
+npm run db:check:github-primary-turso-scheduler
+npm run db:check:receipt-gated-turso-fallback
+npm run db:check:supabase-primary-turso-scheduler
 npm run turso:price:migrate
 npx jest src/lib/turso/price/__tests__ src/lib/supabase/__tests__/snapshotHistory.turso.test.ts --runInBand
 ```
 
 After the primary release, check that each Turso slot has an acknowledgement,
 that the Supabase receipt count advances with collection slots, and that a
-history query spanning the cutover returns both sides in timestamp order.
+history query spanning the cutover returns both sides in timestamp order. The
+projection workflow prints `before`, `projected`, `after`, `oldestLagSeconds`,
+`rawEventsPruned`, and `acknowledgedPayloadsCompacted`; a non-empty backlog
+older than its lag threshold fails the workflow for alerting. In primary mode,
+`GET /api/v1/health/ready` also reports a projection check (`ok`,
+`catching_up`, `lagging`, or `unknown`) plus pending-slot and lag details. That
+signal does not make fresh Turso-backed price reads unavailable merely because
+the independent Supabase projection is catching up.
+
+The readiness endpoint now reports four independent checks in primary mode:
+`tursoRawCapture`, `scheduler`, `supabase`, and `projection`. This separates
+a fresh raw data plane from a degraded Supabase query/control plane instead of
+labeling both simply as `database: ok`. `projection` can be `catching_up`,
+`lagging`, or `quarantined`; retryable failures back off from one minute to a
+15-minute maximum and do not block later slots. A quarantined slot preserves
+its original payload and hash for review. To explicitly replay a reviewed
+slot, use the exact identifiers from Turso (never edit a slot payload):
+
+```bash
+TURSO_PRICE_REQUEUE_SLOT_MS=<epoch-ms> \
+TURSO_PRICE_REQUEUE_INPUT_HASH=<64-hex-input-hash> \
+npm run turso:price:requeue
+```
+
+The `Turso Control Plane Alert` GitHub workflow checks this readiness endpoint
+at minutes `12,27,42,57`. A failing check opens one deduplicated GitHub Issue
+and comments on it while the incident remains open; the first healthy check
+comments with recovery evidence and closes it. This alert is intentionally
+outside the Supabase scheduler failure domain.

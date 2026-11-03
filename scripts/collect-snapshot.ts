@@ -2,13 +2,9 @@
 /**
  * High-frequency oracle price-snapshot collector.
  *
- * Runs on GitHub Actions (`/.github/workflows/snapshot-collect.yml`, every 15
- * minutes) — NOT inside Vercel — so it is not bound by the 60s serverless
- * timeout. Mirrors the Vercel `/api/cron/daily-report` pipeline by delegating
- * to `collectSnapshot()` (which upserts `hourly_price_snapshots` and updates
- * feed health), then persists fine-grained price evidence through a database
- * policy: core assets keep every sample; adaptive assets retain an hourly
- * baseline plus material changes and state transitions.
+ * Runs as the primary GitHub Actions collector. Its Turso slot lease makes
+ * schedule retries and manual recovery runs idempotent, so they never produce
+ * a different payload for the same 15-minute slot.
  *
  * Why a separate table: `hourly_price_snapshots` upserts on
  * `(snapshot_hour, provider, symbol, chain_id)`, so running more frequently
@@ -22,102 +18,40 @@
  * Requires: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (service-role, bypasses
  * RLS — same credentials the ml-train workflow already uses).
  */
-import {
-  applyFeedHealthLifecycle,
-  collectSnapshot,
-  resolveSnapshotSlot,
-  SnapshotCollectionError,
-} from '@/lib/reports/snapshotCollector';
-import {
-  commitSnapshotDataSlot,
-  reconcilePendingTursoPriceSlots,
-} from '@/lib/supabase/adaptiveSnapshotPersistence';
+import { runSnapshotIngest } from '@/lib/reports/snapshotIngest';
+
+function resolveTriggerSource(): 'github_actions' | 'manual' {
+  if (process.env.SNAPSHOT_TRIGGER_SOURCE === 'manual') return 'manual';
+
+  // A human workflow_dispatch remains an explicit recovery path.
+  if (process.env.GITHUB_EVENT_NAME === 'workflow_dispatch' && !process.env.CRON_DISPATCH_ID) {
+    return 'manual';
+  }
+  return 'github_actions';
+}
 
 async function main(): Promise<void> {
   const startedAt = Date.now();
   console.log('[collect-snapshot] starting collection pipeline…');
 
-  // In Turso-primary mode, finish interrupted cross-database hand-offs before
-  // collecting a new slot. This always reuses the immutable slot payload and
-  // never fetches a changed price for an already-captured timestamp.
   try {
-    const reconciled = await reconcilePendingTursoPriceSlots();
-    if (reconciled > 0) {
-      console.log(`[collect-snapshot] reconciled ${reconciled} pending Turso price slot(s)`);
-    }
+    const result = await runSnapshotIngest(process.env.CRON_SCHEDULED_FOR, resolveTriggerSource());
+    console.log(
+      `[collect-snapshot] ${result.outcome} slot=${new Date(result.slotMs).toISOString()} ` +
+        `projection=${result.projection ?? 'n/a'} inputs=${result.inputCount}`
+    );
+    const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+    console.log(
+      `[collect-snapshot] done in ${elapsed}s — ` +
+        `slot=${new Date(result.slotMs).toISOString()} outcome=${result.outcome}`
+    );
   } catch (error) {
     console.error(
-      '[collect-snapshot] pending Turso price-slot reconciliation failed:',
+      '[collect-snapshot] pipeline failed:',
       error instanceof Error ? error.message : error
     );
-    process.exit(2);
-  }
-
-  let result;
-  try {
-    result = await collectSnapshot(resolveSnapshotSlot(process.env.CRON_SCHEDULED_FOR), {
-      reuseRpcMetadata: true,
-      deferDurableSnapshotWrites: true,
-    });
-  } catch (error) {
-    if (error instanceof SnapshotCollectionError) {
-      console.error(
-        `[collect-snapshot] pipeline failed at stage "${error.stage}": ${error.message}`
-      );
-    } else {
-      console.error(
-        '[collect-snapshot] pipeline failed:',
-        error instanceof Error ? error.message : error
-      );
-    }
     process.exit(1);
   }
-
-  // Commit the hourly and fine-grained evidence layers through the configured
-  // storage mode. Legacy mode uses the existing single-Supabase transaction;
-  // Turso-primary mode uses an immutable outbox/receipt hand-off so retries
-  // cannot project a changed payload for an already-captured slot.
-  try {
-    const committed = await commitSnapshotDataSlot(result.inputs, result.snapshotTs);
-    console.log(
-      `[collect-snapshot] hourly upsert: ${committed.hourlyWritten} rows | ` +
-        `price_snapshots: ${committed.persistence.persisted}/` +
-        `${committed.persistence.candidates} written | ` +
-        `full=${committed.persistence.fullResolution} hourly=${committed.persistence.hourlyBaseline} ` +
-        `events=${
-          committed.persistence.initial +
-          committed.persistence.stateTransition +
-          committed.persistence.errorChange +
-          committed.persistence.priceChange +
-          committed.persistence.deviationChange +
-          committed.persistence.dataAgeChange +
-          committed.persistence.confidenceChange
-        } stable-skipped=${committed.persistence.stableSkipped}`
-    );
-  } catch (error) {
-    console.error(
-      '[collect-snapshot] snapshot slot commit failed:',
-      error instanceof Error ? error.message : error
-    );
-    process.exit(2);
-  }
-
-  // Health is deliberately best-effort and remains isolated from evidence
-  // persistence. A health-registry issue must not roll back an already
-  // durable slot or turn a successful evidence collection into a data loss.
-  const health = await applyFeedHealthLifecycle(result.healthUpdates);
-  const successCount = result.inputs.filter((i) => i.isSuccess).length;
-  const failedCount = result.inputs.length - successCount;
-  console.log(
-    `[collect-snapshot] feed health: ${health.updatedHealth} updated, ` +
-      `${health.deactivated} deactivated | ${successCount} success / ${failedCount} failed`
-  );
-
-  const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-  console.log(
-    `[collect-snapshot] done in ${elapsed}s — ` +
-      `snapshot_ts=${result.snapshotTs.toISOString()} date=${result.snapshotDate}`
-  );
 }
 
 // Hard deadline: if the pipeline hangs beyond this (e.g. an oracle client

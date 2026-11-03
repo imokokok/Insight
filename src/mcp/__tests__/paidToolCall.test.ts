@@ -41,6 +41,7 @@ jest.mock('@/lib/api/x402/config', () => ({
 const getMcpX402HttpServerMock = jest.fn();
 
 jest.mock('@/lib/api/x402/resourceServer', () => ({
+  BASE_AGENT_SWAP_GUARD_MCP_TOOL_NAME: 'prepare_base_agent_swap_guard',
   getMcpX402HttpServer: (...args: unknown[]) => getMcpX402HttpServerMock(...(args as [])),
 }));
 
@@ -132,11 +133,14 @@ function mcpGet(headers: Record<string, string> = {}): Request {
 
 const CFG = {
   enabled: true,
-  network: 'eip155:84532' as const,
+  evmEnabled: true,
+  network: 'eip155:999' as const,
+  evmNetworks: ['eip155:999'] as const,
   payTo: '0xAbC0000000000000000000000000000000000001',
   amountAtomic: '20000',
   priceUsd: 0.02,
   facilitatorUrl: 'https://x402.org/facilitator',
+  facilitatorUrls: { 'eip155:999': 'https://hyper.example' },
   facilitatorTimeoutMs: 15_000,
   maxTimeoutSeconds: 60,
   facilitatorCdpAuth: null,
@@ -203,6 +207,41 @@ describe('x402 paid MCP tools/call', () => {
     expect(mockInsert).not.toHaveBeenCalled();
   });
 
+  it('quotes the Base agent swap guard at its C3 price without dispatching', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-error',
+      response: {
+        status: 402,
+        headers: { 'PAYMENT-REQUIRED': 'base64quote' },
+        body: { accepts: [{ scheme: 'exact', amount: '20000' }] },
+      },
+    });
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody('prepare_base_agent_swap_guard'))
+    );
+    await cleanup();
+
+    expect(response.status).toBe(402);
+    // C3 (5cr) × $0.004 = $0.02 = 20,000 Base-USDC atomic units.
+    expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        network: 'eip155:8453',
+        evmNetworks: ['eip155:8453'],
+        solana: null,
+      }),
+      priceAtomicForTool('prepare_base_agent_swap_guard'),
+      'prepare_base_agent_swap_guard'
+    );
+    expect(priceAtomicForTool('prepare_base_agent_swap_guard')).toBe('20000');
+    // The stateless MCP transport is initialized before the payment bridge,
+    // but an unsigned quote must never execute or settle the tool call.
+    expect(processSettlement).not.toHaveBeenCalled();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
   it('settles after a successful tool result and attaches the receipt header', async () => {
     processHTTPRequest.mockResolvedValue({
       type: 'payment-verified',
@@ -244,6 +283,59 @@ describe('x402 paid MCP tools/call', () => {
         payer: `0x${'b'.repeat(40)}`,
         amount_usdc: '0.002',
         verdict: 'mcp:get_symbols',
+      })
+    );
+  });
+
+  it('executes and settles the verified Base agent swap guard with tool-specific evidence', async () => {
+    processHTTPRequest.mockResolvedValue({
+      type: 'payment-verified',
+      cancellationDispatcher: {},
+      paymentPayload: { x402Version: 2 },
+      paymentRequirements: {
+        scheme: 'exact',
+        network: 'eip155:8453',
+        asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        amount: '20000',
+      },
+    });
+    processSettlement.mockResolvedValue({
+      success: true,
+      transaction: `0x${'c'.repeat(64)}`,
+      payer: `0x${'d'.repeat(40)}`,
+      amount: '20000',
+      network: 'eip155:8453',
+      headers: { 'PAYMENT-RESPONSE': 'base-swap-guard-receipt' },
+      requirements: {},
+    });
+
+    const { response, cleanup } = await handleMcpHttpRequest(
+      mcpPost(toolsCallBody('prepare_base_agent_swap_guard'), {
+        'payment-signature': 'base64payload',
+      })
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await cleanup();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('PAYMENT-RESPONSE')).toBe('base-swap-guard-receipt');
+    expect(getMcpX402HttpServerMock).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+      '20000',
+      'prepare_base_agent_swap_guard'
+    );
+    expect(processSettlement).toHaveBeenCalledWith(
+      { x402Version: 2 },
+      expect.objectContaining({ amount: '20000', network: 'eip155:8453' })
+    );
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'settled',
+        tx_hash: `0x${'c'.repeat(64)}`,
+        payer: `0x${'d'.repeat(40)}`,
+        amount_usdc: '0.02',
+        resource: 'mcp:prepare_base_agent_swap_guard',
+        verdict: 'mcp:prepare_base_agent_swap_guard',
       })
     );
   });

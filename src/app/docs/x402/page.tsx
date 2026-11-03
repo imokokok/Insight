@@ -78,7 +78,7 @@ const QUERY_PARAMS = [
 
 const METERING_CLASSES = [
   { cls: 'C1', atomic: '2000', usd: '$0.002', detail: 'Lightweight reads (most catalog tools)' },
-  { cls: 'C2', atomic: '8000', usd: '$0.008', detail: 'Standard analysis tools' },
+  { cls: 'C2', atomic: '4000', usd: '$0.004', detail: 'Standard analysis tools' },
   { cls: 'C3', atomic: '20000', usd: '$0.02', detail: 'Pre-trade safety check' },
   { cls: 'C4', atomic: '40000', usd: '$0.04', detail: 'Heaviest composite tools' },
 ];
@@ -88,12 +88,9 @@ const curlCode = `# Call without credentials: HTTP 402 with a PAYMENT-REQUIRED q
 curl -sD - -o /dev/null -H 'X-Insight-Entry-Source: docs' "${ENDPOINT}" \\
   | grep -i '^payment-required' | cut -d' ' -f2- | base64 --decode | jq
 
-# Example Base option from the decoded quote:
-#   scheme "exact", network "eip155:8453" (Base),
-#   USDC 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913, 20000 atomic units ($0.02),
-#   payTo 0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231.
-# The quote lists each configured EVM network; an enabled Solana option is listed too.
-# The registered x402 scheme signs the selected option, retries, and returns the verdict.`;
+# Do not hard-code a payment network, asset, or payTo address from an example.
+# The decoded live accepts[] list is the payment contract for this deployment.
+# Register the scheme required by the option you select, sign it, retry, and read the verdict.`;
 
 const tsCode = `// npm i @x402/fetch @x402/evm viem
 import { wrapFetchWithPayment, x402Client } from '@x402/fetch';
@@ -245,6 +242,149 @@ curl -X POST https://www.oracleinsight.xyz/api/v1/safety/attestation/verify \\
 #    no API key, no database, no dependency on Insight being online:
 npm install verify-insight-receipt`;
 
+/**
+ * One "first paid call in ~10 minutes" row per guard family. The REST call is
+ * the same 402-then-pay round trip as the pre-trade example above; only the
+ * path and query differ. Prices follow the metering classes: every guard
+ * decision is C3 ($0.02); the two 24h products are plan-priced.
+ */
+const GUARD_QUICKSTARTS = [
+  {
+    family: 'Execution preflight',
+    path: '/api/v1/safety/preflight',
+    method: 'GET',
+    query: 'asset=MON&chainId=143&action=swap&tradeAmountUsd=1000&destinationAsset=USDC',
+    mcp: 'execution_preflight',
+    decides: 'ALLOW / CAUTION / BLOCK data-sufficiency for one declared action',
+    price: '$0.02 (C3)',
+  },
+  {
+    family: 'Base Lending Guard',
+    path: '/api/v1/safety/base-lending-guard',
+    method: 'GET',
+    query:
+      'protocolId=aave-v3-base&action=borrow&collateralSymbol=WETH&loanSymbol=USDC&collateralValueUsd=10000&debtValueUsd=4000',
+    mcp: 'base_lending_guard · base_lending_guard_exact_call',
+    decides: 'Aave V3, Morpho Blue, Compound V3, Moonwell on Base',
+    price: '$0.02 (C3)',
+  },
+  {
+    family: 'Base Perp Guard',
+    path: '/api/v1/safety/base-perp-guard',
+    method: 'GET',
+    query:
+      'protocolId=synthetix-perps-v3-base&action=open_long&assetSymbol=ETH&marginAssetSymbol=USDC&sizeUsd=25000&marginValueUsd=5000',
+    mcp: 'base_perp_guard · base_perp_guard_exact_call',
+    decides: 'Synthetix Perps V3 open: oracle integrity + leverage caps',
+    price: '$0.02 (C3)',
+  },
+  {
+    family: 'Hyperliquid Perp Guard',
+    path: '/api/v1/safety/hyperliquid-perp-guard',
+    method: 'GET',
+    query:
+      'protocolId=hyperliquid-perps-mainnet&action=open_long&assetSymbol=BTC&marginAssetSymbol=USDC&sizeUsd=25000&marginValueUsd=5000',
+    mcp: 'hyperliquid_perp_guard · hyperliquid_perp_guard_exact_call',
+    decides: 'HyperCore order intent: oracle integrity + leverage vs margin',
+    price: '$0.02 (C3)',
+  },
+  {
+    family: 'Solana Perp Guard',
+    path: '/api/v1/safety/solana-perp-guard',
+    method: 'GET',
+    query:
+      'protocolId=drift-v2-mainnet&action=open_long&assetSymbol=SOL&marginAssetSymbol=USDC&sizeUsd=5000&marginValueUsd=500',
+    mcp: 'solana_perp_guard',
+    decides: 'Drift v2 open: oracle integrity + leverage + on-chain venue evidence',
+    price: '$0.02 (C3)',
+  },
+  {
+    family: 'Monad Lending Guard',
+    path: '/api/v1/safety/monad-lending-guard',
+    method: 'GET',
+    query:
+      'protocolId=aave-v3-monad&action=borrow&collateralSymbol=WETH&loanSymbol=USDC&collateralValueUsd=10000&debtValueUsd=4000',
+    mcp: 'monad_lending_guard · monad_lending_guard_exact_call',
+    decides: 'Aave V3 Monad, exact Morpho Blue Monad markets',
+    price: '$0.02 (C3)',
+  },
+  {
+    family: 'Multichain EVM Lending Guard',
+    path: '/api/v1/safety/multichain-evm-lending-guard',
+    method: 'GET',
+    query:
+      'chainId=42161&protocolId=aave-v3-arbitrum&action=borrow&collateralSymbol=WETH&loanSymbol=USDC&collateralValueUsd=10000&debtValueUsd=4000',
+    mcp: 'multichain_evm_lending_guard · _exact_call',
+    decides: 'Aave, Venus, Lista, Compound, Dolomite, Euler v2, Fluid T1',
+    price: '$0.02 (C3)',
+  },
+  {
+    family: 'Solana Lending Guard',
+    path: '/api/v1/safety/solana-lending-guard',
+    method: 'POST',
+    query: '(POST body: exact unsigned Kamino / Marginfi / Jupiter Earn / Save instruction)',
+    mcp: 'solana_lending_guard · loopscale_vault_deposit',
+    decides: 'One direct Solana deposit instruction, simulated before attestation',
+    price: '$0.02 (C3)',
+  },
+  {
+    family: 'Solana Swap Guard',
+    path: '/api/v1/safety/solana-swap-guard',
+    method: 'POST',
+    query: '(POST body: exact unsigned Orca Whirlpool USDC/USDT swap message)',
+    mcp: 'solana_swap_guard · settle/verify_solana_swap_guard_settlement',
+    decides: 'One reviewed Orca Whirlpool USDC/USDT swap, priced against oracle consensus',
+    price: '$0.02 (C3); settlement C4',
+  },
+  {
+    family: 'Verified Swap Intent',
+    path: '/api/v1/safety/swap-intent',
+    method: 'GET',
+    query:
+      'sourceAsset=ETH&destinationAsset=USDC&subjectChainId=1&settlementChainId=1&declaredNotionalUsd=1000',
+    mcp: 'agent_begin_trade · verify_execution_pair',
+    decides: 'Two schema-v3 gates + one execution-receipt credit per swap',
+    price: '$0.02 (C3)',
+  },
+  {
+    family: 'Oracle Watch Window (24h)',
+    path: '/api/v1/safety/oracle-watch-window',
+    method: 'POST',
+    query: '(POST body: {"symbol":"BTC","chain":"hyperevm"}; returns a one-time window token)',
+    mcp: 'REST-first (token-authed in-window polls)',
+    decides: '24h of continuous halt/proceed signals for one position',
+    price: '$0.50 per window',
+  },
+  {
+    family: 'Position Lifecycle Bundle (24h)',
+    path: '/api/v1/safety/position-lifecycle',
+    method: 'POST',
+    query: '(POST body: {"symbol":"BTC","chain":"hyperevm"}; returns a one-time lifecycle token)',
+    mcp: 'REST-first (bundled calls are token-authed)',
+    decides: 'Embedded window + 4 guard assessments + 1 attested receipt',
+    price: '$0.55 per lifecycle',
+  },
+];
+
+const guardQuickstartCode = `# Every guard follows the same three steps as pre-trade:
+# 1) call without credentials -> HTTP 402 quote
+# 2) sign the quoted option with your x402 client
+# 3) retry -> verdict JSON + PAYMENT-RESPONSE settlement header
+
+# Example: Hyperliquid Perp Guard preview (GET, $0.02 / C3)
+curl -sD - -o /dev/null -H 'X-Insight-Entry-Source: docs' \\
+  "https://www.oracleinsight.xyz/api/v1/safety/hyperliquid-perp-guard?protocolId=hyperliquid-perps-mainnet&action=open_long&assetSymbol=BTC&marginAssetSymbol=USDC&sizeUsd=25000&marginValueUsd=5000" \\
+  | grep -i '^payment-required' | cut -d' ' -f2- | base64 --decode | jq
+
+# Example: buy a 24h Position Lifecycle Bundle (POST, $0.55 flat)
+curl -sD - -o /dev/null -X POST \\
+  "https://www.oracleinsight.xyz/api/v1/safety/position-lifecycle" \\
+  -H 'Content-Type: application/json' \\
+  --data '{"symbol":"BTC","chain":"hyperevm"}' \\
+  | grep -i '^payment-required' | cut -d' ' -f2- | base64 --decode | jq
+# The purchase returns a one-time lifecycle token; the bundled window polls,
+# guard assessments, and receipt are then token-authenticated, never re-charged.`;
+
 export default function X402QuickstartPage() {
   return (
     <div className="editorial-workspace evidence-workbench commercial-workbench min-h-screen">
@@ -351,15 +491,17 @@ export default function X402QuickstartPage() {
             Configure comma-separated CAIP-2 ids in{' '}
             <code className="font-mono">X402_EVM_NETWORKS</code> to advertise multiple EVM chains.
             The registry includes Ethereum, OP Mainnet, Arbitrum, Polygon, Avalanche, Sei, X Layer,
-            Monad, BNB Chain, Base, and Base Sepolia. If the variable is unset, x402 uses only{' '}
-            <code className="font-mono">X402_NETWORK</code>; that setting remains MPP&apos;s single
-            EVM network. Use <code className="font-mono">X402_PAY_TO</code> for a shared recipient
-            or <code className="font-mono">X402_EVM_PAY_TOS</code> for explicit{' '}
+            Monad, HyperEVM, BNB Chain, Base, and Base Sepolia. If the variable is unset, x402 uses
+            only <code className="font-mono">X402_NETWORK</code>; that setting remains MPP&apos;s
+            single EVM network. Use <code className="font-mono">X402_PAY_TO</code> for a shared
+            recipient or <code className="font-mono">X402_EVM_PAY_TOS</code> for explicit{' '}
             <code className="font-mono">network=recipient</code> treasury isolation. Use{' '}
             <code className="font-mono">X402_FACILITATOR_URLS</code> for per-network{' '}
             <code className="font-mono">network=https://facilitator</code> routing. Only list
             networks advertised by that facilitator&apos;s{' '}
-            <code className="font-mono">/supported</code> endpoint.
+            <code className="font-mono">/supported</code> endpoint. HyperEVM uses{' '}
+            <code className="font-mono">eip155:999</code> with UVD&apos;s
+            <code className="font-mono">https://facilitator.ultravioletadao.xyz</code> override.
           </p>
         </div>
       </section>
@@ -566,10 +708,70 @@ export default function X402QuickstartPage() {
         </div>
       </section>
 
+      <section id="guard-families" className="scroll-mt-20 py-14 sm:py-20">
+        <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+          <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
+            <p className="editorial-index">08 — Guard family quickstarts</p>
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                First paid call in ~10 minutes, for every guard.
+              </h2>
+              <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-600">
+                Every guard family below is a x402 v2 resource: call it without credentials, receive
+                the HTTP 402 quote, pay, and retry — the same three steps as the pre-trade example
+                in section 02, only the path and parameters differ. Each row also names the MCP tool
+                equivalent, so an agent can pick either surface. All guard decisions are C3 ($0.02
+                per complete decision); the two 24h products are flat-priced.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 overflow-x-auto border-b border-slate-900/15">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-900/15 text-xs uppercase tracking-[0.1em] text-slate-500">
+                  <th className="py-3 pr-4 font-semibold">Family</th>
+                  <th className="py-3 pr-4 font-semibold">Endpoint / MCP tool</th>
+                  <th className="py-3 pr-4 font-semibold">What it decides</th>
+                  <th className="py-3 font-semibold">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {GUARD_QUICKSTARTS.map((g) => (
+                  <tr key={g.path} className="border-b border-slate-900/10 last:border-b-0">
+                    <td className="py-3 pr-4 align-top">
+                      <span className="font-semibold text-slate-900">{g.family}</span>
+                      <br />
+                      <code className="font-mono text-xs text-slate-600">
+                        {g.method} {g.path}
+                      </code>
+                      <br />
+                      <span className="text-xs text-slate-500">{g.query}</span>
+                    </td>
+                    <td className="py-3 pr-4 font-mono text-xs text-slate-600">{g.mcp}</td>
+                    <td className="py-3 pr-4 text-slate-600">{g.decides}</td>
+                    <td className="py-3 font-semibold text-slate-900">{g.price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600">
+            POST exact-call guards and the two 24h products take a JSON body instead of query
+            params; the Solana guards simulate the exact unsigned message before returning a
+            decision. Every guard is read-only: it never signs, broadcasts, or authorizes a
+            transaction.
+          </p>
+          <div className="mt-6">
+            <CodeBlock code={guardQuickstartCode} label="guard-quickstart.sh" />
+          </div>
+        </div>
+      </section>
+
       <section className="py-14 sm:py-20">
         <div className="editorial-frame mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
           <div className="grid gap-4 border-b border-slate-900/15 pb-5 lg:grid-cols-[0.8fr_1.7fr]">
-            <p className="editorial-index">08 — Reference</p>
+            <p className="editorial-index">09 — Reference</p>
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                 Query parameters and discovery.

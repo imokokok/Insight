@@ -1,6 +1,12 @@
 import type { Client, InStatement } from '@libsql/client';
 
-export const TURSO_PRICE_SCHEMA_VERSION = 1;
+// Version 2 introduced the Turso primary raw-price stream. Versions 3–5 add
+// the independent ingest control plane: an atomic slot lease, a mirrored feed
+// registry, and durable projection retry/quarantine state. Version 6 adds the
+// settlement-evidence tables (prediction-market watch, settlement-window
+// candles, signed evidence packs). Keep this local to Turso so a degraded
+// Supabase control plane cannot stop raw capture.
+export const TURSO_PRICE_SCHEMA_VERSION = 6;
 
 export const DEFAULT_TURSO_PRICE_POLICIES = [
   {
@@ -78,7 +84,36 @@ const ddl: InStatement[] = [
     persisted_count INTEGER NOT NULL,
     summary_json TEXT NOT NULL,
     supabase_acknowledged_at_ms INTEGER,
+    projection_attempts INTEGER NOT NULL DEFAULT 0,
+    projection_last_error TEXT,
+    projection_retry_after_ms INTEGER,
+    projection_quarantined_at_ms INTEGER,
     created_at_ms INTEGER NOT NULL
+  )`,
+  // A lease is acquired before an executor reads upstream oracles. A delayed
+  // GitHub run and a manual recovery run can therefore overlap safely without
+  // capturing a different payload for the same slot.
+  `CREATE TABLE IF NOT EXISTS snapshot_ingest_leases (
+    slot_ms INTEGER PRIMARY KEY,
+    lease_id TEXT NOT NULL,
+    lease_expires_at_ms INTEGER NOT NULL,
+    trigger_source TEXT NOT NULL,
+    completed_at_ms INTEGER,
+    last_error TEXT,
+    created_at_ms INTEGER NOT NULL,
+    updated_at_ms INTEGER NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS snapshot_ingest_leases_active_idx
+    ON snapshot_ingest_leases(completed_at_ms, lease_expires_at_ms)`,
+  // This immutable, versioned payload is the collector's last-known-good
+  // feed registry. It intentionally mirrors only active feed configuration;
+  // Supabase remains authoritative for administration and discovery.
+  `CREATE TABLE IF NOT EXISTS feed_registry_snapshots (
+    registry_key TEXT PRIMARY KEY,
+    version_hash TEXT NOT NULL,
+    canonical_payload TEXT NOT NULL,
+    feed_count INTEGER NOT NULL,
+    published_at_ms INTEGER NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS price_snapshots (
     slot_ms INTEGER NOT NULL,
@@ -102,24 +137,251 @@ const ddl: InStatement[] = [
     ON price_snapshots(provider, symbol, chain_id, slot_ms DESC)`,
   `CREATE INDEX IF NOT EXISTS price_snapshots_symbol_history_idx
     ON price_snapshots(symbol, slot_ms DESC, provider, chain_id)`,
+  // `price_latest` is the hot read model. It prevents current-price callers
+  // from scanning the immutable event stream just to find one observation.
+  `CREATE TABLE IF NOT EXISTS price_latest (
+    provider TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    chain_id INTEGER NOT NULL CHECK (chain_id >= 0),
+    slot_ms INTEGER NOT NULL,
+    snapshot_hour_ms INTEGER NOT NULL,
+    price_e8 TEXT NOT NULL,
+    consensus_price_e8 TEXT,
+    deviation_e4 INTEGER,
+    latency_ms INTEGER,
+    data_age_seconds INTEGER,
+    confidence_e4 INTEGER,
+    is_success INTEGER NOT NULL CHECK (is_success IN (0, 1)),
+    error_message TEXT,
+    write_reason TEXT NOT NULL,
+    updated_at_ms INTEGER NOT NULL,
+    PRIMARY KEY (provider, symbol, chain_id)
+  )`,
+  `CREATE INDEX IF NOT EXISTS price_latest_symbol_idx
+    ON price_latest(symbol, slot_ms DESC, provider, chain_id)`,
+  // Maintenance is intentionally local to Turso. The event stream has a
+  // short, bounded retention window while Supabase keeps the hourly business
+  // projection for reporting and relational workflows.
+  `CREATE TABLE IF NOT EXISTS price_maintenance (
+    task_key TEXT PRIMARY KEY,
+    last_run_ms INTEGER NOT NULL
+  )`,
   `CREATE INDEX IF NOT EXISTS snapshot_slots_pending_idx
-    ON snapshot_slots(supabase_acknowledged_at_ms, slot_ms)`,
+    ON snapshot_slots(supabase_acknowledged_at_ms, projection_quarantined_at_ms, slot_ms)`,
+  // --- Settlement evidence (schema v6) ---------------------------------------
+  // Prediction-market price contracts whose settlement window Insight watches.
+  // Rows come from the public Polymarket Gamma API; the declared settlement
+  // venue is parsed from the market's own resolution-source metadata.
+  `CREATE TABLE IF NOT EXISTS settlement_market_watch (
+    market_slug TEXT PRIMARY KEY,
+    gamma_id TEXT NOT NULL,
+    question TEXT NOT NULL,
+    asset TEXT NOT NULL,
+    window_seconds INTEGER NOT NULL CHECK (window_seconds BETWEEN 60 AND 604800),
+    window_start_ms INTEGER NOT NULL,
+    window_end_ms INTEGER NOT NULL,
+    settlement_venue TEXT NOT NULL,
+    resolution_source_url TEXT,
+    closed INTEGER NOT NULL CHECK (closed IN (0, 1)),
+    declared_outcome TEXT CHECK (declared_outcome IN ('Up', 'Down')),
+    outcome_prices_json TEXT,
+    first_seen_ms INTEGER NOT NULL,
+    updated_at_ms INTEGER NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS settlement_market_watch_window_idx
+    ON settlement_market_watch(window_end_ms)`,
+  `CREATE INDEX IF NOT EXISTS settlement_market_watch_closed_idx
+    ON settlement_market_watch(closed, window_end_ms)`,
+  // Independent settlement-window candles. Kraken is vendor-licensed
+  // derived-analytics-only: collected and retained for Insight's own analysis,
+  // never redistributed as raw venue data. Raw rows stay internal; only the
+  // derived fields of a signed evidence pack are delivered.
+  `CREATE TABLE IF NOT EXISTS settlement_window_candles (
+    market_slug TEXT NOT NULL,
+    venue TEXT NOT NULL,
+    interval_seconds INTEGER NOT NULL,
+    bucket_ts INTEGER NOT NULL,
+    open TEXT NOT NULL,
+    high TEXT NOT NULL,
+    low TEXT NOT NULL,
+    close TEXT NOT NULL,
+    volume TEXT,
+    rights_scope TEXT NOT NULL,
+    delivery_policy TEXT NOT NULL,
+    collected_at_ms INTEGER NOT NULL,
+    PRIMARY KEY (market_slug, venue, interval_seconds, bucket_ts)
+  )`,
+  `CREATE INDEX IF NOT EXISTS settlement_window_candles_market_idx
+    ON settlement_window_candles(market_slug, bucket_ts)`,
+  // The delivered artifact: a signed, canonical evidence pack. The canonical
+  // payload is byte-stable; the attestation fields stay null when no attester
+  // key is configured (signing is additive, never verdict-changing).
+  `CREATE TABLE IF NOT EXISTS settlement_evidence_packs (
+    market_slug TEXT PRIMARY KEY,
+    schema_version INTEGER NOT NULL,
+    canonical_payload TEXT NOT NULL,
+    payload_hash TEXT NOT NULL,
+    uid TEXT,
+    attester TEXT,
+    signature TEXT,
+    grade TEXT NOT NULL CHECK (grade IN ('consistent', 'inconsistent', 'insufficient_data')),
+    created_at_ms INTEGER NOT NULL
+  )`,
 ];
+
+const migrationStatements: Readonly<Record<number, readonly InStatement[]>> = {
+  3: [
+    'ALTER TABLE snapshot_slots ADD COLUMN projection_attempts INTEGER NOT NULL DEFAULT 0',
+    'ALTER TABLE snapshot_slots ADD COLUMN projection_last_error TEXT',
+    'ALTER TABLE snapshot_slots ADD COLUMN projection_retry_after_ms INTEGER',
+    'ALTER TABLE snapshot_slots ADD COLUMN projection_quarantined_at_ms INTEGER',
+    'CREATE INDEX IF NOT EXISTS snapshot_slots_pending_retry_idx ON snapshot_slots(supabase_acknowledged_at_ms, projection_quarantined_at_ms, projection_retry_after_ms, slot_ms)',
+  ],
+  4: [
+    `CREATE TABLE IF NOT EXISTS snapshot_ingest_leases (
+      slot_ms INTEGER PRIMARY KEY,
+      lease_id TEXT NOT NULL,
+      lease_expires_at_ms INTEGER NOT NULL,
+      trigger_source TEXT NOT NULL,
+      completed_at_ms INTEGER,
+      last_error TEXT,
+      created_at_ms INTEGER NOT NULL,
+      updated_at_ms INTEGER NOT NULL
+    )`,
+    'CREATE INDEX IF NOT EXISTS snapshot_ingest_leases_active_idx ON snapshot_ingest_leases(completed_at_ms, lease_expires_at_ms)',
+  ],
+  5: [
+    `CREATE TABLE IF NOT EXISTS feed_registry_snapshots (
+      registry_key TEXT PRIMARY KEY,
+      version_hash TEXT NOT NULL,
+      canonical_payload TEXT NOT NULL,
+      feed_count INTEGER NOT NULL,
+      published_at_ms INTEGER NOT NULL
+    )`,
+  ],
+  6: [
+    `CREATE TABLE IF NOT EXISTS settlement_market_watch (
+      market_slug TEXT PRIMARY KEY,
+      gamma_id TEXT NOT NULL,
+      question TEXT NOT NULL,
+      asset TEXT NOT NULL,
+      window_seconds INTEGER NOT NULL CHECK (window_seconds BETWEEN 60 AND 604800),
+      window_start_ms INTEGER NOT NULL,
+      window_end_ms INTEGER NOT NULL,
+      settlement_venue TEXT NOT NULL,
+      resolution_source_url TEXT,
+      closed INTEGER NOT NULL CHECK (closed IN (0, 1)),
+      declared_outcome TEXT CHECK (declared_outcome IN ('Up', 'Down')),
+      outcome_prices_json TEXT,
+      first_seen_ms INTEGER NOT NULL,
+      updated_at_ms INTEGER NOT NULL
+    )`,
+    'CREATE INDEX IF NOT EXISTS settlement_market_watch_window_idx ON settlement_market_watch(window_end_ms)',
+    'CREATE INDEX IF NOT EXISTS settlement_market_watch_closed_idx ON settlement_market_watch(closed, window_end_ms)',
+    `CREATE TABLE IF NOT EXISTS settlement_window_candles (
+      market_slug TEXT NOT NULL,
+      venue TEXT NOT NULL,
+      interval_seconds INTEGER NOT NULL,
+      bucket_ts INTEGER NOT NULL,
+      open TEXT NOT NULL,
+      high TEXT NOT NULL,
+      low TEXT NOT NULL,
+      close TEXT NOT NULL,
+      volume TEXT,
+      rights_scope TEXT NOT NULL,
+      delivery_policy TEXT NOT NULL,
+      collected_at_ms INTEGER NOT NULL,
+      PRIMARY KEY (market_slug, venue, interval_seconds, bucket_ts)
+    )`,
+    'CREATE INDEX IF NOT EXISTS settlement_window_candles_market_idx ON settlement_window_candles(market_slug, bucket_ts)',
+    `CREATE TABLE IF NOT EXISTS settlement_evidence_packs (
+      market_slug TEXT PRIMARY KEY,
+      schema_version INTEGER NOT NULL,
+      canonical_payload TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      uid TEXT,
+      attester TEXT,
+      signature TEXT,
+      grade TEXT NOT NULL CHECK (grade IN ('consistent', 'inconsistent', 'insufficient_data')),
+      created_at_ms INTEGER NOT NULL
+    )`,
+  ],
+};
+
+const initializedClients = new WeakSet<Client>();
+
+async function applyAdditiveMigration(
+  client: Client,
+  statements: readonly InStatement[]
+): Promise<void> {
+  for (const statement of statements) {
+    try {
+      await client.execute(statement);
+    } catch (error) {
+      const sql = typeof statement === 'string' ? statement : statement.sql;
+      const message = error instanceof Error ? error.message : String(error);
+      // A process can be interrupted after SQLite commits an ADD COLUMN but
+      // before the version row is advanced. Treat only that exact replay as
+      // complete so a resumed migration remains additive; any other DDL error
+      // remains visible rather than being masked as a successful upgrade.
+      if (
+        /^ALTER TABLE\s+snapshot_slots\s+ADD COLUMN/i.test(sql) &&
+        /duplicate column name/i.test(message)
+      ) {
+        continue;
+      }
+      throw error;
+    }
+  }
+}
 
 export async function ensureTursoPriceSchema(
   client: Client,
   nowMs: number = Date.now()
 ): Promise<void> {
-  await client.batch(ddl, 'write');
-  const versionResult = await client.execute(
-    'SELECT max(version) AS version FROM _insight_schema_migrations'
-  );
+  if (initializedClients.has(client)) return;
+
+  let versionResult;
+  let initialized = false;
+  try {
+    // Once a database is initialized, a cheap version read replaces a batch of
+    // CREATE IF NOT EXISTS statements on every collector invocation.
+    versionResult = await client.execute(
+      'SELECT max(version) AS version FROM _insight_schema_migrations'
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/no such table|does not exist/i.test(message)) throw error;
+    await client.batch(ddl, 'write');
+    initialized = true;
+    versionResult = await client.execute(
+      'SELECT max(version) AS version FROM _insight_schema_migrations'
+    );
+  }
   const rawVersion = versionResult.rows[0]?.version;
   const version = rawVersion === null || rawVersion === undefined ? 0 : Number(rawVersion);
   if (!Number.isInteger(version) || version > TURSO_PRICE_SCHEMA_VERSION) {
     throw new Error('Turso price schema version is unsupported');
   }
-  if (version === TURSO_PRICE_SCHEMA_VERSION) return;
+  if (version === TURSO_PRICE_SCHEMA_VERSION) {
+    initializedClients.add(client);
+    return;
+  }
+
+  // A newly-created database already contains the newest table definitions.
+  // Existing databases receive only the additive migrations after their
+  // recorded version; SQLite's ADD COLUMN does not support IF NOT EXISTS.
+  if (!initialized && version > 0) {
+    for (let migration = version + 1; migration <= TURSO_PRICE_SCHEMA_VERSION; migration++) {
+      const statements = migrationStatements[migration];
+      if (statements?.length) await applyAdditiveMigration(client, statements);
+    }
+  }
+
+  // CREATE IF NOT EXISTS closes concurrent first-initialization races and
+  // protects installations that have a migration record but an incomplete
+  // table set after an interrupted historical bootstrap.
+  await client.batch(ddl, 'write');
 
   const seedStatements: InStatement[] = DEFAULT_TURSO_PRICE_POLICIES.map((policy) => ({
     sql: `INSERT OR IGNORE INTO persistence_policies(
@@ -137,8 +399,10 @@ export async function ensureTursoPriceSchema(
     ],
   }));
   seedStatements.push({
-    sql: 'INSERT INTO _insight_schema_migrations(version,applied_at_ms) VALUES(?,?)',
+    sql: `INSERT INTO _insight_schema_migrations(version,applied_at_ms) VALUES(?,?)
+      ON CONFLICT(version) DO UPDATE SET applied_at_ms=excluded.applied_at_ms`,
     args: [TURSO_PRICE_SCHEMA_VERSION, nowMs],
   });
   await client.batch(seedStatements, 'write');
+  initializedClients.add(client);
 }

@@ -16,18 +16,14 @@ name: Snapshot Collect
 # why the former weekly keep-alive ping in feed-discovery.yml was removed.
 
 on:
-  schedule:
-    # Same nominal cadence as Supabase. The guard turns this into a no-op while
-    # recent dispatcher runs succeed, and automatically runs after a missed slot.
-    - cron: '*/15 * * * *'
   workflow_dispatch:
     inputs:
       dispatch_id:
-        description: 'Supabase cron_dispatch_runs id (empty for manual/fallback runs)'
+        description: Supabase fallback dispatch ledger ID
         required: false
         type: string
       scheduled_for:
-        description: 'Supabase scheduled slot (audit only)'
+        description: UTC fallback dispatch timestamp
         required: false
         type: string
 
@@ -61,6 +57,7 @@ env:
   TURSO_PRICE_PARTITION_KEY: ${{ vars.TURSO_PRICE_PARTITION_KEY || 'bootstrap' }}
   TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
   TURSO_PRICE_READ_CUTOVER_AT: ${{ vars.TURSO_PRICE_READ_CUTOVER_AT || '' }}
+  SNAPSHOT_TRIGGER_SOURCE: github_actions
   CRON_WORKFLOW: snapshot-collect.yml
   CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
   CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
@@ -92,15 +89,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      - name: Check whether native fallback is needed
-        id: guard
-        env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          FALLBACK_MAX_AGE_MINUTES: '25'
-        run: node scripts/cron-control.mjs guard
-
       - name: Verify required secrets
-        if: steps.guard.outputs.should_run == 'true'
         run: |
           set -u
           if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
@@ -108,37 +97,58 @@ jobs:
             exit 1
           fi
 
-      - name: Start run ledger
-        if: steps.guard.outputs.should_run == 'true'
-        env:
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          GITHUB_SERVER_URL: ${{ github.server_url }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-        run: node scripts/cron-control.mjs start
-
       - name: Collect snapshots
-        if: steps.guard.outputs.should_run == 'true'
         run: node .github/cron-dist/collect-snapshot.mjs
+
+      # Supabase owns the high-frequency clock and creates the dispatch row.
+      # A direct manual run has no ID and deliberately adds no telemetry row.
+      - name: Finish fallback dispatch ledger
+        if: always() && env.CRON_DISPATCH_ID != ''
+        env:
+          CRON_CONCLUSION: ${{ job.status }}
+        run: node scripts/cron-control.mjs finish
+
+  # Evidence collection has a separate job result from raw capture. A transient
+  # Supabase schema-cache or evidence-source issue remains visible in Actions,
+  # but can never turn a captured Turso slot into a failed collection run.
+  evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      # Settlement-evidence signing is optional: without the key, packs are
+      # persisted unsigned and the collection run still succeeds.
+      ATTESTATION_SIGNER_PRIVATE_KEY: ${{ secrets.ATTESTATION_SIGNER_PRIVATE_KEY }}
+      POLYMARKET_GAMMA_BASE_URL: ${{ vars.POLYMARKET_GAMMA_BASE_URL || '' }}
+      # Optional webhook (Slack-compatible `{ text }`) pinged when a graded
+      # window resolves against Insight's independent verdict. Delivery is
+      # best-effort and never fails the collection run.
+      SETTLEMENT_ALERT_WEBHOOK_URL: ${{ secrets.SETTLEMENT_ALERT_WEBHOOK_URL || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Verify required secrets
+        run: |
+          set -u
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
+            echo "::error::SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required."
+            exit 1
+          fi
 
       # External truth layer. The checked-in source-rights gate makes this a
       # no-op until a reviewed vendor agreement is recorded; it cannot be
       # enabled by a repository variable alone.
       - name: Collect market reference
-        if: (success() || failure()) && steps.guard.outputs.should_run == 'true'
         run: node .github/cron-dist/collect-market-reference.mjs
 
       # Manipulation-cost layer (foundation block ②: DEX pool depth -> cost to
-      # move price, arXiv:2606.03548), same 15-min cadence and proven runner.
-      # Evidence-only: writes manip_cost_pool_snapshots (migration 0082).
-      # Fail-closed per pool; the step hard-fails only when zero pools succeed
-      # (same policy as the market-reference step above).
+      # move price). Evidence failure is isolated to this job and does not
+      # affect the raw capture lease or its projection acknowledgement.
       - name: Collect manipulation cost
-        if: (success() || failure()) && steps.guard.outputs.should_run == 'true'
         run: node .github/cron-dist/collect-manip-cost.mjs
 
-      - name: Finish run ledger
-        if: always() && steps.guard.outputs.should_run == 'true'
-        env:
-          CRON_CONCLUSION: ${{ job.status }}
-        run: node scripts/cron-control.mjs finish
+      # Prediction-market settlement evidence (Gamma watch → Kraken candles →
+      # signed packs). Kraken is the only rights-cleared collection venue; the
+      # library fails closed and every step above tolerates an upstream outage.
+      - name: Collect settlement evidence
+        run: node .github/cron-dist/collect-settlement-evidence.mjs
