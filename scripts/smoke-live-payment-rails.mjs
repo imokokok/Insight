@@ -191,7 +191,10 @@ async function smokeFixedScopeParity() {
       const advertised = manifest.resources.find((resource) => resource?.url === url);
       const advertisedNetworks = x402Networks(advertised, `manifest-${name}`);
       if (!advertisedNetworks.includes(expectedNetwork)) {
-        fail(`manifest-${name}`, `missing expected ${expectedNetwork}: ${advertisedNetworks.join(', ')}`);
+        fail(
+          `manifest-${name}`,
+          `missing expected ${expectedNetwork}: ${advertisedNetworks.join(', ')}`
+        );
       }
 
       const response = await fetchWithRetry(
@@ -312,7 +315,7 @@ async function smokeMcpRail() {
 
 try {
   await smokeRestRail();
-await smokeFixedScopeParity();
+  await smokeFixedScopeParity();
   await smokeMcpRail();
 } catch (error) {
   failures.push(error instanceof Error ? error.message : String(error));

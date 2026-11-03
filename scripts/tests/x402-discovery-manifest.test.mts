@@ -63,8 +63,7 @@ test('x402 discovery derives every fixed route from its live payment scope', () 
 
 test('request-bound and expiring payment requirements are not misrepresented as static accepts', () => {
   const manifest = buildX402DiscoveryManifest(config);
-  const multichainUrl =
-    'https://www.oracleinsight.xyz/api/v1/safety/multichain-evm-lending-guard';
+  const multichainUrl = 'https://www.oracleinsight.xyz/api/v1/safety/multichain-evm-lending-guard';
 
   assert.ok(
     !manifest.resources.some((entry) => entry.url === multichainUrl),
@@ -84,9 +83,7 @@ test('request-bound and expiring payment requirements are not misrepresented as 
     'HyperCore must be disclosed as a request-bound quote, not fabricated in accepts[]'
   );
   assert.ok(
-    !manifest.dynamicPaymentOptions.some(
-      (entry) => entry.resourceUrl === multichainUrl
-    ),
+    !manifest.dynamicPaymentOptions.some((entry) => entry.resourceUrl === multichainUrl),
     'multichain rails are selected from validated input and cannot inherit HyperCore'
   );
 });
