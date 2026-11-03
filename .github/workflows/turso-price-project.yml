@@ -5,10 +5,6 @@ name: Turso Price Projection
 # high-frequency price collection. Every delivery is receipt-backed and
 # idempotent.
 on:
-  schedule:
-    # Drain the Turso outbox three minutes after each raw capture. Receipts
-    # make retries idempotent; the bounded runner limits recovery write load.
-    - cron: '3,18,33,48 * * * *'
   workflow_dispatch:
     inputs:
       dispatch_id:
@@ -63,9 +59,8 @@ jobs:
       - name: Project pending Turso price slots
         run: node .github/cron-dist/project-turso-price.mjs
 
-      # Native schedules have no dispatch ID and therefore make no Supabase
-      # telemetry write. Receipt-gated fallback dispatches close their one
-      # existing ledger row after the projection outcome is known.
+      # Supabase owns the high-frequency clock and creates the dispatch row.
+      # A direct manual run has no ID and deliberately adds no telemetry row.
       - name: Finish fallback dispatch ledger
         if: always() && env.CRON_DISPATCH_ID != ''
         env:
