@@ -116,7 +116,7 @@ COMMIT;
 
 const repositoryRoot = new URL('../../', import.meta.url);
 const outputPath = fileURLToPath(
-  new URL('supabase/migrations/0116_cloudflare_primary_projection.sql', repositoryRoot)
+  new URL('supabase/migrations/0118_cloudflare_primary_projection.sql', repositoryRoot)
 );
 const args = new Set(process.argv.slice(2));
 const write = args.has('--write');
@@ -132,7 +132,7 @@ if (write) {
   const current = await readFile(outputPath, 'utf8');
   if (current !== migrationSql) {
     throw new Error(
-      '0116_cloudflare_primary_projection.sql is stale; regenerate it from this TypeScript source.'
+      '0118_cloudflare_primary_projection.sql is stale; regenerate it from this TypeScript source.'
     );
   }
 }

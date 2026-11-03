@@ -134,8 +134,9 @@ closed with HTTP 401 and leaves existing Turso data untouched.
 4. Once the workflow definition containing `dispatch_id` and `scheduled_for`
    inputs is on the default branch, apply
    `0114_turso_price_projection_dispatcher.sql`, then
-   `0115_cloudflare_ingest_fallback.sql`, and finally
-   `0116_cloudflare_primary_projection.sql`. The final migration removes the
+   `0115_cloudflare_ingest_fallback.sql`, then the concurrently shipped
+   `0116_oracle_watch_windows.sql` and `0117_position_lifecycles.sql`, and finally
+   `0118_cloudflare_primary_projection.sql`. The final migration removes the
    projection job from Supabase `pg_cron` while retaining the delayed GitHub
    fallback. Do not apply these activation migrations before their workflows
    are available on `main`.
