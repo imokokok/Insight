@@ -55,6 +55,9 @@ const SLUG_ASSET_PREFIXES: Record<string, string> = {
   ada: 'ADA',
   link: 'LINK',
   bnb: 'BNB',
+  bch: 'BCH',
+  ltc: 'LTC',
+  avax: 'AVAX',
   hb: 'HYPE',
 };
 

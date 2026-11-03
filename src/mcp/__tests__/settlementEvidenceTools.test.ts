@@ -1,7 +1,8 @@
-import { executeTool } from '../tools';
+import { getEvidencePack, listEvidencePacks } from '@/lib/settlementEvidence/repository';
+import type { SettlementEvidencePayload } from '@/lib/settlementEvidence/types';
 import { getSettlementEvidenceTool } from '@/mcp/tools/settlementEvidenceTools';
 
-import type { SettlementEvidencePayload } from '@/lib/settlementEvidence/types';
+import { executeTool } from '../tools';
 
 // The repository reads Turso. These tests exercise the tool surface around it:
 // argument validation and graceful messaging. Handlers reach Turso and fail
@@ -11,8 +12,6 @@ jest.mock('@/lib/settlementEvidence/repository', () => ({
   getEvidencePack: jest.fn(),
   listEvidencePacks: jest.fn(),
 }));
-
-import { getEvidencePack, listEvidencePacks } from '@/lib/settlementEvidence/repository';
 
 const mockedGet = getEvidencePack as jest.Mock;
 const mockedList = listEvidencePacks as jest.Mock;
@@ -54,7 +53,9 @@ describe('get_settlement_evidence tool', () => {
   it('is registered with a valid input schema', () => {
     expect(getSettlementEvidenceTool.name).toBe('get_settlement_evidence');
     expect(() => getSettlementEvidenceTool.parameters.parse({})).not.toThrow();
-    expect(() => getSettlementEvidenceTool.parameters.parse({ slug: 'btc-updown-5m-1766162100', limit: 5 })).not.toThrow();
+    expect(() =>
+      getSettlementEvidenceTool.parameters.parse({ slug: 'btc-updown-5m-1766162100', limit: 5 })
+    ).not.toThrow();
     expect(() => getSettlementEvidenceTool.parameters.parse({ limit: 1000 })).toThrow();
   });
 
