@@ -39,6 +39,10 @@ const KRAKEN_PAIRS: Record<string, string> = {
   ADA: 'ADAUSD',
   DOGE: 'DOGEUSD',
   LINK: 'LINKUSD',
+  BNB: 'BNBUSD',
+  BCH: 'BCHUSD',
+  LTC: 'LTCUSD',
+  AVAX: 'AVAXUSD',
   USDC: 'USDCUSD',
   USDT: 'USDTZUSD',
 };
