@@ -5,11 +5,16 @@ name: Turso Price Projection
 # high-frequency price collection. Every delivery is receipt-backed and
 # idempotent.
 on:
-  schedule:
-    # Drain the Turso outbox three minutes after each raw capture. Receipts
-    # make retries idempotent; the bounded runner limits recovery write load.
-    - cron: '3,18,33,48 * * * *'
   workflow_dispatch:
+    inputs:
+      dispatch_id:
+        description: Supabase fallback dispatch ledger ID
+        required: false
+        type: string
+      scheduled_for:
+        description: UTC fallback dispatch timestamp
+        required: false
+        type: string
 
 concurrency:
   group: turso-price-projection
@@ -26,6 +31,9 @@ env:
   TURSO_PRICE_PARTITION_KEY: ${{ vars.TURSO_PRICE_PARTITION_KEY || 'bootstrap' }}
   TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
   TURSO_PRICE_READ_CUTOVER_AT: ${{ vars.TURSO_PRICE_READ_CUTOVER_AT || '' }}
+  CRON_WORKFLOW: turso-price-project.yml
+  CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+  CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
   # Defaults are enforced in the TypeScript runner; variables permit an
   # operator to tune the recovery ceiling without changing source.
   TURSO_PRICE_PROJECTION_BATCH_SIZE: ${{ vars.TURSO_PRICE_PROJECTION_BATCH_SIZE || '16' }}
@@ -50,3 +58,11 @@ jobs:
 
       - name: Project pending Turso price slots
         run: node .github/cron-dist/project-turso-price.mjs
+
+      # Supabase owns the high-frequency clock and creates the dispatch row.
+      # A direct manual run has no ID and deliberately adds no telemetry row.
+      - name: Finish fallback dispatch ledger
+        if: always() && env.CRON_DISPATCH_ID != ''
+        env:
+          CRON_CONCLUSION: ${{ job.status }}
+        run: node scripts/cron-control.mjs finish

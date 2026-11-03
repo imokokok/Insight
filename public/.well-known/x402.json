@@ -2,7 +2,7 @@
   "x402Version": 2,
   "kind": "resource-server",
   "name": "Insight Pre-Trade Safety API",
-  "description": "Decision-input integrity for AI agents trading onchain: before a trade is signed, check whether the price it relies on is trustworthy — multi-provider oracle consensus, manipulation-risk scoring, and feed health, with verifiable EIP-712 attestations. USDC settles on Base, Polygon, Arbitrum One, Monad, HyperEVM (UVD facilitator), BNB Chain (AEON facilitator), and Solana mainnet (CDP facilitator sponsors fees).",
+  "description": "Decision-input integrity for AI agents trading onchain: before a trade is signed, check whether the price it relies on is trustworthy — multi-provider oracle consensus, manipulation-risk scoring, and feed health, with verifiable EIP-712 attestations. This production manifest advertises x402 settlement rails that are statically discoverable and enabled in the live payment challenge; callers must select an option from the live 402 response before signing.",
   "docs": "https://www.oracleinsight.xyz/openapi.json",
   "resources": [
     {
@@ -10,62 +10,6 @@
       "method": "GET",
       "description": "Pre-trade decision-input integrity check: is the price this action relies on trustworthy? Cross-provider consensus, deviation, freshness, and manipulation risk for one trade, with verifiable EIP-712 attestation support. BLOCK verdicts are complete checks and are charged.",
       "accepts": [
-        {
-          "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
         {
           "scheme": "exact",
           "network": "eip155:999",
@@ -78,27 +22,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -110,62 +33,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "20000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -176,27 +43,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -208,62 +54,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "20000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -274,27 +64,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -306,62 +75,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "20000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -372,27 +85,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -404,62 +96,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "20000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -470,27 +106,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -502,62 +117,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "20000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -568,27 +127,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -600,62 +138,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "20000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -666,27 +148,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -698,62 +159,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "20000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -764,27 +169,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -796,62 +180,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "20000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -862,27 +190,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -894,62 +201,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "20000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -960,27 +211,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -992,62 +222,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "20000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "20000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "20000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "20000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "20000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -1058,27 +232,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "20000000000000000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "20000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -1090,62 +243,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "500000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "500000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "500000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "500000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "500000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -1156,27 +253,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "500000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "500000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]
@@ -1188,62 +264,6 @@
       "accepts": [
         {
           "scheme": "exact",
-          "network": "eip155:8453",
-          "amount": "550000",
-          "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:137",
-          "amount": "550000",
-          "asset": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:42161",
-          "amount": "550000",
-          "asset": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USD Coin",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:143",
-          "amount": "550000",
-          "asset": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
-          "assetSymbol": "USDC",
-          "assetDecimals": 6,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "name": "USDC",
-            "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
           "network": "eip155:999",
           "amount": "550000",
           "asset": "0xb88339CB7199b77E23DB6E890353E22632Ba630f",
@@ -1254,27 +274,6 @@
           "extra": {
             "name": "USDC",
             "version": "2"
-          }
-        },
-        {
-          "scheme": "exact",
-          "network": "eip155:56",
-          "amount": "550000",
-          "asset": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-          "assetSymbol": "USDC",
-          "assetDecimals": 18,
-          "payTo": "0x5FBbbCbF2Ade44F5c604E5E55f11945E1ADdD231",
-          "maxTimeoutSeconds": 60
-        },
-        {
-          "scheme": "exact",
-          "network": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-          "amount": "550000",
-          "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-          "payTo": "BfVX9jcEALijnEuGPcGTjqjBgTFLTFMt6F7NrMHzGWf4",
-          "maxTimeoutSeconds": 60,
-          "extra": {
-            "feePayer": "Hc3sdEAsCGQcpgfivywog9uwtk8gUBUZgsxdME1EJy88"
           }
         }
       ]

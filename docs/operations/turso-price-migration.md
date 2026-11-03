@@ -29,25 +29,27 @@ collection. A retry with different evidence for the same slot is rejected.
 ## Primary ingest control plane
 
 In `primary` mode, the high-frequency control plane is intentionally small:
-GitHub Actions runs the bounded collector and projector directly, Turso holds
-the immutable raw evidence, and Supabase receives only the idempotent business
-projection.
+Supabase owns the reliable 15-minute clock, GitHub Actions runs the bounded
+collector and projector, Turso holds the immutable raw evidence, and Supabase
+receives only the idempotent business projection.
 
 ```text
-GitHub Actions Snapshot Collect (every 15 min, UTC)
+Supabase pg_cron -> GitHub Actions Snapshot Collect (every 15 min, UTC)
   -> Turso slot lease
   -> upstream oracle reads + atomic Turso raw slot capture
   -> best-effort Supabase rich-cache/feed-health side effects
-GitHub Actions Turso Price Projection (three minutes after capture)
+Supabase pg_cron -> GitHub Actions Turso Price Projection (three minutes after capture)
   -> bounded, receipt-backed Turso-to-Supabase outbox drain
 ```
 
-The collector runs at `:00/:15/:30/:45`; projection runs at
-`:03/:18/:33/:48`. Both Actions workflows use queued concurrency rather than
-cancellation, and the Turso lease / Supabase receipt boundaries make a delayed
-or manually retried run safe. Market-reference and manipulation-cost evidence
-remain in a separate job, so a transient evidence-write failure cannot change
-the raw-capture result.
+The Supabase dispatcher runs the collector at `:00/:15/:30/:45` and projection
+at `:03/:18/:33/:48`. The Actions workflows expose only controlled
+`workflow_dispatch` entry points, so GitHub's best-effort native scheduler
+cannot add a duplicate high-frequency clock. Both workflows use queued
+concurrency rather than cancellation, and the Turso lease / Supabase receipt
+boundaries make a delayed or manually retried run safe. Market-reference and
+manipulation-cost evidence remain in a separate job, so a transient
+evidence-write failure cannot change the raw-capture result.
 
 The active feed registry is administered in Supabase but mirrored as a
 canonical, hashed last-known-good payload in Turso after successful
@@ -59,8 +61,11 @@ than silently using an indefinitely old configuration.
 
 Projection drains up to four bounded outbox batches per invocation. This lets a
 multi-hour Supabase outage catch up promptly without turning recovery into
-unbounded write pressure. Supabase `pg_cron` does not participate in either
-high-frequency Turso critical path.
+unbounded write pressure. Supabase `pg_cron` is the high-frequency primary and
+creates exactly two dispatches per healthy slot: collector then projector. Two
+later receipt-indexed probes run only as recovery guards; once the slot receipt
+exists, they add no pg_net request, ledger write, runner start, or duplicate
+upstream read.
 
 ## Required configuration
 
@@ -102,9 +107,11 @@ projector workflow also accepts repository variables
    create or delete a Turso database.
 3. Run `npm run build:cron`, then deploy both generated collector and projector
    bundles while still in `legacy` mode.
-4. Apply `0119_github_primary_turso_scheduler.sql` after the GitHub workflow
-   schedules are on `main`. It removes the high-frequency snapshot dispatcher
-   from Supabase `pg_cron` while preserving lower-frequency product jobs.
+4. Apply `0121_supabase_primary_turso_scheduler.sql` after the controlled
+   workflow-dispatch entry points are on `main`. It makes Supabase the
+   authoritative high-frequency clock, removes the duplicate native GitHub
+   schedules, and retains receipt-gated recovery for an incomplete slot while
+   preserving lower-frequency product jobs.
 5. Set the GitHub Actions repository variable `TURSO_PRICE_WRITE_MODE=shadow`
    for several complete collection cycles.
    Supabase remains authoritative. Each Turso slot must exactly match the
@@ -126,8 +133,8 @@ projector workflow also accepts repository variables
    the same release. Raw-history readers use Supabase before that instant and
    Turso from that instant onward. The service refuses primary writes if the
    boundary is absent or invalid.
-8. Confirm the GitHub Actions schedules are active on the default branch, then
-   dispatch each workflow once. Verify a `snapshot_ingest_leases` row reaches
+8. Confirm the two Supabase primary jobs are active, then dispatch each
+   workflow once. Verify a `snapshot_ingest_leases` row reaches
    `completed_at_ms` only after its matching `snapshot_slots` row exists, and
    verify the matching `turso_price_slot_receipts` receipt is present.
 
@@ -138,8 +145,11 @@ new fine-price writes and reads to the existing Supabase flow. Do not delete
 Turso data or the Supabase receipt table; they are required to investigate or
 replay an interrupted hand-off.
 
-If high-frequency collection must be paused, disable the two GitHub Actions
-schedules. Do not delete Turso data or the Supabase receipt table.
+If high-frequency collection must be paused, call
+`SELECT public.disable_github_workflow_dispatcher();` in Supabase. Do not
+disable the GitHub workflows themselves: their controlled manual dispatch path
+is required for recovery. Do not delete Turso data or the Supabase receipt
+table.
 
 ## Verification commands
 
@@ -147,6 +157,8 @@ schedules. Do not delete Turso data or the Supabase receipt table.
 npm run db:check:turso-price-projection
 npm run db:check:turso-price-projection-dispatcher
 npm run db:check:github-primary-turso-scheduler
+npm run db:check:receipt-gated-turso-fallback
+npm run db:check:supabase-primary-turso-scheduler
 npm run turso:price:migrate
 npx jest src/lib/turso/price/__tests__ src/lib/supabase/__tests__/snapshotHistory.turso.test.ts --runInBand
 ```

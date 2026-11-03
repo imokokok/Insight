@@ -16,11 +16,16 @@ name: Snapshot Collect
 # why the former weekly keep-alive ping in feed-discovery.yml was removed.
 
 on:
-  schedule:
-    # GitHub Actions is the sole high-frequency clock. The Turso slot lease
-    # makes a delayed duplicate or manual recovery invocation idempotent.
-    - cron: '0,15,30,45 * * * *'
   workflow_dispatch:
+    inputs:
+      dispatch_id:
+        description: Supabase fallback dispatch ledger ID
+        required: false
+        type: string
+      scheduled_for:
+        description: UTC fallback dispatch timestamp
+        required: false
+        type: string
 
 # Prevent overlapping 15-min runs. If a run exceeds 15 min (extremely
 # unlikely — typical runtime is ~50s), queue the new run instead of
@@ -53,6 +58,9 @@ env:
   TURSO_PRICE_WRITE_MODE: ${{ vars.TURSO_PRICE_WRITE_MODE || 'legacy' }}
   TURSO_PRICE_READ_CUTOVER_AT: ${{ vars.TURSO_PRICE_READ_CUTOVER_AT || '' }}
   SNAPSHOT_TRIGGER_SOURCE: github_actions
+  CRON_WORKFLOW: snapshot-collect.yml
+  CRON_DISPATCH_ID: ${{ inputs.dispatch_id || '' }}
+  CRON_SCHEDULED_FOR: ${{ inputs.scheduled_for || '' }}
   # Alchemy RPC keys (optional — public RPC fallbacks exist, but Alchemy
   # is more reliable for on-chain oracle reads). Same keys as .env.local.
   ALCHEMY_ETHEREUM_RPC: ${{ secrets.ALCHEMY_ETHEREUM_RPC }}
@@ -91,6 +99,14 @@ jobs:
 
       - name: Collect snapshots
         run: node .github/cron-dist/collect-snapshot.mjs
+
+      # Supabase owns the high-frequency clock and creates the dispatch row.
+      # A direct manual run has no ID and deliberately adds no telemetry row.
+      - name: Finish fallback dispatch ledger
+        if: always() && env.CRON_DISPATCH_ID != ''
+        env:
+          CRON_CONCLUSION: ${{ job.status }}
+        run: node scripts/cron-control.mjs finish
 
   # Evidence collection has a separate job result from raw capture. A transient
   # Supabase schema-cache or evidence-source issue remains visible in Actions,
