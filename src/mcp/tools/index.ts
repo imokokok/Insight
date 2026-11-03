@@ -68,6 +68,7 @@ import {
   HyperliquidPerpOrderPreflightJsonSchema,
   HyperliquidPerpGuardExactJsonSchema,
   HyperliquidPerpGuardJsonSchema,
+  SolanaPerpGuardJsonSchema,
   BatchPriceJsonSchema,
   ConsensusPriceJsonSchema,
   CorrelationJsonSchema,
@@ -150,6 +151,7 @@ import { robinhoodRwaContextTool, robinhoodRwaInstrumentTool, rwaAssessmentTool 
 import { checkPositionSafetyTool } from './safetyTools';
 import { getSettlementEvidenceTool } from './settlementEvidenceTools';
 import { solanaLendingGuardTool } from './solanaLendingGuardTools';
+import { solanaPerpGuardTool } from './solanaPerpGuardTools';
 import {
   settleSolanaSwapGuardTool,
   solanaSwapGuardTool,
@@ -226,6 +228,7 @@ const MCP_TOOLS: McpToolDefinition[] = [
   multichainEvmLendingGuardTool,
   multichainEvmLendingGuardExactCallTool,
   solanaLendingGuardTool,
+  solanaPerpGuardTool,
   solanaSwapGuardTool,
   settleSolanaSwapGuardTool,
   verifySolanaSwapGuardSettlementTool,
@@ -557,6 +560,11 @@ const JSON_SCHEMA_MAP: Record<
       required?: string[];
     },
   solana_lending_guard: solanaLendingGuardTool.parameters.toJSONSchema() as {
+    type: 'object';
+    properties?: Record<string, unknown>;
+    required?: string[];
+  },
+  solana_perp_guard: SolanaPerpGuardJsonSchema.toJSONSchema() as {
     type: 'object';
     properties?: Record<string, unknown>;
     required?: string[];

@@ -23,6 +23,7 @@ import {
   X402_ORACLE_WATCH_WINDOW_ROUTE,
   X402_POSITION_LIFECYCLE_ROUTE,
   X402_SOLANA_LENDING_GUARD_ROUTE,
+  X402_SOLANA_PERP_GUARD_ROUTE,
   X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE,
   X402_EXECUTION_PREFLIGHT_ROUTE,
   X402_MCP_ROUTE,
@@ -899,6 +900,10 @@ export async function buildX402HttpServer(
     [X402_SOLANA_LENDING_GUARD_ROUTE]: routeConfigWithoutDiscovery(
       cfg,
       'Solana Lending Guard: a read-only, pre-signing decision for one direct Kamino Lend, Marginfi v2, Jupiter Lend Earn deposit, or Save Lend reserve-liquidity deposit instruction. Save deposits must provide an asset mint that is live-verified against the source SPL token account. POST verifies program-owned accounts and simulates the exact unsigned Solana message before optionally returning an Insight Ed25519 decision attestation. It never authorizes or broadcasts a transaction.'
+    ),
+    [X402_SOLANA_PERP_GUARD_ROUTE]: routeConfigWithoutDiscovery(
+      cfg,
+      'Solana Perp Guard: a read-only, pre-trade decision gate for opening a Drift Protocol v2 perpetual position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC margin). It evaluates underlying and USDC cross-oracle consensus integrity on canonical mainnet feeds, checks caller-declared post-action leverage against a reviewed static profile capped by the live Drift margin ratio, and attaches disclosed on-chain venue evidence (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open interest, market status). It never signs, submits, or authorizes an order.'
     ),
     [X402_LOOPSCALE_VAULT_DEPOSIT_ROUTE]: routeConfigWithoutDiscovery(
       cfg,

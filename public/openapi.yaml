@@ -3354,6 +3354,62 @@ paths:
       responses:
         '200': { description: Cryptographic verification result and expiry state. }
 
+  /safety/solana-perp-guard:
+    get:
+      operationId: assessSolanaPerpGuard
+      tags: [Safety]
+      summary: Solana perp risk decision (Drift v2 on-chain evidence)
+      description: >-
+        Read-only risk gate for a caller-declared Drift Protocol v2 perpetual
+        position on Solana mainnet (reviewed SOL, BTC, and ETH markets, USDC
+        margin). It separately evaluates underlying and USDC cross-oracle
+        consensus integrity on canonical mainnet feeds, checks the declared
+        post-action leverage against a reviewed static profile capped by the
+        live Drift margin ratio, and attaches disclosed on-chain venue evidence
+        (Drift mark price vs Pyth Lazer oracle deviation, funding rate, open
+        interest, market status) that can escalate the verdict; it never signs,
+        submits, or authorizes an order. API-key access or x402 payment is
+        accepted.
+      security:
+        - apiKey: []
+        - {}
+      parameters:
+        - {
+            name: protocolId,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [drift-v2-mainnet] },
+          }
+        - {
+            name: action,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [open_long, open_short] },
+          }
+        - { name: assetSymbol, in: query, required: true, schema: { type: string, example: SOL } }
+        - {
+            name: marginAssetSymbol,
+            in: query,
+            required: true,
+            schema: { type: string, enum: [USDC] },
+          }
+        - {
+            name: sizeUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 5000 },
+          }
+        - {
+            name: marginValueUsd,
+            in: query,
+            required: true,
+            schema: { type: number, exclusiveMinimum: 0, example: 500 },
+          }
+      responses:
+        '200': { description: Complete ALLOW, CAUTION, or BLOCK perp decision. }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '402': { $ref: '#/components/responses/CreditExhausted' }
+
   /safety/monad-lending-guard:
     get:
       operationId: assessMonadLendingGuard
