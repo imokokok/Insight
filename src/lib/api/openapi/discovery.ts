@@ -141,7 +141,7 @@ export function buildOpenApiDiscovery(config: OpenApiPaymentConfig): OpenApiDocu
     if (config.x402Enabled) {
       x402Mcp.description =
         'Pay-per-call access to the Insight oracle tool catalog for agents without an API key. ' +
-        'Price scales with the tool metering class (C1=$0.002, C2=$0.008, C3=$0.02, C4=$0.04). ' +
+        'Price scales with the tool metering class (C1=$0.002, C2=$0.004, C3=$0.02, C4=$0.04). ' +
         'tools/list and initialize are free; paid calls settle only after success.';
       x402Mcp['x-x402-payment-info'] = {
         protocol: 'x402-v2',

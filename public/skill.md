@@ -112,7 +112,7 @@ JSON containing: `verdict` (`PASS` / `WARN` / `BLOCK`), consensus price, max dev
 | Class | Atomic (USDC 6dp) | USD    |
 | ----- | ----------------- | ------ |
 | C1    | 2000              | $0.002 |
-| C2    | 8000              | $0.008 |
+| C2    | 4000              | $0.004 |
 | C3    | 20000             | $0.02  |
 | C4    | 40000             | $0.04  |
 

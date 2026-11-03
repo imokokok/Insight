@@ -78,7 +78,7 @@ const QUERY_PARAMS = [
 
 const METERING_CLASSES = [
   { cls: 'C1', atomic: '2000', usd: '$0.002', detail: 'Lightweight reads (most catalog tools)' },
-  { cls: 'C2', atomic: '8000', usd: '$0.008', detail: 'Standard analysis tools' },
+  { cls: 'C2', atomic: '4000', usd: '$0.004', detail: 'Standard analysis tools' },
   { cls: 'C3', atomic: '20000', usd: '$0.02', detail: 'Pre-trade safety check' },
   { cls: 'C4', atomic: '40000', usd: '$0.04', detail: 'Heaviest composite tools' },
 ];
