@@ -9,7 +9,9 @@
  *
  * Classes (cost = supplier cost + value to the calling agent):
  *   C1 (0.5cr)  — foundational, cached data (prices, listings, reports)
- *   C2 (2cr)    — deep aggregation / analysis
+ *   C2 (1cr)    — deep aggregation / analysis (halved from 2cr in the
+ *                 2026-11-03 pricing review; see
+ *                 docs/research/2026-11-03-first-pricing-review.md)
  *   C3 (5cr)    — agent gating (pre-trade, oracle-watch)
  *   C4 (10cr)   — attested proofs & receipts (RPC read + KMS signing)
  */
@@ -19,7 +21,7 @@ export type MeteringClass = 'C1' | 'C2' | 'C3' | 'C4';
 /** Credits charged per call for each metering class. */
 export const CREDIT_COST: Record<MeteringClass, number> = {
   C1: 0.5,
-  C2: 2,
+  C2: 1,
   C3: 5,
   C4: 10,
 };
@@ -65,7 +67,7 @@ export const METERING_CLASS_CALL_LABEL: Record<MeteringClass, string> = {
 /**
  * Translate a credit allowance into "≈N <class label>" examples, e.g.
  * `creditAllowanceExamples(25_000, ['C2', 'C3'])` →
- * "≈12,500 deep-analysis calls or ≈5,000 pre-trade checks".
+ * "≈25,000 deep-analysis calls or ≈5,000 pre-trade checks".
  */
 export function creditAllowanceExamples(
   credits: number,

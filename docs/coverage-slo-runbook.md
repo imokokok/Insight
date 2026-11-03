@@ -6,7 +6,7 @@ Design and rationale: [coverage-slo-design.md](./coverage-slo-design.md).
 
 - `GET /api/v1/coverage/policy`: discovery of current policy bytes and content ID.
 - `GET /api/v1/coverage/assessment?asset=USDC&chainId=1&policyId=...`:
-  authenticated, existing coverage C2 metering (2 credits), no-store live report.
+  authenticated, existing coverage C2 metering (1 credit), no-store live report.
   Coverage does not replace pre-trade safety or principal authorization.
 - `GET /api/v1/coverage/slo?hours=24` (also 168, 672): authenticated read-only
   fixed-slot statistics, existing coverage C2 metering. Storage failure is an
