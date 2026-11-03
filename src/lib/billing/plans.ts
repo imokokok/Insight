@@ -34,8 +34,8 @@
  * cadence: polling faster than 15 minutes yields no fresher snapshot data, so
  * clients should cache on their side.
  *
- * Pricing model (2026-10):
- *   - x402 remains the public per-call list price: C1 $0.002, C2 $0.008,
+ * Pricing model (2026-10, C2 halved in the 2026-11-03 pricing review):
+ *   - x402 remains the public per-call list price: C1 $0.002, C2 $0.004,
  *     C3 $0.02, C4 $0.04 (1 credit = $0.004).
  *   - The annual commitment carries the discount. Measured against the x402
  *     list price, annual plans land 12.5%–19.8% below and monthly plans
